@@ -6,7 +6,8 @@
       ],
       "scrittura": [
         "gestore",
-        "referente_servizio"
+        "referente_servizio",
+        "utente_organizzazione"
       ]
     },
     "domini": {
@@ -26,7 +27,8 @@
       ],
       "scrittura": [
         "gestore", 
-        "referente_servizio"
+        "referente_servizio",
+        "utente_organizzazione"
       ]
     },
     "soggetti": {
@@ -46,7 +48,8 @@
       ],
       "scrittura": [
         "gestore", 
-        "referente_servizio"
+        "referente_servizio",
+        "utente_organizzazione"
       ]
     },
     "utenti": {
@@ -66,7 +69,8 @@
       ],
       "scrittura": [
         "gestore", 
-        "referente_servizio"
+        "referente_servizio",
+        "utente_organizzazione"
       ]
     }
   },

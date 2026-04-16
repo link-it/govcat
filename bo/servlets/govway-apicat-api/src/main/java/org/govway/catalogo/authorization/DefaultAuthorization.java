@@ -107,9 +107,8 @@ public abstract class DefaultAuthorization<CREATE,UPDATE,ENTITY> implements IAut
 		
 	}
 	
-	// TODO [MULTI-ORG] Il mapping Ruolo interno → RuoloUtenteEnum API dovrà considerare
-	// i nuovi ruoli per-organizzazione. Quando la spec OpenAPI sarà aggiornata,
-	// REFERENTE_SERVIZIO nell'API diventerà UTENTE_ORGANIZZAZIONE.
+	// TODO [MULTI-ORG] Valutare se i ruoli per-organizzazione devono influenzare
+	// l'autorizzazione sulle entità di amministrazione.
 	private void authorizeContains(List<RuoloUtenteEnum> scrittura, Ruolo ruolo) {
 		//check che scrittura contenga il ruolo, attenzione alla conversione tra tipi
 		if (scrittura == null || ruolo == null) {
@@ -122,7 +121,7 @@ public abstract class DefaultAuthorization<CREATE,UPDATE,ENTITY> implements IAut
 				break;
 			case COORDINATORE: ruoloUtenteEnum = RuoloUtenteEnum.COORDINATORE;
 				break;
-			case RUOLO_ORGANIZZAZIONE: ruoloUtenteEnum = RuoloUtenteEnum.REFERENTE_SERVIZIO;
+			case RUOLO_ORGANIZZAZIONE: ruoloUtenteEnum = RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE;
 				break;
 			default:
 				break;}

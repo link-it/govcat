@@ -8637,6 +8637,7 @@ components:
       type: "string"
       enum:
         - referente_servizio
+        - utente_organizzazione
         - gestore
         - coordinatore
     RuoloUtenteEnumSearch:
@@ -8644,8 +8645,35 @@ components:
       enum:
         - nessun_ruolo
         - referente_servizio
+        - utente_organizzazione
         - gestore
         - coordinatore
+    RuoloOrganizzazioneEnum:
+      type: "string"
+      description: "Ruolo dell'utente all'interno di un'organizzazione. Se assente, l'utente ha accesso in sola lettura."
+      enum:
+        - amministratore_organizzazione
+        - operatore_api
+    UtenteOrganizzazione:
+      type: "object"
+      description: "Associazione utente-organizzazione con ruolo per-organizzazione"
+      required:
+        - organizzazione
+      properties:
+        organizzazione:
+          $ref: "#/components/schemas/ItemOrganizzazione"
+        ruolo_organizzazione:
+          $ref: "#/components/schemas/RuoloOrganizzazioneEnum"
+    UtenteOrganizzazioneCreate:
+      type: "object"
+      description: "Dati per creare o aggiornare un'associazione utente-organizzazione"
+      required:
+        - id_organizzazione
+      properties:
+        id_organizzazione:
+          $ref: "#/components/schemas/IdOrganizzazione"
+        ruolo_organizzazione:
+          $ref: "#/components/schemas/RuoloOrganizzazioneEnum"
     UtenteCreate:
       type: "object"
       required:
@@ -8684,6 +8712,13 @@ components:
           type: 'boolean'
         id_organizzazione:
           $ref: "#/components/schemas/IdOrganizzazione"
+          description: "Alias retrocompatibile per l'organizzazione singola. Usare 'organizzazioni' per il supporto multi-organizzazione."
+        organizzazioni:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/UtenteOrganizzazioneCreate"
+        organizzazione_esterna:
+          $ref: "#/components/schemas/String255"
         classi_utente:
           type: "array"
           items:
@@ -8728,6 +8763,13 @@ components:
           type: 'boolean'
         id_organizzazione:
           $ref: "#/components/schemas/IdOrganizzazione"
+          description: "Alias retrocompatibile per l'organizzazione singola. Usare 'organizzazioni' per il supporto multi-organizzazione."
+        organizzazioni:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/UtenteOrganizzazioneCreate"
+        organizzazione_esterna:
+          $ref: "#/components/schemas/String255"
         classi_utente:
           type: "array"
           items:
@@ -8892,8 +8934,15 @@ components:
           type: 'boolean'
         organizzazione:
           $ref: "#/components/schemas/ItemOrganizzazione"
+          description: "Organizzazione attiva di sessione (retrocompatibilità). Usare 'organizzazioni' per la lista completa."
         organizzazione_pending:
           $ref: "#/components/schemas/ItemOrganizzazione"
+        organizzazioni:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/UtenteOrganizzazione"
+        organizzazione_esterna:
+          $ref: "#/components/schemas/String255"
         classi_utente:
           type: "array"
           items:
