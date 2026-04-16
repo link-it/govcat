@@ -40,6 +40,8 @@ interface StepBarItem {
   isReal: boolean;
 }
 
+export type StepBarVariant = 'circles' | 'chevron';
+
 /**
  * Componente step-bar a tappe per visualizzare l'avanzamento di un'adesione,
  * guidato dalla configurazione `adesione.step_wizard`.
@@ -77,6 +79,12 @@ export class AdesioneStepBarComponent implements OnChanges {
    * sul cerchio reale e dal bordo tratteggiato sullo step in anteprima.
    */
   @Input() showStateBadges: boolean = false;
+  /**
+   * Variante grafica della step-bar:
+   * - 'circles': visualizzazione classica con cerchi e connettori (default)
+   * - 'chevron': blocchi orizzontali a freccia/chevron
+   */
+  @Input() variant: StepBarVariant = 'chevron';
 
   @Output() stepClick = new EventEmitter<string>();
 

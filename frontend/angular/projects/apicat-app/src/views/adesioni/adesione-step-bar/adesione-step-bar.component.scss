@@ -195,3 +195,197 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     }
   }
 }
+
+// ── Variante CHEVRON ────────────────────────────────────────────────────
+
+$chevron-arrow-width: 14px;
+
+.step-bar-chevron {
+  display: flex;
+  width: 100%;
+  padding: 1rem 0;
+
+  .chevron-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1 1 0;
+    min-width: 0;
+    height: 4rem;
+    padding: 0.5rem 1rem 0.5rem calc(#{$chevron-arrow-width} + 0.75rem);
+    background-color: var(--bs-gray-200, #e9ecef);
+    color: var(--bs-gray-700, #495057);
+    transition: background-color 0.2s ease, color 0.2s ease;
+    clip-path: polygon(
+      0 0,
+      calc(100% - #{$chevron-arrow-width}) 0,
+      100% 50%,
+      calc(100% - #{$chevron-arrow-width}) 100%,
+      0 100%,
+      #{$chevron-arrow-width} 50%
+    );
+
+    &.first {
+      border-radius: 0.375rem 0 0 0.375rem;
+      clip-path: polygon(
+        0 0,
+        calc(100% - #{$chevron-arrow-width}) 0,
+        100% 50%,
+        calc(100% - #{$chevron-arrow-width}) 100%,
+        0 100%
+      );
+      padding-left: 1rem;
+    }
+
+    &.last {
+      border-radius: 0 0.375rem 0.375rem 0;
+      clip-path: polygon(
+        0 0,
+        100% 0,
+        100% 100%,
+        0 100%,
+        #{$chevron-arrow-width} 50%
+      );
+    }
+
+    &.first.last {
+      clip-path: none;
+      border-radius: 0.375rem;
+    }
+
+    // ── Stati ───────────────────────────────────────────────────────
+
+    // Completato: blu pieno
+    &.completed {
+      background-color: var(--bs-primary, #0d6efd);
+
+      .chevron-step-number {
+        color: #fff;
+      }
+
+      .chevron-label {
+        color: rgba(255, 255, 255, 0.8);
+      }
+    }
+
+    // Corrente (step reale, non ultimato): sfondo blu chiaro, nettamente
+    // diverso sia dal blu pieno (completed) che dal grigio (pending).
+    &.current {
+      background-color: rgba(var(--bs-primary-rgb, 13, 110, 253), 0.15);
+
+      .chevron-step-number {
+        color: var(--bs-primary, #0d6efd);
+      }
+
+      .chevron-label {
+        color: var(--bs-gray-700, #495057);
+      }
+    }
+
+    // Anteprima: l'utente sta navigando uno step precedente a quello reale.
+    // Sfondo ciano chiaro per distinguerlo chiaramente dal current e dal completed.
+    &.is-preview {
+      background-color: rgba(var(--bs-info-rgb, 13, 202, 240), 0.15);
+
+      .chevron-step-number {
+        color: #0a8a9e;
+      }
+
+      .chevron-label {
+        color: var(--bs-gray-600, #6c757d);
+        font-style: italic;
+      }
+    }
+
+    // Step reale evidenziato quando l'utente naviga su un altro step:
+    // lo step reale non è più "current" (diventa pending/completed dal punto
+    // di vista del display) ma deve restare riconoscibile. Sfondo verde
+    // chiaro + pallino verde inline.
+    &.is-real-hidden {
+      background-color: rgba(var(--bs-success-rgb, 25, 135, 84), 0.12);
+
+      .chevron-step-number {
+        color: var(--bs-success, #198754);
+      }
+
+      .chevron-label {
+        color: var(--bs-gray-700, #495057);
+      }
+    }
+
+    // Pending: grigio chiaro
+    &.pending:not(.is-real-hidden) {
+      background-color: var(--bs-gray-200, #e9ecef);
+
+      .chevron-step-number {
+        color: var(--bs-gray-700, #495057);
+      }
+
+      .chevron-label {
+        color: var(--bs-gray-500, #adb5bd);
+      }
+    }
+
+    // ── Interattività ───────────────────────────────────────────────
+    &.clickable {
+      cursor: pointer;
+
+      &:hover {
+        filter: brightness(1.06);
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--bs-primary, #0d6efd);
+        outline-offset: 2px;
+        z-index: 1;
+      }
+
+      &:active {
+        filter: brightness(0.95);
+      }
+    }
+
+    // ── Contenuto ───────────────────────────────────────────────────
+    .chevron-content {
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+      min-width: 0;
+    }
+
+    .chevron-step-number {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      line-height: 1.3;
+      white-space: nowrap;
+    }
+
+    .chevron-real-dot {
+      display: inline-block;
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 50%;
+      background-color: var(--bs-success, #198754);
+      box-shadow: 0 0 0 2px rgba(25, 135, 84, 0.25);
+      flex-shrink: 0;
+    }
+
+    .chevron-preview-badge {
+      font-weight: 400;
+      font-size: 0.65rem;
+      color: var(--bs-info, #0dcaf0);
+      opacity: 0.85;
+    }
+
+    .chevron-label {
+      font-size: 0.75rem;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}

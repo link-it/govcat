@@ -26,7 +26,8 @@
 				"Subject": "Subject",
 				"UsaClientEsistente": "Use existing client",
 				"WizardShowAllSections": "Show all sections (debug)",
-				"WizardShowStateBadges": "Show step badges (debug)"
+				"WizardShowStateBadges": "Show step badges (debug)",
+				"WizardChevronVariant": "Chevron step-bar (debug)"
 			},
 			"STEP_WIZARD": {
 				"adesione_creata": "Subscription Created",

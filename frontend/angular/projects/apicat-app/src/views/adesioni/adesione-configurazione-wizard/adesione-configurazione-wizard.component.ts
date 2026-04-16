@@ -39,7 +39,7 @@ import { ModalAddReferentComponent } from './modal-add-referent/modal-add-refere
 import { AdesioneListaClientsComponent } from './adesione-lista-clients/adesione-lista-clients.component';
 import { AdesioneListaErogazioniComponent } from './adesione-lista-erogazioni/adesione-lista-erogazioni.component';
 import { AdesioneFormComponent } from './adesione-form/adesione-form.component';
-import { AdesioneStepBarComponent, StepWizardItem } from '../adesione-step-bar/adesione-step-bar.component';
+import { AdesioneStepBarComponent, StepBarVariant, StepWizardItem } from '../adesione-step-bar/adesione-step-bar.component';
 
 import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/service-breadcrumbs.resolver';
 
@@ -254,6 +254,13 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
 
     toggleShowStateBadges(): void {
         this.showStateBadgesOverride = !this.showStateBadges;
+    }
+
+    /** Variante grafica della step-bar ('circles' | 'chevron'). */
+    stepBarVariant: StepBarVariant = 'chevron';
+
+    toggleStepBarVariant(): void {
+        this.stepBarVariant = this.stepBarVariant === 'circles' ? 'chevron' : 'circles';
     }
 
     // Disclaimer markdown caricati dall'API `/adesioni/{id}/disclaimers`

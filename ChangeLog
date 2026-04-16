@@ -48,6 +48,14 @@
 	  introdotto un master flag frontend `wizard_debug_switches` in
 	  adesioni-config.json che abilita/disabilita entrambi gli switch
 	  (quando false gli switch non vengono renderizzati).
+	  Aggiunta variante grafica "chevron" alla step-bar: blocchi
+	  orizzontali a freccia con titolo "Step X" e sottotitolo descrittivo.
+	  Gli stati sono differenziati per colore di sfondo (blu pieno per
+	  completato, blu chiaro per corrente, ciano chiaro per anteprima,
+	  verde chiaro con pallino per lo step reale durante la navigazione,
+	  grigio per pending). La variante è selezionabile a runtime tramite
+	  switch di debug ed è impostata come default. Supporta la proprietà
+	  `variant` con valori 'circles' (classica) e 'chevron'.
 
 2026-04-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
