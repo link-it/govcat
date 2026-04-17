@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.govway.catalogo</groupId>
 	<artifactId>govcat</artifactId>
-	<version>2.3.6.p1</version>
+	<version>2.3.6.p2</version>
 	<packaging>pom</packaging>
 	<name>govcat</name>
 	<description>progetto govcat</description>
@@ -1269,6 +1269,8 @@
 								${owasp.dir}/suppression/CVE-2020-29582.xml</suppressionFile>
 							<suppressionFile>
 								${owasp.dir}/suppression/CVE-2026-23907.xml</suppressionFile>
+							<suppressionFile>
+								${owasp.dir}/suppression/CVE-2026-22732.xml</suppressionFile>
 							</suppressionFiles>
 							<nvdApiDelay>120000</nvdApiDelay><!-- 2 minuti -->
 							<nvdMaxRetryCount>3</nvdMaxRetryCount> <!-- 3 max

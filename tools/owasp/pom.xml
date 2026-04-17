@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.govway.catalogo</groupId>
 		<artifactId>tools</artifactId>
-		<version>2.3.6.p1</version>
+		<version>2.3.6.p2</version>
 	</parent>
 	<artifactId>owasp</artifactId>
 

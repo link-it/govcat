@@ -35,6 +35,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class YamltoJsonUtils {
 
+	private static int maxAliasesForCollections = 500;
+	private static int nestingDepthLimit = 50;
+
+	public static void setMaxAliasesForCollections(int value) {
+		maxAliasesForCollections = value;
+	}
+
+	public static void setNestingDepthLimit(int value) {
+		nestingDepthLimit = value;
+	}
+
 	public static byte[] convertYamlToJson(byte[] inputBytes) throws IOException {
 		boolean isJson = isJsonFormat(inputBytes);
 		if (isJson) {
@@ -50,7 +61,9 @@ public class YamltoJsonUtils {
 
 	private static void convertYamlToJson(InputStream yamlInput, OutputStream jsonOutput) throws IOException {
 		LoaderOptions options = new LoaderOptions();
-		options.setCodePointLimit(Integer.MAX_VALUE); // Disabilita il limite
+		options.setCodePointLimit(Integer.MAX_VALUE);
+		options.setMaxAliasesForCollections(maxAliasesForCollections);
+		options.setNestingDepthLimit(nestingDepthLimit);
 
 		Yaml yaml = new Yaml(options);
 		Iterator<Object> docs = yaml.loadAll(yamlInput).iterator();

@@ -1,0 +1,18 @@
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+   <suppress>
+      <notes><![CDATA[
+      file name: swagger-ui-bundle.js, swagger-ui-es-bundle.js (swagger-ui-dist 5.32.4)
+      DOMPurify 3.3.2 è embeddato (minificato) all'interno dei bundle swagger-ui-bundle.js e
+      swagger-ui-es-bundle.js distribuiti da swagger-ui-dist. Non è risolvibile tramite
+      override npm poiché la libreria è inclusa direttamente nel bundle pre-compilato.
+      Nelle dipendenze dirette DOMPurify è stato già aggiornato a 3.4.0 (override per mermaid)
+      e swagger-ui-dist è già alla versione più recente disponibile (5.32.4).
+      La vulnerabilità (CVSS 6.9) riguarda una logic inconsistency tra FORBID_TAGS e
+      ADD_TAGS come funzione (EXTRA_ELEMENT_HANDLING.tagCheck); non sfruttabile nel nostro
+      uso di swagger-ui (rendering OpenAPI read-only, senza configurazione custom di DOMPurify).
+      Soppressione da rivalutare ad ogni upgrade di swagger-ui-dist.
+      ]]></notes>
+      <filePath regex="true">.*swagger-ui-(es-)?bundle\.js$</filePath>
+      <packageUrl regex="true">^pkg:javascript/DOMPurify@3\.3\.2$</packageUrl>
+   </suppress>
+</suppressions>

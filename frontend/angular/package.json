@@ -1,6 +1,6 @@
 {
   "name": "apicat-workspace",
-  "version": "2.3.6.p1",
+  "version": "2.3.6.p2",
   "scripts": {
     "ng": "ng",
     "start-apicat": "ng serve apicat-app --port 6200",
@@ -86,7 +86,7 @@
     "ngx-toastr": "^20.0.5",
     "placeholder-loading": "^0.7.0",
     "rxjs": "^7.8.2",
-    "swagger-ui-dist": "^5.32.1",
+    "swagger-ui-dist": "^5.32.4",
     "tslib": "^2.3.0",
     "vite": "^6.4.2",
     "xml-viewer-component": "^0.4.2",
@@ -122,7 +122,7 @@
   "overrides": {
     "autoprefixer": "10.4.5",
     "memfs": "4.17.0",
-    "dompurify": "3.3.3",
+    "dompurify": "3.4.0",
     "picomatch": "4.0.4",
     "lodash-es": "4.18.1",
     "@angular/build": {
