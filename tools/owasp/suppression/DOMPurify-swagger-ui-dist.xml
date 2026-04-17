@@ -10,12 +10,14 @@
       La vulnerabilità (CVSS 6.9) riguarda una logic inconsistency tra FORBID_TAGS e
       ADD_TAGS come funzione (EXTRA_ELEMENT_HANDLING.tagCheck); non sfruttabile nel nostro
       uso di swagger-ui (rendering OpenAPI read-only, senza configurazione custom di DOMPurify).
-      La suppression matcha tutte le vulnerabilità riportate esclusivamente sui due bundle
-      pre-compilati di swagger-ui-dist. Eventuali vulnerabilità future su queste stesse
-      dipendenze risulterebbero comunque coperte finché l'utilizzo interno resta read-only:
-      da rivalutare ad ogni upgrade di swagger-ui-dist.
+      Nota tecnica sul pattern: il vulnerabilityName riportato da RetireJS per vulnerabilità
+      senza CVE è la description completa (multi-riga), quindi il regex richiede il flag (?s)
+      per matchare attraverso i newline. L'ancoraggio su "FORBID_TAGS" identifica univocamente
+      questa specifica vulnerabilità; cvssBelow non funzionerebbe perché RetireJS non popola
+      un CVSS numerico (solo la severità testuale).
+      Da rivalutare ad ogni upgrade di swagger-ui-dist.
       ]]></notes>
-      <filePath regex="true">.*swagger-ui-(es-)?bundle\.js$</filePath>
-      <vulnerabilityName regex="true">.*</vulnerabilityName>
+      <filePath regex="true">.*swagger-ui-(es-)?bundle\.js.*</filePath>
+      <vulnerabilityName regex="true">(?s).*FORBID_TAGS.*</vulnerabilityName>
    </suppress>
 </suppressions>
