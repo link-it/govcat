@@ -14,6 +14,10 @@
 	  permettendo al container di restringersi e ai badge inline di
 	  andare a capo. Aggiunto `text-align: right` per allineare i
 	  badge a destra.
+	Aggiornate dipendenze per vulnerabilità DOMPurify (CVE CVSS 6.9):
+	  dompurify override 3.3.3 → 3.4.0, swagger-ui-dist 5.32.1 → 5.32.4.
+	  Rimossa opzione `ignoreDeprecations` da tsconfig.json (non più
+	  necessaria con TypeScript 5.9).
 
 2026-04-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
