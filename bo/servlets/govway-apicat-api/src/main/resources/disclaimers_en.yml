@@ -1,14 +1,24 @@
 # Disclaimers for subscriptions - Language: English
 #
 # Hierarchical keys with dot-notation: state.profile_codice_interno.domain_name
-# Resolution order from most specific to least specific:
-#   1. {state}.{codice_interno}.{domain}  (most specific)
-#   2. {state}.{codice_interno}
-#   3. {state}
-#   4. default                            (fallback)
+# Optionally you can append a ".collaudo" or ".produzione" suffix to specify the
+# context (otherwise the context is "generale").
 #
-# Values are normalized to lowercase.
+# Resolution order from most specific to least specific. For each level both the
+# base key and the variants with ".collaudo" and ".produzione" suffix are tried:
+#   1. {state}.{codice_interno}.{domain}[.{ambiente}]  (most specific)
+#   2. {state}.{codice_interno}[.{ambiente}]
+#   3. {state}[.{ambiente}]
+#   4. default                                         (fallback)
+#
+# State, profile and domain values are normalized to lowercase.
 # Content is in Markdown format.
+#
+# VALUE FORMATS:
+#   - Plain string         -> default severity = INFO
+#   - Object { severity, testo } -> explicit severity
+#
+# SEVERITY: INFO | WARNING | ERROR
 #
 # If the domain name contains spaces, enclose the key in quotes:
 #   "draft.pdnd.domain with spaces": |
@@ -18,17 +28,44 @@
 #   /var/govcat/conf/disclaimers_en.yml
 #
 
+# General fallback (plain string -> severity INFO)
 default: |
   By proceeding with this subscription, the organization accepts the terms and conditions of the service.
 
-# Example: disclaimer for PDND profile on the PDND domain
+# Example plain string: default severity INFO, context GENERALE
 bozza.pdnd.pdnd: |
   ## PDND subscription draft
   This subscription uses the **PDND** profile. Before proceeding, make sure you have
   completed the registration on the PDND platform and have an active e-service.
 
+# Example structured value: explicit severity, context GENERALE
+bozza.modi_p2:
+  severity: WARNING
+  testo: |
+    ## ModI P2 profile
+    The **ModI P2** profile requires message signing. Make sure you have a valid
+    signing certificate configured.
+
+# Example with .collaudo suffix: context COLLAUDO
+pubblicato_collaudo.pdnd.pdnd.collaudo:
+  severity: INFO
+  testo: |
+    ## PDND test environment
+    The subscription is published in **test**. Validate the integration on the
+    PDND test environment before requesting the production transition.
+
+# Example with .produzione suffix: context PRODUZIONE, severity ERROR
+pubblicato_produzione.pdnd.pdnd.produzione:
+  severity: ERROR
+  testo: |
+    ## Warning: PDND production
+    The subscription is in **production** on the PDND platform. Any change to the
+    client configuration may impact end users.
+
 # Example: key with spaces in the domain name (enclosed in quotes)
-"bozza.interno_https.dominio di test": |
-  ## mTLS subscription draft
-  This subscription uses the **mTLS** profile on the **Dominio di Test** domain.
-  Please verify that you have a valid client certificate before proceeding.
+"bozza.interno_https.dominio di test":
+  severity: WARNING
+  testo: |
+    ## mTLS subscription draft
+    This subscription uses the **mTLS** profile on the **Dominio di Test** domain.
+    Please verify that you have a valid client certificate before proceeding.

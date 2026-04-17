@@ -1,14 +1,24 @@
 # Disclaimer per le adesioni - Lingua: Italiano
 #
 # Chiavi gerarchiche con dot-notation: stato.codice_interno_profilo.nome_dominio
-# La risoluzione avviene dal piu' specifico al meno specifico:
-#   1. {stato}.{codice_interno}.{dominio}  (piu' specifico)
-#   2. {stato}.{codice_interno}
-#   3. {stato}
-#   4. default                             (fallback)
+# Opzionalmente si puo' aggiungere un suffisso ".collaudo" o ".produzione" per
+# il contesto specifico (altrimenti il contesto e' "generale").
 #
-# I valori sono normalizzati in lowercase.
+# La risoluzione avviene dal piu' specifico al meno specifico. Per ogni livello
+# vengono cercate anche le varianti con suffisso ".collaudo" e ".produzione":
+#   1. {stato}.{codice_interno}.{dominio}[.{ambiente}]  (piu' specifico)
+#   2. {stato}.{codice_interno}[.{ambiente}]
+#   3. {stato}[.{ambiente}]
+#   4. default                                          (fallback)
+#
+# I valori di stato, profilo e dominio sono normalizzati in lowercase.
 # Il contenuto e' in formato Markdown.
+#
+# FORMATI DEL VALORE:
+#   - Stringa semplice  -> severity di default = INFO
+#   - Oggetto { severity, testo } -> severity esplicita
+#
+# SEVERITY: INFO | WARNING | ERROR
 #
 # Se il nome del dominio contiene spazi, racchiudere la chiave tra virgolette:
 #   "bozza.pdnd.dominio con spazi": |
@@ -18,17 +28,44 @@
 #   /var/govcat/conf/disclaimers_it.yml
 #
 
+# Fallback generale (stringa semplice -> severity INFO)
 default: |
   Procedendo con l'adesione, l'ente accetta i termini e le condizioni del servizio.
 
-# Esempio: disclaimer specifico per profilo PDND sul dominio PDND
+# Esempio stringa semplice: severity INFO di default, contesto GENERALE
 bozza.pdnd.pdnd: |
   ## Adesione PDND in bozza
   L'adesione utilizza il profilo **PDND**. Prima di procedere, assicurarsi di aver
   completato la registrazione sulla piattaforma PDND e di disporre di un e-service attivo.
 
+# Esempio valore strutturato: severity esplicita, contesto GENERALE
+bozza.modi_p2:
+  severity: WARNING
+  testo: |
+    ## Profilo ModI P2
+    Il profilo **ModI P2** richiede la firma del messaggio. Assicurarsi di avere
+    un certificato di firma valido configurato.
+
+# Esempio con suffisso .collaudo: contesto COLLAUDO
+pubblicato_collaudo.pdnd.pdnd.collaudo:
+  severity: INFO
+  testo: |
+    ## Collaudo PDND
+    L'adesione e' pubblicata in **collaudo**. Testare l'integrazione sull'ambiente
+    di test PDND prima di richiedere il passaggio in produzione.
+
+# Esempio con suffisso .produzione: contesto PRODUZIONE, severity ERROR
+pubblicato_produzione.pdnd.pdnd.produzione:
+  severity: ERROR
+  testo: |
+    ## Attenzione: Produzione PDND
+    L'adesione e' in **produzione** sul circuito PDND. Qualsiasi modifica alla
+    configurazione del client puo' avere impatti sugli utenti finali.
+
 # Esempio: chiave con spazi nel nome del dominio (racchiusa tra virgolette)
-"bozza.interno_https.dominio di test": |
-  ## Adesione mTLS in bozza
-  Questa adesione utilizza il profilo **mTLS** sul dominio **Dominio di Test**.
-  Verificare di avere un certificato client valido prima di procedere.
+"bozza.interno_https.dominio di test":
+  severity: WARNING
+  testo: |
+    ## Adesione mTLS in bozza
+    Questa adesione utilizza il profilo **mTLS** sul dominio **Dominio di Test**.
+    Verificare di avere un certificato client valido prima di procedere.

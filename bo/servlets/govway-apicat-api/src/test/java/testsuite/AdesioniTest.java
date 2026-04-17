@@ -65,6 +65,9 @@ import org.govway.catalogo.servlets.model.APIDatiErogazione;
 import org.govway.catalogo.servlets.model.Adesione;
 import org.govway.catalogo.servlets.model.AdesioneClientUpdate;
 import org.govway.catalogo.servlets.model.AdesioneCreate;
+import org.govway.catalogo.servlets.model.AdesioneDisclaimer;
+import org.govway.catalogo.servlets.model.DisclaimerContestoEnum;
+import org.govway.catalogo.servlets.model.DisclaimerSeverityEnum;
 import org.govway.catalogo.servlets.model.AdesioneErogazioneUpdate;
 import org.govway.catalogo.servlets.model.AdesioneIdClient;
 import org.govway.catalogo.servlets.model.AdesioneUpdate;
@@ -6224,12 +6227,157 @@ public class AdesioniTest {
     			null, null, null,
     			ids, null,
     			0, 10, null);
-    	
+
         // Assert
     	assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         //assertEquals("richiesto_collaudo", response.getBody().getStato());
         */
     }
-     
+
+    // =========================================================================
+    // TEST getDisclaimersAdesione
+    // =========================================================================
+
+    @Test
+    void testGetDisclaimersAdesioneSuccessIt() {
+        // Setup: crea un'adesione valida
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+        Adesione adesione = this.getAdesione();
+
+        // Act
+        ResponseEntity<List<AdesioneDisclaimer>> response = adesioniController.getDisclaimersAdesione(adesione.getIdAdesione(), "it");
+
+        // Assert: l'endpoint non fallisce mai e restituisce almeno un disclaimer (fallback o match)
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isEmpty(), "Deve sempre esserci almeno un disclaimer");
+
+        // Verifica struttura degli oggetti restituiti
+        for (AdesioneDisclaimer d : response.getBody()) {
+            assertNotNull(d.getDisclaimer(), "Il campo 'disclaimer' non deve essere null");
+            assertFalse(d.getDisclaimer().isBlank(), "Il testo del disclaimer non deve essere vuoto");
+            assertNotNull(d.getContesto(), "Il campo 'contesto' non deve essere null");
+            assertNotNull(d.getSeverity(), "Il campo 'severity' non deve essere null");
+        }
+    }
+
+    @Test
+    void testGetDisclaimersAdesioneSuccessEn() {
+        // Setup
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+        Adesione adesione = this.getAdesione();
+
+        // Act: richiesta in inglese
+        ResponseEntity<List<AdesioneDisclaimer>> response = adesioniController.getDisclaimersAdesione(adesione.getIdAdesione(), "en");
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isEmpty());
+    }
+
+    @Test
+    void testGetDisclaimersAdesioneFallbackLinguaNull() {
+        // Setup
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+        Adesione adesione = this.getAdesione();
+
+        // Act: language_code null -> il service fa fallback a "it"
+        ResponseEntity<List<AdesioneDisclaimer>> response = adesioniController.getDisclaimersAdesione(adesione.getIdAdesione(), null);
+
+        // Assert: risposta valida anche senza lingua specificata
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isEmpty());
+    }
+
+    @Test
+    void testGetDisclaimersAdesioneLinguaSconosciuta() {
+        // Setup
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+        Adesione adesione = this.getAdesione();
+
+        // Act: lingua non supportata -> fallback a "it"
+        ResponseEntity<List<AdesioneDisclaimer>> response = adesioniController.getDisclaimersAdesione(adesione.getIdAdesione(), "fr");
+
+        // Assert: non deve fallire
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isEmpty());
+    }
+
+    @Test
+    void testGetDisclaimersAdesioneNotFound() {
+        // Setup: ambiente base ma non creo nessuna adesione
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+
+        UUID randomId = UUID.randomUUID();
+
+        // Act & Assert: id_adesione inesistente -> 404
+        assertThrows(NotFoundException.class,
+                () -> adesioniController.getDisclaimersAdesione(randomId, "it"));
+    }
+
+    @Test
+    void testGetDisclaimersAdesioneUnauthorized() {
+        // Setup
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+        Adesione adesione = this.getAdesione();
+
+        // Cambio utente per testare unauthorized
+        CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
+
+        // Act & Assert
+        assertThrows(NotAuthorizedException.class,
+                () -> adesioniController.getDisclaimersAdesione(adesione.getIdAdesione(), "it"));
+    }
+
+    @Test
+    void testGetDisclaimersAdesioneContestoESeverityValidi() {
+        // Setup
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+        Adesione adesione = this.getAdesione();
+
+        // Act
+        ResponseEntity<List<AdesioneDisclaimer>> response = adesioniController.getDisclaimersAdesione(adesione.getIdAdesione(), "it");
+
+        // Assert: contesto e severity devono essere tra i valori dell'enum
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        for (AdesioneDisclaimer d : response.getBody()) {
+            assertTrue(
+                    d.getContesto() == DisclaimerContestoEnum.GENERALE ||
+                    d.getContesto() == DisclaimerContestoEnum.COLLAUDO ||
+                    d.getContesto() == DisclaimerContestoEnum.PRODUZIONE,
+                    "Contesto deve essere uno dei valori enum");
+            assertTrue(
+                    d.getSeverity() == DisclaimerSeverityEnum.INFO ||
+                    d.getSeverity() == DisclaimerSeverityEnum.WARNING ||
+                    d.getSeverity() == DisclaimerSeverityEnum.ERROR,
+                    "Severity deve essere uno dei valori enum");
+        }
+    }
+
 }

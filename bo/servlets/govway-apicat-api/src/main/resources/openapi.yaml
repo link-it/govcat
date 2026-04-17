@@ -4272,7 +4272,7 @@ paths:
               schema:
                 type: "array"
                 items:
-                  type: "string"
+                  $ref: "#/components/schemas/AdesioneDisclaimer"
         "401":
           $ref: "#/components/responses/401Unauthorized"
         "403":
@@ -10082,6 +10082,32 @@ components:
       properties:
         api:
           $ref: "#/components/schemas/ItemApi"
+    DisclaimerContestoEnum:
+      type: "string"
+      enum:
+        - "generale"
+        - "collaudo"
+        - "produzione"
+    DisclaimerSeverityEnum:
+      type: "string"
+      enum:
+        - "INFO"
+        - "WARNING"
+        - "ERROR"
+    AdesioneDisclaimer:
+      type: "object"
+      required:
+        - "disclaimer"
+        - "contesto"
+        - "severity"
+      properties:
+        disclaimer:
+          type: "string"
+          description: "Testo del disclaimer in formato Markdown"
+        contesto:
+          $ref: "#/components/schemas/DisclaimerContestoEnum"
+        severity:
+          $ref: "#/components/schemas/DisclaimerSeverityEnum"
     AdesioneCreate:
       type: object
       required:
