@@ -681,8 +681,10 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
             if (required) { _validators.push(Validators.required); }
             if (item.regular_expression) { _validators.push(Validators.pattern(item.regular_expression)); }
   
-            this.proprietaCustom.addControl(item[this.fieldToGroup], this.formBuilder.group({}));
-  
+            if (!this.proprietaCustom.contains(item[this.fieldToGroup])) {
+              this.proprietaCustom.addControl(item[this.fieldToGroup], this.formBuilder.group({}));
+            }
+
             const _gruppo = this.servizioApi?.proprieta_custom?.find((pc: any) => {
               return (pc.gruppo === item.nome_gruppo);
             });
@@ -778,7 +780,10 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
       if (hasOriginalCustomProps) {
         this.servizioApi!.proprieta_custom!.forEach((originalGroup: any) => {
           if (!result.some(r => r.gruppo === originalGroup.gruppo)) {
-            result.push({ gruppo: originalGroup.gruppo, proprieta: [] });
+            result.push({
+              gruppo: originalGroup.gruppo,
+              proprieta: originalGroup.proprieta || []
+            });
           }
         });
       }
