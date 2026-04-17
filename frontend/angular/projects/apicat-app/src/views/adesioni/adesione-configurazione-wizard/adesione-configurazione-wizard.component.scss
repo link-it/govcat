@@ -91,3 +91,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     }
   }
 }
+
+.button-delete-wrapper {
+  position: absolute;
+  right: 1rem;
+  z-index: 10000;
+}
