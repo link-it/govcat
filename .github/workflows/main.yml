@@ -160,7 +160,7 @@ jobs:
             --failOnCVSS 0
             --nodeAuditSkipDevDependencies
             --nodePackageSkipDevDependencies
-            --suppression ${{ github.workspace }}/tools/owasp/suppression/DOMPurify-swagger-ui-dist.xml
+            --suppression tools/owasp/suppression/DOMPurify-swagger-ui-dist.xml
       - name: Upload HTML report artifact
         uses: actions/upload-artifact@v6
         with:
