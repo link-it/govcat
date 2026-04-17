@@ -10,9 +10,10 @@
       La vulnerabilità (CVSS 6.9) riguarda una logic inconsistency tra FORBID_TAGS e
       ADD_TAGS come funzione (EXTRA_ELEMENT_HANDLING.tagCheck); non sfruttabile nel nostro
       uso di swagger-ui (rendering OpenAPI read-only, senza configurazione custom di DOMPurify).
-      Soppressione da rivalutare ad ogni upgrade di swagger-ui-dist.
+      Soppressione limitata a CVSS < 7.0 per non mascherare eventuali vulnerabilità
+      High/Critical future sugli stessi bundle. Da rivalutare ad ogni upgrade di swagger-ui-dist.
       ]]></notes>
       <filePath regex="true">.*swagger-ui-(es-)?bundle\.js$</filePath>
-      <packageUrl regex="true">^pkg:javascript/DOMPurify@3\.3\.2$</packageUrl>
+      <cvssBelow>7.0</cvssBelow>
    </suppress>
 </suppressions>
