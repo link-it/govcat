@@ -1,3 +1,17 @@
+2026-04-17  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Risolto errore "Number of aliases for non-scalar nodes exceeds the
+	  specified max=50" durante il download/analisi di specifiche
+	  OpenAPI/Swagger contenenti molti anchor/alias YAML. Introdotti in
+	  YamltoJsonUtils i limiti SnakeYAML configurabili tramite properties
+	  openapi.yaml.max_aliases_for_collections (default 500) e
+	  openapi.yaml.nesting_depth_limit (default 50); valori iniettati via
+	  @PostConstruct in OpenAPI2SpringBoot. Esteso il pattern di
+	  pre-conversione YAML->JSON anche a SwaggerUtils, per evitare l'uso
+	  del SnakeYAML interno di OpenAPIV3Parser con limiti di default
+	  restrittivi.
+
 2026-04-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
