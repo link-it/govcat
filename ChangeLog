@@ -1,5 +1,9 @@
 2026-04-17  Giovanni De Luca <giovanni.deluca@link.it>
 
+	* Rilasciata versione 2.3.6.p2
+
+2026-04-17  Giovanni De Luca <giovanni.deluca@link.it>
+
 	* [GovwayAPICatalogo]
 	Risolto errore "Number of aliases for non-scalar nodes exceeds the
 	  specified max=50" durante il download/analisi di specifiche
