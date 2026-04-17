@@ -8,6 +8,12 @@
 	  perdita dei valori salvati. Corretto il payload della PUT: i
 	  gruppi non editati vengono ora preservati con i valori originali
 	  dalla risposta GET anziché inviati con `proprieta: []`.
+	Issue #263: fix badge custom properties che debordavano dal box
+	  nella vetrina servizi. Corretto il flex del container `.meta-info`
+	  nel componente item-row (`flex: 1 0 auto` → `flex: 1 1 auto`)
+	  permettendo al container di restringersi e ai badge inline di
+	  andare a capo. Aggiunto `text-align: right` per allineare i
+	  badge a destra.
 
 2026-04-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
