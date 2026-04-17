@@ -11,6 +11,15 @@
 	  pre-conversione YAML->JSON anche a SwaggerUtils, per evitare l'uso
 	  del SnakeYAML interno di OpenAPIV3Parser con limiti di default
 	  restrittivi.
+	OWASP: aggiunta suppression temporanea per CVE-2026-22732
+	  (spring-security 6.3.5), estesa a tutti i moduli
+	  spring-security-*. Da rimuovere con l'upgrade dello stack
+	  Spring.
+
+	* [Frontend]
+	OWASP: aggiunta suppression per DOMPurify 3.3.2 embeddato nei
+	  bundle di swagger-ui-dist (non risolvibile a monte), da
+	  rivalutare ad ogni upgrade di swagger-ui-dist.
 
 2026-04-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
