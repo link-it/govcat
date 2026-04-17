@@ -780,7 +780,10 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
       if (hasOriginalCustomProps) {
         this.servizioApi!.proprieta_custom!.forEach((originalGroup: any) => {
           if (!result.some(r => r.gruppo === originalGroup.gruppo)) {
-            result.push({ gruppo: originalGroup.gruppo, proprieta: [] });
+            result.push({
+              gruppo: originalGroup.gruppo,
+              proprieta: originalGroup.proprieta || []
+            });
           }
         });
       }
