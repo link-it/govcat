@@ -20,7 +20,10 @@
 package org.govway.catalogo.authorization;
 
 import org.govway.catalogo.InfoProfilo;
+import org.govway.catalogo.OrganizationContext;
 import org.govway.catalogo.RequestUtils;
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
+import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Ruolo;
 import org.govway.catalogo.exception.NotAuthorizedException;
@@ -32,9 +35,12 @@ public class CoreAuthorization {
 
 	@Autowired
 	private RequestUtils requestUtils;
-	
+
 	@Autowired
 	protected Configurazione configurazione;
+
+	@Autowired
+	private OrganizationContext organizationContext;
 	
 	public UtenteEntity getUtenteSessione() {
 		boolean consentiAnonimo = this.configurazione.getUtente().isConsentiAccessoAnonimo();
@@ -86,8 +92,10 @@ public class CoreAuthorization {
 		}
 	}
 
+	// TODO [MULTI-ORG] Rivedere i controlli di accesso: il check su isRuoloOrganizzazione()
+	// dovrà verificare il ruolo specifico dell'utente nel contesto dell'organizzazione di sessione.
 	public void requireReferenteTecnico() {
-		if(!isAdmin() && !isReferenteServizio() && !isReferenteTecnico()) {
+		if(!isAdmin() && !isRuoloOrganizzazione() && !isReferenteTecnico()) {
 			throw new NotAuthorizedException(ErrorCode.AUT_403);
 		}
 	}
@@ -101,13 +109,15 @@ public class CoreAuthorization {
 		return principal.utente.isReferenteTecnico();
 	}
 
-	private boolean isReferenteServizio() {
+	// TODO [MULTI-ORG] Rivedere questo metodo alla luce dei nuovi ruoli per-organizzazione.
+	// Attualmente verifica solo il ruolo globale; dovrà considerare il contesto organizzazione di sessione.
+	private boolean isRuoloOrganizzazione() {
 		InfoProfilo principal = this.requestUtils.getPrincipal(false);
 		if(principal == null || principal.utente == null) {
 			return false;
 		}
-		
-		return principal.utente.getRuolo() != null && principal.utente.getRuolo().equals(Ruolo.REFERENTE_SERVIZIO);
+
+		return principal.utente.getRuolo() != null && principal.utente.getRuolo().equals(Ruolo.RUOLO_ORGANIZZAZIONE);
 	}
 
 	public boolean isAnounymous() {
@@ -117,6 +127,33 @@ public class CoreAuthorization {
 
 	public boolean isWhiteListed() {
 		return this.requestUtils.isWhiteListed();
+	}
+
+	/**
+	 * @return il contesto organizzazione della richiesta corrente, può essere vuoto
+	 */
+	public OrganizationContext getOrganizationContext() {
+		return this.organizationContext;
+	}
+
+	/**
+	 * @return l'organizzazione attiva di sessione, o null se non impostata
+	 */
+	public OrganizzazioneEntity getOrganizzazioneSessione() {
+		if (this.organizationContext != null && this.organizationContext.hasOrganizzazione()) {
+			return this.organizationContext.getOrganizzazione();
+		}
+		return null;
+	}
+
+	/**
+	 * @return il ruolo dell'utente nell'organizzazione di sessione, o null se non impostata
+	 */
+	public RuoloOrganizzazione getRuoloOrganizzazioneSessione() {
+		if (this.organizationContext != null && this.organizationContext.hasOrganizzazione()) {
+			return this.organizationContext.getRuoloOrganizzazione();
+		}
+		return null;
 	}
 
 }

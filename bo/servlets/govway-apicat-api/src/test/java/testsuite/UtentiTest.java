@@ -1862,7 +1862,7 @@ public class UtentiTest {
         // Asserzioni
         assertNotNull(response.getBody());
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(RuoloUtenteEnum.REFERENTE_SERVIZIO, response.getBody().getRuolo());
+        assertEquals(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE, response.getBody().getRuolo());
         assertNotNull(response.getBody().getRuoliReferente());
         assertTrue(response.getBody().getRuoliReferente().contains(RuoloReferenteEnum.REFERENTE_DOMINIO));
     }
