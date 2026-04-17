@@ -33,7 +33,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.govway.catalogo.authorization.AdesioneAuthorization;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
+import org.govway.catalogo.servlets.model.AdesioneDisclaimer;
 import org.govway.catalogo.servlets.model.ClientRichiesto;
+import org.govway.catalogo.servlets.model.DisclaimerContestoEnum;
+import org.govway.catalogo.servlets.model.DisclaimerSeverityEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,23 +52,29 @@ import jakarta.annotation.PostConstruct;
  *
  * I disclaimer sono caricati da file YAML (disclaimers_{lingua}.yml) con supporto
  * per override da path esterno. La risoluzione avviene gerarchicamente per ciascun
- * profilo (codice_interno) dei client richiesti dall'adesione:
+ * profilo (codice_interno) dei client richiesti dall'adesione. Per ogni livello
+ * vengono cercate anche le varianti con suffisso ".collaudo" e ".produzione":
  * <ol>
- *   <li>{stato}.{codice_interno}.{nome_dominio} (piu' specifico)</li>
- *   <li>{stato}.{codice_interno}</li>
- *   <li>{stato}</li>
+ *   <li>{stato}.{codice_interno}.{nome_dominio}[.{ambiente}] (piu' specifico)</li>
+ *   <li>{stato}.{codice_interno}[.{ambiente}]</li>
+ *   <li>{stato}[.{ambiente}]</li>
  *   <li>default (fallback)</li>
  * </ol>
  *
- * Se l'adesione ha piu' profili, vengono restituiti i disclaimer di tutti i profili
- * che risultano mappati nello YAML, senza duplicati.
+ * Il contesto del disclaimer e' derivato dal suffisso della chiave matched:
+ * ".collaudo" -> COLLAUDO, ".produzione" -> PRODUZIONE, altrimenti GENERALE.
  *
- * Tutti i valori sono normalizzati in lowercase per il confronto.
+ * I valori YAML possono essere stringhe (severity = INFO di default) oppure oggetti
+ * strutturati con campi "severity" e "testo".
+ *
+ * Tutte le chiavi sono normalizzate in lowercase per il confronto.
  */
 @Service
 public class DisclaimerService {
 
 	private static final String DEFAULT_KEY = "default";
+	private static final String SUFFIX_COLLAUDO = ".collaudo";
+	private static final String SUFFIX_PRODUZIONE = ".produzione";
 	private static final String HARDCODED_FALLBACK_IT = "Procedendo con l'adesione, l'ente accetta i termini e le condizioni del servizio.";
 	private static final String HARDCODED_FALLBACK_EN = "By proceeding with this subscription, the organization accepts the terms and conditions of the service.";
 
@@ -77,7 +86,7 @@ public class DisclaimerService {
 	@Autowired
 	private AdesioneAuthorization adesioneAuthorization;
 
-	private final Map<String, Map<String, String>> cache = new ConcurrentHashMap<>();
+	private final Map<String, Map<String, DisclaimerEntry>> cache = new ConcurrentHashMap<>();
 
 	@PostConstruct
 	public void init() {
@@ -94,56 +103,87 @@ public class DisclaimerService {
 	 * Risolve i disclaimer per una data adesione e lingua.
 	 * Non lancia mai eccezioni: restituisce sempre almeno il disclaimer di fallback.
 	 */
-	public List<String> resolveDisclaimers(AdesioneEntity adesione, String languageCode) {
+	public List<AdesioneDisclaimer> resolveDisclaimers(AdesioneEntity adesione, String languageCode) {
 		try {
 			String lang = (languageCode != null) ? languageCode.toLowerCase() : "it";
-			Map<String, String> disclaimers = cache.getOrDefault(lang, cache.get("it"));
+			Map<String, DisclaimerEntry> disclaimers = cache.getOrDefault(lang, cache.get("it"));
 			if (disclaimers == null || disclaimers.isEmpty()) {
-				return List.of(getHardcodedFallback(lang));
+				return List.of(buildHardcodedFallback(lang));
 			}
 
 			String stato = normalize(adesione.getStato());
 			String dominio = extractDominio(adesione);
 			List<String> profili = extractProfili(adesione);
 
-			// LinkedHashSet per mantenere l'ordine e evitare duplicati
-			Set<String> result = new LinkedHashSet<>();
+			// LinkedHashSet di chiavi gia' consumate per evitare duplicati
+			Set<String> matchedKeys = new LinkedHashSet<>();
+			List<AdesioneDisclaimer> result = new ArrayList<>();
 
 			for (String profilo : profili) {
-				// Risoluzione gerarchica: dal piu' specifico al meno specifico
 				if (dominio != null) {
-					addIfPresent(disclaimers, stato + "." + profilo + "." + dominio, result);
+					String baseKey = stato + "." + profilo + "." + dominio;
+					tryAllContexts(disclaimers, baseKey, matchedKeys, result);
 				}
-				addIfPresent(disclaimers, stato + "." + profilo, result);
+				String baseKey = stato + "." + profilo;
+				tryAllContexts(disclaimers, baseKey, matchedKeys, result);
 			}
 
 			// Disclaimer per stato (indipendente dal profilo)
-			addIfPresent(disclaimers, stato, result);
+			tryAllContexts(disclaimers, stato, matchedKeys, result);
 
-			// Se nessun disclaimer specifico trovato, usa il default dal file
+			// Se nessun disclaimer specifico trovato, usa il default
 			if (result.isEmpty()) {
-				String defaultDisclaimer = disclaimers.get(DEFAULT_KEY);
-				if (defaultDisclaimer != null && !defaultDisclaimer.isBlank()) {
-					result.add(defaultDisclaimer.trim());
+				DisclaimerEntry defaultEntry = disclaimers.get(DEFAULT_KEY);
+				if (defaultEntry != null && defaultEntry.testo != null && !defaultEntry.testo.isBlank()) {
+					result.add(buildDisclaimer(defaultEntry.testo, DisclaimerContestoEnum.GENERALE, defaultEntry.severity));
 				} else {
-					result.add(getHardcodedFallback(lang));
+					result.add(buildHardcodedFallback(lang));
 				}
 			}
 
-			return Collections.unmodifiableList(new ArrayList<>(result));
+			return Collections.unmodifiableList(result);
 
 		} catch (Exception e) {
 			this.logger.error("Errore nella risoluzione dei disclaimer: " + e.getMessage(), e);
 			String lang = (languageCode != null) ? languageCode.toLowerCase() : "it";
-			return List.of(getHardcodedFallback(lang));
+			return List.of(buildHardcodedFallback(lang));
 		}
 	}
 
-	private void addIfPresent(Map<String, String> disclaimers, String key, Set<String> result) {
-		String value = disclaimers.get(key);
-		if (value != null && !value.isBlank()) {
-			result.add(value.trim());
+	/**
+	 * Per una chiave base, tenta il match su tre varianti: base, base+.collaudo, base+.produzione.
+	 * Aggiunge al risultato tutti i match trovati, evitando duplicati tramite matchedKeys.
+	 */
+	private void tryAllContexts(Map<String, DisclaimerEntry> disclaimers, String baseKey,
+			Set<String> matchedKeys, List<AdesioneDisclaimer> result) {
+		tryAddKey(disclaimers, baseKey, DisclaimerContestoEnum.GENERALE, matchedKeys, result);
+		tryAddKey(disclaimers, baseKey + SUFFIX_COLLAUDO, DisclaimerContestoEnum.COLLAUDO, matchedKeys, result);
+		tryAddKey(disclaimers, baseKey + SUFFIX_PRODUZIONE, DisclaimerContestoEnum.PRODUZIONE, matchedKeys, result);
+	}
+
+	private void tryAddKey(Map<String, DisclaimerEntry> disclaimers, String key,
+			DisclaimerContestoEnum contesto, Set<String> matchedKeys, List<AdesioneDisclaimer> result) {
+		if (matchedKeys.contains(key)) {
+			return;
 		}
+		DisclaimerEntry entry = disclaimers.get(key);
+		if (entry != null && entry.testo != null && !entry.testo.isBlank()) {
+			matchedKeys.add(key);
+			result.add(buildDisclaimer(entry.testo, contesto, entry.severity));
+		}
+	}
+
+	private AdesioneDisclaimer buildDisclaimer(String testo, DisclaimerContestoEnum contesto, DisclaimerSeverityEnum severity) {
+		AdesioneDisclaimer d = new AdesioneDisclaimer();
+		d.setDisclaimer(testo.trim());
+		d.setContesto(contesto);
+		d.setSeverity(severity != null ? severity : DisclaimerSeverityEnum.INFO);
+		return d;
+	}
+
+	private AdesioneDisclaimer buildHardcodedFallback(String lang) {
+		String testo = "en".equals(lang) ? HARDCODED_FALLBACK_EN : HARDCODED_FALLBACK_IT;
+		return buildDisclaimer(testo, DisclaimerContestoEnum.GENERALE, DisclaimerSeverityEnum.INFO);
 	}
 
 	private List<String> extractProfili(AdesioneEntity adesione) {
@@ -174,23 +214,17 @@ public class DisclaimerService {
 		return (value != null) ? value.toLowerCase().trim() : null;
 	}
 
-	private String getHardcodedFallback(String lang) {
-		return "en".equals(lang) ? HARDCODED_FALLBACK_EN : HARDCODED_FALLBACK_IT;
-	}
-
 	@SuppressWarnings("unchecked")
 	private void loadLanguage(String lang) {
 		String fileName = "disclaimers_" + lang + ".yml";
 		try {
-			Map<String, String> disclaimers = new ConcurrentHashMap<>();
+			Map<String, DisclaimerEntry> disclaimers = new ConcurrentHashMap<>();
 
 			// Carica prima dal classpath (default)
 			try (InputStream is = getClass().getClassLoader().getResourceAsStream(fileName)) {
 				if (is != null) {
 					Map<String, Object> loaded = new Yaml().load(is);
-					if (loaded != null) {
-						loaded.forEach((k, v) -> disclaimers.put(normalize(k), v != null ? v.toString() : ""));
-					}
+					mergeLoaded(loaded, disclaimers);
 				}
 			}
 
@@ -199,9 +233,7 @@ public class DisclaimerService {
 			if (Files.isReadable(externalFile)) {
 				try (InputStream is = Files.newInputStream(externalFile)) {
 					Map<String, Object> loaded = new Yaml().load(is);
-					if (loaded != null) {
-						loaded.forEach((k, v) -> disclaimers.put(normalize(k), v != null ? v.toString() : ""));
-					}
+					mergeLoaded(loaded, disclaimers);
 				}
 				this.logger.debug("Caricati disclaimer esterni per lingua '{}' da: {}", lang, externalFile);
 			}
@@ -211,6 +243,64 @@ public class DisclaimerService {
 
 		} catch (Exception e) {
 			this.logger.error("Errore nel caricamento dei disclaimer per lingua '{}': {}", lang, e.getMessage(), e);
+		}
+	}
+
+	private void mergeLoaded(Map<String, Object> loaded, Map<String, DisclaimerEntry> target) {
+		if (loaded == null) {
+			return;
+		}
+		loaded.forEach((k, v) -> {
+			DisclaimerEntry entry = parseEntry(v);
+			if (entry != null) {
+				target.put(normalize(k), entry);
+			}
+		});
+	}
+
+	@SuppressWarnings("unchecked")
+	private DisclaimerEntry parseEntry(Object value) {
+		if (value == null) {
+			return null;
+		}
+		if (value instanceof String s) {
+			return new DisclaimerEntry(s, DisclaimerSeverityEnum.INFO);
+		}
+		if (value instanceof Map<?, ?> map) {
+			Object testoObj = ((Map<String, Object>) map).get("testo");
+			Object severityObj = ((Map<String, Object>) map).get("severity");
+			String testo = (testoObj != null) ? testoObj.toString() : "";
+			DisclaimerSeverityEnum severity = parseSeverity(severityObj);
+			return new DisclaimerEntry(testo, severity);
+		}
+		// Formato non riconosciuto: usa toString e severity default
+		return new DisclaimerEntry(value.toString(), DisclaimerSeverityEnum.INFO);
+	}
+
+	private DisclaimerSeverityEnum parseSeverity(Object severityObj) {
+		if (severityObj == null) {
+			return DisclaimerSeverityEnum.INFO;
+		}
+		String s = severityObj.toString().trim().toUpperCase();
+		try {
+			return DisclaimerSeverityEnum.valueOf(s);
+		} catch (IllegalArgumentException e) {
+			this.logger.warn("Severity non riconosciuta '{}', uso INFO come default", s);
+			return DisclaimerSeverityEnum.INFO;
+		}
+	}
+
+	/**
+	 * Rappresentazione interna di una voce disclaimer caricata dal YAML.
+	 * Package-private per consentire l'accesso dai test.
+	 */
+	static final class DisclaimerEntry {
+		final String testo;
+		final DisclaimerSeverityEnum severity;
+
+		DisclaimerEntry(String testo, DisclaimerSeverityEnum severity) {
+			this.testo = testo;
+			this.severity = severity;
 		}
 	}
 }

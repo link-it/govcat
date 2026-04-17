@@ -82,6 +82,7 @@ import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticament
 import org.govway.catalogo.servlets.api.AdesioniApi;
 import org.govway.catalogo.servlets.model.Adesione;
 import org.govway.catalogo.servlets.model.AdesioneClientUpdate;
+import org.govway.catalogo.servlets.model.AdesioneDisclaimer;
 import org.govway.catalogo.servlets.model.AdesioneCreate;
 import org.govway.catalogo.servlets.model.AdesioneErogazioneUpdate;
 import org.govway.catalogo.servlets.model.AdesioneUpdate;
@@ -2302,7 +2303,7 @@ public class AdesioniController implements AdesioniApi {
 	}
 
 	@Override
-	public ResponseEntity<List<String>> getDisclaimersAdesione(UUID idAdesione, String languageCode) {
+	public ResponseEntity<List<AdesioneDisclaimer>> getDisclaimersAdesione(UUID idAdesione, String languageCode) {
 		try {
 			return this.service.runTransaction(() -> {
 
@@ -2311,7 +2312,7 @@ public class AdesioniController implements AdesioniApi {
 
 				this.logger.debug("Autorizzazione completata con successo");
 
-				List<String> disclaimers = this.disclaimerService.resolveDisclaimers(entity, languageCode);
+				List<AdesioneDisclaimer> disclaimers = this.disclaimerService.resolveDisclaimers(entity, languageCode);
 
 				this.logger.info("Invocazione completata con successo");
 
