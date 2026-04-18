@@ -1,3 +1,22 @@
+2026-04-18  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: adeguato il rendering dei disclaimer del wizard Adesioni
+	  al nuovo formato di risposta `GET /adesioni/{id}/disclaimers`, che
+	  ora restituisce oggetti con `disclaimer`, `contesto` (generale |
+	  collaudo | produzione), `severity` (INFO | WARNING | ERROR) e
+	  `links`. I disclaimer vengono filtrati per contesto e mostrati nella
+	  posizione corrispondente: `generale` in testa al wizard, `collaudo`
+	  e `produzione` dentro le rispettive sezioni accordion. Ogni
+	  disclaimer mostra un'icona Bootstrap Icons outline in base alla
+	  severity (`bi-info-circle`, `bi-exclamation-triangle`,
+	  `bi-x-circle`) con stile alert Bootstrap coerente (info/warning/
+	  danger) e la lista dei link (se presenti) aperti in nuova scheda.
+	  Aggiunto un mock locale `DISCLAIMERS_MOCK` con 6 voci (tutte le
+	  combinazioni contesto x severity INFO/WARNING) attivabile tramite
+	  il flag `disclaimersUseMock` per testare il rendering in assenza
+	  di dati dal backend.
+
 2026-04-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

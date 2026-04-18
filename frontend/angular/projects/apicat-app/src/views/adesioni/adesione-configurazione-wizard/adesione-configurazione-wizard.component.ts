@@ -17,6 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -62,12 +63,32 @@ export enum AccordionType {
     ACCORDION_PRODUZIONE = 'accordion-produzione'
 }
 
+export type DisclaimerContesto = 'generale' | 'collaudo' | 'produzione';
+export type DisclaimerSeverity = 'INFO' | 'WARNING' | 'ERROR';
+
+export interface AdesioneDisclaimerLink {
+    label?: string;
+    title?: string;
+    text?: string;
+    url?: string;
+    href?: string;
+    rel?: string;
+}
+
+export interface AdesioneDisclaimer {
+    disclaimer: string;
+    contesto?: DisclaimerContesto;
+    severity?: DisclaimerSeverity;
+    links?: AdesioneDisclaimerLink[];
+}
+
 @Component({
     selector: 'app-adesione-configurazione-wizard',
     templateUrl: './adesione-configurazione-wizard.component.html',
     styleUrls: ['./adesione-configurazione-wizard.component.scss'],
     standalone: true,
     imports: [
+        CommonModule,
         TranslateModule,
         ...COMPONENTS_IMPORTS,
         ...APP_COMPONENTS_IMPORTS,
@@ -284,9 +305,50 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
         this.stepBarDarkMode = !this.stepBarDarkMode;
     }
 
-    // Disclaimer markdown caricati dall'API `/adesioni/{id}/disclaimers`
-    disclaimers: string[] = [];
+    // Disclaimer caricati dall'API `/adesioni/{id}/disclaimers`
+    disclaimers: AdesioneDisclaimer[] = [];
     disclaimersLoading: boolean = false;
+
+    // Abilitare solo per test locali dei disclaimer con contesti/severity diverse
+    disclaimersUseMock: boolean = false;
+    private readonly DISCLAIMERS_MOCK: AdesioneDisclaimer[] = [
+        {
+            contesto: 'generale',
+            severity: 'INFO',
+            disclaimer: '## Adesione PDND in bozza\nL\'adesione utilizza il profilo **PDND**. Prima di procedere, assicurarsi di aver completato la registrazione sulla piattaforma PDND e di disporre di un e-service attivo.',
+            links: [
+                { label: 'Documentazione PDND', url: 'https://www.pagopa.it/it/cittadini/pdnd' }
+            ]
+        },
+        {
+            contesto: 'generale',
+            severity: 'WARNING',
+            disclaimer: '**Attenzione**: questa adesione richiede approvazione da parte del gestore prima della pubblicazione in produzione.'
+        },
+        {
+            contesto: 'collaudo',
+            severity: 'INFO',
+            disclaimer: 'Nell\'ambiente di **collaudo** puoi effettuare test senza impatto sui dati di produzione.'
+        },
+        {
+            contesto: 'collaudo',
+            severity: 'WARNING',
+            disclaimer: 'I certificati di collaudo hanno validita\' limitata: rinnovarli prima della scadenza.',
+            links: [
+                { label: 'Guida rinnovo certificati', url: 'https://example.com/certificati' }
+            ]
+        },
+        {
+            contesto: 'produzione',
+            severity: 'INFO',
+            disclaimer: 'Configurazione **produzione** attiva. Le modifiche avranno effetto immediato sui client reali.'
+        },
+        {
+            contesto: 'produzione',
+            severity: 'WARNING',
+            disclaimer: 'Verificare la configurazione PDND in produzione: richieste errate possono comportare la sospensione del servizio.'
+        }
+    ];
 
     constructor(
         private readonly route: ActivatedRoute,
@@ -1151,6 +1213,11 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
      */
     private _loadDisclaimers(): void {
         if (!this.id) return;
+        if (this.disclaimersUseMock) {
+            this.disclaimers = [...this.DISCLAIMERS_MOCK];
+            this.disclaimersLoading = false;
+            return;
+        }
         const languageCode = this.translate.currentLang || this.translate.getDefaultLang() || 'it';
         this.disclaimersLoading = true;
         this.apiService.getDetails(this.model, this.id, 'disclaimers', { params: { language_code: languageCode } }).subscribe({
@@ -1166,23 +1233,57 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
         });
     }
 
-    private _normalizeDisclaimers(response: any): string[] {
-        if (!response) return [];
-        if (typeof response === 'string') return [response];
-        if (Array.isArray(response)) {
-            return response
-                .map((d: any) => (typeof d === 'string' ? d : (d?.testo || d?.text || d?.content || d?.markdown || '')))
-                .filter((t: string) => !!t);
+    private _normalizeDisclaimers(response: any): AdesioneDisclaimer[] {
+        if (!Array.isArray(response)) return [];
+        return response
+            .filter((d: any) => d && typeof d.disclaimer === 'string' && d.disclaimer.length > 0)
+            .map((d: any) => ({
+                disclaimer: d.disclaimer,
+                contesto: d.contesto,
+                severity: d.severity,
+                links: Array.isArray(d.links) ? d.links : []
+            }));
+    }
+
+    getDisclaimerAlertClass(severity?: DisclaimerSeverity): string {
+        switch (severity) {
+            case 'ERROR': return 'alert-danger';
+            case 'WARNING': return 'alert-warning';
+            case 'INFO':
+            default: return 'alert-info';
         }
-        if (Array.isArray(response.content)) {
-            return this._normalizeDisclaimers(response.content);
+    }
+
+    getDisclaimerIconClass(severity?: DisclaimerSeverity): string {
+        switch (severity) {
+            case 'ERROR': return 'bi bi-x-circle';
+            case 'WARNING': return 'bi bi-exclamation-triangle';
+            case 'INFO':
+            default: return 'bi bi-info-circle';
         }
-        if (Array.isArray(response.disclaimers)) {
-            return this._normalizeDisclaimers(response.disclaimers);
-        }
-        if (response.testo || response.text || response.content || response.markdown) {
-            return [response.testo || response.text || response.content || response.markdown];
-        }
-        return [];
+    }
+
+    getDisclaimerLinkHref(link: AdesioneDisclaimerLink): string {
+        return link?.url || link?.href || '';
+    }
+
+    getDisclaimerLinkLabel(link: AdesioneDisclaimerLink): string {
+        return link?.label || link?.title || link?.text || link?.url || link?.href || '';
+    }
+
+    getDisclaimersByContesto(contesto: DisclaimerContesto): AdesioneDisclaimer[] {
+        return (this.disclaimers || []).filter(d => (d.contesto || 'generale') === contesto);
+    }
+
+    get disclaimersGenerali(): AdesioneDisclaimer[] {
+        return this.getDisclaimersByContesto('generale');
+    }
+
+    get disclaimersCollaudo(): AdesioneDisclaimer[] {
+        return this.getDisclaimersByContesto('collaudo');
+    }
+
+    get disclaimersProduzione(): AdesioneDisclaimer[] {
+        return this.getDisclaimersByContesto('produzione');
     }
 }

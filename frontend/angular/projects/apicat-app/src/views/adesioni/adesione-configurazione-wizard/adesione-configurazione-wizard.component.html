@@ -207,12 +207,10 @@
               (stepClick)="onStepBarClick($event)"
             ></app-adesione-step-bar>
           }
-          @if (disclaimers.length > 0) {
+          @if (disclaimersGenerali.length > 0) {
             <div class="adesione-disclaimers mb-4">
-              @for (disclaimer of disclaimers; track $index) {
-                <div class="alert alert-info mb-2" role="alert">
-                  <markdown [data]="disclaimer"></markdown>
-                </div>
+              @for (item of disclaimersGenerali; track $index) {
+                <ng-container *ngTemplateOutlet="disclaimerTpl; context: { $implicit: item }"></ng-container>
               }
             </div>
           }
@@ -452,6 +450,13 @@
                 </h2>
                 <div id="collaudo" class="accordion-collapse collapse" [class.show]="isSectionOpenByDefault('collaudo')" data-bs-parent="#accordion-collaudo_">
                   <div class="accordion-body">
+                    @if (disclaimersCollaudo.length > 0) {
+                      <div class="adesione-disclaimers mb-3">
+                        @for (item of disclaimersCollaudo; track $index) {
+                          <ng-container *ngTemplateOutlet="disclaimerTpl; context: { $implicit: item }"></ng-container>
+                        }
+                      </div>
+                    }
                     <app-adesione-lista-clients
                       [id]="id"
                       [adesione]="adesione"
@@ -538,6 +543,13 @@
                 </h2>
                 <div id="produzione" class="accordion-collapse collapse" [class.show]="isSectionOpenByDefault('produzione')" data-bs-parent="#accordion-produzione_">
                   <div class="accordion-body">
+                    @if (disclaimersProduzione.length > 0) {
+                      <div class="adesione-disclaimers mb-3">
+                        @for (item of disclaimersProduzione; track $index) {
+                          <ng-container *ngTemplateOutlet="disclaimerTpl; context: { $implicit: item }"></ng-container>
+                        }
+                      </div>
+                    }
                     <app-adesione-lista-clients
                       [id]="id"
                       [adesione]="adesione"
@@ -626,3 +638,25 @@
 
 </section>
 </div>
+
+<ng-template #disclaimerTpl let-item>
+  <div class="alert mb-2 disclaimer-item" [ngClass]="getDisclaimerAlertClass(item.severity)" role="alert">
+    <div class="d-flex align-items-start gap-2">
+      <i class="disclaimer-icon" [ngClass]="getDisclaimerIconClass(item.severity)" [attr.aria-label]="item.severity" role="img"></i>
+      <div class="flex-grow-1">
+        <markdown class="disclaimer-body" [data]="item.disclaimer"></markdown>
+        @if (item.links?.length) {
+          <ul class="disclaimer-links mt-2 mb-0">
+            @for (link of item.links; track $index) {
+              <li>
+                <a [href]="getDisclaimerLinkHref(link)" target="_blank" rel="noopener noreferrer">
+                  {{ getDisclaimerLinkLabel(link) }}
+                </a>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </div>
+  </div>
+</ng-template>

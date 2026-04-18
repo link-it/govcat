@@ -72,6 +72,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
       }
     }
   }
+
+  .disclaimer-icon {
+    font-size: 1.1rem;
+    line-height: 1.4;
+    margin-top: 0.1rem;
+  }
+
+  .disclaimer-body {
+    display: block;
+  }
+
+  .disclaimer-links {
+    padding-left: 1.25rem;
+
+    li + li {
+      margin-top: 0.25rem;
+    }
+  }
 }
 
 // Sezione wizard non ancora applicabile per lo step corrente:
