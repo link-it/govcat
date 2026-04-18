@@ -22,6 +22,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
+import { MarkdownModule } from 'ngx-markdown';
 
 import { ConfigService, COMPONENTS_IMPORTS, EventsManagerService, Tools, EventType, FieldClass, MenuAction } from '@linkit/components';
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
@@ -38,6 +39,7 @@ import { ModalAddReferentComponent } from './modal-add-referent/modal-add-refere
 import { AdesioneListaClientsComponent } from './adesione-lista-clients/adesione-lista-clients.component';
 import { AdesioneListaErogazioniComponent } from './adesione-lista-erogazioni/adesione-lista-erogazioni.component';
 import { AdesioneFormComponent } from './adesione-form/adesione-form.component';
+import { AdesioneStepBarComponent, StepBarVariant, StepWizardItem } from '../adesione-step-bar/adesione-step-bar.component';
 
 import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/service-breadcrumbs.resolver';
 
@@ -71,12 +73,14 @@ export enum AccordionType {
         ...APP_COMPONENTS_IMPORTS,
         MapperPipe,
         TooltipModule,
+        MarkdownModule,
         MonitorDropdwnComponent,
         ApiCustomPropertiesComponent,
         ErrorViewComponent,
         AdesioneListaClientsComponent,
         AdesioneListaErogazioniComponent,
         AdesioneFormComponent,
+        AdesioneStepBarComponent,
         NotificationBarComponent,
         WorkflowComponent
     ]
@@ -183,6 +187,107 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
         [AccordionType.ACCORDION_PRODUZIONE]: ClassiEnum.PRODUZIONE
     };
 
+    // Configurazione step_wizard (da `adesione.step_wizard` in configurazione.json)
+    stepWizard: StepWizardItem[] = [];
+    // Sezioni attive per lo step corrente (es. ['info_generali', 'referenti', 'collaudo'])
+    activeSections: string[] = [];
+    /**
+     * Override dello step corrente usato dalla step-bar interattiva: se null,
+     * le sezioni attive derivano dallo stato reale dell'adesione; se valorizzato,
+     * le sezioni attive sono quelle dello step selezionato (tipicamente uno
+     * step precedente cliccato dall'utente per tornare a rivedere la
+     * configurazione di una fase passata).
+     */
+    selectedStepCode: string | null = null;
+
+    /**
+     * Override runtime del flag `wizard_show_all_sections` usato per la demo.
+     * Quando null il comportamento segue il valore del config; quando è
+     * boolean ha priorità sul config ed è modificabile via toggle in UI.
+     */
+    wizardShowAllSectionsOverride: boolean | null = null;
+
+    /**
+     * Flag frontend `wizard_show_all_sections` letto da `adesioni-config.json`.
+     * Quando true tutte le sezioni del wizard sono sempre visibili: quelle NON
+     * attive vengono disabilitate e mostrate chiuse, quelle attive vengono
+     * aperte di default. Quando false si mantiene il comportamento classico:
+     * solo le sezioni attive per lo step corrente sono visibili (chiuse di
+     * default). Il getter si basa su `this.config` che viene caricato in
+     * modo asincrono in constructor: finché non è pronto, il comportamento
+     * è quello retro-compatibile (flag assente → false). Se è impostato
+     * `wizardShowAllSectionsOverride` (toggle debug) questo ha la precedenza.
+     */
+    get wizardShowAllSections(): boolean {
+        if (this.wizardShowAllSectionsOverride !== null) {
+            return this.wizardShowAllSectionsOverride;
+        }
+        return !!this.config?.wizard_show_all_sections;
+    }
+
+    toggleWizardShowAllSections(): void {
+        // Alla prima pressione inizializziamo l'override al valore correntemente
+        // applicato e poi lo invertiamo, così il toggle è sempre coerente.
+        const current = this.wizardShowAllSections;
+        this.wizardShowAllSectionsOverride = !current;
+    }
+
+    /**
+     * Master flag che abilita/disabilita i toggle di debug sul wizard
+     * (show-all-sections e show-state-badges). Letto dal config frontend
+     * `wizard_debug_switches`. Quando false gli switch non vengono renderizzati
+     * e il wizard usa i valori di default dei relativi flag.
+     */
+    get debugSwitchesEnabled(): boolean {
+        return !!this.config?.wizard_debug_switches;
+    }
+
+    /**
+     * Override runtime del flag `showStateBadges` passato alla step-bar.
+     * Quando null si usa il default del componente (false → badge nascosti).
+     */
+    showStateBadgesOverride: boolean | null = null;
+
+    get showStateBadges(): boolean {
+        return this.showStateBadgesOverride !== null ? this.showStateBadgesOverride : false;
+    }
+
+    toggleShowStateBadges(): void {
+        this.showStateBadgesOverride = !this.showStateBadges;
+    }
+
+    /** Variante grafica della step-bar ('circles' | 'chevron'). */
+    stepBarVariant: StepBarVariant = 'chevron';
+
+    toggleStepBarVariant(): void {
+        this.stepBarVariant = this.stepBarVariant === 'circles' ? 'chevron' : 'circles';
+    }
+
+    /** Preset colori dark per la step-bar (override runtime via CSS vars). */
+    stepBarDarkMode: boolean = false;
+    circlesLabelRight: boolean = false;
+    stepBarDarkVars: Record<string, string> = {
+        '--step-bar-bg': '#1e1e2e',
+        '--step-completed-bg': '#89b4fa',
+        '--step-completed-color': '#1e1e2e',
+        '--step-current-bg': '#313244',
+        '--step-current-color': '#cdd6f4',
+        '--step-pending-bg': '#11111b',
+        '--step-pending-color': '#6c7086',
+        '--step-preview-bg': '#2a2a3c',
+        '--step-preview-color': '#b4befe',
+        '--step-real-bg': '#1e3a2a',
+        '--step-real-color': '#a6e3a1'
+    };
+
+    toggleStepBarDarkMode(): void {
+        this.stepBarDarkMode = !this.stepBarDarkMode;
+    }
+
+    // Disclaimer markdown caricati dall'API `/adesioni/{id}/disclaimers`
+    disclaimers: string[] = [];
+    disclaimersLoading: boolean = false;
+
     constructor(
         private readonly route: ActivatedRoute,
         private readonly router: Router,
@@ -267,6 +372,13 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
             this.generalConfig = Tools.Configurazione || null;
             this.updateMapper = new Date().getTime().toString();
         });
+
+        // Ricarica i disclaimer quando l'utente cambia lingua nell'interfaccia
+        this.translate.onLangChange.subscribe(() => {
+            if (this.adesione) {
+                this._loadDisclaimers();
+            }
+        });
     }
 
     _updateOtherActions() {
@@ -302,6 +414,15 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
 
                     this.isBozza = (this.adesione.stato == 'bozza');
 
+                    // Dopo un ricaricamento (tipicamente post cambio stato) resettiamo
+                    // l'eventuale override dello step scelto dalla step-bar, così la UI
+                    // torna a seguire lo stato reale dell'adesione.
+                    this.selectedStepCode = null;
+
+                    this._loadStepWizardConfig();
+                    this._computeActiveSections();
+                    this._loadDisclaimers();
+
                     this.loadCheckDati(this.adesione.id_adesione, this.getNextStateWorkflowName());
 
                     this.id_servizio = this.adesione.servizio.id_servizio;
@@ -309,7 +430,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
                     this.loadConfigurazioni(AmbienteEnum.Collaudo);
                     this.loadConfigurazioni(AmbienteEnum.Produzione);
                     this.loadReferents();
-                    
+
                     this._initBreadcrumb();
                     this._updateOtherActions();
 
@@ -909,5 +1030,159 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
                 this.saveSkipCollaudo = false;
             }
         });
+    }
+
+    /**
+     * Carica la configurazione `step_wizard` da `adesione.step_wizard` nel
+     * configurazione.json. Se la configurazione non è presente la lista resta vuota
+     * e lo step-bar non viene renderizzato.
+     */
+    private _loadStepWizardConfig(): void {
+        const steps = Tools.Configurazione?.adesione?.step_wizard || [];
+        this.stepWizard = Array.isArray(steps) ? steps : [];
+    }
+
+    /**
+     * Calcola le sezioni attive in base allo step corrente del `step_wizard`.
+     * Se l'utente ha selezionato un step precedente dalla step-bar interattiva
+     * (`selectedStepCode`), si usa lo step corrispondente; altrimenti si
+     * deriva dallo stato reale dell'adesione.
+     * Una sezione (info_generali, referenti, collaudo, produzione) è visibile
+     * se presente in `sezioni_attive` dello step selezionato.
+     * Se non viene trovato nessuno step corrispondente (config mancante o stato
+     * non mappato) tutte le sezioni restano visibili per retro-compatibilità.
+     */
+    private _computeActiveSections(): void {
+        if (!this.stepWizard.length || !this.adesione?.stato) {
+            this.activeSections = ['info_generali', 'referenti', 'collaudo', 'produzione'];
+            return;
+        }
+        let selected: StepWizardItem | undefined;
+        if (this.selectedStepCode) {
+            selected = this.stepWizard.find(s => s.code === this.selectedStepCode);
+        }
+        if (!selected) {
+            selected = this.stepWizard.find(s => s.stati_adesione?.includes(this.adesione.stato));
+        }
+        this.activeSections = selected?.sezioni_attive
+            ? [...selected.sezioni_attive]
+            : ['info_generali', 'referenti', 'collaudo', 'produzione'];
+    }
+
+    /**
+     * Handler del click su uno step della step-bar. Aggiorna l'override
+     * `selectedStepCode` e ricalcola le sezioni attive. Se l'utente clicca
+     * sullo step che corrisponde allo stato reale, l'override viene resettato
+     * così la UI torna a seguire automaticamente lo stato dell'adesione.
+     */
+    onStepBarClick(code: string): void {
+        const realStep = this.stepWizard.find(s => s.stati_adesione?.includes(this.adesione?.stato));
+        if (realStep && realStep.code === code) {
+            this.selectedStepCode = null;
+        } else {
+            this.selectedStepCode = code;
+        }
+        this._computeActiveSections();
+    }
+
+    isSectionActive(section: string): boolean {
+        return this.activeSections.includes(section);
+    }
+
+    /**
+     * Una sezione è visibile se attiva per lo step corrente oppure se il flag
+     * `wizard_show_all_sections` è attivo (in quel caso tutte le sezioni sono
+     * sempre visibili, quelle non attive appaiono disabilitate).
+     */
+    isSectionVisible(section: string): boolean {
+        return this.wizardShowAllSections || this.isSectionActive(section);
+    }
+
+    /**
+     * Una sezione è disabilitata solo in modalità `wizard_show_all_sections`
+     * quando NON è tra le sezioni attive per lo step corrente. In modalità
+     * classica (flag off) le sezioni non attive sono semplicemente nascoste.
+     */
+    isSectionDisabled(section: string): boolean {
+        return this.wizardShowAllSections && !this.isSectionActive(section);
+    }
+
+    /**
+     * Mappa sezione → identificativo classe/ambiente usato dal check-dati per
+     * valutare lo stato di completamento (valori di `ClassiEnum` / `AmbienteEnum`).
+     */
+    private readonly _sectionClassMap: Record<string, string> = {
+        info_generali: ClassiEnum.GENERALE,
+        referenti: ClassiEnum.REFERENTI,
+        collaudo: AmbienteEnum.Collaudo,
+        produzione: AmbienteEnum.Produzione
+    };
+
+    /**
+     * Una sezione è considerata "completata" (e quindi l'accordion resta chiuso)
+     * quando `getStatusCompleteMapper` ritorna 1 (verde, dati OK) oppure 2
+     * (grigio, non applicabile per lo step corrente, es. collaudo con skip o
+     * produzione durante la fase di collaudo). Lo stato 0 (serve intervento)
+     * lascia l'accordion aperto.
+     */
+    isSectionCompleted(section: string): boolean {
+        const className = this._sectionClassMap[section];
+        if (!className) return false;
+        const status = this.getStatusCompleteMapper(false, className);
+        return status === 1 || status === 2;
+    }
+
+    /**
+     * Un accordion è aperto di default quando la sezione è attiva per lo step
+     * corrente e NON ancora completata. Le sezioni completate (verde) o non
+     * applicabili (grigio) restano chiuse — l'icona di stato su lnk-icon-toggle
+     * ne evidenzia già lo stato. La regola si applica sia in modalità
+     * `wizard_show_all_sections` on che off (in off le sezioni non attive sono
+     * comunque nascoste, quindi la condizione aggiuntiva non è necessaria).
+     */
+    isSectionOpenByDefault(section: string): boolean {
+        return this.isSectionActive(section) && !this.isSectionCompleted(section);
+    }
+
+    /**
+     * Scarica i disclaimer dinamici dall'endpoint `/adesioni/{id}/disclaimers`
+     * passando il `language_code` corrente. La risposta viene normalizzata in un
+     * array di stringhe markdown per essere renderizzate con `<markdown>`.
+     */
+    private _loadDisclaimers(): void {
+        if (!this.id) return;
+        const languageCode = this.translate.currentLang || this.translate.getDefaultLang() || 'it';
+        this.disclaimersLoading = true;
+        this.apiService.getDetails(this.model, this.id, 'disclaimers', { params: { language_code: languageCode } }).subscribe({
+            next: (response: any) => {
+                this.disclaimers = this._normalizeDisclaimers(response);
+                this.disclaimersLoading = false;
+            },
+            error: () => {
+                // Fallback silente: assenza di disclaimer non è un errore bloccante
+                this.disclaimers = [];
+                this.disclaimersLoading = false;
+            }
+        });
+    }
+
+    private _normalizeDisclaimers(response: any): string[] {
+        if (!response) return [];
+        if (typeof response === 'string') return [response];
+        if (Array.isArray(response)) {
+            return response
+                .map((d: any) => (typeof d === 'string' ? d : (d?.testo || d?.text || d?.content || d?.markdown || '')))
+                .filter((t: string) => !!t);
+        }
+        if (Array.isArray(response.content)) {
+            return this._normalizeDisclaimers(response.content);
+        }
+        if (Array.isArray(response.disclaimers)) {
+            return this._normalizeDisclaimers(response.disclaimers);
+        }
+        if (response.testo || response.text || response.content || response.markdown) {
+            return [response.testo || response.text || response.content || response.markdown];
+        }
+        return [];
     }
 }

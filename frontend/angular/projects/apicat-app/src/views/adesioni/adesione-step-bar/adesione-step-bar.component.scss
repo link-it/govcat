@@ -1,0 +1,435 @@
+/*
+GovCat - GovWay API Catalogue
+https://github.com/link-it/govcat
+
+Copyright (c) 2021-2026 Link.it srl (https://link.it).
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3, as published by
+the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+// ── Variabili step-bar (con fallback se il tema non le definisce) ───────
+$step-completed-bg: var(--step-completed-bg, #1f75cb);
+$step-completed-color: var(--step-completed-color, #ffffff);
+$step-current-bg: var(--step-current-bg, #e4eef7);
+$step-current-color: var(--step-current-color, #1f75cb);
+$step-pending-bg: var(--step-pending-bg, #ededed);
+$step-pending-color: var(--step-pending-color, #606060);
+$step-preview-bg: var(--step-preview-bg, #eceaf5);
+$step-preview-color: var(--step-preview-color, #4c4c94);
+$step-real-bg: var(--step-real-bg, #e6f4ed);
+$step-real-color: var(--step-real-color, #198754);
+$step-bar-bg: var(--step-bar-bg, transparent);
+
+// Variabili generiche (bordi, sfondo body)
+$body-color: var(--body-color, #303030);
+$body-bg: var(--body-back-color, #ffffff);
+$border-color: var(--border-color, #dbdbdb);
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+.adesione-step-bar-wrapper {
+  padding: 0rem 1rem;
+  background-color: #{$step-bar-bg};
+  border: 1px solid #{$border-color};
+  border-radius: 0.5rem;
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Variante CIRCLES
+// ══════════════════════════════════════════════════════════════════════════
+
+.adesione-step-bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0;
+  padding: 1rem 0;
+  width: 100%;
+  background-color: #{$step-bar-bg};
+
+  .step-item {
+    display: flex;
+    align-items: flex-start;
+    flex: 1 1 0;
+    min-width: 0;
+
+    &:last-child {
+      flex: 0 0 auto;
+    }
+
+    .step-indicator {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      flex: 0 0 auto;
+      min-width: 6rem;
+      max-width: 14rem;
+      padding: 0.5rem 0.5rem;
+      border-radius: 0.5rem;
+      transition: background-color 0.15s ease, transform 0.15s ease;
+      outline: none;
+    }
+
+    &.clickable .step-indicator {
+      cursor: pointer;
+
+      &:hover {
+        background-color: color-mix(in srgb, #{$step-completed-bg} 8%, transparent);
+      }
+
+      &:focus-visible {
+        box-shadow: 0 0 0 2px color-mix(in srgb, #{$step-completed-bg} 35%, transparent);
+      }
+
+      &:active {
+        transform: scale(0.98);
+      }
+    }
+
+    .step-circle {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: 50%;
+      border: 2px solid #{$border-color};
+      background-color: #{$body-bg};
+      color: color-mix(in srgb, #{$body-color} 60%, transparent);
+      font-weight: 600;
+      font-size: 0.95rem;
+      line-height: 1;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    .step-real-marker {
+      position: absolute;
+      top: -0.15rem;
+      right: -0.15rem;
+      width: 0.7rem;
+      height: 0.7rem;
+      border-radius: 50%;
+      background-color: #{$step-real-color};
+      border: 2px solid #{$body-bg};
+      box-shadow: 0 0 0 1px #{$step-real-color};
+    }
+
+    .step-badge {
+      display: inline-block;
+      margin-top: 0.15rem;
+      padding: 0.1rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      line-height: 1.1;
+      white-space: nowrap;
+
+      &.step-badge-real {
+        background-color: #{$step-real-color};
+        color: #fff;
+      }
+
+      &.step-badge-preview {
+        background-color: color-mix(in srgb, #{$step-preview-color} 12%, transparent);
+        color: #{$step-preview-color};
+        border: 1px dashed #{$step-preview-color};
+      }
+    }
+
+    .step-label {
+      font-size: 0.875rem;
+      text-align: center;
+      color: #{$body-color};
+      line-height: 1.2;
+      word-break: break-word;
+    }
+
+    .step-connector {
+      flex: 1 1 auto;
+      height: 2px;
+      margin: 1.5rem 0.5rem 0 0.5rem;
+      background-color: #{$border-color};
+      min-width: 1.5rem;
+      transition: background-color 0.2s ease;
+
+      &.connector-completed {
+        background-color: #{$step-completed-bg};
+      }
+    }
+
+    &.completed {
+      .step-circle {
+        background-color: #{$step-completed-bg};
+        border-color: #{$step-completed-bg};
+        color: #{$step-completed-color};
+      }
+
+      .step-label {
+        color: #{$body-color};
+      }
+    }
+
+    &.current {
+      .step-circle {
+        background-color: #{$body-bg};
+        border-color: #{$step-current-color};
+        color: #{$step-current-color};
+        box-shadow: 0 0 0 3px color-mix(in srgb, #{$step-current-color} 15%, transparent);
+      }
+
+      .step-label {
+        color: #{$step-current-color};
+        font-weight: 600;
+      }
+    }
+
+    &.is-preview {
+      .step-circle {
+        border-style: dashed;
+      }
+    }
+
+    &.pending {
+      .step-circle {
+        background-color: #{$body-bg};
+        border-color: #{$border-color};
+        color: color-mix(in srgb, #{$body-color} 45%, transparent);
+      }
+
+      .step-label {
+        color: color-mix(in srgb, #{$body-color} 45%, transparent);
+      }
+    }
+  }
+
+  // ── Modificatore: label a destra del cerchio ──────────────────────────
+  &.label-right {
+    .step-item {
+      .step-indicator {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.35rem;
+      }
+
+      .step-circle {
+        flex-shrink: 0;
+      }
+
+      .step-label {
+        flex: 1 1 0;
+        min-width: 0;
+        text-align: left;
+        white-space: normal;
+      }
+
+      .step-badge {
+        width: 100%;
+        text-align: center;
+      }
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Variante CHEVRON
+// ══════════════════════════════════════════════════════════════════════════
+
+$chevron-arrow-width: 14px;
+
+.step-bar-chevron {
+  display: flex;
+  width: 100%;
+  padding: 1rem 0;
+  background-color: #{$step-bar-bg};
+
+  .chevron-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1 1 0;
+    min-width: 0;
+    height: 4rem;
+    padding: 0.5rem 1rem 0.5rem calc(#{$chevron-arrow-width} + 0.75rem);
+    background-color: #{$step-pending-bg};
+    color: #{$step-pending-color};
+    transition: background-color 0.2s ease, color 0.2s ease;
+    clip-path: polygon(
+      0 0,
+      calc(100% - #{$chevron-arrow-width}) 0,
+      100% 50%,
+      calc(100% - #{$chevron-arrow-width}) 100%,
+      0 100%,
+      #{$chevron-arrow-width} 50%
+    );
+
+    &.first {
+      border-radius: 0.375rem 0 0 0.375rem;
+      clip-path: polygon(
+        0 0,
+        calc(100% - #{$chevron-arrow-width}) 0,
+        100% 50%,
+        calc(100% - #{$chevron-arrow-width}) 100%,
+        0 100%
+      );
+      padding-left: 1rem;
+    }
+
+    &.last {
+      border-radius: 0 0.375rem 0.375rem 0;
+      clip-path: polygon(
+        0 0,
+        100% 0,
+        100% 100%,
+        0 100%,
+        #{$chevron-arrow-width} 50%
+      );
+    }
+
+    &.first.last {
+      clip-path: none;
+      border-radius: 0.375rem;
+    }
+
+    // ── Stati ───────────────────────────────────────────────────────
+
+    &.completed {
+      background-color: #{$step-completed-bg};
+
+      .chevron-step-number {
+        color: #{$step-completed-color};
+      }
+
+      .chevron-label {
+        color: color-mix(in srgb, #{$step-completed-color} 80%, transparent);
+      }
+    }
+
+    &.current {
+      background-color: #{$step-current-bg};
+
+      .chevron-step-number {
+        color: #{$step-current-color};
+      }
+
+      .chevron-label {
+        color: color-mix(in srgb, #{$step-current-color} 70%, transparent);
+      }
+    }
+
+    &.is-preview {
+      background-color: #{$step-preview-bg};
+
+      .chevron-step-number {
+        color: #{$step-preview-color};
+      }
+
+      .chevron-label {
+        color: color-mix(in srgb, #{$step-preview-color} 65%, transparent);
+        font-style: italic;
+      }
+    }
+
+    &.is-real-hidden {
+      background-color: #{$step-real-bg};
+
+      .chevron-step-number {
+        color: #{$step-real-color};
+      }
+
+      .chevron-label {
+        color: color-mix(in srgb, #{$step-real-color} 70%, transparent);
+      }
+    }
+
+    &.pending:not(.is-real-hidden) {
+      background-color: #{$step-pending-bg};
+
+      .chevron-step-number {
+        color: #{$step-pending-color};
+      }
+
+      .chevron-label {
+        color: color-mix(in srgb, #{$step-pending-color} 70%, transparent);
+      }
+    }
+
+    // ── Interattività ───────────────────────────────────────────────
+    &.clickable {
+      cursor: pointer;
+
+      &:hover {
+        filter: brightness(1.06);
+      }
+
+      &:focus-visible {
+        outline: 2px solid #{$step-completed-bg};
+        outline-offset: 2px;
+        z-index: 1;
+      }
+
+      &:active {
+        filter: brightness(0.95);
+      }
+    }
+
+    // ── Contenuto ───────────────────────────────────────────────────
+    .chevron-content {
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+      min-width: 0;
+    }
+
+    .chevron-step-number {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      line-height: 1.3;
+      white-space: nowrap;
+    }
+
+    .chevron-real-dot {
+      display: inline-block;
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 50%;
+      background-color: #{$step-real-color};
+      box-shadow: 0 0 0 2px color-mix(in srgb, #{$step-real-color} 25%, transparent);
+      flex-shrink: 0;
+    }
+
+    .chevron-preview-badge {
+      font-weight: 400;
+      font-size: 0.65rem;
+      color: #{$step-preview-color};
+      opacity: 0.85;
+    }
+
+    .chevron-label {
+      font-size: 0.75rem;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}

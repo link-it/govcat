@@ -1,6 +1,8 @@
 {
   "useViewRoute": true,
   "useEditWizard": true,
+  "wizard_show_all_sections": true,
+  "wizard_debug_switches": true,
 
   "simpleItem": {
     "primaryText": [
