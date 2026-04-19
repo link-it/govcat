@@ -533,7 +533,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
 
     hasNextStateWorkflow() {
         const currentState = this.getStateWorkflow();
-        return currentState?.stato_successivo || currentState.nome;
+        return currentState?.stato_successivo || currentState?.nome;
     }
 
     getNextStateWorkflow() {

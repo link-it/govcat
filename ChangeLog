@@ -1,3 +1,11 @@
+2026-04-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: fix due NPE nel wizard adesioni emersi durante testing:
+	  optional chaining mancante su `currentState.nome` in
+	  `hasNextStateWorkflow` e guard mancante su `_cambioStato` nel
+	  template di `WorkflowComponent`.
+
 2026-04-18  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
