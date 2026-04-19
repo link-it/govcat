@@ -20,6 +20,7 @@
 package org.govway.catalogo.core.services;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -31,6 +32,7 @@ import org.govway.catalogo.core.dao.specifications.UtenteSpecification;
 import org.govway.catalogo.core.orm.entity.ClasseUtenteEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
+import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -171,6 +173,15 @@ public class UtenteService extends AbstractService {
 		}
 
 		return ruoli;
+	}
+
+	/**
+	 * Restituisce la lista delle associazioni utente-organizzazione per l'utente indicato.
+	 * Utile per accedere alle associazioni senza incorrere in LazyInitializationException
+	 * quando l'entità utente è detached dalla session Hibernate.
+	 */
+	public List<UtenteOrganizzazioneEntity> findUtenteOrganizzazioniByUtente(UtenteEntity utente) {
+		return this.utenteOrganizzazioneRepo.findByUtente(utente);
 	}
 
 }

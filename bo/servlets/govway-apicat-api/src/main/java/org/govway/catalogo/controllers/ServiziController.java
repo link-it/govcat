@@ -88,6 +88,7 @@ import org.govway.catalogo.core.orm.entity.StatoServizioEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.TagEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
+import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity;
 import org.govway.catalogo.core.services.GruppoService;
 import org.govway.catalogo.core.services.NotificaService;
 import org.govway.catalogo.core.services.OrganizzazioneService;
@@ -1404,6 +1405,9 @@ public class ServiziController implements ServiziApi {
 						}
 					}
 
+					// Pre-carica le associazioni utente-organizzazione via repository per evitare lazy loading
+					List<UtenteOrganizzazioneEntity> utenteOrganizzazioni = this.utenteService.findUtenteOrganizzazioniByUtente(utente);
+
 					// Mappa per l'associazione servizio -> entity
 					Map<String, ServizioEntity> servizioEntityMap = new java.util.HashMap<>();
 					for(ServizioEntity se : findAll.getContent()) {
@@ -1414,7 +1418,7 @@ public class ServiziController implements ServiziApi {
 					for(ItemServizio item : list.getContent()) {
 						ServizioEntity se = servizioEntityMap.get(item.getIdServizio().toString());
 						if(se != null) {
-							List<RuoloReferenteEnum> ruoli = calcolaRuoliReferente(se, utente, dominiReferente, dominiReferenteTecnico, serviziReferente, serviziReferenteTecnico);
+							List<RuoloReferenteEnum> ruoli = calcolaRuoliReferente(se, utente, dominiReferente, dominiReferenteTecnico, serviziReferente, serviziReferenteTecnico, utenteOrganizzazioni);
 							item.setRuoliReferente(ruoli);
 						}
 					}
@@ -1605,7 +1609,8 @@ public class ServiziController implements ServiziApi {
 	}
 
 	private List<RuoloReferenteEnum> calcolaRuoliReferente(ServizioEntity servizio, UtenteEntity utente,
-			Set<Long> dominiReferente, Set<Long> dominiReferenteTecnico, Set<Long> serviziReferente, Set<Long> serviziReferenteTecnico) {
+			Set<Long> dominiReferente, Set<Long> dominiReferenteTecnico, Set<Long> serviziReferente, Set<Long> serviziReferenteTecnico,
+			List<UtenteOrganizzazioneEntity> utenteOrganizzazioni) {
 		List<RuoloReferenteEnum> ruoli = new ArrayList<>();
 
 		// Verifica se l'utente è referente del dominio del servizio
@@ -1632,7 +1637,57 @@ public class ServiziController implements ServiziApi {
 			ruoli.add(RuoloReferenteEnum.RICHIEDENTE_SERVIZIO);
 		}
 
+		// Ruolo organizzazione: determina il ruolo dell'utente sull'organizzazione di riferimento del servizio
+		// (organizzazione del soggetto referente del dominio)
+		aggiungiRuoloOrganizzazione(ruoli, utenteOrganizzazioni, getOrganizzazioneContesto(servizio));
+
 		return ruoli;
+	}
+
+	/**
+	 * Restituisce l'organizzazione di contesto per un servizio, ovvero l'organizzazione
+	 * del soggetto referente del dominio. Può essere null se il dominio o il soggetto referente
+	 * non sono ancora impostati.
+	 */
+	private org.govway.catalogo.core.orm.entity.OrganizzazioneEntity getOrganizzazioneContesto(ServizioEntity servizio) {
+		if (servizio.getDominio() == null) {
+			return null;
+		}
+		if (servizio.getDominio().getSoggettoReferente() == null) {
+			return null;
+		}
+		return servizio.getDominio().getSoggettoReferente().getOrganizzazione();
+	}
+
+	/**
+	 * Aggiunge alla lista dei ruoli il ruolo per-organizzazione dell'utente sull'organizzazione
+	 * di contesto (se presente). Se l'utente non ha un'associazione con l'organizzazione, oppure
+	 * l'associazione ha ruolo null (nessun ruolo / sola lettura), non aggiunge nulla.
+	 */
+	private void aggiungiRuoloOrganizzazione(List<RuoloReferenteEnum> ruoli,
+			List<UtenteOrganizzazioneEntity> utenteOrganizzazioni,
+			org.govway.catalogo.core.orm.entity.OrganizzazioneEntity organizzazione) {
+		if (organizzazione == null || utenteOrganizzazioni == null) {
+			return;
+		}
+		for (UtenteOrganizzazioneEntity assoc : utenteOrganizzazioni) {
+			if (assoc.getOrganizzazione() != null
+					&& assoc.getOrganizzazione().getId().equals(organizzazione.getId())) {
+				var ruoloOrg = assoc.getRuoloOrganizzazione();
+				if (ruoloOrg == null) {
+					return; // Nessun ruolo = sola lettura
+				}
+				switch (ruoloOrg) {
+				case AMMINISTRATORE_ORGANIZZAZIONE:
+					ruoli.add(RuoloReferenteEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+					break;
+				case OPERATORE_API:
+					ruoli.add(RuoloReferenteEnum.OPERATORE_API);
+					break;
+				}
+				return;
+			}
+		}
 	}
 
 	@Override

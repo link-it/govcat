@@ -47,6 +47,7 @@ import org.govway.catalogo.core.dao.repositories.ServizioRepository;
 import org.govway.catalogo.core.dao.repositories.SoggettoRepository;
 import org.govway.catalogo.core.dao.repositories.TagRepository;
 import org.govway.catalogo.core.dao.repositories.TassonomiaRepository;
+import org.govway.catalogo.core.dao.repositories.UtenteOrganizzazioneRepository;
 import org.govway.catalogo.core.dao.repositories.UtenteRepository;
 import org.govway.catalogo.core.dao.repositories.RegistrazioneUtenteRepository;
 import org.govway.catalogo.core.dao.repositories.EmailUpdateVerificationRepository;
@@ -77,6 +78,8 @@ public class AbstractService {
 	protected ClasseUtenteRepository classeUtenteRepo;
 	@Autowired
 	protected UtenteRepository utenteRepo;
+	@Autowired
+	protected UtenteOrganizzazioneRepository utenteOrganizzazioneRepo;
 	@Autowired
 	protected GruppoRepository gruppoRepo;
 	@Autowired

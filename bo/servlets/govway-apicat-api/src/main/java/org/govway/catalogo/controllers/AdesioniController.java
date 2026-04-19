@@ -68,6 +68,7 @@ import org.govway.catalogo.core.orm.entity.ReferenteAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.StatoAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
+import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity;
 import org.govway.catalogo.core.services.AdesioneService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.core.services.NotificaService;
@@ -965,6 +966,9 @@ public class AdesioniController implements AdesioniApi {
 						}
 					}
 
+					// Pre-carica le associazioni utente-organizzazione via repository per evitare lazy loading
+					List<UtenteOrganizzazioneEntity> utenteOrganizzazioni = this.utenteService.findUtenteOrganizzazioniByUtente(utente);
+
 					// Mappa per l'associazione adesione -> entity
 					Map<String, AdesioneEntity> adesioneEntityMap = new HashMap<>();
 					for(AdesioneEntity ae : findAll.getContent()) {
@@ -975,7 +979,7 @@ public class AdesioniController implements AdesioniApi {
 					for(ItemAdesione item : list.getContent()) {
 						AdesioneEntity ae = adesioneEntityMap.get(item.getIdAdesione().toString());
 						if(ae != null) {
-							List<RuoloReferenteEnum> ruoli = calcolaRuoliReferenteAdesione(ae, utente, dominiReferente, dominiReferenteTecnico, serviziReferente, serviziReferenteTecnico, adesioniReferente, adesioniReferenteTecnico);
+							List<RuoloReferenteEnum> ruoli = calcolaRuoliReferenteAdesione(ae, utente, dominiReferente, dominiReferenteTecnico, serviziReferente, serviziReferenteTecnico, adesioniReferente, adesioniReferenteTecnico, utenteOrganizzazioni);
 							item.setRuoliReferente(ruoli);
 						}
 					}
@@ -2246,7 +2250,8 @@ public class AdesioniController implements AdesioniApi {
 	private List<RuoloReferenteEnum> calcolaRuoliReferenteAdesione(AdesioneEntity adesione, UtenteEntity utente,
 			Set<Long> dominiReferente, Set<Long> dominiReferenteTecnico,
 			Set<Long> serviziReferente, Set<Long> serviziReferenteTecnico,
-			Set<Long> adesioniReferente, Set<Long> adesioniReferenteTecnico) {
+			Set<Long> adesioniReferente, Set<Long> adesioniReferenteTecnico,
+			List<UtenteOrganizzazioneEntity> utenteOrganizzazioni) {
 		List<RuoloReferenteEnum> ruoli = new ArrayList<>();
 
 		// Ruoli di dominio
@@ -2287,7 +2292,74 @@ public class AdesioniController implements AdesioniApi {
 			ruoli.add(RuoloReferenteEnum.RICHIEDENTE_ADESIONE);
 		}
 
+		// TODO [MULTI-ORG] Da chiarire: per un'adesione è corretto considerare il ruolo
+		// dell'utente sia sull'organizzazione aderente sia su quella erogatrice?
+		// Per ora aggiungiamo entrambi con deduplicazione, ma è un punto aperto da rivedere.
+		aggiungiRuoloOrganizzazione(ruoli, utenteOrganizzazioni, getOrganizzazioneAderente(adesione));
+		aggiungiRuoloOrganizzazione(ruoli, utenteOrganizzazioni, getOrganizzazioneErogatrice(adesione));
+
 		return ruoli;
+	}
+
+	/**
+	 * Organizzazione aderente: quella del soggetto dell'adesione (lato consumer).
+	 */
+	private org.govway.catalogo.core.orm.entity.OrganizzazioneEntity getOrganizzazioneAderente(AdesioneEntity adesione) {
+		if (adesione.getSoggetto() == null) {
+			return null;
+		}
+		return adesione.getSoggetto().getOrganizzazione();
+	}
+
+	/**
+	 * Organizzazione erogatrice: quella del soggetto referente del dominio del servizio (lato provider).
+	 */
+	private org.govway.catalogo.core.orm.entity.OrganizzazioneEntity getOrganizzazioneErogatrice(AdesioneEntity adesione) {
+		if (adesione.getServizio() == null || adesione.getServizio().getDominio() == null) {
+			return null;
+		}
+		if (adesione.getServizio().getDominio().getSoggettoReferente() == null) {
+			return null;
+		}
+		return adesione.getServizio().getDominio().getSoggettoReferente().getOrganizzazione();
+	}
+
+	/**
+	 * Aggiunge alla lista dei ruoli il ruolo per-organizzazione dell'utente sull'organizzazione
+	 * indicata (se presente). Se l'utente non ha un'associazione con l'organizzazione, oppure
+	 * l'associazione ha ruolo null (nessun ruolo / sola lettura), non aggiunge nulla.
+	 * Evita duplicati se il ruolo è già presente nella lista.
+	 */
+	private void aggiungiRuoloOrganizzazione(List<RuoloReferenteEnum> ruoli,
+			List<UtenteOrganizzazioneEntity> utenteOrganizzazioni,
+			org.govway.catalogo.core.orm.entity.OrganizzazioneEntity organizzazione) {
+		if (organizzazione == null || utenteOrganizzazioni == null) {
+			return;
+		}
+		for (UtenteOrganizzazioneEntity assoc : utenteOrganizzazioni) {
+			if (assoc.getOrganizzazione() != null
+					&& assoc.getOrganizzazione().getId().equals(organizzazione.getId())) {
+				var ruoloOrg = assoc.getRuoloOrganizzazione();
+				if (ruoloOrg == null) {
+					return; // Nessun ruolo = sola lettura
+				}
+				RuoloReferenteEnum mapped;
+				switch (ruoloOrg) {
+				case AMMINISTRATORE_ORGANIZZAZIONE:
+					mapped = RuoloReferenteEnum.AMMINISTRATORE_ORGANIZZAZIONE;
+					break;
+				case OPERATORE_API:
+					mapped = RuoloReferenteEnum.OPERATORE_API;
+					break;
+				default:
+					return;
+				}
+				if (!ruoli.contains(mapped)) {
+					ruoli.add(mapped);
+				}
+				return;
+			}
+		}
 	}
 
 	/**

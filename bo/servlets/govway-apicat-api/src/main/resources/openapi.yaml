@@ -8633,6 +8633,8 @@ components:
         - referente_tecnico_adesione
         - richiedente_servizio
         - richiedente_adesione
+        - amministratore_organizzazione
+        - operatore_api
     RuoloUtenteEnum:
       type: "string"
       enum:
