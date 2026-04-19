@@ -5,105 +5,40 @@
 	  optional chaining mancante su `currentState.nome` in
 	  `hasNextStateWorkflow` e guard mancante su `_cambioStato` nel
 	  template di `WorkflowComponent`.
+	Issue 237: refactoring completo della dialog di configurazione
+	  modalità di autenticazione client. Dialog estratta in
+	  `ModalEditClientComponent` standalone presentational, guidata da
+	  un modulo puro `client-dialog-state.ts` (discriminated unions +
+	  `computeFormConfig`, 29 test vitest). UX allineata al mockup:
+	  toggle "Nuovo client / Client già censito", dropdown contestuale
+	  con alert empty-state, label "Tipo di accesso", info-box per
+	  scenario e help-text sui campi. Nuovo componente `ui-file-dropzone`
+	  per l'upload dei certificati. Eliminate le 27+ flag booleane
+	  interne e le race condition con setTimeout. Storia dettagliata
+	  sul branch `sprint-2.3.7-237-modale-auth-client`.
 
 2026-04-18  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
-	Issue 254: adeguato il rendering dei disclaimer del wizard Adesioni
-	  al nuovo formato di risposta `GET /adesioni/{id}/disclaimers`, che
-	  ora restituisce oggetti con `disclaimer`, `contesto` (generale |
-	  collaudo | produzione), `severity` (INFO | WARNING | ERROR) e
-	  `links`. I disclaimer vengono filtrati per contesto e mostrati nella
-	  posizione corrispondente: `generale` in testa al wizard, `collaudo`
-	  e `produzione` dentro le rispettive sezioni accordion. Ogni
-	  disclaimer mostra un'icona Bootstrap Icons outline in base alla
-	  severity (`bi-info-circle`, `bi-exclamation-triangle`,
-	  `bi-x-circle`) con stile alert Bootstrap coerente (info/warning/
-	  danger) e la lista dei link (se presenti) aperti in nuova scheda.
-	  Aggiunto un mock locale `DISCLAIMERS_MOCK` con 6 voci (tutte le
-	  combinazioni contesto x severity INFO/WARNING) attivabile tramite
-	  il flag `disclaimersUseMock` per testare il rendering in assenza
-	  di dati dal backend.
+	Issue 254: rendering dei disclaimer del wizard Adesioni adeguato
+	  al nuovo formato di `GET /adesioni/{id}/disclaimers` (oggetti con
+	  `disclaimer`, `contesto`, `severity`, `links`). Mostrati nella
+	  posizione corrispondente al contesto, con icona e stile
+	  Bootstrap in base alla severity. Aggiunto mock locale attivabile
+	  tramite flag `disclaimersUseMock`.
 
 2026-04-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
-	Issue 254: rework della configurazione Adesioni con un nuovo wizard
-	  guidato dalla configurazione `adesione.step_wizard` di
-	  configurazione.json. Aggiunto il nuovo componente standalone
-	  AdesioneStepBarComponent, una step-bar non interattiva che mostra
-	  l'avanzamento dell'adesione (Adesione Creata → Configurata in
-	  Collaudo → Configurata in Produzione) in base allo stato corrente.
-	  La visibilità delle sezioni del wizard (Informazioni generali,
-	  Referenti, Collaudo, Produzione) è ora allineata al campo
-	  `sezioni_attive` dello step attivo. Integrati i disclaimer dinamici
-	  multilingua recuperati via `GET /adesioni/{id}/disclaimers` e
-	  renderizzati in markdown con ngx-markdown, con ricarica automatica
-	  al cambio lingua UI. Aggiunto tooltip informativo al pulsante
-	  "Salta collaudo" e le relative chiavi i18n IT/EN
-	  (APP.ADESIONI.LABEL.SkipCollaudoTooltip, APP.ADESIONI.STEP_WIZARD.*).
-	  Aggiunto flag frontend `wizard_show_all_sections` in
-	  adesioni-config.json: quando attivo (default true) tutte le
-	  sezioni del wizard sono sempre visibili, quelle attive per lo
-	  step corrente vengono aperte di default mentre le non attive sono
-	  disabilitate e chiuse; quando disattivo le sezioni non attive
-	  vengono semplicemente nascoste (accordion chiusi come prima).
-	  Aggiunto inoltre uno switch di debug in alto al wizard che
-	  permette di togglare il flag a runtime per scopi di demo. Allineato
-	  il border-radius delle card accordion con gli altri box
-	  (step-bar, disclaimer) per uniformare la grafica. Modificata
-	  la logica di apertura di default degli accordion: le sezioni
-	  attive e NON completate vengono aperte, quelle già completate
-	  (verde) o non applicabili (grigio) restano chiuse — lo stato di
-	  completamento è comunque evidenziato dall'icona lnk-icon-toggle
-	  nell'header. La regola si applica sia in modalità
-	  wizard_show_all_sections on sia off. Resa infine interattiva la
-	  step-bar: l'utente può cliccare sullo step attuale e sui
-	  precedenti per visualizzare le sezioni di una fase passata senza
-	  modificare lo stato reale dell'adesione; lo step selezionato
-	  viene usato come riferimento per calcolare le sezioni attive del
-	  wizard, e viene resettato automaticamente a ogni ricaricamento
-	  dell'adesione (es. dopo un cambio stato). Aggiunti inoltre
-	  indicatori visivi per distinguere lo step reale da quello in
-	  anteprima: pallino verde in alto a destra del cerchio sullo step
-	  corrispondente allo stato reale dell'adesione e bordo tratteggiato
-	  sullo step in visione quando l'utente ha navigato una tappa
-	  passata. Opzionalmente (input `showStateBadges` sul componente,
-	  default off) è possibile mostrare anche badge pill testuali
-	  "Attuale" / "Anteprima" sotto le label. Aggiunto secondo switch
-	  di debug per togglare a runtime la visualizzazione dei badge e
-	  introdotto un master flag frontend `wizard_debug_switches` in
-	  adesioni-config.json che abilita/disabilita entrambi gli switch
-	  (quando false gli switch non vengono renderizzati).
-	  Aggiunta variante grafica "chevron" alla step-bar: blocchi
-	  orizzontali a freccia con titolo "Step X" e sottotitolo descrittivo.
-	  Gli stati sono differenziati per colore di sfondo (blu pieno per
-	  completato, blu chiaro per corrente, ciano chiaro per anteprima,
-	  verde chiaro con pallino per lo step reale durante la navigazione,
-	  grigio per pending). La variante è selezionabile a runtime tramite
-	  switch di debug ed è impostata come default. Supporta la proprietà
-	  `variant` con valori 'circles' (classica) e 'chevron'.
-	  Tematizzata la step-bar con 11 variabili CSS dedicate
-	  (`--step-bar-bg`, `--step-completed-bg/color`,
-	  `--step-current-bg/color`, `--step-pending-bg/color`,
-	  `--step-preview-bg/color`, `--step-real-bg/color`) aggiunte a
-	  tutti i 6 temi in app-config.json, con fallback di default nel
-	  SCSS per temi non aggiornati. Aggiunto preset dark (palette
-	  Catppuccin Mocha) attivabile a runtime tramite switch di debug.
-	  Spostato il wrapper `adesione-step-bar-wrapper` dentro il
-	  componente AdesioneStepBarComponent; gli switch di debug sono
-	  ora esterni al componente. Rimosso l'uso di `$body-color` nella
-	  variante chevron: ogni stato usa la propria variabile `--step-*`
-	  per garantire la compatibilità col preset dark.
-	  Aggiunta opzione `circlesLabelPosition` alla variante circles
-	  che permette di posizionare la label a destra del cerchio
-	  ('right') invece che sotto ('bottom', default), con wrap del
-	  testo e badge sempre sotto. Switch di debug aggiunto.
-	  Rework layout sezione Referenti nel wizard: separati i blocchi
-	  Referenti adesione, Referenti servizio e Referenti dominio in
-	  accordion-item distinti con sfondo bg-light-subtle. Posizionamento
-	  assoluto per il pulsante elimina referente. Uniformati stili
-	  accordion-button e collapse-content.
+	Issue 254: nuovo wizard di configurazione Adesioni guidato da
+	  `adesione.step_wizard`. Nuova step-bar interattiva
+	  (`AdesioneStepBarComponent`) con varianti circles/chevron,
+	  tematizzazione via 11 CSS vars sui 6 temi + preset dark,
+	  indicatori visivi per step reale vs anteprima e badge opzionali.
+	  Integrati i disclaimer dinamici multilingua in markdown, tooltip
+	  "Salta collaudo", flag `wizard_show_all_sections` e
+	  `wizard_debug_switches`. Rework layout sezione Referenti
+	  (blocchi separati per adesione / servizio / dominio).
 
 2026-04-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 

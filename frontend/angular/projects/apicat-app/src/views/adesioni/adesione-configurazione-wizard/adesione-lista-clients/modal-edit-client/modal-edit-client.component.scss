@@ -1,0 +1,51 @@
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+// Toggle "Nuovo client" / "Client gia' censito" stile mockup
+// (image-1.png): colori celeste tenue, due button a larghezza uguale.
+.credenziali-toggle {
+    .btn {
+        flex: 1 1 0;
+        min-height: 2.5rem;
+        font-weight: 500;
+        background-color: #ffffff;
+        border: 1px solid #e1e1e4;
+        color: #087990;
+        transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+
+        &:hover:not(.active):not(:disabled) {
+            background-color: #e6f1fb;
+            border-color: #e1e1e4;
+            color: #055160;
+        }
+
+        &:focus,
+        &:focus-visible {
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+            outline: none;
+        }
+
+        &.active {
+            background-color: #e6f1fb;
+            border-color: #e1e1e4;
+            color: #055160;
+            font-weight: 600;
+        }
+    }
+}

@@ -28,6 +28,7 @@ import { CollapseRowComponent } from "./collapse-row/collapse-row.component";
 import { DataTypeComponent } from "./data-type/data-type.component";
 import { DataCollapseComponent } from "./data-view/data-collapse.component";
 import { DataViewComponent } from "./data-view/data-view.component";
+import { FileDropzoneComponent } from "./file-dropzone/file-dropzone.component";
 import { FileUploadComponent } from "./file-upload/file-upload.component";
 import { FileUploaderComponent } from "./file-uploader/file-uploader.component";
 import { FormReadonlyComponent } from "./form-readonly/form-readonly.component";
@@ -55,6 +56,7 @@ export const ui = [
     DataTypeComponent,
     DataCollapseComponent,
     DataViewComponent,
+    FileDropzoneComponent,
     FileUploadComponent,
     FileUploaderComponent,
     FormReadonlyComponent,
@@ -87,6 +89,7 @@ export {
     DataTypeComponent,
     DataCollapseComponent,
     DataViewComponent,
+    FileDropzoneComponent,
     FileUploadComponent,
     FileUploaderComponent,
     FormReadonlyComponent,

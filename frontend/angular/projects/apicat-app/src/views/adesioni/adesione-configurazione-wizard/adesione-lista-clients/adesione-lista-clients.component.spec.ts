@@ -152,29 +152,10 @@ describe('AdesioneListaClientsComponent', () => {
       expect(component.ratePeriods[2].value).toBe(PeriodEnum.Minuti);
     });
 
-    it('should have all auth type booleans as false', () => {
-      expect(component._isNoDati).toBe(false);
-      expect(component._isIndirizzoIP).toBe(false);
-      expect(component._isHttpBasic).toBe(false);
-      expect(component._isOauthAuthCode).toBe(false);
-      expect(component._isOauthClientCredentials).toBe(false);
-      expect(component._isHttps).toBe(false);
-      expect(component._isHttpsSign).toBe(false);
-      expect(component._isPdnd).toBe(false);
-      expect(component._isHttpsPdnd).toBe(false);
-      expect(component._isHttpsPdndSign).toBe(false);
-      expect(component._isSign).toBe(false);
-      expect(component._isSignPdnd).toBe(false);
-    });
-
-    it('should default certificate flags to false', () => {
-      expect(component._isFornito).toBe(false);
-      expect(component._isRichiesto_cn).toBe(false);
-      expect(component._isRichiesto_csr).toBe(false);
-      expect(component._isFornito_firma).toBe(false);
-      expect(component._isRichiesto_cn_firma).toBe(false);
-      expect(component._isRichiesto_csr_firma).toBe(false);
-    });
+    // Fase 4.4 (Issue #237): rimossi i test sulle 16 flag orfane
+    // (`_is{AuthType}` e `_isFornito*/Richiesto_*`). Non esistono piu'
+    // come proprieta' pubbliche; il mode e lo scenario sono derivati da
+    // `FormConfig` e dal FormControl `tipo_certificato[_firma]`.
 
     it('should have default message keys', () => {
       expect(component._message).toBe('APP.MESSAGE.ChooseEnvironment');
@@ -221,21 +202,16 @@ describe('AdesioneListaClientsComponent', () => {
 
       component.initTipiCertificato('https');
 
-      expect(component._isRichiesto_csr).toBe(true);
       expect(component._tipiCertificato).toEqual([
         { nome: 'fornito', valore: 'fornito' },
         { nome: 'richiesto_cn', valore: 'richiesto_cn' },
       ]);
     });
 
-    it('should set _isRichiesto_csr to false when csr_modulo is absent', () => {
-      const mockCert = {};
-      mockUtils.getCertificatoByAuthType.mockReturnValue(mockCert);
-      mockUtils.getTipiCertificatoAttivi.mockReturnValue([]);
-
-      component.initTipiCertificato('https');
-      expect(component._isRichiesto_csr).toBe(false);
-    });
+    // Fase 4.4 (Issue #237): rimossi i test su `_isRichiesto_csr` come
+    // side-effect di `initTipiCertificato`: la flag non esiste piu' come
+    // proprieta' pubblica. Il supporto `csr_modulo` del backend e' ora
+    // implicitamente riflesso in `_tipiCertificato`.
 
     it('should leave _tipiCertificato empty when no certificato found', () => {
       mockUtils.getCertificatoByAuthType.mockReturnValue(null);
@@ -292,150 +268,41 @@ describe('AdesioneListaClientsComponent', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // _checkAndSetAuthTypeCase
+  // _checkAndSetAuthTypeCase (Fase 4.4 Issue #237: setta solo i
+  // `_show_erogazione_*` flag, lo switch sulle 12 `_is{AuthType}` e'
+  // stato rimosso insieme alle flag.)
   // ---------------------------------------------------------------------------
   describe('_checkAndSetAuthTypeCase', () => {
-    it('should set _isNoDati for no_dati auth type', () => {
-      component._checkAndSetAuthTypeCase('no_dati');
-      expect(component._isNoDati).toBe(true);
-      expect(component._isHttps).toBe(false);
+    it('should set _show_erogazione_ip_fruizione from config', () => {
+      mockAuthService._getConfigModule.mockReturnValue({
+        api: { auth_type: [{ type: 'https_pdnd', indirizzi_ip: true }] }
+      });
+      component._checkAndSetAuthTypeCase('https_pdnd');
+      expect(component._show_erogazione_ip_fruizione).toBe(true);
     });
 
-    it('should set _isIndirizzoIP for indirizzo_ip auth type', () => {
-      component._checkAndSetAuthTypeCase('indirizzo_ip');
-      expect(component._isIndirizzoIP).toBe(true);
-    });
-
-    it('should set _isHttpBasic for http_basic auth type', () => {
-      component._checkAndSetAuthTypeCase('http_basic');
-      expect(component._isHttpBasic).toBe(true);
-    });
-
-    it('should set _isHttps for https auth type', () => {
-      component._checkAndSetAuthTypeCase('https');
-      expect(component._isHttps).toBe(true);
-    });
-
-    it('should set _isHttpsSign for https_sign auth type', () => {
-      component._checkAndSetAuthTypeCase('https_sign');
-      expect(component._isHttpsSign).toBe(true);
-    });
-
-    it('should set _isPdnd for pdnd auth type', () => {
+    it('should set _show_erogazione_rate_limiting and finalita from config', () => {
+      mockAuthService._getConfigModule.mockReturnValue({
+        api: { auth_type: [{ type: 'pdnd', rate_limiting: true, finalita: true }] }
+      });
       component._checkAndSetAuthTypeCase('pdnd');
-      expect(component._isPdnd).toBe(true);
       expect(component._show_erogazione_rate_limiting).toBe(true);
       expect(component._show_erogazione_finalita).toBe(true);
     });
 
-    it('should set _isHttpsPdnd for https_pdnd auth type', () => {
-      component._checkAndSetAuthTypeCase('https_pdnd');
-      expect(component._isHttpsPdnd).toBe(true);
-      expect(component._show_erogazione_ip_fruizione).toBe(true);
-    });
-
-    it('should set _isHttpsPdndSign for https_pdnd_sign auth type', () => {
-      component._checkAndSetAuthTypeCase('https_pdnd_sign');
-      expect(component._isHttpsPdndSign).toBe(true);
-    });
-
-    it('should set _isOauthAuthCode for oauth_authorization_code auth type', () => {
-      component._checkAndSetAuthTypeCase('oauth_authorization_code');
-      expect(component._isOauthAuthCode).toBe(true);
-    });
-
-    it('should set _isOauthClientCredentials for oauth_client_credentials auth type', () => {
-      component._checkAndSetAuthTypeCase('oauth_client_credentials');
-      expect(component._isOauthClientCredentials).toBe(true);
-    });
-
-    it('should set _isSign for sign auth type', () => {
-      component._checkAndSetAuthTypeCase('sign');
-      expect(component._isSign).toBe(true);
-    });
-
-    it('should set _isSignPdnd for sign_pdnd auth type', () => {
-      component._checkAndSetAuthTypeCase('sign_pdnd');
-      expect(component._isSignPdnd).toBe(true);
-    });
-
-    it('should reset all auth type flags before setting new one', () => {
-      component._isHttps = true;
-      component._checkAndSetAuthTypeCase('pdnd');
-      expect(component._isHttps).toBe(false);
-      expect(component._isPdnd).toBe(true);
-    });
-
-    it('should handle null auth type by resetting all flags', () => {
-      component._isHttps = true;
-      component._checkAndSetAuthTypeCase(null);
-      expect(component._isHttps).toBe(false);
-      expect(component._isPdnd).toBe(false);
+    it('should leave show flags false for unknown auth type', () => {
+      mockAuthService._getConfigModule.mockReturnValue({ api: { auth_type: [] } });
+      component._checkAndSetAuthTypeCase('unknown');
+      expect(component._show_erogazione_ip_fruizione).toBe(false);
+      expect(component._show_erogazione_rate_limiting).toBe(false);
+      expect(component._show_erogazione_finalita).toBe(false);
     });
   });
 
   // ---------------------------------------------------------------------------
-  // _resetAllAuthType
-  // ---------------------------------------------------------------------------
-  describe('_resetAllAuthType', () => {
-    it('should reset all auth type booleans to false', () => {
-      component._isNoDati = true;
-      component._isHttps = true;
-      component._isPdnd = true;
-      component._isSign = true;
-      component._resetAllAuthType();
-      expect(component._isNoDati).toBe(false);
-      expect(component._isHttps).toBe(false);
-      expect(component._isPdnd).toBe(false);
-      expect(component._isSign).toBe(false);
-      expect(component._isIndirizzoIP).toBe(false);
-      expect(component._isHttpBasic).toBe(false);
-      expect(component._isOauthAuthCode).toBe(false);
-      expect(component._isOauthClientCredentials).toBe(false);
-      expect(component._isHttpsSign).toBe(false);
-      expect(component._isHttpsPdnd).toBe(false);
-      expect(component._isHttpsPdndSign).toBe(false);
-      expect(component._isSignPdnd).toBe(false);
-    });
-  });
-
-  // ---------------------------------------------------------------------------
-  // _checkTipoCertificato
-  // ---------------------------------------------------------------------------
-  describe('_checkTipoCertificato', () => {
-    it('should set _isFornito for https + fornito', () => {
-      component._checkTipoCertificato('https', 'fornito');
-      expect(component._isFornito).toBe(true);
-      expect(component._isRichiesto_cn).toBe(false);
-      expect(component._isRichiesto_csr).toBe(false);
-    });
-
-    it('should set _isRichiesto_cn for https + richiesto_cn', () => {
-      component._checkTipoCertificato('https', 'richiesto_cn');
-      expect(component._isFornito).toBe(false);
-      expect(component._isRichiesto_cn).toBe(true);
-      expect(component._isRichiesto_csr).toBe(false);
-    });
-
-    it('should set _isRichiesto_csr for https + richiesto_csr', () => {
-      component._checkTipoCertificato('https', 'richiesto_csr');
-      expect(component._isFornito).toBe(false);
-      expect(component._isRichiesto_cn).toBe(false);
-      expect(component._isRichiesto_csr).toBe(true);
-    });
-
-    it('should set flags for https_sign + fornito', () => {
-      component._checkTipoCertificato('https_sign', 'fornito');
-      expect(component._isFornito).toBe(true);
-      expect(component._isRichiesto_cn).toBe(false);
-    });
-
-    it('should not change flags for unknown auth_type', () => {
-      component._isFornito = true;
-      component._checkTipoCertificato('pdnd', 'fornito');
-      expect(component._isFornito).toBe(true); // unchanged
-    });
-  });
+  // Fase 4.4 (Issue #237): rimossi i describe block `_resetAllAuthType`
+  // e `_checkTipoCertificato`. I relativi metodi sono stati eliminati
+  // dal componente perche' operavano solo sulle 16 flag orfane.
 
   // ---------------------------------------------------------------------------
   // _resetCertificates / _resetCertificatesFirma / _resetCertificatesAll
@@ -1036,9 +903,9 @@ describe('AdesioneListaClientsComponent', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // _loadCredenziali
+  // _loadCredenziali$ (Fase 2 Issue #237: Observable-based)
   // ---------------------------------------------------------------------------
-  describe('_loadCredenziali', () => {
+  describe('_loadCredenziali$', () => {
     beforeEach(() => {
       component._generalConfig = {
         adesione: {
@@ -1049,32 +916,30 @@ describe('AdesioneListaClientsComponent', () => {
     });
 
     it('should push "Nuove credenziali" when organizzazione is empty', () => {
-      component._loadCredenziali('https', '', 'collaudo');
+      component._loadCredenziali$('https', '', 'collaudo').subscribe();
       expect(component._arr_clients_riuso).toHaveLength(1);
       expect(component._arr_clients_riuso[0].id_client).toBeNull();
     });
 
     it('should push NuovoCliente and UsaClientEsistente when no elenco_client_esistenti', () => {
       mockAuthService.isGestore.mockReturnValue(false);
-      component._loadCredenziali('https', 'org1', 'collaudo');
+      component._loadCredenziali$('https', 'org1', 'collaudo').subscribe();
       expect(component._arr_clients_riuso.length).toBeGreaterThanOrEqual(2);
       expect(component._arr_clients_riuso[0].id_client).toBe(SelectedClientEnum.NuovoCliente);
       expect(component._arr_clients_riuso[1].id_client).toBe(SelectedClientEnum.UsaClientEsistente);
     });
 
-    it('should also call _loadClientsRiuso when user is gestore and no elenco_client_esistenti', () => {
+    it('should also call _loadClientsRiuso$ when user is gestore and no elenco_client_esistenti', () => {
       mockAuthService.isGestore.mockReturnValue(true);
-      // Use EMPTY to avoid triggering _postProcessClients -> onChangeCredenziali without full form
       mockApiService.getList.mockReturnValue(EMPTY);
-      component._loadCredenziali('https', 'org1', 'collaudo');
+      component._loadCredenziali$('https', 'org1', 'collaudo').subscribe();
       expect(mockApiService.getList).toHaveBeenCalled();
     });
 
-    it('should call _loadClientsRiuso when visualizza_elenco_client_esistenti is true', () => {
+    it('should call _loadClientsRiuso$ when visualizza_elenco_client_esistenti is true', () => {
       component._generalConfig.adesione.visualizza_elenco_client_esistenti = true;
-      // Use EMPTY to avoid triggering _postProcessClients -> onChangeCredenziali without full form
       mockApiService.getList.mockReturnValue(EMPTY);
-      component._loadCredenziali('https', 'org1', 'collaudo');
+      component._loadCredenziali$('https', 'org1', 'collaudo').subscribe();
       expect(mockApiService.getList).toHaveBeenCalledWith('client', expect.objectContaining({
         params: expect.objectContaining({ auth_type: 'https', id_organizzazione: 'org1' })
       }));
@@ -1082,9 +947,9 @@ describe('AdesioneListaClientsComponent', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // _postProcessClients (private, tested via _loadClientsRiuso)
+  // _postProcessClientsList (private, tested via _loadClientsRiuso$)
   // ---------------------------------------------------------------------------
-  describe('_postProcessClients via _loadClientsRiuso', () => {
+  describe('_postProcessClientsList via _loadClientsRiuso$', () => {
     beforeEach(() => {
       component._generalConfig = {
         adesione: {
@@ -1092,7 +957,7 @@ describe('AdesioneListaClientsComponent', () => {
           riuso_client_obbligatorio: false
         }
       };
-      // Setup a basic form so onChangeCredenziali doesn't fail
+      // Form manteniamo stubbato per gli altri test che lo richiedono
       component._editFormGroupClients = new FormGroup({
         credenziali: new FormControl(null),
         nome_proposto: new FormControl(null),
@@ -1139,7 +1004,7 @@ describe('AdesioneListaClientsComponent', () => {
 
     it('should prepend NuoveCredenziali when empty and not obbligatorio', () => {
       mockApiService.getList.mockReturnValue(of({ content: [], page: { number: 0, totalPages: 1 } }));
-      component._loadClientsRiuso('https', 'org1', 'collaudo', true);
+      component._loadCredenziali$('https', 'org1', 'collaudo').subscribe();
       expect(component._arr_clients_riuso[0].id_client).toBe(SelectedClientEnum.NuovoCliente);
     });
 
@@ -1147,7 +1012,7 @@ describe('AdesioneListaClientsComponent', () => {
       component._generalConfig.adesione.riuso_client_obbligatorio = false;
       const clients = [{ id_client: 'c1', nome: 'Client 1' }];
       mockApiService.getList.mockReturnValue(of({ content: clients, page: { number: 0, totalPages: 1 } }));
-      component._loadClientsRiuso('https', 'org1', 'collaudo', true);
+      component._loadCredenziali$('https', 'org1', 'collaudo').subscribe();
       expect(component._arr_clients_riuso[0].id_client).toBe(SelectedClientEnum.NuovoCliente);
       expect(component._arr_clients_riuso[1].id_client).toBe('c1');
     });
@@ -1156,14 +1021,17 @@ describe('AdesioneListaClientsComponent', () => {
       component._generalConfig.adesione.riuso_client_obbligatorio = true;
       const clients = [{ id_client: 'c1', nome: 'Client 1' }];
       mockApiService.getList.mockReturnValue(of({ content: clients, page: { number: 0, totalPages: 1 } }));
-      component._loadClientsRiuso('https', 'org1', 'collaudo', true);
+      component._loadCredenziali$('https', 'org1', 'collaudo').subscribe();
       expect(component._arr_clients_riuso[0].id_client).toBe('c1');
     });
 
-    it('should handle API error by setting error messages', () => {
+    it('propagates API error to subscribers (Fase 2: error handling e\' del chiamante)', () => {
       mockApiService.getList.mockReturnValue(throwError(() => new Error('fail')));
-      component._loadClientsRiuso('https', 'org1', 'collaudo', true);
-      expect(component._error).toBe(true);
+      let captured: any = null;
+      component._loadCredenziali$('https', 'org1', 'collaudo').subscribe({
+        error: (err: any) => { captured = err; }
+      });
+      expect(captured).toBeInstanceOf(Error);
     });
   });
 
@@ -1265,40 +1133,21 @@ describe('AdesioneListaClientsComponent', () => {
       });
     }
 
-    it('should set _isFornito when event is fornito', () => {
-      setupFormForCertificato();
-      component.onChangeTipoCertificato({ nome: 'fornito' });
-      expect(component._isFornito).toBe(true);
-      expect(component._isRichiesto_cn).toBe(false);
-      expect(component._isRichiesto_csr).toBe(false);
-    });
-
+    // Fase 4.4 (Issue #237): i test erano basati sulle flag orfane
+    // `_isFornito/_isRichiesto_cn/_isRichiesto_csr`. Ora che il mode
+    // e' letto dal FormControl `tipo_certificato`, i test di `fornito`/`cn`/`csr`
+    // sono ridotti a verifiche sui validator e sullo stato dei
+    // certificati interni.
     it('should set content required validator for fornito', () => {
       setupFormForCertificato();
       component.onChangeTipoCertificato({ nome: 'fornito' });
       expect(component._editFormGroupClients.controls['content'].hasValidator(Validators.required)).toBe(true);
     });
 
-    it('should set _isRichiesto_cn when event is richiesto_cn', () => {
-      setupFormForCertificato();
-      component.onChangeTipoCertificato({ nome: 'richiesto_cn' });
-      expect(component._isFornito).toBe(false);
-      expect(component._isRichiesto_cn).toBe(true);
-      expect(component._isRichiesto_csr).toBe(false);
-    });
-
     it('should set cn required validator for richiesto_cn', () => {
       setupFormForCertificato();
       component.onChangeTipoCertificato({ nome: 'richiesto_cn' });
       expect(component._editFormGroupClients.controls['cn'].hasValidator(Validators.required)).toBe(true);
-    });
-
-    it('should set _isRichiesto_csr when event is richiesto_csr', () => {
-      setupFormForCertificato();
-      component.onChangeTipoCertificato({ nome: 'richiesto_csr' });
-      expect(component._isFornito).toBe(false);
-      expect(component._isRichiesto_cn).toBe(false);
-      expect(component._isRichiesto_csr).toBe(true);
     });
 
     it('should set content and content_csr required for richiesto_csr', () => {
@@ -1308,21 +1157,13 @@ describe('AdesioneListaClientsComponent', () => {
       expect(component._editFormGroupClients.controls['content_csr'].hasValidator(Validators.required)).toBe(true);
     });
 
-    it('should reset all certificate flags for null event', () => {
+    it('should clear stored cert state on null event', () => {
       setupFormForCertificato();
-      component._isFornito = true;
+      component._certificato_fornito = { uuid: 'x' };
       component.onChangeTipoCertificato(null);
-      expect(component._isFornito).toBe(false);
-      expect(component._isRichiesto_cn).toBe(false);
-      expect(component._isRichiesto_csr).toBe(false);
-    });
-
-    it('should reset all certificate flags for unknown event', () => {
-      setupFormForCertificato();
-      component.onChangeTipoCertificato({ nome: 'unknown' });
-      expect(component._isFornito).toBe(false);
-      expect(component._isRichiesto_cn).toBe(false);
-      expect(component._isRichiesto_csr).toBe(false);
+      expect(component._certificato_fornito).toBeNull();
+      expect(component._certificato_csr).toBeNull();
+      expect(component._modulo_richiesta_csr).toBeNull();
     });
 
     it('should handle empty form gracefully', () => {
@@ -1352,51 +1193,25 @@ describe('AdesioneListaClientsComponent', () => {
       });
     }
 
-    it('should set _isFornito_firma for fornito event', () => {
-      setupFormForFirma();
-      component.onChangeTipoCertificatoFirma({ nome: 'fornito' });
-      expect(component._isFornito_firma).toBe(true);
-      expect(component._isRichiesto_cn_firma).toBe(false);
-      expect(component._isRichiesto_csr_firma).toBe(false);
-    });
-
+    // Fase 4.4 (Issue #237): come per `onChangeTipoCertificato`, i test sulle
+    // flag orfane `_isFornito_firma/_isRichiesto_*_firma` sono stati rimossi.
     it('should set content_firma required for fornito', () => {
       setupFormForFirma();
       component.onChangeTipoCertificatoFirma({ nome: 'fornito' });
       expect(component._editFormGroupClients.controls['content_firma'].hasValidator(Validators.required)).toBe(true);
     });
 
-    it('should set _isRichiesto_cn_firma for richiesto_cn event', () => {
+    it('should set cn_firma required for richiesto_cn', () => {
       setupFormForFirma();
       component.onChangeTipoCertificatoFirma({ nome: 'richiesto_cn' });
-      expect(component._isFornito_firma).toBe(false);
-      expect(component._isRichiesto_cn_firma).toBe(true);
-      expect(component._isRichiesto_csr_firma).toBe(false);
+      expect(component._editFormGroupClients.controls['cn_firma'].hasValidator(Validators.required)).toBe(true);
     });
 
-    it('should set _isRichiesto_csr_firma for richiesto_csr event', () => {
+    it('should set content_firma and content_csr_firma required for richiesto_csr', () => {
       setupFormForFirma();
       component.onChangeTipoCertificatoFirma({ nome: 'richiesto_csr' });
-      expect(component._isFornito_firma).toBe(false);
-      expect(component._isRichiesto_cn_firma).toBe(false);
-      expect(component._isRichiesto_csr_firma).toBe(true);
-    });
-
-    it('should reset firma flags for null event', () => {
-      setupFormForFirma();
-      component._isFornito_firma = true;
-      component.onChangeTipoCertificatoFirma(null);
-      expect(component._isFornito_firma).toBe(false);
-      expect(component._isRichiesto_cn_firma).toBe(false);
-      expect(component._isRichiesto_csr_firma).toBe(false);
-    });
-
-    it('should reset firma flags for unknown event', () => {
-      setupFormForFirma();
-      component.onChangeTipoCertificatoFirma({ nome: 'unknown' });
-      expect(component._isFornito_firma).toBe(false);
-      expect(component._isRichiesto_cn_firma).toBe(false);
-      expect(component._isRichiesto_csr_firma).toBe(false);
+      expect(component._editFormGroupClients.controls['content_firma'].hasValidator(Validators.required)).toBe(true);
+      expect(component._editFormGroupClients.controls['content_csr_firma'].hasValidator(Validators.required)).toBe(true);
     });
   });
 
@@ -1574,7 +1389,9 @@ describe('AdesioneListaClientsComponent', () => {
       component._initEditFormClients(data);
 
       expect(component._editFormGroupClients.controls['credenziali'].value).toBe('c1');
-      expect(component._isFornito).toBe(true);
+      // Fase 4.4: `_isFornito` sostituito dalla lettura del FormControl
+      // `tipo_certificato` tramite `_currentCertAuthMode`.
+      expect(component._editFormGroupClients.controls['tipo_certificato'].value).toBe('fornito');
       expect(component._editFormGroupClients.getRawValue().ip_fruizione).toBe('10.0.0.1');
     });
 
@@ -1623,7 +1440,8 @@ describe('AdesioneListaClientsComponent', () => {
   describe('_onSaveModalClient', () => {
     function setupForSave() {
       component._auth_type = 'https';
-      component._isHttps = true;
+      // Fase 4.4: rimosso `_isHttps = true`, flag eliminata. Il comportamento
+      // e' derivato da `_auth_type` via predicato `authRequiresCertAuth`.
       component.adesione = {
         id_adesione: 100,
         soggetto: { id_soggetto: 1, organizzazione: { id_organizzazione: 'org1' } }
@@ -1792,8 +1610,6 @@ describe('AdesioneListaClientsComponent', () => {
       setupForSave();
       component._currClient = {};
       component._auth_type = 'pdnd';
-      component._isPdnd = true;
-      component._isHttps = false;
 
       Tools.Configurazione = {
         servizio: { api: { profili: [], auth_type: [{ type: 'pdnd', indirizzi_ip: false }] } },
@@ -1815,8 +1631,6 @@ describe('AdesioneListaClientsComponent', () => {
       setupForSave();
       component._currClient = {};
       component._auth_type = 'oauth_authorization_code';
-      component._isOauthAuthCode = true;
-      component._isHttps = false;
 
       Tools.Configurazione = {
         servizio: { api: { profili: [], auth_type: [{ type: 'oauth_authorization_code', indirizzi_ip: false }] } },
@@ -1891,8 +1705,7 @@ describe('AdesioneListaClientsComponent', () => {
     it('should build certificato_firma for richiesto_cn firma tipo', () => {
       setupForSave();
       component._currClient = {};
-      component._isHttpsSign = true;
-      component._isHttps = false;
+      component._auth_type = 'https_sign';
 
       Tools.Configurazione = {
         servizio: { api: { profili: [], auth_type: [{ type: 'https_sign', indirizzi_ip: false }] } },

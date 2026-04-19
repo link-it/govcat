@@ -36,3 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     text-align: right;
     min-width: 75px
 }
+
+// Nota (Issue #237 Fase 6+): lo stile `.credenziali-toggle` e' stato
+// spostato dentro il nuovo componente `modal-edit-client`, dove il
+// toggle risiede ora.
