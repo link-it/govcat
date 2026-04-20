@@ -1,3 +1,11 @@
+2026-04-20  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Fix NPE in _getCustomSelectLabelMapper quando piu' nome_gruppo
+	  condividono lo stesso label_gruppo (es. PDNDCollaudo +
+	  PDNDCollaudo_identificativo): sostituito find() con filter +
+	  flatMap sulle proprieta di tutti i gruppi matchanti.
+
 2026-04-17  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* Rilasciata versione 2.3.6.p2
