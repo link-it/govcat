@@ -8,14 +8,26 @@
   per le interazioni utente. Il FormGroup e tutte le sub-property di
   stato sono passati via `@Input() input`.
 -->
-<div class="modal-content">
+<div class="modal-content" [class.layout-horizontal]="layout === 'horizontal'">
   <form [formGroup]="input.formGroup" (submit)="save.emit()">
     <div class="modal-header pb-2">
       <h5 class="modal-title pull-left">{{ 'APP.TITLE.AuthTypeConfiguration' | translate }}</h5>
 
-      <button type="button" class="btn btn-default btn-md gl-tertiary pull-right p-0" aria-label="Close" (click)="close.emit()">
-        <i class="bi bi-x-lg"></i>
-      </button>
+      <div class="modal-header-actions d-flex align-items-center gap-2">
+        <button type="button" class="btn btn-sm btn-default gl-tertiary p-1 layout-toggle"
+          (click)="toggleLayout()"
+          [tooltip]="((layout === 'horizontal' ? 'APP.ADESIONI.LABEL.LayoutVerticale' : 'APP.ADESIONI.LABEL.LayoutOrizzontale') | translate)"
+          [attr.aria-label]="((layout === 'horizontal' ? 'APP.ADESIONI.LABEL.LayoutVerticale' : 'APP.ADESIONI.LABEL.LayoutOrizzontale') | translate)">
+          @if (layout === 'horizontal') {
+            <i class="bi bi-layout-split"></i>
+          } @else {
+            <i class="bi bi-layout-three-columns"></i>
+          }
+        </button>
+        <button type="button" class="btn btn-default btn-md gl-tertiary p-0" aria-label="Close" (click)="close.emit()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
     </div>
     <div class="modal-body">
       <div class="p-3">
@@ -247,6 +259,10 @@
                 </div>
               }
             </div>
+            <!-- Wrapper cert-row: in modalita' orizzontale diventa una
+                 grid a 2 colonne (auth | firma). In verticale e' un blocco
+                 in flusso normale. -->
+            <div class="cert-row">
             <!-- Certificato di AUTENTICAZIONE. -->
             @if (input.formConfig.certAuth.visible) {
               <div class="row-content-block mt-2 mb-3">
@@ -334,9 +350,9 @@
                     </div>
                   }
                 </div>
-                <div class="row">
-                  @if (input.formConfig.certAuth.mode.kind === 'richiesto_csr') {
-                    <div class="form-group col-12 mb-2">
+                @if (input.formConfig.certAuth.mode.kind === 'richiesto_csr') {
+                  <div class="cert-csr-pair">
+                    <div class="cert-csr-item form-group mb-2">
                       @if (!input.certificatoCSR) {
                         <ui-file-dropzone #desAuthCsr
                           [control]="input.descrittoreCtrlCsr"
@@ -360,9 +376,7 @@
                         </div>
                       }
                     </div>
-                  }
-                  @if (input.formConfig.certAuth.mode.kind === 'richiesto_csr') {
-                    <div class="form-group col-12 mb-2">
+                    <div class="cert-csr-item form-group mb-2">
                       @if (!input.moduloRichiestaCSR) {
                         <ui-file-dropzone #desAuthModulo
                           [control]="input.descrittoreCtrlCsrModulo"
@@ -386,8 +400,8 @@
                         </div>
                       }
                     </div>
-                  }
-                </div>
+                  </div>
+                }
               </div>
             }
             <!-- Certificato di FIRMA. -->
@@ -476,61 +490,57 @@
                     </div>
                   }
                   @if (input.formConfig.certSign.mode.kind === 'richiesto_csr') {
-                    <div class="form-group col-12 mb-2">
-                      @if (!input.certificatoCSRFirma) {
-                        <ui-file-dropzone #desSignCsr
-                          [control]="input.descrittoreCtrlCsrFirma"
-                          [required]="true"
-                          [disabled]="input.descrittoreCtrlCsrFirma.disabled"
-                          [maxUpload]="null"
-                          [description]="'APP.LABEL.CertificatoRichiestoCSRLabel' | translate"
-                          [acceptedFormats]="['.csr', '.pem']"
-                          (resetControl)="descriptorChangeFirma.emit({ value: input.descrittoreCtrlCsrFirma.value, type: 'csr' })"
-                          (fileChanged)="descriptorChangeFirma.emit({ value: input.descrittoreCtrlCsrFirma.value, type: 'csr' })"
-                        ></ui-file-dropzone>
-                      }
-                      @if (input.certificatoCSRFirma) {
-                        <div>
-                          <label class="label-bold _space">{{ 'APP.LABEL.CertificatoRichiestoCSRLabel' | translate }}&nbsp;</label>
-                          <div class="mb-3">
-                            <button type="button" class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="downloadAllegato.emit(input.certificatoCSRFirma)">
-                              <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
-                            </button>
+                    <div class="cert-csr-pair">
+                      <div class="cert-csr-item form-group mb-2">
+                        @if (!input.certificatoCSRFirma) {
+                          <ui-file-dropzone #desSignCsr
+                            [control]="input.descrittoreCtrlCsrFirma"
+                            [required]="true"
+                            [disabled]="input.descrittoreCtrlCsrFirma.disabled"
+                            [maxUpload]="null"
+                            [description]="'APP.LABEL.CertificatoRichiestoCSRLabel' | translate"
+                            [acceptedFormats]="['.csr', '.pem']"
+                            (resetControl)="descriptorChangeFirma.emit({ value: input.descrittoreCtrlCsrFirma.value, type: 'csr' })"
+                            (fileChanged)="descriptorChangeFirma.emit({ value: input.descrittoreCtrlCsrFirma.value, type: 'csr' })"
+                          ></ui-file-dropzone>
+                        }
+                        @if (input.certificatoCSRFirma) {
+                          <div>
+                            <label class="label-bold _space">{{ 'APP.LABEL.CertificatoRichiestoCSRLabel' | translate }}&nbsp;</label>
+                            <div class="mb-3">
+                              <button type="button" class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="downloadAllegato.emit(input.certificatoCSRFirma)">
+                                <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                      }
-                    </div>
-                  }
-                  @if (input.formConfig.certSign.mode.kind === 'richiesto_csr') {
-                    <div class="form-group col-12 mb-2">
-                      @if (!input.moduloRichiestaCSRFirma) {
-                        <ui-file-dropzone #desSignModulo
-                          [control]="input.descrittoreCtrlCsrModuloFirma"
-                          [required]="true"
-                          [disabled]="input.descrittoreCtrlCsrModuloFirma.disabled"
-                          [maxUpload]="null"
-                          [description]="'APP.LABEL.ModuloRichiestaCSR' | translate"
-                          [acceptedFormats]="['.pdf']"
-                          (resetControl)="descriptorChangeFirma.emit({ value: input.descrittoreCtrlCsrModuloFirma.value, type: 'cert' })"
-                          (fileChanged)="descriptorChangeFirma.emit({ value: input.descrittoreCtrlCsrModuloFirma.value, type: 'cert' })"
-                        ></ui-file-dropzone>
-                      }
-                      @if (input.moduloRichiestaCSRFirma) {
-                        <div>
-                          <label class="label-bold _space_r">{{ 'APP.LABEL.ModuloRichiestaCSR' | translate }}&nbsp;</label>
-                          <div class="mb-3">
-                            <button type="button" class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="downloadAllegato.emit(input.moduloRichiestaCSRFirma)">
-                              <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
-                            </button>
+                        }
+                      </div>
+                      <div class="cert-csr-item form-group mb-2">
+                        @if (!input.moduloRichiestaCSRFirma) {
+                          <ui-file-dropzone #desSignModulo
+                            [control]="input.descrittoreCtrlCsrModuloFirma"
+                            [required]="true"
+                            [disabled]="input.descrittoreCtrlCsrModuloFirma.disabled"
+                            [maxUpload]="null"
+                            [description]="'APP.LABEL.ModuloRichiestaCSR' | translate"
+                            [acceptedFormats]="['.pdf']"
+                            (resetControl)="descriptorChangeFirma.emit({ value: input.descrittoreCtrlCsrModuloFirma.value, type: 'cert' })"
+                            (fileChanged)="descriptorChangeFirma.emit({ value: input.descrittoreCtrlCsrModuloFirma.value, type: 'cert' })"
+                          ></ui-file-dropzone>
+                        }
+                        @if (input.moduloRichiestaCSRFirma) {
+                          <div>
+                            <label class="label-bold _space_r">{{ 'APP.LABEL.ModuloRichiestaCSR' | translate }}&nbsp;</label>
+                            <div class="mb-3">
+                              <button type="button" class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="downloadAllegato.emit(input.moduloRichiestaCSRFirma)">
+                                <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                      }
-                    </div>
-                  }
-                  @if (input.formConfig.certSign.mode.kind === 'richiesto_csr') {
-                    <div class="form-group col-12 mb-2">
+                        }
+                      </div>
                       @if (input.moduloRichiestaCSRFirmaCertificato) {
-                        <div>
+                        <div class="cert-csr-item form-group mb-2">
                           <label class="label-bold _space_r">{{ 'APP.LABEL.SignCertificate' | translate }}&nbsp;</label>
                           <div class="mb-3">
                             <button type="button" class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="downloadAllegato.emit(input.moduloRichiestaCSRFirmaCertificato)">
@@ -544,9 +554,11 @@
                 </div>
               </div>
             }
+            </div>
+            <!-- /cert-row -->
             <!-- OAuth Authorization Code URL block. -->
             @if (input.formConfig.fields.url_redirezione.visible) {
-              <div class="row-content-block mt-2 mb-3">
+              <div class="row-content-block mt-2 mb-3 oauth-urls">
                 <div class="row">
                   <div class="form-group col-12 mb-2">
                     <label class="label-bold" for="url_redirezione">{{ 'APP.CLIENT.LABEL.UrlRedirezione' | translate }}

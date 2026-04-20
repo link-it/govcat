@@ -27,7 +27,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
 import { COMPONENTS_IMPORTS, EventsManagerService, Tools, EventType } from '@linkit/components';
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
-import { ModalEditClientComponent, ModalEditClientInput } from './modal-edit-client/modal-edit-client.component';
+import { ModalEditClientComponent, ModalEditClientInput, ModalEditClientLayout } from './modal-edit-client/modal-edit-client.component';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService, Certificato } from '@app/services/utils.service';
@@ -307,6 +307,28 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy {
         return _isConfigurato;
     }
 
+    /**
+     * Hint i18n key per la riga della lista client basato su stato +
+     * permessi di modifica. Usato dal template per mostrare all'utente
+     * il prossimo passo da fare (click sulla matita / attesa gestore).
+     */
+    _clientHintKey = (item: any = null): string => {
+        if (!item) return '';
+        const stato = item?.source?.stato;
+        const modifiable = this._isModifiableMapper(item);
+        if (stato === StatoConfigurazioneEnum.CONFIGINPROGRESS) {
+            return 'APP.ADESIONI.LABEL.HintClientInProgress';
+        }
+        if (stato === StatoConfigurazioneEnum.CONFIGURATO) {
+            return modifiable
+                ? 'APP.ADESIONI.LABEL.HintClientConfiguredEditable'
+                : 'APP.ADESIONI.LABEL.HintClientConfiguredReadonly';
+        }
+        return modifiable
+            ? 'APP.ADESIONI.LABEL.HintClientNotConfiguredEditable'
+            : 'APP.ADESIONI.LABEL.HintClientNotConfiguredReadonly';
+    }
+
     _isModifiableMapper = (_item: any = null): boolean => {
         if (this.grant) {
             if ((this.environment === AmbienteEnum.Collaudo) && (this.grant.collaudo === RightsEnum.Scrittura)) {
@@ -478,7 +500,7 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy {
 
         const _modalConfig: any = {
             ignoreBackdropClick: true,
-            class: 'modal-half-'
+            class: this._modalClassFor(this._dialogLayout)
         };
 
         const _isNotConfigurato = (client.source.stato === StatoConfigurazioneEnum.NONCONFIGURATO);
@@ -1934,5 +1956,56 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy {
     }
     _onDescriptorChangeFirma(event: { value: any; type: string }): void {
         this.__descrittoreChangeFirma(event.value, event.type === 'csr');
+    }
+
+    // =========================================================================
+    // Layout verticale/orizzontale della dialog (Issue #237).
+    // =========================================================================
+
+    private readonly _DIALOG_LAYOUT_KEY = 'govcat.adesione.dialogLayout';
+
+    /** Layout corrente della dialog, persistito in localStorage. */
+    _dialogLayout: ModalEditClientLayout = this._readDialogLayoutPref();
+
+    private _readDialogLayoutPref(): ModalEditClientLayout {
+        try {
+            const v = localStorage?.getItem?.(this._DIALOG_LAYOUT_KEY);
+            return v === 'horizontal' ? 'horizontal' : 'vertical';
+        } catch {
+            return 'vertical';
+        }
+    }
+
+    /**
+     * Classe ngx-bootstrap da applicare al `.modal-dialog` per layout.
+     *
+     * - `modal-edit-client-horizontal`: classe globale definita in
+     *   `styles.scss` che forza `max-width: min(95vw, 1100px)` via
+     *   `--bs-modal-width`. Usata al posto di `modal-xl` perche' quella
+     *   scatta solo sopra viewport 1200px (Bootstrap xl breakpoint),
+     *   lasciando il modal a 500px nella fascia 992–1199px proprio
+     *   dove vorremmo 2 colonne.
+     * - `modal-half-`: classe storica per il layout verticale (di fatto
+     *   no-op, il modal resta alla larghezza default ~500px).
+     *
+     * Non usiamo `modal-dialog-scrollable` perche' forza
+     * `height: calc(100% - 2rem)` sul dialog, spingendo il footer in
+     * fondo al viewport anche con poco contenuto.
+     */
+    private _modalClassFor(layout: ModalEditClientLayout): string {
+        return layout === 'horizontal' ? 'modal-edit-client-horizontal' : 'modal-half-';
+    }
+
+    /**
+     * Handler dell'Output `layoutChange` del `ModalEditClientComponent`:
+     * aggiorna lo stato, persiste la preferenza, e allarga/stringe il
+     * modal dialog a runtime tramite `BsModalRef.setClass`.
+     */
+    _onDialogLayoutChange(layout: ModalEditClientLayout): void {
+        this._dialogLayout = layout;
+        try { localStorage?.setItem?.(this._DIALOG_LAYOUT_KEY, layout); } catch { /* silent */ }
+        if (this._modalEditRef) {
+            this._modalEditRef.setClass(this._modalClassFor(layout));
+        }
     }
 }

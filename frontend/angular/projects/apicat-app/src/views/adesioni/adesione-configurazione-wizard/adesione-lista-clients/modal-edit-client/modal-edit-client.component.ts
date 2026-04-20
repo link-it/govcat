@@ -94,6 +94,9 @@ export interface ModalEditClientInput {
     ratePeriods: Array<{ value: any; label: string }>;
 }
 
+/** Modalita' di layout del form della dialog. */
+export type ModalEditClientLayout = 'vertical' | 'horizontal';
+
 @Component({
     selector: 'app-modal-edit-client',
     templateUrl: './modal-edit-client.component.html',
@@ -113,6 +116,18 @@ export interface ModalEditClientInput {
 export class ModalEditClientComponent {
     /** Unico input di configurazione/stato. */
     @Input({ required: true }) input!: ModalEditClientInput;
+
+    /**
+     * Layout del form:
+     * - `vertical` (default): stack verticale, modal `modal-half-`.
+     * - `horizontal`: griglia a 2 colonne per blocchi certificato e URL
+     *   OAuth + modal piu' largo (parent e' responsabile di chiamare
+     *   `BsModalRef.setClass('modal-xl')` in risposta a `layoutChange`).
+     */
+    @Input() layout: ModalEditClientLayout = 'vertical';
+
+    /** L'utente ha cliccato il toggle di layout verticale/orizzontale. */
+    @Output() layoutChange = new EventEmitter<ModalEditClientLayout>();
 
     /** L'utente ha cliccato uno dei toggle del selettore credenziali. */
     @Output() selectCredenziali = new EventEmitter<SelectedClientEnum>();
@@ -197,5 +212,12 @@ export class ModalEditClientComponent {
     get isClientGiaCensitoSelected(): boolean {
         return this.f['credenziali']?.value === SelectedClientEnum.UsaClientEsistente
             || this.managedClients.some((c) => c.id_client === this.f['credenziali']?.value);
+    }
+
+    /** Toggle del layout: emette nuovo valore verso il parent. */
+    toggleLayout(): void {
+        const next: ModalEditClientLayout = this.layout === 'horizontal' ? 'vertical' : 'horizontal';
+        this.layout = next;
+        this.layoutChange.emit(next);
     }
 }

@@ -17,6 +17,81 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Layout orizzontale: griglia a 2 colonne per i blocchi certificato
+// auth/firma (evita di dover scrollare quando entrambi sono visibili,
+// es. https_sign / https_pdnd_sign) e per i campi OAuth.
+// Usa `auto-fit` + `minmax` per adattarsi alla larghezza reale del
+// container (indipendentemente dal viewport): quando c'e' spazio per
+// 2 colonne di almeno 420px, scatta a 2; altrimenti resta 1.
+// Cert CSR pair: contenitore semantico per CSR upload + modulo richiesta.
+// Fuori da Bootstrap grid (evita i vincoli di `.row` / `.col-12`).
+// Default vertical: stack. In layout orizzontale: side-by-side con wrap.
+.cert-csr-pair {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    > .cert-csr-item {
+        min-width: 0;
+    }
+}
+
+.modal-content.layout-horizontal {
+    // Blocchi cert auth + cert firma side-by-side (quando entrambi visibili).
+    .cert-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: flex-start;
+
+        > div {
+            flex: 1 1 400px;
+            min-width: 0;
+            max-width: 100%;
+        }
+    }
+
+    // Cert CSR pair in layout orizzontale: affianca CSR + modulo. Con
+    // flex-wrap, se la larghezza del cert block non basta, vanno a capo.
+    .cert-csr-pair {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 1rem;
+
+        > .cert-csr-item {
+            flex: 1 1 260px;
+        }
+    }
+
+    // URL OAuth: 5 campi in 2 colonne.
+    .oauth-urls {
+        .row > .form-group.col-12 {
+            flex: 0 0 auto;
+            width: 50%;
+
+            @media (max-width: 767px) {
+                width: 100%;
+            }
+        }
+    }
+}
+
+// Toggle nell'header per cambiare layout verticale/orizzontale.
+.modal-header-actions {
+    .layout-toggle {
+        border: none;
+        background: transparent;
+        color: #6c757d;
+        font-size: 1.1rem;
+        line-height: 1;
+
+        &:hover {
+            color: #0d6efd;
+            background-color: #f0f8fa;
+        }
+    }
+}
+
 // Toggle "Nuovo client" / "Client gia' censito" stile mockup
 // (image-1.png): colori celeste tenue, due button a larghezza uguale.
 .credenziali-toggle {

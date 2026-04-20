@@ -237,6 +237,14 @@
                     </div>
                   </button>
                 </h2>
+                @if (getSectionHint('info_generali'); as hint) {
+                  <div class="accordion-section-hint"
+                    [class.hint-completed]="hint.state === 'completed'"
+                    [class.hint-disabled]="hint.state === 'disabled'"
+                    [class.hint-action]="hint.state === 'action'">
+                    <i class="bi bi-info-circle me-2"></i>{{ hint.key | translate }}
+                  </div>
+                }
                 <div id="general-info" class="accordion-collapse collapse" [class.show]="isSectionOpenByDefault('info_generali')" data-bs-parent="#accordion-general-info_">
                   <div class="accordion-body">
                     <app-adesione-form
@@ -273,6 +281,14 @@
                     </div>
                   </button>
                 </h2>
+                @if (getSectionHint('referenti'); as hint) {
+                  <div class="accordion-section-hint"
+                    [class.hint-completed]="hint.state === 'completed'"
+                    [class.hint-disabled]="hint.state === 'disabled'"
+                    [class.hint-action]="hint.state === 'action'">
+                    <i class="bi bi-info-circle me-2"></i>{{ hint.key | translate }}
+                  </div>
+                }
                 <div id="referenti" class="accordion-collapse collapse bg-light-subtle p-4" [class.show]="isSectionOpenByDefault('referenti')" data-bs-parent="#accordion-referenti_">
                   <div class="accordion-item">
                     <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom px-3 py-2">
@@ -448,6 +464,14 @@
                     </div>
                   </button>
                 </h2>
+                @if (getSectionHint('collaudo'); as hint) {
+                  <div class="accordion-section-hint"
+                    [class.hint-completed]="hint.state === 'completed'"
+                    [class.hint-disabled]="hint.state === 'disabled'"
+                    [class.hint-action]="hint.state === 'action'">
+                    <i class="bi bi-info-circle me-2"></i>{{ hint.key | translate }}
+                  </div>
+                }
                 <div id="collaudo" class="accordion-collapse collapse" [class.show]="isSectionOpenByDefault('collaudo')" data-bs-parent="#accordion-collaudo_">
                   <div class="accordion-body">
                     @if (disclaimersCollaudo.length > 0) {
@@ -541,6 +565,14 @@
                     </div>
                   </button>
                 </h2>
+                @if (getSectionHint('produzione'); as hint) {
+                  <div class="accordion-section-hint"
+                    [class.hint-completed]="hint.state === 'completed'"
+                    [class.hint-disabled]="hint.state === 'disabled'"
+                    [class.hint-action]="hint.state === 'action'">
+                    <i class="bi bi-info-circle me-2"></i>{{ hint.key | translate }}
+                  </div>
+                }
                 <div id="produzione" class="accordion-collapse collapse" [class.show]="isSectionOpenByDefault('produzione')" data-bs-parent="#accordion-produzione_">
                   <div class="accordion-body">
                     @if (disclaimersProduzione.length > 0) {

@@ -1207,6 +1207,58 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     }
 
     /**
+     * Vero se la sezione corrisponde a una fase FUTURA dell'adesione,
+     * cioe' non e' ancora raggiungibile con lo stato corrente. Questa
+     * condizione e' distinta dal semplice "disabled": il disabled puo'
+     * riferirsi anche a una sezione gia' completata (past) quando ci
+     * si trova in uno step successivo.
+     *
+     * Al momento lo usiamo solo per `produzione`: se lo stato adesione
+     * NON e' in `adesione.stati_scheda_adesione` (config remota) la
+     * produzione non e' ancora disponibile. Per le altre sezioni la
+     * distinzione past/future non si applica in modo significativo.
+     */
+    private _isSectionFuture(section: string): boolean {
+        if (section !== 'produzione') return false;
+        const statiSchedaAdesione: string[] = this.generalConfig?.adesione?.stati_scheda_adesione ?? [];
+        return !statiSchedaAdesione.includes(this.adesione?.stato);
+    }
+
+    /**
+     * Ritorna stato semantico + chiave i18n del messaggio di supporto per
+     * ogni sezione accordion del wizard. Se non c'e' hint applicabile
+     * ritorna null.
+     *
+     * - `disabled` (grigio): sezione futura non ancora disponibile.
+     * - `completed` (verde): sezione gia' completata o non applicabile.
+     * - `action` (giallo): sezione attiva che richiede intervento.
+     */
+    getSectionHint(section: string): { state: 'disabled' | 'completed' | 'action'; key: string } | null {
+        const isFuture = this._isSectionFuture(section);
+        if (isFuture) {
+            let key: string;
+            switch (section) {
+                case 'referenti':
+                    key = 'APP.ADESIONI.LABEL.HintSectionReferentiDisabled'; break;
+                case 'produzione':
+                    key = 'APP.ADESIONI.LABEL.HintSectionProduzioneDisabled'; break;
+                case 'collaudo':
+                case 'info_generali':
+                default:
+                    key = 'APP.ADESIONI.LABEL.HintSectionCollaudoDisabled'; break;
+            }
+            return { state: 'disabled', key };
+        }
+        if (this.isSectionCompleted(section)) {
+            return { state: 'completed', key: 'APP.ADESIONI.LABEL.HintSectionCompleted' };
+        }
+        if (this.isSectionActive(section)) {
+            return { state: 'action', key: 'APP.ADESIONI.LABEL.HintSectionActionRequired' };
+        }
+        return null;
+    }
+
+    /**
      * Scarica i disclaimer dinamici dall'endpoint `/adesioni/{id}/disclaimers`
      * passando il `language_code` corrente. La risposta viene normalizzata in un
      * array di stringhe markdown per essere renderizzate con `<markdown>`.
