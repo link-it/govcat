@@ -21,6 +21,7 @@ package org.govway.catalogo.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -378,6 +379,121 @@ class DisclaimerServiceTest {
 	}
 
 	// ----------------------------------------------------------------------
+	// Campo profilo
+	// ----------------------------------------------------------------------
+
+	@Test
+	@DisplayName("Match su {stato}.{profilo} -> profilo valorizzato con il case originale")
+	void profiloValorizzatoCaseOriginale() {
+		seedCache("it", entries("bozza.pdnd", entryInfo("PROFILO")));
+		mockProfili("PDND");
+		AdesioneEntity adesione = buildAdesione("bozza", "PDND");
+
+		List<AdesioneDisclaimer> result = service.resolveDisclaimers(adesione, "it");
+
+		assertEquals(1, result.size());
+		// Il profilo nella risposta mantiene il case originale (PDND, non pdnd)
+		assertEquals("PDND", result.get(0).getProfilo());
+	}
+
+	@Test
+	@DisplayName("Match su {stato} puro -> profilo null")
+	void profiloNullSuMatchStato() {
+		seedCache("it", entries("bozza", entryInfo("STATO")));
+		mockProfili("PDND");
+		AdesioneEntity adesione = buildAdesione("bozza", "PDND");
+
+		List<AdesioneDisclaimer> result = service.resolveDisclaimers(adesione, "it");
+
+		assertEquals(1, result.size());
+		assertNull(result.get(0).getProfilo(),
+				"Il match su livello stato puro non deve valorizzare il profilo");
+	}
+
+	@Test
+	@DisplayName("Match su {stato}.{profilo}.{dominio} -> profilo valorizzato")
+	void profiloValorizzatoSuLivelloSpecifico() {
+		seedCache("it", entries("bozza.pdnd.pdnd", entryInfo("SPECIFICO")));
+		mockProfili("PDND");
+		AdesioneEntity adesione = buildAdesione("bozza", "PDND");
+
+		List<AdesioneDisclaimer> result = service.resolveDisclaimers(adesione, "it");
+
+		assertEquals(1, result.size());
+		assertEquals("PDND", result.get(0).getProfilo());
+	}
+
+	@Test
+	@DisplayName("Disclaimer di default -> profilo null")
+	void profiloNullSuDefault() {
+		seedCache("it", entries("default", entryInfo("DEFAULT")));
+		mockProfili("PDND");
+		AdesioneEntity adesione = buildAdesione("bozza", "PDND");
+
+		List<AdesioneDisclaimer> result = service.resolveDisclaimers(adesione, "it");
+
+		assertEquals(1, result.size());
+		assertNull(result.get(0).getProfilo());
+	}
+
+	@Test
+	@DisplayName("Fallback hardcoded -> profilo null")
+	void profiloNullSuHardcoded() {
+		AdesioneEntity adesione = buildAdesione("bozza", null);
+
+		List<AdesioneDisclaimer> result = service.resolveDisclaimers(adesione, "it");
+
+		assertEquals(1, result.size());
+		assertNull(result.get(0).getProfilo());
+	}
+
+	@Test
+	@DisplayName("Match con suffisso .collaudo e profilo -> entrambi valorizzati")
+	void profiloEContestoInsieme() {
+		seedCache("it", entries("bozza.pdnd.collaudo", entryInfo("PDND_COLLAUDO")));
+		mockProfili("PDND");
+		AdesioneEntity adesione = buildAdesione("bozza", "PDND");
+
+		List<AdesioneDisclaimer> result = service.resolveDisclaimers(adesione, "it");
+
+		assertEquals(1, result.size());
+		assertEquals(DisclaimerContestoEnum.COLLAUDO, result.get(0).getContesto());
+		assertEquals("PDND", result.get(0).getProfilo());
+	}
+
+	@Test
+	@DisplayName("Contesto generale con profilo (bozza.pdnd) -> profilo non null")
+	void contestoGeneraleConProfiloNonNull() {
+		// Opzione 1: profilo e' popolato anche quando contesto=GENERALE se la chiave
+		// contiene il segmento profilo
+		seedCache("it", entries("bozza.pdnd", entryInfo("GEN_PDND")));
+		mockProfili("PDND");
+		AdesioneEntity adesione = buildAdesione("bozza", null);
+
+		List<AdesioneDisclaimer> result = service.resolveDisclaimers(adesione, "it");
+
+		assertEquals(1, result.size());
+		assertEquals(DisclaimerContestoEnum.GENERALE, result.get(0).getContesto());
+		assertEquals("PDND", result.get(0).getProfilo());
+	}
+
+	@Test
+	@DisplayName("Chiavi YAML lowercase con profilo mock in mixed case -> match OK e profilo originale")
+	void matchCaseInsensitiveProfiloOriginale() {
+		// Chiave nella cache e' lowercase (come dopo la normalize al loading)
+		seedCache("it", entries("bozza.modi_p1", entryInfo("MODI")));
+		// Il profilo restituito dall'autorizzazione puo' essere in qualsiasi case
+		mockProfili("MODI_P1");
+		AdesioneEntity adesione = buildAdesione("bozza", null);
+
+		List<AdesioneDisclaimer> result = service.resolveDisclaimers(adesione, "it");
+
+		assertEquals(1, result.size());
+		// Match avvenuto (grazie alla normalize sul lookup), profilo col case originale
+		assertEquals("MODI_P1", result.get(0).getProfilo());
+	}
+
+	// ----------------------------------------------------------------------
 	// Multi-profilo
 	// ----------------------------------------------------------------------
 
@@ -532,10 +648,16 @@ class DisclaimerServiceTest {
 		AdesioneEntity adesione = buildAdesione("bozza", "qualsiasi");
 		List<AdesioneDisclaimer> result = service.resolveDisclaimers(adesione, "it");
 
-		assertEquals(1, result.size());
-		assertEquals(DisclaimerSeverityEnum.WARNING, result.get(0).getSeverity());
-		assertTrue(result.get(0).getDisclaimer().contains("## Testo markdown"));
-		assertTrue(result.get(0).getDisclaimer().contains("riga 2"));
+		// Il classpath contiene altre chiavi (es. "bozza"); qui verifichiamo che tra i
+		// risultati ci sia il disclaimer strutturato della chiave "bozza.pdnd" caricato
+		// dal file esterno di test, con la severity e il testo attesi.
+		AdesioneDisclaimer strutturato = result.stream()
+				.filter(d -> d.getDisclaimer().contains("## Testo markdown"))
+				.findFirst()
+				.orElse(null);
+		assertNotNull(strutturato, "Il disclaimer strutturato caricato dal YAML esterno deve essere presente");
+		assertEquals(DisclaimerSeverityEnum.WARNING, strutturato.getSeverity());
+		assertTrue(strutturato.getDisclaimer().contains("riga 2"));
 	}
 
 	@Test

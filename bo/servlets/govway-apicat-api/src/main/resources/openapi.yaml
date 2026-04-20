@@ -10110,6 +10110,9 @@ components:
           $ref: "#/components/schemas/DisclaimerContestoEnum"
         severity:
           $ref: "#/components/schemas/DisclaimerSeverityEnum"
+        profilo:
+          type: "string"
+          description: "Codice interno del profilo associato al disclaimer, se il disclaimer e' specifico per un profilo; null altrimenti"
     AdesioneCreate:
       type: object
       required:

@@ -1,4 +1,6 @@
+# =============================================================================
 # Disclaimer per le adesioni - Lingua: Italiano
+# =============================================================================
 #
 # Chiavi gerarchiche con dot-notation: stato.codice_interno_profilo.nome_dominio
 # Opzionalmente si puo' aggiungere un suffisso ".collaudo" o ".produzione" per
@@ -11,61 +13,314 @@
 #   3. {stato}[.{ambiente}]
 #   4. default                                          (fallback)
 #
-# I valori di stato, profilo e dominio sono normalizzati in lowercase.
-# Il contenuto e' in formato Markdown.
-#
 # FORMATI DEL VALORE:
-#   - Stringa semplice  -> severity di default = INFO
+#   - Stringa semplice            -> severity di default = INFO
 #   - Oggetto { severity, testo } -> severity esplicita
 #
 # SEVERITY: INFO | WARNING | ERROR
 #
-# Se il nome del dominio contiene spazi, racchiudere la chiave tra virgolette:
-#   "bozza.pdnd.dominio con spazi": |
-#     Testo del disclaimer...
+# Se il nome del dominio contiene spazi, racchiudere la chiave tra virgolette.
 #
 # Per sovrascrivere questi disclaimer dall'esterno, copiare questo file in:
 #   /var/govcat/conf/disclaimers_it.yml
-#
+# =============================================================================
 
-# Fallback generale (stringa semplice -> severity INFO)
+# -----------------------------------------------------------------------------
+# FALLBACK GENERALE
+# -----------------------------------------------------------------------------
+
 default: |
   Procedendo con l'adesione, l'ente accetta i termini e le condizioni del servizio.
 
-# Esempio stringa semplice: severity INFO di default, contesto GENERALE
-bozza.pdnd.pdnd: |
-  ## Adesione PDND in bozza
-  L'adesione utilizza il profilo **PDND**. Prima di procedere, assicurarsi di aver
-  completato la registrazione sulla piattaforma PDND e di disporre di un e-service attivo.
+# -----------------------------------------------------------------------------
+# DISCLAIMER PER STATO (generale, indipendente dal profilo)
+# -----------------------------------------------------------------------------
 
-# Esempio valore strutturato: severity esplicita, contesto GENERALE
+bozza: |
+  ## Adesione in bozza
+  L'adesione e' in fase di compilazione. Completa tutti i campi obbligatori
+  e configura i client per ciascun profilo richiesto dal servizio prima di
+  inviarla in collaudo.
+
+richiesto_collaudo: |
+  ## In attesa di autorizzazione (collaudo)
+  L'adesione e' stata inviata. E' in attesa di autorizzazione da parte del
+  referente superiore o del gestore. Non e' piu' possibile modificare i dati
+  identificativi.
+
+in_configurazione_manuale_collaudo: |
+  ## Configurazione manuale in corso (collaudo)
+  Un operatore sta configurando manualmente l'adesione sull'ambiente di
+  **collaudo**. Il passaggio di stato avverra' al termine della configurazione.
+
+in_configurazione_automatica_collaudo: |
+  ## Configurazione automatica in corso (collaudo)
+  Il sistema sta configurando automaticamente l'adesione sull'ambiente di
+  **collaudo**. Lo stato passera' automaticamente a *Pubblicato in collaudo*
+  al termine.
+
+pubblicato_collaudo: |
+  ## Pubblicata in collaudo
+  L'adesione e' attiva sull'ambiente di **collaudo**. Puoi iniziare a testare
+  l'integrazione prima di richiedere il passaggio in produzione.
+
+richiesto_produzione: |
+  ## In attesa di autorizzazione (produzione)
+  L'adesione e' stata inviata per la produzione. Non verra' configurata sul
+  gateway fino all'autorizzazione del referente superiore.
+
+in_configurazione_manuale_produzione: |
+  ## Configurazione manuale in corso (produzione)
+  Un operatore sta configurando manualmente l'adesione sull'ambiente di
+  **produzione**.
+
+in_configurazione_automatica_produzione: |
+  ## Configurazione automatica in corso (produzione)
+  Il sistema sta configurando automaticamente l'adesione in **produzione**.
+
+pubblicato_produzione:
+  severity: WARNING
+  testo: |
+    ## Pubblicata in produzione
+    L'adesione e' **attiva in produzione**. Qualunque modifica alla
+    configurazione puo' avere impatti sugli utenti finali: procedere con cautela.
+
+archiviato: |
+  ## Adesione archiviata
+  L'adesione e' archiviata e non puo' essere piu' modificata. Per riprendere
+  il processo e' necessario crearne una nuova.
+
+# -----------------------------------------------------------------------------
+# PROFILI PDND
+# -----------------------------------------------------------------------------
+
+bozza.pdnd:
+  severity: WARNING
+  testo: |
+    ## Profilo PDND
+    Per questo profilo e' richiesta la registrazione dell'e-service sulla
+    piattaforma PDND. Assicurati di avere l'**identificativo** e la
+    **versione** dell'e-service PDND gia' configurati.
+
+bozza.pdnd-audit:
+  severity: WARNING
+  testo: |
+    ## Profilo PDND + Audit
+    L'audit PDND richiede la configurazione aggiuntiva della token policy di
+    audit. Verifica di avere accesso alla policy richiesta.
+
+bozza.pdnd-https:
+  severity: WARNING
+  testo: |
+    ## Profilo PDND + mTLS
+    Oltre alla registrazione PDND, serve un **certificato client** valido
+    per l'autenticazione mTLS.
+
+bozza.pdnd-integrity-rest:
+  severity: WARNING
+  testo: |
+    ## Profilo PDND + Integrity (REST)
+    Questo profilo richiede il supporto **Integrity** per API REST.
+    Verifica che l'API esposta sia compatibile.
+
+bozza.pdnd-integrity-soap:
+  severity: WARNING
+  testo: |
+    ## Profilo PDND + Integrity (SOAP)
+    Questo profilo richiede il supporto **Integrity** per API SOAP.
+
+bozza.pdnd-audit-integrity-rest:
+  severity: WARNING
+  testo: |
+    ## Profilo PDND + Audit + Integrity (REST)
+    Combinazione completa: audit + integrity per API REST. Verificare che
+    tutte e due le token policy siano configurate.
+
+bozza.pdnd-audit-integrity-soap:
+  severity: WARNING
+  testo: |
+    ## Profilo PDND + Audit + Integrity (SOAP)
+    Combinazione completa: audit + integrity per API SOAP.
+
+bozza.pdnd-integrity-rest-https:
+  severity: WARNING
+  testo: |
+    ## Profilo PDND + Integrity + mTLS (REST)
+    Questo profilo combina la registrazione PDND con Integrity e
+    l'autenticazione mTLS. Servono sia eService PDND che certificato client.
+
+bozza.pdnd-integrity-soap-https:
+  severity: WARNING
+  testo: |
+    ## Profilo PDND + Integrity + mTLS (SOAP)
+    Questo profilo combina la registrazione PDND con Integrity e
+    l'autenticazione mTLS per API SOAP.
+
+pubblicato_produzione.pdnd:
+  severity: ERROR
+  testo: |
+    ## Attenzione: PDND in produzione
+    L'adesione e' attiva sul circuito PDND di produzione. Le modifiche alla
+    configurazione (token policy, audit, rate limiting) hanno impatto
+    immediato sugli utenti e sui consumi PDND.
+
+pubblicato_produzione.pdnd-audit:
+  severity: ERROR
+  testo: |
+    ## Attenzione: PDND + Audit in produzione
+    Le chiamate generano eventi di audit reali. Valutare gli impatti prima
+    di modificare la configurazione.
+
+# -----------------------------------------------------------------------------
+# PROFILI ModI
+# -----------------------------------------------------------------------------
+
+bozza.modi_p1: |
+  ## Profilo ModI P1
+  Il profilo **ModI P1** utilizza autenticazione mTLS. Serve un certificato
+  client valido.
+
 bozza.modi_p2:
   severity: WARNING
   testo: |
     ## Profilo ModI P2
-    Il profilo **ModI P2** richiede la firma del messaggio. Assicurarsi di avere
-    un certificato di firma valido configurato.
+    Il profilo **ModI P2** richiede sia il *certificato di autenticazione
+    mTLS* che il *certificato di firma* del messaggio.
 
-# Esempio con suffisso .collaudo: contesto COLLAUDO
-pubblicato_collaudo.pdnd.pdnd.collaudo:
-  severity: INFO
-  testo: |
-    ## Collaudo PDND
-    L'adesione e' pubblicata in **collaudo**. Testare l'integrazione sull'ambiente
-    di test PDND prima di richiedere il passaggio in produzione.
-
-# Esempio con suffisso .produzione: contesto PRODUZIONE, severity ERROR
-pubblicato_produzione.pdnd.pdnd.produzione:
-  severity: ERROR
-  testo: |
-    ## Attenzione: Produzione PDND
-    L'adesione e' in **produzione** sul circuito PDND. Qualsiasi modifica alla
-    configurazione del client puo' avere impatti sugli utenti finali.
-
-# Esempio: chiave con spazi nel nome del dominio (racchiusa tra virgolette)
-"bozza.interno_https.dominio di test":
+bozza.modi_p3:
   severity: WARNING
   testo: |
-    ## Adesione mTLS in bozza
-    Questa adesione utilizza il profilo **mTLS** sul dominio **Dominio di Test**.
-    Verificare di avere un certificato client valido prima di procedere.
+    ## Profilo ModI P3
+    Il profilo **ModI P3** richiede sia il *certificato di autenticazione
+    mTLS* che il *certificato di firma* del messaggio, con requisiti di
+    sicurezza estesi rispetto a ModI P2.
+
+pubblicato_produzione.modi_p2:
+  severity: ERROR
+  testo: |
+    ## ModI P2 in produzione
+    Il certificato di firma e' in uso: la sua rotazione richiede coordinamento
+    con il soggetto referente per evitare interruzioni di servizio.
+
+pubblicato_produzione.modi_p3:
+  severity: ERROR
+  testo: |
+    ## ModI P3 in produzione
+    Il certificato di firma e' in uso: la sua rotazione richiede coordinamento
+    con il soggetto referente per evitare interruzioni di servizio.
+
+# -----------------------------------------------------------------------------
+# PROFILI INTERNI
+# -----------------------------------------------------------------------------
+
+bozza.interno_https: |
+  ## Profilo mTLS interno
+  Autenticazione tramite **certificato client (mTLS)**. Fornire un certificato
+  valido oppure richiederne uno tramite CN o CSR.
+
+bozza.interno_http_basic: |
+  ## Profilo HTTP Basic interno
+  Autenticazione con username/password. E' possibile configurare *rate
+  limiting* e *finalita' d'uso*.
+
+bozza.interno_no_dati:
+  severity: WARNING
+  testo: |
+    ## Profilo senza autenticazione (interno)
+    Non e' richiesta alcuna autenticazione. Valutare attentamente l'uso in
+    ambienti esposti o multi-tenant.
+
+bozza.interno_oauth_client_credentials: |
+  ## Profilo OAuth Client Credentials (interno)
+  Autenticazione machine-to-machine tramite token OAuth2 (flow Client
+  Credentials).
+
+bozza.interno_oauth_authorization_code: |
+  ## Profilo OAuth Authorization Code (interno)
+  Autenticazione tramite flow *Authorization Code*. Serve configurare
+  client-id, client-secret e redirect URI.
+
+# -----------------------------------------------------------------------------
+# PROFILI FRUIZIONI PDND (verso PDND esterni)
+# -----------------------------------------------------------------------------
+
+bozza.mtls_fruizioni: |
+  ## Fruizione PDND - mTLS
+  Profilo per fruire e-service PDND con autenticazione **mTLS**. Richiede
+  certificato client valido.
+
+bozza.basic_fruizioni: |
+  ## Fruizione PDND - HTTP Basic
+  Profilo per fruire e-service PDND con autenticazione **HTTP Basic**.
+
+bozza.oauth_ac_fruizioni: |
+  ## Fruizione PDND - OAuth Authorization Code
+  Profilo per fruire e-service PDND con **OAuth Authorization Code**.
+
+bozza.oauth_cc_fruizioni: |
+  ## Fruizione PDND - OAuth Client Credentials
+  Profilo per fruire e-service PDND con **OAuth Client Credentials**.
+
+pubblicato_produzione.mtls_fruizioni:
+  severity: WARNING
+  testo: |
+    ## Fruizione PDND in produzione (mTLS)
+    Stai fruendo un e-service PDND reale: le richieste consumano quota PDND.
+
+pubblicato_produzione.basic_fruizioni:
+  severity: WARNING
+  testo: |
+    ## Fruizione PDND in produzione (HTTP Basic)
+    Stai fruendo un e-service PDND reale: le richieste consumano quota PDND.
+
+pubblicato_produzione.oauth_ac_fruizioni:
+  severity: WARNING
+  testo: |
+    ## Fruizione PDND in produzione (OAuth AC)
+    Stai fruendo un e-service PDND reale: le richieste consumano quota PDND.
+
+pubblicato_produzione.oauth_cc_fruizioni:
+  severity: WARNING
+  testo: |
+    ## Fruizione PDND in produzione (OAuth CC)
+    Stai fruendo un e-service PDND reale: le richieste consumano quota PDND.
+
+# -----------------------------------------------------------------------------
+# ESEMPI CON SUFFISSO DI CONTESTO (.collaudo / .produzione)
+# -----------------------------------------------------------------------------
+
+pubblicato_collaudo.pdnd.collaudo: |
+  Sull'ambiente di **collaudo PDND** puoi effettuare chiamate di test con
+  identificativi di test. Non consuma quota produzione.
+
+pubblicato_produzione.pdnd.produzione:
+  severity: ERROR
+  testo: |
+    In **produzione PDND** ogni chiamata utilizza token reali e consuma quota.
+
+pubblicato_collaudo.modi_p2.collaudo: |
+  Sull'ambiente di **collaudo** per ModI P2 e' possibile utilizzare certificati
+  di test.
+
+pubblicato_produzione.modi_p2.produzione:
+  severity: ERROR
+  testo: |
+    In **produzione** i certificati ModI P2 devono essere quelli reali.
+    Verificare la scadenza e gestirne la rotazione per tempo.
+
+# -----------------------------------------------------------------------------
+# ESEMPI CON DOMINIO (per scopi di test)
+# -----------------------------------------------------------------------------
+
+# Esempio: profilo PDND sul dominio "PDND"
+bozza.pdnd.pdnd: |
+  ## PDND sul dominio PDND
+  Questo e-service appartiene al dominio PDND. Fare riferimento al referente
+  del dominio per l'attivazione.
+
+# Esempio: chiave quotata con spazi nel nome del dominio
+"pubblicato_produzione.modi_p1.dominio di test":
+  severity: WARNING
+  testo: |
+    ## ModI P1 - Dominio di Test in produzione
+    Esempio di disclaimer che combina profilo e dominio con spazi.
