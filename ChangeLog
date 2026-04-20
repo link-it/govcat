@@ -1,6 +1,11 @@
 2026-04-20  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 254: disclaimer per-client dal backend. Gestito il nuovo
+	  campo `profilo` sui disclaimer: quelli con profilo sono esclusi
+	  dal banner di sezione e mostrati sotto la riga del client
+	  matching (icona colorata per severity + markdown inline).
+	  Rimossi gli hint FE di stato su client e erogazioni.
 	Issue 254: messaggi contestuali nel wizard Adesioni. Hint sotto
 	  ogni sezione accordion (azione richiesta / completata / non ancora
 	  disponibile, con distinzione past/future via `stati_scheda_adesione`)

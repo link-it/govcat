@@ -43,8 +43,8 @@
             </div>
           }
           @for (item of adesioneClients; track item; let first = $first) {
-            <div>
-              <div class="flex-container container-fluid border-bottom ps-0" [class.border-top]="first">
+            <div class="adesione-item-row border-bottom" [class.border-top]="first">
+              <div class="flex-container container-fluid ps-0">
                 <div class="flex-auto">
                   <ui-item-row
                     [data]="item"
@@ -52,11 +52,6 @@
                     [hasLink]="false"
                     [primaryClass]="(updateMapper | mapper:isSottotipoCompletedMapper:ClassiEnum.CLIENT:(item.source.codice_interno || item.profilo || item.auth_type)) ? '' : 'text-danger'"
                   ></ui-item-row>
-                  @if (_clientHintKey(item); as hintKey) {
-                    <small class="adesione-item-hint text-muted d-block mt-1 px-3">
-                      <i class="bi bi-info-circle me-1"></i>{{ hintKey | translate }}
-                    </small>
-                  }
                 </div>
                 @if (isEdit) {
                   <div class="flex-initial">
@@ -86,6 +81,21 @@
                   </div>
                 }
               </div>
+              @for (d of _clientDisclaimers(item); track $index) {
+                <small class="adesione-item-hint text-muted d-block px-3 py-2 bg-lightest">
+                  <i class="me-1" [ngClass]="_getDisclaimerIconClass(d.severity)" [attr.aria-label]="d.severity" role="img"></i>
+                  <markdown class="disclaimer-inline" [data]="d.disclaimer"></markdown>
+                  @if (d.links?.length) {
+                    <span class="ms-1">
+                      @for (link of d.links; track $index) {
+                        <a class="ms-1" [href]="_getDisclaimerLinkHref(link)" target="_blank" rel="noopener noreferrer">
+                          {{ _getDisclaimerLinkLabel(link) }}
+                        </a>
+                      }
+                    </span>
+                  }
+                </small>
+              }
             </div>
           }
         </div>

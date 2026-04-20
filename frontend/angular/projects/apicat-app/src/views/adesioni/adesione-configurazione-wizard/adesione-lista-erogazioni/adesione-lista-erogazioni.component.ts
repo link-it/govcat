@@ -247,25 +247,6 @@ export class AdesioneListaErogazioniComponent implements OnInit, OnChanges {
         return false;
     }
 
-    /**
-     * Hint i18n key per la riga della lista erogazioni basato su stato
-     * + permessi di modifica. Usato dal template per mostrare all'utente
-     * il prossimo passo (click sulla matita / attesa gestore).
-     */
-    _erogazioneHintKey = (item: any = null): string => {
-        if (!item) return '';
-        const stato = item?.source?.stato;
-        const modifiable = this._isModifiableMapper(item);
-        if (stato === StatoConfigurazioneEnum.CONFIGURATO) {
-            return modifiable
-                ? 'APP.ADESIONI.LABEL.HintErogazioneConfiguredEditable'
-                : 'APP.ADESIONI.LABEL.HintErogazioneConfiguredReadonly';
-        }
-        return modifiable
-            ? 'APP.ADESIONI.LABEL.HintErogazioneNotConfiguredEditable'
-            : 'APP.ADESIONI.LABEL.HintErogazioneNotConfiguredReadonly';
-    }
-
     _hasCambioStato() {
         if (this.authenticationService.isGestore(this.grant?.ruoli)) { return true; }
         const _statoSuccessivo: boolean = this.authenticationService.canChangeStatus('adesione', this.adesione.stato, 'stato_successivo', this.grant?.ruoli);

@@ -40,3 +40,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // Nota (Issue #237 Fase 6+): lo stile `.credenziali-toggle` e' stato
 // spostato dentro il nuovo componente `modal-edit-client`, dove il
 // toggle risiede ora.
+
+// Hint inline sotto ogni riga di client: icona colorata per severity +
+// testo markdown renderizzato inline (il <p> prodotto da ngx-markdown
+// diventa inline per non andare a capo).
+.adesione-item-hint {
+    font-size: 0.8125rem;
+    line-height: 1.3;
+
+    i.bi {
+        opacity: 0.85;
+    }
+
+    markdown.disclaimer-inline {
+        display: inline;
+
+        ::ng-deep p {
+            display: inline;
+            margin: 0;
+        }
+    }
+}

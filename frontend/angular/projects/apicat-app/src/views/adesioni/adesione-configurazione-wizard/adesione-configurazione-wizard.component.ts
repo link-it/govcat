@@ -80,6 +80,7 @@ export interface AdesioneDisclaimer {
     contesto?: DisclaimerContesto;
     severity?: DisclaimerSeverity;
     links?: AdesioneDisclaimerLink[];
+    profilo?: string;
 }
 
 @Component({
@@ -1293,7 +1294,8 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
                 disclaimer: d.disclaimer,
                 contesto: d.contesto,
                 severity: d.severity,
-                links: Array.isArray(d.links) ? d.links : []
+                links: Array.isArray(d.links) ? d.links : [],
+                profilo: d.profilo
             }));
     }
 
@@ -1327,15 +1329,28 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
         return (this.disclaimers || []).filter(d => (d.contesto || 'generale') === contesto);
     }
 
+    // I disclaimer con `profilo` sono destinati al rendering sotto la
+    // specifica riga client (matching per profilo) e NON devono comparire
+    // anche nel banner generale della sezione di contesto.
     get disclaimersGenerali(): AdesioneDisclaimer[] {
-        return this.getDisclaimersByContesto('generale');
+        return this.getDisclaimersByContesto('generale').filter(d => !d.profilo);
     }
 
     get disclaimersCollaudo(): AdesioneDisclaimer[] {
-        return this.getDisclaimersByContesto('collaudo');
+        return this.getDisclaimersByContesto('collaudo').filter(d => !d.profilo);
     }
 
     get disclaimersProduzione(): AdesioneDisclaimer[] {
-        return this.getDisclaimersByContesto('produzione');
+        return this.getDisclaimersByContesto('produzione').filter(d => !d.profilo);
+    }
+
+    // Usati come @Input delle liste client: solo i disclaimer con `profilo`
+    // per contesto = ambiente; la lista filtrera' poi per profilo del client.
+    get clientDisclaimersCollaudo(): AdesioneDisclaimer[] {
+        return this.getDisclaimersByContesto('collaudo').filter(d => !!d.profilo);
+    }
+
+    get clientDisclaimersProduzione(): AdesioneDisclaimer[] {
+        return this.getDisclaimersByContesto('produzione').filter(d => !!d.profilo);
     }
 }

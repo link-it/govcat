@@ -17,12 +17,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, Input, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { MarkdownModule } from 'ngx-markdown';
 
 import { COMPONENTS_IMPORTS, EventsManagerService, Tools, EventType } from '@linkit/components';
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
@@ -68,6 +70,7 @@ import { CkeckProvider, ClassiEnum, DataStructure } from '@app/provider/check.pr
     styleUrls: ['./adesione-lista-clients.component.scss'],
     standalone: true,
     imports: [
+        CommonModule,
         ReactiveFormsModule,
         TranslateModule,
         ...COMPONENTS_IMPORTS,
@@ -75,6 +78,7 @@ import { CkeckProvider, ClassiEnum, DataStructure } from '@app/provider/check.pr
         MapperPipe,
         TooltipModule,
         NgSelectModule,
+        MarkdownModule,
         ModalEditClientComponent
     ]
 })
@@ -92,6 +96,7 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy {
     @Input() otherClass: string = '';
     @Input() dataCheck: DataStructure = { esito: 'ok', errori: [] };
     @Input() nextState: any = null;
+    @Input() disclaimers: any[] = [];
     
     completed: boolean = true;
 
@@ -308,25 +313,34 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy {
     }
 
     /**
-     * Hint i18n key per la riga della lista client basato su stato +
-     * permessi di modifica. Usato dal template per mostrare all'utente
-     * il prossimo passo da fare (click sulla matita / attesa gestore).
+     * Disclaimer (lista) da mostrare sotto la riga del client: filtra
+     * gli `disclaimers` (gia' filtrati per contesto = ambiente dal
+     * parent) per quelli con `profilo` coincidente col profilo del
+     * client corrente. I disclaimer senza `profilo` non si riferiscono
+     * a uno specifico client e vengono scartati.
      */
-    _clientHintKey = (item: any = null): string => {
-        if (!item) return '';
-        const stato = item?.source?.stato;
-        const modifiable = this._isModifiableMapper(item);
-        if (stato === StatoConfigurazioneEnum.CONFIGINPROGRESS) {
-            return 'APP.ADESIONI.LABEL.HintClientInProgress';
+    _clientDisclaimers = (item: any = null): any[] => {
+        if (!item || !this.disclaimers?.length) return [];
+        const profiloClient: string = item?.source?.profilo || item?.source?.codice_interno;
+        if (!profiloClient) return [];
+        return this.disclaimers.filter(d => d?.profilo && d.profilo === profiloClient);
+    }
+
+    _getDisclaimerIconClass(severity?: string): string {
+        switch (severity) {
+            case 'ERROR': return 'bi bi-x-circle text-danger';
+            case 'WARNING': return 'bi bi-exclamation-triangle text-warning';
+            case 'INFO':
+            default: return 'bi bi-info-circle text-info';
         }
-        if (stato === StatoConfigurazioneEnum.CONFIGURATO) {
-            return modifiable
-                ? 'APP.ADESIONI.LABEL.HintClientConfiguredEditable'
-                : 'APP.ADESIONI.LABEL.HintClientConfiguredReadonly';
-        }
-        return modifiable
-            ? 'APP.ADESIONI.LABEL.HintClientNotConfiguredEditable'
-            : 'APP.ADESIONI.LABEL.HintClientNotConfiguredReadonly';
+    }
+
+    _getDisclaimerLinkHref(link: any): string {
+        return link?.url || link?.href || '';
+    }
+
+    _getDisclaimerLinkLabel(link: any): string {
+        return link?.label || link?.title || link?.text || link?.url || link?.href || '';
     }
 
     _isModifiableMapper = (_item: any = null): boolean => {
