@@ -716,11 +716,18 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
   }
 
   _getCustomSelectLabelMapper = (cod: string, name: string, group: string) => {
-    const _srv: any = Tools.Configurazione.servizio;
+    if (!cod) return cod;
+    const _srv: any = Tools.Configurazione?.servizio;
     const _proprietaCustom = (_srv?.api) ? _srv.api.proprieta_custom : [];
-    const _group = _proprietaCustom.find((item: any) => item.nome_gruppo === group || item.label_gruppo === group);
-    const _pItem = _group.proprieta.find((item: any) => item.nome === name);
-    const _label = _pItem.valori.find((item: any) => item.nome === cod)?.etichetta;
+    // Il template passa apc.key = label_gruppo, ma piu' nome_gruppo possono
+    // condividere lo stesso label_gruppo (es. PDNDCollaudo + PDNDCollaudo_identificativo,
+    // entrambi label "PDND"). Cerchiamo la proprieta attraverso TUTTI i gruppi
+    // che matchano, non solo il primo.
+    const _matchingGroups = _proprietaCustom.filter((item: any) => item.nome_gruppo === group || item.label_gruppo === group);
+    const _pItem = _matchingGroups
+      .flatMap((g: any) => g.proprieta ?? [])
+      .find((item: any) => item.nome === name);
+    const _label = _pItem?.valori?.find((item: any) => item.nome === cod)?.etichetta;
 
     return _label || cod;
   }
