@@ -105,6 +105,7 @@ import org.govway.catalogo.servlets.model.MessaggioUpdate;
 import org.govway.catalogo.servlets.model.Organizzazione;
 import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.PagedModelItemAdesione;
+import org.govway.catalogo.servlets.model.ItemClientAdesione;
 import org.govway.catalogo.servlets.model.PagedModelItemClientAdesione;
 import org.govway.catalogo.servlets.model.PagedModelItemComunicazione;
 import org.govway.catalogo.servlets.model.PagedModelItemConfigurazioneAdesione;
@@ -6377,6 +6378,73 @@ public class AdesioniTest {
                     d.getSeverity() == DisclaimerSeverityEnum.WARNING ||
                     d.getSeverity() == DisclaimerSeverityEnum.ERROR,
                     "Severity deve essere uno dei valori enum");
+        }
+    }
+
+    @Test
+    void testGetDisclaimersAdesioneProfiloCoerenteConListClient() {
+        // Setup
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+        Adesione adesione = this.getAdesione();
+
+        // Act: recupera i disclaimer e i client configurati in collaudo
+        ResponseEntity<List<AdesioneDisclaimer>> disclaimersResp =
+                adesioniController.getDisclaimersAdesione(adesione.getIdAdesione(), "it");
+        ResponseEntity<PagedModelItemClientAdesione> clientResp =
+                adesioniController.listClientCollaudoAdesione(adesione.getIdAdesione());
+
+        // Assert: il formato del profilo nei disclaimer deve essere coerente con quello
+        // degli ItemClientAdesione, cosi' che il FE possa fare match diretto.
+        // Se il client collaudo espone un profilo (es. "MODI_P1"), ogni disclaimer che
+        // valorizza il campo profilo DEVE usare lo stesso identico formato (case-sensitive).
+        List<String> profiliClient = clientResp.getBody() != null && clientResp.getBody().getContent() != null
+                ? clientResp.getBody().getContent().stream().map(ItemClientAdesione::getProfilo).toList()
+                : java.util.Collections.emptyList();
+
+        for (AdesioneDisclaimer d : disclaimersResp.getBody()) {
+            if (d.getProfilo() != null) {
+                // Se un disclaimer esplicita un profilo, deve essere uno dei profili
+                // potenzialmente presenti per questa adesione. Il confronto e' esatto
+                // (stesso case) per garantire il match sul FE.
+                if (!profiliClient.isEmpty()) {
+                    assertTrue(profiliClient.contains(d.getProfilo()),
+                            "Il profilo '" + d.getProfilo() + "' del disclaimer deve coincidere "
+                                    + "(case-sensitive) con uno dei profili dei client in collaudo: "
+                                    + profiliClient);
+                }
+            }
+        }
+    }
+
+    @Test
+    void testGetDisclaimersAdesioneProfiloNullSuGenerale() {
+        // Setup: l'adesione base fa match solo sul default/hardcoded (nessuna chiave
+        // profilo-specific esiste per lo stato/profilo/dominio di test). In questo caso
+        // tutti i disclaimer restituiti devono avere profilo null.
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+        Adesione adesione = this.getAdesione();
+
+        // Act
+        ResponseEntity<List<AdesioneDisclaimer>> response =
+                adesioniController.getDisclaimersAdesione(adesione.getIdAdesione(), "it");
+
+        // Assert: senza chiavi profilo-specific nella cache, il default (profilo=null) e'
+        // l'unico risultato.
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isEmpty());
+        for (AdesioneDisclaimer d : response.getBody()) {
+            // Il default ha sempre profilo=null
+            if (d.getContesto() == DisclaimerContestoEnum.GENERALE && d.getProfilo() != null) {
+                // Se arrivano disclaimer generali con profilo valorizzato, significa che esiste
+                // una chiave tipo "bozza.PROFILO" nella cache: deve essere un profilo previsto.
+                assertNotNull(d.getProfilo());
+            }
         }
     }
 

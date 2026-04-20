@@ -113,6 +113,8 @@ public class DisclaimerService {
 
 			String stato = normalize(adesione.getStato());
 			String dominio = extractDominio(adesione);
+			// I profili sono restituiti con il case originale (coerente con quanto
+			// presente in ClientAdesioneEntity.profilo restituito da listClient*Adesione)
 			List<String> profili = extractProfili(adesione);
 
 			// LinkedHashSet di chiavi gia' consumate per evitare duplicati
@@ -120,22 +122,23 @@ public class DisclaimerService {
 			List<AdesioneDisclaimer> result = new ArrayList<>();
 
 			for (String profilo : profili) {
+				String profiloNormalizzato = normalize(profilo);
 				if (dominio != null) {
-					String baseKey = stato + "." + profilo + "." + dominio;
-					tryAllContexts(disclaimers, baseKey, matchedKeys, result);
+					String baseKey = stato + "." + profiloNormalizzato + "." + dominio;
+					tryAllContexts(disclaimers, baseKey, profilo, matchedKeys, result);
 				}
-				String baseKey = stato + "." + profilo;
-				tryAllContexts(disclaimers, baseKey, matchedKeys, result);
+				String baseKey = stato + "." + profiloNormalizzato;
+				tryAllContexts(disclaimers, baseKey, profilo, matchedKeys, result);
 			}
 
-			// Disclaimer per stato (indipendente dal profilo)
-			tryAllContexts(disclaimers, stato, matchedKeys, result);
+			// Disclaimer per livello stato (chiavi che non contengono il profilo -> profilo=null)
+			tryAllContexts(disclaimers, stato, null, matchedKeys, result);
 
-			// Se nessun disclaimer specifico trovato, usa il default
+			// Se nessun disclaimer specifico trovato, usa il default (profilo=null)
 			if (result.isEmpty()) {
 				DisclaimerEntry defaultEntry = disclaimers.get(DEFAULT_KEY);
 				if (defaultEntry != null && defaultEntry.testo != null && !defaultEntry.testo.isBlank()) {
-					result.add(buildDisclaimer(defaultEntry.testo, DisclaimerContestoEnum.GENERALE, defaultEntry.severity));
+					result.add(buildDisclaimer(defaultEntry.testo, DisclaimerContestoEnum.GENERALE, defaultEntry.severity, null));
 				} else {
 					result.add(buildHardcodedFallback(lang));
 				}
@@ -153,46 +156,56 @@ public class DisclaimerService {
 	/**
 	 * Per una chiave base, tenta il match su tre varianti: base, base+.collaudo, base+.produzione.
 	 * Aggiunge al risultato tutti i match trovati, evitando duplicati tramite matchedKeys.
+	 *
+	 * @param profilo valore originale del profilo associato alla chiave base (null se la chiave
+	 *                non contiene il segmento profilo, es. per il livello "stato" puro)
 	 */
 	private void tryAllContexts(Map<String, DisclaimerEntry> disclaimers, String baseKey,
-			Set<String> matchedKeys, List<AdesioneDisclaimer> result) {
-		tryAddKey(disclaimers, baseKey, DisclaimerContestoEnum.GENERALE, matchedKeys, result);
-		tryAddKey(disclaimers, baseKey + SUFFIX_COLLAUDO, DisclaimerContestoEnum.COLLAUDO, matchedKeys, result);
-		tryAddKey(disclaimers, baseKey + SUFFIX_PRODUZIONE, DisclaimerContestoEnum.PRODUZIONE, matchedKeys, result);
+			String profilo, Set<String> matchedKeys, List<AdesioneDisclaimer> result) {
+		tryAddKey(disclaimers, baseKey, DisclaimerContestoEnum.GENERALE, profilo, matchedKeys, result);
+		tryAddKey(disclaimers, baseKey + SUFFIX_COLLAUDO, DisclaimerContestoEnum.COLLAUDO, profilo, matchedKeys, result);
+		tryAddKey(disclaimers, baseKey + SUFFIX_PRODUZIONE, DisclaimerContestoEnum.PRODUZIONE, profilo, matchedKeys, result);
 	}
 
 	private void tryAddKey(Map<String, DisclaimerEntry> disclaimers, String key,
-			DisclaimerContestoEnum contesto, Set<String> matchedKeys, List<AdesioneDisclaimer> result) {
+			DisclaimerContestoEnum contesto, String profilo, Set<String> matchedKeys, List<AdesioneDisclaimer> result) {
 		if (matchedKeys.contains(key)) {
 			return;
 		}
 		DisclaimerEntry entry = disclaimers.get(key);
 		if (entry != null && entry.testo != null && !entry.testo.isBlank()) {
 			matchedKeys.add(key);
-			result.add(buildDisclaimer(entry.testo, contesto, entry.severity));
+			result.add(buildDisclaimer(entry.testo, contesto, entry.severity, profilo));
 		}
 	}
 
-	private AdesioneDisclaimer buildDisclaimer(String testo, DisclaimerContestoEnum contesto, DisclaimerSeverityEnum severity) {
+	private AdesioneDisclaimer buildDisclaimer(String testo, DisclaimerContestoEnum contesto,
+			DisclaimerSeverityEnum severity, String profilo) {
 		AdesioneDisclaimer d = new AdesioneDisclaimer();
 		d.setDisclaimer(testo.trim());
 		d.setContesto(contesto);
 		d.setSeverity(severity != null ? severity : DisclaimerSeverityEnum.INFO);
+		d.setProfilo(profilo);
 		return d;
 	}
 
 	private AdesioneDisclaimer buildHardcodedFallback(String lang) {
 		String testo = "en".equals(lang) ? HARDCODED_FALLBACK_EN : HARDCODED_FALLBACK_IT;
-		return buildDisclaimer(testo, DisclaimerContestoEnum.GENERALE, DisclaimerSeverityEnum.INFO);
+		return buildDisclaimer(testo, DisclaimerContestoEnum.GENERALE, DisclaimerSeverityEnum.INFO, null);
 	}
 
+	/**
+	 * Estrae i profili client richiesti per l'adesione. I valori sono restituiti con il
+	 * case originale (come memorizzati nel DB) per consentire al FE di fare matching diretto
+	 * tra il campo profilo del disclaimer e il profilo degli elementi restituiti dagli
+	 * endpoint listClient*Adesione.
+	 */
 	private List<String> extractProfili(AdesioneEntity adesione) {
 		try {
 			List<ClientRichiesto> clientRichiesti = this.adesioneAuthorization.getClientRichiesti(adesione.getServizio());
 			return clientRichiesti.stream()
 					.map(ClientRichiesto::getProfilo)
 					.filter(p -> p != null && !p.isBlank())
-					.map(this::normalize)
 					.distinct()
 					.toList();
 		} catch (Exception e) {

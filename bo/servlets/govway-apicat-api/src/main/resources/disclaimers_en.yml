@@ -1,4 +1,6 @@
+# =============================================================================
 # Disclaimers for subscriptions - Language: English
+# =============================================================================
 #
 # Hierarchical keys with dot-notation: state.profile_codice_interno.domain_name
 # Optionally you can append a ".collaudo" or ".produzione" suffix to specify the
@@ -11,61 +13,308 @@
 #   3. {state}[.{ambiente}]
 #   4. default                                         (fallback)
 #
-# State, profile and domain values are normalized to lowercase.
-# Content is in Markdown format.
-#
 # VALUE FORMATS:
-#   - Plain string         -> default severity = INFO
+#   - Plain string               -> default severity = INFO
 #   - Object { severity, testo } -> explicit severity
 #
 # SEVERITY: INFO | WARNING | ERROR
 #
-# If the domain name contains spaces, enclose the key in quotes:
-#   "draft.pdnd.domain with spaces": |
-#     Disclaimer text...
-#
 # To override these disclaimers externally, copy this file to:
 #   /var/govcat/conf/disclaimers_en.yml
-#
+# =============================================================================
 
-# General fallback (plain string -> severity INFO)
+# -----------------------------------------------------------------------------
+# GENERAL FALLBACK
+# -----------------------------------------------------------------------------
+
 default: |
-  By proceeding with this subscription, the organization accepts the terms and conditions of the service.
+  By proceeding with this subscription, the organization accepts the terms and
+  conditions of the service.
 
-# Example plain string: default severity INFO, context GENERALE
-bozza.pdnd.pdnd: |
-  ## PDND subscription draft
-  This subscription uses the **PDND** profile. Before proceeding, make sure you have
-  completed the registration on the PDND platform and have an active e-service.
+# -----------------------------------------------------------------------------
+# STATE-LEVEL DISCLAIMERS (generic, profile-independent)
+# -----------------------------------------------------------------------------
 
-# Example structured value: explicit severity, context GENERALE
+bozza: |
+  ## Subscription draft
+  The subscription is being drafted. Fill in all required fields and configure
+  the clients for each requested profile before submitting for test.
+
+richiesto_collaudo: |
+  ## Awaiting authorization (test)
+  The subscription has been submitted and is awaiting authorization from the
+  supervisor or manager. Identifying data can no longer be modified.
+
+in_configurazione_manuale_collaudo: |
+  ## Manual configuration in progress (test)
+  An operator is manually configuring the subscription on the **test**
+  environment. The state will change once configuration completes.
+
+in_configurazione_automatica_collaudo: |
+  ## Automatic configuration in progress (test)
+  The system is automatically configuring the subscription on the **test**
+  environment. The state will automatically move to *Published in test* upon
+  completion.
+
+pubblicato_collaudo: |
+  ## Published in test
+  The subscription is active on the **test** environment. You can start
+  testing the integration before requesting promotion to production.
+
+richiesto_produzione: |
+  ## Awaiting authorization (production)
+  The subscription has been submitted for production. It will not be configured
+  on the gateway until the supervisor approves it.
+
+in_configurazione_manuale_produzione: |
+  ## Manual configuration in progress (production)
+  An operator is manually configuring the subscription on the **production**
+  environment.
+
+in_configurazione_automatica_produzione: |
+  ## Automatic configuration in progress (production)
+  The system is automatically configuring the subscription in **production**.
+
+pubblicato_produzione:
+  severity: WARNING
+  testo: |
+    ## Published in production
+    The subscription is **live in production**. Any configuration change may
+    impact end users: proceed with caution.
+
+archiviato: |
+  ## Archived subscription
+  The subscription has been archived and can no longer be modified. To resume
+  the process, a new subscription must be created.
+
+# -----------------------------------------------------------------------------
+# PDND PROFILES
+# -----------------------------------------------------------------------------
+
+bozza.pdnd:
+  severity: WARNING
+  testo: |
+    ## PDND profile
+    This profile requires registration of the e-service on the PDND platform.
+    Make sure you have the e-service **identifier** and **version** configured.
+
+bozza.pdnd-audit:
+  severity: WARNING
+  testo: |
+    ## PDND + Audit profile
+    PDND audit requires the additional configuration of the audit token policy.
+    Verify that you have access to the required policy.
+
+bozza.pdnd-https:
+  severity: WARNING
+  testo: |
+    ## PDND + mTLS profile
+    Besides PDND registration, a valid **client certificate** is required for
+    mTLS authentication.
+
+bozza.pdnd-integrity-rest:
+  severity: WARNING
+  testo: |
+    ## PDND + Integrity profile (REST)
+    This profile requires **Integrity** support for REST APIs. Verify that
+    the exposed API is compatible.
+
+bozza.pdnd-integrity-soap:
+  severity: WARNING
+  testo: |
+    ## PDND + Integrity profile (SOAP)
+    This profile requires **Integrity** support for SOAP APIs.
+
+bozza.pdnd-audit-integrity-rest:
+  severity: WARNING
+  testo: |
+    ## PDND + Audit + Integrity profile (REST)
+    Complete combination: audit + integrity for REST APIs. Verify that both
+    token policies are configured.
+
+bozza.pdnd-audit-integrity-soap:
+  severity: WARNING
+  testo: |
+    ## PDND + Audit + Integrity profile (SOAP)
+    Complete combination: audit + integrity for SOAP APIs.
+
+bozza.pdnd-integrity-rest-https:
+  severity: WARNING
+  testo: |
+    ## PDND + Integrity + mTLS profile (REST)
+    This profile combines PDND registration with Integrity and mTLS
+    authentication. Both eService and client certificate are required.
+
+bozza.pdnd-integrity-soap-https:
+  severity: WARNING
+  testo: |
+    ## PDND + Integrity + mTLS profile (SOAP)
+    This profile combines PDND registration with Integrity and mTLS
+    authentication for SOAP APIs.
+
+pubblicato_produzione.pdnd:
+  severity: ERROR
+  testo: |
+    ## Warning: PDND in production
+    The subscription is active on the production PDND platform. Changes to the
+    configuration (token policy, audit, rate limiting) have immediate impact on
+    end users and PDND consumption.
+
+pubblicato_produzione.pdnd-audit:
+  severity: ERROR
+  testo: |
+    ## Warning: PDND + Audit in production
+    Calls generate real audit events. Consider the impacts before changing the
+    configuration.
+
+# -----------------------------------------------------------------------------
+# ModI PROFILES
+# -----------------------------------------------------------------------------
+
+bozza.modi_p1: |
+  ## ModI P1 profile
+  The **ModI P1** profile uses mTLS authentication. A valid client certificate
+  is required.
+
 bozza.modi_p2:
   severity: WARNING
   testo: |
     ## ModI P2 profile
-    The **ModI P2** profile requires message signing. Make sure you have a valid
-    signing certificate configured.
+    The **ModI P2** profile requires both the *mTLS authentication
+    certificate* and the *message signing certificate*.
 
-# Example with .collaudo suffix: context COLLAUDO
-pubblicato_collaudo.pdnd.pdnd.collaudo:
-  severity: INFO
-  testo: |
-    ## PDND test environment
-    The subscription is published in **test**. Validate the integration on the
-    PDND test environment before requesting the production transition.
-
-# Example with .produzione suffix: context PRODUZIONE, severity ERROR
-pubblicato_produzione.pdnd.pdnd.produzione:
-  severity: ERROR
-  testo: |
-    ## Warning: PDND production
-    The subscription is in **production** on the PDND platform. Any change to the
-    client configuration may impact end users.
-
-# Example: key with spaces in the domain name (enclosed in quotes)
-"bozza.interno_https.dominio di test":
+bozza.modi_p3:
   severity: WARNING
   testo: |
-    ## mTLS subscription draft
-    This subscription uses the **mTLS** profile on the **Dominio di Test** domain.
-    Please verify that you have a valid client certificate before proceeding.
+    ## ModI P3 profile
+    The **ModI P3** profile requires both the *mTLS authentication
+    certificate* and the *message signing certificate*, with security
+    requirements beyond ModI P2.
+
+pubblicato_produzione.modi_p2:
+  severity: ERROR
+  testo: |
+    ## ModI P2 in production
+    The signing certificate is in use: rotating it requires coordination with
+    the reference subject to avoid service disruption.
+
+pubblicato_produzione.modi_p3:
+  severity: ERROR
+  testo: |
+    ## ModI P3 in production
+    The signing certificate is in use: rotating it requires coordination with
+    the reference subject to avoid service disruption.
+
+# -----------------------------------------------------------------------------
+# INTERNAL PROFILES
+# -----------------------------------------------------------------------------
+
+bozza.interno_https: |
+  ## Internal mTLS profile
+  Authentication via **client certificate (mTLS)**. Provide a valid certificate
+  or request one through CN or CSR.
+
+bozza.interno_http_basic: |
+  ## Internal HTTP Basic profile
+  Username/password authentication. *Rate limiting* and *usage purpose* can
+  be configured.
+
+bozza.interno_no_dati:
+  severity: WARNING
+  testo: |
+    ## Internal no-authentication profile
+    No authentication is required. Carefully evaluate usage in exposed or
+    multi-tenant environments.
+
+bozza.interno_oauth_client_credentials: |
+  ## Internal OAuth Client Credentials profile
+  Machine-to-machine authentication via OAuth2 tokens (Client Credentials flow).
+
+bozza.interno_oauth_authorization_code: |
+  ## Internal OAuth Authorization Code profile
+  Authentication via *Authorization Code* flow. Configure client-id,
+  client-secret and redirect URI.
+
+# -----------------------------------------------------------------------------
+# PDND FRUIZIONE PROFILES (toward external PDND)
+# -----------------------------------------------------------------------------
+
+bozza.mtls_fruizioni: |
+  ## PDND Fruizione - mTLS
+  Profile for consuming a PDND e-service with **mTLS** authentication.
+  Requires a valid client certificate.
+
+bozza.basic_fruizioni: |
+  ## PDND Fruizione - HTTP Basic
+  Profile for consuming a PDND e-service with **HTTP Basic** authentication.
+
+bozza.oauth_ac_fruizioni: |
+  ## PDND Fruizione - OAuth Authorization Code
+  Profile for consuming a PDND e-service with **OAuth Authorization Code**.
+
+bozza.oauth_cc_fruizioni: |
+  ## PDND Fruizione - OAuth Client Credentials
+  Profile for consuming a PDND e-service with **OAuth Client Credentials**.
+
+pubblicato_produzione.mtls_fruizioni:
+  severity: WARNING
+  testo: |
+    ## PDND Fruizione in production (mTLS)
+    You are consuming a real PDND e-service: requests consume PDND quota.
+
+pubblicato_produzione.basic_fruizioni:
+  severity: WARNING
+  testo: |
+    ## PDND Fruizione in production (HTTP Basic)
+    You are consuming a real PDND e-service: requests consume PDND quota.
+
+pubblicato_produzione.oauth_ac_fruizioni:
+  severity: WARNING
+  testo: |
+    ## PDND Fruizione in production (OAuth AC)
+    You are consuming a real PDND e-service: requests consume PDND quota.
+
+pubblicato_produzione.oauth_cc_fruizioni:
+  severity: WARNING
+  testo: |
+    ## PDND Fruizione in production (OAuth CC)
+    You are consuming a real PDND e-service: requests consume PDND quota.
+
+# -----------------------------------------------------------------------------
+# EXAMPLES WITH CONTEXT SUFFIX (.collaudo / .produzione)
+# -----------------------------------------------------------------------------
+
+pubblicato_collaudo.pdnd.collaudo: |
+  In the **PDND test** environment you can make test calls with test
+  identifiers. It does not consume production quota.
+
+pubblicato_produzione.pdnd.produzione:
+  severity: ERROR
+  testo: |
+    In **PDND production** every call uses real tokens and consumes quota.
+
+pubblicato_collaudo.modi_p2.collaudo: |
+  In the **test** environment for ModI P2 you can use test certificates.
+
+pubblicato_produzione.modi_p2.produzione:
+  severity: ERROR
+  testo: |
+    In **production** ModI P2 certificates must be real ones. Verify the
+    expiration date and rotate them in time.
+
+# -----------------------------------------------------------------------------
+# EXAMPLES WITH DOMAIN (for testing purposes)
+# -----------------------------------------------------------------------------
+
+# Example: PDND profile on the "PDND" domain
+bozza.pdnd.pdnd: |
+  ## PDND on the PDND domain
+  This e-service belongs to the PDND domain. Refer to the domain contact for
+  activation.
+
+# Example: quoted key with spaces in the domain name
+"pubblicato_produzione.modi_p1.dominio di test":
+  severity: WARNING
+  testo: |
+    ## ModI P1 - Test Domain in production
+    Example of a disclaimer that combines profile and a domain with spaces.
