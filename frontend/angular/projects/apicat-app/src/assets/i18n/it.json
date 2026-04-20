@@ -1128,10 +1128,10 @@
 				"ADE": {
 					"400": {
 						"STATE": {
-						"DEFAULT": "Stato adesione [{{stato}}] non valido per questa operazione",
-						"MONITORING": "Stato adesione [{{idAdesione}}] non valido [{{stato}}] per il monitoraggio",
-						"SERVICE": "Lo stato del servizio [{{servizio}}] non consente adesioni"
-					}
+							"DEFAULT": "Stato adesione [{{stato}}] non valido per questa operazione",
+							"MONITORING": "Stato adesione [{{idAdesione}}] non valido [{{stato}}] per il monitoraggio",
+							"SERVICE": "Lo stato del servizio [{{servizio}}] non consente adesioni"
+						}
 					},
 					"403": {
 						"REFERENT": "Referente adesione [{{referente}}] non autorizzato"
@@ -1194,7 +1194,11 @@
 						"ORG": {
 							"ADHESION": "Organizzazione [{{nomeOrganizzazione}}] non corrisponde per l'adesione",
 							"MISMATCH": "Organizzazione [{{orgNome}}] interna, ma utente [{{userIdUtente}}] associato all'organizzazione [{{userOrgNome}}]",
-							"MISSING": "Organizzazione [{{orgNome}}] interna, ma utente [{{userIdUtente}}] non associato ad alcuna organizzazione"
+							"MISSING": "Organizzazione [{{orgNome}}] interna, ma utente [{{userIdUtente}}] non associato ad alcuna organizzazione",
+							"NOT": {
+								"ADERENTE": "L'organizzazione [{{nomeOrganizzazione}}] non è abilitata come aderente",
+								"REFERENTE": "L'organizzazione [{{nomeOrganizzazione}}] non è abilitata come referente di servizi"
+							}
 						},
 						"REFERENT": {
 							"NOT": {

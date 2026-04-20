@@ -436,6 +436,12 @@ public enum ErrorCode {
     /** Utente non abilitato come referente */
     AUT_403_REFERENT_NOT_ELIGIBLE("Utente non abilitato come referente"),
 
+    /** Organizzazione di sessione non abilitata come referente di servizi */
+    AUT_403_ORG_NOT_REFERENTE("Organizzazione non abilitata come referente di servizi"),
+
+    /** Organizzazione di sessione non abilitata come aderente */
+    AUT_403_ORG_NOT_ADERENTE("Organizzazione non abilitata come aderente"),
+
     /** Token di autenticazione non valido */
     AUT_401_TOKEN("Token non valido"),
 

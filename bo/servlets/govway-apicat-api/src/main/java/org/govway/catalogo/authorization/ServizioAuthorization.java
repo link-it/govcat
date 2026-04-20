@@ -132,6 +132,18 @@ public class ServizioAuthorization extends AbstractServizioAuthorization {
 	@Override
 	public void authorizeCreate(ServizioCreate create) {
 		this.coreAuthorization.requireReferenteTecnico();
+
+		// Vincolo [*] della matrice permessi: per utenti con ruolo per-organizzazione
+		// (non admin/coordinator/referente_tecnico), l'organizzazione di sessione deve
+		// avere il flag referente attivo per poter pubblicare un servizio.
+		if (!this.coreAuthorization.isAdmin()
+				&& !this.coreAuthorization.isCoordinatore()
+				&& this.coreAuthorization.getOrganizationContext() != null
+				&& this.coreAuthorization.getOrganizationContext().hasOrganizzazione()
+				&& !this.coreAuthorization.isOrganizzazioneSessioneReferente()) {
+			throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_NOT_REFERENTE,
+					java.util.Map.of("nomeOrganizzazione", this.coreAuthorization.getOrganizzazioneSessione().getNome()));
+		}
 	}
 
 	@Override

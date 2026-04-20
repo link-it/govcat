@@ -1128,10 +1128,10 @@
 				"ADE": {
 					"400": {
 						"STATE": {
-						"DEFAULT": "Membership state [{{stato}}] not valid for this operation",
-						"MONITORING": "Membership state [{{stato}}] not valid for monitoring (membership [{{idAdesione}}])",
-						"SERVICE": "Service [{{servizio}}] state does not allow memberships"
-					}
+							"DEFAULT": "Membership state [{{stato}}] not valid for this operation",
+							"MONITORING": "Membership state [{{stato}}] not valid for monitoring (membership [{{idAdesione}}])",
+							"SERVICE": "Service [{{servizio}}] state does not allow memberships"
+						}
 					},
 					"403": {
 						"REFERENT": "Membership referent [{{referente}}] not authorized"
@@ -1194,7 +1194,11 @@
 						"ORG": {
 							"ADHESION": "Organization [{{nomeOrganizzazione}}] does not match for membership",
 							"MISMATCH": "Organization [{{orgNome}}] is internal, but user [{{userIdUtente}}] is associated with organization [{{userOrgNome}}]",
-							"MISSING": "Organization [{{orgNome}}] is internal, but user [{{userIdUtente}}] is not associated with any organization"
+							"MISSING": "Organization [{{orgNome}}] is internal, but user [{{userIdUtente}}] is not associated with any organization",
+							"NOT": {
+								"ADERENTE": "Organization [{{nomeOrganizzazione}}] is not enabled as an adherent",
+								"REFERENTE": "Organization [{{nomeOrganizzazione}}] is not enabled as a service referent"
+							}
 						},
 						"REFERENT": {
 							"NOT": {

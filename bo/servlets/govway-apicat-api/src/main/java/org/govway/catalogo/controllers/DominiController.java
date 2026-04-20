@@ -203,13 +203,26 @@ public class DominiController implements DominiApi {
 	
 				DominioSpecification spec = new DominioSpecification();
 				spec.setQ(Optional.ofNullable(q));
-				
+
 				spec.setVisibilita(Optional.ofNullable(visibilita).map(v -> this.dettaglioAssembler.toVisibilita(v)));
 				spec.setDeprecato(Optional.ofNullable(deprecato));
 				spec.setEsterno(Optional.ofNullable(esterno));
 				spec.setIdDominio(Optional.ofNullable(idDominio));
 				spec.setIdSoggetto(Optional.ofNullable(idSoggetto));
 				spec.setNome(Optional.ofNullable(nome));
+
+				// Filtro visibilità per-organizzazione:
+				// gestore e coordinatore vedono tutti i domini (nessun filtro).
+				// Altri utenti vedono solo i domini della propria organizzazione di sessione.
+				// Se non c'è contesto di sessione, il filtro non si applica (l'utente vede tutto ciò
+				// che la visibilità del dominio gli consente).
+				if (!this.coreAuthorization.isAdmin()
+						&& !this.coreAuthorization.isCoordinatore()
+						&& this.coreAuthorization.getOrganizationContext() != null
+						&& this.coreAuthorization.getOrganizationContext().hasOrganizzazione()) {
+					spec.setIdOrganizzazioneSoggettoReferente(
+							Optional.of(this.coreAuthorization.getOrganizzazioneSessione().getId()));
+				}
 
 				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("nome"));
 				

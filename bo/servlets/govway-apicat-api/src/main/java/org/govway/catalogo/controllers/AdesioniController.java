@@ -216,13 +216,15 @@ public class AdesioniController implements AdesioniApi {
 				
 				logger.info("PRE assembler toentity");
 				
-				this.logger.info("Invocazione in corso ...");     
+				this.logger.info("Invocazione in corso ...");
+				this.authorization.authorizeCreate(adesioneCreate);
+
 				AdesioneEntity entity = this.dettaglioAssembler.toEntity(adesioneCreate);
 
 				logger.info("POST assembler toentity");
-				
+
 				logger.info("PRE authorization");
-				
+
 				this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.IDENTIFICATIVO));
 				
 				logger.info("POST authorization");

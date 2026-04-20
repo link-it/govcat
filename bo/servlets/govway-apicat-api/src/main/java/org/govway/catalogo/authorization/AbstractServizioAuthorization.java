@@ -37,6 +37,8 @@ import org.govway.catalogo.core.orm.entity.ApiConfigEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity.RUOLO;
 import org.govway.catalogo.core.orm.entity.AuthTypeEntity;
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
+import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.StatoServizioEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
@@ -343,13 +345,13 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 	@Override
 	protected List<Ruolo> getRuoli(ServizioEntity entity) {
 		UtenteEntity u = this.coreAuthorization.getUtenteSessione();
-		
+
 		List<Ruolo> lst = new ArrayList<>();
-		
+
 		if(this.coreAuthorization.isAdmin(u)) {
 			lst.add(Ruolo.GESTORE);
 		}
-		
+
 		if(this.coreAuthorization.isCoordinatore(u)) {
 			lst.add(Ruolo.REFERENTE_SUPERIORE);
 		}
@@ -360,7 +362,7 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 		if(refDominio) {
 			lst.add(Ruolo.REFERENTE_SUPERIORE);
 		}
-		
+
 		boolean refServizio = entity.getReferenti().stream()
 				.anyMatch(r -> r.getReferente().getId().equals(u.getId()) && r.getTipo().equals(TIPO_REFERENTE.REFERENTE));
 
@@ -369,18 +371,18 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 		}
 
 		boolean richiedenteServizio = entity.getRichiedente().getId().equals(u.getId());
-		
+
 		if(richiedenteServizio) {
 			lst.add(Ruolo.RICHIEDENTE);
 		}
-		
+
 		boolean refTecnicoDominio = entity.getDominio().getReferenti().stream()
 				.anyMatch(r -> r.getReferente().getId().equals(u.getId()) && r.getTipo().equals(TIPO_REFERENTE.REFERENTE_TECNICO));
-		
+
 		if(refTecnicoDominio) {
 			lst.add(Ruolo.REFERENTE_TECNICO_SUPERIORE);
 		}
-		
+
 
 		boolean refTecnicoServizio = entity.getReferenti().stream()
 				.anyMatch(r -> r.getReferente().getId().equals(u.getId()) && r.getTipo().equals(TIPO_REFERENTE.REFERENTE_TECNICO));
@@ -388,8 +390,36 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 		if(refTecnicoServizio) {
 			lst.add(Ruolo.REFERENTE_TECNICO);
 		}
-		
+
+		// Ruoli per-organizzazione: considera l'organizzazione del soggetto referente del dominio del servizio.
+		// AMM_ORG mappa a REFERENTE_SUPERIORE (poteri di autorizzazione, come coordinatore e ref.dominio).
+		// OPERATORE_API mappa a REFERENTE (può gestire ma non autorizzare, come ref.adesione).
+		// TODO [MULTI-ORG] Valutare refactoring dell'enum Ruolo workflow per rappresentare più flessibilmente
+		// i nuovi ruoli per-organizzazione.
+		OrganizzazioneEntity organizzazioneContesto = getOrganizzazioneContestoServizio(entity);
+		if (organizzazioneContesto != null) {
+			if (this.coreAuthorization.hasRuoloInOrganizzazione(u, organizzazioneContesto, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
+				if (!lst.contains(Ruolo.REFERENTE_SUPERIORE)) {
+					lst.add(Ruolo.REFERENTE_SUPERIORE);
+				}
+			} else if (this.coreAuthorization.hasRuoloInOrganizzazione(u, organizzazioneContesto, RuoloOrganizzazione.OPERATORE_API)) {
+				if (!lst.contains(Ruolo.REFERENTE)) {
+					lst.add(Ruolo.REFERENTE);
+				}
+			}
+		}
+
 		return lst;
+	}
+
+	/**
+	 * Restituisce l'organizzazione di contesto per un servizio: quella del soggetto referente del dominio.
+	 */
+	private OrganizzazioneEntity getOrganizzazioneContestoServizio(ServizioEntity servizio) {
+		if (servizio.getDominio() == null || servizio.getDominio().getSoggettoReferente() == null) {
+			return null;
+		}
+		return servizio.getDominio().getSoggettoReferente().getOrganizzazione();
 	}
 
 	public List<VISIBILITA> getVisibilitaAllegato(ServizioEntity entity) {

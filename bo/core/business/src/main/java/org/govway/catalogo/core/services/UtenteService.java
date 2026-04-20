@@ -30,6 +30,8 @@ import org.govway.catalogo.core.dao.specifications.DominioSpecification;
 import org.govway.catalogo.core.dao.specifications.ServizioSpecification;
 import org.govway.catalogo.core.dao.specifications.UtenteSpecification;
 import org.govway.catalogo.core.orm.entity.ClasseUtenteEntity;
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
+import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity;
@@ -182,6 +184,60 @@ public class UtenteService extends AbstractService {
 	 */
 	public List<UtenteOrganizzazioneEntity> findUtenteOrganizzazioniByUtente(UtenteEntity utente) {
 		return this.utenteOrganizzazioneRepo.findByUtente(utente);
+	}
+
+	/**
+	 * Cerca l'associazione utente-organizzazione per la coppia indicata.
+	 *
+	 * @return Optional con l'associazione se presente, empty se l'utente non appartiene all'organizzazione
+	 */
+	public Optional<UtenteOrganizzazioneEntity> findUtenteOrganizzazione(UtenteEntity utente, OrganizzazioneEntity organizzazione) {
+		if (utente == null || organizzazione == null) {
+			return Optional.empty();
+		}
+		return this.utenteOrganizzazioneRepo.findByUtente(utente).stream()
+				.filter(assoc -> assoc.getOrganizzazione() != null
+						&& assoc.getOrganizzazione().getId().equals(organizzazione.getId()))
+				.findFirst();
+	}
+
+	/**
+	 * Verifica se l'utente è associato all'organizzazione indicata.
+	 * Non considera il ruolo: restituisce true anche se il ruolo è null (nessun ruolo / sola lettura).
+	 *
+	 * Include fallback sulla vecchia FK singola id_organizzazione per retrocompatibilità durante
+	 * la transizione al modello multi-organizzazione.
+	 * TODO [MULTI-ORG] Rimuovere il fallback sulla FK singola quando tutti i flussi
+	 * di creazione/modifica utente popoleranno la nuova tabella utenti_organizzazioni.
+	 */
+	public boolean isAssociatoA(UtenteEntity utente, OrganizzazioneEntity organizzazione) {
+		if (utente == null || organizzazione == null) {
+			return false;
+		}
+		if (findUtenteOrganizzazione(utente, organizzazione).isPresent()) {
+			return true;
+		}
+		// Fallback sulla FK singola per retrocompatibilità
+		return utente.getOrganizzazione() != null
+				&& utente.getOrganizzazione().getId().equals(organizzazione.getId());
+	}
+
+	/**
+	 * Verifica se l'utente ha uno dei ruoli specificati nell'organizzazione indicata.
+	 * Restituisce false se non c'è associazione o se il ruolo dell'associazione è null.
+	 */
+	public boolean hasRuoloInOrganizzazione(UtenteEntity utente, OrganizzazioneEntity organizzazione, RuoloOrganizzazione... ruoli) {
+		Optional<UtenteOrganizzazioneEntity> assoc = findUtenteOrganizzazione(utente, organizzazione);
+		if (assoc.isEmpty() || assoc.get().getRuoloOrganizzazione() == null) {
+			return false;
+		}
+		RuoloOrganizzazione ruoloUtente = assoc.get().getRuoloOrganizzazione();
+		for (RuoloOrganizzazione r : ruoli) {
+			if (ruoloUtente == r) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

@@ -521,10 +521,11 @@ public class AdesioniTest {
     	CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
 
     	this.tearDown();
-    	
-    	Exception exception = assertThrows(NullPointerException.class, () -> {
+
+    	Exception exception = assertThrows(NotAuthorizedException.class, () -> {
     		this.getAdesione();
         });
+    	assertTrue(exception.getMessage().startsWith("AUT.403"));
     }
     
     @Test

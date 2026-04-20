@@ -26,6 +26,7 @@ import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Ruolo;
+import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.Configurazione;
@@ -41,6 +42,9 @@ public class CoreAuthorization {
 
 	@Autowired
 	private OrganizationContext organizationContext;
+
+	@Autowired
+	private UtenteService utenteService;
 	
 	public UtenteEntity getUtenteSessione() {
 		boolean consentiAnonimo = this.configurazione.getUtente().isConsentiAccessoAnonimo();
@@ -92,8 +96,6 @@ public class CoreAuthorization {
 		}
 	}
 
-	// TODO [MULTI-ORG] Rivedere i controlli di accesso: il check su isRuoloOrganizzazione()
-	// dovrà verificare il ruolo specifico dell'utente nel contesto dell'organizzazione di sessione.
 	public void requireReferenteTecnico() {
 		if(!isAdmin() && !isRuoloOrganizzazione() && !isReferenteTecnico()) {
 			throw new NotAuthorizedException(ErrorCode.AUT_403);
@@ -105,18 +107,29 @@ public class CoreAuthorization {
 		if(principal == null || principal.utente == null) {
 			return false;
 		}
-		
+
 		return principal.utente.isReferenteTecnico();
 	}
 
-	// TODO [MULTI-ORG] Rivedere questo metodo alla luce dei nuovi ruoli per-organizzazione.
-	// Attualmente verifica solo il ruolo globale; dovrà considerare il contesto organizzazione di sessione.
+	/**
+	 * Verifica se l'utente ha un ruolo per-organizzazione valido.
+	 * Usa il contesto organizzazione di sessione se disponibile (verifica ruolo non-null
+	 * nell'organizzazione attiva). Se non c'è contesto di sessione, ricade sul ruolo
+	 * globale dell'utente per retrocompatibilità.
+	 */
 	private boolean isRuoloOrganizzazione() {
 		InfoProfilo principal = this.requestUtils.getPrincipal(false);
 		if(principal == null || principal.utente == null) {
 			return false;
 		}
 
+		// Se c'è un contesto organizzazione attivo, verifica il ruolo in quella organizzazione.
+		// Ruolo null = nessun ruolo = sola lettura, non sufficiente.
+		if (this.organizationContext != null && this.organizationContext.hasOrganizzazione()) {
+			return this.organizationContext.getRuoloOrganizzazione() != null;
+		}
+
+		// Fallback: nessun contesto di sessione, verifica il ruolo globale.
 		return principal.utente.getRuolo() != null && principal.utente.getRuolo().equals(Ruolo.RUOLO_ORGANIZZAZIONE);
 	}
 
@@ -154,6 +167,48 @@ public class CoreAuthorization {
 			return this.organizationContext.getRuoloOrganizzazione();
 		}
 		return null;
+	}
+
+	/**
+	 * Verifica se l'utente ha uno dei ruoli specificati nell'organizzazione di sessione.
+	 * Restituisce false se non c'è un contesto organizzazione attivo oppure se il ruolo è null.
+	 */
+	public boolean hasRuoloInOrganizzazioneSessione(RuoloOrganizzazione... ruoli) {
+		RuoloOrganizzazione ruoloUtente = getRuoloOrganizzazioneSessione();
+		if (ruoloUtente == null) {
+			return false;
+		}
+		for (RuoloOrganizzazione r : ruoli) {
+			if (ruoloUtente == r) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * @return true se l'organizzazione di sessione ha il flag referente attivo
+	 */
+	public boolean isOrganizzazioneSessioneReferente() {
+		OrganizzazioneEntity org = getOrganizzazioneSessione();
+		return org != null && org.isReferente();
+	}
+
+	/**
+	 * @return true se l'organizzazione di sessione ha il flag aderente attivo
+	 */
+	public boolean isOrganizzazioneSessioneAderente() {
+		OrganizzazioneEntity org = getOrganizzazioneSessione();
+		return org != null && org.isAderente();
+	}
+
+	/**
+	 * Verifica se l'utente indicato ha uno dei ruoli specificati su una specifica organizzazione.
+	 * A differenza di hasRuoloInOrganizzazioneSessione, non usa il contesto di sessione ma
+	 * effettua una query diretta sulle associazioni dell'utente.
+	 */
+	public boolean hasRuoloInOrganizzazione(UtenteEntity utente, OrganizzazioneEntity organizzazione, RuoloOrganizzazione... ruoli) {
+		return this.utenteService.hasRuoloInOrganizzazione(utente, organizzazione, ruoli);
 	}
 
 }
