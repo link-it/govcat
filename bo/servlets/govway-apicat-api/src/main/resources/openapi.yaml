@@ -701,6 +701,101 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /organizzazioni/{id_organizzazione}/utenti:
+    parameters:
+    - $ref: "#/components/parameters/id_organizzazione"
+    post:
+      tags:
+      - "Organizzazioni"
+      description: "Aggiunge un utente all'organizzazione con il ruolo indicato. Operazione consentita al gestore o coordinatore (in base alla configurazione amministrazione.organizzazioni) oppure ad un AMMINISTRATORE_ORGANIZZAZIONE dell'organizzazione target."
+      operationId: "addUtenteOrganizzazione"
+      requestBody:
+        description: "Dati per creare l'associazione utente-organizzazione"
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UtenteOrganizzazioneAdd'
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UtenteOrganizzazione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "409":
+          $ref: "#/components/responses/409Conflict"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /organizzazioni/{id_organizzazione}/utenti/{id_utente}:
+    parameters:
+    - $ref: "#/components/parameters/id_organizzazione"
+    - $ref: "#/components/parameters/id_utente"
+    put:
+      tags:
+      - "Organizzazioni"
+      description: "Aggiorna il ruolo di un utente nell'organizzazione. Operazione consentita al gestore o coordinatore (in base alla configurazione amministrazione.organizzazioni) oppure ad un AMMINISTRATORE_ORGANIZZAZIONE dell'organizzazione target."
+      operationId: "updateRuoloUtenteOrganizzazione"
+      requestBody:
+        description: "Nuovo ruolo dell'utente nell'organizzazione"
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UtenteOrganizzazioneUpdate'
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UtenteOrganizzazione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+    delete:
+      tags:
+      - "Organizzazioni"
+      description: "Rimuove l'associazione di un utente dall'organizzazione. Operazione consentita al gestore o coordinatore (in base alla configurazione amministrazione.organizzazioni) oppure ad un AMMINISTRATORE_ORGANIZZAZIONE dell'organizzazione target."
+      operationId: "removeUtenteOrganizzazione"
+      responses:
+        "204":
+          description: "Associazione rimossa con successo"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /client:
     get:
       tags:
@@ -8674,6 +8769,22 @@ components:
       properties:
         id_organizzazione:
           $ref: "#/components/schemas/IdOrganizzazione"
+        ruolo_organizzazione:
+          $ref: "#/components/schemas/RuoloOrganizzazioneEnum"
+    UtenteOrganizzazioneAdd:
+      type: "object"
+      description: "Dati per aggiungere un utente ad un'organizzazione con un ruolo per-organizzazione"
+      required:
+        - id_utente
+      properties:
+        id_utente:
+          $ref: "#/components/schemas/IdUtente"
+        ruolo_organizzazione:
+          $ref: "#/components/schemas/RuoloOrganizzazioneEnum"
+    UtenteOrganizzazioneUpdate:
+      type: "object"
+      description: "Dati per aggiornare il ruolo di un utente in un'organizzazione"
+      properties:
         ruolo_organizzazione:
           $ref: "#/components/schemas/RuoloOrganizzazioneEnum"
     UtenteCreate:

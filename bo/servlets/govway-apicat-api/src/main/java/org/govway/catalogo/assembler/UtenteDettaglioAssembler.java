@@ -297,7 +297,7 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 	/**
 	 * Converte un'associazione entity in modello API.
 	 */
-	private UtenteOrganizzazione toUtenteOrganizzazione(UtenteOrganizzazioneEntity assoc) {
+	public UtenteOrganizzazione toUtenteOrganizzazione(UtenteOrganizzazioneEntity assoc) {
 		UtenteOrganizzazione model = new UtenteOrganizzazione();
 		model.setOrganizzazione(organizzazioneItemAssembler.toModel(assoc.getOrganizzazione()));
 		if (assoc.getRuoloOrganizzazione() != null) {
@@ -323,7 +323,7 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 	/**
 	 * Mapping da enum API RuoloOrganizzazioneEnum a enum interno RuoloOrganizzazione.
 	 */
-	private RuoloOrganizzazione toRuoloOrganizzazione(RuoloOrganizzazioneEnum ruolo) {
+	public RuoloOrganizzazione toRuoloOrganizzazione(RuoloOrganizzazioneEnum ruolo) {
 		if (ruolo == null) {
 			return null;
 		}

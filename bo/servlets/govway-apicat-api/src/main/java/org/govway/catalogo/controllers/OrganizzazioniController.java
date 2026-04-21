@@ -29,16 +29,23 @@ import java.util.stream.Collectors;
 import org.govway.catalogo.ApiV1Controller;
 import org.govway.catalogo.assembler.OrganizzazioneDettaglioAssembler;
 import org.govway.catalogo.assembler.OrganizzazioneItemAssembler;
+import org.govway.catalogo.assembler.UtenteDettaglioAssembler;
+import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.authorization.OrganizzazioneAuthorization;
 import org.govway.catalogo.core.dao.specifications.OrganizzazioneSpecification;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
+import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.SoggettoEntity;
+import org.govway.catalogo.core.orm.entity.UtenteEntity;
+import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity;
 import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.core.services.SoggettoService;
+import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.ErrorCode;
+import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.api.OrganizzazioniApi;
 import org.govway.catalogo.servlets.model.ItemOrganizzazione;
@@ -47,6 +54,9 @@ import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.OrganizzazioneUpdate;
 import org.govway.catalogo.servlets.model.PageMetadata;
 import org.govway.catalogo.servlets.model.PagedModelItemOrganizzazione;
+import org.govway.catalogo.servlets.model.UtenteOrganizzazione;
+import org.govway.catalogo.servlets.model.UtenteOrganizzazioneAdd;
+import org.govway.catalogo.servlets.model.UtenteOrganizzazioneUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,8 +87,16 @@ public class OrganizzazioniController implements OrganizzazioniApi {
     private OrganizzazioneItemAssembler itemAssembler;   
 
     @Autowired
-	private OrganizzazioneAuthorization authorization;   
-    
+	private OrganizzazioneAuthorization authorization;
+
+    @Autowired
+    private UtenteService utenteService;
+
+    @Autowired
+    private CoreAuthorization coreAuthorization;
+
+    @Autowired
+    private UtenteDettaglioAssembler utenteDettaglioAssembler;
 
 	private Logger logger = LoggerFactory.getLogger(OrganizzazioniController.class);
 
@@ -279,9 +297,9 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 
 				this.service.save(entity);
 				Organizzazione model = this.dettaglioAssembler.toModel(entity);
-	
+
 				this.logger.info("Invocazione completata con successo");
-	
+
 				return ResponseEntity.ok(model);
 			});
 
@@ -292,6 +310,146 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	/**
+	 * Verifica autorizzazione per gestire le associazioni utente-organizzazione:
+	 * consente l'operazione al gestore/coordinatore (tramite configurazione amministrazione.organizzazioni)
+	 * oppure a un AMMINISTRATORE_ORGANIZZAZIONE dell'organizzazione target.
+	 *
+	 * @throws NotAuthorizedException se il chiamante non è autorizzato
+	 */
+	private void authorizeGestioneAssociazioni(OrganizzazioneEntity organizzazione) {
+		UtenteEntity utenteSessione = this.coreAuthorization.getUtenteSessione();
+		// Se è AMMINISTRATORE_ORGANIZZAZIONE dell'organizzazione target, consentito
+		if (this.coreAuthorization.hasRuoloInOrganizzazione(utenteSessione, organizzazione,
+				RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
+			return;
+		}
+		// Altrimenti applica la logica standard di autorizzazione sulle organizzazioni
+		// (gestore o coordinatore secondo configurazione amministrazione.organizzazioni)
+		this.authorization.authorizeUpdate(null, organizzazione);
+	}
+
+	@Override
+	public ResponseEntity<UtenteOrganizzazione> addUtenteOrganizzazione(UUID idOrganizzazione,
+			UtenteOrganizzazioneAdd body) {
+		try {
+			return this.service.runTransaction(() -> {
+				this.logger.info("Invocazione in corso ...");
+				OrganizzazioneEntity org = this.service.find(idOrganizzazione)
+						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404,
+								Map.of("idOrganizzazione", idOrganizzazione.toString())));
+
+				authorizeGestioneAssociazioni(org);
+				this.logger.debug("Autorizzazione completata con successo");
+
+				UtenteEntity utente = this.utenteService.find(body.getIdUtente())
+						.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404,
+								Map.of("idUtente", body.getIdUtente().toString())));
+
+				if (this.service.findUtenteOrganizzazione(utente, org).isPresent()) {
+					throw new ConflictException(ErrorCode.GEN_409,
+							Map.of("nomeUtente", utente.getNome(),
+									"cognomeUtente", utente.getCognome(),
+									"nomeOrganizzazione", org.getNome()));
+				}
+
+				UtenteOrganizzazioneEntity assoc = new UtenteOrganizzazioneEntity();
+				assoc.setUtente(utente);
+				assoc.setOrganizzazione(org);
+				assoc.setRuoloOrganizzazione(this.utenteDettaglioAssembler.toRuoloOrganizzazione(body.getRuoloOrganizzazione()));
+
+				UtenteOrganizzazioneEntity saved = this.service.save(assoc);
+				this.logger.info("Invocazione completata con successo");
+
+				return ResponseEntity.ok(this.utenteDettaglioAssembler.toUtenteOrganizzazione(saved));
+			});
+		}
+		catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
+			throw e;
+		}
+		catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	@Override
+	public ResponseEntity<UtenteOrganizzazione> updateRuoloUtenteOrganizzazione(UUID idOrganizzazione,
+			UUID idUtente, UtenteOrganizzazioneUpdate body) {
+		try {
+			return this.service.runTransaction(() -> {
+				this.logger.info("Invocazione in corso ...");
+				OrganizzazioneEntity org = this.service.find(idOrganizzazione)
+						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404,
+								Map.of("idOrganizzazione", idOrganizzazione.toString())));
+
+				authorizeGestioneAssociazioni(org);
+				this.logger.debug("Autorizzazione completata con successo");
+
+				UtenteEntity utente = this.utenteService.find(idUtente)
+						.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404,
+								Map.of("idUtente", idUtente.toString())));
+
+				UtenteOrganizzazioneEntity assoc = this.service.findUtenteOrganizzazione(utente, org)
+						.orElseThrow(() -> new NotFoundException(ErrorCode.GEN_404,
+								Map.of("idUtente", idUtente.toString(),
+										"idOrganizzazione", idOrganizzazione.toString())));
+
+				assoc.setRuoloOrganizzazione(this.utenteDettaglioAssembler.toRuoloOrganizzazione(body.getRuoloOrganizzazione()));
+				UtenteOrganizzazioneEntity saved = this.service.save(assoc);
+
+				this.logger.info("Invocazione completata con successo");
+				return ResponseEntity.ok(this.utenteDettaglioAssembler.toUtenteOrganizzazione(saved));
+			});
+		}
+		catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
+			throw e;
+		}
+		catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	@Override
+	public ResponseEntity<Void> removeUtenteOrganizzazione(UUID idOrganizzazione, UUID idUtente) {
+		try {
+			return this.service.runTransaction(() -> {
+				this.logger.info("Invocazione in corso ...");
+				OrganizzazioneEntity org = this.service.find(idOrganizzazione)
+						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404,
+								Map.of("idOrganizzazione", idOrganizzazione.toString())));
+
+				authorizeGestioneAssociazioni(org);
+				this.logger.debug("Autorizzazione completata con successo");
+
+				UtenteEntity utente = this.utenteService.find(idUtente)
+						.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404,
+								Map.of("idUtente", idUtente.toString())));
+
+				UtenteOrganizzazioneEntity assoc = this.service.findUtenteOrganizzazione(utente, org)
+						.orElseThrow(() -> new NotFoundException(ErrorCode.GEN_404,
+								Map.of("idUtente", idUtente.toString(),
+										"idOrganizzazione", idOrganizzazione.toString())));
+
+				this.service.delete(assoc);
+				this.logger.info("Invocazione completata con successo");
+
+				return ResponseEntity.noContent().build();
+			});
+		}
+		catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
+			throw e;
+		}
+		catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}

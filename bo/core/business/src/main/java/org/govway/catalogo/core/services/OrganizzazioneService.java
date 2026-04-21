@@ -28,6 +28,8 @@ import org.govway.catalogo.core.dao.specifications.OrganizzazioneSpecification;
 import org.govway.catalogo.core.exceptions.NotFoundException;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.SoggettoEntity;
+import org.govway.catalogo.core.orm.entity.UtenteEntity;
+import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -187,6 +189,39 @@ public class OrganizzazioneService extends AbstractService {
 		OrganizzazioneSpecification organizationFilter = new OrganizzazioneSpecification();
 		organizationFilter.setNome(Optional.of(nome));
 		return organizationFilter;
+	}
+
+	// === Gestione associazioni utente-organizzazione ===
+	// TODO [MULTI-ORG] Valutare refactoring: spostare qui anche i metodi legati
+	// alle associazioni utente-organizzazione attualmente in UtenteService
+	// (findUtenteOrganizzazione, hasRuoloInOrganizzazione, isAssociatoA, ...)
+	// per una migliore coerenza di responsabilità tra i service.
+
+	/**
+	 * Salva o aggiorna un'associazione utente-organizzazione.
+	 */
+	public UtenteOrganizzazioneEntity save(UtenteOrganizzazioneEntity entity) {
+		return this.utenteOrganizzazioneRepo.save(entity);
+	}
+
+	/**
+	 * Elimina un'associazione utente-organizzazione.
+	 */
+	public void delete(UtenteOrganizzazioneEntity entity) {
+		this.utenteOrganizzazioneRepo.delete(entity);
+	}
+
+	/**
+	 * Cerca l'associazione utente-organizzazione per una specifica coppia.
+	 */
+	public Optional<UtenteOrganizzazioneEntity> findUtenteOrganizzazione(UtenteEntity utente, OrganizzazioneEntity organizzazione) {
+		if (utente == null || organizzazione == null) {
+			return Optional.empty();
+		}
+		return this.utenteOrganizzazioneRepo.findByUtente(utente).stream()
+				.filter(a -> a.getOrganizzazione() != null
+						&& a.getOrganizzazione().getId().equals(organizzazione.getId()))
+				.findFirst();
 	}
 
 }
