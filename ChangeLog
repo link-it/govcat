@@ -1,6 +1,15 @@
 2026-04-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 237 (Fase 2.2): nuovo `ClientAuthFormComponent` standalone
+	  condiviso fra dialog del wizard e pagina client-details.
+	  Template migrato dal modal-edit-client con estensioni: dropdown
+	  `auth_type` opzionale e 4 slot upload cert-generato (contesto
+	  pagina). Non ancora wired ai parent (fasi 2.3 / 2.4).
+
+2026-04-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue 237 (prerequisiti Passo 2): rimosso dead code
 	  `_descrittoreCtrl_generato` in client-details; migrato
 	  l'upload allegati da `ui-allegato` a `ui-file-dropzone`
