@@ -1,0 +1,13 @@
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ */
+
+.dialog-mock-panel {
+    font-size: 0.8rem;
+
+    .dialog-mock-panel-label {
+        color: color-mix(in srgb, var(--body-color, #303030) 60%, transparent);
+        font-weight: 500;
+    }
+}

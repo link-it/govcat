@@ -1,3 +1,10 @@
+2026-04-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: pannello debug nel wizard con 19 preset mock per
+	  provare la dialog di configurazione auth client (save simulato,
+	  visibile con `wizard_debug_switches`).
+
 2026-04-20  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

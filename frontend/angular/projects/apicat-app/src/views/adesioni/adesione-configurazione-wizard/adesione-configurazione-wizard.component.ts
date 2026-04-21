@@ -38,6 +38,7 @@ import { UtilService } from '@app/services/utils.service';
 
 import { ModalAddReferentComponent } from './modal-add-referent/modal-add-referent.component';
 import { AdesioneListaClientsComponent } from './adesione-lista-clients/adesione-lista-clients.component';
+import { AdesioneDialogMockPanelComponent } from './adesione-dialog-mock-panel/adesione-dialog-mock-panel.component';
 import { AdesioneListaErogazioniComponent } from './adesione-lista-erogazioni/adesione-lista-erogazioni.component';
 import { AdesioneFormComponent } from './adesione-form/adesione-form.component';
 import { AdesioneStepBarComponent, StepBarVariant, StepWizardItem } from '../adesione-step-bar/adesione-step-bar.component';
@@ -101,6 +102,7 @@ export interface AdesioneDisclaimer {
         ErrorViewComponent,
         AdesioneListaClientsComponent,
         AdesioneListaErogazioniComponent,
+        AdesioneDialogMockPanelComponent,
         AdesioneFormComponent,
         AdesioneStepBarComponent,
         NotificationBarComponent,
