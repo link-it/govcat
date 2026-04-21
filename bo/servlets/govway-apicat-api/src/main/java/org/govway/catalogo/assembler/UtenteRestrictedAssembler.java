@@ -30,7 +30,12 @@ import org.springframework.stereotype.Component;
 
 /**
  * Assembler for restricted user view - organizational information visible to same organization.
- * Exposes: id_utente, nome, cognome, telefono_aziendale, email_aziendale, stato, referente_tecnico, organizzazione
+ * Exposes: id_utente, nome, cognome, telefono_aziendale, email_aziendale, stato, referente_tecnico,
+ * organizzazione (legacy), organizzazione_esterna
+ *
+ * Note: la lista multi-organizzazione viene intenzionalmente NON esposta in questo assembler
+ * per preservare la semantica "restricted": il consumer vede solo i dati essenziali
+ * dell'organizzazione condivisa, non l'elenco completo.
  */
 @Component
 public class UtenteRestrictedAssembler extends RepresentationModelAssemblerSupport<UtenteEntity, ItemUtente> {

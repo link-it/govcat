@@ -89,9 +89,8 @@ public class ReferenteClasseUtenteAssembler extends RepresentationModelAssembler
 	}
 
 	private boolean isSameOrganization(UtenteEntity viewer, UtenteEntity referente) {
-		OrganizzazioneEntity viewerOrg = viewer.getOrganizzazione();
-		OrganizzazioneEntity referenteOrg = referente.getOrganizzazione();
-		return viewerOrg != null && referenteOrg != null && viewerOrg.equals(referenteOrg);
+		// Multi-org: viewer e referente hanno almeno un'organizzazione in comune.
+		return this.utenteService.hasOrganizzazioneInComune(viewer, referente);
 	}
 
 	public TIPO_REFERENTE toTipoReferente(TipoReferenteEnum tipo) {

@@ -204,22 +204,35 @@ public class UtenteService extends AbstractService {
 	/**
 	 * Verifica se l'utente è associato all'organizzazione indicata.
 	 * Non considera il ruolo: restituisce true anche se il ruolo è null (nessun ruolo / sola lettura).
-	 *
-	 * Include fallback sulla vecchia FK singola id_organizzazione per retrocompatibilità durante
-	 * la transizione al modello multi-organizzazione.
-	 * TODO [MULTI-ORG] Rimuovere il fallback sulla FK singola quando tutti i flussi
-	 * di creazione/modifica utente popoleranno la nuova tabella utenti_organizzazioni.
 	 */
 	public boolean isAssociatoA(UtenteEntity utente, OrganizzazioneEntity organizzazione) {
 		if (utente == null || organizzazione == null) {
 			return false;
 		}
-		if (findUtenteOrganizzazione(utente, organizzazione).isPresent()) {
-			return true;
+		return findUtenteOrganizzazione(utente, organizzazione).isPresent();
+	}
+
+	/**
+	 * Verifica se due utenti hanno almeno un'organizzazione in comune.
+	 */
+	public boolean hasOrganizzazioneInComune(UtenteEntity u1, UtenteEntity u2) {
+		if (u1 == null || u2 == null) {
+			return false;
 		}
-		// Fallback sulla FK singola per retrocompatibilità
-		return utente.getOrganizzazione() != null
-				&& utente.getOrganizzazione().getId().equals(organizzazione.getId());
+		Set<Long> org1 = raccogliIdOrganizzazioni(u1);
+		Set<Long> org2 = raccogliIdOrganizzazioni(u2);
+		org1.retainAll(org2);
+		return !org1.isEmpty();
+	}
+
+	private Set<Long> raccogliIdOrganizzazioni(UtenteEntity u) {
+		Set<Long> ids = new HashSet<>();
+		for (UtenteOrganizzazioneEntity assoc : findUtenteOrganizzazioniByUtente(u)) {
+			if (assoc.getOrganizzazione() != null) {
+				ids.add(assoc.getOrganizzazione().getId());
+			}
+		}
+		return ids;
 	}
 
 	/**

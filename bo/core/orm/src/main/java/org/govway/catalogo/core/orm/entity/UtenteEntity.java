@@ -118,7 +118,8 @@ public class UtenteEntity {
 	@Cascade({CascadeType.MERGE, CascadeType.PERSIST})
 	private Set<ClasseUtenteEntity> classi = new HashSet<>();
 
-	@OneToMany(mappedBy = "utente", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "utente", fetch = FetchType.LAZY, orphanRemoval = true)
+	@Cascade({CascadeType.ALL})
 	private Set<UtenteOrganizzazioneEntity> utenteOrganizzazioni = new HashSet<>();
 
 	@Column(name = "organizzazione_esterna")
