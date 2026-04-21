@@ -802,7 +802,7 @@
                           <div class="col-6">
                             <!-- certificato_fornito -->
                             @if (_isEdit) {
-                              <ui-allegato #des class="miw-50"
+                              <ui-file-dropzone #des class="miw-50"
                                 [control]="_descrittoreCtrl"
                                 [label]="'APP.CLIENT.LABEL.ProvidedCertificate' | translate"
                                 [required]="true"
@@ -810,7 +810,7 @@
                                 (fileChanged)="__descrittoreChange(_descrittoreCtrl.value, 'cert_fornito')"
                                 [disabled]="_descrittoreCtrl.disabled"
                                 [maxUpload]="null"
-                              ></ui-allegato>
+                              ></ui-file-dropzone>
                             }
                             @if (_certificato_fornito?.uuid && !_isEdit) {
                               <div>
@@ -861,7 +861,7 @@
                             <div class="col-6">
                               <!-- certificato_generato -->
                               @if (_isEdit) {
-                                <ui-allegato #des_2 class="miw-50"
+                                <ui-file-dropzone #des_2 class="miw-50"
                                   [control]="_descrittoreCtrl"
                                   [label]="'APP.CLIENT.LABEL.GeneratedCertificate' | translate"
                                   [required]="!_isStato_nuovo"
@@ -869,7 +869,7 @@
                                   (fileChanged)="__descrittoreChange(_descrittoreCtrl.value, 'cert_generato')"
                                   [disabled]="_descrittoreCtrl.disabled"
                                   [maxUpload]="null"
-                                ></ui-allegato>
+                                ></ui-file-dropzone>
                               }
                               @if (_certificato_generato && _certificato_generato.uuid && !_isEdit) {
                                 <div>
@@ -893,7 +893,7 @@
                             <div class="col-6">
                               <!-- modulo_richiesta -->
                               @if (_isEdit) {
-                                <ui-allegato #des_3 class="miw-50"
+                                <ui-file-dropzone #des_3 class="miw-50"
                                   [control]="_descrittoreCtrl_module"
                                   [label]="'APP.CLIENT.LABEL.RequestModule' | translate"
                                   [required]="true"
@@ -901,7 +901,7 @@
                                   (fileChanged)="__descrittoreChange(_descrittoreCtrl_module.value, 'csr_modulo_richiesta')"
                                   [disabled]="_descrittoreCtrl_module.disabled"
                                   [maxUpload]="null"
-                                ></ui-allegato>
+                                ></ui-file-dropzone>
                               }
                               @if (_modulo_richiesta_csr?.uuid && !_isEdit) {
                                 <div>
@@ -919,7 +919,7 @@
                             <div class="col-6">
                               <!-- richiesta -->
                               @if (_isEdit) {
-                                <ui-allegato #des_4 class="miw-50"
+                                <ui-file-dropzone #des_4 class="miw-50"
                                   [control]="_descrittoreCtrl"
                                   [label]="'APP.CLIENT.LABEL.Request' | translate"
                                   [required]="true"
@@ -927,7 +927,7 @@
                                   (fileChanged)="__descrittoreChange(_descrittoreCtrl.value, 'csr_richiesta')"
                                   [disabled]="_descrittoreCtrl.disabled"
                                   [maxUpload]="null"
-                                ></ui-allegato>
+                                ></ui-file-dropzone>
                               }
                               @if (_certificato_csr?.uuid && !_isEdit) {
                                 <div>
@@ -947,7 +947,7 @@
                             <div class="col-6">
                               <!-- certificato_generato x CSR -->
                               @if (_isEdit) {
-                                <ui-allegato #des_2 class="miw-50"
+                                <ui-file-dropzone #des_2 class="miw-50"
                                   [control]="_descrittoreCtrl_generato_CSR"
                                   [label]="'APP.CLIENT.LABEL.GeneratedCertificate' | translate"
                                   [required]="!_isStato_nuovo"
@@ -955,7 +955,7 @@
                                   (fileChanged)="__descrittoreChange(_descrittoreCtrl_generato_CSR.value, 'cert_generato_csr')"
                                   [disabled]="_descrittoreCtrl_generato_CSR.disabled"
                                   [maxUpload]="null"
-                                ></ui-allegato>
+                                ></ui-file-dropzone>
                               }
                               @if (_certificato_generato_csr && _certificato_generato_csr.uuid && !_isEdit) {
                                 <div>
@@ -1033,7 +1033,7 @@
                           <div class="col-6">
                             <!-- certificato_fornito (FIRMA) -->
                             @if (_isEdit) {
-                              <ui-allegato #des class="miw-50"
+                              <ui-file-dropzone #des class="miw-50"
                                 [control]="_descrittoreCtrl_firma"
                                 [label]="'APP.CLIENT.LABEL.ProvidedCertificate' | translate"
                                 [required]="true"
@@ -1041,7 +1041,7 @@
                                 (fileChanged)="__descrittoreChangeFirma(_descrittoreCtrl_firma.value, 'cert_fornito')"
                                 [disabled]="_descrittoreCtrl_firma.disabled"
                                 [maxUpload]="null"
-                              ></ui-allegato>
+                              ></ui-file-dropzone>
                             }
                             @if (_certificato_fornito_firma?.uuid && !_isEdit) {
                               <div>
@@ -1091,7 +1091,7 @@
                             <div class="col-6">
                               <!-- certificato_generato (FIRMA) -->
                               @if (_isEdit) {
-                                <ui-allegato #des_2 class="miw-50"
+                                <ui-file-dropzone #des_2 class="miw-50"
                                   [control]="_descrittoreCtrl_generato_firma"
                                   [label]="'APP.CLIENT.LABEL.GeneratedCertificate' | translate"
                                   [required]="!_isStato_nuovo"
@@ -1099,7 +1099,7 @@
                                   (fileChanged)="__descrittoreChangeFirma(_descrittoreCtrl_generato_firma.value, 'cert_generato')"
                                   [disabled]="_descrittoreCtrl_generato_firma.disabled"
                                   [maxUpload]="null"
-                                ></ui-allegato>
+                                ></ui-file-dropzone>
                               }
                               @if (_certificato_generato_firma?.uuid && !_isEdit) {
                                 <div>
@@ -1123,7 +1123,7 @@
                             <div class="col-6">
                               <!-- modulo_richiesta (FIRMA)-->
                               @if (_isEdit) {
-                                <ui-allegato #des_3 class="miw-50"
+                                <ui-file-dropzone #des_3 class="miw-50"
                                   [control]="_descrittoreCtrl_module_firma"
                                   [label]="'APP.CLIENT.LABEL.RequestModule' | translate"
                                   [required]="true"
@@ -1131,7 +1131,7 @@
                                   (fileChanged)="__descrittoreChangeFirma(_descrittoreCtrl_module_firma.value, 'csr_modulo_richiesta')"
                                   [disabled]="_descrittoreCtrl_module_firma.disabled"
                                   [maxUpload]="null"
-                                ></ui-allegato>
+                                ></ui-file-dropzone>
                               }
                               @if (_modulo_richiesta_csr_firma?.uuid && !_isEdit) {
                                 <div>
@@ -1149,7 +1149,7 @@
                             <div class="col-6">
                               <!-- richiesta  (FIRMA)-->
                               @if (_isEdit) {
-                                <ui-allegato #des_4 class="miw-50"
+                                <ui-file-dropzone #des_4 class="miw-50"
                                   [control]="_descrittoreCtrl_firma"
                                   [label]="'APP.CLIENT.LABEL.Request' | translate"
                                   [required]="true"
@@ -1157,7 +1157,7 @@
                                   (fileChanged)="__descrittoreChangeFirma(_descrittoreCtrl_firma.value, 'csr_richiesta')"
                                   [disabled]="_descrittoreCtrl_firma.disabled"
                                   [maxUpload]="null"
-                                ></ui-allegato>
+                                ></ui-file-dropzone>
                               }
                               @if (_certificato_csr_firma?.uuid && !_isEdit) {
                                 <div>
@@ -1177,7 +1177,7 @@
                             <div class="col-6">
                               <!-- certificato_generato x CSR (FIRMA)-->
                               @if (_isEdit) {
-                                <ui-allegato #des_2 class="miw-50"
+                                <ui-file-dropzone #des_2 class="miw-50"
                                   [control]="_descrittoreCtrl_generato_CSR_firma"
                                   [label]="'APP.CLIENT.LABEL.GeneratedCertificate' | translate"
                                   [required]="!_isStato_nuovo"
@@ -1185,7 +1185,7 @@
                                   (fileChanged)="__descrittoreChangeFirma(_descrittoreCtrl_generato_CSR_firma.value, 'cert_generato_csr_firma')"
                                   [disabled]="_descrittoreCtrl_generato_CSR_firma.disabled"
                                   [maxUpload]="null"
-                                ></ui-allegato>
+                                ></ui-file-dropzone>
                               }
                               @if (_certificato_generato_csr_firma && _certificato_generato_csr_firma.uuid && !_isEdit) {
                                 <div>

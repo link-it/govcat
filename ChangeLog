@@ -1,6 +1,14 @@
 2026-04-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 237 (prerequisiti Passo 2): rimosso dead code
+	  `_descrittoreCtrl_generato` in client-details; migrato
+	  l'upload allegati da `ui-allegato` a `ui-file-dropzone`
+	  (allineamento con la dialog del wizard).
+
+2026-04-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue 237 (Passo 1): client-details usa ora `computeFormConfig`
 	  del modulo stato condiviso. Le 25+ flag booleane diventano
 	  getter derivati, rimosso `_checkTipoCertificato`, semplificato

@@ -103,7 +103,6 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
   _statoFormGroup: FormGroup = new FormGroup({});
 
   _descrittoreCtrl: FormControl = new FormControl('', [Validators.required]);
-  _descrittoreCtrl_generato: FormControl = new FormControl('', [Validators.required]);
   _descrittoreCtrl_generato_CSR: FormControl = new FormControl('', [Validators.required]);
   _descrittoreCtrl_module: FormControl = new FormControl('', [Validators.required]);
 
@@ -541,7 +540,6 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
       }
 
       this._descrittoreCtrl.updateValueAndValidity();
-      this._descrittoreCtrl_generato.updateValueAndValidity();
       this._descrittoreCtrl_generato_CSR.updateValueAndValidity();
       this._descrittoreCtrl_module.updateValueAndValidity();
 
@@ -1138,7 +1136,6 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
   _resetDescrittori() {
     this._descrittoreCtrl.setValue('');
-    this._descrittoreCtrl_generato.setValue('');
     this._descrittoreCtrl_generato_CSR.setValue('');
     this._descrittoreCtrl_module.setValue('');
   }
