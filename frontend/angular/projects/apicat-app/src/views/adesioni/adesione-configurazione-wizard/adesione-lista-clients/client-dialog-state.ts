@@ -105,6 +105,21 @@ export interface ClientDialogInput {
   showIpFruizione: boolean;
   showRateLimiting: boolean;
   showFinalita: boolean;
+  /**
+   * Solo per il contesto pagina `client-details`: quando `true` il campo
+   * `auth_type` diventa un dropdown editable (in creazione o in modifica
+   * dal gestore). Nel contesto dialog adesione e' sempre `false` (auth_type
+   * fissato dal profilo dell'adesione).
+   */
+  authTypeEditable?: boolean;
+  /**
+   * Solo per il contesto pagina `client-details`: quando `true` il client
+   * e' in `stato === 'nuovo'` (ha inviato CN/CSR ma il gestore non ha
+   * ancora emesso/caricato il certificato generato). In questo caso
+   * `cert_generato` e `username` non sono obbligatori. Nel contesto
+   * dialog adesione e' sempre `false`.
+   */
+  statoNuovo?: boolean;
 }
 
 // -----------------------------------------------------------------------------
@@ -119,6 +134,7 @@ export interface FieldState {
 
 export type FormFieldKey =
   | 'credenziali'
+  | 'auth_type'
   | 'nome'
   | 'nome_proposto'
   | 'descrizione'
@@ -145,6 +161,13 @@ export interface CertBlockConfig {
   fileRequired: boolean;
   /** Modulo richiesta obbligatorio se `mode.kind === 'richiesto_csr'`. */
   moduloRequired: boolean;
+  /**
+   * Solo contesto pagina: in `richiesto_cn` / `richiesto_csr` con
+   * `statoNuovo === false` il gestore deve caricare il certificato
+   * generato post-richiesta. Nel contesto dialog adesione e' sempre
+   * `false` (la dialog non espone lo slot di upload del cert generato).
+   */
+  certGeneratoFileRequired: boolean;
 }
 
 export interface FormConfig {
@@ -262,6 +285,8 @@ export function computeFormConfig(input: ClientDialogInput): FormConfig {
   const isReferenced = scenario.kind === 'referenced';
   const isNew = scenario.kind === 'new';
   const isEdit = scenario.kind === 'edit';
+  const authTypeEditable = !!input.authTypeEditable;
+  const statoNuovo = !!input.statoNuovo;
 
   const editableScenario = !isReadonly && (isNew || isEdit);
   const showFormBody = !isProposed; // in `proposed` si nasconde il corpo del form
@@ -271,6 +296,9 @@ export function computeFormConfig(input: ClientDialogInput): FormConfig {
   const requiresClientId = authRequiresClientId(authType);
   const requiresOauthUrls = authRequiresOauthUrls(authType);
   const requiresUsername = authRequiresUsername(authType);
+  // username non obbligatorio quando il client e' in stato `nuovo`
+  // (deve ancora essere configurato dal gestore).
+  const usernameRequired = requiresUsername && !statoNuovo;
 
   const field = (visible: boolean, enabled: boolean, required: boolean): FieldState => ({
     visible,
@@ -282,6 +310,11 @@ export function computeFormConfig(input: ClientDialogInput): FormConfig {
     // il selettore credenziali e' sempre visibile tranne in `edit` (quel caso
     // non offre cambi di scenario dentro la dialog) e in `readonly`
     credenziali: field(!isEdit && !isReadonly, true, false),
+
+    // auth_type: visibile/editable solo nel contesto pagina client-details
+    // (dialog adesione lo riceve fissato dal parent). Obbligatorio se
+    // editable, a prescindere dallo scenario.
+    auth_type: field(authTypeEditable, editableScenario, authTypeEditable),
 
     // nome: obbligatorio solo in `new`
     nome: field(showFormBody, editableScenario && isNew, isNew),
@@ -300,12 +333,12 @@ export function computeFormConfig(input: ClientDialogInput): FormConfig {
       requiresClientId,
     ),
 
-    username: field(showFormBody && requiresUsername, editableScenario, requiresUsername),
+    username: field(showFormBody && requiresUsername, editableScenario, usernameRequired),
 
     url_redirezione: field(showFormBody && requiresOauthUrls, editableScenario, requiresOauthUrls),
     url_esposizione: field(showFormBody && requiresOauthUrls, editableScenario, requiresOauthUrls),
-    help_desk: field(showFormBody && requiresOauthUrls, editableScenario, false),
-    nome_applicazione_portale: field(showFormBody && requiresOauthUrls, editableScenario, false),
+    help_desk: field(showFormBody && requiresOauthUrls, editableScenario, requiresOauthUrls),
+    nome_applicazione_portale: field(showFormBody && requiresOauthUrls, editableScenario, requiresOauthUrls),
 
     tipo_certificato: field(showFormBody && requiresCertAuth, editableScenario, requiresCertAuth),
     tipo_certificato_firma: field(showFormBody && requiresCertSign, editableScenario, requiresCertSign),
@@ -315,12 +348,14 @@ export function computeFormConfig(input: ClientDialogInput): FormConfig {
     requiresCertAuth && showFormBody,
     input.certAuth,
     isReadonly || isReferenced,
+    statoNuovo,
   );
 
   const certSign: CertBlockConfig = buildCertBlock(
     requiresCertSign && showFormBody,
     input.certSign,
     isReadonly || isReferenced,
+    statoNuovo,
   );
 
   // Save abilitato: non readonly + scenario noto.
@@ -379,6 +414,7 @@ function buildCertBlock(
   visible: boolean,
   mode: CertificateMode,
   locked: boolean,
+  statoNuovo: boolean = false,
 ): CertBlockConfig {
   if (!visible) {
     return {
@@ -387,12 +423,18 @@ function buildCertBlock(
       cnRequired: false,
       fileRequired: false,
       moduloRequired: false,
+      certGeneratoFileRequired: false,
     };
   }
 
   const cnRequired = !locked && mode.kind === 'richiesto_cn';
   const fileRequired = !locked && (mode.kind === 'fornito' || mode.kind === 'richiesto_csr');
   const moduloRequired = !locked && mode.kind === 'richiesto_csr';
+  // Cert generato dal gestore (post-richiesta): obbligatorio nelle modalita'
+  // `richiesto_cn` / `richiesto_csr` quando il client NON e' piu' in stato nuovo.
+  const certGeneratoFileRequired = !locked
+    && !statoNuovo
+    && (mode.kind === 'richiesto_cn' || mode.kind === 'richiesto_csr');
 
   return {
     visible: true,
@@ -400,5 +442,6 @@ function buildCertBlock(
     cnRequired,
     fileRequired,
     moduloRequired,
+    certGeneratoFileRequired,
   };
 }

@@ -36,6 +36,15 @@ import { Client, PeriodEnum, Soggetto } from './client';
 
 import { DatiSpecItem, CommonName, DoubleCert, Datispecifici } from './clientUpdate';
 
+import {
+    AuthType,
+    CertificateMode,
+    ClientDialogInput,
+    FormConfig,
+    Scenario,
+    computeFormConfig,
+} from '@app/views/adesioni/adesione-configurazione-wizard/adesione-lista-clients/client-dialog-state';
+
 const fake_tipoCertificatoEnum = [ 'fornito', 'richiesto_cn', 'richiesto_csr'];
 const fake_stato = [ 'nuovo', 'configurato'];
 const fake_ambiente = [ 'collaudo', 'produzione'];
@@ -128,13 +137,36 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
   _ambienteEnum: Array<any> = [];
   _authTypeEnum: Array<any> = [];
 
-  _isFornito: boolean = false; 
-  _isRichiesto_cn: boolean = false; 
-  _isRichiesto_csr: boolean = false;
+  /**
+   * FormConfig derivata — fonte di verita' per visibilita'/enabled/required
+   * di tutti i campi auth-related. Rivalutata via `_recomputeFormConfig()`
+   * dopo ogni cambio di auth_type / tipo_certificato[_firma] / stato.
+   *
+   * Le flag storiche `_is*` sono ora getter che leggono `_formConfig`.
+   */
+  _formConfig: FormConfig = computeFormConfig({
+      scenario: { kind: 'new' },
+      authType: 'no_dati',
+      certAuth: { kind: 'none' },
+      certSign: { kind: 'none' },
+      isModifiable: true,
+      credentialsMode: 'toggle',
+      riusoObbligatorio: false,
+      clientsRiusoCount: 0,
+      showIpFruizione: false,
+      showRateLimiting: false,
+      showFinalita: false,
+      authTypeEditable: false,
+      statoNuovo: false,
+  });
+
+  get _isFornito(): boolean { return this._formConfig.certAuth.mode.kind === 'fornito'; }
+  get _isRichiesto_cn(): boolean { return this._formConfig.certAuth.mode.kind === 'richiesto_cn'; }
+  get _isRichiesto_csr(): boolean { return this._formConfig.certAuth.mode.kind === 'richiesto_csr'; }
   _ip_richiesto: boolean = false;
-  _show_erogazione_ip_fruizione: boolean = false;
-  _show_erogazione_rate_limiting: boolean = false;
-  _show_erogazione_finalita: boolean = false;
+  get _show_erogazione_ip_fruizione(): boolean { return this._formConfig.fields.ip_fruizione.visible; }
+  get _show_erogazione_rate_limiting(): boolean { return this._formConfig.fields.rate_limiting.visible; }
+  get _show_erogazione_finalita(): boolean { return this._formConfig.fields.finalita.visible; }
 
   _downloading: boolean = false;
   _deleting: boolean = false;
@@ -156,9 +188,9 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
   _certificato_fornito: any = {};
   _certificato_fornito_firma: any = {};
   
-  _isFornito_firma: boolean = false; 
-  _isRichiesto_cn_firma: boolean = false; 
-  _isRichiesto_csr_firma: boolean = false;
+  get _isFornito_firma(): boolean { return this._formConfig.certSign.mode.kind === 'fornito'; }
+  get _isRichiesto_cn_firma(): boolean { return this._formConfig.certSign.mode.kind === 'richiesto_cn'; }
+  get _isRichiesto_csr_firma(): boolean { return this._formConfig.certSign.mode.kind === 'richiesto_csr'; }
 
   _certificato_csr: any = {};
   _certificato_csr_firma: any = {};
@@ -169,18 +201,18 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
   _auth_type: any = null;
 
-  _isNoDati: boolean = false;
-  _isIndirizzoIP: boolean = false;
-  _isHttpBasic: boolean = false;
-  _isOauthAuthCode: boolean = false;
-  _isOauthClientCredentials: boolean = false;
-  _isHttps: boolean = false;
-  _isHttpsSign: boolean = false;
-  _isPdnd: boolean = false;
-  _isHttpsPdnd: boolean = false;
-  _isHttpsPdndSign: boolean = false;
-  _isSign: boolean = false;
-  _isSignPdnd: boolean = false;
+  get _isNoDati(): boolean { return this._formConfig.authType === 'no_dati'; }
+  get _isIndirizzoIP(): boolean { return this._formConfig.authType === 'indirizzo_ip'; }
+  get _isHttpBasic(): boolean { return this._formConfig.authType === 'http_basic'; }
+  get _isOauthAuthCode(): boolean { return this._formConfig.authType === 'oauth_authorization_code'; }
+  get _isOauthClientCredentials(): boolean { return this._formConfig.authType === 'oauth_client_credentials'; }
+  get _isHttps(): boolean { return this._formConfig.authType === 'https'; }
+  get _isHttpsSign(): boolean { return this._formConfig.authType === 'https_sign'; }
+  get _isPdnd(): boolean { return this._formConfig.authType === 'pdnd'; }
+  get _isHttpsPdnd(): boolean { return this._formConfig.authType === 'https_pdnd'; }
+  get _isHttpsPdndSign(): boolean { return this._formConfig.authType === 'https_pdnd_sign'; }
+  get _isSign(): boolean { return this._formConfig.authType === 'sign'; }
+  get _isSignPdnd(): boolean { return this._formConfig.authType === 'sign_pdnd'; }
 
   organizzazioni$!: Observable<any[]>;
   organizzazioniInput$ = new Subject<string>();
@@ -306,35 +338,27 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     return (this.fRate[name].errors && this.fRate[name].touched);
   }
 
-  _checkTipoCertificato(auth_type: string = '', tipo_cert: string = '') {
-    if ((auth_type == 'https') || (auth_type == 'https_pdnd')) {
-      this._isFornito = (tipo_cert == 'fornito')
-      this._isRichiesto_cn = (tipo_cert == 'richiesto_cn')
-      this._isRichiesto_csr = (tipo_cert == 'richiesto_csr')
-    }
-
-    if ((auth_type == 'https_sign') || (auth_type == 'https_pdnd_sign') ) {
-      this._isFornito = (tipo_cert == 'fornito')
-      this._isRichiesto_cn = (tipo_cert == 'richiesto_cn')
-      this._isRichiesto_csr = (tipo_cert == 'richiesto_csr')
-
-      this._isFornito_firma = (this.client.dati_specifici.certificato_firma.tipo_certificato == 'fornito')
-      this._isRichiesto_cn_firma = (this.client.dati_specifici.certificato_firma.tipo_certificato == 'richiesto_cn')
-      this._isRichiesto_csr_firma = (this.client.dati_specifici.certificato_firma.tipo_certificato == 'richiesto_csr')
-    }
-
-    if ((auth_type == 'sign') || (auth_type == 'sign_pdnd')) {
-      this._isFornito_firma = (this.client.dati_specifici.certificato_firma.tipo_certificato == 'fornito')
-      this._isRichiesto_cn_firma = (this.client.dati_specifici.certificato_firma.tipo_certificato == 'richiesto_cn')
-      this._isRichiesto_csr_firma = (this.client.dati_specifici.certificato_firma.tipo_certificato == 'richiesto_csr')
-    }
-  }
-
   _initForm(data: any = null) {
     if (data) {
-      if (data.dati_specifici) {
-        this._checkTipoCertificato(data.dati_specifici?.auth_type, data.dati_specifici?.certificato_autenticazione?.tipo_certificato);
-      }
+      // Le flag `_isFornito`/`_isRichiesto_*` sono ora getter derivati da
+      // `_formConfig`. Invece di preimpostarle via l'ex `_checkTipoCertificato`
+      // leggiamo direttamente da `data.dati_specifici` per decidere i rami
+      // di patching, poi chiamiamo `_recomputeFormConfig()` alla fine per
+      // allineare `_formConfig` (e quindi le flag) al form appena costruito.
+      const dsAuthType = data.dati_specifici?.auth_type as string | null | undefined;
+      const dsTipoCert = data.dati_specifici?.certificato_autenticazione?.tipo_certificato as string | null | undefined;
+      const dsTipoCertFirma = data.dati_specifici?.certificato_firma?.tipo_certificato as string | null | undefined;
+      const authTypeRequiresAuthCert = (dsAuthType === 'https' || dsAuthType === 'https_pdnd' || dsAuthType === 'https_sign' || dsAuthType === 'https_pdnd_sign');
+      const authTypeRequiresSignCert = (dsAuthType === 'https_sign' || dsAuthType === 'https_pdnd_sign' || dsAuthType === 'sign' || dsAuthType === 'sign_pdnd');
+      const isFornitoInit = authTypeRequiresAuthCert && dsTipoCert === 'fornito';
+      const isRichiestoCnInit = authTypeRequiresAuthCert && dsTipoCert === 'richiesto_cn';
+      const isRichiestoCsrInit = authTypeRequiresAuthCert && dsTipoCert === 'richiesto_csr';
+      const isFornitoFirmaInit = authTypeRequiresSignCert && dsTipoCertFirma === 'fornito';
+      const isRichiestoCnFirmaInit = authTypeRequiresSignCert && dsTipoCertFirma === 'richiesto_cn';
+      const isRichiestoCsrFirmaInit = authTypeRequiresSignCert && dsTipoCertFirma === 'richiesto_csr';
+      const isHttpBasicInit = dsAuthType === 'http_basic';
+      const isPdndFamilyInit = dsAuthType === 'pdnd' || dsAuthType === 'https_pdnd' || dsAuthType === 'https_pdnd_sign' || dsAuthType === 'sign_pdnd' || dsAuthType === 'oauth_client_credentials';
+      const isOauthAuthCodeInit = dsAuthType === 'oauth_authorization_code';
 
       let _group: any = {};
       Object.keys(data).forEach((key) => {
@@ -379,15 +403,15 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
         controls.id_soggetto.patchValue(data.soggetto.id_soggetto)
       }
 
-      if (this._isFornito) {
+      if (isFornitoInit) {
         controls.tipo_certificato.patchValue('fornito');
-        data ? this._certificato_fornito = data.dati_specifici.certificato_autenticazione.certificato : this._certificato_fornito = null; 
+        data ? this._certificato_fornito = data.dati_specifici.certificato_autenticazione.certificato : this._certificato_fornito = null;
         this._descrittoreCtrl.patchValue(data.dati_specifici.certificato_autenticazione.certificato);
         controls.cert_fornito_filename.patchValue(data.dati_specifici.certificato_autenticazione.certificato.filename);
         controls.cert_fornito_filename.setValidators(Validators.required);
       }
 
-      if (this._isRichiesto_cn) {
+      if (isRichiestoCnInit) {
         controls.tipo_certificato.patchValue('richiesto_cn');
         data.dati_specifici.certificato_autenticazione?.cn ? controls.cn.patchValue(data.dati_specifici.certificato_autenticazione.cn) : controls.cn.patchValue('') ;
         controls.cn.setValidators(Validators.required);
@@ -401,7 +425,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
         }
       }
 
-      if (this._isRichiesto_csr) {
+      if (isRichiestoCsrInit) {
         controls.tipo_certificato.patchValue('richiesto_csr');
         data ? this._certificato_csr = data.dati_specifici.certificato_autenticazione.richiesta : this._certificato_csr = null;
         data ? this._modulo_richiesta_csr = data.dati_specifici.certificato_autenticazione.modulo_richiesta : this._modulo_richiesta_csr = null;
@@ -426,19 +450,19 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
         // ------------------------
       }
 
-      if (this._isFornito_firma) {
+      if (isFornitoFirmaInit) {
         controls.tipo_certificato_firma.patchValue('fornito');
-        data ? this._certificato_fornito_firma = data.dati_specifici.certificato_firma.certificato : this._certificato_fornito_firma = null; 
+        data ? this._certificato_fornito_firma = data.dati_specifici.certificato_firma.certificato : this._certificato_fornito_firma = null;
         this._descrittoreCtrl_firma.patchValue(data.dati_specifici.certificato_firma.certificato);
         controls.cert_fornito_filename_firma.patchValue(data.dati_specifici.certificato_firma.certificato.filename);
-        controls.cert_fornito_filename_firma.setValidators(Validators.required);    
+        controls.cert_fornito_filename_firma.setValidators(Validators.required);
       }
 
-      if (this._isRichiesto_cn_firma) {
+      if (isRichiestoCnFirmaInit) {
         controls.tipo_certificato_firma.patchValue('richiesto_cn');
         data.dati_specifici.certificato_firma?.cn ? controls.cn_firma.patchValue(data.dati_specifici.certificato_firma.cn) : controls.cn_firma.patchValue('') ;
         controls.cn_firma.setValidators(Validators.required);
-        
+
         if (data.dati_specifici.certificato_firma.certificato) {
           data ? this._certificato_generato_firma = data.dati_specifici.certificato_firma.certificato : this._certificato_generato_firma = null;
           this._descrittoreCtrl_generato_firma.patchValue(data.dati_specifici.certificato_firma.certificato);
@@ -449,7 +473,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
         }
       }
 
-      if (this._isRichiesto_csr_firma) {
+      if (isRichiestoCsrFirmaInit) {
         controls.tipo_certificato_firma.patchValue('richiesto_csr');
         data ? this._certificato_csr_firma = data.dati_specifici.certificato_firma.richiesta : this._certificato_csr_firma = null;
         data ? this._modulo_richiesta_csr_firma = data.dati_specifici.certificato_firma.modulo_richiesta : this._modulo_richiesta_csr_firma = null;
@@ -474,18 +498,18 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
         // ------------------------
       }
 
-      if (this._isHttpBasic) {
+      if (isHttpBasicInit) {
         controls.username.patchValue(data.dati_specifici.username)
         if (!this._isStato_nuovo) {
           controls.username.setValidators(Validators.required);
         }
       }
 
-      if (this._isPdnd || this._isHttpsPdnd || this._isHttpsPdndSign || this._isSignPdnd || this._isOauthClientCredentials) {
+      if (isPdndFamilyInit) {
         controls.client_id.patchValue(data.dati_specifici.client_id)
       }
 
-      if (this._isOauthAuthCode) {
+      if (isOauthAuthCodeInit) {
         controls.url_redirezione.patchValue(data.dati_specifici.url_redirezione)
         controls.url_redirezione.setValidators(Validators.required);
         controls.url_esposizione.patchValue(data.dati_specifici.url_esposizione)
@@ -546,6 +570,10 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
       this._formGroup.updateValueAndValidity();
 
+      // Allinea `_formConfig` al form appena costruito: da qui in poi
+      // le flag getter (`_isHttps`, `_isFornito`, ...) riflettono lo stato.
+      this._recomputeFormConfig();
+
       this._showMandatoryFields(controls);
 
       this.initTipiCertificato();
@@ -588,7 +616,6 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
           this._initBreadcrumb();
           this._isEdit = false;
           this._isNew = false;
-          this._checkTipoCertificato(this.client.dati_specifici.auth_type, this.client.dati_specifici?.certificato_autenticazione?.tipo_certificato); 
           this.router.navigate([this.model, this.id], { replaceUrl: true });
           this._spin = false;
         },
@@ -981,8 +1008,6 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
           const _cert_auth: any = {...response.dati_specifici.certificato_autenticazione};
           const _cert_firma: any = {...response.dati_specifici.certificato_firma};
 
-          this._checkTipoCertificato(response.dati_specifici.auth_type, response.dati_specifici?.certificato_autenticazione?.tipo_certificato);
-          
           (this._isFornito) ? this._certificato_fornito = {...response.dati_specifici.certificato_autenticazione.certificato} : this._certificato_fornito = null;
           
           if (this._isRichiesto_cn) {
@@ -1094,7 +1119,6 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
       }
     } else {
       this._client = new Client({ ...this.client });
-      this._checkTipoCertificato(this.client.dati_specifici.auth_type, this.client.dati_specifici?.certificato_autenticazione?.tipo_certificato);
       this._initForm({ ...this._client });
     }
     this._error = false;
@@ -1200,15 +1224,13 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     const controls = this._formGroup.controls;
 
     this._resetUploadCertificateComponents(controls);
+    this._recomputeFormConfig();
 
     switch (val) {
       case 'fornito':
         controls.cert_fornito_content.setValidators(Validators.required);
         controls.cert_fornito_content.updateValueAndValidity();
-        this._isFornito = true; 
-        this._isRichiesto_cn = false; 
-        this._isRichiesto_csr = false;
-        break;  
+        break;
       case 'richiesto_cn':
         controls.cn.setValidators(Validators.required);
         controls.cn.updateValueAndValidity();
@@ -1216,23 +1238,12 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
           controls.cert_generato_content.setValidators(Validators.required);
           controls.cert_generato_content.updateValueAndValidity();
         }
-        this._isFornito = false; 
-        this._isRichiesto_cn = true; 
-        this._isRichiesto_csr = false;
         break;
       case 'richiesto_csr':
         controls.csr_richiesta_content.setValidators(Validators.required);
         controls.csr_modulo_ric_content.setValidators(Validators.required);
         controls.csr_richiesta_content.updateValueAndValidity();
         controls.csr_modulo_ric_content.updateValueAndValidity();
-        this._isFornito = false; 
-        this._isRichiesto_cn = false; 
-        this._isRichiesto_csr = true;
-        break;  
-      default:
-        this._isFornito = false; 
-        this._isRichiesto_cn = false; 
-        this._isRichiesto_csr = false;
         break;
     }
 
@@ -1245,15 +1256,13 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     const controls = this._formGroup.controls;
 
     this._resetUploadCertificateComponentsFirma(controls);
+    this._recomputeFormConfig();
 
     switch (val) {
       case 'fornito':
         controls.cert_fornito_content_firma.setValidators(Validators.required);
         controls.cert_fornito_content_firma.updateValueAndValidity();
-        this._isFornito_firma = true; 
-        this._isRichiesto_cn_firma = false; 
-        this._isRichiesto_csr_firma = false;
-        break;  
+        break;
       case 'richiesto_cn':
         controls.cn_firma.setValidators(Validators.required);
         controls.cn_firma.updateValueAndValidity();
@@ -1261,26 +1270,15 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
           controls.cert_generato_content_firma.setValidators(Validators.required);
           controls.cert_generato_content_firma.updateValueAndValidity();
         }
-        this._isFornito_firma = false; 
-        this._isRichiesto_cn_firma = true; 
-        this._isRichiesto_csr_firma = false;
         break;
       case 'richiesto_csr':
         controls.csr_richiesta_content_firma.setValidators(Validators.required);
         controls.csr_modulo_ric_content_firma.setValidators(Validators.required);
         controls.csr_richiesta_content_firma.updateValueAndValidity();
         controls.csr_modulo_ric_content_firma.updateValueAndValidity();
-        this._isFornito_firma = false; 
-        this._isRichiesto_cn_firma = false; 
-        this._isRichiesto_csr_firma = true;
-        break;  
-      default:
-        this._isFornito_firma = false; 
-        this._isRichiesto_cn_firma = false; 
-        this._isRichiesto_csr_firma = false;
         break;
     }
-    
+
     this._formGroup.updateValueAndValidity();
 
     this._showMandatoryFields(controls);
@@ -1290,6 +1288,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     const controls: any = this._formGroup.controls;
     const _isNuovo = controls.stato.value == 'nuovo';
     this._isStato_nuovo = _isNuovo;
+    this._recomputeFormConfig();
     if (_isNuovo) {
       if (this._isNew) { this._onChangeAuthType(null); }
       controls.username.clearValidators();
@@ -1469,9 +1468,60 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
     const certificato: Certificato | null = this.utils.getCertificatoByAuthType(authTypes, auth_type);
     if (certificato) {
-      this._isRichiesto_csr = certificato.csr_modulo || false;
       this._tipoCertificatoEnum = this.utils.getTipiCertificatoAttivi(certificato);
     }
+  }
+
+  /**
+   * Costruisce il `ClientDialogInput` dal corrente stato del componente
+   * (FormGroup + flags di contesto pagina). Usato da `_recomputeFormConfig()`.
+   */
+  private _computeDialogInput(): ClientDialogInput {
+    const controls = this._formGroup?.controls;
+    const authType = (controls?.auth_type?.value ?? 'no_dati') as AuthType;
+    const tipoCert = controls?.tipo_certificato?.value as string | null | undefined;
+    const tipoCertFirma = controls?.tipo_certificato_firma?.value as string | null | undefined;
+    const stato = controls?.stato?.value as string | null | undefined;
+
+    const scenario: Scenario = !this._isEdit
+        ? { kind: 'readonly' }
+        : { kind: this._isNew ? 'new' : 'edit' };
+
+    const authTypes: any = this.authenticationService._getConfigModule('servizio')?.api?.auth_type || [];
+    const configAuthType = authTypes.find((x: any) => x.type === authType);
+
+    return {
+        scenario,
+        authType,
+        certAuth: this._mapCertMode(tipoCert),
+        certSign: this._mapCertMode(tipoCertFirma),
+        isModifiable: this._isEdit,
+        credentialsMode: 'toggle',
+        riusoObbligatorio: false,
+        clientsRiusoCount: 0,
+        showIpFruizione: !!configAuthType?.indirizzi_ip,
+        showRateLimiting: !!configAuthType?.rate_limiting,
+        showFinalita: !!configAuthType?.finalita,
+        authTypeEditable: this._isNew,
+        statoNuovo: stato === 'nuovo',
+    };
+  }
+
+  private _mapCertMode(value: string | null | undefined): CertificateMode {
+    switch (value) {
+        case 'fornito': return { kind: 'fornito' };
+        case 'richiesto_cn': return { kind: 'richiesto_cn' };
+        case 'richiesto_csr': return { kind: 'richiesto_csr' };
+        default: return { kind: 'none' };
+    }
+  }
+
+  /**
+   * Rivaluta `_formConfig` dal corrente stato del componente. Da chiamare
+   * dopo ogni cambio di `auth_type`, `tipo_certificato[_firma]` o `stato`.
+   */
+  private _recomputeFormConfig(): void {
+    this._formConfig = computeFormConfig(this._computeDialogInput());
   }
 
   _onChangeAuthType(auth_type: any = null) {
@@ -1484,80 +1534,16 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
     const controls: any = this._formGroup.controls;
 
-    const authTypes: any = this.authenticationService._getConfigModule('servizio').api.auth_type;
-    const configAuthType = authTypes.find((x: any) => x.type == auth_type);
-    if (configAuthType) {
-      this._show_erogazione_ip_fruizione = configAuthType.indirizzi_ip || false;
-      this._show_erogazione_rate_limiting = configAuthType.rate_limiting || false;
-      this._show_erogazione_finalita = configAuthType.finalita || false;
-    }
+    this._recomputeFormConfig();
 
-    switch (auth_type) {
-      case 'no_dati':
-        this._isNoDati = true; 
-        break;
-      case 'indirizzo_ip':
-        this._isIndirizzoIP = true; 
-        break;
-      case 'http_basic':
-        this._isHttpBasic = true; 
-        break;
-      case 'oauth_authorization_code':
-        this._isOauthAuthCode = true;
-        controls.url_redirezione.setValidators(Validators.required);
-        controls.url_redirezione.updateValueAndValidity();
-        controls.url_esposizione.setValidators(Validators.required);
-        controls.url_esposizione.updateValueAndValidity();
-        controls.help_desk.setValidators(Validators.required);
-        controls.help_desk.updateValueAndValidity();
-        controls.nome_applicazione_portale.setValidators(Validators.required);
-        controls.nome_applicazione_portale.updateValueAndValidity();
-        // controls.client_id.setValidators(Validators.required);
-        // controls.client_id.updateValueAndValidity();
-        break;
-      case 'oauth_client_credentials':
-        this._isOauthClientCredentials = true;
-        break;
-      case 'https':
-        this._isHttps = true;
-        break;
-      case 'https_sign':
-        this._isHttpsSign = true;
-        break;
-      case 'pdnd':
-        this._isPdnd = true;
-        break;
-      case 'https_pdnd':
-        this._isHttpsPdnd = true;
-        break;
-      case 'https_pdnd_sign':
-        this._isHttpsPdndSign = true;
-        break;
-      case 'sign':
-        this._isSign = true;
-        break;
-      case 'sign_pdnd':
-        this._isSignPdnd = true;
-        break;
-      default:
-          this._isNoDati = false;
-          this._isIndirizzoIP = false;
-          this._isHttpBasic = false;
-          this._isOauthAuthCode = false;
-          this._isOauthClientCredentials = false;
-          this._isHttps = false;
-          this._isHttpsSign = false;
-          this._isPdnd = false;
-          this._isHttpsPdnd = false;
-          this._isHttpsPdndSign = false;
-          this._isSign = false;
-          this._isSignPdnd = false;
+    // oauth_authorization_code: i 4 campi URL vengono richiesti anche
+    // fuori dal ramo `_isEdit` (es. nuovo client). La logica e' coperta
+    // da `formConfig.fields.*.required` tramite `_applyValidatorsFromFormConfig`.
+    if (auth_type === 'oauth_authorization_code') {
+      this._applyValidatorsFromFormConfig(controls);
     }
 
     if (auth_type != 'valore_a_caso_per_resettare_le_variabili' && this._isEdit) {
-      
-      const controls: any = this._formGroup.controls;
-
       this._resetUploadCertificateComponents(controls);
       this._resetUploadCertificateComponentsFirma(controls);
       controls.tipo_certificato.setValue(null);
@@ -1565,49 +1551,40 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
       controls.tipo_certificato_firma.setValue(null);
       controls.tipo_certificato_firma.updateValueAndValidity();
 
-      if (this._isHttpBasic && !this._isStato_nuovo) {
-        controls.username.setValidators(Validators.required);
-        controls.username.updateValueAndValidity();
-      }
+      // Ricomputa dopo il reset di tipo_certificato[_firma] a null.
+      this._recomputeFormConfig();
 
-      if (this._isHttps || this._isHttpsSign || this._isHttpsPdnd || this._isHttpsPdndSign) {
-        controls.tipo_certificato.setValidators(Validators.required);
-        controls.tipo_certificato.updateValueAndValidity();
-      } else {
-        controls.tipo_certificato.clearValidators();
-        controls.tipo_certificato.updateValueAndValidity();
-      }
-
-      if (this._isHttpsSign || this._isHttpsPdndSign) {
-        controls.tipo_certificato_firma.setValidators(Validators.required);
-        controls.tipo_certificato_firma.updateValueAndValidity();
-      } else {
-        controls.tipo_certificato_firma.clearValidators();
-        controls.tipo_certificato_firma.updateValueAndValidity();
-      }
-
-      if (this._isPdnd || this._isHttpsPdnd || this._isHttpsPdndSign || this._isSignPdnd || this._isOauthClientCredentials || this._isOauthAuthCode) {
-        controls.client_id.setValidators(Validators.required);
-      } else {
-        controls.client_id.clearValidators();
-      }
-
-      if (this._isSign) {
-        controls.tipo_certificato.clearValidators();
-        controls.tipo_certificato.updateValueAndValidity();
-        controls.tipo_certificato_firma.setValidators(Validators.required);
-        controls.tipo_certificato_firma.updateValueAndValidity();
-      }
-
-      if (this._isSignPdnd) {
-        controls.tipo_certificato.clearValidators();
-        controls.tipo_certificato.updateValueAndValidity();
-        controls.tipo_certificato_firma.setValidators(Validators.required);
-        controls.tipo_certificato_firma.updateValueAndValidity();
-      }
+      // Setup validator guidato da formConfig (sostituisce i multipli
+      // if-branches su _isHttps / _isPdnd / _isSign / ecc. che duplicavano
+      // la logica gia' espressa in client-dialog-state.ts).
+      this._applyValidatorsFromFormConfig(controls);
 
       this._showMandatoryFields(controls);
     }
+  }
+
+  /**
+   * Applica `setValidators`/`clearValidators` ai `FormControl` di auth
+   * leggendo `_formConfig.fields[key].required`. Sostituisce le chain di
+   * `if (_isHttps || _isHttpsPdnd ...)` con un dispatch dichiarativo
+   * guidato dalla funzione pura `computeFormConfig`.
+   */
+  private _applyValidatorsFromFormConfig(controls: any): void {
+    const f = this._formConfig.fields;
+    const apply = (name: string, required: boolean) => {
+      if (!controls[name]) return;
+      if (required) controls[name].setValidators(Validators.required);
+      else controls[name].clearValidators();
+      controls[name].updateValueAndValidity();
+    };
+    apply('tipo_certificato', f.tipo_certificato.required);
+    apply('tipo_certificato_firma', f.tipo_certificato_firma.required);
+    apply('client_id', f.client_id.required);
+    apply('username', f.username.required);
+    apply('url_redirezione', f.url_redirezione.required);
+    apply('url_esposizione', f.url_esposizione.required);
+    apply('help_desk', f.help_desk.required);
+    apply('nome_applicazione_portale', f.nome_applicazione_portale.required);
   }
 
   _initSoggettiSelect(defaultValue: any[] = []) {

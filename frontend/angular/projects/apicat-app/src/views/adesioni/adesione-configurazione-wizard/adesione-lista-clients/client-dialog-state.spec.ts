@@ -366,3 +366,81 @@ describe('client-dialog-state: certificate mode transitions', () => {
     }
   });
 });
+
+describe('client-dialog-state: authTypeEditable (contesto pagina)', () => {
+  it('con authTypeEditable=false (default) il campo auth_type non e\' visibile', () => {
+    const cfg = computeFormConfig(makeInput({}));
+    expect(cfg.fields.auth_type.visible).toBe(false);
+    expect(cfg.fields.auth_type.required).toBe(false);
+  });
+
+  it('con authTypeEditable=true il campo auth_type e\' visibile e obbligatorio in new', () => {
+    const cfg = computeFormConfig(makeInput({ scenario: { kind: 'new' }, authTypeEditable: true }));
+    expect(cfg.fields.auth_type.visible).toBe(true);
+    expect(cfg.fields.auth_type.enabled).toBe(true);
+    expect(cfg.fields.auth_type.required).toBe(true);
+  });
+
+  it('con authTypeEditable=true in readonly il campo e\' visibile ma disabled', () => {
+    const cfg = computeFormConfig(makeInput({ scenario: { kind: 'readonly' }, authTypeEditable: true }));
+    expect(cfg.fields.auth_type.visible).toBe(true);
+    expect(cfg.fields.auth_type.enabled).toBe(false);
+    expect(cfg.fields.auth_type.required).toBe(false);
+  });
+});
+
+describe('client-dialog-state: statoNuovo (contesto pagina)', () => {
+  it('con statoNuovo=false (default) cert_generato richiesto per richiesto_cn', () => {
+    const cfg = computeFormConfig(makeInput({
+      authType: 'https',
+      certAuth: { kind: 'richiesto_cn' },
+    }));
+    expect(cfg.certAuth.cnRequired).toBe(true);
+    expect(cfg.certAuth.certGeneratoFileRequired).toBe(true);
+  });
+
+  it('con statoNuovo=true cert_generato NON richiesto per richiesto_cn', () => {
+    const cfg = computeFormConfig(makeInput({
+      authType: 'https',
+      certAuth: { kind: 'richiesto_cn' },
+      statoNuovo: true,
+    }));
+    expect(cfg.certAuth.cnRequired).toBe(true);
+    expect(cfg.certAuth.certGeneratoFileRequired).toBe(false);
+  });
+
+  it('con statoNuovo=true cert_generato NON richiesto per richiesto_csr', () => {
+    const cfg = computeFormConfig(makeInput({
+      authType: 'https',
+      certAuth: { kind: 'richiesto_csr' },
+      statoNuovo: true,
+    }));
+    expect(cfg.certAuth.fileRequired).toBe(true);
+    expect(cfg.certAuth.moduloRequired).toBe(true);
+    expect(cfg.certAuth.certGeneratoFileRequired).toBe(false);
+  });
+
+  it('statoNuovo non influenza fornito (no cert generato)', () => {
+    const cfg = computeFormConfig(makeInput({
+      authType: 'https',
+      certAuth: { kind: 'fornito' },
+      statoNuovo: true,
+    }));
+    expect(cfg.certAuth.fileRequired).toBe(true);
+    expect(cfg.certAuth.certGeneratoFileRequired).toBe(false);
+  });
+
+  it('statoNuovo=true rende username non obbligatorio (http_basic)', () => {
+    const cfg = computeFormConfig(makeInput({
+      authType: 'http_basic',
+      statoNuovo: true,
+    }));
+    expect(cfg.fields.username.visible).toBe(true);
+    expect(cfg.fields.username.required).toBe(false);
+  });
+
+  it('statoNuovo=false mantiene username obbligatorio (http_basic)', () => {
+    const cfg = computeFormConfig(makeInput({ authType: 'http_basic' }));
+    expect(cfg.fields.username.required).toBe(true);
+  });
+});
