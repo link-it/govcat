@@ -19,14 +19,14 @@
  */
 package org.govway.catalogo;
 
-import java.util.Set;
-import java.util.UUID;
+import java.util.List;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity;
+import org.govway.catalogo.core.services.UtenteService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +53,9 @@ public class OrganizationContextInterceptor implements HandlerInterceptor {
 	@Autowired
 	private OrganizationContext organizationContext;
 
+	@Autowired
+	private UtenteService utenteService;
+
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws Exception {
@@ -66,7 +69,10 @@ public class OrganizationContextInterceptor implements HandlerInterceptor {
 		}
 
 		UtenteEntity utente = infoProfilo.utente;
-		Set<UtenteOrganizzazioneEntity> associazioni = utente.getUtenteOrganizzazioni();
+		// Carica le associazioni tramite repository per evitare LazyInitializationException:
+		// l'interceptor è eseguito prima dell'apertura della transazione del controller e
+		// l'entità utente è detached dalla session Hibernate.
+		List<UtenteOrganizzazioneEntity> associazioni = this.utenteService.findUtenteOrganizzazioniByUtente(utente);
 		String headerValue = request.getHeader(HEADER_NAME);
 
 		if (headerValue != null && !headerValue.isBlank()) {
@@ -91,7 +97,7 @@ public class OrganizationContextInterceptor implements HandlerInterceptor {
 	}
 
 	private boolean resolveFromHeader(String headerValue, UtenteEntity utente,
-			Set<UtenteOrganizzazioneEntity> associazioni, HttpServletResponse response) throws Exception {
+			List<UtenteOrganizzazioneEntity> associazioni, HttpServletResponse response) throws Exception {
 
 		if (associazioni == null || associazioni.isEmpty()) {
 			log.warn("Header {} presente ma l'utente {} non ha organizzazioni associate",
