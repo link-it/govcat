@@ -38,12 +38,17 @@ jobs:
           fi
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+      - name: Get date for cache key
+        id: date
+        run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+
       #  Cache .dependency-check/data
       - name: Cache OWASP Dependency-Check DB
+        id: owasp-cache
         uses: actions/cache@v5
         with:
           path: .dependency-check/data
-          key: ${{ runner.os }}-owasp-${{ github.sha }}
+          key: ${{ runner.os }}-owasp-${{ steps.date.outputs.date }}
           restore-keys: |
             ${{ runner.os }}-owasp-
 
@@ -98,10 +103,12 @@ jobs:
 
       - name: OWASP
         if: ${{ github.event_name == 'push' && (github.ref_name == 'main' || vars.FORCE_OWASP_JOB == 'true') }}
-        run: mvn install -DskipTests -Dspring.profiles.active=test -Duser.timezone=Europe/Rome -DnvdApiKey=$NVD_API_KEY -DdataDirectory=.dependency-check/data -Dowasp.format=ALL -Dowasp.output.dir=./dependency-check-report
+        run: mvn install -DskipTests -Dspring.profiles.active=test -Duser.timezone=Europe/Rome -DnvdApiKey=$NVD_API_KEY -DdataDirectory=.dependency-check/data -Dowasp.format=ALL -Dowasp.output.dir=./dependency-check-report $NOUPDATE_FLAG
         continue-on-error: ${{ github.ref_type == 'branch' && github.ref_name != 'main' }}
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+          # Se la cache è esatta (stessa giornata) skippa l'update NVD
+          NOUPDATE_FLAG: ${{ steps.owasp-cache.outputs.cache-hit == 'true' && '-DautoUpdate=false' || '' }}
 
       - name: Archive OWASP dependency check report
         uses: actions/upload-artifact@v6
