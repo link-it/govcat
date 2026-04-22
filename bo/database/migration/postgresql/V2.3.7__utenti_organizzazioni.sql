@@ -7,8 +7,9 @@
 -- del referente tecnico.
 --
 -- Retrocompatibilità: la vecchia FK id_organizzazione sulla tabella utenti non viene rimossa.
--- Non vengono aggiunti constraint restrittivi sulla colonna ruolo per consentire al software
--- precedente di continuare a scrivere il valore REFERENTE_SERVIZIO durante il periodo di transizione.
+-- Il CHECK constraint sulla colonna ruolo viene allargato per consentire sia il nuovo valore
+-- RUOLO_ORGANIZZAZIONE (scritto dal nuovo software) sia il vecchio REFERENTE_SERVIZIO (scritto
+-- dal software precedente durante il periodo di transizione).
 
 -- Sequenza per la nuova tabella
 CREATE SEQUENCE seq_utenti_organizzazioni START WITH 1 INCREMENT BY 1;
@@ -27,6 +28,12 @@ CREATE TABLE utenti_organizzazioni (
 
 -- Nuovo campo opzionale per indicare l'organizzazione esterna del referente tecnico
 ALTER TABLE utenti ADD COLUMN organizzazione_esterna VARCHAR(255);
+
+-- Aggiornamento del CHECK constraint sulla colonna ruolo per ammettere il nuovo valore
+-- RUOLO_ORGANIZZAZIONE mantenendo REFERENTE_SERVIZIO per retrocompatibilità col software vecchio
+ALTER TABLE utenti DROP CONSTRAINT IF EXISTS CHK_UTENTI_RUOLO;
+ALTER TABLE utenti ADD CONSTRAINT CHK_UTENTI_RUOLO
+    CHECK (ruolo IN ('AMMINISTRATORE', 'COORDINATORE', 'REFERENTE_SERVIZIO', 'RUOLO_ORGANIZZAZIONE') OR ruolo IS NULL);
 
 -- Migrazione dati: per ogni utente con ruolo REFERENTE_SERVIZIO e organizzazione associata,
 -- crea un'associazione nella nuova tabella con ruolo OPERATORE_API
