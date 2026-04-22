@@ -307,9 +307,10 @@ export function computeFormConfig(input: ClientDialogInput): FormConfig {
   });
 
   const fields: FieldsConfig = {
-    // il selettore credenziali e' sempre visibile tranne in `edit` (quel caso
-    // non offre cambi di scenario dentro la dialog) e in `readonly`
-    credenziali: field(!isEdit && !isReadonly, true, false),
+    // il selettore credenziali (toggle "Nuovo / Esistente") e' un
+    // concetto della dialog del wizard: si nasconde in `edit`, in
+    // `readonly` e in contesto pagina (`authTypeEditable` = true).
+    credenziali: field(!isEdit && !isReadonly && !authTypeEditable, true, false),
 
     // auth_type: visibile/editable solo nel contesto pagina client-details
     // (dialog adesione lo riceve fissato dal parent). Obbligatorio se

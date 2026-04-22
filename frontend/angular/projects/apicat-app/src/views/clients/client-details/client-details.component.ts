@@ -44,6 +44,10 @@ import {
     Scenario,
     computeFormConfig,
 } from '@app/views/adesioni/adesione-configurazione-wizard/adesione-lista-clients/client-dialog-state';
+import {
+    ClientAuthFormComponent,
+    ClientAuthFormInput,
+} from '@app/components/client-auth-form/client-auth-form.component';
 
 const fake_tipoCertificatoEnum = [ 'fornito', 'richiesto_cn', 'richiesto_csr'];
 const fake_stato = [ 'nuovo', 'configurato'];
@@ -53,7 +57,6 @@ import * as _ from 'lodash';
 declare const saveAs: any;
 
 import { CommonModule } from '@angular/common';
-import { TrimOnBlurDirective } from '@app/directives/trim-on-blur/trim-on-blur.directive';
 import { ErrorViewComponent } from '@app/components/error-view/error-view.component';
 
 @Component({
@@ -65,8 +68,8 @@ import { ErrorViewComponent } from '@app/components/error-view/error-view.compon
     CommonModule,
     ...COMPONENTS_IMPORTS,
     RouterModule,
-    TrimOnBlurDirective,
-    ErrorViewComponent
+    ErrorViewComponent,
+    ClientAuthFormComponent,
   ]
 })
 export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentChecked {
@@ -1519,6 +1522,63 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
    */
   private _recomputeFormConfig(): void {
     this._formConfig = computeFormConfig(this._computeDialogInput());
+  }
+
+  /**
+   * Input oggetto per `<app-client-auth-form>` (Issue #237 Fase 2.4).
+   * Compone lo stato corrente della pagina nel contratto del componente
+   * condiviso. Getter: rivalutato a ogni change-detection cycle.
+   */
+  get clientAuthInput(): ClientAuthFormInput {
+    return {
+        formGroup: this._formGroup,
+        formConfig: this._formConfig,
+        clientsRiuso: [],
+        tipiCertificato: (this._tipoCertificatoEnum ?? []).map((c: string) => ({ nome: c, valore: c })),
+        ratePeriods: this.ratePeriods,
+        authTypes: this._authTypeEnum ?? [],
+        saving: this._spin,
+        error: this._error,
+        errorMsg: this._errorMsg,
+        certificatoFornito: this._certificato_fornito,
+        certificatoCN: this._certificato_generato,
+        certificatoCSR: this._certificato_csr,
+        moduloRichiestaCSR: this._modulo_richiesta_csr,
+        certificatoFornitoFirma: this._certificato_fornito_firma,
+        certificatoCNFirma: this._certificato_generato_firma,
+        certificatoCSRFirma: this._certificato_csr_firma,
+        moduloRichiestaCSRFirma: this._modulo_richiesta_csr_firma,
+        moduloRichiestaCSRFirmaCertificato: null,
+        descrittoreCtrl: this._descrittoreCtrl,
+        descrittoreCtrlCsr: this._descrittoreCtrl,
+        descrittoreCtrlCsrModulo: this._descrittoreCtrl_module,
+        descrittoreCtrlFirma: this._descrittoreCtrl_firma,
+        descrittoreCtrlCsrFirma: this._descrittoreCtrl_firma,
+        descrittoreCtrlCsrModuloFirma: this._descrittoreCtrl_module_firma,
+        // Slot upload cert generato (contesto pagina): il gestore carica
+        // il certificato emesso post CN/CSR.
+        descrittoreCtrlCertGeneratoCsr: this._descrittoreCtrl_generato_CSR,
+        descrittoreCtrlCertGeneratoCnFirma: this._descrittoreCtrl_generato_firma,
+        descrittoreCtrlCertGeneratoCsrFirma: this._descrittoreCtrl_generato_CSR_firma,
+        ipRichiesto: this._ip_richiesto,
+        currentServiceClient: null,
+        client: this.client,
+    };
+  }
+
+  /** Adapter per `(descriptorChange)` — mappa sul metodo legacy `__descrittoreChange`. */
+  _onAuthDescriptorChange(event: { value: any; type: string }): void {
+    this.__descrittoreChange(event.value, event.type);
+  }
+
+  /** Adapter per `(descriptorChangeFirma)`. */
+  _onAuthDescriptorChangeFirma(event: { value: any; type: string }): void {
+    this.__descrittoreChangeFirma(event.value, event.type);
+  }
+
+  /** Adapter per `(changeAuthType)` dal dropdown del componente condiviso. */
+  _onAuthTypeChangeFromForm(authType: any): void {
+    this._onChangeAuthType(authType);
   }
 
   _onChangeAuthType(auth_type: any = null) {

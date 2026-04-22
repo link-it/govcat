@@ -1,6 +1,17 @@
 2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 237 (Fase 2.4): wiring della pagina client-details sul
+	  componente condiviso. Template ridotto da 1232 a 351 righe
+	  (-881); il form auth e' delegato a `<app-client-auth-form>`.
+	  Restano in pagina solo id_organizzazione/id_soggetto,
+	  ambiente/stato e i bottoni Save/Cancel. `computeFormConfig`:
+	  nasconde il toggle credenziali quando `authTypeEditable=true`
+	  (il concetto "Nuovo / Esistente" esiste solo nella dialog).
+
+2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue 237 (Fase 2.3): wiring della dialog sul componente condiviso.
 	  `ModalEditClientComponent` ora delega il form a
 	  `<app-client-auth-form>` (-640 righe HTML); resta shell per

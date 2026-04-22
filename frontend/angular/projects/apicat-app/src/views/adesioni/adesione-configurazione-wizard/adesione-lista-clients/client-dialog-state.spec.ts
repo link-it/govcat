@@ -387,6 +387,21 @@ describe('client-dialog-state: authTypeEditable (contesto pagina)', () => {
     expect(cfg.fields.auth_type.enabled).toBe(false);
     expect(cfg.fields.auth_type.required).toBe(false);
   });
+
+  it('con authTypeEditable=true il toggle credenziali resta invisibile', () => {
+    // Contesto pagina client-details: "Nuovo client" e' determinato
+    // dall'isNew/isEdit della pagina, non c'e' scelta scenario nella UI.
+    const cfgNew = computeFormConfig(makeInput({ scenario: { kind: 'new' }, authTypeEditable: true }));
+    expect(cfgNew.fields.credenziali.visible).toBe(false);
+
+    const cfgEdit = computeFormConfig(makeInput({ scenario: { kind: 'edit' }, authTypeEditable: true }));
+    expect(cfgEdit.fields.credenziali.visible).toBe(false);
+  });
+
+  it('con authTypeEditable=false (default dialog) il toggle credenziali e\' visibile in new', () => {
+    const cfg = computeFormConfig(makeInput({ scenario: { kind: 'new' } }));
+    expect(cfg.fields.credenziali.visible).toBe(true);
+  });
 });
 
 describe('client-dialog-state: statoNuovo (contesto pagina)', () => {
