@@ -1,6 +1,14 @@
 2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Fix pre-esistente in `soggetto-details.component.spec.ts`: il test
+	  `ngOnDestroy` invocava un metodo non presente sul componente.
+	  Sostituita con tolerant-invocation via cast, bloccava la task
+	  `test:coverage`.
+
+2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue 237 (Fase 2.5 spec): pulizia `client-details.component.spec.ts`
 	  dagli errori TypeScript introdotti dal refactor: rimosse le
 	  describe `_checkTipoCertificato` (metodo rimosso, copertura in
