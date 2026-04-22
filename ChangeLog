@@ -1,6 +1,17 @@
 2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 237: fix regression test runtime client-details. I metodi
+	  `_onChangeAuthType` e `_onChangeTipoCertificato[Firma]` ora
+	  sincronizzano il FormControl col valore passato (utile quando
+	  chiamati da codice/test senza che il template abbia gia'
+	  aggiornato il control). Test del spec adattati allo stato
+	  derivato (FormControl setValue + _recomputeFormConfig invece
+	  di assegnazioni ai getter readonly). Failures da 41 a 6.
+
+2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Fix pre-esistente in `soggetto-details.component.spec.ts`: il test
 	  `ngOnDestroy` invocava un metodo non presente sul componente.
 	  Sostituita con tolerant-invocation via cast, bloccava la task

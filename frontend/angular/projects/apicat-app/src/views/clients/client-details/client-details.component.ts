@@ -1235,6 +1235,15 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     const controls = this._formGroup.controls;
 
     this._resetUploadCertificateComponents(controls);
+
+    // Sincronizza FormControl `tipo_certificato` col parametro (stesso
+    // motivo di `_onChangeAuthType`): i getter `_isFornito`/
+    // `_isRichiesto_*` leggono da `_formConfig.certAuth.mode.kind` che
+    // dipende dal FormControl value.
+    if (val != null && controls.tipo_certificato && controls.tipo_certificato.value !== val) {
+      controls.tipo_certificato.setValue(val, { emitEvent: false });
+    }
+
     this._recomputeFormConfig();
 
     switch (val) {
@@ -1267,6 +1276,13 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     const controls = this._formGroup.controls;
 
     this._resetUploadCertificateComponentsFirma(controls);
+
+    // Sincronizza FormControl `tipo_certificato_firma`: vedi
+    // `_onChangeTipoCertificato` per il perche'.
+    if (val != null && controls.tipo_certificato_firma && controls.tipo_certificato_firma.value !== val) {
+      controls.tipo_certificato_firma.setValue(val, { emitEvent: false });
+    }
+
     this._recomputeFormConfig();
 
     switch (val) {
@@ -1709,6 +1725,16 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     }
 
     const controls: any = this._formGroup.controls;
+
+    // Sincronizza il FormControl `auth_type` col parametro (utile
+    // quando la chiamata arriva da codice/test e non dal (change) del
+    // select). Indispensabile perche' i getter `_isHttps`/`_isPdnd`/...
+    // leggono da `_formConfig.authType` che a sua volta legge dal
+    // FormControl value.
+    if (auth_type != null && auth_type !== 'valore_a_caso_per_resettare_le_variabili'
+        && controls.auth_type && controls.auth_type.value !== auth_type) {
+      controls.auth_type.setValue(auth_type, { emitEvent: false });
+    }
 
     this._recomputeFormConfig();
 

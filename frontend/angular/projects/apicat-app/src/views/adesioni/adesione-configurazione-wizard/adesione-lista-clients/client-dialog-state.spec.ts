@@ -201,12 +201,15 @@ describe('client-dialog-state: scenario `new`', () => {
     expect(cfg.fields.client_id.visible).toBe(false);
   });
 
-  it('con oauth_authorization_code richiede url_redirezione e url_esposizione', () => {
+  it('con oauth_authorization_code richiede tutti i 4 campi OAuth', () => {
+    // Dopo Issue #237 Passo 1 help_desk e nome_applicazione_portale
+    // sono required (allineamento al comportamento esistente nel
+    // wizard adesione che gia' li marcava required a runtime).
     const cfg = computeFormConfig(makeInput({ authType: 'oauth_authorization_code' }));
     expect(cfg.fields.url_redirezione.required).toBe(true);
     expect(cfg.fields.url_esposizione.required).toBe(true);
-    expect(cfg.fields.help_desk.required).toBe(false);
-    expect(cfg.fields.nome_applicazione_portale.required).toBe(false);
+    expect(cfg.fields.help_desk.required).toBe(true);
+    expect(cfg.fields.nome_applicazione_portale.required).toBe(true);
   });
 
   it('flag show* nascondono ip_fruizione/rate_limiting/finalita', () => {
@@ -264,14 +267,17 @@ describe('client-dialog-state: scenario `edit`', () => {
     expect(cfg.fields.credenziali.visible).toBe(false);
   });
 
-  it('i campi sono editabili quando modifiable', () => {
+  it('i campi sono editabili quando modifiable (eccetto nome)', () => {
+    // `nome` e' editabile solo in scenario `new` (una volta creato il
+    // client, il nome non si cambia). Gli altri campi restano editabili.
     const cfg = computeFormConfig(makeInput({
       scenario: { kind: 'edit' },
       authType: 'https_pdnd',
       certAuth: { kind: 'richiesto_cn' },
     }));
-    expect(cfg.fields.nome.enabled).toBe(true);
+    expect(cfg.fields.nome.enabled).toBe(false);
     expect(cfg.fields.client_id.enabled).toBe(true);
+    expect(cfg.fields.descrizione.enabled).toBe(true);
     expect(cfg.certAuth.cnRequired).toBe(true);
   });
 });
