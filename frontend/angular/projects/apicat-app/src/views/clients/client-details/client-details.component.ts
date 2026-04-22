@@ -175,14 +175,9 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
   _tipoAllegati: string = '';
   
-  _isCertificato_generato: boolean = false;
   _certificato_generato: any = {};
-  _isCertificato_generato_firma: boolean = false;
   _certificato_generato_firma: any = {};
-
-  _isCertificato_generato_csr: boolean = false;
   _certificato_generato_csr: any = {};
-  _isCertificato_generato_csr_firma: boolean = false;
   _certificato_generato_csr_firma: any = {};
 
   _richiesta: any = {};
@@ -1025,29 +1020,25 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
           const _cert_auth: any = {...response.dati_specifici.certificato_autenticazione};
           const _cert_firma: any = {...response.dati_specifici.certificato_firma};
 
-          (this._isFornito) ? this._certificato_fornito = {...response.dati_specifici.certificato_autenticazione.certificato} : this._certificato_fornito = null;
-          
+          this._certificato_fornito = this._isFornito ? {...response.dati_specifici.certificato_autenticazione.certificato} : null;
+
           if (this._isRichiesto_cn) {
-            _cert_auth.certificato ? this._isCertificato_generato = true : this._isCertificato_generato = false;  
-            this._isCertificato_generato ? this._certificato_generato = {..._cert_auth.certificato} : this._certificato_generato = null;
+            this._certificato_generato = _cert_auth.certificato ? {..._cert_auth.certificato} : null;
           }
 
           if (this._isRichiesto_csr) {
-            _cert_auth.certificato ? this._isCertificato_generato_csr = true : this._isCertificato_generato_csr = false;  
             this._certificato_csr = {..._cert_auth.richiesta};
             this._modulo_richiesta_csr = {..._cert_auth.modulo_richiesta};
             this._certificato_generato_csr = {..._cert_auth.certificato};
           }
-          
-          (this._isFornito_firma) ? this._certificato_fornito_firma = {...response.dati_specifici.certificato_firma.certificato} : this._certificato_fornito_firma = null;
+
+          this._certificato_fornito_firma = this._isFornito_firma ? {...response.dati_specifici.certificato_firma.certificato} : null;
 
           if (this._isRichiesto_cn_firma) {
-            _cert_firma.certificato ? this._isCertificato_generato_firma = true : this._isCertificato_generato_firma = false;
-            this._isCertificato_generato_firma ? this._certificato_generato_firma = {..._cert_firma.certificato} : this._certificato_generato_firma = null;
+            this._certificato_generato_firma = _cert_firma.certificato ? {..._cert_firma.certificato} : null;
           }
 
           if (this._isRichiesto_csr_firma) {
-            _cert_firma.certificato ? this._isCertificato_generato_csr_firma = true : this._isCertificato_generato_csr_firma = false;
             this._certificato_csr_firma = {..._cert_firma.richiesta};
             this._modulo_richiesta_csr_firma = {..._cert_firma.modulo_richiesta};
             this._certificato_generato_csr_firma = {..._cert_firma.certificato};

@@ -1,6 +1,16 @@
 2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 237 (Fase 2.5 partial): cleanup client-details — rimosse
+	  4 flag `_isCertificato_generato*` solo scritte e mai lette,
+	  semplificate le assegnazioni nel `_loadAll` che le usavano.
+	  Spec file ha ancora test obsoleti (riferimenti a
+	  `_checkTipoCertificato` rimosso e assegnazioni a getter):
+	  da rivedere in un cleanup dedicato.
+
+2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue 237: fix regression al save client-details — dopo
 	  update riuscita il form viene re-inizializzato con la risposta
 	  del server cosi' le FormControl tornano disabilitate (view mode).
