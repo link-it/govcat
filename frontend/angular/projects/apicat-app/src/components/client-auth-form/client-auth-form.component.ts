@@ -93,6 +93,13 @@ export interface ClientAuthFormInput {
     certificatoCSRFirma: any;
     moduloRichiestaCSRFirma: any;
     moduloRichiestaCSRFirmaCertificato: any;
+    /**
+     * Cert generato dal gestore post richiesta CSR (auth). Usato solo
+     * nel contesto pagina (dialog non lo espone).
+     */
+    certificatoCertGeneratoCsr?: any;
+    /** Cert generato dal gestore post richiesta CSR (firma). */
+    certificatoCertGeneratoCsrFirma?: any;
 
     // ---- Descrittori upload: 6 standard (parent-owned FormControl) ----
     descrittoreCtrl: FormControl;
@@ -116,6 +123,14 @@ export interface ClientAuthFormInput {
     ipRichiesto: boolean;
     /** Usato dal download: se il valore di `credenziali` corrisponde al client corrente. */
     currentServiceClient?: any;
+    /**
+     * Se `true`, in scenario editabile (new/edit non readonly) mostra
+     * sempre la dropzone di upload anche quando un certificato e' gia'
+     * caricato, permettendo all'utente di sostituirlo. Usato dalla pagina
+     * `client-details`; nella dialog del wizard resta `false` (default)
+     * e quando un cert e' caricato si mostra solo il pulsante Download.
+     */
+    allowCertReplace?: boolean;
 
     // ---- Metadata per costruire URL di download (dialog) ----
     adesioneId?: number;
@@ -174,7 +189,28 @@ export class ClientAuthFormComponent {
         return !!(ctrl && ctrl.errors && ctrl.touched);
     }
 
+    /**
+     * True quando il parent consente la sostituzione del cert gia' caricato
+     * (contesto pagina in edit mode). Usata dal template per mostrare la
+     * dropzone al posto del pulsante Download.
+     */
+    get _allowCertReplaceNow(): boolean {
+        return !!this.input?.allowCertReplace
+            && this.input?.formConfig?.scenario?.kind !== 'readonly';
+    }
+
+    /**
+     * True se il pulsante di download del certificato va abilitato.
+     * - Nella dialog (toggle credenziali visibile): abilita solo quando
+     *   `currentServiceClient` combacia col valore di `credenziali`
+     *   (evita download "incrociati" fra toggle new/esistente).
+     * - Nella pagina client-details (toggle nascosto): il concetto non
+     *   si applica, download sempre abilitato quando il cert e' presente.
+     */
     _downloadsEnabled(): boolean {
+        if (!this.input?.formConfig?.fields?.credenziali?.visible) {
+            return true;
+        }
         return this.input?.currentServiceClient === this.f['credenziali']?.value;
     }
 

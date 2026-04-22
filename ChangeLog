@@ -1,6 +1,21 @@
 2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 237 (Fase 2.4 fixup): fix regression della pagina
+	  client-details in edit/view mode dopo il wiring sul componente
+	  condiviso. tipo_certificato inizializzato a null (non `[]`),
+	  adapter espliciti per change events, `_tipiCertificatoMapped`
+	  stabile (ng-select rendering), normalizzazione cert `{}` → null,
+	  sincronizzazione programmatica enable/disable FormControl,
+	  `_editClient` setta `_isEdit=true` prima di `_initForm`,
+	  `_downloadsEnabled` sempre true nel contesto pagina, nuovo flag
+	  `allowCertReplace` per consentire sostituzione cert in edit mode,
+	  nuovi slot `certificatoCertGeneratoCsr[Firma]` (fix semantico),
+	  chiave i18n `SelezionaAuthType`.
+
+2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue 237 (Fase 2.4): wiring della pagina client-details sul
 	  componente condiviso. Template ridotto da 1232 a 351 righe
 	  (-881); il form auth e' delegato a `<app-client-auth-form>`.

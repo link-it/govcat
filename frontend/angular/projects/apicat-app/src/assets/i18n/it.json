@@ -325,6 +325,7 @@
 			"LABEL": {
 				"Ambient": "Ambiente",
 				"Auth_type": "Auth type",
+				"SelezionaAuthType": "Seleziona un tipo di autenticazione",
 				"AuthenticationCertificate": "Certificato di Autenticazione",
 				"CertificateType": "Tipo di Certificato",
 				"ClientId": "Identificativo del client",

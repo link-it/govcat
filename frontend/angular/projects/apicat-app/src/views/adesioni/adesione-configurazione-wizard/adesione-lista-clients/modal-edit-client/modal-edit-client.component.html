@@ -28,18 +28,20 @@
       </div>
     </div>
     <div class="modal-body">
-      <app-client-auth-form
-        [input]="input"
-        [layout]="layout"
-        (selectCredenziali)="selectCredenziali.emit($event)"
-        (changeCredenziali)="changeCredenziali.emit($event)"
-        (changeTipoCertificato)="changeTipoCertificato.emit($event)"
-        (changeTipoCertificatoFirma)="changeTipoCertificatoFirma.emit($event)"
-        (descriptorChange)="descriptorChange.emit($event)"
-        (descriptorChangeFirma)="descriptorChangeFirma.emit($event)"
-        (downloadAllegato)="downloadAllegato.emit($event)"
-        (downloadCertificato)="downloadCertificato.emit($event)"
-      ></app-client-auth-form>
+      <div class="p-3">
+        <app-client-auth-form
+          [input]="input"
+          [layout]="layout"
+          (selectCredenziali)="selectCredenziali.emit($event)"
+          (changeCredenziali)="changeCredenziali.emit($event)"
+          (changeTipoCertificato)="changeTipoCertificato.emit($event)"
+          (changeTipoCertificatoFirma)="changeTipoCertificatoFirma.emit($event)"
+          (descriptorChange)="descriptorChange.emit($event)"
+          (descriptorChangeFirma)="descriptorChangeFirma.emit($event)"
+          (downloadAllegato)="downloadAllegato.emit($event)"
+          (downloadCertificato)="downloadCertificato.emit($event)"
+        ></app-client-auth-form>
+      </div>
     </div>
     <div class="modal-footer py-2">
       <lnk-button

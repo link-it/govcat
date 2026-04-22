@@ -382,6 +382,15 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
             value = data[key] ? data[key] : null;
             _group[key] = new UntypedFormControl(value, [Validators.required]);
             break;
+          case 'tipo_certificato':
+          case 'tipo_certificato_firma':
+            // Client class dichiara queste property come `Array<any> = []`
+            // ma semanticamente sono stringhe ('fornito' / 'richiesto_cn' /
+            // 'richiesto_csr'). Inizializziamo a null per evitare che l'
+            // ng-select del componente condiviso riceva `[]` come valore
+            // iniziale (non matcha alcuna opzione e non emette (change)).
+            _group[key] = new UntypedFormControl(null, []);
+            break;
           default:
             value = data[key] ? data[key] : null;
             _group[key] = new UntypedFormControl(value, []);
@@ -1094,8 +1103,12 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     this.apiService.getList('adesioni', _options).subscribe({
       next: (results) => {
         this._isClientUsedInSomeAdesioni = (results.content.length > 0)
-        this._initForm({ ...this._client });
+        // `_isEdit = true` va settato PRIMA di `_initForm`: altrimenti
+        // `_recomputeFormConfig` chiamata internamente legge `_isEdit=false`
+        // e applica lo scenario readonly, disabilitando tutte le
+        // FormControl del form condiviso.
         this._isEdit = true;
+        this._initForm({ ...this._client });
         this._error = false;
       },
       error: (err) => {console.log(err)}
@@ -1460,9 +1473,17 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     controls.username.updateValueAndValidity();
   }
 
+  /**
+   * Array tipiCertificato mappato come `{nome, valore}` usato come input
+   * del componente condiviso. Aggiornato una sola volta ad ogni cambio
+   * auth_type (reference stabile): se ricreato ad ogni CD cycle, ng-select
+   * perde lo stato di selezione e non chiude il dropdown al click.
+   */
+  _tipiCertificatoMapped: Array<{ nome: string; valore: string }> = [];
+
   initTipiCertificato() {
     this._tipoCertificatoEnum = [];
-  
+
     const auth_type = this._formGroup.controls.auth_type.value;
     const authTypes: any = this.authenticationService._getConfigModule('servizio')?.api?.auth_type || [];
 
@@ -1470,6 +1491,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     if (certificato) {
       this._tipoCertificatoEnum = this.utils.getTipiCertificatoAttivi(certificato);
     }
+    this._tipiCertificatoMapped = this._tipoCertificatoEnum.map((c: string) => ({ nome: c, valore: c }));
   }
 
   /**
@@ -1517,11 +1539,85 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
   }
 
   /**
+   * Normalizza un cert object al valore atteso dal componente condiviso:
+   * `null` quando il cert non e' stato effettivamente caricato (manca
+   * `uuid`), l'oggetto originale altrimenti. Le property `_certificato_*`
+   * in client-details sono inizializzate a `{}` quando non c'e' cert
+   * caricato, ma il template condiviso usa truthiness per distinguere
+   * upload vs download.
+   */
+  private _asLoadedCert(cert: any): any {
+    return (cert && cert.uuid) ? cert : null;
+  }
+
+  /**
    * Rivaluta `_formConfig` dal corrente stato del componente. Da chiamare
    * dopo ogni cambio di `auth_type`, `tipo_certificato[_firma]` o `stato`.
+   * Oltre a ricalcolare `_formConfig`, sincronizza enable/disable delle
+   * FormControl del shared component in base a `formConfig.fields.*.enabled`.
    */
   private _recomputeFormConfig(): void {
     this._formConfig = computeFormConfig(this._computeDialogInput());
+    this._applyEnabledStateFromFormConfig();
+  }
+
+  /**
+   * Allinea lo stato enable/disable delle FormControl del shared component
+   * con `_formConfig.fields[key].enabled`. Necessario in view mode
+   * (`_isEdit=false`) per disabilitare effettivamente i campi del form
+   * condiviso (ng-select non si disabilita solo via config — serve
+   * `FormControl.disable()`). Le control page-specific (id_organizzazione,
+   * ambiente, stato) sono gestite altrove nel codice esistente.
+   */
+  private _applyEnabledStateFromFormConfig(): void {
+    const controls = this._formGroup?.controls;
+    if (!controls) return;
+    const f = this._formConfig.fields;
+    const apply = (name: string, enabled: boolean) => {
+      const ctrl = controls[name];
+      if (!ctrl) return;
+      if (enabled && ctrl.disabled) ctrl.enable({ emitEvent: false });
+      else if (!enabled && ctrl.enabled) ctrl.disable({ emitEvent: false });
+    };
+    apply('tipo_certificato', f.tipo_certificato.enabled);
+    apply('tipo_certificato_firma', f.tipo_certificato_firma.enabled);
+    apply('nome', f.nome.enabled);
+    apply('descrizione', f.descrizione.enabled);
+    apply('ip_fruizione', f.ip_fruizione.enabled);
+    apply('finalita', f.finalita.enabled);
+    apply('client_id', f.client_id.enabled);
+    apply('username', f.username.enabled);
+    apply('url_redirezione', f.url_redirezione.enabled);
+    apply('url_esposizione', f.url_esposizione.enabled);
+    apply('help_desk', f.help_desk.enabled);
+    apply('nome_applicazione_portale', f.nome_applicazione_portale.enabled);
+    // Sub-field dei cert block: disabilitati quando lo scenario e' readonly
+    // o quando il corrispondente tipo_certificato[_firma] e' disabilitato.
+    const editable = this._formConfig.scenario.kind !== 'readonly';
+    const certSubFields = [
+      'cn', 'cert_fornito_filename', 'cert_fornito_content', 'cert_fornito_content_type',
+      'csr_richiesta_filename', 'csr_richiesta_content', 'csr_richiesta_content_type',
+      'csr_modulo_ric_filename', 'csr_modulo_ric_content', 'csr_modulo_ric_content_type',
+      'cert_generato_filename', 'cert_generato_content', 'cert_generato_content_type',
+      'cert_generato_csr_filename', 'cert_generato_csr_content', 'cert_generato_csr_content_type',
+      'cn_firma', 'cert_fornito_filename_firma', 'cert_fornito_content_firma', 'cert_fornito_content_type_firma',
+      'csr_richiesta_filename_firma', 'csr_richiesta_content_firma', 'csr_richiesta_content_type_firma',
+      'csr_modulo_ric_filename_firma', 'csr_modulo_ric_content_firma', 'csr_modulo_ric_content_type_firma',
+      'cert_generato_filename_firma', 'cert_generato_content_firma', 'cert_generato_content_type_firma',
+      'cert_generato_csr_filename_firma', 'cert_generato_csr_content_firma', 'cert_generato_csr_content_type_firma',
+    ];
+    certSubFields.forEach(n => apply(n, editable));
+    // rate_limiting (FormGroup): sub-controls quota/periodo.
+    const rateLimiting = this._formGroup.get('rate_limiting') as FormGroup | null;
+    if (rateLimiting) {
+      const rateEnabled = f.rate_limiting.enabled;
+      ['quota', 'periodo'].forEach(n => {
+        const ctrl = rateLimiting.get(n);
+        if (!ctrl) return;
+        if (rateEnabled && ctrl.disabled) ctrl.enable({ emitEvent: false });
+        else if (!rateEnabled && ctrl.enabled) ctrl.disable({ emitEvent: false });
+      });
+    }
   }
 
   /**
@@ -1534,21 +1630,28 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
         formGroup: this._formGroup,
         formConfig: this._formConfig,
         clientsRiuso: [],
-        tipiCertificato: (this._tipoCertificatoEnum ?? []).map((c: string) => ({ nome: c, valore: c })),
+        tipiCertificato: this._tipiCertificatoMapped,
         ratePeriods: this.ratePeriods,
         authTypes: this._authTypeEnum ?? [],
         saving: this._spin,
         error: this._error,
         errorMsg: this._errorMsg,
-        certificatoFornito: this._certificato_fornito,
-        certificatoCN: this._certificato_generato,
-        certificatoCSR: this._certificato_csr,
-        moduloRichiestaCSR: this._modulo_richiesta_csr,
-        certificatoFornitoFirma: this._certificato_fornito_firma,
-        certificatoCNFirma: this._certificato_generato_firma,
-        certificatoCSRFirma: this._certificato_csr_firma,
-        moduloRichiestaCSRFirma: this._modulo_richiesta_csr_firma,
+        // Le property `_certificato_*` in client-details sono inizializzate
+        // a `{}` (oggetto vuoto) anziche' null. Il componente condiviso usa
+        // `@if (input.certificatoFornito)` per mostrare il download al posto
+        // dell'upload: dobbiamo normalizzare a null quando il cert non ha
+        // un `uuid` (= non e' stato realmente caricato dal backend).
+        certificatoFornito: this._asLoadedCert(this._certificato_fornito),
+        certificatoCN: this._asLoadedCert(this._certificato_generato),
+        certificatoCSR: this._asLoadedCert(this._certificato_csr),
+        moduloRichiestaCSR: this._asLoadedCert(this._modulo_richiesta_csr),
+        certificatoFornitoFirma: this._asLoadedCert(this._certificato_fornito_firma),
+        certificatoCNFirma: this._asLoadedCert(this._certificato_generato_firma),
+        certificatoCSRFirma: this._asLoadedCert(this._certificato_csr_firma),
+        moduloRichiestaCSRFirma: this._asLoadedCert(this._modulo_richiesta_csr_firma),
         moduloRichiestaCSRFirmaCertificato: null,
+        certificatoCertGeneratoCsr: this._asLoadedCert(this._certificato_generato_csr),
+        certificatoCertGeneratoCsrFirma: this._asLoadedCert(this._certificato_generato_csr_firma),
         descrittoreCtrl: this._descrittoreCtrl,
         descrittoreCtrlCsr: this._descrittoreCtrl,
         descrittoreCtrlCsrModulo: this._descrittoreCtrl_module,
@@ -1563,6 +1666,9 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
         ipRichiesto: this._ip_richiesto,
         currentServiceClient: null,
         client: this.client,
+        // Contesto pagina: in edit mode il cert caricato puo' essere
+        // sostituito (mostra sempre dropzone invece del solo Download).
+        allowCertReplace: true,
     };
   }
 
@@ -1579,6 +1685,21 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
   /** Adapter per `(changeAuthType)` dal dropdown del componente condiviso. */
   _onAuthTypeChangeFromForm(authType: any): void {
     this._onChangeAuthType(authType);
+  }
+
+  /**
+   * Adapter per `(changeTipoCertificato)`: il componente condiviso emette
+   * l'oggetto item del ng-select (`{nome, valore}`). Estraiamo `nome`
+   * tollerando sia oggetti sia stringhe per retro-compatibilita'.
+   */
+  _onAuthTipoCertificatoChange(event: any): void {
+    const val = (event && typeof event === 'object') ? event.nome : event;
+    this._onChangeTipoCertificato(val);
+  }
+
+  _onAuthTipoCertificatoFirmaChange(event: any): void {
+    const val = (event && typeof event === 'object') ? event.nome : event;
+    this._onChangeTipoCertificatoFirma(val);
   }
 
   _onChangeAuthType(auth_type: any = null) {

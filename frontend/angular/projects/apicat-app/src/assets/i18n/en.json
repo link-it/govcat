@@ -325,6 +325,7 @@
 			"LABEL": {
 				"Ambient": "Ambient",
 				"Auth_type": "Auth type",
+				"SelezionaAuthType": "Select an authentication type",
 				"AuthenticationCertificate": "Authentication certificate",
 				"CertificateType": "Certificate type",
 				"ClientId": "Client Identifier",
