@@ -12,7 +12,13 @@
 --     solo quando il corrispondente FormControl descrittore e' fornito.
 -->
 
-<form [formGroup]="input.formGroup" class="client-auth-form" [class.layout-horizontal]="layout === 'horizontal'">
+<!--
+  Root e' un <div> (non <form>): il wrapping form + submit e' gestito
+  dal parent (dialog o pagina) che puo' includere header/footer esterni.
+  Con `[formGroup]` sul div Angular ReactiveForms continua a risolvere
+  i `formControlName` dei figli.
+-->
+<div [formGroup]="input.formGroup" class="client-auth-form" [class.layout-horizontal]="layout === 'horizontal'">
   <div class="p-3">
     <fieldset>
 
@@ -782,4 +788,4 @@
       {{ input.errorMsg }}
     </div>
   }
-</form>
+</div>

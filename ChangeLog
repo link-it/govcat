@@ -1,3 +1,13 @@
+2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 237 (Fase 2.3): wiring della dialog sul componente condiviso.
+	  `ModalEditClientComponent` ora delega il form a
+	  `<app-client-auth-form>` (-640 righe HTML); resta shell per
+	  header, footer e mapping eventi. Root del componente condiviso
+	  cambiato da `<form>` a `<div [formGroup]>` per evitare form
+	  nidificate nei parent.
+
 2026-04-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

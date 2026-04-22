@@ -36,7 +36,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
 
 import { COMPONENTS_IMPORTS } from '@linkit/components';
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
-import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
+import { ClientAuthFormComponent } from '@app/components/client-auth-form/client-auth-form.component';
 
 import { FormConfig } from '../client-dialog-state';
 import { SelectedClientEnum } from '../../../adesione-configurazioni/adesione-configurazioni.component';
@@ -109,8 +109,7 @@ export type ModalEditClientLayout = 'vertical' | 'horizontal';
         ...COMPONENTS_IMPORTS,
         ...APP_COMPONENTS_IMPORTS,
         TooltipModule,
-        NgSelectModule,
-        MarkAsteriskDirective
+        ClientAuthFormComponent,
     ]
 })
 export class ModalEditClientComponent {
