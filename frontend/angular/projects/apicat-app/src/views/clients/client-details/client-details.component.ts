@@ -655,6 +655,13 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
           this.client = { ...response, rate_limiting: _rateLimiting, finalita: _finalita };
           this._client = new Client({ ...response, rate_limiting: _rateLimiting, finalita: _finalita });
 
+          // Re-init del form con i dati freschi: riporta la scena allo
+          // stato view (disabilita FormControl via `_recomputeFormConfig`)
+          // e allinea i valori alla risposta del server.
+          if (!this._isEdit) {
+            this._initForm({ ...this._client });
+          }
+
           this._isAnyCertificateUpdated ? this._loadAll() : null;
           this.save.emit({ id: this.id, payment: response, update: true });
         },

@@ -1,6 +1,13 @@
 2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 237: fix regression al save client-details — dopo
+	  update riuscita il form viene re-inizializzato con la risposta
+	  del server cosi' le FormControl tornano disabilitate (view mode).
+
+2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue 237 (Fase 2.4 fixup): fix regression della pagina
 	  client-details in edit/view mode dopo il wiring sul componente
 	  condiviso. tipo_certificato inizializzato a null (non `[]`),
