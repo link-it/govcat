@@ -1761,11 +1761,14 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         if (!cod) return cod;
         const _srv: any = Tools.Configurazione?.servizio;
         const _proprietaCustom = (_srv?.api) ? _srv.api.proprieta_custom : [];
-        // Il template passa apc.key, che corrisponde a label_gruppo (chiave usata in _.groupBy).
-        // Per retro-compatibilità cerchiamo prima per nome_gruppo, poi per label_gruppo.
-        const _group = _proprietaCustom.find((item: any) => item.nome_gruppo === group)
-            || _proprietaCustom.find((item: any) => item.label_gruppo === group);
-        const _pItem = _group?.proprieta?.find((item: any) => item.nome === name);
+        // Il template passa apc.key = label_gruppo (chiave usata in _.groupBy),
+        // ma piu' nome_gruppo possono condividere lo stesso label_gruppo
+        // (es. PDNDCollaudo + PDNDCollaudo_identificativo, entrambi label "PDND").
+        // Cerchiamo la proprieta attraverso TUTTI i gruppi che matchano.
+        const _matchingGroups = _proprietaCustom.filter((item: any) => item.nome_gruppo === group || item.label_gruppo === group);
+        const _pItem = _matchingGroups
+            .flatMap((g: any) => g.proprieta ?? [])
+            .find((item: any) => item.nome === name);
         const _label = _pItem?.valori?.find((item: any) => item.nome === cod)?.etichetta;
 
         return _label || cod;
