@@ -1,6 +1,17 @@
 2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 237 (Fase 2.5 spec): pulizia `client-details.component.spec.ts`
+	  dagli errori TypeScript introdotti dal refactor: rimosse le
+	  describe `_checkTipoCertificato` (metodo rimosso, copertura in
+	  `client-dialog-state.spec.ts`), rimossi i 2 test "reset flag" non
+	  piu' applicabili (flag sono getter derivati), riallineate le setup
+	  dei test che settavano flag readonly (setValue su FormControl
+	  auth_type + `_recomputeFormConfig`, o cast `as any` dove residuale).
+
+2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue 237 (Fase 2.5 partial): cleanup client-details — rimosse
 	  4 flag `_isCertificato_generato*` solo scritte e mai lette,
 	  semplificate le assegnazioni nel `_loadAll` che le usavano.
