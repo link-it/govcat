@@ -55,6 +55,9 @@ public class AdesioneService extends AbstractService {
 	}
 
 	public void delete(AdesioneEntity adesione) {
+		for (AdesioneEntity riferita : this.adesioneRepo.findByAdesioneCollaudo(adesione)) {
+			riferita.setAdesioneCollaudo(null);
+		}
 		this.messaggioAdesioneRepo.deleteAll(adesione.getMessaggi());
 		this.adesioneRepo.delete(adesione);
 	}
