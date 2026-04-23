@@ -5953,6 +5953,14 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ConfigurazioneStepWizard"
+        step_wizard_collaudo:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigurazioneStepWizardSezione"
+        step_wizard_produzione:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigurazioneStepWizardSezione"
     ConfigurazioneStepWizard:
       type: "object"
       required:
@@ -5973,6 +5981,21 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/String255"
+    ConfigurazioneStepWizardSezione:
+      type: "object"
+      required:
+        - code
+        - descrizione
+        - stati_adesione
+      properties:
+        code:
+          $ref: "#/components/schemas/String255"
+        descrizione:
+          $ref: "#/components/schemas/String255"
+        stati_adesione:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigurazioneNomeStato"
     ConfigurazioneProfilo:
       type: "object"
       required:
