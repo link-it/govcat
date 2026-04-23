@@ -1076,7 +1076,13 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy {
         // onChangeCredenziali. `authType` e' l'auth type corrente.
         const authType: AuthType = this._auth_type as AuthType;
 
-        this._show_nome_proposto = !!this.client?.source?.nome_proposto;
+        // Se `this.client` e' gia' settato lo prendiamo come fonte di verita'.
+        // Altrimenti preserviamo il valore precedentemente impostato (es. da
+        // `_initEditFormClients` basandosi su `data.nome_proposto` quando il
+        // componente viene inizializzato senza un client pregresso).
+        if (this.client) {
+            this._show_nome_proposto = !!this.client?.source?.nome_proposto;
+        }
         this._show_client_form = true;
 
         let _aux: any = null;
@@ -1201,9 +1207,17 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy {
 
                     _aux = this._arr_clients_riuso.find((el) => el.id_client == selected_client_id);
                     if (!_aux) {
-                        _aux = this._currClient.source || this._currClient;
+                        _aux = this._currClient?.source || this._currClient;
                     }
                     this._currClient = _aux;
+
+                    // Safety net: se arriviamo qui senza un client valorizzato
+                    // (scenari di test con `_arr_clients_riuso` vuoto e
+                    // `_currClient` null) evitiamo gli accessi successivi a
+                    // `_aux.dati_specifici.*` che altrimenti crasherebbero.
+                    if (!_aux) {
+                        break;
+                    }
 
                     let _cert_type: any = null
                     this._checkAndSetAuthTypeCase(this._auth_type)

@@ -1,6 +1,22 @@
 2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 237 (Fase 2.5 test): robustness fix in
+	  `adesione-lista-clients.component.ts` emersi dai test:
+	  - optional chaining `_currClient?.source` in `onChangeCredenziali`
+	    (evita NPE quando `_currClient` e' null).
+	  - early break nel default switch quando `_aux` e' null (invece
+	    di crashare sugli accessi successivi a `_aux.dati_specifici.*`).
+	  - `_show_nome_proposto` preservato quando `this.client` non e'
+	    ancora settato (evita overwrite quando il componente e' usato
+	    senza bindings tipo-input).
+	  Test failures da 6 a 5. 3 residui pre-existing su servizio-*
+	  (non correlati), 2 su adesione-lista-clients (`oauth fields
+	  enabled`, `nome_proposto`) da approfondire successivamente.
+
+2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue 237: fix regression test runtime client-details. I metodi
 	  `_onChangeAuthType` e `_onChangeTipoCertificato[Firma]` ora
 	  sincronizzano il FormControl col valore passato (utile quando
