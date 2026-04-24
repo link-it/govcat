@@ -17,6 +17,7 @@
 				"HintSectionActionRequired": "Azione richiesta.",
 				"HintSectionCollaudoDisabled": "Disponibile dopo aver completato le sezioni precedenti.",
 				"HintSectionCompleted": "Sezione completata.",
+				"HintSectionPast": "Fase conclusa: questa sezione appartiene a una fase precedente del percorso. Eventuali modifiche restano consentite in base al ruolo e ai dati ancora configurabili.",
 				"HintSectionProduzioneDisabled": "Si attiverà al completamento del collaudo e alla verifica da parte del gestore.",
 				"HintSectionReferentiDisabled": "Disponibile dopo aver configurato le informazioni generali.",
 				"LayoutOrizzontale": "Passa al layout orizzontale",
@@ -52,11 +53,17 @@
 				"WizardDarkMode": "Preset dark step-bar (debug)"
 			},
 			"STEP_WIZARD": {
-				"adesione_creata": "Adesione Creata",
-				"configurato_collaudo": "Adesione Configurata in Collaudo",
-				"configurato_produzione": "Adesione Configurata in Produzione",
+				"info_generali": "Informazioni Generali e Referenti",
+				"collaudo": "Collaudo",
+				"produzione": "Produzione",
 				"CurrentStateBadge": "Attuale",
 				"PreviewBadge": "Anteprima"
+			},
+			"STEP_WIZARD_SEZIONE": {
+				"in_compilazione": "In Compilazione",
+				"in_approvazione": "In Approvazione",
+				"in_configurazione": "In Configurazione",
+				"configurato": "Configurato"
 			},
 			"TITLE": {
 				"ApiInformations": "API",

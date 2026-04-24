@@ -17,6 +17,7 @@
 				"HintSectionActionRequired": "Action required.",
 				"HintSectionCollaudoDisabled": "Available after completing the previous sections.",
 				"HintSectionCompleted": "Section completed.",
+				"HintSectionPast": "Phase completed: this section belongs to a previous phase of the workflow. Changes may still be allowed depending on role and on fields that remain editable.",
 				"HintSectionProduzioneDisabled": "Will be enabled upon completion of testing and administrator verification.",
 				"HintSectionReferentiDisabled": "Available after configuring the general information.",
 				"LayoutOrizzontale": "Switch to horizontal layout",
@@ -52,11 +53,17 @@
 				"WizardDarkMode": "Dark step-bar preset (debug)"
 			},
 			"STEP_WIZARD": {
-				"adesione_creata": "Subscription Created",
-				"configurato_collaudo": "Subscription Configured in Testing",
-				"configurato_produzione": "Subscription Configured in Production",
+				"info_generali": "General Information & Referents",
+				"collaudo": "Testing",
+				"produzione": "Production",
 				"CurrentStateBadge": "Current",
 				"PreviewBadge": "Preview"
+			},
+			"STEP_WIZARD_SEZIONE": {
+				"in_compilazione": "Drafting",
+				"in_approvazione": "Awaiting approval",
+				"in_configurazione": "Configuring",
+				"configurato": "Configured"
 			},
 			"TITLE": {
 				"ApiInformations": "Api",

@@ -24,10 +24,15 @@ $step-current-bg: var(--step-current-bg, #e4eef7);
 $step-current-color: var(--step-current-color, #1f75cb);
 $step-pending-bg: var(--step-pending-bg, #ededed);
 $step-pending-color: var(--step-pending-color, #606060);
+$step-pending-opacity: var(--step-pending-opacity, 0.5);
 $step-preview-bg: var(--step-preview-bg, #eceaf5);
 $step-preview-color: var(--step-preview-color, #4c4c94);
 $step-real-bg: var(--step-real-bg, #e6f4ed);
 $step-real-color: var(--step-real-color, #198754);
+// Stato `final`: tappa terminale raggiunta (es. pubblicato_produzione).
+// Differente da `completed` per semantica (traguardo vs passato).
+$step-final-bg: var(--step-final-bg, #198754);
+$step-final-color: var(--step-final-color, #ffffff);
 $step-bar-bg: var(--step-bar-bg, transparent);
 
 // Variabili generiche (bordi, sfondo body)
@@ -216,6 +221,21 @@ $border-color: var(--border-color, #dbdbdb);
         color: color-mix(in srgb, #{$body-color} 45%, transparent);
       }
     }
+
+    &.final {
+      .step-circle {
+        background-color: #{$step-final-bg};
+        border-color: #{$step-final-bg};
+        color: #{$step-final-color};
+        font-size: 1.25rem;
+        box-shadow: 0 0 0 3px color-mix(in srgb, #{$step-final-bg} 20%, transparent);
+      }
+
+      .step-label {
+        color: #{$step-final-bg};
+        font-weight: 600;
+      }
+    }
   }
 
   // ── Modificatore: label a destra del cerchio ──────────────────────────
@@ -360,6 +380,7 @@ $chevron-arrow-width: 14px;
 
     &.pending:not(.is-real-hidden) {
       background-color: #{$step-pending-bg};
+      opacity: #{$step-pending-opacity};
 
       .chevron-step-number {
         color: #{$step-pending-color};
@@ -367,6 +388,20 @@ $chevron-arrow-width: 14px;
 
       .chevron-label {
         color: color-mix(in srgb, #{$step-pending-color} 70%, transparent);
+      }
+    }
+
+    &.final {
+      background-color: #{$step-final-bg};
+
+      .chevron-step-number {
+        color: #{$step-final-color};
+        font-weight: 700;
+      }
+
+      .chevron-label {
+        color: color-mix(in srgb, #{$step-final-color} 95%, transparent);
+        font-weight: 600;
       }
     }
 
@@ -430,6 +465,35 @@ $chevron-arrow-width: 14px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Modificatore: step-bar interna di sezione (collaudo/produzione)
+// Padding e altezza ridotti, layout più compatto per convivere nello stesso
+// accordion-body degli elenchi client/erogazioni.
+// ══════════════════════════════════════════════════════════════════════════
+
+:host(.adesione-step-bar-interna) {
+  .step-bar-chevron {
+    padding: 0.5rem 0;
+
+    .chevron-item {
+      height: 2.75rem;
+      padding: 0.35rem 0.75rem 0.35rem calc(#{$chevron-arrow-width} + 0.6rem);
+
+      &.first {
+        padding-left: 0.75rem;
+      }
+
+      .chevron-step-number {
+        font-size: 0.7rem;
+      }
+
+      .chevron-label {
+        font-size: 0.7rem;
+      }
     }
   }
 }

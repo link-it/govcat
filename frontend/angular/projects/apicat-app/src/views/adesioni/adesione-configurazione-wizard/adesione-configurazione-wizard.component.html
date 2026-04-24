@@ -204,6 +204,7 @@
               [showStateBadges]="showStateBadges"
               [variant]="stepBarVariant"
               [circlesLabelPosition]="circlesLabelRight ? 'right' : 'bottom'"
+              [workflowStati]="workflowStati"
               [ngStyle]="stepBarDarkMode ? stepBarDarkVars : null"
               (stepClick)="onStepBarClick($event)"
             ></app-adesione-step-bar>
@@ -475,6 +476,20 @@
                 }
                 <div id="collaudo" class="accordion-collapse collapse" [class.show]="isSectionOpenByDefault('collaudo')" data-bs-parent="#accordion-collaudo_">
                   <div class="accordion-body">
+                    @if (getStepWizardSezione('collaudo').length > 0) {
+                      <app-adesione-step-bar
+                        class="mb-4 adesione-step-bar-interna"
+                        [steps]="getStepWizardSezione('collaudo')"
+                        [currentState]="adesione.stato"
+                        [interactive]="false"
+                        [showStateBadges]="showStateBadges"
+                        [variant]="stepBarVariant"
+                        [circlesLabelPosition]="circlesLabelRight ? 'right' : 'bottom'"
+                        [i18nPrefix]="'APP.ADESIONI.STEP_WIZARD_SEZIONE'"
+                        [workflowStati]="workflowStati"
+                        [ngStyle]="stepBarDarkMode ? stepBarDarkVars : null"
+                      ></app-adesione-step-bar>
+                    }
                     @if (disclaimersCollaudo.length > 0) {
                       <div class="adesione-disclaimers mb-3">
                         @for (item of disclaimersCollaudo; track $index) {
@@ -577,6 +592,20 @@
                 }
                 <div id="produzione" class="accordion-collapse collapse" [class.show]="isSectionOpenByDefault('produzione')" data-bs-parent="#accordion-produzione_">
                   <div class="accordion-body">
+                    @if (getStepWizardSezione('produzione').length > 0) {
+                      <app-adesione-step-bar
+                        class="mb-4 adesione-step-bar-interna"
+                        [steps]="getStepWizardSezione('produzione')"
+                        [currentState]="adesione.stato"
+                        [interactive]="false"
+                        [showStateBadges]="showStateBadges"
+                        [variant]="stepBarVariant"
+                        [circlesLabelPosition]="circlesLabelRight ? 'right' : 'bottom'"
+                        [i18nPrefix]="'APP.ADESIONI.STEP_WIZARD_SEZIONE'"
+                        [workflowStati]="workflowStati"
+                        [ngStyle]="stepBarDarkMode ? stepBarDarkVars : null"
+                      ></app-adesione-step-bar>
+                    }
                     @if (disclaimersProduzione.length > 0) {
                       <div class="adesione-disclaimers mb-3">
                         @for (item of disclaimersProduzione; track $index) {

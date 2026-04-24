@@ -28,23 +28,26 @@
             [class.completed]="item.state === 'completed'"
             [class.current]="item.state === 'current'"
             [class.pending]="item.state === 'pending'"
+            [class.final]="item.state === 'final'"
             [class.clickable]="item.clickable"
             [class.is-real]="item.isReal"
             [class.is-preview]="!item.isReal && item.state === 'current'">
           <div class="step-indicator"
               [attr.role]="item.clickable ? 'button' : null"
               [attr.tabindex]="item.clickable ? 0 : null"
-              [attr.aria-current]="item.state === 'current' ? 'step' : null"
+              [attr.aria-current]="item.state === 'current' || item.state === 'final' ? 'step' : null"
               (click)="onStepClick(item)"
               (keydown.enter)="onStepClick(item)"
               (keydown.space)="onStepClick(item); $event.preventDefault()">
             <div class="step-circle">
-              @if (item.state === 'completed') {
+              @if (item.state === 'final') {
+                <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+              } @else if (item.state === 'completed') {
                 <i class="bi bi-check-lg" aria-hidden="true"></i>
               } @else {
                 <span>{{ item.index + 1 }}</span>
               }
-              @if (item.isReal) {
+              @if (item.isReal && item.state !== 'final') {
                 <span class="step-real-marker" aria-hidden="true"></span>
               }
             </div>
@@ -72,22 +75,26 @@
             [class.completed]="item.state === 'completed'"
             [class.current]="item.state === 'current'"
             [class.pending]="item.state === 'pending'"
+            [class.final]="item.state === 'final'"
             [class.is-preview]="!item.isReal && item.state === 'current'"
             [class.is-real]="item.isReal"
-            [class.is-real-hidden]="item.isReal && item.state !== 'current'"
+            [class.is-real-hidden]="item.isReal && item.state !== 'current' && item.state !== 'final'"
             [class.clickable]="item.clickable"
             [class.first]="first"
             [class.last]="last"
             [attr.role]="item.clickable ? 'button' : null"
             [attr.tabindex]="item.clickable ? 0 : null"
-            [attr.aria-current]="item.state === 'current' ? 'step' : null"
+            [attr.aria-current]="item.state === 'current' || item.state === 'final' ? 'step' : null"
             (click)="onStepClick(item)"
             (keydown.enter)="onStepClick(item)"
             (keydown.space)="onStepClick(item); $event.preventDefault()">
           <div class="chevron-content">
             <div class="chevron-step-number">
+              @if (item.state === 'final') {
+                <i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i>
+              }
               Step {{ item.index + 1 }}
-              @if (item.isReal && item.state !== 'current') {
+              @if (item.isReal && item.state !== 'current' && item.state !== 'final') {
                 <span class="chevron-real-dot" aria-hidden="true"></span>
               }
               @if (showStateBadges && !item.isReal && item.state === 'current') {

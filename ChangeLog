@@ -1,3 +1,19 @@
+2026-04-24  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254 (evolutiva): step-bar interne Collaudo/Produzione pilotate
+	  dalle nuove chiavi `adesione.step_wizard_collaudo` e
+	  `adesione.step_wizard_produzione`. Nuovo stato `final` per il
+	  traguardo raggiunto e rilevamento "oltre-fase" (workflowStati)
+	  per marcare come completate le bar di fasi gia' concluse.
+	  `getSectionHint` rivisto (past/future/completed/action).
+
+	* [GovwayAPICatalogo]
+	Issue 254 (evolutiva): rivista struttura `adesione.step_wizard`
+	  (3 step info_generali/collaudo/produzione) e aggiunte
+	  `step_wizard_collaudo`/`step_wizard_produzione` in
+	  `configurazione.json`.
+
 2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
