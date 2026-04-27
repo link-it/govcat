@@ -34,6 +34,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 
@@ -74,6 +75,7 @@ public class ControllerAdvisor extends AbstractControllerAdvisor {
 		
 		ObjectMapper om = new ObjectMapper();
 		om.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+		om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		
 		Problem problem;
 		HttpStatus status;
