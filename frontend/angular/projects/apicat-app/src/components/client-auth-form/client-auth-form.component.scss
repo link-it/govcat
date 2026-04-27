@@ -1,0 +1,94 @@
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ */
+
+// Styling del componente condiviso per la configurazione auth client
+// (Issue #237 Passo 2). Migrato dal modal-edit-client.component.scss ed
+// esposto a entrambi i parent (dialog del wizard + pagina client-details).
+
+// Cert CSR pair: contenitore semantico per CSR upload + modulo richiesta.
+// Fuori da Bootstrap grid (evita i vincoli di `.row` / `.col-12`).
+// Default vertical: stack. In layout orizzontale: side-by-side con wrap.
+.cert-csr-pair {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    > .cert-csr-item {
+        min-width: 0;
+    }
+}
+
+// Layout orizzontale: griglia a 2 colonne per i blocchi cert auth/firma
+// + 2 colonne per gli URL OAuth (si attiva via `.layout-horizontal` sul
+// form root quando `[layout]="'horizontal'"`).
+.client-auth-form.layout-horizontal {
+    .cert-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: flex-start;
+
+        > div {
+            flex: 1 1 400px;
+            min-width: 0;
+            max-width: 100%;
+        }
+    }
+
+    .cert-csr-pair {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 1rem;
+
+        > .cert-csr-item {
+            flex: 1 1 260px;
+        }
+    }
+
+    .oauth-urls {
+        .row > .form-group.col-12 {
+            flex: 0 0 auto;
+            width: 50%;
+
+            @media (max-width: 767px) {
+                width: 100%;
+            }
+        }
+    }
+}
+
+// Toggle "Nuovo client" / "Client gia' censito" (pattern dal mockup Issue #237).
+.credenziali-toggle {
+    .btn {
+        flex: 1 1 0;
+        min-height: 2.5rem;
+        font-weight: 500;
+        background-color: #ffffff;
+        border: 1px solid #e1e1e4;
+        color: #087990;
+        transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+
+        &:hover:not(.active):not(:disabled) {
+            background-color: #e6f1fb;
+            border-color: #e1e1e4;
+            color: #055160;
+        }
+
+        &:focus,
+        &:focus-visible {
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+            outline: none;
+        }
+
+        &.active {
+            background-color: #e6f1fb;
+            border-color: #e1e1e4;
+            color: #055160;
+            font-weight: 600;
+        }
+    }
+}

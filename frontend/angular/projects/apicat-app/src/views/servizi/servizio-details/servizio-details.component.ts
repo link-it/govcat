@@ -1629,7 +1629,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         this.apiService.getList('api', aux)
             .pipe(
                 catchError((err) => {
-                    return of({ items: [] });
+                    return of({ content: [] });
                 })
             )
         );
@@ -1639,15 +1639,15 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         this.apiService.getList('api', aux)
             .pipe(
                 catchError((err) => {
-                    return of({ items: [] });
+                    return of({ content: [] });
                 })
             )
         );
 
         forkJoin(reqs).subscribe({
             next: (results: Array<any>) => {
-                const serviceApiDominio = results[0].content;
-                const serviceApiAderente = results[1].content;
+                const serviceApiDominio = results[0]?.content ?? [];
+                const serviceApiAderente = results[1]?.content ?? [];
                 this.apiComponentiLoading = false;
                 this.hasApi = (serviceApiDominio.length + serviceApiAderente.length) > 0;
                 this.enableDisableControlPackage();

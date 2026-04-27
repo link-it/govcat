@@ -55,3 +55,6 @@ Thumbs.db
 /@NOTE
 
 /projects/apicat-app/src/environments/environment.prod.ts
+
+# Custom app configs (environment-specific, not to be tracked)
+/projects/apicat-app/src/assets/config/app-config-*.json

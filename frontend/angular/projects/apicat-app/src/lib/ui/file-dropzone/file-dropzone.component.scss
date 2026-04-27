@@ -1,0 +1,141 @@
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+:host {
+    display: block;
+}
+
+.file-dropzone-wrapper {
+    .dropzone {
+        border: 2px dashed #d1d5db;
+        border-radius: 0.5rem;
+        padding: 2rem 1rem;
+        text-align: center;
+        cursor: pointer;
+        background-color: #fafafa;
+        transition: border-color 120ms ease, background-color 120ms ease;
+
+        &:hover:not(.disabled):not(.selected) {
+            border-color: #9fcbd3;
+            background-color: #f5fbfc;
+        }
+
+        &.dragging {
+            border-color: #0d6efd;
+            background-color: #e6f1fb;
+        }
+
+        &.selected {
+            cursor: default;
+            background-color: #f0f9f4;
+            border-style: solid;
+            border-color: #9ee2b4;
+        }
+
+        &.disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        &.error {
+            border-color: #dc3545;
+            background-color: #fef4f4;
+        }
+    }
+
+    .dropzone-empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .dropzone-icon {
+        width: 3rem;
+        height: 3rem;
+        border: 1px solid #d1d5db;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #ffffff;
+        color: #6c757d;
+        margin-bottom: 0.25rem;
+
+        i {
+            font-size: 1.25rem;
+        }
+    }
+
+    .dropzone-title {
+        font-weight: 500;
+        color: #495057;
+    }
+
+    .dropzone-desc {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+
+    .dropzone-formats {
+        font-size: 0.8125rem;
+        color: #0d6efd;
+        margin-top: 0.25rem;
+
+        .formats-label {
+            color: #6c757d;
+            margin-right: 0.25rem;
+        }
+
+        .separator {
+            margin: 0 0.4rem;
+            color: #6c757d;
+        }
+    }
+
+    .dropzone-selected {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+
+        i.bi-file-earmark-check {
+            font-size: 1.25rem;
+            color: #198754;
+        }
+
+        .filename {
+            font-weight: 500;
+            color: #212529;
+            word-break: break-all;
+        }
+
+        .dropzone-reset {
+            background: transparent;
+            border: none;
+            color: #6c757d;
+            padding: 0 0.25rem;
+            line-height: 1;
+
+            &:hover {
+                color: #dc3545;
+            }
+        }
+    }
+}

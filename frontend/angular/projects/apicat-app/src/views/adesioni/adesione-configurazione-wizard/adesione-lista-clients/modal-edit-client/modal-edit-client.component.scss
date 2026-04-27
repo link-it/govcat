@@ -1,0 +1,126 @@
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+// Layout orizzontale: griglia a 2 colonne per i blocchi certificato
+// auth/firma (evita di dover scrollare quando entrambi sono visibili,
+// es. https_sign / https_pdnd_sign) e per i campi OAuth.
+// Usa `auto-fit` + `minmax` per adattarsi alla larghezza reale del
+// container (indipendentemente dal viewport): quando c'e' spazio per
+// 2 colonne di almeno 420px, scatta a 2; altrimenti resta 1.
+// Cert CSR pair: contenitore semantico per CSR upload + modulo richiesta.
+// Fuori da Bootstrap grid (evita i vincoli di `.row` / `.col-12`).
+// Default vertical: stack. In layout orizzontale: side-by-side con wrap.
+.cert-csr-pair {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    > .cert-csr-item {
+        min-width: 0;
+    }
+}
+
+.modal-content.layout-horizontal {
+    // Blocchi cert auth + cert firma side-by-side (quando entrambi visibili).
+    .cert-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: flex-start;
+
+        > div {
+            flex: 1 1 400px;
+            min-width: 0;
+            max-width: 100%;
+        }
+    }
+
+    // Cert CSR pair in layout orizzontale: affianca CSR + modulo. Con
+    // flex-wrap, se la larghezza del cert block non basta, vanno a capo.
+    .cert-csr-pair {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 1rem;
+
+        > .cert-csr-item {
+            flex: 1 1 260px;
+        }
+    }
+
+    // URL OAuth: 5 campi in 2 colonne.
+    .oauth-urls {
+        .row > .form-group.col-12 {
+            flex: 0 0 auto;
+            width: 50%;
+
+            @media (max-width: 767px) {
+                width: 100%;
+            }
+        }
+    }
+}
+
+// Toggle nell'header per cambiare layout verticale/orizzontale.
+.modal-header-actions {
+    .layout-toggle {
+        border: none;
+        background: transparent;
+        color: #6c757d;
+        font-size: 1.1rem;
+        line-height: 1;
+
+        &:hover {
+            color: #0d6efd;
+            background-color: #f0f8fa;
+        }
+    }
+}
+
+// Toggle "Nuovo client" / "Client gia' censito" stile mockup
+// (image-1.png): colori celeste tenue, due button a larghezza uguale.
+.credenziali-toggle {
+    .btn {
+        flex: 1 1 0;
+        min-height: 2.5rem;
+        font-weight: 500;
+        background-color: #ffffff;
+        border: 1px solid #e1e1e4;
+        color: #087990;
+        transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+
+        &:hover:not(.active):not(:disabled) {
+            background-color: #e6f1fb;
+            border-color: #e1e1e4;
+            color: #055160;
+        }
+
+        &:focus,
+        &:focus-visible {
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+            outline: none;
+        }
+
+        &.active {
+            background-color: #e6f1fb;
+            border-color: #e1e1e4;
+            color: #055160;
+            font-weight: 600;
+        }
+    }
+}
