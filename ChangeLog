@@ -1,3 +1,13 @@
+2026-04-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254 (evolutiva): apertura accordion Collaudo/Produzione
+	  condizionata anche allo step della step-bar interna. Finche' lo
+	  step interno non raggiunge il finale (`pubblicato_*`) la sezione
+	  resta aperta anche con dati completi; al raggiungimento del
+	  finale (o oltre-fase) torna la regola precedente basata sul
+	  solo completamento dati.
+
 2026-04-24  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

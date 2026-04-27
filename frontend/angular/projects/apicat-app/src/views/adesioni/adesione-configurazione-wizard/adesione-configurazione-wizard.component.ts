@@ -441,7 +441,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
 
         this.eventsManagerService.on(EventType.PROFILE_UPDATE, (action: any) => {
             this.generalConfig = Tools.Configurazione || null;
-            this.updateMapper = new Date().getTime().toString();
+            this.updateMapper = Date.now().toString();
         });
 
         // Ricarica i disclaimer quando l'utente cambia lingua nell'interfaccia
@@ -674,7 +674,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     }
 
     toggleEdit() {
-        this.updateMapper = new Date().getTime().toString();
+        this.updateMapper = Date.now().toString();
         this.openAccordion(this._findFirstAccordionError() || '', this.isEdit);
         this.isEdit = !this.isEdit;
     }
@@ -992,7 +992,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     
     _changeStatus(event: any, service: any) {
         this.isEdit = false;
-        this.updateMapper = new Date().getTime().toString();
+        this.updateMapper = Date.now().toString();
         this.openAccordion(this._findFirstAccordionError() || '', true);
 
         this.changingStatus = true;
@@ -1093,7 +1093,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
         this.apiService.putElement(this.model, this.id, body).subscribe({
             next: (response: any) => {
                 this.adesione.skip_collaudo = !this.adesione.skip_collaudo;
-                this.updateMapper = new Date().getTime().toString();
+                this.updateMapper = Date.now().toString();
                 this.loadCheckDati(this.adesione.id_adesione, this.getNextStateWorkflowName());
                 this.saveSkipCollaudo = false;
             },
@@ -1314,15 +1314,49 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     }
 
     /**
+     * Vero se la sezione (collaudo/produzione) ha una step-bar interna e lo
+     * step corrente ha raggiunto o superato l'ultimo step della bar. Le altre
+     * sezioni non hanno step-bar interna: la condizione non si applica e
+     * ritorna true così la regola di apertura segue la sola logica di
+     * completamento dati.
+     */
+    private _isInternalStepFinal(section: string): boolean {
+        if (section !== 'collaudo' && section !== 'produzione') return true;
+        const steps = this.getStepWizardSezione(section);
+        if (!steps.length) return true;
+        const wfStati = this.workflowStati;
+        const currentStato = this.adesione?.stato;
+        if (!wfStati.length || !currentStato) return true;
+        const currentIdx = wfStati.indexOf(currentStato);
+        if (currentIdx === -1) return true;
+        let maxStepIdx = -1;
+        for (const step of steps) {
+            for (const st of step.stati_adesione || []) {
+                const idx = wfStati.indexOf(st);
+                if (idx > maxStepIdx) maxStepIdx = idx;
+            }
+        }
+        if (maxStepIdx === -1) return true;
+        return currentIdx >= maxStepIdx;
+    }
+
+    /**
      * Un accordion è aperto di default quando la sezione è attiva per lo step
      * corrente e NON ancora completata. Le sezioni completate (verde) o non
      * applicabili (grigio) restano chiuse — l'icona di stato su lnk-icon-toggle
      * ne evidenzia già lo stato. La regola si applica sia in modalità
      * `wizard_show_all_sections` on che off (in off le sezioni non attive sono
      * comunque nascoste, quindi la condizione aggiuntiva non è necessaria).
+     *
+     * Eccezione step-bar interna (collaudo/produzione): se la step-bar di
+     * sezione non ha ancora raggiunto lo step finale, l'accordion resta
+     * aperto anche se i dati risultano completi — il workflow di sezione non
+     * è concluso e l'utente deve poterne vedere il contenuto.
      */
     isSectionOpenByDefault(section: string): boolean {
-        return this.isSectionActive(section) && !this.isSectionCompleted(section);
+        if (!this.isSectionActive(section)) return false;
+        if (!this._isInternalStepFinal(section)) return true;
+        return !this.isSectionCompleted(section);
     }
 
     /**
