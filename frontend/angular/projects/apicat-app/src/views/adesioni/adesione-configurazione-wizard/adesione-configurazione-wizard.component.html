@@ -67,7 +67,7 @@
       }
     </div>
   </div>
-  <section #myScroll class="container-fluid container-limited container-scroller container-scroller-no-search">
+  <section #myScroll class="container-fluid container-limited limit-container-width container-scroller container-scroller-no-search">
 
     <div class="mt-5">
 
@@ -112,7 +112,10 @@
               </div>
             </div>
             @if (showSkipCollaudo) {
-              <div class="">
+              <div class=""
+                  [tooltip]="'APP.ADESIONI.LABEL.SkipCollaudoTooltip' | translate"
+                  placement="left"
+                  container="body">
                 <lnk-button
                   [label]="'APP.LABEL.SkipCollaudo' | translate"
                   [icon]="adesione.skip_collaudo ? 'bi bi-check-square-fill text-primary' : 'bi bi-square'"
@@ -122,11 +125,110 @@
               </div>
             }
           </div>
+          @if (stepWizard.length > 0) {
+            @if (debugSwitchesEnabled) {
+              <div class="wizard-debug-toggle mb-2">
+                <div class="form-check form-switch">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    id="wizardShowAllSectionsSwitch"
+                    [checked]="wizardShowAllSections"
+                    [attr.aria-checked]="wizardShowAllSections"
+                    (change)="toggleWizardShowAllSections()">
+                  <label class="form-check-label" for="wizardShowAllSectionsSwitch">
+                    {{ 'APP.ADESIONI.LABEL.WizardShowAllSections' | translate }}
+                  </label>
+                </div>
+                <div class="form-check form-switch">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    id="wizardShowStateBadgesSwitch"
+                    [checked]="showStateBadges"
+                    [attr.aria-checked]="showStateBadges"
+                    (change)="toggleShowStateBadges()">
+                  <label class="form-check-label" for="wizardShowStateBadgesSwitch">
+                    {{ 'APP.ADESIONI.LABEL.WizardShowStateBadges' | translate }}
+                  </label>
+                </div>
+                <div class="form-check form-switch">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    id="wizardChevronVariantSwitch"
+                    [checked]="stepBarVariant === 'chevron'"
+                    [attr.aria-checked]="stepBarVariant === 'chevron'"
+                    (change)="toggleStepBarVariant()">
+                  <label class="form-check-label" for="wizardChevronVariantSwitch">
+                    {{ 'APP.ADESIONI.LABEL.WizardChevronVariant' | translate }}
+                  </label>
+                </div>
+                <div class="form-check form-switch">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    id="wizardCirclesLabelRightSwitch"
+                    [checked]="circlesLabelRight"
+                    [attr.aria-checked]="circlesLabelRight"
+                    (change)="circlesLabelRight = !circlesLabelRight">
+                  <label class="form-check-label" for="wizardCirclesLabelRightSwitch">
+                    {{ 'APP.ADESIONI.LABEL.WizardCirclesLabelRight' | translate }}
+                  </label>
+                </div>
+                <div class="form-check form-switch d-none">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    id="wizardDarkModeSwitch"
+                    [checked]="stepBarDarkMode"
+                    [attr.aria-checked]="stepBarDarkMode"
+                    (change)="toggleStepBarDarkMode()">
+                  <label class="form-check-label" for="wizardDarkModeSwitch">
+                    {{ 'APP.ADESIONI.LABEL.WizardDarkMode' | translate }}
+                  </label>
+                </div>
+                <app-adesione-dialog-mock-panel></app-adesione-dialog-mock-panel>
+              </div>
+            }
+            <app-adesione-step-bar
+              class="mb-4"
+              [steps]="stepWizard"
+              [currentState]="adesione.stato"
+              [selectedCode]="selectedStepCode"
+              [showStateBadges]="showStateBadges"
+              [variant]="stepBarVariant"
+              [circlesLabelPosition]="circlesLabelRight ? 'right' : 'bottom'"
+              [workflowStati]="workflowStati"
+              [ngStyle]="stepBarDarkMode ? stepBarDarkVars : null"
+              (stepClick)="onStepBarClick($event)"
+            ></app-adesione-step-bar>
+          }
+          @if (disclaimersGenerali.length > 0) {
+            <div class="adesione-disclaimers mb-4">
+              @for (item of disclaimersGenerali; track $index) {
+                <ng-container *ngTemplateOutlet="disclaimerTpl; context: { $implicit: item }"></ng-container>
+              }
+            </div>
+          }
           <div class="mt-5 border-">
             <div class="accordion accordion-flush" id="accordionWizard">
-              <div id="accordion-general-info" class="accordion-item mb-3 border">
+              @if (isSectionVisible('info_generali')) {
+              <div id="accordion-general-info" class="accordion-item mb-3 border" [class.section-disabled]="isSectionDisabled('info_generali')">
                 <h2 class="accordion-header">
-                  <button tabindex="0" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#general-info" aria-expanded="false" aria-controls="general-info">
+                  <button tabindex="0" class="accordion-button"
+                    [class.collapsed]="!isSectionOpenByDefault('info_generali')"
+                    [class.disabled]="isSectionDisabled('info_generali')"
+                    [attr.data-bs-toggle]="isSectionDisabled('info_generali') ? null : 'collapse'"
+                    [attr.data-bs-target]="isSectionDisabled('info_generali') ? null : '#general-info'"
+                    [attr.aria-expanded]="isSectionOpenByDefault('info_generali')"
+                    [attr.aria-disabled]="isSectionDisabled('info_generali') ? true : null"
+                    aria-controls="general-info">
                     <div class="d-flex align-items-center gap-2">
                       <lnk-icon-toggle
                         [value]="loadingCheckDati | mapper:getStatusCompleteMapper:ClassiEnum.GENERALE"
@@ -137,7 +239,15 @@
                     </div>
                   </button>
                 </h2>
-                <div id="general-info" class="accordion-collapse collapse" data-bs-parent="#accordion-general-info_">
+                @if (!loadingCheckDati && getSectionHint('info_generali'); as hint) {
+                  <div class="accordion-section-hint"
+                    [class.hint-completed]="hint.state === 'completed'"
+                    [class.hint-disabled]="hint.state === 'disabled'"
+                    [class.hint-action]="hint.state === 'action'">
+                    <i class="bi bi-info-circle me-2"></i>{{ hint.key | translate }}
+                  </div>
+                }
+                <div id="general-info" class="accordion-collapse collapse" [class.show]="isSectionOpenByDefault('info_generali')" data-bs-parent="#accordion-general-info_">
                   <div class="accordion-body">
                     <app-adesione-form
                       [id]="id"
@@ -151,9 +261,18 @@
                   </div>
                 </div>
               </div>
-              <div id="accordion-referenti" class="accordion-item mb-3 border">
+              }
+              @if (isSectionVisible('referenti')) {
+              <div id="accordion-referenti" class="accordion-item mb-3 border" [class.section-disabled]="isSectionDisabled('referenti')">
                 <h2 class="accordion-header">
-                  <button tabindex="0" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#referenti" aria-expanded="false" aria-controls="referenti">
+                  <button tabindex="0" class="accordion-button"
+                    [class.collapsed]="!isSectionOpenByDefault('referenti')"
+                    [class.disabled]="isSectionDisabled('referenti')"
+                    [attr.data-bs-toggle]="isSectionDisabled('referenti') ? null : 'collapse'"
+                    [attr.data-bs-target]="isSectionDisabled('referenti') ? null : '#referenti'"
+                    [attr.aria-expanded]="isSectionOpenByDefault('referenti')"
+                    [attr.aria-disabled]="isSectionDisabled('referenti') ? true : null"
+                    aria-controls="referenti">
                     <div class="d-flex align-items-center gap-2">
                       <lnk-icon-toggle
                         [value]="loadingCheckDati | mapper:getStatusCompleteMapper:ClassiEnum.REFERENTI"
@@ -164,9 +283,17 @@
                     </div>
                   </button>
                 </h2>
-                <div id="referenti" class="accordion-collapse collapse" data-bs-parent="#accordion-referenti_">
-                  <div class="accordion-body">
-                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                @if (!loadingCheckDati && getSectionHint('referenti'); as hint) {
+                  <div class="accordion-section-hint"
+                    [class.hint-completed]="hint.state === 'completed'"
+                    [class.hint-disabled]="hint.state === 'disabled'"
+                    [class.hint-action]="hint.state === 'action'">
+                    <i class="bi bi-info-circle me-2"></i>{{ hint.key | translate }}
+                  </div>
+                }
+                <div id="referenti" class="accordion-collapse collapse bg-light-subtle p-4" [class.show]="isSectionOpenByDefault('referenti')" data-bs-parent="#accordion-referenti_">
+                  <div class="accordion-item">
+                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom px-3 py-2">
                       <h5 class="mb-0">{{ 'APP.ADESIONI.TITLE.Referents' | translate }}</h5>
                       @if (isEdit || (updateMapper | mapper:canAddMapper)) {
                         <button class="btn btn-default btn-md gl-button ms-3" (click)="addReferenteModal($event)">{{ 'APP.BUTTON.AddReferent' | translate }}</button>
@@ -187,7 +314,7 @@
                       <div class="col-12">
                         @for (referent of referents; track referent.id) {
                           <div class="d-flex justify-content-between align-items-center- border-bottom">
-                            <ui-collapse-row class="flex-grow-1"
+                            <ui-collapse-row class="flex-grow-1 mb-0"
                               [data]="referent.source"
                               [config]="referentiConfig"
                               [configRow]="'itemRow2'"
@@ -195,7 +322,7 @@
                               [hasLink]="false"
                             >
                               @if (referent.enableCollapse) {
-                                <div collapse-content class="p-4 my-1 bg-lightest">
+                                <div collapse-content class="p-4 bg-light-subtle">
                                   <div class="d-flex flex-row">
                                     <ui-data-view class="flex-grow-1"
                                       [data]="referent.source"
@@ -206,9 +333,9 @@
                                 </div>
                               }
                             </ui-collapse-row>
-                            <div class="mt-3">
+                            <div class="button-delete-wrapper mt-3 pe-3">
                               @if ((updateMapper | mapper:canAddMapper) || isEdit) {
-                                <button type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.Remove' | translate" (click)="confirmDeleteReferente(referent)">
+                                <button type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.Remove' | translate" container="body" (click)="confirmDeleteReferente(referent)">
                                   <i class="bi bi-trash text-danger"></i>
                                 </button>
                               }
@@ -220,8 +347,11 @@
                     @if (referentiLoading) {
                       <ui-box-spinner [color]="'primary'" [diameter]="20" [strokeWidth]="1"></ui-box-spinner>
                     }
-                    <div class="d-flex justify-content-between align-items-center mt-3 mb-2 pb-2 border-bottom-">
-                      <button tabindex="0" class="accordion-button collapsed px-0 bg-white d-flex gap-2" data-bs-toggle="collapse" data-bs-target="#service-referents" aria-expanded="false" aria-controls="service-referents">
+                  </div>
+
+                  <div class="accordion-item border-top mt-1 mt-3">
+                    <div class="d-flex justify-content-between align-items-center border-bottom px-3 py-2">
+                      <button tabindex="0" class="accordion-button shadow-none collapsed px-0 py-2 bg-white d-flex gap-2" data-bs-toggle="collapse" data-bs-target="#service-referents" aria-expanded="false" aria-controls="service-referents">
                         <h5 class="mb-0">{{ 'APP.ADESIONI.TITLE.ServiceReferents' | translate }}</h5>
                         <span class="badge badge-info badge-pill gp-badge sm">{{ serviceReferents.length }}</span>
                       </button>
@@ -249,7 +379,7 @@
                               [hasLink]="false"
                             >
                               @if (referent.enableCollapse) {
-                                <div collapse-content class="p-4 my-1 bg-lightest">
+                                <div collapse-content class="p-4 bg-light-subtle">
                                   <div class="d-flex flex-row">
                                     <ui-data-view class="flex-grow-1"
                                       [data]="referent.source"
@@ -264,8 +394,11 @@
                         }
                       </div>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center mt-3 mb-2 pb-2 border-bottom">
-                      <button tabindex="0" class="accordion-button collapsed px-0 bg-white d-flex gap-2" data-bs-toggle="collapse" data-bs-target="#domain-referents" aria-expanded="false" aria-controls="domain-referents">
+                  </div>
+
+                  <div class="accordion-item border-top mt-3">
+                    <div class="d-flex justify-content-between align-items-center border-bottom px-3 py-2">
+                      <button tabindex="0" class="accordion-button shadow-none collapsed px-0 py-2 bg-white d-flex gap-2" data-bs-toggle="collapse" data-bs-target="#domain-referents" aria-expanded="false" aria-controls="domain-referents">
                         <h5 class="mb-0">{{ 'APP.ADESIONI.TITLE.DomainReferents' | translate }}</h5>
                         <span class="badge badge-info badge-pill gp-badge sm">{{ domainReferents.length }}</span>
                       </button>
@@ -293,7 +426,7 @@
                               [hasLink]="false"
                             >
                               @if (referent.enableCollapse) {
-                                <div collapse-content class="p-4 my-1 bg-lightest">
+                                <div collapse-content class="p-4 bg-light-subtle">
                                   <div class="d-flex flex-row">
                                     <ui-data-view class="flex-grow-1"
                                       [data]="referent.source"
@@ -311,9 +444,18 @@
                   </div>
                 </div>
               </div>
-              <div id="accordion-collaudo" class="accordion-item mb-3 border">
+              }
+              @if (isSectionVisible('collaudo')) {
+              <div id="accordion-collaudo" class="accordion-item mb-3 border" [class.section-disabled]="isSectionDisabled('collaudo')">
                 <h2 class="accordion-header">
-                  <button tabindex="0" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#collaudo" aria-expanded="false" aria-controls="collaudo">
+                  <button tabindex="0" class="accordion-button"
+                    [class.collapsed]="!isSectionOpenByDefault('collaudo')"
+                    [class.disabled]="isSectionDisabled('collaudo')"
+                    [attr.data-bs-toggle]="isSectionDisabled('collaudo') ? null : 'collapse'"
+                    [attr.data-bs-target]="isSectionDisabled('collaudo') ? null : '#collaudo'"
+                    [attr.aria-expanded]="isSectionOpenByDefault('collaudo')"
+                    [attr.aria-disabled]="isSectionDisabled('collaudo') ? true : null"
+                    aria-controls="collaudo">
                     <div class="d-flex align-items-center gap-2">
                       <lnk-icon-toggle
                         [value]="loadingCheckDati | mapper:getStatusCompleteMapper:AmbienteEnum.Collaudo"
@@ -324,8 +466,37 @@
                     </div>
                   </button>
                 </h2>
-                <div id="collaudo" class="accordion-collapse collapse" data-bs-parent="#accordion-collaudo_">
+                @if (!loadingCheckDati && getSectionHint('collaudo'); as hint) {
+                  <div class="accordion-section-hint"
+                    [class.hint-completed]="hint.state === 'completed'"
+                    [class.hint-disabled]="hint.state === 'disabled'"
+                    [class.hint-action]="hint.state === 'action'">
+                    <i class="bi bi-info-circle me-2"></i>{{ hint.key | translate }}
+                  </div>
+                }
+                <div id="collaudo" class="accordion-collapse collapse" [class.show]="isSectionOpenByDefault('collaudo')" data-bs-parent="#accordion-collaudo_">
                   <div class="accordion-body">
+                    @if (getStepWizardSezione('collaudo').length > 0) {
+                      <app-adesione-step-bar
+                        class="mb-4 adesione-step-bar-interna"
+                        [steps]="getStepWizardSezione('collaudo')"
+                        [currentState]="adesione.stato"
+                        [interactive]="false"
+                        [showStateBadges]="showStateBadges"
+                        [variant]="stepBarVariant"
+                        [circlesLabelPosition]="circlesLabelRight ? 'right' : 'bottom'"
+                        [i18nPrefix]="'APP.ADESIONI.STEP_WIZARD_SEZIONE'"
+                        [workflowStati]="workflowStati"
+                        [ngStyle]="stepBarDarkMode ? stepBarDarkVars : null"
+                      ></app-adesione-step-bar>
+                    }
+                    @if (disclaimersCollaudo.length > 0) {
+                      <div class="adesione-disclaimers mb-3">
+                        @for (item of disclaimersCollaudo; track $index) {
+                          <ng-container *ngTemplateOutlet="disclaimerTpl; context: { $implicit: item }"></ng-container>
+                        }
+                      </div>
+                    }
                     <app-adesione-lista-clients
                       [id]="id"
                       [adesione]="adesione"
@@ -337,6 +508,7 @@
                       [otherClass]="'border-bottom-'"
                       [dataCheck]="dataStructureResults"
                       [nextState]="getNextStateWorkflow()"
+                      [disclaimers]="clientDisclaimersCollaudo"
                     ></app-adesione-lista-clients>
                     <app-adesione-lista-erogazioni
                       [id]="id"
@@ -388,9 +560,18 @@
                   </div>
                 </div>
               </div>
-              <div id="accordion-produzione" class="accordion-item mb-3 border">
+              }
+              @if (isSectionVisible('produzione')) {
+              <div id="accordion-produzione" class="accordion-item mb-3 border" [class.section-disabled]="isSectionDisabled('produzione')">
                 <h2 class="accordion-header">
-                  <button tabindex="0" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#produzione" aria-expanded="false" aria-controls="produzione">
+                  <button tabindex="0" class="accordion-button"
+                    [class.collapsed]="!isSectionOpenByDefault('produzione')"
+                    [class.disabled]="isSectionDisabled('produzione')"
+                    [attr.data-bs-toggle]="isSectionDisabled('produzione') ? null : 'collapse'"
+                    [attr.data-bs-target]="isSectionDisabled('produzione') ? null : '#produzione'"
+                    [attr.aria-expanded]="isSectionOpenByDefault('produzione')"
+                    [attr.aria-disabled]="isSectionDisabled('produzione') ? true : null"
+                    aria-controls="produzione">
                     <div class="d-flex align-items-center gap-2">
                       <lnk-icon-toggle
                         [value]="loadingCheckDati | mapper:getStatusCompleteMapper:AmbienteEnum.Produzione"
@@ -401,8 +582,37 @@
                     </div>
                   </button>
                 </h2>
-                <div id="produzione" class="accordion-collapse collapse" data-bs-parent="#accordion-produzione_">
+                @if (!loadingCheckDati && getSectionHint('produzione'); as hint) {
+                  <div class="accordion-section-hint"
+                    [class.hint-completed]="hint.state === 'completed'"
+                    [class.hint-disabled]="hint.state === 'disabled'"
+                    [class.hint-action]="hint.state === 'action'">
+                    <i class="bi bi-info-circle me-2"></i>{{ hint.key | translate }}
+                  </div>
+                }
+                <div id="produzione" class="accordion-collapse collapse" [class.show]="isSectionOpenByDefault('produzione')" data-bs-parent="#accordion-produzione_">
                   <div class="accordion-body">
+                    @if (getStepWizardSezione('produzione').length > 0) {
+                      <app-adesione-step-bar
+                        class="mb-4 adesione-step-bar-interna"
+                        [steps]="getStepWizardSezione('produzione')"
+                        [currentState]="adesione.stato"
+                        [interactive]="false"
+                        [showStateBadges]="showStateBadges"
+                        [variant]="stepBarVariant"
+                        [circlesLabelPosition]="circlesLabelRight ? 'right' : 'bottom'"
+                        [i18nPrefix]="'APP.ADESIONI.STEP_WIZARD_SEZIONE'"
+                        [workflowStati]="workflowStati"
+                        [ngStyle]="stepBarDarkMode ? stepBarDarkVars : null"
+                      ></app-adesione-step-bar>
+                    }
+                    @if (disclaimersProduzione.length > 0) {
+                      <div class="adesione-disclaimers mb-3">
+                        @for (item of disclaimersProduzione; track $index) {
+                          <ng-container *ngTemplateOutlet="disclaimerTpl; context: { $implicit: item }"></ng-container>
+                        }
+                      </div>
+                    }
                     <app-adesione-lista-clients
                       [id]="id"
                       [adesione]="adesione"
@@ -414,6 +624,7 @@
                       [otherClass]="'border-bottom-'"
                       [dataCheck]="dataStructureResults"
                       [nextState]="getNextStateWorkflow()"
+                      [disclaimers]="clientDisclaimersProduzione"
                     ></app-adesione-lista-clients>
                     <app-adesione-lista-erogazioni
                       [id]="id"
@@ -464,16 +675,12 @@
                   </div>
                 </div>
               </div>
+              }
             </div>
           </div>
           <div class="d-flex justify-content-end gap-2 mt-5">
             <div class="d-flex gap-2">
-              <!-- <lnk-button *ngIf="(updateMapper | mapper:canEditMapper) || adesione?.stato === 'bozza'"
-              [label]="isEdit ? 'APP.BUTTON.Cancel' : 'APP.BUTTON.Modify'"
-              [disabled]="changingStatus || loadingCheckDati"
-              (onAction)="toggleEdit()"
-            ></lnk-button> -->
-            @if (hasNextStateWorkflow()) {
+            @if (hasNextStateWorkflow() && _hasCambioStato()) {
               <lnk-button
                 [label]="'APP.WORKFLOW.MENU.' + getNextStateWorkflowName()"
                 [primary]="true"
@@ -490,3 +697,25 @@
 
 </section>
 </div>
+
+<ng-template #disclaimerTpl let-item>
+  <div class="alert mb-2 disclaimer-item" [ngClass]="getDisclaimerAlertClass(item.severity)" role="alert">
+    <div class="d-flex align-items-start gap-2">
+      <i class="disclaimer-icon" [ngClass]="getDisclaimerIconClass(item.severity)" [attr.aria-label]="item.severity" role="img"></i>
+      <div class="flex-grow-1">
+        <markdown class="disclaimer-body" [data]="item.disclaimer"></markdown>
+        @if (item.links?.length) {
+          <ul class="disclaimer-links mt-2 mb-0">
+            @for (link of item.links; track $index) {
+              <li>
+                <a [href]="getDisclaimerLinkHref(link)" target="_blank" rel="noopener noreferrer">
+                  {{ getDisclaimerLinkLabel(link) }}
+                </a>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </div>
+  </div>
+</ng-template>

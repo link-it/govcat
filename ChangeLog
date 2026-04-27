@@ -1,3 +1,233 @@
+2026-04-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254 (evolutiva): icona di stato sezioni/client/erogazioni
+	  ora oggettiva. Il referente non vede piu' verde su check-dati
+	  BE in `esito: ko`: rimosso il branch ruolo-dipendente nei
+	  mapper di completezza in `adesione-configurazione-wizard`,
+	  `adesione-lista-clients`, `adesione-lista-erogazioni`.
+	  Hint sezioni nascosti durante il loading del check-dati;
+	  pulsante prossimo stato visibile solo se `_hasCambioStato()`.
+	  Cleanup minori in `icon-toggle` (ngOnInit vuoto) e
+	  `check.provider` (console.log commentati).
+
+	* [Frontend]
+	Issue 254 (evolutiva): apertura accordion Collaudo/Produzione
+	  condizionata anche allo step della step-bar interna. Finche' lo
+	  step interno non raggiunge il finale (`pubblicato_*`) la sezione
+	  resta aperta anche con dati completi; al raggiungimento del
+	  finale (o oltre-fase) torna la regola precedente basata sul
+	  solo completamento dati.
+
+2026-04-24  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254 (evolutiva): step-bar interne Collaudo/Produzione pilotate
+	  dalle nuove chiavi `adesione.step_wizard_collaudo` e
+	  `adesione.step_wizard_produzione`. Nuovo stato `final` per il
+	  traguardo raggiunto e rilevamento "oltre-fase" (workflowStati)
+	  per marcare come completate le bar di fasi gia' concluse.
+	  `getSectionHint` rivisto (past/future/completed/action).
+
+	* [GovwayAPICatalogo]
+	Issue 254 (evolutiva): rivista struttura `adesione.step_wizard`
+	  (3 step info_generali/collaudo/produzione) e aggiunte
+	  `step_wizard_collaudo`/`step_wizard_produzione` in
+	  `configurazione.json`.
+
+2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 237 (Fase 2.5 test): robustness fix in
+	  `adesione-lista-clients.component.ts` emersi dai test:
+	  - optional chaining `_currClient?.source` in `onChangeCredenziali`
+	    (evita NPE quando `_currClient` e' null).
+	  - early break nel default switch quando `_aux` e' null (invece
+	    di crashare sugli accessi successivi a `_aux.dati_specifici.*`).
+	  - `_show_nome_proposto` preservato quando `this.client` non e'
+	    ancora settato (evita overwrite quando il componente e' usato
+	    senza bindings tipo-input).
+	  Test failures da 6 a 5. 3 residui pre-existing su servizio-*
+	  (non correlati), 2 su adesione-lista-clients (`oauth fields
+	  enabled`, `nome_proposto`) da approfondire successivamente.
+
+2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 237: fix regression test runtime client-details. I metodi
+	  `_onChangeAuthType` e `_onChangeTipoCertificato[Firma]` ora
+	  sincronizzano il FormControl col valore passato (utile quando
+	  chiamati da codice/test senza che il template abbia gia'
+	  aggiornato il control). Test del spec adattati allo stato
+	  derivato (FormControl setValue + _recomputeFormConfig invece
+	  di assegnazioni ai getter readonly). Failures da 41 a 6.
+
+2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Fix pre-esistente in `soggetto-details.component.spec.ts`: il test
+	  `ngOnDestroy` invocava un metodo non presente sul componente.
+	  Sostituita con tolerant-invocation via cast, bloccava la task
+	  `test:coverage`.
+
+2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 237 (Fase 2.5 spec): pulizia `client-details.component.spec.ts`
+	  dagli errori TypeScript introdotti dal refactor: rimosse le
+	  describe `_checkTipoCertificato` (metodo rimosso, copertura in
+	  `client-dialog-state.spec.ts`), rimossi i 2 test "reset flag" non
+	  piu' applicabili (flag sono getter derivati), riallineate le setup
+	  dei test che settavano flag readonly (setValue su FormControl
+	  auth_type + `_recomputeFormConfig`, o cast `as any` dove residuale).
+
+2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 237 (Fase 2.5 partial): cleanup client-details — rimosse
+	  4 flag `_isCertificato_generato*` solo scritte e mai lette,
+	  semplificate le assegnazioni nel `_loadAll` che le usavano.
+	  Spec file ha ancora test obsoleti (riferimenti a
+	  `_checkTipoCertificato` rimosso e assegnazioni a getter):
+	  da rivedere in un cleanup dedicato.
+
+2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 237: fix regression al save client-details — dopo
+	  update riuscita il form viene re-inizializzato con la risposta
+	  del server cosi' le FormControl tornano disabilitate (view mode).
+
+2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 237 (Fase 2.4 fixup): fix regression della pagina
+	  client-details in edit/view mode dopo il wiring sul componente
+	  condiviso. tipo_certificato inizializzato a null (non `[]`),
+	  adapter espliciti per change events, `_tipiCertificatoMapped`
+	  stabile (ng-select rendering), normalizzazione cert `{}` → null,
+	  sincronizzazione programmatica enable/disable FormControl,
+	  `_editClient` setta `_isEdit=true` prima di `_initForm`,
+	  `_downloadsEnabled` sempre true nel contesto pagina, nuovo flag
+	  `allowCertReplace` per consentire sostituzione cert in edit mode,
+	  nuovi slot `certificatoCertGeneratoCsr[Firma]` (fix semantico),
+	  chiave i18n `SelezionaAuthType`.
+
+2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 237 (Fase 2.4): wiring della pagina client-details sul
+	  componente condiviso. Template ridotto da 1232 a 351 righe
+	  (-881); il form auth e' delegato a `<app-client-auth-form>`.
+	  Restano in pagina solo id_organizzazione/id_soggetto,
+	  ambiente/stato e i bottoni Save/Cancel. `computeFormConfig`:
+	  nasconde il toggle credenziali quando `authTypeEditable=true`
+	  (il concetto "Nuovo / Esistente" esiste solo nella dialog).
+
+2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 237 (Fase 2.3): wiring della dialog sul componente condiviso.
+	  `ModalEditClientComponent` ora delega il form a
+	  `<app-client-auth-form>` (-640 righe HTML); resta shell per
+	  header, footer e mapping eventi. Root del componente condiviso
+	  cambiato da `<form>` a `<div [formGroup]>` per evitare form
+	  nidificate nei parent.
+
+2026-04-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 237 (Fase 2.2): nuovo `ClientAuthFormComponent` standalone
+	  condiviso fra dialog del wizard e pagina client-details.
+	  Template migrato dal modal-edit-client con estensioni: dropdown
+	  `auth_type` opzionale e 4 slot upload cert-generato (contesto
+	  pagina). Non ancora wired ai parent (fasi 2.3 / 2.4).
+
+2026-04-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 237 (prerequisiti Passo 2): rimosso dead code
+	  `_descrittoreCtrl_generato` in client-details; migrato
+	  l'upload allegati da `ui-allegato` a `ui-file-dropzone`
+	  (allineamento con la dialog del wizard).
+
+2026-04-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 237 (Passo 1): client-details usa ora `computeFormConfig`
+	  del modulo stato condiviso. Le 25+ flag booleane diventano
+	  getter derivati, rimosso `_checkTipoCertificato`, semplificato
+	  `_onChangeAuthType` (switch + chain di if → helper dichiarativo).
+	  `ClientDialogInput` esteso con `authTypeEditable` e `statoNuovo`;
+	  `CertBlockConfig` con `certGeneratoFileRequired`. Template
+	  invariato.
+
+2026-04-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: pannello debug nel wizard con 19 preset mock per
+	  provare la dialog di configurazione auth client (save simulato,
+	  visibile con `wizard_debug_switches`).
+
+2026-04-20  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: disclaimer per-client dal backend. Gestito il nuovo
+	  campo `profilo` sui disclaimer: quelli con profilo sono esclusi
+	  dal banner di sezione e mostrati sotto la riga del client
+	  matching (icona colorata per severity + markdown inline).
+	  Rimossi gli hint FE di stato su client e erogazioni.
+	Issue 254: messaggi contestuali nel wizard Adesioni. Hint sotto
+	  ogni sezione accordion (azione richiesta / completata / non ancora
+	  disponibile, con distinzione past/future via `stati_scheda_adesione`)
+	  e sotto ogni riga di client/erogazione in base allo stato. Layout
+	  orizzontale opzionale per la dialog di configurazione client quando
+	  ci sono più aree di upload. Fix NPE in `servizio-details._loadApis`
+	  (fallback con forma corretta). Ignorate le copie locali di
+	  `app-config-*.json`.
+
+2026-04-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: fix due NPE nel wizard adesioni emersi durante testing:
+	  optional chaining mancante su `currentState.nome` in
+	  `hasNextStateWorkflow` e guard mancante su `_cambioStato` nel
+	  template di `WorkflowComponent`.
+	Issue 237: refactoring completo della dialog di configurazione
+	  modalità di autenticazione client. Dialog estratta in
+	  `ModalEditClientComponent` standalone presentational, guidata da
+	  un modulo puro `client-dialog-state.ts` (discriminated unions +
+	  `computeFormConfig`, 29 test vitest). UX allineata al mockup:
+	  toggle "Nuovo client / Client già censito", dropdown contestuale
+	  con alert empty-state, label "Tipo di accesso", info-box per
+	  scenario e help-text sui campi. Nuovo componente `ui-file-dropzone`
+	  per l'upload dei certificati. Eliminate le 27+ flag booleane
+	  interne e le race condition con setTimeout. Storia dettagliata
+	  sul branch `sprint-2.3.7-237-modale-auth-client`.
+
+2026-04-18  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: rendering dei disclaimer del wizard Adesioni adeguato
+	  al nuovo formato di `GET /adesioni/{id}/disclaimers` (oggetti con
+	  `disclaimer`, `contesto`, `severity`, `links`). Mostrati nella
+	  posizione corrispondente al contesto, con icona e stile
+	  Bootstrap in base alla severity. Aggiunto mock locale attivabile
+	  tramite flag `disclaimersUseMock`.
+
+2026-04-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: nuovo wizard di configurazione Adesioni guidato da
+	  `adesione.step_wizard`. Nuova step-bar interattiva
+	  (`AdesioneStepBarComponent`) con varianti circles/chevron,
+	  tematizzazione via 11 CSS vars sui 6 temi + preset dark,
+	  indicatori visivi per step reale vs anteprima e badge opzionali.
+	  Integrati i disclaimer dinamici multilingua in markdown, tooltip
+	  "Salta collaudo", flag `wizard_show_all_sections` e
+	  `wizard_debug_switches`. Rework layout sezione Referenti
+	  (blocchi separati per adesione / servizio / dominio).
+
 2026-04-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

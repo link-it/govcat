@@ -16,18 +16,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, Input, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { MarkdownModule } from 'ngx-markdown';
 
 import { COMPONENTS_IMPORTS, EventsManagerService, Tools, EventType } from '@linkit/components';
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
-import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
+import { ModalEditClientComponent, ModalEditClientInput, ModalEditClientLayout } from './modal-edit-client/modal-edit-client.component';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService, Certificato } from '@app/services/utils.service';
@@ -38,7 +40,24 @@ import { AmbienteEnum } from '@app/model/ambienteEnum';
 
 import { PeriodEnum, Datispecifici, DatiSpecItem, CommonName, DoubleCert } from '../../adesione-configurazioni/datispecifici';
 
-import { expand, map, reduce } from 'rxjs';
+import { EMPTY, Observable, Subject, of } from 'rxjs';
+import { concatMap, expand, map, reduce, takeUntil, tap } from 'rxjs/operators';
+
+import {
+    AuthType,
+    CertificateMode,
+    ClientDialogInput,
+    CredentialsMode,
+    FormConfig,
+    Scenario,
+    authIsPdndVariant,
+    authRequiresCertAuth,
+    authRequiresCertSign,
+    authRequiresClientId,
+    authRequiresOauthUrls,
+    authRequiresUsername,
+    computeFormConfig
+} from './client-dialog-state';
 
 declare const saveAs: any;
 import * as _ from 'lodash';
@@ -51,6 +70,7 @@ import { CkeckProvider, ClassiEnum, DataStructure } from '@app/provider/check.pr
     styleUrls: ['./adesione-lista-clients.component.scss'],
     standalone: true,
     imports: [
+        CommonModule,
         ReactiveFormsModule,
         TranslateModule,
         ...COMPONENTS_IMPORTS,
@@ -58,10 +78,13 @@ import { CkeckProvider, ClassiEnum, DataStructure } from '@app/provider/check.pr
         MapperPipe,
         TooltipModule,
         NgSelectModule,
-        MarkAsteriskDirective
+        MarkdownModule,
+        ModalEditClientComponent
     ]
 })
-export class AdesioneListaClientsComponent implements OnInit {
+export class AdesioneListaClientsComponent implements OnInit, OnDestroy {
+
+    private readonly _destroy$ = new Subject<void>();
 
     @Input() id: number = 0;
     @Input() adesione: any = null;
@@ -73,6 +96,7 @@ export class AdesioneListaClientsComponent implements OnInit {
     @Input() otherClass: string = '';
     @Input() dataCheck: DataStructure = { esito: 'ok', errori: [] };
     @Input() nextState: any = null;
+    @Input() disclaimers: any[] = [];
     
     completed: boolean = true;
 
@@ -104,6 +128,11 @@ export class AdesioneListaClientsComponent implements OnInit {
         this.initData();
     }
 
+    ngOnDestroy(): void {
+        this._destroy$.next();
+        this._destroy$.complete();
+    }
+
     ngOnChanges(changes: SimpleChanges): void {
         if (changes.dataCheck) {
             this.dataCheck = changes.dataCheck.currentValue;
@@ -123,7 +152,11 @@ export class AdesioneListaClientsComponent implements OnInit {
 
         const certificato: Certificato | null = this.utils.getCertificatoByAuthType(authTypes, auth_type);
         if (certificato) {
-            this._isRichiesto_csr = certificato.csr_modulo || false;
+            // Nota: l'originale settava `_isRichiesto_csr` qui con semantica
+            // "csr_modulo supportato dall'auth type" — conflitto con la flag
+            // "user ha selezionato richiesto_csr". Ora che la flag e' stata
+            // rimossa, `csr_modulo` e' implicitamente codificato nei
+            // `_tipiCertificato` ritornati da `getTipiCertificatoAttivi`.
             this._tipiCertificato = this.utils.getTipiCertificatoAttivi(certificato).map((c: string) => { return { nome: c, valore: c }; });
         }
     }
@@ -214,14 +247,14 @@ export class AdesioneListaClientsComponent implements OnInit {
 
                     this.spin = false;
                 },
-                error: (error: any) => {
+                error: () => {
                     this.spin = false;
                 }
             });
         }
     }
 
-    isStatusPubblicatoCollaudodMapper = (update: string, stato: string): boolean => {
+    isStatusPubblicatoCollaudodMapper = (_update: string, stato: string): boolean => {
         return stato === 'pubblicato_produzione';
     }
 
@@ -239,7 +272,10 @@ export class AdesioneListaClientsComponent implements OnInit {
         if (this.isSottotipoGroupCompletedMapper(update, tipo)) {
             return this.nextState?.dati_non_applicabili?.includes(this.environment) ? 2 : 1;
         } else {
-            return this._hasCambioStato() ? 0 : 1;
+            // Stato di completezza dei dati: oggettivo, non dipende dal ruolo.
+            // Anche un referente che non puo' cambiare stato deve vedere
+            // l'alert quando il check-dati BE riporta esito != 'ok'.
+            return 0;
         }
     }
 
@@ -258,12 +294,12 @@ export class AdesioneListaClientsComponent implements OnInit {
         return !this.adesione?.skip_collaudo && collaudoStates.includes(this.adesione?.stato);
     }
 
-    isSottotipoGroupCompletedMapper = (update: string, tipo: string): boolean => {
+    isSottotipoGroupCompletedMapper = (_update: string, tipo: string): boolean => {
         return this.ckeckProvider.isSottotipoGroupCompleted(this.dataCheck, this.environment, tipo);
     }
 
-    isSottotipoCompletedMapper = (update: string, tipo: string, identificativo: string): boolean => {
-        return this._hasCambioStato() ? this.ckeckProvider.isSottotipoCompleted(this.dataCheck, this.environment, tipo, identificativo) : true;
+    isSottotipoCompletedMapper = (_update: string, tipo: string, identificativo: string): boolean => {
+        return this.ckeckProvider.isSottotipoCompleted(this.dataCheck, this.environment, tipo, identificativo);
     }
 
     _isGestoreMapper = (): boolean => {
@@ -279,7 +315,38 @@ export class AdesioneListaClientsComponent implements OnInit {
         return _isConfigurato;
     }
 
-    _isModifiableMapper = (item: any = null): boolean => {
+    /**
+     * Disclaimer (lista) da mostrare sotto la riga del client: filtra
+     * gli `disclaimers` (gia' filtrati per contesto = ambiente dal
+     * parent) per quelli con `profilo` coincidente col profilo del
+     * client corrente. I disclaimer senza `profilo` non si riferiscono
+     * a uno specifico client e vengono scartati.
+     */
+    _clientDisclaimers = (item: any = null): any[] => {
+        if (!item || !this.disclaimers?.length) return [];
+        const profiloClient: string = item?.source?.profilo || item?.source?.codice_interno;
+        if (!profiloClient) return [];
+        return this.disclaimers.filter(d => d?.profilo && d.profilo === profiloClient);
+    }
+
+    _getDisclaimerIconClass(severity?: string): string {
+        switch (severity) {
+            case 'ERROR': return 'bi bi-x-circle text-danger';
+            case 'WARNING': return 'bi bi-exclamation-triangle text-warning';
+            case 'INFO':
+            default: return 'bi bi-info-circle text-info';
+        }
+    }
+
+    _getDisclaimerLinkHref(link: any): string {
+        return link?.url || link?.href || '';
+    }
+
+    _getDisclaimerLinkLabel(link: any): string {
+        return link?.label || link?.title || link?.text || link?.url || link?.href || '';
+    }
+
+    _isModifiableMapper = (_item: any = null): boolean => {
         if (this.grant) {
             if ((this.environment === AmbienteEnum.Collaudo) && (this.grant.collaudo === RightsEnum.Scrittura)) {
                 return true;
@@ -319,15 +386,15 @@ export class AdesioneListaClientsComponent implements OnInit {
         const codice_interno_profilo = this._getProfilo(item);
         const _url: any = `${this.adesione.id_adesione}/${this.environment}/client/${codice_interno_profilo}`;
 
-        this.apiService.deleteElement(this.model, _url).subscribe(
-            (response) => {
+        this.apiService.deleteElement(this.model, _url).subscribe({
+            next: () => {
                 this.loadAdesioneClients(this.environment);
                 this.eventsManagerService.broadcast(EventType.WIZARD_CHECK_UPDATE, true);
             },
-            (error) => {
+            error: (error: any) => {
                 Tools.OnError(error);
             }
-        );
+        });
     }
 
     // Modal Edit
@@ -346,9 +413,10 @@ export class AdesioneListaClientsComponent implements OnInit {
     _currClient: any = null;
     _currDatiSpecifici: any = null;
 
-    _isFornito: boolean = false; 
-    _isRichiesto_cn: boolean = false; 
-    _isRichiesto_csr: boolean = false;
+    // Fase 4.4 (Issue #237): rimosse 16 boolean flag orfane
+    // (`_isFornito*`, `_isRichiesto_*`, `_is{AuthType}`). Erano ormai
+    // solo set-and-forget: template e logica TS leggono tutto da
+    // `formConfig` / FormControl.
     _ip_richiesto: boolean = false;
     _show_erogazione_ip_fruizione: boolean = false;
     _show_erogazione_rate_limiting: boolean = false;
@@ -357,10 +425,6 @@ export class AdesioneListaClientsComponent implements OnInit {
     _show_client_form: boolean = true;
 
     _tipiCertificato: any[] = [];
-
-    _isFornito_firma: boolean = false; 
-    _isRichiesto_cn_firma: boolean = false; 
-    _isRichiesto_csr_firma: boolean = false;
 
     _certificato_csr_firma: any = {};
     _certificato_fornito_firma: any = {};
@@ -375,19 +439,6 @@ export class AdesioneListaClientsComponent implements OnInit {
 
     _auth_type: any = null;
     _tipo_client: any = null;
-
-    _isNoDati: boolean = false;
-    _isIndirizzoIP: boolean = false;
-    _isHttpBasic: boolean = false;
-    _isOauthAuthCode: boolean = false;
-    _isOauthClientCredentials: boolean = false;
-    _isHttps: boolean = false;
-    _isHttpsSign: boolean = false;
-    _isPdnd: boolean = false;
-    _isHttpsPdnd: boolean = false;
-    _isHttpsPdndSign: boolean = false;
-    _isSign: boolean = false;
-    _isSignPdnd: boolean = false;
 
     _codice_interno_profilo: any = null;
 
@@ -460,46 +511,53 @@ export class AdesioneListaClientsComponent implements OnInit {
         this._codice_interno_profilo = client.source.codice_interno;
 
         this._checkAndSetAuthTypeCase(this._auth_type);
-        
+
         this.onChangeTipoCertificato(null);
         this.onChangeTipoCertificatoFirma(null);
 
         const _modalConfig: any = {
             ignoreBackdropClick: true,
-            class: 'modal-half-'
+            class: this._modalClassFor(this._dialogLayout)
         };
 
         const _isNotConfigurato = (client.source.stato === StatoConfigurazioneEnum.NONCONFIGURATO);
-        const _isNomeProposto = client?.source?.nome_proposto ? true : false;
+        const _isNomeProposto = !!client?.source?.nome_proposto;
         this._show_nome_proposto = _isNomeProposto;
 
-        if (!client.id_client || _isNotConfigurato || _isNomeProposto) {
-            this.isEditClient = false;
-            this._currClient = _isNomeProposto ? { ...client } : {};
+        const isNewBranch = !client.id_client || _isNotConfigurato || _isNomeProposto;
+        this.isEditClient = !isNewBranch;
 
-            setTimeout(() => {
-                this._initEditFormClients(this._currClient.source);
-                this._modalEditRef = this.modalService.show(this.editClients, _modalConfig)
-            }, 200);
+        const ambiente: string = this.environment;
+        const organizzazione: string = this.adesione?.soggetto?.organizzazione?.id_organizzazione || '';
 
-        } else {
-            this.isEditClient = true;
+        // Fase 2 (Issue #237): carichiamo i dati in sequenza prima di aprire la
+        // modale, cosi' spariscono i setTimeout(200) e la race con la paginazione
+        // di _loadClientsRiuso$.
+        const clientDetails$: Observable<any> = isNewBranch
+            ? of(_isNomeProposto ? { ...client } : {})
+            : this.apiService.getDetails('client', client.id_client);
 
-            this.apiService.getDetails('client', client.id_client).subscribe({
-                next: (response: any) => {
-                    this._currClient = { ...response };
-
-                    setTimeout(() => {
-                        this._initEditFormClients(this._currClient);
-                        this._modalEditRef = this.modalService.show(this.editClients, _modalConfig);
-                    }, 200);
-                },
-                error: (error: any) => {
-                    this._error = true;
-                    this._errorMsg = this.utils.GetErrorMsg(error);
+        clientDetails$.pipe(
+            tap((detailsData: any) => {
+                if (isNewBranch) {
+                    this._currClient = _isNomeProposto ? { ...client } : {};
+                } else {
+                    this._currClient = { ...detailsData };
                 }
-            });
-        }
+            }),
+            concatMap(() => this._loadCredenziali$(this._auth_type, organizzazione, ambiente)),
+            takeUntil(this._destroy$)
+        ).subscribe({
+            next: () => {
+                const initData = isNewBranch ? this._currClient.source : this._currClient;
+                this._initEditFormClients(initData);
+                this._modalEditRef = this.modalService.show(this.editClients, _modalConfig);
+            },
+            error: (error: any) => {
+                this._error = true;
+                this._errorMsg = this.utils.GetErrorMsg(error);
+            }
+        });
     }
 
     get f(): { [key: string]: AbstractControl } {
@@ -544,9 +602,9 @@ export class AdesioneListaClientsComponent implements OnInit {
         let _client_id: string | null = null;
         let _username: string | null = null;
 
-        const ambiente: string = this.environment;
-        const organizzazione: string = this.adesione?.soggetto?.organizzazione?.id_organizzazione || '';
-        this._loadCredenziali(this._auth_type, organizzazione, ambiente);
+        // Fase 2 (Issue #237): _arr_clients_riuso e' gia' stato popolato in
+        // _onEditClient prima di chiamare _initEditFormClients. Non serve piu'
+        // ricaricare qui ed evitiamo la race condition che richiedeva setTimeout.
 
         if (data) {
             _credenziali = data.id_client;
@@ -559,15 +617,11 @@ export class AdesioneListaClientsComponent implements OnInit {
         this._currentServiceClient = _credenziali;
 
         if (data?.dati_specifici) {
+            // Fase 4.4: le 6 flag `_isFornito*`/`_isRichiesto_*` sono state
+            // rimosse. Il mode certificato e' ora derivato dal FormControl
+            // `tipo_certificato[_firma]` via `_currentCertAuthMode`/`_currentCertSignMode`.
             _tipo_certificato = data.dati_specifici.certificato_autenticazione?.tipo_certificato;
-            this._isFornito = (_tipo_certificato === 'fornito') ? true : false;
-            this._isRichiesto_cn = (_tipo_certificato === 'richiesto_cn') ? true : false;
-            this._isRichiesto_csr = (_tipo_certificato === 'richiesto_csr') ? true : false;
-
             _tipo_certificato_firma = data.dati_specifici.certificato_firma?.tipo_certificato;
-            this._isFornito_firma = (_tipo_certificato_firma === 'fornito') ? true : false;
-            this._isRichiesto_cn_firma = (_tipo_certificato_firma === 'richiesto_cn') ? true : false;
-            this._isRichiesto_csr_firma = (_tipo_certificato_firma === 'richiesto_csr') ? true : false;
         }
 
         if (data?.source?.stato === StatoConfigurazioneEnum.NONCONFIGURATO) {
@@ -576,42 +630,48 @@ export class AdesioneListaClientsComponent implements OnInit {
             this._certificato_fornito = null;
         } else {
 
-            if (this._isFornito) {
+            // Fase 4.2 (Issue #237): si legge dal `_tipo_certificato` locale
+            // appena calcolato invece che dalle flag `_isFornito*` equivalenti.
+            if (_tipo_certificato === 'fornito') {
                 this._certificato_fornito = data?.dati_specifici?.certificato_autenticazione?.certificato || null;
             }
 
-            if (this._isRichiesto_cn) {
+            if (_tipo_certificato === 'richiesto_cn') {
                 _cn = data?.dati_specifici?.certificato_autenticazione?.cn || null;
             }
-            
-            if(this._isRichiesto_csr) {
+
+            if (_tipo_certificato === 'richiesto_csr') {
                 this._certificato_csr = data?.dati_specifici?.certificato_autenticazione?.richiesta || null;
                 this._modulo_richiesta_csr = data?.dati_specifici?.certificato_autenticazione?.modulo_richiesta || null;
             }
 
-            if (this._isFornito_firma) {
+            if (_tipo_certificato_firma === 'fornito') {
                 this._certificato_fornito_firma = data?.dati_specifici?.certificato_firma?.certificato || null;
             }
 
-            if (this._isRichiesto_cn_firma) {
+            if (_tipo_certificato_firma === 'richiesto_cn') {
                 _cn_firma = data?.dati_specifici?.certificato_firma?.cn || null;
             }
 
-            if (this._isRichiesto_csr_firma) {
+            if (_tipo_certificato_firma === 'richiesto_csr') {
                 this._certificato_csr_firma = data?.dati_specifici?.certificato_firma?.richiesta || null;
                 this._modulo_richiesta_csr_firma = data?.dati_specifici?.certificato_firma?.modulo_richiesta || null;
                 this._modulo_richiesta_csr_firma_ceritifato = data?.dati_specifici?.certificato_firma?.certificato || null;
             }
 
-            if (this._isHttpBasic) {
+            // Fase 4.0 (Issue #237): lettura del dati_specifici guidata dai
+            // predicati di client-dialog-state invece che dalle 27+ flag.
+            const _authType: AuthType = this._auth_type as AuthType;
+
+            if (authRequiresUsername(_authType)) {
                 _username = data?.dati_specifici?.username || null;
             }
 
-            if (this._isPdnd || this._isHttpsPdnd || this._isHttpsPdndSign || this._isSignPdnd || this._isOauthClientCredentials || this._isOauthAuthCode) {
+            if (authRequiresClientId(_authType) || authRequiresOauthUrls(_authType)) {
                 _client_id = data?.dati_specifici?.client_id || null;
             }
 
-            if (this._isOauthAuthCode) {
+            if (authRequiresOauthUrls(_authType)) {
                 _url_redirezione = data?.dati_specifici?.url_redirezione || null;
                 _url_esposizione = data?.dati_specifici?.url_esposizione || null;
                 _help_desk = data?.dati_specifici?.help_desk || null;
@@ -671,8 +731,12 @@ export class AdesioneListaClientsComponent implements OnInit {
         });
 
         const controls = this._editFormGroupClients.controls;
-        
-        if (this._isPdnd || this._isHttpsPdnd || this._isHttpsPdndSign || this._isSignPdnd) {
+
+        // Fase 4.0 (Issue #237): validator setup guidato dai predicati
+        // invece che dalle 27+ flag booleane.
+        const authTypeTyped: AuthType = this._auth_type as AuthType;
+
+        if (authIsPdndVariant(authTypeTyped)) {
             controls.client_id.setValidators(Validators.required);
             controls.client_id.updateValueAndValidity();
         } else {
@@ -680,17 +744,19 @@ export class AdesioneListaClientsComponent implements OnInit {
             controls.client_id.updateValueAndValidity();
         }
 
-        if(this._isHttpsSign || this._isHttpsPdndSign || this._isHttpsPdndSign || this._isSign || this._isSignPdnd) {
+        if (authRequiresCertSign(authTypeTyped)) {
             controls.tipo_certificato_firma.setValidators(Validators.required);
             controls.tipo_certificato_firma.updateValueAndValidity();
         }
 
-        if (this._isSign || this._isSignPdnd) {
-            controls.tipo_certificato_firma.enable()
+        // Auth type che richiedono SOLO il cert di firma (niente cert auth):
+        // sign, sign_pdnd. Abilita il selettore firma e libera il cert auth.
+        if (authRequiresCertSign(authTypeTyped) && !authRequiresCertAuth(authTypeTyped)) {
+            controls.tipo_certificato_firma.enable();
             controls.tipo_certificato.clearValidators();
         }
 
-        if (this._isOauthAuthCode) {
+        if (authRequiresOauthUrls(authTypeTyped)) {
             controls.url_redirezione.enable();
             controls.url_redirezione.setValidators(Validators.required);
             controls.url_redirezione.updateValueAndValidity();
@@ -705,16 +771,18 @@ export class AdesioneListaClientsComponent implements OnInit {
             controls.nome_applicazione_portale.updateValueAndValidity();
         }
 
-        setTimeout((ctrl:any = this._editFormGroupClients.controls) => {
-            if (this._arr_clients_riuso.length === 1) {
-                ctrl.credenziali.patchValue(this._arr_clients_riuso[0].id_client);
-                ctrl.credenziali.updateValueAndValidity();
-                this._editFormGroupClients.updateValueAndValidity();
-                this.onChangeCredenziali(this._arr_clients_riuso[0].id_client);
-            } else {
-                this.onChangeCredenziali(_credenziali);
-            }
-        }, 100);
+        // Fase 2 (Issue #237): `_arr_clients_riuso` e' gia' popolato a questo
+        // punto (caricato in _onEditClient prima dell'init), quindi possiamo
+        // eseguire sincrono senza il vecchio setTimeout(100).
+        const _ctrl = this._editFormGroupClients.controls;
+        if (this._arr_clients_riuso.length === 1) {
+            _ctrl['credenziali'].patchValue(this._arr_clients_riuso[0].id_client);
+            _ctrl['credenziali'].updateValueAndValidity();
+            this._editFormGroupClients.updateValueAndValidity();
+            this.onChangeCredenziali(this._arr_clients_riuso[0].id_client);
+        } else {
+            this.onChangeCredenziali(_credenziali);
+        }
 
         if (!this._isModifiableMapper(data)) {
             this._disableAllFields(controls);
@@ -725,25 +793,51 @@ export class AdesioneListaClientsComponent implements OnInit {
         if (this.debugMandatoryFields) { this.utils._showMandatoryFields(this._editFormGroupClients); }
     }
 
-    _loadCredenziali(auth_type: string = '', organizzazione: string = '', ambiente: string = '') {
+    /**
+     * Fase 2 (Issue #237): restituisce un Observable che, una volta completato,
+     * garantisce che `_arr_clients_riuso` sia popolato. Il chiamante puo' quindi
+     * sequenziare con `concatMap` e aprire la modale solo a dati disponibili.
+     */
+    _loadCredenziali$(auth_type: string = '', organizzazione: string = '', ambiente: string = ''): Observable<any[]> {
         this._arr_clients_riuso = [];
 
         if (organizzazione === '') {
-            this._arr_clients_riuso.push({'nome': 'Nuove credenziali', 'id_client': null});
-        } else {
-            if (this._generalConfig.adesione.visualizza_elenco_client_esistenti) {
-                this._loadClientsRiuso(auth_type, organizzazione, ambiente, true);
-            } else {
-                this._arr_clients_riuso.push({'nome': this.translate.instant('APP.ADESIONI.LABEL.NuoveCredenziali'), 'id_client': SelectedClientEnum.NuovoCliente});
-                this._arr_clients_riuso.push({'nome': this.translate.instant('APP.ADESIONI.LABEL.UsaClientEsistente'), 'id_client': SelectedClientEnum.UsaClientEsistente});
-                if (this.authenticationService.isGestore()) {
-                    this._loadClientsRiuso(auth_type, organizzazione, ambiente, true);
-                }
-            }
+            this._arr_clients_riuso.push({ 'nome': 'Nuove credenziali', 'id_client': null });
+            return of(this._arr_clients_riuso);
         }
-    };
 
-    _loadClientsRiuso(auth_type: string = '', organizzazione: string = '', ambiente: string = '', checkRiuso: boolean = false) {
+        if (this._generalConfig.adesione.visualizza_elenco_client_esistenti) {
+            return this._loadClientsRiuso$(auth_type, organizzazione, ambiente).pipe(
+                tap((clients: any[]) => {
+                    this._arr_clients_riuso = clients;
+                    this._postProcessClientsList();
+                }),
+                map(() => this._arr_clients_riuso)
+            );
+        }
+
+        this._arr_clients_riuso.push({ 'nome': this.translate.instant('APP.ADESIONI.LABEL.NuoveCredenziali'), 'id_client': SelectedClientEnum.NuovoCliente });
+        this._arr_clients_riuso.push({ 'nome': this.translate.instant('APP.ADESIONI.LABEL.UsaClientEsistente'), 'id_client': SelectedClientEnum.UsaClientEsistente });
+
+        if (this.authenticationService.isGestore()) {
+            return this._loadClientsRiuso$(auth_type, organizzazione, ambiente).pipe(
+                tap((clients: any[]) => {
+                    this._arr_clients_riuso = clients;
+                    this._postProcessClientsList();
+                }),
+                map(() => this._arr_clients_riuso)
+            );
+        }
+
+        return of(this._arr_clients_riuso);
+    }
+
+    /**
+     * Fase 2 (Issue #237): versione Observable di _loadClientsRiuso, senza
+     * side-effect interno. La paginazione viene completata dentro la pipe,
+     * il consumatore riceve l'array completo in un unico emit finale.
+     */
+    _loadClientsRiuso$(auth_type: string = '', organizzazione: string = '', ambiente: string = ''): Observable<any[]> {
         const size = 100;
         const baseOptions: any = {
             params: {
@@ -756,7 +850,7 @@ export class AdesioneListaClientsComponent implements OnInit {
             }
         };
 
-        this.apiService.getList('client', baseOptions).pipe(
+        return this.apiService.getList('client', baseOptions).pipe(
             expand((response: any) => {
                 const { number, totalPages } = response.page;
                 if (number + 1 < totalPages) {
@@ -764,34 +858,26 @@ export class AdesioneListaClientsComponent implements OnInit {
                         ...baseOptions,
                         params: { ...baseOptions.params, page: number + 1 }
                     });
-                } else {
-                    return [];
                 }
+                return EMPTY;
             }),
             map((res: any) => res.content),
-            reduce((acc, curr) => acc.concat(curr), [])
-        ).subscribe({
-            next: (allClients: any[]) => {
-                this._arr_clients_riuso = allClients;
-                this._postProcessClients(checkRiuso);
-            },
-            error: () => this._setErrorMessages(true)
-        });
+            reduce((acc, curr) => acc.concat(curr), [] as any[])
+        );
     }
 
-    private _postProcessClients(checkRiuso: boolean) {
-        if (checkRiuso) {
-            const obbligatorio: boolean = this._generalConfig.adesione.riuso_client_obbligatorio;
-            if (this._arr_clients_riuso.length === 0 || !obbligatorio) {
-                this._arr_clients_riuso.unshift({
-                    nome: this.translate.instant('APP.ADESIONI.LABEL.NuoveCredenziali'),
-                    id_client: SelectedClientEnum.NuovoCliente
-                });
-            }
-        }
-        // Only call onChangeCredenziali if form is initialized to prevent race condition
-        if (this._editFormGroupClients && this._editFormGroupClients.controls) {
-            this.onChangeCredenziali(this._currClient?.id_client ? null : SelectedClientEnum.NuovoCliente);
+    /**
+     * Aggiunge "Nuove credenziali" in testa alla lista se non e' obbligatorio
+     * il riuso (o se la lista e' vuota). L'auto-select del credenziale
+     * di default e' ora gestito da _initEditFormClients (riga ~708).
+     */
+    private _postProcessClientsList() {
+        const obbligatorio: boolean = this._generalConfig.adesione.riuso_client_obbligatorio;
+        if (this._arr_clients_riuso.length === 0 || !obbligatorio) {
+            this._arr_clients_riuso.unshift({
+                nome: this.translate.instant('APP.ADESIONI.LABEL.NuoveCredenziali'),
+                id_client: SelectedClientEnum.NuovoCliente
+            });
         }
     }
 
@@ -805,87 +891,28 @@ export class AdesioneListaClientsComponent implements OnInit {
         });
     }
 
-    _checkTipoCertificato(auth_type: string = '', tipo_cert: string = '') {
+    // Fase 4.4: rimosso `_checkTipoCertificato` (dead code: mai chiamato in
+    // questo componente, presente solo come residuo dell'originale
+    // `adesione-configurazioni.component.ts`). I test su questo metodo
+    // erano gia' stati marcati obsoleti.
 
-        if (auth_type == 'https') {
-            this._isFornito = (tipo_cert == 'fornito')
-            this._isRichiesto_cn = (tipo_cert == 'richiesto_cn')
-            this._isRichiesto_csr = (tipo_cert == 'richiesto_csr')
-        }
-
-        if (auth_type == 'https_sign') {
-            this._isFornito = (tipo_cert == 'fornito')
-            this._isRichiesto_cn = (tipo_cert == 'richiesto_cn')
-            this._isRichiesto_csr = (tipo_cert == 'richiesto_csr')
-        }
-    }
-
-    _resetAllAuthType() {
-        this._isNoDati = false;
-        this._isIndirizzoIP = false;
-        this._isHttpBasic = false;
-        this._isOauthAuthCode = false;
-        this._isOauthClientCredentials = false;
-        this._isHttps = false;
-        this._isHttpsSign = false;
-        this._isPdnd = false;
-        this._isHttpsPdnd = false;
-        this._isHttpsPdndSign = false;
-        this._isSign = false;
-        this._isSignPdnd = false;
-    }
-
+    /**
+     * Fase 4.4 (Issue #237): il metodo imposta ora SOLO i flag
+     * `_show_erogazione_*` a partire dalla configurazione
+     * dell'auth_type (sezione `servizio.api.auth_type`). Lo switch
+     * che settava le 12 flag `_is{AuthType}` e' stato rimosso
+     * (le flag sono state eliminate).
+     *
+     * Il nome del metodo e' storico; la chiamata viene mantenuta
+     * nei 3 call site per preservare il side-effect sui show flag.
+     */
     _checkAndSetAuthTypeCase(auth_type: any = null) {
-
         const authTypes: any = this.authenticationService._getConfigModule('servizio').api.auth_type;
         const configAuthType = authTypes.find((x: any) => x.type == auth_type);
         if (configAuthType) {
             this._show_erogazione_ip_fruizione = configAuthType.indirizzi_ip || false;
             this._show_erogazione_rate_limiting = configAuthType.rate_limiting || false;
             this._show_erogazione_finalita = configAuthType.finalita || false;
-        }
-
-        this._resetAllAuthType();
-
-        switch (auth_type) {
-            case 'no_dati':
-                this._isNoDati = true; 
-                break;
-            case 'indirizzo_ip':
-                this._isIndirizzoIP = true; 
-                break;
-            case 'http_basic':
-                this._isHttpBasic = true; 
-                break;
-            case 'oauth_authorization_code':
-                this._isOauthAuthCode = true;
-                break;
-            case 'oauth_client_credentials':
-                this._isOauthClientCredentials = true;
-                break;
-            case 'https':
-                this._isHttps = true;
-                break;
-            case 'https_sign':
-                this._isHttpsSign = true;
-                break;
-            case 'pdnd':
-                this._isPdnd = true;
-                break;
-            case 'https_pdnd':
-                this._isHttpsPdnd = true;
-                break;
-            case 'https_pdnd_sign':
-                this._isHttpsPdndSign = true;
-                break;
-            case 'sign':
-                this._isSign = true;
-                break;
-            case 'sign_pdnd':
-                this._isSignPdnd = true;
-                break;
-            default:
-                break;
         }
     }
 
@@ -896,62 +923,44 @@ export class AdesioneListaClientsComponent implements OnInit {
             this._resetUploadCertificateComponents(controls);
         }
 
+        // Fase 4.4: rimosse le scritture alle flag `_isFornito/_isRichiesto_*`,
+        // ora orfane. Il mode certificato e' letto dal FormControl
+        // `tipo_certificato` via `_currentCertAuthMode`.
         if (event) {
             switch (event.nome) {
                 case 'fornito':
                     controls?.content?.setValidators(Validators.required);
                     controls?.content?.updateValueAndValidity();
-                    
-                    this._isFornito = true; 
-                    this._isRichiesto_cn = false; 
-                    this._isRichiesto_csr = false;
 
                     this._certificato_fornito = this._currDatiSpecifici?.certificato?.certificato || null;
                     this._certificato_csr = null;
                     this._modulo_richiesta_csr = null;
                     break;
-                case 'richiesto_cn': 
+                case 'richiesto_cn':
                     controls?.cn?.setValidators(Validators.required);
                     controls?.cn?.updateValueAndValidity();
-                    
-                    this._isFornito = false; 
-                    this._isRichiesto_cn = true; 
-                    this._isRichiesto_csr = false;
 
                     this._certificato_fornito =  null;
                     this._certificato_csr = null;
                     this._modulo_richiesta_csr = null;
                     break;
-                case 'richiesto_csr': 
+                case 'richiesto_csr':
                     controls?.content?.setValidators(Validators.required);
                     controls?.content?.updateValueAndValidity();
                     controls?.content_csr?.setValidators(Validators.required);
                     controls?.content_csr?.updateValueAndValidity();
-                    
-                    this._isFornito = false; 
-                    this._isRichiesto_cn = false; 
-                    this._isRichiesto_csr = true;
 
                     this._certificato_fornito = null;
                     this._certificato_csr = this._currDatiSpecifici?.certificato?.richiesta || null;
                     this._modulo_richiesta_csr = this._currDatiSpecifici?.certificato?.modulo_richiesta || null;
                     break;
                 default:
-                    this._isFornito = false; 
-                    this._isRichiesto_cn = false; 
-                    this._isRichiesto_csr = false;
-
                     this._certificato_fornito =  null;
                     this._certificato_csr = null;
                     this._modulo_richiesta_csr = null;
                     break;
             }
         } else {
-
-            this._isFornito = false; 
-            this._isRichiesto_cn = false; 
-            this._isRichiesto_csr = false;
-
             this._resetCertificates();
         }
 
@@ -970,7 +979,9 @@ export class AdesioneListaClientsComponent implements OnInit {
                 // controls.nome_proposto.patchValue(null);
                 controls.nome_proposto.clearValidators();
 
-                if (this._isPdnd || this._isHttpsPdnd || this._isHttpsPdndSign || this._isSignPdnd) {
+                // Fase 4.1: predicati vs flag anche in updateAllValidators.
+                const _at: AuthType = this._auth_type as AuthType;
+                if (authIsPdndVariant(_at)) {
                     controls.client_id.setValidators(Validators.required);
                     controls.client_id.updateValueAndValidity();
                 } else {
@@ -978,16 +989,17 @@ export class AdesioneListaClientsComponent implements OnInit {
                     controls.client_id.updateValueAndValidity();
                 }
 
-                if(this._isHttpsSign || this._isHttpsPdndSign || this._isHttpsPdndSign || this._isSign || this._isSignPdnd) {
+                if (authRequiresCertSign(_at)) {
                     controls.tipo_certificato_firma.setValidators(Validators.required);
                     controls.tipo_certificato_firma.updateValueAndValidity();
                 }
-                if (this._isSign || this._isSignPdnd) {
+                // sign, sign_pdnd (sign cert SOLO, senza auth cert).
+                if (authRequiresCertSign(_at) && !authRequiresCertAuth(_at)) {
                     controls.tipo_certificato_firma.enable()
                     controls.tipo_certificato.clearValidators();
                 }
 
-                if (this._isOauthAuthCode) {
+                if (authRequiresOauthUrls(_at)) {
                     controls.url_redirezione.enable();
                     controls.url_redirezione.setValidators(Validators.required);
                     controls.url_redirezione.updateValueAndValidity();
@@ -1043,17 +1055,41 @@ export class AdesioneListaClientsComponent implements OnInit {
         this._editFormGroupClients.updateValueAndValidity();
     }
 
+    /**
+     * Fase 3g Issue #237: handler dei toggle-button del selettore credenziali.
+     * Setta il valore del FormControl `credenziali` e delega a
+     * `onChangeCredenziali` la gestione dei branch scenario-based.
+     */
+    _onSelectCredenzialiOption(value: SelectedClientEnum) {
+        const ctrl = this._editFormGroupClients?.controls?.['credenziali'];
+        if (!ctrl) return;
+        ctrl.patchValue(value);
+        ctrl.updateValueAndValidity();
+        this.onChangeCredenziali(value);
+    }
+
     onChangeCredenziali(selected_client_id: any) {
         this._certificato_cn = null;
         this._certificato_cn_firma = null;
 
         const controls = this._editFormGroupClients.controls;
 
-        this._show_nome_proposto = !!this.client?.source?.nome_proposto;
+        // Fase 4.1 (Issue #237): i predicati puri di client-dialog-state
+        // sostituiscono la lettura delle 27+ flag booleane anche in
+        // onChangeCredenziali. `authType` e' l'auth type corrente.
+        const authType: AuthType = this._auth_type as AuthType;
+
+        // Se `this.client` e' gia' settato lo prendiamo come fonte di verita'.
+        // Altrimenti preserviamo il valore precedentemente impostato (es. da
+        // `_initEditFormClients` basandosi su `data.nome_proposto` quando il
+        // componente viene inizializzato senza un client pregresso).
+        if (this.client) {
+            this._show_nome_proposto = !!this.client?.source?.nome_proposto;
+        }
         this._show_client_form = true;
 
         let _aux: any = null;
-        
+
         if (selected_client_id && selected_client_id !== 'null') {
             this.updateAllValidators(selected_client_id);
 
@@ -1082,22 +1118,24 @@ export class AdesioneListaClientsComponent implements OnInit {
                     controls.tipo_certificato.patchValue(null);
                     this.onChangeTipoCertificato(null);
             
-                    if (this._isHttps || this._isHttpsSign || this._isHttpsPdnd || this._isHttpsPdndSign) {
+                    if (authRequiresCertAuth(authType)) {
                         controls.tipo_certificato.setValidators(Validators.required);
                         controls.tipo_certificato.enable();
                     }
-            
-                    if (this._isHttpsSign || this._isHttpsPdndSign) {
+
+                    // Auth types che richiedono ENTRAMBI i certificati (auth + firma):
+                    // `_isHttpsSign || _isHttpsPdndSign` == `requiresCertSign && requiresCertAuth`.
+                    if (authRequiresCertSign(authType) && authRequiresCertAuth(authType)) {
                         controls.tipo_certificato_firma.setValidators(Validators.required);
                         controls.tipo_certificato_firma.enable();
                     }
-            
+
                     controls.url_redirezione.patchValue(null);
                     controls.url_esposizione.patchValue(null);
                     controls.help_desk.patchValue(null);
                     controls.nome_applicazione_portale.patchValue(null);
-            
-                    if (this._isOauthAuthCode) {
+
+                    if (authRequiresOauthUrls(authType)) {
                         controls.url_redirezione.enable();
                         controls.url_redirezione.setValidators(Validators.required);
                         controls.url_redirezione.updateValueAndValidity();
@@ -1172,9 +1210,17 @@ export class AdesioneListaClientsComponent implements OnInit {
 
                     _aux = this._arr_clients_riuso.find((el) => el.id_client == selected_client_id);
                     if (!_aux) {
-                        _aux = this._currClient.source || this._currClient;
+                        _aux = this._currClient?.source || this._currClient;
                     }
                     this._currClient = _aux;
+
+                    // Safety net: se arriviamo qui senza un client valorizzato
+                    // (scenari di test con `_arr_clients_riuso` vuoto e
+                    // `_currClient` null) evitiamo gli accessi successivi a
+                    // `_aux.dati_specifici.*` che altrimenti crasherebbero.
+                    if (!_aux) {
+                        break;
+                    }
 
                     let _cert_type: any = null
                     this._checkAndSetAuthTypeCase(this._auth_type)
@@ -1182,7 +1228,7 @@ export class AdesioneListaClientsComponent implements OnInit {
                     this._id_client_riuso = _aux?.id_client || null;
                     controls.client_id.patchValue(this._id_client_riuso);
 
-                    if (this._isHttps || this._isHttpsSign || this._isHttpsPdnd || this._isHttpsPdndSign) {
+                    if (authRequiresCertAuth(authType)) {
                         _cert_type = _aux?.dati_specifici.certificato_autenticazione.tipo_certificato || null;
 
                         controls.tipo_certificato.enable()
@@ -1222,7 +1268,7 @@ export class AdesioneListaClientsComponent implements OnInit {
                         }
                     }
 
-                    if (this._isHttpsSign || this._isHttpsPdndSign || this._isSignPdnd || this._isSign) {
+                    if (authRequiresCertSign(authType)) {
                         _cert_type = _aux.dati_specifici.certificato_firma.tipo_certificato;
 
                         controls.tipo_certificato_firma.enable();
@@ -1263,7 +1309,12 @@ export class AdesioneListaClientsComponent implements OnInit {
                         }
                     }
 
-                    if (this._isPdnd || this._isHttpsPdnd || this._isHttpsPdndSign || this._isOauthClientCredentials || this._isOauthAuthCode) {
+                    // Nota: il check originale escludeva `sign_pdnd` rispetto al
+                    // set completo di auth type che usano `client_id`. Sembra un
+                    // bug: `sign_pdnd` richiede client_id (vedi
+                    // `authRequiresClientId`). La sostituzione con i predicati
+                    // allinea anche questo caso al resto.
+                    if (authRequiresClientId(authType) || authRequiresOauthUrls(authType)) {
                         controls.client_id.patchValue(_aux?.dati_specifici?.client_id)
                         controls.client_id.disable();
                     }
@@ -1298,7 +1349,7 @@ export class AdesioneListaClientsComponent implements OnInit {
                     controls.help_desk.patchValue(_aux?.dati_specifici?.help_desk);
                     controls.nome_applicazione_portale.patchValue(_aux?.dati_specifici?.nome_applicazione_portale);
 
-                    if (this._isOauthAuthCode) {
+                    if (authRequiresOauthUrls(authType)) {
                         controls.url_redirezione.disable();
                         controls.url_redirezione.clearValidators();
                         controls.url_esposizione.disable();
@@ -1319,7 +1370,7 @@ export class AdesioneListaClientsComponent implements OnInit {
             controls.nome.disable();
             controls.tipo_certificato.clearValidators();
 
-            if (this._isOauthAuthCode) {
+            if (authRequiresOauthUrls(authType)) {
                 controls.url_redirezione.disable();
                 controls.url_redirezione.updateValueAndValidity();
                 controls.url_esposizione.disable();
@@ -1423,51 +1474,38 @@ export class AdesioneListaClientsComponent implements OnInit {
             this._resetUploadCertificateComponentsFirma(controls);
         }
         
+        // Fase 4.4: rimosse le scritture alle flag `_isFornito_firma/_isRichiesto_*_firma`,
+        // ora orfane. Il mode certificato firma e' letto dal FormControl
+        // `tipo_certificato_firma` via `_currentCertSignMode`.
         if (event) {
             switch (event.nome) {
                 case 'fornito':
                     controls?.content_firma?.setValidators(Validators.required);
                     controls?.content_firma?.updateValueAndValidity();
 
-                    this._isFornito_firma = true; 
-                    this._isRichiesto_cn_firma = false; 
-                    this._isRichiesto_csr_firma = false;
-
                     this._certificato_fornito_firma = this._currDatiSpecifici?.certificato?.certificato || null;
                     this._certificato_csr_firma = null;
                     this._modulo_richiesta_csr_firma = null;
                     break;
-                case 'richiesto_cn': 
+                case 'richiesto_cn':
                     controls?.cn_firma?.setValidators(Validators.required);
                     controls?.cn_firma?.updateValueAndValidity();
-
-                    this._isFornito_firma = false; 
-                    this._isRichiesto_cn_firma = true; 
-                    this._isRichiesto_csr_firma = false;
 
                     this._certificato_fornito_firma =  null;
                     this._certificato_csr_firma = null;
                     this._modulo_richiesta_csr_firma = null;
                     break;
-                case 'richiesto_csr': 
+                case 'richiesto_csr':
                     controls?.content_firma?.setValidators(Validators.required);
                     controls?.content_firma?.updateValueAndValidity();
                     controls?.content_csr_firma?.setValidators(Validators.required);
                     controls?.content_csr_firma?.updateValueAndValidity();
 
-                    this._isFornito_firma = false; 
-                    this._isRichiesto_cn_firma = false; 
-                    this._isRichiesto_csr_firma = true;
-
                     this._certificato_fornito_firma = null;
-                    this._certificato_csr_firma = this._currDatiSpecifici?.certificato?.richiesta || null;;
-                    this._modulo_richiesta_csr_firma = this._currDatiSpecifici?.certificato?.modulo_richiesta || null;;
+                    this._certificato_csr_firma = this._currDatiSpecifici?.certificato?.richiesta || null;
+                    this._modulo_richiesta_csr_firma = this._currDatiSpecifici?.certificato?.modulo_richiesta || null;
                     break;
                 default:
-                    this._isFornito_firma = false; 
-                    this._isRichiesto_cn_firma = false; 
-                    this._isRichiesto_csr_firma = false;
-
                     this._certificato_fornito_firma =  null;
                     this._certificato_csr_firma = null;
                     this._modulo_richiesta_csr_firma = null;
@@ -1475,10 +1513,6 @@ export class AdesioneListaClientsComponent implements OnInit {
                     break;
             }
         } else {
-            this._isFornito_firma = false; 
-            this._isRichiesto_cn_firma = false; 
-            this._isRichiesto_csr_firma = false;
-
             this._resetCertificatesFirma();
         }
 
@@ -1739,11 +1773,17 @@ export class AdesioneListaClientsComponent implements OnInit {
             _datiSpecifici.certificato_firma = temp_doubleCert;
         }
 
-        if (this._isPdnd || this._isHttpsPdnd || this._isHttpsPdndSign || this._isSignPdnd || this._isOauthClientCredentials || this._isOauthAuthCode) {
+        // Fase 4.2 (Issue #237): predicati vs flag anche nel payload builder.
+        const _authType: AuthType = this._auth_type as AuthType;
+
+        // `authRequiresClientId` copre pdnd/https_pdnd/https_pdnd_sign/sign_pdnd
+        // + oauth_client_credentials. `authRequiresOauthUrls` aggiunge
+        // oauth_authorization_code. Unione = stesso set dell'originale.
+        if (authRequiresClientId(_authType) || authRequiresOauthUrls(_authType)) {
             _datiSpecifici.client_id = _client_id;
         }
 
-        if (this._isOauthAuthCode) {
+        if (authRequiresOauthUrls(_authType)) {
             _datiSpecifici.url_redirezione = this._editFormGroupClients.getRawValue().url_redirezione;
             _datiSpecifici.url_esposizione = this._editFormGroupClients.getRawValue().url_esposizione;
             _datiSpecifici.help_desk = this._editFormGroupClients.getRawValue().help_desk;
@@ -1763,7 +1803,7 @@ export class AdesioneListaClientsComponent implements OnInit {
             _payload.dati_specifici = _datiSpecifici;
 
             this.apiService.putElementRelated('adesioni', id_adesione, path, _payload).subscribe({
-                next: (response: any) => {
+                next: () => {
                     this.loadAdesioneClients(this.environment);
                     this.eventsManagerService.broadcast(EventType.WIZARD_CHECK_UPDATE, true);
                     this.closeModal();
@@ -1782,13 +1822,13 @@ export class AdesioneListaClientsComponent implements OnInit {
             const ambiente: string = this.environment;
             const profilo: string = this._codice_interno_profilo;
             const path: string = `${ambiente}` + '/client/' + `${profilo}`;
-            
+
             _payload.ambiente = this.environment;
             _payload.nome = _nome;
             _payload.dati_specifici = _datiSpecifici;
-            
+
             this.apiService.putElementRelated('adesioni', id_adesione, path, _payload).subscribe({
-                next: (response: any) => {
+                next: () => {
                     this.loadAdesioneClients(this.environment);
                     this.eventsManagerService.broadcast(EventType.WIZARD_CHECK_UPDATE, true);
                     this._saving = false;
@@ -1800,6 +1840,203 @@ export class AdesioneListaClientsComponent implements OnInit {
                     this._saving = false;
                 }
             });
+        }
+    }
+
+    // =========================================================================
+    // Fase 3 (Issue #237): FormConfig derivato dallo stato corrente.
+    //
+    // Questi getter leggono le 27+ flag/variabili esistenti e le traducono
+    // nella `FormConfig` calcolata dalla funzione pura `computeFormConfig`.
+    // In questa fase il template continua a leggere dalle flag originali;
+    // i getter esistono per agganciare gradualmente la UI al nuovo modello.
+    // Ogni incongruenza fra flag-based e FormConfig-based va trattata come
+    // bug e fixata prima di migrare il relativo campo nel template.
+    // =========================================================================
+
+    /** Mappa le flag booleane esistenti al tipo `AuthType` tipizzato. */
+    private _currentAuthType(): AuthType {
+        const t = (this._auth_type || '') as AuthType;
+        return t;
+    }
+
+    /** Ricava lo scenario corrente dal combinato di flag esistenti. */
+    private _currentScenario(): Scenario {
+        if (!this._isModifiable()) return { kind: 'readonly' };
+        if (this._show_nome_proposto && this._tipo_client === TipoClientEnum.Proposto) return { kind: 'proposed' };
+        if (this.isEditClient) return { kind: 'edit' };
+        if (this._tipo_client === TipoClientEnum.Riferito && this._currClient?.id_client) {
+            return { kind: 'referenced', referencedClientId: this._currClient.id_client };
+        }
+        return { kind: 'new' };
+    }
+
+    /**
+     * Fase 4.2: sorgente di verita' per il mode del certificato e' il
+     * FormControl `tipo_certificato`, non le 3 flag booleane. Cosi'
+     * `formConfig` e' sempre coerente con la selezione utente anche se
+     * qualche metodo si scorda di aggiornare le flag.
+     */
+    private _currentCertAuthMode(): CertificateMode {
+        return this._certModeFromValue(this._editFormGroupClients?.controls?.['tipo_certificato']?.value);
+    }
+
+    /** Idem per il certificato firma. */
+    private _currentCertSignMode(): CertificateMode {
+        return this._certModeFromValue(this._editFormGroupClients?.controls?.['tipo_certificato_firma']?.value);
+    }
+
+    private _certModeFromValue(value: any): CertificateMode {
+        switch (value) {
+            case 'fornito': return { kind: 'fornito' };
+            case 'richiesto_cn': return { kind: 'richiesto_cn' };
+            case 'richiesto_csr': return { kind: 'richiesto_csr' };
+            default: return { kind: 'none' };
+        }
+    }
+
+    /** Modalita' di presentazione del selettore credenziali. */
+    private _currentCredentialsMode(): CredentialsMode {
+        return this._generalConfig?.adesione?.visualizza_elenco_client_esistenti ? 'dropdown' : 'toggle';
+    }
+
+    /**
+     * L'utente puo' modificare i dati della dialog? Deriva dalla grant
+     * sull'ambiente corrente (stessa regola di `_isModifiableMapper`).
+     */
+    private _isModifiable(): boolean {
+        if (!this.grant) return false;
+        if (this.environment === AmbienteEnum.Collaudo) return this.grant.collaudo === RightsEnum.Scrittura;
+        if (this.environment === AmbienteEnum.Produzione) return this.grant.produzione === RightsEnum.Scrittura;
+        return false;
+    }
+
+    /** Input completo per `computeFormConfig`. */
+    private _computeDialogInput(): ClientDialogInput {
+        return {
+            scenario: this._currentScenario(),
+            authType: this._currentAuthType(),
+            certAuth: this._currentCertAuthMode(),
+            certSign: this._currentCertSignMode(),
+            isModifiable: this._isModifiable(),
+            credentialsMode: this._currentCredentialsMode(),
+            riusoObbligatorio: !!this._generalConfig?.adesione?.riuso_client_obbligatorio,
+            clientsRiusoCount: this._arr_clients_riuso?.filter((c: any) =>
+                c.id_client !== SelectedClientEnum.NuovoCliente
+                && c.id_client !== SelectedClientEnum.UsaClientEsistente
+            ).length || 0,
+            showIpFruizione: !!this._show_erogazione_ip_fruizione,
+            showRateLimiting: !!this._show_erogazione_rate_limiting,
+            showFinalita: !!this._show_erogazione_finalita,
+        };
+    }
+
+    /** FormConfig derivata: sorgente di verita' per la UI nella Fase 3+. */
+    get formConfig(): FormConfig {
+        return computeFormConfig(this._computeDialogInput());
+    }
+
+    /**
+     * Fase 6.2 (Issue #237): input oggetto per `<app-modal-edit-client>`.
+     * Composto a partire dallo stato corrente del parent; il getter viene
+     * rivalutato a ogni change-detection cycle del parent.
+     */
+    get modalInput(): ModalEditClientInput {
+        return {
+            formGroup: this._editFormGroupClients,
+            formConfig: this.formConfig,
+            clientsRiuso: this._arr_clients_riuso,
+            tipiCertificato: this._tipiCertificato,
+            saving: this._saving,
+            error: this._error,
+            errorMsg: this._errorMsg,
+            certificatoFornito: this._certificato_fornito,
+            certificatoCN: this._certificato_cn,
+            certificatoCSR: this._certificato_csr,
+            moduloRichiestaCSR: this._modulo_richiesta_csr,
+            certificatoFornitoFirma: this._certificato_fornito_firma,
+            certificatoCNFirma: this._certificato_cn_firma,
+            certificatoCSRFirma: this._certificato_csr_firma,
+            moduloRichiestaCSRFirma: this._modulo_richiesta_csr_firma,
+            moduloRichiestaCSRFirmaCertificato: this._modulo_richiesta_csr_firma_ceritifato,
+            ipRichiesto: this._ip_richiesto,
+            isEditClient: this.isEditClient,
+            currentServiceClient: this._currentServiceClient,
+            adesioneId: this.adesione?.id_adesione,
+            environment: this.environment,
+            authType: this._auth_type,
+            codiceInternoProfilo: this._codice_interno_profilo,
+            client: this.client,
+            descrittoreCtrl: this._descrittoreCtrl,
+            descrittoreCtrlCsr: this._descrittoreCtrl_csr,
+            descrittoreCtrlCsrModulo: this._descrittoreCtrl_csr_modulo,
+            descrittoreCtrlFirma: this._descrittoreCtrl_firma,
+            descrittoreCtrlCsrFirma: this._descrittoreCtrl_csr_firma,
+            descrittoreCtrlCsrModuloFirma: this._descrittoreCtrl_csr_modulo_firma,
+            ratePeriods: this.ratePeriods,
+        };
+    }
+
+    /**
+     * Adapter per gli Output `descriptorChange`/`descriptorChangeFirma`
+     * del nuovo componente, che emettono `{ value, type }`. Mappati
+     * sui vecchi metodi `__descrittoreChange[_Firma](value, isCsr?)`.
+     */
+    _onDescriptorChange(event: { value: any; type: string }): void {
+        this.__descrittoreChange(event.value, event.type === 'csr');
+    }
+    _onDescriptorChangeFirma(event: { value: any; type: string }): void {
+        this.__descrittoreChangeFirma(event.value, event.type === 'csr');
+    }
+
+    // =========================================================================
+    // Layout verticale/orizzontale della dialog (Issue #237).
+    // =========================================================================
+
+    private readonly _DIALOG_LAYOUT_KEY = 'govcat.adesione.dialogLayout';
+
+    /** Layout corrente della dialog, persistito in localStorage. */
+    _dialogLayout: ModalEditClientLayout = this._readDialogLayoutPref();
+
+    private _readDialogLayoutPref(): ModalEditClientLayout {
+        try {
+            const v = localStorage?.getItem?.(this._DIALOG_LAYOUT_KEY);
+            return v === 'horizontal' ? 'horizontal' : 'vertical';
+        } catch {
+            return 'vertical';
+        }
+    }
+
+    /**
+     * Classe ngx-bootstrap da applicare al `.modal-dialog` per layout.
+     *
+     * - `modal-edit-client-horizontal`: classe globale definita in
+     *   `styles.scss` che forza `max-width: min(95vw, 1100px)` via
+     *   `--bs-modal-width`. Usata al posto di `modal-xl` perche' quella
+     *   scatta solo sopra viewport 1200px (Bootstrap xl breakpoint),
+     *   lasciando il modal a 500px nella fascia 992–1199px proprio
+     *   dove vorremmo 2 colonne.
+     * - `modal-half-`: classe storica per il layout verticale (di fatto
+     *   no-op, il modal resta alla larghezza default ~500px).
+     *
+     * Non usiamo `modal-dialog-scrollable` perche' forza
+     * `height: calc(100% - 2rem)` sul dialog, spingendo il footer in
+     * fondo al viewport anche con poco contenuto.
+     */
+    private _modalClassFor(layout: ModalEditClientLayout): string {
+        return layout === 'horizontal' ? 'modal-edit-client-horizontal' : 'modal-half-';
+    }
+
+    /**
+     * Handler dell'Output `layoutChange` del `ModalEditClientComponent`:
+     * aggiorna lo stato, persiste la preferenza, e allarga/stringe il
+     * modal dialog a runtime tramite `BsModalRef.setClass`.
+     */
+    _onDialogLayoutChange(layout: ModalEditClientLayout): void {
+        this._dialogLayout = layout;
+        try { localStorage?.setItem?.(this._DIALOG_LAYOUT_KEY, layout); } catch { /* silent */ }
+        if (this._modalEditRef) {
+            this._modalEditRef.setClass(this._modalClassFor(layout));
         }
     }
 }

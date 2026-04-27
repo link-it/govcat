@@ -206,7 +206,10 @@ export class AdesioneListaErogazioniComponent implements OnInit, OnChanges {
         if (this.isSottotipoGroupCompletedMapper(update, tipo)) {
             return this.nextState?.dati_non_applicabili?.includes(this.environment) ? 2 : 1;
         } else {
-            return this._hasCambioStato() ? 0 : 1;
+            // Stato di completezza dei dati: oggettivo, non dipende dal ruolo.
+            // Anche un referente che non puo' cambiare stato deve vedere
+            // l'alert quando il check-dati BE riporta esito != 'ok'.
+            return 0;
         }
     }
 

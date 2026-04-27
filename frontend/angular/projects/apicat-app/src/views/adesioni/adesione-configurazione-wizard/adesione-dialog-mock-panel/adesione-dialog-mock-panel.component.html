@@ -1,0 +1,32 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+-->
+
+<div class="dialog-mock-panel d-flex flex-wrap align-items-center gap-2">
+  <span class="dialog-mock-panel-label">Mock dialog auth:</span>
+  <select class="form-select form-select-sm w-auto" [(ngModel)]="selectedPresetId">
+    @for (p of presets; track p.id) {
+      <option [value]="p.id">{{ p.label }}</option>
+    }
+  </select>
+  <button type="button" class="btn btn-sm btn-outline-primary" (click)="openMock()">
+    Apri mock
+  </button>
+</div>
+
+<ng-template #mockDialog>
+  @if (mockInput) {
+    <app-modal-edit-client
+      [input]="mockInput"
+      [layout]="mockLayout"
+      (layoutChange)="onLayoutChange($event)"
+      (changeTipoCertificato)="onChangeTipoCertificato($event)"
+      (changeTipoCertificatoFirma)="onChangeTipoCertificatoFirma($event)"
+      (save)="onMockSave()"
+      (close)="onMockClose()"
+    ></app-modal-edit-client>
+  }
+</ng-template>

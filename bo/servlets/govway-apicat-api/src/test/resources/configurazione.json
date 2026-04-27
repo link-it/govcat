@@ -1527,21 +1527,21 @@
       ],
     "step_wizard": [
       {
-        "code": "adesione_creata",
-        "descrizione": "Adesione Creata",
-        "stati_adesione": ["bozza", "richiesto_collaudo", "in_configurazione_manuale_collaudo"],
-        "sezioni_attive": ["info_generali", "referenti", "collaudo"]
+        "code": "info_generali",
+        "descrizione": "Informazioni Generali e Referenti",
+        "stati_adesione": [],
+        "sezioni_attive": ["info_generali", "referenti"]
       },
       {
-        "code": "configurato_collaudo",
-        "descrizione": "Adesione Configurata in Collaudo",
-        "stati_adesione": ["pubblicato_collaudo", "richiesto_produzione", "in_configurazione_manuale_produzione"],
-        "sezioni_attive": ["collaudo", "produzione"]
+        "code": "collaudo",
+        "descrizione": "Collaudo",
+        "stati_adesione": ["bozza", "richiesto_collaudo", "autorizzato_collaudo", "in_configurazione_manuale_collaudo", "in_configurazione_automatica_collaudo"],
+        "sezioni_attive": ["collaudo"]
       },
       {
-        "code": "configurato_produzione",
-        "descrizione": "Adesione Configurata in Produzione",
-        "stati_adesione": ["pubblicato_produzione"],
+        "code": "produzione",
+        "descrizione": "Produzione",
+        "stati_adesione": ["pubblicato_collaudo", "richiesto_produzione", "autorizzato_produzione", "in_configurazione_manuale_produzione", "in_configurazione_automatica_produzione", "pubblicato_produzione"],
         "sezioni_attive": ["produzione"]
       }
     ],

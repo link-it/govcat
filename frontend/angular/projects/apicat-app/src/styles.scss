@@ -17,3 +17,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 @use 'app-all';
+
+// Issue #237: classe applicata via `BsModalRef.setClass` dalla dialog
+// di configurazione autenticazione client quando l'utente attiva il
+// layout orizzontale. Necessaria in CSS globale perché `.modal-dialog`
+// è creato da ngx-bootstrap al di fuori del component tree Angular
+// e non riceverebbe gli stili scoped del componente.
+.modal-dialog.modal-edit-client-horizontal {
+    --bs-modal-width: min(95vw, 1100px);
+    max-width: var(--bs-modal-width);
+}

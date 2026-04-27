@@ -16,3 +16,136 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+.wizard-debug-toggle {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px dashed var(--border-color, #dbdbdb);
+  font-size: 0.8rem;
+  color: color-mix(in srgb, var(--body-color, #303030) 60%, transparent);
+
+  .form-check {
+    margin: 0;
+    min-height: auto;
+  }
+
+  .form-check-label {
+    user-select: none;
+    cursor: pointer;
+  }
+}
+
+// Accordion sections: allineate al border-radius degli altri box (step-bar,
+// disclaimer). Usiamo overflow:hidden per far seguire ai contenuti interni
+// (header e collapse) gli angoli arrotondati della card.
+.accordion#accordionWizard {
+  .accordion-item {
+    border-radius: 0.5rem;
+    overflow: hidden;
+
+    .accordion-button {
+      border-radius: 0;
+    }
+
+    .accordion-collapse {
+      border-radius: 0;
+    }
+  }
+}
+
+.adesione-disclaimers {
+  .alert {
+    padding: 0.75rem 1rem;
+
+    :last-child {
+      margin-bottom: 0;
+    }
+
+    markdown {
+      p:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  .disclaimer-icon {
+    font-size: 1.1rem;
+    line-height: 1.4;
+    margin-top: 0.1rem;
+  }
+
+  .disclaimer-body {
+    display: block;
+  }
+
+  .disclaimer-links {
+    padding-left: 1.25rem;
+
+    li + li {
+      margin-top: 0.25rem;
+    }
+  }
+}
+
+// Sezione wizard non ancora applicabile per lo step corrente:
+// visibile ma non attivabile. La usiamo quando è attivo il flag
+// `wizard_show_all_sections` in configurazione.json.
+.accordion-item.section-disabled {
+  opacity: 0.55;
+
+  .accordion-button {
+    cursor: not-allowed;
+    pointer-events: none;
+    background-color: var(--bs-light, #f8f9fa);
+    color: var(--bs-gray-600, #6c757d);
+
+    &::after {
+      opacity: 0.35;
+    }
+  }
+}
+
+.button-delete-wrapper {
+  position: absolute;
+  right: 1rem;
+  z-index: 10000;
+}
+
+// Hint banner sotto ogni header di sezione accordion: messaggio di
+// supporto contestuale (azione richiesta / sezione completata / non
+// ancora disponibile). Sempre visibile, indipendente dallo stato
+// aperto/chiuso dell'accordion.
+.accordion-section-hint {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  border-top: 1px solid var(--bs-border-color, #dee2e6);
+
+  i.bi {
+    flex-shrink: 0;
+  }
+
+  &.hint-disabled {
+    background-color: var(--bs-gray-100, #f8f9fa);
+    color: var(--bs-gray-600, #6c757d);
+  }
+
+  &.hint-action {
+    background-color: #fff8e5;
+    color: #8a6d3b;
+  }
+
+  &.hint-completed {
+    background-color: #e8f6ee;
+    color: #1f6b3a;
+  }
+}
+
+

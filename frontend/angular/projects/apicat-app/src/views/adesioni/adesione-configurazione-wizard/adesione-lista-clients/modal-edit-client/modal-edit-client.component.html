@@ -1,0 +1,63 @@
+<!--
+  ModalEditClientComponent — Issue #237.
+  Dopo la Fase 2.3 il corpo del form e' delegato a
+  `<app-client-auth-form>` (componente condiviso in
+  `src/components/client-auth-form/`). Qui restano solo l'involucro
+  modale (header con titolo + toggle layout + close, footer con
+  Close + Save) e il mapping degli eventi.
+-->
+<div class="modal-content" [class.layout-horizontal]="layout === 'horizontal'">
+  <form [formGroup]="input.formGroup" (submit)="save.emit()">
+    <div class="modal-header pb-2">
+      <h5 class="modal-title pull-left">{{ 'APP.TITLE.AuthTypeConfiguration' | translate }}</h5>
+
+      <div class="modal-header-actions d-flex align-items-center gap-2">
+        <button type="button" class="btn btn-sm btn-default gl-tertiary p-1 layout-toggle"
+          (click)="toggleLayout()"
+          [tooltip]="((layout === 'horizontal' ? 'APP.ADESIONI.LABEL.LayoutVerticale' : 'APP.ADESIONI.LABEL.LayoutOrizzontale') | translate)"
+          [attr.aria-label]="((layout === 'horizontal' ? 'APP.ADESIONI.LABEL.LayoutVerticale' : 'APP.ADESIONI.LABEL.LayoutOrizzontale') | translate)">
+          @if (layout === 'horizontal') {
+            <i class="bi bi-layout-split"></i>
+          } @else {
+            <i class="bi bi-layout-three-columns"></i>
+          }
+        </button>
+        <button type="button" class="btn btn-default btn-md gl-tertiary p-0" aria-label="Close" (click)="close.emit()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="p-3">
+        <app-client-auth-form
+          [input]="input"
+          [layout]="layout"
+          (selectCredenziali)="selectCredenziali.emit($event)"
+          (changeCredenziali)="changeCredenziali.emit($event)"
+          (changeTipoCertificato)="changeTipoCertificato.emit($event)"
+          (changeTipoCertificatoFirma)="changeTipoCertificatoFirma.emit($event)"
+          (descriptorChange)="descriptorChange.emit($event)"
+          (descriptorChangeFirma)="descriptorChangeFirma.emit($event)"
+          (downloadAllegato)="downloadAllegato.emit($event)"
+          (downloadCertificato)="downloadCertificato.emit($event)"
+        ></app-client-auth-form>
+      </div>
+    </div>
+    <div class="modal-footer py-2">
+      <lnk-button
+        [label]="'APP.BUTTON.Close'"
+        (onAction)="close.emit()"
+      ></lnk-button>
+      @if (input.formConfig.save.enabled) {
+        <lnk-button
+          [type]="'submit'"
+          [label]="'APP.BUTTON.Save'"
+          [primary]="true"
+          [ariaLabel]="'APP.BUTTON.Save'"
+          [disabled]="input.formGroup.invalid || input.saving"
+          [spinner]="input.saving"
+        ></lnk-button>
+      }
+    </div>
+  </form>
+</div>

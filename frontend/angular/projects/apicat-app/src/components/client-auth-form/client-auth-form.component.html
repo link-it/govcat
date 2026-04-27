@@ -1,0 +1,809 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- Template condiviso per la configurazione auth client (Issue #237 Passo 2).
+-- Migrato dal modal-edit-client.component.html con due estensioni:
+--   - Dropdown `auth_type` opzionale (visibile solo in contesto pagina
+--     quando `formConfig.fields.auth_type.visible`).
+--   - Slot upload "certificato generato" opzionali (gestore-side), attivi
+--     solo quando il corrispondente FormControl descrittore e' fornito.
+-->
+
+<!--
+  Root e' un <div> (non <form>): il wrapping form + submit e' gestito
+  dal parent (dialog o pagina) che puo' includere header/footer esterni.
+  Con `[formGroup]` sul div Angular ReactiveForms continua a risolvere
+  i `formControlName` dei figli.
+-->
+<div [formGroup]="input.formGroup" class="client-auth-form" [class.layout-horizontal]="layout === 'horizontal'">
+  <fieldset>
+
+    <!-- auth_type (contesto pagina): dropdown visibile solo quando editable. -->
+    @if (input.formConfig.fields.auth_type.visible) {
+      <div class="row mb-3">
+        <div class="form-group col-12 mb-2">
+          <label class="label-bold" for="auth_type">
+            {{ 'APP.CLIENT.LABEL.Auth_type' | translate }}
+            <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'auth_type'"></span>
+          </label>
+          <select #authTypeSel class="form-select" id="auth_type"
+            formControlName="auth_type"
+            [class.gl-field-error-outline]="_hasControlError('auth_type')"
+            (change)="changeAuthType.emit(authTypeSel.value)">
+            <option [ngValue]="null" disabled>
+              {{ 'APP.CLIENT.LABEL.SelezionaAuthType' | translate }}
+            </option>
+            @for (t of (input.authTypes || []); track t) {
+              <option [value]="t">{{ 'APP.CLIENT.AUTH_TYPE.' + t | translate }}</option>
+            }
+          </select>
+          @if (f['auth_type'].invalid && (f['auth_type'].dirty || f['auth_type'].touched)) {
+            <p class="form-text text-danger">
+              @if (f['auth_type'].errors && f['auth_type'].errors['required']) {
+                <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+              }
+            </p>
+          }
+        </div>
+      </div>
+    }
+
+    <div class="row mb-3">
+      <!-- credenziali -->
+      @if (input.formConfig.fields.credenziali.visible) {
+        <div class="form-group col-12 mb-2">
+          <label class="label-bold" for="credenziali">
+            {{ 'APP.ADESIONI.LABEL.TipoAccesso' | translate }}
+            <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'credenziali'"></span>
+          </label>
+
+          <div class="btn-group w-100 credenziali-toggle" role="group" aria-label="Selettore tipo accesso">
+            @if (input.formConfig.credentialsOptions.showNuoveCredenziali) {
+              <button type="button" class="btn"
+                [class.active]="f['credenziali'].value === SelectedClientEnum.NuovoCliente"
+                (click)="selectCredenziali.emit(SelectedClientEnum.NuovoCliente)">
+                {{ 'APP.ADESIONI.LABEL.NuovoClient' | translate }}
+              </button>
+            }
+            <button type="button" class="btn"
+              [class.active]="isClientGiaCensitoSelected"
+              (click)="selectCredenziali.emit(SelectedClientEnum.UsaClientEsistente)">
+              {{ 'APP.ADESIONI.LABEL.ClientGiaCensito' | translate }}
+            </button>
+          </div>
+
+          @if (isClientGiaCensitoSelected) {
+            @if (managedClients.length > 0) {
+              <div class="mt-2">
+                <select #credenzialiSel class="form-select" id="credenziali"
+                  formControlName="credenziali"
+                  [class.gl-field-error-outline]="_hasControlError('credenziali')"
+                  (change)="changeCredenziali.emit(credenzialiSel.value)">
+                  <option [value]="SelectedClientEnum.UsaClientEsistente" disabled>
+                    {{ 'APP.ADESIONI.LABEL.SelezionaClient' | translate }}
+                  </option>
+                  @for (c of managedClients; track c.id_client) {
+                    <option [value]="c.id_client">{{ c.nome }}</option>
+                  }
+                </select>
+              </div>
+            } @else {
+              <div class="alert alert-warning small mt-2 mb-0" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                {{ 'APP.ADESIONI.LABEL.NoClientDisponibili' | translate }}
+              </div>
+            }
+          }
+
+          @if (f['credenziali'].invalid && (f['credenziali'].dirty || f['credenziali'].touched)) {
+            <p class="form-text text-danger">
+              @if (f['credenziali'].errors && f['credenziali'].errors['required']) {
+                <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+              }
+            </p>
+          }
+
+          @if (input.formConfig.scenario.kind === 'new') {
+            <div class="alert alert-info small mt-2 mb-0">
+              <i class="bi bi-info-circle me-2"></i>
+              {{ 'APP.ADESIONI.LABEL.HelpScenarioNuovo' | translate }}
+            </div>
+          }
+          @if (input.formConfig.scenario.kind === 'proposed') {
+            <div class="alert alert-info small mt-2 mb-0">
+              <i class="bi bi-info-circle me-2"></i>
+              {{ 'APP.ADESIONI.LABEL.HelpScenarioProposto' | translate }}
+            </div>
+          }
+          @if (input.formConfig.scenario.kind === 'referenced') {
+            <div class="alert alert-info small mt-2 mb-0">
+              <i class="bi bi-info-circle me-2"></i>
+              {{ 'APP.ADESIONI.LABEL.HelpScenarioRiferito' | translate }}
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    @if (input.formConfig.showClientFormBody) {
+
+      <!-- nome -->
+      <div class="row">
+        <div class="form-group col-12 mb-2">
+          <label class="label-bold" for="nome">
+            {{ 'APP.ADESIONI.LABEL.NomeDelClient' | translate }}
+            <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'nome'"></span>
+          </label>
+          <input class="form-control form-control-sm" id="nome" type="text" formControlName="nome"
+            autocomplete="off"
+            [placeholder]="f['nome']?.disabled ? '' : ('APP.ADESIONI.LABEL.PlaceholderNomeClient' | translate)"
+            aria-describedby="nome-help">
+          <small id="nome-help" class="form-text text-muted d-block mt-1">
+            {{ 'APP.ADESIONI.LABEL.HelpNomeClient' | translate }}
+          </small>
+          @if (f['nome'].invalid && (f['nome'].dirty || f['nome'].touched)) {
+            <p class="form-text text-danger">
+              @if (f['nome'].errors && f['nome'].errors['required']) {
+                <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+              }
+            </p>
+          }
+        </div>
+      </div>
+
+      <!-- ip_fruizione -->
+      @if (input.formConfig.fields.ip_fruizione.visible) {
+        <div class="row">
+          @if (input.ipRichiesto) {
+            <div class="form-group col-12 mb-2">
+              <label class="label-bold" for="ip_fruizione">
+                {{ 'APP.LABEL.IPfruizione' | translate }}
+                <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'ip_fruizione'"></span>
+              </label>
+              <input class="form-control form-control-sm" id="ip_fruizione" type="text" formControlName="ip_fruizione">
+              @if (f['ip_fruizione'].invalid && (f['ip_fruizione'].dirty || f['ip_fruizione'].touched)) {
+                <p class="form-text text-danger">
+                  @if (f['ip_fruizione'].errors && f['ip_fruizione'].errors['required']) {
+                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                  }
+                </p>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- rate_limiting -->
+      @if (input.formConfig.fields.rate_limiting.visible) {
+        <div formGroupName="rate_limiting" class="row">
+          <div class="form-group col-6 mb-2">
+            <label class="label-bold" for="quota">{{ 'APP.ADESIONI.LABEL.Quota' | translate }}</label>
+            <input class="form-control form-control-sm" id="quota" type="number" min="1" formControlName="quota">
+            @if (fRate['quota'].invalid && (fRate['quota'].dirty || fRate['quota'].touched)) {
+              <p class="form-text text-danger">
+                @if (fRate['quota'].errors && fRate['quota'].errors['required']) {
+                  <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                }
+                @if (fRate['quota'].errors && fRate['quota'].errors['min']) {
+                  <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.GreaterThanZero' | translate }}</span>
+                }
+              </p>
+            }
+          </div>
+          <div class="form-group col-6 mb-2">
+            <label class="label-bold" for="periodo">{{ 'APP.ADESIONI.LABEL.Periodo' | translate }}</label>
+            <select class="form-select" id="periodo" formControlName="periodo" [class.gl-field-error-outline]="_hasControlError('periodo')">
+              @for (periodo of input.ratePeriods; track periodo) {
+                <option [value]="periodo.value">{{ periodo.label | translate }}</option>
+              }
+            </select>
+            @if (fRate['periodo'].invalid && (fRate['periodo'].dirty || fRate['periodo'].touched)) {
+              <p class="form-text text-danger">
+                @if (fRate['periodo'].errors && fRate['periodo'].errors['required']) {
+                  <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                }
+              </p>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- finalita -->
+      @if (input.formConfig.fields.finalita.visible) {
+        <div class="row">
+          @if (input.ipRichiesto) {
+            <div class="form-group col-12 mb-2">
+              <label class="label-bold" for="finalita">
+                {{ 'APP.ADESIONI.LABEL.Finalita' | translate }}
+                <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'finalita'"></span>
+              </label>
+              <input class="form-control form-control-sm" id="finalita" type="text" formControlName="finalita">
+              @if (f['finalita'].invalid && (f['finalita'].dirty || f['finalita'].touched)) {
+                <p class="form-text text-danger">
+                  @if (f['finalita'].errors && f['finalita'].errors['required']) {
+                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                  }
+                  @if (f['finalita'].errors && f['finalita'].errors['pattern']) {
+                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.Uuid' | translate }}</span>
+                  }
+                </p>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- HTTP Basic username (edit/readonly scenario only). -->
+      @if (input.formConfig.showHttpBasicUsernameBlock) {
+        <div class="row">
+          <div class="form-group col-12 mb-2">
+            <label class="label-bold" for="username">
+              {{ 'APP.CLIENT.LABEL.Username' | translate }}
+              <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'username'"></span>
+            </label>
+            <input class="form-control form-control-sm" id="username" type="text" formControlName="username">
+            @if (f['username'].invalid && (f['username'].dirty || f['username'].touched)) {
+              <p class="form-text text-danger">
+                @if (f['username'].errors && f['username'].errors['required']) {
+                  <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                }
+              </p>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- PDND Client ID. -->
+      <div class="row">
+        @if (input.formConfig.showPdndClientIdBlock) {
+          <div class="form-group col-12 mb-2">
+            <label class="label-bold" for="client_id">
+              {{ 'APP.CLIENT.LABEL.ClientIdPDND' | translate }}
+              <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'client_id'"></span>
+            </label>
+            <input class="form-control form-control-sm" id="client_id" type="text" formControlName="client_id">
+            @if (f['client_id'].invalid && (f['client_id'].dirty || f['client_id'].touched)) {
+              <p class="form-text text-danger">
+                @if (f['client_id'].errors && f['client_id'].errors['required']) {
+                  <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                }
+              </p>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Cert-row: in modalita' orizzontale grid a 2 colonne (auth | firma). -->
+      <div class="cert-row">
+
+        <!-- Certificato di AUTENTICAZIONE. -->
+        @if (input.formConfig.certAuth.visible) {
+          <div class="row-content-block mt-2 mb-3">
+            <div class="row">
+              <div class="form-group col-12 mb-2">
+                <label class="label-bold" for="tipo_certificato">
+                  {{ 'APP.LABEL.AuthenticationCertificate' | translate }}
+                  <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'tipo_certificato'"></span>
+                </label>
+                <ng-select [class.gl-field-error-outline]="_hasControlError('tipo_certificato')"
+                  [items]="input.tipiCertificato"
+                  bindValue="nome"
+                  bindLabel="nome"
+                  labelForId="tipo_certificato"
+                  [closeOnSelect]="true"
+                  formControlName="tipo_certificato"
+                  (change)="changeTipoCertificato.emit($event)">
+                  <ng-template ng-label-tmp let-item="item">
+                    {{ 'APP.CLIENT.LABEL.' + item.nome | translate }}
+                  </ng-template>
+                  <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
+                    {{ 'APP.CLIENT.LABEL.' + item.nome | translate }}
+                  </ng-template>
+                </ng-select>
+                @if (f['tipo_certificato'].invalid && (f['tipo_certificato'].dirty || f['tipo_certificato'].touched)) {
+                  <p class="form-text text-danger">
+                    @if (f['tipo_certificato'].errors && f['tipo_certificato'].errors['required']) {
+                      <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                    }
+                  </p>
+                }
+              </div>
+            </div>
+
+            <!-- Mode: fornito -->
+            @if (input.formConfig.certAuth.mode.kind === 'fornito') {
+              <div class="row">
+                <div class="form-group col-12 mb-2">
+                  @if (!input.certificatoFornito || _allowCertReplaceNow) {
+                    <ui-file-dropzone
+                      [control]="input.descrittoreCtrl"
+                      [required]="input.formConfig.certAuth.fileRequired"
+                      [disabled]="input.descrittoreCtrl.disabled"
+                      [maxUpload]="null"
+                      [description]="'APP.LABEL.CertificatoFornitoLabel' | translate"
+                      [acceptedFormats]="['.crt', '.pem', '.cer']"
+                      (resetControl)="descriptorChange.emit({ value: input.descrittoreCtrl.value, type: 'cert' })"
+                      (fileChanged)="descriptorChange.emit({ value: input.descrittoreCtrl.value, type: 'cert' })"
+                    ></ui-file-dropzone>
+                  }
+                  @if (input.certificatoFornito && !_allowCertReplaceNow) {
+                    <div>
+                      <label class="label-bold _space">{{ 'APP.LABEL.CertificatoFornitoLabel' | translate }}&nbsp;</label>
+                      <div class="mb-3">
+                        <button type="button" class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="downloadAllegato.emit(input.certificatoFornito)">
+                          <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Mode: richiesto_cn -->
+            @if (input.formConfig.certAuth.mode.kind === 'richiesto_cn') {
+              <div class="row">
+                <div class="form-group col-12 mb-2">
+                  <label class="label-bold" for="cn">
+                    {{ 'APP.LABEL.CommonName' | translate }}
+                    <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'cn'"></span>
+                  </label>
+                  <input class="form-control form-control-sm" id="cn" type="text" formControlName="cn"
+                    placeholder="{{ 'APP.LABEL.CertificatoRichiestoCNLabel' | translate }}">
+                  @if (f['cn'].invalid && (f['cn'].dirty || f['cn'].touched)) {
+                    <p class="form-text text-danger">
+                      @if (f['cn'].errors && f['cn'].errors['required']) {
+                        <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                      }
+                    </p>
+                  }
+                </div>
+              </div>
+              <!-- Upload opzionale cert generato post-CN (contesto pagina). -->
+              @if (input.descrittoreCtrlCertGeneratoCn && (!input.certificatoCN || _allowCertReplaceNow)) {
+                <div class="row">
+                  <div class="form-group col-12 mb-2">
+                    <ui-file-dropzone
+                      [control]="input.descrittoreCtrlCertGeneratoCn"
+                      [required]="input.formConfig.certAuth.certGeneratoFileRequired"
+                      [disabled]="input.descrittoreCtrlCertGeneratoCn.disabled"
+                      [maxUpload]="null"
+                      [description]="'APP.CLIENT.LABEL.GeneratedCertificate' | translate"
+                      [acceptedFormats]="['.crt', '.pem', '.cer']"
+                      (resetControl)="descriptorChange.emit({ value: input.descrittoreCtrlCertGeneratoCn.value, type: 'cert_generato' })"
+                      (fileChanged)="descriptorChange.emit({ value: input.descrittoreCtrlCertGeneratoCn.value, type: 'cert_generato' })"
+                    ></ui-file-dropzone>
+                  </div>
+                </div>
+              }
+              @if (input.certificatoCN && !_allowCertReplaceNow) {
+                <div class="row">
+                  <div class="form-group col-12 mb-2">
+                    <label class="label-bold _space">{{ 'APP.CLIENT.LABEL.GeneratedCertificate' | translate }}&nbsp;</label>
+                    <div class="mb-3">
+                      <button type="button" class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="downloadAllegato.emit(input.certificatoCN)">
+                        <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+            }
+
+            <!-- Mode: richiesto_csr -->
+            @if (input.formConfig.certAuth.mode.kind === 'richiesto_csr') {
+              <div class="cert-csr-pair">
+                <div class="cert-csr-item form-group mb-2">
+                  @if (!input.certificatoCSR || _allowCertReplaceNow) {
+                    <ui-file-dropzone
+                      [control]="input.descrittoreCtrlCsr"
+                      [required]="input.formConfig.certAuth.fileRequired"
+                      [disabled]="input.descrittoreCtrlCsr.disabled"
+                      [maxUpload]="null"
+                      [description]="'APP.LABEL.CertificatoRichiestoCSRLabel' | translate"
+                      [acceptedFormats]="['.csr', '.pem']"
+                      (resetControl)="descriptorChange.emit({ value: input.descrittoreCtrlCsr.value, type: 'csr' })"
+                      (fileChanged)="descriptorChange.emit({ value: input.descrittoreCtrlCsr.value, type: 'csr' })"
+                    ></ui-file-dropzone>
+                  }
+                  @if (input.certificatoCSR && !_allowCertReplaceNow) {
+                    <div>
+                      <label class="label-bold _space">{{ 'APP.LABEL.CertificatoRichiestoCSRLabel' | translate }}&nbsp;</label>
+                      <div class="mb-3">
+                        <button type="button" class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="downloadAllegato.emit(input.certificatoCSR)">
+                          <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </div>
+                <div class="cert-csr-item form-group mb-2">
+                  @if (!input.moduloRichiestaCSR || _allowCertReplaceNow) {
+                    <ui-file-dropzone
+                      [control]="input.descrittoreCtrlCsrModulo"
+                      [required]="input.formConfig.certAuth.moduloRequired"
+                      [disabled]="input.descrittoreCtrlCsrModulo.disabled"
+                      [maxUpload]="null"
+                      [description]="'APP.LABEL.ModuloRichiestaCSR' | translate"
+                      [acceptedFormats]="['.pdf']"
+                      (resetControl)="descriptorChange.emit({ value: input.descrittoreCtrlCsrModulo.value, type: 'cert' })"
+                      (fileChanged)="descriptorChange.emit({ value: input.descrittoreCtrlCsrModulo.value, type: 'cert' })"
+                    ></ui-file-dropzone>
+                  }
+                  @if (input.moduloRichiestaCSR && !_allowCertReplaceNow) {
+                    <div>
+                      <label class="label-bold _space_r">{{ 'APP.LABEL.ModuloRichiestaCSR' | translate }}&nbsp;</label>
+                      <div class="mb-3">
+                        <button type="button" class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="downloadAllegato.emit(input.moduloRichiestaCSR)">
+                          <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </div>
+                <!-- Upload opzionale cert generato post-CSR (contesto pagina). -->
+                @if (input.descrittoreCtrlCertGeneratoCsr && (!input.certificatoCertGeneratoCsr || _allowCertReplaceNow)) {
+                  <div class="cert-csr-item form-group mb-2">
+                    <ui-file-dropzone
+                      [control]="input.descrittoreCtrlCertGeneratoCsr"
+                      [required]="input.formConfig.certAuth.certGeneratoFileRequired"
+                      [disabled]="input.descrittoreCtrlCertGeneratoCsr.disabled"
+                      [maxUpload]="null"
+                      [description]="'APP.CLIENT.LABEL.GeneratedCertificate' | translate"
+                      [acceptedFormats]="['.crt', '.pem', '.cer']"
+                      (resetControl)="descriptorChange.emit({ value: input.descrittoreCtrlCertGeneratoCsr.value, type: 'cert_generato_csr' })"
+                      (fileChanged)="descriptorChange.emit({ value: input.descrittoreCtrlCertGeneratoCsr.value, type: 'cert_generato_csr' })"
+                    ></ui-file-dropzone>
+                  </div>
+                }
+                @if (input.certificatoCertGeneratoCsr && !_allowCertReplaceNow) {
+                  <div class="cert-csr-item form-group mb-2">
+                    <label class="label-bold _space">{{ 'APP.CLIENT.LABEL.GeneratedCertificate' | translate }}&nbsp;</label>
+                    <div class="mb-3">
+                      <button type="button" class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="downloadAllegato.emit(input.certificatoCertGeneratoCsr)">
+                        <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Certificato di FIRMA. -->
+        @if (input.formConfig.certSign.visible) {
+          <div class="row-content-block mt-2 mb-3">
+            <div class="row">
+              <div class="form-group col-12 mb-2">
+                <label class="label-bold" for="tipo_certificato_firma">
+                  {{ 'APP.CLIENT.LABEL.SignCertificate' | translate }}
+                  <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'tipo_certificato_firma'"></span>
+                </label>
+                <ng-select [class.gl-field-error-outline]="_hasControlError('tipo_certificato_firma')"
+                  [items]="input.tipiCertificato"
+                  bindValue="nome"
+                  bindLabel="nome"
+                  labelForId="tipo_certificato_firma"
+                  [closeOnSelect]="true"
+                  formControlName="tipo_certificato_firma"
+                  (change)="changeTipoCertificatoFirma.emit($event)">
+                  <ng-template ng-label-tmp let-item="item">
+                    {{ 'APP.CLIENT.LABEL.' + item.nome | translate }}
+                  </ng-template>
+                  <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
+                    {{ 'APP.CLIENT.LABEL.' + item.nome | translate }}
+                  </ng-template>
+                </ng-select>
+                @if (f['tipo_certificato_firma'].invalid && (f['tipo_certificato_firma'].dirty || f['tipo_certificato_firma'].touched)) {
+                  <p class="form-text text-danger">
+                    @if (f['tipo_certificato_firma'].errors && f['tipo_certificato_firma'].errors['required']) {
+                      <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                    }
+                  </p>
+                }
+              </div>
+            </div>
+
+            <!-- Mode firma: fornito -->
+            @if (input.formConfig.certSign.mode.kind === 'fornito') {
+              <div class="row">
+                <div class="form-group col-12 mb-2">
+                  @if (!input.certificatoFornitoFirma || _allowCertReplaceNow) {
+                    <ui-file-dropzone
+                      [control]="input.descrittoreCtrlFirma"
+                      [required]="input.formConfig.certSign.fileRequired"
+                      [disabled]="input.descrittoreCtrlFirma.disabled"
+                      [maxUpload]="null"
+                      [description]="'APP.LABEL.CertificatoFornitoLabel' | translate"
+                      [acceptedFormats]="['.crt', '.pem', '.cer']"
+                      (resetControl)="descriptorChangeFirma.emit({ value: input.descrittoreCtrlFirma.value, type: 'cert' })"
+                      (fileChanged)="descriptorChangeFirma.emit({ value: input.descrittoreCtrlFirma.value, type: 'cert' })"
+                    ></ui-file-dropzone>
+                  }
+                  @if (input.certificatoFornitoFirma && !_allowCertReplaceNow) {
+                    <div>
+                      <label class="label-bold _space">{{ 'APP.LABEL.CertificatoFornitoLabel' | translate }}</label>
+                      <div class="mb-3">
+                        <button type="button" class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="downloadAllegato.emit(input.certificatoFornitoFirma)">
+                          <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Mode firma: richiesto_cn -->
+            @if (input.formConfig.certSign.mode.kind === 'richiesto_cn') {
+              <div class="row">
+                <div class="form-group col-12 mb-2">
+                  <label class="label-bold" for="cn_firma">
+                    {{ 'APP.LABEL.CommonName' | translate }}
+                    <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'cn_firma'"></span>
+                  </label>
+                  <input class="form-control form-control-sm" id="cn_firma" type="text" formControlName="cn_firma"
+                    placeholder="{{ 'APP.LABEL.CertificatoRichiestoCNLabel' | translate }}">
+                  @if (f['cn_firma'].invalid && (f['cn_firma'].dirty || f['cn_firma'].touched)) {
+                    <p class="form-text text-danger">
+                      @if (f['cn_firma'].errors && f['cn_firma'].errors['required']) {
+                        <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                      }
+                    </p>
+                  }
+                </div>
+              </div>
+              <!-- Upload opzionale cert generato firma post-CN (contesto pagina). -->
+              @if (input.descrittoreCtrlCertGeneratoCnFirma && (!input.certificatoCNFirma || _allowCertReplaceNow)) {
+                <div class="row">
+                  <div class="form-group col-12 mb-2">
+                    <ui-file-dropzone
+                      [control]="input.descrittoreCtrlCertGeneratoCnFirma"
+                      [required]="input.formConfig.certSign.certGeneratoFileRequired"
+                      [disabled]="input.descrittoreCtrlCertGeneratoCnFirma.disabled"
+                      [maxUpload]="null"
+                      [description]="'APP.CLIENT.LABEL.GeneratedCertificate' | translate"
+                      [acceptedFormats]="['.crt', '.pem', '.cer']"
+                      (resetControl)="descriptorChangeFirma.emit({ value: input.descrittoreCtrlCertGeneratoCnFirma.value, type: 'cert_generato' })"
+                      (fileChanged)="descriptorChangeFirma.emit({ value: input.descrittoreCtrlCertGeneratoCnFirma.value, type: 'cert_generato' })"
+                    ></ui-file-dropzone>
+                  </div>
+                </div>
+              }
+              @if (input.certificatoCNFirma && !_allowCertReplaceNow) {
+                <div class="row">
+                  <div class="form-group col-12 mb-2">
+                    <label class="label-bold">{{ 'APP.LABEL.SignCertificate' | translate }}</label>
+                    <div class="mb-3">
+                      <button type="button" class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="downloadAllegato.emit(input.certificatoCNFirma)">
+                        <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+            }
+
+            <!-- Mode firma: richiesto_csr -->
+            @if (input.formConfig.certSign.mode.kind === 'richiesto_csr') {
+              <div class="cert-csr-pair">
+                <div class="cert-csr-item form-group mb-2">
+                  @if (!input.certificatoCSRFirma || _allowCertReplaceNow) {
+                    <ui-file-dropzone
+                      [control]="input.descrittoreCtrlCsrFirma"
+                      [required]="input.formConfig.certSign.fileRequired"
+                      [disabled]="input.descrittoreCtrlCsrFirma.disabled"
+                      [maxUpload]="null"
+                      [description]="'APP.LABEL.CertificatoRichiestoCSRLabel' | translate"
+                      [acceptedFormats]="['.csr', '.pem']"
+                      (resetControl)="descriptorChangeFirma.emit({ value: input.descrittoreCtrlCsrFirma.value, type: 'csr' })"
+                      (fileChanged)="descriptorChangeFirma.emit({ value: input.descrittoreCtrlCsrFirma.value, type: 'csr' })"
+                    ></ui-file-dropzone>
+                  }
+                  @if (input.certificatoCSRFirma && !_allowCertReplaceNow) {
+                    <div>
+                      <label class="label-bold _space">{{ 'APP.LABEL.CertificatoRichiestoCSRLabel' | translate }}&nbsp;</label>
+                      <div class="mb-3">
+                        <button type="button" class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="downloadAllegato.emit(input.certificatoCSRFirma)">
+                          <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </div>
+                <div class="cert-csr-item form-group mb-2">
+                  @if (!input.moduloRichiestaCSRFirma || _allowCertReplaceNow) {
+                    <ui-file-dropzone
+                      [control]="input.descrittoreCtrlCsrModuloFirma"
+                      [required]="input.formConfig.certSign.moduloRequired"
+                      [disabled]="input.descrittoreCtrlCsrModuloFirma.disabled"
+                      [maxUpload]="null"
+                      [description]="'APP.LABEL.ModuloRichiestaCSR' | translate"
+                      [acceptedFormats]="['.pdf']"
+                      (resetControl)="descriptorChangeFirma.emit({ value: input.descrittoreCtrlCsrModuloFirma.value, type: 'cert' })"
+                      (fileChanged)="descriptorChangeFirma.emit({ value: input.descrittoreCtrlCsrModuloFirma.value, type: 'cert' })"
+                    ></ui-file-dropzone>
+                  }
+                  @if (input.moduloRichiestaCSRFirma && !_allowCertReplaceNow) {
+                    <div>
+                      <label class="label-bold _space_r">{{ 'APP.LABEL.ModuloRichiestaCSR' | translate }}&nbsp;</label>
+                      <div class="mb-3">
+                        <button type="button" class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="downloadAllegato.emit(input.moduloRichiestaCSRFirma)">
+                          <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </div>
+                <!-- Upload opzionale cert generato firma post-CSR (contesto pagina). -->
+                @if (input.descrittoreCtrlCertGeneratoCsrFirma && (!input.certificatoCertGeneratoCsrFirma || _allowCertReplaceNow)) {
+                  <div class="cert-csr-item form-group mb-2">
+                    <ui-file-dropzone
+                      [control]="input.descrittoreCtrlCertGeneratoCsrFirma"
+                      [required]="input.formConfig.certSign.certGeneratoFileRequired"
+                      [disabled]="input.descrittoreCtrlCertGeneratoCsrFirma.disabled"
+                      [maxUpload]="null"
+                      [description]="'APP.CLIENT.LABEL.GeneratedCertificate' | translate"
+                      [acceptedFormats]="['.crt', '.pem', '.cer']"
+                      (resetControl)="descriptorChangeFirma.emit({ value: input.descrittoreCtrlCertGeneratoCsrFirma.value, type: 'cert_generato_csr_firma' })"
+                      (fileChanged)="descriptorChangeFirma.emit({ value: input.descrittoreCtrlCertGeneratoCsrFirma.value, type: 'cert_generato_csr_firma' })"
+                    ></ui-file-dropzone>
+                  </div>
+                }
+                @if (input.certificatoCertGeneratoCsrFirma && !_allowCertReplaceNow) {
+                  <div class="cert-csr-item form-group mb-2">
+                    <label class="label-bold _space_r">{{ 'APP.CLIENT.LABEL.GeneratedCertificate' | translate }}&nbsp;</label>
+                    <div class="mb-3">
+                      <button type="button" class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="downloadAllegato.emit(input.certificatoCertGeneratoCsrFirma)">
+                        <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                      </button>
+                    </div>
+                  </div>
+                }
+                @if (input.moduloRichiestaCSRFirmaCertificato) {
+                  <div class="cert-csr-item form-group mb-2">
+                    <label class="label-bold _space_r">{{ 'APP.LABEL.SignCertificate' | translate }}&nbsp;</label>
+                    <div class="mb-3">
+                      <button type="button" class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="downloadAllegato.emit(input.moduloRichiestaCSRFirmaCertificato)">
+                        <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+
+      </div>
+      <!-- /cert-row -->
+
+      <!-- OAuth Authorization Code URL block. -->
+      @if (input.formConfig.fields.url_redirezione.visible) {
+        <div class="row-content-block mt-2 mb-3 oauth-urls">
+          <div class="row">
+            <div class="form-group col-12 mb-2">
+              <label class="label-bold" for="url_redirezione">
+                {{ 'APP.CLIENT.LABEL.UrlRedirezione' | translate }}
+                <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'url_redirezione'"></span>
+              </label>
+              <input class="form-control form-control-sm" id="url_redirezione" type="text" formControlName="url_redirezione">
+              @if (f['url_redirezione'].invalid && (f['url_redirezione'].dirty || f['url_redirezione'].touched)) {
+                <p class="form-text text-danger">
+                  @if (f['url_redirezione'].errors && f['url_redirezione'].errors['required']) {
+                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                  }
+                </p>
+              }
+            </div>
+            <div class="form-group col-12 mb-2">
+              <label class="label-bold" for="url_esposizione">
+                {{ 'APP.CLIENT.LABEL.UrlEsposizione' | translate }}
+                <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'url_esposizione'"></span>
+              </label>
+              <input class="form-control form-control-sm" id="url_esposizione" type="text" formControlName="url_esposizione">
+              @if (f['url_esposizione'].invalid && (f['url_esposizione'].dirty || f['url_esposizione'].touched)) {
+                <p class="form-text text-danger">
+                  @if (f['url_esposizione'].errors && f['url_esposizione'].errors['required']) {
+                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                  }
+                </p>
+              }
+            </div>
+            <div class="form-group col-12 mb-2">
+              <label class="label-bold" for="help_desk">
+                {{ 'APP.CLIENT.LABEL.HelpDesk' | translate }}
+                <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'help_desk'"></span>
+              </label>
+              <input class="form-control form-control-sm" id="help_desk" type="text" formControlName="help_desk">
+              @if (f['help_desk'].invalid && (f['help_desk'].dirty || f['help_desk'].touched)) {
+                <p class="form-text text-danger">
+                  @if (f['help_desk'].errors && f['help_desk'].errors['required']) {
+                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                  }
+                </p>
+              }
+            </div>
+            <div class="form-group col-12 mb-2">
+              <label class="label-bold" for="nome_applicazione_portale">
+                {{ 'APP.CLIENT.LABEL.NomeApplicazionePortale' | translate }}
+                <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'nome_applicazione_portale'"></span>
+              </label>
+              <input class="form-control form-control-sm" id="nome_applicazione_portale" type="text" formControlName="nome_applicazione_portale">
+              @if (f['nome_applicazione_portale'].invalid && (f['nome_applicazione_portale'].dirty || f['nome_applicazione_portale'].touched)) {
+                <p class="form-text text-danger">
+                  @if (f['nome_applicazione_portale'].errors && f['nome_applicazione_portale'].errors['required']) {
+                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                  }
+                </p>
+              }
+            </div>
+            @if (input.formConfig.showOauthAuthCodeClientIdBlock) {
+              <div class="form-group col-12 mb-2">
+                <label class="label-bold" for="client_id_oauth_ac">
+                  {{ 'APP.CLIENT.LABEL.ClientId' | translate }}
+                  <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'client_id'"></span>
+                </label>
+                <input class="form-control form-control-sm" id="client_id_oauth_ac" type="text" formControlName="client_id">
+                @if (f['client_id'].invalid && (f['client_id'].dirty || f['client_id'].touched)) {
+                  <p class="form-text text-danger">
+                    @if (f['client_id'].errors && f['client_id'].errors['required']) {
+                      <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                    }
+                  </p>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- OAuth Client Credentials client_id (edit/readonly only). -->
+      @if (input.formConfig.showOauthClientCredentialsBlock) {
+        <div class="row-content-block mt-2 mb-3">
+          <div class="row">
+            <div class="form-group col-12 mb-2">
+              <label class="label-bold" for="client_id_oauth_cc">
+                {{ 'APP.CLIENT.LABEL.ClientId' | translate }}
+                <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'client_id'"></span>
+              </label>
+              <input class="form-control form-control-sm" id="client_id_oauth_cc" type="text" formControlName="client_id">
+              @if (f['client_id'].invalid && (f['client_id'].dirty || f['client_id'].touched)) {
+                <p class="form-text text-danger">
+                  @if (f['client_id'].errors && f['client_id'].errors['required']) {
+                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                  }
+                </p>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Descrizione. -->
+      <div class="row">
+        <div class="form-group col-md-12 mb-2">
+          <label class="label-bold" for="descrizione">{{ 'APP.LABEL.descrizione' | translate }}</label>
+          <textarea class="form-control form-control-sm" id="descrizione" rows="4" cols="50" formControlName="descrizione"
+            [placeholder]="f['descrizione']?.disabled ? '' : ('APP.ADESIONI.LABEL.PlaceholderDescrizione' | translate)"
+            aria-describedby="descrizione-help"></textarea>
+          <small id="descrizione-help" class="form-text text-muted d-block mt-1">
+            {{ 'APP.ADESIONI.LABEL.HelpDescrizione' | translate }}
+          </small>
+        </div>
+      </div>
+
+    }
+
+  </fieldset>
+
+  @if (input.error) {
+    <div class="gl-alert gl-alert-danger col-md-12 mb-5">
+      {{ input.errorMsg }}
+    </div>
+  }
+</div>
