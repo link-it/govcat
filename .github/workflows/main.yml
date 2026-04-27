@@ -148,6 +148,7 @@ jobs:
       matrix-property: 'be-'
       fail-on-vuln: ${{ github.ref_name == 'main' || github.ref_type == 'tag' }}
       scan-args: |-
+        --config=./osv-scanner.toml
         -r
         ./bo
         -r
