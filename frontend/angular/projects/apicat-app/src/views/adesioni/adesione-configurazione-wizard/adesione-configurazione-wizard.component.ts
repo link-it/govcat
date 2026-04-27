@@ -566,10 +566,10 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
 
     _hasCambioStato() {
         if (this.authenticationService.isGestore(this.grant?.ruoli)) { return true; }
-        const _statoPrecedetene: boolean = false;
+        const _statoPrecedente: boolean = false;
         const _statoSuccessivo: boolean = this.authenticationService.canChangeStatus('adesione', this.adesione.stato, 'stato_successivo', this.grant?.ruoli);
         const _statiUlteriori: boolean = false;
-        return (_statoPrecedetene || _statoSuccessivo || _statiUlteriori);
+        return (_statoPrecedente || _statoSuccessivo || _statiUlteriori);
     }
     
     private loadServizio(id: string | null, disable = false) {
@@ -722,7 +722,10 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
             const next = this.getNextStateWorkflow();
             return next?.dati_non_applicabili?.includes(className) ? 2 : 1;
         } else {
-            return this._hasCambioStato() ? 0 : 1;
+            // Stato di completezza dei dati: oggettivo, non dipende dal ruolo.
+            // Anche un referente che non puo' cambiare stato deve vedere
+            // l'alert quando il check-dati BE riporta esito != 'ok'.
+            return 0;
         }
     }
 
@@ -768,12 +771,14 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
             const next = this.getNextStateWorkflow();
             return next?.dati_non_applicabili?.includes(environment) ? 2 : 1;
         } else {
-            return this._hasCambioStato() ? 0 : 1;
+            // Vedi nota in `getStatusCompleteMapper`: alert oggettivo,
+            // indipendente dai permessi di cambio stato.
+            return 0;
         }
     }
 
     isSottotipoCompletedMapper = (update: boolean, environment: string, tipo: string, identificativo: string): boolean => {
-        return this._hasCambioStato() ? this.ckeckProvider.isSottotipoCompleted(this.dataStructureResults, environment, tipo, identificativo) : true;
+        return this.ckeckProvider.isSottotipoCompleted(this.dataStructureResults, environment, tipo, identificativo);
     }
 
     configurazioni: any = {

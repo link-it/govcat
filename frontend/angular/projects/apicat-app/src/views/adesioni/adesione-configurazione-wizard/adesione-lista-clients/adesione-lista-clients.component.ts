@@ -272,7 +272,10 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy {
         if (this.isSottotipoGroupCompletedMapper(update, tipo)) {
             return this.nextState?.dati_non_applicabili?.includes(this.environment) ? 2 : 1;
         } else {
-            return this._hasCambioStato() ? 0 : 1;
+            // Stato di completezza dei dati: oggettivo, non dipende dal ruolo.
+            // Anche un referente che non puo' cambiare stato deve vedere
+            // l'alert quando il check-dati BE riporta esito != 'ok'.
+            return 0;
         }
     }
 
@@ -296,7 +299,7 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy {
     }
 
     isSottotipoCompletedMapper = (_update: string, tipo: string, identificativo: string): boolean => {
-        return this._hasCambioStato() ? this.ckeckProvider.isSottotipoCompleted(this.dataCheck, this.environment, tipo, identificativo) : true;
+        return this.ckeckProvider.isSottotipoCompleted(this.dataCheck, this.environment, tipo, identificativo);
     }
 
     _isGestoreMapper = (): boolean => {

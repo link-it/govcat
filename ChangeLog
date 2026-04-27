@@ -1,6 +1,17 @@
 2026-04-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 254 (evolutiva): icona di stato sezioni/client/erogazioni
+	  ora oggettiva. Il referente non vede piu' verde su check-dati
+	  BE in `esito: ko`: rimosso il branch ruolo-dipendente nei
+	  mapper di completezza in `adesione-configurazione-wizard`,
+	  `adesione-lista-clients`, `adesione-lista-erogazioni`.
+	  Hint sezioni nascosti durante il loading del check-dati;
+	  pulsante prossimo stato visibile solo se `_hasCambioStato()`.
+	  Cleanup minori in `icon-toggle` (ngOnInit vuoto) e
+	  `check.provider` (console.log commentati).
+
+	* [Frontend]
 	Issue 254 (evolutiva): apertura accordion Collaudo/Produzione
 	  condizionata anche allo step della step-bar interna. Finche' lo
 	  step interno non raggiunge il finale (`pubblicato_*`) la sezione

@@ -239,7 +239,7 @@
                     </div>
                   </button>
                 </h2>
-                @if (getSectionHint('info_generali'); as hint) {
+                @if (!loadingCheckDati && getSectionHint('info_generali'); as hint) {
                   <div class="accordion-section-hint"
                     [class.hint-completed]="hint.state === 'completed'"
                     [class.hint-disabled]="hint.state === 'disabled'"
@@ -283,7 +283,7 @@
                     </div>
                   </button>
                 </h2>
-                @if (getSectionHint('referenti'); as hint) {
+                @if (!loadingCheckDati && getSectionHint('referenti'); as hint) {
                   <div class="accordion-section-hint"
                     [class.hint-completed]="hint.state === 'completed'"
                     [class.hint-disabled]="hint.state === 'disabled'"
@@ -466,7 +466,7 @@
                     </div>
                   </button>
                 </h2>
-                @if (getSectionHint('collaudo'); as hint) {
+                @if (!loadingCheckDati && getSectionHint('collaudo'); as hint) {
                   <div class="accordion-section-hint"
                     [class.hint-completed]="hint.state === 'completed'"
                     [class.hint-disabled]="hint.state === 'disabled'"
@@ -582,7 +582,7 @@
                     </div>
                   </button>
                 </h2>
-                @if (getSectionHint('produzione'); as hint) {
+                @if (!loadingCheckDati && getSectionHint('produzione'); as hint) {
                   <div class="accordion-section-hint"
                     [class.hint-completed]="hint.state === 'completed'"
                     [class.hint-disabled]="hint.state === 'disabled'"
@@ -680,12 +680,7 @@
           </div>
           <div class="d-flex justify-content-end gap-2 mt-5">
             <div class="d-flex gap-2">
-              <!-- <lnk-button *ngIf="(updateMapper | mapper:canEditMapper) || adesione?.stato === 'bozza'"
-              [label]="isEdit ? 'APP.BUTTON.Cancel' : 'APP.BUTTON.Modify'"
-              [disabled]="changingStatus || loadingCheckDati"
-              (onAction)="toggleEdit()"
-            ></lnk-button> -->
-            @if (hasNextStateWorkflow()) {
+            @if (hasNextStateWorkflow() && _hasCambioStato()) {
               <lnk-button
                 [label]="'APP.WORKFLOW.MENU.' + getNextStateWorkflowName()"
                 [primary]="true"
