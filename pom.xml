@@ -262,7 +262,8 @@
 		<jetty.version>12.0.32</jetty.version>
 
 		<dynamicreports-core.version>6.20.1</dynamicreports-core.version>
-		<bouncycastle.version>1.79</bouncycastle.version>
+		<!-- Fix CVE-2026-0636 (bcprov LDAP injection) e CVE-2026-5588 (bcpkix PKIX CompositeVerifier) -->
+		<bouncycastle.version>1.84</bouncycastle.version>
 		<jasperreports.version>7.0.1</jasperreports.version>
 		<xalan.version>2.7.3</xalan.version>
 
@@ -1153,6 +1154,12 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 			<version>3.18.0</version>
+		</dependency>
+		<!-- Fix CVE-2026-24400 (XXE in assertj isXmlEqualTo) -->
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<version>3.27.7</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.tika</groupId>
