@@ -22,7 +22,8 @@
 		<warName_batch_configurazioni>govcat-batch-configurazioni</warName_batch_configurazioni>
 
 		<karate.version>0.9.4</karate.version>
-		<logback.version>1.2.13</logback.version>
+		<!-- Allineato col parent: fix CVE-2024-12798, CVE-2024-12801, CVE-2025-11226, CVE-2026-1225 -->
+		<logback.version>1.5.25</logback.version>
 
 		<!-- jakarta.mail -->
 		<jakarta.mail.version>2.0.4</jakarta.mail.version>
@@ -37,8 +38,8 @@
 		<commons.beanutils.version>1.11.0</commons.beanutils.version>
 		<commons.text.version>1.12.0</commons.text.version>
 
-	<!-- Log -->
-	<log4j2.version>2.25.3</log4j2.version>
+	<!-- Log: allineato col parent, fix CVE-2026-34477/34478/34479/34480 -->
+	<log4j2.version>2.25.4</log4j2.version>
 	<slf4j-api.version>2.0.9</slf4j-api.version>
 		<!-- CXF -->
 		<cxf.version>3.3.3</cxf.version>
