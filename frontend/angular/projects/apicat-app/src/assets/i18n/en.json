@@ -1249,7 +1249,15 @@
 							}
 						},
 						"RESOURCE": "Access denied to resource [{{resource}}]",
-						"ROLE": "User must have one of the roles [{{ruoli}}] to execute the force"
+						"ROLE": "User must have one of the roles [{{ruoli}}] to execute the force",
+						"AMM": {
+							"ORG": {
+								"INVALID": {
+									"ROLE": "An organization administrator cannot assign role [{{ruolo}}]",
+									"ORGS": "An organization administrator can create users only associated exclusively with the session organization"
+								}
+							}
+						}
 					}
 				},
 				"CAT": {
