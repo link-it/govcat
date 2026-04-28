@@ -219,6 +219,13 @@ public class OrganizzazioneService extends AbstractService {
 	}
 
 	/**
+	 * Restituisce una pagina di associazioni utente-organizzazione per l'organizzazione indicata.
+	 */
+	public Page<UtenteOrganizzazioneEntity> findUtenteOrganizzazioniByOrganizzazione(OrganizzazioneEntity organizzazione, Pageable pageable) {
+		return this.utenteOrganizzazioneRepo.findByOrganizzazione(organizzazione, pageable);
+	}
+
+	/**
 	 * Cerca l'associazione utente-organizzazione per una specifica coppia.
 	 */
 	public Optional<UtenteOrganizzazioneEntity> findUtenteOrganizzazione(UtenteEntity utente, OrganizzazioneEntity organizzazione) {

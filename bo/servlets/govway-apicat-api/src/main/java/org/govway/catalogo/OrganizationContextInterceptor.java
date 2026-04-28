@@ -20,12 +20,16 @@
 package org.govway.catalogo;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity;
+import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,6 +59,9 @@ public class OrganizationContextInterceptor implements HandlerInterceptor {
 
 	@Autowired
 	private UtenteService utenteService;
+
+	@Autowired
+	private OrganizzazioneService organizzazioneService;
 
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
@@ -107,15 +114,36 @@ public class OrganizationContextInterceptor implements HandlerInterceptor {
 			return false;
 		}
 
-		// Cercare tra le associazioni dell'utente
+		// Risolvi l'header (UUID stringa) in Long PK tramite il service.
+		// Usiamo Long ID (PK) per il confronto perché le proprietà base degli OrganizzazioneEntity
+		// nelle associazioni sono lazy enhanced (e quindi non accessibili sull'entità detached).
+		Long idOrgRichiesta;
+		try {
+			Optional<OrganizzazioneEntity> orgRichiesta =
+					this.organizzazioneService.find(UUID.fromString(headerValue));
+			if (orgRichiesta.isEmpty()) {
+				log.warn("Header {} con valore '{}' non corrisponde a nessuna organizzazione esistente",
+						HEADER_NAME, headerValue);
+				sendError(response, HttpServletResponse.SC_BAD_REQUEST,
+						"L'organizzazione specificata non esiste.");
+				return false;
+			}
+			idOrgRichiesta = orgRichiesta.get().getId();
+		} catch (IllegalArgumentException e) {
+			log.warn("Header {} con valore '{}' non è un UUID valido", HEADER_NAME, headerValue);
+			sendError(response, HttpServletResponse.SC_BAD_REQUEST,
+					"Il valore dell'header non è un UUID valido.");
+			return false;
+		}
+
+		// Cercare tra le associazioni dell'utente confrontando gli ID Long (PK)
 		for (UtenteOrganizzazioneEntity assoc : associazioni) {
-			String idOrg = assoc.getOrganizzazione().getIdOrganizzazione();
-			if (headerValue.equals(idOrg)) {
-				organizationContext.setIdOrganizzazione(assoc.getOrganizzazione().getId());
+			if (idOrgRichiesta.equals(assoc.getOrganizzazione().getId())) {
+				organizationContext.setIdOrganizzazione(idOrgRichiesta);
 				organizationContext.setRuoloOrganizzazione(assoc.getRuoloOrganizzazione());
 				organizationContext.setInitialized(true);
 				log.debug("Contesto organizzazione impostato da header per utente {} (id_org={})",
-						utente.getIdUtente(), assoc.getOrganizzazione().getId());
+						utente.getIdUtente(), idOrgRichiesta);
 				return true;
 			}
 		}

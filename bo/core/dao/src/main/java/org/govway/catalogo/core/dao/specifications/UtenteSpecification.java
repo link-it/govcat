@@ -29,6 +29,7 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 
 import org.govway.catalogo.core.orm.entity.ClasseUtenteEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity_;
@@ -36,6 +37,8 @@ import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Ruolo;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Stato;
 import org.govway.catalogo.core.orm.entity.UtenteEntity_;
+import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity;
+import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity_;
 import org.springframework.data.jpa.domain.Specification;
 
 public class UtenteSpecification implements Specification<UtenteEntity> {
@@ -113,7 +116,24 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 		}
 		
 		if (idOrganizzazione.isPresent()) {
-			predLst.add(cb.equal(root.get(UtenteEntity_.organizzazione).get(OrganizzazioneEntity_.idOrganizzazione), idOrganizzazione.get().toString())); 
+			// Multi-organizzazione: cerca sia nella vecchia FK singola sia nella tabella
+			// utenti_organizzazioni. Usiamo una IN subquery per evitare problemi
+			// con DISTINCT e paginazione/count di Spring Data JPA.
+			String idOrgStr = idOrganizzazione.get().toString();
+
+			Predicate fkLegacy = cb.equal(
+					root.get(UtenteEntity_.organizzazione).get(OrganizzazioneEntity_.idOrganizzazione),
+					idOrgStr);
+
+			Subquery<Long> sub = query.subquery(Long.class);
+			Root<UtenteOrganizzazioneEntity> subRoot = sub.from(UtenteOrganizzazioneEntity.class);
+			sub.select(subRoot.get(UtenteOrganizzazioneEntity_.utente).get(UtenteEntity_.id))
+					.where(cb.equal(
+							subRoot.get(UtenteOrganizzazioneEntity_.organizzazione)
+									.get(OrganizzazioneEntity_.idOrganizzazione),
+							idOrgStr));
+
+			predLst.add(cb.or(fkLegacy, root.get(UtenteEntity_.id).in(sub)));
 		}
 		
 		if (email.isPresent()) {
