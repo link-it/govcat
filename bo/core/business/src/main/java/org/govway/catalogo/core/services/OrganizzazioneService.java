@@ -58,6 +58,13 @@ public class OrganizzazioneService extends AbstractService {
 		return this.orgRepo.findOne(filterByKey(key));
 	}
 
+	/**
+	 * Trova un'organizzazione tramite il suo ID interno (PK).
+	 */
+	public Optional<OrganizzazioneEntity> findById(Long id) {
+		return this.orgRepo.findById(id);
+	}
+
 	public Optional<OrganizzazioneEntity> findByNome(String key) {
 		return this.orgRepo.findOne(filterByNome(key));
 	}

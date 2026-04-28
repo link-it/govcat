@@ -140,7 +140,7 @@ public class MatricePermessiMultiOrgTest {
 
 		SecurityContextHolder.setContext(this.securityContext);
 
-		organizationContext.setOrganizzazione(null);
+		organizationContext.setIdOrganizzazione(null);
 		organizationContext.setRuoloOrganizzazione(null);
 		organizationContext.setInitialized(false);
 	}
@@ -182,7 +182,7 @@ public class MatricePermessiMultiOrgTest {
 	private void simulaContestoSessione(Organizzazione organizzazione,
 			RuoloOrganizzazione ruolo) {
 		OrganizzazioneEntity orgEntity = this.organizzazioneService.find(organizzazione.getIdOrganizzazione()).get();
-		organizationContext.setOrganizzazione(orgEntity);
+		organizationContext.setIdOrganizzazione(orgEntity.getId());
 		organizationContext.setRuoloOrganizzazione(ruolo);
 		organizationContext.setInitialized(true);
 	}

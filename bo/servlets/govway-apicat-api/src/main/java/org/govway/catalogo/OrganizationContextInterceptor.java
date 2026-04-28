@@ -83,11 +83,11 @@ public class OrganizationContextInterceptor implements HandlerInterceptor {
 		// Header assente: auto-detect se l'utente ha esattamente 1 organizzazione
 		if (associazioni != null && associazioni.size() == 1) {
 			UtenteOrganizzazioneEntity unica = associazioni.iterator().next();
-			organizationContext.setOrganizzazione(unica.getOrganizzazione());
+			organizationContext.setIdOrganizzazione(unica.getOrganizzazione().getId());
 			organizationContext.setRuoloOrganizzazione(unica.getRuoloOrganizzazione());
 			organizationContext.setInitialized(true);
-			log.debug("Contesto organizzazione auto-impostato per utente {}: {}",
-					utente.getIdUtente(), unica.getOrganizzazione().getNome());
+			log.debug("Contesto organizzazione auto-impostato per utente {} (id_org={})",
+					utente.getIdUtente(), unica.getOrganizzazione().getId());
 			return true;
 		}
 
@@ -111,11 +111,11 @@ public class OrganizationContextInterceptor implements HandlerInterceptor {
 		for (UtenteOrganizzazioneEntity assoc : associazioni) {
 			String idOrg = assoc.getOrganizzazione().getIdOrganizzazione();
 			if (headerValue.equals(idOrg)) {
-				organizationContext.setOrganizzazione(assoc.getOrganizzazione());
+				organizationContext.setIdOrganizzazione(assoc.getOrganizzazione().getId());
 				organizationContext.setRuoloOrganizzazione(assoc.getRuoloOrganizzazione());
 				organizationContext.setInitialized(true);
-				log.debug("Contesto organizzazione impostato da header per utente {}: {}",
-						utente.getIdUtente(), assoc.getOrganizzazione().getNome());
+				log.debug("Contesto organizzazione impostato da header per utente {} (id_org={})",
+						utente.getIdUtente(), assoc.getOrganizzazione().getId());
 				return true;
 			}
 		}

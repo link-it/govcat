@@ -19,7 +19,6 @@
  */
 package org.govway.catalogo;
 
-import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
@@ -30,22 +29,25 @@ import org.springframework.web.context.annotation.RequestScope;
  * globale (gestore, coordinatore) possono operare senza organizzazione di sessione.
  *
  * Viene popolato dall'OrganizationContextInterceptor a partire dall'header
- * X-Organization-Context.
+ * X-Organization-Context. Mantiene solo l'identificativo dell'organizzazione
+ * per evitare problemi di lazy initialization su entità detached: l'entità
+ * viene caricata al volo dai consumer (CoreAuthorization) dentro la loro
+ * transazione di richiesta.
  */
 @Component
 @RequestScope
 public class OrganizationContext {
 
-	private OrganizzazioneEntity organizzazione;
+	private Long idOrganizzazione;
 	private RuoloOrganizzazione ruoloOrganizzazione;
 	private boolean initialized;
 
-	public OrganizzazioneEntity getOrganizzazione() {
-		return organizzazione;
+	public Long getIdOrganizzazione() {
+		return idOrganizzazione;
 	}
 
-	public void setOrganizzazione(OrganizzazioneEntity organizzazione) {
-		this.organizzazione = organizzazione;
+	public void setIdOrganizzazione(Long idOrganizzazione) {
+		this.idOrganizzazione = idOrganizzazione;
 	}
 
 	public RuoloOrganizzazione getRuoloOrganizzazione() {
@@ -68,7 +70,7 @@ public class OrganizationContext {
 	 * @return true se è presente un contesto organizzazione valido
 	 */
 	public boolean hasOrganizzazione() {
-		return initialized && organizzazione != null;
+		return initialized && idOrganizzazione != null;
 	}
 
 }

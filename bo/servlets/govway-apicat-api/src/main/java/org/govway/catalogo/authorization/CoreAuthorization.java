@@ -26,6 +26,7 @@ import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Ruolo;
+import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.ErrorCode;
@@ -45,6 +46,9 @@ public class CoreAuthorization {
 
 	@Autowired
 	private UtenteService utenteService;
+
+	@Autowired
+	private OrganizzazioneService organizzazioneService;
 	
 	public UtenteEntity getUtenteSessione() {
 		boolean consentiAnonimo = this.configurazione.getUtente().isConsentiAccessoAnonimo();
@@ -150,11 +154,17 @@ public class CoreAuthorization {
 	}
 
 	/**
+	 * Carica al volo l'entità organizzazione di sessione dal database.
+	 * Il bean OrganizationContext mantiene solo l'identificativo per evitare problemi di
+	 * lazy initialization su entità detached. La query è risolta nella transazione attiva
+	 * del controller chiamante.
+	 *
 	 * @return l'organizzazione attiva di sessione, o null se non impostata
 	 */
 	public OrganizzazioneEntity getOrganizzazioneSessione() {
 		if (this.organizationContext != null && this.organizationContext.hasOrganizzazione()) {
-			return this.organizationContext.getOrganizzazione();
+			return this.organizzazioneService.findById(this.organizationContext.getIdOrganizzazione())
+					.orElse(null);
 		}
 		return null;
 	}
