@@ -36,59 +36,61 @@ default: |
 # DISCLAIMER PER STATO (generale, indipendente dal profilo)
 # -----------------------------------------------------------------------------
 
-bozza: |
-  ## Adesione in bozza
-  L'adesione e' in fase di compilazione. Completa tutti i campi obbligatori
-  e configura i client per ciascun profilo richiesto dal servizio prima di
-  inviarla in collaudo.
+bozza:
+  severity: WARNING
+  testo: |
+    ## Adesione in bozza
+    L'adesione è stata creata ma non è ancora stata inviata per la configurazione. Per procedere:
+    - Completa la configurazione nelle sezioni **Collaudo** e/o **Produzione**
+    - Invia la richiesta tramite il pulsante **"Richiesta configurazione in collaudo"**
+
+    Finché l'adesione rimane in bozza non sarà visibile ai referenti del servizio.
 
 richiesto_collaudo: |
-  ## In attesa di autorizzazione (collaudo)
-  L'adesione e' stata inviata. E' in attesa di autorizzazione da parte del
-  referente superiore o del gestore. Non e' piu' possibile modificare i dati
-  identificativi.
+  ## In attesa di autorizzazione
+  La richiesta di adesione in **collaudo** è stata inviata ed è in attesa di autorizzazione da parte del **referente del servizio**. Non sono richieste ulteriori azioni da parte tua in questa fase. Riceverai una notifica quando la richiesta sarà valutata.
+
+autorizzato_collaudo: |
+  ## Autorizzata — in attesa di configurazione
+  La richiesta di adesione in **collaudo** è stata autorizzata. Il gestore della piattaforma sta procedendo con la configurazione sull'API Gateway. Riceverai una notifica al termine.
 
 in_configurazione_manuale_collaudo: |
-  ## Configurazione manuale in corso (collaudo)
-  Un operatore sta configurando manualmente l'adesione sull'ambiente di
-  **collaudo**. Il passaggio di stato avverra' al termine della configurazione.
+  ## Configurazione in corso (collaudo)
+  Il gestore sta configurando l'adesione sull'API Gateway di **collaudo**. Non sono richieste azioni da parte tua. Riceverai una notifica al completamento.
 
 in_configurazione_automatica_collaudo: |
-  ## Configurazione automatica in corso (collaudo)
-  Il sistema sta configurando automaticamente l'adesione sull'ambiente di
-  **collaudo**. Lo stato passera' automaticamente a *Pubblicato in collaudo*
-  al termine.
+  ## Configurazione in corso (collaudo)
+  Il gestore della piattaforma sta configurando l'adesione sull'API Gateway di **collaudo**. Non sono richieste azioni da parte tua. Riceverai una notifica al completamento.
 
 pubblicato_collaudo: |
-  ## Pubblicata in collaudo
-  L'adesione e' attiva sull'ambiente di **collaudo**. Puoi iniziare a testare
-  l'integrazione prima di richiedere il passaggio in produzione.
+  ## Adesione attiva in collaudo
+  L'adesione è **attiva nell'ambiente di collaudo**. Puoi procedere con i test di integrazione. Quando sei pronto, avvia la procedura per richiedere la pubblicazione in **produzione**.
 
 richiesto_produzione: |
   ## In attesa di autorizzazione (produzione)
-  L'adesione e' stata inviata per la produzione. Non verra' configurata sul
-  gateway fino all'autorizzazione del referente superiore.
+  La richiesta di adesione in **produzione** è stata inviata ed è in attesa di autorizzazione da parte del **referente del servizio**. Non sono richieste ulteriori azioni da parte tua. Riceverai una notifica quando la richiesta sarà valutata.
+
+autorizzato_produzione: |
+  ## Autorizzata — in attesa di configurazione (produzione)
+  La richiesta di adesione in **produzione** è stata autorizzata. Il gestore della piattaforma sta procedendo con la configurazione sull'API Gateway. Riceverai una notifica al termine.
 
 in_configurazione_manuale_produzione: |
-  ## Configurazione manuale in corso (produzione)
-  Un operatore sta configurando manualmente l'adesione sull'ambiente di
-  **produzione**.
+  ## Configurazione in corso (produzione)
+  Il gestore della piattaforma sta configurando l'adesione sull'API Gateway di **produzione**. Non sono richieste azioni da parte tua. Riceverai una notifica al completamento.
 
 in_configurazione_automatica_produzione: |
   ## Configurazione automatica in corso (produzione)
-  Il sistema sta configurando automaticamente l'adesione in **produzione**.
+  Il gestore della piattaforma sta configurando l'adesione sull'API Gateway di **produzione**. Non sono richieste azioni da parte tua. Riceverai una notifica al completamento.
 
-pubblicato_produzione:
+pubblicato_produzione: |
+  ## Adesione attiva in produzione ✓
+  L'adesione è **attiva in produzione**. Il servizio è operativo. Per modifiche o aggiornamenti alla configurazione contatta il referente del servizio.
+
+archiviato:
   severity: WARNING
   testo: |
-    ## Pubblicata in produzione
-    L'adesione e' **attiva in produzione**. Qualunque modifica alla
-    configurazione puo' avere impatti sugli utenti finali: procedere con cautela.
-
-archiviato: |
-  ## Adesione archiviata
-  L'adesione e' archiviata e non puo' essere piu' modificata. Per riprendere
-  il processo e' necessario crearne una nuova.
+    ## Adesione archiviata
+    Questa adesione è stata **archiviata** e non è più attiva. Il servizio non è accessibile tramite questa adesione. Per ripristinare l'accesso è necessario avviare una nuova procedura di adesione.
 
 # -----------------------------------------------------------------------------
 # PROFILI PDND
