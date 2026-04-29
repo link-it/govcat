@@ -126,6 +126,13 @@
               </div>
             }
           </div>
+          @if (disclaimersGenerali.length > 0) {
+            <div class="adesione-disclaimers mb-4">
+              @for (item of disclaimersGenerali; track $index) {
+                <ng-container *ngTemplateOutlet="disclaimerTpl; context: { $implicit: item }"></ng-container>
+              }
+            </div>
+          }
           @if (stepWizard.length > 0) {
             @if (debugSwitchesEnabled) {
               <div class="wizard-debug-toggle mb-2">
@@ -209,13 +216,6 @@
               [ngStyle]="stepBarDarkMode ? stepBarDarkVars : null"
               (stepClick)="onStepBarClick($event)"
             ></app-adesione-step-bar>
-          }
-          @if (disclaimersGenerali.length > 0) {
-            <div class="adesione-disclaimers mb-4">
-              @for (item of disclaimersGenerali; track $index) {
-                <ng-container *ngTemplateOutlet="disclaimerTpl; context: { $implicit: item }"></ng-container>
-              }
-            </div>
           }
           <div class="mt-5 border-">
             <div class="accordion accordion-flush" id="accordionWizard">
