@@ -200,17 +200,21 @@ export class UtenteOrganizzazioneDialogComponent implements OnInit {
             telefono_aziendale: new FormControl<string | null>(null, [Validators.required, Validators.maxLength(255)]),
             email: new FormControl<string | null>(null, [Validators.email, Validators.maxLength(255)]),
             telefono: new FormControl<string | null>(null, [Validators.maxLength(255)]),
-            ruolo: new FormControl<RuoloUtenteEnum | null>(null),
+            // Da questa dialog (associazione utente all'organizzazione)
+            // si possono creare solo utenti `utente_organizzazione`:
+            // il ruolo e' fissato e disabilitato, l'organizzazione e'
+            // obbligatoria di conseguenza (preimpostata dal contesto).
+            ruolo: new FormControl<RuoloUtenteEnum | null>({ value: RuoloUtenteEnum.UtenteOrganizzazione, disabled: true }),
             stato: new FormControl<StatoUtenteEnum>(StatoUtenteEnum.Abilitato, [Validators.required]),
             note: new FormControl<string | null>(null, [Validators.maxLength(255)]),
             id_organizzazione: new FormControl<string | null>(this.presetIdOrganizzazione, [this._idOrganizzazioneRequiredIfRuolo()]),
             organizzazione_esterna: new FormControl<string | null>(null, [Validators.maxLength(255)])
         });
 
-        // Quando cambia il ruolo, ri-valuta il validator condizionale di id_organizzazione.
-        this.newUserForm.get('ruolo')!.valueChanges.subscribe(() => {
-            this.newUserForm.get('id_organizzazione')!.updateValueAndValidity();
-        });
+        // Ruolo bloccato a `utente_organizzazione`: ri-valutiamo subito
+        // la required dinamica di `id_organizzazione` cosi' partiamo
+        // gia' con l'organizzazione obbligatoria.
+        this.newUserForm.get('id_organizzazione')!.updateValueAndValidity();
 
         if (this.presetIdOrganizzazione) {
             this.organizzazioniItems = [{

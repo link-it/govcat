@@ -122,21 +122,20 @@
         <!-- 5. Ruolo (utente) -->
         <div class="col-md-6">
           <label class="label-bold" for="new-utente-ruolo">{{ 'APP.USERS.LABEL.Role' | translate }}</label>
-          <select id="new-utente-ruolo" class="form-select" formControlName="ruolo">
-            @for (opt of RUOLO_UTENTE_OPTIONS; track opt.value) {
-              <option [ngValue]="opt.value">{{ opt.labelKey | translate }}</option>
-            }
-          </select>
+          <!-- Ruolo fisso: da questa dialog si possono creare solo
+               utenti `utente_organizzazione`. Mostriamo il valore in
+               sola lettura per chiarezza; il control resta nel form
+               (disabled) e arriva nel payload via `getRawValue()`. -->
+          <input id="new-utente-ruolo" type="text" readonly
+                 class="form-control-plaintext"
+                 [value]="'APP.USERS.ROLES.utente_organizzazione' | translate">
         </div>
         <div class="col-md-6"></div>
 
         <!-- 6. Organizzazione | Ruolo nell'organizzazione (adiacenti) -->
         <div class="col-md-6">
           <label class="label-bold" for="new-utente-id-organizzazione">
-            {{ 'APP.SOGGETTI.LABEL.OrganizationName' | translate }}
-            @if (newUserForm.get('ruolo')?.value === 'utente_organizzazione') {
-              <span>*</span>
-            }
+            {{ 'APP.SOGGETTI.LABEL.OrganizationName' | translate }} <span>*</span>
           </label>
           @if (presetIdOrganizzazione) {
             <!-- Organizzazione fissata dal contesto: solo lettura. Il
