@@ -21,12 +21,17 @@ package org.govway.catalogo.core.dao.repositories;
 
 import java.util.List;
 
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.support.JpaRepositoryImplementation;
 
 public interface UtenteOrganizzazioneRepository extends JpaRepositoryImplementation<UtenteOrganizzazioneEntity, Long> {
 
 	List<UtenteOrganizzazioneEntity> findByUtente(UtenteEntity utente);
+
+	Page<UtenteOrganizzazioneEntity> findByOrganizzazione(OrganizzazioneEntity organizzazione, Pageable pageable);
 
 }

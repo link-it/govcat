@@ -58,6 +58,13 @@ public class OrganizzazioneService extends AbstractService {
 		return this.orgRepo.findOne(filterByKey(key));
 	}
 
+	/**
+	 * Trova un'organizzazione tramite il suo ID interno (PK).
+	 */
+	public Optional<OrganizzazioneEntity> findById(Long id) {
+		return this.orgRepo.findById(id);
+	}
+
 	public Optional<OrganizzazioneEntity> findByNome(String key) {
 		return this.orgRepo.findOne(filterByNome(key));
 	}
@@ -209,6 +216,13 @@ public class OrganizzazioneService extends AbstractService {
 	 */
 	public void delete(UtenteOrganizzazioneEntity entity) {
 		this.utenteOrganizzazioneRepo.delete(entity);
+	}
+
+	/**
+	 * Restituisce una pagina di associazioni utente-organizzazione per l'organizzazione indicata.
+	 */
+	public Page<UtenteOrganizzazioneEntity> findUtenteOrganizzazioniByOrganizzazione(OrganizzazioneEntity organizzazione, Pageable pageable) {
+		return this.utenteOrganizzazioneRepo.findByOrganizzazione(organizzazione, pageable);
 	}
 
 	/**

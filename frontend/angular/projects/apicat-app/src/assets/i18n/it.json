@@ -1287,7 +1287,15 @@
 							}
 						},
 						"RESOURCE": "Accesso negato alla risorsa [{{resource}}]",
-						"ROLE": "L'utente deve avere uno dei ruoli [{{ruoli}}] per eseguire la force"
+						"ROLE": "L'utente deve avere uno dei ruoli [{{ruoli}}] per eseguire la force",
+						"AMM": {
+							"ORG": {
+								"INVALID": {
+									"ROLE": "Un amministratore organizzazione non può assegnare il ruolo [{{ruolo}}]",
+									"ORGS": "Un amministratore organizzazione può creare utenti solo associati esclusivamente all'organizzazione di sessione"
+								}
+							}
+						}
 					}
 				},
 				"CAT": {

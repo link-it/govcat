@@ -17,6 +17,9 @@ import java.util.UUID;
 
 import org.govway.catalogo.InfoProfilo;
 import org.govway.catalogo.OpenAPI2SpringBoot;
+import org.govway.catalogo.OrganizationContext;
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
+import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.authorization.UtenteAuthorization;
 import org.govway.catalogo.controllers.DominiController;
@@ -62,8 +65,10 @@ import org.govway.catalogo.servlets.model.TipoReferenteEnum;
 import org.govway.catalogo.servlets.model.Dominio;
 import org.govway.catalogo.servlets.model.Utente;
 import org.govway.catalogo.servlets.model.UtenteCreate;
+import org.govway.catalogo.servlets.model.UtenteOrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.UtenteUpdate;
 import org.govway.catalogo.servlets.model.ProfiloOrganizationUpdate;
+import org.govway.catalogo.servlets.model.RuoloOrganizzazioneEnum;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -136,6 +141,9 @@ public class UtentiTest {
 
     @Autowired
     private Configurazione configurazione;
+
+    @Autowired
+    private OrganizationContext organizationContext;
 
     @MockBean
     private JavaMailSender mailSender;
@@ -2106,6 +2114,200 @@ public class UtentiTest {
         assertTrue(response.getBody().getRuoliReferente().size() >= 2);
         assertTrue(response.getBody().getRuoliReferente().contains(RuoloReferenteEnum.REFERENTE_DOMINIO));
         assertTrue(response.getBody().getRuoliReferente().contains(RuoloReferenteEnum.REFERENTE_TECNICO_SERVIZIO));
+    }
+
+    // ============================================================
+    // createUtente per AMMINISTRATORE_ORGANIZZAZIONE (multi-org)
+    // ============================================================
+
+    /**
+     * Popola manualmente il contesto organizzazione (simula l'OrganizationContextInterceptor).
+     */
+    private void simulaContestoOrganizzazione(Organizzazione org,
+            RuoloOrganizzazione ruolo) {
+        OrganizzazioneEntity orgEntity =
+                organizzazioneService.find(org.getIdOrganizzazione()).get();
+        organizationContext.setIdOrganizzazione(orgEntity.getId());
+        organizationContext.setRuoloOrganizzazione(ruolo);
+        organizationContext.setInitialized(true);
+    }
+
+    private void resetContestoOrganizzazione() {
+        organizationContext.setIdOrganizzazione(null);
+        organizationContext.setRuoloOrganizzazione(null);
+        organizationContext.setInitialized(false);
+    }
+
+    /**
+     * Crea un AMM_ORG sull'organizzazione indicata e lo imposta come utente di sessione,
+     * popolando anche il contesto organizzazione di sessione.
+     */
+    private Utente creaAmmOrgEAutentica(String principal, Organizzazione org) {
+        UtenteCreate uc = CommonUtils.getUtenteCreate();
+        uc.setPrincipal(principal);
+        uc.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        UtenteOrganizzazioneCreate assoc =
+                new UtenteOrganizzazioneCreate();
+        assoc.setIdOrganizzazione(org.getIdOrganizzazione());
+        assoc.setRuoloOrganizzazione(
+                RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+        uc.setOrganizzazioni(List.of(assoc));
+        Utente creato = controller.createUtente(uc).getBody();
+
+        // Autentica come AMM_ORG
+        CommonUtils.getSessionUtente(principal, securityContext, authentication, utenteService);
+        simulaContestoOrganizzazione(org, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+
+        return creato;
+    }
+
+    @Test
+    public void testCreateUtente_AmmOrg_Success() {
+        Organizzazione org = organizzazioniController.createOrganizzazione(
+                CommonUtils.getOrganizzazioneCreate()).getBody();
+        creaAmmOrgEAutentica("amm.org.create.ok", org);
+
+        // L'AMM_ORG crea un nuovo utente con ruolo OPERATORE_API sulla sua organizzazione
+        UtenteCreate nuovo = CommonUtils.getUtenteCreate();
+        nuovo.setPrincipal("amm.org.create.target");
+        nuovo.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        UtenteOrganizzazioneCreate ass =
+                new UtenteOrganizzazioneCreate();
+        ass.setIdOrganizzazione(org.getIdOrganizzazione());
+        ass.setRuoloOrganizzazione(
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+        nuovo.setOrganizzazioni(List.of(ass));
+
+        ResponseEntity<Utente> response = controller.createUtente(nuovo);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("amm.org.create.target", response.getBody().getPrincipal());
+        assertEquals(1, response.getBody().getOrganizzazioni().size());
+    }
+
+    @Test
+    public void testCreateUtente_AmmOrg_PuoCreareAltroAmmOrg() {
+        Organizzazione org = organizzazioniController.createOrganizzazione(
+                CommonUtils.getOrganizzazioneCreate()).getBody();
+        creaAmmOrgEAutentica("amm.org.create.amm", org);
+
+        // L'AMM_ORG crea un nuovo AMM_ORG sulla stessa organizzazione
+        UtenteCreate nuovo = CommonUtils.getUtenteCreate();
+        nuovo.setPrincipal("amm.org.create.amm.target");
+        nuovo.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        UtenteOrganizzazioneCreate ass =
+                new UtenteOrganizzazioneCreate();
+        ass.setIdOrganizzazione(org.getIdOrganizzazione());
+        ass.setRuoloOrganizzazione(
+                RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+        nuovo.setOrganizzazioni(List.of(ass));
+
+        ResponseEntity<Utente> response = controller.createUtente(nuovo);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE,
+                response.getBody().getOrganizzazioni().get(0).getRuoloOrganizzazione());
+    }
+
+    @Test
+    public void testCreateUtente_AmmOrg_RuoloGestore_Forbidden() {
+        Organizzazione org = organizzazioniController.createOrganizzazione(
+                CommonUtils.getOrganizzazioneCreate()).getBody();
+        creaAmmOrgEAutentica("amm.org.create.gestore", org);
+
+        UtenteCreate nuovo = CommonUtils.getUtenteCreate();
+        nuovo.setPrincipal("amm.org.create.gestore.target");
+        nuovo.setRuolo(RuoloUtenteEnum.GESTORE);
+        UtenteOrganizzazioneCreate ass =
+                new UtenteOrganizzazioneCreate();
+        ass.setIdOrganizzazione(org.getIdOrganizzazione());
+        ass.setRuoloOrganizzazione(
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+        nuovo.setOrganizzazioni(List.of(ass));
+
+        NotAuthorizedException ex = assertThrows(NotAuthorizedException.class, () -> {
+            controller.createUtente(nuovo);
+        });
+        assertTrue(ex.getMessage().startsWith("AUT.403"));
+    }
+
+    @Test
+    public void testCreateUtente_AmmOrg_OrgDiversaDaSessione_Forbidden() {
+        Organizzazione orgSessione = organizzazioniController.createOrganizzazione(
+                CommonUtils.getOrganizzazioneCreate()).getBody();
+        creaAmmOrgEAutentica("amm.org.create.altraorg", orgSessione);
+
+        // Come gestore creo un'altra org per il test (mi devo prima ri-autenticare per crearla)
+        // In realtà questa org la creiamo come AMM_ORG... ma AMM_ORG non può creare org. Quindi
+        // cambiamo strategia: passiamo un id_organizzazione casuale (UUID inesistente).
+        UtenteCreate nuovo = CommonUtils.getUtenteCreate();
+        nuovo.setPrincipal("amm.org.create.altraorg.target");
+        nuovo.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        UtenteOrganizzazioneCreate ass =
+                new UtenteOrganizzazioneCreate();
+        ass.setIdOrganizzazione(UUID.randomUUID()); // org diversa da quella di sessione
+        ass.setRuoloOrganizzazione(
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+        nuovo.setOrganizzazioni(List.of(ass));
+
+        NotAuthorizedException ex = assertThrows(NotAuthorizedException.class, () -> {
+            controller.createUtente(nuovo);
+        });
+        assertTrue(ex.getMessage().startsWith("AUT.403"));
+    }
+
+    @Test
+    public void testCreateUtente_AmmOrg_NoOrganizzazioni_Forbidden() {
+        Organizzazione org = organizzazioniController.createOrganizzazione(
+                CommonUtils.getOrganizzazioneCreate()).getBody();
+        creaAmmOrgEAutentica("amm.org.create.noorg", org);
+
+        UtenteCreate nuovo = CommonUtils.getUtenteCreate();
+        nuovo.setPrincipal("amm.org.create.noorg.target");
+        nuovo.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        // organizzazioni non impostato
+
+        NotAuthorizedException ex = assertThrows(NotAuthorizedException.class, () -> {
+            controller.createUtente(nuovo);
+        });
+        assertTrue(ex.getMessage().startsWith("AUT.403"));
+    }
+
+    @Test
+    public void testCreateUtente_OperatoreApi_Forbidden() {
+        // Un OPERATORE_API (non AMM_ORG) non può creare utenti
+        Organizzazione org = organizzazioniController.createOrganizzazione(
+                CommonUtils.getOrganizzazioneCreate()).getBody();
+
+        UtenteCreate operCreate = CommonUtils.getUtenteCreate();
+        operCreate.setPrincipal("oper.create.attempt");
+        operCreate.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        UtenteOrganizzazioneCreate ass =
+                new UtenteOrganizzazioneCreate();
+        ass.setIdOrganizzazione(org.getIdOrganizzazione());
+        ass.setRuoloOrganizzazione(
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+        operCreate.setOrganizzazioni(List.of(ass));
+        controller.createUtente(operCreate);
+
+        CommonUtils.getSessionUtente("oper.create.attempt", securityContext, authentication, utenteService);
+        simulaContestoOrganizzazione(org, RuoloOrganizzazione.OPERATORE_API);
+
+        UtenteCreate nuovo = CommonUtils.getUtenteCreate();
+        nuovo.setPrincipal("oper.create.target");
+        nuovo.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        UtenteOrganizzazioneCreate ass2 =
+                new UtenteOrganizzazioneCreate();
+        ass2.setIdOrganizzazione(org.getIdOrganizzazione());
+        ass2.setRuoloOrganizzazione(
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+        nuovo.setOrganizzazioni(List.of(ass2));
+
+        NotAuthorizedException ex = assertThrows(NotAuthorizedException.class, () -> {
+            controller.createUtente(nuovo);
+        });
+        assertTrue(ex.getMessage().startsWith("AUT.403"));
+
+        resetContestoOrganizzazione();
     }
 }
 

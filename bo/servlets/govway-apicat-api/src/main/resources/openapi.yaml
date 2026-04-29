@@ -704,6 +704,36 @@ paths:
   /organizzazioni/{id_organizzazione}/utenti:
     parameters:
     - $ref: "#/components/parameters/id_organizzazione"
+    get:
+      tags:
+      - "Organizzazioni"
+      description: "Elenco degli utenti associati all'organizzazione con il rispettivo ruolo per-organizzazione. Operazione consentita al gestore o coordinatore (in base alla configurazione amministrazione.organizzazioni) oppure ad un AMMINISTRATORE_ORGANIZZAZIONE dell'organizzazione target."
+      operationId: "listUtentiOrganizzazione"
+      parameters:
+      - $ref: "#/components/parameters/page_query_optional"
+      - $ref: "#/components/parameters/size_query_optional"
+      - $ref: "#/components/parameters/sort_query_optional"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedModelItemUtenteOrganizzazione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
     post:
       tags:
       - "Organizzazioni"
@@ -7404,6 +7434,25 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ItemUtente'
+        page:
+          $ref: '#/components/schemas/PageMetadata'
+    ItemUtenteOrganizzazione:
+      type: "object"
+      description: "Utente associato a un'organizzazione con il rispettivo ruolo per-organizzazione"
+      required:
+        - utente
+      properties:
+        utente:
+          $ref: "#/components/schemas/ItemUtente"
+        ruolo_organizzazione:
+          $ref: "#/components/schemas/RuoloOrganizzazioneEnum"
+    PagedModelItemUtenteOrganizzazione:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemUtenteOrganizzazione'
         page:
           $ref: '#/components/schemas/PageMetadata'
     PagedModelItemDominio:

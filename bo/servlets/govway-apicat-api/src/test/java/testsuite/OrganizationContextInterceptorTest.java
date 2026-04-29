@@ -35,6 +35,7 @@ import org.govway.catalogo.OrganizationContextInterceptor;
 import org.govway.catalogo.controllers.OrganizzazioniController;
 import org.govway.catalogo.controllers.UtentiController;
 import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
+import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.servlets.model.Organizzazione;
 import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
@@ -97,6 +98,9 @@ public class OrganizationContextInterceptorTest {
 	private UtenteService utenteService;
 
 	@Autowired
+	private OrganizzazioneService organizzazioneService;
+
+	@Autowired
 	private OrganizationContextInterceptor interceptor;
 
 	@Autowired
@@ -116,7 +120,7 @@ public class OrganizationContextInterceptorTest {
 		SecurityContextHolder.setContext(this.securityContext);
 
 		// Reset dello stato del bean request-scoped
-		organizationContext.setOrganizzazione(null);
+		organizationContext.setIdOrganizzazione(null);
 		organizationContext.setRuoloOrganizzazione(null);
 		organizationContext.setInitialized(false);
 	}
@@ -170,9 +174,9 @@ public class OrganizationContextInterceptorTest {
 		assertTrue(result);
 		assertTrue(organizationContext.isInitialized());
 		assertTrue(organizationContext.hasOrganizzazione());
-		assertNotNull(organizationContext.getOrganizzazione());
-		assertEquals(org.getIdOrganizzazione().toString(),
-				organizationContext.getOrganizzazione().getIdOrganizzazione());
+		assertNotNull(organizationContext.getIdOrganizzazione());
+		Long expectedId = organizzazioneService.find(org.getIdOrganizzazione()).get().getId();
+		assertEquals(expectedId, organizationContext.getIdOrganizzazione());
 		assertEquals(RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE,
 				organizationContext.getRuoloOrganizzazione());
 	}
@@ -207,8 +211,8 @@ public class OrganizationContextInterceptorTest {
 
 		assertTrue(result);
 		assertTrue(organizationContext.hasOrganizzazione());
-		assertEquals(org.getIdOrganizzazione().toString(),
-				organizationContext.getOrganizzazione().getIdOrganizzazione());
+		Long expectedId = organizzazioneService.find(org.getIdOrganizzazione()).get().getId();
+		assertEquals(expectedId, organizationContext.getIdOrganizzazione());
 		assertEquals(RuoloOrganizzazione.OPERATORE_API,
 				organizationContext.getRuoloOrganizzazione());
 	}
@@ -228,7 +232,7 @@ public class OrganizationContextInterceptorTest {
 		assertTrue(result);
 		assertTrue(organizationContext.isInitialized());
 		assertFalse(organizationContext.hasOrganizzazione());
-		assertNull(organizationContext.getOrganizzazione());
+		assertNull(organizationContext.getIdOrganizzazione());
 	}
 
 	@Test
@@ -262,8 +266,8 @@ public class OrganizationContextInterceptorTest {
 		boolean result = interceptor.preHandle(req, resp, new Object());
 
 		assertTrue(result);
-		assertEquals(org2.getIdOrganizzazione().toString(),
-				organizationContext.getOrganizzazione().getIdOrganizzazione());
+		Long expectedId = organizzazioneService.find(org2.getIdOrganizzazione()).get().getId();
+		assertEquals(expectedId, organizationContext.getIdOrganizzazione());
 	}
 
 }

@@ -442,6 +442,12 @@ public enum ErrorCode {
     /** Organizzazione di sessione non abilitata come aderente */
     AUT_403_ORG_NOT_ADERENTE("Organizzazione non abilitata come aderente"),
 
+    /** Un amministratore organizzazione non può assegnare il ruolo richiesto */
+    AUT_403_AMM_ORG_INVALID_ROLE("Ruolo globale non assegnabile da amministratore organizzazione"),
+
+    /** L'utente da creare deve essere associato esclusivamente all'organizzazione di sessione */
+    AUT_403_AMM_ORG_INVALID_ORGS("Vincoli organizzazioni utente non soddisfatti per amministratore organizzazione"),
+
     /** Token di autenticazione non valido */
     AUT_401_TOKEN("Token non valido"),
 

@@ -30,6 +30,8 @@ import org.govway.catalogo.ApiV1Controller;
 import org.govway.catalogo.assembler.OrganizzazioneDettaglioAssembler;
 import org.govway.catalogo.assembler.OrganizzazioneItemAssembler;
 import org.govway.catalogo.assembler.UtenteDettaglioAssembler;
+import org.govway.catalogo.assembler.UtenteRestrictedAssembler;
+import org.govway.catalogo.core.dao.specifications.UtenteSpecification;
 import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.authorization.OrganizzazioneAuthorization;
 import org.govway.catalogo.core.dao.specifications.OrganizzazioneSpecification;
@@ -54,6 +56,10 @@ import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.OrganizzazioneUpdate;
 import org.govway.catalogo.servlets.model.PageMetadata;
 import org.govway.catalogo.servlets.model.PagedModelItemOrganizzazione;
+import org.govway.catalogo.servlets.model.ItemUtente;
+import org.govway.catalogo.servlets.model.ItemUtenteOrganizzazione;
+import org.govway.catalogo.servlets.model.PagedModelItemUtenteOrganizzazione;
+import org.govway.catalogo.servlets.model.RuoloOrganizzazioneEnum;
 import org.govway.catalogo.servlets.model.UtenteOrganizzazione;
 import org.govway.catalogo.servlets.model.UtenteOrganizzazioneAdd;
 import org.govway.catalogo.servlets.model.UtenteOrganizzazioneUpdate;
@@ -97,6 +103,12 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 
     @Autowired
     private UtenteDettaglioAssembler utenteDettaglioAssembler;
+
+    @Autowired
+    private UtenteRestrictedAssembler utenteRestrictedAssembler;
+
+    @Autowired
+    private PagedResourcesAssembler<UtenteEntity> utentePagedResourceAssembler;
 
 	private Logger logger = LoggerFactory.getLogger(OrganizzazioniController.class);
 
@@ -442,6 +454,66 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 				this.logger.info("Invocazione completata con successo");
 
 				return ResponseEntity.noContent().build();
+			});
+		}
+		catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
+			throw e;
+		}
+		catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	@Override
+	public ResponseEntity<PagedModelItemUtenteOrganizzazione> listUtentiOrganizzazione(UUID idOrganizzazione,
+			Integer page, Integer size, List<String> sort) {
+		try {
+			return this.service.runTransaction(() -> {
+				this.logger.info("Invocazione in corso ...");
+				OrganizzazioneEntity org = this.service.find(idOrganizzazione)
+						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404,
+								Map.of("idOrganizzazione", idOrganizzazione.toString())));
+
+				authorizeGestioneAssociazioni(org);
+				this.logger.debug("Autorizzazione completata con successo");
+
+				// Query diretta sulla tabella utenti_organizzazioni filtrando per l'organizzazione
+				// target. Il parametro q (ricerca) non è applicato in questa versione: per filtraggio
+				// avanzato sugli utenti rimane disponibile GET /utenti?id_organizzazione=...
+				CustomPageRequest pageable = new CustomPageRequest(page, size, sort,
+						Arrays.asList("id"));
+				Page<UtenteOrganizzazioneEntity> associazioni =
+						this.service.findUtenteOrganizzazioniByOrganizzazione(org, pageable);
+
+				List<ItemUtenteOrganizzazione> content = associazioni.getContent().stream().map(assoc -> {
+					ItemUtente itemUtente = this.utenteRestrictedAssembler.toModel(assoc.getUtente());
+					ItemUtenteOrganizzazione item = new ItemUtenteOrganizzazione();
+					item.setUtente(itemUtente);
+					if (assoc.getRuoloOrganizzazione() != null) {
+						switch (assoc.getRuoloOrganizzazione()) {
+						case AMMINISTRATORE_ORGANIZZAZIONE:
+							item.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+							break;
+						case OPERATORE_API:
+							item.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.OPERATORE_API);
+							break;
+						}
+					}
+					return item;
+				}).collect(Collectors.toList());
+
+				PagedModelItemUtenteOrganizzazione list = new PagedModelItemUtenteOrganizzazione();
+				list.setContent(content);
+				list.setPage(new PageMetadata()
+						.size((long) associazioni.getSize())
+						.number((long) associazioni.getNumber())
+						.totalElements(associazioni.getTotalElements())
+						.totalPages((long) associazioni.getTotalPages()));
+
+				this.logger.info("Invocazione completata con successo");
+				return ResponseEntity.ok(list);
 			});
 		}
 		catch (RuntimeException e) {
