@@ -1292,6 +1292,41 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     return this.authenticationService.canEdit('adesione', 'adesione', this.adesione?.stato, this._grant?.ruoli);
   }
 
+  _isGestoreMapper = (): boolean => {
+    return this.authenticationService.isGestore(this._grant?.ruoli);
+  }
+
+  /**
+   * Apre la conferma di eliminazione e, su yes, chiama
+   * `DELETE /adesioni/{id_adesione}` poi naviga alla lista.
+   * Visibile solo al gestore (Issue #212).
+   */
+  _confirmDeleteAdesione(): void {
+    const initialState = {
+      title: this.translate.instant('APP.TITLE.Attention'),
+      messages: [ this.translate.instant('APP.MESSAGE.AreYouSure') ],
+      cancelText: this.translate.instant('APP.BUTTON.Cancel'),
+      confirmText: this.translate.instant('APP.BUTTON.Confirm'),
+      confirmColor: 'danger'
+    };
+    this._modalConfirmRef = this.modalService.show(YesnoDialogBsComponent, {
+      ignoreBackdropClick: true,
+      initialState
+    });
+    this._modalConfirmRef.content.onClose.subscribe((response: any) => {
+      if (!response) { return; }
+      this.apiService.deleteElement(this.model, this.adesione.id_adesione).subscribe({
+        next: () => {
+          this.router.navigate([this.model]);
+        },
+        error: (error) => {
+          this._error = true;
+          this._errorMsg = this.utils.GetErrorMsg(error);
+        }
+      });
+    });
+  }
+
   private async isCurrentUserReferenteServizio(servizio: Servizio){
     const referenti = await this.getReferentiServizio(servizio);
     return referenti.some(referente => referente.utente.id_utente === this._profilo?.utente.id_utente);

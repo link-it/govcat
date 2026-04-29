@@ -42,7 +42,7 @@
                         <button role="menuitem" type="button" class="dropdown-item" (click)="onAction(submenu);">
                           @if (submenu.icon) {
                             <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
-                              <i class="bi bi-{{ submenu.icon }}"></i>
+                              <i class="bi bi-{{ submenu.icon }}" [class.text-danger]="submenu.danger"></i>
                             </div>
                           }
                           <div class="gl-new-dropdown-item-text-wrapper">
@@ -63,7 +63,7 @@
                     <button role="menuitem" type="button" class="dropdown-item" (click)="onAction(menu);">
                       @if (menu.icon) {
                         <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
-                          <i class="bi bi-{{ menu.icon }}"></i>
+                          <i class="bi bi-{{ menu.icon }}" [class.text-danger]="menu.danger"></i>
                         </div>
                       }
                       <div class="gl-new-dropdown-item-text-wrapper">

@@ -25,7 +25,7 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { MarkdownModule } from 'ngx-markdown';
 
-import { ConfigService, COMPONENTS_IMPORTS, EventsManagerService, Tools, EventType, FieldClass, MenuAction } from '@linkit/components';
+import { ConfigService, COMPONENTS_IMPORTS, EventsManagerService, Tools, EventType, FieldClass, MenuAction, YesnoDialogBsComponent } from '@linkit/components';
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 import { WorkflowComponent } from '@app/components/workflow/workflow.component';
@@ -194,6 +194,23 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
             enabled: true
         })
     ];
+
+    /**
+     * Voci appese IN FONDO al menu del `app-monitor-dropdown` (dopo
+     * le voci interne del componente). Issue #212: contiene la voce
+     * "Elimina adesione", aggiunta solo per il gestore.
+     */
+    _bottomActions: MenuAction[] = [];
+
+    private readonly _DELETE_ADESIONE_ACTION = new MenuAction({
+        type: 'menu',
+        title: 'APP.TOOLTIP.DeleteAdesione',
+        icon: 'trash',
+        subTitle: '',
+        action: 'delete_adesione',
+        enabled: true,
+        danger: true
+    });
 
     ClassiEnum = ClassiEnum;
 
@@ -454,7 +471,8 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
 
     _updateOtherActions() {
         const _canJoin = this.authenticationService.canJoin('adesione', this.adesione?.stato);
-    
+        const _isGestore = this.authenticationService.isGestore(this.grant?.ruoli);
+
         const _otherActions = this._otherActions.map((item: any) => {
             let _enabled = true;
             switch (item.action) {
@@ -469,6 +487,16 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
             return { ...item, enabled: _enabled };
         });
         this._otherActions = Object.assign([], _otherActions);
+
+        // Voci "in fondo" del dropdown: l'eliminazione adesione e'
+        // sempre l'ultima voce e visibile solo per il gestore.
+        // Divider di separazione dalle voci interne del componente.
+        this._bottomActions = _isGestore
+            ? [
+                new MenuAction({ type: 'divider', enabled: true }),
+                { ...this._DELETE_ADESIONE_ACTION }
+            ]
+            : [];
     }
     
 
@@ -671,6 +699,35 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     isGestoredMapper = (update: string): boolean => {
         const _grant: any = this.grant || [];
         return this.authenticationService.isGestore(_grant);
+    }
+
+    /**
+     * Conferma e cancellazione adesione tramite `DELETE /adesioni/{id}`.
+     * Visibile solo al gestore (Issue #212).
+     */
+    _confirmDeleteAdesione(): void {
+        const initialState = {
+            title: this.translate.instant('APP.TITLE.Attention'),
+            messages: [ this.translate.instant('APP.MESSAGE.AreYouSure') ],
+            cancelText: this.translate.instant('APP.BUTTON.Cancel'),
+            confirmText: this.translate.instant('APP.BUTTON.Confirm'),
+            confirmColor: 'danger'
+        };
+        const ref: BsModalRef = this.modalService.show(YesnoDialogBsComponent, {
+            ignoreBackdropClick: true,
+            initialState
+        });
+        ref.content.onClose.subscribe((response: any) => {
+            if (!response) { return; }
+            this.apiService.deleteElement(this.model, this.adesione.id_adesione).subscribe({
+                next: () => {
+                    this.router.navigate([this.model]);
+                },
+                error: (error: any) => {
+                    Tools.OnError(error);
+                }
+            });
+        });
     }
 
     toggleEdit() {
@@ -1054,6 +1111,9 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
         }
         if(event.action == 'comunicazioni') {
             this.router.navigate(['comunicazioni'], { relativeTo: this.route });
+        }
+        if(event.action == 'delete_adesione') {
+            this._confirmDeleteAdesione();
         }
     }
 

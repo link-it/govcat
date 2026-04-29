@@ -102,6 +102,13 @@
           </button>
         </div>
       }
+      @if (!_isEdit && !_isNew && !_spin && (_updateMapper | mapper:_isGestoreMapper)) {
+        <div class="btn-group- ms-2 d-inline-block">
+          <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.DeleteAdesione' | translate" (click)="_confirmDeleteAdesione()">
+            <i class="bi bi-trash text-danger"></i>
+          </button>
+        </div>
+      }
     }
     @if (_isEdit && !_spin) {
       <div class="gl-w-full btn-group- position-relative">
