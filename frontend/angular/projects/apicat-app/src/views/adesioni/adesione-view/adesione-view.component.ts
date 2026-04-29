@@ -66,7 +66,7 @@ export interface User {
 
 export interface Referent {
   utente: User;
-  tipo: 'referente' | 'referente_servizio' | 'referente_tecnico' | 'referente_dominio';
+  tipo: 'referente' | 'referente_servizio' | 'utente_organizzazione' | 'referente_tecnico' | 'referente_dominio';
 }
 
 export interface Domain {
@@ -545,7 +545,10 @@ export class AdesioneViewComponent implements OnInit {
         };
 
         const allReferents = [
-          ...serviceReferents.filter(ref => ref.tipo === 'referente_servizio'),
+          // `referente_servizio` deprecato in favore di `utente_organizzazione`:
+          // accettiamo entrambi i tipi per non perdere i referenti dei servizi
+          // su dati legacy non ancora aggiornati.
+          ...serviceReferents.filter(ref => ref.tipo === 'referente_servizio' || ref.tipo === 'utente_organizzazione'),
           ...domainReferents.filter(ref => ref.tipo === 'referente_dominio'),
           ...referents
         ];

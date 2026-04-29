@@ -128,7 +128,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   roleTab: string = 'tutte';
   _allRoleTabs: { key: string, label: string, roles: string[] }[] = [
     { key: 'tutte', label: 'APP.FILTER.All', roles: [] },
-    { key: 'referente', label: 'APP.FILTER.ReferenteServizioDominio', roles: ['referente_dominio', 'referente_tecnico_dominio', 'referente_servizio', 'referente_tecnico_servizio'] },
+    { key: 'referente', label: 'APP.FILTER.ReferenteServizioDominio', roles: ['referente_dominio', 'referente_tecnico_dominio', 'referente_servizio', 'utente_organizzazione', 'referente_tecnico_servizio'] },
     { key: 'referente_adesione', label: 'APP.FILTER.ReferenteAdesione', roles: ['referente_adesione', 'referente_tecnico_adesione'] },
     { key: 'richiedente', label: 'APP.FILTER.Richiedente', roles: ['richiedente_servizio', 'richiedente_adesione'] }
   ];
@@ -287,7 +287,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
       this.generalConfig = Tools.Configurazione || null;
       this._workflowStati = Tools.Configurazione?.adesione.workflow.stati || [];
       this._adesioni_multiple = Tools.Configurazione?.servizio.adesioni_multiple || [];
-      this._updateMapper = new Date().getTime().toString();
+      this._updateMapper = Date.now().toString();
       this.updateMultiSelectionMapper();
     });
   }
@@ -382,7 +382,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
           this._links = response._links || null;
         }
 
-        if (response && response.content) {
+        if (response?.content) {
           const _list: any = response.content.map((adesione: any) => {
             const _adesione = { ...adesione, id_logico: this._adesioni_multiple ? adesione.id_logico : null, ruoli_referente_label: adesione.ruoli_referente || [] };
             const element = {
@@ -529,10 +529,9 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     return this.apiService.getList(model, _options)
       .pipe(map(resp => {
         if (resp.Error) {
-          throwError(resp.Error);
+          throwError(() => resp.Error);
         } else {
           const _items = resp.content.map((item: any) => {
-            // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
             return item;
           });
           return _items;
@@ -677,7 +676,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     this._filterData = values;
     this.resetSeleted();
     this.updateMultiSelectionMapper();
-    this._updateMapper = new Date().getTime().toString();
+    this._updateMapper = Date.now().toString();
     this._loadAdesioni(this._filterData);
   }
 
@@ -768,7 +767,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
 
   resetSeleted() {
     this.elementsSelected = [];
-    this._updateMapper = new Date().getTime().toString();
+    this._updateMapper = Date.now().toString();
   }
 
   deselectAll() {
@@ -777,7 +776,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
         return { ...element, selected: false };
     });
     this.adesioni = [ ..._elements ];
-    this._updateMapper = new Date().getTime().toString();
+    this._updateMapper = Date.now().toString();
   }
 
   selectAll() {
@@ -786,7 +785,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
         return { ...element, selected: true };
     });
     this.adesioni = [ ..._elements ];
-    this._updateMapper = new Date().getTime().toString();
+    this._updateMapper = Date.now().toString();
   }
 
   get allSelected(): boolean {

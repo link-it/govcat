@@ -569,9 +569,9 @@ export class AuthenticationService {
     if (this.isGestore(grant)) { return true; }
     if (state) {
       const _wfcs = this._getWorkflowCambiStato(module, state);
-      const _ssra = (_wfcs && _wfcs.stato_successivo) ? _wfcs.stato_successivo.ruoli_abilitati : [];
-      const _dnm = (_wfcs && _wfcs.dati_non_modificabili) ? _wfcs.dati_non_modificabili : [];
-      const _do = (_wfcs && _wfcs.dati_obbligatori) ? _wfcs.dati_obbligatori : [];
+      const _ssra = (_wfcs?.stato_successivo) ? _wfcs.stato_successivo.ruoli_abilitati : [];
+      const _dnm = (_wfcs?.dati_non_modificabili) ? _wfcs.dati_non_modificabili : [];
+      const _do = (_wfcs?.dati_obbligatori) ? _wfcs.dati_obbligatori : [];
 
       if (_dnm.length > 0) {
         const _fields: string[] = [];
@@ -691,7 +691,9 @@ export class AuthenticationService {
       if (_grant.indexOf('referente_tecnico_superiore') !== -1) {
         _grant.push('referente_superiore');
       }
-      if (_grant.indexOf('referente_adesione') !== -1 || _grant.indexOf('referente_servizio') !== -1 || _grant.indexOf('referente_dominio') !== -1) {
+      // `referente_servizio` e' deprecato in favore di `utente_organizzazione`:
+      // accettiamo entrambi nella mappatura "referente" per gestire dati legacy.
+      if (_grant.indexOf('referente_adesione') !== -1 || _grant.indexOf('referente_servizio') !== -1 || _grant.indexOf('utente_organizzazione') !== -1 || _grant.indexOf('referente_dominio') !== -1) {
         _grant.push('referente');
       }
       if (_grant.indexOf('referente_tecnico_adesione') !== -1 || _grant.indexOf('referente_tecnico_servizio') !== -1 || _grant.indexOf('referente_tecnico_dominio') !== -1) {

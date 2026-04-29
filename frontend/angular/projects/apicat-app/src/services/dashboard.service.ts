@@ -56,18 +56,25 @@ export class DashboardService {
    *
    * Referente dominio: servizi, adesioni, comunicazioni
    * Referente dominio tecnico: comunicazioni
-   * Referente servizio: servizi, adesioni, comunicazioni
+   * Referente servizio (deprecated, fallback): servizi, adesioni, comunicazioni
    * Referente servizio tecnico: comunicazioni
    * Referente adesione: comunicazioni
    * Referente adesione tecnico: comunicazioni
+   * Utente organizzazione (sostituisce referente_servizio): servizi, adesioni, comunicazioni
+   * Amministratore organizzazione (per-org): + utenti (gestione membership della propria org)
+   * Operatore API (per-org): servizi, adesioni, comunicazioni
    */
   private static readonly _REFERENTE_PANELS: { [ruolo: string]: (keyof DashboardRoleConfig)[] } = {
     referente_dominio: ['servizi', 'adesioni', 'comunicazioni'],
     referente_tecnico_dominio: ['comunicazioni'],
+    /** @deprecated Mantenuto come fallback per dati non aggiornati. */
     referente_servizio: ['servizi', 'adesioni', 'comunicazioni'],
     referente_tecnico_servizio: ['comunicazioni'],
     referente_adesione: ['comunicazioni'],
-    referente_tecnico_adesione: ['comunicazioni']
+    referente_tecnico_adesione: ['comunicazioni'],
+    utente_organizzazione: ['servizi', 'adesioni', 'comunicazioni'],
+    amministratore_organizzazione: ['servizi', 'adesioni', 'comunicazioni', 'utenti'],
+    operatore_api: ['servizi', 'adesioni', 'comunicazioni']
   };
 
   private _isHideComunicazioniGestore(): boolean {
@@ -86,7 +93,12 @@ export class DashboardService {
       return { servizi: true, adesioni: true, client: false, comunicazioni: true, utenti: true };
     }
 
-    // Referente: unione dei pannelli per ogni ruolo referente
+    // Referente / Utente organizzazione: unione dei pannelli per ogni
+    // ruolo riferito (referente_* legacy + utente_organizzazione e
+    // ruoli per-org amministratore_organizzazione/operatore_api).
+    // `referente_servizio` e' deprecato: il BE potra' gradualmente
+    // smettere di pubblicarlo, ma rimane qui come fallback se i dati
+    // utente non sono ancora aggiornati alla nuova nomenclatura.
     const config: DashboardRoleConfig = {
       servizi: false,
       adesioni: false,
@@ -95,12 +107,20 @@ export class DashboardService {
       utenti: false
     };
 
-    if (!ruoliReferente || ruoliReferente.length === 0) {
+    // Normalizza il ruolo principale: `referente_servizio` legacy viene
+    // trattato come `utente_organizzazione`. Lo aggiungiamo al pool dei
+    // ruoli su cui calcoliamo i pannelli.
+    const pool = new Set<string>(ruoliReferente || []);
+    if (ruolo === 'utente_organizzazione' || ruolo === 'referente_servizio') {
+      pool.add('utente_organizzazione');
+    }
+
+    if (pool.size === 0) {
       config.comunicazioni = true;
       return config;
     }
 
-    for (const ruoloRef of ruoliReferente) {
+    for (const ruoloRef of pool) {
       const panels = DashboardService._REFERENTE_PANELS[ruoloRef];
       if (panels) {
         for (const panel of panels) {
@@ -163,19 +183,17 @@ export class DashboardService {
   }
 
   getDashboardCount(timerMs: number): Observable<number> {
-    if (!this._dashboardCount$) {
-      this._dashboardCount$ = this._resolveRoleConfig().pipe(
-        switchMap(roleConfig => {
-          return timer(1, timerMs).pipe(
-            switchMap(() => this._fetchTotalCount(roleConfig)),
-            retry(3),
-            catchError(() => of(0)),
-            share(),
-            takeUntil(this._stopPolling)
-          );
-        })
-      );
-    }
+    this._dashboardCount$ ??= this._resolveRoleConfig().pipe(
+      switchMap(roleConfig => {
+        return timer(1, timerMs).pipe(
+          switchMap(() => this._fetchTotalCount(roleConfig)),
+          retry(3),
+          catchError(() => of(0)),
+          share(),
+          takeUntil(this._stopPolling)
+        );
+      })
+    );
     return this._dashboardCount$;
   }
 

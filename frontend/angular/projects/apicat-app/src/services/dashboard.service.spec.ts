@@ -126,6 +126,44 @@ describe('DashboardService', () => {
       expect(config.comunicazioni).toBe(true);
       expect(config.servizi).toBe(false);
     });
+
+    describe('multi-org roles (Issue #229)', () => {
+      it('utente_organizzazione as primary role enables servizi/adesioni/comunicazioni', () => {
+        const config = service.computeRoleConfig('utente_organizzazione', []);
+        expect(config.servizi).toBe(true);
+        expect(config.adesioni).toBe(true);
+        expect(config.comunicazioni).toBe(true);
+        expect(config.utenti).toBe(false);
+      });
+
+      it('referente_servizio (deprecated) is treated as utente_organizzazione fallback', () => {
+        const config = service.computeRoleConfig('referente_servizio', []);
+        expect(config.servizi).toBe(true);
+        expect(config.adesioni).toBe(true);
+        expect(config.comunicazioni).toBe(true);
+      });
+
+      it('amministratore_organizzazione in ruoliReferente unlocks utenti panel', () => {
+        const config = service.computeRoleConfig('utente_organizzazione', ['amministratore_organizzazione']);
+        expect(config.utenti).toBe(true);
+        expect(config.servizi).toBe(true);
+        expect(config.adesioni).toBe(true);
+      });
+
+      it('operatore_api in ruoliReferente keeps utenti hidden', () => {
+        const config = service.computeRoleConfig('utente_organizzazione', ['operatore_api']);
+        expect(config.servizi).toBe(true);
+        expect(config.adesioni).toBe(true);
+        expect(config.utenti).toBe(false);
+      });
+
+      it('mixed legacy + new role: union of panels', () => {
+        const config = service.computeRoleConfig('utente_organizzazione', ['referente_servizio', 'operatore_api']);
+        expect(config.servizi).toBe(true);
+        expect(config.adesioni).toBe(true);
+        expect(config.comunicazioni).toBe(true);
+      });
+    });
   });
 
   describe('data fetching methods', () => {

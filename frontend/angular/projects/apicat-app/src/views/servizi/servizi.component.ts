@@ -207,7 +207,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     roleTab: string = 'tutti';
     roleTabs: { key: string, label: string, roles: string[] }[] = [
         { key: 'tutti', label: 'APP.FILTER.All', roles: [] },
-        { key: 'referente', label: 'APP.FILTER.ReferenteServizioDominio', roles: ['referente_dominio', 'referente_tecnico_dominio', 'referente_servizio', 'referente_tecnico_servizio'] },
+        { key: 'referente', label: 'APP.FILTER.ReferenteServizioDominio', roles: ['referente_dominio', 'referente_tecnico_dominio', 'referente_servizio', 'utente_organizzazione', 'referente_tecnico_servizio'] },
         { key: 'richiedente', label: 'APP.FILTER.Richiedente', roles: ['richiedente_servizio'] }
     ];
     _currIdGruppoPadre: string = '';

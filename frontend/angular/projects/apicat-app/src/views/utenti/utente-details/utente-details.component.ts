@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
+import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -24,7 +24,7 @@ import { CommonModule } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { COMPONENTS_IMPORTS, Tools, ConfigService, EventsManagerService, FieldClass, YesnoDialogBsComponent } from '@linkit/components';
+import { COMPONENTS_IMPORTS, Tools, ConfigService, FieldClass, YesnoDialogBsComponent } from '@linkit/components';
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
@@ -51,7 +51,7 @@ import { TrimOnBlurDirective } from '@app/directives/trim-on-blur/trim-on-blur.d
     TrimOnBlurDirective
   ]
 })
-export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
+export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentChecked {
   static readonly Name = 'UtenteDetailsComponent';
   readonly model: string = 'utenti';
 
@@ -124,15 +124,14 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
   minLengthTerm = 1;
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private translate: TranslateService,
-    private modalService: BsModalService,
-    private configService: ConfigService,
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly translate: TranslateService,
+    private readonly modalService: BsModalService,
+    private readonly configService: ConfigService,
     public tools: Tools,
-    private eventsManagerService: EventsManagerService,
-    private apiService: OpenAPIService,
-    private utils: UtilService
+    private readonly apiService: OpenAPIService,
+    private readonly utils: UtilService
   ) {
     this.appConfig = this.configService.getConfiguration();
   }
@@ -187,9 +186,6 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
         this._initBreadcrumb();
       }
     });
-  }
-
-  ngOnDestroy() {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -596,10 +592,9 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
     return this.apiService.getList('classi-utente', _options)
       .pipe(map(resp => {
         if (resp.Error) {
-          throwError(resp.Error);
+          throwError(() => resp.Error);
         } else {
           const _items = resp.content.map((item: any) => {
-            // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
             return item;
           });
           return _items;
@@ -633,7 +628,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
     return this.apiService.getList('organizzazioni', _options)
       .pipe(map(resp => {
         if (resp.Error) {
-          throwError(resp.Error);
+          throwError(() => resp.Error);
         } else {
           const _items = resp.content.map((item: any) => {
             return item;

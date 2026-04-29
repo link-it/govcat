@@ -88,7 +88,7 @@ export interface User {
 
 export interface Referent {
     utente: User;
-    tipo: 'referente' | 'referente_servizio' | 'referente_tecnico' | 'referente_dominio';
+    tipo: 'referente' | 'referente_servizio' | 'utente_organizzazione' | 'referente_tecnico' | 'referente_dominio';
 }
 
 export interface ReferentView {
@@ -305,11 +305,11 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                         this._initBreadcrumb();
                         this.loadCurrentData();
 
-                        if (!this.authenticationService.isAnonymous()) {
+                        if (this.authenticationService.isAnonymous()) {
+                            this._adesioneDataReady = true;
+                        } else {
                             this._adesioneDataReady = false;
                             this._loadAdesioneData();
-                        } else {
-                            this._adesioneDataReady = true;
                         }
                     },
                     error: (error: any) => {
@@ -802,11 +802,12 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
             case 'gestione':
                 this.gotoManagement(mouseEvent);
                 break;
-            default:
+            default: {
                 localStorage.setItem('SERVIZI_VIEW', 'TRUE');
                 const route = ['servizi', this.id, event.action];
                 this.navigationService.navigateWithEvent(mouseEvent, route);
                 break;
+            }
         }
     }
 
@@ -827,7 +828,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     }
 
     scrollToElm(container: any, elm: any, duration: number){
-        var pos = this.getRelativePos(elm);
+        const pos = this.getRelativePos(elm);
 
         this._scrollTo(container, pos.top, duration);  // duration in seconds
     }
