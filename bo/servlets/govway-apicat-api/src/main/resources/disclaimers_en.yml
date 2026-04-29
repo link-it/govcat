@@ -35,57 +35,61 @@ default: |
 # STATE-LEVEL DISCLAIMERS (generic, profile-independent)
 # -----------------------------------------------------------------------------
 
-bozza: |
-  ## Subscription draft
-  The subscription is being drafted. Fill in all required fields and configure
-  the clients for each requested profile before submitting for test.
+bozza:
+  severity: WARNING
+  testo: |
+    ## Subscription draft
+    The subscription has been created but has not yet been submitted for configuration. To proceed:
+    - Complete the configuration in the **Test** and/or **Production** sections
+    - Submit the request through the **"Request test configuration"** button
+
+    As long as the subscription remains a draft, it will not be visible to the service contacts.
 
 richiesto_collaudo: |
-  ## Awaiting authorization (test)
-  The subscription has been submitted and is awaiting authorization from the
-  supervisor or manager. Identifying data can no longer be modified.
+  ## Awaiting authorization
+  The subscription request for **test** has been submitted and is awaiting authorization from the **service contact**. No further action is required from you at this stage. You will receive a notification once the request is evaluated.
+
+autorizzato_collaudo: |
+  ## Authorized — awaiting configuration
+  The subscription request for **test** has been authorized. The platform manager is configuring it on the API Gateway. You will receive a notification once it is complete.
 
 in_configurazione_manuale_collaudo: |
-  ## Manual configuration in progress (test)
-  An operator is manually configuring the subscription on the **test**
-  environment. The state will change once configuration completes.
+  ## Configuration in progress (test)
+  The manager is configuring the subscription on the **test** API Gateway. No action is required from you. You will receive a notification upon completion.
 
 in_configurazione_automatica_collaudo: |
-  ## Automatic configuration in progress (test)
-  The system is automatically configuring the subscription on the **test**
-  environment. The state will automatically move to *Published in test* upon
-  completion.
+  ## Configuration in progress (test)
+  The platform manager is configuring the subscription on the **test** API Gateway. No action is required from you. You will receive a notification upon completion.
 
 pubblicato_collaudo: |
-  ## Published in test
-  The subscription is active on the **test** environment. You can start
-  testing the integration before requesting promotion to production.
+  ## Subscription active in test
+  The subscription is **active in the test environment**. You can proceed with integration testing. When ready, start the procedure to request publication in **production**.
 
 richiesto_produzione: |
   ## Awaiting authorization (production)
-  The subscription has been submitted for production. It will not be configured
-  on the gateway until the supervisor approves it.
+  The subscription request for **production** has been submitted and is awaiting authorization from the **service contact**. No further action is required from you. You will receive a notification once the request is evaluated.
+
+autorizzato_produzione: |
+  ## Authorized — awaiting configuration (production)
+  The subscription request for **production** has been authorized. The platform manager is configuring it on the API Gateway. You will receive a notification once it is complete.
 
 in_configurazione_manuale_produzione: |
-  ## Manual configuration in progress (production)
-  An operator is manually configuring the subscription on the **production**
-  environment.
+  ## Configuration in progress (production)
+  The platform manager is configuring the subscription on the **production** API Gateway. No action is required from you. You will receive a notification upon completion.
 
 in_configurazione_automatica_produzione: |
   ## Automatic configuration in progress (production)
-  The system is automatically configuring the subscription in **production**.
+  The platform manager is configuring the subscription on the **production** API Gateway. No action is required from you. You will receive a notification upon completion.
 
-pubblicato_produzione:
+pubblicato_produzione: |
+  ## Subscription active in production ✓
+  The subscription is **active in production**. The service is operational. For changes or updates to the configuration, please contact the service contact.
+
+archiviato:
   severity: WARNING
   testo: |
-    ## Published in production
-    The subscription is **live in production**. Any configuration change may
-    impact end users: proceed with caution.
-
-archiviato: |
-  ## Archived subscription
-  The subscription has been archived and can no longer be modified. To resume
-  the process, a new subscription must be created.
+    ## Archived subscription
+    This subscription has been **archived** and is no longer active. The service is not accessible through this subscription. To restore access, a new subscription procedure must be initiated.
 
 # -----------------------------------------------------------------------------
 # PDND PROFILES
