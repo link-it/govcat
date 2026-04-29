@@ -6,7 +6,9 @@
 			"ManageTooltip": "Gestisci organizzazione"
 		},
 		"ORGANIZATION_MANAGE": {
-			"Title": "Gestione organizzazione"
+			"Title": "Gestione organizzazione",
+			"HelpText": "Da questa sezione puoi aggiungere nuovi utenti all'organizzazione, modificarne il ruolo o rimuovere l'associazione.",
+			"AddTooltip": "Aggiungi un utente all'organizzazione"
 		},
 		"RUOLI": {
 			"AmministratoreOrganizzazione": "Amministratore organizzazione",

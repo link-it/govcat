@@ -37,31 +37,44 @@
     </div>
   }
 
-  <!-- Modalita' add - search ------------------------------------------ -->
+  <!-- Modalita' add - search per principal ---------------------------- -->
   @if (mode === 'add' && subMode === 'search') {
     <div class="form-group mb-3">
-      <div class="d-flex align-items-center mb-1">
-        <label class="label-bold flex-grow-1 mb-0">{{ 'APP.UTENTI_ORG.LABEL.SearchUser' | translate }}</label>
-        <button type="button" class="btn btn-link btn-sm p-0" (click)="switchToNew()">
-          <i class="bi bi-person-plus me-1"></i>{{ 'APP.UTENTI_ORG.BUTTON.NewUser' | translate }}
-        </button>
-      </div>
-      <ng-select class="select-custom"
+      <label class="label-bold mb-1" for="utente-org-principal-search">
+        {{ 'APP.LABEL.CodiceFiscale' | translate }}
+      </label>
+      <ng-select id="utente-org-principal-search"
+                 class="select-custom"
+                 appendTo="body"
                  [items]="(utenti$ | async) || []"
                  [typeahead]="utentiInput$"
                  [loading]="utentiLoading"
                  [(ngModel)]="selectedUtenteId"
                  bindValue="id_utente"
-                 bindLabel="email_aziendale"
+                 bindLabel="principal"
                  [minTermLength]="2"
                  [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: 2 }"
                  [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate">
         <ng-template ng-label-tmp let-item="item">
-          {{ item?.nome }} {{ item?.cognome }} <span class="text-muted small">{{ item?.email_aziendale }}</span>
+          <span class="fw-bold">{{ item?.principal }}</span>
+          <span class="text-muted small ms-1">— {{ item?.nome }} {{ item?.cognome }}</span>
         </ng-template>
         <ng-template ng-option-tmp let-item="item">
-          <div class="fw-bold">{{ item?.nome }} {{ item?.cognome }}</div>
-          <div class="small text-muted">{{ item?.email_aziendale }}</div>
+          <div class="fw-bold">
+            @for (part of highlightParts(item?.principal, lastSearchedPrincipal); track $index) {
+              @if (part.match) {
+                <span class="text-dark" style="background-color: #ffe69c;">{{ part.text }}</span>
+              } @else {
+                <span>{{ part.text }}</span>
+              }
+            }
+          </div>
+          <div class="small text-muted">{{ item?.nome }} {{ item?.cognome }} — {{ item?.email_aziendale }}</div>
+        </ng-template>
+        <ng-template ng-footer-tmp>
+          <button type="button" class="btn btn-link btn-sm w-100 text-start py-2" (click)="switchToNew()">
+            <i class="bi bi-person-plus me-2"></i>{{ 'APP.UTENTI_ORG.BUTTON.NewUser' | translate }}
+          </button>
         </ng-template>
       </ng-select>
       <small class="text-muted d-block mt-1">{{ 'APP.UTENTI_ORG.MESSAGE.SearchHint' | translate }}</small>
@@ -78,7 +91,16 @@
     </div>
     <form [formGroup]="newUserForm" novalidate>
       <div class="row g-3">
-        <!-- 1. Anagrafica: Nome | Cognome -->
+        <!-- 1. Principal (riga dedicata, posto come primo campo: e' la
+             chiave logica dell'utente e tipicamente coincide con il
+             termine appena cercato nel passo precedente). -->
+        <div class="col-md-6">
+          <label class="label-bold" for="new-utente-principal">{{ 'APP.LABEL.CodiceFiscale' | translate }} *</label>
+          <input id="new-utente-principal" type="text" class="form-control" formControlName="principal" autocomplete="off">
+        </div>
+        <div class="col-md-6"></div>
+
+        <!-- 2. Anagrafica: Nome | Cognome -->
         <div class="col-md-6">
           <label class="label-bold" for="new-utente-nome">{{ 'APP.USERS.LABEL.Nome' | translate }} *</label>
           <input id="new-utente-nome" type="text" class="form-control" formControlName="nome" autocomplete="off">
@@ -87,13 +109,6 @@
           <label class="label-bold" for="new-utente-cognome">{{ 'APP.USERS.LABEL.Cognome' | translate }} *</label>
           <input id="new-utente-cognome" type="text" class="form-control" formControlName="cognome" autocomplete="off">
         </div>
-
-        <!-- 2. Principal -->
-        <div class="col-md-6">
-          <label class="label-bold" for="new-utente-principal">{{ 'APP.USERS.LABEL.Principal' | translate }} *</label>
-          <input id="new-utente-principal" type="text" class="form-control" formControlName="principal" autocomplete="off">
-        </div>
-        <div class="col-md-6"></div>
 
         <!-- 3. Contatti personali: Telefono | Email (visibili solo se i flag di config sono attivi) -->
         @if (mostraTelefono) {
@@ -147,6 +162,7 @@
           } @else {
             <ng-select id="new-utente-id-organizzazione"
                        class="select-custom"
+                       appendTo="body"
                        [items]="(organizzazioni$ | async) || []"
                        [typeahead]="organizzazioniInput$"
                        [loading]="organizzazioniLoading"
@@ -161,11 +177,17 @@
         </div>
         <div class="col-md-6">
           <label class="label-bold" for="new-utente-ruolo-org">{{ 'APP.UTENTI_ORG.LABEL.Role' | translate }}</label>
-          <select id="new-utente-ruolo-org" class="form-select" [(ngModel)]="ruolo" [ngModelOptions]="{ standalone: true }">
-            @for (opt of RUOLO_ORG_OPTIONS; track opt.value) {
-              <option [ngValue]="opt.value">{{ opt.labelKey | translate }}</option>
-            }
-          </select>
+          <ng-select id="new-utente-ruolo-org"
+                     class="select-custom"
+                     appendTo="body"
+                     [items]="RUOLO_ORG_OPTIONS"
+                     [searchable]="false"
+                     [clearable]="false"
+                     [(ngModel)]="selectedRuoloOption"
+                     [ngModelOptions]="{ standalone: true }">
+            <ng-template ng-label-tmp let-item="item">{{ item.labelKey | translate }}</ng-template>
+            <ng-template ng-option-tmp let-item="item">{{ item.labelKey | translate }}</ng-template>
+          </ng-select>
         </div>
 
         <!-- 7. Organizzazione esterna (full-width) -->
@@ -194,9 +216,10 @@
     </form>
   }
 
-  <!-- Ruolo nell'organizzazione: solo per `search` ed `edit`. In `new`
-       lo abbiamo gia' integrato accanto al campo Organizzazione. -->
-  @if (mode === 'edit' || (mode === 'add' && subMode === 'search')) {
+  <!-- Ruolo nell'organizzazione: edit sempre, add+search solo dopo che
+       l'utente e' stato scelto. In `new` lo abbiamo gia' integrato
+       accanto al campo Organizzazione. -->
+  @if (mode === 'edit' || (mode === 'add' && subMode === 'search' && selectedUtenteId)) {
     <div class="form-group mt-3">
       <label class="label-bold" for="utente-org-ruolo">{{ 'APP.UTENTI_ORG.LABEL.Role' | translate }}</label>
       <select id="utente-org-ruolo" class="form-select" [(ngModel)]="ruolo">

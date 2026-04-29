@@ -17,13 +17,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, inject } from '@angular/core';
 import { Subscription } from 'rxjs';
 
 import { Router } from '@angular/router';
 
 import { TranslateModule } from '@ngx-translate/core';
-import { BsModalService } from 'ngx-bootstrap/modal';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
 
 import { ConfigService, EventType, EventsManagerService } from '@linkit/components';
@@ -33,7 +32,6 @@ import { OrganizationContextService } from '@services/organization-context.servi
 import { ItemOrganizzazione } from '../../model/itemOrganizzazione';
 import { RuoloOrganizzazioneEnum } from '../../model/ruoloOrganizzazioneEnum';
 import { UtenteOrganizzazione } from '../../model/utenteOrganizzazione';
-import { OrganizationManageDialogComponent } from './organization-manage-dialog.component';
 
 @Component({
     selector: 'app-organization-switcher',
@@ -54,9 +52,9 @@ export class OrganizationSwitcherComponent implements OnInit, OnDestroy {
     private readonly organizationContextService = inject(OrganizationContextService);
     private readonly configService = inject(ConfigService);
     private readonly cdr = inject(ChangeDetectorRef);
-    private readonly modalService = inject(BsModalService);
     private readonly eventsManagerService = inject(EventsManagerService);
     private readonly router = inject(Router);
+    private readonly elRef = inject(ElementRef);
 
     private _sub: Subscription | null = null;
 
@@ -117,11 +115,22 @@ export class OrganizationSwitcherComponent implements OnInit, OnDestroy {
     onManage(org: UtenteOrganizzazione, event: Event): void {
         event.stopPropagation();
         if (!this.canManage(org)) { return; }
-        this.modalService.show(OrganizationManageDialogComponent, {
-            class: 'modal-lg',
-            ignoreBackdropClick: true,
-            initialState: { organizzazione: org.organizzazione }
-        });
+        const id = org?.organizzazione?.id_organizzazione;
+        if (!id) { return; }
+        // Bootstrap non chiude la dropdown perche' il bottone gear non e'
+        // un `dropdown-item` e abbiamo gia' fatto stopPropagation. Forziamo
+        // la chiusura via API globale.
+        this._closeDropdown();
+        // Rotta top-level: l'amministratore di organizzazione potrebbe non
+        // avere accesso all'area gestori `/organizzazioni`.
+        this.router.navigate(['/organizzazione-manage', id]);
+    }
+
+    private _closeDropdown(): void {
+        const toggleEl = this.elRef.nativeElement?.querySelector?.('.organization-switcher-toggle') as HTMLElement | null;
+        if (!toggleEl) { return; }
+        const bs = (window as any)?.bootstrap;
+        bs?.Dropdown?.getOrCreateInstance?.(toggleEl)?.hide?.();
     }
 
     onSelect(org: UtenteOrganizzazione): void {

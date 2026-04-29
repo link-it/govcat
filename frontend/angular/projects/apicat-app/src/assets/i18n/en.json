@@ -6,7 +6,9 @@
 			"ManageTooltip": "Manage organization"
 		},
 		"ORGANIZATION_MANAGE": {
-			"Title": "Organization management"
+			"Title": "Organization management",
+			"HelpText": "From this section you can add new users to the organization, change their role or remove the membership.",
+			"AddTooltip": "Add a user to the organization"
 		},
 		"RUOLI": {
 			"AmministratoreOrganizzazione": "Organization administrator",

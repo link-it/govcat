@@ -1,6 +1,18 @@
 2026-04-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 229 (evolutiva): gestione organizzazione come route/view
+	  top-level (`/organizzazione-manage/:id`, `ForbidAnonymousGuard`),
+	  fuori dall'area gestori. Lista utenti con `ui-item-row` + config
+	  dedicato, infinite-scroll, search-bar `q`. Dialog
+	  add/edit ridisegnata: ricerca per `principal` con evidenziazione
+	  match e footer "Aggiungi nuovo utente"; ng-select coerenti con
+	  `appendTo="body"` (no clipping in modal); ruolo organizzazione su
+	  ng-select; campo principal/Codice fiscale come primo elemento.
+	  Switcher: chiusura dropdown via Bootstrap API quando si naviga al
+	  manage. Rimossa vecchia `OrganizationManageDialogComponent`.
+
+	* [Frontend]
 	Issue 229: supporto multi-organizzazione e ruoli per-org.
 	  Modelli FE allineati a `organizzazioni[]` (nuovi
 	  `RuoloOrganizzazioneEnum`, `UtenteOrganizzazione*`,

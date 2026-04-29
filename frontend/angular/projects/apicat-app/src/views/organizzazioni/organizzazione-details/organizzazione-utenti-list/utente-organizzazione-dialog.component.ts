@@ -77,6 +77,10 @@ export class UtenteOrganizzazioneDialogComponent implements OnInit {
     utenti$: Observable<any[]> = of([]);
     utentiInput$ = new Subject<string>();
     utentiLoading = false;
+    /** Ultimo `principal` digitato nel dropdown di ricerca: viene
+     * pre-popolato nel form "Nuovo utente" se l'utente non trova
+     * nessuno e clicca "Aggiungi nuovo utente". */
+    lastSearchedPrincipal: string = '';
 
     organizzazioni$: Observable<any[]> = of([]);
     organizzazioniInput$ = new Subject<string>();
@@ -103,6 +107,19 @@ export class UtenteOrganizzazioneDialogComponent implements OnInit {
         { value: RuoloOrganizzazioneEnum.OperatoreApi, labelKey: 'APP.RUOLI.OperatoreApi' },
         { value: null, labelKey: 'APP.ORGANIZATION_SWITCHER.NoRole' }
     ];
+
+    /**
+     * Adapter per `ng-select`: leghiamo l'item-oggetto dell'option list
+     * (non `bindValue`) perche' una delle voci ha `value: null` ("Nessun
+     * ruolo") e con `bindValue` ng-select interpreta `null` come
+     * selezione vuota. Il source-of-truth resta `ruolo`.
+     */
+    get selectedRuoloOption(): { value: RuoloOrganizzazioneEnum | null; labelKey: string } | null {
+        return this.RUOLO_ORG_OPTIONS.find(o => o.value === this.ruolo) ?? null;
+    }
+    set selectedRuoloOption(opt: { value: RuoloOrganizzazioneEnum | null; labelKey: string } | null) {
+        this.ruolo = opt?.value ?? null;
+    }
 
     /**
      * Stesso ordine e stesse chiavi i18n usate dalla form principale
@@ -153,6 +170,12 @@ export class UtenteOrganizzazioneDialogComponent implements OnInit {
         // La form di creazione utente ha molti campi su 2 colonne:
         // allarghiamo la dialog per evitare che gli input vadano a capo.
         this.modalRef.setClass('modal-lg');
+        // Pre-popola il principal con l'ultimo termine cercato: l'utente
+        // ha appena digitato il principal nella ricerca, evitiamo di
+        // farglielo ribattere.
+        if (this.lastSearchedPrincipal && this.newUserForm) {
+            this.newUserForm.patchValue({ principal: this.lastSearchedPrincipal });
+        }
     }
 
     switchToSearch(): void {
@@ -294,15 +317,49 @@ export class UtenteOrganizzazioneDialogComponent implements OnInit {
 
     // --- Typeahead ricerca utenti esistenti -----------------------------
 
+    /**
+     * Spezza `text` nei segmenti che matchano `term` (case-insensitive)
+     * e quelli che non matchano. Usato dal template per evidenziare
+     * via `<mark>` la porzione corrispondente alla ricerca per
+     * principal (filtro `like` lato BE).
+     */
+    highlightParts(text: string | null | undefined, term: string | null | undefined): Array<{ text: string; match: boolean }> {
+        const value = text || '';
+        if (!value) { return []; }
+        const t = (term || '').trim();
+        if (!t) { return [{ text: value, match: false }]; }
+        const haystack = value.toLowerCase();
+        const needle = t.toLowerCase();
+        const out: Array<{ text: string; match: boolean }> = [];
+        let i = 0;
+        while (i < value.length) {
+            const idx = haystack.indexOf(needle, i);
+            if (idx === -1) {
+                out.push({ text: value.slice(i), match: false });
+                break;
+            }
+            if (idx > i) { out.push({ text: value.slice(i, idx), match: false }); }
+            out.push({ text: value.slice(idx, idx + needle.length), match: true });
+            i = idx + needle.length;
+        }
+        return out;
+    }
+
     private _initUtentiTypeahead(): void {
+        // Ricerca utenti per `principal`: il flusso "add" parte dall'inserimento
+        // del principal, non da una full-text generica. L'endpoint `/utenti`
+        // supporta il filtro `principal` (cfr. `utenti.component` searchFields).
         this.utenti$ = concat(
             of([]),
             this.utentiInput$.pipe(
                 debounceTime(300),
                 distinctUntilChanged(),
-                tap(() => this.utentiLoading = true),
+                tap(term => {
+                    this.utentiLoading = true;
+                    this.lastSearchedPrincipal = term || '';
+                }),
                 switchMap(term => term && term.length >= 2
-                    ? this.apiService.getList('utenti', { params: { q: term } as any }).pipe(
+                    ? this.apiService.getList('utenti', { params: { principal: term } as any }).pipe(
                         map((res: any) => Array.isArray(res?.content) ? res.content
                             : Array.isArray(res?.items) ? res.items
                             : Array.isArray(res) ? res : []),
