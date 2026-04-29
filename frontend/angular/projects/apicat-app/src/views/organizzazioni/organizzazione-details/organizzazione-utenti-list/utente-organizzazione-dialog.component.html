@@ -1,0 +1,229 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div class="modal-header">
+  <h5 class="modal-title">{{ title | translate }}</h5>
+  <lnk-button
+    [icon]="'bi bi-x-lg'"
+    [onlyIcon]="true"
+    [ariaLabel]="'APP.BUTTON.Close'"
+    [tertiary]="true"
+    (onAction)="cancel()">
+  </lnk-button>
+</div>
+<div class="modal-body">
+
+  <!-- Modalita' edit: utente readonly --------------------------------- -->
+  @if (mode === 'edit') {
+    <div class="form-group mb-3">
+      <label class="label-bold">{{ 'APP.UTENTI_ORG.LABEL.User' | translate }}</label>
+      <input type="text" readonly class="form-control-plaintext"
+             [value]="(utente?.nome || '') + ' ' + (utente?.cognome || '') + ' (' + (utente?.email_aziendale || '') + ')'">
+    </div>
+  }
+
+  <!-- Modalita' add - search ------------------------------------------ -->
+  @if (mode === 'add' && subMode === 'search') {
+    <div class="form-group mb-3">
+      <div class="d-flex align-items-center mb-1">
+        <label class="label-bold flex-grow-1 mb-0">{{ 'APP.UTENTI_ORG.LABEL.SearchUser' | translate }}</label>
+        <button type="button" class="btn btn-link btn-sm p-0" (click)="switchToNew()">
+          <i class="bi bi-person-plus me-1"></i>{{ 'APP.UTENTI_ORG.BUTTON.NewUser' | translate }}
+        </button>
+      </div>
+      <ng-select class="select-custom"
+                 [items]="(utenti$ | async) || []"
+                 [typeahead]="utentiInput$"
+                 [loading]="utentiLoading"
+                 [(ngModel)]="selectedUtenteId"
+                 bindValue="id_utente"
+                 bindLabel="email_aziendale"
+                 [minTermLength]="2"
+                 [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: 2 }"
+                 [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate">
+        <ng-template ng-label-tmp let-item="item">
+          {{ item?.nome }} {{ item?.cognome }} <span class="text-muted small">{{ item?.email_aziendale }}</span>
+        </ng-template>
+        <ng-template ng-option-tmp let-item="item">
+          <div class="fw-bold">{{ item?.nome }} {{ item?.cognome }}</div>
+          <div class="small text-muted">{{ item?.email_aziendale }}</div>
+        </ng-template>
+      </ng-select>
+      <small class="text-muted d-block mt-1">{{ 'APP.UTENTI_ORG.MESSAGE.SearchHint' | translate }}</small>
+    </div>
+  }
+
+  <!-- Modalita' add - new user ---------------------------------------- -->
+  @if (mode === 'add' && subMode === 'new') {
+    <div class="d-flex align-items-center mb-2">
+      <span class="label-bold flex-grow-1">{{ 'APP.UTENTI_ORG.TITLE.NewUser' | translate }}</span>
+      <button type="button" class="btn btn-link btn-sm p-0" (click)="switchToSearch()">
+        <i class="bi bi-arrow-left me-1"></i>{{ 'APP.UTENTI_ORG.BUTTON.BackToSearch' | translate }}
+      </button>
+    </div>
+    <form [formGroup]="newUserForm" novalidate>
+      <div class="row g-3">
+        <!-- 1. Anagrafica: Nome | Cognome -->
+        <div class="col-md-6">
+          <label class="label-bold" for="new-utente-nome">{{ 'APP.USERS.LABEL.Nome' | translate }} *</label>
+          <input id="new-utente-nome" type="text" class="form-control" formControlName="nome" autocomplete="off">
+        </div>
+        <div class="col-md-6">
+          <label class="label-bold" for="new-utente-cognome">{{ 'APP.USERS.LABEL.Cognome' | translate }} *</label>
+          <input id="new-utente-cognome" type="text" class="form-control" formControlName="cognome" autocomplete="off">
+        </div>
+
+        <!-- 2. Principal -->
+        <div class="col-md-6">
+          <label class="label-bold" for="new-utente-principal">{{ 'APP.USERS.LABEL.Principal' | translate }} *</label>
+          <input id="new-utente-principal" type="text" class="form-control" formControlName="principal" autocomplete="off">
+        </div>
+        <div class="col-md-6"></div>
+
+        <!-- 3. Contatti personali: Telefono | Email (visibili solo se i flag di config sono attivi) -->
+        @if (mostraTelefono) {
+          <div class="col-md-6">
+            <label class="label-bold" for="new-utente-telefono">{{ 'APP.USERS.LABEL.Phone' | translate }}</label>
+            <input id="new-utente-telefono" type="text" class="form-control" formControlName="telefono" autocomplete="off">
+          </div>
+        }
+        @if (mostraEmail) {
+          <div class="col-md-6">
+            <label class="label-bold" for="new-utente-email">{{ 'APP.USERS.LABEL.Email' | translate }}</label>
+            <input id="new-utente-email" type="email" class="form-control" formControlName="email" autocomplete="off">
+          </div>
+        }
+
+        <!-- 4. Contatti aziendali: Telefono aziendale | Email aziendale -->
+        <div class="col-md-6">
+          <label class="label-bold" for="new-utente-telefono-aziendale">{{ 'APP.USERS.LABEL.CorporatePhone' | translate }} *</label>
+          <input id="new-utente-telefono-aziendale" type="text" class="form-control" formControlName="telefono_aziendale" autocomplete="off">
+        </div>
+        <div class="col-md-6">
+          <label class="label-bold" for="new-utente-email-aziendale">{{ 'APP.USERS.LABEL.CorporateEmail' | translate }} *</label>
+          <input id="new-utente-email-aziendale" type="email" class="form-control" formControlName="email_aziendale" autocomplete="off">
+        </div>
+
+        <!-- 5. Ruolo (utente) -->
+        <div class="col-md-6">
+          <label class="label-bold" for="new-utente-ruolo">{{ 'APP.USERS.LABEL.Role' | translate }}</label>
+          <select id="new-utente-ruolo" class="form-select" formControlName="ruolo">
+            @for (opt of RUOLO_UTENTE_OPTIONS; track opt.value) {
+              <option [ngValue]="opt.value">{{ opt.labelKey | translate }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-md-6"></div>
+
+        <!-- 6. Organizzazione | Ruolo nell'organizzazione (adiacenti) -->
+        <div class="col-md-6">
+          <label class="label-bold" for="new-utente-id-organizzazione">
+            {{ 'APP.SOGGETTI.LABEL.OrganizationName' | translate }}
+            @if (newUserForm.get('ruolo')?.value === 'utente_organizzazione') {
+              <span>*</span>
+            }
+          </label>
+          @if (presetIdOrganizzazione) {
+            <!-- Organizzazione fissata dal contesto: solo lettura. Il
+                 control resta nel FormGroup col valore preimpostato in
+                 `_initNewUserForm` ed entra nel payload. -->
+            <input id="new-utente-id-organizzazione" type="text" readonly
+                   class="form-control-plaintext"
+                   [value]="presetNomeOrganizzazione || presetIdOrganizzazione">
+          } @else {
+            <ng-select id="new-utente-id-organizzazione"
+                       class="select-custom"
+                       [items]="(organizzazioni$ | async) || []"
+                       [typeahead]="organizzazioniInput$"
+                       [loading]="organizzazioniLoading"
+                       bindValue="id_organizzazione"
+                       bindLabel="nome"
+                       [minTermLength]="2"
+                       [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: 2 }"
+                       [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                       formControlName="id_organizzazione">
+            </ng-select>
+          }
+        </div>
+        <div class="col-md-6">
+          <label class="label-bold" for="new-utente-ruolo-org">{{ 'APP.UTENTI_ORG.LABEL.Role' | translate }}</label>
+          <select id="new-utente-ruolo-org" class="form-select" [(ngModel)]="ruolo" [ngModelOptions]="{ standalone: true }">
+            @for (opt of RUOLO_ORG_OPTIONS; track opt.value) {
+              <option [ngValue]="opt.value">{{ opt.labelKey | translate }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- 7. Organizzazione esterna (full-width) -->
+        <div class="col-12">
+          <label class="label-bold" for="new-utente-org-esterna">{{ 'APP.USERS.LABEL.OrganizzazioneEsterna' | translate }}</label>
+          <input id="new-utente-org-esterna" type="text" class="form-control" formControlName="organizzazione_esterna" autocomplete="off">
+        </div>
+
+        <!-- 8. Stato (col-6) -->
+        <div class="col-md-6">
+          <label class="label-bold" for="new-utente-stato">{{ 'APP.USERS.LABEL.Status' | translate }} *</label>
+          <select id="new-utente-stato" class="form-select" formControlName="stato">
+            @for (opt of STATO_OPTIONS; track opt.value) {
+              <option [ngValue]="opt.value">{{ opt.labelKey | translate }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-md-6"></div>
+
+        <!-- 9. Note (full-width, opzionale) -->
+        <div class="col-12">
+          <label class="label-bold" for="new-utente-note">{{ 'APP.USERS.LABEL.Note' | translate }}</label>
+          <textarea id="new-utente-note" class="form-control" rows="3" formControlName="note" autocomplete="off"></textarea>
+        </div>
+      </div>
+    </form>
+  }
+
+  <!-- Ruolo nell'organizzazione: solo per `search` ed `edit`. In `new`
+       lo abbiamo gia' integrato accanto al campo Organizzazione. -->
+  @if (mode === 'edit' || (mode === 'add' && subMode === 'search')) {
+    <div class="form-group mt-3">
+      <label class="label-bold" for="utente-org-ruolo">{{ 'APP.UTENTI_ORG.LABEL.Role' | translate }}</label>
+      <select id="utente-org-ruolo" class="form-select" [(ngModel)]="ruolo">
+        @for (opt of RUOLO_ORG_OPTIONS; track opt.value) {
+          <option [ngValue]="opt.value">{{ opt.labelKey | translate }}</option>
+        }
+      </select>
+    </div>
+  }
+
+  @if (errorMessage) {
+    <div class="gl-alert gl-alert-danger mt-3">{{ errorMessage }}</div>
+  }
+</div>
+<div class="modal-footer">
+  <lnk-button
+    [label]="'APP.BUTTON.Cancel'"
+    [ariaLabel]="'APP.BUTTON.Cancel'"
+    (onAction)="cancel()">
+  </lnk-button>
+  <lnk-button
+    [label]="'APP.BUTTON.Confirm'"
+    [ariaLabel]="'APP.BUTTON.Confirm'"
+    [primary]="true"
+    [disabled]="!canConfirm() || submitting"
+    [spinner]="submitting"
+    (onAction)="confirm()">
+  </lnk-button>
+</div>

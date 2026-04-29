@@ -175,7 +175,7 @@
                 </div>
               </div>
             </div>
-            <div class="row principal organizzazione">
+            <div class="row principal">
               <div class="col-6">
                 <div class="form-group">
                   <label class="label-bold" for="principal">{{ 'APP.USERS.LABEL.Principal' | translate }}
@@ -209,50 +209,6 @@
                   }
                 </div>
               </div>
-              <div class="col-6">
-                <div class="form-group">
-                  <label class="label-bold" for="id_organizzazione">{{ 'APP.SOGGETTI.LABEL.OrganizationName' | translate }}
-                    @if (_isEdit) {
-                      <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_organizzazione'"></span>
-                    }
-                  </label>
-                  @if (_isEdit) {
-                    <div class="">
-                      <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_organizzazione')"
-                        [items]="(organizzazioni$ | async) || []"
-                        [typeahead]="organizzazioniInput$"
-                        [minTermLength]="minLengthTerm"
-                        [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
-                        [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
-                        bindValue="id_organizzazione"
-                        bindLabel="nome"
-                        labelForId="id_organizzazione"
-                        [editableSearchTerm]="true"
-                        formControlName="id_organizzazione">
-                        <ng-template ng-label-tmp let-item="item">
-                          {{ item.nome }}
-                        </ng-template>
-                        <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
-                          <div class="fw-bold">{{ item.nome }}</div>
-                        </ng-template>
-                      </ng-select>
-                      @if (f['id_organizzazione'].invalid && (f['id_organizzazione'].dirty || f['id_organizzazione'].touched)) {
-                        <p class="form-text text-danger">
-                          @if (f['id_organizzazione'].errors && f['id_organizzazione'].errors['required']) {
-                            <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                          }
-                        </p>
-                      }
-                      <ui-input-help field="id_organizzazione" context="SOGGETTI"></ui-input-help>
-                    </div>
-                  }
-                  @if (!_isEdit) {
-                    <div class="">
-                      <input type="text" readonly class="form-control-plaintext" id="id_organizzazione" [value]="utente.organizzazione?.nome || '--'">
-                    </div>
-                  }
-                </div>
-              </div>
             </div>
             @if (utente?.organizzazione_pending) {
               <div class="row">
@@ -282,71 +238,77 @@
                 </div>
               </div>
             }
-            <div class="row telefono email">
-              <div class="col-6">
-                <div class="form-group">
-                  <label class="label-bold" for="telefono">{{ 'APP.USERS.LABEL.Phone' | translate }}
-                    @if (_isEdit) {
-                      <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'telefono'"></span>
-                    }
-                  </label>
-                  @if (_isEdit) {
-                    <div class="">
-                      <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('telefono')" type="text" name="telefono" id="telefono" formControlName="telefono" appTrimOnBlur>
-                      @if (f['telefono'].invalid && (f['telefono'].dirty || f['telefono'].touched)) {
-                        <p class="form-text text-danger">
-                          @if (f['telefono'].errors && f['telefono'].errors['required']) {
-                            <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+            @if (mostraTelefono || mostraEmail) {
+              <div class="row telefono email">
+                @if (mostraTelefono) {
+                  <div class="col-6">
+                    <div class="form-group">
+                      <label class="label-bold" for="telefono">{{ 'APP.USERS.LABEL.Phone' | translate }}
+                        @if (_isEdit) {
+                          <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'telefono'"></span>
+                        }
+                      </label>
+                      @if (_isEdit) {
+                        <div class="">
+                          <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('telefono')" type="text" name="telefono" id="telefono" formControlName="telefono" appTrimOnBlur>
+                          @if (f['telefono'].invalid && (f['telefono'].dirty || f['telefono'].touched)) {
+                            <p class="form-text text-danger">
+                              @if (f['telefono'].errors && f['telefono'].errors['required']) {
+                                <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                              }
+                              @if (f['telefono'].errors && f['telefono'].errors['maxlength']) {
+                                <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['telefono'].errors['maxlength'].requiredLength } }}</span>
+                              }
+                            </p>
                           }
-                          @if (f['telefono'].errors && f['telefono'].errors['maxlength']) {
-                            <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['telefono'].errors['maxlength'].requiredLength } }}</span>
-                          }
-                        </p>
+                          <ui-input-help field="telefono" context="USERS"></ui-input-help>
+                        </div>
                       }
-                      <ui-input-help field="telefono" context="USERS"></ui-input-help>
-                    </div>
-                  }
-                  @if (!_isEdit) {
-                    <div class="">
-                      <input type="text" readonly class="form-control-plaintext" id="telefono" [value]="utente.telefono || '--'">
-                    </div>
-                  }
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="form-group">
-                  <label class="label-bold" for="email">{{ 'APP.LABEL.email' | translate }}
-                    @if (_isEdit) {
-                      <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'email'"></span>
-                    }
-                  </label>
-                  @if (_isEdit) {
-                    <div class="">
-                      <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('email')" type="text" name="email" id="email" formControlName="email" appTrimOnBlur>
-                      @if (f['email'].invalid && (f['email'].dirty || f['email'].touched)) {
-                        <p class="form-text text-danger">
-                          @if (f['email'].errors && f['email'].errors['required']) {
-                            <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                          }
-                          @if (f['email'].errors && f['email'].errors['email']) {
-                            <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.Email' | translate }}</span>
-                          }
-                          @if (f['email'].errors && f['email'].errors['maxlength']) {
-                            <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['email'].errors['maxlength'].requiredLength } }}</span>
-                          }
-                        </p>
+                      @if (!_isEdit) {
+                        <div class="">
+                          <input type="text" readonly class="form-control-plaintext" id="telefono" [value]="utente.telefono || '--'">
+                        </div>
                       }
-                      <ui-input-help field="email" context="USERS"></ui-input-help>
                     </div>
-                  }
-                  @if (!_isEdit) {
-                    <div class="">
-                      <input type="text" readonly class="form-control-plaintext" id="email" [value]="utente.email || '--'">
+                  </div>
+                }
+                @if (mostraEmail) {
+                  <div class="col-6">
+                    <div class="form-group">
+                      <label class="label-bold" for="email">{{ 'APP.LABEL.email' | translate }}
+                        @if (_isEdit) {
+                          <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'email'"></span>
+                        }
+                      </label>
+                      @if (_isEdit) {
+                        <div class="">
+                          <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('email')" type="text" name="email" id="email" formControlName="email" appTrimOnBlur>
+                          @if (f['email'].invalid && (f['email'].dirty || f['email'].touched)) {
+                            <p class="form-text text-danger">
+                              @if (f['email'].errors && f['email'].errors['required']) {
+                                <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                              }
+                              @if (f['email'].errors && f['email'].errors['email']) {
+                                <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.Email' | translate }}</span>
+                              }
+                              @if (f['email'].errors && f['email'].errors['maxlength']) {
+                                <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['email'].errors['maxlength'].requiredLength } }}</span>
+                              }
+                            </p>
+                          }
+                          <ui-input-help field="email" context="USERS"></ui-input-help>
+                        </div>
+                      }
+                      @if (!_isEdit) {
+                        <div class="">
+                          <input type="text" readonly class="form-control-plaintext" id="email" [value]="utente.email || '--'">
+                        </div>
+                      }
                     </div>
-                  }
-                </div>
+                  </div>
+                }
               </div>
-            </div>
+            }
             <div class="row telefono_aziendale email_aziendale">
               <div class="col-6">
                 <div class="form-group">
@@ -474,6 +436,113 @@
                 }
               </div>
             </div>
+            @if (_isNew) {
+              <div class="row id_organizzazione ruolo_organizzazione">
+                <div class="col-6">
+                  <div class="form-group">
+                    <label class="label-bold" for="id_organizzazione">{{ 'APP.SOGGETTI.LABEL.OrganizationName' | translate }}
+                      <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_organizzazione'"></span>
+                    </label>
+                    <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_organizzazione')"
+                      [items]="(organizzazioni$ | async) || []"
+                      [typeahead]="organizzazioniInput$"
+                      [minTermLength]="minLengthTerm"
+                      [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                      [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                      bindValue="id_organizzazione"
+                      bindLabel="nome"
+                      labelForId="id_organizzazione"
+                      [editableSearchTerm]="true"
+                      formControlName="id_organizzazione">
+                      <ng-template ng-label-tmp let-item="item">
+                        {{ item.nome }}
+                      </ng-template>
+                      <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                        <div class="fw-bold">{{ item.nome }}</div>
+                      </ng-template>
+                    </ng-select>
+                    @if (f['id_organizzazione'].invalid && (f['id_organizzazione'].dirty || f['id_organizzazione'].touched)) {
+                      <p class="form-text text-danger">
+                        @if (f['id_organizzazione'].errors && f['id_organizzazione'].errors['required']) {
+                          <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                        }
+                      </p>
+                    }
+                    <ui-input-help field="id_organizzazione" context="SOGGETTI"></ui-input-help>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="form-group">
+                    <label class="label-bold" for="ruolo_organizzazione">{{ 'APP.UTENTI_ORG.LABEL.Role' | translate }}</label>
+                    <select class="form-select" id="ruolo_organizzazione" formControlName="ruolo_organizzazione">
+                      <option [ngValue]="null">{{ 'APP.ORGANIZATION_SWITCHER.NoRole' | translate }}</option>
+                      <option value="amministratore_organizzazione">{{ 'APP.RUOLI.AmministratoreOrganizzazione' | translate }}</option>
+                      <option value="operatore_api">{{ 'APP.RUOLI.OperatoreApi' | translate }}</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            }
+            @if (_isEdit || utente?.organizzazione_esterna) {
+              <div class="row organizzazione_esterna">
+                <div class="col-12">
+                  <div class="form-group">
+                    <label class="label-bold" for="organizzazione_esterna">{{ 'APP.USERS.LABEL.OrganizzazioneEsterna' | translate }}</label>
+                    @if (_isEdit) {
+                      <input autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('organizzazione_esterna')" type="text" name="organizzazione_esterna" id="organizzazione_esterna" formControlName="organizzazione_esterna" appTrimOnBlur>
+                      @if (f['organizzazione_esterna']?.invalid && (f['organizzazione_esterna'].dirty || f['organizzazione_esterna'].touched)) {
+                        <p class="form-text text-danger">
+                          @if (f['organizzazione_esterna'].errors && f['organizzazione_esterna'].errors['maxlength']) {
+                            <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['organizzazione_esterna'].errors['maxlength'].requiredLength } }}</span>
+                          }
+                        </p>
+                      }
+                    }
+                    @if (!_isEdit) {
+                      <input type="text" readonly class="form-control-plaintext" id="organizzazione_esterna" [value]="utente.organizzazione_esterna || '--'">
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+            @if (!_isNew && utente?.organizzazioni?.length) {
+              <div class="row organizzazioni-utente">
+                <div class="col-12">
+                  <div class="form-group mb-4">
+                    <span class="label label-bold d-block mb-2">{{ 'APP.USERS.ORGANIZZAZIONI.Title' | translate }}</span>
+                    <table class="table table-sm border align-middle organizzazioni-utente-table mb-0">
+                      <thead>
+                        <tr>
+                          <th class="ps-2 label-semibold">{{ 'APP.SOGGETTI.LABEL.OrganizationName' | translate }}</th>
+                          <th class="label-semibold">{{ 'APP.UTENTI_ORG.LABEL.Role' | translate }}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (uo of utente.organizzazioni; track uo?.organizzazione?.id_organizzazione) {
+                          <tr>
+                            <td class="ps-2">
+                              <i class="bi bi-buildings me-2 text-muted"></i>{{ uo?.organizzazione?.nome || '--' }}
+                            </td>
+                            <td>
+                              <span class="badge text-bg-light border">
+                                @switch (uo?.ruolo_organizzazione) {
+                                  @case ('amministratore_organizzazione') { {{ 'APP.RUOLI.AmministratoreOrganizzazione' | translate }} }
+                                  @case ('operatore_api') { {{ 'APP.RUOLI.OperatoreApi' | translate }} }
+                                  @default { {{ 'APP.ORGANIZATION_SWITCHER.NoRole' | translate }} }
+                                }
+                              </span>
+                            </td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                    <small class="form-text text-muted d-block mt-2">
+                      <i class="bi bi-info-circle me-1"></i>{{ 'APP.USERS.ORGANIZZAZIONI.HelpText' | translate }}
+                    </small>
+                  </div>
+                </div>
+              </div>
+            }
             <div class="row stato classi_utente">
               <div class="col-6">
                 <div class="form-group">

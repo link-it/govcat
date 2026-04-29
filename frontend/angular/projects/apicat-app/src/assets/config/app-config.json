@@ -51,7 +51,15 @@
     },
 
     "Profile": {
-      "showEmail": false
+      "showEmail": false,
+      "showPhone": false
+    },
+
+    "Organization": {
+      "ContextSelector": {
+        "showWhenSingle": true,
+        "storageKey": "govcat.organizationContext"
+      }
     },
 
     "Scrollbar": {

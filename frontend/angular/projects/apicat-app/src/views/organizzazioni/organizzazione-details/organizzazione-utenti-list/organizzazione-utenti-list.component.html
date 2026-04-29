@@ -1,0 +1,107 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div class="card mt-3 organizzazione-utenti-list">
+  <div class="card-header d-flex align-items-center">
+    <h5 class="mb-0 flex-grow-1">{{ 'APP.UTENTI_ORG.TITLE.List' | translate }}</h5>
+    <lnk-button
+      [icon]="'bi bi-arrow-clockwise'"
+      [onlyIcon]="true"
+      [size]="'sm'"
+      [ariaLabel]="'APP.BUTTON.Refresh'"
+      [btnTooltip]="'APP.BUTTON.Refresh'"
+      [otherClass]="'me-2'"
+      [disabled]="loading || loadingMore"
+      [spinner]="loading"
+      (onAction)="reload()">
+    </lnk-button>
+    @if (canManage()) {
+      <lnk-button
+        [label]="'APP.UTENTI_ORG.BUTTON.Add'"
+        [ariaLabel]="'APP.UTENTI_ORG.BUTTON.Add'"
+        [icon]="'bi bi-person-plus'"
+        [primary]="false"
+        [size]="'sm'"
+        (onAction)="openAdd()">
+      </lnk-button>
+    }
+  </div>
+  <div class="card-body p-0">
+    @if (error) {
+      <div class="gl-alert gl-alert-danger m-3">{{ error }}</div>
+    } @else {
+      <div class="organizzazione-utenti-scroll" [class.is-loading]="loading">
+        <table class="table table-sm align-middle mb-0">
+          <thead>
+            <tr>
+              <th class="ps-3">{{ 'APP.USERS.LABEL.Nome' | translate }} {{ 'APP.USERS.LABEL.Cognome' | translate }}</th>
+              <th>{{ 'APP.USERS.LABEL.CorporateEmail' | translate }}</th>
+              <th>{{ 'APP.UTENTI_ORG.LABEL.Role' | translate }}</th>
+              @if (canManage()) {
+                <th class="text-end" style="width: 9rem;">{{ 'APP.LABEL.Actions' | translate }}</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @if (!items.length && !loading) {
+              <tr>
+                <td [attr.colspan]="canManage() ? 4 : 3" class="text-center text-muted py-3">
+                  {{ 'APP.MESSAGE.NoData' | translate }}
+                </td>
+              </tr>
+            }
+            @for (uo of items; track uo?.id_utente) {
+              <tr>
+                <td class="ps-3 align-middle">{{ uo?.nome }} {{ uo?.cognome }}</td>
+                <td class="align-middle text-muted">{{ uo?.email_aziendale }}</td>
+                <td class="align-middle">
+                  <span class="badge text-bg-light border">{{ roleLabelKey(uo) | translate }}</span>
+                </td>
+                @if (canManage()) {
+                  <td class="text-end align-middle">
+                    <button type="button" class="btn btn-sm btn-default btn-icon me-1"
+                            [tooltip]="'APP.UTENTI_ORG.TITLE.Edit' | translate"
+                            (click)="openEdit(uo)">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-default btn-icon text-danger"
+                            [tooltip]="'APP.UTENTI_ORG.BUTTON.Remove' | translate"
+                            (click)="confirmRemove(uo)">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (hasMore()) {
+        <div class="text-center mt-2">
+          <button type="button" class="btn btn-default btn-sm" [disabled]="loadingMore" (click)="loadMore()">
+            @if (loadingMore) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            {{ 'APP.BUTTON.LoadMore' | translate }}
+          </button>
+        </div>
+      }
+    }
+  </div>
+</div>

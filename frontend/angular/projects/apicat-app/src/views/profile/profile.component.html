@@ -197,7 +197,7 @@
                                   </div>
                                 </li>
                               }
-                              @if (profile?.telefono) {
+                              @if (mostraTelefono && profile?.telefono) {
                                 <li class="list-group-item py-3">
                                   <div class="row">
                                     <div class="col-sm-3">
@@ -421,20 +421,22 @@
 
                             ></lnk-form-field>
                           </div>
-                          <div class="col-6">
-                            <lnk-form-field
-                              name="telefono"
-                              [label]="'APP.USERS.LABEL.Phone' | translate"
-                              [isEdit]="isEdit"
-                              [formGroup]="formGroup"
-                              [value]="profile?.telefono"
-                              [inline]="false"
-                              [singleColumn]="true"
-                              [plainText]="true"
-                              [options]="optionsForm"
+                          @if (mostraTelefono) {
+                            <div class="col-6">
+                              <lnk-form-field
+                                name="telefono"
+                                [label]="'APP.USERS.LABEL.Phone' | translate"
+                                [isEdit]="isEdit"
+                                [formGroup]="formGroup"
+                                [value]="profile?.telefono"
+                                [inline]="false"
+                                [singleColumn]="true"
+                                [plainText]="true"
+                                [options]="optionsForm"
 
-                            ></lnk-form-field>
-                          </div>
+                              ></lnk-form-field>
+                            </div>
+                          }
                         </div>
                         <div class="settings-content">
                           @if (isEdit && error) {

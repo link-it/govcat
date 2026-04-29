@@ -414,6 +414,13 @@
             </div>
           </div>
         </div>
+        @if (!_isNew && organizzazione?.id_organizzazione && !_isEdit) {
+          <app-organizzazione-utenti-list
+            [idOrganizzazione]="organizzazione.id_organizzazione"
+            [nomeOrganizzazione]="organizzazione?.nome"
+            [flagAderente]="organizzazione?.aderente">
+          </app-organizzazione-utenti-list>
+        }
       }
     </section>
   </div>

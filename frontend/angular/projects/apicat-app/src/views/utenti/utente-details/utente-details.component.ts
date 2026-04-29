@@ -140,9 +140,13 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
   ngOnInit() {
     this._statoArr = Object.values(Stato);
     const coordinatoreAbilitato = Tools.Configurazione?.utente?.coordinatore_abilitato !== false;
+    // `referente_servizio` e' deprecato in favore di `utente_organizzazione`:
+    // non lo proponiamo nelle nuove creazioni / modifiche, ma lo mostriamo
+    // se gia' valorizzato sull'utente caricato (retrocompat).
+    const baseRoles = Object.values(Ruolo).filter(r => r !== Ruolo.REFERENTE_SERVIZIO);
     this._ruoloArr = coordinatoreAbilitato
-      ? Object.values(Ruolo)
-      : Object.values(Ruolo).filter(r => r !== Ruolo.COORDINATORE);
+      ? baseRoles
+      : baseRoles.filter(r => r !== Ruolo.COORDINATORE);
 
     this.route.params.subscribe(params => {
       if (params['id'] && params['id'] !== 'new') {
@@ -165,7 +169,13 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
         this._loadClassiUtente();
         this._initClassiUtenteSelect([]);
         this._initOrganizzazioniSelect([]);
+        // Default per i nuovi utenti: nessun ruolo globale e nessuna
+        // organizzazione obbligatoria. La required su `id_organizzazione`
+        // viene applicata dinamicamente da `_changeRuolo()` solo se il
+        // ruolo selezionato e' `utente_organizzazione`.
+        this._utente.ruolo = Ruolo.NESSUN_RUOLO;
         this._initForm({ ...this._utente });
+        this._changeRuolo();
         this._spin = false;
       }
     });
@@ -244,13 +254,19 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
             ]);
             break;
           case 'stato':
-          case 'id_organizzazione':
             value = data[key] ? data[key] : null;
             _group[key] = new FormControl(value, [Validators.required]);
+            break;
+          case 'id_organizzazione':
+            // La required e' dinamica: viene applicata da `_changeRuolo()`
+            // solo quando il ruolo selezionato e' `utente_organizzazione`.
+            value = data[key] ? data[key] : null;
+            _group[key] = new FormControl(value, []);
             break;
           case 'telefono':
           case 'metadati':
           case 'note':
+          case 'organizzazione_esterna':
             value = data[key] ? data[key] : null;
             _group[key] = new FormControl(value, [
               Validators.maxLength(255)
@@ -358,11 +374,35 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
       ...body,
       ruolo: (body.ruolo == Ruolo.NESSUN_RUOLO) ? null : body.ruolo,
     };
+
+    // Multi-org: trasforma `id_organizzazione` + `ruolo_organizzazione`
+    // del form in `organizzazioni: [{...}]`. Il BE ignora il campo
+    // legacy `id_organizzazione` se `organizzazioni` e' presente.
+    const idOrg = body.id_organizzazione;
+    const ruoloOrg = body.ruolo_organizzazione || null;
+    if (idOrg) {
+      _newBody.organizzazioni = [{
+        id_organizzazione: idOrg,
+        ruolo_organizzazione: ruoloOrg
+      }];
+    } else {
+      _newBody.organizzazioni = [];
+    }
+
     delete _newBody.organizzazione;
+    delete _newBody.organizzazione_pending;
+    delete _newBody.id_organizzazione;
+    delete _newBody.ruolo_organizzazione;
     delete _newBody.classi_utente;
 
     const result = this.utils._removeEmpty(_newBody);
     result.classi_utente = _classi;
+    // `_removeEmpty` elimina array vuoti: re-iniettiamo `organizzazioni`
+    // solo se non vuoto, altrimenti il BE riceve null/assente (utente
+    // non associato).
+    if (_newBody.organizzazioni?.length) {
+      result.organizzazioni = _newBody.organizzazioni;
+    }
     return result;
   }
 
@@ -420,6 +460,12 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
           this.utente.ruolo = this._checkRuolo(response);
           this._utente.ruolo = this._checkRuolo(response);
+
+          // Deriva il ruolo per-organizzazione dalla prima associazione
+          // (la lista `organizzazioni` riflette il modello multi-org).
+          const firstOrg = response?.organizzazioni?.[0];
+          this.utente.ruolo_organizzazione = firstOrg?.ruolo_organizzazione || null;
+          this._utente.ruolo_organizzazione = firstOrg?.ruolo_organizzazione || null;
           
           const aux: any = {
             id_classe_utente: this.utente.classi_utente?.id_classe_utente || null,
@@ -646,6 +692,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
               this.utente.ruolo = this._checkRuolo(response);
               this._utente.ruolo = this._checkRuolo(response);
               this._initForm({ ...this._utente });
+              this._changeRuolo();
               const aux_org: any = {
                 id_organizzazione: this.utente?.id_organizzazione || null,
                 nome: this.utente?.organizzazione?.nome || null
@@ -666,6 +713,22 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
     );
   }
 
+  /**
+   * Visibilita' del campo email personale (in coerenza col profilo).
+   * Pilotata dal flag `AppConfig.Profile.showEmail` (default false).
+   */
+  get mostraEmail(): boolean {
+    return this.appConfig?.AppConfig?.Profile?.showEmail === true;
+  }
+
+  /**
+   * Visibilita' del campo telefono personale (default nascosto).
+   * Pilotata dal flag `AppConfig.Profile.showPhone`.
+   */
+  get mostraTelefono(): boolean {
+    return this.appConfig?.AppConfig?.Profile?.showPhone === true;
+  }
+
   _changeRuolo(event: Event|null = null) {
     const role = this._formGroup.get('ruolo')?.value;
     const organizationFormControl = this._formGroup.get('id_organizzazione');
@@ -673,10 +736,17 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
       console.warn('organizationFormControl does not exist');
       return;
     }
-    if(role === Ruolo.GESTORE || role === Ruolo.COORDINATORE){
-      organizationFormControl.clearValidators();
-    }else{
+    // L'organizzazione e' obbligatoria solo per il ruolo
+    // `utente_organizzazione`. Per gli altri ruoli (gestore,
+    // coordinatore, nessun ruolo) il campo e' opzionale.
+    // `ruolo_organizzazione` (per-org) e' un campo distinto e
+    // indipendente: viene gestito direttamente dall'utente nel
+    // proprio control e finisce dentro `organizzazioni[].ruolo_organizzazione`
+    // a cura di `_prapareData`.
+    if(role === Ruolo.UTENTE_ORGANIZZAZIONE){
       organizationFormControl.setValidators([Validators.required]);
+    } else {
+      organizationFormControl.clearValidators();
     }
     organizationFormControl.updateValueAndValidity();
   }

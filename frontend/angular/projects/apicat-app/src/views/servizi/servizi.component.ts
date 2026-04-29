@@ -150,6 +150,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         { value: 'referente_dominio', label: 'APP.ROLE.referente_dominio' },
         { value: 'referente_tecnico_dominio', label: 'APP.ROLE.referente_tecnico_dominio' },
         { value: 'referente_servizio', label: 'APP.ROLE.referente_servizio' },
+        { value: 'utente_organizzazione', label: 'APP.ROLE.utente_organizzazione' },
         { value: 'referente_tecnico_servizio', label: 'APP.ROLE.referente_tecnico_servizio' },
         { value: 'richiedente_servizio', label: 'APP.ROLE.richiedente_servizio' }
     ];
@@ -1024,6 +1025,10 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         if (this._isAnonymous()) { return false; }
         const user: any = this.authenticationService.getUser();
         if (!user?.ruolo && !user?.referente_tecnico) { return false; }
+        // Vincolo multi-org: ruoli per-org possono creare un servizio
+        // solo se l'organizzazione di sessione e' abilitata come `referente`.
+        // Gestori e coordinatori passano sempre.
+        if (!this.authenticationService.canCreateServizio()) { return false; }
         return true;
     }
 

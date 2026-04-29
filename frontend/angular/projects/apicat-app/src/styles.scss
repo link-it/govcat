@@ -27,3 +27,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     --bs-modal-width: min(95vw, 1100px);
     max-width: var(--bs-modal-width);
 }
+
+
+// Issue #229: il selettore organizzazione e' proiettato dentro la
+// headbar che ha `.text-truncate` (overflow: hidden) sul container delle
+// azioni. Senza override, il dropdown viene clippato. Inoltre lo z-index
+// di base di `.dropdown-menu` (1000) e' inferiore al footer fixed (1600).
+header .navbar .headbar-user,
+.headbar-user {
+    overflow: visible !important;
+}
+
+.organization-switcher,
+.organization-switcher .dropdown-menu,
+.organization-switcher .dropdown-menu.show {
+    z-index: 1700 !important;
+}

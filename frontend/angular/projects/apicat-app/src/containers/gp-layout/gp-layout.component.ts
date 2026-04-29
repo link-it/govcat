@@ -33,6 +33,7 @@ import { NotificationsCount, NotificationsService } from '@services/notification
 import { AboutDialogComponent } from '@app/components/about-dialog/about-dialog.component';
 import { NewsBoxComponent } from '@app/components/news-box/news-box.component';
 import { AboutMiniBoxComponent } from '@app/components/about-mini-box/about-mini-box.component';
+import { OrganizationSwitcherComponent } from '@app/components/organization-switcher/organization-switcher.component';
 
 import { FlyOutDirective } from './gp-layout.directive';
 
@@ -63,7 +64,8 @@ import * as _ from 'lodash';
         RouterLinkMatchDirective,
         NewsBoxComponent,
         AboutMiniBoxComponent,
-        MultiSnackbarComponent
+        MultiSnackbarComponent,
+        OrganizationSwitcherComponent
     ]
 })
 export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy {

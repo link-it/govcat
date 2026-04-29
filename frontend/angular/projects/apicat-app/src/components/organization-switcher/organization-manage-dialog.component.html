@@ -1,0 +1,55 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+-->
+<div class="modal-header">
+  <h5 class="modal-title">
+    <i class="bi bi-buildings me-2"></i>{{ 'APP.ORGANIZATION_MANAGE.Title' | translate }}
+  </h5>
+  <lnk-button
+    [icon]="'bi bi-x-lg'"
+    [onlyIcon]="true"
+    [ariaLabel]="'APP.BUTTON.Close'"
+    [tertiary]="true"
+    (onAction)="close()">
+  </lnk-button>
+</div>
+<div class="modal-body">
+
+  <!-- Intestazione organizzazione (sola lettura) ----------------------- -->
+  <div class="card mb-3 organization-manage-header">
+    <div class="card-body">
+      <div class="d-flex align-items-center mb-2">
+        <h5 class="mb-0 flex-grow-1">{{ organizzazione?.nome || '--' }}</h5>
+        @if (organizzazione?.referente) {
+          <span class="badge text-bg-primary ms-2">{{ 'APP.ORGANIZATIONS.LABEL.Referente' | translate }}</span>
+        }
+        @if (organizzazione?.aderente) {
+          <span class="badge text-bg-success ms-2">{{ 'APP.ORGANIZATIONS.LABEL.Aderente' | translate }}</span>
+        }
+        @if (organizzazione?.esterna) {
+          <span class="badge text-bg-secondary ms-2">{{ 'APP.ORGANIZATIONS.LABEL.Esterna' | translate }}</span>
+        }
+      </div>
+      @if (organizzazione?.descrizione) {
+        <p class="text-muted mb-0">{{ organizzazione?.descrizione }}</p>
+      }
+    </div>
+  </div>
+
+  <!-- Lista utenti dell'organizzazione --------------------------------- -->
+  @if (idOrganizzazione) {
+    <app-organizzazione-utenti-list
+      [idOrganizzazione]="idOrganizzazione"
+      [nomeOrganizzazione]="organizzazione?.nome || null"
+      [flagAderente]="!!organizzazione?.aderente">
+    </app-organizzazione-utenti-list>
+  }
+</div>
+<div class="modal-footer">
+  <lnk-button
+    [label]="'APP.BUTTON.Close'"
+    [ariaLabel]="'APP.BUTTON.Close'"
+    (onAction)="close()">
+  </lnk-button>
+</div>

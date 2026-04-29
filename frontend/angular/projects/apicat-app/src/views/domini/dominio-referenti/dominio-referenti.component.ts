@@ -426,7 +426,7 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
 
   loadAnagrafiche() {
     this.anagrafiche['tipo-referente'] = [
-      { nome: 'referente', filter: 'referente_servizio,gestore,coordinatore' },
+      { nome: 'referente', filter: 'referente_servizio,utente_organizzazione,gestore,coordinatore' },
       { nome: 'referente_tecnico', filter: '' }
     ];
   }

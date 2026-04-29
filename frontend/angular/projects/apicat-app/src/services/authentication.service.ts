@@ -22,6 +22,9 @@ import { inject, Injectable } from '@angular/core';
 import { Tools, EventType, ConfigService, EventsManagerService } from '@linkit/components';
 import { OAuthService } from 'angular-oauth2-oidc';
 import { PermessiService } from '@services/permessi.service';
+import { OrganizationContextService } from '@services/organization-context.service';
+import { ItemOrganizzazione } from '../model/itemOrganizzazione';
+import { RuoloOrganizzazioneEnum } from '../model/ruoloOrganizzazioneEnum';
 
 import * as _ from 'lodash';
 
@@ -226,6 +229,7 @@ export class AuthenticationService {
   private readonly eventsManagerService = inject(EventsManagerService);
   private readonly oauthService = inject(OAuthService);
   private readonly permessiService = inject(PermessiService);
+  private readonly organizationContextService = inject(OrganizationContextService);
 
   constructor() {
     this.config = this.configService.getConfiguration();
@@ -262,6 +266,7 @@ export class AuthenticationService {
 
   logout() {
     localStorage.removeItem(AUTH_CONST.storageSession);
+    this.organizationContextService.clear();
 
     // Check if there's an access token to revoke (even if expired)
     const hasAccessToken = !!this.oauthService.getAccessToken();
@@ -301,6 +306,11 @@ export class AuthenticationService {
 
   reloadSession() {
     this.currentSession = this.getCurrentSession();
+    if (this.currentSession?.utente) {
+      this.organizationContextService.initFromUser(this.currentSession.utente);
+    } else {
+      this.organizationContextService.clear();
+    }
     this.eventsManagerService.broadcast(EventType.SESSION_UPDATE, this.currentSession);
     return this.currentSession;
   }
@@ -454,6 +464,48 @@ export class AuthenticationService {
       _isCoordinator = (_user?.ruolo === 'coordinatore');
     }
     return _isCoordinator;
+  }
+
+  /**
+   * Organizzazione di sessione corrente (multi-org). Wrap su
+   * `OrganizationContextService` per evitare che i consumer dipendano
+   * direttamente dal service del contesto.
+   */
+  getCurrentOrganization(): ItemOrganizzazione | null {
+    return this.organizationContextService.getCurrentOrganization();
+  }
+
+  getCurrentOrganizationRole(): RuoloOrganizzazioneEnum | null {
+    return this.organizationContextService.getCurrentRole();
+  }
+
+  /**
+   * Vero se l'utente e' amministratore dell'organizzazione indicata
+   * (o di quella di sessione, se `idOrganizzazione` non e' fornito).
+   * Sui gestori la verifica passa sempre.
+   */
+  isAmministratoreOrganizzazione(idOrganizzazione?: string): boolean {
+    if (this.isGestore()) { return true; }
+    return this._hasOrgRole(RuoloOrganizzazioneEnum.AmministratoreOrganizzazione, idOrganizzazione);
+  }
+
+  /**
+   * Vero se l'utente e' operatore API dell'organizzazione indicata
+   * (o di quella di sessione, se `idOrganizzazione` non e' fornito).
+   */
+  isOperatoreApi(idOrganizzazione?: string): boolean {
+    if (this.isGestore()) { return true; }
+    return this._hasOrgRole(RuoloOrganizzazioneEnum.OperatoreApi, idOrganizzazione);
+  }
+
+  private _hasOrgRole(ruolo: RuoloOrganizzazioneEnum, idOrganizzazione?: string): boolean {
+    const utente: any = this.getUser();
+    const organizzazioni: any[] = utente?.organizzazioni || [];
+    if (!organizzazioni.length) { return false; }
+    const targetId = idOrganizzazione || this.getCurrentOrganization()?.id_organizzazione;
+    if (!targetId) { return false; }
+    const match = organizzazioni.find((o: any) => o?.organizzazione?.id_organizzazione === targetId);
+    return match?.ruolo_organizzazione === ruolo;
   }
 
   canAdd(module: string, state: string, grant: string[] = []) {
@@ -707,10 +759,52 @@ export class AuthenticationService {
   // Verifica permessi menu amministrazione
 
   verificacanPermessiMenuAmministrazione(menu: string): { canRead: boolean; canWrite: boolean } {
-    const ruoli = [ this.getUser().ruolo ];
+    const ruoli = this._effectiveRoles();
     const permessi = Tools.Configurazione ? (Tools.Configurazione['amministrazione'] || {}) : {};
 
     return this.permessiService.verificaPermessi(ruoli, menu, permessi);
+  }
+
+  /**
+   * Ruoli "effettivi" dell'utente per la valutazione dei permessi UI:
+   * il ruolo principale (`gestore`/`coordinatore`/`utente_organizzazione`/...)
+   * affiancato dal ruolo per-org dell'organizzazione di sessione corrente
+   * (`amministratore_organizzazione` o `operatore_api`). Cosi' la
+   * `PermessiService.verificaPermessi` puo' matchare le voci di menu
+   * configurate per i nuovi ruoli senza richiedere un consumer specifico.
+   */
+  private _effectiveRoles(): string[] {
+    const utente: any = this.getUser();
+    const roles: string[] = [];
+    if (utente?.ruolo) { roles.push(utente.ruolo); }
+    const orgRole = this.getCurrentOrganizationRole();
+    if (orgRole) { roles.push(orgRole); }
+    return roles;
+  }
+
+  /**
+   * Vero se l'utente puo' creare un servizio: gestore/coordinatore
+   * passano sempre; gli utenti per-org (amministratore organizzazione
+   * o operatore API) solo se l'organizzazione di sessione ha il flag
+   * `referente`.
+   */
+  canCreateServizio(): boolean {
+    if (this.isGestore() || this.isCoordinatore()) { return true; }
+    const role = this.getCurrentOrganizationRole();
+    if (!role) { return false; }
+    return !!this.getCurrentOrganization()?.referente;
+  }
+
+  /**
+   * Vero se l'utente puo' creare un'adesione: gestore/coordinatore
+   * passano sempre; gli utenti per-org solo se l'organizzazione di
+   * sessione ha il flag `aderente`.
+   */
+  canCreateAdesione(): boolean {
+    if (this.isGestore() || this.isCoordinatore()) { return true; }
+    const role = this.getCurrentOrganizationRole();
+    if (!role) { return false; }
+    return !!this.getCurrentOrganization()?.aderente;
   }
 
   hasMenuAmministrazione(): boolean {

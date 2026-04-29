@@ -1,4 +1,25 @@
-2026-04-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+2026-04-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 229: supporto multi-organizzazione e ruoli per-org.
+	  Modelli FE allineati a `organizzazioni[]` (nuovi
+	  `RuoloOrganizzazioneEnum`, `UtenteOrganizzazione*`,
+	  `utente_organizzazione`). Nuovo `OrganizationContextService` +
+	  `OrganizationContextInterceptor` (header
+	  `X-Organization-Context`). Nuovo selettore organizzazione in
+	  topbar con live refresh (no full reload), gear amministratore
+	  che apre la dialog di gestione utenti. Pagina dettaglio
+	  organizzazione: pannello "Utenti dell'organizzazione" con CRUD,
+	  paginazione e dialog "nuovo utente" inline. Dettaglio utente
+	  riorganizzato: lista multi-org tabellare + hint informativo,
+	  payload `organizzazioni: [{...}]`. Permessi UI: matrice
+	  estesa per ruoli per-org; pulsanti "Nuovo servizio" / "Nuova
+	  adesione" vincolati ai flag `referente`/`aderente` dell'org di
+	  sessione. Configurazione: `AppConfig.Organization.ContextSelector`
+	  e `Profile.{showEmail,showPhone}` per visibilita' contatti
+	  personali. Retrocompat preservata su `organizzazione` (singolare)
+	  e `referente_servizio`. Aggiunte spec service/interceptor
+	  (194 test verdi).
 
 	* [Frontend]
 	Issue 254 (evolutiva): icona di stato sezioni/client/erogazioni

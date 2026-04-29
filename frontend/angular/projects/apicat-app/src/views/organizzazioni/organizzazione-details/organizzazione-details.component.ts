@@ -32,6 +32,7 @@ import { CustomValidators } from '@linkit/validators';
 import { Organizzazione } from './organizzazione';
 import { HasPermissionDirective } from '@app/directives/has-permission/has-permission.directive';
 import { TrimOnBlurDirective } from '@app/directives/trim-on-blur/trim-on-blur.directive';
+import { OrganizzazioneUtentiListComponent } from './organizzazione-utenti-list/organizzazione-utenti-list.component';
 
 @Component({
   selector: 'app-organizzazione-details',
@@ -42,7 +43,8 @@ import { TrimOnBlurDirective } from '@app/directives/trim-on-blur/trim-on-blur.d
     CommonModule,
     ...COMPONENTS_IMPORTS,
     HasPermissionDirective,
-    TrimOnBlurDirective
+    TrimOnBlurDirective,
+    OrganizzazioneUtentiListComponent
   ]
 })
 export class OrganizzazioneDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {

@@ -30,8 +30,18 @@ export interface Organizzazione {
 export enum Ruolo {
   NESSUN_RUOLO = 'nessun_ruolo',
   GESTORE = 'gestore',
+  /**
+   * @deprecated Sostituito da `UTENTE_ORGANIZZAZIONE`. Mantenuto per
+   * retrocompatibilita' lettura — non proporlo in nuove creazioni.
+   */
   REFERENTE_SERVIZIO = 'referente_servizio',
+  UTENTE_ORGANIZZAZIONE = 'utente_organizzazione',
   COORDINATORE = 'coordinatore'
+}
+
+export enum RuoloOrganizzazione {
+  AMMINISTRATORE_ORGANIZZAZIONE = 'amministratore_organizzazione',
+  OPERATORE_API = 'operatore_api'
 }
 
 export enum Stato {
@@ -57,8 +67,11 @@ export class Utente {
   stato: Stato | null = null;
   ruolo: Ruolo | null = null;
   id_organizzazione: string | null = null;
+  ruolo_organizzazione: RuoloOrganizzazione | null = null;
   // classi_utente: Array<any> = [];
   organizzazione: Organizzazione | null = null;
+  organizzazioni: Array<any> | null = null;
+  organizzazione_esterna: string | null = null;
   organizzazione_pending: Organizzazione | null = null;
   classi_utente: ClassiUtente | null = null;
   referente_tecnico: boolean = false;

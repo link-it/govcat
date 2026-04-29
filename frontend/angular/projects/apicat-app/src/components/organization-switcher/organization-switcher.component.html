@@ -1,0 +1,59 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+-->
+@if (visible) {
+  <div class="ml-auto organization-switcher dropdown">
+    <button type="button"
+            class="btn color-inherit text-uppercase pe-0 fw-light organization-switcher-toggle"
+            data-bs-toggle="dropdown"
+            data-bs-strategy="fixed"
+            aria-expanded="false"
+            [attr.aria-label]="'APP.ORGANIZATION_SWITCHER.Title' | translate"
+            [title]="'APP.ORGANIZATION_SWITCHER.Title' | translate">
+      <i class="bi bi-buildings align-middle"></i>
+      <span class="d-none d-md-inline ms-2 align-middle organization-switcher-label">{{ currentLabel }}</span>
+      <span class="material-icons-outlined align-middle mx-1">expand_more</span>
+    </button>
+    <ul tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="organization-switcher">
+      <div class="gl-new-dropdown-inner">
+        <div class="gl-new-dropdown-contents">
+          @for (org of organizzazioni; track org.organizzazione.id_organizzazione) {
+            <li class="gl-new-dropdown-item organization-switcher-row align-items-xl-center">
+              <button type="button"
+                      class="dropdown-item"
+                      [class.active]="isCurrent(org)"
+                      [disabled]="isCurrent(org)"
+                      (click)="onSelect(org)">
+                <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
+                  <i class="bi" [class.bi-check2]="isCurrent(org)"></i>
+                </div>
+                <div class="gl-new-dropdown-item-text-wrapper">
+                  <div class="gl-font-weight-bold">{{ org.organizzazione.nome }}</div>
+                  <p class="gl-new-dropdown-item-text-primary m-0">
+                    @if (roleLabelKey(org); as key) {
+                      {{ key | translate }}
+                    } @else {
+                      {{ 'APP.ORGANIZATION_SWITCHER.NoRole' | translate }}
+                    }
+                  </p>
+                </div>
+              </button>
+              @if (canManage(org)) {
+                <button type="button"
+                        class="btn btn-sm btn-default organization-switcher-manage flex-shrink-1"
+                        [tooltip]="'APP.ORGANIZATION_SWITCHER.ManageTooltip' | translate"
+                        [attr.aria-label]="'APP.ORGANIZATION_SWITCHER.ManageTooltip' | translate"
+                        (click)="onManage(org, $event)">
+                  <i class="bi bi-gear"></i>
+                </button>
+              }
+            </li>
+          }
+        </div>
+      </div>
+    </ul>
+  </div>
+}

@@ -137,6 +137,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     { value: 'referente_dominio', label: 'APP.ROLE.referente_dominio' },
     { value: 'referente_tecnico_dominio', label: 'APP.ROLE.referente_tecnico_dominio' },
     { value: 'referente_servizio', label: 'APP.ROLE.referente_servizio' },
+    { value: 'utente_organizzazione', label: 'APP.ROLE.utente_organizzazione' },
     { value: 'referente_tecnico_servizio', label: 'APP.ROLE.referente_tecnico_servizio' },
     { value: 'referente_adesione', label: 'APP.ROLE.referente_adesione' },
     { value: 'referente_tecnico_adesione', label: 'APP.ROLE.referente_tecnico_adesione' },
@@ -584,6 +585,15 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     } else {
       this._isEdit = true;
     }
+  }
+
+  /**
+   * Vincolo multi-org sul pulsante "Nuova adesione": gestori e
+   * coordinatori passano sempre; ruoli per-org solo se l'organizzazione
+   * di sessione e' abilitata come `aderente`.
+   */
+  canCreateAdesione(): boolean {
+    return this.authenticationService.canCreateAdesione();
   }
 
   _onEdit(event: any, param: any) {

@@ -6,6 +6,8 @@ import { OAuthService } from 'angular-oauth2-oidc';
 import { ConfigService, EventsManagerService, Tools } from '@linkit/components';
 import { PermessiService } from './permessi.service';
 import { AuthenticationService, AUTH_CONST, CLASSES } from './authentication.service';
+import { OrganizationContextService } from './organization-context.service';
+import { RuoloOrganizzazioneEnum } from '../model/ruoloOrganizzazioneEnum';
 
 describe('AuthenticationService', () => {
   let service: AuthenticationService;
@@ -1441,6 +1443,195 @@ describe('AuthenticationService', () => {
   describe('AUTH_CONST', () => {
     it('should have storageSession key', () => {
       expect(AUTH_CONST.storageSession).toBe('GWAC_SESSION');
+    });
+  });
+
+  // --- Multi-org helpers (Issue #229) ---
+
+  describe('multi-organization helpers', () => {
+    let orgContext: OrganizationContextService;
+
+    const orgReferenteAderente = {
+      id_organizzazione: 'org-RA', nome: 'Org RA', referente: true, aderente: true
+    };
+    const orgSoloAderente = {
+      id_organizzazione: 'org-A', nome: 'Org A', referente: false, aderente: true
+    };
+    const orgSoloReferente = {
+      id_organizzazione: 'org-R', nome: 'Org R', referente: true, aderente: false
+    };
+
+    beforeEach(() => {
+      orgContext = TestBed.inject(OrganizationContextService);
+      orgContext.clear();
+    });
+
+    describe('getCurrentOrganization / getCurrentOrganizationRole', () => {
+      it('should return null when no context is set', () => {
+        expect(service.getCurrentOrganization()).toBeNull();
+        expect(service.getCurrentOrganizationRole()).toBeNull();
+      });
+
+      it('should return current organization and role from the context', () => {
+        orgContext.setCurrent({
+          organizzazione: orgReferenteAderente,
+          ruolo_organizzazione: RuoloOrganizzazioneEnum.AmministratoreOrganizzazione
+        });
+        expect(service.getCurrentOrganization()?.id_organizzazione).toBe('org-RA');
+        expect(service.getCurrentOrganizationRole()).toBe(RuoloOrganizzazioneEnum.AmministratoreOrganizzazione);
+      });
+    });
+
+    describe('isAmministratoreOrganizzazione', () => {
+      it('should return true for gestori regardless of org', () => {
+        service.setCurrentSession({ utente: { id_utente: 'u', ruolo: 'gestore', organizzazioni: [] } });
+        expect(service.isAmministratoreOrganizzazione()).toBe(true);
+      });
+
+      it('should return true when user has admin role on the requested organization', () => {
+        service.setCurrentSession({
+          utente: {
+            id_utente: 'u',
+            ruolo: 'utente_organizzazione',
+            organizzazioni: [
+              { organizzazione: orgReferenteAderente, ruolo_organizzazione: RuoloOrganizzazioneEnum.AmministratoreOrganizzazione }
+            ]
+          }
+        });
+        expect(service.isAmministratoreOrganizzazione('org-RA')).toBe(true);
+      });
+
+      it('should fall back to current session organization when no id is provided', () => {
+        service.setCurrentSession({
+          utente: {
+            id_utente: 'u',
+            ruolo: 'utente_organizzazione',
+            organizzazioni: [
+              { organizzazione: orgReferenteAderente, ruolo_organizzazione: RuoloOrganizzazioneEnum.AmministratoreOrganizzazione }
+            ]
+          }
+        });
+        orgContext.setCurrent({
+          organizzazione: orgReferenteAderente,
+          ruolo_organizzazione: RuoloOrganizzazioneEnum.AmministratoreOrganizzazione
+        });
+        expect(service.isAmministratoreOrganizzazione()).toBe(true);
+      });
+
+      it('should return false when user has a different per-org role', () => {
+        service.setCurrentSession({
+          utente: {
+            id_utente: 'u',
+            ruolo: 'utente_organizzazione',
+            organizzazioni: [
+              { organizzazione: orgReferenteAderente, ruolo_organizzazione: RuoloOrganizzazioneEnum.OperatoreApi }
+            ]
+          }
+        });
+        expect(service.isAmministratoreOrganizzazione('org-RA')).toBe(false);
+      });
+
+      it('should return false when user has no organizations', () => {
+        service.setCurrentSession({ utente: { id_utente: 'u', ruolo: 'utente_organizzazione', organizzazioni: [] } });
+        expect(service.isAmministratoreOrganizzazione('org-RA')).toBe(false);
+      });
+    });
+
+    describe('isOperatoreApi', () => {
+      it('should return true for gestori regardless of org', () => {
+        service.setCurrentSession({ utente: { id_utente: 'u', ruolo: 'gestore', organizzazioni: [] } });
+        expect(service.isOperatoreApi()).toBe(true);
+      });
+
+      it('should return true when user has operator role on the organization', () => {
+        service.setCurrentSession({
+          utente: {
+            id_utente: 'u',
+            ruolo: 'utente_organizzazione',
+            organizzazioni: [
+              { organizzazione: orgSoloAderente, ruolo_organizzazione: RuoloOrganizzazioneEnum.OperatoreApi }
+            ]
+          }
+        });
+        expect(service.isOperatoreApi('org-A')).toBe(true);
+      });
+
+      it('should return false when role is admin instead of operator', () => {
+        service.setCurrentSession({
+          utente: {
+            id_utente: 'u',
+            ruolo: 'utente_organizzazione',
+            organizzazioni: [
+              { organizzazione: orgSoloAderente, ruolo_organizzazione: RuoloOrganizzazioneEnum.AmministratoreOrganizzazione }
+            ]
+          }
+        });
+        expect(service.isOperatoreApi('org-A')).toBe(false);
+      });
+    });
+
+    describe('canCreateServizio', () => {
+      it('should pass for gestori regardless of organization flags', () => {
+        service.setCurrentSession({ utente: { id_utente: 'u', ruolo: 'gestore' } });
+        expect(service.canCreateServizio()).toBe(true);
+      });
+
+      it('should pass for coordinatori regardless of organization flags', () => {
+        service.setCurrentSession({ utente: { id_utente: 'u', ruolo: 'coordinatore' } });
+        expect(service.canCreateServizio()).toBe(true);
+      });
+
+      it('should be false when no per-org role is set', () => {
+        service.setCurrentSession({ utente: { id_utente: 'u', ruolo: 'utente_organizzazione' } });
+        orgContext.setCurrent({
+          organizzazione: orgReferenteAderente,
+          ruolo_organizzazione: null
+        });
+        expect(service.canCreateServizio()).toBe(false);
+      });
+
+      it('should be true for per-org role when current org is referente', () => {
+        service.setCurrentSession({ utente: { id_utente: 'u', ruolo: 'utente_organizzazione' } });
+        orgContext.setCurrent({
+          organizzazione: orgReferenteAderente,
+          ruolo_organizzazione: RuoloOrganizzazioneEnum.AmministratoreOrganizzazione
+        });
+        expect(service.canCreateServizio()).toBe(true);
+      });
+
+      it('should be false for per-org role when current org is not referente', () => {
+        service.setCurrentSession({ utente: { id_utente: 'u', ruolo: 'utente_organizzazione' } });
+        orgContext.setCurrent({
+          organizzazione: orgSoloAderente,
+          ruolo_organizzazione: RuoloOrganizzazioneEnum.OperatoreApi
+        });
+        expect(service.canCreateServizio()).toBe(false);
+      });
+    });
+
+    describe('canCreateAdesione', () => {
+      it('should pass for gestori regardless of organization flags', () => {
+        service.setCurrentSession({ utente: { id_utente: 'u', ruolo: 'gestore' } });
+        expect(service.canCreateAdesione()).toBe(true);
+      });
+
+      it('should be true for per-org role when current org is aderente', () => {
+        service.setCurrentSession({ utente: { id_utente: 'u', ruolo: 'utente_organizzazione' } });
+        orgContext.setCurrent({
+          organizzazione: orgSoloAderente,
+          ruolo_organizzazione: RuoloOrganizzazioneEnum.OperatoreApi
+        });
+        expect(service.canCreateAdesione()).toBe(true);
+      });
+
+      it('should be false for per-org role when current org is not aderente', () => {
+        service.setCurrentSession({ utente: { id_utente: 'u', ruolo: 'utente_organizzazione' } });
+        orgContext.setCurrent({
+          organizzazione: orgSoloReferente,
+          ruolo_organizzazione: RuoloOrganizzazioneEnum.AmministratoreOrganizzazione
+        });
+        expect(service.canCreateAdesione()).toBe(false);
+      });
     });
   });
 });

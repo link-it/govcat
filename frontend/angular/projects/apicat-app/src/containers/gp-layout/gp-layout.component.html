@@ -51,7 +51,9 @@
             (on-change-language)="_onChangeLanguage($event)"
             (on-menu-action)="_onMenuHeaderAction($event)"
             (on-menu-app-action)="_onMenuAppHeaderAction($event)"
-          ></app-head-bar>
+          >
+            <app-organization-switcher organization-switcher *ngIf="loggedIn"></app-organization-switcher>
+          </app-head-bar>
         }
       </div>
     </div>

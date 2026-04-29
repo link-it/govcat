@@ -116,7 +116,10 @@
                 "referente_servizio": { "label": "APP.ROLE.referente_servizio", "background": "#3492eb", "border": "#3492eb", "color": "#ffffff" },
                 "referente_tecnico_servizio": { "label": "APP.ROLE.referente_tecnico_servizio", "background": "#3492eb", "border": "#3492eb", "color": "#ffffff" },
                 "referente_dominio": { "label": "APP.ROLE.referente_dominio", "background": "#57cc99", "border": "#57cc99", "color": "#1f1f1f" },
-                "referente_tecnico_dominio": { "label": "APP.ROLE.referente_tecnico_dominio", "background": "#57cc99", "border": "#57cc99", "color": "#1f1f1f" }
+                "referente_tecnico_dominio": { "label": "APP.ROLE.referente_tecnico_dominio", "background": "#57cc99", "border": "#57cc99", "color": "#1f1f1f" },
+                "utente_organizzazione": { "label": "APP.ROLE.utente_organizzazione", "background": "#60a5fa", "border": "#60a5fa", "color": "#ffffff" },
+                "amministratore_organizzazione": { "label": "APP.ROLE.amministratore_organizzazione", "background": "#c4b5fd", "border": "#c4b5fd", "color": "#1f1f1f" },
+                "operatore_api": { "label": "APP.ROLE.operatore_api", "background": "#0891b2", "border": "#0891b2", "color": "#ffffff" }
             }
         },
         "roles": {
@@ -130,7 +133,10 @@
                 "referente_adesione": { "label": "APP.ROLE.referente_adesione", "background": "#E87823", "border": "#E87823", "color": "#ffffff" },
                 "referente_tecnico_adesione": { "label": "APP.ROLE.referente_tecnico_adesione", "background": "#E87823", "border": "#E87823", "color": "#ffffff" },
                 "richiedente_servizio": { "label": "APP.ROLE.richiedente_servizio", "background": "#e7f9cc", "border": "#e7f9cc", "color": "#1f1f1f" },
-                "richiedente_adesione": { "label": "APP.ROLE.richiedente_adesione", "background": "#e7f9cc", "border": "#e7f9cc", "color": "#1f1f1f" }
+                "richiedente_adesione": { "label": "APP.ROLE.richiedente_adesione", "background": "#e7f9cc", "border": "#e7f9cc", "color": "#1f1f1f" },
+                "utente_organizzazione": { "label": "APP.ROLE.utente_organizzazione", "background": "#60a5fa", "border": "#60a5fa", "color": "#ffffff" },
+                "amministratore_organizzazione": { "label": "APP.ROLE.amministratore_organizzazione", "background": "#c4b5fd", "border": "#c4b5fd", "color": "#1f1f1f" },
+                "operatore_api": { "label": "APP.ROLE.operatore_api", "background": "#0891b2", "border": "#0891b2", "color": "#ffffff" }
             }
         }
     },

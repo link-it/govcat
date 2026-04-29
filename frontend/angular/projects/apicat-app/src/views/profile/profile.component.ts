@@ -160,6 +160,11 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
     return this.config?.AppConfig?.Profile?.showEmail === true;
   }
 
+  // Getter per verificare se mostrare il campo telefono (default: false = nascosto)
+  get mostraTelefono(): boolean {
+    return this.config?.AppConfig?.Profile?.showPhone === true;
+  }
+
   constructor(
     private readonly router: Router,
     protected fb: FormBuilder,
