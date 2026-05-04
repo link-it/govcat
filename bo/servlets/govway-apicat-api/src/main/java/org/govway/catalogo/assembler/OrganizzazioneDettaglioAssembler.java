@@ -52,6 +52,9 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 	@Autowired
 	private SoggettoService soggettoService;
 
+	@Autowired
+	private org.govway.catalogo.core.services.OrganizzazioneService organizzazioneService;
+
 	public OrganizzazioneDettaglioAssembler() {
 		super(OrganizzazioniController.class, Organizzazione.class);
 	}
@@ -93,11 +96,14 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 
 				if(entity.isEsterna()) {
 					if(d.getReferenti()!= null) {
+						// Multi-org: un referente è "di altra org" se NON è associato a `entity`
+						// nella tabella utenti_organizzazioni.
 						boolean referenteDiAltraOrg = d.getReferenti().stream()
 								.anyMatch(r -> {
-									return r.getTipo().equals(TIPO_REFERENTE.REFERENTE) && !entity.equals(r.getReferente().getOrganizzazione());	
+									return r.getTipo().equals(TIPO_REFERENTE.REFERENTE)
+										&& this.organizzazioneService.findUtenteOrganizzazione(r.getReferente(), entity).isEmpty();
 								});
-								
+
 						if(referenteDiAltraOrg) {
 							return false;
 						}

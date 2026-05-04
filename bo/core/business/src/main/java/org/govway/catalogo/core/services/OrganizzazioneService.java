@@ -226,6 +226,13 @@ public class OrganizzazioneService extends AbstractService {
 	}
 
 	/**
+	 * Conta gli utenti associati ad un'organizzazione.
+	 */
+	public long countUtentiByOrganizzazione(OrganizzazioneEntity organizzazione) {
+		return this.utenteOrganizzazioneRepo.countByOrganizzazione(organizzazione);
+	}
+
+	/**
 	 * Cerca l'associazione utente-organizzazione per una specifica coppia.
 	 */
 	public Optional<UtenteOrganizzazioneEntity> findUtenteOrganizzazione(UtenteEntity utente, OrganizzazioneEntity organizzazione) {

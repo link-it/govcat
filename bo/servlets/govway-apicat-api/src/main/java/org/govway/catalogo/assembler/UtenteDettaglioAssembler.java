@@ -100,12 +100,6 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		dettaglio.setPrincipal(entity.getPrincipal());
 		dettaglio.setStato(utenteEngineAssembler.toStatoUtenteEnum(entity.getStato()));
 
-		dettaglio.setReferenteTecnico(entity.isReferenteTecnico());
-
-		if(entity.getOrganizzazione()!=null) {
-			dettaglio.setOrganizzazione(organizzazioneItemAssembler.toModel(entity.getOrganizzazione()));
-		}
-
 		if(entity.getOrganizzazionePending()!=null) {
 			dettaglio.setOrganizzazionePending(organizzazioneItemAssembler.toModel(entity.getOrganizzazionePending()));
 		}
@@ -141,15 +135,11 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 
 		entity.setPrincipal(src.getPrincipal());
 
-		// Gestione multi-organizzazione (con fallback retrocompatibile su id_organizzazione)
-		applicaAssociazioniOrganizzazione(entity, src.getOrganizzazioni(), src.getIdOrganizzazione());
+		// Gestione multi-organizzazione
+		applicaAssociazioniOrganizzazione(entity, src.getOrganizzazioni());
 
 		if (src.getOrganizzazioneEsterna() != null) {
 			entity.setOrganizzazioneEsterna(src.getOrganizzazioneEsterna());
-		}
-
-		if(src.isReferenteTecnico()!=null) {
-			entity.setReferenteTecnico(src.isReferenteTecnico());
 		}
 
 		if(src.getRuolo()!=null) {
@@ -199,10 +189,6 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		entity.setTipiEntitaNotificheAbilitate("SERVIZIO,ADESIONE");
 		entity.setRuoliNotificheAbilitate("SERVIZIO_REFERENTE_DOMINIO,SERVIZIO_REFERENTE_TECNICO_DOMINIO,SERVIZIO_REFERENTE_SERVIZIO,SERVIZIO_REFERENTE_TECNICO_SERVIZIO,SERVIZIO_RICHIEDENTE_SERVIZIO,ADESIONE_REFERENTE_DOMINIO,ADESIONE_REFERENTE_TECNICO_DOMINIO,ADESIONE_REFERENTE_SERVIZIO,ADESIONE_REFERENTE_TECNICO_SERVIZIO,ADESIONE_RICHIEDENTE_SERVIZIO,ADESIONE_REFERENTE_ADESIONE,ADESIONE_REFERENTE_TECNICO_ADESIONE,ADESIONE_RICHIEDENTE_ADESIONE,GESTORE,COORDINATORE");
 
-		if(src.isReferenteTecnico()!=null) {
-			entity.setReferenteTecnico(src.isReferenteTecnico());
-		}
-
 		if(src.getRuolo()!=null) {
 			entity.setRuolo(utenteEngineAssembler.toEntity(src.getRuolo()));
 		}
@@ -213,8 +199,8 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 			entity.setStato(Stato.DISABILITATO);
 		}
 
-		// Gestione multi-organizzazione (con fallback retrocompatibile su id_organizzazione)
-		applicaAssociazioniOrganizzazione(entity, src.getOrganizzazioni(), src.getIdOrganizzazione());
+		// Gestione multi-organizzazione
+		applicaAssociazioniOrganizzazione(entity, src.getOrganizzazioni());
 
 		if (src.getOrganizzazioneEsterna() != null) {
 			entity.setOrganizzazioneEsterna(src.getOrganizzazioneEsterna());
@@ -340,24 +326,12 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 	/**
 	 * Applica le associazioni utente-organizzazione all'entità.
 	 *
-	 * Priorità:
-	 *  1. Se {@code organizzazioniInput} è non null, viene usato come source of truth: rimuove
-	 *     associazioni esistenti non presenti nell'input e aggiunge/aggiorna quelle nell'input.
-	 *  2. Altrimenti, se {@code idOrganizzazioneLegacy} è presente (alias retrocompatibile),
-	 *     viene creata/mantenuta una singola associazione con quell'organizzazione.
-	 *     Il ruolo dell'associazione viene impostato a OPERATORE_API se l'utente ha ruolo globale
-	 *     RUOLO_ORGANIZZAZIONE (coerentemente con lo script di migrazione), altrimenti null.
-	 *  3. Se entrambi sono null, rimuove tutte le associazioni esistenti.
-	 *
-	 * In tutti i casi aggiorna anche la vecchia FK singola {@code entity.organizzazione} alla
-	 * prima associazione (o null se nessuna), per mantenere la retrocompatibilità con il software
-	 * precedente che legge ancora quel campo.
-	 *
-	 * TODO [MULTI-ORG] Rimuovere il fallback su idOrganizzazione (punto 2) quando il frontend
-	 * sarà migrato al nuovo modello multi-organizzazione.
+	 *  - Se {@code organizzazioniInput} è non null, viene usato come source of truth: rimuove
+	 *    associazioni esistenti non presenti nell'input e aggiunge/aggiorna quelle nell'input.
+	 *  - Se è null, rimuove tutte le associazioni esistenti.
 	 */
 	private void applicaAssociazioniOrganizzazione(UtenteEntity entity,
-			List<UtenteOrganizzazioneCreate> organizzazioniInput, UUID idOrganizzazioneLegacy) {
+			List<UtenteOrganizzazioneCreate> organizzazioniInput) {
 
 		Set<UtenteOrganizzazioneEntity> associazioni = entity.getUtenteOrganizzazioni();
 		if (associazioni == null) {
@@ -366,29 +340,9 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		}
 
 		if (organizzazioniInput != null) {
-			// Source of truth: sincronizza le associazioni con la lista passata.
 			sincronizzaAssociazioni(entity, associazioni, organizzazioniInput);
-		} else if (idOrganizzazioneLegacy != null) {
-			// Fallback retrocompatibile: singola associazione da id_organizzazione.
-			RuoloOrganizzazione ruoloDefault = (entity.getRuolo() == UtenteEntity.Ruolo.RUOLO_ORGANIZZAZIONE)
-					? RuoloOrganizzazione.OPERATORE_API
-					: null;
-			UtenteOrganizzazioneCreate legacy = new UtenteOrganizzazioneCreate();
-			legacy.setIdOrganizzazione(idOrganizzazioneLegacy);
-			legacy.setRuoloOrganizzazione(ruoloDefault != null
-					? toRuoloOrganizzazioneEnum(ruoloDefault)
-					: null);
-			sincronizzaAssociazioni(entity, associazioni, List.of(legacy));
 		} else {
-			// Nessun input: rimuovi tutte le associazioni.
 			associazioni.clear();
-		}
-
-		// Aggiorna la vecchia FK singola per retrocompatibilità col software precedente.
-		if (associazioni.isEmpty()) {
-			entity.setOrganizzazione(null);
-		} else {
-			entity.setOrganizzazione(associazioni.iterator().next().getOrganizzazione());
 		}
 	}
 

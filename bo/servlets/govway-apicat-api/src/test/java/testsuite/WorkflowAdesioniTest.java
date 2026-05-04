@@ -276,19 +276,19 @@ public class WorkflowAdesioniTest {
         //associo l'utente all'Organizzazione
         UtenteUpdate upUtente = new UtenteUpdate();
         upUtente.setPrincipal(UTENTE_REFERENTE_DOMINIO);
-        upUtente.setIdOrganizzazione(idOrganizzazione);
+        CommonUtils.setOrganizzazione(upUtente, idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
         upUtente.setTelefonoAziendale("+39 0000000");
         upUtente.setNome("referente");
         upUtente.setCognome("dominio");
-        upUtente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        upUtente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
 
         utentiController.updateUtente(ID_UTENTE_REFERENTE_DOMINIO, upUtente);
         
         upUtente = new UtenteUpdate();
         upUtente.setPrincipal(UTENTE_GESTORE);
-        upUtente.setIdOrganizzazione(idOrganizzazione);
+        CommonUtils.setOrganizzazione(upUtente, idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
         upUtente.setTelefonoAziendale("+39 0000000");
@@ -300,20 +300,20 @@ public class WorkflowAdesioniTest {
         
         upUtente = new UtenteUpdate();
         upUtente.setPrincipal(UTENTE_REFERENTE_SERVIZIO);
-        upUtente.setIdOrganizzazione(idOrganizzazione);
+        CommonUtils.setOrganizzazione(upUtente, idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
         upUtente.setTelefonoAziendale("+39 0000000");
         upUtente.setNome("utente");
         upUtente.setCognome("referente_servizio");
-        upUtente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        upUtente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
 
         utentiController.updateUtente(ID_UTENTE_REFERENTE_SERVIZIO, upUtente);
         
         
         upUtente = new UtenteUpdate();
         upUtente.setPrincipal(UTENTE_RICHIEDENTE_ADESIONE);
-        upUtente.setIdOrganizzazione(idOrganizzazione);
+        CommonUtils.setOrganizzazione(upUtente, idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
         upUtente.setTelefonoAziendale("+39 0000000");
@@ -324,7 +324,7 @@ public class WorkflowAdesioniTest {
         
         upUtente = new UtenteUpdate();
         upUtente.setPrincipal(UTENTE_REFERENTE_ADESIONE);
-        upUtente.setIdOrganizzazione(idOrganizzazione);
+        CommonUtils.setOrganizzazione(upUtente, idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
         upUtente.setTelefonoAziendale("+39 0000000");
@@ -335,7 +335,7 @@ public class WorkflowAdesioniTest {
         
         upUtente = new UtenteUpdate();
         upUtente.setPrincipal(UTENTE_REFERENTE_TECNICO_ADESIONE);
-        upUtente.setIdOrganizzazione(idOrganizzazione);
+        CommonUtils.setOrganizzazione(upUtente, idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
         upUtente.setTelefonoAziendale("+39 0000000");

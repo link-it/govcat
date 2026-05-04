@@ -115,7 +115,8 @@ public class ReferenteClasseUtenteAssembler extends RepresentationModelAssembler
 		}
 
 		if(tipoReferente.equals(TIPO_REFERENTE.REFERENTE)) {
-			if(utente.getOrganizzazione() == null || !utente.getOrganizzazione().getId().equals(adesione.getSoggetto().getOrganizzazione().getId())) {
+			// Multi-org: l'utente deve essere associato all'organizzazione del soggetto dell'adesione
+			if (!this.utenteService.isAssociatoA(utente, adesione.getSoggetto().getOrganizzazione())) {
 				throw new BadRequestException(ErrorCode.UT_404_BY_NAME, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome(), "nomeOrganizzazione", adesione.getSoggetto().getOrganizzazione().getNome()));
 			}
 		}

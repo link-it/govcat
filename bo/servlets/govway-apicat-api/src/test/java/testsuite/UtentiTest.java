@@ -175,7 +175,7 @@ public class UtentiTest {
         assertNotNull(responseOrganizzazione.getBody());
 
         UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utente, responseOrganizzazione.getBody().getIdOrganizzazione());
 
         ResponseEntity<Utente> responseUtente = controller.createUtente(utente);
         assertNotNull(responseUtente.getBody());
@@ -190,7 +190,7 @@ public class UtentiTest {
         assertNotNull(responseOrganizzazione.getBody());
 
         UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utente, responseOrganizzazione.getBody().getIdOrganizzazione());
 
         controller.createUtente(utente);
 
@@ -207,7 +207,7 @@ public class UtentiTest {
         assertNotNull(responseOrganizzazione.getBody());
 
         UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utente, responseOrganizzazione.getBody().getIdOrganizzazione());
 
         CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
 
@@ -224,7 +224,7 @@ public class UtentiTest {
         assertNotNull(responseOrganizzazione.getBody());
 
         UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utente, responseOrganizzazione.getBody().getIdOrganizzazione());
 
         this.tearDown();
 
@@ -241,7 +241,7 @@ public class UtentiTest {
         assertNotNull(responseOrganizzazione.getBody());
 
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
         assertNotNull(responseUtente.getBody());
 
@@ -266,7 +266,7 @@ public class UtentiTest {
         assertNotNull(responseOrganizzazione.getBody());
 
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
         assertNotNull(responseUtente.getBody());
 
@@ -311,15 +311,15 @@ public class UtentiTest {
         assertNotNull(responseOrganizzazione.getBody());
 
         UtenteCreate utenteCreate1 = CommonUtils.getUtenteCreate();
-        utenteCreate1.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate1, responseOrganizzazione.getBody().getIdOrganizzazione());
         controller.createUtente(utenteCreate1);
 
         UtenteCreate utenteCreate2 = CommonUtils.getUtenteCreate();
-        utenteCreate2.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate2, responseOrganizzazione.getBody().getIdOrganizzazione());
         utenteCreate2.setPrincipal("second.user");
         controller.createUtente(utenteCreate2);
 
-        ResponseEntity<?> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, null, 0, 10, null);
+        ResponseEntity<?> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, 0, 10, null);
 
         assertNotNull(responseList.getBody());
         assertEquals(HttpStatus.OK, responseList.getStatusCode());
@@ -333,18 +333,18 @@ public class UtentiTest {
 
         // Creazione di alcuni utenti
         UtenteCreate utenteCreate1 = CommonUtils.getUtenteCreate();
-        utenteCreate1.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate1, responseOrganizzazione.getBody().getIdOrganizzazione());
         utenteCreate1.setStato(StatoUtenteEnum.ABILITATO);
         controller.createUtente(utenteCreate1);
 
         UtenteCreate utenteCreate2 = CommonUtils.getUtenteCreate();
-        utenteCreate2.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate2, responseOrganizzazione.getBody().getIdOrganizzazione());
         utenteCreate2.setPrincipal("second.user");
         utenteCreate2.setStato(StatoUtenteEnum.DISABILITATO);
         controller.createUtente(utenteCreate2);
 
         // Recupero della lista di utenti con filtri applicati (solo utenti ATTIVI)
-        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(StatoUtenteEnum.ABILITATO, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, null, 0, 10, null);
+        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(StatoUtenteEnum.ABILITATO, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, 0, 10, null);
 
         // Asserzioni
         assertNotNull(responseList.getBody());
@@ -363,7 +363,7 @@ public class UtentiTest {
     		// Creazione di alcuni utenti
             UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
             utenteCreate.setPrincipal("username"+n);
-            utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+            CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
             utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
             controller.createUtente(utenteCreate);
     	}
@@ -371,7 +371,7 @@ public class UtentiTest {
         List<String> sort = new ArrayList<>();
         sort.add("principal,desc");
         
-        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, null, 0, 10, sort);
+        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, 0, 10, sort);
         
         // Verifica del successo
         assertEquals(HttpStatus.OK, responseList.getStatusCode());
@@ -396,7 +396,7 @@ public class UtentiTest {
     		// Creazione di alcuni utenti
             UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
             utenteCreate.setPrincipal("username"+n);
-            utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+            CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
             utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
             controller.createUtente(utenteCreate);
     	}
@@ -404,7 +404,7 @@ public class UtentiTest {
         List<String> sort = new ArrayList<>();
         sort.add("principal,asc");
         
-        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, null, 0, 10, sort);
+        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, 0, 10, sort);
         
         // Verifica del successo
         assertEquals(HttpStatus.OK, responseList.getStatusCode());
@@ -431,12 +431,12 @@ public class UtentiTest {
     		// Creazione di utenti
             UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
             utenteCreate.setPrincipal("username"+n);
-            utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+            CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
             utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
             controller.createUtente(utenteCreate);
     	}
         for(int n = 0; n < (numeroTotaleDiElementi/numeroElementiPerPagina); n++) {
-        	ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, null, n, numeroElementiPerPagina, null);
+        	ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, n, numeroElementiPerPagina, null);
 
             // Verifica del successo
             assertEquals(HttpStatus.OK, responseList.getStatusCode());
@@ -453,7 +453,7 @@ public class UtentiTest {
 
         // Creazione di alcuni utenti
         UtenteCreate utenteCreate1 = CommonUtils.getUtenteCreate();
-        utenteCreate1.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate1, responseOrganizzazione.getBody().getIdOrganizzazione());
         utenteCreate1.setStato(StatoUtenteEnum.ABILITATO);
         controller.createUtente(utenteCreate1);
 
@@ -461,7 +461,7 @@ public class UtentiTest {
 
         // Verifica che venga lanciata l'eccezione NullPointerException qualora l'utente non fosse loggato
         NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
-            controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, null, 0, 10, null);
+            controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, 0, 10, null);
         });
 
     }
@@ -472,7 +472,7 @@ public class UtentiTest {
 
         // Tentativo di recuperare la lista di utenti filtrata per una classe utente non esistente
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            controller.listUtenti(null, null, null, null, List.of(idClasseUtenteNonEsistente), null, null, null, null, null, 0, 10, null);
+            controller.listUtenti(null, null, null, List.of(idClasseUtenteNonEsistente), null, null, null, null, null, 0, 10, null);
         });
 
         // Asserzioni
@@ -487,19 +487,19 @@ public class UtentiTest {
 
         // Creazione di un utente con stato NON_CONFIGURATO
         UtenteCreate utenteCreate1 = CommonUtils.getUtenteCreate();
-        utenteCreate1.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate1, responseOrganizzazione.getBody().getIdOrganizzazione());
         utenteCreate1.setStato(StatoUtenteEnum.NON_CONFIGURATO);
         controller.createUtente(utenteCreate1);
 
         // Creazione di un utente con stato ABILITATO
         UtenteCreate utenteCreate2 = CommonUtils.getUtenteCreate();
         utenteCreate2.setPrincipal("second.user");
-        utenteCreate2.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate2, responseOrganizzazione.getBody().getIdOrganizzazione());
         utenteCreate2.setStato(StatoUtenteEnum.ABILITATO);
         controller.createUtente(utenteCreate2);
 
         // Recupero della lista con dashboard=true (utente gestore)
-        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, null, null, null, null, null, null, null, true, null, 0, 10, null);
+        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, null, null, null, null, null, null, true, null, 0, 10, null);
 
         // Asserzioni
         assertNotNull(responseList.getBody());
@@ -519,7 +519,7 @@ public class UtentiTest {
 
         // Creazione dell'utente
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
         assertNotNull(responseUtente.getBody());
 
@@ -552,7 +552,7 @@ public class UtentiTest {
 
         // Creazione dell'utente
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
         assertNotNull(responseUtente.getBody());
 
@@ -593,7 +593,7 @@ public class UtentiTest {
         
         // Creazione dell'utente
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
         
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
@@ -616,7 +616,7 @@ public class UtentiTest {
 
         // Creazione dell'utente
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         utenteCreate.setStato(StatoUtenteEnum.NON_CONFIGURATO);
         
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
@@ -639,7 +639,7 @@ public class UtentiTest {
 
         // Creazione dell'utente
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         utenteCreate.setStato(StatoUtenteEnum.NON_CONFIGURATO);
         
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
@@ -662,7 +662,7 @@ public class UtentiTest {
 
         // Creazione dell'utente
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         utenteCreate.setRuolo(RuoloUtenteEnum.GESTORE);
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
         assertNotNull(responseUtente.getBody());
@@ -722,7 +722,7 @@ public class UtentiTest {
 
         // Creazione dell'utente
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
         assertNotNull(responseUtente.getBody());
 
@@ -745,7 +745,7 @@ public class UtentiTest {
 
         // Creazione dell'utente
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
         assertNotNull(responseUtente.getBody());
 
@@ -788,7 +788,7 @@ public class UtentiTest {
 
         // Creazione dell'utente
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
         assertNotNull(responseUtente.getBody());
 
@@ -818,7 +818,7 @@ public class UtentiTest {
 
         // Creazione dell'utente
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
         assertNotNull(responseUtente.getBody());
 
@@ -847,7 +847,7 @@ public class UtentiTest {
 
         // Creazione dell'utente
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
         assertNotNull(responseUtente.getBody());
 
@@ -884,7 +884,7 @@ public class UtentiTest {
 
         // Creazione dell'utente
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
         assertNotNull(responseUtente.getBody());
 
@@ -908,7 +908,7 @@ public class UtentiTest {
 
         // Creazione dell'utente
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
         assertNotNull(responseUtente.getBody());
 
@@ -931,7 +931,7 @@ public class UtentiTest {
 
         // Creazione dell'utente
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
         assertNotNull(responseUtente.getBody());
 
@@ -968,7 +968,7 @@ public class UtentiTest {
 
         // Creazione dell'utente
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
         assertNotNull(responseUtente.getBody());
 
@@ -995,7 +995,7 @@ public class UtentiTest {
 
         // Creazione dell'utente
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
         assertNotNull(responseUtente.getBody());
 
@@ -1023,7 +1023,6 @@ public class UtentiTest {
 
         UtenteCreate utente = CommonUtils.getUtenteCreate();
         utente.setRuolo(RuoloUtenteEnum.COORDINATORE);
-        utente.setReferenteTecnico(false);
         utente.setPrincipal("unoqualsiasi");
         
         ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
@@ -1031,7 +1030,7 @@ public class UtentiTest {
         CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
         
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         ResponseEntity<Utente> responseUtente2 = controller.createUtente(utenteCreate);
         assertNotNull(responseUtente2.getBody());
 
@@ -1045,8 +1044,7 @@ public class UtentiTest {
         assertNotNull(responseOrganizzazione.getBody());
 
         UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
-        utente.setReferenteTecnico(false);
+        utente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
         utente.setPrincipal("unoqualsiasi");
         
         ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
@@ -1055,7 +1053,7 @@ public class UtentiTest {
 
         
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         
         NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
         	controller.createUtente(utenteCreate);
@@ -1072,7 +1070,7 @@ public class UtentiTest {
 
         // Creazione dell'utente
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
         assertNotNull(responseUtente.getBody());
 
@@ -1115,7 +1113,7 @@ public class UtentiTest {
 
         // Creazione dell'utente
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
         assertNotNull(responseUtente.getBody());
 
@@ -1152,7 +1150,7 @@ public class UtentiTest {
 
         // Creazione dell'utente
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
         assertNotNull(responseUtente.getBody());
 
@@ -1193,7 +1191,7 @@ public class UtentiTest {
 
         // Creazione dell'utente
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
         assertNotNull(responseUtente.getBody());
 
@@ -1224,7 +1222,7 @@ public class UtentiTest {
 
         // Creazione dell'utente
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
         assertNotNull(responseUtente.getBody());
 
@@ -1264,7 +1262,7 @@ public class UtentiTest {
 
         // Crea utente
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrg.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrg.getBody().getIdOrganizzazione());
         utenteCreate.setPrincipal(principal);
         utenteCreate.setEmailAziendale("originale@test.com");
 
@@ -1615,7 +1613,7 @@ public class UtentiTest {
 
         // Creazione dell'utente associato alla prima organizzazione
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione1.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione1.getBody().getIdOrganizzazione());
         utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
         assertNotNull(responseUtente.getBody());
@@ -1636,7 +1634,8 @@ public class UtentiTest {
         assertNotNull(response.getBody().getOrganizzazionePending());
         assertEquals(responseOrganizzazione2.getBody().getIdOrganizzazione(), response.getBody().getOrganizzazionePending().getIdOrganizzazione());
         // L'organizzazione attuale deve rimanere invariata
-        assertEquals(responseOrganizzazione1.getBody().getIdOrganizzazione(), response.getBody().getOrganizzazione().getIdOrganizzazione());
+        assertEquals(1, response.getBody().getOrganizzazioni().size());
+        assertEquals(responseOrganizzazione1.getBody().getIdOrganizzazione(), response.getBody().getOrganizzazioni().get(0).getOrganizzazione().getIdOrganizzazione());
     }
 
     @Test
@@ -1647,7 +1646,7 @@ public class UtentiTest {
 
         // Creazione dell'utente
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
         assertNotNull(responseUtente.getBody());
@@ -1706,7 +1705,7 @@ public class UtentiTest {
 
         // Creazione dell'utente associato alla prima organizzazione
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione1.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione1.getBody().getIdOrganizzazione());
         utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
         assertNotNull(responseUtente.getBody());
@@ -1733,7 +1732,8 @@ public class UtentiTest {
         assertEquals(StatoUtenteEnum.PENDING_UPDATE, response2.getBody().getStato());
         assertEquals(responseOrganizzazione3.getBody().getIdOrganizzazione(), response2.getBody().getOrganizzazionePending().getIdOrganizzazione());
         // L'organizzazione attuale deve rimanere invariata
-        assertEquals(responseOrganizzazione1.getBody().getIdOrganizzazione(), response2.getBody().getOrganizzazione().getIdOrganizzazione());
+        assertEquals(1, response2.getBody().getOrganizzazioni().size());
+        assertEquals(responseOrganizzazione1.getBody().getIdOrganizzazione(), response2.getBody().getOrganizzazioni().get(0).getOrganizzazione().getIdOrganizzazione());
     }
 
     @Test
@@ -1750,8 +1750,8 @@ public class UtentiTest {
 
         // Creazione dell'utente con ruolo REFERENTE_SERVIZIO
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione1.getBody().getIdOrganizzazione());
-        utenteCreate.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione1.getBody().getIdOrganizzazione());
+        utenteCreate.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
         utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
         assertNotNull(responseUtente.getBody());
@@ -1781,7 +1781,7 @@ public class UtentiTest {
 
         // Creazione dell'utente senza ruoli di referente
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
         assertNotNull(responseUtente.getBody());
@@ -1808,7 +1808,7 @@ public class UtentiTest {
 
         // Creazione dell'utente con ruolo GESTORE
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
         utenteCreate.setRuolo(RuoloUtenteEnum.GESTORE);
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
@@ -1849,9 +1849,9 @@ public class UtentiTest {
 
         // Creazione dell'utente
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
-        utenteCreate.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        utenteCreate.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
         assertNotNull(responseUtente.getBody());
 
@@ -1899,9 +1899,9 @@ public class UtentiTest {
         // Creazione dell'utente
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
         utenteCreate.setPrincipal("utente-tecnico-dominio");
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
-        utenteCreate.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        utenteCreate.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
         assertNotNull(responseUtente.getBody());
 
@@ -1948,9 +1948,9 @@ public class UtentiTest {
         // Creazione dell'utente che sarà il referente
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
         utenteCreate.setPrincipal("utente-ref-servizio");
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
-        utenteCreate.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        utenteCreate.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
         assertNotNull(responseUtente.getBody());
 
@@ -2002,9 +2002,9 @@ public class UtentiTest {
         // Creazione dell'utente che sarà il richiedente
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
         utenteCreate.setPrincipal("utente-richiedente-servizio");
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
-        utenteCreate.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        utenteCreate.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
         assertNotNull(responseUtente.getBody());
 
@@ -2070,7 +2070,7 @@ public class UtentiTest {
         // Creazione dell'utente
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
         utenteCreate.setPrincipal("utente-multi-ruoli");
-        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteCreate, responseOrganizzazione.getBody().getIdOrganizzazione());
         utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
         utenteCreate.setRuolo(RuoloUtenteEnum.COORDINATORE);
         ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);

@@ -6,7 +6,6 @@
       ],
       "scrittura": [
         "gestore",
-        "referente_servizio",
         "utente_organizzazione"
       ]
     },
@@ -26,8 +25,7 @@
         "coordinatore"
       ],
       "scrittura": [
-        "gestore", 
-        "referente_servizio",
+        "gestore",
         "utente_organizzazione"
       ]
     },
@@ -47,8 +45,7 @@
         "coordinatore"
       ],
       "scrittura": [
-        "gestore", 
-        "referente_servizio",
+        "gestore",
         "utente_organizzazione"
       ]
     },
@@ -68,8 +65,7 @@
         "coordinatore"
       ],
       "scrittura": [
-        "gestore", 
-        "referente_servizio",
+        "gestore",
         "utente_organizzazione"
       ]
     }

@@ -640,8 +640,7 @@ public class ClientTest {
         assertNotNull(responseSoggetto.getBody());
 
         UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
-        utente.setReferenteTecnico(false);
+        utente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
         utente.setPrincipal("unoqualsiasi");
         
         ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
@@ -671,7 +670,6 @@ public class ClientTest {
 
         UtenteCreate utente = CommonUtils.getUtenteCreate();
         utente.setRuolo(RuoloUtenteEnum.COORDINATORE);
-        utente.setReferenteTecnico(false);
         utente.setPrincipal("unoqualsiasi");
         
         ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
@@ -745,7 +743,6 @@ public class ClientTest {
         // Creazione di un utente COORDINATORE (non GESTORE)
         UtenteCreate utente = CommonUtils.getUtenteCreate();
         utente.setRuolo(RuoloUtenteEnum.COORDINATORE);
-        utente.setReferenteTecnico(false);
         utente.setPrincipal("coordinatore_test_dashboard");
 
         ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
@@ -789,8 +786,7 @@ public class ClientTest {
 
         // Creazione di un utente REFERENTE_SERVIZIO (non GESTORE)
         UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
-        utente.setReferenteTecnico(false);
+        utente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
         utente.setPrincipal("referente_test_dashboard");
 
         ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);

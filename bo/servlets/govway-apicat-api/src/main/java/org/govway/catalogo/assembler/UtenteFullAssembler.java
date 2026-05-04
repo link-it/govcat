@@ -19,12 +19,17 @@
  */
 package org.govway.catalogo.assembler;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.govway.catalogo.controllers.OrganizzazioniController;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
+import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity;
+import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.servlets.model.ItemUtente;
+import org.govway.catalogo.servlets.model.RuoloOrganizzazioneEnum;
+import org.govway.catalogo.servlets.model.UtenteOrganizzazione;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
@@ -42,6 +47,9 @@ public class UtenteFullAssembler extends RepresentationModelAssemblerSupport<Ute
 	@Autowired
 	private ClasseUtenteItemAssembler classeUtenteItemAssembler;
 
+	@Autowired
+	private UtenteService utenteService;
+
 	public UtenteFullAssembler() {
 		super(OrganizzazioniController.class, ItemUtente.class);
 	}
@@ -54,10 +62,17 @@ public class UtenteFullAssembler extends RepresentationModelAssemblerSupport<Ute
 
 		dettaglio.setIdUtente(UUID.fromString(entity.getIdUtente()));
 		dettaglio.setPrincipal(entity.getPrincipal());
-		dettaglio.setReferenteTecnico(entity.isReferenteTecnico());
 
-		if(entity.getOrganizzazione()!=null) {
-			dettaglio.setOrganizzazione(organizzazioneItemAssembler.toModel(entity.getOrganizzazione()));
+		if (entity.getOrganizzazioneEsterna() != null) {
+			dettaglio.setOrganizzazioneEsterna(entity.getOrganizzazioneEsterna());
+		}
+
+		// Multi-org: popola la lista delle associazioni utente-organizzazione
+		List<UtenteOrganizzazioneEntity> associazioni = utenteService.findUtenteOrganizzazioniByUtente(entity);
+		if (associazioni != null && !associazioni.isEmpty()) {
+			dettaglio.setOrganizzazioni(associazioni.stream()
+					.map(this::toUtenteOrganizzazione)
+					.collect(Collectors.toList()));
 		}
 
 		dettaglio.setStato(utenteEngineAssembler.toStatoUtenteEnum(entity.getStato()));
@@ -69,6 +84,22 @@ public class UtenteFullAssembler extends RepresentationModelAssemblerSupport<Ute
 		dettaglio.setClassiUtente(classeUtenteItemAssembler.toCollectionModel(entity.getClassi()).getContent().stream().collect(Collectors.toList()));
 
 		return dettaglio;
+	}
+
+	private UtenteOrganizzazione toUtenteOrganizzazione(UtenteOrganizzazioneEntity assoc) {
+		UtenteOrganizzazione model = new UtenteOrganizzazione();
+		model.setOrganizzazione(organizzazioneItemAssembler.toModel(assoc.getOrganizzazione()));
+		if (assoc.getRuoloOrganizzazione() != null) {
+			switch (assoc.getRuoloOrganizzazione()) {
+			case AMMINISTRATORE_ORGANIZZAZIONE:
+				model.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+				break;
+			case OPERATORE_API:
+				model.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.OPERATORE_API);
+				break;
+			}
+		}
+		return model;
 	}
 
 }

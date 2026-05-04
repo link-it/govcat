@@ -1415,7 +1415,6 @@ paths:
       - $ref: "#/components/parameters/stato_utente_query_optional"
       - $ref: "#/components/parameters/id_organizzazione_query_optional"
       - $ref: "#/components/parameters/ruoli_query_optional"
-      - $ref: "#/components/parameters/referente_tecnico_query_optional"
       - $ref: "#/components/parameters/classi_utente_query_optional"
       - $ref: "#/components/parameters/email_query_optional"
       - $ref: "#/components/parameters/principal_query_optional"
@@ -8805,7 +8804,6 @@ components:
     RuoloUtenteEnum:
       type: "string"
       enum:
-        - referente_servizio
         - utente_organizzazione
         - gestore
         - coordinatore
@@ -8813,7 +8811,6 @@ components:
       type: "string"
       enum:
         - nessun_ruolo
-        - referente_servizio
         - utente_organizzazione
         - gestore
         - coordinatore
@@ -8891,13 +8888,8 @@ components:
           $ref: "#/components/schemas/StatoUtenteEnum"
         ruolo:
           $ref: "#/components/schemas/RuoloUtenteEnum"
-        referente_tecnico:
-          type: 'boolean'
         abilitato_domini_esterni:
           type: 'boolean'
-        id_organizzazione:
-          $ref: "#/components/schemas/IdOrganizzazione"
-          description: "Alias retrocompatibile per l'organizzazione singola. Usare 'organizzazioni' per il supporto multi-organizzazione."
         organizzazioni:
           type: "array"
           items:
@@ -8942,13 +8934,8 @@ components:
           $ref: "#/components/schemas/StatoUtenteEnum"
         ruolo:
           $ref: "#/components/schemas/RuoloUtenteEnum"
-        referente_tecnico:
-          type: 'boolean'
         abilitato_domini_esterni:
           type: 'boolean'
-        id_organizzazione:
-          $ref: "#/components/schemas/IdOrganizzazione"
-          description: "Alias retrocompatibile per l'organizzazione singola. Usare 'organizzazioni' per il supporto multi-organizzazione."
         organizzazioni:
           type: "array"
           items:
@@ -9068,12 +9055,14 @@ components:
           $ref: "#/components/schemas/StatoUtenteEnum"
         ruolo:
           $ref: "#/components/schemas/RuoloUtenteEnum"
-        referente_tecnico:
-          type: 'boolean'
         abilitato_domini_esterni:
           type: 'boolean'
-        organizzazione:
-          $ref: "#/components/schemas/ItemOrganizzazione"
+        organizzazione_esterna:
+          $ref: "#/components/schemas/String255"
+        organizzazioni:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/UtenteOrganizzazione"
         classi_utente:
           type: "array"
           items:
@@ -9113,13 +9102,8 @@ components:
           $ref: "#/components/schemas/StatoUtenteEnum"
         ruolo:
           $ref: "#/components/schemas/RuoloUtenteEnum"
-        referente_tecnico:
-          type: 'boolean'
         abilitato_domini_esterni:
           type: 'boolean'
-        organizzazione:
-          $ref: "#/components/schemas/ItemOrganizzazione"
-          description: "Organizzazione attiva di sessione (retrocompatibilità). Usare 'organizzazioni' per la lista completa."
         organizzazione_pending:
           $ref: "#/components/schemas/ItemOrganizzazione"
         organizzazioni:

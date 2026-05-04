@@ -87,8 +87,6 @@ public class UtenteEngineAssembler extends CoreEngineAssembler {
 				break;
 			case UTENTE_ORGANIZZAZIONE: r.add(Ruolo.RUOLO_ORGANIZZAZIONE);
 				break;
-			case REFERENTE_SERVIZIO: r.add(Ruolo.RUOLO_ORGANIZZAZIONE);
-				break;
 			default:
 				break;
 			}
@@ -102,7 +100,6 @@ public class UtenteEngineAssembler extends CoreEngineAssembler {
 		case GESTORE: return Ruolo.AMMINISTRATORE;
 		case COORDINATORE: return Ruolo.COORDINATORE;
 		case UTENTE_ORGANIZZAZIONE: return Ruolo.RUOLO_ORGANIZZAZIONE;
-		case REFERENTE_SERVIZIO: return Ruolo.RUOLO_ORGANIZZAZIONE;
 		}
 
 		return null;

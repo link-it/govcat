@@ -406,51 +406,47 @@ public class ServiziController implements ServiziApi {
 		}
 		
 		for(ReferenteServizioEntity referenteEntity: servizioEntity.getReferenti()) {
-			
+
 			boolean admin = this.coreAuthorization.isAdmin(referenteEntity.getReferente());
-			
+
 			if(!admin) {
-				if(referenteEntity.getTipo().equals(TIPO_REFERENTE.REFERENTE) && !organizzazione.equals(referenteEntity.getReferente().getOrganizzazione())) {
-					if(referenteEntity.getReferente().getOrganizzazione()!=null) {
-						throw new NotAuthorizedException(ErrorCode.AUT_403);
-					} else {
-						throw new NotAuthorizedException(ErrorCode.AUT_403_RESOURCE, Map.of("resource", servizioEntity.getNome() + " v" + servizioEntity.getVersione()));
-					}
+				if(referenteEntity.getTipo().equals(TIPO_REFERENTE.REFERENTE)
+						&& !this.utenteService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
+					throw new NotAuthorizedException(ErrorCode.AUT_403_RESOURCE,
+							Map.of("resource", servizioEntity.getNome() + " v" + servizioEntity.getVersione()));
 				}
-				
+
 			}
 		}
 	}
-	
+
 	private void checkReferente(ReferenteServizioEntity referenteEntity) {
 
-		
+
 		if(referenteEntity.getServizio().is_package()) {
 			for(PackageServizioEntity componente: referenteEntity.getServizio().getComponenti()) {
 				if(!componente.getServizio().getReferenti().stream().filter(r -> r.getReferente().equals(referenteEntity.getReferente())).findAny().isPresent()) {
-					throw new NotAuthorizedException(ErrorCode.AUT_401_TOKEN);					
+					throw new NotAuthorizedException(ErrorCode.AUT_401_TOKEN);
 				}
 			}
 		}
-		
+
 		OrganizzazioneEntity organizzazione = referenteEntity.getServizio().getDominio().getSoggettoReferente().getOrganizzazione();
 		if(referenteEntity.getServizio().isFruizione()) {
 			return;
 		}
-		
+
 		if(referenteEntity.getTipo().equals(TIPO_REFERENTE.REFERENTE_TECNICO)) {
 			return;
 		}
-		
-		if(!organizzazione.equals(referenteEntity.getReferente().getOrganizzazione())) {
-			if(referenteEntity.getReferente().getOrganizzazione()!=null) {
-			throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISMATCH, Map.of("orgNome", organizzazione.getNome(), "userIdUtente", referenteEntity.getReferente().getIdUtente(), "userOrgNome", referenteEntity.getReferente().getOrganizzazione().getNome()));
-			} else {
-			throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING, Map.of("orgNome", organizzazione.getNome(), "userIdUtente", referenteEntity.getReferente().getIdUtente()));
-			}
+
+		if (!this.utenteService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
+			throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING,
+					Map.of("orgNome", organizzazione.getNome(),
+							"userIdUtente", referenteEntity.getReferente().getIdUtente()));
 		}
-		
-		
+
+
 	}
 
 

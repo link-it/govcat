@@ -300,7 +300,7 @@ public class WorkflowServiziTest {
     	UtenteCreate utente = CommonUtils.getUtenteCreate();
     	utente.setRuolo(RuoloUtenteEnum.COORDINATORE);
     	utente.setPrincipal(utenteCoordinatore);
-        utente.setIdOrganizzazione(idOrganizzazione);
+        CommonUtils.setOrganizzazione(utente, idOrganizzazione);
         utente.setStato(StatoUtenteEnum.ABILITATO);
 
         ResponseEntity<Utente> utenteC = utentiController.createUtente(utente);
@@ -1060,13 +1060,13 @@ public class WorkflowServiziTest {
 	private InfoProfilo getInfoProfilo(String idUtente) {
 		return this.utenteService.runTransaction(() -> {
 			UtenteEntity utente = this.utenteService.findByPrincipal(idUtente).orElseThrow(() -> new RuntimeException("Utente "+idUtente+" non trovato"));
-			
-			if(utente.getOrganizzazione()!=null) {
-				utente.getOrganizzazione().getSoggetti().stream().forEach(s -> {s.getNome();});
-			}
-			
+
+			utente.getUtenteOrganizzazioni().stream().forEach(uo -> {
+				uo.getOrganizzazione().getSoggetti().stream().forEach(s -> {s.getNome();});
+			});
+
 			utente.getClassi().stream().forEach( e-> {e.getNome();});
-	
+
 			return new InfoProfilo(idUtente, utente, List.of());
 		});
 	}
@@ -1132,36 +1132,37 @@ public class WorkflowServiziTest {
         //associo l'utente all'Organizzazione
         UtenteUpdate upUtente = new UtenteUpdate();
         upUtente.setPrincipal(UTENTE_REFERENTE_SERVIZIO);
-        upUtente.setIdOrganizzazione(idOrganizzazione);
+        CommonUtils.setOrganizzazione(upUtente, idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
         upUtente.setTelefonoAziendale("+39 0000000");
         upUtente.setNome("referente");
         upUtente.setCognome("servizio");
-        upUtente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        upUtente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
 
         utentiController.updateUtente(ID_UTENTE_REFERENTE_SERVIZIO, upUtente);
         
         upUtente = new UtenteUpdate();
         upUtente.setPrincipal(UTENTE_REFERENTE_DOMINIO);
-        upUtente.setIdOrganizzazione(idOrganizzazione);
+        CommonUtils.setOrganizzazione(upUtente, idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
         upUtente.setTelefonoAziendale("+39 0000000");
         upUtente.setNome("referente");
         upUtente.setCognome("dominio");
-        upUtente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        upUtente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
 
         utentiController.updateUtente(ID_UTENTE_REFERENTE_DOMINIO, upUtente);
         
         upUtente = new UtenteUpdate();
         upUtente.setPrincipal(UTENTE_RICHIEDENTE_SERVIZIO);
-        upUtente.setIdOrganizzazione(idOrganizzazione);
+        CommonUtils.setOrganizzazione(upUtente, idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
         upUtente.setTelefonoAziendale("+39 0000000");
         upUtente.setNome("utente");
         upUtente.setCognome("richiedente_servizio");
+        upUtente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
 
         utentiController.updateUtente(ID_UTENTE_RICHIEDENTE_SERVIZIO, upUtente);
         

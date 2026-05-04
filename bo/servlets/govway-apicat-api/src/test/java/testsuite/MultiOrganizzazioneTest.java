@@ -166,7 +166,6 @@ public class MultiOrganizzazioneTest {
 	public void testCreateUtenteConOrganizzazioneEsterna() {
 		UtenteCreate utente = CommonUtils.getUtenteCreate();
 		utente.setPrincipal("utente.esterna");
-		utente.setReferenteTecnico(true);
 		utente.setOrganizzazioneEsterna("Software House Esterna SRL");
 
 		ResponseEntity<Utente> response = utentiController.createUtente(utente);
@@ -175,34 +174,6 @@ public class MultiOrganizzazioneTest {
 		Utente body = response.getBody();
 		assertNotNull(body);
 		assertEquals("Software House Esterna SRL", body.getOrganizzazioneEsterna());
-	}
-
-	@Test
-	public void testRetrocompatibilitaIdOrganizzazione() {
-		// Crea utente usando il vecchio alias id_organizzazione
-		Organizzazione org = creaOrganizzazione("org-legacy", true, false);
-
-		UtenteCreate utente = CommonUtils.getUtenteCreate();
-		utente.setPrincipal("utente.legacy");
-		utente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
-		utente.setIdOrganizzazione(org.getIdOrganizzazione());
-
-		ResponseEntity<Utente> response = utentiController.createUtente(utente);
-		assertEquals(HttpStatus.OK, response.getStatusCode());
-
-		Utente body = response.getBody();
-		assertNotNull(body);
-
-		// La vecchia FK deve essere popolata (retrocompat)
-		assertNotNull(body.getOrganizzazione());
-		assertEquals(org.getIdOrganizzazione(), body.getOrganizzazione().getIdOrganizzazione());
-
-		// La nuova lista deve contenere l'associazione con ruolo OPERATORE_API
-		// (default per utenti con ruolo RUOLO_ORGANIZZAZIONE quando si usa l'alias)
-		assertNotNull(body.getOrganizzazioni());
-		assertEquals(1, body.getOrganizzazioni().size());
-		assertEquals(org.getIdOrganizzazione(), body.getOrganizzazioni().get(0).getOrganizzazione().getIdOrganizzazione());
-		assertEquals(RuoloOrganizzazioneEnum.OPERATORE_API, body.getOrganizzazioni().get(0).getRuoloOrganizzazione());
 	}
 
 	@Test

@@ -91,7 +91,10 @@ public class DominiController implements DominiApi {
 	private ReferenteDominioAssembler referenteAssembler;
 
 	@Autowired
-	private DominioAuthorization authorization;   
+	private DominioAuthorization authorization;
+
+	@Autowired
+	private org.govway.catalogo.core.services.UtenteService utenteService;
 
 
 	private Logger logger = LoggerFactory.getLogger(DominiController.class);
@@ -331,37 +334,34 @@ public class DominiController implements DominiApi {
 		
 		for(ReferenteDominioEntity referenteEntity: dominioEntity.getReferenti()) {
 			boolean admin = this.coreAuthorization.isAdmin(referenteEntity.getReferente());
-			
+
 			if(!admin) {
-				if(referenteEntity.getTipo().equals(TIPO_REFERENTE.REFERENTE) && !organizzazione.equals(referenteEntity.getReferente().getOrganizzazione())) {
-					if(referenteEntity.getReferente().getOrganizzazione()!=null) {
-						throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISMATCH, Map.of("orgNome", organizzazione.getNome(), "userIdUtente", referenteEntity.getReferente().getIdUtente(), "userOrgNome", referenteEntity.getReferente().getOrganizzazione().getNome()));
-					} else {
-						throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING, Map.of("orgNome", organizzazione.getNome(), "userIdUtente", referenteEntity.getReferente().getIdUtente()));
-					}
+				if(referenteEntity.getTipo().equals(TIPO_REFERENTE.REFERENTE)
+						&& !this.utenteService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
+					throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING,
+							Map.of("orgNome", organizzazione.getNome(),
+									"userIdUtente", referenteEntity.getReferente().getIdUtente()));
 				}
 			}
 
 		}
 	}
-	
+
 
 	private void checkReferente(ReferenteDominioEntity referenteEntity) {
 		if(referenteEntity.getTipo().equals(TIPO_REFERENTE.REFERENTE_TECNICO)) {
 			return;
 		}
-		
+
 		OrganizzazioneEntity organizzazione = referenteEntity.getDominio().getSoggettoReferente().getOrganizzazione();
 		if(organizzazione.isEsterna()) {
 			return;
 		}
 
-		if(!organizzazione.equals(referenteEntity.getReferente().getOrganizzazione())) {
-			if(referenteEntity.getReferente().getOrganizzazione()!=null) {
-				throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISMATCH, Map.of("orgNome", organizzazione.getNome(), "userIdUtente", referenteEntity.getReferente().getIdUtente(), "userOrgNome", referenteEntity.getReferente().getOrganizzazione().getNome()));
-			} else {
-				throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING, Map.of("orgNome", organizzazione.getNome(), "userIdUtente", referenteEntity.getReferente().getIdUtente()));
-			}
+		if (!this.utenteService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
+			throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING,
+					Map.of("orgNome", organizzazione.getNome(),
+							"userIdUtente", referenteEntity.getReferente().getIdUtente()));
 		}
 	}
 

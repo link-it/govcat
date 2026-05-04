@@ -83,8 +83,4 @@ public class OrganizzazioneEntity {
     @JoinColumn(name = "id_soggetto_default", referencedColumnName = "id")
     private SoggettoEntity soggettoDefault;
 
-    @OneToMany(mappedBy = "organizzazione", fetch = FetchType.LAZY)
-    private Set<UtenteEntity> utenti = new HashSet<>();
-    
-
 }

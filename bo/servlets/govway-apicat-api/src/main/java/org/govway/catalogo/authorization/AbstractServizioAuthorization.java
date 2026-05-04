@@ -396,13 +396,17 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 		// OPERATORE_API mappa a REFERENTE (può gestire ma non autorizzare, come ref.adesione).
 		// TODO [MULTI-ORG] Valutare refactoring dell'enum Ruolo workflow per rappresentare più flessibilmente
 		// i nuovi ruoli per-organizzazione.
+		// Se l'utente è esplicitamente referente_tecnico (e non anche referente) di servizio/dominio,
+		// la sua designazione tecnica è vincolante e non deve essere elevata a REFERENTE dal ruolo OPERATORE_API
+		// dell'organizzazione (mantiene i poteri limitati del referente tecnico sulla risorsa specifica).
+		boolean soloRefTecnico = (refTecnicoServizio || refTecnicoDominio) && !refServizio && !refDominio;
 		OrganizzazioneEntity organizzazioneContesto = getOrganizzazioneContestoServizio(entity);
 		if (organizzazioneContesto != null) {
 			if (this.coreAuthorization.hasRuoloInOrganizzazione(u, organizzazioneContesto, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
 				if (!lst.contains(Ruolo.REFERENTE_SUPERIORE)) {
 					lst.add(Ruolo.REFERENTE_SUPERIORE);
 				}
-			} else if (this.coreAuthorization.hasRuoloInOrganizzazione(u, organizzazioneContesto, RuoloOrganizzazione.OPERATORE_API)) {
+			} else if (!soloRefTecnico && this.coreAuthorization.hasRuoloInOrganizzazione(u, organizzazioneContesto, RuoloOrganizzazione.OPERATORE_API)) {
 				if (!lst.contains(Ruolo.REFERENTE)) {
 					lst.add(Ruolo.REFERENTE);
 				}

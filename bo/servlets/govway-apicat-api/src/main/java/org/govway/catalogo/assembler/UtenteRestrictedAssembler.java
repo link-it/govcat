@@ -41,9 +41,6 @@ import org.springframework.stereotype.Component;
 public class UtenteRestrictedAssembler extends RepresentationModelAssemblerSupport<UtenteEntity, ItemUtente> {
 
 	@Autowired
-	private OrganizzazioneItemAssembler organizzazioneItemAssembler;
-
-	@Autowired
 	private UtenteEngineAssembler utenteEngineAssembler;
 
 	public UtenteRestrictedAssembler() {
@@ -61,13 +58,12 @@ public class UtenteRestrictedAssembler extends RepresentationModelAssemblerSuppo
 		dto.setTelefonoAziendale(entity.getTelefonoAziendale());
 		dto.setEmailAziendale(entity.getEmailAziendale());
 		dto.setStato(utenteEngineAssembler.toStatoUtenteEnum(entity.getStato()));
-		dto.setReferenteTecnico(entity.isReferenteTecnico());
 
-		if (entity.getOrganizzazione() != null) {
-			dto.setOrganizzazione(organizzazioneItemAssembler.toModel(entity.getOrganizzazione()));
+		if (entity.getOrganizzazioneEsterna() != null) {
+			dto.setOrganizzazioneEsterna(entity.getOrganizzazioneEsterna());
 		}
 
-		// Sensitive fields remain null: principal, email, telefono, ruolo, classi_utente
+		// Sensitive fields remain null: principal, email, telefono, ruolo, classi_utente, organizzazioni
 
 		return dto;
 	}

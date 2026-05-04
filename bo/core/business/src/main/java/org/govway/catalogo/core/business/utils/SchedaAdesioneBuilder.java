@@ -37,6 +37,7 @@ import org.govway.catalogo.core.orm.entity.ClientEntity.AuthType;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
 import org.govway.catalogo.core.orm.entity.AmbienteEnum;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity.RUOLO;
 import org.govway.catalogo.core.orm.entity.AuthTypeEntity;
 import org.govway.catalogo.core.orm.entity.ClientAdesioneEntity;
@@ -279,6 +280,16 @@ public class SchedaAdesioneBuilder {
 			ReferentsType referents = new ReferentsType();
 			boolean hasReferents = false;
 
+			// Organizzazione di contesto: per referenti adesione = quella del soggetto aderente,
+			// per referenti servizio = quella del soggetto referente del dominio del servizio
+			OrganizzazioneEntity orgAderente = adesione.getSoggetto() != null
+					? adesione.getSoggetto().getOrganizzazione() : null;
+			OrganizzazioneEntity orgErogatrice = (adesione.getServizio() != null
+					&& adesione.getServizio().getDominio() != null
+					&& adesione.getServizio().getDominio().getSoggettoReferente() != null)
+					? adesione.getServizio().getDominio().getSoggettoReferente().getOrganizzazione()
+					: null;
+
 			// Referenti adesione (subscription)
 			if(!adesione.getReferenti().isEmpty()) {
 				ReferentType subRef = new ReferentType();
@@ -290,7 +301,7 @@ public class SchedaAdesioneBuilder {
 					} else {
 						tipoRef = this.stampeLabels.getScheda().getLabel().getReferenteTecnico();
 					}
-					ReferentItemType gritm = getReferentItem(ref.getReferente(), tipoRef);
+					ReferentItemType gritm = getReferentItem(ref.getReferente(), tipoRef, orgAderente);
 					subRef.getItem().add(gritm);
 
 				}
@@ -314,7 +325,7 @@ public class SchedaAdesioneBuilder {
 						tipoRef = this.stampeLabels.getScheda().getLabel().getReferenteTecnico();
 					}
 
-					ReferentItemType gritm = getReferentItem(ref.getReferente(), tipoRef);
+					ReferentItemType gritm = getReferentItem(ref.getReferente(), tipoRef, orgErogatrice);
 					servRef.getItem().add(gritm);
 				}
 
@@ -665,7 +676,7 @@ public class SchedaAdesioneBuilder {
 	private String CERTIFICATO_AUTENTICAZIONE = "autenticazione_CERTIFICATO";
 	private String CERTIFICATO_FIRMA = "firma_CERTIFICATO";
 
-	private ReferentItemType getReferentItem(UtenteEntity referent, String tipo) {
+	private ReferentItemType getReferentItem(UtenteEntity referent, String tipo, OrganizzazioneEntity orgContesto) {
 		ReferentItemType ref = new ReferentItemType();
 
 		// Issue 137/140: Formato compatto per visualizzazione referenti nel PDF
@@ -675,23 +686,44 @@ public class SchedaAdesioneBuilder {
 		sb.append(tipo);
 		sb.append(" - ");
 		sb.append(referent.getNome()).append(" ").append(referent.getCognome());
-		if(referent.getOrganizzazione() != null) {
-			sb.append(" - ").append(referent.getOrganizzazione().getNome());
+		String nomeOrgReferente = nomeOrganizzazioneReferenteNelContesto(referent, orgContesto);
+		if (nomeOrgReferente != null) {
+			sb.append(" - ").append(nomeOrgReferente);
 		}
 		// Usa solo il campo nome per la visualizzazione compatta
 		ref.setNome(sb.toString());
 
-		// Codice originale commentato - visualizzazione multi-riga con tutti i campi separati
-		// ref.setTipoReferente(tipo);
-		// ref.setNome(referent.getNome());
-		// ref.setCognome(referent.getCognome());
-		// ref.setBusinessTelefono(referent.getTelefonoAziendale());
-		// ref.setBusinessEmail(referent.getEmailAziendale());
-		// if(referent.getOrganizzazione()!= null) {
-		// 	ref.setOrganization(referent.getOrganizzazione().getNome());
-		// }
-
 		return ref;
+	}
+
+	/**
+	 * Restituisce il nome dell'organizzazione del referente nel contesto indicato.
+	 * Cerca tra le associazioni utenti_organizzazioni del referente quella corrispondente
+	 * all'organizzazione di contesto. Se non presente, ricade sulla prima associazione del
+	 * referente (best effort per casi legacy).
+	 */
+	private String nomeOrganizzazioneReferenteNelContesto(UtenteEntity referent, OrganizzazioneEntity orgContesto) {
+		if (referent.getUtenteOrganizzazioni() == null || referent.getUtenteOrganizzazioni().isEmpty()) {
+			return null;
+		}
+
+		Long idOrgContesto = orgContesto != null ? orgContesto.getId() : null;
+		if (idOrgContesto != null) {
+			for (org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity assoc : referent.getUtenteOrganizzazioni()) {
+				if (assoc.getOrganizzazione() != null
+						&& idOrgContesto.equals(assoc.getOrganizzazione().getId())) {
+					return assoc.getOrganizzazione().getNome();
+				}
+			}
+		}
+
+		// Fallback: prima associazione del referente
+		org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity prima =
+				referent.getUtenteOrganizzazioni().iterator().next();
+		if (prima.getOrganizzazione() != null) {
+			return prima.getOrganizzazione().getNome();
+		}
+		return null;
 	}
 
 }

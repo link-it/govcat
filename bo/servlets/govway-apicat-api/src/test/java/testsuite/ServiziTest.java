@@ -442,7 +442,7 @@ public class ServiziTest {
         referente.setTipo(TipoReferenteEnum.REFERENTE);
 
         UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utente, response.getBody().getIdOrganizzazione());
         utente.setRuolo(RuoloUtenteEnum.GESTORE);
         ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
 
@@ -498,7 +498,7 @@ public class ServiziTest {
         servizioCreate.setIdDominio(createdDominio.getBody().getIdDominio());
 
         UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utente, response.getBody().getIdOrganizzazione());
         utente.setRuolo(RuoloUtenteEnum.GESTORE);
         ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
 
@@ -553,7 +553,7 @@ public class ServiziTest {
         servizioCreate.setIdDominio(createdDominio.getBody().getIdDominio());
 
         UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utente, response.getBody().getIdOrganizzazione());
         utente.setRuolo(RuoloUtenteEnum.GESTORE);
         ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
 

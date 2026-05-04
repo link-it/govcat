@@ -244,7 +244,7 @@ public class UtentiController implements UtentiApi {
 
 	@Override
 	public ResponseEntity<PagedModelItemUtente> listUtenti(StatoUtenteEnum stato, UUID idOrganizzazione,
-			List<RuoloUtenteEnumSearch> ruolo, Boolean referenteTecnico, List<UUID> classiUtente, String email, String principal, UUID idUtente, Boolean dashboard, String q, Integer page,
+			List<RuoloUtenteEnumSearch> ruolo, List<UUID> classiUtente, String email, String principal, UUID idUtente, Boolean dashboard, String q, Integer page,
 			Integer size, List<String> sort) {
 		try {
 
@@ -262,7 +262,6 @@ public class UtentiController implements UtentiApi {
 				spec.setPrincipalLike(Optional.ofNullable(principal));
 				spec.setIdUtente(Optional.ofNullable(idUtente).map(u -> u.toString()));
 				spec.setIdOrganizzazione(Optional.ofNullable(idOrganizzazione));
-				spec.setReferenteTecnico(Optional.ofNullable(referenteTecnico));
 
 				if(classiUtente!=null) {
 					List<ClasseUtenteEntity> entities = new ArrayList<>();
@@ -348,14 +347,20 @@ public class UtentiController implements UtentiApi {
 						throw new BadRequestException(ErrorCode.GEN_400_REQUEST);
 					}
 					pendingOrgId = UUID.fromString(entity.getOrganizzazionePending().getIdOrganizzazione());
-					if (utenteUpdate.getIdOrganizzazione() == null || !utenteUpdate.getIdOrganizzazione().equals(pendingOrgId)) {
+					// Estrai l'id dell'unica organizzazione passata in update (modello multi-org)
+					UUID idOrgInUpdate = null;
+					if (utenteUpdate.getOrganizzazioni() != null && utenteUpdate.getOrganizzazioni().size() == 1) {
+						idOrgInUpdate = utenteUpdate.getOrganizzazioni().get(0).getIdOrganizzazione();
+					}
+					if (idOrgInUpdate == null || !idOrgInUpdate.equals(pendingOrgId)) {
 						throw new BadRequestException(ErrorCode.GEN_400_REQUEST);
 					}
 				}
 
-				// Gestione approvazione cambio organizzazione
-				if (wasInPendingUpdate && entity.getOrganizzazione() != null) {
-					// Caso 1: Utente con organizzazione esistente -> crea nuovo utente, archivia vecchio
+				// Gestione approvazione cambio organizzazione: se l'utente aveva già associazioni
+				// viene archiviato e creato un nuovo utente con la nuova organizzazione.
+				boolean haAssociazioniEsistenti = !this.service.findUtenteOrganizzazioniByUtente(entity).isEmpty();
+				if (wasInPendingUpdate && haAssociazioniEsistenti) {
 					String originalPrincipal = entity.getPrincipal();
 
 					// Costruisci UtenteCreate dai dati di UtenteUpdate
@@ -368,11 +373,15 @@ public class UtentiController implements UtentiApi {
 					utenteCreate.setTelefonoAziendale(utenteUpdate.getTelefonoAziendale());
 					utenteCreate.setEmailAziendale(utenteUpdate.getEmailAziendale());
 					utenteCreate.setNote(utenteUpdate.getNote());
-					utenteCreate.setReferenteTecnico(utenteUpdate.isReferenteTecnico());
 					utenteCreate.setRuolo(utenteUpdate.getRuolo());
 					utenteCreate.setClassiUtente(utenteUpdate.getClassiUtente());
-					// Imposta nuova organizzazione e stato ABILITATO (forzato)
-					utenteCreate.setIdOrganizzazione(pendingOrgId);
+					// Imposta la nuova organizzazione (singola, da pending) come associazione e stato ABILITATO (forzato)
+					org.govway.catalogo.servlets.model.UtenteOrganizzazioneCreate uoc =
+							new org.govway.catalogo.servlets.model.UtenteOrganizzazioneCreate();
+					uoc.setIdOrganizzazione(pendingOrgId);
+					uoc.setRuoloOrganizzazione(
+							org.govway.catalogo.servlets.model.RuoloOrganizzazioneEnum.OPERATORE_API);
+					utenteCreate.setOrganizzazioni(List.of(uoc));
 					utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
 
 					// Crea nuovo utente tramite assembler

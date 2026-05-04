@@ -34,4 +34,6 @@ public interface UtenteOrganizzazioneRepository extends JpaRepositoryImplementat
 
 	Page<UtenteOrganizzazioneEntity> findByOrganizzazione(OrganizzazioneEntity organizzazione, Pageable pageable);
 
+	long countByOrganizzazione(OrganizzazioneEntity organizzazione);
+
 }

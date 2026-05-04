@@ -680,8 +680,8 @@ public class DominiTest {
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
 
         UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
-        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        CommonUtils.setOrganizzazione(utente, response.getBody().getIdOrganizzazione());
+        utente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
         ResponseEntity<Utente> responseUtente = controllerUtenti.createUtente(utente);
 
         // Creazione del referente
@@ -829,8 +829,8 @@ public class DominiTest {
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
 
         UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
-        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        CommonUtils.setOrganizzazione(utente, response.getBody().getIdOrganizzazione());
+        utente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
         ResponseEntity<Utente> responseUtente = controllerUtenti.createUtente(utente);
         
         // Creazione del referente
@@ -881,8 +881,8 @@ public class DominiTest {
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
 
         UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
-        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        CommonUtils.setOrganizzazione(utente, response.getBody().getIdOrganizzazione());
+        utente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
         ResponseEntity<Utente> responseUtente = controllerUtenti.createUtente(utente);
         
         // Creazione del referente
@@ -919,8 +919,8 @@ public class DominiTest {
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
 
         UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
-        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        CommonUtils.setOrganizzazione(utente, response.getBody().getIdOrganizzazione());
+        utente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
         ResponseEntity<Utente> responseUtente = controllerUtenti.createUtente(utente);
         
         // Creazione del referente
@@ -987,16 +987,16 @@ public class DominiTest {
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
 
         UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
-        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        CommonUtils.setOrganizzazione(utente, response.getBody().getIdOrganizzazione());
+        utente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
         ResponseEntity<Utente> responseUtente = controllerUtenti.createUtente(utente);
         
         UtenteCreate utente2 = CommonUtils.getUtenteCreate();
         utente2.setPrincipal("altrousername");
         utente2.setNome("utente 2");
         utente2.setCognome("cognome 2");
-        utente2.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
-        utente2.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        CommonUtils.setOrganizzazione(utente2, response.getBody().getIdOrganizzazione());
+        utente2.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
         ResponseEntity<Utente> responseUtente2 = controllerUtenti.createUtente(utente2);
         
         // Creazione del referente
@@ -1041,8 +1041,8 @@ public class DominiTest {
     	for(int n = 0; n < 3; n++) {
     		UtenteCreate utente = CommonUtils.getUtenteCreate();
     		utente.setPrincipal("nomeUtente"+n);
-            utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
-            utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+            CommonUtils.setOrganizzazione(utente, response.getBody().getIdOrganizzazione());
+            utente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
             ResponseEntity<Utente> responseUtente = controllerUtenti.createUtente(utente);
             
             // Creazione del referente
@@ -1054,8 +1054,8 @@ public class DominiTest {
     	}
     	UtenteCreate utente = CommonUtils.getUtenteCreate();
 		utente.setPrincipal("nomeUtente"+3);
-        utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
-        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        CommonUtils.setOrganizzazione(utente, response.getBody().getIdOrganizzazione());
+        utente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
         ResponseEntity<Utente> responseUtente = controllerUtenti.createUtente(utente);
         
         // Creazione del referente
@@ -1105,8 +1105,8 @@ public class DominiTest {
     	for(int n = 0; n < 3; n++) {
     		UtenteCreate utente = CommonUtils.getUtenteCreate();
     		utente.setPrincipal("nomeUtente"+n);
-            utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
-            utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+            CommonUtils.setOrganizzazione(utente, response.getBody().getIdOrganizzazione());
+            utente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
             ResponseEntity<Utente> responseUtente = controllerUtenti.createUtente(utente);
             
             // Creazione del referente
@@ -1118,8 +1118,8 @@ public class DominiTest {
     	}
     	UtenteCreate utente = CommonUtils.getUtenteCreate();
 		utente.setPrincipal("nomeUtente"+3);
-        utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
-        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        CommonUtils.setOrganizzazione(utente, response.getBody().getIdOrganizzazione());
+        utente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
         ResponseEntity<Utente> responseUtente = controllerUtenti.createUtente(utente);
         
         // Creazione del referente
@@ -1170,8 +1170,8 @@ public class DominiTest {
     	for(int n = 0; n < numeroTotaleDiElementi; n++) {
     		UtenteCreate utente = CommonUtils.getUtenteCreate();
     		utente.setPrincipal("nomeUtente"+n);
-            utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
-            utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+            CommonUtils.setOrganizzazione(utente, response.getBody().getIdOrganizzazione());
+            utente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
             ResponseEntity<Utente> responseUtente = controllerUtenti.createUtente(utente);
             
             // Creazione del referente
@@ -1210,16 +1210,16 @@ public class DominiTest {
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
 
         UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
-        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        CommonUtils.setOrganizzazione(utente, response.getBody().getIdOrganizzazione());
+        utente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
         ResponseEntity<Utente> responseUtente = controllerUtenti.createUtente(utente);
         
         UtenteCreate utente2 = CommonUtils.getUtenteCreate();
         utente2.setPrincipal("altrousername");
         utente2.setNome("utente 2");
         utente2.setCognome("cognome 2");
-        utente2.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
-        utente2.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        CommonUtils.setOrganizzazione(utente2, response.getBody().getIdOrganizzazione());
+        utente2.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
         ResponseEntity<Utente> responseUtente2 = controllerUtenti.createUtente(utente2);
         
         // Creazione del referente

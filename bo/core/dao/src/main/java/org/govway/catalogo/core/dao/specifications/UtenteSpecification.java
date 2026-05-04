@@ -59,7 +59,6 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 	private Optional<String> principalLike = Optional.empty();
 	private List<Ruolo> ruoli = null;
 	private Optional<Boolean> ruoloNull = Optional.empty();
-	private Optional<Boolean> referenteTecnico = Optional.empty();
 
 	@Override
 	public Predicate toPredicate(Root<UtenteEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
@@ -80,7 +79,11 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 			predLstQ.add(cb.like(cb.upper(root.get(UtenteEntity_.principal)), "%" + qUpper + "%"));
 			predLstQ.add(cb.like(cb.upper(root.get(UtenteEntity_.nome)), "%" + qUpper + "%"));
 			predLstQ.add(cb.like(cb.upper(root.get(UtenteEntity_.cognome)), "%" + qUpper + "%"));
-			predLstQ.add(cb.like(cb.upper(root.join(UtenteEntity_.organizzazione, JoinType.LEFT).get(OrganizzazioneEntity_.nome)), "%" + qUpper + "%"));
+			predLstQ.add(cb.like(cb.upper(
+					root.join(UtenteEntity_.utenteOrganizzazioni, JoinType.LEFT)
+							.get(UtenteOrganizzazioneEntity_.organizzazione)
+							.get(OrganizzazioneEntity_.nome)),
+					"%" + qUpper + "%"));
 			// Ricerca per nome + cognome combinati (es. "Mario Rossi")
 			predLstQ.add(cb.like(cb.upper(cb.concat(cb.concat(root.get(UtenteEntity_.nome), " "), root.get(UtenteEntity_.cognome))), "%" + qUpper + "%"));
 			// Ricerca per cognome + nome combinati (es. "Rossi Mario")
@@ -116,14 +119,9 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 		}
 		
 		if (idOrganizzazione.isPresent()) {
-			// Multi-organizzazione: cerca sia nella vecchia FK singola sia nella tabella
-			// utenti_organizzazioni. Usiamo una IN subquery per evitare problemi
-			// con DISTINCT e paginazione/count di Spring Data JPA.
+			// Filtro per organizzazione: cerca tra le associazioni in utenti_organizzazioni.
+			// Usiamo una IN subquery per evitare problemi con DISTINCT e paginazione/count di Spring Data JPA.
 			String idOrgStr = idOrganizzazione.get().toString();
-
-			Predicate fkLegacy = cb.equal(
-					root.get(UtenteEntity_.organizzazione).get(OrganizzazioneEntity_.idOrganizzazione),
-					idOrgStr);
 
 			Subquery<Long> sub = query.subquery(Long.class);
 			Root<UtenteOrganizzazioneEntity> subRoot = sub.from(UtenteOrganizzazioneEntity.class);
@@ -133,7 +131,7 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 									.get(OrganizzazioneEntity_.idOrganizzazione),
 							idOrgStr));
 
-			predLst.add(cb.or(fkLegacy, root.get(UtenteEntity_.id).in(sub)));
+			predLst.add(root.get(UtenteEntity_.id).in(sub));
 		}
 		
 		if (email.isPresent()) {
@@ -155,13 +153,10 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 		}
 		
 		if (principal.isPresent()) {
-			predLst.add(cb.equal(root.get(UtenteEntity_.principal), principal.get())); 
+			predLst.add(cb.equal(root.get(UtenteEntity_.principal), principal.get()));
 		}
-		
-		if (referenteTecnico.isPresent()) {
-			predLst.add(cb.equal(root.get(UtenteEntity_.referenteTecnico), referenteTecnico.get())); 
-		}
-		
+
+
 		if(ruoli != null) {
 			if(!ruoli.isEmpty()) {
 				ArrayList<Predicate> preds2 = new ArrayList<>();
@@ -289,14 +284,6 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 
 	public void setIdClassiUtente(List<ClasseUtenteEntity> idClassiUtente) {
 		this.idClassiUtente = idClassiUtente;
-	}
-
-	public Optional<Boolean> getReferenteTecnico() {
-		return referenteTecnico;
-	}
-
-	public void setReferenteTecnico(Optional<Boolean> referenteTecnico) {
-		this.referenteTecnico = referenteTecnico;
 	}
 
 	public Optional<String> getPrincipal() {

@@ -164,7 +164,7 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 				
 				this.logger.debug("Autorizzazione completata con successo");     
 	
-				if(entity.getUtenti().size() > 0) {
+				if(this.service.countUtentiByOrganizzazione(entity) > 0) {
 					throw new BadRequestException(ErrorCode.ORG_400_HAS_DEPENDENCIES, Map.of("nome", entity.getNome()));
 				}
 

@@ -438,7 +438,6 @@ public class RegistrazioneController implements RegistrazioneApi {
             utente.setCognome(idm.getCognome());
             utente.setEmailAziendale(emailToUse);
             utente.setTelefonoAziendale(idm.getTelefono() != null ? idm.getTelefono() : "00-000000");
-            utente.setReferenteTecnico(false);
 
             // Default notifiche: solo COMUNICAZIONE (no CAMBIO_STATO), tutte le entità e ruoli (no EMAIL)
             utente.setTipiNotificheAbilitate("COMUNICAZIONE");

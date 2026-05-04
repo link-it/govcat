@@ -131,7 +131,7 @@ public class ServizioAuthorization extends AbstractServizioAuthorization {
 
 	@Override
 	public void authorizeCreate(ServizioCreate create) {
-		this.coreAuthorization.requireReferenteTecnico();
+		this.coreAuthorization.requireRuoloPerCreareServizio();
 
 		// Vincolo [*] della matrice permessi: per utenti con ruolo per-organizzazione
 		// (non admin/coordinator/referente_tecnico), l'organizzazione di sessione deve

@@ -94,6 +94,9 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 	private ServizioService servizioService;
 
 	@Autowired
+	private org.govway.catalogo.core.services.UtenteService utenteService;
+
+	@Autowired
 	private ApiService apiService;
 
 	@Autowired
@@ -353,8 +356,10 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 			boolean ref = grant.getRuoli().contains(Ruolo.REFERENTE) || grant.getRuoli().contains(Ruolo.REFERENTE_SUPERIORE);
 
 			if(!admin && !ref) {
-				if(!entity.getSoggetto().getOrganizzazione().getId().equals(utenteSessione.getOrganizzazione().getId())) {
-					throw new BadRequestException(ErrorCode.AUT_403_ORG_ADHESION, java.util.Map.of("nomeOrganizzazione", utenteSessione.getOrganizzazione().getNome()));
+				// Multi-org: l'utente di sessione deve essere associato all'organizzazione del soggetto dell'adesione
+				if (!this.utenteService.isAssociatoA(utenteSessione, entity.getSoggetto().getOrganizzazione())) {
+					throw new BadRequestException(ErrorCode.AUT_403_ORG_ADHESION,
+							java.util.Map.of("nomeOrganizzazione", entity.getSoggetto().getOrganizzazione().getNome()));
 				}
 			}
 		}

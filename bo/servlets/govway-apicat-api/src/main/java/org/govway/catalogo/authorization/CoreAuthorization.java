@@ -100,19 +100,17 @@ public class CoreAuthorization {
 		}
 	}
 
-	public void requireReferenteTecnico() {
-		if(!isAdmin() && !isRuoloOrganizzazione() && !isReferenteTecnico()) {
+	/**
+	 * Verifica i ruoli base per la creazione di un servizio:
+	 * - admin (gestore) → OK
+	 * - utente con ruolo per-organizzazione (AMM_ORG o OPERATORE_API) sull'organizzazione di sessione → OK
+	 * Per i vincoli aggiuntivi della matrice (es. flag referente dell'organizzazione di sessione)
+	 * vedere ServizioAuthorization.authorizeCreate.
+	 */
+	public void requireRuoloPerCreareServizio() {
+		if(!isAdmin() && !isRuoloOrganizzazione()) {
 			throw new NotAuthorizedException(ErrorCode.AUT_403);
 		}
-	}
-
-	private boolean isReferenteTecnico() {
-		InfoProfilo principal = this.requestUtils.getPrincipal(false);
-		if(principal == null || principal.utente == null) {
-			return false;
-		}
-
-		return principal.utente.isReferenteTecnico();
 	}
 
 	/**

@@ -209,7 +209,18 @@ public abstract class AbstractRequestUtils implements RequestUtils {
         OrganizzazioneEntity orgDB = this.getOrganizzazioneDB();
 
         if (orgDB != null) {
-            utente.setOrganizzazione(orgDB);
+            // Multi-org: crea un'associazione utente-organizzazione invece di settare la vecchia FK
+            org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity assoc =
+                    new org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity();
+            assoc.setUtente(utente);
+            assoc.setOrganizzazione(orgDB);
+            // Ruolo OPERATORE_API di default coerentemente con la migrazione (se l'utente
+            // ha ruolo globale RUOLO_ORGANIZZAZIONE), altrimenti null (sola lettura)
+            if (utente.getRuolo() == Ruolo.RUOLO_ORGANIZZAZIONE) {
+                assoc.setRuoloOrganizzazione(
+                        org.govway.catalogo.core.orm.entity.RuoloOrganizzazione.OPERATORE_API);
+            }
+            utente.getUtenteOrganizzazioni().add(assoc);
         }
 
         Set<ClasseUtenteEntity> classiDB = this.getClassiDB();

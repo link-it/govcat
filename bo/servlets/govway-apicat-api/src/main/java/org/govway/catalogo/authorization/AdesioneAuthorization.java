@@ -531,8 +531,13 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 		// prendendo il ruolo più alto, ma è un punto aperto da rivedere.
 		// TODO [MULTI-ORG] Valutare refactoring dell'enum Ruolo workflow per rappresentare più flessibilmente
 		// i nuovi ruoli per-organizzazione.
-		aggiungiRuoloPerOrganizzazione(lst, u, getOrganizzazioneAderenteAdesione(entity));
-		aggiungiRuoloPerOrganizzazione(lst, u, getOrganizzazioneErogatriceAdesione(entity));
+		// Se l'utente è esplicitamente referente_tecnico (e non anche referente) di adesione/servizio/dominio,
+		// la sua designazione tecnica è vincolante e non deve essere elevata a REFERENTE dal ruolo OPERATORE_API
+		// dell'organizzazione (mantiene i poteri limitati del referente tecnico sulla risorsa specifica).
+		boolean soloRefTecnico = (refTecnicoAdesione || refTecnicoServizio || refTecnicoDominio)
+				&& !refAdesione && !refServizio && !refDominio;
+		aggiungiRuoloPerOrganizzazione(lst, u, getOrganizzazioneAderenteAdesione(entity), soloRefTecnico);
+		aggiungiRuoloPerOrganizzazione(lst, u, getOrganizzazioneErogatriceAdesione(entity), soloRefTecnico);
 
 		return lst;
 	}
@@ -564,9 +569,13 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 	 * Aggiunge alla lista dei ruoli workflow il mapping del ruolo per-organizzazione dell'utente
 	 * sull'organizzazione indicata (se presente). AMM_ORG → REFERENTE_SUPERIORE,
 	 * OPERATORE_API → REFERENTE. Deduplica se già presente.
+	 *
+	 * @param soloRefTecnico se true, l'utente è esplicitamente referente_tecnico della risorsa:
+	 *                       l'elevazione a REFERENTE dal ruolo OPERATORE_API viene saltata per
+	 *                       preservare i vincoli del referente tecnico.
 	 */
 	private void aggiungiRuoloPerOrganizzazione(List<Ruolo> lst, UtenteEntity utente,
-			org.govway.catalogo.core.orm.entity.OrganizzazioneEntity organizzazione) {
+			org.govway.catalogo.core.orm.entity.OrganizzazioneEntity organizzazione, boolean soloRefTecnico) {
 		if (organizzazione == null) {
 			return;
 		}
@@ -574,7 +583,7 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 			if (!lst.contains(Ruolo.REFERENTE_SUPERIORE)) {
 				lst.add(Ruolo.REFERENTE_SUPERIORE);
 			}
-		} else if (this.coreAuthorization.hasRuoloInOrganizzazione(utente, organizzazione, org.govway.catalogo.core.orm.entity.RuoloOrganizzazione.OPERATORE_API)) {
+		} else if (!soloRefTecnico && this.coreAuthorization.hasRuoloInOrganizzazione(utente, organizzazione, org.govway.catalogo.core.orm.entity.RuoloOrganizzazione.OPERATORE_API)) {
 			if (!lst.contains(Ruolo.REFERENTE)) {
 				lst.add(Ruolo.REFERENTE);
 			}
