@@ -33,6 +33,7 @@ create sequence seq_utenti start with 1 increment by 1;
 create sequence seq_utenti_organizzazioni start with 1 increment by 1;
 create sequence seq_registrazioni_utenti start with 1 increment by 1;
 create sequence seq_email_update_verifications start with 1 increment by 1;
+create sequence seq_aziende_esterne start with 1 increment by 1;
 
     create table adesioni (
        id bigint not null,
@@ -458,6 +459,12 @@ create sequence seq_email_update_verifications start with 1 increment by 1;
         primary key (id)
     );
 
+    create table aziende_esterne (
+       id bigint not null,
+        nome varchar(255) not null,
+        primary key (id)
+    );
+
     create table tassonomie (
        id bigint not null,
         descrizione varchar(255),
@@ -488,7 +495,7 @@ create sequence seq_email_update_verifications start with 1 increment by 1;
         tipi_entita_notifiche_abilitate varchar(255),
         tipi_notifiche_abilitate varchar(255),
         id_organizzazione_pending bigint,
-        organizzazione_esterna varchar(255),
+        id_azienda_esterna bigint,
         primary key (id)
     );
 
@@ -569,8 +576,16 @@ create sequence seq_email_update_verifications start with 1 increment by 1;
     alter table utenti 
        add constraint UK_83bc9wgqao3ad6r8y5sqxy9lq unique (id_utente);
 
-    alter table utenti 
+    alter table utenti
        add constraint UK_mvje76mmq8p7yyk5329geaucb unique (principal);
+
+    alter table aziende_esterne
+       add constraint uq_azienda_esterna_nome unique (nome);
+
+    alter table utenti
+       add constraint fk_utenti_azienda_esterna
+       foreign key (id_azienda_esterna)
+       references aziende_esterne;
 
     alter table adesioni 
        add constraint FKt6ynph35hpekqnx5dxk27q710 

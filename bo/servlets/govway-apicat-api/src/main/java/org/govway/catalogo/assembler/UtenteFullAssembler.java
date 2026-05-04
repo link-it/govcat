@@ -63,8 +63,8 @@ public class UtenteFullAssembler extends RepresentationModelAssemblerSupport<Ute
 		dettaglio.setIdUtente(UUID.fromString(entity.getIdUtente()));
 		dettaglio.setPrincipal(entity.getPrincipal());
 
-		if (entity.getOrganizzazioneEsterna() != null) {
-			dettaglio.setOrganizzazioneEsterna(entity.getOrganizzazioneEsterna());
+		if (entity.getAziendaEsterna() != null) {
+			dettaglio.setAziendaEsterna(entity.getAziendaEsterna().getNome());
 		}
 
 		// Multi-org: popola la lista delle associazioni utente-organizzazione

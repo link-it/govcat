@@ -11,8 +11,8 @@
 --
 -- Introduce la tabella di associazione utenti-organizzazioni con ruolo per-organizzazione.
 -- Il campo ruolo_organizzazione può essere NULL (equivalente a "nessun ruolo", utente in sola lettura).
--- Il campo organizzazione_esterna è un testo opzionale per indicare la software house di appartenenza
--- del referente tecnico.
+-- Introduce inoltre la tabella aziende_esterne per normalizzare i nomi liberi delle
+-- aziende/software-house esterne associate ad un utente: utenti.id_azienda_esterna FK opzionale.
 
 -- Sequenza per la nuova tabella
 CREATE SEQUENCE seq_utenti_organizzazioni START WITH 1 INCREMENT BY 1;
@@ -29,8 +29,18 @@ CREATE TABLE utenti_organizzazioni (
     CONSTRAINT uk_utenti_org_utente_org UNIQUE (id_utente, id_organizzazione)
 );
 
--- Nuovo campo opzionale per indicare l'organizzazione esterna del referente tecnico
-ALTER TABLE utenti ADD COLUMN organizzazione_esterna VARCHAR(255);
+-- Tabella di lookup per i nomi liberi delle aziende esterne (normalizzazione)
+CREATE SEQUENCE seq_aziende_esterne START WITH 1 INCREMENT BY 1;
+CREATE TABLE aziende_esterne (
+    id BIGINT NOT NULL DEFAULT nextval('seq_aziende_esterne'),
+    nome VARCHAR(255) NOT NULL,
+    CONSTRAINT pk_aziende_esterne PRIMARY KEY (id),
+    CONSTRAINT uq_aziende_esterne_nome UNIQUE (nome)
+);
+
+-- Nuova FK opzionale: collega un utente all'azienda esterna di appartenenza
+ALTER TABLE utenti ADD COLUMN id_azienda_esterna BIGINT;
+ALTER TABLE utenti ADD CONSTRAINT fk_utenti_azienda_esterna FOREIGN KEY (id_azienda_esterna) REFERENCES aziende_esterne(id);
 
 -- ===== Migrazione dati =====
 

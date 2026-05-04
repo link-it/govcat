@@ -115,7 +115,8 @@ public class UtenteEntity {
 	@Cascade({CascadeType.ALL})
 	private Set<UtenteOrganizzazioneEntity> utenteOrganizzazioni = new HashSet<>();
 
-	@Column(name = "organizzazione_esterna")
-	private String organizzazioneEsterna;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "id_azienda_esterna", referencedColumnName = "id")
+	private AziendaEsternaEntity aziendaEsterna;
 
 }

@@ -45,6 +45,7 @@ import org.govway.catalogo.core.dao.repositories.ReferenteServizioRepository;
 import org.govway.catalogo.core.dao.repositories.ServizioGruppoRepository;
 import org.govway.catalogo.core.dao.repositories.ServizioRepository;
 import org.govway.catalogo.core.dao.repositories.SoggettoRepository;
+import org.govway.catalogo.core.dao.repositories.AziendaEsternaRepository;
 import org.govway.catalogo.core.dao.repositories.TagRepository;
 import org.govway.catalogo.core.dao.repositories.TassonomiaRepository;
 import org.govway.catalogo.core.dao.repositories.UtenteOrganizzazioneRepository;
@@ -106,6 +107,8 @@ public class AbstractService {
 	protected ReferenteAdesioneRepository referenteAdesioneRepo;
 	@Autowired
 	protected TagRepository tagRepo;
+	@Autowired
+	protected AziendaEsternaRepository aziendaEsternaRepo;
 	@Autowired
 	protected TassonomiaRepository tassonomiaRepo;
 	@Autowired

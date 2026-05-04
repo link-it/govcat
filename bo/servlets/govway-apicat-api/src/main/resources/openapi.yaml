@@ -3271,6 +3271,38 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /aziende-esterne:
+    get:
+      tags:
+      - "Utenti"
+      description: "Elenco dei nomi delle aziende esterne già registrate sul catalogo"
+      operationId: "listAziendeEsterne"
+      parameters:
+      - $ref: "#/components/parameters/q_query_optional"
+      - $ref: "#/components/parameters/page_query_optional"
+      - $ref: "#/components/parameters/size_query_optional"
+      - $ref: "#/components/parameters/sort_query_optional"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/String255"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /api:
     post:
       tags:
@@ -8894,7 +8926,7 @@ components:
           type: "array"
           items:
             $ref: "#/components/schemas/UtenteOrganizzazioneCreate"
-        organizzazione_esterna:
+        azienda_esterna:
           $ref: "#/components/schemas/String255"
         classi_utente:
           type: "array"
@@ -8940,7 +8972,7 @@ components:
           type: "array"
           items:
             $ref: "#/components/schemas/UtenteOrganizzazioneCreate"
-        organizzazione_esterna:
+        azienda_esterna:
           $ref: "#/components/schemas/String255"
         classi_utente:
           type: "array"
@@ -9057,7 +9089,7 @@ components:
           $ref: "#/components/schemas/RuoloUtenteEnum"
         abilitato_domini_esterni:
           type: 'boolean'
-        organizzazione_esterna:
+        azienda_esterna:
           $ref: "#/components/schemas/String255"
         organizzazioni:
           type: "array"
@@ -9110,7 +9142,7 @@ components:
           type: "array"
           items:
             $ref: "#/components/schemas/UtenteOrganizzazione"
-        organizzazione_esterna:
+        azienda_esterna:
           $ref: "#/components/schemas/String255"
         classi_utente:
           type: "array"

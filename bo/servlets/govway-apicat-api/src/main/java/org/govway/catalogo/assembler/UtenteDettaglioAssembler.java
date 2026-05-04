@@ -84,6 +84,9 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 	@Autowired
 	private UtenteService utenteService;
 
+	@Autowired
+	private org.govway.catalogo.core.services.AziendaEsternaService aziendaEsternaService;
+
 	public UtenteDettaglioAssembler() {
 		super(OrganizzazioniController.class, Utente.class);
 	}
@@ -118,8 +121,8 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 			dettaglio.setOrganizzazioni(orgs);
 		}
 
-		if (entity.getOrganizzazioneEsterna() != null) {
-			dettaglio.setOrganizzazioneEsterna(entity.getOrganizzazioneEsterna());
+		if (entity.getAziendaEsterna() != null) {
+			dettaglio.setAziendaEsterna(entity.getAziendaEsterna().getNome());
 		}
 
 		if(entity.getClassi()!=null) {
@@ -138,8 +141,10 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		// Gestione multi-organizzazione
 		applicaAssociazioniOrganizzazione(entity, src.getOrganizzazioni());
 
-		if (src.getOrganizzazioneEsterna() != null) {
-			entity.setOrganizzazioneEsterna(src.getOrganizzazioneEsterna());
+		if (src.getAziendaEsterna() != null && !src.getAziendaEsterna().trim().isEmpty()) {
+			entity.setAziendaEsterna(this.aziendaEsternaService.findOrCreate(src.getAziendaEsterna().trim()));
+		} else {
+			entity.setAziendaEsterna(null);
 		}
 
 		if(src.getRuolo()!=null) {
@@ -202,8 +207,10 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		// Gestione multi-organizzazione
 		applicaAssociazioniOrganizzazione(entity, src.getOrganizzazioni());
 
-		if (src.getOrganizzazioneEsterna() != null) {
-			entity.setOrganizzazioneEsterna(src.getOrganizzazioneEsterna());
+		if (src.getAziendaEsterna() != null && !src.getAziendaEsterna().trim().isEmpty()) {
+			entity.setAziendaEsterna(this.aziendaEsternaService.findOrCreate(src.getAziendaEsterna().trim()));
+		} else {
+			entity.setAziendaEsterna(null);
 		}
 
 		if(src.getClassiUtente()!=null) {

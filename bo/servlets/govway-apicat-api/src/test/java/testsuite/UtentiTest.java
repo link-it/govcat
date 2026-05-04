@@ -3,6 +3,7 @@ package testsuite;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -2308,6 +2309,171 @@ public class UtentiTest {
         assertTrue(ex.getMessage().startsWith("AUT.403"));
 
         resetContestoOrganizzazione();
+    }
+
+    // ============================================================
+    // Test endpoint GET /aziende-esterne (lookup) e behavior
+    // find-or-create dell'assembler sul campo azienda_esterna.
+    // ============================================================
+
+    private UtenteCreate utenteCreateConPrincipal(String principal) {
+        UtenteCreate u = CommonUtils.getUtenteCreate();
+        u.setPrincipal(principal);
+        return u;
+    }
+
+    @Test
+    public void testListAziendeEsterneVuotaSenzaUtenti() {
+        ResponseEntity<List<String>> response = controller.listAziendeEsterne(null, 0, 25, null);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().isEmpty(), "Nessun utente con azienda esterna inserita: lista attesa vuota");
+    }
+
+    @Test
+    public void testListAziendeEsterneDopoCreazioneUtente() {
+        UtenteCreate u = utenteCreateConPrincipal("utente.azienda.1");
+        u.setAziendaEsterna("ACME Inc.");
+        ResponseEntity<Utente> created = controller.createUtente(u);
+        assertEquals(HttpStatus.OK, created.getStatusCode());
+        assertEquals("ACME Inc.", created.getBody().getAziendaEsterna());
+
+        ResponseEntity<List<String>> response = controller.listAziendeEsterne(null, 0, 25, null);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(1, response.getBody().size());
+        assertEquals("ACME Inc.", response.getBody().get(0));
+    }
+
+    @Test
+    public void testListAziendeEsterneNonDuplicaQuandoStessoNome() {
+        UtenteCreate u1 = utenteCreateConPrincipal("utente.dup.1");
+        u1.setAziendaEsterna("Stessa Azienda SRL");
+        controller.createUtente(u1);
+
+        UtenteCreate u2 = utenteCreateConPrincipal("utente.dup.2");
+        u2.setAziendaEsterna("Stessa Azienda SRL");
+        controller.createUtente(u2);
+
+        ResponseEntity<List<String>> response = controller.listAziendeEsterne(null, 0, 25, null);
+        assertEquals(1, response.getBody().size(), "Due utenti con la stessa azienda devono produrre una sola riga");
+        assertEquals("Stessa Azienda SRL", response.getBody().get(0));
+    }
+
+    @Test
+    public void testListAziendeEsterneFiltroQ() {
+        UtenteCreate u1 = utenteCreateConPrincipal("utente.q.1");
+        u1.setAziendaEsterna("Acme Corporation");
+        controller.createUtente(u1);
+
+        UtenteCreate u2 = utenteCreateConPrincipal("utente.q.2");
+        u2.setAziendaEsterna("Globex Industries");
+        controller.createUtente(u2);
+
+        UtenteCreate u3 = utenteCreateConPrincipal("utente.q.3");
+        u3.setAziendaEsterna("Initech");
+        controller.createUtente(u3);
+
+        ResponseEntity<List<String>> response = controller.listAziendeEsterne("acm", 0, 25, null);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(1, response.getBody().size());
+        assertEquals("Acme Corporation", response.getBody().get(0));
+    }
+
+    @Test
+    public void testListAziendeEsterneFiltroQNoMatch() {
+        UtenteCreate u1 = utenteCreateConPrincipal("utente.nomatch");
+        u1.setAziendaEsterna("Foo Bar SRL");
+        controller.createUtente(u1);
+
+        ResponseEntity<List<String>> response = controller.listAziendeEsterne("inesistente", 0, 25, null);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().isEmpty());
+    }
+
+    @Test
+    public void testListAziendeEsternePaginazione() {
+        for (int i = 0; i < 5; i++) {
+            UtenteCreate u = utenteCreateConPrincipal("utente.page." + i);
+            u.setAziendaEsterna("Azienda " + i);
+            controller.createUtente(u);
+        }
+
+        ResponseEntity<List<String>> page0 = controller.listAziendeEsterne(null, 0, 2, null);
+        assertEquals(2, page0.getBody().size());
+
+        ResponseEntity<List<String>> page1 = controller.listAziendeEsterne(null, 1, 2, null);
+        assertEquals(2, page1.getBody().size());
+
+        ResponseEntity<List<String>> page2 = controller.listAziendeEsterne(null, 2, 2, null);
+        assertEquals(1, page2.getBody().size());
+
+        assertFalse(page0.getBody().stream().anyMatch(page1.getBody()::contains));
+        assertFalse(page1.getBody().stream().anyMatch(page2.getBody()::contains));
+    }
+
+    @Test
+    public void testCreateUtenteAziendaEsternaConSpaziVieneNormalizzata() {
+        UtenteCreate u = utenteCreateConPrincipal("utente.trim");
+        u.setAziendaEsterna("  Trim Test SRL  ");
+        ResponseEntity<Utente> created = controller.createUtente(u);
+        assertEquals("Trim Test SRL", created.getBody().getAziendaEsterna(),
+                "Il nome dell'azienda esterna deve essere salvato senza spazi iniziali/finali");
+
+        ResponseEntity<List<String>> list = controller.listAziendeEsterne(null, 0, 25, null);
+        assertEquals(1, list.getBody().size());
+        assertEquals("Trim Test SRL", list.getBody().get(0));
+    }
+
+    @Test
+    public void testUpdateUtenteImpostaAziendaEsterna() {
+        UtenteCreate u = utenteCreateConPrincipal("utente.update.azienda");
+        ResponseEntity<Utente> created = controller.createUtente(u);
+        UUID idUtente = created.getBody().getIdUtente();
+        assertNull(created.getBody().getAziendaEsterna(), "Nessuna azienda iniziale");
+
+        UtenteUpdate update = new UtenteUpdate();
+        update.setStato(CommonUtils.STATO_UTENTE);
+        update.setNome(CommonUtils.NOME_UTENTE);
+        update.setCognome(CommonUtils.COGNOME_UTENTE);
+        update.setEmail(CommonUtils.EMAIL_UTENTE);
+        update.setEmailAziendale(CommonUtils.EMAIL_AZIENDALE);
+        update.setTelefonoAziendale(CommonUtils.TELEFONO_AZIENDALE);
+        update.setPrincipal("utente.update.azienda");
+        update.setAziendaEsterna("Nuova Azienda SRL");
+
+        ResponseEntity<Utente> updated = controller.updateUtente(idUtente, update);
+        assertEquals("Nuova Azienda SRL", updated.getBody().getAziendaEsterna());
+
+        ResponseEntity<List<String>> list = controller.listAziendeEsterne(null, 0, 25, null);
+        assertEquals(1, list.getBody().size());
+        assertEquals("Nuova Azienda SRL", list.getBody().get(0));
+    }
+
+    @Test
+    public void testUpdateUtenteRimuoveAziendaEsterna() {
+        UtenteCreate u = utenteCreateConPrincipal("utente.clear.azienda");
+        u.setAziendaEsterna("Da Rimuovere SRL");
+        ResponseEntity<Utente> created = controller.createUtente(u);
+        UUID idUtente = created.getBody().getIdUtente();
+        assertEquals("Da Rimuovere SRL", created.getBody().getAziendaEsterna());
+
+        UtenteUpdate update = new UtenteUpdate();
+        update.setStato(CommonUtils.STATO_UTENTE);
+        update.setNome(CommonUtils.NOME_UTENTE);
+        update.setCognome(CommonUtils.COGNOME_UTENTE);
+        update.setEmail(CommonUtils.EMAIL_UTENTE);
+        update.setEmailAziendale(CommonUtils.EMAIL_AZIENDALE);
+        update.setTelefonoAziendale(CommonUtils.TELEFONO_AZIENDALE);
+        update.setPrincipal("utente.clear.azienda");
+        update.setAziendaEsterna(null);
+
+        ResponseEntity<Utente> updated = controller.updateUtente(idUtente, update);
+        assertNull(updated.getBody().getAziendaEsterna(), "Passando null l'associazione deve essere rimossa");
+
+        // L'entità dell'azienda esterna resta in lookup table per altri eventuali utenti
+        ResponseEntity<List<String>> list = controller.listAziendeEsterne(null, 0, 25, null);
+        assertEquals(1, list.getBody().size());
+        assertEquals("Da Rimuovere SRL", list.getBody().get(0));
     }
 }
 

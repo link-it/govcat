@@ -38,11 +38,14 @@ import org.govway.catalogo.assembler.UtenteEngineAssembler;
 import org.govway.catalogo.assembler.UtenteItemAssembler;
 import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.authorization.UtenteAuthorization;
+import org.govway.catalogo.core.dao.specifications.AziendaEsternaSpecification;
 import org.govway.catalogo.core.dao.specifications.UtenteSpecification;
+import org.govway.catalogo.core.orm.entity.AziendaEsternaEntity;
 import org.govway.catalogo.core.orm.entity.ClasseUtenteEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Stato;
+import org.govway.catalogo.core.services.AziendaEsternaService;
 import org.govway.catalogo.core.services.ClasseUtenteService;
 import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.core.services.UtenteService;
@@ -103,10 +106,13 @@ public class UtentiController implements UtentiApi {
     private CoreAuthorization coreAuthorization;
 
     @Autowired
-    private ProfiloAssembler profiloAssembler;   
+    private ProfiloAssembler profiloAssembler;
 
 	@Autowired
 	private Configurazione configurazione;
+
+	@Autowired
+	private AziendaEsternaService aziendaEsternaService;
 
 	@Autowired
 	private RequestUtils requestUtils;
@@ -993,5 +999,37 @@ public class UtentiController implements UtentiApi {
 		}
 		Boolean abilitato = this.configurazione.getUtente().isCoordinatoreAbilitato();
 		return abilitato == null || abilitato; // default: true
+	}
+
+	@Override
+	public ResponseEntity<List<String>> listAziendeEsterne(String q, Integer page, Integer size, List<String> sort) {
+		try {
+			return this.service.runTransaction(() -> {
+				this.logger.info("Invocazione in corso ...");
+
+				this.authorization.authorizeList();
+
+				this.logger.debug("Autorizzazione completata con successo");
+
+				AziendaEsternaSpecification filter = new AziendaEsternaSpecification();
+				filter.setQ(Optional.ofNullable(q));
+
+				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, null);
+
+				Page<AziendaEsternaEntity> aziende = this.aziendaEsternaService.findAll(filter, pageable);
+
+				List<String> resource = aziende.stream().map(AziendaEsternaEntity::getNome).collect(Collectors.toList());
+				this.logger.info("Invocazione completata con successo");
+				return ResponseEntity.ok(resource);
+			});
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
 	}
 }

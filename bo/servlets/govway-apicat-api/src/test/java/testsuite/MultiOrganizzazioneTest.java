@@ -66,7 +66,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Test multi-organizzazione: CRUD utente con lista organizzazioni, retrocompatibilità
- * alias id_organizzazione, verifica campi response organizzazioni e organizzazione_esterna.
+ * alias id_organizzazione, verifica campi response organizzazioni e azienda_esterna.
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = OpenAPI2SpringBoot.class)
@@ -163,17 +163,17 @@ public class MultiOrganizzazioneTest {
 	}
 
 	@Test
-	public void testCreateUtenteConOrganizzazioneEsterna() {
+	public void testCreateUtenteConAziendaEsterna() {
 		UtenteCreate utente = CommonUtils.getUtenteCreate();
 		utente.setPrincipal("utente.esterna");
-		utente.setOrganizzazioneEsterna("Software House Esterna SRL");
+		utente.setAziendaEsterna("Software House Esterna SRL");
 
 		ResponseEntity<Utente> response = utentiController.createUtente(utente);
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 
 		Utente body = response.getBody();
 		assertNotNull(body);
-		assertEquals("Software House Esterna SRL", body.getOrganizzazioneEsterna());
+		assertEquals("Software House Esterna SRL", body.getAziendaEsterna());
 	}
 
 	@Test
