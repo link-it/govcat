@@ -19,7 +19,7 @@
 <div class="settings-content- adesione-form">
 
   <div class="position-relative">
-    @if (editable) {
+    @if (editable && !externalEditControl) {
       <div class="position-absolute top-0- end-0 z-3" style="top: -20px;">
         @if (!isEdit) {
           <lnk-button
@@ -67,7 +67,7 @@
             [inline]="false"
             [singleColumn]="false"
             [options]="null"
-            [plainText]="true"
+            [plainText]="false"
             [appendTo]="''"
             [helpContext]="helpContext"
             (changeEvent)="onChangeServizio($event)">
@@ -84,7 +84,7 @@
               [inline]="false"
               [singleColumn]="false"
               [options]="null"
-              [plainText]="true"
+              [plainText]="false"
               [helpContext]="helpContext"
               (changeEvent)="onChangeIdLogico($event)"
             ></lnk-form-field>
@@ -108,7 +108,7 @@
             [inline]="false"
             [singleColumn]="false"
             [options]="null"
-            [plainText]="true"
+            [plainText]="false"
             [appendTo]="''"
             [helpContext]="helpContext"
             (changeEvent)="checkSoggetto($event)"
@@ -134,7 +134,7 @@
                 [inline]="false"
                 [singleColumn]="false"
                 [options]="null"
-                [plainText]="true"
+                [plainText]="false"
                 [appendTo]="''"
                 [helpContext]="helpContext"
                 (changeEvent)="onChangeSoggetto($event)"

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostBinding, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 
@@ -42,6 +42,8 @@ import { AdesioneDialogMockPanelComponent } from './adesione-dialog-mock-panel/a
 import { AdesioneListaErogazioniComponent } from './adesione-lista-erogazioni/adesione-lista-erogazioni.component';
 import { AdesioneFormComponent } from './adesione-form/adesione-form.component';
 import { AdesioneStepBarComponent, StepBarVariant, StepWizardItem } from '../adesione-step-bar/adesione-step-bar.component';
+import { AdesioneFasiBarComponent } from '../adesione-fasi-bar/adesione-fasi-bar.component';
+import { AdesioneSubstepperComponent } from '../adesione-substepper/adesione-substepper.component';
 
 import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/service-breadcrumbs.resolver';
 
@@ -52,6 +54,7 @@ import { AmbienteEnum } from '@app/model/ambienteEnum';
 import { ReferentView, Referent } from '../adesione-view/adesione-view.component';
 
 import * as _ from 'lodash';
+import moment from 'moment/moment';
 declare const saveAs: any;
 
 import { CkeckProvider, ClassiEnum, DataStructure } from '@app/provider/check.provider';
@@ -105,6 +108,8 @@ export interface AdesioneDisclaimer {
         AdesioneDialogMockPanelComponent,
         AdesioneFormComponent,
         AdesioneStepBarComponent,
+        AdesioneFasiBarComponent,
+        AdesioneSubstepperComponent,
         NotificationBarComponent,
         WorkflowComponent
     ]
@@ -114,7 +119,21 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     static readonly Name = 'AdesioneConfigurazioneWizardComponent';
     readonly model: string = 'adesioni';
 
+    // Sotto flag wizard_new_layout, attiva la host class `lnk-wizard` che
+    // scopa i design-token Link.it definiti nella SCSS del componente.
+    @HostBinding('class.lnk-wizard') get lnkWizardHostClass(): boolean {
+        return this.wizardNewLayout;
+    }
+
     @ViewChild("myScroll") myScroll!: ElementRef;
+
+    /**
+     * Issue 254 NEW LAYOUT (rev. 4.6): riferimento al `<app-adesione-form>`
+     * renderizzato dentro `newLayoutFaseInfoTpl` (PhaseSection
+     * "Informazioni generali"). Usato dal bottone "Modifica" del
+     * `lnk-phase-section-hd` per togglare lato form l'edit mode esterno.
+     */
+    @ViewChild('infoFormRef') infoFormRef?: AdesioneFormComponent;
     
     title: string = '';
 
@@ -287,6 +306,203 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
      */
     get debugSwitchesEnabled(): boolean {
         return !!this.config?.wizard_debug_switches;
+    }
+
+    /**
+     * Override runtime del flag `wizard_new_layout`. Quando null si usa il
+     * valore del config; quando boolean ha priorita' (toggle debug).
+     */
+    wizardNewLayoutOverride: boolean | null = null;
+
+    /**
+     * Flag frontend `wizard_new_layout` letto da `adesioni-config.json`.
+     * Quando true il template del wizard rende la "section container"
+     * con il nuovo layout (header esteso, banner, step-bar a 3 fasi,
+     * card-fase, sub-stepper verticale). Quando false (default) si
+     * mantiene il rendering classico — i due rami convivono per
+     * permettere lo sviluppo incrementale senza regressioni.
+     */
+    get wizardNewLayout(): boolean {
+        if (this.wizardNewLayoutOverride !== null) {
+            return this.wizardNewLayoutOverride;
+        }
+        return !!this.config?.wizard_new_layout;
+    }
+
+    toggleWizardNewLayout(): void {
+        const current = this.wizardNewLayout;
+        this.wizardNewLayoutOverride = !current;
+    }
+
+    /**
+     * Issue 254 NEW LAYOUT (rev. 4.8): fase attualmente selezionata dalla
+     * step-bar 3-fasi (cliccabile come una tab). Il valore e` il `code`
+     * dello step nel `stepWizard` config (`info_generali`, `collaudo`,
+     * `produzione`) — coerente con la sorgente dati.
+     *
+     * Il body sotto la step-bar mostra il contenuto SOLO della fase
+     * selezionata.
+     * Inizializzata al primo carico sulla fase corrente del workflow
+     * (vedi `_initSelectedFase` in `loadAdesione`).
+     */
+    _selectedFase: string = 'info_generali';
+
+    /**
+     * Inizializza/aggiorna `_selectedFase` allo step corrente del
+     * `stepWizard` config: cerca lo step il cui array `stati_adesione`
+     * contiene lo stato corrente dell'adesione. Fallback: primo step
+     * (`info_generali`).
+     */
+    _initSelectedFase(): void {
+        if (!this.stepWizard?.length) {
+            this._selectedFase = 'info_generali';
+            return;
+        }
+        const currentState = this.adesione?.stato;
+        if (currentState) {
+            const found = this.stepWizard.find(s => s.stati_adesione?.includes(currentState));
+            if (found) {
+                this._selectedFase = found.code;
+                return;
+            }
+        }
+        this._selectedFase = this.stepWizard[0].code;
+    }
+
+    /**
+     * Set della fase visualizzata. Triggerato dal click sulla
+     * `<app-adesione-fasi-bar>`. Tutte le 3 fasi sono cliccabili (anche
+     * `pending` delle fasi future), per poter visionare in anteprima
+     * cosa contiene.
+     */
+    selectFase(faseCode: string): void {
+        this._selectedFase = faseCode;
+    }
+
+    /**
+     * Issue 254 NEW LAYOUT (rev. 4.3): override manuale di apertura
+     * dei sub-step della timeline (collaudo / produzione). Chiave:
+     * `${section}-${code}`. Se assente, vale il default basato sullo stato:
+     * `active` -> aperto, `completed`/`locked` -> chiuso.
+     */
+    private _substepUserToggles = new Map<string, boolean>();
+
+    /**
+     * Apertura corrente di uno sub-step della timeline.
+     *
+     * Regole funzionali (rev. 4.3, da feedback utente 2026-05-05):
+     *  - Step 1 `in_compilazione` ospita SEMPRE la lista client/endpoint:
+     *    chiuso quando `completed`, aperto quando `active`. L'utente puo`
+     *    sempre riaprirlo (es. per consultare i dati a workflow avanzato).
+     *  - Step 2/3/4 (in_approvazione, in_configurazione, configurato):
+     *    quando `active` mostrano "in attesa intervento del gestore" e
+     *    sono aperti; quando `completed` chiusi; quando `locked` chiusi.
+     */
+    isSubstepOpen(section: string, sub: { code: string; state: string }): boolean {
+        const key = `${section}-${sub.code}`;
+        if (this._substepUserToggles.has(key)) {
+            return this._substepUserToggles.get(key)!;
+        }
+        return sub.state === 'active';
+    }
+
+    /** Solo gli step `active` o `completed` sono collassabili (locked no). */
+    isSubstepCollapsible(sub: { state: string }): boolean {
+        return sub.state === 'active' || sub.state === 'completed';
+    }
+
+    /**
+     * Toggla l'apertura di uno sub-step della timeline. Usato dalla riga
+     * cliccabile e dal chevron. Effetto solo se collassabile.
+     */
+    toggleSubstep(section: string, sub: { code: string; state: string }): void {
+        if (!this.isSubstepCollapsible(sub)) { return; }
+        const key = `${section}-${sub.code}`;
+        const current = this.isSubstepOpen(section, sub);
+        this._substepUserToggles.set(key, !current);
+    }
+
+    /**
+     * Issue 254 NEW LAYOUT (rev. 4.5): stato di apertura dei 3
+     * sub-gruppi referenti nel pannello FASE 01 (adesione / servizio /
+     * dominio). Default aperti — coerente col `defaultOpen=true` del
+     * `ReferenteGroup` design-code (parts.jsx).
+     */
+    _referentGroupOpen: { adesione: boolean; servizio: boolean; dominio: boolean } = {
+        adesione: true,
+        servizio: true,
+        dominio: true,
+    };
+
+    isReferentGroupOpen(key: 'adesione' | 'servizio' | 'dominio'): boolean {
+        return !!this._referentGroupOpen[key];
+    }
+
+    toggleReferentGroup(key: 'adesione' | 'servizio' | 'dominio'): void {
+        this._referentGroupOpen[key] = !this._referentGroupOpen[key];
+    }
+
+    /**
+     * Issue 254 NEW LAYOUT (rev. 4.7): stato di apertura delle 2
+     * PhaseSection di FASE 01 (Informazioni generali / Referenti).
+     * Default entrambe aperte (coerente col design-code
+     * `defaultOpen=true` di PhaseSection).
+     */
+    _phaseSectionOpen: { info_generali: boolean; referenti: boolean } = {
+        info_generali: true,
+        referenti: true,
+    };
+
+    isPhaseSectionOpen(key: 'info_generali' | 'referenti'): boolean {
+        return !!this._phaseSectionOpen[key];
+    }
+
+    togglePhaseSection(key: 'info_generali' | 'referenti'): void {
+        this._phaseSectionOpen[key] = !this._phaseSectionOpen[key];
+    }
+
+    /**
+     * Issue 254 NEW LAYOUT (rev. 4): iniziali del referente per
+     * l'avatar di `.approval-card` (es. "Jannik Sinner" -> "JS").
+     *
+     * Struttura dati (vedi `loadReferents` + `interface Referent` in
+     * `adesione-view.component.ts`):
+     *   referent = { id, source: { utente: { nome, cognome, ... }, tipo, ... } }
+     *
+     * Robusto a strutture parziali / null.
+     */
+    getReferentInitials(referent: any): string {
+        const utente = referent?.source?.utente || referent?.utente || referent?.source || referent || {};
+        const nome: string = (utente.nome || '').trim();
+        const cognome: string = (utente.cognome || '').trim();
+        const a = nome ? nome[0] : '';
+        const b = cognome ? cognome[0] : '';
+        const out = (a + b).toUpperCase();
+        if (out) { return out; }
+        // fallback: due lettere dall'email aziendale o dallo username
+        const email: string = (utente.email_aziendale || utente.email || utente.username || '').trim();
+        return email.slice(0, 2).toUpperCase();
+    }
+
+    /**
+     * Issue 254 NEW LAYOUT (rev. 4): nome completo del referente
+     * (`utente.nome utente.cognome`). Robusto a strutture parziali.
+     */
+    getReferentName(referent: any): string {
+        const utente = referent?.source?.utente || referent?.utente || referent?.source || referent || {};
+        const nome: string = (utente.nome || '').trim();
+        const cognome: string = (utente.cognome || '').trim();
+        const full = `${nome} ${cognome}`.trim();
+        return full || (utente.email_aziendale || utente.email || utente.username || '');
+    }
+
+    /**
+     * Issue 254 NEW LAYOUT (rev. 4): sotto-testo del referente
+     * (organizzazione o, in fallback, email aziendale).
+     */
+    getReferentSub(referent: any): string {
+        const utente = referent?.source?.utente || referent?.utente || referent?.source || referent || {};
+        return utente?.organizzazione?.nome || utente?.email_aziendale || utente?.email || '';
     }
 
     /**
@@ -521,6 +737,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
                     this._loadStepWizardConfig();
                     this._computeActiveSections();
                     this._loadDisclaimers();
+                    this._initSelectedFase();
 
                     this.loadCheckDati(this.adesione.id_adesione, this.getNextStateWorkflowName());
 
@@ -623,6 +840,202 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
         const _versione: string = this.adesione ? this.adesione.servizio.versione : '';
 
         return this.adesione ? `${_servizio} v. ${_versione}` : this.id ? `${this.id}` : '<no-title>';
+    }
+
+    // ------------------------------------------------------------------
+    // Helpers per il nuovo header esteso (Issue 254 NEW LAYOUT)
+    // ------------------------------------------------------------------
+
+    /** Solo nome servizio (senza versione) per il titolo grande dell'header. */
+    get headerTitle(): string {
+        return this.adesione?.servizio?.nome || this.id || '';
+    }
+
+    /** Stringa "v.<versione>" se presente, vuota altrimenti. */
+    get headerVersion(): string {
+        const v = this.adesione?.servizio?.versione;
+        return v ? `v.${v}` : '';
+    }
+
+    /** "Aggiornato N minuti fa" basato su `data_ultimo_aggiornamento`. */
+    get headerUpdatedAt(): string {
+        const ts = this.adesione?.data_ultimo_aggiornamento;
+        if (!ts) { return ''; }
+        const m = moment(ts);
+        if (!m.isValid()) { return ''; }
+        return this.translate.instant('APP.LABEL.UpdatedRelative', { time: m.fromNow() });
+    }
+
+    /**
+     * Nome completo del referente "principale" dell'adesione (tipo
+     * `referente`). Se non disponibile cade su `utente_richiedente`.
+     */
+    get headerOwnerName(): string {
+        const principale = (this.referents || []).find((r: any) => r?.source?.tipo === 'referente');
+        const u = principale?.source?.utente;
+        if (u) {
+            const full = `${u.nome || ''} ${u.cognome || ''}`.trim();
+            if (full) { return full; }
+        }
+        return this.adesione?.utente_richiedente || '';
+    }
+
+    /** Chiavi delle 3 fasi macro del nuovo layout, tipizzate per il template. */
+    readonly faseKeys: ('info' | 'collaudo' | 'produzione')[] = ['info', 'collaudo', 'produzione'];
+
+    // Issue 254 NEW LAYOUT (rev. 4.16): rimosso `apiDocLink` getter
+    // (era hardcoded a `/servizi/{id_servizio}`). I link del banner
+    // stato sono ora ricavati direttamente da `item.links` del
+    // disclaimer (vedi `bannerStatoNewTpl` nel template).
+
+    // ------------------------------------------------------------------
+    // Step-bar 3 fasi (Issue 254 NEW LAYOUT)
+    // ------------------------------------------------------------------
+
+    /**
+     * Stato della "fase macro" del nuovo layout:
+     * - `completed`: tutte le sezioni della fase risultano complete;
+     * - `active`: lo stato corrente dell'adesione vive in questa fase;
+     * - `pending`: la fase non e' ancora stata raggiunta.
+     *
+     * Mappa al runtime esistente: `info` aggrega `info_generali +
+     * referenti`, `collaudo` e `produzione` rispondono al sezione
+     * omonima.
+     */
+    getFaseStatus(fase: 'info' | 'collaudo' | 'produzione'): 'completed' | 'active' | 'pending' {
+        if (fase === 'info') {
+            const infoOk = this.isSectionCompleted('info_generali') && this.isSectionCompleted('referenti');
+            if (infoOk) { return 'completed'; }
+            return this.isSectionActive('info_generali') || this.isSectionActive('referenti') ? 'active' : 'pending';
+        }
+        if (this.isSectionCompleted(fase)) { return 'completed'; }
+        return this.isSectionActive(fase) ? 'active' : 'pending';
+    }
+
+    /**
+     * Counter "X/Y" dei sub-step di una sezione (collaudo/produzione)
+     * basato sull'ordine dello workflow. Il numero "Y" e' la count
+     * totale degli step della sezione; "X" e' il numero di step la
+     * cui ultima `stati_adesione` precede strettamente lo stato corrente
+     * dell'adesione (gli step "compresi" sono quelli gia' attraversati).
+     * Restituisce `null` per sezioni che non hanno step interni.
+     */
+    getSezioneCounter(section: string): { done: number; total: number } | null {
+        if (section !== 'collaudo' && section !== 'produzione') { return null; }
+        const steps = this.getStepWizardSezione(section);
+        if (!steps?.length) { return null; }
+        const total = steps.length;
+        const wfStati = this.workflowStati;
+        const currentStato = this.adesione?.stato;
+        if (!wfStati?.length || !currentStato) { return { done: 0, total }; }
+        const currentIdx = wfStati.indexOf(currentStato);
+        if (currentIdx === -1) { return { done: 0, total }; }
+        let done = 0;
+        for (const step of steps) {
+            const indices = (step.stati_adesione || [])
+                .map(st => wfStati.indexOf(st))
+                .filter(i => i !== -1);
+            if (!indices.length) { continue; }
+            const lastIdx = Math.max(...indices);
+            if (lastIdx < currentIdx) { done++; }
+        }
+        return { done, total };
+    }
+
+    /**
+     * Stato dei sub-step di una sezione (collaudo/produzione) per il
+     * sub-stepper verticale del nuovo layout. Ogni step e' classificato:
+     * - `completed`: tutti gli stati associati allo step sono PRECEDENTI
+     *   allo stato corrente dell'adesione;
+     * - `active`: lo stato corrente cade nel range degli stati dello step;
+     * - `locked`: lo step e' futuro rispetto allo stato corrente.
+     */
+    getSezioneStepStates(section: 'collaudo' | 'produzione'): Array<{
+        index: number;
+        code: string;
+        descrizione: string;
+        state: 'completed' | 'active' | 'locked';
+    }> {
+        const steps = this.getStepWizardSezione(section);
+        if (!steps?.length) { return []; }
+        const wfStati = this.workflowStati;
+        const currentStato = this.adesione?.stato;
+        const currentIdx = (wfStati?.length && currentStato) ? wfStati.indexOf(currentStato) : -1;
+        return steps.map((step, i) => {
+            const indices = (step.stati_adesione || [])
+                .map(st => wfStati.indexOf(st))
+                .filter(idx => idx !== -1);
+            let state: 'completed' | 'active' | 'locked' = 'locked';
+            if (indices.length > 0 && currentIdx !== -1) {
+                const lastIdx = Math.max(...indices);
+                const firstIdx = Math.min(...indices);
+                if (lastIdx < currentIdx) {
+                    state = 'completed';
+                } else if (currentIdx >= firstIdx && currentIdx <= lastIdx) {
+                    state = 'active';
+                }
+            }
+            return { index: i + 1, code: step.code, descrizione: step.descrizione, state };
+        });
+    }
+
+    /**
+     * Stato badge per l'header della card-fase del nuovo layout:
+     * - `completed`: verde "Completato";
+     * - `action`: rosso "Azione richiesta" (sezione attiva non completata);
+     * - `locked`: grigio "Bloccato" (sezione disabilitata o futura);
+     * - `null`: nessun badge (sezione attiva senza richieste).
+     */
+    getSezioneBadge(section: string): 'completed' | 'action' | 'locked' | null {
+        if (this.isSectionCompleted(section)) { return 'completed'; }
+        if (this.isSectionDisabled(section) || !this.isSectionActive(section)) { return 'locked'; }
+        return 'action';
+    }
+
+    /** Etichetta numerica "FASE 01/02/03" per le card del nuovo layout. */
+    getFaseNumberLabel(fase: 'info' | 'collaudo' | 'produzione'): string {
+        switch (fase) {
+            case 'info': return '01';
+            case 'collaudo': return '02';
+            case 'produzione': return '03';
+        }
+    }
+
+    /** Chiave i18n per il titolo della card-fase. */
+    getFaseTitleKey(fase: 'info' | 'collaudo' | 'produzione'): string {
+        switch (fase) {
+            case 'info': return 'APP.ADESIONI.LABEL.FaseInfoTitle';
+            case 'collaudo': return 'APP.ADESIONI.LABEL.FaseCollaudoTitle';
+            case 'produzione': return 'APP.ADESIONI.LABEL.FaseProduzioneTitle';
+        }
+    }
+
+    /** Classe CSS della card banner stato (Issue 254 NEW LAYOUT) per
+     * severity. Allineata al sistema esistente `getDisclaimerAlertClass`
+     * ma con aspetto card invece che alert. */
+    getDisclaimerBannerClass(severity?: DisclaimerSeverity): string {
+        switch (severity) {
+            case 'ERROR': return 'banner-stato-danger';
+            case 'WARNING': return 'banner-stato-warning';
+            case 'INFO':
+            default: return 'banner-stato-info';
+        }
+    }
+
+    /**
+     * Issue 254 NEW LAYOUT (rev. 4): variant class per `.lnk-banner` del
+     * design-code in funzione della severity del disclaimer:
+     *  - INFO/SUCCESS -> '' (default brand-soft, azzurro);
+     *  - WARNING      -> 'is-warn' (warn-soft, giallo);
+     *  - ERROR        -> 'is-err' (err-soft, rosso).
+     */
+    getDisclaimerLnkBannerVariantClass(severity?: DisclaimerSeverity): string {
+        switch (severity) {
+            case 'ERROR': return 'is-err';
+            case 'WARNING': return 'is-warn';
+            case 'INFO':
+            default: return '';
+        }
     }
 
     _initBreadcrumb() {
@@ -734,6 +1147,48 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
         this.updateMapper = Date.now().toString();
         this.openAccordion(this._findFirstAccordionError() || '', this.isEdit);
         this.isEdit = !this.isEdit;
+    }
+
+    /**
+     * "Modifica" inline sull'header della card "Informazioni generali"
+     * (Issue 254 NEW LAYOUT, mock 2 — rev. 4.6).
+     *
+     * Comportamento:
+     *  - Se siamo nel nuovo layout, deleghiamo al `<app-adesione-form>`
+     *    (riferimento via `@ViewChild('infoFormRef')`): chiama il
+     *    metodo pubblico `onEdit(null)` che inizializza la form e mette
+     *    `isEdit=true`. I campi del form si abilitano. Il bottone esterno
+     *    in `lnk-phase-section-hd` cambia testo "Modifica" -> "Annulla"
+     *    via getter `isInfoFormEditing`.
+     *  - Se non c'e` riferimento al form (legacy / non ancora pronto),
+     *    fallback alla logica originale (toggle `this.isEdit` wizard-wide
+     *    + apertura accordion `general-info`).
+     */
+    enterEditModeForInfoGenerali() {
+        if (this.infoFormRef && !this.infoFormRef.isEdit) {
+            this.infoFormRef.onEdit(null);
+            return;
+        }
+        if (this.infoFormRef && this.infoFormRef.isEdit) {
+            // toggle: se gia` editing, esce dall'edit
+            this.infoFormRef.onCancelEdit();
+            return;
+        }
+        // Fallback (form non ancora montato): apertura accordion legacy.
+        this.openAccordion('general-info', false);
+        if (!this.isEdit && this.canEditMapper()) {
+            this.isEdit = true;
+            this.updateMapper = Date.now().toString();
+        }
+    }
+
+    /**
+     * Issue 254 NEW LAYOUT (rev. 4.6): true se il `<app-adesione-form>` di
+     * Informazioni generali e` in edit mode (campi abilitati). Pilota il
+     * cambio testo del bottone "Modifica" -> "Annulla".
+     */
+    get isInfoFormEditing(): boolean {
+        return !!this.infoFormRef?.isEdit;
     }
 
     _findFirstAccordionError(): string | undefined {

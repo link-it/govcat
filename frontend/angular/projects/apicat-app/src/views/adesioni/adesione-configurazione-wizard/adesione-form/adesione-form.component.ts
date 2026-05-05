@@ -61,6 +61,15 @@ export class AdesioneFormComponent implements OnInit {
     @Input() grant: Grant | null = null;
     @Input() singleColumn: boolean = false;
     @Input() editable: boolean = false;
+
+    /**
+     * Issue 254 NEW LAYOUT (rev. 4.6): quando true, il bottone interno
+     * "Modifica" (top-right) e` nascosto. Il parent controlla l'ingresso
+     * in edit mode chiamando `onEdit(null)` via `@ViewChild`. Il bottone
+     * di Save/Cancel in fondo (`<lnk-form-submit>`) resta attivo.
+     * Default `false` = comportamento legacy (button interno visibile).
+     */
+    @Input() externalEditControl: boolean = false;
     
     model: string = 'adesioni';
     dataModel: any = null;

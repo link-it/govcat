@@ -1,0 +1,255 @@
+// ----------------------------------------------------------------------
+// AdesioneSubstepperComponent — Issue 254 NEW LAYOUT (rev. 4.10)
+// Timeline verticale (design-code `.timeline > .tl-step`).
+// Migrazione delle rules dal SCSS del wizard (rev. 4.x) per coerenza
+// con la view encapsulation Angular: il template di questo componente
+// ha i suoi propri attributi `_ngcontent-XXX` e le rules `:host(.lnk-wizard)
+// .timeline` del wizard non lo raggiungono. Le CSS variables Link.it
+// (--accent, --ink, ecc.) sono pero` ereditate dal `:host(.lnk-wizard)`
+// del wizard.
+// ----------------------------------------------------------------------
+
+:host {
+  display: block;
+}
+
+// Subtitle "PROCEDURA DI ATTIVAZIONE — X di Y completati"
+.substepper-subtitle {
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  font-size: 11px;
+  color: var(--ink-4, #8aa4b8);
+
+  .grow {
+    flex: 1;
+    height: 1px;
+    background: var(--line, #dee8ef);
+  }
+
+  .counter {
+    font-size: 12px;
+    color: var(--ink-3, #57738a);
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+}
+
+// Timeline (sub-stepper verticale, "stepper inside stepper")
+.timeline {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding: 4px 0;
+}
+
+.tl-step {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 14px;
+  padding: 4px 0;
+  position: relative;
+
+  // Connettore verticale a sinistra fra i bullet.
+  &::before {
+    content: '';
+    position: absolute;
+    left: 13px; top: 28px; bottom: -4px;
+    width: 1.5px;
+    background: var(--line, #dee8ef);
+  }
+  &:last-child::before { display: none; }
+  &.is-done::before { background: var(--ok, #2e445a); opacity: .35; }
+  // Connettore active: rosso accent solido. Niente piu` gradient con
+  // stops in % (scalava male con body alto/basso) ne` con stops in
+  // px (restava fisso indipendentemente dall'apertura). Solido
+  // accent scala naturalmente: corto quando il body e` chiuso,
+  // esteso fino al bullet successivo quando il body e` aperto.
+  &.is-active::before {
+    background: var(--accent, #ff4050);
+  }
+}
+
+.tl-bullet {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--surface, #ffffff);
+  border: 1.5px solid var(--line-strong, #c4d6e0);
+  color: var(--ink-3, #57738a);
+  font-size: 11.5px; font-weight: 600;
+  position: relative; z-index: 1;
+  flex-shrink: 0;
+  transition: all .2s;
+
+  i { font-size: 12px; }
+}
+.tl-step.is-done .tl-bullet {
+  background: var(--ok, #2e445a);
+  border-color: var(--ok, #2e445a);
+  color: white;
+}
+.tl-step.is-active .tl-bullet {
+  background: var(--surface, #ffffff);
+  border-color: var(--accent, #ff4050);
+  color: var(--accent, #ff4050);
+  box-shadow: 0 0 0 4px var(--accent-soft, #ffe9eb);
+}
+.tl-step.is-locked .tl-bullet {
+  background: var(--surface-2, #fafcfd);
+  color: var(--ink-4, #8aa4b8);
+
+  i { font-size: 11px; }
+}
+
+.tl-content {
+  padding-bottom: 14px;
+  min-width: 0;
+}
+.tl-step:last-child .tl-content { padding-bottom: 0; }
+
+.tl-row {
+  display: flex; align-items: center; gap: 12px;
+  min-height: 28px;
+  border-radius: 6px;
+  padding: 2px 4px;
+
+  &.is-collapsible {
+    cursor: pointer;
+    user-select: none;
+  }
+  // Hover (rev. 4.11): solo il chevron si evidenzia, non la riga
+  // intera. Il click resta su tutta la `.tl-row.is-collapsible`.
+  &.is-collapsible:focus-visible {
+    outline: 2px solid var(--accent, #ff4050);
+    outline-offset: 1px;
+  }
+
+  .tl-name {
+    font-size: 14px; font-weight: 550;
+    color: var(--ink, #212c49); letter-spacing: -0.005em;
+  }
+  .tl-meta {
+    font-size: 12.5px; color: var(--ink-3, #57738a);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .tl-spacer { flex: 1; }
+
+  // Stato/azione allineati a destra (rev. 4.13).
+  // - `.tl-state`: chip pill (Completato / Bloccato), no interaction.
+  // - `.tl-action`: bottone Mostra/Chiudi per lo step active. Il
+  //   click resta sull'intera `.tl-row` (questo e` solo visivo).
+  .tl-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid var(--line, #dee8ef);
+    flex-shrink: 0;
+
+    i { font-size: 11px; }
+
+    &.is-completed {
+      background: var(--ok-soft, #e3eff5);
+      color: var(--ok-ink, #21324a);
+      border-color: #b3d4e2;
+    }
+    &.is-locked {
+      background: var(--surface-3, #eef4f8);
+      color: var(--ink-3, #57738a);
+    }
+  }
+
+  .tl-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--ink-2, #2e445a);
+    transition: background-color .15s, color .15s, box-shadow .15s;
+    flex-shrink: 0;
+
+    i { font-size: 11px; transition: transform .2s; }
+
+    // Variante CTA primary (active step, panel chiuso): rosso pieno
+    // come il `Compila ora` del mock image-4.
+    &.is-primary {
+      background: var(--accent, #ff4050);
+      color: white;
+      font-weight: 600;
+      padding: 6px 14px;
+      box-shadow: 0 1px 0 rgba(255,255,255,.15) inset, 0 4px 12px -4px rgba(255, 64, 80, .35);
+    }
+  }
+
+  // Hover sul row -> il bottone si evidenzia (chevron-style highlight,
+  // coerente con rev. 4.11). La variante primary ha hover diverso
+  // (accent-hover) per mantenere il visual.
+  &.is-collapsible:hover .tl-action {
+    background: var(--surface-3, #eef4f8);
+    color: var(--ink, #212c49);
+  }
+  &.is-collapsible:hover .tl-action.is-primary {
+    background: var(--accent-hover, #e6303f);
+    color: white;
+  }
+}
+.tl-step.is-locked .tl-name {
+  color: var(--ink-3, #57738a);
+  font-weight: 500;
+}
+.tl-step.is-done .tl-name {
+  color: var(--ink-2, #2e445a);
+}
+
+// Pannello che si apre nel sub-step (content projection bodyTpl).
+.tl-panel {
+  margin-top: 12px;
+  padding: 16px 18px;
+  background: var(--surface-2, #fafcfd);
+  border: 1px solid var(--line, #dee8ef);
+  border-radius: 12px;
+  animation: lnk-panel-in .25s ease;
+  padding-top: 0;
+  padding-bottom: 0;
+
+  // ::ng-deep necessario per stilare il content proiettato dal parent
+  // (e.g. WaitingGestoreTitle in `<h4>`, descrizione in `<p class="hint">`).
+  // Il content ha `_ngcontent` del parent (wizard), non del substepper.
+  ::ng-deep h4 {
+    margin: 0 0 4px;
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+  }
+  ::ng-deep p.hint {
+    font-size: 12.5px;
+    color: var(--ink-3, #57738a);
+    margin: 0 0 14px;
+    line-height: 1.55;
+  }
+}
+
+@keyframes lnk-panel-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// Chip "Bloccato" — duplicato dal SCSS del wizard per scope.
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 9px; border-radius: 999px;
+  font-size: 12px; font-weight: 500;
+  background: var(--surface-3, #eef4f8);
+  color: var(--ink-2, #2e445a);
+  border: 1px solid var(--line, #dee8ef);
+}
+.chip-muted {
+  background: var(--surface-3, #eef4f8);
+  color: var(--ink-3, #57738a);
+}

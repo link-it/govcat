@@ -1,3 +1,41 @@
+2026-05-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254 (NEW LAYOUT): nuovo layout del wizard adesione,
+	  pilotato dal flag `wizard_new_layout` (default true) e dal
+	  config `step_wizard*` esistente. Step-bar 3-fasi cliccabile
+	  come tab (nuovo `<app-adesione-fasi-bar>`): mostra una sola
+	  fase alla volta sotto, fasi `pending` non cliccabili.
+	  Sub-stepper interno verticale (nuovo `<app-adesione-substepper>`)
+	  con timeline + connettore + bullet stato + collapse, content
+	  projection per il body; lo step `in_compilazione` ospita
+	  sempre la lista client/endpoint, gli altri quando attivi
+	  mostrano "in attesa intervento gestore". CTA right-side:
+	  "Compila ora" (primary) per active chiuso, "Chiudi" per
+	  active aperto, chip "Completato"/"Bloccato" per gli altri.
+	  Edit inline auth client + endpoint erogazione: nuovo
+	  componente standalone `<app-erogazione-edit-form>` riusato
+	  dal modal legacy e dal pannello inline; `[inlineEdit]` su
+	  `<app-adesione-lista-clients>` / `<app-adesione-lista-erogazioni>`
+	  rende il form sotto la riga selezionata invece di aprire la
+	  dialog. FASE 01 ridisegnata: 2 PhaseSection collassabili
+	  (Informazioni / Referenti) con body in pannello grigio; sub-gruppi
+	  referenti (Adesione/Servizio/Dominio) collassabili con avatar
+	  iniziali. Form Informazioni con `externalEditControl=true`:
+	  bottone "Modifica" / "Annulla" esterno pilota il form via
+	  `@ViewChild`. Banner stato (`<lnk-banner>` design-code) con
+	  varianti severity e CTA right-side derivata da `disclaimer.links`.
+	  Hover header collassabili: highlight solo sul chevron, click
+	  sull'intera barra. Design-system Link.it (token CSS) scoped
+	  sotto `:host(.lnk-wizard)` via `@HostBinding`.
+
+	* [Frontend]
+	Issue 254: nuovi componenti riusabili in
+	  `views/adesioni/`: `adesione-fasi-bar` (step-bar 3-fasi
+	  config-driven), `adesione-substepper` (timeline verticale
+	  config-driven con content projection), `adesione-lista-erogazioni/erogazione-edit-form`
+	  (form endpoint estratto dal modal legacy per riuso inline).
+
 2026-04-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

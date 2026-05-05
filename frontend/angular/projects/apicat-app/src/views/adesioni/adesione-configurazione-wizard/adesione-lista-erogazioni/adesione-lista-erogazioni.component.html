@@ -72,6 +72,38 @@
                   </div>
                 }
               </div>
+              <!-- Pannello edit inline (Issue 254 NEW LAYOUT) — render del
+                   form di edit dell'endpoint erogazione sotto la riga
+                   selezionata, sotto flag `inlineEdit`. Riusa
+                   `<app-erogazione-edit-form>` (componente standalone
+                   estratto dal modal legacy). -->
+              @if (inlineEdit && _inlineEditingErogaz === erogaz) {
+                <div class="adesione-inline-edit-panel border-bottom px-3 py-3">
+                  <form [formGroup]="_editFormGroupErogazioni" (submit)="_onSaveModalErogazioni(_editFormGroupErogazioni.value)">
+                    <app-erogazione-edit-form
+                      [formGroup]="_editFormGroupErogazioni"
+                      [error]="_error"
+                      [errorMsg]="_errorMsg"
+                    ></app-erogazione-edit-form>
+                    <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
+                      <lnk-button
+                        [label]="'APP.BUTTON.Close'"
+                        (onAction)="closeModal()"
+                      ></lnk-button>
+                      @if (erogaz | mapper:_isModifiableMapper) {
+                        <lnk-button
+                          [type]="'submit'"
+                          [label]="'APP.BUTTON.Save'"
+                          [primary]="true"
+                          [ariaLabel]="'APP.BUTTON.Save'"
+                          [disabled]="_editFormGroupErogazioni.invalid || _saving"
+                          [spinner]="_saving"
+                        ></lnk-button>
+                      }
+                    </div>
+                  </form>
+                </div>
+              }
             </div>
           }
         </div>
@@ -81,6 +113,10 @@
 }
 
 <!-- DIALOG per EROGAZIONI [start] -->
+<!-- Modal legacy (back-compat per `inlineEdit=false`). Il body usa
+     `<app-erogazione-edit-form>` come il rendering inline (Fase 5
+     Issue 254 NEW LAYOUT) — single source of truth per i campi del
+     form. -->
 <ng-template #editErogazioni>
   <div class="modal-content">
     <form [formGroup]="_editFormGroupErogazioni" (submit)="_onSaveModalErogazioni(_editFormGroupErogazioni.value)">
@@ -92,106 +128,30 @@
       </div>
       <div class="modal-body">
         <div class="p-3">
-
-          <fieldset>
-
-            <div class="row">
-              <div class="form-group col-md-10 mb-2">
-                <!-- nome -->
-                <div class="form-group">
-                  <label class="label-bold" for="nome">{{ 'APP.LABEL.nome' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroupErogazioni" [controlName]="'nome'"></span>
-                </label>
-                <input class="form-control form-control-sm" id="nome" type="text" formControlName="nome" autocomplete="off">
-                @if (fe['nome'].invalid && (fe['nome'].dirty || fe['nome'].touched)) {
-                  <p class="form-text text-danger">
-                    @if (fe['nome'].errors && fe['nome'].errors['required']) {
-                      <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                    }
-                  </p>
-                }
-              </div>
-              <!--  -->
-            </div>
-            <div class="form-group col-md-2 mb-2">
-              <!-- versione -->
-              <div class="form-group">
-                <label class="label-bold" for="versione">{{ 'APP.LABEL.Version' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroupErogazioni" [controlName]="'versione'"></span>
-              </label>
-              <input class="form-control form-control-sm" id="versione" type="text" formControlName="versione" autocomplete="off">
-              @if (fe['versione'].invalid && (fe['versione'].dirty || fe['versione'].touched)) {
-                <p class="form-text text-danger">
-                  @if (fe['versione'].errors && fe['versione'].errors['required']) {
-                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                  }
-                </p>
-              }
-            </div>
-            <!--  -->
-          </div>
+          <app-erogazione-edit-form
+            [formGroup]="_editFormGroupErogazioni"
+            [error]="_error"
+            [errorMsg]="_errorMsg"
+          ></app-erogazione-edit-form>
         </div>
-
-        <div class="row">
-          <!-- url -->
-          <div class="form-group mb-2">
-            <label class="label-bold" for="url">{{ 'APP.LABEL.Url' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroupErogazioni" [controlName]="'url'"></span>
-          </label>
-          <input class="form-control form-control-sm" id="url" type="text" formControlName="url" autocomplete="off">
-          @if (fe['url'].invalid && (fe['url'].dirty || fe['url'].touched)) {
-            <p class="form-text text-danger">
-              @if (fe['url'].errors && fe['url'].errors['required']) {
-                <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-              }
-            </p>
-          }
-        </div>
-        <!--  -->
       </div>
-
-      <div class="row">
-        <!-- indirizzi_ip -->
-        <div class="form-group mb-2">
-          <label class="label-bold" for="indirizzi_ip">{{ 'APP.ADESIONI.TITLE.IPaddresses' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroupErogazioni" [controlName]="'indirizzi_ip'"></span>
-        </label>
-        <input class="form-control form-control-sm" id="indirizzi_ip" type="text" formControlName="indirizzi_ip" autocomplete="off">
-        @if (fe['indirizzi_ip'].invalid && (fe['indirizzi_ip'].dirty || fe['indirizzi_ip'].touched)) {
-          <p class="form-text text-danger">
-            @if (fe['indirizzi_ip'].errors && fe['indirizzi_ip'].errors['required']) {
-              <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-            }
-          </p>
+      <div class="modal-footer py-2">
+        <lnk-button
+          [label]="'APP.BUTTON.Close'"
+          (onAction)="closeModal()"
+        ></lnk-button>
+        @if ((erogaz | mapper:_isModifiableMapper)) {
+          <lnk-button
+            [type]="'submit'"
+            [label]="'APP.BUTTON.Save'"
+            [primary]="true"
+            [ariaLabel]="'APP.BUTTON.Save'"
+            [disabled]="_editFormGroupErogazioni.invalid || _saving"
+            [spinner]="_saving"
+          ></lnk-button>
         }
       </div>
-      <!--  -->
-    </div>
-
-  </fieldset>
-
-</div>
-
-@if (_error) {
-  <div class="gl-alert gl-alert-danger col-md-12 mb-5">
-    {{ _errorMsg }}
+    </form>
   </div>
-}
-
-</div>
-<div class="modal-footer py-2">
-  <lnk-button
-    [label]="'APP.BUTTON.Close'"
-    (onAction)="closeModal()"
-  ></lnk-button>
-  @if ((erogaz | mapper:_isModifiableMapper)) {
-    <lnk-button
-      [type]="'submit'"
-      [label]="'APP.BUTTON.Save'"
-      [primary]="true"
-      [ariaLabel]="'APP.BUTTON.Save'"
-      [disabled]="_editFormGroupErogazioni.invalid || _saving"
-      [spinner]="_saving"
-    ></lnk-button>
-  }
-</div>
-</form>
-</div>
 </ng-template>
 <!-- DIALOG EROGAZIONI [end] -->

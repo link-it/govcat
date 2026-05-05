@@ -96,6 +96,44 @@
                   }
                 </small>
               }
+              <!-- Pannello edit inline (Issue 254 NEW LAYOUT) — render del
+                   form di configurazione auth sotto la riga del client
+                   selezionato, sotto flag `inlineEdit`. Riusa
+                   `<app-client-auth-form>` cosi` com'e` con il modalInput
+                   condiviso col legacy modal. -->
+              @if (inlineEdit && _inlineEditingClient === item) {
+                <div class="adesione-inline-edit-panel border-top px-3 py-3">
+                  <form [formGroup]="_editFormGroupClients" (submit)="_onSaveModalClient(_editFormGroupClients.value)">
+                    <app-client-auth-form
+                      [input]="modalInput"
+                      [layout]="_dialogLayout"
+                      (selectCredenziali)="_onSelectCredenzialiOption($event)"
+                      (changeCredenziali)="onChangeCredenziali($event)"
+                      (changeTipoCertificato)="onChangeTipoCertificato($event)"
+                      (changeTipoCertificatoFirma)="onChangeTipoCertificatoFirma($event)"
+                      (descriptorChange)="_onDescriptorChange($event)"
+                      (descriptorChangeFirma)="_onDescriptorChangeFirma($event)"
+                      (downloadAllegato)="_downloadAllegato($event)"
+                    ></app-client-auth-form>
+                    <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
+                      <lnk-button
+                        [label]="'APP.BUTTON.Close'"
+                        (onAction)="closeModal()"
+                      ></lnk-button>
+                      @if (modalInput.formConfig.save.enabled) {
+                        <lnk-button
+                          [type]="'submit'"
+                          [label]="'APP.BUTTON.Save'"
+                          [primary]="true"
+                          [ariaLabel]="'APP.BUTTON.Save'"
+                          [disabled]="_editFormGroupClients.invalid || modalInput.saving"
+                          [spinner]="modalInput.saving"
+                        ></lnk-button>
+                      }
+                    </div>
+                  </form>
+                </div>
+              }
             </div>
           }
         </div>

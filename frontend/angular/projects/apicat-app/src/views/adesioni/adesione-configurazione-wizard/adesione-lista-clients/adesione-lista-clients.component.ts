@@ -30,6 +30,7 @@ import { COMPONENTS_IMPORTS, EventsManagerService, Tools, EventType } from '@lin
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 import { ModalEditClientComponent, ModalEditClientInput, ModalEditClientLayout } from './modal-edit-client/modal-edit-client.component';
+import { ClientAuthFormComponent } from '@app/components/client-auth-form/client-auth-form.component';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService, Certificato } from '@app/services/utils.service';
@@ -79,7 +80,8 @@ import { CkeckProvider, ClassiEnum, DataStructure } from '@app/provider/check.pr
         TooltipModule,
         NgSelectModule,
         MarkdownModule,
-        ModalEditClientComponent
+        ModalEditClientComponent,
+        ClientAuthFormComponent
     ]
 })
 export class AdesioneListaClientsComponent implements OnInit, OnDestroy {
@@ -97,6 +99,21 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy {
     @Input() dataCheck: DataStructure = { esito: 'ok', errori: [] };
     @Input() nextState: any = null;
     @Input() disclaimers: any[] = [];
+
+    /**
+     * Issue 254 NEW LAYOUT: quando attivo (`true`), il click sulla matita
+     * di un client NON apre piu` la dialog `ModalEditClientComponent` ma
+     * renderizza inline `<app-client-auth-form>` sotto la riga del client
+     * selezionato. Default `false` = comportamento legacy (modal).
+     */
+    @Input() inlineEdit: boolean = false;
+
+    /**
+     * Riferimento al client attualmente in edit inline (solo quando
+     * `inlineEdit=true`). `null` se nessuno e` aperto. Confrontato per
+     * reference con l'item della lista nel template.
+     */
+    _inlineEditingClient: any = null;
     
     completed: boolean = true;
 
@@ -490,7 +507,11 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy {
 
     closeModal(){
         this._arr_clients_riuso = [];
-        this._modalEditRef.hide();
+        // Sotto inlineEdit non e` mai stato creato un modalRef.
+        if (this._modalEditRef) {
+            this._modalEditRef.hide();
+        }
+        this._inlineEditingClient = null;
         this.isEditClient = false;
     }
 
@@ -551,7 +572,13 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy {
             next: () => {
                 const initData = isNewBranch ? this._currClient.source : this._currClient;
                 this._initEditFormClients(initData);
-                this._modalEditRef = this.modalService.show(this.editClients, _modalConfig);
+                if (this.inlineEdit) {
+                    // Issue 254 NEW LAYOUT: rendering inline del form auth
+                    // sotto la riga del client. Niente modalService.
+                    this._inlineEditingClient = client;
+                } else {
+                    this._modalEditRef = this.modalService.show(this.editClients, _modalConfig);
+                }
             },
             error: (error: any) => {
                 this._error = true;
