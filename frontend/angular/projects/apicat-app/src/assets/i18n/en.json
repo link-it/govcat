@@ -1293,6 +1293,11 @@
 								"INVALID": {
 									"ROLE": "An organization administrator cannot assign role [{{ruolo}}]",
 									"ORGS": "An organization administrator can create users only associated exclusively with the session organization"
+								},
+								"DOMINIO": {
+									"FUORI": {
+										"ORG": "Operation allowed only for domains of organization [{{orgNome}}]"
+									}
 								}
 							}
 						}

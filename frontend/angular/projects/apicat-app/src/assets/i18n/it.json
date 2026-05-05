@@ -1293,6 +1293,11 @@
 								"INVALID": {
 									"ROLE": "Un amministratore organizzazione non può assegnare il ruolo [{{ruolo}}]",
 									"ORGS": "Un amministratore organizzazione può creare utenti solo associati esclusivamente all'organizzazione di sessione"
+								},
+								"DOMINIO": {
+									"FUORI": {
+										"ORG": "Operazione consentita solo per i domini dell'organizzazione [{{orgNome}}]"
+									}
 								}
 							}
 						}
