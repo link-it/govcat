@@ -45,6 +45,7 @@ import org.govway.catalogo.core.orm.entity.ClasseUtenteEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Stato;
+import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity;
 import org.govway.catalogo.core.services.AziendaEsternaService;
 import org.govway.catalogo.core.services.ClasseUtenteService;
 import org.govway.catalogo.core.services.OrganizzazioneService;
@@ -291,12 +292,21 @@ public class UtentiController implements UtentiApi {
 
 				// Gestione filtro dashboard
 				if(dashboard != null && dashboard) {
-					// Il filtro dashboard è utilizzabile solo da GESTORE o COORDINATORE
-					if(!this.coreAuthorization.isAdmin() && !this.coreAuthorization.isCoordinatore()) {
+					if(this.coreAuthorization.isAdmin() || this.coreAuthorization.isCoordinatore()) {
+						// Gestore/coordinatore: utenti in NON_CONFIGURATO o PENDING_UPDATE
+						spec.setStati(Arrays.asList(Stato.NON_CONFIGURATO, Stato.PENDING_UPDATE));
+					} else if (this.coreAuthorization.hasRuoloInOrganizzazioneSessione(
+							org.govway.catalogo.core.orm.entity.RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
+						// AMM_ORG: solo richieste pending verso la propria organizzazione di sessione
+						OrganizzazioneEntity orgSessione = this.coreAuthorization.getOrganizzazioneSessione();
+						if (orgSessione == null) {
+							throw new NotAuthorizedException(ErrorCode.AUT_403);
+						}
+						spec.setStato(Optional.of(Stato.PENDING_UPDATE));
+						spec.setIdOrganizzazionePending(Optional.of(orgSessione.getId()));
+					} else {
 						throw new NotAuthorizedException(ErrorCode.AUT_403);
 					}
-					// Filtra utenti con stato NON_CONFIGURATO o PENDING_UPDATE
-					spec.setStati(Arrays.asList(Stato.NON_CONFIGURATO, Stato.PENDING_UPDATE));
 				}
 
 				CustomPageRequest pageable = new CustomPageRequest(page, size, sort,Arrays.asList("cognome", "nome"));
@@ -344,75 +354,57 @@ public class UtentiController implements UtentiApi {
 				this.authorization.authorizeUpdate(utenteUpdate, entity);
 				this.logger.debug("Autorizzazione completata con successo");
 
-				// Validazione per approvazione cambio organizzazione
+				// Approvazione richiesta cambio organizzazione: l'organizzazione di partenza viene
+				// sostituita da quella pending mantenendo le altre associazioni esistenti (multi-org).
 				boolean wasInPendingUpdate = entity.getStato().equals(Stato.PENDING_UPDATE);
-				UUID pendingOrgId = null;
 				if (wasInPendingUpdate) {
-					// Verifica che l'organizzazione inviata corrisponda a quella pending
 					if (entity.getOrganizzazionePending() == null) {
 						throw new BadRequestException(ErrorCode.GEN_400_REQUEST);
 					}
-					pendingOrgId = UUID.fromString(entity.getOrganizzazionePending().getIdOrganizzazione());
-					// Estrai l'id dell'unica organizzazione passata in update (modello multi-org)
-					UUID idOrgInUpdate = null;
+					UUID pendingOrgId = UUID.fromString(entity.getOrganizzazionePending().getIdOrganizzazione());
+
+					// Il payload deve contenere esattamente un'associazione per la pending org:
+					// porta il ruolo che l'approvatore vuole assegnare per quella org.
+					org.govway.catalogo.servlets.model.UtenteOrganizzazioneCreate inputOrg = null;
 					if (utenteUpdate.getOrganizzazioni() != null && utenteUpdate.getOrganizzazioni().size() == 1) {
-						idOrgInUpdate = utenteUpdate.getOrganizzazioni().get(0).getIdOrganizzazione();
+						inputOrg = utenteUpdate.getOrganizzazioni().get(0);
 					}
-					if (idOrgInUpdate == null || !idOrgInUpdate.equals(pendingOrgId)) {
+					if (inputOrg == null || !pendingOrgId.equals(inputOrg.getIdOrganizzazione())) {
 						throw new BadRequestException(ErrorCode.GEN_400_REQUEST);
 					}
-				}
 
-				// Gestione approvazione cambio organizzazione: se l'utente aveva già associazioni
-				// viene archiviato e creato un nuovo utente con la nuova organizzazione.
-				boolean haAssociazioniEsistenti = !this.service.findUtenteOrganizzazioniByUtente(entity).isEmpty();
-				if (wasInPendingUpdate && haAssociazioniEsistenti) {
-					String originalPrincipal = entity.getPrincipal();
+					// Ricostruisci la lista da passare a toEntity: tutte le associazioni esistenti tranne
+					// quella di partenza (se ancora presente), più la nuova associazione verso la pending org.
+					List<UtenteOrganizzazioneEntity> esistenti =
+							this.service.findUtenteOrganizzazioniByUtente(entity);
+					Long idPartenza = entity.getOrganizzazionePartenza() != null
+							? entity.getOrganizzazionePartenza().getId() : null;
 
-					// Costruisci UtenteCreate dai dati di UtenteUpdate
-					UtenteCreate utenteCreate = new UtenteCreate();
-					utenteCreate.setPrincipal(originalPrincipal);
-					utenteCreate.setNome(utenteUpdate.getNome());
-					utenteCreate.setCognome(utenteUpdate.getCognome());
-					utenteCreate.setTelefono(utenteUpdate.getTelefono());
-					utenteCreate.setEmail(utenteUpdate.getEmail());
-					utenteCreate.setTelefonoAziendale(utenteUpdate.getTelefonoAziendale());
-					utenteCreate.setEmailAziendale(utenteUpdate.getEmailAziendale());
-					utenteCreate.setNote(utenteUpdate.getNote());
-					utenteCreate.setRuolo(utenteUpdate.getRuolo());
-					utenteCreate.setClassiUtente(utenteUpdate.getClassiUtente());
-					// Imposta la nuova organizzazione (singola, da pending) come associazione e stato ABILITATO (forzato)
-					org.govway.catalogo.servlets.model.UtenteOrganizzazioneCreate uoc =
-							new org.govway.catalogo.servlets.model.UtenteOrganizzazioneCreate();
-					uoc.setIdOrganizzazione(pendingOrgId);
-					uoc.setRuoloOrganizzazione(
-							org.govway.catalogo.servlets.model.RuoloOrganizzazioneEnum.OPERATORE_API);
-					utenteCreate.setOrganizzazioni(List.of(uoc));
-					utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
+					List<org.govway.catalogo.servlets.model.UtenteOrganizzazioneCreate> ricostruite =
+							new java.util.ArrayList<>();
+					for (UtenteOrganizzazioneEntity a : esistenti) {
+						if (a.getOrganizzazione() == null) continue;
+						if (idPartenza != null && a.getOrganizzazione().getId().equals(idPartenza)) {
+							continue;
+						}
+						org.govway.catalogo.servlets.model.UtenteOrganizzazioneCreate uc =
+								new org.govway.catalogo.servlets.model.UtenteOrganizzazioneCreate();
+						uc.setIdOrganizzazione(UUID.fromString(a.getOrganizzazione().getIdOrganizzazione()));
+						uc.setRuoloOrganizzazione(
+								this.dettaglioAssembler.toRuoloOrganizzazioneEnum(a.getRuoloOrganizzazione()));
+						ricostruite.add(uc);
+					}
+					ricostruite.add(inputOrg);
 
-					// Crea nuovo utente tramite assembler
-					UtenteEntity nuovoUtente = this.dettaglioAssembler.toEntity(utenteCreate);
-
-					// Archivia utente vecchio: modifica principal e disabilita
-					entity.setPrincipal(originalPrincipal + ".archived." + System.currentTimeMillis());
-					entity.setStato(Stato.DISABILITATO);
-					entity.setOrganizzazionePending(null);
-
-					// Salva entrambi (flush per liberare il principal prima di inserire il nuovo utente)
-					this.service.saveAndFlush(entity);
-					this.service.save(nuovoUtente);
-
-					Utente model = this.dettaglioAssembler.toModel(nuovoUtente);
-					this.logger.info("Invocazione completata con successo - creato nuovo utente per cambio organizzazione");
-					return ResponseEntity.ok(model);
+					utenteUpdate.setOrganizzazioni(ricostruite);
 				}
 
 				this.dettaglioAssembler.toEntity(utenteUpdate, entity);
 
-				// Se era in PENDING_UPDATE senza organizzazione precedente, imposta stato ABILITATO e pulisci organizzazionePending
 				if (wasInPendingUpdate) {
 					entity.setStato(Stato.ABILITATO);
 					entity.setOrganizzazionePending(null);
+					entity.setOrganizzazionePartenza(null);
 				}
 
 				this.service.save(entity);
@@ -494,8 +486,46 @@ public class UtentiController implements UtentiApi {
 				OrganizzazioneEntity nuovaOrg = this.organizzazioneService.find(profiloOrganizationUpdate.getIdOrganizzazione())
 					.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404, Map.of("idOrganizzazione", profiloOrganizationUpdate.getIdOrganizzazione().toString())));
 
-				// Imposta organizzazione pending e stato
+				// Validazione organizzazione di partenza per supportare lo swap dell'associazione in
+				// approvazione (multi-org): se l'utente ha già associazioni serve sapere quale sostituire.
+				List<UtenteOrganizzazioneEntity> associazioniAttuali =
+						this.service.findUtenteOrganizzazioniByUtente(entity);
+
+				OrganizzazioneEntity orgPartenza = null;
+				if (!associazioniAttuali.isEmpty()) {
+					if (profiloOrganizationUpdate.getIdOrganizzazionePartenza() == null) {
+						throw new BadRequestException(ErrorCode.UT_400_ORG_PARTENZA_REQUIRED);
+					}
+					orgPartenza = this.organizzazioneService.find(profiloOrganizationUpdate.getIdOrganizzazionePartenza())
+							.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404,
+									Map.of("idOrganizzazione", profiloOrganizationUpdate.getIdOrganizzazionePartenza().toString())));
+
+					if (orgPartenza.getId().equals(nuovaOrg.getId())) {
+						throw new BadRequestException(ErrorCode.UT_400_ORG_PARTENZA_SAME_AS_TARGET);
+					}
+
+					Long idPartenza = orgPartenza.getId();
+					boolean partenzaPresente = associazioniAttuali.stream()
+							.anyMatch(a -> a.getOrganizzazione() != null
+									&& a.getOrganizzazione().getId().equals(idPartenza));
+					if (!partenzaPresente) {
+						throw new BadRequestException(ErrorCode.UT_400_ORG_PARTENZA_NOT_ASSOCIATED,
+								Map.of("orgNome", orgPartenza.getNome()));
+					}
+
+					Long idNuovaOrg = nuovaOrg.getId();
+					boolean targetGiaAssociato = associazioniAttuali.stream()
+							.anyMatch(a -> a.getOrganizzazione() != null
+									&& a.getOrganizzazione().getId().equals(idNuovaOrg));
+					if (targetGiaAssociato) {
+						throw new BadRequestException(ErrorCode.UT_400_ORG_PENDING_ALREADY_ASSOCIATED,
+								Map.of("orgNome", nuovaOrg.getNome()));
+					}
+				}
+
+				// Imposta organizzazione pending, partenza e stato
 				entity.setOrganizzazionePending(nuovaOrg);
+				entity.setOrganizzazionePartenza(orgPartenza);
 				entity.setStato(Stato.PENDING_UPDATE);
 
 				this.service.save(entity);

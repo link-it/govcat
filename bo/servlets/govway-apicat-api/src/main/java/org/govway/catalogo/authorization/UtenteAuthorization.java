@@ -100,6 +100,33 @@ public class UtenteAuthorization extends DefaultAuthorization<UtenteCreate,Utent
 
 	}
 
+	@Override
+	public void authorizeUpdate(UtenteUpdate update, UtenteEntity entity) {
+		try {
+			super.authorizeUpdate(update, entity);
+			return;
+		} catch (NotAuthorizedException e) {
+			// Path alternativo: AMM_ORG dell'organizzazione di sessione può approvare la richiesta
+			// di cambio organizzazione di un utente quando lui è target (organizzazionePending).
+			if (this.coreAuthorization.getUtenteSessione() == null) {
+				throw e;
+			}
+			if (!this.coreAuthorization.hasRuoloInOrganizzazioneSessione(
+					RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
+				throw e;
+			}
+			if (entity.getStato() != UtenteEntity.Stato.PENDING_UPDATE) {
+				throw new NotAuthorizedException(ErrorCode.AUT_403_AMM_ORG_NOT_TARGET);
+			}
+			OrganizzazioneEntity orgSessione = this.coreAuthorization.getOrganizzazioneSessione();
+			if (entity.getOrganizzazionePending() == null
+					|| orgSessione == null
+					|| !entity.getOrganizzazionePending().getId().equals(orgSessione.getId())) {
+				throw new NotAuthorizedException(ErrorCode.AUT_403_AMM_ORG_NOT_TARGET);
+			}
+		}
+	}
+
 	public void authorizeGetNotifiche(UtenteEntity entity) {
 
 		UtenteEntity utente = this.coreAuthorization.getUtenteSessione();

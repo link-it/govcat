@@ -9013,6 +9013,8 @@ components:
       properties:
         id_organizzazione:
           $ref: "#/components/schemas/IdOrganizzazione"
+        id_organizzazione_partenza:
+          $ref: "#/components/schemas/IdOrganizzazione"
     ItemUtentePublic:
       type: "object"
       required:
@@ -9137,6 +9139,8 @@ components:
         abilitato_domini_esterni:
           type: 'boolean'
         organizzazione_pending:
+          $ref: "#/components/schemas/ItemOrganizzazione"
+        organizzazione_partenza:
           $ref: "#/components/schemas/ItemOrganizzazione"
         organizzazioni:
           type: "array"

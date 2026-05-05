@@ -1298,6 +1298,9 @@
 									"FUORI": {
 										"ORG": "Operazione consentita solo per i domini dell'organizzazione [{{orgNome}}]"
 									}
+								},
+								"NOT": {
+									"TARGET": "Operazione consentita solo all'amministratore dell'organizzazione target della richiesta di cambio"
 								}
 							}
 						}
@@ -1628,7 +1631,23 @@
 							"ENABLED": "Utente [{{nomeUtente}} {{cognomeUtente}}] non abilitato"
 						},
 						"ORG": {
-							"MISMATCH": "Utente [{{nomeUtente}} {{cognomeUtente}}] non appartiene all'organizzazione [{{nomeOrganizzazione}}]"
+							"MISMATCH": "Utente [{{nomeUtente}} {{cognomeUtente}}] non appartiene all'organizzazione [{{nomeOrganizzazione}}]",
+							"PARTENZA": {
+								"REQUIRED": "Indicare l'organizzazione di partenza per la richiesta di cambio organizzazione",
+								"NOT": {
+									"ASSOCIATED": "L'organizzazione di partenza [{{orgNome}}] non risulta associata all'utente"
+								},
+								"SAME": {
+									"AS": {
+										"TARGET": "L'organizzazione di partenza non può coincidere con quella richiesta"
+									}
+								}
+							},
+							"PENDING": {
+								"ALREADY": {
+									"ASSOCIATED": "L'utente è già associato all'organizzazione [{{orgNome}}]"
+								}
+							}
 						}
 					},
 					"403": {

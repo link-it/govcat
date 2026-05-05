@@ -78,6 +78,10 @@ public class UtenteEntity {
     @JoinColumn(name = "id_organizzazione_pending", referencedColumnName = "id")
 	private OrganizzazioneEntity organizzazionePending;
 
+	@ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_organizzazione_partenza", referencedColumnName = "id")
+	private OrganizzazioneEntity organizzazionePartenza;
+
     @Column(nullable=false)
 	private String nome;
     

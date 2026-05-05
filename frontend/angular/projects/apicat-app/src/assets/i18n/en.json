@@ -1298,6 +1298,9 @@
 									"FUORI": {
 										"ORG": "Operation allowed only for domains of organization [{{orgNome}}]"
 									}
+								},
+								"NOT": {
+									"TARGET": "Operation allowed only to the administrator of the target organization of the change request"
 								}
 							}
 						}
@@ -1628,7 +1631,23 @@
 							"ENABLED": "User [{{nomeUtente}} {{cognomeUtente}}] not enabled"
 						},
 						"ORG": {
-							"MISMATCH": "User [{{nomeUtente}} {{cognomeUtente}}] does not belong to organization [{{nomeOrganizzazione}}]"
+							"MISMATCH": "User [{{nomeUtente}} {{cognomeUtente}}] does not belong to organization [{{nomeOrganizzazione}}]",
+							"PARTENZA": {
+								"REQUIRED": "Specify the source organization for the organization change request",
+								"NOT": {
+									"ASSOCIATED": "Source organization [{{orgNome}}] is not associated with the user"
+								},
+								"SAME": {
+									"AS": {
+										"TARGET": "Source organization cannot be the same as the requested target"
+									}
+								}
+							},
+							"PENDING": {
+								"ALREADY": {
+									"ASSOCIATED": "User is already associated with organization [{{orgNome}}]"
+								}
+							}
 						}
 					},
 					"403": {

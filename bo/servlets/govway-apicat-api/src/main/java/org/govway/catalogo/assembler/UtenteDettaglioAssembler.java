@@ -107,6 +107,10 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 			dettaglio.setOrganizzazionePending(organizzazioneItemAssembler.toModel(entity.getOrganizzazionePending()));
 		}
 
+		if(entity.getOrganizzazionePartenza()!=null) {
+			dettaglio.setOrganizzazionePartenza(organizzazioneItemAssembler.toModel(entity.getOrganizzazionePartenza()));
+		}
+
 		if(entity.getRuolo()!=null) {
 			dettaglio.setRuolo(utenteEngineAssembler.toRuolo(entity.getRuolo()));
 		}
@@ -302,7 +306,7 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 	/**
 	 * Mapping da enum interno RuoloOrganizzazione a enum API RuoloOrganizzazioneEnum.
 	 */
-	private RuoloOrganizzazioneEnum toRuoloOrganizzazioneEnum(RuoloOrganizzazione ruolo) {
+	public RuoloOrganizzazioneEnum toRuoloOrganizzazioneEnum(RuoloOrganizzazione ruolo) {
 		switch (ruolo) {
 		case AMMINISTRATORE_ORGANIZZAZIONE:
 			return RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE;

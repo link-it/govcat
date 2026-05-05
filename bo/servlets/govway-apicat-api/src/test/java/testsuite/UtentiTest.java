@@ -163,6 +163,11 @@ public class UtentiTest {
         when(this.mailSender.createMimeMessage()).thenReturn(new jakarta.mail.internet.MimeMessage((jakarta.mail.Session) null));
 
         SecurityContextHolder.setContext(this.securityContext);
+
+        // Reset stato bean request-scoped tra un test e l'altro
+        organizationContext.setIdOrganizzazione(null);
+        organizationContext.setRuoloOrganizzazione(null);
+        organizationContext.setInitialized(false);
     }
 
     @AfterEach
@@ -1625,6 +1630,7 @@ public class UtentiTest {
         // Richiesta di cambio organizzazione
         ProfiloOrganizationUpdate request = new ProfiloOrganizationUpdate();
         request.setIdOrganizzazione(responseOrganizzazione2.getBody().getIdOrganizzazione());
+        request.setIdOrganizzazionePartenza(responseOrganizzazione1.getBody().getIdOrganizzazione());
 
         ResponseEntity<Utente> response = controller.updateProfiloOrganization(request);
 
@@ -1717,6 +1723,7 @@ public class UtentiTest {
         // Prima richiesta di cambio organizzazione
         ProfiloOrganizationUpdate request1 = new ProfiloOrganizationUpdate();
         request1.setIdOrganizzazione(responseOrganizzazione2.getBody().getIdOrganizzazione());
+        request1.setIdOrganizzazionePartenza(responseOrganizzazione1.getBody().getIdOrganizzazione());
 
         ResponseEntity<Utente> response1 = controller.updateProfiloOrganization(request1);
         assertEquals(responseOrganizzazione2.getBody().getIdOrganizzazione(), response1.getBody().getOrganizzazionePending().getIdOrganizzazione());
@@ -1724,6 +1731,7 @@ public class UtentiTest {
         // Seconda richiesta di cambio organizzazione (deve sovrascrivere la prima)
         ProfiloOrganizationUpdate request2 = new ProfiloOrganizationUpdate();
         request2.setIdOrganizzazione(responseOrganizzazione3.getBody().getIdOrganizzazione());
+        request2.setIdOrganizzazionePartenza(responseOrganizzazione1.getBody().getIdOrganizzazione());
 
         ResponseEntity<Utente> response2 = controller.updateProfiloOrganization(request2);
 
@@ -1763,6 +1771,7 @@ public class UtentiTest {
         // Richiesta di cambio organizzazione
         ProfiloOrganizationUpdate request = new ProfiloOrganizationUpdate();
         request.setIdOrganizzazione(responseOrganizzazione2.getBody().getIdOrganizzazione());
+        request.setIdOrganizzazionePartenza(responseOrganizzazione1.getBody().getIdOrganizzazione());
 
         // Un utente con ruolo REFERENTE_SERVIZIO deve poter richiedere il cambio organizzazione
         ResponseEntity<Utente> response = controller.updateProfiloOrganization(request);
@@ -2474,6 +2483,341 @@ public class UtentiTest {
         ResponseEntity<List<String>> list = controller.listAziendeEsterne(null, 0, 25, null);
         assertEquals(1, list.getBody().size());
         assertEquals("Da Rimuovere SRL", list.getBody().get(0));
+    }
+
+    // =========================================================================
+    // Test approvazione richiesta cambio organizzazione (multi-org)
+    // =========================================================================
+
+    private Organizzazione creaOrgConNomeMultiOrg(String nome) {
+        var oc = CommonUtils.getOrganizzazioneCreate();
+        oc.setNome(nome);
+        oc.setCodiceEnte(nome);
+        oc.setCodiceFiscaleSoggetto(nome);
+        return organizzazioniController.createOrganizzazione(oc).getBody();
+    }
+
+    private Utente creaUtenteAssociatoA(String principal, List<UUID> idOrgs, RuoloOrganizzazioneEnum ruolo) {
+        UtenteCreate uc = CommonUtils.getUtenteCreate();
+        uc.setPrincipal(principal);
+        uc.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        uc.setStato(StatoUtenteEnum.ABILITATO);
+        List<UtenteOrganizzazioneCreate> assoc = new java.util.ArrayList<>();
+        for (UUID id : idOrgs) {
+            UtenteOrganizzazioneCreate a = new UtenteOrganizzazioneCreate();
+            a.setIdOrganizzazione(id);
+            a.setRuoloOrganizzazione(ruolo);
+            assoc.add(a);
+        }
+        uc.setOrganizzazioni(assoc);
+        return controller.createUtente(uc).getBody();
+    }
+
+    private void autenticaPrincipal(String principal) {
+        InfoProfilo info = new InfoProfilo(principal,
+                this.utenteService.findByPrincipal(principal).get(), List.of());
+        when(this.authentication.getPrincipal()).thenReturn(info);
+    }
+
+    private void setOrgContextSu(UUID idOrgUuid, RuoloOrganizzazione ruolo) {
+        Long idLong = organizzazioneService.find(idOrgUuid).get().getId();
+        organizationContext.setIdOrganizzazione(idLong);
+        organizationContext.setRuoloOrganizzazione(ruolo);
+        organizationContext.setInitialized(true);
+    }
+
+    private UtenteUpdate buildApprovazioneUpdate(Utente utenteAttuale, UUID idOrgPending, RuoloOrganizzazioneEnum ruoloAssegnato) {
+        UtenteUpdate uu = new UtenteUpdate();
+        uu.setPrincipal(utenteAttuale.getPrincipal());
+        uu.setNome(utenteAttuale.getNome());
+        uu.setCognome(utenteAttuale.getCognome());
+        uu.setEmail(utenteAttuale.getEmail());
+        uu.setEmailAziendale(utenteAttuale.getEmailAziendale());
+        uu.setTelefonoAziendale(utenteAttuale.getTelefonoAziendale());
+        uu.setStato(StatoUtenteEnum.ABILITATO);
+        uu.setRuolo(utenteAttuale.getRuolo());
+        UtenteOrganizzazioneCreate uoc = new UtenteOrganizzazioneCreate();
+        uoc.setIdOrganizzazione(idOrgPending);
+        uoc.setRuoloOrganizzazione(ruoloAssegnato);
+        uu.setOrganizzazioni(List.of(uoc));
+        return uu;
+    }
+
+    @Test
+    public void testUpdateProfiloOrganization_OrgPartenzaSameAsTarget_BadRequest() {
+        Organizzazione org1 = creaOrgConNomeMultiOrg("ucp-same");
+        Utente utente = creaUtenteAssociatoA("ucp.same", List.of(org1.getIdOrganizzazione()),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+        autenticaPrincipal(utente.getPrincipal());
+
+        ProfiloOrganizationUpdate req = new ProfiloOrganizationUpdate();
+        req.setIdOrganizzazione(org1.getIdOrganizzazione());
+        req.setIdOrganizzazionePartenza(org1.getIdOrganizzazione());
+
+        var ex = assertThrows(org.govway.catalogo.exception.BadRequestException.class,
+                () -> controller.updateProfiloOrganization(req));
+        assertEquals("UT.400.ORG.PARTENZA.SAME.AS.TARGET", ex.getMessage());
+    }
+
+    @Test
+    public void testUpdateProfiloOrganization_OrgPartenzaNotAssociated_BadRequest() {
+        Organizzazione org1 = creaOrgConNomeMultiOrg("ucp-no-assoc-1");
+        Organizzazione org2 = creaOrgConNomeMultiOrg("ucp-no-assoc-2");
+        Organizzazione orgEstranea = creaOrgConNomeMultiOrg("ucp-no-assoc-estranea");
+        Utente utente = creaUtenteAssociatoA("ucp.noassoc", List.of(org1.getIdOrganizzazione()),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+        autenticaPrincipal(utente.getPrincipal());
+
+        ProfiloOrganizationUpdate req = new ProfiloOrganizationUpdate();
+        req.setIdOrganizzazione(org2.getIdOrganizzazione());
+        req.setIdOrganizzazionePartenza(orgEstranea.getIdOrganizzazione()); // non associata all'utente
+
+        var ex = assertThrows(org.govway.catalogo.exception.BadRequestException.class,
+                () -> controller.updateProfiloOrganization(req));
+        assertEquals("UT.400.ORG.PARTENZA.NOT.ASSOCIATED", ex.getMessage());
+    }
+
+    @Test
+    public void testUpdateProfiloOrganization_TargetGiaAssociata_BadRequest() {
+        Organizzazione orgX = creaOrgConNomeMultiOrg("ucp-already-x");
+        Organizzazione orgY = creaOrgConNomeMultiOrg("ucp-already-y");
+        Utente utente = creaUtenteAssociatoA("ucp.already",
+                List.of(orgX.getIdOrganizzazione(), orgY.getIdOrganizzazione()),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+        autenticaPrincipal(utente.getPrincipal());
+
+        ProfiloOrganizationUpdate req = new ProfiloOrganizationUpdate();
+        req.setIdOrganizzazione(orgY.getIdOrganizzazione()); // già associato a Y
+        req.setIdOrganizzazionePartenza(orgX.getIdOrganizzazione());
+
+        var ex = assertThrows(org.govway.catalogo.exception.BadRequestException.class,
+                () -> controller.updateProfiloOrganization(req));
+        assertEquals("UT.400.ORG.PENDING.ALREADY.ASSOCIATED", ex.getMessage());
+    }
+
+    @Test
+    public void testUpdateProfiloOrganization_UtenteSenzaAssociazioni_OK() {
+        Organizzazione org = creaOrgConNomeMultiOrg("ucp-noassoc-target");
+        Utente utente = creaUtenteAssociatoA("ucp.noassoc.user", List.of(),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+        autenticaPrincipal(utente.getPrincipal());
+
+        ProfiloOrganizationUpdate req = new ProfiloOrganizationUpdate();
+        req.setIdOrganizzazione(org.getIdOrganizzazione()); // niente partenza, è permesso
+
+        ResponseEntity<Utente> resp = controller.updateProfiloOrganization(req);
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertEquals(StatoUtenteEnum.PENDING_UPDATE, resp.getBody().getStato());
+        assertNotNull(resp.getBody().getOrganizzazionePending());
+        assertNull(resp.getBody().getOrganizzazionePartenza());
+    }
+
+    @Test
+    public void testApprovazione_DaGestore_SwapAssociazioneSingleOrg() {
+        Organizzazione orgX = creaOrgConNomeMultiOrg("appr-gest-x");
+        Organizzazione orgY = creaOrgConNomeMultiOrg("appr-gest-y");
+        Utente utente = creaUtenteAssociatoA("appr.gest.single",
+                List.of(orgX.getIdOrganizzazione()),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+        UUID idUtenteOriginale = utente.getIdUtente();
+
+        // Richiesta come utente
+        autenticaPrincipal(utente.getPrincipal());
+        ProfiloOrganizationUpdate req = new ProfiloOrganizationUpdate();
+        req.setIdOrganizzazione(orgY.getIdOrganizzazione());
+        req.setIdOrganizzazionePartenza(orgX.getIdOrganizzazione());
+        controller.updateProfiloOrganization(req);
+
+        // Approvazione come gestore con ruolo AMMINISTRATORE_ORGANIZZAZIONE su Y
+        autenticaPrincipal(UTENTE_GESTORE);
+        UtenteUpdate uu = buildApprovazioneUpdate(utente, orgY.getIdOrganizzazione(),
+                RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+        ResponseEntity<Utente> resp = controller.updateUtente(utente.getIdUtente(), uu);
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertEquals(StatoUtenteEnum.ABILITATO, resp.getBody().getStato());
+        assertNull(resp.getBody().getOrganizzazionePending());
+        assertNull(resp.getBody().getOrganizzazionePartenza());
+        // Stesso idUtente: niente più archive+recreate
+        assertEquals(idUtenteOriginale, resp.getBody().getIdUtente());
+        assertEquals("appr.gest.single", resp.getBody().getPrincipal());
+        // Una sola associazione, su Y, con il ruolo deciso
+        assertEquals(1, resp.getBody().getOrganizzazioni().size());
+        assertEquals(orgY.getIdOrganizzazione(),
+                resp.getBody().getOrganizzazioni().get(0).getOrganizzazione().getIdOrganizzazione());
+        assertEquals(RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE,
+                resp.getBody().getOrganizzazioni().get(0).getRuoloOrganizzazione());
+    }
+
+    @Test
+    public void testApprovazione_DaGestore_SwapMantenendoAltreAssociazioni() {
+        Organizzazione orgA = creaOrgConNomeMultiOrg("appr-multi-a");
+        Organizzazione orgB = creaOrgConNomeMultiOrg("appr-multi-b");
+        Organizzazione orgC = creaOrgConNomeMultiOrg("appr-multi-c");
+        Utente utente = creaUtenteAssociatoA("appr.multi",
+                List.of(orgA.getIdOrganizzazione(), orgB.getIdOrganizzazione()),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+
+        autenticaPrincipal(utente.getPrincipal());
+        ProfiloOrganizationUpdate req = new ProfiloOrganizationUpdate();
+        req.setIdOrganizzazione(orgC.getIdOrganizzazione());
+        req.setIdOrganizzazionePartenza(orgA.getIdOrganizzazione()); // sostituisce A con C, mantiene B
+        controller.updateProfiloOrganization(req);
+
+        autenticaPrincipal(UTENTE_GESTORE);
+        UtenteUpdate uu = buildApprovazioneUpdate(utente, orgC.getIdOrganizzazione(),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+        ResponseEntity<Utente> resp = controller.updateUtente(utente.getIdUtente(), uu);
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertEquals(StatoUtenteEnum.ABILITATO, resp.getBody().getStato());
+        // Deve avere B e C, non più A
+        assertEquals(2, resp.getBody().getOrganizzazioni().size());
+        boolean hasB = resp.getBody().getOrganizzazioni().stream().anyMatch(uo ->
+                orgB.getIdOrganizzazione().equals(uo.getOrganizzazione().getIdOrganizzazione()));
+        boolean hasC = resp.getBody().getOrganizzazioni().stream().anyMatch(uo ->
+                orgC.getIdOrganizzazione().equals(uo.getOrganizzazione().getIdOrganizzazione()));
+        boolean hasA = resp.getBody().getOrganizzazioni().stream().anyMatch(uo ->
+                orgA.getIdOrganizzazione().equals(uo.getOrganizzazione().getIdOrganizzazione()));
+        assertTrue(hasB, "Associazione B deve essere mantenuta");
+        assertTrue(hasC, "Associazione C deve essere aggiunta");
+        assertFalse(hasA, "Associazione A deve essere rimossa");
+    }
+
+    @Test
+    public void testApprovazione_DaAmmOrgTarget_OK() {
+        Organizzazione orgX = creaOrgConNomeMultiOrg("appr-amm-x");
+        Organizzazione orgY = creaOrgConNomeMultiOrg("appr-amm-y");
+
+        // Utente richiedente, OPERATORE_API su X
+        Utente utente = creaUtenteAssociatoA("appr.amm.user",
+                List.of(orgX.getIdOrganizzazione()),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+
+        // AMM_ORG di Y (creato come gestore)
+        creaUtenteAssociatoA("appr.amm.target",
+                List.of(orgY.getIdOrganizzazione()),
+                RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+
+        // Richiesta come utente
+        autenticaPrincipal(utente.getPrincipal());
+        ProfiloOrganizationUpdate req = new ProfiloOrganizationUpdate();
+        req.setIdOrganizzazione(orgY.getIdOrganizzazione());
+        req.setIdOrganizzazionePartenza(orgX.getIdOrganizzazione());
+        controller.updateProfiloOrganization(req);
+
+        // Approvazione come AMM_ORG di Y
+        autenticaPrincipal("appr.amm.target");
+        setOrgContextSu(orgY.getIdOrganizzazione(), RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+
+        UtenteUpdate uu = buildApprovazioneUpdate(utente, orgY.getIdOrganizzazione(),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+        ResponseEntity<Utente> resp = controller.updateUtente(utente.getIdUtente(), uu);
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertEquals(StatoUtenteEnum.ABILITATO, resp.getBody().getStato());
+        assertEquals(1, resp.getBody().getOrganizzazioni().size());
+        assertEquals(orgY.getIdOrganizzazione(),
+                resp.getBody().getOrganizzazioni().get(0).getOrganizzazione().getIdOrganizzazione());
+    }
+
+    @Test
+    public void testApprovazione_DaAmmOrgAltraOrg_Forbidden() {
+        Organizzazione orgX = creaOrgConNomeMultiOrg("appr-altra-x");
+        Organizzazione orgY = creaOrgConNomeMultiOrg("appr-altra-y");
+        Organizzazione orgZ = creaOrgConNomeMultiOrg("appr-altra-z");
+
+        Utente utente = creaUtenteAssociatoA("appr.altra.user",
+                List.of(orgX.getIdOrganizzazione()),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+
+        // AMM_ORG di Z (NON il target)
+        creaUtenteAssociatoA("appr.altra.amm",
+                List.of(orgZ.getIdOrganizzazione()),
+                RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+
+        autenticaPrincipal(utente.getPrincipal());
+        ProfiloOrganizationUpdate req = new ProfiloOrganizationUpdate();
+        req.setIdOrganizzazione(orgY.getIdOrganizzazione());
+        req.setIdOrganizzazionePartenza(orgX.getIdOrganizzazione());
+        controller.updateProfiloOrganization(req);
+
+        autenticaPrincipal("appr.altra.amm");
+        setOrgContextSu(orgZ.getIdOrganizzazione(), RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+
+        UtenteUpdate uu = buildApprovazioneUpdate(utente, orgY.getIdOrganizzazione(),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+        var ex = assertThrows(NotAuthorizedException.class,
+                () -> controller.updateUtente(utente.getIdUtente(), uu));
+        assertEquals("AUT.403.AMM.ORG.NOT.TARGET", ex.getMessage());
+    }
+
+    @Test
+    public void testApprovazione_AmmOrgSuUtenteNonPending_Forbidden() {
+        Organizzazione orgY = creaOrgConNomeMultiOrg("appr-nopend-y");
+
+        Utente utente = creaUtenteAssociatoA("appr.nopend.user", List.of(),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+        // utente NON è in PENDING_UPDATE
+
+        creaUtenteAssociatoA("appr.nopend.amm",
+                List.of(orgY.getIdOrganizzazione()),
+                RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+
+        autenticaPrincipal("appr.nopend.amm");
+        setOrgContextSu(orgY.getIdOrganizzazione(), RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+
+        UtenteUpdate uu = buildApprovazioneUpdate(utente, orgY.getIdOrganizzazione(),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+        var ex = assertThrows(NotAuthorizedException.class,
+                () -> controller.updateUtente(utente.getIdUtente(), uu));
+        assertEquals("AUT.403.AMM.ORG.NOT.TARGET", ex.getMessage());
+    }
+
+    @Test
+    public void testListUtentiDashboard_AmmOrg_FiltraOrgPending() {
+        Organizzazione orgX = creaOrgConNomeMultiOrg("dash-x");
+        Organizzazione orgY = creaOrgConNomeMultiOrg("dash-y");
+        Organizzazione orgZ = creaOrgConNomeMultiOrg("dash-z");
+
+        // Tre utenti: utenteA richiede passaggio a Y, utenteB richiede passaggio a Z, utenteC abilitato
+        Utente utenteA = creaUtenteAssociatoA("dash.user.a",
+                List.of(orgX.getIdOrganizzazione()), RuoloOrganizzazioneEnum.OPERATORE_API);
+        Utente utenteB = creaUtenteAssociatoA("dash.user.b",
+                List.of(orgX.getIdOrganizzazione()), RuoloOrganizzazioneEnum.OPERATORE_API);
+        creaUtenteAssociatoA("dash.user.c",
+                List.of(orgY.getIdOrganizzazione()), RuoloOrganizzazioneEnum.OPERATORE_API);
+
+        autenticaPrincipal(utenteA.getPrincipal());
+        ProfiloOrganizationUpdate reqA = new ProfiloOrganizationUpdate();
+        reqA.setIdOrganizzazione(orgY.getIdOrganizzazione());
+        reqA.setIdOrganizzazionePartenza(orgX.getIdOrganizzazione());
+        controller.updateProfiloOrganization(reqA);
+
+        autenticaPrincipal(utenteB.getPrincipal());
+        ProfiloOrganizationUpdate reqB = new ProfiloOrganizationUpdate();
+        reqB.setIdOrganizzazione(orgZ.getIdOrganizzazione());
+        reqB.setIdOrganizzazionePartenza(orgX.getIdOrganizzazione());
+        controller.updateProfiloOrganization(reqB);
+
+        // Crea AMM_ORG di Y come gestore (createUtente richiede gestore)
+        autenticaPrincipal(UTENTE_GESTORE);
+        creaUtenteAssociatoA("dash.amm.y",
+                List.of(orgY.getIdOrganizzazione()),
+                RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+        autenticaPrincipal("dash.amm.y");
+        setOrgContextSu(orgY.getIdOrganizzazione(), RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+
+        ResponseEntity<?> respList = controller.listUtenti(null, null, null, null, null, null, null, true, null, 0, 50, null);
+        assertEquals(HttpStatus.OK, respList.getStatusCode());
+        org.govway.catalogo.servlets.model.PagedModelItemUtente body =
+                (org.govway.catalogo.servlets.model.PagedModelItemUtente) respList.getBody();
+        boolean hasA = body.getContent().stream().anyMatch(u -> "dash.user.a".equals(u.getPrincipal()));
+        boolean hasB = body.getContent().stream().anyMatch(u -> "dash.user.b".equals(u.getPrincipal()));
+        boolean hasC = body.getContent().stream().anyMatch(u -> "dash.user.c".equals(u.getPrincipal()));
+        assertTrue(hasA, "AMM_ORG di Y deve vedere utenteA (pending verso Y)");
+        assertFalse(hasB, "AMM_ORG di Y NON deve vedere utenteB (pending verso Z)");
+        assertFalse(hasC, "AMM_ORG di Y NON deve vedere utenteC (abilitato non pending)");
     }
 }
 

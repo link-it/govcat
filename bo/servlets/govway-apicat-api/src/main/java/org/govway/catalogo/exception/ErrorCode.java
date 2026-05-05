@@ -208,6 +208,18 @@ public enum ErrorCode {
     /** Ruolo coordinatore non abilitato nella configurazione */
     UT_400_COORDINATORE_DISABLED("Ruolo coordinatore non abilitato"),
 
+    /** Richiesta cambio organizzazione: organizzazione di partenza obbligatoria quando l'utente ha già associazioni */
+    UT_400_ORG_PARTENZA_REQUIRED("Organizzazione di partenza obbligatoria per richiesta cambio organizzazione"),
+
+    /** Richiesta cambio organizzazione: organizzazione di partenza non corrisponde a una delle associazioni dell'utente */
+    UT_400_ORG_PARTENZA_NOT_ASSOCIATED("Organizzazione di partenza non associata all'utente"),
+
+    /** Richiesta cambio organizzazione: organizzazione di partenza coincide con quella target */
+    UT_400_ORG_PARTENZA_SAME_AS_TARGET("Organizzazione di partenza e organizzazione richiesta non possono coincidere"),
+
+    /** Richiesta cambio organizzazione: utente già associato all'organizzazione richiesta */
+    UT_400_ORG_PENDING_ALREADY_ASSOCIATED("Utente già associato all'organizzazione richiesta"),
+
     // ==================== CLASSI UTENTE ====================
 
     /** Classe utente non trovata */
@@ -450,6 +462,9 @@ public enum ErrorCode {
 
     /** Un amministratore organizzazione può operare solo sui domini il cui soggetto referente appartiene alla propria organizzazione di sessione */
     AUT_403_AMM_ORG_DOMINIO_FUORI_ORG("Dominio non appartenente all'organizzazione di sessione dell'amministratore"),
+
+    /** Un amministratore organizzazione può approvare la richiesta cambio organizzazione solo quando è amministratore dell'organizzazione target */
+    AUT_403_AMM_ORG_NOT_TARGET("L'amministratore non è target della richiesta di cambio organizzazione"),
 
     /** Token di autenticazione non valido */
     AUT_401_TOKEN("Token non valido"),

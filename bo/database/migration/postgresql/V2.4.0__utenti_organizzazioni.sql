@@ -42,6 +42,12 @@ CREATE TABLE aziende_esterne (
 ALTER TABLE utenti ADD COLUMN id_azienda_esterna BIGINT;
 ALTER TABLE utenti ADD CONSTRAINT fk_utenti_azienda_esterna FOREIGN KEY (id_azienda_esterna) REFERENCES aziende_esterne(id);
 
+-- Nuova FK opzionale: organizzazione di partenza nella richiesta di cambio organizzazione.
+-- Usata insieme a id_organizzazione_pending per identificare quale associazione esistente
+-- dell'utente verrà sostituita in fase di approvazione (necessaria con multi-org).
+ALTER TABLE utenti ADD COLUMN id_organizzazione_partenza BIGINT;
+ALTER TABLE utenti ADD CONSTRAINT fk_utenti_organizzazione_partenza FOREIGN KEY (id_organizzazione_partenza) REFERENCES organizations(id);
+
 -- ===== Migrazione dati =====
 
 -- 1. Utenti REFERENTE_SERVIZIO con organizzazione e referente_tecnico=false:

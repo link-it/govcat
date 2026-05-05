@@ -495,6 +495,7 @@ create sequence seq_aziende_esterne start with 1 increment by 1;
         tipi_entita_notifiche_abilitate varchar(255),
         tipi_notifiche_abilitate varchar(255),
         id_organizzazione_pending bigint,
+        id_organizzazione_partenza bigint,
         id_azienda_esterna bigint,
         primary key (id)
     );
@@ -980,6 +981,11 @@ create sequence seq_aziende_esterne start with 1 increment by 1;
     alter table utenti
        add constraint FK_utenti_org_pending
        foreign key (id_organizzazione_pending)
+       references organizations;
+
+    alter table utenti
+       add constraint FK_utenti_org_partenza
+       foreign key (id_organizzazione_partenza)
        references organizations;
 
     alter table utenti_classi 

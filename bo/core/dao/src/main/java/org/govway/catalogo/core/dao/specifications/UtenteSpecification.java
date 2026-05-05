@@ -52,6 +52,7 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 	private Optional<Stato> stato = Optional.empty();
 	private List<Stato> stati = null;
 	private Optional<UUID> idOrganizzazione = Optional.empty();
+	private Optional<Long> idOrganizzazionePending = Optional.empty();
 	private List<ClasseUtenteEntity> idClassiUtente = null;
 	private Optional<String> email = Optional.empty();
 	private Optional<String> emailAziendale = Optional.empty();
@@ -132,6 +133,12 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 							idOrgStr));
 
 			predLst.add(root.get(UtenteEntity_.id).in(sub));
+		}
+
+		if (idOrganizzazionePending.isPresent()) {
+			predLst.add(cb.equal(
+					root.get(UtenteEntity_.organizzazionePending).get(OrganizzazioneEntity_.id),
+					idOrganizzazionePending.get()));
 		}
 		
 		if (email.isPresent()) {
@@ -252,6 +259,14 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 
 	public void setIdOrganizzazione(Optional<UUID> idOrganizzazione) {
 		this.idOrganizzazione = idOrganizzazione;
+	}
+
+	public Optional<Long> getIdOrganizzazionePending() {
+		return idOrganizzazionePending;
+	}
+
+	public void setIdOrganizzazionePending(Optional<Long> idOrganizzazionePending) {
+		this.idOrganizzazionePending = idOrganizzazionePending;
 	}
 
 	public Optional<String> getEmail() {
