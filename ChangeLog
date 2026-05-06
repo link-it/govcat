@@ -1,6 +1,15 @@
 2026-05-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 254: estratto `ng-template #workflowErrorTpl` nel
+	  wizard adesione per de-duplicare il rendering degli
+	  errori di cambio stato. Il frammento (~28 righe con
+	  switch `wizardNewLayout` fra `<app-error-view-card>` e
+	  `<ui-error-view>`) era ripetuto in 4 punti del template;
+	  ora c'e` un'unica definizione e i call site usano
+	  `<ng-container *ngTemplateOutlet="workflowErrorTpl">`.
+
+	* [Frontend]
 	Issue 254: polish stili `client-auth-form` e
 	  `file-dropzone` per il nuovo wizard:
 	  - `client-auth-form`: nuovi stili `.row-content-block`,

@@ -76,29 +76,8 @@
         <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="2"></ui-box-spinner>
       }
 
-      @if (_error && false) {
-        @if (!_errors.length) {
-          <div class="gl-alert gl-alert-danger col-md-12 mb-5">
-            <span>{{ _errorMsg }}</span>
-          </div>
-        }
-        @if (_errors.length > 0) {
-          @if (wizardNewLayout) {
-            <app-error-view-card
-              [errTitle]="'APP.WORKFLOW.ERROR.CambioStato' | translate:{from: _fromStatus, to: _toStatus}"
-              [errors]="_errors"
-              [showClose]="true"
-              (onClose)="resetError()"
-            ></app-error-view-card>
-          } @else {
-            <ui-error-view
-              [errTitle]="'APP.WORKFLOW.ERROR.CambioStato' | translate:{from: _fromStatus, to: _toStatus}"
-              [errors]="_errors"
-              [showClose]="true"
-              (onClose)="resetError()"
-            ></ui-error-view>
-          }
-        }
+      @if (false) {
+        <ng-container *ngTemplateOutlet="workflowErrorTpl"></ng-container>
       }
 
       @if (adesione && !spin) {
@@ -675,30 +654,7 @@
             <!-- Nascosto sotto il nuovo layout: il pulsante e' gia'
                  reso nel footer del sub-step attivo. -->
             @if (!wizardNewLayout && hasNextStateWorkflow() && _hasCambioStato()) {
-              @if (_error) {
-                @if (!_errors.length) {
-                  <div class="gl-alert gl-alert-danger col-md-12 mb-5">
-                    <span>{{ _errorMsg }}</span>
-                  </div>
-                }
-                @if (_errors.length > 0) {
-                  @if (wizardNewLayout) {
-                    <app-error-view-card
-                      [errTitle]="'APP.WORKFLOW.ERROR.CambioStato' | translate:{from: _fromStatus, to: _toStatus}"
-                      [errors]="_errors"
-                      [showClose]="true"
-                      (onClose)="resetError()"
-                    ></app-error-view-card>
-                  } @else {
-                    <ui-error-view
-                      [errTitle]="'APP.WORKFLOW.ERROR.CambioStato' | translate:{from: _fromStatus, to: _toStatus}"
-                      [errors]="_errors"
-                      [showClose]="true"
-                      (onClose)="resetError()"
-                    ></ui-error-view>
-                  }
-                }
-              }
+              <ng-container *ngTemplateOutlet="workflowErrorTpl"></ng-container>
 
               <lnk-button
                 [label]="'APP.WORKFLOW.MENU.' + getNextStateWorkflowName()"
@@ -1016,35 +972,7 @@
               </span>
               <div class="d-flex gap-2">
                 @if (hasNextStateWorkflow() && _hasCambioStato()) {
-                  @if (_error) {
-                    @if (!_errors.length) {
-                      <div class="gl-alert gl-alert-danger col-md-12 mb-5">
-                        <span>{{ _errorMsg }}</span>
-                      </div>
-                    }
-                    @if (_errors.length > 0) {
-                      <!-- Issue 254 NEW LAYOUT (rev. 4.32): per il
-                           nuovo wizard usiamo `<app-error-view-card>`
-                           (card compatta, font ridotto, bordo
-                           arrotondato). Sotto flag off ricade
-                           sull'`<ui-error-view>` legacy. -->
-                      @if (wizardNewLayout) {
-                        <app-error-view-card
-                          [errTitle]="'APP.WORKFLOW.ERROR.CambioStato' | translate:{from: _fromStatus, to: _toStatus}"
-                          [errors]="_errors"
-                          [showClose]="true"
-                          (onClose)="resetError()"
-                        ></app-error-view-card>
-                      } @else {
-                        <ui-error-view
-                          [errTitle]="'APP.WORKFLOW.ERROR.CambioStato' | translate:{from: _fromStatus, to: _toStatus}"
-                          [errors]="_errors"
-                          [showClose]="true"
-                          (onClose)="resetError()"
-                        ></ui-error-view>
-                      }
-                    }
-                  }
+                  <ng-container *ngTemplateOutlet="workflowErrorTpl"></ng-container>
 
                   <lnk-button
                     [label]="'APP.WORKFLOW.MENU.' + getNextStateWorkflowName()"
@@ -1379,35 +1307,7 @@
                 <ng-container *ngTemplateOutlet="body"></ng-container>
                 @if (sub.state === 'active' && hasNextStateWorkflow() && _hasCambioStato()) {
 
-                  @if (_error) {
-                    @if (!_errors.length) {
-                      <div class="gl-alert gl-alert-danger col-md-12 mb-5">
-                        <span>{{ _errorMsg }}</span>
-                      </div>
-                    }
-                    @if (_errors.length > 0) {
-                      <!-- Issue 254 NEW LAYOUT (rev. 4.32): per il
-                           nuovo wizard usiamo `<app-error-view-card>`
-                           (card compatta, font ridotto, bordo
-                           arrotondato). Sotto flag off ricade
-                           sull'`<ui-error-view>` legacy. -->
-                      @if (wizardNewLayout) {
-                        <app-error-view-card
-                          [errTitle]="'APP.WORKFLOW.ERROR.CambioStato' | translate:{from: _fromStatus, to: _toStatus}"
-                          [errors]="_errors"
-                          [showClose]="true"
-                          (onClose)="resetError()"
-                        ></app-error-view-card>
-                      } @else {
-                        <ui-error-view
-                          [errTitle]="'APP.WORKFLOW.ERROR.CambioStato' | translate:{from: _fromStatus, to: _toStatus}"
-                          [errors]="_errors"
-                          [showClose]="true"
-                          (onClose)="resetError()"
-                        ></ui-error-view>
-                      }
-                    }
-                  }
+                  <ng-container *ngTemplateOutlet="workflowErrorTpl"></ng-container>
 
                   <div class="d-flex justify-content-end mt-3 pt-3" style="border-top: 1px solid var(--line);">
                     <lnk-button
@@ -1432,4 +1332,37 @@
       </div>
     }
   </section>
+</ng-template>
+
+<!-- Errore di validazione del cambio stato (Issue 254 NEW LAYOUT,
+     rev. 4.34): estratto come ng-template per evitare duplicazione
+     del frammento (4 punti d'uso nel wizard). Le sorgenti dati
+     (`_error`, `_errorMsg`, `_errors`, `_fromStatus`, `_toStatus`,
+     `wizardNewLayout`, `resetError()`) sono prese dal contesto del
+     componente (closure del template). -->
+<ng-template #workflowErrorTpl>
+  @if (_error) {
+    @if (!_errors.length) {
+      <div class="gl-alert gl-alert-danger col-md-12 mb-5">
+        <span>{{ _errorMsg }}</span>
+      </div>
+    }
+    @if (_errors.length > 0) {
+      @if (wizardNewLayout) {
+        <app-error-view-card
+          [errTitle]="'APP.WORKFLOW.ERROR.CambioStato' | translate:{from: _fromStatus, to: _toStatus}"
+          [errors]="_errors"
+          [showClose]="true"
+          (onClose)="resetError()"
+        ></app-error-view-card>
+      } @else {
+        <ui-error-view
+          [errTitle]="'APP.WORKFLOW.ERROR.CambioStato' | translate:{from: _fromStatus, to: _toStatus}"
+          [errors]="_errors"
+          [showClose]="true"
+          (onClose)="resetError()"
+        ></ui-error-view>
+      }
+    }
+  }
 </ng-template>
