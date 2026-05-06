@@ -162,6 +162,20 @@
     }
   }
 
+  // Affordance discreta per gli step `completed` collassabili (rev. 4.26):
+  // niente chevron (causava disallineamento col padding-right) — al
+  // suo posto un cambio colore/border del chip "Completato" all'hover
+  // del row. Solo per i chip marcati `.is-collapsible-hint`
+  // (= primo step completed che ospita la lista client/endpoint).
+  .tl-state.is-collapsible-hint {
+    transition: background-color .15s, border-color .15s, color .15s;
+  }
+  &.is-collapsible:hover .tl-state.is-collapsible-hint {
+    background: #d6e7f0;          // ok-soft un filo piu` saturo
+    border-color: #91bbd2;        // border piu` definito
+    color: var(--ink, #212c49);   // testo piu` scuro
+  }
+
   .tl-action {
     display: inline-flex;
     align-items: center;

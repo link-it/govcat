@@ -1,6 +1,20 @@
 2026-05-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 254: substepper — collapsibility selettiva e hint
+	  hover discreto:
+	  - In `<app-adesione-substepper>` solo gli step `active` e
+	    il primo step (tipicamente `in_compilazione`) sono
+	    collassabili anche quando completati. Gli altri step
+	    `completed` e tutti i `locked` non hanno toggle (chip
+	    pill sulla destra).
+	  - Affordance per il primo step collassabile-completato:
+	    al hover del row il chip "Completato" cambia
+	    background/border/color discretamente (transition 0.15s)
+	    senza spostare nulla nel layout. Niente chevron per
+	    evitare disallineamento dei chip.
+
+	* [Frontend]
 	Issue 254: refinement nuovo layout wizard adesione (post
 	  test manuale rev. 4):
 	  - Step-bar / sub-stepper / counter env-progress: regola

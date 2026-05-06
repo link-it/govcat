@@ -56,7 +56,12 @@
                  - locked: chip "Bloccato" (grigio pill) -->
             @switch (sub.state) {
               @case ('completed') {
-                <span class="tl-state is-completed">
+                <!-- `is-collapsible-hint`: marker per styling hover discreto
+                     sui chip "Completato" del primo step (in_compilazione)
+                     che resta consultabile. Vedi SCSS: cambia colore
+                     bg/border al hover del row. -->
+                <span class="tl-state is-completed"
+                      [class.is-collapsible-hint]="sub.collapsible">
                   <i class="bi bi-check-lg"></i>
                   {{ 'APP.ADESIONI.LABEL.Completato' | translate }}
                 </span>

@@ -236,7 +236,15 @@ export class AdesioneSubstepperComponent implements OnChanges {
                 state = 'locked';
             }
 
-            const collapsible = state !== 'locked';
+            // Collapsible (rev. 4.24): solo gli step `active` sono
+            // collassabili PER DEFAULT. Eccezione: il primo step
+            // (tipicamente `in_compilazione`) e` sempre collassabile
+            // anche quando completato, perche` ospita la lista
+            // client/endpoint che deve restare consultabile.
+            // I `locked` e i `completed` non-primi non hanno pannello
+            // (chip pill di stato sulla destra, niente toggle).
+            const isFirst = index === 0;
+            const collapsible = state === 'active' || (state === 'completed' && isFirst);
             const userOverride = this._userToggles.get(step.code);
             const open = userOverride !== undefined ? userOverride : (state === 'active');
 
