@@ -17,135 +17,151 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 
-<!-- LISTA CLIENTS -->
+<!-- LISTA CLIENTS — "Configurazione autenticazione" (Issue 254 NEW
+     LAYOUT, rev. 4.27): titolo always-on (single column), bottoni
+     icon-only stile referenti (`lnk-btn-ghost lnk-btn-sm lnk-btn-icon`),
+     toggle Modifica/Visualizza -> Chiudi quando il pannello inline
+     e` aperto. Edit single-at-a-time: aprendo un altro item chiude
+     l'attuale (gestito da `_onEditClient` -> `_inlineEditingClient`).
+     Save -> reload via `loadAdesioneClients` (gia` esistente). -->
 @if (adesioneClients.length > 0) {
-  <div class="settings {{ otherClass }}">
-    <div class="settings-content">
-      <div class="row gl-mt-5 mb-5" [class.justify-content-center]="singleColumn">
-        @if (!singleColumn) {
-          <div class="" [class.col-lg-12]="singleColumn" [class.mb-5]="singleColumn" [class.col-lg-4]="!singleColumn">
-            <h4 class="gl-mt-0 text-break" [class.text-danger]="!(updateMapper | mapper:isSottotipoGroupCompletedMapper:ClassiEnum.CLIENT)">{{ 'APP.ADESIONI.TITLE.ConfigurationAuth' | translate }}</h4>
-            <div class="text-break mb-sm-4 mb-lg-1" markdown>{{ 'APP.ADESIONI.TITLE.ConfigurationAuth_sub' | translate }}</div>
-          </div>
-        }
-        <div class="" [class.col-lg-8]="!singleColumn" [class.col-lg-8]="!singleColumn">
-          @if (singleColumn) {
-            <div class="px-3- pb-3">
-              <div class="d-flex gap-2">
-                <span class="d-flex gap-2">
-                  <lnk-icon-toggle
-                    [value]="updateMapper | mapper:getSottotipoGroupCompletedMapper:ClassiEnum.CLIENT"
-                    [hide]="updateMapper | mapper:isStatusPubblicatoCollaudodMapper:adesione?.stato"
-                  ></lnk-icon-toggle>
-                </span>
-                <h5 class="" [class.text-danger-]="!(updateMapper | mapper:isSottotipoGroupCompletedMapper:ClassiEnum.CLIENT)">{{ 'APP.ADESIONI.TITLE.ConfigurationAuth' | translate }}</h5>
+  <section class="adesione-config-list adesione-config-list--clients {{ otherClass }}">
+    <header class="adesione-config-list-hd">
+      <lnk-icon-toggle
+        [value]="updateMapper | mapper:getSottotipoGroupCompletedMapper:ClassiEnum.CLIENT"
+        [hide]="updateMapper | mapper:isStatusPubblicatoCollaudodMapper:adesione?.stato"
+      ></lnk-icon-toggle>
+      <h4 class="adesione-config-list-title"
+          [class.text-danger]="!(updateMapper | mapper:isSottotipoGroupCompletedMapper:ClassiEnum.CLIENT)">
+        {{ 'APP.ADESIONI.TITLE.ConfigurationAuth' | translate }}
+      </h4>
+    </header>
+
+    <ul class="adesione-config-list-items">
+      @for (item of adesioneClients; track item; let first = $first) {
+        @let isEditing = inlineEdit && _inlineEditingClient === item;
+        @let isModifiable = !!(item | mapper:_isModifiableMapper);
+        <li class="adesione-config-list-item"
+            [class.is-editing]="isEditing">
+          <div class="adesione-config-list-item-row">
+            <!-- Visualizzazione diretta dei dati (rev. 4.28-bis): no
+                 piu` icona / no piu` `<ui-item-row>`. Titolo =
+                 `etichetta` (es. "ModI P1"). Meta = nome/nome_proposto
+                 + auth_type + stato. -->
+            @let clientComplete = !!(updateMapper | mapper:isSottotipoCompletedMapper:ClassiEnum.CLIENT:(item.source.codice_interno || item.profilo || item.auth_type));
+            <div class="adesione-config-list-item-content">
+              <div class="adesione-config-list-item-title"
+                   [class.text-danger-]="!clientComplete">
+                {{ item.source?.etichetta || item.etichetta || ('APP.LABEL.None' | translate) }}
               </div>
-            </div>
-          }
-          @for (item of adesioneClients; track item; let first = $first) {
-            <div class="adesione-item-row border-bottom" [class.border-top]="first">
-              <div class="flex-container container-fluid ps-0">
-                <div class="flex-auto">
-                  <ui-item-row
-                    [data]="item"
-                    [config]="config"
-                    [hasLink]="false"
-                    [primaryClass]="(updateMapper | mapper:isSottotipoCompletedMapper:ClassiEnum.CLIENT:(item.source.codice_interno || item.profilo || item.auth_type)) ? '' : 'text-danger'"
-                  ></ui-item-row>
-                </div>
-                @if (isEdit) {
-                  <div class="flex-initial">
-                    @if ((item.source.stato == 'configurato') && (item | mapper:_isModifiableMapper)) {
-                      <button aria-expanded="false"
-                        type="button"
-                        class="btn btn-default btn-md gl-button btn-icon mr-2"
-                        [tooltip]="'APP.TOOLTIP.Dissociate' | translate" [delay]="500"
-                        (click)="confirmDissociaClient(item)"
-                        >
-                        <span class="material-icons-outlined">link_off</span>
-                      </button>
-                    }
-                    <button aria-expanded="false"
-                      type="button"
-                      class="btn btn-default btn-md gl-button btn-icon"
-                      [tooltip]="((item | mapper:_isModifiableMapper) ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show') | translate" [delay]="500"
-                      (click)="onEdit(item)"
-                      >
-                      @if ((item | mapper:_isModifiableMapper)) {
-                        <i class="bi bi-pencil"></i>
-                      }
-                      @if (!(item | mapper:_isModifiableMapper)) {
-                        <i class="bi bi-eye"></i>
-                      }
-                    </button>
-                  </div>
+              <div class="adesione-config-list-item-meta">
+                @let clientName = item.source?.nome || item.source?.nome_proposto;
+                @if (clientName) { <span>{{ clientName }}</span> }
+                @if (clientName && item.auth_type) { <span class="sep">·</span> }
+                @if (item.auth_type) { <span class="mono-pill">{{ ('APP.CLIENT.AUTH_TYPE.' + item.auth_type) | translate }}</span> }
+                @if (item.source?.stato) {
+                  <span class="sep">·</span>
+                  <span class="config-status" [ngClass]="'config-status-' + item.source.stato">
+                    {{ ('APP.CLIENT.LABEL.' + (item.source.stato === 'configurato' ? 'Configured' : 'NotConfigured')) | translate }}
+                  </span>
                 }
               </div>
-              @for (d of _clientDisclaimers(item); track $index) {
-                <small class="adesione-item-hint text-muted d-block px-3 py-2 bg-lightest">
-                  <i class="me-1" [ngClass]="_getDisclaimerIconClass(d.severity)" [attr.aria-label]="d.severity" role="img"></i>
-                  <markdown class="disclaimer-inline" [data]="d.disclaimer"></markdown>
-                  @if (d.links?.length) {
-                    <span class="ms-1">
-                      @for (link of d.links; track $index) {
-                        <a class="ms-1" [href]="_getDisclaimerLinkHref(link)" target="_blank" rel="noopener noreferrer">
-                          {{ _getDisclaimerLinkLabel(link) }}
-                        </a>
-                      }
-                    </span>
+            </div>
+            @if (isEdit) {
+              <div class="adesione-config-list-item-actions">
+                <!-- DISSOCIA: solo per client `configurato` modificabili. -->
+                @if ((item.source.stato == 'configurato') && isModifiable) {
+                  <button type="button"
+                          class="lnk-btn lnk-btn-ghost lnk-btn-sm lnk-btn-icon"
+                          [tooltip]="'APP.TOOLTIP.Dissociate' | translate"
+                          [delay]="500"
+                          container="body"
+                          (click)="confirmDissociaClient(item)">
+                    <span class="material-icons-outlined">link_off</span>
+                  </button>
+                }
+                <!-- EDIT / VIEW / CLOSE: l'icona e il tooltip si
+                     adattano allo stato attuale (rev. 4.27). -->
+                <button type="button"
+                        class="lnk-btn lnk-btn-ghost lnk-btn-sm lnk-btn-icon"
+                        [tooltip]="(isEditing ? 'APP.BUTTON.Close' : (isModifiable ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show')) | translate"
+                        [delay]="500"
+                        container="body"
+                        (click)="isEditing ? closeModal() : onEdit(item)">
+                  @if (isEditing) {
+                    <i class="bi bi-x-lg"></i>
+                  } @else if (isModifiable) {
+                    <i class="bi bi-pencil"></i>
+                  } @else {
+                    <i class="bi bi-eye"></i>
                   }
-                </small>
+                </button>
+              </div>
+            }
+          </div>
+
+          <!-- Disclaimers per item (icone severity + markdown inline). -->
+          @for (d of _clientDisclaimers(item); track $index) {
+            <small class="adesione-item-hint text-muted d-block px-3 py-2 bg-lightest">
+              <i class="me-2" [ngClass]="_getDisclaimerIconClass(d.severity)" [attr.aria-label]="d.severity"></i>
+              <markdown class="disclaimer-inline" [data]="d.disclaimer"></markdown>
+              @if (d.links?.length) {
+                <span class="ms-1">
+                  @for (link of d.links; track $index) {
+                    <a class="ms-1" [href]="_getDisclaimerLinkHref(link)" target="_blank" rel="noopener noreferrer">
+                      {{ _getDisclaimerLinkLabel(link) }}
+                    </a>
+                  }
+                </span>
               }
-              <!-- Pannello edit inline (Issue 254 NEW LAYOUT) — render del
-                   form di configurazione auth sotto la riga del client
-                   selezionato, sotto flag `inlineEdit`. Riusa
-                   `<app-client-auth-form>` cosi` com'e` con il modalInput
-                   condiviso col legacy modal. -->
-              @if (inlineEdit && _inlineEditingClient === item) {
-                <div class="adesione-inline-edit-panel border-top px-3 py-3">
-                  <form [formGroup]="_editFormGroupClients" (submit)="_onSaveModalClient(_editFormGroupClients.value)">
-                    <app-client-auth-form
-                      [input]="modalInput"
-                      [layout]="_dialogLayout"
-                      (selectCredenziali)="_onSelectCredenzialiOption($event)"
-                      (changeCredenziali)="onChangeCredenziali($event)"
-                      (changeTipoCertificato)="onChangeTipoCertificato($event)"
-                      (changeTipoCertificatoFirma)="onChangeTipoCertificatoFirma($event)"
-                      (descriptorChange)="_onDescriptorChange($event)"
-                      (descriptorChangeFirma)="_onDescriptorChangeFirma($event)"
-                      (downloadAllegato)="_downloadAllegato($event)"
-                    ></app-client-auth-form>
-                    <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
-                      <lnk-button
-                        [label]="'APP.BUTTON.Close'"
-                        (onAction)="closeModal()"
-                      ></lnk-button>
-                      @if (modalInput.formConfig.save.enabled) {
-                        <lnk-button
-                          [type]="'submit'"
-                          [label]="'APP.BUTTON.Save'"
-                          [primary]="true"
-                          [ariaLabel]="'APP.BUTTON.Save'"
-                          [disabled]="_editFormGroupClients.invalid || modalInput.saving"
-                          [spinner]="modalInput.saving"
-                        ></lnk-button>
-                      }
-                    </div>
-                  </form>
+            </small>
+          }
+
+          <!-- Pannello edit inline. Sotto flag `inlineEdit`, mostra
+               `<app-client-auth-form>` direttamente sotto la riga.
+               Save -> `_onSaveModalClient` -> `loadAdesioneClients` +
+               `closeModal` (gia` nel TS). -->
+          @if (isEditing) {
+            <div class="adesione-inline-edit-panel">
+              <form [formGroup]="_editFormGroupClients" (submit)="_onSaveModalClient(_editFormGroupClients.value)">
+                <app-client-auth-form
+                  [input]="modalInput"
+                  [layout]="_dialogLayout"
+                  (selectCredenziali)="_onSelectCredenzialiOption($event)"
+                  (changeCredenziali)="onChangeCredenziali($event)"
+                  (changeTipoCertificato)="onChangeTipoCertificato($event)"
+                  (changeTipoCertificatoFirma)="onChangeTipoCertificatoFirma($event)"
+                  (descriptorChange)="_onDescriptorChange($event)"
+                  (descriptorChangeFirma)="_onDescriptorChangeFirma($event)"
+                  (downloadAllegato)="_downloadAllegato($event)"
+                ></app-client-auth-form>
+                <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
+                  <lnk-button
+                    [label]="'APP.BUTTON.Close'"
+                    (onAction)="closeModal()"
+                  ></lnk-button>
+                  @if (modalInput.formConfig.save.enabled) {
+                    <lnk-button
+                      [type]="'submit'"
+                      [label]="'APP.BUTTON.Save'"
+                      [primary]="true"
+                      [ariaLabel]="'APP.BUTTON.Save'"
+                      [disabled]="_editFormGroupClients.invalid || modalInput.saving"
+                      [spinner]="modalInput.saving"
+                    ></lnk-button>
+                  }
                 </div>
-              }
+              </form>
             </div>
           }
-        </div>
-      </div>
-    </div>
-  </div>
+        </li>
+      }
+    </ul>
+  </section>
 }
 
-<!-- DIALOG per CLIENTS (Fase 6.2 Issue #237): ora delegata a
-     ModalEditClientComponent. Il parent continua a possedere il
-     FormGroup e la logica applicativa; il child e' un componente
-     presentational che consuma `modalInput` ed emette gli eventi. -->
+<!-- DIALOG per CLIENTS (legacy, attivo quando `inlineEdit=false`).
+     Riusa lo stesso `<app-modal-edit-client>` con i medesimi input. -->
 <ng-template #editClients>
   <app-modal-edit-client
     [input]="modalInput"
@@ -162,4 +178,3 @@
     (downloadAllegato)="_downloadAllegato($event)"
   ></app-modal-edit-client>
 </ng-template>
-<!-- DIALOG API [end] -->

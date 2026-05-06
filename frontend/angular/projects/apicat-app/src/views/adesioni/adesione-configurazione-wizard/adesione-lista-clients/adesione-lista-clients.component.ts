@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, Input, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -84,7 +84,7 @@ import { CkeckProvider, ClassiEnum, DataStructure } from '@app/provider/check.pr
         ClientAuthFormComponent
     ]
 })
-export class AdesioneListaClientsComponent implements OnInit, OnDestroy {
+export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChanges {
 
     private readonly _destroy$ = new Subject<void>();
 
@@ -153,7 +153,7 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy {
     ngOnChanges(changes: SimpleChanges): void {
         if (changes.dataCheck) {
             this.dataCheck = changes.dataCheck.currentValue;
-            this.updateMapper = new Date().getTime().toString();
+            this.updateMapper = Date.now().toString();
         }
     }
 
@@ -182,13 +182,13 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy {
         const _configGenerale = Tools.Configurazione;
 
         if (this.id) {
-            this.spin = ignoreSpin ? false : true;
+            this.spin = !ignoreSpin;
             if (!ignoreSpin) { this.adesioneClients = []; }
             this.apiService.getDetails(this.model, this.id, environment + '/client').subscribe({
                 next: (response: any) => {
                     const _clientsArr: any = [];
                     // clclo sui client_richiesti per sottoscrivere l'adesione
-                    _.uniqWith(this.adesione.client_richiesti, _.isEqual).map((item: any) => {
+                    _.uniqWith(this.adesione.client_richiesti, _.isEqual).forEach((item: any) => {
 
                         // guardo la configurazione (da general config) per il profilo item.profilo
                         const _temp_profilo: any = _configGenerale.servizio.api.profili.find((pro: any) => { return pro.codice_interno === item.profilo });
@@ -255,7 +255,7 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy {
 
                     this.adesioneClients = [ ..._list ];
 
-                    this.adesioneClients.map((el: any) => {
+                    this.adesioneClients.forEach((el: any) => {
                         if (el.source.stato != StatoConfigurazioneEnum.CONFIGURATO) {
                             el.id_client = null;
                             el.source.id_client = null;
@@ -348,7 +348,7 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy {
 
     _getDisclaimerIconClass(severity?: string): string {
         switch (severity) {
-            case 'ERROR': return 'bi bi-x-circle text-danger';
+            case 'ERROR': return 'bi bi-exclamation-triangle text-danger';
             case 'WARNING': return 'bi bi-exclamation-triangle text-warning';
             case 'INFO':
             default: return 'bi bi-info-circle text-info';
@@ -1001,9 +1001,7 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy {
 
         switch (type) {
             case SelectedClientEnum.NuovoCliente:
-            case SelectedClientEnum.Default:
-
-                // controls.nome_proposto.patchValue(null);
+            case SelectedClientEnum.Default: {
                 controls.nome_proposto.clearValidators();
 
                 // Fase 4.1: predicati vs flag anche in updateAllValidators.
@@ -1041,7 +1039,7 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy {
                     controls.nome_applicazione_portale.updateValueAndValidity();
                 }
                 break;
-
+            }
             case SelectedClientEnum.UsaClientEsistente:
 
                 controls.nome_proposto.setValidators([Validators.required]);

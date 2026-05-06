@@ -246,6 +246,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // `[_nghost-xxx].lnk-wizard .gstepper[_ngcontent-xxx]` — corretto.
 :host(.lnk-wizard) {
 
+  // Override del `section { padding: 3rem 0; }` globale di
+  // `app-custom.scss:201` — eccessivo dentro il nuovo layout
+  // wizard (banner + step-bar + body fasi gia` spaziati). Nel
+  // wizard riduciamo a 1rem top/bottom. Specificita`
+  // `:host(.lnk-wizard) section` (0,1,2) > `section` (0,0,1).
+  section {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
   // Title block (page header) — solo titolo + meta, niente shell GovCat.
   .wizard-page-hd {
     display: flex;

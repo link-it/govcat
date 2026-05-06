@@ -17,106 +17,114 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 
-<!-- LISTA EROGAZIONI -->
+<!-- LISTA EROGAZIONI — "Configurazione endpoint" (Issue 254 NEW
+     LAYOUT, rev. 4.27): titolo always-on (single column), bottoni
+     icon-only stile referenti (`lnk-btn-ghost lnk-btn-sm lnk-btn-icon`),
+     toggle Modifica/Visualizza -> Chiudi quando il pannello inline
+     e` aperto. Edit single-at-a-time gestito da
+     `_inlineEditingErogaz`. Save -> reload via
+     `loadAdesioneErogazioni` (gia` esistente). -->
 @if (adesioneErogazioni.length > 0) {
-  <div class="settings {{ otherClass }}">
-    <div class="settings-content">
-      <div class="row gl-mt-5 mb-5" [class.justify-content-center]="singleColumn">
-        @if (!singleColumn) {
-          <div class="mt-3" [class.col-lg-12]="singleColumn" [class.mb-5]="singleColumn" [class.col-lg-4]="!singleColumn">
-            <h4 class="gl-mt-0 text-break" [class.text-danger]="!(updateMapper | mapper:isSottotipoGroupCompletedMapper:ClassiEnum.EROGAZIONE)">{{ 'APP.ADESIONI.TITLE.ConfigurationAPI' | translate }}</h4>
-            <div class="text-break mb-sm-4 mb-lg-1" markdown>{{ 'APP.ADESIONI.TITLE.ConfigurationAPI_sub' | translate }}</div>
-          </div>
-        }
-        <div class="" [class.col-lg-8]="!singleColumn" [class.col-lg-8]="!singleColumn">
-          @if (singleColumn) {
-            <div class="px-3- pb-3">
-              <div class="d-flex gap-2">
-                <span class="d-flex gap-2">
-                  <lnk-icon-toggle
-                    [value]="updateMapper | mapper:getSottotipoGroupCompletedMapper:ClassiEnum.EROGAZIONE"
-                    [hide]="updateMapper | mapper:isStatusPubblicatoCollaudodMapper:adesione?.stato"
-                  ></lnk-icon-toggle>
-                </span>
-                <h5 class="" [class.text-danger-]="!(updateMapper | mapper:isSottotipoGroupCompletedMapper:ClassiEnum.EROGAZIONE)">{{ 'APP.ADESIONI.TITLE.ConfigurationAPI' | translate }}</h5>
+  <section class="adesione-config-list adesione-config-list--erogazioni {{ otherClass }}">
+    <header class="adesione-config-list-hd">
+      <lnk-icon-toggle
+        [value]="updateMapper | mapper:getSottotipoGroupCompletedMapper:ClassiEnum.EROGAZIONE"
+        [hide]="updateMapper | mapper:isStatusPubblicatoCollaudodMapper:adesione?.stato"
+      ></lnk-icon-toggle>
+      <h4 class="adesione-config-list-title"
+          [class.text-danger]="!(updateMapper | mapper:isSottotipoGroupCompletedMapper:ClassiEnum.EROGAZIONE)">
+        {{ 'APP.ADESIONI.TITLE.ConfigurationAPI' | translate }}
+      </h4>
+    </header>
+
+    <ul class="adesione-config-list-items">
+      @for (erogaz of adesioneErogazioni; track erogaz; let first = $first) {
+        @let isEditing = inlineEdit && _inlineEditingErogaz === erogaz;
+        @let isModifiable = !!(erogaz | mapper:_isModifiableMapper);
+        <li class="adesione-config-list-item"
+            [class.is-editing]="isEditing">
+          <div class="adesione-config-list-item-row">
+            <!-- Visualizzazione diretta (rev. 4.28-bis): senza icona,
+                 coerente con la lista clients. Titolo = `nome` +
+                 chip versione. Meta = url + indirizzi_ip + stato. -->
+            @let erogazComplete = !!(updateMapper | mapper:isSottotipoCompletedMapper:ClassiEnum.EROGAZIONE:erogaz.id_erogazione);
+            <div class="adesione-config-list-item-content">
+              <div class="adesione-config-list-item-title"
+                   [class.text-danger]="!erogazComplete">
+                {{ erogaz.nome || ('APP.LABEL.None' | translate) }}
+                @if (erogaz.versione) { <span class="version">v{{ erogaz.versione }}</span> }
               </div>
-            </div>
-          }
-          @for (erogaz of adesioneErogazioni; track erogaz; let first = $first) {
-            <div>
-              <div class="flex-container container-fluid border-bottom ps-0" [class.border-top]="first">
-                <div class="flex-auto">
-                  <ui-item-row
-                    [data]="erogaz"
-                    [config]="config"
-                    [hasLink]="false"
-                    [primaryClass]="(updateMapper | mapper:isSottotipoCompletedMapper:ClassiEnum.EROGAZIONE:erogaz.id_erogazione) ? '' : 'text-danger'"
-                  ></ui-item-row>
-                </div>
-                @if (isEdit) {
-                  <div class="flex-initial">
-                    <button
-                      aria-expanded="false"
-                      type="button"
-                      class="btn btn-default btn-md gl-button btn-icon"
-                      [tooltip]="((erogaz | mapper:_isModifiableMapper) ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show') | translate" [delay]="500"
-                      (click)="onEdit(erogaz)"
-                      >
-                      @if (erogaz | mapper:_isModifiableMapper) {
-                        <i class="bi bi-pencil"></i>
-                      }
-                      @if (!(erogaz | mapper:_isModifiableMapper)) {
-                        <i class="bi bi-eye"></i>
-                      }
-                    </button>
-                  </div>
+              <div class="adesione-config-list-item-meta">
+                @if (erogaz.url) { <span class="mono-truncate">{{ erogaz.url }}</span> }
+                @if (erogaz.url && erogaz.indirizzi_ip) { <span class="sep">·</span> }
+                @if (erogaz.indirizzi_ip) { <span>{{ erogaz.indirizzi_ip }}</span> }
+                @if (!erogaz.url && !erogaz.indirizzi_ip && erogaz.stato) {
+                  <span class="config-status" [ngClass]="'config-status-' + erogaz.stato">
+                    {{ ('APP.CLIENT.LABEL.' + (erogaz.stato === 'configurato' ? 'Configured' : 'NotConfigured')) | translate }}
+                  </span>
                 }
               </div>
-              <!-- Pannello edit inline (Issue 254 NEW LAYOUT) — render del
-                   form di edit dell'endpoint erogazione sotto la riga
-                   selezionata, sotto flag `inlineEdit`. Riusa
-                   `<app-erogazione-edit-form>` (componente standalone
-                   estratto dal modal legacy). -->
-              @if (inlineEdit && _inlineEditingErogaz === erogaz) {
-                <div class="adesione-inline-edit-panel border-bottom px-3 py-3">
-                  <form [formGroup]="_editFormGroupErogazioni" (submit)="_onSaveModalErogazioni(_editFormGroupErogazioni.value)">
-                    <app-erogazione-edit-form
-                      [formGroup]="_editFormGroupErogazioni"
-                      [error]="_error"
-                      [errorMsg]="_errorMsg"
-                    ></app-erogazione-edit-form>
-                    <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
-                      <lnk-button
-                        [label]="'APP.BUTTON.Close'"
-                        (onAction)="closeModal()"
-                      ></lnk-button>
-                      @if (erogaz | mapper:_isModifiableMapper) {
-                        <lnk-button
-                          [type]="'submit'"
-                          [label]="'APP.BUTTON.Save'"
-                          [primary]="true"
-                          [ariaLabel]="'APP.BUTTON.Save'"
-                          [disabled]="_editFormGroupErogazioni.invalid || _saving"
-                          [spinner]="_saving"
-                        ></lnk-button>
-                      }
-                    </div>
-                  </form>
+            </div>
+            @if (isEdit) {
+              <div class="adesione-config-list-item-actions">
+                <!-- EDIT / VIEW / CLOSE: stesso pattern della lista
+                     clients (rev. 4.27). -->
+                <button type="button"
+                        class="lnk-btn lnk-btn-ghost lnk-btn-sm lnk-btn-icon"
+                        [tooltip]="(isEditing ? 'APP.BUTTON.Close' : (isModifiable ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show')) | translate"
+                        [delay]="500"
+                        container="body"
+                        (click)="isEditing ? closeModal() : onEdit(erogaz)">
+                  @if (isEditing) {
+                    <i class="bi bi-x-lg"></i>
+                  } @else if (isModifiable) {
+                    <i class="bi bi-pencil"></i>
+                  } @else {
+                    <i class="bi bi-eye"></i>
+                  }
+                </button>
+              </div>
+            }
+          </div>
+
+          <!-- Pannello edit inline. Save -> `_onSaveModalErogazioni` ->
+               `loadAdesioneErogazioni` + `closeModal` (gia` nel TS). -->
+          @if (isEditing) {
+            <div class="adesione-inline-edit-panel">
+              <form [formGroup]="_editFormGroupErogazioni" (submit)="_onSaveModalErogazioni(_editFormGroupErogazioni.value)">
+                <app-erogazione-edit-form
+                  [formGroup]="_editFormGroupErogazioni"
+                  [error]="_error"
+                  [errorMsg]="_errorMsg"
+                ></app-erogazione-edit-form>
+                <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
+                  <lnk-button
+                    [label]="'APP.BUTTON.Close'"
+                    (onAction)="closeModal()"
+                  ></lnk-button>
+                  @if (isModifiable) {
+                    <lnk-button
+                      [type]="'submit'"
+                      [label]="'APP.BUTTON.Save'"
+                      [primary]="true"
+                      [ariaLabel]="'APP.BUTTON.Save'"
+                      [disabled]="_editFormGroupErogazioni.invalid || _saving"
+                      [spinner]="_saving"
+                    ></lnk-button>
+                  }
                 </div>
-              }
+              </form>
             </div>
           }
-        </div>
-      </div>
-    </div>
-  </div>
+        </li>
+      }
+    </ul>
+  </section>
 }
 
-<!-- DIALOG per EROGAZIONI [start] -->
-<!-- Modal legacy (back-compat per `inlineEdit=false`). Il body usa
-     `<app-erogazione-edit-form>` come il rendering inline (Fase 5
-     Issue 254 NEW LAYOUT) — single source of truth per i campi del
-     form. -->
+<!-- DIALOG per EROGAZIONI (legacy, attivo quando `inlineEdit=false`).
+     Il body usa `<app-erogazione-edit-form>` come il pannello inline:
+     single source of truth per i campi. -->
 <ng-template #editErogazioni>
   <div class="modal-content">
     <form [formGroup]="_editFormGroupErogazioni" (submit)="_onSaveModalErogazioni(_editFormGroupErogazioni.value)">
@@ -154,4 +162,3 @@
     </form>
   </div>
 </ng-template>
-<!-- DIALOG EROGAZIONI [end] -->

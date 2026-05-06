@@ -1,6 +1,29 @@
 2026-05-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 254: ridisegno liste client / endpoint allineato al
+	  pattern referenti del nuovo layout:
+	  - Titolo always-on ("Configurazione autenticazione" /
+	    "Configurazione endpoint") con `lnk-icon-toggle` di
+	    completamento; rimosso il col-lg-4 / col-lg-8 split.
+	  - Item card con border arrotondato; `is-editing` -> bordo
+	    accent + ring soft. Bottoni icon-only stile referenti
+	    (`lnk-btn-ghost lnk-btn-sm lnk-btn-icon`); il toggle
+	    Modifica/Visualizza diventa "Chiudi" quando il pannello
+	    inline e` aperto.
+	  - Single edit at a time gia` garantito dai
+	    `_inlineEditingClient`/`_inlineEditingErogaz`.
+	  - Save -> reload via `loadAdesioneClients` /
+	    `loadAdesioneErogazioni` (gia` esistente).
+	  - Sostituito `<ui-item-row>` con visualizzazione diretta:
+	    titolo = `etichetta` (clients) / `nome v.versione`
+	    (erogazioni); meta = nome/auth_type/stato (clients) o
+	    url/indirizzi_ip/stato (erogazioni). `auth_type`
+	    risolto via `APP.CLIENT.AUTH_TYPE.<value>`.
+	  - Override del padding `<section>` globale (3rem 0) sia
+	    nel wizard sia nelle nuove liste.
+
+	* [Frontend]
 	Issue 254: substepper — collapsibility selettiva e hint
 	  hover discreto:
 	  - In `<app-adesione-substepper>` solo gli step `active` e
