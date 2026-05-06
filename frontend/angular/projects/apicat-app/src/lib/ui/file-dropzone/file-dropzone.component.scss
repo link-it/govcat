@@ -18,6 +18,7 @@
  */
 
 :host {
+    --accent-h: 258;
     display: block;
 }
 
@@ -32,8 +33,8 @@
         transition: border-color 120ms ease, background-color 120ms ease;
 
         &:hover:not(.disabled):not(.selected) {
-            border-color: #9fcbd3;
-            background-color: #f5fbfc;
+            border: 2px dashed oklch(70% 0.06 var(--accent-h));
+            background: oklch(97% 0.02 var(--accent-h) / 0.4);
         }
 
         &.dragging {

@@ -1,6 +1,19 @@
 2026-05-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 254: polish stili `client-auth-form` e
+	  `file-dropzone` per il nuovo wizard:
+	  - `client-auth-form`: nuovi stili `.row-content-block`,
+	    `.alert-info / -danger / -warning` (varianti soft con
+	    `oklch(... var(--accent-h))` e fallback warn-soft);
+	    rimossi attributi HTML ridondanti (role role="group"
+	    su un `.btn-group` gia` semantico, classe
+	    `.row-content-block` sul wrapper certificato di
+	    autenticazione che era duplicata).
+	  - `file-dropzone`: token `--accent-h: 258` su `:host` per
+	    abilitare le tinte `oklch(... var(--accent-h))`.
+
+	* [Frontend]
 	Issue 254: card compatta per gli errori di validazione del
 	  cambio stato:
 	  - Nuovo `<app-error-view-card>` standalone in

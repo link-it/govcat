@@ -60,7 +60,7 @@
             <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'credenziali'"></span>
           </label>
 
-          <div class="btn-group w-100 credenziali-toggle" role="group" aria-label="Selettore tipo accesso">
+          <div class="btn-group w-100 credenziali-toggle" aria-label="Selettore tipo accesso">
             @if (input.formConfig.credentialsOptions.showNuoveCredenziali) {
               <button type="button" class="btn"
                 [class.active]="f['credenziali'].value === SelectedClientEnum.NuovoCliente"
@@ -281,7 +281,7 @@
 
         <!-- Certificato di AUTENTICAZIONE. -->
         @if (input.formConfig.certAuth.visible) {
-          <div class="row-content-block mt-2 mb-3">
+          <div class="mt-2 mb-3">
             <div class="row">
               <div class="form-group col-12 mb-2">
                 <label class="label-bold" for="tipo_certificato">
