@@ -76,12 +76,21 @@
         <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="2"></ui-box-spinner>
       }
 
-      @if (_error) {
-        <div class="gl-alert gl-alert-danger col-md-12 mb-5">
-          @if (!_errors.length) {
+      @if (_error && false) {
+        @if (!_errors.length) {
+          <div class="gl-alert gl-alert-danger col-md-12 mb-5">
             <span>{{ _errorMsg }}</span>
-          }
-          @if (_errors.length > 0) {
+          </div>
+        }
+        @if (_errors.length > 0) {
+          @if (wizardNewLayout) {
+            <app-error-view-card
+              [errTitle]="'APP.WORKFLOW.ERROR.CambioStato' | translate:{from: _fromStatus, to: _toStatus}"
+              [errors]="_errors"
+              [showClose]="true"
+              (onClose)="resetError()"
+            ></app-error-view-card>
+          } @else {
             <ui-error-view
               [errTitle]="'APP.WORKFLOW.ERROR.CambioStato' | translate:{from: _fromStatus, to: _toStatus}"
               [errors]="_errors"
@@ -89,7 +98,7 @@
               (onClose)="resetError()"
             ></ui-error-view>
           }
-        </div>
+        }
       }
 
       @if (adesione && !spin) {
@@ -666,6 +675,31 @@
             <!-- Nascosto sotto il nuovo layout: il pulsante e' gia'
                  reso nel footer del sub-step attivo. -->
             @if (!wizardNewLayout && hasNextStateWorkflow() && _hasCambioStato()) {
+              @if (_error) {
+                @if (!_errors.length) {
+                  <div class="gl-alert gl-alert-danger col-md-12 mb-5">
+                    <span>{{ _errorMsg }}</span>
+                  </div>
+                }
+                @if (_errors.length > 0) {
+                  @if (wizardNewLayout) {
+                    <app-error-view-card
+                      [errTitle]="'APP.WORKFLOW.ERROR.CambioStato' | translate:{from: _fromStatus, to: _toStatus}"
+                      [errors]="_errors"
+                      [showClose]="true"
+                      (onClose)="resetError()"
+                    ></app-error-view-card>
+                  } @else {
+                    <ui-error-view
+                      [errTitle]="'APP.WORKFLOW.ERROR.CambioStato' | translate:{from: _fromStatus, to: _toStatus}"
+                      [errors]="_errors"
+                      [showClose]="true"
+                      (onClose)="resetError()"
+                    ></ui-error-view>
+                  }
+                }
+              }
+
               <lnk-button
                 [label]="'APP.WORKFLOW.MENU.' + getNextStateWorkflowName()"
                 [primary]="true"
@@ -982,6 +1016,36 @@
               </span>
               <div class="d-flex gap-2">
                 @if (hasNextStateWorkflow() && _hasCambioStato()) {
+                  @if (_error) {
+                    @if (!_errors.length) {
+                      <div class="gl-alert gl-alert-danger col-md-12 mb-5">
+                        <span>{{ _errorMsg }}</span>
+                      </div>
+                    }
+                    @if (_errors.length > 0) {
+                      <!-- Issue 254 NEW LAYOUT (rev. 4.32): per il
+                           nuovo wizard usiamo `<app-error-view-card>`
+                           (card compatta, font ridotto, bordo
+                           arrotondato). Sotto flag off ricade
+                           sull'`<ui-error-view>` legacy. -->
+                      @if (wizardNewLayout) {
+                        <app-error-view-card
+                          [errTitle]="'APP.WORKFLOW.ERROR.CambioStato' | translate:{from: _fromStatus, to: _toStatus}"
+                          [errors]="_errors"
+                          [showClose]="true"
+                          (onClose)="resetError()"
+                        ></app-error-view-card>
+                      } @else {
+                        <ui-error-view
+                          [errTitle]="'APP.WORKFLOW.ERROR.CambioStato' | translate:{from: _fromStatus, to: _toStatus}"
+                          [errors]="_errors"
+                          [showClose]="true"
+                          (onClose)="resetError()"
+                        ></ui-error-view>
+                      }
+                    }
+                  }
+
                   <lnk-button
                     [label]="'APP.WORKFLOW.MENU.' + getNextStateWorkflowName()"
                     [primary]="true"
@@ -1314,6 +1378,37 @@
               @case ('in_compilazione') {
                 <ng-container *ngTemplateOutlet="body"></ng-container>
                 @if (sub.state === 'active' && hasNextStateWorkflow() && _hasCambioStato()) {
+
+                  @if (_error) {
+                    @if (!_errors.length) {
+                      <div class="gl-alert gl-alert-danger col-md-12 mb-5">
+                        <span>{{ _errorMsg }}</span>
+                      </div>
+                    }
+                    @if (_errors.length > 0) {
+                      <!-- Issue 254 NEW LAYOUT (rev. 4.32): per il
+                           nuovo wizard usiamo `<app-error-view-card>`
+                           (card compatta, font ridotto, bordo
+                           arrotondato). Sotto flag off ricade
+                           sull'`<ui-error-view>` legacy. -->
+                      @if (wizardNewLayout) {
+                        <app-error-view-card
+                          [errTitle]="'APP.WORKFLOW.ERROR.CambioStato' | translate:{from: _fromStatus, to: _toStatus}"
+                          [errors]="_errors"
+                          [showClose]="true"
+                          (onClose)="resetError()"
+                        ></app-error-view-card>
+                      } @else {
+                        <ui-error-view
+                          [errTitle]="'APP.WORKFLOW.ERROR.CambioStato' | translate:{from: _fromStatus, to: _toStatus}"
+                          [errors]="_errors"
+                          [showClose]="true"
+                          (onClose)="resetError()"
+                        ></ui-error-view>
+                      }
+                    }
+                  }
+
                   <div class="d-flex justify-content-end mt-3 pt-3" style="border-top: 1px solid var(--line);">
                     <lnk-button
                       [label]="'APP.WORKFLOW.MENU.' + getNextStateWorkflowName()"
@@ -1327,8 +1422,8 @@
               }
               @default {
                 @if (sub.state === 'active') {
-                  <h4>{{ 'APP.ADESIONI.LABEL.WaitingGestoreTitle' | translate }}</h4>
-                  <p class="hint">{{ 'APP.ADESIONI.LABEL.WaitingGestoreDesc' | translate }}</p>
+                  <h4 class="pt-3">{{ 'APP.ADESIONI.LABEL.WaitingGestoreTitle' | translate }}</h4>
+                  <p class="hint mb-0">{{ 'APP.ADESIONI.LABEL.WaitingGestoreDesc' | translate }}</p>
                 }
               }
             }

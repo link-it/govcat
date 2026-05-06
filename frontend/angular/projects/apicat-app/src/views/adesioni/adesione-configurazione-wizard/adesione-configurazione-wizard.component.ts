@@ -32,6 +32,7 @@ import { WorkflowComponent } from '@app/components/workflow/workflow.component';
 import { MonitorDropdwnComponent } from '@app/views/servizi/components/monitor-dropdown/monitor-dropdown.component';
 import { ApiCustomPropertiesComponent } from '@app/components/api-custom-properties/api-custom-properties.component';
 import { ErrorViewComponent } from '@app/components/error-view/error-view.component';
+import { ErrorViewCardComponent } from '@app/components/error-view-card/error-view-card.component';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
@@ -104,6 +105,7 @@ export interface AdesioneDisclaimer {
         MonitorDropdwnComponent,
         ApiCustomPropertiesComponent,
         ErrorViewComponent,
+        ErrorViewCardComponent,
         AdesioneListaClientsComponent,
         AdesioneListaErogazioniComponent,
         AdesioneDialogMockPanelComponent,

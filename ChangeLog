@@ -1,6 +1,27 @@
 2026-05-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 254: card compatta per gli errori di validazione del
+	  cambio stato:
+	  - Nuovo `<app-error-view-card>` standalone in
+	    `components/error-view-card/`. Drop-in con la stessa
+	    shape di `<ui-error-view>` (`[errTitle] [errors] [showClose]`
+	    + `(onClose)`). Rendering compatto: un errore = una riga
+	    con icona bullet + tipo (bold) + identificativo (chip
+	    mono) + dato (chip pill uppercase, allineato a destra) +
+	    campi inline. Card sfondo `--err-soft` con border
+	    arrotondato e font ridotto.
+	  - Helper `_getParms` ora converte SEMPRE `params.profilo`
+	    via `Tools.Configurazione.servizio.api.profili`, non solo
+	    quando il sottotipo e` `Profilo` (gli errori reali del
+	    cambio stato hanno tipicamente sottotipo `client`).
+	  - Wizard HTML: 3 punti d'uso commutati con
+	    `@if (wizardNewLayout) { app-error-view-card } @else { ui-error-view }`.
+	  - `<ui-error-view>` legacy: implements `OnChanges` (era
+	    `OnInit` ma la classe espone `ngOnChanges`) — fix
+	    contestuale.
+
+	* [Frontend]
 	Issue 254: aggiungi referente come componente inline,
 	  ruolo nelle righe referenti, debounce live-search:
 	  - Nuovo `<app-referente-add-form>` standalone in
