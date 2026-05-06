@@ -1,6 +1,26 @@
 2026-05-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 254: aggiungi referente come componente inline,
+	  ruolo nelle righe referenti, debounce live-search:
+	  - Nuovo `<app-referente-add-form>` standalone in
+	    `adesione-configurazione-wizard/referente-add-form/`,
+	    sostituisce la `ModalAddReferentComponent` (dialog) col
+	    rendering inline dentro la sub-card "Referenti adesione"
+	    di FASE 01. Inputs `[id] [adesione] [model]`, outputs
+	    `(saved) (close)`. Logica search 1:1 col modal legacy
+	    (filtro per `referente` -> organizzazione del soggetto,
+	    `referente_tecnico` -> flag dedicato). Modal legacy
+	    preservata sotto `wizardNewLayout=false`.
+	  - Aggiunta i18n nel chip pill di ruolo per ogni riga
+	    referente (`APP.ROLE.<tipo>` — es. "Referente servizio"
+	    per `referente_servizio`).
+	  - `lnk-form-live-search`: nuovo input `searchDebounce`
+	    (default 300ms) applicato come `debounceTime` sul pipe
+	    di `textInput$`. Riduce le chiamate cancellate da
+	    `switchMap` durante la digitazione veloce.
+
+	* [Frontend]
 	Issue 254: ridisegno liste client / endpoint allineato al
 	  pattern referenti del nuovo layout:
 	  - Titolo always-on ("Configurazione autenticazione" /

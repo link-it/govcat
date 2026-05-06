@@ -77,6 +77,15 @@ export class LnkFormLiveSearchComponent implements ControlValueAccessor, OnInit,
     @Input() multiple: boolean = false;
     @Input() disabledSearch: boolean = false;
     @Input() searchService!: (term: string, page?: number) => Observable<any>;
+
+    /**
+     * Ritardo (ms) applicato al `textInput$` prima di triggerare la
+     * `searchService`. Riduce il numero di chiamate cancellate durante
+     * la digitazione (`switchMap` cancellerebbe la richiesta in volo
+     * a ogni keystroke). Default 300ms — bilancia reattivita` e
+     * traffico backend. Imposta 0 per disabilitare.
+     */
+    @Input() searchDebounce: number = 300;
     
     @Input() initValue: any = null;
     @Input() isEdit: boolean = false;
@@ -160,10 +169,15 @@ export class LnkFormLiveSearchComponent implements ControlValueAccessor, OnInit,
     }
 
     loadItems() {
-        // Reagisci ai cambiamenti del termine di ricerca
+        // Reagisci ai cambiamenti del termine di ricerca con un
+        // `debounceTime(searchDebounce)` per ridurre le chiamate
+        // cancellate durante la digitazione: senza debounce ogni
+        // keystroke triggerava una `searchService` che `switchMap`
+        // poi cancellava al keystroke successivo. Default 300ms.
         this.textInput$
             .pipe(
                 startWith(''),
+                debounceTime(this.searchDebounce),
                 distinctUntilChanged(),
                 tap((term) => {
                     // Aggiorna lo stato della ricerca con il nuovo termine e resetta la pagina

@@ -37,6 +37,7 @@ import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
 
 import { ModalAddReferentComponent } from './modal-add-referent/modal-add-referent.component';
+import { ReferenteAddFormComponent } from './referente-add-form/referente-add-form.component';
 import { AdesioneListaClientsComponent } from './adesione-lista-clients/adesione-lista-clients.component';
 import { AdesioneDialogMockPanelComponent } from './adesione-dialog-mock-panel/adesione-dialog-mock-panel.component';
 import { AdesioneListaErogazioniComponent } from './adesione-lista-erogazioni/adesione-lista-erogazioni.component';
@@ -110,6 +111,7 @@ export interface AdesioneDisclaimer {
         AdesioneStepBarComponent,
         AdesioneFasiBarComponent,
         AdesioneSubstepperComponent,
+        ReferenteAddFormComponent,
         NotificationBarComponent,
         WorkflowComponent
     ]
@@ -1448,9 +1450,20 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
         });
     }
 
+    /**
+     * Issue 254 NEW LAYOUT (rev. 4.29): wrapper del legacy
+     * `addReferenteModal` che ora apre il pannello inline
+     * `<app-referente-add-form>`. Il nome resta per back-compat col
+     * template del vecchio layout.
+     */
     addReferenteModal(event: any) {
-        event.stopPropagation();
-        event.preventDefault();
+        event?.stopPropagation?.();
+        event?.preventDefault?.();
+        if (this.wizardNewLayout) {
+            this.openInlineAddReferent();
+            return;
+        }
+        // Legacy: dialog
         const initialState = {
             title: 'APP.TITLE.AddReferent',
             id: this.id,
@@ -1458,15 +1471,37 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
         };
         this.modalAddReferentRef = this.modalService.show(ModalAddReferentComponent, {
             ignoreBackdropClick: true,
-            // class: 'modal-lg-custom',
             initialState: initialState
         });
         this.modalAddReferentRef.content.onClose.subscribe(
-            (result: any) => {
-                console.log(result);
-                this.loadReferents();
-            }
+            (_result: any) => { this.loadReferents(); }
         );
+    }
+
+    /**
+     * Issue 254 NEW LAYOUT (rev. 4.29): stato di apertura del
+     * pannello inline `<app-referente-add-form>` dentro la
+     * `lnk-ref-group` "Referenti adesione". La logica del form
+     * (search utenti, validators, save) e` interamente nel
+     * componente standalone.
+     */
+    _addReferentOpen: boolean = false;
+
+    openInlineAddReferent(): void {
+        // Assicuriamo che il sub-gruppo "Referenti adesione" sia aperto
+        // quando si chiede di aggiungere un referente.
+        this._referentGroupOpen.adesione = true;
+        this._addReferentOpen = true;
+    }
+
+    closeInlineAddReferent(): void {
+        this._addReferentOpen = false;
+    }
+
+    /** Triggered dal `<app-referente-add-form>` al successo del POST. */
+    onReferentAdded(): void {
+        this._addReferentOpen = false;
+        this.loadReferents();
     }
 
     _generateReferentFields(data: any) {

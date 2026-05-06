@@ -1,0 +1,59 @@
+// ----------------------------------------------------------------------
+// ReferenteAddFormComponent — Issue 254 NEW LAYOUT (rev. 4.29)
+// I token CSS (`--surface`, `--line`, `--accent`, ecc.) sono ereditati
+// dal wizard host `.lnk-wizard` (variabili DOM-level).
+// ----------------------------------------------------------------------
+
+:host {
+  display: block;
+}
+
+.referente-add-form {
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--line-strong, #c4d6e0);
+  border-radius: 10px;
+  padding: 0.875rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+
+  ::ng-deep .form-group {
+    margin-bottom: 0;
+  }
+}
+
+.referente-add-form-hd {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--line, #dee8ef);
+  margin-bottom: 0.25rem;
+}
+
+.referente-add-form-title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink, #212c49);
+  letter-spacing: -0.005em;
+}
+
+.referente-add-form-fields {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 0.75rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.referente-add-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--line, #dee8ef);
+}

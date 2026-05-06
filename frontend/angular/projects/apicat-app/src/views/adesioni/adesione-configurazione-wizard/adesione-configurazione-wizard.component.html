@@ -1108,7 +1108,7 @@
             {{ 'APP.ADESIONI.TITLE.Referents' | translate }}
             <span class="lnk-ref-count">{{ referents.length }}</span>
           </h4>
-          @if (isEdit || (updateMapper | mapper:canAddMapper)) {
+          @if ((isEdit || (updateMapper | mapper:canAddMapper)) && !_addReferentOpen) {
             <button type="button" class="lnk-btn lnk-btn-sm"
                     (click)="$event.stopPropagation(); addReferenteModal($event)">
               {{ 'APP.BUTTON.AddReferent' | translate }}
@@ -1120,7 +1120,21 @@
         </div>
         @if (openA) {
           <div class="lnk-ref-group-body">
-            @if (referents.length === 0 && !referentiLoading) {
+            <!-- Pannello inline "Aggiungi referente" (rev. 4.29):
+                 sostituisce la `ModalAddReferentComponent`. Toggle
+                 via `_addReferentOpen` pilotato dal bottone
+                 "Aggiungi referente" (`addReferenteModal($event)`
+                 -> `openInlineAddReferent()` quando wizardNewLayout). -->
+            @if (_addReferentOpen) {
+              <app-referente-add-form
+                class="d-block mb-2"
+                [id]="id"
+                [adesione]="adesione"
+                (saved)="onReferentAdded()"
+                (close)="closeInlineAddReferent()"
+              ></app-referente-add-form>
+            }
+            @if (referents.length === 0 && !referentiLoading && !_addReferentOpen) {
               <div class="text-muted small">{{ _message | translate }}</div>
             }
             @for (referent of referents; track referent.id) {
@@ -1198,6 +1212,17 @@
       <div class="who">{{ getReferentName(referent) }}</div>
       <div class="when">{{ getReferentSub(referent) }}</div>
     </div>
+    <!-- Ruolo del referente (rev. 4.30): chip pill con il `tipo`
+         tradotto via `APP.ROLE.<tipo>` (es. `referente_servizio` ->
+         "Referente servizio"). I tipi sono assegnati in
+         `loadReferents`: `referente`/`referente_tecnico` per i
+         referenti adesione, `_servizio` / `_dominio` per gli
+         ereditati dalle entita` superiori. -->
+    @if (referent.source?.tipo) {
+      <span class="referent-role-tag">
+        {{ ('APP.ROLE.' + referent.source.tipo) | translate }}
+      </span>
+    }
     @if (deletable) {
       <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm lnk-btn-icon"
               [tooltip]="'APP.TOOLTIP.Remove' | translate" container="body"
