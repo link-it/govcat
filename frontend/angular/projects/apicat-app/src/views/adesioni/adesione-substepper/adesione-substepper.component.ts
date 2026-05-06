@@ -46,8 +46,10 @@ export interface SubstepItem {
     code: string;
     /** Label tradotta via `i18nPrefix.<code>`, fallback a `descrizione`. */
     label: string;
-    /** Descrizione testuale dal config (utile come meta inline). */
-    descrizione: string;
+    /** Meta inline (sotto/accanto al label, lighter). Risolto via i18n
+     *  con la chiave `<i18nPrefix>.<code>_meta`. Vuoto se la chiave
+     *  non esiste — evita la ripetizione del label dello step. */
+    meta: string;
     state: SubstepState;
     /** Indice 1-based per il bullet del cerchio. */
     index: number;
@@ -203,9 +205,28 @@ export class AdesioneSubstepperComponent implements OnChanges {
             }
         }
 
+        // Stato terminale: sull'ultimo step della bar, il currentState
+        // coincide con l'ULTIMO `stati_adesione` dello step (es.
+        // `pubblicato_collaudo` per la sezione Collaudo, `pubblicato_produzione`
+        // per Produzione). In questo caso lo step e` raggiunto e
+        // concluso — lo trattiamo come `completed`, non come `active`,
+        // coerente col `<app-adesione-step-bar>` legacy che lo
+        // promuove a `final`.
+        const lastIndex = this.steps.length - 1;
+        const lastStep = this.steps[lastIndex];
+        const lastStatesOfLastStep = lastStep?.stati_adesione || [];
+        const terminalState = lastStatesOfLastStep.length > 0
+            ? lastStatesOfLastStep[lastStatesOfLastStep.length - 1]
+            : null;
+        const reachedTerminal = realIndex === lastIndex && terminalState !== null && this.currentState === terminalState;
+
         return this.steps.map((step, index) => {
             let state: SubstepState;
             if (pastPhase) {
+                state = 'completed';
+            } else if (reachedTerminal) {
+                // Tutti gli step diventano `completed` quando il
+                // workflow ha raggiunto lo stato terminale della bar.
                 state = 'completed';
             } else if (realIndex !== -1 && index === realIndex) {
                 state = 'active';
@@ -222,7 +243,7 @@ export class AdesioneSubstepperComponent implements OnChanges {
             return {
                 code: step.code,
                 label: this._resolveLabel(step),
-                descrizione: step.descrizione || '',
+                meta: this._resolveMeta(step),
                 state,
                 index: index + 1,
                 collapsible,
@@ -248,5 +269,18 @@ export class AdesioneSubstepperComponent implements OnChanges {
         const key = `${this.i18nPrefix}.${step.code}`;
         const translated = this.translate.instant(key);
         return translated && translated !== key ? translated : (step.descrizione || step.code);
+    }
+
+    /**
+     * Risoluzione i18n del meta inline. Cerca la chiave
+     * `<i18nPrefix>.<code>_meta` (es. `STEP_WIZARD_SEZIONE.in_compilazione_meta`
+     * = "Configura autenticazione ed endpoint"). Se la chiave non
+     * esiste ritorna stringa vuota — evita la ripetizione del label
+     * (la `descrizione` dal config tipicamente coincide col label).
+     */
+    private _resolveMeta(step: StepWizardItem): string {
+        const key = `${this.i18nPrefix}.${step.code}_meta`;
+        const translated = this.translate.instant(key);
+        return translated && translated !== key ? translated : '';
     }
 }

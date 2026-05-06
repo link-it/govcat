@@ -48,7 +48,7 @@
     <form novalidate class="issue-form common-note-form mt-3 gl-show-field-errors gfm-form" [class.form-readonly]="!isEdit" [formGroup]="formGroup" (submit)="onSubmit(formGroup.getRawValue())">
 
       <div class="row">
-        <div class="col-12 col-lg-9">
+        <div class="col-12">
           <lnk-form-live-search
             [label]="'APP.LABEL.servizio_nome' | translate"
             bindLabel="label"
@@ -74,7 +74,7 @@
           ></lnk-form-live-search>
         </div>
         @if (servizio?.multi_adesione) {
-          <div class="col-12 col-lg-9">
+          <div class="col-12">
             <lnk-form-field
               name="id_logico"
               [label]="'APP.LABEL.id_logico' | translate"
@@ -90,7 +90,7 @@
             ></lnk-form-field>
           </div>
         }
-        <div class="col-12 col-lg-9">
+        <div class="col-12">
           <lnk-form-live-search
             [label]="'APP.LABEL.id_organizzazione' | translate"
             bindLabel="label"
@@ -114,7 +114,7 @@
             (changeEvent)="checkSoggetto($event)"
           ></lnk-form-live-search>
         </div>
-        <div class="col-12 col-lg-9">
+        <div class="col-12">
           @if (isEdit && isBozza) {
             <div class="" [hidden]="hideSoggettoDropdown">
               <lnk-form-live-search
@@ -152,28 +152,7 @@
         </div>
       </div>
 
-      <div class="form-content">
-        <div class="row">
-          <div class="col-12">
-            <div class="row">
-              <!-- <div class="col-12">
-              <ui-field-plaintext
-                [label]="'APP.LABEL.servizio_nome'"
-                [value]="adesione.servizio.nome + ' v.' + adesione.servizio.versione"
-              ></ui-field-plaintext>
-            </div> -->
-            <!-- <div class="col-12">
-            <ui-field-plaintext
-              [label]="'APP.LABEL.id_organizzazione'"
-              [value]="adesione?.soggetto?.organizzazione.nome"
-            ></ui-field-plaintext>
-          </div> -->
-          <!-- <div class="col-12">
-          <ui-field-plaintext
-            [label]="'APP.LABEL.id_soggetto'"
-            [value]="adesione.soggetto.nome"
-          ></ui-field-plaintext>
-        </div> -->
+      <div class="row">
         <div class="col-6">
           <lnk-field-plaintext
             [label]="'APP.LABEL.utente_richiedente'"
@@ -219,27 +198,21 @@
           </div>
         }
       </div>
-    </div>
+
+      <div class="settings-content-">
+        @if (isEdit && error) {
+          <lnk-form-error [message]="errorMsg"></lnk-form-error>
+        }
+        @if (isEdit) {
+          <lnk-form-submit
+            [submitLabel]="'APP.BUTTON.Save'"
+            [cancelLabel]="'APP.BUTTON.Cancel'"
+            [disabled]="formGroup.invalid || saving"
+            (cancel)="onCancelEdit()"
+          ></lnk-form-submit>
+        }
+      </div>
+
+    </form>
   </div>
-</div>
-
-<div class="settings-content-">
-
-  @if (isEdit && error) {
-    <lnk-form-error [message]="errorMsg"></lnk-form-error>
-  }
-
-  @if (isEdit) {
-    <lnk-form-submit
-      [submitLabel]="'APP.BUTTON.Save'"
-      [cancelLabel]="'APP.BUTTON.Cancel'"
-      [disabled]="formGroup.invalid || saving"
-      (cancel)="onCancelEdit()"
-    ></lnk-form-submit>
-  }
-
-</div>
-
-</form>
-</div>
 </div>

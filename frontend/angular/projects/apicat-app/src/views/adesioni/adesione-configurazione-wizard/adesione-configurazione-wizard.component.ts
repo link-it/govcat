@@ -423,15 +423,16 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     }
 
     /**
-     * Issue 254 NEW LAYOUT (rev. 4.5): stato di apertura dei 3
+     * Issue 254 NEW LAYOUT (rev. 4.5 + 4.22): stato di apertura dei 3
      * sub-gruppi referenti nel pannello FASE 01 (adesione / servizio /
-     * dominio). Default aperti — coerente col `defaultOpen=true` del
-     * `ReferenteGroup` design-code (parts.jsx).
+     * dominio). Default: solo "Referenti adesione" aperto, gli altri
+     * due chiusi (feedback utente — gli inheritance da
+     * servizio/dominio sono di solito riferimento secondario).
      */
     _referentGroupOpen: { adesione: boolean; servizio: boolean; dominio: boolean } = {
         adesione: true,
-        servizio: true,
-        dominio: true,
+        servizio: false,
+        dominio: false,
     };
 
     isReferentGroupOpen(key: 'adesione' | 'servizio' | 'dominio'): boolean {
@@ -906,18 +907,35 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
         if (fase === 'info') {
             const infoOk = this.isSectionCompleted('info_generali') && this.isSectionCompleted('referenti');
             if (infoOk) { return 'completed'; }
+            // "Fase passata": adesione in una fase successiva del workflow
+            // (raro per FASE 01, ma normale per Collaudo quando l'adesione
+            // e` in Produzione). Vedi `_isSectionPast()` per la regola.
+            if (this._isSectionPast('info_generali') && this._isSectionPast('referenti')) {
+                return 'completed';
+            }
             return this.isSectionActive('info_generali') || this.isSectionActive('referenti') ? 'active' : 'pending';
         }
         if (this.isSectionCompleted(fase)) { return 'completed'; }
+        // Tipico per Collaudo quando l'adesione e` gia` pubblicata in
+        // produzione: la fase non e` "pending" (futura) ma "conclusa".
+        if (this._isSectionPast(fase)) { return 'completed'; }
         return this.isSectionActive(fase) ? 'active' : 'pending';
     }
 
     /**
      * Counter "X/Y" dei sub-step di una sezione (collaudo/produzione)
-     * basato sull'ordine dello workflow. Il numero "Y" e' la count
-     * totale degli step della sezione; "X" e' il numero di step la
-     * cui ultima `stati_adesione` precede strettamente lo stato corrente
-     * dell'adesione (gli step "compresi" sono quelli gia' attraversati).
+     * basato sull'ordine dello workflow.
+     *
+     * Regole (allineate al `_buildItems()` di `<app-adesione-substepper>`):
+     *  - "past phase": currentState posizionato nel workflow DOPO tutti
+     *    gli stati della sezione -> tutti gli step done (es. Collaudo
+     *    quando l'adesione e` gia` in Produzione);
+     *  - "terminal reached": currentState e` l'ULTIMO stato dell'ULTIMO
+     *    step (es. `pubblicato_collaudo` per Collaudo step `configurato`)
+     *    -> tutti gli step done (rev. 4.23);
+     *  - altrimenti: count degli step la cui ultima `stati_adesione`
+     *    PRECEDE STRETTAMENTE lo stato corrente.
+     *
      * Restituisce `null` per sezioni che non hanno step interni.
      */
     getSezioneCounter(section: string): { done: number; total: number } | null {
@@ -930,6 +948,32 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
         if (!wfStati?.length || !currentStato) { return { done: 0, total }; }
         const currentIdx = wfStati.indexOf(currentStato);
         if (currentIdx === -1) { return { done: 0, total }; }
+
+        // Past phase: lo stato corrente e` posizionato nel workflow
+        // dopo TUTTI gli stati di questa sezione.
+        let maxStepStateIdx = -1;
+        for (const step of steps) {
+            for (const st of step.stati_adesione || []) {
+                const idx = wfStati.indexOf(st);
+                if (idx > maxStepStateIdx) { maxStepStateIdx = idx; }
+            }
+        }
+        if (maxStepStateIdx !== -1 && currentIdx > maxStepStateIdx) {
+            return { done: total, total };
+        }
+
+        // Terminal reached: lo stato corrente coincide con l'ultimo
+        // `stati_adesione` dell'ultimo step della sezione (e.g.,
+        // `pubblicato_collaudo` per "configurato" di Collaudo).
+        const lastStep = steps[steps.length - 1];
+        const lastStates = lastStep?.stati_adesione || [];
+        const terminalState = lastStates.length > 0 ? lastStates[lastStates.length - 1] : null;
+        if (terminalState !== null && currentStato === terminalState) {
+            return { done: total, total };
+        }
+
+        // Caso comune: count step "passati" (ultima `stati_adesione`
+        // precedente strettamente lo stato corrente).
         let done = 0;
         for (const step of steps) {
             const indices = (step.stati_adesione || [])

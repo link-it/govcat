@@ -1,3 +1,40 @@
+2026-05-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: refinement nuovo layout wizard adesione (post
+	  test manuale rev. 4):
+	  - Step-bar / sub-stepper / counter env-progress: regola
+	    "fase passata" + "stato terminale raggiunto" allineate
+	    fra step principale (`getFaseStatus`), counter
+	    (`getSezioneCounter`) e substepper interno
+	    (`_buildItems`). Quando l'adesione raggiunge lo stato
+	    terminale di Collaudo (`pubblicato_collaudo`) o e` in
+	    Produzione, la card Collaudo mostra "Fase conclusa",
+	    counter 4/4 e tutti i sub-step verdi (niente piu`
+	    bottone "Compila ora" sull'ultimo step concluso).
+	  - Form Informazioni generali: ridisegno dei campi
+	    readonly come "card" stile mock (sfondo soft, border
+	    arrotondato, label bold sopra) via `::ng-deep`; layout
+	    2-col per le righe Registrato/Date.
+	  - Substepper: tl-meta risolto via i18n `<prefix>.<code>_meta`
+	    (solo `in_compilazione` ha la meta "Configura
+	    autenticazione ed endpoint"); stato a destra come pill
+	    "Completato"/"Bloccato" o bottone Mostra/Chiudi/Compila
+	    ora; CTA "Compila ora" con stile primary rosso pieno.
+	  - Banner stato: CTA right-side ricavata da
+	    `disclaimer.links` (no piu` getter `apiDocLink`
+	    hardcoded a `/servizi/{id}`); rules markdown banner
+	    spostate in `app-markdown.scss`.
+	  - Sub-gruppi referenti: default solo "Referenti adesione"
+	    aperto, "Servizio" e "Dominio" chiusi.
+	  - i18n: chiavi corrette (`APP.LABEL.Modify` ->
+	    `APP.BUTTON.Modify`); nuove `Owner` ("Referente
+	    servizio"), `CompilaOra`, `Show`, `InCorso`,
+	    `WaitingGestoreTitle`, `in_compilazione_meta`. Tutte
+	    tradotte IT/EN.
+	  - Hover header collassabili: highlight solo sul chevron
+	    (PhaseSection / ref-group / tl-row del substepper).
+
 2026-05-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

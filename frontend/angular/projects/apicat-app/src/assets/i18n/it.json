@@ -119,7 +119,8 @@
 				"in_compilazione": "In Compilazione",
 				"in_approvazione": "In Approvazione",
 				"in_configurazione": "In Configurazione",
-				"configurato": "Configurato"
+				"configurato": "Configurato",
+				"in_compilazione_meta": "Configura autenticazione ed endpoint"
 			},
 			"TITLE": {
 				"ApiInformations": "API",
@@ -1052,7 +1053,7 @@
 			"tempo_medio_risposta": "Tempo medio risposta",
 			"TempoRisposta": "Tempo risposta",
 			"termini_ricerca": "Termini di ricerca",
-			"Owner": "Owner",
+			"Owner": "Referente servizio",
 			"UpdatedRelative": "Aggiornato {{time}}",
 			"ApiDocumentation": "Documentazione API",
 			"tipo": "Tipo",

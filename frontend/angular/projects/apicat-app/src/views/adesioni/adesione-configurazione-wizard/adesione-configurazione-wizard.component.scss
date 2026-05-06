@@ -585,6 +585,155 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     padding: 16px 18px;
   }
 
+  // ---------------------------------------------------------------------
+  // Stili form Informazioni generali (mock image-2 / image-5):
+  // - campi disabled con sfondo soft + border arrotondato + label bold;
+  // - bottone "Modifica" allineato a destra sopra i campi;
+  // - layout 2-col per le righe inferiori (Registrato da / Data creazione,
+  //   Ultimo aggiornamento da / Data ultimo aggiornamento).
+  // Usa `::ng-deep` per attraversare la view encapsulation del child
+  // `<app-adesione-form>` (i selettori di questo blocco vengono
+  // applicati a HTML emesso dal child component).
+  // ---------------------------------------------------------------------
+  .lnk-phase-section-body app-adesione-form {
+    ::ng-deep {
+      // Reset margins su row/col Bootstrap dentro la form (recuperati da
+      // `gap` dello stack del form-content).
+      .form-content {
+        margin-top: 14px;
+      }
+
+      // Form-group: layout label-sopra + value-sotto, spacing uniforme.
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 14px;
+      }
+      .form-group:last-child { margin-bottom: 0; }
+
+      // Label "Nome Servizio", "Organizzazione", ecc. — bold, ink scuro,
+      // sopra il campo (allineato col mock).
+      .label,
+      .label-bold,
+      label.label-bold {
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--ink);
+        margin: 0;
+        padding: 0;
+      }
+
+      // Read-only display: card stile mock (sfondo soft, border, radius).
+      // Applicato sia al `<p class="form-control-plaintext">` di
+      // `lnk-field-plaintext` sia ai placeholder di campi disabled.
+      .form-control-plaintext {
+        height: 36px;
+        padding: 0 14px;
+        display: flex;
+        align-items: center;
+        background: var(--surface-2);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        font-size: 14px;
+        color: var(--ink);
+        font-weight: 400;
+        line-height: 1.4;
+        margin: 0;
+        width: 100%;
+        white-space: normal;
+        word-break: break-word;
+      }
+
+      // Input native (edit mode) — stessa altezza/border/radius.
+      .form-control {
+        height: 36px;
+        padding: 0 14px;
+        background: var(--surface);
+        border: 1px solid var(--line-strong);
+        border-radius: 8px;
+        font-size: 14px;
+        color: var(--ink);
+        font-weight: 400;
+
+        &:focus {
+          border-color: var(--accent);
+          box-shadow: 0 0 0 3px var(--accent-soft);
+          outline: none;
+        }
+        &:disabled,
+        &[readonly] {
+          background: var(--surface-2);
+          color: var(--ink);
+        }
+      }
+      textarea.form-control {
+        height: auto;
+        min-height: 80px;
+        padding: 10px 14px;
+        line-height: 1.5;
+      }
+
+      // ui-data-type wrapper (es. "Data creazione", "Data ultimo
+      // aggiornamento" formattati come date) — niente styling base
+      // intrinseco, lo wrappiamo in un display-card come gli altri.
+      ui-data-type {
+        height: 36px;
+        padding: 0 14px;
+        display: flex;
+        align-items: center;
+        background: var(--surface-2);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        font-size: 14px;
+        color: var(--ink);
+      }
+
+      // Layout 2-col fluido per le righe inferiori. Il template originale
+      // ha `<div class="col-6">` Bootstrap; qui rinforziamo lo spacing.
+      .form-content .row > .col-6 {
+        padding-right: 8px;
+        padding-left: 8px;
+      }
+      .form-content .row {
+        margin-right: -8px;
+        margin-left: -8px;
+      }
+
+      // Le live-search (id_servizio, id_organizzazione, id_soggetto) e
+      // i form-field render le proprie label + input — stessi stili.
+      lnk-form-live-search,
+      lnk-form-field {
+        display: block;
+        margin-bottom: 14px;
+
+        // I componenti rendono al loro interno `.form-group` con label
+        // e input/select/plaintext: i selettori globali sopra li gia`
+        // catturano. Qui solo override safe-area.
+        .form-group { margin-bottom: 0; }
+      }
+
+      // Reset overflow del row Bootstrap che a volte introduce H-scroll.
+      .row { --bs-gutter-x: 16px; }
+
+      // ng-select dentro form-live-search: allineiamo a 36px di altezza.
+      .ng-select.ng-select-single .ng-select-container {
+        min-height: 36px;
+        border-radius: 8px;
+        border-color: var(--line-strong);
+      }
+
+      // Striscia inferiore (Save/Cancel via lnk-form-submit) - la
+      // separiamo dal form con un divider.
+      lnk-form-submit {
+        display: block;
+        margin-top: 18px;
+        padding-top: 14px;
+        border-top: 1px solid var(--line);
+      }
+    }
+  }
+
   // Sub-gruppo dei referenti (Adesione / Servizio / Dominio).
   // Collassabile (rev. 4.5): header cliccabile con chevron animato,
   // body visibile solo quando `is-open`.

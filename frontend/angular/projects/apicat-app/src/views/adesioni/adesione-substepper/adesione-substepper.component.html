@@ -42,11 +42,12 @@
                (keydown.enter)="sub.collapsible && toggle(sub)"
                (keydown.space)="sub.collapsible && toggle(sub); $event.preventDefault()">
             <span class="tl-name">{{ sub.label }}</span>
-            <!-- tl-meta: descrizione originale dal config (es.
-                 "Configura autenticazione ed endpoint" per
-                 in_compilazione). -->
-            @if (sub.descrizione) {
-              <span class="tl-meta">{{ sub.descrizione }}</span>
+            <!-- tl-meta: descrizione inline risolta via i18n
+                 (`<prefix>.<code>_meta`). Solo gli step che hanno la
+                 chiave esplicita la mostrano; gli altri non
+                 ripetono il label (rev. 4.21). -->
+            @if (sub.meta) {
+              <span class="tl-meta">{{ sub.meta }}</span>
             }
             <span class="tl-spacer"></span>
             <!-- Stato/azione allineato a destra (mock image-4):

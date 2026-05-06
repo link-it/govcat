@@ -686,7 +686,7 @@
 <ng-template #disclaimerTpl let-item>
   <div class="alert mb-2 disclaimer-item" [ngClass]="getDisclaimerAlertClass(item.severity)" role="alert">
     <div class="d-flex align-items-start gap-2">
-      <i class="disclaimer-icon" [ngClass]="getDisclaimerIconClass(item.severity)" [attr.aria-label]="item.severity" role="img"></i>
+      <i class="disclaimer-icon" [ngClass]="getDisclaimerIconClass(item.severity)" [attr.aria-label]="item.severity"></i>
       <div class="flex-grow-1">
         <markdown class="disclaimer-body" [data]="item.disclaimer"></markdown>
         @if (item.links?.length) {
@@ -734,11 +734,11 @@
     @if (section === 'info_generali' && canEditMapper() && !isEdit) {
       <button type="button"
               class="wizard-fase-edit-btn"
-              [tooltip]="'APP.LABEL.Modify' | translate"
+              [tooltip]="'APP.BUTTON.Modify' | translate"
               container="body"
               (click)="$event.stopPropagation(); enterEditModeForInfoGenerali()">
         <i class="bi bi-pencil"></i>
-        <span>{{ 'APP.LABEL.Modify' | translate }}</span>
+        <span>{{ 'APP.BUTTON.Modify' | translate }}</span>
       </button>
     }
   </div>
@@ -759,8 +759,7 @@
        role="alert">
     <div class="icon">
       <i [ngClass]="getDisclaimerIconClass(item.severity)"
-         [attr.aria-label]="item.severity"
-         role="img"></i>
+         [attr.aria-label]="item.severity"></i>
     </div>
     <div class="body">
       <markdown [data]="item.disclaimer"></markdown>
@@ -1016,8 +1015,6 @@
   @let openInfo = isPhaseSectionOpen('info_generali');
   <section class="lnk-phase-section" [class.is-open]="openInfo">
     <header class="lnk-phase-section-hd"
-            role="button"
-            tabindex="0"
             [attr.aria-expanded]="openInfo"
             (click)="togglePhaseSection('info_generali')"
             (keydown.enter)="togglePhaseSection('info_generali')"
@@ -1050,7 +1047,7 @@
                 <span>{{ 'APP.BUTTON.Cancel' | translate }}</span>
               } @else {
                 <i class="bi bi-pencil"></i>
-                <span>{{ 'APP.LABEL.Modify' | translate }}</span>
+                <span>{{ 'APP.BUTTON.Modify' | translate }}</span>
               }
             </button>
           </div>
@@ -1067,7 +1064,7 @@
           [servizio]="servizio"
           [grant]="grant"
           [config]="adesioniClientsConfig"
-          [singleColumn]="singleColumn"
+          [singleColumn]="singleColumn"ß
           [editable]="canEditMapper()"
           [externalEditControl]="true"
         ></app-adesione-form>
@@ -1079,8 +1076,6 @@
   @let openRef = isPhaseSectionOpen('referenti');
   <section class="lnk-phase-section" [class.is-open]="openRef">
     <header class="lnk-phase-section-hd"
-            role="button"
-            tabindex="0"
             [attr.aria-expanded]="openRef"
             (click)="togglePhaseSection('referenti')"
             (keydown.enter)="togglePhaseSection('referenti')"
@@ -1105,8 +1100,6 @@
       @let openA = isReferentGroupOpen('adesione');
       <div class="lnk-ref-group" [class.is-open]="openA">
         <div class="lnk-ref-group-hd"
-             role="button"
-             tabindex="0"
              [attr.aria-expanded]="openA"
              (click)="toggleReferentGroup('adesione')"
              (keydown.enter)="toggleReferentGroup('adesione')"
@@ -1144,8 +1137,6 @@
       @let openS = isReferentGroupOpen('servizio');
       <div class="lnk-ref-group" [class.is-open]="openS">
         <div class="lnk-ref-group-hd"
-             role="button"
-             tabindex="0"
              [attr.aria-expanded]="openS"
              (click)="toggleReferentGroup('servizio')"
              (keydown.enter)="toggleReferentGroup('servizio')"
@@ -1171,8 +1162,6 @@
       @let openD = isReferentGroupOpen('dominio');
       <div class="lnk-ref-group" [class.is-open]="openD">
         <div class="lnk-ref-group-hd"
-             role="button"
-             tabindex="0"
              [attr.aria-expanded]="openD"
              (click)="toggleReferentGroup('dominio')"
              (keydown.enter)="toggleReferentGroup('dominio')"
@@ -1251,7 +1240,7 @@
             <span class="chip chip-accent"><span class="pulse"></span>{{ 'APP.ADESIONI.LABEL.AzioneRichiesta' | translate }}</span>
           }
           @if (st === 'completed') {
-            <span class="chip chip-ok"><i class="bi bi-check-lg"></i> {{ 'APP.ADESIONI.LABEL.Completato' | translate }}</span>
+            <span class="chip chip-ok"><i class="bi bi-check-lg"></i> {{ 'APP.ADESIONI.LABEL.FaseConclusa' | translate }}</span>
           }
           @if (st === 'pending') {
             <span class="chip chip-muted"><i class="bi bi-lock-fill"></i> {{ 'APP.ADESIONI.LABEL.InAttesa' | translate }}</span>
