@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 
 import { TranslateService } from '@ngx-translate/core';
@@ -34,7 +34,7 @@ import { MarkdownModule } from 'ngx-markdown';
     standalone: true,
     imports: [PopoverModule, MarkdownModule]
 })
-export class PopoverHelpComponent implements OnInit, OnChanges {
+export class PopoverHelpComponent implements OnChanges {
 
     @Input() field: string = '';
     @Input() context: string = '';
@@ -50,11 +50,9 @@ export class PopoverHelpComponent implements OnInit, OnChanges {
     existsValue: boolean = false;
 
     constructor(
-        private sanitized: DomSanitizer,
-        private translate: TranslateService
+        private readonly sanitized: DomSanitizer,
+        private readonly translate: TranslateService
     ) { }
-
-    ngOnInit() {}
 
     ngOnChanges(changes: SimpleChanges): void {
         if (changes.field) {

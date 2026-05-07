@@ -1,6 +1,14 @@
 2026-05-07  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 254: `client-auth-form` — help dei campi spostato
+	  in `<lnk-popover-help>` (icona info accanto alla label,
+	  popover on-click), placeholder concisi su input/select,
+	  bordo rosso sui campi con errore via classe
+	  `gl-show-field-errors` sul wrapper. `_hasControlError`
+	  ora supporta path annidati (es. `rate_limiting.quota`).
+
+	* [Frontend]
 	Issue 254: nuova `GrantRole` const + helper
 	  `expandTecnicoGrants/expandContextualGrants` in
 	  `services/grant-roles.const.ts`; `authentication.service`

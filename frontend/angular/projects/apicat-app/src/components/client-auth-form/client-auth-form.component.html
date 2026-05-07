@@ -18,7 +18,7 @@
   Con `[formGroup]` sul div Angular ReactiveForms continua a risolvere
   i `formControlName` dei figli.
 -->
-<div [formGroup]="input.formGroup" class="client-auth-form" [class.layout-horizontal]="layout === 'horizontal'">
+<div [formGroup]="input.formGroup" class="client-auth-form gl-show-field-errors" [class.layout-horizontal]="layout === 'horizontal'">
   <fieldset>
 
     <!-- auth_type (contesto pagina): dropdown visibile solo quando editable. -->
@@ -133,17 +133,19 @@
       <!-- nome -->
       <div class="row">
         <div class="form-group col-12 mb-2">
-          <label class="label-bold" for="nome">
-            {{ 'APP.ADESIONI.LABEL.NomeDelClient' | translate }}
-            <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'nome'"></span>
-          </label>
+          <div class="d-flex justify-content-between align-items-center">
+            <label class="label-bold" for="nome">
+              {{ 'APP.ADESIONI.LABEL.NomeDelClient' | translate }}
+              <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'nome'"></span>
+            </label>
+            <span class="px-1">
+              <lnk-popover-help [field]="'nome'" [context]="'ClientAuthForm'"></lnk-popover-help>
+            </span>
+          </div>
           <input class="form-control form-control-sm" id="nome" type="text" formControlName="nome"
             autocomplete="off"
-            [placeholder]="f['nome']?.disabled ? '' : ('APP.ADESIONI.LABEL.PlaceholderNomeClient' | translate)"
-            aria-describedby="nome-help">
-          <small id="nome-help" class="form-text text-muted d-block mt-1">
-            {{ 'APP.ADESIONI.LABEL.HelpNomeClient' | translate }}
-          </small>
+            [class.gl-field-error-outline]="_hasControlError('nome')"
+            [placeholder]="f['nome']?.disabled ? '' : ('APP.ADESIONI.LABEL.PlaceholderNomeClient' | translate)">
           @if (f['nome'].invalid && (f['nome'].dirty || f['nome'].touched)) {
             <p class="form-text text-danger">
               @if (f['nome'].errors && f['nome'].errors['required']) {
@@ -159,14 +161,18 @@
         <div class="row">
           @if (input.ipRichiesto) {
             <div class="form-group col-12 mb-2">
-              <label class="label-bold" for="ip_fruizione">
-                {{ 'APP.LABEL.IPfruizione' | translate }}
-                <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'ip_fruizione'"></span>
-              </label>
-              <input class="form-control form-control-sm" id="ip_fruizione" type="text" formControlName="ip_fruizione">
-              <small id="ip_fruizione-help" class="form-text text-muted d-block mt-1">
-                {{ 'APP.ADESIONI.LABEL.HelpIpFruizione' | translate }}
-              </small>
+              <div class="d-flex justify-content-between align-items-center">
+                <label class="label-bold" for="ip_fruizione">
+                  {{ 'APP.LABEL.IPfruizione' | translate }}
+                  <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'ip_fruizione'"></span>
+                </label>
+                <span class="px-1">
+                  <lnk-popover-help [field]="'ip_fruizione'" [context]="'ClientAuthForm'"></lnk-popover-help>
+                </span>
+              </div>
+              <input class="form-control form-control-sm" id="ip_fruizione" type="text" formControlName="ip_fruizione"
+                [class.gl-field-error-outline]="_hasControlError('ip_fruizione')"
+                [placeholder]="'APP.ADESIONI.LABEL.PlaceholderIpFruizione' | translate">
               @if (f['ip_fruizione'].invalid && (f['ip_fruizione'].dirty || f['ip_fruizione'].touched)) {
                 <p class="form-text text-danger">
                   @if (f['ip_fruizione'].errors && f['ip_fruizione'].errors['required']) {
@@ -183,8 +189,15 @@
       @if (input.formConfig.fields.rate_limiting.visible) {
         <div formGroupName="rate_limiting" class="row">
           <div class="form-group col-6 mb-2">
-            <label class="label-bold" for="quota">{{ 'APP.ADESIONI.LABEL.Quota' | translate }}</label>
-            <input class="form-control form-control-sm" id="quota" type="number" min="1" formControlName="quota">
+            <div class="d-flex justify-content-between align-items-center">
+              <label class="label-bold" for="quota">{{ 'APP.ADESIONI.LABEL.Quota' | translate }}</label>
+              <span class="px-1">
+                <lnk-popover-help [field]="'quota'" [context]="'ClientAuthForm'"></lnk-popover-help>
+              </span>
+            </div>
+            <input class="form-control form-control-sm" id="quota" type="number" min="1" formControlName="quota"
+              [class.gl-field-error-outline]="_hasControlError('rate_limiting.quota')"
+              [placeholder]="'APP.ADESIONI.LABEL.PlaceholderQuota' | translate">
             @if (fRate['quota'].invalid && (fRate['quota'].dirty || fRate['quota'].touched)) {
               <p class="form-text text-danger">
                 @if (fRate['quota'].errors && fRate['quota'].errors['required']) {
@@ -198,7 +211,10 @@
           </div>
           <div class="form-group col-6 mb-2">
             <label class="label-bold" for="periodo">{{ 'APP.ADESIONI.LABEL.Periodo' | translate }}</label>
-            <select class="form-select" id="periodo" formControlName="periodo" [class.gl-field-error-outline]="_hasControlError('periodo')">
+            <select class="form-select" id="periodo" formControlName="periodo" [class.gl-field-error-outline]="_hasControlError('rate_limiting.periodo')">
+              <option [ngValue]="null" disabled selected hidden>
+                {{ 'APP.ADESIONI.LABEL.SelezionaPeriodo' | translate }}
+              </option>
               @for (periodo of input.ratePeriods; track periodo) {
                 <option [value]="periodo.value">{{ periodo.label | translate }}</option>
               }
@@ -212,9 +228,6 @@
             }
           </div>
         </div>
-        <small id="quota-periodo-help" class="form-text text-muted d-block mt-1">
-          {{ 'APP.ADESIONI.LABEL.HelpQuotaPeriodo' | translate }}
-        </small>
       }
 
       <!-- finalita -->
@@ -226,7 +239,8 @@
                 {{ 'APP.ADESIONI.LABEL.Finalita' | translate }}
                 <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'finalita'"></span>
               </label>
-              <input class="form-control form-control-sm" id="finalita" type="text" formControlName="finalita">
+              <input class="form-control form-control-sm" id="finalita" type="text" formControlName="finalita"
+                [class.gl-field-error-outline]="_hasControlError('finalita')">
               @if (f['finalita'].invalid && (f['finalita'].dirty || f['finalita'].touched)) {
                 <p class="form-text text-danger">
                   @if (f['finalita'].errors && f['finalita'].errors['required']) {
@@ -250,7 +264,8 @@
               {{ 'APP.CLIENT.LABEL.Username' | translate }}
               <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'username'"></span>
             </label>
-            <input class="form-control form-control-sm" id="username" type="text" formControlName="username">
+            <input class="form-control form-control-sm" id="username" type="text" formControlName="username"
+              [class.gl-field-error-outline]="_hasControlError('username')">
             @if (f['username'].invalid && (f['username'].dirty || f['username'].touched)) {
               <p class="form-text text-danger">
                 @if (f['username'].errors && f['username'].errors['required']) {
@@ -266,11 +281,18 @@
       @if (input.formConfig.showPdndClientIdBlock) {
         <div class="row">
           <div class="form-group col-12 mb-2">
-            <label class="label-bold" for="client_id">
-              {{ 'APP.CLIENT.LABEL.ClientIdPDND' | translate }}
-              <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'client_id'"></span>
-            </label>
-            <input class="form-control form-control-sm" id="client_id" type="text" formControlName="client_id">
+            <div class="d-flex justify-content-between align-items-center">
+              <label class="label-bold" for="client_id">
+                {{ 'APP.CLIENT.LABEL.ClientIdPDND' | translate }}
+                <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'client_id'"></span>
+              </label>
+              <span class="px-1">
+                <lnk-popover-help [field]="'client_id'" [context]="'ClientAuthForm'"></lnk-popover-help>
+              </span>
+            </div>
+            <input class="form-control form-control-sm" id="client_id" type="text" formControlName="client_id"
+              [class.gl-field-error-outline]="_hasControlError('client_id')"
+              [placeholder]="'APP.ADESIONI.LABEL.PlaceholderClientIdPDND' | translate">
             @if (f['client_id'].invalid && (f['client_id'].dirty || f['client_id'].touched)) {
               <p class="form-text text-danger">
                 @if (f['client_id'].errors && f['client_id'].errors['required']) {
@@ -280,9 +302,6 @@
             }
           </div>
         </div>
-        <small id="help_identificativo_client" class="form-text text-muted d-block mb-2">
-          {{ 'APP.ADESIONI.LABEL.HelpIdentificativoClient' | translate }}
-        </small>
       }
 
       <!-- Cert-row: in modalita' orizzontale grid a 2 colonne (auth | firma). -->
@@ -297,12 +316,13 @@
                   {{ 'APP.LABEL.AuthenticationCertificate' | translate }}
                   <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'tipo_certificato'"></span>
                 </label>
-                <ng-select [class.gl-field-error-outline]="_hasControlError('tipo_certificato')"
+                <ng-select [class.gl-field-error-outline-select]="_hasControlError('tipo_certificato')"
                   [items]="input.tipiCertificato"
                   bindValue="nome"
                   bindLabel="nome"
                   labelForId="tipo_certificato"
                   [closeOnSelect]="true"
+                  [placeholder]="'APP.CLIENT.LABEL.SelezionaTipoCertificato' | translate"
                   formControlName="tipo_certificato"
                   (change)="changeTipoCertificato.emit($event)">
                   <ng-template ng-label-tmp let-item="item">
@@ -369,6 +389,7 @@
                     <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'cn'"></span>
                   </label>
                   <input class="form-control form-control-sm" id="cn" type="text" formControlName="cn"
+                    [class.gl-field-error-outline]="_hasControlError('cn')"
                     placeholder="{{ 'APP.LABEL.CertificatoRichiestoCNLabel' | translate }}">
                   @if (f['cn'].invalid && (f['cn'].dirty || f['cn'].touched)) {
                     <p class="form-text text-danger">
@@ -504,12 +525,13 @@
                   {{ 'APP.CLIENT.LABEL.SignCertificate' | translate }}
                   <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'tipo_certificato_firma'"></span>
                 </label>
-                <ng-select [class.gl-field-error-outline]="_hasControlError('tipo_certificato_firma')"
+                <ng-select [class.gl-field-error-outline-select]="_hasControlError('tipo_certificato_firma')"
                   [items]="input.tipiCertificato"
                   bindValue="nome"
                   bindLabel="nome"
                   labelForId="tipo_certificato_firma"
                   [closeOnSelect]="true"
+                  [placeholder]="'APP.CLIENT.LABEL.SelezionaTipoCertificato' | translate"
                   formControlName="tipo_certificato_firma"
                   (change)="changeTipoCertificatoFirma.emit($event)">
                   <ng-template ng-label-tmp let-item="item">
@@ -576,6 +598,7 @@
                     <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'cn_firma'"></span>
                   </label>
                   <input class="form-control form-control-sm" id="cn_firma" type="text" formControlName="cn_firma"
+                    [class.gl-field-error-outline]="_hasControlError('cn_firma')"
                     placeholder="{{ 'APP.LABEL.CertificatoRichiestoCNLabel' | translate }}">
                   @if (f['cn_firma'].invalid && (f['cn_firma'].dirty || f['cn_firma'].touched)) {
                     <p class="form-text text-danger">
@@ -724,7 +747,8 @@
                 {{ 'APP.CLIENT.LABEL.UrlRedirezione' | translate }}
                 <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'url_redirezione'"></span>
               </label>
-              <input class="form-control form-control-sm" id="url_redirezione" type="text" formControlName="url_redirezione">
+              <input class="form-control form-control-sm" id="url_redirezione" type="text" formControlName="url_redirezione"
+                [class.gl-field-error-outline]="_hasControlError('url_redirezione')">
               @if (f['url_redirezione'].invalid && (f['url_redirezione'].dirty || f['url_redirezione'].touched)) {
                 <p class="form-text text-danger">
                   @if (f['url_redirezione'].errors && f['url_redirezione'].errors['required']) {
@@ -738,7 +762,8 @@
                 {{ 'APP.CLIENT.LABEL.UrlEsposizione' | translate }}
                 <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'url_esposizione'"></span>
               </label>
-              <input class="form-control form-control-sm" id="url_esposizione" type="text" formControlName="url_esposizione">
+              <input class="form-control form-control-sm" id="url_esposizione" type="text" formControlName="url_esposizione"
+                [class.gl-field-error-outline]="_hasControlError('url_esposizione')">
               @if (f['url_esposizione'].invalid && (f['url_esposizione'].dirty || f['url_esposizione'].touched)) {
                 <p class="form-text text-danger">
                   @if (f['url_esposizione'].errors && f['url_esposizione'].errors['required']) {
@@ -752,7 +777,8 @@
                 {{ 'APP.CLIENT.LABEL.HelpDesk' | translate }}
                 <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'help_desk'"></span>
               </label>
-              <input class="form-control form-control-sm" id="help_desk" type="text" formControlName="help_desk">
+              <input class="form-control form-control-sm" id="help_desk" type="text" formControlName="help_desk"
+                [class.gl-field-error-outline]="_hasControlError('help_desk')">
               @if (f['help_desk'].invalid && (f['help_desk'].dirty || f['help_desk'].touched)) {
                 <p class="form-text text-danger">
                   @if (f['help_desk'].errors && f['help_desk'].errors['required']) {
@@ -766,7 +792,8 @@
                 {{ 'APP.CLIENT.LABEL.NomeApplicazionePortale' | translate }}
                 <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'nome_applicazione_portale'"></span>
               </label>
-              <input class="form-control form-control-sm" id="nome_applicazione_portale" type="text" formControlName="nome_applicazione_portale">
+              <input class="form-control form-control-sm" id="nome_applicazione_portale" type="text" formControlName="nome_applicazione_portale"
+                [class.gl-field-error-outline]="_hasControlError('nome_applicazione_portale')">
               @if (f['nome_applicazione_portale'].invalid && (f['nome_applicazione_portale'].dirty || f['nome_applicazione_portale'].touched)) {
                 <p class="form-text text-danger">
                   @if (f['nome_applicazione_portale'].errors && f['nome_applicazione_portale'].errors['required']) {
@@ -781,7 +808,8 @@
                   {{ 'APP.CLIENT.LABEL.ClientId' | translate }}
                   <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'client_id'"></span>
                 </label>
-                <input class="form-control form-control-sm" id="client_id_oauth_ac" type="text" formControlName="client_id">
+                <input class="form-control form-control-sm" id="client_id_oauth_ac" type="text" formControlName="client_id"
+                  [class.gl-field-error-outline]="_hasControlError('client_id')">
                 @if (f['client_id'].invalid && (f['client_id'].dirty || f['client_id'].touched)) {
                   <p class="form-text text-danger">
                     @if (f['client_id'].errors && f['client_id'].errors['required']) {
@@ -804,7 +832,8 @@
                 {{ 'APP.CLIENT.LABEL.ClientId' | translate }}
                 <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'client_id'"></span>
               </label>
-              <input class="form-control form-control-sm" id="client_id_oauth_cc" type="text" formControlName="client_id">
+              <input class="form-control form-control-sm" id="client_id_oauth_cc" type="text" formControlName="client_id"
+                [class.gl-field-error-outline]="_hasControlError('client_id')">
               @if (f['client_id'].invalid && (f['client_id'].dirty || f['client_id'].touched)) {
                 <p class="form-text text-danger">
                   @if (f['client_id'].errors && f['client_id'].errors['required']) {
@@ -820,13 +849,15 @@
       <!-- Descrizione. -->
       <div class="row">
         <div class="form-group col-md-12 mb-2">
-          <label class="label-bold" for="descrizione">{{ 'APP.LABEL.descrizione' | translate }}</label>
+          <div class="d-flex justify-content-between align-items-center">
+            <label class="label-bold" for="descrizione">{{ 'APP.LABEL.descrizione' | translate }}</label>
+            <span class="px-1">
+              <lnk-popover-help [field]="'descrizione'" [context]="'ClientAuthForm'"></lnk-popover-help>
+            </span>
+          </div>
           <textarea class="form-control form-control-sm" id="descrizione" rows="4" cols="50" formControlName="descrizione"
-            [placeholder]="f['descrizione']?.disabled ? '' : ('APP.ADESIONI.LABEL.PlaceholderDescrizione' | translate)"
-            aria-describedby="descrizione-help"></textarea>
-          <small id="descrizione-help" class="form-text text-muted d-block mt-1">
-            {{ 'APP.ADESIONI.LABEL.HelpDescrizione' | translate }}
-          </small>
+            [class.gl-field-error-outline]="_hasControlError('descrizione')"
+            [placeholder]="f['descrizione']?.disabled ? '' : ('APP.ADESIONI.LABEL.PlaceholderDescrizione' | translate)"></textarea>
         </div>
       </div>
 
