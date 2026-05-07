@@ -164,6 +164,9 @@
                 <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'ip_fruizione'"></span>
               </label>
               <input class="form-control form-control-sm" id="ip_fruizione" type="text" formControlName="ip_fruizione">
+              <small id="ip_fruizione-help" class="form-text text-muted d-block mt-1">
+                {{ 'APP.ADESIONI.LABEL.HelpIpFruizione' | translate }}
+              </small>
               @if (f['ip_fruizione'].invalid && (f['ip_fruizione'].dirty || f['ip_fruizione'].touched)) {
                 <p class="form-text text-danger">
                   @if (f['ip_fruizione'].errors && f['ip_fruizione'].errors['required']) {
@@ -209,6 +212,9 @@
             }
           </div>
         </div>
+        <small id="quota-periodo-help" class="form-text text-muted d-block mt-1">
+          {{ 'APP.ADESIONI.LABEL.HelpQuotaPeriodo' | translate }}
+        </small>
       }
 
       <!-- finalita -->
@@ -257,8 +263,8 @@
       }
 
       <!-- PDND Client ID. -->
-      <div class="row">
-        @if (input.formConfig.showPdndClientIdBlock) {
+      @if (input.formConfig.showPdndClientIdBlock) {
+        <div class="row">
           <div class="form-group col-12 mb-2">
             <label class="label-bold" for="client_id">
               {{ 'APP.CLIENT.LABEL.ClientIdPDND' | translate }}
@@ -273,8 +279,11 @@
               </p>
             }
           </div>
-        }
-      </div>
+        </div>
+        <small id="help_identificativo_client" class="form-text text-muted d-block mb-2">
+          {{ 'APP.ADESIONI.LABEL.HelpIdentificativoClient' | translate }}
+        </small>
+      }
 
       <!-- Cert-row: in modalita' orizzontale grid a 2 colonne (auth | firma). -->
       <div class="cert-row">
@@ -315,6 +324,10 @@
 
             <!-- Mode: fornito -->
             @if (input.formConfig.certAuth.mode.kind === 'fornito') {
+              <small id="ip_fruizione-help" class="form-text text-muted d-block mb-2">
+                {{ 'APP.ADESIONI.LABEL.HelpCertificatoFornito' | translate }}
+              </small>
+
               <div class="row">
                 <div class="form-group col-12 mb-2">
                   @if (!input.certificatoFornito || _allowCertReplaceNow) {
@@ -345,6 +358,10 @@
 
             <!-- Mode: richiesto_cn -->
             @if (input.formConfig.certAuth.mode.kind === 'richiesto_cn') {
+              <small id="ip_fruizione-help" class="form-text text-muted d-block mb-2">
+                {{ 'APP.ADESIONI.LABEL.HelpRichiestoCN' | translate }}
+              </small>
+
               <div class="row">
                 <div class="form-group col-12 mb-2">
                   <label class="label-bold" for="cn">
@@ -395,6 +412,10 @@
 
             <!-- Mode: richiesto_csr -->
             @if (input.formConfig.certAuth.mode.kind === 'richiesto_csr') {
+              <small id="ip_fruizione-help" class="form-text text-muted d-block mb-2">
+                {{ 'APP.ADESIONI.LABEL.HelpCertificatoRichiestoCSR' | translate }}
+              </small>
+
               <div class="cert-csr-pair">
                 <div class="cert-csr-item form-group mb-2">
                   @if (!input.certificatoCSR || _allowCertReplaceNow) {
@@ -510,6 +531,10 @@
 
             <!-- Mode firma: fornito -->
             @if (input.formConfig.certSign.mode.kind === 'fornito') {
+              <small id="ip_fruizione-help" class="form-text text-muted d-block mb-2">
+                {{ 'APP.ADESIONI.LABEL.HelpCertificatoFornito' | translate }}
+              </small>
+
               <div class="row">
                 <div class="form-group col-12 mb-2">
                   @if (!input.certificatoFornitoFirma || _allowCertReplaceNow) {
@@ -540,6 +565,10 @@
 
             <!-- Mode firma: richiesto_cn -->
             @if (input.formConfig.certSign.mode.kind === 'richiesto_cn') {
+              <small id="ip_fruizione-help" class="form-text text-muted d-block mb-2">
+                {{ 'APP.ADESIONI.LABEL.HelpRichiestoCN' | translate }}
+              </small>
+
               <div class="row">
                 <div class="form-group col-12 mb-2">
                   <label class="label-bold" for="cn_firma">
@@ -590,6 +619,10 @@
 
             <!-- Mode firma: richiesto_csr -->
             @if (input.formConfig.certSign.mode.kind === 'richiesto_csr') {
+              <small id="ip_fruizione-help" class="form-text text-muted d-block mb-2">
+                {{ 'APP.ADESIONI.LABEL.HelpCertificatoRichiestoCSR' | translate }}
+              </small>
+
               <div class="cert-csr-pair">
                 <div class="cert-csr-item form-group mb-2">
                   @if (!input.certificatoCSRFirma || _allowCertReplaceNow) {

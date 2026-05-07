@@ -380,9 +380,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   }
   .lnk-banner .body p, .lnk-banner .body markdown {
     margin: 0; font-size: 13px; color: var(--brand-ink);
-    opacity: .85; line-height: 1.55; max-width: 62ch;
+    opacity: .85; line-height: 1.55;
     display: block;
   }
+  // `max-width: 62ch` applicato solo quando ci sono CTA (`.actions`):
+  // se la riga finisce con il bottone "Documentazione API" il body deve
+  // restringersi per non finirgli sotto. Se non c'e` la CTA il body usa
+  // tutta la larghezza disponibile (rev. 4.35).
+  .lnk-banner:has(.actions) .body p,
+  .lnk-banner:has(.actions) .body markdown { max-width: 62ch; }
   .lnk-banner .body markdown p { margin: 0; }
   .lnk-banner .body b { font-weight: 600; opacity: 1; }
   .lnk-banner .actions { display: flex; align-items: flex-start; gap: 8px; flex-shrink: 0; }

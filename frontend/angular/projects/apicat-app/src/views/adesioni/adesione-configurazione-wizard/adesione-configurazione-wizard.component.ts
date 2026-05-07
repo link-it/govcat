@@ -882,7 +882,18 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
             const full = `${u.nome || ''} ${u.cognome || ''}`.trim();
             if (full) { return full; }
         }
-        return this.adesione?.utente_richiedente || '';
+        // `utente_richiedente` e' tipizzato come `string` nel model
+        // generato da OpenAPI ma a runtime e' un oggetto User completo
+        // (nome/cognome/email/...) — vedi `adesione-form` e
+        // `adesione-details`. Quindi compongo nome+cognome qui.
+        const richiedente: any = this.adesione?.utente_richiedente;
+        if (richiedente && typeof richiedente === 'object') {
+            const full = `${richiedente.nome || ''} ${richiedente.cognome || ''}`.trim();
+            if (full) { return full; }
+        } else if (typeof richiedente === 'string') {
+            return richiedente;
+        }
+        return '';
     }
 
     /** Chiavi delle 3 fasi macro del nuovo layout, tipizzate per il template. */

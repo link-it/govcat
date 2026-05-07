@@ -50,7 +50,7 @@
             @let erogazComplete = !!(updateMapper | mapper:isSottotipoCompletedMapper:ClassiEnum.EROGAZIONE:erogaz.id_erogazione);
             <div class="adesione-config-list-item-content">
               <div class="adesione-config-list-item-title"
-                   [class.text-danger]="!erogazComplete">
+                   [class.text-danger-]="!erogazComplete">
                 {{ erogaz.nome || ('APP.LABEL.None' | translate) }}
                 @if (erogaz.versione) { <span class="version">v{{ erogaz.versione }}</span> }
               </div>

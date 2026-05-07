@@ -1,3 +1,26 @@
+2026-05-07  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: nuova `GrantRole` const + helper
+	  `expandTecnicoGrants/expandContextualGrants` in
+	  `services/grant-roles.const.ts`; `authentication.service`
+	  refactored su questo punto unico per i ruoli (rinominare
+	  un grant ora richiede una sola modifica). Bug fix
+	  collaterale: `canMonitoraggio` ora usa effettivamente i
+	  grant espansi nell'`_.intersection`.
+
+	* [Frontend]
+	Issue 254: fix vari sul wizard nuovo layout —
+	  `headerOwnerName` ora compone nome+cognome (era
+	  `[object Object]` perche` `utente_richiedente` a runtime
+	  e` un oggetto User); inline edit client mostra di nuovo
+	  i dati gia` configurati anche su flusso "nome proposto"
+	  CONFIGURATO; `genericDisclaimerTpl` riceve correttamente
+	  `severity`/`disclaimer` via named context binding;
+	  disclaimer "Configura i client" mostrato solo quando il
+	  gruppo client di Collaudo non e` completato; `:has(.actions)`
+	  per il `max-width` del banner stato (full width senza CTA).
+
 2026-05-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

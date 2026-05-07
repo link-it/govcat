@@ -542,7 +542,15 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
         };
 
         const _isNotConfigurato = (client.source.stato === StatoConfigurazioneEnum.NONCONFIGURATO);
-        const _isNomeProposto = !!client?.source?.nome_proposto;
+        // `nome_proposto` resta valorizzato server-side anche dopo la
+        // configurazione (lo si vede nei client che il gestore ha
+        // proposto e poi l'utente ha configurato): per distinguere il
+        // flusso "in-progress" dal "gia` configurato" controlliamo
+        // anche lo stato. Senza questo check un OAuth Client Credentials
+        // (o qualsiasi client) configurato dopo un nome proposto veniva
+        // riaperto in edit con la maschera vuota come fosse nuovo.
+        const _isNomeProposto = !!client?.source?.nome_proposto
+            && client?.source?.stato !== StatoConfigurazioneEnum.CONFIGURATO;
         this._show_nome_proposto = _isNomeProposto;
 
         const isNewBranch = !client.id_client || _isNotConfigurato || _isNomeProposto;
