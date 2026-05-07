@@ -427,14 +427,15 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     }
 
     /**
-     * Issue 254 NEW LAYOUT (rev. 4.5 + 4.22): stato di apertura dei 3
-     * sub-gruppi referenti nel pannello FASE 01 (adesione / servizio /
-     * dominio). Default: solo "Referenti adesione" aperto, gli altri
-     * due chiusi (feedback utente — gli inheritance da
-     * servizio/dominio sono di solito riferimento secondario).
+     * Issue 254 NEW LAYOUT (rev. 4.5 + 4.22 + 4.36): stato di apertura
+     * dei 3 sub-gruppi referenti nel pannello FASE 01 (adesione /
+     * servizio / dominio). Default: tutti chiusi (rev. 4.36) —
+     * feedback utente, anche "Referenti adesione" parte chiuso per
+     * uniformare il pannello e ridurre lo scroll iniziale; l'utente
+     * apre on-demand cliccando l'header.
      */
     _referentGroupOpen: { adesione: boolean; servizio: boolean; dominio: boolean } = {
-        adesione: true,
+        adesione: false,
         servizio: false,
         dominio: false,
     };

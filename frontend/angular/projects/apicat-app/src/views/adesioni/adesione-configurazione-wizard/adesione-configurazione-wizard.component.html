@@ -1018,11 +1018,37 @@
      Issue 254 NEW LAYOUT (rev. 4) — design-code 1:1
      ==================================================================== -->
 
-<!-- FASE 01 — 2 PhaseSection cards (Informazioni generali + Referenti).
-     Re-usano `<app-adesione-form>` per le info e la lista referenti
-     esistente per i referenti, riavvolti in una "card" stile
-     design-code (icona check + chip "Fase conclusa" + body in pannello). -->
+<!-- FASE 01 — env-card (Informazioni adesione) che racchiude le 2
+     PhaseSection cards (Informazioni generali + Referenti), allineata
+     visualmente alle FASE 02/03 (Collaudo / Produzione) tramite la
+     stessa shell `<section class="env">` con header icona + titolo
+     + chip stato. Il body wrappa le 2 sotto-card collassabili
+     esistenti. -->
 <ng-template #newLayoutFaseInfoTpl>
+  @let stInfo = getFaseStatus('info');
+  <section class="env"
+           [class.is-open]="true"
+           [class.is-locked]="stInfo === 'pending'"
+           [class.is-done]="stInfo === 'completed'">
+    <header class="env-hd">
+      <div class="env-icon"><i class="bi bi-info-circle"></i></div>
+      <div class="env-meta">
+        <div class="env-title">
+          {{ 'APP.ADESIONI.LABEL.FaseInfoTitle' | translate }}
+          @if (stInfo === 'active') {
+            <span class="chip chip-accent"><span class="pulse"></span>{{ 'APP.ADESIONI.LABEL.AzioneRichiesta' | translate }}</span>
+          }
+          @if (stInfo === 'completed') {
+            <span class="chip chip-ok"><i class="bi bi-check-lg"></i> {{ 'APP.ADESIONI.LABEL.FaseConclusa' | translate }}</span>
+          }
+          @if (stInfo === 'pending') {
+            <span class="chip chip-muted"><i class="bi bi-lock-fill"></i> {{ 'APP.ADESIONI.LABEL.InAttesa' | translate }}</span>
+          }
+        </div>
+      </div>
+    </header>
+    <div class="env-body-pad">
+
   <!-- Card "Informazioni generali" — collassabile come ref-group.
        Header (icona + titolo + chip + chevron) cliccabile.
        Body (only when open): pannello grigio (.tl-panel style) che
@@ -1034,14 +1060,16 @@
             (click)="togglePhaseSection('info_generali')"
             (keydown.enter)="togglePhaseSection('info_generali')"
             (keydown.space)="togglePhaseSection('info_generali'); $event.preventDefault()">
-      <div class="lnk-phase-section-icon"><i class="bi bi-check-lg"></i></div>
+      <div class="lnk-phase-section-icon"><i class="bi bi-card-text"></i></div>
       <div class="lnk-phase-section-title">
         {{ 'APP.ADESIONI.TITLE.GeneralInformations' | translate }}
-        @if (getSezioneBadge('info_generali') === 'completed') {
-          <span class="chip chip-ok"><i class="bi bi-check-lg"></i> {{ 'APP.ADESIONI.LABEL.FaseConclusa' | translate }}</span>
-        }
-        @if (getSezioneBadge('info_generali') === 'action') {
-          <span class="chip chip-accent"><span class="pulse"></span>{{ 'APP.ADESIONI.LABEL.AzioneRichiesta' | translate }}</span>
+        @if (false) {
+          @if (getSezioneBadge('info_generali') === 'completed') {
+            <span class="chip chip-ok"><i class="bi bi-check-lg"></i> {{ 'APP.ADESIONI.LABEL.FaseConclusa' | translate }}</span>
+          }
+          @if (getSezioneBadge('info_generali') === 'action') {
+            <span class="chip chip-accent"><span class="pulse"></span>{{ 'APP.ADESIONI.LABEL.AzioneRichiesta' | translate }}</span>
+          }
         }
       </div>
       <i class="bi bi-chevron-down lnk-phase-section-chev"
@@ -1054,18 +1082,18 @@
            wrapper con `.tl-panel` e flex column). -->
       <div class="lnk-phase-section-body tl-panel">
         @if (canEditMapper()) {
-          <div class="d-flex justify-content-end mb-2">
-            <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm"
-                    (click)="enterEditModeForInfoGenerali()">
-              @if (isInfoFormEditing) {
-                <i class="bi bi-x-lg"></i>
-                <span>{{ 'APP.BUTTON.Cancel' | translate }}</span>
-              } @else {
-                <i class="bi bi-pencil"></i>
-                <span>{{ 'APP.BUTTON.Modify' | translate }}</span>
-              }
-            </button>
-          </div>
+          <!-- Bottone Modifica/Annulla in absolute top-right del pannello,
+               cosi` la form parte subito senza la riga vuota in testa. -->
+          <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm phase-section-edit-toggle"
+                  (click)="enterEditModeForInfoGenerali()">
+            @if (isInfoFormEditing) {
+              <i class="bi bi-x-lg"></i>
+              <span>{{ 'APP.BUTTON.Cancel' | translate }}</span>
+            } @else {
+              <i class="bi bi-pencil"></i>
+              <span>{{ 'APP.BUTTON.Modify' | translate }}</span>
+            }
+          </button>
         }
         <!-- `[externalEditControl]="true"` nasconde il bottone interno
              del form (top-right Modify icon-only) — l'ingresso in edit
@@ -1095,14 +1123,16 @@
             (click)="togglePhaseSection('referenti')"
             (keydown.enter)="togglePhaseSection('referenti')"
             (keydown.space)="togglePhaseSection('referenti'); $event.preventDefault()">
-      <div class="lnk-phase-section-icon"><i class="bi bi-check-lg"></i></div>
+      <div class="lnk-phase-section-icon"><i class="bi bi-people"></i></div>
       <div class="lnk-phase-section-title">
         {{ 'APP.TITLE.ServiceReferents' | translate }}
-        @if (getSezioneBadge('referenti') === 'completed') {
-          <span class="chip chip-ok"><i class="bi bi-check-lg"></i> {{ 'APP.ADESIONI.LABEL.FaseConclusa' | translate }}</span>
-        }
-        @if (getSezioneBadge('referenti') === 'action') {
-          <span class="chip chip-accent"><span class="pulse"></span>{{ 'APP.ADESIONI.LABEL.AzioneRichiesta' | translate }}</span>
+        @if (false) {
+          @if (getSezioneBadge('referenti') === 'completed') {
+            <span class="chip chip-ok"><i class="bi bi-check-lg"></i> {{ 'APP.ADESIONI.LABEL.FaseConclusa' | translate }}</span>
+          }
+          @if (getSezioneBadge('referenti') === 'action') {
+            <span class="chip chip-accent"><span class="pulse"></span>{{ 'APP.ADESIONI.LABEL.AzioneRichiesta' | translate }}</span>
+          }
         }
       </div>
       <i class="bi bi-chevron-down lnk-phase-section-chev"
@@ -1123,7 +1153,7 @@
             {{ 'APP.ADESIONI.TITLE.Referents' | translate }}
             <span class="lnk-ref-count">{{ referents.length }}</span>
           </h4>
-          @if ((isEdit || (updateMapper | mapper:canAddMapper)) && !_addReferentOpen) {
+          @if (openA && (isEdit || (updateMapper | mapper:canAddMapper)) && !_addReferentOpen) {
             <button type="button" class="lnk-btn lnk-btn-sm"
                     (click)="$event.stopPropagation(); addReferenteModal($event)">
               {{ 'APP.BUTTON.AddReferent' | translate }}
@@ -1214,6 +1244,9 @@
     </div>
     }
   </section>
+
+    </div><!-- /.env-body-pad -->
+  </section><!-- /.env (FASE 01) -->
 </ng-template>
 
 <!-- Riga referente — approval-card style del design-code.

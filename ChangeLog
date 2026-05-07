@@ -1,6 +1,15 @@
 2026-05-07  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 254: FASE 01 racchiusa nella stessa env-card di
+	  Collaudo/Produzione (icona + titolo + chip stato),
+	  margine fra i pannelli interni, bottone "Modifica" in
+	  absolute top-right, "Referenti adesione" chiuso di
+	  default e "Aggiungi referente" nascosto a pannello
+	  chiuso, icone header cambiate (`bi-card-text` /
+	  `bi-people`).
+
+	* [Frontend]
 	Issue 254: `client-auth-form` — help dei campi spostato
 	  in `<lnk-popover-help>` (icona info accanto alla label,
 	  popover on-click), placeholder concisi su input/select,
