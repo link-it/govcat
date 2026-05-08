@@ -1,3 +1,12 @@
+2026-05-08  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: `<lnk-form-submit>` accetta `[reverse]` per
+	  invertire l'ordine Submit/Cancel (rimuove anche
+	  `row-content-block`); usato in `adesione-form` con
+	  `[reverse]="true"`. Fix typo classe `settings-content-`
+	  -> `settings-content`.
+
 2026-05-07  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

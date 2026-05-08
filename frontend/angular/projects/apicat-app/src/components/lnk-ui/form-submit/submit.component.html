@@ -16,7 +16,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
-<div class="row-content-block footer-block d-flex gap-2">
+<div class="footer-block d-flex gap-2" [ngClass]="{ 'row-content-block': !reverse, 'flex-row-reverse': reverse }">
     <lnk-button
         [type]="'submit'"
         [label]="submitLabel"

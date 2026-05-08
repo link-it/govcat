@@ -199,7 +199,7 @@
         }
       </div>
 
-      <div class="settings-content-">
+      <div class="settings-content">
         @if (isEdit && error) {
           <lnk-form-error [message]="errorMsg"></lnk-form-error>
         }
@@ -208,6 +208,7 @@
             [submitLabel]="'APP.BUTTON.Save'"
             [cancelLabel]="'APP.BUTTON.Cancel'"
             [disabled]="formGroup.invalid || saving"
+            [reverse]="true"
             (cancel)="onCancelEdit()"
           ></lnk-form-submit>
         }
