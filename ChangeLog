@@ -1,6 +1,13 @@
 2026-05-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 254: build production-apicat — bump budget
+	  `anyComponentStyle` (6kb/10kb -> 15kb/25kb) per
+	  consentire il wizard adesione SCSS (20.20kB) sotto
+	  flag legacy + new-layout coesistenti. Sara` ridotto
+	  con la rimozione del flag `wizard_new_layout`.
+
+	* [Frontend]
 	Issue 254: bug fix `canEdit` su `dati_non_modificabili`
 	  (regressione mia commit `2920ed3b`: il rewrite
 	  automatico di `_.indexOf(key, _dnm) !== -1` in
