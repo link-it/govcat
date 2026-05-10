@@ -72,7 +72,6 @@ describe('UtenteDetailsComponent', () => {
       mockModalService as any,
       mockConfigService as any,
       mockTools as any,
-      mockEventsManagerService as any,
       mockApiService as any,
       mockUtils as any
     );
@@ -125,9 +124,15 @@ describe('UtenteDetailsComponent', () => {
   });
 
   describe('ngOnInit', () => {
-    it('should populate _ruoloArr on init', () => {
+    it('should populate _ruoloArr on init excluding deprecated REFERENTE_SERVIZIO', () => {
+      // Issue 229 (commit dadd48d0): `referente_servizio` e` deprecato in
+      // favore di `utente_organizzazione` e non viene piu` proposto nelle
+      // nuove creazioni / modifiche (resta visibile solo se gia` valorizzato
+      // sull'utente caricato — retrocompat).
       component.ngOnInit();
-      expect(component._ruoloArr).toEqual(Object.values(Ruolo));
+      expect(component._ruoloArr).toEqual(
+        Object.values(Ruolo).filter(r => r !== Ruolo.REFERENTE_SERVIZIO)
+      );
     });
 
     it('should set _statoArr initially then filter for new mode', () => {
@@ -210,12 +215,6 @@ describe('UtenteDetailsComponent', () => {
     it('should set desktop based on window width', () => {
       component.ngAfterContentChecked();
       expect(typeof component.desktop).toBe('boolean');
-    });
-  });
-
-  describe('ngOnDestroy', () => {
-    it('should not throw', () => {
-      expect(() => component.ngOnDestroy()).not.toThrow();
     });
   });
 
@@ -1128,13 +1127,29 @@ describe('UtenteDetailsComponent', () => {
       expect(component._formGroup.get('id_organizzazione')?.valid).toBe(true);
     });
 
-    it('should set required validator for non-Gestore role', () => {
+    it('should set required validator for utente_organizzazione role', () => {
+      // Issue 229 (commit dadd48d0): `id_organizzazione` e` obbligatorio
+      // SOLO per il ruolo `utente_organizzazione`. Per gli altri ruoli
+      // (gestore, coordinatore, nessun ruolo, referente_servizio
+      // legacy) il campo e` opzionale.
+      component._formGroup = new FormGroup({
+        ruolo: new FormControl('utente_organizzazione'),
+        id_organizzazione: new FormControl(null)
+      });
+      component._changeRuolo();
+      expect(component._formGroup.get('id_organizzazione')?.valid).toBe(false);
+    });
+
+    it('should NOT set required validator for legacy referente_servizio role', () => {
+      // Comportamento simmetrico al test precedente: il ruolo
+      // `referente_servizio` (deprecato) non richiede l'organizzazione,
+      // quindi `id_organizzazione` resta valido anche se null.
       component._formGroup = new FormGroup({
         ruolo: new FormControl('referente_servizio'),
         id_organizzazione: new FormControl(null)
       });
       component._changeRuolo();
-      expect(component._formGroup.get('id_organizzazione')?.valid).toBe(false);
+      expect(component._formGroup.get('id_organizzazione')?.valid).toBe(true);
     });
 
     it('should handle missing id_organizzazione control gracefully', () => {
@@ -1148,9 +1163,11 @@ describe('UtenteDetailsComponent', () => {
       component._formGroup = new FormGroup({
         id_organizzazione: new FormControl(null)
       });
-      // ruolo is undefined, so role will be undefined, not 'gestore', so validators set to required
+      // ruolo undefined != Ruolo.UTENTE_ORGANIZZAZIONE -> nessun
+      // validator obbligatorio applicato a id_organizzazione, quindi
+      // resta valido anche se null.
       component._changeRuolo();
-      expect(component._formGroup.get('id_organizzazione')?.valid).toBe(false);
+      expect(component._formGroup.get('id_organizzazione')?.valid).toBe(true);
     });
   });
 

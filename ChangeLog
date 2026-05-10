@@ -1,3 +1,17 @@
+2026-05-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: bug fix `canEdit` su `dati_non_modificabili`
+	  (regressione mia commit `2920ed3b`: il rewrite
+	  automatico di `_.indexOf(key, _dnm) !== -1` in
+	  `key.includes(_dnm)` aveva semantica opposta — `_dnm`
+	  vuoto faceva sempre `_can=false`). Ripristinato con
+	  `_dnm.includes(key)`. Allineate ~25 spec con il drift
+	  sui costruttori, gli enum `Ruolo`/`EventType`, l'aggiunta
+	  di `utente_organizzazione` ai filtri referenti, e la
+	  nuova icona-stato oggettiva (mapper delega a
+	  `ckeckProvider`, indipendente dal cambio stato).
+
 2026-05-08  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

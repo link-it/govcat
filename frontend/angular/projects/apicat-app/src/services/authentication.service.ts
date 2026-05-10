@@ -529,7 +529,7 @@ export class AuthenticationService {
 
       let _can: boolean = true;
       Object.keys(CLASSES[submodule] || []).forEach((key: string) => {
-        if ((CLASSES[submodule][key].type === 'internal') && (key.includes(_dnm))) {
+        if ((CLASSES[submodule][key].type === 'internal') && _dnm.includes(key)) {
           _can = false;
         }
       });

@@ -712,11 +712,13 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
     expect(result).toBe(false);
   });
 
-  it('isSottotipoCompletedMapper should return true when _hasCambioStato is false', () => {
+  it('isSottotipoCompletedMapper should delegate to ckeckProvider', () => {
+    // Issue 254 (rev. d0744045): il mapper ora delega a
+    // `ckeckProvider.isSottotipoCompleted` ed e' indipendente dal
+    // ruolo / cambio stato.
     component.grant = { ruoli: ['referente'] } as any;
     component.adesione = { stato: 'bozza' };
-    mockAuthService.isGestore.mockReturnValue(false);
-    mockAuthService.canChangeStatus.mockReturnValue(false);
+    mockCkeckProvider.isSottotipoCompleted.mockReturnValue(true);
     const result = component.isSottotipoCompletedMapper(false, 'collaudo', 'client', 'C1');
     expect(result).toBe(true);
   });

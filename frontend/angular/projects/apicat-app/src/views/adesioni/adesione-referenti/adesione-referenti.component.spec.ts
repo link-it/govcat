@@ -372,7 +372,7 @@ describe('AdesioneReferentiComponent', () => {
 
   it('_onChangeTipoReferente should set filter for referent', () => {
     component._onChangeTipoReferente(true);
-    expect(component.referentiFilter).toBe('referente_servizio,gestore,coordinatore');
+    expect(component.referentiFilter).toBe('referente_servizio,utente_organizzazione,gestore,coordinatore');
   });
 
   it('_onChangeTipoReferente should clear filter for non-referent', () => {

@@ -280,7 +280,7 @@ describe('ServizioGruppiComponent', () => {
 
   it('should handle _onChangeTipoReferente', () => {
     component._onChangeTipoReferente(true);
-    expect(component.gruppiFilter).toBe('referente_servizio,gestore,coordinatore');
+    expect(component.gruppiFilter).toBe('referente_servizio,utente_organizzazione,gestore,coordinatore');
     component._onChangeTipoReferente(false);
     expect(component.gruppiFilter).toBe('');
   });
