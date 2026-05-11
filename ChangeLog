@@ -1,6 +1,15 @@
 2026-05-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 254: substepper — chevron di affordance mostrato
+	  solo per gli step `completed` collassabili. Sugli
+	  `active` il bottone `tl-action` ha gia` il suo chevron
+	  interno: il chevron a fine riga creava una doppia
+	  visualizzazione.
+
+2026-05-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue 254: substepper — chevron di affordance alla fine
 	  della riga (rende esplicito che lo step e' espandibile,
 	  oltre all'hover sul chip "Completato"); hover background
