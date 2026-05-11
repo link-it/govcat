@@ -19,6 +19,10 @@
 #
 # SEVERITY: INFO | WARNING | ERROR
 #
+# YAML ANCHORS: keys with "__" prefix do not match any real state/profile/domain
+# combination (states and profiles never start with "__") and are used only to
+# define reusable values (e.g. the same text for several profiles or all states).
+#
 # To override these disclaimers externally, copy this file to:
 #   /var/govcat/conf/disclaimers_en.yml
 # =============================================================================
@@ -91,226 +95,652 @@ archiviato:
     ## Archived subscription
     This subscription has been **archived** and is no longer active. The service is not accessible through this subscription. To restore access, a new subscription procedure must be initiated.
 
-# -----------------------------------------------------------------------------
-# PDND PROFILES
-# -----------------------------------------------------------------------------
-
-bozza.pdnd:
-  severity: WARNING
-  testo: |
-    ## PDND profile
-    This profile requires registration of the e-service on the PDND platform.
-    Make sure you have the e-service **identifier** and **version** configured.
-
-bozza.pdnd-audit:
-  severity: WARNING
-  testo: |
-    ## PDND + Audit profile
-    PDND audit requires the additional configuration of the audit token policy.
-    Verify that you have access to the required policy.
-
-bozza.pdnd-https:
-  severity: WARNING
-  testo: |
-    ## PDND + mTLS profile
-    Besides PDND registration, a valid **client certificate** is required for
-    mTLS authentication.
-
-bozza.pdnd-integrity-rest:
-  severity: WARNING
-  testo: |
-    ## PDND + Integrity profile (REST)
-    This profile requires **Integrity** support for REST APIs. Verify that
-    the exposed API is compatible.
-
-bozza.pdnd-integrity-soap:
-  severity: WARNING
-  testo: |
-    ## PDND + Integrity profile (SOAP)
-    This profile requires **Integrity** support for SOAP APIs.
-
-bozza.pdnd-audit-integrity-rest:
-  severity: WARNING
-  testo: |
-    ## PDND + Audit + Integrity profile (REST)
-    Complete combination: audit + integrity for REST APIs. Verify that both
-    token policies are configured.
-
-bozza.pdnd-audit-integrity-soap:
-  severity: WARNING
-  testo: |
-    ## PDND + Audit + Integrity profile (SOAP)
-    Complete combination: audit + integrity for SOAP APIs.
-
-bozza.pdnd-integrity-rest-https:
-  severity: WARNING
-  testo: |
-    ## PDND + Integrity + mTLS profile (REST)
-    This profile combines PDND registration with Integrity and mTLS
-    authentication. Both eService and client certificate are required.
-
-bozza.pdnd-integrity-soap-https:
-  severity: WARNING
-  testo: |
-    ## PDND + Integrity + mTLS profile (SOAP)
-    This profile combines PDND registration with Integrity and mTLS
-    authentication for SOAP APIs.
-
-pubblicato_produzione.pdnd:
-  severity: ERROR
-  testo: |
-    ## Warning: PDND in production
-    The subscription is active on the production PDND platform. Changes to the
-    configuration (token policy, audit, rate limiting) have immediate impact on
-    end users and PDND consumption.
-
-pubblicato_produzione.pdnd-audit:
-  severity: ERROR
-  testo: |
-    ## Warning: PDND + Audit in production
-    Calls generate real audit events. Consider the impacts before changing the
-    configuration.
+# =============================================================================
+# CLIENT CONFIGURATION DISCLAIMERS (per profile + environment)
+#
+# Shown in the test and production configuration pages, regardless of the
+# subscription state. For this reason every disclaimer is replicated for EACH
+# state of the workflow, with .collaudo and .produzione suffix.
+#
+# All disclaimers in this section have severity INFO.
+# =============================================================================
 
 # -----------------------------------------------------------------------------
-# ModI PROFILES
+# ANCHORS - reusable text definitions
 # -----------------------------------------------------------------------------
 
-bozza.modi_p1: |
-  ## ModI P1 profile
-  The **ModI P1** profile uses mTLS authentication. A valid client certificate
-  is required.
+__anchor_modi: &disclaimer_modi |
+  You are creating a new client for this subscription. You will need to upload (or request) the X.509 certificate of your organization. The client and certificates will be associated with the subscription and can be reused for subsequent subscriptions.
 
-bozza.modi_p2:
-  severity: WARNING
-  testo: |
-    ## ModI P2 profile
-    The **ModI P2** profile requires both the *mTLS authentication
-    certificate* and the *message signing certificate*.
+__anchor_pdnd: &disclaimer_pdnd |
+  You are registering a new client for this subscription. You will need to provide the identifier of the client you have already created on the PDND portal. This client will be associated with the subscription and can be reused for other subscriptions through PDND.
 
-bozza.modi_p3:
-  severity: WARNING
-  testo: |
-    ## ModI P3 profile
-    The **ModI P3** profile requires both the *mTLS authentication
-    certificate* and the *message signing certificate*, with security
-    requirements beyond ModI P2.
+__anchor_pdnd_mtls: &disclaimer_pdnd_mtls |
+  You are creating a new client for this subscription. This profile requires both an X.509 certificate for mTLS channel authentication and the identifier of the PDND client already registered on the PDND portal. The client will be associated with the subscription and can be reused for subsequent subscriptions.
 
-pubblicato_produzione.modi_p2:
-  severity: ERROR
-  testo: |
-    ## ModI P2 in production
-    The signing certificate is in use: rotating it requires coordination with
-    the reference subject to avoid service disruption.
+__anchor_oauth_ac: &disclaimer_oauth_ac |
+  You are registering a new OAuth client for this subscription. The service uses the Authorization Code flow, which involves the end user in the authentication process. You will need to provide the URLs of your application that will handle the OAuth flow. The client will be associated with the subscription and can be reused for subsequent subscriptions.
 
-pubblicato_produzione.modi_p3:
-  severity: ERROR
-  testo: |
-    ## ModI P3 in production
-    The signing certificate is in use: rotating it requires coordination with
-    the reference subject to avoid service disruption.
+__anchor_oauth_cc: &disclaimer_oauth_cc |
+  You are configuring a client for machine-to-machine authentication via OAuth 2.0 with the Client Credentials flow. The service will be called directly by your application, without involvement of the end user. You will need to provide the name of the client to register. The client will be associated with the subscription and can be reused for subsequent subscriptions.
 
-# -----------------------------------------------------------------------------
-# INTERNAL PROFILES
-# -----------------------------------------------------------------------------
+__anchor_http_basic: &disclaimer_http_basic |
+  You are configuring a client for HTTP Basic authentication. You only need to provide the name of the client. Access credentials (username and password) will be generated and communicated by the catalog manager. The client will be associated with the subscription and can be reused for subsequent subscriptions.
 
-bozza.interno_https: |
-  ## Internal mTLS profile
-  Authentication via **client certificate (mTLS)**. Provide a valid certificate
-  or request one through CN or CSR.
+__anchor_mtls: &disclaimer_mtls |
+  You are creating a new client for this subscription. You will need to upload (or request) the X.509 certificate of your organization. The client and the certificate will be associated with the subscription and can be reused for subsequent subscriptions.
 
-bozza.interno_http_basic: |
-  ## Internal HTTP Basic profile
-  Username/password authentication. *Rate limiting* and *usage purpose* can
-  be configured.
+__anchor_no_dati: &disclaimer_no_dati |
+  You are configuring a client for a service that does not require additional authentication. You only need to provide the name of the client to associate with this subscription. The client will be registered on the API Gateway and can be reused for subsequent subscriptions.
 
-bozza.interno_no_dati:
-  severity: WARNING
-  testo: |
-    ## Internal no-authentication profile
-    No authentication is required. Carefully evaluate usage in exposed or
-    multi-tenant environments.
+__anchor_mtls_fruizioni: &disclaimer_mtls_fruizioni |
+  You are creating a new client to access a service provided through PDND. You will need to upload (or request) the X.509 certificate that your application will use to authenticate to the providing organization. The client and the certificate will be associated with the subscription and can be reused for subsequent subscriptions.
 
-bozza.interno_oauth_client_credentials: |
-  ## Internal OAuth Client Credentials profile
-  Machine-to-machine authentication via OAuth2 tokens (Client Credentials flow).
+__anchor_oauth_cc_fruizioni: &disclaimer_oauth_cc_fruizioni |
+  You are registering a new client to access a service provided through PDND with OAuth 2.0 Client Credentials authentication. Your application will authenticate with an OAuth token without involvement of the end user. Credentials will be generated and communicated by the catalog manager. The client will be associated with the subscription and can be reused for subsequent subscriptions.
 
-bozza.interno_oauth_authorization_code: |
-  ## Internal OAuth Authorization Code profile
-  Authentication via *Authorization Code* flow. Configure client-id,
-  client-secret and redirect URI.
+__anchor_basic_fruizioni: &disclaimer_basic_fruizioni |
+  You are registering a new client to access a service provided through PDND with HTTP Basic authentication. Access credentials will be generated and communicated by the catalog manager after the request is approved. The client will be associated with the subscription and can be reused for subsequent subscriptions.
+
+# Adapted from OAuth CC Fruizioni keeping the PDND context
+__anchor_oauth_ac_fruizioni: &disclaimer_oauth_ac_fruizioni |
+  You are registering a new client to access a service provided through PDND with OAuth 2.0 Authorization Code authentication. The flow involves the end user in the authentication process. You will need to provide the URLs of your application that will handle the OAuth flow. The client will be associated with the subscription and can be reused for subsequent subscriptions.
 
 # -----------------------------------------------------------------------------
-# PDND FRUIZIONE PROFILES (toward external PDND)
+# Profile ModI P1 (codice_interno: MODI_P1)
 # -----------------------------------------------------------------------------
-
-bozza.mtls_fruizioni: |
-  ## PDND Fruizione - mTLS
-  Profile for consuming a PDND e-service with **mTLS** authentication.
-  Requires a valid client certificate.
-
-bozza.basic_fruizioni: |
-  ## PDND Fruizione - HTTP Basic
-  Profile for consuming a PDND e-service with **HTTP Basic** authentication.
-
-bozza.oauth_ac_fruizioni: |
-  ## PDND Fruizione - OAuth Authorization Code
-  Profile for consuming a PDND e-service with **OAuth Authorization Code**.
-
-bozza.oauth_cc_fruizioni: |
-  ## PDND Fruizione - OAuth Client Credentials
-  Profile for consuming a PDND e-service with **OAuth Client Credentials**.
-
-pubblicato_produzione.mtls_fruizioni:
-  severity: WARNING
-  testo: |
-    ## PDND Fruizione in production (mTLS)
-    You are consuming a real PDND e-service: requests consume PDND quota.
-
-pubblicato_produzione.basic_fruizioni:
-  severity: WARNING
-  testo: |
-    ## PDND Fruizione in production (HTTP Basic)
-    You are consuming a real PDND e-service: requests consume PDND quota.
-
-pubblicato_produzione.oauth_ac_fruizioni:
-  severity: WARNING
-  testo: |
-    ## PDND Fruizione in production (OAuth AC)
-    You are consuming a real PDND e-service: requests consume PDND quota.
-
-pubblicato_produzione.oauth_cc_fruizioni:
-  severity: WARNING
-  testo: |
-    ## PDND Fruizione in production (OAuth CC)
-    You are consuming a real PDND e-service: requests consume PDND quota.
+bozza.modi_p1.collaudo: *disclaimer_modi
+bozza.modi_p1.produzione: *disclaimer_modi
+richiesto_collaudo.modi_p1.collaudo: *disclaimer_modi
+richiesto_collaudo.modi_p1.produzione: *disclaimer_modi
+autorizzato_collaudo.modi_p1.collaudo: *disclaimer_modi
+autorizzato_collaudo.modi_p1.produzione: *disclaimer_modi
+in_configurazione_manuale_collaudo.modi_p1.collaudo: *disclaimer_modi
+in_configurazione_manuale_collaudo.modi_p1.produzione: *disclaimer_modi
+in_configurazione_automatica_collaudo.modi_p1.collaudo: *disclaimer_modi
+in_configurazione_automatica_collaudo.modi_p1.produzione: *disclaimer_modi
+pubblicato_collaudo.modi_p1.collaudo: *disclaimer_modi
+pubblicato_collaudo.modi_p1.produzione: *disclaimer_modi
+richiesto_produzione.modi_p1.collaudo: *disclaimer_modi
+richiesto_produzione.modi_p1.produzione: *disclaimer_modi
+autorizzato_produzione.modi_p1.collaudo: *disclaimer_modi
+autorizzato_produzione.modi_p1.produzione: *disclaimer_modi
+in_configurazione_manuale_produzione.modi_p1.collaudo: *disclaimer_modi
+in_configurazione_manuale_produzione.modi_p1.produzione: *disclaimer_modi
+in_configurazione_automatica_produzione.modi_p1.collaudo: *disclaimer_modi
+in_configurazione_automatica_produzione.modi_p1.produzione: *disclaimer_modi
+pubblicato_produzione.modi_p1.collaudo: *disclaimer_modi
+pubblicato_produzione.modi_p1.produzione: *disclaimer_modi
+archiviato.modi_p1.collaudo: *disclaimer_modi
+archiviato.modi_p1.produzione: *disclaimer_modi
 
 # -----------------------------------------------------------------------------
-# EXAMPLES WITH CONTEXT SUFFIX (.collaudo / .produzione)
+# Profile ModI P2 (codice_interno: MODI_P2)
 # -----------------------------------------------------------------------------
+bozza.modi_p2.collaudo: *disclaimer_modi
+bozza.modi_p2.produzione: *disclaimer_modi
+richiesto_collaudo.modi_p2.collaudo: *disclaimer_modi
+richiesto_collaudo.modi_p2.produzione: *disclaimer_modi
+autorizzato_collaudo.modi_p2.collaudo: *disclaimer_modi
+autorizzato_collaudo.modi_p2.produzione: *disclaimer_modi
+in_configurazione_manuale_collaudo.modi_p2.collaudo: *disclaimer_modi
+in_configurazione_manuale_collaudo.modi_p2.produzione: *disclaimer_modi
+in_configurazione_automatica_collaudo.modi_p2.collaudo: *disclaimer_modi
+in_configurazione_automatica_collaudo.modi_p2.produzione: *disclaimer_modi
+pubblicato_collaudo.modi_p2.collaudo: *disclaimer_modi
+pubblicato_collaudo.modi_p2.produzione: *disclaimer_modi
+richiesto_produzione.modi_p2.collaudo: *disclaimer_modi
+richiesto_produzione.modi_p2.produzione: *disclaimer_modi
+autorizzato_produzione.modi_p2.collaudo: *disclaimer_modi
+autorizzato_produzione.modi_p2.produzione: *disclaimer_modi
+in_configurazione_manuale_produzione.modi_p2.collaudo: *disclaimer_modi
+in_configurazione_manuale_produzione.modi_p2.produzione: *disclaimer_modi
+in_configurazione_automatica_produzione.modi_p2.collaudo: *disclaimer_modi
+in_configurazione_automatica_produzione.modi_p2.produzione: *disclaimer_modi
+pubblicato_produzione.modi_p2.collaudo: *disclaimer_modi
+pubblicato_produzione.modi_p2.produzione: *disclaimer_modi
+archiviato.modi_p2.collaudo: *disclaimer_modi
+archiviato.modi_p2.produzione: *disclaimer_modi
 
-pubblicato_collaudo.pdnd.collaudo: |
-  In the **PDND test** environment you can make test calls with test
-  identifiers. It does not consume production quota.
+# -----------------------------------------------------------------------------
+# Profile ModI P3 (codice_interno: MODI_P3)
+# -----------------------------------------------------------------------------
+bozza.modi_p3.collaudo: *disclaimer_modi
+bozza.modi_p3.produzione: *disclaimer_modi
+richiesto_collaudo.modi_p3.collaudo: *disclaimer_modi
+richiesto_collaudo.modi_p3.produzione: *disclaimer_modi
+autorizzato_collaudo.modi_p3.collaudo: *disclaimer_modi
+autorizzato_collaudo.modi_p3.produzione: *disclaimer_modi
+in_configurazione_manuale_collaudo.modi_p3.collaudo: *disclaimer_modi
+in_configurazione_manuale_collaudo.modi_p3.produzione: *disclaimer_modi
+in_configurazione_automatica_collaudo.modi_p3.collaudo: *disclaimer_modi
+in_configurazione_automatica_collaudo.modi_p3.produzione: *disclaimer_modi
+pubblicato_collaudo.modi_p3.collaudo: *disclaimer_modi
+pubblicato_collaudo.modi_p3.produzione: *disclaimer_modi
+richiesto_produzione.modi_p3.collaudo: *disclaimer_modi
+richiesto_produzione.modi_p3.produzione: *disclaimer_modi
+autorizzato_produzione.modi_p3.collaudo: *disclaimer_modi
+autorizzato_produzione.modi_p3.produzione: *disclaimer_modi
+in_configurazione_manuale_produzione.modi_p3.collaudo: *disclaimer_modi
+in_configurazione_manuale_produzione.modi_p3.produzione: *disclaimer_modi
+in_configurazione_automatica_produzione.modi_p3.collaudo: *disclaimer_modi
+in_configurazione_automatica_produzione.modi_p3.produzione: *disclaimer_modi
+pubblicato_produzione.modi_p3.collaudo: *disclaimer_modi
+pubblicato_produzione.modi_p3.produzione: *disclaimer_modi
+archiviato.modi_p3.collaudo: *disclaimer_modi
+archiviato.modi_p3.produzione: *disclaimer_modi
 
-pubblicato_produzione.pdnd.produzione:
-  severity: ERROR
-  testo: |
-    In **PDND production** every call uses real tokens and consumes quota.
+# -----------------------------------------------------------------------------
+# Profile PDND (codice_interno: PDND)
+# -----------------------------------------------------------------------------
+bozza.pdnd.collaudo: *disclaimer_pdnd
+bozza.pdnd.produzione: *disclaimer_pdnd
+richiesto_collaudo.pdnd.collaudo: *disclaimer_pdnd
+richiesto_collaudo.pdnd.produzione: *disclaimer_pdnd
+autorizzato_collaudo.pdnd.collaudo: *disclaimer_pdnd
+autorizzato_collaudo.pdnd.produzione: *disclaimer_pdnd
+in_configurazione_manuale_collaudo.pdnd.collaudo: *disclaimer_pdnd
+in_configurazione_manuale_collaudo.pdnd.produzione: *disclaimer_pdnd
+in_configurazione_automatica_collaudo.pdnd.collaudo: *disclaimer_pdnd
+in_configurazione_automatica_collaudo.pdnd.produzione: *disclaimer_pdnd
+pubblicato_collaudo.pdnd.collaudo: *disclaimer_pdnd
+pubblicato_collaudo.pdnd.produzione: *disclaimer_pdnd
+richiesto_produzione.pdnd.collaudo: *disclaimer_pdnd
+richiesto_produzione.pdnd.produzione: *disclaimer_pdnd
+autorizzato_produzione.pdnd.collaudo: *disclaimer_pdnd
+autorizzato_produzione.pdnd.produzione: *disclaimer_pdnd
+in_configurazione_manuale_produzione.pdnd.collaudo: *disclaimer_pdnd
+in_configurazione_manuale_produzione.pdnd.produzione: *disclaimer_pdnd
+in_configurazione_automatica_produzione.pdnd.collaudo: *disclaimer_pdnd
+in_configurazione_automatica_produzione.pdnd.produzione: *disclaimer_pdnd
+pubblicato_produzione.pdnd.collaudo: *disclaimer_pdnd
+pubblicato_produzione.pdnd.produzione: *disclaimer_pdnd
+archiviato.pdnd.collaudo: *disclaimer_pdnd
+archiviato.pdnd.produzione: *disclaimer_pdnd
 
-pubblicato_collaudo.modi_p2.collaudo: |
-  In the **test** environment for ModI P2 you can use test certificates.
+# -----------------------------------------------------------------------------
+# Profile PDND + Audit (codice_interno: PDND-AUDIT)
+# -----------------------------------------------------------------------------
+bozza.pdnd-audit.collaudo: *disclaimer_pdnd
+bozza.pdnd-audit.produzione: *disclaimer_pdnd
+richiesto_collaudo.pdnd-audit.collaudo: *disclaimer_pdnd
+richiesto_collaudo.pdnd-audit.produzione: *disclaimer_pdnd
+autorizzato_collaudo.pdnd-audit.collaudo: *disclaimer_pdnd
+autorizzato_collaudo.pdnd-audit.produzione: *disclaimer_pdnd
+in_configurazione_manuale_collaudo.pdnd-audit.collaudo: *disclaimer_pdnd
+in_configurazione_manuale_collaudo.pdnd-audit.produzione: *disclaimer_pdnd
+in_configurazione_automatica_collaudo.pdnd-audit.collaudo: *disclaimer_pdnd
+in_configurazione_automatica_collaudo.pdnd-audit.produzione: *disclaimer_pdnd
+pubblicato_collaudo.pdnd-audit.collaudo: *disclaimer_pdnd
+pubblicato_collaudo.pdnd-audit.produzione: *disclaimer_pdnd
+richiesto_produzione.pdnd-audit.collaudo: *disclaimer_pdnd
+richiesto_produzione.pdnd-audit.produzione: *disclaimer_pdnd
+autorizzato_produzione.pdnd-audit.collaudo: *disclaimer_pdnd
+autorizzato_produzione.pdnd-audit.produzione: *disclaimer_pdnd
+in_configurazione_manuale_produzione.pdnd-audit.collaudo: *disclaimer_pdnd
+in_configurazione_manuale_produzione.pdnd-audit.produzione: *disclaimer_pdnd
+in_configurazione_automatica_produzione.pdnd-audit.collaudo: *disclaimer_pdnd
+in_configurazione_automatica_produzione.pdnd-audit.produzione: *disclaimer_pdnd
+pubblicato_produzione.pdnd-audit.collaudo: *disclaimer_pdnd
+pubblicato_produzione.pdnd-audit.produzione: *disclaimer_pdnd
+archiviato.pdnd-audit.collaudo: *disclaimer_pdnd
+archiviato.pdnd-audit.produzione: *disclaimer_pdnd
 
-pubblicato_produzione.modi_p2.produzione:
-  severity: ERROR
-  testo: |
-    In **production** ModI P2 certificates must be real ones. Verify the
-    expiration date and rotate them in time.
+# -----------------------------------------------------------------------------
+# Profile PDND + Integrity (REST) (codice_interno: PDND-INTEGRITY-REST)
+# -----------------------------------------------------------------------------
+bozza.pdnd-integrity-rest.collaudo: *disclaimer_pdnd
+bozza.pdnd-integrity-rest.produzione: *disclaimer_pdnd
+richiesto_collaudo.pdnd-integrity-rest.collaudo: *disclaimer_pdnd
+richiesto_collaudo.pdnd-integrity-rest.produzione: *disclaimer_pdnd
+autorizzato_collaudo.pdnd-integrity-rest.collaudo: *disclaimer_pdnd
+autorizzato_collaudo.pdnd-integrity-rest.produzione: *disclaimer_pdnd
+in_configurazione_manuale_collaudo.pdnd-integrity-rest.collaudo: *disclaimer_pdnd
+in_configurazione_manuale_collaudo.pdnd-integrity-rest.produzione: *disclaimer_pdnd
+in_configurazione_automatica_collaudo.pdnd-integrity-rest.collaudo: *disclaimer_pdnd
+in_configurazione_automatica_collaudo.pdnd-integrity-rest.produzione: *disclaimer_pdnd
+pubblicato_collaudo.pdnd-integrity-rest.collaudo: *disclaimer_pdnd
+pubblicato_collaudo.pdnd-integrity-rest.produzione: *disclaimer_pdnd
+richiesto_produzione.pdnd-integrity-rest.collaudo: *disclaimer_pdnd
+richiesto_produzione.pdnd-integrity-rest.produzione: *disclaimer_pdnd
+autorizzato_produzione.pdnd-integrity-rest.collaudo: *disclaimer_pdnd
+autorizzato_produzione.pdnd-integrity-rest.produzione: *disclaimer_pdnd
+in_configurazione_manuale_produzione.pdnd-integrity-rest.collaudo: *disclaimer_pdnd
+in_configurazione_manuale_produzione.pdnd-integrity-rest.produzione: *disclaimer_pdnd
+in_configurazione_automatica_produzione.pdnd-integrity-rest.collaudo: *disclaimer_pdnd
+in_configurazione_automatica_produzione.pdnd-integrity-rest.produzione: *disclaimer_pdnd
+pubblicato_produzione.pdnd-integrity-rest.collaudo: *disclaimer_pdnd
+pubblicato_produzione.pdnd-integrity-rest.produzione: *disclaimer_pdnd
+archiviato.pdnd-integrity-rest.collaudo: *disclaimer_pdnd
+archiviato.pdnd-integrity-rest.produzione: *disclaimer_pdnd
+
+# -----------------------------------------------------------------------------
+# Profile PDND + Integrity (SOAP) (codice_interno: PDND-INTEGRITY-SOAP)
+# -----------------------------------------------------------------------------
+bozza.pdnd-integrity-soap.collaudo: *disclaimer_pdnd
+bozza.pdnd-integrity-soap.produzione: *disclaimer_pdnd
+richiesto_collaudo.pdnd-integrity-soap.collaudo: *disclaimer_pdnd
+richiesto_collaudo.pdnd-integrity-soap.produzione: *disclaimer_pdnd
+autorizzato_collaudo.pdnd-integrity-soap.collaudo: *disclaimer_pdnd
+autorizzato_collaudo.pdnd-integrity-soap.produzione: *disclaimer_pdnd
+in_configurazione_manuale_collaudo.pdnd-integrity-soap.collaudo: *disclaimer_pdnd
+in_configurazione_manuale_collaudo.pdnd-integrity-soap.produzione: *disclaimer_pdnd
+in_configurazione_automatica_collaudo.pdnd-integrity-soap.collaudo: *disclaimer_pdnd
+in_configurazione_automatica_collaudo.pdnd-integrity-soap.produzione: *disclaimer_pdnd
+pubblicato_collaudo.pdnd-integrity-soap.collaudo: *disclaimer_pdnd
+pubblicato_collaudo.pdnd-integrity-soap.produzione: *disclaimer_pdnd
+richiesto_produzione.pdnd-integrity-soap.collaudo: *disclaimer_pdnd
+richiesto_produzione.pdnd-integrity-soap.produzione: *disclaimer_pdnd
+autorizzato_produzione.pdnd-integrity-soap.collaudo: *disclaimer_pdnd
+autorizzato_produzione.pdnd-integrity-soap.produzione: *disclaimer_pdnd
+in_configurazione_manuale_produzione.pdnd-integrity-soap.collaudo: *disclaimer_pdnd
+in_configurazione_manuale_produzione.pdnd-integrity-soap.produzione: *disclaimer_pdnd
+in_configurazione_automatica_produzione.pdnd-integrity-soap.collaudo: *disclaimer_pdnd
+in_configurazione_automatica_produzione.pdnd-integrity-soap.produzione: *disclaimer_pdnd
+pubblicato_produzione.pdnd-integrity-soap.collaudo: *disclaimer_pdnd
+pubblicato_produzione.pdnd-integrity-soap.produzione: *disclaimer_pdnd
+archiviato.pdnd-integrity-soap.collaudo: *disclaimer_pdnd
+archiviato.pdnd-integrity-soap.produzione: *disclaimer_pdnd
+
+# -----------------------------------------------------------------------------
+# Profile PDND + Audit + Integrity (REST) (codice_interno: PDND-AUDIT-INTEGRITY-REST)
+# -----------------------------------------------------------------------------
+bozza.pdnd-audit-integrity-rest.collaudo: *disclaimer_pdnd
+bozza.pdnd-audit-integrity-rest.produzione: *disclaimer_pdnd
+richiesto_collaudo.pdnd-audit-integrity-rest.collaudo: *disclaimer_pdnd
+richiesto_collaudo.pdnd-audit-integrity-rest.produzione: *disclaimer_pdnd
+autorizzato_collaudo.pdnd-audit-integrity-rest.collaudo: *disclaimer_pdnd
+autorizzato_collaudo.pdnd-audit-integrity-rest.produzione: *disclaimer_pdnd
+in_configurazione_manuale_collaudo.pdnd-audit-integrity-rest.collaudo: *disclaimer_pdnd
+in_configurazione_manuale_collaudo.pdnd-audit-integrity-rest.produzione: *disclaimer_pdnd
+in_configurazione_automatica_collaudo.pdnd-audit-integrity-rest.collaudo: *disclaimer_pdnd
+in_configurazione_automatica_collaudo.pdnd-audit-integrity-rest.produzione: *disclaimer_pdnd
+pubblicato_collaudo.pdnd-audit-integrity-rest.collaudo: *disclaimer_pdnd
+pubblicato_collaudo.pdnd-audit-integrity-rest.produzione: *disclaimer_pdnd
+richiesto_produzione.pdnd-audit-integrity-rest.collaudo: *disclaimer_pdnd
+richiesto_produzione.pdnd-audit-integrity-rest.produzione: *disclaimer_pdnd
+autorizzato_produzione.pdnd-audit-integrity-rest.collaudo: *disclaimer_pdnd
+autorizzato_produzione.pdnd-audit-integrity-rest.produzione: *disclaimer_pdnd
+in_configurazione_manuale_produzione.pdnd-audit-integrity-rest.collaudo: *disclaimer_pdnd
+in_configurazione_manuale_produzione.pdnd-audit-integrity-rest.produzione: *disclaimer_pdnd
+in_configurazione_automatica_produzione.pdnd-audit-integrity-rest.collaudo: *disclaimer_pdnd
+in_configurazione_automatica_produzione.pdnd-audit-integrity-rest.produzione: *disclaimer_pdnd
+pubblicato_produzione.pdnd-audit-integrity-rest.collaudo: *disclaimer_pdnd
+pubblicato_produzione.pdnd-audit-integrity-rest.produzione: *disclaimer_pdnd
+archiviato.pdnd-audit-integrity-rest.collaudo: *disclaimer_pdnd
+archiviato.pdnd-audit-integrity-rest.produzione: *disclaimer_pdnd
+
+# -----------------------------------------------------------------------------
+# Profile PDND + Audit + Integrity (SOAP) (codice_interno: PDND-AUDIT-INTEGRITY-SOAP)
+# -----------------------------------------------------------------------------
+bozza.pdnd-audit-integrity-soap.collaudo: *disclaimer_pdnd
+bozza.pdnd-audit-integrity-soap.produzione: *disclaimer_pdnd
+richiesto_collaudo.pdnd-audit-integrity-soap.collaudo: *disclaimer_pdnd
+richiesto_collaudo.pdnd-audit-integrity-soap.produzione: *disclaimer_pdnd
+autorizzato_collaudo.pdnd-audit-integrity-soap.collaudo: *disclaimer_pdnd
+autorizzato_collaudo.pdnd-audit-integrity-soap.produzione: *disclaimer_pdnd
+in_configurazione_manuale_collaudo.pdnd-audit-integrity-soap.collaudo: *disclaimer_pdnd
+in_configurazione_manuale_collaudo.pdnd-audit-integrity-soap.produzione: *disclaimer_pdnd
+in_configurazione_automatica_collaudo.pdnd-audit-integrity-soap.collaudo: *disclaimer_pdnd
+in_configurazione_automatica_collaudo.pdnd-audit-integrity-soap.produzione: *disclaimer_pdnd
+pubblicato_collaudo.pdnd-audit-integrity-soap.collaudo: *disclaimer_pdnd
+pubblicato_collaudo.pdnd-audit-integrity-soap.produzione: *disclaimer_pdnd
+richiesto_produzione.pdnd-audit-integrity-soap.collaudo: *disclaimer_pdnd
+richiesto_produzione.pdnd-audit-integrity-soap.produzione: *disclaimer_pdnd
+autorizzato_produzione.pdnd-audit-integrity-soap.collaudo: *disclaimer_pdnd
+autorizzato_produzione.pdnd-audit-integrity-soap.produzione: *disclaimer_pdnd
+in_configurazione_manuale_produzione.pdnd-audit-integrity-soap.collaudo: *disclaimer_pdnd
+in_configurazione_manuale_produzione.pdnd-audit-integrity-soap.produzione: *disclaimer_pdnd
+in_configurazione_automatica_produzione.pdnd-audit-integrity-soap.collaudo: *disclaimer_pdnd
+in_configurazione_automatica_produzione.pdnd-audit-integrity-soap.produzione: *disclaimer_pdnd
+pubblicato_produzione.pdnd-audit-integrity-soap.collaudo: *disclaimer_pdnd
+pubblicato_produzione.pdnd-audit-integrity-soap.produzione: *disclaimer_pdnd
+archiviato.pdnd-audit-integrity-soap.collaudo: *disclaimer_pdnd
+archiviato.pdnd-audit-integrity-soap.produzione: *disclaimer_pdnd
+
+# -----------------------------------------------------------------------------
+# Profile PDND + mTLS (codice_interno: PDND-HTTPS)
+# -----------------------------------------------------------------------------
+bozza.pdnd-https.collaudo: *disclaimer_pdnd_mtls
+bozza.pdnd-https.produzione: *disclaimer_pdnd_mtls
+richiesto_collaudo.pdnd-https.collaudo: *disclaimer_pdnd_mtls
+richiesto_collaudo.pdnd-https.produzione: *disclaimer_pdnd_mtls
+autorizzato_collaudo.pdnd-https.collaudo: *disclaimer_pdnd_mtls
+autorizzato_collaudo.pdnd-https.produzione: *disclaimer_pdnd_mtls
+in_configurazione_manuale_collaudo.pdnd-https.collaudo: *disclaimer_pdnd_mtls
+in_configurazione_manuale_collaudo.pdnd-https.produzione: *disclaimer_pdnd_mtls
+in_configurazione_automatica_collaudo.pdnd-https.collaudo: *disclaimer_pdnd_mtls
+in_configurazione_automatica_collaudo.pdnd-https.produzione: *disclaimer_pdnd_mtls
+pubblicato_collaudo.pdnd-https.collaudo: *disclaimer_pdnd_mtls
+pubblicato_collaudo.pdnd-https.produzione: *disclaimer_pdnd_mtls
+richiesto_produzione.pdnd-https.collaudo: *disclaimer_pdnd_mtls
+richiesto_produzione.pdnd-https.produzione: *disclaimer_pdnd_mtls
+autorizzato_produzione.pdnd-https.collaudo: *disclaimer_pdnd_mtls
+autorizzato_produzione.pdnd-https.produzione: *disclaimer_pdnd_mtls
+in_configurazione_manuale_produzione.pdnd-https.collaudo: *disclaimer_pdnd_mtls
+in_configurazione_manuale_produzione.pdnd-https.produzione: *disclaimer_pdnd_mtls
+in_configurazione_automatica_produzione.pdnd-https.collaudo: *disclaimer_pdnd_mtls
+in_configurazione_automatica_produzione.pdnd-https.produzione: *disclaimer_pdnd_mtls
+pubblicato_produzione.pdnd-https.collaudo: *disclaimer_pdnd_mtls
+pubblicato_produzione.pdnd-https.produzione: *disclaimer_pdnd_mtls
+archiviato.pdnd-https.collaudo: *disclaimer_pdnd_mtls
+archiviato.pdnd-https.produzione: *disclaimer_pdnd_mtls
+
+# -----------------------------------------------------------------------------
+# Profile PDND + Integrity + mTLS (REST) (codice_interno: PDND-INTEGRITY-REST-HTTPS)
+# -----------------------------------------------------------------------------
+bozza.pdnd-integrity-rest-https.collaudo: *disclaimer_pdnd_mtls
+bozza.pdnd-integrity-rest-https.produzione: *disclaimer_pdnd_mtls
+richiesto_collaudo.pdnd-integrity-rest-https.collaudo: *disclaimer_pdnd_mtls
+richiesto_collaudo.pdnd-integrity-rest-https.produzione: *disclaimer_pdnd_mtls
+autorizzato_collaudo.pdnd-integrity-rest-https.collaudo: *disclaimer_pdnd_mtls
+autorizzato_collaudo.pdnd-integrity-rest-https.produzione: *disclaimer_pdnd_mtls
+in_configurazione_manuale_collaudo.pdnd-integrity-rest-https.collaudo: *disclaimer_pdnd_mtls
+in_configurazione_manuale_collaudo.pdnd-integrity-rest-https.produzione: *disclaimer_pdnd_mtls
+in_configurazione_automatica_collaudo.pdnd-integrity-rest-https.collaudo: *disclaimer_pdnd_mtls
+in_configurazione_automatica_collaudo.pdnd-integrity-rest-https.produzione: *disclaimer_pdnd_mtls
+pubblicato_collaudo.pdnd-integrity-rest-https.collaudo: *disclaimer_pdnd_mtls
+pubblicato_collaudo.pdnd-integrity-rest-https.produzione: *disclaimer_pdnd_mtls
+richiesto_produzione.pdnd-integrity-rest-https.collaudo: *disclaimer_pdnd_mtls
+richiesto_produzione.pdnd-integrity-rest-https.produzione: *disclaimer_pdnd_mtls
+autorizzato_produzione.pdnd-integrity-rest-https.collaudo: *disclaimer_pdnd_mtls
+autorizzato_produzione.pdnd-integrity-rest-https.produzione: *disclaimer_pdnd_mtls
+in_configurazione_manuale_produzione.pdnd-integrity-rest-https.collaudo: *disclaimer_pdnd_mtls
+in_configurazione_manuale_produzione.pdnd-integrity-rest-https.produzione: *disclaimer_pdnd_mtls
+in_configurazione_automatica_produzione.pdnd-integrity-rest-https.collaudo: *disclaimer_pdnd_mtls
+in_configurazione_automatica_produzione.pdnd-integrity-rest-https.produzione: *disclaimer_pdnd_mtls
+pubblicato_produzione.pdnd-integrity-rest-https.collaudo: *disclaimer_pdnd_mtls
+pubblicato_produzione.pdnd-integrity-rest-https.produzione: *disclaimer_pdnd_mtls
+archiviato.pdnd-integrity-rest-https.collaudo: *disclaimer_pdnd_mtls
+archiviato.pdnd-integrity-rest-https.produzione: *disclaimer_pdnd_mtls
+
+# -----------------------------------------------------------------------------
+# Profile PDND + Integrity + mTLS (SOAP) (codice_interno: PDND-INTEGRITY-SOAP-HTTPS)
+# -----------------------------------------------------------------------------
+bozza.pdnd-integrity-soap-https.collaudo: *disclaimer_pdnd_mtls
+bozza.pdnd-integrity-soap-https.produzione: *disclaimer_pdnd_mtls
+richiesto_collaudo.pdnd-integrity-soap-https.collaudo: *disclaimer_pdnd_mtls
+richiesto_collaudo.pdnd-integrity-soap-https.produzione: *disclaimer_pdnd_mtls
+autorizzato_collaudo.pdnd-integrity-soap-https.collaudo: *disclaimer_pdnd_mtls
+autorizzato_collaudo.pdnd-integrity-soap-https.produzione: *disclaimer_pdnd_mtls
+in_configurazione_manuale_collaudo.pdnd-integrity-soap-https.collaudo: *disclaimer_pdnd_mtls
+in_configurazione_manuale_collaudo.pdnd-integrity-soap-https.produzione: *disclaimer_pdnd_mtls
+in_configurazione_automatica_collaudo.pdnd-integrity-soap-https.collaudo: *disclaimer_pdnd_mtls
+in_configurazione_automatica_collaudo.pdnd-integrity-soap-https.produzione: *disclaimer_pdnd_mtls
+pubblicato_collaudo.pdnd-integrity-soap-https.collaudo: *disclaimer_pdnd_mtls
+pubblicato_collaudo.pdnd-integrity-soap-https.produzione: *disclaimer_pdnd_mtls
+richiesto_produzione.pdnd-integrity-soap-https.collaudo: *disclaimer_pdnd_mtls
+richiesto_produzione.pdnd-integrity-soap-https.produzione: *disclaimer_pdnd_mtls
+autorizzato_produzione.pdnd-integrity-soap-https.collaudo: *disclaimer_pdnd_mtls
+autorizzato_produzione.pdnd-integrity-soap-https.produzione: *disclaimer_pdnd_mtls
+in_configurazione_manuale_produzione.pdnd-integrity-soap-https.collaudo: *disclaimer_pdnd_mtls
+in_configurazione_manuale_produzione.pdnd-integrity-soap-https.produzione: *disclaimer_pdnd_mtls
+in_configurazione_automatica_produzione.pdnd-integrity-soap-https.collaudo: *disclaimer_pdnd_mtls
+in_configurazione_automatica_produzione.pdnd-integrity-soap-https.produzione: *disclaimer_pdnd_mtls
+pubblicato_produzione.pdnd-integrity-soap-https.collaudo: *disclaimer_pdnd_mtls
+pubblicato_produzione.pdnd-integrity-soap-https.produzione: *disclaimer_pdnd_mtls
+archiviato.pdnd-integrity-soap-https.collaudo: *disclaimer_pdnd_mtls
+archiviato.pdnd-integrity-soap-https.produzione: *disclaimer_pdnd_mtls
+
+# -----------------------------------------------------------------------------
+# Profile OAuth Authorization Code (codice_interno: INTERNO_OAUTH_AUTHORIZATION_CODE)
+# -----------------------------------------------------------------------------
+bozza.interno_oauth_authorization_code.collaudo: *disclaimer_oauth_ac
+bozza.interno_oauth_authorization_code.produzione: *disclaimer_oauth_ac
+richiesto_collaudo.interno_oauth_authorization_code.collaudo: *disclaimer_oauth_ac
+richiesto_collaudo.interno_oauth_authorization_code.produzione: *disclaimer_oauth_ac
+autorizzato_collaudo.interno_oauth_authorization_code.collaudo: *disclaimer_oauth_ac
+autorizzato_collaudo.interno_oauth_authorization_code.produzione: *disclaimer_oauth_ac
+in_configurazione_manuale_collaudo.interno_oauth_authorization_code.collaudo: *disclaimer_oauth_ac
+in_configurazione_manuale_collaudo.interno_oauth_authorization_code.produzione: *disclaimer_oauth_ac
+in_configurazione_automatica_collaudo.interno_oauth_authorization_code.collaudo: *disclaimer_oauth_ac
+in_configurazione_automatica_collaudo.interno_oauth_authorization_code.produzione: *disclaimer_oauth_ac
+pubblicato_collaudo.interno_oauth_authorization_code.collaudo: *disclaimer_oauth_ac
+pubblicato_collaudo.interno_oauth_authorization_code.produzione: *disclaimer_oauth_ac
+richiesto_produzione.interno_oauth_authorization_code.collaudo: *disclaimer_oauth_ac
+richiesto_produzione.interno_oauth_authorization_code.produzione: *disclaimer_oauth_ac
+autorizzato_produzione.interno_oauth_authorization_code.collaudo: *disclaimer_oauth_ac
+autorizzato_produzione.interno_oauth_authorization_code.produzione: *disclaimer_oauth_ac
+in_configurazione_manuale_produzione.interno_oauth_authorization_code.collaudo: *disclaimer_oauth_ac
+in_configurazione_manuale_produzione.interno_oauth_authorization_code.produzione: *disclaimer_oauth_ac
+in_configurazione_automatica_produzione.interno_oauth_authorization_code.collaudo: *disclaimer_oauth_ac
+in_configurazione_automatica_produzione.interno_oauth_authorization_code.produzione: *disclaimer_oauth_ac
+pubblicato_produzione.interno_oauth_authorization_code.collaudo: *disclaimer_oauth_ac
+pubblicato_produzione.interno_oauth_authorization_code.produzione: *disclaimer_oauth_ac
+archiviato.interno_oauth_authorization_code.collaudo: *disclaimer_oauth_ac
+archiviato.interno_oauth_authorization_code.produzione: *disclaimer_oauth_ac
+
+# -----------------------------------------------------------------------------
+# Profile OAuth Client Credentials (codice_interno: INTERNO_OAUTH_CLIENT_CREDENTIALS)
+# -----------------------------------------------------------------------------
+bozza.interno_oauth_client_credentials.collaudo: *disclaimer_oauth_cc
+bozza.interno_oauth_client_credentials.produzione: *disclaimer_oauth_cc
+richiesto_collaudo.interno_oauth_client_credentials.collaudo: *disclaimer_oauth_cc
+richiesto_collaudo.interno_oauth_client_credentials.produzione: *disclaimer_oauth_cc
+autorizzato_collaudo.interno_oauth_client_credentials.collaudo: *disclaimer_oauth_cc
+autorizzato_collaudo.interno_oauth_client_credentials.produzione: *disclaimer_oauth_cc
+in_configurazione_manuale_collaudo.interno_oauth_client_credentials.collaudo: *disclaimer_oauth_cc
+in_configurazione_manuale_collaudo.interno_oauth_client_credentials.produzione: *disclaimer_oauth_cc
+in_configurazione_automatica_collaudo.interno_oauth_client_credentials.collaudo: *disclaimer_oauth_cc
+in_configurazione_automatica_collaudo.interno_oauth_client_credentials.produzione: *disclaimer_oauth_cc
+pubblicato_collaudo.interno_oauth_client_credentials.collaudo: *disclaimer_oauth_cc
+pubblicato_collaudo.interno_oauth_client_credentials.produzione: *disclaimer_oauth_cc
+richiesto_produzione.interno_oauth_client_credentials.collaudo: *disclaimer_oauth_cc
+richiesto_produzione.interno_oauth_client_credentials.produzione: *disclaimer_oauth_cc
+autorizzato_produzione.interno_oauth_client_credentials.collaudo: *disclaimer_oauth_cc
+autorizzato_produzione.interno_oauth_client_credentials.produzione: *disclaimer_oauth_cc
+in_configurazione_manuale_produzione.interno_oauth_client_credentials.collaudo: *disclaimer_oauth_cc
+in_configurazione_manuale_produzione.interno_oauth_client_credentials.produzione: *disclaimer_oauth_cc
+in_configurazione_automatica_produzione.interno_oauth_client_credentials.collaudo: *disclaimer_oauth_cc
+in_configurazione_automatica_produzione.interno_oauth_client_credentials.produzione: *disclaimer_oauth_cc
+pubblicato_produzione.interno_oauth_client_credentials.collaudo: *disclaimer_oauth_cc
+pubblicato_produzione.interno_oauth_client_credentials.produzione: *disclaimer_oauth_cc
+archiviato.interno_oauth_client_credentials.collaudo: *disclaimer_oauth_cc
+archiviato.interno_oauth_client_credentials.produzione: *disclaimer_oauth_cc
+
+# -----------------------------------------------------------------------------
+# Profile HTTP Basic (codice_interno: INTERNO_HTTP_BASIC)
+# -----------------------------------------------------------------------------
+bozza.interno_http_basic.collaudo: *disclaimer_http_basic
+bozza.interno_http_basic.produzione: *disclaimer_http_basic
+richiesto_collaudo.interno_http_basic.collaudo: *disclaimer_http_basic
+richiesto_collaudo.interno_http_basic.produzione: *disclaimer_http_basic
+autorizzato_collaudo.interno_http_basic.collaudo: *disclaimer_http_basic
+autorizzato_collaudo.interno_http_basic.produzione: *disclaimer_http_basic
+in_configurazione_manuale_collaudo.interno_http_basic.collaudo: *disclaimer_http_basic
+in_configurazione_manuale_collaudo.interno_http_basic.produzione: *disclaimer_http_basic
+in_configurazione_automatica_collaudo.interno_http_basic.collaudo: *disclaimer_http_basic
+in_configurazione_automatica_collaudo.interno_http_basic.produzione: *disclaimer_http_basic
+pubblicato_collaudo.interno_http_basic.collaudo: *disclaimer_http_basic
+pubblicato_collaudo.interno_http_basic.produzione: *disclaimer_http_basic
+richiesto_produzione.interno_http_basic.collaudo: *disclaimer_http_basic
+richiesto_produzione.interno_http_basic.produzione: *disclaimer_http_basic
+autorizzato_produzione.interno_http_basic.collaudo: *disclaimer_http_basic
+autorizzato_produzione.interno_http_basic.produzione: *disclaimer_http_basic
+in_configurazione_manuale_produzione.interno_http_basic.collaudo: *disclaimer_http_basic
+in_configurazione_manuale_produzione.interno_http_basic.produzione: *disclaimer_http_basic
+in_configurazione_automatica_produzione.interno_http_basic.collaudo: *disclaimer_http_basic
+in_configurazione_automatica_produzione.interno_http_basic.produzione: *disclaimer_http_basic
+pubblicato_produzione.interno_http_basic.collaudo: *disclaimer_http_basic
+pubblicato_produzione.interno_http_basic.produzione: *disclaimer_http_basic
+archiviato.interno_http_basic.collaudo: *disclaimer_http_basic
+archiviato.interno_http_basic.produzione: *disclaimer_http_basic
+
+# -----------------------------------------------------------------------------
+# Profile mTLS (codice_interno: INTERNO_HTTPS)
+# -----------------------------------------------------------------------------
+bozza.interno_https.collaudo: *disclaimer_mtls
+bozza.interno_https.produzione: *disclaimer_mtls
+richiesto_collaudo.interno_https.collaudo: *disclaimer_mtls
+richiesto_collaudo.interno_https.produzione: *disclaimer_mtls
+autorizzato_collaudo.interno_https.collaudo: *disclaimer_mtls
+autorizzato_collaudo.interno_https.produzione: *disclaimer_mtls
+in_configurazione_manuale_collaudo.interno_https.collaudo: *disclaimer_mtls
+in_configurazione_manuale_collaudo.interno_https.produzione: *disclaimer_mtls
+in_configurazione_automatica_collaudo.interno_https.collaudo: *disclaimer_mtls
+in_configurazione_automatica_collaudo.interno_https.produzione: *disclaimer_mtls
+pubblicato_collaudo.interno_https.collaudo: *disclaimer_mtls
+pubblicato_collaudo.interno_https.produzione: *disclaimer_mtls
+richiesto_produzione.interno_https.collaudo: *disclaimer_mtls
+richiesto_produzione.interno_https.produzione: *disclaimer_mtls
+autorizzato_produzione.interno_https.collaudo: *disclaimer_mtls
+autorizzato_produzione.interno_https.produzione: *disclaimer_mtls
+in_configurazione_manuale_produzione.interno_https.collaudo: *disclaimer_mtls
+in_configurazione_manuale_produzione.interno_https.produzione: *disclaimer_mtls
+in_configurazione_automatica_produzione.interno_https.collaudo: *disclaimer_mtls
+in_configurazione_automatica_produzione.interno_https.produzione: *disclaimer_mtls
+pubblicato_produzione.interno_https.collaudo: *disclaimer_mtls
+pubblicato_produzione.interno_https.produzione: *disclaimer_mtls
+archiviato.interno_https.collaudo: *disclaimer_mtls
+archiviato.interno_https.produzione: *disclaimer_mtls
+
+# -----------------------------------------------------------------------------
+# Profile Nessuna (codice_interno: INTERNO_NO_DATI)
+# -----------------------------------------------------------------------------
+bozza.interno_no_dati.collaudo: *disclaimer_no_dati
+bozza.interno_no_dati.produzione: *disclaimer_no_dati
+richiesto_collaudo.interno_no_dati.collaudo: *disclaimer_no_dati
+richiesto_collaudo.interno_no_dati.produzione: *disclaimer_no_dati
+autorizzato_collaudo.interno_no_dati.collaudo: *disclaimer_no_dati
+autorizzato_collaudo.interno_no_dati.produzione: *disclaimer_no_dati
+in_configurazione_manuale_collaudo.interno_no_dati.collaudo: *disclaimer_no_dati
+in_configurazione_manuale_collaudo.interno_no_dati.produzione: *disclaimer_no_dati
+in_configurazione_automatica_collaudo.interno_no_dati.collaudo: *disclaimer_no_dati
+in_configurazione_automatica_collaudo.interno_no_dati.produzione: *disclaimer_no_dati
+pubblicato_collaudo.interno_no_dati.collaudo: *disclaimer_no_dati
+pubblicato_collaudo.interno_no_dati.produzione: *disclaimer_no_dati
+richiesto_produzione.interno_no_dati.collaudo: *disclaimer_no_dati
+richiesto_produzione.interno_no_dati.produzione: *disclaimer_no_dati
+autorizzato_produzione.interno_no_dati.collaudo: *disclaimer_no_dati
+autorizzato_produzione.interno_no_dati.produzione: *disclaimer_no_dati
+in_configurazione_manuale_produzione.interno_no_dati.collaudo: *disclaimer_no_dati
+in_configurazione_manuale_produzione.interno_no_dati.produzione: *disclaimer_no_dati
+in_configurazione_automatica_produzione.interno_no_dati.collaudo: *disclaimer_no_dati
+in_configurazione_automatica_produzione.interno_no_dati.produzione: *disclaimer_no_dati
+pubblicato_produzione.interno_no_dati.collaudo: *disclaimer_no_dati
+pubblicato_produzione.interno_no_dati.produzione: *disclaimer_no_dati
+archiviato.interno_no_dati.collaudo: *disclaimer_no_dati
+archiviato.interno_no_dati.produzione: *disclaimer_no_dati
+
+# -----------------------------------------------------------------------------
+# Profile mTLS - Fruizioni PDND (codice_interno: MTLS_FRUIZIONI)
+# -----------------------------------------------------------------------------
+bozza.mtls_fruizioni.collaudo: *disclaimer_mtls_fruizioni
+bozza.mtls_fruizioni.produzione: *disclaimer_mtls_fruizioni
+richiesto_collaudo.mtls_fruizioni.collaudo: *disclaimer_mtls_fruizioni
+richiesto_collaudo.mtls_fruizioni.produzione: *disclaimer_mtls_fruizioni
+autorizzato_collaudo.mtls_fruizioni.collaudo: *disclaimer_mtls_fruizioni
+autorizzato_collaudo.mtls_fruizioni.produzione: *disclaimer_mtls_fruizioni
+in_configurazione_manuale_collaudo.mtls_fruizioni.collaudo: *disclaimer_mtls_fruizioni
+in_configurazione_manuale_collaudo.mtls_fruizioni.produzione: *disclaimer_mtls_fruizioni
+in_configurazione_automatica_collaudo.mtls_fruizioni.collaudo: *disclaimer_mtls_fruizioni
+in_configurazione_automatica_collaudo.mtls_fruizioni.produzione: *disclaimer_mtls_fruizioni
+pubblicato_collaudo.mtls_fruizioni.collaudo: *disclaimer_mtls_fruizioni
+pubblicato_collaudo.mtls_fruizioni.produzione: *disclaimer_mtls_fruizioni
+richiesto_produzione.mtls_fruizioni.collaudo: *disclaimer_mtls_fruizioni
+richiesto_produzione.mtls_fruizioni.produzione: *disclaimer_mtls_fruizioni
+autorizzato_produzione.mtls_fruizioni.collaudo: *disclaimer_mtls_fruizioni
+autorizzato_produzione.mtls_fruizioni.produzione: *disclaimer_mtls_fruizioni
+in_configurazione_manuale_produzione.mtls_fruizioni.collaudo: *disclaimer_mtls_fruizioni
+in_configurazione_manuale_produzione.mtls_fruizioni.produzione: *disclaimer_mtls_fruizioni
+in_configurazione_automatica_produzione.mtls_fruizioni.collaudo: *disclaimer_mtls_fruizioni
+in_configurazione_automatica_produzione.mtls_fruizioni.produzione: *disclaimer_mtls_fruizioni
+pubblicato_produzione.mtls_fruizioni.collaudo: *disclaimer_mtls_fruizioni
+pubblicato_produzione.mtls_fruizioni.produzione: *disclaimer_mtls_fruizioni
+archiviato.mtls_fruizioni.collaudo: *disclaimer_mtls_fruizioni
+archiviato.mtls_fruizioni.produzione: *disclaimer_mtls_fruizioni
+
+# -----------------------------------------------------------------------------
+# Profile OAuth Client Credentials - Fruizioni PDND (codice_interno: OAUTH_CC_FRUIZIONI)
+# -----------------------------------------------------------------------------
+bozza.oauth_cc_fruizioni.collaudo: *disclaimer_oauth_cc_fruizioni
+bozza.oauth_cc_fruizioni.produzione: *disclaimer_oauth_cc_fruizioni
+richiesto_collaudo.oauth_cc_fruizioni.collaudo: *disclaimer_oauth_cc_fruizioni
+richiesto_collaudo.oauth_cc_fruizioni.produzione: *disclaimer_oauth_cc_fruizioni
+autorizzato_collaudo.oauth_cc_fruizioni.collaudo: *disclaimer_oauth_cc_fruizioni
+autorizzato_collaudo.oauth_cc_fruizioni.produzione: *disclaimer_oauth_cc_fruizioni
+in_configurazione_manuale_collaudo.oauth_cc_fruizioni.collaudo: *disclaimer_oauth_cc_fruizioni
+in_configurazione_manuale_collaudo.oauth_cc_fruizioni.produzione: *disclaimer_oauth_cc_fruizioni
+in_configurazione_automatica_collaudo.oauth_cc_fruizioni.collaudo: *disclaimer_oauth_cc_fruizioni
+in_configurazione_automatica_collaudo.oauth_cc_fruizioni.produzione: *disclaimer_oauth_cc_fruizioni
+pubblicato_collaudo.oauth_cc_fruizioni.collaudo: *disclaimer_oauth_cc_fruizioni
+pubblicato_collaudo.oauth_cc_fruizioni.produzione: *disclaimer_oauth_cc_fruizioni
+richiesto_produzione.oauth_cc_fruizioni.collaudo: *disclaimer_oauth_cc_fruizioni
+richiesto_produzione.oauth_cc_fruizioni.produzione: *disclaimer_oauth_cc_fruizioni
+autorizzato_produzione.oauth_cc_fruizioni.collaudo: *disclaimer_oauth_cc_fruizioni
+autorizzato_produzione.oauth_cc_fruizioni.produzione: *disclaimer_oauth_cc_fruizioni
+in_configurazione_manuale_produzione.oauth_cc_fruizioni.collaudo: *disclaimer_oauth_cc_fruizioni
+in_configurazione_manuale_produzione.oauth_cc_fruizioni.produzione: *disclaimer_oauth_cc_fruizioni
+in_configurazione_automatica_produzione.oauth_cc_fruizioni.collaudo: *disclaimer_oauth_cc_fruizioni
+in_configurazione_automatica_produzione.oauth_cc_fruizioni.produzione: *disclaimer_oauth_cc_fruizioni
+pubblicato_produzione.oauth_cc_fruizioni.collaudo: *disclaimer_oauth_cc_fruizioni
+pubblicato_produzione.oauth_cc_fruizioni.produzione: *disclaimer_oauth_cc_fruizioni
+archiviato.oauth_cc_fruizioni.collaudo: *disclaimer_oauth_cc_fruizioni
+archiviato.oauth_cc_fruizioni.produzione: *disclaimer_oauth_cc_fruizioni
+
+# -----------------------------------------------------------------------------
+# Profile Basic - Fruizioni PDND (codice_interno: BASIC_FRUIZIONI)
+# -----------------------------------------------------------------------------
+bozza.basic_fruizioni.collaudo: *disclaimer_basic_fruizioni
+bozza.basic_fruizioni.produzione: *disclaimer_basic_fruizioni
+richiesto_collaudo.basic_fruizioni.collaudo: *disclaimer_basic_fruizioni
+richiesto_collaudo.basic_fruizioni.produzione: *disclaimer_basic_fruizioni
+autorizzato_collaudo.basic_fruizioni.collaudo: *disclaimer_basic_fruizioni
+autorizzato_collaudo.basic_fruizioni.produzione: *disclaimer_basic_fruizioni
+in_configurazione_manuale_collaudo.basic_fruizioni.collaudo: *disclaimer_basic_fruizioni
+in_configurazione_manuale_collaudo.basic_fruizioni.produzione: *disclaimer_basic_fruizioni
+in_configurazione_automatica_collaudo.basic_fruizioni.collaudo: *disclaimer_basic_fruizioni
+in_configurazione_automatica_collaudo.basic_fruizioni.produzione: *disclaimer_basic_fruizioni
+pubblicato_collaudo.basic_fruizioni.collaudo: *disclaimer_basic_fruizioni
+pubblicato_collaudo.basic_fruizioni.produzione: *disclaimer_basic_fruizioni
+richiesto_produzione.basic_fruizioni.collaudo: *disclaimer_basic_fruizioni
+richiesto_produzione.basic_fruizioni.produzione: *disclaimer_basic_fruizioni
+autorizzato_produzione.basic_fruizioni.collaudo: *disclaimer_basic_fruizioni
+autorizzato_produzione.basic_fruizioni.produzione: *disclaimer_basic_fruizioni
+in_configurazione_manuale_produzione.basic_fruizioni.collaudo: *disclaimer_basic_fruizioni
+in_configurazione_manuale_produzione.basic_fruizioni.produzione: *disclaimer_basic_fruizioni
+in_configurazione_automatica_produzione.basic_fruizioni.collaudo: *disclaimer_basic_fruizioni
+in_configurazione_automatica_produzione.basic_fruizioni.produzione: *disclaimer_basic_fruizioni
+pubblicato_produzione.basic_fruizioni.collaudo: *disclaimer_basic_fruizioni
+pubblicato_produzione.basic_fruizioni.produzione: *disclaimer_basic_fruizioni
+archiviato.basic_fruizioni.collaudo: *disclaimer_basic_fruizioni
+archiviato.basic_fruizioni.produzione: *disclaimer_basic_fruizioni
+
+# -----------------------------------------------------------------------------
+# Profile OAuth Authorization Code - Fruizioni PDND (codice_interno: OAUTH_AC_FRUIZIONI)
+# Adapted disclaimer (option C of the doubts): text similar to OAuth CC Fruizioni
+# in the PDND context, modified for Authorization Code.
+# -----------------------------------------------------------------------------
+bozza.oauth_ac_fruizioni.collaudo: *disclaimer_oauth_ac_fruizioni
+bozza.oauth_ac_fruizioni.produzione: *disclaimer_oauth_ac_fruizioni
+richiesto_collaudo.oauth_ac_fruizioni.collaudo: *disclaimer_oauth_ac_fruizioni
+richiesto_collaudo.oauth_ac_fruizioni.produzione: *disclaimer_oauth_ac_fruizioni
+autorizzato_collaudo.oauth_ac_fruizioni.collaudo: *disclaimer_oauth_ac_fruizioni
+autorizzato_collaudo.oauth_ac_fruizioni.produzione: *disclaimer_oauth_ac_fruizioni
+in_configurazione_manuale_collaudo.oauth_ac_fruizioni.collaudo: *disclaimer_oauth_ac_fruizioni
+in_configurazione_manuale_collaudo.oauth_ac_fruizioni.produzione: *disclaimer_oauth_ac_fruizioni
+in_configurazione_automatica_collaudo.oauth_ac_fruizioni.collaudo: *disclaimer_oauth_ac_fruizioni
+in_configurazione_automatica_collaudo.oauth_ac_fruizioni.produzione: *disclaimer_oauth_ac_fruizioni
+pubblicato_collaudo.oauth_ac_fruizioni.collaudo: *disclaimer_oauth_ac_fruizioni
+pubblicato_collaudo.oauth_ac_fruizioni.produzione: *disclaimer_oauth_ac_fruizioni
+richiesto_produzione.oauth_ac_fruizioni.collaudo: *disclaimer_oauth_ac_fruizioni
+richiesto_produzione.oauth_ac_fruizioni.produzione: *disclaimer_oauth_ac_fruizioni
+autorizzato_produzione.oauth_ac_fruizioni.collaudo: *disclaimer_oauth_ac_fruizioni
+autorizzato_produzione.oauth_ac_fruizioni.produzione: *disclaimer_oauth_ac_fruizioni
+in_configurazione_manuale_produzione.oauth_ac_fruizioni.collaudo: *disclaimer_oauth_ac_fruizioni
+in_configurazione_manuale_produzione.oauth_ac_fruizioni.produzione: *disclaimer_oauth_ac_fruizioni
+in_configurazione_automatica_produzione.oauth_ac_fruizioni.collaudo: *disclaimer_oauth_ac_fruizioni
+in_configurazione_automatica_produzione.oauth_ac_fruizioni.produzione: *disclaimer_oauth_ac_fruizioni
+pubblicato_produzione.oauth_ac_fruizioni.collaudo: *disclaimer_oauth_ac_fruizioni
+pubblicato_produzione.oauth_ac_fruizioni.produzione: *disclaimer_oauth_ac_fruizioni
+archiviato.oauth_ac_fruizioni.collaudo: *disclaimer_oauth_ac_fruizioni
+archiviato.oauth_ac_fruizioni.produzione: *disclaimer_oauth_ac_fruizioni
 
 # -----------------------------------------------------------------------------
 # EXAMPLES WITH DOMAIN (for testing purposes)
 # -----------------------------------------------------------------------------
 
-# Example: PDND profile on the "PDND" domain
+# Example: PDND profile on the "PDND" domain (generale context)
 bozza.pdnd.pdnd: |
   ## PDND on the PDND domain
   This e-service belongs to the PDND domain. Refer to the domain contact for
