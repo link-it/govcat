@@ -925,7 +925,7 @@ public class OrganizzazioniTest {
         assertEquals(1, u1After.getOrganizzazioni().size(), "u1 deve avere 1 associazione");
 
         ResponseEntity<PagedModelItemUtenteOrganizzazione> response =
-                controller.listUtentiOrganizzazione(org.getIdOrganizzazione(), 0, 100, null);
+                controller.listUtentiOrganizzazione(org.getIdOrganizzazione(), null, 0, 100, null);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -940,6 +940,73 @@ public class OrganizzazioniTest {
                 && item.getRuoloOrganizzazione() == RuoloOrganizzazioneEnum.OPERATORE_API);
         assertTrue(trovatoU1, "Utente u1 con ruolo AMM_ORG non trovato");
         assertTrue(trovatoU2, "Utente u2 con ruolo OPERATORE_API non trovato");
+    }
+
+    @Test
+    public void testListUtentiOrganizzazione_FiltroQ() {
+        Organizzazione org = creaOrgPerAssoc("org-list-utenti-q");
+
+        // 3 utenti con nome/cognome/principal differenti
+        UtenteCreate u1c = CommonUtils.getUtenteCreate();
+        u1c.setPrincipal("mario.rossi");
+        u1c.setNome("Mario");
+        u1c.setCognome("Rossi");
+        u1c.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        Utente u1 = utentiController.createUtente(u1c).getBody();
+
+        UtenteCreate u2c = CommonUtils.getUtenteCreate();
+        u2c.setPrincipal("anna.bianchi");
+        u2c.setNome("Anna");
+        u2c.setCognome("Bianchi");
+        u2c.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        Utente u2 = utentiController.createUtente(u2c).getBody();
+
+        UtenteCreate u3c = CommonUtils.getUtenteCreate();
+        u3c.setPrincipal("luca.verdi");
+        u3c.setNome("Luca");
+        u3c.setCognome("Verdi");
+        u3c.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        Utente u3 = utentiController.createUtente(u3c).getBody();
+
+        for (Utente u : List.of(u1, u2, u3)) {
+            UtenteOrganizzazioneAdd add = new UtenteOrganizzazioneAdd();
+            add.setIdUtente(u.getIdUtente());
+            add.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.OPERATORE_API);
+            controller.addUtenteOrganizzazione(org.getIdOrganizzazione(), add);
+        }
+
+        // q su nome (parziale)
+        var resp = controller.listUtentiOrganizzazione(org.getIdOrganizzazione(), "ario", 0, 100, null);
+        assertEquals(1, resp.getBody().getContent().size());
+        assertEquals(u1.getIdUtente(), resp.getBody().getContent().get(0).getUtente().getIdUtente());
+
+        // q su cognome (case insensitive)
+        resp = controller.listUtentiOrganizzazione(org.getIdOrganizzazione(), "BIANCHI", 0, 100, null);
+        assertEquals(1, resp.getBody().getContent().size());
+        assertEquals(u2.getIdUtente(), resp.getBody().getContent().get(0).getUtente().getIdUtente());
+
+        // q su principal
+        resp = controller.listUtentiOrganizzazione(org.getIdOrganizzazione(), "luca.verdi", 0, 100, null);
+        assertEquals(1, resp.getBody().getContent().size());
+        assertEquals(u3.getIdUtente(), resp.getBody().getContent().get(0).getUtente().getIdUtente());
+
+        // q su "Mario Rossi" (nome + cognome)
+        resp = controller.listUtentiOrganizzazione(org.getIdOrganizzazione(), "Mario Rossi", 0, 100, null);
+        assertEquals(1, resp.getBody().getContent().size());
+        assertEquals(u1.getIdUtente(), resp.getBody().getContent().get(0).getUtente().getIdUtente());
+
+        // q su "Bianchi Anna" (cognome + nome)
+        resp = controller.listUtentiOrganizzazione(org.getIdOrganizzazione(), "Bianchi Anna", 0, 100, null);
+        assertEquals(1, resp.getBody().getContent().size());
+        assertEquals(u2.getIdUtente(), resp.getBody().getContent().get(0).getUtente().getIdUtente());
+
+        // q senza risultati
+        resp = controller.listUtentiOrganizzazione(org.getIdOrganizzazione(), "inesistente_xyz", 0, 100, null);
+        assertEquals(0, resp.getBody().getContent().size());
+
+        // q null = nessun filtro: tutti e 3
+        resp = controller.listUtentiOrganizzazione(org.getIdOrganizzazione(), null, 0, 100, null);
+        assertEquals(3, resp.getBody().getContent().size());
     }
 
     @Test
@@ -968,7 +1035,7 @@ public class OrganizzazioniTest {
 
         // L'AMM_ORG può fare il list
         ResponseEntity<PagedModelItemUtenteOrganizzazione> response =
-                controller.listUtentiOrganizzazione(org.getIdOrganizzazione(), 0, 100, null);
+                controller.listUtentiOrganizzazione(org.getIdOrganizzazione(), null, 0, 100, null);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -983,7 +1050,7 @@ public class OrganizzazioniTest {
         this.tearDown();
 
         NotAuthorizedException ex = assertThrows(NotAuthorizedException.class, () -> {
-            controller.listUtentiOrganizzazione(org.getIdOrganizzazione(), 0, 100, null);
+            controller.listUtentiOrganizzazione(org.getIdOrganizzazione(), null, 0, 100, null);
         });
         assertTrue(ex.getMessage().startsWith("AUT.403"));
     }
@@ -993,7 +1060,7 @@ public class OrganizzazioniTest {
         UUID idInesistente = UUID.randomUUID();
 
         assertThrows(NotFoundException.class, () -> {
-            controller.listUtentiOrganizzazione(idInesistente, 0, 100, null);
+            controller.listUtentiOrganizzazione(idInesistente, null, 0, 100, null);
         });
     }
 

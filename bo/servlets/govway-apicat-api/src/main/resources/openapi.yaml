@@ -710,6 +710,7 @@ paths:
       description: "Elenco degli utenti associati all'organizzazione con il rispettivo ruolo per-organizzazione. Operazione consentita al gestore o coordinatore (in base alla configurazione amministrazione.organizzazioni) oppure ad un AMMINISTRATORE_ORGANIZZAZIONE dell'organizzazione target."
       operationId: "listUtentiOrganizzazione"
       parameters:
+      - $ref: "#/components/parameters/q_query_optional"
       - $ref: "#/components/parameters/page_query_optional"
       - $ref: "#/components/parameters/size_query_optional"
       - $ref: "#/components/parameters/sort_query_optional"

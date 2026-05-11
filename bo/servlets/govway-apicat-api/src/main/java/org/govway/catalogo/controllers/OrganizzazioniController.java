@@ -23,6 +23,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import org.govway.catalogo.core.dao.specifications.UtenteOrganizzazioneSpecification;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -468,7 +470,7 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 
 	@Override
 	public ResponseEntity<PagedModelItemUtenteOrganizzazione> listUtentiOrganizzazione(UUID idOrganizzazione,
-			Integer page, Integer size, List<String> sort) {
+			String q, Integer page, Integer size, List<String> sort) {
 		try {
 			return this.service.runTransaction(() -> {
 				this.logger.info("Invocazione in corso ...");
@@ -479,13 +481,14 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 				authorizeGestioneAssociazioni(org);
 				this.logger.debug("Autorizzazione completata con successo");
 
-				// Query diretta sulla tabella utenti_organizzazioni filtrando per l'organizzazione
-				// target. Il parametro q (ricerca) non è applicato in questa versione: per filtraggio
-				// avanzato sugli utenti rimane disponibile GET /utenti?id_organizzazione=...
+				UtenteOrganizzazioneSpecification spec = new UtenteOrganizzazioneSpecification();
+				spec.setOrganizzazione(Optional.of(org));
+				spec.setQ(Optional.ofNullable(q));
+
 				CustomPageRequest pageable = new CustomPageRequest(page, size, sort,
 						Arrays.asList("id"));
 				Page<UtenteOrganizzazioneEntity> associazioni =
-						this.service.findUtenteOrganizzazioniByOrganizzazione(org, pageable);
+						this.service.findUtenteOrganizzazioni(spec, pageable);
 
 				List<ItemUtenteOrganizzazione> content = associazioni.getContent().stream().map(assoc -> {
 					ItemUtente itemUtente = this.utenteRestrictedAssembler.toModel(assoc.getUtente());

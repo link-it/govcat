@@ -226,6 +226,16 @@ public class OrganizzazioneService extends AbstractService {
 	}
 
 	/**
+	 * Restituisce una pagina di associazioni utente-organizzazione applicando una Specification
+	 * (es. filtro per organizzazione + ricerca libera q su principal/nome/cognome).
+	 */
+	public Page<UtenteOrganizzazioneEntity> findUtenteOrganizzazioni(
+			org.springframework.data.jpa.domain.Specification<UtenteOrganizzazioneEntity> spec,
+			Pageable pageable) {
+		return this.utenteOrganizzazioneRepo.findAll(spec, pageable);
+	}
+
+	/**
 	 * Conta gli utenti associati ad un'organizzazione.
 	 */
 	public long countUtentiByOrganizzazione(OrganizzazioneEntity organizzazione) {
