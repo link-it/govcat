@@ -9,6 +9,8 @@
     "fillBox": true,
     "showMasonry": false,
 
+    "heroImageObjectFit": "contain",
+
     "editSingleColumn": false,
     "showMarkdown": true,
     "showPresentation": true,

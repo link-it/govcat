@@ -4,7 +4,7 @@
  * modelli OpenAPI: i parent espongono ViewModel adattati via mapper
  * (es. `toAdesioneVetrinaVM`).
  */
-export { HeroImageComponent, LnkHeroKind } from './hero-image.component';
+export { HeroImageComponent, LnkHeroKind, LnkHeroObjectFit } from './hero-image.component';
 export { StatoChipComponent } from './stato-chip.component';
 export {
   LnkStatoVariant,

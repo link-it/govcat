@@ -20,6 +20,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, comput
 import { CommonModule } from '@angular/common';
 
 export type LnkHeroKind = 'placeholder' | 'placeholder-blue';
+export type LnkHeroObjectFit = 'cover' | 'contain' | 'fill';
 
 /**
  * Illustrazione decorativa per il blocco hero delle pagine
@@ -61,7 +62,8 @@ export type LnkHeroKind = 'placeholder' | 'placeholder-blue';
   template: `
     @if (src) {
       <img [src]="src" [alt]="alt" (error)="imgError.emit($event)"
-           style="width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit;">
+           [style.object-fit]="objectFit"
+           style="width:100%;height:100%;display:block;border-radius:inherit;">
     } @else {
       <!-- Placeholder generico: logo project con tinta soft di
            sfondo (palette placeholder rosso, placeholder-blue blu). -->
@@ -84,6 +86,16 @@ export class HeroImageComponent {
   @Input() src: any = null;
   /** `alt` per accessibilita`. */
   @Input() alt: string = '';
+  /**
+   * Strategia di fit dell'immagine reale (`[src]`) all'interno del
+   * container hero. Default `cover` (riempie il box, possibile crop).
+   * - `cover`:   riempie, mantiene aspect ratio, crop sui lati lunghi.
+   * - `contain`: contiene interamente, mantiene aspect ratio, eventuali
+   *              bande vuote sui lati corti.
+   * - `fill`:    deforma per riempire (no aspect ratio preserve).
+   * Non applicato al placeholder SVG (resta `contain` decorativo).
+   */
+  @Input() objectFit: LnkHeroObjectFit = 'cover';
   /** Re-emette l'evento `error` di `<img>` (utile per fallback). */
   @Output() imgError = new EventEmitter<Event>();
 

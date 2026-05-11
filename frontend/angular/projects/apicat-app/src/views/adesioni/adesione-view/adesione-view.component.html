@@ -62,7 +62,9 @@
 
         <!-- Hero block: illustrazione + titolo + descrizione + meta + actions. -->
         <div class="hero">
-          <div class="hero-img"><lnk-hero-image></lnk-hero-image></div>
+          <div class="hero-img"><lnk-hero-image
+            [objectFit]="config?.heroImageObjectFit || 'cover'"
+          ></lnk-hero-image></div>
           <div class="hero-meta">
             <div class="hero-eyebrow">
               {{ 'APP.TITLE.Subscription' | translate }}

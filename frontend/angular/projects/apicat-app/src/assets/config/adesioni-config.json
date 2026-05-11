@@ -5,6 +5,8 @@
   "wizard_debug_switches": false,
   "wizard_new_layout": true,
 
+  "heroImageObjectFit": "cover",
+
   "simpleItem": {
     "primaryText": [
       { "field": "subject", "type": "text" },

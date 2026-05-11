@@ -1,6 +1,25 @@
 2026-05-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 254: `<lnk-hero-image>` — input `[objectFit]`
+	  configurabile (`cover` | `contain` | `fill`, default
+	  `cover`). Nuova prop top-level `heroImageObjectFit`
+	  in `servizi-config.json` e `adesioni-config.json`,
+	  letta dalle vetrine via `config?.heroImageObjectFit`.
+	  `servizi-config.json` default `contain` (logo non
+	  croppato).
+
+	* [Frontend]
+	Fix i18n date relative: import dei locale data
+	  Moment.js (`it`, `en-gb`, `fr`) in `app.component.ts`.
+	  Senza, `moment.locale(defaultLanguage)` non aveva
+	  effetto e `fromNow()` cadeva sul default inglese US
+	  (es. "an hour ago" anziche` "un'ora fa") nel wizard
+	  adesione, in `<ui-data-type>` e `<ui-item-type>`.
+
+2026-05-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue 254: palette stati unificata. Nuova tabella
 	  semantica `LnkStatoVariant` (draft/pending/in-progress/
 	  test/prod/archived/error) in `components/vetrina/

@@ -93,6 +93,7 @@
               <lnk-hero-image
                 [src]="{ path: (data | mapper:_getLogoMapper) } | httpImgSrc"
                 [alt]="data?.nome"
+                [objectFit]="config?.heroImageObjectFit || 'cover'"
               ></lnk-hero-image>
             </div>
           }
