@@ -251,7 +251,7 @@ export class AdesioneSubstepperComponent implements OnChanges {
             return {
                 code: step.code,
                 label: this._resolveLabel(step),
-                meta: this._resolveMeta(step),
+                meta: this._resolveMeta(step, state),
                 state,
                 index: index + 1,
                 collapsible,
@@ -282,11 +282,23 @@ export class AdesioneSubstepperComponent implements OnChanges {
     /**
      * Risoluzione i18n del meta inline. Cerca la chiave
      * `<i18nPrefix>.<code>_meta` (es. `STEP_WIZARD_SEZIONE.in_compilazione_meta`
-     * = "Configura autenticazione ed endpoint"). Se la chiave non
-     * esiste ritorna stringa vuota — evita la ripetizione del label
-     * (la `descrizione` dal config tipicamente coincide col label).
+     * = "Configura autenticazione ed endpoint"). Quando lo step e`
+     * `completed` ma resta consultabile (collapsible), prova prima
+     * la chiave `<code>_meta_completed` (es. "Visualizza o modifica
+     * autenticazione ed endpoint") per riflettere il cambio di
+     * affordance — chi ha permesso modifica, gli altri solo visione.
+     * Se nessuna chiave esiste ritorna stringa vuota — evita la
+     * ripetizione del label (la `descrizione` dal config tipicamente
+     * coincide col label).
      */
-    private _resolveMeta(step: StepWizardItem): string {
+    private _resolveMeta(step: StepWizardItem, state: SubstepState): string {
+        if (state === 'completed') {
+            const completedKey = `${this.i18nPrefix}.${step.code}_meta_completed`;
+            const completedTr = this.translate.instant(completedKey);
+            if (completedTr && completedTr !== completedKey) {
+                return completedTr;
+            }
+        }
         const key = `${this.i18nPrefix}.${step.code}_meta`;
         const translated = this.translate.instant(key);
         return translated && translated !== key ? translated : '';

@@ -125,7 +125,8 @@
 				"in_approvazione": "In Approvazione",
 				"in_configurazione": "In Configurazione",
 				"configurato": "Configurato",
-				"in_compilazione_meta": "Configura autenticazione ed endpoint"
+				"in_compilazione_meta": "Configura autenticazione ed endpoint",
+				"in_compilazione_meta_completed": "Visualizza o modifica autenticazione ed endpoint"
 			},
 			"TITLE": {
 				"ApiInformations": "API",
