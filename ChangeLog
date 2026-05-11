@@ -1,6 +1,22 @@
 2026-05-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 254: palette stati unificata. Nuova tabella
+	  semantica `LnkStatoVariant` (draft/pending/in-progress/
+	  test/prod/archived/error) in `components/vetrina/
+	  stato-variants.const.ts` con mapping esplicito di 33
+	  stati ai design token globali. Refactor `<lnk-stato-chip>`:
+	  classi `.lnk-stato-chip.is-*` isolate dal `.chip`/
+	  `.chip-ok` legacy, dot-pulse rimosso. Wizard adesione:
+	  rimosso override locale `--ok-*` (blu brand) per
+	  allinearsi alla palette verde globale; bordi hardcoded
+	  `#b3d4e2` sostituiti con `var(--ok-border)` in
+	  `.chip-ok`, `.lnk-phase-section-icon`, substepper
+	  `.tl-state.is-completed`. Sostituito `<ui-data-type
+	  type="tag" options="status">` con `<lnk-stato-chip>`
+	  nel wizard new-layout.
+
+	* [Frontend]
 	Issue 254: substepper — chevron di affordance mostrato
 	  solo per gli step `completed` collassabili. Sugli
 	  `active` il bottone `tl-action` ha gia` il suo chevron

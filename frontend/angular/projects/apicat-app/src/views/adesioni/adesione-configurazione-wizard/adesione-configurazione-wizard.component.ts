@@ -46,6 +46,7 @@ import { AdesioneFormComponent } from './adesione-form/adesione-form.component';
 import { AdesioneStepBarComponent, StepBarVariant, StepWizardItem } from '../adesione-step-bar/adesione-step-bar.component';
 import { AdesioneFasiBarComponent } from '../adesione-fasi-bar/adesione-fasi-bar.component';
 import { AdesioneSubstepperComponent } from '../adesione-substepper/adesione-substepper.component';
+import { StatoChipComponent } from '@app/components/vetrina';
 
 import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/service-breadcrumbs.resolver';
 
@@ -113,6 +114,7 @@ export interface AdesioneDisclaimer {
         AdesioneStepBarComponent,
         AdesioneFasiBarComponent,
         AdesioneSubstepperComponent,
+        StatoChipComponent,
         ReferenteAddFormComponent,
         NotificationBarComponent,
         WorkflowComponent

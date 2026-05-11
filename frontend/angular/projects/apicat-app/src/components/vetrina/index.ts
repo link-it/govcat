@@ -7,6 +7,12 @@
 export { HeroImageComponent, LnkHeroKind } from './hero-image.component';
 export { StatoChipComponent } from './stato-chip.component';
 export {
+  LnkStatoVariant,
+  STATO_VARIANT_MAP,
+  STATO_VARIANT_FALLBACK,
+  getStatoVariant,
+} from './stato-variants.const';
+export {
   RefsComponent,
   LnkRefItem,
   gradientFor,

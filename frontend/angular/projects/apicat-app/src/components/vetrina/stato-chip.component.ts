@@ -20,21 +20,18 @@ import { ChangeDetectionStrategy, Component, Input, computed, signal } from '@an
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 
+import { getStatoVariant, LnkStatoVariant } from './stato-variants.const';
+
 /**
  * Pill colorata per lo stato di un'entita` (adesione, servizio, ecc.)
- * usata nelle pagine vetrina. Esegue una semantica di mapping:
- *  - stati che contengono "produzione" -> ok (verde)
- *  - "archiviato"                        -> muted (grigio)
- *  - "collaudo"                          -> info (blu)
- *  - default                             -> info
+ * usata nelle pagine vetrina. La variant e` derivata da una tabella
+ * esplicita stato → variant (vedi `stato-variants.const.ts`), non
+ * piu` keyword-based.
  *
  * Il `[stato]` puo` essere passato come chiave grezza
  * (es. `pubblicato_collaudo`) oppure come stringa gia` localizzata.
  * Se `[i18nPrefix]` e` valorizzato la chiave grezza viene tradotta
  * via `TranslateService` con `<prefix>.<stato>`.
- *
- * Estratto e generalizzato da
- * `mock-views/app/shared/stato-chip.component.ts`.
  */
 @Component({
   selector: 'lnk-stato-chip',
@@ -42,12 +39,7 @@ import { TranslateModule } from '@ngx-translate/core';
   imports: [CommonModule, TranslateModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <span class="chip"
-          [class.chip-ok]="variant() === 'ok'"
-          [class.chip-info]="variant() === 'info'"
-          [class.chip-muted]="variant() === 'muted'"
-          [class.chip-warn]="variant() === 'warn'">
-      <span class="pulse"></span>
+    <span class="lnk-stato-chip" [class]="'is-' + variant()">
       @if (i18nPrefix) {
         {{ (i18nPrefix + '.' + _stato()) | translate }}
       } @else {
@@ -55,6 +47,25 @@ import { TranslateModule } from '@ngx-translate/core';
       }
     </span>
   `,
+  styles: [`
+    :host { display: inline-flex; }
+
+    .lnk-stato-chip {
+      display: inline-flex; align-items: center;
+      padding: 3px 10px; border-radius: 999px;
+      font-size: 12px; font-weight: 600;
+      border: 1px solid;
+      background: var(--surface-3); color: var(--ink-3); border-color: var(--line);
+    }
+
+    .lnk-stato-chip.is-draft       { background: var(--surface-3); color: var(--ink-3);    border-color: var(--line); }
+    .lnk-stato-chip.is-pending     { background: var(--warn-soft); color: var(--warn-ink); border-color: var(--warn-border); }
+    .lnk-stato-chip.is-in-progress { background: var(--info-soft); color: var(--info-ink); border-color: var(--info-border); }
+    .lnk-stato-chip.is-test        { background: var(--info-soft); color: var(--info-ink); border-color: var(--info-border); }
+    .lnk-stato-chip.is-prod        { background: var(--ok-soft);   color: var(--ok-ink);   border-color: var(--ok-border); }
+    .lnk-stato-chip.is-archived    { background: var(--surface-3); color: var(--ink-3);    border-color: var(--line); opacity: .8; }
+    .lnk-stato-chip.is-error       { background: var(--accent-soft); color: var(--accent-ink); border-color: var(--accent-border); }
+  `],
 })
 export class StatoChipComponent {
   private readonly _statoSig = signal<string>('');
@@ -67,17 +78,5 @@ export class StatoChipComponent {
   /** Esposto per il template — non override-abile. */
   _stato = this._statoSig;
 
-  variant = computed<'ok' | 'info' | 'muted' | 'warn'>(() => {
-    const s = (this._statoSig() || '').toLowerCase();
-    if (s.includes('archiviato') || s.includes('rifiutato') || s.includes('rimosso')) {
-      return 'muted';
-    }
-    if (s.includes('produzione')) {
-      return 'ok';
-    }
-    if (s.includes('attesa') || s.includes('richiest') || s.includes('approva')) {
-      return 'warn';
-    }
-    return 'info';
-  });
+  variant = computed<LnkStatoVariant>(() => getStatoVariant(this._statoSig()));
 }

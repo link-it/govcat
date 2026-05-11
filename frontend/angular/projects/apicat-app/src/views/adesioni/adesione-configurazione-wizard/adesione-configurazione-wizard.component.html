@@ -95,12 +95,16 @@
                     <span>{{ 'APP.LABEL.Owner' | translate }}: {{ headerOwnerName }}</span>
                   }
                 </div>
-                <div class="d-flex gap-2 mt-2">
-                  <ui-data-type
-                    [data]="adesione"
-                    [elem]="{ field: 'stato', type: 'tag', options: 'status' }"
-                    [config]="config"
-                  ></ui-data-type>
+                <div class="d-flex gap-2 mt-2 align-items-center">
+                  <!-- Stato adesione: <lnk-stato-chip> usa la palette
+                       semantica unificata (vedi
+                       NOTE-CLAUDE/STATI-PALETTE-UNIFICATA). Sostituisce
+                       il legacy `<ui-data-type type="tag" options="status">`
+                       che leggeva i colori da `adesioni-config.json`. -->
+                  <lnk-stato-chip
+                    [stato]="adesione.stato"
+                    [i18nPrefix]="'APP.STATUS'"
+                  ></lnk-stato-chip>
                   @if (adesione.stato_configurazione_automatica) {
                     <ui-data-type
                       [data]="adesione"
