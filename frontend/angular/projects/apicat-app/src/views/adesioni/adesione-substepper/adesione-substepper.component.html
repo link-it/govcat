@@ -91,6 +91,15 @@
                 </span>
               }
             }
+            <!-- Chevron di affordance (rev. 4.36): rende esplicito che
+                 lo step e` espandibile, oltre all'hint hover sul chip
+                 "Completato". Solo per gli step collapsible (completed
+                 collassabile + active); ruota di 180° quando aperto. -->
+            @if (sub.collapsible) {
+              <i class="bi bi-chevron-down tl-row-chev"
+                 [class.is-open]="sub.open"
+                 aria-hidden="true"></i>
+            }
           </div>
           @if (sub.open && bodyTpl) {
             <div class="tl-panel">

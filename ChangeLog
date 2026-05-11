@@ -1,3 +1,16 @@
+2026-05-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: substepper — chevron di affordance alla fine
+	  della riga (rende esplicito che lo step e' espandibile,
+	  oltre all'hover sul chip "Completato"); hover background
+	  allineato al chevron del phase-section. Meta dello step
+	  `in_compilazione` differenziata per stato `completed`:
+	  "Visualizza o modifica autenticazione ed endpoint" al
+	  posto di "Configura …" — riflette che il contenuto
+	  resta consultabile/modificabile (a seconda del ruolo)
+	  anche dopo il completamento del workflow.
+
 2026-05-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
