@@ -16,7 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import {Component, EventEmitter, Input, Output} from "@angular/core";
+import { Component, EventEmitter, Input, Output } from "@angular/core";
+import { NgClass } from '@angular/common';
 
 import { LnkButtonComponent } from '@app/components/lnk-ui/button/button.component';
 
@@ -24,12 +25,16 @@ import { LnkButtonComponent } from '@app/components/lnk-ui/button/button.compone
     selector: "lnk-form-submit",
     templateUrl: "./submit.component.html",
     standalone: true,
-    imports: [LnkButtonComponent]
+    imports: [
+        NgClass,
+        LnkButtonComponent
+    ]
 })
 export class LnkFormSubmitComponent {
     @Input() submitLabel: string = 'Submit';
     @Input() cancelLabel: string = 'Cancel';
     @Input() disabled: boolean = false;
+    @Input() reverse: boolean = false;
 
     @Output() cancel = new EventEmitter<void>();
 

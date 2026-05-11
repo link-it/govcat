@@ -32,7 +32,6 @@ import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule } from '@a
 
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
-import { NgSelectModule } from '@ng-select/ng-select';
 
 import { COMPONENTS_IMPORTS } from '@linkit/components';
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';

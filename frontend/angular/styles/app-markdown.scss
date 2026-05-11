@@ -126,3 +126,24 @@
     }
   }
 }
+
+.lnk-wizard {
+  .lnk-banner {
+    .body {
+      markdown {
+        h2 {
+          font-size: 1rem;
+          font-weight: 600;
+          margin-bottom: 0.25rem !important;
+        }
+
+        p {
+          margin-bottom: 0.25rem !important;
+        }
+      }
+      ul {
+        margin-bottom: 0.25rem !important;
+      }
+    }
+  }
+}

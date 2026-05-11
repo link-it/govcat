@@ -1,4 +1,261 @@
+2026-05-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: build production-apicat — bump budget
+	  `anyComponentStyle` (6kb/10kb -> 15kb/25kb) per
+	  consentire il wizard adesione SCSS (20.20kB) sotto
+	  flag legacy + new-layout coesistenti. Sara` ridotto
+	  con la rimozione del flag `wizard_new_layout`.
+
+	* [Frontend]
+	Issue 254: bug fix `canEdit` su `dati_non_modificabili`
+	  (regressione mia commit `2920ed3b`: il rewrite
+	  automatico di `_.indexOf(key, _dnm) !== -1` in
+	  `key.includes(_dnm)` aveva semantica opposta — `_dnm`
+	  vuoto faceva sempre `_can=false`). Ripristinato con
+	  `_dnm.includes(key)`. Allineate ~25 spec con il drift
+	  sui costruttori, gli enum `Ruolo`/`EventType`, l'aggiunta
+	  di `utente_organizzazione` ai filtri referenti, e la
+	  nuova icona-stato oggettiva (mapper delega a
+	  `ckeckProvider`, indipendente dal cambio stato).
+
+2026-05-08  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: `<lnk-form-submit>` accetta `[reverse]` per
+	  invertire l'ordine Submit/Cancel (rimuove anche
+	  `row-content-block`); usato in `adesione-form` con
+	  `[reverse]="true"`. Fix typo classe `settings-content-`
+	  -> `settings-content`.
+
+2026-05-07  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: FASE 01 racchiusa nella stessa env-card di
+	  Collaudo/Produzione (icona + titolo + chip stato),
+	  margine fra i pannelli interni, bottone "Modifica" in
+	  absolute top-right, "Referenti adesione" chiuso di
+	  default e "Aggiungi referente" nascosto a pannello
+	  chiuso, icone header cambiate (`bi-card-text` /
+	  `bi-people`).
+
+	* [Frontend]
+	Issue 254: `client-auth-form` — help dei campi spostato
+	  in `<lnk-popover-help>` (icona info accanto alla label,
+	  popover on-click), placeholder concisi su input/select,
+	  bordo rosso sui campi con errore via classe
+	  `gl-show-field-errors` sul wrapper. `_hasControlError`
+	  ora supporta path annidati (es. `rate_limiting.quota`).
+
+	* [Frontend]
+	Issue 254: nuova `GrantRole` const + helper
+	  `expandTecnicoGrants/expandContextualGrants` in
+	  `services/grant-roles.const.ts`; `authentication.service`
+	  refactored su questo punto unico per i ruoli (rinominare
+	  un grant ora richiede una sola modifica). Bug fix
+	  collaterale: `canMonitoraggio` ora usa effettivamente i
+	  grant espansi nell'`_.intersection`.
+
+	* [Frontend]
+	Issue 254: fix vari sul wizard nuovo layout —
+	  `headerOwnerName` ora compone nome+cognome (era
+	  `[object Object]` perche` `utente_richiedente` a runtime
+	  e` un oggetto User); inline edit client mostra di nuovo
+	  i dati gia` configurati anche su flusso "nome proposto"
+	  CONFIGURATO; `genericDisclaimerTpl` riceve correttamente
+	  `severity`/`disclaimer` via named context binding;
+	  disclaimer "Configura i client" mostrato solo quando il
+	  gruppo client di Collaudo non e` completato; `:has(.actions)`
+	  per il `max-width` del banner stato (full width senza CTA).
+
+2026-05-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: estratto `ng-template #workflowErrorTpl` nel
+	  wizard adesione per de-duplicare il rendering degli
+	  errori di cambio stato. Il frammento (~28 righe con
+	  switch `wizardNewLayout` fra `<app-error-view-card>` e
+	  `<ui-error-view>`) era ripetuto in 4 punti del template;
+	  ora c'e` un'unica definizione e i call site usano
+	  `<ng-container *ngTemplateOutlet="workflowErrorTpl">`.
+
+	* [Frontend]
+	Issue 254: polish stili `client-auth-form` e
+	  `file-dropzone` per il nuovo wizard:
+	  - `client-auth-form`: nuovi stili `.row-content-block`,
+	    `.alert-info / -danger / -warning` (varianti soft con
+	    `oklch(... var(--accent-h))` e fallback warn-soft);
+	    rimossi attributi HTML ridondanti (role role="group"
+	    su un `.btn-group` gia` semantico, classe
+	    `.row-content-block` sul wrapper certificato di
+	    autenticazione che era duplicata).
+	  - `file-dropzone`: token `--accent-h: 258` su `:host` per
+	    abilitare le tinte `oklch(... var(--accent-h))`.
+
+	* [Frontend]
+	Issue 254: card compatta per gli errori di validazione del
+	  cambio stato:
+	  - Nuovo `<app-error-view-card>` standalone in
+	    `components/error-view-card/`. Drop-in con la stessa
+	    shape di `<ui-error-view>` (`[errTitle] [errors] [showClose]`
+	    + `(onClose)`). Rendering compatto: un errore = una riga
+	    con icona bullet + tipo (bold) + identificativo (chip
+	    mono) + dato (chip pill uppercase, allineato a destra) +
+	    campi inline. Card sfondo `--err-soft` con border
+	    arrotondato e font ridotto.
+	  - Helper `_getParms` ora converte SEMPRE `params.profilo`
+	    via `Tools.Configurazione.servizio.api.profili`, non solo
+	    quando il sottotipo e` `Profilo` (gli errori reali del
+	    cambio stato hanno tipicamente sottotipo `client`).
+	  - Wizard HTML: 3 punti d'uso commutati con
+	    `@if (wizardNewLayout) { app-error-view-card } @else { ui-error-view }`.
+	  - `<ui-error-view>` legacy: implements `OnChanges` (era
+	    `OnInit` ma la classe espone `ngOnChanges`) — fix
+	    contestuale.
+
+	* [Frontend]
+	Issue 254: aggiungi referente come componente inline,
+	  ruolo nelle righe referenti, debounce live-search:
+	  - Nuovo `<app-referente-add-form>` standalone in
+	    `adesione-configurazione-wizard/referente-add-form/`,
+	    sostituisce la `ModalAddReferentComponent` (dialog) col
+	    rendering inline dentro la sub-card "Referenti adesione"
+	    di FASE 01. Inputs `[id] [adesione] [model]`, outputs
+	    `(saved) (close)`. Logica search 1:1 col modal legacy
+	    (filtro per `referente` -> organizzazione del soggetto,
+	    `referente_tecnico` -> flag dedicato). Modal legacy
+	    preservata sotto `wizardNewLayout=false`.
+	  - Aggiunta i18n nel chip pill di ruolo per ogni riga
+	    referente (`APP.ROLE.<tipo>` — es. "Referente servizio"
+	    per `referente_servizio`).
+	  - `lnk-form-live-search`: nuovo input `searchDebounce`
+	    (default 300ms) applicato come `debounceTime` sul pipe
+	    di `textInput$`. Riduce le chiamate cancellate da
+	    `switchMap` durante la digitazione veloce.
+
+	* [Frontend]
+	Issue 254: ridisegno liste client / endpoint allineato al
+	  pattern referenti del nuovo layout:
+	  - Titolo always-on ("Configurazione autenticazione" /
+	    "Configurazione endpoint") con `lnk-icon-toggle` di
+	    completamento; rimosso il col-lg-4 / col-lg-8 split.
+	  - Item card con border arrotondato; `is-editing` -> bordo
+	    accent + ring soft. Bottoni icon-only stile referenti
+	    (`lnk-btn-ghost lnk-btn-sm lnk-btn-icon`); il toggle
+	    Modifica/Visualizza diventa "Chiudi" quando il pannello
+	    inline e` aperto.
+	  - Single edit at a time gia` garantito dai
+	    `_inlineEditingClient`/`_inlineEditingErogaz`.
+	  - Save -> reload via `loadAdesioneClients` /
+	    `loadAdesioneErogazioni` (gia` esistente).
+	  - Sostituito `<ui-item-row>` con visualizzazione diretta:
+	    titolo = `etichetta` (clients) / `nome v.versione`
+	    (erogazioni); meta = nome/auth_type/stato (clients) o
+	    url/indirizzi_ip/stato (erogazioni). `auth_type`
+	    risolto via `APP.CLIENT.AUTH_TYPE.<value>`.
+	  - Override del padding `<section>` globale (3rem 0) sia
+	    nel wizard sia nelle nuove liste.
+
+	* [Frontend]
+	Issue 254: substepper — collapsibility selettiva e hint
+	  hover discreto:
+	  - In `<app-adesione-substepper>` solo gli step `active` e
+	    il primo step (tipicamente `in_compilazione`) sono
+	    collassabili anche quando completati. Gli altri step
+	    `completed` e tutti i `locked` non hanno toggle (chip
+	    pill sulla destra).
+	  - Affordance per il primo step collassabile-completato:
+	    al hover del row il chip "Completato" cambia
+	    background/border/color discretamente (transition 0.15s)
+	    senza spostare nulla nel layout. Niente chevron per
+	    evitare disallineamento dei chip.
+
+	* [Frontend]
+	Issue 254: refinement nuovo layout wizard adesione (post
+	  test manuale rev. 4):
+	  - Step-bar / sub-stepper / counter env-progress: regola
+	    "fase passata" + "stato terminale raggiunto" allineate
+	    fra step principale (`getFaseStatus`), counter
+	    (`getSezioneCounter`) e substepper interno
+	    (`_buildItems`). Quando l'adesione raggiunge lo stato
+	    terminale di Collaudo (`pubblicato_collaudo`) o e` in
+	    Produzione, la card Collaudo mostra "Fase conclusa",
+	    counter 4/4 e tutti i sub-step verdi (niente piu`
+	    bottone "Compila ora" sull'ultimo step concluso).
+	  - Form Informazioni generali: ridisegno dei campi
+	    readonly come "card" stile mock (sfondo soft, border
+	    arrotondato, label bold sopra) via `::ng-deep`; layout
+	    2-col per le righe Registrato/Date.
+	  - Substepper: tl-meta risolto via i18n `<prefix>.<code>_meta`
+	    (solo `in_compilazione` ha la meta "Configura
+	    autenticazione ed endpoint"); stato a destra come pill
+	    "Completato"/"Bloccato" o bottone Mostra/Chiudi/Compila
+	    ora; CTA "Compila ora" con stile primary rosso pieno.
+	  - Banner stato: CTA right-side ricavata da
+	    `disclaimer.links` (no piu` getter `apiDocLink`
+	    hardcoded a `/servizi/{id}`); rules markdown banner
+	    spostate in `app-markdown.scss`.
+	  - Sub-gruppi referenti: default solo "Referenti adesione"
+	    aperto, "Servizio" e "Dominio" chiusi.
+	  - i18n: chiavi corrette (`APP.LABEL.Modify` ->
+	    `APP.BUTTON.Modify`); nuove `Owner` ("Referente
+	    servizio"), `CompilaOra`, `Show`, `InCorso`,
+	    `WaitingGestoreTitle`, `in_compilazione_meta`. Tutte
+	    tradotte IT/EN.
+	  - Hover header collassabili: highlight solo sul chevron
+	    (PhaseSection / ref-group / tl-row del substepper).
+
+2026-05-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254 (NEW LAYOUT): nuovo layout del wizard adesione,
+	  pilotato dal flag `wizard_new_layout` (default true) e dal
+	  config `step_wizard*` esistente. Step-bar 3-fasi cliccabile
+	  come tab (nuovo `<app-adesione-fasi-bar>`): mostra una sola
+	  fase alla volta sotto, fasi `pending` non cliccabili.
+	  Sub-stepper interno verticale (nuovo `<app-adesione-substepper>`)
+	  con timeline + connettore + bullet stato + collapse, content
+	  projection per il body; lo step `in_compilazione` ospita
+	  sempre la lista client/endpoint, gli altri quando attivi
+	  mostrano "in attesa intervento gestore". CTA right-side:
+	  "Compila ora" (primary) per active chiuso, "Chiudi" per
+	  active aperto, chip "Completato"/"Bloccato" per gli altri.
+	  Edit inline auth client + endpoint erogazione: nuovo
+	  componente standalone `<app-erogazione-edit-form>` riusato
+	  dal modal legacy e dal pannello inline; `[inlineEdit]` su
+	  `<app-adesione-lista-clients>` / `<app-adesione-lista-erogazioni>`
+	  rende il form sotto la riga selezionata invece di aprire la
+	  dialog. FASE 01 ridisegnata: 2 PhaseSection collassabili
+	  (Informazioni / Referenti) con body in pannello grigio; sub-gruppi
+	  referenti (Adesione/Servizio/Dominio) collassabili con avatar
+	  iniziali. Form Informazioni con `externalEditControl=true`:
+	  bottone "Modifica" / "Annulla" esterno pilota il form via
+	  `@ViewChild`. Banner stato (`<lnk-banner>` design-code) con
+	  varianti severity e CTA right-side derivata da `disclaimer.links`.
+	  Hover header collassabili: highlight solo sul chevron, click
+	  sull'intera barra. Design-system Link.it (token CSS) scoped
+	  sotto `:host(.lnk-wizard)` via `@HostBinding`.
+
+	* [Frontend]
+	Issue 254: nuovi componenti riusabili in
+	  `views/adesioni/`: `adesione-fasi-bar` (step-bar 3-fasi
+	  config-driven), `adesione-substepper` (timeline verticale
+	  config-driven con content projection), `adesione-lista-erogazioni/erogazione-edit-form`
+	  (form endpoint estratto dal modal legacy per riuso inline).
+
 2026-04-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 229 (evolutiva): gestione organizzazione come route/view
+	  top-level (`/organizzazione-manage/:id`, `ForbidAnonymousGuard`),
+	  fuori dall'area gestori. Lista utenti con `ui-item-row` + config
+	  dedicato, infinite-scroll, search-bar `q`. Dialog
+	  add/edit ridisegnata: ricerca per `principal` con evidenziazione
+	  match e footer "Aggiungi nuovo utente"; ng-select coerenti con
+	  `appendTo="body"` (no clipping in modal); ruolo organizzazione su
+	  ng-select; campo principal/Codice fiscale come primo elemento.
+	  Switcher: chiusura dropdown via Bootstrap API quando si naviga al
+	  manage. Rimossa vecchia `OrganizationManageDialogComponent`.
 
 	* [Frontend]
 	Issue 229: supporto multi-organizzazione e ruoli per-org.

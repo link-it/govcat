@@ -25,6 +25,7 @@ import { PermessiService } from '@services/permessi.service';
 import { OrganizationContextService } from '@services/organization-context.service';
 import { ItemOrganizzazione } from '../model/itemOrganizzazione';
 import { RuoloOrganizzazioneEnum } from '../model/ruoloOrganizzazioneEnum';
+import { GrantRole, expandTecnicoGrants, expandContextualGrants } from './grant-roles.const';
 
 import * as _ from 'lodash';
 
@@ -68,10 +69,10 @@ export const CLASSES: any = {
     referenti: {
       type: 'external',
       fields: [
-        { field: 'referente', view: true, edit: true, create: true, delete: true },
-        { field: 'referente_tecnico', view: true, edit: true, create: true, delete: true },
-        { field: 'referente_superiore', view: true, edit: true, create: true, delete: true },
-        { field: 'referente_tecnico_superiore', view: true, edit: true, create: true, delete: true },
+        { field: GrantRole.Referente, view: true, edit: true, create: true, delete: true },
+        { field: GrantRole.ReferenteTecnico, view: true, edit: true, create: true, delete: true },
+        { field: GrantRole.ReferenteSuperiore, view: true, edit: true, create: true, delete: true },
+        { field: GrantRole.ReferenteTecnicoSuperiore, view: true, edit: true, create: true, delete: true },
       ]
     }
   },
@@ -169,10 +170,10 @@ export const CLASSES: any = {
     referenti: {
       type: 'external',
       fields: [
-        { field: 'referente', view: true, edit: true, create: true, delete: true },
-        { field: 'referente_tecnico', view: true, edit: true, create: true, delete: true },
-        { field: 'referente_superiore', view: true, edit: true, create: true, delete: true },
-        { field: 'referente_tecnico_superiore', view: true, edit: true, create: true, delete: true },
+        { field: GrantRole.Referente, view: true, edit: true, create: true, delete: true },
+        { field: GrantRole.ReferenteTecnico, view: true, edit: true, create: true, delete: true },
+        { field: GrantRole.ReferenteSuperiore, view: true, edit: true, create: true, delete: true },
+        { field: GrantRole.ReferenteTecnicoSuperiore, view: true, edit: true, create: true, delete: true },
       ]
     },
     specifica: {
@@ -404,14 +405,14 @@ export class AuthenticationService {
   hasRole(roles: string[]) {
     const role = this.getRole();
     if (role) {
-      return roles.findIndex((x: any) => x === role) > -1;
+      return roles.includes(role);
     }
     return false;
   }
 
   isAdmin() {
     if (this.currentSession) {
-      return (_.includes(this.currentSession.roles, 'apicat_adm'));
+      return (this.currentSession.roles.includes('apicat_adm'));
     } else {
       return false;
     }
@@ -449,19 +450,19 @@ export class AuthenticationService {
   }
 
   isGestore(grant: string[] = []) {
-    let _isGestore = (_.indexOf(grant, 'gestore') !== -1);
+    let _isGestore = (grant.includes(GrantRole.Gestore));
     if (!_isGestore) {
       const _user: any = this.getUser();
-      _isGestore = (_user?.ruolo === 'gestore');
+      _isGestore = (_user?.ruolo === GrantRole.Gestore);
     }
     return _isGestore;
   }
 
   isCoordinatore(grant: string[] = []) {
-    let _isCoordinator = (_.indexOf(grant, 'coordinatore') !== -1);
+    let _isCoordinator = (grant.includes(GrantRole.Coordinatore));
     if (!_isCoordinator) {
       const _user: any = this.getUser();
-      _isCoordinator = (_user?.ruolo === 'coordinatore');
+      _isCoordinator = (_user?.ruolo === GrantRole.Coordinatore);
     }
     return _isCoordinator;
   }
@@ -528,18 +529,12 @@ export class AuthenticationService {
 
       let _can: boolean = true;
       Object.keys(CLASSES[submodule] || []).forEach((key: string) => {
-        if ((CLASSES[submodule][key].type === 'internal') && (_.indexOf(key, _dnm) !== -1)) {
+        if ((CLASSES[submodule][key].type === 'internal') && _dnm.includes(key)) {
           _can = false;
         }
       });
 
-      const _grant: string[] = [ ...grant ];
-      if (_grant.indexOf('referente_tecnico') !== -1) {
-        _grant.push('referente');
-      }
-      if (_grant.indexOf('referente_tecnico_superiore') !== -1) {
-        _grant.push('referente_superiore');
-      }
+      const _grant = expandTecnicoGrants(grant);
 
       const _intersection = _.intersection(_grant, _ssra);
       return _can && (_intersection.length > 0);
@@ -550,7 +545,14 @@ export class AuthenticationService {
   canManagement(module: string, submodule: string, state: string, grant: string[] = []) {
     if (this.isGestore(grant)) { return true; }
 
-    const _grantManagement: string[] = ['gestore', 'referente', 'referente_tecnico', 'referente_superiore', 'referente_tecnico_superiore', 'richiedente'];
+    const _grantManagement: string[] = [
+      GrantRole.Gestore,
+      GrantRole.Referente,
+      GrantRole.ReferenteTecnico,
+      GrantRole.ReferenteSuperiore,
+      GrantRole.ReferenteTecnicoSuperiore,
+      GrantRole.Richiedente,
+    ];
 
     const _intersection = _.intersection(grant, _grantManagement);
     return (_intersection.length > 0);
@@ -559,7 +561,14 @@ export class AuthenticationService {
   canManagementComunicazioni(module: string, submodule: string, state: string, grant: string[] = []) {
     if (this.isGestore(grant)) { return true; }
 
-    const _grantManagement: string[] = ['gestore', 'referente', 'referente_tecnico', 'referente_superiore', 'referente_tecnico_superiore', 'richiedente'];
+    const _grantManagement: string[] = [
+      GrantRole.Gestore,
+      GrantRole.Referente,
+      GrantRole.ReferenteTecnico,
+      GrantRole.ReferenteSuperiore,
+      GrantRole.ReferenteTecnicoSuperiore,
+      GrantRole.Richiedente,
+    ];
 
     const _intersection = _.intersection(grant, _grantManagement);
     return (_intersection.length > 0) && !this.isAnonymous();
@@ -587,20 +596,14 @@ export class AuthenticationService {
         }
       }
 
-      const _grant: string[] = [ ...grant ];
-      if (_grant.indexOf('referente_tecnico') !== -1) {
-        _grant.push('referente');
-      }
-      if (_grant.indexOf('referente_tecnico_superiore') !== -1) {
-        _grant.push('referente_superiore');
-      }
+      const _grant = expandTecnicoGrants(grant);
 
       const _intersection = _.intersection(_grant, _ssra);
       return (_intersection.length > 0);
     }
     return false;
   }
-  
+
   canChangeStatus(module: string, state: string, type: string, grant: string[] = [], currentStatus: string = '') {
     const _wfcs = this._getWorkflowCambiStato(module, state);
     let _ss = (_wfcs?.[type]) ? _wfcs[type].ruoli_abilitati : [];
@@ -628,7 +631,8 @@ export class AuthenticationService {
   }
 
   canJoin(module: string, state: string, usePackage: boolean = false) {
-    const _sac = (module === 'adesione') ? this._getConfigModule(module).stati_scheda_adesione : this._getConfigModule(usePackage ? 'package' : module).stati_adesione_consentita;
+    const configModule = usePackage ? 'package' : module;
+    const _sac = (module === 'adesione') ? this._getConfigModule(module).stati_scheda_adesione : this._getConfigModule(configModule).stati_adesione_consentita;
     return (_.indexOf(_sac, state) !== -1);
   }
 
@@ -683,22 +687,9 @@ export class AuthenticationService {
     const _datiSempreModificabili = _config?.dati_sempre_modificabili || [];
     const _entry = _datiSempreModificabili.find((item: any) => item.classe_dato === classeDato);
     if (_entry) {
-      const _grant: string[] = [...grant];
-      // Mappa ruoli specifici per contesto ai ruoli generici della configurazione
-      if (_grant.indexOf('referente_tecnico') !== -1) {
-        _grant.push('referente');
-      }
-      if (_grant.indexOf('referente_tecnico_superiore') !== -1) {
-        _grant.push('referente_superiore');
-      }
-      // `referente_servizio` e' deprecato in favore di `utente_organizzazione`:
-      // accettiamo entrambi nella mappatura "referente" per gestire dati legacy.
-      if (_grant.indexOf('referente_adesione') !== -1 || _grant.indexOf('referente_servizio') !== -1 || _grant.indexOf('utente_organizzazione') !== -1 || _grant.indexOf('referente_dominio') !== -1) {
-        _grant.push('referente');
-      }
-      if (_grant.indexOf('referente_tecnico_adesione') !== -1 || _grant.indexOf('referente_tecnico_servizio') !== -1 || _grant.indexOf('referente_tecnico_dominio') !== -1) {
-        _grant.push('referente');
-      }
+      // Mappa ruoli specifici per contesto ai ruoli generici della
+      // configurazione (vedi `expandContextualGrants`).
+      const _grant = expandContextualGrants(grant);
       return _.intersection(_grant, _entry.ruoli).length > 0;
     }
     return false;
@@ -742,19 +733,13 @@ export class AuthenticationService {
   }
 
   canMonitoraggio(grant: string[] = []) {
-    const _grant = [ ...grant ];
     const _monitoraggio = this._getConfigModule('monitoraggio');
     if (!_monitoraggio) {
       return false;
     }
     const _ruoliAbilitati = _monitoraggio.ruoli_abilitati;
-    if ((_.indexOf(grant, 'referente_tecnico') !== -1) && (_.indexOf(grant, 'referente') === -1)) {
-      _grant.push('referente');
-    }
-    if ((_.indexOf(grant, 'referente_tecnico_superiore') !== -1) && (_.indexOf(grant, 'referente_superiore') === -1)) {
-      _grant.push('referente_superiore');
-    }
-    const _intersection = _.intersection(grant, _ruoliAbilitati);
+    const _grant = expandTecnicoGrants(grant);
+    const _intersection = _.intersection(_grant, _ruoliAbilitati);
     return _monitoraggio.abilitato && !!_intersection.length;
   }
 

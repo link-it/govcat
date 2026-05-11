@@ -1,0 +1,104 @@
+<!--
+  AdesioneSubstepperComponent — Issue 254 NEW LAYOUT (rev. 4.10).
+  Timeline verticale config-driven, content projection per il body.
+
+  Pilotata dallo `step_wizard_collaudo`/`_produzione` del config: lo
+  stato di ogni sub-step e` derivato come fa la step-bar principale.
+-->
+@if (items.length > 0) {
+
+  @if (title) {
+    <div class="substepper-subtitle d-flex align-items-center gap-2 mb-2 mt-1">
+      <span class="text-uppercase">{{ title }}</span>
+      <span class="grow"></span>
+      @if (showCounter) {
+        <span class="counter">
+          {{ 'APP.ADESIONI.LABEL.CompletedOf' | translate:{ done: doneCount, total: totalCount } }}
+        </span>
+      }
+    </div>
+  }
+
+  <div class="timeline">
+    @for (sub of items; track sub.code) {
+      <div class="tl-step"
+           [class.is-done]="sub.state === 'completed'"
+           [class.is-active]="sub.state === 'active'"
+           [class.is-locked]="sub.state === 'locked'">
+        <div class="tl-bullet">
+          @switch (sub.state) {
+            @case ('completed') { <i class="bi bi-check-lg"></i> }
+            @case ('locked') { <i class="bi bi-lock-fill"></i> }
+            @default { {{ sub.index }} }
+          }
+        </div>
+        <div class="tl-content">
+          <div class="tl-row"
+               [class.is-collapsible]="sub.collapsible"
+               [attr.role]="sub.collapsible ? 'button' : null"
+               [attr.tabindex]="sub.collapsible ? 0 : null"
+               [attr.aria-expanded]="sub.collapsible ? sub.open : null"
+               (click)="sub.collapsible && toggle(sub)"
+               (keydown.enter)="sub.collapsible && toggle(sub)"
+               (keydown.space)="sub.collapsible && toggle(sub); $event.preventDefault()">
+            <span class="tl-name">{{ sub.label }}</span>
+            <!-- tl-meta: descrizione inline risolta via i18n
+                 (`<prefix>.<code>_meta`). Solo gli step che hanno la
+                 chiave esplicita la mostrano; gli altri non
+                 ripetono il label (rev. 4.21). -->
+            @if (sub.meta) {
+              <span class="tl-meta">{{ sub.meta }}</span>
+            }
+            <span class="tl-spacer"></span>
+            <!-- Stato/azione allineato a destra (mock image-4):
+                 - completed: chip "Completato" (verde pill)
+                 - active: bottone "Mostra"/"Chiudi" + chevron
+                 - locked: chip "Bloccato" (grigio pill) -->
+            @switch (sub.state) {
+              @case ('completed') {
+                <!-- `is-collapsible-hint`: marker per styling hover discreto
+                     sui chip "Completato" del primo step (in_compilazione)
+                     che resta consultabile. Vedi SCSS: cambia colore
+                     bg/border al hover del row. -->
+                <span class="tl-state is-completed"
+                      [class.is-collapsible-hint]="sub.collapsible">
+                  <i class="bi bi-check-lg"></i>
+                  {{ 'APP.ADESIONI.LABEL.Completato' | translate }}
+                </span>
+              }
+              @case ('active') {
+                <!-- active = step corrente del workflow. Quando chiuso
+                     mostriamo CTA primaria "Compila ora" (rosso pieno);
+                     quando aperto torniamo al ghost "Chiudi". -->
+                <span class="tl-action"
+                      [class.is-open]="sub.open"
+                      [class.is-primary]="!sub.open">
+                  @if (sub.open) {
+                    {{ 'APP.BUTTON.Close' | translate }}
+                    <i class="bi bi-chevron-up"></i>
+                  } @else {
+                    {{ 'APP.BUTTON.CompilaOra' | translate }}
+                    <i class="bi bi-chevron-right"></i>
+                  }
+                </span>
+              }
+              @case ('locked') {
+                <!-- Niente icona lock qui: e` gia` mostrata nel bullet
+                     a sinistra dello step (rev. 4.15). -->
+                <span class="tl-state is-locked"
+                      [title]="lockedTooltipKey | translate">
+                  {{ 'APP.ADESIONI.LABEL.Bloccato' | translate }}
+                </span>
+              }
+            }
+          </div>
+          @if (sub.open && bodyTpl) {
+            <div class="tl-panel">
+              <ng-container *ngTemplateOutlet="bodyTpl; context: { $implicit: sub }"></ng-container>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+}

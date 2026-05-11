@@ -60,9 +60,9 @@ describe('EventType', () => {
     expect(EventType.REPORT_ACTION).toBe('REPORT:ACTION');
   });
 
-  it('should have exactly 15 members', () => {
+  it('should have exactly 16 members', () => {
     const members = Object.keys(EventType).filter(k => isNaN(Number(k)));
-    expect(members.length).toBe(15);
+    expect(members.length).toBe(16);
   });
 
   it('should have unique values', () => {

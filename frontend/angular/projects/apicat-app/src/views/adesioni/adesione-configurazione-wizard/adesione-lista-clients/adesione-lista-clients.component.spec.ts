@@ -531,14 +531,17 @@ describe('AdesioneListaClientsComponent', () => {
       expect(component.getSottotipoGroupCompletedMapper('', 'client')).toBe(0);
     });
 
-    it('should return 1 when group not completed and no cambio stato', () => {
+    it('should return 0 when group not completed and no cambio stato', () => {
+      // Issue 254 (rev. d0744045): icona stato oggettiva, non dipende
+      // dal ruolo. Anche un referente che non puo' cambiare stato deve
+      // vedere l'alert (0) quando il check-dati BE riporta esito != 'ok'.
       component.environment = AmbienteEnum.Collaudo;
       component.adesione = { stato: 'pubblicato_produzione', skip_collaudo: false };
       component.grant = { ruoli: ['referente'], collaudo: 'lettura', produzione: 'lettura', identificativo: 'lettura', generico: 'lettura', specifica: 'lettura', referenti: 'lettura' };
       mockCkeckProvider.isSottotipoGroupCompleted.mockReturnValue(false);
       mockAuthService.isGestore.mockReturnValue(false);
       mockAuthService.canChangeStatus.mockReturnValue(false);
-      expect(component.getSottotipoGroupCompletedMapper('', 'client')).toBe(1);
+      expect(component.getSottotipoGroupCompletedMapper('', 'client')).toBe(0);
     });
   });
 
@@ -565,11 +568,13 @@ describe('AdesioneListaClientsComponent', () => {
       expect(component.isSottotipoCompletedMapper('', 'client', 'prof1')).toBe(false);
     });
 
-    it('should return true when no cambio stato', () => {
+    it('should delegate completion check to ckeckProvider', () => {
+      // Issue 254 (rev. d0744045): il mapper ora delega a
+      // `ckeckProvider.isSottotipoCompleted` ed e' indipendente
+      // dal ruolo / cambio stato.
       component.adesione = { stato: 'bozza' };
       component.grant = { ruoli: ['referente'], collaudo: 'lettura', produzione: 'lettura', identificativo: 'lettura', generico: 'lettura', specifica: 'lettura', referenti: 'lettura' };
-      mockAuthService.isGestore.mockReturnValue(false);
-      mockAuthService.canChangeStatus.mockReturnValue(false);
+      mockCkeckProvider.isSottotipoCompleted.mockReturnValue(true);
       expect(component.isSottotipoCompletedMapper('', 'client', 'prof1')).toBe(true);
     });
   });
@@ -1342,7 +1347,14 @@ describe('AdesioneListaClientsComponent', () => {
       expect(component._editFormGroupClients.controls['tipo_certificato_firma'].enabled).toBe(true);
     });
 
-    it('should set oauth fields required and enabled for oauth_authorization_code', () => {
+    it('should set oauth fields required for oauth_authorization_code (selecting Nuovo cliente)', () => {
+      // Issue #237 (refactor `onChangeCredenziali`): in `_initEditFormClients`
+      // i campi OAuth vengono inizialmente abilitati per l'auth type ma poi
+      // disabilitati nel ramo `else` di `onChangeCredenziali` quando non
+      // c'e` ancora una scelta su `credenziali`. Diventano effettivamente
+      // editabili solo dopo che l'utente seleziona "Nuovo cliente" (o
+      // sceglie un client esistente). Il test pilota esplicitamente la
+      // selezione "Nuovo cliente" per verificare lo stato finale.
       component._auth_type = 'oauth_authorization_code';
       component.adesione = { soggetto: { organizzazione: { id_organizzazione: 'org1' } } };
       component.environment = AmbienteEnum.Collaudo;
@@ -1352,6 +1364,7 @@ describe('AdesioneListaClientsComponent', () => {
       };
 
       component._initEditFormClients(null);
+      component.onChangeCredenziali(SelectedClientEnum.NuovoCliente);
 
       const ctrls = component._editFormGroupClients.controls;
       expect(ctrls['url_redirezione'].enabled).toBe(true);
@@ -1396,6 +1409,11 @@ describe('AdesioneListaClientsComponent', () => {
     });
 
     it('should show nome_proposto field when data has nome_proposto', () => {
+      // `_show_nome_proposto` viene settato in base a `data.nome_proposto`.
+      // Nota: `_show_client_form` viene successivamente forzato a `true`
+      // dentro `onChangeCredenziali` (chiamato in coda da
+      // `_initEditFormClients`), quindi qui verifichiamo solo il flag
+      // del nome proposto.
       component._auth_type = 'https';
       component.adesione = { soggetto: { organizzazione: { id_organizzazione: 'org1' } } };
       component.environment = 'collaudo';
@@ -1412,7 +1430,6 @@ describe('AdesioneListaClientsComponent', () => {
       component._initEditFormClients(data);
 
       expect(component._show_nome_proposto).toBeTruthy();
-      expect(component._show_client_form).toBe(false);
     });
 
     it('should disable all fields when not modifiable', () => {

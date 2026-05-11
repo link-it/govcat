@@ -76,41 +76,56 @@
         <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="2"></ui-box-spinner>
       }
 
-      @if (_error) {
-        <div class="gl-alert gl-alert-danger col-md-12 mb-5">
-          @if (!_errors.length) {
-            <span>{{ _errorMsg }}</span>
-          }
-          @if (_errors.length > 0) {
-            <ui-error-view
-              [errTitle]="'APP.WORKFLOW.ERROR.CambioStato' | translate:{from: _fromStatus, to: _toStatus}"
-              [errors]="_errors"
-              [showClose]="true"
-              (onClose)="resetError()"
-            ></ui-error-view>
-          }
-        </div>
+      @if (false) {
+        <ng-container *ngTemplateOutlet="workflowErrorTpl"></ng-container>
       }
 
       @if (adesione && !spin) {
         <div class="">
-          <div class="d-flex justify-content-between mb-5">
-            <div class="">
-              <h4 class="mb-2">{{ title }}</h4>
-              <div class="d-flex gap-2">
-                <ui-data-type
-                  [data]="adesione"
-                  [elem]="{ field: 'stato', type: 'tag', options: 'status' }"
-                  [config]="config"
-                ></ui-data-type>
-                @if (adesione.stato_configurazione_automatica) {
+          <div class="d-flex justify-content-between mb-5 wizard-title-block">
+            <div class="flex-grow-1">
+              @if (wizardNewLayout) {
+                <h2 class="wizard-header-title mb-1">{{ headerTitle }}</h2>
+                <div class="wizard-header-meta text-muted small d-flex flex-wrap gap-2 align-items-center">
+                  @if (headerVersion) { <span>{{ headerVersion }}</span> }
+                  @if (headerVersion && headerUpdatedAt) { <span aria-hidden="true">·</span> }
+                  @if (headerUpdatedAt) { <span>{{ headerUpdatedAt }}</span> }
+                  @if (headerOwnerName) {
+                    <span aria-hidden="true">·</span>
+                    <span>{{ 'APP.LABEL.Owner' | translate }}: {{ headerOwnerName }}</span>
+                  }
+                </div>
+                <div class="d-flex gap-2 mt-2">
                   <ui-data-type
                     [data]="adesione"
-                    [elem]="{ field: 'stato_configurazione_automatica', type: 'label', options: 'configuration_status', tooltip: 'messaggio_configurazione' }"
+                    [elem]="{ field: 'stato', type: 'tag', options: 'status' }"
                     [config]="config"
                   ></ui-data-type>
-                }
-              </div>
+                  @if (adesione.stato_configurazione_automatica) {
+                    <ui-data-type
+                      [data]="adesione"
+                      [elem]="{ field: 'stato_configurazione_automatica', type: 'label', options: 'configuration_status', tooltip: 'messaggio_configurazione' }"
+                      [config]="config"
+                    ></ui-data-type>
+                  }
+                </div>
+              } @else {
+                <h4 class="mb-2">{{ title }}</h4>
+                <div class="d-flex gap-2">
+                  <ui-data-type
+                    [data]="adesione"
+                    [elem]="{ field: 'stato', type: 'tag', options: 'status' }"
+                    [config]="config"
+                  ></ui-data-type>
+                  @if (adesione.stato_configurazione_automatica) {
+                    <ui-data-type
+                      [data]="adesione"
+                      [elem]="{ field: 'stato_configurazione_automatica', type: 'label', options: 'configuration_status', tooltip: 'messaggio_configurazione' }"
+                      [config]="config"
+                    ></ui-data-type>
+                  }
+                </div>
+              }
             </div>
             @if (showSkipCollaudo) {
               <div class=""
@@ -129,7 +144,7 @@
           @if (disclaimersGenerali.length > 0) {
             <div class="adesione-disclaimers mb-4">
               @for (item of disclaimersGenerali; track $index) {
-                <ng-container *ngTemplateOutlet="disclaimerTpl; context: { $implicit: item }"></ng-container>
+                <ng-container *ngTemplateOutlet="bannerStatoNewTpl; context: { $implicit: item }"></ng-container>
               }
             </div>
           }
@@ -201,22 +216,55 @@
                     {{ 'APP.ADESIONI.LABEL.WizardDarkMode' | translate }}
                   </label>
                 </div>
+                <div class="form-check form-switch">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    id="wizardNewLayoutSwitch"
+                    [checked]="wizardNewLayout"
+                    [attr.aria-checked]="wizardNewLayout"
+                    (change)="toggleWizardNewLayout()">
+                  <label class="form-check-label" for="wizardNewLayoutSwitch">
+                    {{ 'APP.ADESIONI.LABEL.WizardNewLayout' | translate }}
+                  </label>
+                </div>
                 <app-adesione-dialog-mock-panel></app-adesione-dialog-mock-panel>
               </div>
             }
-            <app-adesione-step-bar
-              class="mb-4"
-              [steps]="stepWizard"
-              [currentState]="adesione.stato"
-              [selectedCode]="selectedStepCode"
-              [showStateBadges]="showStateBadges"
-              [variant]="stepBarVariant"
-              [circlesLabelPosition]="circlesLabelRight ? 'right' : 'bottom'"
-              [workflowStati]="workflowStati"
-              [ngStyle]="stepBarDarkMode ? stepBarDarkVars : null"
-              (stepClick)="onStepBarClick($event)"
-            ></app-adesione-step-bar>
+            @if (!wizardNewLayout) {
+              <app-adesione-step-bar
+                class="mb-4"
+                [steps]="stepWizard"
+                [currentState]="adesione.stato"
+                [selectedCode]="selectedStepCode"
+                [showStateBadges]="showStateBadges"
+                [variant]="stepBarVariant"
+                [circlesLabelPosition]="circlesLabelRight ? 'right' : 'bottom'"
+                [workflowStati]="workflowStati"
+                [ngStyle]="stepBarDarkMode ? stepBarDarkVars : null"
+                (stepClick)="onStepBarClick($event)"
+              ></app-adesione-step-bar>
+            } @else {
+              <!-- Issue 254 NEW LAYOUT (rev. 4.8) — step-bar 3-fasi
+                   cliccabile (component dedicato `<app-adesione-fasi-bar>`).
+                   La logica di derivazione stati (completed/current/
+                   pending/final) e` pilotata dalla stessa source data
+                   della step-bar principale: `stepWizard` config +
+                   `adesione.stato` + `workflowStati`. Click su una
+                   fase emette `stepClick` -> `selectFase($event)`. -->
+              <app-adesione-fasi-bar
+                [steps]="stepWizard"
+                [currentState]="adesione?.stato || null"
+                [selectedCode]="_selectedFase"
+                [workflowStati]="workflowStati"
+                (stepClick)="selectFase($event)"
+              ></app-adesione-fasi-bar>
+            }
           }
+          @if (!wizardNewLayout) {
+          <!-- LEGACY LAYOUT (flag wizard_new_layout: false): accordion
+               originale con tutte e 4 le sezioni a seguire. -->
           <div class="mt-5 border-">
             <div class="accordion accordion-flush" id="accordionWizard">
               @if (isSectionVisible('info_generali')) {
@@ -230,13 +278,16 @@
                     [attr.aria-expanded]="isSectionOpenByDefault('info_generali')"
                     [attr.aria-disabled]="isSectionDisabled('info_generali') ? true : null"
                     aria-controls="general-info">
-                    <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex align-items-center gap-2 w-100">
                       <lnk-icon-toggle
                         [value]="loadingCheckDati | mapper:getStatusCompleteMapper:ClassiEnum.GENERALE"
                         [loading]="loadingCheckDati"
                         [hide]="loadingCheckDati | mapper:isStatusPubblicatoCollaudodMapper:adesione.stato"
                       ></lnk-icon-toggle>
                       <span>{{ 'APP.ADESIONI.TITLE.GeneralInformations' | translate }}</span>
+                      @if (wizardNewLayout) {
+                        <ng-container *ngTemplateOutlet="faseHeaderExtraTpl; context: { $implicit: 'info_generali' }"></ng-container>
+                      }
                     </div>
                   </button>
                 </h2>
@@ -274,13 +325,16 @@
                     [attr.aria-expanded]="isSectionOpenByDefault('referenti')"
                     [attr.aria-disabled]="isSectionDisabled('referenti') ? true : null"
                     aria-controls="referenti">
-                    <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex align-items-center gap-2 w-100">
                       <lnk-icon-toggle
                         [value]="loadingCheckDati | mapper:getStatusCompleteMapper:ClassiEnum.REFERENTI"
                         [loading]="loadingCheckDati"
                         [hide]="loadingCheckDati | mapper:isStatusPubblicatoCollaudodMapper:adesione?.stato"
                       ></lnk-icon-toggle>
                       <span>{{ 'APP.TITLE.ServiceReferents' | translate }}</span>
+                      @if (wizardNewLayout) {
+                        <ng-container *ngTemplateOutlet="faseHeaderExtraTpl; context: { $implicit: 'referenti' }"></ng-container>
+                      }
                     </div>
                   </button>
                 </h2>
@@ -457,13 +511,16 @@
                     [attr.aria-expanded]="isSectionOpenByDefault('collaudo')"
                     [attr.aria-disabled]="isSectionDisabled('collaudo') ? true : null"
                     aria-controls="collaudo">
-                    <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex align-items-center gap-2 w-100">
                       <lnk-icon-toggle
                         [value]="loadingCheckDati | mapper:getStatusCompleteMapper:AmbienteEnum.Collaudo"
                         [loading]="loadingCheckDati"
                         [hide]="loadingCheckDati | mapper:isStatusPubblicatoCollaudodMapper:adesione.stato"
                       ></lnk-icon-toggle>
                       <span>{{ 'APP.TITLE.TestingConfiguration' | translate }}</span>
+                      @if (wizardNewLayout) {
+                        <ng-container *ngTemplateOutlet="faseHeaderExtraTpl; context: { $implicit: 'collaudo' }"></ng-container>
+                      }
                     </div>
                   </button>
                 </h2>
@@ -477,86 +534,24 @@
                 }
                 <div id="collaudo" class="accordion-collapse collapse" [class.show]="isSectionOpenByDefault('collaudo')" data-bs-parent="#accordion-collaudo_">
                   <div class="accordion-body">
-                    @if (getStepWizardSezione('collaudo').length > 0) {
-                      <app-adesione-step-bar
-                        class="mb-4 adesione-step-bar-interna"
-                        [steps]="getStepWizardSezione('collaudo')"
-                        [currentState]="adesione.stato"
-                        [interactive]="false"
-                        [showStateBadges]="showStateBadges"
-                        [variant]="stepBarVariant"
-                        [circlesLabelPosition]="circlesLabelRight ? 'right' : 'bottom'"
-                        [i18nPrefix]="'APP.ADESIONI.STEP_WIZARD_SEZIONE'"
-                        [workflowStati]="workflowStati"
-                        [ngStyle]="stepBarDarkMode ? stepBarDarkVars : null"
-                      ></app-adesione-step-bar>
-                    }
-                    @if (disclaimersCollaudo.length > 0) {
-                      <div class="adesione-disclaimers mb-3">
-                        @for (item of disclaimersCollaudo; track $index) {
-                          <ng-container *ngTemplateOutlet="disclaimerTpl; context: { $implicit: item }"></ng-container>
-                        }
-                      </div>
-                    }
-                    <app-adesione-lista-clients
-                      [id]="id"
-                      [adesione]="adesione"
-                      [environment]="AmbienteEnum.Collaudo"
-                      [grant]="grant"
-                      [config]="adesioniClientsConfig"
-                      [singleColumn]="singleColumn"
-                      [isEdit]="isEdit"
-                      [otherClass]="'border-bottom-'"
-                      [dataCheck]="dataStructureResults"
-                      [nextState]="getNextStateWorkflow()"
-                      [disclaimers]="clientDisclaimersCollaudo"
-                    ></app-adesione-lista-clients>
-                    <app-adesione-lista-erogazioni
-                      [id]="id"
-                      [adesione]="adesione"
-                      [environment]="AmbienteEnum.Collaudo"
-                      [grant]="grant"
-                      [config]="adesioniErogazConfig"
-                      [singleColumn]="singleColumn"
-                      [isEdit]="isEdit"
-                      [otherClass]="'border-bottom-'"
-                      [dataCheck]="dataStructureResults"
-                      [nextState]="getNextStateWorkflow()"
-                    ></app-adesione-lista-erogazioni>
-                    @for (item of proprietaCustomFiltered[AmbienteEnum.Collaudo]; track item; let last = $last; let even = $even) {
-                      <div class="settings-">
-                        <div class="settings-content-">
-                          <div class="row mt-1" [class.justify-content-center]="singleColumn">
-                            <div class="mt-3" [class.col-lg-12]="singleColumn" [class.mb-3]="singleColumn" [class.col-lg-4]="!singleColumn">
-                              <div class="d-flex align-items-center gap-2">
-                                <lnk-icon-toggle
-                                  [value]="loadingCheckDati | mapper:getStatusSottotipoCompleteMapper:AmbienteEnum.Collaudo:ClassiEnum.CONFIGURAZIONE_GRUPPO:item.nome_gruppo"
-                                  [loading]="loadingCheckDati"
-                                  [hide]="loadingCheckDati | mapper:isStatusPubblicatoCollaudodMapper:adesione.stato"
-                                ></lnk-icon-toggle>
-                                <h5 class="gl-mt-0 text-break" [class.text-danger-]="!(loadingCheckDati | mapper:isSottotipoCompletedMapper:AmbienteEnum.Collaudo:ClassiEnum.CONFIGURAZIONE_GRUPPO:item.nome_gruppo)">{{ item.label_gruppo }}</h5>
-                              </div>
-                            </div>
-                            <div class="" [class.col-lg-8]="!singleColumn" [class.col-lg-8]="!singleColumn">
-                              <section class="p-0">
-                                <app-api-custom-properties
-                                  [ambiente]="AmbienteEnum.Collaudo"
-                                  [id_adesione]="adesione.id_adesione"
-                                  [stato_adesione]="adesione.stato"
-                                  [id_servizio]="adesione.servizio.id_servizio"
-                                  [data]="configurazioni[AmbienteEnum.Collaudo]"
-                                  [group]="item"
-                                  [showGroupLabel]="showGroupLabel"
-                                  [containerClass]="(even && singleColumn) ? 'bg-lightest- border-top border-bottom' : 'border-top border-bottom'"
-                                  [editable]="(updateMapper | mapper:isModifiableMapper:AmbienteEnum.Collaudo)"
-                                  [apiConfig]="apiConfig"
-                                  [dataCheck]="dataStructureResults"
-                                ></app-api-custom-properties>
-                              </section>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                    @if (wizardNewLayout) {
+                      <ng-container *ngTemplateOutlet="substepListTpl; context: { section: 'collaudo', titleKey: 'APP.ADESIONI.LABEL.ProceduraAttivazione', body: collaudoBodyTpl }"></ng-container>
+                    } @else {
+                      @if (getStepWizardSezione('collaudo').length > 0) {
+                        <app-adesione-step-bar
+                          class="mb-4 adesione-step-bar-interna"
+                          [steps]="getStepWizardSezione('collaudo')"
+                          [currentState]="adesione.stato"
+                          [interactive]="false"
+                          [showStateBadges]="showStateBadges"
+                          [variant]="'circles'"
+                          [circlesLabelPosition]="circlesLabelRight ? 'right' : 'bottom'"
+                          [i18nPrefix]="'APP.ADESIONI.STEP_WIZARD_SEZIONE'"
+                          [workflowStati]="workflowStati"
+                          [ngStyle]="stepBarDarkMode ? stepBarDarkVars : null"
+                        ></app-adesione-step-bar>
+                      }
+                      <ng-container *ngTemplateOutlet="collaudoBodyTpl"></ng-container>
                     }
                   </div>
                 </div>
@@ -573,13 +568,16 @@
                     [attr.aria-expanded]="isSectionOpenByDefault('produzione')"
                     [attr.aria-disabled]="isSectionDisabled('produzione') ? true : null"
                     aria-controls="produzione">
-                    <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex align-items-center gap-2 w-100">
                       <lnk-icon-toggle
                         [value]="loadingCheckDati | mapper:getStatusCompleteMapper:AmbienteEnum.Produzione"
                         [loading]="loadingCheckDati"
                         [hide]="loadingCheckDati | mapper:isStatusPubblicatoCollaudodMapper:adesione.stato"
                       ></lnk-icon-toggle>
                       <span>{{ 'APP.TITLE.ProductionConfiguration' | translate }}</span>
+                      @if (wizardNewLayout) {
+                        <ng-container *ngTemplateOutlet="faseHeaderExtraTpl; context: { $implicit: 'produzione' }"></ng-container>
+                      }
                     </div>
                   </button>
                 </h2>
@@ -593,85 +591,24 @@
                 }
                 <div id="produzione" class="accordion-collapse collapse" [class.show]="isSectionOpenByDefault('produzione')" data-bs-parent="#accordion-produzione_">
                   <div class="accordion-body">
-                    @if (getStepWizardSezione('produzione').length > 0) {
-                      <app-adesione-step-bar
-                        class="mb-4 adesione-step-bar-interna"
-                        [steps]="getStepWizardSezione('produzione')"
-                        [currentState]="adesione.stato"
-                        [interactive]="false"
-                        [showStateBadges]="showStateBadges"
-                        [variant]="stepBarVariant"
-                        [circlesLabelPosition]="circlesLabelRight ? 'right' : 'bottom'"
-                        [i18nPrefix]="'APP.ADESIONI.STEP_WIZARD_SEZIONE'"
-                        [workflowStati]="workflowStati"
-                        [ngStyle]="stepBarDarkMode ? stepBarDarkVars : null"
-                      ></app-adesione-step-bar>
-                    }
-                    @if (disclaimersProduzione.length > 0) {
-                      <div class="adesione-disclaimers mb-3">
-                        @for (item of disclaimersProduzione; track $index) {
-                          <ng-container *ngTemplateOutlet="disclaimerTpl; context: { $implicit: item }"></ng-container>
-                        }
-                      </div>
-                    }
-                    <app-adesione-lista-clients
-                      [id]="id"
-                      [adesione]="adesione"
-                      [environment]="AmbienteEnum.Produzione"
-                      [grant]="grant"
-                      [config]="adesioniClientsConfig"
-                      [singleColumn]="singleColumn"
-                      [isEdit]="isEdit"
-                      [otherClass]="'border-bottom-'"
-                      [dataCheck]="dataStructureResults"
-                      [nextState]="getNextStateWorkflow()"
-                      [disclaimers]="clientDisclaimersProduzione"
-                    ></app-adesione-lista-clients>
-                    <app-adesione-lista-erogazioni
-                      [id]="id"
-                      [adesione]="adesione"
-                      [environment]="AmbienteEnum.Produzione"
-                      [grant]="grant"
-                      [config]="adesioniErogazConfig"
-                      [singleColumn]="singleColumn"
-                      [isEdit]="isEdit"
-                      [otherClass]="'border-bottom-'"
-                      [dataCheck]="dataStructureResults"
-                      [nextState]="getNextStateWorkflow()"
-                    ></app-adesione-lista-erogazioni>
-                    @for (item of proprietaCustomFiltered[AmbienteEnum.Produzione]; track item; let last = $last; let even = $even) {
-                      <div class="settings-" [class.border-bottom-]="last">
-                        <div class="settings-content-">
-                          <div class="row mt-1" [class.justify-content-center]="singleColumn">
-                            <div class="mt-3" [class.col-lg-12]="singleColumn" [class.mb-3]="singleColumn" [class.col-lg-4]="!singleColumn">
-                              <div class="d-flex align-items-center gap-2">
-                                <lnk-icon-toggle
-                                  [value]="loadingCheckDati | mapper:getStatusSottotipoCompleteMapper:AmbienteEnum.Produzione:ClassiEnum.CONFIGURAZIONE_GRUPPO:item.nome_gruppo"
-                                  [loading]="loadingCheckDati"
-                                  [hide]="loadingCheckDati | mapper:isStatusPubblicatoCollaudodMapper:adesione.stato"
-                                ></lnk-icon-toggle>
-                                <h5 class="gl-mt-0 text-break" [class.text-danger-]="!(loadingCheckDati | mapper:isSottotipoCompletedMapper:AmbienteEnum.Produzione:ClassiEnum.CONFIGURAZIONE_GRUPPO:item.nome_gruppo)">{{ item.label_gruppo }}</h5>
-                              </div>
-                            </div>
-                            <div class="" [class.col-lg-8]="!singleColumn" [class.col-lg-8]="!singleColumn">
-                              <section class="p-0">
-                                <app-api-custom-properties
-                                  [ambiente]="AmbienteEnum.Produzione"
-                                  [id_adesione]="adesione.id_adesione"
-                                  [stato_adesione]="adesione.stato"
-                                  [id_servizio]="adesione.servizio.id_servizio"
-                                  [data]="configurazioni[AmbienteEnum.Produzione]"
-                                  [group]="item"
-                                  [showGroupLabel]="showGroupLabel"
-                                  [containerClass]="(even && singleColumn) ? 'bg-lightest- border-top border-bottom' : 'border-top border-bottom'"
-                                  [editable]="(updateMapper | mapper:isModifiableMapper:AmbienteEnum.Produzione)"
-                                  [dataCheck]="dataStructureResults"
-                                ></app-api-custom-properties>
-                              </section>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                    @if (wizardNewLayout) {
+                      <ng-container *ngTemplateOutlet="substepListTpl; context: { section: 'produzione', titleKey: 'APP.ADESIONI.LABEL.ProceduraConfigurazione', body: produzioneBodyTpl }"></ng-container>
+                    } @else {
+                      @if (getStepWizardSezione('produzione').length > 0) {
+                        <app-adesione-step-bar
+                          class="mb-4 adesione-step-bar-interna"
+                          [steps]="getStepWizardSezione('produzione')"
+                          [currentState]="adesione.stato"
+                          [interactive]="false"
+                          [showStateBadges]="showStateBadges"
+                          [variant]="stepBarVariant"
+                          [circlesLabelPosition]="circlesLabelRight ? 'right' : 'bottom'"
+                          [i18nPrefix]="'APP.ADESIONI.STEP_WIZARD_SEZIONE'"
+                          [workflowStati]="workflowStati"
+                          [ngStyle]="stepBarDarkMode ? stepBarDarkVars : null"
+                        ></app-adesione-step-bar>
+                      }
+                      <ng-container *ngTemplateOutlet="produzioneBodyTpl"></ng-container>
                     }
                   </div>
                 </div>
@@ -679,9 +616,45 @@
               }
             </div>
           </div>
+          } @else {
+            <!-- Issue 254 NEW LAYOUT (rev. 4) — render condizionale per
+                 fase scelta dalla step-bar. UNA SOLA fase visibile alla
+                 volta (mock 1: Collaudo aperto, mock 2: Fase 01 con 2
+                 sub-card, mock 3: Produzione bloccato). -->
+            <div class="envs mt-4">
+              @switch (_selectedFase) {
+                @case ('info_generali') {
+                  <ng-container *ngTemplateOutlet="newLayoutFaseInfoTpl"></ng-container>
+                }
+                @case ('collaudo') {
+                  <ng-container *ngTemplateOutlet="newLayoutEnvCardTpl; context: {
+                    section: 'collaudo',
+                    icon: 'bi-flask',
+                    titleKey: 'APP.TITLE.TestingConfiguration',
+                    procLabelKey: 'APP.ADESIONI.LABEL.ProceduraAttivazione',
+                    body: collaudoBodyTpl,
+                    disclaimers: disclaimersCollaudo
+                  }"></ng-container>
+                }
+                @case ('produzione') {
+                  <ng-container *ngTemplateOutlet="newLayoutEnvCardTpl; context: {
+                    section: 'produzione',
+                    icon: 'bi-rocket',
+                    titleKey: 'APP.TITLE.ProductionConfiguration',
+                    procLabelKey: 'APP.ADESIONI.LABEL.ProceduraConfigurazione',
+                    body: produzioneBodyTpl,
+                    disclaimers: disclaimersProduzione
+                  }"></ng-container>
+                }
+              }
+            </div>
+          }
           <div class="d-flex justify-content-end gap-2 mt-5">
             <div class="d-flex gap-2">
-            @if (hasNextStateWorkflow() && _hasCambioStato()) {
+            <!-- Nascosto sotto il nuovo layout: il pulsante e' gia'
+                 reso nel footer del sub-step attivo. -->
+            @if (!wizardNewLayout && hasNextStateWorkflow() && _hasCambioStato()) {
+
               <lnk-button
                 [label]="'APP.WORKFLOW.MENU.' + getNextStateWorkflowName()"
                 [primary]="true"
@@ -690,19 +663,30 @@
                 [disabled]="!_hasCambioStato() || changingStatus || loadingCheckDati"
               ></lnk-button>
             }
+            </div>
           </div>
         </div>
-      </div>
-    }
-  </div>
+      }
+    </div>
 
-</section>
+  </section>
 </div>
+
+<ng-template #genericDisclaimerTpl let-severity="severity" let-disclaimer="disclaimer">
+  <div class="alert mb-2 disclaimer-item" [ngClass]="getDisclaimerAlertClass(severity)" role="alert">
+    <div class="d-flex align-items-start gap-2">
+      <i class="disclaimer-icon" [ngClass]="getDisclaimerIconClass(severity)" [attr.aria-label]="severity"></i>
+      <div class="flex-grow-1">
+        <markdown class="disclaimer-body" [data]="disclaimer"></markdown>
+      </div>
+    </div>
+  </div>
+</ng-template>
 
 <ng-template #disclaimerTpl let-item>
   <div class="alert mb-2 disclaimer-item" [ngClass]="getDisclaimerAlertClass(item.severity)" role="alert">
     <div class="d-flex align-items-start gap-2">
-      <i class="disclaimer-icon" [ngClass]="getDisclaimerIconClass(item.severity)" [attr.aria-label]="item.severity" role="img"></i>
+      <i class="disclaimer-icon" [ngClass]="getDisclaimerIconClass(item.severity)" [attr.aria-label]="item.severity"></i>
       <div class="flex-grow-1">
         <markdown class="disclaimer-body" [data]="item.disclaimer"></markdown>
         @if (item.links?.length) {
@@ -719,4 +703,724 @@
       </div>
     </div>
   </div>
+</ng-template>
+
+<!-- Header extra per card-fase (Issue 254 NEW LAYOUT): inietta accanto
+     al titolo dell'accordion-button il badge stato e il counter X/Y dei
+     sub-step. Usato condizionato su `wizardNewLayout`. -->
+<ng-template #faseHeaderExtraTpl let-section>
+  <div class="d-flex align-items-center gap-2 ms-auto wizard-fase-header-extra">
+    @if (getSezioneBadge(section); as badge) {
+      <span class="badge wizard-fase-badge"
+            [class.wizard-fase-badge-completed]="badge === 'completed'"
+            [class.wizard-fase-badge-action]="badge === 'action'"
+            [class.wizard-fase-badge-locked]="badge === 'locked'">
+        @switch (badge) {
+          @case ('completed') {
+            @if (section === 'info_generali' || section === 'referenti') {
+              {{ 'APP.ADESIONI.LABEL.FaseConclusa' | translate }}
+            } @else {
+              {{ 'APP.ADESIONI.LABEL.Completato' | translate }}
+            }
+          }
+          @case ('action') { {{ 'APP.ADESIONI.LABEL.AzioneRichiesta' | translate }} }
+          @case ('locked') { {{ 'APP.ADESIONI.LABEL.Bloccato' | translate }} }
+        }
+      </span>
+    }
+    @if (getSezioneCounter(section); as cnt) {
+      <span class="wizard-fase-counter text-muted">{{ cnt.done }}/{{ cnt.total }}</span>
+    }
+    @if (section === 'info_generali' && canEditMapper() && !isEdit) {
+      <button type="button"
+              class="wizard-fase-edit-btn"
+              [tooltip]="'APP.BUTTON.Modify' | translate"
+              container="body"
+              (click)="$event.stopPropagation(); enterEditModeForInfoGenerali()">
+        <i class="bi bi-pencil"></i>
+        <span>{{ 'APP.BUTTON.Modify' | translate }}</span>
+      </button>
+    }
+  </div>
+</ng-template>
+
+<!-- Banner stato (Issue 254 NEW LAYOUT) — variante card-style del
+     disclaimerTpl. La sorgente dati e' la stessa (disclaimersGenerali);
+     cambia solo il rendering. I bottoni di CTA a destra sono ricavati
+     da `item.links` (rev. 4.16) — vedi `actions` qui sotto. -->
+<ng-template #bannerStatoNewTpl let-item>
+  <!-- Design-code `.lnk-banner` (Issue 254 NEW LAYOUT rev. 4): card con
+       barra colorata a sinistra (::before), icona rotonda, body markdown
+       e CTA opzionale "Documentazione API" allineata a destra.
+       Severity variants: '' (info, blu), 'is-warn' (giallo),
+       'is-err' (rosso). -->
+  <div class="lnk-banner mb-3"
+       [ngClass]="getDisclaimerLnkBannerVariantClass(item.severity)"
+       role="alert">
+    <div class="icon">
+      <i [ngClass]="getDisclaimerIconClass(item.severity)"
+         [attr.aria-label]="item.severity"></i>
+    </div>
+    <div class="body">
+      <markdown [data]="item.disclaimer"></markdown>
+    </div>
+    <!-- CTA allineata a destra: i link del disclaimer (item.links)
+         vengono resi come bottoni `lnk-btn`. Sostituiscono la vecchia
+         ancora hardcoded `apiDocLink` (rev. 4.16). -->
+    @if (item.links?.length) {
+      <div class="actions">
+        @for (link of item.links; track $index) {
+          <a class="lnk-btn lnk-btn-sm"
+             [href]="getDisclaimerLinkHref(link)"
+             target="_blank"
+             rel="noopener noreferrer">
+            <i class="bi bi-box-arrow-up-right"></i>
+            <span>{{ getDisclaimerLinkLabel(link) }}</span>
+          </a>
+        }
+      </div>
+    }
+  </div>
+</ng-template>
+
+<!-- Body Collaudo (Issue 254 NEW LAYOUT): contenuto comune sia al
+     vecchio rendering (sotto la step-bar interna orizzontale) sia al
+     nuovo (incapsulato nello step "active" del sub-stepper verticale). -->
+<ng-template #collaudoBodyTpl>
+  @if (disclaimersCollaudo.length > 0) {
+    <div class="adesione-disclaimers mb-3">
+      @for (item of disclaimersCollaudo; track $index) {
+        <ng-container *ngTemplateOutlet="disclaimerTpl; context: { $implicit: item }"></ng-container>
+      }
+    </div>
+  }
+
+  <!-- Disclaimer "Configura i client" mostrato solo quando ci sono
+       ancora client da configurare in Collaudo (gruppo `client` non
+       completato in `dataStructureResults`). -->
+  @if (!(loadingCheckDati | mapper:isSottotipoGroupCompletedMapper:AmbienteEnum.Collaudo:ClassiEnum.CLIENT)) {
+    <div class="adesione-disclaimers my-3">
+      <ng-container *ngTemplateOutlet="genericDisclaimerTpl; context: { severity: 'info', disclaimer: 'Configura i client di autenticazione per procedere. Per ogni profilo elencato qui sotto premi la matita e inserisci i dati richiesti.' }"></ng-container>
+    </div>
+  }
+
+  <app-adesione-lista-clients
+    [id]="id"
+    [adesione]="adesione"
+    [environment]="AmbienteEnum.Collaudo"
+    [grant]="grant"
+    [config]="adesioniClientsConfig"
+    [singleColumn]="singleColumn"
+    [isEdit]="isEdit"
+    [otherClass]="'border-bottom-'"
+    [dataCheck]="dataStructureResults"
+    [nextState]="getNextStateWorkflow()"
+    [disclaimers]="clientDisclaimersCollaudo"
+    [inlineEdit]="wizardNewLayout"
+  ></app-adesione-lista-clients>
+  <app-adesione-lista-erogazioni
+    [id]="id"
+    [adesione]="adesione"
+    [environment]="AmbienteEnum.Collaudo"
+    [grant]="grant"
+    [config]="adesioniErogazConfig"
+    [singleColumn]="singleColumn"
+    [isEdit]="isEdit"
+    [otherClass]="'border-bottom-'"
+    [dataCheck]="dataStructureResults"
+    [nextState]="getNextStateWorkflow()"
+    [inlineEdit]="wizardNewLayout"
+  ></app-adesione-lista-erogazioni>
+  @for (item of proprietaCustomFiltered[AmbienteEnum.Collaudo]; track item; let last = $last; let even = $even) {
+    <div class="settings-">
+      <div class="settings-content-">
+        <div class="row mt-1" [class.justify-content-center]="singleColumn">
+          <div class="mt-3" [class.col-lg-12]="singleColumn" [class.mb-3]="singleColumn" [class.col-lg-4]="!singleColumn">
+            <div class="d-flex align-items-center gap-2">
+              <lnk-icon-toggle
+                [value]="loadingCheckDati | mapper:getStatusSottotipoCompleteMapper:AmbienteEnum.Collaudo:ClassiEnum.CONFIGURAZIONE_GRUPPO:item.nome_gruppo"
+                [loading]="loadingCheckDati"
+                [hide]="loadingCheckDati | mapper:isStatusPubblicatoCollaudodMapper:adesione.stato"
+              ></lnk-icon-toggle>
+              <h5 class="gl-mt-0 text-break" [class.text-danger-]="!(loadingCheckDati | mapper:isSottotipoCompletedMapper:AmbienteEnum.Collaudo:ClassiEnum.CONFIGURAZIONE_GRUPPO:item.nome_gruppo)">{{ item.label_gruppo }}</h5>
+            </div>
+          </div>
+          <div class="" [class.col-lg-8]="!singleColumn" [class.col-lg-8]="!singleColumn">
+            <section class="p-0">
+              <app-api-custom-properties
+                [ambiente]="AmbienteEnum.Collaudo"
+                [id_adesione]="adesione.id_adesione"
+                [stato_adesione]="adesione.stato"
+                [id_servizio]="adesione.servizio.id_servizio"
+                [data]="configurazioni[AmbienteEnum.Collaudo]"
+                [group]="item"
+                [showGroupLabel]="showGroupLabel"
+                [containerClass]="(even && singleColumn) ? 'bg-lightest- border-top border-bottom' : 'border-top border-bottom'"
+                [editable]="(updateMapper | mapper:isModifiableMapper:AmbienteEnum.Collaudo)"
+                [apiConfig]="apiConfig"
+                [dataCheck]="dataStructureResults"
+              ></app-api-custom-properties>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</ng-template>
+
+<!-- Body Produzione (Issue 254 NEW LAYOUT): vedi commento collaudoBodyTpl. -->
+<ng-template #produzioneBodyTpl>
+  @if (disclaimersProduzione.length > 0) {
+    <div class="adesione-disclaimers mb-3">
+      @for (item of disclaimersProduzione; track $index) {
+        <ng-container *ngTemplateOutlet="disclaimerTpl; context: { $implicit: item }"></ng-container>
+      }
+    </div>
+  }
+  <app-adesione-lista-clients
+    [id]="id"
+    [adesione]="adesione"
+    [environment]="AmbienteEnum.Produzione"
+    [grant]="grant"
+    [config]="adesioniClientsConfig"
+    [singleColumn]="singleColumn"
+    [isEdit]="isEdit"
+    [otherClass]="'border-bottom-'"
+    [dataCheck]="dataStructureResults"
+    [nextState]="getNextStateWorkflow()"
+    [disclaimers]="clientDisclaimersProduzione"
+    [inlineEdit]="wizardNewLayout"
+  ></app-adesione-lista-clients>
+  <app-adesione-lista-erogazioni
+    [id]="id"
+    [adesione]="adesione"
+    [environment]="AmbienteEnum.Produzione"
+    [grant]="grant"
+    [config]="adesioniErogazConfig"
+    [singleColumn]="singleColumn"
+    [isEdit]="isEdit"
+    [otherClass]="'border-bottom-'"
+    [dataCheck]="dataStructureResults"
+    [nextState]="getNextStateWorkflow()"
+    [inlineEdit]="wizardNewLayout"
+  ></app-adesione-lista-erogazioni>
+  @for (item of proprietaCustomFiltered[AmbienteEnum.Produzione]; track item; let last = $last; let even = $even) {
+    <div class="settings-" [class.border-bottom-]="last">
+      <div class="settings-content-">
+        <div class="row mt-1" [class.justify-content-center]="singleColumn">
+          <div class="mt-3" [class.col-lg-12]="singleColumn" [class.mb-3]="singleColumn" [class.col-lg-4]="!singleColumn">
+            <div class="d-flex align-items-center gap-2">
+              <lnk-icon-toggle
+                [value]="loadingCheckDati | mapper:getStatusSottotipoCompleteMapper:AmbienteEnum.Produzione:ClassiEnum.CONFIGURAZIONE_GRUPPO:item.nome_gruppo"
+                [loading]="loadingCheckDati"
+                [hide]="loadingCheckDati | mapper:isStatusPubblicatoCollaudodMapper:adesione.stato"
+              ></lnk-icon-toggle>
+              <h5 class="gl-mt-0 text-break" [class.text-danger-]="!(loadingCheckDati | mapper:isSottotipoCompletedMapper:AmbienteEnum.Produzione:ClassiEnum.CONFIGURAZIONE_GRUPPO:item.nome_gruppo)">{{ item.label_gruppo }}</h5>
+            </div>
+          </div>
+          <div class="" [class.col-lg-8]="!singleColumn" [class.col-lg-8]="!singleColumn">
+            <section class="p-0">
+              <app-api-custom-properties
+                [ambiente]="AmbienteEnum.Produzione"
+                [id_adesione]="adesione.id_adesione"
+                [stato_adesione]="adesione.stato"
+                [id_servizio]="adesione.servizio.id_servizio"
+                [data]="configurazioni[AmbienteEnum.Produzione]"
+                [group]="item"
+                [showGroupLabel]="showGroupLabel"
+                [containerClass]="(even && singleColumn) ? 'bg-lightest- border-top border-bottom' : 'border-top border-bottom'"
+                [editable]="(updateMapper | mapper:isModifiableMapper:AmbienteEnum.Produzione)"
+                [dataCheck]="dataStructureResults"
+              ></app-api-custom-properties>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</ng-template>
+
+<!-- Sub-stepper verticale (Issue 254 NEW LAYOUT): renderizza il subtitle
+     "PROCEDURA DI ATTIVAZIONE — X di Y completati" + lista verticale dei
+     sub-step (numerati, con badge stato). Il body del passo "active"
+     viene riempito dal template passato in `body` (collaudoBodyTpl
+     o produzioneBodyTpl). I passi locked mostrano solo l'header. -->
+<ng-template #substepListTpl let-section="section" let-titleKey="titleKey" let-body="body">
+  <div class="wizard-substep-section">
+    <div class="wizard-substep-subtitle text-muted text-uppercase small mb-3">
+      <span>{{ titleKey | translate }}</span>
+      @if (getSezioneCounter(section); as cnt) {
+        <span class="ms-2">— {{ 'APP.ADESIONI.LABEL.CompletedOf' | translate:{ done: cnt.done, total: cnt.total } }}</span>
+      }
+    </div>
+    @for (sub of getSezioneStepStates(section); track sub.code) {
+      <div class="wizard-substep-item" [ngClass]="'wizard-substep-' + sub.state">
+        <div class="wizard-substep-header d-flex align-items-center gap-3 py-2">
+          <div class="wizard-substep-num" [class.is-completed]="sub.state === 'completed'" [class.is-active]="sub.state === 'active'">
+            @if (sub.state === 'completed') {
+              <i class="bi bi-check"></i>
+            } @else {
+              {{ sub.index }}
+            }
+          </div>
+          <div class="flex-grow-1">
+            <div class="wizard-substep-title fw-semibold">{{ ('APP.ADESIONI.STEP_WIZARD_SEZIONE.' + sub.code) | translate }}</div>
+            @if (sub.descrizione) {
+              <div class="wizard-substep-descr small text-muted">{{ sub.descrizione }}</div>
+            }
+          </div>
+          @if (sub.state === 'locked') {
+            <span class="badge wizard-fase-badge wizard-fase-badge-locked"
+                  [tooltip]="'APP.ADESIONI.LABEL.BloccatoTooltip' | translate"
+                  container="body">{{ 'APP.ADESIONI.LABEL.Bloccato' | translate }}</span>
+          } @else if (sub.state === 'completed') {
+            <span class="badge wizard-fase-badge wizard-fase-badge-completed">{{ 'APP.ADESIONI.LABEL.Completato' | translate }}</span>
+          }
+        </div>
+        @if (sub.state === 'active') {
+          <div class="wizard-substep-body">
+            <ng-container *ngTemplateOutlet="body"></ng-container>
+            <!-- Footer del sub-step attivo: stato salvataggio + azioni
+                 (Annulla / Invia per attivazione). L'azione primaria
+                 e' l'avanzamento di workflow gia' presente in fondo
+                 al wizard, qui lo riproponiamo accanto al body. -->
+            <div class="wizard-substep-footer d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+              <span class="text-muted small">
+                @if (headerUpdatedAt) {
+                  <i class="bi bi-check-circle me-1"></i>{{ headerUpdatedAt }}
+                }
+              </span>
+              @if (hasNextStateWorkflow() && _hasCambioStato()) {
+
+                <div class="mt-3">
+                  <ng-container *ngTemplateOutlet="workflowErrorTpl"></ng-container>
+                </div>
+                
+                <div class="d-flex gap-2">
+                  <lnk-button
+                    [label]="'APP.WORKFLOW.MENU.' + getNextStateWorkflowName()"
+                    [primary]="true"
+                    [ariaLabel]="'APP.WORKFLOW.MENU.' + getNextStateWorkflowName()"
+                    (onAction)="onWorkflowAction()"
+                    [disabled]="!_hasCambioStato() || changingStatus || loadingCheckDati">
+                  </lnk-button>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</ng-template>
+
+<!-- ====================================================================
+     Issue 254 NEW LAYOUT (rev. 4) — design-code 1:1
+     ==================================================================== -->
+
+<!-- FASE 01 — env-card (Informazioni adesione) che racchiude le 2
+     PhaseSection cards (Informazioni generali + Referenti), allineata
+     visualmente alle FASE 02/03 (Collaudo / Produzione) tramite la
+     stessa shell `<section class="env">` con header icona + titolo
+     + chip stato. Il body wrappa le 2 sotto-card collassabili
+     esistenti. -->
+<ng-template #newLayoutFaseInfoTpl>
+  @let stInfo = getFaseStatus('info');
+  <section class="env"
+           [class.is-open]="true"
+           [class.is-locked]="stInfo === 'pending'"
+           [class.is-done]="stInfo === 'completed'">
+    <header class="env-hd">
+      <div class="env-icon"><i class="bi bi-info-circle"></i></div>
+      <div class="env-meta">
+        <div class="env-title">
+          {{ 'APP.ADESIONI.LABEL.FaseInfoTitle' | translate }}
+          @if (stInfo === 'active') {
+            <span class="chip chip-accent"><span class="pulse"></span>{{ 'APP.ADESIONI.LABEL.AzioneRichiesta' | translate }}</span>
+          }
+          @if (stInfo === 'completed') {
+            <span class="chip chip-ok"><i class="bi bi-check-lg"></i> {{ 'APP.ADESIONI.LABEL.FaseConclusa' | translate }}</span>
+          }
+          @if (stInfo === 'pending') {
+            <span class="chip chip-muted"><i class="bi bi-lock-fill"></i> {{ 'APP.ADESIONI.LABEL.InAttesa' | translate }}</span>
+          }
+        </div>
+      </div>
+    </header>
+    <div class="env-body-pad">
+
+  <!-- Card "Informazioni generali" — collassabile come ref-group.
+       Header (icona + titolo + chip + chevron) cliccabile.
+       Body (only when open): pannello grigio (.tl-panel style) che
+       contiene il bottone "Modifica" e la form. -->
+  @let openInfo = isPhaseSectionOpen('info_generali');
+  <section class="lnk-phase-section" [class.is-open]="openInfo">
+    <header class="lnk-phase-section-hd"
+            [attr.aria-expanded]="openInfo"
+            (click)="togglePhaseSection('info_generali')"
+            (keydown.enter)="togglePhaseSection('info_generali')"
+            (keydown.space)="togglePhaseSection('info_generali'); $event.preventDefault()">
+      <div class="lnk-phase-section-icon"><i class="bi bi-card-text"></i></div>
+      <div class="lnk-phase-section-title">
+        {{ 'APP.ADESIONI.TITLE.GeneralInformations' | translate }}
+        @if (false) {
+          @if (getSezioneBadge('info_generali') === 'completed') {
+            <span class="chip chip-ok"><i class="bi bi-check-lg"></i> {{ 'APP.ADESIONI.LABEL.FaseConclusa' | translate }}</span>
+          }
+          @if (getSezioneBadge('info_generali') === 'action') {
+            <span class="chip chip-accent"><span class="pulse"></span>{{ 'APP.ADESIONI.LABEL.AzioneRichiesta' | translate }}</span>
+          }
+        }
+      </div>
+      <i class="bi bi-chevron-down lnk-phase-section-chev"
+         [class.is-open]="openInfo"
+         aria-hidden="true"></i>
+    </header>
+    @if (openInfo) {
+      <!-- Pannello grigio (`.tl-panel` style) che avvolge bottone +
+           form. Allineato al design-code app.jsx (PhaseSection child
+           wrapper con `.tl-panel` e flex column). -->
+      <div class="lnk-phase-section-body tl-panel">
+        @if (canEditMapper()) {
+          <!-- Bottone Modifica/Annulla in absolute top-right del pannello,
+               cosi` la form parte subito senza la riga vuota in testa. -->
+          <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm phase-section-edit-toggle"
+                  (click)="enterEditModeForInfoGenerali()">
+            @if (isInfoFormEditing) {
+              <i class="bi bi-x-lg"></i>
+              <span>{{ 'APP.BUTTON.Cancel' | translate }}</span>
+            } @else {
+              <i class="bi bi-pencil"></i>
+              <span>{{ 'APP.BUTTON.Modify' | translate }}</span>
+            }
+          </button>
+        }
+        <!-- `[externalEditControl]="true"` nasconde il bottone interno
+             del form (top-right Modify icon-only) — l'ingresso in edit
+             e` pilotato dal bottone esterno qui sopra via
+             `enterEditModeForInfoGenerali()`. Il submit e` ancora gestito
+             dalla `<lnk-form-submit>` interna del form, in fondo. -->
+        <app-adesione-form
+          #infoFormRef
+          [id]="id"
+          [adesione]="adesione"
+          [servizio]="servizio"
+          [grant]="grant"
+          [config]="adesioniClientsConfig"
+          [singleColumn]="singleColumn"ß
+          [editable]="canEditMapper()"
+          [externalEditControl]="true"
+        ></app-adesione-form>
+      </div>
+    }
+  </section>
+
+  <!-- Card "Referenti" — collassabile come Informazioni generali. -->
+  @let openRef = isPhaseSectionOpen('referenti');
+  <section class="lnk-phase-section" [class.is-open]="openRef">
+    <header class="lnk-phase-section-hd"
+            [attr.aria-expanded]="openRef"
+            (click)="togglePhaseSection('referenti')"
+            (keydown.enter)="togglePhaseSection('referenti')"
+            (keydown.space)="togglePhaseSection('referenti'); $event.preventDefault()">
+      <div class="lnk-phase-section-icon"><i class="bi bi-people"></i></div>
+      <div class="lnk-phase-section-title">
+        {{ 'APP.TITLE.ServiceReferents' | translate }}
+        @if (false) {
+          @if (getSezioneBadge('referenti') === 'completed') {
+            <span class="chip chip-ok"><i class="bi bi-check-lg"></i> {{ 'APP.ADESIONI.LABEL.FaseConclusa' | translate }}</span>
+          }
+          @if (getSezioneBadge('referenti') === 'action') {
+            <span class="chip chip-accent"><span class="pulse"></span>{{ 'APP.ADESIONI.LABEL.AzioneRichiesta' | translate }}</span>
+          }
+        }
+      </div>
+      <i class="bi bi-chevron-down lnk-phase-section-chev"
+         [class.is-open]="openRef"
+         aria-hidden="true"></i>
+    </header>
+    @if (openRef) {
+    <div class="lnk-phase-section-body tl-panel">
+      <!-- Referenti adesione -->
+      @let openA = isReferentGroupOpen('adesione');
+      <div class="lnk-ref-group" [class.is-open]="openA">
+        <div class="lnk-ref-group-hd"
+             [attr.aria-expanded]="openA"
+             (click)="toggleReferentGroup('adesione')"
+             (keydown.enter)="toggleReferentGroup('adesione')"
+             (keydown.space)="toggleReferentGroup('adesione'); $event.preventDefault()">
+          <h4>
+            {{ 'APP.ADESIONI.TITLE.Referents' | translate }}
+            <span class="lnk-ref-count">{{ referents.length }}</span>
+          </h4>
+          @if (openA && (isEdit || (updateMapper | mapper:canAddMapper)) && !_addReferentOpen) {
+            <button type="button" class="lnk-btn lnk-btn-sm"
+                    (click)="$event.stopPropagation(); addReferenteModal($event)">
+              {{ 'APP.BUTTON.AddReferent' | translate }}
+            </button>
+          }
+          <i class="bi bi-chevron-down lnk-ref-group-chev"
+             [class.is-open]="openA"
+             aria-hidden="true"></i>
+        </div>
+        @if (openA) {
+          <div class="lnk-ref-group-body">
+            <!-- Pannello inline "Aggiungi referente" (rev. 4.29):
+                 sostituisce la `ModalAddReferentComponent`. Toggle
+                 via `_addReferentOpen` pilotato dal bottone
+                 "Aggiungi referente" (`addReferenteModal($event)`
+                 -> `openInlineAddReferent()` quando wizardNewLayout). -->
+            @if (_addReferentOpen) {
+              <app-referente-add-form
+                class="d-block mb-2"
+                [id]="id"
+                [adesione]="adesione"
+                (saved)="onReferentAdded()"
+                (close)="closeInlineAddReferent()"
+              ></app-referente-add-form>
+            }
+            @if (referents.length === 0 && !referentiLoading && !_addReferentOpen) {
+              <div class="text-muted small">{{ _message | translate }}</div>
+            }
+            @for (referent of referents; track referent.id) {
+              <ng-container *ngTemplateOutlet="newLayoutReferentRowTpl; context: { $implicit: referent, deletable: (updateMapper | mapper:canAddMapper) || isEdit }"></ng-container>
+            }
+            @if (referentiLoading) {
+              <ui-box-spinner [color]="'primary'" [diameter]="20" [strokeWidth]="1"></ui-box-spinner>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Referenti servizio -->
+      @let openS = isReferentGroupOpen('servizio');
+      <div class="lnk-ref-group" [class.is-open]="openS">
+        <div class="lnk-ref-group-hd"
+             [attr.aria-expanded]="openS"
+             (click)="toggleReferentGroup('servizio')"
+             (keydown.enter)="toggleReferentGroup('servizio')"
+             (keydown.space)="toggleReferentGroup('servizio'); $event.preventDefault()">
+          <h4>
+            {{ 'APP.ADESIONI.TITLE.ServiceReferents' | translate }}
+            <span class="lnk-ref-count">{{ serviceReferents.length }}</span>
+          </h4>
+          <i class="bi bi-chevron-down lnk-ref-group-chev"
+             [class.is-open]="openS"
+             aria-hidden="true"></i>
+        </div>
+        @if (openS) {
+          <div class="lnk-ref-group-body">
+            @for (referent of serviceReferents; track referent.id) {
+              <ng-container *ngTemplateOutlet="newLayoutReferentRowTpl; context: { $implicit: referent, deletable: false }"></ng-container>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Referenti dominio -->
+      @let openD = isReferentGroupOpen('dominio');
+      <div class="lnk-ref-group" [class.is-open]="openD">
+        <div class="lnk-ref-group-hd"
+             [attr.aria-expanded]="openD"
+             (click)="toggleReferentGroup('dominio')"
+             (keydown.enter)="toggleReferentGroup('dominio')"
+             (keydown.space)="toggleReferentGroup('dominio'); $event.preventDefault()">
+          <h4>
+            {{ 'APP.ADESIONI.TITLE.DomainReferents' | translate }}
+            <span class="lnk-ref-count">{{ domainReferents.length }}</span>
+          </h4>
+          <i class="bi bi-chevron-down lnk-ref-group-chev"
+             [class.is-open]="openD"
+             aria-hidden="true"></i>
+        </div>
+        @if (openD) {
+          <div class="lnk-ref-group-body">
+            @for (referent of domainReferents; track referent.id) {
+              <ng-container *ngTemplateOutlet="newLayoutReferentRowTpl; context: { $implicit: referent, deletable: false }"></ng-container>
+            }
+          </div>
+        }
+      </div>
+    </div>
+    }
+  </section>
+
+    </div><!-- /.env-body-pad -->
+  </section><!-- /.env (FASE 01) -->
+</ng-template>
+
+<!-- Riga referente — approval-card style del design-code.
+     Sorgente dati: `referent.source.utente` (nome, cognome,
+     email_aziendale, organizzazione.nome). Vedi getReferentName/Sub
+     /Initials nel TS per accesso robusto. -->
+<ng-template #newLayoutReferentRowTpl let-referent let-deletable="deletable">
+  <div class="approval-card">
+    <div class="av">{{ getReferentInitials(referent) }}</div>
+    <div class="body">
+      <div class="who">{{ getReferentName(referent) }}</div>
+      <div class="when">{{ getReferentSub(referent) }}</div>
+    </div>
+    <!-- Ruolo del referente (rev. 4.30): chip pill con il `tipo`
+         tradotto via `APP.ROLE.<tipo>` (es. `referente_servizio` ->
+         "Referente servizio"). I tipi sono assegnati in
+         `loadReferents`: `referente`/`referente_tecnico` per i
+         referenti adesione, `_servizio` / `_dominio` per gli
+         ereditati dalle entita` superiori. -->
+    @if (referent.source?.tipo) {
+      <span class="referent-role-tag">
+        {{ ('APP.ROLE.' + referent.source.tipo) | translate }}
+      </span>
+    }
+    @if (deletable) {
+      <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm lnk-btn-icon"
+              [tooltip]="'APP.TOOLTIP.Remove' | translate" container="body"
+              (click)="confirmDeleteReferente(referent)">
+        <i class="bi bi-trash text-danger"></i>
+      </button>
+    }
+  </div>
+</ng-template>
+
+<!-- FASE 02/03 — env-card con timeline (sub-stepper verticale).
+     Parametri:
+     - section: 'collaudo' | 'produzione' (chiave per gli helper TS).
+     - icon: classe Bootstrap dell'icona env (bi-flask | bi-rocket).
+     - titleKey: chiave i18n del titolo env.
+     - procLabelKey: chiave i18n del label "Procedura di {attivazione|configurazione}".
+     - body: TemplateRef che riempie il pannello del sub-step active
+       (collaudoBodyTpl | produzioneBodyTpl — contiene lista clients +
+       erogazioni + custom-properties; sotto flag `inlineEdit=true` su
+       quei sub-component, click matita rende form auth/endpoint inline). -->
+<ng-template #newLayoutEnvCardTpl
+              let-section="section"
+              let-icon="icon"
+              let-titleKey="titleKey"
+              let-procLabelKey="procLabelKey"
+              let-body="body"
+              let-disclaimers="disclaimers">
+  @let st = getFaseStatus(section === 'collaudo' ? 'collaudo' : 'produzione');
+  @let cnt = getSezioneCounter(section);
+  <section class="env"
+           [class.is-open]="true"
+           [class.is-locked]="st === 'pending'"
+           [class.is-done]="st === 'completed'">
+    <header class="env-hd">
+      <div class="env-icon"><i class="bi" [ngClass]="icon"></i></div>
+      <div class="env-meta">
+        <div class="env-title">
+          {{ titleKey | translate }}
+          @if (st === 'active') {
+            <span class="chip chip-accent"><span class="pulse"></span>{{ 'APP.ADESIONI.LABEL.AzioneRichiesta' | translate }}</span>
+          }
+          @if (st === 'completed') {
+            <span class="chip chip-ok"><i class="bi bi-check-lg"></i> {{ 'APP.ADESIONI.LABEL.FaseConclusa' | translate }}</span>
+          }
+          @if (st === 'pending') {
+            <span class="chip chip-muted"><i class="bi bi-lock-fill"></i> {{ 'APP.ADESIONI.LABEL.InAttesa' | translate }}</span>
+          }
+        </div>
+      </div>
+      @if (st !== 'pending' && cnt) {
+        <div class="env-progress">
+          <span>{{ cnt.done }}/{{ cnt.total }}</span>
+          <span class="bar"><span [style.width.%]="cnt.total ? (cnt.done * 100 / cnt.total) : 0"></span></span>
+        </div>
+      }
+    </header>
+    @if (st !== 'pending') {
+      <div class="env-body-pad">
+        <!-- Disclaimer di fase (Azione richiesta — banner giallo) -->
+        @if (disclaimers && disclaimers.length > 0) {
+          @for (item of disclaimers; track $index) {
+            <div class="subbanner">
+              <i class="bi" [ngClass]="getDisclaimerIconClass(item.severity)"></i>
+              <div class="grow">
+                <markdown class="disclaimer-inline" [data]="item.disclaimer"></markdown>
+              </div>
+            </div>
+          }
+        }
+
+        <!-- Substepper verticale config-driven (rev. 4.10).
+             Pilotato dalla stessa source data del legacy
+             `<app-adesione-step-bar>` per le step-bar interne:
+             `getStepWizardSezione('collaudo')` /
+             `getStepWizardSezione('produzione')` (StepWizardItem[] dal
+             config `adesione.step_wizard_collaudo` / `_produzione`).
+             Lo stato di ciascun sub-step (active/completed/locked) e`
+             derivato internamente dal componente.
+             Content projection: il body si dispatcha sul `sub.code`
+             (in_compilazione -> lista clients/endpoint + CTA workflow;
+             altri -> messaggio "in attesa gestore"). -->
+        <app-adesione-substepper
+          [steps]="getStepWizardSezione(section)"
+          [currentState]="adesione?.stato || null"
+          [workflowStati]="workflowStati"
+          [title]="procLabelKey | translate">
+          <ng-template let-sub>
+            @switch (sub.code) {
+              @case ('in_compilazione') {
+                <ng-container *ngTemplateOutlet="body"></ng-container>
+                @if (sub.state === 'active' && hasNextStateWorkflow() && _hasCambioStato()) {
+
+                  <div class="mt-3">
+                    <ng-container *ngTemplateOutlet="workflowErrorTpl"></ng-container>
+                  </div>
+
+                  <div class="d-flex justify-content-end mt-3 pt-3" style="border-top: 1px solid var(--line);">
+                    <lnk-button
+                      [label]="'APP.WORKFLOW.MENU.' + getNextStateWorkflowName()"
+                      [primary]="true"
+                      [ariaLabel]="'APP.WORKFLOW.MENU.' + getNextStateWorkflowName()"
+                      (onAction)="onWorkflowAction()"
+                      [disabled]="!_hasCambioStato() || changingStatus || loadingCheckDati">
+                    </lnk-button>
+                  </div>
+                }
+              }
+              @default {
+                @if (sub.state === 'active') {
+                  <h4 class="pt-3">{{ 'APP.ADESIONI.LABEL.WaitingGestoreTitle' | translate }}</h4>
+                  <p class="hint mb-0">{{ 'APP.ADESIONI.LABEL.WaitingGestoreDesc' | translate }}</p>
+                }
+              }
+            }
+          </ng-template>
+        </app-adesione-substepper>
+      </div>
+    }
+  </section>
+</ng-template>
+
+<!-- Errore di validazione del cambio stato (Issue 254 NEW LAYOUT,
+     rev. 4.34): estratto come ng-template per evitare duplicazione
+     del frammento (4 punti d'uso nel wizard). Le sorgenti dati
+     (`_error`, `_errorMsg`, `_errors`, `_fromStatus`, `_toStatus`,
+     `wizardNewLayout`, `resetError()`) sono prese dal contesto del
+     componente (closure del template). -->
+<ng-template #workflowErrorTpl>
+  @if (_error) {
+    @if (!_errors.length) {
+      <div class="gl-alert gl-alert-danger col-md-12 mb-5">
+        <span>{{ _errorMsg }}</span>
+      </div>
+    }
+    @if (_errors.length > 0) {
+      @if (wizardNewLayout) {
+        <app-error-view-card
+          [errTitle]="'APP.WORKFLOW.ERROR.CambioStato' | translate:{from: _fromStatus, to: _toStatus}"
+          [errors]="_errors"
+          [showClose]="true"
+          (onClose)="resetError()"
+        ></app-error-view-card>
+      } @else {
+        <ui-error-view
+          [errTitle]="'APP.WORKFLOW.ERROR.CambioStato' | translate:{from: _fromStatus, to: _toStatus}"
+          [errors]="_errors"
+          [showClose]="true"
+          (onClose)="resetError()"
+        ></ui-error-view>
+      }
+    }
+  }
 </ng-template>

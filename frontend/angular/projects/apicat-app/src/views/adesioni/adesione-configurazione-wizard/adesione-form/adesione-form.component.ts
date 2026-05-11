@@ -16,11 +16,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, Input, OnInit, SimpleChanges } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { AbstractControl, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { Tools, COMPONENTS_IMPORTS } from '@linkit/components';
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
@@ -31,9 +30,9 @@ import { AuthenticationService } from '@app/services/authentication.service';
 
 import { Grant } from '@app/model/grant';
 
-import { map, of, tap } from 'rxjs';
+import { map, of } from 'rxjs';
 
-import { AdesioneUpdate, Servizio, Soggetto } from '../../adesione-details/adesioneUpdate';
+import { Servizio, Soggetto } from '../../adesione-details/adesioneUpdate';
 
 import { Utente } from '@app/model/utente';
 import { Profilo } from '@app/model/profilo';
@@ -52,7 +51,7 @@ import { Ruolo } from '@app/views/utenti/utente-details/utente';
         MapperPipe
     ]
 })
-export class AdesioneFormComponent implements OnInit {
+export class AdesioneFormComponent implements OnInit, OnChanges {
 
     @Input() id: number = 0;
     @Input() adesione: any = null;
@@ -61,6 +60,15 @@ export class AdesioneFormComponent implements OnInit {
     @Input() grant: Grant | null = null;
     @Input() singleColumn: boolean = false;
     @Input() editable: boolean = false;
+
+    /**
+     * Issue 254 NEW LAYOUT (rev. 4.6): quando true, il bottone interno
+     * "Modifica" (top-right) e` nascosto. Il parent controlla l'ingresso
+     * in edit mode chiamando `onEdit(null)` via `@ViewChild`. Il bottone
+     * di Save/Cancel in fondo (`<lnk-form-submit>`) resta attivo.
+     * Default `false` = comportamento legacy (button interno visibile).
+     */
+    @Input() externalEditControl: boolean = false;
     
     model: string = 'adesioni';
     dataModel: any = null;
@@ -111,13 +119,10 @@ export class AdesioneFormComponent implements OnInit {
     updateMapper: string = '';
 
     constructor(
-        private route: ActivatedRoute,
-        private router: Router,
-        private fb: FormBuilder,
-        private translate: TranslateService,
-        private apiService: OpenAPIService,
-        private authenticationService: AuthenticationService,
-        private utils: UtilService
+        private readonly fb: FormBuilder,
+        private readonly apiService: OpenAPIService,
+        private readonly authenticationService: AuthenticationService,
+        private readonly utils: UtilService
     ) { }
 
     ngOnInit() {
@@ -187,7 +192,6 @@ export class AdesioneFormComponent implements OnInit {
     }
 
     fieldIsDisabled(field: string) {
-        this.formGroup.controls[field];
         return this.editable && !this.isEdit;
     }
 
@@ -226,9 +230,9 @@ export class AdesioneFormComponent implements OnInit {
             });
         }
 
-        this.initDataService = dataModel?.servizio !== null ? { label: `${dataModel.servizio.nome} v.${dataModel.servizio.versione}`, value: dataModel.servizio.id_servizio, item: dataModel.servizio } : null;
-        this.initDataOrganizzazione = dataModel?.soggetto !== null ? { label: dataModel.soggetto.organizzazione.nome, value: dataModel.soggetto.organizzazione.id_organizzazione, item: dataModel.soggetto.organizzazione } : null;
-        this.initDataSoggetto = dataModel?.soggetto !== null ? { label: dataModel.soggetto.nome, value: dataModel.soggetto.id_soggetto, item: dataModel.soggetto } : null;
+        this.initDataService = dataModel?.servizio ? { label: `${dataModel.servizio.nome} v.${dataModel.servizio.versione}`, value: dataModel.servizio.id_servizio, item: dataModel.servizio } : null;
+        this.initDataOrganizzazione = dataModel?.soggetto ? { label: dataModel.soggetto.organizzazione.nome, value: dataModel.soggetto.organizzazione.id_organizzazione, item: dataModel.soggetto.organizzazione } : null;
+        this.initDataSoggetto = dataModel?.soggetto ? { label: dataModel.soggetto.nome, value: dataModel.soggetto.id_soggetto, item: dataModel.soggetto } : null;
 
         if (this.initDataOrganizzazione) { this.formGroup.get('id_organizzazione')?.disable(); }
         this.formGroup.get('soggetto_nome')?.disable();
@@ -236,14 +240,6 @@ export class AdesioneFormComponent implements OnInit {
         this.formGroup.get('soggetto_nome')?.updateValueAndValidity();
 
         this.onChangeServizio(this.initDataService);
-
-        // console.group('initDataForm');
-        // console.log('dataModel', dataModel);
-        // console.log('formGroup', this.formGroup);
-        // console.log('initDataService', this.initDataService);
-        // console.log('initDataOrganizzazione', this.initDataOrganizzazione);
-        // console.log('initDataSoggetto', this.initDataSoggetto);
-        // console.groupEnd();
 
         this.loadSoggetti();
     }
@@ -284,7 +280,6 @@ export class AdesioneFormComponent implements OnInit {
                 next: (response: any) => {
                     this.isEdit = false;
                     this.adesione = response;
-                    // this.adesione = new Adesione({ ...response });
                     this.id = this.adesione.id_adesione;
                     this.saving = false;
                 },
@@ -337,9 +332,6 @@ export class AdesioneFormComponent implements OnInit {
     }
 
     private searchServizi(term: string) {
-        // if (!term) {
-        //     return of([]);
-        // }
         return this.apiService.getData('servizi', { q: term }, this.limit, 'nome').pipe(
             map((response: any) => response.map(
                 (item: any) => (item.id_servizio) ? ({
@@ -356,9 +348,6 @@ export class AdesioneFormComponent implements OnInit {
     }
 
     private searchOrganizzazioni(term: string) {
-        // if (!term) {
-        //     return of([]);
-        // }
         const options: any = { q: term, 'soggetto_aderente' : true };
         return this.apiService.getData('organizzazioni', options, this.limit, 'nome').pipe(
             // tap((response: any) => console.log('ORGANIZZAZIONI: ', response)),
@@ -401,21 +390,12 @@ export class AdesioneFormComponent implements OnInit {
         this.idDominioEsterno = this.servizio?.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
         this.idSoggettoDominioEsterno = this.servizio?.dominio?.soggetto_referente?.id_soggetto || null;
     
-        // console.group('_onChangeServizio');
-        // console.log('servizio', this.servizio);
-        // console.log('isDominioEsterno', this.isDominioEsterno);
-        // console.log('idDominioEsterno', this.idDominioEsterno);
-        // console.log('idSoggettoDominioEsterno', this.idSoggettoDominioEsterno);
-        // console.log('profilo', this.profilo);
-        // console.groupEnd();
-    
         this.updateIdLogico();
         
         if (this.isDominioEsterno) {
             const _organizzazione = this.servizio.soggetto_interno?.organizzazione;
             this.idDominioEsterno = _organizzazione?.id_organizzazione || null;
             this.idSoggettoDominioEsterno = this.servizio.soggetto_interno?.id_soggetto || null;
-            // this._initOrganizzazioniSelect([_organizzazione]);
             this.initDataOrganizzazione = _organizzazione ? { label: _organizzazione.nome, value: _organizzazione.id_organizzazione, item: _organizzazione } : null;
             this.formGroup.get('id_organizzazione')?.setValue(this.idDominioEsterno);
             this.formGroup.get('id_organizzazione')?.disable();
@@ -427,7 +407,6 @@ export class AdesioneFormComponent implements OnInit {
                 if (this.servizio && await this.isCurrentUserReferenteServizio(this.servizio)){
                     this.formGroup.get('id_organizzazione')?.enable();
                     this.formGroup.get('id_organizzazione')?.reset();
-                    // this.ngSelectOrganizazione?.handleClearClick();
                 } else {
                     if (this.profilo.utente.organizzazione) {
                         this.loadOrganizzazione(this.profilo.utente.organizzazione.id_organizzazione);
@@ -444,14 +423,8 @@ export class AdesioneFormComponent implements OnInit {
         this.apiService.getList('soggetti', _options).subscribe({
             next: (response: any) => {
                 this.orgAppartenenzaUtente = response.content[0];
-                const aux: any = {
-                    id_organizzazione: this.orgAppartenenzaUtente.organizzazione.id_organizzazione,
-                    nome: this.orgAppartenenzaUtente.organizzazione.nome,
-                }
         
-                // this.ngSelectOrganizazione?.handleClearClick();
                 this.formGroup.get('id_organizzazione')?.disable();
-                // this.initOrganizzazioniSelect([aux]);
                 this.initDataOrganizzazione = this.orgAppartenenzaUtente ? { label: this.orgAppartenenzaUtente.nome, value: this.orgAppartenenzaUtente.id_organizzazione, item: this.orgAppartenenzaUtente } : null;
 
                 setTimeout(() => {
@@ -481,7 +454,6 @@ export class AdesioneFormComponent implements OnInit {
                             organizzazione: result[0].organizzazione,
                             referente: result[0].referente,
                         }
-                        // this._initSoggettiSelect([aux]);
                         controls.id_soggetto.patchValue(aux.id_soggetto);
                         controls.soggetto_nome.patchValue(aux.nome);
                         controls.id_soggetto.disable();
@@ -527,7 +499,6 @@ export class AdesioneFormComponent implements OnInit {
                         this.disabled_id_soggetto = null;
                     }
 
-                    // this._initReferentiSelect([]);
                     controls.referente.patchValue(null);
 
                     this.formGroup.updateValueAndValidity();
@@ -542,8 +513,6 @@ export class AdesioneFormComponent implements OnInit {
 
             this.formGroup.controls.id_soggetto.setValue(this.idSoggettoDominioEsterno);
             this.formGroup.controls.referente.patchValue(null);
-            // this._initSoggettiSelect([]);
-            // this._initReferentiSelect([]);
             this.formGroup.updateValueAndValidity();
 
             this.elencoSoggetti = [];

@@ -24,7 +24,7 @@ import { BehaviorSubject } from 'rxjs';
     template: `
     @for (snackbar of MSC.MultiSnackbar; track snackbar; let idx = $index) {
       <div [class.old-message]="idx !== (MSC.MultiSnackbar.length - 1)"
-        class="snackbar-message d-flex flex-column flex-sm-row align-items-sm-center justify-content-sm-between"
+        class="container snackbar-message d-flex flex-column flex-sm-row align-items-sm-center justify-content-sm-between"
         [style.background-color]="_colors[snackbar.type].background"
         [style.border-color]="_colors[snackbar.type].border"
         [style.color]="_colors[snackbar.type].color">

@@ -107,6 +107,41 @@
                 <div class="text-break" markdown>{{ 'APP.USERS.TITLE.GeneralInformations_sub' | translate }}</div>
               </div>
             </div>
+            <div class="row principal">
+              <div class="col-6">
+                <div class="form-group">
+                  <label class="label-bold" for="principal">{{ 'APP.USERS.LABEL.Principal' | translate }}
+                    @if (_isEdit) {
+                      <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'principal'"></span>
+                    }
+                  </label>
+                  @if (_isEdit) {
+                    <div class="">
+                      <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('principal')" type="text" name="principal" id="principal" formControlName="principal" appTrimOnBlur>
+                      @if (f['principal'].invalid && (f['principal'].dirty || f['principal'].touched)) {
+                        <p class="form-text text-danger">
+                          @if (f['principal'].errors && f['principal'].errors['required']) {
+                            <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                          }
+                          @if (f['principal'].errors && f['principal'].errors['notOnlyWhitespace']) {
+                            <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.NotOnlyWhitespace' | translate }}</span>
+                          }
+                          @if (f['principal'].errors && f['principal'].errors['maxlength']) {
+                            <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['principal'].errors['maxlength'].requiredLength } }}</span>
+                          }
+                        </p>
+                      }
+                      <ui-input-help field="principal" context="USERS"></ui-input-help>
+                    </div>
+                  }
+                  @if (!_isEdit) {
+                    <div class="">
+                      <input type="text" readonly class="form-control-plaintext" id="principal" [value]="utente.principal || '--'">
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
             <div class="row nome cognome">
               <div class="col-6">
                 <div class="form-group">
@@ -170,41 +205,6 @@
                   @if (!_isEdit) {
                     <div class="">
                       <input type="text" readonly class="form-control-plaintext" id="cognome" [value]="utente.cognome">
-                    </div>
-                  }
-                </div>
-              </div>
-            </div>
-            <div class="row principal">
-              <div class="col-6">
-                <div class="form-group">
-                  <label class="label-bold" for="principal">{{ 'APP.USERS.LABEL.Principal' | translate }}
-                    @if (_isEdit) {
-                      <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'principal'"></span>
-                    }
-                  </label>
-                  @if (_isEdit) {
-                    <div class="">
-                      <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('principal')" type="text" name="principal" id="principal" formControlName="principal" appTrimOnBlur>
-                      @if (f['principal'].invalid && (f['principal'].dirty || f['principal'].touched)) {
-                        <p class="form-text text-danger">
-                          @if (f['principal'].errors && f['principal'].errors['required']) {
-                            <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                          }
-                          @if (f['principal'].errors && f['principal'].errors['notOnlyWhitespace']) {
-                            <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.NotOnlyWhitespace' | translate }}</span>
-                          }
-                          @if (f['principal'].errors && f['principal'].errors['maxlength']) {
-                            <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['principal'].errors['maxlength'].requiredLength } }}</span>
-                          }
-                        </p>
-                      }
-                      <ui-input-help field="principal" context="USERS"></ui-input-help>
-                    </div>
-                  }
-                  @if (!_isEdit) {
-                    <div class="">
-                      <input type="text" readonly class="form-control-plaintext" id="principal" [value]="utente.principal || '--'">
                     </div>
                   }
                 </div>

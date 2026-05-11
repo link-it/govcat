@@ -32,6 +32,12 @@ describe('ClientsComponent', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     savedConfigurazione = Tools.Configurazione;
+    // Reset esplicito per evitare leak di stato fra test (alcuni test
+    // della suite settano `Tools.Configurazione = { servizio: { api: { auth_type } } }`
+    // e l'ngOnInit lo legge incondizionatamente: senza reset i test
+    // che NON lo settano accedono a una shape parziale e crashano sul
+    // `.map` di `auth_type`).
+    Tools.Configurazione = null as any;
     mockConfigService.getConfiguration.mockReturnValue({ AppConfig: {} });
     mockConfigService.getConfig.mockReturnValue(of({}));
     mockApiService.getList.mockReturnValue(of({ content: [], page: {} }));

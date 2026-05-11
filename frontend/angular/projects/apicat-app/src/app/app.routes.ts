@@ -109,6 +109,11 @@ export const routes: Routes = [
         loadChildren: () => import('../views/organizzazioni/organizzazioni.routes').then(m => m.ORGANIZZAZIONI_ROUTES)
       },
       {
+        path: 'organizzazione-manage',
+        canActivate: [ForbidAnonymousGuard],
+        loadChildren: () => import('../views/organizzazione-manage/organizzazione-manage.routes').then(m => m.ORGANIZZAZIONE_MANAGE_ROUTES)
+      },
+      {
         path: 'gruppi',
         canActivate: [GestoreGuard],
         loadChildren: () => import('../views/gruppi/gruppi.routes').then(m => m.GRUPPI_ROUTES)

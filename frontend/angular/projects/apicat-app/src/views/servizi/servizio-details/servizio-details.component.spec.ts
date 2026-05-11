@@ -116,8 +116,10 @@ describe('ServizioDetailsComponent', () => {
     // route.data subscription was called during construction
   });
 
-  it('should call loadAnagrafiche in constructor', () => {
-    // loadAnagrafiche is async and calls utils.getAnagrafiche
+  it('should call loadAnagrafiche in ngOnInit', () => {
+    // loadAnagrafiche is async and calls utils.getAnagrafiche;
+    // viene invocata da ngOnInit (non dal costruttore).
+    component.ngOnInit();
     expect(mockUtilService.getAnagrafiche).toHaveBeenCalled();
   });
 

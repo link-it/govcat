@@ -184,9 +184,14 @@ export class ClientAuthFormComponent {
         return (rate as FormGroup)?.controls ?? {};
     }
 
+    /**
+     * Vero se il control e` invalido E e` stato `touched`. Supporta sia
+     * control top-level (`'nome'`) che path annidati (`'rate_limiting.quota'`)
+     * grazie a `FormGroup.get(path)`.
+     */
     _hasControlError(name: string): boolean {
-        const ctrl = this.f[name];
-        return !!(ctrl && ctrl.errors && ctrl.touched);
+        const ctrl = this.input?.formGroup?.get(name);
+        return !!(ctrl?.errors && ctrl.touched);
     }
 
     /**

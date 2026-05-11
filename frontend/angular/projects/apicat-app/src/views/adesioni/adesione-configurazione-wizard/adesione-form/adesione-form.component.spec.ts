@@ -63,8 +63,7 @@ describe('AdesioneFormComponent', () => {
     savedConfigurazione = Tools.Configurazione;
     Tools.Configurazione = null;
     component = new AdesioneFormComponent(
-      mockRoute, mockRouter, mockFb, mockTranslate,
-      mockApiService, mockAuthService, mockUtils
+      mockFb, mockApiService, mockAuthService, mockUtils
     );
   });
 

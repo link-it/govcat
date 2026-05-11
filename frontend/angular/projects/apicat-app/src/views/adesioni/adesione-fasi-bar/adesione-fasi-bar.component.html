@@ -1,0 +1,61 @@
+<!--
+  AdesioneFasiBarComponent — Issue 254 NEW LAYOUT (rev. 4.8).
+  Step-bar 3-fasi cliccabile, design-code `.gstepper > .gstep`.
+  Le rules CSS sono definite dal parent (wizard) sotto `:host(.lnk-wizard)`
+  via Angular ::ng-deep dimostrato non necessario — questo componente e`
+  renderizzato come child del wizard, quindi le rules `.gstepper`,
+  `.gstep`, `.gstep .num`, `.gstep .lbl`, ecc. del wizard SCSS si
+  applicano correttamente (il parent ha la host class `.lnk-wizard`,
+  e tutti i descendant ereditano l'attribute `_ngcontent-XXX` del
+  parent, cosi` le rules `.lnk-wizard .gstepper` matchano questo
+  template).
+
+  Rendering:
+   - container `.gstepper` (grid 3 colonne)
+   - per ogni fase un `.gstep` cliccabile con stati visivi:
+     * `is-current` (workflow position — rosso)
+     * `is-viewing` (selezione utente — sfondo + outline)
+     * `is-done` (completed)
+     * `is-locked` (pending — futura)
+   - bullet `.num` con icona / numero a seconda dello stato
+   - label `.lbl` con `.t` (Fase 0X) e `.n` (titolo)
+   - `.viewing-mark` (barra colorata sotto) quando viewing
+-->
+@if (items.length > 0) {
+  <div class="gstepper" role="tablist">
+    @for (item of items; track item.code) {
+      @let viewing = isViewing(item);
+      <button type="button"
+              role="tab"
+              class="gstep"
+              [class.is-done]="item.state === 'completed' || item.state === 'final'"
+              [class.is-current]="item.state === 'current'"
+              [class.is-locked]="item.state === 'pending'"
+              [class.is-viewing]="viewing"
+              [class.is-disabled]="!item.clickable"
+              [disabled]="!item.clickable"
+              [attr.aria-selected]="viewing"
+              [attr.aria-disabled]="!item.clickable"
+              [attr.tabindex]="item.clickable ? 0 : -1"
+              (click)="onStepClick(item)">
+        <div class="num">
+          @if (item.state === 'completed' || item.state === 'final') {
+            <i class="bi bi-check-lg"></i>
+          } @else if (item.state === 'current') {
+            {{ item.numberLabel }}
+          } @else {
+            <i class="bi bi-lock-fill"></i>
+          }
+        </div>
+        <div class="lbl">
+          <span class="t">{{ 'APP.ADESIONI.LABEL.FaseLabel' | translate }} {{ item.numberLabel }}</span>
+          <span class="n">{{ item.label }}</span>
+        </div>
+        @if (viewing) {
+          <span class="viewing-mark"
+                [style.background]="(item.state === 'completed' || item.state === 'final') ? '#2a7a50' : 'var(--accent)'"></span>
+        }
+      </button>
+    }
+  </div>
+}
