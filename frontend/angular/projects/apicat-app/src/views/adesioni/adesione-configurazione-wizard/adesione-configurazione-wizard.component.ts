@@ -1170,8 +1170,10 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     }
 
     isGestoredMapper = (update: string): boolean => {
-        const _grant: any = this.grant || [];
-        return this.authenticationService.isGestore(_grant);
+        // `isGestore()` si aspetta l'array di ruoli (string[]) e fa
+        // `.includes('gestore')`; passargli l'intero Grant object
+        // causa `grant.includes is not a function` a runtime.
+        return this.authenticationService.isGestore(this.grant?.ruoli || []);
     }
 
     /**

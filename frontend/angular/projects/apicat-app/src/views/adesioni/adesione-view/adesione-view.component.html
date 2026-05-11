@@ -16,8 +16,23 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
-<div id="route-section" class="">
-  <div class="top-area container-fluid limit-container-width px-0">
+<!--
+  Issue 254 (NEW VETRINA): refactor del template "view" dell'adesione
+  con il layout vetrina approvato in `mock-views/app/adesione-page`.
+
+  Sorgenti dati invariate (`adesione`, `referents`, `authModes`,
+  `apis`, `environment`); il template usa i nuovi shared components
+  in `components/vetrina/`: `<lnk-hero-image>`, `<lnk-stato-chip>`,
+  `<lnk-refs>`, `<lnk-env-toggle>`.
+
+  I pannelli auth / endpoint sono renderizzati inline (markup
+  `.expand` da `styles/app-view.scss`) leggendo direttamente le
+  property `AuthModeView` / `ApiView`, senza un mapper VM per
+  ora — il VM `AdesioneVetrinaVM` resta disponibile per la futura
+  rifattorizzazione che eliminera` `AuthModeView`/`ApiView`.
+-->
+<div id="route-section" class="lnk-vetrina" data-hide-image="true">
+  <div class="breadcrumbs-area top-area container-fluid limit-container-width px-0">
     <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
     <div class="d-flex flex-grow-1">&nbsp;</div>
     @if (!_spin) {
@@ -33,256 +48,295 @@
       </div>
     }
   </div>
+
   <section #myScroll
-    class="container-fluid limit-container-width container-scroller container-scroller-no-top-area container-scroller-no-search px-0 pt-4 container-limited-"
+    class="container-fluid limit-container-width container-scroller container-scroller-no-top-area container-scroller-no-search px-2 mt-2 py-1"
     (scroll)="onScroll($event)">
 
     @if (_showScroll) {
       <app-scroll (scrollToTop)="_onScrollToTop()"></app-scroll>
     }
 
-    @if ((adesione && !_spin)) {
-      <div class="settings-">
-        <div class="settings-content-">
-          <div id="main">
-            <div class="container-fluid">
-              <div class="row">
-                <div class="col-4 border-end" style="min-height: 400px;">
-                  <div class="sticky-top">
-                    @if (adesione.servizio.immagine) {
-                      <span>
-                      </span>
-                    }
-                    <div class="titolo-block mt-4">
-                      <h4 class="d-inline text-break">{{ adesione.servizio.nome }}</h4>
-                      <span class="badge badge-pill badge-primary swagger--hero-pill ml-2">v. {{ adesione.servizio.versione }}</span>
-                    </div>
-                    <div class="organizzazione-block stato-block mt-2">
-                      <p class="lead pt-3 pb-3 project__desc">
-                        <span class="text-break">{{ adesione.soggetto.organizzazione.nome }}</span>
-                        <br />
-                        @if (adesione) {
-                          <ui-data-type
-                            [data]="adesione"
-                            [elem]="{ field: 'stato', type: 'tag', options: 'status' }"
-                            [config]="config">
-                          </ui-data-type>
-                        }
-                      </p>
-                    </div>
-                    @if (_showRichiedente) {
-                      <div class="">
-                        <span class="text-break">{{'APP.LABEL.SubscriptionRequest' | translate: {date: adesione.data_creazione | date: 'dd.MM.yyyy', name: adesione.utente_richiedente.nome, surname: adesione.utente_richiedente.cognome} }}</span>
-                      </div>
-                    }
-                    <div class="mt-4">
-                      <span class="text-break">{{adesione.servizio.descrizione_sintetica}}</span>
-                    </div>
-                    @if (canDownloadSchedaAdesioneMapper()) {
-                      <div class="download-block row mt-4">
-                        <div class="col-12">
-                          <button class="btn btn-link btn-md gl-button" (click)="downloadSchedaAdesione()" [class.disabled]="_downloading">
-                            <i class="bi bi-download me-2"></i>
-                            <span>{{ 'APP.ADESIONI.LABEL.DownloadScheda' | translate }}</span>
-                            @if (_downloading) {
-                              <span class="spinner-border spinner-border-sm ms-2"></span>
-                            }
-                          </button>
-                        </div>
-                      </div>
-                    }
-                    @if (_showReferents) {
-                      <div class="referenti-block mt-5">
-                        <h5 class="h6 text-uppercase text-muted mb-3">{{ 'APP.SERVICES.TITLE.Referenti' | translate }}</h5>
-                        <div class="d-flex flex-column">
-                          @if (referentiLoading) {
-                            <span class="spinner-border spinner-border-sm"></span>
-                          } @else {
-                            <ul class="list-unstyled">
-                              @for (referente of referents; track referente; let index = $index) {
-                                <li class="d-flex project__leaders__item mb-3" [class.hide-more]="index >= maxReferenti">
-                                  <span title="referente" target="_blank">
-                                    <img class="align-top" alt="Avatar referente" ngxGravatar [email]="referente.email || ''" [size]="50" fallback="mp" (error)="onAvatarError($event)">
-                                  </span>
-                                  <div class="flex-column">
-                                    <div class="ml-2 mb-1 d-flex referente">
-                                      <span title="referente" target="_blank" class="align-self-center">{{ referente.name }}</span>
-                                    </div>
-                                    <div class="ml-1 d-flex flex-wrap ref-types">
-                                      @for (type of referente.types; track type) {
-                                        <ui-data-type class="ml-1"
-                                          [data]="{ type: type }"
-                                          [elem]="{ field: 'type', type: 'tag', options: 'type' }"
-                                          [config]="config">
-                                        </ui-data-type>
-                                      }
-                                    </div>
-                                  </div>
-                                </li>
+    @if (adesione && !_spin) {
+      <main class="main" data-hide-image="true">
+
+        <!-- Hero block: illustrazione + titolo + descrizione + meta + actions. -->
+        <div class="hero">
+          <div class="hero-img"><lnk-hero-image></lnk-hero-image></div>
+          <div class="hero-meta">
+            <div class="hero-eyebrow">
+              {{ 'APP.TITLE.Subscription' | translate }}
+              <span class="dot"></span>
+              {{ adesione.soggetto.organizzazione.nome }}
+            </div>
+            <h1>
+              {{ adesione.servizio.nome }}
+              <span class="ver">v.{{ adesione.servizio.versione }}</span>
+            </h1>
+            <p class="desc">{{ adesione.servizio.descrizione_sintetica }}</p>
+            <div class="meta-row">
+              <lnk-stato-chip
+                [stato]="adesione.stato"
+                [i18nPrefix]="'APP.STATUS'"
+              ></lnk-stato-chip>
+              @if (_showRichiedente && adesione.utente_richiedente) {
+                <span class="pill-plain">
+                  <i class="bi bi-calendar me-1"></i>
+                  {{ 'APP.LABEL.SubscriptionRequest' | translate:{
+                    date: (adesione.data_creazione | date: 'dd.MM.yyyy'),
+                    name: adesione.utente_richiedente.nome,
+                    surname: adesione.utente_richiedente.cognome
+                  } }}
+                </span>
+              }
+            </div>
+          </div>
+          <div class="hero-actions">
+            <!-- Hero: solo "Scarica scheda di adesione" (in linea
+                 con `servizio-view`). La CTA "Vai al Servizio" e`
+                 stata migrata al banner sotto l'hero
+                 (`<lnk-action-banner>`). -->
+            @if (canDownloadSchedaAdesioneMapper()) {
+              <button type="button" class="btnc btnc-default"
+                      [disabled]="_downloading"
+                      (click)="downloadSchedaAdesione()">
+                <i class="bi bi-download me-2"></i>
+                {{ 'APP.ADESIONI.LABEL.DownloadScheda' | translate }}
+                @if (_downloading) {
+                  <span class="spinner-border spinner-border-sm ms-2"></span>
+                }
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Action banners (stack verticale sotto l'hero). Per
+             l'adesione l'unico banner attivo e` "Vai al servizio"
+             — la sorgente da cui questa adesione e` nata. La CTA
+             porta a `/servizi/:id_servizio` (rispetta middle/Ctrl
+             click via `navigationService.shouldOpenInNewTab`). -->
+        @if (adesione.servizio?.id_servizio) {
+          <lnk-action-banner
+            icon="bi-grid-3x3-gap"
+            [title]="'APP.BUTTON.GoToService' | translate"
+            [subtitle]="'APP.MESSAGE.GoToServiceSubtitle' | translate"
+            [ctaLabel]="'APP.BUTTON.GoToService' | translate"
+            ctaIcon="bi-grid-3x3-gap"
+            variant="info"
+            (action)="onGoToService($event)"
+          ></lnk-action-banner>
+        }
+
+        <!-- Layout 2-col: sidebar Referenti + main Configurazione. -->
+        <div class="layout">
+          @if (_showReferents) {
+            <aside>
+              <div class="card card-pad-tight">
+                <div class="section-title">
+                  <span>{{ 'APP.TITLE.ServiceReferents' | translate }}</span>
+                  <span class="grow"></span>
+                  @if (!referentiLoading) {
+                    <span class="count">{{ referents.length }}</span>
+                  }
+                </div>
+                @if (referentiLoading) {
+                  <span class="spinner-border spinner-border-sm"></span>
+                } @else {
+                  <lnk-refs [list]="referentsAsLnkRefs" variant="cards"></lnk-refs>
+                }
+              </div>
+            </aside>
+          }
+
+          <section class="pt-1">
+            <div class="section-bar">
+              <h2>{{ 'APP.TITLE.Configuration' | translate }}</h2>
+              <span class="grow"></span>
+              <lnk-env-toggle [env]="environment === 'produzione' ? 'produzione' : 'collaudo'"
+                              (change)="onEnvToggle($event)"></lnk-env-toggle>
+            </div>
+
+            @if (_loadingConfiguration) {
+              <ui-box-spinner [color]="'primary'" [diameter]="24" [strokeWidth]="2"></ui-box-spinner>
+            }
+
+            <!-- Auth modes -->
+            @if (authModes.length > 0) {
+              <div class="section-title">
+                <span>{{ 'APP.ADESIONI.TITLE.ConfigurationAuth' | translate }}</span>
+                <span class="count">{{ authModes.length }}</span>
+              </div>
+              @for (mode of authModes; track $index; let i = $index) {
+                <div class="expand" [class.is-open]="openAuth === i">
+                  <div class="expand-hd"
+                       role="button"
+                       tabindex="0"
+                       (click)="toggleAuth(i)"
+                       (keydown.enter)="toggleAuth(i)"
+                       (keydown.space)="toggleAuth(i); $event.preventDefault()">
+                    <div class="icn"><i class="bi bi-shield"></i></div>
+                    <div class="name">{{ mode.name }}</div>
+                    <span class="chip chip-info me-2">{{ mode.iop }}</span>
+                    <i class="bi bi-chevron-down chev"></i>
+                  </div>
+                  <div class="expand-body">
+                    <div class="inner">
+                      <div class="expand-body-pad">
+                        <div class="kv-list">
+                          @if (mode.canViewClientId) {
+                            <div class="kv">
+                              <div class="k">{{ mode.client_id_label | translate }}</div>
+                              <div class="v mono" [class.empty]="mode.client_id === '-'">
+                                @if (mode.client_id === '-') {
+                                  {{ 'APP.LABEL.NotSpecified' | translate }}
+                                } @else {
+                                  {{ mode.client_id }}
+                                }
+                              </div>
+                              @if (mode.client_id && mode.client_id !== '-') {
+                                <button type="button" class="copy-btn" (click)="copy(mode.client_id)"
+                                        [title]="'APP.BUTTON.Copy' | translate">
+                                  <i class="bi bi-copy"></i>
+                                </button>
                               }
-                            </ul>
+                            </div>
+                          }
+                          @if (mode.canViewUsername) {
+                            <div class="kv">
+                              <div class="k">{{ 'APP.LABEL.Username' | translate }}</div>
+                              <div class="v" [class.empty]="mode.username === '-'">
+                                {{ mode.username === '-' ? ('APP.LABEL.NotSpecified' | translate) : mode.username }}
+                              </div>
+                            </div>
+                          }
+                          @if (mode.canViewIpfruizione) {
+                            <div class="kv">
+                              <div class="k">{{ 'APP.ADESIONI.TITLE.IPfruizione' | translate }}</div>
+                              <div class="v mono" [class.empty]="mode.ip === '-'">
+                                {{ mode.ip === '-' ? ('APP.LABEL.NotSpecified' | translate) : mode.ip }}
+                              </div>
+                              @if (mode.ip && mode.ip !== '-') {
+                                <button type="button" class="copy-btn" (click)="copy(mode.ip)"
+                                        [title]="'APP.BUTTON.Copy' | translate">
+                                  <i class="bi bi-copy"></i>
+                                </button>
+                              }
+                            </div>
+                          }
+                          @if (mode.canViewOAuthCode) {
+                            <div class="kv">
+                              <div class="k">{{ 'APP.CLIENT.LABEL.UrlRedirezione' | translate }}</div>
+                              <div class="v">{{ mode.url_redirezione }}</div>
+                            </div>
+                            <div class="kv">
+                              <div class="k">{{ 'APP.CLIENT.LABEL.UrlEsposizione' | translate }}</div>
+                              <div class="v">{{ mode.url_esposizione }}</div>
+                            </div>
+                            <div class="kv">
+                              <div class="k">{{ 'APP.CLIENT.LABEL.HelpDesk' | translate }}</div>
+                              <div class="v">{{ mode.help_desk }}</div>
+                            </div>
+                            <div class="kv">
+                              <div class="k">{{ 'APP.CLIENT.LABEL.NomeApplicazionePortale' | translate }}</div>
+                              <div class="v">{{ mode.nome_applicazione_portale }}</div>
+                            </div>
+                          }
+                          @if (mode.description) {
+                            <div class="kv">
+                              <div class="k">{{ 'APP.LABEL.Description' | translate }}</div>
+                              <div class="v">{{ mode.description }}</div>
+                            </div>
+                          }
+                          @if (mode.canDownloadAuthCertificate) {
+                            <div class="kv">
+                              <div class="k">{{ 'APP.CLIENT.LABEL.AuthenticationCertificate' | translate }}</div>
+                              <div class="v">
+                                <button type="button" class="btnc btnc-sm btnc-default"
+                                        [disabled]="!mode.authCertificate"
+                                        (click)="download(mode, mode.authCertificate)">
+                                  {{ 'APP.BUTTON.Download' | translate }}
+                                  <i class="bi bi-download ms-2"></i>
+                                </button>
+                              </div>
+                            </div>
+                          }
+                          @if (mode.canDownloadSignCertificate) {
+                            <div class="kv">
+                              <div class="k">{{ 'APP.CLIENT.LABEL.SignCertificate' | translate }}</div>
+                              <div class="v">
+                                <button type="button" class="btnc btnc-sm btnc-default"
+                                        [disabled]="!mode.signCertificate"
+                                        (click)="download(mode, mode.signCertificate)">
+                                  {{ 'APP.BUTTON.Download' | translate }}
+                                  <i class="bi bi-download ms-2"></i>
+                                </button>
+                              </div>
+                            </div>
                           }
                         </div>
                       </div>
-                    }
+                    </div>
                   </div>
                 </div>
-                <div class="col-8">
-                  <div class="container-fluid">
-                    <div class="row justify-content-end">
-                      <div class="col-4">
-                        <div class="gl-w-full btn-group btn-group-toggle">
-                          <button aria-label="Collaudo" type="button" class="btn btn-sm gl-button btn-secondary" [class.btn-confirm]="environment === 'collaudo'" (click)="onTestClick()">
-                            <span class="text-nowrap">
-                              {{ 'APP.BUTTON.Testing' | translate }}
-                            </span>
-                          </button>
-                          <button aria-label="Produzione" type="button" class="btn btn-sm gl-button btn-secondary" [class.btn-confirm]="environment === 'produzione'" (click)="onProductionClick()">
-                            <span class="text-nowrap">
-                              {{ 'APP.BUTTON.Production' | translate }}
-                            </span>
-                          </button>
+              }
+            }
+
+            <!-- Endpoint API risposta -->
+            @if (apis.length > 0) {
+              <div class="section-title" style="margin-top:22px">
+                <span>{{ 'APP.ADESIONI.TITLE.ConfigurationAPI' | translate }}</span>
+                <span class="count">{{ apis.length }}</span>
+              </div>
+              @for (api of apis; track $index; let i = $index) {
+                <div class="expand" [class.is-open]="openEp === i">
+                  <div class="expand-hd"
+                       role="button"
+                       tabindex="0"
+                       (click)="toggleEp(i)"
+                       (keydown.enter)="toggleEp(i)"
+                       (keydown.space)="toggleEp(i); $event.preventDefault()">
+                    <div class="icn"><i class="bi bi-bezier2"></i></div>
+                    <div class="name">{{ api.name }}</div>
+                    <i class="bi bi-chevron-down chev"></i>
+                  </div>
+                  <div class="expand-body">
+                    <div class="inner">
+                      <div class="expand-body-pad">
+                        <div class="kv-list">
+                          <div class="kv">
+                            <div class="k">{{ 'APP.LABEL.Url' | translate }}</div>
+                            <div class="v mono" [class.empty]="api.url === '-'">
+                              {{ api.url === '-' ? ('APP.LABEL.NotSpecified' | translate) : api.url }}
+                            </div>
+                            @if (api.url && api.url !== '-') {
+                              <button type="button" class="copy-btn" (click)="copy(api.url)"
+                                      [title]="'APP.BUTTON.Copy' | translate">
+                                <i class="bi bi-copy"></i>
+                              </button>
+                            }
+                          </div>
+                          <div class="kv">
+                            <div class="k">{{ 'APP.ADESIONI.TITLE.IPaddresses' | translate }}</div>
+                            <div class="v mono" [class.empty]="api.ip === '-'">
+                              {{ api.ip === '-' ? ('APP.LABEL.NotSpecified' | translate) : api.ip }}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                    @if (_loadingConfiguration) {
-                      <ui-box-spinner [color]="'primary'" [diameter]="24" [strokeWidth]="2"></ui-box-spinner>
-                    }
-                    <div class="api-block mt-5">
-                      @if (authModes.length > 0) {
-                        <div class="mb-5">
-                          <h6 id="api-erogato_soggetto_dominio" class="text-uppercase text-muted mb-5">
-                            {{'APP.ADESIONI.TITLE.ConfigurationAuth' | translate}}
-                          </h6>
-                          <div class="border- border-bottom-0 list-group">
-                            @for (mode of authModes; track mode) {
-                              <div class="mb-2">
-                                <ui-collapse-row class="border-bottom- list-group-item list-group-item-action p-1"
-                                  [data]="mode"
-                                  [config]="clientRowConfig"
-                                  [show]="true"
-                                  [enableCollapse]="true"
-                                  [hostBackground]="'transparent'">
-                                  <div collapse-content class="p-4 my-1 bg-lightest">
-                                    <div class="d-flex flex-row">
-                                      <table class="table">
-                                        <tbody>
-                                          @if (mode.canDownloadAuthCertificate) {
-                                            <tr>
-                                              <td>{{'APP.CLIENT.LABEL.AuthenticationCertificate' | translate}}</td>
-                                              <td>
-                                                <button class="btn btn-default btn-sm gl-button btn-icon input-group-text- bg-white-" [disabled]="!mode.authCertificate" (click)="download(mode, mode.authCertificate)">
-                                                  <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
-                                                </button>
-                                              </td>
-                                            </tr>
-                                          }
-                                          @if (mode.canDownloadSignCertificate) {
-                                            <tr>
-                                              <td>{{'APP.CLIENT.LABEL.SignCertificate' | translate}}</td>
-                                              <td>
-                                                <button class="btn btn-default btn-sm gl-button btn-icon input-group-text- bg-white-" [disabled]="!mode.signCertificate" (click)="download(mode, mode.authCertificate)">
-                                                  <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
-                                                </button>
-                                              </td>
-                                            </tr>
-                                          }
-                                          @if (mode.canViewOAuthCode) {
-                                            <tr>
-                                              <td>{{'APP.CLIENT.LABEL.UrlRedirezione' | translate}}</td>
-                                              <td>{{mode.url_redirezione}}</td>
-                                            </tr>
-                                            <tr>
-                                              <td>{{'APP.CLIENT.LABEL.UrlEsposizione' | translate}}</td>
-                                              <td>{{mode.url_esposizione}}</td>
-                                            </tr>
-                                            <tr>
-                                              <td>{{'APP.CLIENT.LABEL.HelpDesk' | translate}}</td>
-                                              <td>{{mode.help_desk}}</td>
-                                            </tr>
-                                            <tr>
-                                              <td>{{'APP.CLIENT.LABEL.NomeApplicazionePortale' | translate}}</td>
-                                              <td>{{mode.nome_applicazione_portale}}</td>
-                                            </tr>
-                                          }
-                                          @if (mode.canViewClientId) {
-                                            <tr>
-                                              <td>{{mode.client_id_label | translate}}</td>
-                                              <td>{{mode.client_id}}</td>
-                                            </tr>
-                                          }
-                                          @if (mode.canViewUsername) {
-                                            <tr>
-                                              <td>{{'APP.LABEL.Username' | translate}}</td>
-                                              <td>{{mode.username}}</td>
-                                            </tr>
-                                          }
-                                          @if (mode.description) {
-                                            <tr>
-                                              <td>{{'APP.LABEL.Description' | translate}}</td>
-                                              <td>{{mode.description}}</td>
-                                            </tr>
-                                          }
-                                          @if (mode.canViewIpfruizione) {
-                                            <tr>
-                                              <td>{{'APP.ADESIONI.TITLE.IPfruizione' | translate}}</td>
-                                              <td>{{mode.ip}}</td>
-                                            </tr>
-                                          }
-                                        </tbody>
-                                      </table>
-                                    </div>
-                                  </div>
-                                </ui-collapse-row>
-                              </div>
-                            }
-                          </div>
-                        </div>
-                      }
-                    </div>
-                    <div class="api-block mt-5">
-                      @if (apis.length > 0) {
-                        <div class="mb-5">
-                          <h6 id="api-erogato_soggetto_dominio" class="text-uppercase text-muted mb-5">
-                            {{'APP.ADESIONI.TITLE.ConfigurationAPI' | translate}}
-                          </h6>
-                          <div class="border- border-bottom-0 list-group">
-                            @for (api of apis; track api) {
-                              <ui-collapse-row class="border-bottom- list-group-item list-group-item-action p-1"
-                                [data]="api"
-                                [config]="clientRowConfig"
-                                [show]="true"
-                                [enableCollapse]="true"
-                                [hostBackground]="'transparent'">
-                                <div collapse-content class="p-4 my-1 bg-lightest">
-                                  <div class="d-flex flex-row">
-                                    <table class="table">
-                                      <tbody>
-                                        <tr>
-                                          <td>{{'APP.LABEL.Url' | translate}}</td>
-                                          <td>{{api.url}}</td>
-                                        </tr>
-                                        <tr>
-                                          <td>{{'APP.ADESIONI.TITLE.IPaddresses' | translate}}</td>
-                                          <td>{{api.ip}}</td>
-                                        </tr>
-                                      </tbody>
-                                    </table>
-                                  </div>
-                                </div>
-                              </ui-collapse-row>
-                            }
-                          </div>
-                        </div>
-                      }
-                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
+              }
+            }
+          </section>
         </div>
-      </div>
+
+        <!-- Mini-toast per la copia. -->
+        @if (toast) {
+          <div class="toast">{{ toast }}</div>
+        }
+
+      </main>
     }
   </section>
 </div>

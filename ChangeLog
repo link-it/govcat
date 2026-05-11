@@ -1,6 +1,20 @@
 2026-05-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Nuova "vetrina" per `adesione-view` e `servizio-view`:
+	  componenti shared in `components/vetrina/`
+	  (hero-image, stato-chip, refs, env-toggle, api-row,
+	  action-banner) + stylesheet globale `app-view.scss`
+	  scoped sotto `.lnk-vetrina`. Hero + layout 2-col +
+	  stack di action-banner contestuali; documentazione
+	  tecnica con clip + toggle sopra soglia configurabile;
+	  lista API con tag PDND/profilo/custom. Fix
+	  incidentale `isGestoredMapper` nel wizard adesione
+	  (`grant.includes is not a function`).
+
+2026-05-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue 254: substepper — chevron di affordance alla fine
 	  della riga (rende esplicito che lo step e' espandibile,
 	  oltre all'hover sul chip "Completato"); hover background
