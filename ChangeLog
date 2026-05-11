@@ -7,6 +7,18 @@
 	  interno: il chevron a fine riga creava una doppia
 	  visualizzazione.
 
+	* [Frontend]
+	Nuova "vetrina" per `adesione-view` e `servizio-view`:
+	  componenti shared in `components/vetrina/`
+	  (hero-image, stato-chip, refs, env-toggle, api-row,
+	  action-banner) + stylesheet globale `app-view.scss`
+	  scoped sotto `.lnk-vetrina`. Hero + layout 2-col +
+	  stack di action-banner contestuali; documentazione
+	  tecnica con clip + toggle sopra soglia configurabile;
+	  lista API con tag PDND/profilo/custom. Fix
+	  incidentale `isGestoredMapper` nel wizard adesione
+	  (`grant.includes is not a function`).
+
 2026-05-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

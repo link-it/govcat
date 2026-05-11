@@ -53,6 +53,17 @@ import { MarkdownModule } from 'ngx-markdown';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
 import { PluralTranslatePipe } from '@app/lib/pipes/plural-translate.pipe';
+import {
+  HeroImageComponent,
+  StatoChipComponent,
+  RefsComponent,
+  EnvToggleComponent,
+  ApiRowComponent,
+  ActionBannerComponent,
+  LnkApiTag,
+  EnvValue,
+  LnkRefItem,
+} from '@app/components/vetrina';
 
 export const EROGATO_SOGGETTO_DOMINIO: string = 'erogato_soggetto_dominio';
 export const EROGATO_SOGGETTO_ADERENTE: string = 'erogato_soggetto_aderente';
@@ -120,7 +131,13 @@ export enum ApiMode {
         MarkdownModule,
         MapperPipe,
         HttpImgSrcPipe,
-        PluralTranslatePipe
+        PluralTranslatePipe,
+        HeroImageComponent,
+        StatoChipComponent,
+        RefsComponent,
+        EnvToggleComponent,
+        ApiRowComponent,
+        ActionBannerComponent
     ]
 })
 export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChecked {
@@ -226,6 +243,27 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
 
     tokenPolicy: any = null;
     hideVersions: boolean = false;
+
+    /** Issue 254 (NEW VETRINA): stato di espansione della
+     *  documentazione tecnica markdown. Default `false` (clip a
+     *  220px con mask fade); toggle via `<button class="doc-toggle">`.
+     *  Ha effetto solo se `_isDocLong` e` true. */
+    public _docExpanded: boolean = false;
+
+    /** Soglia in caratteri oltre la quale la documentazione tecnica
+     *  viene clippata e si mostra il toggle "Mostra tutto" / "Mostra
+     *  meno". Sotto soglia il contenuto e` mostrato per intero senza
+     *  bottone. Override-abile via `config.descrizione_clip_threshold`
+     *  (caricato dal config service). */
+    public readonly _docClipThresholdDefault: number = 900;
+
+    /** True se la documentazione supera la soglia configurata
+     *  (richiede clipping + toggle). */
+    public get _isDocLong(): boolean {
+        const text = this.data?.descrizione || '';
+        const threshold = this.config?.descrizione_clip_threshold ?? this._docClipThresholdDefault;
+        return text.length > threshold;
+    }
 
     constructor (
         private readonly route: ActivatedRoute,
@@ -860,5 +898,127 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
 
     onAvatarError(event: any) {
         event.target.src = './assets/images/avatar.png'
+    }
+
+    // -------------------------------------------------------------------
+    // Issue 254 (NEW VETRINA): helper per il nuovo layout vetrina.
+    // -------------------------------------------------------------------
+
+    /**
+     * Mappa `referenti: ReferentView[]` nello shape `LnkRefItem[]`
+     * consumato da `<lnk-refs>`. Mantiene il primo tipo come ruolo
+     * "umano" e mappa il tag CSS per il colore della pill
+     * (`r-dom`/`r-serv`/`r-tec`/`r-ades`).
+     */
+    public get referentiAsLnkRefs(): LnkRefItem[] {
+        return (this.referenti || []).map((r: ReferentView) => {
+            const primary = r.types?.[0] || '';
+            return {
+                id: r.id,
+                nome: r.name,
+                email: r.email,
+                ruolo: this._humanizeRuolo(primary),
+                tag: this._tagForRuolo(primary),
+            };
+        });
+    }
+
+    private _humanizeRuolo(t: string): string {
+        if (!t) return '';
+        return t
+            .split('_')
+            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+            .join(' ');
+    }
+
+    private _tagForRuolo(t: string): string {
+        const s = (t || '').toLowerCase();
+        if (s.includes('dominio')) return 'dom';
+        if (s.includes('tecnico')) return 'tec';
+        if (s.includes('servizio')) return 'serv';
+        if (s.includes('adesione')) return 'ades';
+        return '';
+    }
+
+    /** Handler del nuovo `<lnk-env-toggle>`: setta `_environmentId` e
+     *  ricarica le API. Mantiene la stessa logica dei vecchi 2 bottoni. */
+    public onEnvToggle(env: EnvValue): void {
+        this._environmentId = env;
+        this._loadApis();
+    }
+
+    /**
+     * Costruisce i tag visualizzati nella riga `<lnk-api-row>` di un
+     * servizio. Tre famiglie di tag:
+     *  - "PDND" — variante `pdnd` (azzurro) se l'auth type del primo
+     *    `gruppi_auth_type` contiene 'pdnd';
+     *  - profilo — variante `profilo` (giallo) con l'etichetta i18n
+     *    del profilo (es. "Profilo Servizio Base");
+     *  - proprieta` custom marcate `vetrina:true` — variante `custom`
+     *    (neutra). Risolte via lo stesso flow di `_loadApis()` (le
+     *    `key` aggiunte come property dinamiche sull'API).
+     */
+    /**
+     * Naviga al dettaglio adesione "appropriato" per l'utente
+     * corrente: il gestore va alla lista adesioni, gli altri al
+     * dettaglio della propria. Usato dal banner "Adesioni
+     * precedenti" che ha una sola CTA logica ma due target.
+     */
+    public _gotoAdesioneOrAdesioni(event: MouseEvent): void {
+        if (this.authenticationService.isGestore(this._grant?.ruoli)) {
+            this._gotoAdesioni(event);
+        } else {
+            this._gotoAdesione(event);
+        }
+    }
+
+    /**
+     * Label dinamica del bottone "Vai..." nel banner "Adesioni
+     * precedenti": gestore -> lista; altri -> dettaglio singolo.
+     */
+    public get _gotoAdesioneOrAdesioniLabel(): string {
+        const isGestore = this.authenticationService.isGestore(this._grant?.ruoli);
+        return this.translate.instant(isGestore ? 'APP.BUTTON.GoAdesioni' : 'APP.BUTTON.GoAdesione');
+    }
+
+    public _apiTagsMapper = (api: any): LnkApiTag[] => {
+        if (!api) return [];
+        const tags: LnkApiTag[] = [];
+
+        // PDND tag
+        const authType = api?.gruppi_auth_type?.[0]?.auth_type || '';
+        const profiloCode = api?.gruppi_auth_type?.[0]?.profilo || '';
+        if (/pdnd/i.test(authType) || /pdnd/i.test(profiloCode)) {
+            tags.push({ label: 'PDND', variant: 'pdnd' });
+        }
+
+        // Profilo tag (etichetta umana)
+        if (profiloCode) {
+            const label = this._getProfiloLabelMapper(profiloCode);
+            if (label) {
+                tags.push({ label, variant: 'profilo' });
+            }
+        }
+
+        // Tag da proprieta` custom `vetrina:true`. Le `key` sono state
+        // aggiunte come property direttamente sull'oggetto API in
+        // `_loadApis()` (per il rendering legacy `<ui-item-row>`).
+        // Le rileviamo cercando le chiavi che non appartengono allo
+        // shape standard di ApiReadDetails.
+        const knownFields = new Set([
+            'id_api', 'nome', 'versione', 'descrizione', 'codice_asset',
+            'ruolo', 'protocollo', 'protocollo_dettaglio', 'specifica',
+            'proprieta_custom', 'gruppi_auth_type', 'tipo_profilo',
+            'servizio', 'configurazione_collaudo', 'configurazione_produzione',
+            'allegati', 'note', 'archetipo', 'stato'
+        ]);
+        for (const k of Object.keys(api)) {
+            if (knownFields.has(k)) continue;
+            const v = api[k];
+            if (typeof v !== 'string' || !v) continue;
+            tags.push({ label: v, variant: 'custom' });
+        }
+
+        return tags;
     }
 }

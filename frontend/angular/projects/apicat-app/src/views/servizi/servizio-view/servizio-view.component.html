@@ -16,9 +16,27 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
-<div id="route-section" class="">
-  <div class="top-area container-fluid limit-container-width px-0">
-    <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" [hideToggleMobile]="_updateData | mapper:isAnonymousMapper" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+<!--
+  Issue 254 (NEW VETRINA): refactor del template "view" del servizio
+  con il layout vetrina (parallelo a `adesione-view`).
+
+  Differenze rispetto ad `adesione-view`:
+   - `<lnk-hero-image>` con `[src]` dell'immagine reale del servizio
+     (caricata dall'utente) quando `data.immagine` e` valorizzato.
+     Fallback all'illustrazione SVG `welfare-blue`.
+   - Sidebar con varie CTA contestuali (Join, Vai a Adesioni / Adesione,
+     download descriptor) gated dai mapper di permessi esistenti.
+   - Main: env-toggle + Documentazione tecnica (markdown) + lista API
+     (Erogato Soggetto Dominio + Erogato Soggetto Aderente).
+   - `<ng-template #openApiInfoTemplate>` modal invariato (swagger/wsdl
+     viewer aperto da `_onShowApi(api)`).
+-->
+<div id="route-section" class="lnk-vetrina" [attr.data-hide-image]="!data?.immagine">
+  <div class="breadcrumbs-area top-area container-fluid limit-container-width px-0">
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs"
+                   [useGroups]="true"
+                   [hideToggleMobile]="_updateData | mapper:isAnonymousMapper"
+                   (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
     <div class="d-flex flex-grow-1">&nbsp;</div>
     @if (!_spin) {
       <div class="nav-controls">
@@ -34,14 +52,18 @@
       </div>
     }
   </div>
-  <section #myScroll class="container-fluid limit-container-width container-scroller container-scroller-no-top-area container-scroller-no-search px-0 pt-4" [class.container-limited-]="!_isPresentationView" (scroll)="onScroll($event)">
+
+  <section #myScroll
+           class="container-fluid limit-container-width container-scroller container-scroller-no-top-area container-scroller-no-search px-2 mt-2 py-1"
+           (scroll)="onScroll($event)">
 
     @if (_spin) {
       <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3"></ui-box-spinner>
     }
     @if (!data && !_spin) {
       <ui-box-message [image]="'./assets/images/illustrations/no-data.svg'"
-        [message]="'APP.MESSAGE.NoData' | translate" [subMessage]="'APP.MESSAGE.NoDataHelp' | translate">
+                      [message]="'APP.MESSAGE.NoData' | translate"
+                      [subMessage]="'APP.MESSAGE.NoDataHelp' | translate">
       </ui-box-message>
     }
 
@@ -49,305 +71,330 @@
       <app-scroll (scrollToTop)="_onScrollToTop()"></app-scroll>
     }
 
-    @if ((data && !_spin)) {
-      <div class="settings-">
-        <div class="settings-content-">
-          @if (_error) {
-            <div class="gl-alert gl-alert-danger col-md-12 mb-5">
-              {{ _errorMsg }}
+    @if (data && !_spin) {
+      <main class="main">
+
+        @if (_error) {
+          <div class="gl-alert gl-alert-danger col-md-12 mb-3">
+            {{ _errorMsg }}
+          </div>
+        }
+
+        <!-- Hero block: logo (real image se presente) + titolo +
+             descrizione sintetica + meta-row (chip stato, dominio)
+             + actions.
+             Se `data.immagine` e` assente NON renderizziamo
+             `<lnk-hero-image>` e l'attributo `data-hide-image="true"`
+             sul root rimuove la colonna `.hero-img` dal grid del
+             hero (vedi `app-view.scss`). -->
+        <div class="hero">
+          @if (data.immagine) {
+            <div class="hero-img">
+              <lnk-hero-image
+                [src]="{ path: (data | mapper:_getLogoMapper) } | httpImgSrc"
+                [alt]="data?.nome"
+              ></lnk-hero-image>
             </div>
           }
-          <div id="main">
-            <div class="" [class.container-fluid]="desktop">
-              <div class="row">
-                <div class="col-12 col-md-4" [ngClass]="{'border-end': desktop, 'border-bottom border-2 mb-5': !desktop}" style="min-height: 400px;">
-                  <div class="sticky-md-top">
-                    @if (data.immagine) {
-                      <span>
-                        <img class="border-" [alt]="data?.nome" [src]="{ path: (data | mapper:_getLogoMapper) } | httpImgSrc" style="max-width: 100%;">
-                      </span>
-                    }
-                    <div class="titolo-block mt-4">
-                      <h4 class="d-inline text-break">{{ data?.nome }}</h4>
-                      @if (!hideVersions) {
-                        <span class="badge badge-pill badge-primary swagger--hero-pill ml-2">v. {{ data?.versione }}</span>
-                      }
-                    </div>
-                    <div class="organizzazione-block stato-block mt-2">
-                      <div class="d-flex align-items-center pt-3 pb-3">
-                        <p class="lead project__desc cursor-pointer"
-                          [tooltip]="('APP.TOOLTIP.SoggettoReferente' | translate: { soggetto: data?.dominio?.soggetto_referente?.nome } )"
-                          [placement]="'top'"
-                          [delay]="300"
-                          container="body"
-                        >
-                          <span class="text-break">{{ data?.dominio?.soggetto_referente?.organizzazione?.nome }}</span>
-                          <span class="mx-1">-</span>
-                          @if (!data?.dominio?.tag) {
-                            <span class="me-2">{{ data?.dominio?.nome }}</span>
-                          }
-                          @if (data?.dominio?.tag) {
-                            <span class="me-2">{{ data?.dominio?.tag }}</span>
-                          }
-                        </p>
-                        <p>
-                          @if (data) {
-                            <ui-data-type
-                              [data]="data"
-                              [elem]="{ field: 'stato', type: 'tag', options: 'status' }"
-                              [config]="config">
-                            </ui-data-type>
-                          }
-                        </p>
-                      </div>
-                    </div>
-                    <div class="descrizione-block mt-3">
-                      <p>{{ data.descrizione_sintetica }}</p>
-                    </div>
-                    @if (_updateData | mapper:_canDownloadDescriptorMapper) {
-                      <div class="download-block row mt-4">
-                        <div class="col-12">
-                          <button class="btn btn-link btn-md gl-button" (click)="_downloadServizioExport()" [class.disabled]="_downloading">
-                            <i class="bi bi-download me-2"></i>
-                            <span>{{ 'APP.BUTTON.DownloadeServiceDescriptor' | translate }}</span>
-                            @if (_downloading) {
-                              <span class="spinner-border spinner-border-sm ms-2"></span>
-                            }
-                          </button>
-                        </div>
-                        @if (_updateData | mapper:_canJoinMapper) {
-                          <div class="col-12 mt-3 d-flex flex-column gap-2">
-                            @if ((!(_updateData | mapper:_isGestoreMapper) && !(_updateData | mapper:_isReferenteMapper) && !(_updateData | mapper:_isReferenteTecnicoAdesioneMapper) && !_hasJoined && (_updateData | mapper:_isAmmissibileMapper))) {
-                              <button class="btn btn-confirm btn-md gl-button w-100 supports-new-tab" (click)="_joinServizio($event)" (auxclick)="_joinServizio($event)">
-                                <i class="bi bi-plus-circle me-2"></i>
-                                <span>{{ 'APP.BUTTON.JoinService' | translate }}</span>
-                                @if (enableOpenInNewTab) {
-                                  <span class="open-new-tab-icon bi bi-box-arrow-up-right"
-                                    [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
-                                  (click)="_openJoinServizioInNewTab($event)"></span>
-                                }
-                              </button>
-                            }
-                            @if ((_updateData | mapper:_isGestoreMapper) || (((_updateData | mapper:_isReferenteMapper) || (_updateData | mapper:_isReferenteTecnicoAdesioneMapper)) && !_hasJoined && (_updateData | mapper:_isAmmissibileMapper))) {
-                              <button class="btn btn-default btn-md gl-button w-100 supports-new-tab" (click)="_gotoAdesioni($event)" (auxclick)="_gotoAdesioni($event)">
-                                <i class="bi bi-display me-2"></i>
-                                <span>{{ 'APP.BUTTON.GoAdesioni' | translate }}</span>
-                                @if (enableOpenInNewTab) {
-                                  <span class="open-new-tab-icon bi bi-box-arrow-up-right"
-                                    [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
-                                  (click)="_openAdesioniInNewTab($event)"></span>
-                                }
-                              </button>
-                            }
-                            @if (!(_updateData | mapper:_isGestoreMapper) && _hasJoined) {
-                              <button class="btn btn-default btn-md gl-button w-100 supports-new-tab" (click)="_gotoAdesione($event)" (auxclick)="_gotoAdesione($event)">
-                                <i class="bi bi-display me-2"></i>
-                                <span>{{ 'APP.BUTTON.GoAdesione' | translate }}</span>
-                                @if (enableOpenInNewTab) {
-                                  <span class="open-new-tab-icon bi bi-box-arrow-up-right"
-                                    [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
-                                  (click)="_openAdesioniInNewTab($event)"></span>
-                                }
-                              </button>
-                            }
-                            @if (_adesioneDataReady) {
-                              <!-- Adesione singola già esistente (ha priorità su non ammissibile) -->
-                              @if (_hasJoined && !data.multi_adesione && !(_updateData | mapper:_isGestoreMapper) && !(_updateData | mapper:_isAnonymousMapper)) {
-                                <div class="alert alert-info small p-2 mb-0">
-                                  <i class="bi bi-info-circle me-1"></i>
-                                  {{ 'APP.MESSAGE.AdesioneGiaEsistente' | translate }}
-                                </div>
-                              } @else if (!(_updateData | mapper:_isAmmissibileMapper) && !(_updateData | mapper:_isGestoreMapper) && !(_updateData | mapper:_isAnonymousMapper)) {
-                                <!-- Organizzazione non ammissibile (solo se non ha già un'adesione attiva) -->
-                                <div class="alert alert-warning small p-2 mb-0">
-                                  <i class="bi bi-shield-exclamation me-1"></i>
-                                  {{ 'APP.MESSAGE.OrgNonAmmissibile' | translate }}
-                                </div>
-                              }
-                            }
-                          </div>
-                        }
-                      </div>
-                    }
-                    <!-- Messaggi e navigazione quando adesione non consentita -->
-                    @if (_adesioneDataReady && data && !(_updateData | mapper:_canJoinMapper) && !(_updateData | mapper:_isAnonymousMapper)) {
-                      <div class="mt-3 d-flex flex-column gap-2">
-                        @if (data.adesione_disabilitata) {
-                          <div class="alert alert-warning small p-2 mb-0">
-                            <i class="bi bi-x-circle me-1"></i>
-                            {{ 'APP.MESSAGE.AdesioneDisabilitata' | translate }}
-                          </div>
-                        } @else {
-                          <div class="alert alert-info small p-2 mb-0">
-                            <i class="bi bi-info-circle me-1"></i>
-                            {{ 'APP.MESSAGE.AdesioneNonConsentita' | translate }}
-                          </div>
-                        }
-                        <!--
-                          Pulsanti navigazione adesioni esistenti:
-                          anche se l'adesione è disabilitata o il servizio non è in stato aderibile,
-                          potrebbero esistere adesioni create in precedenza a cui l'utente deve poter accedere.
-                        -->
-                        @if (_hasJoined) {
-                          <div class="alert alert-secondary small p-2 mb-0">
-                            <i class="bi bi-info-circle me-1"></i>
-                            {{ 'APP.MESSAGE.AdesioniPrecedenti' | translate }}
-                          </div>
-                        }
-                        @if ((_updateData | mapper:_isGestoreMapper)) {
-                          <button class="btn btn-default btn-md gl-button w-100 supports-new-tab" (click)="_gotoAdesioni($event)" (auxclick)="_gotoAdesioni($event)">
-                            <i class="bi bi-display me-2"></i>
-                            <span>{{ 'APP.BUTTON.GoAdesioni' | translate }}</span>
-                            @if (enableOpenInNewTab) {
-                              <span class="open-new-tab-icon bi bi-box-arrow-up-right"
-                                [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
-                              (click)="_openAdesioniInNewTab($event)"></span>
-                            }
-                          </button>
-                        }
-                        @if (!(_updateData | mapper:_isGestoreMapper) && _hasJoined) {
-                          <button class="btn btn-default btn-md gl-button w-100 supports-new-tab" (click)="_gotoAdesione($event)" (auxclick)="_gotoAdesione($event)">
-                            <i class="bi bi-display me-2"></i>
-                            <span>{{ 'APP.BUTTON.GoAdesione' | translate }}</span>
-                            @if (enableOpenInNewTab) {
-                              <span class="open-new-tab-icon bi bi-box-arrow-up-right"
-                                [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
-                              (click)="_openAdesioniInNewTab($event)"></span>
-                            }
-                          </button>
-                        }
-                      </div>
-                    }
-                    @if (_showReferents) {
-                      <div class="referenti-block mt-5">
-                        <h5 class="h6 text-uppercase text-muted mb-3">{{ 'APP.SERVICES.TITLE.Referenti' | translate }}</h5>
-                        <div class="d-flex flex-column">
-                          @if (referentiLoading) {
-                            <span class="spinner-border spinner-border-sm"></span>
-                          } @else {
-                            <ul class="list-unstyled">
-                              @for (referente of referenti; track referente; let index = $index) {
-                                <li class="d-flex project__leaders__item mb-3" [class.hide-more]="index >= _maxReferenti">
-                                  <span title="referente" target="_blank">
-                                    <img class="align-top" alt="Avatar referente" ngxGravatar [email]="referente.email || ''" [size]="50" fallback="mp" (error)="onAvatarError($event)">
-                                  </span>
-                                  <div class="flex-column">
-                                    <div class="ml-2 mb-1 d-flex referente">
-                                      <span title="referente" target="_blank" class="align-self-center">{{ referente.name }}</span>
-                                    </div>
-                                    <div class="ml-1 d-flex flex-wrap ref-types">
-                                      @for (type of referente.types; track type) {
-                                        <ui-data-type class="ml-1"
-                                          [data]="{ type: type }"
-                                          [elem]="{ field: 'type', type: 'tag', options: 'type' }"
-                                          [config]="config">
-                                        </ui-data-type>
-                                      }
-                                    </div>
-                                  </div>
-                                </li>
-                              }
-                            </ul>
-                          }
-                        </div>
-                      </div>
-                    }
-                  </div>
-                </div>
-                <div class="col-12 col-md-8">
-                  <div class="" [class.container-fluid]="desktop">
-                    <div class="d-flex justify-content-end mb-5">
-                      <div role="group" class="gl-w-full btn-group btn-group-toggle" [ngClass]="{'w-50': desktop, 'w-75': !desktop}">
-                        <button aria-label="Collaudo" type="button" class="btn btn-sm gl-button btn-secondary" [class.btn-confirm]="_environmentId === 'collaudo'" (click)="_environmentId = 'collaudo'; _loadApis()">
-                          <span class="text-nowrap">
-                            {{ 'APP.BUTTON.Testing' | translate }}
-                          </span>
-                        </button>
-                        <button aria-label="Produzione" type="button" class="btn btn-sm gl-button btn-secondary" [class.btn-confirm]="_environmentId === 'produzione'" (click)="_environmentId = 'produzione'; _loadApis()">
-                          <span class="text-nowrap">
-                            {{ 'APP.BUTTON.Production' | translate }}
-                          </span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="" [class.container-fluid]="desktop">
-                    <div class="">
-                      @if (data.descrizione) {
-                        <div class="">
-                          <h6 class="text-uppercase text-muted mb-5">{{ 'APP.TITLE.DocumentazioneTecnica' | translate }}</h6>
-                          <markdown ngPreserveWhitespaces
-                            [data]="data.descrizione"
-                            class="markdown"
-                          ></markdown>
-                        </div>
-                      }
-                      @if (!(serviceApi.length || serviceApiDominio.length || serviceApiAderente.length) && !serviceApiLoading) {
-                        <div class="">
-                          <div class="p-4 text-center">
-                            {{ 'APP.MESSAGE.NoApi' | translate }}
-                          </div>
-                        </div>
-                      }
-                      <div class="api-block mt-5">
-                        @if (serviceApiLoading) {
-                          <ui-box-spinner [color]="'primary'" [diameter]="24" [strokeWidth]="2"></ui-box-spinner>
-                        }
-                        @if (!serviceApiLoading) {
-                          @if (serviceApiDominio.length) {
-                            <div class="mb-5">
-                              <h6 id="api-erogato_soggetto_dominio" class="text-uppercase text-muted mb-5">
-                                {{ ('APP.ROLE.ErogatoSoggettoDominio' | pluralTranslate:(serviceApiDominio.length || 0)) | translate:{soggetto: data?.dominio?.soggetto_referente?.organizzazione?.nome } }}
-                              </h6>
-                              <div class="border- border-bottom-0 list-group">
-                                @for (api of serviceApiDominio; track api) {
-                                  <ui-item-row class="list-group-item list-group-item-action p-1"
-                                    [data]="api"
-                                    [config]="apiConfig"
-                                    [configRow]="'itemRowView'"
-                                    [hasLink]="true"
-                                    [rowClick]="true"
-                                    [hasAction]="false"
-                                    [linkRoute]="false"
-                                    (itemClick)="_onShowApi($event, api)">
-                                  </ui-item-row>
-                                }
-                              </div>
-                            </div>
-                          }
-                          @if (serviceApiAderente.length) {
-                            <div class="mb-5">
-                              <h6 id="api-erogato_soggetto_aderente" class="text-uppercase text-muted mb-5">{{ ('APP.ROLE.ErogatoSoggettoAderente' | pluralTranslate:(serviceApiAderente.length || 0)) | translate }}</h6>
-                              <div class="border- border-bottom-0 list-group">
-                                @for (api of serviceApiAderente; track api) {
-                                  <ui-item-row class="list-group-item list-group-item-action p-1"
-                                    [data]="api"
-                                    [config]="apiConfig"
-                                    [configRow]="'itemRowView'"
-                                    [hasLink]="true"
-                                    [rowClick]="true"
-                                    [hasAction]="false"
-                                    [linkRoute]="false"
-                                    (itemClick)="_onShowApi($event, api)">
-                                  </ui-item-row>
-                                }
-                              </div>
-                            </div>
-                          }
-                        }
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+          <div class="hero-meta">
+            <div class="hero-eyebrow">
+              {{ 'APP.TITLE.Service' | translate }}
+              <span class="dot"></span>
+              {{ data?.dominio?.soggetto_referente?.organizzazione?.nome }}
+              @if (data?.dominio?.tag) {
+                <span class="mx-1">·</span>
+                <span>{{ data?.dominio?.tag }}</span>
+              } @else if (data?.dominio?.nome) {
+                <span class="mx-1">·</span>
+                <span>{{ data?.dominio?.nome }}</span>
+              }
+            </div>
+            <h1>
+              {{ data?.nome }}
+              @if (!hideVersions) {
+                <span class="ver">v.{{ data?.versione }}</span>
+              }
+            </h1>
+            <p class="desc">{{ data.descrizione_sintetica }}</p>
+            <div class="meta-row">
+              <lnk-stato-chip
+                [stato]="data.stato"
+                [i18nPrefix]="'APP.STATUS'"
+              ></lnk-stato-chip>
             </div>
           </div>
+
+          <div class="hero-actions">
+            <!-- Hero: solo "Scarica descrittore" (vedi screenshot
+                 mock). La CTA "Aderisci al servizio" e tutti gli
+                 altri messaggi contestuali sono migrati al banner
+                 stacking sotto il hero (`<lnk-action-banner>`). -->
+            @if (_updateData | mapper:_canDownloadDescriptorMapper) {
+              <button type="button" class="btnc btnc-default"
+                      [disabled]="_downloading"
+                      (click)="_downloadServizioExport()">
+                <i class="bi bi-download me-2"></i>
+                {{ 'APP.BUTTON.DownloadeServiceDescriptor' | translate }}
+                @if (_downloading) {
+                  <span class="spinner-border spinner-border-sm ms-2"></span>
+                }
+              </button>
+            }
+          </div>
         </div>
-      </div>
+
+        <!-- Action banners (stack verticale sotto l'hero).
+             Ordine di priorita`:
+             1. Aderisci al servizio (CTA primaria — accent rosso)
+             2. Vai alle adesioni (gestore / referente con adesioni)
+             3. Vai all'adesione (utente con adesione attiva)
+             4. Adesione gia` esistente (info, no CTA)
+             5. Organizzazione non ammissibile (warn, no CTA)
+             6. Adesione disabilitata (warn, no CTA)
+             7. Adesione non consentita (info, no CTA)
+             8. Adesioni precedenti (muted, no CTA — appare insieme
+                a 6/7 quando il join non e` consentito)
+             Multipli messaggi possono coesistere: vengono mostrati
+             tutti in sequenza. -->
+        @if (_adesioneDataReady) {
+
+          <!-- 1. CTA Aderisci -->
+          @if ((_updateData | mapper:_canJoinMapper)
+               && !(_updateData | mapper:_isGestoreMapper)
+               && !(_updateData | mapper:_isReferenteMapper)
+               && !(_updateData | mapper:_isReferenteTecnicoAdesioneMapper)
+               && !_hasJoined
+               && (_updateData | mapper:_isAmmissibileMapper)) {
+            <lnk-action-banner
+              icon="bi-stars"
+              [title]="'APP.MESSAGE.JoinServiceTitle' | translate"
+              [subtitle]="'APP.MESSAGE.JoinServiceSubtitle' | translate"
+              [ctaLabel]="'APP.BUTTON.JoinService' | translate"
+              ctaIcon="bi-display"
+              variant="accent"
+              (action)="_joinServizio($event)"
+            ></lnk-action-banner>
+          }
+
+          <!-- 2. CTA Vai alle adesioni (gestore / referente con adesioni
+                  che possono aderire ulteriormente) -->
+          @if ((_updateData | mapper:_canJoinMapper)
+               && ((_updateData | mapper:_isGestoreMapper)
+                   || (((_updateData | mapper:_isReferenteMapper)
+                        || (_updateData | mapper:_isReferenteTecnicoAdesioneMapper))
+                       && !_hasJoined
+                       && (_updateData | mapper:_isAmmissibileMapper)))) {
+            <lnk-action-banner
+              icon="bi-display"
+              [title]="'APP.BUTTON.GoAdesioni' | translate"
+              [subtitle]="'APP.MESSAGE.GoAdesioniPrompt' | translate"
+              [ctaLabel]="'APP.BUTTON.GoAdesioni' | translate"
+              ctaIcon="bi-display"
+              variant="info"
+              (action)="_gotoAdesioni($event)"
+            ></lnk-action-banner>
+          }
+
+          <!-- 3. CTA Vai all'adesione (utente non-gestore con adesione attiva) -->
+          @if ((_updateData | mapper:_canJoinMapper)
+               && !(_updateData | mapper:_isGestoreMapper)
+               && _hasJoined) {
+            <lnk-action-banner
+              icon="bi-display"
+              [title]="'APP.BUTTON.GoAdesione' | translate"
+              [subtitle]="'APP.MESSAGE.GoAdesionePrompt' | translate"
+              [ctaLabel]="'APP.BUTTON.GoAdesione' | translate"
+              ctaIcon="bi-display"
+              variant="info"
+              (action)="_gotoAdesione($event)"
+            ></lnk-action-banner>
+          }
+
+          <!-- 4. Adesione gia` esistente (info) -->
+          @if (_hasJoined && !data.multi_adesione
+               && !(_updateData | mapper:_isGestoreMapper)
+               && !(_updateData | mapper:_isAnonymousMapper)
+               && (_updateData | mapper:_canJoinMapper)) {
+            <lnk-action-banner
+              icon="bi-info-circle"
+              [title]="'APP.MESSAGE.AdesioneGiaEsistente' | translate"
+              variant="info"
+            ></lnk-action-banner>
+          }
+
+          <!-- 5. Organizzazione non ammissibile (warn) -->
+          @if (!(_updateData | mapper:_isAmmissibileMapper)
+               && !(_updateData | mapper:_isGestoreMapper)
+               && !(_updateData | mapper:_isAnonymousMapper)
+               && (_updateData | mapper:_canJoinMapper)
+               && !_hasJoined) {
+            <lnk-action-banner
+              icon="bi-shield-exclamation"
+              [title]="'APP.MESSAGE.OrgNonAmmissibile' | translate"
+              variant="warn"
+            ></lnk-action-banner>
+          }
+
+          <!-- 6/7. Join non consentito: adesione disabilitata o
+                   stato servizio non aderibile. -->
+          @if (!(_updateData | mapper:_canJoinMapper) && !(_updateData | mapper:_isAnonymousMapper)) {
+            @if (data.adesione_disabilitata) {
+              <lnk-action-banner
+                icon="bi-x-circle"
+                [title]="'APP.MESSAGE.AdesioneDisabilitata' | translate"
+                variant="warn"
+              ></lnk-action-banner>
+            } @else {
+              <lnk-action-banner
+                icon="bi-info-circle"
+                [title]="'APP.MESSAGE.AdesioneNonConsentita' | translate"
+                variant="info"
+              ></lnk-action-banner>
+            }
+
+            <!-- 8. Adesioni precedenti (muted). La CTA punta alla
+                 lista o al dettaglio in base al ruolo
+                 (vedi `_gotoAdesioneOrAdesioni`). -->
+            @if (_hasJoined) {
+              <lnk-action-banner
+                icon="bi-info-circle"
+                [title]="'APP.MESSAGE.AdesioniPrecedenti' | translate"
+                variant="muted"
+                [ctaLabel]="_gotoAdesioneOrAdesioniLabel"
+                ctaIcon="bi-display"
+                (action)="_gotoAdesioneOrAdesioni($event)"
+              ></lnk-action-banner>
+            }
+          }
+        }
+
+        <!-- Layout 2-col: sidebar Referenti + main Documentazione + API. -->
+        <div class="layout">
+          @if (_showReferents) {
+            <aside>
+              <div class="card card-pad-tight">
+                <div class="section-title">
+                  <span>{{ 'APP.TITLE.ServiceReferents' | translate }}</span>
+                  <span class="grow"></span>
+                  @if (!referentiLoading) {
+                    <span class="count">{{ referenti.length }}</span>
+                  }
+                </div>
+                @if (referentiLoading) {
+                  <span class="spinner-border spinner-border-sm"></span>
+                } @else {
+                  <lnk-refs [list]="referentiAsLnkRefs" variant="cards"></lnk-refs>
+                }
+              </div>
+            </aside>
+          }
+
+          <section class="pt-1">
+            <!-- section-bar: titolo "Documentazione tecnica" mostrato
+                 solo se `data.descrizione` e` valorizzata; altrimenti
+                 resta solo l'env-toggle a destra (allineato con un
+                 spacer flex per non collassare). -->
+            <div class="section-bar">
+              @if (data.descrizione) {
+                <h2>{{ 'APP.TITLE.DocumentazioneTecnica' | translate }}</h2>
+              }
+              <span class="grow"></span>
+              <lnk-env-toggle [env]="_environmentId === 'produzione' ? 'produzione' : 'collaudo'"
+                              (change)="onEnvToggle($event)"></lnk-env-toggle>
+            </div>
+
+            @if (data.descrizione) {
+              <!-- Doc collapsible: clip + toggle "Mostra tutto" /
+                   "Mostra meno" SOLO se la lunghezza supera la
+                   soglia configurabile (`_isDocLong`). Sotto soglia
+                   il contenuto e` mostrato per intero senza il
+                   pulsante. -->
+              <div class="card card-pad-tight mb-3">
+                @if (_isDocLong) {
+                  <div class="doc-wrap" [class.is-clipped]="!_docExpanded">
+                    <div class="doc">
+                      <markdown ngPreserveWhitespaces
+                                [data]="data.descrizione"
+                                class="markdown"></markdown>
+                    </div>
+                    <button type="button" class="doc-toggle"
+                            (click)="_docExpanded = !_docExpanded">
+                      {{ (_docExpanded ? 'APP.BUTTON.ShowLess' : 'APP.BUTTON.ShowAll') | translate }}
+                      <i class="bi" [class.bi-chevron-down]="!_docExpanded" [class.bi-chevron-up]="_docExpanded"></i>
+                    </button>
+                  </div>
+                } @else {
+                  <div class="doc">
+                    <markdown ngPreserveWhitespaces
+                              [data]="data.descrizione"
+                              class="markdown"></markdown>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (serviceApiLoading) {
+              <ui-box-spinner [color]="'primary'" [diameter]="24" [strokeWidth]="2"></ui-box-spinner>
+            }
+
+            @if (!serviceApiLoading && !(serviceApi.length || serviceApiDominio.length || serviceApiAderente.length)) {
+              <div class="card card-pad-tight">
+                <p class="text-center text-muted mb-0 py-2">
+                  {{ 'APP.MESSAGE.NoApi' | translate }}
+                </p>
+              </div>
+            }
+
+            <!-- API erogato_soggetto_dominio: lista con <lnk-api-row>
+                 (nuovo componente vetrina, design-coerente col mock). -->
+            @if (!serviceApiLoading && serviceApiDominio.length) {
+              <div class="section-title" style="margin-top:14px">
+                <span>
+                  {{ ('APP.ROLE.ErogatoSoggettoDominio' | pluralTranslate:(serviceApiDominio.length || 0))
+                     | translate:{ soggetto: data?.dominio?.soggetto_referente?.organizzazione?.nome } }}
+                </span>
+                <span class="count">{{ serviceApiDominio.length }}</span>
+              </div>
+              <div class="api-list">
+                @for (api of serviceApiDominio; track api?.id_api) {
+                  <lnk-api-row
+                    [nome]="api?.nome"
+                    [versione]="api?.versione"
+                    [descrizione]="api?.descrizione"
+                    [tags]="api | mapper:_apiTagsMapper"
+                    (action)="_onShowApi($event, api)"
+                  ></lnk-api-row>
+                }
+              </div>
+            }
+
+            <!-- API erogato_soggetto_aderente -->
+            @if (!serviceApiLoading && serviceApiAderente.length) {
+              <div class="section-title" style="margin-top:22px">
+                <span>{{ ('APP.ROLE.ErogatoSoggettoAderente' | pluralTranslate:(serviceApiAderente.length || 0)) | translate }}</span>
+                <span class="count">{{ serviceApiAderente.length }}</span>
+              </div>
+              <div class="api-list">
+                @for (api of serviceApiAderente; track api?.id_api) {
+                  <lnk-api-row
+                    [nome]="api?.nome"
+                    [versione]="api?.versione"
+                    [descrizione]="api?.descrizione"
+                    [tags]="api | mapper:_apiTagsMapper"
+                    (action)="_onShowApi($event, api)"
+                  ></lnk-api-row>
+                }
+              </div>
+            }
+          </section>
+        </div>
+
+      </main>
     }
   </section>
 </div>
 
+<!-- Modal: dettaglio API (swagger / wsdl viewer). Mantenuto invariato. -->
 <ng-template #openApiInfoTemplate>
   <div class="modal-header align-items-center sticky-top bg-white pb-2" style="z-index: 101;">
     <h5 class="modal-title pull-left">{{ _currentApi?.nome || ' - ' }}</h5>
@@ -388,7 +435,7 @@
     <div class="p-md-3">
       <div class="view-template" style="min-height: 150px;">
         @if (!_currentApiConfiguration?.protocollo) {
-          <p  class="p-5 text-center">{{ 'APP.MESSAGE.NoSpecification' | translate }}</p>
+          <p class="p-5 text-center">{{ 'APP.MESSAGE.NoSpecification' | translate }}</p>
         }
         @if (_currentApiConfiguration?.protocollo === 'rest') {
           <div class="">

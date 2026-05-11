@@ -286,6 +286,10 @@
 		},
 		"BUTTON": {
 			"Add": "Aggiungi",
+			"GoToService": "Vai al Servizio",
+			"Copy": "Copia",
+			"ShowAll": "Mostra tutto",
+			"ShowLess": "Mostra meno",
 			"AddApi": "Aggiungi API",
 			"AddAttachment": "Aggiungi allegato",
 			"AddAuthentication": "Aggiungi Autenticazione",
@@ -1201,6 +1205,7 @@
 			"Files": "Tracciati",
 			"GenericServices": "Generici",
 			"GoToView": "Vai alla vetrina",
+			"NotSpecified": "— non specificato",
 			"Groups": "Gruppi",
 			"Home": "Home",
 			"Italiano": "Italiano",
@@ -1244,6 +1249,11 @@
 			"EmailModified": "Email modificata con successo",
 			"EmailRemoved": "Email rimossa con successo",
 			"OrgNonAmmissibile": "La tua organizzazione non è autorizzata ad aderire a questo servizio",
+			"JoinServiceTitle": "Aderisci al servizio",
+			"JoinServiceSubtitle": "Configura la tua organizzazione per fruire delle API di questo servizio.",
+			"GoAdesionePrompt": "Hai già un'adesione attiva. Vai al dettaglio per gestirla.",
+			"GoAdesioniPrompt": "Esistono adesioni associate al servizio. Visualizzale per gestirle.",
+			"GoToServiceSubtitle": "Consulta i dettagli del servizio a cui questa adesione si riferisce (API, documentazione, referenti).",
 			"ERROR": {
 				"ADE": {
 					"400": {

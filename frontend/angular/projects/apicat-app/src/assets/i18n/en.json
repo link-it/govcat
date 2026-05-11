@@ -286,6 +286,10 @@
 		},
 		"BUTTON": {
 			"Add": "Add",
+			"GoToService": "Go to the Service",
+			"Copy": "Copy",
+			"ShowAll": "Show all",
+			"ShowLess": "Show less",
 			"AddApi": "Add APIs",
 			"AddAttachment": "Add Attachment",
 			"AddAuthentication": "Add Authentication",
@@ -1201,6 +1205,7 @@
 			"Files": "Files",
 			"GenericServices": "Generics",
 			"GoToView": "Go to the view",
+			"NotSpecified": "— not specified",
 			"Groups": "Groups",
 			"Home": "Home",
 			"Italiano": "Italian",
@@ -1244,6 +1249,11 @@
 			"EmailModified": "Email modified successfully",
 			"EmailRemoved": "Email removed successfully",
 			"OrgNonAmmissibile": "Your organization is not authorized to subscribe to this service",
+			"JoinServiceTitle": "Subscribe to the service",
+			"JoinServiceSubtitle": "Configure your organization to use the APIs of this service.",
+			"GoAdesionePrompt": "You already have an active subscription. Go to the detail to manage it.",
+			"GoAdesioniPrompt": "There are subscriptions associated with this service. View them to manage them.",
+			"GoToServiceSubtitle": "View the details of the service this subscription refers to (APIs, documentation, contacts).",
 			"ERROR": {
 				"ADE": {
 					"400": {
