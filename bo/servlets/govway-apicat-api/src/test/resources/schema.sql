@@ -529,6 +529,7 @@ create sequence seq_aziende_esterne start with 1 increment by 1;
         data_creazione timestamp not null,
         data_ultimo_tentativo timestamp,
         token_id varchar(255),
+        id_organizzazione_richiesta bigint,
         primary key (id)
     );
 

@@ -101,3 +101,13 @@ ALTER TABLE utenti DROP COLUMN id_organizzazione;
 
 -- Rimuove il flag referente_tecnico: i dati sono stati migrati in associazioni OPERATORE_API
 ALTER TABLE utenti DROP COLUMN referente_tecnico;
+
+-- ===== Selezione organizzazione in fase di registrazione =====
+
+-- Nuova FK opzionale: organizzazione richiesta dall'utente durante il first-login.
+-- Al completamento della registrazione, viene applicata come organizzazione_pending
+-- sull'utente creato/aggiornato (stato PENDING_UPDATE) per essere approvata dal
+-- gestore/coordinatore o dall'amministratore dell'organizzazione target.
+ALTER TABLE registrazioni_utenti ADD COLUMN id_organizzazione_richiesta BIGINT;
+ALTER TABLE registrazioni_utenti ADD CONSTRAINT fk_registrazioni_organizzazione_richiesta
+    FOREIGN KEY (id_organizzazione_richiesta) REFERENCES organizations(id);

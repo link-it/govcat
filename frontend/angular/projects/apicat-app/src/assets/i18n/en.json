@@ -1556,11 +1556,30 @@
 							"EMAIL": {
 								"JWT": "Email not present in authentication data"
 							}
+						},
+						"ORG": {
+							"ALREADY": {
+								"ASSOCIATED": "User already associated with organization [{{orgNome}}]"
+							}
+						}
+					},
+					"404": {
+						"ORG": {
+							"NOT": {
+								"FOUND": "Organization [{{idOrganizzazione}}] not found"
+							}
 						}
 					},
 					"409": {
 						"PRINCIPAL": {
 							"EXISTS": "Principal already associated with another user"
+						},
+						"ALREADY": {
+							"PENDING": {
+								"OTHER": {
+									"ORG": "User already pending approval for another organization [{{orgNome}}]"
+								}
+							}
 						}
 					},
 					"410": {

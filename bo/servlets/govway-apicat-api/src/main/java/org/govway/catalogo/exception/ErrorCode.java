@@ -644,7 +644,16 @@ public enum ErrorCode {
     REG_409_PRINCIPAL_EXISTS("Principal già associato a un altro utente"),
 
     /** Email non presente nei dati di autenticazione (JWT) */
-    REG_400_NO_EMAIL_JWT("Email non presente nei dati di autenticazione");
+    REG_400_NO_EMAIL_JWT("Email non presente nei dati di autenticazione"),
+
+    /** Organizzazione selezionata non trovata */
+    REG_404_ORG_NOT_FOUND("Organizzazione selezionata non trovata"),
+
+    /** Utente già associato all'organizzazione richiesta */
+    REG_400_ORG_ALREADY_ASSOCIATED("Utente già associato all'organizzazione richiesta"),
+
+    /** Utente già in attesa di approvazione per un'altra organizzazione */
+    REG_409_ALREADY_PENDING_OTHER_ORG("Utente già in attesa di approvazione per un'altra organizzazione");
 
     // ==================== ATTRIBUTI E METODI ====================
 

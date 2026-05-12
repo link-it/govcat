@@ -2819,5 +2819,51 @@ public class UtentiTest {
         assertFalse(hasB, "AMM_ORG di Y NON deve vedere utenteB (pending verso Z)");
         assertFalse(hasC, "AMM_ORG di Y NON deve vedere utenteC (abilitato non pending)");
     }
+
+    @Test
+    public void testApprovazione_NuovoUtenteDaRegistrazione_NoOrgPartenza_OK() {
+        // Simula il risultato della registrazione con org scelta: utente PENDING_UPDATE
+        // con organizzazione_pending valorizzata, nessuna associazione, nessuna org_partenza.
+        Organizzazione orgY = creaOrgConNomeMultiOrg("reg-newuser-y");
+        org.govway.catalogo.core.orm.entity.OrganizzazioneEntity orgYEntity =
+                organizzazioneService.find(orgY.getIdOrganizzazione()).get();
+
+        org.govway.catalogo.core.orm.entity.UtenteEntity nuovo =
+                new org.govway.catalogo.core.orm.entity.UtenteEntity();
+        nuovo.setIdUtente(UUID.randomUUID().toString());
+        nuovo.setPrincipal("reg.newuser." + System.nanoTime());
+        nuovo.setNome("Nuovo");
+        nuovo.setCognome("Registrato");
+        nuovo.setEmailAziendale("nuovo.registrato@example.com");
+        nuovo.setTelefonoAziendale("00-000000");
+        nuovo.setStato(org.govway.catalogo.core.orm.entity.UtenteEntity.Stato.PENDING_UPDATE);
+        nuovo.setOrganizzazionePending(orgYEntity);
+        nuovo.setOrganizzazionePartenza(null);
+        utenteService.save(nuovo);
+
+        // Approvazione come gestore
+        autenticaPrincipal(UTENTE_GESTORE);
+        Utente attuale = new Utente();
+        attuale.setIdUtente(UUID.fromString(nuovo.getIdUtente()));
+        attuale.setPrincipal(nuovo.getPrincipal());
+        attuale.setNome(nuovo.getNome());
+        attuale.setCognome(nuovo.getCognome());
+        attuale.setEmailAziendale(nuovo.getEmailAziendale());
+        attuale.setTelefonoAziendale(nuovo.getTelefonoAziendale());
+        UtenteUpdate uu = buildApprovazioneUpdate(attuale, orgY.getIdOrganizzazione(),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+
+        ResponseEntity<Utente> resp = controller.updateUtente(UUID.fromString(nuovo.getIdUtente()), uu);
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertEquals(StatoUtenteEnum.ABILITATO, resp.getBody().getStato());
+        assertNull(resp.getBody().getOrganizzazionePending());
+        assertNull(resp.getBody().getOrganizzazionePartenza());
+        assertEquals(1, resp.getBody().getOrganizzazioni().size());
+        assertEquals(orgY.getIdOrganizzazione(),
+                resp.getBody().getOrganizzazioni().get(0).getOrganizzazione().getIdOrganizzazione());
+        assertEquals(RuoloOrganizzazioneEnum.OPERATORE_API,
+                resp.getBody().getOrganizzazioni().get(0).getRuoloOrganizzazione());
+    }
 }
 
