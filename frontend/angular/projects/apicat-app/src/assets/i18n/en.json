@@ -156,6 +156,9 @@
 				"ShowReferents": "Referents",
 				"ShowReferents_sub": "Show referents"
 			},
+			"MESSAGE": {
+				"ConfigureClientsDisclaimer": "Configure the authentication clients to proceed. For each profile listed below, click the pencil and enter the required data."
+			},
 			"TOOLTIP": {
 				"EditAdesione": ""
 			}
@@ -2778,7 +2781,19 @@
 				"pubblicato_produzione_senza_collaudo": "Released into production without testing",
 				"richiesto_collaudo": "Required for testing",
 				"richiesto_produzione": "Required in production",
-				"richiesto_produzione_senza_collaudo": "Required in production without testing"
+				"richiesto_produzione_senza_collaudo": "Required in production without testing",
+				"bad_request": "Bad request",
+				"chiusa": "Closed",
+				"configurata_collaudo": "Configured in testing",
+				"configurata_produzione": "Configured in production",
+				"denied": "Denied",
+				"forbidden": "Forbidden",
+				"inviata_collaudo": "Sent for testing",
+				"inviata_produzione": "Sent for production",
+				"processing": "Processing",
+				"profile_not_exists": "Profile does not exist",
+				"rejected": "Rejected",
+				"sender_not_allowed": "Sender not allowed"
 			}
 		},
 		"WSDL": {

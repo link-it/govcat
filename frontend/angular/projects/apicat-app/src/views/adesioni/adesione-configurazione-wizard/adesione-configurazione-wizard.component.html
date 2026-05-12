@@ -103,7 +103,7 @@
                        che leggeva i colori da `adesioni-config.json`. -->
                   <lnk-stato-chip
                     [stato]="adesione.stato"
-                    [i18nPrefix]="'APP.STATUS'"
+                    [i18nPrefix]="'APP.WORKFLOW.STATUS'"
                   ></lnk-stato-chip>
                   @if (adesione.stato_configurazione_automatica) {
                     <ui-data-type
@@ -804,7 +804,7 @@
        completato in `dataStructureResults`). -->
   @if (!(loadingCheckDati | mapper:isSottotipoGroupCompletedMapper:AmbienteEnum.Collaudo:ClassiEnum.CLIENT)) {
     <div class="adesione-disclaimers my-3">
-      <ng-container *ngTemplateOutlet="genericDisclaimerTpl; context: { severity: 'info', disclaimer: 'Configura i client di autenticazione per procedere. Per ogni profilo elencato qui sotto premi la matita e inserisci i dati richiesti.' }"></ng-container>
+      <ng-container *ngTemplateOutlet="genericDisclaimerTpl; context: { severity: 'info', disclaimer: ('APP.ADESIONI.MESSAGE.ConfigureClientsDisclaimer' | translate) }"></ng-container>
     </div>
   }
 

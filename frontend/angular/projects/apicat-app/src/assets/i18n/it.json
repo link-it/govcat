@@ -156,6 +156,9 @@
 				"ShowReferents": "Referenti",
 				"ShowReferents_sub": "Mostra referenti"
 			},
+			"MESSAGE": {
+				"ConfigureClientsDisclaimer": "Configura i client di autenticazione per procedere. Per ogni profilo elencato qui sotto premi la matita e inserisci i dati richiesti."
+			},
 			"TOOLTIP": {
 				"EditAdesione": ""
 			}
@@ -2778,7 +2781,19 @@
 				"pubblicato_produzione_senza_collaudo": "Pubblicato in produzione senza collaudo",
 				"richiesto_collaudo": "Richiesto in collaudo",
 				"richiesto_produzione": "Richiesto in produzione",
-				"richiesto_produzione_senza_collaudo": "Richiesto in produzione senza collaudo"
+				"richiesto_produzione_senza_collaudo": "Richiesto in produzione senza collaudo",
+				"bad_request": "Richiesta non valida",
+				"chiusa": "Chiusa",
+				"configurata_collaudo": "Configurata in collaudo",
+				"configurata_produzione": "Configurata in produzione",
+				"denied": "Negato",
+				"forbidden": "Non consentito",
+				"inviata_collaudo": "Inviata in collaudo",
+				"inviata_produzione": "Inviata in produzione",
+				"processing": "In elaborazione",
+				"profile_not_exists": "Profilo non esistente",
+				"rejected": "Rifiutato",
+				"sender_not_allowed": "Mittente non autorizzato"
 			}
 		},
 		"WSDL": {
