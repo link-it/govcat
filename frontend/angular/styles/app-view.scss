@@ -61,6 +61,43 @@ small, .small {
     font-size: 0.875em;
 }
 
+/* Popover overflow tag per `<lnk-api-row>` "+n".
+ * Renderizzato in `body` (container="body"), quindi fuori dallo
+ * scope `.lnk-vetrina`: stili globali. */
+.lnk-api-row-overflow-pop {
+  .popover-body { padding: 8px; }
+  .lnk-api-row-overflow-list {
+    display: flex; flex-direction: column; gap: 6px;
+    max-width: 320px;
+  }
+  .lnk-api-row-overflow-list .tag {
+    font-size: 11px; padding: 3px 8px; border-radius: 4px;
+    font-weight: 600; letter-spacing: 0.02em;
+    align-self: flex-start;
+    border: 1px solid;
+  }
+  .lnk-api-row-overflow-list .tag.pdnd    { background: var(--info-soft);    color: var(--info-ink);   border-color: var(--info-border); }
+  .lnk-api-row-overflow-list .tag.profilo { background: var(--warn-soft);    color: var(--warn-ink);   border-color: var(--warn-border); }
+  .lnk-api-row-overflow-list .tag.custom  { background: var(--surface-3);    color: var(--ink-2);      border-color: var(--line); }
+
+  /* Tag split anche nel popover overflow. */
+  .lnk-api-row-overflow-list .tag.is-split {
+    padding: 0; overflow: hidden;
+    display: inline-flex; align-items: stretch;
+  }
+  .lnk-api-row-overflow-list .tag.is-split .tag-label,
+  .lnk-api-row-overflow-list .tag.is-split .tag-value {
+    padding: 3px 8px; display: inline-flex; align-items: center;
+  }
+  .lnk-api-row-overflow-list .tag.is-split .tag-value {
+    background: var(--surface);
+    border-left: 1px solid;
+  }
+  .lnk-api-row-overflow-list .tag.is-split.pdnd    .tag-value { border-left-color: var(--info-border); }
+  .lnk-api-row-overflow-list .tag.is-split.profilo .tag-value { border-left-color: var(--warn-border); }
+  .lnk-api-row-overflow-list .tag.is-split.custom  .tag-value { border-left-color: var(--line); color: var(--ink-2); }
+}
+
 /* ===================================================================
  * Tutte le regole di componente vetrina (chip, env-toggle, hero,
  * card, expand, kv, btnc, refs, ecc.) sono scoped sotto
@@ -119,15 +156,29 @@ small, .small {
     border-radius: var(--radius-xl);
     padding: var(--pad);
     display: grid;
-    grid-template-columns: 168px 1fr auto;
-    gap: 24px;
+    /* `max-content` su .hero-actions: la colonna si dimensiona
+       esattamente sul contenuto (es. larghezza del bottone) invece
+       di espandersi inutilmente (Chrome interpretava `auto` in
+       modo conservativo, sbilanciando lo spazio verso destra).
+       `minmax(0, 1fr)` su .hero-meta: ottiene tutto il restante,
+       potendo anche restringere sotto il content min se serve. */
+    grid-template-columns: 140px minmax(0, 1fr) max-content;
+    gap: 18px;
     align-items: center;
     margin-bottom: 22px;
     box-shadow: var(--shadow-sm);
     position: relative;
     overflow: hidden;
   }
-  [data-hide-image="true"] .hero { grid-template-columns: 1fr auto; }
+  /* `data-hide-image="true"` puo` stare sul `.lnk-vetrina` host
+     stesso (caso `servizio-view`: `[attr.data-hide-image]="!data?.immagine"`)
+     o su un discendente come `.main` (caso `adesione-view`). Coperti
+     entrambi con `&[…]` (self) e `[…]` (descendant). Senza il
+     branch self, la regola non firava per servizio-view senza immagine
+     e il grid restava a 3 colonne con la colonna img vuota. */
+  &[data-hide-image="true"] .hero,
+  [data-hide-image="true"] .hero { grid-template-columns: minmax(0, 1fr) max-content; }
+  &[data-hide-image="true"] .hero .hero-img,
   [data-hide-image="true"] .hero .hero-img { display: none; }
 
   .hero::before {
@@ -140,7 +191,7 @@ small, .small {
   .hero > * { position: relative; }
 
   .hero-img {
-    width: 168px; height: 168px;
+    width: 140px; height: 140px;
     border-radius: var(--radius-lg);
     background: var(--surface-3);
     border: 1px solid var(--line);
@@ -174,7 +225,7 @@ small, .small {
   }
   .hero .desc {
     font-size: 14px; color: var(--ink-2); line-height: 1.6;
-    max-width: 60ch; margin: 0 0 14px;
+    margin: 0 0 14px;
   }
   .hero .meta-row {
     display: flex; flex-wrap: wrap; align-items: center;
@@ -449,6 +500,45 @@ small, .small {
   .api .tag.profilo { background: var(--warn-soft); color: var(--warn-ink); border: 1px solid var(--warn-border); }
   /* Variante neutra per i tag generici / proprieta` custom. */
   .api .tag.custom { background: var(--surface-3); color: var(--ink-2); border: 1px solid var(--line); }
+
+  /* Tag split: pill composita "label | value" (vedi LnkApiTag.value).
+   * Il bordo e` sul wrapper `.tag`, le due meta` sono `<span>` interni:
+   * sinistra eredita la palette `variant`, destra usa `surface` con
+   * divisore. Override del padding del `.tag` di default (le meta`
+   * gestiscono il proprio padding). */
+  .api .tag.is-split {
+    padding: 0;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: stretch;
+  }
+  .api .tag.is-split .tag-label,
+  .api .tag.is-split .tag-value {
+    padding: 2px 7px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .api .tag.is-split .tag-value {
+    background: var(--surface);
+    color: inherit;
+    border-left: 1px solid currentColor;
+    /* opacita` sul border-left per evitare un divisore troppo
+       carico — currentColor + alpha non e` portabile, usiamo i
+       border-color del variant. */
+  }
+  .api .tag.is-split.pdnd    .tag-value { border-left-color: var(--info-border); }
+  .api .tag.is-split.profilo .tag-value { border-left-color: var(--warn-border); }
+  .api .tag.is-split.custom  .tag-value { border-left-color: var(--line); color: var(--ink-2); }
+
+  /* Bottone "+n" — apre il popover con i tag in overflow. */
+  .api .tag.tag-more {
+    background: var(--surface-2);
+    color: var(--ink-2);
+    border: 1px solid var(--line-strong);
+    cursor: pointer;
+    transition: background-color .12s, border-color .12s, color .12s;
+  }
+  .api .tag.tag-more:hover { background: var(--surface-3); border-color: var(--ink-4); color: var(--ink); }
 
   /* ─── action banner (CTA + messaggi sotto l'hero) ──────────────── */
   /* Stack verticale di banner card: icona | titolo+sottotitolo | CTA.

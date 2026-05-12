@@ -360,9 +360,10 @@
                 @for (api of serviceApiDominio; track api?.id_api) {
                   <lnk-api-row
                     [nome]="api?.nome"
-                    [versione]="api?.versione"
+                    [versione]="hideVersions ? null : api?.versione"
                     [descrizione]="api?.descrizione"
                     [tags]="api | mapper:_apiTagsMapper"
+                    [maxTags]="_apiMaxTags"
                     (action)="_onShowApi($event, api)"
                   ></lnk-api-row>
                 }
@@ -379,9 +380,10 @@
                 @for (api of serviceApiAderente; track api?.id_api) {
                   <lnk-api-row
                     [nome]="api?.nome"
-                    [versione]="api?.versione"
+                    [versione]="hideVersions ? null : api?.versione"
                     [descrizione]="api?.descrizione"
                     [tags]="api | mapper:_apiTagsMapper"
+                    [maxTags]="_apiMaxTags"
                     (action)="_onShowApi($event, api)"
                   ></lnk-api-row>
                 }

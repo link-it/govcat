@@ -1,6 +1,24 @@
 2026-05-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 254: vetrina servizio - tag API con composite split
+	  e raggruppamento "+n". `LnkApiTag` esteso con `value?`:
+	  pill split `[label | value]` (es. `[PDND | v.1]`). PDND
+	  mostra la versione inline quando `Services.hideVersions`
+	  e` false; il flag e` ora rispettato anche da `[versione]`
+	  della riga API. `<lnk-api-row>` supporta `[maxTags]`
+	  (default 3): oltre soglia, gli extra finiscono in un
+	  popover `+n` (ngx-bootstrap PopoverModule) con il tag
+	  `profilo` sempre ancorato come visibile. Mock testabile
+	  via `config.apiTagsMockExtras` (servizi-config.json).
+	  Fix hero grid: `[data-hide-image="true"]` ora copre il
+	  caso "attributo sull'host `.lnk-vetrina`" oltre al caso
+	  "su discendente" (servizio senza immagine restava a 3
+	  colonne con slot img vuoto, sbilanciando le actions);
+	  hero-img 168 -> 140, `gap` 24 -> 18, `desc` senza
+	  `max-width: 60ch`.
+
+	* [Frontend]
 	Issue 254: disclaimers per-client nascosti nella lista
 	  quando lo stato del client e` `configurato` (le note
 	  contestuali alla configurazione iniziale non servono

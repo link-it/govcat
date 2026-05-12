@@ -265,6 +265,54 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         return text.length > threshold;
     }
 
+    /** Soglia max tag per riga API: oltre, gli extra finiscono nel
+     *  popover "+n" (vedi `<lnk-api-row>`). Override via
+     *  `config.apiMaxTags`. Default 3. Passa `null` per disabilitare
+     *  il raggruppamento. */
+    public get _apiMaxTags(): number | null {
+        const v = this.config?.apiMaxTags;
+        if (v === null) return null;
+        return typeof v === 'number' && v > 0 ? v : 3;
+    }
+
+    /**
+     * Mock per test visivi del raggruppamento "+n": se
+     * `config.apiTagsMockExtras` e` un numero > 0, aggiunge N tag
+     * fittizi alla lista. I tag sono volutamente eterogenei
+     * (size/variant/contenuto) per stressare il layout (wrap,
+     * troncamento, popover overflow).
+     */
+    private _buildMockExtraTags(): LnkApiTag[] {
+        const n = Number(this.config?.apiTagsMockExtras || 0);
+        if (!Number.isFinite(n) || n <= 0) return [];
+        const pool: LnkApiTag[] = [
+            { label: 'A',                          variant: 'custom' },
+            { label: 'PDND',     value: 'v.2',     variant: 'pdnd' },
+            { label: 'Beta',                       variant: 'custom' },
+            { label: 'Profilo',  value: 'MOCK',    variant: 'profilo' },
+            { label: 'REST',                       variant: 'custom' },
+            { label: 'API',      value: 'v.3.1',   variant: 'pdnd' },
+            { label: 'GeoData',                    variant: 'custom' },
+            { label: 'WMS',      value: '1.3.0',   variant: 'custom' },
+            { label: 'Una etichetta lunghissima che deve andare a capo o essere troncata', variant: 'custom' },
+            { label: 'ISO',      value: '19115',   variant: 'custom' },
+            { label: 'INSPIRE',                    variant: 'pdnd' },
+            { label: 'AgID',     value: 'LG1',     variant: 'profilo' },
+            { label: 'X',                          variant: 'custom' },
+            { label: 'Compliance/EU/2024-12-31',   variant: 'custom' },
+            { label: '🚀',        value: 'emoji-test', variant: 'custom' },
+            { label: 'CamelCaseTag',               variant: 'custom' },
+            { label: 'kebab-case-tag',             variant: 'custom' },
+            { label: 'env',      value: 'prod',    variant: 'custom' },
+            { label: 'UPPER',                      variant: 'custom' },
+        ];
+        const out: LnkApiTag[] = [];
+        for (let i = 0; i < n; i++) {
+            out.push(pool[i % pool.length]);
+        }
+        return out;
+    }
+
     constructor (
         private readonly route: ActivatedRoute,
         private readonly router: Router,
@@ -985,18 +1033,29 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         if (!api) return [];
         const tags: LnkApiTag[] = [];
 
-        // PDND tag
+        // PDND tag: pill split "PDND | v.X" (come il composite badged
+        // del vecchio `<ui-data-type>`). Se versione assente o flag
+        // `hideVersions` attivo -> solo "PDND" non split (allineamento
+        // legacy `configDependency: Services.hideVersions`).
         const authType = api?.gruppi_auth_type?.[0]?.auth_type || '';
         const profiloCode = api?.gruppi_auth_type?.[0]?.profilo || '';
         if (/pdnd/i.test(authType) || /pdnd/i.test(profiloCode)) {
-            tags.push({ label: 'PDND', variant: 'pdnd' });
+            const versione = api?.versione;
+            if (!this.hideVersions && versione != null && versione !== '') {
+                tags.push({ label: 'PDND', value: `v.${versione}`, variant: 'pdnd' });
+            } else {
+                tags.push({ label: 'PDND', variant: 'pdnd' });
+            }
         }
 
-        // Profilo tag (etichetta umana)
+        // Profilo tag — etichetta completa "Profilo:<etichetta>" come
+        // nel vecchio rendering (era prefissata via `profiloLabelI18n`
+        // in `_loadApis`, qui ricostruita per coerenza).
         if (profiloCode) {
-            const label = this._getProfiloLabelMapper(profiloCode);
-            if (label) {
-                tags.push({ label, variant: 'profilo' });
+            const etichetta = this._getProfiloLabelMapper(profiloCode);
+            if (etichetta) {
+                const prefix = this.translate.instant('APP.LABEL.Profilo');
+                tags.push({ label: `${prefix}:${etichetta}`, variant: 'profilo' });
             }
         }
 
@@ -1004,7 +1063,9 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         // aggiunte come property direttamente sull'oggetto API in
         // `_loadApis()` (per il rendering legacy `<ui-item-row>`).
         // Le rileviamo cercando le chiavi che non appartengono allo
-        // shape standard di ApiReadDetails.
+        // shape standard di ApiReadDetails. Filtriamo i pattern "v.N"
+        // (la versione e` gia` inlineata nel PDND tag e mostrata anche
+        // nel nome riga via `[versione]`).
         const knownFields = new Set([
             'id_api', 'nome', 'versione', 'descrizione', 'codice_asset',
             'ruolo', 'protocollo', 'protocollo_dettaglio', 'specifica',
@@ -1016,8 +1077,14 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
             if (knownFields.has(k)) continue;
             const v = api[k];
             if (typeof v !== 'string' || !v) continue;
+            if (/^v\.\d+$/i.test(v.trim())) continue;
             tags.push({ label: v, variant: 'custom' });
         }
+
+        // Mock testabile (vedi `_buildMockExtraTags`): se
+        // `config.apiTagsMockExtras > 0` aggiunge N tag fittizi per
+        // verificare il raggruppamento "+n".
+        tags.push(...this._buildMockExtraTags());
 
         return tags;
     }

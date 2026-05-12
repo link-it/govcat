@@ -50,6 +50,11 @@
       "newLayout": false
     },
 
+    "Services": {
+      "showReferents": true,
+      "hideVersions": false
+    },
+
     "Profile": {
       "showEmail": false,
       "showPhone": false
