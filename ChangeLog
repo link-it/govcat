@@ -1,6 +1,19 @@
 2026-05-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 254: disclaimers per-client unificati lista + form.
+	  `adesione-lista-clients` -> hint inline con background
+	  `alert-{info|warning|danger}` (era `bg-lightest`
+	  neutro), border-top flat per attaccarsi alla riga.
+	  Stessa lista propagata a `<app-client-auth-form>` via
+	  nuovo `@Input() disclaimers`: visibili nello scenario
+	  `new` (sostituiscono lo help statico), nascosti nella
+	  lista quando la form inline e` aperta per quell'item
+	  per evitare duplicazione.
+
+2026-05-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue 254: fix i18n stato workflow — prefisso `APP.STATUS`
 	  sostituito con `APP.WORKFLOW.STATUS` (namespace canonico
 	  usato dai JSON config) in `<lnk-stato-chip>` di vetrina

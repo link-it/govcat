@@ -107,10 +107,28 @@
           }
 
           @if (input.formConfig.scenario.kind === 'new') {
-            <div class="alert alert-info small mt-2 mb-0">
+            <!-- <div class="alert alert-info small mt-2 mb-0">
               <i class="bi bi-info-circle me-2"></i>
               {{ 'APP.ADESIONI.LABEL.HelpScenarioNuovo' | translate }}
-            </div>
+            </div> -->
+            <!-- Disclaimers per-profilo: stessa lista che la
+                 `adesione-lista-clients` mostra sotto la riga.
+                 Allineata visivamente (alert-* + icona tinta). -->
+            @for (d of disclaimers; track $index) {
+              <small class="d-flex align-items-start gap-2 px-3 py-2 alert mb-0 mt-3 " [ngClass]="_getDisclaimerAlertClass(d.severity)">
+                <i class="me-2" [ngClass]="_getDisclaimerIconClass(d.severity)" [attr.aria-label]="d.severity"></i>
+                <markdown class="disclaimer-inline flex-grow-1" [data]="d.disclaimer"></markdown>
+                @if (d.links?.length) {
+                  <span class="ms-1">
+                    @for (link of d.links; track $index) {
+                      <a class="ms-1" [href]="_getDisclaimerLinkHref(link)" target="_blank" rel="noopener noreferrer">
+                        {{ _getDisclaimerLinkLabel(link) }}
+                      </a>
+                    }
+                  </span>
+                }
+              </small>
+            }
           }
           @if (input.formConfig.scenario.kind === 'proposed') {
             <div class="alert alert-info small mt-2 mb-0">

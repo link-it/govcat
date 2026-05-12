@@ -117,7 +117,7 @@
              — la sorgente da cui questa adesione e` nata. La CTA
              porta a `/servizi/:id_servizio` (rispetta middle/Ctrl
              click via `navigationService.shouldOpenInNewTab`). -->
-        @if (adesione.servizio?.id_servizio) {
+        @if (adesione.servizio.id_servizio) {
           <lnk-action-banner
             icon="bi-grid-3x3-gap"
             [title]="'APP.BUTTON.GoToService' | translate"

@@ -57,6 +57,10 @@
   --pad: 22px;
 }
 
+small, .small {
+    font-size: 0.875em;
+}
+
 /* ===================================================================
  * Tutte le regole di componente vetrina (chip, env-toggle, hero,
  * card, expand, kv, btnc, refs, ecc.) sono scoped sotto
@@ -354,10 +358,10 @@
     text-transform: uppercase;
     max-width: 100%;
   }
-  .ref-tag.dom  { background: var(--ok-soft); color: var(--ok-ink); }
-  .ref-tag.serv { background: var(--info-soft); color: var(--info-ink); }
-  .ref-tag.ades { background: var(--warn-soft); color: var(--warn-ink); }
-  .ref-tag.tec  { background: var(--accent-soft); color: var(--accent-ink); }
+  .ref-tag.r-dom  { background: var(--ok-soft); color: var(--ok-ink); }
+  .ref-tag.r-serv { background: var(--info-soft); color: var(--info-ink); }
+  .ref-tag.r-ades { background: var(--warn-soft); color: var(--warn-ink); }
+  .ref-tag.r-tec  { background: var(--accent-soft); color: var(--accent-ink); }
   .ref-body { min-width: 0; flex: 1; }
 
   /* overlap variant */
@@ -389,10 +393,10 @@
     font-size: 10px; padding: 1px 5px; border-radius: 3px;
     font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase;
   }
-  .refs-overlap .info .roles .r.dom  { background: var(--ok-soft); color: var(--ok-ink); }
-  .refs-overlap .info .roles .r.serv { background: var(--info-soft); color: var(--info-ink); }
-  .refs-overlap .info .roles .r.ades { background: var(--warn-soft); color: var(--warn-ink); }
-  .refs-overlap .info .roles .r.tec  { background: var(--accent-soft); color: var(--accent-ink); }
+  .refs-overlap .info .roles .r.r-dom  { background: var(--ok-soft); color: var(--ok-ink); }
+  .refs-overlap .info .roles .r.r-serv { background: var(--info-soft); color: var(--info-ink); }
+  .refs-overlap .info .roles .r.r-ades { background: var(--warn-soft); color: var(--warn-ink); }
+  .refs-overlap .info .roles .r.r-tec  { background: var(--accent-soft); color: var(--accent-ink); }
 
   /* ─── api list ─────────────────────────────────────────────────── */
   .api-list { display: flex; flex-direction: column; gap: 8px; }
@@ -480,7 +484,7 @@
   .action-banner .ab-icon i { font-size: 18px; }
   .action-banner .ab-body { min-width: 0; }
   .action-banner .ab-title {
-    font-size: 14.5px; font-weight: 600; color: var(--ink);
+    font-size: 14.5px; font-weight: 500; color: var(--ink);
     letter-spacing: -0.005em; line-height: 1.3;
   }
   .action-banner .ab-subtitle {
