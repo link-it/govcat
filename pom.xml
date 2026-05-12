@@ -259,7 +259,8 @@
 		<json-path.version>2.9.0</json-path.version>
 
 		<!-- proxy -->
-		<jetty.version>12.0.32</jetty.version>
+		<!-- Fix CVE-2026-2332 (HTTP request smuggling, fix da 12.0.33) e CVE-2026-5795 (JASPI ThreadLocal leak, fix da 12.0.34) -->
+		<jetty.version>12.0.35</jetty.version>
 
 		<dynamicreports-core.version>6.20.1</dynamicreports-core.version>
 		<!-- Fix CVE-2026-0636 (bcprov LDAP injection) e CVE-2026-5588 (bcpkix PKIX CompositeVerifier) -->
@@ -1296,6 +1297,33 @@
 								${owasp.dir}/suppression/CVE-2026-22732.xml</suppressionFile>
 							<suppressionFile>
 								${owasp.dir}/suppression/CVE-2026-33929.xml</suppressionFile>
+							<!-- Spring Framework 6.1.x (linea EOL OSS): suppression in attesa upgrade major -->
+							<suppressionFile>
+								${owasp.dir}/suppression/CVE-2026-22741.xml</suppressionFile>
+							<suppressionFile>
+								${owasp.dir}/suppression/CVE-2026-22740.xml</suppressionFile>
+							<suppressionFile>
+								${owasp.dir}/suppression/CVE-2026-22737.xml</suppressionFile>
+							<suppressionFile>
+								${owasp.dir}/suppression/CVE-2026-22735.xml</suppressionFile>
+							<suppressionFile>
+								${owasp.dir}/suppression/CVE-2026-22745.xml</suppressionFile>
+							<!-- Spring Boot 3.3.x (linea EOL OSS): suppression in attesa upgrade major -->
+							<suppressionFile>
+								${owasp.dir}/suppression/CVE-2026-40977.xml</suppressionFile>
+							<suppressionFile>
+								${owasp.dir}/suppression/CVE-2026-40972.xml</suppressionFile>
+							<suppressionFile>
+								${owasp.dir}/suppression/CVE-2026-40975.xml</suppressionFile>
+							<suppressionFile>
+								${owasp.dir}/suppression/CVE-2026-22733.xml</suppressionFile>
+							<suppressionFile>
+								${owasp.dir}/suppression/CVE-2026-40973.xml</suppressionFile>
+							<!-- Spring Security 6.3.x (linea EOL OSS): suppression in attesa upgrade major -->
+							<suppressionFile>
+								${owasp.dir}/suppression/CVE-2026-22748.xml</suppressionFile>
+							<suppressionFile>
+								${owasp.dir}/suppression/CVE-2026-22746.xml</suppressionFile>
 							</suppressionFiles>
 							<nvdApiDelay>120000</nvdApiDelay><!-- 2 minuti -->
 							<nvdMaxRetryCount>3</nvdMaxRetryCount> <!-- 3 max
