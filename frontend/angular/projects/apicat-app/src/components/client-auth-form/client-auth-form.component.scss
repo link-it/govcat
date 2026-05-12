@@ -128,3 +128,12 @@
     border-color: #ecd6b0;
     border-radius: 8px;
 }
+
+markdown.disclaimer-inline {
+    display: inline;
+
+    ::ng-deep p {
+        display: inline;
+        margin: 0;
+    }
+}

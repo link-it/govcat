@@ -152,9 +152,9 @@
     i { font-size: 11px; }
 
     &.is-completed {
-      background: var(--ok-soft, #e3eff5);
-      color: var(--ok-ink, #21324a);
-      border-color: #b3d4e2;
+      background: var(--ok-soft);
+      color: var(--ok-ink);
+      border-color: var(--ok-border);
     }
     &.is-locked {
       background: var(--surface-3, #eef4f8);
@@ -171,9 +171,12 @@
     transition: background-color .15s, border-color .15s, color .15s;
   }
   &.is-collapsible:hover .tl-state.is-collapsible-hint {
-    background: #d6e7f0;          // ok-soft un filo piu` saturo
-    border-color: #91bbd2;        // border piu` definito
-    color: var(--ink, #212c49);   // testo piu` scuro
+    // hover: ok-soft un filo piu` saturo / border piu` definito.
+    // Riferito alla palette verde globale (--ok-*) — vedi
+    // `styles/app-view.scss :root`.
+    background: #d3ecdd;
+    border-color: #8fc7a8;
+    color: var(--ok-ink);
   }
 
   .tl-action {

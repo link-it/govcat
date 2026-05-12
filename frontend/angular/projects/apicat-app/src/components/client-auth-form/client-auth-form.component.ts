@@ -49,6 +49,7 @@ import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule } from '@a
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { MarkdownModule } from 'ngx-markdown';
 
 import { COMPONENTS_IMPORTS } from '@linkit/components';
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
@@ -157,11 +158,24 @@ export type ClientAuthFormLayout = 'vertical' | 'horizontal';
         TooltipModule,
         NgSelectModule,
         MarkAsteriskDirective,
+        MarkdownModule,
     ],
 })
 export class ClientAuthFormComponent {
     @Input({ required: true }) input!: ClientAuthFormInput;
     @Input() layout: ClientAuthFormLayout = 'vertical';
+    /**
+     * Disclaimers contestuali del client in edit (stessa lista
+     * filtrata per profilo che la `adesione-lista-clients`
+     * mostra sotto la riga). Renderizzati nella sezione
+     * `HelpScenarioNuovo` per coerenza fra vista lista e vista
+     * form di modifica.
+     */
+    @Input() disclaimers: Array<{
+        disclaimer: string;
+        severity?: string;
+        links?: Array<{ url?: string; href?: string; label?: string; title?: string; text?: string }>;
+    }> = [];
 
     @Output() changeAuthType = new EventEmitter<any>();
     @Output() selectCredenziali = new EventEmitter<SelectedClientEnum>();
@@ -192,6 +206,38 @@ export class ClientAuthFormComponent {
     _hasControlError(name: string): boolean {
         const ctrl = this.input?.formGroup?.get(name);
         return !!(ctrl?.errors && ctrl.touched);
+    }
+
+    // ---------------- Disclaimers ----------------
+    // Helper allineati a `getDisclaimerAlertClass` /
+    // `_getDisclaimerIconClass` del wizard e di
+    // `adesione-lista-clients` — mantengono il look-and-feel
+    // dell'hint inline (alert-* di Bootstrap + icona tinta
+    // dalla severity).
+    _getDisclaimerAlertClass(severity?: string): string {
+        switch (severity) {
+            case 'ERROR': return 'alert-danger';
+            case 'WARNING': return 'alert-warning';
+            case 'INFO':
+            default: return 'alert-info';
+        }
+    }
+
+    _getDisclaimerIconClass(severity?: string): string {
+        switch (severity) {
+            case 'ERROR': return 'bi bi-exclamation-triangle text-danger';
+            case 'WARNING': return 'bi bi-exclamation-triangle text-warning';
+            case 'INFO':
+            default: return 'bi bi-info-circle text-info';
+        }
+    }
+
+    _getDisclaimerLinkHref(link: any): string {
+        return link?.url || link?.href || '';
+    }
+
+    _getDisclaimerLinkLabel(link: any): string {
+        return link?.label || link?.title || link?.text || link?.url || link?.href || '';
     }
 
     /**

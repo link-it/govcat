@@ -100,21 +100,29 @@
             }
           </div>
 
-          <!-- Disclaimers per item (icone severity + markdown inline). -->
-          @for (d of _clientDisclaimers(item); track $index) {
-            <small class="adesione-item-hint text-muted d-block px-3 py-2 bg-lightest">
-              <i class="me-2" [ngClass]="_getDisclaimerIconClass(d.severity)" [attr.aria-label]="d.severity"></i>
-              <markdown class="disclaimer-inline" [data]="d.disclaimer"></markdown>
-              @if (d.links?.length) {
-                <span class="ms-1">
-                  @for (link of d.links; track $index) {
-                    <a class="ms-1" [href]="_getDisclaimerLinkHref(link)" target="_blank" rel="noopener noreferrer">
-                      {{ _getDisclaimerLinkLabel(link) }}
-                    </a>
-                  }
-                </span>
-              }
-            </small>
+          <!-- Disclaimers per item (icone severity + markdown inline).
+               Nascosti quando:
+               - la form inline e` aperta per QUESTO item (la form
+                 li mostra gia` via `<app-client-auth-form [disclaimers]>`)
+               - il client e` gia` `configurato` (le note sono
+                 contestuali alla configurazione iniziale e perdono
+                 di utilita` una volta completata). -->
+          @if (!isEditing && item.source?.stato !== 'configurato') {
+            @for (d of _clientDisclaimers(item); track $index) {
+              <small class="adesione-item-hint d-flex align-items-start gap-2 px-3 py-2 alert mb-0" [ngClass]="_getDisclaimerAlertClass(d.severity)">
+                <i class="me-2" [ngClass]="_getDisclaimerIconClass(d.severity)" [attr.aria-label]="d.severity"></i>
+                <markdown class="disclaimer-inline flex-grow-1" [data]="d.disclaimer"></markdown>
+                @if (d.links?.length) {
+                  <span class="ms-1">
+                    @for (link of d.links; track $index) {
+                      <a class="ms-1" [href]="_getDisclaimerLinkHref(link)" target="_blank" rel="noopener noreferrer">
+                        {{ _getDisclaimerLinkLabel(link) }}
+                      </a>
+                    }
+                  </span>
+                }
+              </small>
+            }
           }
 
           <!-- Pannello edit inline. Sotto flag `inlineEdit`, mostra
@@ -127,6 +135,7 @@
                 <app-client-auth-form
                   [input]="modalInput"
                   [layout]="_dialogLayout"
+                  [disclaimers]="_clientDisclaimers(item)"
                   (selectCredenziali)="_onSelectCredenzialiOption($event)"
                   (changeCredenziali)="onChangeCredenziali($event)"
                   (changeTipoCertificato)="onChangeTipoCertificato($event)"

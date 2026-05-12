@@ -93,9 +93,11 @@
             }
             <!-- Chevron di affordance (rev. 4.36): rende esplicito che
                  lo step e` espandibile, oltre all'hint hover sul chip
-                 "Completato". Solo per gli step collapsible (completed
-                 collassabile + active); ruota di 180° quando aperto. -->
-            @if (sub.collapsible) {
+                 "Completato". Mostrato SOLO per gli step `completed`
+                 collassabili — sugli `active` il `tl-action`
+                 ("Compila ora" / "Chiudi") ha gia` il suo chevron
+                 interno (rev. 4.37). -->
+            @if (sub.collapsible && sub.state === 'completed') {
               <i class="bi bi-chevron-down tl-row-chev"
                  [class.is-open]="sub.open"
                  aria-hidden="true"></i>

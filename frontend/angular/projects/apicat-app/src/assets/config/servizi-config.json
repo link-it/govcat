@@ -9,6 +9,11 @@
     "fillBox": true,
     "showMasonry": false,
 
+    "heroImageObjectFit": "contain",
+
+    "apiMaxTags": 3,
+    "apiTagsMockExtras": 0,
+
     "editSingleColumn": false,
     "showMarkdown": true,
     "showPresentation": true,

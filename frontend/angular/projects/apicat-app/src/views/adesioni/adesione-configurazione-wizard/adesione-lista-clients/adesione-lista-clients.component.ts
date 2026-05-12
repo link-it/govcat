@@ -325,7 +325,7 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
     
     _isConfiguratoMapper = (item: any): boolean => {
         let _isConfigurato = (item.source.stato === StatoConfigurazioneEnum.CONFIGURATO);
-        const _isNomeProposto = item?.source?.nome_proposto ? true : false;
+        const _isNomeProposto = !!item?.source?.nome_proposto;
         if (_isNomeProposto) {
             _isConfigurato = false;
         }
@@ -352,6 +352,22 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
             case 'WARNING': return 'bi bi-exclamation-triangle text-warning';
             case 'INFO':
             default: return 'bi bi-info-circle text-info';
+        }
+    }
+
+    /**
+     * Restituisce la classe Bootstrap alert-* per il background
+     * dell'item-hint del client. Allineata a
+     * `getDisclaimerAlertClass()` del wizard parent: il disclaimer
+     * inline assume il colore della severity (info/warning/danger)
+     * invece di un neutro `bg-lightest`.
+     */
+    _getDisclaimerAlertClass(severity?: string): string {
+        switch (severity) {
+            case 'ERROR': return 'alert-danger';
+            case 'WARNING': return 'alert-warning';
+            case 'INFO':
+            default: return 'alert-info';
         }
     }
 

@@ -1,3 +1,117 @@
+2026-05-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: vetrina servizio - tag API con composite split
+	  e raggruppamento "+n". `LnkApiTag` esteso con `value?`:
+	  pill split `[label | value]` (es. `[PDND | v.1]`). PDND
+	  mostra la versione inline quando `Services.hideVersions`
+	  e` false; il flag e` ora rispettato anche da `[versione]`
+	  della riga API. `<lnk-api-row>` supporta `[maxTags]`
+	  (default 3): oltre soglia, gli extra finiscono in un
+	  popover `+n` (ngx-bootstrap PopoverModule) con il tag
+	  `profilo` sempre ancorato come visibile. Mock testabile
+	  via `config.apiTagsMockExtras` (servizi-config.json).
+	  Fix hero grid: `[data-hide-image="true"]` ora copre il
+	  caso "attributo sull'host `.lnk-vetrina`" oltre al caso
+	  "su discendente" (servizio senza immagine restava a 3
+	  colonne con slot img vuoto, sbilanciando le actions);
+	  hero-img 168 -> 140, `gap` 24 -> 18, `desc` senza
+	  `max-width: 60ch`.
+
+	* [Frontend]
+	Issue 254: disclaimers per-client nascosti nella lista
+	  quando lo stato del client e` `configurato` (le note
+	  contestuali alla configurazione iniziale non servono
+	  piu` dopo). Spacing tweak in `adesione-form` (mb-3
+	  sulla colonna soggetto).
+
+2026-05-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: disclaimers per-client unificati lista + form.
+	  `adesione-lista-clients` -> hint inline con background
+	  `alert-{info|warning|danger}` (era `bg-lightest`
+	  neutro), border-top flat per attaccarsi alla riga.
+	  Stessa lista propagata a `<app-client-auth-form>` via
+	  nuovo `@Input() disclaimers`: visibili nello scenario
+	  `new` (sostituiscono lo help statico), nascosti nella
+	  lista quando la form inline e` aperta per quell'item
+	  per evitare duplicazione.
+
+2026-05-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: fix i18n stato workflow — prefisso `APP.STATUS`
+	  sostituito con `APP.WORKFLOW.STATUS` (namespace canonico
+	  usato dai JSON config) in `<lnk-stato-chip>` di vetrina
+	  adesione/servizio, wizard new-layout e `adesione-details`.
+	  Aggiunte 12 chiavi mancanti in `APP.WORKFLOW.STATUS`
+	  (it+en): `bad_request`, `chiusa`, `configurata_*`,
+	  `denied`, `forbidden`, `inviata_*`, `processing`,
+	  `profile_not_exists`, `rejected`, `sender_not_allowed`.
+
+	* [Frontend]
+	Issue 254: disclaimer "Configura i client" del wizard
+	  ora i18n. Nuova chiave `APP.ADESIONI.MESSAGE.
+	  ConfigureClientsDisclaimer` (it+en), sostituita la
+	  stringa hardcoded italiana nel template.
+
+2026-05-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: `<lnk-hero-image>` — input `[objectFit]`
+	  configurabile (`cover` | `contain` | `fill`, default
+	  `cover`). Nuova prop top-level `heroImageObjectFit`
+	  in `servizi-config.json` e `adesioni-config.json`,
+	  letta dalle vetrine via `config?.heroImageObjectFit`.
+	  `servizi-config.json` default `contain` (logo non
+	  croppato).
+
+	* [Frontend]
+	Fix i18n date relative: import dei locale data
+	  Moment.js (`it`, `en-gb`, `fr`) in `app.component.ts`.
+	  Senza, `moment.locale(defaultLanguage)` non aveva
+	  effetto e `fromNow()` cadeva sul default inglese US
+	  (es. "an hour ago" anziche` "un'ora fa") nel wizard
+	  adesione, in `<ui-data-type>` e `<ui-item-type>`.
+
+2026-05-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: palette stati unificata. Nuova tabella
+	  semantica `LnkStatoVariant` (draft/pending/in-progress/
+	  test/prod/archived/error) in `components/vetrina/
+	  stato-variants.const.ts` con mapping esplicito di 33
+	  stati ai design token globali. Refactor `<lnk-stato-chip>`:
+	  classi `.lnk-stato-chip.is-*` isolate dal `.chip`/
+	  `.chip-ok` legacy, dot-pulse rimosso. Wizard adesione:
+	  rimosso override locale `--ok-*` (blu brand) per
+	  allinearsi alla palette verde globale; bordi hardcoded
+	  `#b3d4e2` sostituiti con `var(--ok-border)` in
+	  `.chip-ok`, `.lnk-phase-section-icon`, substepper
+	  `.tl-state.is-completed`. Sostituito `<ui-data-type
+	  type="tag" options="status">` con `<lnk-stato-chip>`
+	  nel wizard new-layout.
+
+	* [Frontend]
+	Issue 254: substepper — chevron di affordance mostrato
+	  solo per gli step `completed` collassabili. Sugli
+	  `active` il bottone `tl-action` ha gia` il suo chevron
+	  interno: il chevron a fine riga creava una doppia
+	  visualizzazione.
+
+	* [Frontend]
+	Nuova "vetrina" per `adesione-view` e `servizio-view`:
+	  componenti shared in `components/vetrina/`
+	  (hero-image, stato-chip, refs, env-toggle, api-row,
+	  action-banner) + stylesheet globale `app-view.scss`
+	  scoped sotto `.lnk-vetrina`. Hero + layout 2-col +
+	  stack di action-banner contestuali; documentazione
+	  tecnica con clip + toggle sopra soglia configurabile;
+	  lista API con tag PDND/profilo/custom. Fix
+	  incidentale `isGestoredMapper` nel wizard adesione
+	  (`grant.includes is not a function`).
+
 2026-05-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

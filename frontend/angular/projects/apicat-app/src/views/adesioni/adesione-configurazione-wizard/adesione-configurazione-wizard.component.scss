@@ -215,9 +215,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   --brand-soft-2: #e3eff5;
   --brand-ink:    #21324a;
 
-  --ok:        #2e445a;
-  --ok-soft:   #e3eff5;
-  --ok-ink:    #21324a;
+  // NOTA: i token --ok-* sono GLOBAL (definiti in `styles/app-view.scss
+  // :root`) — palette VERDE per stati "ok/done/completed". L'override
+  // locale precedente li ridefiniva blu, generando incoerenza con gli
+  // stati nella vetrina (adesione-view / servizio-view). Rimosso per
+  // unificare la palette stati (vedi NOTE-CLAUDE/STATI-PALETTE-UNIFICATA).
 
   --warn:      #c97a1a;
   --warn-soft: #fbf1e2;
@@ -301,7 +303,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     background: currentColor;
   }
   .chip-accent { background: var(--accent-soft); color: var(--accent-ink); border-color: #ffc4c9; }
-  .chip-ok     { background: var(--ok-soft);     color: var(--ok-ink);     border-color: #b3d4e2; }
+  .chip-ok     { background: var(--ok-soft);     color: var(--ok-ink);     border-color: var(--ok-border); }
   .chip-warn   { background: var(--warn-soft);   color: var(--warn-ink);   border-color: #ecd6b0; }
   .chip-err    { background: var(--err-soft);    color: var(--err-ink);    border-color: #ffc4c9; }
   .chip-muted  { background: var(--surface-3);   color: var(--ink-3); }
@@ -556,9 +558,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   .lnk-phase-section.is-open .lnk-phase-section-hd { border-bottom: 1px solid var(--line); }
   .lnk-phase-section-icon {
     width: 24px; height: 24px; border-radius: 50%;
-    background: var(--ok-soft); border: 1px solid #b3d4e2;
+    background: var(--ok-soft); border: 1px solid var(--ok-border);
     display: grid; place-items: center; flex-shrink: 0;
-    color: #2a7a50;
+    color: var(--ok-ink);
   }
   .lnk-phase-section-icon i { font-size: 12px; }
   .lnk-phase-section-title {

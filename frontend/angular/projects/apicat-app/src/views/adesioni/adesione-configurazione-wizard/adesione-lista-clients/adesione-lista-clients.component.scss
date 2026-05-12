@@ -24,6 +24,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   font-size: 0.8125rem;
   line-height: 1.3;
 
+  // L'hint sta sotto la riga del client (dentro la stessa card
+  // host): i border-top arrotondati creano uno scalino visivo
+  // contro il bordo superiore. Flat in alto, arrotondato sotto.
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+
   i.bi {
     opacity: 0.85;
   }
