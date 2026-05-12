@@ -1,6 +1,15 @@
 2026-05-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 254: disclaimers per-client nascosti nella lista
+	  quando lo stato del client e` `configurato` (le note
+	  contestuali alla configurazione iniziale non servono
+	  piu` dopo). Spacing tweak in `adesione-form` (mb-3
+	  sulla colonna soggetto).
+
+2026-05-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue 254: disclaimers per-client unificati lista + form.
 	  `adesione-lista-clients` -> hint inline con background
 	  `alert-{info|warning|danger}` (era `bg-lightest`
