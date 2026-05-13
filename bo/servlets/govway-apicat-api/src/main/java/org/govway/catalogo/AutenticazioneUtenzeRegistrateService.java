@@ -83,6 +83,10 @@ public class AutenticazioneUtenzeRegistrateService extends AbstractService imple
 					contact.getOrganizzazionePending().getSoggetti().stream().forEach(s -> {s.getNome();});
 				}
 
+				if(contact.getOrganizzazionePartenza()!=null) {
+					contact.getOrganizzazionePartenza().getSoggetti().stream().forEach(s -> {s.getNome();});
+				}
+
 				contact.getClassi().stream().forEach( e-> {e.getNome();});
 
 				// Spring Security 6.x requires at least one authority for authenticated users
