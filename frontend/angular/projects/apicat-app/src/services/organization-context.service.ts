@@ -39,11 +39,14 @@ interface PersistedContext {
  * con chiave configurabile via `app-config.json`
  * (`AppConfig.Organization.ContextSelector.storageKey`).
  *
- * Convenzione di inizializzazione:
- * - al login (`initFromUser`) si tenta di ripristinare l'org persistita
- *   se ancora presente nella lista `utente.organizzazioni`;
- * - in mancanza, si seleziona la prima organizzazione della lista;
- * - se l'utente non ha organizzazioni il contesto resta `null`.
+ * Convenzione di inizializzazione (Issue 270):
+ * - 0 org -> fallback su legacy `utente.organizzazione` singolo;
+ * - 1 org -> auto-select silenzioso (UX trasparente);
+ * - >=2 org con persistenza valida -> ripristino;
+ * - >=2 org senza persistenza -> contesto resta `null`. Sara` il
+ *   `OrganizationSelectionGuard` / `OrganizationSelectorComponent`
+ *   a forzare la scelta esplicita prima di proseguire verso la
+ *   dashboard (no piu` selezione arbitraria della "prima org").
  *
  * Al logout (`clear`) il contesto viene azzerato e la persistenza rimossa.
  */
@@ -86,8 +89,12 @@ export class OrganizationContextService {
     }
 
     /**
-     * Inizializza il contesto a partire dal profilo utente. Cerca
-     * nell'ordine: org persistita, prima org della lista, null.
+     * Inizializza il contesto a partire dal profilo utente.
+     *
+     * Issue 270: con multi-org senza persistenza, lasciamo il
+     * contesto a `null` per forzare la scelta esplicita via
+     * `OrganizationSelectorComponent`. Con esattamente 1 org
+     * auto-selezioniamo (UX silenziosa).
      */
     initFromUser(utente: Utente | null | undefined): void {
         const orgs = utente?.organizzazioni || [];
@@ -99,8 +106,19 @@ export class OrganizationContextService {
         const restored = persisted
             ? orgs.find(o => o.organizzazione?.id_organizzazione === persisted.id_organizzazione)
             : null;
-        const next = restored || orgs[0];
-        this.setCurrent(next || null);
+        if (restored) {
+            this.setCurrent(restored);
+            return;
+        }
+        if (orgs.length === 1) {
+            // 1 org -> auto-select silenzioso.
+            this.setCurrent(orgs[0]);
+            return;
+        }
+        // >=2 org senza persistenza: contesto null, la UI mostrera`
+        // il selettore.
+        this._current$.next(null);
+        this._clearPersistence();
     }
 
     /**

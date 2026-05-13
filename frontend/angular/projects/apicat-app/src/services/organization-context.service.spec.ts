@@ -85,11 +85,26 @@ describe('OrganizationContextService', () => {
     });
 
     describe('initFromUser', () => {
-        it('should select first organization when no persisted context', () => {
+        it('should leave context null when multi-org without persisted context (Issue 270)', () => {
+            // Issue 270: con >=2 org e nessuna persistenza, il
+            // service NON sceglie piu` arbitrariamente la prima
+            // org. Il contesto resta `null` e sara` il selettore
+            // a forzare la scelta esplicita.
             const utente: any = {
                 organizzazioni: [
                     { organizzazione: orgA, ruolo_organizzazione: RuoloOrganizzazioneEnum.OperatoreApi },
                     { organizzazione: orgB, ruolo_organizzazione: null }
+                ]
+            };
+            service.initFromUser(utente);
+            expect(service.getCurrentOrganization()).toBeNull();
+        });
+
+        it('should auto-select the only organization when user has exactly one (Issue 270)', () => {
+            // Caso 1 org: auto-select silenzioso (UX trasparente).
+            const utente: any = {
+                organizzazioni: [
+                    { organizzazione: orgA, ruolo_organizzazione: RuoloOrganizzazioneEnum.OperatoreApi }
                 ]
             };
             service.initFromUser(utente);

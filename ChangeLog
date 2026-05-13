@@ -1,6 +1,24 @@
 2026-05-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 270: scelta dell'organizzazione all'accesso per
+	  utenti multi-org. `OrganizationContextService.initFromUser`
+	  non auto-seleziona piu` la prima org con >=2 senza
+	  persistenza: contesto resta `null` e parte il selettore.
+	  Nuovo `OrganizationSelectorComponent` (rotta
+	  `/auth/select-organization` sotto `SimpleLayoutComponent`,
+	  layout allineato alla login: logo + titolo + sottotitolo
+	  centrati, card sotto con scelta in cards cliccabili,
+	  bottoni Conferma + Esci). Nuovo `OrganizationSelectionGuard`
+	  applicato a `GpLayoutComponent`: redirect a
+	  `/auth/select-organization?returnUrl=...` per multi-org
+	  senza contesto. Safety net in `GpLayoutComponent.loadProfile`
+	  per intercettare anche il post-login diretto. Chip ruolo
+	  sempre visibile (default "Nessun ruolo" neutro). i18n
+	  `APP.ORGANIZATION_SELECTOR.*` (IT+EN). Cleanup minore in
+	  `login.scss` (consolidato duplicato `.navless-container`).
+
+	* [Frontend]
 	Issue 229: gestione domini per AMM_ORG nella pagina
 	  `organizzazione-manage`. Aggiunte tabs Utenti/Domini
 	  (pattern `.gp-tabs-nav`) con badge counter per tab attiva.

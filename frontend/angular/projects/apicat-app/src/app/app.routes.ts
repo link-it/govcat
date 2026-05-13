@@ -23,6 +23,7 @@ import { GestoreGuard } from '../guard/gestore.guard';
 import { ForbidAnonymousGuard } from '../guard/forbid-anonymous.guard';
 import { DashboardGuard } from '../guard/dashboard.guard';
 import { RegistrazioneGuard } from '../guard/registrazione.guard';
+import { OrganizationSelectionGuard } from '../guard/organization-selection.guard';
 
 import { GpLayoutComponent, SimpleLayoutComponent } from '../containers';
 
@@ -43,6 +44,15 @@ export const routes: Routes = [
       {
         path: 'registrazione',
         loadChildren: () => import('../views/registrazione/registrazione.routes').then(m => m.REGISTRAZIONE_ROUTES)
+      },
+      {
+        // Issue 270 — selettore organizzazione post-login per utenti
+        // multi-org. Pagina fullscreen sotto `SimpleLayoutComponent`
+        // (mirror visivo della login). Protetta da `AuthGuard`:
+        // l'utente deve essere loggato per arrivarci.
+        path: 'select-organization',
+        canActivate: [AuthGuard],
+        loadChildren: () => import('../views/organization-selector/organization-selector.routes').then(m => m.ORGANIZATION_SELECTOR_ROUTES)
       }
     ]
   },
@@ -59,7 +69,10 @@ export const routes: Routes = [
   {
     path: '',
     component: GpLayoutComponent,
-    canActivate: [AuthGuard, RegistrazioneGuard],
+    // Issue 270 — `OrganizationSelectionGuard` aggiunto dopo Auth +
+    // Registrazione: forza la scelta dell'org per utenti multi-org
+    // senza contesto corrente (redirect a `/auth/select-organization`).
+    canActivate: [AuthGuard, RegistrazioneGuard, OrganizationSelectionGuard],
     children: [
       {
         path: '_home',

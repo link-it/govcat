@@ -26,6 +26,7 @@ import { OAuthService } from 'angular-oauth2-oidc';
 
 import { Tools, ConfigService, Language, MenuAction, EventType, EventsManagerService, LocalStorageService, BreadcrumbService, HeadBarComponent, SafeHtmlPipe, MapperPipe, MultiSnackbarComponent, RouterLinkMatchDirective } from '@linkit/components';
 import { AuthenticationService } from '@app/services/authentication.service';
+import { OrganizationContextService } from '@app/services/organization-context.service';
 import { OpenAPIService } from '@services/openAPI.service';
 import { DashboardService } from '@services/dashboard.service';
 import { NotificationsCount, NotificationsService } from '@services/notifications.service';
@@ -195,6 +196,7 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         private readonly localStorageService: LocalStorageService,
         private readonly breadCrumbService: BreadcrumbService,
         private readonly authenticationService: AuthenticationService,
+        private readonly organizationContextService: OrganizationContextService,
         private readonly apiService: OpenAPIService,
         private readonly notificationsService: NotificationsService,
         private readonly dashboardService: DashboardService,
@@ -498,6 +500,24 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
                 this.eventsManagerService.broadcast(EventType.PROFILE_UPDATE, { data: this._session });
 
                 this._spin = false;
+
+                // Issue 270 — safety net: il `OrganizationSelectionGuard`
+                // sulla rotta protetta scatta sulla prossima activation;
+                // se invece l'utente e` gia` dentro la dashboard (es.
+                // ricaricamento profilo post-login, riavvio dopo clear
+                // del contesto) intercettiamo qui e dirottiamo al
+                // selettore. La rotta del selettore stesso fa lo skip
+                // se l'utente ha gia` 0/1 org o un contesto valorizzato.
+                if (!this._isAnonymous) {
+                    const utente: any = response?.utente ?? response;
+                    const orgs: any[] = Array.isArray(utente?.organizzazioni) ? utente.organizzazioni : [];
+                    const current = this.organizationContextService.getCurrentOrganization();
+                    if (orgs.length >= 2 && !current && !this.router.url.startsWith('/auth/select-organization')) {
+                        this.router.navigate(['/auth/select-organization'], {
+                            queryParams: { returnUrl: this.router.url || '/dashboard' }
+                        });
+                    }
+                }
             },
             error: (error: any) => {
                 this.eventsManagerService.broadcast(EventType.PROFILE_UPDATE, { data: null });

@@ -5,6 +5,13 @@
 			"NoRole": "Nessun ruolo",
 			"ManageTooltip": "Gestisci organizzazione"
 		},
+		"ORGANIZATION_SELECTOR": {
+			"Title": "Seleziona l'organizzazione",
+			"Subtitle": "Hai accesso a piu' organizzazioni. Scegli con quale lavorare in questa sessione.",
+			"Confirm": "Conferma",
+			"LogoutLink": "Esci",
+			"NoOrganizations": "Non risultano organizzazioni associate al tuo profilo."
+		},
 		"ORGANIZATION_MANAGE": {
 			"Title": "Gestione organizzazione",
 			"HelpText": "Da questa sezione puoi gestire utenti e domini dell'organizzazione.",

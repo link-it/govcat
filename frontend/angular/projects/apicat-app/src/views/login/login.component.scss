@@ -46,7 +46,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 .navless-container {
   margin-top: var(--header-height, 40px);
-  padding-top: 32px;
+  padding: 0 15px 65px;
 }
 
 .fixed-top {
@@ -137,8 +137,4 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 .flash-container {
   padding-bottom: 65px;
-}
-
-.navless-container {
-  padding: 0 15px 65px;
 }

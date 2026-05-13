@@ -42,6 +42,7 @@ import { DashboardGuard } from '../guard/dashboard.guard';
 import { CategorieGuard } from '../guard/categorie.guard';
 import { MonitoraggioGuard } from '../guard/monitoraggio.guard';
 import { RegistrazioneGuard } from '../guard/registrazione.guard';
+import { OrganizationSelectionGuard } from '../guard/organization-selection.guard';
 import { environment } from '../environments/environment';
 
 const gravatarConfig: GravatarConfig = {
@@ -97,6 +98,7 @@ export const appConfig: ApplicationConfig = {
     CategorieGuard,
     MonitoraggioGuard,
     RegistrazioneGuard,
+    OrganizationSelectionGuard,
     { provide: OAuthStorage, useFactory: () => localStorage }
   ]
 };
