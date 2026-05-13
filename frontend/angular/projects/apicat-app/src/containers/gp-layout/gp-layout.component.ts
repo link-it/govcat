@@ -348,6 +348,46 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         if (event.key === 'l' && event.ctrlKey) {
             this._contentLimited = !this._contentLimited;
         }
+        // Issue 270 / dev-tools — Ctrl+Shift+O: reset del contesto
+        // organizzazione + logout + reload. Disponibile solo quando
+        // il flag `AppConfig.Layout.Dev.organizationContextReset` e`
+        // true (sviluppo locale, per testare la prima esperienza di
+        // login multi-org senza dover svuotare manualmente lo
+        // storage).
+        if (this._devOrgResetEnabled && event.key === 'O' && event.ctrlKey && event.shiftKey) {
+            event.preventDefault();
+            this.devResetOrgContext();
+        }
+    }
+
+    /**
+     * Issue 270 — flag dev-tools (`AppConfig.Layout.Dev.organizationContextReset`).
+     * Quando true, il layout mostra un bottone flottante e abilita
+     * lo shortcut Ctrl+Shift+O per cancellare l'org corrente,
+     * fare logout e ricaricare la pagina. Pensato per
+     * sviluppo/QA locale, NON va attivato in produzione.
+     */
+    get _devOrgResetEnabled(): boolean {
+        return this._config?.AppConfig?.Layout?.Dev?.organizationContextReset === true;
+    }
+
+    /**
+     * Reset organizzazione corrente + logout + reload. Pulisce
+     * `localStorage` dell'org context, della sessione e ricarica
+     * la pagina (cosi` il prossimo bootstrap riparte da capo).
+     * Esposto sia come bottone flottante che come shortcut
+     * tastiera quando il flag dev e` attivo.
+     */
+    devResetOrgContext(): void {
+        try {
+            this.organizationContextService.clear();
+        } catch { /* ignora */ }
+        try {
+            this.authenticationService.logout();
+        } catch { /* ignora */ }
+        // Hard reload alla root: il nuovo bootstrap esercita di
+        // nuovo l'intero flusso (config -> login -> selettore).
+        window.location.href = '/';
     }
 
     async ngOnInit() {

@@ -78,6 +78,9 @@
         "logo": "linkit_logo/LINK_logo-Govcat-O.svg",
         "header": "linkit_logo/LINK_logo-Govcat-O.svg"
       },
+      "Dev": {
+        "organizationContextReset": false
+      },
       "contentLimited": false,
       "hasSideBar": false,
       "showSupHeaderBar": false,

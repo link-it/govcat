@@ -241,3 +241,18 @@
     <span class="text-truncate">{{ _config.AppConfig?.WatermarkText }}</span>
   </div>
 }
+<!-- Issue 270 / dev-tools — bottone flottante per resettare
+     l'organizzazione corrente (clear localStorage + logout +
+     reload). Visibile solo quando
+     `AppConfig.Layout.Dev.organizationContextReset = true`.
+     Lo stesso comando e` disponibile via Ctrl+Shift+O. Da NON
+     attivare in produzione. -->
+@if (_devOrgResetEnabled) {
+  <button type="button"
+          class="dev-org-reset-fab"
+          title="Dev: reset org context (Ctrl+Shift+O)"
+          aria-label="Reset organization context"
+          (click)="devResetOrgContext()">
+    <i class="bi bi-building-fill-slash"></i>
+  </button>
+}

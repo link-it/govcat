@@ -1,3 +1,16 @@
+2026-05-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 270: dev-tool reset organizzazione corrente. Bottone
+	  flottante in `GpLayout` (icona `bi-building-fill-slash`,
+	  cerchio giallo bottom-right) + shortcut `Ctrl+Shift+O`.
+	  Action: clear localStorage org context + logout + hard
+	  reload alla root. Visibile/abilitato solo quando
+	  `AppConfig.Layout.Dev.organizationContextReset = true`
+	  (default false; NON attivare in produzione). Utile per
+	  testare la prima esperienza multi-org senza svuotare
+	  manualmente lo storage.
+
 2026-05-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
