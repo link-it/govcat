@@ -7,8 +7,10 @@
 		},
 		"ORGANIZATION_MANAGE": {
 			"Title": "Organization management",
-			"HelpText": "From this section you can add new users to the organization, change their role or remove the membership.",
-			"AddTooltip": "Add a user to the organization"
+			"HelpText": "From this section you can manage users and domains of the organization.",
+			"AddTooltip": "Add a user to the organization",
+			"TabUtenti": "Users",
+			"TabDomini": "Domains"
 		},
 		"RUOLI": {
 			"AmministratoreOrganizzazione": "Organization administrator",
@@ -527,6 +529,13 @@
 		"DOMINI": {
 			"DeleteDomain": "Delete Domain",
 			"EditDomain": "Edit domain",
+			"BUTTON": {
+				"Add": "Add domain",
+				"Remove": "Remove domain"
+			},
+			"MESSAGE": {
+				"RemoveConfirm": "Are you sure you want to delete the domain **{{nome}}**? This action cannot be undone."
+			},
 			"LABEL": {
 				"Classi": "Classes",
 				"Deprecato": "Deprecated",

@@ -19,11 +19,27 @@
 import { Routes } from '@angular/router';
 
 import { OrganizzazioneManageComponent } from './organizzazione-manage.component';
+import { DominioDetailsComponent } from '../domini/dominio-details/dominio-details.component';
 
 export const ORGANIZZAZIONE_MANAGE_ROUTES: Routes = [
   {
     path: ':id',
     component: OrganizzazioneManageComponent,
     data: { title: 'Gestione Organizzazione' }
+  },
+  // Issue 229 evolutiva multi-org/domini — child routes per il
+  // CRUD dei domini nel contesto della pagina di gestione
+  // organizzazione. Riusano il componente `DominioDetailsComponent`
+  // che, in presenza di `data.fromOrgManage`, adatta breadcrumb
+  // e navigazione di ritorno (back -> `/organizzazione-manage/:id`).
+  {
+    path: ':id/domini/new',
+    component: DominioDetailsComponent,
+    data: { title: 'Nuovo dominio', fromOrgManage: true }
+  },
+  {
+    path: ':id/domini/:idDominio',
+    component: DominioDetailsComponent,
+    data: { title: 'Dominio', fromOrgManage: true }
   }
 ];

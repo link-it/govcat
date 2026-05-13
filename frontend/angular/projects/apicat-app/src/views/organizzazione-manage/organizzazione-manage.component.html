@@ -50,14 +50,39 @@
     </div>
   }
 
+  <!-- Tabs Utenti / Domini — Issue 229 evolutiva multi-org/domini.
+       Pattern markup `.gp-tabs-nav` allineato al resto dell'app
+       (es. `domini.component.html`, `profile.component.html`). Il
+       badge counter usa `_activeTotal` che selecta paging della tab
+       attiva. -->
   <div class="top-area">
     <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
       <div class="">
         <ul class="nav gp-border-b-0 gp-tabs-nav">
           <li class="nav-item">
-            <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + (_paging.totalElements || 0)">
-              <span>{{ 'APP.FILTER.Found' | translate }}</span>
-              <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm">{{ _paging.totalElements || 0 }}</span>
+            <a tabindex="0" target="_self"
+               class="nav-link gp-tab-nav-item cursor-pointer"
+               [class.gp-tab-nav-item-active]="_activeTab === 'utenti'"
+               (click)="setActiveTab('utenti')"
+               (keydown.enter)="setActiveTab('utenti')"
+               [attr.aria-label]="'APP.ORGANIZATION_MANAGE.TabUtenti' | translate">
+              <span>{{ 'APP.ORGANIZATION_MANAGE.TabUtenti' | translate }}</span>
+              @if (_activeTab === 'utenti') {
+                <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm">{{ _paging.totalElements || 0 }}</span>
+              }
+            </a>
+          </li>
+          <li class="nav-item">
+            <a tabindex="0" target="_self"
+               class="nav-link gp-tab-nav-item cursor-pointer"
+               [class.gp-tab-nav-item-active]="_activeTab === 'domini'"
+               (click)="setActiveTab('domini')"
+               (keydown.enter)="setActiveTab('domini')"
+               [attr.aria-label]="'APP.ORGANIZATION_MANAGE.TabDomini' | translate">
+              <span>{{ 'APP.ORGANIZATION_MANAGE.TabDomini' | translate }}</span>
+              @if (_activeTab === 'domini') {
+                <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm">{{ _dominiPaging.totalElements || 0 }}</span>
+              }
             </a>
           </li>
         </ul>
@@ -74,13 +99,23 @@
         (onAction)="refresh()">
       </lnk-button>
       @if (canManage()) {
-        <lnk-button
-          [label]="'APP.UTENTI_ORG.BUTTON.Add'"
-          [ariaLabel]="'APP.UTENTI_ORG.BUTTON.Add'"
-          [icon]="'bi bi-person-plus'"
-          [primary]="true"
-          (onAction)="openAdd()">
-        </lnk-button>
+        @if (_activeTab === 'utenti') {
+          <lnk-button
+            [label]="'APP.UTENTI_ORG.BUTTON.Add'"
+            [ariaLabel]="'APP.UTENTI_ORG.BUTTON.Add'"
+            [icon]="'bi bi-person-plus'"
+            [primary]="true"
+            (onAction)="openAdd()">
+          </lnk-button>
+        } @else {
+          <lnk-button
+            [label]="'APP.DOMINI.BUTTON.Add'"
+            [ariaLabel]="'APP.DOMINI.BUTTON.Add'"
+            [icon]="'bi bi-plus-lg'"
+            [primary]="true"
+            (onAction)="openAddDominio()">
+          </lnk-button>
+        }
       }
     </div>
   </div>
@@ -143,36 +178,74 @@
     [autoFillScroll]="true"
     (autoFillNeeded)="__loadMoreData()">
 
-    <div class="row">
-      @if (items.length === 0 && !_spin) {
-        <ui-box-message
-          [size]="64"
-          [icon]="'report_problem'"
-          [image]="'./assets/images/illustrations/utenti.svg'"
-          [message]="_message | translate"
-          [subMessage]="_messageHelp | translate">
-        </ui-box-message>
-      }
-    </div>
-
-    @if (items.length > 0 && utentiConfig) {
+    <!-- Sezione Utenti -->
+    @if (_activeTab === 'utenti') {
       <div class="row">
-        <div class="col-12">
-          @for (item of items; track item.id_utente + '_' + $index) {
-            <ui-item-row class="border-bottom"
-              [data]="item"
-              [config]="utentiConfig"
-              [hasLink]="canManage()"
-              [linkRoute]="false"
-              [hasAction]="canManage()"
-              [iconAction]="'trash text-danger'"
-              [actionTooltip]="'APP.UTENTI_ORG.BUTTON.Remove' | translate"
-              (itemClick)="openEdit(item)"
-              (actionClick)="confirmRemove(item)">
-            </ui-item-row>
-          }
-        </div>
+        @if (items.length === 0 && !_spin) {
+          <ui-box-message
+            [size]="64"
+            [icon]="'report_problem'"
+            [image]="'./assets/images/illustrations/utenti.svg'"
+            [message]="_message | translate"
+            [subMessage]="_messageHelp | translate">
+          </ui-box-message>
+        }
       </div>
+
+      @if (items.length > 0 && utentiConfig) {
+        <div class="row">
+          <div class="col-12">
+            @for (item of items; track item.id_utente + '_' + $index) {
+              <ui-item-row class="border-bottom"
+                [data]="item"
+                [config]="utentiConfig"
+                [hasLink]="canManage()"
+                [linkRoute]="false"
+                [hasAction]="canManage()"
+                [iconAction]="'trash text-danger'"
+                [actionTooltip]="'APP.UTENTI_ORG.BUTTON.Remove' | translate"
+                (itemClick)="openEdit(item)"
+                (actionClick)="confirmRemove(item)">
+              </ui-item-row>
+            }
+          </div>
+        </div>
+      }
+    }
+
+    <!-- Sezione Domini (Issue 229 evolutiva multi-org/domini) -->
+    @if (_activeTab === 'domini') {
+      <div class="row">
+        @if (dominiItems.length === 0 && !_spin) {
+          <ui-box-message
+            [size]="64"
+            [icon]="'report_problem'"
+            [image]="'./assets/images/illustrations/domini.svg'"
+            [message]="_message | translate"
+            [subMessage]="_messageHelp | translate">
+          </ui-box-message>
+        }
+      </div>
+
+      @if (dominiItems.length > 0 && dominiConfig) {
+        <div class="row">
+          <div class="col-12">
+            @for (item of dominiItems; track item.id_dominio + '_' + $index) {
+              <ui-item-row class="border-bottom"
+                [data]="item"
+                [config]="dominiConfig"
+                [hasLink]="canManage()"
+                [linkRoute]="false"
+                [hasAction]="canManage()"
+                [iconAction]="'trash text-danger'"
+                [actionTooltip]="'APP.DOMINI.BUTTON.Remove' | translate"
+                (itemClick)="openEditDominio(item)"
+                (actionClick)="confirmRemoveDominio(item)">
+              </ui-item-row>
+            }
+          </div>
+        </div>
+      }
     }
 
     @if (_spin) {

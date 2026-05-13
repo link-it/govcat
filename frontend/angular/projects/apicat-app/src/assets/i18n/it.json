@@ -7,8 +7,10 @@
 		},
 		"ORGANIZATION_MANAGE": {
 			"Title": "Gestione organizzazione",
-			"HelpText": "Da questa sezione puoi aggiungere nuovi utenti all'organizzazione, modificarne il ruolo o rimuovere l'associazione.",
-			"AddTooltip": "Aggiungi un utente all'organizzazione"
+			"HelpText": "Da questa sezione puoi gestire utenti e domini dell'organizzazione.",
+			"AddTooltip": "Aggiungi un utente all'organizzazione",
+			"TabUtenti": "Utenti",
+			"TabDomini": "Domini"
 		},
 		"RUOLI": {
 			"AmministratoreOrganizzazione": "Amministratore organizzazione",
@@ -527,6 +529,13 @@
 		"DOMINI": {
 			"DeleteDomain": "Elimina Dominio",
 			"EditDomain": "Modifica il dominio",
+			"BUTTON": {
+				"Add": "Aggiungi dominio",
+				"Remove": "Rimuovi dominio"
+			},
+			"MESSAGE": {
+				"RemoveConfirm": "Confermi di voler eliminare il dominio **{{nome}}**? L'operazione non e' reversibile."
+			},
 			"LABEL": {
 				"Classi": "Classi",
 				"Deprecato": "Deprecato",

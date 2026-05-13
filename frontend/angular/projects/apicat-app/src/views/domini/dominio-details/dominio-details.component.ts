@@ -25,6 +25,7 @@ import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
 import { ConfigService, Tools, YesnoDialogBsComponent, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
+import { AuthenticationService } from '@app/services/authentication.service';
 import { CustomValidators } from '@linkit/validators';
 
 import { Dominio } from './dominio';
@@ -121,8 +122,22 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
     public apiService: OpenAPIService,
     private readonly utils: UtilService,
     private readonly translate: TranslateService,
-    private readonly modalService: BsModalService
+    private readonly modalService: BsModalService,
+    private readonly authenticationService: AuthenticationService
   ) {}
+
+  /**
+   * Issue 229 evolutiva multi-org/domini — true quando il
+   * componente e` montato sotto la route
+   * `/organizzazione-manage/:id/domini/...`. In quel caso il
+   * breadcrumb e la navigazione di ritorno puntano alla pagina
+   * di gestione organizzazione (tab Domini) invece che alla
+   * lista globale `/domini`.
+   */
+  _fromOrgManage: boolean = false;
+  /** Id dell'organizzazione di contesto (parent route) quando
+   *  `_fromOrgManage = true`. Vuoto altrimenti. */
+  _orgManageId: string | null = null;
 
   ngOnInit() {
     this.appConfig = this.configService.getConfiguration();
@@ -131,9 +146,22 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
 
     this.anagrafiche = this.utils.getAnagrafiche(['classi-utente']);
 
+    // Issue 229 evolutiva multi-org/domini — leggiamo dal route
+    // data il flag `fromOrgManage` (settato dalle child route
+    // sotto `organizzazione-manage`). Le route nuove usano
+    // `:idDominio` come param per il dominio (per non collidere
+    // con `:id` che resta l'org di contesto); la legacy usa `:id`.
+    this._fromOrgManage = !!this.route.snapshot.data?.['fromOrgManage'];
+
     this.route.params.subscribe(params => {
-      if (params['id'] && params['id'] !== 'new') {
-        this.id = params['id'];
+      if (this._fromOrgManage) {
+        this._orgManageId = params['id'] || null;
+      }
+      const dominioParam = this._fromOrgManage
+        ? params['idDominio']
+        : params['id'];
+      if (dominioParam && dominioParam !== 'new') {
+        this.id = dominioParam;
         this._initBreadcrumb();
         this._isDetails = true;
         this.configService.getConfig(this.model).subscribe(
@@ -278,7 +306,14 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
         this._spin = false;
         this._isEdit = false;
         this._isNew = false;
-        this.router.navigate([this.model, this.id], { replaceUrl: true });
+        // Issue 229 evolutiva multi-org/domini — dopo POST,
+        // navigare al dettaglio mantenendo il contesto
+        // (org-manage o globale).
+        if (this._fromOrgManage && this._orgManageId) {
+          this.router.navigate(['organizzazione-manage', this._orgManageId, 'domini', this.id], { replaceUrl: true });
+        } else {
+          this.router.navigate([this.model, this.id], { replaceUrl: true });
+        }
       },
       error: (error: any) => {
         this._error = true;
@@ -351,7 +386,15 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
         if (response) {
           this.apiService.deleteElement(this.model, this.dominio.id_dominio).subscribe({
             next: (response) => {
-              this.router.navigate([this.model]);
+              // Issue 229 evolutiva multi-org/domini — dopo delete,
+              // tornare alla lista d'origine (org-manage tab Domini
+              // oppure lista globale). Query param `tab=domini`
+              // segnala al component di pre-selezionare la tab.
+              if (this._fromOrgManage && this._orgManageId) {
+                this.router.navigate(['organizzazione-manage', this._orgManageId], { queryParams: { tab: 'domini' } });
+              } else {
+                this.router.navigate([this.model]);
+              }
             },
             error: (error) => {
               this._error = true;
@@ -418,7 +461,23 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
   }
 
   getSoggetti(term: string | null = null): Observable<any> {
-    const _options: any = { params: { q: term, referente: true } };
+    // Issue 229 evolutiva multi-org/domini — AMM_ORG e` vincolato a
+    // gestire solo i domini la cui org del soggetto referente
+    // coincide con l'organizzazione di sessione. Restringiamo qui
+    // il typeahead per evitare che l'utente selezioni soggetti
+    // fuori scope (il BE comunque rifiuterebbe con
+    // `AUT.403.AMM.ORG.DOMINIO.FUORI.ORG`). Gestore/Coordinatore
+    // restano liberi di scegliere fra tutti i soggetti referenti.
+    const params: any = { q: term, referente: true };
+    const isGestoreOrCoord = this.authenticationService.isGestore()
+      || this.authenticationService.isCoordinatore();
+    if (!isGestoreOrCoord) {
+      const sessionOrgId = this.authenticationService.getCurrentOrganization()?.id_organizzazione;
+      if (sessionOrgId) {
+        params.id_organizzazione = sessionOrgId;
+      }
+    }
+    const _options: any = { params };
     return this.apiService.getList('soggetti', _options)
       .pipe(map(resp => {
         if (resp.Error) {
@@ -458,6 +517,20 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
     } else {
       _title = this.translate.instant('APP.TITLE.New');
     }
+    if (this._fromOrgManage && this._orgManageId) {
+      // Issue 229 evolutiva multi-org/domini — breadcrumb
+      // alternativo quando il dominio e` aperto dalla pagina di
+      // gestione organizzazione: ritorno tab "Domini" della
+      // stessa org invece della lista globale. Il query param
+      // `tab=domini` viene letto da `organizzazione-manage` per
+      // pre-selezionare la tab corretta.
+      this.breadcrumbs = [
+        { label: 'APP.ORGANIZATION_MANAGE.Title', url: '', type: 'title', iconBs: 'buildings' },
+        { label: 'APP.ORGANIZATION_MANAGE.TabDomini', url: `/organizzazione-manage/${this._orgManageId}?tab=domini`, type: 'link' },
+        { label: `${_title}`, url: '', type: 'title' }
+      ];
+      return;
+    }
     this.breadcrumbs = [
       { label: 'APP.TITLE.Configurations', url: '', type: 'title', iconBs: 'gear' },
       { label: 'APP.LABEL.Domain', url: '/domini', type: 'link' },
@@ -493,7 +566,15 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
     this._errorMsg = '';
     if (this._isNew) {
       if (this._useRoute) {
-        this.router.navigate([this.model]);
+        // Issue 229 evolutiva multi-org/domini — cancel di una
+        // nuova creazione: rientra al contesto d'origine. Query
+        // param `tab=domini` segnala al component di pre-selezionare
+        // la tab.
+        if (this._fromOrgManage && this._orgManageId) {
+          this.router.navigate(['organizzazione-manage', this._orgManageId], { queryParams: { tab: 'domini' } });
+        } else {
+          this.router.navigate([this.model]);
+        }
       } else {
         this.close.emit({ id: this.id, dominio: null });
       }
@@ -504,7 +585,17 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
 
   onBreadcrumb(event: any) {
     if (this._useRoute) {
-      this.router.navigate([event.url]);
+      // Issue 229 evolutiva multi-org/domini — il breadcrumb
+      // verso `/organizzazione-manage/:id?tab=domini` include un
+      // query param: `router.navigate([url])` non lo parserizza
+      // (passa la stringa intera come path segment). Usiamo
+      // `navigateByUrl` che gestisce path + query nativamente.
+      const url: string = event?.url || '';
+      if (url.includes('?')) {
+        this.router.navigateByUrl(url);
+      } else {
+        this.router.navigate([url]);
+      }
     } else {
       this._onClose();
     }

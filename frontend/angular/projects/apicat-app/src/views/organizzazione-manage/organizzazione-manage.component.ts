@@ -43,6 +43,17 @@ import {
 
 const ORG_MODEL = 'organizzazioni';
 const UTENTI_SUB_PATH = 'utenti';
+const DOMINI_MODEL = 'domini';
+
+/**
+ * Tab attivo nella pagina di gestione organizzazione. La pagina espone
+ * due aree CRUD (vedi tabs nell'HTML): `'utenti'` per la gestione
+ * delle associazioni utente-organizzazione, `'domini'` per la
+ * gestione dei domini il cui soggetto referente appartiene
+ * all'organizzazione di sessione (Issue 229 multi-org, evolutiva
+ * domini-AMM_ORG).
+ */
+export type OrganizzazioneManageTab = 'utenti' | 'domini';
 
 @Component({
     selector: 'app-organizzazione-manage',
@@ -66,13 +77,26 @@ export class OrganizzazioneManageComponent implements OnInit, AfterContentChecke
     config: any;
     /** Config caricato da `assets/config/utenti-organizzazione-config.json`, passato a `<ui-item-row>`. */
     utentiConfig: any = null;
+    /** Config caricato da `assets/config/domini-config.json`, passato a `<ui-item-row>`. */
+    dominiConfig: any = null;
 
     id: string | null = null;
     organizzazione: ItemOrganizzazione | null = null;
 
+    /** Tab attiva: utenti o domini. Quando l'utente passa da una
+     *  tab all'altra carichiamo (se non gia` fatto) la lista
+     *  corrispondente. */
+    _activeTab: OrganizzazioneManageTab = 'utenti';
+
+    // --- Stato lista utenti ----------------------------------------------
     items: any[] = [];
     _paging: Page = new Page({});
     _links: any = {};
+
+    // --- Stato lista domini (Issue 229 evolutiva multi-org/domini) -------
+    dominiItems: any[] = [];
+    _dominiPaging: Page = new Page({});
+    _dominiLinks: any = {};
 
     _hasFilter: boolean = true;
     _formGroup: FormGroup = new FormGroup({});
@@ -129,6 +153,19 @@ export class OrganizzazioneManageComponent implements OnInit, AfterContentChecke
         this.configService.getConfig('utenti-organizzazione').subscribe((cfg: any) => {
             this.utentiConfig = cfg;
         });
+        this.configService.getConfig('domini').subscribe((cfg: any) => {
+            this.dominiConfig = cfg;
+        });
+        // Issue 229 evolutiva multi-org/domini — pre-selezione tab
+        // via query param `?tab=domini`. Usato quando l'utente
+        // torna dal dettaglio dominio (via breadcrumb, cancel o
+        // delete) per ripristinare il contesto della navigazione.
+        this.route.queryParams.subscribe(qp => {
+            const tab = qp?.['tab'];
+            if (tab === 'domini' || tab === 'utenti') {
+                this._activeTab = tab as OrganizzazioneManageTab;
+            }
+        });
         this.route.params.subscribe(params => {
             this.id = params['id'] || null;
             if (this.id) {
@@ -136,7 +173,7 @@ export class OrganizzazioneManageComponent implements OnInit, AfterContentChecke
                 // Caricamento iniziale diretto: in `ngOnInit` la
                 // `@ViewChild('searchBarForm')` non e' ancora risolta,
                 // quindi non possiamo passare per `searchBarForm._onSearch()`.
-                this._loadUtenti(this._filterData);
+                this._loadActiveTab();
             }
         });
     }
@@ -192,7 +229,29 @@ export class OrganizzazioneManageComponent implements OnInit, AfterContentChecke
     }
 
     refresh(): void {
-        this._loadUtenti(this._filterData);
+        this._loadActiveTab();
+    }
+
+    // --- Tabs -------------------------------------------------------------
+
+    /**
+     * Imposta la tab attiva e ricarica la lista corrispondente
+     * dall'inizio. Le ricerche libere sono shared (campo `q`):
+     * passando da utenti a domini la stessa stringa filtra entrambe
+     * le viste sul rispettivo endpoint.
+     */
+    setActiveTab(tab: OrganizzazioneManageTab): void {
+        if (this._activeTab === tab) { return; }
+        this._activeTab = tab;
+        this._loadActiveTab();
+    }
+
+    private _loadActiveTab(): void {
+        if (this._activeTab === 'domini') {
+            this._loadDomini(this._filterData);
+        } else {
+            this._loadUtenti(this._filterData);
+        }
     }
 
     private _setErrorMessages(error: boolean): void {
@@ -242,6 +301,48 @@ export class OrganizzazioneManageComponent implements OnInit, AfterContentChecke
         });
     }
 
+    /**
+     * Carica la lista dei domini visibili per l'organizzazione di
+     * sessione. Il BE filtra automaticamente in base al header
+     * `X-Organization-Context` (impostato globalmente
+     * dall'`OrganizationContextInterceptor`): non passiamo
+     * `id_organizzazione` come query param. Issue 229 multi-org,
+     * evolutiva domini-AMM_ORG.
+     */
+    private _loadDomini(query: any = null, url: string = ''): void {
+        if (!this.id) { return; }
+        this._spin = true;
+        this._setErrorMessages(false);
+
+        let aux: any = undefined;
+        if (!url) {
+            this.dominiItems = [];
+            this._dominiLinks = null;
+            aux = { params: this.utils._queryToHttpParams(query || {}) };
+        }
+
+        this.apiService.getList(DOMINI_MODEL, aux, url).subscribe({
+            next: (response: any) => {
+                if (response) {
+                    this._dominiPaging = new Page(response.page);
+                    this._dominiLinks = response._links || null;
+                }
+                const list = Array.isArray(response?.content) ? response.content
+                    : Array.isArray(response?.items) ? response.items
+                    : Array.isArray(response) ? response : [];
+                this.dominiItems = url ? [...this.dominiItems, ...list] : list;
+                this._preventMultiCall = false;
+                this._spin = false;
+            },
+            error: (err: any) => {
+                this._setErrorMessages(true);
+                this._preventMultiCall = false;
+                this._spin = false;
+                Tools.OnError(err);
+            }
+        });
+    }
+
     /** Estrae i campi anagrafici dal payload relazionale e calcola il ruolo. */
     private _mapItem(raw: any): any {
         const utente = raw?.utente ?? raw;
@@ -256,7 +357,15 @@ export class OrganizzazioneManageComponent implements OnInit, AfterContentChecke
     }
 
     __loadMoreData(): void {
-        if (this._links?.next && !this._preventMultiCall) {
+        if (this._preventMultiCall) { return; }
+        if (this._activeTab === 'domini') {
+            if (this._dominiLinks?.next) {
+                this._preventMultiCall = true;
+                this._loadDomini(null, this._dominiLinks.next.href);
+            }
+            return;
+        }
+        if (this._links?.next) {
             this._preventMultiCall = true;
             this._loadUtenti(null, this._links.next.href);
         }
@@ -268,17 +377,24 @@ export class OrganizzazioneManageComponent implements OnInit, AfterContentChecke
 
     _onSearch(values: any): void {
         this._filterData = this.utils._removeEmpty(values);
-        this._loadUtenti(this._filterData);
+        this._loadActiveTab();
     }
 
     _resetForm(): void {
         this._filterData = {};
-        this._loadUtenti(this._filterData);
+        this._loadActiveTab();
     }
 
     _onSort(_event: any): void { /* no-op: sort fisso */ }
 
     // --- Helpers UI -------------------------------------------------------
+
+    /** Totale records della tab attiva (per badge tab/counter). */
+    get _activeTotal(): number {
+        return this._activeTab === 'domini'
+            ? (this._dominiPaging.totalElements || 0)
+            : (this._paging.totalElements || 0);
+    }
 
     roleLabelKey(uo: any): string {
         switch (uo?.ruolo_organizzazione) {
@@ -291,10 +407,14 @@ export class OrganizzazioneManageComponent implements OnInit, AfterContentChecke
         }
     }
 
-    // --- Azioni CRUD ------------------------------------------------------
+    // --- Azioni CRUD utenti -----------------------------------------------
 
     openAdd(): void {
         if (!this.canManage()) { return; }
+        if (this._activeTab === 'domini') {
+            this.openAddDominio();
+            return;
+        }
         this._openDialog('add', null);
     }
 
@@ -374,6 +494,64 @@ export class OrganizzazioneManageComponent implements OnInit, AfterContentChecke
     private _remove(idUtente: string): void {
         if (!this.id) { return; }
         this.apiService.deleteElementRelated(ORG_MODEL, this.id, `${UTENTI_SUB_PATH}/${idUtente}`).subscribe({
+            next: () => this.refresh(),
+            error: (err: any) => Tools.OnError(err)
+        });
+    }
+
+    // --- Azioni CRUD domini -----------------------------------------------
+
+    /**
+     * Issue 229 evolutiva multi-org/domini — naviga alla pagina di
+     * creazione dominio sotto la route `organizzazione-manage/:id/
+     * domini/new` per preservare il contesto (breadcrumb + back
+     * verso la tab Domini). Il form `dominio-details` si occupa
+     * di validazione e POST. AMM_ORG: il typeahead del soggetto
+     * referente e` gia` filtrato sull'org di sessione (vedi
+     * `dominio-details.component.ts::getSoggetti`).
+     */
+    openAddDominio(): void {
+        if (!this.canManage() || !this.id) { return; }
+        this.router.navigate(['organizzazione-manage', this.id, 'domini', 'new']);
+    }
+
+    /** Naviga al dettaglio/edit del dominio nel contesto della
+     *  gestione organizzazione (`organizzazione-manage/:id/
+     *  domini/:idDominio`). Il breadcrumb riporta correttamente
+     *  alla lista dell'organizzazione. */
+    openEditDominio(dominio: any): void {
+        if (!this.canManage() || !this.id || !dominio?.id_dominio) { return; }
+        this.router.navigate(['organizzazione-manage', this.id, 'domini', dominio.id_dominio]);
+    }
+
+    /** Conferma + DELETE /domini/{id}. Errori BE (es.
+     *  `AUT.403.AMM.ORG.DOMINIO.FUORI.ORG`) sono gestiti via
+     *  `Tools.OnError` -> `GetErrorMsg` con traduzione i18n. */
+    confirmRemoveDominio(dominio: any): void {
+        if (!this.canManage() || !dominio?.id_dominio) { return; }
+        const initialState = {
+            title: this.translate.instant('APP.TITLE.Attention'),
+            messages: [
+                this.translate.instant('APP.DOMINI.MESSAGE.RemoveConfirm', {
+                    nome: dominio.nome || dominio.id_dominio
+                })
+            ],
+            cancelText: this.translate.instant('APP.BUTTON.Cancel'),
+            confirmText: this.translate.instant('APP.BUTTON.Confirm'),
+            confirmColor: 'danger'
+        };
+        this._modalRef = this.modalService.show(YesnoDialogBsComponent, {
+            ignoreBackdropClick: true,
+            initialState
+        });
+        this._modalRef.content.onClose.subscribe((response: boolean) => {
+            if (!response) { return; }
+            this._removeDominio(dominio.id_dominio);
+        });
+    }
+
+    private _removeDominio(idDominio: string): void {
+        this.apiService.deleteElement(DOMINI_MODEL, idDominio).subscribe({
             next: () => this.refresh(),
             error: (err: any) => Tools.OnError(err)
         });

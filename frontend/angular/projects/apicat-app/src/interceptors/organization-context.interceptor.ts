@@ -30,6 +30,28 @@ import { OrganizationContextService } from '@services/organization-context.servi
 export const ORG_CONTEXT_HEADER = 'X-Organization-Context';
 
 /**
+ * Header sentinella per opt-out per-request: quando il caller lo
+ * imposta a un valore truthy (es. `'1'`), l'interceptor NON
+ * aggiunge `X-Organization-Context` e rimuove la sentinella prima
+ * di inoltrare la richiesta. Usato per le viste "globali" da
+ * sidebar (es. `domini`, `servizi`) accessibili solo a
+ * gestori/coordinatori — il BE in quei casi NON deve filtrare
+ * per org di sessione.
+ *
+ * Esempio:
+ * ```ts
+ * import { HttpHeaders } from '@angular/common/http';
+ * import { ORG_CONTEXT_SKIP_HEADER } from '@app/interceptors/organization-context.interceptor';
+ *
+ * this.apiService.getList('domini', {
+ *   headers: new HttpHeaders().set(ORG_CONTEXT_SKIP_HEADER, '1'),
+ *   params: ...
+ * });
+ * ```
+ */
+export const ORG_CONTEXT_SKIP_HEADER = 'X-Skip-Organization-Context';
+
+/**
  * Endpoint per i quali l'header `X-Organization-Context` NON deve
  * essere inviato. Vengono confrontati come substring sull'URL della
  * richiesta. Includere qui i path globali / di catalogo / di
@@ -43,10 +65,11 @@ const EXCLUDED_URL_PATTERNS: string[] = [
 
 /**
  * Aggiunge l'header `X-Organization-Context` quando esiste un'org di
- * sessione. Le richieste verso URL nella lista `EXCLUDED_URL_PATTERNS`
- * o senza org corrente passano inalterate. Separato dall'
- * `OAuthInterceptor` per mantenere autenticazione e contesto
- * multi-org indipendenti.
+ * sessione. Le richieste verso URL nella lista `EXCLUDED_URL_PATTERNS`,
+ * quelle senza org corrente, o quelle con l'header sentinella
+ * `X-Skip-Organization-Context` passano inalterate (la sentinella
+ * viene rimossa prima dell'inoltro). Separato dall'`OAuthInterceptor`
+ * per mantenere autenticazione e contesto multi-org indipendenti.
  */
 @Injectable({ providedIn: 'root' })
 export class OrganizationContextInterceptor implements HttpInterceptor {
@@ -54,6 +77,15 @@ export class OrganizationContextInterceptor implements HttpInterceptor {
     private readonly organizationContextService = inject(OrganizationContextService);
 
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+        // Opt-out per-request via header sentinella: il caller
+        // (es. lista globale `domini` da sidebar gestore) ha
+        // dichiarato di NON volere il filtro per org di sessione.
+        // Rimuoviamo la sentinella e inoltriamo senza aggiungere
+        // `X-Organization-Context`.
+        if (req.headers.has(ORG_CONTEXT_SKIP_HEADER)) {
+            const stripped = req.clone({ headers: req.headers.delete(ORG_CONTEXT_SKIP_HEADER) });
+            return next.handle(stripped);
+        }
         if (this._isExcluded(req.url)) {
             return next.handle(req);
         }

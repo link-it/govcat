@@ -1,6 +1,31 @@
 2026-05-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 229: gestione domini per AMM_ORG nella pagina
+	  `organizzazione-manage`. Aggiunte tabs Utenti/Domini
+	  (pattern `.gp-tabs-nav`) con badge counter per tab attiva.
+	  Sezione Domini: lista filtrata BE-side via
+	  `X-Organization-Context`, CRUD via navigazione a
+	  `dominio-details`. Child route
+	  `organizzazione-manage/:id/domini/[new|:idDominio]` con
+	  `data.fromOrgManage` che pilota breadcrumb e back
+	  context-aware (back con query param `?tab=domini` per
+	  ripristinare il tab). `dominio-details::getSoggetti`
+	  filtra il typeahead all'org di sessione per AMM_ORG
+	  (gestore/coordinatore: free). Error interceptor: per
+	  status 403 interpreta `err.error.detail` come chiave i18n
+	  `APP.MESSAGE.ERROR.<code>` con `params` (es. nuovo
+	  `AUT.403.AMM.ORG.DOMINIO.FUORI.ORG` con placeholder
+	  `orgNome`), fallback "Unauthorized". Opt-out per-request
+	  del filtro org-di-sessione: nuovo header sentinella
+	  `X-Skip-Organization-Context` (export
+	  `ORG_CONTEXT_SKIP_HEADER`) che l'interceptor rimuove e
+	  fa passare la chiamata senza aggiungere
+	  `X-Organization-Context`. La lista globale `domini` dalla
+	  sidebar (gestore/coordinatore) lo usa; la lista
+	  contestuale `organizzazione-manage/:id` no.
+
+	* [Frontend]
 	Issue 229: supporto multi-organizzazione lato profilo.
 	  Pannello "Le tue organizzazioni" con card per ogni
 	  associazione (chip-accent/chip-info per
