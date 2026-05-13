@@ -98,6 +98,42 @@ archiviato:
     Questa adesione è stata **archiviata** e non è più attiva. Il servizio non è accessibile tramite questa adesione. Per ripristinare l'accesso è necessario avviare una nuova procedura di adesione.
 
 # =============================================================================
+# DISCLAIMER PER AMBIENTE (collaudo / produzione), indipendente dal profilo
+#
+# Mostrato sulla pagina di configurazione di ciascun ambiente, sotto la lista
+# dei profili da configurare. Vale per qualsiasi stato dell'adesione.
+# Severity: INFO (default per stringa semplice).
+# =============================================================================
+
+__anchor_ambiente: &disclaimer_ambiente |
+  Questo servizio richiede la configurazione dei seguenti profili di sicurezza. Premi (matita) su ciascun profilo per inserire i dati richiesti. Tutti i profili devono essere configurati prima di poter inviare la richiesta.
+
+bozza.collaudo: *disclaimer_ambiente
+bozza.produzione: *disclaimer_ambiente
+richiesto_collaudo.collaudo: *disclaimer_ambiente
+richiesto_collaudo.produzione: *disclaimer_ambiente
+autorizzato_collaudo.collaudo: *disclaimer_ambiente
+autorizzato_collaudo.produzione: *disclaimer_ambiente
+in_configurazione_manuale_collaudo.collaudo: *disclaimer_ambiente
+in_configurazione_manuale_collaudo.produzione: *disclaimer_ambiente
+in_configurazione_automatica_collaudo.collaudo: *disclaimer_ambiente
+in_configurazione_automatica_collaudo.produzione: *disclaimer_ambiente
+pubblicato_collaudo.collaudo: *disclaimer_ambiente
+pubblicato_collaudo.produzione: *disclaimer_ambiente
+richiesto_produzione.collaudo: *disclaimer_ambiente
+richiesto_produzione.produzione: *disclaimer_ambiente
+autorizzato_produzione.collaudo: *disclaimer_ambiente
+autorizzato_produzione.produzione: *disclaimer_ambiente
+in_configurazione_manuale_produzione.collaudo: *disclaimer_ambiente
+in_configurazione_manuale_produzione.produzione: *disclaimer_ambiente
+in_configurazione_automatica_produzione.collaudo: *disclaimer_ambiente
+in_configurazione_automatica_produzione.produzione: *disclaimer_ambiente
+pubblicato_produzione.collaudo: *disclaimer_ambiente
+pubblicato_produzione.produzione: *disclaimer_ambiente
+archiviato.collaudo: *disclaimer_ambiente
+archiviato.produzione: *disclaimer_ambiente
+
+# =============================================================================
 # DISCLAIMER PER CONFIGURAZIONE CLIENT (per profilo + ambiente)
 #
 # Vengono mostrati nelle pagine di configurazione di collaudo e produzione,
