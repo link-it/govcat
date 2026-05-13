@@ -1734,6 +1734,11 @@
 									"ASSOCIATED": "User is already associated with organization [{{orgNome}}]"
 								}
 							}
+						},
+						"NO": {
+							"PENDING": {
+								"REQUEST": "No pending organization change request to cancel"
+							}
 						}
 					},
 					"403": {

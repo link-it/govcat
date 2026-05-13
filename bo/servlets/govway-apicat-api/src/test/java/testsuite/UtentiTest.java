@@ -2884,6 +2884,156 @@ public class UtentiTest {
         assertFalse(hasC, "AMM_ORG di Y NON deve vedere utenteC (abilitato non pending)");
     }
 
+    // ==================== Annullo / Rifiuto richiesta pending ====================
+
+    @Test
+    public void testDeleteProfiloOrganizationPending_UtenteConAssociazioni_TornaAbilitato() {
+        Organizzazione orgX = creaOrgConNomeMultiOrg("del-prof-x");
+        Organizzazione orgY = creaOrgConNomeMultiOrg("del-prof-y");
+        Utente utente = creaUtenteAssociatoA("del.prof.user",
+                List.of(orgX.getIdOrganizzazione()),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+
+        autenticaPrincipal(utente.getPrincipal());
+        ProfiloOrganizationUpdate req = new ProfiloOrganizationUpdate();
+        req.setIdOrganizzazione(orgY.getIdOrganizzazione());
+        req.setIdOrganizzazionePartenza(orgX.getIdOrganizzazione());
+        controller.updateProfiloOrganization(req);
+
+        ResponseEntity<Utente> resp = controller.deleteProfiloOrganizationPending();
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertEquals(StatoUtenteEnum.ABILITATO, resp.getBody().getStato());
+        assertNull(resp.getBody().getOrganizzazionePending());
+        assertNull(resp.getBody().getOrganizzazionePartenza());
+        // L'associazione esistente resta invariata
+        assertEquals(1, resp.getBody().getOrganizzazioni().size());
+        assertEquals(orgX.getIdOrganizzazione(),
+                resp.getBody().getOrganizzazioni().get(0).getOrganizzazione().getIdOrganizzazione());
+    }
+
+    @Test
+    public void testDeleteProfiloOrganizationPending_UtenteSenzaAssociazioni_TornaNonConfigurato() {
+        // Simula utente arrivato da registrazione: PENDING_UPDATE con orgPending ma senza associazioni
+        Organizzazione orgY = creaOrgConNomeMultiOrg("del-prof-noassoc-y");
+        org.govway.catalogo.core.orm.entity.OrganizzazioneEntity orgYEntity =
+                organizzazioneService.find(orgY.getIdOrganizzazione()).get();
+
+        org.govway.catalogo.core.orm.entity.UtenteEntity nuovo =
+                new org.govway.catalogo.core.orm.entity.UtenteEntity();
+        nuovo.setIdUtente(UUID.randomUUID().toString());
+        nuovo.setPrincipal("del.prof.noassoc." + System.nanoTime());
+        nuovo.setNome("Nuovo");
+        nuovo.setCognome("Reg");
+        nuovo.setEmailAziendale("nuovo.reg@example.com");
+        nuovo.setTelefonoAziendale("00-000000");
+        nuovo.setStato(org.govway.catalogo.core.orm.entity.UtenteEntity.Stato.PENDING_UPDATE);
+        nuovo.setOrganizzazionePending(orgYEntity);
+        utenteService.save(nuovo);
+
+        autenticaPrincipal(nuovo.getPrincipal());
+
+        ResponseEntity<Utente> resp = controller.deleteProfiloOrganizationPending();
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertEquals(StatoUtenteEnum.NON_CONFIGURATO, resp.getBody().getStato());
+        assertNull(resp.getBody().getOrganizzazionePending());
+        assertNull(resp.getBody().getOrganizzazionePartenza());
+    }
+
+    @Test
+    public void testDeleteProfiloOrganizationPending_NoRichiestaPending_BadRequest() {
+        Organizzazione orgX = creaOrgConNomeMultiOrg("del-prof-no-pending-x");
+        Utente utente = creaUtenteAssociatoA("del.prof.no.pending",
+                List.of(orgX.getIdOrganizzazione()),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+        autenticaPrincipal(utente.getPrincipal());
+
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> controller.deleteProfiloOrganizationPending());
+        assertEquals("UT.400.NO.PENDING.REQUEST", ex.getMessage());
+    }
+
+    @Test
+    public void testRifiutaUtenteOrganizationPending_DaGestore_OK() {
+        Organizzazione orgX = creaOrgConNomeMultiOrg("rifiut-gest-x");
+        Organizzazione orgY = creaOrgConNomeMultiOrg("rifiut-gest-y");
+        Utente utente = creaUtenteAssociatoA("rifiut.gest.user",
+                List.of(orgX.getIdOrganizzazione()),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+
+        autenticaPrincipal(utente.getPrincipal());
+        ProfiloOrganizationUpdate req = new ProfiloOrganizationUpdate();
+        req.setIdOrganizzazione(orgY.getIdOrganizzazione());
+        req.setIdOrganizzazionePartenza(orgX.getIdOrganizzazione());
+        controller.updateProfiloOrganization(req);
+
+        // Rifiuto come gestore
+        autenticaPrincipal(UTENTE_GESTORE);
+        ResponseEntity<Utente> resp = controller.rifiutaUtenteOrganizationPending(utente.getIdUtente());
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertEquals(StatoUtenteEnum.ABILITATO, resp.getBody().getStato());
+        assertNull(resp.getBody().getOrganizzazionePending());
+        assertNull(resp.getBody().getOrganizzazionePartenza());
+        assertEquals(1, resp.getBody().getOrganizzazioni().size());
+        assertEquals(orgX.getIdOrganizzazione(),
+                resp.getBody().getOrganizzazioni().get(0).getOrganizzazione().getIdOrganizzazione());
+    }
+
+    @Test
+    public void testRifiutaUtenteOrganizationPending_DaAmmOrgTarget_OK() {
+        Organizzazione orgX = creaOrgConNomeMultiOrg("rifiut-amm-x");
+        Organizzazione orgY = creaOrgConNomeMultiOrg("rifiut-amm-y");
+        Utente utente = creaUtenteAssociatoA("rifiut.amm.user",
+                List.of(orgX.getIdOrganizzazione()),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+        creaUtenteAssociatoA("rifiut.amm.target",
+                List.of(orgY.getIdOrganizzazione()),
+                RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+
+        autenticaPrincipal(utente.getPrincipal());
+        ProfiloOrganizationUpdate req = new ProfiloOrganizationUpdate();
+        req.setIdOrganizzazione(orgY.getIdOrganizzazione());
+        req.setIdOrganizzazionePartenza(orgX.getIdOrganizzazione());
+        controller.updateProfiloOrganization(req);
+
+        autenticaPrincipal("rifiut.amm.target");
+        setOrgContextSu(orgY.getIdOrganizzazione(), RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+
+        ResponseEntity<Utente> resp = controller.rifiutaUtenteOrganizationPending(utente.getIdUtente());
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertEquals(StatoUtenteEnum.ABILITATO, resp.getBody().getStato());
+        assertNull(resp.getBody().getOrganizzazionePending());
+    }
+
+    @Test
+    public void testRifiutaUtenteOrganizationPending_DaAmmOrgAltraOrg_Forbidden() {
+        Organizzazione orgX = creaOrgConNomeMultiOrg("rifiut-altra-x");
+        Organizzazione orgY = creaOrgConNomeMultiOrg("rifiut-altra-y");
+        Organizzazione orgZ = creaOrgConNomeMultiOrg("rifiut-altra-z");
+        Utente utente = creaUtenteAssociatoA("rifiut.altra.user",
+                List.of(orgX.getIdOrganizzazione()),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+        creaUtenteAssociatoA("rifiut.altra.amm",
+                List.of(orgZ.getIdOrganizzazione()),
+                RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+
+        autenticaPrincipal(utente.getPrincipal());
+        ProfiloOrganizationUpdate req = new ProfiloOrganizationUpdate();
+        req.setIdOrganizzazione(orgY.getIdOrganizzazione());
+        req.setIdOrganizzazionePartenza(orgX.getIdOrganizzazione());
+        controller.updateProfiloOrganization(req);
+
+        // AMM_ORG di Z (non target Y) prova a rifiutare → forbidden
+        autenticaPrincipal("rifiut.altra.amm");
+        setOrgContextSu(orgZ.getIdOrganizzazione(), RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+
+        assertThrows(org.govway.catalogo.exception.NotAuthorizedException.class,
+                () -> controller.rifiutaUtenteOrganizationPending(utente.getIdUtente()));
+    }
+
     @Test
     public void testApprovazione_NuovoUtenteDaRegistrazione_NoOrgPartenza_OK() {
         // Simula il risultato della registrazione con org scelta: utente PENDING_UPDATE

@@ -138,6 +138,32 @@ public class UtenteAuthorization extends DefaultAuthorization<UtenteCreate,Utent
 		}
 	}
 
+	/**
+	 * Verifica autorizzazione per il rifiuto della richiesta di cambio organizzazione di un utente.
+	 * Consentito al gestore o coordinatore (in base alla configurazione amministrazione.utenti.scrittura)
+	 * oppure ad un AMMINISTRATORE_ORGANIZZAZIONE dell'organizzazione target (organizzazione_pending).
+	 */
+	public void authorizeRifiutaPending(UtenteEntity entity) {
+		try {
+			super.authorizeWrite(EntitaEnum.UTENTE);
+			return;
+		} catch (NotAuthorizedException e) {
+			if (this.coreAuthorization.getUtenteSessione() == null) {
+				throw e;
+			}
+			if (!this.coreAuthorization.hasRuoloInOrganizzazioneSessione(
+					RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
+				throw e;
+			}
+			OrganizzazioneEntity orgSessione = this.coreAuthorization.getOrganizzazioneSessione();
+			if (entity.getOrganizzazionePending() == null
+					|| orgSessione == null
+					|| !entity.getOrganizzazionePending().getId().equals(orgSessione.getId())) {
+				throw new NotAuthorizedException(ErrorCode.AUT_403_AMM_ORG_NOT_TARGET);
+			}
+		}
+	}
+
 	public void authorizeUpdate(ConfigurazioneNotifiche update, UtenteEntity entity) {
 		this.authorizeGetNotifiche(entity);
 	}
