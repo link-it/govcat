@@ -1704,7 +1704,6 @@
 						"ORG": {
 							"MISMATCH": "Utente [{{nomeUtente}} {{cognomeUtente}}] non appartiene all'organizzazione [{{nomeOrganizzazione}}]",
 							"PARTENZA": {
-								"REQUIRED": "Indicare l'organizzazione di partenza per la richiesta di cambio organizzazione",
 								"NOT": {
 									"ASSOCIATED": "L'organizzazione di partenza [{{orgNome}}] non risulta associata all'utente"
 								},

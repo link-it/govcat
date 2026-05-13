@@ -2613,6 +2613,70 @@ public class UtentiTest {
     }
 
     @Test
+    public void testUpdateProfiloOrganization_ConAssociazioni_SenzaPartenza_OK() {
+        // Utente già associato ad un'org, richiede una nuova org senza specificare partenza:
+        // l'approvazione aggiungerà la nuova associazione senza rimuovere le esistenti.
+        Organizzazione orgX = creaOrgConNomeMultiOrg("ucp-add-x");
+        Organizzazione orgY = creaOrgConNomeMultiOrg("ucp-add-y");
+        Utente utente = creaUtenteAssociatoA("ucp.add.user",
+                List.of(orgX.getIdOrganizzazione()),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+        autenticaPrincipal(utente.getPrincipal());
+
+        ProfiloOrganizationUpdate req = new ProfiloOrganizationUpdate();
+        req.setIdOrganizzazione(orgY.getIdOrganizzazione());
+        // niente partenza: aggiunta non swap
+
+        ResponseEntity<Utente> resp = controller.updateProfiloOrganization(req);
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertEquals(StatoUtenteEnum.PENDING_UPDATE, resp.getBody().getStato());
+        assertNotNull(resp.getBody().getOrganizzazionePending());
+        assertEquals(orgY.getIdOrganizzazione(),
+                resp.getBody().getOrganizzazionePending().getIdOrganizzazione());
+        assertNull(resp.getBody().getOrganizzazionePartenza());
+        // L'associazione esistente con orgX deve restare invariata
+        assertEquals(1, resp.getBody().getOrganizzazioni().size());
+        assertEquals(orgX.getIdOrganizzazione(),
+                resp.getBody().getOrganizzazioni().get(0).getOrganizzazione().getIdOrganizzazione());
+    }
+
+    @Test
+    public void testApprovazione_AggiuntaAssociazioneSenzaPartenza_OK() {
+        // Approvazione di una richiesta "aggiunta org" (senza partenza): l'utente passa
+        // da PENDING_UPDATE ad ABILITATO mantenendo le associazioni esistenti + la nuova.
+        Organizzazione orgX = creaOrgConNomeMultiOrg("appr-add-x");
+        Organizzazione orgY = creaOrgConNomeMultiOrg("appr-add-y");
+        Utente utente = creaUtenteAssociatoA("appr.add.user",
+                List.of(orgX.getIdOrganizzazione()),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+
+        autenticaPrincipal(utente.getPrincipal());
+        ProfiloOrganizationUpdate req = new ProfiloOrganizationUpdate();
+        req.setIdOrganizzazione(orgY.getIdOrganizzazione()); // niente partenza
+        controller.updateProfiloOrganization(req);
+
+        // Approvazione come gestore
+        autenticaPrincipal(UTENTE_GESTORE);
+        UtenteUpdate uu = buildApprovazioneUpdate(utente, orgY.getIdOrganizzazione(),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+        ResponseEntity<Utente> resp = controller.updateUtente(utente.getIdUtente(), uu);
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertEquals(StatoUtenteEnum.ABILITATO, resp.getBody().getStato());
+        assertNull(resp.getBody().getOrganizzazionePending());
+        assertNull(resp.getBody().getOrganizzazionePartenza());
+        // Entrambe le associazioni: la pre-esistente X + la nuova Y
+        assertEquals(2, resp.getBody().getOrganizzazioni().size());
+        boolean hasX = resp.getBody().getOrganizzazioni().stream().anyMatch(uo ->
+                orgX.getIdOrganizzazione().equals(uo.getOrganizzazione().getIdOrganizzazione()));
+        boolean hasY = resp.getBody().getOrganizzazioni().stream().anyMatch(uo ->
+                orgY.getIdOrganizzazione().equals(uo.getOrganizzazione().getIdOrganizzazione()));
+        assertTrue(hasX, "Associazione esistente X deve essere mantenuta");
+        assertTrue(hasY, "Nuova associazione Y deve essere aggiunta");
+    }
+
+    @Test
     public void testApprovazione_DaGestore_SwapAssociazioneSingleOrg() {
         Organizzazione orgX = creaOrgConNomeMultiOrg("appr-gest-x");
         Organizzazione orgY = creaOrgConNomeMultiOrg("appr-gest-y");

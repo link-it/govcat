@@ -486,16 +486,15 @@ public class UtentiController implements UtentiApi {
 				OrganizzazioneEntity nuovaOrg = this.organizzazioneService.find(profiloOrganizationUpdate.getIdOrganizzazione())
 					.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404, Map.of("idOrganizzazione", profiloOrganizationUpdate.getIdOrganizzazione().toString())));
 
-				// Validazione organizzazione di partenza per supportare lo swap dell'associazione in
-				// approvazione (multi-org): se l'utente ha già associazioni serve sapere quale sostituire.
+				// Validazione organizzazione di partenza (sempre opzionale):
+				// - se valorizzata, l'approvazione sostituirà l'associazione di partenza con la nuova (swap)
+				// - se non valorizzata, l'approvazione aggiungerà la nuova associazione mantenendo
+				//   intatte tutte le esistenti
 				List<UtenteOrganizzazioneEntity> associazioniAttuali =
 						this.service.findUtenteOrganizzazioniByUtente(entity);
 
 				OrganizzazioneEntity orgPartenza = null;
-				if (!associazioniAttuali.isEmpty()) {
-					if (profiloOrganizationUpdate.getIdOrganizzazionePartenza() == null) {
-						throw new BadRequestException(ErrorCode.UT_400_ORG_PARTENZA_REQUIRED);
-					}
+				if (profiloOrganizationUpdate.getIdOrganizzazionePartenza() != null) {
 					orgPartenza = this.organizzazioneService.find(profiloOrganizationUpdate.getIdOrganizzazionePartenza())
 							.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404,
 									Map.of("idOrganizzazione", profiloOrganizationUpdate.getIdOrganizzazionePartenza().toString())));
@@ -512,7 +511,9 @@ public class UtentiController implements UtentiApi {
 						throw new BadRequestException(ErrorCode.UT_400_ORG_PARTENZA_NOT_ASSOCIATED,
 								Map.of("orgNome", orgPartenza.getNome()));
 					}
+				}
 
+				if (!associazioniAttuali.isEmpty()) {
 					Long idNuovaOrg = nuovaOrg.getId();
 					boolean targetGiaAssociato = associazioniAttuali.stream()
 							.anyMatch(a -> a.getOrganizzazione() != null

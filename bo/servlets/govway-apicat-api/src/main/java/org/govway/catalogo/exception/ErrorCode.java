@@ -208,9 +208,6 @@ public enum ErrorCode {
     /** Ruolo coordinatore non abilitato nella configurazione */
     UT_400_COORDINATORE_DISABLED("Ruolo coordinatore non abilitato"),
 
-    /** Richiesta cambio organizzazione: organizzazione di partenza obbligatoria quando l'utente ha già associazioni */
-    UT_400_ORG_PARTENZA_REQUIRED("Organizzazione di partenza obbligatoria per richiesta cambio organizzazione"),
-
     /** Richiesta cambio organizzazione: organizzazione di partenza non corrisponde a una delle associazioni dell'utente */
     UT_400_ORG_PARTENZA_NOT_ASSOCIATED("Organizzazione di partenza non associata all'utente"),
 

@@ -1704,7 +1704,6 @@
 						"ORG": {
 							"MISMATCH": "User [{{nomeUtente}} {{cognomeUtente}}] does not belong to organization [{{nomeOrganizzazione}}]",
 							"PARTENZA": {
-								"REQUIRED": "Specify the source organization for the organization change request",
 								"NOT": {
 									"ASSOCIATED": "Source organization [{{orgNome}}] is not associated with the user"
 								},
