@@ -147,3 +147,20 @@
     }
   }
 }
+
+.markdown-inline {
+  b, strong {
+      font-weight: 700;
+  }
+
+  a {
+    color: #1f75cb !important;
+    &:hover {
+      text-decoration: underline !important;
+    }
+  }
+
+  p {
+    margin-bottom: 0.25rem !important;
+  }
+}

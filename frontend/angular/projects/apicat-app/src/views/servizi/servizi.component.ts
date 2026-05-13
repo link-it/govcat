@@ -205,9 +205,14 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     _myServicesCount: number = 0;
 
     roleTab: string = 'tutti';
+    // Issue 229 evolutiva 2 — allineamento al nuovo enum
+    // `RuoloReferente` BE. Aggiunto `amministratore_organizzazione`
+    // e `operatore_api` (ruoli per-org che danno visibilita` sui
+    // servizi della propria organizzazione). `utente_organizzazione`
+    // mantenuto come fallback per dati legacy.
     roleTabs: { key: string, label: string, roles: string[] }[] = [
         { key: 'tutti', label: 'APP.FILTER.All', roles: [] },
-        { key: 'referente', label: 'APP.FILTER.ReferenteServizioDominio', roles: ['referente_dominio', 'referente_tecnico_dominio', 'referente_servizio', 'utente_organizzazione', 'referente_tecnico_servizio'] },
+        { key: 'referente', label: 'APP.FILTER.ReferenteServizioDominio', roles: ['referente_dominio', 'referente_tecnico_dominio', 'referente_servizio', 'referente_tecnico_servizio', 'utente_organizzazione', 'amministratore_organizzazione', 'operatore_api'] },
         { key: 'richiedente', label: 'APP.FILTER.Richiedente', roles: ['richiedente_servizio'] }
     ];
     _currIdGruppoPadre: string = '';

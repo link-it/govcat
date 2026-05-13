@@ -21,6 +21,35 @@
     <ui-breadcrumb [breadcrumbs]="breadcrumbs" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
   </div>
 
+  <!-- Intestazione organizzazione (sola lettura) -->
+  @if (organizzazione) {
+    <div class="lnk-vetrina mt-3 mb-3 organization-manage-header">
+      <div class="card card-pad-tight">
+        <div class="d-flex align-items-center mb-2">
+          <h5 class="mb-0 flex-grow-1">{{ organizzazione.nome || '--' }}</h5>
+          @if (organizzazione.referente) {
+            <span class="chip chip-info ms-2">{{ 'APP.ORGANIZATIONS.LABEL.Referente' | translate }}</span>
+          }
+          @if (organizzazione.aderente) {
+            <span class="chip chip-muted ms-2">{{ 'APP.ORGANIZATIONS.LABEL.Aderente' | translate }}</span>
+          }
+          @if (organizzazione.esterna) {
+            <span class="chip chip-warn ms-2">{{ 'APP.ORGANIZATIONS.LABEL.Esterna' | translate }}</span>
+          }
+        </div>
+        @if (organizzazione.descrizione) {
+          <p class="text-muted mb-0">{{ organizzazione.descrizione }}</p>
+        }
+        @if (canManage()) {
+          <small class="text-muted d-flex align-items-center mt-2">
+            <i class="bi bi-info-circle me-2"></i>
+            <span>{{ 'APP.ORGANIZATION_MANAGE.HelpText' | translate }}</span>
+          </small>
+        }
+      </div>
+    </div>
+  }
+
   <div class="top-area">
     <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
       <div class="">
@@ -55,35 +84,6 @@
       }
     </div>
   </div>
-
-  <!-- Intestazione organizzazione (sola lettura) -->
-  @if (organizzazione) {
-    <div class="card mt-3 mb-3 organization-manage-header">
-      <div class="card-body">
-        <div class="d-flex align-items-center mb-2">
-          <h5 class="mb-0 flex-grow-1">{{ organizzazione.nome || '--' }}</h5>
-          @if (organizzazione.referente) {
-            <span class="badge text-bg-primary ms-2">{{ 'APP.ORGANIZATIONS.LABEL.Referente' | translate }}</span>
-          }
-          @if (organizzazione.aderente) {
-            <span class="badge text-bg-success ms-2">{{ 'APP.ORGANIZATIONS.LABEL.Aderente' | translate }}</span>
-          }
-          @if (organizzazione.esterna) {
-            <span class="badge text-bg-secondary ms-2">{{ 'APP.ORGANIZATIONS.LABEL.Esterna' | translate }}</span>
-          }
-        </div>
-        @if (organizzazione.descrizione) {
-          <p class="text-muted mb-0">{{ organizzazione.descrizione }}</p>
-        }
-        @if (canManage()) {
-          <small class="text-muted d-flex align-items-center mt-2">
-            <i class="bi bi-info-circle me-2"></i>
-            <span>{{ 'APP.ORGANIZATION_MANAGE.HelpText' | translate }}</span>
-          </small>
-        }
-      </div>
-    </div>
-  }
 
   @if (_hasFilter) {
     <section class="search-bar container-fluid px-0">

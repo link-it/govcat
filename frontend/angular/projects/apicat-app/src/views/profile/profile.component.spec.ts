@@ -1188,30 +1188,46 @@ describe('ProfileComponent', () => {
       });
     });
 
-    it('should show YesnoDialog with ChangeWarningWithOrg when profile has org', () => {
-      component.requestOrganizationChange('org2');
+    it('should show YesnoDialog with ChangeWarningWithOrg when called with partenza (replace flow)', () => {
+      // Issue 229 multi-org: la firma e` ora
+      // requestOrganizationChange(targetId, partenzaId?). Quando
+      // partenzaId e` valorizzato -> flusso "replace" con i18n
+      // `ChangeWarningWithOrg`.
+      component.requestOrganizationChange('org2', 'org1');
       expect(mockModalService.show).toHaveBeenCalled();
       expect(mockTranslate.instant).toHaveBeenCalledWith('APP.PROFILE.ORGANIZATION.ChangeWarningWithOrg');
     });
 
-    it('should show YesnoDialog with ChangeWarning when profile has no org', () => {
+    it('should show YesnoDialog with AddWarning when called without partenza (add flow)', () => {
+      // Senza partenzaId -> flusso "add" -> i18n `AddWarning`.
       component.profile = { id_utente: '1' };
       component.requestOrganizationChange('org2');
-      expect(mockTranslate.instant).toHaveBeenCalledWith('APP.PROFILE.ORGANIZATION.ChangeWarning');
+      expect(mockTranslate.instant).toHaveBeenCalledWith('APP.PROFILE.ORGANIZATION.AddWarning');
     });
 
     it('should call putElement on confirm and show success message', () => {
       const showMsgSpy = vi.spyOn(Tools, 'showMessage').mockImplementation(() => {});
       const loadProfileSpy = vi.spyOn(component, 'loadProfile').mockImplementation(() => {});
-      const cancelEditSpy = vi.spyOn(component, 'onCancelEdit').mockImplementation(() => {});
+      // Issue 229 multi-org: post-success usa `_closeOrgForm()`
+      // invece di `onCancelEdit()` (che resta solo per il form
+      // dati personali).
+      const closeOrgSpy = vi.spyOn(component, '_closeOrgForm').mockImplementation(() => {});
 
       component.requestOrganizationChange('org2');
       onCloseSubject.next(true);
 
-      expect(mockApiService.putElement).toHaveBeenCalledWith('profilo/organizzazione', null, { id_organizzazione: 'org2' });
+      // Issue 229 multi-org: il payload include sempre
+      // `id_organizzazione_partenza` (null per il flusso add,
+      // valorizzato per replace). Il BE rispondeva
+      // `UT.400.ORG.PARTENZA.REQUIRED` quando il field era omesso.
+      expect(mockApiService.putElement).toHaveBeenCalledWith(
+        'profilo/organizzazione',
+        null,
+        { id_organizzazione: 'org2', id_organizzazione_partenza: null }
+      );
       expect(showMsgSpy).toHaveBeenCalledWith('APP.PROFILE.ORGANIZATION.RequestSent', 'success');
       expect(loadProfileSpy).toHaveBeenCalled();
-      expect(cancelEditSpy).toHaveBeenCalled();
+      expect(closeOrgSpy).toHaveBeenCalled();
     });
 
     it('should set error on putElement failure after confirm', () => {

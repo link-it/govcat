@@ -65,6 +65,14 @@ describe('UtenteDetailsComponent', () => {
       _removeEmpty: vi.fn((obj: any) => obj)
     };
 
+    // Issue 229 evolutiva 2: nuovo dep AuthenticationService per
+    // determinare se l'approvatore puo` scegliere il ruolo target
+    // (gestore/coordinatore) o e` forzato a operatore_api (AMM_ORG).
+    const mockAuthenticationService = {
+      isGestore: vi.fn().mockReturnValue(true),
+      isCoordinatore: vi.fn().mockReturnValue(false)
+    };
+
     component = new UtenteDetailsComponent(
       mockRoute as any,
       mockRouter as any,
@@ -73,7 +81,8 @@ describe('UtenteDetailsComponent', () => {
       mockConfigService as any,
       mockTools as any,
       mockApiService as any,
-      mockUtils as any
+      mockUtils as any,
+      mockAuthenticationService as any
     );
   });
 
@@ -1221,9 +1230,17 @@ describe('UtenteDetailsComponent', () => {
       component.approveOrganizationChange();
       onCloseSub.next(true);
 
+      // Issue 229 evolutiva 2: payload usa `organizzazioni: [{...}]`
+      // (singola entry sull'org pending col ruolo scelto dall'approvatore),
+      // niente piu` `id_organizzazione` o `organizzazione_pending: null`
+      // a livello root. Le altre associazioni sono mantenute server-side.
       expect(mockApiService.putElement).toHaveBeenCalledWith('utenti', 1, expect.objectContaining({
-        id_organizzazione: 'org2',
-        organizzazione_pending: null
+        organizzazioni: [
+          expect.objectContaining({
+            id_organizzazione: 'org2',
+            ruolo_organizzazione: expect.any(String)
+          })
+        ]
       }));
       expect(component._spin).toBe(false);
       expect(component._isEdit).toBe(false);

@@ -1,3 +1,36 @@
+2026-05-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 229: supporto multi-organizzazione lato profilo.
+	  Pannello "Le tue organizzazioni" con card per ogni
+	  associazione (chip-accent/chip-info per
+	  amministratore_organizzazione/operatore_api), bottoni
+	  Aggiungi/Sostituisci, form inline (con esclusione delle
+	  org gia` associate dalla typeahead), banner pending
+	  context-aware (add vs replace). Il payload del PUT
+	  `/profilo/organizzazione` include sempre
+	  `id_organizzazione_partenza` (null per add, valorizzato
+	  per replace) — l'omit causava `UT.400.ORG.PARTENZA.REQUIRED`.
+	  Read-only view aggiornata: lista multi-org sostituisce il
+	  legacy `profile.organizzazione`. Banner pending +
+	  Passaggio "da X a Y" ora usano `<markdown [data]>` con
+	  getter pre-tradotto (la direttiva attribute non
+	  parserizzava i grassetti con `@if/@else` interno).
+
+	* [Frontend]
+	Issue 229: approvazione utente in PENDING_UPDATE - fix
+	  payload. Override esplicito di `stato: 'abilitato'` (era
+	  ereditato dal control disabilitato). Workaround per
+	  `UtilService._removeEmpty()` che strippa gli array:
+	  `organizzazioni: [{ id, ruolo }]` viene assegnato DOPO
+	  la chiamata (la utility filtra via `typeof === "object"`).
+
+	* [Frontend]
+	Issue 229: nuovi ruoli referente nelle GET di adesioni e
+	  servizi - `amministratore_organizzazione` e `operatore_api`
+	  aggiunti ai filtri `roleTabs` e al dropdown
+	  `_allRuoliAdesioni`.
+
 2026-05-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

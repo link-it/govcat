@@ -126,10 +126,17 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   service: Servizio|null = null;
 
   roleTab: string = 'tutte';
+  // Issue 229 evolutiva 2 — allineamento al nuovo enum
+  // `RuoloReferente` lato BE (10 valori). Le tab "referente_*"
+  // includono `amministratore_organizzazione` e `operatore_api`
+  // perche` questi ruoli per-org danno visibilita` su tutte le
+  // adesioni dell'organizzazione (rispettivamente referente
+  // primario / operatore tecnico). `utente_organizzazione` resta
+  // come fallback per dati legacy.
   _allRoleTabs: { key: string, label: string, roles: string[] }[] = [
     { key: 'tutte', label: 'APP.FILTER.All', roles: [] },
-    { key: 'referente', label: 'APP.FILTER.ReferenteServizioDominio', roles: ['referente_dominio', 'referente_tecnico_dominio', 'referente_servizio', 'utente_organizzazione', 'referente_tecnico_servizio'] },
-    { key: 'referente_adesione', label: 'APP.FILTER.ReferenteAdesione', roles: ['referente_adesione', 'referente_tecnico_adesione'] },
+    { key: 'referente', label: 'APP.FILTER.ReferenteServizioDominio', roles: ['referente_dominio', 'referente_tecnico_dominio', 'referente_servizio', 'referente_tecnico_servizio', 'utente_organizzazione', 'amministratore_organizzazione', 'operatore_api'] },
+    { key: 'referente_adesione', label: 'APP.FILTER.ReferenteAdesione', roles: ['referente_adesione', 'referente_tecnico_adesione', 'amministratore_organizzazione', 'operatore_api'] },
     { key: 'richiedente', label: 'APP.FILTER.Richiedente', roles: ['richiedente_servizio', 'richiedente_adesione'] }
   ];
   roleTabs: { key: string, label: string, roles: string[] }[] = this._allRoleTabs;
@@ -137,12 +144,14 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     { value: 'referente_dominio', label: 'APP.ROLE.referente_dominio' },
     { value: 'referente_tecnico_dominio', label: 'APP.ROLE.referente_tecnico_dominio' },
     { value: 'referente_servizio', label: 'APP.ROLE.referente_servizio' },
-    { value: 'utente_organizzazione', label: 'APP.ROLE.utente_organizzazione' },
     { value: 'referente_tecnico_servizio', label: 'APP.ROLE.referente_tecnico_servizio' },
+    { value: 'utente_organizzazione', label: 'APP.ROLE.utente_organizzazione' },
     { value: 'referente_adesione', label: 'APP.ROLE.referente_adesione' },
     { value: 'referente_tecnico_adesione', label: 'APP.ROLE.referente_tecnico_adesione' },
     { value: 'richiedente_servizio', label: 'APP.ROLE.richiedente_servizio' },
-    { value: 'richiedente_adesione', label: 'APP.ROLE.richiedente_adesione' }
+    { value: 'richiedente_adesione', label: 'APP.ROLE.richiedente_adesione' },
+    { value: 'amministratore_organizzazione', label: 'APP.ROLE.amministratore_organizzazione' },
+    { value: 'operatore_api', label: 'APP.ROLE.operatore_api' }
   ];
   _ruoloReferenteEnumValues: any = Object.fromEntries(this._allRuoliAdesioni.map(r => [r.value, r.label]));
   _availableRuoliAdesioni: { value: string, label: string }[] = [...this._allRuoliAdesioni];

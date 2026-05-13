@@ -27,6 +27,17 @@ export interface Organizzazione {
   nome: string | null;
 }
 
+/**
+ * Issue 229 multi-org: shape locale dell'associazione utente-org
+ * restituita dal BE in `Utente.organizzazioni[]`. Stub locale finche`
+ * gli stub generati `src/model/utenteOrganizzazione.ts` non vengono
+ * rigenerati dall'OpenAPI aggiornato.
+ */
+export interface UtenteOrganizzazioneShape {
+  organizzazione: Organizzazione | null;
+  ruolo_organizzazione: RuoloOrganizzazione | null;
+}
+
 export enum Ruolo {
   NESSUN_RUOLO = 'nessun_ruolo',
   GESTORE = 'gestore',
@@ -70,9 +81,23 @@ export class Utente {
   ruolo_organizzazione: RuoloOrganizzazione | null = null;
   // classi_utente: Array<any> = [];
   organizzazione: Organizzazione | null = null;
-  organizzazioni: Array<any> | null = null;
+  /**
+   * Issue 229 multi-org: associazioni dell'utente con organizzazioni
+   * (ognuna con `ruolo_organizzazione`). Sostituisce il legacy mono-org
+   * `organizzazione` nel nuovo schema BE.
+   */
+  organizzazioni: Array<UtenteOrganizzazioneShape> | null = null;
   organizzazione_esterna: string | null = null;
   organizzazione_pending: Organizzazione | null = null;
+  /**
+   * Issue 229 evolutiva 2: organizzazione di partenza del cambio
+   * org (popolata dal BE in risposta a `PENDING_UPDATE`). Mostrata
+   * accanto a `organizzazione_pending` nella UI di approvazione
+   * per il messaggio "passaggio da X a Y". Stub locale: l'interfaccia
+   * `Utente` in `src/model/utente.ts` (OpenAPI auto-generata) sara`
+   * aggiornata al prossimo refresh BE.
+   */
+  organizzazione_partenza: Organizzazione | null = null;
   classi_utente: ClassiUtente | null = null;
   referente_tecnico: boolean = false;
 
