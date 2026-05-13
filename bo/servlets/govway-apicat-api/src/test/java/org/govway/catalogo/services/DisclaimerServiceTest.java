@@ -625,9 +625,15 @@ class DisclaimerServiceTest {
 		AdesioneEntity adesione = buildAdesione("bozza", null);
 		List<AdesioneDisclaimer> result = service.resolveDisclaimers(adesione, "it");
 
-		assertEquals(1, result.size());
-		assertEquals("Una stringa semplice", result.get(0).getDisclaimer());
-		assertEquals(DisclaimerSeverityEnum.INFO, result.get(0).getSeverity());
+		// Il file esterno sovrascrive la chiave "bozza" del classpath; le eventuali
+		// chiavi "bozza.collaudo"/"bozza.produzione" del classpath restano e contribuiscono
+		// al risultato. Verifichiamo che il disclaimer del file esterno sia presente.
+		AdesioneDisclaimer esterno = result.stream()
+				.filter(d -> "Una stringa semplice".equals(d.getDisclaimer()))
+				.findFirst()
+				.orElse(null);
+		assertNotNull(esterno, "Il disclaimer caricato dal file esterno deve essere presente");
+		assertEquals(DisclaimerSeverityEnum.INFO, esterno.getSeverity());
 	}
 
 	@Test
@@ -666,7 +672,7 @@ class DisclaimerServiceTest {
 		String yaml = String.join("\n",
 				"bozza:",
 				"  severity: XYZ_NON_ESISTE",
-				"  testo: Testo");
+				"  testo: Testo dal file esterno");
 		Files.writeString(tempDir.resolve("disclaimers_it.yml"), yaml);
 
 		ReflectionTestUtils.setField(service, "externalPath", tempDir.toString());
@@ -676,8 +682,14 @@ class DisclaimerServiceTest {
 		AdesioneEntity adesione = buildAdesione("bozza", null);
 		List<AdesioneDisclaimer> result = service.resolveDisclaimers(adesione, "it");
 
-		assertEquals(1, result.size());
-		assertEquals(DisclaimerSeverityEnum.INFO, result.get(0).getSeverity());
+		// La chiave "bozza" del classpath viene sovrascritta dal file esterno;
+		// la severity invalida del file esterno deve fare fallback a INFO.
+		AdesioneDisclaimer esterno = result.stream()
+				.filter(d -> "Testo dal file esterno".equals(d.getDisclaimer()))
+				.findFirst()
+				.orElse(null);
+		assertNotNull(esterno, "Il disclaimer del file esterno deve essere presente");
+		assertEquals(DisclaimerSeverityEnum.INFO, esterno.getSeverity());
 	}
 
 	@Test

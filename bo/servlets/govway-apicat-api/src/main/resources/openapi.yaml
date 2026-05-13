@@ -429,6 +429,89 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /registrazione/organizzazione:
+    post:
+      tags:
+      - "Registrazione"
+      description: "Seleziona l'organizzazione di appartenenza proposta per la registrazione. Al completamento sarà applicata come organizzazione pending sull'utente (in attesa di approvazione)."
+      operationId: "selezionaOrganizzazioneRegistrazione"
+      requestBody:
+        description: "Organizzazione proposta dall'utente"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SelezionaOrganizzazioneRequest"
+      responses:
+        "200":
+          description: "Organizzazione aggiornata"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatoRegistrazione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+    delete:
+      tags:
+      - "Registrazione"
+      description: "Rimuove l'organizzazione precedentemente selezionata per la registrazione"
+      operationId: "rimuoviOrganizzazioneRegistrazione"
+      responses:
+        "200":
+          description: "Selezione organizzazione rimossa"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatoRegistrazione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /registrazione/organizzazioni:
+    get:
+      tags:
+      - "Registrazione"
+      description: "Elenco delle organizzazioni selezionabili durante la registrazione. Accessibile dall'utente in first-login senza ulteriori autorizzazioni."
+      operationId: "listOrganizzazioniRegistrazione"
+      parameters:
+      - $ref: "#/components/parameters/q_query_optional"
+      - $ref: "#/components/parameters/nome_query_optional"
+      - $ref: "#/components/parameters/page_query_optional"
+      - $ref: "#/components/parameters/size_query_optional"
+      - $ref: "#/components/parameters/sort_query_optional"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedModelItemOrganizzazione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /notifiche:
     get:
       tags:
@@ -7076,6 +7159,15 @@ components:
         tentativi_registrazione:
           type: "integer"
           description: "Numero tentativi di registrazione effettuati"
+        organizzazione_richiesta:
+          $ref: "#/components/schemas/ItemOrganizzazione"
+    SelezionaOrganizzazioneRequest:
+      type: "object"
+      required:
+        - id_organizzazione
+      properties:
+        id_organizzazione:
+          $ref: "#/components/schemas/IdOrganizzazione"
     StatoRegistrazioneEnum:
       type: "string"
       enum:

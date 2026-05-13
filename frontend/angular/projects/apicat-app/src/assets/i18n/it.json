@@ -1556,11 +1556,30 @@
 							"EMAIL": {
 								"JWT": "Email non presente nei dati di autenticazione"
 							}
+						},
+						"ORG": {
+							"ALREADY": {
+								"ASSOCIATED": "Utente già associato all'organizzazione [{{orgNome}}]"
+							}
+						}
+					},
+					"404": {
+						"ORG": {
+							"NOT": {
+								"FOUND": "Organizzazione [{{idOrganizzazione}}] non trovata"
+							}
 						}
 					},
 					"409": {
 						"PRINCIPAL": {
 							"EXISTS": "Principal già associato a un altro utente"
+						},
+						"ALREADY": {
+							"PENDING": {
+								"OTHER": {
+									"ORG": "Utente già in attesa di approvazione per un'altra organizzazione [{{orgNome}}]"
+								}
+							}
 						}
 					},
 					"410": {
@@ -1685,7 +1704,6 @@
 						"ORG": {
 							"MISMATCH": "Utente [{{nomeUtente}} {{cognomeUtente}}] non appartiene all'organizzazione [{{nomeOrganizzazione}}]",
 							"PARTENZA": {
-								"REQUIRED": "Indicare l'organizzazione di partenza per la richiesta di cambio organizzazione",
 								"NOT": {
 									"ASSOCIATED": "L'organizzazione di partenza [{{orgNome}}] non risulta associata all'utente"
 								},

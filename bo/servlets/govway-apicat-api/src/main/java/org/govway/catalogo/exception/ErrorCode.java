@@ -208,9 +208,6 @@ public enum ErrorCode {
     /** Ruolo coordinatore non abilitato nella configurazione */
     UT_400_COORDINATORE_DISABLED("Ruolo coordinatore non abilitato"),
 
-    /** Richiesta cambio organizzazione: organizzazione di partenza obbligatoria quando l'utente ha già associazioni */
-    UT_400_ORG_PARTENZA_REQUIRED("Organizzazione di partenza obbligatoria per richiesta cambio organizzazione"),
-
     /** Richiesta cambio organizzazione: organizzazione di partenza non corrisponde a una delle associazioni dell'utente */
     UT_400_ORG_PARTENZA_NOT_ASSOCIATED("Organizzazione di partenza non associata all'utente"),
 
@@ -644,7 +641,16 @@ public enum ErrorCode {
     REG_409_PRINCIPAL_EXISTS("Principal già associato a un altro utente"),
 
     /** Email non presente nei dati di autenticazione (JWT) */
-    REG_400_NO_EMAIL_JWT("Email non presente nei dati di autenticazione");
+    REG_400_NO_EMAIL_JWT("Email non presente nei dati di autenticazione"),
+
+    /** Organizzazione selezionata non trovata */
+    REG_404_ORG_NOT_FOUND("Organizzazione selezionata non trovata"),
+
+    /** Utente già associato all'organizzazione richiesta */
+    REG_400_ORG_ALREADY_ASSOCIATED("Utente già associato all'organizzazione richiesta"),
+
+    /** Utente già in attesa di approvazione per un'altra organizzazione */
+    REG_409_ALREADY_PENDING_OTHER_ORG("Utente già in attesa di approvazione per un'altra organizzazione");
 
     // ==================== ATTRIBUTI E METODI ====================
 

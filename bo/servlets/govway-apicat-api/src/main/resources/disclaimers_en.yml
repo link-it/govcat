@@ -96,6 +96,42 @@ archiviato:
     This subscription has been **archived** and is no longer active. The service is not accessible through this subscription. To restore access, a new subscription procedure must be initiated.
 
 # =============================================================================
+# ENVIRONMENT-LEVEL DISCLAIMER (collaudo / produzione), profile-independent
+#
+# Shown on the configuration page of each environment, below the list of
+# profiles to configure. Applies to any subscription state.
+# Severity: INFO (default for plain string).
+# =============================================================================
+
+__anchor_ambiente: &disclaimer_ambiente |
+  This service requires the configuration of the following security profiles. Press (pencil icon) on each profile to enter the required data. All profiles must be configured before the request can be submitted.
+
+bozza.collaudo: *disclaimer_ambiente
+bozza.produzione: *disclaimer_ambiente
+richiesto_collaudo.collaudo: *disclaimer_ambiente
+richiesto_collaudo.produzione: *disclaimer_ambiente
+autorizzato_collaudo.collaudo: *disclaimer_ambiente
+autorizzato_collaudo.produzione: *disclaimer_ambiente
+in_configurazione_manuale_collaudo.collaudo: *disclaimer_ambiente
+in_configurazione_manuale_collaudo.produzione: *disclaimer_ambiente
+in_configurazione_automatica_collaudo.collaudo: *disclaimer_ambiente
+in_configurazione_automatica_collaudo.produzione: *disclaimer_ambiente
+pubblicato_collaudo.collaudo: *disclaimer_ambiente
+pubblicato_collaudo.produzione: *disclaimer_ambiente
+richiesto_produzione.collaudo: *disclaimer_ambiente
+richiesto_produzione.produzione: *disclaimer_ambiente
+autorizzato_produzione.collaudo: *disclaimer_ambiente
+autorizzato_produzione.produzione: *disclaimer_ambiente
+in_configurazione_manuale_produzione.collaudo: *disclaimer_ambiente
+in_configurazione_manuale_produzione.produzione: *disclaimer_ambiente
+in_configurazione_automatica_produzione.collaudo: *disclaimer_ambiente
+in_configurazione_automatica_produzione.produzione: *disclaimer_ambiente
+pubblicato_produzione.collaudo: *disclaimer_ambiente
+pubblicato_produzione.produzione: *disclaimer_ambiente
+archiviato.collaudo: *disclaimer_ambiente
+archiviato.produzione: *disclaimer_ambiente
+
+# =============================================================================
 # CLIENT CONFIGURATION DISCLAIMERS (per profile + environment)
 #
 # Shown in the test and production configuration pages, regardless of the

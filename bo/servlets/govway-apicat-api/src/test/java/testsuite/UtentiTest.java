@@ -2613,6 +2613,70 @@ public class UtentiTest {
     }
 
     @Test
+    public void testUpdateProfiloOrganization_ConAssociazioni_SenzaPartenza_OK() {
+        // Utente già associato ad un'org, richiede una nuova org senza specificare partenza:
+        // l'approvazione aggiungerà la nuova associazione senza rimuovere le esistenti.
+        Organizzazione orgX = creaOrgConNomeMultiOrg("ucp-add-x");
+        Organizzazione orgY = creaOrgConNomeMultiOrg("ucp-add-y");
+        Utente utente = creaUtenteAssociatoA("ucp.add.user",
+                List.of(orgX.getIdOrganizzazione()),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+        autenticaPrincipal(utente.getPrincipal());
+
+        ProfiloOrganizationUpdate req = new ProfiloOrganizationUpdate();
+        req.setIdOrganizzazione(orgY.getIdOrganizzazione());
+        // niente partenza: aggiunta non swap
+
+        ResponseEntity<Utente> resp = controller.updateProfiloOrganization(req);
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertEquals(StatoUtenteEnum.PENDING_UPDATE, resp.getBody().getStato());
+        assertNotNull(resp.getBody().getOrganizzazionePending());
+        assertEquals(orgY.getIdOrganizzazione(),
+                resp.getBody().getOrganizzazionePending().getIdOrganizzazione());
+        assertNull(resp.getBody().getOrganizzazionePartenza());
+        // L'associazione esistente con orgX deve restare invariata
+        assertEquals(1, resp.getBody().getOrganizzazioni().size());
+        assertEquals(orgX.getIdOrganizzazione(),
+                resp.getBody().getOrganizzazioni().get(0).getOrganizzazione().getIdOrganizzazione());
+    }
+
+    @Test
+    public void testApprovazione_AggiuntaAssociazioneSenzaPartenza_OK() {
+        // Approvazione di una richiesta "aggiunta org" (senza partenza): l'utente passa
+        // da PENDING_UPDATE ad ABILITATO mantenendo le associazioni esistenti + la nuova.
+        Organizzazione orgX = creaOrgConNomeMultiOrg("appr-add-x");
+        Organizzazione orgY = creaOrgConNomeMultiOrg("appr-add-y");
+        Utente utente = creaUtenteAssociatoA("appr.add.user",
+                List.of(orgX.getIdOrganizzazione()),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+
+        autenticaPrincipal(utente.getPrincipal());
+        ProfiloOrganizationUpdate req = new ProfiloOrganizationUpdate();
+        req.setIdOrganizzazione(orgY.getIdOrganizzazione()); // niente partenza
+        controller.updateProfiloOrganization(req);
+
+        // Approvazione come gestore
+        autenticaPrincipal(UTENTE_GESTORE);
+        UtenteUpdate uu = buildApprovazioneUpdate(utente, orgY.getIdOrganizzazione(),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+        ResponseEntity<Utente> resp = controller.updateUtente(utente.getIdUtente(), uu);
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertEquals(StatoUtenteEnum.ABILITATO, resp.getBody().getStato());
+        assertNull(resp.getBody().getOrganizzazionePending());
+        assertNull(resp.getBody().getOrganizzazionePartenza());
+        // Entrambe le associazioni: la pre-esistente X + la nuova Y
+        assertEquals(2, resp.getBody().getOrganizzazioni().size());
+        boolean hasX = resp.getBody().getOrganizzazioni().stream().anyMatch(uo ->
+                orgX.getIdOrganizzazione().equals(uo.getOrganizzazione().getIdOrganizzazione()));
+        boolean hasY = resp.getBody().getOrganizzazioni().stream().anyMatch(uo ->
+                orgY.getIdOrganizzazione().equals(uo.getOrganizzazione().getIdOrganizzazione()));
+        assertTrue(hasX, "Associazione esistente X deve essere mantenuta");
+        assertTrue(hasY, "Nuova associazione Y deve essere aggiunta");
+    }
+
+    @Test
     public void testApprovazione_DaGestore_SwapAssociazioneSingleOrg() {
         Organizzazione orgX = creaOrgConNomeMultiOrg("appr-gest-x");
         Organizzazione orgY = creaOrgConNomeMultiOrg("appr-gest-y");
@@ -2818,6 +2882,52 @@ public class UtentiTest {
         assertTrue(hasA, "AMM_ORG di Y deve vedere utenteA (pending verso Y)");
         assertFalse(hasB, "AMM_ORG di Y NON deve vedere utenteB (pending verso Z)");
         assertFalse(hasC, "AMM_ORG di Y NON deve vedere utenteC (abilitato non pending)");
+    }
+
+    @Test
+    public void testApprovazione_NuovoUtenteDaRegistrazione_NoOrgPartenza_OK() {
+        // Simula il risultato della registrazione con org scelta: utente PENDING_UPDATE
+        // con organizzazione_pending valorizzata, nessuna associazione, nessuna org_partenza.
+        Organizzazione orgY = creaOrgConNomeMultiOrg("reg-newuser-y");
+        org.govway.catalogo.core.orm.entity.OrganizzazioneEntity orgYEntity =
+                organizzazioneService.find(orgY.getIdOrganizzazione()).get();
+
+        org.govway.catalogo.core.orm.entity.UtenteEntity nuovo =
+                new org.govway.catalogo.core.orm.entity.UtenteEntity();
+        nuovo.setIdUtente(UUID.randomUUID().toString());
+        nuovo.setPrincipal("reg.newuser." + System.nanoTime());
+        nuovo.setNome("Nuovo");
+        nuovo.setCognome("Registrato");
+        nuovo.setEmailAziendale("nuovo.registrato@example.com");
+        nuovo.setTelefonoAziendale("00-000000");
+        nuovo.setStato(org.govway.catalogo.core.orm.entity.UtenteEntity.Stato.PENDING_UPDATE);
+        nuovo.setOrganizzazionePending(orgYEntity);
+        nuovo.setOrganizzazionePartenza(null);
+        utenteService.save(nuovo);
+
+        // Approvazione come gestore
+        autenticaPrincipal(UTENTE_GESTORE);
+        Utente attuale = new Utente();
+        attuale.setIdUtente(UUID.fromString(nuovo.getIdUtente()));
+        attuale.setPrincipal(nuovo.getPrincipal());
+        attuale.setNome(nuovo.getNome());
+        attuale.setCognome(nuovo.getCognome());
+        attuale.setEmailAziendale(nuovo.getEmailAziendale());
+        attuale.setTelefonoAziendale(nuovo.getTelefonoAziendale());
+        UtenteUpdate uu = buildApprovazioneUpdate(attuale, orgY.getIdOrganizzazione(),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+
+        ResponseEntity<Utente> resp = controller.updateUtente(UUID.fromString(nuovo.getIdUtente()), uu);
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertEquals(StatoUtenteEnum.ABILITATO, resp.getBody().getStato());
+        assertNull(resp.getBody().getOrganizzazionePending());
+        assertNull(resp.getBody().getOrganizzazionePartenza());
+        assertEquals(1, resp.getBody().getOrganizzazioni().size());
+        assertEquals(orgY.getIdOrganizzazione(),
+                resp.getBody().getOrganizzazioni().get(0).getOrganizzazione().getIdOrganizzazione());
+        assertEquals(RuoloOrganizzazioneEnum.OPERATORE_API,
+                resp.getBody().getOrganizzazioni().get(0).getRuoloOrganizzazione());
     }
 }
 
