@@ -217,6 +217,9 @@ public enum ErrorCode {
     /** Richiesta cambio organizzazione: utente già associato all'organizzazione richiesta */
     UT_400_ORG_PENDING_ALREADY_ASSOCIATED("Utente già associato all'organizzazione richiesta"),
 
+    /** Annullamento richiesta cambio organizzazione: nessuna richiesta pending da annullare */
+    UT_400_NO_PENDING_REQUEST("Nessuna richiesta di cambio organizzazione da annullare"),
+
     // ==================== CLASSI UTENTE ====================
 
     /** Classe utente non trovata */

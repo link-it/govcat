@@ -178,6 +178,28 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+    delete:
+      tags:
+      - "Utenti"
+      description: "Annulla la richiesta di cambio organizzazione pending dell'utente chiamante. Lo stato dell'utente torna ad ABILITATO se aveva già associazioni, altrimenti NON_CONFIGURATO."
+      operationId: "deleteProfiloOrganizationPending"
+      responses:
+        "200":
+          description: "Richiesta annullata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Utente"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /profilo/email/invia-codice:
     post:
       tags:
@@ -1632,6 +1654,33 @@ paths:
           $ref: "#/components/responses/404NotFound"
         "429":
           $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /utenti/{id_utente}/organizzazione-pending:
+    parameters:
+    - $ref: "#/components/parameters/id_utente"
+    delete:
+      tags:
+      - "Utenti"
+      description: "Rifiuta la richiesta di cambio organizzazione pending dell'utente. Operazione consentita al gestore o coordinatore (in base alla configurazione amministrazione.utenti.scrittura) oppure ad un AMMINISTRATORE_ORGANIZZAZIONE dell'organizzazione target. Lo stato dell'utente torna ad ABILITATO se aveva già associazioni, altrimenti NON_CONFIGURATO."
+      operationId: "rifiutaUtenteOrganizationPending"
+      responses:
+        "200":
+          description: "Richiesta rifiutata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Utente"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
         "503":
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":

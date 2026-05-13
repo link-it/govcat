@@ -549,6 +549,79 @@ public class UtentiController implements UtentiApi {
 	}
 
 	@Override
+	public ResponseEntity<Utente> deleteProfiloOrganizationPending() {
+		try {
+			return this.service.runTransaction(() -> {
+				this.logger.info("Invocazione deleteProfiloOrganizationPending in corso ...");
+
+				InfoProfilo current = this.requestUtils.getPrincipal(false);
+				if (current == null || current.utente == null) {
+					throw new NotAuthorizedException(ErrorCode.AUT_403);
+				}
+
+				UtenteEntity entity = current.utente;
+				annullaRichiestaPending(entity);
+
+				Utente model = this.dettaglioAssembler.toModel(entity);
+				this.logger.info("Invocazione completata con successo");
+				return ResponseEntity.ok(model);
+			});
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	@Override
+	public ResponseEntity<Utente> rifiutaUtenteOrganizationPending(UUID idUtente) {
+		try {
+			return this.service.runTransaction(() -> {
+				this.logger.info("Invocazione rifiutaUtenteOrganizationPending in corso ...");
+
+				UtenteEntity entity = this.service.find(idUtente)
+						.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404, Map.of("idUtente", idUtente.toString())));
+
+				this.authorization.authorizeRifiutaPending(entity);
+
+				annullaRichiestaPending(entity);
+
+				Utente model = this.dettaglioAssembler.toModel(entity);
+				this.logger.info("Invocazione completata con successo");
+				return ResponseEntity.ok(model);
+			});
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	/**
+	 * Annulla la richiesta di cambio organizzazione pending dell'utente. Lo stato torna ad
+	 * ABILITATO se l'utente aveva già associazioni, altrimenti NON_CONFIGURATO (caso di
+	 * utente arrivato da registrazione con organizzazione scelta).
+	 */
+	private void annullaRichiestaPending(UtenteEntity entity) {
+		if (entity.getStato() != Stato.PENDING_UPDATE || entity.getOrganizzazionePending() == null) {
+			throw new BadRequestException(ErrorCode.UT_400_NO_PENDING_REQUEST);
+		}
+		boolean haAssociazioni = !this.service.findUtenteOrganizzazioniByUtente(entity).isEmpty();
+		entity.setOrganizzazionePending(null);
+		entity.setOrganizzazionePartenza(null);
+		entity.setStato(haAssociazioni ? Stato.ABILITATO : Stato.NON_CONFIGURATO);
+		this.service.save(entity);
+	}
+
+	@Override
 	public ResponseEntity<Profilo> getProfilo() {
 		try {
 			return this.service.runTransaction(() -> {

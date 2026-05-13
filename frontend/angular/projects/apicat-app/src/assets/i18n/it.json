@@ -1718,6 +1718,11 @@
 									"ASSOCIATED": "L'utente è già associato all'organizzazione [{{orgNome}}]"
 								}
 							}
+						},
+						"NO": {
+							"PENDING": {
+								"REQUEST": "Nessuna richiesta di cambio organizzazione da annullare"
+							}
 						}
 					},
 					"403": {
