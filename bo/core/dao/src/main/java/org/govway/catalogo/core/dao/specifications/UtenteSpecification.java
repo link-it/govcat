@@ -80,11 +80,17 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 			predLstQ.add(cb.like(cb.upper(root.get(UtenteEntity_.principal)), "%" + qUpper + "%"));
 			predLstQ.add(cb.like(cb.upper(root.get(UtenteEntity_.nome)), "%" + qUpper + "%"));
 			predLstQ.add(cb.like(cb.upper(root.get(UtenteEntity_.cognome)), "%" + qUpper + "%"));
-			predLstQ.add(cb.like(cb.upper(
-					root.join(UtenteEntity_.utenteOrganizzazioni, JoinType.LEFT)
-							.get(UtenteOrganizzazioneEntity_.organizzazione)
-							.get(OrganizzazioneEntity_.nome)),
-					"%" + qUpper + "%"));
+			// Ricerca per nome organizzazione associata: subquery IN per evitare l'implicit INNER JOIN
+			// che escluderebbe gli utenti senza associazioni in utenti_organizzazioni, e per non duplicare
+			// righe quando un utente è associato a più organizzazioni.
+			Subquery<Long> subOrgNome = query.subquery(Long.class);
+			Root<UtenteOrganizzazioneEntity> subOrgNomeRoot = subOrgNome.from(UtenteOrganizzazioneEntity.class);
+			subOrgNome.select(subOrgNomeRoot.get(UtenteOrganizzazioneEntity_.utente).get(UtenteEntity_.id))
+					.where(cb.like(cb.upper(
+							subOrgNomeRoot.get(UtenteOrganizzazioneEntity_.organizzazione)
+									.get(OrganizzazioneEntity_.nome)),
+							"%" + qUpper + "%"));
+			predLstQ.add(root.get(UtenteEntity_.id).in(subOrgNome));
 			// Ricerca per nome + cognome combinati (es. "Mario Rossi")
 			predLstQ.add(cb.like(cb.upper(cb.concat(cb.concat(root.get(UtenteEntity_.nome), " "), root.get(UtenteEntity_.cognome))), "%" + qUpper + "%"));
 			// Ricerca per cognome + nome combinati (es. "Rossi Mario")
