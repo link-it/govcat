@@ -255,25 +255,10 @@ describe('ClientDetailsComponent', () => {
     });
   });
 
-  describe('_checkTipoCertificato', () => {
-    it('should set _isFornito for https + fornito', () => {
-      component._checkTipoCertificato('https', 'fornito');
-      expect(component._isFornito).toBe(true);
-      expect(component._isRichiesto_cn).toBe(false);
-      expect(component._isRichiesto_csr).toBe(false);
-    });
-
-    it('should set _isRichiesto_cn for https + richiesto_cn', () => {
-      component._checkTipoCertificato('https', 'richiesto_cn');
-      expect(component._isFornito).toBe(false);
-      expect(component._isRichiesto_cn).toBe(true);
-    });
-
-    it('should set _isRichiesto_csr for https + richiesto_csr', () => {
-      component._checkTipoCertificato('https', 'richiesto_csr');
-      expect(component._isRichiesto_csr).toBe(true);
-    });
-  });
+  // Issue #237 Passo 1: `_checkTipoCertificato` e' stato rimosso.
+  // Le flag `_isFornito`/`_isRichiesto_*` sono ora getter derivati da
+  // `_formConfig.certAuth.mode.kind` — coperte dai test unit di
+  // `client-dialog-state.ts` (modulo stato condiviso).
 
   describe('_removeNullProperties', () => {
     it('should remove null properties', () => {
@@ -539,6 +524,10 @@ describe('ClientDetailsComponent', () => {
     it('should validate finalita as UUID pattern', () => {
       initFormWithDefaults(component);
       const ctrl = component._formGroup.controls['finalita'];
+      // Il control viene disabilitato da `_applyEnabledStateFromFormConfig`
+      // quando l'auth_type non espone il campo finalita: riabilitiamo per
+      // testare il validator pattern UUID.
+      ctrl.enable();
       ctrl.setValue('not-a-uuid');
       expect(ctrl.valid).toBe(false);
       ctrl.setValue('12345678-ABCD-1234-ABCD-123456789ABC');
@@ -613,15 +602,10 @@ describe('ClientDetailsComponent', () => {
       expect(component._isOauthClientCredentials).toBe(true);
     });
 
-    it('should reset all auth type flags for default case', () => {
-      component._isHttps = true;
-      component._isPdnd = true;
-      component._onChangeAuthType('valore_a_caso_per_resettare_le_variabili');
-      expect(component._isHttps).toBe(false);
-      expect(component._isPdnd).toBe(false);
-      expect(component._isNoDati).toBe(false);
-      expect(component._isHttpBasic).toBe(false);
-    });
+    // Rimosso: "reset flag per default case". Issue #237 Passo 1: le flag
+    // sono ora getter derivati da `_formConfig.authType`, quindi il reset
+    // e' automatico al cambio di valore. Non c'e' piu' stato da resettare
+    // manualmente.
 
     it('should set tipo_certificato required for https when in edit mode', () => {
       component._isEdit = true;
@@ -700,7 +684,10 @@ describe('ClientDetailsComponent', () => {
 
   describe('_onChangeTipoCertificato', () => {
     beforeEach(() => {
-      initFormWithDefaults(component);
+      // auth_type = 'https' cosi' `certAuth.visible` e' true nel formConfig
+      // e `_isFornito`/`_isRichiesto_*` possono essere true quando il
+      // relativo tipo_certificato viene scelto.
+      initFormWithDefaults(component, { dati_specifici: { auth_type: 'https', certificato_autenticazione: null, certificato_firma: null } });
     });
 
     it('should set _isFornito for fornito', () => {
@@ -746,13 +733,9 @@ describe('ClientDetailsComponent', () => {
       expect(modulo.valid).toBe(false);
     });
 
-    it('should reset all flags for default/unknown value', () => {
-      component._isFornito = true;
-      component._onChangeTipoCertificato('unknown');
-      expect(component._isFornito).toBe(false);
-      expect(component._isRichiesto_cn).toBe(false);
-      expect(component._isRichiesto_csr).toBe(false);
-    });
+    // Rimosso: "reset per default/unknown". Stesso motivo del blocco sopra:
+    // le flag `_isFornito`/`_isRichiesto_*` sono ora getter su
+    // `_formConfig.certAuth.mode.kind`.
 
     it('should require cert_generato_content for richiesto_cn when stato is not nuovo', () => {
       component._isStato_nuovo = false;
@@ -773,7 +756,8 @@ describe('ClientDetailsComponent', () => {
 
   describe('_onChangeTipoCertificatoFirma', () => {
     beforeEach(() => {
-      initFormWithDefaults(component);
+      // auth_type = 'https_sign' cosi' `certSign.visible` e' true.
+      initFormWithDefaults(component, { dati_specifici: { auth_type: 'https_sign', certificato_autenticazione: null, certificato_firma: null } });
     });
 
     it('should set _isFornito_firma for fornito', () => {
@@ -818,13 +802,9 @@ describe('ClientDetailsComponent', () => {
       expect(modulo.valid).toBe(false);
     });
 
-    it('should reset all firma flags for default/unknown value', () => {
-      component._isFornito_firma = true;
-      component._onChangeTipoCertificatoFirma('unknown');
-      expect(component._isFornito_firma).toBe(false);
-      expect(component._isRichiesto_cn_firma).toBe(false);
-      expect(component._isRichiesto_csr_firma).toBe(false);
-    });
+    // Rimosso: "reset per default/unknown". Le flag `_isFornito_firma`/
+    // `_isRichiesto_*_firma` sono ora getter su
+    // `_formConfig.certSign.mode.kind` — reset automatico al cambio.
 
     it('should require cert_generato_content_firma for richiesto_cn when stato not nuovo', () => {
       component._isStato_nuovo = false;
@@ -854,30 +834,38 @@ describe('ClientDetailsComponent', () => {
 
     it('should clear username validators when stato is nuovo', () => {
       component._formGroup.controls['stato'].setValue('nuovo');
-      component._formGroup.controls['username'].setValidators(() => ({ error: true }));
+      const username = component._formGroup.controls['username'];
+      username.setValidators(() => ({ error: true }));
       component._onChangeStato();
-      component._formGroup.controls['username'].updateValueAndValidity();
-      expect(component._formGroup.controls['username'].valid).toBe(true);
+      // `_onChangeStato` -> `_recomputeFormConfig` -> disabilita
+      // username se auth_type non e' http_basic. Riabilito per
+      // verificare che i validator siano stati effettivamente rimossi.
+      username.enable();
+      username.updateValueAndValidity();
+      expect(username.valid).toBe(true);
     });
 
     it('should set username required for http_basic when stato is not nuovo', () => {
-      component._isHttpBasic = true;
+      component._formGroup.controls['auth_type'].setValue('http_basic');
+      (component as any)._recomputeFormConfig();
       component._formGroup.controls['stato'].setValue('configurato');
       component._onChangeStato();
       component._formGroup.controls['username'].setValue(null);
       expect(component._formGroup.controls['username'].valid).toBe(false);
     });
 
-    it('should set client_id required when _isPdnd is true', () => {
-      component._isPdnd = true;
+    it('should set client_id required when auth_type is pdnd', () => {
+      component._formGroup.controls['auth_type'].setValue('pdnd');
+      (component as any)._recomputeFormConfig();
       component._formGroup.controls['stato'].setValue('configurato');
       component._onChangeStato();
       component._formGroup.controls['client_id'].setValue(null);
       expect(component._formGroup.controls['client_id'].valid).toBe(false);
     });
 
-    it('should set client_id required when _isOauthClientCredentials is true', () => {
-      component._isOauthClientCredentials = true;
+    it('should set client_id required when auth_type is oauth_client_credentials', () => {
+      component._formGroup.controls['auth_type'].setValue('oauth_client_credentials');
+      (component as any)._recomputeFormConfig();
       component._formGroup.controls['stato'].setValue('configurato');
       component._onChangeStato();
       component._formGroup.controls['client_id'].setValue(null);
@@ -885,16 +873,14 @@ describe('ClientDetailsComponent', () => {
     });
 
     it('should clear client_id validators when no pdnd/oauth', () => {
-      component._isPdnd = false;
-      component._isHttpsPdnd = false;
-      component._isHttpsPdndSign = false;
-      component._isSignPdnd = false;
-      component._isOauthClientCredentials = false;
-      component._isOauthAuthCode = false;
+      component._formGroup.controls['auth_type'].setValue('no_dati');
+      (component as any)._recomputeFormConfig();
       component._formGroup.controls['stato'].setValue('configurato');
       component._onChangeStato();
-      component._formGroup.controls['client_id'].setValue(null);
-      expect(component._formGroup.controls['client_id'].valid).toBe(true);
+      const clientId = component._formGroup.controls['client_id'];
+      clientId.enable();
+      clientId.setValue(null);
+      expect(clientId.valid).toBe(true);
     });
   });
 
@@ -1258,8 +1244,14 @@ describe('ClientDetailsComponent', () => {
       initFormWithDefaults(component);
     });
 
+    // Dopo Issue #237 `_recomputeFormConfig` disabilita i FormControl
+    // non rilevanti per l'auth_type corrente. Riabilito il control
+    // prima di testare la clearValidators, altrimenti `ctrl.valid`
+    // ritorna false perche' il control e' in stato DISABLED.
+
     it('should clear validators on tipo_certificato', () => {
       const ctrl = component._formGroup.controls['tipo_certificato'];
+      ctrl.enable();
       ctrl.setValidators(() => ({ err: true }));
       component._resetValidators();
       ctrl.updateValueAndValidity();
@@ -1268,6 +1260,7 @@ describe('ClientDetailsComponent', () => {
 
     it('should clear validators on url_redirezione', () => {
       const ctrl = component._formGroup.controls['url_redirezione'];
+      ctrl.enable();
       ctrl.setValidators(() => ({ err: true }));
       component._resetValidators();
       ctrl.updateValueAndValidity();
@@ -1276,6 +1269,7 @@ describe('ClientDetailsComponent', () => {
 
     it('should clear validators on client_id', () => {
       const ctrl = component._formGroup.controls['client_id'];
+      ctrl.enable();
       ctrl.setValidators(() => ({ err: true }));
       component._resetValidators();
       ctrl.updateValueAndValidity();
@@ -1284,6 +1278,7 @@ describe('ClientDetailsComponent', () => {
 
     it('should clear validators on username', () => {
       const ctrl = component._formGroup.controls['username'];
+      ctrl.enable();
       ctrl.setValidators(() => ({ err: true }));
       component._resetValidators();
       ctrl.updateValueAndValidity();
@@ -1293,6 +1288,7 @@ describe('ClientDetailsComponent', () => {
     it('should clear validators on all oauth fields', () => {
       const fields = ['url_esposizione', 'help_desk', 'nome_applicazione_portale'];
       for (const f of fields) {
+        component._formGroup.controls[f].enable();
         component._formGroup.controls[f].setValidators(() => ({ err: true }));
       }
       component._resetValidators();
@@ -1319,7 +1315,9 @@ describe('ClientDetailsComponent', () => {
       mockUtils.getTipiCertificatoAttivi.mockReturnValue(['fornito', 'richiesto_cn']);
       component.initTipiCertificato();
       expect(component._tipoCertificatoEnum).toEqual(['fornito', 'richiesto_cn']);
-      expect(component._isRichiesto_csr).toBe(true);
+      // Nota: l'assertion originale su `_isRichiesto_csr === true` e' stata
+      // rimossa — la flag e' ora un getter su `_formConfig.certAuth.mode.kind`
+      // non piu' assegnato da `initTipiCertificato`.
     });
 
     it('should not populate when getCertificatoByAuthType returns null', () => {
@@ -1641,9 +1639,14 @@ describe('ClientDetailsComponent', () => {
     });
 
     it('should include rate_limiting when _show_erogazione_rate_limiting and quota present', () => {
+      // mock del config remoto: auth_type 'no_dati' con rate_limiting attivo
+      mockAuthenticationService._getConfigModule.mockImplementation((m: string) => {
+        if (m === 'servizio') return { api: { auth_type: [{ type: 'no_dati', rate_limiting: true }] } };
+        return {};
+      });
       component._isNew = true;
-      component._show_erogazione_rate_limiting = true;
       component._formGroup.controls['auth_type'].setValue('no_dati');
+      (component as any)._recomputeFormConfig();
       component._formGroup.controls['ambiente'].setValue('collaudo');
       component._formGroup.controls['id_soggetto'].setValue('s1');
       const result = component._prepareDataToSend({
@@ -1655,9 +1658,13 @@ describe('ClientDetailsComponent', () => {
     });
 
     it('should not include rate_limiting when quota is null', () => {
+      mockAuthenticationService._getConfigModule.mockImplementation((m: string) => {
+        if (m === 'servizio') return { api: { auth_type: [{ type: 'no_dati', rate_limiting: true }] } };
+        return {};
+      });
       component._isNew = true;
-      component._show_erogazione_rate_limiting = true;
       component._formGroup.controls['auth_type'].setValue('no_dati');
+      (component as any)._recomputeFormConfig();
       component._formGroup.controls['ambiente'].setValue('collaudo');
       component._formGroup.controls['id_soggetto'].setValue('s1');
       const result = component._prepareDataToSend({
@@ -1669,9 +1676,13 @@ describe('ClientDetailsComponent', () => {
     });
 
     it('should include finalita when _show_erogazione_finalita and finalita present', () => {
+      mockAuthenticationService._getConfigModule.mockImplementation((m: string) => {
+        if (m === 'servizio') return { api: { auth_type: [{ type: 'no_dati', finalita: true }] } };
+        return {};
+      });
       component._isNew = true;
-      component._show_erogazione_finalita = true;
       component._formGroup.controls['auth_type'].setValue('no_dati');
+      (component as any)._recomputeFormConfig();
       component._formGroup.controls['ambiente'].setValue('collaudo');
       component._formGroup.controls['id_soggetto'].setValue('s1');
       const result = component._prepareDataToSend({
@@ -1737,8 +1748,8 @@ describe('ClientDetailsComponent', () => {
 
     it('should include username for http_basic', () => {
       component._isNew = true;
-      component._isHttpBasic = true;
       component._formGroup.controls['auth_type'].setValue('http_basic');
+      (component as any)._recomputeFormConfig();
       component._formGroup.controls['ambiente'].setValue('collaudo');
       component._formGroup.controls['id_soggetto'].setValue('s1');
       const result = component._prepareDataToSend({
@@ -1751,8 +1762,8 @@ describe('ClientDetailsComponent', () => {
 
     it('should include client_id for pdnd', () => {
       component._isNew = true;
-      component._isPdnd = true;
       component._formGroup.controls['auth_type'].setValue('pdnd');
+      (component as any)._recomputeFormConfig();
       component._formGroup.controls['ambiente'].setValue('collaudo');
       component._formGroup.controls['id_soggetto'].setValue('s1');
       const result = component._prepareDataToSend({
@@ -1765,8 +1776,8 @@ describe('ClientDetailsComponent', () => {
 
     it('should include oauth fields for oauth_authorization_code', () => {
       component._isNew = true;
-      component._isOauthAuthCode = true;
       component._formGroup.controls['auth_type'].setValue('oauth_authorization_code');
+      (component as any)._recomputeFormConfig();
       component._formGroup.controls['ambiente'].setValue('collaudo');
       component._formGroup.controls['id_soggetto'].setValue('s1');
       const result = component._prepareDataToSend({
@@ -1822,55 +1833,9 @@ describe('ClientDetailsComponent', () => {
     });
   });
 
-  describe('_checkTipoCertificato extended', () => {
-    it('should set firma flags for https_sign', () => {
-      component.client = {
-        dati_specifici: {
-          auth_type: 'https_sign',
-          certificato_autenticazione: { tipo_certificato: 'fornito' },
-          certificato_firma: { tipo_certificato: 'richiesto_cn' }
-        }
-      };
-      component._checkTipoCertificato('https_sign', 'fornito');
-      expect(component._isFornito).toBe(true);
-      expect(component._isRichiesto_cn_firma).toBe(true);
-    });
-
-    it('should set firma flags for sign', () => {
-      component.client = {
-        dati_specifici: {
-          auth_type: 'sign',
-          certificato_firma: { tipo_certificato: 'fornito' }
-        }
-      };
-      component._checkTipoCertificato('sign', '');
-      expect(component._isFornito_firma).toBe(true);
-    });
-
-    it('should set firma flags for sign_pdnd', () => {
-      component.client = {
-        dati_specifici: {
-          auth_type: 'sign_pdnd',
-          certificato_firma: { tipo_certificato: 'richiesto_csr' }
-        }
-      };
-      component._checkTipoCertificato('sign_pdnd', '');
-      expect(component._isRichiesto_csr_firma).toBe(true);
-    });
-
-    it('should set firma flags for https_pdnd_sign', () => {
-      component.client = {
-        dati_specifici: {
-          auth_type: 'https_pdnd_sign',
-          certificato_autenticazione: { tipo_certificato: 'richiesto_cn' },
-          certificato_firma: { tipo_certificato: 'fornito' }
-        }
-      };
-      component._checkTipoCertificato('https_pdnd_sign', 'richiesto_cn');
-      expect(component._isRichiesto_cn).toBe(true);
-      expect(component._isFornito_firma).toBe(true);
-    });
-  });
+  // Issue #237 Passo 1: `_checkTipoCertificato` rimosso. La copertura dei
+  // casi firma (https_sign / sign / sign_pdnd / https_pdnd_sign) e' ora
+  // in `client-dialog-state.spec.ts` via `computeFormConfig`.
 
   describe('_showMandatoryFields', () => {
     beforeEach(() => {

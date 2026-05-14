@@ -1,0 +1,27 @@
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ */
+.organizzazione-utenti-list {
+  // Container scrollabile della tabella: dimensioni stabili per
+  // evitare flickering al refresh (la tabella resta visibile
+  // mentre la nuova response sostituisce gli items). Nessun
+  // override sullo stile della tabella stessa per preservare
+  // l'aspetto originale (padding, allineamenti, ecc.).
+  .organizzazione-utenti-scroll {
+    min-height: 12rem;
+    max-height: 24rem;
+    overflow-y: auto;
+    transition: opacity 0.15s ease-in-out;
+
+    // Lieve attenuazione durante il refresh, senza nascondere il
+    // contenuto: l'utente percepisce il caricamento ma non vede
+    // saltellare il layout.
+    &.is-loading {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+  }
+}

@@ -20,9 +20,14 @@
 package org.govway.catalogo.authorization;
 
 import org.govway.catalogo.InfoProfilo;
+import org.govway.catalogo.OrganizationContext;
 import org.govway.catalogo.RequestUtils;
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
+import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Ruolo;
+import org.govway.catalogo.core.services.OrganizzazioneService;
+import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.Configurazione;
@@ -32,9 +37,18 @@ public class CoreAuthorization {
 
 	@Autowired
 	private RequestUtils requestUtils;
-	
+
 	@Autowired
 	protected Configurazione configurazione;
+
+	@Autowired
+	private OrganizationContext organizationContext;
+
+	@Autowired
+	private UtenteService utenteService;
+
+	@Autowired
+	private OrganizzazioneService organizzazioneService;
 	
 	public UtenteEntity getUtenteSessione() {
 		boolean consentiAnonimo = this.configurazione.getUtente().isConsentiAccessoAnonimo();
@@ -86,28 +100,39 @@ public class CoreAuthorization {
 		}
 	}
 
-	public void requireReferenteTecnico() {
-		if(!isAdmin() && !isReferenteServizio() && !isReferenteTecnico()) {
+	/**
+	 * Verifica i ruoli base per la creazione di un servizio:
+	 * - admin (gestore) → OK
+	 * - utente con ruolo per-organizzazione (AMM_ORG o OPERATORE_API) sull'organizzazione di sessione → OK
+	 * Per i vincoli aggiuntivi della matrice (es. flag referente dell'organizzazione di sessione)
+	 * vedere ServizioAuthorization.authorizeCreate.
+	 */
+	public void requireRuoloPerCreareServizio() {
+		if(!isAdmin() && !isRuoloOrganizzazione()) {
 			throw new NotAuthorizedException(ErrorCode.AUT_403);
 		}
 	}
 
-	private boolean isReferenteTecnico() {
+	/**
+	 * Verifica se l'utente ha un ruolo per-organizzazione valido.
+	 * Usa il contesto organizzazione di sessione se disponibile (verifica ruolo non-null
+	 * nell'organizzazione attiva). Se non c'è contesto di sessione, ricade sul ruolo
+	 * globale dell'utente per retrocompatibilità.
+	 */
+	private boolean isRuoloOrganizzazione() {
 		InfoProfilo principal = this.requestUtils.getPrincipal(false);
 		if(principal == null || principal.utente == null) {
 			return false;
 		}
-		
-		return principal.utente.isReferenteTecnico();
-	}
 
-	private boolean isReferenteServizio() {
-		InfoProfilo principal = this.requestUtils.getPrincipal(false);
-		if(principal == null || principal.utente == null) {
-			return false;
+		// Se c'è un contesto organizzazione attivo, verifica il ruolo in quella organizzazione.
+		// Ruolo null = nessun ruolo = sola lettura, non sufficiente.
+		if (this.organizationContext != null && this.organizationContext.hasOrganizzazione()) {
+			return this.organizationContext.getRuoloOrganizzazione() != null;
 		}
-		
-		return principal.utente.getRuolo() != null && principal.utente.getRuolo().equals(Ruolo.REFERENTE_SERVIZIO);
+
+		// Fallback: nessun contesto di sessione, verifica il ruolo globale.
+		return principal.utente.getRuolo() != null && principal.utente.getRuolo().equals(Ruolo.RUOLO_ORGANIZZAZIONE);
 	}
 
 	public boolean isAnounymous() {
@@ -117,6 +142,81 @@ public class CoreAuthorization {
 
 	public boolean isWhiteListed() {
 		return this.requestUtils.isWhiteListed();
+	}
+
+	/**
+	 * @return il contesto organizzazione della richiesta corrente, può essere vuoto
+	 */
+	public OrganizationContext getOrganizationContext() {
+		return this.organizationContext;
+	}
+
+	/**
+	 * Carica al volo l'entità organizzazione di sessione dal database.
+	 * Il bean OrganizationContext mantiene solo l'identificativo per evitare problemi di
+	 * lazy initialization su entità detached. La query è risolta nella transazione attiva
+	 * del controller chiamante.
+	 *
+	 * @return l'organizzazione attiva di sessione, o null se non impostata
+	 */
+	public OrganizzazioneEntity getOrganizzazioneSessione() {
+		if (this.organizationContext != null && this.organizationContext.hasOrganizzazione()) {
+			return this.organizzazioneService.findById(this.organizationContext.getIdOrganizzazione())
+					.orElse(null);
+		}
+		return null;
+	}
+
+	/**
+	 * @return il ruolo dell'utente nell'organizzazione di sessione, o null se non impostata
+	 */
+	public RuoloOrganizzazione getRuoloOrganizzazioneSessione() {
+		if (this.organizationContext != null && this.organizationContext.hasOrganizzazione()) {
+			return this.organizationContext.getRuoloOrganizzazione();
+		}
+		return null;
+	}
+
+	/**
+	 * Verifica se l'utente ha uno dei ruoli specificati nell'organizzazione di sessione.
+	 * Restituisce false se non c'è un contesto organizzazione attivo oppure se il ruolo è null.
+	 */
+	public boolean hasRuoloInOrganizzazioneSessione(RuoloOrganizzazione... ruoli) {
+		RuoloOrganizzazione ruoloUtente = getRuoloOrganizzazioneSessione();
+		if (ruoloUtente == null) {
+			return false;
+		}
+		for (RuoloOrganizzazione r : ruoli) {
+			if (ruoloUtente == r) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * @return true se l'organizzazione di sessione ha il flag referente attivo
+	 */
+	public boolean isOrganizzazioneSessioneReferente() {
+		OrganizzazioneEntity org = getOrganizzazioneSessione();
+		return org != null && org.isReferente();
+	}
+
+	/**
+	 * @return true se l'organizzazione di sessione ha il flag aderente attivo
+	 */
+	public boolean isOrganizzazioneSessioneAderente() {
+		OrganizzazioneEntity org = getOrganizzazioneSessione();
+		return org != null && org.isAderente();
+	}
+
+	/**
+	 * Verifica se l'utente indicato ha uno dei ruoli specificati su una specifica organizzazione.
+	 * A differenza di hasRuoloInOrganizzazioneSessione, non usa il contesto di sessione ma
+	 * effettua una query diretta sulle associazioni dell'utente.
+	 */
+	public boolean hasRuoloInOrganizzazione(UtenteEntity utente, OrganizzazioneEntity organizzazione, RuoloOrganizzazione... ruoli) {
+		return this.utenteService.hasRuoloInOrganizzazione(utente, organizzazione, ruoli);
 	}
 
 }

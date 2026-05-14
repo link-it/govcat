@@ -1002,3 +1002,39 @@ input[type=checkbox], input[type=radio] {
     }
   }
 }
+
+.alert {
+  display: flex;
+  gap: 4px;
+
+  .disclaimer-icon {
+    font-size: 12.5px !important;
+  }
+
+  markdown.disclaimer-body p {
+    font-size: 12.5px !important;
+    margin-bottom: 0.25rem !important;
+  }
+}
+
+.alert-info {
+  --accent-h: 258;
+  background: oklch(94% 0.04 var(--accent-h) / 0.35);
+  border: 1px solid oklch(80% 0.08 var(--accent-h));
+  border-radius: 8px;
+}
+
+.alert-danger {
+  --accent-h: 11;
+  background: oklch(94% 0.04 var(--accent-h) / 0.35);
+  border: 1px solid oklch(80% 0.08 var(--accent-h));
+  border-radius: 8px;
+}
+
+.alert-warning {
+  --accent-h: 39;
+  background-color: var(--warn-soft);
+  border-color: #ecd6b0;
+  border-radius: 8px;
+}
+

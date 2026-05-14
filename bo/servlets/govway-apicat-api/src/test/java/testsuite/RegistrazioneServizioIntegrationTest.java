@@ -261,7 +261,7 @@ public class RegistrazioneServizioIntegrationTest {
         
         createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utente, response.getBody().getIdOrganizzazione());
         utente.setRuolo(RuoloUtenteEnum.GESTORE);
         responseUtente = utentiController.createUtente(utente);
 
@@ -320,7 +320,7 @@ public class RegistrazioneServizioIntegrationTest {
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
         UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utente, response.getBody().getIdOrganizzazione());
         utente.setRuolo(RuoloUtenteEnum.GESTORE);
         responseUtente = utentiController.createUtente(utente);
 

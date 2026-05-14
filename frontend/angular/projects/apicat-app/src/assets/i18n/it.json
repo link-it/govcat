@@ -1,5 +1,54 @@
 {
 	"APP": {
+		"ORGANIZATION_SWITCHER": {
+			"Title": "Organizzazione",
+			"NoRole": "Nessun ruolo",
+			"ManageTooltip": "Gestisci organizzazione"
+		},
+		"ORGANIZATION_SELECTOR": {
+			"Title": "Seleziona l'organizzazione",
+			"Subtitle": "Hai accesso a piu' organizzazioni. Scegli con quale lavorare in questa sessione.",
+			"Confirm": "Conferma",
+			"LogoutLink": "Esci",
+			"NoOrganizations": "Non risultano organizzazioni associate al tuo profilo."
+		},
+		"ORGANIZATION_MANAGE": {
+			"Title": "Gestione organizzazione",
+			"HelpText": "Da questa sezione puoi gestire utenti e domini dell'organizzazione.",
+			"AddTooltip": "Aggiungi un utente all'organizzazione",
+			"TabUtenti": "Utenti",
+			"TabDomini": "Domini"
+		},
+		"RUOLI": {
+			"AmministratoreOrganizzazione": "Amministratore organizzazione",
+			"NessunRuolo": "Nessun ruolo",
+			"OperatoreApi": "Operatore API",
+			"UtenteOrganizzazione": "Utente organizzazione"
+		},
+		"UTENTI_ORG": {
+			"TITLE": {
+				"List": "Utenti dell'organizzazione",
+				"Add": "Aggiungi utente all'organizzazione",
+				"Edit": "Modifica ruolo utente",
+				"NewUser": "Nuovo utente"
+			},
+			"LABEL": {
+				"User": "Utente",
+				"Role": "Ruolo nell'organizzazione",
+				"SearchUser": "Cerca utente",
+				"CurrentOrganization": "Organizzazione corrente"
+			},
+			"BUTTON": {
+				"Add": "Aggiungi",
+				"Remove": "Rimuovi",
+				"NewUser": "Nuovo utente",
+				"BackToSearch": "Torna alla ricerca"
+			},
+			"MESSAGE": {
+				"RemoveConfirm": "Vuoi rimuovere l'associazione di {{nome}} con questa organizzazione?",
+				"SearchHint": "Inserisci almeno 2 caratteri per cercare un utente esistente."
+			}
+		},
 		"ADESIONI": {
 			"FILTER": {
 				"All": "Tutti",
@@ -13,17 +62,81 @@
 				"Domain": "Dominio",
 				"DownloadScheda": "Scarica la scheda di adesione",
 				"Finalita": "Finalità",
+				"ClientGiaCensito": "Client già censito",
+				"HintSectionActionRequired": "Azione richiesta.",
+				"HintSectionCollaudoDisabled": "Disponibile dopo aver completato le sezioni precedenti.",
+				"HintSectionCompleted": "Sezione completata.",
+				"HintSectionPast": "Fase conclusa: questa sezione appartiene a una fase precedente del percorso. Eventuali modifiche restano consentite in base al ruolo e ai dati ancora configurabili.",
+				"HintSectionProduzioneDisabled": "Si attiverà al completamento del collaudo e alla verifica da parte del gestore.",
+				"HintSectionReferentiDisabled": "Disponibile dopo aver configurato le informazioni generali.",
+				"LayoutOrizzontale": "Passa al layout orizzontale",
+				"LayoutVerticale": "Passa al layout verticale",
+				"NoClientDisponibili": "Nessun client disponibile per questa organizzazione. Per procedere scegli \"Nuovo client\" oppure contatta il tuo gestore.",
+				"SelezionaClient": "Seleziona un client…",
+				"SelezionaPeriodo": "Seleziona un periodo…",
+				"TipoAccesso": "Tipo di accesso",
+				"HelpCertificatoFornito": "Hai già un certificato X.509 emesso dalla tua organizzazione o da una CA di tua fiducia. Dovrai caricarlo in formato .pem o .cer. Assicurati che non sia scaduto e che il CN sia riconoscibile.",
+				"HelpRichiestoCN": "Non hai un certificato disponibile. Puoi richiederne l'emissione al Gestore indicando il Common Name (CN) desiderato.",
+				"HelpCertificatoRichiestoCSR": "Hai generato una Certificate Signing Request (CSR) dal tuo sistema. Caricala qui e il Gestore la firmerà e emetterà il certificato corrispondente. Questo metodo garantisce che la chiave privata rimanga sempre nella tua infrastruttura e non venga mai trasmessa.",
+				"HelpScenarioNuovo": "Stai creando un nuovo client per questa adesione. Dovrai caricare (o richiedere) il certificato X.509 della tua organizzazione: il client e i certificati verranno associati all'adesione e potranno essere riutilizzati per adesioni successive.",
+				"HelpScenarioProposto": "Seleziona uno dei client già registrati dalla tua organizzazione e compatibili con questo profilo di autenticazione. L'adesione verrà associata al client scelto senza richiedere ulteriori configurazioni.",
+				"HelpScenarioRiferito": "Riutilizzerai un client già censito nella lista: il certificato e le configurazioni associate verranno riusate per questa adesione.",
 				"Name": "Nome Adesione",
+				"NomeDelClient": "Nome del client",
 				"NomeProposto": "Client registrato nell'API Gateway",
 				"NuoveCredenziali": "Nuove credenziali",
+				"NuovoClient": "Nuovo client",
+				"PlaceholderClientIdPDND": "Es. 8f3b2c1a-...",
+				"PlaceholderDescrizione": "Aggiungi una breve descrizione…",
+				"PlaceholderIpFruizione": "Es. 192.168.10.0/24",
+				"PlaceholderNomeClient": "Inserisci il nome del client…",
+				"PlaceholderQuota": "Es. 1000",
 				"Organization": "Organizzazione",
 				"Periodo": "Periodo",
 				"Quota": "Quota",
 				"RateLimiting": "Limitazione della velocità",
 				"ScegliCredenziali": "Scegli le credenziali…",
 				"Service": "Servizio",
+				"SkipCollaudoTooltip": "Abilitando questa opzione l'adesione salta la fase di collaudo e passa direttamente alla configurazione in produzione. La configurazione in produzione non potrà più essere modificata una volta pubblicata.",
 				"Subject": "Soggetto",
-				"UsaClientEsistente": "Usa client esistente"
+				"UsaClientEsistente": "Usa client esistente",
+				"WizardShowAllSections": "Mostra tutte le sezioni (debug)",
+				"WizardShowStateBadges": "Mostra badge step (debug)",
+				"WizardChevronVariant": "Step-bar a chevron (debug)",
+				"WizardCirclesLabelRight": "Label a destra (circles) (debug)",
+				"WizardDarkMode": "Preset dark step-bar (debug)",
+				"WizardNewLayout": "Nuovo layout wizard (debug)",
+				"FaseInfoTitle": "Informazioni generali e referenti",
+				"FaseCollaudoTitle": "Collaudo",
+				"FaseProduzioneTitle": "Produzione",
+				"FaseLabel": "Fase",
+				"AzioneRichiesta": "Azione richiesta",
+				"Bloccato": "Bloccato",
+				"Completato": "Completato",
+				"FaseConclusa": "Fase conclusa",
+				"InAttesa": "In attesa",
+				"InCorso": "In corso",
+				"WaitingGestoreTitle": "In attesa di intervento del gestore",
+				"WaitingGestoreDesc": "La richiesta è stata inoltrata. Il gestore prenderà in carico la configurazione e ti notificherà al completamento.",
+				"ProceduraAttivazione": "Procedura di attivazione",
+				"ProceduraConfigurazione": "Procedura di configurazione",
+				"CompletedOf": "{{done}} di {{total}} completati",
+				"BloccatoTooltip": "Disponibile dopo il completamento del passo precedente"
+			},
+			"STEP_WIZARD": {
+				"info_generali": "Informazioni Generali e Referenti",
+				"collaudo": "Collaudo",
+				"produzione": "Produzione",
+				"CurrentStateBadge": "Attuale",
+				"PreviewBadge": "Anteprima"
+			},
+			"STEP_WIZARD_SEZIONE": {
+				"in_compilazione": "In Compilazione",
+				"in_approvazione": "In Approvazione",
+				"in_configurazione": "In Configurazione",
+				"configurato": "Configurato",
+				"in_compilazione_meta": "Configura autenticazione ed endpoint",
+				"in_compilazione_meta_completed": "Visualizza o modifica autenticazione ed endpoint"
 			},
 			"TITLE": {
 				"ApiInformations": "API",
@@ -52,6 +165,9 @@
 				"ShowCommunications_sub": "Mostra comunicazioni",
 				"ShowReferents": "Referenti",
 				"ShowReferents_sub": "Mostra referenti"
+			},
+			"MESSAGE": {
+				"ConfigureClientsDisclaimer": "Configura i client di autenticazione per procedere. Per ogni profilo elencato qui sotto premi la matita e inserisci i dati richiesti."
 			},
 			"TOOLTIP": {
 				"EditAdesione": ""
@@ -183,6 +299,10 @@
 		},
 		"BUTTON": {
 			"Add": "Aggiungi",
+			"GoToService": "Vai al Servizio",
+			"Copy": "Copia",
+			"ShowAll": "Mostra tutto",
+			"ShowLess": "Mostra meno",
 			"AddApi": "Aggiungi API",
 			"AddAttachment": "Aggiungi allegato",
 			"AddAuthentication": "Aggiungi Autenticazione",
@@ -246,12 +366,15 @@
 			"RemoveGroup": "Rimuovi gruppo",
 			"Report": "Resoconto",
 			"RestoreDefaultAuthentication": "Ripristina autenticazione di default",
+			"LoadMore": "Carica altri",
 			"Save": "Salva",
 			"Search": "Cerca",
 			"Select": "Seleziona",
 			"SelectAll": "Seleziona tutto",
 			"Send": "Invia",
+			"Show": "Mostra",
 			"ShowHistory": "Mostra storico",
+			"CompilaOra": "Compila ora",
 			"ShowResult": "Mostra risultato",
 			"Testing": "Collaudo",
 			"Today": "Oggi",
@@ -292,6 +415,8 @@
 			"LABEL": {
 				"Ambient": "Ambiente",
 				"Auth_type": "Auth type",
+				"SelezionaAuthType": "Seleziona un tipo di autenticazione",
+				"SelezionaTipoCertificato": "Seleziona una modalità…",
 				"AuthenticationCertificate": "Certificato di Autenticazione",
 				"CertificateType": "Tipo di Certificato",
 				"ClientId": "Identificativo del client",
@@ -371,6 +496,8 @@
 			"UnreadComunicazioni": "Comunicazioni non lette",
 			"LastUpdate": "Ultimo aggiornamento",
 			"TotalItems": "{{count}} elementi",
+			"CertExpiring": "Certificato in scadenza",
+			"CertExpired": "Certificato scaduto",
 			"RUOLO": {
 				"referente_dominio": "Ref. dominio",
 				"referente_tecnico_dominio": "Ref. tecnico dominio",
@@ -410,6 +537,13 @@
 		"DOMINI": {
 			"DeleteDomain": "Elimina Dominio",
 			"EditDomain": "Modifica il dominio",
+			"BUTTON": {
+				"Add": "Aggiungi dominio",
+				"Remove": "Rimuovi dominio"
+			},
+			"MESSAGE": {
+				"RemoveConfirm": "Confermi di voler eliminare il dominio **{{nome}}**? L'operazione non e' reversibile."
+			},
 			"LABEL": {
 				"Classi": "Classi",
 				"Deprecato": "Deprecato",
@@ -734,6 +868,7 @@
 			"filename": "Nome del file",
 			"FileName": "Nome del file",
 			"Finalita": "Finalità",
+			"FormatiAccettati": "Formati accettati",
 			"FreeSearch": "Ricerca libera",
 			"From": "da",
 			"Fruitore": "Fruitore",
@@ -949,6 +1084,9 @@
 			"tempo_medio_risposta": "Tempo medio risposta",
 			"TempoRisposta": "Tempo risposta",
 			"termini_ricerca": "Termini di ricerca",
+			"Owner": "Referente servizio",
+			"UpdatedRelative": "Aggiornato {{time}}",
+			"ApiDocumentation": "Documentazione API",
 			"tipo": "Tipo",
 			"tipo_analisi": "Tipo analisi",
 			"tipo_gateway": "Tipo gateway",
@@ -957,6 +1095,7 @@
 			"TipoCertificato": "Tipo di Certificato",
 			"Tipologia": "Tipologia",
 			"To": "a",
+			"TrascinaFileOClicca": "Trascina il file qui o clicca per selezionare",
 			"TRANSACTION_OUTCOME": {
 				"errori_consegna": "Errori di Consegna",
 				"fallite": "Fallite",
@@ -1000,6 +1139,13 @@
 			"Yes": "Si"
 		},
 		"LABEL_HELP": {
+			"ClientAuthForm": {
+				"nome": "Il nome identifica il sistema o applicativo che si collegherà al servizio. Scegli un nome descrittivo e riconoscibile in quanto comparirà nella lista dei client della tua organizzazione e potrà essere riutilizzato per altre adesioni, evitando di dover riconfigurare i certificati ogni volta.",
+				"ip_fruizione": "Indirizzo IP del sistema che effettuerà le chiamate al servizio. Se non è fisso o non è noto, lascia il campo vuoto.",
+				"quota": "Numero massimo di richieste che la tua applicazione potrà effettuare nel periodo indicato (rate limiting). Se non specificato, verrà applicato il limite di default definito dall'ente erogatore.",
+				"client_id": "L'identificativo univoco (UUID) del client che hai registrato sul portale PDND. Lo trovi nella sezione Client e-service del tuo ente, nella pagina di dettaglio del client. Assicurati che il client sia associato alla finalità corretta per questo servizio prima di procedere.",
+				"descrizione": "Usa questo campo per annotare informazioni utili sul client (ambiente di utilizzo, data di scadenza dei certificati, ecc). Queste note saranno visibili ai referenti tecnici dell'adesione."
+			},
 			"ADESIONE": {
 				"id_logico": "Identificativo univoco dell'adesione, utile per distinguere più adesioni della stessa organizzazione allo stesso servizio.",
 				"referente": "Indica il responsabile organizzativo di questa adesione (es. responsabile CED, referente aziendale). Riceverà le comunicazioni istituzionali relative al servizio.",
@@ -1079,6 +1225,7 @@
 			"Files": "Tracciati",
 			"GenericServices": "Generici",
 			"GoToView": "Vai alla vetrina",
+			"NotSpecified": "— non specificato",
 			"Groups": "Gruppi",
 			"Home": "Home",
 			"Italiano": "Italiano",
@@ -1122,14 +1269,19 @@
 			"EmailModified": "Email modificata con successo",
 			"EmailRemoved": "Email rimossa con successo",
 			"OrgNonAmmissibile": "La tua organizzazione non è autorizzata ad aderire a questo servizio",
+			"JoinServiceTitle": "Aderisci al servizio",
+			"JoinServiceSubtitle": "Configura la tua organizzazione per fruire delle API di questo servizio.",
+			"GoAdesionePrompt": "Hai già un'adesione attiva. Vai al dettaglio per gestirla.",
+			"GoAdesioniPrompt": "Esistono adesioni associate al servizio. Visualizzale per gestirle.",
+			"GoToServiceSubtitle": "Consulta i dettagli del servizio a cui questa adesione si riferisce (API, documentazione, referenti).",
 			"ERROR": {
 				"ADE": {
 					"400": {
 						"STATE": {
-						"DEFAULT": "Stato adesione [{{stato}}] non valido per questa operazione",
-						"MONITORING": "Stato adesione [{{idAdesione}}] non valido [{{stato}}] per il monitoraggio",
-						"SERVICE": "Lo stato del servizio [{{servizio}}] non consente adesioni"
-					}
+							"DEFAULT": "Stato adesione [{{stato}}] non valido per questa operazione",
+							"MONITORING": "Stato adesione [{{idAdesione}}] non valido [{{stato}}] per il monitoraggio",
+							"SERVICE": "Lo stato del servizio [{{servizio}}] non consente adesioni"
+						}
 					},
 					"403": {
 						"REFERENT": "Referente adesione [{{referente}}] non autorizzato"
@@ -1192,7 +1344,11 @@
 						"ORG": {
 							"ADHESION": "Organizzazione [{{nomeOrganizzazione}}] non corrisponde per l'adesione",
 							"MISMATCH": "Organizzazione [{{orgNome}}] interna, ma utente [{{userIdUtente}}] associato all'organizzazione [{{userOrgNome}}]",
-							"MISSING": "Organizzazione [{{orgNome}}] interna, ma utente [{{userIdUtente}}] non associato ad alcuna organizzazione"
+							"MISSING": "Organizzazione [{{orgNome}}] interna, ma utente [{{userIdUtente}}] non associato ad alcuna organizzazione",
+							"NOT": {
+								"ADERENTE": "L'organizzazione [{{nomeOrganizzazione}}] non è abilitata come aderente",
+								"REFERENTE": "L'organizzazione [{{nomeOrganizzazione}}] non è abilitata come referente di servizi"
+							}
 						},
 						"REFERENT": {
 							"NOT": {
@@ -1200,7 +1356,23 @@
 							}
 						},
 						"RESOURCE": "Accesso negato alla risorsa [{{resource}}]",
-						"ROLE": "L'utente deve avere uno dei ruoli [{{ruoli}}] per eseguire la force"
+						"ROLE": "L'utente deve avere uno dei ruoli [{{ruoli}}] per eseguire la force",
+						"AMM": {
+							"ORG": {
+								"INVALID": {
+									"ROLE": "Un amministratore organizzazione non può assegnare il ruolo [{{ruolo}}]",
+									"ORGS": "Un amministratore organizzazione può creare utenti solo associati esclusivamente all'organizzazione di sessione"
+								},
+								"DOMINIO": {
+									"FUORI": {
+										"ORG": "Operazione consentita solo per i domini dell'organizzazione [{{orgNome}}]"
+									}
+								},
+								"NOT": {
+									"TARGET": "Operazione consentita solo all'amministratore dell'organizzazione target della richiesta di cambio"
+								}
+							}
+						}
 					}
 				},
 				"CAT": {
@@ -1401,11 +1573,30 @@
 							"EMAIL": {
 								"JWT": "Email non presente nei dati di autenticazione"
 							}
+						},
+						"ORG": {
+							"ALREADY": {
+								"ASSOCIATED": "Utente già associato all'organizzazione [{{orgNome}}]"
+							}
+						}
+					},
+					"404": {
+						"ORG": {
+							"NOT": {
+								"FOUND": "Organizzazione [{{idOrganizzazione}}] non trovata"
+							}
 						}
 					},
 					"409": {
 						"PRINCIPAL": {
 							"EXISTS": "Principal già associato a un altro utente"
+						},
+						"ALREADY": {
+							"PENDING": {
+								"OTHER": {
+									"ORG": "Utente già in attesa di approvazione per un'altra organizzazione [{{orgNome}}]"
+								}
+							}
 						}
 					},
 					"410": {
@@ -1528,7 +1719,27 @@
 							"ENABLED": "Utente [{{nomeUtente}} {{cognomeUtente}}] non abilitato"
 						},
 						"ORG": {
-							"MISMATCH": "Utente [{{nomeUtente}} {{cognomeUtente}}] non appartiene all'organizzazione [{{nomeOrganizzazione}}]"
+							"MISMATCH": "Utente [{{nomeUtente}} {{cognomeUtente}}] non appartiene all'organizzazione [{{nomeOrganizzazione}}]",
+							"PARTENZA": {
+								"NOT": {
+									"ASSOCIATED": "L'organizzazione di partenza [{{orgNome}}] non risulta associata all'utente"
+								},
+								"SAME": {
+									"AS": {
+										"TARGET": "L'organizzazione di partenza non può coincidere con quella richiesta"
+									}
+								}
+							},
+							"PENDING": {
+								"ALREADY": {
+									"ASSOCIATED": "L'utente è già associato all'organizzazione [{{orgNome}}]"
+								}
+							}
+						},
+						"NO": {
+							"PENDING": {
+								"REQUEST": "Nessuna richiesta di cambio organizzazione da annullare"
+							}
 						}
 					},
 					"403": {
@@ -1799,9 +2010,33 @@
 				"CurrentLabel": "Organizzazione attuale",
 				"RequestSent": "Richiesta di cambio organizzazione inviata con successo",
 				"ApproveTitle": "Approva cambio organizzazione",
-				"ApproveWarning": "Confermi di voler approvare la richiesta di cambio organizzazione? Verra' creato un **nuovo utente** con lo stesso principal e la nuova organizzazione. **L'utente attuale verra' disabilitato** e non potra' piu' accedere all'applicativo con l'organizzazione corrente.",
+				"ApproveWarning": "Confermi di voler approvare la richiesta di cambio organizzazione? L'associazione esistente verra' sostituita con la nuova organizzazione.",
 				"ApproveWarningFirstOrg": "Confermi di voler approvare la richiesta di assegnazione organizzazione? L'utente verra' associato alla nuova organizzazione.",
-				"ApproveButton": "Approva"
+				"ApproveButton": "Approva",
+				"CancelTitle": "Annulla richiesta",
+				"CancelWarning": "Confermi di voler annullare la richiesta di cambio organizzazione? L'operazione non potra' essere ripristinata.",
+				"CancelButton": "Annulla richiesta",
+				"RequestCancelled": "Richiesta di cambio organizzazione annullata",
+				"RejectTitle": "Rifiuta richiesta",
+				"RejectWarning": "Confermi di voler rifiutare la richiesta di cambio organizzazione di questo utente?",
+				"RejectButton": "Rifiuta",
+				"SelectOrgPartenza": "Organizzazione da sostituire",
+				"SelectOrgPartenzaPlaceholder": "Seleziona l'associazione da sostituire",
+				"OrgPartenzaHelp": "Hai piu' associazioni attive: scegli quella che verra' sostituita dalla nuova organizzazione.",
+				"PassaggioDaA": "Passaggio da **{{partenza}}** a **{{destinazione}}**",
+				"PassaggioA": "Nuova organizzazione: **{{destinazione}}**",
+				"RuoloOrgTarget": "Ruolo sulla nuova organizzazione",
+				"YourOrganizations": "Le tue organizzazioni",
+				"NoOrganizations": "Non sei ancora associato a nessuna organizzazione.",
+				"AddButton": "Aggiungi organizzazione",
+				"AddTitle": "Aggiungi una nuova organizzazione",
+				"AddWarning": "Richiedi di essere associato a una nuova organizzazione. La richiesta dovra' essere approvata da un amministratore.",
+				"AddConfirm": "Richiedi associazione",
+				"ReplaceButton": "Sostituisci",
+				"ReplaceConfirm": "Richiedi sostituzione",
+				"SelectNewOrg": "Seleziona la nuova organizzazione",
+				"PendingAddMessage": "Hai una richiesta di associazione in corso verso: **{{destinazione}}**. La richiesta e' in attesa di approvazione da parte di un amministratore.",
+				"PendingReplaceMessage": "Hai una richiesta di sostituzione in corso: da **{{partenza}}** a **{{destinazione}}**. La richiesta e' in attesa di approvazione da parte di un amministratore."
 			},
 			"EMAIL_VERIFICATION": {
 				"TITLE": "Modifica email",
@@ -1846,17 +2081,22 @@
 				"ConfermaEmail": "Conferma i tuoi dati",
 				"ModificaEmail": "Modifica email",
 				"VerificaCodice": "Verifica codice",
+				"SelezionaOrganizzazione": "Seleziona organizzazione (opzionale)",
 				"Benvenuto": "Benvenuto"
 			},
 			"STEP": {
 				"Conferma": "Conferma",
 				"Verifica": "Verifica",
+				"SelezionaOrganizzazione": "Organizzazione",
 				"Completato": "Completato"
 			},
 			"LABEL": {
 				"EmailAttuale": "Email attuale",
 				"NuovaEmail": "Nuova email",
-				"ConfermaEmail": "Conferma email"
+				"ConfermaEmail": "Conferma email",
+				"SearchOrganizzazione": "Cerca l'organizzazione",
+				"SearchOrganizzazionePlaceholder": "Digita per cercare per nome",
+				"OrganizzazioneSelezionata": "Organizzazione selezionata"
 			},
 			"BUTTON": {
 				"ConfermaEProcedi": "Conferma e procedi",
@@ -1866,7 +2106,11 @@
 				"Verifica": "Verifica codice",
 				"ReinviaCodice": "Reinvia codice",
 				"CambiaEmail": "Cambia email",
-				"VaiAlCatalogo": "Vai al catalogo"
+				"VaiAlCatalogo": "Vai al catalogo",
+				"Salta": "Salta",
+				"Cambia": "Cambia",
+				"Rimuovi": "Rimuovi",
+				"ConfermaERegistra": "Conferma e registra"
 			},
 			"MESSAGE": {
 				"ConfermaEmailDesc": "Abbiamo recuperato i tuoi dati dal sistema di autenticazione. Verifica che siano corretti.",
@@ -1879,6 +2123,8 @@
 				"CodiceScadeIn": "Il codice scade tra",
 				"CodiceScaduto": "Il codice e' scaduto. Richiedi un nuovo codice.",
 				"RegistrazioneCompletata": "La tua registrazione e' stata completata con successo!",
+				"SelezionaOrganizzazioneDesc": "Puoi associare il tuo account a un'organizzazione gia' registrata. La tua richiesta sara' approvata da un amministratore. Puoi anche saltare e farlo in seguito dal profilo.",
+				"OrganizzazioneInAttesa": "La tua richiesta di associazione a **{{nome}}** e' in attesa di approvazione da parte di un amministratore.",
 				"CosaFare": "Ecco cosa puoi fare ora:",
 				"PuoiEsplorare": "Esplorare il catalogo dei servizi disponibili",
 				"PuoiRichiedere": "Richiedere l'adesione ai servizi di tuo interesse",
@@ -1888,7 +2134,8 @@
 				"EmailRequired": "L'email e' obbligatoria",
 				"EmailInvalid": "Inserisci un indirizzo email valido",
 				"EmailMismatch": "Le email non corrispondono",
-				"CodiceLength": "Il codice deve essere di 6 caratteri"
+				"CodiceLength": "Il codice deve essere di 6 caratteri",
+				"OrganizzazioneNotFound": "Nessuna organizzazione trovata con questo nome."
 			}
 		},
 		"ROLE": {
@@ -1910,6 +2157,9 @@
 			"referente_adesione": "Referente adesione",
 			"referente_dominio": "Referente dominio",
 			"referente_servizio": "Referente servizio",
+			"utente_organizzazione": "Utente organizzazione",
+			"amministratore_organizzazione": "Amministratore organizzazione",
+			"operatore_api": "Operatore API",
 			"referente_tecnico": "Referente tecnico",
 			"referente_tecnico_adesione": "Referente tecnico adesione",
 			"referente_tecnico_dominio": "Referente tecnico dominio",
@@ -2162,7 +2412,7 @@
 			"AppTitle": "Catalogo API ModI",
 			"Attention": "Attenzione",
 			"Autenticazioni": "Autenticazioni",
-			"AuthTypeConfiguration": "Configurazione modalità di Autenticazione",
+			"AuthTypeConfiguration": "Configurazione autenticazione",
 			"Certificati": "Certificati",
 			"Check": "Verifica",
 			"Checks": "Verifiche",
@@ -2277,6 +2527,7 @@
 			"Completed": "Completato",
 			"ComponentsList": "Lista componenti",
 			"CopyTestingValue": "Copia valore collaudo",
+			"DeleteAdesione": "Elimina adesione",
 			"DeleteService": "Elimina servizio",
 			"Dissociate": "Dissocia",
 			"Download": "Scarica",
@@ -2437,6 +2688,10 @@
 				"Found": "Trovati",
 				"Open": "Aperti"
 			},
+			"ORGANIZZAZIONI": {
+				"Title": "Organizzazioni",
+				"HelpText": "Le associazioni con le organizzazioni vengono gestite dal dettaglio della singola organizzazione, nella sezione \"Utenti dell'organizzazione\"."
+			},
 			"LABEL": {
 				"Cognome": "Cognome",
 				"CorporateEmail": "Email Aziendale",
@@ -2444,6 +2699,7 @@
 				"Email": "E-mail",
 				"Nome": "Nome",
 				"Note": "Note",
+				"OrganizzazioneEsterna": "Organizzazione esterna (es. software house)",
 				"Phone": "Telefono",
 				"Principal": "Principal",
 				"Role": "Ruolo",
@@ -2455,7 +2711,8 @@
 				"coordinatore": "Coordinatore",
 				"gestore": "Gestore",
 				"nessun_ruolo": "Nessun ruolo",
-				"referente_servizio": "Referente servizio"
+				"referente_servizio": "Referente servizio",
+				"utente_organizzazione": "Utente organizzazione"
 			},
 			"STATUS": {
 				"abilitato": "Abilitato",
@@ -2624,7 +2881,19 @@
 				"pubblicato_produzione_senza_collaudo": "Pubblicato in produzione senza collaudo",
 				"richiesto_collaudo": "Richiesto in collaudo",
 				"richiesto_produzione": "Richiesto in produzione",
-				"richiesto_produzione_senza_collaudo": "Richiesto in produzione senza collaudo"
+				"richiesto_produzione_senza_collaudo": "Richiesto in produzione senza collaudo",
+				"bad_request": "Richiesta non valida",
+				"chiusa": "Chiusa",
+				"configurata_collaudo": "Configurata in collaudo",
+				"configurata_produzione": "Configurata in produzione",
+				"denied": "Negato",
+				"forbidden": "Non consentito",
+				"inviata_collaudo": "Inviata in collaudo",
+				"inviata_produzione": "Inviata in produzione",
+				"processing": "In elaborazione",
+				"profile_not_exists": "Profilo non esistente",
+				"rejected": "Rifiutato",
+				"sender_not_allowed": "Mittente non autorizzato"
 			}
 		},
 		"WSDL": {

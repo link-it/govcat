@@ -1,0 +1,67 @@
+<div class="file-dropzone-wrapper">
+  @if (label) {
+    <label class="label-bold d-block mb-2">
+      {{ label }}
+      @if (required) { <span class="text-danger">*</span> }
+    </label>
+  }
+
+  <div class="dropzone"
+    [class.disabled]="disabled"
+    [class.dragging]="_isDragging"
+    [class.selected]="_selected"
+    [class.error]="hasControlError()"
+    (click)="__onClick()"
+    (dragover)="__onDragOver($event)"
+    (dragleave)="__onDragLeave($event)"
+    (drop)="__onDrop($event)">
+
+    <input #browse type="file" class="visually-hidden"
+      [accept]="acceptAttribute"
+      [disabled]="disabled"
+      (change)="__onChange($event)">
+
+    @if (!_selected) {
+      <div class="dropzone-empty">
+        <div class="dropzone-icon" aria-hidden="true">
+          <i class="bi bi-upload"></i>
+        </div>
+        <div class="dropzone-title">
+          {{ 'APP.LABEL.TrascinaFileOClicca' | translate }}
+        </div>
+        @if (description) {
+          <div class="dropzone-desc">{{ description }}</div>
+        }
+        @if (formatsLabel || maxUploadLabel) {
+          <div class="dropzone-formats">
+            @if (formatsLabel) {
+              <span class="formats-label">{{ 'APP.LABEL.FormatiAccettati' | translate }}:</span>
+              <span class="formats-list">{{ formatsLabel }}</span>
+            }
+            @if (formatsLabel && maxUploadLabel) {
+              <span class="separator">—</span>
+            }
+            @if (maxUploadLabel) {
+              <span>Max {{ maxUploadLabel }}</span>
+            }
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="dropzone-selected">
+        <i class="bi bi-file-earmark-check" aria-hidden="true"></i>
+        <span class="filename">{{ fileName }}</span>
+        @if (!disabled && !readonly) {
+          <button type="button" class="btn btn-sm btn-icon dropzone-reset" (click)="__reset($event)"
+            [attr.aria-label]="'APP.BUTTON.Reset' | translate">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        }
+      </div>
+    }
+  </div>
+
+  @if (hint) {
+    <small class="form-text text-muted d-block mt-2">{{ hint }}</small>
+  }
+</div>

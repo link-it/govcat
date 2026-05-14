@@ -26,6 +26,15 @@ import { GravatarModule } from 'ngx-gravatar';
 import { COMPONENTS_IMPORTS, ConfigService, Tools, MenuAction } from '@linkit/components';
 import { ScrollComponent } from '@app/components/scroll/scroll.component';
 import { MonitorDropdwnComponent } from '@app/views/servizi/components/monitor-dropdown/monitor-dropdown.component';
+import {
+  HeroImageComponent,
+  StatoChipComponent,
+  RefsComponent,
+  EnvToggleComponent,
+  ActionBannerComponent,
+  EnvValue,
+  LnkRefItem,
+} from '@app/components/vetrina';
 
 import { AuthenticationService } from '@app/services/authentication.service';
 import { NavigationService } from '@app/services/navigation.service';
@@ -66,7 +75,7 @@ export interface User {
 
 export interface Referent {
   utente: User;
-  tipo: 'referente' | 'referente_servizio' | 'referente_tecnico' | 'referente_dominio';
+  tipo: 'referente' | 'referente_servizio' | 'utente_organizzazione' | 'referente_tecnico' | 'referente_dominio';
 }
 
 export interface Domain {
@@ -251,7 +260,12 @@ const clientRowConfig = {
     ...COMPONENTS_IMPORTS,
     ScrollComponent,
     GravatarModule,
-    MonitorDropdwnComponent
+    MonitorDropdwnComponent,
+    HeroImageComponent,
+    StatoChipComponent,
+    RefsComponent,
+    EnvToggleComponent,
+    ActionBannerComponent
   ]
 })
 export class AdesioneViewComponent implements OnInit {
@@ -279,6 +293,15 @@ export class AdesioneViewComponent implements OnInit {
 
   _showReferents: boolean = true;
   _showRichiedente: boolean = true;
+
+  // Issue 254 (NEW VETRINA): stato del nuovo layout vetrina.
+  /** Indice del pannello auth aperto (`-1` = nessuno). Default 0. */
+  public openAuth: number = 0;
+  /** Indice del pannello endpoint aperto (`-1` = nessuno). Default 0. */
+  public openEp: number = 0;
+  /** Mini-toast (es. "Copiato") mostrato in fondo alla pagina. */
+  public toast: string | null = null;
+  private _toastTimer: any = null;
 
   private readonly model = 'adesioni';
   private readonly apiUrl: string = '';
@@ -545,7 +568,10 @@ export class AdesioneViewComponent implements OnInit {
         };
 
         const allReferents = [
-          ...serviceReferents.filter(ref => ref.tipo === 'referente_servizio'),
+          // `referente_servizio` deprecato in favore di `utente_organizzazione`:
+          // accettiamo entrambi i tipi per non perdere i referenti dei servizi
+          // su dati legacy non ancora aggiornati.
+          ...serviceReferents.filter(ref => ref.tipo === 'referente_servizio' || ref.tipo === 'utente_organizzazione'),
           ...domainReferents.filter(ref => ref.tipo === 'referente_dominio'),
           ...referents
         ];
@@ -687,6 +713,101 @@ export class AdesioneViewComponent implements OnInit {
       this._navigateRelative(event, ['..']);
     } else {
       this._navigateRelative(event, ['..', 'configurazione']);
+    }
+  }
+
+  // -------------------------------------------------------------------
+  // Issue 254 (NEW VETRINA): helper per il nuovo layout vetrina.
+  // -------------------------------------------------------------------
+
+  /**
+   * Mappa `ReferentView[]` (struttura legacy con `name`/`types`) nello
+   * shape `LnkRefItem[]` consumato da `<lnk-refs>`. Il `ruolo` viene
+   * derivato dal primo tipo (es. `referente_servizio` -> "Referente
+   * Servizio"); il `tag` e` un'abbreviazione lessicale per il
+   * modificatore CSS (`r-dom`, `r-serv`, `r-ades`, `r-tec`).
+   */
+  public get referentsAsLnkRefs(): LnkRefItem[] {
+    return (this.referents || []).map((r: ReferentView) => {
+      const primary = r.types?.[0] || '';
+      return {
+        id: r.id,
+        nome: r.name,
+        email: r.email,
+        ruolo: this._humanizeRuolo(primary),
+        tag: this._tagForRuolo(primary),
+      };
+    });
+  }
+
+  private _humanizeRuolo(t: string): string {
+    if (!t) return '';
+    return t
+      .split('_')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+  }
+
+  private _tagForRuolo(t: string): string {
+    const s = (t || '').toLowerCase();
+    if (s.includes('dominio')) return 'dom';
+    if (s.includes('tecnico')) return 'tec';
+    if (s.includes('servizio')) return 'serv';
+    if (s.includes('adesione')) return 'ades';
+    return '';
+  }
+
+  /** Toggle del pannello auth: chiude se gia` aperto. */
+  public toggleAuth(i: number): void {
+    this.openAuth = this.openAuth === i ? -1 : i;
+  }
+
+  /** Toggle del pannello endpoint: chiude se gia` aperto. */
+  public toggleEp(i: number): void {
+    this.openEp = this.openEp === i ? -1 : i;
+  }
+
+  /** Copia stringa negli appunti + mini-toast. */
+  public copy(value: string | null | undefined): void {
+    if (!value) return;
+    try {
+      navigator.clipboard?.writeText(value);
+      this._showToast(this.translate.instant('APP.MESSAGE.CopiedToClipboard'));
+    } catch {
+      // Silente: clipboard non disponibile (es. http test).
+    }
+  }
+
+  private _showToast(msg: string): void {
+    this.toast = msg;
+    if (this._toastTimer) { clearTimeout(this._toastTimer); }
+    this._toastTimer = setTimeout(() => {
+      this.toast = null;
+      this._toastTimer = null;
+    }, 1900);
+  }
+
+  /** Handler del nuovo `<lnk-env-toggle>` (sostituisce i 2 bottoni
+   *  legacy con `onTestClick()` / `onProductionClick()`). */
+  public onEnvToggle(env: EnvValue): void {
+    this.environment = env;
+    this.onEnvironmentChange();
+  }
+
+  /** Naviga al dettaglio del servizio (`/servizi/:id_servizio`). */
+  public onGoToService(event?: MouseEvent): void {
+    const idServizio = this.adesione?.servizio?.id_servizio;
+    if (!idServizio) return;
+    const path = ['/servizi', idServizio];
+    if (this.navigationService.shouldOpenInNewTab(event)) {
+      event?.preventDefault();
+      event?.stopPropagation();
+      const urlTree = this.router.createUrlTree(path);
+      const url = this.router.serializeUrl(urlTree);
+      const fullUrl = this.location.prepareExternalUrl(url);
+      window.open(fullUrl, '_blank');
+    } else {
+      this.router.navigate(path);
     }
   }
 }

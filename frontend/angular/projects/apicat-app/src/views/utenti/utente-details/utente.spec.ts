@@ -6,12 +6,13 @@ describe('Ruolo enum', () => {
     expect(Ruolo.NESSUN_RUOLO).toBe('nessun_ruolo');
     expect(Ruolo.GESTORE).toBe('gestore');
     expect(Ruolo.REFERENTE_SERVIZIO).toBe('referente_servizio');
+    expect(Ruolo.UTENTE_ORGANIZZAZIONE).toBe('utente_organizzazione');
     expect(Ruolo.COORDINATORE).toBe('coordinatore');
   });
 
-  it('should have 4 members', () => {
+  it('should have 5 members', () => {
     const values = Object.values(Ruolo);
-    expect(values).toHaveLength(4);
+    expect(values).toHaveLength(5);
   });
 });
 

@@ -178,6 +178,28 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+    delete:
+      tags:
+      - "Utenti"
+      description: "Annulla la richiesta di cambio organizzazione pending dell'utente chiamante. Lo stato dell'utente torna ad ABILITATO se aveva già associazioni, altrimenti NON_CONFIGURATO."
+      operationId: "deleteProfiloOrganizationPending"
+      responses:
+        "200":
+          description: "Richiesta annullata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Utente"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /profilo/email/invia-codice:
     post:
       tags:
@@ -425,6 +447,89 @@ paths:
           $ref: "#/components/responses/403Forbidden"
         "409":
           $ref: "#/components/responses/409Conflict"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /registrazione/organizzazione:
+    post:
+      tags:
+      - "Registrazione"
+      description: "Seleziona l'organizzazione di appartenenza proposta per la registrazione. Al completamento sarà applicata come organizzazione pending sull'utente (in attesa di approvazione)."
+      operationId: "selezionaOrganizzazioneRegistrazione"
+      requestBody:
+        description: "Organizzazione proposta dall'utente"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SelezionaOrganizzazioneRequest"
+      responses:
+        "200":
+          description: "Organizzazione aggiornata"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatoRegistrazione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+    delete:
+      tags:
+      - "Registrazione"
+      description: "Rimuove l'organizzazione precedentemente selezionata per la registrazione"
+      operationId: "rimuoviOrganizzazioneRegistrazione"
+      responses:
+        "200":
+          description: "Selezione organizzazione rimossa"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatoRegistrazione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /registrazione/organizzazioni:
+    get:
+      tags:
+      - "Registrazione"
+      description: "Elenco delle organizzazioni selezionabili durante la registrazione. Accessibile dall'utente in first-login senza ulteriori autorizzazioni."
+      operationId: "listOrganizzazioniRegistrazione"
+      parameters:
+      - $ref: "#/components/parameters/q_query_optional"
+      - $ref: "#/components/parameters/nome_query_optional"
+      - $ref: "#/components/parameters/page_query_optional"
+      - $ref: "#/components/parameters/size_query_optional"
+      - $ref: "#/components/parameters/sort_query_optional"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedModelItemOrganizzazione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
         "503":
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
@@ -687,6 +792,132 @@ paths:
       responses:
         "204":
           description: "Organizzazione eliminata con successo"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /organizzazioni/{id_organizzazione}/utenti:
+    parameters:
+    - $ref: "#/components/parameters/id_organizzazione"
+    get:
+      tags:
+      - "Organizzazioni"
+      description: "Elenco degli utenti associati all'organizzazione con il rispettivo ruolo per-organizzazione. Operazione consentita al gestore o coordinatore (in base alla configurazione amministrazione.organizzazioni) oppure ad un AMMINISTRATORE_ORGANIZZAZIONE dell'organizzazione target."
+      operationId: "listUtentiOrganizzazione"
+      parameters:
+      - $ref: "#/components/parameters/q_query_optional"
+      - $ref: "#/components/parameters/page_query_optional"
+      - $ref: "#/components/parameters/size_query_optional"
+      - $ref: "#/components/parameters/sort_query_optional"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedModelItemUtenteOrganizzazione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+    post:
+      tags:
+      - "Organizzazioni"
+      description: "Aggiunge un utente all'organizzazione con il ruolo indicato. Operazione consentita al gestore o coordinatore (in base alla configurazione amministrazione.organizzazioni) oppure ad un AMMINISTRATORE_ORGANIZZAZIONE dell'organizzazione target."
+      operationId: "addUtenteOrganizzazione"
+      requestBody:
+        description: "Dati per creare l'associazione utente-organizzazione"
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UtenteOrganizzazioneAdd'
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UtenteOrganizzazione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "409":
+          $ref: "#/components/responses/409Conflict"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /organizzazioni/{id_organizzazione}/utenti/{id_utente}:
+    parameters:
+    - $ref: "#/components/parameters/id_organizzazione"
+    - $ref: "#/components/parameters/id_utente"
+    put:
+      tags:
+      - "Organizzazioni"
+      description: "Aggiorna il ruolo di un utente nell'organizzazione. Operazione consentita al gestore o coordinatore (in base alla configurazione amministrazione.organizzazioni) oppure ad un AMMINISTRATORE_ORGANIZZAZIONE dell'organizzazione target."
+      operationId: "updateRuoloUtenteOrganizzazione"
+      requestBody:
+        description: "Nuovo ruolo dell'utente nell'organizzazione"
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UtenteOrganizzazioneUpdate'
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UtenteOrganizzazione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+    delete:
+      tags:
+      - "Organizzazioni"
+      description: "Rimuove l'associazione di un utente dall'organizzazione. Operazione consentita al gestore o coordinatore (in base alla configurazione amministrazione.organizzazioni) oppure ad un AMMINISTRATORE_ORGANIZZAZIONE dell'organizzazione target."
+      operationId: "removeUtenteOrganizzazione"
+      responses:
+        "204":
+          description: "Associazione rimossa con successo"
         "400":
           $ref: "#/components/responses/400BadRequest"
         "401":
@@ -1290,7 +1521,6 @@ paths:
       - $ref: "#/components/parameters/stato_utente_query_optional"
       - $ref: "#/components/parameters/id_organizzazione_query_optional"
       - $ref: "#/components/parameters/ruoli_query_optional"
-      - $ref: "#/components/parameters/referente_tecnico_query_optional"
       - $ref: "#/components/parameters/classi_utente_query_optional"
       - $ref: "#/components/parameters/email_query_optional"
       - $ref: "#/components/parameters/principal_query_optional"
@@ -1424,6 +1654,33 @@ paths:
           $ref: "#/components/responses/404NotFound"
         "429":
           $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /utenti/{id_utente}/organizzazione-pending:
+    parameters:
+    - $ref: "#/components/parameters/id_utente"
+    delete:
+      tags:
+      - "Utenti"
+      description: "Rifiuta la richiesta di cambio organizzazione pending dell'utente. Operazione consentita al gestore o coordinatore (in base alla configurazione amministrazione.utenti.scrittura) oppure ad un AMMINISTRATORE_ORGANIZZAZIONE dell'organizzazione target. Lo stato dell'utente torna ad ABILITATO se aveva già associazioni, altrimenti NON_CONFIGURATO."
+      operationId: "rifiutaUtenteOrganizationPending"
+      responses:
+        "200":
+          description: "Richiesta rifiutata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Utente"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
         "503":
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
@@ -3147,6 +3404,38 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /aziende-esterne:
+    get:
+      tags:
+      - "Utenti"
+      description: "Elenco dei nomi delle aziende esterne già registrate sul catalogo"
+      operationId: "listAziendeEsterne"
+      parameters:
+      - $ref: "#/components/parameters/q_query_optional"
+      - $ref: "#/components/parameters/page_query_optional"
+      - $ref: "#/components/parameters/size_query_optional"
+      - $ref: "#/components/parameters/sort_query_optional"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/String255"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /api:
     post:
       tags:
@@ -4239,6 +4528,46 @@ paths:
           $ref: "#/components/responses/401Unauthorized"
         "403":
           $ref: "#/components/responses/403Forbidden"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /adesioni/{id_adesione}/disclaimers:
+    parameters:
+      - $ref: "#/components/parameters/id_adesione"
+    get:
+      tags:
+      - "Adesioni"
+      description: "Lista dei disclaimer applicabili all'adesione, risolti gerarchicamente in base a stato, profilo client e dominio del servizio"
+      operationId: "getDisclaimersAdesione"
+      parameters:
+      - name: "language_code"
+        in: "query"
+        description: "Codice lingua dei disclaimer (it, en). Default: it"
+        required: false
+        schema:
+          type: "string"
+          default: "it"
+          enum:
+            - "it"
+            - "en"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/AdesioneDisclaimer"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
         "429":
           $ref: "#/components/responses/429TooManyRequests"
         "503":
@@ -5909,6 +6238,53 @@ components:
           type: "array"
           items:
             $ref: "#/components/schemas/ConfigurazioneDatoSempreModificabile"
+        step_wizard:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigurazioneStepWizard"
+        step_wizard_collaudo:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigurazioneStepWizardSezione"
+        step_wizard_produzione:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigurazioneStepWizardSezione"
+    ConfigurazioneStepWizard:
+      type: "object"
+      required:
+        - code
+        - descrizione
+        - stati_adesione
+        - sezioni_attive
+      properties:
+        code:
+          $ref: "#/components/schemas/String255"
+        descrizione:
+          $ref: "#/components/schemas/String255"
+        stati_adesione:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigurazioneNomeStato"
+        sezioni_attive:
+          type: array
+          items:
+            $ref: "#/components/schemas/String255"
+    ConfigurazioneStepWizardSezione:
+      type: "object"
+      required:
+        - code
+        - descrizione
+        - stati_adesione
+      properties:
+        code:
+          $ref: "#/components/schemas/String255"
+        descrizione:
+          $ref: "#/components/schemas/String255"
+        stati_adesione:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigurazioneNomeStato"
     ConfigurazioneProfilo:
       type: "object"
       required:
@@ -6832,6 +7208,15 @@ components:
         tentativi_registrazione:
           type: "integer"
           description: "Numero tentativi di registrazione effettuati"
+        organizzazione_richiesta:
+          $ref: "#/components/schemas/ItemOrganizzazione"
+    SelezionaOrganizzazioneRequest:
+      type: "object"
+      required:
+        - id_organizzazione
+      properties:
+        id_organizzazione:
+          $ref: "#/components/schemas/IdOrganizzazione"
     StatoRegistrazioneEnum:
       type: "string"
       enum:
@@ -7222,6 +7607,25 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ItemUtente'
+        page:
+          $ref: '#/components/schemas/PageMetadata'
+    ItemUtenteOrganizzazione:
+      type: "object"
+      description: "Utente associato a un'organizzazione con il rispettivo ruolo per-organizzazione"
+      required:
+        - utente
+      properties:
+        utente:
+          $ref: "#/components/schemas/ItemUtente"
+        ruolo_organizzazione:
+          $ref: "#/components/schemas/RuoloOrganizzazioneEnum"
+    PagedModelItemUtenteOrganizzazione:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemUtenteOrganizzazione'
         page:
           $ref: '#/components/schemas/PageMetadata'
     PagedModelItemDominio:
@@ -7627,6 +8031,9 @@ components:
           $ref: "#/components/schemas/String255"
         dati_specifici:
           $ref: "#/components/schemas/DatiSpecificiClient"
+        scadenza_certificato:
+          type: "string"
+          format: "date-time"
     Client:
       type: "object"
       required:
@@ -8566,19 +8973,63 @@ components:
         - referente_tecnico_adesione
         - richiedente_servizio
         - richiedente_adesione
+        - amministratore_organizzazione
+        - operatore_api
     RuoloUtenteEnum:
       type: "string"
       enum:
-        - referente_servizio
+        - utente_organizzazione
         - gestore
         - coordinatore
     RuoloUtenteEnumSearch:
       type: "string"
       enum:
         - nessun_ruolo
-        - referente_servizio
+        - utente_organizzazione
         - gestore
         - coordinatore
+    RuoloOrganizzazioneEnum:
+      type: "string"
+      description: "Ruolo dell'utente all'interno di un'organizzazione. Se assente, l'utente ha accesso in sola lettura."
+      enum:
+        - amministratore_organizzazione
+        - operatore_api
+    UtenteOrganizzazione:
+      type: "object"
+      description: "Associazione utente-organizzazione con ruolo per-organizzazione"
+      required:
+        - organizzazione
+      properties:
+        organizzazione:
+          $ref: "#/components/schemas/ItemOrganizzazione"
+        ruolo_organizzazione:
+          $ref: "#/components/schemas/RuoloOrganizzazioneEnum"
+    UtenteOrganizzazioneCreate:
+      type: "object"
+      description: "Dati per creare o aggiornare un'associazione utente-organizzazione"
+      required:
+        - id_organizzazione
+      properties:
+        id_organizzazione:
+          $ref: "#/components/schemas/IdOrganizzazione"
+        ruolo_organizzazione:
+          $ref: "#/components/schemas/RuoloOrganizzazioneEnum"
+    UtenteOrganizzazioneAdd:
+      type: "object"
+      description: "Dati per aggiungere un utente ad un'organizzazione con un ruolo per-organizzazione"
+      required:
+        - id_utente
+      properties:
+        id_utente:
+          $ref: "#/components/schemas/IdUtente"
+        ruolo_organizzazione:
+          $ref: "#/components/schemas/RuoloOrganizzazioneEnum"
+    UtenteOrganizzazioneUpdate:
+      type: "object"
+      description: "Dati per aggiornare il ruolo di un utente in un'organizzazione"
+      properties:
+        ruolo_organizzazione:
+          $ref: "#/components/schemas/RuoloOrganizzazioneEnum"
     UtenteCreate:
       type: "object"
       required:
@@ -8611,12 +9062,14 @@ components:
           $ref: "#/components/schemas/StatoUtenteEnum"
         ruolo:
           $ref: "#/components/schemas/RuoloUtenteEnum"
-        referente_tecnico:
-          type: 'boolean'
         abilitato_domini_esterni:
           type: 'boolean'
-        id_organizzazione:
-          $ref: "#/components/schemas/IdOrganizzazione"
+        organizzazioni:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/UtenteOrganizzazioneCreate"
+        azienda_esterna:
+          $ref: "#/components/schemas/String255"
         classi_utente:
           type: "array"
           items:
@@ -8655,12 +9108,14 @@ components:
           $ref: "#/components/schemas/StatoUtenteEnum"
         ruolo:
           $ref: "#/components/schemas/RuoloUtenteEnum"
-        referente_tecnico:
-          type: 'boolean'
         abilitato_domini_esterni:
           type: 'boolean'
-        id_organizzazione:
-          $ref: "#/components/schemas/IdOrganizzazione"
+        organizzazioni:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/UtenteOrganizzazioneCreate"
+        azienda_esterna:
+          $ref: "#/components/schemas/String255"
         classi_utente:
           type: "array"
           items:
@@ -8699,6 +9154,8 @@ components:
         - id_organizzazione
       properties:
         id_organizzazione:
+          $ref: "#/components/schemas/IdOrganizzazione"
+        id_organizzazione_partenza:
           $ref: "#/components/schemas/IdOrganizzazione"
     ItemUtentePublic:
       type: "object"
@@ -8774,12 +9231,14 @@ components:
           $ref: "#/components/schemas/StatoUtenteEnum"
         ruolo:
           $ref: "#/components/schemas/RuoloUtenteEnum"
-        referente_tecnico:
-          type: 'boolean'
         abilitato_domini_esterni:
           type: 'boolean'
-        organizzazione:
-          $ref: "#/components/schemas/ItemOrganizzazione"
+        azienda_esterna:
+          $ref: "#/components/schemas/String255"
+        organizzazioni:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/UtenteOrganizzazione"
         classi_utente:
           type: "array"
           items:
@@ -8819,14 +9278,18 @@ components:
           $ref: "#/components/schemas/StatoUtenteEnum"
         ruolo:
           $ref: "#/components/schemas/RuoloUtenteEnum"
-        referente_tecnico:
-          type: 'boolean'
         abilitato_domini_esterni:
           type: 'boolean'
-        organizzazione:
-          $ref: "#/components/schemas/ItemOrganizzazione"
         organizzazione_pending:
           $ref: "#/components/schemas/ItemOrganizzazione"
+        organizzazione_partenza:
+          $ref: "#/components/schemas/ItemOrganizzazione"
+        organizzazioni:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/UtenteOrganizzazione"
+        azienda_esterna:
+          $ref: "#/components/schemas/String255"
         classi_utente:
           type: "array"
           items:
@@ -9966,6 +10429,35 @@ components:
       properties:
         api:
           $ref: "#/components/schemas/ItemApi"
+    DisclaimerContestoEnum:
+      type: "string"
+      enum:
+        - "generale"
+        - "collaudo"
+        - "produzione"
+    DisclaimerSeverityEnum:
+      type: "string"
+      enum:
+        - "INFO"
+        - "WARNING"
+        - "ERROR"
+    AdesioneDisclaimer:
+      type: "object"
+      required:
+        - "disclaimer"
+        - "contesto"
+        - "severity"
+      properties:
+        disclaimer:
+          type: "string"
+          description: "Testo del disclaimer in formato Markdown"
+        contesto:
+          $ref: "#/components/schemas/DisclaimerContestoEnum"
+        severity:
+          $ref: "#/components/schemas/DisclaimerSeverityEnum"
+        profilo:
+          type: "string"
+          description: "Codice interno del profilo associato al disclaimer, se il disclaimer e' specifico per un profilo; null altrimenti"
     AdesioneCreate:
       type: object
       required:

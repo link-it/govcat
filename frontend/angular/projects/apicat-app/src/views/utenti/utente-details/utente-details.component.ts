@@ -16,21 +16,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
+import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
+import { MarkdownModule } from 'ngx-markdown';
 
-import { COMPONENTS_IMPORTS, Tools, ConfigService, EventsManagerService, FieldClass, YesnoDialogBsComponent } from '@linkit/components';
+import { COMPONENTS_IMPORTS, Tools, ConfigService, FieldClass, YesnoDialogBsComponent } from '@linkit/components';
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { CustomValidators } from '@linkit/validators';
 
-import { Utente, Ruolo, Stato } from './utente';
+import { Utente, Ruolo, RuoloOrganizzazione, Stato } from './utente';
+import { AuthenticationService } from '@app/services/authentication.service';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
@@ -48,10 +50,11 @@ import { TrimOnBlurDirective } from '@app/directives/trim-on-blur/trim-on-blur.d
     ...COMPONENTS_IMPORTS,
     ...APP_COMPONENTS_IMPORTS,
     HasPermissionDirective,
-    TrimOnBlurDirective
+    TrimOnBlurDirective,
+    MarkdownModule
   ]
 })
-export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
+export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentChecked {
   static readonly Name = 'UtenteDetailsComponent';
   readonly model: string = 'utenti';
 
@@ -124,25 +127,84 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
   minLengthTerm = 1;
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private translate: TranslateService,
-    private modalService: BsModalService,
-    private configService: ConfigService,
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly translate: TranslateService,
+    private readonly modalService: BsModalService,
+    private readonly configService: ConfigService,
     public tools: Tools,
-    private eventsManagerService: EventsManagerService,
-    private apiService: OpenAPIService,
-    private utils: UtilService
+    private readonly apiService: OpenAPIService,
+    private readonly utils: UtilService,
+    private readonly authenticationService: AuthenticationService
   ) {
     this.appConfig = this.configService.getConfiguration();
+  }
+
+  /**
+   * Issue 229 evolutiva 2/3 — ruolo che l'approvatore vuole
+   * assegnare all'utente sull'organizzazione di destinazione
+   * (pending). Default `null` ("Nessun ruolo"): l'approvatore
+   * deve scegliere esplicitamente fra
+   * `amministratore_organizzazione`, `operatore_api` o lasciare
+   * l'utente senza ruolo organizzazione. L'AMM_ORG e` invece
+   * vincolato a `operatore_api` per policy (decisione
+   * context-aware, selettore nascosto).
+   *
+   * Valori ammessi nel `<select>`:
+   * - `''` (empty string) -> nessun ruolo, viene trasformato in
+   *   `ruolo_organizzazione: null` nel payload;
+   * - `'amministratore_organizzazione'` / `'operatore_api'`.
+   */
+  _approvingRole: RuoloOrganizzazione | '' = '';
+
+  /** True se l'utente loggato puo` scegliere fra entrambi i ruoli
+   *  organizzazione (gestore o coordinatore). Falso per AMM_ORG ->
+   *  selettore bloccato su `operatore_api`. */
+  get _canChooseApprovingRole(): boolean {
+    return this.authenticationService.isGestore()
+      || this.authenticationService.isCoordinatore();
+  }
+
+  /** True quando il BE ha popolato `organizzazione_partenza` o, in
+   *  fallback retrocompat, esiste `organizzazione` legacy (decisione
+   *  fallback "usare legacy organizzazione" per la UI "da X a Y"). */
+  get _orgPartenzaForUi(): { nome?: string | null } | null {
+    return this.utente?.organizzazione_partenza
+      ?? this.utente?.organizzazione
+      ?? null;
+  }
+
+  /**
+   * Stringa markdown gia` tradotta da renderizzare nel banner
+   * di approvazione cambio org. Estratta in un getter perche` la
+   * direttiva `markdown` attribute di ngx-markdown legge il
+   * contenuto del tag come testo statico al bootstrap: con `@if/
+   * @else` interni non vede i grassetti `**...**` (il control
+   * flow Angular si espande DOPO). Usato con
+   * `<markdown [data]="_pendingMessage">`.
+   */
+  get _pendingMessage(): string {
+    const partenzaNome = this._orgPartenzaForUi?.nome;
+    const destinazioneNome = this.utente?.organizzazione_pending?.nome || '--';
+    const key = partenzaNome
+      ? 'APP.PROFILE.ORGANIZATION.PassaggioDaA'
+      : 'APP.PROFILE.ORGANIZATION.PassaggioA';
+    return this.translate.instant(key, {
+      partenza: partenzaNome,
+      destinazione: destinazioneNome
+    });
   }
 
   ngOnInit() {
     this._statoArr = Object.values(Stato);
     const coordinatoreAbilitato = Tools.Configurazione?.utente?.coordinatore_abilitato !== false;
+    // `referente_servizio` e' deprecato in favore di `utente_organizzazione`:
+    // non lo proponiamo nelle nuove creazioni / modifiche, ma lo mostriamo
+    // se gia' valorizzato sull'utente caricato (retrocompat).
+    const baseRoles = Object.values(Ruolo).filter(r => r !== Ruolo.REFERENTE_SERVIZIO);
     this._ruoloArr = coordinatoreAbilitato
-      ? Object.values(Ruolo)
-      : Object.values(Ruolo).filter(r => r !== Ruolo.COORDINATORE);
+      ? baseRoles
+      : baseRoles.filter(r => r !== Ruolo.COORDINATORE);
 
     this.route.params.subscribe(params => {
       if (params['id'] && params['id'] !== 'new') {
@@ -165,7 +227,13 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
         this._loadClassiUtente();
         this._initClassiUtenteSelect([]);
         this._initOrganizzazioniSelect([]);
+        // Default per i nuovi utenti: nessun ruolo globale e nessuna
+        // organizzazione obbligatoria. La required su `id_organizzazione`
+        // viene applicata dinamicamente da `_changeRuolo()` solo se il
+        // ruolo selezionato e' `utente_organizzazione`.
+        this._utente.ruolo = Ruolo.NESSUN_RUOLO;
         this._initForm({ ...this._utente });
+        this._changeRuolo();
         this._spin = false;
       }
     });
@@ -177,9 +245,6 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
         this._initBreadcrumb();
       }
     });
-  }
-
-  ngOnDestroy() {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -244,13 +309,19 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
             ]);
             break;
           case 'stato':
-          case 'id_organizzazione':
             value = data[key] ? data[key] : null;
             _group[key] = new FormControl(value, [Validators.required]);
+            break;
+          case 'id_organizzazione':
+            // La required e' dinamica: viene applicata da `_changeRuolo()`
+            // solo quando il ruolo selezionato e' `utente_organizzazione`.
+            value = data[key] ? data[key] : null;
+            _group[key] = new FormControl(value, []);
             break;
           case 'telefono':
           case 'metadati':
           case 'note':
+          case 'organizzazione_esterna':
             value = data[key] ? data[key] : null;
             _group[key] = new FormControl(value, [
               Validators.maxLength(255)
@@ -358,11 +429,35 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
       ...body,
       ruolo: (body.ruolo == Ruolo.NESSUN_RUOLO) ? null : body.ruolo,
     };
+
+    // Multi-org: trasforma `id_organizzazione` + `ruolo_organizzazione`
+    // del form in `organizzazioni: [{...}]`. Il BE ignora il campo
+    // legacy `id_organizzazione` se `organizzazioni` e' presente.
+    const idOrg = body.id_organizzazione;
+    const ruoloOrg = body.ruolo_organizzazione || null;
+    if (idOrg) {
+      _newBody.organizzazioni = [{
+        id_organizzazione: idOrg,
+        ruolo_organizzazione: ruoloOrg
+      }];
+    } else {
+      _newBody.organizzazioni = [];
+    }
+
     delete _newBody.organizzazione;
+    delete _newBody.organizzazione_pending;
+    delete _newBody.id_organizzazione;
+    delete _newBody.ruolo_organizzazione;
     delete _newBody.classi_utente;
 
     const result = this.utils._removeEmpty(_newBody);
     result.classi_utente = _classi;
+    // `_removeEmpty` elimina array vuoti: re-iniettiamo `organizzazioni`
+    // solo se non vuoto, altrimenti il BE riceve null/assente (utente
+    // non associato).
+    if (_newBody.organizzazioni?.length) {
+      result.organizzazioni = _newBody.organizzazioni;
+    }
     return result;
   }
 
@@ -420,6 +515,12 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
           this.utente.ruolo = this._checkRuolo(response);
           this._utente.ruolo = this._checkRuolo(response);
+
+          // Deriva il ruolo per-organizzazione dalla prima associazione
+          // (la lista `organizzazioni` riflette il modello multi-org).
+          const firstOrg = response?.organizzazioni?.[0];
+          this.utente.ruolo_organizzazione = firstOrg?.ruolo_organizzazione || null;
+          this._utente.ruolo_organizzazione = firstOrg?.ruolo_organizzazione || null;
           
           const aux: any = {
             id_classe_utente: this.utente.classi_utente?.id_classe_utente || null,
@@ -550,10 +651,9 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
     return this.apiService.getList('classi-utente', _options)
       .pipe(map(resp => {
         if (resp.Error) {
-          throwError(resp.Error);
+          throwError(() => resp.Error);
         } else {
           const _items = resp.content.map((item: any) => {
-            // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
             return item;
           });
           return _items;
@@ -587,7 +687,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
     return this.apiService.getList('organizzazioni', _options)
       .pipe(map(resp => {
         if (resp.Error) {
-          throwError(resp.Error);
+          throwError(() => resp.Error);
         } else {
           const _items = resp.content.map((item: any) => {
             return item;
@@ -600,6 +700,69 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
   _compareClassiFn(item: any, selected: any) {
     return item.id_classe_utente === selected.id_classe_utente;
+  }
+
+  /**
+   * Issue 229 evolutiva 3 — rifiuto della richiesta di cambio
+   * organizzazione di un altro utente. Solo
+   * gestore/coordinatore/AMM_ORG sull'org pending (stesso
+   * filtro di authorization del PUT di approvazione).
+   *
+   * `DELETE /utenti/{id}/organizzazione-pending`. Stato finale
+   * BE dipende dal contesto:
+   * - utente con associazioni esistenti -> `abilitato`;
+   * - utente nuovo da registrazione (nessuna assoc) ->
+   *   `non_configurato`.
+   */
+  rejectOrganizationChange() {
+    if (!this.utente?.organizzazione_pending?.id_organizzazione) {
+      // safety net: il bottone dovrebbe gia` essere nascosto.
+      return;
+    }
+    const initialState = {
+      title: this.translate.instant('APP.PROFILE.ORGANIZATION.RejectTitle'),
+      messages: [this.translate.instant('APP.PROFILE.ORGANIZATION.RejectWarning')],
+      cancelText: this.translate.instant('APP.BUTTON.Cancel'),
+      confirmText: this.translate.instant('APP.PROFILE.ORGANIZATION.RejectButton'),
+      confirmColor: 'danger'
+    };
+
+    this._modalConfirmRef = this.modalService.show(YesnoDialogBsComponent, {
+      ignoreBackdropClick: true,
+      initialState: initialState
+    });
+    this._modalConfirmRef.content.onClose.subscribe(
+      (response: any) => {
+        if (response) {
+          this._error = false;
+          this._errorMsg = '';
+          this._spin = true;
+          this.apiService.deleteElementRelated('utenti', this.utente.id_utente, 'organizzazione-pending').subscribe({
+            next: (response: any) => {
+              this.utente = new Utente({ ...response });
+              this._utente = new Utente({ ...response });
+              this.utente.ruolo = this._checkRuolo(response);
+              this._utente.ruolo = this._checkRuolo(response);
+              this._initForm({ ...this._utente });
+              this._changeRuolo();
+              const aux_org: any = {
+                id_organizzazione: this.utente?.id_organizzazione || null,
+                nome: this.utente?.organizzazione?.nome || null
+              };
+              this._initOrganizzazioniSelect([aux_org]);
+              this._spin = false;
+              this._isEdit = false;
+              this.save.emit({ id: this.id, utente: response, update: true });
+            },
+            error: (error: any) => {
+              this._error = true;
+              this._errorMsg = this.utils.GetErrorMsg(error);
+              this._spin = false;
+            }
+          });
+        }
+      }
+    );
   }
 
   approveOrganizationChange() {
@@ -627,16 +790,51 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
           this._error = false;
           this._errorMsg = '';
 
+          // Issue 229 evolutiva 2 — il BE non archivia + ricrea piu`,
+          // mantiene lo stesso id_utente. Il payload deve contenere:
+          //  - lo `stato` aggiornato a `abilitato` (la transizione che
+          //    approva la richiesta in `pending_update`);
+          //  - una sola entry in `organizzazioni` con
+          //    `id_organizzazione == organizzazione_pending` e il ruolo
+          //    scelto dall'approvatore;
+          //  - i campi anagrafici dal form (principal, nome, cognome,
+          //    telefono*, email*, ruolo globale).
+          // Le altre associazioni esistenti restano server-side (NON
+          // le re-inviamo).
           const formValues = this._formGroup.getRawValue();
+          // Issue 229 evolutiva 3 — gestore/coordinatore possono
+          // ora scegliere "Nessun ruolo" (`_approvingRole === ''`)
+          // -> mappato a `null` nel payload. AMM_ORG resta forzato
+          // a `operatore_api` (selettore nascosto).
+          const ruoloOrgTarget: RuoloOrganizzazione | null = this._canChooseApprovingRole
+            ? (this._approvingRole || null)
+            : RuoloOrganizzazione.OPERATORE_API;
           const _body: any = {
             ...formValues,
-            id_organizzazione: this.utente.organizzazione_pending?.id_organizzazione,
-            organizzazione_pending: null,
+            stato: Stato.ABILITATO,
             ruolo: (formValues.ruolo == Ruolo.NESSUN_RUOLO) ? null : formValues.ruolo
           };
+          // Rimuoviamo i campi legacy: il BE ora ricava org/ruolo dalla
+          // entry in `organizzazioni`. Senza la delete, manderemmo dati
+          // ridondanti / potenzialmente in conflitto.
           delete _body.organizzazione;
+          delete _body.organizzazione_pending;
+          delete _body.organizzazione_partenza;
+          delete _body.id_organizzazione;
+          delete _body.ruolo_organizzazione;
+          delete _body.organizzazioni;
 
+          // ATTENZIONE: `_removeEmpty` (utils.service.ts:351) filtra via
+          // tutti i valori di tipo `object` (incluse le array). Vedi
+          // riga 355: `typeof obj[k] !== "object"`. Costruiamo quindi
+          // `organizzazioni` DOPO la chiamata, altrimenti l'array
+          // verrebbe stripped dal payload (questo era il bug riscontrato:
+          // il payload partiva senza la key `organizzazioni`).
           const body = this.utils._removeEmpty(_body);
+          body.organizzazioni = [{
+            id_organizzazione: this.utente.organizzazione_pending?.id_organizzazione,
+            ruolo_organizzazione: ruoloOrgTarget
+          }];
 
           this._spin = true;
           this.apiService.putElement(this.model, this.utente.id_utente, body).subscribe({
@@ -646,6 +844,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
               this.utente.ruolo = this._checkRuolo(response);
               this._utente.ruolo = this._checkRuolo(response);
               this._initForm({ ...this._utente });
+              this._changeRuolo();
               const aux_org: any = {
                 id_organizzazione: this.utente?.id_organizzazione || null,
                 nome: this.utente?.organizzazione?.nome || null
@@ -666,6 +865,22 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
     );
   }
 
+  /**
+   * Visibilita' del campo email personale (in coerenza col profilo).
+   * Pilotata dal flag `AppConfig.Profile.showEmail` (default false).
+   */
+  get mostraEmail(): boolean {
+    return this.appConfig?.AppConfig?.Profile?.showEmail === true;
+  }
+
+  /**
+   * Visibilita' del campo telefono personale (default nascosto).
+   * Pilotata dal flag `AppConfig.Profile.showPhone`.
+   */
+  get mostraTelefono(): boolean {
+    return this.appConfig?.AppConfig?.Profile?.showPhone === true;
+  }
+
   _changeRuolo(event: Event|null = null) {
     const role = this._formGroup.get('ruolo')?.value;
     const organizationFormControl = this._formGroup.get('id_organizzazione');
@@ -673,10 +888,17 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
       console.warn('organizationFormControl does not exist');
       return;
     }
-    if(role === Ruolo.GESTORE || role === Ruolo.COORDINATORE){
-      organizationFormControl.clearValidators();
-    }else{
+    // L'organizzazione e' obbligatoria solo per il ruolo
+    // `utente_organizzazione`. Per gli altri ruoli (gestore,
+    // coordinatore, nessun ruolo) il campo e' opzionale.
+    // `ruolo_organizzazione` (per-org) e' un campo distinto e
+    // indipendente: viene gestito direttamente dall'utente nel
+    // proprio control e finisce dentro `organizzazioni[].ruolo_organizzazione`
+    // a cura di `_prapareData`.
+    if(role === Ruolo.UTENTE_ORGANIZZAZIONE){
       organizationFormControl.setValidators([Validators.required]);
+    } else {
+      organizationFormControl.clearValidators();
     }
     organizationFormControl.updateValueAndValidity();
   }

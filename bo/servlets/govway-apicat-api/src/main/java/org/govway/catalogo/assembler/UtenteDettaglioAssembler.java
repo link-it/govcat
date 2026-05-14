@@ -21,24 +21,36 @@ package org.govway.catalogo.assembler;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 import org.govway.catalogo.controllers.OrganizzazioniController;
 import org.govway.catalogo.core.orm.entity.ClasseUtenteEntity;
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
+import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Stato;
+import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity;
 import org.govway.catalogo.core.services.ClasseUtenteService;
 import org.govway.catalogo.core.services.OrganizzazioneService;
+import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.model.ConfigurazioneNotifiche;
 import org.govway.catalogo.servlets.model.ProfiloUpdate;
+import org.govway.catalogo.servlets.model.RuoloOrganizzazioneEnum;
 import org.govway.catalogo.servlets.model.Utente;
 import org.govway.catalogo.servlets.model.UtenteCreate;
+import org.govway.catalogo.servlets.model.UtenteOrganizzazione;
+import org.govway.catalogo.servlets.model.UtenteOrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.UtenteUpdate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,6 +81,12 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 	@Autowired
 	private OrganizzazioneService organizzazioneService;
 
+	@Autowired
+	private UtenteService utenteService;
+
+	@Autowired
+	private org.govway.catalogo.core.services.AziendaEsternaService aziendaEsternaService;
+
 	public UtenteDettaglioAssembler() {
 		super(OrganizzazioniController.class, Utente.class);
 	}
@@ -85,18 +103,30 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		dettaglio.setPrincipal(entity.getPrincipal());
 		dettaglio.setStato(utenteEngineAssembler.toStatoUtenteEnum(entity.getStato()));
 
-		dettaglio.setReferenteTecnico(entity.isReferenteTecnico());
-
-		if(entity.getOrganizzazione()!=null) {
-			dettaglio.setOrganizzazione(organizzazioneItemAssembler.toModel(entity.getOrganizzazione()));
-		}
-
 		if(entity.getOrganizzazionePending()!=null) {
 			dettaglio.setOrganizzazionePending(organizzazioneItemAssembler.toModel(entity.getOrganizzazionePending()));
 		}
 
+		if(entity.getOrganizzazionePartenza()!=null) {
+			dettaglio.setOrganizzazionePartenza(organizzazioneItemAssembler.toModel(entity.getOrganizzazionePartenza()));
+		}
+
 		if(entity.getRuolo()!=null) {
 			dettaglio.setRuolo(utenteEngineAssembler.toRuolo(entity.getRuolo()));
+		}
+
+		// Popola la lista di associazioni utente-organizzazione (multi-org).
+		// Utilizza il repository per evitare LazyInitializationException quando l'entità è detached.
+		List<UtenteOrganizzazioneEntity> associazioni = utenteService.findUtenteOrganizzazioniByUtente(entity);
+		if (associazioni != null && !associazioni.isEmpty()) {
+			List<UtenteOrganizzazione> orgs = associazioni.stream()
+					.map(this::toUtenteOrganizzazione)
+					.collect(Collectors.toList());
+			dettaglio.setOrganizzazioni(orgs);
+		}
+
+		if (entity.getAziendaEsterna() != null) {
+			dettaglio.setAziendaEsterna(entity.getAziendaEsterna().getNome());
 		}
 
 		if(entity.getClassi()!=null) {
@@ -111,15 +141,14 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		BeanUtils.copyProperties(src, entity);
 
 		entity.setPrincipal(src.getPrincipal());
-		if(src.getIdOrganizzazione() != null) {
-			entity.setOrganizzazione(organizzazioneService.find(src.getIdOrganizzazione())
-					.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404, Map.of("idOrganizzazione", src.getIdOrganizzazione().toString()))));
+
+		// Gestione multi-organizzazione
+		applicaAssociazioniOrganizzazione(entity, src.getOrganizzazioni());
+
+		if (src.getAziendaEsterna() != null && !src.getAziendaEsterna().trim().isEmpty()) {
+			entity.setAziendaEsterna(this.aziendaEsternaService.findOrCreate(src.getAziendaEsterna().trim()));
 		} else {
-			entity.setOrganizzazione(null);
-		}
-		
-		if(src.isReferenteTecnico()!=null) {
-			entity.setReferenteTecnico(src.isReferenteTecnico());
+			entity.setAziendaEsterna(null);
 		}
 
 		if(src.getRuolo()!=null) {
@@ -168,14 +197,6 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		entity.setTipiNotificheAbilitate("COMUNICAZIONE");
 		entity.setTipiEntitaNotificheAbilitate("SERVIZIO,ADESIONE");
 		entity.setRuoliNotificheAbilitate("SERVIZIO_REFERENTE_DOMINIO,SERVIZIO_REFERENTE_TECNICO_DOMINIO,SERVIZIO_REFERENTE_SERVIZIO,SERVIZIO_REFERENTE_TECNICO_SERVIZIO,SERVIZIO_RICHIEDENTE_SERVIZIO,ADESIONE_REFERENTE_DOMINIO,ADESIONE_REFERENTE_TECNICO_DOMINIO,ADESIONE_REFERENTE_SERVIZIO,ADESIONE_REFERENTE_TECNICO_SERVIZIO,ADESIONE_RICHIEDENTE_SERVIZIO,ADESIONE_REFERENTE_ADESIONE,ADESIONE_REFERENTE_TECNICO_ADESIONE,ADESIONE_RICHIEDENTE_ADESIONE,GESTORE,COORDINATORE");
-		if(src.getIdOrganizzazione() != null) {
-			entity.setOrganizzazione(organizzazioneService.find(src.getIdOrganizzazione())
-					.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404, Map.of("idOrganizzazione", src.getIdOrganizzazione().toString()))));
-		}
-
-		if(src.isReferenteTecnico()!=null) {
-			entity.setReferenteTecnico(src.isReferenteTecnico());
-		}
 
 		if(src.getRuolo()!=null) {
 			entity.setRuolo(utenteEngineAssembler.toEntity(src.getRuolo()));
@@ -186,7 +207,16 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		} else {
 			entity.setStato(Stato.DISABILITATO);
 		}
-		
+
+		// Gestione multi-organizzazione
+		applicaAssociazioniOrganizzazione(entity, src.getOrganizzazioni());
+
+		if (src.getAziendaEsterna() != null && !src.getAziendaEsterna().trim().isEmpty()) {
+			entity.setAziendaEsterna(this.aziendaEsternaService.findOrCreate(src.getAziendaEsterna().trim()));
+		} else {
+			entity.setAziendaEsterna(null);
+		}
+
 		if(src.getClassiUtente()!=null) {
 			for(UUID idcu: src.getClassiUtente()) {
 				ClasseUtenteEntity cu = this.classeUtenteService.findByIdClasseUtente(idcu).orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404, java.util.Map.of("idClasseUtente", idcu.toString())));
@@ -261,7 +291,116 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 
 	}
 
+	/**
+	 * Converte un'associazione entity in modello API.
+	 */
+	public UtenteOrganizzazione toUtenteOrganizzazione(UtenteOrganizzazioneEntity assoc) {
+		UtenteOrganizzazione model = new UtenteOrganizzazione();
+		model.setOrganizzazione(organizzazioneItemAssembler.toModel(assoc.getOrganizzazione()));
+		if (assoc.getRuoloOrganizzazione() != null) {
+			model.setRuoloOrganizzazione(toRuoloOrganizzazioneEnum(assoc.getRuoloOrganizzazione()));
+		}
+		return model;
+	}
 
+	/**
+	 * Mapping da enum interno RuoloOrganizzazione a enum API RuoloOrganizzazioneEnum.
+	 */
+	public RuoloOrganizzazioneEnum toRuoloOrganizzazioneEnum(RuoloOrganizzazione ruolo) {
+		switch (ruolo) {
+		case AMMINISTRATORE_ORGANIZZAZIONE:
+			return RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE;
+		case OPERATORE_API:
+			return RuoloOrganizzazioneEnum.OPERATORE_API;
+		default:
+			return null;
+		}
+	}
 
+	/**
+	 * Mapping da enum API RuoloOrganizzazioneEnum a enum interno RuoloOrganizzazione.
+	 */
+	public RuoloOrganizzazione toRuoloOrganizzazione(RuoloOrganizzazioneEnum ruolo) {
+		if (ruolo == null) {
+			return null;
+		}
+		switch (ruolo) {
+		case AMMINISTRATORE_ORGANIZZAZIONE:
+			return RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE;
+		case OPERATORE_API:
+			return RuoloOrganizzazione.OPERATORE_API;
+		default:
+			return null;
+		}
+	}
+
+	/**
+	 * Applica le associazioni utente-organizzazione all'entità.
+	 *
+	 *  - Se {@code organizzazioniInput} è non null, viene usato come source of truth: rimuove
+	 *    associazioni esistenti non presenti nell'input e aggiunge/aggiorna quelle nell'input.
+	 *  - Se è null, rimuove tutte le associazioni esistenti.
+	 */
+	private void applicaAssociazioniOrganizzazione(UtenteEntity entity,
+			List<UtenteOrganizzazioneCreate> organizzazioniInput) {
+
+		Set<UtenteOrganizzazioneEntity> associazioni = entity.getUtenteOrganizzazioni();
+		if (associazioni == null) {
+			associazioni = new HashSet<>();
+			entity.setUtenteOrganizzazioni(associazioni);
+		}
+
+		if (organizzazioniInput != null) {
+			sincronizzaAssociazioni(entity, associazioni, organizzazioniInput);
+		} else {
+			associazioni.clear();
+		}
+	}
+
+	/**
+	 * Sincronizza le associazioni esistenti con quelle desiderate:
+	 * rimuove quelle non più presenti, aggiorna il ruolo di quelle presenti, aggiunge le nuove.
+	 */
+	private void sincronizzaAssociazioni(UtenteEntity entity,
+			Set<UtenteOrganizzazioneEntity> associazioniEsistenti,
+			List<UtenteOrganizzazioneCreate> desiderate) {
+
+		// Mappa id_organizzazione (UUID) → ruolo desiderato
+		java.util.Map<UUID, RuoloOrganizzazioneEnum> mapDesiderate = new java.util.HashMap<>();
+		for (UtenteOrganizzazioneCreate uc : desiderate) {
+			if (uc.getIdOrganizzazione() != null) {
+				mapDesiderate.put(uc.getIdOrganizzazione(), uc.getRuoloOrganizzazione());
+			}
+		}
+
+		// Rimuovi associazioni non più desiderate e aggiorna il ruolo di quelle ancora presenti
+		Iterator<UtenteOrganizzazioneEntity> it = associazioniEsistenti.iterator();
+		Set<UUID> presenti = new HashSet<>();
+		while (it.hasNext()) {
+			UtenteOrganizzazioneEntity a = it.next();
+			UUID idOrg = UUID.fromString(a.getOrganizzazione().getIdOrganizzazione());
+			if (mapDesiderate.containsKey(idOrg)) {
+				a.setRuoloOrganizzazione(toRuoloOrganizzazione(mapDesiderate.get(idOrg)));
+				presenti.add(idOrg);
+			} else {
+				it.remove();
+			}
+		}
+
+		// Aggiungi le nuove associazioni
+		for (java.util.Map.Entry<UUID, RuoloOrganizzazioneEnum> e : mapDesiderate.entrySet()) {
+			if (presenti.contains(e.getKey())) {
+				continue;
+			}
+			OrganizzazioneEntity org = organizzazioneService.find(e.getKey())
+					.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404,
+							Map.of("idOrganizzazione", e.getKey().toString())));
+			UtenteOrganizzazioneEntity nuova = new UtenteOrganizzazioneEntity();
+			nuova.setUtente(entity);
+			nuova.setOrganizzazione(org);
+			nuova.setRuoloOrganizzazione(toRuoloOrganizzazione(e.getValue()));
+			associazioniEsistenti.add(nuova);
+		}
+	}
 
 }

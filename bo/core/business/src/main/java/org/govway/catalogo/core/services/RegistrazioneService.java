@@ -23,6 +23,7 @@ import java.util.Date;
 import java.util.Optional;
 
 import org.govway.catalogo.core.dao.specifications.UtenteSpecification;
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.RegistrazioneUtenteEntity;
 import org.govway.catalogo.core.orm.entity.RegistrazioneUtenteEntity.StatoRegistrazione;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
@@ -233,6 +234,31 @@ public class RegistrazioneService extends AbstractService {
      * @param registrazione la registrazione da salvare
      */
     public void save(RegistrazioneUtenteEntity registrazione) {
+        this.registrazioneUtenteRepo.save(registrazione);
+    }
+
+    /**
+     * Imposta l'organizzazione proposta per la registrazione.
+     *
+     * @param registrazione la registrazione
+     * @param organizzazione l'organizzazione proposta dall'utente
+     */
+    public void setOrganizzazioneRichiesta(RegistrazioneUtenteEntity registrazione, OrganizzazioneEntity organizzazione) {
+        logger.info("Impostazione organizzazione richiesta per registrazione ID: {}", registrazione.getId());
+        registrazione.setOrganizzazioneRichiesta(organizzazione);
+        registrazione.setDataUltimoTentativo(new Date());
+        this.registrazioneUtenteRepo.save(registrazione);
+    }
+
+    /**
+     * Rimuove l'organizzazione proposta per la registrazione.
+     *
+     * @param registrazione la registrazione
+     */
+    public void removeOrganizzazioneRichiesta(RegistrazioneUtenteEntity registrazione) {
+        logger.info("Rimozione organizzazione richiesta per registrazione ID: {}", registrazione.getId());
+        registrazione.setOrganizzazioneRichiesta(null);
+        registrazione.setDataUltimoTentativo(new Date());
         this.registrazioneUtenteRepo.save(registrazione);
     }
 

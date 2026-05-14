@@ -31,9 +31,10 @@
 import { Organizzazione } from './organizzazione';
 import { RuoloUtenteEnum } from './ruoloUtenteEnum';
 import { StatoUtenteEnum } from './statoUtenteEnum';
+import { UtenteOrganizzazione } from './utenteOrganizzazione';
 
 
-export interface Utente { 
+export interface Utente {
     id_utente: string;
     nome: string;
     cognome: string;
@@ -45,7 +46,13 @@ export interface Utente {
     metadati?: string;
     stato: StatoUtenteEnum;
     ruolo?: RuoloUtenteEnum;
+    /**
+     * @deprecated In favore di `organizzazioni`. Mantenuto per
+     * retrocompatibilita' finche' il BE pubblica entrambi i campi.
+     */
     organizzazione?: Organizzazione;
+    organizzazioni?: Array<UtenteOrganizzazione>;
+    organizzazione_esterna?: string;
     organizzazione_pending?: Organizzazione;
     classi_utente?: Array<string>;
 }

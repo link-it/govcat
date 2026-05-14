@@ -30,8 +30,10 @@ create sequence seq_stati_servizio start with 1 increment by 1;
 create sequence seq_tags start with 1 increment by 1;
 create sequence seq_tassonomie start with 1 increment by 1;
 create sequence seq_utenti start with 1 increment by 1;
+create sequence seq_utenti_organizzazioni start with 1 increment by 1;
 create sequence seq_registrazioni_utenti start with 1 increment by 1;
 create sequence seq_email_update_verifications start with 1 increment by 1;
+create sequence seq_aziende_esterne start with 1 increment by 1;
 
     create table adesioni (
        id bigint not null,
@@ -457,6 +459,12 @@ create sequence seq_email_update_verifications start with 1 increment by 1;
         primary key (id)
     );
 
+    create table aziende_esterne (
+       id bigint not null,
+        nome varchar(255) not null,
+        primary key (id)
+    );
+
     create table tassonomie (
        id bigint not null,
         descrizione varchar(255),
@@ -479,7 +487,6 @@ create sequence seq_email_update_verifications start with 1 increment by 1;
         nome varchar(255) not null,
         note varchar(255),
         principal varchar(255) not null,
-        referente_tecnico boolean not null,
         ruoli_notifiche_abilitate varchar(1024),
         ruolo varchar(255),
         stato varchar(255) not null,
@@ -487,8 +494,9 @@ create sequence seq_email_update_verifications start with 1 increment by 1;
         telefono_aziendale varchar(255),
         tipi_entita_notifiche_abilitate varchar(255),
         tipi_notifiche_abilitate varchar(255),
-        id_organizzazione bigint,
         id_organizzazione_pending bigint,
+        id_organizzazione_partenza bigint,
+        id_azienda_esterna bigint,
         primary key (id)
     );
 
@@ -496,6 +504,14 @@ create sequence seq_email_update_verifications start with 1 increment by 1;
        id_classe bigint not null,
         id_utente bigint not null,
         primary key (id_classe, id_utente)
+    );
+
+    create table utenti_organizzazioni (
+       id bigint not null,
+        id_utente bigint not null,
+        id_organizzazione bigint not null,
+        ruolo_organizzazione varchar(255),
+        primary key (id)
     );
 
     create table registrazioni_utenti (
@@ -513,6 +529,7 @@ create sequence seq_email_update_verifications start with 1 increment by 1;
         data_creazione timestamp not null,
         data_ultimo_tentativo timestamp,
         token_id varchar(255),
+        id_organizzazione_richiesta bigint,
         primary key (id)
     );
 
@@ -539,7 +556,20 @@ create sequence seq_email_update_verifications start with 1 increment by 1;
        foreign key (id_utente)
        references utenti;
 
-    alter table organizations 
+    alter table utenti_organizzazioni
+       add constraint uk_utenti_org_utente_org unique (id_utente, id_organizzazione);
+
+    alter table utenti_organizzazioni
+       add constraint fk_utenti_org_utente
+       foreign key (id_utente)
+       references utenti;
+
+    alter table utenti_organizzazioni
+       add constraint fk_utenti_org_organizzazione
+       foreign key (id_organizzazione)
+       references organizations;
+
+    alter table organizations
        add constraint UK_p9pbw3flq9hkay8hdx3ypsldy unique (name);
 
     alter table soggetti 
@@ -548,8 +578,16 @@ create sequence seq_email_update_verifications start with 1 increment by 1;
     alter table utenti 
        add constraint UK_83bc9wgqao3ad6r8y5sqxy9lq unique (id_utente);
 
-    alter table utenti 
+    alter table utenti
        add constraint UK_mvje76mmq8p7yyk5329geaucb unique (principal);
+
+    alter table aziende_esterne
+       add constraint uq_azienda_esterna_nome unique (nome);
+
+    alter table utenti
+       add constraint fk_utenti_azienda_esterna
+       foreign key (id_azienda_esterna)
+       references aziende_esterne;
 
     alter table adesioni 
        add constraint FKt6ynph35hpekqnx5dxk27q710 
@@ -942,13 +980,13 @@ create sequence seq_email_update_verifications start with 1 increment by 1;
        references documenti;
 
     alter table utenti
-       add constraint FKtk0f93l8dh542beuq067og47g
-       foreign key (id_organizzazione)
+       add constraint FK_utenti_org_pending
+       foreign key (id_organizzazione_pending)
        references organizations;
 
     alter table utenti
-       add constraint FK_utenti_org_pending
-       foreign key (id_organizzazione_pending)
+       add constraint FK_utenti_org_partenza
+       foreign key (id_organizzazione_partenza)
        references organizations;
 
     alter table utenti_classi 

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, EventEmitter, Input, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
@@ -31,7 +31,7 @@ import { Tools } from '@linkit/components';
   standalone: true,
   imports: [CommonModule, TooltipModule, TranslateModule]
 })
-export class ErrorViewComponent implements OnInit {
+export class ErrorViewComponent implements OnChanges {
 
   @Input('errTitle') title: string | null = null;
   @Input() errors: any[] = [];
@@ -40,8 +40,6 @@ export class ErrorViewComponent implements OnInit {
   @Output() onClose = new EventEmitter<any>();
 
   constructor() { }
-
-  ngOnInit() {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.title) {
@@ -64,7 +62,7 @@ export class ErrorViewComponent implements OnInit {
 
   _getProfiloLabel(cod: string) {
     const _srv: any = Tools.Configurazione.servizio;
-    const _profili = (_srv && _srv.api) ? _srv.api.profili : [];
+    const _profili = (_srv?.api) ? _srv.api.profili : [];
     const _profilo = _profili.find((item: any) => item.codice_interno === cod);
     return _profilo ? _profilo.etichetta : cod;
   }

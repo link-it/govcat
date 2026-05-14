@@ -19,18 +19,27 @@
  */
 package org.govway.catalogo.controllers;
 
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.govway.catalogo.ApiV1Controller;
 import org.govway.catalogo.InfoProfilo;
 import org.govway.catalogo.RequestUtils;
+import org.govway.catalogo.assembler.OrganizzazioneItemAssembler;
 import org.govway.catalogo.assembler.ProfiloAssembler;
+import org.govway.catalogo.core.dao.specifications.OrganizzazioneSpecification;
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.RegistrazioneUtenteEntity;
 import org.govway.catalogo.core.orm.entity.RegistrazioneUtenteEntity.StatoRegistrazione;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Stato;
+import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity;
+import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.core.services.RegistrazioneService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.BadRequestException;
@@ -38,6 +47,7 @@ import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotAuthorizedException;
+import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.service.EmailVerificationService;
 import org.govway.catalogo.servlets.api.RegistrazioneApi;
 import org.govway.catalogo.servlets.model.*;
@@ -45,7 +55,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.IanaLinkRelations;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 /**
  * Controller per la gestione della registrazione utente al primo login.
@@ -73,6 +89,15 @@ public class RegistrazioneController implements RegistrazioneApi {
 
     @Autowired
     private Configurazione configurazione;
+
+    @Autowired
+    private OrganizzazioneService organizzazioneService;
+
+    @Autowired
+    private OrganizzazioneItemAssembler organizzazioneItemAssembler;
+
+    @Autowired
+    private PagedResourcesAssembler<OrganizzazioneEntity> organizzazionePagedResourceAssembler;
 
     @Value("${firstlogin.verification.max.attempts:3}")
     private int maxVerificationAttempts;
@@ -379,6 +404,121 @@ public class RegistrazioneController implements RegistrazioneApi {
         }
     }
 
+    @Override
+    public ResponseEntity<org.govway.catalogo.servlets.model.StatoRegistrazione> selezionaOrganizzazioneRegistrazione(
+            SelezionaOrganizzazioneRequest selezionaOrganizzazioneRequest) {
+        try {
+            this.logger.info("selezionaOrganizzazioneRegistrazione: Invocazione in corso...");
+
+            checkFeatureEnabled();
+
+            InfoProfilo current = this.requestUtils.getPrincipal(false);
+            if (current == null) {
+                throw new NotAuthorizedException(ErrorCode.AUT_403);
+            }
+
+            String principal = current.idUtente;
+            UUID idOrganizzazione = selezionaOrganizzazioneRequest.getIdOrganizzazione();
+
+            return this.registrazioneService.runTransaction(() -> {
+                OrganizzazioneEntity org = this.organizzazioneService.find(idOrganizzazione)
+                    .orElseThrow(() -> new NotFoundException(ErrorCode.REG_404_ORG_NOT_FOUND,
+                        Map.of("idOrganizzazione", idOrganizzazione.toString())));
+
+                RegistrazioneUtenteEntity reg = getOrCreateRegistrazione(principal, current);
+                this.registrazioneService.setOrganizzazioneRichiesta(reg, org);
+
+                this.logger.info("selezionaOrganizzazioneRegistrazione: Organizzazione {} impostata per principal {}",
+                    org.getIdOrganizzazione(), principal);
+                return ResponseEntity.ok(buildStatoRegistrazione(mapStatoToEnum(reg.getStato()), reg, current));
+            });
+
+        } catch (RuntimeException e) {
+            this.logger.error("selezionaOrganizzazioneRegistrazione terminata con errore '4xx': " + e.getMessage(), e);
+            throw e;
+        } catch (Throwable e) {
+            this.logger.error("selezionaOrganizzazioneRegistrazione terminata con errore: " + e.getMessage(), e);
+            throw new InternalException(ErrorCode.SYS_500);
+        }
+    }
+
+    @Override
+    public ResponseEntity<org.govway.catalogo.servlets.model.StatoRegistrazione> rimuoviOrganizzazioneRegistrazione() {
+        try {
+            this.logger.info("rimuoviOrganizzazioneRegistrazione: Invocazione in corso...");
+
+            checkFeatureEnabled();
+
+            InfoProfilo current = this.requestUtils.getPrincipal(false);
+            if (current == null) {
+                throw new NotAuthorizedException(ErrorCode.AUT_403);
+            }
+
+            String principal = current.idUtente;
+
+            return this.registrazioneService.runTransaction(() -> {
+                RegistrazioneUtenteEntity reg = getOrCreateRegistrazione(principal, current);
+                this.registrazioneService.removeOrganizzazioneRichiesta(reg);
+
+                this.logger.info("rimuoviOrganizzazioneRegistrazione: Organizzazione rimossa per principal {}", principal);
+                return ResponseEntity.ok(buildStatoRegistrazione(mapStatoToEnum(reg.getStato()), reg, current));
+            });
+
+        } catch (RuntimeException e) {
+            this.logger.error("rimuoviOrganizzazioneRegistrazione terminata con errore '4xx': " + e.getMessage(), e);
+            throw e;
+        } catch (Throwable e) {
+            this.logger.error("rimuoviOrganizzazioneRegistrazione terminata con errore: " + e.getMessage(), e);
+            throw new InternalException(ErrorCode.SYS_500);
+        }
+    }
+
+    @Override
+    public ResponseEntity<PagedModelItemOrganizzazione> listOrganizzazioniRegistrazione(
+            String q, String nome, Integer page, Integer size, List<String> sort) {
+        try {
+            this.logger.info("listOrganizzazioniRegistrazione: Invocazione in corso...");
+
+            checkFeatureEnabled();
+
+            InfoProfilo current = this.requestUtils.getPrincipal(false);
+            if (current == null) {
+                throw new NotAuthorizedException(ErrorCode.AUT_403);
+            }
+
+            return this.organizzazioneService.runTransaction(() -> {
+                OrganizzazioneSpecification spec = new OrganizzazioneSpecification();
+                spec.setQ(Optional.ofNullable(q));
+                spec.setNome(Optional.ofNullable(nome));
+
+                CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("nome"));
+
+                Page<OrganizzazioneEntity> findAll = this.organizzazioneService.findAll(spec, pageable);
+
+                Link link = Link.of(ServletUriComponentsBuilder.fromCurrentRequest().build().toUriString(), IanaLinkRelations.SELF);
+
+                PagedModel<ItemOrganizzazione> lst = this.organizzazionePagedResourceAssembler.toModel(
+                    findAll, this.organizzazioneItemAssembler, link);
+
+                PagedModelItemOrganizzazione list = new PagedModelItemOrganizzazione();
+                list.setContent(lst.getContent().stream().collect(Collectors.toList()));
+                list.add(lst.getLinks());
+                list.setPage(new PageMetadata().size((long) findAll.getSize()).number((long) findAll.getNumber())
+                    .totalElements(findAll.getTotalElements()).totalPages((long) findAll.getTotalPages()));
+
+                this.logger.info("listOrganizzazioniRegistrazione: Invocazione completata con successo");
+                return ResponseEntity.ok(list);
+            });
+
+        } catch (RuntimeException e) {
+            this.logger.error("listOrganizzazioniRegistrazione terminata con errore '4xx': " + e.getMessage(), e);
+            throw e;
+        } catch (Throwable e) {
+            this.logger.error("listOrganizzazioniRegistrazione terminata con errore: " + e.getMessage(), e);
+            throw new InternalException(ErrorCode.SYS_500);
+        }
+    }
+
     // ========== Metodi privati ==========
 
     private void checkFeatureEnabled() {
@@ -404,6 +544,13 @@ public class RegistrazioneController implements RegistrazioneApi {
     private ResponseEntity<RisultatoRegistrazione> completaRegistrazioneInternal(
             String principal, String emailToUse, Idm idm) {
 
+        // Organizzazione eventualmente proposta durante la registrazione: se valorizzata,
+        // l'utente verrà messo in PENDING_UPDATE con organizzazione_pending per essere
+        // approvato dal gestore/coordinatore o dall'AMM_ORG dell'organizzazione target.
+        OrganizzazioneEntity organizzazioneRichiesta = this.registrazioneService.findByPrincipal(principal)
+            .map(RegistrazioneUtenteEntity::getOrganizzazioneRichiesta)
+            .orElse(null);
+
         // Verifica se esiste già un utente con questa email aziendale
         Optional<UtenteEntity> existingByEmail =
             this.registrazioneService.findUtenteByEmailAziendale(emailToUse);
@@ -427,6 +574,11 @@ public class RegistrazioneController implements RegistrazioneApi {
                 this.logger.info("Principal aggiornato per utente con email {}", emailToUse);
             }
 
+            if (organizzazioneRichiesta != null) {
+                applicaOrganizzazioneRichiesta(utente, organizzazioneRichiesta);
+                this.utenteService.save(utente);
+            }
+
             response.setEsito(EsitoRegistrazioneEnum.PRINCIPAL_AGGIORNATO);
             response.setMessaggio("Benvenuto! Il tuo account è stato associato all'utenza esistente.");
         } else {
@@ -438,15 +590,20 @@ public class RegistrazioneController implements RegistrazioneApi {
             utente.setCognome(idm.getCognome());
             utente.setEmailAziendale(emailToUse);
             utente.setTelefonoAziendale(idm.getTelefono() != null ? idm.getTelefono() : "00-000000");
-            utente.setReferenteTecnico(false);
 
             // Default notifiche: solo COMUNICAZIONE (no CAMBIO_STATO), tutte le entità e ruoli (no EMAIL)
             utente.setTipiNotificheAbilitate("COMUNICAZIONE");
             utente.setTipiEntitaNotificheAbilitate("SERVIZIO,ADESIONE");
             utente.setRuoliNotificheAbilitate("SERVIZIO_REFERENTE_DOMINIO,SERVIZIO_REFERENTE_TECNICO_DOMINIO,SERVIZIO_REFERENTE_SERVIZIO,SERVIZIO_REFERENTE_TECNICO_SERVIZIO,SERVIZIO_RICHIEDENTE_SERVIZIO,ADESIONE_REFERENTE_DOMINIO,ADESIONE_REFERENTE_TECNICO_DOMINIO,ADESIONE_REFERENTE_SERVIZIO,ADESIONE_REFERENTE_TECNICO_SERVIZIO,ADESIONE_RICHIEDENTE_SERVIZIO,ADESIONE_REFERENTE_ADESIONE,ADESIONE_REFERENTE_TECNICO_ADESIONE,ADESIONE_RICHIEDENTE_ADESIONE,GESTORE,COORDINATORE");
 
-            // Imposta lo stato in base alla configurazione
-            if (Boolean.TRUE.equals(this.configurazione.getUtente().isAutoabilitazioneAbilitata())) {
+            if (organizzazioneRichiesta != null) {
+                // L'utente ha proposto un'organizzazione: stato PENDING_UPDATE in attesa
+                // di approvazione (l'autoabilitazione viene ignorata in questo caso perché
+                // l'approvazione manuale dell'AMM_ORG/gestore è di per sé l'abilitazione).
+                utente.setStato(Stato.PENDING_UPDATE);
+                utente.setOrganizzazionePending(organizzazioneRichiesta);
+                utente.setOrganizzazionePartenza(null);
+            } else if (Boolean.TRUE.equals(this.configurazione.getUtente().isAutoabilitazioneAbilitata())) {
                 utente.setStato(Stato.ABILITATO);
             } else {
                 utente.setStato(Stato.NON_CONFIGURATO);
@@ -471,6 +628,45 @@ public class RegistrazioneController implements RegistrazioneApi {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Applica la richiesta di associazione organizzativa ad un utente esistente (path PRINCIPAL_AGGIORNATO):
+     * imposta organizzazione_pending sull'utente e stato PENDING_UPDATE, lasciando intatte le
+     * eventuali associazioni esistenti (organizzazione_partenza resta null).
+     * Verifica i conflitti: utente già associato all'org, oppure già in attesa per un'altra org.
+     */
+    private void applicaOrganizzazioneRichiesta(UtenteEntity utente, OrganizzazioneEntity organizzazione) {
+        // Idempotente: se l'utente è già in attesa per la stessa org, nessuna modifica
+        if (utente.getStato() == Stato.PENDING_UPDATE
+                && utente.getOrganizzazionePending() != null
+                && utente.getOrganizzazionePending().getId().equals(organizzazione.getId())) {
+            this.logger.info("Utente {} già in attesa per organizzazione {}, nessuna modifica",
+                utente.getIdUtente(), organizzazione.getIdOrganizzazione());
+            return;
+        }
+
+        // Conflitto: in attesa per un'altra organizzazione
+        if (utente.getStato() == Stato.PENDING_UPDATE
+                && utente.getOrganizzazionePending() != null
+                && !utente.getOrganizzazionePending().getId().equals(organizzazione.getId())) {
+            throw new ConflictException(ErrorCode.REG_409_ALREADY_PENDING_OTHER_ORG,
+                Map.of("orgNome", utente.getOrganizzazionePending().getNome()));
+        }
+
+        // Conflitto: già associato all'organizzazione richiesta
+        List<UtenteOrganizzazioneEntity> associazioni = this.utenteService.findUtenteOrganizzazioniByUtente(utente);
+        boolean giaAssociato = associazioni.stream()
+            .anyMatch(a -> a.getOrganizzazione() != null
+                && a.getOrganizzazione().getId().equals(organizzazione.getId()));
+        if (giaAssociato) {
+            throw new BadRequestException(ErrorCode.REG_400_ORG_ALREADY_ASSOCIATED,
+                Map.of("orgNome", organizzazione.getNome()));
+        }
+
+        utente.setOrganizzazionePending(organizzazione);
+        utente.setOrganizzazionePartenza(null);
+        utente.setStato(Stato.PENDING_UPDATE);
+    }
+
     private org.govway.catalogo.servlets.model.StatoRegistrazione buildStatoRegistrazione(
             StatoRegistrazioneEnum stato, RegistrazioneUtenteEntity reg, InfoProfilo current) {
 
@@ -485,6 +681,10 @@ public class RegistrazioneController implements RegistrazioneApi {
             result.setCognome(reg.getCognome());
             result.setPrincipal(reg.getPrincipal());
             result.setTentativiRegistrazione(reg.getTentativiTotali());
+            if (reg.getOrganizzazioneRichiesta() != null) {
+                result.setOrganizzazioneRichiesta(
+                    this.organizzazioneItemAssembler.toModel(reg.getOrganizzazioneRichiesta()));
+            }
         } else {
             Idm idm = this.requestUtils.getIdm();
             result.setEmailJwt(idm.getEmail());

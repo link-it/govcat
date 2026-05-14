@@ -176,17 +176,6 @@ class UtenteSpecificationTest {
         assertNotNull(predicate);
     }
 
-    @Test
-    public void testToPredicateWithReferenteTecnico() {
-    	when(root.get("referenteTecnico")).thenReturn(qPath);
-        when(cb.equal(qPath, true)).thenReturn(equalPredicate);
-        when(cb.and(equalPredicate)).thenReturn(andPredicate);
-    	
-        specification.setReferenteTecnico(Optional.of(true));
-        Predicate predicate = specification.toPredicate(root, query, cb);
-        assertNotNull(predicate);
-    }
-
     @SuppressWarnings("unchecked")
     @Test
     public void testToPredicateWithIdOrganizzazione() {

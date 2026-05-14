@@ -5,6 +5,8 @@
  * Interfacce per il flusso di registrazione utente (first-login)
  */
 
+import { ItemOrganizzazione } from './itemOrganizzazione';
+
 export type StatoRegistrazioneEnum =
   | 'IN_ATTESA_CONFERMA'
   | 'CODICE_INVIATO'
@@ -28,6 +30,22 @@ export interface StatoRegistrazione {
   codice_inviato?: boolean;
   tentativi_verifica_rimanenti?: number;
   tentativi_invio_rimanenti?: number;
+  /**
+   * Issue 229 — organizzazione selezionata dall'utente durante
+   * il wizard di registrazione. Popolata dal BE quando l'utente
+   * ha gia` fatto una scelta (sopravvive a refresh/re-entry).
+   * Stub locale finche` il client TS generato dall'OpenAPI
+   * include il campo.
+   */
+  organizzazione_richiesta?: ItemOrganizzazione;
+}
+
+/**
+ * Issue 229 — body per `POST /registrazione/organizzazione`.
+ * Stub locale, sara` sostituito dal modello generato.
+ */
+export interface SelezionaOrganizzazioneRequest {
+  id_organizzazione: string;
 }
 
 export interface ModificaEmailRequest {

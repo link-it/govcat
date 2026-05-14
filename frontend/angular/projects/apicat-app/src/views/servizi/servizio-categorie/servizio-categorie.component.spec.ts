@@ -1378,7 +1378,7 @@ describe('ServizioCategorieComponent', () => {
   describe('_onChangeTipoReferente', () => {
     it('should set categorieFilter for referent', () => {
       component._onChangeTipoReferente(true);
-      expect(component.categorieFilter).toBe('referente_servizio,gestore,coordinatore');
+      expect(component.categorieFilter).toBe('referente_servizio,utente_organizzazione,gestore,coordinatore');
     });
 
     it('should set categorieFilter to empty for non-referent', () => {
@@ -1646,7 +1646,7 @@ describe('ServizioCategorieComponent', () => {
     it('should set referente with correct filter', () => {
       component.loadAnagrafiche();
       const ref = component.anagrafiche['tipo-referente'].find((r: any) => r.nome === 'referente');
-      expect(ref.filter).toBe('referente_servizio,gestore,coordinatore');
+      expect(ref.filter).toBe('referente_servizio,utente_organizzazione,gestore,coordinatore');
     });
 
     it('should set referente_tecnico with empty filter', () => {

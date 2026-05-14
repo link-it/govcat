@@ -21,7 +21,9 @@
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 
 import { OAuthInterceptor } from './oauth.interceptor';
+import { OrganizationContextInterceptor } from './organization-context.interceptor';
 
 export const appHttpInterceptorProviders = [
-  { provide: HTTP_INTERCEPTORS, useClass: OAuthInterceptor, multi: true }
+  { provide: HTTP_INTERCEPTORS, useClass: OAuthInterceptor, multi: true },
+  { provide: HTTP_INTERCEPTORS, useClass: OrganizationContextInterceptor, multi: true }
 ];

@@ -150,6 +150,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         { value: 'referente_dominio', label: 'APP.ROLE.referente_dominio' },
         { value: 'referente_tecnico_dominio', label: 'APP.ROLE.referente_tecnico_dominio' },
         { value: 'referente_servizio', label: 'APP.ROLE.referente_servizio' },
+        { value: 'utente_organizzazione', label: 'APP.ROLE.utente_organizzazione' },
         { value: 'referente_tecnico_servizio', label: 'APP.ROLE.referente_tecnico_servizio' },
         { value: 'richiedente_servizio', label: 'APP.ROLE.richiedente_servizio' }
     ];
@@ -204,9 +205,14 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     _myServicesCount: number = 0;
 
     roleTab: string = 'tutti';
+    // Issue 229 evolutiva 2 — allineamento al nuovo enum
+    // `RuoloReferente` BE. Aggiunto `amministratore_organizzazione`
+    // e `operatore_api` (ruoli per-org che danno visibilita` sui
+    // servizi della propria organizzazione). `utente_organizzazione`
+    // mantenuto come fallback per dati legacy.
     roleTabs: { key: string, label: string, roles: string[] }[] = [
         { key: 'tutti', label: 'APP.FILTER.All', roles: [] },
-        { key: 'referente', label: 'APP.FILTER.ReferenteServizioDominio', roles: ['referente_dominio', 'referente_tecnico_dominio', 'referente_servizio', 'referente_tecnico_servizio'] },
+        { key: 'referente', label: 'APP.FILTER.ReferenteServizioDominio', roles: ['referente_dominio', 'referente_tecnico_dominio', 'referente_servizio', 'referente_tecnico_servizio', 'utente_organizzazione', 'amministratore_organizzazione', 'operatore_api'] },
         { key: 'richiedente', label: 'APP.FILTER.Richiedente', roles: ['richiedente_servizio'] }
     ];
     _currIdGruppoPadre: string = '';
@@ -1024,6 +1030,10 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         if (this._isAnonymous()) { return false; }
         const user: any = this.authenticationService.getUser();
         if (!user?.ruolo && !user?.referente_tecnico) { return false; }
+        // Vincolo multi-org: ruoli per-org possono creare un servizio
+        // solo se l'organizzazione di sessione e' abilitata come `referente`.
+        // Gestori e coordinatori passano sempre.
+        if (!this.authenticationService.canCreateServizio()) { return false; }
         return true;
     }
 

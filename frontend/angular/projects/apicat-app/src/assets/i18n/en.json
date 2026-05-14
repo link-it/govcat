@@ -1,5 +1,54 @@
 {
 	"APP": {
+		"ORGANIZATION_SWITCHER": {
+			"Title": "Organization",
+			"NoRole": "No role",
+			"ManageTooltip": "Manage organization"
+		},
+		"ORGANIZATION_SELECTOR": {
+			"Title": "Select organization",
+			"Subtitle": "You have access to multiple organizations. Choose which one to work with in this session.",
+			"Confirm": "Confirm",
+			"LogoutLink": "Log out",
+			"NoOrganizations": "No organizations are associated with your profile."
+		},
+		"ORGANIZATION_MANAGE": {
+			"Title": "Organization management",
+			"HelpText": "From this section you can manage users and domains of the organization.",
+			"AddTooltip": "Add a user to the organization",
+			"TabUtenti": "Users",
+			"TabDomini": "Domains"
+		},
+		"RUOLI": {
+			"AmministratoreOrganizzazione": "Organization administrator",
+			"NessunRuolo": "No role",
+			"OperatoreApi": "API operator",
+			"UtenteOrganizzazione": "Organization user"
+		},
+		"UTENTI_ORG": {
+			"TITLE": {
+				"List": "Organization users",
+				"Add": "Add user to organization",
+				"Edit": "Edit user role",
+				"NewUser": "New user"
+			},
+			"LABEL": {
+				"User": "User",
+				"Role": "Role in organization",
+				"SearchUser": "Search user",
+				"CurrentOrganization": "Current organization"
+			},
+			"BUTTON": {
+				"Add": "Add",
+				"Remove": "Remove",
+				"NewUser": "New user",
+				"BackToSearch": "Back to search"
+			},
+			"MESSAGE": {
+				"RemoveConfirm": "Do you want to remove {{nome}} from this organization?",
+				"SearchHint": "Enter at least 2 characters to search for an existing user."
+			}
+		},
 		"ADESIONI": {
 			"FILTER": {
 				"All": "All",
@@ -13,17 +62,81 @@
 				"Domain": "Domain",
 				"DownloadScheda": "Download membership sheet",
 				"Finalita": "Purpose",
+				"ClientGiaCensito": "Existing client",
+				"HintSectionActionRequired": "Action required.",
+				"HintSectionCollaudoDisabled": "Available after completing the previous sections.",
+				"HintSectionCompleted": "Section completed.",
+				"HintSectionPast": "Phase completed: this section belongs to a previous phase of the workflow. Changes may still be allowed depending on role and on fields that remain editable.",
+				"HintSectionProduzioneDisabled": "Will be enabled upon completion of testing and administrator verification.",
+				"HintSectionReferentiDisabled": "Available after configuring the general information.",
+				"LayoutOrizzontale": "Switch to horizontal layout",
+				"LayoutVerticale": "Switch to vertical layout",
+				"NoClientDisponibili": "No clients available for this organization. Choose \"New client\" to proceed, or contact your administrator.",
+				"SelezionaClient": "Select a client…",
+				"SelezionaPeriodo": "Select a period…",
+				"TipoAccesso": "Access type",
+				"HelpCertificatoFornito": "You already have an X.509 certificate issued by your organization or a trusted CA. You will need to upload it in .pem or .cer format. Make sure it is not expired and that the CN is recognizable.",
+				"HelpRichiestoCN": "You do not have a certificate available. You can request its issuance from the Administrator by indicating the desired Common Name (CN).",
+				"HelpCertificatoRichiestoCSR": "You have generated a Certificate Signing Request (CSR) from your system. Upload it here and the Administrator will sign it and issue the corresponding certificate. This method ensures that the private key remains always in your infrastructure and is never transmitted.",
+				"HelpScenarioNuovo": "You are creating a new client for this subscription. You will upload (or request) your organization's X.509 certificate: the client and certificate will be associated with the subscription and can be reused for future subscriptions.",
+				"HelpScenarioProposto": "Select one of the clients already registered in your organization and compatible with this authentication profile. The membership will be associated with the selected client without requiring additional configurations.",
+				"HelpScenarioRiferito": "You are reusing a client already registered in the list: the associated certificate and configuration will be reused for this subscription.",
 				"Name": "Name",
+				"NomeDelClient": "Client name",
 				"NomeProposto": "Client registered in API Gateway",
 				"NuoveCredenziali": "New credentials",
+				"NuovoClient": "New client",
+				"PlaceholderClientIdPDND": "E.g. 8f3b2c1a-...",
+				"PlaceholderDescrizione": "Add a short description…",
+				"PlaceholderIpFruizione": "E.g. 192.168.10.0/24",
+				"PlaceholderNomeClient": "Enter the client name…",
+				"PlaceholderQuota": "E.g. 1000",
 				"Organization": "Organization",
 				"Periodo": "Period",
 				"Quota": "Quote",
 				"RateLimiting": "Rate limiting",
 				"ScegliCredenziali": "Choose your credentials…",
 				"Service": "Service",
+				"SkipCollaudoTooltip": "Enabling this option makes the subscription skip the testing phase and move directly to production configuration. Production configuration cannot be modified once published.",
 				"Subject": "Subject",
-				"UsaClientEsistente": "Use existing client"
+				"UsaClientEsistente": "Use existing client",
+				"WizardShowAllSections": "Show all sections (debug)",
+				"WizardShowStateBadges": "Show step badges (debug)",
+				"WizardChevronVariant": "Chevron step-bar (debug)",
+				"WizardCirclesLabelRight": "Label right (circles) (debug)",
+				"WizardDarkMode": "Dark step-bar preset (debug)",
+				"WizardNewLayout": "New wizard layout (debug)",
+				"FaseInfoTitle": "General information and contacts",
+				"FaseCollaudoTitle": "Testing",
+				"FaseProduzioneTitle": "Production",
+				"FaseLabel": "Phase",
+				"AzioneRichiesta": "Action required",
+				"Bloccato": "Locked",
+				"Completato": "Completed",
+				"FaseConclusa": "Phase concluded",
+				"InAttesa": "On hold",
+				"InCorso": "In progress",
+				"WaitingGestoreTitle": "Waiting for the gestore to take action",
+				"WaitingGestoreDesc": "The request has been submitted. The gestore will pick up the configuration and notify you upon completion.",
+				"ProceduraAttivazione": "Activation procedure",
+				"ProceduraConfigurazione": "Configuration procedure",
+				"CompletedOf": "{{done}} of {{total}} completed",
+				"BloccatoTooltip": "Available after the previous step is completed"
+			},
+			"STEP_WIZARD": {
+				"info_generali": "General Information & Referents",
+				"collaudo": "Testing",
+				"produzione": "Production",
+				"CurrentStateBadge": "Current",
+				"PreviewBadge": "Preview"
+			},
+			"STEP_WIZARD_SEZIONE": {
+				"in_compilazione": "Drafting",
+				"in_approvazione": "Awaiting approval",
+				"in_configurazione": "Configuring",
+				"configurato": "Configured",
+				"in_compilazione_meta": "Configure authentication and endpoint",
+				"in_compilazione_meta_completed": "View or edit authentication and endpoint"
 			},
 			"TITLE": {
 				"ApiInformations": "Api",
@@ -52,6 +165,9 @@
 				"ShowCommunications_sub": "Show communications",
 				"ShowReferents": "Referents",
 				"ShowReferents_sub": "Show referents"
+			},
+			"MESSAGE": {
+				"ConfigureClientsDisclaimer": "Configure the authentication clients to proceed. For each profile listed below, click the pencil and enter the required data."
 			},
 			"TOOLTIP": {
 				"EditAdesione": ""
@@ -183,6 +299,10 @@
 		},
 		"BUTTON": {
 			"Add": "Add",
+			"GoToService": "Go to the Service",
+			"Copy": "Copy",
+			"ShowAll": "Show all",
+			"ShowLess": "Show less",
 			"AddApi": "Add APIs",
 			"AddAttachment": "Add Attachment",
 			"AddAuthentication": "Add Authentication",
@@ -246,12 +366,15 @@
 			"RemoveGroup": "Remove group",
 			"Report": "Report",
 			"RestoreDefaultAuthentication": "Restore default authentication",
+			"LoadMore": "Load more",
 			"Save": "Save",
 			"Search": "Search",
 			"Select": "Select",
 			"SelectAll": "Select All",
 			"Send": "Submit",
+			"Show": "Show",
 			"ShowHistory": "Show history",
+			"CompilaOra": "Fill now",
 			"ShowResult": "Show result",
 			"Testing": "Testing",
 			"Today": "Today",
@@ -292,6 +415,8 @@
 			"LABEL": {
 				"Ambient": "Ambient",
 				"Auth_type": "Auth type",
+				"SelezionaAuthType": "Select an authentication type",
+				"SelezionaTipoCertificato": "Select a mode…",
 				"AuthenticationCertificate": "Authentication certificate",
 				"CertificateType": "Certificate type",
 				"ClientId": "Client Identifier",
@@ -371,6 +496,8 @@
 			"UnreadComunicazioni": "Unread communications",
 			"LastUpdate": "Last update",
 			"TotalItems": "{{count}} items",
+			"CertExpiring": "Certificate expiring",
+			"CertExpired": "Certificate expired",
 			"RUOLO": {
 				"referente_dominio": "Domain ref.",
 				"referente_tecnico_dominio": "Domain tech ref.",
@@ -410,6 +537,13 @@
 		"DOMINI": {
 			"DeleteDomain": "Delete Domain",
 			"EditDomain": "Edit domain",
+			"BUTTON": {
+				"Add": "Add domain",
+				"Remove": "Remove domain"
+			},
+			"MESSAGE": {
+				"RemoveConfirm": "Are you sure you want to delete the domain **{{nome}}**? This action cannot be undone."
+			},
 			"LABEL": {
 				"Classi": "Classes",
 				"Deprecato": "Deprecated",
@@ -734,6 +868,7 @@
 			"filename": "Filename",
 			"FileName": "Filename",
 			"Finalita": "Purpose",
+			"FormatiAccettati": "Accepted formats",
 			"FreeSearch": "Free search",
 			"From": "from",
 			"Fruitore": "User shall",
@@ -949,6 +1084,9 @@
 			"tempo_medio_risposta": "Average response time",
 			"TempoRisposta": "Response time",
 			"termini_ricerca": "Search Terms",
+			"Owner": "Service contact",
+			"UpdatedRelative": "Updated {{time}}",
+			"ApiDocumentation": "API Documentation",
 			"tipo": "Type",
 			"tipo_analisi": "Analysis type",
 			"tipo_gateway": "Gateway type",
@@ -957,6 +1095,7 @@
 			"TipoCertificato": "Certificate type",
 			"Tipologia": "Type",
 			"To": "to",
+			"TrascinaFileOClicca": "Drag the file here or click to select",
 			"TRANSACTION_OUTCOME": {
 				"errori_consegna": "Delivery error",
 				"fallite": "Failures",
@@ -1000,6 +1139,13 @@
 			"Yes": "Yes"
 		},
 		"LABEL_HELP": {
+			"ClientAuthForm": {
+				"nome": "The name identifies the system or application that will connect to the service. Choose a descriptive and recognizable name as it will appear in your organization's client list and can be reused for other subscriptions, avoiding the need to reconfigure certificates every time.",
+				"ip_fruizione": "IP address of the system that will call the service. If it's not fixed or unknown, leave the field empty.",
+				"quota": "Maximum number of requests your application can make in the indicated period (rate limiting). If not specified, the default limit defined by the service provider will be applied.",
+				"client_id": "The unique identifier (UUID) of the client you registered on the PDND portal. You can find it in the Client e-service section of your entity, on the client detail page. Make sure the client is associated with the correct purpose for this service before proceeding.",
+				"descrizione": "Use this field to record useful information about the client (operating environment, certificate expiration date, etc). These notes will be visible to the technical contacts of the subscription."
+			},
 			"ADESIONE": {
 				"id_logico": "Unique identifier for the subscription, useful to distinguish multiple subscriptions from the same organization to the same service.",
 				"referente": "Specify the organizational responsible for this subscription (e.g. IT manager, company contact). Will receive institutional communications about the service.",
@@ -1079,6 +1225,7 @@
 			"Files": "Files",
 			"GenericServices": "Generics",
 			"GoToView": "Go to the view",
+			"NotSpecified": "— not specified",
 			"Groups": "Groups",
 			"Home": "Home",
 			"Italiano": "Italian",
@@ -1122,14 +1269,19 @@
 			"EmailModified": "Email modified successfully",
 			"EmailRemoved": "Email removed successfully",
 			"OrgNonAmmissibile": "Your organization is not authorized to subscribe to this service",
+			"JoinServiceTitle": "Subscribe to the service",
+			"JoinServiceSubtitle": "Configure your organization to use the APIs of this service.",
+			"GoAdesionePrompt": "You already have an active subscription. Go to the detail to manage it.",
+			"GoAdesioniPrompt": "There are subscriptions associated with this service. View them to manage them.",
+			"GoToServiceSubtitle": "View the details of the service this subscription refers to (APIs, documentation, contacts).",
 			"ERROR": {
 				"ADE": {
 					"400": {
 						"STATE": {
-						"DEFAULT": "Membership state [{{stato}}] not valid for this operation",
-						"MONITORING": "Membership state [{{stato}}] not valid for monitoring (membership [{{idAdesione}}])",
-						"SERVICE": "Service [{{servizio}}] state does not allow memberships"
-					}
+							"DEFAULT": "Membership state [{{stato}}] not valid for this operation",
+							"MONITORING": "Membership state [{{stato}}] not valid for monitoring (membership [{{idAdesione}}])",
+							"SERVICE": "Service [{{servizio}}] state does not allow memberships"
+						}
 					},
 					"403": {
 						"REFERENT": "Membership referent [{{referente}}] not authorized"
@@ -1192,7 +1344,11 @@
 						"ORG": {
 							"ADHESION": "Organization [{{nomeOrganizzazione}}] does not match for membership",
 							"MISMATCH": "Organization [{{orgNome}}] is internal, but user [{{userIdUtente}}] is associated with organization [{{userOrgNome}}]",
-							"MISSING": "Organization [{{orgNome}}] is internal, but user [{{userIdUtente}}] is not associated with any organization"
+							"MISSING": "Organization [{{orgNome}}] is internal, but user [{{userIdUtente}}] is not associated with any organization",
+							"NOT": {
+								"ADERENTE": "Organization [{{nomeOrganizzazione}}] is not enabled as an adherent",
+								"REFERENTE": "Organization [{{nomeOrganizzazione}}] is not enabled as a service referent"
+							}
 						},
 						"REFERENT": {
 							"NOT": {
@@ -1200,7 +1356,23 @@
 							}
 						},
 						"RESOURCE": "Access denied to resource [{{resource}}]",
-						"ROLE": "User must have one of the roles [{{ruoli}}] to execute the force"
+						"ROLE": "User must have one of the roles [{{ruoli}}] to execute the force",
+						"AMM": {
+							"ORG": {
+								"INVALID": {
+									"ROLE": "An organization administrator cannot assign role [{{ruolo}}]",
+									"ORGS": "An organization administrator can create users only associated exclusively with the session organization"
+								},
+								"DOMINIO": {
+									"FUORI": {
+										"ORG": "Operation allowed only for domains of organization [{{orgNome}}]"
+									}
+								},
+								"NOT": {
+									"TARGET": "Operation allowed only to the administrator of the target organization of the change request"
+								}
+							}
+						}
 					}
 				},
 				"CAT": {
@@ -1401,11 +1573,30 @@
 							"EMAIL": {
 								"JWT": "Email not present in authentication data"
 							}
+						},
+						"ORG": {
+							"ALREADY": {
+								"ASSOCIATED": "User already associated with organization [{{orgNome}}]"
+							}
+						}
+					},
+					"404": {
+						"ORG": {
+							"NOT": {
+								"FOUND": "Organization [{{idOrganizzazione}}] not found"
+							}
 						}
 					},
 					"409": {
 						"PRINCIPAL": {
 							"EXISTS": "Principal already associated with another user"
+						},
+						"ALREADY": {
+							"PENDING": {
+								"OTHER": {
+									"ORG": "User already pending approval for another organization [{{orgNome}}]"
+								}
+							}
 						}
 					},
 					"410": {
@@ -1528,7 +1719,27 @@
 							"ENABLED": "User [{{nomeUtente}} {{cognomeUtente}}] not enabled"
 						},
 						"ORG": {
-							"MISMATCH": "User [{{nomeUtente}} {{cognomeUtente}}] does not belong to organization [{{nomeOrganizzazione}}]"
+							"MISMATCH": "User [{{nomeUtente}} {{cognomeUtente}}] does not belong to organization [{{nomeOrganizzazione}}]",
+							"PARTENZA": {
+								"NOT": {
+									"ASSOCIATED": "Source organization [{{orgNome}}] is not associated with the user"
+								},
+								"SAME": {
+									"AS": {
+										"TARGET": "Source organization cannot be the same as the requested target"
+									}
+								}
+							},
+							"PENDING": {
+								"ALREADY": {
+									"ASSOCIATED": "User is already associated with organization [{{orgNome}}]"
+								}
+							}
+						},
+						"NO": {
+							"PENDING": {
+								"REQUEST": "No pending organization change request to cancel"
+							}
 						}
 					},
 					"403": {
@@ -1799,9 +2010,33 @@
 				"CurrentLabel": "Current organization",
 				"RequestSent": "Organization change request sent successfully",
 				"ApproveTitle": "Approve organization change",
-				"ApproveWarning": "Do you confirm you want to approve the organization change request? A **new user** will be created with the same principal and the new organization. The **current user will be disabled** and will no longer be able to access the application with the current organization.",
+				"ApproveWarning": "Do you confirm you want to approve the organization change request? The existing association will be replaced with the new organization.",
 				"ApproveWarningFirstOrg": "Do you confirm you want to approve the organization assignment request? The user will be associated with the new organization.",
-				"ApproveButton": "Approve"
+				"ApproveButton": "Approve",
+				"CancelTitle": "Cancel request",
+				"CancelWarning": "Do you confirm you want to cancel the pending organization change request? This action cannot be undone.",
+				"CancelButton": "Cancel request",
+				"RequestCancelled": "Organization change request cancelled",
+				"RejectTitle": "Reject request",
+				"RejectWarning": "Do you confirm you want to reject this user's organization change request?",
+				"RejectButton": "Reject",
+				"SelectOrgPartenza": "Organization to be replaced",
+				"SelectOrgPartenzaPlaceholder": "Select the association to be replaced",
+				"OrgPartenzaHelp": "You have multiple active associations: pick the one that will be replaced by the new organization.",
+				"PassaggioDaA": "Switching from **{{partenza}}** to **{{destinazione}}**",
+				"PassaggioA": "New organization: **{{destinazione}}**",
+				"RuoloOrgTarget": "Role on the new organization",
+				"YourOrganizations": "Your organizations",
+				"NoOrganizations": "You are not yet associated with any organization.",
+				"AddButton": "Add organization",
+				"AddTitle": "Add a new organization",
+				"AddWarning": "Request association with a new organization. The request must be approved by an administrator.",
+				"AddConfirm": "Request association",
+				"ReplaceButton": "Replace",
+				"ReplaceConfirm": "Request replacement",
+				"SelectNewOrg": "Select the new organization",
+				"PendingAddMessage": "You have a pending association request to: **{{destinazione}}**. The request is awaiting administrator approval.",
+				"PendingReplaceMessage": "You have a pending replacement request: from **{{partenza}}** to **{{destinazione}}**. The request is awaiting administrator approval."
 			},
 			"EMAIL_VERIFICATION": {
 				"TITLE": "Modify email",
@@ -1846,17 +2081,22 @@
 				"ConfermaEmail": "Confirm your details",
 				"ModificaEmail": "Change email",
 				"VerificaCodice": "Verify code",
+				"SelezionaOrganizzazione": "Select organization (optional)",
 				"Benvenuto": "Welcome"
 			},
 			"STEP": {
 				"Conferma": "Confirm",
 				"Verifica": "Verify",
+				"SelezionaOrganizzazione": "Organization",
 				"Completato": "Complete"
 			},
 			"LABEL": {
 				"EmailAttuale": "Current email",
 				"NuovaEmail": "New email",
-				"ConfermaEmail": "Confirm email"
+				"ConfermaEmail": "Confirm email",
+				"SearchOrganizzazione": "Search organization",
+				"SearchOrganizzazionePlaceholder": "Type to search by name",
+				"OrganizzazioneSelezionata": "Selected organization"
 			},
 			"BUTTON": {
 				"ConfermaEProcedi": "Confirm and proceed",
@@ -1866,7 +2106,11 @@
 				"Verifica": "Verify code",
 				"ReinviaCodice": "Resend code",
 				"CambiaEmail": "Change email",
-				"VaiAlCatalogo": "Go to catalog"
+				"VaiAlCatalogo": "Go to catalog",
+				"Salta": "Skip",
+				"Cambia": "Change",
+				"Rimuovi": "Remove",
+				"ConfermaERegistra": "Confirm and register"
 			},
 			"MESSAGE": {
 				"ConfermaEmailDesc": "We have retrieved your data from the authentication system. Please verify it is correct.",
@@ -1879,6 +2123,8 @@
 				"CodiceScadeIn": "Code expires in",
 				"CodiceScaduto": "The code has expired. Please request a new code.",
 				"RegistrazioneCompletata": "Your registration has been completed successfully!",
+				"SelezionaOrganizzazioneDesc": "You can request to be associated with an existing organization. Your request will be approved by an administrator. You can also skip this step and do it later from your profile.",
+				"OrganizzazioneInAttesa": "Your association request to **{{nome}}** is awaiting administrator approval.",
 				"CosaFare": "Here's what you can do now:",
 				"PuoiEsplorare": "Browse the catalog of available services",
 				"PuoiRichiedere": "Request access to services of interest",
@@ -1888,7 +2134,8 @@
 				"EmailRequired": "Email is required",
 				"EmailInvalid": "Please enter a valid email address",
 				"EmailMismatch": "Emails do not match",
-				"CodiceLength": "Code must be 6 characters"
+				"CodiceLength": "Code must be 6 characters",
+				"OrganizzazioneNotFound": "No organization found with this name."
 			}
 		},
 		"ROLE": {
@@ -1910,6 +2157,9 @@
 			"referente_adesione": "Subscription referent",
 			"referente_dominio": "Domain referent",
 			"referente_servizio": "Service referent",
+			"utente_organizzazione": "Organization user",
+			"amministratore_organizzazione": "Organization administrator",
+			"operatore_api": "API operator",
 			"referente_tecnico": "Technical referent",
 			"referente_tecnico_adesione": "Membership technical contact",
 			"referente_tecnico_dominio": "Domain technical contact",
@@ -2162,7 +2412,7 @@
 			"AppTitle": "API ModI Catalog",
 			"Attention": "Attention",
 			"Autenticazioni": "Authentications",
-			"AuthTypeConfiguration": "Authorization Type Configuration",
+			"AuthTypeConfiguration": "Authentication configuration",
 			"Certificati": "Certificates",
 			"Check": "Check",
 			"Checks": "Checks",
@@ -2277,6 +2527,7 @@
 			"Completed": "Completed",
 			"ComponentsList": "Components list",
 			"CopyTestingValue": "Copy testing value",
+			"DeleteAdesione": "Delete adhesion",
 			"DeleteService": "Delete service",
 			"Dissociate": "Dissociate",
 			"Download": "Download",
@@ -2437,6 +2688,10 @@
 				"Found": "Found",
 				"Open": "Open"
 			},
+			"ORGANIZZAZIONI": {
+				"Title": "Organizations",
+				"HelpText": "Organization memberships are managed from the organization detail page, in the \"Organization users\" section."
+			},
 			"LABEL": {
 				"Cognome": "Lastname",
 				"CorporateEmail": "Corporate Email",
@@ -2444,6 +2699,7 @@
 				"Email": "Email",
 				"Nome": "Name",
 				"Note": "Note",
+				"OrganizzazioneEsterna": "External organization (e.g. software house)",
 				"Phone": "Phone",
 				"Principal": "Principal",
 				"Role": "Role",
@@ -2455,7 +2711,8 @@
 				"coordinatore": "Coordinator",
 				"gestore": "Manager",
 				"nessun_ruolo": "No role",
-				"referente_servizio": "Service contact person"
+				"referente_servizio": "Service contact person",
+				"utente_organizzazione": "Organization user"
 			},
 			"STATUS": {
 				"abilitato": "Enabled",
@@ -2624,7 +2881,19 @@
 				"pubblicato_produzione_senza_collaudo": "Released into production without testing",
 				"richiesto_collaudo": "Required for testing",
 				"richiesto_produzione": "Required in production",
-				"richiesto_produzione_senza_collaudo": "Required in production without testing"
+				"richiesto_produzione_senza_collaudo": "Required in production without testing",
+				"bad_request": "Bad request",
+				"chiusa": "Closed",
+				"configurata_collaudo": "Configured in testing",
+				"configurata_produzione": "Configured in production",
+				"denied": "Denied",
+				"forbidden": "Forbidden",
+				"inviata_collaudo": "Sent for testing",
+				"inviata_produzione": "Sent for production",
+				"processing": "Processing",
+				"profile_not_exists": "Profile does not exist",
+				"rejected": "Rejected",
+				"sender_not_allowed": "Sender not allowed"
 			}
 		},
 		"WSDL": {

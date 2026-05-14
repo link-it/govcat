@@ -91,7 +91,10 @@ public class DominiController implements DominiApi {
 	private ReferenteDominioAssembler referenteAssembler;
 
 	@Autowired
-	private DominioAuthorization authorization;   
+	private DominioAuthorization authorization;
+
+	@Autowired
+	private org.govway.catalogo.core.services.UtenteService utenteService;
 
 
 	private Logger logger = LoggerFactory.getLogger(DominiController.class);
@@ -203,13 +206,26 @@ public class DominiController implements DominiApi {
 	
 				DominioSpecification spec = new DominioSpecification();
 				spec.setQ(Optional.ofNullable(q));
-				
+
 				spec.setVisibilita(Optional.ofNullable(visibilita).map(v -> this.dettaglioAssembler.toVisibilita(v)));
 				spec.setDeprecato(Optional.ofNullable(deprecato));
 				spec.setEsterno(Optional.ofNullable(esterno));
 				spec.setIdDominio(Optional.ofNullable(idDominio));
 				spec.setIdSoggetto(Optional.ofNullable(idSoggetto));
 				spec.setNome(Optional.ofNullable(nome));
+
+				// Filtro visibilità per-organizzazione:
+				// gestore e coordinatore vedono tutti i domini (nessun filtro).
+				// Altri utenti vedono solo i domini della propria organizzazione di sessione.
+				// Se non c'è contesto di sessione, il filtro non si applica (l'utente vede tutto ciò
+				// che la visibilità del dominio gli consente).
+				if (!this.coreAuthorization.isAdmin()
+						&& !this.coreAuthorization.isCoordinatore()
+						&& this.coreAuthorization.getOrganizationContext() != null
+						&& this.coreAuthorization.getOrganizationContext().hasOrganizzazione()) {
+					spec.setIdOrganizzazioneSoggettoReferente(
+							Optional.of(this.coreAuthorization.getOrganizzazioneSessione().getId()));
+				}
 
 				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("nome"));
 				
@@ -318,37 +334,34 @@ public class DominiController implements DominiApi {
 		
 		for(ReferenteDominioEntity referenteEntity: dominioEntity.getReferenti()) {
 			boolean admin = this.coreAuthorization.isAdmin(referenteEntity.getReferente());
-			
+
 			if(!admin) {
-				if(referenteEntity.getTipo().equals(TIPO_REFERENTE.REFERENTE) && !organizzazione.equals(referenteEntity.getReferente().getOrganizzazione())) {
-					if(referenteEntity.getReferente().getOrganizzazione()!=null) {
-						throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISMATCH, Map.of("orgNome", organizzazione.getNome(), "userIdUtente", referenteEntity.getReferente().getIdUtente(), "userOrgNome", referenteEntity.getReferente().getOrganizzazione().getNome()));
-					} else {
-						throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING, Map.of("orgNome", organizzazione.getNome(), "userIdUtente", referenteEntity.getReferente().getIdUtente()));
-					}
+				if(referenteEntity.getTipo().equals(TIPO_REFERENTE.REFERENTE)
+						&& !this.utenteService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
+					throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING,
+							Map.of("orgNome", organizzazione.getNome(),
+									"userIdUtente", referenteEntity.getReferente().getIdUtente()));
 				}
 			}
 
 		}
 	}
-	
+
 
 	private void checkReferente(ReferenteDominioEntity referenteEntity) {
 		if(referenteEntity.getTipo().equals(TIPO_REFERENTE.REFERENTE_TECNICO)) {
 			return;
 		}
-		
+
 		OrganizzazioneEntity organizzazione = referenteEntity.getDominio().getSoggettoReferente().getOrganizzazione();
 		if(organizzazione.isEsterna()) {
 			return;
 		}
 
-		if(!organizzazione.equals(referenteEntity.getReferente().getOrganizzazione())) {
-			if(referenteEntity.getReferente().getOrganizzazione()!=null) {
-				throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISMATCH, Map.of("orgNome", organizzazione.getNome(), "userIdUtente", referenteEntity.getReferente().getIdUtente(), "userOrgNome", referenteEntity.getReferente().getOrganizzazione().getNome()));
-			} else {
-				throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING, Map.of("orgNome", organizzazione.getNome(), "userIdUtente", referenteEntity.getReferente().getIdUtente()));
-			}
+		if (!this.utenteService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
+			throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING,
+					Map.of("orgNome", organizzazione.getNome(),
+							"userIdUtente", referenteEntity.getReferente().getIdUtente()));
 		}
 	}
 

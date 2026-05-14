@@ -23,6 +23,7 @@ describe('ProfileComponent', () => {
     getDetails: vi.fn().mockReturnValue(of({})),
     putElement: vi.fn().mockReturnValue(of({})),
     putElementRelated: vi.fn().mockReturnValue(of({})),
+    deleteElement: vi.fn().mockReturnValue(of({})),
   } as any;
   const mockAuthService = {
     getCurrentSession: vi.fn().mockReturnValue({}),
@@ -51,6 +52,7 @@ describe('ProfileComponent', () => {
     mockApiService.getDetails.mockReturnValue(of({}));
     mockApiService.putElement.mockReturnValue(of({}));
     mockApiService.putElementRelated.mockReturnValue(of({}));
+    mockApiService.deleteElement.mockReturnValue(of({}));
     mockAuthService.getSettings.mockReturnValue({});
     mockAuthService.isGestore.mockReturnValue(false);
     component = new ProfileComponent(
@@ -1188,30 +1190,46 @@ describe('ProfileComponent', () => {
       });
     });
 
-    it('should show YesnoDialog with ChangeWarningWithOrg when profile has org', () => {
-      component.requestOrganizationChange('org2');
+    it('should show YesnoDialog with ChangeWarningWithOrg when called with partenza (replace flow)', () => {
+      // Issue 229 multi-org: la firma e` ora
+      // requestOrganizationChange(targetId, partenzaId?). Quando
+      // partenzaId e` valorizzato -> flusso "replace" con i18n
+      // `ChangeWarningWithOrg`.
+      component.requestOrganizationChange('org2', 'org1');
       expect(mockModalService.show).toHaveBeenCalled();
       expect(mockTranslate.instant).toHaveBeenCalledWith('APP.PROFILE.ORGANIZATION.ChangeWarningWithOrg');
     });
 
-    it('should show YesnoDialog with ChangeWarning when profile has no org', () => {
+    it('should show YesnoDialog with AddWarning when called without partenza (add flow)', () => {
+      // Senza partenzaId -> flusso "add" -> i18n `AddWarning`.
       component.profile = { id_utente: '1' };
       component.requestOrganizationChange('org2');
-      expect(mockTranslate.instant).toHaveBeenCalledWith('APP.PROFILE.ORGANIZATION.ChangeWarning');
+      expect(mockTranslate.instant).toHaveBeenCalledWith('APP.PROFILE.ORGANIZATION.AddWarning');
     });
 
     it('should call putElement on confirm and show success message', () => {
       const showMsgSpy = vi.spyOn(Tools, 'showMessage').mockImplementation(() => {});
       const loadProfileSpy = vi.spyOn(component, 'loadProfile').mockImplementation(() => {});
-      const cancelEditSpy = vi.spyOn(component, 'onCancelEdit').mockImplementation(() => {});
+      // Issue 229 multi-org: post-success usa `_closeOrgForm()`
+      // invece di `onCancelEdit()` (che resta solo per il form
+      // dati personali).
+      const closeOrgSpy = vi.spyOn(component, '_closeOrgForm').mockImplementation(() => {});
 
       component.requestOrganizationChange('org2');
       onCloseSubject.next(true);
 
-      expect(mockApiService.putElement).toHaveBeenCalledWith('profilo/organizzazione', null, { id_organizzazione: 'org2' });
+      // Issue 229 multi-org: il payload include sempre
+      // `id_organizzazione_partenza` (null per il flusso add,
+      // valorizzato per replace). Il BE rispondeva
+      // `UT.400.ORG.PARTENZA.REQUIRED` quando il field era omesso.
+      expect(mockApiService.putElement).toHaveBeenCalledWith(
+        'profilo/organizzazione',
+        null,
+        { id_organizzazione: 'org2', id_organizzazione_partenza: null }
+      );
       expect(showMsgSpy).toHaveBeenCalledWith('APP.PROFILE.ORGANIZATION.RequestSent', 'success');
       expect(loadProfileSpy).toHaveBeenCalled();
-      expect(cancelEditSpy).toHaveBeenCalled();
+      expect(closeOrgSpy).toHaveBeenCalled();
     });
 
     it('should set error on putElement failure after confirm', () => {
@@ -1448,6 +1466,66 @@ describe('ProfileComponent', () => {
   describe('minLengthTerm', () => {
     it('should default to 1', () => {
       expect(component.minLengthTerm).toBe(1);
+    });
+  });
+
+  // ---------------------------------------------------------------
+  // Issue 229 evolutiva 3 — cancelOrganizationChange
+  // ---------------------------------------------------------------
+
+  describe('cancelOrganizationChange', () => {
+    let onCloseSub: Subject<any>;
+
+    beforeEach(() => {
+      onCloseSub = new Subject<any>();
+      mockModalService.show.mockReturnValue({
+        content: { onClose: onCloseSub.asObservable() }
+      });
+    });
+
+    it('should be no-op when no pending request', () => {
+      component.profile = { organizzazione_pending: null };
+      component.cancelOrganizationChange();
+      expect(mockModalService.show).not.toHaveBeenCalled();
+    });
+
+    it('should show modal with danger color when pending request', () => {
+      component.profile = { organizzazione_pending: { id_organizzazione: 'org2', nome: 'Org2' } };
+      component.cancelOrganizationChange();
+      expect(mockModalService.show).toHaveBeenCalled();
+      const callArgs = mockModalService.show.mock.calls[0];
+      expect(callArgs[1].initialState.confirmColor).toBe('danger');
+    });
+
+    it('should call DELETE /profilo/organizzazione on confirm', () => {
+      component.profile = { organizzazione_pending: { id_organizzazione: 'org2', nome: 'Org2' } };
+      mockApiService.deleteElement.mockReturnValue(of({ id_utente: '1', stato: 'abilitato' }));
+
+      component.cancelOrganizationChange();
+      onCloseSub.next(true);
+
+      expect(mockApiService.deleteElement).toHaveBeenCalledWith('profilo/organizzazione', null);
+      // loadProfile e` chiamato da next: ricarica i dati.
+      expect(mockApiService.getList).toHaveBeenCalled();
+    });
+
+    it('should set error message on DELETE failure', () => {
+      component.profile = { organizzazione_pending: { id_organizzazione: 'org2', nome: 'Org2' } };
+      mockApiService.deleteElement.mockReturnValue(throwError(() => ({ status: 400 })));
+
+      component.cancelOrganizationChange();
+      onCloseSub.next(true);
+
+      expect(component.error).toBe(true);
+      expect(component.errorMsg).toBe('error');
+    });
+
+    it('should not call DELETE on modal cancel', () => {
+      component.profile = { organizzazione_pending: { id_organizzazione: 'org2', nome: 'Org2' } };
+      component.cancelOrganizationChange();
+      onCloseSub.next(false);
+
+      expect(mockApiService.deleteElement).not.toHaveBeenCalled();
     });
   });
 });

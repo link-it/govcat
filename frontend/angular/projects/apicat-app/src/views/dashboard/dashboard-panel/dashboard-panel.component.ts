@@ -78,4 +78,9 @@ export class DashboardPanelComponent {
     const d = new Date(dateStr);
     return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
   }
+
+  isCertExpired(dateStr: string): boolean {
+    if (!dateStr) return false;
+    return new Date(dateStr).getTime() <= Date.now();
+  }
 }

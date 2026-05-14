@@ -208,6 +208,18 @@ public enum ErrorCode {
     /** Ruolo coordinatore non abilitato nella configurazione */
     UT_400_COORDINATORE_DISABLED("Ruolo coordinatore non abilitato"),
 
+    /** Richiesta cambio organizzazione: organizzazione di partenza non corrisponde a una delle associazioni dell'utente */
+    UT_400_ORG_PARTENZA_NOT_ASSOCIATED("Organizzazione di partenza non associata all'utente"),
+
+    /** Richiesta cambio organizzazione: organizzazione di partenza coincide con quella target */
+    UT_400_ORG_PARTENZA_SAME_AS_TARGET("Organizzazione di partenza e organizzazione richiesta non possono coincidere"),
+
+    /** Richiesta cambio organizzazione: utente già associato all'organizzazione richiesta */
+    UT_400_ORG_PENDING_ALREADY_ASSOCIATED("Utente già associato all'organizzazione richiesta"),
+
+    /** Annullamento richiesta cambio organizzazione: nessuna richiesta pending da annullare */
+    UT_400_NO_PENDING_REQUEST("Nessuna richiesta di cambio organizzazione da annullare"),
+
     // ==================== CLASSI UTENTE ====================
 
     /** Classe utente non trovata */
@@ -436,6 +448,24 @@ public enum ErrorCode {
     /** Utente non abilitato come referente */
     AUT_403_REFERENT_NOT_ELIGIBLE("Utente non abilitato come referente"),
 
+    /** Organizzazione di sessione non abilitata come referente di servizi */
+    AUT_403_ORG_NOT_REFERENTE("Organizzazione non abilitata come referente di servizi"),
+
+    /** Organizzazione di sessione non abilitata come aderente */
+    AUT_403_ORG_NOT_ADERENTE("Organizzazione non abilitata come aderente"),
+
+    /** Un amministratore organizzazione non può assegnare il ruolo richiesto */
+    AUT_403_AMM_ORG_INVALID_ROLE("Ruolo globale non assegnabile da amministratore organizzazione"),
+
+    /** L'utente da creare deve essere associato esclusivamente all'organizzazione di sessione */
+    AUT_403_AMM_ORG_INVALID_ORGS("Vincoli organizzazioni utente non soddisfatti per amministratore organizzazione"),
+
+    /** Un amministratore organizzazione può operare solo sui domini il cui soggetto referente appartiene alla propria organizzazione di sessione */
+    AUT_403_AMM_ORG_DOMINIO_FUORI_ORG("Dominio non appartenente all'organizzazione di sessione dell'amministratore"),
+
+    /** Un amministratore organizzazione può approvare la richiesta cambio organizzazione solo quando è amministratore dell'organizzazione target */
+    AUT_403_AMM_ORG_NOT_TARGET("L'amministratore non è target della richiesta di cambio organizzazione"),
+
     /** Token di autenticazione non valido */
     AUT_401_TOKEN("Token non valido"),
 
@@ -614,7 +644,16 @@ public enum ErrorCode {
     REG_409_PRINCIPAL_EXISTS("Principal già associato a un altro utente"),
 
     /** Email non presente nei dati di autenticazione (JWT) */
-    REG_400_NO_EMAIL_JWT("Email non presente nei dati di autenticazione");
+    REG_400_NO_EMAIL_JWT("Email non presente nei dati di autenticazione"),
+
+    /** Organizzazione selezionata non trovata */
+    REG_404_ORG_NOT_FOUND("Organizzazione selezionata non trovata"),
+
+    /** Utente già associato all'organizzazione richiesta */
+    REG_400_ORG_ALREADY_ASSOCIATED("Utente già associato all'organizzazione richiesta"),
+
+    /** Utente già in attesa di approvazione per un'altra organizzazione */
+    REG_409_ALREADY_PENDING_OTHER_ORG("Utente già in attesa di approvazione per un'altra organizzazione");
 
     // ==================== ATTRIBUTI E METODI ====================
 

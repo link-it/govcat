@@ -320,12 +320,12 @@ public class AdesioneServizioIntegrationTest {
         organizzazioniController.updateOrganizzazione(response.getBody().getIdOrganizzazione(), organizzazioneUpdate);
         */
         UtenteUpdate utenteUpdate = new UtenteUpdate();
-        utenteUpdate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteUpdate, response.getBody().getIdOrganizzazione());
         utenteUpdate.setNome("Cesare");
         utenteUpdate.setCognome("Rossi");
         utenteUpdate.setEmailAziendale("qualsiais@mail.com");
         utenteUpdate.setPrincipal(UTENTE_REFERENTE_SERVIZIO);
-        utenteUpdate.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        utenteUpdate.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
         utenteUpdate.setStato(StatoUtenteEnum.ABILITATO);
         utenteUpdate.setTelefonoAziendale("0000000000");
         utentiController.updateUtente(ID_UTENTE_REFERENTE_SERVIZIO, utenteUpdate);
@@ -461,7 +461,7 @@ public class AdesioneServizioIntegrationTest {
         utente.setPrincipal(UTENTE_ADERENTE);
         utente.setNome(UTENTE_ADERENTE);
         utente.setRuolo(RuoloUtenteEnum.GESTORE);
-        utente.setIdOrganizzazione(idOrganizzazione);
+        CommonUtils.setOrganizzazione(utente, idOrganizzazione);
 
         responseUtente = utentiController.createUtente(utente);
         assertNotNull(responseUtente.getBody().getIdUtente());
@@ -479,9 +479,8 @@ public class AdesioneServizioIntegrationTest {
         
         long idOrg = organizzazioneService.findByNome("Viaggiar").get().getId();
         
-        OrganizzazioneEntity organizzazioneEntity = organizzazioneRepository.findById(idOrg).orElseThrow();
-        organizzazioneEntity.getUtenti();
-             
+        organizzazioneRepository.findById(idOrg).orElseThrow();
+
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
         nuovaAdesione.setIdServizio(idServizio);
         nuovaAdesione.setIdSoggetto(soggettoCreato.getBody().getIdSoggetto());
@@ -520,7 +519,7 @@ public class AdesioneServizioIntegrationTest {
         utente2.setPrincipal(UTENTE_ADERENTE);
         utente2.setNome(UTENTE_ADERENTE);
         utente2.setRuolo(RuoloUtenteEnum.GESTORE);
-        utente2.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utente2, response.getBody().getIdOrganizzazione());
 
         responseUtente = utentiController.createUtente(utente2);
         assertNotNull(responseUtente.getBody().getIdUtente());

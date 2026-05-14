@@ -30,9 +30,12 @@
  */
 
 
-export interface ItemOrganizzazione { 
+export interface ItemOrganizzazione {
     id_organizzazione: string;
     nome: string;
     descrizione?: string;
+    aderente?: boolean;
+    referente?: boolean;
+    esterna?: boolean;
 }
 

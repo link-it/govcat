@@ -588,7 +588,6 @@ public class SoggettiTest {
     	
     	UtenteCreate utente = CommonUtils.getUtenteCreate();
         utente.setRuolo(RuoloUtenteEnum.COORDINATORE);
-        utente.setReferenteTecnico(false);
         utente.setPrincipal("unoqualsiasi");
         
         ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
@@ -608,8 +607,7 @@ public class SoggettiTest {
     public void testCreateSoggettoReferenteServizioErrore() {
     	ResponseEntity<Organizzazione> response = controller.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
     	UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
-        utente.setReferenteTecnico(false);
+        utente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
         utente.setPrincipal("unoqualsiasi");
         
         ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);

@@ -20,6 +20,7 @@
 package org.govway.catalogo.core.services;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -29,8 +30,11 @@ import org.govway.catalogo.core.dao.specifications.DominioSpecification;
 import org.govway.catalogo.core.dao.specifications.ServizioSpecification;
 import org.govway.catalogo.core.dao.specifications.UtenteSpecification;
 import org.govway.catalogo.core.orm.entity.ClasseUtenteEntity;
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
+import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
+import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -171,6 +175,82 @@ public class UtenteService extends AbstractService {
 		}
 
 		return ruoli;
+	}
+
+	/**
+	 * Restituisce la lista delle associazioni utente-organizzazione per l'utente indicato.
+	 * Utile per accedere alle associazioni senza incorrere in LazyInitializationException
+	 * quando l'entità utente è detached dalla session Hibernate.
+	 */
+	public List<UtenteOrganizzazioneEntity> findUtenteOrganizzazioniByUtente(UtenteEntity utente) {
+		return this.utenteOrganizzazioneRepo.findByUtente(utente);
+	}
+
+	/**
+	 * Cerca l'associazione utente-organizzazione per la coppia indicata.
+	 *
+	 * @return Optional con l'associazione se presente, empty se l'utente non appartiene all'organizzazione
+	 */
+	public Optional<UtenteOrganizzazioneEntity> findUtenteOrganizzazione(UtenteEntity utente, OrganizzazioneEntity organizzazione) {
+		if (utente == null || organizzazione == null) {
+			return Optional.empty();
+		}
+		return this.utenteOrganizzazioneRepo.findByUtente(utente).stream()
+				.filter(assoc -> assoc.getOrganizzazione() != null
+						&& assoc.getOrganizzazione().getId().equals(organizzazione.getId()))
+				.findFirst();
+	}
+
+	/**
+	 * Verifica se l'utente è associato all'organizzazione indicata.
+	 * Non considera il ruolo: restituisce true anche se il ruolo è null (nessun ruolo / sola lettura).
+	 */
+	public boolean isAssociatoA(UtenteEntity utente, OrganizzazioneEntity organizzazione) {
+		if (utente == null || organizzazione == null) {
+			return false;
+		}
+		return findUtenteOrganizzazione(utente, organizzazione).isPresent();
+	}
+
+	/**
+	 * Verifica se due utenti hanno almeno un'organizzazione in comune.
+	 */
+	public boolean hasOrganizzazioneInComune(UtenteEntity u1, UtenteEntity u2) {
+		if (u1 == null || u2 == null) {
+			return false;
+		}
+		Set<Long> org1 = raccogliIdOrganizzazioni(u1);
+		Set<Long> org2 = raccogliIdOrganizzazioni(u2);
+		org1.retainAll(org2);
+		return !org1.isEmpty();
+	}
+
+	private Set<Long> raccogliIdOrganizzazioni(UtenteEntity u) {
+		Set<Long> ids = new HashSet<>();
+		for (UtenteOrganizzazioneEntity assoc : findUtenteOrganizzazioniByUtente(u)) {
+			if (assoc.getOrganizzazione() != null) {
+				ids.add(assoc.getOrganizzazione().getId());
+			}
+		}
+		return ids;
+	}
+
+	/**
+	 * Verifica se l'utente ha uno dei ruoli specificati nell'organizzazione indicata.
+	 * Restituisce false se non c'è associazione o se il ruolo dell'associazione è null.
+	 */
+	public boolean hasRuoloInOrganizzazione(UtenteEntity utente, OrganizzazioneEntity organizzazione, RuoloOrganizzazione... ruoli) {
+		Optional<UtenteOrganizzazioneEntity> assoc = findUtenteOrganizzazione(utente, organizzazione);
+		if (assoc.isEmpty() || assoc.get().getRuoloOrganizzazione() == null) {
+			return false;
+		}
+		RuoloOrganizzazione ruoloUtente = assoc.get().getRuoloOrganizzazione();
+		for (RuoloOrganizzazione r : ruoli) {
+			if (ruoloUtente == r) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

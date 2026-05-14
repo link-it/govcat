@@ -89,9 +89,8 @@ public class ReferenteClasseUtenteAssembler extends RepresentationModelAssembler
 	}
 
 	private boolean isSameOrganization(UtenteEntity viewer, UtenteEntity referente) {
-		OrganizzazioneEntity viewerOrg = viewer.getOrganizzazione();
-		OrganizzazioneEntity referenteOrg = referente.getOrganizzazione();
-		return viewerOrg != null && referenteOrg != null && viewerOrg.equals(referenteOrg);
+		// Multi-org: viewer e referente hanno almeno un'organizzazione in comune.
+		return this.utenteService.hasOrganizzazioneInComune(viewer, referente);
 	}
 
 	public TIPO_REFERENTE toTipoReferente(TipoReferenteEnum tipo) {
@@ -116,7 +115,8 @@ public class ReferenteClasseUtenteAssembler extends RepresentationModelAssembler
 		}
 
 		if(tipoReferente.equals(TIPO_REFERENTE.REFERENTE)) {
-			if(utente.getOrganizzazione() == null || !utente.getOrganizzazione().getId().equals(adesione.getSoggetto().getOrganizzazione().getId())) {
+			// Multi-org: l'utente deve essere associato all'organizzazione del soggetto dell'adesione
+			if (!this.utenteService.isAssociatoA(utente, adesione.getSoggetto().getOrganizzazione())) {
 				throw new BadRequestException(ErrorCode.UT_404_BY_NAME, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome(), "nomeOrganizzazione", adesione.getSoggetto().getOrganizzazione().getNome()));
 			}
 		}

@@ -36,7 +36,8 @@ public class SwaggerUtils {
 
     public static boolean isSwagger(byte[] swaggerBytes) {
         try {
-            SwaggerParseResult result = new OpenAPIV3Parser().readContents(new String(swaggerBytes));
+            byte[] jsonBytes = YamltoJsonUtils.convertYamlToJson(swaggerBytes);
+            SwaggerParseResult result = new OpenAPIV3Parser().readContents(new String(jsonBytes));
             return result.getOpenAPI() != null;
         } catch(RuntimeException e) {
             return false;
@@ -50,8 +51,9 @@ public class SwaggerUtils {
 		try {
 			Set<ResourceInfo> resources = new HashSet<>();
 
+            byte[] jsonBytes = YamltoJsonUtils.convertYamlToJson(swaggerBytes);
             OpenAPIV3Parser parser = new OpenAPIV3Parser();
-            SwaggerParseResult result = parser.readContents(new String(swaggerBytes));
+            SwaggerParseResult result = parser.readContents(new String(jsonBytes));
             OpenAPI openAPI = result.getOpenAPI();
 
             if(openAPI.getPaths() != null) {

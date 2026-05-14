@@ -50,8 +50,21 @@
       "newLayout": false
     },
 
+    "Services": {
+      "showReferents": true,
+      "hideVersions": false
+    },
+
     "Profile": {
-      "showEmail": false
+      "showEmail": false,
+      "showPhone": false
+    },
+
+    "Organization": {
+      "ContextSelector": {
+        "showWhenSingle": true,
+        "storageKey": "govcat.organizationContext"
+      }
     },
 
     "Scrollbar": {
@@ -64,6 +77,9 @@
         "title": "Catalogo API ModI",
         "logo": "linkit_logo/LINK_logo-Govcat-O.svg",
         "header": "linkit_logo/LINK_logo-Govcat-O.svg"
+      },
+      "Dev": {
+        "organizationContextReset": false
       },
       "contentLimited": false,
       "hasSideBar": false,
@@ -245,7 +261,18 @@
           "--group-button-background": "#dbdbdb",
           "--group-button-color": "#303030",
           "--message-bar-color": "#000000",
-          "--message-bar-chips-color": "#d1d1d1"
+          "--message-bar-chips-color": "#d1d1d1",
+          "--step-completed-bg": "#1f75cb",
+          "--step-completed-color": "#ffffff",
+          "--step-current-bg": "#e4eef7",
+          "--step-current-color": "#1f75cb",
+          "--step-pending-bg": "#ededed",
+          "--step-pending-color": "#606060",
+          "--step-preview-bg": "#eceaf5",
+          "--step-preview-color": "#4c4c94",
+          "--step-real-bg": "#e6f4ed",
+          "--step-real-color": "#198754",
+          "--step-bar-bg": "transparent"
         }
       },
       {
@@ -310,7 +337,18 @@
           "--group-button-background": "#dbdbdb",
           "--group-button-color": "#303030",
           "--message-bar-color": "#000000",
-          "--message-bar-chips-color": "#d1d1d1"
+          "--message-bar-chips-color": "#d1d1d1",
+          "--step-completed-bg": "#ff4050",
+          "--step-completed-color": "#ffffff",
+          "--step-current-bg": "#fde8ea",
+          "--step-current-color": "#ff4050",
+          "--step-pending-bg": "#ededed",
+          "--step-pending-color": "#606060",
+          "--step-preview-bg": "#e6eaef",
+          "--step-preview-color": "#243848",
+          "--step-real-bg": "#e6f4ed",
+          "--step-real-color": "#198754",
+          "--step-bar-bg": "transparent"
         }
       },
       {
@@ -376,7 +414,18 @@
           "--group-button-background": "#dbdbdb",
           "--group-button-color": "#303030",
           "--message-bar-color": "#000000",
-          "--message-bar-chips-color": "#d1d1d1"
+          "--message-bar-chips-color": "#d1d1d1",
+          "--step-completed-bg": "#ff4050",
+          "--step-completed-color": "#ffffff",
+          "--step-current-bg": "#fde8ea",
+          "--step-current-color": "#ff4050",
+          "--step-pending-bg": "#ededed",
+          "--step-pending-color": "#606060",
+          "--step-preview-bg": "#eceaf5",
+          "--step-preview-color": "#4c4c94",
+          "--step-real-bg": "#e6f4ed",
+          "--step-real-color": "#198754",
+          "--step-bar-bg": "transparent"
         }
       },
       {
@@ -441,7 +490,18 @@
           "--group-button-background": "#dbdbdb",
           "--group-button-color": "#303030",
           "--message-bar-color": "#000000",
-          "--message-bar-chips-color": "#d1d1d1"
+          "--message-bar-chips-color": "#d1d1d1",
+          "--step-completed-bg": "#1f75cb",
+          "--step-completed-color": "#ffffff",
+          "--step-current-bg": "#e4eef7",
+          "--step-current-color": "#1f75cb",
+          "--step-pending-bg": "#ededed",
+          "--step-pending-color": "#606060",
+          "--step-preview-bg": "#e2ddf9",
+          "--step-preview-color": "#4c4c94",
+          "--step-real-bg": "#e6f4ed",
+          "--step-real-color": "#198754",
+          "--step-bar-bg": "#f8f9fa"
         }
       },
       {
@@ -512,7 +572,18 @@
           "--group-button-background": "#dbdbdb",
           "--group-button-color": "#303030",
           "--message-bar-color": "#000000",
-          "--message-bar-chips-color": "#d1d1d1"
+          "--message-bar-chips-color": "#d1d1d1",
+          "--step-completed-bg": "#ff4050",
+          "--step-completed-color": "#ffffff",
+          "--step-current-bg": "#fde8ea",
+          "--step-current-color": "#ff4050",
+          "--step-pending-bg": "#e8ecee",
+          "--step-pending-color": "#606060",
+          "--step-preview-bg": "#eceaf5",
+          "--step-preview-color": "#4c4c94",
+          "--step-real-bg": "#e6f4ed",
+          "--step-real-color": "#198754",
+          "--step-bar-bg": "transparent"
         }
       },
       {
@@ -575,7 +646,18 @@
           "--group-button-background": "#dbdbdb",
           "--group-button-color": "#646464",
           "--message-bar-color": "#000000",
-          "--message-bar-chips-color": "#d1d1d1"
+          "--message-bar-chips-color": "#d1d1d1",
+          "--step-completed-bg": "#ff4050",
+          "--step-completed-color": "#ffffff",
+          "--step-current-bg": "#fde8ea",
+          "--step-current-color": "#ff4050",
+          "--step-pending-bg": "#edf1f4",
+          "--step-pending-color": "#808080",
+          "--step-preview-bg": "#e6eaef",
+          "--step-preview-color": "#243848",
+          "--step-real-bg": "#e6f4ed",
+          "--step-real-color": "#198754",
+          "--step-bar-bg": "transparent"
         }
       }
     ]

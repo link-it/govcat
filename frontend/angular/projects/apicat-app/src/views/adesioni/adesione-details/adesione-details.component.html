@@ -90,7 +90,7 @@
         <div class="btn-group me-1">
           <div class="btn-group" id="actions">
             <button type="button" [tooltip]="'APP.TOOLTIP.ChangeStatus' | translate" class="btn btn-default btn-md gl-button" id="workflow_actions" disabled>
-              <i class="bi bi-node-plus"></i> <span class="ms-2">{{ 'APP.STATUS.' + _adesione.stato | translate }}</span>
+              <i class="bi bi-node-plus"></i> <span class="ms-2">{{ 'APP.WORKFLOW.STATUS.' + _adesione.stato | translate }}</span>
             </button>
           </div>
         </div>
@@ -99,6 +99,13 @@
         <div class="position-relative">
           <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.EditAdesione' | translate" (click)="_editAdesione()" [disabled]="!(_updateMapper | mapper:_canEditMapper) || adesione?.stato !== 'bozza'">
             <i class="bi bi-pencil"></i>
+          </button>
+        </div>
+      }
+      @if (!_isEdit && !_isNew && !_spin && (_updateMapper | mapper:_isGestoreMapper)) {
+        <div class="btn-group- ms-2 d-inline-block">
+          <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.DeleteAdesione' | translate" (click)="_confirmDeleteAdesione()">
+            <i class="bi bi-trash text-danger"></i>
           </button>
         </div>
       }

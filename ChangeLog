@@ -1,3 +1,861 @@
+2026-05-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 229: annullamento/rifiuto richiesta di cambio
+	  organizzazione. Bottone "Annulla richiesta" nel banner
+	  alert-warning del profilo (DELETE `/profilo/organizzazione`).
+	  Bottone "Rifiuta" accanto a "Approva" su utente-details
+	  (DELETE `/utenti/{id}/organizzazione-pending`, stesso filtro
+	  authorization dell'approvazione). Estensione
+	  `apiService.deleteElement` per supportare `id=null` (path
+	  fissi). Aggiunto "Nessun ruolo" come default del dropdown
+	  approving_role su utente-details (mappato a
+	  `ruolo_organizzazione: null`). Badge stato `non_configurato`
+	  aggiunto a `utenti-config.json` (grigio chiaro). Rimosso
+	  `X-Skip-Organization-Context` dalla lista globale domini
+	  della sidebar (filtro org gestito BE-side via JWT/contesto).
+
+	* [Frontend]
+	Issue 229: nuovo step opzionale "Seleziona organizzazione"
+	  nel wizard di registrazione/first-login. Ng-select con
+	  typeahead sul nuovo endpoint `/registrazione/organizzazioni`.
+	  Wiring: dopo `/conferma-email` o OTP `/verifica-codice` il
+	  wizard mostra lo step org (Salta/Conferma e registra);
+	  finalizzazione tramite `/conferma-email` (path diretto) o
+	  `/completa` (path OTP). Step-completato esteso con banner
+	  "in attesa di approvazione" quando `organizzazione_richiesta`
+	  valorizzata. `/registrazione` aggiunto agli excluded
+	  dell'`OrganizationContextInterceptor`.
+
+	* [Frontend]
+	Issue 270: dev-tool reset organizzazione corrente. Bottone
+	  flottante in `GpLayout` (icona `bi-building-fill-slash`,
+	  cerchio giallo bottom-right) + shortcut `Ctrl+Shift+O`.
+	  Action: clear localStorage org context + logout + hard
+	  reload alla root. Visibile/abilitato solo quando
+	  `AppConfig.Layout.Dev.organizationContextReset = true`
+	  (default false; NON attivare in produzione). Utile per
+	  testare la prima esperienza multi-org senza svuotare
+	  manualmente lo storage.
+
+2026-05-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 270: scelta dell'organizzazione all'accesso per
+	  utenti multi-org. `OrganizationContextService.initFromUser`
+	  non auto-seleziona piu` la prima org con >=2 senza
+	  persistenza: contesto resta `null` e parte il selettore.
+	  Nuovo `OrganizationSelectorComponent` (rotta
+	  `/auth/select-organization` sotto `SimpleLayoutComponent`,
+	  layout allineato alla login: logo + titolo + sottotitolo
+	  centrati, card sotto con scelta in cards cliccabili,
+	  bottoni Conferma + Esci). Nuovo `OrganizationSelectionGuard`
+	  applicato a `GpLayoutComponent`: redirect a
+	  `/auth/select-organization?returnUrl=...` per multi-org
+	  senza contesto. Safety net in `GpLayoutComponent.loadProfile`
+	  per intercettare anche il post-login diretto. Chip ruolo
+	  sempre visibile (default "Nessun ruolo" neutro). i18n
+	  `APP.ORGANIZATION_SELECTOR.*` (IT+EN). Cleanup minore in
+	  `login.scss` (consolidato duplicato `.navless-container`).
+
+	* [Frontend]
+	Issue 229: gestione domini per AMM_ORG nella pagina
+	  `organizzazione-manage`. Aggiunte tabs Utenti/Domini
+	  (pattern `.gp-tabs-nav`) con badge counter per tab attiva.
+	  Sezione Domini: lista filtrata BE-side via
+	  `X-Organization-Context`, CRUD via navigazione a
+	  `dominio-details`. Child route
+	  `organizzazione-manage/:id/domini/[new|:idDominio]` con
+	  `data.fromOrgManage` che pilota breadcrumb e back
+	  context-aware (back con query param `?tab=domini` per
+	  ripristinare il tab). `dominio-details::getSoggetti`
+	  filtra il typeahead all'org di sessione per AMM_ORG
+	  (gestore/coordinatore: free). Error interceptor: per
+	  status 403 interpreta `err.error.detail` come chiave i18n
+	  `APP.MESSAGE.ERROR.<code>` con `params` (es. nuovo
+	  `AUT.403.AMM.ORG.DOMINIO.FUORI.ORG` con placeholder
+	  `orgNome`), fallback "Unauthorized". Opt-out per-request
+	  del filtro org-di-sessione: nuovo header sentinella
+	  `X-Skip-Organization-Context` (export
+	  `ORG_CONTEXT_SKIP_HEADER`) che l'interceptor rimuove e
+	  fa passare la chiamata senza aggiungere
+	  `X-Organization-Context`. La lista globale `domini` dalla
+	  sidebar (gestore/coordinatore) lo usa; la lista
+	  contestuale `organizzazione-manage/:id` no.
+
+	* [Frontend]
+	Issue 229: supporto multi-organizzazione lato profilo.
+	  Pannello "Le tue organizzazioni" con card per ogni
+	  associazione (chip-accent/chip-info per
+	  amministratore_organizzazione/operatore_api), bottoni
+	  Aggiungi/Sostituisci, form inline (con esclusione delle
+	  org gia` associate dalla typeahead), banner pending
+	  context-aware (add vs replace). Il payload del PUT
+	  `/profilo/organizzazione` include sempre
+	  `id_organizzazione_partenza` (null per add, valorizzato
+	  per replace) — l'omit causava `UT.400.ORG.PARTENZA.REQUIRED`.
+	  Read-only view aggiornata: lista multi-org sostituisce il
+	  legacy `profile.organizzazione`. Banner pending +
+	  Passaggio "da X a Y" ora usano `<markdown [data]>` con
+	  getter pre-tradotto (la direttiva attribute non
+	  parserizzava i grassetti con `@if/@else` interno).
+
+	* [Frontend]
+	Issue 229: approvazione utente in PENDING_UPDATE - fix
+	  payload. Override esplicito di `stato: 'abilitato'` (era
+	  ereditato dal control disabilitato). Workaround per
+	  `UtilService._removeEmpty()` che strippa gli array:
+	  `organizzazioni: [{ id, ruolo }]` viene assegnato DOPO
+	  la chiamata (la utility filtra via `typeof === "object"`).
+
+	* [Frontend]
+	Issue 229: nuovi ruoli referente nelle GET di adesioni e
+	  servizi - `amministratore_organizzazione` e `operatore_api`
+	  aggiunti ai filtri `roleTabs` e al dropdown
+	  `_allRuoliAdesioni`.
+
+2026-05-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: vetrina servizio - tag API con composite split
+	  e raggruppamento "+n". `LnkApiTag` esteso con `value?`:
+	  pill split `[label | value]` (es. `[PDND | v.1]`). PDND
+	  mostra la versione inline quando `Services.hideVersions`
+	  e` false; il flag e` ora rispettato anche da `[versione]`
+	  della riga API. `<lnk-api-row>` supporta `[maxTags]`
+	  (default 3): oltre soglia, gli extra finiscono in un
+	  popover `+n` (ngx-bootstrap PopoverModule) con il tag
+	  `profilo` sempre ancorato come visibile. Mock testabile
+	  via `config.apiTagsMockExtras` (servizi-config.json).
+	  Fix hero grid: `[data-hide-image="true"]` ora copre il
+	  caso "attributo sull'host `.lnk-vetrina`" oltre al caso
+	  "su discendente" (servizio senza immagine restava a 3
+	  colonne con slot img vuoto, sbilanciando le actions);
+	  hero-img 168 -> 140, `gap` 24 -> 18, `desc` senza
+	  `max-width: 60ch`.
+
+	* [Frontend]
+	Issue 254: disclaimers per-client nascosti nella lista
+	  quando lo stato del client e` `configurato` (le note
+	  contestuali alla configurazione iniziale non servono
+	  piu` dopo). Spacing tweak in `adesione-form` (mb-3
+	  sulla colonna soggetto).
+
+2026-05-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: disclaimers per-client unificati lista + form.
+	  `adesione-lista-clients` -> hint inline con background
+	  `alert-{info|warning|danger}` (era `bg-lightest`
+	  neutro), border-top flat per attaccarsi alla riga.
+	  Stessa lista propagata a `<app-client-auth-form>` via
+	  nuovo `@Input() disclaimers`: visibili nello scenario
+	  `new` (sostituiscono lo help statico), nascosti nella
+	  lista quando la form inline e` aperta per quell'item
+	  per evitare duplicazione.
+
+2026-05-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: fix i18n stato workflow — prefisso `APP.STATUS`
+	  sostituito con `APP.WORKFLOW.STATUS` (namespace canonico
+	  usato dai JSON config) in `<lnk-stato-chip>` di vetrina
+	  adesione/servizio, wizard new-layout e `adesione-details`.
+	  Aggiunte 12 chiavi mancanti in `APP.WORKFLOW.STATUS`
+	  (it+en): `bad_request`, `chiusa`, `configurata_*`,
+	  `denied`, `forbidden`, `inviata_*`, `processing`,
+	  `profile_not_exists`, `rejected`, `sender_not_allowed`.
+
+	* [Frontend]
+	Issue 254: disclaimer "Configura i client" del wizard
+	  ora i18n. Nuova chiave `APP.ADESIONI.MESSAGE.
+	  ConfigureClientsDisclaimer` (it+en), sostituita la
+	  stringa hardcoded italiana nel template.
+
+2026-05-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: `<lnk-hero-image>` — input `[objectFit]`
+	  configurabile (`cover` | `contain` | `fill`, default
+	  `cover`). Nuova prop top-level `heroImageObjectFit`
+	  in `servizi-config.json` e `adesioni-config.json`,
+	  letta dalle vetrine via `config?.heroImageObjectFit`.
+	  `servizi-config.json` default `contain` (logo non
+	  croppato).
+
+	* [Frontend]
+	Fix i18n date relative: import dei locale data
+	  Moment.js (`it`, `en-gb`, `fr`) in `app.component.ts`.
+	  Senza, `moment.locale(defaultLanguage)` non aveva
+	  effetto e `fromNow()` cadeva sul default inglese US
+	  (es. "an hour ago" anziche` "un'ora fa") nel wizard
+	  adesione, in `<ui-data-type>` e `<ui-item-type>`.
+
+2026-05-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: palette stati unificata. Nuova tabella
+	  semantica `LnkStatoVariant` (draft/pending/in-progress/
+	  test/prod/archived/error) in `components/vetrina/
+	  stato-variants.const.ts` con mapping esplicito di 33
+	  stati ai design token globali. Refactor `<lnk-stato-chip>`:
+	  classi `.lnk-stato-chip.is-*` isolate dal `.chip`/
+	  `.chip-ok` legacy, dot-pulse rimosso. Wizard adesione:
+	  rimosso override locale `--ok-*` (blu brand) per
+	  allinearsi alla palette verde globale; bordi hardcoded
+	  `#b3d4e2` sostituiti con `var(--ok-border)` in
+	  `.chip-ok`, `.lnk-phase-section-icon`, substepper
+	  `.tl-state.is-completed`. Sostituito `<ui-data-type
+	  type="tag" options="status">` con `<lnk-stato-chip>`
+	  nel wizard new-layout.
+
+	* [Frontend]
+	Issue 254: substepper — chevron di affordance mostrato
+	  solo per gli step `completed` collassabili. Sugli
+	  `active` il bottone `tl-action` ha gia` il suo chevron
+	  interno: il chevron a fine riga creava una doppia
+	  visualizzazione.
+
+	* [Frontend]
+	Nuova "vetrina" per `adesione-view` e `servizio-view`:
+	  componenti shared in `components/vetrina/`
+	  (hero-image, stato-chip, refs, env-toggle, api-row,
+	  action-banner) + stylesheet globale `app-view.scss`
+	  scoped sotto `.lnk-vetrina`. Hero + layout 2-col +
+	  stack di action-banner contestuali; documentazione
+	  tecnica con clip + toggle sopra soglia configurabile;
+	  lista API con tag PDND/profilo/custom. Fix
+	  incidentale `isGestoredMapper` nel wizard adesione
+	  (`grant.includes is not a function`).
+
+2026-05-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: substepper — chevron di affordance alla fine
+	  della riga (rende esplicito che lo step e' espandibile,
+	  oltre all'hover sul chip "Completato"); hover background
+	  allineato al chevron del phase-section. Meta dello step
+	  `in_compilazione` differenziata per stato `completed`:
+	  "Visualizza o modifica autenticazione ed endpoint" al
+	  posto di "Configura …" — riflette che il contenuto
+	  resta consultabile/modificabile (a seconda del ruolo)
+	  anche dopo il completamento del workflow.
+
+2026-05-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: build production-apicat — bump budget
+	  `anyComponentStyle` (6kb/10kb -> 15kb/25kb) per
+	  consentire il wizard adesione SCSS (20.20kB) sotto
+	  flag legacy + new-layout coesistenti. Sara` ridotto
+	  con la rimozione del flag `wizard_new_layout`.
+
+	* [Frontend]
+	Issue 254: bug fix `canEdit` su `dati_non_modificabili`
+	  (regressione mia commit `2920ed3b`: il rewrite
+	  automatico di `_.indexOf(key, _dnm) !== -1` in
+	  `key.includes(_dnm)` aveva semantica opposta — `_dnm`
+	  vuoto faceva sempre `_can=false`). Ripristinato con
+	  `_dnm.includes(key)`. Allineate ~25 spec con il drift
+	  sui costruttori, gli enum `Ruolo`/`EventType`, l'aggiunta
+	  di `utente_organizzazione` ai filtri referenti, e la
+	  nuova icona-stato oggettiva (mapper delega a
+	  `ckeckProvider`, indipendente dal cambio stato).
+
+2026-05-08  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: `<lnk-form-submit>` accetta `[reverse]` per
+	  invertire l'ordine Submit/Cancel (rimuove anche
+	  `row-content-block`); usato in `adesione-form` con
+	  `[reverse]="true"`. Fix typo classe `settings-content-`
+	  -> `settings-content`.
+
+2026-05-07  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: FASE 01 racchiusa nella stessa env-card di
+	  Collaudo/Produzione (icona + titolo + chip stato),
+	  margine fra i pannelli interni, bottone "Modifica" in
+	  absolute top-right, "Referenti adesione" chiuso di
+	  default e "Aggiungi referente" nascosto a pannello
+	  chiuso, icone header cambiate (`bi-card-text` /
+	  `bi-people`).
+
+	* [Frontend]
+	Issue 254: `client-auth-form` — help dei campi spostato
+	  in `<lnk-popover-help>` (icona info accanto alla label,
+	  popover on-click), placeholder concisi su input/select,
+	  bordo rosso sui campi con errore via classe
+	  `gl-show-field-errors` sul wrapper. `_hasControlError`
+	  ora supporta path annidati (es. `rate_limiting.quota`).
+
+	* [Frontend]
+	Issue 254: nuova `GrantRole` const + helper
+	  `expandTecnicoGrants/expandContextualGrants` in
+	  `services/grant-roles.const.ts`; `authentication.service`
+	  refactored su questo punto unico per i ruoli (rinominare
+	  un grant ora richiede una sola modifica). Bug fix
+	  collaterale: `canMonitoraggio` ora usa effettivamente i
+	  grant espansi nell'`_.intersection`.
+
+	* [Frontend]
+	Issue 254: fix vari sul wizard nuovo layout —
+	  `headerOwnerName` ora compone nome+cognome (era
+	  `[object Object]` perche` `utente_richiedente` a runtime
+	  e` un oggetto User); inline edit client mostra di nuovo
+	  i dati gia` configurati anche su flusso "nome proposto"
+	  CONFIGURATO; `genericDisclaimerTpl` riceve correttamente
+	  `severity`/`disclaimer` via named context binding;
+	  disclaimer "Configura i client" mostrato solo quando il
+	  gruppo client di Collaudo non e` completato; `:has(.actions)`
+	  per il `max-width` del banner stato (full width senza CTA).
+
+2026-05-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: estratto `ng-template #workflowErrorTpl` nel
+	  wizard adesione per de-duplicare il rendering degli
+	  errori di cambio stato. Il frammento (~28 righe con
+	  switch `wizardNewLayout` fra `<app-error-view-card>` e
+	  `<ui-error-view>`) era ripetuto in 4 punti del template;
+	  ora c'e` un'unica definizione e i call site usano
+	  `<ng-container *ngTemplateOutlet="workflowErrorTpl">`.
+
+	* [Frontend]
+	Issue 254: polish stili `client-auth-form` e
+	  `file-dropzone` per il nuovo wizard:
+	  - `client-auth-form`: nuovi stili `.row-content-block`,
+	    `.alert-info / -danger / -warning` (varianti soft con
+	    `oklch(... var(--accent-h))` e fallback warn-soft);
+	    rimossi attributi HTML ridondanti (role role="group"
+	    su un `.btn-group` gia` semantico, classe
+	    `.row-content-block` sul wrapper certificato di
+	    autenticazione che era duplicata).
+	  - `file-dropzone`: token `--accent-h: 258` su `:host` per
+	    abilitare le tinte `oklch(... var(--accent-h))`.
+
+	* [Frontend]
+	Issue 254: card compatta per gli errori di validazione del
+	  cambio stato:
+	  - Nuovo `<app-error-view-card>` standalone in
+	    `components/error-view-card/`. Drop-in con la stessa
+	    shape di `<ui-error-view>` (`[errTitle] [errors] [showClose]`
+	    + `(onClose)`). Rendering compatto: un errore = una riga
+	    con icona bullet + tipo (bold) + identificativo (chip
+	    mono) + dato (chip pill uppercase, allineato a destra) +
+	    campi inline. Card sfondo `--err-soft` con border
+	    arrotondato e font ridotto.
+	  - Helper `_getParms` ora converte SEMPRE `params.profilo`
+	    via `Tools.Configurazione.servizio.api.profili`, non solo
+	    quando il sottotipo e` `Profilo` (gli errori reali del
+	    cambio stato hanno tipicamente sottotipo `client`).
+	  - Wizard HTML: 3 punti d'uso commutati con
+	    `@if (wizardNewLayout) { app-error-view-card } @else { ui-error-view }`.
+	  - `<ui-error-view>` legacy: implements `OnChanges` (era
+	    `OnInit` ma la classe espone `ngOnChanges`) — fix
+	    contestuale.
+
+	* [Frontend]
+	Issue 254: aggiungi referente come componente inline,
+	  ruolo nelle righe referenti, debounce live-search:
+	  - Nuovo `<app-referente-add-form>` standalone in
+	    `adesione-configurazione-wizard/referente-add-form/`,
+	    sostituisce la `ModalAddReferentComponent` (dialog) col
+	    rendering inline dentro la sub-card "Referenti adesione"
+	    di FASE 01. Inputs `[id] [adesione] [model]`, outputs
+	    `(saved) (close)`. Logica search 1:1 col modal legacy
+	    (filtro per `referente` -> organizzazione del soggetto,
+	    `referente_tecnico` -> flag dedicato). Modal legacy
+	    preservata sotto `wizardNewLayout=false`.
+	  - Aggiunta i18n nel chip pill di ruolo per ogni riga
+	    referente (`APP.ROLE.<tipo>` — es. "Referente servizio"
+	    per `referente_servizio`).
+	  - `lnk-form-live-search`: nuovo input `searchDebounce`
+	    (default 300ms) applicato come `debounceTime` sul pipe
+	    di `textInput$`. Riduce le chiamate cancellate da
+	    `switchMap` durante la digitazione veloce.
+
+	* [Frontend]
+	Issue 254: ridisegno liste client / endpoint allineato al
+	  pattern referenti del nuovo layout:
+	  - Titolo always-on ("Configurazione autenticazione" /
+	    "Configurazione endpoint") con `lnk-icon-toggle` di
+	    completamento; rimosso il col-lg-4 / col-lg-8 split.
+	  - Item card con border arrotondato; `is-editing` -> bordo
+	    accent + ring soft. Bottoni icon-only stile referenti
+	    (`lnk-btn-ghost lnk-btn-sm lnk-btn-icon`); il toggle
+	    Modifica/Visualizza diventa "Chiudi" quando il pannello
+	    inline e` aperto.
+	  - Single edit at a time gia` garantito dai
+	    `_inlineEditingClient`/`_inlineEditingErogaz`.
+	  - Save -> reload via `loadAdesioneClients` /
+	    `loadAdesioneErogazioni` (gia` esistente).
+	  - Sostituito `<ui-item-row>` con visualizzazione diretta:
+	    titolo = `etichetta` (clients) / `nome v.versione`
+	    (erogazioni); meta = nome/auth_type/stato (clients) o
+	    url/indirizzi_ip/stato (erogazioni). `auth_type`
+	    risolto via `APP.CLIENT.AUTH_TYPE.<value>`.
+	  - Override del padding `<section>` globale (3rem 0) sia
+	    nel wizard sia nelle nuove liste.
+
+	* [Frontend]
+	Issue 254: substepper — collapsibility selettiva e hint
+	  hover discreto:
+	  - In `<app-adesione-substepper>` solo gli step `active` e
+	    il primo step (tipicamente `in_compilazione`) sono
+	    collassabili anche quando completati. Gli altri step
+	    `completed` e tutti i `locked` non hanno toggle (chip
+	    pill sulla destra).
+	  - Affordance per il primo step collassabile-completato:
+	    al hover del row il chip "Completato" cambia
+	    background/border/color discretamente (transition 0.15s)
+	    senza spostare nulla nel layout. Niente chevron per
+	    evitare disallineamento dei chip.
+
+	* [Frontend]
+	Issue 254: refinement nuovo layout wizard adesione (post
+	  test manuale rev. 4):
+	  - Step-bar / sub-stepper / counter env-progress: regola
+	    "fase passata" + "stato terminale raggiunto" allineate
+	    fra step principale (`getFaseStatus`), counter
+	    (`getSezioneCounter`) e substepper interno
+	    (`_buildItems`). Quando l'adesione raggiunge lo stato
+	    terminale di Collaudo (`pubblicato_collaudo`) o e` in
+	    Produzione, la card Collaudo mostra "Fase conclusa",
+	    counter 4/4 e tutti i sub-step verdi (niente piu`
+	    bottone "Compila ora" sull'ultimo step concluso).
+	  - Form Informazioni generali: ridisegno dei campi
+	    readonly come "card" stile mock (sfondo soft, border
+	    arrotondato, label bold sopra) via `::ng-deep`; layout
+	    2-col per le righe Registrato/Date.
+	  - Substepper: tl-meta risolto via i18n `<prefix>.<code>_meta`
+	    (solo `in_compilazione` ha la meta "Configura
+	    autenticazione ed endpoint"); stato a destra come pill
+	    "Completato"/"Bloccato" o bottone Mostra/Chiudi/Compila
+	    ora; CTA "Compila ora" con stile primary rosso pieno.
+	  - Banner stato: CTA right-side ricavata da
+	    `disclaimer.links` (no piu` getter `apiDocLink`
+	    hardcoded a `/servizi/{id}`); rules markdown banner
+	    spostate in `app-markdown.scss`.
+	  - Sub-gruppi referenti: default solo "Referenti adesione"
+	    aperto, "Servizio" e "Dominio" chiusi.
+	  - i18n: chiavi corrette (`APP.LABEL.Modify` ->
+	    `APP.BUTTON.Modify`); nuove `Owner` ("Referente
+	    servizio"), `CompilaOra`, `Show`, `InCorso`,
+	    `WaitingGestoreTitle`, `in_compilazione_meta`. Tutte
+	    tradotte IT/EN.
+	  - Hover header collassabili: highlight solo sul chevron
+	    (PhaseSection / ref-group / tl-row del substepper).
+
+2026-05-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254 (NEW LAYOUT): nuovo layout del wizard adesione,
+	  pilotato dal flag `wizard_new_layout` (default true) e dal
+	  config `step_wizard*` esistente. Step-bar 3-fasi cliccabile
+	  come tab (nuovo `<app-adesione-fasi-bar>`): mostra una sola
+	  fase alla volta sotto, fasi `pending` non cliccabili.
+	  Sub-stepper interno verticale (nuovo `<app-adesione-substepper>`)
+	  con timeline + connettore + bullet stato + collapse, content
+	  projection per il body; lo step `in_compilazione` ospita
+	  sempre la lista client/endpoint, gli altri quando attivi
+	  mostrano "in attesa intervento gestore". CTA right-side:
+	  "Compila ora" (primary) per active chiuso, "Chiudi" per
+	  active aperto, chip "Completato"/"Bloccato" per gli altri.
+	  Edit inline auth client + endpoint erogazione: nuovo
+	  componente standalone `<app-erogazione-edit-form>` riusato
+	  dal modal legacy e dal pannello inline; `[inlineEdit]` su
+	  `<app-adesione-lista-clients>` / `<app-adesione-lista-erogazioni>`
+	  rende il form sotto la riga selezionata invece di aprire la
+	  dialog. FASE 01 ridisegnata: 2 PhaseSection collassabili
+	  (Informazioni / Referenti) con body in pannello grigio; sub-gruppi
+	  referenti (Adesione/Servizio/Dominio) collassabili con avatar
+	  iniziali. Form Informazioni con `externalEditControl=true`:
+	  bottone "Modifica" / "Annulla" esterno pilota il form via
+	  `@ViewChild`. Banner stato (`<lnk-banner>` design-code) con
+	  varianti severity e CTA right-side derivata da `disclaimer.links`.
+	  Hover header collassabili: highlight solo sul chevron, click
+	  sull'intera barra. Design-system Link.it (token CSS) scoped
+	  sotto `:host(.lnk-wizard)` via `@HostBinding`.
+
+	* [Frontend]
+	Issue 254: nuovi componenti riusabili in
+	  `views/adesioni/`: `adesione-fasi-bar` (step-bar 3-fasi
+	  config-driven), `adesione-substepper` (timeline verticale
+	  config-driven con content projection), `adesione-lista-erogazioni/erogazione-edit-form`
+	  (form endpoint estratto dal modal legacy per riuso inline).
+
+2026-04-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 229 (evolutiva): gestione organizzazione come route/view
+	  top-level (`/organizzazione-manage/:id`, `ForbidAnonymousGuard`),
+	  fuori dall'area gestori. Lista utenti con `ui-item-row` + config
+	  dedicato, infinite-scroll, search-bar `q`. Dialog
+	  add/edit ridisegnata: ricerca per `principal` con evidenziazione
+	  match e footer "Aggiungi nuovo utente"; ng-select coerenti con
+	  `appendTo="body"` (no clipping in modal); ruolo organizzazione su
+	  ng-select; campo principal/Codice fiscale come primo elemento.
+	  Switcher: chiusura dropdown via Bootstrap API quando si naviga al
+	  manage. Rimossa vecchia `OrganizationManageDialogComponent`.
+
+	* [Frontend]
+	Issue 229: supporto multi-organizzazione e ruoli per-org.
+	  Modelli FE allineati a `organizzazioni[]` (nuovi
+	  `RuoloOrganizzazioneEnum`, `UtenteOrganizzazione*`,
+	  `utente_organizzazione`). Nuovo `OrganizationContextService` +
+	  `OrganizationContextInterceptor` (header
+	  `X-Organization-Context`). Nuovo selettore organizzazione in
+	  topbar con live refresh (no full reload), gear amministratore
+	  che apre la dialog di gestione utenti. Pagina dettaglio
+	  organizzazione: pannello "Utenti dell'organizzazione" con CRUD,
+	  paginazione e dialog "nuovo utente" inline. Dettaglio utente
+	  riorganizzato: lista multi-org tabellare + hint informativo,
+	  payload `organizzazioni: [{...}]`. Permessi UI: matrice
+	  estesa per ruoli per-org; pulsanti "Nuovo servizio" / "Nuova
+	  adesione" vincolati ai flag `referente`/`aderente` dell'org di
+	  sessione. Configurazione: `AppConfig.Organization.ContextSelector`
+	  e `Profile.{showEmail,showPhone}` per visibilita' contatti
+	  personali. Retrocompat preservata su `organizzazione` (singolare)
+	  e `referente_servizio`. Aggiunte spec service/interceptor
+	  (194 test verdi).
+
+	* [Frontend]
+	Issue 254 (evolutiva): icona di stato sezioni/client/erogazioni
+	  ora oggettiva. Il referente non vede piu' verde su check-dati
+	  BE in `esito: ko`: rimosso il branch ruolo-dipendente nei
+	  mapper di completezza in `adesione-configurazione-wizard`,
+	  `adesione-lista-clients`, `adesione-lista-erogazioni`.
+	  Hint sezioni nascosti durante il loading del check-dati;
+	  pulsante prossimo stato visibile solo se `_hasCambioStato()`.
+	  Cleanup minori in `icon-toggle` (ngOnInit vuoto) e
+	  `check.provider` (console.log commentati).
+
+	* [Frontend]
+	Issue 254 (evolutiva): apertura accordion Collaudo/Produzione
+	  condizionata anche allo step della step-bar interna. Finche' lo
+	  step interno non raggiunge il finale (`pubblicato_*`) la sezione
+	  resta aperta anche con dati completi; al raggiungimento del
+	  finale (o oltre-fase) torna la regola precedente basata sul
+	  solo completamento dati.
+
+2026-04-24  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254 (evolutiva): step-bar interne Collaudo/Produzione pilotate
+	  dalle nuove chiavi `adesione.step_wizard_collaudo` e
+	  `adesione.step_wizard_produzione`. Nuovo stato `final` per il
+	  traguardo raggiunto e rilevamento "oltre-fase" (workflowStati)
+	  per marcare come completate le bar di fasi gia' concluse.
+	  `getSectionHint` rivisto (past/future/completed/action).
+
+	* [GovwayAPICatalogo]
+	Issue 254 (evolutiva): rivista struttura `adesione.step_wizard`
+	  (3 step info_generali/collaudo/produzione) e aggiunte
+	  `step_wizard_collaudo`/`step_wizard_produzione` in
+	  `configurazione.json`.
+
+2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 237 (Fase 2.5 test): robustness fix in
+	  `adesione-lista-clients.component.ts` emersi dai test:
+	  - optional chaining `_currClient?.source` in `onChangeCredenziali`
+	    (evita NPE quando `_currClient` e' null).
+	  - early break nel default switch quando `_aux` e' null (invece
+	    di crashare sugli accessi successivi a `_aux.dati_specifici.*`).
+	  - `_show_nome_proposto` preservato quando `this.client` non e'
+	    ancora settato (evita overwrite quando il componente e' usato
+	    senza bindings tipo-input).
+	  Test failures da 6 a 5. 3 residui pre-existing su servizio-*
+	  (non correlati), 2 su adesione-lista-clients (`oauth fields
+	  enabled`, `nome_proposto`) da approfondire successivamente.
+
+2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 237: fix regression test runtime client-details. I metodi
+	  `_onChangeAuthType` e `_onChangeTipoCertificato[Firma]` ora
+	  sincronizzano il FormControl col valore passato (utile quando
+	  chiamati da codice/test senza che il template abbia gia'
+	  aggiornato il control). Test del spec adattati allo stato
+	  derivato (FormControl setValue + _recomputeFormConfig invece
+	  di assegnazioni ai getter readonly). Failures da 41 a 6.
+
+2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Fix pre-esistente in `soggetto-details.component.spec.ts`: il test
+	  `ngOnDestroy` invocava un metodo non presente sul componente.
+	  Sostituita con tolerant-invocation via cast, bloccava la task
+	  `test:coverage`.
+
+2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 237 (Fase 2.5 spec): pulizia `client-details.component.spec.ts`
+	  dagli errori TypeScript introdotti dal refactor: rimosse le
+	  describe `_checkTipoCertificato` (metodo rimosso, copertura in
+	  `client-dialog-state.spec.ts`), rimossi i 2 test "reset flag" non
+	  piu' applicabili (flag sono getter derivati), riallineate le setup
+	  dei test che settavano flag readonly (setValue su FormControl
+	  auth_type + `_recomputeFormConfig`, o cast `as any` dove residuale).
+
+2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 237 (Fase 2.5 partial): cleanup client-details — rimosse
+	  4 flag `_isCertificato_generato*` solo scritte e mai lette,
+	  semplificate le assegnazioni nel `_loadAll` che le usavano.
+	  Spec file ha ancora test obsoleti (riferimenti a
+	  `_checkTipoCertificato` rimosso e assegnazioni a getter):
+	  da rivedere in un cleanup dedicato.
+
+2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 237: fix regression al save client-details — dopo
+	  update riuscita il form viene re-inizializzato con la risposta
+	  del server cosi' le FormControl tornano disabilitate (view mode).
+
+2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 237 (Fase 2.4 fixup): fix regression della pagina
+	  client-details in edit/view mode dopo il wiring sul componente
+	  condiviso. tipo_certificato inizializzato a null (non `[]`),
+	  adapter espliciti per change events, `_tipiCertificatoMapped`
+	  stabile (ng-select rendering), normalizzazione cert `{}` → null,
+	  sincronizzazione programmatica enable/disable FormControl,
+	  `_editClient` setta `_isEdit=true` prima di `_initForm`,
+	  `_downloadsEnabled` sempre true nel contesto pagina, nuovo flag
+	  `allowCertReplace` per consentire sostituzione cert in edit mode,
+	  nuovi slot `certificatoCertGeneratoCsr[Firma]` (fix semantico),
+	  chiave i18n `SelezionaAuthType`.
+
+2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 237 (Fase 2.4): wiring della pagina client-details sul
+	  componente condiviso. Template ridotto da 1232 a 351 righe
+	  (-881); il form auth e' delegato a `<app-client-auth-form>`.
+	  Restano in pagina solo id_organizzazione/id_soggetto,
+	  ambiente/stato e i bottoni Save/Cancel. `computeFormConfig`:
+	  nasconde il toggle credenziali quando `authTypeEditable=true`
+	  (il concetto "Nuovo / Esistente" esiste solo nella dialog).
+
+2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 237 (Fase 2.3): wiring della dialog sul componente condiviso.
+	  `ModalEditClientComponent` ora delega il form a
+	  `<app-client-auth-form>` (-640 righe HTML); resta shell per
+	  header, footer e mapping eventi. Root del componente condiviso
+	  cambiato da `<form>` a `<div [formGroup]>` per evitare form
+	  nidificate nei parent.
+
+2026-04-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 237 (Fase 2.2): nuovo `ClientAuthFormComponent` standalone
+	  condiviso fra dialog del wizard e pagina client-details.
+	  Template migrato dal modal-edit-client con estensioni: dropdown
+	  `auth_type` opzionale e 4 slot upload cert-generato (contesto
+	  pagina). Non ancora wired ai parent (fasi 2.3 / 2.4).
+
+2026-04-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 237 (prerequisiti Passo 2): rimosso dead code
+	  `_descrittoreCtrl_generato` in client-details; migrato
+	  l'upload allegati da `ui-allegato` a `ui-file-dropzone`
+	  (allineamento con la dialog del wizard).
+
+2026-04-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 237 (Passo 1): client-details usa ora `computeFormConfig`
+	  del modulo stato condiviso. Le 25+ flag booleane diventano
+	  getter derivati, rimosso `_checkTipoCertificato`, semplificato
+	  `_onChangeAuthType` (switch + chain di if → helper dichiarativo).
+	  `ClientDialogInput` esteso con `authTypeEditable` e `statoNuovo`;
+	  `CertBlockConfig` con `certGeneratoFileRequired`. Template
+	  invariato.
+
+2026-04-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: pannello debug nel wizard con 19 preset mock per
+	  provare la dialog di configurazione auth client (save simulato,
+	  visibile con `wizard_debug_switches`).
+
+2026-04-20  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: disclaimer per-client dal backend. Gestito il nuovo
+	  campo `profilo` sui disclaimer: quelli con profilo sono esclusi
+	  dal banner di sezione e mostrati sotto la riga del client
+	  matching (icona colorata per severity + markdown inline).
+	  Rimossi gli hint FE di stato su client e erogazioni.
+	Issue 254: messaggi contestuali nel wizard Adesioni. Hint sotto
+	  ogni sezione accordion (azione richiesta / completata / non ancora
+	  disponibile, con distinzione past/future via `stati_scheda_adesione`)
+	  e sotto ogni riga di client/erogazione in base allo stato. Layout
+	  orizzontale opzionale per la dialog di configurazione client quando
+	  ci sono più aree di upload. Fix NPE in `servizio-details._loadApis`
+	  (fallback con forma corretta). Ignorate le copie locali di
+	  `app-config-*.json`.
+
+2026-04-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: fix due NPE nel wizard adesioni emersi durante testing:
+	  optional chaining mancante su `currentState.nome` in
+	  `hasNextStateWorkflow` e guard mancante su `_cambioStato` nel
+	  template di `WorkflowComponent`.
+	Issue 237: refactoring completo della dialog di configurazione
+	  modalità di autenticazione client. Dialog estratta in
+	  `ModalEditClientComponent` standalone presentational, guidata da
+	  un modulo puro `client-dialog-state.ts` (discriminated unions +
+	  `computeFormConfig`, 29 test vitest). UX allineata al mockup:
+	  toggle "Nuovo client / Client già censito", dropdown contestuale
+	  con alert empty-state, label "Tipo di accesso", info-box per
+	  scenario e help-text sui campi. Nuovo componente `ui-file-dropzone`
+	  per l'upload dei certificati. Eliminate le 27+ flag booleane
+	  interne e le race condition con setTimeout. Storia dettagliata
+	  sul branch `sprint-2.3.7-237-modale-auth-client`.
+
+2026-04-18  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: rendering dei disclaimer del wizard Adesioni adeguato
+	  al nuovo formato di `GET /adesioni/{id}/disclaimers` (oggetti con
+	  `disclaimer`, `contesto`, `severity`, `links`). Mostrati nella
+	  posizione corrispondente al contesto, con icona e stile
+	  Bootstrap in base alla severity. Aggiunto mock locale attivabile
+	  tramite flag `disclaimersUseMock`.
+
+2026-04-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: nuovo wizard di configurazione Adesioni guidato da
+	  `adesione.step_wizard`. Nuova step-bar interattiva
+	  (`AdesioneStepBarComponent`) con varianti circles/chevron,
+	  tematizzazione via 11 CSS vars sui 6 temi + preset dark,
+	  indicatori visivi per step reale vs anteprima e badge opzionali.
+	  Integrati i disclaimer dinamici multilingua in markdown, tooltip
+	  "Salta collaudo", flag `wizard_show_all_sections` e
+	  `wizard_debug_switches`. Rework layout sezione Referenti
+	  (blocchi separati per adesione / servizio / dominio).
+
+2026-04-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Fix dettaglio API: corretto rendering proprietà custom di tipo "select",
+	  che mostrava "undefined" invece della etichetta e generava errore in
+	  console (mapper cercava il gruppo per nome_gruppo mentre il template
+	  passa label_gruppo). Risolto inoltre il problema per cui in fase di
+	  update le proprietà custom appartenenti allo stesso nome_gruppo
+	  venivano cancellate/sovrascritte: la inizializzazione del FormGroup
+	  ricreava ad ogni iterazione il sotto-gruppo, conservando solo
+	  l'ultima proprietà. Stesso fix applicato a
+	  servizio-api-configuration. Rimossa inoltre l'asimmetria per cui le
+	  proprietà custom venivano inviate in creazione API ma non in
+	  modifica (era presente una condizione !_isPDND assente nel flusso
+	  di create). Corretto infine il submit in update che non includeva
+	  i valori delle proprietà custom quando i relativi controlli erano
+	  disabilitati dalla directive disablePermission: il body viene ora
+	  popolato leggendo direttamente dai FormControl (che mantengono il
+	  valore anche se disabilitati) invece che da _formGroup.value (che
+	  li esclude).
+
+2026-04-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 182: aggiunto nella dashboard la visualizzazione dei client con
+	  certificato scaduto o in scadenza. Mostrato il nuovo campo
+	  scadenza_certificato (restituito dalla GET /client?dashboard=true) sia
+	  nel pannello Client che nella vista espansa, con badge giallo per i
+	  certificati in scadenza e badge rosso per quelli scaduti.
+
+2026-04-20  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Fix NPE in _getCustomSelectLabelMapper quando piu' nome_gruppo
+	  condividono lo stesso label_gruppo (es. PDNDCollaudo +
+	  PDNDCollaudo_identificativo): sostituito find() con filter +
+	  flatMap sulle proprieta di tutti i gruppi matchanti.
+
+2026-04-17  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* Rilasciata versione 2.3.6.p2
+
+2026-04-17  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Risolto errore "Number of aliases for non-scalar nodes exceeds the
+	  specified max=50" durante il download/analisi di specifiche
+	  OpenAPI/Swagger contenenti molti anchor/alias YAML. Introdotti in
+	  YamltoJsonUtils i limiti SnakeYAML configurabili tramite properties
+	  openapi.yaml.max_aliases_for_collections (default 500) e
+	  openapi.yaml.nesting_depth_limit (default 50); valori iniettati via
+	  @PostConstruct in OpenAPI2SpringBoot. Esteso il pattern di
+	  pre-conversione YAML->JSON anche a SwaggerUtils, per evitare l'uso
+	  del SnakeYAML interno di OpenAPIV3Parser con limiti di default
+	  restrittivi.
+	OWASP: aggiunta suppression temporanea per CVE-2026-22732
+	  (spring-security 6.3.5), estesa a tutti i moduli
+	  spring-security-*. Da rimuovere con l'upgrade dello stack
+	  Spring.
+
+	* [Frontend]
+	OWASP: aggiunta suppression per DOMPurify 3.3.2 embeddato nei
+	  bundle di swagger-ui-dist (non risolvibile a monte), da
+	  rivalutare ad ogni upgrade di swagger-ui-dist.
+
+2026-04-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #259, Issue #265: fix update proprietà custom in
+	  servizio-api-configuration. L'aggiornamento di un gruppo di
+	  proprietà custom (es. collaudo) sovrascriveva con array vuoto
+	  i gruppi non presenti nel form (es. produzione), causando la
+	  perdita dei valori salvati. Corretto il payload della PUT: i
+	  gruppi non editati vengono ora preservati con i valori originali
+	  dalla risposta GET anziché inviati con `proprieta: []`.
+	Issue #263: fix badge custom properties che debordavano dal box
+	  nella vetrina servizi. Corretto il flex del container `.meta-info`
+	  nel componente item-row (`flex: 1 0 auto` → `flex: 1 1 auto`)
+	  permettendo al container di restringersi e ai badge inline di
+	  andare a capo. Aggiunto `text-align: right` per allineare i
+	  badge a destra.
+	Aggiornate dipendenze per vulnerabilità DOMPurify (CVE CVSS 6.9):
+	  dompurify override 3.3.3 → 3.4.0, swagger-ui-dist 5.32.1 → 5.32.4.
+	  Rimossa opzione `ignoreDeprecations` da tsconfig.json (non più
+	  necessaria con TypeScript 5.9).
+
+2026-04-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Fix dettaglio API: corretto rendering proprietà custom di tipo "select",
+	  che mostrava "undefined" invece della etichetta e generava errore in
+	  console (mapper cercava il gruppo per nome_gruppo mentre il template
+	  passa label_gruppo). Risolto inoltre il problema per cui in fase di
+	  update le proprietà custom appartenenti allo stesso nome_gruppo
+	  venivano cancellate/sovrascritte: la inizializzazione del FormGroup
+	  ricreava ad ogni iterazione il sotto-gruppo, conservando solo
+	  l'ultima proprietà. Stesso fix applicato a
+	  servizio-api-configuration. Rimossa inoltre l'asimmetria per cui le
+	  proprietà custom venivano inviate in creazione API ma non in
+	  modifica (era presente una condizione !_isPDND assente nel flusso
+	  di create). Corretto infine il submit in update che non includeva
+	  i valori delle proprietà custom quando i relativi controlli erano
+	  disabilitati dalla directive disablePermission: il body viene ora
+	  popolato leggendo direttamente dai FormControl (che mantengono il
+	  valore anche se disabilitati) invece che da _formGroup.value (che
+	  li esclude).
+
 2026-04-10  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* Rilasciata versione 2.3.6.p1

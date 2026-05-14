@@ -92,24 +92,12 @@ export class CkeckProvider {
     }
 
     isSottotipoGroupCompleted(data: DataStructure, datoValue: string, sottotipo: string): boolean {
-        // console.group('isSottotipoGroupCompleted');
-        // console.log('datoValue', datoValue);
-        // console.log('sottotipo', sottotipo);
-        // console.log('getObjectByDatoAndSottotipo', this.getObjectByDatoAndSottotipo(data, datoValue, { tipo: sottotipo, identificativo: '' }));
-        // console.groupEnd();
         return data?.esito === 'ok' || this.getObjectByDatoAndSottotipo(data, datoValue, { tipo: sottotipo, identificativo: '' }) === undefined;
     }
 
     isSottotipoCompleted(data: DataStructure, datoValue: string, tipo: string, identificativo: string): boolean {
         const obj = this.getObjectByDatoAndTipoIdentificativo(data, datoValue, { tipo: tipo, identificativo: identificativo });
         const sottotipoObj = obj?.sottotipo?.find((sub: any) => sub.identificativo === identificativo);
-        // console.group('isSottotipoCompleted');
-        // console.log('datoValue', datoValue);
-        // console.log('tipo', tipo);
-        // console.log('identificativo', identificativo);
-        // console.log('getObjectByDatoAndTipoIdentificativo', obj);
-        // console.log('sottotipoObj', sottotipoObj);
-        // console.groupEnd();
         return data?.esito === 'ok' || sottotipoObj === undefined;
     }
 

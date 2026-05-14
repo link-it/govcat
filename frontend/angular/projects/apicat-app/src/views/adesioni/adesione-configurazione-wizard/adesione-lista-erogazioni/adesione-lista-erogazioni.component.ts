@@ -26,7 +26,6 @@ import { TranslateModule } from '@ngx-translate/core';
 import { COMPONENTS_IMPORTS, EventsManagerService, EventType } from '@linkit/components';
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
-import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
@@ -37,6 +36,7 @@ import { AmbienteEnum } from '@app/model/ambienteEnum';
 import { Erogazioni } from '../../adesione-configurazioni/erogazioni';
 
 import { CkeckProvider, ClassiEnum, DataStructure } from '@app/provider/check.provider';
+import { ErogazioneEditFormComponent } from './erogazione-edit-form/erogazione-edit-form.component';
 
 @Component({
     selector: 'app-adesione-lista-erogazioni',
@@ -50,7 +50,7 @@ import { CkeckProvider, ClassiEnum, DataStructure } from '@app/provider/check.pr
         ...APP_COMPONENTS_IMPORTS,
         MapperPipe,
         TooltipModule,
-        MarkAsteriskDirective
+        ErogazioneEditFormComponent
     ]
 })
 export class AdesioneListaErogazioniComponent implements OnInit, OnChanges {
@@ -65,6 +65,22 @@ export class AdesioneListaErogazioniComponent implements OnInit, OnChanges {
     @Input() otherClass: string = '';
     @Input() dataCheck: DataStructure = { esito: 'ok', errori: [] };
     @Input() nextState: any = null;
+
+    /**
+     * Issue 254 NEW LAYOUT: quando attivo (`true`), il click sulla matita
+     * di un'erogazione NON apre piu` il modal `#editErogazioni` ma
+     * renderizza inline `<app-erogazione-edit-form>` sotto la riga
+     * dell'erogazione selezionata. Default `false` = comportamento
+     * legacy (modal).
+     */
+    @Input() inlineEdit: boolean = false;
+
+    /**
+     * Riferimento all'erogazione attualmente in edit inline (solo
+     * quando `inlineEdit=true`). `null` se nessuna e` aperta. Confrontato
+     * per reference con l'item della lista nel template.
+     */
+    _inlineEditingErogaz: any = null;
 
     completed: boolean = true;
 
@@ -206,7 +222,10 @@ export class AdesioneListaErogazioniComponent implements OnInit, OnChanges {
         if (this.isSottotipoGroupCompletedMapper(update, tipo)) {
             return this.nextState?.dati_non_applicabili?.includes(this.environment) ? 2 : 1;
         } else {
-            return this._hasCambioStato() ? 0 : 1;
+            // Stato di completezza dei dati: oggettivo, non dipende dal ruolo.
+            // Anche un referente che non puo' cambiare stato deve vedere
+            // l'alert quando il check-dati BE riporta esito != 'ok'.
+            return 0;
         }
     }
 
@@ -285,7 +304,11 @@ export class AdesioneListaErogazioniComponent implements OnInit, OnChanges {
     _messageHelp = 'APP.MESSAGE.ChooseEnvironmentHelp';
 
     closeModal(){
-        this._modalEditRef.hide();
+        // Sotto inlineEdit non e` mai stato creato un modalRef.
+        if (this._modalEditRef) {
+            this._modalEditRef.hide();
+        }
+        this._inlineEditingErogaz = null;
         this.isEditErogazione = false;
     }
 
@@ -301,11 +324,18 @@ export class AdesioneListaErogazioniComponent implements OnInit, OnChanges {
         this.id_erogazione = erogaz.id_erogazione;
         this._initEditFormErogazioni(erogaz)
 
+        if (this.inlineEdit) {
+            // Issue 254 NEW LAYOUT: rendering inline del form erogazione
+            // sotto la riga selezionata. Niente modalService.
+            this._inlineEditingErogaz = erogaz;
+            return;
+        }
+
         const _modalConfig: any = {
             ignoreBackdropClick: false,
             class: 'modal-half-'
         };
-        
+
         this._modalEditRef = this.modalService.show(this.editErogazioni, _modalConfig);
     }
 

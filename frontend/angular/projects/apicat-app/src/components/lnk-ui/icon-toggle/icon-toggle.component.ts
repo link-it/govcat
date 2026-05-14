@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 
 import { TranslateModule } from '@ngx-translate/core';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
@@ -28,7 +28,7 @@ import { TooltipModule } from 'ngx-bootstrap/tooltip';
   standalone: true,
   imports: [TranslateModule, TooltipModule]
 })
-export class LnkIconToggleComponent implements OnInit, OnChanges {
+export class LnkIconToggleComponent implements OnChanges {
 
   @Input() value: number = 2; // 0 = unchecked, 1 = checked, 2 = Indeterminate
   @Input() iconChecked: string = 'bi bi-check-circle text-success';
@@ -44,9 +44,6 @@ export class LnkIconToggleComponent implements OnInit, OnChanges {
   tooltip: string = '';
 
   constructor() { }
-
-  ngOnInit() {
-  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.value) {

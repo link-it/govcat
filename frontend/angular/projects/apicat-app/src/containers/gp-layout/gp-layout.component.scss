@@ -253,3 +253,39 @@ footer {
 .has-sub-header {
     margin-top: var(--sup-header-height, 60px);
 }
+
+// Issue 270 / dev-tools — bottone flottante "reset organization
+// context". Visibile solo quando
+// `AppConfig.Layout.Dev.organizationContextReset = true`. Pensato
+// per sviluppo locale: cancella localStorage org + logout +
+// reload. Stile volutamente vistoso (giallo) per ricordare che
+// e` un tool dev.
+.dev-org-reset-fab {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 1080;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, .12);
+    background: #ffd43b;
+    color: #5c3c00;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    box-shadow: 0 6px 18px -6px rgba(0, 0, 0, .35);
+    cursor: pointer;
+    transition: transform .12s ease, box-shadow .12s ease, background-color .12s ease;
+
+    &:hover {
+        transform: translateY(-1px);
+        background: #fcc419;
+        box-shadow: 0 8px 22px -6px rgba(0, 0, 0, .4);
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+}

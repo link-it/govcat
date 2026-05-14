@@ -89,7 +89,6 @@
 
           <div id="language" class="ml-auto" *ngIf="_showLanguageMenu && _translations && _translations.length > 1">
             <button class="btn color-inherit text-uppercase pe-0 fw-light" data-bs-toggle="dropdown">
-              <!-- <span class="material-icons-outlined align-middle">language</span> -->
               <i class="bi bi-translate align-middle"></i>
               <div class="d-inline ms-2 align-middle">{{ _currentLanguage }}</div>
               <span class="material-icons-outlined align-middle mx-1">expand_more</span>
@@ -114,12 +113,11 @@
             </ul>
           </div>
 
+          <ng-content select="[organization-switcher]"></ng-content>
+
           <div class="ml-auto" *ngIf="loggedIn">
             <button class="btn color-inherit text-uppercase pe-0 fw-light" data-bs-toggle="dropdown">
-              <!-- <img width="23" height="23" class="header-user-avatar" [alt]="_username" src="./assets/images/avatar.png"> -->
               <img #avatar class="" [alt]="_username" ngxGravatar [email]="_username" [size]="23" fallback="mp" (error)="onAvatarError($event)">
-              <!-- <img class="bg-white rounded-circle border border-white" src="./assets/images/_avatar.png" width="23" (error)="onAvatarError($event)"> -->
-              <!-- <div class="d-inline ms-2 align-middle">{{ _username }}</div> -->
               <span class="material-icons-outlined align-middle mx-1">expand_more</span>
             </button>
             <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="menu-action">

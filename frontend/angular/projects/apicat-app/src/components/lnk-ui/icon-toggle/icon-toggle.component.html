@@ -22,7 +22,8 @@
       <i
         class="{{ iconClass }}"
         [tooltip]="tooltip | translate"
-      ></i>
+        container="body"
+    ></i>
     }
     @if (loading) {
       <i class="spinner-border spinner-border-sm" [style.border-width.px]="1" [tooltip]="'APP.TOOLTIP.Loading' | translate"></i>

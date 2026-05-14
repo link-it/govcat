@@ -96,7 +96,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     flex-direction: column;
     align-items: flex-end;
     align-self: self-start;
-    flex: 1 0 auto;
+    flex: 1 1 auto;
+    text-align: right;
     font-size: var(--item-row-metadata-font-size, 14px);
 }
 

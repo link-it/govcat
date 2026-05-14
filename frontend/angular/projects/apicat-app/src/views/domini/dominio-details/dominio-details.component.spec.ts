@@ -11,7 +11,15 @@ describe('DominioDetailsComponent', () => {
 
   const createMockRoute = () => {
     paramsSubject = new Subject<any>();
-    return { params: paramsSubject.asObservable() } as any;
+    // Issue 229 evolutiva multi-org/domini — `ngOnInit` legge anche
+    // `route.snapshot.data?.fromOrgManage` per discriminare il
+    // contesto. Lo stub aggiunge uno `snapshot.data` vuoto per
+    // mantenere la compatibilita` dei test esistenti (legacy
+    // route, non under org-manage).
+    return {
+      params: paramsSubject.asObservable(),
+      snapshot: { data: {} }
+    } as any;
   };
 
   let mockRoute: any;
@@ -50,11 +58,20 @@ describe('DominioDetailsComponent', () => {
     mockConfigService.getConfiguration.mockReturnValue({ AppConfig: {} });
 
     mockRoute = createMockRoute();
+    // Issue 229 evolutiva multi-org/domini: nuovo dep
+    // AuthenticationService per il filtro typeahead soggetti
+    // (AMM_ORG vede solo soggetti della propria org).
+    const mockAuthenticationService = {
+      isGestore: vi.fn().mockReturnValue(true),
+      isCoordinatore: vi.fn().mockReturnValue(false),
+      getCurrentOrganization: vi.fn().mockReturnValue(null)
+    };
     component = new DominioDetailsComponent(
       mockRoute, mockRouter,
       mockConfigService, mockTools,
       mockApiService, mockUtils,
-      mockTranslate, mockModalService
+      mockTranslate, mockModalService,
+      mockAuthenticationService as any
     );
   });
 

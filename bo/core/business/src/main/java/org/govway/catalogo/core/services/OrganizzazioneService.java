@@ -28,6 +28,8 @@ import org.govway.catalogo.core.dao.specifications.OrganizzazioneSpecification;
 import org.govway.catalogo.core.exceptions.NotFoundException;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.SoggettoEntity;
+import org.govway.catalogo.core.orm.entity.UtenteEntity;
+import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -54,6 +56,13 @@ public class OrganizzazioneService extends AbstractService {
 
 	public Optional<OrganizzazioneEntity> find(UUID key) {
 		return this.orgRepo.findOne(filterByKey(key));
+	}
+
+	/**
+	 * Trova un'organizzazione tramite il suo ID interno (PK).
+	 */
+	public Optional<OrganizzazioneEntity> findById(Long id) {
+		return this.orgRepo.findById(id);
 	}
 
 	public Optional<OrganizzazioneEntity> findByNome(String key) {
@@ -187,6 +196,63 @@ public class OrganizzazioneService extends AbstractService {
 		OrganizzazioneSpecification organizationFilter = new OrganizzazioneSpecification();
 		organizationFilter.setNome(Optional.of(nome));
 		return organizationFilter;
+	}
+
+	// === Gestione associazioni utente-organizzazione ===
+	// TODO [MULTI-ORG] Valutare refactoring: spostare qui anche i metodi legati
+	// alle associazioni utente-organizzazione attualmente in UtenteService
+	// (findUtenteOrganizzazione, hasRuoloInOrganizzazione, isAssociatoA, ...)
+	// per una migliore coerenza di responsabilità tra i service.
+
+	/**
+	 * Salva o aggiorna un'associazione utente-organizzazione.
+	 */
+	public UtenteOrganizzazioneEntity save(UtenteOrganizzazioneEntity entity) {
+		return this.utenteOrganizzazioneRepo.save(entity);
+	}
+
+	/**
+	 * Elimina un'associazione utente-organizzazione.
+	 */
+	public void delete(UtenteOrganizzazioneEntity entity) {
+		this.utenteOrganizzazioneRepo.delete(entity);
+	}
+
+	/**
+	 * Restituisce una pagina di associazioni utente-organizzazione per l'organizzazione indicata.
+	 */
+	public Page<UtenteOrganizzazioneEntity> findUtenteOrganizzazioniByOrganizzazione(OrganizzazioneEntity organizzazione, Pageable pageable) {
+		return this.utenteOrganizzazioneRepo.findByOrganizzazione(organizzazione, pageable);
+	}
+
+	/**
+	 * Restituisce una pagina di associazioni utente-organizzazione applicando una Specification
+	 * (es. filtro per organizzazione + ricerca libera q su principal/nome/cognome).
+	 */
+	public Page<UtenteOrganizzazioneEntity> findUtenteOrganizzazioni(
+			org.springframework.data.jpa.domain.Specification<UtenteOrganizzazioneEntity> spec,
+			Pageable pageable) {
+		return this.utenteOrganizzazioneRepo.findAll(spec, pageable);
+	}
+
+	/**
+	 * Conta gli utenti associati ad un'organizzazione.
+	 */
+	public long countUtentiByOrganizzazione(OrganizzazioneEntity organizzazione) {
+		return this.utenteOrganizzazioneRepo.countByOrganizzazione(organizzazione);
+	}
+
+	/**
+	 * Cerca l'associazione utente-organizzazione per una specifica coppia.
+	 */
+	public Optional<UtenteOrganizzazioneEntity> findUtenteOrganizzazione(UtenteEntity utente, OrganizzazioneEntity organizzazione) {
+		if (utente == null || organizzazione == null) {
+			return Optional.empty();
+		}
+		return this.utenteOrganizzazioneRepo.findByUtente(utente).stream()
+				.filter(a -> a.getOrganizzazione() != null
+						&& a.getOrganizzazione().getId().equals(organizzazione.getId()))
+				.findFirst();
 	}
 
 }

@@ -76,6 +76,22 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 
 	private Logger logger = LoggerFactory.getLogger(AdesioneAuthorization.class);
 
+	@Override
+	public void authorizeCreate(AdesioneCreate create) {
+		// Vincolo [**] della matrice permessi: per utenti con ruolo per-organizzazione
+		// (non admin/coordinator), l'organizzazione di sessione deve avere il flag aderente
+		// attivo per poter creare una nuova adesione.
+		if (!this.coreAuthorization.isAdmin()
+				&& !this.coreAuthorization.isCoordinatore()
+				&& this.coreAuthorization.getOrganizationContext() != null
+				&& this.coreAuthorization.getOrganizationContext().hasOrganizzazione()
+				&& !this.coreAuthorization.isOrganizzazioneSessioneAderente()) {
+			throw new org.govway.catalogo.exception.NotAuthorizedException(
+					org.govway.catalogo.exception.ErrorCode.AUT_403_ORG_NOT_ADERENTE,
+					java.util.Map.of("nomeOrganizzazione", this.coreAuthorization.getOrganizzazioneSessione().getNome()));
+		}
+	}
+
 	@Autowired
 	private Configurazione configurazione;
 	
@@ -507,8 +523,71 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 		if(refTecnicoAdesione) {
 			lst.add(Ruolo.REFERENTE_TECNICO);
 		}
-		
+
+		// Ruoli per-organizzazione: per un'adesione ci sono due contesti potenziali,
+		// l'organizzazione aderente (soggetto) e quella erogatrice (soggetto referente del dominio).
+		// TODO [MULTI-ORG] Da chiarire: per un'adesione è corretto considerare il ruolo dell'utente
+		// sia sull'organizzazione aderente sia su quella erogatrice? Attualmente consideriamo entrambe
+		// prendendo il ruolo più alto, ma è un punto aperto da rivedere.
+		// TODO [MULTI-ORG] Valutare refactoring dell'enum Ruolo workflow per rappresentare più flessibilmente
+		// i nuovi ruoli per-organizzazione.
+		// Se l'utente è esplicitamente referente_tecnico (e non anche referente) di adesione/servizio/dominio,
+		// la sua designazione tecnica è vincolante e non deve essere elevata a REFERENTE dal ruolo OPERATORE_API
+		// dell'organizzazione (mantiene i poteri limitati del referente tecnico sulla risorsa specifica).
+		boolean soloRefTecnico = (refTecnicoAdesione || refTecnicoServizio || refTecnicoDominio)
+				&& !refAdesione && !refServizio && !refDominio;
+		aggiungiRuoloPerOrganizzazione(lst, u, getOrganizzazioneAderenteAdesione(entity), soloRefTecnico);
+		aggiungiRuoloPerOrganizzazione(lst, u, getOrganizzazioneErogatriceAdesione(entity), soloRefTecnico);
+
 		return lst;
+	}
+
+	/**
+	 * Organizzazione aderente: quella del soggetto dell'adesione.
+	 */
+	private org.govway.catalogo.core.orm.entity.OrganizzazioneEntity getOrganizzazioneAderenteAdesione(AdesioneEntity adesione) {
+		if (adesione.getSoggetto() == null) {
+			return null;
+		}
+		return adesione.getSoggetto().getOrganizzazione();
+	}
+
+	/**
+	 * Organizzazione erogatrice: quella del soggetto referente del dominio del servizio.
+	 */
+	private org.govway.catalogo.core.orm.entity.OrganizzazioneEntity getOrganizzazioneErogatriceAdesione(AdesioneEntity adesione) {
+		if (adesione.getServizio() == null || adesione.getServizio().getDominio() == null) {
+			return null;
+		}
+		if (adesione.getServizio().getDominio().getSoggettoReferente() == null) {
+			return null;
+		}
+		return adesione.getServizio().getDominio().getSoggettoReferente().getOrganizzazione();
+	}
+
+	/**
+	 * Aggiunge alla lista dei ruoli workflow il mapping del ruolo per-organizzazione dell'utente
+	 * sull'organizzazione indicata (se presente). AMM_ORG → REFERENTE_SUPERIORE,
+	 * OPERATORE_API → REFERENTE. Deduplica se già presente.
+	 *
+	 * @param soloRefTecnico se true, l'utente è esplicitamente referente_tecnico della risorsa:
+	 *                       l'elevazione a REFERENTE dal ruolo OPERATORE_API viene saltata per
+	 *                       preservare i vincoli del referente tecnico.
+	 */
+	private void aggiungiRuoloPerOrganizzazione(List<Ruolo> lst, UtenteEntity utente,
+			org.govway.catalogo.core.orm.entity.OrganizzazioneEntity organizzazione, boolean soloRefTecnico) {
+		if (organizzazione == null) {
+			return;
+		}
+		if (this.coreAuthorization.hasRuoloInOrganizzazione(utente, organizzazione, org.govway.catalogo.core.orm.entity.RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
+			if (!lst.contains(Ruolo.REFERENTE_SUPERIORE)) {
+				lst.add(Ruolo.REFERENTE_SUPERIORE);
+			}
+		} else if (!soloRefTecnico && this.coreAuthorization.hasRuoloInOrganizzazione(utente, organizzazione, org.govway.catalogo.core.orm.entity.RuoloOrganizzazione.OPERATORE_API)) {
+			if (!lst.contains(Ruolo.REFERENTE)) {
+				lst.add(Ruolo.REFERENTE);
+			}
+		}
 	}
 	
 	public List<ErogazioneRichiesta> getErogazioniRichieste(ServizioEntity servizio) {

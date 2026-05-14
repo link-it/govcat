@@ -316,7 +316,7 @@ public class VisibilitaServizioTest {
         utente.setPrincipal(UTENTE_QUALSIASI);
         utente.setNome("Mr.");
         utente.setCognome("xx");
-        utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utente, response.getBody().getIdOrganizzazione());
         responseUtente = utentiController.createUtente(utente);
         
         //utente = CommonUtils.getUtenteCreate();
@@ -336,22 +336,22 @@ public class VisibilitaServizioTest {
         utenteUpdate.setEmailAziendale("xyz@xyz.it");
         utenteUpdate.setTelefonoAziendale("0000000");
         utenteUpdate.setStato(StatoUtenteEnum.ABILITATO);
-        utenteUpdate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteUpdate, response.getBody().getIdOrganizzazione());
         utentiController.updateUtente(ID_UTENTE_RICHIEDENTE_SERVIZIO, utenteUpdate);
           
         utente = CommonUtils.getUtenteCreate();
         utente.setPrincipal(UTENTE_REFERENTE_SERVIZIO);
         utente.setNome("Utente");
         utente.setCognome("Referente_servizio");
-        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
-        utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        utente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        CommonUtils.setOrganizzazione(utente, response.getBody().getIdOrganizzazione());
         responseUtente = utentiController.createUtente(utente);
         
         utente = CommonUtils.getUtenteCreate();
         utente.setPrincipal(UTENTE_REFERENTE_TECNICO_SERVIZIO);
         utente.setNome("Utente");
         utente.setCognome("Referente_tecnico_servizio");
-        utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utente, response.getBody().getIdOrganizzazione());
         responseUtente = utentiController.createUtente(utente);
         
         //NOTA BENE: I REFERENTI DOMINIO (NON TECNICI) DOVRANNO AVERE IL RUOLO REFERENTE SERVIZIO
@@ -359,15 +359,15 @@ public class VisibilitaServizioTest {
         utente.setPrincipal(UTENTE_REFERENTE_DOMINIO);
         utente.setNome("Utente");
         utente.setCognome("Referente_dominio");
-        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
-        utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        utente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        CommonUtils.setOrganizzazione(utente, response.getBody().getIdOrganizzazione());
         responseUtente = utentiController.createUtente(utente);
         
         utente = CommonUtils.getUtenteCreate();
         utente.setPrincipal(UTENTE_REFERENTE_TECNICO_DOMINIO);
         utente.setNome("Utente");
         utente.setCognome("Referente_tecnico_dominio");
-        utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utente, response.getBody().getIdOrganizzazione());
         responseUtente = utentiController.createUtente(utente);
         
         info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_DOMINIO, utenteService);
@@ -734,7 +734,7 @@ public class VisibilitaServizioTest {
         utente.setClassiUtente(classiUtente);
         utente.setNome("Utente");
         utente.setCognome("Qualsiasi_appartenente_classe_utenti");
-        utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utente, response.getBody().getIdOrganizzazione());
         utentiController.createUtente(utente);
         
         return cu.getBody();

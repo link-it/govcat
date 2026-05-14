@@ -19,3 +19,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 .list-group-item {
   border-color: #eee;
 }
+
+// Issue 229 multi-org — effetto hover sulle card delle
+// organizzazioni del profilo. Border color affine al primary
+// (stesso colore della card in mode replace/selezionato), ma
+// con tinta piu` chiara per distinguere "passo intermedio /
+// invito al click" dallo "stato selezionato".
+// La card gia` aperta in mode `replace` (`border-primary`) e`
+// esclusa per non sovrascrivere lo stato selezionato.
+.profile-orgs-panel {
+  .card {
+    transition: border-color .15s ease, box-shadow .15s ease;
+    cursor: default;
+  }
+  .card:not(.border-primary):hover {
+    // Tinta affine a Bootstrap primary (#0d6efd) ma piu` soft.
+    border-color: #9ec5fe;
+    box-shadow: 0 0 0 1px rgba(13, 110, 253, .15);
+  }
+}

@@ -6,6 +6,15 @@
   <div class="welcome-message">
     <h2>{{ 'APP.REGISTRAZIONE.TITLE.Benvenuto' | translate }}{{ nome ? ', ' + nome : '' }}!</h2>
     <p>{{ 'APP.REGISTRAZIONE.MESSAGE.RegistrazioneCompletata' | translate }}</p>
+    <!-- Issue 229 — banner approvazione organizzazione in attesa
+         (mostrato solo se l'utente ha richiesto un'associazione
+         durante il wizard di registrazione). -->
+    @if (organizzazioneRichiesta?.nome) {
+      <div class="alert alert-warning text-start mt-3 mb-3">
+        <i class="bi bi-hourglass-split me-2"></i>
+        <span>{{ 'APP.REGISTRAZIONE.MESSAGE.OrganizzazioneInAttesa' | translate: { nome: organizzazioneRichiesta?.nome } }}</span>
+      </div>
+    }
     <p class="text-muted">{{ 'APP.REGISTRAZIONE.MESSAGE.CosaFare' | translate }}</p>
   </div>
 

@@ -196,7 +196,7 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
     this._setErrorMessages(false);
 
     if (!url) { this.domini = []; this._links = null; }
-    
+
     let aux: any;
     if (query)  aux = { params: this.utils._queryToHttpParams(query) };
 
@@ -204,8 +204,10 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
     this.apiService.getList(this.model, aux, url).subscribe({
       next: (response: any) => {
         
-        response ? this._paging = new Page(response.page) : null;
-        response ? this._links = response._links || null : null;
+        if (response) {
+          this._paging = new Page(response.page);
+          this._links = response._links || null;
+        }
 
         if (response.content) {
           const _list: any = response.content.map((dominio: any) => {
@@ -239,7 +241,7 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
   }
 
   __loadMoreData() {
-    if (this._links && this._links.next && !this._preventMultiCall) {
+    if (this._links?.next && !this._preventMultiCall) {
       this._preventMultiCall = true;
       this._loadDomini(null, this._links.next.href);
     }

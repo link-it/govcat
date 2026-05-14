@@ -102,7 +102,7 @@ describe('ModalAddReferentComponent', () => {
     it('should set referentiTipo and filter for referente', () => {
       component.onChangeTipoReferente({ value: 'referente' });
       expect(component.referentiTipo).toBe('referente');
-      expect(component.referentiFilter).toBe('referente_servizio,gestore,coordinatore');
+      expect(component.referentiFilter).toBe('referente_servizio,utente_organizzazione,gestore,coordinatore');
     });
 
     it('should set empty filter for referente_tecnico', () => {

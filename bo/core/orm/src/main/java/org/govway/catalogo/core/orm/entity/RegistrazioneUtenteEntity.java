@@ -25,9 +25,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 
@@ -115,5 +118,11 @@ public class RegistrazioneUtenteEntity {
     /** Token ID (jti claim) del JWT per associare la registrazione alla sessione */
     @Column(name = "token_id", length = 255)
     private String tokenId;
+
+    /** Organizzazione proposta dall'utente durante la registrazione; al completamento
+     * viene applicata come organizzazione_pending sull'utente (in attesa di approvazione). */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_organizzazione_richiesta", referencedColumnName = "id")
+    private OrganizzazioneEntity organizzazioneRichiesta;
 
 }

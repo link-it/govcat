@@ -29,6 +29,7 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 import javax.naming.NamingException;
+import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
@@ -116,6 +117,7 @@ import org.govway.catalogo.core.business.utils.EServiceBuilder;
 import org.govway.catalogo.core.business.utils.NotificheUtils;
 import org.govway.catalogo.core.business.utils.SchedaAdesioneBuilder;
 import org.govway.catalogo.core.business.utils.StampeLabels;
+import org.govway.catalogo.core.business.utils.YamltoJsonUtils;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.monitoraggioutils.FiltriUtils;
 import org.govway.catalogo.monitoraggioutils.IMonitoraggioClient;
@@ -722,6 +724,18 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
     @ConfigurationProperties(prefix = "stampe")
     public StampeLabels stampeLabels() {
         return new StampeLabels();
+    }
+
+    @Value("${openapi.yaml.max_aliases_for_collections:500}")
+    int yamlMaxAliasesForCollections;
+
+    @Value("${openapi.yaml.nesting_depth_limit:50}")
+    int yamlNestingDepthLimit;
+
+    @PostConstruct
+    public void configureYamlParserLimits() {
+        YamltoJsonUtils.setMaxAliasesForCollections(this.yamlMaxAliasesForCollections);
+        YamltoJsonUtils.setNestingDepthLimit(this.yamlNestingDepthLimit);
     }
 
     @Value("${pdf.logo}")

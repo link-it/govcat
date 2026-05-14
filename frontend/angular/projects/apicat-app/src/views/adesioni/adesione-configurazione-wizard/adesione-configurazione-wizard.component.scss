@@ -16,3 +16,883 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+// ----------------------------------------------------------------------
+// Palette e variabili nuovo layout (Issue 254 NEW LAYOUT)
+// Centralizzate qui per coerenza tra banner, card-fase, badge e
+// sub-stepper. Allineate al mock new-mock.png.
+// ----------------------------------------------------------------------
+:root {
+  --wizard-banner-info-bg: #e7f1fe;
+  --wizard-banner-info-border: #c6dcfa;
+  --wizard-banner-info-color: #1f4d9a;
+  --wizard-banner-success-bg: #e8f6ee;
+  --wizard-banner-success-border: #c5e6d2;
+  --wizard-banner-success-color: #1f6b3a;
+  --wizard-banner-warning-bg: #fff8db;
+  --wizard-banner-warning-border: #ffe9a3;
+  --wizard-banner-warning-color: #7a5800;
+  --wizard-banner-danger-bg: #fdecea;
+  --wizard-banner-danger-border: #f5c2bd;
+  --wizard-banner-danger-color: #8a1f1a;
+  --wizard-active-accent: #c0392b;
+  --wizard-completed-accent: #1f6b3a;
+}
+
+.wizard-debug-toggle {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px dashed var(--border-color, #dbdbdb);
+  font-size: 0.8rem;
+  color: color-mix(in srgb, var(--body-color, #303030) 60%, transparent);
+
+  .form-check {
+    margin: 0;
+    min-height: auto;
+  }
+
+  .form-check-label {
+    user-select: none;
+    cursor: pointer;
+  }
+}
+
+// Accordion sections: allineate al border-radius degli altri box (step-bar,
+// disclaimer). Usiamo overflow:hidden per far seguire ai contenuti interni
+// (header e collapse) gli angoli arrotondati della card.
+.accordion#accordionWizard {
+  .accordion-item {
+    border-radius: 0.5rem;
+    overflow: hidden;
+
+    .accordion-button {
+      border-radius: 0;
+    }
+
+    .accordion-collapse {
+      border-radius: 0;
+    }
+  }
+}
+
+.adesione-disclaimers {
+  .alert {
+    padding: 0.75rem 1rem;
+
+    :last-child {
+      margin-bottom: 0;
+    }
+
+    markdown {
+      h2 {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+
+      p:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  .disclaimer-icon {
+    font-size: 1.1rem;
+    line-height: 1.4;
+    margin-top: 0.1rem;
+  }
+
+  .disclaimer-body {
+    display: block;
+  }
+
+  .disclaimer-links {
+    padding-left: 1.25rem;
+
+    li + li {
+      margin-top: 0.25rem;
+    }
+  }
+}
+
+// Sezione wizard non ancora applicabile per lo step corrente:
+// visibile ma non attivabile. La usiamo quando è attivo il flag
+// `wizard_show_all_sections` in configurazione.json.
+.accordion-item.section-disabled {
+  opacity: 0.55;
+
+  .accordion-button {
+    cursor: not-allowed;
+    pointer-events: none;
+    background-color: var(--bs-light, #f8f9fa);
+    color: var(--bs-gray-600, #6c757d);
+
+    &::after {
+      opacity: 0.35;
+    }
+  }
+}
+
+.button-delete-wrapper {
+  position: absolute;
+  right: 1rem;
+  z-index: 10000;
+}
+
+// Hint banner sotto ogni header di sezione accordion: messaggio di
+// supporto contestuale (azione richiesta / sezione completata / non
+// ancora disponibile). Sempre visibile, indipendente dallo stato
+// aperto/chiuso dell'accordion.
+.accordion-section-hint {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  border-top: 1px solid var(--bs-border-color, #dee2e6);
+
+  i.bi {
+    flex-shrink: 0;
+  }
+
+  &.hint-disabled {
+    background-color: var(--bs-gray-100, #f8f9fa);
+    color: var(--bs-gray-600, #6c757d);
+  }
+
+  &.hint-action {
+    background-color: #fff8e5;
+    color: #8a6d3b;
+  }
+
+  &.hint-completed {
+    background-color: #e8f6ee;
+    color: #1f6b3a;
+  }
+}
+
+// ----------------------------------------------------------------------
+// Issue 254 NEW LAYOUT — design system Link.it (rev. 4)
+// Codice 1:1 da `NOTE-CLAUDE/ISSUE-254-NEW-LAYOUT/design-code/Stylesheets/styles.css`
+// fornito dall'utente. Tutto scoped sotto la host class `.lnk-wizard`
+// (attivata via @HostBinding quando `wizardNewLayout=true`) per:
+//  - non leakkare token CSS al resto dell'app;
+//  - non interferire col layout GovCat esistente (sidenav, breadcrumb,
+//    main, ecc.) gia` reso dal `GpLayoutComponent` parent.
+// Le regole shell del prototipo (`.app`, `.sidenav`, `.crumbs`, `.page-hd`,
+// `.sticky-strip`) sono volutamente OMESSE: GovCat ha gia` la sua chrome.
+// ----------------------------------------------------------------------
+
+// Token Link.it — variabili CSS
+:host(.lnk-wizard),
+.lnk-wizard {
+  --bg:           #f4f8fa;
+  --surface:      #ffffff;
+  --surface-2:    #fafcfd;
+  --surface-3:    #eef4f8;
+  --line:         #dee8ef;
+  --line-strong:  #c4d6e0;
+
+  --ink:          #212c49;
+  --ink-2:        #2e445a;
+  --ink-3:        #57738a;
+  --ink-4:        #8aa4b8;
+
+  --accent:        #ff4050;
+  --accent-hover:  #e6303f;
+  --accent-soft:   #ffe9eb;
+  --accent-soft-2: #ffd4d8;
+  --accent-ink:    #b81e2b;
+  --accent-h:      352;
+
+  --brand:        #2e445a;
+  --brand-soft:   #cce3ed;
+  --brand-soft-2: #e3eff5;
+  --brand-ink:    #21324a;
+
+  // NOTA: i token --ok-* sono GLOBAL (definiti in `styles/app-view.scss
+  // :root`) — palette VERDE per stati "ok/done/completed". L'override
+  // locale precedente li ridefiniva blu, generando incoerenza con gli
+  // stati nella vetrina (adesione-view / servizio-view). Rimosso per
+  // unificare la palette stati (vedi NOTE-CLAUDE/STATI-PALETTE-UNIFICATA).
+
+  --warn:      #c97a1a;
+  --warn-soft: #fbf1e2;
+  --warn-ink:  #8a5310;
+
+  --err:       #ff4050;
+  --err-soft:  #ffe9eb;
+  --err-ink:   #b81e2b;
+
+  --radius:    10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+
+  --shadow-sm: 0 1px 0 rgba(33, 44, 73, .04), 0 1px 2px rgba(33, 44, 73, .04);
+  --shadow:    0 1px 0 rgba(33, 44, 73, .04), 0 8px 24px -8px rgba(33, 44, 73, .08);
+}
+
+// Tutto il resto (componenti specifici) sotto un unico selector di scope.
+// IMPORTANTE: usiamo `:host(.lnk-wizard)` invece di `.lnk-wizard` perche`
+// la classe `lnk-wizard` e` applicata al COMPONENT HOST (via
+// @HostBinding('class.lnk-wizard')) e con la view encapsulation
+// `Emulated` (default) un selector come `.lnk-wizard .gstepper` verrebbe
+// trasformato in `.lnk-wizard[_ngcontent-xxx] .gstepper[_ngcontent-xxx]`
+// che non matcha nulla (il host ha `_nghost-xxx`, non `_ngcontent-xxx`).
+// Con `:host(.lnk-wizard) .gstepper` Angular emette
+// `[_nghost-xxx].lnk-wizard .gstepper[_ngcontent-xxx]` — corretto.
+:host(.lnk-wizard) {
+
+  // Override del `section { padding: 3rem 0; }` globale di
+  // `app-custom.scss:201` — eccessivo dentro il nuovo layout
+  // wizard (banner + step-bar + body fasi gia` spaziati). Nel
+  // wizard riduciamo a 1rem top/bottom. Specificita`
+  // `:host(.lnk-wizard) section` (0,1,2) > `section` (0,0,1).
+  section {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  // Title block (page header) — solo titolo + meta, niente shell GovCat.
+  .wizard-page-hd {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 28px;
+  }
+  .wizard-page-hd h1 {
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 0 0 6px;
+    color: var(--ink);
+  }
+  .wizard-page-hd .sub {
+    color: var(--ink-3);
+    font-size: 13.5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .wizard-page-hd .sub .dot {
+    width: 3px; height: 3px; border-radius: 50%;
+    background: var(--ink-4);
+  }
+
+  .mono {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-feature-settings: 'zero','ss02';
+  }
+
+  // ─── chips & badges ─────────────────────────────────────────────────
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 9px; border-radius: 999px;
+    font-size: 12px; font-weight: 500;
+    background: var(--surface-3); color: var(--ink-2);
+    border: 1px solid var(--line);
+  }
+  .chip .pulse {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor;
+  }
+  .chip-accent { background: var(--accent-soft); color: var(--accent-ink); border-color: #ffc4c9; }
+  .chip-ok     { background: var(--ok-soft);     color: var(--ok-ink);     border-color: var(--ok-border); }
+  .chip-warn   { background: var(--warn-soft);   color: var(--warn-ink);   border-color: #ecd6b0; }
+  .chip-err    { background: var(--err-soft);    color: var(--err-ink);    border-color: #ffc4c9; }
+  .chip-muted  { background: var(--surface-3);   color: var(--ink-3); }
+
+  .chip-accent .pulse {
+    position: relative;
+    background: var(--accent);
+    box-shadow: 0 0 0 0 rgba(255, 64, 80, .5);
+    animation: lnk-pulse 1.6s ease-out infinite;
+  }
+  @keyframes lnk-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(255, 64, 80, .5); }
+    70%  { box-shadow: 0 0 0 6px rgba(255, 64, 80, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 64, 80, 0); }
+  }
+
+  // ─── buttons (coesistono con Bootstrap; Angular emulated encapsulation
+  //     scopa queste rules al solo template del wizard, non ai child
+  //     components che usano Bootstrap normalmente) ───────────────────
+  .lnk-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    height: 32px; padding: 0 13px;
+    background: var(--surface); color: var(--ink);
+    border: 1px solid var(--line-strong); border-radius: 8px;
+    font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all .12s;
+    box-shadow: var(--shadow-sm);
+    text-decoration: none;
+  }
+  .lnk-btn:hover { background: var(--surface-3); border-color: var(--ink-4); }
+  .lnk-btn i.bi, .lnk-btn svg { font-size: 14px; }
+  .lnk-btn-primary {
+    background: var(--ink); color: white; border-color: var(--ink);
+    box-shadow: 0 1px 0 rgba(255,255,255,.15) inset, var(--shadow-sm);
+  }
+  .lnk-btn-primary:hover { background: #16213a; border-color: #16213a; }
+  .lnk-btn-accent {
+    background: var(--accent); color: white; border-color: var(--accent);
+    box-shadow: 0 1px 0 rgba(255,255,255,.15) inset, 0 4px 12px -4px rgba(255, 64, 80, .35);
+  }
+  .lnk-btn-accent:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+  .lnk-btn-ghost { background: transparent; border-color: transparent; box-shadow: none; }
+  .lnk-btn-ghost:hover { background: var(--surface-3); }
+  .lnk-btn-sm { height: 28px; font-size: 12.5px; padding: 0 10px; }
+  .lnk-btn-icon { width: 30px; padding: 0; justify-content: center; }
+
+  // NOTE: le rules `.gstepper` / `.gstep` (step-bar 3-fasi) sono state
+  // migrate dentro `<app-adesione-fasi-bar>` (rev. 4.8) per coerenza con
+  // la view encapsulation Angular. Vedi `adesione-fasi-bar.component.scss`.
+
+  // ─── status banner (azzurro, con barra rossa a sinistra) ────────────
+  .lnk-banner {
+    display: flex; gap: 14px;
+    padding: 16px 18px;
+    background: var(--brand-soft);
+    border: 1px solid #b3d4e2;
+    border-radius: var(--radius-lg);
+    margin-bottom: 22px;
+    position: relative; overflow: hidden;
+  }
+  .lnk-banner::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--brand);
+  }
+  .lnk-banner .icon {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: var(--surface); color: var(--brand);
+    display: grid; place-items: center; flex-shrink: 0;
+    box-shadow: var(--shadow-sm);
+  }
+  .lnk-banner .icon i { font-size: 15px; }
+  .lnk-banner .body { flex: 1; min-width: 0; }
+  .lnk-banner .body h3 {
+    margin: 0 0 4px; font-size: 14.5px; font-weight: 600;
+    color: var(--brand-ink); letter-spacing: -0.005em;
+  }
+  .lnk-banner .body p, .lnk-banner .body markdown {
+    margin: 0; font-size: 13px; color: var(--brand-ink);
+    opacity: .85; line-height: 1.55;
+    display: block;
+  }
+  // `max-width: 62ch` applicato solo quando ci sono CTA (`.actions`):
+  // se la riga finisce con il bottone "Documentazione API" il body deve
+  // restringersi per non finirgli sotto. Se non c'e` la CTA il body usa
+  // tutta la larghezza disponibile (rev. 4.35).
+  .lnk-banner:has(.actions) .body p,
+  .lnk-banner:has(.actions) .body markdown { max-width: 62ch; }
+  .lnk-banner .body markdown p { margin: 0; }
+  .lnk-banner .body b { font-weight: 600; opacity: 1; }
+  .lnk-banner .actions { display: flex; align-items: flex-start; gap: 8px; flex-shrink: 0; }
+
+  // Banner severities (warn / err) per varianti del nuovo layout.
+  .lnk-banner.is-warn   { background: var(--warn-soft); border-color: #ecd6b0; }
+  .lnk-banner.is-warn::before { background: var(--warn); }
+  .lnk-banner.is-warn .body h3,
+  .lnk-banner.is-warn .body p,
+  .lnk-banner.is-warn .body markdown { color: var(--warn-ink); }
+  .lnk-banner.is-err    { background: var(--err-soft); border-color: #ffc4c9; }
+  .lnk-banner.is-err::before { background: var(--err); }
+  .lnk-banner.is-err .body h3,
+  .lnk-banner.is-err .body p,
+  .lnk-banner.is-err .body markdown { color: var(--err-ink); }
+
+  // ─── env cards (Collaudo / Produzione) ──────────────────────────────
+  .envs { display: flex; flex-direction: column; gap: var(--gap, 16px); }
+
+  .env {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: border-color .2s;
+    padding: 0;
+  }
+  .env.is-open { border-color: var(--line-strong); box-shadow: var(--shadow); }
+  .env.is-locked { background: var(--surface-2); }
+
+  .env-hd {
+    display: flex; align-items: center; gap: 14px;
+    padding: 16px 20px;
+    user-select: none;
+  }
+  .env-icon {
+    width: 32px; height: 32px; border-radius: 9px;
+    display: grid; place-items: center; flex-shrink: 0;
+    background: var(--accent-soft); color: var(--accent);
+  }
+  .env-icon i { font-size: 16px; }
+  .env.is-locked .env-icon { background: var(--surface-3); color: var(--ink-4); }
+  .env.is-done   .env-icon { background: var(--ok-soft);   color: var(--ok); }
+
+  .env-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .env-title {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 15px; font-weight: 600; letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .env-sub { font-size: 12.5px; color: var(--ink-3); display: flex; align-items: center; gap: 8px; }
+
+  .env-progress { display: flex; align-items: center; gap: 10px; color: var(--ink-3); font-size: 12px; }
+  .env-progress .bar {
+    width: 80px; height: 4px; border-radius: 999px; background: var(--surface-3);
+    overflow: hidden;
+  }
+  .env-progress .bar > span {
+    display: block; height: 100%; background: var(--accent);
+    border-radius: inherit; transition: width .4s;
+  }
+
+  .env-toggle {
+    width: 28px; height: 28px; border-radius: 7px;
+    display: grid; place-items: center;
+    background: transparent; border: 1px solid transparent;
+    color: var(--ink-3); transition: all .15s;
+    cursor: pointer;
+  }
+  .env-toggle:hover { background: var(--surface-3); border-color: var(--line); color: var(--ink); }
+  .env-toggle i { font-size: 13px; transition: transform .25s; }
+  .env.is-open .env-toggle i { transform: rotate(180deg); }
+
+  .env-body-pad {
+    padding: 20px 20px;
+    border-top: 1px solid var(--line);
+  }
+
+  // mini banner sotto env-header (Azione richiesta / locked)
+  .subbanner {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; border-radius: 10px;
+    background: var(--warn-soft); color: var(--warn-ink);
+    font-size: 13px; margin: 14px 0 18px;
+    border: 1px solid #ecd6b0;
+  }
+  .subbanner i { font-size: 14px; flex-shrink: 0; }
+  .subbanner b { font-weight: 600; }
+  .subbanner .grow { flex: 1; }
+
+  // NOTE: le rules `.timeline` / `.tl-step` / `.tl-bullet` /
+  // `.tl-panel` / ecc. (sub-stepper verticale) sono state migrate
+  // dentro `<app-adesione-substepper>` (rev. 4.10) per coerenza con
+  // la view encapsulation Angular. Vedi
+  // `adesione-substepper.component.scss`.
+
+  // ─── radio-cards (auth modes) ───────────────────────────────────────
+  .radio-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .radio-card {
+    display: flex; gap: 12px; padding: 14px;
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
+    border-radius: 10px;
+    cursor: pointer; transition: all .15s;
+    position: relative;
+  }
+  .radio-card:hover { border-color: var(--ink-4); }
+  .radio-card.is-on {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .radio-card .dot {
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 1.5px solid var(--line-strong);
+    background: var(--surface);
+    flex-shrink: 0; margin-top: 2px;
+    display: grid; place-items: center;
+  }
+  .radio-card.is-on .dot { border-color: var(--accent); }
+  .radio-card.is-on .dot::after {
+    content: ''; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent);
+  }
+  .radio-card .name { font-size: 13.5px; font-weight: 600; letter-spacing: -0.005em; }
+  .radio-card .desc { font-size: 12px; color: var(--ink-3); margin-top: 2px; line-height: 1.5; }
+  .radio-card .tag {
+    display: inline-flex; margin-top: 8px; padding: 2px 7px;
+    background: var(--surface-3); border-radius: 4px;
+    font-size: 10.5px; color: var(--ink-3); font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+  .radio-card.is-on .tag { background: var(--surface); color: var(--accent-ink); }
+
+  // ─── PhaseSection (FASE 01: Informazioni / Referenti) ──────────────
+  // Card grande con header (icona + titolo + chip "Fase conclusa" + chevron)
+  // e body che riusa stile .tl-panel (background surface-2, border, radius).
+  .lnk-phase-section {
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    padding: 0;
+  }
+  // Spacing fra le PhaseSection sorelle (es. Informazioni + Referenti
+  // dentro l'env-card della FASE 01).
+  .lnk-phase-section + .lnk-phase-section {
+    margin-top: 16px;
+  }
+  .lnk-phase-section-hd {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 20px;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color .15s;
+  }
+  // Hover: NIENTE highlight della barra intera. Su feedback utente
+  // (rev. 4.11): evidenziamo SOLO il chevron a destra. Il click
+  // resta su tutta la barra come prima.
+  .lnk-phase-section-hd:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+  .lnk-phase-section.is-open .lnk-phase-section-hd { border-bottom: 1px solid var(--line); }
+  .lnk-phase-section-icon {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--ok-soft); border: 1px solid var(--ok-border);
+    display: grid; place-items: center; flex-shrink: 0;
+    color: var(--ok-ink);
+  }
+  .lnk-phase-section-icon i { font-size: 12px; }
+  .lnk-phase-section-title {
+    flex: 1;
+    font-size: 14px; font-weight: 600;
+    letter-spacing: -0.005em; color: var(--ink);
+    display: flex; align-items: center; gap: 10px;
+  }
+  // Chevron a destra: cerchio neutro che si "accende" solo all'hover
+  // della barra (mouse over su qualsiasi punto del header).
+  .lnk-phase-section-chev {
+    font-size: 13px;
+    color: var(--ink-3);
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    display: inline-grid;
+    place-items: center;
+    transition: transform .25s, background-color .15s, color .15s;
+    flex-shrink: 0;
+  }
+  .lnk-phase-section-hd:hover .lnk-phase-section-chev {
+    background: var(--surface-3);
+    color: var(--ink);
+  }
+  .lnk-phase-section-chev.is-open {
+    transform: rotate(180deg);
+  }
+  // Body: pannello grigio (.tl-panel style) avvolto da margine 16px
+  // per "fluttuare" dentro la card della section. Il bottone Modifica
+  // e la form vivono dentro questo pannello.
+  .lnk-phase-section-body {
+    margin: 16px;
+    padding: 16px 18px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+  // Quando una `.lnk-phase-section-body` ha gia` `.tl-panel` (used in
+  // newLayoutFaseInfoTpl) lasciamo che le rules .tl-panel applicate
+  // sopra prendano il sopravvento — qui resettiamo solo gli override
+  // (per evitare doppia border/padding).
+  .lnk-phase-section-body.tl-panel {
+    margin: 16px;
+    padding: 16px 18px;
+    position: relative;
+  }
+  // Bottone "Modifica" / "Annulla" della FASE 01 in absolute top-right
+  // del pannello, cosi` non occupa una riga in testa al body.
+  .phase-section-edit-toggle {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    z-index: 1;
+  }
+
+  // ---------------------------------------------------------------------
+  // Stili form Informazioni generali (mock image-2 / image-5):
+  // - campi disabled con sfondo soft + border arrotondato + label bold;
+  // - bottone "Modifica" allineato a destra sopra i campi;
+  // - layout 2-col per le righe inferiori (Registrato da / Data creazione,
+  //   Ultimo aggiornamento da / Data ultimo aggiornamento).
+  // Usa `::ng-deep` per attraversare la view encapsulation del child
+  // `<app-adesione-form>` (i selettori di questo blocco vengono
+  // applicati a HTML emesso dal child component).
+  // ---------------------------------------------------------------------
+  .lnk-phase-section-body app-adesione-form {
+    ::ng-deep {
+      // Reset margins su row/col Bootstrap dentro la form (recuperati da
+      // `gap` dello stack del form-content).
+      .form-content {
+        margin-top: 14px;
+      }
+
+      // Form-group: layout label-sopra + value-sotto, spacing uniforme.
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 14px;
+      }
+      .form-group:last-child { margin-bottom: 0; }
+
+      // Label "Nome Servizio", "Organizzazione", ecc. — bold, ink scuro,
+      // sopra il campo (allineato col mock).
+      .label,
+      .label-bold,
+      label.label-bold {
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--ink);
+        margin: 0;
+        padding: 0;
+      }
+
+      // Read-only display: card stile mock (sfondo soft, border, radius).
+      // Applicato sia al `<p class="form-control-plaintext">` di
+      // `lnk-field-plaintext` sia ai placeholder di campi disabled.
+      .form-control-plaintext {
+        height: 36px;
+        padding: 0 14px;
+        display: flex;
+        align-items: center;
+        background: var(--surface-2);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        font-size: 14px;
+        color: var(--ink);
+        font-weight: 400;
+        line-height: 1.4;
+        margin: 0;
+        width: 100%;
+        white-space: normal;
+        word-break: break-word;
+      }
+
+      // Input native (edit mode) — stessa altezza/border/radius.
+      .form-control {
+        height: 36px;
+        padding: 0 14px;
+        background: var(--surface);
+        border: 1px solid var(--line-strong);
+        border-radius: 8px;
+        font-size: 14px;
+        color: var(--ink);
+        font-weight: 400;
+
+        &:focus {
+          border-color: var(--accent);
+          box-shadow: 0 0 0 3px var(--accent-soft);
+          outline: none;
+        }
+        &:disabled,
+        &[readonly] {
+          background: var(--surface-2);
+          color: var(--ink);
+        }
+      }
+      textarea.form-control {
+        height: auto;
+        min-height: 80px;
+        padding: 10px 14px;
+        line-height: 1.5;
+      }
+
+      // ui-data-type wrapper (es. "Data creazione", "Data ultimo
+      // aggiornamento" formattati come date) — niente styling base
+      // intrinseco, lo wrappiamo in un display-card come gli altri.
+      ui-data-type {
+        height: 36px;
+        padding: 0 14px;
+        display: flex;
+        align-items: center;
+        background: var(--surface-2);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        font-size: 14px;
+        color: var(--ink);
+      }
+
+      // Layout 2-col fluido per le righe inferiori. Il template originale
+      // ha `<div class="col-6">` Bootstrap; qui rinforziamo lo spacing.
+      .form-content .row > .col-6 {
+        padding-right: 8px;
+        padding-left: 8px;
+      }
+      .form-content .row {
+        margin-right: -8px;
+        margin-left: -8px;
+      }
+
+      // Le live-search (id_servizio, id_organizzazione, id_soggetto) e
+      // i form-field render le proprie label + input — stessi stili.
+      lnk-form-live-search,
+      lnk-form-field {
+        display: block;
+        margin-bottom: 14px;
+
+        // I componenti rendono al loro interno `.form-group` con label
+        // e input/select/plaintext: i selettori globali sopra li gia`
+        // catturano. Qui solo override safe-area.
+        .form-group { margin-bottom: 0; }
+      }
+
+      // Reset overflow del row Bootstrap che a volte introduce H-scroll.
+      .row { --bs-gutter-x: 16px; }
+
+      // ng-select dentro form-live-search: allineiamo a 36px di altezza.
+      .ng-select.ng-select-single .ng-select-container {
+        min-height: 36px;
+        border-radius: 8px;
+        border-color: var(--line-strong);
+      }
+
+      // Striscia inferiore (Save/Cancel via lnk-form-submit) - la
+      // separiamo dal form con un divider.
+      lnk-form-submit {
+        display: block;
+        margin-top: 18px;
+        padding-top: 14px;
+        border-top: 1px solid var(--line);
+      }
+    }
+  }
+
+  // Sub-gruppo dei referenti (Adesione / Servizio / Dominio).
+  // Collassabile (rev. 4.5): header cliccabile con chevron animato,
+  // body visibile solo quando `is-open`.
+  .lnk-ref-group {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+  }
+  .lnk-ref-group.is-open {
+    padding-bottom: 14px;
+  }
+  .lnk-ref-group-hd {
+    display: flex; align-items: center; gap: 8px;
+    cursor: pointer;
+    user-select: none;
+    border-radius: 6px;
+    margin: -4px -6px;
+    padding: 4px 6px;
+  }
+  // Hover (rev. 4.11): solo il chevron si evidenzia, non l'header.
+  .lnk-ref-group-hd:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+  .lnk-ref-group-hd h4 {
+    margin: 0; flex: 1;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13.5px; font-weight: 600;
+  }
+  .lnk-ref-group-chev {
+    font-size: 12px;
+    color: var(--ink-3);
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    display: inline-grid;
+    place-items: center;
+    transition: transform .18s, background-color .15s, color .15s;
+    transform: rotate(-90deg);
+    flex-shrink: 0;
+  }
+  .lnk-ref-group-hd:hover .lnk-ref-group-chev {
+    background: var(--surface-3);
+    color: var(--ink);
+  }
+  .lnk-ref-group-chev.is-open {
+    transform: rotate(0deg);
+  }
+  .lnk-ref-group-body {
+    margin-top: 8px;
+  }
+  .lnk-ref-count {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--surface-3); border: 1px solid var(--line);
+    font-size: 11.5px; font-weight: 600; color: var(--ink-3);
+  }
+
+  // Approval-card: row referente con avatar + nome + sub
+  .approval-card {
+    display: flex; gap: 12px; padding: 14px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    margin-top: 4px;
+  }
+  .approval-card .av {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, #ff8a93, #ff4050);
+    display: grid; place-items: center; color: white;
+    font-size: 12px; font-weight: 600; flex-shrink: 0;
+  }
+  .approval-card .body { flex: 1; min-width: 0; }
+  .approval-card .who { font-size: 13px; font-weight: 600; }
+  .approval-card .when { font-size: 12px; color: var(--ink-3); }
+
+  // Chip pill che mostra il ruolo del referente (rev. 4.30) —
+  // allineato a destra dell'`.approval-card`, prima del bottone delete.
+  .referent-role-tag {
+    align-self: center;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 500;
+    background: var(--surface-3);
+    color: var(--ink-2);
+    border: 1px solid var(--line);
+    white-space: nowrap;
+  }
+
+  // ReadField (read-only display row in PhaseSection forms)
+  .lnk-read-field {
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .lnk-read-field label {
+    font-size: 12.5px; font-weight: 550; color: var(--ink-2);
+  }
+  .lnk-read-field .value {
+    height: 36px; padding: 0 12px;
+    display: flex; align-items: center;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-size: 13.5px; color: var(--ink);
+  }
+  .lnk-read-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+  }
+
+  // ─── responsive ─────────────────────────────────────────────────────
+  @media (max-width: 900px) {
+    .gstepper { grid-template-columns: 1fr; }
+    .radio-cards { grid-template-columns: 1fr; }
+    .lnk-read-grid { grid-template-columns: 1fr; }
+  }
+
+  // ─── Pannello edit inline (Fase 4-5) — sopravvissuta dalla rev. 3,
+  //     usata da app-adesione-lista-clients e -erogazioni quando si
+  //     apre il form auth/endpoint sotto la riga selezionata.
+  .adesione-inline-edit-panel {
+    background-color: var(--surface-2);
+    border-radius: 0 0 0.5rem 0.5rem;
+    margin-top: -1px;
+  }
+}

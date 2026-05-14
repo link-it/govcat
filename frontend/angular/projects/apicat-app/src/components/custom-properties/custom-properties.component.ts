@@ -143,9 +143,10 @@ export class CustomPropertiesComponent implements OnInit, OnChanges {
     }
 
     _getCustomSelectLabelMapper = (cod: string, name: string, group: string) => {
-        const _proprietaCustom = this.item.proprieta;
+        if (!cod) return cod;
+        const _proprietaCustom = this.item?.proprieta ?? [];
         const _pItem = _proprietaCustom.find((item: any) => item.nome === name);
-        const _label = _pItem.valori.find((item: any) => item.nome === cod)?.etichetta;
+        const _label = _pItem?.valori?.find((item: any) => item.nome === cod)?.etichetta;
 
         return _label || cod;
     }

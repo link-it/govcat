@@ -107,6 +107,8 @@ public abstract class DefaultAuthorization<CREATE,UPDATE,ENTITY> implements IAut
 		
 	}
 	
+	// TODO [MULTI-ORG] Valutare se i ruoli per-organizzazione devono influenzare
+	// l'autorizzazione sulle entità di amministrazione.
 	private void authorizeContains(List<RuoloUtenteEnum> scrittura, Ruolo ruolo) {
 		//check che scrittura contenga il ruolo, attenzione alla conversione tra tipi
 		if (scrittura == null || ruolo == null) {
@@ -119,11 +121,11 @@ public abstract class DefaultAuthorization<CREATE,UPDATE,ENTITY> implements IAut
 				break;
 			case COORDINATORE: ruoloUtenteEnum = RuoloUtenteEnum.COORDINATORE;
 				break;
-			case REFERENTE_SERVIZIO: ruoloUtenteEnum = RuoloUtenteEnum.REFERENTE_SERVIZIO;
+			case RUOLO_ORGANIZZAZIONE: ruoloUtenteEnum = RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE;
 				break;
 			default:
 				break;}
-			
+
 			if (!scrittura.contains(ruoloUtenteEnum)) {
 				this.coreAuthorization.requireAdmin();
 			}

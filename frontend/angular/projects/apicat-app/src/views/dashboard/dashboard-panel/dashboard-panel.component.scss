@@ -102,5 +102,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     .comunicazione-non-letta {
       background-color: #f0f4ff;
     }
+
+    .cert-expiry {
+      display: inline-flex;
+      align-items: center;
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 0.15em 0.5em;
+      border-radius: 0.25rem;
+      background-color: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeeba;
+      cursor: help;
+
+      &.cert-expired {
+        background-color: #f8d7da;
+        color: #842029;
+        border-color: #f5c2c7;
+      }
+    }
   }
 }

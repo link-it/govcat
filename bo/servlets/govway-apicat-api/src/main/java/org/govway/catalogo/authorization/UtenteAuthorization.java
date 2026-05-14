@@ -19,11 +19,18 @@
  */
 package org.govway.catalogo.authorization;
 
+import java.util.Map;
+import java.util.UUID;
+
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
+import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.ConfigurazioneNotifiche;
+import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.UtenteCreate;
+import org.govway.catalogo.servlets.model.UtenteOrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.UtenteUpdate;
 
 public class UtenteAuthorization extends DefaultAuthorization<UtenteCreate,UtenteUpdate,UtenteEntity> {
@@ -32,8 +39,59 @@ public class UtenteAuthorization extends DefaultAuthorization<UtenteCreate,Utent
 		super(EntitaEnum.UTENTE);
 	}
 
+	@Override
+	public void authorizeCreate(UtenteCreate utenteCreate) {
+		try {
+			// Path standard: gestore/coordinatore via configurazione amministrazione.utenti.scrittura
+			super.authorizeCreate(utenteCreate);
+			return;
+		} catch (NotAuthorizedException e) {
+			// Path alternativo: AMMINISTRATORE_ORGANIZZAZIONE dell'organizzazione di sessione,
+			// con vincoli sui campi del nuovo utente.
+			if (this.coreAuthorization.getUtenteSessione() == null) {
+				throw e;
+			}
+			validaCreateComeAmmOrg(utenteCreate);
+		}
+	}
+
+	/**
+	 * Verifica che l'utente in sessione sia AMMINISTRATORE_ORGANIZZAZIONE sull'organizzazione
+	 * di sessione e che il payload UtenteCreate rispetti i vincoli applicabili in tal caso:
+	 * - ruolo globale, se presente, deve essere utente_organizzazione (no gestore/coordinatore)
+	 * - organizzazioni deve contenere esattamente l'organizzazione di sessione (singola)
+	 */
+	private void validaCreateComeAmmOrg(UtenteCreate utenteCreate) {
+		// Verifica che l'utente in sessione abbia ruolo AMM_ORG sull'organizzazione di sessione
+		if (!this.coreAuthorization.hasRuoloInOrganizzazioneSessione(
+				RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
+			throw new NotAuthorizedException(ErrorCode.AUT_403);
+		}
+
+		OrganizzazioneEntity orgSessione = this.coreAuthorization.getOrganizzazioneSessione();
+
+		// Vincolo: ruolo globale del nuovo utente non può essere gestore o coordinatore
+		if (utenteCreate.getRuolo() != null
+				&& utenteCreate.getRuolo() != RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE) {
+			throw new NotAuthorizedException(ErrorCode.AUT_403_AMM_ORG_INVALID_ROLE,
+					Map.of("ruolo", utenteCreate.getRuolo().getValue()));
+		}
+
+		// Vincolo: deve essere indicata esattamente una organizzazione, e deve coincidere
+		// con l'organizzazione di sessione.
+		if (utenteCreate.getOrganizzazioni() == null || utenteCreate.getOrganizzazioni().size() != 1) {
+			throw new NotAuthorizedException(ErrorCode.AUT_403_AMM_ORG_INVALID_ORGS);
+		}
+		UtenteOrganizzazioneCreate uoc = utenteCreate.getOrganizzazioni().get(0);
+		UUID idOrgIndicata = uoc.getIdOrganizzazione();
+		if (idOrgIndicata == null
+				|| !idOrgIndicata.toString().equals(orgSessione.getIdOrganizzazione())) {
+			throw new NotAuthorizedException(ErrorCode.AUT_403_AMM_ORG_INVALID_ORGS);
+		}
+	}
+
 	public void authorizeUpdate(UtenteEntity entity) {
-		
+
 		UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
 
 		if(!utente.getId().equals(entity.getId())) {
@@ -41,20 +99,73 @@ public class UtenteAuthorization extends DefaultAuthorization<UtenteCreate,Utent
 		}
 
 	}
-	
+
+	@Override
+	public void authorizeUpdate(UtenteUpdate update, UtenteEntity entity) {
+		try {
+			super.authorizeUpdate(update, entity);
+			return;
+		} catch (NotAuthorizedException e) {
+			// Path alternativo: AMM_ORG dell'organizzazione di sessione può approvare la richiesta
+			// di cambio organizzazione di un utente quando lui è target (organizzazionePending).
+			if (this.coreAuthorization.getUtenteSessione() == null) {
+				throw e;
+			}
+			if (!this.coreAuthorization.hasRuoloInOrganizzazioneSessione(
+					RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
+				throw e;
+			}
+			if (entity.getStato() != UtenteEntity.Stato.PENDING_UPDATE) {
+				throw new NotAuthorizedException(ErrorCode.AUT_403_AMM_ORG_NOT_TARGET);
+			}
+			OrganizzazioneEntity orgSessione = this.coreAuthorization.getOrganizzazioneSessione();
+			if (entity.getOrganizzazionePending() == null
+					|| orgSessione == null
+					|| !entity.getOrganizzazionePending().getId().equals(orgSessione.getId())) {
+				throw new NotAuthorizedException(ErrorCode.AUT_403_AMM_ORG_NOT_TARGET);
+			}
+		}
+	}
+
 	public void authorizeGetNotifiche(UtenteEntity entity) {
-		
+
 		UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
-		
+
 		if(!this.coreAuthorization.isAdmin(utente)) {
 			if(!utente.getId().equals(entity.getId())) {
 				throw new NotAuthorizedException(ErrorCode.AUT_403);
 			}
 		}
 	}
-	
+
+	/**
+	 * Verifica autorizzazione per il rifiuto della richiesta di cambio organizzazione di un utente.
+	 * Consentito al gestore o coordinatore (in base alla configurazione amministrazione.utenti.scrittura)
+	 * oppure ad un AMMINISTRATORE_ORGANIZZAZIONE dell'organizzazione target (organizzazione_pending).
+	 */
+	public void authorizeRifiutaPending(UtenteEntity entity) {
+		try {
+			super.authorizeWrite(EntitaEnum.UTENTE);
+			return;
+		} catch (NotAuthorizedException e) {
+			if (this.coreAuthorization.getUtenteSessione() == null) {
+				throw e;
+			}
+			if (!this.coreAuthorization.hasRuoloInOrganizzazioneSessione(
+					RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
+				throw e;
+			}
+			OrganizzazioneEntity orgSessione = this.coreAuthorization.getOrganizzazioneSessione();
+			if (entity.getOrganizzazionePending() == null
+					|| orgSessione == null
+					|| !entity.getOrganizzazionePending().getId().equals(orgSessione.getId())) {
+				throw new NotAuthorizedException(ErrorCode.AUT_403_AMM_ORG_NOT_TARGET);
+			}
+		}
+	}
+
 	public void authorizeUpdate(ConfigurazioneNotifiche update, UtenteEntity entity) {
 		this.authorizeGetNotifiche(entity);
 	}
-	
+
 }

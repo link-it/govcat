@@ -39,6 +39,13 @@ import { BsLocaleService } from 'ngx-bootstrap/datepicker';
 
 declare const $: any;
 import moment from 'moment';
+// Caricamento dei locale data di Moment. Senza questi import
+// `moment.locale('it' | 'en-gb' | 'fr')` non ha effetto e
+// `moment().fromNow()` cade sull'inglese US di default
+// (es. "an hour ago" invece di "un'ora fa").
+import 'moment/locale/it';
+import 'moment/locale/en-gb';
+import 'moment/locale/fr';
 
 enum AppLanguageCode {
   ITALIAN = 'it',

@@ -205,7 +205,7 @@ public class NotificheTest {
         //associo l'utente all'Organizzazione
         UtenteUpdate upUtente = new UtenteUpdate();
         upUtente.setPrincipal(UTENTE_GESTORE);
-        upUtente.setIdOrganizzazione(idOrganizzazione);
+        CommonUtils.setOrganizzazione(upUtente, idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
         upUtente.setTelefonoAziendale("+39 0000000");

@@ -51,7 +51,9 @@
             (on-change-language)="_onChangeLanguage($event)"
             (on-menu-action)="_onMenuHeaderAction($event)"
             (on-menu-app-action)="_onMenuAppHeaderAction($event)"
-          ></app-head-bar>
+          >
+            <app-organization-switcher organization-switcher *ngIf="loggedIn"></app-organization-switcher>
+          </app-head-bar>
         }
       </div>
     </div>
@@ -238,4 +240,19 @@
   <div #watermark class="staging-box d-flex align-items-center justify-content-center">
     <span class="text-truncate">{{ _config.AppConfig?.WatermarkText }}</span>
   </div>
+}
+<!-- Issue 270 / dev-tools — bottone flottante per resettare
+     l'organizzazione corrente (clear localStorage + logout +
+     reload). Visibile solo quando
+     `AppConfig.Layout.Dev.organizationContextReset = true`.
+     Lo stesso comando e` disponibile via Ctrl+Shift+O. Da NON
+     attivare in produzione. -->
+@if (_devOrgResetEnabled) {
+  <button type="button"
+          class="dev-org-reset-fab"
+          title="Dev: reset org context (Ctrl+Shift+O)"
+          aria-label="Reset organization context"
+          (click)="devResetOrgContext()">
+    <i class="bi bi-building-fill-slash"></i>
+  </button>
 }

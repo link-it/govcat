@@ -17,738 +17,173 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 
-<!-- LISTA CLIENTS -->
+<!-- LISTA CLIENTS — "Configurazione autenticazione" (Issue 254 NEW
+     LAYOUT, rev. 4.27): titolo always-on (single column), bottoni
+     icon-only stile referenti (`lnk-btn-ghost lnk-btn-sm lnk-btn-icon`),
+     toggle Modifica/Visualizza -> Chiudi quando il pannello inline
+     e` aperto. Edit single-at-a-time: aprendo un altro item chiude
+     l'attuale (gestito da `_onEditClient` -> `_inlineEditingClient`).
+     Save -> reload via `loadAdesioneClients` (gia` esistente). -->
 @if (adesioneClients.length > 0) {
-  <div class="settings {{ otherClass }}">
-    <div class="settings-content">
-      <div class="row gl-mt-5 mb-5" [class.justify-content-center]="singleColumn">
-        @if (!singleColumn) {
-          <div class="" [class.col-lg-12]="singleColumn" [class.mb-5]="singleColumn" [class.col-lg-4]="!singleColumn">
-            <h4 class="gl-mt-0 text-break" [class.text-danger]="!(updateMapper | mapper:isSottotipoGroupCompletedMapper:ClassiEnum.CLIENT)">{{ 'APP.ADESIONI.TITLE.ConfigurationAuth' | translate }}</h4>
-            <div class="text-break mb-sm-4 mb-lg-1" markdown>{{ 'APP.ADESIONI.TITLE.ConfigurationAuth_sub' | translate }}</div>
-          </div>
-        }
-        <div class="" [class.col-lg-8]="!singleColumn" [class.col-lg-8]="!singleColumn">
-          @if (singleColumn) {
-            <div class="px-3- pb-3">
-              <div class="d-flex gap-2">
-                <span class="d-flex gap-2">
-                  <lnk-icon-toggle
-                    [value]="updateMapper | mapper:getSottotipoGroupCompletedMapper:ClassiEnum.CLIENT"
-                    [hide]="updateMapper | mapper:isStatusPubblicatoCollaudodMapper:adesione?.stato"
-                  ></lnk-icon-toggle>
-                </span>
-                <h5 class="" [class.text-danger-]="!(updateMapper | mapper:isSottotipoGroupCompletedMapper:ClassiEnum.CLIENT)">{{ 'APP.ADESIONI.TITLE.ConfigurationAuth' | translate }}</h5>
+  <section class="adesione-config-list adesione-config-list--clients {{ otherClass }}">
+    <header class="adesione-config-list-hd">
+      <lnk-icon-toggle
+        [value]="updateMapper | mapper:getSottotipoGroupCompletedMapper:ClassiEnum.CLIENT"
+        [hide]="updateMapper | mapper:isStatusPubblicatoCollaudodMapper:adesione?.stato"
+      ></lnk-icon-toggle>
+      <h4 class="adesione-config-list-title"
+          [class.text-danger]="!(updateMapper | mapper:isSottotipoGroupCompletedMapper:ClassiEnum.CLIENT)">
+        {{ 'APP.ADESIONI.TITLE.ConfigurationAuth' | translate }}
+      </h4>
+    </header>
+
+    <ul class="adesione-config-list-items">
+      @for (item of adesioneClients; track item; let first = $first) {
+        @let isEditing = inlineEdit && _inlineEditingClient === item;
+        @let isModifiable = !!(item | mapper:_isModifiableMapper);
+        <li class="adesione-config-list-item"
+            [class.is-editing]="isEditing">
+          <div class="adesione-config-list-item-row">
+            <!-- Visualizzazione diretta dei dati (rev. 4.28-bis): no
+                 piu` icona / no piu` `<ui-item-row>`. Titolo =
+                 `etichetta` (es. "ModI P1"). Meta = nome/nome_proposto
+                 + auth_type + stato. -->
+            @let clientComplete = !!(updateMapper | mapper:isSottotipoCompletedMapper:ClassiEnum.CLIENT:(item.source.codice_interno || item.profilo || item.auth_type));
+            <div class="adesione-config-list-item-content">
+              <div class="adesione-config-list-item-title"
+                   [class.text-danger-]="!clientComplete">
+                {{ item.source?.etichetta || item.etichetta || ('APP.LABEL.None' | translate) }}
               </div>
-            </div>
-          }
-          @for (item of adesioneClients; track item; let first = $first) {
-            <div>
-              <div class="flex-container container-fluid border-bottom ps-0" [class.border-top]="first">
-                <div class="flex-auto">
-                  <ui-item-row
-                    [data]="item"
-                    [config]="config"
-                    [hasLink]="false"
-                    [primaryClass]="(updateMapper | mapper:isSottotipoCompletedMapper:ClassiEnum.CLIENT:(item.source.codice_interno || item.profilo || item.auth_type)) ? '' : 'text-danger'"
-                  ></ui-item-row>
-                </div>
-                @if (isEdit) {
-                  <div class="flex-initial">
-                    @if ((item.source.stato == 'configurato') && (item | mapper:_isModifiableMapper)) {
-                      <button aria-expanded="false"
-                        type="button"
-                        class="btn btn-default btn-md gl-button btn-icon mr-2"
-                        [tooltip]="'APP.TOOLTIP.Dissociate' | translate" [delay]="500"
-                        (click)="confirmDissociaClient(item)"
-                        >
-                        <span class="material-icons-outlined">link_off</span>
-                      </button>
-                    }
-                    <button aria-expanded="false"
-                      type="button"
-                      class="btn btn-default btn-md gl-button btn-icon"
-                      [tooltip]="((item | mapper:_isModifiableMapper) ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show') | translate" [delay]="500"
-                      (click)="onEdit(item)"
-                      >
-                      @if ((item | mapper:_isModifiableMapper)) {
-                        <i class="bi bi-pencil"></i>
-                      }
-                      @if (!(item | mapper:_isModifiableMapper)) {
-                        <i class="bi bi-eye"></i>
-                      }
-                    </button>
-                  </div>
+              <div class="adesione-config-list-item-meta">
+                @let clientName = item.source?.nome || item.source?.nome_proposto;
+                @if (clientName) { <span>{{ clientName }}</span> }
+                @if (clientName && item.auth_type) { <span class="sep">·</span> }
+                @if (item.auth_type) { <span class="mono-pill">{{ ('APP.CLIENT.AUTH_TYPE.' + item.auth_type) | translate }}</span> }
+                @if (item.source?.stato) {
+                  <span class="sep">·</span>
+                  <span class="config-status" [ngClass]="'config-status-' + item.source.stato">
+                    {{ ('APP.CLIENT.LABEL.' + (item.source.stato === 'configurato' ? 'Configured' : 'NotConfigured')) | translate }}
+                  </span>
                 }
               </div>
             </div>
+            @if (isEdit) {
+              <div class="adesione-config-list-item-actions">
+                <!-- DISSOCIA: solo per client `configurato` modificabili. -->
+                @if ((item.source.stato == 'configurato') && isModifiable) {
+                  <button type="button"
+                          class="lnk-btn lnk-btn-ghost lnk-btn-sm lnk-btn-icon"
+                          [tooltip]="'APP.TOOLTIP.Dissociate' | translate"
+                          [delay]="500"
+                          container="body"
+                          (click)="confirmDissociaClient(item)">
+                    <span class="material-icons-outlined">link_off</span>
+                  </button>
+                }
+                <!-- EDIT / VIEW / CLOSE: l'icona e il tooltip si
+                     adattano allo stato attuale (rev. 4.27). -->
+                <button type="button"
+                        class="lnk-btn lnk-btn-ghost lnk-btn-sm lnk-btn-icon"
+                        [tooltip]="(isEditing ? 'APP.BUTTON.Close' : (isModifiable ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show')) | translate"
+                        [delay]="500"
+                        container="body"
+                        (click)="isEditing ? closeModal() : onEdit(item)">
+                  @if (isEditing) {
+                    <i class="bi bi-x-lg"></i>
+                  } @else if (isModifiable) {
+                    <i class="bi bi-pencil"></i>
+                  } @else {
+                    <i class="bi bi-eye"></i>
+                  }
+                </button>
+              </div>
+            }
+          </div>
+
+          <!-- Disclaimers per item (icone severity + markdown inline).
+               Nascosti quando:
+               - la form inline e` aperta per QUESTO item (la form
+                 li mostra gia` via `<app-client-auth-form [disclaimers]>`)
+               - il client e` gia` `configurato` (le note sono
+                 contestuali alla configurazione iniziale e perdono
+                 di utilita` una volta completata). -->
+          @if (!isEditing && item.source?.stato !== 'configurato') {
+            @for (d of _clientDisclaimers(item); track $index) {
+              <small class="adesione-item-hint d-flex align-items-start gap-2 px-3 py-2 alert mb-0" [ngClass]="_getDisclaimerAlertClass(d.severity)">
+                <i class="me-2" [ngClass]="_getDisclaimerIconClass(d.severity)" [attr.aria-label]="d.severity"></i>
+                <markdown class="disclaimer-inline flex-grow-1" [data]="d.disclaimer"></markdown>
+                @if (d.links?.length) {
+                  <span class="ms-1">
+                    @for (link of d.links; track $index) {
+                      <a class="ms-1" [href]="_getDisclaimerLinkHref(link)" target="_blank" rel="noopener noreferrer">
+                        {{ _getDisclaimerLinkLabel(link) }}
+                      </a>
+                    }
+                  </span>
+                }
+              </small>
+            }
           }
-        </div>
-      </div>
-    </div>
-  </div>
+
+          <!-- Pannello edit inline. Sotto flag `inlineEdit`, mostra
+               `<app-client-auth-form>` direttamente sotto la riga.
+               Save -> `_onSaveModalClient` -> `loadAdesioneClients` +
+               `closeModal` (gia` nel TS). -->
+          @if (isEditing) {
+            <div class="adesione-inline-edit-panel">
+              <form [formGroup]="_editFormGroupClients" (submit)="_onSaveModalClient(_editFormGroupClients.value)">
+                <app-client-auth-form
+                  [input]="modalInput"
+                  [layout]="_dialogLayout"
+                  [disclaimers]="_clientDisclaimers(item)"
+                  (selectCredenziali)="_onSelectCredenzialiOption($event)"
+                  (changeCredenziali)="onChangeCredenziali($event)"
+                  (changeTipoCertificato)="onChangeTipoCertificato($event)"
+                  (changeTipoCertificatoFirma)="onChangeTipoCertificatoFirma($event)"
+                  (descriptorChange)="_onDescriptorChange($event)"
+                  (descriptorChangeFirma)="_onDescriptorChangeFirma($event)"
+                  (downloadAllegato)="_downloadAllegato($event)"
+                ></app-client-auth-form>
+                <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
+                  <lnk-button
+                    [label]="'APP.BUTTON.Close'"
+                    (onAction)="closeModal()"
+                  ></lnk-button>
+                  @if (modalInput.formConfig.save.enabled) {
+                    <lnk-button
+                      [type]="'submit'"
+                      [label]="'APP.BUTTON.Save'"
+                      [primary]="true"
+                      [ariaLabel]="'APP.BUTTON.Save'"
+                      [disabled]="_editFormGroupClients.invalid || modalInput.saving"
+                      [spinner]="modalInput.saving"
+                    ></lnk-button>
+                  }
+                </div>
+              </form>
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  </section>
 }
 
-<!-- DIALOG per CLIENTS [start] -->
+<!-- DIALOG per CLIENTS (legacy, attivo quando `inlineEdit=false`).
+     Riusa lo stesso `<app-modal-edit-client>` con i medesimi input. -->
 <ng-template #editClients>
-  <div class="modal-content">
-    <form [formGroup]="_editFormGroupClients" (submit)="_onSaveModalClient(_editFormGroupClients.value)">
-      <div class="modal-header pb-2">
-        <h5 class="modal-title pull-left">{{ 'APP.TITLE.AuthTypeConfiguration' | translate }}</h5>
-
-        <button type="button" class="btn btn-default btn-md gl-tertiary pull-right p-0" aria-label="Close" (click)="closeModal()">
-          <i class="bi bi-x-lg"></i>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div class="p-3">
-          <fieldset>
-
-            <div class="row mb-3">
-              <!-- credenziali -->
-              @if ((client | mapper:_isModifiableMapper)) {
-                <div class="form-group col-12 mb-2">
-                  <label class="label-bold" for="credenziali">{{ 'APP.LABEL.Credenziali' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'credenziali'"></span>
-                </label>
-                <div class="">
-                  <select #credenziali class="form-select" id="credenziali" formControlName="credenziali" [class.gl-field-error-outline]="_hasControlError('credenziali')" (change)="onChangeCredenziali(credenziali.value)">
-                    @for (credenziali of _arr_clients_riuso; track credenziali) {
-                      <option  [value]="credenziali.id_client">{{ credenziali.nome }}</option>
-                    }
-                  </select>
-                  @if (f['credenziali'].invalid && (f['credenziali'].dirty || f['credenziali'].touched)) {
-                    <p class="form-text text-danger">
-                      @if (f['credenziali'].errors && f['credenziali'].errors['required']) {
-                        <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                      }
-                    </p>
-                  }
-                </div>
-              </div>
-            }
-            <!--  -->
-          </div>
-
-          @if (_show_nome_proposto && f['credenziali'].value === SelectedClientEnum.UsaClientEsistente) {
-            <div class="row">
-              <div class="form-group col-12 mb-2">
-                <label class="label-bold" for="nome_proposto">{{ 'APP.ADESIONI.LABEL.NomeProposto' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'nome_proposto'"></span></label>
-                <input class="form-control form-control-sm" id="nome_proposto" type="text" formControlName="nome_proposto" autocomplete="off">
-                @if (f['nome_proposto'].invalid && (f['nome_proposto'].dirty || f['nome_proposto'].touched)) {
-                  <p class="form-text text-danger">
-                    @if (f['nome_proposto'].errors && f['nome_proposto'].errors['required']) {
-                      <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                    }
-                  </p>
-                }
-              </div>
-            </div>
-          }
-
-          @if (_show_client_form) {
-            <div class="row">
-              <!-- nome -->
-              <div class="form-group col-12 mb-2">
-                <label class="label-bold" for="nome">{{ 'APP.LABEL.nome' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'nome'"></span>
-              </label>
-              <input class="form-control form-control-sm" id="nome" type="text" formControlName="nome" autocomplete="off">
-              @if (f['nome'].invalid && (f['nome'].dirty || f['nome'].touched)) {
-                <p class="form-text text-danger">
-                  @if (f['nome'].errors && f['nome'].errors['required']) {
-                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                  }
-                </p>
-              }
-            </div>
-            <!--  -->
-          </div>
-          @if (_show_erogazione_ip_fruizione) {
-            <div class="row">
-              <!-- IP di fruizione -->
-              @if (_ip_richiesto) {
-                <div class="form-group col-12 mb-2">
-                  <label class="label-bold" for="ip_fruizione">
-                    {{ 'APP.LABEL.IPfruizione' | translate }}
-                    <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'ip_fruizione'"></span>
-                  </label>
-                  <input class="form-control form-control-sm" id="ip_fruizione" type="text" formControlName="ip_fruizione">
-                  @if (f['ip_fruizione'].invalid && (f['ip_fruizione'].dirty || f['ip_fruizione'].touched)) {
-                    <p class="form-text text-danger">
-                      @if (f['ip_fruizione'].errors && f['ip_fruizione'].errors['required']) {
-                        <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                      }
-                    </p>
-                  }
-                </div>
-              }
-              <!--  -->
-            </div>
-          }
-          @if (_show_erogazione_rate_limiting) {
-            <div formGroupName="rate_limiting" class="row mb-2-">
-              <div class="form-group col-6 mb-2">
-                <label class="label-bold" for="quota">
-                  {{ 'APP.ADESIONI.LABEL.Quota' | translate }}
-                  <!-- <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'quota'"></span> -->
-                </label>
-                <input class="form-control form-control-sm" id="quota" type="number" min="1" formControlName="quota">
-                @if (fRate['quota'].invalid && (fRate['quota'].dirty || fRate['quota'].touched)) {
-                  <p class="form-text text-danger">
-                    @if (fRate['quota'].errors && fRate['quota'].errors['required']) {
-                      <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                    }
-                    @if (fRate['quota'].errors && fRate['quota'].errors['min']) {
-                      <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.GreaterThanZero' | translate }}</span>
-                    }
-                  </p>
-                }
-              </div>
-              <div class="form-group col-6 mb-2">
-                <label class="label-bold" for="periodo">
-                  {{ 'APP.ADESIONI.LABEL.Periodo' | translate }}
-                  <!-- <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'periodo'"></span> -->
-                </label>
-                <select class="form-select" id="periodo" formControlName="periodo" [class.gl-field-error-outline]="_hasControlError('periodo')">
-                  @for (periodo of ratePeriods; track periodo) {
-                    <option  [value]="periodo.value">{{ periodo.label | translate }}</option>
-                  }
-                </select>
-                @if (fRate['periodo'].invalid && (fRate['periodo'].dirty || fRate['periodo'].touched)) {
-                  <p class="form-text text-danger">
-                    @if (fRate['periodo'].errors && fRate['periodo'].errors['required']) {
-                      <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                    }
-                  </p>
-                }
-              </div>
-            </div>
-          }
-          @if (_show_erogazione_finalita) {
-            <div class="row">
-              @if (_ip_richiesto) {
-                <div class="form-group col-12 mb-2">
-                  <label class="label-bold" for="finalita">
-                    {{ 'APP.ADESIONI.LABEL.Finalita' | translate }}
-                    <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'finalita'"></span>
-                  </label>
-                  <input class="form-control form-control-sm" id="finalita" type="text" formControlName="finalita">
-                  @if (f['finalita'].invalid && (f['finalita'].dirty || f['finalita'].touched)) {
-                    <p class="form-text text-danger">
-                      @if (f['finalita'].errors && f['finalita'].errors['required']) {
-                        <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                      }
-                      @if (f['finalita'].errors && f['finalita'].errors['pattern']) {
-                        <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.Uuid' | translate }}</span>
-                      }
-                    </p>
-                  }
-                </div>
-              }
-            </div>
-          }
-          <!-- ================================== -->
-          <!--        H T T P B A S I C   [start] -->
-          <!-- ================================== -->
-          @if (_isHttpBasic && (client | mapper:_isConfiguratoMapper)) {
-            <div class="row">
-              <!-- Username -->
-              <div class="form-group col-12 mb-2">
-                <label class="label-bold" for="username">
-                  {{ 'APP.CLIENT.LABEL.Username' | translate }}
-                  <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'username'"></span>
-                </label>
-                <input class="form-control form-control-sm" id="username" type="text" formControlName="username">
-                @if (f['username'].invalid && (f['username'].dirty || f['username'].touched)) {
-                  <p class="form-text text-danger">
-                    @if (f['username'].errors && f['username'].errors['required']) {
-                      <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                    }
-                  </p>
-                }
-              </div>
-              <!--  -->
-            </div>
-          }
-          <!-- ================================== -->
-          <!--          H T T P B A S I C   [end] -->
-          <!-- ================================== -->
-          <!-- ================================== -->
-          <!--              P D N D       [start] -->
-          <!-- ================================== -->
-          <div class="row">
-            <!-- client_id -->
-            @if (_isPdnd || _isHttpsPdnd || _isHttpsPdndSign || _isSignPdnd) {
-              <div class="form-group col-12 mb-2">
-                <label class="label-bold" for="client_id">
-                  {{ 'APP.CLIENT.LABEL.ClientIdPDND' | translate }}
-                  <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'client_id'"></span>
-                </label>
-                <input class="form-control form-control-sm" id="client_id" type="text" formControlName="client_id">
-                @if (f['client_id'].invalid && (f['client_id'].dirty || f['client_id'].touched)) {
-                  <p class="form-text text-danger">
-                    @if (f['client_id'].errors && f['client_id'].errors['required']) {
-                      <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                    }
-                  </p>
-                }
-              </div>
-            }
-            <!--  -->
-          </div>
-          <!-- ================================== -->
-          <!--              P D N D         [end] -->
-          <!-- ================================== -->
-          <!-- ===================================== -->
-          <!-- CERTIFICATO di AUTENTICAZIONE [start] -->
-          <!-- ===================================== -->
-          @if (_isHttps || _isHttpsSign || _isHttpsPdnd || _isHttpsPdndSign) {
-            <div class="row-content-block mt-2 mb-3">
-              <div class="row">
-                <!-- tipo_certificato -->
-                <div class="form-group col-12 mb-2">
-                  <label class="label-bold" for="tipo_certificato">{{ 'APP.LABEL.AuthenticationCertificate' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'tipo_certificato'"></span>
-                </label>
-                <ng-select [class.gl-field-error-outline]="_hasControlError('classi')"
-                  [items]="_tipiCertificato"
-                  bindValue="nome"
-                  bindLabel="nome"
-                  labelForId="tipo_certificato"
-                  [closeOnSelect]="true"
-                  formControlName="tipo_certificato"
-                  (change)="onChangeTipoCertificato($event)"
-                  >
-                  <ng-template ng-label-tmp let-item="item">
-                    {{ 'APP.CLIENT.LABEL.' + item.nome | translate }}
-                  </ng-template>
-                  <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
-                    {{ 'APP.CLIENT.LABEL.' + item.nome | translate }}
-                  </ng-template>
-                </ng-select>
-                @if (f['tipo_certificato'].invalid && (f['tipo_certificato'].dirty || f['tipo_certificato'].touched)) {
-                  <p class="form-text text-danger">
-                    @if (f['tipo_certificato'].errors && f['tipo_certificato'].errors['required']) {
-                      <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                    }
-                  </p>
-                }
-                <ui-input-help field="credenziali" context="SERVICE"></ui-input-help>
-              </div>
-              <!--  -->
-            </div>
-            <div class="row">
-              <!-- FORNITO dall'ENTE -->
-              @if (_isFornito) {
-                <div class="form-group col-12 mb-2">
-                  @if (!_certificato_fornito) {
-                    <ui-allegato #des class="miw-50"
-                      [control]="_descrittoreCtrl"
-                      [label]="'APP.LABEL.CertificatoFornitoLabel' | translate"
-                      [required]="true"
-                      (resetControl)="__descrittoreChange(_descrittoreCtrl.value)"
-                      (fileChanged)="__descrittoreChange(_descrittoreCtrl.value)"
-                      [disabled]="_descrittoreCtrl.disabled"
-                      [maxUpload]="null"
-                    ></ui-allegato>
-                  }
-                  @if (_certificato_fornito) {
-                    <div>
-                      <label class="label-bold _space">{{ 'APP.LABEL.CertificatoFornitoLabel' | translate }}&nbsp;</label>
-                      <div class="mb-3">
-                        <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="_downloadAllegato(_certificato_fornito)">
-                          <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
-                        </button>
-                      </div>
-                    </div>
-                  }
-                </div>
-              }
-              <!--  -->
-            </div>
-            <div class="row">
-              <!-- CN -->
-              @if (_isRichiesto_cn) {
-                <div class="form-group col-12 mb-2">
-                  <label class="label-bold" for="cn">{{ 'APP.LABEL.CommonName' | translate }}
-                    <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'cn'"></span>
-                  </label>
-                  <input class="form-control form-control-sm" id="cn" type="text" formControlName="cn" placeholder="{{ 'APP.LABEL.CertificatoRichiestoCNLabel' | translate }}">
-                  @if (f['cn'].invalid && (f['cn'].dirty || f['cn'].touched)) {
-                    <p class="form-text text-danger">
-                      @if (f['cn'].errors && f['cn'].errors['required']) {
-                        <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                      }
-                    </p>
-                  }
-                </div>
-              }
-              @if (_certificato_cn) {
-                <div>
-                  <div class="mb-3">
-                    <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="_downloadAllegato(_certificato_cn)">
-                      <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
-                    </button>
-                  </div>
-                </div>
-              }
-              <!--  -->
-            </div>
-            <div class="row">
-              <!-- CSR -->
-              @if (_isRichiesto_csr) {
-                <div class="form-group col-12 mb-2">
-                  @if (!_certificato_csr) {
-                    <ui-allegato #des2 class="miw-50"
-                      [control]="_descrittoreCtrl_csr"
-                      [label]="'APP.LABEL.CertificatoRichiestoCSRLabel' | translate"
-                      [required]="true"
-                      (resetControl)="__descrittoreChange(_descrittoreCtrl_csr.value, true)"
-                      (fileChanged)="__descrittoreChange(_descrittoreCtrl_csr.value, true)"
-                      [disabled]="_descrittoreCtrl_csr.disabled"
-                      [maxUpload]="null"
-                    ></ui-allegato>
-                  }
-                  @if (_certificato_csr) {
-                    <div>
-                      <label class="label-bold _space">{{ 'APP.LABEL.CertificatoRichiestoCSRLabel' | translate }}&nbsp;</label>
-                      <div class="mb-3">
-                        <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="_downloadAllegato(_certificato_csr)">
-                          <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
-                        </button>
-                      </div>
-                    </div>
-                  }
-                </div>
-              }
-              <!--  -->
-              <!-- Modulo di richiesta CSR -->
-              @if (_isRichiesto_csr) {
-                <div class="form-group col-12 mb-2">
-                  @if (!_modulo_richiesta_csr) {
-                    <ui-allegato #des3 class="miw-50"
-                      [control]="_descrittoreCtrl_csr_modulo"
-                      [label]="'APP.LABEL.ModuloRichiestaCSR' | translate"
-                      [required]="true"
-                      (resetControl)="__descrittoreChange(_descrittoreCtrl_csr_modulo.value)"
-                      (fileChanged)="__descrittoreChange(_descrittoreCtrl_csr_modulo.value)"
-                      [disabled]="_descrittoreCtrl_csr_modulo.disabled"
-                      [maxUpload]="null"
-                    ></ui-allegato>
-                  }
-                  @if (_modulo_richiesta_csr) {
-                    <div>
-                      <label class="label-bold _space_r">{{ 'APP.LABEL.ModuloRichiestaCSR' | translate }}&nbsp;</label>
-                      <div class="mb-3">
-                        <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="_downloadAllegato(_modulo_richiesta_csr)">
-                          <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
-                        </button>
-                      </div>
-                    </div>
-                  }
-                </div>
-              }
-              <!--  -->
-            </div>
-          </div>
-        }
-        <!-- ===================================== -->
-        <!-- CERTIFICATO di AUTENTICAZIONE   [end] -->
-        <!-- ===================================== -->
-        <!-- ================================== -->
-        <!-- CERTIFICATO di FIRMA       [start] -->
-        <!-- ================================== -->
-        @if (_isHttpsSign || _isHttpsPdndSign || _isSign || _isSignPdnd) {
-          <div class="row-content-block mt-2 mb-3">
-            <div class="row">
-              <!-- tipo_certificato (FIRMA) -->
-              <div class="form-group col-12 mb-2">
-                <label class="label-bold" for="tipo_certificato_firma">{{ 'APP.CLIENT.LABEL.SignCertificate' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'tipo_certificato_firma'"></span></label>
-                <ng-select [class.gl-field-error-outline]="_hasControlError('classi')"
-                  [items]="_tipiCertificato"
-                  bindValue="nome"
-                  bindLabel="nome"
-                  labelForId="tipo_certificato_firma"
-                  [closeOnSelect]="true"
-                  formControlName="tipo_certificato_firma"
-                  (change)="onChangeTipoCertificatoFirma($event)"
-                  >
-                  <ng-template ng-label-tmp let-item="item">
-                    {{ 'APP.CLIENT.LABEL.' + item.nome | translate }}
-                  </ng-template>
-                  <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
-                    {{ 'APP.CLIENT.LABEL.' + item.nome | translate }}
-                  </ng-template>
-                </ng-select>
-                @if (f['tipo_certificato_firma'].invalid && (f['tipo_certificato_firma'].dirty || f['tipo_certificato_firma'].touched)) {
-                  <p class="form-text text-danger">
-                    @if (f['tipo_certificato_firma'].errors && f['tipo_certificato_firma'].errors['required']) {
-                      <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                    }
-                  </p>
-                }
-              </div>
-              <!--  -->
-            </div>
-            <div class="row">
-              <!-- FORNITO dall'ENTE (FIRMA) -->
-              @if (_isFornito_firma) {
-                <div class="form-group col-12 mb-2">
-                  @if (!_certificato_fornito_firma) {
-                    <ui-allegato #des class="miw-50"
-                      [control]="_descrittoreCtrl_firma"
-                      [label]="'APP.LABEL.CertificatoFornitoLabel' | translate"
-                      [required]="true"
-                      (resetControl)="__descrittoreChangeFirma(_descrittoreCtrl_firma.value)"
-                      (fileChanged)="__descrittoreChangeFirma(_descrittoreCtrl_firma.value)"
-                      [disabled]="_descrittoreCtrl_firma.disabled"
-                      [maxUpload]="null"
-                    ></ui-allegato>
-                  }
-                  @if (_certificato_fornito_firma) {
-                    <div>
-                      <label class="label-bold _space">{{ 'APP.LABEL.CertificatoFornitoLabel' | translate }}</label>
-                      <div class="mb-3">
-                        <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="_downloadAllegato(_certificato_fornito_firma)">
-                          <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
-                        </button>
-                      </div>
-                    </div>
-                  }
-                </div>
-              }
-              <!--  -->
-              <!-- CN (FIRMA) -->
-              @if (_isRichiesto_cn_firma) {
-                <div class="form-group col-12 mb-2">
-                  <label class="label-bold" for="cn">{{ 'APP.LABEL.CommonName' | translate }}
-                    <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'cn_firma'"></span>
-                  </label>
-                  <input class="form-control form-control-sm" id="cn_firma" type="text" formControlName="cn_firma" placeholder="{{ 'APP.LABEL.CertificatoRichiestoCNLabel' | translate }}">
-                  @if (f['cn_firma'].invalid && (f['cn_firma'].dirty || f['cn_firma'].touched)) {
-                    <p class="form-text text-danger">
-                      @if (f['cn_firma'].errors && f['cn_firma'].errors['required']) {
-                        <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                      }
-                    </p>
-                  }
-                </div>
-              }
-              @if (_certificato_cn_firma) {
-                <div class="form-group col-12 mb-2">
-                  <label class="label-bold" for="cn">{{ 'APP.LABEL.SignCertificate' | translate }}
-                    <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'cn_firma'"></span>
-                  </label>
-                  <div class="mb-3">
-                    <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="_downloadAllegato(_certificato_cn_firma)">
-                      <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
-                    </button>
-                  </div>
-                </div>
-              }
-              <!--  -->
-              <!-- CSR (FIRMA) -->
-              @if (_isRichiesto_csr_firma) {
-                <div class="form-group col-12 mb-2">
-                  @if (!_certificato_csr_firma) {
-                    <ui-allegato #des2 class="miw-50"
-                      [control]="_descrittoreCtrl_csr_firma"
-                      [label]="'APP.LABEL.CertificatoRichiestoCSRLabel' | translate"
-                      [required]="true"
-                      (resetControl)="__descrittoreChangeFirma(_descrittoreCtrl_csr_firma.value, true)"
-                      (fileChanged)="__descrittoreChangeFirma(_descrittoreCtrl_csr_firma.value, true)"
-                      [disabled]="_descrittoreCtrl_csr_firma.disabled"
-                      [maxUpload]="null"
-                    ></ui-allegato>
-                  }
-                  @if (_certificato_csr_firma) {
-                    <div>
-                      <label class="label-bold _space">{{ 'APP.LABEL.CertificatoRichiestoCSRLabel' | translate }}&nbsp;</label>
-                      <div class="mb-3">
-                        <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="_downloadAllegato(_certificato_csr_firma)">
-                          <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
-                        </button>
-                      </div>
-                    </div>
-                  }
-                </div>
-              }
-              <!--  -->
-              <!-- Modulo di richiesta CSR (firma) -->
-              @if (_isRichiesto_csr_firma) {
-                <div class="form-group col-12 mb-2">
-                  @if (!_modulo_richiesta_csr_firma) {
-                    <ui-allegato #des3 class="miw-50"
-                      [control]="_descrittoreCtrl_csr_modulo_firma"
-                      [label]="'APP.LABEL.ModuloRichiestaCSR' | translate"
-                      [required]="true"
-                      (resetControl)="__descrittoreChangeFirma(_descrittoreCtrl_csr_modulo_firma.value)"
-                      (fileChanged)="__descrittoreChangeFirma(_descrittoreCtrl_csr_modulo_firma.value)"
-                      [disabled]="_descrittoreCtrl_csr_modulo_firma.disabled"
-                      [maxUpload]="null"
-                    ></ui-allegato>
-                  }
-                  @if (_modulo_richiesta_csr_firma) {
-                    <div>
-                      <label class="label-bold _space_r">{{ 'APP.LABEL.ModuloRichiestaCSR' | translate }}&nbsp;</label>
-                      <div class="mb-3">
-                        <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="_downloadAllegato(_modulo_richiesta_csr_firma)">
-                          <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
-                        </button>
-                      </div>
-                    </div>
-                  }
-                </div>
-              }
-              <!-- Modulo di richiesta CSR (firma) certificato download -->
-              @if (_isRichiesto_csr_firma) {
-                <div class="form-group col-12 mb-2">
-                  @if (_modulo_richiesta_csr_firma_ceritifato) {
-                    <div>
-                      <label class="label-bold _space_r">{{ 'APP.LABEL.SignCertificate' | translate }}&nbsp;</label>
-                      <div class="mb-3">
-                        <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="_downloadAllegato(_modulo_richiesta_csr_firma_ceritifato)">
-                          <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
-                        </button>
-                      </div>
-                    </div>
-                  }
-                </div>
-              }
-              <!--  -->
-            </div>
-          </div>
-        }
-        <!-- ================================== -->
-        <!-- CERTIFICATO di FIRMA         [end] -->
-        <!-- ================================== -->
-        @if (_isOauthAuthCode) {
-          <div class="row-content-block mt-2 mb-3">
-            <div class="row">
-              <div class="form-group col-12 mb-2">
-                <label class="label-bold" for="url_redirezione">{{ 'APP.CLIENT.LABEL.UrlRedirezione' | translate }}
-                  <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'url_redirezione'"></span>
-                </label>
-                <input class="form-control form-control-sm" id="url_redirezione" type="text" formControlName="url_redirezione" placeholder="">
-                @if (f['url_redirezione'].invalid && (f['url_redirezione'].dirty || f['url_redirezione'].touched)) {
-                  <p class="form-text text-danger">
-                    @if (f['url_redirezione'].errors && f['url_redirezione'].errors['required']) {
-                      <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                    }
-                  </p>
-                }
-              </div>
-              <div class="form-group col-12 mb-2">
-                <label class="label-bold" for="url_esposizione">{{ 'APP.CLIENT.LABEL.UrlEsposizione' | translate }}
-                  <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'url_esposizione'"></span>
-                </label>
-                <input class="form-control form-control-sm" id="url_esposizione" type="text" formControlName="url_esposizione" placeholder="">
-                @if (f['url_esposizione'].invalid && (f['url_esposizione'].dirty || f['url_esposizione'].touched)) {
-                  <p class="form-text text-danger">
-                    @if (f['url_esposizione'].errors && f['url_esposizione'].errors['required']) {
-                      <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                    }
-                  </p>
-                }
-              </div>
-              <div class="form-group col-12 mb-2">
-                <label class="label-bold" for="help_desk">{{ 'APP.CLIENT.LABEL.HelpDesk' | translate }}
-                  <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'help_desk'"></span>
-                </label>
-                <input class="form-control form-control-sm" id="help_desk" type="text" formControlName="help_desk" placeholder="">
-                @if (f['help_desk'].invalid && (f['help_desk'].dirty || f['help_desk'].touched)) {
-                  <p class="form-text text-danger">
-                    @if (f['help_desk'].errors && f['help_desk'].errors['required']) {
-                      <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                    }
-                  </p>
-                }
-              </div>
-              <div class="form-group col-12 mb-2">
-                <label class="label-bold" for="nome_applicazione_portale">{{ 'APP.CLIENT.LABEL.NomeApplicazionePortale' | translate }}
-                  <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'nome_applicazione_portale'"></span>
-                </label>
-                <input class="form-control form-control-sm" id="nome_applicazione_portale" type="text" formControlName="nome_applicazione_portale" placeholder="">
-                @if (f['nome_applicazione_portale'].invalid && (f['nome_applicazione_portale'].dirty || f['nome_applicazione_portale'].touched)) {
-                  <p class="form-text text-danger">
-                    @if (f['nome_applicazione_portale'].errors && f['nome_applicazione_portale'].errors['required']) {
-                      <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                    }
-                  </p>
-                }
-              </div>
-              @if (client | mapper:_isConfiguratoMapper) {
-                <div class="form-group col-12 mb-2">
-                  <label class="label-bold" for="client_id">{{ 'APP.CLIENT.LABEL.ClientId' | translate }}
-                    <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'client_id'"></span>
-                  </label>
-                  <input class="form-control form-control-sm" id="client_id" type="text" formControlName="client_id" placeholder="">
-                  @if (f['client_id'].invalid && (f['client_id'].dirty || f['client_id'].touched)) {
-                    <p class="form-text text-danger">
-                      @if (f['client_id'].errors && f['client_id'].errors['required']) {
-                        <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                      }
-                    </p>
-                  }
-                </div>
-              }
-            </div>
-          </div>
-        }
-        @if (_isOauthClientCredentials && (client | mapper:_isConfiguratoMapper)) {
-          <div class="row-content-block mt-2 mb-3">
-            <div class="row">
-              <div class="form-group col-12 mb-2">
-                <label class="label-bold" for="client_id">{{ 'APP.CLIENT.LABEL.ClientId' | translate }}
-                  <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'client_id'"></span>
-                </label>
-                <input class="form-control form-control-sm" id="client_id" type="text" formControlName="client_id" placeholder="">
-                @if (f['client_id'].invalid && (f['client_id'].dirty || f['client_id'].touched)) {
-                  <p class="form-text text-danger">
-                    @if (f['client_id'].errors && f['client_id'].errors['required']) {
-                      <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                    }
-                  </p>
-                }
-              </div>
-            </div>
-          </div>
-        }
-        <div class="row">
-          <!-- descrizione -->
-          <div class="form-group col-md-12 mb-2">
-            <label class="label-bold" for="descrizione">{{ 'APP.LABEL.descrizione' | translate }}</label>
-            <textarea class="form-control form-control-sm" id="descrizione" rows="4" cols="50" formControlName="descrizione" ></textarea>
-          </div>
-          <!--  -->
-        </div>
-      }
-
-    </fieldset>
-  </div>
-
-  @if (_error) {
-    <div class="gl-alert gl-alert-danger col-md-12 mb-5">
-      {{ _errorMsg }}
-    </div>
-  }
-
-</div>
-<div class="modal-footer py-2">
-  <lnk-button
-    [label]="'APP.BUTTON.Close'"
-    (onAction)="closeModal()"
-  ></lnk-button>
-  @if ((client | mapper:_isModifiableMapper)) {
-    <lnk-button
-      [type]="'submit'"
-      [label]="'APP.BUTTON.Save'"
-      [primary]="true"
-      [ariaLabel]="'APP.BUTTON.Save'"
-      [disabled]="_editFormGroupClients.invalid || _saving"
-      [spinner]="_saving"
-    ></lnk-button>
-  }
-</div>
-</form>
-</div>
+  <app-modal-edit-client
+    [input]="modalInput"
+    [layout]="_dialogLayout"
+    (layoutChange)="_onDialogLayoutChange($event)"
+    (selectCredenziali)="_onSelectCredenzialiOption($event)"
+    (changeCredenziali)="onChangeCredenziali($event)"
+    (changeTipoCertificato)="onChangeTipoCertificato($event)"
+    (changeTipoCertificatoFirma)="onChangeTipoCertificatoFirma($event)"
+    (descriptorChange)="_onDescriptorChange($event)"
+    (descriptorChangeFirma)="_onDescriptorChangeFirma($event)"
+    (save)="_onSaveModalClient(_editFormGroupClients.value)"
+    (close)="closeModal()"
+    (downloadAllegato)="_downloadAllegato($event)"
+  ></app-modal-edit-client>
 </ng-template>
-<!-- DIALOG API [end] -->

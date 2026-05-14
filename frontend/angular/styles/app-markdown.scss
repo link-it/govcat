@@ -126,3 +126,41 @@
     }
   }
 }
+
+.lnk-wizard {
+  .lnk-banner {
+    .body {
+      markdown {
+        h2 {
+          font-size: 1rem;
+          font-weight: 600;
+          margin-bottom: 0.25rem !important;
+        }
+
+        p {
+          margin-bottom: 0.25rem !important;
+        }
+      }
+      ul {
+        margin-bottom: 0.25rem !important;
+      }
+    }
+  }
+}
+
+.markdown-inline {
+  b, strong {
+      font-weight: 700;
+  }
+
+  a {
+    color: #1f75cb !important;
+    &:hover {
+      text-decoration: underline !important;
+    }
+  }
+
+  p {
+    margin-bottom: 0.25rem !important;
+  }
+}

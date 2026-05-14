@@ -52,11 +52,17 @@ import org.govway.catalogo.servlets.model.Organizzazione;
 import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.OrganizzazioneUpdate;
 import org.govway.catalogo.servlets.model.PagedModelItemOrganizzazione;
+import org.govway.catalogo.servlets.model.RuoloOrganizzazioneEnum;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.Soggetto;
 import org.govway.catalogo.servlets.model.SoggettoCreate;
 import org.govway.catalogo.servlets.model.Utente;
 import org.govway.catalogo.servlets.model.UtenteCreate;
+import org.govway.catalogo.servlets.model.PagedModelItemUtenteOrganizzazione;
+import org.govway.catalogo.servlets.model.UtenteOrganizzazione;
+import org.govway.catalogo.servlets.model.UtenteOrganizzazioneAdd;
+import org.govway.catalogo.servlets.model.UtenteOrganizzazioneCreate;
+import org.govway.catalogo.servlets.model.UtenteOrganizzazioneUpdate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -192,7 +198,7 @@ public class OrganizzazioniTest {
     @Test
     public void testCreateOrganizzazioneAltroUtenteSuccess() {
     	UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        utente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
         
         ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
         
@@ -657,8 +663,7 @@ public class OrganizzazioniTest {
     
     public void testCreateOrganizzazioneReferenteServizioSuccess() {
     	UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
-        utente.setReferenteTecnico(false);
+        utente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
         utente.setPrincipal("unoqualsiasi");
         
         ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
@@ -675,17 +680,417 @@ public class OrganizzazioniTest {
     public void testCreateOrganizzazioneCoordinatoreError() {
     	UtenteCreate utente = CommonUtils.getUtenteCreate();
         utente.setRuolo(RuoloUtenteEnum.COORDINATORE);
-        utente.setReferenteTecnico(false);
         utente.setPrincipal("unoqualsiasi");
-        
+
         ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
-        
+
         CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
-        
+
     	NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
     		this.getResponse();
     	});
 
         assertEquals("AUT.403", exception.getMessage());
+    }
+
+    // ============================================================
+    // Gestione associazioni utente-organizzazione (multi-org)
+    // POST /organizzazioni/{id}/utenti
+    // PUT  /organizzazioni/{id}/utenti/{id_utente}
+    // DELETE /organizzazioni/{id}/utenti/{id_utente}
+    // ============================================================
+
+    private Organizzazione creaOrgPerAssoc(String nome) {
+        OrganizzazioneCreate oc = CommonUtils.getOrganizzazioneCreate();
+        oc.setNome(nome);
+        return controller.createOrganizzazione(oc).getBody();
+    }
+
+    private Utente creaUtentePerAssoc(String principal) {
+        UtenteCreate uc = CommonUtils.getUtenteCreate();
+        uc.setPrincipal(principal);
+        uc.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        return utentiController.createUtente(uc).getBody();
+    }
+
+    @Test
+    public void testAddUtenteOrganizzazione_Gestore_Success() {
+        Organizzazione org = creaOrgPerAssoc("org-gest-add-assoc");
+        Utente utente = creaUtentePerAssoc("assoc.gest.add");
+
+        UtenteOrganizzazioneAdd body = new UtenteOrganizzazioneAdd();
+        body.setIdUtente(utente.getIdUtente());
+        body.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.OPERATORE_API);
+
+        ResponseEntity<UtenteOrganizzazione> response =
+                controller.addUtenteOrganizzazione(org.getIdOrganizzazione(), body);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(org.getIdOrganizzazione(), response.getBody().getOrganizzazione().getIdOrganizzazione());
+        assertEquals(RuoloOrganizzazioneEnum.OPERATORE_API, response.getBody().getRuoloOrganizzazione());
+
+        Utente utAggiornato = utentiController.getUtente(utente.getIdUtente()).getBody();
+        assertEquals(1, utAggiornato.getOrganizzazioni().size());
+    }
+
+    @Test
+    public void testAddUtenteOrganizzazione_AmministratoreOrganizzazione_Success() {
+        Organizzazione org = creaOrgPerAssoc("org-amm-add-assoc");
+
+        UtenteCreate ammOrgCreate = CommonUtils.getUtenteCreate();
+        ammOrgCreate.setPrincipal("assoc.amm.add");
+        ammOrgCreate.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        UtenteOrganizzazioneCreate assoc = new UtenteOrganizzazioneCreate();
+        assoc.setIdOrganizzazione(org.getIdOrganizzazione());
+        assoc.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+        ammOrgCreate.setOrganizzazioni(List.of(assoc));
+        utentiController.createUtente(ammOrgCreate);
+
+        Utente nuovoUtente = creaUtentePerAssoc("assoc.nuovo.add");
+
+        // Autentico come AMM_ORG
+        CommonUtils.getSessionUtente("assoc.amm.add", securityContext, authentication, utenteService);
+
+        UtenteOrganizzazioneAdd body = new UtenteOrganizzazioneAdd();
+        body.setIdUtente(nuovoUtente.getIdUtente());
+        body.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.OPERATORE_API);
+
+        ResponseEntity<UtenteOrganizzazione> response =
+                controller.addUtenteOrganizzazione(org.getIdOrganizzazione(), body);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(RuoloOrganizzazioneEnum.OPERATORE_API, response.getBody().getRuoloOrganizzazione());
+    }
+
+    @Test
+    public void testAddUtenteOrganizzazione_Anonimo_Forbidden() {
+        Organizzazione org = creaOrgPerAssoc("org-anonimo-add-assoc");
+        Utente daAggiungere = creaUtentePerAssoc("assoc.anonimo.target");
+
+        UtenteOrganizzazioneAdd body = new UtenteOrganizzazioneAdd();
+        body.setIdUtente(daAggiungere.getIdUtente());
+        body.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.OPERATORE_API);
+
+        // Utente anonimo (nessun principal autenticato)
+        this.tearDown();
+
+        NotAuthorizedException ex = assertThrows(NotAuthorizedException.class, () -> {
+            controller.addUtenteOrganizzazione(org.getIdOrganizzazione(), body);
+        });
+        assertTrue(ex.getMessage().startsWith("AUT.403"));
+    }
+
+    @Test
+    public void testAddUtenteOrganizzazione_Conflict() {
+        Organizzazione org = creaOrgPerAssoc("org-conflict-add-assoc");
+        Utente utente = creaUtentePerAssoc("assoc.conflict");
+
+        UtenteOrganizzazioneAdd body = new UtenteOrganizzazioneAdd();
+        body.setIdUtente(utente.getIdUtente());
+        body.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.OPERATORE_API);
+
+        controller.addUtenteOrganizzazione(org.getIdOrganizzazione(), body);
+
+        assertThrows(ConflictException.class, () -> {
+            controller.addUtenteOrganizzazione(org.getIdOrganizzazione(), body);
+        });
+    }
+
+    @Test
+    public void testAddUtenteOrganizzazione_UtenteNonTrovato() {
+        Organizzazione org = creaOrgPerAssoc("org-notfound-add-assoc");
+
+        UtenteOrganizzazioneAdd body = new UtenteOrganizzazioneAdd();
+        body.setIdUtente(UUID.randomUUID());
+        body.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.OPERATORE_API);
+
+        assertThrows(NotFoundException.class, () -> {
+            controller.addUtenteOrganizzazione(org.getIdOrganizzazione(), body);
+        });
+    }
+
+    @Test
+    public void testUpdateRuoloUtenteOrganizzazione_Success() {
+        Organizzazione org = creaOrgPerAssoc("org-upd-ruolo-assoc");
+        Utente utente = creaUtentePerAssoc("assoc.upd.ruolo");
+
+        UtenteOrganizzazioneAdd add = new UtenteOrganizzazioneAdd();
+        add.setIdUtente(utente.getIdUtente());
+        add.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.OPERATORE_API);
+        controller.addUtenteOrganizzazione(org.getIdOrganizzazione(), add);
+
+        UtenteOrganizzazioneUpdate upd = new UtenteOrganizzazioneUpdate();
+        upd.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+
+        ResponseEntity<UtenteOrganizzazione> response = controller.updateRuoloUtenteOrganizzazione(
+                org.getIdOrganizzazione(), utente.getIdUtente(), upd);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE,
+                response.getBody().getRuoloOrganizzazione());
+    }
+
+    @Test
+    public void testUpdateRuoloUtenteOrganizzazione_AssociazioneNonTrovata() {
+        Organizzazione org = creaOrgPerAssoc("org-upd-notfound-assoc");
+        Utente utente = creaUtentePerAssoc("assoc.upd.notfound");
+
+        UtenteOrganizzazioneUpdate upd = new UtenteOrganizzazioneUpdate();
+        upd.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.OPERATORE_API);
+
+        assertThrows(NotFoundException.class, () -> {
+            controller.updateRuoloUtenteOrganizzazione(
+                    org.getIdOrganizzazione(), utente.getIdUtente(), upd);
+        });
+    }
+
+    @Test
+    public void testUpdateRuoloUtenteOrganizzazione_ImpostaRuoloNull() {
+        Organizzazione org = creaOrgPerAssoc("org-upd-null-assoc");
+        Utente utente = creaUtentePerAssoc("assoc.upd.null");
+
+        UtenteOrganizzazioneAdd add = new UtenteOrganizzazioneAdd();
+        add.setIdUtente(utente.getIdUtente());
+        add.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.OPERATORE_API);
+        controller.addUtenteOrganizzazione(org.getIdOrganizzazione(), add);
+
+        UtenteOrganizzazioneUpdate upd = new UtenteOrganizzazioneUpdate();
+        upd.setRuoloOrganizzazione(null);
+
+        ResponseEntity<UtenteOrganizzazione> response = controller.updateRuoloUtenteOrganizzazione(
+                org.getIdOrganizzazione(), utente.getIdUtente(), upd);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(null, response.getBody().getRuoloOrganizzazione());
+    }
+
+    @Test
+    public void testRemoveUtenteOrganizzazione_Success() {
+        Organizzazione org = creaOrgPerAssoc("org-rm-assoc");
+        Utente utente = creaUtentePerAssoc("assoc.rm");
+
+        UtenteOrganizzazioneAdd add = new UtenteOrganizzazioneAdd();
+        add.setIdUtente(utente.getIdUtente());
+        add.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.OPERATORE_API);
+        controller.addUtenteOrganizzazione(org.getIdOrganizzazione(), add);
+
+        ResponseEntity<Void> response = controller.removeUtenteOrganizzazione(
+                org.getIdOrganizzazione(), utente.getIdUtente());
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+
+        Utente utAggiornato = utentiController.getUtente(utente.getIdUtente()).getBody();
+        assertTrue(utAggiornato.getOrganizzazioni() == null || utAggiornato.getOrganizzazioni().isEmpty());
+    }
+
+    @Test
+    public void testRemoveUtenteOrganizzazione_AssociazioneNonTrovata() {
+        Organizzazione org = creaOrgPerAssoc("org-rm-notfound-assoc");
+        Utente utente = creaUtentePerAssoc("assoc.rm.notfound");
+
+        assertThrows(NotFoundException.class, () -> {
+            controller.removeUtenteOrganizzazione(
+                    org.getIdOrganizzazione(), utente.getIdUtente());
+        });
+    }
+
+    // ============================================================
+    // GET /organizzazioni/{id}/utenti
+    // ============================================================
+
+    @Test
+    public void testListUtentiOrganizzazione_Success() {
+        Organizzazione org = creaOrgPerAssoc("org-list-utenti");
+
+        // Crea 2 utenti e li associa all'org con ruoli diversi
+        Utente u1 = creaUtentePerAssoc("assoc.list.u1");
+        Utente u2 = creaUtentePerAssoc("assoc.list.u2");
+
+        UtenteOrganizzazioneAdd add1 = new UtenteOrganizzazioneAdd();
+        add1.setIdUtente(u1.getIdUtente());
+        add1.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+        ResponseEntity<UtenteOrganizzazione> r1 = controller.addUtenteOrganizzazione(org.getIdOrganizzazione(), add1);
+        assertEquals(HttpStatus.OK, r1.getStatusCode());
+
+        UtenteOrganizzazioneAdd add2 = new UtenteOrganizzazioneAdd();
+        add2.setIdUtente(u2.getIdUtente());
+        add2.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.OPERATORE_API);
+        ResponseEntity<UtenteOrganizzazione> r2 = controller.addUtenteOrganizzazione(org.getIdOrganizzazione(), add2);
+        assertEquals(HttpStatus.OK, r2.getStatusCode());
+
+        // Sanity check via getUtente: u1 e u2 devono avere l'associazione
+        Utente u1After = utentiController.getUtente(u1.getIdUtente()).getBody();
+        assertNotNull(u1After.getOrganizzazioni(), "u1 deve avere organizzazioni dopo add");
+        assertEquals(1, u1After.getOrganizzazioni().size(), "u1 deve avere 1 associazione");
+
+        ResponseEntity<PagedModelItemUtenteOrganizzazione> response =
+                controller.listUtentiOrganizzazione(org.getIdOrganizzazione(), null, 0, 100, null);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(2, response.getBody().getContent().size());
+
+        // Verifica che entrambi gli utenti siano presenti con il ruolo corretto
+        boolean trovatoU1 = response.getBody().getContent().stream().anyMatch(item ->
+                item.getUtente().getIdUtente().equals(u1.getIdUtente())
+                && item.getRuoloOrganizzazione() == RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+        boolean trovatoU2 = response.getBody().getContent().stream().anyMatch(item ->
+                item.getUtente().getIdUtente().equals(u2.getIdUtente())
+                && item.getRuoloOrganizzazione() == RuoloOrganizzazioneEnum.OPERATORE_API);
+        assertTrue(trovatoU1, "Utente u1 con ruolo AMM_ORG non trovato");
+        assertTrue(trovatoU2, "Utente u2 con ruolo OPERATORE_API non trovato");
+    }
+
+    @Test
+    public void testListUtentiOrganizzazione_FiltroQ() {
+        Organizzazione org = creaOrgPerAssoc("org-list-utenti-q");
+
+        // 3 utenti con nome/cognome/principal differenti
+        UtenteCreate u1c = CommonUtils.getUtenteCreate();
+        u1c.setPrincipal("mario.rossi");
+        u1c.setNome("Mario");
+        u1c.setCognome("Rossi");
+        u1c.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        Utente u1 = utentiController.createUtente(u1c).getBody();
+
+        UtenteCreate u2c = CommonUtils.getUtenteCreate();
+        u2c.setPrincipal("anna.bianchi");
+        u2c.setNome("Anna");
+        u2c.setCognome("Bianchi");
+        u2c.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        Utente u2 = utentiController.createUtente(u2c).getBody();
+
+        UtenteCreate u3c = CommonUtils.getUtenteCreate();
+        u3c.setPrincipal("luca.verdi");
+        u3c.setNome("Luca");
+        u3c.setCognome("Verdi");
+        u3c.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        Utente u3 = utentiController.createUtente(u3c).getBody();
+
+        for (Utente u : List.of(u1, u2, u3)) {
+            UtenteOrganizzazioneAdd add = new UtenteOrganizzazioneAdd();
+            add.setIdUtente(u.getIdUtente());
+            add.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.OPERATORE_API);
+            controller.addUtenteOrganizzazione(org.getIdOrganizzazione(), add);
+        }
+
+        // q su nome (parziale)
+        var resp = controller.listUtentiOrganizzazione(org.getIdOrganizzazione(), "ario", 0, 100, null);
+        assertEquals(1, resp.getBody().getContent().size());
+        assertEquals(u1.getIdUtente(), resp.getBody().getContent().get(0).getUtente().getIdUtente());
+
+        // q su cognome (case insensitive)
+        resp = controller.listUtentiOrganizzazione(org.getIdOrganizzazione(), "BIANCHI", 0, 100, null);
+        assertEquals(1, resp.getBody().getContent().size());
+        assertEquals(u2.getIdUtente(), resp.getBody().getContent().get(0).getUtente().getIdUtente());
+
+        // q su principal
+        resp = controller.listUtentiOrganizzazione(org.getIdOrganizzazione(), "luca.verdi", 0, 100, null);
+        assertEquals(1, resp.getBody().getContent().size());
+        assertEquals(u3.getIdUtente(), resp.getBody().getContent().get(0).getUtente().getIdUtente());
+
+        // q su "Mario Rossi" (nome + cognome)
+        resp = controller.listUtentiOrganizzazione(org.getIdOrganizzazione(), "Mario Rossi", 0, 100, null);
+        assertEquals(1, resp.getBody().getContent().size());
+        assertEquals(u1.getIdUtente(), resp.getBody().getContent().get(0).getUtente().getIdUtente());
+
+        // q su "Bianchi Anna" (cognome + nome)
+        resp = controller.listUtentiOrganizzazione(org.getIdOrganizzazione(), "Bianchi Anna", 0, 100, null);
+        assertEquals(1, resp.getBody().getContent().size());
+        assertEquals(u2.getIdUtente(), resp.getBody().getContent().get(0).getUtente().getIdUtente());
+
+        // q senza risultati
+        resp = controller.listUtentiOrganizzazione(org.getIdOrganizzazione(), "inesistente_xyz", 0, 100, null);
+        assertEquals(0, resp.getBody().getContent().size());
+
+        // q null = nessun filtro: tutti e 3
+        resp = controller.listUtentiOrganizzazione(org.getIdOrganizzazione(), null, 0, 100, null);
+        assertEquals(3, resp.getBody().getContent().size());
+    }
+
+    @Test
+    public void testListUtentiOrganizzazione_AmministratoreOrganizzazione_Success() {
+        Organizzazione org = creaOrgPerAssoc("org-amm-list-utenti");
+
+        // AMM_ORG dell'organizzazione
+        UtenteCreate ammOrgCreate = CommonUtils.getUtenteCreate();
+        ammOrgCreate.setPrincipal("assoc.amm.list");
+        ammOrgCreate.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        UtenteOrganizzazioneCreate ammAssoc = new UtenteOrganizzazioneCreate();
+        ammAssoc.setIdOrganizzazione(org.getIdOrganizzazione());
+        ammAssoc.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+        ammOrgCreate.setOrganizzazioni(List.of(ammAssoc));
+        utentiController.createUtente(ammOrgCreate);
+
+        // Aggiungo un altro utente all'org tramite il controller (come gestore)
+        Utente altroUtente = creaUtentePerAssoc("assoc.amm.list.target");
+        UtenteOrganizzazioneAdd add = new UtenteOrganizzazioneAdd();
+        add.setIdUtente(altroUtente.getIdUtente());
+        add.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.OPERATORE_API);
+        controller.addUtenteOrganizzazione(org.getIdOrganizzazione(), add);
+
+        // Mi autentico come AMM_ORG
+        CommonUtils.getSessionUtente("assoc.amm.list", securityContext, authentication, utenteService);
+
+        // L'AMM_ORG può fare il list
+        ResponseEntity<PagedModelItemUtenteOrganizzazione> response =
+                controller.listUtentiOrganizzazione(org.getIdOrganizzazione(), null, 0, 100, null);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        // Devono esserci almeno 2 utenti: l'AMM_ORG stesso e altroUtente
+        assertTrue(response.getBody().getContent().size() >= 2);
+    }
+
+    @Test
+    public void testListUtentiOrganizzazione_Anonimo_Forbidden() {
+        Organizzazione org = creaOrgPerAssoc("org-anon-list-utenti");
+
+        this.tearDown();
+
+        NotAuthorizedException ex = assertThrows(NotAuthorizedException.class, () -> {
+            controller.listUtentiOrganizzazione(org.getIdOrganizzazione(), null, 0, 100, null);
+        });
+        assertTrue(ex.getMessage().startsWith("AUT.403"));
+    }
+
+    @Test
+    public void testListUtentiOrganizzazione_OrgNonTrovata() {
+        UUID idInesistente = UUID.randomUUID();
+
+        assertThrows(NotFoundException.class, () -> {
+            controller.listUtentiOrganizzazione(idInesistente, null, 0, 100, null);
+        });
+    }
+
+    @Test
+    public void testRemoveUtenteOrganizzazione_AmministratoreOrganizzazione_Success() {
+        Organizzazione org = creaOrgPerAssoc("org-amm-rm-assoc");
+
+        UtenteCreate ammOrgCreate = CommonUtils.getUtenteCreate();
+        ammOrgCreate.setPrincipal("assoc.amm.rm");
+        ammOrgCreate.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        UtenteOrganizzazioneCreate ammAssoc = new UtenteOrganizzazioneCreate();
+        ammAssoc.setIdOrganizzazione(org.getIdOrganizzazione());
+        ammAssoc.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+        ammOrgCreate.setOrganizzazioni(List.of(ammAssoc));
+        utentiController.createUtente(ammOrgCreate);
+
+        UtenteCreate operCreate = CommonUtils.getUtenteCreate();
+        operCreate.setPrincipal("assoc.oper.rm");
+        operCreate.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        UtenteOrganizzazioneCreate operAssoc = new UtenteOrganizzazioneCreate();
+        operAssoc.setIdOrganizzazione(org.getIdOrganizzazione());
+        operAssoc.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.OPERATORE_API);
+        operCreate.setOrganizzazioni(List.of(operAssoc));
+        Utente operatore = utentiController.createUtente(operCreate).getBody();
+
+        CommonUtils.getSessionUtente("assoc.amm.rm", securityContext, authentication, utenteService);
+
+        ResponseEntity<Void> response = controller.removeUtenteOrganizzazione(
+                org.getIdOrganizzazione(), operatore.getIdUtente());
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 }

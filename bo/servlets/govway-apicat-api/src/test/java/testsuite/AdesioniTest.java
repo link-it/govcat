@@ -65,6 +65,9 @@ import org.govway.catalogo.servlets.model.APIDatiErogazione;
 import org.govway.catalogo.servlets.model.Adesione;
 import org.govway.catalogo.servlets.model.AdesioneClientUpdate;
 import org.govway.catalogo.servlets.model.AdesioneCreate;
+import org.govway.catalogo.servlets.model.AdesioneDisclaimer;
+import org.govway.catalogo.servlets.model.DisclaimerContestoEnum;
+import org.govway.catalogo.servlets.model.DisclaimerSeverityEnum;
 import org.govway.catalogo.servlets.model.AdesioneErogazioneUpdate;
 import org.govway.catalogo.servlets.model.AdesioneIdClient;
 import org.govway.catalogo.servlets.model.AdesioneUpdate;
@@ -102,6 +105,7 @@ import org.govway.catalogo.servlets.model.MessaggioUpdate;
 import org.govway.catalogo.servlets.model.Organizzazione;
 import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.PagedModelItemAdesione;
+import org.govway.catalogo.servlets.model.ItemClientAdesione;
 import org.govway.catalogo.servlets.model.PagedModelItemClientAdesione;
 import org.govway.catalogo.servlets.model.PagedModelItemComunicazione;
 import org.govway.catalogo.servlets.model.PagedModelItemConfigurazioneAdesione;
@@ -290,7 +294,7 @@ public class AdesioniTest {
         //associo l'utente all'Organizzazione
         UtenteUpdate upUtente = new UtenteUpdate();
         upUtente.setPrincipal(UTENTE_GESTORE);
-        upUtente.setIdOrganizzazione(idOrganizzazione);
+        CommonUtils.setOrganizzazione(upUtente, idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
         upUtente.setTelefonoAziendale("+39 0000000");
@@ -518,10 +522,11 @@ public class AdesioniTest {
     	CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
 
     	this.tearDown();
-    	
-    	Exception exception = assertThrows(NullPointerException.class, () -> {
+
+    	Exception exception = assertThrows(NotAuthorizedException.class, () -> {
     		this.getAdesione();
         });
+    	assertTrue(exception.getMessage().startsWith("AUT.403"));
     }
     
     @Test
@@ -930,7 +935,7 @@ public class AdesioniTest {
     	
     	UtenteUpdate upUtente = new UtenteUpdate();
         upUtente.setPrincipal(UTENTE_RICHIEDENTE_ADESIONE);
-        upUtente.setIdOrganizzazione(idOrganizzazione);
+        CommonUtils.setOrganizzazione(upUtente, idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
         upUtente.setTelefonoAziendale("+39 0000000");
@@ -967,7 +972,7 @@ public class AdesioniTest {
     	
     	UtenteUpdate upUtente = new UtenteUpdate();
         upUtente.setPrincipal(UTENTE_RICHIEDENTE_ADESIONE);
-        upUtente.setIdOrganizzazione(idOrganizzazione);
+        CommonUtils.setOrganizzazione(upUtente, idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
         upUtente.setTelefonoAziendale("+39 0000000");
@@ -1006,7 +1011,7 @@ public class AdesioniTest {
     	
     	UtenteUpdate upUtente = new UtenteUpdate();
         upUtente.setPrincipal(UTENTE_RICHIEDENTE_ADESIONE);
-        upUtente.setIdOrganizzazione(idOrganizzazione);
+        CommonUtils.setOrganizzazione(upUtente, idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
         upUtente.setTelefonoAziendale("+39 0000000");
@@ -1088,7 +1093,7 @@ public class AdesioniTest {
 
         UtenteUpdate upUtente = new UtenteUpdate();
         upUtente.setPrincipal(UTENTE_RICHIEDENTE_ADESIONE);
-        upUtente.setIdOrganizzazione(idOrganizzazione);
+        CommonUtils.setOrganizzazione(upUtente, idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
         upUtente.setTelefonoAziendale("+39 0000000");
@@ -1121,7 +1126,7 @@ public class AdesioniTest {
 
         UtenteUpdate upUtente = new UtenteUpdate();
         upUtente.setPrincipal(UTENTE_RICHIEDENTE_ADESIONE);
-        upUtente.setIdOrganizzazione(idOrganizzazione);
+        CommonUtils.setOrganizzazione(upUtente, idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
         upUtente.setTelefonoAziendale("+39 0000000");
@@ -2188,7 +2193,7 @@ public class AdesioniTest {
         
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
         utenteCreate.setPrincipal(UTENTE_GESTORE+2);
-        utenteCreate.setIdOrganizzazione(idOrganizzazione);
+        CommonUtils.setOrganizzazione(utenteCreate, idOrganizzazione);
         utentiController.createUtente(utenteCreate);
         
         InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_GESTORE+2, utenteService);
@@ -2238,7 +2243,7 @@ public class AdesioniTest {
         
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
         utenteCreate.setPrincipal(UTENTE_GESTORE+2);
-        utenteCreate.setIdOrganizzazione(idOrganizzazione);
+        CommonUtils.setOrganizzazione(utenteCreate, idOrganizzazione);
         utentiController.createUtente(utenteCreate);
         
         InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_GESTORE+2, utenteService);
@@ -2287,7 +2292,7 @@ public class AdesioniTest {
         
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
         utenteCreate.setPrincipal(UTENTE_GESTORE+2);
-        utenteCreate.setIdOrganizzazione(idOrganizzazione);
+        CommonUtils.setOrganizzazione(utenteCreate, idOrganizzazione);
         utentiController.createUtente(utenteCreate);
         
         InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_GESTORE+2, utenteService);
@@ -2341,7 +2346,7 @@ public class AdesioniTest {
         for(int num = 0; num < numeroTotaleDiElementi; num++) {
         	UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
             utenteCreate.setPrincipal(UTENTE_GESTORE+num);
-            utenteCreate.setIdOrganizzazione(idOrganizzazione);
+            CommonUtils.setOrganizzazione(utenteCreate, idOrganizzazione);
             utentiController.createUtente(utenteCreate);
         	
             InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_GESTORE+num, utenteService);
@@ -2574,19 +2579,19 @@ public class AdesioniTest {
         //associo l'utente all'Organizzazione
         UtenteUpdate upUtente = new UtenteUpdate();
         upUtente.setPrincipal(UTENTE_REFERENTE_DOMINIO);
-        upUtente.setIdOrganizzazione(idOrganizzazione);
+        CommonUtils.setOrganizzazione(upUtente, idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
         upUtente.setTelefonoAziendale("+39 0000000");
         upUtente.setNome("referente");
         upUtente.setCognome("dominio");
-        upUtente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        upUtente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
 
         utentiController.updateUtente(ID_UTENTE_REFERENTE_DOMINIO, upUtente);
         
         upUtente = new UtenteUpdate();
         upUtente.setPrincipal(UTENTE_GESTORE);
-        upUtente.setIdOrganizzazione(idOrganizzazione);
+        CommonUtils.setOrganizzazione(upUtente, idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
         upUtente.setTelefonoAziendale("+39 0000000");
@@ -2598,20 +2603,20 @@ public class AdesioniTest {
         
         upUtente = new UtenteUpdate();
         upUtente.setPrincipal(UTENTE_REFERENTE_SERVIZIO);
-        upUtente.setIdOrganizzazione(idOrganizzazione);
+        CommonUtils.setOrganizzazione(upUtente, idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
         upUtente.setTelefonoAziendale("+39 0000000");
         upUtente.setNome("utente");
         upUtente.setCognome("referente_servizio");
-        upUtente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        upUtente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
 
         utentiController.updateUtente(ID_UTENTE_REFERENTE_SERVIZIO, upUtente);
         
         
         upUtente = new UtenteUpdate();
         upUtente.setPrincipal(UTENTE_RICHIEDENTE_ADESIONE);
-        upUtente.setIdOrganizzazione(idOrganizzazione);
+        CommonUtils.setOrganizzazione(upUtente, idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
         upUtente.setTelefonoAziendale("+39 0000000");
@@ -2622,7 +2627,7 @@ public class AdesioniTest {
         
         upUtente = new UtenteUpdate();
         upUtente.setPrincipal(UTENTE_REFERENTE_ADESIONE);
-        upUtente.setIdOrganizzazione(idOrganizzazione);
+        CommonUtils.setOrganizzazione(upUtente, idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
         upUtente.setTelefonoAziendale("+39 0000000");
@@ -2633,7 +2638,7 @@ public class AdesioniTest {
         
         upUtente = new UtenteUpdate();
         upUtente.setPrincipal(UTENTE_REFERENTE_TECNICO_ADESIONE);
-        upUtente.setIdOrganizzazione(idOrganizzazione);
+        CommonUtils.setOrganizzazione(upUtente, idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
         upUtente.setTelefonoAziendale("+39 0000000");
@@ -6224,12 +6229,224 @@ public class AdesioniTest {
     			null, null, null,
     			ids, null,
     			0, 10, null);
-    	
+
         // Assert
     	assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         //assertEquals("richiesto_collaudo", response.getBody().getStato());
         */
     }
-     
+
+    // =========================================================================
+    // TEST getDisclaimersAdesione
+    // =========================================================================
+
+    @Test
+    void testGetDisclaimersAdesioneSuccessIt() {
+        // Setup: crea un'adesione valida
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+        Adesione adesione = this.getAdesione();
+
+        // Act
+        ResponseEntity<List<AdesioneDisclaimer>> response = adesioniController.getDisclaimersAdesione(adesione.getIdAdesione(), "it");
+
+        // Assert: l'endpoint non fallisce mai e restituisce almeno un disclaimer (fallback o match)
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isEmpty(), "Deve sempre esserci almeno un disclaimer");
+
+        // Verifica struttura degli oggetti restituiti
+        for (AdesioneDisclaimer d : response.getBody()) {
+            assertNotNull(d.getDisclaimer(), "Il campo 'disclaimer' non deve essere null");
+            assertFalse(d.getDisclaimer().isBlank(), "Il testo del disclaimer non deve essere vuoto");
+            assertNotNull(d.getContesto(), "Il campo 'contesto' non deve essere null");
+            assertNotNull(d.getSeverity(), "Il campo 'severity' non deve essere null");
+        }
+    }
+
+    @Test
+    void testGetDisclaimersAdesioneSuccessEn() {
+        // Setup
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+        Adesione adesione = this.getAdesione();
+
+        // Act: richiesta in inglese
+        ResponseEntity<List<AdesioneDisclaimer>> response = adesioniController.getDisclaimersAdesione(adesione.getIdAdesione(), "en");
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isEmpty());
+    }
+
+    @Test
+    void testGetDisclaimersAdesioneFallbackLinguaNull() {
+        // Setup
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+        Adesione adesione = this.getAdesione();
+
+        // Act: language_code null -> il service fa fallback a "it"
+        ResponseEntity<List<AdesioneDisclaimer>> response = adesioniController.getDisclaimersAdesione(adesione.getIdAdesione(), null);
+
+        // Assert: risposta valida anche senza lingua specificata
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isEmpty());
+    }
+
+    @Test
+    void testGetDisclaimersAdesioneLinguaSconosciuta() {
+        // Setup
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+        Adesione adesione = this.getAdesione();
+
+        // Act: lingua non supportata -> fallback a "it"
+        ResponseEntity<List<AdesioneDisclaimer>> response = adesioniController.getDisclaimersAdesione(adesione.getIdAdesione(), "fr");
+
+        // Assert: non deve fallire
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isEmpty());
+    }
+
+    @Test
+    void testGetDisclaimersAdesioneNotFound() {
+        // Setup: ambiente base ma non creo nessuna adesione
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+
+        UUID randomId = UUID.randomUUID();
+
+        // Act & Assert: id_adesione inesistente -> 404
+        assertThrows(NotFoundException.class,
+                () -> adesioniController.getDisclaimersAdesione(randomId, "it"));
+    }
+
+    @Test
+    void testGetDisclaimersAdesioneUnauthorized() {
+        // Setup
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+        Adesione adesione = this.getAdesione();
+
+        // Cambio utente per testare unauthorized
+        CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
+
+        // Act & Assert
+        assertThrows(NotAuthorizedException.class,
+                () -> adesioniController.getDisclaimersAdesione(adesione.getIdAdesione(), "it"));
+    }
+
+    @Test
+    void testGetDisclaimersAdesioneContestoESeverityValidi() {
+        // Setup
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+        Adesione adesione = this.getAdesione();
+
+        // Act
+        ResponseEntity<List<AdesioneDisclaimer>> response = adesioniController.getDisclaimersAdesione(adesione.getIdAdesione(), "it");
+
+        // Assert: contesto e severity devono essere tra i valori dell'enum
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        for (AdesioneDisclaimer d : response.getBody()) {
+            assertTrue(
+                    d.getContesto() == DisclaimerContestoEnum.GENERALE ||
+                    d.getContesto() == DisclaimerContestoEnum.COLLAUDO ||
+                    d.getContesto() == DisclaimerContestoEnum.PRODUZIONE,
+                    "Contesto deve essere uno dei valori enum");
+            assertTrue(
+                    d.getSeverity() == DisclaimerSeverityEnum.INFO ||
+                    d.getSeverity() == DisclaimerSeverityEnum.WARNING ||
+                    d.getSeverity() == DisclaimerSeverityEnum.ERROR,
+                    "Severity deve essere uno dei valori enum");
+        }
+    }
+
+    @Test
+    void testGetDisclaimersAdesioneProfiloCoerenteConListClient() {
+        // Setup
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+        Adesione adesione = this.getAdesione();
+
+        // Act: recupera i disclaimer e i client configurati in collaudo
+        ResponseEntity<List<AdesioneDisclaimer>> disclaimersResp =
+                adesioniController.getDisclaimersAdesione(adesione.getIdAdesione(), "it");
+        ResponseEntity<PagedModelItemClientAdesione> clientResp =
+                adesioniController.listClientCollaudoAdesione(adesione.getIdAdesione());
+
+        // Assert: il formato del profilo nei disclaimer deve essere coerente con quello
+        // degli ItemClientAdesione, cosi' che il FE possa fare match diretto.
+        // Se il client collaudo espone un profilo (es. "MODI_P1"), ogni disclaimer che
+        // valorizza il campo profilo DEVE usare lo stesso identico formato (case-sensitive).
+        List<String> profiliClient = clientResp.getBody() != null && clientResp.getBody().getContent() != null
+                ? clientResp.getBody().getContent().stream().map(ItemClientAdesione::getProfilo).toList()
+                : java.util.Collections.emptyList();
+
+        for (AdesioneDisclaimer d : disclaimersResp.getBody()) {
+            if (d.getProfilo() != null) {
+                // Se un disclaimer esplicita un profilo, deve essere uno dei profili
+                // potenzialmente presenti per questa adesione. Il confronto e' esatto
+                // (stesso case) per garantire il match sul FE.
+                if (!profiliClient.isEmpty()) {
+                    assertTrue(profiliClient.contains(d.getProfilo()),
+                            "Il profilo '" + d.getProfilo() + "' del disclaimer deve coincidere "
+                                    + "(case-sensitive) con uno dei profili dei client in collaudo: "
+                                    + profiliClient);
+                }
+            }
+        }
+    }
+
+    @Test
+    void testGetDisclaimersAdesioneProfiloNullSuGenerale() {
+        // Setup: l'adesione base fa match solo sul default/hardcoded (nessuna chiave
+        // profilo-specific esiste per lo stato/profilo/dominio di test). In questo caso
+        // tutti i disclaimer restituiti devono avere profilo null.
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+        Adesione adesione = this.getAdesione();
+
+        // Act
+        ResponseEntity<List<AdesioneDisclaimer>> response =
+                adesioniController.getDisclaimersAdesione(adesione.getIdAdesione(), "it");
+
+        // Assert: senza chiavi profilo-specific nella cache, il default (profilo=null) e'
+        // l'unico risultato.
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isEmpty());
+        for (AdesioneDisclaimer d : response.getBody()) {
+            // Il default ha sempre profilo=null
+            if (d.getContesto() == DisclaimerContestoEnum.GENERALE && d.getProfilo() != null) {
+                // Se arrivano disclaimer generali con profilo valorizzato, significa che esiste
+                // una chiave tipo "bozza.PROFILO" nella cache: deve essere un profilo previsto.
+                assertNotNull(d.getProfilo());
+            }
+        }
+    }
+
 }

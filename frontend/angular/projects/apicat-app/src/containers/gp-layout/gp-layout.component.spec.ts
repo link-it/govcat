@@ -18,6 +18,7 @@ describe('GpLayoutComponent', () => {
   let mockLocalStorageService: any;
   let mockBreadCrumbService: any;
   let mockAuthenticationService: any;
+  let mockOrganizationContextService: any;
   let mockApiService: any;
   let mockNotificationsService: any;
   let mockDashboardService: any;
@@ -124,6 +125,14 @@ describe('GpLayoutComponent', () => {
     mockBreadCrumbService = {
       clearBreadcrumbs: vi.fn()
     };
+    mockOrganizationContextService = {
+      // Issue 270 - safety net in loadProfile usa
+      // `getCurrentOrganization()` per decidere se forzare il
+      // selettore. Mock semplice: nessuna org corrente.
+      getCurrentOrganization: vi.fn().mockReturnValue(null),
+      initFromUser: vi.fn(),
+      clear: vi.fn()
+    };
     mockAuthenticationService = {
       getCurrentSession: vi.fn().mockReturnValue(null),
       setCurrentSession: vi.fn(),
@@ -175,6 +184,7 @@ describe('GpLayoutComponent', () => {
       mockLocalStorageService as any,
       mockBreadCrumbService as any,
       mockAuthenticationService as any,
+      mockOrganizationContextService as any,
       mockApiService as any,
       mockNotificationsService as any,
       mockDashboardService as any,
@@ -486,7 +496,7 @@ describe('GpLayoutComponent', () => {
         mockEventsManagerService as any, mockLocalStorageService as any,
         mockBreadCrumbService as any, mockAuthenticationService as any,
         mockApiService as any, mockNotificationsService as any,
-        mockDashboardService as any, mockSidebarNavHelper as any
+        mockOrganizationContextService as any, mockDashboardService as any, mockSidebarNavHelper as any
       );
       expect((mockConfig.AppConfig as any).Services?.hideVersions).toBe(false);
     });
@@ -504,7 +514,7 @@ describe('GpLayoutComponent', () => {
         mockEventsManagerService as any, mockLocalStorageService as any,
         mockBreadCrumbService as any, mockAuthenticationService as any,
         mockApiService as any, mockNotificationsService as any,
-        mockDashboardService as any, mockSidebarNavHelper as any
+        mockOrganizationContextService as any, mockDashboardService as any, mockSidebarNavHelper as any
       );
       expect((mockConfig.AppConfig as any).Services?.hideVersions).toBe(true);
     });
@@ -518,7 +528,7 @@ describe('GpLayoutComponent', () => {
         mockEventsManagerService as any, mockLocalStorageService as any,
         mockBreadCrumbService as any, mockAuthenticationService as any,
         mockApiService as any, mockNotificationsService as any,
-        mockDashboardService as any, mockSidebarNavHelper as any
+        mockOrganizationContextService as any, mockDashboardService as any, mockSidebarNavHelper as any
       );
       expect((mockConfig.AppConfig as any).Services).toBeUndefined();
     });

@@ -52,6 +52,7 @@ public class DominioSpecification implements Specification<DominioEntity> {
 	private Optional<String> idReferente = Optional.empty();
 	private Optional<String> nome = Optional.empty();
 	private Optional<VISIBILITA> visibilita = Optional.empty();
+	private Optional<Long> idOrganizzazioneSoggettoReferente = Optional.empty();
 
 	@Override
 	public Predicate toPredicate(Root<DominioEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
@@ -106,6 +107,12 @@ public class DominioSpecification implements Specification<DominioEntity> {
 		if(idReferente.isPresent()) {
 			Path<String> joinedReferentIds = root.join(DominioEntity_.referenti).join(ReferenteDominioEntity_.referente).get(UtenteEntity_.idUtente);
 			predLst.add(cb.literal(idReferente.get()).in(joinedReferentIds));
+		}
+
+		if (idOrganizzazioneSoggettoReferente.isPresent()) {
+			predLst.add(cb.equal(
+					root.join(DominioEntity_.soggettoReferente).join(SoggettoEntity_.organizzazione).get(OrganizzazioneEntity_.id),
+					idOrganizzazioneSoggettoReferente.get()));
 		}
 
 		return predLst;
@@ -180,6 +187,14 @@ public class DominioSpecification implements Specification<DominioEntity> {
 
 	public void setVisibilita(Optional<VISIBILITA> visibilita) {
 		this.visibilita = visibilita;
+	}
+
+	public Optional<Long> getIdOrganizzazioneSoggettoReferente() {
+		return idOrganizzazioneSoggettoReferente;
+	}
+
+	public void setIdOrganizzazioneSoggettoReferente(Optional<Long> idOrganizzazioneSoggettoReferente) {
+		this.idOrganizzazioneSoggettoReferente = idOrganizzazioneSoggettoReferente;
 	}
 
 }

@@ -126,10 +126,17 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   service: Servizio|null = null;
 
   roleTab: string = 'tutte';
+  // Issue 229 evolutiva 2 — allineamento al nuovo enum
+  // `RuoloReferente` lato BE (10 valori). Le tab "referente_*"
+  // includono `amministratore_organizzazione` e `operatore_api`
+  // perche` questi ruoli per-org danno visibilita` su tutte le
+  // adesioni dell'organizzazione (rispettivamente referente
+  // primario / operatore tecnico). `utente_organizzazione` resta
+  // come fallback per dati legacy.
   _allRoleTabs: { key: string, label: string, roles: string[] }[] = [
     { key: 'tutte', label: 'APP.FILTER.All', roles: [] },
-    { key: 'referente', label: 'APP.FILTER.ReferenteServizioDominio', roles: ['referente_dominio', 'referente_tecnico_dominio', 'referente_servizio', 'referente_tecnico_servizio'] },
-    { key: 'referente_adesione', label: 'APP.FILTER.ReferenteAdesione', roles: ['referente_adesione', 'referente_tecnico_adesione'] },
+    { key: 'referente', label: 'APP.FILTER.ReferenteServizioDominio', roles: ['referente_dominio', 'referente_tecnico_dominio', 'referente_servizio', 'referente_tecnico_servizio', 'utente_organizzazione', 'amministratore_organizzazione', 'operatore_api'] },
+    { key: 'referente_adesione', label: 'APP.FILTER.ReferenteAdesione', roles: ['referente_adesione', 'referente_tecnico_adesione', 'amministratore_organizzazione', 'operatore_api'] },
     { key: 'richiedente', label: 'APP.FILTER.Richiedente', roles: ['richiedente_servizio', 'richiedente_adesione'] }
   ];
   roleTabs: { key: string, label: string, roles: string[] }[] = this._allRoleTabs;
@@ -138,10 +145,13 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     { value: 'referente_tecnico_dominio', label: 'APP.ROLE.referente_tecnico_dominio' },
     { value: 'referente_servizio', label: 'APP.ROLE.referente_servizio' },
     { value: 'referente_tecnico_servizio', label: 'APP.ROLE.referente_tecnico_servizio' },
+    { value: 'utente_organizzazione', label: 'APP.ROLE.utente_organizzazione' },
     { value: 'referente_adesione', label: 'APP.ROLE.referente_adesione' },
     { value: 'referente_tecnico_adesione', label: 'APP.ROLE.referente_tecnico_adesione' },
     { value: 'richiedente_servizio', label: 'APP.ROLE.richiedente_servizio' },
-    { value: 'richiedente_adesione', label: 'APP.ROLE.richiedente_adesione' }
+    { value: 'richiedente_adesione', label: 'APP.ROLE.richiedente_adesione' },
+    { value: 'amministratore_organizzazione', label: 'APP.ROLE.amministratore_organizzazione' },
+    { value: 'operatore_api', label: 'APP.ROLE.operatore_api' }
   ];
   _ruoloReferenteEnumValues: any = Object.fromEntries(this._allRuoliAdesioni.map(r => [r.value, r.label]));
   _availableRuoliAdesioni: { value: string, label: string }[] = [...this._allRuoliAdesioni];
@@ -286,7 +296,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
       this.generalConfig = Tools.Configurazione || null;
       this._workflowStati = Tools.Configurazione?.adesione.workflow.stati || [];
       this._adesioni_multiple = Tools.Configurazione?.servizio.adesioni_multiple || [];
-      this._updateMapper = new Date().getTime().toString();
+      this._updateMapper = Date.now().toString();
       this.updateMultiSelectionMapper();
     });
   }
@@ -381,7 +391,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
           this._links = response._links || null;
         }
 
-        if (response && response.content) {
+        if (response?.content) {
           const _list: any = response.content.map((adesione: any) => {
             const _adesione = { ...adesione, id_logico: this._adesioni_multiple ? adesione.id_logico : null, ruoli_referente_label: adesione.ruoli_referente || [] };
             const element = {
@@ -528,10 +538,9 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     return this.apiService.getList(model, _options)
       .pipe(map(resp => {
         if (resp.Error) {
-          throwError(resp.Error);
+          throwError(() => resp.Error);
         } else {
           const _items = resp.content.map((item: any) => {
-            // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
             return item;
           });
           return _items;
@@ -584,6 +593,15 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     } else {
       this._isEdit = true;
     }
+  }
+
+  /**
+   * Vincolo multi-org sul pulsante "Nuova adesione": gestori e
+   * coordinatori passano sempre; ruoli per-org solo se l'organizzazione
+   * di sessione e' abilitata come `aderente`.
+   */
+  canCreateAdesione(): boolean {
+    return this.authenticationService.canCreateAdesione();
   }
 
   _onEdit(event: any, param: any) {
@@ -667,7 +685,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     this._filterData = values;
     this.resetSeleted();
     this.updateMultiSelectionMapper();
-    this._updateMapper = new Date().getTime().toString();
+    this._updateMapper = Date.now().toString();
     this._loadAdesioni(this._filterData);
   }
 
@@ -758,7 +776,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
 
   resetSeleted() {
     this.elementsSelected = [];
-    this._updateMapper = new Date().getTime().toString();
+    this._updateMapper = Date.now().toString();
   }
 
   deselectAll() {
@@ -767,7 +785,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
         return { ...element, selected: false };
     });
     this.adesioni = [ ..._elements ];
-    this._updateMapper = new Date().getTime().toString();
+    this._updateMapper = Date.now().toString();
   }
 
   selectAll() {
@@ -776,7 +794,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
         return { ...element, selected: true };
     });
     this.adesioni = [ ..._elements ];
-    this._updateMapper = new Date().getTime().toString();
+    this._updateMapper = Date.now().toString();
   }
 
   get allSelected(): boolean {

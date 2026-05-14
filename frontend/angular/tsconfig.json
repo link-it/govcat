@@ -37,7 +37,6 @@
     "noFallthroughCasesInSwitch": true,
     "sourceMap": true,
     "declaration": false,
-    "downlevelIteration": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "bundler",

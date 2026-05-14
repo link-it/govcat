@@ -700,15 +700,24 @@ describe('ServizioApiDetailsComponent', () => {
       expect(result.dati_specifica).toBeUndefined();
     });
 
-    it('should set dati_custom when _apiProprietaCustomGrouped and not _isPDND', () => {
-      component._isPDND = false;
+    it('should set dati_custom when _apiProprietaCustomGrouped is defined', () => {
+      // `_prepareBodyUpdateApi` legge i valori dai FormControl (non
+      // dal body) perche' i controlli disabilitati via disablePermission
+      // non sono inclusi in `_formGroup.value`. Va quindi inizializzato
+      // un FormGroup `proprieta_custom > GN1 > prop1` con il valore.
       component._apiProprietaCustomGrouped = {
         'Label1': [{ nome_gruppo: 'GN1', nome: 'prop1' }]
       };
+      component._formGroup = new FormGroup({
+        proprieta_custom: new FormGroup({
+          GN1: new FormGroup({
+            prop1: new FormControl('val1')
+          })
+        })
+      }) as any;
       const body = {
         nome: 'A', versione: '1', ruolo: 'erogato_soggetto_aderente',
-        descrizione: null, codice_asset: null,
-        proprieta_custom: { GN1: { prop1: 'val1' } }
+        descrizione: null, codice_asset: null
       };
       const result = component._prepareBodyUpdateApi(body);
       expect(result.dati_custom).toBeDefined();
@@ -717,15 +726,16 @@ describe('ServizioApiDetailsComponent', () => {
       expect(result.dati_custom!.proprieta_custom[0].proprieta).toEqual([{ nome: 'prop1', valore: 'val1' }]);
     });
 
-    it('should not set dati_custom when _isPDND is true', () => {
-      component._isPDND = true;
-      component._apiProprietaCustomGrouped = {
-        'Label1': [{ nome_gruppo: 'GN1', nome: 'prop1' }]
-      };
+    it('should leave dati_custom undefined when no custom props are present', () => {
+      // Senza `_apiProprietaCustomGrouped` e senza
+      // `_servizioApi.proprieta_custom`, `dati_custom` non viene
+      // settato sul body. Il flag `_isPDND` non e` piu` un gate
+      // dedicato: il branch e` puramente data-driven.
+      component._apiProprietaCustomGrouped = null;
+      component._servizioApi = { proprieta_custom: [] } as any;
       const body = {
         nome: 'A', versione: '1', ruolo: 'erogato_soggetto_aderente',
-        descrizione: null, codice_asset: null,
-        proprieta_custom: { GN1: { prop1: 'val1' } }
+        descrizione: null, codice_asset: null
       };
       const result = component._prepareBodyUpdateApi(body);
       expect(result.dati_custom).toBeUndefined();
