@@ -23,6 +23,7 @@ describe('ProfileComponent', () => {
     getDetails: vi.fn().mockReturnValue(of({})),
     putElement: vi.fn().mockReturnValue(of({})),
     putElementRelated: vi.fn().mockReturnValue(of({})),
+    deleteElement: vi.fn().mockReturnValue(of({})),
   } as any;
   const mockAuthService = {
     getCurrentSession: vi.fn().mockReturnValue({}),
@@ -51,6 +52,7 @@ describe('ProfileComponent', () => {
     mockApiService.getDetails.mockReturnValue(of({}));
     mockApiService.putElement.mockReturnValue(of({}));
     mockApiService.putElementRelated.mockReturnValue(of({}));
+    mockApiService.deleteElement.mockReturnValue(of({}));
     mockAuthService.getSettings.mockReturnValue({});
     mockAuthService.isGestore.mockReturnValue(false);
     component = new ProfileComponent(
@@ -1464,6 +1466,66 @@ describe('ProfileComponent', () => {
   describe('minLengthTerm', () => {
     it('should default to 1', () => {
       expect(component.minLengthTerm).toBe(1);
+    });
+  });
+
+  // ---------------------------------------------------------------
+  // Issue 229 evolutiva 3 — cancelOrganizationChange
+  // ---------------------------------------------------------------
+
+  describe('cancelOrganizationChange', () => {
+    let onCloseSub: Subject<any>;
+
+    beforeEach(() => {
+      onCloseSub = new Subject<any>();
+      mockModalService.show.mockReturnValue({
+        content: { onClose: onCloseSub.asObservable() }
+      });
+    });
+
+    it('should be no-op when no pending request', () => {
+      component.profile = { organizzazione_pending: null };
+      component.cancelOrganizationChange();
+      expect(mockModalService.show).not.toHaveBeenCalled();
+    });
+
+    it('should show modal with danger color when pending request', () => {
+      component.profile = { organizzazione_pending: { id_organizzazione: 'org2', nome: 'Org2' } };
+      component.cancelOrganizationChange();
+      expect(mockModalService.show).toHaveBeenCalled();
+      const callArgs = mockModalService.show.mock.calls[0];
+      expect(callArgs[1].initialState.confirmColor).toBe('danger');
+    });
+
+    it('should call DELETE /profilo/organizzazione on confirm', () => {
+      component.profile = { organizzazione_pending: { id_organizzazione: 'org2', nome: 'Org2' } };
+      mockApiService.deleteElement.mockReturnValue(of({ id_utente: '1', stato: 'abilitato' }));
+
+      component.cancelOrganizationChange();
+      onCloseSub.next(true);
+
+      expect(mockApiService.deleteElement).toHaveBeenCalledWith('profilo/organizzazione', null);
+      // loadProfile e` chiamato da next: ricarica i dati.
+      expect(mockApiService.getList).toHaveBeenCalled();
+    });
+
+    it('should set error message on DELETE failure', () => {
+      component.profile = { organizzazione_pending: { id_organizzazione: 'org2', nome: 'Org2' } };
+      mockApiService.deleteElement.mockReturnValue(throwError(() => ({ status: 400 })));
+
+      component.cancelOrganizationChange();
+      onCloseSub.next(true);
+
+      expect(component.error).toBe(true);
+      expect(component.errorMsg).toBe('error');
+    });
+
+    it('should not call DELETE on modal cancel', () => {
+      component.profile = { organizzazione_pending: { id_organizzazione: 'org2', nome: 'Org2' } };
+      component.cancelOrganizationChange();
+      onCloseSub.next(false);
+
+      expect(mockApiService.deleteElement).not.toHaveBeenCalled();
     });
   });
 });

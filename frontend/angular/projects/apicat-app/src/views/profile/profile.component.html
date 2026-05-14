@@ -294,18 +294,32 @@
 
                           @if (_hasPendingRequest) {
                             <div class="alert alert-warning mb-3">
-                              <div class="d-flex align-items-start">
-                                <i class="bi bi-info-circle text-warning me-2"></i>
-                                <!-- Issue 229 multi-org — usiamo l'elemento
-                                     `<markdown [data]>` di ngx-markdown
-                                     (pattern canonico) col messaggio gia`
-                                     tradotto via `_pendingMessage` getter.
-                                     La variante `<span markdown>` con
-                                     `@if/@else` interno non re-parserizzava
-                                     i grassetti `**...**` (la direttiva
-                                     legge il contenuto come testo statico,
-                                     senza espansione del control flow). -->
-                                <markdown class="markdown-inline" [data]="_pendingMessage"></markdown>
+                              <div class="d-flex align-items-center justify-content-between gap-2 w-100">
+                                <div class="d-flex align-items-center gap-2">
+                                  <i class="bi bi-info-circle text-warning"></i>
+                                  <!-- Issue 229 multi-org — usiamo l'elemento
+                                      `<markdown [data]>` di ngx-markdown
+                                      (pattern canonico) col messaggio gia`
+                                      tradotto via `_pendingMessage` getter.
+                                      La variante `<span markdown>` con
+                                      `@if/@else` interno non re-parserizzava
+                                      i grassetti `**...**` (la direttiva
+                                      legge il contenuto come testo statico,
+                                      senza espansione del control flow). -->
+                                  <markdown class="markdown-inline flex-grow-1" [data]="_pendingMessage"></markdown>
+                                  <!-- Issue 229 evolutiva 3 — annullamento
+                                      della richiesta di cambio org da parte
+                                      dello stesso utente. DELETE
+                                      `/profilo/organizzazione`. -->
+                                </div>
+                                <lnk-button
+                                  [label]="'APP.PROFILE.ORGANIZATION.CancelButton'"
+                                  [ariaLabel]="'APP.PROFILE.ORGANIZATION.CancelButton'"
+                                  [icon]="'bi bi-x-lg'"
+                                  [primary]="true"
+                                  [otherClass]="'ms-auto flex-shrink-0'"
+                                  (onAction)="cancelOrganizationChange()"
+                                ></lnk-button>
                               </div>
                             </div>
                           }

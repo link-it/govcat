@@ -21,6 +21,7 @@
 		},
 		"RUOLI": {
 			"AmministratoreOrganizzazione": "Organization administrator",
+			"NessunRuolo": "No role",
 			"OperatoreApi": "API operator",
 			"UtenteOrganizzazione": "Organization user"
 		},
@@ -2012,6 +2013,13 @@
 				"ApproveWarning": "Do you confirm you want to approve the organization change request? The existing association will be replaced with the new organization.",
 				"ApproveWarningFirstOrg": "Do you confirm you want to approve the organization assignment request? The user will be associated with the new organization.",
 				"ApproveButton": "Approve",
+				"CancelTitle": "Cancel request",
+				"CancelWarning": "Do you confirm you want to cancel the pending organization change request? This action cannot be undone.",
+				"CancelButton": "Cancel request",
+				"RequestCancelled": "Organization change request cancelled",
+				"RejectTitle": "Reject request",
+				"RejectWarning": "Do you confirm you want to reject this user's organization change request?",
+				"RejectButton": "Reject",
 				"SelectOrgPartenza": "Organization to be replaced",
 				"SelectOrgPartenzaPlaceholder": "Select the association to be replaced",
 				"OrgPartenzaHelp": "You have multiple active associations: pick the one that will be replaced by the new organization.",

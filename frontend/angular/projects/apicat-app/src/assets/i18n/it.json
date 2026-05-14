@@ -21,6 +21,7 @@
 		},
 		"RUOLI": {
 			"AmministratoreOrganizzazione": "Amministratore organizzazione",
+			"NessunRuolo": "Nessun ruolo",
 			"OperatoreApi": "Operatore API",
 			"UtenteOrganizzazione": "Utente organizzazione"
 		},
@@ -2012,6 +2013,13 @@
 				"ApproveWarning": "Confermi di voler approvare la richiesta di cambio organizzazione? L'associazione esistente verra' sostituita con la nuova organizzazione.",
 				"ApproveWarningFirstOrg": "Confermi di voler approvare la richiesta di assegnazione organizzazione? L'utente verra' associato alla nuova organizzazione.",
 				"ApproveButton": "Approva",
+				"CancelTitle": "Annulla richiesta",
+				"CancelWarning": "Confermi di voler annullare la richiesta di cambio organizzazione? L'operazione non potra' essere ripristinata.",
+				"CancelButton": "Annulla richiesta",
+				"RequestCancelled": "Richiesta di cambio organizzazione annullata",
+				"RejectTitle": "Rifiuta richiesta",
+				"RejectWarning": "Confermi di voler rifiutare la richiesta di cambio organizzazione di questo utente?",
+				"RejectButton": "Rifiuta",
 				"SelectOrgPartenza": "Organizzazione da sostituire",
 				"SelectOrgPartenzaPlaceholder": "Seleziona l'associazione da sostituire",
 				"OrgPartenzaHelp": "Hai piu' associazioni attive: scegli quella che verra' sostituita dalla nuova organizzazione.",

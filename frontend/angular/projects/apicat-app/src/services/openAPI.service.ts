@@ -113,8 +113,13 @@ export class OpenAPIService {
 
   deleteElement(name: string, id: any, options?: IRequestOptions) {
     if(!options) options = {};
-    
-    const _url = `${this.proxyPath}/${name}/${id}`;
+
+    // Issue 229 evolutiva 3 — l'`id` opzionale permette di
+    // chiamare endpoint con path fissi (es.
+    // `DELETE /profilo/organizzazione`) coerentemente con
+    // `putElement` (vedi sopra). Senza questa guardia veniva
+    // costruito un URL con il letterale "null"/"undefined".
+    const _url = id ? `${this.proxyPath}/${name}/${id}` : `${this.proxyPath}/${name}`;
     return this.http.delete<any>(_url, options);
   }
 

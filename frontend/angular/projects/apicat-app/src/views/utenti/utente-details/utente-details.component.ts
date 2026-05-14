@@ -141,14 +141,21 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
   }
 
   /**
-   * Issue 229 evolutiva 2 — ruolo che l'approvatore vuole assegnare
-   * all'utente sull'organizzazione di destinazione (pending). Default
-   * `operatore_api` (allinea al comportamento legacy, che forzava
-   * `OPERATORE_API`). L'AMM_ORG e` vincolato a `operatore_api` per
-   * policy (decisione context-aware); gestore/coordinatore possono
-   * scegliere fra le due varianti.
+   * Issue 229 evolutiva 2/3 — ruolo che l'approvatore vuole
+   * assegnare all'utente sull'organizzazione di destinazione
+   * (pending). Default `null` ("Nessun ruolo"): l'approvatore
+   * deve scegliere esplicitamente fra
+   * `amministratore_organizzazione`, `operatore_api` o lasciare
+   * l'utente senza ruolo organizzazione. L'AMM_ORG e` invece
+   * vincolato a `operatore_api` per policy (decisione
+   * context-aware, selettore nascosto).
+   *
+   * Valori ammessi nel `<select>`:
+   * - `''` (empty string) -> nessun ruolo, viene trasformato in
+   *   `ruolo_organizzazione: null` nel payload;
+   * - `'amministratore_organizzazione'` / `'operatore_api'`.
    */
-  _approvingRole: RuoloOrganizzazione = RuoloOrganizzazione.OPERATORE_API;
+  _approvingRole: RuoloOrganizzazione | '' = '';
 
   /** True se l'utente loggato puo` scegliere fra entrambi i ruoli
    *  organizzazione (gestore o coordinatore). Falso per AMM_ORG ->
@@ -695,6 +702,69 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
     return item.id_classe_utente === selected.id_classe_utente;
   }
 
+  /**
+   * Issue 229 evolutiva 3 — rifiuto della richiesta di cambio
+   * organizzazione di un altro utente. Solo
+   * gestore/coordinatore/AMM_ORG sull'org pending (stesso
+   * filtro di authorization del PUT di approvazione).
+   *
+   * `DELETE /utenti/{id}/organizzazione-pending`. Stato finale
+   * BE dipende dal contesto:
+   * - utente con associazioni esistenti -> `abilitato`;
+   * - utente nuovo da registrazione (nessuna assoc) ->
+   *   `non_configurato`.
+   */
+  rejectOrganizationChange() {
+    if (!this.utente?.organizzazione_pending?.id_organizzazione) {
+      // safety net: il bottone dovrebbe gia` essere nascosto.
+      return;
+    }
+    const initialState = {
+      title: this.translate.instant('APP.PROFILE.ORGANIZATION.RejectTitle'),
+      messages: [this.translate.instant('APP.PROFILE.ORGANIZATION.RejectWarning')],
+      cancelText: this.translate.instant('APP.BUTTON.Cancel'),
+      confirmText: this.translate.instant('APP.PROFILE.ORGANIZATION.RejectButton'),
+      confirmColor: 'danger'
+    };
+
+    this._modalConfirmRef = this.modalService.show(YesnoDialogBsComponent, {
+      ignoreBackdropClick: true,
+      initialState: initialState
+    });
+    this._modalConfirmRef.content.onClose.subscribe(
+      (response: any) => {
+        if (response) {
+          this._error = false;
+          this._errorMsg = '';
+          this._spin = true;
+          this.apiService.deleteElementRelated('utenti', this.utente.id_utente, 'organizzazione-pending').subscribe({
+            next: (response: any) => {
+              this.utente = new Utente({ ...response });
+              this._utente = new Utente({ ...response });
+              this.utente.ruolo = this._checkRuolo(response);
+              this._utente.ruolo = this._checkRuolo(response);
+              this._initForm({ ...this._utente });
+              this._changeRuolo();
+              const aux_org: any = {
+                id_organizzazione: this.utente?.id_organizzazione || null,
+                nome: this.utente?.organizzazione?.nome || null
+              };
+              this._initOrganizzazioniSelect([aux_org]);
+              this._spin = false;
+              this._isEdit = false;
+              this.save.emit({ id: this.id, utente: response, update: true });
+            },
+            error: (error: any) => {
+              this._error = true;
+              this._errorMsg = this.utils.GetErrorMsg(error);
+              this._spin = false;
+            }
+          });
+        }
+      }
+    );
+  }
+
   approveOrganizationChange() {
     const hasCurrentOrg = !!this.utente?.organizzazione;
     const warningKey = hasCurrentOrg
@@ -732,8 +802,12 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
           // Le altre associazioni esistenti restano server-side (NON
           // le re-inviamo).
           const formValues = this._formGroup.getRawValue();
-          const ruoloOrgTarget = this._canChooseApprovingRole
-            ? this._approvingRole
+          // Issue 229 evolutiva 3 — gestore/coordinatore possono
+          // ora scegliere "Nessun ruolo" (`_approvingRole === ''`)
+          // -> mappato a `null` nel payload. AMM_ORG resta forzato
+          // a `operatore_api` (selettore nascosto).
+          const ruoloOrgTarget: RuoloOrganizzazione | null = this._canChooseApprovingRole
+            ? (this._approvingRole || null)
             : RuoloOrganizzazione.OPERATORE_API;
           const _body: any = {
             ...formValues,

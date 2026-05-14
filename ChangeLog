@@ -1,6 +1,21 @@
 2026-05-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 229: annullamento/rifiuto richiesta di cambio
+	  organizzazione. Bottone "Annulla richiesta" nel banner
+	  alert-warning del profilo (DELETE `/profilo/organizzazione`).
+	  Bottone "Rifiuta" accanto a "Approva" su utente-details
+	  (DELETE `/utenti/{id}/organizzazione-pending`, stesso filtro
+	  authorization dell'approvazione). Estensione
+	  `apiService.deleteElement` per supportare `id=null` (path
+	  fissi). Aggiunto "Nessun ruolo" come default del dropdown
+	  approving_role su utente-details (mappato a
+	  `ruolo_organizzazione: null`). Badge stato `non_configurato`
+	  aggiunto a `utenti-config.json` (grigio chiaro). Rimosso
+	  `X-Skip-Organization-Context` dalla lista globale domini
+	  della sidebar (filtro org gestito BE-side via JWT/contesto).
+
+	* [Frontend]
 	Issue 229: nuovo step opzionale "Seleziona organizzazione"
 	  nel wizard di registrazione/first-login. Ng-select con
 	  typeahead sul nuovo endpoint `/registrazione/organizzazioni`.

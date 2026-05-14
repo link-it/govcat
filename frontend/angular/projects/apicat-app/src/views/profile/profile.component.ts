@@ -852,6 +852,53 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
   }
 
   /**
+   * Issue 229 evolutiva 3 — annulla la richiesta di cambio
+   * organizzazione pendente. `DELETE /profilo/organizzazione`
+   * non ha body; risposta = `Utente` aggiornato.
+   *
+   * Stato post-annullamento (BE):
+   * - utente con associazioni esistenti -> `abilitato`;
+   * - utente nuovo da first-login (nessuna associazione) ->
+   *   `non_configurato`.
+   *
+   * Visibile solo quando `isPendingUpdate && _hasPendingRequest`.
+   */
+  cancelOrganizationChange(): void {
+    if (!this._hasPendingRequest) {
+      // safety net.
+      return;
+    }
+    const initialState = {
+      title: this.translate.instant('APP.PROFILE.ORGANIZATION.CancelTitle'),
+      messages: [this.translate.instant('APP.PROFILE.ORGANIZATION.CancelWarning')],
+      cancelText: this.translate.instant('APP.BUTTON.Cancel'),
+      confirmText: this.translate.instant('APP.PROFILE.ORGANIZATION.CancelButton'),
+      confirmColor: 'danger'
+    };
+
+    this._modalConfirmRef = this.modalService.show(YesnoDialogBsComponent, {
+      ignoreBackdropClick: true,
+      initialState: initialState
+    });
+    this._modalConfirmRef.content.onClose.subscribe(
+      (response: any) => {
+        if (response) {
+          this.apiService.deleteElement('profilo/organizzazione', null).subscribe({
+            next: (_response: any) => {
+              Tools.showMessage(this.translate.instant('APP.PROFILE.ORGANIZATION.RequestCancelled'), 'success');
+              this.loadProfile();
+            },
+            error: (error: any) => {
+              this.error = true;
+              this.errorMsg = this.utils.GetErrorMsg(error);
+            }
+          });
+        }
+      }
+    );
+  }
+
+  /**
    * Conferma dal form attivo (`_orgFormMode`). Branch su
    * add/replace e chiama `requestOrganizationChange` con il
    * giusto `partenzaOrgId`.

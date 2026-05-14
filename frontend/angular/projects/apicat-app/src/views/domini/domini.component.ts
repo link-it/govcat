@@ -19,12 +19,10 @@
 import { AfterContentChecked, AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormControl, FormGroup } from '@angular/forms';
-import { HttpHeaders } from '@angular/common/http';
 
 import { ConfigService, Tools, EventsManagerService, SearchBarFormComponent, EventType, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
-import { ORG_CONTEXT_SKIP_HEADER } from '@app/interceptors/organization-context.interceptor';
 
 import { NavigationService } from '@app/services/navigation.service';
 import { Page } from '../../models/page';
@@ -199,18 +197,8 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
 
     if (!url) { this.domini = []; this._links = null; }
 
-    // Issue 229 evolutiva multi-org/domini — la lista globale dei
-    // domini dalla sidebar e` accessibile solo a gestori/coordinatori:
-    // NON deve essere filtrata per l'organizzazione di sessione.
-    // Inviamo l'header sentinella `X-Skip-Organization-Context` che
-    // l'interceptor leggera` e rimuovera`, impedendo l'iniezione di
-    // `X-Organization-Context` (per il flusso AMM_ORG il dominio
-    // viene visualizzato dall'altra route `organizzazione-manage/.../domini`
-    // dove la sentinella NON e` settata e l'header viene inviato).
-    const headers = new HttpHeaders().set(ORG_CONTEXT_SKIP_HEADER, '1');
-    const aux: any = query
-      ? { params: this.utils._queryToHttpParams(query), headers }
-      : { headers };
+    let aux: any;
+    if (query)  aux = { params: this.utils._queryToHttpParams(query) };
 
     this._spin = true;
     this.apiService.getList(this.model, aux, url).subscribe({
