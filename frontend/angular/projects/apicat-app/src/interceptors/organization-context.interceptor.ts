@@ -60,7 +60,14 @@ export const ORG_CONTEXT_SKIP_HEADER = 'X-Skip-Organization-Context';
 const EXCLUDED_URL_PATTERNS: string[] = [
     '-config.json',
     '/configurazione',
-    '/profilo'
+    '/profilo',
+    // Issue 229 registrazione-org — il flusso first-login non
+    // ha ancora un contesto org valido: tutte le chiamate
+    // `/registrazione/*` (stato, conferma email, OTP, lista
+    // organizzazioni, selezione/rimozione, completa) sono
+    // autenticate solo dal JWT first-login e NON devono
+    // ricevere `X-Organization-Context`.
+    '/registrazione'
 ];
 
 /**

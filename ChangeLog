@@ -1,6 +1,18 @@
 2026-05-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 229: nuovo step opzionale "Seleziona organizzazione"
+	  nel wizard di registrazione/first-login. Ng-select con
+	  typeahead sul nuovo endpoint `/registrazione/organizzazioni`.
+	  Wiring: dopo `/conferma-email` o OTP `/verifica-codice` il
+	  wizard mostra lo step org (Salta/Conferma e registra);
+	  finalizzazione tramite `/conferma-email` (path diretto) o
+	  `/completa` (path OTP). Step-completato esteso con banner
+	  "in attesa di approvazione" quando `organizzazione_richiesta`
+	  valorizzata. `/registrazione` aggiunto agli excluded
+	  dell'`OrganizationContextInterceptor`.
+
+	* [Frontend]
 	Issue 270: dev-tool reset organizzazione corrente. Bottone
 	  flottante in `GpLayout` (icona `bi-building-fill-slash`,
 	  cerchio giallo bottom-right) + shortcut `Ctrl+Shift+O`.

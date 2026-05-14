@@ -2073,17 +2073,22 @@
 				"ConfermaEmail": "Conferma i tuoi dati",
 				"ModificaEmail": "Modifica email",
 				"VerificaCodice": "Verifica codice",
+				"SelezionaOrganizzazione": "Seleziona organizzazione (opzionale)",
 				"Benvenuto": "Benvenuto"
 			},
 			"STEP": {
 				"Conferma": "Conferma",
 				"Verifica": "Verifica",
+				"SelezionaOrganizzazione": "Organizzazione",
 				"Completato": "Completato"
 			},
 			"LABEL": {
 				"EmailAttuale": "Email attuale",
 				"NuovaEmail": "Nuova email",
-				"ConfermaEmail": "Conferma email"
+				"ConfermaEmail": "Conferma email",
+				"SearchOrganizzazione": "Cerca l'organizzazione",
+				"SearchOrganizzazionePlaceholder": "Digita per cercare per nome",
+				"OrganizzazioneSelezionata": "Organizzazione selezionata"
 			},
 			"BUTTON": {
 				"ConfermaEProcedi": "Conferma e procedi",
@@ -2093,7 +2098,11 @@
 				"Verifica": "Verifica codice",
 				"ReinviaCodice": "Reinvia codice",
 				"CambiaEmail": "Cambia email",
-				"VaiAlCatalogo": "Vai al catalogo"
+				"VaiAlCatalogo": "Vai al catalogo",
+				"Salta": "Salta",
+				"Cambia": "Cambia",
+				"Rimuovi": "Rimuovi",
+				"ConfermaERegistra": "Conferma e registra"
 			},
 			"MESSAGE": {
 				"ConfermaEmailDesc": "Abbiamo recuperato i tuoi dati dal sistema di autenticazione. Verifica che siano corretti.",
@@ -2106,6 +2115,8 @@
 				"CodiceScadeIn": "Il codice scade tra",
 				"CodiceScaduto": "Il codice e' scaduto. Richiedi un nuovo codice.",
 				"RegistrazioneCompletata": "La tua registrazione e' stata completata con successo!",
+				"SelezionaOrganizzazioneDesc": "Puoi associare il tuo account a un'organizzazione gia' registrata. La tua richiesta sara' approvata da un amministratore. Puoi anche saltare e farlo in seguito dal profilo.",
+				"OrganizzazioneInAttesa": "La tua richiesta di associazione a **{{nome}}** e' in attesa di approvazione da parte di un amministratore.",
 				"CosaFare": "Ecco cosa puoi fare ora:",
 				"PuoiEsplorare": "Esplorare il catalogo dei servizi disponibili",
 				"PuoiRichiedere": "Richiedere l'adesione ai servizi di tuo interesse",
@@ -2115,7 +2126,8 @@
 				"EmailRequired": "L'email e' obbligatoria",
 				"EmailInvalid": "Inserisci un indirizzo email valido",
 				"EmailMismatch": "Le email non corrispondono",
-				"CodiceLength": "Il codice deve essere di 6 caratteri"
+				"CodiceLength": "Il codice deve essere di 6 caratteri",
+				"OrganizzazioneNotFound": "Nessuna organizzazione trovata con questo nome."
 			}
 		},
 		"ROLE": {

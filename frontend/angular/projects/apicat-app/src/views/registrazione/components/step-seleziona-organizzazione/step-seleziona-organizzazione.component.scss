@@ -1,0 +1,44 @@
+/*
+ * GovCat - GovWay API Catalogue
+ * Issue 229 — stili dello step "Seleziona organizzazione".
+ * UI con `<ng-select>` typeahead inline (no `appendTo="body"`
+ * perche` la pagina e` sotto `SimpleLayoutComponent` con
+ * `page-full-scroll` che sposta lo scroll su `.layout-page`,
+ * sfasando il calcolo di `rect.bottom + window.pageYOffset`).
+ */
+
+.step-seleziona-organizzazione {
+  width: 100%;
+
+  .step-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+
+  .step-subtitle {
+    margin: 0 0 16px;
+  }
+
+  /* `.form-group` come riferimento posizionale per il panel
+     inline e con `position: relative` cosi` il panel assoluto
+     punta a lui. */
+  .form-group {
+    position: relative;
+
+    ng-select {
+      display: block;
+      width: 100%;
+    }
+
+    /* Sicuriamoci che il panel inline emerga sopra il footer
+       con `<lnk-button>` (Bootstrap default sui bottoni: nessun
+       z-index — ma le ricerche su `lnk-button` possono comporre
+       overlay). 1750 e` lo stesso z-index del globale per
+       coerenza. `::ng-deep` per penetrare l'encapsulation
+       Angular sui template ng-select. */
+    ::ng-deep .ng-dropdown-panel {
+      z-index: 1750 !important;
+    }
+  }
+}

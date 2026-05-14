@@ -85,10 +85,21 @@
                   (cambiaEmail)="onCambiaEmail()">
                 </app-step-verifica-codice>
               }
+              <!-- Issue 229 — Step: Seleziona Organizzazione (opzionale) -->
+              @if (currentStep === 'seleziona-organizzazione') {
+                <app-step-seleziona-organizzazione
+                  [organizzazioneRichiesta]="organizzazioneRichiesta"
+                  [loading]="loading"
+                  (skip)="onSkipOrganizzazione()"
+                  (confirm)="onConfermaOrganizzazione($event)"
+                  (remove)="onRimuoviOrganizzazione()">
+                </app-step-seleziona-organizzazione>
+              }
               <!-- Step: Completato -->
               @if (currentStep === 'completato') {
                 <app-step-completato
                   [nome]="nome"
+                  [organizzazioneRichiesta]="organizzazioneRichiesta"
                   (vaiAlCatalogo)="onVaiAlCatalogo()">
                 </app-step-completato>
               }

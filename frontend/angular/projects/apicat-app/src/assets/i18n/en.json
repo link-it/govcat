@@ -2073,17 +2073,22 @@
 				"ConfermaEmail": "Confirm your details",
 				"ModificaEmail": "Change email",
 				"VerificaCodice": "Verify code",
+				"SelezionaOrganizzazione": "Select organization (optional)",
 				"Benvenuto": "Welcome"
 			},
 			"STEP": {
 				"Conferma": "Confirm",
 				"Verifica": "Verify",
+				"SelezionaOrganizzazione": "Organization",
 				"Completato": "Complete"
 			},
 			"LABEL": {
 				"EmailAttuale": "Current email",
 				"NuovaEmail": "New email",
-				"ConfermaEmail": "Confirm email"
+				"ConfermaEmail": "Confirm email",
+				"SearchOrganizzazione": "Search organization",
+				"SearchOrganizzazionePlaceholder": "Type to search by name",
+				"OrganizzazioneSelezionata": "Selected organization"
 			},
 			"BUTTON": {
 				"ConfermaEProcedi": "Confirm and proceed",
@@ -2093,7 +2098,11 @@
 				"Verifica": "Verify code",
 				"ReinviaCodice": "Resend code",
 				"CambiaEmail": "Change email",
-				"VaiAlCatalogo": "Go to catalog"
+				"VaiAlCatalogo": "Go to catalog",
+				"Salta": "Skip",
+				"Cambia": "Change",
+				"Rimuovi": "Remove",
+				"ConfermaERegistra": "Confirm and register"
 			},
 			"MESSAGE": {
 				"ConfermaEmailDesc": "We have retrieved your data from the authentication system. Please verify it is correct.",
@@ -2106,6 +2115,8 @@
 				"CodiceScadeIn": "Code expires in",
 				"CodiceScaduto": "The code has expired. Please request a new code.",
 				"RegistrazioneCompletata": "Your registration has been completed successfully!",
+				"SelezionaOrganizzazioneDesc": "You can request to be associated with an existing organization. Your request will be approved by an administrator. You can also skip this step and do it later from your profile.",
+				"OrganizzazioneInAttesa": "Your association request to **{{nome}}** is awaiting administrator approval.",
 				"CosaFare": "Here's what you can do now:",
 				"PuoiEsplorare": "Browse the catalog of available services",
 				"PuoiRichiedere": "Request access to services of interest",
@@ -2115,7 +2126,8 @@
 				"EmailRequired": "Email is required",
 				"EmailInvalid": "Please enter a valid email address",
 				"EmailMismatch": "Emails do not match",
-				"CodiceLength": "Code must be 6 characters"
+				"CodiceLength": "Code must be 6 characters",
+				"OrganizzazioneNotFound": "No organization found with this name."
 			}
 		},
 		"ROLE": {

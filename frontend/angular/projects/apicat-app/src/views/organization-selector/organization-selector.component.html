@@ -41,7 +41,7 @@
                 </div>
               } @else {
                 <div class="org-grid">
-                  @for (uo of organizzazioni; track uo.organizzazione?.id_organizzazione) {
+                  @for (uo of organizzazioni; track uo.organizzazione.id_organizzazione) {
                     <button type="button"
                             class="org-card"
                             [class.is-selected]="_selected === uo"
@@ -54,7 +54,7 @@
                         }
                       </span>
                       <span class="org-card-body">
-                        <span class="org-card-name">{{ uo.organizzazione?.nome }}</span>
+                        <span class="org-card-name">{{ uo.organizzazione.nome }}</span>
                         <!-- Chip ruolo: sempre renderizzato. Senza
                              variant -> default neutro grigio
                              ("Nessun ruolo"). Variant `chip-accent`

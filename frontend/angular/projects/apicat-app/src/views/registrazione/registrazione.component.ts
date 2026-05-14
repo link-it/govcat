@@ -16,8 +16,17 @@ import { StepConfermaEmailComponent } from './components/step-conferma-email/ste
 import { StepModificaEmailComponent } from './components/step-modifica-email/step-modifica-email.component';
 import { StepVerificaCodiceComponent } from './components/step-verifica-codice/step-verifica-codice.component';
 import { StepCompletatoComponent } from './components/step-completato/step-completato.component';
+import { StepSelezionaOrganizzazioneComponent } from './components/step-seleziona-organizzazione/step-seleziona-organizzazione.component';
 
-export type RegistrazioneStep = 'conferma' | 'modifica' | 'verifica' | 'completato';
+import { ItemOrganizzazione } from '@app/model/itemOrganizzazione';
+
+/**
+ * Issue 229 — aggiunto step opzionale `seleziona-organizzazione`
+ * dopo la verifica OTP e prima del completamento. L'utente puo`
+ * scegliere un'organizzazione esistente (che sara` approvata da
+ * un AMM_ORG/gestore) o saltare lo step.
+ */
+export type RegistrazioneStep = 'conferma' | 'modifica' | 'verifica' | 'seleziona-organizzazione' | 'completato';
 
 @Component({
   selector: 'app-registrazione',
@@ -29,7 +38,8 @@ export type RegistrazioneStep = 'conferma' | 'modifica' | 'verifica' | 'completa
     StepConfermaEmailComponent,
     StepModificaEmailComponent,
     StepVerificaCodiceComponent,
-    StepCompletatoComponent
+    StepCompletatoComponent,
+    StepSelezionaOrganizzazioneComponent
   ]
 })
 export class RegistrazioneComponent implements OnInit, OnDestroy {
@@ -38,6 +48,32 @@ export class RegistrazioneComponent implements OnInit, OnDestroy {
   statoRegistrazione: StatoRegistrazione | null = null;
   loading: boolean = true;
   error: string | null = null;
+
+  /**
+   * Issue 229 — organizzazione che l'utente ha richiesto come
+   * associazione durante il wizard di registrazione. Popolata da
+   * `GET /registrazione/stato.organizzazione_richiesta` quando
+   * la scelta e` stata gia` salvata (caso rientro nel wizard).
+   * Passata al `step-completato` per mostrare il messaggio
+   * "in attesa di approvazione".
+   */
+  organizzazioneRichiesta: ItemOrganizzazione | null = null;
+
+  /**
+   * Issue 229 — l'endpoint di finalizzazione cambia in base al
+   * path con cui l'utente arriva allo step org:
+   * - path "Conferma email" (no modifica): chiamiamo
+   *   `/registrazione/conferma-email` che completa direttamente
+   *   la registrazione lato BE leggendo l'eventuale
+   *   `organizzazione_richiesta` salvata.
+   * - path OTP (modifica email + verifica codice): la
+   *   registrazione e` gia` in stato `EmailVerificata`, serve
+   *   `/registrazione/completa`.
+   *
+   * Default `false` (path diretto). Settato a `true` da
+   * `onVerificaCodice` e da `determineStep(EmailVerificata)`.
+   */
+  private useCompletaEndpoint = false;
 
   // Dati dal JWT
   emailJwt: string = '';
@@ -120,6 +156,8 @@ export class RegistrazioneComponent implements OnInit, OnDestroy {
         if (stato.codice_fiscale) {
           this.codiceFiscale = stato.codice_fiscale;
         }
+        // Issue 229 — preserva la scelta org gia` fatta dall'utente
+        this.organizzazioneRichiesta = stato.organizzazione_richiesta ?? null;
 
         // Determina lo step in base allo stato
         this.determineStep(stato.stato);
@@ -148,6 +186,13 @@ export class RegistrazioneComponent implements OnInit, OnDestroy {
         this.currentStep = 'verifica';
         break;
       case StatoRegistrazioneEnum.EmailVerificata:
+        // Issue 229 — la registrazione e` stata verificata via OTP
+        // ma non ancora completata: l'utente puo` (opzionalmente)
+        // scegliere un'organizzazione prima del completamento.
+        // In questo stato dobbiamo finalizzare con `/completa`.
+        this.useCompletaEndpoint = true;
+        this.currentStep = 'seleziona-organizzazione';
+        break;
       case StatoRegistrazioneEnum.Completata:
         this.currentStep = 'completato';
         break;
@@ -159,25 +204,17 @@ export class RegistrazioneComponent implements OnInit, OnDestroy {
   // Event handlers per i componenti figlio
 
   onConfermaEmail(): void {
-    this.loading = true;
+    // Issue 229 — l'utente conferma l'email JWT senza
+    // modifiche. NON chiamiamo subito `/conferma-email` (che
+    // completerebbe la registrazione e impedirebbe la scelta
+    // dell'organizzazione): inseriamo prima lo step opzionale
+    // di selezione organizzazione. La finalizzazione avviene
+    // da `onSkipOrganizzazione` / `onConfermaOrganizzazione`
+    // tramite `/conferma-email` (il BE legge l'eventuale
+    // `organizzazione_richiesta` salvata dal POST `/organizzazione`).
+    this.useCompletaEndpoint = false;
     this.error = null;
-
-    const sub = this.registrazioneService.confermaEmail().subscribe({
-      next: (response) => {
-        // /conferma-email gia completa la registrazione e restituisce il profilo
-        if (response.profilo) {
-          this.authenticationService.setCurrentSession(response.profilo);
-          this.authenticationService.reloadSession();
-        }
-        this.currentStep = 'completato';
-        this.loading = false;
-      },
-      error: (err) => {
-        this.error = err.message;
-        this.loading = false;
-      }
-    });
-    this.subscriptions.push(sub);
+    this.currentStep = 'seleziona-organizzazione';
   }
 
   onModificaEmail(): void {
@@ -228,11 +265,63 @@ export class RegistrazioneComponent implements OnInit, OnDestroy {
     const sub = this.registrazioneService.verificaCodice(codice).subscribe({
       next: (response) => {
         if (response.esito) {
-          this.completaRegistrazione();
+          // Issue 229 — OTP confermato: passiamo allo step
+          // opzionale "Seleziona organizzazione" (l'utente puo`
+          // saltarlo). `completaRegistrazione` sara` chiamata
+          // dallo step (skip o confirm) tramite `/completa`
+          // (path OTP).
+          this.useCompletaEndpoint = true;
+          this.currentStep = 'seleziona-organizzazione';
+          this.loading = false;
         } else {
           this.error = response.messaggio || 'Codice non valido';
           this.loading = false;
         }
+      },
+      error: (err) => {
+        this.error = err.message;
+        this.loading = false;
+      }
+    });
+    this.subscriptions.push(sub);
+  }
+
+  // --- Issue 229: handlers step seleziona organizzazione ---
+
+  onSkipOrganizzazione(): void {
+    // Salta lo step: nessun POST, finalizziamo direttamente
+    // con l'endpoint giusto per il path corrente.
+    this.finalizzaRegistrazione();
+  }
+
+  onConfermaOrganizzazione(idOrganizzazione: string): void {
+    this.loading = true;
+    this.error = null;
+    const sub = this.registrazioneService.selezionaOrganizzazione(idOrganizzazione).subscribe({
+      next: (stato) => {
+        // Aggiorniamo la scelta locale (il BE ce la rimanda nel
+        // payload `StatoRegistrazione`), poi finalizziamo la
+        // registrazione tramite l'endpoint corretto per il path.
+        this.statoRegistrazione = stato;
+        this.organizzazioneRichiesta = stato?.organizzazione_richiesta ?? null;
+        this.finalizzaRegistrazione();
+      },
+      error: (err) => {
+        this.error = err.message;
+        this.loading = false;
+      }
+    });
+    this.subscriptions.push(sub);
+  }
+
+  onRimuoviOrganizzazione(): void {
+    this.loading = true;
+    this.error = null;
+    const sub = this.registrazioneService.rimuoviOrganizzazione().subscribe({
+      next: (stato) => {
+        this.statoRegistrazione = stato;
+        this.organizzazioneRichiesta = stato?.organizzazione_richiesta ?? null;
+        this.loading = false;
       },
       error: (err) => {
         this.error = err.message;
@@ -264,10 +353,22 @@ export class RegistrazioneComponent implements OnInit, OnDestroy {
     this.error = null;
   }
 
-  private completaRegistrazione(): void {
-    const sub = this.registrazioneService.completaRegistrazione().subscribe({
+  /**
+   * Issue 229 — finalizza la registrazione scegliendo
+   * l'endpoint corretto in base al path seguito:
+   * - path diretto (no modifica email): `/conferma-email`
+   * - path OTP (verifica codice): `/completa`
+   * In entrambi i casi il BE legge l'`organizzazione_richiesta`
+   * salvata dal POST `/organizzazione`.
+   */
+  private finalizzaRegistrazione(): void {
+    this.loading = true;
+    const obs = this.useCompletaEndpoint
+      ? this.registrazioneService.completaRegistrazione()
+      : this.registrazioneService.confermaEmail();
+
+    const sub = obs.subscribe({
       next: (response) => {
-        // Aggiorna la sessione se il backend restituisce il profilo
         if (response.profilo) {
           this.authenticationService.setCurrentSession(response.profilo);
           this.authenticationService.reloadSession();
