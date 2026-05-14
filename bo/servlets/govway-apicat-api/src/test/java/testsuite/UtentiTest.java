@@ -486,6 +486,44 @@ public class UtentiTest {
     }
 
     @Test
+    void testListUtentiRicercaLiberaIncludeUtentiSenzaOrganizzazione() {
+        // Regressione: la free search (parametro q) deve includere anche gli utenti privi
+        // di associazioni in utenti_organizzazioni. Prima del fix il ramo "nome organizzazione"
+        // della specification combinava un LEFT JOIN su utenteOrganizzazioni con un implicit
+        // INNER JOIN su organizzazione, che escludeva dal result set gli utenti senza associazioni.
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        String cognomeRicerca = "RegrIssue229QSearch";
+
+        // Utente associato all'organizzazione
+        UtenteCreate utenteConOrg = CommonUtils.getUtenteCreate();
+        utenteConOrg.setPrincipal("utente.con.org");
+        utenteConOrg.setEmail("utente.con.org@test.com");
+        utenteConOrg.setCognome(cognomeRicerca);
+        CommonUtils.setOrganizzazione(utenteConOrg, responseOrganizzazione.getBody().getIdOrganizzazione());
+        controller.createUtente(utenteConOrg);
+
+        // Utente senza alcuna associazione in utenti_organizzazioni
+        UtenteCreate utenteSenzaOrg = CommonUtils.getUtenteCreate();
+        utenteSenzaOrg.setPrincipal("utente.senza.org");
+        utenteSenzaOrg.setEmail("utente.senza.org@test.com");
+        utenteSenzaOrg.setCognome(cognomeRicerca);
+        controller.createUtente(utenteSenzaOrg);
+
+        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(
+                null, null, null, null, null, null, null, null, cognomeRicerca, 0, 10, null);
+
+        assertEquals(HttpStatus.OK, responseList.getStatusCode());
+        assertNotNull(responseList.getBody());
+        List<ItemUtente> content = responseList.getBody().getContent();
+        assertEquals(2L, responseList.getBody().getPage().getTotalElements().longValue());
+        assertEquals(2, content.size());
+        assertTrue(content.stream().anyMatch(u -> "utente.con.org".equals(u.getPrincipal())));
+        assertTrue(content.stream().anyMatch(u -> "utente.senza.org".equals(u.getPrincipal())));
+    }
+
+    @Test
     void testListUtentiDashboardFilterGestore() {
         // Creazione dell'organizzazione necessaria
         ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
