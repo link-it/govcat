@@ -506,7 +506,10 @@
 				"referente_adesione": "Ref. adesione",
 				"referente_tecnico_adesione": "Ref. tecnico adesione",
 				"richiedente_servizio": "Richiedente servizio",
-				"richiedente_adesione": "Richiedente adesione"
+				"richiedente_adesione": "Richiedente adesione",
+				"amministratore_organizzazione": "Amm. organizzazione",
+				"operatore_api": "Operatore API",
+				"utente_organizzazione": "Utente organizzazione"
 			}
 		},
 		"DASHBOARD": {

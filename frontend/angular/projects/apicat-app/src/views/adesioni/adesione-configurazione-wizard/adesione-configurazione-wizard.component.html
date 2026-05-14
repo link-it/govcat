@@ -792,7 +792,7 @@
      nuovo (incapsulato nello step "active" del sub-stepper verticale). -->
 <ng-template #collaudoBodyTpl>
   @if (disclaimersCollaudo.length > 0) {
-    <div class="adesione-disclaimers mb-3">
+    <div class="adesione-disclaimers my-3">
       @for (item of disclaimersCollaudo; track $index) {
         <ng-container *ngTemplateOutlet="disclaimerTpl; context: { $implicit: item }"></ng-container>
       }
@@ -802,7 +802,7 @@
   <!-- Disclaimer "Configura i client" mostrato solo quando ci sono
        ancora client da configurare in Collaudo (gruppo `client` non
        completato in `dataStructureResults`). -->
-  @if (!(loadingCheckDati | mapper:isSottotipoGroupCompletedMapper:AmbienteEnum.Collaudo:ClassiEnum.CLIENT)) {
+  @if (!(loadingCheckDati | mapper:isSottotipoGroupCompletedMapper:AmbienteEnum.Collaudo:ClassiEnum.CLIENT) && false) {
     <div class="adesione-disclaimers my-3">
       <ng-container *ngTemplateOutlet="genericDisclaimerTpl; context: { severity: 'info', disclaimer: ('APP.ADESIONI.MESSAGE.ConfigureClientsDisclaimer' | translate) }"></ng-container>
     </div>
@@ -1336,10 +1336,10 @@
         <!-- Disclaimer di fase (Azione richiesta — banner giallo) -->
         @if (disclaimers && disclaimers.length > 0) {
           @for (item of disclaimers; track $index) {
-            <div class="subbanner">
+            <div class="subbanner d-flex align-items-start gap-2 mt-0 mb-4">
               <i class="bi" [ngClass]="getDisclaimerIconClass(item.severity)"></i>
               <div class="grow">
-                <markdown class="disclaimer-inline" [data]="item.disclaimer"></markdown>
+                <markdown class="disclaimer-inline markdown-inline" [data]="item.disclaimer"></markdown>
               </div>
             </div>
           }

@@ -506,7 +506,10 @@
 				"referente_adesione": "Subscription ref.",
 				"referente_tecnico_adesione": "Subscription tech ref.",
 				"richiedente_servizio": "Service requester",
-				"richiedente_adesione": "Subscription requester"
+				"richiedente_adesione": "Subscription requester",
+				"amministratore_organizzazione": "Org admin",
+				"operatore_api": "API operator",
+				"utente_organizzazione": "Organization user"
 			}
 		},
 		"DASHBOARD": {

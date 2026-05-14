@@ -118,7 +118,7 @@ small, .small {
  * =================================================================== */
 .lnk-vetrina {
 
-  // button { font: inherit; color: inherit; background: none; border: 0; cursor: default; padding: 0; }
+  button.btn-reset { font: inherit; color: inherit; background: none; border: 0; cursor: default; padding: 0; }
 
   /* NOTA: per brevità solo le classi essenziali sono incluse qui sotto.
     Le classi complete (.main .hero .api .expand .sw-* .toast .chip ecc.)

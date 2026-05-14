@@ -55,6 +55,10 @@
       "hideVersions": false
     },
 
+    "Adesioni": {
+      "showClientDisclaimers": false
+    },
+
     "Profile": {
       "showEmail": false,
       "showPhone": false

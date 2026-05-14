@@ -1,6 +1,18 @@
 2026-05-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 229/262: rifiniture wizard adesione e i18n.
+	- `AppConfig.Adesioni.showClientDisclaimers` (default false)
+	  pilota i banner disclaimer per-item in adesione-lista-clients.
+	- i18n DASHBOARD_PENDING.RUOLO: aggiunti
+	  amministratore_organizzazione / operatore_api /
+	  utente_organizzazione (IT+EN).
+	- Wizard: spacing disclaimer Collaudo, subbanner flex/gap,
+	  "Configura i client" disabilitato.
+	- adesione-view: copy-btn marcati `.btn-reset`; regola
+	  `button.btn-reset` riattivata in `.lnk-vetrina`.
+
+	* [Frontend]
 	Issue 262: bonifica vulnerabilita` OSV su 23 finding (tutte
 	  in transitive dep di tooling/build). Aggiunte override in
 	  `package.json`: mermaid 11.15.0, hono 4.12.18,
