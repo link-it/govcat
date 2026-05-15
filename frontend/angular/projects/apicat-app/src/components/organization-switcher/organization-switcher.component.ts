@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, inject } from '@angular/core';
 import { Subscription } from 'rxjs';
 
@@ -54,6 +54,7 @@ export class OrganizationSwitcherComponent implements OnInit, OnDestroy {
     private readonly cdr = inject(ChangeDetectorRef);
     private readonly eventsManagerService = inject(EventsManagerService);
     private readonly router = inject(Router);
+    private readonly location = inject(Location);
     private readonly elRef = inject(ElementRef);
 
     private _sub: Subscription | null = null;
@@ -154,12 +155,19 @@ export class OrganizationSwitcherComponent implements OnInit, OnDestroy {
         if (this.isCurrent(org)) { return; }
         this.organizationContextService.setCurrent(org);
         // Emettiamo l'evento globale per i componenti che vogliono
-        // reagire selettivamente, poi riportiamo SEMPRE l'utente
-        // alla dashboard: il contesto org cambiato potrebbe rendere
-        // invalida la rotta corrente (es. risorse non visibili nella
-        // nuova org), e la dashboard e` il punto neutro di ripartenza.
+        // reagire selettivamente.
         this.eventsManagerService.broadcast(EventType.ORGANIZATION_CONTEXT_CHANGED, org);
-        this.router.navigate(['/dashboard']);
+        // Hard reload su `/dashboard`: il cambio contesto org cambia
+        // il principio dei dati visualizzati e la rotta corrente
+        // potrebbe non essere piu` valida nella nuova org. Una
+        // `router.navigate` SPA non basta: la `DashboardComponent`
+        // viene riusata dal `RouteReuseStrategy` di default e
+        // `ngOnInit` non rigira, lasciando i dati del contesto
+        // precedente. Boot completo dell'app garantisce re-init di
+        // ogni componente con il nuovo `X-Organization-Context`.
+        // `Location.prepareExternalUrl` rispetta il base-href della
+        // build (es. `/apicat-app/dashboard` in produzione).
+        window.location.assign(this.location.prepareExternalUrl('/dashboard'));
     }
 
     private _reloadFromUser(): void {
