@@ -1,6 +1,25 @@
 2026-05-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 229/254: auto-dismiss error-view-card + UI polish.
+	- `ErrorViewCardComponent`: nuovo `@Input() autocloseMs`
+	  (default 0 = disabilitato; >0 schedula `(onClose)` dopo N
+	  ms). Animazione di chiusura fade + slide-up + collapse
+	  (220ms) tramite classe `.is-closing`. Usato nel wizard
+	  adesioni con `autocloseMs=7000`.
+	- Wizard adesioni: `@HostListener('input')` resetta l'errore
+	  quando l'utente modifica un campo di un pannello di edit
+	  aperto (intent "voglio andare avanti"). `pointerdown`
+	  rimasto commentato perche` troppo aggressivo (anche
+	  l'esplorazione dei dati lo triggera).
+	- Profilo: bottone "Sostituisci" sulla card org nascosto via
+	  `@if (false)` in attesa che il BE supporti l'approvazione
+	  dall'organizzazione di partenza. Markup conservato.
+	- Utente-details: flag "Referente tecnico" sempre nascosto
+	  (`d-none`) sia in read-only che in edit/new — non piu`
+	  gestibile via UI. FormControl conserva il valore corrente.
+
+	* [Frontend]
 	Issue 229: utente-organizzazione-dialog — campi "Ruolo" e
 	  "Nome dell'organizzazione" nascosti via `d-none` (Ruolo
 	  sempre; Org name solo quando `presetIdOrganizzazione`,

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, ElementRef, HostBinding, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostBinding, HostListener, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 
@@ -1593,6 +1593,34 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
         this._error = false;
         this._errorMsg = '';
         this._errors = [];
+    }
+
+    /**
+     * Auto-dismiss del banner `app-error-view-card` (errori
+     * workflow / cambio stato) quando l'utente compie un'azione
+     * con intent "voglio andare avanti":
+     * - `pointerdown`: click/touch reale dell'utente su un
+     *   elemento del wizard (button "Modifica", riga di edit
+     *   inline, label/checkbox, ecc.). NON usiamo `focusin`
+     *   perche` veniva sparato anche dal cleanup di focus dei
+     *   dialog di conferma (modal close -> focus redirect),
+     *   chiudendo il banner immediatamente dopo la sua comparsa.
+     * - `input`: digitazione/toggle in un campo della form di
+     *   edit gia` aperta. Coerente con "modifica un campo".
+     * Filtro `closest('app-error-view-card, ui-error-view')`:
+     * gli eventi originati DENTRO la card di errore (es. click
+     * sul suo close button) sono gestiti dal suo `(onClose)`
+     * dedicato, non li trasformiamo in auto-dismiss.
+     * Guard `if (this._error)`: evita reset spuri quando il
+     * banner non e` mostrato (la maggior parte del tempo).
+     */
+    // @HostListener('pointerdown', ['$event'])
+    @HostListener('input', ['$event'])
+    onUserIntent(event: Event): void {
+        if (!this._error) { return; }
+        const target = event.target as HTMLElement | null;
+        if (target?.closest?.('app-error-view-card, ui-error-view')) { return; }
+        this.resetError();
     }
 
     onWorkflowAction(event: any = null) {

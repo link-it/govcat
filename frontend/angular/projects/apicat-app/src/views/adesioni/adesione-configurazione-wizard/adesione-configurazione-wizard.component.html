@@ -1415,6 +1415,7 @@
           [errTitle]="'APP.WORKFLOW.ERROR.CambioStato' | translate:{from: _fromStatus, to: _toStatus}"
           [errors]="_errors"
           [showClose]="true"
+          [autocloseMs]="7000"
           (onClose)="resetError()"
         ></app-error-view-card>
       } @else {

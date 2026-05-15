@@ -4,7 +4,7 @@
   icona + tipo:identificativo + dato (chip) + campi inline.
   Drop-in alternativo a `<ui-error-view>` per il nuovo wizard.
 -->
-<section class="error-view-card">
+<section class="error-view-card" [class.is-closing]="_closing">
   <header class="error-view-card-hd">
     <h5 class="error-view-card-title">
       <i class="bi bi-exclamation-circle-fill" aria-hidden="true"></i>

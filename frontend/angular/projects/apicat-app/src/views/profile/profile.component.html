@@ -513,16 +513,28 @@
                                       <div class="flex-grow-1 me-2">
                                         <h6 class="m-0"><i class="bi bi-buildings me-2"></i> {{ assoc.nome }}</h6>
                                       </div>
-                                      <lnk-button
-                                        [label]="'APP.PROFILE.ORGANIZATION.ReplaceButton'"
-                                        [ariaLabel]="'APP.PROFILE.ORGANIZATION.ReplaceButton'"
-                                        [btnTooltip]="'APP.PROFILE.ORGANIZATION.ReplaceButton'"
-                                        [icon]="'bi bi-arrow-repeat'"
-                                        [secondary]="true"
-                                        [size]="'sm'"
-                                        [disabled]="_hasPendingRequest || _orgFormMode !== null"
-                                        (onAction)="_openReplaceOrgForm(assoc.id_organizzazione)"
-                                      ></lnk-button>
+                                      <!-- Issue 229 — "Sostituisci"
+                                           temporaneamente nascosto in
+                                           attesa che il BE supporti
+                                           l'approvazione anche da parte
+                                           dell'organizzazione di partenza.
+                                           Riattivare rimuovendo l'`@if`
+                                           quando il flusso e` pronto.
+                                           Handler `_openReplaceOrgForm` e
+                                           sezione replace nelle card
+                                           restano funzionanti. -->
+                                      @if (false) {
+                                        <lnk-button
+                                          [label]="'APP.PROFILE.ORGANIZATION.ReplaceButton'"
+                                          [ariaLabel]="'APP.PROFILE.ORGANIZATION.ReplaceButton'"
+                                          [btnTooltip]="'APP.PROFILE.ORGANIZATION.ReplaceButton'"
+                                          [icon]="'bi bi-arrow-repeat'"
+                                          [secondary]="true"
+                                          [size]="'sm'"
+                                          [disabled]="_hasPendingRequest || _orgFormMode !== null"
+                                          (onAction)="_openReplaceOrgForm(assoc.id_organizzazione)"
+                                        ></lnk-button>
+                                      }
                                     </div>
                                     @if (assoc.ruolo_organizzazione) {
                                       <div class="d-flex align-items-start justify-content-between">

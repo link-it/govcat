@@ -381,7 +381,14 @@
                   }
                 </div>
               </div>
-              <div class="col-6">
+              <!-- Issue 229 — flag "Referente tecnico" nascosto
+                   sempre (sia in read-only che in
+                   creazione/modifica): il valore non e` piu`
+                   gestibile dall'operatore via UI ne` mostrato.
+                   Default `false` dal model `Utente`; per utenti
+                   esistenti con flag attivo, il FormControl
+                   conserva il valore corrente nel payload. -->
+              <div class="col-6 d-none">
                 <label class="label-bold" for="referente_tecnico">{{ 'APP.LABEL.ReferenteTecnico' | translate }}@if (_isNew || _isEdit) {
                   <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'referente_tecnico'"></span>
                 }</label>

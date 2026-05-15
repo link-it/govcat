@@ -18,6 +18,33 @@
   font-size: 0.8125rem;       // ~13px base
   line-height: 1.45;
   color: var(--err-ink, #8a1f1a);
+
+  // Animazione di chiusura: fade + slide-up + collapse altezza.
+  // La durata DEVE coincidere con
+  // `ErrorViewCardComponent._CLOSE_ANIMATION_MS` (220ms): il TS
+  // emette `(onClose)` dopo quel timer.
+  overflow: hidden;
+  max-height: 1000px;
+  transition:
+    opacity .22s ease,
+    transform .22s ease,
+    max-height .22s ease,
+    padding-top .22s ease,
+    padding-bottom .22s ease,
+    margin-bottom .22s ease,
+    border-width .22s ease;
+
+  &.is-closing {
+    opacity: 0;
+    transform: translateY(-8px);
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    border-top-width: 0;
+    border-bottom-width: 0;
+    pointer-events: none;
+  }
 }
 
 .error-view-card-hd {
