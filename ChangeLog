@@ -1,3 +1,12 @@
+2026-05-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 229: organization-switcher — bottone "Gestisci"
+	  visibile a coordinatori (su tutte le org) e AMM_ORG
+	  (sulla propria), ma cliccabile solo sull'org corrente
+	  (`[disabled]` quando non-current). `onSelect` riporta
+	  sempre a `/dashboard` dopo cambio contesto.
+
 2026-05-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

@@ -44,6 +44,7 @@
               @if (canManage(org)) {
                 <button type="button"
                         class="btn btn-sm btn-default organization-switcher-manage flex-shrink-1"
+                        [disabled]="!canManageEnabled(org)"
                         [tooltip]="'APP.ORGANIZATION_SWITCHER.ManageTooltip' | translate"
                         [attr.aria-label]="'APP.ORGANIZATION_SWITCHER.ManageTooltip' | translate"
                         (click)="onManage(org, $event)">

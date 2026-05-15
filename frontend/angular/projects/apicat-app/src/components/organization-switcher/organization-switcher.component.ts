@@ -105,16 +105,33 @@ export class OrganizationSwitcherComponent implements OnInit, OnDestroy {
     }
 
     /**
-     * Vero se l'utente ha ruolo `amministratore_organizzazione` per
-     * la voce passata: solo allora mostriamo il pulsante "Gestisci".
+     * Vero se l'utente ha permesso di gestire l'organizzazione
+     * passata (visibilita` del bottone). Permesso a:
+     * - coordinatori (ruolo globale);
+     * - utenti con `ruolo_organizzazione = amministratore_organizzazione`
+     *   sulla riga specifica.
      */
     canManage(org: UtenteOrganizzazione): boolean {
+        if (this.authenticationService.isCoordinatore()) {
+            return true;
+        }
         return org?.ruolo_organizzazione === RuoloOrganizzazioneEnum.AmministratoreOrganizzazione;
+    }
+
+    /**
+     * Vero se il bottone "Gestisci" sulla voce passata e`
+     * effettivamente cliccabile: solo sull'org corrente. Sulle
+     * altre voci il bottone resta visibile ma disabilitato —
+     * l'utente deve prima cambiare contesto (autosselezione via
+     * `onSelect`) per accedere alla gestione.
+     */
+    canManageEnabled(org: UtenteOrganizzazione): boolean {
+        return this.canManage(org) && this.isCurrent(org);
     }
 
     onManage(org: UtenteOrganizzazione, event: Event): void {
         event.stopPropagation();
-        if (!this.canManage(org)) { return; }
+        if (!this.canManageEnabled(org)) { return; }
         const id = org?.organizzazione?.id_organizzazione;
         if (!id) { return; }
         // Bootstrap non chiude la dropdown perche' il bottone gear non e'
@@ -136,16 +153,13 @@ export class OrganizationSwitcherComponent implements OnInit, OnDestroy {
     onSelect(org: UtenteOrganizzazione): void {
         if (this.isCurrent(org)) { return; }
         this.organizationContextService.setCurrent(org);
-        // Live refresh: emettiamo un evento globale (per i componenti
-        // che vogliono reagire selettivamente) e ri-navighiamo alla
-        // rotta corrente per forzare il riavvio del navigation cycle
-        // (resolver, guard, ngOnInit dei children) senza un full reload.
-        // Il trick di passare per `/` con `skipLocationChange` evita
-        // di toccare la history del browser.
+        // Emettiamo l'evento globale per i componenti che vogliono
+        // reagire selettivamente, poi riportiamo SEMPRE l'utente
+        // alla dashboard: il contesto org cambiato potrebbe rendere
+        // invalida la rotta corrente (es. risorse non visibili nella
+        // nuova org), e la dashboard e` il punto neutro di ripartenza.
         this.eventsManagerService.broadcast(EventType.ORGANIZATION_CONTEXT_CHANGED, org);
-        const currentUrl = this.router.url;
-        this.router.navigateByUrl('/', { skipLocationChange: true })
-            .then(() => this.router.navigateByUrl(currentUrl));
+        this.router.navigate(['/dashboard']);
     }
 
     private _reloadFromUser(): void {
