@@ -126,36 +126,40 @@
 
         <!-- 4. Contatti aziendali: Telefono aziendale | Email aziendale -->
         <div class="col-md-6">
-          <label class="label-bold" for="new-utente-telefono-aziendale">{{ 'APP.USERS.LABEL.CorporatePhone' | translate }} *</label>
+          <label class="label-bold" for="new-utente-telefono-aziendale">{{ (mostraTelefono ? 'APP.USERS.LABEL.CorporatePhone' : 'APP.USERS.LABEL.Phone') | translate }} *</label>
           <input id="new-utente-telefono-aziendale" type="text" class="form-control" formControlName="telefono_aziendale" autocomplete="off">
         </div>
         <div class="col-md-6">
-          <label class="label-bold" for="new-utente-email-aziendale">{{ 'APP.USERS.LABEL.CorporateEmail' | translate }} *</label>
+          <label class="label-bold" for="new-utente-email-aziendale">{{ (mostraEmail ? 'APP.USERS.LABEL.CorporateEmail' : 'APP.USERS.LABEL.Email') | translate }} *</label>
           <input id="new-utente-email-aziendale" type="email" class="form-control" formControlName="email_aziendale" autocomplete="off">
         </div>
 
-        <!-- 5. Ruolo (utente) -->
-        <div class="col-md-6">
+        <!-- 5. Ruolo (utente) — nascosto in `organizzazione-manage`:
+             valore implicito dal contesto (`utente_organizzazione`).
+             Il `FormControl` resta disabled con default value e arriva
+             nel payload via `getRawValue()`. -->
+        <div class="col-md-6 d-none">
           <label class="label-bold" for="new-utente-ruolo">{{ 'APP.USERS.LABEL.Role' | translate }}</label>
-          <!-- Ruolo fisso: da questa dialog si possono creare solo
-               utenti `utente_organizzazione`. Mostriamo il valore in
-               sola lettura per chiarezza; il control resta nel form
-               (disabled) e arriva nel payload via `getRawValue()`. -->
           <input id="new-utente-ruolo" type="text" readonly
                  class="form-control-plaintext"
                  [value]="'APP.USERS.ROLES.utente_organizzazione' | translate">
         </div>
-        <div class="col-md-6"></div>
+        <div class="col-md-6 d-none"></div>
 
-        <!-- 6. Organizzazione | Ruolo nell'organizzazione (adiacenti) -->
-        <div class="col-md-6">
+        <!-- 6. Organizzazione | Ruolo nell'organizzazione.
+             "Nome dell'organizzazione" nascosto quando preset (il
+             contesto e` gia` quello dell'organizzazione che si sta
+             gestendo). Il FormControl `id_organizzazione` e`
+             inizializzato col preset in `_initNewUserForm` ed entra
+             comunque nel payload. -->
+        <div class="col-md-6" [class.d-none]="!!presetIdOrganizzazione">
           <label class="label-bold" for="new-utente-id-organizzazione">
             {{ 'APP.SOGGETTI.LABEL.OrganizationName' | translate }} <span>*</span>
           </label>
           @if (presetIdOrganizzazione) {
-            <!-- Organizzazione fissata dal contesto: solo lettura. Il
-                 control resta nel FormGroup col valore preimpostato in
-                 `_initNewUserForm` ed entra nel payload. -->
+            <!-- Mantenuto per backwards-safety: il control e` gia`
+                 nel FormGroup col valore preimpostato. Marker
+                 invisibile, l'utente non vede nulla. -->
             <input id="new-utente-id-organizzazione" type="text" readonly
                    class="form-control-plaintext"
                    [value]="presetNomeOrganizzazione || presetIdOrganizzazione">

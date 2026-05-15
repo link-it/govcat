@@ -1,6 +1,19 @@
 2026-05-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 229: utente-organizzazione-dialog — campi "Ruolo" e
+	  "Nome dell'organizzazione" nascosti via `d-none` (Ruolo
+	  sempre; Org name solo quando `presetIdOrganizzazione`,
+	  cioe` da `organizzazione-manage`). I FormControl restano
+	  attivi e arrivano nel payload via `getRawValue()`. Label
+	  email/telefono in profile e utente-details ora cambiano in
+	  base a `mostraEmail`/`mostraTelefono` (CorporateEmail/Phone
+	  solo quando entrambi i campi sono visibili, altrimenti
+	  Email/Phone semplici). i18n `APP.USERS.LABEL.
+	  OrganizzazioneEsterna` rinominata "Azienda esterna" /
+	  "External company" (era "Organizzazione esterna").
+
+	* [Frontend]
 	Issue 254: adesione-lista-clients — meta items semplificata.
 	  Auth-type pill nascosta (`&& false`), separatore `·` prima
 	  di config-status mostrato solo se `clientName` valorizzato,

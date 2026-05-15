@@ -306,7 +306,7 @@
                             @if (!verificaEmailAbilitata) {
                               <lnk-form-field
                                 name="email_aziendale"
-                                [label]="mostraEmail ? 'APP.USERS.LABEL.CorporateEmail' : 'APP.USERS.LABEL.Email' | translate"
+                                [label]="(mostraEmail ? 'APP.USERS.LABEL.CorporateEmail' : 'APP.USERS.LABEL.Email') | translate"
                                 [isEdit]="isEdit"
                                 [formGroup]="formGroup"
                                 [value]="profile?.email_aziendale"
@@ -371,7 +371,7 @@
                           <div class="col-6">
                             <lnk-form-field
                               name="telefono_aziendale"
-                              [label]="mostraTelefono ? 'APP.USERS.LABEL.CorporatePhone' : 'APP.USERS.LABEL.Phone' | translate"
+                              [label]="(mostraTelefono ? 'APP.USERS.LABEL.CorporatePhone' : 'APP.USERS.LABEL.Phone') | translate"
                               [isEdit]="isEdit"
                               [formGroup]="formGroup"
                               [value]="profile?.telefono_aziendale"

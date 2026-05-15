@@ -284,7 +284,7 @@
             <div class="row telefono_aziendale email_aziendale">
               <div class="col-6">
                 <div class="form-group">
-                  <label class="label-bold" for="telefono_aziendale">{{ 'APP.USERS.LABEL.CorporatePhone' | translate }}
+                  <label class="label-bold" for="telefono_aziendale">{{ (mostraTelefono ? 'APP.USERS.LABEL.CorporatePhone' : 'APP.USERS.LABEL.Phone') | translate }}
                     @if (_isEdit) {
                       <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'telefono_aziendale'"></span>
                     }
@@ -317,7 +317,7 @@
               </div>
               <div class="col-6">
                 <div class="form-group">
-                  <label class="label-bold" for="email_aziendale">{{ 'APP.USERS.LABEL.CorporateEmail' | translate }}
+                  <label class="label-bold" for="email_aziendale">{{ (mostraEmail ? 'APP.USERS.LABEL.CorporateEmail' : 'APP.USERS.LABEL.Email') | translate }}
                     @if (_isEdit) {
                       <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'email_aziendale'"></span>
                     }
