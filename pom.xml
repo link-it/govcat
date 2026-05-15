@@ -1319,6 +1319,8 @@
 								${owasp.dir}/suppression/CVE-2026-22733.xml</suppressionFile>
 							<suppressionFile>
 								${owasp.dir}/suppression/CVE-2026-40973.xml</suppressionFile>
+							<suppressionFile>
+								${owasp.dir}/suppression/CVE-2026-40974.xml</suppressionFile>
 							<!-- Spring Security 6.3.x (linea EOL OSS): suppression in attesa upgrade major -->
 							<suppressionFile>
 								${owasp.dir}/suppression/CVE-2026-22748.xml</suppressionFile>
