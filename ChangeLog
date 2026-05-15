@@ -1,6 +1,13 @@
 2026-05-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 254: adesione-lista-clients — meta items semplificata.
+	  Auth-type pill nascosta (`&& false`), separatore `·` prima
+	  di config-status mostrato solo se `clientName` valorizzato,
+	  classe `config-status-*` normalizzata a `configurato` /
+	  `NONCONFIGURATO` per evitare cascade su stati intermedi.
+
+	* [Frontend]
 	Issue 229: riorganizzazione template profilo (edit) e
 	  utente-details. Profilo: sezione "Le tue organizzazioni"
 	  spostata in fondo come `<fieldset>` separato fuori dal

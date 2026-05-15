@@ -57,11 +57,13 @@
               <div class="adesione-config-list-item-meta">
                 @let clientName = item.source?.nome || item.source?.nome_proposto;
                 @if (clientName) { <span>{{ clientName }}</span> }
-                @if (clientName && item.auth_type) { <span class="sep">·</span> }
-                @if (item.auth_type) { <span class="mono-pill">{{ ('APP.CLIENT.AUTH_TYPE.' + item.auth_type) | translate }}</span> }
+                @if (clientName && item.auth_type && false) { <span class="sep">·</span> }
+                @if (item.auth_type && false) { <span class="mono-pill">{{ ('APP.CLIENT.AUTH_TYPE.' + item.auth_type) | translate }}</span> }
                 @if (item.source?.stato) {
-                  <span class="sep">·</span>
-                  <span class="config-status" [ngClass]="'config-status-' + item.source.stato">
+                  @if (clientName) {
+                    <span class="sep">·</span>
+                  }
+                  <span class="config-status" [ngClass]="'config-status-' + (item.source.stato === 'configurato' ? 'configurato' : 'NONCONFIGURATO')">
                     {{ ('APP.CLIENT.LABEL.' + (item.source.stato === 'configurato' ? 'Configured' : 'NotConfigured')) | translate }}
                   </span>
                 }
