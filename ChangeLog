@@ -1,6 +1,18 @@
 2026-05-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 229: riorganizzazione template profilo (edit) e
+	  utente-details. Profilo: sezione "Le tue organizzazioni"
+	  spostata in fondo come `<fieldset>` separato fuori dal
+	  `<form>`; submit Save/Cancel ora segue immediatamente i
+	  dati personali. Utente-details: blocco "Organizzazione
+	  richiesta" (approve/reject) spostato subito prima della
+	  tabella "Organizzazioni" per coerenza visiva
+	  (richiesta -> lista attuale). Separatori `<hr>` aggiunti
+	  in dominio-details e soggetto-details prima della sezione
+	  "URL di invocazione".
+
+	* [Frontend]
 	Issue 229: organization-switcher — `onSelect` ora fa hard
 	  reload (`window.location.assign` con base-href via
 	  `Location.prepareExternalUrl('/dashboard')`) per garantire
