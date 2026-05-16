@@ -1,3 +1,19 @@
+2026-05-16  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: wizard adesione — chip stato fase Collaudo/Produzione
+	  resta "Azione richiesta" durante stati intermedi del workflow
+	  (richiesto_*, autorizzato_*, in_configurazione_*). Bug:
+	  `getFaseStatus` ritornava 'completed' non appena
+	  `isSectionCompleted` (check dati) era true, ignorando il
+	  workflow. Fix: nuovo helper `_workflowReachedSectionFinal`
+	  strict (no fallback `true` difensivi) che verifica che lo
+	  stato corrente abbia raggiunto/superato l'ultimo sub-step
+	  della sezione. Fallback `_isSectionPast` mantenuto per
+	  adesioni storiche (es. collaudo quando l'adesione e` in
+	  produzione). Spacing minore sui banner disclaimer
+	  Collaudo/Produzione (`mt-3`).
+
 2026-05-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

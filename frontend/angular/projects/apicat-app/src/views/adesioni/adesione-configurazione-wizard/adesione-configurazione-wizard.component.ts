@@ -933,11 +933,59 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
             }
             return this.isSectionActive('info_generali') || this.isSectionActive('referenti') ? 'active' : 'pending';
         }
-        if (this.isSectionCompleted(fase)) { return 'completed'; }
-        // Tipico per Collaudo quando l'adesione e` gia` pubblicata in
-        // produzione: la fase non e` "pending" (futura) ma "conclusa".
-        if (this._isSectionPast(fase)) { return 'completed'; }
+        // Collaudo/Produzione: una fase e` "conclusa" SOLO quando possiamo
+        // PROVARE che il workflow ha raggiunto/superato l'ultimo sub-step
+        // interno (es. `pubblicato_collaudo` per collaudo). Stati come
+        // `richiesto_*`, `autorizzato_*`, `in_configurazione_*` hanno i
+        // dati gia` completi ma richiedono azione esterna
+        // (gestore/responsabile) -> chip "Azione richiesta", non "conclusa".
+        //
+        // Implementazione strict (no fallback true difensivo): se non
+        // possiamo verificare il workflow (config mancante, stato non
+        // mappato in wfStati), `workflowReachedFinal` resta false e la
+        // fase NON viene marcata "completed" — meglio mostrare "active"
+        // che mentire all'utente.
+        const workflowReachedFinal = this._workflowReachedSectionFinal(fase);
+        if (workflowReachedFinal) {
+            if (this.isSectionCompleted(fase)) { return 'completed'; }
+            // Tipico per Collaudo quando l'adesione e` gia` pubblicata in
+            // produzione: la fase non e` "pending" (futura) ma "conclusa".
+            if (this._isSectionPast(fase)) { return 'completed'; }
+        } else if (this._isSectionPast(fase)) {
+            // Fallback: anche senza wfStati riconosciuti, se la step-bar
+            // principale dice che la sezione e` passata (es. adesione in
+            // produzione, sezione collaudo storica), e` davvero conclusa.
+            return 'completed';
+        }
         return this.isSectionActive(fase) ? 'active' : 'pending';
+    }
+
+    /**
+     * Strict variant di `_isInternalStepFinal`: ritorna `true` SOLO
+     * quando possiamo verificare che lo stato corrente dell'adesione
+     * coincide con o segue l'ultimo `stati_adesione` dell'ultimo
+     * sub-step della sezione. Nessun fallback difensivo `true`: se
+     * config / stato non sono mappati, ritorna `false` (la fase NON
+     * verra` mostrata come conclusa per default).
+     */
+    private _workflowReachedSectionFinal(section: 'collaudo' | 'produzione'): boolean {
+        const steps = this.getStepWizardSezione(section);
+        if (!steps.length) { return false; }
+        const wfStati = this.workflowStati;
+        if (!wfStati.length) { return false; }
+        const currentStato = this.adesione?.stato;
+        if (!currentStato) { return false; }
+        const currentIdx = wfStati.indexOf(currentStato);
+        if (currentIdx === -1) { return false; }
+        let maxStepIdx = -1;
+        for (const step of steps) {
+            for (const st of step.stati_adesione || []) {
+                const idx = wfStati.indexOf(st);
+                if (idx > maxStepIdx) { maxStepIdx = idx; }
+            }
+        }
+        if (maxStepIdx === -1) { return false; }
+        return currentIdx >= maxStepIdx;
     }
 
     /**

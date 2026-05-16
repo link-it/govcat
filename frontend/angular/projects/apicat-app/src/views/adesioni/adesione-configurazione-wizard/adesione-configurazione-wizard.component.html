@@ -792,7 +792,7 @@
      nuovo (incapsulato nello step "active" del sub-stepper verticale). -->
 <ng-template #collaudoBodyTpl>
   @if (disclaimersCollaudo.length > 0) {
-    <div class="adesione-disclaimers my-3">
+    <div class="adesione-disclaimers mt-3 my-3">
       @for (item of disclaimersCollaudo; track $index) {
         <ng-container *ngTemplateOutlet="disclaimerTpl; context: { $implicit: item }"></ng-container>
       }
@@ -875,7 +875,7 @@
 <!-- Body Produzione (Issue 254 NEW LAYOUT): vedi commento collaudoBodyTpl. -->
 <ng-template #produzioneBodyTpl>
   @if (disclaimersProduzione.length > 0) {
-    <div class="adesione-disclaimers mb-3">
+    <div class="adesione-disclaimers mt-3 mb-3">
       @for (item of disclaimersProduzione; track $index) {
         <ng-container *ngTemplateOutlet="disclaimerTpl; context: { $implicit: item }"></ng-container>
       }
