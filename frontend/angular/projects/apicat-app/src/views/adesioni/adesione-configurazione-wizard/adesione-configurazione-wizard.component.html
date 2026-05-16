@@ -790,8 +790,10 @@
 <!-- Body Collaudo (Issue 254 NEW LAYOUT): contenuto comune sia al
      vecchio rendering (sotto la step-bar interna orizzontale) sia al
      nuovo (incapsulato nello step "active" del sub-stepper verticale). -->
-<ng-template #collaudoBodyTpl>
-  @if (disclaimersCollaudo.length > 0) {
+<ng-template #collaudoBodyTpl let-substepState="substepState">
+  <!-- Disclaimer visibili solo quando il sub-step e` `active`: se e`
+       gia` `completed` il prompt non ha piu` funzione. -->
+  @if (disclaimersCollaudo.length > 0 && substepState === 'active') {
     <div class="adesione-disclaimers mt-3 my-3">
       @for (item of disclaimersCollaudo; track $index) {
         <ng-container *ngTemplateOutlet="disclaimerTpl; context: { $implicit: item }"></ng-container>
@@ -873,8 +875,10 @@
 </ng-template>
 
 <!-- Body Produzione (Issue 254 NEW LAYOUT): vedi commento collaudoBodyTpl. -->
-<ng-template #produzioneBodyTpl>
-  @if (disclaimersProduzione.length > 0) {
+<ng-template #produzioneBodyTpl let-substepState="substepState">
+  <!-- Disclaimer visibili solo quando il sub-step e` `active`: vedi
+       commento su collaudoBodyTpl. -->
+  @if (disclaimersProduzione.length > 0 && substepState === 'active') {
     <div class="adesione-disclaimers mt-3 mb-3">
       @for (item of disclaimersProduzione; track $index) {
         <ng-container *ngTemplateOutlet="disclaimerTpl; context: { $implicit: item }"></ng-container>
@@ -1333,8 +1337,11 @@
     </header>
     @if (st !== 'pending') {
       <div class="env-body-pad">
-        <!-- Disclaimer di fase (Azione richiesta — banner giallo) -->
-        @if (disclaimers && disclaimers.length > 0) {
+        <!-- Disclaimer di fase (Azione richiesta — banner giallo).
+             Gate `st !== 'completed'`: quando la fase e` conclusa il
+             disclaimer ha perso funzione (l'azione non e` piu`
+             richiesta), evitiamo rumore visivo. -->
+        @if (disclaimers && disclaimers.length > 0 && st !== 'completed') {
           @for (item of disclaimers; track $index) {
             <div class="subbanner d-flex align-items-start gap-2 mt-0 mb-4">
               <i class="bi" [ngClass]="getDisclaimerIconClass(item.severity)"></i>
@@ -1364,7 +1371,12 @@
           <ng-template let-sub>
             @switch (sub.code) {
               @case ('in_compilazione') {
-                <ng-container *ngTemplateOutlet="body"></ng-container>
+                <!-- Passiamo `sub.state` al body via context cosi` i
+                     template body (collaudoBodyTpl/produzioneBodyTpl)
+                     possono nascondere i disclaimer quando il sub-step
+                     e` `completed` (configurazione gia` fatta, prompt
+                     non piu` necessario). -->
+                <ng-container *ngTemplateOutlet="body; context: { substepState: sub.state }"></ng-container>
                 @if (sub.state === 'active' && hasNextStateWorkflow() && _hasCambioStato()) {
 
                   <div class="mt-3">
@@ -1384,8 +1396,16 @@
               }
               @default {
                 @if (sub.state === 'active') {
-                  <h4 class="pt-3">{{ 'APP.ADESIONI.LABEL.WaitingGestoreTitle' | translate }}</h4>
-                  <p class="hint mb-0">{{ 'APP.ADESIONI.LABEL.WaitingGestoreDesc' | translate }}</p>
+                  <!-- Sub-step "In approvazione" / "In configurazione":
+                       il messaggio non e` piu` un testo statico i18n,
+                       ma deriva dai disclaimer BE con `contesto='generale'`
+                       — sono gia` state-aware (caricati dal BE per lo
+                       stato corrente dell'adesione). Rendering minimal:
+                       solo testo markdown, niente icona ne` severity
+                       banner (per scelta UX: il sub-step e` gia` visivo). -->
+                  @for (item of disclaimersGenerali; track $index) {
+                    <markdown class="markdown-inline markdown-small d-block pt-3" [data]="item.disclaimer"></markdown>
+                  }
                 }
               }
             }

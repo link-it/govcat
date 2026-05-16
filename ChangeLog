@@ -1,6 +1,23 @@
 2026-05-16  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 254: wizard adesione — visibilita` disclaimer
+	  contestuale + messaggio sub-step state-aware.
+	- Disclaimer principale di fase nascosto quando la fase e`
+	  `completed` (azione non piu` richiesta).
+	- Body templates collaudo/produzione: disclaimer interni
+	  visibili solo quando il sub-step e` `active` (passaggio
+	  `substepState` via context).
+	- Sub-step "In approvazione" / "In configurazione": testo
+	  statico `WaitingGestoreTitle`/`Desc` sostituito da
+	  `disclaimersGenerali` (BE-driven, state-aware) renderizzato
+	  come solo markdown senza icona/severity.
+	- `app-markdown.scss`: aggiunti stili compatti per `h2`
+	  dentro `.markdown-inline` (font 1rem, mb 0.25rem) per
+	  rendere i titoli dei disclaimer inline coerenti con il
+	  resto del flusso.
+
+	* [Frontend]
 	Issue 254: wizard adesione — chip stato fase Collaudo/Produzione
 	  resta "Azione richiesta" durante stati intermedi del workflow
 	  (richiesto_*, autorizzato_*, in_configurazione_*). Bug:
