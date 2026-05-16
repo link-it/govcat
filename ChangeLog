@@ -1,6 +1,16 @@
 2026-05-16  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 254: wizard adesione — banner principale di fase
+	  nascosto anche quando sub-step "In compilazione" e`
+	  completato. Nuovo helper `isInCompilazioneCompleted` che
+	  replica la logica `findIndex` del substepper visivo
+	  (`_buildItems`) per evitare divergenze con
+	  `workflowStati` derivati vs BE-provided. Gate aggiunto al
+	  `@if` del banner: una volta inoltrata la richiesta il
+	  prompt "Configura i client/endpoint..." sparisce.
+
+	* [Frontend]
 	Issue 254: wizard adesione — visibilita` disclaimer
 	  contestuale + messaggio sub-step state-aware.
 	- Disclaimer principale di fase nascosto quando la fase e`

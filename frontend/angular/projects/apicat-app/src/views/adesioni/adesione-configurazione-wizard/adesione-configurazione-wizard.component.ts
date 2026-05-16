@@ -2007,6 +2007,50 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     }
 
     /**
+     * Vero quando il sub-step `in_compilazione` di una sezione
+     * (collaudo/produzione) risulta superato. Replica la logica
+     * di `AdesioneSubstepperComponent._buildItems`: trova
+     * l'indice del sub-step che contiene lo stato corrente nel
+     * proprio `stati_adesione` (`realIndex`) e considera
+     * "completed" tutti i sub-step con indice < realIndex.
+     *
+     * Vantaggio: NON dipende da `workflowStati` (la cui
+     * derivazione puo` divergere dal BE), ma solo dalle
+     * `stati_adesione` di ciascun sub-step — stessa source che
+     * usa il substepper visivo per dire "In Compilazione
+     * Completato".
+     */
+    isInCompilazioneCompleted(section: 'collaudo' | 'produzione'): boolean {
+        const steps = this.getStepWizardSezione(section);
+        if (!steps.length) { return false; }
+        const currentStato = this.adesione?.stato;
+        if (!currentStato) { return false; }
+        const inCompilazioneIdx = steps.findIndex(s => s.code === 'in_compilazione');
+        if (inCompilazioneIdx === -1) { return false; }
+        const realIndex = steps.findIndex(s => s.stati_adesione?.includes(currentStato));
+        if (realIndex === -1) {
+            // "Past phase": stato corrente oltre tutti i sub-step
+            // (es. Collaudo quando adesione e` in Produzione).
+            // Tutti i sub-step diventano `completed`, incluso
+            // `in_compilazione`. Allineato a `_buildItems`
+            // del substepper.
+            const wfStati = this.workflowStati;
+            if (wfStati.length === 0) { return false; }
+            const currentIdx = wfStati.indexOf(currentStato);
+            if (currentIdx === -1) { return false; }
+            let maxStepStateIdx = -1;
+            for (const step of steps) {
+                for (const st of step.stati_adesione || []) {
+                    const idx = wfStati.indexOf(st);
+                    if (idx > maxStepStateIdx) { maxStepStateIdx = idx; }
+                }
+            }
+            return maxStepStateIdx !== -1 && currentIdx > maxStepStateIdx;
+        }
+        return inCompilazioneIdx < realIndex;
+    }
+
+    /**
      * Vero se la sezione (collaudo/produzione) ha una step-bar interna e lo
      * step corrente ha raggiunto o superato l'ultimo step della bar. Le altre
      * sezioni non hanno step-bar interna: la condizione non si applica e

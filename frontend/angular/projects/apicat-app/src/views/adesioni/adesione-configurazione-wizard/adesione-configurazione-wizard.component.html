@@ -1338,10 +1338,15 @@
     @if (st !== 'pending') {
       <div class="env-body-pad">
         <!-- Disclaimer di fase (Azione richiesta — banner giallo).
-             Gate `st !== 'completed'`: quando la fase e` conclusa il
-             disclaimer ha perso funzione (l'azione non e` piu`
-             richiesta), evitiamo rumore visivo. -->
-        @if (disclaimers && disclaimers.length > 0 && st !== 'completed') {
+             Gate:
+             - `st !== 'completed'`: fase gia` conclusa, l'azione non
+               e` piu` richiesta -> nascondiamo.
+             - `!isInCompilazioneCompleted(section)`: l'utente ha
+               gia` inoltrato la richiesta (il sub-step
+               "In compilazione" e` superato), il banner che lo
+               invita a configurare client/endpoint non e` piu`
+               pertinente. -->
+        @if (disclaimers && disclaimers.length > 0 && st !== 'completed' && !isInCompilazioneCompleted(section)) {
           @for (item of disclaimers; track $index) {
             <div class="subbanner d-flex align-items-start gap-2 mt-0 mb-4">
               <i class="bi" [ngClass]="getDisclaimerIconClass(item.severity)"></i>
