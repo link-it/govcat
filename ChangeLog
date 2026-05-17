@@ -1,3 +1,11 @@
+2026-05-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: substepper — chevron di affordance spostato
+	  dentro il chip "Completato" (analogo al pattern del
+	  bottone "Compila ora" / "Chiudi"). Rimosso elemento
+	  esterno `.tl-row-chev` e relative regole SCSS.
+
 2026-05-16  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

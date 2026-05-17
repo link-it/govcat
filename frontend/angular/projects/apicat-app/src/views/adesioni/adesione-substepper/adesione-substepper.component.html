@@ -59,11 +59,17 @@
                 <!-- `is-collapsible-hint`: marker per styling hover discreto
                      sui chip "Completato" del primo step (in_compilazione)
                      che resta consultabile. Vedi SCSS: cambia colore
-                     bg/border al hover del row. -->
+                     bg/border al hover del row. Chevron di affordance
+                     ora INLINE nel chip (analogo al pattern `tl-action`
+                     "Compila ora" / "Chiudi"): ruota up/down a seconda
+                     di `sub.open`. -->
                 <span class="tl-state is-completed"
                       [class.is-collapsible-hint]="sub.collapsible">
                   <i class="bi bi-check-lg"></i>
                   {{ 'APP.ADESIONI.LABEL.Completato' | translate }}
+                  @if (sub.collapsible) {
+                    <i class="bi" [class.bi-chevron-up]="sub.open" [class.bi-chevron-down]="!sub.open"></i>
+                  }
                 </span>
               }
               @case ('active') {
@@ -90,17 +96,6 @@
                   {{ 'APP.ADESIONI.LABEL.Bloccato' | translate }}
                 </span>
               }
-            }
-            <!-- Chevron di affordance (rev. 4.36): rende esplicito che
-                 lo step e` espandibile, oltre all'hint hover sul chip
-                 "Completato". Mostrato SOLO per gli step `completed`
-                 collassabili — sugli `active` il `tl-action`
-                 ("Compila ora" / "Chiudi") ha gia` il suo chevron
-                 interno (rev. 4.37). -->
-            @if (sub.collapsible && sub.state === 'completed') {
-              <i class="bi bi-chevron-down tl-row-chev"
-                 [class.is-open]="sub.open"
-                 aria-hidden="true"></i>
             }
           </div>
           @if (sub.open && bodyTpl) {
