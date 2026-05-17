@@ -1,6 +1,17 @@
 2026-05-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Profile rewrite — tab "Impostazioni": card "Servizi" con
+	  view-mode SVG (Card/Lista) e griglia 2x2 di opzioni;
+	  card "Notifiche" con bulk actions, banner info e matrix
+	  In-app/Email. Hero + tab nav resi sticky dentro
+	  `#container-scroller`, solo il contenuto tab scorre.
+	  Gravatar visibile (rimosso `data-hide-image` dal root).
+	  Aggiunti tokens `--gc-*` globali e `--accent-600`. Card
+	  organizzazioni: chip grigio "Nessun ruolo" quando
+	  `ruolo_organizzazione` non valorizzato.
+
+	* [Frontend]
 	Issue 254: adesione-view — sezione referenti non
 	  renderizzata su hard refresh. `_showReferents` /
 	  `_showRichiedente` erano letti nel constructor da
