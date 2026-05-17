@@ -1,6 +1,17 @@
 2026-05-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 254: adesione-view — sezione referenti non
+	  renderizzata su hard refresh. `_showReferents` /
+	  `_showRichiedente` erano letti nel constructor da
+	  `Tools.Configurazione` non ancora popolata -> congelati
+	  a `false` -> `loadReferents()` usciva alla guardia
+	  iniziale. Convertiti in getter: il valore viene risolto
+	  al momento dell'uso, sempre coerente con la config
+	  remota. Spec aggiornato per mock-are
+	  `Tools.Configurazione.adesione.mostra_referenti`.
+
+	* [Frontend]
 	Issue 254: substepper — chevron di affordance spostato
 	  dentro il chip "Completato" (analogo al pattern del
 	  bottone "Compila ora" / "Chiudi"). Rimosso elemento
