@@ -216,7 +216,7 @@ public class CoreAuthorization {
 	 * effettua una query diretta sulle associazioni dell'utente.
 	 */
 	public boolean hasRuoloInOrganizzazione(UtenteEntity utente, OrganizzazioneEntity organizzazione, RuoloOrganizzazione... ruoli) {
-		return this.utenteService.hasRuoloInOrganizzazione(utente, organizzazione, ruoli);
+		return this.organizzazioneService.hasRuoloInOrganizzazione(utente, organizzazione, ruoli);
 	}
 
 }

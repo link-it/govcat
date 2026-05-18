@@ -79,7 +79,7 @@ public class OrganizationContextInterceptor implements HandlerInterceptor {
 		// Carica le associazioni tramite repository per evitare LazyInitializationException:
 		// l'interceptor è eseguito prima dell'apertura della transazione del controller e
 		// l'entità utente è detached dalla session Hibernate.
-		List<UtenteOrganizzazioneEntity> associazioni = this.utenteService.findUtenteOrganizzazioniByUtente(utente);
+		List<UtenteOrganizzazioneEntity> associazioni = this.organizzazioneService.findUtenteOrganizzazioniByUtente(utente);
 		String headerValue = request.getHeader(HEADER_NAME);
 
 		if (headerValue != null && !headerValue.isBlank()) {

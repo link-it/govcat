@@ -391,22 +391,27 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 			lst.add(Ruolo.REFERENTE_TECNICO);
 		}
 
-		// Ruoli per-organizzazione: considera l'organizzazione del soggetto referente del dominio del servizio.
+		// Ruoli per-organizzazione: derivati solo se è valorizzato l'header X-Organization-Context
+		// e quell'organizzazione coincide con l'organizzazione naturale del workflow del servizio
+		// (org del soggetto referente del dominio). Senza header: nessun ruolo per-org.
 		// AMM_ORG mappa a REFERENTE_SUPERIORE (poteri di autorizzazione, come coordinatore e ref.dominio).
 		// OPERATORE_API mappa a REFERENTE (può gestire ma non autorizzare, come ref.adesione).
-		// TODO [MULTI-ORG] Valutare refactoring dell'enum Ruolo workflow per rappresentare più flessibilmente
-		// i nuovi ruoli per-organizzazione.
+		// TODO [MULTI-ORG] Valutare refactoring dell'enum Ruolo workflow per esporre direttamente
+		// AMM_ORG/OPERATORE_API invece di mapparli a REFERENTE_SUPERIORE/REFERENTE legacy.
 		// Se l'utente è esplicitamente referente_tecnico (e non anche referente) di servizio/dominio,
 		// la sua designazione tecnica è vincolante e non deve essere elevata a REFERENTE dal ruolo OPERATORE_API
 		// dell'organizzazione (mantiene i poteri limitati del referente tecnico sulla risorsa specifica).
 		boolean soloRefTecnico = (refTecnicoServizio || refTecnicoDominio) && !refServizio && !refDominio;
 		OrganizzazioneEntity organizzazioneContesto = getOrganizzazioneContestoServizio(entity);
-		if (organizzazioneContesto != null) {
-			if (this.coreAuthorization.hasRuoloInOrganizzazione(u, organizzazioneContesto, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
+		OrganizzazioneEntity orgSessione = this.coreAuthorization.getOrganizzazioneSessione();
+		if (organizzazioneContesto != null && orgSessione != null
+				&& orgSessione.getId().equals(organizzazioneContesto.getId())) {
+			RuoloOrganizzazione ruoloSessione = this.coreAuthorization.getRuoloOrganizzazioneSessione();
+			if (ruoloSessione == RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE) {
 				if (!lst.contains(Ruolo.REFERENTE_SUPERIORE)) {
 					lst.add(Ruolo.REFERENTE_SUPERIORE);
 				}
-			} else if (!soloRefTecnico && this.coreAuthorization.hasRuoloInOrganizzazione(u, organizzazioneContesto, RuoloOrganizzazione.OPERATORE_API)) {
+			} else if (!soloRefTecnico && ruoloSessione == RuoloOrganizzazione.OPERATORE_API) {
 				if (!lst.contains(Ruolo.REFERENTE)) {
 					lst.add(Ruolo.REFERENTE);
 				}

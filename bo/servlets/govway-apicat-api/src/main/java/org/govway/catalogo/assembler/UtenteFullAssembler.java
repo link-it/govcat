@@ -27,6 +27,7 @@ import org.govway.catalogo.controllers.OrganizzazioniController;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity;
 import org.govway.catalogo.core.services.UtenteService;
+import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.servlets.model.ItemUtente;
 import org.govway.catalogo.servlets.model.RuoloOrganizzazioneEnum;
 import org.govway.catalogo.servlets.model.UtenteOrganizzazione;
@@ -49,6 +50,9 @@ public class UtenteFullAssembler extends RepresentationModelAssemblerSupport<Ute
 
 	@Autowired
 	private UtenteService utenteService;
+	@Autowired
+	private OrganizzazioneService organizzazioneService;
+
 
 	public UtenteFullAssembler() {
 		super(OrganizzazioniController.class, ItemUtente.class);
@@ -68,7 +72,7 @@ public class UtenteFullAssembler extends RepresentationModelAssemblerSupport<Ute
 		}
 
 		// Multi-org: popola la lista delle associazioni utente-organizzazione
-		List<UtenteOrganizzazioneEntity> associazioni = utenteService.findUtenteOrganizzazioniByUtente(entity);
+		List<UtenteOrganizzazioneEntity> associazioni = organizzazioneService.findUtenteOrganizzazioniByUtente(entity);
 		if (associazioni != null && !associazioni.isEmpty()) {
 			dettaglio.setOrganizzazioni(associazioni.stream()
 					.map(this::toUtenteOrganizzazione)

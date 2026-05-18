@@ -47,6 +47,7 @@ import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.services.AdesioneService;
 import org.govway.catalogo.core.services.NotificaService;
+import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.core.services.ServizioService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.InternalException;
@@ -89,6 +90,9 @@ public class NotificheController implements NotificheApi {
 
 	@Autowired
 	private AdesioneService adesioneService;
+
+	@Autowired
+	private OrganizzazioneService organizzazioneService;
 
 	@Autowired
 	private PagedResourcesAssembler<NotificaEntity> pagedResourceAssembler;
@@ -216,6 +220,15 @@ public class NotificheController implements NotificheApi {
 						.map(AdesioneEntity::getId)
 						.collect(Collectors.toSet());
 
+				// Pre-calcola l'insieme di organizzazioni in cui l'utente è AMM_ORG.
+				// Serve per popolare il ruolo RuoloReferenteEnum.AMMINISTRATORE_ORGANIZZAZIONE
+				// quando la notifica riguarda una risorsa di un'organizzazione amministrata dall'utente.
+				Set<Long> organizzazioniAmministrate = this.organizzazioneService
+						.findUtenteOrganizzazioniByUtente(utente).stream()
+						.filter(uo -> uo.getRuoloOrganizzazione() == org.govway.catalogo.core.orm.entity.RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)
+						.map(uo -> uo.getOrganizzazione().getId())
+						.collect(Collectors.toSet());
+
 				// Crea una mappa per accedere rapidamente alle entity NotificaEntity
 				Map<UUID, NotificaEntity> notificaEntityMap = findAll.getContent().stream()
 						.collect(Collectors.toMap(n -> UUID.fromString(n.getIdNotifica()), n -> n));
@@ -227,7 +240,8 @@ public class NotificheController implements NotificheApi {
 						List<RuoloReferenteEnum> ruoli = calcolaRuoliReferenteNotifica(notifica,
 								dominiReferente, dominiReferenteTecnico,
 								serviziReferente, serviziReferenteTecnico, serviziRichiedente,
-								adesioniReferente, adesioniReferenteTecnico, adesioniRichiedente);
+								adesioniReferente, adesioniReferenteTecnico, adesioniRichiedente,
+								organizzazioniAmministrate);
 						item.setRuoliReferente(ruoli);
 					}
 				}
@@ -294,7 +308,8 @@ public class NotificheController implements NotificheApi {
 	private List<RuoloReferenteEnum> calcolaRuoliReferenteNotifica(NotificaEntity notifica,
 			Set<Long> dominiReferente, Set<Long> dominiReferenteTecnico,
 			Set<Long> serviziReferente, Set<Long> serviziReferenteTecnico, Set<Long> serviziRichiedente,
-			Set<Long> adesioniReferente, Set<Long> adesioniReferenteTecnico, Set<Long> adesioniRichiedente) {
+			Set<Long> adesioniReferente, Set<Long> adesioniReferenteTecnico, Set<Long> adesioniRichiedente,
+			Set<Long> organizzazioniAmministrate) {
 		List<RuoloReferenteEnum> ruoli = new ArrayList<>();
 
 		// Verifica se la notifica è relativa a un servizio
@@ -320,6 +335,13 @@ public class NotificheController implements NotificheApi {
 			// Check richiedente servizio
 			if (serviziRichiedente.contains(servizio.getId())) {
 				ruoli.add(RuoloReferenteEnum.RICHIEDENTE_SERVIZIO);
+			}
+			// Check AMM_ORG dell'organizzazione del soggetto referente del dominio (erogatrice)
+			if (servizio.getDominio() != null
+					&& servizio.getDominio().getSoggettoReferente() != null
+					&& servizio.getDominio().getSoggettoReferente().getOrganizzazione() != null
+					&& organizzazioniAmministrate.contains(servizio.getDominio().getSoggettoReferente().getOrganizzazione().getId())) {
+				ruoli.add(RuoloReferenteEnum.AMMINISTRATORE_ORGANIZZAZIONE);
 			}
 		}
 
@@ -356,6 +378,20 @@ public class NotificheController implements NotificheApi {
 			// Check richiedente adesione
 			if (adesioniRichiedente.contains(adesione.getId())) {
 				ruoli.add(RuoloReferenteEnum.RICHIEDENTE_ADESIONE);
+			}
+			// Check AMM_ORG dell'organizzazione del soggetto aderente o del soggetto referente del dominio
+			if (adesione.getSoggetto() != null
+					&& adesione.getSoggetto().getOrganizzazione() != null
+					&& organizzazioniAmministrate.contains(adesione.getSoggetto().getOrganizzazione().getId())
+					&& !ruoli.contains(RuoloReferenteEnum.AMMINISTRATORE_ORGANIZZAZIONE)) {
+				ruoli.add(RuoloReferenteEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+			}
+			if (adesione.getServizio() != null && adesione.getServizio().getDominio() != null
+					&& adesione.getServizio().getDominio().getSoggettoReferente() != null
+					&& adesione.getServizio().getDominio().getSoggettoReferente().getOrganizzazione() != null
+					&& organizzazioniAmministrate.contains(adesione.getServizio().getDominio().getSoggettoReferente().getOrganizzazione().getId())
+					&& !ruoli.contains(RuoloReferenteEnum.AMMINISTRATORE_ORGANIZZAZIONE)) {
+				ruoli.add(RuoloReferenteEnum.AMMINISTRATORE_ORGANIZZAZIONE);
 			}
 		}
 

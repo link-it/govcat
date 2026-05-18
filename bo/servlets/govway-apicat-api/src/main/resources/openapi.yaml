@@ -8688,6 +8688,12 @@ components:
         - gestore_email
         - coordinatore
         - coordinatore_email
+        - servizio_amministratore_organizzazione_servizio
+        - servizio_amministratore_organizzazione_servizio_email
+        - adesione_amministratore_organizzazione_servizio
+        - adesione_amministratore_organizzazione_servizio_email
+        - adesione_amministratore_organizzazione_aderente
+        - adesione_amministratore_organizzazione_aderente_email
     UpdateNotifica:
       type: "object"
       properties:
@@ -10158,6 +10164,7 @@ components:
         - REFERENTI_DOMINIO
         - RICHIEDENTE
         - ADERENTI
+        - AMMINISTRATORI_ORGANIZZAZIONE_SERVIZIO
         - GESTORE
         - COORDINATORE
     TargetComunicazioneAdesioneEnum:
@@ -10169,6 +10176,8 @@ components:
         - RICHIEDENTE_SERVIZIO
         - REFERENTI_ADESIONE
         - RICHIEDENTE_ADESIONE
+        - AMMINISTRATORI_ORGANIZZAZIONE_SERVIZIO
+        - AMMINISTRATORI_ORGANIZZAZIONE_ADERENTE
         - GESTORE
         - COORDINATORE
     MessaggioCreate:

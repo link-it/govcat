@@ -60,6 +60,8 @@ import org.govway.catalogo.servlets.model.APIDatiErogazione;
 import org.govway.catalogo.servlets.model.Allegato;
 import org.govway.catalogo.servlets.model.AllegatoItemCreate;
 import org.govway.catalogo.servlets.model.AmbienteEnum;
+import org.govway.catalogo.servlets.model.StatoUtenteEnum;
+import org.govway.catalogo.servlets.model.UtenteUpdate;
 import org.govway.catalogo.servlets.model.AuthTypeEnum;
 import org.govway.catalogo.servlets.model.AuthTypeHttpsPdndCreate;
 import org.govway.catalogo.servlets.model.CertificatoClientCreate;
@@ -323,6 +325,18 @@ public class RegistrazioneServizioIntegrationTest {
         CommonUtils.setOrganizzazione(utente, response.getBody().getIdOrganizzazione());
         utente.setRuolo(RuoloUtenteEnum.GESTORE);
         responseUtente = utentiController.createUtente(utente);
+
+        // REFERENTE_TECNICO (colombo) deve essere associato all'org per essere designato (policy 2.4.0)
+        UtenteUpdate upRefTecnico = new UtenteUpdate();
+        upRefTecnico.setPrincipal(UTENTE_REFERENTE_TECNICO);
+        CommonUtils.setOrganizzazione(upRefTecnico, response.getBody().getIdOrganizzazione());
+        upRefTecnico.setStato(StatoUtenteEnum.ABILITATO);
+        upRefTecnico.setEmailAziendale("colombo@aziendale.it");
+        upRefTecnico.setTelefonoAziendale("0000000000");
+        upRefTecnico.setNome("Colombo");
+        upRefTecnico.setCognome("Tecnico");
+        upRefTecnico.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        utentiController.updateUtente(ID_UTENTE_REFERENTE_TECNICO, upRefTecnico);
 
         GruppoCreate gruppoCreate = CommonUtils.getGruppoCreate();
         gruppoCreate.setNome(NOME_GRUPPO);

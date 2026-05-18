@@ -653,7 +653,7 @@ public class RegistrazioneController implements RegistrazioneApi {
         }
 
         // Conflitto: già associato all'organizzazione richiesta
-        List<UtenteOrganizzazioneEntity> associazioni = this.utenteService.findUtenteOrganizzazioniByUtente(utente);
+        List<UtenteOrganizzazioneEntity> associazioni = this.organizzazioneService.findUtenteOrganizzazioniByUtente(utente);
         boolean giaAssociato = associazioni.stream()
             .anyMatch(a -> a.getOrganizzazione() != null
                 && a.getOrganizzazione().getId().equals(organizzazione.getId()));
