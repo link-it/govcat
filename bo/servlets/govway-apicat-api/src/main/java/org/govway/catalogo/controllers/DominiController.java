@@ -48,6 +48,7 @@ import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.api.DominiApi;
 import org.govway.catalogo.servlets.model.Dominio;
 import org.govway.catalogo.servlets.model.DominioCreate;
+import org.govway.catalogo.servlets.model.DominioExistsResponse;
 import org.govway.catalogo.servlets.model.DominioUpdate;
 import org.govway.catalogo.servlets.model.ItemDominio;
 import org.govway.catalogo.servlets.model.PageMetadata;
@@ -158,6 +159,31 @@ public class DominiController implements DominiApi {
 				this.logger.info("Invocazione completata con successo");
 	
 				return ResponseEntity.ok().build();
+			});
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	@Override
+	public ResponseEntity<DominioExistsResponse> dominioExists(String nome) {
+		try {
+			return this.service.runTransaction(() -> {
+				this.logger.info("Invocazione in corso ...");
+				this.authorization.authorizeNomeCheck();
+				this.logger.debug("Autorizzazione completata con successo");
+
+				DominioExistsResponse response = new DominioExistsResponse();
+				response.setExists(this.service.existsByNome(nome));
+
+				this.logger.info("Invocazione completata con successo");
+				return ResponseEntity.ok(response);
 			});
 		}
 		catch(RuntimeException e) {

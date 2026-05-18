@@ -51,6 +51,7 @@ import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
 import org.govway.catalogo.servlets.model.Dominio;
 import org.govway.catalogo.servlets.model.DominioCreate;
+import org.govway.catalogo.servlets.model.DominioExistsResponse;
 import org.govway.catalogo.servlets.model.DominioUpdate;
 import org.govway.catalogo.servlets.model.ItemDominio;
 import org.govway.catalogo.servlets.model.Organizzazione;
@@ -260,6 +261,70 @@ public class DominiTest {
         
         NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
             controller.createDominio(dominioCreate);
+        });
+
+        assertEquals("AUT.403", exception.getMessage());
+    }
+
+    @Test
+    public void testDominioExistsTrue() {
+        ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(response.getBody().getIdOrganizzazione());
+
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
+        soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
+        assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
+
+        DominioCreate dominioCreate = this.getDominioCreate();
+        dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
+        ResponseEntity<Dominio> createdDominio = controller.createDominio(dominioCreate);
+        assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
+
+        ResponseEntity<DominioExistsResponse> existsResponse = controller.dominioExists(CommonUtils.NOME_DOMINIO);
+
+        assertEquals(HttpStatus.OK, existsResponse.getStatusCode());
+        assertNotNull(existsResponse.getBody());
+        assertTrue(existsResponse.getBody().isExists());
+    }
+
+    @Test
+    public void testDominioExistsFalse() {
+        ResponseEntity<DominioExistsResponse> existsResponse = controller.dominioExists("NomeChePerCertoNonEsiste");
+
+        assertEquals(HttpStatus.OK, existsResponse.getStatusCode());
+        assertNotNull(existsResponse.getBody());
+        assertFalse(existsResponse.getBody().isExists());
+    }
+
+    @Test
+    public void testDominioExistsCaseSensitive() {
+        ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(response.getBody().getIdOrganizzazione());
+
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
+        soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
+        assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
+
+        DominioCreate dominioCreate = this.getDominioCreate();
+        dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
+        ResponseEntity<Dominio> createdDominio = controller.createDominio(dominioCreate);
+        assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
+
+        ResponseEntity<DominioExistsResponse> existsResponse = controller.dominioExists(CommonUtils.NOME_DOMINIO.toUpperCase());
+
+        assertEquals(HttpStatus.OK, existsResponse.getStatusCode());
+        assertNotNull(existsResponse.getBody());
+        assertFalse(existsResponse.getBody().isExists());
+    }
+
+    @Test
+    public void testDominioExistsUtenteAnonimo() {
+        this.tearDown();
+
+        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+            controller.dominioExists("qualsiasi");
         });
 
         assertEquals("AUT.403", exception.getMessage());
