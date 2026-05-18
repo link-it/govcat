@@ -16,62 +16,124 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
-<div id="route-section" class="">
+<!-- Rewrite F1 — Root `.lnk-vetrina` allineato al design system
+     usato in `views/adesioni/adesione-view`. Niente
+     `data-hide-image="true"` qui: il profilo MOSTRA il gravatar
+     come `.hero-img`. La regola globale `[data-hide-image]
+     .hero .hero-img { display: none }` di `app-view.scss`
+     usa il discendente, quindi va lasciata fuori. -->
+<div id="route-section" class="lnk-vetrina">
   <div class="alert-wrapper gp-force-block-formatting-context">
     <ui-breadcrumb [breadcrumbs]="breadcrumbs" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
   </div>
-  <div class="top-area">
-    <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
-      <div class="">
-        @if (!isEdit) {
-          <ul class="nav gp-border-b-0 gp-tabs-nav">
-            <li class="nav-item">
-              <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="isProfile" (click)="_showProfile()" [attr.aria-label]="'APP.PROFILE.TAB.Profile' | translate">
-                <span>{{ 'APP.PROFILE.TAB.Profile' | translate }}</span>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="!isProfile" (click)="_showSettings()" [attr.aria-label]="'APP.PROFILE.TAB.Settings' | translate">
-                <span>{{ 'APP.PROFILE.TAB.Settings' | translate }}</span>
-              </a>
-            </li>
-          </ul>
-        }
-      </div>
-    </div>
-    @if (isProfile) {
-      <div class="nav-controls">
-        @if (!spin && !error) {
-          <div class="position-relative me-2 d-flex gap-2">
-            @if (!isEdit && !spin) {
-              <lnk-button
-                [label]="'APP.BUTTON.Modify'"
-                [ariaLabel]="'APP.BUTTON.Modify'"
-                [icon]="'bi bi-pencil'"
-                [onlyIcon]="true"
-                [btnTooltip]="'APP.TOOLTIP.Modify'"
-                [otherClass]="''"
-                (onAction)="onEdit()"
-              ></lnk-button>
+
+  <!--
+    Hero + tabs + tab content sono TUTTI dentro `#container-scroller`:
+    il pattern `.page-content-scroll .container-scroller` mette
+    l'overflow-y:auto solo sul container, quindi hero e tabs
+    devono vivere dentro per partecipare allo scroll (allineato
+    al pattern di `adesione-view`). I modificatori
+    `container-scroller-no-top-area container-scroller-no-search`
+    estendono l'altezza disponibile a `100vh - 48px - header`
+    (solo breadcrumb sopra, no top-area/search bar).
+  -->
+  <section id="container-scroller"
+           class="container-fluid container-limited container-scroller container-scroller-no-search container-scroller-no-top-area px-0">
+
+    <!--
+      Hero + tab nav: wrapper sticky che resta in cima durante
+      lo scroll del contenuto tab. `top: 0` ancora al bordo
+      superiore del `.container-scroller`. Background allineato
+      al page `--bg` di `.lnk-vetrina` per evitare bleed-through
+      del contenuto sotto.
+    -->
+    @if (!spin && profile) {
+      <div class="profile-sticky-header">
+        <!-- Hero card: avatar gravatar + nome/cognome + principal +
+             chip org corrente. Allineato al pattern hero di
+             `app-view.scss .lnk-vetrina .hero`. -->
+        <header class="hero container-fluid mt-3" style="grid-template-columns:110px minmax(0, 1fr) max-content;">
+          <div class="hero-img">
+            <img alt="user gravatar"
+                 ngxGravatar
+                 [email]="profile?.email || profile?.email_aziendale"
+                 [size]="96"
+                 [round]="false"
+                 fallback="mp"
+                 (error)="onAvatarError($event)">
+          </div>
+          <div class="hero-meta">
+            <span class="hero-eyebrow text-uppercase small text-muted">
+              {{ 'APP.PROFILE.TAB.Profilo' | translate }}
+            </span>
+            <h1 class="hero-title m-0">{{ profile?.nome }} {{ profile?.cognome }}</h1>
+            @if (profile?.principal) {
+              <p class="hero-desc text-muted m-0">{{ profile?.principal }}</p>
             }
-            @if (isEdit && !spin) {
-              <lnk-button
-                [label]="'APP.BUTTON.Cancel'"
-                [btnTooltip]="'APP.TOOLTIP.CancelEdit'"
-                [ariaLabel]="'APP.TOOLTIP.CancelEdit'"
-                [icon]="'bi bi-x-lg'"
-                [onlyIcon]="true"
-                (onAction)="onCancelEdit()"
-              ></lnk-button>
+            @if (_orgAssociazioniEsistenti.length > 0) {
+              <div class="hero-meta-row d-flex flex-wrap gap-2 mt-2">
+                @for (assoc of _orgAssociazioniEsistenti; track assoc.id_organizzazione) {
+                  <span class="chip"
+                        [class.chip-accent]="assoc.ruolo_organizzazione === 'amministratore_organizzazione'"
+                        [class.chip-info]="assoc.ruolo_organizzazione === 'operatore_api'">
+                    <i class="bi bi-buildings me-1"></i>{{ assoc.nome }}
+                  </span>
+                }
+              </div>
             }
           </div>
-        }
+          <!-- Rewrite F2: bottoni Modifica/Annulla rimossi.
+               Il form e` sempre in edit; Save/Cancel sono in fondo
+               al form via `<lnk-form-submit>`. -->
+          <div class="hero-actions"></div>
+        </header>
+
+        <!-- Tab nav (Informazioni / Organizzazioni / Impostazioni).
+             Pattern allineato a `app-view.scss .lnk-vetrina .tabs`
+             (role=tablist + button per tab). -->
+        <nav class="tabs" [attr.aria-label]="'APP.PROFILE.TAB.Profilo' | translate">
+          <button type="button"
+                  role="tab"
+                  class="tab"
+                  [class.active]="isInformazioniTab"
+                  [attr.aria-selected]="isInformazioniTab"
+                  (click)="_showInformazioni()">
+            <i class="bi bi-person-vcard"></i>
+            <span>{{ 'APP.PROFILE.TAB.Informazioni' | translate }}</span>
+          </button>
+          <button type="button"
+                  role="tab"
+                  class="tab"
+                  [class.active]="isOrganizzazioniTab"
+                  [attr.aria-selected]="isOrganizzazioniTab"
+                  (click)="_showOrganizzazioni()">
+            <i class="bi bi-buildings"></i>
+            <span>{{ 'APP.PROFILE.TAB.Organizzazioni' | translate }}</span>
+            @if (_orgAssociazioniEsistenti.length > 0) {
+              <span class="tab-count">{{ _orgAssociazioniEsistenti.length }}</span>
+            }
+            @if (_hasPendingRequest) {
+              <span class="tab-badge tab-badge-pending"
+                    [attr.aria-label]="'APP.USERS.STATUS.pending_update' | translate"
+                    [title]="'APP.USERS.STATUS.pending_update' | translate">
+                <i class="bi bi-hourglass-split"></i>
+              </span>
+            }
+          </button>
+          <button type="button"
+                  role="tab"
+                  class="tab"
+                  [class.active]="isImpostazioniTab"
+                  [attr.aria-selected]="isImpostazioniTab"
+                  (click)="_showImpostazioni()">
+            <i class="bi bi-sliders"></i>
+            <span>{{ 'APP.PROFILE.TAB.Impostazioni' | translate }}</span>
+          </button>
+        </nav>
       </div>
     }
-  </div>
 
-  <section id="cotainer-scronller" class="lnk-vetrina container-fluid container-scroller container-scroller-no-search px-0">
-    <div class="row">
+    <div class="">
       @if (!profile && !spin) {
         <ui-box-message
           [size]="64"
@@ -87,178 +149,29 @@
       }
 
       @if (!spin && profile) {
-        <div class="row justify-content-center">
-          <div class="col-xs-12 col-lg-12 mx-auto">
-            @if (isProfile) {
+        <div class="justify-content-center">
+          <div class="mx-auto">
+            <!-- Rewrite F2 — Tab "Informazioni": 3 card (Identita`
+                 readonly / Personali / Contatti aziendali). Bottone
+                 Modifica rimosso: il form e` sempre in edit
+                 (`isEdit = true` di default). Sezione
+                 "Organizzazioni" spostata nel tab dedicato. -->
+            @if (isInformazioniTab) {
               <div class="profile">
-                @if (!isEdit) {
-                  <div class="container py-5">
-                    <div class="row">
-                      <div class="col-lg-4">
-                        <div class="card card-pad-tight mb-4">
-                          <div class="text-center">
-                            <img alt="user gravatar" ngxGravatar [email]="profile?.email || profile?.email_aziendale" [size]="150" fallback="mp" (error)="onAvatarError($event)">
-                            <h5 class="my-3" [title]="profile?.cognome">{{ profile?.nome }} {{ profile?.cognome }}</h5>
-                            @if (false) {
-                              <h6 class="my-3" [title]="profile?.id_utente">{{ profile?.principal }}</h6>
-                            }
-                            @if (false) {
-                              <p class="text-muted mb-1">
-                                <span class="badge badge-secondary text-uppercase">
-                                  {{ profile.ruolo }}
-                                </span>
-                              </p>
-                            }
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-lg-8">
-                        <div class="card card-pad-tight mb-4">
-                          <ul class="list-group list-group-flush">
-                            <!-- Issue 229 multi-org — lista delle organizzazioni
-                                 associate (read-only view). Sostituisce il
-                                 vecchio rendering mono-org `profile.organizzazione`
-                                 (campo legacy non piu` popolato dal BE).
-                                 Per ogni associazione mostra il nome dell'org
-                                 e un chip vetrina con il ruolo. -->
-                            <li class="list-group-item py-3">
-                              <div class="row">
-                                <div class="col-sm-3">
-                                  <p class="mb-0">{{ 'APP.PROFILE.ORGANIZATION.YourOrganizations' | translate }}</p>
-                                </div>
-                                <div class="col-sm-9">
-                                  @if (_orgAssociazioniEsistenti.length === 0) {
-                                    <p class="text-muted mb-0">--</p>
-                                  } @else {
-                                    <ul class="list-unstyled mb-0">
-                                      @for (assoc of _orgAssociazioniEsistenti; track assoc.id_organizzazione) {
-                                        <li class="d-flex align-items-center justify-content-between gap-2 mb-2">
-                                          <span class="text-muted">{{ assoc.nome }}</span>
-                                          @if (assoc.ruolo_organizzazione) {
-                                            <span class="chip"
-                                                  [class.chip-accent]="assoc.ruolo_organizzazione === 'amministratore_organizzazione'"
-                                                  [class.chip-info]="assoc.ruolo_organizzazione === 'operatore_api'">
-                                              {{ ('APP.ROLE.' + assoc.ruolo_organizzazione) | translate }}
-                                            </span>
-                                          }
-                                        </li>
-                                      }
-                                    </ul>
-                                  }
-                                </div>
-                              </div>
-                            </li>
-                            @if (profile?.organizzazione_pending) {
-                              <li class="list-group-item py-3">
-                                <div class="row">
-                                  <div class="col-sm-3">
-                                    <p class="mb-0">{{ 'APP.PROFILE.ORGANIZATION.PendingLabel' | translate }}</p>
-                                  </div>
-                                  <div class="col-sm-9">
-                                    <p class="text-muted mb-0">
-                                      {{ profile?.organizzazione_pending?.nome }}
-                                      <span class="badge bg-warning ms-2">{{ 'APP.USERS.STATUS.pending_update' | translate }}</span>
-                                    </p>
-                                  </div>
-                                </div>
-                              </li>
-                            }
-                            @if (false) {
-                              <li class="list-group-item py-3">
-                                <div class="row">
-                                  <div class="col-sm-3">
-                                    <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Principal' | translate }}</p>
-                                  </div>
-                                  <div class="col-sm-9">
-                                    <p class="text-muted mb-0">{{ profile?.principal }}</p>
-                                  </div>
-                                </div>
-                              </li>
-                            }
-                            @if (profile?.email_aziendale) {
-                              <li class="list-group-item py-3">
-                                <div class="row">
-                                  <div class="col-sm-3">
-                                    <p class="mb-0">{{ 'APP.SETTINGS.LABEL.EmailAziendale' | translate }}</p>
-                                  </div>
-                                  <div class="col-sm-9">
-                                    <p class="text-muted mb-0">{{ profile?.email_aziendale }}</p>
-                                  </div>
-                                </div>
-                              </li>
-                            }
-                            @if (mostraEmail && profile?.email) {
-                              <li class="list-group-item py-3">
-                                <div class="row">
-                                  <div class="col-sm-3">
-                                    <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Email' | translate }}</p>
-                                  </div>
-                                  <div class="col-sm-9">
-                                    <p class="text-muted mb-0">{{ profile?.email }}</p>
-                                  </div>
-                                </div>
-                              </li>
-                            }
-                            @if (profile?.telefono_aziendale) {
-                              <li class="list-group-item py-3">
-                                <div class="row">
-                                  <div class="col-sm-3">
-                                    <p class="mb-0">{{ 'APP.SETTINGS.LABEL.TelefonoAziendale' | translate }}</p>
-                                  </div>
-                                  <div class="col-sm-9">
-                                    <p class="text-muted mb-0">{{ profile?.telefono_aziendale }}</p>
-                                  </div>
-                                </div>
-                              </li>
-                            }
-                            @if (mostraTelefono && profile?.telefono) {
-                              <li class="list-group-item py-3">
-                                <div class="row">
-                                  <div class="col-sm-3">
-                                    <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Telefono' | translate }}</p>
-                                  </div>
-                                  <div class="col-sm-9">
-                                    <p class="text-muted mb-0">{{ profile?.telefono }}</p>
-                                  </div>
-                                </div>
-                              </li>
-                            }
-                            @if (profile?.mobile) {
-                              <li class="list-group-item py-3">
-                                <div class="row">
-                                  <div class="col-sm-3">
-                                    <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Mobile' | translate }}</p>
-                                  </div>
-                                  <div class="col-sm-9">
-                                    <p class="text-muted mb-0">{{ profile?.mobile }}</p>
-                                  </div>
-                                </div>
-                              </li>
-                            }
-                            @if (profile?.address) {
-                              <li class="list-group-item py-3">
-                                <div class="row">
-                                  <div class="col-sm-3">
-                                    <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Address' | translate }}</p>
-                                  </div>
-                                  <div class="col-sm-9">
-                                    <p class="text-muted mb-0">{{ profile?.address }}</p>
-                                  </div>
-                                </div>
-                              </li>
-                            }
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                }
-                @if (isEdit) {
-                  <div class="container py-5 settings mt-0">
-                    <div class="settings-content">
-                      <form [formGroup]="formGroup" (ngSubmit)="submitProfile(formGroup.value)" class="">
+                <div class="">
+                  <form [formGroup]="formGroup" (ngSubmit)="submitProfile(formGroup.value)" novalidate>
+
+                    <!-- Card 1: Identita` (readonly). Principal e`
+                         l'identificativo univoco di autenticazione,
+                         non modificabile dall'utente. -->
+                    <section class="card card-pad-tight mb-4">
+                      <div class="card-body px-2 pt-2 pb-0">
+                        <header class="mb-3">
+                          <h3 class="h5 m-0">{{ 'APP.PROFILE.SECTION.IdentitaTitle' | translate }}</h3>
+                          <p class="text-muted small m-0">{{ 'APP.PROFILE.SECTION.IdentitaDesc' | translate }}</p>
+                        </header>
                         <div class="row">
-                          <div class="col-6">
+                          <div class="col-md-6">
                             <lnk-form-field
                               name="principal"
                               [label]="'APP.USERS.LABEL.Principal' | translate"
@@ -273,8 +186,18 @@
                             ></lnk-form-field>
                           </div>
                         </div>
+                      </div>
+                    </section>
+
+                    <!-- Card 2: Informazioni personali (Nome / Cognome). -->
+                    <section class="card card-pad-tight mb-4">
+                      <div class="card-body px-2 pt-2 pb-0">
+                        <header class="mb-3">
+                          <h3 class="h5 m-0">{{ 'APP.PROFILE.SECTION.PersonaliTitle' | translate }}</h3>
+                          <p class="text-muted small m-0">{{ 'APP.PROFILE.SECTION.PersonaliDesc' | translate }}</p>
+                        </header>
                         <div class="row">
-                          <div class="col-6">
+                          <div class="col-md-6">
                             <lnk-form-field
                               name="nome"
                               [label]="'APP.USERS.LABEL.Nome' | translate"
@@ -287,13 +210,13 @@
                               [options]="optionsForm"
                             ></lnk-form-field>
                           </div>
-                          <div class="col-6">
+                          <div class="col-md-6">
                             <lnk-form-field
                               name="cognome"
                               [label]="'APP.USERS.LABEL.Cognome' | translate"
                               [isEdit]="isEdit"
                               [formGroup]="formGroup"
-                              [value]="profile?.nome"
+                              [value]="profile?.cognome"
                               [inline]="false"
                               [singleColumn]="true"
                               [plainText]="true"
@@ -301,8 +224,21 @@
                             ></lnk-form-field>
                           </div>
                         </div>
+                      </div>
+                    </section>
+
+                    <!-- Card 3: Contatti aziendali (email + telefono,
+                         opzionalmente personali se mostraEmail/Telefono).
+                         Per `email_aziendale` con verifica OTP abilitata
+                         resta il pulsante matita -> dialog OTP. -->
+                    <section class="card card-pad-tight mb-4">
+                      <div class="card-body px-2 pt-2 pb-0">
+                        <header class="mb-3">
+                          <h3 class="h5 m-0">{{ ((mostraTelefono || mostraEmail) ? 'APP.PROFILE.SECTION.ContattiCorporateTitle' : 'APP.PROFILE.SECTION.ContattiTitle') | translate }}</h3>
+                          <p class="text-muted small m-0">{{ 'APP.PROFILE.SECTION.ContattiDesc' | translate }}</p>
+                        </header>
                         <div class="row">
-                          <div class="col-6">
+                          <div class="col-md-6">
                             @if (!verificaEmailAbilitata) {
                               <lnk-form-field
                                 name="email_aziendale"
@@ -321,21 +257,32 @@
                                 <label for="email_aziendale" class="label-bold">{{ (mostraEmail ? 'APP.USERS.LABEL.CorporateEmail' : 'APP.USERS.LABEL.Email') | translate }} *</label>
                                 <div class="input-group">
                                   <input type="email" class="form-control" formControlName="email_aziendale" readonly>
-                                  @if (isEdit) {
-                                    <div class="input-group-append">
-                                      <button class="btn btn-sm gl-button btn-confirm" type="button"
-                                        [tooltip]="'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.ModifyCorporateEmail' | translate"
-                                        (click)="openEmailModificationDialog('email_aziendale')">
-                                        <i class="bi bi-pencil"></i>
-                                      </button>
-                                    </div>
-                                  }
+                                  <div class="input-group-append">
+                                    <button class="btn btn-sm gl-button btn-confirm" type="button"
+                                      [tooltip]="'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.ModifyCorporateEmail' | translate"
+                                      (click)="openEmailModificationDialog('email_aziendale')">
+                                      <i class="bi bi-pencil"></i>
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
                             }
                           </div>
+                          <div class="col-md-6">
+                            <lnk-form-field
+                              name="telefono_aziendale"
+                              [label]="(mostraTelefono ? 'APP.USERS.LABEL.CorporatePhone' : 'APP.USERS.LABEL.Phone') | translate"
+                              [isEdit]="isEdit"
+                              [formGroup]="formGroup"
+                              [value]="profile?.telefono_aziendale"
+                              [inline]="false"
+                              [singleColumn]="true"
+                              [plainText]="true"
+                              [options]="optionsForm"
+                            ></lnk-form-field>
+                          </div>
                           @if (mostraEmail) {
-                            <div class="col-6">
+                            <div class="col-md-6">
                               @if (!verificaEmailAbilitata) {
                                 <lnk-form-field
                                   name="email"
@@ -351,38 +298,21 @@
                               }
                               @if (verificaEmailAbilitata) {
                                 <div class="form-group mb-3">
-                                  <label for="email" class="form-label">{{ 'APP.USERS.LABEL.Email' | translate }}</label>
+                                  <label for="email" class="label-bold">{{ 'APP.USERS.LABEL.Email' | translate }}</label>
                                   <div class="input-group">
                                     <input type="email" class="form-control" formControlName="email" readonly>
-                                    @if (isEdit) {
-                                      <button class="btn btn-sm btn-primary" type="button"
-                                        [tooltip]="'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.ModifyEmail' | translate"
-                                        (click)="openEmailModificationDialog('email')">
-                                        <i class="bi bi-pencil"></i>
-                                      </button>
-                                    }
+                                    <button class="btn btn-sm btn-primary" type="button"
+                                      [tooltip]="'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.ModifyEmail' | translate"
+                                      (click)="openEmailModificationDialog('email')">
+                                      <i class="bi bi-pencil"></i>
+                                    </button>
                                   </div>
                                 </div>
                               }
                             </div>
                           }
-                        <!-- </div>
-                        <div class="row"> -->
-                          <div class="col-6">
-                            <lnk-form-field
-                              name="telefono_aziendale"
-                              [label]="(mostraTelefono ? 'APP.USERS.LABEL.CorporatePhone' : 'APP.USERS.LABEL.Phone') | translate"
-                              [isEdit]="isEdit"
-                              [formGroup]="formGroup"
-                              [value]="profile?.telefono_aziendale"
-                              [inline]="false"
-                              [singleColumn]="true"
-                              [plainText]="true"
-                              [options]="optionsForm"
-                            ></lnk-form-field>
-                          </div>
                           @if (mostraTelefono) {
-                            <div class="col-6">
+                            <div class="col-md-6">
                               <lnk-form-field
                                 name="telefono"
                                 [label]="'APP.USERS.LABEL.Phone' | translate"
@@ -397,78 +327,163 @@
                             </div>
                           }
                         </div>
-                        <div class="settings-content">
-                          @if (isEdit && error) {
-                            <lnk-form-error [message]="errorMsg"></lnk-form-error>
-                          }
-                          @if (isEdit) {
-                            <lnk-form-submit
-                              [submitLabel]="'APP.BUTTON.Save'"
-                              [cancelLabel]="'APP.BUTTON.Cancel'"
-                              [disabled]="formGroup.invalid || saving"
-                              (cancel)="onCancelEdit()"
-                            ></lnk-form-submit>
-                          }
-                        </div>
-                      </form>
+                      </div>
+                    </section>
 
-                      <!-- Issue 229 multi-org — sezione "Organizzazioni"
-                           come fieldset separato in fondo: i controlli
-                           Add/Replace/Cancel sono indipendenti dal
-                           submit del form principale (usano `standalone:
-                           true` su `<ng-select>` + handler dedicati
-                           `_confirmOrgForm`, `cancelOrganizationChange`).
-                           Stare fuori dal `<form>` rende esplicita la
-                           separazione di scope. -->
-                      <fieldset class="profile-orgs-fieldset mt-4 pt-3 pb-5 border-top">
-                        <legend class="profile-orgs-legend h5 m-0 mb-3 d-flex align-items-center justify-content-between w-100">
-                          <span>{{ 'APP.PROFILE.ORGANIZATION.YourOrganizations' | translate }}</span>
-                          <div class="d-flex align-items-center justify-content-end">
+                    <!-- Footer form: error + Save/Cancel inline. -->
+                    @if (error) {
+                      <lnk-form-error [message]="errorMsg"></lnk-form-error>
+                    }
+                    <lnk-form-submit
+                      [submitLabel]="'APP.BUTTON.Save'"
+                      [cancelLabel]="'APP.BUTTON.RestoreOriginal'"
+                      [disabled]="!formGroup.dirty || formGroup.invalid || saving"
+                      (cancel)="onCancelEdit()"
+                    ></lnk-form-submit>
+                  </form>
+                </div>
+              </div>
+            }
+            <!-- Rewrite F2 — Tab "Organizzazioni": contiene il
+                 fieldset spostato dal vecchio tab Informazioni.
+                 Controlli Add/Replace/Cancel indipendenti dal
+                 form principale (standalone ng-select + handler
+                 dedicati `_confirmOrgForm`, `cancelOrganizationChange`). -->
+            @if (isOrganizzazioniTab) {
+              <div class="pref-stack">
+                <section class="pref-card">
+                  <header class="pref-card-head d-flex align-items-center justify-content-between mb-4">
+                    <div>
+                      <h3 class="h5 m-0">{{ 'APP.PROFILE.ORGANIZATION.YourOrganizations' | translate }}</h3>
+                      <p>{{ 'APP.PROFILE.PREFERENCES.ServiziDesc' | translate }}</p>
+                    </div>
+                    <lnk-button
+                      [label]="'APP.PROFILE.ORGANIZATION.AddButton'"
+                      [ariaLabel]="'APP.PROFILE.ORGANIZATION.AddButton'"
+                      [icon]="'bi bi-plus-lg'"
+                      [primary]="true"
+                      [disabled]="_hasPendingRequest || _orgFormMode !== null"
+                      (onAction)="_openAddOrgForm()"
+                    ></lnk-button>
+                  </header>
+                  <div class="pref-block">
+                    @if (_hasPendingRequest) {
+                      <div class="alert alert-warning mb-3">
+                        <div class="d-flex align-items-center justify-content-between gap-2 w-100">
+                          <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-info-circle text-warning"></i>
+                            <markdown class="markdown-inline flex-grow-1" [data]="_pendingMessage"></markdown>
+                          </div>
+                          <lnk-button
+                            [label]="'APP.PROFILE.ORGANIZATION.CancelButton'"
+                            [ariaLabel]="'APP.PROFILE.ORGANIZATION.CancelButton'"
+                            [icon]="'bi bi-x-lg'"
+                            [primary]="true"
+                            [otherClass]="'ms-auto flex-shrink-0'"
+                            (onAction)="cancelOrganizationChange()"
+                          ></lnk-button>
+                        </div>
+                      </div>
+                    }
+
+                    @if (_orgAssociazioniEsistenti.length === 0) {
+                      <div class="alert alert-light border mb-3">
+                        <i class="bi bi-info-circle me-2"></i>
+                        {{ 'APP.PROFILE.ORGANIZATION.NoOrganizations' | translate }}
+                      </div>
+                    }
+
+                    @if (_orgFormMode === 'add') {
+                      <div class="card card-pad-tight mb-3 border-primary">
+                        <div class="card-body px-2 pt-2 pb-0">
+                          <h6 class="card-title">{{ 'APP.PROFILE.ORGANIZATION.AddTitle' | translate }}</h6>
+                          <div class="form-group">
+                            <label for="add_org" class="form-label">{{ 'APP.PROFILE.ORGANIZATION.SelectNewOrg' | translate }}</label>
+                            <ng-select id="add_org"
+                              [items]="(organizzazioni$ | async) || []"
+                              bindLabel="nome"
+                              [minTermLength]="minLengthTerm"
+                              [loading]="organizzazioniLoading"
+                              [clearable]="true"
+                              [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                              [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                              [typeahead]="organizzazioniInput$"
+                              [(ngModel)]="selectedOrganizzazione"
+                              [ngModelOptions]="{standalone: true}">
+                              <ng-template ng-label-tmp let-item="item">{{ item.nome }}</ng-template>
+                              <ng-template ng-option-tmp let-item="item">
+                                <div class="fw-bold">{{ item.nome }}</div>
+                              </ng-template>
+                            </ng-select>
+                          </div>
+                          <div class="d-flex justify-content-end gap-2 mt-3">
                             <lnk-button
-                              [label]="'APP.PROFILE.ORGANIZATION.AddButton'"
-                              [ariaLabel]="'APP.PROFILE.ORGANIZATION.AddButton'"
-                              [icon]="'bi bi-plus-lg'"
+                              [label]="'APP.BUTTON.Cancel'"
+                              [ariaLabel]="'APP.BUTTON.Cancel'"
+                              (onAction)="_closeOrgForm()"
+                            ></lnk-button>
+                            <lnk-button
+                              [label]="'APP.PROFILE.ORGANIZATION.AddConfirm'"
+                              [ariaLabel]="'APP.PROFILE.ORGANIZATION.AddConfirm'"
                               [primary]="true"
-                              [disabled]="_hasPendingRequest || _orgFormMode !== null"
-                              (onAction)="_openAddOrgForm()"
+                              [disabled]="!selectedOrganizzazione"
+                              (onAction)="_confirmOrgForm()"
                             ></lnk-button>
                           </div>
-                        </legend>
-                        <div class="profile-orgs-panel">
+                        </div>
+                      </div>
+                    }
 
-                          @if (_hasPendingRequest) {
-                            <div class="alert alert-warning mb-3">
-                              <div class="d-flex align-items-center justify-content-between gap-2 w-100">
-                                <div class="d-flex align-items-center gap-2">
-                                  <i class="bi bi-info-circle text-warning"></i>
-                                  <markdown class="markdown-inline flex-grow-1" [data]="_pendingMessage"></markdown>
+                    <div class="row g-3">
+                      @for (assoc of _orgAssociazioniEsistenti; track assoc.id_organizzazione) {
+                        <div class="col-md-6">
+                          <div class="card card-pad-tight h-100"
+                               [class.border-primary]="_orgFormMode === 'replace' && _replaceTargetOrgId === assoc.id_organizzazione">
+                            <div class="card-body">
+                              <div class="d-flex align-items-baseline gap-3">
+                                <div class="org-icon">
+                                  <i class="bi bi-buildings"></i>
                                 </div>
-                                <lnk-button
-                                  [label]="'APP.PROFILE.ORGANIZATION.CancelButton'"
-                                  [ariaLabel]="'APP.PROFILE.ORGANIZATION.CancelButton'"
-                                  [icon]="'bi bi-x-lg'"
-                                  [primary]="true"
-                                  [otherClass]="'ms-auto flex-shrink-0'"
-                                  (onAction)="cancelOrganizationChange()"
-                                ></lnk-button>
+                                <div class="flex-grow-1 d-flex flex-column">
+                                  <h6 class="m-0">{{ assoc.nome }}</h6>
+                                  <div class="d-flex align-items-start justify-content-between">
+                                    <div class="flex-grow-1 me-2">
+                                      @if (assoc.ruolo_organizzazione) {
+                                        <span class="chip mt-2 d-inline-flex"
+                                            [class.chip-accent]="assoc.ruolo_organizzazione === 'amministratore_organizzazione'"
+                                            [class.chip-info]="assoc.ruolo_organizzazione === 'operatore_api'">
+                                          {{ ('APP.ROLE.' + assoc.ruolo_organizzazione) | translate }}
+                                        </span>
+                                      } @else {
+                                        <span class="chip mt-2 d-inline-flex chip-no-role">
+                                          {{ 'APP.ORGANIZATION_SWITCHER.NoRole' | translate }}
+                                        </span>
+                                      }
+                                    </div>
+                                  </div>
+                                </div>
+                                <!-- Issue 229 — "Sostituisci"
+                                     temporaneamente nascosto in attesa
+                                     del flusso BE per l'approvazione
+                                     dall'org di partenza. -->
+                                @if (false) {
+                                  <lnk-button
+                                    [label]="'APP.PROFILE.ORGANIZATION.ReplaceButton'"
+                                    [ariaLabel]="'APP.PROFILE.ORGANIZATION.ReplaceButton'"
+                                    [btnTooltip]="'APP.PROFILE.ORGANIZATION.ReplaceButton'"
+                                    [icon]="'bi bi-arrow-repeat'"
+                                    [secondary]="true"
+                                    [size]="'sm'"
+                                    [disabled]="_hasPendingRequest || _orgFormMode !== null"
+                                    (onAction)="_openReplaceOrgForm(assoc.id_organizzazione)"
+                                  ></lnk-button>
+                                }
                               </div>
-                            </div>
-                          }
 
-                          @if (_orgAssociazioniEsistenti.length === 0) {
-                            <div class="alert alert-light border mb-3">
-                              <i class="bi bi-info-circle me-2"></i>
-                              {{ 'APP.PROFILE.ORGANIZATION.NoOrganizations' | translate }}
-                            </div>
-                          }
-
-                          @if (_orgFormMode === 'add') {
-                            <div class="card card-pad-tight mb-3 border-primary">
-                              <div class="card-body">
-                                <h6 class="card-title">{{ 'APP.PROFILE.ORGANIZATION.AddTitle' | translate }}</h6>
-                                <div class="form-group">
-                                  <label for="add_org" class="form-label">{{ 'APP.PROFILE.ORGANIZATION.SelectNewOrg' | translate }}</label>
-                                  <ng-select id="add_org"
+                              @if (_orgFormMode === 'replace' && _replaceTargetOrgId === assoc.id_organizzazione) {
+                                <div class="mt-3 pt-4 border-top">
+                                  <label for="replace_org" class="form-label">{{ 'APP.PROFILE.ORGANIZATION.SelectNewOrg' | translate }}</label>
+                                  <ng-select
                                     [items]="(organizzazioni$ | async) || []"
                                     bindLabel="nome"
                                     [minTermLength]="minLengthTerm"
@@ -484,244 +499,289 @@
                                       <div class="fw-bold">{{ item.nome }}</div>
                                     </ng-template>
                                   </ng-select>
-                                </div>
-                                <div class="d-flex justify-content-end gap-2 mt-3">
-                                  <lnk-button
-                                    [label]="'APP.BUTTON.Cancel'"
-                                    [ariaLabel]="'APP.BUTTON.Cancel'"
-                                    (onAction)="_closeOrgForm()"
-                                  ></lnk-button>
-                                  <lnk-button
-                                    [label]="'APP.PROFILE.ORGANIZATION.AddConfirm'"
-                                    [ariaLabel]="'APP.PROFILE.ORGANIZATION.AddConfirm'"
-                                    [primary]="true"
-                                    [disabled]="!selectedOrganizzazione"
-                                    (onAction)="_confirmOrgForm()"
-                                  ></lnk-button>
-                                </div>
-                              </div>
-                            </div>
-                          }
-
-                          <div class="row g-3">
-                            @for (assoc of _orgAssociazioniEsistenti; track assoc.id_organizzazione) {
-                              <div class="col-md-6">
-                                <div class="card card-pad-tight h-100"
-                                     [class.border-primary]="_orgFormMode === 'replace' && _replaceTargetOrgId === assoc.id_organizzazione">
-                                  <div class="card-body">
-                                    <div class="d-flex align-items-start justify-content-between">
-                                      <div class="flex-grow-1 me-2">
-                                        <h6 class="m-0"><i class="bi bi-buildings me-2"></i> {{ assoc.nome }}</h6>
-                                      </div>
-                                      <!-- Issue 229 — "Sostituisci"
-                                           temporaneamente nascosto in
-                                           attesa che il BE supporti
-                                           l'approvazione anche da parte
-                                           dell'organizzazione di partenza.
-                                           Riattivare rimuovendo l'`@if`
-                                           quando il flusso e` pronto.
-                                           Handler `_openReplaceOrgForm` e
-                                           sezione replace nelle card
-                                           restano funzionanti. -->
-                                      @if (false) {
-                                        <lnk-button
-                                          [label]="'APP.PROFILE.ORGANIZATION.ReplaceButton'"
-                                          [ariaLabel]="'APP.PROFILE.ORGANIZATION.ReplaceButton'"
-                                          [btnTooltip]="'APP.PROFILE.ORGANIZATION.ReplaceButton'"
-                                          [icon]="'bi bi-arrow-repeat'"
-                                          [secondary]="true"
-                                          [size]="'sm'"
-                                          [disabled]="_hasPendingRequest || _orgFormMode !== null"
-                                          (onAction)="_openReplaceOrgForm(assoc.id_organizzazione)"
-                                        ></lnk-button>
-                                      }
-                                    </div>
-                                    @if (assoc.ruolo_organizzazione) {
-                                      <div class="d-flex align-items-start justify-content-between">
-                                        <div class="flex-grow-1 me-2">
-                                          <span class="chip mt-2 d-inline-flex"
-                                              [class.chip-accent]="assoc.ruolo_organizzazione === 'amministratore_organizzazione'"
-                                              [class.chip-info]="assoc.ruolo_organizzazione === 'operatore_api'">
-                                            {{ ('APP.ROLE.' + assoc.ruolo_organizzazione) | translate }}
-                                          </span>
-                                        </div>
-                                      </div>
-                                    }
-
-                                    @if (_orgFormMode === 'replace' && _replaceTargetOrgId === assoc.id_organizzazione) {
-                                      <div class="mt-3 pt-4 border-top">
-                                        <label class="form-label">{{ 'APP.PROFILE.ORGANIZATION.SelectNewOrg' | translate }}</label>
-                                        <ng-select
-                                          [items]="(organizzazioni$ | async) || []"
-                                          bindLabel="nome"
-                                          [minTermLength]="minLengthTerm"
-                                          [loading]="organizzazioniLoading"
-                                          [clearable]="true"
-                                          [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
-                                          [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
-                                          [typeahead]="organizzazioniInput$"
-                                          [(ngModel)]="selectedOrganizzazione"
-                                          [ngModelOptions]="{standalone: true}">
-                                          <ng-template ng-label-tmp let-item="item">{{ item.nome }}</ng-template>
-                                          <ng-template ng-option-tmp let-item="item">
-                                            <div class="fw-bold">{{ item.nome }}</div>
-                                          </ng-template>
-                                        </ng-select>
-                                        <div class="d-flex justify-content-end gap-2 mt-3">
-                                          <lnk-button
-                                            [label]="'APP.BUTTON.Cancel'"
-                                            [ariaLabel]="'APP.BUTTON.Cancel'"
-                                            [size]="'sm'"
-                                            (onAction)="_closeOrgForm()"
-                                          ></lnk-button>
-                                          <lnk-button
-                                            [label]="'APP.PROFILE.ORGANIZATION.ReplaceConfirm'"
-                                            [ariaLabel]="'APP.PROFILE.ORGANIZATION.ReplaceConfirm'"
-                                            [primary]="true"
-                                            [size]="'sm'"
-                                            [disabled]="!selectedOrganizzazione"
-                                            (onAction)="_confirmOrgForm()"
-                                          ></lnk-button>
-                                        </div>
-                                      </div>
-                                    }
+                                  <div class="d-flex justify-content-end gap-2 mt-3">
+                                    <lnk-button
+                                      [label]="'APP.BUTTON.Cancel'"
+                                      [ariaLabel]="'APP.BUTTON.Cancel'"
+                                      [size]="'sm'"
+                                      (onAction)="_closeOrgForm()"
+                                    ></lnk-button>
+                                    <lnk-button
+                                      [label]="'APP.PROFILE.ORGANIZATION.ReplaceConfirm'"
+                                      [ariaLabel]="'APP.PROFILE.ORGANIZATION.ReplaceConfirm'"
+                                      [primary]="true"
+                                      [size]="'sm'"
+                                      [disabled]="!selectedOrganizzazione"
+                                      (onAction)="_confirmOrgForm()"
+                                    ></lnk-button>
                                   </div>
                                 </div>
-                              </div>
-                            }
+                              }
+                            </div>
                           </div>
                         </div>
-                      </fieldset>
+                      }
                     </div>
                   </div>
-                }
+                </section>
               </div>
             }
-            @if (!isProfile) {
-              <div class="settings">
+            @if (isImpostazioniTab) {
+              <!--
+                Rewrite F4 — Tab Impostazioni: due card stack —
+                Servizi (view mode + opzioni) e Notifiche
+                (bulk actions + banner + matrix).
+              -->
+              <div class="pref-stack">
+
                 @if (settings?.servizi) {
-                  <div class="container py-5">
-                    <div class="row gl-mt-3 js-preferences-form servizi">
-                      <div class="col-lg-4">
-                        <h4 class="gl-mt-0">{{ 'APP.SETTINGS.TITLE.Services' | translate }}</h4>
-                        <p>{{ 'APP.SETTINGS.TITLE.Services_sub' | translate }}</p>
+                  <!-- ───────────────────── SERVIZI ───────────────────── -->
+                  <section class="pref-card">
+                    <header class="pref-card-head">
+                      <div>
+                        <h3>{{ 'APP.PROFILE.PREFERENCES.ServiziTitle' | translate }}</h3>
+                        <p>{{ 'APP.PROFILE.PREFERENCES.ServiziDesc' | translate }}</p>
                       </div>
-                      <div class="col-lg-8">
-                        <form class="edit_user" id="profile-preferences-form">
-                          <div class="form-group">
-                            <label class="label-bold" for="user_layout">{{ 'APP.SETTINGS.LABEL.View' | translate }}</label>
-                            <select class="form-select" name="servizi_view" id="servizi_view" [(ngModel)]="settings.servizi.view" (ngModelChange)="_updateSettings($event, 'servizi_view')">
-                              <option selected="selected" value="card">{{ 'APP.SETTINGS.LABEL.Card' | translate }}</option>
-                              <option value="list">{{ 'APP.SETTINGS.LABEL.List' | translate }}</option>
-                            </select>
-                            <div class="form-text text-muted">
-                              <ui-input-help field="servizi_view" context="SETTINGS"></ui-input-help>
-                            </div>
+                    </header>
+
+                    <div class="pref-block">
+                      <div class="field-label">
+                        <i class="bi bi-grid"></i>
+                        <span>{{ 'APP.PROFILE.PREFERENCES.ViewDefault' | translate }}</span>
+                      </div>
+
+                      <div class="view-grid">
+                        <button type="button"
+                                class="vm"
+                                [class.active]="settings.servizi.view === 'card'"
+                                [attr.aria-pressed]="settings.servizi.view === 'card'"
+                                (click)="_setView('card')">
+                          <div class="preview">
+                            <svg viewBox="0 0 64 40" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+                              <rect x="2" y="2" width="28" height="16" rx="2" class="bg"/>
+                              <rect x="2" y="20" width="28" height="4" rx="1" class="fg"/>
+                              <rect x="2" y="26" width="18" height="3" rx="1" class="mute"/>
+                              <rect x="34" y="2" width="28" height="16" rx="2" class="bg"/>
+                              <rect x="34" y="20" width="28" height="4" rx="1" class="fg"/>
+                              <rect x="34" y="26" width="18" height="3" rx="1" class="mute"/>
+                            </svg>
                           </div>
-                          <div class="form-group">
-                            <label class="label-bold">{{ 'APP.SETTINGS.LABEL.OptionsCard' | translate }}</label>
-                            <div class="gl-form-checkbox custom-control custom-checkbox">
-                              <input class="custom-control-input" type="checkbox" value="1" [checked]="settings.servizi.showImage" name="servizi_image" id="servizi_image"  [(ngModel)]="settings.servizi.showImage" [disabled]="settings.servizi.showMasonry" (ngModelChange)="_updateSettings($event, 'servizi_image')">
-                              <label class="custom-control-label" for="servizi_image"><span>{{ 'APP.SETTINGS.LABEL.ShowImage' | translate }}</span></label>
+                          <div class="head">
+                            <span class="label-bold">{{ 'APP.PROFILE.PREFERENCES.ViewCard' | translate }}</span>
+                            @if (settings.servizi.view === 'card') {
+                              <span class="dot"><i class="bi bi-check-lg"></i></span>
+                            }
+                          </div>
+                          <p class="desc">{{ 'APP.PROFILE.PREFERENCES.ViewCardDesc' | translate }}</p>
+                        </button>
+
+                        <button type="button"
+                                class="vm"
+                                [class.active]="settings.servizi.view === 'list'"
+                                [attr.aria-pressed]="settings.servizi.view === 'list'"
+                                (click)="_setView('list')">
+                          <div class="preview">
+                            <svg viewBox="0 0 64 40" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+                              <rect x="3"  y="4"  width="6"  height="6"   rx="1.5" class="fg"/>
+                              <rect x="12" y="5"  width="30" height="2.5" rx="1"   class="fg"/>
+                              <rect x="12" y="9"  width="18" height="2"   rx="1"   class="mute"/>
+                              <rect x="56" y="6"  width="5"  height="2"   rx="1"   class="mute"/>
+                              <rect x="3"  y="14" width="6"  height="6"   rx="1.5" class="fg"/>
+                              <rect x="12" y="15" width="30" height="2.5" rx="1"   class="fg"/>
+                              <rect x="12" y="19" width="18" height="2"   rx="1"   class="mute"/>
+                              <rect x="56" y="16" width="5"  height="2"   rx="1"   class="mute"/>
+                              <rect x="3"  y="24" width="6"  height="6"   rx="1.5" class="fg"/>
+                              <rect x="12" y="25" width="30" height="2.5" rx="1"   class="fg"/>
+                              <rect x="12" y="29" width="18" height="2"   rx="1"   class="mute"/>
+                              <rect x="56" y="26" width="5"  height="2"   rx="1"   class="mute"/>
+                            </svg>
+                          </div>
+                          <div class="head">
+                            <span class="label-bold">{{ 'APP.PROFILE.PREFERENCES.ViewList' | translate }}</span>
+                            @if (settings.servizi.view === 'list') {
+                              <span class="dot"><i class="bi bi-check-lg"></i></span>
+                            }
+                          </div>
+                          <p class="desc">{{ 'APP.PROFILE.PREFERENCES.ViewListDesc' | translate }}</p>
+                        </button>
+                      </div>
+                    </div>
+
+                    @if (settings.servizi.view !== 'table') {
+                      <div class="pref-block">
+                        <div class="block-head">
+                          <span class="field-label">
+                            <i class="bi bi-gear"></i>
+                            <span>{{ 'APP.PROFILE.PREFERENCES.CardOptions' | translate }}</span>
+                          </span>
+                          <span class="counter d-none">{{ 'APP.PROFILE.PREFERENCES.OptionsCounter' | translate:{active: _activeCardOptCount, total: 4} }}</span>
+                        </div>
+
+                        <div class="opts-grid">
+                          <!-- Mostra immagine -->
+                          <button type="button"
+                                  class="opt-row"
+                                  [class.checked]="settings.servizi.showImage"
+                                  [attr.aria-pressed]="settings.servizi.showImage"
+                                  [disabled]="settings.servizi.showMasonry"
+                                  (click)="settings.servizi.showImage = !settings.servizi.showImage; _updateSettings($event, 'servizi_image')">
+                            <span class="cbx" [class.on]="settings.servizi.showImage">
+                              @if (settings.servizi.showImage) { <i class="bi bi-check-lg"></i> }
+                            </span>
+                            <span class="meta">
+                              <span class="title">{{ 'APP.PROFILE.PREFERENCES.ShowImage' | translate }}</span>
+                              <p>{{ 'APP.PROFILE.PREFERENCES.ShowImageDesc' | translate }}</p>
+                            </span>
+                          </button>
+
+                          <!-- Mostra immagine vuota -->
+                          <button type="button"
+                                  class="opt-row"
+                                  [class.checked]="settings.servizi.showEmptyImage"
+                                  [attr.aria-pressed]="settings.servizi.showEmptyImage"
+                                  [disabled]="!settings.servizi.showImage || settings.servizi.showMasonry"
+                                  (click)="settings.servizi.showEmptyImage = !settings.servizi.showEmptyImage; _updateSettings($event, 'servizi_emptyimage')">
+                            <span class="cbx" [class.on]="settings.servizi.showEmptyImage">
+                              @if (settings.servizi.showEmptyImage) { <i class="bi bi-check-lg"></i> }
+                            </span>
+                            <span class="meta">
+                              <span class="title">{{ 'APP.PROFILE.PREFERENCES.ShowEmptyImage' | translate }}</span>
+                              <p>{{ 'APP.PROFILE.PREFERENCES.ShowEmptyImageDesc' | translate }}</p>
+                            </span>
+                          </button>
+
+                          <!-- Riempi il box -->
+                          <button type="button"
+                                  class="opt-row"
+                                  [class.checked]="settings.servizi.fillBox"
+                                  [attr.aria-pressed]="settings.servizi.fillBox"
+                                  [disabled]="settings.servizi.showMasonry"
+                                  (click)="settings.servizi.fillBox = !settings.servizi.fillBox; _updateSettings($event, 'servizi_fillBox')">
+                            <span class="cbx" [class.on]="settings.servizi.fillBox">
+                              @if (settings.servizi.fillBox) { <i class="bi bi-check-lg"></i> }
+                            </span>
+                            <span class="meta">
+                              <span class="title">{{ 'APP.PROFILE.PREFERENCES.FillBox' | translate }}</span>
+                              <p>{{ 'APP.PROFILE.PREFERENCES.FillBoxDesc' | translate }}</p>
+                            </span>
+                          </button>
+
+                          <!-- Layout masonry -->
+                          <button type="button"
+                                  class="opt-row"
+                                  [class.checked]="settings.servizi.showMasonry"
+                                  [attr.aria-pressed]="settings.servizi.showMasonry"
+                                  (click)="settings.servizi.showMasonry = !settings.servizi.showMasonry; _updateSettings($event, 'servizi_showmasonry')">
+                            <span class="cbx" [class.on]="settings.servizi.showMasonry">
+                              @if (settings.servizi.showMasonry) { <i class="bi bi-check-lg"></i> }
+                            </span>
+                            <span class="meta">
+                              <span class="title">
+                                {{ 'APP.PROFILE.PREFERENCES.ShowMasonry' | translate }}
+                                <i class="bi bi-info-circle info-icon" [tooltip]="'APP.TOOLTIP.MasonryInfo' | translate" container="body"></i>
+                              </span>
+                              <p>{{ 'APP.PROFILE.PREFERENCES.ShowMasonryDesc' | translate }}</p>
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+                    }
+                  </section>
+                }
+
+                @if (showNotificationsSettings) {
+                  <!-- ───────────────────── NOTIFICHE ───────────────────── -->
+                  <section class="pref-card">
+                    <header class="pref-card-head">
+                      <div>
+                        <h3>{{ 'APP.PROFILE.PREFERENCES.NotificheTitle' | translate }}</h3>
+                        <p>{{ 'APP.PROFILE.PREFERENCES.NotificheDesc' | translate }}</p>
+                      </div>
+                      <div class="bulk">
+                        <button class="link" type="button" (click)="_notifyEnableAll()">{{ 'APP.PROFILE.PREFERENCES.EnableAll' | translate }}</button>
+                        <span class="dot">·</span>
+                        <button class="link" type="button" (click)="_notifyDisableAll()">{{ 'APP.PROFILE.PREFERENCES.DisableAll' | translate }}</button>
+                      </div>
+                    </header>
+
+                    <div class="banner" role="note">
+                      <i class="bi bi-info-circle"></i>
+                      <p [innerHTML]="'APP.PROFILE.PREFERENCES.NotificheDisclaimer' | translate"></p>
+                    </div>
+
+                    <div class="matrix-head">
+                      <span>{{ 'APP.PROFILE.PREFERENCES.ColCategory' | translate }}</span>
+                      <span>{{ 'APP.NOTIFICATIONS.CHANNEL.InApp' | translate }}</span>
+                      <span>{{ 'APP.NOTIFICATIONS.CHANNEL.Email' | translate }}</span>
+                    </div>
+
+                    <form novalidate class="notify-groups" [formGroup]="_formSettingsSettings">
+                      <!-- Gruppo: Comunicazioni -->
+                      <div class="notify-group">
+                        <header>
+                          <span class="ico"><i class="bi bi-envelope"></i></span>
+                          <div>
+                            <h4>{{ 'APP.PROFILE.PREFERENCES.GroupCommTitle' | translate }}</h4>
+                            <p>{{ 'APP.PROFILE.PREFERENCES.GroupCommDesc' | translate }}</p>
+                          </div>
+                        </header>
+                        <div class="rows">
+                          <div class="notify-row">
+                            <span class="label-bold">{{ 'APP.PROFILE.PREFERENCES.RowCommLabel' | translate }}</span>
+                            <div class="channel">
+                              <label class="toggle">
+                                <input type="checkbox" formControlName="notifiche_inapp" />
+                                <span class="slider"></span>
+                              </label>
                             </div>
-                            <div class="gl-form-checkbox custom-control custom-checkbox">
-                              <input class="custom-control-input" type="checkbox" value="1" [checked]="settings.servizi.showEmptyImage" name="servizi_emptyimage" id="servizi_emptyimage" [(ngModel)]="settings.servizi.showEmptyImage" [disabled]="!settings.servizi.showImage || settings.servizi.showMasonry" (ngModelChange)="_updateSettings($event, 'servizi_emptyimage')">
-                              <label class="custom-control-label" for="servizi_emptyimage"><span>{{ 'APP.SETTINGS.LABEL.ShowEmptyImage' | translate }}</span></label>
-                            </div>
-                            <div class="gl-form-checkbox custom-control custom-checkbox">
-                              <input class="custom-control-input" type="checkbox" value="1" [checked]="settings.servizi.showImage" name="servizi_fillBox" id="servizi_fillBox" [(ngModel)]="settings.servizi.fillBox" [disabled]="settings.servizi.showMasonry" (ngModelChange)="_updateSettings($event, 'servizi_fillBox')">
-                              <label class="custom-control-label" for="servizi_fillBox"><span>{{ 'APP.SETTINGS.LABEL.FillBox' | translate }}</span></label>
-                            </div>
-                            <div class="gl-form-checkbox custom-control custom-checkbox">
-                              <input class="custom-control-input" type="checkbox" value="1" [checked]="settings.servizi.showMasonry" name="servizi_showmasonry" id="servizi_showmasonry" [(ngModel)]="settings.servizi.showMasonry" (ngModelChange)="_updateSettings($event, 'servizi_showmasonry')">
-                              <label class="custom-control-label" for="servizi_showmasonry">
-                                <span>{{ 'APP.SETTINGS.LABEL.ShowMasonry' | translate }}</span>
-                                <i class="bi bi-info-circle ms-1" [tooltip]="'APP.TOOLTIP.MasonryInfo' | translate" container="body"></i>
+                            <div class="channel">
+                              <label class="toggle">
+                                <input type="checkbox" formControlName="notifiche_email" />
+                                <span class="slider"></span>
                               </label>
                             </div>
                           </div>
-                        </form>
-                      </div>
-                      <div class="col-sm-12">
-                        <hr>
                         </div>
                       </div>
-                      @if (showNotificationsSettings) {
-                        <div class="row gl-mt-3 js-preferences-form notifiche">
-                          <div class="col-lg-4">
-                            <h4 class="gl-mt-0">{{ 'APP.SETTINGS.TITLE.Notifications' | translate }}</h4>
-                            <p>{{ 'APP.SETTINGS.TITLE.Notifications_sub' | translate }}</p>
+
+                      <!-- Gruppo: Cambio di stato -->
+                      <div class="notify-group" [class.disabled-group]="cambioStatoDisabled">
+                        <header>
+                          <span class="ico"><i class="bi bi-arrow-repeat"></i></span>
+                          <div>
+                            <h4>{{ 'APP.PROFILE.PREFERENCES.GroupStatusTitle' | translate }}</h4>
+                            <p>{{ 'APP.PROFILE.PREFERENCES.GroupStatusDesc' | translate }}</p>
                           </div>
-                          <div class="col-lg-8">
-                            <form novalidate class="issue-form common-note-form gl-show-field-errors gfm-form" [formGroup]="_formSettingsSettings">
-                              <!-- Disclaimer -->
-                              <div class="alert alert-info small mb-4">
-                                <i class="bi bi-info-circle me-1"></i>
-                                {{ 'APP.SETTINGS.LABEL.NotificationsDisclaimer' | translate }}
-                              </div>
-                              <!-- Notifiche comunicazioni -->
-                              <div class="form-group mb-3">
-                                <label class="label-bold mb-2">{{ 'APP.SETTINGS.LABEL.NotificheComunicazioni' | translate }}</label>
-                                <table class="table table-sm table-borderless ms-3">
-                                  <thead>
-                                    <tr>
-                                      <th></th>
-                                      <th class="text-center" style="width: 70px;">{{ 'APP.NOTIFICATIONS.CHANNEL.InApp' | translate }}</th>
-                                      <th class="text-center" style="width: 70px;">{{ 'APP.NOTIFICATIONS.CHANNEL.Email' | translate }}</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    <tr>
-                                      <td class="align-middle">{{ 'APP.SETTINGS.LABEL.NotificheComunicazioniDesc' | translate }}</td>
-                                      <td class="text-center align-middle">
-                                        <input type="checkbox" class="form-check-input m-0" id="notifiche_inapp" formControlName="notifiche_inapp">
-                                      </td>
-                                      <td class="text-center align-middle">
-                                        <input type="checkbox" class="form-check-input m-0" id="notifiche_email" formControlName="notifiche_email">
-                                      </td>
-                                    </tr>
-                                  </tbody>
-                                </table>
-                              </div>
-                              <hr>
-                              <!-- Notifiche cambio stato -->
-                              <div class="form-group mb-3">
-                                <label class="label-bold mb-2">{{ 'APP.SETTINGS.LABEL.NotificheCambioStato' | translate }}</label>
-                                <table class="table table-sm table-borderless ms-3">
-                                  <thead>
-                                    <tr>
-                                      <th></th>
-                                      <th class="text-center" style="width: 70px;">{{ 'APP.NOTIFICATIONS.CHANNEL.InApp' | translate }}</th>
-                                      <th class="text-center" style="width: 70px;">{{ 'APP.NOTIFICATIONS.CHANNEL.Email' | translate }}</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    <tr [class.text-muted]="cambioStatoDisabled">
-                                      <td class="align-middle">{{ 'APP.SETTINGS.LABEL.NotificheCambioStatoDesc' | translate }}</td>
-                                      <td class="text-center align-middle">
-                                        <input type="checkbox" class="form-check-input m-0" id="cambio_stato_inapp" formControlName="cambio_stato_inapp">
-                                      </td>
-                                      <td class="text-center align-middle">
-                                        <input type="checkbox" class="form-check-input m-0" id="cambio_stato_email" formControlName="cambio_stato_email">
-                                      </td>
-                                    </tr>
-                                  </tbody>
-                                </table>
-                                @if (cambioStatoDisabled) {
-                                  <p class="small text-muted ms-3 mt-1">{{ 'APP.SETTINGS.LABEL.CambioStatoDisabledHint' | translate }}</p>
-                                }
-                              </div>
-                            </form>
+                        </header>
+                        <div class="rows">
+                          <div class="notify-row">
+                            <span class="label-bold">{{ 'APP.PROFILE.PREFERENCES.RowStatusLabel' | translate }}</span>
+                            <div class="channel">
+                              <label class="toggle">
+                                <input type="checkbox" formControlName="cambio_stato_inapp" />
+                                <span class="slider"></span>
+                              </label>
+                            </div>
+                            <div class="channel">
+                              <label class="toggle">
+                                <input type="checkbox" formControlName="cambio_stato_email" />
+                                <span class="slider"></span>
+                              </label>
+                            </div>
                           </div>
+                          @if (cambioStatoDisabled) {
+                            <p class="hint">{{ 'APP.SETTINGS.LABEL.CambioStatoDisabledHint' | translate }}</p>
+                          }
                         </div>
-                      }
-                        </div>
-                      }
-                    </div>
-                  }
-                </div>
+                      </div>
+                    </form>
+                  </section>
+                }
               </div>
             }
           </div>
-        </section>
-      </div>
+        </div>
+      }
+    </div>
+  </section>
+</div>

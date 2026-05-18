@@ -78,8 +78,17 @@ describe('ProfileComponent', () => {
   });
 
   it('should have default values', () => {
-    expect(component.isProfile).toBe(true);
-    expect(component.isEdit).toBe(false);
+    // Rewrite F1: `isProfile` (boolean Profile/Settings) sostituito
+    // dal 3-tab state `currentTab` (informazioni/organizzazioni/
+    // impostazioni). Il getter `isInformazioniTab` rimpiazza
+    // semanticamente il vecchio `isProfile === true`.
+    expect(component.currentTab).toBe('informazioni');
+    expect(component.isInformazioniTab).toBe(true);
+    expect(component.isOrganizzazioniTab).toBe(false);
+    expect(component.isImpostazioniTab).toBe(false);
+    // Rewrite F2: form sempre in edit (no toggle modifica/annulla).
+    // `isEdit` defaulta a `true`.
+    expect(component.isEdit).toBe(true);
     expect(component.saving).toBe(false);
     expect(component.spin).toBe(true);
   });
@@ -114,18 +123,38 @@ describe('ProfileComponent', () => {
     expect(component.error).toBe(false);
   });
 
-  it('should cancel edit mode', () => {
+  it('should reset form state on cancel (no toggle isEdit)', () => {
+    // Rewrite F2: `onCancelEdit` non commuta piu` `isEdit`
+    // (sempre `true`). Resetta solo error/errorMsg e re-inizializza
+    // il form ai valori del profilo caricato.
     component.profile = { nome: 'Test' };
-    component.isEdit = true;
+    component.error = true;
+    component.errorMsg = 'old';
     component.onCancelEdit();
-    expect(component.isEdit).toBe(false);
+    expect(component.isEdit).toBe(true);
+    expect(component.error).toBe(false);
+    expect(component.errorMsg).toBe('');
   });
 
-  it('should show profile and settings tabs', () => {
-    component._showProfile();
-    expect(component.isProfile).toBe(true);
+  it('should switch between the 3 tabs (informazioni / organizzazioni / impostazioni)', () => {
+    // Rewrite F1: 3-tab state. Manteniamo qui anche un check sugli
+    // alias legacy `_showProfile` / `_showSettings` (mappano
+    // rispettivamente a Informazioni / Impostazioni) per coprire
+    // call site esterni durante la transizione.
+    component._showOrganizzazioni();
+    expect(component.currentTab).toBe('organizzazioni');
+    expect(component.isOrganizzazioniTab).toBe(true);
+    component._showImpostazioni();
+    expect(component.currentTab).toBe('impostazioni');
+    expect(component.isImpostazioniTab).toBe(true);
+    component._showInformazioni();
+    expect(component.currentTab).toBe('informazioni');
+    expect(component.isInformazioniTab).toBe(true);
+    // Alias legacy
     component._showSettings();
-    expect(component.isProfile).toBe(false);
+    expect(component.currentTab).toBe('impostazioni');
+    component._showProfile();
+    expect(component.currentTab).toBe('informazioni');
   });
 
   it('should prepare body for update', () => {
@@ -505,14 +534,16 @@ describe('ProfileComponent', () => {
   // ---------------------------------------------------------------
 
   describe('onCancelEdit', () => {
-    it('should reset isEdit, error, errorMsg and restore selectedOrganizzazione', () => {
+    it('should reset error/errorMsg and restore selectedOrganizzazione (no toggle isEdit)', () => {
+      // Rewrite F2: il form e` sempre in edit; `onCancelEdit` non
+      // commuta piu` `isEdit`. Resetta solo error/errorMsg +
+      // selectedOrganizzazione al profilo caricato.
       component.profile = { organizzazione: { id: 'org1' } };
-      component.isEdit = true;
       component.error = true;
       component.errorMsg = 'some error';
       component.selectedOrganizzazione = { id: 'org2' };
       component.onCancelEdit();
-      expect(component.isEdit).toBe(false);
+      expect(component.isEdit).toBe(true);
       expect(component.error).toBe(false);
       expect(component.errorMsg).toBe('');
       expect(component.selectedOrganizzazione).toEqual({ id: 'org1' });
