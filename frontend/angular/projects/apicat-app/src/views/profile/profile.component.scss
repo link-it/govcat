@@ -140,7 +140,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
       &:not(.active) .tab-count {
         background: var(--line, #dee8ef);
-        color: var(--ink-3, #57738a);
+        // A11Y P3: era var(--ink-3) #57738a su --line #dee8ef
+        // (3.6:1, sotto AA). Spostato a --ink-2 #2e445a
+        // (7.0+:1) — numero piccolo, AA testo normale.
+        color: var(--ink-2, #2e445a);
       }
 
       .tab-badge-pending {
@@ -193,7 +196,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // chip-info).
 .chip-no-role {
   background: #f1f5f9;
-  color: #64748b;
+  // A11Y P4: era #64748b su #f1f5f9 (4.42:1, fail AA per 0.08).
+  // Spostato a #475569 (6.93:1, AAA) — chip neutro ma porta
+  // info testuale (ruolo assente), serve leggibilita` piena.
+  color: #475569;
   border-color: #e2e8f0;
 }
 
@@ -304,7 +310,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
   .counter {
     font-size: 11.5px;
-    color: #94a3b8;
+    // A11Y P3: era #94a3b8 (2.57:1 su bianco). Spostato a
+    // #64748b (4.54:1) per passare WCAG AA testo normale.
+    color: #64748b;
   }
 }
 
@@ -479,7 +487,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     }
 
     .info-icon {
-      color: #94a3b8;
+      // A11Y P3: era #94a3b8 (2.57:1). Icona informativa con
+      // tooltip → spostato a #64748b (4.54:1) per AA testo
+      // normale (l'icona ha valore informativo, non decorativo).
+      color: #64748b;
       font-size: 12px;
     }
 
@@ -520,7 +531,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: .06em;
-  color: #94a3b8;
+  // A11Y P3: era #94a3b8 (2.57:1). Header tabella matrix con
+  // ruolo di intestazione semantica → spostato a #475569
+  // (7.59:1, AAA) per garantire leggibilita` su tutti i device.
+  color: #475569;
   font-weight: 600;
 
   span:nth-child(2),

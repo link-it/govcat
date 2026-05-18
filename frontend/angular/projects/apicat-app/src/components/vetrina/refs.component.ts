@@ -35,7 +35,7 @@ export interface LnkRefItem {
 }
 
 const PALETTES: [string, string][] = [
-  ['#ff7a85', '#ff4050'],
+  ['#ff4050', '#ff4050'],
 ];
 
 function hash(name: string): number {
@@ -46,7 +46,8 @@ function hash(name: string): number {
 
 export function gradientFor(name: string): string {
   const [a, b] = PALETTES[hash(name) % PALETTES.length];
-  return `linear-gradient(135deg, ${a}, ${b})`;
+  // -> return `linear-gradient(135deg, ${a}, ${b})`;
+  return `var(--accent)`; // per ora, usiamo un unico colore da CSS invece di gradienti randomizzati per l'accessibilità (contrasto più prevedibile). In futuro, potremmo reintrodurre i gradienti randomizzati con palette più curate e accessibili.
 }
 
 export function initialsOf(name: string): string {

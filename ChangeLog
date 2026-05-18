@@ -1,3 +1,26 @@
+2026-05-18  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	A11Y — fix contrasti colore WCAG AA su chip/badge e
+	  componenti recenti. Counter/matrix-head/info-icon:
+	  #94a3b8 -> #64748b/#475569 (2.57:1 -> 4.54-7.59:1).
+	  chip-no-role: -> #475569 (4.42 -> 6.93). chip-muted +
+	  lnk-stato-chip is-draft/is-archived: --ink-3 -> --ink-2
+	  (4.42 -> 7.92, opacity .8 su archived rimossa).
+	  Substepper subtitle e bullet locked: --ink-4 -> --ink-3
+	  (2.52 -> 4.85). Substepper tl-state.is-locked: --ink-3
+	  -> --ink-2 (4.42 -> 7.92). Tab nav profile tab-count
+	  inattivo: --ink-3 -> --ink-2 (3.6 -> 7.0+). Aggiunti
+	  aria-label espliciti sui 4 toggle notifiche per
+	  annunciare canale+categoria allo screen reader.
+	  Refs (vetrina): sostituito gradiente randomizzato dei
+	  badge con `var(--accent)` per contrasto prevedibile.
+	  Aggiunto autocomplete="off" sui campi di ricerca/filtro
+	  per evitare autofill noise (UX). Deferred: bianco su
+	  --accent (3.43:1), in attesa di decisione sul colore
+	  brand. Audit e fix-set documentati in
+	  NOTE-CLAUDE/ACCESSIBILITY/.
+
 2026-05-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

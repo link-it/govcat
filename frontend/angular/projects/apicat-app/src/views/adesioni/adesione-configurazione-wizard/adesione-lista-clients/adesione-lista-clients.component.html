@@ -114,7 +114,7 @@
           @if (_showItemDisclaimers && !isEditing && item.source?.stato !== 'configurato') {
             @for (d of _clientDisclaimers(item); track $index) {
               <small class="adesione-item-hint d-flex align-items-start gap-2 px-3 py-2 alert mb-0" [ngClass]="_getDisclaimerAlertClass(d.severity)">
-                <i class="me-2" [ngClass]="_getDisclaimerIconClass(d.severity)" [attr.aria-label]="d.severity"></i>
+                <i class="me-2" [ngClass]="_getDisclaimerIconClass(d.severity)"></i>
                 <markdown class="disclaimer-inline flex-grow-1" [data]="d.disclaimer"></markdown>
                 @if (d.links?.length) {
                   <span class="ms-1">
