@@ -1,4 +1,157 @@
+2026-05-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Profile rewrite — tab "Impostazioni": card "Servizi" con
+	  view-mode SVG (Card/Lista) e griglia 2x2 di opzioni;
+	  card "Notifiche" con bulk actions, banner info e matrix
+	  In-app/Email. Hero + tab nav resi sticky dentro
+	  `#container-scroller`, solo il contenuto tab scorre.
+	  Gravatar visibile (rimosso `data-hide-image` dal root).
+	  Aggiunti tokens `--gc-*` globali e `--accent-600`. Card
+	  organizzazioni: chip grigio "Nessun ruolo" quando
+	  `ruolo_organizzazione` non valorizzato.
+
+	* [Frontend]
+	Issue 254: adesione-view — sezione referenti non
+	  renderizzata su hard refresh. `_showReferents` /
+	  `_showRichiedente` erano letti nel constructor da
+	  `Tools.Configurazione` non ancora popolata -> congelati
+	  a `false` -> `loadReferents()` usciva alla guardia
+	  iniziale. Convertiti in getter: il valore viene risolto
+	  al momento dell'uso, sempre coerente con la config
+	  remota. Spec aggiornato per mock-are
+	  `Tools.Configurazione.adesione.mostra_referenti`.
+
+	* [Frontend]
+	Issue 254: substepper — chevron di affordance spostato
+	  dentro il chip "Completato" (analogo al pattern del
+	  bottone "Compila ora" / "Chiudi"). Rimosso elemento
+	  esterno `.tl-row-chev` e relative regole SCSS.
+
+2026-05-16  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 254: wizard adesione — banner principale di fase
+	  nascosto anche quando sub-step "In compilazione" e`
+	  completato. Nuovo helper `isInCompilazioneCompleted` che
+	  replica la logica `findIndex` del substepper visivo
+	  (`_buildItems`) per evitare divergenze con
+	  `workflowStati` derivati vs BE-provided. Gate aggiunto al
+	  `@if` del banner: una volta inoltrata la richiesta il
+	  prompt "Configura i client/endpoint..." sparisce.
+
+	* [Frontend]
+	Issue 254: wizard adesione — visibilita` disclaimer
+	  contestuale + messaggio sub-step state-aware.
+	- Disclaimer principale di fase nascosto quando la fase e`
+	  `completed` (azione non piu` richiesta).
+	- Body templates collaudo/produzione: disclaimer interni
+	  visibili solo quando il sub-step e` `active` (passaggio
+	  `substepState` via context).
+	- Sub-step "In approvazione" / "In configurazione": testo
+	  statico `WaitingGestoreTitle`/`Desc` sostituito da
+	  `disclaimersGenerali` (BE-driven, state-aware) renderizzato
+	  come solo markdown senza icona/severity.
+	- `app-markdown.scss`: aggiunti stili compatti per `h2`
+	  dentro `.markdown-inline` (font 1rem, mb 0.25rem) per
+	  rendere i titoli dei disclaimer inline coerenti con il
+	  resto del flusso.
+
+	* [Frontend]
+	Issue 254: wizard adesione — chip stato fase Collaudo/Produzione
+	  resta "Azione richiesta" durante stati intermedi del workflow
+	  (richiesto_*, autorizzato_*, in_configurazione_*). Bug:
+	  `getFaseStatus` ritornava 'completed' non appena
+	  `isSectionCompleted` (check dati) era true, ignorando il
+	  workflow. Fix: nuovo helper `_workflowReachedSectionFinal`
+	  strict (no fallback `true` difensivi) che verifica che lo
+	  stato corrente abbia raggiunto/superato l'ultimo sub-step
+	  della sezione. Fallback `_isSectionPast` mantenuto per
+	  adesioni storiche (es. collaudo quando l'adesione e` in
+	  produzione). Spacing minore sui banner disclaimer
+	  Collaudo/Produzione (`mt-3`).
+
+2026-05-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 229/254: auto-dismiss error-view-card + UI polish.
+	- `ErrorViewCardComponent`: nuovo `@Input() autocloseMs`
+	  (default 0 = disabilitato; >0 schedula `(onClose)` dopo N
+	  ms). Animazione di chiusura fade + slide-up + collapse
+	  (220ms) tramite classe `.is-closing`. Usato nel wizard
+	  adesioni con `autocloseMs=7000`.
+	- Wizard adesioni: `@HostListener('input')` resetta l'errore
+	  quando l'utente modifica un campo di un pannello di edit
+	  aperto (intent "voglio andare avanti"). `pointerdown`
+	  rimasto commentato perche` troppo aggressivo (anche
+	  l'esplorazione dei dati lo triggera).
+	- Profilo: bottone "Sostituisci" sulla card org nascosto via
+	  `@if (false)` in attesa che il BE supporti l'approvazione
+	  dall'organizzazione di partenza. Markup conservato.
+	- Utente-details: flag "Referente tecnico" sempre nascosto
+	  (`d-none`) sia in read-only che in edit/new — non piu`
+	  gestibile via UI. FormControl conserva il valore corrente.
+
+	* [Frontend]
+	Issue 229: utente-organizzazione-dialog — campi "Ruolo" e
+	  "Nome dell'organizzazione" nascosti via `d-none` (Ruolo
+	  sempre; Org name solo quando `presetIdOrganizzazione`,
+	  cioe` da `organizzazione-manage`). I FormControl restano
+	  attivi e arrivano nel payload via `getRawValue()`. Label
+	  email/telefono in profile e utente-details ora cambiano in
+	  base a `mostraEmail`/`mostraTelefono` (CorporateEmail/Phone
+	  solo quando entrambi i campi sono visibili, altrimenti
+	  Email/Phone semplici). i18n `APP.USERS.LABEL.
+	  OrganizzazioneEsterna` rinominata "Azienda esterna" /
+	  "External company" (era "Organizzazione esterna").
+
+	* [Frontend]
+	Issue 254: adesione-lista-clients — meta items semplificata.
+	  Auth-type pill nascosta (`&& false`), separatore `·` prima
+	  di config-status mostrato solo se `clientName` valorizzato,
+	  classe `config-status-*` normalizzata a `configurato` /
+	  `NONCONFIGURATO` per evitare cascade su stati intermedi.
+
+	* [Frontend]
+	Issue 229: riorganizzazione template profilo (edit) e
+	  utente-details. Profilo: sezione "Le tue organizzazioni"
+	  spostata in fondo come `<fieldset>` separato fuori dal
+	  `<form>`; submit Save/Cancel ora segue immediatamente i
+	  dati personali. Utente-details: blocco "Organizzazione
+	  richiesta" (approve/reject) spostato subito prima della
+	  tabella "Organizzazioni" per coerenza visiva
+	  (richiesta -> lista attuale). Separatori `<hr>` aggiunti
+	  in dominio-details e soggetto-details prima della sezione
+	  "URL di invocazione".
+
+	* [Frontend]
+	Issue 229: organization-switcher — `onSelect` ora fa hard
+	  reload (`window.location.assign` con base-href via
+	  `Location.prepareExternalUrl('/dashboard')`) per garantire
+	  re-init completo di tutti i componenti col nuovo
+	  `X-Organization-Context`. Router.navigate SPA non bastava:
+	  il `RouteReuseStrategy` di default riusa la
+	  DashboardComponent senza re-eseguire `ngOnInit`.
+
+	* [Frontend]
+	Issue 229: organization-switcher — bottone "Gestisci"
+	  visibile a coordinatori (su tutte le org) e AMM_ORG
+	  (sulla propria), ma cliccabile solo sull'org corrente
+	  (`[disabled]` quando non-current).
+
 2026-05-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 229/262: rifiniture wizard adesione e i18n.
+	- `AppConfig.Adesioni.showClientDisclaimers` (default false)
+	  pilota i banner disclaimer per-item in adesione-lista-clients.
+	- i18n DASHBOARD_PENDING.RUOLO: aggiunti
+	  amministratore_organizzazione / operatore_api /
+	  utente_organizzazione (IT+EN).
+	- Wizard: spacing disclaimer Collaudo, subbanner flex/gap,
+	  "Configura i client" disabilitato.
+	- adesione-view: copy-btn marcati `.btn-reset`; regola
+	  `button.btn-reset` riattivata in `.lnk-vetrina`.
 
 	* [Frontend]
 	Issue 262: bonifica vulnerabilita` OSV su 23 finding (tutte

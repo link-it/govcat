@@ -235,7 +235,9 @@ describe('AdesioneViewComponent', () => {
   // --- loadReferents ---
 
   it('loadReferents should set referentiLoading false when _showReferents is false', () => {
-    component._showReferents = false;
+    // `_showReferents` e` un getter su `Tools.Configurazione`: per
+    // disattivarlo togliamo il flag dalla mock.
+    (Tools as any).Configurazione = { adesione: { mostra_referenti: 'disabled' } };
     component.referentiLoading = true;
 
     (component as any).loadReferents();
@@ -244,7 +246,7 @@ describe('AdesioneViewComponent', () => {
   });
 
   it('loadReferents should load and merge referents from multiple sources', () => {
-    component._showReferents = true;
+    (Tools as any).Configurazione = { adesione: { mostra_referenti: 'enabled' } };
     component.adesione = createMockAdesione();
 
     mockApiService.getDetails
@@ -265,7 +267,7 @@ describe('AdesioneViewComponent', () => {
   });
 
   it('loadReferents should handle error and set referentiLoading false', () => {
-    component._showReferents = true;
+    (Tools as any).Configurazione = { adesione: { mostra_referenti: 'enabled' } };
     component.adesione = createMockAdesione();
 
     mockApiService.getDetails.mockReturnValue(throwError(() => new Error('Referent error')));

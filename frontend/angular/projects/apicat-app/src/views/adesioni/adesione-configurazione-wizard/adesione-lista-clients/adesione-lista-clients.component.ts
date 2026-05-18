@@ -26,7 +26,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { MarkdownModule } from 'ngx-markdown';
 
-import { COMPONENTS_IMPORTS, EventsManagerService, Tools, EventType } from '@linkit/components';
+import { COMPONENTS_IMPORTS, ConfigService, EventsManagerService, Tools, EventType } from '@linkit/components';
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 import { ModalEditClientComponent, ModalEditClientInput, ModalEditClientLayout } from './modal-edit-client/modal-edit-client.component';
@@ -138,8 +138,22 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
         private readonly authenticationService: AuthenticationService,
         private readonly utils: UtilService,
         private readonly eventsManagerService: EventsManagerService,
-        private readonly ckeckProvider: CkeckProvider
+        private readonly ckeckProvider: CkeckProvider,
+        private readonly configService: ConfigService
     ) { }
+
+    /**
+     * Issue 262 — visibilita` dei disclaimer per item (banner
+     * markdown sotto la riga del client). Pilotata da
+     * `AppConfig.Adesioni.showClientDisclaimers` (default
+     * `false`: non mostrati). Quando `false` o assente, i
+     * banner per-item vengono nascosti — le indicazioni
+     * restano comunque visibili dentro la form `client-auth-form`
+     * tramite `[disclaimers]` quando attiva l'edit inline.
+     */
+    get _showItemDisclaimers(): boolean {
+        return this.configService.getConfiguration()?.AppConfig?.Adesioni?.showClientDisclaimers === true;
+    }
 
     ngOnInit() {
         this.initData();

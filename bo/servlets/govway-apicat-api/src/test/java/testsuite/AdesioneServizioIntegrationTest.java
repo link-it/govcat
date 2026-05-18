@@ -329,6 +329,19 @@ public class AdesioneServizioIntegrationTest {
         utenteUpdate.setStato(StatoUtenteEnum.ABILITATO);
         utenteUpdate.setTelefonoAziendale("0000000000");
         utentiController.updateUtente(ID_UTENTE_REFERENTE_SERVIZIO, utenteUpdate);
+
+        // REFERENTE_TECNICO deve essere associato all'org (policy 2.4.0)
+        UtenteUpdate utenteTecnicoUpdate = new UtenteUpdate();
+        CommonUtils.setOrganizzazione(utenteTecnicoUpdate, response.getBody().getIdOrganizzazione());
+        utenteTecnicoUpdate.setNome("Barba");
+        utenteTecnicoUpdate.setCognome("Rossa");
+        utenteTecnicoUpdate.setEmailAziendale("barbarossa@mail.com");
+        utenteTecnicoUpdate.setPrincipal(UTENTE_REFERENTE_TECNICO);
+        utenteTecnicoUpdate.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        utenteTecnicoUpdate.setStato(StatoUtenteEnum.ABILITATO);
+        utenteTecnicoUpdate.setTelefonoAziendale("0000000000");
+        utentiController.updateUtente(ID_UTENTE_REFERENTE_TECNICO, utenteTecnicoUpdate);
+
         this.setIdOrganizazione(response.getBody().getIdOrganizzazione());
         assertNotNull(response.getBody().getIdOrganizzazione());
         

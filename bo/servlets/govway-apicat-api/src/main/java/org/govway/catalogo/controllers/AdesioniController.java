@@ -64,6 +64,7 @@ import org.govway.catalogo.core.orm.entity.EstensioneAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
 import org.govway.catalogo.core.orm.entity.MessaggioAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.NotificaEntity;
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.StatoAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
@@ -71,6 +72,7 @@ import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity;
 import org.govway.catalogo.core.services.AdesioneService;
 import org.govway.catalogo.core.services.UtenteService;
+import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.core.services.NotificaService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
@@ -205,6 +207,9 @@ public class AdesioniController implements AdesioniApi {
 
 	@Autowired
 	private UtenteService utenteService;
+	@Autowired
+	private OrganizzazioneService organizzazioneService;
+
 
 	@Autowired
 	private DisclaimerService disclaimerService;
@@ -229,8 +234,10 @@ public class AdesioniController implements AdesioniApi {
 				
 				logger.info("POST authorization");
 				
+				checkReferenti(entity);
+
 				logger.info("PRE existsBySoggettoServizioNonArchiviato");
-				
+
 				if(this.service.existsBySoggettoServizioNonArchiviato(entity, configurazione.getAdesione().getWorkflow().getStatoArchiviato())) {
 					if(!entity.getServizio().isMultiAdesione()) {
 						throw new ConflictException(ErrorCode.ADE_409, java.util.Map.of("soggetto", entity.getSoggetto().getNome(), "servizio", entity.getServizio().getNome(), "versione", entity.getServizio().getVersione().toString()));
@@ -384,19 +391,21 @@ public class AdesioniController implements AdesioniApi {
 		try {
 			return this.service.runTransaction( () -> {
 
-				this.logger.info("Invocazione in corso ...");     
+				this.logger.info("Invocazione in corso ...");
 				AdesioneEntity entity = findOne(idAdesione);
-				
+
 				Grant grant = this.dettaglioAssembler.toGrant(entity);
 
 				if(!isForce(force, grant.getRuoli())) {
 					this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.REFERENTI));
 				}
 
-				this.logger.debug("Autorizzazione completata con successo");     
+				this.logger.debug("Autorizzazione completata con successo");
 
 				ReferenteAdesioneEntity referenteEntity = referenteAssembler.toEntity(referente, entity);
-				
+
+				checkReferente(referenteEntity);
+
 				this.service.save(referenteEntity);
 				this.service.save(entity);
 				
@@ -969,7 +978,7 @@ public class AdesioniController implements AdesioniApi {
 					}
 
 					// Pre-carica le associazioni utente-organizzazione via repository per evitare lazy loading
-					List<UtenteOrganizzazioneEntity> utenteOrganizzazioni = this.utenteService.findUtenteOrganizzazioniByUtente(utente);
+					List<UtenteOrganizzazioneEntity> utenteOrganizzazioni = this.organizzazioneService.findUtenteOrganizzazioniByUtente(utente);
 
 					// Mappa per l'associazione adesione -> entity
 					Map<String, AdesioneEntity> adesioneEntityMap = new HashMap<>();
@@ -2399,6 +2408,40 @@ public class AdesioniController implements AdesioniApi {
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	/**
+	 * Valida che tutti i referenti di un'adesione (sia REFERENTE che REFERENTE_TECNICO)
+	 * siano associati all'organizzazione del soggetto aderente. Gestori esentati.
+	 */
+	private void checkReferenti(AdesioneEntity adesione) {
+		OrganizzazioneEntity organizzazione = adesione.getSoggetto().getOrganizzazione();
+		for (ReferenteAdesioneEntity ref : adesione.getReferenti()) {
+			if (this.coreAuthorization.isAdmin(ref.getReferente())) {
+				continue;
+			}
+			if (!this.organizzazioneService.isAssociatoA(ref.getReferente(), organizzazione)) {
+				throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING,
+						Map.of("orgNome", organizzazione.getNome(),
+								"userIdUtente", ref.getReferente().getIdUtente()));
+			}
+		}
+	}
+
+	/**
+	 * Valida che il singolo referente (REFERENTE o REFERENTE_TECNICO) sia associato
+	 * all'organizzazione del soggetto aderente. Gestori esentati.
+	 */
+	private void checkReferente(ReferenteAdesioneEntity referenteEntity) {
+		if (this.coreAuthorization.isAdmin(referenteEntity.getReferente())) {
+			return;
+		}
+		OrganizzazioneEntity organizzazione = referenteEntity.getAdesione().getSoggetto().getOrganizzazione();
+		if (!this.organizzazioneService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
+			throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING,
+					Map.of("orgNome", organizzazione.getNome(),
+							"userIdUtente", referenteEntity.getReferente().getIdUtente()));
 		}
 	}
 

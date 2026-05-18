@@ -96,6 +96,9 @@ public class DominiController implements DominiApi {
 	@Autowired
 	private org.govway.catalogo.core.services.UtenteService utenteService;
 
+	@Autowired
+	private org.govway.catalogo.core.services.OrganizzazioneService organizzazioneService;
+
 
 	private Logger logger = LoggerFactory.getLogger(DominiController.class);
 
@@ -335,13 +338,10 @@ public class DominiController implements DominiApi {
 		for(ReferenteDominioEntity referenteEntity: dominioEntity.getReferenti()) {
 			boolean admin = this.coreAuthorization.isAdmin(referenteEntity.getReferente());
 
-			if(!admin) {
-				if(referenteEntity.getTipo().equals(TIPO_REFERENTE.REFERENTE)
-						&& !this.utenteService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
-					throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING,
-							Map.of("orgNome", organizzazione.getNome(),
-									"userIdUtente", referenteEntity.getReferente().getIdUtente()));
-				}
+			if(!admin && !this.organizzazioneService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
+				throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING,
+						Map.of("orgNome", organizzazione.getNome(),
+								"userIdUtente", referenteEntity.getReferente().getIdUtente()));
 			}
 
 		}
@@ -349,16 +349,16 @@ public class DominiController implements DominiApi {
 
 
 	private void checkReferente(ReferenteDominioEntity referenteEntity) {
-		if(referenteEntity.getTipo().equals(TIPO_REFERENTE.REFERENTE_TECNICO)) {
-			return;
-		}
-
 		OrganizzazioneEntity organizzazione = referenteEntity.getDominio().getSoggettoReferente().getOrganizzazione();
 		if(organizzazione.isEsterna()) {
 			return;
 		}
 
-		if (!this.utenteService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
+		if (this.coreAuthorization.isAdmin(referenteEntity.getReferente())) {
+			return;
+		}
+
+		if (!this.organizzazioneService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
 			throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING,
 					Map.of("orgNome", organizzazione.getNome(),
 							"userIdUtente", referenteEntity.getReferente().getIdUtente()));

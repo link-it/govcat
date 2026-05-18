@@ -196,7 +196,7 @@
                                 }
                               </div>
                               @if (mode.client_id && mode.client_id !== '-') {
-                                <button type="button" class="copy-btn" (click)="copy(mode.client_id)"
+                                <button type="button" class="btn-reset copy-btn" (click)="copy(mode.client_id)"
                                         [title]="'APP.BUTTON.Copy' | translate">
                                   <i class="bi bi-copy"></i>
                                 </button>
@@ -218,7 +218,7 @@
                                 {{ mode.ip === '-' ? ('APP.LABEL.NotSpecified' | translate) : mode.ip }}
                               </div>
                               @if (mode.ip && mode.ip !== '-') {
-                                <button type="button" class="copy-btn" (click)="copy(mode.ip)"
+                                <button type="button" class="btn-reset copy-btn" (click)="copy(mode.ip)"
                                         [title]="'APP.BUTTON.Copy' | translate">
                                   <i class="bi bi-copy"></i>
                                 </button>
@@ -311,7 +311,7 @@
                               {{ api.url === '-' ? ('APP.LABEL.NotSpecified' | translate) : api.url }}
                             </div>
                             @if (api.url && api.url !== '-') {
-                              <button type="button" class="copy-btn" (click)="copy(api.url)"
+                              <button type="button" class="btn-reset copy-btn" (click)="copy(api.url)"
                                       [title]="'APP.BUTTON.Copy' | translate">
                                 <i class="bi bi-copy"></i>
                               </button>

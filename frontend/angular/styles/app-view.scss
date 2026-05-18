@@ -18,6 +18,7 @@
 
   /* primary accent — overridable via tweak */
   --accent:        #ff4050;
+  --accent-600:    #e6303f;
   --accent-hover:  #e6303f;
   --accent-soft:   #ffe9eb;
   --accent-soft-2: #ffd4d8;
@@ -55,6 +56,36 @@
 
   --gap: 16px;
   --pad: 22px;
+
+  --gc-brand: #e63946;
+  --gc-brand-600: #d62839;
+  --gc-brand-50: #fef2f3;
+
+  /* Ink / text */
+  --gc-ink: #0b1220;
+  --gc-ink-2: #1e293b;
+  --gc-muted: #64748b;
+
+  /* Surfaces */
+  --gc-bg: #f6f7fb;
+  --gc-surface: #ffffff;
+  --gc-readonly-bg: #f1f4f9;
+
+  /* Lines */
+  --gc-line: #e5e9f0;
+  --gc-line-2: #eef1f6;
+
+  /* Shape */
+  --gc-radius-sm: 6px;
+  --gc-radius: 8px;
+  --gc-radius-lg: 14px;
+
+  /* Spacing */
+  --gc-pad-y: 1rem;
+  --gc-pad-x: 1.25rem;
+
+  /* Focus */
+  --gc-ring: 0 0 0 3px color-mix(in srgb, var(--gc-brand) 22%, transparent);
 }
 
 small, .small {
@@ -118,7 +149,7 @@ small, .small {
  * =================================================================== */
 .lnk-vetrina {
 
-  // button { font: inherit; color: inherit; background: none; border: 0; cursor: default; padding: 0; }
+  button.btn-reset { font: inherit; color: inherit; background: none; border: 0; cursor: default; padding: 0; }
 
   /* NOTA: per brevità solo le classi essenziali sono incluse qui sotto.
     Le classi complete (.main .hero .api .expand .sw-* .toast .chip ecc.)

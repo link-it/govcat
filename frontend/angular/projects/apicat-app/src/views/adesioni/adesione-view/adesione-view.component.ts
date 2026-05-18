@@ -291,8 +291,21 @@ export class AdesioneViewComponent implements OnInit {
   public apis: ApiView[] = [];
   public clientRowConfig = clientRowConfig;
 
-  _showReferents: boolean = true;
-  _showRichiedente: boolean = true;
+  /**
+   * Visibilita` sezione referenti / richiedente. Letti come getter
+   * da `Tools.Configurazione` cosi` riflettono lo stato corrente
+   * della config remota: su hard refresh il constructor parte
+   * prima che `Tools.Configurazione` sia popolata e i valori
+   * verrebbero congelati a `false`, lasciando vuota la sezione
+   * referenti (la chiamata `loadReferents()` esce subito alla
+   * guardia iniziale).
+   */
+  get _showReferents(): boolean {
+    return Tools.Configurazione?.adesione?.mostra_referenti === 'enabled';
+  }
+  get _showRichiedente(): boolean {
+    return Tools.Configurazione?.adesione?.mostra_richiedente === 'enabled';
+  }
 
   // Issue 254 (NEW VETRINA): stato del nuovo layout vetrina.
   /** Indice del pannello auth aperto (`-1` = nessuno). Default 0. */
@@ -324,8 +337,6 @@ export class AdesioneViewComponent implements OnInit {
   ) {
     const config = this.configService.getConfiguration();
     this.apiUrl = config.AppConfig.GOVAPI.HOST;
-    this._showReferents = Tools.Configurazione?.adesione?.mostra_referenti === 'enabled';
-    this._showRichiedente = Tools.Configurazione?.adesione?.mostra_richiedente === 'enabled';
 
     this.route.data.subscribe((data) => {
       if (!data.serviceBreadcrumbs) return;

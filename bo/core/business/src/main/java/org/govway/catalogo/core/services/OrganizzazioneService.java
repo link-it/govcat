@@ -19,14 +19,17 @@
  */
 package org.govway.catalogo.core.services;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.govway.catalogo.core.dao.specifications.OrganizzazioneSpecification;
 import org.govway.catalogo.core.exceptions.NotFoundException;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
+import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.SoggettoEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity;
@@ -199,10 +202,6 @@ public class OrganizzazioneService extends AbstractService {
 	}
 
 	// === Gestione associazioni utente-organizzazione ===
-	// TODO [MULTI-ORG] Valutare refactoring: spostare qui anche i metodi legati
-	// alle associazioni utente-organizzazione attualmente in UtenteService
-	// (findUtenteOrganizzazione, hasRuoloInOrganizzazione, isAssociatoA, ...)
-	// per una migliore coerenza di responsabilità tra i service.
 
 	/**
 	 * Salva o aggiorna un'associazione utente-organizzazione.
@@ -253,6 +252,86 @@ public class OrganizzazioneService extends AbstractService {
 				.filter(a -> a.getOrganizzazione() != null
 						&& a.getOrganizzazione().getId().equals(organizzazione.getId()))
 				.findFirst();
+	}
+
+	/**
+	 * Restituisce la lista delle associazioni utente-organizzazione per l'utente indicato.
+	 * Utile per accedere alle associazioni senza incorrere in LazyInitializationException
+	 * quando l'entità utente è detached dalla session Hibernate.
+	 */
+	public List<UtenteOrganizzazioneEntity> findUtenteOrganizzazioniByUtente(UtenteEntity utente) {
+		return this.utenteOrganizzazioneRepo.findByUtente(utente);
+	}
+
+	/**
+	 * Verifica se l'utente è associato all'organizzazione indicata.
+	 * Non considera il ruolo: restituisce true anche se il ruolo è null (nessun ruolo / sola lettura).
+	 */
+	public boolean isAssociatoA(UtenteEntity utente, OrganizzazioneEntity organizzazione) {
+		if (utente == null || organizzazione == null) {
+			return false;
+		}
+		return findUtenteOrganizzazione(utente, organizzazione).isPresent();
+	}
+
+	/**
+	 * Verifica se l'utente ha uno dei ruoli specificati nell'organizzazione indicata.
+	 * Restituisce false se non c'è associazione o se il ruolo dell'associazione è null.
+	 */
+	public boolean hasRuoloInOrganizzazione(UtenteEntity utente, OrganizzazioneEntity organizzazione, RuoloOrganizzazione... ruoli) {
+		Optional<UtenteOrganizzazioneEntity> assoc = findUtenteOrganizzazione(utente, organizzazione);
+		if (assoc.isEmpty() || assoc.get().getRuoloOrganizzazione() == null) {
+			return false;
+		}
+		RuoloOrganizzazione ruoloUtente = assoc.get().getRuoloOrganizzazione();
+		for (RuoloOrganizzazione r : ruoli) {
+			if (ruoloUtente == r) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Verifica se due utenti hanno almeno un'organizzazione in comune.
+	 */
+	public boolean hasOrganizzazioneInComune(UtenteEntity u1, UtenteEntity u2) {
+		if (u1 == null || u2 == null) {
+			return false;
+		}
+		Set<Long> org1 = raccogliIdOrganizzazioni(u1);
+		Set<Long> org2 = raccogliIdOrganizzazioni(u2);
+		org1.retainAll(org2);
+		return !org1.isEmpty();
+	}
+
+	private Set<Long> raccogliIdOrganizzazioni(UtenteEntity u) {
+		Set<Long> ids = new HashSet<>();
+		for (UtenteOrganizzazioneEntity assoc : findUtenteOrganizzazioniByUtente(u)) {
+			if (assoc.getOrganizzazione() != null) {
+				ids.add(assoc.getOrganizzazione().getId());
+			}
+		}
+		return ids;
+	}
+
+	/**
+	 * Restituisce gli utenti che hanno il ruolo indicato sull'organizzazione.
+	 * Filtra solo utenti in stato operativo (ABILITATO o PENDING_UPDATE), utili per
+	 * il recapito di notifiche/comunicazioni.
+	 */
+	public List<UtenteEntity> findUtentiByOrganizzazioneAndRuolo(OrganizzazioneEntity organizzazione, RuoloOrganizzazione ruolo) {
+		if (organizzazione == null || ruolo == null) {
+			return java.util.Collections.emptyList();
+		}
+		return this.utenteOrganizzazioneRepo
+				.findByOrganizzazioneAndRuoloOrganizzazione(organizzazione, ruolo)
+				.stream()
+				.map(UtenteOrganizzazioneEntity::getUtente)
+				.filter(u -> u != null
+						&& (u.getStato() == UtenteEntity.Stato.ABILITATO
+								|| u.getStato() == UtenteEntity.Stato.PENDING_UPDATE))
+				.collect(Collectors.toList());
 	}
 
 }

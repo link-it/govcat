@@ -30,6 +30,7 @@ import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Stato;
 import org.govway.catalogo.core.services.UtenteService;
+import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.Referente;
@@ -43,6 +44,9 @@ public class ReferenteClasseUtenteAssembler extends RepresentationModelAssembler
 
 	@Autowired
 	private UtenteService utenteService;
+	@Autowired
+	private OrganizzazioneService organizzazioneService;
+
 
 	@Autowired
 	private UtenteFullAssembler utenteFullAssembler;
@@ -90,7 +94,7 @@ public class ReferenteClasseUtenteAssembler extends RepresentationModelAssembler
 
 	private boolean isSameOrganization(UtenteEntity viewer, UtenteEntity referente) {
 		// Multi-org: viewer e referente hanno almeno un'organizzazione in comune.
-		return this.utenteService.hasOrganizzazioneInComune(viewer, referente);
+		return this.organizzazioneService.hasOrganizzazioneInComune(viewer, referente);
 	}
 
 	public TIPO_REFERENTE toTipoReferente(TipoReferenteEnum tipo) {
@@ -116,7 +120,7 @@ public class ReferenteClasseUtenteAssembler extends RepresentationModelAssembler
 
 		if(tipoReferente.equals(TIPO_REFERENTE.REFERENTE)) {
 			// Multi-org: l'utente deve essere associato all'organizzazione del soggetto dell'adesione
-			if (!this.utenteService.isAssociatoA(utente, adesione.getSoggetto().getOrganizzazione())) {
+			if (!this.organizzazioneService.isAssociatoA(utente, adesione.getSoggetto().getOrganizzazione())) {
 				throw new BadRequestException(ErrorCode.UT_404_BY_NAME, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome(), "nomeOrganizzazione", adesione.getSoggetto().getOrganizzazione().getNome()));
 			}
 		}

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
@@ -49,13 +49,61 @@ import { Tools } from '@linkit/components';
     styleUrls: ['./error-view-card.component.scss'],
     imports: [CommonModule, TooltipModule, TranslateModule],
 })
-export class ErrorViewCardComponent {
+export class ErrorViewCardComponent implements OnInit, OnDestroy {
 
     @Input('errTitle') title: string | null = null;
     @Input() errors: any[] = [];
     @Input() showClose: boolean = false;
+    /**
+     * Auto-dismiss del banner dopo N millisecondi dalla
+     * comparsa. `0` (default) = disabilitato, l'utente deve
+     * chiudere manualmente via X. Quando settato a >0, dopo il
+     * timeout viene emesso `(onClose)` come se l'utente avesse
+     * cliccato la X — il parent decide cosa fare (di solito
+     * `resetError()`). Il timer viene cancellato in
+     * `ngOnDestroy`: se il banner viene rimosso prima (es. il
+     * parent fa `resetError()` per altre ragioni), nessun
+     * `onClose` spurio viene emesso.
+     */
+    @Input() autocloseMs: number = 0;
 
     @Output() onClose = new EventEmitter<void>();
+
+    /**
+     * Durata dell'animazione di chiusura in ms. Deve coincidere
+     * con la `transition-duration` della classe `.is-closing`
+     * nel SCSS (220ms). Cambiando uno, cambiare l'altro.
+     */
+    private static readonly _CLOSE_ANIMATION_MS = 220;
+
+    /** Flag che attiva la classe CSS `.is-closing` (fade-out +
+     *  collapse). Il template re-renderizza la `<section>` con
+     *  la classe, le transition CSS partono e dopo ~220ms
+     *  emettiamo `onClose`. */
+    _closing = false;
+
+    private _autocloseTimer: ReturnType<typeof setTimeout> | null = null;
+    private _animationTimer: ReturnType<typeof setTimeout> | null = null;
+
+    ngOnInit(): void {
+        if (this.autocloseMs > 0) {
+            this._autocloseTimer = setTimeout(() => {
+                this._autocloseTimer = null;
+                this.closeMessages();
+            }, this.autocloseMs);
+        }
+    }
+
+    ngOnDestroy(): void {
+        if (this._autocloseTimer) {
+            clearTimeout(this._autocloseTimer);
+            this._autocloseTimer = null;
+        }
+        if (this._animationTimer) {
+            clearTimeout(this._animationTimer);
+            this._animationTimer = null;
+        }
+    }
 
     /** Mappa `nome_campo` -> label custom configurata dall'app
      *  (`Tools.CustomFieldsLabel`). Usata solo per i campi marcati
@@ -105,7 +153,19 @@ export class ErrorViewCardComponent {
         return sottotipo.map((item: any) => item?.tipo).filter(Boolean).join('.');
     }
 
+    /**
+     * Avvia l'animazione di chiusura (fade + collapse via classe
+     * `.is-closing`) e dopo `_CLOSE_ANIMATION_MS` emette
+     * `onClose` per permettere al parent di rimuovere il banner.
+     * Idempotente: chiamate ripetute mentre l'animazione e` in
+     * corso vengono ignorate.
+     */
     closeMessages(): void {
-        this.onClose.emit();
+        if (this._closing) { return; }
+        this._closing = true;
+        this._animationTimer = setTimeout(() => {
+            this._animationTimer = null;
+            this.onClose.emit();
+        }, ErrorViewCardComponent._CLOSE_ANIMATION_MS);
     }
 }

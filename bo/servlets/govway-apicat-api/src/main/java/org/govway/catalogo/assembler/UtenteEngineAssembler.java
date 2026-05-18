@@ -59,7 +59,6 @@ public class UtenteEngineAssembler extends CoreEngineAssembler {
 		return null;
 	}
 
-	// TODO [MULTI-ORG] Valutare se il mapping dovrà considerare anche i ruoli per-organizzazione.
 	public RuoloUtenteEnum toRuolo(Ruolo ruolo) {
 		switch(ruolo) {
 		case AMMINISTRATORE: return RuoloUtenteEnum.GESTORE;

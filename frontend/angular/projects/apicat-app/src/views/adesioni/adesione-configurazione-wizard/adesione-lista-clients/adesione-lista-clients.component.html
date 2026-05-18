@@ -57,11 +57,13 @@
               <div class="adesione-config-list-item-meta">
                 @let clientName = item.source?.nome || item.source?.nome_proposto;
                 @if (clientName) { <span>{{ clientName }}</span> }
-                @if (clientName && item.auth_type) { <span class="sep">·</span> }
-                @if (item.auth_type) { <span class="mono-pill">{{ ('APP.CLIENT.AUTH_TYPE.' + item.auth_type) | translate }}</span> }
+                @if (clientName && item.auth_type && false) { <span class="sep">·</span> }
+                @if (item.auth_type && false) { <span class="mono-pill">{{ ('APP.CLIENT.AUTH_TYPE.' + item.auth_type) | translate }}</span> }
                 @if (item.source?.stato) {
-                  <span class="sep">·</span>
-                  <span class="config-status" [ngClass]="'config-status-' + item.source.stato">
+                  @if (clientName) {
+                    <span class="sep">·</span>
+                  }
+                  <span class="config-status" [ngClass]="'config-status-' + (item.source.stato === 'configurato' ? 'configurato' : 'NONCONFIGURATO')">
                     {{ ('APP.CLIENT.LABEL.' + (item.source.stato === 'configurato' ? 'Configured' : 'NotConfigured')) | translate }}
                   </span>
                 }
@@ -101,13 +103,15 @@
           </div>
 
           <!-- Disclaimers per item (icone severity + markdown inline).
-               Nascosti quando:
+               Issue 262 — visibilita` controllata da
+               `AppConfig.Adesioni.showClientDisclaimers` (default
+               `false`: non mostrati). Nascosti anche quando:
                - la form inline e` aperta per QUESTO item (la form
                  li mostra gia` via `<app-client-auth-form [disclaimers]>`)
                - il client e` gia` `configurato` (le note sono
                  contestuali alla configurazione iniziale e perdono
                  di utilita` una volta completata). -->
-          @if (!isEditing && item.source?.stato !== 'configurato') {
+          @if (_showItemDisclaimers && !isEditing && item.source?.stato !== 'configurato') {
             @for (d of _clientDisclaimers(item); track $index) {
               <small class="adesione-item-hint d-flex align-items-start gap-2 px-3 py-2 alert mb-0" [ngClass]="_getDisclaimerAlertClass(d.severity)">
                 <i class="me-2" [ngClass]="_getDisclaimerIconClass(d.severity)" [attr.aria-label]="d.severity"></i>

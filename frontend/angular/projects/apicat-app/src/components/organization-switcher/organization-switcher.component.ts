@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, inject } from '@angular/core';
 import { Subscription } from 'rxjs';
 
@@ -54,6 +54,7 @@ export class OrganizationSwitcherComponent implements OnInit, OnDestroy {
     private readonly cdr = inject(ChangeDetectorRef);
     private readonly eventsManagerService = inject(EventsManagerService);
     private readonly router = inject(Router);
+    private readonly location = inject(Location);
     private readonly elRef = inject(ElementRef);
 
     private _sub: Subscription | null = null;
@@ -105,16 +106,33 @@ export class OrganizationSwitcherComponent implements OnInit, OnDestroy {
     }
 
     /**
-     * Vero se l'utente ha ruolo `amministratore_organizzazione` per
-     * la voce passata: solo allora mostriamo il pulsante "Gestisci".
+     * Vero se l'utente ha permesso di gestire l'organizzazione
+     * passata (visibilita` del bottone). Permesso a:
+     * - coordinatori (ruolo globale);
+     * - utenti con `ruolo_organizzazione = amministratore_organizzazione`
+     *   sulla riga specifica.
      */
     canManage(org: UtenteOrganizzazione): boolean {
+        if (this.authenticationService.isCoordinatore()) {
+            return true;
+        }
         return org?.ruolo_organizzazione === RuoloOrganizzazioneEnum.AmministratoreOrganizzazione;
+    }
+
+    /**
+     * Vero se il bottone "Gestisci" sulla voce passata e`
+     * effettivamente cliccabile: solo sull'org corrente. Sulle
+     * altre voci il bottone resta visibile ma disabilitato —
+     * l'utente deve prima cambiare contesto (autosselezione via
+     * `onSelect`) per accedere alla gestione.
+     */
+    canManageEnabled(org: UtenteOrganizzazione): boolean {
+        return this.canManage(org) && this.isCurrent(org);
     }
 
     onManage(org: UtenteOrganizzazione, event: Event): void {
         event.stopPropagation();
-        if (!this.canManage(org)) { return; }
+        if (!this.canManageEnabled(org)) { return; }
         const id = org?.organizzazione?.id_organizzazione;
         if (!id) { return; }
         // Bootstrap non chiude la dropdown perche' il bottone gear non e'
@@ -136,16 +154,20 @@ export class OrganizationSwitcherComponent implements OnInit, OnDestroy {
     onSelect(org: UtenteOrganizzazione): void {
         if (this.isCurrent(org)) { return; }
         this.organizationContextService.setCurrent(org);
-        // Live refresh: emettiamo un evento globale (per i componenti
-        // che vogliono reagire selettivamente) e ri-navighiamo alla
-        // rotta corrente per forzare il riavvio del navigation cycle
-        // (resolver, guard, ngOnInit dei children) senza un full reload.
-        // Il trick di passare per `/` con `skipLocationChange` evita
-        // di toccare la history del browser.
+        // Emettiamo l'evento globale per i componenti che vogliono
+        // reagire selettivamente.
         this.eventsManagerService.broadcast(EventType.ORGANIZATION_CONTEXT_CHANGED, org);
-        const currentUrl = this.router.url;
-        this.router.navigateByUrl('/', { skipLocationChange: true })
-            .then(() => this.router.navigateByUrl(currentUrl));
+        // Hard reload su `/dashboard`: il cambio contesto org cambia
+        // il principio dei dati visualizzati e la rotta corrente
+        // potrebbe non essere piu` valida nella nuova org. Una
+        // `router.navigate` SPA non basta: la `DashboardComponent`
+        // viene riusata dal `RouteReuseStrategy` di default e
+        // `ngOnInit` non rigira, lasciando i dati del contesto
+        // precedente. Boot completo dell'app garantisce re-init di
+        // ogni componente con il nuovo `X-Organization-Context`.
+        // `Location.prepareExternalUrl` rispetta il base-href della
+        // build (es. `/apicat-app/dashboard` in produzione).
+        window.location.assign(this.location.prepareExternalUrl('/dashboard'));
     }
 
     private _reloadFromUser(): void {

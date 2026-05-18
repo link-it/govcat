@@ -366,6 +366,7 @@
 			"RemoveGroup": "Rimuovi gruppo",
 			"Report": "Resoconto",
 			"RestoreDefaultAuthentication": "Ripristina autenticazione di default",
+			"RestoreOriginal": "Ripristina le info originali",
 			"LoadMore": "Carica altri",
 			"Save": "Salva",
 			"Search": "Cerca",
@@ -506,7 +507,10 @@
 				"referente_adesione": "Ref. adesione",
 				"referente_tecnico_adesione": "Ref. tecnico adesione",
 				"richiedente_servizio": "Richiedente servizio",
-				"richiedente_adesione": "Richiedente adesione"
+				"richiedente_adesione": "Richiedente adesione",
+				"amministratore_organizzazione": "Amm. organizzazione",
+				"operatore_api": "Operatore API",
+				"utente_organizzazione": "Utente organizzazione"
 			}
 		},
 		"DASHBOARD": {
@@ -1998,7 +2002,51 @@
 		"PROFILE": {
 			"TAB": {
 				"Profile": "Profilo",
+				"Profilo": "Profilo",
+				"Informazioni": "Informazioni",
+				"Organizzazioni": "Organizzazioni",
+				"Impostazioni": "Impostazioni",
 				"Settings": "Impostazioni"
+			},
+			"SECTION": {
+				"IdentitaTitle": "Identità",
+				"IdentitaDesc": "Identificativo unico utilizzato per autenticazione e tracciamento. Non modificabile.",
+				"PersonaliTitle": "Informazioni personali",
+				"PersonaliDesc": "Visualizzato in tutta la piattaforma.",
+				"ContattiTitle": "Contatti",
+				"ContattiCorporateTitle": "Contatti aziendali",
+				"ContattiDesc": "Usati per notifiche operative e comunicazioni di servizio."
+			},
+			"PREFERENCES": {
+				"ServiziTitle": "Servizi",
+				"ServiziDesc": "Modalità di visualizzazione di default della lista dei servizi nel catalogo.",
+				"ViewDefault": "Vista predefinita",
+				"ViewCard": "Card",
+				"ViewCardDesc": "Griglia visuale con anteprime",
+				"ViewList": "Lista",
+				"ViewListDesc": "Righe compatte con riepilogo",
+				"CardOptions": "Opzioni visualizzazione card",
+				"OptionsCounter": "{{active}} di {{total}} attive",
+				"ShowImage": "Mostra immagine",
+				"ShowImageDesc": "Anteprima grafica del servizio nella card",
+				"ShowEmptyImage": "Mostra immagine vuota",
+				"ShowEmptyImageDesc": "Riserva lo spazio anche senza anteprima",
+				"FillBox": "Riempi il box",
+				"FillBoxDesc": "L'immagine occupa l'intera larghezza",
+				"ShowMasonry": "Layout masonry",
+				"ShowMasonryDesc": "Altezze variabili a mosaico",
+				"NotificheTitle": "Notifiche",
+				"NotificheDesc": "Scegli per ogni categoria su quali canali ricevere gli avvisi.",
+				"NotificheDisclaimer": "Le modifiche alle impostazioni di notifica impattano <strong>tutte le comunicazioni</strong> ricevute.",
+				"EnableAll": "Attiva tutto",
+				"DisableAll": "Disattiva tutto",
+				"ColCategory": "Categoria",
+				"GroupCommTitle": "Comunicazioni",
+				"GroupCommDesc": "Messaggi diretti e aggiornamenti dell'organizzazione.",
+				"RowCommLabel": "Ricevi notifiche per le comunicazioni",
+				"GroupStatusTitle": "Cambio di stato",
+				"GroupStatusDesc": "Quando un servizio o adesione cambia stato operativo.",
+				"RowStatusLabel": "Ricevi notifiche per i cambi di stato"
 			},
 			"ORGANIZATION": {
 				"ChangeTitle": "Cambio organizzazione",
@@ -2699,7 +2747,7 @@
 				"Email": "E-mail",
 				"Nome": "Nome",
 				"Note": "Note",
-				"OrganizzazioneEsterna": "Organizzazione esterna (es. software house)",
+				"OrganizzazioneEsterna": "Azienda esterna (es. software house)",
 				"Phone": "Telefono",
 				"Principal": "Principal",
 				"Role": "Ruolo",

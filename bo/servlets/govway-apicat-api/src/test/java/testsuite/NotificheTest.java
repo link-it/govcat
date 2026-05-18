@@ -214,7 +214,20 @@ public class NotificheTest {
         upUtente.setRuolo(RuoloUtenteEnum.GESTORE);
 
         utentiController.updateUtente(ID_UTENTE_GESTORE, upUtente);
-        
+
+        // L'utente designato come REFERENTE_TECNICO deve essere associato all'organizzazione
+        // del soggetto referente del dominio (nuova policy 2.4.0).
+        upUtente = new UtenteUpdate();
+        upUtente.setPrincipal(UTENTE_REFERENTE_TECNICO);
+        CommonUtils.setOrganizzazione(upUtente, idOrganizzazione);
+        upUtente.setStato(StatoUtenteEnum.ABILITATO);
+        upUtente.setEmailAziendale("mail@aziendale.it");
+        upUtente.setTelefonoAziendale("+39 0000000");
+        upUtente.setNome("referente");
+        upUtente.setCognome("tecnico");
+        upUtente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        utentiController.updateUtente(ID_UTENTE_REFERENTE_TECNICO, upUtente);
+
         SoggettoCreate soggettoCreate = new SoggettoCreate();
         soggettoCreate.setNome("nome_soggetto");
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());

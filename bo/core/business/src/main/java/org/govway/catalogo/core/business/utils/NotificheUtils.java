@@ -60,6 +60,9 @@ public class NotificheUtils {
 
 	@Autowired
 	private UtenteService utenteService;
+
+	@Autowired
+	private org.govway.catalogo.core.services.OrganizzazioneService organizzazioneService;
 	
 	public List<NotificaEntity> getNotificheCreazioneServizio(ServizioEntity servizio) {
 
@@ -225,6 +228,12 @@ public class NotificheUtils {
 				case ADERENTI:
 					addDestinatariAderenti(destinatari, servizio, includiTecnici, isEmail);
 					break;
+				case AMMINISTRATORI_ORGANIZZAZIONE_SERVIZIO:
+					addAmministratoriOrganizzazioneServizio(destinatari, servizio,
+							RuoloNotificaEnum.SERVIZIO_AMMINISTRATORE_ORGANIZZAZIONE_SERVIZIO,
+							RuoloNotificaEnum.SERVIZIO_AMMINISTRATORE_ORGANIZZAZIONE_SERVIZIO_EMAIL,
+							isEmail);
+					break;
 				case GESTORE:
 					addGestori(destinatari, isEmail);
 					break;
@@ -364,6 +373,18 @@ public class NotificheUtils {
 					break;
 				case RICHIEDENTE_ADESIONE:
 					addRichiedenteAdesione(destinatari, adesione, isEmail);
+					break;
+				case AMMINISTRATORI_ORGANIZZAZIONE_SERVIZIO:
+					addAmministratoriOrganizzazioneServizio(destinatari, servizio,
+							RuoloNotificaEnum.ADESIONE_AMMINISTRATORE_ORGANIZZAZIONE_SERVIZIO,
+							RuoloNotificaEnum.ADESIONE_AMMINISTRATORE_ORGANIZZAZIONE_SERVIZIO_EMAIL,
+							isEmail);
+					break;
+				case AMMINISTRATORI_ORGANIZZAZIONE_ADERENTE:
+					addAmministratoriOrganizzazioneAderente(destinatari, adesione,
+							RuoloNotificaEnum.ADESIONE_AMMINISTRATORE_ORGANIZZAZIONE_ADERENTE,
+							RuoloNotificaEnum.ADESIONE_AMMINISTRATORE_ORGANIZZAZIONE_ADERENTE_EMAIL,
+							isEmail);
 					break;
 				case GESTORE:
 					addGestori(destinatari, isEmail);
@@ -583,6 +604,39 @@ public class NotificheUtils {
 		} else {
 			destinatari.put(RuoloNotificaEnum.COORDINATORE, coordinatori);
 		}
+	}
+
+	/**
+	 * Aggiunge come destinatari gli AMM_ORG dell'organizzazione del soggetto referente
+	 * del dominio del servizio (l'org "erogatrice").
+	 */
+	private void addAmministratoriOrganizzazioneServizio(Map<RuoloNotificaEnum, List<UtenteEntity>> destinatari,
+			ServizioEntity servizio, RuoloNotificaEnum tagPush, RuoloNotificaEnum tagEmail, boolean isEmail) {
+		if (servizio == null || servizio.getDominio() == null
+				|| servizio.getDominio().getSoggettoReferente() == null) {
+			return;
+		}
+		org.govway.catalogo.core.orm.entity.OrganizzazioneEntity organizzazione =
+				servizio.getDominio().getSoggettoReferente().getOrganizzazione();
+		List<UtenteEntity> amm = this.organizzazioneService.findUtentiByOrganizzazioneAndRuolo(organizzazione,
+				org.govway.catalogo.core.orm.entity.RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+		destinatari.put(isEmail ? tagEmail : tagPush, amm);
+	}
+
+	/**
+	 * Aggiunge come destinatari gli AMM_ORG dell'organizzazione del soggetto aderente
+	 * dell'adesione.
+	 */
+	private void addAmministratoriOrganizzazioneAderente(Map<RuoloNotificaEnum, List<UtenteEntity>> destinatari,
+			AdesioneEntity adesione, RuoloNotificaEnum tagPush, RuoloNotificaEnum tagEmail, boolean isEmail) {
+		if (adesione == null || adesione.getSoggetto() == null) {
+			return;
+		}
+		org.govway.catalogo.core.orm.entity.OrganizzazioneEntity organizzazione =
+				adesione.getSoggetto().getOrganizzazione();
+		List<UtenteEntity> amm = this.organizzazioneService.findUtentiByOrganizzazioneAndRuolo(organizzazione,
+				org.govway.catalogo.core.orm.entity.RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+		destinatari.put(isEmail ? tagEmail : tagPush, amm);
 	}
 
 	private NotificaEntity getNotifica(UtenteEntity mittente, ServizioEntity servizio, AdesioneEntity adesione, String idEntita, String stato, String oggetto, String messaggio, TIPO tipo, TIPO_ENTITA tipoEntita, UtenteEntity destinatario) {

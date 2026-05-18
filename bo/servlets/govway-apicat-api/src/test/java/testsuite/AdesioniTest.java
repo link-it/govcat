@@ -303,7 +303,20 @@ public class AdesioniTest {
         upUtente.setRuolo(RuoloUtenteEnum.GESTORE);
 
         utentiController.updateUtente(ID_UTENTE_GESTORE, upUtente);
-        
+
+        // Per la policy 2.4.0 (referenti dell'adesione associati all'org aderente)
+        // associo all'organizzazione anche gli utenti usati come referenti nelle adesioni.
+        upUtente = new UtenteUpdate();
+        upUtente.setPrincipal(UTENTE_RICHIEDENTE_ADESIONE);
+        CommonUtils.setOrganizzazione(upUtente, idOrganizzazione);
+        upUtente.setStato(StatoUtenteEnum.ABILITATO);
+        upUtente.setEmailAziendale("mail@aziendale.it");
+        upUtente.setTelefonoAziendale("+39 0000000");
+        upUtente.setNome("utente");
+        upUtente.setCognome("richiedente_adesione");
+        upUtente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        utentiController.updateUtente(ID_UTENTE_RICHIEDENTE_ADESIONE, upUtente);
+
         SoggettoCreate soggettoCreate = new SoggettoCreate();
         //soggettoCreate.setSkipCollaudo(true);
         soggettoCreate.setNome("nome_soggetto");
@@ -2646,8 +2659,29 @@ public class AdesioniTest {
         upUtente.setCognome("referente_tecnico_adesione");
 
         utentiController.updateUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE, upUtente);
-		
-        
+
+        upUtente = new UtenteUpdate();
+        upUtente.setPrincipal(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        CommonUtils.setOrganizzazione(upUtente, idOrganizzazione);
+        upUtente.setStato(StatoUtenteEnum.ABILITATO);
+        upUtente.setEmailAziendale("mail@aziendale.it");
+        upUtente.setTelefonoAziendale("+39 0000000");
+        upUtente.setNome("referente");
+        upUtente.setCognome("tecnico_dominio");
+        upUtente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        utentiController.updateUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO, upUtente);
+
+        upUtente = new UtenteUpdate();
+        upUtente.setPrincipal(UTENTE_REFERENTE_TECNICO_SERVIZIO);
+        CommonUtils.setOrganizzazione(upUtente, idOrganizzazione);
+        upUtente.setStato(StatoUtenteEnum.ABILITATO);
+        upUtente.setEmailAziendale("mail@aziendale.it");
+        upUtente.setTelefonoAziendale("+39 0000000");
+        upUtente.setNome("referente");
+        upUtente.setCognome("tecnico_servizio");
+        upUtente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        utentiController.updateUtente(ID_UTENTE_REFERENTE_TECNICO_SERVIZIO, upUtente);
+
         SoggettoCreate soggettoCreate = new SoggettoCreate();
         soggettoCreate.setNome("nome_soggetto");
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
@@ -5657,9 +5691,12 @@ public class AdesioniTest {
     	
     	UtenteCreate nuovoUtente = CommonUtils.getUtenteCreate();
     	nuovoUtente.setPrincipal(UTENTE_REFERENTE_TECNICO_ADESIONE+2);
-    	
+    	// Policy 2.4.0: i referenti dell'adesione devono essere associati all'organizzazione aderente
+    	CommonUtils.setOrganizzazione(nuovoUtente, idOrganizzazione);
+    	nuovoUtente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+
     	utentiController.createUtente(nuovoUtente);
-    	
+
     	InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_ADESIONE+2, utenteService);
     	
     	ReferenteCreate referenteNew = new ReferenteCreate();
@@ -5894,9 +5931,12 @@ public class AdesioniTest {
     	
     	UtenteCreate nuovoUtente = CommonUtils.getUtenteCreate();
     	nuovoUtente.setPrincipal(UTENTE_REFERENTE_TECNICO_ADESIONE+2);
-    	
+    	// Policy 2.4.0: i referenti dell'adesione devono essere associati all'organizzazione aderente
+    	CommonUtils.setOrganizzazione(nuovoUtente, idOrganizzazione);
+    	nuovoUtente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+
     	utentiController.createUtente(nuovoUtente);
-    	
+
     	InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_ADESIONE+2, utenteService);
     	
     	ReferenteCreate referenteNew = new ReferenteCreate();

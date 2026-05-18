@@ -117,7 +117,7 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 
 		// Popola la lista di associazioni utente-organizzazione (multi-org).
 		// Utilizza il repository per evitare LazyInitializationException quando l'entità è detached.
-		List<UtenteOrganizzazioneEntity> associazioni = utenteService.findUtenteOrganizzazioniByUtente(entity);
+		List<UtenteOrganizzazioneEntity> associazioni = organizzazioneService.findUtenteOrganizzazioniByUtente(entity);
 		if (associazioni != null && !associazioni.isEmpty()) {
 			List<UtenteOrganizzazione> orgs = associazioni.stream()
 					.map(this::toUtenteOrganizzazione)
@@ -196,7 +196,7 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		// Default notifiche: solo COMUNICAZIONE (no CAMBIO_STATO), tutte le entità e ruoli (no EMAIL)
 		entity.setTipiNotificheAbilitate("COMUNICAZIONE");
 		entity.setTipiEntitaNotificheAbilitate("SERVIZIO,ADESIONE");
-		entity.setRuoliNotificheAbilitate("SERVIZIO_REFERENTE_DOMINIO,SERVIZIO_REFERENTE_TECNICO_DOMINIO,SERVIZIO_REFERENTE_SERVIZIO,SERVIZIO_REFERENTE_TECNICO_SERVIZIO,SERVIZIO_RICHIEDENTE_SERVIZIO,ADESIONE_REFERENTE_DOMINIO,ADESIONE_REFERENTE_TECNICO_DOMINIO,ADESIONE_REFERENTE_SERVIZIO,ADESIONE_REFERENTE_TECNICO_SERVIZIO,ADESIONE_RICHIEDENTE_SERVIZIO,ADESIONE_REFERENTE_ADESIONE,ADESIONE_REFERENTE_TECNICO_ADESIONE,ADESIONE_RICHIEDENTE_ADESIONE,GESTORE,COORDINATORE");
+		entity.setRuoliNotificheAbilitate("SERVIZIO_REFERENTE_DOMINIO,SERVIZIO_REFERENTE_TECNICO_DOMINIO,SERVIZIO_REFERENTE_SERVIZIO,SERVIZIO_REFERENTE_TECNICO_SERVIZIO,SERVIZIO_RICHIEDENTE_SERVIZIO,SERVIZIO_AMMINISTRATORE_ORGANIZZAZIONE_SERVIZIO,ADESIONE_REFERENTE_DOMINIO,ADESIONE_REFERENTE_TECNICO_DOMINIO,ADESIONE_REFERENTE_SERVIZIO,ADESIONE_REFERENTE_TECNICO_SERVIZIO,ADESIONE_RICHIEDENTE_SERVIZIO,ADESIONE_REFERENTE_ADESIONE,ADESIONE_REFERENTE_TECNICO_ADESIONE,ADESIONE_RICHIEDENTE_ADESIONE,ADESIONE_AMMINISTRATORE_ORGANIZZAZIONE_SERVIZIO,ADESIONE_AMMINISTRATORE_ORGANIZZAZIONE_ADERENTE,GESTORE,COORDINATORE");
 
 		if(src.getRuolo()!=null) {
 			entity.setRuolo(utenteEngineAssembler.toEntity(src.getRuolo()));

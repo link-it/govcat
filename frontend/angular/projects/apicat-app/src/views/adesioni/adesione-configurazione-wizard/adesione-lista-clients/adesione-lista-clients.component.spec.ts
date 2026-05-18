@@ -69,13 +69,23 @@ describe('AdesioneListaClientsComponent', () => {
     isSottotipoCompleted: vi.fn().mockReturnValue(true),
   } as any;
 
+  const mockConfigService = {
+    // Issue 262 — `AppConfig.Adesioni.showClientDisclaimers` pilota
+    // la visibilita` dei banner per-item; il mock fa il default
+    // (false) cosi` i test esistenti restano stabili. I test che
+    // verificano il branch on/off override-ano la mock al volo.
+    getConfiguration: vi.fn().mockReturnValue({ AppConfig: { Adesioni: { showClientDisclaimers: false } } }),
+  } as any;
+
   beforeEach(() => {
     vi.useFakeTimers();
     vi.clearAllMocks();
+    mockConfigService.getConfiguration.mockReturnValue({ AppConfig: { Adesioni: { showClientDisclaimers: false } } });
     savedConfigurazione = Tools.Configurazione;
     component = new AdesioneListaClientsComponent(
       mockModalService, mockTranslate, mockApiService,
-      mockAuthService, mockUtils, mockEventsManager, mockCkeckProvider
+      mockAuthService, mockUtils, mockEventsManager, mockCkeckProvider,
+      mockConfigService
     );
     // Null out the form group so _postProcessClients guard fails unless explicitly set up in tests
     (component as any)._editFormGroupClients = null as any;
@@ -1817,6 +1827,37 @@ describe('AdesioneListaClientsComponent', () => {
       expect(component._editFormGroupClients.controls['cn'].value).toBeNull();
       expect(component._editFormGroupClients.controls['content_csr'].value).toBeNull();
       expect(component._descrittoreCtrl.value).toBe('');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Issue 262 — _showItemDisclaimers
+  // ---------------------------------------------------------------------------
+  describe('_showItemDisclaimers', () => {
+    it('should default to false when AppConfig.Adesioni.showClientDisclaimers is missing', () => {
+      mockConfigService.getConfiguration.mockReturnValue({ AppConfig: {} });
+      expect(component._showItemDisclaimers).toBe(false);
+    });
+
+    it('should be false when explicitly false', () => {
+      mockConfigService.getConfiguration.mockReturnValue({ AppConfig: { Adesioni: { showClientDisclaimers: false } } });
+      expect(component._showItemDisclaimers).toBe(false);
+    });
+
+    it('should be true only when explicitly true', () => {
+      mockConfigService.getConfiguration.mockReturnValue({ AppConfig: { Adesioni: { showClientDisclaimers: true } } });
+      expect(component._showItemDisclaimers).toBe(true);
+    });
+
+    it('should be false for non-boolean truthy values', () => {
+      // safety net: solo `=== true` deve attivare i banner
+      mockConfigService.getConfiguration.mockReturnValue({ AppConfig: { Adesioni: { showClientDisclaimers: 1 } } });
+      expect(component._showItemDisclaimers).toBe(false);
+    });
+
+    it('should be false when configuration is null', () => {
+      mockConfigService.getConfiguration.mockReturnValue(null);
+      expect(component._showItemDisclaimers).toBe(false);
     });
   });
 });

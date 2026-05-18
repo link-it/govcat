@@ -210,88 +210,6 @@
                 </div>
               </div>
             </div>
-            @if (utente?.organizzazione_pending) {
-              <!-- Issue 229 evolutiva 2 — sezione approvazione cambio
-                   organizzazione: mostra "passaggio da X a Y" con fallback
-                   su `organizzazione` legacy quando `organizzazione_partenza`
-                   non e` valorizzata (dati storici). Aggiunto selettore
-                   `_approvingRole` (context-aware: gestore/coordinatore
-                   scelgono fra amministratore_organizzazione/operatore_api;
-                   AMM_ORG e` vincolato a operatore_api -> selettore
-                   nascosto). -->
-              <div class="row">
-                <div class="col-12">
-                  <div class="form-group">
-                    <label class="label-bold">{{ 'APP.PROFILE.ORGANIZATION.PendingLabel' | translate }}</label>
-                    <div class="d-flex align-items-center flex-wrap gap-2">
-                      <!-- Issue 229 multi-org — usiamo `<markdown [data]>`
-                           con la stringa gia` risolta dal getter
-                           `_pendingMessage`. La variante `<span markdown>`
-                           col `@if/@else` interno non re-parserizzava i
-                           grassetti `**...**` (la direttiva legge il
-                           contenuto come testo statico, prima
-                           dell'espansione del control flow Angular). -->
-                      <markdown class="organizzazione-passaggio markdown-inline"
-                                [data]="_pendingMessage"></markdown>
-                      <ui-data-type
-                        [data]="utente"
-                        [elem]="{ field: 'stato', type: 'tag', options: 'status' }"
-                        [config]="config">
-                      </ui-data-type>
-                      @if (_isEdit) {
-                        @if (_canChooseApprovingRole) {
-                          <div class="form-group mb-0 ms-2" style="min-width: 220px;">
-                            <label class="form-label small mb-1" for="approving_role">
-                              {{ 'APP.PROFILE.ORGANIZATION.RuoloOrgTarget' | translate }}
-                            </label>
-                            <select id="approving_role"
-                                    class="form-select form-select-sm"
-                                    [(ngModel)]="_approvingRole"
-                                    [ngModelOptions]="{standalone: true}">
-                              <!-- Issue 229 evolutiva 3 — "Nessun ruolo"
-                                   come scelta di default: l'approvatore
-                                   puo` associare l'utente all'organizzazione
-                                   senza assegnare un ruolo. Value `''` ->
-                                   mappato a `null` nel payload. -->
-                              <option value="">
-                                {{ 'APP.RUOLI.NessunRuolo' | translate }}
-                              </option>
-                              <option value="amministratore_organizzazione">
-                                {{ 'APP.RUOLI.AmministratoreOrganizzazione' | translate }}
-                              </option>
-                              <option value="operatore_api">
-                                {{ 'APP.RUOLI.OperatoreApi' | translate }}
-                              </option>
-                            </select>
-                          </div>
-                        }
-                        <lnk-button
-                          [label]="'APP.PROFILE.ORGANIZATION.ApproveButton'"
-                          [ariaLabel]="'APP.PROFILE.ORGANIZATION.ApproveButton'"
-                          [icon]="'bi bi-check-lg'"
-                          [primary]="true"
-                          [otherClass]="'ms-2 align-self-end'"
-                          (onAction)="approveOrganizationChange()"
-                        ></lnk-button>
-                        <!-- Issue 229 evolutiva 3 — rifiuto della
-                             richiesta di cambio org. Stesso filtro
-                             authorization del bottone Approva
-                             (gestore/coordinatore/AMM_ORG target).
-                             DELETE `/utenti/{id}/organizzazione-pending`. -->
-                        <lnk-button
-                          [label]="'APP.PROFILE.ORGANIZATION.RejectButton'"
-                          [ariaLabel]="'APP.PROFILE.ORGANIZATION.RejectButton'"
-                          [icon]="'bi bi-x-lg'"
-                          [primary]="true"
-                          [otherClass]="'ms-2 align-self-end'"
-                          (onAction)="rejectOrganizationChange()"
-                        ></lnk-button>
-                      }
-                    </div>
-                  </div>
-                </div>
-              </div>
-            }
             @if (mostraTelefono || mostraEmail) {
               <div class="row telefono email">
                 @if (mostraTelefono) {
@@ -366,7 +284,7 @@
             <div class="row telefono_aziendale email_aziendale">
               <div class="col-6">
                 <div class="form-group">
-                  <label class="label-bold" for="telefono_aziendale">{{ 'APP.USERS.LABEL.CorporatePhone' | translate }}
+                  <label class="label-bold" for="telefono_aziendale">{{ (mostraTelefono ? 'APP.USERS.LABEL.CorporatePhone' : 'APP.USERS.LABEL.Phone') | translate }}
                     @if (_isEdit) {
                       <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'telefono_aziendale'"></span>
                     }
@@ -399,7 +317,7 @@
               </div>
               <div class="col-6">
                 <div class="form-group">
-                  <label class="label-bold" for="email_aziendale">{{ 'APP.USERS.LABEL.CorporateEmail' | translate }}
+                  <label class="label-bold" for="email_aziendale">{{ (mostraEmail ? 'APP.USERS.LABEL.CorporateEmail' : 'APP.USERS.LABEL.Email') | translate }}
                     @if (_isEdit) {
                       <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'email_aziendale'"></span>
                     }
@@ -463,7 +381,14 @@
                   }
                 </div>
               </div>
-              <div class="col-6">
+              <!-- Issue 229 — flag "Referente tecnico" nascosto
+                   sempre (sia in read-only che in
+                   creazione/modifica): il valore non e` piu`
+                   gestibile dall'operatore via UI ne` mostrato.
+                   Default `false` dal model `Utente`; per utenti
+                   esistenti con flag attivo, il FormControl
+                   conserva il valore corrente nel payload. -->
+              <div class="col-6 d-none">
                 <label class="label-bold" for="referente_tecnico">{{ 'APP.LABEL.ReferenteTecnico' | translate }}@if (_isNew || _isEdit) {
                   <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'referente_tecnico'"></span>
                 }</label>
@@ -555,6 +480,90 @@
                     @if (!_isEdit) {
                       <input type="text" readonly class="form-control-plaintext" id="organizzazione_esterna" [value]="utente.organizzazione_esterna || '--'">
                     }
+                  </div>
+                </div>
+              </div>
+            }
+            @if (utente?.organizzazione_pending) {
+              <!-- Issue 229 evolutiva 2 — sezione approvazione cambio
+                   organizzazione: mostra "passaggio da X a Y" con fallback
+                   su `organizzazione` legacy quando `organizzazione_partenza`
+                   non e` valorizzata (dati storici). Aggiunto selettore
+                   `_approvingRole` (context-aware: gestore/coordinatore
+                   scelgono fra amministratore_organizzazione/operatore_api;
+                   AMM_ORG e` vincolato a operatore_api -> selettore
+                   nascosto). Posizionata subito prima della lista
+                   `organizzazioni` per coerenza visiva (richiesta -> lista
+                   attuale). -->
+              <div class="row">
+                <div class="col-12">
+                  <div class="form-group">
+                    <label class="label-bold">{{ 'APP.PROFILE.ORGANIZATION.PendingLabel' | translate }}</label>
+                    <div class="d-flex align-items-center flex-wrap gap-2">
+                      <!-- Issue 229 multi-org — usiamo `<markdown [data]>`
+                           con la stringa gia` risolta dal getter
+                           `_pendingMessage`. La variante `<span markdown>`
+                           col `@if/@else` interno non re-parserizzava i
+                           grassetti `**...**` (la direttiva legge il
+                           contenuto come testo statico, prima
+                           dell'espansione del control flow Angular). -->
+                      <markdown class="organizzazione-passaggio markdown-inline"
+                                [data]="_pendingMessage"></markdown>
+                      <ui-data-type
+                        [data]="utente"
+                        [elem]="{ field: 'stato', type: 'tag', options: 'status' }"
+                        [config]="config">
+                      </ui-data-type>
+                      @if (_isEdit) {
+                        @if (_canChooseApprovingRole) {
+                          <div class="form-group mb-0 ms-2" style="min-width: 220px;">
+                            <label class="form-label small mb-1" for="approving_role">
+                              {{ 'APP.PROFILE.ORGANIZATION.RuoloOrgTarget' | translate }}
+                            </label>
+                            <select id="approving_role"
+                                    class="form-select form-select-sm"
+                                    [(ngModel)]="_approvingRole"
+                                    [ngModelOptions]="{standalone: true}">
+                              <!-- Issue 229 evolutiva 3 — "Nessun ruolo"
+                                   come scelta di default: l'approvatore
+                                   puo` associare l'utente all'organizzazione
+                                   senza assegnare un ruolo. Value `''` ->
+                                   mappato a `null` nel payload. -->
+                              <option value="">
+                                {{ 'APP.RUOLI.NessunRuolo' | translate }}
+                              </option>
+                              <option value="amministratore_organizzazione">
+                                {{ 'APP.RUOLI.AmministratoreOrganizzazione' | translate }}
+                              </option>
+                              <option value="operatore_api">
+                                {{ 'APP.RUOLI.OperatoreApi' | translate }}
+                              </option>
+                            </select>
+                          </div>
+                        }
+                        <lnk-button
+                          [label]="'APP.PROFILE.ORGANIZATION.ApproveButton'"
+                          [ariaLabel]="'APP.PROFILE.ORGANIZATION.ApproveButton'"
+                          [icon]="'bi bi-check-lg'"
+                          [primary]="true"
+                          [otherClass]="'ms-2 align-self-end'"
+                          (onAction)="approveOrganizationChange()"
+                        ></lnk-button>
+                        <!-- Issue 229 evolutiva 3 — rifiuto della
+                             richiesta di cambio org. Stesso filtro
+                             authorization del bottone Approva
+                             (gestore/coordinatore/AMM_ORG target).
+                             DELETE `/utenti/{id}/organizzazione-pending`. -->
+                        <lnk-button
+                          [label]="'APP.PROFILE.ORGANIZATION.RejectButton'"
+                          [ariaLabel]="'APP.PROFILE.ORGANIZATION.RejectButton'"
+                          [icon]="'bi bi-x-lg'"
+                          [primary]="true"
+                          [otherClass]="'ms-2 align-self-end'"
+                          (onAction)="rejectOrganizationChange()"
+                        ></lnk-button>
+                      }
+                    </div>
                   </div>
                 </div>
               </div>

@@ -28,7 +28,7 @@ import { MarkdownModule } from 'ngx-markdown';
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
 
-import { Tools, ConfigService, YesnoDialogBsComponent, InputHelpComponent, COMPONENTS_IMPORTS } from '@linkit/components';
+import { Tools, ConfigService, YesnoDialogBsComponent, COMPONENTS_IMPORTS } from '@linkit/components';
 import { LnkButtonComponent } from '@app/components/lnk-ui/button/button.component';
 import { LnkFormFieldComponent } from '@app/components/lnk-ui/form-field/form-field.component';
 import { LnkFormErrorComponent } from '@app/components/lnk-ui/form-error/form-error.component';
@@ -57,7 +57,6 @@ interface BodySettingsType {
     CommonModule,
     ...COMPONENTS_IMPORTS,
     MarkdownModule,
-    InputHelpComponent,
     LnkButtonComponent,
     LnkFormFieldComponent,
     LnkFormErrorComponent,
@@ -77,9 +76,31 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
   config: any;
   profileConfig: any;
 
-  isProfile: boolean = true;
+  /**
+   * Rewrite F1 — state machine a 3 tab (`Informazioni`,
+   * `Organizzazioni`, `Impostazioni`), allineata al design
+   * system `.lnk-vetrina`. Sostituisce il flag boolean
+   * `isProfile` (legacy: Profilo / Impostazioni). I getter
+   * `isInformazioniTab` / `isOrganizzazioniTab` /
+   * `isImpostazioniTab` sono compat shortcut per il template.
+   */
+  currentTab: 'informazioni' | 'organizzazioni' | 'impostazioni' = 'informazioni';
 
-  isEdit: boolean = false;
+  get isInformazioniTab(): boolean { return this.currentTab === 'informazioni'; }
+  get isOrganizzazioniTab(): boolean { return this.currentTab === 'organizzazioni'; }
+  get isImpostazioniTab(): boolean { return this.currentTab === 'impostazioni'; }
+
+  /**
+   * Rewrite F2 — il form del profilo non ha piu` toggle
+   * visualizza/modifica. La form e` SEMPRE in edit
+   * (`isEdit = true`). `onEdit` / `onCancelEdit` restano come
+   * helper interni (reset dati + form re-init), ma il bottone
+   * "Modifica" dell'hero e` stato rimosso e la flag non
+   * commuta. Mantenuta come `boolean = true` (non costante)
+   * per minimizzare la diff sui binding
+   * `<lnk-form-field [isEdit]="isEdit">`.
+   */
+  isEdit: boolean = true;
   saving: boolean = false;
   formGroup: FormGroup = new FormGroup({});
 
@@ -429,14 +450,23 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
     this.router.navigate([event.url]);
   }
 
+  /**
+   * Rewrite F2 — `onEdit` non commuta piu` `isEdit` (sempre
+   * `true`). Tenuto solo per back-compat: pulisce eventuali
+   * stati di errore residui.
+   */
   onEdit() {
-    this.isEdit = true;
     this.error = false;
     this.errorMsg = '';
   }
 
+  /**
+   * Rewrite F2 — `onCancelEdit` non chiude piu` la vista
+   * (no toggle isEdit). Resetta il form ai valori del profilo
+   * caricato e azzera gli errori. Usato sia da `<lnk-form-submit>`
+   * (bottone Annulla) sia dopo errori/save.
+   */
   onCancelEdit() {
-    this.isEdit = false;
     this.error = false;
     this.errorMsg = '';
     this.selectedOrganizzazione = this.profile?.organizzazione || null;
@@ -568,13 +598,24 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
     })
   }
 
-  _showProfile() {
-    this.isProfile = true;
+  _showInformazioni() {
+    this.currentTab = 'informazioni';
   }
 
-  _showSettings() {
-    this.isProfile = false;
+  _showOrganizzazioni() {
+    this.currentTab = 'organizzazioni';
   }
+
+  _showImpostazioni() {
+    this.currentTab = 'impostazioni';
+  }
+
+  // Compat: alcuni call site del codebase legacy chiamavano
+  // `_showProfile` / `_showSettings`. Manteniamo gli alias per
+  // non rompere riferimenti esterni; durante il cleanup F5
+  // verranno rimossi se non piu` referenziati.
+  _showProfile() { this._showInformazioni(); }
+  _showSettings() { this._showImpostazioni(); }
 
   loadSettingsNotifications() {
     this.apiService.getDetails('utenti', this.profile.id_utente, 'settings/notifiche').subscribe({
@@ -591,6 +632,52 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
         this.serverSettings = new ServerSettings({});
         this._initServerForm({});
       }
+    });
+  }
+
+  /**
+   * Rewrite F4 — view mode setter chiamato dalle card SVG
+   * della tab Impostazioni. Stessa pipeline di
+   * `_updateSettings` (rebuild + persist via authenticationService).
+   */
+  _setView(view: 'card' | 'list') {
+    this.settings.servizi.view = view;
+    this._updateSettings(view, 'servizi_view');
+  }
+
+  /**
+   * Rewrite F4 — quante opzioni card sono attive (per il counter
+   * "X di Y attive" della tab Impostazioni).
+   */
+  get _activeCardOptCount(): number {
+    if (!this.settings?.servizi) return 0;
+    const s = this.settings.servizi;
+    return [s.showImage, s.showEmptyImage, s.fillBox, s.showMasonry].filter(Boolean).length;
+  }
+
+  /**
+   * Rewrite F4 — attiva tutte le notifiche (bulk action della
+   * card Notifiche). Tiene conto di `cambioStatoDisabled` perche`
+   * tutte e 4 le toggle diventano `true` automaticamente.
+   */
+  _notifyEnableAll() {
+    this._formSettingsSettings.patchValue({
+      notifiche_inapp: true,
+      notifiche_email: true,
+      cambio_stato_inapp: true,
+      cambio_stato_email: true,
+    });
+  }
+
+  /**
+   * Rewrite F4 — disattiva tutte le notifiche.
+   */
+  _notifyDisableAll() {
+    this._formSettingsSettings.patchValue({
+      notifiche_inapp: false,
+      notifiche_email: false,
+      cambio_stato_inapp: false,
+      cambio_stato_email: false,
     });
   }
 

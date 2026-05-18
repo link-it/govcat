@@ -149,6 +149,12 @@
 }
 
 .markdown-inline {
+  h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem !important;
+  }
+
   b, strong {
       font-weight: 700;
   }
@@ -162,5 +168,15 @@
 
   p {
     margin-bottom: 0.25rem !important;
+  }
+
+  &.markdown-small {
+    h2 {
+      font-size: 13px;
+    }
+
+    p {
+      font-size: 13px;
+    }
   }
 }

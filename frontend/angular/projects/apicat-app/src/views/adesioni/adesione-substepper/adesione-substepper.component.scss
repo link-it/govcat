@@ -216,31 +216,9 @@
     color: white;
   }
 
-  // Chevron di affordance alla fine della riga (rev. 4.36): rende
-  // esplicito che lo step e` collassabile. Si disallinea volutamente
-  // dopo il chip/bottone di stato — l'icona ruota di 180° quando lo
-  // step e` aperto. Hover sul row applica un background allineato
-  // a quello del `.lnk-phase-section-chev` del pannello FASE 01
-  // (`.lnk-phase-section-hd:hover .lnk-phase-section-chev`).
-  .tl-row-chev {
-    flex-shrink: 0;
-    font-size: 13px;
-    color: var(--ink-3, #57738a);
-    width: 28px;
-    height: 28px;
-    border-radius: 7px;
-    display: inline-grid;
-    place-items: center;
-    transition: transform .25s, background-color .15s, color .15s;
-
-    &.is-open {
-      transform: rotate(180deg);
-    }
-  }
-  &.is-collapsible:hover .tl-row-chev {
-    background: var(--surface-3, #eef4f8);
-    color: var(--ink, #212c49);
-  }
+  // Chevron di affordance: ora INLINE nel chip `.tl-state.is-completed`
+  // (analogo al pattern `tl-action` per "Compila ora" / "Chiudi").
+  // Le vecchie regole `.tl-row-chev` sono state rimosse.
 }
 .tl-step.is-locked .tl-name {
   color: var(--ink-3, #57738a);

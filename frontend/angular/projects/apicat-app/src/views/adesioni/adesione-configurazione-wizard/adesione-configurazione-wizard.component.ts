@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, ElementRef, HostBinding, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostBinding, HostListener, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 
@@ -933,11 +933,59 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
             }
             return this.isSectionActive('info_generali') || this.isSectionActive('referenti') ? 'active' : 'pending';
         }
-        if (this.isSectionCompleted(fase)) { return 'completed'; }
-        // Tipico per Collaudo quando l'adesione e` gia` pubblicata in
-        // produzione: la fase non e` "pending" (futura) ma "conclusa".
-        if (this._isSectionPast(fase)) { return 'completed'; }
+        // Collaudo/Produzione: una fase e` "conclusa" SOLO quando possiamo
+        // PROVARE che il workflow ha raggiunto/superato l'ultimo sub-step
+        // interno (es. `pubblicato_collaudo` per collaudo). Stati come
+        // `richiesto_*`, `autorizzato_*`, `in_configurazione_*` hanno i
+        // dati gia` completi ma richiedono azione esterna
+        // (gestore/responsabile) -> chip "Azione richiesta", non "conclusa".
+        //
+        // Implementazione strict (no fallback true difensivo): se non
+        // possiamo verificare il workflow (config mancante, stato non
+        // mappato in wfStati), `workflowReachedFinal` resta false e la
+        // fase NON viene marcata "completed" — meglio mostrare "active"
+        // che mentire all'utente.
+        const workflowReachedFinal = this._workflowReachedSectionFinal(fase);
+        if (workflowReachedFinal) {
+            if (this.isSectionCompleted(fase)) { return 'completed'; }
+            // Tipico per Collaudo quando l'adesione e` gia` pubblicata in
+            // produzione: la fase non e` "pending" (futura) ma "conclusa".
+            if (this._isSectionPast(fase)) { return 'completed'; }
+        } else if (this._isSectionPast(fase)) {
+            // Fallback: anche senza wfStati riconosciuti, se la step-bar
+            // principale dice che la sezione e` passata (es. adesione in
+            // produzione, sezione collaudo storica), e` davvero conclusa.
+            return 'completed';
+        }
         return this.isSectionActive(fase) ? 'active' : 'pending';
+    }
+
+    /**
+     * Strict variant di `_isInternalStepFinal`: ritorna `true` SOLO
+     * quando possiamo verificare che lo stato corrente dell'adesione
+     * coincide con o segue l'ultimo `stati_adesione` dell'ultimo
+     * sub-step della sezione. Nessun fallback difensivo `true`: se
+     * config / stato non sono mappati, ritorna `false` (la fase NON
+     * verra` mostrata come conclusa per default).
+     */
+    private _workflowReachedSectionFinal(section: 'collaudo' | 'produzione'): boolean {
+        const steps = this.getStepWizardSezione(section);
+        if (!steps.length) { return false; }
+        const wfStati = this.workflowStati;
+        if (!wfStati.length) { return false; }
+        const currentStato = this.adesione?.stato;
+        if (!currentStato) { return false; }
+        const currentIdx = wfStati.indexOf(currentStato);
+        if (currentIdx === -1) { return false; }
+        let maxStepIdx = -1;
+        for (const step of steps) {
+            for (const st of step.stati_adesione || []) {
+                const idx = wfStati.indexOf(st);
+                if (idx > maxStepIdx) { maxStepIdx = idx; }
+            }
+        }
+        if (maxStepIdx === -1) { return false; }
+        return currentIdx >= maxStepIdx;
     }
 
     /**
@@ -1595,6 +1643,34 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
         this._errors = [];
     }
 
+    /**
+     * Auto-dismiss del banner `app-error-view-card` (errori
+     * workflow / cambio stato) quando l'utente compie un'azione
+     * con intent "voglio andare avanti":
+     * - `pointerdown`: click/touch reale dell'utente su un
+     *   elemento del wizard (button "Modifica", riga di edit
+     *   inline, label/checkbox, ecc.). NON usiamo `focusin`
+     *   perche` veniva sparato anche dal cleanup di focus dei
+     *   dialog di conferma (modal close -> focus redirect),
+     *   chiudendo il banner immediatamente dopo la sua comparsa.
+     * - `input`: digitazione/toggle in un campo della form di
+     *   edit gia` aperta. Coerente con "modifica un campo".
+     * Filtro `closest('app-error-view-card, ui-error-view')`:
+     * gli eventi originati DENTRO la card di errore (es. click
+     * sul suo close button) sono gestiti dal suo `(onClose)`
+     * dedicato, non li trasformiamo in auto-dismiss.
+     * Guard `if (this._error)`: evita reset spuri quando il
+     * banner non e` mostrato (la maggior parte del tempo).
+     */
+    // @HostListener('pointerdown', ['$event'])
+    @HostListener('input', ['$event'])
+    onUserIntent(event: Event): void {
+        if (!this._error) { return; }
+        const target = event.target as HTMLElement | null;
+        if (target?.closest?.('app-error-view-card, ui-error-view')) { return; }
+        this.resetError();
+    }
+
     onWorkflowAction(event: any = null) {
         this.resetError();
 
@@ -1928,6 +2004,50 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
         if (!className) return false;
         const status = this.getStatusCompleteMapper(false, className);
         return status === 1 || status === 2;
+    }
+
+    /**
+     * Vero quando il sub-step `in_compilazione` di una sezione
+     * (collaudo/produzione) risulta superato. Replica la logica
+     * di `AdesioneSubstepperComponent._buildItems`: trova
+     * l'indice del sub-step che contiene lo stato corrente nel
+     * proprio `stati_adesione` (`realIndex`) e considera
+     * "completed" tutti i sub-step con indice < realIndex.
+     *
+     * Vantaggio: NON dipende da `workflowStati` (la cui
+     * derivazione puo` divergere dal BE), ma solo dalle
+     * `stati_adesione` di ciascun sub-step — stessa source che
+     * usa il substepper visivo per dire "In Compilazione
+     * Completato".
+     */
+    isInCompilazioneCompleted(section: 'collaudo' | 'produzione'): boolean {
+        const steps = this.getStepWizardSezione(section);
+        if (!steps.length) { return false; }
+        const currentStato = this.adesione?.stato;
+        if (!currentStato) { return false; }
+        const inCompilazioneIdx = steps.findIndex(s => s.code === 'in_compilazione');
+        if (inCompilazioneIdx === -1) { return false; }
+        const realIndex = steps.findIndex(s => s.stati_adesione?.includes(currentStato));
+        if (realIndex === -1) {
+            // "Past phase": stato corrente oltre tutti i sub-step
+            // (es. Collaudo quando adesione e` in Produzione).
+            // Tutti i sub-step diventano `completed`, incluso
+            // `in_compilazione`. Allineato a `_buildItems`
+            // del substepper.
+            const wfStati = this.workflowStati;
+            if (wfStati.length === 0) { return false; }
+            const currentIdx = wfStati.indexOf(currentStato);
+            if (currentIdx === -1) { return false; }
+            let maxStepStateIdx = -1;
+            for (const step of steps) {
+                for (const st of step.stati_adesione || []) {
+                    const idx = wfStati.indexOf(st);
+                    if (idx > maxStepStateIdx) { maxStepStateIdx = idx; }
+                }
+            }
+            return maxStepStateIdx !== -1 && currentIdx > maxStepStateIdx;
+        }
+        return inCompilazioneIdx < realIndex;
     }
 
     /**

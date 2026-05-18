@@ -409,13 +409,9 @@ public class ServiziController implements ServiziApi {
 
 			boolean admin = this.coreAuthorization.isAdmin(referenteEntity.getReferente());
 
-			if(!admin) {
-				if(referenteEntity.getTipo().equals(TIPO_REFERENTE.REFERENTE)
-						&& !this.utenteService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
-					throw new NotAuthorizedException(ErrorCode.AUT_403_RESOURCE,
-							Map.of("resource", servizioEntity.getNome() + " v" + servizioEntity.getVersione()));
-				}
-
+			if(!admin && !this.organizzazioneService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
+				throw new NotAuthorizedException(ErrorCode.AUT_403_RESOURCE,
+						Map.of("resource", servizioEntity.getNome() + " v" + servizioEntity.getVersione()));
 			}
 		}
 	}
@@ -436,11 +432,11 @@ public class ServiziController implements ServiziApi {
 			return;
 		}
 
-		if(referenteEntity.getTipo().equals(TIPO_REFERENTE.REFERENTE_TECNICO)) {
+		if (this.coreAuthorization.isAdmin(referenteEntity.getReferente())) {
 			return;
 		}
 
-		if (!this.utenteService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
+		if (!this.organizzazioneService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
 			throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING,
 					Map.of("orgNome", organizzazione.getNome(),
 							"userIdUtente", referenteEntity.getReferente().getIdUtente()));
@@ -1402,7 +1398,7 @@ public class ServiziController implements ServiziApi {
 					}
 
 					// Pre-carica le associazioni utente-organizzazione via repository per evitare lazy loading
-					List<UtenteOrganizzazioneEntity> utenteOrganizzazioni = this.utenteService.findUtenteOrganizzazioniByUtente(utente);
+					List<UtenteOrganizzazioneEntity> utenteOrganizzazioni = this.organizzazioneService.findUtenteOrganizzazioniByUtente(utente);
 
 					// Mappa per l'associazione servizio -> entity
 					Map<String, ServizioEntity> servizioEntityMap = new java.util.HashMap<>();

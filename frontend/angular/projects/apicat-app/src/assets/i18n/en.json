@@ -366,6 +366,7 @@
 			"RemoveGroup": "Remove group",
 			"Report": "Report",
 			"RestoreDefaultAuthentication": "Restore default authentication",
+			"RestoreOriginal": "Restore original info",
 			"LoadMore": "Load more",
 			"Save": "Save",
 			"Search": "Search",
@@ -506,7 +507,10 @@
 				"referente_adesione": "Subscription ref.",
 				"referente_tecnico_adesione": "Subscription tech ref.",
 				"richiedente_servizio": "Service requester",
-				"richiedente_adesione": "Subscription requester"
+				"richiedente_adesione": "Subscription requester",
+				"amministratore_organizzazione": "Org admin",
+				"operatore_api": "API operator",
+				"utente_organizzazione": "Organization user"
 			}
 		},
 		"DASHBOARD": {
@@ -1998,7 +2002,51 @@
 		"PROFILE": {
 			"TAB": {
 				"Profile": "Profile",
+				"Profilo": "Profile",
+				"Informazioni": "Information",
+				"Organizzazioni": "Organizations",
+				"Impostazioni": "Settings",
 				"Settings": "Settings"
+			},
+			"SECTION": {
+				"IdentitaTitle": "Identity",
+				"IdentitaDesc": "Unique identifier used for authentication and tracking. Cannot be modified.",
+				"PersonaliTitle": "Personal information",
+				"PersonaliDesc": "Displayed throughout the platform.",
+				"ContattiTitle": "Contacts",
+				"ContattiCorporateTitle": "Corporate contacts",
+				"ContattiDesc": "Used for operational notifications and service communications."
+			},
+			"PREFERENCES": {
+				"ServiziTitle": "Services",
+				"ServiziDesc": "Default display mode for the services list in the catalog.",
+				"ViewDefault": "Default view",
+				"ViewCard": "Card",
+				"ViewCardDesc": "Visual grid with previews",
+				"ViewList": "List",
+				"ViewListDesc": "Compact rows with summary",
+				"CardOptions": "Card display options",
+				"OptionsCounter": "{{active}} of {{total}} active",
+				"ShowImage": "Show image",
+				"ShowImageDesc": "Service preview image inside the card",
+				"ShowEmptyImage": "Show empty image",
+				"ShowEmptyImageDesc": "Reserve space even without a preview",
+				"FillBox": "Fill the box",
+				"FillBoxDesc": "The image takes the full width",
+				"ShowMasonry": "Masonry layout",
+				"ShowMasonryDesc": "Variable heights, mosaic-like",
+				"NotificheTitle": "Notifications",
+				"NotificheDesc": "Choose, for each category, the channels on which to receive alerts.",
+				"NotificheDisclaimer": "Changes to notification settings affect <strong>all communications</strong> received.",
+				"EnableAll": "Enable all",
+				"DisableAll": "Disable all",
+				"ColCategory": "Category",
+				"GroupCommTitle": "Communications",
+				"GroupCommDesc": "Direct messages and organization updates.",
+				"RowCommLabel": "Receive notifications for communications",
+				"GroupStatusTitle": "Status change",
+				"GroupStatusDesc": "When a service or subscription changes operational state.",
+				"RowStatusLabel": "Receive notifications for status changes"
 			},
 			"ORGANIZATION": {
 				"ChangeTitle": "Change organization",
@@ -2699,7 +2747,7 @@
 				"Email": "Email",
 				"Nome": "Name",
 				"Note": "Note",
-				"OrganizzazioneEsterna": "External organization (e.g. software house)",
+				"OrganizzazioneEsterna": "External company (e.g. software house)",
 				"Phone": "Phone",
 				"Principal": "Principal",
 				"Role": "Role",
