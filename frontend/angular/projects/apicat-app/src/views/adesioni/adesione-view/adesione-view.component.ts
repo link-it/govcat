@@ -21,7 +21,6 @@ import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { GravatarModule } from 'ngx-gravatar';
 
 import { COMPONENTS_IMPORTS, ConfigService, Tools, MenuAction } from '@linkit/components';
 import { ScrollComponent } from '@app/components/scroll/scroll.component';
@@ -259,7 +258,6 @@ const clientRowConfig = {
     TranslateModule,
     ...COMPONENTS_IMPORTS,
     ScrollComponent,
-    GravatarModule,
     MonitorDropdwnComponent,
     HeroImageComponent,
     StatoChipComponent,

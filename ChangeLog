@@ -1,3 +1,25 @@
+2026-05-18  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 243: CSP — aggiunto meta http-equiv
+	  "Content-Security-Policy" in index.html (default-src
+	  'self', style 'unsafe-inline' per Angular, img-src
+	  'self' data: blob:). Sostituita l'unica risorsa esterna
+	  runtime: ngx-gravatar -> nuovo componente <lnk-avatar>
+	  locale (iniziali su sfondo colorato deterministico,
+	  palette WCAG AA). 4 occorrenze sostituite (profile hero,
+	  head-bar dropdown, item-type avatar/gravatar-image,
+	  data-type avatar). Rimossi import GravatarModule da
+	  app.config, lib/index, adesione-view, item-type,
+	  data-type, head-bar. Dipendenza ngx-gravatar rimossa da
+	  package.json. Smoke test FE: risolte le violazioni
+	  emerse — sostituiti 5 `href="javascript:void(0)"` (4 in
+	  gp-layout, 1 in item-row) con `role="button"
+	  tabindex="0"` + handlers tastiera per a11y; aggiunto
+	  `blob:` a img-src per anteprime upload/export. Backend
+	  SecurityConfig + nginx CART out of scope (altri team).
+	  Documentazione in NOTE-CLAUDE/ISSUE-243/.
+
 2026-05-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

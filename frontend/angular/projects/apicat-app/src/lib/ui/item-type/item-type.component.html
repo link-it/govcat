@@ -90,7 +90,7 @@
   }
   @case ('avatar') {
     <span class="position-relative" [tooltip]="(_value || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">
-      <img class="align-top" [alt]="'Gravatar'" ngxGravatar [email]="_value" [size]="20" fallback="mp" (error)="onAvatarError($event)">
+      <lnk-avatar class="align-top" [email]="_value" [size]="20"></lnk-avatar>
     </span>
   }
   @case ('image') {
@@ -111,8 +111,8 @@
     </span>
   }
   @case ('gravatar-image') {
-    <span class="position-relative border rounded-circle d-flex justify-content-center align-content-center" [class.square]="elem.square || false" style="width: 48px;height: 48px;" [tooltip]="(_tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">
-      <img class="align-top" [alt]="'Gravatar'" ngxGravatar [email]="_value" [size]="46" fallback="mp" (error)="onAvatarError($event)">
+    <span class="position-relative d-flex justify-content-center align-content-center" [tooltip]="(_tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">
+      <lnk-avatar class="align-top" [email]="_value" [size]="46"></lnk-avatar>
     </span>
   }
   @case ('iconBs') {
