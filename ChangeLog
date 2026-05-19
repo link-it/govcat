@@ -1,6 +1,21 @@
 2026-05-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Bug fix: utente-details `_changeRuolo` applicava la
+	  regola "organizzazione obbligatoria quando ruolo =
+	  utente_organizzazione" anche in MODIFICA di un utente
+	  esistente. Lato BE/multi-org le associazioni sono gia`
+	  gestite tramite il flusso multi-org (array
+	  `organizzazioni[]`) e il control `id_organizzazione` del
+	  form rappresenta solo l'associazione "principale" per
+	  backward compatibility; forzare required in modifica
+	  impediva il salvataggio in scenari validi. Aggiunto
+	  guard `this._isNew &&` davanti alla setValidators —
+	  la regola scatta solo in creazione. Spec aggiornata e
+	  aggiunto test "should NOT set required validator in
+	  edit". Build pulito, 8424/8424 test verdi.
+
+	* [Frontend]
 	Bug fix: ricerca utenti per aggiungere un referente
 	  (su servizio, dominio, adesione e categorie/componenti
 	  servizio) chiamava GET /utenti con

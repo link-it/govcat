@@ -901,14 +901,14 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
       console.warn('organizationFormControl does not exist');
       return;
     }
-    // L'organizzazione e' obbligatoria solo per il ruolo
-    // `utente_organizzazione`. Per gli altri ruoli (gestore,
-    // coordinatore, nessun ruolo) il campo e' opzionale.
-    // `ruolo_organizzazione` (per-org) e' un campo distinto e
-    // indipendente: viene gestito direttamente dall'utente nel
-    // proprio control e finisce dentro `organizzazioni[].ruolo_organizzazione`
-    // a cura di `_prapareData`.
-    if(role === Ruolo.UTENTE_ORGANIZZAZIONE){
+    // L'organizzazione e' obbligatoria solo in creazione di un
+    // nuovo utente quando il ruolo selezionato e'
+    // `utente_organizzazione`. In modifica di un utente esistente
+    // le associazioni multi-org sono gia` gestite (eventualmente
+    // come array `organizzazioni[]`) e il control del form
+    // mantiene solo l'associazione "principale" come backward
+    // compatibility: non va forzato required.
+    if(this._isNew && role === Ruolo.UTENTE_ORGANIZZAZIONE){
       organizationFormControl.setValidators([Validators.required]);
     } else {
       organizationFormControl.clearValidators();
