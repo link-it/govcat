@@ -1,6 +1,21 @@
 2026-05-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 271: dominio-details — validator async sul campo
+	  "nome" che chiama `GET /domini/exists?nome=...` (BE
+	  pronto) e segnala l'utente quando esiste gia` un dominio
+	  con lo stesso nome (anche su altre organizzazioni non
+	  visibili all'AMM_ORG). Comportamento:
+	    - Skip in edit mode quando il nome non viene modificato
+	      (`originalName === value`).
+	    - Spinner inline durante il check (`f.nome.pending`).
+	    - Fail-open su errori HTTP: il BE fa fede al save.
+	    - Errore `alreadyExists` mostrato con messaggio i18n
+	      (APP.DOMINI.VALIDATION.NameAlreadyExists, IT/EN).
+	  Validator estratto in `dominio-exists.validator.ts` con
+	  spec dedicata (9 test). Build verde, 8423/8423 test.
+
+	* [Frontend]
 	Issue 272: servizio-api-configuration — fix "Copia valori
 	  di collaudo" non funzionante quando `nome_gruppo` e
 	  `label_gruppo` delle custom properties differiscono.

@@ -548,6 +548,9 @@
 			"MESSAGE": {
 				"RemoveConfirm": "Confermi di voler eliminare il dominio **{{nome}}**? L'operazione non e' reversibile."
 			},
+			"VALIDATION": {
+				"NameAlreadyExists": "Esiste già un dominio con questo nome. Scegline un altro."
+			},
 			"LABEL": {
 				"Classi": "Classi",
 				"Deprecato": "Deprecato",
