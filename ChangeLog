@@ -1,6 +1,24 @@
 2026-05-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Bug fix: ricerca utenti per aggiungere un referente
+	  (su servizio, dominio, adesione e categorie/componenti
+	  servizio) chiamava GET /utenti con
+	  ruolo=referente_servizio,utente_organizzazione,gestore,
+	  coordinatore -> BE risponde 400 perche` il ruolo
+	  `referente_servizio` non e` piu` un valore valido (e`
+	  stato rinominato in `utente_organizzazione`, l'enum
+	  Ruolo.REFERENTE_SERVIZIO e` ora marcato @deprecated solo
+	  per retrocompat di lettura). Rimosso da 7 punti in 7
+	  componenti: dominio-referenti, adesione-referenti,
+	  adesione-configurazioni, modal-add-referent,
+	  servizio-details, servizio-referenti, servizio-categorie,
+	  servizio-componenti. Filtro nuovo:
+	  `utente_organizzazione,gestore,coordinatore`. Spec
+	  aggiornate (7 asserzioni). Build pulito, 8414/8414 test
+	  verdi.
+
+	* [Frontend]
 	Multi-org cleanup: sostituiti gli ultimi accessi a
 	  utente.organizzazione (legacy single-org) con
 	  getCurrentOrganization() (org di sessione) nei flussi:

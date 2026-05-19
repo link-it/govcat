@@ -301,7 +301,7 @@ describe('ServizioReferentiComponent', () => {
 
   it('should handle _onChangeTipoReferente', () => {
     component._onChangeTipoReferente(true);
-    expect(component.referentiFilter).toBe('referente_servizio,utente_organizzazione,gestore,coordinatore');
+    expect(component.referentiFilter).toBe('utente_organizzazione,gestore,coordinatore');
     component._onChangeTipoReferente(false);
     expect(component.referentiFilter).toBe('');
   });
@@ -2104,7 +2104,7 @@ describe('ServizioReferentiComponent', () => {
   describe('loadAnagrafiche (additional)', () => {
     it('should set referente with correct filter', () => {
       component.loadAnagrafiche();
-      expect(component.anagrafiche['tipo-referente'][0].filter).toBe('referente_servizio,utente_organizzazione,gestore,coordinatore');
+      expect(component.anagrafiche['tipo-referente'][0].filter).toBe('utente_organizzazione,gestore,coordinatore');
     });
 
     it('should set referente_tecnico with empty filter', () => {
@@ -2156,7 +2156,7 @@ describe('ServizioReferentiComponent', () => {
   describe('_onChangeTipoReferente (additional)', () => {
     it('should set specific filter string for referent=true', () => {
       component._onChangeTipoReferente(true);
-      expect(component.referentiFilter).toBe('referente_servizio,utente_organizzazione,gestore,coordinatore');
+      expect(component.referentiFilter).toBe('utente_organizzazione,gestore,coordinatore');
     });
 
     it('should set empty string for referent=false', () => {
