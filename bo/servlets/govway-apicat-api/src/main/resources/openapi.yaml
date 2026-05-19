@@ -2116,6 +2116,33 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /domini/exists:
+    get:
+      tags:
+      - "Domini"
+      description: "Verifica se esiste già un Dominio con il nome indicato"
+      operationId: "dominioExists"
+      parameters:
+      - $ref: "#/components/parameters/nome_query_required"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DominioExistsResponse"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /domini/{id_dominio}:
     parameters:
     - $ref: "#/components/parameters/id_dominio"
@@ -8688,6 +8715,12 @@ components:
         - gestore_email
         - coordinatore
         - coordinatore_email
+        - servizio_amministratore_organizzazione_servizio
+        - servizio_amministratore_organizzazione_servizio_email
+        - adesione_amministratore_organizzazione_servizio
+        - adesione_amministratore_organizzazione_servizio_email
+        - adesione_amministratore_organizzazione_aderente
+        - adesione_amministratore_organizzazione_aderente_email
     UpdateNotifica:
       type: "object"
       properties:
@@ -9541,6 +9574,13 @@ components:
           $ref: "#/components/schemas/String255"
         url_prefix_produzione:
           $ref: "#/components/schemas/String255"
+    DominioExistsResponse:
+      type: "object"
+      required:
+        - exists
+      properties:
+        exists:
+          type: boolean
     TipoReferenteEnum:
       type: "string"
       enum:
@@ -10158,6 +10198,7 @@ components:
         - REFERENTI_DOMINIO
         - RICHIEDENTE
         - ADERENTI
+        - AMMINISTRATORI_ORGANIZZAZIONE_SERVIZIO
         - GESTORE
         - COORDINATORE
     TargetComunicazioneAdesioneEnum:
@@ -10169,6 +10210,8 @@ components:
         - RICHIEDENTE_SERVIZIO
         - REFERENTI_ADESIONE
         - RICHIEDENTE_ADESIONE
+        - AMMINISTRATORI_ORGANIZZAZIONE_SERVIZIO
+        - AMMINISTRATORI_ORGANIZZAZIONE_ADERENTE
         - GESTORE
         - COORDINATORE
     MessaggioCreate:
@@ -11100,6 +11143,13 @@ components:
       in: "query"
       description: "nome"
       required: false
+      schema:
+        $ref: "#/components/schemas/GenericSearchString"
+    nome_query_required:
+      name: "nome"
+      in: "query"
+      description: "nome"
+      required: true
       schema:
         $ref: "#/components/schemas/GenericSearchString"
     package_query_optional:

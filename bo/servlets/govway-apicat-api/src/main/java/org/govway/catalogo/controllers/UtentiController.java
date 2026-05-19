@@ -376,7 +376,7 @@ public class UtentiController implements UtentiApi {
 					// Ricostruisci la lista da passare a toEntity: tutte le associazioni esistenti tranne
 					// quella di partenza (se ancora presente), più la nuova associazione verso la pending org.
 					List<UtenteOrganizzazioneEntity> esistenti =
-							this.service.findUtenteOrganizzazioniByUtente(entity);
+							this.organizzazioneService.findUtenteOrganizzazioniByUtente(entity);
 					Long idPartenza = entity.getOrganizzazionePartenza() != null
 							? entity.getOrganizzazionePartenza().getId() : null;
 
@@ -491,7 +491,7 @@ public class UtentiController implements UtentiApi {
 				// - se non valorizzata, l'approvazione aggiungerà la nuova associazione mantenendo
 				//   intatte tutte le esistenti
 				List<UtenteOrganizzazioneEntity> associazioniAttuali =
-						this.service.findUtenteOrganizzazioniByUtente(entity);
+						this.organizzazioneService.findUtenteOrganizzazioniByUtente(entity);
 
 				OrganizzazioneEntity orgPartenza = null;
 				if (profiloOrganizationUpdate.getIdOrganizzazionePartenza() != null) {
@@ -614,7 +614,7 @@ public class UtentiController implements UtentiApi {
 		if (entity.getStato() != Stato.PENDING_UPDATE || entity.getOrganizzazionePending() == null) {
 			throw new BadRequestException(ErrorCode.UT_400_NO_PENDING_REQUEST);
 		}
-		boolean haAssociazioni = !this.service.findUtenteOrganizzazioniByUtente(entity).isEmpty();
+		boolean haAssociazioni = !this.organizzazioneService.findUtenteOrganizzazioniByUtente(entity).isEmpty();
 		entity.setOrganizzazionePending(null);
 		entity.setOrganizzazionePartenza(null);
 		entity.setStato(haAssociazioni ? Stato.ABILITATO : Stato.NON_CONFIGURATO);

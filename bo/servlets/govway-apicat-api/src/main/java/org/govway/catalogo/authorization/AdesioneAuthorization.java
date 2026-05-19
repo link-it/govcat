@@ -76,20 +76,79 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 
 	private Logger logger = LoggerFactory.getLogger(AdesioneAuthorization.class);
 
+	@Autowired
+	private org.govway.catalogo.core.services.ServizioService servizioService;
+
+	/**
+	 * Autorizza la creazione di un'adesione. Ammessi:
+	 * - gestore (admin)
+	 * - coordinatore (se abilitato in configurazione)
+	 * - REFERENTE (non REFERENTE_TECNICO) del dominio del servizio target
+	 * - REFERENTE (non REFERENTE_TECNICO) del servizio target
+	 * - utente con AMM_ORG o OPERATORE_API sull'organizzazione di sessione,
+	 *   purché quell'organizzazione abbia il flag aderente=true.
+	 */
 	@Override
 	public void authorizeCreate(AdesioneCreate create) {
-		// Vincolo [**] della matrice permessi: per utenti con ruolo per-organizzazione
-		// (non admin/coordinator), l'organizzazione di sessione deve avere il flag aderente
-		// attivo per poter creare una nuova adesione.
-		if (!this.coreAuthorization.isAdmin()
-				&& !this.coreAuthorization.isCoordinatore()
-				&& this.coreAuthorization.getOrganizationContext() != null
-				&& this.coreAuthorization.getOrganizationContext().hasOrganizzazione()
-				&& !this.coreAuthorization.isOrganizzazioneSessioneAderente()) {
-			throw new org.govway.catalogo.exception.NotAuthorizedException(
-					org.govway.catalogo.exception.ErrorCode.AUT_403_ORG_NOT_ADERENTE,
-					java.util.Map.of("nomeOrganizzazione", this.coreAuthorization.getOrganizzazioneSessione().getNome()));
+		this.coreAuthorization.requireLogged();
+
+		if (this.coreAuthorization.isAdmin()) {
+			return;
 		}
+
+		if (this.coreAuthorization.isCoordinatore() && isCoordinatoreAbilitato()) {
+			return;
+		}
+
+		UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
+
+		if (create != null && create.getIdServizio() != null) {
+			java.util.Optional<org.govway.catalogo.core.orm.entity.ServizioEntity> servizioOpt =
+					this.servizioService.find(create.getIdServizio());
+			if (servizioOpt.isPresent()) {
+				org.govway.catalogo.core.orm.entity.ServizioEntity servizio = servizioOpt.get();
+				boolean refServizio = servizio.getReferenti().stream()
+						.anyMatch(r -> r.getReferente().getId().equals(utente.getId())
+								&& r.getTipo().equals(TIPO_REFERENTE.REFERENTE));
+				boolean refDominio = servizio.getDominio() != null
+						&& servizio.getDominio().getReferenti().stream()
+						.anyMatch(r -> r.getReferente().getId().equals(utente.getId())
+								&& r.getTipo().equals(TIPO_REFERENTE.REFERENTE));
+				if (refServizio || refDominio) {
+					return;
+				}
+			}
+		}
+
+		// Ruolo per-organizzazione: l'utente deve avere AMM_ORG o OPERATORE_API
+		// sull'organizzazione di sessione, e quell'org deve essere aderente.
+		if (this.coreAuthorization.getOrganizationContext() != null
+				&& this.coreAuthorization.getOrganizationContext().hasOrganizzazione()
+				&& this.coreAuthorization.hasRuoloInOrganizzazioneSessione(
+						org.govway.catalogo.core.orm.entity.RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE,
+						org.govway.catalogo.core.orm.entity.RuoloOrganizzazione.OPERATORE_API)) {
+			if (!this.coreAuthorization.isOrganizzazioneSessioneAderente()) {
+				throw new org.govway.catalogo.exception.NotAuthorizedException(
+						org.govway.catalogo.exception.ErrorCode.AUT_403_ORG_NOT_ADERENTE,
+						java.util.Map.of("nomeOrganizzazione", this.coreAuthorization.getOrganizzazioneSessione().getNome()));
+			}
+			return;
+		}
+
+		throw new org.govway.catalogo.exception.NotAuthorizedException(
+				org.govway.catalogo.exception.ErrorCode.AUT_403);
+	}
+
+	/**
+	 * Verifica se il ruolo coordinatore è abilitato nella configurazione.
+	 * Default: true (se non configurato, il ruolo è abilitato).
+	 */
+	private boolean isCoordinatoreAbilitato() {
+		if (this.configurazione.getUtente() == null) {
+			return true;
+		}
+		Boolean abilitato = this.configurazione.getUtente().isCoordinatoreAbilitato();
+		return abilitato == null || abilitato;
 	}
 
 	@Autowired
@@ -524,20 +583,18 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 			lst.add(Ruolo.REFERENTE_TECNICO);
 		}
 
-		// Ruoli per-organizzazione: per un'adesione ci sono due contesti potenziali,
-		// l'organizzazione aderente (soggetto) e quella erogatrice (soggetto referente del dominio).
-		// TODO [MULTI-ORG] Da chiarire: per un'adesione è corretto considerare il ruolo dell'utente
-		// sia sull'organizzazione aderente sia su quella erogatrice? Attualmente consideriamo entrambe
-		// prendendo il ruolo più alto, ma è un punto aperto da rivedere.
-		// TODO [MULTI-ORG] Valutare refactoring dell'enum Ruolo workflow per rappresentare più flessibilmente
-		// i nuovi ruoli per-organizzazione.
+		// Ruoli per-organizzazione: derivati solo se è valorizzato l'header X-Organization-Context
+		// e quell'organizzazione coincide con una delle due naturali per l'adesione (aderente
+		// o erogatrice). Senza header: nessun ruolo per-org.
+		// TODO [MULTI-ORG] Valutare refactoring dell'enum Ruolo workflow per esporre direttamente
+		// AMM_ORG/OPERATORE_API invece di mapparli a REFERENTE_SUPERIORE/REFERENTE legacy.
 		// Se l'utente è esplicitamente referente_tecnico (e non anche referente) di adesione/servizio/dominio,
 		// la sua designazione tecnica è vincolante e non deve essere elevata a REFERENTE dal ruolo OPERATORE_API
 		// dell'organizzazione (mantiene i poteri limitati del referente tecnico sulla risorsa specifica).
 		boolean soloRefTecnico = (refTecnicoAdesione || refTecnicoServizio || refTecnicoDominio)
 				&& !refAdesione && !refServizio && !refDominio;
-		aggiungiRuoloPerOrganizzazione(lst, u, getOrganizzazioneAderenteAdesione(entity), soloRefTecnico);
-		aggiungiRuoloPerOrganizzazione(lst, u, getOrganizzazioneErogatriceAdesione(entity), soloRefTecnico);
+		aggiungiRuoloPerOrganizzazioneDaSessione(lst, getOrganizzazioneAderenteAdesione(entity), soloRefTecnico);
+		aggiungiRuoloPerOrganizzazioneDaSessione(lst, getOrganizzazioneErogatriceAdesione(entity), soloRefTecnico);
 
 		return lst;
 	}
@@ -567,23 +624,29 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 
 	/**
 	 * Aggiunge alla lista dei ruoli workflow il mapping del ruolo per-organizzazione dell'utente
-	 * sull'organizzazione indicata (se presente). AMM_ORG → REFERENTE_SUPERIORE,
+	 * derivato dall'header X-Organization-Context, ma solo se quell'organizzazione coincide con
+	 * quella naturale indicata (aderente o erogatrice dell'adesione). AMM_ORG → REFERENTE_SUPERIORE,
 	 * OPERATORE_API → REFERENTE. Deduplica se già presente.
 	 *
 	 * @param soloRefTecnico se true, l'utente è esplicitamente referente_tecnico della risorsa:
 	 *                       l'elevazione a REFERENTE dal ruolo OPERATORE_API viene saltata per
 	 *                       preservare i vincoli del referente tecnico.
 	 */
-	private void aggiungiRuoloPerOrganizzazione(List<Ruolo> lst, UtenteEntity utente,
+	private void aggiungiRuoloPerOrganizzazioneDaSessione(List<Ruolo> lst,
 			org.govway.catalogo.core.orm.entity.OrganizzazioneEntity organizzazione, boolean soloRefTecnico) {
 		if (organizzazione == null) {
 			return;
 		}
-		if (this.coreAuthorization.hasRuoloInOrganizzazione(utente, organizzazione, org.govway.catalogo.core.orm.entity.RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
+		org.govway.catalogo.core.orm.entity.OrganizzazioneEntity orgSessione = this.coreAuthorization.getOrganizzazioneSessione();
+		if (orgSessione == null || !orgSessione.getId().equals(organizzazione.getId())) {
+			return;
+		}
+		org.govway.catalogo.core.orm.entity.RuoloOrganizzazione ruoloSessione = this.coreAuthorization.getRuoloOrganizzazioneSessione();
+		if (ruoloSessione == org.govway.catalogo.core.orm.entity.RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE) {
 			if (!lst.contains(Ruolo.REFERENTE_SUPERIORE)) {
 				lst.add(Ruolo.REFERENTE_SUPERIORE);
 			}
-		} else if (!soloRefTecnico && this.coreAuthorization.hasRuoloInOrganizzazione(utente, organizzazione, org.govway.catalogo.core.orm.entity.RuoloOrganizzazione.OPERATORE_API)) {
+		} else if (!soloRefTecnico && ruoloSessione == org.govway.catalogo.core.orm.entity.RuoloOrganizzazione.OPERATORE_API) {
 			if (!lst.contains(Ruolo.REFERENTE)) {
 				lst.add(Ruolo.REFERENTE);
 			}

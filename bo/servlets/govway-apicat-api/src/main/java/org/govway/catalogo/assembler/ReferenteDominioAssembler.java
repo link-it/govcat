@@ -29,6 +29,7 @@ import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Stato;
 import org.govway.catalogo.core.services.UtenteService;
+import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.Referente;
@@ -42,6 +43,9 @@ public class ReferenteDominioAssembler extends RepresentationModelAssemblerSuppo
 
 	@Autowired
 	private UtenteService utenteService;
+	@Autowired
+	private OrganizzazioneService organizzazioneService;
+
 
 	@Autowired
 	private UtenteFullAssembler utenteFullAssembler;
@@ -88,7 +92,7 @@ public class ReferenteDominioAssembler extends RepresentationModelAssemblerSuppo
 
 	private boolean isSameOrganization(UtenteEntity viewer, UtenteEntity referente) {
 		// Multi-org: viewer e referente hanno almeno un'organizzazione in comune.
-		return this.utenteService.hasOrganizzazioneInComune(viewer, referente);
+		return this.organizzazioneService.hasOrganizzazioneInComune(viewer, referente);
 	}
 	
 	public TipoReferenteEnum toTipoReferente(TIPO_REFERENTE tipo) {

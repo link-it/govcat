@@ -48,6 +48,7 @@ import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.api.DominiApi;
 import org.govway.catalogo.servlets.model.Dominio;
 import org.govway.catalogo.servlets.model.DominioCreate;
+import org.govway.catalogo.servlets.model.DominioExistsResponse;
 import org.govway.catalogo.servlets.model.DominioUpdate;
 import org.govway.catalogo.servlets.model.ItemDominio;
 import org.govway.catalogo.servlets.model.PageMetadata;
@@ -95,6 +96,9 @@ public class DominiController implements DominiApi {
 
 	@Autowired
 	private org.govway.catalogo.core.services.UtenteService utenteService;
+
+	@Autowired
+	private org.govway.catalogo.core.services.OrganizzazioneService organizzazioneService;
 
 
 	private Logger logger = LoggerFactory.getLogger(DominiController.class);
@@ -155,6 +159,31 @@ public class DominiController implements DominiApi {
 				this.logger.info("Invocazione completata con successo");
 	
 				return ResponseEntity.ok().build();
+			});
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	@Override
+	public ResponseEntity<DominioExistsResponse> dominioExists(String nome) {
+		try {
+			return this.service.runTransaction(() -> {
+				this.logger.info("Invocazione in corso ...");
+				this.authorization.authorizeNomeCheck();
+				this.logger.debug("Autorizzazione completata con successo");
+
+				DominioExistsResponse response = new DominioExistsResponse();
+				response.setExists(this.service.existsByNome(nome));
+
+				this.logger.info("Invocazione completata con successo");
+				return ResponseEntity.ok(response);
 			});
 		}
 		catch(RuntimeException e) {
@@ -335,13 +364,10 @@ public class DominiController implements DominiApi {
 		for(ReferenteDominioEntity referenteEntity: dominioEntity.getReferenti()) {
 			boolean admin = this.coreAuthorization.isAdmin(referenteEntity.getReferente());
 
-			if(!admin) {
-				if(referenteEntity.getTipo().equals(TIPO_REFERENTE.REFERENTE)
-						&& !this.utenteService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
-					throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING,
-							Map.of("orgNome", organizzazione.getNome(),
-									"userIdUtente", referenteEntity.getReferente().getIdUtente()));
-				}
+			if(!admin && !this.organizzazioneService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
+				throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING,
+						Map.of("orgNome", organizzazione.getNome(),
+								"userIdUtente", referenteEntity.getReferente().getIdUtente()));
 			}
 
 		}
@@ -349,16 +375,16 @@ public class DominiController implements DominiApi {
 
 
 	private void checkReferente(ReferenteDominioEntity referenteEntity) {
-		if(referenteEntity.getTipo().equals(TIPO_REFERENTE.REFERENTE_TECNICO)) {
-			return;
-		}
-
 		OrganizzazioneEntity organizzazione = referenteEntity.getDominio().getSoggettoReferente().getOrganizzazione();
 		if(organizzazione.isEsterna()) {
 			return;
 		}
 
-		if (!this.utenteService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
+		if (this.coreAuthorization.isAdmin(referenteEntity.getReferente())) {
+			return;
+		}
+
+		if (!this.organizzazioneService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
 			throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING,
 					Map.of("orgNome", organizzazione.getNome(),
 							"userIdUtente", referenteEntity.getReferente().getIdUtente()));

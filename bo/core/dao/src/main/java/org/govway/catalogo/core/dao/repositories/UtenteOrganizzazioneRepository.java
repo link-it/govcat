@@ -34,6 +34,10 @@ public interface UtenteOrganizzazioneRepository extends JpaRepositoryImplementat
 
 	Page<UtenteOrganizzazioneEntity> findByOrganizzazione(OrganizzazioneEntity organizzazione, Pageable pageable);
 
+	List<UtenteOrganizzazioneEntity> findByOrganizzazioneAndRuoloOrganizzazione(
+			OrganizzazioneEntity organizzazione,
+			org.govway.catalogo.core.orm.entity.RuoloOrganizzazione ruoloOrganizzazione);
+
 	long countByOrganizzazione(OrganizzazioneEntity organizzazione);
 
 }

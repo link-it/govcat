@@ -62,6 +62,20 @@ public class DominioAuthorization extends DefaultAuthorization<DominioCreate,Dom
 		}
 	}
 
+	public void authorizeNomeCheck() {
+		try {
+			super.authorizeCreate(null);
+		} catch (NotAuthorizedException e) {
+			if (this.coreAuthorization.getUtenteSessione() == null) {
+				throw e;
+			}
+			if (!this.coreAuthorization.hasRuoloInOrganizzazioneSessione(
+					RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
+				throw e;
+			}
+		}
+	}
+
 	@Override
 	public void authorizeUpdate(DominioUpdate update, DominioEntity entity) {
 		// Se l'update tenta di cambiare il soggetto referente, la nuova org deve coincidere
