@@ -5,6 +5,43 @@
  * Copyright (c) 2021-2026 Link.it srl (https://link.it).
  */
 .organizzazione-utenti-list {
+  // Campo di ricerca libera nell'header del card.
+  .organizzazione-utenti-search {
+    width: 16rem;
+    max-width: 100%;
+
+    input.form-control {
+      padding-left: 2rem;
+      padding-right: 2rem;
+      font-size: 0.70rem;
+    }
+  }
+
+  .organizzazione-utenti-search-icon {
+    position: absolute;
+    left: 0.625rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--ink-3, #57738a);
+    pointer-events: none;
+    font-size: 0.70rem;
+  }
+
+  .organizzazione-utenti-search-clear {
+    position: absolute;
+    right: 0.25rem;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 0.125rem 0.375rem;
+    color: var(--ink-3, #57738a);
+    text-decoration: none;
+    line-height: 1;
+    font-size: 0.70rem;
+
+    &:hover { color: var(--ink, #212c49); }
+  }
+
+
   // Container scrollabile della tabella: dimensioni stabili per
   // evitare flickering al refresh (la tabella resta visibile
   // mentre la nuova response sostituisce gli items). Nessun
@@ -22,6 +59,19 @@
     &.is-loading {
       opacity: 0.6;
       pointer-events: none;
+    }
+
+    // Header tabella sticky: resta ancorato in alto mentre
+    // l'utente scrolla la lista. Background opaco per coprire
+    // le righe che gli scorrono sotto; box-shadow leggera per
+    // staccarlo visivamente dal body. `z-index` necessario su
+    // alcuni rendering engine per posizionarlo sopra le celle.
+    table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: var(--surface, #ffffff);
+      box-shadow: inset 0 -1px 0 var(--line, #dee8ef);
     }
   }
 }

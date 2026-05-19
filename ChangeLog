@@ -1,6 +1,26 @@
 2026-05-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	organizzazione-utenti-list: scroll infinito sulla lista
+	  utenti dell'organizzazione. Aggiunta direttiva
+	  `infiniteScroll` su .organizzazione-utenti-scroll
+	  (distance=2, throttle=50, scrollWindow=false, disabled
+	  durante loading/loadingMore o quando hasMore()=false).
+	  Sostituito il bottone "Carica altri" con un indicatore
+	  inline (spinner + "Caricamento") visibile durante
+	  `loadingMore` a fondo lista. Logica `loadMore()` e
+	  `_links.next.href` esistente invariata. Header tabella
+	  reso sticky (position: sticky; top: 0) con background
+	  opaco --surface e box-shadow leggera per staccarlo dal
+	  body durante lo scroll. Aggiunto filtro di ricerca libera
+	  nell'header del card: input con debounce 500ms +
+	  distinctUntilChanged, querystring `q` passata su initial
+	  fetch (loadMore segue `_links.next.href` che porta gia` i
+	  filtri attivi). Bottone clear inline (visibile solo quando
+	  searchTerm valorizzato). i18n esistenti FreeSearch /
+	  Clear.
+
+	* [Frontend]
 	Bug fix: utente-details `_changeRuolo` applicava la
 	  regola "organizzazione obbligatoria quando ruolo =
 	  utente_organizzazione" anche in MODIFICA di un utente

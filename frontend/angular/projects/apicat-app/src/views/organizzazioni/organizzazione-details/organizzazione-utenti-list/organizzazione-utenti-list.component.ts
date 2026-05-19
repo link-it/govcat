@@ -17,11 +17,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnChanges, SimpleChanges, inject } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
+import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
+
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 import { YesnoDialogBsComponent } from '@linkit/components';
 
@@ -41,9 +46,9 @@ const UTENTI_SUB_PATH = 'utenti';
     templateUrl: './organizzazione-utenti-list.component.html',
     styleUrls: ['./organizzazione-utenti-list.component.scss'],
     standalone: true,
-    imports: [CommonModule, TranslateModule, TooltipModule, LnkButtonComponent]
+    imports: [CommonModule, FormsModule, TranslateModule, TooltipModule, InfiniteScrollDirective, LnkButtonComponent]
 })
-export class OrganizzazioneUtentiListComponent implements OnChanges {
+export class OrganizzazioneUtentiListComponent implements OnInit, OnChanges, OnDestroy {
 
     @Input() idOrganizzazione: string | null = null;
     @Input() nomeOrganizzazione: string | null = null;
@@ -53,6 +58,11 @@ export class OrganizzazioneUtentiListComponent implements OnChanges {
     loading = false;
     loadingMore = false;
     error = '';
+
+    /** Testo di ricerca libera (querystring `q`). */
+    searchTerm: string = '';
+    private readonly _search$ = new Subject<string>();
+    private _searchSub: Subscription | null = null;
 
     private _links: any = null;
 
@@ -64,8 +74,33 @@ export class OrganizzazioneUtentiListComponent implements OnChanges {
 
     private _modalRef: BsModalRef | null = null;
 
+    ngOnInit(): void {
+        this._searchSub = this._search$
+            .pipe(debounceTime(500), distinctUntilChanged())
+            .subscribe(() => this._load());
+    }
+
     ngOnChanges(changes: SimpleChanges): void {
-        if (changes.idOrganizzazione) { this.reload(); }
+        if (changes.idOrganizzazione) {
+            this.searchTerm = '';
+            this.reload();
+        }
+    }
+
+    ngOnDestroy(): void {
+        this._searchSub?.unsubscribe();
+        this._search$.complete();
+    }
+
+    onSearchChange(value: string): void {
+        this.searchTerm = value;
+        this._search$.next(value);
+    }
+
+    clearSearch(): void {
+        if (!this.searchTerm) { return; }
+        this.searchTerm = '';
+        this._load();
     }
 
     /**
@@ -125,7 +160,13 @@ export class OrganizzazioneUtentiListComponent implements OnChanges {
         this.error = '';
 
         const path = `${ORG_MODEL}/${this.idOrganizzazione}/${UTENTI_SUB_PATH}`;
-        this.apiService.getList(path, undefined, url).subscribe({
+        // Il param `q` viene passato solo sulla initial fetch; sul
+        // `loadMore` si segue il `_links.next.href` che il BE
+        // restituisce gia` completo dei filtri attivi.
+        const options = (isInitial && this.searchTerm.trim())
+            ? { params: { q: this.searchTerm.trim() } }
+            : undefined;
+        this.apiService.getList(path, options, url).subscribe({
             next: (response: any) => {
                 const list = this._extractList(response);
                 const mapped = list.map(u => this._mapUtente(u));

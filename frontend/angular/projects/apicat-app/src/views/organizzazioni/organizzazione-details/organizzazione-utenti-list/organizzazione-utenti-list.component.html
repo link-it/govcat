@@ -17,8 +17,31 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <div class="card mt-3 organizzazione-utenti-list">
-  <div class="card-header d-flex align-items-center">
-    <h5 class="mb-0 flex-grow-1">{{ 'APP.UTENTI_ORG.TITLE.List' | translate }}</h5>
+  <div class="card-header d-flex align-items-center flex-wrap gap-2">
+    <h5 class="mb-0 me-auto">{{ 'APP.UTENTI_ORG.TITLE.List' | translate }}</h5>
+    <div class="organizzazione-utenti-search position-relative">
+      <i class="bi bi-search organizzazione-utenti-search-icon"></i>
+      <input type="text"
+             class="form-control form-control-sm"
+             autocomplete="off"
+             [placeholder]="'APP.LABEL.FreeSearch' | translate"
+             [attr.aria-label]="'APP.LABEL.FreeSearch' | translate"
+             [ngModel]="searchTerm"
+             (ngModelChange)="onSearchChange($event)">
+      @if (searchTerm) {
+        <button type="button"
+                class="btn btn-link btn-sm organizzazione-utenti-search-clear"
+                [attr.aria-label]="'APP.BUTTON.Clear' | translate"
+                [disabled]="loading"
+                (click)="clearSearch()">
+          @if (loading) {
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+          } @else {
+            <i class="bi bi-x-lg"></i>
+          }
+        </button>
+      }
+    </div>
     <lnk-button
       [icon]="'bi bi-arrow-clockwise'"
       [onlyIcon]="true"
@@ -27,7 +50,6 @@
       [btnTooltip]="'APP.BUTTON.Refresh'"
       [otherClass]="'me-2'"
       [disabled]="loading || loadingMore"
-      [spinner]="loading"
       (onAction)="reload()">
     </lnk-button>
     @if (canManage()) {
@@ -45,7 +67,13 @@
     @if (error) {
       <div class="gl-alert gl-alert-danger m-3">{{ error }}</div>
     } @else {
-      <div class="organizzazione-utenti-scroll" [class.is-loading]="loading">
+      <div class="organizzazione-utenti-scroll" [class.is-loading]="loading"
+           infiniteScroll
+           [infiniteScrollDistance]="2"
+           [infiniteScrollThrottle]="50"
+           [infiniteScrollDisabled]="loading || loadingMore || !hasMore()"
+           [scrollWindow]="false"
+           (scrolled)="loadMore()">
         <table class="table table-sm align-middle mb-0">
           <thead>
             <tr>
@@ -90,18 +118,13 @@
             }
           </tbody>
         </table>
+        @if (loadingMore) {
+          <div class="text-center py-2 text-muted">
+            <span class="spinner-border spinner-border-sm me-1"></span>
+            {{ 'APP.LABEL.Loading' | translate }}
+          </div>
+        }
       </div>
-
-      @if (hasMore()) {
-        <div class="text-center mt-2">
-          <button type="button" class="btn btn-default btn-sm" [disabled]="loadingMore" (click)="loadMore()">
-            @if (loadingMore) {
-              <span class="spinner-border spinner-border-sm me-1"></span>
-            }
-            {{ 'APP.BUTTON.LoadMore' | translate }}
-          </button>
-        </div>
-      }
     }
   </div>
 </div>
