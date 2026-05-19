@@ -1,3 +1,26 @@
+2026-05-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 243: CSP nonce-based (single-template). Un solo
+	  index.html con placeholder __CSP_NONCE__ (nome generico,
+	  non legato a uno specifico server) su <meta CSP>, <meta
+	  name="CSP-Nonce">, <style> loader e <app-root
+	  ngCspNonce="...">. CSP: script-src/style-src 'self'
+	  'nonce-__CSP_NONCE__' (no 'unsafe-inline' per i tag);
+	  resta 'unsafe-inline' SOLO su style-src-attr per i
+	  binding [style.color] di Angular (attribute non coperti
+	  da nonce). Angular legge ngCspNonce e propaga il nonce
+	  ai <style>/<script> runtime in automatico (10 placeholder
+	  nell'index.html buildato in prod). Aggiunto provider
+	  CSP_NONCE in app.config.ts (factory che legge il valore
+	  da <meta name="CSP-Nonce">) per esporre il nonce alle
+	  librerie/componenti via DI. In dev (ng serve) il
+	  placeholder resta literal e il browser lo accetta perche`
+	  coerente tra meta e tag, quindi non serve un template
+	  prod separato. Servlet filter nel modulo `web/` per la
+	  sub-injection del nonce per request e header CSP
+	  out-of-scope (altro team). Doc in
+
 2026-05-18  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -18,7 +41,6 @@
 	  tabindex="0"` + handlers tastiera per a11y; aggiunto
 	  `blob:` a img-src per anteprime upload/export. Backend
 	  SecurityConfig + nginx CART out of scope (altri team).
-	  Documentazione in NOTE-CLAUDE/ISSUE-243/.
 
 2026-05-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
