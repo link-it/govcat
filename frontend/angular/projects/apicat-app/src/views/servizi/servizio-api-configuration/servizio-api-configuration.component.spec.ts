@@ -1096,6 +1096,9 @@ describe('ServizioApiConfigurationComponent', () => {
         servizio: {
           api: {
             profili: [],
+            // Issue #272: il lookup ora avviene tramite `fieldToGroup`
+            // (default 'label_gruppo'), quindi la `label_gruppo` deve
+            // coincidere con la chiave passata al metodo.
             proprieta_custom: [
               { nome_gruppo: 'ProdGroup', label_gruppo: 'ProdLabel', classe_dato: 'produzione', id_correlazione: 'corr1' },
               { nome_gruppo: 'CollGroup', label_gruppo: 'CollLabel', classe_dato: 'collaudo', id_correlazione: 'corr1' }
@@ -1108,7 +1111,8 @@ describe('ServizioApiConfigurationComponent', () => {
           { gruppo: 'CollGroup', proprieta: [{ nome: 'campo1', valore: 'valore_collaudo' }] }
         ]
       } as any;
-      const result = component.getCustomPropertyTestingValue('ProdGroup', 'campo1');
+      // Passiamo la `label_gruppo` (chiave allineata a `fieldToGroup`).
+      const result = component.getCustomPropertyTestingValue('ProdLabel', 'campo1');
       expect(result).toBe('valore_collaudo');
     });
 
@@ -1240,13 +1244,16 @@ describe('ServizioApiConfigurationComponent', () => {
       vi.spyOn(component, 'copyTestingValue').mockImplementation(() => {});
       vi.spyOn(component as any, 'copySepcificationValue').mockImplementation(() => {});
       const customSpy = vi.spyOn(component, 'copyCustomPropertyTestingValue').mockImplementation(() => {});
+      // Issue #272: la chiave passata e` quella allineata a
+      // `fieldToGroup` (default 'label_gruppo') — coerente con la
+      // struttura del FormGroup `proprieta_custom`.
       component._apiProprietaCustom = [
-        { nome_gruppo: 'G1', nome: 'campo1' },
-        { nome_gruppo: 'G2', nome: 'campo2' }
+        { nome_gruppo: 'G1', label_gruppo: 'LabelG1', nome: 'campo1' },
+        { nome_gruppo: 'G2', label_gruppo: 'LabelG2', nome: 'campo2' }
       ];
       component.copyAllTestingValues();
-      expect(customSpy).toHaveBeenCalledWith('G1', 'campo1', false);
-      expect(customSpy).toHaveBeenCalledWith('G2', 'campo2', false);
+      expect(customSpy).toHaveBeenCalledWith('LabelG1', 'campo1', false);
+      expect(customSpy).toHaveBeenCalledWith('LabelG2', 'campo2', false);
     });
   });
 

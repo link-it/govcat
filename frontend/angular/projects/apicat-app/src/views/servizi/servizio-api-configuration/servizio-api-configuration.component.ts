@@ -261,7 +261,12 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
     const _srv: any = Tools.Configurazione.servizio;
     const proprieta_custom = this.servizioApi?.proprieta_custom || [];
 
-    const group = _srv.api.proprieta_custom.find((item: any) => item.nome_gruppo === nome_gruppo);
+    // Issue #272: il parametro `nome_gruppo` rappresenta la CHIAVE
+    // usata nel form (`fieldToGroup`, di default 'label_gruppo'), non
+    // necessariamente il `nome_gruppo` tecnico. Cerchiamo coerentemente
+    // tramite `this.fieldToGroup` per supportare anche le configurazioni
+    // dove `nome_gruppo` e `label_gruppo` differiscono.
+    const group = _srv.api.proprieta_custom.find((item: any) => item[this.fieldToGroup] === nome_gruppo);
     if (!group) {
       return;
     }
@@ -305,7 +310,13 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
     const proprieta_custom = this._apiProprietaCustom || [];
 
     proprieta_custom.forEach((group: any) => {
-      this.copyCustomPropertyTestingValue(group.nome_gruppo, group.nome, false);
+      // Issue #272: il form `proprieta_custom` ha come chiave dei
+      // sotto-FormGroup `item[fieldToGroup]` (di default `label_gruppo`,
+      // vedi `_initProprietaCustom`). Passando qui `group.nome_gruppo`
+      // si finiva sempre su un `formGroup.get(...)` null quando
+      // `nome_gruppo !== label_gruppo`, e la copia falliva
+      // silenziosamente. Allineato a `this.fieldToGroup`.
+      this.copyCustomPropertyTestingValue(group[this.fieldToGroup], group.nome, false);
     });
   }
 

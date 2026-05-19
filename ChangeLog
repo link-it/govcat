@@ -1,3 +1,18 @@
+2026-05-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 272: servizio-api-configuration — fix "Copia valori
+	  di collaudo" non funzionante quando `nome_gruppo` e
+	  `label_gruppo` delle custom properties differiscono.
+	  Il FormGroup `proprieta_custom` usa come chiave dei
+	  sotto-gruppi `item[fieldToGroup]` (= 'label_gruppo' di
+	  default), mentre `copyAllTestingValues()` passava
+	  `group.nome_gruppo` -> `formGroup.get(...)` ritornava
+	  null e la copia falliva silenziosamente. Allineato sia
+	  `copyAllTestingValues` (usa `group[fieldToGroup]`) sia
+	  `getCustomPropertyTestingValue` (cerca via
+	  `item[fieldToGroup]`). Spec aggiornata di conseguenza.
+
 2026-05-18  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
