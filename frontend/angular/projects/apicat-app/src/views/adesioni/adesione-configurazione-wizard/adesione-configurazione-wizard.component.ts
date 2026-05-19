@@ -504,12 +504,14 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
         return full || (utente.email_aziendale || utente.email || utente.username || '');
     }
 
-    /**
-     * Issue 254 NEW LAYOUT (rev. 4): sotto-testo del referente
-     * (organizzazione o, in fallback, email aziendale).
-     */
     getReferentSub(referent: any): string {
         const utente = referent?.source?.utente || referent?.utente || referent?.source || referent || {};
+        const orgNames = (utente?.organizzazioni || [])
+            .map((o: any) => o?.organizzazione?.nome)
+            .filter(Boolean);
+        if (orgNames.length > 0) {
+            return orgNames.join(', ');
+        }
         return utente?.organizzazione?.nome || utente?.email_aziendale || utente?.email || '';
     }
 

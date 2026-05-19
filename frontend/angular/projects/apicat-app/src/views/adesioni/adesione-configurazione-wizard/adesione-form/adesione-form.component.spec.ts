@@ -47,6 +47,7 @@ describe('AdesioneFormComponent', () => {
     canEdit: vi.fn().mockReturnValue(true),
     canDownloadSchedaAdesione: vi.fn().mockReturnValue(true),
     getCurrentSession: vi.fn().mockReturnValue(null),
+    getCurrentOrganization: vi.fn().mockReturnValue(null),
   } as any;
   const mockUtils = {
     GetErrorMsg: vi.fn().mockReturnValue('Error'),
@@ -614,11 +615,12 @@ describe('AdesioneFormComponent', () => {
 
   // -------- loadProfilo --------
 
-  it('loadProfilo should load organizzazione when profilo has org and not scelta_libera', () => {
+  it('loadProfilo should load organizzazione when current org exists and not scelta_libera', () => {
     component.scelta_libera_organizzazione = false;
     mockAuthService.getCurrentSession.mockReturnValue({
-      utente: { ruolo: 'referente', organizzazione: { id_organizzazione: 'O1' } }
+      utente: { ruolo: 'referente' }
     });
+    mockAuthService.getCurrentOrganization.mockReturnValue({ id_organizzazione: 'O1' });
     mockApiService.getList.mockReturnValue(of({ content: [{ organizzazione: { id_organizzazione: 'O1', nome: 'Org' } }] }));
     component.loadProfilo();
     expect(mockApiService.getList).toHaveBeenCalledWith('soggetti', { params: { id_organizzazione: 'O1' } });
@@ -627,8 +629,9 @@ describe('AdesioneFormComponent', () => {
   it('loadProfilo should not load organizzazione for gestore', () => {
     component.scelta_libera_organizzazione = false;
     mockAuthService.getCurrentSession.mockReturnValue({
-      utente: { ruolo: 'gestore', organizzazione: null }
+      utente: { ruolo: 'gestore' }
     });
+    mockAuthService.getCurrentOrganization.mockReturnValue({ id_organizzazione: 'O1' });
     component.loadProfilo();
     expect(mockApiService.getList).not.toHaveBeenCalled();
   });

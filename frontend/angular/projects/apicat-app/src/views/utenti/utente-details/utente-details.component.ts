@@ -175,6 +175,17 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
   }
 
   /**
+   * Restituisce l'organizzazione "principale" dell'utente: la prima
+   * della lista multi-org se popolata, altrimenti fallback sul campo
+   * legacy `organizzazione`. Il form admin gestisce ancora una sola
+   * associazione, quindi questa shape coerente serve a popolare il
+   * dropdown e il control `id_organizzazione`.
+   */
+  private _getPrimaryOrg(u: any): any {
+    return u?.organizzazioni?.[0]?.organizzazione ?? u?.organizzazione ?? null;
+  }
+
+  /**
    * Stringa markdown gia` tradotta da renderizzare nel banner
    * di approvazione cambio org. Estratta in un getter perche` la
    * direttiva `markdown` attribute di ngx-markdown legge il
@@ -340,10 +351,11 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
       this._formGroup = new FormGroup(_group);
 
       if(this._isEdit) {
-        this._formGroup.controls.id_organizzazione.patchValue(this._utente.organizzazione?.id_organizzazione)
+        const primaryOrg = this._getPrimaryOrg(this._utente);
+        this._formGroup.controls.id_organizzazione.patchValue(primaryOrg?.id_organizzazione)
         this._formGroup.controls.id_organizzazione.updateValueAndValidity();
         this._formGroup.updateValueAndValidity();
-      } 
+      }
 
       if (this._utente.stato === Stato.PENDING_UPDATE) {
         this._statoArr = [Stato.PENDING_UPDATE];
@@ -374,12 +386,12 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
           nome: this.utente?.classi_utente?.nome || null
         }
         this._initClassiUtenteSelect([aux]);
-        const aux_org: any = {
-          id_organizzazione: this.utente?.id_organizzazione || null,
-          descrizione: null,
-          nome: null
-        }
-        this._initOrganizzazioniSelect([aux_org]);
+        const primaryOrg = this._getPrimaryOrg(this.utente);
+        this._initOrganizzazioniSelect([{
+          id_organizzazione: primaryOrg?.id_organizzazione || null,
+          descrizione: primaryOrg?.descrizione || null,
+          nome: primaryOrg?.nome || null
+        }]);
         this._spin = false;
         this._isEdit = false;
         this._isNew = false;
@@ -527,15 +539,15 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
             nome: this.utente.classi_utente?.nome || null
           }
           this._initClassiUtenteSelect([aux]);
-          const aux_org: any = {
-            id_organizzazione: this.utente.organizzazione?.id_organizzazione || null,
-            descrizione: this.utente.organizzazione?.descrizione || null,
-            nome: this.utente.organizzazione?.nome || null
-          }
-          if (this.utente.organizzazione) {
-            this._initOrganizzazioniSelect([aux_org])
+          const primaryOrg = this._getPrimaryOrg(this.utente);
+          if (primaryOrg) {
+            this._initOrganizzazioniSelect([{
+              id_organizzazione: primaryOrg.id_organizzazione || null,
+              descrizione: primaryOrg.descrizione || null,
+              nome: primaryOrg.nome || null
+            }]);
           } else {
-            this._initOrganizzazioniSelect([])
+            this._initOrganizzazioniSelect([]);
           }
           
           this._initBreadcrumb();
@@ -575,7 +587,8 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
   _editUser() {
     this._isEdit = true;
     this._initForm({ ...this._utente });
-    this._utente.organizzazione ? this._initOrganizzazioniSelect([this._utente.organizzazione]) : this._initOrganizzazioniSelect([]);
+    const primaryOrg = this._getPrimaryOrg(this._utente);
+    primaryOrg ? this._initOrganizzazioniSelect([primaryOrg]) : this._initOrganizzazioniSelect([]);
     this._error = false;
     this._changeRuolo();
   }
@@ -745,11 +758,11 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
               this._utente.ruolo = this._checkRuolo(response);
               this._initForm({ ...this._utente });
               this._changeRuolo();
-              const aux_org: any = {
-                id_organizzazione: this.utente?.id_organizzazione || null,
-                nome: this.utente?.organizzazione?.nome || null
-              };
-              this._initOrganizzazioniSelect([aux_org]);
+              const primaryOrg = this._getPrimaryOrg(this.utente);
+              this._initOrganizzazioniSelect([{
+                id_organizzazione: primaryOrg?.id_organizzazione || null,
+                nome: primaryOrg?.nome || null
+              }]);
               this._spin = false;
               this._isEdit = false;
               this.save.emit({ id: this.id, utente: response, update: true });
@@ -766,7 +779,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
   }
 
   approveOrganizationChange() {
-    const hasCurrentOrg = !!this.utente?.organizzazione;
+    const hasCurrentOrg = !!this._getPrimaryOrg(this.utente);
     const warningKey = hasCurrentOrg
       ? 'APP.PROFILE.ORGANIZATION.ApproveWarning'
       : 'APP.PROFILE.ORGANIZATION.ApproveWarningFirstOrg';
@@ -845,11 +858,11 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
               this._utente.ruolo = this._checkRuolo(response);
               this._initForm({ ...this._utente });
               this._changeRuolo();
-              const aux_org: any = {
-                id_organizzazione: this.utente?.id_organizzazione || null,
-                nome: this.utente?.organizzazione?.nome || null
-              };
-              this._initOrganizzazioniSelect([aux_org]);
+              const primaryOrg = this._getPrimaryOrg(this.utente);
+              this._initOrganizzazioniSelect([{
+                id_organizzazione: primaryOrg?.id_organizzazione || null,
+                nome: primaryOrg?.nome || null
+              }]);
               this._spin = false;
               this._isEdit = false;
               this.save.emit({ id: this.id, utente: response, update: true });

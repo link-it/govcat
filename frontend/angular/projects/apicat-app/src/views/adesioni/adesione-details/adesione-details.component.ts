@@ -727,15 +727,16 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     this._profilo = this.authenticationService.getCurrentSession();
     console.log('_loadProfilo', this._profilo);
     const _ruolo: string | null = this._profilo?.utente.ruolo || null;
+    const currentOrgId = this.authenticationService.getCurrentOrganization()?.id_organizzazione;
 
     if (this._scelta_libera_organizzazione) {
       this._initOrganizzazioniSelect([]);
     } else {
 
-      if (_ruolo == 'gestore' || !this._profilo?.utente.organizzazione) {
+      if (_ruolo == 'gestore' || !currentOrgId) {
         this._initOrganizzazioniSelect([]);
       } else {
-        this._loadOrganizzazione(this._profilo?.utente.organizzazione.id_organizzazione);
+        this._loadOrganizzazione(currentOrgId);
       }
     }
   }
@@ -1155,9 +1156,12 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
           if (!this._formGroup.get('id_organizzazione')?.value) {
             this._initOrganizzazioniSelect([]);
           }
-        } else if (this._profilo.utente.organizzazione) {
-            this._loadOrganizzazione(this._profilo.utente.organizzazione.id_organizzazione);
+        } else {
+          const currentOrgId = this.authenticationService.getCurrentOrganization()?.id_organizzazione;
+          if (currentOrgId) {
+            this._loadOrganizzazione(currentOrgId);
           }
+        }
       }
 
     this._showMandatoryFields(this._formGroup.controls);

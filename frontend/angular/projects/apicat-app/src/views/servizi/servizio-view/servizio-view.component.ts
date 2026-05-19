@@ -54,15 +54,15 @@ import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
 import { PluralTranslatePipe } from '@app/lib/pipes/plural-translate.pipe';
 import {
-  HeroImageComponent,
-  StatoChipComponent,
-  RefsComponent,
-  EnvToggleComponent,
-  ApiRowComponent,
-  ActionBannerComponent,
-  LnkApiTag,
-  EnvValue,
-  LnkRefItem,
+    HeroImageComponent,
+    StatoChipComponent,
+    RefsComponent,
+    EnvToggleComponent,
+    ApiRowComponent,
+    ActionBannerComponent,
+    LnkApiTag,
+    EnvValue,
+    LnkRefItem,
 } from '@app/components/vetrina';
 
 export const EROGATO_SOGGETTO_DOMINIO: string = 'erogato_soggetto_dominio';
@@ -856,10 +856,9 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     }
 
     _isAmmissibile() {
-        const user = this.authenticationService.getUser();
-        const id_organizzazione = user?.organizzazione ? user.organizzazione.id_organizzazione : '';
-        const index = this._ammissibili.findIndex((item: any) => item.id_organizzazione === id_organizzazione);
-        return (index !== -1);
+        const currentOrgId = this.authenticationService.getCurrentOrganization()?.id_organizzazione;
+        if (!currentOrgId) { return false; }
+        return this._ammissibili.some((item: any) => item.id_organizzazione === currentOrgId);
     }
 
     _isAmmissibileMapper = (): boolean => {

@@ -1,6 +1,27 @@
 2026-05-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Multi-org cleanup: sostituiti gli ultimi accessi a
+	  utente.organizzazione (legacy single-org) con
+	  getCurrentOrganization() (org di sessione) nei flussi:
+	  servizio-view._isAmmissibile, wizard adesione
+	  (adesione-form.loadProfilo + ramo REFERENTE_SERVIZIO),
+	  adesione-details._loadProfilo + ramo REFERENTE_SERVIZIO,
+	  adesione-configurazione-wizard.getReferentSub
+	  (estende lookup a utente.organizzazioni[] con fallback
+	  su legacy). Admin view utenti (utente-details): nuovo
+	  helper privato _getPrimaryOrg(u) che legge
+	  organizzazioni[0]?.organizzazione con fallback su
+	  organizzazione legacy; applicato a _initForm (patch
+	  control), _loadUtente (dropdown), _editUser, dialog
+	  deleteOrganizationPending/approveOrganizationChange,
+	  hasCurrentOrg. organization-switcher fallback e JSON
+	  config (adesioni/referenti) lasciati come retrocompat
+	  intenzionale (gia` documentati). Spec aggiornate
+	  (servizio-view, adesione-details, adesione-form).
+	  Build pulito, 8414/8414 test verdi.
+
+	* [Frontend]
 	Issue 271: dominio-details — validator async sul campo
 	  "nome" che chiama `GET /domini/exists?nome=...` (BE
 	  pronto) e segnala l'utente quando esiste gia` un dominio
