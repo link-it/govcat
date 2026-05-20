@@ -349,6 +349,9 @@ export class UtenteOrganizzazioneDialogComponent implements OnInit {
         // Ricerca utenti per `principal`: il flusso "add" parte dall'inserimento
         // del principal, non da una full-text generica. L'endpoint `/utenti`
         // supporta il filtro `principal` (cfr. `utenti.component` searchFields).
+        // Filtro `ruolo` ripetuto su gestore/coordinatore/utente_organizzazione:
+        // esclude gli utenti senza ruolo dai risultati (non associabili).
+        const ruoliAmmessi = ['gestore', 'coordinatore', 'utente_organizzazione'];
         this.utenti$ = concat(
             of([]),
             this.utentiInput$.pipe(
@@ -359,7 +362,7 @@ export class UtenteOrganizzazioneDialogComponent implements OnInit {
                     this.lastSearchedPrincipal = term || '';
                 }),
                 switchMap(term => term && term.length >= 2
-                    ? this.apiService.getList('utenti', { params: { principal: term } as any }).pipe(
+                    ? this.apiService.getList('utenti', { params: { principal: term, ruolo: ruoliAmmessi } as any }).pipe(
                         map((res: any) => Array.isArray(res?.content) ? res.content
                             : Array.isArray(res?.items) ? res.items
                             : Array.isArray(res) ? res : []),

@@ -1,3 +1,15 @@
+2026-05-20  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	utente-organizzazione-dialog: nella ricerca utenti per
+	  l'associazione a una organizzazione (sia da dettagli org
+	  che da organizzazione-manage — il component dialog e`
+	  condiviso) aggiunto filtro `ruolo` ripetuto su
+	  gestore/coordinatore/utente_organizzazione. Esclude
+	  utenti senza ruolo dai risultati del typeahead (non
+	  associabili). URL finale:
+	  `?principal=...&ruolo=gestore&ruolo=coordinatore&ruolo=utente_organizzazione`.
+
 2026-05-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
