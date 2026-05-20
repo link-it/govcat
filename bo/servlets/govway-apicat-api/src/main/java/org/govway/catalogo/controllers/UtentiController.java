@@ -606,18 +606,16 @@ public class UtentiController implements UtentiApi {
 	}
 
 	/**
-	 * Annulla la richiesta di cambio organizzazione pending dell'utente. Lo stato torna ad
-	 * ABILITATO se l'utente aveva già associazioni, altrimenti NON_CONFIGURATO (caso di
-	 * utente arrivato da registrazione con organizzazione scelta).
+	 * Annulla la richiesta di cambio organizzazione pending dell'utente, riportandolo
+	 * sempre in stato ABILITATO indipendentemente dalle associazioni esistenti.
 	 */
 	private void annullaRichiestaPending(UtenteEntity entity) {
 		if (entity.getStato() != Stato.PENDING_UPDATE || entity.getOrganizzazionePending() == null) {
 			throw new BadRequestException(ErrorCode.UT_400_NO_PENDING_REQUEST);
 		}
-		boolean haAssociazioni = !this.organizzazioneService.findUtenteOrganizzazioniByUtente(entity).isEmpty();
 		entity.setOrganizzazionePending(null);
 		entity.setOrganizzazionePartenza(null);
-		entity.setStato(haAssociazioni ? Stato.ABILITATO : Stato.NON_CONFIGURATO);
+		entity.setStato(Stato.ABILITATO);
 		this.service.save(entity);
 	}
 

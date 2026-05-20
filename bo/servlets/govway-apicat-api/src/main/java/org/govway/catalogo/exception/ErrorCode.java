@@ -220,6 +220,9 @@ public enum ErrorCode {
     /** Annullamento richiesta cambio organizzazione: nessuna richiesta pending da annullare */
     UT_400_NO_PENDING_REQUEST("Nessuna richiesta di cambio organizzazione da annullare"),
 
+    /** Ruolo utente non valorizzato per operazione su utente-organizzazione */
+    UT_400_RUOLO_NULL("Ruolo utente non valorizzato"),
+
     // ==================== CLASSI UTENTE ====================
 
     /** Classe utente non trovata */
