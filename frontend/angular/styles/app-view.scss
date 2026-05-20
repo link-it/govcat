@@ -292,7 +292,11 @@ small, .small {
   .chip-warn   { background: var(--warn-soft);   color: var(--warn-ink);   border-color: var(--warn-border); }
   .chip-info   { background: var(--info-soft);   color: var(--info-ink);   border-color: var(--info-border); }
   .chip-brand  { background: var(--brand-soft);  color: var(--brand-ink);  border-color: var(--brand-border); }
-  .chip-muted  { background: var(--surface-3);   color: var(--ink-3); border-color: var(--line); }
+  /* A11Y P4: era `--ink-3` #57738a su `--surface-3` #eef4f8
+     (4.42:1, fail AA per 0.08). Spostato a `--ink-2` #2e445a
+     (7.92:1) — chip neutro con testo informativo, AA testo
+     normale garantita. */
+  .chip-muted  { background: var(--surface-3);   color: var(--ink-2); border-color: var(--line); }
 
   .chip-ok .pulse {
     background: var(--ok);

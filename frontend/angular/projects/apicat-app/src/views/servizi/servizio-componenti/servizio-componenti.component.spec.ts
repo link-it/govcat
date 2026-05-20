@@ -975,7 +975,7 @@ describe('ServizioComponentiComponent', () => {
   describe('_onChangeTipoReferente', () => {
     it('should set componentiFilter when isReferent is true', () => {
       component._onChangeTipoReferente(true);
-      expect(component.componentiFilter).toBe('referente_servizio,utente_organizzazione,gestore,coordinatore');
+      expect(component.componentiFilter).toBe('utente_organizzazione,gestore,coordinatore');
     });
 
     it('should clear componentiFilter when isReferent is false', () => {

@@ -52,6 +52,7 @@ describe('AdesioneDetailsComponent', () => {
     getUser: vi.fn().mockReturnValue({ ruolo: 'referente_servizio' }),
     _getConfigModule: vi.fn().mockReturnValue({}),
     getCurrentSession: vi.fn().mockReturnValue(null),
+    getCurrentOrganization: vi.fn().mockReturnValue(null),
     canJoin: vi.fn().mockReturnValue(true),
     canDownloadSchedaAdesione: vi.fn().mockReturnValue(true),
     canEdit: vi.fn().mockReturnValue(true),
@@ -985,7 +986,8 @@ describe('AdesioneDetailsComponent', () => {
 
     it('should init organizzazioni select when scelta_libera_organizzazione is true', () => {
       component._scelta_libera_organizzazione = true;
-      mockAuthService.getCurrentSession.mockReturnValue({ utente: { ruolo: 'referente_servizio', organizzazione: { id_organizzazione: 'org-1' } } });
+      mockAuthService.getCurrentSession.mockReturnValue({ utente: { ruolo: 'referente_servizio' } });
+      mockAuthService.getCurrentOrganization.mockReturnValue({ id_organizzazione: 'org-1' });
       const spy = vi.spyOn(component, '_initOrganizzazioniSelect' as any);
       component._loadProfilo();
       expect(spy).toHaveBeenCalledWith([]);
@@ -993,23 +995,26 @@ describe('AdesioneDetailsComponent', () => {
 
     it('should init organizzazioni select for gestore role', () => {
       component._scelta_libera_organizzazione = false;
-      mockAuthService.getCurrentSession.mockReturnValue({ utente: { ruolo: 'gestore', organizzazione: { id_organizzazione: 'org-1' } } });
+      mockAuthService.getCurrentSession.mockReturnValue({ utente: { ruolo: 'gestore' } });
+      mockAuthService.getCurrentOrganization.mockReturnValue({ id_organizzazione: 'org-1' });
       const spy = vi.spyOn(component, '_initOrganizzazioniSelect' as any);
       component._loadProfilo();
       expect(spy).toHaveBeenCalledWith([]);
     });
 
-    it('should load organizzazione when ruolo is not gestore and organizzazione exists', () => {
+    it('should load organizzazione when ruolo is not gestore and current org exists', () => {
       component._scelta_libera_organizzazione = false;
-      mockAuthService.getCurrentSession.mockReturnValue({ utente: { ruolo: 'referente_servizio', organizzazione: { id_organizzazione: 'org-99' } } });
+      mockAuthService.getCurrentSession.mockReturnValue({ utente: { ruolo: 'referente_servizio' } });
+      mockAuthService.getCurrentOrganization.mockReturnValue({ id_organizzazione: 'org-99' });
       const spy = vi.spyOn(component, '_loadOrganizzazione' as any).mockImplementation(() => {});
       component._loadProfilo();
       expect(spy).toHaveBeenCalledWith('org-99');
     });
 
-    it('should init organizzazioni select when profilo has no organizzazione', () => {
+    it('should init organizzazioni select when current org is null', () => {
       component._scelta_libera_organizzazione = false;
-      mockAuthService.getCurrentSession.mockReturnValue({ utente: { ruolo: 'referente_servizio', organizzazione: null } });
+      mockAuthService.getCurrentSession.mockReturnValue({ utente: { ruolo: 'referente_servizio' } });
+      mockAuthService.getCurrentOrganization.mockReturnValue(null);
       const spy = vi.spyOn(component, '_initOrganizzazioniSelect' as any);
       component._loadProfilo();
       expect(spy).toHaveBeenCalledWith([]);

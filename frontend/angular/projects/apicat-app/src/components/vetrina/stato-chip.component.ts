@@ -55,15 +55,21 @@ import { getStatoVariant, LnkStatoVariant } from './stato-variants.const';
       padding: 3px 10px; border-radius: 999px;
       font-size: 12px; font-weight: 600;
       border: 1px solid;
-      background: var(--surface-3); color: var(--ink-3); border-color: var(--line);
+      /* A11Y P4: base era --ink-3 su --surface-3 (4.42:1, fail
+         AA). Spostato a --ink-2 (#2e445a, 7.92:1) per chip
+         "stato sconosciuto" - testo informativo, AA garantita. */
+      background: var(--surface-3); color: var(--ink-2); border-color: var(--line);
     }
 
-    .lnk-stato-chip.is-draft       { background: var(--surface-3); color: var(--ink-3);    border-color: var(--line); }
+    /* A11Y P4: is-draft / is-archived stesso problema del base.
+       is-archived inoltre aveva opacity .8 che degradava ulteriormente
+       il contrasto (~3.5:1) → opacity rimossa, scuriti i colori. */
+    .lnk-stato-chip.is-draft       { background: var(--surface-3); color: var(--ink-2);    border-color: var(--line); }
     .lnk-stato-chip.is-pending     { background: var(--warn-soft); color: var(--warn-ink); border-color: var(--warn-border); }
     .lnk-stato-chip.is-in-progress { background: var(--info-soft); color: var(--info-ink); border-color: var(--info-border); }
     .lnk-stato-chip.is-test        { background: var(--info-soft); color: var(--info-ink); border-color: var(--info-border); }
     .lnk-stato-chip.is-prod        { background: var(--ok-soft);   color: var(--ok-ink);   border-color: var(--ok-border); }
-    .lnk-stato-chip.is-archived    { background: var(--surface-3); color: var(--ink-3);    border-color: var(--line); opacity: .8; }
+    .lnk-stato-chip.is-archived    { background: var(--surface-3); color: var(--ink-2);    border-color: var(--line); }
     .lnk-stato-chip.is-error       { background: var(--accent-soft); color: var(--accent-ink); border-color: var(--accent-border); }
   `],
 })

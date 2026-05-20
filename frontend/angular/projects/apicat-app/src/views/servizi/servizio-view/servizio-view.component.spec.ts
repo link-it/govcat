@@ -76,6 +76,7 @@ describe('ServizioViewComponent', () => {
     canMonitoraggio: vi.fn().mockReturnValue(false),
     canManagementComunicazioni: vi.fn().mockReturnValue(false),
     getUser: vi.fn().mockReturnValue({ organizzazione: { id_organizzazione: 'org1' } }),
+    getCurrentOrganization: vi.fn().mockReturnValue({ id_organizzazione: 'org1' }),
     _getClassesNotModifiable: vi.fn().mockReturnValue([])
   } as any;
 
@@ -284,13 +285,13 @@ describe('ServizioViewComponent', () => {
   });
 
   it('should check _isAmmissibile returns true when user org is in ammissibili', () => {
-    mockAuthenticationService.getUser.mockReturnValue({ organizzazione: { id_organizzazione: 'org1' } });
+    mockAuthenticationService.getCurrentOrganization.mockReturnValue({ id_organizzazione: 'org1' });
     component._ammissibili = [{ id_organizzazione: 'org1' }] as any;
     expect((component as any)._isAmmissibile()).toBe(true);
   });
 
   it('should check _isAmmissibile returns false when user org is not in ammissibili', () => {
-    mockAuthenticationService.getUser.mockReturnValue({ organizzazione: { id_organizzazione: 'org2' } });
+    mockAuthenticationService.getCurrentOrganization.mockReturnValue({ id_organizzazione: 'org2' });
     component._ammissibili = [{ id_organizzazione: 'org1' }] as any;
     expect((component as any)._isAmmissibile()).toBe(false);
   });
@@ -1626,7 +1627,7 @@ describe('ServizioViewComponent', () => {
 
   describe('_isAmmissibileMapper', () => {
     it('should delegate to _isAmmissibile', () => {
-      mockAuthenticationService.getUser.mockReturnValue({ organizzazione: { id_organizzazione: 'org1' } });
+      mockAuthenticationService.getCurrentOrganization.mockReturnValue({ id_organizzazione: 'org1' });
       component._ammissibili = [{ id_organizzazione: 'org1' }] as any;
 
       expect(component._isAmmissibileMapper()).toBe(true);
@@ -1634,22 +1635,22 @@ describe('ServizioViewComponent', () => {
   });
 
   describe('_isAmmissibile edge cases', () => {
-    it('should return false when user has no organizzazione', () => {
-      mockAuthenticationService.getUser.mockReturnValue({ organizzazione: null });
+    it('should return false when current org is null', () => {
+      mockAuthenticationService.getCurrentOrganization.mockReturnValue(null);
       component._ammissibili = [{ id_organizzazione: 'org1' }] as any;
 
       expect((component as any)._isAmmissibile()).toBe(false);
     });
 
     it('should return false when ammissibili is empty', () => {
-      mockAuthenticationService.getUser.mockReturnValue({ organizzazione: { id_organizzazione: 'org1' } });
+      mockAuthenticationService.getCurrentOrganization.mockReturnValue({ id_organizzazione: 'org1' });
       component._ammissibili = [] as any;
 
       expect((component as any)._isAmmissibile()).toBe(false);
     });
 
-    it('should return false when getUser returns null', () => {
-      mockAuthenticationService.getUser.mockReturnValue(null);
+    it('should return false when getCurrentOrganization returns undefined', () => {
+      mockAuthenticationService.getCurrentOrganization.mockReturnValue(undefined);
       component._ammissibili = [{ id_organizzazione: 'org1' }] as any;
 
       expect((component as any)._isAmmissibile()).toBe(false);

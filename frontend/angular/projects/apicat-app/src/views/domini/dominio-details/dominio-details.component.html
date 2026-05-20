@@ -120,8 +120,15 @@
                           }
                         </label>
                         @if (_isEdit) {
-                          <div class="">
+                          <div class="position-relative">
                             <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome')" type="text" name="nomeg" id="nome" formControlName="nome" appTrimOnBlur>
+                            <!-- Issue #271 — spinner durante l'async validation
+                                 (`exists` check). -->
+                            @if (f['nome'].pending) {
+                              <span class="spinner-border spinner-border-sm position-absolute end-0 top-50 translate-middle-y me-2 text-muted"
+                                    role="status"
+                                    [attr.aria-label]="'APP.LABEL.Loading' | translate"></span>
+                            }
                             @if (f['nome'].invalid && (f['nome'].dirty || f['nome'].touched)) {
                               <p class="form-text text-danger">
                                 @if (f['nome'].errors && f['nome'].errors['required']) {
@@ -132,6 +139,9 @@
                                 }
                                 @if (f['nome'].errors && f['nome'].errors['maxlength']) {
                                   <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['nome'].errors['maxlength'].requiredLength } }}</span>
+                                }
+                                @if (f['nome'].errors && f['nome'].errors['alreadyExists']) {
+                                  <span class="d-block">{{ 'APP.DOMINI.VALIDATION.NameAlreadyExists' | translate }}</span>
                                 }
                               </p>
                             }

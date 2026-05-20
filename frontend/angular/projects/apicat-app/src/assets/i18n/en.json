@@ -548,6 +548,9 @@
 			"MESSAGE": {
 				"RemoveConfirm": "Are you sure you want to delete the domain **{{nome}}**? This action cannot be undone."
 			},
+			"VALIDATION": {
+				"NameAlreadyExists": "A domain with this name already exists. Please choose another one."
+			},
 			"LABEL": {
 				"Classi": "Classes",
 				"Deprecato": "Deprecated",

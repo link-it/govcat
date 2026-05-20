@@ -18,7 +18,10 @@
   letter-spacing: 0.08em;
   font-weight: 600;
   font-size: 11px;
-  color: var(--ink-4, #8aa4b8);
+  // A11Y P5: era --ink-4 #8aa4b8 (2.52:1 su white, fail AA).
+  // Subtitle "X di Y completati" porta info → spostato a --ink-3
+  // (4.85:1, AA). Test in produzione su sfondo --surface.
+  color: var(--ink-3, #57738a);
 
   .grow {
     flex: 1;
@@ -96,7 +99,10 @@
 }
 .tl-step.is-locked .tl-bullet {
   background: var(--surface-2, #fafcfd);
-  color: var(--ink-4, #8aa4b8);
+  // A11Y P5: era --ink-4 #8aa4b8 (2.52:1, fail anche UI 3:1).
+  // Il numero/icona porta info di posizionamento → spostato a
+  // --ink-3 #57738a (4.85:1, AA testo normale).
+  color: var(--ink-3, #57738a);
 
   i { font-size: 11px; }
 }
@@ -158,7 +164,10 @@
     }
     &.is-locked {
       background: var(--surface-3, #eef4f8);
-      color: var(--ink-3, #57738a);
+      // A11Y P4: era --ink-3 su --surface-3 (4.42:1, fail AA).
+      // Spostato a --ink-2 (7.92:1) per garantire AA testo
+      // normale sul chip "Bloccato" del substepper.
+      color: var(--ink-2, #2e445a);
     }
   }
 

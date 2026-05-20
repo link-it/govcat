@@ -1137,17 +1137,30 @@ describe('UtenteDetailsComponent', () => {
       expect(component._formGroup.get('id_organizzazione')?.valid).toBe(true);
     });
 
-    it('should set required validator for utente_organizzazione role', () => {
-      // Issue 229 (commit dadd48d0): `id_organizzazione` e` obbligatorio
-      // SOLO per il ruolo `utente_organizzazione`. Per gli altri ruoli
-      // (gestore, coordinatore, nessun ruolo, referente_servizio
-      // legacy) il campo e` opzionale.
+    it('should set required validator for utente_organizzazione role in new user', () => {
+      // `id_organizzazione` e` obbligatorio SOLO in creazione di un
+      // nuovo utente quando il ruolo selezionato e`
+      // `utente_organizzazione`. In modifica le associazioni sono
+      // gia` gestite dal flusso multi-org.
+      component._isNew = true;
       component._formGroup = new FormGroup({
         ruolo: new FormControl('utente_organizzazione'),
         id_organizzazione: new FormControl(null)
       });
       component._changeRuolo();
       expect(component._formGroup.get('id_organizzazione')?.valid).toBe(false);
+    });
+
+    it('should NOT set required validator for utente_organizzazione role in edit', () => {
+      // In modifica utente il required NON viene applicato anche
+      // se il ruolo selezionato e` `utente_organizzazione`.
+      component._isNew = false;
+      component._formGroup = new FormGroup({
+        ruolo: new FormControl('utente_organizzazione'),
+        id_organizzazione: new FormControl(null)
+      });
+      component._changeRuolo();
+      expect(component._formGroup.get('id_organizzazione')?.valid).toBe(true);
     });
 
     it('should NOT set required validator for legacy referente_servizio role', () => {

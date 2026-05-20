@@ -166,7 +166,7 @@
                     <section class="card card-pad-tight mb-4">
                       <div class="card-body px-2 pt-2 pb-0">
                         <header class="mb-3">
-                          <h3 class="h5 m-0">{{ 'APP.PROFILE.SECTION.IdentitaTitle' | translate }}</h3>
+                          <h3 class="m-0">{{ 'APP.PROFILE.SECTION.IdentitaTitle' | translate }}</h3>
                           <p class="text-muted small m-0">{{ 'APP.PROFILE.SECTION.IdentitaDesc' | translate }}</p>
                         </header>
                         <div class="row">
@@ -192,7 +192,7 @@
                     <section class="card card-pad-tight mb-4">
                       <div class="card-body px-2 pt-2 pb-0">
                         <header class="mb-3">
-                          <h3 class="h5 m-0">{{ 'APP.PROFILE.SECTION.PersonaliTitle' | translate }}</h3>
+                          <h3 class="m-0">{{ 'APP.PROFILE.SECTION.PersonaliTitle' | translate }}</h3>
                           <p class="text-muted small m-0">{{ 'APP.PROFILE.SECTION.PersonaliDesc' | translate }}</p>
                         </header>
                         <div class="row">
@@ -233,7 +233,7 @@
                     <section class="card card-pad-tight mb-4">
                       <div class="card-body px-2 pt-2 pb-0">
                         <header class="mb-3">
-                          <h3 class="h5 m-0">{{ ((mostraTelefono || mostraEmail) ? 'APP.PROFILE.SECTION.ContattiCorporateTitle' : 'APP.PROFILE.SECTION.ContattiTitle') | translate }}</h3>
+                          <h3 class="m-0">{{ ((mostraTelefono || mostraEmail) ? 'APP.PROFILE.SECTION.ContattiCorporateTitle' : 'APP.PROFILE.SECTION.ContattiTitle') | translate }}</h3>
                           <p class="text-muted small m-0">{{ 'APP.PROFILE.SECTION.ContattiDesc' | translate }}</p>
                         </header>
                         <div class="row">
@@ -353,7 +353,7 @@
                 <section class="pref-card">
                   <header class="pref-card-head d-flex align-items-center justify-content-between mb-4">
                     <div>
-                      <h3 class="h5 m-0">{{ 'APP.PROFILE.ORGANIZATION.YourOrganizations' | translate }}</h3>
+                      <h3 class="m-0">{{ 'APP.PROFILE.ORGANIZATION.YourOrganizations' | translate }}</h3>
                       <p>{{ 'APP.PROFILE.PREFERENCES.ServiziDesc' | translate }}</p>
                     </div>
                     <lnk-button
@@ -728,14 +728,19 @@
                           <div class="notify-row">
                             <span class="label-bold">{{ 'APP.PROFILE.PREFERENCES.RowCommLabel' | translate }}</span>
                             <div class="channel">
+                              <!-- A11Y: aria-label esplicito con canale +
+                                   categoria (lo screen reader non puo`
+                                   dedurli dalla cella di matrix). -->
                               <label class="toggle">
-                                <input type="checkbox" formControlName="notifiche_inapp" />
+                                <input type="checkbox" formControlName="notifiche_inapp"
+                                       [attr.aria-label]="('APP.NOTIFICATIONS.CHANNEL.InApp' | translate) + ' — ' + ('APP.PROFILE.PREFERENCES.GroupCommTitle' | translate)" />
                                 <span class="slider"></span>
                               </label>
                             </div>
                             <div class="channel">
                               <label class="toggle">
-                                <input type="checkbox" formControlName="notifiche_email" />
+                                <input type="checkbox" formControlName="notifiche_email"
+                                       [attr.aria-label]="('APP.NOTIFICATIONS.CHANNEL.Email' | translate) + ' — ' + ('APP.PROFILE.PREFERENCES.GroupCommTitle' | translate)" />
                                 <span class="slider"></span>
                               </label>
                             </div>
@@ -757,13 +762,15 @@
                             <span class="label-bold">{{ 'APP.PROFILE.PREFERENCES.RowStatusLabel' | translate }}</span>
                             <div class="channel">
                               <label class="toggle">
-                                <input type="checkbox" formControlName="cambio_stato_inapp" />
+                                <input type="checkbox" formControlName="cambio_stato_inapp"
+                                       [attr.aria-label]="('APP.NOTIFICATIONS.CHANNEL.InApp' | translate) + ' — ' + ('APP.PROFILE.PREFERENCES.GroupStatusTitle' | translate)" />
                                 <span class="slider"></span>
                               </label>
                             </div>
                             <div class="channel">
                               <label class="toggle">
-                                <input type="checkbox" formControlName="cambio_stato_email" />
+                                <input type="checkbox" formControlName="cambio_stato_email"
+                                       [attr.aria-label]="('APP.NOTIFICATIONS.CHANNEL.Email' | translate) + ' — ' + ('APP.PROFILE.PREFERENCES.GroupStatusTitle' | translate)" />
                                 <span class="slider"></span>
                               </label>
                             </div>

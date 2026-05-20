@@ -679,7 +679,7 @@
 <ng-template #genericDisclaimerTpl let-severity="severity" let-disclaimer="disclaimer">
   <div class="alert mb-2 disclaimer-item" [ngClass]="getDisclaimerAlertClass(severity)" role="alert">
     <div class="d-flex align-items-start gap-2">
-      <i class="disclaimer-icon" [ngClass]="getDisclaimerIconClass(severity)" [attr.aria-label]="severity"></i>
+      <i class="disclaimer-icon" [ngClass]="getDisclaimerIconClass(severity)"></i>
       <div class="flex-grow-1">
         <markdown class="disclaimer-body" [data]="disclaimer"></markdown>
       </div>
@@ -690,7 +690,7 @@
 <ng-template #disclaimerTpl let-item>
   <div class="alert mb-2 disclaimer-item" [ngClass]="getDisclaimerAlertClass(item.severity)" role="alert">
     <div class="d-flex align-items-start gap-2">
-      <i class="disclaimer-icon" [ngClass]="getDisclaimerIconClass(item.severity)" [attr.aria-label]="item.severity"></i>
+      <i class="disclaimer-icon" [ngClass]="getDisclaimerIconClass(item.severity)"></i>
       <div class="flex-grow-1">
         <markdown class="disclaimer-body" [data]="item.disclaimer"></markdown>
         @if (item.links?.length) {
@@ -762,8 +762,7 @@
        [ngClass]="getDisclaimerLnkBannerVariantClass(item.severity)"
        role="alert">
     <div class="icon">
-      <i [ngClass]="getDisclaimerIconClass(item.severity)"
-         [attr.aria-label]="item.severity"></i>
+      <i [ngClass]="getDisclaimerIconClass(item.severity)"></i>
     </div>
     <div class="body">
       <markdown [data]="item.disclaimer"></markdown>

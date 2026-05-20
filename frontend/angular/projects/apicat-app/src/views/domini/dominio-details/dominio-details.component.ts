@@ -35,6 +35,7 @@ import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap,
 import { UtilService } from '@app/services/utils.service';
 
 import { DominioCreateUpdateRequest } from './dominio-create-update';
+import { dominioExistsValidator } from './dominio-exists.validator';
 
 import { CommonModule } from '@angular/common';
 import { HasPermissionDirective } from '@app/directives/has-permission/has-permission.directive';
@@ -218,10 +219,17 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
         switch (key) {
           case 'nome':
             value = data[key] ? data[key] : null;
+            // Issue #271 — validatore async che verifica se esiste
+            // gia` un altro dominio con lo stesso nome (anche su
+            // organizzazioni diverse, non visibili all'AMM_ORG).
+            // In edit mode `originalName = value` per non segnalare
+            // errore quando il nome non viene modificato.
             _group[key] = new UntypedFormControl(value, [
               Validators.required,
               CustomValidators.notOnlyWhitespace,
               Validators.maxLength(255)
+            ], [
+              dominioExistsValidator(this.apiService, value || '')
             ]);
             break;
           case 'visibilita':
