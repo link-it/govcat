@@ -22,11 +22,11 @@ import { Component, EventEmitter, HostBinding, Input, OnInit, Output } from '@an
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { MarkdownModule } from 'ngx-markdown';
-import { GravatarModule } from 'ngx-gravatar';
 
 import { HttpImgSrcPipe } from '../../pipes/http-img-src.pipe';
 import { SetBackgroundImageDirective } from '../../directives/set-background-image.directive';
 import { UtilsLib } from '../../utils/utils.lib';
+import { LnkAvatarComponent } from '@app/components/lnk-ui/avatar/avatar.component';
 
 import moment from 'moment/moment';
 
@@ -37,7 +37,7 @@ import moment from 'moment/moment';
         './item-type.component.scss'
     ],
     standalone: true,
-    imports: [CommonModule, TranslateModule, TooltipModule, MarkdownModule, GravatarModule, HttpImgSrcPipe, SetBackgroundImageDirective]
+    imports: [CommonModule, TranslateModule, TooltipModule, MarkdownModule, LnkAvatarComponent, HttpImgSrcPipe, SetBackgroundImageDirective]
 })
 export class ItemTypeComponent implements OnInit {
     @HostBinding('class.empty-space') get emptySpace(): boolean {

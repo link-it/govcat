@@ -33,6 +33,7 @@ import { LnkButtonComponent } from '@app/components/lnk-ui/button/button.compone
 import { LnkFormFieldComponent } from '@app/components/lnk-ui/form-field/form-field.component';
 import { LnkFormErrorComponent } from '@app/components/lnk-ui/form-error/form-error.component';
 import { LnkFormSubmitComponent } from '@app/components/lnk-ui/form-submit/submit.component';
+import { LnkAvatarComponent } from '@app/components/lnk-ui/avatar/avatar.component';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
@@ -60,7 +61,8 @@ interface BodySettingsType {
     LnkButtonComponent,
     LnkFormFieldComponent,
     LnkFormErrorComponent,
-    LnkFormSubmitComponent
+    LnkFormSubmitComponent,
+    LnkAvatarComponent
   ]
 })
 export class ProfileComponent implements OnInit, AfterContentChecked {

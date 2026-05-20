@@ -117,7 +117,7 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 		}
 		
 		if (nome.isPresent()) {
-			predLst.add(cb.equal(root.get(ServizioEntity_.nome), nome.get())); 
+			predLst.add(cb.equal(cb.upper(root.get(ServizioEntity_.nome)), nome.get().toUpperCase()));
 		}
 		
 

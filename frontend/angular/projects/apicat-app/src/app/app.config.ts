@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { ApplicationConfig, CUSTOM_ELEMENTS_SCHEMA, importProvidersFrom, inject, provideAppInitializer, provideZoneChangeDetection } from '@angular/core';
+import { ApplicationConfig, CSP_NONCE, importProvidersFrom, inject, provideAppInitializer, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter, withPreloading, PreloadAllModules } from '@angular/router';
 import { provideHttpClient, withInterceptorsFromDi, withXsrfConfiguration, HttpClient } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
@@ -28,7 +28,6 @@ import { OAuthModule, OAuthStorage } from 'angular-oauth2-oidc';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { ModalModule } from 'ngx-bootstrap/modal';
 import { BsDatepickerModule } from 'ngx-bootstrap/datepicker';
-import { FALLBACK, GravatarConfig, GravatarModule, RATING } from 'ngx-gravatar';
 
 import { routes } from './app.routes';
 import { ConfigService, httpInterceptorProviders, BreadcrumbService } from '@linkit/components';
@@ -45,16 +44,14 @@ import { RegistrazioneGuard } from '../guard/registrazione.guard';
 import { OrganizationSelectionGuard } from '../guard/organization-selection.guard';
 import { environment } from '../environments/environment';
 
-const gravatarConfig: GravatarConfig = {
-  fallback: FALLBACK.mm,
-  rating: RATING.g,
-  backgroundColor: 'rgba(255, 255, 255, 1)',
-  borderColor: 'rgba(255, 255, 255, 1)',
-  hasBorder: true,
-};
-
 export function HttpLoaderFactory(http: HttpClient) {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');
+}
+
+export function cspNonceFactory(): string {
+  if (typeof document === 'undefined') return '';
+  const el = document.querySelector('meta[name="CSP-Nonce"]');
+  return el?.getAttribute('content') ?? '';
 }
 
 export const appConfig: ApplicationConfig = {
@@ -78,8 +75,7 @@ export const appConfig: ApplicationConfig = {
       OAuthModule.forRoot(),
       TooltipModule.forRoot(),
       ModalModule.forRoot(),
-      BsDatepickerModule.forRoot(),
-      GravatarModule.forRoot(gravatarConfig)
+      BsDatepickerModule.forRoot()
     ),
     BreadcrumbService,
     ...httpInterceptorProviders,
@@ -99,6 +95,7 @@ export const appConfig: ApplicationConfig = {
     MonitoraggioGuard,
     RegistrazioneGuard,
     OrganizationSelectionGuard,
-    { provide: OAuthStorage, useFactory: () => localStorage }
+    { provide: OAuthStorage, useFactory: () => localStorage },
+    { provide: CSP_NONCE, useFactory: cspNonceFactory }
   ]
 };

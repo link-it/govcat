@@ -19,12 +19,12 @@
 import { Component, EventEmitter, HostBinding, Input, OnInit, Output, SimpleChanges } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { MarkdownModule } from 'ngx-markdown';
-import { GravatarModule } from 'ngx-gravatar';
 
 import { UtilsLib } from '../../utils/utils.lib';
+import { LnkAvatarComponent } from '@app/components/lnk-ui/avatar/avatar.component';
 
 import moment from 'moment/moment';
 
@@ -35,7 +35,7 @@ import moment from 'moment/moment';
     './data-type.component.scss'
   ],
   standalone: true,
-  imports: [TranslateModule, TooltipModule, MarkdownModule, GravatarModule]
+  imports: [TranslateModule, TooltipModule, MarkdownModule, LnkAvatarComponent]
 })
 export class DataTypeComponent implements OnInit {
   @HostBinding('class.empty-space') get emptySpace(): boolean {
@@ -66,8 +66,7 @@ export class DataTypeComponent implements OnInit {
   _showBadged: boolean = false;
 
   constructor(
-    private sanitized: DomSanitizer,
-    private translate: TranslateService,
+    private readonly sanitized: DomSanitizer,
     public utilsLib: UtilsLib
   ) { }
 

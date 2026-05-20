@@ -65,6 +65,10 @@ public class DominioService extends AbstractService {
 		return this.dominioRepo.findOne(filterByNome(nome)).isPresent();
 	}
 
+	public Optional<DominioEntity> findByNome(String nome) {
+		return this.dominioRepo.findOne(filterByNome(nome));
+	}
+
 	private Specification<DominioEntity> filterByKey(UUID key) {
 		DominioSpecification dominioFilter = new DominioSpecification();
 		dominioFilter.setIdDominio(Optional.of(key));

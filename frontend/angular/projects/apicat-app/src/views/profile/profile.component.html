@@ -54,13 +54,12 @@
              `app-view.scss .lnk-vetrina .hero`. -->
         <header class="hero container-fluid mt-3" style="grid-template-columns:110px minmax(0, 1fr) max-content;">
           <div class="hero-img">
-            <img alt="user gravatar"
-                 ngxGravatar
-                 [email]="profile?.email || profile?.email_aziendale"
-                 [size]="96"
-                 [round]="false"
-                 fallback="mp"
-                 (error)="onAvatarError($event)">
+            <lnk-avatar
+              [email]="profile?.email || profile?.email_aziendale"
+              [name]="(profile?.nome || '') + ' ' + (profile?.cognome || '')"
+              [size]="96"
+              [round]="false">
+            </lnk-avatar>
           </div>
           <div class="hero-meta">
             <span class="hero-eyebrow text-uppercase small text-muted">

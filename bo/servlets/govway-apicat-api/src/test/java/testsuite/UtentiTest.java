@@ -2951,8 +2951,9 @@ public class UtentiTest {
     }
 
     @Test
-    public void testDeleteProfiloOrganizationPending_UtenteSenzaAssociazioni_TornaNonConfigurato() {
-        // Simula utente arrivato da registrazione: PENDING_UPDATE con orgPending ma senza associazioni
+    public void testDeleteProfiloOrganizationPending_UtenteSenzaAssociazioni_TornaAbilitato() {
+        // Simula utente arrivato da registrazione: PENDING_UPDATE con orgPending ma senza associazioni.
+        // L'annullo della richiesta riporta sempre lo stato ad ABILITATO, anche senza associazioni.
         Organizzazione orgY = creaOrgConNomeMultiOrg("del-prof-noassoc-y");
         org.govway.catalogo.core.orm.entity.OrganizzazioneEntity orgYEntity =
                 organizzazioneService.find(orgY.getIdOrganizzazione()).get();
@@ -2974,7 +2975,7 @@ public class UtentiTest {
         ResponseEntity<Utente> resp = controller.deleteProfiloOrganizationPending();
 
         assertEquals(HttpStatus.OK, resp.getStatusCode());
-        assertEquals(StatoUtenteEnum.NON_CONFIGURATO, resp.getBody().getStato());
+        assertEquals(StatoUtenteEnum.ABILITATO, resp.getBody().getStato());
         assertNull(resp.getBody().getOrganizzazionePending());
         assertNull(resp.getBody().getOrganizzazionePartenza());
     }

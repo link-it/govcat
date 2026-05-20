@@ -91,7 +91,7 @@ public class SecurityConfig {
    		.and()
    			.headers()
    			.xssProtection()
-               ;
+		;
    		
    		return http.build();
    		

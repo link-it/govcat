@@ -1747,6 +1747,9 @@
 							"PENDING": {
 								"REQUEST": "Nessuna richiesta di cambio organizzazione da annullare"
 							}
+						},
+						"RUOLO": {
+							"NULL": "Ruolo non valorizzato per l'utente [{{nomeUtente}} {{cognomeUtente}}]"
 						}
 					},
 					"403": {

@@ -998,7 +998,7 @@ public class ServiziController implements ServiziApi {
 				this.logger.debug("Autorizzazione completata con successo");
 
 				if(servizioUpdate.getIdentificativo()!= null) {
-					boolean nomeCambiato = !entity.getNome().equals(servizioUpdate.getIdentificativo().getNome());
+					boolean nomeCambiato = !entity.getNome().equalsIgnoreCase(servizioUpdate.getIdentificativo().getNome());
 					boolean versioneCambiata = !entity.getVersione().equals(servizioUpdate.getIdentificativo().getVersione());
 
 					if(nomeCambiato || versioneCambiata) {

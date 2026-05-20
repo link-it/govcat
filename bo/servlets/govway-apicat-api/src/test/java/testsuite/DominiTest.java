@@ -223,6 +223,31 @@ public class DominiTest {
     }
 
     @Test
+    public void testCreateDominioConflictCaseInsensitive() {
+        ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(response.getBody().getIdOrganizzazione());
+
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
+        soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
+        assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
+
+        DominioCreate dominioCreate1 = this.getDominioCreate();
+        dominioCreate1.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
+        ResponseEntity<Dominio> createdDominio1 = controller.createDominio(dominioCreate1);
+        assertEquals(HttpStatus.OK, createdDominio1.getStatusCode());
+
+        DominioCreate dominioCreate2 = this.getDominioCreate();
+        dominioCreate2.setNome(CommonUtils.NOME_DOMINIO.toUpperCase());
+        dominioCreate2.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
+        ConflictException exception = assertThrows(ConflictException.class, () -> {
+            controller.createDominio(dominioCreate2);
+        });
+
+        assertEquals("DOM.409", exception.getMessage());
+    }
+
+    @Test
     public void testCreateDominioUnauthorized() {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
@@ -298,7 +323,7 @@ public class DominiTest {
     }
 
     @Test
-    public void testDominioExistsCaseSensitive() {
+    public void testDominioExistsCaseInsensitive() {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
@@ -316,7 +341,7 @@ public class DominiTest {
 
         assertEquals(HttpStatus.OK, existsResponse.getStatusCode());
         assertNotNull(existsResponse.getBody());
-        assertFalse(existsResponse.getBody().isExists());
+        assertTrue(existsResponse.getBody().isExists());
     }
 
     @Test
@@ -474,6 +499,67 @@ public class DominiTest {
         assertEquals("UpdatedDomainName", responseUpdate.getBody().getNome());
         assertEquals("Descrizione aggiornata", responseUpdate.getBody().getDescrizione());
         assertEquals(HttpStatus.OK, responseUpdate.getStatusCode());
+    }
+
+    @Test
+    public void testUpdateDominioConflictCaseInsensitive() {
+        ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(response.getBody().getIdOrganizzazione());
+
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
+        soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
+        assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
+
+        DominioCreate dominioCreate1 = this.getDominioCreate();
+        dominioCreate1.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
+        ResponseEntity<Dominio> createdDominio1 = controller.createDominio(dominioCreate1);
+        assertEquals(HttpStatus.OK, createdDominio1.getStatusCode());
+
+        DominioCreate dominioCreate2 = this.getDominioCreate();
+        dominioCreate2.setNome("SecondDomain");
+        dominioCreate2.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
+        ResponseEntity<Dominio> createdDominio2 = controller.createDominio(dominioCreate2);
+        assertEquals(HttpStatus.OK, createdDominio2.getStatusCode());
+
+        DominioUpdate dominioUpdate = new DominioUpdate();
+        dominioUpdate.setNome(CommonUtils.NOME_DOMINIO.toUpperCase());
+        dominioUpdate.setVisibilita(VisibilitaDominioEnum.PUBBLICO);
+        dominioUpdate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
+        dominioUpdate.setDeprecato(false);
+
+        ConflictException exception = assertThrows(ConflictException.class, () -> {
+            controller.updateDominio(createdDominio2.getBody().getIdDominio(), dominioUpdate);
+        });
+
+        assertEquals("DOM.409", exception.getMessage());
+    }
+
+    @Test
+    public void testUpdateDominioCambioSoloCaseSuccess() {
+        ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(response.getBody().getIdOrganizzazione());
+
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
+        soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
+        assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
+
+        DominioCreate dominioCreate = this.getDominioCreate();
+        dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
+        ResponseEntity<Dominio> createdDominio = controller.createDominio(dominioCreate);
+        assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
+
+        DominioUpdate dominioUpdate = new DominioUpdate();
+        dominioUpdate.setNome(CommonUtils.NOME_DOMINIO.toUpperCase());
+        dominioUpdate.setVisibilita(VisibilitaDominioEnum.PUBBLICO);
+        dominioUpdate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
+        dominioUpdate.setDeprecato(false);
+
+        ResponseEntity<Dominio> responseUpdate = controller.updateDominio(createdDominio.getBody().getIdDominio(), dominioUpdate);
+
+        assertEquals(HttpStatus.OK, responseUpdate.getStatusCode());
+        assertEquals(CommonUtils.NOME_DOMINIO.toUpperCase(), responseUpdate.getBody().getNome());
     }
 
     @Test

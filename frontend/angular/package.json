@@ -79,7 +79,6 @@
     "moment": "^2.30.1",
     "ng2-currency-mask": "^13.0.3",
     "ngx-bootstrap": "^21.0.1",
-    "ngx-gravatar": "^13.0.0",
     "ngx-infinite-scroll": "^21.0.0",
     "ngx-markdown": "^21.1.0",
     "ngx-masonry": "^14.0.1",

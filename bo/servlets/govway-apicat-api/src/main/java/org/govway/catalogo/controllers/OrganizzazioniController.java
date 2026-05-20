@@ -299,8 +299,15 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404, Map.of("idOrganizzazione", idOrganizzazione.toString())));
 	
 				this.authorization.authorizeUpdate(organizzazioneUpdate, entity);
-				
-				this.logger.debug("Autorizzazione completata con successo");     
+
+				this.logger.debug("Autorizzazione completata con successo");
+
+				this.service.findByNome(organizzazioneUpdate.getNome()).ifPresent(existing -> {
+					if (!existing.getIdOrganizzazione().equals(idOrganizzazione.toString())) {
+						throw new ConflictException(ErrorCode.ORG_409, Map.of("nome", organizzazioneUpdate.getNome()));
+					}
+				});
+
 				this.dettaglioAssembler.toEntity(organizzazioneUpdate, entity);
 
 				String customCamelCaseName = this.service.customCamelCase(organizzazioneUpdate.getNome(), true);
@@ -364,6 +371,12 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 						.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404,
 								Map.of("idUtente", body.getIdUtente().toString())));
 
+				if (utente.getRuolo() == null) {
+					throw new BadRequestException(ErrorCode.UT_400_RUOLO_NULL,
+							Map.of("nomeUtente", utente.getNome(),
+									"cognomeUtente", utente.getCognome()));
+				}
+
 				if (this.service.findUtenteOrganizzazione(utente, org).isPresent()) {
 					throw new ConflictException(ErrorCode.GEN_409,
 							Map.of("nomeUtente", utente.getNome(),
@@ -408,6 +421,12 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 				UtenteEntity utente = this.utenteService.find(idUtente)
 						.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404,
 								Map.of("idUtente", idUtente.toString())));
+
+				if (utente.getRuolo() == null) {
+					throw new BadRequestException(ErrorCode.UT_400_RUOLO_NULL,
+							Map.of("nomeUtente", utente.getNome(),
+									"cognomeUtente", utente.getCognome()));
+				}
 
 				UtenteOrganizzazioneEntity assoc = this.service.findUtenteOrganizzazione(utente, org)
 						.orElseThrow(() -> new NotFoundException(ErrorCode.GEN_404,

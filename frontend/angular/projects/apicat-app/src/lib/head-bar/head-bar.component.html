@@ -117,7 +117,11 @@
 
           <div class="ml-auto" *ngIf="loggedIn">
             <button class="btn color-inherit text-uppercase pe-0 fw-light" data-bs-toggle="dropdown">
-              <img #avatar class="" [alt]="_username" ngxGravatar [email]="_username" [size]="23" fallback="mp" (error)="onAvatarError($event)">
+              <lnk-avatar
+                [email]="_userEmail || _username"
+                [name]="_userName"
+                [alt]="_userName || _username"
+                [size]="23"></lnk-avatar>
               <span class="material-icons-outlined align-middle mx-1">expand_more</span>
             </button>
             <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="menu-action">

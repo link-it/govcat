@@ -16,24 +16,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, OnInit, Input, HostBinding, Output, EventEmitter } from '@angular/core';
+import { Component, Input, HostBinding, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { TranslateModule } from '@ngx-translate/core';
-import { GravatarModule } from 'ngx-gravatar';
 
 import { Tools } from '../services/tools.service';
 import { Language } from '../classes/language';
 import { MenuAction } from '../classes/menu-action';
+import { LnkAvatarComponent } from '@app/components/lnk-ui/avatar/avatar.component';
 
 @Component({
   selector: 'app-head-bar',
   templateUrl: './head-bar.component.html',
   styleUrls: ['./head-bar.component.scss'],
   standalone: true,
-  imports: [CommonModule, TranslateModule, GravatarModule]
+  imports: [CommonModule, TranslateModule, LnkAvatarComponent]
 })
-export class HeadBarComponent implements OnInit {
+export class HeadBarComponent {
   @HostBinding('class.content-block') get headContentClass(): boolean {
     return !!Tools.USER_LOGGED;
   }
@@ -45,6 +45,8 @@ export class HeadBarComponent implements OnInit {
   @Input() login: boolean = false;
   @Input() loginLabel: string = 'Login';
   @Input('username') _username: string = '';
+  @Input('user-email') _userEmail: string = '';
+  @Input('user-name') _userName: string = '';
   @Input() loggedIn: boolean = false;
   @Input('menu-action-list') _menuActions: MenuAction[] = [];
   @Input('menu-app-action-list') _menuAppActions: MenuAction[] = [];
@@ -78,9 +80,6 @@ export class HeadBarComponent implements OnInit {
   });
 
   constructor() { }
-
-  ngOnInit() {
-  }
 
   __headBarClass() {
     return {

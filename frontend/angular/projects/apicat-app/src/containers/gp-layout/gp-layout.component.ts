@@ -45,7 +45,7 @@ import { navItemsDashboardMenu, navItemsMainMenu, navItemsAdministratorMenu, nav
 import { environment } from '@app/environments/environment';
 
 import { Observable, of, firstValueFrom, forkJoin } from 'rxjs';
-import { catchError, filter, tap } from 'rxjs/operators';
+import { catchError, filter } from 'rxjs/operators';
 
 import * as _ from 'lodash';
 
@@ -90,6 +90,8 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
     Tools = Tools;
 
     _session: any = null;
+    _userEmail: string = '';
+    _userName: string = '';
     username: string = '';
     loggedIn: boolean = false;
     login: boolean = false;
@@ -598,6 +600,9 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
             this.loggedIn = (this._session !== null);
             this.login = (this._session !== null);
             this.username = this._session?.utente?.username || '';
+            const _u = this._session?.utente;
+            this._userEmail = _u?.email_aziendale || _u?.email || '';
+            this._userName = [_u?.nome, _u?.cognome].filter(Boolean).join(' ').trim();
             this._startCounters();
         }
     }

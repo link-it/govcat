@@ -75,7 +75,7 @@
   }
   @case ('avatar') {
     <span class="position-relative" [tooltip]="_value" container="body" [delay]="500">
-      <img class="align-top" ngxGravatar [email]="_value" [size]="20" fallback="mp" fallback="mp" (error)="onAvatarError($event)">
+      <lnk-avatar class="align-top" [email]="_value" [size]="20"></lnk-avatar>
     </span>
   }
   @case ('image') {
