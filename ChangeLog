@@ -1,6 +1,19 @@
 2026-05-20  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Dashboard: il pannello "utenti" non veniva mostrato a un
+	  utente `utente_organizzazione` con ruolo
+	  `amministratore_organizzazione` sull'org di sessione,
+	  perche` `computeRoleConfig` usava solo il pool
+	  `ruoli_referente` ritornato da `GET /profilo/ruoli` (che
+	  non include i ruoli per-org). Aggiunto il ruolo per-org
+	  di sessione al pool via
+	  `authenticationService.getCurrentOrganizationRole()`:
+	  amministratore_organizzazione sblocca il pannello
+	  utenti, operatore_api lascia la config base. Spec
+	  estesa con 3 test del nuovo path.
+
+	* [Frontend]
 	utente-organizzazione-dialog: nella ricerca utenti per
 	  l'associazione a una organizzazione (sia da dettagli org
 	  che da organizzazione-manage — il component dialog e`

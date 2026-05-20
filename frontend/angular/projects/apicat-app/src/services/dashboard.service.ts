@@ -115,6 +115,16 @@ export class DashboardService {
       pool.add('utente_organizzazione');
     }
 
+    // Aggiunge il ruolo per-organizzazione dell'utente per la sessione
+    // corrente (`amministratore_organizzazione` o `operatore_api`).
+    // L'endpoint `profilo/ruoli` non lo include in `ruoli_referente`,
+    // quindi senza questa aggiunta un amministratore di organizzazione
+    // perderebbe il pannello `utenti` in dashboard.
+    const currentOrgRole = this.authenticationService.getCurrentOrganizationRole?.();
+    if (currentOrgRole) {
+      pool.add(currentOrgRole);
+    }
+
     if (pool.size === 0) {
       config.comunicazioni = true;
       return config;

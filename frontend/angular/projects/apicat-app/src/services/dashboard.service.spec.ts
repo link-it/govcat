@@ -15,7 +15,8 @@ describe('DashboardService', () => {
       getList: vi.fn().mockReturnValue(of({ content: [], page: { totalElements: 0 } }))
     };
     mockAuthService = {
-      getUser: vi.fn().mockReturnValue(null)
+      getUser: vi.fn().mockReturnValue(null),
+      getCurrentOrganizationRole: vi.fn().mockReturnValue(null)
     };
     mockConfigService = {
       getConfiguration: vi.fn().mockReturnValue({ AppConfig: { Layout: {} } })
@@ -162,6 +163,31 @@ describe('DashboardService', () => {
         expect(config.servizi).toBe(true);
         expect(config.adesioni).toBe(true);
         expect(config.comunicazioni).toBe(true);
+      });
+    });
+
+    describe('current org role (session)', () => {
+      it('amministratore_organizzazione from session unlocks utenti panel', () => {
+        mockAuthService.getCurrentOrganizationRole.mockReturnValue('amministratore_organizzazione');
+        const config = service.computeRoleConfig('utente_organizzazione', []);
+        expect(config.servizi).toBe(true);
+        expect(config.adesioni).toBe(true);
+        expect(config.comunicazioni).toBe(true);
+        expect(config.utenti).toBe(true);
+      });
+
+      it('operatore_api from session does NOT unlock utenti panel', () => {
+        mockAuthService.getCurrentOrganizationRole.mockReturnValue('operatore_api');
+        const config = service.computeRoleConfig('utente_organizzazione', []);
+        expect(config.servizi).toBe(true);
+        expect(config.adesioni).toBe(true);
+        expect(config.utenti).toBe(false);
+      });
+
+      it('null session org role keeps base config', () => {
+        mockAuthService.getCurrentOrganizationRole.mockReturnValue(null);
+        const config = service.computeRoleConfig('utente_organizzazione', []);
+        expect(config.utenti).toBe(false);
       });
     });
   });
