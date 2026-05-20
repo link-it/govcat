@@ -921,6 +921,84 @@ public class ServiziTest {
 	    });
 	}
 
+	@Test
+	public void testCreateServizioConflictCaseInsensitive() {
+		Servizio servizio = this.getServizio();
+
+		ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+		servizioCreate.setNome(servizio.getNome().toUpperCase());
+		servizioCreate.setVersione(servizio.getVersione());
+		servizioCreate.setIdSoggettoInterno(idSoggetto);
+		servizioCreate.setIdDominio(idDominio);
+		ReferenteCreate referente = new ReferenteCreate();
+		referente.setTipo(TipoReferenteEnum.REFERENTE);
+		referente.setIdUtente(ID_UTENTE_GESTORE);
+		List<ReferenteCreate> referenti = new ArrayList<>();
+		referenti.add(referente);
+		servizioCreate.setReferenti(referenti);
+
+		assertThrows(ConflictException.class, () -> {
+			serviziController.createServizio(servizioCreate);
+		});
+	}
+
+	@Test
+	public void testUpdateServizioConflictCaseInsensitive() {
+		Servizio primo = this.getServizio();
+
+		ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+		servizioCreate.setNome("AltroServizio");
+		servizioCreate.setVersione(primo.getVersione());
+		servizioCreate.setIdSoggettoInterno(idSoggetto);
+		servizioCreate.setIdDominio(idDominio);
+		ReferenteCreate referente = new ReferenteCreate();
+		referente.setTipo(TipoReferenteEnum.REFERENTE);
+		referente.setIdUtente(ID_UTENTE_GESTORE);
+		List<ReferenteCreate> referenti = new ArrayList<>();
+		referenti.add(referente);
+		servizioCreate.setReferenti(referenti);
+		ResponseEntity<Servizio> secondo = serviziController.createServizio(servizioCreate);
+
+		ServizioUpdate servizioUpdate = new ServizioUpdate();
+		IdentificativoServizioUpdate identificativo = new IdentificativoServizioUpdate();
+		identificativo.setNome(primo.getNome().toUpperCase());
+		identificativo.setVersione(primo.getVersione());
+		identificativo.setIdDominio(idDominio);
+		identificativo.setIdSoggettoInterno(idSoggetto);
+		identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
+		identificativo.setAdesioneDisabilitata(false);
+		identificativo.setMultiAdesione(true);
+		identificativo.setTipo(TipoServizio.GENERICO);
+		servizioUpdate.setIdentificativo(identificativo);
+
+		assertThrows(ConflictException.class, () -> {
+			serviziController.updateServizio(secondo.getBody().getIdServizio(), null, servizioUpdate);
+		});
+	}
+
+	@Test
+	public void testUpdateServizioCambioSoloCaseSuccess() {
+		Servizio servizio = this.getServizio();
+
+		ServizioUpdate servizioUpdate = new ServizioUpdate();
+		IdentificativoServizioUpdate identificativo = new IdentificativoServizioUpdate();
+		identificativo.setNome(servizio.getNome().toUpperCase());
+		identificativo.setVersione(servizio.getVersione());
+		identificativo.setIdDominio(idDominio);
+		identificativo.setIdSoggettoInterno(idSoggetto);
+		identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
+		identificativo.setAdesioneDisabilitata(false);
+		identificativo.setMultiAdesione(true);
+		identificativo.setTipo(TipoServizio.API);
+		identificativo.setPackage(false);
+		servizioUpdate.setIdentificativo(identificativo);
+
+		ResponseEntity<Servizio> response = serviziController.updateServizio(servizio.getIdServizio(), null, servizioUpdate);
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(servizio.getNome().toUpperCase(), response.getBody().getNome());
+	}
+
     @Test
     void testUpdateStatoServizioSuccess() {
         Servizio servizio = this.getServizio();

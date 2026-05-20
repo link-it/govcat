@@ -80,7 +80,7 @@ public class DominioSpecification implements Specification<DominioEntity> {
 		}
 		
 		if (nome.isPresent()) {
-			predLst.add(cb.equal(root.get(DominioEntity_.nome), nome.get())); 
+			predLst.add(cb.equal(cb.upper(root.get(DominioEntity_.nome)), nome.get().toUpperCase()));
 		}
 		
 		if (visibilita.isPresent()) {

@@ -299,8 +299,15 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404, Map.of("idOrganizzazione", idOrganizzazione.toString())));
 	
 				this.authorization.authorizeUpdate(organizzazioneUpdate, entity);
-				
-				this.logger.debug("Autorizzazione completata con successo");     
+
+				this.logger.debug("Autorizzazione completata con successo");
+
+				this.service.findByNome(organizzazioneUpdate.getNome()).ifPresent(existing -> {
+					if (!existing.getIdOrganizzazione().equals(idOrganizzazione.toString())) {
+						throw new ConflictException(ErrorCode.ORG_409, Map.of("nome", organizzazioneUpdate.getNome()));
+					}
+				});
+
 				this.dettaglioAssembler.toEntity(organizzazioneUpdate, entity);
 
 				String customCamelCaseName = this.service.customCamelCase(organizzazioneUpdate.getNome(), true);

@@ -122,7 +122,7 @@ public class OrganizzazioneSpecification implements Specification<Organizzazione
 		}
 		
 		if (nome.isPresent()) {
-			predLst.add(cb.equal(root.get(OrganizzazioneEntity_.nome), nome.get())); 
+			predLst.add(cb.equal(cb.upper(root.get(OrganizzazioneEntity_.nome)), nome.get().toUpperCase()));
 		}
 		
 

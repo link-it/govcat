@@ -232,6 +232,28 @@ public class OrganizzazioniTest {
     }
 
     @Test
+    public void testCreateOrganizzazioneConflictCaseInsensitive() {
+        ResponseEntity<Organizzazione> firstResponse = this.getResponse();
+        assertEquals(HttpStatus.OK, firstResponse.getStatusCode());
+
+        OrganizzazioneCreate conflicting = new OrganizzazioneCreate();
+        conflicting.setNome(NOME_ORGANIZZAZIONE.toUpperCase());
+        conflicting.setDescrizione(DESCRIZIONE);
+        conflicting.setCodiceEnte("AltroCodice");
+        conflicting.setCodiceFiscaleSoggetto("AltroCF");
+        conflicting.setIdTipoUtente(ID_TIPO_UTENTE);
+        conflicting.setReferente(REFERENTE);
+        conflicting.setAderente(ADERENTE);
+        conflicting.setEsterna(ESTERNA);
+
+        ConflictException exception = assertThrows(ConflictException.class, () -> {
+            controller.createOrganizzazione(conflicting);
+        });
+
+        assertEquals("ORG.409", exception.getMessage());
+    }
+
+    @Test
     public void testCreateOrganizzazioneUnauthorized() {
         OrganizzazioneCreate organizzazioneCreate = new OrganizzazioneCreate();
         organizzazioneCreate.setNome(NOME_ORGANIZZAZIONE);
@@ -398,6 +420,62 @@ public class OrganizzazioniTest {
         assertEquals(false, organizzazioneAggiornata.isReferente());
         assertEquals(true, organizzazioneAggiornata.isAderente());
         assertEquals(false, organizzazioneAggiornata.isEsterna());
+    }
+
+    @Test
+    public void testUpdateOrganizzazioneConflictCaseInsensitive() {
+        ResponseEntity<Organizzazione> firstResponse = this.getResponse();
+        assertEquals(HttpStatus.OK, firstResponse.getStatusCode());
+
+        OrganizzazioneCreate second = new OrganizzazioneCreate();
+        second.setNome("Altra Organizzazione");
+        second.setDescrizione(DESCRIZIONE);
+        second.setCodiceEnte("CodiceEnte2");
+        second.setCodiceFiscaleSoggetto("CodiceFiscale2");
+        second.setIdTipoUtente(ID_TIPO_UTENTE);
+        second.setReferente(REFERENTE);
+        second.setAderente(ADERENTE);
+        second.setEsterna(ESTERNA);
+        ResponseEntity<Organizzazione> secondResponse = controller.createOrganizzazione(second);
+        assertEquals(HttpStatus.OK, secondResponse.getStatusCode());
+
+        OrganizzazioneUpdate update = new OrganizzazioneUpdate();
+        update.setNome(NOME_ORGANIZZAZIONE.toUpperCase());
+        update.setDescrizione(DESCRIZIONE);
+        update.setCodiceEnte("CodiceEnte2");
+        update.setCodiceFiscaleSoggetto("CodiceFiscale2");
+        update.setIdTipoUtente(ID_TIPO_UTENTE);
+        update.setReferente(REFERENTE);
+        update.setAderente(ADERENTE);
+        update.setEsterna(ESTERNA);
+
+        ConflictException exception = assertThrows(ConflictException.class, () -> {
+            controller.updateOrganizzazione(secondResponse.getBody().getIdOrganizzazione(), update);
+        });
+
+        assertEquals("ORG.409", exception.getMessage());
+    }
+
+    @Test
+    public void testUpdateOrganizzazioneCambioSoloCaseSuccess() {
+        ResponseEntity<Organizzazione> createResponse = this.getResponse();
+        assertEquals(HttpStatus.OK, createResponse.getStatusCode());
+        UUID id = createResponse.getBody().getIdOrganizzazione();
+
+        OrganizzazioneUpdate update = new OrganizzazioneUpdate();
+        update.setNome(NOME_ORGANIZZAZIONE.toUpperCase());
+        update.setDescrizione(DESCRIZIONE);
+        update.setCodiceEnte(CODICE_ENTE);
+        update.setCodiceFiscaleSoggetto(CODICE_FISCALE_SOGGETTO);
+        update.setIdTipoUtente(ID_TIPO_UTENTE);
+        update.setReferente(REFERENTE);
+        update.setAderente(ADERENTE);
+        update.setEsterna(ESTERNA);
+
+        ResponseEntity<Organizzazione> updateResponse = controller.updateOrganizzazione(id, update);
+
+        assertEquals(HttpStatus.OK, updateResponse.getStatusCode());
+        assertEquals(NOME_ORGANIZZAZIONE.toUpperCase(), updateResponse.getBody().getNome());
     }
 
     @Test

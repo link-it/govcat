@@ -293,10 +293,16 @@ public class DominiController implements DominiApi {
 						.orElseThrow(() -> new NotFoundException(ErrorCode.DOM_404, Map.of("idDominio", idDominio.toString())));
 	
 				this.authorization.authorizeUpdate(dominioUpdate,entity);
-				this.logger.debug("Autorizzazione completata con successo");     
+				this.logger.debug("Autorizzazione completata con successo");
+
+				this.service.findByNome(dominioUpdate.getNome()).ifPresent(existing -> {
+					if (!existing.getIdDominio().equals(idDominio.toString())) {
+						throw new ConflictException(ErrorCode.DOM_409, Map.of("nome", dominioUpdate.getNome()));
+					}
+				});
 
 				this.dettaglioAssembler.toEntity(dominioUpdate, entity);
-	
+
 				this.checkReferenti(entity);
 
 				this.service.save(entity);
