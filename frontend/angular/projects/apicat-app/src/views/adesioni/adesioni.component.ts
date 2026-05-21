@@ -23,6 +23,7 @@ import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { HttpHeaders, HttpParams } from '@angular/common/http';
 
 import { ActionEnum, ExportDropdwnComponent } from '@app/components/lnk-ui/export-dropdown/export-dropdown.component';
+import { ResponsiveTabsComponent } from '@app/components/lnk-ui/responsive-tabs/responsive-tabs.component';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
@@ -33,6 +34,7 @@ import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.di
 
 import { COMPONENTS_IMPORTS, Tools, ConfigService, EventsManagerService, SearchBarFormComponent, EventType } from '@linkit/components';
 import { SelectionDropdownComponent } from '@app/components/selection-dropdown/selection-dropdown.component';
+import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
@@ -69,8 +71,10 @@ export enum StatoConfigurazione {
     RouterModule,
     TranslateModule,
     ...COMPONENTS_IMPORTS,
+    ...APP_COMPONENTS_IMPORTS,
     SelectionDropdownComponent,
     ExportDropdwnComponent,
+    ResponsiveTabsComponent,
     InfiniteScrollDirective,
     AutoFillScrollDirective,
     NgSelectModule,

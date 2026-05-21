@@ -34,6 +34,7 @@ import { LnkFormFieldComponent } from '@app/components/lnk-ui/form-field/form-fi
 import { LnkFormErrorComponent } from '@app/components/lnk-ui/form-error/form-error.component';
 import { LnkFormSubmitComponent } from '@app/components/lnk-ui/form-submit/submit.component';
 import { LnkAvatarComponent } from '@app/components/lnk-ui/avatar/avatar.component';
+import { PillTabsComponent, PillTab } from '@app/components/lnk-ui/pill-tabs/pill-tabs.component';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
@@ -62,7 +63,8 @@ interface BodySettingsType {
     LnkFormFieldComponent,
     LnkFormErrorComponent,
     LnkFormSubmitComponent,
-    LnkAvatarComponent
+    LnkAvatarComponent,
+    PillTabsComponent
   ]
 })
 export class ProfileComponent implements OnInit, AfterContentChecked {
@@ -91,6 +93,40 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
   get isInformazioniTab(): boolean { return this.currentTab === 'informazioni'; }
   get isOrganizzazioniTab(): boolean { return this.currentTab === 'organizzazioni'; }
   get isImpostazioniTab(): boolean { return this.currentTab === 'impostazioni'; }
+
+  /** Items per `<lnk-pill-tabs>`. Ricostruito a ogni get (counter
+      e badge pending dipendono da stato runtime). */
+  get profileTabs(): PillTab[] {
+    return [
+      {
+        key: 'informazioni',
+        label: 'APP.PROFILE.TAB.Informazioni',
+        icon: 'bi-person-vcard'
+      },
+      {
+        key: 'organizzazioni',
+        label: 'APP.PROFILE.TAB.Organizzazioni',
+        icon: 'bi-buildings',
+        count: this._orgAssociazioniEsistenti.length,
+        badge: this._hasPendingRequest ? {
+          icon: 'bi-hourglass-split',
+          ariaLabel: 'APP.USERS.STATUS.pending_update',
+          tone: 'pending'
+        } : undefined
+      },
+      {
+        key: 'impostazioni',
+        label: 'APP.PROFILE.TAB.Impostazioni',
+        icon: 'bi-sliders'
+      }
+    ];
+  }
+
+  onProfileTabChange(key: string): void {
+    if (key === 'informazioni') { this._showInformazioni(); }
+    else if (key === 'organizzazioni') { this._showOrganizzazioni(); }
+    else if (key === 'impostazioni') { this._showImpostazioni(); }
+  }
 
   /**
    * Rewrite F2 — il form del profilo non ha piu` toggle
@@ -350,8 +386,32 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
     this.config = this.configService.getConfiguration();
   }
 
+  /** True quando il container-scroller ha scrollTop > 0. Su mobile
+      attiva la modalita` compatta del sticky header (avatar piccolo,
+      eyebrow/desc/chips nascosti). */
+  isHeaderScrolled: boolean = false;
+
+  /** Soglia in pixel oltre la quale si attiva la modalita` compatta. */
+  private readonly _scrollCollapseThreshold = 8;
+
+  /** Dimensione avatar: 96 desktop, 72 mobile idle, 36 mobile collapsed. */
+  get avatarSize(): number {
+    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 720;
+    if (isMobile && this.isHeaderScrolled) { return 36; }
+    if (isMobile) { return 72; }
+    return 96;
+  }
+
   @HostListener('window:resize') _onResize() {
     this.desktop = (window.innerWidth >= 992);
+  }
+
+  onContainerScroll(event: Event): void {
+    const target = event.target as HTMLElement;
+    const scrolled = target.scrollTop > this._scrollCollapseThreshold;
+    if (scrolled !== this.isHeaderScrolled) {
+      this.isHeaderScrolled = scrolled;
+    }
   }
 
   ngOnInit() {

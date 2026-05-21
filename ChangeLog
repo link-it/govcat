@@ -1,3 +1,13 @@
+2026-05-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Mobile responsive: nuovi componenti `<lnk-responsive-tabs>`
+	  (dropdown mobile, applicato in adesioni) e `<lnk-pill-tabs>`
+	  (scroll orizzontale, applicato in profile). Vari fix CSS
+	  mobile su hero, kv-list, modal-header, api-row, section-bar.
+	  Profile: collapse del sticky header su scroll (avatar 36px,
+	  eyebrow/desc nascosti).
+
 2026-05-20  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

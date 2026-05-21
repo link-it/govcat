@@ -38,7 +38,8 @@
     (solo breadcrumb sopra, no top-area/search bar).
   -->
   <section id="container-scroller"
-           class="container-fluid container-limited container-scroller container-scroller-no-search container-scroller-no-top-area px-0">
+           class="container-fluid container-limited container-scroller container-scroller-no-search container-scroller-no-top-area px-0 pt-0"
+           (scroll)="onContainerScroll($event)">
 
     <!--
       Hero + tab nav: wrapper sticky che resta in cima durante
@@ -48,16 +49,16 @@
       del contenuto sotto.
     -->
     @if (!spin && profile) {
-      <div class="profile-sticky-header">
+      <div class="profile-sticky-header" [class.is-scrolled]="isHeaderScrolled">
         <!-- Hero card: avatar gravatar + nome/cognome + principal +
              chip org corrente. Allineato al pattern hero di
              `app-view.scss .lnk-vetrina .hero`. -->
-        <header class="hero container-fluid mt-3" style="grid-template-columns:110px minmax(0, 1fr) max-content;">
+        <header class="hero container-fluid mt-3">
           <div class="hero-img">
             <lnk-avatar
               [email]="profile?.email || profile?.email_aziendale"
               [name]="(profile?.nome || '') + ' ' + (profile?.cognome || '')"
-              [size]="96"
+              [size]="avatarSize"
               [round]="false">
             </lnk-avatar>
           </div>
@@ -69,66 +70,32 @@
             @if (profile?.principal) {
               <p class="hero-desc text-muted m-0">{{ profile?.principal }}</p>
             }
-            @if (_orgAssociazioniEsistenti.length > 0) {
-              <div class="hero-meta-row d-flex flex-wrap gap-2 mt-2">
-                @for (assoc of _orgAssociazioniEsistenti; track assoc.id_organizzazione) {
-                  <span class="chip"
-                        [class.chip-accent]="assoc.ruolo_organizzazione === 'amministratore_organizzazione'"
-                        [class.chip-info]="assoc.ruolo_organizzazione === 'operatore_api'">
-                    <i class="bi bi-buildings me-1"></i>{{ assoc.nome }}
-                  </span>
-                }
-              </div>
-            }
           </div>
           <!-- Rewrite F2: bottoni Modifica/Annulla rimossi.
                Il form e` sempre in edit; Save/Cancel sono in fondo
                al form via `<lnk-form-submit>`. -->
           <div class="hero-actions"></div>
+          @if (_orgAssociazioniEsistenti.length > 0) {
+            <div class="hero-meta-row d-flex flex-wrap gap-2">
+              @for (assoc of _orgAssociazioniEsistenti; track assoc.id_organizzazione) {
+                <span class="chip"
+                      [class.chip-accent]="assoc.ruolo_organizzazione === 'amministratore_organizzazione'"
+                      [class.chip-info]="assoc.ruolo_organizzazione === 'operatore_api'">
+                  <i class="bi bi-buildings me-1"></i>{{ assoc.nome }}
+                </span>
+              }
+            </div>
+          }
         </header>
 
-        <!-- Tab nav (Informazioni / Organizzazioni / Impostazioni).
-             Pattern allineato a `app-view.scss .lnk-vetrina .tabs`
-             (role=tablist + button per tab). -->
-        <nav class="tabs" [attr.aria-label]="'APP.PROFILE.TAB.Profilo' | translate">
-          <button type="button"
-                  role="tab"
-                  class="tab"
-                  [class.active]="isInformazioniTab"
-                  [attr.aria-selected]="isInformazioniTab"
-                  (click)="_showInformazioni()">
-            <i class="bi bi-person-vcard"></i>
-            <span>{{ 'APP.PROFILE.TAB.Informazioni' | translate }}</span>
-          </button>
-          <button type="button"
-                  role="tab"
-                  class="tab"
-                  [class.active]="isOrganizzazioniTab"
-                  [attr.aria-selected]="isOrganizzazioniTab"
-                  (click)="_showOrganizzazioni()">
-            <i class="bi bi-buildings"></i>
-            <span>{{ 'APP.PROFILE.TAB.Organizzazioni' | translate }}</span>
-            @if (_orgAssociazioniEsistenti.length > 0) {
-              <span class="tab-count">{{ _orgAssociazioniEsistenti.length }}</span>
-            }
-            @if (_hasPendingRequest) {
-              <span class="tab-badge tab-badge-pending"
-                    [attr.aria-label]="'APP.USERS.STATUS.pending_update' | translate"
-                    [title]="'APP.USERS.STATUS.pending_update' | translate">
-                <i class="bi bi-hourglass-split"></i>
-              </span>
-            }
-          </button>
-          <button type="button"
-                  role="tab"
-                  class="tab"
-                  [class.active]="isImpostazioniTab"
-                  [attr.aria-selected]="isImpostazioniTab"
-                  (click)="_showImpostazioni()">
-            <i class="bi bi-sliders"></i>
-            <span>{{ 'APP.PROFILE.TAB.Impostazioni' | translate }}</span>
-          </button>
-        </nav>
+        <!-- Tab nav: componente riusabile `<lnk-pill-tabs>` (pill-style
+             con horizontal scroll su mobile). -->
+        <lnk-pill-tabs
+          [items]="profileTabs"
+          [active]="currentTab"
+          [ariaLabel]="'APP.PROFILE.TAB.Profilo'"
+          (activeChange)="onProfileTabChange($event)">
+        </lnk-pill-tabs>
       </div>
     }
 
@@ -438,7 +405,7 @@
                         <div class="col-md-6">
                           <div class="card card-pad-tight h-100"
                                [class.border-primary]="_orgFormMode === 'replace' && _replaceTargetOrgId === assoc.id_organizzazione">
-                            <div class="card-body">
+                            <div class="card-body-">
                               <div class="d-flex align-items-baseline gap-3">
                                 <div class="org-icon">
                                   <i class="bi bi-buildings"></i>

@@ -1,0 +1,91 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div class="lnk-responsive-tabs">
+  <!-- Desktop: tabs orizzontali (riusa stili gp-tabs esistenti). -->
+  <div class="tabs gp-tabs d-none d-md-flex flex-grow-1 p-0 m-0 issuable-state-filters lnk-responsive-tabs__desktop">
+    <div>
+      <ul class="nav gp-border-b-0 gp-tabs-nav" role="tablist">
+        @for (tab of items; track tab.key) {
+          <li class="nav-item" role="presentation">
+            <a class="nav-link gp-tab-nav-item cursor-pointer"
+               role="tab"
+               tabindex="0"
+               [class.gp-tab-nav-item-active]="active === tab.key"
+               [attr.aria-selected]="active === tab.key"
+               [attr.aria-label]="(tab.ariaLabel || tab.label) | translate"
+               (click)="select(tab.key)"
+               (keydown.enter)="select(tab.key)"
+               (keydown.space)="select(tab.key); $event.preventDefault()">
+              <span>{{ tab.label | translate }}</span>
+              @if (active === tab.key) {
+                <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm ms-1">
+                  @if (loading) {
+                    <span class="spinner-border spinner-border-sm"></span>
+                  } @else {
+                    {{ activeCount || 0 }}
+                  }
+                </span>
+              }
+            </a>
+          </li>
+        }
+      </ul>
+    </div>
+  </div>
+
+  <!-- Mobile: dropdown Bootstrap con label/count della tab attiva. -->
+  <div class="dropdown gl-new-dropdown d-md-none lnk-responsive-tabs__mobile">
+    <button type="button"
+            class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle lnk-responsive-tabs__toggle"
+            data-bs-toggle="dropdown"
+            data-bs-display="static"
+            aria-haspopup="true"
+            aria-expanded="false">
+      <span class="lnk-responsive-tabs__toggle-label">
+        <span>{{ (_activeItem()?.label || '') | translate }}</span>
+        <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm ms-2">
+          @if (loading) {
+            <span class="spinner-border spinner-border-sm"></span>
+          } @else {
+            {{ activeCount || 0 }}
+          }
+        </span>
+        <i class="bi bi-chevron-down ms-2"></i>
+      </span>
+    </button>
+    <ul class="dropdown-menu lnk-responsive-tabs__menu" role="menu">
+      @for (tab of items; track tab.key) {
+        <li role="menuitem">
+          <button type="button"
+                  class="dropdown-item lnk-responsive-tabs__item"
+                  [class.active]="active === tab.key"
+                  [attr.aria-current]="active === tab.key ? 'true' : null"
+                  (click)="select(tab.key)">
+            @if (active === tab.key) {
+              <i class="bi bi-check2 lnk-responsive-tabs__item-check"></i>
+            } @else {
+              <span class="lnk-responsive-tabs__item-check"></span>
+            }
+            <span class="lnk-responsive-tabs__item-label">{{ tab.label | translate }}</span>
+          </button>
+        </li>
+      }
+    </ul>
+  </div>
+</div>

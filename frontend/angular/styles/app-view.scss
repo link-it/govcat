@@ -379,7 +379,7 @@ small, .small {
   .section-title {
     font-size: 11px; font-weight: 600;
     text-transform: uppercase; letter-spacing: 0.09em;
-    color: var(--ink-4);
+    color: var(--ink-3);
     margin: 0 0 10px;
     display: flex; align-items: center; gap: 8px;
   }
@@ -415,6 +415,13 @@ small, .small {
     margin: 0; color: var(--ink);
   }
   .section-bar .grow { flex: 1; }
+
+  /* Responsive: su mobile l'env-toggle va a capo sotto il titolo. Lo
+     spacer .grow diventa un line-break flex (basis 100%, altezza 0). */
+  @media (max-width: 720px) {
+    .section-bar { flex-wrap: wrap; row-gap: 8px; }
+    .section-bar .grow { flex-basis: 100%; height: 0; }
+  }
 
   /* ─── referenti ────────────────────────────────────────────────── */
   .refs { display: flex; flex-direction: column; gap: 8px; }
@@ -574,6 +581,21 @@ small, .small {
     transition: background-color .12s, border-color .12s, color .12s;
   }
   .api .tag.tag-more:hover { background: var(--surface-3); border-color: var(--ink-4); color: var(--ink); }
+
+  /* Responsive: su mobile i tag scendono in una seconda riga sotto
+     il body, l'header resta avatar | body | chevron. */
+  @media (max-width: 720px) {
+    .api {
+      grid-template-columns: 36px 1fr auto;
+      row-gap: 8px;
+    }
+    .api .tags {
+      grid-column: 2 / -1;
+      grid-row: 2;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+    }
+  }
 
   /* ─── action banner (CTA + messaggi sotto l'hero) ──────────────── */
   /* Stack verticale di banner card: icona | titolo+sottotitolo | CTA.
@@ -865,11 +887,53 @@ small, .small {
   @media (max-width: 900px) {
     .app { grid-template-columns: 1fr !important; }
     .sidenav { display: none; }
-    .main { padding: 20px 18px 80px; }
-    .hero { grid-template-columns: 1fr; }
+    .main { padding: 10px 0px 60px; }
+    /* Hero: forziamo 1 colonna anche per il caso data-hide-image="true"
+       (specificita` 030 nella regola desktop), altrimenti il button
+       resta a destra delle informazioni anche su mobile. */
+    .hero,
+    &[data-hide-image="true"] .hero,
+    [data-hide-image="true"] .hero { grid-template-columns: 1fr; }
     .hero-img { width: 100%; height: 200px; }
     .hero-actions { align-items: stretch; }
     .topbar .org span { display: none; }
+  }
+
+  /* Mobile (<=720px): hero compatto, pulsanti azione full-width sotto
+     le informazioni per dare tutto lo spazio orizzontale al meta. */
+  @media (max-width: 720px) {
+    .hero {
+      padding: 16px;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .hero-img { height: 140px; }
+    .hero h1 { font-size: 22px; }
+    .hero .desc { font-size: 13.5px; }
+    .hero-actions {
+      padding-top: 4px;
+      height: auto;
+      gap: 8px;
+      align-items: stretch;
+    }
+    .hero-actions .btnc {
+      width: 100%;
+      justify-content: center;
+      white-space: normal;
+      text-align: center;
+    }
+
+    /* Liste key-value (Modalita` di autenticazione, dettagli client, ...):
+       label e valore vanno incolonnati e il bottone di copia e` nascosto
+       (l'utente puo` selezionare il valore manualmente). */
+    .kv {
+      grid-template-columns: 1fr;
+      gap: 4px;
+      padding: 10px 0;
+    }
+    .kv .k { font-size: 11.5px; }
+    .kv .v { font-size: 13px; }
+    .kv .copy-btn { display: none; }
   }
 
   /* ─── Swagger Dialog ─────────────────────────────────────────── */

@@ -1,0 +1,107 @@
+:host {
+  display: block;
+  margin-bottom: 16px;
+}
+
+/* Outer pill bar: visibile (bordo + arrotondato), si adatta al
+   contenuto su desktop ma e` cappato a 100% del parent su mobile.
+   Lo scroll orizzontale avviene sul track interno, cosi` il pill
+   bar resta fisso e visibile. */
+.lnk-pill-tabs {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  background: var(--surface-2, #f5f7fa);
+  border: 1px solid var(--line, #dee8ef);
+  border-radius: 999px;
+  padding: 4px;
+}
+
+.lnk-pill-tabs__track {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 2px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  // scrollbar-width: thin;
+
+  /* Scrollbar discreta su Chromium/Safari, dentro al pill bar. */
+  // &::-webkit-scrollbar { height: 4px; }
+  // &::-webkit-scrollbar-thumb {
+  //   background: var(--line-strong, #c4d6e0);
+  //   border-radius: 3px;
+  // }
+  // &::-webkit-scrollbar-track { background: transparent; }
+}
+
+.lnk-pill-tabs__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 550;
+  color: var(--ink-3, #57738a);
+  white-space: nowrap;
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  transition: background-color .15s, color .15s;
+
+  i { font-size: 13px; }
+
+  &:hover {
+    background: rgba(0, 0, 0, .04);
+    color: var(--ink, #212c49);
+  }
+
+  &.active {
+    background: var(--accent, #1f75cb);
+    color: #fff;
+  }
+}
+
+.lnk-pill-tabs__label {
+  display: inline-block;
+}
+
+.lnk-pill-tabs__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--line, #dee8ef);
+  color: var(--ink-2, #2e445a);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.lnk-pill-tabs__tab.active .lnk-pill-tabs__count {
+  background: rgba(255, 255, 255, .25);
+  color: #fff;
+}
+
+.lnk-pill-tabs__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.lnk-pill-tabs__badge--pending { color: var(--warn-ink, #8a5a1f); }
+.lnk-pill-tabs__badge--warning { color: var(--warn-ink, #8a5a1f); }
+.lnk-pill-tabs__badge--info    { color: var(--info-ink, #1a4aa8); }
+.lnk-pill-tabs__badge--success { color: var(--ok-ink, #14633f); }
+
+.lnk-pill-tabs__tab.active .lnk-pill-tabs__badge--pending,
+.lnk-pill-tabs__tab.active .lnk-pill-tabs__badge--warning { color: #ffe1a6; }
+.lnk-pill-tabs__tab.active .lnk-pill-tabs__badge--info    { color: #cce0fa; }
+.lnk-pill-tabs__tab.active .lnk-pill-tabs__badge--success { color: #b8e2ce; }

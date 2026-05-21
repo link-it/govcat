@@ -262,5 +262,14 @@
     &.modal-lg-custom {
       height: 100%;
     }
+
+    .modal-header .modal-title {
+      font-size: 0.95rem;
+      min-width: 0;
+      flex: 1 1 auto;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
   }
 }
