@@ -1,6 +1,17 @@
 2026-05-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Dashboard, pannello utenti: il click su un utente da parte
+	  di un `amministratore_organizzazione` redirezionava a
+	  `/servizi` perche` la route `/utenti/:id` e` protetta da
+	  `GestoreGuard`. Per i non-gestore/coordinatore ora
+	  navigazione a `/organizzazione-manage/:orgId?tab=utenti`,
+	  dove la gestione utenti e` permessa tramite il dialog
+	  esistente.
+
+2026-05-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	organizzazione-manage > domini: dal dettaglio dominio
 	  il bottone "Referenti" portava su /servizi perche` la
 	  route non era definita. Aggiunta route

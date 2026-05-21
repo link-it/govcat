@@ -475,7 +475,19 @@ export class DashboardComponent implements OnInit {
       }
       case 'utenti':
         if (item.id_utente) {
-          this.router.navigate(['/utenti', item.id_utente], { queryParams: { from: 'dashboard', section } });
+          // Solo gestore/coordinatore possono accedere a `/utenti/:id`
+          // (rotta protetta da `GestoreGuard`). L'amministratore di
+          // organizzazione viene routato alla pagina di gestione della
+          // propria organizzazione (tab utenti), dove puo' modificare
+          // gli utenti via il dialog dedicato.
+          if (this.authenticationService.isGestore() || this.authenticationService.isCoordinatore()) {
+            this.router.navigate(['/utenti', item.id_utente], { queryParams: { from: 'dashboard', section } });
+          } else {
+            const orgId = this.authenticationService.getCurrentOrganization()?.id_organizzazione;
+            if (orgId) {
+              this.router.navigate(['/organizzazione-manage', orgId], { queryParams: { tab: 'utenti' } });
+            }
+          }
         }
         break;
     }
