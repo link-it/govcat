@@ -136,6 +136,21 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
    * lista globale `/domini`.
    */
   _fromOrgManage: boolean = false;
+
+  /** Vero se l'utente puo` editare il dominio (mostra/abilita
+      bottone "Modifica" e "Referenti"). Default su `hasPermission`
+      (gestore/coordinatore via config BE). In contesto org-manage
+      consentito anche all'`amministratore_organizzazione` della
+      propria org (puo` gestire i domini di sua competenza pur
+      senza il permesso BE globale sul menu `domini`). */
+  get _canEditDominio(): boolean {
+    if (this.authenticationService.hasPermission('domini', 'edit')) { return true; }
+    if (this._fromOrgManage) {
+      const orgRole = this.authenticationService.getCurrentOrganizationRole();
+      if (orgRole === 'amministratore_organizzazione') { return true; }
+    }
+    return false;
+  }
   /** Id dell'organizzazione di contesto (parent route) quando
    *  `_fromOrgManage = true`. Vuoto altrimenti. */
   _orgManageId: string | null = null;

@@ -1,6 +1,16 @@
 2026-05-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	dominio-details in org-manage: i bottoni "Modifica" e
+	  "Referenti" erano nascosti per `amministratore_organizzazione`
+	  perche` `appHasPermission('domini','edit')` richiede
+	  permesso BE globale (non concesso al ruolo). Introdotto
+	  getter `_canEditDominio` che consente edit/referenti
+	  all'amm.org della propria org in contesto org-manage.
+
+2026-05-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Dashboard, pannello utenti: il click su un utente da parte
 	  di un `amministratore_organizzazione` redirezionava a
 	  `/servizi` perche` la route `/utenti/:id` e` protetta da

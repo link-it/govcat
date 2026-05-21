@@ -28,7 +28,7 @@
       <h3 class="page-title">{{ 'APP.DOMINI.NewDomain' | translate }}</h3>
     }
     <div class="d-flex flex-grow-1">&nbsp;</div>
-    <ng-template [appHasPermission]="'domini'" [action]="'edit'">
+    @if (_canEditDominio) {
       <div class="nav-controls">
         @if (!_spin && !_isEdit) {
           <div class="position-relative me-2">
@@ -80,7 +80,7 @@
           </div>
         }
       </div>
-    </ng-template>
+    }
   </div>
   <section class="container-fluid container-limited limit-container-width container-scroller container-scroller-no-search">
     @if (_spin && !_isNew) {
