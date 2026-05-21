@@ -772,14 +772,13 @@ export class AuthenticationService {
   /**
    * Vero se l'utente puo' creare un servizio: gestore/coordinatore
    * passano sempre; gli utenti per-org (amministratore organizzazione
-   * o operatore API) solo se l'organizzazione di sessione ha il flag
-   * `referente`.
+   * o operatore API) possono creare un servizio sulla propria
+   * organizzazione indipendentemente dal flag `referente` dell'org
+   * (il ruolo per-org gia' implica la competenza operativa).
    */
   canCreateServizio(): boolean {
     if (this.isGestore() || this.isCoordinatore()) { return true; }
-    const role = this.getCurrentOrganizationRole();
-    if (!role) { return false; }
-    return !!this.getCurrentOrganization()?.referente;
+    return !!this.getCurrentOrganizationRole();
   }
 
   /**

@@ -1,6 +1,16 @@
 2026-05-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	`canCreateServizio`: rimosso il vincolo del flag `referente`
+	  sull'organizzazione per i ruoli per-org. I ruoli
+	  `amministratore_organizzazione` e `operatore_api` possono
+	  ora creare un servizio sulla propria org indipendentemente
+	  dal flag; in particolare il bottone "Aggiungi servizio"
+	  ora compare per Operatore API. Spec aggiornata.
+
+2026-05-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Dashboard, `computeRoleConfig`: un `utente_organizzazione`
 	  senza ruolo per-org ne` `ruoli_referente` riceveva
 	  servizi/adesioni/comunicazioni perche` il ruolo principale

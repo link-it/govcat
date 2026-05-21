@@ -1599,13 +1599,13 @@ describe('AuthenticationService', () => {
         expect(service.canCreateServizio()).toBe(true);
       });
 
-      it('should be false for per-org role when current org is not referente', () => {
+      it('should be true for per-org role even when current org is not referente', () => {
         service.setCurrentSession({ utente: { id_utente: 'u', ruolo: 'utente_organizzazione' } });
         orgContext.setCurrent({
           organizzazione: orgSoloAderente,
           ruolo_organizzazione: RuoloOrganizzazioneEnum.OperatoreApi
         });
-        expect(service.canCreateServizio()).toBe(false);
+        expect(service.canCreateServizio()).toBe(true);
       });
     });
 
