@@ -79,6 +79,13 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
   _useRoute : boolean = false;
   _useDialog : boolean = true;
 
+  /** True quando i referenti del dominio sono aperti nel contesto
+      della pagina `organizzazione-manage` (route
+      `/organizzazione-manage/:id/domini/:idDominio/referenti`).
+      In tal caso il breadcrumb di ritorno punta a org-manage. */
+  _fromOrgManage: boolean = false;
+  _orgManageId: string | null = null;
+
   _message: string = 'APP.MESSAGE.NoResults';
   _messageHelp: string = 'APP.MESSAGE.NoResultsHelp';
 
@@ -134,9 +141,21 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
   }
 
   ngOnInit() {
+    // Contesto org-manage: la route e`
+    // `/organizzazione-manage/:id/domini/:idDominio/referenti` con
+    // param dominio `idDominio` (anziche` `id` come nella route
+    // standard `/domini/:id/referenti`). Rilevato via URL.
+    const url = this.router.url || '';
+    this._fromOrgManage = url.includes('/organizzazione-manage/');
+    if (this._fromOrgManage) {
+      const m = url.match(/\/organizzazione-manage\/([^\/]+)/);
+      this._orgManageId = m ? m[1] : null;
+    }
+
     this.route.params.subscribe(params => {
-      if (params['id'] && params['id'] !== 'new') {
-        this.id = params['id'];
+      const dominioId = params['idDominio'] || params['id'];
+      if (dominioId && dominioId !== 'new') {
+        this.id = dominioId;
         this.configService.getConfig('referenti').subscribe(
           (config: any) => {
             this.referentiConfig = config;
@@ -145,7 +164,7 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
           }
         );
       } else {
-        
+
       }
     });
   }
@@ -160,6 +179,18 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
 
   _initBreadcrumb() {
     const _title = this.dominio ? `${this.dominio.nome}` : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
+    if (this._fromOrgManage && this._orgManageId) {
+      // Breadcrumb in contesto org-manage: torna alla pagina
+      // organizzazione-manage (tab "domini") e alla card del dominio.
+      this.breadcrumbs = [
+        { label: '', url: '', type: 'title', iconBs: 'gear' },
+        { label: 'APP.MENU.Organizations', url: `/organizzazioni`, type: 'link' },
+        { label: 'APP.LABEL.Domain', url: `/organizzazione-manage/${this._orgManageId}?tab=domini`, type: 'link' },
+        { label: `${_title}`, url: `/organizzazione-manage/${this._orgManageId}/domini/${this.id}`, type: 'link' },
+        { label: 'APP.TITLE.ServiceReferents', url: ``, type: 'link' }
+      ];
+      return;
+    }
     this.breadcrumbs = [
       { label: '', url: '', type: 'title', iconBs: 'gear' },
       { label: 'APP.LABEL.Domain', url: `/${this.model}`, type: 'link' },
@@ -313,7 +344,16 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
   }
 
   onBreadcrumb(event: any) {
-    this.router.navigate([event.url]);
+    // Allineato a dominio-details: gli URL del breadcrumb in
+    // contesto org-manage contengono query param (es. `?tab=domini`)
+    // che `router.navigate([url])` non parserizza; usare
+    // `navigateByUrl` nativo.
+    const url: string = event?.url || '';
+    if (url.includes('?')) {
+      this.router.navigateByUrl(url);
+    } else {
+      this.router.navigate([url]);
+    }
   }
 
   _resetScroll() {

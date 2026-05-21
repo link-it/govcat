@@ -1,6 +1,18 @@
 2026-05-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	organizzazione-manage > domini: dal dettaglio dominio
+	  il bottone "Referenti" portava su /servizi perche` la
+	  route non era definita. Aggiunta route
+	  `:id/domini/:idDominio/referenti` con `fromOrgManage:
+	  true`. `dominio-referenti` ora rileva il contesto
+	  org-manage (URL-based), normalizza il param dominio
+	  (`idDominio` o `id`) e adatta breadcrumb/onBreadcrumb
+	  per tornare a `/organizzazione-manage/:id?tab=domini`.
+
+2026-05-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Profile, tab Organizzazioni: sottotitolo usava per errore
 	  la chiave i18n `ServiziDesc` (descrizione del tab
 	  Impostazioni). Aggiunta chiave dedicata

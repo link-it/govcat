@@ -41,5 +41,13 @@ export const ORGANIZZAZIONE_MANAGE_ROUTES: Routes = [
     path: ':id/domini/:idDominio',
     component: DominioDetailsComponent,
     data: { title: 'Dominio', fromOrgManage: true }
+  },
+  // Referenti del dominio nel contesto org-manage. Il param dominio
+  // qui e` `:idDominio` (mentre la route standard `/domini/:id/referenti`
+  // usa `:id`): la component referenti normalizza i due param.
+  {
+    path: ':id/domini/:idDominio/referenti',
+    loadChildren: () => import('../domini/dominio-referenti/dominio-referenti.routes').then(m => m.DOMINIO_REFERENTI_ROUTES),
+    data: { title: 'Referenti dominio', fromOrgManage: true }
   }
 ];
