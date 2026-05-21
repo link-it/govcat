@@ -1,6 +1,7 @@
 .top-area {
   border-bottom: 1px solid var(--top-area-border-color, #dbdbdb);
   display: flex;
+  align-items: center;
   height: 48px;
 
   .mat-icon {

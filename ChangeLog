@@ -1,6 +1,16 @@
 2026-05-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Cleanup vari: app.component (rimozione imports/hooks non
+	  usati, readonly, sintassi moment), app-config.json
+	  (`showFooterExpander: false`), adesione-fasi-bar
+	  (color token ink-3 per contrasto), servizi (refactor
+	  bottoni Add/Export a `<lnk-button>` + align-items center
+	  su nav-controls), gl-top-area (align-items center).
+
+2026-05-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Mobile responsive: nuovi componenti `<lnk-responsive-tabs>`
 	  (dropdown mobile, applicato in adesioni) e `<lnk-pill-tabs>`
 	  (scroll orizzontale, applicato in profile). Vari fix CSS

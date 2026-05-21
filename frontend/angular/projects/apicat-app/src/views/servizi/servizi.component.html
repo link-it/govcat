@@ -80,7 +80,7 @@
         </div>
       }
     </div>
-    <div class="nav-controls align-self-center d-flex">
+    <div class="nav-controls align-self-center d-flex align-items-center">
       @if (!_production) {
         <div class="btn-group me-5">
           <div class="form-check form-switch">
@@ -118,11 +118,16 @@
         </div>
       }
       @if (_groupsView && !_currIdGruppoPadre) {
-        <div class="btn-group me-2">
-          <button type="button" class="btn btn-default btn-md gl-button" (click)="onExportAll()" [disabled]="_downloading">
-            <i class="bi bi-download me-2"></i>
-            <span>{{ 'APP.MENU.ExportAll' | translate }}</span>
-          </button>
+        <div class="btn-group">
+          <lnk-button
+            [type]="'button'"
+            [icon]="'bi bi-download'"
+            [label]="'APP.MENU.ExportAll' | translate"
+            [ariaLabel]="'APP.MENU.ExportAll' | translate"
+            [otherClass]="'ms-2'"
+            [disabled]="_downloading"
+            (onAction)="onExportAll()"
+          ></lnk-button>
         </div>
       }
       @if (_groupsView && desktop) {
@@ -154,9 +159,14 @@
       }
       @if (_updateMapper | mapper:_canAddServiceMapper) {
         <div class="btn-group">
-          <button aria-label="Add service" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
-            <i class="bi bi-plus-lg"></i><span class="text-nowrap ms-2">{{ 'APP.MENU.AddService' | translate }}</span>
-          </button>
+          <lnk-button
+            [type]="'button'"
+            [icon]="'bi bi-plus-lg'"
+            [label]="'APP.MENU.AddService' | translate"
+            [ariaLabel]="'APP.MENU.AddService' | translate"
+            [primary]="true"
+            (onAction)="_onNew()"
+          ></lnk-button>
         </div>
       }
     </div>

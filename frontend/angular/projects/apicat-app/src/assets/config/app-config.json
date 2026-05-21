@@ -92,7 +92,7 @@
       "showUsername": true,
       "showLanguagesMenu": false,
       "showFooterBar": false,
-      "showFooterExpander": true,
+      "showFooterExpander": false,
       "supHeaderHeight": "60px",
       "footerHeight": "48px",
       "footerExpandedHeight": "245px",
