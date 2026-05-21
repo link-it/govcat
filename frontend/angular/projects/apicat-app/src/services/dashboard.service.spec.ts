@@ -129,18 +129,18 @@ describe('DashboardService', () => {
     });
 
     describe('multi-org roles (Issue #229)', () => {
-      it('utente_organizzazione as primary role enables servizi/adesioni/comunicazioni', () => {
+      it('utente_organizzazione senza ruolo per-org ne` ruoli_referente: solo comunicazioni', () => {
         const config = service.computeRoleConfig('utente_organizzazione', []);
-        expect(config.servizi).toBe(true);
-        expect(config.adesioni).toBe(true);
+        expect(config.servizi).toBe(false);
+        expect(config.adesioni).toBe(false);
         expect(config.comunicazioni).toBe(true);
         expect(config.utenti).toBe(false);
       });
 
-      it('referente_servizio (deprecated) is treated as utente_organizzazione fallback', () => {
+      it('referente_servizio (deprecated) senza altri ruoli: solo comunicazioni', () => {
         const config = service.computeRoleConfig('referente_servizio', []);
-        expect(config.servizi).toBe(true);
-        expect(config.adesioni).toBe(true);
+        expect(config.servizi).toBe(false);
+        expect(config.adesioni).toBe(false);
         expect(config.comunicazioni).toBe(true);
       });
 
@@ -184,9 +184,12 @@ describe('DashboardService', () => {
         expect(config.utenti).toBe(false);
       });
 
-      it('null session org role keeps base config', () => {
+      it('null session org role: utente_organizzazione senza altri ruoli vede solo comunicazioni', () => {
         mockAuthService.getCurrentOrganizationRole.mockReturnValue(null);
         const config = service.computeRoleConfig('utente_organizzazione', []);
+        expect(config.servizi).toBe(false);
+        expect(config.adesioni).toBe(false);
+        expect(config.comunicazioni).toBe(true);
         expect(config.utenti).toBe(false);
       });
     });

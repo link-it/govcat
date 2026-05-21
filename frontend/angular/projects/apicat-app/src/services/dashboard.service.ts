@@ -107,13 +107,10 @@ export class DashboardService {
       utenti: false
     };
 
-    // Normalizza il ruolo principale: `referente_servizio` legacy viene
-    // trattato come `utente_organizzazione`. Lo aggiungiamo al pool dei
-    // ruoli su cui calcoliamo i pannelli.
+    // Pool dei ruoli su cui calcoliamo i pannelli. Parte dai
+    // `ruoli_referente` esposti da `/profilo/ruoli` (es.
+    // referente_dominio, referente_servizio, ...).
     const pool = new Set<string>(ruoliReferente || []);
-    if (ruolo === 'utente_organizzazione' || ruolo === 'referente_servizio') {
-      pool.add('utente_organizzazione');
-    }
 
     // Aggiunge il ruolo per-organizzazione dell'utente per la sessione
     // corrente (`amministratore_organizzazione` o `operatore_api`).
@@ -123,6 +120,15 @@ export class DashboardService {
     const currentOrgRole = this.authenticationService.getCurrentOrganizationRole?.();
     if (currentOrgRole) {
       pool.add(currentOrgRole);
+    }
+
+    // `utente_organizzazione` (o `referente_servizio` legacy) viene
+    // aggiunto al pool SOLO se l'utente ha gia` un altro contesto di
+    // ruolo (per-org o ruolo_referente). Un utente_organizzazione
+    // privo di ruolo sulla sessione corrente e senza ruoli referente
+    // non ha permessi specifici: vede solo `comunicazioni`.
+    if (pool.size > 0 && (ruolo === 'utente_organizzazione' || ruolo === 'referente_servizio')) {
+      pool.add('utente_organizzazione');
     }
 
     if (pool.size === 0) {

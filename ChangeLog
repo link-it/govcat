@@ -1,6 +1,17 @@
 2026-05-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Dashboard, `computeRoleConfig`: un `utente_organizzazione`
+	  senza ruolo per-org ne` `ruoli_referente` riceveva
+	  servizi/adesioni/comunicazioni perche` il ruolo principale
+	  veniva sempre aggiunto al pool. Ora viene aggiunto solo
+	  se il pool ha gia` un contesto di ruolo (per-org o
+	  referente); altrimenti vede solo `comunicazioni`. Spec
+	  aggiornata.
+
+2026-05-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	dominio-details in org-manage: i bottoni "Modifica" e
 	  "Referenti" erano nascosti per `amministratore_organizzazione`
 	  perche` `appHasPermission('domini','edit')` richiede
