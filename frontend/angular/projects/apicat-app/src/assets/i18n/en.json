@@ -2081,6 +2081,7 @@
 				"PassaggioA": "New organization: **{{destinazione}}**",
 				"RuoloOrgTarget": "Role on the new organization",
 				"YourOrganizations": "Your organizations",
+				"YourOrganizationsDesc": "Organizations you are associated with. Add and replace requests are subject to approval.",
 				"NoOrganizations": "You are not yet associated with any organization.",
 				"AddButton": "Add organization",
 				"AddTitle": "Add a new organization",

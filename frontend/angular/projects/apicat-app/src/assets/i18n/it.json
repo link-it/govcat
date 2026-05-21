@@ -2081,6 +2081,7 @@
 				"PassaggioA": "Nuova organizzazione: **{{destinazione}}**",
 				"RuoloOrgTarget": "Ruolo sulla nuova organizzazione",
 				"YourOrganizations": "Le tue organizzazioni",
+				"YourOrganizationsDesc": "Le organizzazioni a cui sei associato. Le richieste di aggiunta o sostituzione sono soggette ad approvazione.",
 				"NoOrganizations": "Non sei ancora associato a nessuna organizzazione.",
 				"AddButton": "Aggiungi organizzazione",
 				"AddTitle": "Aggiungi una nuova organizzazione",

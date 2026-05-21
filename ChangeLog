@@ -1,6 +1,15 @@
 2026-05-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Profile, tab Organizzazioni: sottotitolo usava per errore
+	  la chiave i18n `ServiziDesc` (descrizione del tab
+	  Impostazioni). Aggiunta chiave dedicata
+	  `APP.PROFILE.ORGANIZATION.YourOrganizationsDesc`
+	  (IT/EN).
+
+2026-05-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Cleanup vari: app.component (rimozione imports/hooks non
 	  usati, readonly, sintassi moment), app-config.json
 	  (`showFooterExpander: false`), adesione-fasi-bar
