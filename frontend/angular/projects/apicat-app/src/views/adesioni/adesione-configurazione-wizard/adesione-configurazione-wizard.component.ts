@@ -50,7 +50,8 @@ import { StatoChipComponent } from '@app/components/vetrina';
 
 import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/service-breadcrumbs.resolver';
 
-import { forkJoin, Observable } from 'rxjs';
+import { forkJoin, Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 import { Grant, RightsEnum } from '@app/model/grant';
 import { AmbienteEnum } from '@app/model/ambienteEnum';
@@ -191,6 +192,10 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     serviceBreadcrumbs: ServiceBreadcrumbsData|null = null;
 
     grant: Grant | null = null;
+    /** Ruoli referente dell'utente esposti da `GET /profilo/ruoli`
+        (es. ['referente_servizio', 'referente_dominio']). Usati da
+        `canChangeStatoMapper` per abilitare il cambio stato. */
+    _ruoliReferenteProfilo: string[] = [];
     updateMapper: string = '';
 
     isDominioEsterno: boolean = false;
@@ -660,14 +665,23 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
                 const _configErogaz: Observable<any> = this.configService.getConfig('adesioniErogaz');
                 const _apiConfig: Observable<any> = this.configService.getConfig('api');
                 const _referentiConfig: Observable<any> = this.configService.getConfig('referenti');
+                // Carichiamo i ruoli referente dell'utente (`/profilo/ruoli`):
+                // sono utilizzati da `canChangeStatoMapper` per abilitare il
+                // cambio stato a referenti servizio/dominio. Fail-open: se
+                // l'endpoint fallisce (es. gestore/coordinatore) usiamo array
+                // vuoto e il check ricade sul solo `isGestore()`.
+                const _ruoliProfilo: Observable<any> = this.apiService.getList('profilo/ruoli').pipe(
+                    catchError(() => of({ ruolo: '', ruoli_referente: [] }))
+                );
 
-                const combined = forkJoin([_grant, _configClients, _configErogaz, _apiConfig, _referentiConfig]);
-                combined.subscribe(result => {                    
+                const combined = forkJoin([_grant, _configClients, _configErogaz, _apiConfig, _referentiConfig, _ruoliProfilo]);
+                combined.subscribe(result => {
                     this.grant = result[0];
                     this.adesioniClientsConfig = result[1];
                     this.adesioniErogazConfig = result[2];
                     this.apiConfig = result[3];
                     this.referentiConfig = result[4];
+                    this._ruoliReferenteProfilo = (result[5]?.ruoli_referente as string[]) || [];
 
                     console.log('grant', this.grant);
 
@@ -1224,19 +1238,19 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     /**
      * Vero se l'utente puo' cambiare lo stato dell'adesione via
      * `<ui-workflow>` (azioni del workflow). Oltre al gestore,
-     * abilitati anche i referenti (servizio/dominio, tecnici e
-     * non) che hanno grant esplicito sull'adesione corrente.
+     * abilitati i referenti (servizio/dominio, tecnici e non)
+     * valutati sui ruoli referente del profilo utente
+     * (`GET /profilo/ruoli` → `ruoli_referente`, caricato in init).
      */
     canChangeStatoMapper = (update: string): boolean => {
-        const ruoli: string[] = this.grant?.ruoli || [];
-        if (this.authenticationService.isGestore(ruoli)) { return true; }
+        if (this.authenticationService.isGestore()) { return true; }
         const referentiRoles = [
             'referente_servizio',
             'referente_tecnico_servizio',
             'referente_dominio',
             'referente_tecnico_dominio'
         ];
-        return ruoli.some((r: string) => referentiRoles.includes(r));
+        return this._ruoliReferenteProfilo.some((r: string) => referentiRoles.includes(r));
     }
 
     /**

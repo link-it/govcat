@@ -313,42 +313,42 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
   // -------- canChangeStatoMapper --------
 
   it('canChangeStatoMapper: true per gestore', () => {
-    component.grant = { ruoli: ['gestore'] } as any;
     mockAuthService.isGestore.mockReturnValue(true);
+    component._ruoliReferenteProfilo = [];
     expect(component.canChangeStatoMapper('')).toBe(true);
     expect(mockAuthService.isGestore).toHaveBeenCalled();
   });
 
-  it('canChangeStatoMapper: false con grant null', () => {
-    component.grant = null;
+  it('canChangeStatoMapper: false con profilo ruoli vuoto e non gestore', () => {
     mockAuthService.isGestore.mockReturnValue(false);
+    component._ruoliReferenteProfilo = [];
     expect(component.canChangeStatoMapper('')).toBe(false);
   });
 
-  it('canChangeStatoMapper: true per referente_servizio (anche se non gestore)', () => {
-    component.grant = { ruoli: ['referente_servizio'] } as any;
+  it('canChangeStatoMapper: true per referente_servizio nel profilo', () => {
     mockAuthService.isGestore.mockReturnValue(false);
+    component._ruoliReferenteProfilo = ['referente_servizio'];
     expect(component.canChangeStatoMapper('')).toBe(true);
   });
 
-  it('canChangeStatoMapper: true per referente_dominio', () => {
-    component.grant = { ruoli: ['referente_dominio'] } as any;
+  it('canChangeStatoMapper: true per referente_dominio nel profilo', () => {
     mockAuthService.isGestore.mockReturnValue(false);
+    component._ruoliReferenteProfilo = ['referente_dominio'];
     expect(component.canChangeStatoMapper('')).toBe(true);
   });
 
   it('canChangeStatoMapper: true per referente_tecnico_servizio/dominio', () => {
-    component.grant = { ruoli: ['referente_tecnico_servizio'] } as any;
     mockAuthService.isGestore.mockReturnValue(false);
+    component._ruoliReferenteProfilo = ['referente_tecnico_servizio'];
     expect(component.canChangeStatoMapper('')).toBe(true);
 
-    component.grant = { ruoli: ['referente_tecnico_dominio'] } as any;
+    component._ruoliReferenteProfilo = ['referente_tecnico_dominio'];
     expect(component.canChangeStatoMapper('')).toBe(true);
   });
 
   it('canChangeStatoMapper: false per ruoli non abilitati (es. richiedente_servizio)', () => {
-    component.grant = { ruoli: ['richiedente_servizio'] } as any;
     mockAuthService.isGestore.mockReturnValue(false);
+    component._ruoliReferenteProfilo = ['richiedente_servizio'];
     expect(component.canChangeStatoMapper('')).toBe(false);
   });
 

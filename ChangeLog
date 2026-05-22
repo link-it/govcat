@@ -1,6 +1,15 @@
 2026-05-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard adesione, `canChangeStatoMapper`: i ruoli referente
+	  ora vengono dal profilo utente (`GET /profilo/ruoli` ->
+	  `ruoli_referente`) invece che da `grant.ruoli` della
+	  singola adesione. Caricamento aggiunto al forkJoin di
+	  init con catchError fail-open.
+
+2026-05-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Wizard adesione: il cambio stato (`<ui-workflow>`) era
 	  abilitato solo al gestore. Ora visibile anche ai
 	  referenti del servizio e del dominio (tecnici inclusi)
