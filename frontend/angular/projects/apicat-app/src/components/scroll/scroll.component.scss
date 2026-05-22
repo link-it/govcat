@@ -21,7 +21,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   float: right;
   cursor: pointer;
   right: 14px;
-  bottom: 14px;
+  /* Offsetta il bottone dal footer (se visibile). `--footer-height`
+     e` settata da `gp-layout` (0px se footer-bar nascosta). */
+  bottom: calc(14px + var(--footer-height, 0px));
   z-index: 100;
   opacity: 0.7;
 }
@@ -34,7 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 	position: fixed;
 	width: 60px;
 	height: 60px;
-	bottom: 20px;
+	bottom: calc(20px + var(--footer-height, 0px));
 	right: 25px;
   background-color: rgba(18, 18, 18, 0.8);
 	color: #FFF;
@@ -44,6 +46,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
   &.float-sm {
     width: 40px;
-    height: 40px;  
+    height: 40px;
   }
 }

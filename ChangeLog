@@ -1,3 +1,12 @@
+2026-05-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	app-scroll (servizio-view / adesione-view): il bottone
+	  "torna su" era coperto dalla footer-bar quando
+	  `showFooterBar: true`. Aggiunto offset dinamico via
+	  `var(--footer-height)` (gia` aggiornata da gp-layout)
+	  sul `bottom` di `:host` e `.float`.
+
 2026-05-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
