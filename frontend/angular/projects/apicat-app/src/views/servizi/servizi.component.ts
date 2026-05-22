@@ -48,6 +48,7 @@ import { CardType } from '@app/lib/ui/card/card.component';
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 import { TassonomiaTokenComponent } from '@app/components/token/tassonomia-token.component';
 import { ExportDropdwnComponent, ActionEnum } from '@app/components/lnk-ui/export-dropdown/export-dropdown.component';
+import { ResponsiveTabsComponent } from '@app/components/lnk-ui/responsive-tabs/responsive-tabs.component';
 import { ServiziGroupListCardComponent } from './components/servizi-group-list-card/servizi-group-list-card.component';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.directive';
@@ -66,6 +67,7 @@ declare const saveAs: any;
         ...APP_COMPONENTS_IMPORTS,
         TassonomiaTokenComponent,
         ExportDropdwnComponent,
+        ResponsiveTabsComponent,
         ServiziGroupListCardComponent,
         MapperPipe,
         InfiniteScrollDirective,
@@ -146,11 +148,14 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     ];
     _tipiVisibilitaServizioEnum: any = { ...Tools.VisibilitaServizioEnum };
 
+    // Valori ammessi per il filtro `ruolo_referente` lato BE (vedi
+    // `RuoloReferenteEnum`). `utente_organizzazione` NON e` un
+    // ruolo referente (appartiene a `RuoloUtenteEnum`) e causa 400
+    // se inviato.
     _allRuoliServizi: { value: string, label: string }[] = [
         { value: 'referente_dominio', label: 'APP.ROLE.referente_dominio' },
         { value: 'referente_tecnico_dominio', label: 'APP.ROLE.referente_tecnico_dominio' },
         { value: 'referente_servizio', label: 'APP.ROLE.referente_servizio' },
-        { value: 'utente_organizzazione', label: 'APP.ROLE.utente_organizzazione' },
         { value: 'referente_tecnico_servizio', label: 'APP.ROLE.referente_tecnico_servizio' },
         { value: 'richiedente_servizio', label: 'APP.ROLE.richiedente_servizio' }
     ];
@@ -206,13 +211,16 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
     roleTab: string = 'tutti';
     // Issue 229 evolutiva 2 — allineamento al nuovo enum
-    // `RuoloReferente` BE. Aggiunto `amministratore_organizzazione`
-    // e `operatore_api` (ruoli per-org che danno visibilita` sui
-    // servizi della propria organizzazione). `utente_organizzazione`
-    // mantenuto come fallback per dati legacy.
+    // `RuoloReferente` BE. Includiamo i nuovi ruoli per-org
+    // `amministratore_organizzazione` / `operatore_api` (BE li
+    // ignora silenziosamente sul filtro `ruolo_referente` ma sono
+    // ammessi dall'enum). NB: `utente_organizzazione` NON deve
+    // comparire qui — appartiene a `RuoloUtenteEnum` (ruolo
+    // globale) e Spring restituisce 400 se inviato come
+    // `ruolo_referente`.
     roleTabs: { key: string, label: string, roles: string[] }[] = [
         { key: 'tutti', label: 'APP.FILTER.All', roles: [] },
-        { key: 'referente', label: 'APP.FILTER.ReferenteServizioDominio', roles: ['referente_dominio', 'referente_tecnico_dominio', 'referente_servizio', 'referente_tecnico_servizio', 'utente_organizzazione', 'amministratore_organizzazione', 'operatore_api'] },
+        { key: 'referente', label: 'APP.FILTER.ReferenteServizioDominio', roles: ['referente_dominio', 'referente_tecnico_dominio', 'referente_servizio', 'referente_tecnico_servizio', 'amministratore_organizzazione', 'operatore_api'] },
         { key: 'richiedente', label: 'APP.FILTER.Richiedente', roles: ['richiedente_servizio'] }
     ];
     _currIdGruppoPadre: string = '';

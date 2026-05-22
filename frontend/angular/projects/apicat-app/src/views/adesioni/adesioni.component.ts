@@ -137,19 +137,26 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   // adesioni dell'organizzazione (rispettivamente referente
   // primario / operatore tecnico). `utente_organizzazione` resta
   // come fallback per dati legacy.
+  // NB: `utente_organizzazione` NON deve comparire qui — appartiene
+  // a `RuoloUtenteEnum` (ruolo utente globale) mentre il filtro BE
+  // `ruolo_referente` accetta solo i valori di `RuoloReferenteEnum`;
+  // inviarlo causa 400.
   _allRoleTabs: { key: string, label: string, roles: string[] }[] = [
     { key: 'tutte', label: 'APP.FILTER.All', roles: [] },
-    { key: 'referente', label: 'APP.FILTER.ReferenteServizioDominio', roles: ['referente_dominio', 'referente_tecnico_dominio', 'referente_servizio', 'referente_tecnico_servizio', 'utente_organizzazione', 'amministratore_organizzazione', 'operatore_api'] },
+    { key: 'referente', label: 'APP.FILTER.ReferenteServizioDominio', roles: ['referente_dominio', 'referente_tecnico_dominio', 'referente_servizio', 'referente_tecnico_servizio', 'amministratore_organizzazione', 'operatore_api'] },
     { key: 'referente_adesione', label: 'APP.FILTER.ReferenteAdesione', roles: ['referente_adesione', 'referente_tecnico_adesione', 'amministratore_organizzazione', 'operatore_api'] },
     { key: 'richiedente', label: 'APP.FILTER.Richiedente', roles: ['richiedente_servizio', 'richiedente_adesione'] }
   ];
   roleTabs: { key: string, label: string, roles: string[] }[] = this._allRoleTabs;
+  // Valori ammessi per il filtro `ruolo_referente` lato BE (vedi
+  // `RuoloReferenteEnum`). `utente_organizzazione` NON e` un ruolo
+  // referente (appartiene a `RuoloUtenteEnum`) e causa 400 se
+  // inviato.
   _allRuoliAdesioni: { value: string, label: string }[] = [
     { value: 'referente_dominio', label: 'APP.ROLE.referente_dominio' },
     { value: 'referente_tecnico_dominio', label: 'APP.ROLE.referente_tecnico_dominio' },
     { value: 'referente_servizio', label: 'APP.ROLE.referente_servizio' },
     { value: 'referente_tecnico_servizio', label: 'APP.ROLE.referente_tecnico_servizio' },
-    { value: 'utente_organizzazione', label: 'APP.ROLE.utente_organizzazione' },
     { value: 'referente_adesione', label: 'APP.ROLE.referente_adesione' },
     { value: 'referente_tecnico_adesione', label: 'APP.ROLE.referente_tecnico_adesione' },
     { value: 'richiedente_servizio', label: 'APP.ROLE.richiedente_servizio' },

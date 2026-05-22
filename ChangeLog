@@ -1,6 +1,20 @@
 2026-05-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	servizi/adesioni: rimosso `utente_organizzazione` dai
+	  filtri `ruolo_referente` (tab + dropdown). Non e` un
+	  RuoloReferenteEnum (appartiene a RuoloUtenteEnum) e
+	  causava 400 sul BE.
+
+2026-05-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	servizi: applicato `<lnk-responsive-tabs>` al filtro tab
+	  ruoli (dropdown mobile), come gia` fatto in adesioni.
+
+2026-05-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	app-scroll (servizio-view / adesione-view): il bottone
 	  "torna su" era coperto dalla footer-bar quando
 	  `showFooterBar: true`. Aggiunto offset dinamico via

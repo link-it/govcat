@@ -21,44 +21,37 @@
     <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="_groupsView" [hideToggleMobile]="_updateMapper | mapper:_isAnonymousMapper" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
   </div>
   <div class="top-area container-fluid px-0" [class.container-limited]="_contentLimeted">
+    <!-- Spacer/header tabs sempre presente: occupa `flex-grow-1`
+         del top-area cosi` le `.nav-controls` restano allineate a
+         destra anche quando nessun branch interno e` attivo. -->
     <div class="tabs gl-tabs d-flex p-0 m-0 flex-grow-1 mobile-separator">
-      <div class="">
-        @if (!_groupsView) {
+      @if (!_groupsView) {
+        @if (_isMyServices) {
+          <lnk-responsive-tabs
+            class="flex-grow-1"
+            [items]="roleTabs"
+            [active]="roleTab"
+            [activeCount]="_allElements || 0"
+            [loading]="_spin"
+            (activeChange)="onRoleTabChange($event)">
+          </lnk-responsive-tabs>
+        } @else {
           <ul class="nav gp-border-b-0 gp-tabs-nav">
-            @if (_isMyServices) {
-              @for (tab of roleTabs; track tab.key) {
-                <li class="nav-item">
-                  <a class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="roleTab === tab.key" (click)="onRoleTabChange(tab.key)">
-                    <span>{{ tab.label | translate }}</span>
-                    @if (roleTab === tab.key) {
-                      <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm ms-1">
-                        @if (_spin) {
-                          <span class="spinner-border spinner-border-sm"></span>
-                        } @else {
-                          {{ _allElements || 0 }}
-                        }
-                      </span>
-                    }
-                  </a>
-                </li>
-              }
-            } @else {
-              <li class="nav-item">
-                <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer gp-tab-nav-item-active" (click)="_showAllServices()" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + _allElements">
-                  <span title="Services found">{{ 'APP.FILTER.Found' | translate }}</span>
-                  <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm ms-1" [title]="_allElements">
-                    @if (_spin) {
-                      <span class="spinner-border spinner-border-sm"></span>
-                    } @else {
-                      {{ _allElements || 0 }}
-                    }
-                  </span>
-                </a>
-              </li>
-            }
+            <li class="nav-item">
+              <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer gp-tab-nav-item-active" (click)="_showAllServices()" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + _allElements">
+                <span title="Services found">{{ 'APP.FILTER.Found' | translate }}</span>
+                <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm ms-1" [title]="_allElements">
+                  @if (_spin) {
+                    <span class="spinner-border spinner-border-sm"></span>
+                  } @else {
+                    {{ _allElements || 0 }}
+                  }
+                </span>
+              </a>
+            </li>
           </ul>
         }
-      </div>
+      }
       @if (!_production && _groupsView) {
         <div class="nav-controls align-self-center">
           <div class="btn-group">
