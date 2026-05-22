@@ -37,7 +37,7 @@
     <h3 class="page-title">{{ 'APP.TITLE.Empty' | translate }}</h3>
     <div class="d-flex flex-grow-1">&nbsp;</div>
     <div class="nav-controls align-self-center d-flex gap-1">
-      @if (!spin && adesione && (updateMapper | mapper:isGestoredMapper)) {
+      @if (!spin && adesione && (updateMapper | mapper:canChangeStatoMapper)) {
         <div class="btn-group me-1 d-flex gap-2">
           @if (changingStatus) {
             <lnk-button [type]="'button'" [spinner]="true" [onlySpinner]="true"></lnk-button>

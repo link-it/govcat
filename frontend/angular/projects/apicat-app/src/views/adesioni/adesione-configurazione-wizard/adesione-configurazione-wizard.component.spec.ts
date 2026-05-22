@@ -310,19 +310,46 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
     expect(component.isModifiableMapper('', AmbienteEnum.Collaudo)).toBe(false);
   });
 
-  // -------- isGestoredMapper --------
+  // -------- canChangeStatoMapper --------
 
-  it('isGestoredMapper should delegate to authenticationService.isGestore', () => {
+  it('canChangeStatoMapper: true per gestore', () => {
     component.grant = { ruoli: ['gestore'] } as any;
     mockAuthService.isGestore.mockReturnValue(true);
-    expect(component.isGestoredMapper('')).toBe(true);
+    expect(component.canChangeStatoMapper('')).toBe(true);
     expect(mockAuthService.isGestore).toHaveBeenCalled();
   });
 
-  it('isGestoredMapper should use empty array when grant is null', () => {
+  it('canChangeStatoMapper: false con grant null', () => {
     component.grant = null;
     mockAuthService.isGestore.mockReturnValue(false);
-    expect(component.isGestoredMapper('')).toBe(false);
+    expect(component.canChangeStatoMapper('')).toBe(false);
+  });
+
+  it('canChangeStatoMapper: true per referente_servizio (anche se non gestore)', () => {
+    component.grant = { ruoli: ['referente_servizio'] } as any;
+    mockAuthService.isGestore.mockReturnValue(false);
+    expect(component.canChangeStatoMapper('')).toBe(true);
+  });
+
+  it('canChangeStatoMapper: true per referente_dominio', () => {
+    component.grant = { ruoli: ['referente_dominio'] } as any;
+    mockAuthService.isGestore.mockReturnValue(false);
+    expect(component.canChangeStatoMapper('')).toBe(true);
+  });
+
+  it('canChangeStatoMapper: true per referente_tecnico_servizio/dominio', () => {
+    component.grant = { ruoli: ['referente_tecnico_servizio'] } as any;
+    mockAuthService.isGestore.mockReturnValue(false);
+    expect(component.canChangeStatoMapper('')).toBe(true);
+
+    component.grant = { ruoli: ['referente_tecnico_dominio'] } as any;
+    expect(component.canChangeStatoMapper('')).toBe(true);
+  });
+
+  it('canChangeStatoMapper: false per ruoli non abilitati (es. richiedente_servizio)', () => {
+    component.grant = { ruoli: ['richiedente_servizio'] } as any;
+    mockAuthService.isGestore.mockReturnValue(false);
+    expect(component.canChangeStatoMapper('')).toBe(false);
   });
 
   // -------- canEditMapper --------

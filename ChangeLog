@@ -1,6 +1,15 @@
 2026-05-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard adesione: il cambio stato (`<ui-workflow>`) era
+	  abilitato solo al gestore. Ora visibile anche ai
+	  referenti del servizio e del dominio (tecnici inclusi)
+	  via `grant.ruoli`. Rinominato `isGestoredMapper` ->
+	  `canChangeStatoMapper`. Spec aggiornata.
+
+2026-05-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	servizi/adesioni: rimosso `utente_organizzazione` dai
 	  filtri `ruolo_referente` (tab + dropdown). Non e` un
 	  RuoloReferenteEnum (appartiene a RuoloUtenteEnum) e

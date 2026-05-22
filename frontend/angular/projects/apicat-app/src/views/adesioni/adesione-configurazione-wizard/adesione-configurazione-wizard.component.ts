@@ -1221,11 +1221,22 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
         return false;
     }
 
-    isGestoredMapper = (update: string): boolean => {
-        // `isGestore()` si aspetta l'array di ruoli (string[]) e fa
-        // `.includes('gestore')`; passargli l'intero Grant object
-        // causa `grant.includes is not a function` a runtime.
-        return this.authenticationService.isGestore(this.grant?.ruoli || []);
+    /**
+     * Vero se l'utente puo' cambiare lo stato dell'adesione via
+     * `<ui-workflow>` (azioni del workflow). Oltre al gestore,
+     * abilitati anche i referenti (servizio/dominio, tecnici e
+     * non) che hanno grant esplicito sull'adesione corrente.
+     */
+    canChangeStatoMapper = (update: string): boolean => {
+        const ruoli: string[] = this.grant?.ruoli || [];
+        if (this.authenticationService.isGestore(ruoli)) { return true; }
+        const referentiRoles = [
+            'referente_servizio',
+            'referente_tecnico_servizio',
+            'referente_dominio',
+            'referente_tecnico_dominio'
+        ];
+        return ruoli.some((r: string) => referentiRoles.includes(r));
     }
 
     /**
