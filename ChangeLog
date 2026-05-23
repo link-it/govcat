@@ -1,3 +1,13 @@
+2026-05-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 269: bottone "Modifica" client nel wizard adesione
+	  non visibile per referenti (anche tecnici) e amm.org.
+	  `canEdit` ora ha bypass stakeholder e usa
+	  `expandContextualGrants`; wizard combina `grant.ruoli`
+	  con `/profilo/ruoli.ruoli_referente`. Fix collaterale
+	  null-safe su `canChangeStatus` (`stati_ulteriori`).
+
 2026-05-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

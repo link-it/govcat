@@ -522,24 +522,44 @@ export class AuthenticationService {
 
   canEdit(module: string, submodule: string, state: string, grant: string[] = []) {
     if (this.isGestore(grant)) { return true; }
-    if (state) {
-      const _wfcs = this._getWorkflowCambiStato(module, state);
-      const _ssra = (_wfcs?.stato_successivo) ? _wfcs.stato_successivo.ruoli_abilitati : [];
-      const _dnm = (_wfcs?.dati_non_modificabili) ? _wfcs.dati_non_modificabili : [];
+    if (!state) { return false; }
+    if (state === 'archiviato') { return false; }
 
-      let _can: boolean = true;
-      Object.keys(CLASSES[submodule] || []).forEach((key: string) => {
-        if ((CLASSES[submodule][key].type === 'internal') && _dnm.includes(key)) {
-          _can = false;
-        }
-      });
+    // ISSUE #269 — Stakeholder bypass: matrice "Gestire i propri
+    // servizi/adesioni" abilita amm.org, op.api e tutti i referenti
+    // (servizio/dominio/adesione + tecnici inclusi) a entrare in
+    // edit mode indipendentemente dallo `stato_successivo.ruoli_abilitati`
+    // del workflow (che governa solo le transizioni, non l'edit dei
+    // dati). I `dati_non_modificabili` continuano a essere applicati
+    // a livello di campo tramite `canEditField`.
+    const stakeholders = [
+      'referente_servizio', 'referente_tecnico_servizio',
+      'referente_dominio', 'referente_tecnico_dominio',
+      'referente_adesione', 'referente_tecnico_adesione',
+      'utente_organizzazione'
+    ];
+    const isStakeholder = grant.some((r: string) => stakeholders.includes(r))
+      || this.isAmministratoreOrganizzazione()
+      || this.isOperatoreApi();
+    if (isStakeholder) { return true; }
 
-      const _grant = expandTecnicoGrants(grant);
+    // Fallback workflow-based (es. richiedente): edit consentito
+    // solo se l'utente puo` transizionare allo `stato_successivo` e
+    // i dati non sono frozen lato modulo.
+    const _wfcs = this._getWorkflowCambiStato(module, state);
+    const _ssra = (_wfcs?.stato_successivo) ? _wfcs.stato_successivo.ruoli_abilitati : [];
+    const _dnm = (_wfcs?.dati_non_modificabili) ? _wfcs.dati_non_modificabili : [];
 
-      const _intersection = _.intersection(_grant, _ssra);
-      return _can && (_intersection.length > 0);
-    }
-    return false;
+    let _can: boolean = true;
+    Object.keys(CLASSES[submodule] || []).forEach((key: string) => {
+      if ((CLASSES[submodule][key].type === 'internal') && _dnm.includes(key)) {
+        _can = false;
+      }
+    });
+
+    const _grant = expandContextualGrants(grant);
+    const _intersection = _.intersection(_grant, _ssra);
+    return _can && (_intersection.length > 0);
   }
 
   canManagement(module: string, submodule: string, state: string, grant: string[] = []) {
@@ -606,11 +626,20 @@ export class AuthenticationService {
 
   canChangeStatus(module: string, state: string, type: string, grant: string[] = [], currentStatus: string = '') {
     const _wfcs = this._getWorkflowCambiStato(module, state);
-    let _ss = (_wfcs?.[type]) ? _wfcs[type].ruoli_abilitati : [];
+    const _entry = _wfcs?.[type];
+    let _ss: string[] = [];
     if (type === 'stati_ulteriori') {
-      _ss = _wfcs[type].find((item: any) => item.nome === currentStatus)?.ruoli_abilitati || [];
+      // `stati_ulteriori` e` un array (o assente per stati terminali);
+      // serve null-check prima del `.find` per evitare TypeError quando
+      // la chiave manca nella configurazione workflow (es. stato
+      // `pubblicato_produzione`).
+      if (Array.isArray(_entry)) {
+        _ss = _entry.find((item: any) => item.nome === currentStatus)?.ruoli_abilitati || [];
+      }
+    } else if (_entry) {
+      _ss = _entry.ruoli_abilitati || [];
     }
-    const _intersection = _.intersection(grant, _ss);
+    const _intersection = _.intersection(grant || [], _ss);
     return (_intersection.length > 0);
   }
 

@@ -92,6 +92,11 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
     @Input() adesione: any = null;
     @Input() config: any = null;
     @Input() grant: Grant | null = null;
+    /** Ruoli referente del profilo utente (`/profilo/ruoli.ruoli_referente`),
+        passati dal wizard padre. Usati come fonte aggiuntiva nel
+        check di modificabilita`: il grant per-adesione puo` non
+        contenere i referenti contestuali. */
+    @Input() ruoliReferenteProfilo: string[] = [];
     @Input() environment: string = '';
     @Input() singleColumn: boolean = false;
     @Input() isEdit: boolean = false;
@@ -393,7 +398,38 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
         return link?.label || link?.title || link?.text || link?.url || link?.href || '';
     }
 
+    /**
+     * Issue #269 — il vecchio mapper guardava solo `grant.collaudo`/
+     * `grant.produzione` `=== Scrittura`. Il BE non restituisce
+     * sempre `Scrittura` per amministratore_organizzazione,
+     * operatore_api e referenti (servizio/dominio/tecnici), pur
+     * essendo abilitati a "Gestire le adesioni al proprio servizio"
+     * (matrice ISSUE-269). Aggiunti bypass espliciti FE-side. Lo
+     * state-gating (collaudo/produzione effettivamente modificabili)
+     * resta governato dal padre via `[isEdit]`.
+     */
     _isModifiableMapper = (_item: any = null): boolean => {
+        // ISSUE #269 — combina i ruoli del grant per-adesione con i
+        // ruoli referente del profilo utente: il grant BE puo` non
+        // contenere i referenti contestuali (es. `referente_tecnico_servizio`)
+        // ma `/profilo/ruoli` si`.
+        const ruoli: string[] = [
+            ...(this.grant?.ruoli || []),
+            ...(this.ruoliReferenteProfilo || [])
+        ];
+        if (this.authenticationService.isGestore(ruoli)) { return true; }
+        // Ruoli per-org sull'org di sessione.
+        if (this.authenticationService.isAmministratoreOrganizzazione()) { return true; }
+        if (this.authenticationService.isOperatoreApi()) { return true; }
+        // Referenti (incluso referente tecnico: per "Gestire adesioni"
+        // la matrice include anche i tecnici).
+        const referentiManage = [
+            'referente_servizio', 'referente_tecnico_servizio',
+            'referente_dominio', 'referente_tecnico_dominio',
+            'referente_adesione', 'referente_tecnico_adesione'
+        ];
+        if (ruoli.some((r: string) => referentiManage.includes(r))) { return true; }
+        // Fallback: rights espliciti per environment.
         if (this.grant) {
             if ((this.environment === AmbienteEnum.Collaudo) && (this.grant.collaudo === RightsEnum.Scrittura)) {
                 return true;
@@ -1964,14 +2000,13 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
     }
 
     /**
-     * L'utente puo' modificare i dati della dialog? Deriva dalla grant
-     * sull'ambiente corrente (stessa regola di `_isModifiableMapper`).
+     * L'utente puo' modificare i dati della dialog? Delega a
+     * `_isModifiableMapper` per applicare la stessa logica di
+     * bypass (gestore, amm.org, op.api, referenti) introdotta
+     * con ISSUE #269.
      */
     private _isModifiable(): boolean {
-        if (!this.grant) return false;
-        if (this.environment === AmbienteEnum.Collaudo) return this.grant.collaudo === RightsEnum.Scrittura;
-        if (this.environment === AmbienteEnum.Produzione) return this.grant.produzione === RightsEnum.Scrittura;
-        return false;
+        return this._isModifiableMapper();
     }
 
     /** Input completo per `computeFormConfig`. */
