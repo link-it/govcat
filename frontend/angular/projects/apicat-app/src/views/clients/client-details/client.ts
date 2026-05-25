@@ -148,6 +148,8 @@ export class Client {
   dati_specifici: DatiSpecifici_old | null = null;
 
   client_id: string | null = null;
+  /** `secret` di oauth_client_credentials: BE-calculated, read-only. */
+  secret: string | null = null;
 
   soggetto: Soggetto | null = null;
   id_soggetto: string | null = null;
