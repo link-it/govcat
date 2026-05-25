@@ -399,20 +399,19 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
     }
 
     /**
-     * Issue #269 — il vecchio mapper guardava solo `grant.collaudo`/
-     * `grant.produzione` `=== Scrittura`. Il BE non restituisce
-     * sempre `Scrittura` per amministratore_organizzazione,
-     * operatore_api e referenti (servizio/dominio/tecnici), pur
-     * essendo abilitati a "Gestire le adesioni al proprio servizio"
-     * (matrice ISSUE-269). Aggiunti bypass espliciti FE-side. Lo
-     * state-gating (collaudo/produzione effettivamente modificabili)
-     * resta governato dal padre via `[isEdit]`.
+     * Mapper di modificabilita` del client. Oltre al check su
+     * `grant.collaudo`/`grant.produzione === Scrittura` (fallback),
+     * abilitano la modifica: gestore, amm.org, operatore_api e
+     * referenti (servizio/dominio/adesione inclusi tecnici) — questi
+     * possono "gestire l'adesione al proprio servizio" anche quando il
+     * BE non valorizza `Scrittura` nel grant. Lo state-gating
+     * (collaudo/produzione effettivamente modificabili) resta
+     * governato dal padre via `[isEdit]`.
      */
     _isModifiableMapper = (_item: any = null): boolean => {
-        // ISSUE #269 — combina i ruoli del grant per-adesione con i
-        // ruoli referente del profilo utente: il grant BE puo` non
-        // contenere i referenti contestuali (es. `referente_tecnico_servizio`)
-        // ma `/profilo/ruoli` si`.
+        // Combina i ruoli del grant per-adesione con i ruoli referente
+        // del profilo: il grant BE puo` non contenere i referenti
+        // contestuali (es. `referente_tecnico_servizio`).
         const ruoli: string[] = [
             ...(this.grant?.ruoli || []),
             ...(this.ruoliReferenteProfilo || [])
@@ -702,6 +701,7 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
         let _nome_applicazione_portale: string | null = null;
         let _client_id: string | null = null;
         let _username: string | null = null;
+        let _secret: string | null = null;
 
         // Fase 2 (Issue #237): _arr_clients_riuso e' gia' stato popolato in
         // _onEditClient prima di chiamare _initEditFormClients. Non serve piu'
@@ -772,6 +772,10 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
                 _client_id = data?.dati_specifici?.client_id || null;
             }
 
+            if (_authType === 'oauth_client_credentials') {
+                _secret = data?.dati_specifici?.secret || null;
+            }
+
             if (authRequiresOauthUrls(_authType)) {
                 _url_redirezione = data?.dati_specifici?.url_redirezione || null;
                 _url_esposizione = data?.dati_specifici?.url_esposizione || null;
@@ -829,6 +833,9 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
 
             client_id: new FormControl({value: _client_id || null, disabled: true}),
             username: new FormControl({value: _username || null, disabled: true}),
+            // `secret` (oauth_client_credentials): BE-calculated, sola
+            // visualizzazione mascherata. Sempre disabilitato.
+            secret: new FormControl({value: _secret || null, disabled: true}),
         });
 
         const controls = this._editFormGroupClients.controls;
@@ -2002,8 +2009,7 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
     /**
      * L'utente puo' modificare i dati della dialog? Delega a
      * `_isModifiableMapper` per applicare la stessa logica di
-     * bypass (gestore, amm.org, op.api, referenti) introdotta
-     * con ISSUE #269.
+     * bypass (gestore, amm.org, op.api, referenti).
      */
     private _isModifiable(): boolean {
         return this._isModifiableMapper();

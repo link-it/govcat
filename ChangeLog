@@ -1,3 +1,12 @@
+2026-05-25  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Client oauth_client_credentials: `client_id` non e` piu`
+	  obbligatorio in creazione e il blocco e` visibile anche
+	  in scenario `new`. Aggiunto campo `secret` di sola
+	  visualizzazione (mask password + toggle) popolato da
+	  `dati_specifici.secret` (BE-calculated).
+
 2026-05-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

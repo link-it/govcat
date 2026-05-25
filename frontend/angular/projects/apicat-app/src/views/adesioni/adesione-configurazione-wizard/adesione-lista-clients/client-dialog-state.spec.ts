@@ -117,6 +117,11 @@ describe('client-dialog-state: blocchi opzionali di FormConfig', () => {
     expect(cfg.showPdndClientIdBlock).toBe(false);
   });
 
+  it('oauth_client_credentials: client_id NON e` obbligatorio', () => {
+    const cfg = computeFormConfig(makeInput({ authType: 'oauth_client_credentials', scenario: { kind: 'new' } }));
+    expect(cfg.fields.client_id.required).toBe(false);
+  });
+
   it('showPdndClientIdBlock false in scenario proposed', () => {
     const cfg = computeFormConfig(makeInput({ authType: 'pdnd', scenario: { kind: 'proposed' } }));
     expect(cfg.showPdndClientIdBlock).toBe(false);
@@ -133,13 +138,13 @@ describe('client-dialog-state: blocchi opzionali di FormConfig', () => {
     expect(otherAuth.showHttpBasicUsernameBlock).toBe(false);
   });
 
-  it('showOauthClientCredentialsBlock true solo con oauth_client_credentials + edit/readonly', () => {
+  it('showOauthClientCredentialsBlock true anche in scenario new', () => {
     const edit = computeFormConfig(makeInput({ authType: 'oauth_client_credentials', scenario: { kind: 'edit' } }));
     const ro = computeFormConfig(makeInput({ authType: 'oauth_client_credentials', scenario: { kind: 'readonly' } }));
     const newS = computeFormConfig(makeInput({ authType: 'oauth_client_credentials', scenario: { kind: 'new' } }));
     expect(edit.showOauthClientCredentialsBlock).toBe(true);
     expect(ro.showOauthClientCredentialsBlock).toBe(true);
-    expect(newS.showOauthClientCredentialsBlock).toBe(false);
+    expect(newS.showOauthClientCredentialsBlock).toBe(true);
   });
 
   it('showOauthAuthCodeClientIdBlock true solo con oauth_authorization_code + edit/readonly', () => {

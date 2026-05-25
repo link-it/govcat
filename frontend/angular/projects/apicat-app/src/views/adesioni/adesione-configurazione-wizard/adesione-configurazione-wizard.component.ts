@@ -1651,13 +1651,9 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     }
 
     canEditMapper = (): boolean => {
-        // ISSUE #269 — i ruoli per il check vanno presi sia dal grant
-        // per-adesione che dai `ruoli_referente` del profilo utente
-        // (`GET /profilo/ruoli`): il grant BE puo` non riportare i
-        // referenti contestuali (es. `referente_tecnico_servizio`) ma
-        // il profilo si`. Senza i ruoli del profilo il bypass
-        // stakeholder in `canEdit` non scatta e l'utente non puo`
-        // entrare in edit mode anche se da matrice ne ha diritto.
+        // Combina il grant per-adesione con i `ruoli_referente` del
+        // profilo: il grant BE puo` non riportare i referenti contestuali
+        // (es. `referente_tecnico_servizio`) ma il profilo si`.
         const ruoli = [
             ...(this.grant?.ruoli || []),
             ...(this._ruoliReferenteProfilo || [])

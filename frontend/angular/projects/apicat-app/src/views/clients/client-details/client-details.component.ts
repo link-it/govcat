@@ -515,6 +515,13 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
         controls.client_id.patchValue(data.dati_specifici.client_id)
       }
 
+      // oauth_client_credentials: `secret` e` BE-calculated e sola
+      // lettura — popoliamo il control e lo disabilitiamo sempre.
+      if (dsAuthType === 'oauth_client_credentials' && controls.secret) {
+        controls.secret.patchValue(data.dati_specifici?.secret || null);
+        controls.secret.disable({ emitEvent: false });
+      }
+
       if (isOauthAuthCodeInit) {
         controls.url_redirezione.patchValue(data.dati_specifici.url_redirezione)
         controls.url_redirezione.setValidators(Validators.required);
@@ -1324,7 +1331,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
         controls.username.setValidators(Validators.required)
       }
     }
-    if (this._isPdnd || this._isHttpsPdnd || this._isHttpsPdndSign || this._isSignPdnd || this._isOauthClientCredentials || this._isOauthAuthCode) {
+    if (this._isPdnd || this._isHttpsPdnd || this._isHttpsPdndSign || this._isSignPdnd || this._isOauthAuthCode) {
       controls.client_id.setValidators(Validators.required);
     } else {
       controls.client_id.clearValidators();

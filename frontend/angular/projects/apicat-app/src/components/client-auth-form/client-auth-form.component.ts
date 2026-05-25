@@ -189,6 +189,11 @@ export class ClientAuthFormComponent {
 
     readonly SelectedClientEnum = SelectedClientEnum;
 
+    /** Toggle visibilita` per il campo `secret` (oauth_client_credentials).
+        Il valore e` BE-calculated e l'input e` sempre read-only;
+        l'utente puo` solo alternare tra mask (password) e plain text. */
+    _showSecret = false;
+
     get f(): { [key: string]: AbstractControl } {
         return this.input?.formGroup?.controls ?? {};
     }

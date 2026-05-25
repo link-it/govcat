@@ -525,13 +525,12 @@ export class AuthenticationService {
     if (!state) { return false; }
     if (state === 'archiviato') { return false; }
 
-    // ISSUE #269 — Stakeholder bypass: matrice "Gestire i propri
-    // servizi/adesioni" abilita amm.org, op.api e tutti i referenti
-    // (servizio/dominio/adesione + tecnici inclusi) a entrare in
-    // edit mode indipendentemente dallo `stato_successivo.ruoli_abilitati`
-    // del workflow (che governa solo le transizioni, non l'edit dei
-    // dati). I `dati_non_modificabili` continuano a essere applicati
-    // a livello di campo tramite `canEditField`.
+    // Stakeholder bypass: amm.org, op.api e referenti
+    // (servizio/dominio/adesione, inclusi tecnici) possono entrare in
+    // edit mode indipendentemente da `stato_successivo.ruoli_abilitati`
+    // (che governa solo le transizioni di workflow). I
+    // `dati_non_modificabili` restano applicati per campo via
+    // `canEditField`.
     const stakeholders = [
       'referente_servizio', 'referente_tecnico_servizio',
       'referente_dominio', 'referente_tecnico_dominio',

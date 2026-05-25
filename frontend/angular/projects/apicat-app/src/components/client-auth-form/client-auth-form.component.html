@@ -51,9 +51,9 @@
       </div>
     }
 
-    <div class="row mb-3">
-      <!-- credenziali -->
-      @if (input.formConfig.fields.credenziali.visible) {
+    @if (input.formConfig.fields.credenziali.visible) {
+      <div class="row mb-3">
+        <!-- credenziali -->
         <div class="form-group col-12 mb-2">
           <label class="label-bold" for="credenziali">
             {{ 'APP.ADESIONI.LABEL.TipoAccesso' | translate }}
@@ -112,8 +112,8 @@
               {{ 'APP.ADESIONI.LABEL.HelpScenarioNuovo' | translate }}
             </div> -->
             <!-- Disclaimers per-profilo: stessa lista che la
-                 `adesione-lista-clients` mostra sotto la riga.
-                 Allineata visivamente (alert-* + icona tinta). -->
+                  `adesione-lista-clients` mostra sotto la riga.
+                  Allineata visivamente (alert-* + icona tinta). -->
             @for (d of disclaimers; track $index) {
               <small class="d-flex align-items-start gap-2 px-3 py-2 alert mb-0 mt-3 " [ngClass]="_getDisclaimerAlertClass(d.severity)">
                 <i class="me-2" [ngClass]="_getDisclaimerIconClass(d.severity)"></i>
@@ -143,11 +143,10 @@
             </div>
           }
         </div>
-      }
-    </div>
+      </div>
+    }
 
     @if (input.formConfig.showClientFormBody) {
-
       <!-- nome -->
       <div class="row">
         <div class="form-group col-12 mb-2">
@@ -841,7 +840,7 @@
         </div>
       }
 
-      <!-- OAuth Client Credentials client_id (edit/readonly only). -->
+      <!-- OAuth Client Credentials client_id + secret (BE-calculated). -->
       @if (input.formConfig.showOauthClientCredentialsBlock) {
         <div class="row-content-block mt-2 mb-3">
           <div class="row">
@@ -860,6 +859,28 @@
                 </p>
               }
             </div>
+            @if (f['secret'] && f['secret'].value) {
+              <div class="form-group col-12 mb-2">
+                <label class="label-bold" for="secret_oauth_cc">
+                  {{ 'APP.CLIENT.LABEL.Secret' | translate }}
+                </label>
+                <div class="input-group input-group-sm">
+                  <input class="form-control form-control-sm" id="secret_oauth_cc"
+                    [type]="_showSecret ? 'text' : 'password'"
+                    formControlName="secret"
+                    readonly
+                    autocomplete="off">
+                  <div class="input-group-append">
+                    <button type="button" class="btn btn-secondary border"
+                      (click)="_showSecret = !_showSecret"
+                      [attr.aria-label]="(_showSecret ? 'APP.BUTTON.HideSecret' : 'APP.BUTTON.ShowSecret') | translate"
+                      [tooltip]="(_showSecret ? 'APP.BUTTON.HideSecret' : 'APP.BUTTON.ShowSecret') | translate">
+                      <i class="bi" [class.bi-eye]="!_showSecret" [class.bi-eye-slash]="_showSecret"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
           </div>
         </div>
       }

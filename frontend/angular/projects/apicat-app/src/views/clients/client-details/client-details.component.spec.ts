@@ -863,13 +863,13 @@ describe('ClientDetailsComponent', () => {
       expect(component._formGroup.controls['client_id'].valid).toBe(false);
     });
 
-    it('should set client_id required when auth_type is oauth_client_credentials', () => {
+    it('oauth_client_credentials: client_id NON e` obbligatorio in creazione', () => {
       component._formGroup.controls['auth_type'].setValue('oauth_client_credentials');
       (component as any)._recomputeFormConfig();
       component._formGroup.controls['stato'].setValue('configurato');
       component._onChangeStato();
       component._formGroup.controls['client_id'].setValue(null);
-      expect(component._formGroup.controls['client_id'].valid).toBe(false);
+      expect(component._formGroup.controls['client_id'].valid).toBe(true);
     });
 
     it('should clear client_id validators when no pdnd/oauth', () => {

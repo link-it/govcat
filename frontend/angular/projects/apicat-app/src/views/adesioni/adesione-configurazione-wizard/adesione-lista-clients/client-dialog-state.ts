@@ -328,10 +328,15 @@ export function computeFormConfig(input: ClientDialogInput): FormConfig {
     rate_limiting: field(showFormBody && input.showRateLimiting, editableScenario, false),
     finalita: field(showFormBody && input.showFinalita, editableScenario, false),
 
+    // oauth_client_credentials: il `client_id` esiste in
+    // `dati_specifici` (visibile/editable nel blocco dedicato in
+    // edit/readonly) ma NON e` obbligatorio in fase di creazione —
+    // il campo non e` esposto in scenario `new` ed il gestore puo`
+    // valorizzarlo in seguito.
     client_id: field(
       showFormBody && (requiresClientId || requiresOauthUrls),
       editableScenario,
-      requiresClientId,
+      requiresClientId && authType !== 'oauth_client_credentials',
     ),
 
     username: field(showFormBody && requiresUsername, editableScenario, usernameRequired),
@@ -391,7 +396,10 @@ export function computeFormConfig(input: ClientDialogInput): FormConfig {
 
   const showPdndClientIdBlock = showClientFormBody && authIsPdndVariant(authType);
   const showHttpBasicUsernameBlock = showClientFormBody && requiresUsername && isConfigurato;
-  const showOauthClientCredentialsBlock = showClientFormBody && authType === 'oauth_client_credentials' && isConfigurato;
+  // Blocco `client_id` per oauth_client_credentials: mostrato in tutti
+  // gli scenari editabili (incluso `new`). Il validator `required` resta
+  // false per OCC (vedi `fields.client_id`).
+  const showOauthClientCredentialsBlock = showClientFormBody && authType === 'oauth_client_credentials';
   const showOauthAuthCodeClientIdBlock = showClientFormBody && requiresOauthUrls && isConfigurato;
 
   return {
