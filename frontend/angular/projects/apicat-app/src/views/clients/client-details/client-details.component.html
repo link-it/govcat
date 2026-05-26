@@ -320,12 +320,14 @@
                   <app-client-auth-form
                     [input]="clientAuthInput"
                     [layout]="'vertical'"
+                    [secretLoading]="_secretLoading"
                     (changeAuthType)="_onAuthTypeChangeFromForm($event)"
                     (changeTipoCertificato)="_onAuthTipoCertificatoChange($event)"
                     (changeTipoCertificatoFirma)="_onAuthTipoCertificatoFirmaChange($event)"
                     (descriptorChange)="_onAuthDescriptorChange($event)"
                     (descriptorChangeFirma)="_onAuthDescriptorChangeFirma($event)"
                     (downloadAllegato)="_downloadAllegato($event)"
+                    (requestSecret)="_fetchSecret()"
                   ></app-client-auth-form>
                 </div>
               </div>

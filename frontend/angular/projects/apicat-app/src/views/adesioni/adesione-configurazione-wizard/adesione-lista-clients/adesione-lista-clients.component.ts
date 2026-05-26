@@ -493,6 +493,8 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
     loadingDialog: boolean = false;
 
     _currClient: any = null;
+    /** Stato di caricamento del secret on-demand (oauth_client_credentials). */
+    _secretLoading: boolean = false;
     _currDatiSpecifici: any = null;
 
     // Fase 4.4 (Issue #237): rimosse 16 boolean flag orfane
@@ -578,6 +580,28 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
         }
         this._inlineEditingClient = null;
         this.isEditClient = false;
+        // Reset stato secret: il next opening parte da nascosto, no cache.
+        this._secretLoading = false;
+        const secretCtrl = this._editFormGroupClients?.controls?.['secret'];
+        if (secretCtrl) { secretCtrl.setValue(null); }
+    }
+
+    /** Recupera on-demand il secret del client OAuth Client Credentials
+        via `GET /client/{id}/client-secret`. Patch del FormControl
+        `secret` e gestione dello stato di loading. */
+    _fetchSecret(): void {
+        const idClient = this._currClient?.id_client;
+        if (this._secretLoading || !idClient) { return; }
+        this._secretLoading = true;
+        this.apiService.getDetails('client', idClient, 'client-secret').subscribe({
+            next: (res: any) => {
+                this._editFormGroupClients.controls['secret']?.patchValue(res?.secret ?? null);
+                this._secretLoading = false;
+            },
+            error: () => {
+                this._secretLoading = false;
+            }
+        });
     }
 
     _resetError() {
@@ -701,7 +725,6 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
         let _nome_applicazione_portale: string | null = null;
         let _client_id: string | null = null;
         let _username: string | null = null;
-        let _secret: string | null = null;
 
         // Fase 2 (Issue #237): _arr_clients_riuso e' gia' stato popolato in
         // _onEditClient prima di chiamare _initEditFormClients. Non serve piu'
@@ -772,10 +795,6 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
                 _client_id = data?.dati_specifici?.client_id || null;
             }
 
-            if (_authType === 'oauth_client_credentials') {
-                _secret = data?.dati_specifici?.secret || null;
-            }
-
             if (authRequiresOauthUrls(_authType)) {
                 _url_redirezione = data?.dati_specifici?.url_redirezione || null;
                 _url_esposizione = data?.dati_specifici?.url_esposizione || null;
@@ -833,9 +852,10 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
 
             client_id: new FormControl({value: _client_id || null, disabled: true}),
             username: new FormControl({value: _username || null, disabled: true}),
-            // `secret` (oauth_client_credentials): BE-calculated, sola
-            // visualizzazione mascherata. Sempre disabilitato.
-            secret: new FormControl({value: _secret || null, disabled: true}),
+            // `secret` (oauth_client_credentials): recuperato on-demand
+            // via `GET /client/{id}/client-secret`, sola visualizzazione
+            // mascherata. Sempre disabilitato.
+            secret: new FormControl({value: null, disabled: true}),
         });
 
         const controls = this._editFormGroupClients.controls;

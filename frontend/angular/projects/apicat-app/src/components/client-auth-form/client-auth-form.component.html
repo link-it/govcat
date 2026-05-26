@@ -859,7 +859,7 @@
                 </p>
               }
             </div>
-            @if (f['secret'] && f['secret'].value) {
+            @if (f['client_id']?.value) {
               <div class="form-group col-12 mb-2">
                 <label class="label-bold" for="secret_oauth_cc">
                   {{ 'APP.CLIENT.LABEL.Secret' | translate }}
@@ -870,12 +870,24 @@
                     formControlName="secret"
                     readonly
                     autocomplete="off">
-                  <div class="input-group-append">
+                  <div class="input-group-append d-flex">
                     <button type="button" class="btn btn-secondary border"
-                      (click)="_showSecret = !_showSecret"
+                      [disabled]="secretLoading"
+                      (click)="_toggleSecret()"
                       [attr.aria-label]="(_showSecret ? 'APP.BUTTON.HideSecret' : 'APP.BUTTON.ShowSecret') | translate"
                       [tooltip]="(_showSecret ? 'APP.BUTTON.HideSecret' : 'APP.BUTTON.ShowSecret') | translate">
-                      <i class="bi" [class.bi-eye]="!_showSecret" [class.bi-eye-slash]="_showSecret"></i>
+                      @if (secretLoading) {
+                        <span class="spinner-border spinner-border-sm"></span>
+                      } @else {
+                        <i class="bi" [class.bi-eye]="!_showSecret" [class.bi-eye-slash]="_showSecret"></i>
+                      }
+                    </button>
+                    <button type="button" class="btn btn-secondary border"
+                      [disabled]="secretLoading"
+                      (click)="_copySecret()"
+                      [attr.aria-label]="'APP.BUTTON.Copy' | translate"
+                      [tooltip]="(_secretCopied ? 'APP.MESSAGE.CopiedToClipboard' : 'APP.BUTTON.Copy') | translate">
+                      <i class="bi" [class.bi-copy]="!_secretCopied" [class.bi-check2]="_secretCopied"></i>
                     </button>
                   </div>
                 </div>

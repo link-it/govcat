@@ -32,6 +32,7 @@
         <app-client-auth-form
           [input]="input"
           [layout]="layout"
+          [secretLoading]="secretLoading"
           (selectCredenziali)="selectCredenziali.emit($event)"
           (changeCredenziali)="changeCredenziali.emit($event)"
           (changeTipoCertificato)="changeTipoCertificato.emit($event)"
@@ -40,6 +41,7 @@
           (descriptorChangeFirma)="descriptorChangeFirma.emit($event)"
           (downloadAllegato)="downloadAllegato.emit($event)"
           (downloadCertificato)="downloadCertificato.emit($event)"
+          (requestSecret)="requestSecret.emit()"
         ></app-client-auth-form>
       </div>
     </div>

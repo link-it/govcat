@@ -177,6 +177,11 @@ export class ClientAuthFormComponent {
         links?: Array<{ url?: string; href?: string; label?: string; title?: string; text?: string }>;
     }> = [];
 
+    /** Stato di caricamento del secret (mentre il parent recupera
+        via `GET /client/{id}/client-secret`). Disabilita il bottone
+        toggle e mostra spinner. */
+    @Input() secretLoading: boolean = false;
+
     @Output() changeAuthType = new EventEmitter<any>();
     @Output() selectCredenziali = new EventEmitter<SelectedClientEnum>();
     @Output() changeCredenziali = new EventEmitter<any>();
@@ -187,12 +192,50 @@ export class ClientAuthFormComponent {
     @Output() downloadCertificato = new EventEmitter<string>();
     @Output() downloadAllegato = new EventEmitter<any>();
 
+    /** Emesso al primo click su "mostra secret": il parent deve
+        fetchare via API e patchare il FormControl `secret`. */
+    @Output() requestSecret = new EventEmitter<void>();
+
     readonly SelectedClientEnum = SelectedClientEnum;
 
-    /** Toggle visibilita` per il campo `secret` (oauth_client_credentials).
-        Il valore e` BE-calculated e l'input e` sempre read-only;
-        l'utente puo` solo alternare tra mask (password) e plain text. */
+    /** Toggle visibilita` del campo `secret` (oauth_client_credentials).
+        Read-only: l'utente alterna tra mask (password) e plain text. */
     _showSecret = false;
+
+    /** Stato transitorio: true per ~1.5s dopo una copia riuscita,
+        cambia l'icona del bottone copy a check come feedback. */
+    _secretCopied = false;
+
+    /** Gestisce il click sul bottone toggle del secret: al primo
+        scoprimento emette `requestSecret` (se valore non ancora
+        fetchato e nessun fetch in corso), poi inverte la visibilita`. */
+    _toggleSecret(): void {
+        if (this.secretLoading) { return; }
+        const willShow = !this._showSecret;
+        if (willShow && !this.f['secret']?.value) {
+            this.requestSecret.emit();
+        }
+        this._showSecret = willShow;
+    }
+
+    /** Copia il valore del secret negli appunti. Se il valore non e`
+        ancora stato fetchato emette `requestSecret` (il prossimo click
+        copiera`). Feedback visivo: icona check per 1.5s. */
+    _copySecret(): void {
+        if (this.secretLoading) { return; }
+        const value = this.f['secret']?.value;
+        if (!value) {
+            this.requestSecret.emit();
+            return;
+        }
+        try {
+            navigator.clipboard?.writeText(String(value));
+            this._secretCopied = true;
+            setTimeout(() => { this._secretCopied = false; }, 1500);
+        } catch {
+            // Silente: clipboard non disponibile (es. http test).
+        }
+    }
 
     get f(): { [key: string]: AbstractControl } {
         return this.input?.formGroup?.controls ?? {};

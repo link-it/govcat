@@ -157,6 +157,12 @@ export class ModalEditClientComponent {
     /** Download diretto di un allegato gia' in memoria (certificato salvato). */
     @Output() downloadAllegato = new EventEmitter<any>();
 
+    /** Stato loading del secret on-demand. */
+    @Input() secretLoading: boolean = false;
+
+    /** Richiesta di recupero del secret (oauth_client_credentials). */
+    @Output() requestSecret = new EventEmitter<void>();
+
     // Esposto per il template (sintassi toggle)
     readonly SelectedClientEnum = SelectedClientEnum;
 

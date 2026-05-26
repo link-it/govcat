@@ -1,3 +1,11 @@
+2026-05-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Client oauth_client_credentials, campo `secret`: recupero
+	  on-demand via `GET /client/{id}/client-secret` (non piu`
+	  in `dati_specifici`). Aggiunto bottone copia clipboard
+	  accanto al toggle mostra/nascondi.
+
 2026-05-25  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

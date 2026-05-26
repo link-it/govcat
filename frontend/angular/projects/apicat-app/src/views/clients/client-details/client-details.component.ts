@@ -237,6 +237,10 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
   _fromDashboard: boolean = false;
   _dashboardSection: string = '';
 
+  /** Stato di caricamento per il recupero on-demand del secret
+      via `GET /client/{id}/client-secret`. */
+  _secretLoading: boolean = false;
+
   debugMandatoryFields: boolean = false;
 
   constructor(
@@ -515,10 +519,11 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
         controls.client_id.patchValue(data.dati_specifici.client_id)
       }
 
-      // oauth_client_credentials: `secret` e` BE-calculated e sola
-      // lettura — popoliamo il control e lo disabilitiamo sempre.
+      // oauth_client_credentials: il `secret` non e` in `dati_specifici`,
+      // viene recuperato on-demand via `GET /client/{id}/client-secret`
+      // quando l'utente clicca "mostra". Il control resta disabilitato
+      // (read-only) con valore iniziale null.
       if (dsAuthType === 'oauth_client_credentials' && controls.secret) {
-        controls.secret.patchValue(data.dati_specifici?.secret || null);
         controls.secret.disable({ emitEvent: false });
       }
 
@@ -1706,6 +1711,24 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
   /** Adapter per `(changeAuthType)` dal dropdown del componente condiviso. */
   _onAuthTypeChangeFromForm(authType: any): void {
     this._onChangeAuthType(authType);
+  }
+
+  /** Recupera on-demand il secret del client OAuth Client Credentials
+      via `GET /client/{id}/client-secret`. Patch del FormControl
+      `secret` e gestione dello stato di loading. */
+  _fetchSecret(): void {
+    if (this._secretLoading || !this.id) { return; }
+    this._secretLoading = true;
+    this.apiService.getDetails(this.model, this.id, 'client-secret').subscribe({
+      next: (res: any) => {
+        const controls: any = this._formGroup.controls;
+        controls.secret?.patchValue(res?.secret ?? null);
+        this._secretLoading = false;
+      },
+      error: () => {
+        this._secretLoading = false;
+      }
+    });
   }
 
   /**

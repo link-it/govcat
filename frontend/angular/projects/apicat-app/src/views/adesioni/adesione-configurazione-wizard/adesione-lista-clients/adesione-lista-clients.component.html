@@ -140,6 +140,7 @@
                   [input]="modalInput"
                   [layout]="_dialogLayout"
                   [disclaimers]="_clientDisclaimers(item)"
+                  [secretLoading]="_secretLoading"
                   (selectCredenziali)="_onSelectCredenzialiOption($event)"
                   (changeCredenziali)="onChangeCredenziali($event)"
                   (changeTipoCertificato)="onChangeTipoCertificato($event)"
@@ -147,6 +148,7 @@
                   (descriptorChange)="_onDescriptorChange($event)"
                   (descriptorChangeFirma)="_onDescriptorChangeFirma($event)"
                   (downloadAllegato)="_downloadAllegato($event)"
+                  (requestSecret)="_fetchSecret()"
                 ></app-client-auth-form>
                 <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
                   <lnk-button
