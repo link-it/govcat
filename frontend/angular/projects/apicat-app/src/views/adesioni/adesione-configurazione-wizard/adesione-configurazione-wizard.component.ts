@@ -865,7 +865,78 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         const _statiUlteriori: boolean = false;
         return (_statoPrecedente || _statoSuccessivo || _statiUlteriori);
     }
-    
+
+    /** Stato "archiviato" (riprodotto dal pattern di `ui-workflow`).
+     *  Usato come destinazione del bottone Archivia nel substepper. */
+    readonly _statoArchiviato = { nome: 'archiviato', ruoli_abilitati: [] };
+
+    /**
+     * Entry `cambi_stato[stato_attuale]` raw dal workflow config.
+     * Usato dal substepper per renderizzare la lista di pulsanti
+     * di cambio stato (stato_precedente / stato_successivo /
+     * stati_ulteriori) sui sub-step attivi diversi da "in_compilazione".
+     * Ritorna null se l'adesione e` archiviata o il workflow non
+     * contiene un'entry per lo stato corrente.
+     */
+    getCambioStatoEntry(): any {
+        if (!this.adesione) { return null; }
+        const stato = this.adesione.stato;
+        if (stato === Tools.StatoAdesione.ARCHIVIATO.Code) { return null; }
+        const workflow = Tools.Configurazione?.adesione.workflow || null;
+        if (!workflow?.cambi_stato) { return null; }
+        const idx = workflow.cambi_stato.findIndex((it: any) => it.stato_attuale === stato);
+        return (idx === -1) ? null : workflow.cambi_stato[idx];
+    }
+
+    /** Ruoli combinati: grant per-adesione + ruoli_referente del
+     *  profilo. Allineato al pattern di `canEditMapper`. */
+    private _combinedRuoli(): string[] {
+        return [
+            ...(this.grant?.ruoli || []),
+            ...(this._ruoliReferenteProfilo || [])
+        ];
+    }
+
+    /** Abilitazione di un'azione di cambio stato (mirror del mapper
+     *  di `ui-workflow._isActionEnabledMapper`). */
+    _isWorkflowActionEnabled = (type: string, statusName: string = ''): boolean => {
+        if (!this.adesione) { return false; }
+        return this.authenticationService.canChangeStatus(
+            'adesione',
+            this.adesione.stato,
+            type,
+            this._combinedRuoli(),
+            statusName
+        );
+    }
+
+    /** Abilitazione dell'azione "Archivia". */
+    _canArchiviareAdesione = (): boolean => {
+        if (!this.adesione) { return false; }
+        return this.authenticationService.canArchiviare(
+            'adesione',
+            this.adesione.stato,
+            this._combinedRuoli()
+        );
+    }
+
+    /** Vero se almeno una azione di cambio stato e` abilitata per
+     *  lo stato corrente. Pilota la visibilita` del pannello azioni
+     *  nel substepper. Considera solo `stato_successivo` e
+     *  `stati_ulteriori` (stato_precedente/archivia non mostrati
+     *  inline nel substepper). */
+    _hasAnyWorkflowAction(): boolean {
+        const entry = this.getCambioStatoEntry();
+        if (!entry) { return false; }
+        if (entry.stato_successivo && this._isWorkflowActionEnabled('stato_successivo')) { return true; }
+        if (entry.stati_ulteriori?.length) {
+            for (const s of entry.stati_ulteriori) {
+                if (this._isWorkflowActionEnabled('stati_ulteriori', s.nome)) { return true; }
+            }
+        }
+        return false;
+    }
+
     private loadServizio(id: string | null, disable = false) {
         this.apiService.getDetails('servizi', id).subscribe((respponse: any) => {
             this.servizio = respponse;

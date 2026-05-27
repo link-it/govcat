@@ -1,6 +1,18 @@
 2026-05-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard adesione: nel substepper aggiunti i pulsanti di
+	  cambio stato (stato_successivo + stati_ulteriori) per
+	  tutti i sub-step attivi, non solo "In compilazione".
+	  Etichette via nuovo sotto-albero `APP.WORKFLOW.MENU_INLINE`
+	  (IT/EN) senza riferimento a "collaudo"/"produzione",
+	  sottointeso dal contesto. Gating ruoli combina grant
+	  adesione + `ruoli_referente` del profilo. Minor: `gap-2`
+	  in `lnk-button`.
+
+2026-05-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Client secret (oauth_client_credentials): placeholder
 	  `**********` sull'input, gestione errore fetch con
 	  messaggio specifico (`APP.CLIENT.MESSAGES.SecretUnavailable`,

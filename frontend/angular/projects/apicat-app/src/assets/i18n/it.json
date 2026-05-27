@@ -2913,6 +2913,26 @@
 				"richiesto_produzione": "Richiesta configurazione in produzione",
 				"richiesto_produzione_senza_collaudo": "Richiesta configurazione in produzione senza collaudo"
 			},
+			"MENU_INLINE": {
+				"archiviato": "Archivia",
+				"autorizzato_collaudo": "Autorizza",
+				"autorizzato_produzione": "Autorizza",
+				"autorizzato_produzione_senza_collaudo": "Autorizza (senza collaudo)",
+				"bozza": "Bozza",
+				"in_configurazione_automatica_collaudo": "Configurazione automatica",
+				"in_configurazione_automatica_produzione": "Configurazione automatica",
+				"in_configurazione_collaudo": "Configura",
+				"in_configurazione_manuale_collaudo": "Configurazione manuale",
+				"in_configurazione_manuale_produzione": "Configurazione manuale",
+				"in_configurazione_produzione": "Configura",
+				"in_configurazione_produzione_senza_collaudo": "Configura (senza collaudo)",
+				"pubblicato_collaudo": "Pubblica",
+				"pubblicato_produzione": "Pubblica",
+				"pubblicato_produzione_senza_collaudo": "Pubblica (senza collaudo)",
+				"richiesto_collaudo": "Richiedi configurazione",
+				"richiesto_produzione": "Richiedi configurazione",
+				"richiesto_produzione_senza_collaudo": "Richiedi configurazione (senza collaudo)"
+			},
 			"MESSAGE": {
 				"AreYouSure": "Vuoi confermare il cambio di stato in '**{{next}}**'?",
 				"AreYouSureBulk": "**Stai per eseguire un’operazione massiva che non potrà essere annullata.**\n\nVuoi confermare il cambio di stato in '**{{next}}**' di '**{{count}}**' adesioni?",

@@ -2913,6 +2913,26 @@
 				"richiesto_produzione": "Request configuration in production",
 				"richiesto_produzione_senza_collaudo": "Request configuration in production without testing"
 			},
+			"MENU_INLINE": {
+				"archiviato": "Archive",
+				"autorizzato_collaudo": "Authorize",
+				"autorizzato_produzione": "Authorize",
+				"autorizzato_produzione_senza_collaudo": "Authorize (without testing)",
+				"bozza": "Draft",
+				"in_configurazione_automatica_collaudo": "Automatic configuration",
+				"in_configurazione_automatica_produzione": "Automatic configuration",
+				"in_configurazione_collaudo": "Configure",
+				"in_configurazione_manuale_collaudo": "Manual configuration",
+				"in_configurazione_manuale_produzione": "Manual configuration",
+				"in_configurazione_produzione": "Configure",
+				"in_configurazione_produzione_senza_collaudo": "Configure (without testing)",
+				"pubblicato_collaudo": "Publish",
+				"pubblicato_produzione": "Publish",
+				"pubblicato_produzione_senza_collaudo": "Publish (without testing)",
+				"richiesto_collaudo": "Request configuration",
+				"richiesto_produzione": "Request configuration",
+				"richiesto_produzione_senza_collaudo": "Request configuration (without testing)"
+			},
 			"MESSAGE": {
 				"AreYouSure": "Do you want to confirm the status change to '**{{next}}**'?",
 				"AreYouSureBulk": "**You are about to perform a bulk operation that cannot be undone.**\n\nDo you want to confirm the change of status to '**{{next}}**' of '**{{count}}**' memberships?",
