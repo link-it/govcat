@@ -1,3 +1,14 @@
+2026-05-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Wizard adesione: leak dei listener su `EventsManagerService`.
+	  Listener stale rimanevano registrati a ogni navigazione,
+	  generando chiamate parallele a `/adesioni/:uuid/{collaudo|
+	  produzione}/configurazioni` con uuid di adesioni vecchie
+	  (404). Aggiunto `ngOnDestroy` con `off(name, listener)`
+	  mirato; estesa `EventsManagerService.off` per rimuovere un
+	  singolo listener (compat legacy senza arg).
+
 2026-05-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

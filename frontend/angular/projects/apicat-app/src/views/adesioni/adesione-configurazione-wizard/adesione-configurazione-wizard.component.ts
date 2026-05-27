@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, ElementRef, HostBinding, HostListener, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostBinding, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 
@@ -121,10 +121,16 @@ export interface AdesioneDisclaimer {
         WorkflowComponent
     ]
 })
-export class AdesioneConfigurazioneWizardComponent implements OnInit {
+export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy {
 
     static readonly Name = 'AdesioneConfigurazioneWizardComponent';
     readonly model: string = 'adesioni';
+
+    /** Riferimenti ai listener registrati su `EventsManagerService`,
+        deregistrati in `ngOnDestroy` per evitare leak (closure stale
+        sul vecchio `this.id` ad ogni nuova navigazione del wizard). */
+    private _wizardCheckUpdateListener?: (action: any) => void;
+    private _profileUpdateListener?: (action: any) => void;
 
     // Sotto flag wizard_new_layout, attiva la host class `lnk-wizard` che
     // scopa i design-token Link.it definiti nella SCSS del componente.
@@ -690,16 +696,24 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
             }
         });
 
-        this.eventsManagerService.on(EventType.WIZARD_CHECK_UPDATE, (action: any) => {
+        // Salvo i riferimenti dei listener per poterli rimuovere in
+        // `ngOnDestroy` (vedi `EventsManagerService.off(name, listener)`).
+        // Senza unsubscribe, ad ogni navigazione su una nuova adesione
+        // resta registrata una closure col vecchio `this.id` e i broadcast
+        // successivi generano chiamate parallele a `/configurazioni` su
+        // adesioni stale (404 in dev/test con DB rinfrescato).
+        this._wizardCheckUpdateListener = (_action: any) => {
             this.loadCheckDati(this.adesione.id_adesione, this.getNextStateWorkflowName());
             this.loadConfigurazioni(AmbienteEnum.Collaudo);
             this.loadConfigurazioni(AmbienteEnum.Produzione);
-        })
+        };
+        this.eventsManagerService.on(EventType.WIZARD_CHECK_UPDATE, this._wizardCheckUpdateListener);
 
-        this.eventsManagerService.on(EventType.PROFILE_UPDATE, (action: any) => {
+        this._profileUpdateListener = (_action: any) => {
             this.generalConfig = Tools.Configurazione || null;
             this.updateMapper = Date.now().toString();
-        });
+        };
+        this.eventsManagerService.on(EventType.PROFILE_UPDATE, this._profileUpdateListener);
 
         // Ricarica i disclaimer quando l'utente cambia lingua nell'interfaccia
         this.translate.onLangChange.subscribe(() => {
@@ -707,6 +721,17 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
                 this._loadDisclaimers();
             }
         });
+    }
+
+    ngOnDestroy(): void {
+        if (this._wizardCheckUpdateListener) {
+            this.eventsManagerService.off(EventType.WIZARD_CHECK_UPDATE, this._wizardCheckUpdateListener);
+            this._wizardCheckUpdateListener = undefined;
+        }
+        if (this._profileUpdateListener) {
+            this.eventsManagerService.off(EventType.PROFILE_UPDATE, this._profileUpdateListener);
+            this._profileUpdateListener = undefined;
+        }
     }
 
     _updateOtherActions() {
