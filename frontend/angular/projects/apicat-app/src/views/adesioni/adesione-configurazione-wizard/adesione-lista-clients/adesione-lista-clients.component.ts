@@ -598,8 +598,9 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
                 this._editFormGroupClients.controls['secret']?.patchValue(res?.secret ?? null);
                 this._secretLoading = false;
             },
-            error: () => {
+            error: (error: any) => {
                 this._secretLoading = false;
+                Tools.OnError(error, this.translate.instant('APP.CLIENT.MESSAGES.SecretUnavailable'));
             }
         });
     }

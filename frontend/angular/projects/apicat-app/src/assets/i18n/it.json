@@ -464,7 +464,8 @@
 				"Username": "Username"
 			},
 			"MESSAGES": {
-				"DeassociateClient": "Confermi di voler rimuovere l'associazione tra questo Client e l'Adesione ?"
+				"DeassociateClient": "Confermi di voler rimuovere l'associazione tra questo Client e l'Adesione ?",
+				"SecretUnavailable": "Il secret non è disponibile o non è stato possibile recuperarlo. Riprova più tardi."
 			},
 			"STATUS": {
 				"ConfigInProgress": "Configurazione da perfezionare",
@@ -1154,6 +1155,7 @@
 				"ip_fruizione": "Indirizzo IP del sistema che effettuerà le chiamate al servizio. Se non è fisso o non è noto, lascia il campo vuoto.",
 				"quota": "Numero massimo di richieste che la tua applicazione potrà effettuare nel periodo indicato (rate limiting). Se non specificato, verrà applicato il limite di default definito dall'ente erogatore.",
 				"client_id": "L'identificativo univoco (UUID) del client che hai registrato sul portale PDND. Lo trovi nella sezione Client e-service del tuo ente, nella pagina di dettaglio del client. Assicurati che il client sia associato alla finalità corretta per questo servizio prima di procedere.",
+				"client_id_oauth_cc": "Identificativo client (clientId) da utilizzare durante la negoziazione del token OAuth presso l'authorization server. Se il campo non viene valorizzato, sarà adottato il valore di default ottenuto concatenando il nome del client e il nome dell'organizzazione aderente, separati da un punto.",
 				"descrizione": "Usa questo campo per annotare informazioni utili sul client (ambiente di utilizzo, data di scadenza dei certificati, ecc). Queste note saranno visibili ai referenti tecnici dell'adesione."
 			},
 			"ADESIONE": {

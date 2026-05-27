@@ -43,7 +43,7 @@
  */
 
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
@@ -161,7 +161,7 @@ export type ClientAuthFormLayout = 'vertical' | 'horizontal';
         MarkdownModule,
     ],
 })
-export class ClientAuthFormComponent {
+export class ClientAuthFormComponent implements OnChanges {
     @Input({ required: true }) input!: ClientAuthFormInput;
     @Input() layout: ClientAuthFormLayout = 'vertical';
     /**
@@ -205,6 +205,19 @@ export class ClientAuthFormComponent {
     /** Stato transitorio: true per ~1.5s dopo una copia riuscita,
         cambia l'icona del bottone copy a check come feedback. */
     _secretCopied = false;
+
+    /** Quando il loading del secret termina senza che il valore sia
+        stato valorizzato (es. errore API), riporta il toggle a
+        "nascosto" cosi` l'icona torna `bi-eye` e l'utente capisce di
+        poter ritentare. */
+    ngOnChanges(changes: SimpleChanges): void {
+        const ch = changes['secretLoading'];
+        if (ch && ch.previousValue === true && ch.currentValue === false) {
+            if (!this.f['secret']?.value) {
+                this._showSecret = false;
+            }
+        }
+    }
 
     /** Gestisce il click sul bottone toggle del secret: al primo
         scoprimento emette `requestSecret` (se valore non ancora

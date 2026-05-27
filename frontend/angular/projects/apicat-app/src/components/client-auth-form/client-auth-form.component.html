@@ -845,10 +845,15 @@
         <div class="row-content-block mt-2 mb-3">
           <div class="row">
             <div class="form-group col-12 mb-2">
-              <label class="label-bold" for="client_id_oauth_cc">
-                {{ 'APP.CLIENT.LABEL.ClientId' | translate }}
-                <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'client_id'"></span>
-              </label>
+              <div class="d-flex justify-content-between align-items-center">
+                <label class="label-bold" for="client_id_oauth_cc">
+                  {{ 'APP.CLIENT.LABEL.ClientId' | translate }}
+                  <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'client_id'"></span>
+                </label>
+                <span class="px-1">
+                  <lnk-popover-help [field]="'client_id_oauth_cc'" [context]="'ClientAuthForm'"></lnk-popover-help>
+                </span>
+              </div>
               <input class="form-control form-control-sm" id="client_id_oauth_cc" type="text" formControlName="client_id"
                 [class.gl-field-error-outline]="_hasControlError('client_id')">
               @if (f['client_id'].invalid && (f['client_id'].dirty || f['client_id'].touched)) {
@@ -869,7 +874,8 @@
                     [type]="_showSecret ? 'text' : 'password'"
                     formControlName="secret"
                     readonly
-                    autocomplete="off">
+                    autocomplete="off"
+                    placeholder="********************************">
                   <div class="input-group-append d-flex">
                     <button type="button" class="btn btn-secondary border"
                       [disabled]="secretLoading"

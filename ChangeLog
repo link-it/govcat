@@ -1,6 +1,16 @@
 2026-05-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Client secret (oauth_client_credentials): placeholder
+	  `**********` sull'input, gestione errore fetch con
+	  messaggio specifico (`APP.CLIENT.MESSAGES.SecretUnavailable`,
+	  IT/EN) e reset automatico del toggle eye in caso di
+	  errore. Aggiunto `lnk-popover-help` accanto al campo
+	  `client_id` di OAuth CC.
+
+2026-05-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Wizard adesione: leak dei listener su `EventsManagerService`.
 	  Listener stale rimanevano registrati a ogni navigazione,
 	  generando chiamate parallele a `/adesioni/:uuid/{collaudo|
