@@ -160,6 +160,10 @@ export class ModalEditClientComponent {
     /** Stato loading del secret on-demand. */
     @Input() secretLoading: boolean = false;
 
+    /** Stato del client: gate per la visibilita` del campo secret
+        (visibile solo quando `configurato`). */
+    @Input() clientStato: string | null = null;
+
     /** Richiesta di recupero del secret (oauth_client_credentials). */
     @Output() requestSecret = new EventEmitter<void>();
 

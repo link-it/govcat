@@ -321,6 +321,7 @@
                     [input]="clientAuthInput"
                     [layout]="'vertical'"
                     [secretLoading]="_secretLoading"
+                    [clientStato]="client?.stato"
                     (changeAuthType)="_onAuthTypeChangeFromForm($event)"
                     (changeTipoCertificato)="_onAuthTipoCertificatoChange($event)"
                     (changeTipoCertificatoFirma)="_onAuthTipoCertificatoFirmaChange($event)"

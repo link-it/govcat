@@ -182,6 +182,12 @@ export class ClientAuthFormComponent implements OnChanges {
         toggle e mostra spinner. */
     @Input() secretLoading: boolean = false;
 
+    /** Stato corrente del client (es. `bozza`, `in_configurazione`,
+        `configurato`...). Il blocco secret per oauth_client_credentials
+        e` visibile solo quando lo stato e` `configurato`, perche` il
+        valore e` calcolato lato BE post-configurazione. */
+    @Input() clientStato: string | null = null;
+
     @Output() changeAuthType = new EventEmitter<any>();
     @Output() selectCredenziali = new EventEmitter<SelectedClientEnum>();
     @Output() changeCredenziali = new EventEmitter<any>();

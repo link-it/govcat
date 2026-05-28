@@ -864,7 +864,7 @@
                 </p>
               }
             </div>
-            @if (f['client_id']?.value) {
+            @if (clientStato === 'configurato') {
               <div class="form-group col-12 mb-2">
                 <label class="label-bold" for="secret_oauth_cc">
                   {{ 'APP.CLIENT.LABEL.Secret' | translate }}

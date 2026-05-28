@@ -141,6 +141,7 @@
                   [layout]="_dialogLayout"
                   [disclaimers]="_clientDisclaimers(item)"
                   [secretLoading]="_secretLoading"
+                  [clientStato]="item.source?.stato"
                   (selectCredenziali)="_onSelectCredenzialiOption($event)"
                   (changeCredenziali)="onChangeCredenziali($event)"
                   (changeTipoCertificato)="onChangeTipoCertificato($event)"
@@ -181,6 +182,7 @@
   <app-modal-edit-client
     [input]="modalInput"
     [layout]="_dialogLayout"
+    [clientStato]="_currClient?.source?.stato"
     (layoutChange)="_onDialogLayoutChange($event)"
     (selectCredenziali)="_onSelectCredenzialiOption($event)"
     (changeCredenziali)="onChangeCredenziali($event)"

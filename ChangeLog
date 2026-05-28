@@ -1,6 +1,15 @@
 2026-05-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Client form (oauth_client_credentials): blocco secret
+	  visibile solo quando il client e` in stato
+	  `configurato`. Nuovo input `clientStato` su
+	  `app-client-auth-form` propagato dai tre call site
+	  (client-details, lista clients adesione inline e dialog).
+
+2026-05-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Wizard adesione: polling stato adesione (3s) durante
 	  l'auto-configurazione collaudo/produzione. Stop su
 	  cambio stato o su `stato_configurazione_automatica='ko'`,
