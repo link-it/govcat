@@ -49,18 +49,22 @@ public class ScenarioClientCredentials implements ConfigurazioneScenario{
 	private boolean ignoreConflict;
 	private boolean enableKeycloakGovwayConfiguration;
 	private boolean enableKeycloakBackendConfiguration;
-	
+	private boolean enableKeycloakClientCreation;
+
 	public ScenarioClientCredentials(Invokers invokers, Properties properties) {
 		this.invokers = invokers;
-		
+
 		String ignore = ConfigurazioneScenario.getProperty(properties, "ignoreConflict");
 		this.ignoreConflict = Boolean.valueOf(Objects.requireNonNullElse(ignore, Boolean.FALSE.toString()));
-		
+
 		String enableKeycloak = ConfigurazioneScenario.getProperty(properties, "enableKeycloakBackendConfiguration");
 		this.enableKeycloakBackendConfiguration = Boolean.valueOf(Objects.requireNonNullElse(enableKeycloak, Boolean.FALSE.toString()));
-		
+
 		String enableGovway = ConfigurazioneScenario.getProperty(properties, "enableGovwayClientCredentials");
 		this.enableKeycloakGovwayConfiguration = Boolean.valueOf(Objects.requireNonNullElse(enableGovway, Boolean.FALSE.toString()));
+
+		String enableKcCreation = ConfigurazioneScenario.getProperty(properties, "enableKeycloakClientCreation");
+		this.enableKeycloakClientCreation = Boolean.valueOf(Objects.requireNonNullElse(enableKcCreation, Boolean.TRUE.toString()));
 	}
 	
 	@Override
@@ -75,8 +79,12 @@ public class ScenarioClientCredentials implements ConfigurazioneScenario{
 	@Override
 	public Map<String, String> configureClient(DTOClient clientRaw, List<GruppoServizio> apis) throws ConfigurazioneException {
 		OauthClientCredentialsClient client = (OauthClientCredentialsClient) clientRaw;
-		
+
 		try {
+			if (this.enableKeycloakClientCreation && !this.invokers.getKeycloak().clientExists(client.getClientId())) {
+				this.invokers.getKeycloak().createClient(client.getClientId(), client.getNome(), client.getDescrizione());
+			}
+
 			if (this.enableKeycloakGovwayConfiguration) {
 				
 				// ottengo la token policy dalle erogazioni

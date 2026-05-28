@@ -37,6 +37,8 @@ import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
 import org.govway.catalogo.servlets.model.AdesioneClientCreate;
 import org.govway.catalogo.servlets.model.AuthTypeEnum;
+import org.govway.catalogo.servlets.model.AuthTypeOAuthClientCredentialsCreate;
+import org.govway.catalogo.servlets.model.DatiSpecificiClientCreate;
 import org.govway.catalogo.servlets.model.Campo;
 import org.govway.catalogo.servlets.model.Client;
 import org.govway.catalogo.servlets.model.ClientCreate;
@@ -45,8 +47,11 @@ import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneProfilo;
 import org.govway.catalogo.servlets.model.EntitaComplessaError;
 import org.govway.catalogo.servlets.model.StatoClientUpdate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 
 public class ClientDettaglioAssembler extends RepresentationModelAssemblerSupport<ClientEntity, Client> {
@@ -62,7 +67,12 @@ public class ClientDettaglioAssembler extends RepresentationModelAssemblerSuppor
 	
 	@Autowired
 	private Configurazione configurazione;
-	
+
+	@Value("${org.govway.api.catalogo.oauth.client_id.template:}")
+	private String oauthClientIdTemplate;
+
+	private static final Logger logger = LoggerFactory.getLogger(ClientDettaglioAssembler.class);
+
 	public ClientDettaglioAssembler() {
 		super(ClientController.class, Client.class);
 	}
@@ -157,8 +167,9 @@ public class ClientDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		entity.setSoggetto(soggettoService.find(src.getIdSoggetto()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404, java.util.Map.of("idSoggetto", src.getIdSoggetto().toString()))));
 		entity.setAmbiente(clientEngineAssembler.toAmbiente(src.getAmbiente()));
 
+		generateOAuthClientIdIfMissing(src.getDatiSpecifici(), entity);
 		entity.getEstensioni().addAll(clientEngineAssembler.getEstensioni(src));
-		
+
 		entity.setAuthType(clientEngineAssembler.getAuthType(src.getDatiSpecifici().getAuthType()));
 
 		if(src.getStato()!=null) {
@@ -183,6 +194,7 @@ public class ClientDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		entity.setIdClient(UUID.randomUUID().toString());
 		entity.setSoggetto(soggettoService.find(src.getIdSoggetto()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404, java.util.Map.of("idSoggetto", src.getIdSoggetto().toString()))));
 		entity.setAmbiente(clientEngineAssembler.toAmbiente(src.getAmbiente()));
+		generateOAuthClientIdIfMissing(src.getDatiSpecifici(), entity);
 		entity.getEstensioni().addAll(clientEngineAssembler.getEstensioni(src));
 		entity.setStato(StatoEnum.NUOVO);
 		entity.setAuthType(clientEngineAssembler.getAuthType(src.getDatiSpecifici().getAuthType()));
@@ -191,6 +203,50 @@ public class ClientDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		}
 		
 		return entity;
+	}
+
+	private void generateOAuthClientIdIfMissing(DatiSpecificiClientCreate datiSpecifici, ClientEntity entity) {
+		if (!(datiSpecifici instanceof AuthTypeOAuthClientCredentialsCreate cc) || cc.getClientId() != null) {
+			return;
+		}
+		cc.setClientId(resolveOAuthClientIdTemplate(entity));
+	}
+
+	private String resolveOAuthClientIdTemplate(ClientEntity entity) {
+		if (oauthClientIdTemplate == null || oauthClientIdTemplate.isBlank()) {
+			return UUID.randomUUID().toString();
+		}
+		try {
+			String resolved = oauthClientIdTemplate;
+			if (resolved.contains("{nome}")) {
+				resolved = resolved.replace("{nome}", requireField(entity.getNome(), "nome"));
+			}
+			if (resolved.contains("{soggetto}")) {
+				String nomeSoggetto = entity.getSoggetto() != null ? entity.getSoggetto().getNome() : null;
+				resolved = resolved.replace("{soggetto}", requireField(nomeSoggetto, "soggetto"));
+			}
+			if (resolved.contains("{ambiente}")) {
+				String ambiente = entity.getAmbiente() != null ? entity.getAmbiente().toString() : null;
+				resolved = resolved.replace("{ambiente}", requireField(ambiente, "ambiente"));
+			}
+			if (resolved.contains("{organizzazione}")) {
+				String nomeOrg = (entity.getSoggetto() != null && entity.getSoggetto().getOrganizzazione() != null)
+						? entity.getSoggetto().getOrganizzazione().getNome()
+						: null;
+				resolved = resolved.replace("{organizzazione}", requireField(nomeOrg, "organizzazione"));
+			}
+			return resolved;
+		} catch (IllegalStateException e) {
+			logger.warn("Template client_id '{}' non risolvibile: {}. Fallback a UUID random.", oauthClientIdTemplate, e.getMessage());
+			return UUID.randomUUID().toString();
+		}
+	}
+
+	private static String requireField(String value, String fieldName) {
+		if (value == null) {
+			throw new IllegalStateException("campo '" + fieldName + "' nullo");
+		}
+		return value;
 	}
 
 	public void checkClientProfilo(ConfigurazioneProfilo cp, ClientEntity c) {

@@ -30,7 +30,8 @@ public enum ScenariEnum {
 	MTLS("mtls"),
 	MTLS_SIGN("mtlsSign"),
 	SIGN("sign"),
-	MTLS_PDND("mtlsPdnd");
+	MTLS_PDND("mtlsPdnd"),
+	OAUTH_CLIENT_CREDENTIALS("oauthClientCredentials");
 	
 	private final String value;
 	private ScenariEnum(String value) {

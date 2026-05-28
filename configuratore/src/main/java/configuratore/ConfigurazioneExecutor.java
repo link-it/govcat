@@ -88,10 +88,12 @@ public class ConfigurazioneExecutor implements IConfigurazioneExecutor {
 		
 		String kcUsername = properties.getProperty(className+".keycloak.username");
 		String kcPassword = properties.getProperty(className+".keycloak.password");
-		
+		String kcRealm = properties.getProperty(className+".keycloak.realm");
+
 		KeycloakInvoker keycloakApi = new KeycloakInvoker(HttpUrl.get(properties.getProperty(className+".keycloak.url")),
 				kcUsername,
 				kcPassword,
+				kcRealm,
 				cfg);
 		
 		HttpUrl configAPIUrl = HttpUrl.get(properties.getProperty(className+".govwayConfig.url"));
@@ -177,6 +179,8 @@ public class ConfigurazioneExecutor implements IConfigurazioneExecutor {
 			return new ScenarioTLSSign(invokers, properties);
 		case SIGN:
 			return new ScenarioSign(invokers, properties);
+		case OAUTH_CLIENT_CREDENTIALS:
+			return new ScenarioClientCredentials(invokers, properties);
 		default: return null;
 		}
 	}

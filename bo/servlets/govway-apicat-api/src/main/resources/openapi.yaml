@@ -1114,6 +1114,35 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /client/{id_client}/client-secret:
+    parameters:
+    - $ref: "#/components/parameters/id_client"
+    get:
+      tags:
+      - "Client"
+      description: "Lettura on-demand del client secret da Keycloak. Disponibile solo per client di tipo oauth_client_credentials. Il secret non viene persistito su GovCat."
+      operationId: "getClientSecret"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientSecret"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /client/{id_client}/{id_allegato}/download:
     parameters:
     - $ref: "#/components/parameters/id_client"
@@ -8556,6 +8585,13 @@ components:
       properties:
         stato:
           $ref: "#/components/schemas/StatoClientEnum"
+    ClientSecret:
+      type: "object"
+      required:
+        - secret
+      properties:
+        secret:
+          type: "string"
     ClientUpdate:
       type: "object"
       required:

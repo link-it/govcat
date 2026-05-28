@@ -1,5 +1,12 @@
 {
-	"id": "${client_id}",
 	"clientId": "${client_id}",
-	"secret": "${client_secret}"
+	"name": "${name!''}",
+	"description": "${description!''}",
+	"enabled": true,
+	"protocol": "openid-connect",
+	"publicClient": false,
+	"clientAuthenticatorType": "client-secret",
+	"serviceAccountsEnabled": true,
+	"standardFlowEnabled": false,
+	"directAccessGrantsEnabled": false
 }
