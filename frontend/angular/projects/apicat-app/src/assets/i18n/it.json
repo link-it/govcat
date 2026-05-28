@@ -507,6 +507,7 @@
 			"TotalItems": "{{count}} elementi",
 			"CertExpiring": "Certificato in scadenza",
 			"CertExpired": "Certificato scaduto",
+			"AutoConfigError": "Errore configurazione automatica",
 			"RUOLO": {
 				"referente_dominio": "Ref. dominio",
 				"referente_tecnico_dominio": "Ref. tecnico dominio",

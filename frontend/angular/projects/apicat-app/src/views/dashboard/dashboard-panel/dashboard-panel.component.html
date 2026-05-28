@@ -71,7 +71,9 @@
         <!-- Adesioni -->
         @if (panelType === 'adesioni') {
           @for (item of items; track item) {
-            <a class="list-group-item list-group-item-action px-3 py-2" (click)="onViewItem(item)">
+            <a class="list-group-item list-group-item-action px-3 py-2"
+               [class.has-auto-config-error]="item.stato_configurazione_automatica === 'ko'"
+               (click)="onViewItem(item)">
               <div class="d-flex justify-content-between align-items-start">
                 <div class="text-truncate me-2">
                   <span class="fw-semibold">{{ item.soggetto?.nome }}</span>
@@ -82,10 +84,17 @@
                 </div>
                 <span class="badge text-nowrap" [ngStyle]="getStatusStyle(item.stato)">{{ getStatusLabel(item.stato) | translate }}</span>
               </div>
-              <div class="d-flex align-items-center gap-1">
+              <div class="d-flex align-items-center gap-1 flex-wrap">
                 <small class="text-muted">{{ formatDate(item.data_ultimo_aggiornamento) }}</small>
                 @for (ruolo of item.ruoli_referente; track ruolo) {
                   <span class="badge badge-ruolo">{{ ('APP.DASHBOARD_PENDING.RUOLO.' + ruolo) | translate }}</span>
+                }
+                @if (item.stato_configurazione_automatica === 'ko') {
+                  <span class="auto-config-error-chip text-nowrap ms-auto"
+                        [tooltip]="item.messaggio_configurazione || ('APP.DASHBOARD_PENDING.AutoConfigError' | translate)"
+                        [placement]="'top'" [container]="'body'">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ 'APP.DASHBOARD_PENDING.AutoConfigError' | translate }}
+                  </span>
                 }
               </div>
             </a>
