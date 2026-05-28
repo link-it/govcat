@@ -895,4 +895,48 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     border-radius: 0 0 0.5rem 0.5rem;
     margin-top: -1px;
   }
+
+  // Dot pulsante: indicatore visivo di polling attivo affianco al
+  // chip stato durante l'auto-configurazione dell'adesione.
+  .polling-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--brand, #0066cc);
+    box-shadow: 0 0 0 0 rgba(0, 102, 204, 0.6);
+    animation: lnk-polling-pulse 1.2s ease-out infinite;
+  }
+  @keyframes lnk-polling-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(0, 102, 204, 0.55); transform: scale(0.95); }
+    70%  { box-shadow: 0 0 0 8px rgba(0, 102, 204, 0);   transform: scale(1); }
+    100% { box-shadow: 0 0 0 0 rgba(0, 102, 204, 0);     transform: scale(0.95); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .polling-dot { animation: none; }
+  }
+
+  // Messaggio errore auto-configurazione (stato_configurazione_automatica='ko'):
+  // riga inline sotto il chip stato con `messaggio_configurazione`.
+  .auto-config-error {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background-color: rgba(220, 53, 69, 0.08);
+    border: 1px solid rgba(220, 53, 69, 0.25);
+    color: var(--danger, #dc3545);
+    font-size: 13px;
+    line-height: 1.4;
+
+    > i { flex: 0 0 auto; margin-top: 2px; font-size: 14px; }
+    .auto-config-error-text {
+      flex: 1 1 auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 8.4em;
+      overflow-y: auto;
+    }
+  }
 }

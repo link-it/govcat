@@ -1,3 +1,15 @@
+2026-05-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Wizard adesione: polling stato adesione (3s) durante
+	  l'auto-configurazione collaudo/produzione. Stop su
+	  cambio stato o su `stato_configurazione_automatica='ko'`,
+	  con ricaricamento. Dot pulsante affianco al chip stato
+	  e disable inline dei pulsanti di cambio stato durante il
+	  polling; nuova riga sotto il chip con
+	  `messaggio_configurazione` quando KO. i18n
+	  `APP.LABEL.PollingAutoConfig` (IT/EN).
+
 2026-05-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

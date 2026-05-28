@@ -1096,6 +1096,7 @@
 			"TempoRisposta": "Response time",
 			"termini_ricerca": "Search Terms",
 			"Owner": "Service contact",
+			"PollingAutoConfig": "Automatic configuration in progress: checking for updates...",
 			"UpdatedRelative": "Updated {{time}}",
 			"ApiDocumentation": "API Documentation",
 			"tipo": "Type",

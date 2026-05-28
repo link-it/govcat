@@ -50,8 +50,8 @@ import { StatoChipComponent } from '@app/components/vetrina';
 
 import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/service-breadcrumbs.resolver';
 
-import { forkJoin, Observable, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { forkJoin, interval, Observable, of, Subscription } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators';
 
 import { Grant, RightsEnum } from '@app/model/grant';
 import { AmbienteEnum } from '@app/model/ambienteEnum';
@@ -131,6 +131,21 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         sul vecchio `this.id` ad ogni nuova navigazione del wizard). */
     private _wizardCheckUpdateListener?: (action: any) => void;
     private _profileUpdateListener?: (action: any) => void;
+
+    /** Polling stato adesione durante l'auto-configurazione: se
+     *  l'adesione e` in `in_configurazione_automatica_*` il batch
+     *  GovWay puo` completare in pochi secondi. Polling breve con
+     *  GET /adesioni/:id; se lo stato cambia, ricarica l'adesione
+     *  completa e ferma il polling. Vedi `_maybeStartAutoConfigPolling`. */
+    private static readonly _AUTO_CONFIG_STATES: string[] = [
+        'in_configurazione_automatica_collaudo',
+        'in_configurazione_automatica_produzione'
+    ];
+    private static readonly _AUTO_CONFIG_POLL_INTERVAL_MS = 3000;
+    private _autoConfigPollingSub?: Subscription;
+    /** Esposto al template per mostrare il dot pulsante affianco al
+     *  chip stato durante il polling. */
+    _pollingAutoConfig: boolean = false;
 
     // Sotto flag wizard_new_layout, attiva la host class `lnk-wizard` che
     // scopa i design-token Link.it definiti nella SCSS del componente.
@@ -732,6 +747,53 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
             this.eventsManagerService.off(EventType.PROFILE_UPDATE, this._profileUpdateListener);
             this._profileUpdateListener = undefined;
         }
+        this._stopAutoConfigPolling();
+    }
+
+    /** Vero se l'adesione e` in uno stato di auto-configurazione e
+     *  il batch non ha gia` segnalato un errore (`stato_configurazione_automatica === 'ko'`). */
+    private _isAutoConfigInProgress(adesione: any): boolean {
+        if (!adesione?.stato) { return false; }
+        if (!AdesioneConfigurazioneWizardComponent._AUTO_CONFIG_STATES.includes(adesione.stato)) { return false; }
+        if (adesione.stato_configurazione_automatica === 'ko') { return false; }
+        return true;
+    }
+
+    /** Avvia il polling se l'adesione e` in auto-configurazione e
+     *  non e` gia` attivo. Stop automatico quando lo stato cambia,
+     *  quando il batch riporta `ko`, o all'unmount del wizard. */
+    private _maybeStartAutoConfigPolling(): void {
+        if (!this._isAutoConfigInProgress(this.adesione)) {
+            this._stopAutoConfigPolling();
+            return;
+        }
+        if (this._autoConfigPollingSub) { return; }
+        const startStato = this.adesione.stato;
+        this._pollingAutoConfig = true;
+        this._autoConfigPollingSub = interval(AdesioneConfigurazioneWizardComponent._AUTO_CONFIG_POLL_INTERVAL_MS).pipe(
+            switchMap(() => this.apiService.getDetails(this.model, this.id))
+        ).subscribe({
+            next: (response: any) => {
+                const stateChanged = response?.stato && response.stato !== startStato;
+                const isKo = response?.stato_configurazione_automatica === 'ko';
+                if (stateChanged || isKo) {
+                    this._stopAutoConfigPolling();
+                    this.loadAdesione(false);
+                }
+            },
+            error: () => {
+                // 5xx/timeout transitori non interrompono il polling:
+                // l'azione batch potrebbe essere ancora in corso.
+            }
+        });
+    }
+
+    private _stopAutoConfigPolling(): void {
+        if (this._autoConfigPollingSub) {
+            this._autoConfigPollingSub.unsubscribe();
+            this._autoConfigPollingSub = undefined;
+        }
+        this._pollingAutoConfig = false;
     }
 
     _updateOtherActions() {
@@ -804,6 +866,8 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
                     this.spin = false;
 
                     this.isEdit = this.canEditMapper();
+
+                    this._maybeStartAutoConfigPolling();
                 },
                 error: (error: any) => {
                     Tools.OnError(error);

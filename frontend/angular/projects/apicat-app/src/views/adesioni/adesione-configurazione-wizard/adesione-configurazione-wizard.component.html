@@ -105,6 +105,13 @@
                     [stato]="adesione.stato"
                     [i18nPrefix]="'APP.WORKFLOW.STATUS'"
                   ></lnk-stato-chip>
+                  @if (_pollingAutoConfig) {
+                    <span class="polling-dot"
+                          role="status"
+                          aria-live="polite"
+                          [tooltip]="'APP.LABEL.PollingAutoConfig' | translate"
+                          [attr.aria-label]="'APP.LABEL.PollingAutoConfig' | translate"></span>
+                  }
                   @if (adesione.stato_configurazione_automatica) {
                     <ui-data-type
                       [data]="adesione"
@@ -113,6 +120,12 @@
                     ></ui-data-type>
                   }
                 </div>
+                @if (adesione.stato_configurazione_automatica === 'ko' && adesione.messaggio_configurazione) {
+                  <div class="auto-config-error mt-2" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <span class="auto-config-error-text">{{ adesione.messaggio_configurazione }}</span>
+                  </div>
+                }
               } @else {
                 <h4 class="mb-2">{{ title }}</h4>
                 <div class="d-flex gap-2">
@@ -1395,7 +1408,7 @@
                       [primary]="true"
                       [ariaLabel]="'APP.WORKFLOW.MENU_INLINE.' + getNextStateWorkflowName()"
                       (onAction)="onWorkflowAction()"
-                      [disabled]="!_hasCambioStato() || changingStatus || loadingCheckDati">
+                      [disabled]="!_hasCambioStato() || changingStatus || loadingCheckDati || _pollingAutoConfig">
                     </lnk-button>
                   </div>
                 }
@@ -1434,7 +1447,7 @@
                               [secondary]="true"
                               [ariaLabel]="'APP.WORKFLOW.MENU_INLINE.' + status.nome | translate"
                               (onAction)="onWorkflowAction({ action: 'change', status: status })"
-                              [disabled]="changingStatus">
+                              [disabled]="changingStatus || _pollingAutoConfig">
                             </lnk-button>
                           }
                         }
@@ -1445,7 +1458,7 @@
                           [primary]="true"
                           [ariaLabel]="'APP.WORKFLOW.MENU_INLINE.' + _entry.stato_successivo.nome | translate"
                           (onAction)="onWorkflowAction({ action: 'change', status: _entry.stato_successivo })"
-                          [disabled]="changingStatus">
+                          [disabled]="changingStatus || _pollingAutoConfig">
                         </lnk-button>
                       }
                     </div>
