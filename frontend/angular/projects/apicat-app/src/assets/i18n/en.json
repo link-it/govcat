@@ -237,6 +237,8 @@
 				"PurposeId": "Purpose ID",
 				"Response": "Response",
 				"Scope": "Scope",
+				"SelectClient": "Select client",
+				"SelectClientPlaceholder": "Choose a client...",
 				"SignatureSignedToken": "Agid-JWT-TrackingEvidence",
 				"SignatureToken": "Agid-JWT-Signature",
 				"SignedToken": "Agid-JWT-Signature",
@@ -254,8 +256,10 @@
 				"VoucherPDND": "Voucher PDND"
 			},
 			"MESSAGE": {
+				"NetworkOrCspError": "Cannot reach the token endpoint. Check network connectivity or the browser Content Security Policy.",
 				"NoTokenGenerator": "No Token Generator",
-				"SendingData": "Sending data"
+				"SendingData": "Sending data",
+				"TokenGenerationError": "Token generation error"
 			},
 			"TITLE": {
 				"AutheticationResults": "Authentication Results",
