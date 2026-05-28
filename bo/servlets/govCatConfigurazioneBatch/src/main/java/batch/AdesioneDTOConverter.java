@@ -60,7 +60,7 @@ public class AdesioneDTOConverter {
 
 	private static final Logger logger = LoggerFactory.getLogger(AdesioneDTOConverter.class);
 
-	String externalPath;
+	String configurazionePath;
 	AdesioneEntity adesione;
 	DTOAdesione dto;
 
@@ -78,9 +78,9 @@ public class AdesioneDTOConverter {
 	private static final String NOME_APPLICAZIONE = "nome_applicazione";
 	private static final String HELP_DESK = "help_desk";
 	
-	AdesioneDTOConverter(AdesioneEntity adesione, String externalPath) {
+	AdesioneDTOConverter(AdesioneEntity adesione, String configurazionePath) {
 		this.adesione = adesione;
-		this.externalPath = externalPath;
+		this.configurazionePath = configurazionePath;
 	}
 
 	public void setDto(DTOAdesione dto) {
@@ -138,7 +138,7 @@ public class AdesioneDTOConverter {
 		List<EstensioneAdesioneEntity> estensioni = adesione.getEstensioni().stream().filter(e -> ((e.getApi() == null) == (api == null))).collect(Collectors.toList());
 		for (EstensioneAdesioneEntity estensione : estensioni) {
 			String gruppo = estensione.getGruppo();
-			ConfigurazioneReader confReader = new ConfigurazioneReader(externalPath);
+			ConfigurazioneReader confReader = new ConfigurazioneReader(configurazionePath);
 			String classeDato = null;
 			classeDato = confReader.getClasseDatoAdesione(gruppo);
 			if (classeDato.equals(ambienteConfigurazione.toString().toLowerCase()) ||

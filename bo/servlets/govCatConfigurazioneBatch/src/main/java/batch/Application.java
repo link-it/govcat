@@ -53,8 +53,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 @EnableJpaRepositories(basePackages = {"org.govway.catalogo.core.dao.repositories"})
 @EntityScan(basePackages = "org.govway.catalogo.core.orm.entity")
 @PropertySource("classpath:govcat-batch-configurazione.properties" )
-@PropertySource("file:${org.govway.api.catalogo.resource.path:/var/govcat/conf}/govcat-batch-configurazione.properties"  )
-@PropertySource("file:${org.govway.api.catalogo.resource.path:/var/govcat/conf}/configurazione.json"  )
+@PropertySource("file:${org.govway.api.catalogo.batch.resource.path:/var/govcat/conf/govcat-batch-configurazione.properties}"  )
+@PropertySource("file:${org.govway.api.catalogo.configurazione.path:/var/govcat/conf/configurazione.json}"  )
 public class Application extends SpringBootServletInitializer{
 
     @Override

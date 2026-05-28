@@ -71,8 +71,8 @@ public class ConfigurazioneBatchJobConfig {
 	@Autowired
 	AdesioneRepository adesioneRepository;
 
-	@Value("${org.govway.api.catalogo.resource.path:/var/govcat/conf}")
-	String externalPath;
+	@Value("${org.govway.api.catalogo.configurazione.path:/var/govcat/conf/configurazione.json}")
+	String configurazionePath;
 
 	private static final Logger logger = LoggerFactory.getLogger(ConfigurazioneBatchJobConfig.class);
 
@@ -85,14 +85,14 @@ public class ConfigurazioneBatchJobConfig {
 
 	@Bean
 	public StepExecutionListener configurazioneStepListener() {
-		return new ConfigurazioneStepListener(externalPath);
+		return new ConfigurazioneStepListener(configurazionePath);
 	}
 
 	@Bean
 	@Qualifier("ConfigurazioneItemReader")
 	public JpaPagingItemReader<AdesioneEntity> configurazioneItemReader(        EntityManagerFactory entityManagerFactory) throws IOException {
 
-		ConfigurazioneReader confReader = new ConfigurazioneReader(externalPath);
+		ConfigurazioneReader confReader = new ConfigurazioneReader(configurazionePath);
 
 		List<Map<String, String>> statoConf = confReader.getTuttaConfigurazioneAutomatica();
 		List<String> statiInConfigurazione = statoConf.stream()
