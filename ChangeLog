@@ -1,6 +1,29 @@
 2026-05-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Dashboard pannello Adesioni: evidenziato errore di
+	  auto-configurazione (`stato_configurazione_automatica='ko'`)
+	  con bordo sinistro rosso sulla riga e chip inline
+	  allineato a destra con tooltip = `messaggio_configurazione`.
+	  i18n `APP.DASHBOARD_PENDING.AutoConfigError` (IT/EN).
+
+2026-05-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	client-credentials-dialog: dropdown "Seleziona client"
+	  con prefill di clientId e fetch on-demand del secret
+	  (`GET /client/{id}/client-secret`), bottoni show/hide
+	  e copy. Error handler difensivo sulla generazione token:
+	  gestisce `status=0` (CSP/rete) e shape arbitrari del body,
+	  evita spinner bloccato. i18n IT/EN nuove chiavi
+	  `APP.AUTHENTICATION.LABEL.SelectClient`,
+	  `SelectClientPlaceholder`,
+	  `APP.AUTHENTICATION.MESSAGE.NetworkOrCspError`,
+	  `TokenGenerationError`.
+
+2026-05-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Client form (oauth_client_credentials): blocco secret
 	  visibile solo quando il client e` in stato
 	  `configurato`. Nuovo input `clientStato` su

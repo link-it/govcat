@@ -237,6 +237,8 @@
 				"PurposeId": "Purpose ID",
 				"Response": "Response",
 				"Scope": "Scope",
+				"SelectClient": "Seleziona client",
+				"SelectClientPlaceholder": "Scegli un client...",
 				"SignatureSignedToken": "Agid-JWT-TrackingEvidence",
 				"SignatureToken": "Agid-JWT-Signature",
 				"SignedToken": "Agid-JWT-Signature",
@@ -254,8 +256,10 @@
 				"VoucherPDND": "Voucher PDND"
 			},
 			"MESSAGE": {
+				"NetworkOrCspError": "Impossibile contattare il token endpoint. Verifica la connettivita` di rete o la Content Security Policy del browser.",
 				"NoTokenGenerator": "Nessun Generatore di Token",
-				"SendingData": "Invio dati…"
+				"SendingData": "Invio dati…",
+				"TokenGenerationError": "Errore generazione token"
 			},
 			"TITLE": {
 				"AutheticationResults": "Risultati autenticazione",
@@ -503,6 +507,7 @@
 			"TotalItems": "{{count}} elementi",
 			"CertExpiring": "Certificato in scadenza",
 			"CertExpired": "Certificato scaduto",
+			"AutoConfigError": "Errore configurazione automatica",
 			"RUOLO": {
 				"referente_dominio": "Ref. dominio",
 				"referente_tecnico_dominio": "Ref. tecnico dominio",
