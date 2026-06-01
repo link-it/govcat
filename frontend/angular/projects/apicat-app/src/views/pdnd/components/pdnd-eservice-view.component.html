@@ -51,7 +51,7 @@
           </ui-collapse-row>
         }
         @if (!data[i].message && view.type === 'list-ui-collapse-row' && view.collapseView) {
-          @for (item of data[i]; track item; let j = $index) {
+          @for (item of data[i]; track $index; let j = $index) {
             <ui-collapse-row class="border-bottom bg-white"
               [data]="data[i][j].data ? data[i][j].data : data[i][j]" [config]="view.collapseView.configuration"
               [enableCollapse]="view.collapseView.collapsed" [hasLink]="true">
@@ -69,7 +69,7 @@
                       @if (view.listView.title) {
                         <h5 class="mb-3">{{ view.listView.title }}</h5>
                       }
-                      @for (item of data[i][j]?.list; track item; let last = $last) {
+                      @for (item of data[i][j]?.list; track item?.id ?? $index; let last = $last) {
                         <ui-item-row [class.border-bottom]="data[i][j]?.list.length > 1 && !last"
                           [data]="item"
                           [config]="view.listView.configuration" [hasLink]="false">
@@ -88,7 +88,7 @@
               @if (view.listView.title) {
                 <h5 class="mb-3">{{ view.listView.title }}</h5>
               }
-              @for (item of data[i]; track item; let last = $last) {
+              @for (item of data[i]; track item?.id ?? $index; let last = $last) {
                 <ui-item-row [class.border-bottom]="!last"
                   [data]="item" [config]="view.listView.configuration" [hasLink]="false">
                 </ui-item-row>
@@ -125,7 +125,7 @@
                 </div>
               }
               @if (!attributeData[i]?.message && view.type === 'list-ui-collapse-row' && view.collapseView) {
-                @for (item of attributeData[i]; track item; let j = $index) {
+                @for (item of attributeData[i]; track $index; let j = $index) {
                   <ui-collapse-row class="border-bottom bg-white"
                     [data]="attributeData[i][j].data ? attributeData[i][j].data : attributeData[i][j]" [config]="view.collapseView.configuration"
                     [enableCollapse]="view.collapseView.collapsed" [hasLink]="true">
@@ -143,7 +143,7 @@
                             @if (view.listView.title) {
                               <h6 class="mb-3">{{ view.listView.title }}</h6>
                             }
-                            @for (item of attributeData[i][j]?.list; track item; let last = $last) {
+                            @for (item of attributeData[i][j]?.list; track item?.id ?? $index; let last = $last) {
                               <ui-item-row [class.border-bottom]="attributeData[i][j]?.list?.length > 1 && !last"
                                 [data]="item"
                                 [config]="view.listView.configuration" [hasLink]="false">

@@ -1,6 +1,16 @@
 2026-05-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue #277 - GovCat PDND: attributi certificati non
+	  correttamente renderizzati. Fix track expression delle
+	  liste `@for` in `pdnd-eservice-view` (warning NG0956 al
+	  cambio collaudo/produzione) e configurazione delle
+	  collapse row degli attributi rivista per mostrare il
+	  contenuto.
+
+2026-05-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Dashboard pannello Adesioni: evidenziato errore di
 	  auto-configurazione (`stato_configurazione_automatica='ko'`)
 	  con bordo sinistro rosso sulla riga e chip inline

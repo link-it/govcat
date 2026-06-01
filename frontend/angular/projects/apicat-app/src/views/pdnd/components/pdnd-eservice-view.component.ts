@@ -166,7 +166,7 @@ export class PdndEServiceViewComponent implements OnChanges {
       type: 'list-ui-collapse-row',
       configuration: [],
       hideContent: true,
-      collapseView: { configuration: attributeColapseConfiguration, collapsed: false },
+      collapseView: { configuration: attributeColapseConfiguration, collapsed: true },
       listView: { configuration: attributeListConfiguration }
     },
     {
@@ -174,7 +174,7 @@ export class PdndEServiceViewComponent implements OnChanges {
       type: 'list-ui-collapse-row',
       configuration: [],
       hideContent: true,
-      collapseView: { configuration: attributeColapseConfiguration, collapsed: false },
+      collapseView: { configuration: attributeColapseConfiguration, collapsed: true },
       listView: { configuration: attributeListConfiguration }
     },
     {
@@ -182,7 +182,7 @@ export class PdndEServiceViewComponent implements OnChanges {
       type: 'list-ui-collapse-row',
       configuration: [],
       hideContent: true,
-      collapseView: { configuration: attributeColapseConfiguration, collapsed: false },
+      collapseView: { configuration: attributeColapseConfiguration, collapsed: true },
       listView: { configuration: attributeListConfiguration }
     },
   ];
@@ -200,7 +200,7 @@ export class PdndEServiceViewComponent implements OnChanges {
   private _eServiceId: string|null = null;
   private _environmentId: string|null = null;
 
-  constructor(private translate: TranslateService, private pdndService: PdndService) { }
+  constructor(private readonly translate: TranslateService, private readonly pdndService: PdndService) { }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.eServiceId) {
@@ -225,140 +225,143 @@ export class PdndEServiceViewComponent implements OnChanges {
     forkJoin({
       eServiceResponse: this.pdndService.eservice(this._environmentId, this._eServiceId),
       eServiceDescriptorsResponse: this.pdndService.eserviceDescriptors(this._environmentId, this._eServiceId)
-    }).subscribe(({ eServiceResponse, eServiceDescriptorsResponse }) => {
-      let eServiceMap: any = null;
-      let organizationMap: any = null;
+    }).subscribe({
+      next: ({ eServiceResponse, eServiceDescriptorsResponse }) => {
+        let eServiceMap: any = null;
+        let organizationMap: any = null;
 
-      if (eServiceResponse.data) {
-        const eService = eServiceResponse.data;
+        if (eServiceResponse.data) {
+          const eService = eServiceResponse.data;
 
-        eServiceMap = {
-          id: eService.id,
-          name: `${eService.name} v. ${eService.version}`,
-          technology: eService.technology,
-          state: eService.state,
-          description: eService.description,
-        };
+          eServiceMap = {
+            id: eService.id,
+            name: `${eService.name} v. ${eService.version}`,
+            technology: eService.technology,
+            state: eService.state,
+            description: eService.description,
+          };
 
-        let organization = eService.producer;
+          let organization = eService.producer;
 
-        organizationMap = {
-          name: organization.name,
-          consumer_id: organization.id,
-          origin_external: organization.externalId.origin + ' ' + organization.externalId.id,
-          category: organization.category
-        };
+          organizationMap = {
+            name: organization.name,
+            consumer_id: organization.id,
+            origin_external: organization.externalId.origin + ' ' + organization.externalId.id,
+            category: organization.category
+          };
 
-        // Collect all attribute IDs to fetch their names
-        const allAttributes: { id: string, attribute: any, type: 'certified' | 'declared' | 'verified', groupIndex: number, itemIndex: number }[] = [];
+          // Collect all attribute IDs to fetch their names
+          const allAttributes: { id: string, attribute: any, type: 'certified' | 'declared' | 'verified', groupIndex: number, itemIndex: number }[] = [];
 
-        const collectAttributes = (attrs: GroupOrSingleAttribute[] | undefined, type: 'certified' | 'declared' | 'verified') => {
-          attrs?.forEach((attr, groupIndex) => {
-            const list = attr.single ? [attr.single] : attr.group;
-            list?.forEach((item: any, itemIndex) => {
-              allAttributes.push({ id: item.id, attribute: item, type, groupIndex, itemIndex });
+          const collectAttributes = (attrs: GroupOrSingleAttribute[] | undefined, type: 'certified' | 'declared' | 'verified') => {
+            attrs?.forEach((attr, groupIndex) => {
+              const list = attr.single ? [attr.single] : attr.group;
+              list?.forEach((item: any, itemIndex) => {
+                allAttributes.push({ id: item.id, attribute: item, type, groupIndex, itemIndex });
+              });
             });
-          });
-        };
+          };
 
-        collectAttributes(eService.attributes.certified, 'certified');
-        collectAttributes(eService.attributes.declared, 'declared');
-        collectAttributes(eService.attributes.verified, 'verified');
+          collectAttributes(eService.attributes.certified, 'certified');
+          collectAttributes(eService.attributes.declared, 'declared');
+          collectAttributes(eService.attributes.verified, 'verified');
 
-        // Fetch attribute names from API
-        if (allAttributes.length > 0) {
-          const attributeRequests = allAttributes.map(attr =>
-            this.pdndService.attribute(this._environmentId!, attr.id)
-          );
+          // Fetch attribute names from API
+          if (allAttributes.length > 0) {
+            const attributeRequests = allAttributes.map(attr =>
+              this.pdndService.attribute(this._environmentId!, attr.id)
+            );
 
-          forkJoin(attributeRequests).subscribe(responses => {
-            // Map attribute names back
-            const attributeNames = new Map<string, string>();
-            responses.forEach((response, index) => {
-              if (response.data) {
-                attributeNames.set(allAttributes[index].id, response.data.name);
-              }
-            });
-
-            // Build attributes maps with names
-            const attributesMapper = (attribute: GroupOrSingleAttribute, index: number) => {
-              const list = attribute.single ? [attribute.single] : attribute.group;
-              const name = attribute.single ? 'SINGLE' : 'GROUP';
-              return {
-                data: {
-                  name: name,
-                }, list: list?.map((item: any) => {
-                  const attrName = attributeNames.get(item.id) || '';
-                  return {
-                    id: item.id,
-                    name: attrName,
-                    codeOrigin: `${item.code} - ${item.origin}`,
-                    code: item.code,
-                    origin: item.origin,
-                    explicitAttributeVerification: item.explicitAttributeVerification ? 'true' : 'false'
+            forkJoin(attributeRequests).subscribe({
+              next: responses => {
+                // Map attribute names back
+                const attributeNames = new Map<string, string>();
+                responses.forEach((response, index) => {
+                  if (response.data) {
+                    attributeNames.set(allAttributes[index].id, response.data.name);
                   }
-                })
+                });
+
+                // Build attributes maps with names
+                const attributesMapper = (attribute: GroupOrSingleAttribute, index: number) => {
+                  const list = attribute.single ? [attribute.single] : attribute.group;
+                  const name = attribute.single ? 'SINGLE' : 'GROUP';
+                  return {
+                    data: {
+                      name: name,
+                    }, list: list?.map((item: any) => {
+                      const attrName = attributeNames.get(item.id) || '';
+                      return {
+                        id: item.id,
+                        name: attrName,
+                        codeOrigin: `${item.code} - ${item.origin}`,
+                        code: item.code,
+                        origin: item.origin,
+                        explicitAttributeVerification: item.explicitAttributeVerification ? 'true' : 'false'
+                      }
+                    })
+                  }
+                };
+
+                const certifiedAttributesMap = eService.attributes.certified?.map(attributesMapper) || [];
+                const declaredAttributesMap = eService.attributes.declared?.map(attributesMapper) || [];
+                const verifiedAttributesMap = eService.attributes.verified?.map(attributesMapper) || [];
+
+                this.attributeData = [certifiedAttributesMap, declaredAttributesMap, verifiedAttributesMap];
+                this.hasAnyAttributes = certifiedAttributesMap.length > 0 || declaredAttributesMap.length > 0 || verifiedAttributesMap.length > 0;
+
+                this.loading.emit(false);
+              },
+              error: () => {
+                // On error, use attributes without names
+                this._buildAttributesWithoutNames(eService);
+                this.loading.emit(false);
               }
-            };
-
-            const certifiedAttributesMap = eService.attributes.certified?.map(attributesMapper) || [];
-            const declaredAttributesMap = eService.attributes.declared?.map(attributesMapper) || [];
-            const verifiedAttributesMap = eService.attributes.verified?.map(attributesMapper) || [];
-
-            this.attributeData = [certifiedAttributesMap, declaredAttributesMap, verifiedAttributesMap];
-            this.hasAnyAttributes = certifiedAttributesMap.length > 0 || declaredAttributesMap.length > 0 || verifiedAttributesMap.length > 0;
-
+            });
+          } else {
+            this.attributeData = [[], [], []];
+            this.hasAnyAttributes = false;
             this.loading.emit(false);
-          }, () => {
-            // On error, use attributes without names
-            this._buildAttributesWithoutNames(eService);
-            this.loading.emit(false);
-          });
+          }
         } else {
-          this.attributeData = [[], [], []];
+          this.attributeData = [
+            eServiceResponse.error,
+            eServiceResponse.error,
+            eServiceResponse.error
+          ];
           this.hasAnyAttributes = false;
           this.loading.emit(false);
         }
-      } else {
-        this.attributeData = [
-          eServiceResponse.error,
-          eServiceResponse.error,
-          eServiceResponse.error
+        const descriptorsMap = eServiceDescriptorsResponse.data
+          ? eServiceDescriptorsResponse.data.descriptors
+              .sort((a: any, b: any) => Number(b.version) - Number(a.version))
+              .map((descriptor: any) => ({
+                data: {
+                  id: descriptor.id,
+                  version: descriptor.version,
+                  versionLabel: `v. ${descriptor.version}`,
+                  state: descriptor.state,
+                  audience_url: descriptor.audience.pop(),
+                  server_url: descriptor.serverUrls.pop(),
+                  voucher_lifespan: descriptor.voucherLifespan,
+                  daily_calls_per_consumer: descriptor.dailyCallsPerConsumer,
+                  daily_calls_total: descriptor.dailyCallsTotal,
+                  interface_name: descriptor.interface.name,
+                },
+                list: descriptor.docs
+              }))
+          : null;
+
+        this.data = [
+          eServiceMap || eServiceResponse.error,
+          organizationMap || eServiceResponse.error,
+          descriptorsMap || eServiceDescriptorsResponse.error
         ];
-        this.hasAnyAttributes = false;
+      },
+      error: (error) => {
         this.loading.emit(false);
+        console.error('PdndEServiceViewComponent: Error loading data', error);
       }
-
-      let descriptorsMap: any = null;
-      if (eServiceDescriptorsResponse.data) {
-        descriptorsMap = eServiceDescriptorsResponse.data.descriptors
-        .sort((a, b) => Number(b.version) - Number(a.version))
-        .map(descriptor => {
-          return {
-            data: {
-              id: descriptor.id,
-              version: descriptor.version,
-              versionLabel: `v. ${descriptor.version}`,
-              state: descriptor.state,
-              audience_url: descriptor.audience.pop(),
-              server_url: descriptor.serverUrls.pop(),
-              voucher_lifespan: descriptor.voucherLifespan,
-              daily_calls_per_consumer: descriptor.dailyCallsPerConsumer,
-              daily_calls_total: descriptor.dailyCallsTotal,
-              interface_name: descriptor.interface.name,
-            }, list: descriptor.docs
-          }
-        });
-      }
-
-      this.data = [
-        eServiceMap || eServiceResponse.error,
-        organizationMap || eServiceResponse.error,
-        descriptorsMap || eServiceDescriptorsResponse.error
-      ];
-    }, (error) => {
-      this.loading.emit(false);
-      console.error('PdndEServiceViewComponent: Error loading data', error);
     });
   }
 
