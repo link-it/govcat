@@ -72,6 +72,29 @@
           </div>
         </div>
       }
+      @if (_groupsView && _currIdGruppoPadre && _currentGroup && (_currentGroup.descrizione_sintetica || _currentGroup.descrizione)) {
+        <div class="group-header-desc"
+             [class.is-clickable]="_currentGroupExpandable"
+             [attr.role]="_currentGroupExpandable ? 'button' : null"
+             [attr.tabindex]="_currentGroupExpandable ? 0 : null"
+             #groupDescPopover="bs-popover"
+             [popover]="groupDescTpl"
+             [containerClass]="'group-header-desc-popover'"
+             [placement]="'bottom'"
+             [container]="'body'"
+             [outsideClick]="true"
+             triggers=""
+             [attr.aria-label]="_currentGroupExpandable ? ('APP.TOOLTIP.GroupDescription' | translate) : null"
+             (click)="_onGroupDescClick(groupDescPopover)"
+             (keydown.enter)="_onGroupDescClick(groupDescPopover); $event.preventDefault()"
+             (keydown.space)="_onGroupDescClick(groupDescPopover); $event.preventDefault()">
+          <i class="bi bi-folder group-header-desc-icon" aria-hidden="true"></i>
+          <span #groupHeaderDescText class="group-header-desc-text">{{ _currentGroup.descrizione_sintetica || _currentGroup.descrizione }}</span>
+          @if (_currentGroupExpandable) {
+            <i class="bi bi-info-circle group-header-desc-info-icon" aria-hidden="true"></i>
+          }
+        </div>
+      }
     </div>
     <div class="nav-controls align-self-center d-flex align-items-center">
       @if (!_production) {
@@ -609,3 +632,20 @@
 
   </section>
 </div>
+
+<!-- Tooltip content per la descrizione del gruppo corrente (vista
+     groups). Mostra entrambe le sezioni quando presenti. -->
+<ng-template #groupDescTpl>
+  @if (_currentGroup?.descrizione_sintetica) {
+    <div class="group-desc-section">
+      <div class="group-desc-label">{{ 'APP.LABEL.DescrizioneSintetica' | translate }}</div>
+      <div class="group-desc-body">{{ _currentGroup.descrizione_sintetica }}</div>
+    </div>
+  }
+  @if (_currentGroup?.descrizione) {
+    <div class="group-desc-section">
+      <div class="group-desc-label">{{ 'APP.LABEL.descrizione' | translate }}</div>
+      <div class="group-desc-body">{{ _currentGroup.descrizione }}</div>
+    </div>
+  }
+</ng-template>

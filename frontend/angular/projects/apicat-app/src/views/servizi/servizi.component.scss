@@ -42,3 +42,107 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         margin: 0 1rem 1rem 0;
     }
 }
+
+// Necessario per consentire allo spazio dei tabs di restringersi
+// sotto la dimensione intrinseca del contenuto (descrizione del
+// gruppo). Senza `min-width: 0` un testo lungo spinge la `top-area`
+// in overflow portando le nav-controls fuori dallo schermo.
+.top-area .tabs.gl-tabs {
+    min-width: 0;
+}
+
+// Le nav-controls a destra non devono restringersi: i pulsanti hanno
+// priorita` di spazio sulla descrizione (che ellipsa).
+.top-area > .nav-controls {
+    flex-shrink: 0;
+}
+
+// Descrizione del gruppo corrente nella vista groups: occupa lo
+// spazio vuoto a sinistra della top-area senza ingrandire l'header.
+// Icona folder + testo troncato + icona info decorativa. L'intero
+// container e` cliccabile (role="button") e apre il popover con le
+// descrizioni complete su click; hover/focus evidenzia l'area.
+.group-header-desc {
+    display: flex;
+    align-items: center;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 80ch;
+    padding: 4px 10px;
+    gap: 8px;
+    overflow: hidden;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    color: var(--ink-2, #6c757d);
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+
+    &.is-clickable {
+        cursor: pointer;
+        user-select: none;
+
+        &:hover, &:focus-visible {
+            background-color: var(--surface-2, #f1f3f5);
+            border-color: var(--line, #dee2e6);
+            color: var(--ink, #212529);
+            outline: none;
+
+            .group-header-desc-icon,
+            .group-header-desc-text,
+            .group-header-desc-info-icon {
+                color: var(--ink, #212529);
+            }
+        }
+    }
+
+    .group-header-desc-icon {
+        flex: 0 0 auto;
+        font-size: 15px;
+        color: inherit;
+        line-height: 1;
+    }
+    .group-header-desc-text {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 13px;
+        color: inherit;
+        line-height: 1.3;
+    }
+    // Icona info decorativa: sempre visibile per segnalare la
+    // disponibilita` del popover, ma non interattiva (il click e`
+    // gestito dal container per evitare doppio trigger).
+    .group-header-desc-info-icon {
+        flex: 0 0 auto;
+        font-size: 14px;
+        color: inherit;
+        line-height: 1;
+        opacity: 0.75;
+    }
+}
+
+// Popover della descrizione del gruppo: piu` largo del default per
+// ospitare entrambe le sezioni (sintetica + estesa) con etichette.
+::ng-deep .group-header-desc-popover {
+    .popover-body {
+        max-width: 480px;
+        padding: 12px 14px;
+    }
+    .group-desc-section + .group-desc-section { margin-top: 10px; }
+    .group-desc-label {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        color: var(--ink-2, #6c757d);
+        margin-bottom: 2px;
+    }
+    .group-desc-body {
+        font-size: 13px;
+        line-height: 1.45;
+        color: var(--ink, #212529);
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+}

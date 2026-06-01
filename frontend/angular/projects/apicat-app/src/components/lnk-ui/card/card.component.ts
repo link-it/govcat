@@ -19,6 +19,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
 import { ConfigService } from '@linkit/components';
 
@@ -31,7 +32,7 @@ import { DataTypeComponent } from '@app/lib/ui/data-type/data-type.component';
   templateUrl: './card.component.html',
   styleUrls: ['./card.component.scss'],
   standalone: true,
-  imports: [CommonModule, TranslateModule, SetBackgroundImageDirective, HttpImgSrcPipe, DataTypeComponent]
+  imports: [CommonModule, TooltipModule, TranslateModule, SetBackgroundImageDirective, HttpImgSrcPipe, DataTypeComponent]
 })
 export class LnkCardComponent implements OnInit {
 
