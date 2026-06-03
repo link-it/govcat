@@ -496,7 +496,7 @@ export class AdesioneViewComponent implements OnInit {
     }
 
     if (this.adesione?.id_logico) {
-      title = `${this.adesione.id_logico} (${_organizzazione})`;
+      title = `${title} (${this.adesione.id_logico})`;
     }
 
     this.breadcrumbs = [

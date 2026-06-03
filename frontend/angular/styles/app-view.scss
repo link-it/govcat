@@ -333,6 +333,11 @@ small, .small {
     box-shadow: 0 1px 0 rgba(255,255,255,.18) inset, 0 4px 12px -4px var(--accent);
   }
   .btnc-accent:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+  .btnc-ok {
+    background: var(--ok); color: white; border-color: var(--ok);
+    box-shadow: 0 1px 0 rgba(255,255,255,.18) inset, 0 4px 12px -4px var(--ok);
+  }
+  .btnc-ok:hover { background: var(--ok-ink); border-color: var(--ok-ink); }
   .btnc-ghost { background: transparent; border-color: transparent; box-shadow: none; }
   .btnc-ghost:hover { background: var(--surface-3); }
   .btnc-link { background: transparent; border: 0; box-shadow: none; padding: 0; height: auto; color: var(--accent-ink); }

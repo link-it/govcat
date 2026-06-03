@@ -88,11 +88,15 @@ export class ActionBannerComponent {
   /** Emessa al click/middle-click sul bottone CTA. */
   @Output() action = new EventEmitter<MouseEvent>();
 
-  /** Classe del bottone CTA — rosso pieno per `accent`/`warn`,
-   *  default outline per le altre. */
+  /** Classe del bottone CTA in base alla variante.
+   *  - `accent`/`warn` → `btnc-accent` (rosso pieno, alert/CTA primaria
+   *    forte).
+   *  - `ok` → `btnc-ok` (verde pieno, invito positivo per CTA non
+   *    allarmanti).
+   *  - altre → `btnc-default` (outline neutro). */
   ctaButtonClass(): string {
-    return this.variant === 'accent' || this.variant === 'warn'
-      ? 'btnc-accent'
-      : 'btnc-default';
+    if (this.variant === 'accent' || this.variant === 'warn') { return 'btnc-accent'; }
+    if (this.variant === 'ok') { return 'btnc-ok'; }
+    return 'btnc-default';
   }
 }

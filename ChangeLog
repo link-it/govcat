@@ -1,6 +1,18 @@
 2026-05-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	servizio-view action-banner "Aderisci al servizio": variante
+	  cambiata da `accent` (rosso/alert) a `ok` (verde/invito
+	  positivo). Aggiunta utility `.btnc-ok` (CTA verde solido)
+	  e mappatura `ok` nel componente `lnk-action-banner`.
+	Breadcrumb adesione: titolo passa da
+	  `<id_logico> (<organizzazione>)` a
+	  `<servizio> (<id_logico>)` in adesione-view,
+	  adesione-details e wizard.
+
+2026-05-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Lista servizi vista gruppi: nell'header mostra
 	  descrizione_sintetica del gruppo corrente (icona folder
 	  + testo troncato con ellissi). Popover su click con

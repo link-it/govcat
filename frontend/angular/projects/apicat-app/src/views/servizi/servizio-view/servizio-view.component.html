@@ -146,7 +146,9 @@
 
         <!-- Action banners (stack verticale sotto l'hero).
              Ordine di priorita`:
-             1. Aderisci al servizio (CTA primaria — accent rosso)
+             1. Aderisci al servizio (CTA primaria — variante "ok"
+                verde: comunica invito positivo evitando il rosso
+                che dava sensazione di alert)
              2. Vai alle adesioni (gestore / referente con adesioni)
              3. Vai all'adesione (utente con adesione attiva)
              4. Adesione gia` esistente (info, no CTA)
@@ -172,7 +174,7 @@
               [subtitle]="'APP.MESSAGE.JoinServiceSubtitle' | translate"
               [ctaLabel]="'APP.BUTTON.JoinService' | translate"
               ctaIcon="bi-display"
-              variant="accent"
+              variant="ok"
               (action)="_joinServizio($event)"
             ></lnk-action-banner>
           }

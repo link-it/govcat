@@ -989,7 +989,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     }
 
     if (this.adesione?.id_logico) {
-      title = `${this.adesione.id_logico} (${_organizzazione})`;
+      title = `${title} (${this.adesione.id_logico})`;
     }
 
     const _dashboardParams = this._dashboardSection ? { section: this._dashboardSection } : null;
