@@ -1,6 +1,17 @@
 2026-06-04  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard adesione: `onWorkflowAction` ora attiva sempre la fase
+	  corrente (`_initSelectedFase`) prima della conferma del
+	  cambio stato, evitando che la UI resti su una fase
+	  diversa dopo la transizione. Cleanup linter su
+	  `custom-properties` e `api-custom-properties` (rimossi
+	  `OnInit`/`Type` non usati, marker `readonly` sui field
+	  iniettati).
+
+2026-06-04  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Wizard adesione lista clients: nuovo pulsante "Vai al
 	  dettaglio del client" (`open_in_new`) accanto al client
 	  configurato. Naviga a `/client/:id` con queryParams

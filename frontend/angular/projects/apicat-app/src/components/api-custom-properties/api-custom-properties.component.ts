@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, EventEmitter, Input, Output, OnInit, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
@@ -27,7 +27,7 @@ import { CustomPropertiesComponent } from '../custom-properties/custom-propertie
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { CkeckProvider, ClassiEnum, CheckStructure, DataStructure, Sottotipo, Errore } from '@app/provider/check.provider';
+import { CkeckProvider, ClassiEnum, DataStructure } from '@app/provider/check.provider';
 
 export enum SpecificoPerEnum {
     Adesione = 'adesione',
@@ -43,7 +43,7 @@ export enum SpecificoPerEnum {
     standalone: true,
     imports: [CommonModule, TooltipModule, TranslateModule, ...COMPONENTS_IMPORTS, CustomPropertiesComponent]
 })
-export class ApiCustomPropertiesComponent implements OnInit {
+export class ApiCustomPropertiesComponent implements OnInit, OnChanges {
 
     @Input() ambiente: string = '';
     @Input() id_adesione: string | null = null;
@@ -75,36 +75,32 @@ export class ApiCustomPropertiesComponent implements OnInit {
     updateMapper: string = '';
 
     constructor(
-        private configService: ConfigService,
-        private apiService: OpenAPIService,
-        private utils: UtilService,
-        private ckeckProvider: CkeckProvider
+        private readonly configService: ConfigService,
+        private readonly apiService: OpenAPIService,
+        private readonly utils: UtilService,
+        private readonly ckeckProvider: CkeckProvider
     ) { }
 
     ngOnInit() {
-        // console.group('ApiCustomPropertiesComponent');
-        // console.log('group', this.group);
-        // console.log('checkData', this.checkData);
-        // console.groupEnd();
-
         this.forAllApi = this.group.specifico_per === SpecificoPerEnum.Adesione;
 
-        if (!this.apiConfig) {
-            this.configService.getConfig('api').subscribe(
-                (config: any) => {
-                    this.apiConfig = config;
-                    if (!this.forAllApi) { this._loadServiceApi(); }
-                }
-            );
-        } else {
+        if (this.apiConfig) {
             if (!this.forAllApi) { this._loadServiceApi(); }
+            return;
         }
+
+        this.configService.getConfig('api').subscribe(
+            (config: any) => {
+                this.apiConfig = config;
+                if (!this.forAllApi) { this._loadServiceApi(); }
+            }
+        );
     }
 
     ngOnChanges(changes: SimpleChanges): void {
         if (changes.dataCheck) {
             this.dataCheck = changes.dataCheck.currentValue;
-            this.updateMapper = new Date().getTime().toString();
+            this.updateMapper = Date.now().toString();
         }
     }
 
@@ -145,7 +141,7 @@ export class ApiCustomPropertiesComponent implements OnInit {
         this.loadingApi = true;
         this.apiService.getList('api', aux).subscribe({
             next: (response: any) => {
-                if (response && response.content) {
+                if (response?.content) {
                     const _list: any = response.content.map((api: any) => {
                         const element = {
                             id: api.id_api,
@@ -157,7 +153,6 @@ export class ApiCustomPropertiesComponent implements OnInit {
                         return element;
                     });
                     this.serviceApi = [ ..._list ];
-                    // this.serviceApi = [ ...response.content ];
                     if (this.serviceApi.length === 1) {
                         this.currentApi = this.serviceApi[0].source;
                     }

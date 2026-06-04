@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, Type } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AbstractControl, ReactiveFormsModule, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 
@@ -73,7 +73,7 @@ type FileType = {
     standalone: true,
     imports: [CommonModule, ReactiveFormsModule, TooltipModule, TranslateModule, ...COMPONENTS_IMPORTS, MarkAsteriskDirective]
 })
-export class CustomPropertiesComponent implements OnInit, OnChanges {
+export class CustomPropertiesComponent implements OnChanges {
 
     @Input() ambiente: string | null = null;
     @Input() id_adesione: string | null = null;
@@ -105,15 +105,12 @@ export class CustomPropertiesComponent implements OnInit, OnChanges {
     ProprietaType = ProprietaType;
 
     constructor(
-        private formBuilder: FormBuilder,
-        private eventsManagerService: EventsManagerService,
-        private authenticationService: AuthenticationService,
-        private apiService: OpenAPIService,
-        private utils: UtilService
+        private readonly formBuilder: FormBuilder,
+        private readonly eventsManagerService: EventsManagerService,
+        private readonly authenticationService: AuthenticationService,
+        private readonly apiService: OpenAPIService,
+        private readonly utils: UtilService
     ) {}
-
-    ngOnInit() {
-    }
     
     ngOnChanges(changes: SimpleChanges): void {
         this._item = { ...this.item };
