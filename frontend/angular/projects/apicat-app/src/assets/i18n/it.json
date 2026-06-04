@@ -1438,6 +1438,9 @@
 					"409": {
 						"DEFAULT": "Client [{{nome}}] già esistente per soggetto [{{soggetto}}] e ambiente [{{ambiente}}]",
 						"DUPLICATES": "Client duplicati trovati: [{{duplicati}}]"
+					},
+					"422": {
+						"CERTIFICATE": "Il certificato caricato non è valido. Verificare che il file sia un certificato X.509 valido."
 					}
 				},
 				"Default": "Si è verificato un problema non previsto",

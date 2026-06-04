@@ -1438,6 +1438,9 @@
 					"409": {
 						"DEFAULT": "Client [{{nome}}] already exists for subject [{{soggetto}}] and environment [{{ambiente}}]",
 						"DUPLICATES": "Duplicate clients found: [{{duplicati}}]"
+					},
+					"422": {
+						"CERTIFICATE": "The uploaded certificate is not valid. Please ensure the file is a valid X.509 certificate."
 					}
 				},
 				"Default": "Sorry, unpredictable problem",
