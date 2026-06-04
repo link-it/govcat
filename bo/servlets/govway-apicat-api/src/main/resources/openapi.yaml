@@ -4255,7 +4255,7 @@ paths:
       description: "Recupera la lista di azioni/risorse data una specifica"
       operationId: "listaOperazioniWsdl"
       requestBody:
-          required: true      
+          required: true
           content:
             application/json:
               schema:
@@ -4273,6 +4273,25 @@ paths:
           $ref: "#/components/responses/401Unauthorized"
         "403":
           $ref: "#/components/responses/403Forbidden"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /tools/csp-allowed-hosts:
+    get:
+      tags:
+      - "Tools"
+      description: "Restituisce la lista distinct degli host upstream (scheme://host[:port]) da consentire nella direttiva connect-src della Content-Security-Policy del frontend. Include token_url/auth_url delle token policies configurate e le URL di invocazione dei servizi del catalogo."
+      operationId: "getCspAllowedHosts"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
         "503":
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":

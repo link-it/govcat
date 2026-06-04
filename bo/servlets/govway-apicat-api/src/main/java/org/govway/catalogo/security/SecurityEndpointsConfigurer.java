@@ -60,6 +60,10 @@ public class SecurityEndpointsConfigurer {
         http.authorizeHttpRequests(auth -> {
             // Endpoint sempre pubblici (indipendentemente dalla configurazione)
             auth.requestMatchers("/pdnd/mock/**").permitAll();
+            // L'endpoint csp-allowed-hosts viene invocato dal modulo web in fase di render
+            // dell'index.jsp, prima di avere una sessione utente, per costruire dinamicamente
+            // la direttiva connect-src della Content-Security-Policy.
+            auth.requestMatchers("/api/v1/tools/csp-allowed-hosts").permitAll();
 
             if (accessoAnonimoAbilitato) {
                 // Modalità accesso anonimo: tutti gli endpoint API sono pubblici
