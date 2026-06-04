@@ -870,22 +870,35 @@ public class AdesioniController implements AdesioniApi {
 					if(!anounymous) {
 						UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
 
+						// Clausola comune: ogni utente vede sempre in dashboard le PROPRIE adesioni
+						// (di cui è referente) in stato di bozza (stato iniziale del workflow),
+						// indipendentemente dal ruolo globale (gestore/coordinatore/referente).
+						String statoBozza = this.configurazione.getAdesione().getWorkflow().getStatoIniziale();
+						Specification<AdesioneEntity> specBozzaReferente = (statoBozza != null)
+								? AdesioneSpecificationUtils.byReferenteAdesione(utente)
+										.and(AdesioneSpecificationUtils.byStati(List.of(statoBozza)))
+								: null;
+
+						// Filtro per stati in base al ruolo
+						Specification<AdesioneEntity> specRuolo = null;
+						boolean vediTuttiGliStati = false;
+
 						// Gestione dashboard in base al ruolo
 						if(this.coreAuthorization.isAdmin()) {
 							// Gestore: filtra per stati del ruolo "gestore"
 							List<String> statiGestore = getStatiDashboardAdesione(ConfigurazioneRuolo.GESTORE);
 							if(!statiGestore.isEmpty()) {
-								realSpecification = specification.and(AdesioneSpecificationUtils.byStati(statiGestore));
+								specRuolo = AdesioneSpecificationUtils.byStati(statiGestore);
 							} else {
-								realSpecification = specification;
+								vediTuttiGliStati = true;
 							}
 						} else if(this.coreAuthorization.isCoordinatore()) {
 							// Coordinatore: usa ruolo "referente_superiore"
 							List<String> statiCoordinatore = getStatiDashboardAdesione(ConfigurazioneRuolo.REFERENTE_SUPERIORE);
 							if(!statiCoordinatore.isEmpty()) {
-								realSpecification = specification.and(AdesioneSpecificationUtils.byStati(statiCoordinatore));
+								specRuolo = AdesioneSpecificationUtils.byStati(statiCoordinatore);
 							} else {
-								realSpecification = specification;
+								vediTuttiGliStati = true;
 							}
 						} else {
 							// Altri utenti: verifica ruoli tramite getRuoliReferente
@@ -894,30 +907,33 @@ public class AdesioniController implements AdesioniApi {
 							List<String> statiReferenteSuperiore = getStatiDashboardAdesione(ConfigurazioneRuolo.REFERENTE_SUPERIORE);
 							List<String> statiReferente = getStatiDashboardAdesione(ConfigurazioneRuolo.REFERENTE);
 
-							Specification<AdesioneEntity> specDashboard = null;
-
 							// Se referente di dominio -> adesioni con servizi di quel dominio negli stati "referente_superiore"
 							if(ruoliUtente.contains("REFERENTE_DOMINIO") && !statiReferenteSuperiore.isEmpty()) {
-								Specification<AdesioneEntity> specRefDominio = AdesioneSpecificationUtils.byReferenteDominio(utente)
+								specRuolo = AdesioneSpecificationUtils.byReferenteDominio(utente)
 										.and(AdesioneSpecificationUtils.byStati(statiReferenteSuperiore));
-								specDashboard = specRefDominio;
 							}
 
 							// Se referente di servizio -> adesioni dove è referente del servizio negli stati "referente"
 							if(ruoliUtente.contains("REFERENTE_SERVIZIO") && !statiReferente.isEmpty()) {
 								Specification<AdesioneEntity> specRefServizio = AdesioneSpecificationUtils.byReferenteServizio(utente)
 										.and(AdesioneSpecificationUtils.byStati(statiReferente));
-								if(specDashboard != null) {
-									specDashboard = specDashboard.or(specRefServizio);
-								} else {
-									specDashboard = specRefServizio;
-								}
+								specRuolo = (specRuolo != null) ? specRuolo.or(specRefServizio) : specRefServizio;
 							}
+						}
 
+						if(vediTuttiGliStati) {
+							// admin/coordinatore senza stati dashboard configurati: nessun filtro di stato
+							realSpecification = specification;
+						} else {
+							// Unione tra il filtro del ruolo e le proprie adesioni in bozza
+							Specification<AdesioneEntity> specDashboard = specRuolo;
+							if(specBozzaReferente != null) {
+								specDashboard = (specDashboard != null) ? specDashboard.or(specBozzaReferente) : specBozzaReferente;
+							}
 							if(specDashboard != null) {
 								realSpecification = specification.and(specDashboard);
 							} else {
-								// Nessun ruolo rilevante, nessun risultato
+								// Nessun ruolo rilevante e nessuna bozza: nessun risultato
 								realSpecification = specification.and((root, query, cb) -> cb.disjunction());
 							}
 						}

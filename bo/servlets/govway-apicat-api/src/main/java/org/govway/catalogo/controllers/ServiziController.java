@@ -1300,22 +1300,34 @@ public class ServiziController implements ServiziApi {
 					if(!anounymous) {
 						UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
 
-						// Gestione dashboard in base al ruolo
+						// Clausola comune: ogni utente vede sempre in dashboard i PROPRI servizi
+						// (di cui è referente) in stato di bozza (stato iniziale del workflow),
+						// indipendentemente dal ruolo globale (gestore/coordinatore/referente).
+						String statoBozza = this.configurazione.getServizio().getWorkflow().getStatoIniziale();
+						Specification<ServizioEntity> specBozzaReferente = (statoBozza != null)
+								? ServizioSpecificationUtils.byReferenteServizio(utente)
+										.and(ServizioSpecificationUtils.byStati(List.of(statoBozza)))
+								: null;
+
+						// Filtro per stati in base al ruolo
+						Specification<ServizioEntity> specRuolo = null;
+						boolean vediTuttiGliStati = false;
+
 						if(this.coreAuthorization.isAdmin()) {
 							// Gestore: filtra per stati del ruolo "gestore"
 							List<String> statiGestore = getStatiDashboard(ConfigurazioneRuolo.GESTORE);
 							if(!statiGestore.isEmpty()) {
-								realSpecification = specification.and(ServizioSpecificationUtils.byStati(statiGestore));
+								specRuolo = ServizioSpecificationUtils.byStati(statiGestore);
 							} else {
-								realSpecification = specification;
+								vediTuttiGliStati = true;
 							}
 						} else if(this.coreAuthorization.isCoordinatore()) {
 							// Coordinatore: usa ruolo "referente_superiore"
 							List<String> statiCoordinatore = getStatiDashboard(ConfigurazioneRuolo.REFERENTE_SUPERIORE);
 							if(!statiCoordinatore.isEmpty()) {
-								realSpecification = specification.and(ServizioSpecificationUtils.byStati(statiCoordinatore));
+								specRuolo = ServizioSpecificationUtils.byStati(statiCoordinatore);
 							} else {
-								realSpecification = specification;
+								vediTuttiGliStati = true;
 							}
 						} else {
 							// Altri utenti: verifica ruoli tramite getRuoliReferente
@@ -1324,30 +1336,33 @@ public class ServiziController implements ServiziApi {
 							List<String> statiReferenteSuperiore = getStatiDashboard(ConfigurazioneRuolo.REFERENTE_SUPERIORE);
 							List<String> statiReferente = getStatiDashboard(ConfigurazioneRuolo.REFERENTE);
 
-							Specification<ServizioEntity> specDashboard = null;
-
 							// Se referente di dominio -> servizi con quel dominio negli stati "referente_superiore"
 							if(ruoliUtente.contains("REFERENTE_DOMINIO") && !statiReferenteSuperiore.isEmpty()) {
-								Specification<ServizioEntity> specRefDominio = ServizioSpecificationUtils.byReferenteDominio(utente)
+								specRuolo = ServizioSpecificationUtils.byReferenteDominio(utente)
 										.and(ServizioSpecificationUtils.byStati(statiReferenteSuperiore));
-								specDashboard = specRefDominio;
 							}
 
 							// Se referente di servizio -> servizi dove è referente negli stati "referente"
 							if(ruoliUtente.contains("REFERENTE_SERVIZIO") && !statiReferente.isEmpty()) {
 								Specification<ServizioEntity> specRefServizio = ServizioSpecificationUtils.byReferenteServizio(utente)
 										.and(ServizioSpecificationUtils.byStati(statiReferente));
-								if(specDashboard != null) {
-									specDashboard = specDashboard.or(specRefServizio);
-								} else {
-									specDashboard = specRefServizio;
-								}
+								specRuolo = (specRuolo != null) ? specRuolo.or(specRefServizio) : specRefServizio;
 							}
+						}
 
+						if(vediTuttiGliStati) {
+							// admin/coordinatore senza stati dashboard configurati: nessun filtro di stato
+							realSpecification = specification;
+						} else {
+							// Unione tra il filtro del ruolo e i propri servizi in bozza
+							Specification<ServizioEntity> specDashboard = specRuolo;
+							if(specBozzaReferente != null) {
+								specDashboard = (specDashboard != null) ? specDashboard.or(specBozzaReferente) : specBozzaReferente;
+							}
 							if(specDashboard != null) {
 								realSpecification = specification.and(specDashboard);
 							} else {
-								// Nessun ruolo rilevante, nessun risultato
+								// Nessun ruolo rilevante e nessuna bozza: nessun risultato
 								realSpecification = specification.and((root, query, cb) -> cb.disjunction());
 							}
 						}

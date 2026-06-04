@@ -2270,5 +2270,82 @@ public class ServiziTest {
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertNotNull(response.getBody());
 	}
+
+	@Test
+	void testListServiziDashboardReferenteVedeBozza() {
+		// RIPRODUZIONE: un referente (esplicito) di servizio deve vedere in dashboard
+		// i propri servizi in stato bozza (stato iniziale del workflow).
+
+		// 1) Creo un servizio (resta in bozza) con un referente NON gestore
+		final String PRINCIPAL_REFERENTE = "utente_referente__servizio";
+		UUID idReferente = UUID.fromString(CommonUtils.getInfoProfilo(PRINCIPAL_REFERENTE, utenteService).utente.getIdUtente());
+
+		Dominio dominio = this.getDominio();
+
+		// Policy 2.4.0: il referente deve essere associato all'organizzazione del servizio
+		UtenteUpdate upReferente = new UtenteUpdate();
+		upReferente.setPrincipal(PRINCIPAL_REFERENTE);
+		CommonUtils.setOrganizzazione(upReferente, this.idOrganizzazione);
+		upReferente.setStato(StatoUtenteEnum.ABILITATO);
+		upReferente.setEmailAziendale("mail@aziendale.it");
+		upReferente.setTelefonoAziendale("+39 0000000");
+		upReferente.setNome("referente");
+		upReferente.setCognome("servizio");
+		upReferente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+		utentiController.updateUtente(idReferente, upReferente);
+
+		ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+		servizioCreate.setSkipCollaudo(true);
+		servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+		servizioCreate.setIdDominio(dominio.getIdDominio());
+
+		ReferenteCreate referente = new ReferenteCreate();
+		referente.setTipo(TipoReferenteEnum.REFERENTE);
+		referente.setIdUtente(idReferente);
+		servizioCreate.setReferenti(new ArrayList<>(List.of(referente)));
+
+		Servizio servizio = serviziController.createServizio(servizioCreate).getBody();
+		assertEquals("bozza", servizio.getStato());
+
+		// 2) Passo la sessione al referente (non admin / non coordinatore)
+		CommonUtils.getSessionUtente(PRINCIPAL_REFERENTE, securityContext, authentication, utenteService);
+
+		// 3) Chiamo la dashboard
+		ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
+			null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null, 0, 10, null
+		);
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertNotNull(response.getBody());
+
+		// 4) Il servizio in bozza del referente deve essere presente
+		boolean trovato = response.getBody().getContent().stream()
+			.anyMatch(s -> s.getIdServizio().equals(servizio.getIdServizio()));
+		assertTrue(trovato, "Il referente dovrebbe vedere in dashboard il proprio servizio in bozza");
+	}
+
+	@Test
+	void testListServiziDashboardGestoreReferenteVedeBozza() {
+		// RIPRODUZIONE scenario reale: un utente gestore/coordinatore che è ANCHE
+		// referente deve vedere in dashboard i propri servizi in bozza, anche se gli
+		// stati dashboard del ruolo gestore non includono la bozza.
+		// (config di test: stati_dashboard gestore = ["richiesto_collaudo"])
+
+		// getServizio() crea un servizio in bozza con ID_UTENTE_GESTORE come referente.
+		// La sessione di default è il gestore (admin).
+		Servizio servizio = this.getServizio();
+		assertEquals("bozza", servizio.getStato());
+
+		ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
+			null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null, 0, 10, null
+		);
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertNotNull(response.getBody());
+
+		boolean trovato = response.getBody().getContent().stream()
+			.anyMatch(s -> s.getIdServizio().equals(servizio.getIdServizio()));
+		assertTrue(trovato, "Il gestore che è anche referente dovrebbe vedere in dashboard il proprio servizio in bozza");
+	}
 }
 

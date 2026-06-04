@@ -1935,6 +1935,57 @@ public class AdesioniTest {
     }
 
     @Test
+    void testListAdesioniDashboardReferenteAdesioneVedeBozza() {
+        // RIPRODUZIONE: il referente (esplicito) di un'adesione deve vedere in dashboard
+        // le proprie adesioni in stato bozza (stato iniziale del workflow).
+
+        // Setup servizio pubblicato
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+
+        // Associo il referente adesione all'organizzazione aderente (policy 2.4.0)
+        UtenteUpdate upReferente = new UtenteUpdate();
+        upReferente.setPrincipal(UTENTE_REFERENTE_ADESIONE);
+        CommonUtils.setOrganizzazione(upReferente, idOrganizzazione);
+        upReferente.setStato(StatoUtenteEnum.ABILITATO);
+        upReferente.setEmailAziendale("mail@aziendale.it");
+        upReferente.setTelefonoAziendale("+39 0000000");
+        upReferente.setNome("referente");
+        upReferente.setCognome("adesione");
+        upReferente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        utentiController.updateUtente(ID_UTENTE_REFERENTE_ADESIONE, upReferente);
+
+        // Creo l'adesione (resta in bozza) con il referente adesione
+        ReferenteCreate refAdesione = new ReferenteCreate();
+        refAdesione.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
+        refAdesione.setTipo(TipoReferenteEnum.REFERENTE);
+
+        AdesioneCreate adesioneCreate = new AdesioneCreate();
+        adesioneCreate.setIdServizio(idServizio);
+        adesioneCreate.setIdSoggetto(idSoggetto);
+        adesioneCreate.setReferenti(new ArrayList<>(List.of(refAdesione)));
+        Adesione adesione = adesioniController.createAdesione(adesioneCreate).getBody();
+        assertEquals("bozza", adesione.getStato());
+
+        // Passo la sessione al referente dell'adesione (non admin / non coordinatore)
+        CommonUtils.getSessionUtente(UTENTE_REFERENTE_ADESIONE, securityContext, authentication, utenteService);
+
+        // Chiamo la dashboard
+        ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
+            null, null, null, null, null, null,
+            null, null, null, null, false, null, true, null, null, 0, 10, null);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+
+        boolean trovata = response.getBody().getContent().stream()
+            .anyMatch(a -> a.getIdAdesione().equals(adesione.getIdAdesione()));
+        assertTrue(trovata, "Il referente dell'adesione dovrebbe vedere in dashboard la propria adesione in bozza");
+    }
+
+    @Test
     void testListClientCollaudoAdesioneSuccess() {
         // Setup
         Dominio dominio = this.getDominio(null);
