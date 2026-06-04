@@ -54,7 +54,11 @@
         <p class="group-list-card-text">{{ secondaryText }}</p>
       }
       @if (metadata) {
-        <p class="group-list-card-metadata">{{ metadata }}</p>
+        <p class="group-list-card-metadata"
+           [tooltip]="(data?.descrizione_sintetica && data.descrizione_sintetica !== metadata) ? data.descrizione_sintetica : ''"
+           [container]="'body'"
+           [placement]="'auto'"
+           [delay]="300">{{ metadata }}</p>
       }
     </div>
 

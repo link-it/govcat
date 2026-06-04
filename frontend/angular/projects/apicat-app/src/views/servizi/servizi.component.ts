@@ -16,13 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, AfterViewInit, Component, HostListener, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule, Location } from '@angular/common';
 import { AbstractControl, FormGroup, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { HttpHeaders } from '@angular/common/http';
 
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
+import { PopoverModule } from 'ngx-bootstrap/popover';
 import { NgxMasonryOptions } from 'ngx-masonry';
 
 import { TranslateService } from '@ngx-translate/core';
@@ -65,6 +66,7 @@ declare const saveAs: any;
         ReactiveFormsModule,
         ...COMPONENTS_IMPORTS,
         ...APP_COMPONENTS_IMPORTS,
+        PopoverModule,
         TassonomiaTokenComponent,
         ExportDropdwnComponent,
         ResponsiveTabsComponent,
@@ -229,6 +231,20 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         // { label: 'APP.GROUPS.TITLE.Root', url: 'root', type: 'link', iconBs: 'folder' }
     ];
 
+    /** Dettagli del gruppo corrente quando si naviga in un sotto-albero.
+     *  Popolato lazy quando `_currIdGruppoPadre` cambia. Usato dal
+     *  template per mostrare descrizione_sintetica/descrizione
+     *  nell'header (vista groups). Null = root o non caricato. */
+    _currentGroup: any = null;
+
+    /** True se il popover della descrizione gruppo deve essere
+     *  attivabile: esiste `descrizione` estesa, oppure la
+     *  `descrizione_sintetica` mostrata in header e` effettivamente
+     *  troncata dall'ellissi CSS. */
+    _currentGroupExpandable: boolean = false;
+
+    @ViewChild('groupHeaderDescText') groupHeaderDescTextRef?: ElementRef<HTMLElement>;
+
     minLengthTerm = 1;
 
     servizi$!: Observable<any[]>;
@@ -384,6 +400,47 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
     @HostListener('window:resize') _onResize() {
         this.__updateGroupsViewMode();
+        this._updateGroupDescExpandable();
+    }
+
+    /**
+     * Handler del click sull'area descrizione gruppo: toggla il
+     * popover solo se `_currentGroupExpandable` e` true. La direttiva
+     * popover ha `triggers=""` (no auto-trigger) per poter gestire
+     * dinamicamente lo stato cliccabile senza re-instanziare la
+     * direttiva.
+     */
+    _onGroupDescClick(popover: any): void {
+        if (!this._currentGroupExpandable) { return; }
+        popover?.toggle?.();
+    }
+
+    /**
+     * Aggiorna `_currentGroupExpandable`: vero se esiste `descrizione`
+     * estesa, oppure se il testo della `descrizione_sintetica` mostrato
+     * in header e` effettivamente troncato (scrollWidth > clientWidth).
+     * Su `clientWidth === 0` (elemento non ancora laid-out) ritenta
+     * fino a `maxRetries` volte con backoff breve.
+     */
+    private _updateGroupDescExpandable(retries: number = 5): void {
+        if (!this._currentGroup) {
+            this._currentGroupExpandable = false;
+            return;
+        }
+        if (this._currentGroup.descrizione) {
+            this._currentGroupExpandable = true;
+            return;
+        }
+        const el = this.groupHeaderDescTextRef?.nativeElement;
+        if (!el || el.clientWidth === 0) {
+            if (retries > 0) {
+                setTimeout(() => this._updateGroupDescExpandable(retries - 1), 60);
+            } else {
+                this._currentGroupExpandable = false;
+            }
+            return;
+        }
+        this._currentGroupExpandable = el.scrollWidth > el.clientWidth + 1;
     }
 
     ngOnInit() {
@@ -544,10 +601,42 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         });
     }
 
+    /**
+     * Carica i dettagli del gruppo corrente (descrizione_sintetica,
+     * descrizione, ...) quando si naviga in un sotto-albero. Cache
+     * basata su `id_gruppo` per evitare fetch duplicate. Su root
+     * resetta `_currentGroup`.
+     */
+    _loadCurrentGroup(): void {
+        if (!this._currIdGruppoPadre) {
+            this._currentGroup = null;
+            this._currentGroupExpandable = false;
+            return;
+        }
+        if (this._currentGroup?.id_gruppo === this._currIdGruppoPadre) {
+            return;
+        }
+        const requestedId = this._currIdGruppoPadre;
+        this.apiService.getDetails('gruppi', requestedId).subscribe({
+            next: (response: any) => {
+                if (requestedId === this._currIdGruppoPadre) {
+                    this._currentGroup = response;
+                    // Misura overflow dopo il render del template.
+                    setTimeout(() => this._updateGroupDescExpandable(), 0);
+                }
+            },
+            error: () => {
+                this._currentGroup = null;
+                this._currentGroupExpandable = false;
+            }
+        });
+    }
+
     _loadServiziGruppi(query: any = null, url: string = '') {
         this._setErrorMessages(false);
 
         if (!url) { this.resetElements(); }
+        if (!url) { this._loadCurrentGroup(); }
         
         let aux: any;
         if (!url) {

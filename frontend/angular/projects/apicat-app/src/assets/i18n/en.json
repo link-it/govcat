@@ -2674,6 +2674,7 @@
 			"ExportCSV": "Export file CSV",
 			"ExportPDF": "Export file PDF",
 			"Group": "Group",
+			"GroupDescription": "Show group description",
 			"HideDetails": "Hide details",
 			"Indeterminate": "Not applicable in this state",
 			"Information": "Information",

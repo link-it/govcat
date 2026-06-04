@@ -29,7 +29,10 @@
         <h2>{{ _secondaryText }}</h2>
       }
       @if (_metadata) {
-        <p>{{ _metadata }}</p>
+        <p [tooltip]="(data?.descrizione_sintetica && data.descrizione_sintetica !== _metadata) ? data.descrizione_sintetica : ''"
+           [container]="'body'"
+           [placement]="'auto'"
+           [delay]="300">{{ _metadata }}</p>
       }
     </div>
     <div class="bottom">
@@ -74,7 +77,10 @@
           <span>{{ _secondaryText }}</span>
         }</p>
         @if (_metadata) {
-          <p>{{ _metadata }}</p>
+          <p [tooltip]="(data?.descrizione_sintetica && data.descrizione_sintetica !== _metadata) ? data.descrizione_sintetica : ''"
+             [container]="'body'"
+             [placement]="'top'"
+             [delay]="300">{{ _metadata }}</p>
         }
         @if (data.stato) {
           <ui-data-type class="me-2"

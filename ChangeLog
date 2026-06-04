@@ -1,6 +1,18 @@
 2026-05-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Lista servizi vista gruppi: nell'header mostra
+	  descrizione_sintetica del gruppo corrente (icona folder
+	  + testo troncato con ellissi). Popover su click con
+	  descrizione sintetica + descrizione estesa, attivo solo
+	  quando il testo e` effettivamente troncato o esiste
+	  `descrizione`. Tooltip su `metadata` troncato anche nei
+	  card `lnk-card` e `servizi-group-list-card`. i18n
+	  `APP.TOOLTIP.GroupDescription` (IT/EN).
+
+2026-05-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue #277 - GovCat PDND: attributi certificati non
 	  correttamente renderizzati. Fix track expression delle
 	  liste `@for` in `pdnd-eservice-view` (warning NG0956 al
