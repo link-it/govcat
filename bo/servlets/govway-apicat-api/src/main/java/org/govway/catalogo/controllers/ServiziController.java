@@ -2006,9 +2006,10 @@ public class ServiziController implements ServiziApi {
 
 
 				this.logger.info("PRE filtered");
+				UtenteEntity utenteSessione = this.coreAuthorization.getUtenteSessione();
 				List<ServizioGruppoEntity> filtered = findAll
 														.stream()
-														.filter(sg -> !isEmpty(sg))
+														.filter(sg -> !isEmpty(sg, utenteSessione))
 														.collect(Collectors.toList());
 				
 				this.logger.info("POST filtered");
@@ -2077,7 +2078,7 @@ public class ServiziController implements ServiziApi {
 	}
 	 */
 	
-	private boolean isEmpty(ServizioGruppoEntity sg) {
+	private boolean isEmpty(ServizioGruppoEntity sg, UtenteEntity utenteSessione) {
 	    if (sg.getTipo().equals(TipoServizioGruppoEnum.SERVIZIO)) {
 	        return false;
 	    }
@@ -2085,31 +2086,29 @@ public class ServiziController implements ServiziApi {
 	    Optional<GruppoEntity> gruppoEntity = this.gruppoService.find(UUID.fromString(sg.getIdEntita()));
 
 	    if (gruppoEntity.isPresent()) {
-	        return isEmpty(gruppoEntity.get());
+	        return isEmpty(gruppoEntity.get(), utenteSessione);
 	    }
 
 	    return true;
 	}
 
 	
-	private boolean isEmpty(GruppoEntity gruppo) {
+	private boolean isEmpty(GruppoEntity gruppo, UtenteEntity utenteSessione) {
 
 		if(!gruppo.getServizi().isEmpty()) {
-			UtenteEntity utenteSessione = this.coreAuthorization.getUtenteSessione();
-			
 			for(ServizioEntity servizio: gruppo.getServizi()) {
 				if(isVisibile(servizio, utenteSessione)) {
 					return false;
 				}
 			}
 		}
-		
+
 		for(GruppoEntity figlio: gruppo.getFigli()) {
-			if(!isEmpty(figlio)) {
+			if(!isEmpty(figlio, utenteSessione)) {
 				return false;
 			}
 		}
-		
+
 		return true;
 	}
 
