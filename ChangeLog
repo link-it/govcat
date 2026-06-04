@@ -1,6 +1,16 @@
 2026-06-04  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard adesione substepper: per i sub-step diversi da
+	  "In compilazione" i disclaimer mostrati ora sono quelli
+	  contestuali all'ambiente (`collaudo`/`produzione`) invece
+	  che `generale` — sono state-aware e rilevanti su tutti i
+	  sub-step. Border-top del pannello azioni workflow reso
+	  solo quando esiste almeno un disclaimer sopra.
+
+2026-06-04  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Wizard adesione: `onWorkflowAction` ora attiva sempre la fase
 	  corrente (`_initSelectedFase`) prima della conferma del
 	  cambio stato, evitando che la UI resti su una fase

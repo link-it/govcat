@@ -1415,13 +1415,15 @@
               @default {
                 @if (sub.state === 'active') {
                   <!-- Sub-step "In approvazione" / "In configurazione":
-                       il messaggio non e` piu` un testo statico i18n,
-                       ma deriva dai disclaimer BE con `contesto='generale'`
-                       — sono gia` state-aware (caricati dal BE per lo
-                       stato corrente dell'adesione). Rendering minimal:
-                       solo testo markdown, niente icona ne` severity
-                       banner (per scelta UX: il sub-step e` gia` visivo). -->
-                  @for (item of disclaimersGenerali; track $index) {
+                       il messaggio deriva dai disclaimer BE contestuali
+                       all'ambiente (`collaudo`/`produzione`) — sono
+                       state-aware (caricati dal BE per lo stato
+                       corrente) e quindi rilevanti anche per i
+                       sub-step diversi da "In compilazione".
+                       Rendering minimal: solo testo markdown, niente
+                       icona ne` severity (il sub-step e` gia` visivo). -->
+                  @let _subStepDisclaimers = section === 'collaudo' ? disclaimersCollaudo : disclaimersProduzione;
+                  @for (item of _subStepDisclaimers; track $index) {
                     <markdown class="markdown-inline markdown-small d-block pt-3" [data]="item.disclaimer"></markdown>
                   }
 
@@ -1437,7 +1439,8 @@
                       <ng-container *ngTemplateOutlet="workflowErrorTpl"></ng-container>
                     </div>
 
-                    <div class="d-flex flex-wrap gap-2 justify-content-end mt-3 pt-3" style="border-top: 1px solid var(--line);">
+                    <div class="d-flex flex-wrap gap-2 justify-content-end mt-3 pt-3"
+                         [style.border-top]="_subStepDisclaimers?.length ? '1px solid var(--line)' : null">
                       @if (_entry?.stati_ulteriori?.length) {
                         @for (status of _entry.stati_ulteriori; track status.nome) {
                           @if (_isWorkflowActionEnabled('stati_ulteriori', status.nome)) {
