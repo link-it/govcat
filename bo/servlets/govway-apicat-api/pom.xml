@@ -310,6 +310,13 @@
 			<version>${project.version}</version>
 		</dependency>
 
+		<!-- Configuratore (for KeycloakInvoker) -->
+		<dependency>
+			<groupId>org.govway.catalogo</groupId>
+			<artifactId>configuratore</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.govway.catalogo</groupId>
 			<artifactId>dao</artifactId>

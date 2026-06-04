@@ -38,6 +38,7 @@ import org.govway.catalogo.authorization.ClientAuthorization;
 import org.govway.catalogo.core.dao.specifications.AdesioneSpecification;
 import org.govway.catalogo.core.dao.specifications.ClientSpecification;
 import org.govway.catalogo.core.orm.entity.ClientEntity;
+import org.govway.catalogo.core.orm.entity.ClientEntity.AuthType;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
 import org.govway.catalogo.core.orm.entity.ClientEntity.StatoEnum;
 import org.govway.catalogo.core.services.AdesioneService;
@@ -53,6 +54,7 @@ import org.govway.catalogo.servlets.model.AmbienteEnum;
 import org.govway.catalogo.servlets.model.AuthTypeEnum;
 import org.govway.catalogo.servlets.model.Client;
 import org.govway.catalogo.servlets.model.ClientCreate;
+import org.govway.catalogo.servlets.model.ClientSecret;
 import org.govway.catalogo.servlets.model.ClientUpdate;
 import org.govway.catalogo.servlets.model.ItemClient;
 import org.govway.catalogo.servlets.model.PageMetadata;
@@ -63,6 +65,7 @@ import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.services.CertificatoScadenzaService;
+import org.govway.catalogo.services.KeycloakClientSecretService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,6 +113,9 @@ public class ClientController implements ClientApi {
 
 	@Autowired
 	private CertificatoScadenzaService certScadenzaService;
+
+	@Autowired
+	private KeycloakClientSecretService keycloakClientSecretService;
 
 	private Logger logger = LoggerFactory.getLogger(ClientController.class);
 
@@ -183,20 +189,70 @@ public class ClientController implements ClientApi {
 	public ResponseEntity<Client> getClient(UUID idClient) {
 		try {
 			return this.service.runTransaction( () -> {
-	
-				this.logger.info("Invocazione in corso ...");     
+
+				this.logger.info("Invocazione in corso ...");
 
 				ClientEntity entity = this.service.find(idClient)
 						.orElseThrow(() -> new NotFoundException(ErrorCode.CLT_404));
-	
+
 				this.authorization.authorizeGet(entity);
-				
-				this.logger.debug("Autorizzazione completata con successo");     
+
+				this.logger.debug("Autorizzazione completata con successo");
 
 				Client model = this.dettaglioAssembler.toModel(entity);
-	
+
 				this.logger.info("Invocazione completata con successo");
-	
+
+				return ResponseEntity.ok(model);
+			});
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	@Override
+	public ResponseEntity<ClientSecret> getClientSecret(UUID idClient) {
+		try {
+			return this.service.runTransaction( () -> {
+
+				this.logger.info("Invocazione in corso ...");
+
+				ClientEntity entity = this.service.find(idClient)
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CLT_404));
+
+				this.authorization.authorizeGet(entity);
+
+				this.logger.debug("Autorizzazione completata con successo");
+
+				if(!AuthType.OAUTH_CLIENT_CREDENTIALS.equals(entity.getAuthType())) {
+					throw new BadRequestException(ErrorCode.CLT_400_CONFIG, Map.of("authType", entity.getAuthType().toString()));
+				}
+
+				String clientId = entity.getEstensioni().stream()
+						.filter(e -> "client_id".equals(e.getNome()))
+						.map(EstensioneClientEntity::getValore)
+						.findFirst()
+						.orElseThrow(() -> new BadRequestException(ErrorCode.CLT_400_CONFIG, Map.of("missing", "client_id")));
+
+				String secret;
+				try {
+					secret = this.keycloakClientSecretService.getSecret(clientId);
+				} catch (java.io.IOException e) {
+					this.logger.error("Errore nella lettura del client secret da Keycloak per clientId {}", clientId, e);
+					throw new InternalException(ErrorCode.SYS_500);
+				}
+
+				ClientSecret model = new ClientSecret();
+				model.setSecret(secret);
+
+				this.logger.info("Invocazione completata con successo");
+
 				return ResponseEntity.ok(model);
 			});
 		}

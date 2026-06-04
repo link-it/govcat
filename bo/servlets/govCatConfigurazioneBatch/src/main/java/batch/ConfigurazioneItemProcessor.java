@@ -29,12 +29,16 @@ import java.util.UUID;
 import org.govway.catalogo.core.configurazione.ConfigurazioneAdesioneInput;
 import org.govway.catalogo.core.configurazione.EsitoConfigurazioneAdesione;
 import org.govway.catalogo.core.configurazione.IConfigurazioneExecutor;
+import org.govway.catalogo.core.dao.repositories.ClientRepository;
 import org.govway.catalogo.core.dao.repositories.UtenteRepository;
 import org.govway.catalogo.core.dao.specifications.UtenteSpecification;
 import org.govway.catalogo.core.dto.DTOAdesione;
 import org.govway.catalogo.core.exceptions.NotFoundException;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity.STATO_CONFIGURAZIONE;
+import org.govway.catalogo.core.orm.entity.AmbienteEnum;
+import org.govway.catalogo.core.orm.entity.ClientAdesioneEntity;
+import org.govway.catalogo.core.orm.entity.ClientEntity;
 import org.govway.catalogo.core.orm.entity.StatoAdesioneEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +61,9 @@ public class ConfigurazioneItemProcessor implements ItemProcessor<AdesioneEntity
 
 	@Autowired
 	private UtenteRepository utenteRepository;
+
+	@Autowired
+	private ClientRepository clientRepository;
 
     @Value("${configurazione-automatica.batch.utente_configuratore}")
 	String utenteConfiguratore;
@@ -159,6 +166,8 @@ public class ConfigurazioneItemProcessor implements ItemProcessor<AdesioneEntity
 			entity.setStatoConfigurazione(null);
 			entity.setMessaggioConfigurazione(null);
 
+			promuoviClientConfigurati(entity, statoInConf);
+
 			break;
 
 		case KO_DEFINITIVO:
@@ -181,5 +190,29 @@ public class ConfigurazioneItemProcessor implements ItemProcessor<AdesioneEntity
 
 		return entity;
 
+	}
+
+	private void promuoviClientConfigurati(AdesioneEntity entity, String statoInConf) {
+		AmbienteEnum ambienteConfigurazione;
+		if (statoInConf.contains("collaudo")) {
+			ambienteConfigurazione = AmbienteEnum.COLLAUDO;
+		} else if (statoInConf.contains("produzione")) {
+			ambienteConfigurazione = AmbienteEnum.PRODUZIONE;
+		} else {
+			logger.warn("[Processor] ambiente non determinabile dallo stato [{}], nessun client promosso", statoInConf);
+			return;
+		}
+
+		for (ClientAdesioneEntity clientAdesione : entity.getClient()) {
+			if (!ambienteConfigurazione.equals(clientAdesione.getAmbiente())) {
+				continue;
+			}
+			ClientEntity clientEntity = clientAdesione.getClient();
+			if (clientEntity != null && ClientEntity.StatoEnum.NUOVO.equals(clientEntity.getStato())) {
+				clientEntity.setStato(ClientEntity.StatoEnum.CONFIGURATO);
+				clientRepository.saveAndFlush(clientEntity);
+				logger.info("[Processor] Client [{}] portato in stato CONFIGURATO", clientEntity.getNome());
+			}
+		}
 	}
 }

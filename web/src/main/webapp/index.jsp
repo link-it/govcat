@@ -1,7 +1,22 @@
-<%@ page import="java.security.SecureRandom, java.util.Base64" %><%
+<%@ page import="java.security.SecureRandom, java.util.Base64,
+                 org.springframework.web.context.WebApplicationContext,
+                 org.springframework.web.context.support.WebApplicationContextUtils,
+                 org.govway.catalogo.reverse_proxy.config.CspAllowedHostsService" %><%
   byte[] nonceBytes = new byte[32];
   new SecureRandom().nextBytes(nonceBytes);
   String cspNonce = Base64.getEncoder().encodeToString(nonceBytes);
+
+  String cspExtraConnectSrc = "";
+  try {
+    WebApplicationContext wac = WebApplicationContextUtils.getRequiredWebApplicationContext(getServletContext());
+    String extra = wac.getBean(CspAllowedHostsService.class).getAllowedHostsAsCspString();
+    if (extra != null && !extra.isEmpty()) {
+      cspExtraConnectSrc = " " + extra;
+    }
+  } catch (Exception e) {
+    // Fallback su CSP stretta: la richiesta non deve fallire se il servizio non è disponibile.
+  }
+
   response.setHeader("Content-Security-Policy",
     "default-src 'self'; " +
     "script-src 'self' 'nonce-" + cspNonce + "'; " +
@@ -9,7 +24,7 @@
     "style-src-attr 'unsafe-inline'; " +
     "img-src 'self' data: blob:; " +
     "font-src 'self'; " +
-    "connect-src 'self'; " +
+    "connect-src 'self'" + cspExtraConnectSrc + "; " +
     "frame-ancestors 'none'; " +
     "form-action 'self'; " +
     "base-uri 'self'");

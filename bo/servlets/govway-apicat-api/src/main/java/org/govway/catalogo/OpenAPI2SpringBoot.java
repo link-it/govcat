@@ -162,7 +162,7 @@ basePackages = {"org.govway.catalogo.core.dao.repositories"})
 @EnableTransactionManagement
 @PropertySources({
     @PropertySource("classpath:govcat-api.properties"),
-    @PropertySource(value = "file:${org.govway.api.catalogo.resource.path:/var/govcat/conf/govcat-api.properties}", ignoreResourceNotFound = true),
+    @PropertySource(value = "file:${org.govway.api.catalogo.resource.path:/var/govcat/conf}/govcat-api.properties", ignoreResourceNotFound = true),
     @PropertySource(value = "classpath:govcat-stampe.properties", encoding = "UTF-8"),
     @PropertySource(value = "file:${org.govway.api.catalogo.stampe.path:/var/govcat/conf/govcat-stampe.properties}", ignoreResourceNotFound = true, encoding = "UTF-8")
 })
