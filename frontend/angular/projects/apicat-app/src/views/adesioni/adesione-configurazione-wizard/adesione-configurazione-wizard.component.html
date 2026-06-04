@@ -671,7 +671,6 @@
             <!-- Nascosto sotto il nuovo layout: il pulsante e' gia'
                  reso nel footer del sub-step attivo. -->
             @if (!wizardNewLayout && hasNextStateWorkflow() && _hasCambioStato()) {
-
               <lnk-button
                 [label]="'APP.WORKFLOW.MENU.' + getNextStateWorkflowName()"
                 [primary]="true"

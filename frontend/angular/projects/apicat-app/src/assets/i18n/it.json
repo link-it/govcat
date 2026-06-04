@@ -2587,6 +2587,7 @@
 			"BulkEsitoOk": "Successo",
 			"CancelEdit": "Annulla modifica",
 			"GoToAdesione": "Vai al dettaglio dell'adesione",
+			"GoToClient": "Vai al dettaglio del client",
 			"CancelNew": "Annulla inserimento",
 			"CannotArchive": "Non hai i permessi per archiviare. Contatta un gestore.",
 			"ChangeStatus": "Cambia stato",

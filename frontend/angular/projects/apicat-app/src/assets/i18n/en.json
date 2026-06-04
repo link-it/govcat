@@ -2587,6 +2587,7 @@
 			"BulkEsitoOk": "Success",
 			"CancelEdit": "Cancel edit",
 			"GoToAdesione": "Go to subscription details",
+			"GoToClient": "Go to client details",
 			"CancelNew": "Cancel add",
 			"CannotArchive": "You don't have permission to archive. Contact an administrator.",
 			"ChangeStatus": "Change status",

@@ -19,6 +19,7 @@
 import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
@@ -144,8 +145,33 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
         private readonly utils: UtilService,
         private readonly eventsManagerService: EventsManagerService,
         private readonly ckeckProvider: CkeckProvider,
-        private readonly configService: ConfigService
+        private readonly configService: ConfigService,
+        private readonly router: Router
     ) { }
+
+    /**
+     * Naviga al dettaglio del client associato all'adesione corrente.
+     * Apre la rotta `/client/:id_client` con queryParams
+     * `from=adesione`+`id_adesione`. Supporta apertura in nuova
+     * scheda quando il click avviene con Ctrl/Cmd o tasto centrale
+     * (auxclick): in quel caso usa `window.open` invece del Router,
+     * coerentemente col comportamento nativo dei link del browser.
+     */
+    goToClient(event: MouseEvent, item: any): void {
+        const idClient = item?.id_client || item?.source?.id_client;
+        if (!idClient) { return; }
+        const queryParams: any = { from: 'adesione' };
+        if (this.adesione?.id_adesione) { queryParams.id_adesione = this.adesione.id_adesione; }
+        const urlTree = this.router.createUrlTree(['/client', idClient], { queryParams });
+        const openInNewTab = !!event && (event.ctrlKey || event.metaKey || event.shiftKey || event.button === 1);
+        if (openInNewTab) {
+            event.preventDefault();
+            event.stopPropagation();
+            window.open(this.router.serializeUrl(urlTree), '_blank', 'noopener,noreferrer');
+            return;
+        }
+        this.router.navigateByUrl(urlTree);
+    }
 
     /**
      * Issue 262 — visibilita` dei disclaimer per item (banner
@@ -205,6 +231,7 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
             if (!ignoreSpin) { this.adesioneClients = []; }
             this.apiService.getDetails(this.model, this.id, environment + '/client').subscribe({
                 next: (response: any) => {
+                    console.log('Response clients:', response);
                     const _clientsArr: any = [];
                     // clclo sui client_richiesti per sottoscrivere l'adesione
                     _.uniqWith(this.adesione.client_richiesti, _.isEqual).forEach((item: any) => {
@@ -217,6 +244,7 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
 
                         // verifico se tra i client già associati all'adesione, ce n'è uno definito per l'elemento corrente (item)
                         const _clientAssociato: any = response.content.find((el: any) => {return item.profilo === el.profilo});
+                        console.log('Client associato:', _clientAssociato);
                         
                         let _element: any = {
                             id_client: null,
@@ -233,7 +261,7 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
                             _element.id_client = _clientAssociato.id_client;
                             _element.codice_interno = _clientAssociato.profilo;
                             _element.auth_type = _clientAssociato.dati_specifici?.auth_type || _temp_profilo.auth_type;
-                            _element.stato = StatoConfigurazioneEnum.CONFIGURATO;
+                            _element.stato = _clientAssociato.stato;
                             if (_clientAssociato.nome_proposto && !_clientAssociato.nome) {
                                 if (this.authenticationService.isGestore(this.grant?.ruoli)) {
                                     _element.stato = StatoConfigurazioneEnum.CONFIGINPROGRESS;
@@ -274,12 +302,12 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
 
                     this.adesioneClients = [ ..._list ];
 
-                    this.adesioneClients.forEach((el: any) => {
-                        if (el.source.stato != StatoConfigurazioneEnum.CONFIGURATO) {
-                            el.id_client = null;
-                            el.source.id_client = null;
-                        }
-                    });
+                    // this.adesioneClients.forEach((el: any) => {
+                    //     if (el.source.stato === StatoConfigurazioneEnum.CONFIGURATO) {
+                    //         el.id_client = null;
+                    //         el.source.id_client = null;
+                    //     }
+                    // });
 
                     this.spin = false;
                 },
@@ -340,6 +368,17 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
 
     _isGestoreMapper = (): boolean => {
         return this.authenticationService.isGestore(this.grant?.ruoli);
+    }
+
+    /**
+     * Vero se l'utente puo` accedere alla pagina di dettaglio
+     * `/client/:id`. Mirror della logica di `GestoreGuard`:
+     * gestore globale OPPURE utente amministrazione con permesso
+     * `canRead` sul menu `client`.
+     */
+    _canGoToClientMapper = (): boolean => {
+        if (this.authenticationService.isGestore()) { return true; }
+        return !!this.authenticationService.verificacanPermessiMenuAmministrazione('client')?.canRead;
     }
     
     _isConfiguratoMapper = (item: any): boolean => {

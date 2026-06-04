@@ -1,3 +1,16 @@
+2026-06-04  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Wizard adesione lista clients: nuovo pulsante "Vai al
+	  dettaglio del client" (`open_in_new`) accanto al client
+	  configurato. Naviga a `/client/:id` con queryParams
+	  `from=adesione`+`id_adesione`; supporta apertura in nuova
+	  scheda via Ctrl/Cmd/Shift+click o middle-click. Visibile
+	  solo a utenti con accesso alla rotta (mirror di
+	  `GestoreGuard`: gestore o amministrazione con permesso
+	  di lettura su `client`). i18n
+	  `APP.TOOLTIP.GoToClient` (IT/EN).
+
 2026-05-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

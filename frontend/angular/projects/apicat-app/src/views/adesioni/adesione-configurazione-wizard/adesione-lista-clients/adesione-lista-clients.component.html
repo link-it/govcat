@@ -71,6 +71,24 @@
             </div>
             @if (isEdit) {
               <div class="adesione-config-list-item-actions">
+                <!-- LINK AL CLIENT: naviga alla pagina di dettaglio
+                     del client (`/client/:id`). Visibile per client
+                     gia` `configurato` e modificabili, e solo per
+                     utenti con accesso alla rotta `/client` (gestore
+                     o amministrazione con permesso di lettura — mirror
+                     di `GestoreGuard`). -->
+                @if (item.id_client && isModifiable && (updateMapper | mapper:_canGoToClientMapper)) {
+                  @let clientNametooltip = 'APP.TOOLTIP.GoToClient' | translate;
+                  <button type="button"
+                          class="lnk-btn lnk-btn-ghost lnk-btn-sm lnk-btn-icon"
+                          [tooltip]="`${clientNametooltip} '${item.source?.nome || item.id_client}'`"
+                          [delay]="500"
+                          container="body"
+                          (click)="goToClient($event, item)"
+                          (auxclick)="goToClient($event, item)">
+                    <span class="material-icons-outlined">open_in_new</span>
+                  </button>
+                }
                 <!-- DISSOCIA: solo per client `configurato` modificabili. -->
                 @if ((item.source.stato == 'configurato') && isModifiable) {
                   <button type="button"
