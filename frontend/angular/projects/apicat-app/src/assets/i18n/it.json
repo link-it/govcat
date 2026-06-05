@@ -2841,10 +2841,12 @@
 			"DATATYPE": {
 				"collaudo": "Collaudo",
 				"collaudo_configurato": "Collaudo",
+				"collaudo_pdnd": "PDND",
 				"generico": "Generico",
 				"identificativo": "Identificativo",
 				"produzione": "Produzione",
 				"produzione_configurato": "Produzione",
+				"produzione_pdnd": "PDND",
 				"referenti": "Referenti",
 				"specifica": "Specifica"
 			},

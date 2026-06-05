@@ -90,7 +90,7 @@
                   </button>
                 }
                 <!-- DISSOCIA: solo per client `configurato` modificabili. -->
-                @if ((item.source.stato == 'configurato') && isModifiable) {
+                @if (item.id_client && isModifiable) {
                   <button type="button"
                           class="lnk-btn lnk-btn-ghost lnk-btn-sm lnk-btn-icon"
                           [tooltip]="'APP.TOOLTIP.Dissociate' | translate"

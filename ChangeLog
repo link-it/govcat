@@ -1,6 +1,15 @@
 2026-06-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	i18n: aggiunte `APP.WORKFLOW.DATATYPE.collaudo_pdnd` e
+	  `produzione_pdnd` ("PDND" IT/EN).
+	Wizard adesione: gate del bottone "Dissocia" allineato a
+	  `item.id_client` (era su stato == 'configurato'),
+	  coerente col bottone "Vai al dettaglio client".
+
+2026-06-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Wizard adesione: disclaimer per gruppo di custom properties.
 	  Nuovo campo opzionale `nome_gruppo` su `AdesioneDisclaimer`;
 	  quando valorizzato il disclaimer e` reso accanto al gruppo
