@@ -138,7 +138,7 @@ public class DisclaimerService {
 			if (result.isEmpty()) {
 				DisclaimerEntry defaultEntry = disclaimers.get(DEFAULT_KEY);
 				if (defaultEntry != null && defaultEntry.testo != null && !defaultEntry.testo.isBlank()) {
-					result.add(buildDisclaimer(defaultEntry.testo, DisclaimerContestoEnum.GENERALE, defaultEntry.severity, null));
+					result.add(buildDisclaimer(defaultEntry.testo, DisclaimerContestoEnum.GENERALE, defaultEntry.severity, null, defaultEntry.nomeGruppo));
 				} else {
 					result.add(buildHardcodedFallback(lang));
 				}
@@ -175,23 +175,24 @@ public class DisclaimerService {
 		DisclaimerEntry entry = disclaimers.get(key);
 		if (entry != null && entry.testo != null && !entry.testo.isBlank()) {
 			matchedKeys.add(key);
-			result.add(buildDisclaimer(entry.testo, contesto, entry.severity, profilo));
+			result.add(buildDisclaimer(entry.testo, contesto, entry.severity, profilo, entry.nomeGruppo));
 		}
 	}
 
 	private AdesioneDisclaimer buildDisclaimer(String testo, DisclaimerContestoEnum contesto,
-			DisclaimerSeverityEnum severity, String profilo) {
+			DisclaimerSeverityEnum severity, String profilo, String nomeGruppo) {
 		AdesioneDisclaimer d = new AdesioneDisclaimer();
 		d.setDisclaimer(testo.trim());
 		d.setContesto(contesto);
 		d.setSeverity(severity != null ? severity : DisclaimerSeverityEnum.INFO);
 		d.setProfilo(profilo);
+		d.setNomeGruppo(nomeGruppo);
 		return d;
 	}
 
 	private AdesioneDisclaimer buildHardcodedFallback(String lang) {
 		String testo = "en".equals(lang) ? HARDCODED_FALLBACK_EN : HARDCODED_FALLBACK_IT;
-		return buildDisclaimer(testo, DisclaimerContestoEnum.GENERALE, DisclaimerSeverityEnum.INFO, null);
+		return buildDisclaimer(testo, DisclaimerContestoEnum.GENERALE, DisclaimerSeverityEnum.INFO, null, null);
 	}
 
 	/**
@@ -282,9 +283,11 @@ public class DisclaimerService {
 		if (value instanceof Map<?, ?> map) {
 			Object testoObj = ((Map<String, Object>) map).get("testo");
 			Object severityObj = ((Map<String, Object>) map).get("severity");
+			Object nomeGruppoObj = ((Map<String, Object>) map).get("nome_gruppo");
 			String testo = (testoObj != null) ? testoObj.toString() : "";
 			DisclaimerSeverityEnum severity = parseSeverity(severityObj);
-			return new DisclaimerEntry(testo, severity);
+			String nomeGruppo = (nomeGruppoObj != null) ? nomeGruppoObj.toString() : null;
+			return new DisclaimerEntry(testo, severity, nomeGruppo);
 		}
 		// Formato non riconosciuto: usa toString e severity default
 		return new DisclaimerEntry(value.toString(), DisclaimerSeverityEnum.INFO);
@@ -310,10 +313,16 @@ public class DisclaimerService {
 	static final class DisclaimerEntry {
 		final String testo;
 		final DisclaimerSeverityEnum severity;
+		final String nomeGruppo;
 
 		DisclaimerEntry(String testo, DisclaimerSeverityEnum severity) {
+			this(testo, severity, null);
+		}
+
+		DisclaimerEntry(String testo, DisclaimerSeverityEnum severity, String nomeGruppo) {
 			this.testo = testo;
 			this.severity = severity;
+			this.nomeGruppo = nomeGruppo;
 		}
 	}
 }
