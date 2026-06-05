@@ -89,6 +89,12 @@ export interface AdesioneDisclaimer {
     severity?: DisclaimerSeverity;
     links?: AdesioneDisclaimerLink[];
     profilo?: string;
+    /** Quando valorizzato, lega il disclaimer a un gruppo di
+     *  custom properties (`nome_gruppo`). In tal caso il disclaimer
+     *  viene reso accanto al gruppo nel wizard e NON nel banner
+     *  ambientale del substepper. Richiede comunque `contesto`
+     *  ('collaudo' | 'produzione'). */
+    nome_gruppo?: string;
 }
 
 @Component({
@@ -625,6 +631,21 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
             contesto: 'produzione',
             severity: 'WARNING',
             disclaimer: 'Verificare la configurazione PDND in produzione: richieste errate possono comportare la sospensione del servizio.'
+        },
+        // Disclaimer per gruppi di custom properties: legati al gruppo
+        // via `nome_gruppo`, mostrati accanto al gruppo e NON nel
+        // banner ambientale.
+        {
+            contesto: 'collaudo',
+            severity: 'INFO',
+            nome_gruppo: 'PDNDCollaudo',
+            disclaimer: 'Compila gli identificativi PDND di collaudo prima di richiedere la configurazione.'
+        },
+        {
+            contesto: 'produzione',
+            severity: 'WARNING',
+            nome_gruppo: 'PDNDProduzione',
+            disclaimer: '**Produzione PDND**: i dati saranno usati dall\'authorization server reale. Verificare prima della pubblicazione.'
         }
     ];
 
@@ -2444,7 +2465,8 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
                 contesto: d.contesto,
                 severity: d.severity,
                 links: Array.isArray(d.links) ? d.links : [],
-                profilo: d.profilo
+                profilo: d.profilo,
+                nome_gruppo: d.nome_gruppo
             }));
     }
 
@@ -2479,18 +2501,32 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     }
 
     // I disclaimer con `profilo` sono destinati al rendering sotto la
-    // specifica riga client (matching per profilo) e NON devono comparire
-    // anche nel banner generale della sezione di contesto.
+    // specifica riga client (matching per profilo); quelli con
+    // `nome_gruppo` vengono mostrati accanto al gruppo di custom
+    // properties corrispondente. In entrambi i casi devono essere
+    // esclusi dal banner ambientale per evitare doppia visualizzazione.
     get disclaimersGenerali(): AdesioneDisclaimer[] {
-        return this.getDisclaimersByContesto('generale').filter(d => !d.profilo);
+        return this.getDisclaimersByContesto('generale').filter(d => !d.profilo && !d.nome_gruppo);
     }
 
     get disclaimersCollaudo(): AdesioneDisclaimer[] {
-        return this.getDisclaimersByContesto('collaudo').filter(d => !d.profilo);
+        return this.getDisclaimersByContesto('collaudo').filter(d => !d.profilo && !d.nome_gruppo);
     }
 
     get disclaimersProduzione(): AdesioneDisclaimer[] {
-        return this.getDisclaimersByContesto('produzione').filter(d => !d.profilo);
+        return this.getDisclaimersByContesto('produzione').filter(d => !d.profilo && !d.nome_gruppo);
+    }
+
+    /**
+     * Disclaimer legati a un gruppo di custom properties: filtra per
+     * contesto (ambiente) + `nome_gruppo` (no `profilo`). Usato nel
+     * wizard per renderizzare un blocco markdown accanto a ogni
+     * `<app-api-custom-properties>` quando esistono disclaimer
+     * specifici per quel gruppo.
+     */
+    getDisclaimersByGruppo(contesto: DisclaimerContesto, nomeGruppo: string): AdesioneDisclaimer[] {
+        if (!nomeGruppo) { return []; }
+        return this.getDisclaimersByContesto(contesto).filter(d => !d.profilo && d.nome_gruppo === nomeGruppo);
     }
 
     // Usati come @Input delle liste client: solo i disclaimer con `profilo`

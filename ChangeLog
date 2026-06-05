@@ -1,3 +1,13 @@
+2026-06-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Wizard adesione: disclaimer per gruppo di custom properties.
+	  Nuovo campo opzionale `nome_gruppo` su `AdesioneDisclaimer`;
+	  quando valorizzato il disclaimer e` reso accanto al gruppo
+	  corrispondente (Collaudo/Produzione) ed escluso dal banner
+	  ambientale per evitare doppia visualizzazione. Severity
+	  fallback INFO. Mock aggiornato per test locale.
+
 2026-06-04  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

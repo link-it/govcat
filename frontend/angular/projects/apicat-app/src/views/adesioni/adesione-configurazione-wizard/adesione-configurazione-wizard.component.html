@@ -864,6 +864,14 @@
             </div>
           </div>
           <div class="" [class.col-lg-8]="!singleColumn" [class.col-lg-8]="!singleColumn">
+            @let _grpDisclaimersC = getDisclaimersByGruppo('collaudo', item.nome_gruppo);
+            @if (_grpDisclaimersC.length > 0) {
+              <div class="adesione-disclaimers mb-3">
+                @for (d of _grpDisclaimersC; track $index) {
+                  <ng-container *ngTemplateOutlet="bannerStatoNewTpl; context: { $implicit: d }"></ng-container>
+                }
+              </div>
+            }
             <section class="p-0">
               <app-api-custom-properties
                 [ambiente]="AmbienteEnum.Collaudo"
@@ -940,6 +948,14 @@
             </div>
           </div>
           <div class="" [class.col-lg-8]="!singleColumn" [class.col-lg-8]="!singleColumn">
+            @let _grpDisclaimersP = getDisclaimersByGruppo('produzione', item.nome_gruppo);
+            @if (_grpDisclaimersP.length > 0) {
+              <div class="adesione-disclaimers mb-3">
+                @for (d of _grpDisclaimersP; track $index) {
+                  <ng-container *ngTemplateOutlet="bannerStatoNewTpl; context: { $implicit: d }"></ng-container>
+                }
+              </div>
+            }
             <section class="p-0">
               <app-api-custom-properties
                 [ambiente]="AmbienteEnum.Produzione"
