@@ -132,10 +132,10 @@ export class AdesioneComunicazioniComponent implements OnInit, AfterContentCheck
     this.targetOptionsAdesione = [
       { label: 'APP.LABEL.TargetGestore', value: 'GESTORE' },
       ...(coordinatoreAbilitato ? [{ label: 'APP.LABEL.TargetCoordinatore', value: 'COORDINATORE' }] : []),
-      { label: 'APP.LABEL.TargetReferentiDominioServizio', value: 'REFERENTI_DOMINIO_SERVIZIO' },
-      { label: 'APP.LABEL.TargetReferentiServizio', value: 'REFERENTI_SERVIZIO' },
+      { label: 'APP.LABEL.TargetReferentiDominioServizio', value: 'REFERENTI_DOMINIO_SERVIZIO', hasTecnici: true },
+      { label: 'APP.LABEL.TargetReferentiServizio', value: 'REFERENTI_SERVIZIO', hasTecnici: true },
       { label: 'APP.LABEL.TargetRichiedenteServizio', value: 'RICHIEDENTE_SERVIZIO' },
-      { label: 'APP.LABEL.TargetReferentiAdesione', value: 'REFERENTI_ADESIONE' },
+      { label: 'APP.LABEL.TargetReferentiAdesione', value: 'REFERENTI_ADESIONE', hasTecnici: true },
       { label: 'APP.LABEL.TargetRichiedenteAdesione', value: 'RICHIEDENTE_ADESIONE' }
     ];
   }

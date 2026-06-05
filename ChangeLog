@@ -1,6 +1,16 @@
 2026-06-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Sender (`ui-sender`): checkbox "Includi tecnici" mostrata
+	  solo quando almeno un target selezionato e` referente
+	  (nuovo flag `hasTecnici` su `TargetOption`). Marcati
+	  REFERENTI_* in adesione-comunicazioni e
+	  servizio-comunicazioni; gestore/coordinatore/richiedente
+	  nascondono la checkbox.
+
+2026-06-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Wizard adesione:
 	  - Sub-step "In compilazione" forzato a `active` quando ha
 	    custom properties obbligatorie incomplete (anche se lo
