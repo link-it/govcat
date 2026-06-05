@@ -285,6 +285,7 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 		GrantType gt = null;
 		switch(datoModificato) {
 		case COLLAUDO:
+		case COLLAUDO_PDND:
 		case COLLAUDO_CONFIGURATO: gt = grant.getCollaudo();
 			break;
 		case GENERICO: gt = grant.getGenerico();
@@ -292,6 +293,7 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 		case IDENTIFICATIVO: gt = grant.getIdentificativo();
 		break;
 		case PRODUZIONE:
+		case PRODUZIONE_PDND:
 		case PRODUZIONE_CONFIGURATO:  gt = grant.getProduzione();
 		break;
 		case REFERENTI:  gt = grant.getReferenti();
