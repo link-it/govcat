@@ -556,7 +556,7 @@ export class AuthenticationService {
       }
     });
 
-    const _grant = expandContextualGrants(grant);
+    const _grant = expandContextualGrants(grant, module);
     const _intersection = _.intersection(_grant, _ssra);
     return _can && (_intersection.length > 0);
   }
@@ -638,7 +638,13 @@ export class AuthenticationService {
     } else if (_entry) {
       _ss = _entry.ruoli_abilitati || [];
     }
-    const _intersection = _.intersection(grant || [], _ss);
+    // Espande le grants per-contesto al modulo corrente: in
+    // particolare per `adesione` ref_servizio/ref_dominio vengono
+    // mappati anche a `referente_superiore` (e tech variants), cosi`
+    // il referente del servizio dell'adesione puo` cambiare stato
+    // come ref_dominio.
+    const _grant = expandContextualGrants(grant || [], module);
+    const _intersection = _.intersection(_grant, _ss);
     return (_intersection.length > 0);
   }
 
@@ -716,8 +722,11 @@ export class AuthenticationService {
     const _entry = _datiSempreModificabili.find((item: any) => item.classe_dato === classeDato);
     if (_entry) {
       // Mappa ruoli specifici per contesto ai ruoli generici della
-      // configurazione (vedi `expandContextualGrants`).
-      const _grant = expandContextualGrants(grant);
+      // configurazione (vedi `expandContextualGrants`). Per module
+      // `adesione` aggiunge anche `referente_superiore` ai referenti
+      // servizio/dominio (e tech variants), cosi` la save dei custom
+      // properties di adesione e` consentita anche al ref_servizio.
+      const _grant = expandContextualGrants(grant, module);
       return _.intersection(_grant, _entry.ruoli).length > 0;
     }
     return false;

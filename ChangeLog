@@ -1,6 +1,17 @@
 2026-06-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Adesione: referente del servizio (e referente dominio)
+	  interpretato come `referente_superiore` nei controlli di
+	  cambio stato e di modificabilita` custom properties.
+	  `expandContextualGrants(grant, module?)` ora aggiunge
+	  `referente_superiore` / `referente_tecnico_superiore`
+	  quando `module === 'adesione'`. Espansione propagata in
+	  `canChangeStatus`, `canEdit`, `_isDatoSempreModificabile`.
+
+2026-06-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Wizard adesione disclaimer mock + stili markdown: aggiornato
 	  DISCLAIMERS_MOCK con esempi piu` realistici (Certificati
 	  App2App, mTLS) per validare layout/link/code. Rifiniti
