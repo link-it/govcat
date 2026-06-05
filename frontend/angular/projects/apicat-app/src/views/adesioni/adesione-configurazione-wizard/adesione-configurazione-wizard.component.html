@@ -1401,6 +1401,7 @@
           [steps]="getStepWizardSezione(section)"
           [currentState]="adesione?.stato || null"
           [workflowStati]="workflowStati"
+          [forceActiveCodes]="getForceActiveSubsteps(section)"
           [title]="procLabelKey | translate">
           <ng-template let-sub>
             @switch (sub.code) {

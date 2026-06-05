@@ -139,6 +139,16 @@ export class AdesioneSubstepperComponent implements OnChanges {
     @Input() lockedTooltipKey: string = 'APP.ADESIONI.LABEL.BloccatoTooltip';
 
     /**
+     * Lista di sub-step `code` che devono essere forzati a stato
+     * `active` quando il loro stato naturale e` `completed`.
+     * Caso d'uso: i custom properties di "In compilazione" sono
+     * obbligatori e non compilati ma lo stato workflow e` gia`
+     * andato oltre — la UX vuole che l'utente possa tornarci a
+     * compilare i dati mancanti. Lock states non vengono toccati.
+     */
+    @Input() forceActiveCodes: string[] = [];
+
+    /**
      * Body content projection: il parent fornisce `<ng-template let-sub>`
      * dentro il tag `<app-adesione-substepper>...</...>`. Il template
      * riceve `sub: SubstepItem` come `$implicit` e tipicamente fa
@@ -234,6 +244,15 @@ export class AdesioneSubstepperComponent implements OnChanges {
                 state = 'completed';
             } else {
                 state = 'locked';
+            }
+
+            // Override "needs attention": uno step naturalmente
+            // `completed` ma con dati obbligatori incompleti viene
+            // riportato a `active` per consentire all'utente di
+            // tornare a compilare. Gli `locked` non sono mai
+            // toccati (i dati non sono ancora rilevanti).
+            if (state === 'completed' && this.forceActiveCodes.includes(step.code)) {
+                state = 'active';
             }
 
             // Collapsible (rev. 4.24): solo gli step `active` sono

@@ -1,6 +1,21 @@
 2026-06-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard adesione:
+	  - Sub-step "In compilazione" forzato a `active` quando ha
+	    custom properties obbligatorie incomplete (anche se lo
+	    stato workflow e` gia` oltre): CTA "Compila ora" rosso +
+	    body aperto. Nuovo input `forceActiveCodes` su
+	    `app-adesione-substepper`.
+	  - Fix `getDisclaimersByGruppo`: rimosso filtro su `profilo`
+	    cosi` un disclaimer con `nome_gruppo` + `profilo` compare
+	    nel gruppo (precedenza al gruppo). `clientDisclaimers*`
+	    aggiornati per escludere entry con `nome_gruppo` (no
+	    doppio rendering).
+
+2026-06-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	i18n: aggiunte `APP.WORKFLOW.DATATYPE.collaudo_pdnd` e
 	  `produzione_pdnd` ("PDND" IT/EN).
 	Wizard adesione: gate del bottone "Dissocia" allineato a

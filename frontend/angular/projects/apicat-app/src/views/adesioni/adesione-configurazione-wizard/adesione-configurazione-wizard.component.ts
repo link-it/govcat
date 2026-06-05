@@ -1613,6 +1613,31 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         return this.ckeckProvider.isSottotipoCompleted(this.dataStructureResults, environment, tipo, identificativo);
     }
 
+    /**
+     * Vero se almeno un gruppo di custom properties della sezione
+     * ha dati obbligatori non compilati (icon-toggle rosso nel
+     * wizard). Quando true, il sub-step "In compilazione" del
+     * substepper viene forzato a `active` anche se lo stato
+     * workflow e` gia` oltre, cosi` l'utente puo` tornare a
+     * compilare i dati mancanti.
+     */
+    _hasIncompleteCustomProperties(section: 'collaudo' | 'produzione'): boolean {
+        const ambiente = section === 'collaudo' ? AmbienteEnum.Collaudo : AmbienteEnum.Produzione;
+        const groups: any[] = this.proprietaCustomFiltered?.[ambiente] || [];
+        return groups.some((g: any) =>
+            !this.isSottotipoCompletedMapper(false, ambiente, ClassiEnum.CONFIGURAZIONE_GRUPPO, g.nome_gruppo)
+        );
+    }
+
+    /**
+     * Lista di sub-step `code` da forzare a stato `active` nel
+     * substepper della sezione. Per ora solo `in_compilazione`
+     * quando ha custom properties obbligatorie incomplete.
+     */
+    getForceActiveSubsteps(section: 'collaudo' | 'produzione'): string[] {
+        return this._hasIncompleteCustomProperties(section) ? ['in_compilazione'] : [];
+    }
+
     configurazioni: any = {
         [AmbienteEnum.Collaudo]: [],
         [AmbienteEnum.Produzione]: []
@@ -2519,23 +2544,27 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
 
     /**
      * Disclaimer legati a un gruppo di custom properties: filtra per
-     * contesto (ambiente) + `nome_gruppo` (no `profilo`). Usato nel
-     * wizard per renderizzare un blocco markdown accanto a ogni
+     * contesto (ambiente) + `nome_gruppo`. Quando `nome_gruppo` e`
+     * valorizzato il disclaimer e` di gruppo a prescindere da
+     * eventuale `profilo` (che resta come informazione
+     * diagnostica/contestuale BE-side). Usato nel wizard per
+     * renderizzare un blocco markdown accanto a ogni
      * `<app-api-custom-properties>` quando esistono disclaimer
      * specifici per quel gruppo.
      */
     getDisclaimersByGruppo(contesto: DisclaimerContesto, nomeGruppo: string): AdesioneDisclaimer[] {
         if (!nomeGruppo) { return []; }
-        return this.getDisclaimersByContesto(contesto).filter(d => !d.profilo && d.nome_gruppo === nomeGruppo);
+        return this.getDisclaimersByContesto(contesto).filter(d => d.nome_gruppo === nomeGruppo);
     }
 
-    // Usati come @Input delle liste client: solo i disclaimer con `profilo`
-    // per contesto = ambiente; la lista filtrera' poi per profilo del client.
+    // Usati come @Input delle liste client: disclaimer con `profilo`
+    // ma SENZA `nome_gruppo` (quando entrambi presenti vincono i
+    // gruppi). La lista filtrera' poi per profilo del client.
     get clientDisclaimersCollaudo(): AdesioneDisclaimer[] {
-        return this.getDisclaimersByContesto('collaudo').filter(d => !!d.profilo);
+        return this.getDisclaimersByContesto('collaudo').filter(d => !!d.profilo && !d.nome_gruppo);
     }
 
     get clientDisclaimersProduzione(): AdesioneDisclaimer[] {
-        return this.getDisclaimersByContesto('produzione').filter(d => !!d.profilo);
+        return this.getDisclaimersByContesto('produzione').filter(d => !!d.profilo && !d.nome_gruppo);
     }
 }
