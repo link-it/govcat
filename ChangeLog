@@ -1,6 +1,13 @@
 2026-06-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	i18n IT: sostituiti gli apostrofi sostitutivi (`e'`, `a'`,
+	  `o'`, `u'`, `piu'`) con i caratteri accentati corretti
+	  (è, à, ò, ù, più) sulle stringhe di traduzione.
+
+2026-06-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	OrganizationContextInterceptor: aggiunti pattern OAuth/OIDC
 	  (`/oauth/token`, `/oauth2/token`, `/openid-connect/token`,
 	  `/.well-known/`) alla lista di esclusione header

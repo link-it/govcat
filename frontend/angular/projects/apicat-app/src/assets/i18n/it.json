@@ -7,7 +7,7 @@
 		},
 		"ORGANIZATION_SELECTOR": {
 			"Title": "Seleziona l'organizzazione",
-			"Subtitle": "Hai accesso a piu' organizzazioni. Scegli con quale lavorare in questa sessione.",
+			"Subtitle": "Hai accesso a più organizzazioni. Scegli con quale lavorare in questa sessione.",
 			"Confirm": "Conferma",
 			"LogoutLink": "Esci",
 			"NoOrganizations": "Non risultano organizzazioni associate al tuo profilo."
@@ -555,7 +555,7 @@
 				"Remove": "Rimuovi dominio"
 			},
 			"MESSAGE": {
-				"RemoveConfirm": "Confermi di voler eliminare il dominio **{{nome}}**? L'operazione non e' reversibile."
+				"RemoveConfirm": "Confermi di voler eliminare il dominio **{{nome}}**? L'operazione non è reversibile."
 			},
 			"VALIDATION": {
 				"NameAlreadyExists": "Esiste già un dominio con questo nome. Scegline un altro."
@@ -2070,19 +2070,19 @@
 			},
 			"ORGANIZATION": {
 				"ChangeTitle": "Cambio organizzazione",
-				"ChangeWarning": "La richiesta di assegnazione organizzazione dovra' essere approvata da un amministratore. Nel frattempo, il tuo account potrebbe avere funzionalita' limitate.",
-				"ChangeWarningWithOrg": "**Attenzione: questa operazione e' irreversibile.** In caso di approvazione, verra' creato un **nuovo utente** con lo stesso principal e la nuova organizzazione, mentre **l'utente attuale verra' disabilitato** e non potra' piu' accedere all'applicativo con l'organizzazione corrente. La richiesta dovra' essere approvata da un amministratore.",
+				"ChangeWarning": "La richiesta di assegnazione organizzazione dovrà essere approvata da un amministratore. Nel frattempo, il tuo account potrebbe avere funzionalità limitate.",
+				"ChangeWarningWithOrg": "**Attenzione: questa operazione è irreversibile.** In caso di approvazione, verrà creato un **nuovo utente** con lo stesso principal e la nuova organizzazione, mentre **l'utente attuale verrà disabilitato** e non potrà più accedere all'applicativo con l'organizzazione corrente. La richiesta dovrà essere approvata da un amministratore.",
 				"ChangeButton": "Richiedi cambio organizzazione",
 				"PendingLabel": "Organizzazione richiesta",
-				"PendingMessage": "Hai una richiesta di cambio organizzazione in corso verso: **{{orgName}}**. La richiesta e' in attesa di approvazione da parte di un amministratore.",
+				"PendingMessage": "Hai una richiesta di cambio organizzazione in corso verso: **{{orgName}}**. La richiesta è in attesa di approvazione da parte di un amministratore.",
 				"CurrentLabel": "Organizzazione attuale",
 				"RequestSent": "Richiesta di cambio organizzazione inviata con successo",
 				"ApproveTitle": "Approva cambio organizzazione",
-				"ApproveWarning": "Confermi di voler approvare la richiesta di cambio organizzazione? L'associazione esistente verra' sostituita con la nuova organizzazione.",
-				"ApproveWarningFirstOrg": "Confermi di voler approvare la richiesta di assegnazione organizzazione? L'utente verra' associato alla nuova organizzazione.",
+				"ApproveWarning": "Confermi di voler approvare la richiesta di cambio organizzazione? L'associazione esistente verrà sostituita con la nuova organizzazione.",
+				"ApproveWarningFirstOrg": "Confermi di voler approvare la richiesta di assegnazione organizzazione? L'utente verrà associato alla nuova organizzazione.",
 				"ApproveButton": "Approva",
 				"CancelTitle": "Annulla richiesta",
-				"CancelWarning": "Confermi di voler annullare la richiesta di cambio organizzazione? L'operazione non potra' essere ripristinata.",
+				"CancelWarning": "Confermi di voler annullare la richiesta di cambio organizzazione? L'operazione non potrà essere ripristinata.",
 				"CancelButton": "Annulla richiesta",
 				"RequestCancelled": "Richiesta di cambio organizzazione annullata",
 				"RejectTitle": "Rifiuta richiesta",
@@ -2090,7 +2090,7 @@
 				"RejectButton": "Rifiuta",
 				"SelectOrgPartenza": "Organizzazione da sostituire",
 				"SelectOrgPartenzaPlaceholder": "Seleziona l'associazione da sostituire",
-				"OrgPartenzaHelp": "Hai piu' associazioni attive: scegli quella che verra' sostituita dalla nuova organizzazione.",
+				"OrgPartenzaHelp": "Hai più associazioni attive: scegli quella che verrà sostituita dalla nuova organizzazione.",
 				"PassaggioDaA": "Passaggio da **{{partenza}}** a **{{destinazione}}**",
 				"PassaggioA": "Nuova organizzazione: **{{destinazione}}**",
 				"RuoloOrgTarget": "Ruolo sulla nuova organizzazione",
@@ -2099,13 +2099,13 @@
 				"NoOrganizations": "Non sei ancora associato a nessuna organizzazione.",
 				"AddButton": "Aggiungi organizzazione",
 				"AddTitle": "Aggiungi una nuova organizzazione",
-				"AddWarning": "Richiedi di essere associato a una nuova organizzazione. La richiesta dovra' essere approvata da un amministratore.",
+				"AddWarning": "Richiedi di essere associato a una nuova organizzazione. La richiesta dovrà essere approvata da un amministratore.",
 				"AddConfirm": "Richiedi associazione",
 				"ReplaceButton": "Sostituisci",
 				"ReplaceConfirm": "Richiedi sostituzione",
 				"SelectNewOrg": "Seleziona la nuova organizzazione",
-				"PendingAddMessage": "Hai una richiesta di associazione in corso verso: **{{destinazione}}**. La richiesta e' in attesa di approvazione da parte di un amministratore.",
-				"PendingReplaceMessage": "Hai una richiesta di sostituzione in corso: da **{{partenza}}** a **{{destinazione}}**. La richiesta e' in attesa di approvazione da parte di un amministratore."
+				"PendingAddMessage": "Hai una richiesta di associazione in corso verso: **{{destinazione}}**. La richiesta è in attesa di approvazione da parte di un amministratore.",
+				"PendingReplaceMessage": "Hai una richiesta di sostituzione in corso: da **{{partenza}}** a **{{destinazione}}**. La richiesta è in attesa di approvazione da parte di un amministratore."
 			},
 			"EMAIL_VERIFICATION": {
 				"TITLE": "Modifica email",
@@ -2115,7 +2115,7 @@
 					"CodeSent": "Abbiamo inviato un codice di verifica a:",
 					"EnterCode": "Inserisci il codice ricevuto per completare la verifica.",
 					"Verified": "Email verificata con successo!",
-					"Expired": "Il codice e' scaduto. Richiedi un nuovo codice.",
+					"Expired": "Il codice è scaduto. Richiedi un nuovo codice.",
 					"ExpiresIn": "Il codice scade tra",
 					"ClearEmailHint": "Lascia vuoto per rimuovere l'email."
 				},
@@ -2184,23 +2184,23 @@
 			"MESSAGE": {
 				"ConfermaEmailDesc": "Abbiamo recuperato i tuoi dati dal sistema di autenticazione. Verifica che siano corretti.",
 				"ConfermaEmailInfo": "Confermando i dati, utilizzeremo questa email per le comunicazioni.",
-				"EmailMancante": "L'indirizzo email non e' stato fornito dal sistema di autenticazione. Per completare la registrazione e' necessario inserire un indirizzo email valido.",
+				"EmailMancante": "L'indirizzo email non è stato fornito dal sistema di autenticazione. Per completare la registrazione è necessario inserire un indirizzo email valido.",
 				"EmailNonDisponibile": "Non disponibile",
 				"ModificaEmailDesc": "Inserisci la nuova email che desideri utilizzare per le comunicazioni.",
 				"InvieremoCodiceSMS": "Ti invieremo un codice di verifica alla nuova email.",
 				"VerificaCodiceDesc": "Abbiamo inviato un codice di verifica a:",
 				"CodiceScadeIn": "Il codice scade tra",
-				"CodiceScaduto": "Il codice e' scaduto. Richiedi un nuovo codice.",
-				"RegistrazioneCompletata": "La tua registrazione e' stata completata con successo!",
-				"SelezionaOrganizzazioneDesc": "Puoi associare il tuo account a un'organizzazione gia' registrata. La tua richiesta sara' approvata da un amministratore. Puoi anche saltare e farlo in seguito dal profilo.",
-				"OrganizzazioneInAttesa": "La tua richiesta di associazione a **{{nome}}** e' in attesa di approvazione da parte di un amministratore.",
+				"CodiceScaduto": "Il codice è scaduto. Richiedi un nuovo codice.",
+				"RegistrazioneCompletata": "La tua registrazione è stata completata con successo!",
+				"SelezionaOrganizzazioneDesc": "Puoi associare il tuo account a un'organizzazione già registrata. La tua richiesta sarà approvata da un amministratore. Puoi anche saltare e farlo in seguito dal profilo.",
+				"OrganizzazioneInAttesa": "La tua richiesta di associazione a **{{nome}}** è in attesa di approvazione da parte di un amministratore.",
 				"CosaFare": "Ecco cosa puoi fare ora:",
 				"PuoiEsplorare": "Esplorare il catalogo dei servizi disponibili",
 				"PuoiRichiedere": "Richiedere l'adesione ai servizi di tuo interesse",
 				"RiceveraiNotifiche": "Ricevere notifiche sullo stato delle tue richieste"
 			},
 			"ERROR": {
-				"EmailRequired": "L'email e' obbligatoria",
+				"EmailRequired": "L'email è obbligatoria",
 				"EmailInvalid": "Inserisci un indirizzo email valido",
 				"EmailMismatch": "Le email non corrispondono",
 				"CodiceLength": "Il codice deve essere di 6 caratteri",
@@ -2948,7 +2948,7 @@
 			},
 			"MESSAGE": {
 				"AreYouSure": "Vuoi confermare il cambio di stato in '**{{next}}**'?",
-				"AreYouSureBulk": "**Stai per eseguire un’operazione massiva che non potrà essere annullata.**\n\nVuoi confermare il cambio di stato in '**{{next}}**' di '**{{count}}**' adesioni?",
+				"AreYouSureBulk": "**Stai per eseguire un'operazione massiva che non potrà essere annullata.**\n\nVuoi confermare il cambio di stato in '**{{next}}**' di '**{{count}}**' adesioni?",
 				"ChangeStatusError": "Errore nel cambio di stato [{{status}}]",
 				"ChangeStatusSuccess": "Cambio di stato effettuato con successo [{{status}}]"
 			},
