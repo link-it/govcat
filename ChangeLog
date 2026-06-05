@@ -1,6 +1,16 @@
 2026-06-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard adesione disclaimer mock + stili markdown: aggiornato
+	  DISCLAIMERS_MOCK con esempi piu` realistici (Certificati
+	  App2App, mTLS) per validare layout/link/code. Rifiniti
+	  stili `markdown` dentro `.lnk-banner` in `app-markdown.scss`
+	  (`h1`/`h2`/`p` margin/line-height/colore) per migliore
+	  leggibilita` nei banner contestuali.
+
+2026-06-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	i18n IT: sostituiti gli apostrofi sostitutivi (`e'`, `a'`,
 	  `o'`, `u'`, `piu'`) con i caratteri accentati corretti
 	  (è, à, ò, ù, più) sulle stringhe di traduzione.

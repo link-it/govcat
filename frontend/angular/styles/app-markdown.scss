@@ -131,14 +131,77 @@
   .lnk-banner {
     .body {
       markdown {
-        h2 {
-          font-size: 1rem;
-          font-weight: 600;
+        p {
           margin-bottom: 0.25rem !important;
         }
 
-        p {
-          margin-bottom: 0.25rem !important;
+        h1 {
+          font-size: 0.875rem;  // 14px - max come h6 del contesto
+          line-height: 1.2;
+          font-weight: 500;
+          margin-top: 0.75rem;
+          margin-bottom: .625rem;
+          color: #5e5e5e;
+          text-transform: uppercase;
+        }
+
+        h2 {
+          font-size: 1rem;
+          font-weight: 600;
+          line-height: 1.2;
+          margin-top: 0.15rem;
+          margin-bottom: 0.625rem !important;
+        }
+
+        h3 {
+          font-size: 0.825rem;  // ~13.2px
+          font-weight: 600;
+          line-height: 1.2;
+          margin-top: 1.5rem;
+          margin-bottom: 0.625rem !important;
+        }
+
+        h4 {
+          font-size: 0.8rem;    // ~12.8px
+          font-weight: 600;
+          line-height: 1.2;
+          margin-top: 1.5rem;
+          margin-bottom: 0.625rem !important;
+        }
+
+        h5 {
+          font-size: 0.775rem;  // ~12.4px
+          font-weight: 600;
+          line-height: 1.2;
+          margin-top: 1.5rem;
+          margin-bottom: 0.625rem !important;
+        }
+
+        h6 {
+          font-size: 0.75rem;   // 12px
+          font-weight: 600;
+          line-height: 1.2;
+          margin-top: 1.5rem;
+          margin-bottom: 0.625rem !important;
+        }
+
+        strong {
+          font-weight: 600 !important;
+        }
+
+        code {
+          font-size: 87.5%;
+          color: #626262;
+          word-wrap: break-word;
+          background-color: #f1f1f1;
+          padding: 6px;
+        }
+
+        a {
+          color: #1f75cb !important;
+          &:hover {
+            text-decoration: underline !important;
+          }
         }
       }
       ul {
@@ -148,11 +211,69 @@
   }
 }
 
-.markdown-inline {
+.markdown-inline,
+.disclaimer-body {
+
+  h1 {
+    font-size: 0.875rem;  // 14px - max come h6 del contesto
+    line-height: 1.2;
+    font-weight: 500;
+    margin-top: 0.75rem;
+    margin-bottom: .625rem;
+    color: #5e5e5e;
+    text-transform: uppercase;
+  }
+
   h2 {
     font-size: 1rem;
     font-weight: 600;
-    margin-bottom: 0.25rem !important;
+    line-height: 1.2;
+    margin-top: 0.15rem;
+    margin-bottom: 0.625rem !important;
+  }
+
+  h3 {
+    font-size: 0.825rem;  // ~13.2px
+    font-weight: 600;
+    line-height: 1.2;
+    margin-top: 1.5rem;
+    margin-bottom: 0.625rem !important;
+  }
+
+  h4 {
+    font-size: 0.8rem;    // ~12.8px
+    font-weight: 600;
+    line-height: 1.2;
+    margin-top: 1.5rem;
+    margin-bottom: 0.625rem !important;
+  }
+
+  h5 {
+    font-size: 0.775rem;  // ~12.4px
+    font-weight: 600;
+    line-height: 1.2;
+    margin-top: 1.5rem;
+    margin-bottom: 0.625rem !important;
+  }
+
+  h6 {
+    font-size: 0.75rem;   // 12px
+    font-weight: 600;
+    line-height: 1.2;
+    margin-top: 1.5rem;
+    margin-bottom: 0.625rem !important;
+  }
+
+  strong {
+    font-weight: 600 !important;
+  }
+
+  code {
+    font-size: 87.5%;
+    color: #626262;
+    word-wrap: break-word;
+    background-color: #f1f1f1;
+    padding: 6px;
   }
 
   b, strong {

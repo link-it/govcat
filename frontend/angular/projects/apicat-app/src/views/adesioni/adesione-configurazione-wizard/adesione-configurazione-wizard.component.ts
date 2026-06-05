@@ -599,9 +599,9 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         {
             contesto: 'generale',
             severity: 'INFO',
-            disclaimer: '## Adesione PDND in bozza\nL\'adesione utilizza il profilo **PDND**. Prima di procedere, assicurarsi di aver completato la registrazione sulla piattaforma PDND e di disporre di un e-service attivo.',
+            disclaimer: '## Certificati App2App\n\L\'ente mette a disposizione l\'infrastruttura PKI per l\'emissione di certificati su CA privata. Chi gestisce le chiavi private e si occupa dell\'installazione può seguire la guida al rilascio [link](https://www.dominio.it/Guida-rilascio-certificati.pdf), che illustra i passi necessari per la generazione del nuovo certificato. Per assistenza scrivere a email@dominio.it.\n\n### Common Name\n\nIl Common Name del certificato deve seguire il formato:\n\nEnteRichiedente_Progetto_PDND_COLLAUDO — per l\'ambiente di collaudo\n\nEnteRichiedente_Progetto_PDND — per la produzione\n\nAd esempio: Ente_LibriGratis_PDND_COLLAUDO / Ente_LibriGratis_PDND\n\n### Caricamento\n\nUna volta ottenuto il certificato, caricare la parte pubblica nell\'apposita sezione. Se si intende riutilizzare un certificato già configurato, selezionarlo dalla lista.',
             links: [
-                { label: 'Documentazione PDND', url: 'https://www.pagopa.it/it/cittadini/pdnd' }
+                { label: 'Documentazione', url: 'https://www.dominio.it/it/documentazione' }
             ]
         },
         {
@@ -612,7 +612,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         {
             contesto: 'collaudo',
             severity: 'INFO',
-            disclaimer: 'Nell\'ambiente di **collaudo** puoi effettuare test senza impatto sui dati di produzione.'
+            disclaimer: '## Certificato mTLS\n\L\'ente mette a disposizione l\'infrastruttura PKI per l\'emissione di certificati su CA privata. Chi gestisce le chiavi private e si occupa dell\'installazione può seguire la guida al rilascio (<a href="https://www.dominio.it//Guida-rilascio-certificati.pdf" target="_blank">Scarica</a>), che illustra i passi necessari per la generazione del nuovo certificato. Per assistenza scrivere a ra.pki@regione.toscana.it.\n\n### Common Name\n\nIl Common Name del certificato deve seguire il formato:\n\n- `EnteRichiedente_Progetto_PDND_COLLAUDO` — per l\'ambiente di collaudo\n\n- `EnteRichiedente_Progetto_PDND` — per la produzione\n\nAd esempio: `Ente_LibriGratis_PDND_COLLAUDO` / `Ente_LibriGratis_PDND`\n\n### Caricamento\n\nUna volta ottenuto il certificato, caricare la parte pubblica nell\'apposita sezione. Se si intende riutilizzare un certificato già configurato, selezionarlo dalla lista.'
         },
         {
             contesto: 'collaudo',
