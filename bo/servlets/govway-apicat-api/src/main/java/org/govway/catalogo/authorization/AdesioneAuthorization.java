@@ -190,6 +190,12 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 				case PRODUZIONE_CONFIGURATO:
 					checkCampiObbligatoriCollProd(entity, errori, false, false);
 					break;
+				case COLLAUDO_PDND:
+					checkEstensioniGruppo(entity, ConfigurazioneClasseDato.COLLAUDO_PDND, errori);
+					break;
+				case PRODUZIONE_PDND:
+					checkEstensioniGruppo(entity, ConfigurazioneClasseDato.PRODUZIONE_PDND, errori);
+					break;
 				}
 				
 				for(EntitaComplessaError errore: errori.values()) {
@@ -296,9 +302,9 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 	}
 
 	private AmbienteEnum getAmbiente(List<ConfigurazioneClasseDato> classeDatoLst) {
-		if(classeDatoLst.contains(ConfigurazioneClasseDato.COLLAUDO)) {
+		if(classeDatoLst.contains(ConfigurazioneClasseDato.COLLAUDO) || classeDatoLst.contains(ConfigurazioneClasseDato.COLLAUDO_PDND)) {
 			return AmbienteEnum.COLLAUDO;
-		} else if(classeDatoLst.contains(ConfigurazioneClasseDato.PRODUZIONE)) {
+		} else if(classeDatoLst.contains(ConfigurazioneClasseDato.PRODUZIONE) || classeDatoLst.contains(ConfigurazioneClasseDato.PRODUZIONE_PDND)) {
 			return AmbienteEnum.PRODUZIONE;
 		} else {
 			return null;

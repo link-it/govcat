@@ -10558,6 +10558,9 @@ components:
         profilo:
           type: "string"
           description: "Codice interno del profilo associato al disclaimer, se il disclaimer e' specifico per un profilo; null altrimenti"
+        nome_gruppo:
+          type: "string"
+          description: "Nome del gruppo eventualmente associato al disclaimer nello yaml di configurazione; null se non specificato"
     AdesioneCreate:
       type: object
       required:
