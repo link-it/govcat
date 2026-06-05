@@ -74,20 +74,22 @@ class DisclaimerServiceTest {
 	// Helpers
 	// ----------------------------------------------------------------------
 
-	private void seedCache(String lang, Map<String, DisclaimerService.DisclaimerEntry> entries) {
+	private void seedCache(String lang, Map<String, List<DisclaimerService.DisclaimerEntry>> entries) {
 		@SuppressWarnings("unchecked")
-		Map<String, Map<String, DisclaimerService.DisclaimerEntry>> cache =
-				(Map<String, Map<String, DisclaimerService.DisclaimerEntry>>) ReflectionTestUtils.getField(service, "cache");
+		Map<String, Map<String, List<DisclaimerService.DisclaimerEntry>>> cache =
+				(Map<String, Map<String, List<DisclaimerService.DisclaimerEntry>>>) ReflectionTestUtils.getField(service, "cache");
 		assertNotNull(cache, "Il campo cache non deve essere null");
 		cache.put(lang, new ConcurrentHashMap<>(entries));
 	}
 
-	private Map<String, DisclaimerService.DisclaimerEntry> entries(Object... pairs) {
-		Map<String, DisclaimerService.DisclaimerEntry> map = new HashMap<>();
+	private Map<String, List<DisclaimerService.DisclaimerEntry>> entries(Object... pairs) {
+		Map<String, List<DisclaimerService.DisclaimerEntry>> map = new HashMap<>();
 		for (int i = 0; i < pairs.length; i += 2) {
 			String key = (String) pairs[i];
+			// Una voce per chiave (forma piu' comune nei test); per liste multiple
+			// usare seedCache direttamente con una List.
 			DisclaimerService.DisclaimerEntry entry = (DisclaimerService.DisclaimerEntry) pairs[i + 1];
-			map.put(key, entry);
+			map.put(key, List.of(entry));
 		}
 		return map;
 	}
@@ -336,6 +338,69 @@ class DisclaimerServiceTest {
 		assertEquals(1, result.size());
 		assertEquals("STATO_COLLAUDO", result.get(0).getDisclaimer());
 		assertEquals(DisclaimerContestoEnum.COLLAUDO, result.get(0).getContesto());
+	}
+
+	// ----------------------------------------------------------------------
+	// Piu' disclaimer sotto una stessa chiave (lista) + nome_gruppo
+	// ----------------------------------------------------------------------
+
+	@Test
+	@DisplayName("Lista sotto una chiave -> piu' voci con stesso contesto, ordine preservato e nome_gruppo per voce")
+	void listaDisclaimerPerChiave() {
+		Map<String, List<DisclaimerService.DisclaimerEntry>> seed = new HashMap<>();
+		seed.put("bozza.interno_https.collaudo", Arrays.asList(
+				new DisclaimerService.DisclaimerEntry("Certificato", DisclaimerSeverityEnum.INFO),
+				new DisclaimerService.DisclaimerEntry("Trattamento dati", DisclaimerSeverityEnum.INFO, "TrattamentoDatiCollaudo")));
+		seedCache("it", seed);
+		mockProfili("INTERNO_HTTPS");
+		AdesioneEntity adesione = buildAdesione("bozza", null);
+
+		List<AdesioneDisclaimer> result = service.resolveDisclaimers(adesione, "it");
+
+		assertEquals(2, result.size());
+		// ordine di dichiarazione preservato; entrambe con contesto COLLAUDO e profilo originale
+		assertEquals("Certificato", result.get(0).getDisclaimer());
+		assertNull(result.get(0).getNomeGruppo());
+		assertEquals(DisclaimerContestoEnum.COLLAUDO, result.get(0).getContesto());
+		assertEquals("INTERNO_HTTPS", result.get(0).getProfilo());
+		assertEquals("Trattamento dati", result.get(1).getDisclaimer());
+		assertEquals("TrattamentoDatiCollaudo", result.get(1).getNomeGruppo());
+		assertEquals(DisclaimerContestoEnum.COLLAUDO, result.get(1).getContesto());
+		assertEquals("INTERNO_HTTPS", result.get(1).getProfilo());
+	}
+
+	@Test
+	@DisplayName("Caricamento da YAML esterno: lista di voci con nome_gruppo")
+	void loadYamlListaConNomeGruppo(@TempDir Path tempDir) throws IOException {
+		String yaml = String.join("\n",
+				"bozza.interno_https.collaudo:",
+				"  - severity: INFO",
+				"    testo: |",
+				"      ## Certificato mTLS",
+				"  - severity: INFO",
+				"    nome_gruppo: TrattamentoDatiCollaudo",
+				"    testo: |",
+				"      ## Trattamento dati");
+		Files.writeString(tempDir.resolve("disclaimers_it.yml"), yaml);
+
+		ReflectionTestUtils.setField(service, "externalPath", tempDir.toString());
+		service.reload();
+
+		mockProfili("INTERNO_HTTPS");
+		AdesioneEntity adesione = buildAdesione("bozza", null);
+		List<AdesioneDisclaimer> result = service.resolveDisclaimers(adesione, "it");
+
+		AdesioneDisclaimer cert = result.stream()
+				.filter(d -> d.getDisclaimer().contains("Certificato mTLS")).findFirst().orElse(null);
+		AdesioneDisclaimer tratt = result.stream()
+				.filter(d -> d.getDisclaimer().contains("Trattamento dati")).findFirst().orElse(null);
+
+		assertNotNull(cert, "Il disclaimer Certificato deve essere presente");
+		assertNull(cert.getNomeGruppo());
+		assertEquals(DisclaimerContestoEnum.COLLAUDO, cert.getContesto());
+		assertNotNull(tratt, "Il disclaimer Trattamento dati deve essere presente");
+		assertEquals("TrattamentoDatiCollaudo", tratt.getNomeGruppo());
+		assertEquals(DisclaimerContestoEnum.COLLAUDO, tratt.getContesto());
 	}
 
 	// ----------------------------------------------------------------------

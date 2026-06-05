@@ -86,7 +86,11 @@ public class DisclaimerService {
 	@Autowired
 	private AdesioneAuthorization adesioneAuthorization;
 
-	private final Map<String, Map<String, DisclaimerEntry>> cache = new ConcurrentHashMap<>();
+	// Ogni chiave puo' mappare una LISTA di disclaimer: cosi' uno stesso
+	// (stato, profilo, contesto) puo' produrre piu' voci distinte, es. un
+	// disclaimer ambientale + uno legato a un gruppo di custom properties
+	// (nome_gruppo). L'ordine della lista e' preservato nella risposta.
+	private final Map<String, Map<String, List<DisclaimerEntry>>> cache = new ConcurrentHashMap<>();
 
 	@PostConstruct
 	public void init() {
@@ -106,7 +110,7 @@ public class DisclaimerService {
 	public List<AdesioneDisclaimer> resolveDisclaimers(AdesioneEntity adesione, String languageCode) {
 		try {
 			String lang = (languageCode != null) ? languageCode.toLowerCase() : "it";
-			Map<String, DisclaimerEntry> disclaimers = cache.getOrDefault(lang, cache.get("it"));
+			Map<String, List<DisclaimerEntry>> disclaimers = cache.getOrDefault(lang, cache.get("it"));
 			if (disclaimers == null || disclaimers.isEmpty()) {
 				return List.of(buildHardcodedFallback(lang));
 			}
@@ -136,10 +140,15 @@ public class DisclaimerService {
 
 			// Se nessun disclaimer specifico trovato, usa il default (profilo=null)
 			if (result.isEmpty()) {
-				DisclaimerEntry defaultEntry = disclaimers.get(DEFAULT_KEY);
-				if (defaultEntry != null && defaultEntry.testo != null && !defaultEntry.testo.isBlank()) {
-					result.add(buildDisclaimer(defaultEntry.testo, DisclaimerContestoEnum.GENERALE, defaultEntry.severity, null, defaultEntry.nomeGruppo));
-				} else {
+				List<DisclaimerEntry> defaultEntries = disclaimers.get(DEFAULT_KEY);
+				if (defaultEntries != null) {
+					for (DisclaimerEntry defaultEntry : defaultEntries) {
+						if (defaultEntry.testo != null && !defaultEntry.testo.isBlank()) {
+							result.add(buildDisclaimer(defaultEntry.testo, DisclaimerContestoEnum.GENERALE, defaultEntry.severity, null, defaultEntry.nomeGruppo));
+						}
+					}
+				}
+				if (result.isEmpty()) {
 					result.add(buildHardcodedFallback(lang));
 				}
 			}
@@ -160,22 +169,34 @@ public class DisclaimerService {
 	 * @param profilo valore originale del profilo associato alla chiave base (null se la chiave
 	 *                non contiene il segmento profilo, es. per il livello "stato" puro)
 	 */
-	private void tryAllContexts(Map<String, DisclaimerEntry> disclaimers, String baseKey,
+	private void tryAllContexts(Map<String, List<DisclaimerEntry>> disclaimers, String baseKey,
 			String profilo, Set<String> matchedKeys, List<AdesioneDisclaimer> result) {
 		tryAddKey(disclaimers, baseKey, DisclaimerContestoEnum.GENERALE, profilo, matchedKeys, result);
 		tryAddKey(disclaimers, baseKey + SUFFIX_COLLAUDO, DisclaimerContestoEnum.COLLAUDO, profilo, matchedKeys, result);
 		tryAddKey(disclaimers, baseKey + SUFFIX_PRODUZIONE, DisclaimerContestoEnum.PRODUZIONE, profilo, matchedKeys, result);
 	}
 
-	private void tryAddKey(Map<String, DisclaimerEntry> disclaimers, String key,
+	private void tryAddKey(Map<String, List<DisclaimerEntry>> disclaimers, String key,
 			DisclaimerContestoEnum contesto, String profilo, Set<String> matchedKeys, List<AdesioneDisclaimer> result) {
 		if (matchedKeys.contains(key)) {
 			return;
 		}
-		DisclaimerEntry entry = disclaimers.get(key);
-		if (entry != null && entry.testo != null && !entry.testo.isBlank()) {
+		List<DisclaimerEntry> entries = disclaimers.get(key);
+		if (entries == null) {
+			return;
+		}
+		// La chiave si considera "consumata" se ha almeno una voce con testo
+		// valido; tutte le voci valide della lista vengono aggiunte, preservando
+		// l'ordine di dichiarazione nello yaml.
+		boolean matched = false;
+		for (DisclaimerEntry entry : entries) {
+			if (entry.testo != null && !entry.testo.isBlank()) {
+				result.add(buildDisclaimer(entry.testo, contesto, entry.severity, profilo, entry.nomeGruppo));
+				matched = true;
+			}
+		}
+		if (matched) {
 			matchedKeys.add(key);
-			result.add(buildDisclaimer(entry.testo, contesto, entry.severity, profilo, entry.nomeGruppo));
 		}
 	}
 
@@ -232,7 +253,7 @@ public class DisclaimerService {
 	private void loadLanguage(String lang) {
 		String fileName = "disclaimers_" + lang + ".yml";
 		try {
-			Map<String, DisclaimerEntry> disclaimers = new ConcurrentHashMap<>();
+			Map<String, List<DisclaimerEntry>> disclaimers = new ConcurrentHashMap<>();
 
 			// Carica prima dal classpath (default)
 			try (InputStream is = getClass().getClassLoader().getResourceAsStream(fileName)) {
@@ -260,16 +281,38 @@ public class DisclaimerService {
 		}
 	}
 
-	private void mergeLoaded(Map<String, Object> loaded, Map<String, DisclaimerEntry> target) {
+	private void mergeLoaded(Map<String, Object> loaded, Map<String, List<DisclaimerEntry>> target) {
 		if (loaded == null) {
 			return;
 		}
+		// Override per chiave: l'eventuale file esterno SOSTITUISCE l'intera lista
+		// di voci della chiave omonima (coerente col comportamento precedente).
 		loaded.forEach((k, v) -> {
-			DisclaimerEntry entry = parseEntry(v);
-			if (entry != null) {
-				target.put(normalize(k), entry);
+			List<DisclaimerEntry> entries = parseEntries(v);
+			if (!entries.isEmpty()) {
+				target.put(normalize(k), entries);
 			}
 		});
+	}
+
+	/**
+	 * Converte il valore YAML di una chiave in una lista di voci disclaimer.
+	 * Sono accettati: stringa semplice, oggetto strutturato, oppure una lista
+	 * di stringhe/oggetti (per piu' disclaimer distinti sotto la stessa chiave).
+	 */
+	private List<DisclaimerEntry> parseEntries(Object value) {
+		if (value instanceof List<?> list) {
+			List<DisclaimerEntry> entries = new ArrayList<>();
+			for (Object item : list) {
+				DisclaimerEntry entry = parseEntry(item);
+				if (entry != null) {
+					entries.add(entry);
+				}
+			}
+			return entries;
+		}
+		DisclaimerEntry entry = parseEntry(value);
+		return (entry != null) ? List.of(entry) : List.of();
 	}
 
 	@SuppressWarnings("unchecked")
