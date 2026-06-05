@@ -75,8 +75,6 @@ public class PackageAuthorization extends AbstractServizioAuthorization {
 					this.checkCampiObbligatoriProduzione(entity, errori);
 					this.checkCampiObbligatoriProduzioneComponente(entity, errori);
 					break;
-				default:
-					break;
 				}
 
 				for(EntitaComplessaError errore: errori.values()) {
