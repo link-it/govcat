@@ -55,7 +55,9 @@ export const ORG_CONTEXT_SKIP_HEADER = 'X-Skip-Organization-Context';
  * Endpoint per i quali l'header `X-Organization-Context` NON deve
  * essere inviato. Vengono confrontati come substring sull'URL della
  * richiesta. Includere qui i path globali / di catalogo / di
- * configurazione che non dipendono dall'organizzazione di sessione.
+ * configurazione che non dipendono dall'organizzazione di sessione,
+ * e gli endpoint OAuth/OIDC (l'auth server e` cross-origin e non
+ * accetta header custom: la preflight CORS fallirebbe).
  */
 const EXCLUDED_URL_PATTERNS: string[] = [
     '-config.json',
@@ -67,7 +69,15 @@ const EXCLUDED_URL_PATTERNS: string[] = [
     // organizzazioni, selezione/rimozione, completa) sono
     // autenticate solo dal JWT first-login e NON devono
     // ricevere `X-Organization-Context`.
-    '/registrazione'
+    '/registrazione',
+    // OAuth/OIDC token endpoints + discovery: l'auth server
+    // (es. Keycloak) non include `X-Organization-Context`
+    // nell'Allow-Headers della preflight CORS — l'header
+    // farebbe fallire il refresh token con un errore CORS.
+    '/oauth/token',
+    '/oauth2/token',
+    '/openid-connect/token',
+    '/.well-known/'
 ];
 
 /**

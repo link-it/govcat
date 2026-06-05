@@ -1,6 +1,16 @@
 2026-06-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	OrganizationContextInterceptor: aggiunti pattern OAuth/OIDC
+	  (`/oauth/token`, `/oauth2/token`, `/openid-connect/token`,
+	  `/.well-known/`) alla lista di esclusione header
+	  `X-Organization-Context`. Evita il fallimento della
+	  preflight CORS sul refresh token verso l'auth server
+	  (es. Keycloak). Cleanup linter su `oauth.interceptor`.
+
+2026-06-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Sender (`ui-sender`): checkbox "Includi tecnici" mostrata
 	  solo quando almeno un target selezionato e` referente
 	  (nuovo flag `hasTecnici` su `TargetOption`). Marcati
