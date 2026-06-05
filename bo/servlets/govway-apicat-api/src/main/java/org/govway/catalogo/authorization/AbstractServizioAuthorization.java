@@ -238,6 +238,17 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 					});
 	}
 
+	/**
+	 * Verifica i campi obbligatori limitatamente alle estensioni (proprietà custom) associate
+	 * alla classe di dato indicata, su tutte le API del servizio. Usato per le classi dato PDND,
+	 * che non richiedono i controlli previsti per le altre classi dato ma solo quello sulle estensioni.
+	 */
+	protected void checkEstensioniGruppoApi(ServizioEntity entity, ConfigurazioneClasseDato classeDato, Map<String, EntitaComplessaError> errore) {
+		for(ApiEntity api: entity.getApi()) {
+			checkEstensioniGruppo(api, classeDato, errore);
+		}
+	}
+
 	protected void requireNotNull(Object campo, String nomeCampo, ServizioEntity entity,  Map<String, EntitaComplessaError> errori) {
 		
 		EntitaComplessaError errore = getErrore(errori);

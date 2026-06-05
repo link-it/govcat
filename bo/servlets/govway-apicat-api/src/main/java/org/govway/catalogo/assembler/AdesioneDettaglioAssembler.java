@@ -490,7 +490,8 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 				.findAny().orElseThrow(() -> new BadRequestException(ErrorCode.GRP_404, Map.of("idGruppo", apc.getGruppo())));
 
 		AmbienteEnum ambiente = g.getClasseDato().equals(ConfigurazioneClasseDato.COLLAUDO)
-				|| g.getClasseDato().equals(ConfigurazioneClasseDato.COLLAUDO_CONFIGURATO) ? AmbienteEnum.COLLAUDO
+				|| g.getClasseDato().equals(ConfigurazioneClasseDato.COLLAUDO_CONFIGURATO)
+				|| g.getClasseDato().equals(ConfigurazioneClasseDato.COLLAUDO_PDND) ? AmbienteEnum.COLLAUDO
 						: AmbienteEnum.PRODUZIONE;
 
 		if (g.getSpecificoPer() != null) {

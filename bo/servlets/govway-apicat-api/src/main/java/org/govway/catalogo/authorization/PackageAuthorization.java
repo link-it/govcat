@@ -75,6 +75,12 @@ public class PackageAuthorization extends AbstractServizioAuthorization {
 					this.checkCampiObbligatoriProduzione(entity, errori);
 					this.checkCampiObbligatoriProduzioneComponente(entity, errori);
 					break;
+				case COLLAUDO_PDND:
+					this.checkEstensioniGruppoApi(entity, ConfigurazioneClasseDato.COLLAUDO_PDND, errori);
+					break;
+				case PRODUZIONE_PDND:
+					this.checkEstensioniGruppoApi(entity, ConfigurazioneClasseDato.PRODUZIONE_PDND, errori);
+					break;
 				}
 
 				for(EntitaComplessaError errore: errori.values()) {
