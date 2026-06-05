@@ -6941,6 +6941,8 @@ components:
         - collaudo_configurato
         - produzione
         - produzione_configurato
+        - collaudo_pdnd
+        - produzione_pdnd
     VisibilitaRichiedenteReferentiEnum:
       type: "string"
       enum:

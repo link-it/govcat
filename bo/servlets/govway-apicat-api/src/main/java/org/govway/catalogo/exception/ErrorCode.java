@@ -269,6 +269,9 @@ public enum ErrorCode {
     /** Estensione client non supportata */
     CLT_400_EXTENSION("Estensione client non supportata"),
 
+    /** Certificato client non valido o non elaborabile */
+    CLT_422_CERTIFICATE("Certificato client non valido"),
+
     // ==================== ADESIONI ====================
 
     /** Adesione non trovata */

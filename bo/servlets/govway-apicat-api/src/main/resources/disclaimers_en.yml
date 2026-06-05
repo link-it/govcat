@@ -99,7 +99,8 @@ archiviato:
 # ENVIRONMENT-LEVEL DISCLAIMER (collaudo / produzione), profile-independent
 #
 # Shown on the configuration page of each environment, below the list of
-# profiles to configure. Applies to any subscription state.
+# profiles to configure. Shown only for the "bozza" and "pubblicato_collaudo"
+# states (in both collaudo/produzione contexts).
 # Severity: INFO (default for plain string).
 # =============================================================================
 
@@ -108,28 +109,8 @@ __anchor_ambiente: &disclaimer_ambiente |
 
 bozza.collaudo: *disclaimer_ambiente
 bozza.produzione: *disclaimer_ambiente
-richiesto_collaudo.collaudo: *disclaimer_ambiente
-richiesto_collaudo.produzione: *disclaimer_ambiente
-autorizzato_collaudo.collaudo: *disclaimer_ambiente
-autorizzato_collaudo.produzione: *disclaimer_ambiente
-in_configurazione_manuale_collaudo.collaudo: *disclaimer_ambiente
-in_configurazione_manuale_collaudo.produzione: *disclaimer_ambiente
-in_configurazione_automatica_collaudo.collaudo: *disclaimer_ambiente
-in_configurazione_automatica_collaudo.produzione: *disclaimer_ambiente
 pubblicato_collaudo.collaudo: *disclaimer_ambiente
 pubblicato_collaudo.produzione: *disclaimer_ambiente
-richiesto_produzione.collaudo: *disclaimer_ambiente
-richiesto_produzione.produzione: *disclaimer_ambiente
-autorizzato_produzione.collaudo: *disclaimer_ambiente
-autorizzato_produzione.produzione: *disclaimer_ambiente
-in_configurazione_manuale_produzione.collaudo: *disclaimer_ambiente
-in_configurazione_manuale_produzione.produzione: *disclaimer_ambiente
-in_configurazione_automatica_produzione.collaudo: *disclaimer_ambiente
-in_configurazione_automatica_produzione.produzione: *disclaimer_ambiente
-pubblicato_produzione.collaudo: *disclaimer_ambiente
-pubblicato_produzione.produzione: *disclaimer_ambiente
-archiviato.collaudo: *disclaimer_ambiente
-archiviato.produzione: *disclaimer_ambiente
 
 # =============================================================================
 # CLIENT CONFIGURATION DISCLAIMERS (per profile + environment)

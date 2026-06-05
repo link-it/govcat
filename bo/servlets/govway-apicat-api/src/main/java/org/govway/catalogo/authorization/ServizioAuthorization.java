@@ -76,8 +76,6 @@ public class ServizioAuthorization extends AbstractServizioAuthorization {
 					this.checkCampiObbligatoriProduzione(servizio, errori);
 					this.checkCampiObbligatoriProduzioneApi(servizio, errori);
 					break;
-				default:
-					break;
 				}
 
 				for(EntitaComplessaError errore: errori.values()) {

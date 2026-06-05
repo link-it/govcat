@@ -70,7 +70,9 @@ export class DashboardService {
     /** @deprecated Mantenuto come fallback per dati non aggiornati. */
     referente_servizio: ['servizi', 'adesioni', 'comunicazioni'],
     referente_tecnico_servizio: ['comunicazioni'],
-    referente_adesione: ['comunicazioni'],
+    // Il referente (non tecnico) dell'adesione deve vedere il pannello adesioni
+    // per poter visualizzare in dashboard le proprie adesioni (es. quelle in bozza).
+    referente_adesione: ['adesioni', 'comunicazioni'],
     referente_tecnico_adesione: ['comunicazioni'],
     utente_organizzazione: ['servizi', 'adesioni', 'comunicazioni'],
     amministratore_organizzazione: ['servizi', 'adesioni', 'comunicazioni', 'utenti'],
