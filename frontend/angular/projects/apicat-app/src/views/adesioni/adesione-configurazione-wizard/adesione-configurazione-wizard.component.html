@@ -1443,6 +1443,17 @@
                   @for (item of _subStepDisclaimers; track $index) {
                     <markdown class="markdown-inline markdown-small d-block pt-3" [data]="item.disclaimer"></markdown>
                   }
+                  <!-- Fallback locale: quando il BE non fornisce
+                       disclaimer per lo stato corrente, mostriamo un
+                       messaggio i18n per non lasciare il box vuoto.
+                       Varianti in base alla possibilita` dell'utente
+                       di cambiare stato (`_hasAnyWorkflowAction`). -->
+                  @if (_subStepDisclaimers.length === 0) {
+                    @let _fallbackKey = _hasAnyWorkflowAction()
+                      ? 'APP.ADESIONI.LABEL.SubstepFallbackCanChange'
+                      : 'APP.ADESIONI.LABEL.SubstepFallbackCannotChange';
+                    <markdown class="markdown-inline markdown-small d-block pt-3" [data]="_fallbackKey | translate"></markdown>
+                  }
 
                   <!-- Lista pulsanti di cambio stato (analogo al menu
                        di `ui-workflow`): stato_successivo + stati_ulteriori.

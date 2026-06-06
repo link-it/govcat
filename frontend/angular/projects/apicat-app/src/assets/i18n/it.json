@@ -121,7 +121,9 @@
 				"ProceduraAttivazione": "Procedura di attivazione",
 				"ProceduraConfigurazione": "Procedura di configurazione",
 				"CompletedOf": "{{done}} di {{total}} completati",
-				"BloccatoTooltip": "Disponibile dopo il completamento del passo precedente"
+				"BloccatoTooltip": "Disponibile dopo il completamento del passo precedente",
+				"SubstepFallbackCanChange": "L'adesione è pronta per il prossimo passaggio: usa i pulsanti qui sotto per procedere con il cambio di stato.",
+				"SubstepFallbackCannotChange": "L'adesione è in attesa di un'azione da parte di un utente abilitato. Verrai notificato quando lo stato cambierà."
 			},
 			"STEP_WIZARD": {
 				"info_generali": "Informazioni Generali e Referenti",

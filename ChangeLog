@@ -1,3 +1,14 @@
+2026-06-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Wizard adesione substepper: aggiunto disclaimer fallback
+	  locale per i sub-step "In approvazione" / "In
+	  configurazione" attivi quando il BE non fornisce
+	  disclaimer per lo stato. Due varianti i18n:
+	  `SubstepFallbackCanChange` (utente puo` cambiare stato)
+	  e `SubstepFallbackCannotChange` (in attesa di azione di
+	  un utente abilitato). IT/EN.
+
 2026-06-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
