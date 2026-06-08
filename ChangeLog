@@ -1,6 +1,13 @@
 2026-06-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Rename folder `components/authemtications-dialogs/` →
+	  `components/authentications-dialogs/` (fix typo).
+	  Aggiornati gli import in `servizio-view.component.ts`.
+
+2026-06-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Wizard adesione substepper: aggiunto disclaimer fallback
 	  locale per i sub-step "In approvazione" / "In
 	  configurazione" attivi quando il BE non fornisce

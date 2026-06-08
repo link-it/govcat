@@ -34,12 +34,12 @@ import { NavigationService } from '@app/services/navigation.service';
 
 import { Grant } from '@app/model/grant';
 
-import { AgidJwtDialogComponent } from '@app/components/authemtications-dialogs/agid-jwt-dialog/agid-jwt-dialog.component';
-import { ClientCredentialsDialogComponent } from '@app/components/authemtications-dialogs/client-credentials-dialog/client-credentials-dialog.component';
-import { AgidJwtSignatureDialogComponent } from '@app/components/authemtications-dialogs/agid-jwt-signature-dialog/agid-jwt-signature-dialog.component';
-import { AgidJwtTrackingEvidenceDialogComponent } from '@app/components/authemtications-dialogs/agid-jwt-tracking-evidence-dialog/agid-jwt-tracking-evidence-dialog.component';
-import { CodeGrantDialogComponent } from '@app/components/authemtications-dialogs/code-grant-dialog/code-grant-dialog.component';
-import { AgidJwtSignatureTrackingEvidenceDialogComponent } from '@app/components/authemtications-dialogs/agid-jwt-signature-tracking-evidence-dialog/agid-jwt-signature-tracking-evidence-dialog.component';
+import { AgidJwtDialogComponent } from '@app/components/authentications-dialogs/agid-jwt-dialog/agid-jwt-dialog.component';
+import { ClientCredentialsDialogComponent } from '@app/components/authentications-dialogs/client-credentials-dialog/client-credentials-dialog.component';
+import { AgidJwtSignatureDialogComponent } from '@app/components/authentications-dialogs/agid-jwt-signature-dialog/agid-jwt-signature-dialog.component';
+import { AgidJwtTrackingEvidenceDialogComponent } from '@app/components/authentications-dialogs/agid-jwt-tracking-evidence-dialog/agid-jwt-tracking-evidence-dialog.component';
+import { CodeGrantDialogComponent } from '@app/components/authentications-dialogs/code-grant-dialog/code-grant-dialog.component';
+import { AgidJwtSignatureTrackingEvidenceDialogComponent } from '@app/components/authentications-dialogs/agid-jwt-signature-tracking-evidence-dialog/agid-jwt-signature-tracking-evidence-dialog.component';
 
 import { environment } from '@app/environments/environment';
 
