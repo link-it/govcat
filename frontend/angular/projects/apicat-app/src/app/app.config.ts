@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { ApplicationConfig, CSP_NONCE, importProvidersFrom, inject, provideAppInitializer, provideZoneChangeDetection } from '@angular/core';
+import { ApplicationConfig, CSP_NONCE, Injector, importProvidersFrom, inject, provideAppInitializer, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter, withPreloading, PreloadAllModules } from '@angular/router';
 import { provideHttpClient, withInterceptorsFromDi, withXsrfConfiguration, HttpClient } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
@@ -34,6 +34,7 @@ import { ConfigService, httpInterceptorProviders, BreadcrumbService } from '@lin
 import { appHttpInterceptorProviders } from '@app/interceptors/index';
 import { GpSidebarNavHelper } from '../containers';
 import { NotificationsService } from '@services/notifications.service';
+import { AuthenticationService } from '@services/authentication.service';
 import { AuthGuard } from '../guard/auth.guard';
 import { GestoreGuard } from '../guard/gestore.guard';
 import { ForbidAnonymousGuard } from '../guard/forbid-anonymous.guard';
@@ -84,8 +85,25 @@ export const appConfig: ApplicationConfig = {
     NotificationsService,
     ConfigService,
     provideAppInitializer(() => {
+      // Carichiamo configurazione + OAuth, poi pre-loadiamo
+      // `/profilo` cosi` che i guard sincroni di routing
+      // (`DashboardGuard`, `OrganizationSelectionGuard`, ecc.)
+      // trovino la sessione gia` popolata al primo activation.
+      // Senza questo preload, in incognito la prima activation
+      // della rotta protetta `''` falliva il check di sessione
+      // (race con `loadProfile` async del layout) e
+      // l'utente veniva dirottato a `/servizi` invece che a
+      // `/dashboard`.
+      //
+      // Nota: `AuthenticationService` viene istanziato via
+      // `Injector` DOPO il load — il suo constructor legge
+      // `configService.getAppConfig()` che e` populato solo
+      // a quel punto. Iniettarlo eager qui causerebbe un
+      // TypeError sull'accesso `config.AppConfig`.
       const configService = inject(ConfigService);
-      return configService.load(environment.configFile);
+      const injector = inject(Injector);
+      return configService.load(environment.configFile)
+        .then(() => injector.get(AuthenticationService).loadAndStoreProfile());
     }),
     AuthGuard,
     GestoreGuard,
