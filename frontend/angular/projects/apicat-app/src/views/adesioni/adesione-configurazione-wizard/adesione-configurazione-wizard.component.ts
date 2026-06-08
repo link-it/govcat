@@ -2065,13 +2065,13 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         {
             code: 'collaudo',
             descrizione: 'Collaudo',
-            stati_adesione: ['bozza', 'richiesto_collaudo', 'autorizzato_collaudo', 'in_configurazione_manuale_collaudo', 'in_configurazione_automatica_collaudo'],
+            stati_adesione: ['bozza', 'richiesto_collaudo', 'autorizzato_collaudo', 'in_configurazione_collaudo', 'in_configurazione_manuale_collaudo', 'in_configurazione_automatica_collaudo'],
             sezioni_attive: ['collaudo']
         },
         {
             code: 'produzione',
             descrizione: 'Produzione',
-            stati_adesione: ['pubblicato_collaudo', 'richiesto_produzione', 'autorizzato_produzione', 'in_configurazione_manuale_produzione', 'in_configurazione_automatica_produzione', 'pubblicato_produzione'],
+            stati_adesione: ['pubblicato_collaudo', 'richiesto_produzione', 'autorizzato_produzione', 'in_configurazione_produzione', 'in_configurazione_produzione_senza_collaudo', 'in_configurazione_manuale_produzione', 'in_configurazione_automatica_produzione', 'pubblicato_produzione'],
             sezioni_attive: ['produzione']
         }
     ];
@@ -2083,7 +2083,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     private static readonly _STEP_WIZARD_COLLAUDO_FALLBACK: StepWizardItem[] = [
         { code: 'in_compilazione',   descrizione: 'In Compilazione',   stati_adesione: ['bozza'] },
         { code: 'in_approvazione',   descrizione: 'In Approvazione',   stati_adesione: ['richiesto_collaudo'] },
-        { code: 'in_configurazione', descrizione: 'In Configurazione', stati_adesione: ['autorizzato_collaudo', 'in_configurazione_manuale_collaudo', 'in_configurazione_automatica_collaudo'] },
+        { code: 'in_configurazione', descrizione: 'In Configurazione', stati_adesione: ['autorizzato_collaudo', 'in_configurazione_collaudo', 'in_configurazione_manuale_collaudo', 'in_configurazione_automatica_collaudo'] },
         { code: 'configurato',       descrizione: 'Configurato',       stati_adesione: ['pubblicato_collaudo'] }
     ];
 
@@ -2094,7 +2094,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     private static readonly _STEP_WIZARD_PRODUZIONE_FALLBACK: StepWizardItem[] = [
         { code: 'in_compilazione',   descrizione: 'In Compilazione',   stati_adesione: ['pubblicato_collaudo'] },
         { code: 'in_approvazione',   descrizione: 'In Approvazione',   stati_adesione: ['richiesto_produzione'] },
-        { code: 'in_configurazione', descrizione: 'In Configurazione', stati_adesione: ['autorizzato_produzione', 'in_configurazione_manuale_produzione', 'in_configurazione_automatica_produzione'] },
+        { code: 'in_configurazione', descrizione: 'In Configurazione', stati_adesione: ['autorizzato_produzione', 'in_configurazione_produzione', 'in_configurazione_produzione_senza_collaudo', 'in_configurazione_manuale_produzione', 'in_configurazione_automatica_produzione'] },
         { code: 'configurato',       descrizione: 'Configurato',       stati_adesione: ['pubblicato_produzione'] }
     ];
 

@@ -1,3 +1,14 @@
+2026-06-08  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Wizard adesione: aggiunti stati mancanti ai fallback
+	  `_STEP_WIZARD_*` (`in_configurazione_collaudo`,
+	  `in_configurazione_produzione`,
+	  `in_configurazione_produzione_senza_collaudo`). Senza
+	  questi, un'adesione in `in_configurazione_collaudo`
+	  cadeva sul default `info_generali` e il wizard appariva
+	  bloccato sullo step 1 senza azioni disponibili.
+
 2026-06-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
