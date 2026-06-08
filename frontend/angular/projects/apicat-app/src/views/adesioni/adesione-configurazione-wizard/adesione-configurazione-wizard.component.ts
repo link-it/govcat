@@ -1142,16 +1142,14 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         // mappato in wfStati), `workflowReachedFinal` resta false e la
         // fase NON viene marcata "completed" — meglio mostrare "active"
         // che mentire all'utente.
-        const workflowReachedFinal = this._workflowReachedSectionFinal(fase);
-        if (workflowReachedFinal) {
-            if (this.isSectionCompleted(fase)) { return 'completed'; }
-            // Tipico per Collaudo quando l'adesione e` gia` pubblicata in
-            // produzione: la fase non e` "pending" (futura) ma "conclusa".
-            if (this._isSectionPast(fase)) { return 'completed'; }
-        } else if (this._isSectionPast(fase)) {
-            // Fallback: anche senza wfStati riconosciuti, se la step-bar
-            // principale dice che la sezione e` passata (es. adesione in
-            // produzione, sezione collaudo storica), e` davvero conclusa.
+        // Fase conclusa quando il workflow ha raggiunto/superato l'ultimo
+        // sub-step della sezione (verifica strict via wfStati) oppure quando
+        // la step-bar principale segnala la sezione come passata (fallback
+        // per wfStati non riconosciuti, es. adesione in produzione e sezione
+        // collaudo storica). Indipendente dal check-dati del next state, che
+        // potrebbe risultare KO per transizioni successive (es. archiviazione)
+        // non piu` rilevanti per la fase.
+        if (this._workflowReachedSectionFinal(fase) || this._isSectionPast(fase)) {
             return 'completed';
         }
         return this.isSectionActive(fase) ? 'active' : 'pending';

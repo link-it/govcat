@@ -1,6 +1,16 @@
 2026-06-08  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard adesione `getFaseStatus`: chip "Azione richiesta"
+	  spuria su fase conclusa. Quando il workflow ha raggiunto
+	  l'ultimo sub-step della sezione la fase e` ora `completed`
+	  anche se il check-dati per il next state risulta KO (es.
+	  transizioni di archiviazione da `pubblicato_produzione`).
+	Stili markdown: applicati anche a `.disclaimer-inline`.
+
+2026-06-08  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Dashboard panel adesioni: mostrato `id_logico`
 	  dell'adesione (quando presente) come info secondaria
 	  inline accanto a nome servizio e versione.
