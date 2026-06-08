@@ -944,7 +944,12 @@ public class AdesioniController implements AdesioniApi {
 					realSpecification = specification;
 				}
 
-				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("searchTerms"));
+				// In dashboard l'ordinamento di default è cronologico decrescente per data di creazione
+				// (sempre valorizzata e portabile tra DB), resta sovrascrivibile da un sort esplicito.
+				List<String> sortDefault = (dashboard != null && dashboard)
+						? Arrays.asList("dataCreazione,desc")
+						: Arrays.asList("searchTerms");
+				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, sortDefault);
 
 				Page<AdesioneEntity> findAll = this.service.findAll(
 						realSpecification,

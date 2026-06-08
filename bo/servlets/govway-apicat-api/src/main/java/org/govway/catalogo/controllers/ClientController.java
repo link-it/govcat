@@ -319,7 +319,13 @@ public class ClientController implements ClientApi {
 					}
 				}
 
-				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("nome"));
+				// In dashboard l'ordinamento di default è cronologico decrescente: ClientEntity non ha
+				// campi data, quindi si usa l'id (sequence) come proxy della data di creazione.
+				// Resta comunque sovrascrivibile da un parametro sort esplicito.
+				List<String> sortDefault = (dashboard != null && dashboard)
+						? Arrays.asList("id,desc")
+						: Arrays.asList("nome");
+				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, sortDefault);
 
 				Page<ClientEntity> findAll = this.service.findAll(spec, pageable);
 
