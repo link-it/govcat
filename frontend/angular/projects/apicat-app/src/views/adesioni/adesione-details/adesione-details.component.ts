@@ -1321,7 +1321,13 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       if (!response) { return; }
       this.apiService.deleteElement(this.model, this.adesione.id_adesione).subscribe({
         next: () => {
-          this.router.navigate([this.model]);
+          // Ripristina il contesto di navigazione: se l'utente
+          // e` arrivato dalla lista adesioni di un servizio, torna
+          // a quella; altrimenti alla lista globale.
+          const target = this._serviceBreadcrumbs
+            ? ['/servizi', this._serviceBreadcrumbs.service.id_servizio, this.model]
+            : [this.model];
+          this.router.navigate(target);
         },
         error: (error) => {
           this._error = true;

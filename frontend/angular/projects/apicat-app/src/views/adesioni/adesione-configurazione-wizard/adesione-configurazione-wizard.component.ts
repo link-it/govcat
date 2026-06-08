@@ -1454,7 +1454,13 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
             if (!response) { return; }
             this.apiService.deleteElement(this.model, this.adesione.id_adesione).subscribe({
                 next: () => {
-                    this.router.navigate([this.model]);
+                    // Ripristina il contesto di navigazione: se l'utente
+                    // e` arrivato dalla lista adesioni di un servizio,
+                    // torna a quella; altrimenti alla lista globale.
+                    const target = this.serviceBreadcrumbs
+                        ? ['/servizi', this.serviceBreadcrumbs.service.id_servizio, this.model]
+                        : [this.model];
+                    this.router.navigate(target);
                 },
                 error: (error: any) => {
                     Tools.OnError(error);
