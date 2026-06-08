@@ -1,6 +1,25 @@
 2026-06-08  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard adesione header: la label "Referente servizio:" e`
+	  ora "Referente" (singolare) / "Referenti" (plurale, gestione
+	  N referenti separati da virgola). Aggiunta organizzazione
+	  del soggetto dell'adesione prima del referente (stessa
+	  fonte del breadcrumb). i18n IT/EN.
+
+2026-06-08  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	`adesioni-config.json` palette stati allineata al wizard:
+	  i colori `status` e `configuration_status` derivano ora
+	  dai design token (`--ok-*`, `--warn-*`, `--info-*`,
+	  `--accent-*`, `--surface-*`) gia` usati da
+	  `lnk-stato-chip` (varianti draft/pending/in-progress/test/
+	  prod/error).
+
+2026-06-08  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Wizard adesione: rimosso doppione disclaimer ambient nel
 	  sub-step `in_compilazione`. I disclaimer di contesto
 	  collaudo/produzione (senza `profilo`/`nome_gruppo`) erano

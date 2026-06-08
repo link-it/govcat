@@ -90,9 +90,13 @@
                   @if (headerVersion) { <span>{{ headerVersion }}</span> }
                   @if (headerVersion && headerUpdatedAt) { <span aria-hidden="true">·</span> }
                   @if (headerUpdatedAt) { <span>{{ headerUpdatedAt }}</span> }
-                  @if (headerOwnerName) {
+                  @if (headerAdesioneOrganization) {
                     <span aria-hidden="true">·</span>
-                    <span>{{ 'APP.LABEL.Owner' | translate }}: {{ headerOwnerName }}</span>
+                    <span>{{ headerAdesioneOrganization }}</span>
+                  }
+                  @if (headerOwnerNames.length) {
+                    <span aria-hidden="true">·</span>
+                    <span>{{ (headerOwnerNames.length > 1 ? 'APP.LABEL.OwnerPlural' : 'APP.LABEL.Owner') | translate }}: {{ headerOwnerNames.join(', ') }}</span>
                   }
                 </div>
                 <div class="d-flex gap-2 mt-2 align-items-center">

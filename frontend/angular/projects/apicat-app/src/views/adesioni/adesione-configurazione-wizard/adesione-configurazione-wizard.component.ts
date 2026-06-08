@@ -1072,28 +1072,34 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     }
 
     /**
-     * Nome completo del referente "principale" dell'adesione (tipo
-     * `referente`). Se non disponibile cade su `utente_richiedente`.
+     * Lista dei nomi dei referenti "principali" dell'adesione (tipo
+     * `referente`). Se nessuno, fallback su `utente_richiedente`.
      */
-    get headerOwnerName(): string {
-        const principale = (this.referents || []).find((r: any) => r?.source?.tipo === 'referente');
-        const u = principale?.source?.utente;
-        if (u) {
-            const full = `${u.nome || ''} ${u.cognome || ''}`.trim();
-            if (full) { return full; }
-        }
+    get headerOwnerNames(): string[] {
+        const fullName = (u: any): string => `${u?.nome || ''} ${u?.cognome || ''}`.trim();
+        const principali = (this.referents || [])
+            .filter((r: any) => r?.source?.tipo === 'referente')
+            .map((r: any) => fullName(r?.source?.utente))
+            .filter((n: string) => !!n);
+        if (principali.length > 0) { return principali; }
         // `utente_richiedente` e' tipizzato come `string` nel model
         // generato da OpenAPI ma a runtime e' un oggetto User completo
         // (nome/cognome/email/...) — vedi `adesione-form` e
         // `adesione-details`. Quindi compongo nome+cognome qui.
         const richiedente: any = this.adesione?.utente_richiedente;
         if (richiedente && typeof richiedente === 'object') {
-            const full = `${richiedente.nome || ''} ${richiedente.cognome || ''}`.trim();
-            if (full) { return full; }
+            const full = fullName(richiedente);
+            if (full) { return [full]; }
         } else if (typeof richiedente === 'string') {
-            return richiedente;
+            return [richiedente];
         }
-        return '';
+        return [];
+    }
+
+    /** Organizzazione del soggetto dell'adesione (stessa fonte usata
+     * dal breadcrumb). */
+    get headerAdesioneOrganization(): string {
+        return this.adesione?.soggetto?.organizzazione?.nome || '';
     }
 
     /** Chiavi delle 3 fasi macro del nuovo layout, tipizzate per il template. */
