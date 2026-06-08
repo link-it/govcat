@@ -1,6 +1,15 @@
 2026-06-08  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard adesione: rimosso doppione disclaimer ambient nel
+	  sub-step `in_compilazione`. I disclaimer di contesto
+	  collaudo/produzione (senza `profilo`/`nome_gruppo`) erano
+	  renderizzati sia come banner di sezione sia dentro il body
+	  del substep attivo. Mantenuto solo il banner di sezione.
+
+2026-06-08  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Wizard adesione `getFaseStatus`: chip "Azione richiesta"
 	  spuria su fase conclusa. Quando il workflow ha raggiunto
 	  l'ultimo sub-step della sezione la fase e` ora `completed`

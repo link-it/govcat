@@ -802,15 +802,10 @@
      vecchio rendering (sotto la step-bar interna orizzontale) sia al
      nuovo (incapsulato nello step "active" del sub-stepper verticale). -->
 <ng-template #collaudoBodyTpl let-substepState="substepState">
-  <!-- Disclaimer visibili solo quando il sub-step e` `active`: se e`
-       gia` `completed` il prompt non ha piu` funzione. -->
-  @if (disclaimersCollaudo.length > 0 && substepState === 'active') {
-    <div class="adesione-disclaimers mt-3 my-3">
-      @for (item of disclaimersCollaudo; track $index) {
-        <ng-container *ngTemplateOutlet="disclaimerTpl; context: { $implicit: item }"></ng-container>
-      }
-    </div>
-  }
+  <!-- Disclaimer ambientali Collaudo: NON renderizzati qui per
+       evitare doppione col banner di sezione (`newLayoutEnvCardTpl`,
+       subbanner sopra il substepper). Quel banner copre lo stesso
+       stato (sub `in_compilazione` attivo) con stessa source dati. -->
 
   <!-- Disclaimer "Configura i client" mostrato solo quando ci sono
        ancora client da configurare in Collaudo (gruppo `client` non
@@ -896,15 +891,7 @@
 
 <!-- Body Produzione (Issue 254 NEW LAYOUT): vedi commento collaudoBodyTpl. -->
 <ng-template #produzioneBodyTpl let-substepState="substepState">
-  <!-- Disclaimer visibili solo quando il sub-step e` `active`: vedi
-       commento su collaudoBodyTpl. -->
-  @if (disclaimersProduzione.length > 0 && substepState === 'active') {
-    <div class="adesione-disclaimers mt-3 mb-3">
-      @for (item of disclaimersProduzione; track $index) {
-        <ng-container *ngTemplateOutlet="disclaimerTpl; context: { $implicit: item }"></ng-container>
-      }
-    </div>
-  }
+  <!-- Disclaimer ambientali Produzione: vedi nota su collaudoBodyTpl. -->
   <app-adesione-lista-clients
     [id]="id"
     [adesione]="adesione"
