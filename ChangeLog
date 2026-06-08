@@ -1,6 +1,13 @@
 2026-06-08  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard adesione: barra `env-progress` ora verde quando la
+	  card-fase e` `is-done` (era sempre `--accent` rossa,
+	  incoerente con la chip "Fase conclusa").
+
+2026-06-08  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Wizard adesione header: la label "Referente servizio:" e`
 	  ora "Referente" (singolare) / "Referenti" (plurale, gestione
 	  N referenti separati da virgola). Aggiunta organizzazione
