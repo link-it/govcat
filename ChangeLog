@@ -1,6 +1,13 @@
 2026-06-08  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Dashboard panel adesioni: mostrato `id_logico`
+	  dell'adesione (quando presente) come info secondaria
+	  inline accanto a nome servizio e versione.
+
+2026-06-08  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Wizard adesione: aggiunti stati mancanti ai fallback
 	  `_STEP_WIZARD_*` (`in_configurazione_collaudo`,
 	  `in_configurazione_produzione`,

@@ -81,6 +81,9 @@
                   @if (!hideVersions && item.servizio?.versione) {
                     <small class="text-muted ms-1">v.{{ item.servizio.versione }}</small>
                   }
+                  @if (item.id_logico) {
+                    <small class="text-muted ms-1">· {{ item.id_logico }}</small>
+                  }
                 </div>
                 <span class="badge text-nowrap" [ngStyle]="getStatusStyle(item.stato)">{{ getStatusLabel(item.stato) | translate }}</span>
               </div>
