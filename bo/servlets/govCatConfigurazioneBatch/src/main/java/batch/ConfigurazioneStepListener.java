@@ -32,18 +32,18 @@ import java.util.Map;
 
 public class ConfigurazioneStepListener implements StepExecutionListener {
 
-    private final String externalPath;
+    private final String configurazioneJsonPath;
 
-    public ConfigurazioneStepListener(String externalPath) {
-        this.externalPath = externalPath;
+    public ConfigurazioneStepListener(String configurazioneJsonPath) {
+        this.configurazioneJsonPath = configurazioneJsonPath;
     }
     private static final Logger logger = LoggerFactory.getLogger(ConfigurazioneStepListener.class);
 
     @Override
     public void beforeStep(StepExecution stepExecution) {
         try {
-            ConfigurazioneReader confReader = new ConfigurazioneReader(externalPath);
-            logger.debug("[ConfigurazioneStepListener]: path file di configurazione {}",externalPath);
+            ConfigurazioneReader confReader = new ConfigurazioneReader(configurazioneJsonPath);
+            logger.debug("[ConfigurazioneStepListener]: path file di configurazione {}",configurazioneJsonPath);
             List<Map<String, String>> statoConf = confReader.getTuttaConfigurazioneAutomatica();
 
             ObjectMapper objectMapper = new ObjectMapper();

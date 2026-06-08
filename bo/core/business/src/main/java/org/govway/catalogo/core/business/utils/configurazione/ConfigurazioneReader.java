@@ -40,21 +40,21 @@ public class ConfigurazioneReader {
     
     static final String ERROR_STRING ="[ConfigurazioneReader] errore nella lettura del file di configurazione";
     
-    String externalPath;
-    
-    public ConfigurazioneReader(String externalPath) {
-        logger.debug("externalPath {}",externalPath);
+    String configurazioneJsonPath;
 
-    	this.externalPath = externalPath;
+    public ConfigurazioneReader(String configurazioneJsonPath) {
+        logger.debug("configurazioneJsonPath {}",configurazioneJsonPath);
+
+    	this.configurazioneJsonPath = configurazioneJsonPath;
     }
     public String getConfigurazione() throws IOException {
-		Resource resource = new FileSystemResource(this.externalPath+"/configurazione.json");
+		Resource resource = new FileSystemResource(this.configurazioneJsonPath);
 		if (resource.exists()) {
 		    // Il file esiste
-			logger.debug("File {} trovato!", this.externalPath+"/configurazione.json");
+			logger.debug("File {} trovato!", this.configurazioneJsonPath);
 		} else {
 		    // Il file non esiste
-			logger.error("File {} NON trovato!", this.externalPath+"/configurazione.json");
+			logger.error("File {} NON trovato!", this.configurazioneJsonPath);
 		}
 
         try (InputStream inputStream = resource.getInputStream()) {
