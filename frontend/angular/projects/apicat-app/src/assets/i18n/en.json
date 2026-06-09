@@ -1373,6 +1373,9 @@
 						"REFERENT": {
 							"NOT": {
 								"ELIGIBLE": "User [{{nomeUtente}} {{cognomeUtente}}] not eligible as referent"
+							},
+							"NO": {
+								"ROLE": "User [{{userIdUtente}}] does not have a sufficient role in organization [{{orgNome}}]: at least the API Operator role is required"
 							}
 						},
 						"RESOURCE": "Access denied to resource [{{resource}}]",

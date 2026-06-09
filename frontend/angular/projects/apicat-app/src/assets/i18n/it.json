@@ -1373,6 +1373,9 @@
 						"REFERENT": {
 							"NOT": {
 								"ELIGIBLE": "Utente [{{nomeUtente}} {{cognomeUtente}}] non abilitato come referente"
+							},
+							"NO": {
+								"ROLE": "Utente [{{userIdUtente}}] senza un ruolo sufficiente nell'organizzazione [{{orgNome}}]: è richiesto almeno il ruolo Operatore API"
 							}
 						},
 						"RESOURCE": "Accesso negato alla risorsa [{{resource}}]",

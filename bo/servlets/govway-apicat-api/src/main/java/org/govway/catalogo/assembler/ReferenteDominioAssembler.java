@@ -124,13 +124,8 @@ public class ReferenteDominioAssembler extends RepresentationModelAssemblerSuppo
 			throw new BadRequestException(ErrorCode.UT_400_NOT_ENABLED, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));
 		}
 
-		if(tipoReferente.equals(TIPO_REFERENTE.REFERENTE)) {
-			if(utente.getRuolo() == null) {
-				throw new BadRequestException(ErrorCode.UT_400_NOT_ENABLED, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));
-			}
-
-		}
-
+		// Il vincolo sul ruolo organizzativo minimo (almeno Operatore API) è verificato in
+		// DominiController.checkReferente/checkReferenti, dove è disponibile l'organizzazione di riferimento.
 		entity.setReferente(utente);
 		entity.setTipo(tipoReferente);
 		entity.setDominio(dominio);

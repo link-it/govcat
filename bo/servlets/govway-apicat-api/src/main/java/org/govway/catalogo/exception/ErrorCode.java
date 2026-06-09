@@ -454,6 +454,9 @@ public enum ErrorCode {
     /** Utente non abilitato come referente */
     AUT_403_REFERENT_NOT_ELIGIBLE("Utente non abilitato come referente"),
 
+    /** Utente senza un ruolo sufficiente nell'organizzazione per essere referente (richiesto almeno Operatore API) */
+    AUT_403_REFERENT_NO_ROLE("Utente senza un ruolo sufficiente nell'organizzazione per essere referente"),
+
     /** Organizzazione di sessione non abilitata come referente di servizi */
     AUT_403_ORG_NOT_REFERENTE("Organizzazione non abilitata come referente di servizi"),
 
