@@ -1,6 +1,19 @@
 2026-06-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Adesione (creazione): hardening auto-select organizzazione.
+	  `_loadOrganizzazione` ora esce in modo pulito se la lista
+	  soggetti per l'organizzazione di sessione e` vuota (era
+	  TypeError silenzioso). Race-condition guard: se
+	  `_onChangeServizio` ha gia` forzato `id_organizzazione`
+	  (servizio con dominio esterno) il control e` `disabled`
+	  e non viene sovrascritto.
+	`adesioni-config.json`: stato adesione nella lista renderizzato
+	  come `tag` (era `label`).
+
+2026-06-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Wizard step-bar: per stato `pubblicato_collaudo` la FASE 2
 	  (Collaudo) e` selezionata di default invece della FASE 3
 	  (era il comportamento naturale perche` lo stato e` anche

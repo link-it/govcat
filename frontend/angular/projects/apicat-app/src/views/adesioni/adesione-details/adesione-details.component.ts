@@ -842,18 +842,37 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     const _options: any = { params: { id_organizzazione: `${id}` } };
     this.apiService.getList('soggetti', _options).subscribe({
       next: (response: any) => {
-          this._orgAppartenenzaUtente = response.content[0];
+          // Guard: la lista soggetti per l'organizzazione di sessione
+          // puo` essere vuota (utente abilitato all'org senza soggetti
+          // associati). In quel caso lasciamo il select libero invece
+          // di crashare sull'accesso a `[0].organizzazione`.
+          const soggetto = response?.content?.[0];
+          const org = soggetto?.organizzazione;
+          if (!org?.id_organizzazione) {
+            this._initOrganizzazioniSelect([]);
+            return;
+          }
+          this._orgAppartenenzaUtente = soggetto;
           const aux: any = {
-            id_organizzazione: this._orgAppartenenzaUtente.organizzazione.id_organizzazione,
-            nome: this._orgAppartenenzaUtente.organizzazione.nome,
+            id_organizzazione: org.id_organizzazione,
+            nome: org.nome,
+          }
+
+          // Race-condition guard: se `_onChangeServizio` ha gia` forzato
+          // l'organizzazione (es. servizio con dominio esterno) il control
+          // e` `disabled`. In quel caso non sovrascriviamo: il vincolo
+          // del servizio prevale sull'auto-select dell'utente.
+          const orgCtrl = this._formGroup.get('id_organizzazione');
+          if (orgCtrl?.disabled && orgCtrl.value && orgCtrl.value !== org.id_organizzazione) {
+            return;
           }
 
           this.ngSelectOrganizazione?.handleClearClick();
-          this._formGroup.get('id_organizzazione')?.disable();
+          orgCtrl?.disable();
           this._initOrganizzazioniSelect([aux]);
 
           setTimeout(() => {
-            this._formGroup.patchValue({id_organizzazione: this._orgAppartenenzaUtente.organizzazione.id_organizzazione});
+            this._formGroup.patchValue({id_organizzazione: org.id_organizzazione});
             this._checkSoggetto(this._orgAppartenenzaUtente);
           }, 10);
         },
