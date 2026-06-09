@@ -812,7 +812,11 @@ public class AdesioniController implements AdesioniApi {
 				boolean admin = this.coreAuthorization.isAdmin() || this.coreAuthorization.isCoordinatore();
 
 				if(!admin) {
-					specification.setUtente(Optional.of(this.coreAuthorization.getUtenteSessione()));
+					UtenteEntity utenteSessione = this.coreAuthorization.getUtenteSessione();
+					specification.setUtente(Optional.of(utenteSessione));
+					// Un amministratore di organizzazione vede tutte le adesioni della/e propria/e
+					// organizzazione/i (lato aderente), anche senza esserne referente o richiedente.
+					specification.setIdOrganizzazioniAmministrate(getIdOrganizzazioniAmministrate(utenteSessione));
 				}
 
 				specification.setStati(stato);
@@ -2355,6 +2359,26 @@ public class AdesioniController implements AdesioniApi {
 			return null;
 		}
 		return adesione.getServizio().getDominio().getSoggettoReferente().getOrganizzazione();
+	}
+
+	/**
+	 * Restituisce gli identificativi delle organizzazioni di cui l'utente è amministratore
+	 * (ruolo {@link RuoloOrganizzazione#AMMINISTRATORE_ORGANIZZAZIONE}). Usato per ampliare la
+	 * visibilità in elenco adesioni: l'amministratore vede tutte le adesioni della propria
+	 * organizzazione (lato aderente) anche senza esserne referente o richiedente.
+	 */
+	private List<UUID> getIdOrganizzazioniAmministrate(UtenteEntity utente) {
+		List<UUID> ids = new ArrayList<>();
+		if (utente == null) {
+			return ids;
+		}
+		for (UtenteOrganizzazioneEntity assoc : this.organizzazioneService.findUtenteOrganizzazioniByUtente(utente)) {
+			if (assoc.getRuoloOrganizzazione() == RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE
+					&& assoc.getOrganizzazione() != null) {
+				ids.add(UUID.fromString(assoc.getOrganizzazione().getIdOrganizzazione()));
+			}
+		}
+		return ids;
 	}
 
 	/**
