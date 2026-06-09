@@ -77,6 +77,7 @@ import org.govway.catalogo.core.orm.entity.MessaggioServizioEntity;
 import org.govway.catalogo.core.orm.entity.NotificaEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.PackageServizioEntity;
+import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.ReferenteAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteDominioEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteServizioEntity;
@@ -413,6 +414,12 @@ public class ServiziController implements ServiziApi {
 				throw new NotAuthorizedException(ErrorCode.AUT_403_RESOURCE,
 						Map.of("resource", servizioEntity.getNome() + " v" + servizioEntity.getVersione()));
 			}
+
+			if(!admin && !this.organizzazioneService.hasRuoloInOrganizzazione(referenteEntity.getReferente(), organizzazione, RuoloOrganizzazione.OPERATORE_API, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
+				throw new NotAuthorizedException(ErrorCode.AUT_403_REFERENT_NO_ROLE,
+						Map.of("orgNome", organizzazione.getNome(),
+								"userIdUtente", referenteEntity.getReferente().getIdUtente()));
+			}
 		}
 	}
 
@@ -438,6 +445,12 @@ public class ServiziController implements ServiziApi {
 
 		if (!this.organizzazioneService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
 			throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING,
+					Map.of("orgNome", organizzazione.getNome(),
+							"userIdUtente", referenteEntity.getReferente().getIdUtente()));
+		}
+
+		if (!this.organizzazioneService.hasRuoloInOrganizzazione(referenteEntity.getReferente(), organizzazione, RuoloOrganizzazione.OPERATORE_API, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
+			throw new NotAuthorizedException(ErrorCode.AUT_403_REFERENT_NO_ROLE,
 					Map.of("orgNome", organizzazione.getNome(),
 							"userIdUtente", referenteEntity.getReferente().getIdUtente()));
 		}

@@ -66,6 +66,7 @@ import org.govway.catalogo.core.orm.entity.MessaggioAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.NotificaEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteAdesioneEntity;
+import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.StatoAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
@@ -2447,6 +2448,11 @@ public class AdesioniController implements AdesioniApi {
 						Map.of("orgNome", organizzazione.getNome(),
 								"userIdUtente", ref.getReferente().getIdUtente()));
 			}
+			if (!this.organizzazioneService.hasRuoloInOrganizzazione(ref.getReferente(), organizzazione, RuoloOrganizzazione.OPERATORE_API, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
+				throw new NotAuthorizedException(ErrorCode.AUT_403_REFERENT_NO_ROLE,
+						Map.of("orgNome", organizzazione.getNome(),
+								"userIdUtente", ref.getReferente().getIdUtente()));
+			}
 		}
 	}
 
@@ -2461,6 +2467,11 @@ public class AdesioniController implements AdesioniApi {
 		OrganizzazioneEntity organizzazione = referenteEntity.getAdesione().getSoggetto().getOrganizzazione();
 		if (!this.organizzazioneService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
 			throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING,
+					Map.of("orgNome", organizzazione.getNome(),
+							"userIdUtente", referenteEntity.getReferente().getIdUtente()));
+		}
+		if (!this.organizzazioneService.hasRuoloInOrganizzazione(referenteEntity.getReferente(), organizzazione, RuoloOrganizzazione.OPERATORE_API, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
+			throw new NotAuthorizedException(ErrorCode.AUT_403_REFERENT_NO_ROLE,
 					Map.of("orgNome", organizzazione.getNome(),
 							"userIdUtente", referenteEntity.getReferente().getIdUtente()));
 		}

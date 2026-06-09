@@ -129,12 +129,8 @@ public class ReferenteServizioAssembler extends RepresentationModelAssemblerSupp
 			throw new BadRequestException(ErrorCode.AUT_403_REFERENT_NOT_ELIGIBLE, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));
 		}
 
-		if(tipoReferente.equals(TIPO_REFERENTE.REFERENTE)) {
-			if(utente.getRuolo() == null) {
-				throw new BadRequestException(ErrorCode.AUT_403_REFERENT_NOT_ELIGIBLE, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));
-			}
-
-		}
+		// Il vincolo sul ruolo organizzativo minimo (almeno Operatore API) è verificato in
+		// ServiziController.checkReferente/checkReferenti, dove è disponibile l'organizzazione di riferimento.
 		entity.setReferente(utente);
 		entity.setTipo(tipoReferente);
 
