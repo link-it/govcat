@@ -38,7 +38,7 @@
         <i class="{{ icon }}" [ngClass]="{ 'd-block d-xs-none': label && !onlyIcon && !forceIcon }"></i>
       }
       @if (label && !onlyIcon) {
-        <span class="" [ngClass]="{ 'd-none d-md-block': !forceText && icon }" [class.ms-md-1]="icon && forceIcon">{{ label | translate }}</span>
+        <span class="text-nowrap" [ngClass]="{ 'd-none d-md-block': !forceText && icon }" [class.ms-md-1]="icon && forceIcon">{{ label | translate }}</span>
       }
     }
     @if (badgeCount) {

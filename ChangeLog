@@ -1,6 +1,16 @@
 2026-06-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Dashboard adesioni: invertito ordine `servizio.nome` (titolo
+	  primario) e `soggetto.nome` (secondario) nel pannello
+	  collapsed ed espanso. `id_logico` mostrato anche nel
+	  pannello espanso. `lnk-button` label `text-nowrap` per
+	  evitare a capo. `ItemType` propaga `elem.class` accanto
+	  alla classe `status-label-sm`.
+
+2026-06-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Adesione (creazione): hardening auto-select organizzazione.
 	  `_loadOrganizzazione` ora esce in modo pulito se la lista
 	  soggetti per l'organizzazione di sessione e` vuota (era

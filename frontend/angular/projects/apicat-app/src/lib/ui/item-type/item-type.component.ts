@@ -133,7 +133,8 @@ export class ItemTypeComponent implements OnInit {
                         this._border = this.config.options[_optionsName].values['default'].border;
                         this._color = this.config.options[_optionsName].values['default'].color;
                     }
-                    this._class = this.config.options[_optionsName].small ? 'status-label-sm' : '';
+                    const small = this.config.options[_optionsName].small ? ' status-label-sm' : '';
+                    this._class = `${small} ${this.elem.class || ''}`.trim();
                 }
             }
         }
