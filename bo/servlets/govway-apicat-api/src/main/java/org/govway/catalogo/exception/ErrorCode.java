@@ -548,6 +548,9 @@ public enum ErrorCode {
     /** Transizione di stato non consentita */
     WFL_400_TRANSITION("Transizione stato non consentita"),
 
+    /** Modifica di dati non consentita nello stato corrente */
+    WFL_400_DATA_NOT_MODIFIABLE("Modifica dati non consentita"),
+
     /** Workflow non trovato */
     WFL_404("Workflow non trovato"),
 
