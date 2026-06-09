@@ -71,7 +71,8 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 			// dallo stato archiviato si può tornare solo allo stato precedente
 			String statoPrecedente = getStatoPrecedente(entity);
 			if(!statoFinale.equals(statoPrecedente)) {
-				throw new NotAuthorizedException(ErrorCode.WFL_400_TRANSITION);
+				throw new NotAuthorizedException(ErrorCode.WFL_400_TRANSITION,
+						Map.of("statoAttuale", statoIniziale, "statoDesiderato", statoFinale));
 			}
 		} else {
 
@@ -93,7 +94,8 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 			}
 			
 			if(lstStatiArrivo.isEmpty()) {
-				throw new NotAuthorizedException(ErrorCode.WFL_400_TRANSITION);
+				throw new NotAuthorizedException(ErrorCode.WFL_400_TRANSITION,
+						Map.of("statoAttuale", statoIniziale, "statoDesiderato", statoFinale));
 			}
 
 
@@ -277,7 +279,7 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 		}
 
 		if(!lst.isEmpty()) {
-			throw new NotAuthorizedException(ErrorCode.WFL_400_TRANSITION);
+			throw new NotAuthorizedException(ErrorCode.WFL_400_DATA_NOT_MODIFIABLE);
 		}
 	}
 
