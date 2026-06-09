@@ -1965,6 +1965,12 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
                 Tools.showMessage(_msg, 'danger', true);
                 this.changingStatus = false;
                 this.isEdit = this.canEditMapper();
+                // Bump `updateMapper` per forzare il ricalcolo delle
+                // pipe `mapper:isModifiableMapper` nel template: senza
+                // questo le matite di edit (custom properties) restano
+                // nascoste (cached al valore `false` settato sopra a
+                // inizio _changeStatus).
+                this.updateMapper = Date.now().toString();
             },
         });
     }

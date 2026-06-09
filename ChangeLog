@@ -1,6 +1,15 @@
 2026-06-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard adesione: cambio stato in errore, le matite di edit
+	  delle custom properties (analisi del rischio) restavano
+	  nascoste. `_changeStatus` ora rinfresca `updateMapper`
+	  anche nel ramo error per forzare il ricalcolo della pipe
+	  `mapper:isModifiableMapper`.
+
+2026-06-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Wizard adesione lista clients: pulsante view (`bi-eye`)
 	  visibile per client gia` `configurato` o adesione in
 	  stato non modificabile. In view-only la dialog si apre
