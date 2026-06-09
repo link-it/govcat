@@ -1977,8 +1977,13 @@ public class ServiziController implements ServiziApi {
 			this.logger.debug("Autorizzazione completata con successo");     
 			return this.service.runTransaction( () -> {
 
+				// Marcatore comune per recuperare tutti i log di performance via grep, es:
+				//   grep 'PERF_SERVIZI_GRUPPI' <logfile>
+				final String perf = "PERF_SERVIZI_GRUPPI";
+				final long perfInizioTotale = System.currentTimeMillis();
+
 				this.logger.info("PRE init Specification");
-				
+
 				ServizioGruppoSpecification specification = new ServizioGruppoSpecification();
 				specification.setGruppo(Optional.ofNullable(idGruppoPadre));
 				specification.setGruppoPadreNull(Optional.ofNullable(gruppoPadreNull));
@@ -2013,10 +2018,15 @@ public class ServiziController implements ServiziApi {
 				CustomPageRequest pageable = new CustomPageRequest(0, Integer.MAX_VALUE, sort, Arrays.asList("nome","versione"));
 
 				this.logger.info("PRE findAllServiziGruppi");
+				// --- Fase 1: query su DB ---
+				this.logger.info("{} - inizio query DB findAllServiziGruppi", perf);
+				final long perfInizioQuery = System.currentTimeMillis();
 				Page<ServizioGruppoEntity> findAll = this.service.findAllServiziGruppi(
 						specification,
 						pageable
 						);
+				final long perfDurataQuery = System.currentTimeMillis() - perfInizioQuery;
+				this.logger.info("{} - fine query DB findAllServiziGruppi: estratti {} elementi in {} ms", perf, findAll.getNumberOfElements(), perfDurataQuery);
 
 				this.logger.info("POST findAllServiziGruppi");
 
@@ -2024,12 +2034,15 @@ public class ServiziController implements ServiziApi {
 
 
 				this.logger.info("PRE filtered");
+				// --- Fase 2: elaborazione applicativa (filtro visibilita + assembling) ---
+				this.logger.info("{} - inizio elaborazione applicativa (filtro + assembler) su {} elementi", perf, findAll.getNumberOfElements());
+				final long perfInizioApplicativa = System.currentTimeMillis();
 				UtenteEntity utenteSessione = this.coreAuthorization.getUtenteSessione();
 				List<ServizioGruppoEntity> filtered = findAll
 														.stream()
 														.filter(sg -> !isEmpty(sg, utenteSessione))
 														.collect(Collectors.toList());
-				
+
 				this.logger.info("POST filtered");
 				this.logger.info("PRE assembler");
 				PagedModel<ItemServizioGruppo> lst = pagedResourceServizioGruppoAssembler.toModel(new PageImpl<>(filtered, pageable, filtered.size()), this.itemServizioGruppoAssembler, link);
@@ -2041,6 +2054,12 @@ public class ServiziController implements ServiziApi {
 				list.add(lst.getLinks());
 				list.setPage(new PageMetadata().size((long)filtered.size()).number(0L).totalElements((long)filtered.size()).totalPages(1L));
 				this.logger.info("POST pagedmodel");
+
+				final long perfDurataApplicativa = System.currentTimeMillis() - perfInizioApplicativa;
+				this.logger.info("{} - fine elaborazione applicativa: {} elementi dopo il filtro in {} ms", perf, filtered.size(), perfDurataApplicativa);
+
+				final long perfDurataTotale = System.currentTimeMillis() - perfInizioTotale;
+				this.logger.info("{} - riepilogo tempi: query DB {} ms, elaborazione applicativa {} ms, totale {} ms", perf, perfDurataQuery, perfDurataApplicativa, perfDurataTotale);
 
 				this.logger.info("Invocazione completata con successo");
 				
