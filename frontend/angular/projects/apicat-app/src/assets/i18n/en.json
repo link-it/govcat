@@ -1829,7 +1829,10 @@
 					"404": "",
 					"400": {
 						"DATA": {
-							"MISSING": "Cannot perform transition: missing data [{{datiMancanti}}]"
+							"MISSING": "Cannot perform transition: missing data [{{datiMancanti}}]",
+								"NOT": {
+									"MODIFIABLE": "Data not modifiable in the current workflow state"
+								}
 						},
 						"STATE": "",
 						"TRANSITION": "State transition from [{{statoAttuale}}] to [{{statoDesiderato}}] not allowed"

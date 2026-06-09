@@ -952,7 +952,7 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
             this.onChangeCredenziali(_credenziali);
         }
 
-        if (!this._isModifiableMapper(data)) {
+        if (!this._isModifiable()) {
             this._disableAllFields(controls);
         }
 
@@ -2067,12 +2067,15 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
     }
 
     /**
-     * L'utente puo' modificare i dati della dialog? Delega a
-     * `_isModifiableMapper` per applicare la stessa logica di
-     * bypass (gestore, amm.org, op.api, referenti).
+     * L'utente puo' modificare i dati della dialog? Combina il gate
+     * di stato del padre (`isEdit`) con la logica di bypass su ruoli
+     * (`_isModifiableMapper`). I client gia` `configurato` non sono
+     * modificabili dal form (vanno dissociati prima): la dialog si
+     * apre in sola lettura (saveEnabled=false in `computeFormConfig`).
      */
     private _isModifiable(): boolean {
-        return this._isModifiableMapper();
+        if (this.client?.source?.stato === StatoConfigurazioneEnum.CONFIGURATO) { return false; }
+        return this.isEdit && this._isModifiableMapper();
     }
 
     /** Input completo per `computeFormConfig`. */

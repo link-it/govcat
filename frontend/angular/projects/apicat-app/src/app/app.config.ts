@@ -30,7 +30,8 @@ import { ModalModule } from 'ngx-bootstrap/modal';
 import { BsDatepickerModule } from 'ngx-bootstrap/datepicker';
 
 import { routes } from './app.routes';
-import { ConfigService, httpInterceptorProviders, BreadcrumbService } from '@linkit/components';
+import { ConfigService, httpInterceptorProviders, BreadcrumbService, Tools } from '@linkit/components';
+import { TranslateService } from '@ngx-translate/core';
 import { appHttpInterceptorProviders } from '@app/interceptors/index';
 import { GpSidebarNavHelper } from '../containers';
 import { NotificationsService } from '@services/notifications.service';
@@ -102,6 +103,12 @@ export const appConfig: ApplicationConfig = {
       // TypeError sull'accesso `config.AppConfig`.
       const configService = inject(ConfigService);
       const injector = inject(Injector);
+      // `Tools` espone metodi statici (es. `GetErrorMsg`) che
+      // traducono chiavi i18n del BE via `Tools.translate`. Il
+      // suo costruttore non viene mai invocato a runtime (nessun
+      // componente lo inietta come DI), quindi inizializziamo
+      // qui il membro statico manualmente.
+      Tools.translate = injector.get(TranslateService);
       return configService.load(environment.configFile)
         .then(() => injector.get(AuthenticationService).loadAndStoreProfile());
     }),

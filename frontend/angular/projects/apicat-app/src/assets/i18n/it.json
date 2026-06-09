@@ -1829,7 +1829,10 @@
 					"404": "Workflow [{{idWorkflow}}] non trovato",
 					"400": {
 						"DATA": {
-							"MISSING": ""
+							"MISSING": "",
+								"NOT": {
+									"MODIFIABLE": "Dati non modificabili nello stato corrente del workflow"
+								}
 						},
 						"STATE": "Stato workflow [{{stato}}] non valido",
 						"TRANSITION": "Transizione di stato da [{{statoAttuale}}] a [{{statoDesiderato}}] non consentita"

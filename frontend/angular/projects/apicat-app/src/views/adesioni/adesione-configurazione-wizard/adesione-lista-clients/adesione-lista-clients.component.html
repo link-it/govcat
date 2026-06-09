@@ -69,55 +69,60 @@
                 }
               </div>
             </div>
-            @if (isEdit) {
-              <div class="adesione-config-list-item-actions">
-                <!-- LINK AL CLIENT: naviga alla pagina di dettaglio
-                     del client (`/client/:id`). Visibile per client
-                     gia` `configurato` e modificabili, e solo per
-                     utenti con accesso alla rotta `/client` (gestore
-                     o amministrazione con permesso di lettura — mirror
-                     di `GestoreGuard`). -->
-                @if (item.id_client && isModifiable && (updateMapper | mapper:_canGoToClientMapper)) {
-                  @let clientNametooltip = 'APP.TOOLTIP.GoToClient' | translate;
-                  <button type="button"
-                          class="lnk-btn lnk-btn-ghost lnk-btn-sm lnk-btn-icon"
-                          [tooltip]="`${clientNametooltip} '${item.source?.nome || item.id_client}'`"
-                          [delay]="500"
-                          container="body"
-                          (click)="goToClient($event, item)"
-                          (auxclick)="goToClient($event, item)">
-                    <span class="material-icons-outlined">open_in_new</span>
-                  </button>
-                }
-                <!-- DISSOCIA: solo per client `configurato` modificabili. -->
-                @if (item.id_client && isModifiable) {
-                  <button type="button"
-                          class="lnk-btn lnk-btn-ghost lnk-btn-sm lnk-btn-icon"
-                          [tooltip]="'APP.TOOLTIP.Dissociate' | translate"
-                          [delay]="500"
-                          container="body"
-                          (click)="confirmDissociaClient(item)">
-                    <span class="material-icons-outlined">link_off</span>
-                  </button>
-                }
-                <!-- EDIT / VIEW / CLOSE: l'icona e il tooltip si
-                     adattano allo stato attuale (rev. 4.27). -->
+            <!-- canManage: l'utente puo` agire sul client (dissocia,
+                 link). canModify: l'utente puo` anche modificare i dati
+                 (esclude i client gia` `configurato` — vanno prima
+                 dissociati per essere ri-configurati). -->
+            @let canManage = isEdit && isModifiable;
+            @let canModify = canManage && item.source?.stato !== 'configurato';
+            <div class="adesione-config-list-item-actions">
+              <!-- LINK AL CLIENT: naviga alla pagina di dettaglio
+                   del client (`/client/:id`). Visibile per client
+                   gia` `configurato` modificabili, e solo per
+                   utenti con accesso alla rotta `/client` (gestore
+                   o amministrazione con permesso di lettura — mirror
+                   di `GestoreGuard`). -->
+              @if (item.id_client && canManage && (updateMapper | mapper:_canGoToClientMapper)) {
+                @let clientNametooltip = 'APP.TOOLTIP.GoToClient' | translate;
                 <button type="button"
                         class="lnk-btn lnk-btn-ghost lnk-btn-sm lnk-btn-icon"
-                        [tooltip]="(isEditing ? 'APP.BUTTON.Close' : (isModifiable ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show')) | translate"
+                        [tooltip]="`${clientNametooltip} '${item.source?.nome || item.id_client}'`"
                         [delay]="500"
                         container="body"
-                        (click)="isEditing ? closeModal() : onEdit(item)">
-                  @if (isEditing) {
-                    <i class="bi bi-x-lg"></i>
-                  } @else if (isModifiable) {
-                    <i class="bi bi-pencil"></i>
-                  } @else {
-                    <i class="bi bi-eye"></i>
-                  }
+                        (click)="goToClient($event, item)"
+                        (auxclick)="goToClient($event, item)">
+                  <span class="material-icons-outlined">open_in_new</span>
                 </button>
-              </div>
-            }
+              }
+              <!-- DISSOCIA: solo per client modificabili (mai in view-only). -->
+              @if (item.id_client && canManage && !isEditing && canModify) {
+                <button type="button"
+                        class="lnk-btn lnk-btn-ghost lnk-btn-sm lnk-btn-icon"
+                        [tooltip]="'APP.TOOLTIP.Dissociate' | translate"
+                        [delay]="500"
+                        container="body"
+                        (click)="confirmDissociaClient(item)">
+                  <span class="material-icons-outlined">link_off</span>
+                </button>
+              }
+              <!-- EDIT / VIEW / CLOSE: sempre visibile. In view-only
+                   (icona eye) la dialog si apre comunque con form
+                   read-only e senza pulsante Salva. -->
+              <button type="button"
+                      class="lnk-btn lnk-btn-ghost lnk-btn-sm lnk-btn-icon"
+                      [tooltip]="(isEditing ? 'APP.BUTTON.Close' : (canModify ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show')) | translate"
+                      [delay]="500"
+                      container="body"
+                      (click)="isEditing ? closeModal() : onEdit(item)">
+                @if (isEditing) {
+                  <i class="bi bi-x-lg"></i>
+                } @else if (canModify) {
+                  <i class="bi bi-pencil"></i>
+                } @else {
+                  <i class="bi bi-eye"></i>
+                }
+              </button>
+            </div>
           </div>
 
           <!-- Disclaimers per item (icone severity + markdown inline).

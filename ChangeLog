@@ -1,3 +1,17 @@
+2026-06-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Wizard adesione lista clients: pulsante view (`bi-eye`)
+	  visibile per client gia` `configurato` o adesione in
+	  stato non modificabile. In view-only la dialog si apre
+	  con form read-only e senza pulsante "Salva" (Dissocia /
+	  GoToClient nascosti). Errori BE con `detail` come chiave
+	  i18n (es. `VAL.422.COMPLEX`, `WFL.400.DATA.NOT.MODIFIABLE`)
+	  ora vengono tradotti automaticamente in `Tools.GetErrorMsg`
+	  via `APP.MESSAGE.ERROR.<detail>`. `Tools.translate`
+	  inizializzato nell'`APP_INITIALIZER` (constructor di
+	  `Tools` non viene mai invocato a runtime).
+
 2026-06-08  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
