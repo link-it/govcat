@@ -1,6 +1,14 @@
 2026-06-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard lista clients: la riga in view-only (icona eye) ora
+	  ha bordo/shadow verde (`.is-viewing`) invece del rosso
+	  riservato all'edit (`.is-editing`), per non suggerire dati
+	  ancora da compilare.
+
+2026-06-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Wizard adesione "goToClient": breadcrumb del client-details
 	  ricostruito col contesto di provenienza. `goToClient`
 	  propaga `id_servizio` come query param quando la rotta

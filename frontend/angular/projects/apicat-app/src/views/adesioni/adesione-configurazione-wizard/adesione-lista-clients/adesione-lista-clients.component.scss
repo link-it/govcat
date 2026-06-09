@@ -100,6 +100,14 @@ section.adesione-config-list {
     border-color: var(--accent, #ff4050);
     box-shadow: 0 0 0 3px var(--accent-soft, #ffe9eb);
   }
+
+  // View-only (icona eye): evidenziazione verde — segnala
+  // che la riga e` "aperta" senza dare la sensazione che
+  // ci siano dati ancora da compilare (rosso).
+  &.is-viewing {
+    border-color: var(--ok-border, #b6dcc7);
+    box-shadow: 0 0 0 3px var(--ok-soft, #e3f3ec);
+  }
 }
 
 .adesione-config-list-item-row {

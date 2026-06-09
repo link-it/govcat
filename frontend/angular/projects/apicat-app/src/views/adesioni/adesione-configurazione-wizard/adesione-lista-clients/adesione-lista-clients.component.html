@@ -42,7 +42,8 @@
         @let isEditing = inlineEdit && _inlineEditingClient === item;
         @let isModifiable = !!(item | mapper:_isModifiableMapper);
         <li class="adesione-config-list-item"
-            [class.is-editing]="isEditing">
+            [class.is-editing]="isEditing && (isEdit && isModifiable && item.source?.stato !== 'configurato')"
+            [class.is-viewing]="isEditing && !(isEdit && isModifiable && item.source?.stato !== 'configurato')">
           <div class="adesione-config-list-item-row">
             <!-- Visualizzazione diretta dei dati (rev. 4.28-bis): no
                  piu` icona / no piu` `<ui-item-row>`. Titolo =
