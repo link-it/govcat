@@ -236,6 +236,12 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
   _fromDashboard: boolean = false;
   _dashboardSection: string = '';
+  /** Origine "adesione": il client e` stato aperto dal wizard
+   * adesione (link `goToClient`). Permette di ricostruire il
+   * breadcrumb fino al servizio/adesione di provenienza. */
+  _fromAdesione: boolean = false;
+  _fromAdesioneIdAdesione: string = '';
+  _fromAdesioneIdServizio: string = '';
 
   /** Stato di caricamento per il recupero on-demand del secret
       via `GET /client/{id}/client-secret`. */
@@ -293,6 +299,11 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
       if (val.from === 'dashboard') {
         this._fromDashboard = true;
         this._dashboardSection = val.section || '';
+        this._initBreadcrumb();
+      } else if (val.from === 'adesione') {
+        this._fromAdesione = true;
+        this._fromAdesioneIdAdesione = val.id_adesione || '';
+        this._fromAdesioneIdServizio = val.id_servizio || '';
         this._initBreadcrumb();
       }
     });
@@ -1092,6 +1103,22 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
         { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2', params: _dashboardParams },
         { label: `${_title}`, url: '', type: 'title' }
       ];
+    } else if (this._fromAdesione) {
+      // Provenienza wizard adesione: ricostruiamo il path
+      // Servizi > Adesione (se passato `id_servizio`) oppure
+      // Adesioni > Adesione, prima del segmento Client.
+      const _crumbs: any[] = [];
+      if (this._fromAdesioneIdServizio) {
+        _crumbs.push({ label: 'APP.TITLE.Servizi', url: '/servizi', type: 'link' });
+        if (this._fromAdesioneIdAdesione) {
+          _crumbs.push({ label: 'APP.TITLE.Adesione', url: `/servizi/${this._fromAdesioneIdServizio}/adesioni/${this._fromAdesioneIdAdesione}`, type: 'link' });
+        }
+      } else if (this._fromAdesioneIdAdesione) {
+        _crumbs.push({ label: 'APP.TITLE.Adesioni', url: '/adesioni', type: 'link' });
+        _crumbs.push({ label: 'APP.TITLE.Adesione', url: `/adesioni/${this._fromAdesioneIdAdesione}`, type: 'link' });
+      }
+      _crumbs.push({ label: `${_title}`, url: '', type: 'title' });
+      this.breadcrumbs = _crumbs;
     } else {
       this.breadcrumbs = [
         { label: 'APP.TITLE.Configurations', url: '', type: 'title', iconBs: 'gear' },

@@ -162,6 +162,12 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
         if (!idClient) { return; }
         const queryParams: any = { from: 'adesione' };
         if (this.adesione?.id_adesione) { queryParams.id_adesione = this.adesione.id_adesione; }
+        // Se il wizard e` stato aperto via `/servizi/<id>/adesioni/<id>`,
+        // propaghiamo `id_servizio` come query param cosi` `client-details`
+        // puo` ricostruire il breadcrumb completo: Servizi > Adesione > Client.
+        if (/\/servizi\/[^/]+\/adesioni\//.test(this.router.url) && this.adesione?.servizio?.id_servizio) {
+            queryParams.id_servizio = this.adesione.servizio.id_servizio;
+        }
         const urlTree = this.router.createUrlTree(['/client', idClient], { queryParams });
         const openInNewTab = !!event && (event.ctrlKey || event.metaKey || event.shiftKey || event.button === 1);
         if (openInNewTab) {

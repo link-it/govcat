@@ -1,6 +1,16 @@
 2026-06-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard adesione "goToClient": breadcrumb del client-details
+	  ricostruito col contesto di provenienza. `goToClient`
+	  propaga `id_servizio` come query param quando la rotta
+	  e` `/servizi/<id>/adesioni/<id>`; `client-details` con
+	  `from=adesione` mostra `Servizi > Adesione > Client`
+	  oppure `Adesioni > Adesione > Client`.
+
+2026-06-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Wizard adesione: cambio stato in errore, le matite di edit
 	  delle custom properties (analisi del rischio) restavano
 	  nascoste. `_changeStatus` ora rinfresca `updateMapper`
