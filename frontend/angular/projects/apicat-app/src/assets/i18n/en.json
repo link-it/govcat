@@ -123,7 +123,7 @@
 				"CompletedOf": "{{done}} of {{total}} completed",
 				"BloccatoTooltip": "Available after the previous step is completed",
 				"SubstepFallbackCanChange": "The subscription is ready for the next step: use the buttons below to change the state.",
-				"SubstepFallbackCannotChange": "The subscription is waiting for an action by an authorized user."
+				"SubstepFallbackCannotChange": "No further action is required from you at this stage. Membership is pending action from an authorized user."
 			},
 			"STEP_WIZARD": {
 				"info_generali": "General Information & Referents",

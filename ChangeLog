@@ -1,6 +1,17 @@
 2026-06-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard step-bar: per stato `pubblicato_collaudo` la FASE 2
+	  (Collaudo) e` selezionata di default invece della FASE 3
+	  (era il comportamento naturale perche` lo stato e` anche
+	  primo sub-step di Produzione). Tocca solo `_selectedFase`,
+	  lo step-bar resta cliccabile per passare alla Produzione.
+	i18n IT/EN: `SubstepFallbackCannotChange` esplicita "Non
+	  sono richieste ulteriori azioni in questa fase".
+
+2026-06-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Wizard lista clients: la riga in view-only (icona eye) ora
 	  ha bordo/shadow verde (`.is-viewing`) invece del rosso
 	  riservato all'edit (`.is-editing`), per non suggerire dati

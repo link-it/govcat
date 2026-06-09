@@ -398,6 +398,16 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         }
         const currentState = this.adesione?.stato;
         if (currentState) {
+            // Regola speciale: `pubblicato_collaudo` e` terminale di
+            // Collaudo ("configurato") ed e` anche il primo sub-step
+            // ("in_compilazione") di Produzione. Selezioniamo
+            // visivamente FASE 2 senza toccare `selectedStepCode` /
+            // `activeSections` (resta il comportamento naturale
+            // dello step-bar).
+            if (currentState === 'pubblicato_collaudo' && this.stepWizard.some(s => s.code === 'collaudo')) {
+                this._selectedFase = 'collaudo';
+                return;
+            }
             const found = this.stepWizard.find(s => s.stati_adesione?.includes(currentState));
             if (found) {
                 this._selectedFase = found.code;

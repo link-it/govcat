@@ -123,7 +123,7 @@
 				"CompletedOf": "{{done}} di {{total}} completati",
 				"BloccatoTooltip": "Disponibile dopo il completamento del passo precedente",
 				"SubstepFallbackCanChange": "L'adesione è pronta per il prossimo passaggio: usa i pulsanti qui sotto per procedere con il cambio di stato.",
-				"SubstepFallbackCannotChange": "L'adesione è in attesa di un'azione da parte di un utente abilitato."
+				"SubstepFallbackCannotChange": "Non sono richieste ulteriori azioni da parte tua in questa fase. L'adesione è in attesa di un'azione da parte di un utente abilitato."
 			},
 			"STEP_WIZARD": {
 				"info_generali": "Informazioni Generali e Referenti",
