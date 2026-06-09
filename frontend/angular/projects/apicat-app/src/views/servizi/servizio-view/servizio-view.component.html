@@ -167,7 +167,8 @@
                && !(_updateData | mapper:_isReferenteMapper)
                && !(_updateData | mapper:_isReferenteTecnicoAdesioneMapper)
                && !_hasJoined
-               && (_updateData | mapper:_isAmmissibileMapper)) {
+               && (_updateData | mapper:_isAmmissibileMapper)
+               && (_updateData | mapper:_canCreateAdesioneMapper)) {
             <lnk-action-banner
               icon="bi-stars"
               [title]="'APP.MESSAGE.JoinServiceTitle' | translate"

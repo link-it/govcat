@@ -865,6 +865,15 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         return this._isAmmissibile();
     }
 
+    /** Vero se l'utente puo` effettivamente creare un'adesione:
+     * gestore/coordinatore sempre OK; gli utenti per-org devono
+     * avere un `ruolo_organizzazione` sulla currentOrg aderente.
+     * Senza ruolo (es. "Nessun ruolo") il banner "Aderisci al
+     * servizio" non va mostrato. */
+    _canCreateAdesioneMapper = (): boolean => {
+        return this.authenticationService.canCreateAdesione();
+    }
+
     _isGestoreMapper = (): boolean => {
         return this.authenticationService.isGestore(this._grant?.ruoli);
     }

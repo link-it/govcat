@@ -1,6 +1,14 @@
 2026-06-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Servizio view: banner "Aderisci al servizio" nascosto per
+	  utenti senza `ruolo_organizzazione` sull'org corrente
+	  aderente (es. "Nessun ruolo"). Gate aggiunto via
+	  `_canCreateAdesioneMapper` → `canCreateAdesione`.
+
+2026-06-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Dashboard adesioni: invertito ordine `servizio.nome` (titolo
 	  primario) e `soggetto.nome` (secondario) nel pannello
 	  collapsed ed espanso. `id_logico` mostrato anche nel
