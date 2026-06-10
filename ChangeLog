@@ -1,6 +1,17 @@
 2026-06-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard adesione: il sub-step "In compilazione" viene
+	  forzato `active` (e aperto) anche quando ci sono client
+	  del gruppo `CLIENT` ancora non configurati, oltre al
+	  caso gia` gestito delle custom properties incomplete.
+	  Caso d'uso: gestore in collaudo che deve passare un
+	  client da "non configurato" a "configurato" tramite il
+	  link in lista clients.
+
+2026-06-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Client edit: campo `nome` ora editabile anche in scenario
 	  `edit` (era disabilitato dal `field(..., editableScenario
 	  && isNew, ...)` in `client-dialog-state.ts`, oltre al

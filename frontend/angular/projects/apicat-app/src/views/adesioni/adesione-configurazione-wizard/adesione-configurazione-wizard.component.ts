@@ -1664,12 +1664,27 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     }
 
     /**
+     * Vero se la sezione ha client del gruppo `CLIENT` ancora da
+     * configurare (es. gestore che deve passare il client da
+     * "non configurato" a "configurato"). Allinea il behavior del
+     * sub-step "In compilazione" allo stato reale: se ci sono
+     * client incompleti, il sub-step va riaperto.
+     */
+    _hasIncompleteClients(section: 'collaudo' | 'produzione'): boolean {
+        const ambiente = section === 'collaudo' ? AmbienteEnum.Collaudo : AmbienteEnum.Produzione;
+        return !this.isSottotipoGroupCompletedMapper(false, ambiente, ClassiEnum.CLIENT);
+    }
+
+    /**
      * Lista di sub-step `code` da forzare a stato `active` nel
-     * substepper della sezione. Per ora solo `in_compilazione`
-     * quando ha custom properties obbligatorie incomplete.
+     * substepper della sezione. `in_compilazione` viene forzato
+     * quando ci sono custom properties obbligatorie incomplete
+     * oppure client non ancora configurati.
      */
     getForceActiveSubsteps(section: 'collaudo' | 'produzione'): string[] {
-        return this._hasIncompleteCustomProperties(section) ? ['in_compilazione'] : [];
+        const needsAttention = this._hasIncompleteCustomProperties(section)
+            || this._hasIncompleteClients(section);
+        return needsAttention ? ['in_compilazione'] : [];
     }
 
     configurazioni: any = {
