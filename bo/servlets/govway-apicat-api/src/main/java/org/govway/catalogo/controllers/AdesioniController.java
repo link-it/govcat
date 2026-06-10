@@ -285,7 +285,21 @@ public class AdesioniController implements AdesioniApi {
 	}
 
 	private AdesioneEntity findOne(UUID idAdesione) {
-		
+		return findOne(idAdesione, false);
+	}
+
+	/**
+	 * Variante di {@link #findOne(UUID)} per le operazioni di sola consultazione (endpoint GET):
+	 * un amministratore di organizzazione può consultare tutte le adesioni della/e propria/e
+	 * organizzazione/i (lato aderente), anche senza esserne referente o richiedente.
+	 * Non va usata per le operazioni di scrittura, la cui autorizzazione resta invariata.
+	 */
+	private AdesioneEntity findOneConsultazione(UUID idAdesione) {
+		return findOne(idAdesione, true);
+	}
+
+	private AdesioneEntity findOne(UUID idAdesione, boolean visibilitaAmministratoreOrganizzazione) {
+
 		UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
 		
 		if(utente == null) {
@@ -295,6 +309,9 @@ public class AdesioniController implements AdesioniApi {
 		
 		if(!this.coreAuthorization.isAdmin()) {
 			aspec.setUtente(Optional.of(utente));
+			if(visibilitaAmministratoreOrganizzazione) {
+				aspec.setIdOrganizzazioniAmministrate(getIdOrganizzazioniAmministrate(utente));
+			}
 		}
 
 		aspec.setIdAdesioni(List.of(idAdesione));
@@ -539,7 +556,7 @@ public class AdesioniController implements AdesioniApi {
 
 			return this.service.runTransaction( () -> {
 
-				findOne(idAdesione);
+				findOneConsultazione(idAdesione);
 
 				MessaggioAdesioneEntity messaggio = this.service.findMessaggioAdesione(idAdesione.toString(), idMessaggio.toString())
 						.stream()
@@ -570,7 +587,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction( () -> {
 
 			this.logger.info("Invocazione in corso ...");    
-			AdesioneEntity entity = findOne(idAdesione);
+			AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 			this.logger.debug("Autorizzazione completata con successo");     
 
@@ -598,7 +615,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ..."); 
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 				this.logger.debug("Autorizzazione completata con successo");     
 				
 				if(!this.configurazione.getAdesione().getStatiSchedaAdesione().contains(entity.getStato())) {
@@ -645,7 +662,7 @@ public class AdesioniController implements AdesioniApi {
 
 				this.logger.info("Invocazione in corso ..."); 
 				
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -678,7 +695,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ..."); 
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -712,7 +729,7 @@ public class AdesioniController implements AdesioniApi {
 
 				this.logger.info("Invocazione in corso ...");  
 				
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -1119,7 +1136,7 @@ public class AdesioniController implements AdesioniApi {
 
 				this.logger.info("Invocazione in corso ...");  
 				
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -1151,7 +1168,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ...");     
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				List<ClientAdesioneEntity> lst = entity.getClient().stream()
@@ -1185,7 +1202,7 @@ public class AdesioniController implements AdesioniApi {
 
 				this.logger.info("Invocazione in corso ..."); 
 				
-				findOne(idAdesione);
+				findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -1234,7 +1251,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction(() -> {
 				this.logger.info("Invocazione in corso ...");     
 	
-				findOne(idAdesione);
+				findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");     
 	
@@ -1597,7 +1614,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ...");     
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");     
 				DocumentoEntity allegato = null;
@@ -1640,7 +1657,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ...");   
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");     
 				DocumentoEntity allegato = null;
@@ -1849,7 +1866,7 @@ public class AdesioniController implements AdesioniApi {
 
 				this.logger.info("Invocazione in corso ...");    
 				
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -1876,7 +1893,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ...");
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");
 
@@ -1909,7 +1926,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ...");
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");
 
@@ -2211,7 +2228,7 @@ public class AdesioniController implements AdesioniApi {
 
 			return this.service.runTransaction( () -> {
 
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				List<EstensioneAdesioneEntity> lst = entity.getEstensioni().stream()
 						.filter(c -> c.getDocumento()!= null && c.getDocumento().getUuid().equals(idAllegato.toString()))
@@ -2246,7 +2263,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ...");     
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				CheckDati checkDatiGenerale = new CheckDati();
@@ -2437,7 +2454,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction(() -> {
 
 				this.logger.info("Invocazione in corso ...");
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");
 
