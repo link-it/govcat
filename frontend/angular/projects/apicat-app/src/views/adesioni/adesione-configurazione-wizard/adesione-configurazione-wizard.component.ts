@@ -1000,6 +1000,12 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
      *  di `ui-workflow._isActionEnabledMapper`). */
     _isWorkflowActionEnabled = (type: string, statusName: string = ''): boolean => {
         if (!this.adesione) { return false; }
+        // Vincolo: una adesione non puo` transizionare verso uno stato
+        // di produzione se il servizio non e` `pubblicato_produzione`.
+        const targetName = statusName || this.getCambioStatoEntry()?.stato_successivo?.nome || '';
+        if (this._isProduzioneBloccata() && this._isStatoProduzione(targetName)) {
+            return false;
+        }
         return this.authenticationService.canChangeStatus(
             'adesione',
             this.adesione.stato,
@@ -1007,6 +1013,24 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
             this._combinedRuoli(),
             statusName
         );
+    }
+
+    /** Vero quando l'adesione non puo` ancora andare in produzione
+     *  perche` il servizio non e` `pubblicato_produzione`. Usato
+     *  per disabilitare FASE 3 nella step-bar e per bloccare le
+     *  transizioni workflow verso stati produzione. */
+    _isProduzioneBloccata(): boolean {
+        return this.adesione?.servizio?.stato !== 'pubblicato_produzione';
+    }
+
+    /** True se il nome stato adesione e` di fase produzione. */
+    private _isStatoProduzione(statoNome: string): boolean {
+        return !!statoNome && statoNome.includes('produzione');
+    }
+
+    /** Codici delle fasi da disabilitare nella `<app-adesione-fasi-bar>`. */
+    getDisabledFasiCodes(): string[] {
+        return this._isProduzioneBloccata() ? ['produzione'] : [];
     }
 
     /** Abilitazione dell'azione "Archivia". */

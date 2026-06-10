@@ -169,7 +169,9 @@
 				"ShowReferents_sub": "Mostra referenti"
 			},
 			"MESSAGE": {
-				"ConfigureClientsDisclaimer": "Configura i client di autenticazione per procedere. Per ogni profilo elencato qui sotto premi la matita e inserisci i dati richiesti."
+				"ConfigureClientsDisclaimer": "Configura i client di autenticazione per procedere. Per ogni profilo elencato qui sotto premi la matita e inserisci i dati richiesti.",
+				"FaseProduzioneBloccata": "Per richiedere la produzione il servizio deve essere prima pubblicato in produzione.",
+				"FaseProduzioneBloccataShort": "Servizio non pubblicato in produzione"
 			},
 			"TOOLTIP": {
 				"EditAdesione": ""

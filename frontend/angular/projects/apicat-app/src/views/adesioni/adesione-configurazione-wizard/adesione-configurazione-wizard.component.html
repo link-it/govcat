@@ -279,6 +279,7 @@
                 [currentState]="adesione?.stato || null"
                 [selectedCode]="_selectedFase"
                 [workflowStati]="workflowStati"
+                [disabledCodes]="getDisabledFasiCodes()"
                 (stepClick)="selectFase($event)"
               ></app-adesione-fasi-bar>
             }

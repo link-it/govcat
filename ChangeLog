@@ -1,6 +1,21 @@
 2026-06-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard adesione: FASE 3 (Produzione) disabilitata finche` il
+	  servizio non e` `pubblicato_produzione`. Il bullet della
+	  fase mostra lucchetto, sfondo neutro e opacity ridotta;
+	  sotto il titolo "Produzione" compare l'hint
+	  "Servizio non pubblicato in produzione". Le transizioni
+	  workflow verso stati `*_produzione*` sono bloccate
+	  (`_isWorkflowActionEnabled` gate). i18n IT/EN nuove chiavi
+	  `APP.ADESIONI.MESSAGE.FaseProduzioneBloccata` +
+	  `FaseProduzioneBloccataShort`. Nuovo @Input
+	  `disabledCodes` su `<app-adesione-fasi-bar>` con stato
+	  `.is-disabled` esplicito (distinto da `is-locked` pending).
+
+2026-06-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Wizard adesione:
 	  - Regressione client mapper: l'override "rosso forzato"
 	    su client `non configurato` ora scatta SOLO per chi

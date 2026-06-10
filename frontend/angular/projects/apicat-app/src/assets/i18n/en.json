@@ -169,7 +169,9 @@
 				"ShowReferents_sub": "Show referents"
 			},
 			"MESSAGE": {
-				"ConfigureClientsDisclaimer": "Configure the authentication clients to proceed. For each profile listed below, click the pencil and enter the required data."
+				"ConfigureClientsDisclaimer": "Configure the authentication clients to proceed. For each profile listed below, click the pencil and enter the required data.",
+				"FaseProduzioneBloccata": "To request production, the service must first be published in production.",
+				"FaseProduzioneBloccataShort": "Service not published in production"
 			},
 			"TOOLTIP": {
 				"EditAdesione": ""
