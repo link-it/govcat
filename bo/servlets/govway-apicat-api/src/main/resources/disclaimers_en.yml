@@ -43,19 +43,19 @@ bozza:
 
 richiesto_collaudo: |
   ## Awaiting authorization
-  The subscription request for **test** has been submitted and is awaiting authorization from the **service contact**. No further action is required from you at this stage. You will receive a notification once the request is evaluated.
+  The subscription request for **test** has been submitted and is awaiting authorization from the **service contact**.
 
 autorizzato_collaudo: |
   ## Authorized — awaiting configuration
-  The subscription request for **test** has been authorized. The platform manager is configuring it on the API Gateway. You will receive a notification once it is complete.
+  The subscription request for **test** has been authorized. The platform manager is configuring it on the API Gateway.
 
 in_configurazione_manuale_collaudo: |
   ## Configuration in progress (test)
-  The manager is configuring the subscription on the **test** API Gateway. No action is required from you. You will receive a notification upon completion.
+  The manager is configuring the subscription on the **test** API Gateway. No action is required from you.
 
 in_configurazione_automatica_collaudo: |
   ## Configuration in progress (test)
-  The platform manager is configuring the subscription on the **test** API Gateway. No action is required from you. You will receive a notification upon completion.
+  The platform manager is configuring the subscription on the **test** API Gateway. No action is required from you.
 
 pubblicato_collaudo: |
   ## Subscription active in test
@@ -63,19 +63,19 @@ pubblicato_collaudo: |
 
 richiesto_produzione: |
   ## Awaiting authorization (production)
-  The subscription request for **production** has been submitted and is awaiting authorization from the **service contact**. No further action is required from you. You will receive a notification once the request is evaluated.
+  The subscription request for **production** has been submitted and is awaiting authorization from the **service contact**.
 
 autorizzato_produzione: |
   ## Authorized — awaiting configuration (production)
-  The subscription request for **production** has been authorized. The platform manager is configuring it on the API Gateway. You will receive a notification once it is complete.
+  The subscription request for **production** has been authorized. The platform manager is configuring it on the API Gateway.
 
 in_configurazione_manuale_produzione: |
   ## Configuration in progress (production)
-  The platform manager is configuring the subscription on the **production** API Gateway. No action is required from you. You will receive a notification upon completion.
+  The platform manager is configuring the subscription on the **production** API Gateway. No action is required from you.
 
 in_configurazione_automatica_produzione: |
   ## Automatic configuration in progress (production)
-  The platform manager is configuring the subscription on the **production** API Gateway. No action is required from you. You will receive a notification upon completion.
+  The platform manager is configuring the subscription on the **production** API Gateway. No action is required from you.
 
 pubblicato_produzione: |
   ## Subscription active in production ✓

@@ -257,7 +257,15 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 				spec.setAderente(Optional.ofNullable(aderente));
 				spec.setEsterna(Optional.ofNullable(esterna));
 				spec.setSoggettoAderente(Optional.ofNullable(soggettoAderente));
-	
+
+				// Un gestore (amministratore) o un coordinatore vedono tutte le organizzazioni.
+				// Per ogni altro utente si restituiscono solo le organizzazioni a cui è associato.
+				boolean admin = this.coreAuthorization.isAdmin() || this.coreAuthorization.isCoordinatore();
+				if(!admin) {
+					UtenteEntity utenteSessione = this.coreAuthorization.getUtenteSessione();
+					spec.setUtente(Optional.ofNullable(utenteSessione));
+				}
+
 				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("nome"));
 
 				Page<OrganizzazioneEntity> findAll = this.service.findAll(spec, pageable);

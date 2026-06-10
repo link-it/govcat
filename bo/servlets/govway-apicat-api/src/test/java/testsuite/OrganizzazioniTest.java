@@ -508,7 +508,52 @@ public class OrganizzazioniTest {
         assertEquals("Organizzazione TEST 1", org1.getNome());
         assertEquals("Organizzazione TEST 2", org2.getNome());
     }
- 
+
+    @Test
+    public void testListOrganizzazioniUtenteOrganizzazioneVedeSoloAssociate() {
+        // Due organizzazioni create dal gestore
+        Organizzazione orgAssociata = creaOrgPerAssoc("org-assoc-visibile");
+        creaOrgPerAssoc("org-non-associata");
+
+        // Utente non gestore/coordinatore associato (qualsiasi ruolo) solo alla prima organizzazione
+        Utente utente = creaUtentePerAssoc("assoc.list.org");
+        UtenteOrganizzazioneAdd body = new UtenteOrganizzazioneAdd();
+        body.setIdUtente(utente.getIdUtente());
+        body.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.OPERATORE_API);
+        controller.addUtenteOrganizzazione(orgAssociata.getIdOrganizzazione(), body);
+
+        // Autentico come utente organizzazione
+        CommonUtils.getSessionUtente("assoc.list.org", securityContext, authentication, utenteService);
+
+        ResponseEntity<PagedModelItemOrganizzazione> response = controller.listOrganizzazioni(
+            null, null, null, null, null, null, null, null, null, null, 0, 10, Arrays.asList("nome,asc"));
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        List<ItemOrganizzazione> organizzazioni = response.getBody().getContent();
+        assertEquals(1, organizzazioni.size());
+        assertEquals(orgAssociata.getIdOrganizzazione(), organizzazioni.get(0).getIdOrganizzazione());
+    }
+
+    @Test
+    public void testListOrganizzazioniCoordinatoreVedeTutte() {
+        creaOrgPerAssoc("org-coord-1");
+        creaOrgPerAssoc("org-coord-2");
+
+        UtenteCreate coord = CommonUtils.getUtenteCreate();
+        coord.setPrincipal("coord.list");
+        coord.setRuolo(RuoloUtenteEnum.COORDINATORE);
+        utentiController.createUtente(coord);
+
+        CommonUtils.getSessionUtente("coord.list", securityContext, authentication, utenteService);
+
+        ResponseEntity<PagedModelItemOrganizzazione> response = controller.listOrganizzazioni(
+            null, null, null, null, null, null, null, null, null, null, 0, 10, Arrays.asList("nome,asc"));
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        // Un coordinatore non viene filtrato: vede tutte le organizzazioni
+        assertEquals(2, response.getBody().getContent().size());
+    }
+
     @Test
     void testListOrganizzazioniSortedNameDesc() {
     	for(int n = 0; n < 3; n++) {
