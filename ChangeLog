@@ -1,6 +1,17 @@
 2026-06-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Dashboard `markNotification` refactor: unico branch
+	  `matches tab` (helper `_statoMatchesComunicazioniTab`)
+	  invece di 3 rami duplicati. Coperto anche tab `tutte`
+	  e il caso "tab letta + action nuova" che cadeva
+	  erroneamente in update in-place. Aggiunto handler
+	  `error` che richiama `_reloadComunicazioniCounts()`
+	  per riallineare allo stato remoto.
+
+2026-06-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Wizard adesione: FASE 3 (Produzione) disabilitata finche` il
 	  servizio non e` `pubblicato_produzione`. Il bullet della
 	  fase mostra lucchetto, sfondo neutro e opacity ridotta;

@@ -504,29 +504,33 @@ export class DashboardComponent implements OnInit {
     this.apiService.putElement('notifiche', item.id_notifica, { stato }).subscribe({
       next: () => {
         if (this.expandedSection === 'comunicazioni') {
-          if (stato === 'archiviata' && this.comunicazioniTab !== 'archiviata') {
-            // Rimuove l'item dalla lista visibile (non è più in questo tab)
-            this.expandedItems = this.expandedItems.filter(i => i.id_notifica !== item.id_notifica);
-            this.expandedTotal = Math.max(0, this.expandedTotal - 1);
-          } else if (this.comunicazioniTab === 'nuova' && stato === 'letta') {
-            // Tab "Non letti": l'item letto esce dalla lista
-            this.expandedItems = this.expandedItems.filter(i => i.id_notifica !== item.id_notifica);
-            this.expandedTotal = Math.max(0, this.expandedTotal - 1);
-          } else if (this.comunicazioniTab === 'archiviata' && stato === 'nuova') {
-            // Tab "Archiviati": l'item non letto esce dalla lista
-            this.expandedItems = this.expandedItems.filter(i => i.id_notifica !== item.id_notifica);
-            this.expandedTotal = Math.max(0, this.expandedTotal - 1);
-          } else {
-            // Aggiorna lo stato in-place
+          if (this._statoMatchesComunicazioniTab(stato, this.comunicazioniTab)) {
+            // L'item resta nel tab → update in-place
             const idx = this.expandedItems.findIndex(i => i.id_notifica === item.id_notifica);
             if (idx !== -1) {
               this.expandedItems[idx] = { ...this.expandedItems[idx], stato };
             }
+          } else {
+            // Il nuovo stato non e` compatibile col filtro del tab
+            // corrente → l'item esce dalla lista visibile.
+            this.expandedItems = this.expandedItems.filter(i => i.id_notifica !== item.id_notifica);
+            this.expandedTotal = Math.max(0, this.expandedTotal - 1);
           }
         }
         this._reloadComunicazioniCounts();
+      },
+      error: () => {
+        // Ricarico i count per ripristinare lo stato remoto (best-effort).
+        this._reloadComunicazioniCounts();
       }
     });
+  }
+
+  /** Vero se il nuovo `stato` della notifica e` compatibile con il
+   *  filtro del tab corrente. Tab `tutte` accetta sempre. */
+  private _statoMatchesComunicazioniTab(stato: string, tab: string): boolean {
+    if (!tab || tab === 'tutte') { return true; }
+    return stato === tab;
   }
 
   private _reloadComunicazioniCounts() {
