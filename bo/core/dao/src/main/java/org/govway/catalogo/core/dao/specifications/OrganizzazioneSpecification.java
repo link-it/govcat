@@ -28,10 +28,15 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity_;
 import org.govway.catalogo.core.orm.entity.SoggettoEntity_;
+import org.govway.catalogo.core.orm.entity.UtenteEntity;
+import org.govway.catalogo.core.orm.entity.UtenteEntity_;
+import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity;
+import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity_;
 import org.springframework.data.jpa.domain.Specification;
 
 public class OrganizzazioneSpecification implements Specification<OrganizzazioneEntity> {
@@ -49,6 +54,7 @@ public class OrganizzazioneSpecification implements Specification<Organizzazione
 	private Optional<Boolean> aderente = Optional.empty();
 	private Optional<Boolean> esterna = Optional.empty();
 	private Optional<Boolean> soggettoAderente = Optional.empty();
+	private Optional<UtenteEntity> utente = Optional.empty();
 
 	public Optional<String> getCodice() {
 		return codice;
@@ -157,7 +163,18 @@ public class OrganizzazioneSpecification implements Specification<Organizzazione
 		if (soggettoAderente.isPresent()) {
 			predLst.add(cb.equal(root.join(OrganizzazioneEntity_.soggetti).get(SoggettoEntity_.aderente), soggettoAderente.get()));
 		}
-		
+
+		// Visibilità per utente non gestore/coordinatore: solo le organizzazioni a cui
+		// l'utente è associato (qualsiasi ruolo) tramite UtenteOrganizzazioneEntity.
+		// OrganizzazioneEntity non ha la relazione inversa, quindi si usa una subquery.
+		if (utente.isPresent()) {
+			Subquery<Long> sub = query.subquery(Long.class);
+			Root<UtenteOrganizzazioneEntity> uoRoot = sub.from(UtenteOrganizzazioneEntity.class);
+			sub.select(uoRoot.get(UtenteOrganizzazioneEntity_.organizzazione).get(OrganizzazioneEntity_.id));
+			sub.where(cb.equal(uoRoot.get(UtenteOrganizzazioneEntity_.utente).get(UtenteEntity_.id), utente.get().getId()));
+			predLst.add(root.get(OrganizzazioneEntity_.id).in(sub));
+		}
+
 		return predLst;
 	}
 
@@ -191,6 +208,14 @@ public class OrganizzazioneSpecification implements Specification<Organizzazione
 
 	public void setEsterna(Optional<Boolean> esterna) {
 		this.esterna = esterna;
+	}
+
+	public Optional<UtenteEntity> getUtente() {
+		return utente;
+	}
+
+	public void setUtente(Optional<UtenteEntity> utente) {
+		this.utente = utente;
 	}
 
 }
