@@ -1,3 +1,15 @@
+2026-06-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Wizard adesione `_workflowReachedSectionFinal`: aggiunto
+	  fallback "terminal reached" indipendente da
+	  `workflowStati`. Se lo stato corrente coincide con
+	  l'ultimo stato dell'ultimo sub-step della sezione, la
+	  fase e` conclusa anche quando la config remota BE non
+	  riporta lo stato in `adesione.workflow.stati` (caso
+	  reale: `pubblicato_produzione` ancora segnato come
+	  "Azione richiesta" rossa con 4/4 sub-step completati).
+
 2026-06-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

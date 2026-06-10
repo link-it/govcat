@@ -1182,10 +1182,24 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     private _workflowReachedSectionFinal(section: 'collaudo' | 'produzione'): boolean {
         const steps = this.getStepWizardSezione(section);
         if (!steps.length) { return false; }
-        const wfStati = this.workflowStati;
-        if (!wfStati.length) { return false; }
         const currentStato = this.adesione?.stato;
         if (!currentStato) { return false; }
+
+        // Fallback "terminal reached" — non dipende da `workflowStati`:
+        // se lo stato corrente coincide con l'ULTIMO stato dell'ultimo
+        // sub-step della sezione (es. `pubblicato_produzione` per
+        // "configurato" di Produzione) la fase e` conclusa anche se la
+        // config remota `adesione.workflow.stati` non riporta lo stato
+        // (es. BE non allineato col FE sui nuovi stati).
+        const lastStep = steps[steps.length - 1];
+        const lastStates = lastStep?.stati_adesione || [];
+        const terminalState = lastStates.length > 0 ? lastStates[lastStates.length - 1] : null;
+        if (terminalState !== null && currentStato === terminalState) {
+            return true;
+        }
+
+        const wfStati = this.workflowStati;
+        if (!wfStati.length) { return false; }
         const currentIdx = wfStati.indexOf(currentStato);
         if (currentIdx === -1) { return false; }
         let maxStepIdx = -1;
