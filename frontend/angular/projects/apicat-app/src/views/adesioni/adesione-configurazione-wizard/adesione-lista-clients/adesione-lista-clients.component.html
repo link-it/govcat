@@ -108,14 +108,19 @@
               }
               <!-- EDIT / VIEW / CLOSE: sempre visibile. In view-only
                    (icona eye) la dialog si apre comunque con form
-                   read-only e senza pulsante Salva. -->
+                   read-only e senza pulsante Salva. Spinner durante
+                   il caricamento dei client censiti / dettagli. -->
+              @let _isLoadingThis = _loadingEditClientItem === item;
               <button type="button"
                       class="lnk-btn lnk-btn-ghost lnk-btn-sm lnk-btn-icon"
                       [tooltip]="(isEditing ? 'APP.BUTTON.Close' : (canModify ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show')) | translate"
                       [delay]="500"
                       container="body"
+                      [disabled]="_isLoadingThis"
                       (click)="isEditing ? closeModal() : onEdit(item)">
-                @if (isEditing) {
+                @if (_isLoadingThis) {
+                  <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                } @else if (isEditing) {
                   <i class="bi bi-x-lg"></i>
                 } @else if (canModify) {
                   <i class="bi bi-pencil"></i>

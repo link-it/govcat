@@ -678,8 +678,15 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
         this._errorMsg = '';
     }
 
+    /** Item attualmente in caricamento (click matita): permette di
+     *  mostrare uno spinner sull'icona del pulsante mentre attendiamo
+     *  i dettagli del client + la lista dei client censiti. */
+    _loadingEditClientItem: any = null;
+
     _onEditClient(client: any) {
         this._resetError();
+
+        this._loadingEditClientItem = client;
 
         this.initTipiCertificato(client.auth_type);
 
@@ -745,10 +752,12 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
                 } else {
                     this._modalEditRef = this.modalService.show(this.editClients, _modalConfig);
                 }
+                this._loadingEditClientItem = null;
             },
             error: (error: any) => {
                 this._error = true;
                 this._errorMsg = this.utils.GetErrorMsg(error);
+                this._loadingEditClientItem = null;
             }
         });
     }
