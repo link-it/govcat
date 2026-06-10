@@ -1,6 +1,14 @@
 2026-06-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Client-details: fix TypeError in `initTipiCertificato`
+	  quando l'evento `PROFILE_UPDATE` arriva prima
+	  dell'`_initForm`. Aggiunto guard su
+	  `_formGroup?.controls?.['auth_type']?.value`.
+
+2026-06-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Wizard adesione: il sub-step "In compilazione" viene
 	  forzato `active` (e aperto) anche quando ci sono client
 	  del gruppo `CLIENT` ancora non configurati, oltre al

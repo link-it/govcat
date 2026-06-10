@@ -1533,7 +1533,11 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
   initTipiCertificato() {
     this._tipoCertificatoEnum = [];
 
-    const auth_type = this._formGroup.controls.auth_type.value;
+    // Guard: il PROFILE_UPDATE puo` arrivare prima che `_formGroup`
+    // sia inizializzato (`_initForm`) — in quel caso usciamo,
+    // verra` chiamato di nuovo dopo l'init del form.
+    const auth_type = this._formGroup?.controls?.['auth_type']?.value;
+    if (auth_type === undefined) { return; }
     const authTypes: any = this.authenticationService._getConfigModule('servizio')?.api?.auth_type || [];
 
     const certificato: Certificato | null = this.utils.getCertificatoByAuthType(authTypes, auth_type);
