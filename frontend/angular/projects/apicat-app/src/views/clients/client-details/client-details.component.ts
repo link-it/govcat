@@ -1982,10 +1982,10 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
   _hasVerifica = (): boolean => {
     const monitoraggio: any = this.authenticationService._getConfigModule('monitoraggio');
 
-    const _showMonitoraggio: boolean = monitoraggio.abilitato;
-    const _showVerifiche: boolean = monitoraggio.verifiche_abilitate;
+    const _showMonitoraggio: boolean = !!monitoraggio?.abilitato;
+    const _showVerifiche: boolean = !!monitoraggio?.verifiche_abilitate;
 
-    const _authType: string = this.client?.dati_specifici.auth_type || '';
+    const _authType: string = this.client?.dati_specifici?.auth_type || '';
 
     return (
       // _isSoggettoMonitoraggio &&

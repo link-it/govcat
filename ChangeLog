@@ -1,6 +1,22 @@
 2026-06-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Client-details:
+	  - Dropdown stato i18n: in `new` label
+	    `APP.WORKFLOW.STATUS.<enum>` (Nuovo/Configurato);
+	    in `edit` label semantica
+	    `APP.CLIENT.LABEL.NotConfigured`/`Configured`
+	    coerente col dropdown "Cambia stato".
+	  - Fix NG0956 (track by identity ricrea collezione):
+	    `@for _elencoSoggetti track el.id_soggetto`,
+	    `@for _ambienteEnum / _statoEnum track $index`.
+	  - `_hasVerifica`: guard su
+	    `_getConfigModule('monitoraggio')` null e
+	    `client.dati_specifici` undefined.
+
+2026-06-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Wizard adesione: due fix correlati al sub-step
 	  In compilazione forzato attivo:
 	  - CTA workflow (es. "Autorizza") non piu` duplicato

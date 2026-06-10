@@ -205,7 +205,7 @@
                       @if (_isNew || _isEdit) {
                         <div class="">
                           <select class="form-select" id="id_soggetto" formControlName="id_soggetto" [class.gl-field-error-outline]="_hasControlError('id_soggetto')" (change)="_onChangeSoggetto($event)">
-                            @for (el of _elencoSoggetti; track el) {
+                            @for (el of _elencoSoggetti; track el.id_soggetto) {
                               <option [value]="el.id_soggetto">
                                 {{el.nome}}
                               </option>
@@ -246,7 +246,7 @@
                         @if (_isEdit) {
                           <div class="">
                             <select class="form-select" id="ambiente" formControlName="ambiente" [class.gl-field-error-outline]="_hasControlError('ambiente')" (change)="_changeAmbiente($event)">
-                              @for (ambiente of _ambienteEnum; track ambiente) {
+                              @for (ambiente of _ambienteEnum; track $index) {
                                 <option [value]="ambiente">{{ ambiente }}</option>
                               }
                             </select>
@@ -278,8 +278,21 @@
                         @if (_isEdit) {
                           <div class="">
                             <select class="form-select" id="stato" formControlName="stato" [class.gl-field-error-outline]="_hasControlError('stato')" (change)="_onChangeStato($event)">
-                              @for (stato of _statoEnum; track stato) {
-                                <option [value]="stato">{{ stato }}</option>
+                              @for (stato of _statoEnum; track $index) {
+                                <!-- Label i18n. In `new` usa
+                                     `APP.WORKFLOW.STATUS.<enum>`
+                                     (es. "Nuovo"); in `edit` la label
+                                     semantica `APP.CLIENT.LABEL.*`
+                                     ("Non configurato"/"Configurato"),
+                                     coerente col dropdown "Cambia
+                                     stato" della topbar. -->
+                                <option [value]="stato">
+                                  @if (_isNew) {
+                                    {{ ('APP.WORKFLOW.STATUS.' + stato) | translate }}
+                                  } @else {
+                                    {{ (stato === _statoEnum[0] ? 'APP.CLIENT.LABEL.NotConfigured' : 'APP.CLIENT.LABEL.Configured') | translate }}
+                                  }
+                                </option>
                               }
                             </select>
                             @if (f['stato'].invalid && (f['stato'].dirty || f['stato'].touched)) {
