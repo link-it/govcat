@@ -1,6 +1,23 @@
 2026-06-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard adesione: due fix correlati al sub-step
+	  In compilazione forzato attivo:
+	  - CTA workflow (es. "Autorizza") non piu` duplicato
+	    nei due sub-step. Mostrato solo quando in_compilazione
+	    e` naturalmente attivo
+	    (`_isSubstepNaturallyActive`).
+	  - Icon-toggle gruppo CLIENT ora forzato rosso quando
+	    ci sono client "non configurato", indipendentemente
+	    dal check-dati BE (in stati come
+	    `in_configurazione_collaudo` il BE non flagga il
+	    CLIENT). Il sub-step In compilazione resta aperto e
+	    attivo, basato sul vero stato dei client caricati
+	    dall'endpoint `<adesione>/<env>/client`.
+
+2026-06-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Client-details: fix TypeError in `initTipiCertificato`
 	  quando l'evento `PROFILE_UPDATE` arriva prima
 	  dell'`_initForm`. Aggiunto guard su

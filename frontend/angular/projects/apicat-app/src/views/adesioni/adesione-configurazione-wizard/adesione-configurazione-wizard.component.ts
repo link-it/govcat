@@ -752,6 +752,8 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
             this.loadCheckDati(this.adesione.id_adesione, this.getNextStateWorkflowName());
             this.loadConfigurazioni(AmbienteEnum.Collaudo);
             this.loadConfigurazioni(AmbienteEnum.Produzione);
+            this._loadClientsCheck(AmbienteEnum.Collaudo);
+            this._loadClientsCheck(AmbienteEnum.Produzione);
         };
         this.eventsManagerService.on(EventType.WIZARD_CHECK_UPDATE, this._wizardCheckUpdateListener);
 
@@ -887,6 +889,8 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
                     this.loadServizio(this.id_servizio);
                     this.loadConfigurazioni(AmbienteEnum.Collaudo);
                     this.loadConfigurazioni(AmbienteEnum.Produzione);
+                    this._loadClientsCheck(AmbienteEnum.Collaudo);
+                    this._loadClientsCheck(AmbienteEnum.Produzione);
                     this.loadReferents();
 
                     this._initBreadcrumb();
@@ -1664,15 +1668,58 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     }
 
     /**
-     * Vero se la sezione ha client del gruppo `CLIENT` ancora da
-     * configurare (es. gestore che deve passare il client da
-     * "non configurato" a "configurato"). Allinea il behavior del
-     * sub-step "In compilazione" allo stato reale: se ci sono
-     * client incompleti, il sub-step va riaperto.
+     * Mappa ambiente -> true se almeno un client e` non configurato
+     * (popolata da `_loadClientsCheck`). Necessaria perche` il
+     * check-dati BE in certi stati (es. `in_configurazione_collaudo`)
+     * non segnala il CLIENT come obbligatorio anche quando il
+     * gestore ha ancora un client "non configurato" da gestire.
+     */
+    private _hasNonConfiguredClientsByEnv: { [env: string]: boolean } = {};
+
+    /**
+     * Carica i client dell'ambiente per popolare
+     * `_hasNonConfiguredClientsByEnv`. Stesso endpoint usato dal
+     * componente figlio `<app-adesione-lista-clients>`.
+     */
+    private _loadClientsCheck(environmentId: string): void {
+        if (!this.id) { return; }
+        this.apiService.getDetails(this.model, this.id, environmentId + '/client').subscribe({
+            next: (response: any) => {
+                const associati = response?.content || [];
+                const richiesti = this.adesione?.client_richiesti || [];
+                const hasNotConfigured = richiesti.some((req: any) => {
+                    const found = associati.find((c: any) => c.profilo === req.profilo);
+                    return !found || found.stato !== 'configurato';
+                });
+                this._hasNonConfiguredClientsByEnv[environmentId] = hasNotConfigured;
+                this.updateMapper = Date.now().toString();
+            },
+            error: () => {
+                this._hasNonConfiguredClientsByEnv[environmentId] = false;
+            }
+        });
+    }
+
+    /**
+     * Vero se la sezione ha client ancora da configurare. Basato
+     * sul vero stato dei client (non sul check-dati BE che puo`
+     * non flaggarli in tutti gli stati workflow).
      */
     _hasIncompleteClients(section: 'collaudo' | 'produzione'): boolean {
         const ambiente = section === 'collaudo' ? AmbienteEnum.Collaudo : AmbienteEnum.Produzione;
-        return !this.isSottotipoGroupCompletedMapper(false, ambiente, ClassiEnum.CLIENT);
+        return !!this._hasNonConfiguredClientsByEnv[ambiente];
+    }
+
+    /**
+     * Vero se il sub-step e` "naturalmente attivo" — il suo
+     * `stati_adesione` contiene lo stato corrente dell'adesione.
+     * Usato per evitare di renderizzare CTA workflow duplicati
+     * nel sub-step forzato attivo (vedi `forceActiveCodes`).
+     */
+    _isSubstepNaturallyActive(section: 'collaudo' | 'produzione', code: string): boolean {
+        const steps = this.getStepWizardSezione(section);
+        const sub = steps.find(s => s.code === code);
+        return !!sub?.stati_adesione?.includes(this.adesione?.stato);
     }
 
     /**

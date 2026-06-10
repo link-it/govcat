@@ -339,6 +339,15 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
             return 2; // grigio - non ancora applicabile
         }
 
+        // Override per CLIENT: se almeno un client e` "non configurato"
+        // forza rosso indipendentemente dal check-dati BE. Il backend
+        // in alcuni stati (es. `in_configurazione_collaudo`) non flagga
+        // il CLIENT come obbligatorio, ma operativamente il gestore
+        // deve ancora completare la configurazione.
+        if (tipo === ClassiEnum.CLIENT && this._hasNonConfiguredClients()) {
+            return 0;
+        }
+
         if (this.isSottotipoGroupCompletedMapper(update, tipo)) {
             return this.nextState?.dati_non_applicabili?.includes(this.environment) ? 2 : 1;
         } else {
@@ -347,6 +356,14 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
             // l'alert quando il check-dati BE riporta esito != 'ok'.
             return 0;
         }
+    }
+
+    /** Vero se almeno un client in `adesioneClients` non e`
+     * configurato (manca `id_client` o `source.stato !== 'configurato'`). */
+    private _hasNonConfiguredClients(): boolean {
+        const clients = this.adesioneClients || [];
+        if (clients.length === 0) { return false; }
+        return clients.some((c: any) => !c?.id_client || c?.source?.stato !== 'configurato');
     }
 
     /**

@@ -1403,7 +1403,13 @@
                      e` `completed` (configurazione gia` fatta, prompt
                      non piu` necessario). -->
                 <ng-container *ngTemplateOutlet="body; context: { substepState: sub.state }"></ng-container>
-                @if (sub.state === 'active' && hasNextStateWorkflow() && _hasCambioStato()) {
+                <!-- CTA workflow: solo se in_compilazione e` il sub-step
+                     NATURALMENTE attivo (contiene lo stato corrente).
+                     Quando forzato attivo (via `forceActiveCodes` per
+                     custom-properties/client incompleti) il CTA non va
+                     mostrato qui — verrebbe duplicato col `@default`
+                     dello step reale active. -->
+                @if (sub.state === 'active' && _isSubstepNaturallyActive(section, 'in_compilazione') && hasNextStateWorkflow() && _hasCambioStato()) {
 
                   <div class="mt-3">
                     <ng-container *ngTemplateOutlet="workflowErrorTpl"></ng-container>
