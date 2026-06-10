@@ -1701,11 +1701,14 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     }
 
     /**
-     * Vero se la sezione ha client ancora da configurare. Basato
-     * sul vero stato dei client (non sul check-dati BE che puo`
-     * non flaggarli in tutti gli stati workflow).
+     * Vero se la sezione ha client ancora da configurare e
+     * l'utente puo` effettivamente intervenire (gestore). Per
+     * il referente il sub-step `in_compilazione` non va forzato
+     * attivo: l'associazione del client e` il suo compito, la
+     * transizione `nuovo → configurato` spetta al gestore.
      */
     _hasIncompleteClients(section: 'collaudo' | 'produzione'): boolean {
+        if (!this.authenticationService.isGestore(this.grant?.ruoli)) { return false; }
         const ambiente = section === 'collaudo' ? AmbienteEnum.Collaudo : AmbienteEnum.Produzione;
         return !!this._hasNonConfiguredClientsByEnv[ambiente];
     }

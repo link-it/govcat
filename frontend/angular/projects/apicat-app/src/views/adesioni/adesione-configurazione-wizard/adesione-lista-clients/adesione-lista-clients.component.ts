@@ -339,12 +339,18 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
             return 2; // grigio - non ancora applicabile
         }
 
-        // Override per CLIENT: se almeno un client e` "non configurato"
-        // forza rosso indipendentemente dal check-dati BE. Il backend
-        // in alcuni stati (es. `in_configurazione_collaudo`) non flagga
-        // il CLIENT come obbligatorio, ma operativamente il gestore
-        // deve ancora completare la configurazione.
-        if (tipo === ClassiEnum.CLIENT && this._hasNonConfiguredClients()) {
+        // Override per CLIENT: forziamo rosso SOLO per chi puo`
+        // effettivamente cambiare lo stato del client (gestore).
+        // Per il referente, il client "non configurato" non e` un
+        // suo problema (ha solo associato il client, configurarlo
+        // e` compito del gestore) → si torna al check-dati BE: se
+        // il BE non lo flagga come obbligatorio nello stato
+        // corrente, il toggle e` verde.
+        if (
+            tipo === ClassiEnum.CLIENT
+            && this.authenticationService.isGestore(this.grant?.ruoli)
+            && this._hasNonConfiguredClients()
+        ) {
             return 0;
         }
 

@@ -1,6 +1,27 @@
 2026-06-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard adesione:
+	  - Regressione client mapper: l'override "rosso forzato"
+	    su client `non configurato` ora scatta SOLO per chi
+	    puo` cambiare stato del client (`isGestore`). Il
+	    referente vede il toggle verde (associare il client e`
+	    il suo step, configurare e` del gestore).
+	  - `_hasIncompleteClients` allineato: forza `in_compilazione`
+	    active solo per gestore, non per referente.
+	Adesione (creazione): auto-select organizzazione dal contesto
+	  di sessione + readonly. Quando `currentOrganization` e`
+	  disponibile, il template rende un input testo read-only
+	  invece del ng-select (`_lockedOrgNome`), per evitare il
+	  problema di bind ng-select disabled. Disable del control
+	  `id_organizzazione` propagato al submit.
+	i18n IT/EN: `ReferenteServizioDominio` con spaziatura
+	  migliorata ("Referente servizio / dominio").
+	Dashboard routes: aggiunta rotta `/dashboard/utente/:id`.
+
+2026-06-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Client-details:
 	  - Dropdown stato i18n: in `new` label
 	    `APP.WORKFLOW.STATUS.<enum>` (Nuovo/Configurato);

@@ -723,22 +723,32 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       );
   }
 
+  /** Quando valorizzato, l'organizzazione e` bloccata sul contesto
+   * di sessione e nel template si rende un input testuale read-only
+   * al posto del ng-select (evita problemi di bind ng-select +
+   * patchValue + disabled durante creazione adesione). */
+  _lockedOrgNome: string = '';
+
   _loadProfilo(spin: boolean = true) {
     this._profilo = this.authenticationService.getCurrentSession();
     console.log('_loadProfilo', this._profilo);
     const _ruolo: string | null = this._profilo?.utente.ruolo || null;
-    const currentOrgId = this.authenticationService.getCurrentOrganization()?.id_organizzazione;
+    const currentOrg: any = this.authenticationService.getCurrentOrganization();
+    const currentOrgId = currentOrg?.id_organizzazione;
 
-    if (this._scelta_libera_organizzazione) {
+    if (this._scelta_libera_organizzazione || _ruolo == 'gestore' || !currentOrgId) {
+      this._lockedOrgNome = '';
       this._initOrganizzazioniSelect([]);
-    } else {
-
-      if (_ruolo == 'gestore' || !currentOrgId) {
-        this._initOrganizzazioniSelect([]);
-      } else {
-        this._loadOrganizzazione(currentOrgId);
-      }
+      return;
     }
+
+    // Auto-select immediato dal contesto di sessione (no API):
+    // settiamo il control + disabilitiamo + flag per rendering
+    // template come input testo read-only.
+    this._lockedOrgNome = currentOrg.nome || '';
+    this._formGroup.patchValue({ id_organizzazione: currentOrgId });
+    this._formGroup.get('id_organizzazione')?.disable();
+    this._checkSoggetto(currentOrgId);
   }
 
   _loadAdesione(spin: boolean = true) {
