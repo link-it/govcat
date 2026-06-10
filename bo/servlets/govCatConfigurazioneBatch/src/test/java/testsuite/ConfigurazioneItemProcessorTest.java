@@ -77,7 +77,7 @@ public class ConfigurazioneItemProcessorTest {
         ReflectionTestUtils.setField(processor, "updateService", updateService);
         ReflectionTestUtils.setField(processor, "numeroMassimoTentativi", 3);
         ReflectionTestUtils.setField(processor, "utenteConfiguratore", "test-configuratore");
-        ReflectionTestUtils.setField(processor, "externalPath", "/test/path");
+        ReflectionTestUtils.setField(processor, "configurazioneJsonPath", "/test/path/configurazione.json");
         ReflectionTestUtils.setField(processor, "configurazioneExecutorClass", "MockConfigurazioneExecutor");
     }
 
