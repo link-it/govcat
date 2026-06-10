@@ -1,6 +1,17 @@
 2026-06-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Client edit: campo `nome` ora editabile anche in scenario
+	  `edit` (era disabilitato dal `field(..., editableScenario
+	  && isNew, ...)` in `client-dialog-state.ts`, oltre al
+	  ridondante `disable()` esplicito in `client-details` per
+	  stato `configurato`). Required resta solo in `new`.
+	Accessibilita`: rimossi attributi `role` ridondanti da
+	  `<ul>`/`<li>` del dropdown azioni client (HTML semantico).
+
+2026-06-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Wizard adesione `_workflowReachedSectionFinal`: aggiunto
 	  fallback "terminal reached" indipendente da
 	  `workflowStati`. Se lo stato corrente coincide con

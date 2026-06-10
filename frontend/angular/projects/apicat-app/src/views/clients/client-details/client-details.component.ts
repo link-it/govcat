@@ -18,7 +18,7 @@
  */
 import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
-import { AbstractControl, FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
@@ -100,7 +100,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
   _isEdit = false;
   _closeEdit = true;
   _isNew = false;
-  _formGroup: UntypedFormGroup = new UntypedFormGroup({});
+  _formGroup: FormGroup = new FormGroup({});
   _client: Client = new Client({});
 
   _statoFormGroup: FormGroup = new FormGroup({});
@@ -378,19 +378,19 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
         switch (key) {
           case 'auth_type':
             value = data.dati_specifici?.auth_type ? data.dati_specifici?.auth_type : null;
-            _group[key] = new UntypedFormControl({ value: value, disabled: true }, []);
+            _group[key] = new FormControl({ value: value, disabled: true }, []);
             break;
           case 'finalita':
             value = data.dati_specifici?.finalita || null;
-            _group[key] = new UntypedFormControl(value, [Validators.pattern(/^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$/i)]);
+            _group[key] = new FormControl(value, [Validators.pattern(/^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$/i)]);
             break;
           case 'nome':
             value = data[key] ? data[key] : null;
-            _group[key] = new UntypedFormControl(value, [Validators.required, CustomValidators.notOnlyWhitespace]);
+            _group[key] = new FormControl(value, [Validators.required, CustomValidators.notOnlyWhitespace]);
             break;
           case 'ambiente':
             value = data[key] ? data[key] : null;
-            _group[key] = new UntypedFormControl(value, [Validators.required]);
+            _group[key] = new FormControl(value, [Validators.required]);
             break;
           case 'tipo_certificato':
           case 'tipo_certificato_firma':
@@ -399,11 +399,11 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
             // 'richiesto_csr'). Inizializziamo a null per evitare che l'
             // ng-select del componente condiviso riceva `[]` come valore
             // iniziale (non matcha alcuna opzione e non emette (change)).
-            _group[key] = new UntypedFormControl(null, []);
+            _group[key] = new FormControl(null, []);
             break;
           default:
             value = data[key] ? data[key] : null;
-            _group[key] = new UntypedFormControl(value, []);
+            _group[key] = new FormControl(value, []);
             break;
         }
       });
@@ -413,7 +413,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
         periodo: new FormControl({value: data?.rate_limiting?.periodo || PeriodEnum.Giorno, disabled: false}),
       }),
 
-      this._formGroup = new UntypedFormGroup(_group);
+      this._formGroup = new FormGroup(_group);
 
       const controls = this._formGroup.controls;
 
@@ -589,10 +589,6 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
       
       controls.id_soggetto.disable();
       this._checkSoggetto(controls.id_organizzazione.value);
-
-      if (data.stato === 'configurato') {
-        controls.nome.disable();
-      }
 
       this._onChangeStato();
 
