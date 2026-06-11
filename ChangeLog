@@ -1,6 +1,18 @@
 2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard adesioni: fix "In compilazione" rossa via
+	  check-dati BE. Sostituita la verifica config-side
+	  (`_getClassesMandatory`) con `check-dati/<next-stato>`:
+	  se la response BE riporta un errore con dato
+	  `<section>_configurato` la fase e` rossa per qualsiasi
+	  ruolo. Il fix precedente non funzionava per i referenti
+	  perche` dipendeva dall'endpoint client (non sempre
+	  accessibile).
+
+2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Adesione (creazione): fix ng-select organizzazione vuoto
 	  con `scelta_libera_organizzazione` / gestore. La lista
 	  veniva inizializzata vuota: `bindValue` non trovava

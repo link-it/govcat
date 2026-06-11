@@ -1762,35 +1762,26 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     }
 
     /**
-     * Vero se la sezione ha client ancora da configurare. Il
-     * gestore vede sempre il segnale (puo` intervenire in prima
-     * persona). Per altri ruoli il segnale si attiva solo quando
-     * il workflow dello stato corrente dichiara
-     * `<section>_configurato` come dato obbligatorio per il
-     * prossimo cambio stato: significa che senza client
-     * configurato la transizione non potra` avvenire, quindi
-     * la fase "In compilazione" va marcata rossa.
+     * Vero se la sezione richiede ancora client da configurare
+     * per poter transitare al prossimo stato. Source-of-truth
+     * principale: l'endpoint BE `check-dati/<next-stato>` che
+     * popola `dataStructureResults.errori`. Se l'errore include
+     * il dato `<section>_configurato` significa che il workflow
+     * richiede il client configurato (auth scenario) e non e`
+     * ancora soddisfatto → la fase "In compilazione" va marcata
+     * rossa per qualsiasi ruolo (gestore o referente).
+     * In aggiunta, il gestore vede il segnale anche fuori dal
+     * check-dati BE quando ha client associati ma non ancora
+     * configurati (signal locale via `_loadClientsCheck`).
      */
     _hasIncompleteClients(section: 'collaudo' | 'produzione'): boolean {
+        const datoKey = section === 'collaudo' ? 'collaudo_configurato' : 'produzione_configurato';
+        if (this.ckeckProvider.getObjectByDato(this.dataStructureResults, datoKey)) {
+            return true;
+        }
+        if (!this.authenticationService.isGestore(this.grant?.ruoli)) { return false; }
         const ambiente = section === 'collaudo' ? AmbienteEnum.Collaudo : AmbienteEnum.Produzione;
-        const hasNotConfigured = !!this._hasNonConfiguredClientsByEnv[ambiente];
-        if (!hasNotConfigured) { return false; }
-        if (this.authenticationService.isGestore(this.grant?.ruoli)) { return true; }
-        return this._workflowRequiresClientConfigured(section);
-    }
-
-    /**
-     * Vero se i `dati_obbligatori` del cambio stato corrente
-     * includono `<section>_configurato` (es. `collaudo_configurato`
-     * per `section=collaudo`). Indica che il workflow esige il
-     * client configurato come precondizione per il prossimo stato.
-     */
-    private _workflowRequiresClientConfigured(section: 'collaudo' | 'produzione'): boolean {
-        const stato = this.adesione?.stato;
-        if (!stato) { return false; }
-        const mandatory: string[] = this.authenticationService._getClassesMandatory('adesione', '', stato) || [];
-        const key = section === 'collaudo' ? 'collaudo_configurato' : 'produzione_configurato';
-        return mandatory.includes(key);
+        return !!this._hasNonConfiguredClientsByEnv[ambiente];
     }
 
     /**
