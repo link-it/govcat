@@ -173,6 +173,17 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
       || this.authenticationService.isCoordinatore();
   }
 
+  /** True se l'utente loggato puo` modificare il dettaglio
+   *  dell'utente in pagina. Gestore/Coordinatore via permesso
+   *  globale `utenti.edit`; AMM_ORG quando agisce dalla pagina
+   *  di approvazione in `organizzazione-manage` (flag
+   *  `_fromOrgManage` → la rotta e` gia` gated dal contesto
+   *  org-manage). */
+  get _canEditUser(): boolean {
+    if (this._fromOrgManage) { return true; }
+    return this.authenticationService.hasPermission('utenti', 'edit');
+  }
+
   /** True quando il BE ha popolato `organizzazione_partenza` o, in
    *  fallback retrocompat, esiste `organizzazione` legacy (decisione
    *  fallback "usare legacy organizzazione" per la UI "da X a Y"). */

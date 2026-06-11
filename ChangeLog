@@ -1,6 +1,15 @@
 2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Utente-details: tasto edit abilitato anche per AMM_ORG
+	  quando arriva dalla pagina di approvazione in
+	  `organizzazione-manage`. Sostituita la direttiva
+	  `appHasPermission` con il getter `_canEditUser` che
+	  combina permesso globale e flag `_fromOrgManage`.
+
+2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Organizzazione-manage: i CTA "Aggiungi" e "Aggiungi
 	  dominio" sono nascosti sulla tab "Utenti da gestire"
 	  (visibili solo su Utenti e Domini).

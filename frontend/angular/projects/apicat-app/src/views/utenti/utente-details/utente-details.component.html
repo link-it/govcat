@@ -28,7 +28,7 @@
       <h3 class="page-title">{{ 'APP.TITLE.NewUser' | translate }}</h3>
     }
     <div class="d-flex flex-grow-1">&nbsp;</div>
-    <ng-template [appHasPermission]="'utenti'" [action]="'edit'">
+    @if (_canEditUser) {
       <div class="nav-controls align-self-center d-flex">
         @if (!_isEdit && !_spin) {
           <div class="position-relative">
@@ -77,7 +77,7 @@
         </div>
       }
     </div>
-  </ng-template>
+    }
 </div>
 <section class="container-fluid container-limited limit-container-width container-scroller container-scroller-no-search">
   @if (_spin && !_isNew) {
