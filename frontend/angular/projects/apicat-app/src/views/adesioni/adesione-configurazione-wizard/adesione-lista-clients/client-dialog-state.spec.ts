@@ -272,15 +272,16 @@ describe('client-dialog-state: scenario `edit`', () => {
     expect(cfg.fields.credenziali.visible).toBe(false);
   });
 
-  it('i campi sono editabili quando modifiable (eccetto nome)', () => {
-    // `nome` e' editabile solo in scenario `new` (una volta creato il
-    // client, il nome non si cambia). Gli altri campi restano editabili.
+  it('i campi sono editabili quando modifiable (incluso nome)', () => {
+    // `nome` ora e' editabile sia in `new` sia in `edit` (resta
+    // required solo in `new`). Gli altri campi restano editabili.
     const cfg = computeFormConfig(makeInput({
       scenario: { kind: 'edit' },
       authType: 'https_pdnd',
       certAuth: { kind: 'richiesto_cn' },
     }));
-    expect(cfg.fields.nome.enabled).toBe(false);
+    expect(cfg.fields.nome.enabled).toBe(true);
+    expect(cfg.fields.nome.required).toBe(false);
     expect(cfg.fields.client_id.enabled).toBe(true);
     expect(cfg.fields.descrizione.enabled).toBe(true);
     expect(cfg.certAuth.cnRequired).toBe(true);

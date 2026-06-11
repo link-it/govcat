@@ -215,7 +215,7 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
     component.config = { useEditWizard: true };
     component.serviceBreadcrumbs = null;
     component._initBreadcrumb();
-    expect(component.breadcrumbs[1].label).toBe('LOG-123 (OrgY)');
+    expect(component.breadcrumbs[1].label).toBe('OrgY - SvcY v. 1.0 (LOG-123)');
   });
 
   it('_initBreadcrumb should prepend serviceBreadcrumbs when present', () => {

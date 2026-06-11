@@ -1,3 +1,26 @@
+2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Test: allineamento spec ai recenti refactor. Build verde,
+	  da 22 a 3 test rotti (i 3 rimanenti pre-esistenti
+	  rispetto ai commit recenti).
+	  - `adesione-lista-clients.spec`: costruttore +`router`,
+	    mock `isAmministratoreOrganizzazione`/`isOperatoreApi`.
+	  - `client-credentials-dialog.spec`: costruttore
+	    +`apiService`, mock `apiService.getList`.
+	  - `client-dialog-state.spec`: `nome.enabled` ora true
+	    anche in `edit`.
+	  - `client-details.spec`: rimosso check su `nome.disabled`
+	    per stato `configurato`.
+	  - `dashboard.spec`: aggiunti mock metodi `isGestore`/
+	    `isAmministratoreOrganizzazione`/`isOperatoreApi`.
+	  - `adesione-configurazione-wizard.spec` /
+	    `adesione-details.spec`: `_initBreadcrumb` con nuovo
+	    formato "Org - Servizio v.X (id_logico)".
+	  - `adesione-details.spec`: `_loadProfilo` testa
+	    `_lockedOrgNome` + `_checkSoggetto` (no piu`
+	    `_loadOrganizzazione`).
+
 2026-06-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

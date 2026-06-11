@@ -30,6 +30,8 @@ describe('AdesioneListaClientsComponent', () => {
     isAnonymous: vi.fn().mockReturnValue(false),
     hasPermission: vi.fn().mockReturnValue(true),
     isGestore: vi.fn().mockReturnValue(false),
+    isAmministratoreOrganizzazione: vi.fn().mockReturnValue(false),
+    isOperatoreApi: vi.fn().mockReturnValue(false),
     canChangeStatus: vi.fn().mockReturnValue(false),
     _getConfigModule: vi.fn().mockReturnValue({
       api: {
@@ -82,10 +84,11 @@ describe('AdesioneListaClientsComponent', () => {
     vi.clearAllMocks();
     mockConfigService.getConfiguration.mockReturnValue({ AppConfig: { Adesioni: { showClientDisclaimers: false } } });
     savedConfigurazione = Tools.Configurazione;
+    const mockRouter = { createUrlTree: vi.fn(), serializeUrl: vi.fn(), navigateByUrl: vi.fn(), url: '' } as any;
     component = new AdesioneListaClientsComponent(
       mockModalService, mockTranslate, mockApiService,
       mockAuthService, mockUtils, mockEventsManager, mockCkeckProvider,
-      mockConfigService
+      mockConfigService, mockRouter
     );
     // Null out the form group so _postProcessClients guard fails unless explicitly set up in tests
     (component as any)._editFormGroupClients = null as any;

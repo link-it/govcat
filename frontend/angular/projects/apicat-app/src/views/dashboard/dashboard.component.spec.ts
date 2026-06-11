@@ -16,6 +16,9 @@ describe('DashboardComponent', () => {
   } as any;
   const mockAuthService = {
     getUser: vi.fn().mockReturnValue({ ruolo: 'gestore' }),
+    isGestore: vi.fn().mockReturnValue(true),
+    isAmministratoreOrganizzazione: vi.fn().mockReturnValue(false),
+    isOperatoreApi: vi.fn().mockReturnValue(false),
   } as any;
   const mockDashboardService = {
     computeRoleConfig: vi.fn().mockReturnValue({

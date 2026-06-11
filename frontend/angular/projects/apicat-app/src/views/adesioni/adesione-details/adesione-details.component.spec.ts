@@ -654,7 +654,7 @@ describe('AdesioneDetailsComponent', () => {
         id_logico: 'MY-LOGICO'
       };
       component._initBreadcrumb();
-      expect(component.breadcrumbs[1].label).toBe('MY-LOGICO (OrgA)');
+      expect(component.breadcrumbs[1].label).toBe('OrgA - ServizioX v. 2 (MY-LOGICO)');
     });
 
     it('should use dashboard breadcrumbs when _fromDashboard is true', () => {
@@ -1002,12 +1002,16 @@ describe('AdesioneDetailsComponent', () => {
       expect(spy).toHaveBeenCalledWith([]);
     });
 
-    it('should load organizzazione when ruolo is not gestore and current org exists', () => {
+    it('should auto-select organizzazione from session when ruolo is not gestore and current org exists', () => {
+      // Refactor: `_loadProfilo` non chiama piu` `_loadOrganizzazione`
+      // (API call), bensi` setta `_lockedOrgNome` dal contesto e
+      // delega il caricamento soggetti a `_checkSoggetto`.
       component._scelta_libera_organizzazione = false;
       mockAuthService.getCurrentSession.mockReturnValue({ utente: { ruolo: 'referente_servizio' } });
-      mockAuthService.getCurrentOrganization.mockReturnValue({ id_organizzazione: 'org-99' });
-      const spy = vi.spyOn(component, '_loadOrganizzazione' as any).mockImplementation(() => {});
+      mockAuthService.getCurrentOrganization.mockReturnValue({ id_organizzazione: 'org-99', nome: 'OrgNinetyNine' });
+      const spy = vi.spyOn(component, '_checkSoggetto' as any).mockImplementation(() => {});
       component._loadProfilo();
+      expect(component._lockedOrgNome).toBe('OrgNinetyNine');
       expect(spy).toHaveBeenCalledWith('org-99');
     });
 

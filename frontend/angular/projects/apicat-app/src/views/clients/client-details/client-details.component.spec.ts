@@ -481,12 +481,15 @@ describe('ClientDetailsComponent', () => {
       expect(component._formGroup.controls['id_soggetto'].value).toBe('s1');
     });
 
-    it('should disable nome when stato is configurato', () => {
+    it('should keep nome enabled also when stato is configurato', () => {
+      // Aggiornato: il `disable()` esplicito su `nome` per stato
+      // `configurato` e` stato rimosso. La rinomina lato BE puo`
+      // essere bloccata via `dati_non_modificabili` del workflow.
       component._isNew = false;
       component._isEdit = true;
       const data = buildClientData({ stato: 'configurato' });
       component._initForm(data);
-      expect(component._formGroup.controls['nome'].disabled).toBe(true);
+      expect(component._formGroup.controls['nome'].disabled).toBe(false);
     });
 
     it('should create rate_limiting sub-group', () => {
