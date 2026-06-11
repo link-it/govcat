@@ -71,17 +71,19 @@
               <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm">{{ _paging.totalElements || 0 }}</span>
             </a>
           </li>
-          <li class="nav-item">
-            <a tabindex="0" target="_self"
-               class="nav-link gp-tab-nav-item cursor-pointer"
-               [class.gp-tab-nav-item-active]="_activeTab === 'utenti_pending'"
-               (click)="setActiveTab('utenti_pending')"
-               (keydown.enter)="setActiveTab('utenti_pending')"
-               [attr.aria-label]="'APP.ORGANIZATION_MANAGE.TabUtentiPending' | translate">
-              <span>{{ 'APP.ORGANIZATION_MANAGE.TabUtentiPending' | translate }}</span>
-              <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm">{{ _pendingPaging.totalElements || 0 }}</span>
-            </a>
-          </li>
+          @if (pendingItems.length > 0) {
+            <li class="nav-item">
+              <a tabindex="0" target="_self"
+                 class="nav-link gp-tab-nav-item cursor-pointer"
+                 [class.gp-tab-nav-item-active]="_activeTab === 'utenti_pending'"
+                 (click)="setActiveTab('utenti_pending')"
+                 (keydown.enter)="setActiveTab('utenti_pending')"
+                 [attr.aria-label]="'APP.ORGANIZATION_MANAGE.TabUtentiPending' | translate">
+                <span>{{ 'APP.ORGANIZATION_MANAGE.TabUtentiPending' | translate }}</span>
+                <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm">{{ _pendingPaging.totalElements || 0 }}</span>
+              </a>
+            </li>
+          }
           <li class="nav-item">
             <a tabindex="0" target="_self"
                class="nav-link gp-tab-nav-item cursor-pointer"

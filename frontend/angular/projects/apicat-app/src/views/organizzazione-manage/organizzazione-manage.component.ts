@@ -410,6 +410,14 @@ export class OrganizzazioneManageComponent implements OnInit, AfterContentChecke
                     : Array.isArray(response?.items) ? response.items
                     : Array.isArray(response) ? response : [];
                 this.pendingItems = url ? [...this.pendingItems, ...list] : list;
+                // Il tab "Utenti da gestire" e` visibile solo con
+                // `pendingItems.length > 0`: se siamo arrivati con
+                // `?tab=utenti_pending` (es. dashboard AMM_ORG) ma
+                // la lista e` vuota, ricadiamo sul tab di default
+                // `utenti` per evitare un body orfano senza tab.
+                if (this._activeTab === 'utenti_pending' && this.pendingItems.length === 0) {
+                    this._activeTab = 'utenti';
+                }
                 this._preventMultiCall = false;
                 this._spin = false;
             },

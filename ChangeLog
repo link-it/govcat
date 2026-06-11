@@ -1,6 +1,15 @@
 2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Organizzazione-manage: tab "Utenti da gestire"
+	  visibile solo se `pendingItems.length > 0`.
+	  Fallback in `_loadPending` su tab `utenti` quando
+	  l'utente arriva con `?tab=utenti_pending` (es.
+	  dashboard AMM_ORG) ma la lista risulta vuota.
+
+2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Wizard adesioni: "In compilazione" coerente con
 	  l'icona "Modalita` di autenticazione". Trigger esteso
 	  (gate `_isInConfigurazioneStato` per gli stati
