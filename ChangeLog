@@ -1,6 +1,17 @@
 2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard adesioni: "In compilazione" rossa solo se lo
+	  stato CORRENTE richiede `<section>_configurato` nei
+	  `dati_obbligatori`. Senza questo gate, il
+	  `check-dati/<next-stato>` faceva scattare il rosso
+	  anticipatamente (es. `autorizzato_collaudo`).
+	  Nuovo helper `_stateRequiresClientConfigured` (workflow
+	  config-side, sullo stato attuale).
+
+2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Registrazione (first-login): fix interpolazione placeholder
 	  i18n. `RegistrazioneService.handleError` ora passa
 	  i `params` (uniti da `errori[*].params` + `parameters`)

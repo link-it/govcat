@@ -1762,19 +1762,31 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     }
 
     /**
-     * Vero se la sezione richiede ancora client da configurare
-     * per poter transitare al prossimo stato. Source-of-truth
-     * principale: l'endpoint BE `check-dati/<next-stato>` che
-     * popola `dataStructureResults.errori`. Se l'errore include
-     * il dato `<section>_configurato` significa che il workflow
-     * richiede il client configurato (auth scenario) e non e`
-     * ancora soddisfatto → la fase "In compilazione" va marcata
-     * rossa per qualsiasi ruolo (gestore o referente).
-     * In aggiunta, il gestore vede il segnale anche fuori dal
-     * check-dati BE quando ha client associati ma non ancora
-     * configurati (signal locale via `_loadClientsCheck`).
+     * Vero se la sezione richiede ancora client da configurare.
+     * Logica a due step:
+     *
+     * 1. **Gate workflow-side**: i `dati_obbligatori` dello
+     *    STATO CORRENTE (non del prossimo!) devono contenere
+     *    `<section>_configurato`. Se no, la fase "In
+     *    compilazione" non e` ancora un blocker → non rossa.
+     *    Questo evita di marcare la fase come incompleta
+     *    quando il client configurato e` richiesto solo per
+     *    stati successivi (es. `autorizzato_collaudo` ha
+     *    `dati_obbligatori = [..., collaudo]` ma il
+     *    `check-dati/<next-stato>` puo` gia` riportare
+     *    `collaudo_configurato` mancante perche` riflette i
+     *    requisiti del prossimo passaggio).
+     *
+     * 2. **Signal di non-configurazione**: lo stato corrente
+     *    richiede il client configurato → la fase e` rossa
+     *    se effettivamente NON e` configurato.
+     *    - BE `check-dati`: errore con `dato` =
+     *      `<section>_configurato` (chiunque, anche referenti).
+     *    - Gestore: anche `_hasNonConfiguredClientsByEnv`
+     *      via `_loadClientsCheck` (signal locale).
      */
     _hasIncompleteClients(section: 'collaudo' | 'produzione'): boolean {
+        if (!this._stateRequiresClientConfigured(section)) { return false; }
         const datoKey = section === 'collaudo' ? 'collaudo_configurato' : 'produzione_configurato';
         if (this.ckeckProvider.getObjectByDato(this.dataStructureResults, datoKey)) {
             return true;
@@ -1782,6 +1794,18 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         if (!this.authenticationService.isGestore(this.grant?.ruoli)) { return false; }
         const ambiente = section === 'collaudo' ? AmbienteEnum.Collaudo : AmbienteEnum.Produzione;
         return !!this._hasNonConfiguredClientsByEnv[ambiente];
+    }
+
+    /** Vero se i `dati_obbligatori` del cambio stato dello
+     *  stato CORRENTE includono `<section>_configurato`. Indica
+     *  che il client configurato e` richiesto come precondizione
+     *  per uscire dallo stato attuale (non del successivo). */
+    private _stateRequiresClientConfigured(section: 'collaudo' | 'produzione'): boolean {
+        const stato = this.adesione?.stato;
+        if (!stato) { return false; }
+        const mandatory: string[] = this.authenticationService._getClassesMandatory('adesione', '', stato) || [];
+        const key = section === 'collaudo' ? 'collaudo_configurato' : 'produzione_configurato';
+        return mandatory.includes(key);
     }
 
     /**
