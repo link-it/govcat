@@ -1165,8 +1165,14 @@ public class ServiziController implements ServiziApi {
 	public ResponseEntity<PagedModelItemServizio> listServizi(String referente, UUID idDominio, UUID idGruppo, VisibilitaServizioEnum visibilita, UUID idApi,
 			List<String> stato, List<String> categoria, List<String> tag, List<String> profilo, Boolean inAttesa, Boolean mieiServizi, List<RuoloReferenteEnum> ruoloReferente, Boolean dashboard, Boolean adesioneConsentita, String nome, String versione, List<UUID> idServizi, Boolean _package, TipoServizio tipo, String q, Integer page, Integer size, List<String> sort) {
 		try {
-			this.logger.info("Invocazione in corso ...");     
+			this.logger.info("Invocazione in corso ...");
 			return this.service.runTransaction( () -> {
+
+				// Marcatore comune per recuperare tutti i log di performance via grep, es:
+				//   grep 'PERF_LIST_SERVIZI' <logfile>   (oppure 'PERF_' per tutte le API strumentate)
+				final String perf = "PERF_LIST_SERVIZI";
+				final long perfInizioTotale = System.currentTimeMillis();
+
 				this.servizioAuthorization.authorizeList();
 				// Controllo se l'utente è anonimo
 	            boolean anounymous = this.coreAuthorization.isAnounymous();
@@ -1393,10 +1399,19 @@ public class ServiziController implements ServiziApi {
 						: Arrays.asList("nome","versione");
 				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, sortDefault);
 
+				// --- Fase 1: query su DB ---
+				this.logger.info("{} - inizio query DB findAll servizi", perf);
+				final long perfInizioQuery = System.currentTimeMillis();
 				Page<ServizioEntity> findAll = this.service.findAll(
 						realSpecification,
 						pageable
 						);
+				final long perfDurataQuery = System.currentTimeMillis() - perfInizioQuery;
+				this.logger.info("{} - fine query DB findAll servizi: estratti {} elementi (totale {}) in {} ms", perf, findAll.getNumberOfElements(), findAll.getTotalElements(), perfDurataQuery);
+
+				// --- Fase 2: elaborazione applicativa (assembler + popolamento ruoli_referente) ---
+				this.logger.info("{} - inizio elaborazione applicativa (assembler + ruoli_referente) su {} elementi", perf, findAll.getNumberOfElements());
+				final long perfInizioApplicativa = System.currentTimeMillis();
 
 				Link link = Link.of(ServletUriComponentsBuilder.fromCurrentRequest().build().toUriString(), IanaLinkRelations.SELF);
 
@@ -1452,6 +1467,12 @@ public class ServiziController implements ServiziApi {
 				list.add(lst.getLinks());
 				list.setPage(new PageMetadata().size((long)findAll.getSize()).number((long)findAll.getNumber()).totalElements(findAll.getTotalElements()).totalPages((long)findAll.getTotalPages()));
 
+				final long perfDurataApplicativa = System.currentTimeMillis() - perfInizioApplicativa;
+				this.logger.info("{} - fine elaborazione applicativa in {} ms", perf, perfDurataApplicativa);
+
+				final long perfDurataTotale = System.currentTimeMillis() - perfInizioTotale;
+				this.logger.info("{} - riepilogo tempi: query DB {} ms, elaborazione applicativa {} ms, totale {} ms", perf, perfDurataQuery, perfDurataApplicativa, perfDurataTotale);
+
 				this.logger.info("Invocazione completata con successo");
 				return ResponseEntity.ok(list);
 			});
@@ -1465,7 +1486,7 @@ public class ServiziController implements ServiziApi {
 		}
 
 	}
-	
+
 	@Override
 	public ResponseEntity<Resource> exportServizi(
 			String referente, UUID idDominio,
