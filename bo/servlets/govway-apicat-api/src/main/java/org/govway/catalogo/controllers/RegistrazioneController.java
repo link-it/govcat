@@ -129,32 +129,38 @@ public class RegistrazioneController implements RegistrazioneApi {
                     StatoRegistrazioneEnum.GIA_REGISTRATO, null, current));
             }
 
-            // Cerca o crea una registrazione in corso
-            Idm idm = this.requestUtils.getIdm();
-            Optional<RegistrazioneUtenteEntity> existingReg =
-                this.registrazioneService.findByPrincipal(principal);
+            // La lettura della registrazione e la costruzione della risposta devono
+            // avvenire dentro una transazione: buildStatoRegistrazione, tramite l'assembler,
+            // accede ad associazioni LAZY (es. organizzazioneRichiesta) che altrimenti
+            // sarebbero detached e provocherebbero una LazyInitializationException.
+            return this.registrazioneService.runTransaction(() -> {
+                // Cerca o crea una registrazione in corso
+                Idm idm = this.requestUtils.getIdm();
+                Optional<RegistrazioneUtenteEntity> existingReg =
+                    this.registrazioneService.findByPrincipal(principal);
 
-            if (existingReg.isPresent() && existingReg.get().getStato() == StatoRegistrazione.COMPLETED) {
-                // Registrazione già completata ma utente non ancora in sessione
-                return ResponseEntity.ok(buildStatoRegistrazione(
-                    StatoRegistrazioneEnum.GIA_REGISTRATO, existingReg.get(), current));
-            }
+                if (existingReg.isPresent() && existingReg.get().getStato() == StatoRegistrazione.COMPLETED) {
+                    // Registrazione già completata ma utente non ancora in sessione
+                    return ResponseEntity.ok(buildStatoRegistrazione(
+                        StatoRegistrazioneEnum.GIA_REGISTRATO, existingReg.get(), current));
+                }
 
-            // Crea nuova registrazione o recupera quella esistente
-            RegistrazioneUtenteEntity reg = existingReg.orElseGet(() ->
-                this.registrazioneService.createRegistrazione(
-                    principal,
-                    idm.getNome(),
-                    idm.getCognome(),
-                    idm.getEmail(),
-                    getTokenId()
-                )
-            );
+                // Crea nuova registrazione o recupera quella esistente
+                RegistrazioneUtenteEntity reg = existingReg.orElseGet(() ->
+                    this.registrazioneService.createRegistrazione(
+                        principal,
+                        idm.getNome(),
+                        idm.getCognome(),
+                        idm.getEmail(),
+                        getTokenId()
+                    )
+                );
 
-            StatoRegistrazioneEnum stato = mapStatoToEnum(reg.getStato());
+                StatoRegistrazioneEnum stato = mapStatoToEnum(reg.getStato());
 
-            this.logger.info("getStatoRegistrazione: Invocazione completata con successo");
-            return ResponseEntity.ok(buildStatoRegistrazione(stato, reg, current));
+                this.logger.info("getStatoRegistrazione: Invocazione completata con successo");
+                return ResponseEntity.ok(buildStatoRegistrazione(stato, reg, current));
+            });
 
         } catch (RuntimeException e) {
             this.logger.error("getStatoRegistrazione terminata con errore '4xx': " + e.getMessage(), e);
