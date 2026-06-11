@@ -1,6 +1,14 @@
 2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Adesione-view: CTA "Vai al Servizio" naviga alla
+	  vetrina pubblica `/servizi/:id/view` (read-only)
+	  invece di `/servizi/:id` (gestione), che reindirizzava
+	  a `servizio-gruppi` per utenti senza grant sul servizio.
+
+2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Wizard adesioni: fase "In compilazione" rossa anche
 	  per non-gestori quando il workflow dello stato corrente
 	  dichiara `<section>_configurato` fra i `dati_obbligatori`

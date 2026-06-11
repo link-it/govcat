@@ -803,11 +803,16 @@ export class AdesioneViewComponent implements OnInit {
     this.onEnvironmentChange();
   }
 
-  /** Naviga al dettaglio del servizio (`/servizi/:id_servizio`). */
+  /** Naviga alla vetrina pubblica del servizio
+   *  (`/servizi/:id_servizio/view`): rotta read-only accessibile
+   *  anche a chi non ha ruoli di gestione sul servizio. La
+   *  rotta `/servizi/:id` (senza `/view`) attiva
+   *  `ServizioDetailsComponent` con `ForbidAnonymousGuard` e
+   *  reindirizza a `gruppi` per utenti senza grant. */
   public onGoToService(event?: MouseEvent): void {
     const idServizio = this.adesione?.servizio?.id_servizio;
     if (!idServizio) return;
-    const path = ['/servizi', idServizio];
+    const path = ['/servizi', idServizio, 'view'];
     if (this.navigationService.shouldOpenInNewTab(event)) {
       event?.preventDefault();
       event?.stopPropagation();
