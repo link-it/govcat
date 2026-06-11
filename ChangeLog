@@ -1,6 +1,15 @@
 2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Comunicazioni: fix checkbox destinatari in `ui-sender`
+	  non graficamente sincronizzate con lo stato logico.
+	  Pattern rifatto con `<label>` wrapper + `(change)`
+	  sull'input (toggle nativo browser) al posto del
+	  `(click)` sul div padre con `preventDefault` interno.
+
+2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Membership evolutiva: nuovo tab "Utenti da gestire" in
 	  `organizzazione-manage` (ordine Utenti -> Utenti da
 	  gestire -> Domini), lista popolata via GET utenti

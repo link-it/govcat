@@ -51,14 +51,13 @@
           </button>
           @if (_dropdownOpen) {
             <div class="target-dropdown-menu">
-              @for (option of targetOptions; track option) {
-                <div class="target-dropdown-item"
-                  (click)="toggleTarget(option.value, !isTargetSelected(option.value))">
+              @for (option of targetOptions; track option.value) {
+                <label class="target-dropdown-item m-0">
                   <input class="form-check-input" type="checkbox"
                     [checked]="isTargetSelected(option.value)"
-                    (click)="$event.preventDefault()">
-                  <label>{{ option.label | translate }}</label>
-                </div>
+                    (change)="toggleTarget(option.value, $any($event.target).checked)">
+                  <span>{{ option.label | translate }}</span>
+                </label>
               }
             </div>
           }
