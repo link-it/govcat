@@ -1,6 +1,22 @@
 2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Form custom-properties: UI allineata al pattern delle
+	  form client.
+	  - Pulsante pencil / chiudi: `lnk-btn-ghost lnk-btn-sm
+	    lnk-btn-icon` (hover background `--surface-3`).
+	    Regole CSS replicate nello SCSS del componente
+	    (scope Angular isolato dal wizard padre).
+	  - Wrapper `.custom-properties-edit-wrap.is-editing` con
+	    bordo `--accent` + shadow `--accent-soft`, identico
+	    a `.adesione-config-list-item.is-editing`.
+	  - Footer Save/Cancel allineato a destra con
+	    `d-flex justify-content-end gap-2 mt-3 pt-3
+	    border-top` (Cancel a sinistra, Save primary a destra).
+
+2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Test: allineamento spec ai recenti refactor. Build verde,
 	  da 22 a 3 test rotti (i 3 rimanenti pre-esistenti
 	  rispetto ai commit recenti).
