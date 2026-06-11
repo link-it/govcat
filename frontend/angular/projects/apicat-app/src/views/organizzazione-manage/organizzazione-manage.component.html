@@ -115,7 +115,7 @@
             [primary]="true"
             (onAction)="openAdd()">
           </lnk-button>
-        } @else {
+        } @else if (_activeTab === 'domini') {
           <lnk-button
             [label]="'APP.DOMINI.BUTTON.Add'"
             [ariaLabel]="'APP.DOMINI.BUTTON.Add'"
