@@ -1,6 +1,21 @@
 2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Membership evolutiva: nuovo tab "Utenti da gestire" in
+	  `organizzazione-manage` (ordine Utenti -> Utenti da
+	  gestire -> Domini), lista popolata via GET utenti
+	  `?dashboard=true` (stessa della dashboard). Click su
+	  riga utente (entrambe le tab) apre `utente-details`
+	  via rotta `organizzazione-manage/:id/utenti/:uid`.
+	  Dashboard AMM_ORG ora atterra su `?tab=utenti_pending`.
+	  Sezione "Organizzazione richiesta" in `utente-details`
+	  ridisegnata come card responsive con azioni (select
+	  ruolo + Approva/Rifiuta) su riga separata.
+	  Vedi `NOTE-CLAUDE/2026-06-11-membership-evolutiva/`.
+
+2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Form custom-properties: UI allineata al pattern delle
 	  form client.
 	  - Pulsante pencil / chiudi: `lnk-btn-ghost lnk-btn-sm

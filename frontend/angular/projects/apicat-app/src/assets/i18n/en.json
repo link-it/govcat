@@ -17,7 +17,8 @@
 			"HelpText": "From this section you can manage users and domains of the organization.",
 			"AddTooltip": "Add a user to the organization",
 			"TabUtenti": "Users",
-			"TabDomini": "Domains"
+			"TabDomini": "Domains",
+			"TabUtentiPending": "Users to manage"
 		},
 		"RUOLI": {
 			"AmministratoreOrganizzazione": "Organization administrator",

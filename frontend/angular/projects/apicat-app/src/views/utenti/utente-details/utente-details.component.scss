@@ -16,3 +16,77 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+.lnk-pending-request-card {
+  border: 1px solid var(--warning, #f0ad4e);
+  border-left: 4px solid var(--warning, #f0ad4e);
+  border-radius: 6px;
+  background-color: var(--warning-soft-bg, #fff8e1);
+  padding: 1rem 1.25rem;
+}
+
+.lnk-pending-request-header {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+
+  .lnk-pending-request-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+
+  i {
+    color: var(--warning, #f0ad4e);
+    font-size: 1.05rem;
+  }
+}
+
+.lnk-pending-request-body {
+  margin-bottom: 0.75rem;
+
+  .organizzazione-passaggio {
+    display: block;
+  }
+}
+
+.lnk-pending-request-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  align-items: flex-end;
+  padding-top: 0.5rem;
+  border-top: 1px dashed rgba(0, 0, 0, 0.1);
+}
+
+.lnk-pending-request-role {
+  flex: 0 1 260px;
+  min-width: 220px;
+}
+
+.lnk-pending-request-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-left: auto;
+}
+
+@media (max-width: 575.98px) {
+  .lnk-pending-request-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .lnk-pending-request-role {
+    flex-basis: auto;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .lnk-pending-request-buttons {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-end;
+  }
+}

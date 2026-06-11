@@ -485,7 +485,7 @@ export class DashboardComponent implements OnInit {
           } else {
             const orgId = this.authenticationService.getCurrentOrganization()?.id_organizzazione;
             if (orgId) {
-              this.router.navigate(['/organizzazione-manage', orgId], { queryParams: { tab: 'utenti' } });
+              this.router.navigate(['/organizzazione-manage', orgId], { queryParams: { tab: 'utenti_pending' } });
             }
           }
         }

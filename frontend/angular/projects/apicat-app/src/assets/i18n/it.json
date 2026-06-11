@@ -17,7 +17,8 @@
 			"HelpText": "Da questa sezione puoi gestire utenti e domini dell'organizzazione.",
 			"AddTooltip": "Aggiungi un utente all'organizzazione",
 			"TabUtenti": "Utenti",
-			"TabDomini": "Domini"
+			"TabDomini": "Domini",
+			"TabUtentiPending": "Utenti da gestire"
 		},
 		"RUOLI": {
 			"AmministratoreOrganizzazione": "Amministratore organizzazione",

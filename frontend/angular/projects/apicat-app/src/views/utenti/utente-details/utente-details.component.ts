@@ -122,6 +122,14 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
   selectedOrganizzazione: any;
 
   _fromDashboard: boolean = false;
+  /** Membership evolutiva 2026-06-11: la rotta
+   *  `organizzazione-manage/:id/utenti/:uid` viene risolta dal
+   *  router con `data.fromOrgManage = true` e param `uid`.
+   *  Adattiamo breadcrumb e back per tornare alla tab
+   *  `utenti_pending` dell'org-manage. */
+  _fromOrgManage: boolean = false;
+  _fromOrgManageIdOrg: string = '';
+  _fromOrgManageTab: string = 'utenti_pending';
   _dashboardSection: string = '';
 
   minLengthTerm = 1;
@@ -217,9 +225,21 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
       ? baseRoles
       : baseRoles.filter(r => r !== Ruolo.COORDINATORE);
 
+    // Origine `fromOrgManage` (membership evolutiva): segnalata via
+    // `route.data` dalla rotta `organizzazione-manage/:id/utenti/:uid`.
+    // Il param org-id e` `params['id']` (parent) e l'utente-id e`
+    // `params['uid']` (child).
+    this.route.data.subscribe(d => {
+      if (d?.['fromOrgManage']) { this._fromOrgManage = true; }
+    });
+
     this.route.params.subscribe(params => {
-      if (params['id'] && params['id'] !== 'new') {
-        this.id = params['id'];
+      if (this._fromOrgManage) {
+        this._fromOrgManageIdOrg = params['id'] || '';
+      }
+      const utenteId = this._fromOrgManage ? params['uid'] : params['id'];
+      if (utenteId && utenteId !== 'new') {
+        this.id = utenteId;
         this._isDetails = true;
         this.configService.getConfig(this.model).subscribe(
           (config: any) => {
@@ -253,6 +273,10 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
       if (val.from === 'dashboard') {
         this._fromDashboard = true;
         this._dashboardSection = val.section || '';
+        this._initBreadcrumb();
+      }
+      if (this._fromOrgManage && val.tab) {
+        this._fromOrgManageTab = val.tab;
         this._initBreadcrumb();
       }
     });
@@ -565,7 +589,19 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
   _initBreadcrumb() {
     const _title = this.utente ? `${this.utente.nome} ${this.utente.cognome}` : this.translate.instant('APP.TITLE.New');
-    if (this._fromDashboard) {
+    if (this._fromOrgManage && this._fromOrgManageIdOrg) {
+      // Membership evolutiva: Gestione organizzazione →
+      //   (lista utenti in attesa) → <utente>
+      this.breadcrumbs = [
+        {
+          label: 'APP.ORGANIZATION_MANAGE.Title',
+          url: `/organizzazione-manage/${this._fromOrgManageIdOrg}`,
+          type: 'link',
+          params: { tab: this._fromOrgManageTab }
+        },
+        { label: `${_title}`, url: '', type: 'title' }
+      ];
+    } else if (this._fromDashboard) {
       const _dashboardParams = this._dashboardSection ? { section: this._dashboardSection } : null;
       this.breadcrumbs = [
         { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2', params: _dashboardParams },
