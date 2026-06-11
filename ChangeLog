@@ -1,6 +1,18 @@
 2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Adesione-lista-clients: icona "Modalita` di
+	  autenticazione" allineata al gate del sub-step
+	  "In Compilazione". L'override gestore "client non
+	  configurato -> rosso" ora scatta solo se il workflow
+	  dello stato corrente richiede `<env>_configurato` o
+	  siamo in `in_configurazione_*_<env>`. Cosi` in
+	  `richiesto_produzione` (no `produzione_configurato`)
+	  l'icona resta verde, coerente con lo step.
+
+2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Wizard adesioni: mantieni fase visualizzata in caso
 	  di errore del cambio stato. Rimossa la chiamata
 	  `_initSelectedFase` pre-cambio in `onWorkflowAction`:

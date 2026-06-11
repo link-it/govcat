@@ -346,10 +346,17 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
         // e` compito del gestore) → si torna al check-dati BE: se
         // il BE non lo flagga come obbligatorio nello stato
         // corrente, il toggle e` verde.
+        // Gating allineato al sub-step "In Compilazione"
+        // (`_hasIncompleteClients` lato wizard): l'override
+        // scatta solo se il workflow dello stato corrente
+        // richiede `<env>_configurato` come dato obbligatorio
+        // OPPURE siamo gia` in uno stato `in_configurazione_*_<env>`.
+        // Cosi` icona e step sono sempre coerenti.
         if (
             tipo === ClassiEnum.CLIENT
             && this.authenticationService.isGestore(this.grant?.ruoli)
             && this._hasNonConfiguredClients()
+            && this._stateRequiresConfiguredClient()
         ) {
             return 0;
         }
@@ -370,6 +377,28 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
         const clients = this.adesioneClients || [];
         if (clients.length === 0) { return false; }
         return clients.some((c: any) => !c?.id_client || c?.source?.stato !== 'configurato');
+    }
+
+    /** Vero se nello stato corrente il client configurato e` un
+     *  vincolo per la transizione successiva. Allineato al
+     *  gate `_hasIncompleteClients` del wizard padre:
+     *  - `dati_obbligatori` dello stato attuale include
+     *    `<env>_configurato`, oppure
+     *  - lo stato e` `in_configurazione_*_<env>` (caso
+     *    automatica, che non dichiara `<env>_configurato` ma
+     *    pretende comunque che il client sia configurato).
+     *  Negli altri stati l'override "client non configurato"
+     *  non scatta (es. `richiesto_produzione` non richiede
+     *  ancora `produzione_configurato`). */
+    private _stateRequiresConfiguredClient(): boolean {
+        const stato = this.adesione?.stato || '';
+        if (!stato) { return false; }
+        const env = this.environment;
+        if (env !== AmbienteEnum.Collaudo && env !== AmbienteEnum.Produzione) { return false; }
+        const mandatory: string[] = this.authenticationService._getClassesMandatory('adesione', '', stato) || [];
+        const key = env === AmbienteEnum.Collaudo ? 'collaudo_configurato' : 'produzione_configurato';
+        if (mandatory.includes(key)) { return true; }
+        return stato.startsWith('in_configurazione') && stato.endsWith(`_${env}`);
     }
 
     /**
