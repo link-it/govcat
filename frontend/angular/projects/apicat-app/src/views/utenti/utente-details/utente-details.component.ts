@@ -184,6 +184,12 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
     return this.authenticationService.hasPermission('utenti', 'edit');
   }
 
+  /** Esposto al template: true se l'utente loggato e` gestore.
+   *  Usato per gating UI di hint/help text riservati al gestore. */
+  get _isGestore(): boolean {
+    return this.authenticationService.isGestore();
+  }
+
   /** True quando il BE ha popolato `organizzazione_partenza` o, in
    *  fallback retrocompat, esiste `organizzazione` legacy (decisione
    *  fallback "usare legacy organizzazione" per la UI "da X a Y"). */

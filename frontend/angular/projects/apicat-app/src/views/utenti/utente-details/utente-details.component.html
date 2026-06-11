@@ -578,9 +578,11 @@
                         }
                       </tbody>
                     </table>
-                    <small class="alert alert-info form-text text-muted d-flex align-items-top gap-2 mt-2">
-                      <i class="bi bi-info-circle me-1"></i><span>{{ 'APP.USERS.ORGANIZZAZIONI.HelpText' | translate }}</span>
-                    </small>
+                    @if (_isGestore) {
+                      <small class="alert alert-info form-text text-muted d-flex align-items-top gap-2 mt-2">
+                        <i class="bi bi-info-circle me-1"></i><span>{{ 'APP.USERS.ORGANIZZAZIONI.HelpText' | translate }}</span>
+                      </small>
+                    }
                   </div>
                 </div>
               </div>
