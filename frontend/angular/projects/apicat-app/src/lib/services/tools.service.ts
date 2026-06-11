@@ -409,6 +409,22 @@ export class Tools {
    * Ritorna la stringa tradotta o `null` se la chiave non
    * esiste / non corrisponde al pattern.
    */
+  /** Estrae l'oggetto parametri di interpolazione i18n da un
+   *  payload errore BE accettando entrambe le forme note:
+   *  - `parameters` (piatta, es. `{ field: 'nome' }`)
+   *  - `errori: [{ params: {...} }, ...]` (annidata, es.
+   *    `REG.409.MULTIPLE.USERS.EMAIL`). I `params` delle varie
+   *    entry vengono fusi (ultima vince in caso di chiavi
+   *    duplicate). */
+  private static _collectBeErrorParams(errBody: any): any {
+    const flat = errBody?.parameters;
+    const fromErrori = (errBody?.errori || [])
+      .map((e: any) => e?.params)
+      .filter((p: any) => p && typeof p === 'object');
+    if (!flat && fromErrori.length === 0) { return undefined; }
+    return Object.assign({}, ...fromErrori, flat || {});
+  }
+
   private static _translateBeErrorKey(detail: any, parameters?: any): string | null {
     if (typeof detail !== 'string' || !detail) { return null; }
     if (!/^[A-Z0-9_]+(\.[A-Z0-9_]+)+$/.test(detail)) { return null; }
@@ -430,7 +446,13 @@ export class Tools {
         // `APP.MESSAGE.ERROR.*` usiamo la traduzione (e
         // ignoriamo il `title` generico come "Unprocessable
         // Entity"). Altrimenti fallback al detail letterale.
-        const translated = this._translateBeErrorKey(error.error.detail, error.error.parameters);
+        // I parametri di interpolazione possono arrivare come
+        // `parameters` (forma piatta) oppure come `errori[*].params`
+        // (forma annidata, es. REG.409.MULTIPLE.USERS.EMAIL).
+        // Uniamo i `params` di tutte le entry di `errori` per
+        // popolare tutti i placeholder anche con piu` errori.
+        const beParams = this._collectBeErrorParams(error.error);
+        const translated = this._translateBeErrorKey(error.error.detail, beParams);
         if (translated) {
           _msg = translated;
         } else {
