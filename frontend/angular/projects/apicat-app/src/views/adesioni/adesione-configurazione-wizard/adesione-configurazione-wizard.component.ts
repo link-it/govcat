@@ -1119,7 +1119,10 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
             .filter((r: any) => r?.source?.tipo === 'referente')
             .map((r: any) => fullName(r?.source?.utente))
             .filter((n: string) => !!n);
-        if (principali.length > 0) { return principali; }
+        if (principali.length > 0) {
+            this._headerOwnerIsRichiedente = false;
+            return principali;
+        }
         // `utente_richiedente` e' tipizzato come `string` nel model
         // generato da OpenAPI ma a runtime e' un oggetto User completo
         // (nome/cognome/email/...) — vedi `adesione-form` e
@@ -1127,11 +1130,27 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         const richiedente: any = this.adesione?.utente_richiedente;
         if (richiedente && typeof richiedente === 'object') {
             const full = fullName(richiedente);
-            if (full) { return [full]; }
+            if (full) {
+                this._headerOwnerIsRichiedente = true;
+                return [full];
+            }
         } else if (typeof richiedente === 'string') {
+            this._headerOwnerIsRichiedente = true;
             return [richiedente];
         }
+        this._headerOwnerIsRichiedente = false;
         return [];
+    }
+
+    /** True quando `headerOwnerNames` ha fatto fallback su
+     *  `utente_richiedente` (nessun referente di tipo `referente`):
+     *  la label nel meta-header diventa "Richiedente" invece di
+     *  "Referente". */
+    _headerOwnerIsRichiedente: boolean = false;
+
+    get _headerOwnerLabelKey(): string {
+        if (this._headerOwnerIsRichiedente) { return 'APP.LABEL.Richiedente'; }
+        return this.headerOwnerNames.length > 1 ? 'APP.LABEL.OwnerPlural' : 'APP.LABEL.Owner';
     }
 
     /** Organizzazione del soggetto dell'adesione (stessa fonte usata

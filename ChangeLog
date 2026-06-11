@@ -1,6 +1,15 @@
 2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard adesioni: meta-header owner usa label
+	  "Richiedente" quando `headerOwnerNames` ricade sul
+	  fallback `utente_richiedente` (in assenza di referenti
+	  principali), invece di "Referente". Nuovo getter
+	  `_headerOwnerLabelKey`, flag `_headerOwnerIsRichiedente`.
+
+2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Comunicazioni: fix checkbox destinatari in `ui-sender`
 	  non graficamente sincronizzate con lo stato logico.
 	  Pattern rifatto con `<label>` wrapper + `(change)`
