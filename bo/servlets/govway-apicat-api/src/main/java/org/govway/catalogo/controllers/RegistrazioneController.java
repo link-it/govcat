@@ -55,6 +55,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.IanaLinkRelations;
@@ -551,9 +552,18 @@ public class RegistrazioneController implements RegistrazioneApi {
             .map(RegistrazioneUtenteEntity::getOrganizzazioneRichiesta)
             .orElse(null);
 
-        // Verifica se esiste già un utente con questa email aziendale
-        Optional<UtenteEntity> existingByEmail =
-            this.registrazioneService.findUtenteByEmailAziendale(emailToUse);
+        // Verifica se esiste già un utente con questa email aziendale.
+        // Se esistono più utenti con la stessa email aziendale il caso è ambiguo
+        // (non è possibile determinare a quale utenza associare il principal):
+        // viene restituito un errore applicativo gestito invece dell'eccezione grezza
+        // sollevata dal data layer.
+        Optional<UtenteEntity> existingByEmail;
+        try {
+            existingByEmail = this.registrazioneService.findUtenteByEmailAziendale(emailToUse);
+        } catch (IncorrectResultSizeDataAccessException e) {
+            throw new ConflictException(ErrorCode.REG_409_MULTIPLE_USERS_EMAIL,
+                Map.of("email", emailToUse), e);
+        }
 
         RisultatoRegistrazione response = new RisultatoRegistrazione();
         UtenteEntity utente;

@@ -1620,6 +1620,11 @@
 						"PRINCIPAL": {
 							"EXISTS": "Principal già associato a un altro utente"
 						},
+						"MULTIPLE": {
+							"USERS": {
+								"EMAIL": "Esistono più utenti associati all'email aziendale [{{email}}]. Contattare l'amministratore per risolvere il conflitto."
+							}
+						},
 						"ALREADY": {
 							"PENDING": {
 								"OTHER": {

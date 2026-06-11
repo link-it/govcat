@@ -1620,6 +1620,11 @@
 						"PRINCIPAL": {
 							"EXISTS": "Principal already associated with another user"
 						},
+						"MULTIPLE": {
+							"USERS": {
+								"EMAIL": "Multiple users are associated with the business email [{{email}}]. Please contact the administrator to resolve the conflict."
+							}
+						},
 						"ALREADY": {
 							"PENDING": {
 								"OTHER": {

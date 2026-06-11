@@ -655,6 +655,9 @@ public enum ErrorCode {
     /** Principal già associato ad altro utente */
     REG_409_PRINCIPAL_EXISTS("Principal già associato a un altro utente"),
 
+    /** Più utenti associati alla stessa email aziendale */
+    REG_409_MULTIPLE_USERS_EMAIL("Più utenti associati alla stessa email aziendale"),
+
     /** Email non presente nei dati di autenticazione (JWT) */
     REG_400_NO_EMAIL_JWT("Email non presente nei dati di autenticazione"),
 
