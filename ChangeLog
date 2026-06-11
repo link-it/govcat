@@ -1,6 +1,18 @@
 2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard adesioni: "In compilazione" coerente con
+	  l'icona "Modalita` di autenticazione". Trigger esteso
+	  (gate `_isInConfigurazioneStato` per gli stati
+	  `in_configurazione_automatica_*` che non hanno
+	  `<section>_configurato` nei `dati_obbligatori`) e
+	  signal allineato a `isSottotipoGroupCompleted(...,
+	  CLIENT)` (stesso check usato dal `lnk-icon-toggle`
+	  della lista clients).
+
+2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Wizard adesioni: "In compilazione" rossa solo se lo
 	  stato CORRENTE richiede `<section>_configurato` nei
 	  `dati_obbligatori`. Senza questo gate, il

@@ -1786,26 +1786,49 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
      *      via `_loadClientsCheck` (signal locale).
      */
     _hasIncompleteClients(section: 'collaudo' | 'produzione'): boolean {
-        if (!this._stateRequiresClientConfigured(section)) { return false; }
-        const datoKey = section === 'collaudo' ? 'collaudo_configurato' : 'produzione_configurato';
-        if (this.ckeckProvider.getObjectByDato(this.dataStructureResults, datoKey)) {
+        if (!this._stateRequiresClientConfigured(section) && !this._isInConfigurazioneStato(section)) {
+            return false;
+        }
+        const ambiente = section === 'collaudo' ? AmbienteEnum.Collaudo : AmbienteEnum.Produzione;
+        // Stesso check usato da `<lnk-icon-toggle>` nell'header
+        // della lista clients (`adesione-lista-clients.component.html`):
+        // se la sezione clients e` segnalata incompleta dal BE
+        // (`isSottotipoGroupCompleted` ritorna false), allora la
+        // fase "In compilazione" deve essere rossa. Cosi` l'icona
+        // ⊗ accanto a "Modalita` di autenticazione" e lo stato
+        // del sub-step "In Compilazione" sono sempre coerenti.
+        if (!this.ckeckProvider.isSottotipoGroupCompleted(this.dataStructureResults, ambiente, ClassiEnum.CLIENT)) {
             return true;
         }
         if (!this.authenticationService.isGestore(this.grant?.ruoli)) { return false; }
-        const ambiente = section === 'collaudo' ? AmbienteEnum.Collaudo : AmbienteEnum.Produzione;
         return !!this._hasNonConfiguredClientsByEnv[ambiente];
     }
 
     /** Vero se i `dati_obbligatori` del cambio stato dello
      *  stato CORRENTE includono `<section>_configurato`. Indica
      *  che il client configurato e` richiesto come precondizione
-     *  per uscire dallo stato attuale (non del successivo). */
+     *  per uscire dallo stato attuale (non del successivo).
+     *  Match diretto sul workflow config (auth scenario manuale:
+     *  e.g. `in_configurazione_manuale_collaudo` -> `collaudo_configurato`). */
     private _stateRequiresClientConfigured(section: 'collaudo' | 'produzione'): boolean {
         const stato = this.adesione?.stato;
         if (!stato) { return false; }
         const mandatory: string[] = this.authenticationService._getClassesMandatory('adesione', '', stato) || [];
         const key = section === 'collaudo' ? 'collaudo_configurato' : 'produzione_configurato';
         return mandatory.includes(key);
+    }
+
+    /** Vero se lo stato corrente e` un `in_configurazione_*_<section>`
+     *  (sub-step "In Configurazione" della sezione attivo).
+     *  Trigger aggiuntivo rispetto al gate workflow per coprire
+     *  il caso `in_configurazione_automatica_<section>`, dove il
+     *  workflow non dichiara `<section>_configurato` come dato
+     *  obbligatorio (il sistema lo configurerebbe in automatico)
+     *  ma se il client risulta comunque "Non configurato" la
+     *  fase compilazione va segnalata come bloccante. */
+    private _isInConfigurazioneStato(section: 'collaudo' | 'produzione'): boolean {
+        const stato = this.adesione?.stato || '';
+        return stato.startsWith('in_configurazione') && stato.endsWith(`_${section}`);
     }
 
     /**
