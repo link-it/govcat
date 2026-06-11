@@ -148,19 +148,31 @@
                 </div>
               }
             </div>
-            @if (showSkipCollaudo) {
-              <div class=""
-                  [tooltip]="'APP.ADESIONI.LABEL.SkipCollaudoTooltip' | translate"
-                  placement="left"
-                  container="body">
-                <lnk-button
-                  [label]="'APP.LABEL.SkipCollaudo' | translate"
-                  [icon]="adesione.skip_collaudo ? 'bi bi-check-square-fill text-primary' : 'bi bi-square'"
-                  [spinner]="saveSkipCollaudo"
-                  (onAction)="toggleSkipCollaudo()"
-                ></lnk-button>
-              </div>
-            }
+            <div class="lnk-vetrina d-flex align-items-center gap-2">
+              @if (adesione?.servizio?.id_servizio) {
+                <button type="button"
+                        class="btnc"
+                        [attr.aria-label]="'APP.BUTTON.GoToService' | translate"
+                        (click)="onGoToService($event)"
+                        (auxclick)="onGoToService($event)">
+                  <i class="bi bi-grid-3x3-gap me-md-2" aria-hidden="true"></i>
+                  <span class="d-none d-md-inline">{{ 'APP.BUTTON.GoToService' | translate }}</span>
+                </button>
+              }
+              @if (showSkipCollaudo) {
+                <div class=""
+                    [tooltip]="'APP.ADESIONI.LABEL.SkipCollaudoTooltip' | translate"
+                    placement="left"
+                    container="body">
+                  <lnk-button
+                    [label]="'APP.LABEL.SkipCollaudo' | translate"
+                    [icon]="adesione.skip_collaudo ? 'bi bi-check-square-fill text-primary' : 'bi bi-square'"
+                    [spinner]="saveSkipCollaudo"
+                    (onAction)="toggleSkipCollaudo()"
+                  ></lnk-button>
+                </div>
+              }
+            </div>
           </div>
           @if (disclaimersGenerali.length > 0) {
             <div class="adesione-disclaimers mb-4">

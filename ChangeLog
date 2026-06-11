@@ -1,6 +1,18 @@
 2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard adesioni: CTA "Vai al Servizio" nell'header
+	  (icona `bi-grid-3x3-gap`, stile allineato ai CTA dei
+	  action-banner). Su mobile mostra solo l'icona.
+	  Sia da wizard sia da `adesione-view`, il link al
+	  servizio propaga `?fromAdesione=:id&fromAdesioneMode=
+	  wizard|view`: in `servizio-view` viene mostrato un
+	  banner "Torna all'adesione di provenienza" che
+	  riporta al wizard o alla view di partenza.
+
+2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Adesione-view: CTA "Vai al Servizio" naviga alla
 	  vetrina pubblica `/servizi/:id/view` (read-only)
 	  invece di `/servizi/:id` (gestione), che reindirizzava

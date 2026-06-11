@@ -308,6 +308,7 @@
 		},
 		"BUTTON": {
 			"Add": "Add",
+			"BackToAdesione": "Back to subscription",
 			"GoToService": "Go to the Service",
 			"Copy": "Copy",
 			"ShowAll": "Show all",
@@ -1297,6 +1298,8 @@
 			"JoinServiceSubtitle": "Configure your organization to use the APIs of this service.",
 			"GoAdesionePrompt": "You already have an active subscription. Go to the detail to manage it.",
 			"GoAdesioniPrompt": "There are subscriptions associated with this service. View them to manage them.",
+			"GoToAdesioneFromServiceTitle": "Back to the originating subscription",
+			"GoToAdesioneFromServiceSubtitle": "You came here from a subscription page. Continue where you left off.",
 			"GoToServiceSubtitle": "View the details of the service this subscription refers to (APIs, documentation, contacts).",
 			"ERROR": {
 				"ADE": {

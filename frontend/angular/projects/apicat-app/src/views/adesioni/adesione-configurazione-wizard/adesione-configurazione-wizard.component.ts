@@ -35,6 +35,7 @@ import { ErrorViewComponent } from '@app/components/error-view/error-view.compon
 import { ErrorViewCardComponent } from '@app/components/error-view-card/error-view-card.component';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
+import { NavigationService } from '@app/services/navigation.service';
 import { UtilService } from '@app/services/utils.service';
 
 import { ModalAddReferentComponent } from './modal-add-referent/modal-add-referent.component';
@@ -669,7 +670,8 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         private readonly apiService: OpenAPIService,
         private readonly authenticationService: AuthenticationService,
         private readonly utils: UtilService,
-        private readonly ckeckProvider: CkeckProvider
+        private readonly ckeckProvider: CkeckProvider,
+        private readonly navigationService: NavigationService
     ) {
         this.route.data.subscribe((data) => {
             if (!data.serviceBreadcrumbs) return;
@@ -1151,6 +1153,22 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     get _headerOwnerLabelKey(): string {
         if (this._headerOwnerIsRichiedente) { return 'APP.LABEL.Richiedente'; }
         return this.headerOwnerNames.length > 1 ? 'APP.LABEL.OwnerPlural' : 'APP.LABEL.Owner';
+    }
+
+    /** Naviga alla vetrina pubblica del servizio
+     *  (`/servizi/:id_servizio/view`, read-only). Stessa scelta di
+     *  `adesione-view.onGoToService`: la rotta `/view` e`
+     *  accessibile anche a chi non ha grant sul servizio,
+     *  mentre `/servizi/:id` (gestione) reindirizza a `gruppi`
+     *  per utenti privi di ruolo. */
+    onGoToService(event?: MouseEvent): void {
+        const idServizio = this.adesione?.servizio?.id_servizio;
+        if (!idServizio) { return; }
+        const idAdesione = this.adesione?.id_adesione;
+        const queryParams = idAdesione
+            ? { fromAdesione: idAdesione, fromAdesioneMode: 'wizard' }
+            : undefined;
+        this.navigationService.navigateWithEvent(event, ['/servizi', idServizio, 'view'], queryParams);
     }
 
     /** Organizzazione del soggetto dell'adesione (stessa fonte usata

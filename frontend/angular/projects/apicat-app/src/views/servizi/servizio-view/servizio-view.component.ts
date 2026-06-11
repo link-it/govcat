@@ -186,6 +186,12 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         { label: '...', url: '', type: 'link' }
     ];
 
+    /** Set quando si arriva via `?fromAdesione=:id&fromAdesioneMode=wizard|view`
+     *  (CTA "Vai al Servizio" da wizard / view adesione): abilita
+     *  la CTA "Torna all'adesione" nei banner. */
+    _fromAdesioneId: string = '';
+    _fromAdesioneMode: 'wizard' | 'view' | '' = '';
+
     _error: boolean = false;
     _errorMsg: string = '';
 
@@ -352,6 +358,17 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                 );
             } else {
                 console.log('NO params', params);
+            }
+        });
+        this.route.queryParams.subscribe(qp => {
+            const id = qp?.['fromAdesione'];
+            const mode = qp?.['fromAdesioneMode'];
+            if (id && (mode === 'wizard' || mode === 'view')) {
+                this._fromAdesioneId = id;
+                this._fromAdesioneMode = mode;
+            } else {
+                this._fromAdesioneId = '';
+                this._fromAdesioneMode = '';
             }
         });
 
@@ -700,6 +717,18 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
 
     _gotoAdesioni(event?: MouseEvent) {
         const route = ['servizi', this.id, 'adesioni'];
+        this.navigationService.navigateWithEvent(event, route);
+    }
+
+    /** Naviga indietro all'adesione di provenienza (CTA "Torna
+     *  all'adesione" visibile quando l'utente e` arrivato qui via
+     *  link "Vai al Servizio" dal wizard o dalla view di un'adesione,
+     *  segnalato da `?fromAdesione=:id&fromAdesioneMode=wizard|view`). */
+    _gotoFromAdesione(event?: MouseEvent): void {
+        if (!this._fromAdesioneId) { return; }
+        const route = this._fromAdesioneMode === 'view'
+            ? ['servizi', this.id, 'adesioni', this._fromAdesioneId, 'view']
+            : ['servizi', this.id, 'adesioni', this._fromAdesioneId];
         this.navigationService.navigateWithEvent(event, route);
     }
 

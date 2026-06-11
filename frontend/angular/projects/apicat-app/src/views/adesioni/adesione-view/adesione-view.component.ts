@@ -813,15 +813,19 @@ export class AdesioneViewComponent implements OnInit {
     const idServizio = this.adesione?.servizio?.id_servizio;
     if (!idServizio) return;
     const path = ['/servizi', idServizio, 'view'];
+    const idAdesione = this.adesione?.id_adesione;
+    const queryParams = idAdesione
+      ? { fromAdesione: idAdesione, fromAdesioneMode: 'view' }
+      : undefined;
     if (this.navigationService.shouldOpenInNewTab(event)) {
       event?.preventDefault();
       event?.stopPropagation();
-      const urlTree = this.router.createUrlTree(path);
+      const urlTree = this.router.createUrlTree(path, { queryParams });
       const url = this.router.serializeUrl(urlTree);
       const fullUrl = this.location.prepareExternalUrl(url);
       window.open(fullUrl, '_blank');
     } else {
-      this.router.navigate(path);
+      this.router.navigate(path, { queryParams });
     }
   }
 }

@@ -308,6 +308,7 @@
 		},
 		"BUTTON": {
 			"Add": "Aggiungi",
+			"BackToAdesione": "Torna all'adesione",
 			"GoToService": "Vai al Servizio",
 			"Copy": "Copia",
 			"ShowAll": "Mostra tutto",
@@ -1297,6 +1298,8 @@
 			"JoinServiceSubtitle": "Configura la tua organizzazione per fruire delle API di questo servizio.",
 			"GoAdesionePrompt": "Hai già un'adesione attiva. Vai al dettaglio per gestirla.",
 			"GoAdesioniPrompt": "Esistono adesioni associate al servizio. Visualizzale per gestirle.",
+			"GoToAdesioneFromServiceTitle": "Torna all'adesione di provenienza",
+			"GoToAdesioneFromServiceSubtitle": "Sei arrivato qui dalla vetrina di un'adesione. Riprendi da dove avevi lasciato.",
 			"GoToServiceSubtitle": "Consulta i dettagli del servizio a cui questa adesione si riferisce (API, documentazione, referenti).",
 			"ERROR": {
 				"ADE": {
