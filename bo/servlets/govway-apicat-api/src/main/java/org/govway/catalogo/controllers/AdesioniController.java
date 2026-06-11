@@ -801,6 +801,11 @@ public class AdesioniController implements AdesioniApi {
 
 			return this.service.runTransaction( () -> {
 
+				// Marcatore comune per recuperare tutti i log di performance via grep, es:
+				//   grep 'PERF_LIST_ADESIONI' <logfile>   (oppure 'PERF_' per tutte le API strumentate)
+				final String perf = "PERF_LIST_ADESIONI";
+				final long perfInizioTotale = System.currentTimeMillis();
+
 				AdesioneSpecification specification = new AdesioneSpecification();
 				specification.setStatoConfigurazione(Optional.ofNullable(statoConfigurazioneAutomatica).map(s -> {
 					switch(s) {
@@ -973,10 +978,19 @@ public class AdesioniController implements AdesioniApi {
 						: Arrays.asList("searchTerms");
 				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, sortDefault);
 
+				// --- Fase 1: query su DB ---
+				this.logger.info("{} - inizio query DB findAll adesioni", perf);
+				final long perfInizioQuery = System.currentTimeMillis();
 				Page<AdesioneEntity> findAll = this.service.findAll(
 						realSpecification,
 						pageable
 						);
+				final long perfDurataQuery = System.currentTimeMillis() - perfInizioQuery;
+				this.logger.info("{} - fine query DB findAll adesioni: estratti {} elementi (totale {}) in {} ms", perf, findAll.getNumberOfElements(), findAll.getTotalElements(), perfDurataQuery);
+
+				// --- Fase 2: elaborazione applicativa (assembler + popolamento ruoli_referente) ---
+				this.logger.info("{} - inizio elaborazione applicativa (assembler + ruoli_referente) su {} elementi", perf, findAll.getNumberOfElements());
+				final long perfInizioApplicativa = System.currentTimeMillis();
 
 				Link link = Link.of(ServletUriComponentsBuilder.fromCurrentRequest().build().toUriString(), IanaLinkRelations.SELF);
 
@@ -1041,6 +1055,12 @@ public class AdesioniController implements AdesioniApi {
 
 				list.add(lst.getLinks());
 				list.setPage(new PageMetadata().size((long)findAll.getSize()).number((long)findAll.getNumber()).totalElements(findAll.getTotalElements()).totalPages((long)findAll.getTotalPages()));
+
+				final long perfDurataApplicativa = System.currentTimeMillis() - perfInizioApplicativa;
+				this.logger.info("{} - fine elaborazione applicativa in {} ms", perf, perfDurataApplicativa);
+
+				final long perfDurataTotale = System.currentTimeMillis() - perfInizioTotale;
+				this.logger.info("{} - riepilogo tempi: query DB {} ms, elaborazione applicativa {} ms, totale {} ms", perf, perfDurataQuery, perfDurataApplicativa, perfDurataTotale);
 
 				this.logger.info("Invocazione completata con successo");
 				return ResponseEntity.ok(list);
