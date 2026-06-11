@@ -1744,16 +1744,35 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     }
 
     /**
-     * Vero se la sezione ha client ancora da configurare e
-     * l'utente puo` effettivamente intervenire (gestore). Per
-     * il referente il sub-step `in_compilazione` non va forzato
-     * attivo: l'associazione del client e` il suo compito, la
-     * transizione `nuovo → configurato` spetta al gestore.
+     * Vero se la sezione ha client ancora da configurare. Il
+     * gestore vede sempre il segnale (puo` intervenire in prima
+     * persona). Per altri ruoli il segnale si attiva solo quando
+     * il workflow dello stato corrente dichiara
+     * `<section>_configurato` come dato obbligatorio per il
+     * prossimo cambio stato: significa che senza client
+     * configurato la transizione non potra` avvenire, quindi
+     * la fase "In compilazione" va marcata rossa.
      */
     _hasIncompleteClients(section: 'collaudo' | 'produzione'): boolean {
-        if (!this.authenticationService.isGestore(this.grant?.ruoli)) { return false; }
         const ambiente = section === 'collaudo' ? AmbienteEnum.Collaudo : AmbienteEnum.Produzione;
-        return !!this._hasNonConfiguredClientsByEnv[ambiente];
+        const hasNotConfigured = !!this._hasNonConfiguredClientsByEnv[ambiente];
+        if (!hasNotConfigured) { return false; }
+        if (this.authenticationService.isGestore(this.grant?.ruoli)) { return true; }
+        return this._workflowRequiresClientConfigured(section);
+    }
+
+    /**
+     * Vero se i `dati_obbligatori` del cambio stato corrente
+     * includono `<section>_configurato` (es. `collaudo_configurato`
+     * per `section=collaudo`). Indica che il workflow esige il
+     * client configurato come precondizione per il prossimo stato.
+     */
+    private _workflowRequiresClientConfigured(section: 'collaudo' | 'produzione'): boolean {
+        const stato = this.adesione?.stato;
+        if (!stato) { return false; }
+        const mandatory: string[] = this.authenticationService._getClassesMandatory('adesione', '', stato) || [];
+        const key = section === 'collaudo' ? 'collaudo_configurato' : 'produzione_configurato';
+        return mandatory.includes(key);
     }
 
     /**

@@ -1,6 +1,15 @@
 2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard adesioni: fase "In compilazione" rossa anche
+	  per non-gestori quando il workflow dello stato corrente
+	  dichiara `<section>_configurato` fra i `dati_obbligatori`
+	  del prossimo cambio stato e i client non sono ancora
+	  configurati. Nuovo helper `_workflowRequiresClientConfigured`.
+
+2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Utente-details: tasto edit abilitato anche per AMM_ORG
 	  quando arriva dalla pagina di approvazione in
 	  `organizzazione-manage`. Sostituita la direttiva
