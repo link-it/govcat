@@ -2131,12 +2131,15 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     onWorkflowAction(event: any = null) {
         this.resetError();
 
-        // Se l'utente aveva navigato in una fase diversa da quella
-        // corrente dello stato dell'adesione, riportiamo la selezione
-        // alla fase coerente con lo stato prima del cambio: cosi`
-        // dopo la transizione la UI mostra sempre il contesto giusto
-        // senza richiedere navigazione manuale.
-        this._initSelectedFase();
+        // NB: non chiamiamo `_initSelectedFase()` qui. In caso di
+        // success il riallineamento avviene comunque post-refresh
+        // (`_changeStatus` -> `loadAdesione` -> `_initSelectedFase`).
+        // In caso di errore manteniamo la fase su cui l'utente
+        // stava lavorando (es. Produzione partendo da
+        // `pubblicato_collaudo`): altrimenti la regola speciale
+        // `pubblicato_collaudo -> collaudo` lo riporterebbe alla
+        // fase Collaudo, nascondendo il messaggio di errore
+        // renderizzato sul pannello Produzione.
 
         if (!event) {
             event = { action: 'change', status: this.getStateWorkflow() };

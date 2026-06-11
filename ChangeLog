@@ -1,6 +1,18 @@
 2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard adesioni: mantieni fase visualizzata in caso
+	  di errore del cambio stato. Rimossa la chiamata
+	  `_initSelectedFase` pre-cambio in `onWorkflowAction`:
+	  con `pubblicato_collaudo` (regola speciale -> Collaudo)
+	  l'errore renderizzato sul pannello Produzione veniva
+	  nascosto perche` la fase tornava a Collaudo. Il
+	  riallineamento post-success resta gestito dal flusso
+	  `_changeStatus -> loadAdesione -> _initSelectedFase`.
+
+2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Organizzazione-manage: tab "Utenti da gestire"
 	  visibile solo se `pendingItems.length > 0`.
 	  Fallback in `_loadPending` su tab `utenti` quando
