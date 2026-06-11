@@ -1,6 +1,18 @@
 2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Registrazione (first-login): fix interpolazione placeholder
+	  i18n. `RegistrazioneService.handleError` ora passa
+	  i `params` (uniti da `errori[*].params` + `parameters`)
+	  come secondo argomento a `translate.instant`, cosi`
+	  i placeholder tipo `{{email}}` di
+	  `REG.409.MULTIPLE.USERS.EMAIL` vengono sostituiti.
+	  Componenti registrazione usano `Tools.GetErrorMsg(err)`
+	  invece di `err.message` (uniforme con il resto dell'app).
+
+2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Utente-details: hint `APP.USERS.ORGANIZZAZIONI.HelpText`
 	  nella tabella organizzazioni mostrato solo al gestore.
 	  Nuovo getter `_isGestore` esposto al template.

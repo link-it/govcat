@@ -220,8 +220,21 @@ export class RegistrazioneService implements OnDestroy {
       // Errore server-side - prova a tradurre il codice di errore dal campo detail
       if (error.error?.detail) {
         const code = error.error.detail;
+        // Parametri di interpolazione: il BE puo` veicolarli come
+        // `parameters` (forma piatta) oppure come `errori[*].params`
+        // (forma annidata, es. REG.409.MULTIPLE.USERS.EMAIL ->
+        // `errori: [{ params: { email: '...' } }]`). Unisco entrambe
+        // le forme cosi` i placeholder `{{name}}` vengono sempre
+        // sostituiti.
+        const flat = error.error?.parameters;
+        const fromErrori = (error.error?.errori || [])
+          .map((e: any) => e?.params)
+          .filter((p: any) => p && typeof p === 'object');
+        const params = (flat || fromErrori.length)
+          ? Object.assign({}, ...fromErrori, flat || {})
+          : {};
         // Prova a tradurre il codice (es: REG.400.NO.EMAIL.JWT -> APP.MESSAGE.ERROR.REG.400.NO.EMAIL.JWT)
-        const translated = this.translate.instant(`APP.MESSAGE.ERROR.${code}`);
+        const translated = this.translate.instant(`APP.MESSAGE.ERROR.${code}`, params);
         // Se la traduzione esiste (non ritorna la chiave stessa), usala
         if (translated !== `APP.MESSAGE.ERROR.${code}`) {
           errorMessage = translated;

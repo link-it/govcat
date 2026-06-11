@@ -169,7 +169,7 @@ export class RegistrazioneComponent implements OnInit, OnDestroy {
           this.currentStep = 'conferma';
           this.loading = false;
         } else {
-          this.error = err.message || 'Errore nel caricamento dello stato';
+          this.error = Tools.GetErrorMsg(err);
           this.loading = false;
         }
       }
@@ -232,7 +232,7 @@ export class RegistrazioneComponent implements OnInit, OnDestroy {
         this.inviaCodiceDopo();
       },
       error: (err) => {
-        this.error = err.message;
+        this.error = Tools.GetErrorMsg(err);
         this.loading = false;
       }
     });
@@ -246,7 +246,7 @@ export class RegistrazioneComponent implements OnInit, OnDestroy {
         this.loading = false;
       },
       error: (err) => {
-        this.error = err.message;
+        this.error = Tools.GetErrorMsg(err);
         this.loading = false;
       }
     });
@@ -279,7 +279,7 @@ export class RegistrazioneComponent implements OnInit, OnDestroy {
         }
       },
       error: (err) => {
-        this.error = err.message;
+        this.error = Tools.GetErrorMsg(err);
         this.loading = false;
       }
     });
@@ -307,7 +307,7 @@ export class RegistrazioneComponent implements OnInit, OnDestroy {
         this.finalizzaRegistrazione();
       },
       error: (err) => {
-        this.error = err.message;
+        this.error = Tools.GetErrorMsg(err);
         this.loading = false;
       }
     });
@@ -324,7 +324,7 @@ export class RegistrazioneComponent implements OnInit, OnDestroy {
         this.loading = false;
       },
       error: (err) => {
-        this.error = err.message;
+        this.error = Tools.GetErrorMsg(err);
         this.loading = false;
       }
     });
@@ -340,7 +340,7 @@ export class RegistrazioneComponent implements OnInit, OnDestroy {
         this.loading = false;
       },
       error: (err) => {
-        this.error = err.message;
+        this.error = Tools.GetErrorMsg(err);
         this.loading = false;
       }
     });
@@ -377,7 +377,7 @@ export class RegistrazioneComponent implements OnInit, OnDestroy {
         this.loading = false;
       },
       error: (err) => {
-        this.error = err.message;
+        this.error = Tools.GetErrorMsg(err);
         this.loading = false;
       }
     });
