@@ -1,6 +1,17 @@
 2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Adesione (creazione): fix ng-select organizzazione vuoto
+	  con `scelta_libera_organizzazione` / gestore. La lista
+	  veniva inizializzata vuota: `bindValue` non trovava
+	  match per il valore pre-impostato dal contesto e la
+	  chip restava vuota. Ora la lista del ng-select e`
+	  seedata con l'org di sessione e il control e` pre-
+	  popolato + `_checkSoggetto` invocato.
+
+2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	GetErrorMsg: interpolazione i18n dei placeholder ora
 	  accetta sia `parameters` (piatta) sia `errori[*].params`
 	  (annidata, es. `REG.409.MULTIPLE.USERS.EMAIL`). Nuovo

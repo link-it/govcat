@@ -738,7 +738,21 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
 
     if (this._scelta_libera_organizzazione || _ruolo == 'gestore' || !currentOrgId) {
       this._lockedOrgNome = '';
-      this._initOrganizzazioniSelect([]);
+      // Quando esiste un'organizzazione di contesto (anche con
+      // scelta libera o gestore), seediamo la lista del ng-select
+      // con quell'item: senza seed la lista resta vuota finche`
+      // l'utente non digita un termine di ricerca, e il valore
+      // pre-impostato dal contesto non viene reso a video
+      // (ng-select non trova il match per `bindValue` nell'array
+      // iniziale vuoto). Lasciamo il control abilitato/editabile.
+      const seed = (currentOrg && currentOrgId)
+        ? [{ id_organizzazione: currentOrgId, nome: currentOrg.nome }]
+        : [];
+      this._initOrganizzazioniSelect(seed);
+      if (currentOrgId) {
+        this._formGroup.patchValue({ id_organizzazione: currentOrgId });
+        this._checkSoggetto(currentOrgId);
+      }
       return;
     }
 
