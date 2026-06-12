@@ -1,6 +1,15 @@
 2026-06-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Hero image: nuova opzione `heroImageObjectPosition`
+	  (servizi/adesioni-config) -> Input `[objectPosition]`
+	  su `<lnk-hero-image>` (default `center`). Controlla
+	  quale porzione dell'immagine resta visibile con
+	  `objectFit: cover`.
+
+2026-06-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Palette armonizzazione: aggiunto `chipVariant` (info/warn/
 	  ok/accent/brand/muted) e flag `small` ai config JSON
 	  (servizi, adesioni, api, allegati, referenti, client,

@@ -6,6 +6,7 @@
   "wizard_new_layout": true,
 
   "heroImageObjectFit": "cover",
+  "heroImageObjectPosition": "center",
 
   "simpleItem": {
     "primaryText": [

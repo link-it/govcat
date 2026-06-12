@@ -94,6 +94,7 @@
                 [src]="{ path: (data | mapper:_getLogoMapper) } | httpImgSrc"
                 [alt]="data?.nome"
                 [objectFit]="config?.heroImageObjectFit || 'cover'"
+                [objectPosition]="config?.heroImageObjectPosition || 'center'"
               ></lnk-hero-image>
             </div>
           }
