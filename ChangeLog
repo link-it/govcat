@@ -1,6 +1,22 @@
 2026-06-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Palette armonizzazione: aggiunto `chipVariant` (info/warn/
+	  ok/accent/brand/muted) e flag `small` ai config JSON
+	  (servizi, adesioni, api, allegati, referenti, client,
+	  domini, utenti). Modificatore `.lnk-pill-sm` +
+	  `[size]="'sm'"` su `<lnk-stato-chip>` per liste fitte.
+	  Dashboard e dashboard-panel: badge legacy sostituiti con
+	  `<lnk-stato-chip>`/`.lnk-pill`. STATO_VARIANT_MAP esteso:
+	  `nuovo`/`nuova` → in-progress, `pending_update` → in-progress
+	  (distinto da `non_configurato` → pending). Fix bug
+	  `[class]` che sovrascriveva la classe statica del chip.
+	  Cleanup import `HasPermissionDirective` orfano in
+	  `utente-details`.
+
+2026-06-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Tag/label palette unificata (approccio centralizzato):
 	  `ui-data-type` e `ui-item-type` ora delegano a
 	  `<lnk-stato-chip>` per `type=tag|label|status` con

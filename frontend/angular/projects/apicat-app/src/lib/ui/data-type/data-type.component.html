@@ -53,9 +53,10 @@
   @case ('label') {
     @if (_useStatoChip) {
       <lnk-stato-chip [stato]="_origStato" [i18nPrefix]="_statoI18nPrefix"></lnk-stato-chip>
-    } @else {
-      <!-- Split-pill `[_label | _value]` (legacy behavior). -->
-      <span class="lnk-pill is-split" [ngClass]="['lnk-pill-' + _chipVariant, _elem.class || '']">
+    } @else if (_value) {
+      <!-- Split-pill `[_label | _value]` (legacy behavior). Hidden
+           when `_value` is empty (legacy `.badge:empty { display: none }`). -->
+      <span class="lnk-pill is-split" [ngClass]="['lnk-pill-' + _chipVariant, _chipSmall ? 'lnk-pill-sm' : '', _elem.class || '']">
         <span class="lnk-pill-label">{{_label | translate}}</span>
         <span class="lnk-pill-value">{{_value | translate}}</span>
       </span>
@@ -68,9 +69,9 @@
     @if (_useStatoChip) {
       <lnk-stato-chip [stato]="_origStato" [i18nPrefix]="_statoI18nPrefix"></lnk-stato-chip>
     } @else if (_showBadged) {
-      <span class="{{_class}}" [style.background-color]="_background" [style.color]="_color">{{_value | translate}}</span>
+      <span class="lnk-pill" [ngClass]="['lnk-pill-' + _chipVariant, _chipSmall ? 'lnk-pill-sm' : '', _elem.class || '']">{{_value | translate}}</span>
     } @else {
-      <span class="">{{_value | translate}}</span>
+      <span>{{_value | translate}}</span>
     }
   }
   @case ('cardinal') {

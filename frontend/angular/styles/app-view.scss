@@ -109,6 +109,14 @@ small, .small {
   flex-shrink: 0;
 }
 .lnk-pill > * { white-space: nowrap; }
+/* Allineamento col comportamento legacy `.badge:empty { display: none }`:
+   un pill senza contenuto (es. `_value` undefined) non lascia in pagina
+   un riquadro vuoto colorato. Copre sia il caso non-split (span senza
+   testo, `:empty`) sia il caso split-pill (la parte `lnk-pill-value`
+   vuota cosi` come l'intero pill quando entrambi i figli sono vuoti). */
+.lnk-pill:empty,
+.lnk-pill .lnk-pill-label:empty,
+.lnk-pill .lnk-pill-value:empty { display: none; }
 .lnk-pill-info   { background: var(--info-soft);   color: var(--info-ink);   border-color: var(--info-border); }
 .lnk-pill-warn   { background: var(--warn-soft);   color: var(--warn-ink);   border-color: var(--warn-border); }
 .lnk-pill-ok     { background: var(--ok-soft);     color: var(--ok-ink);     border-color: var(--ok-border); }
@@ -130,6 +138,14 @@ small, .small {
 .lnk-pill.is-split.lnk-pill-warn  .lnk-pill-value { border-left-color: var(--warn-border); }
 .lnk-pill.is-split.lnk-pill-ok    .lnk-pill-value { border-left-color: var(--ok-border); }
 .lnk-pill.is-split.lnk-pill-muted .lnk-pill-value { border-left-color: var(--line); }
+/* Modificatore size compatto. Attivabile dal config JSON
+   con `"small": true` su `options[<name>]` (retro-compat
+   col flag legacy che attivava `gl-badge-sm`). Usato p.es.
+   per `visibility` nella lista servizi. */
+.lnk-pill-sm { padding: 1px 8px; font-size: 11px; font-weight: 600; line-height: 1.3; }
+.lnk-pill-sm.is-split { padding: 0; }
+.lnk-pill-sm.is-split .lnk-pill-label,
+.lnk-pill-sm.is-split .lnk-pill-value { padding: 1px 8px; }
 
 /* Popover overflow tag per `<lnk-api-row>` "+n".
  * Renderizzato in `body` (container="body"), quindi fuori dallo

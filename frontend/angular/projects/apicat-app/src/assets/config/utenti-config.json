@@ -7,7 +7,7 @@
       { "field": "nome", "type": "text" }
     ],
     "secondaryText": [
-      { "field": "stato", "type": "label", "options": "status" }
+      { "field": "stato", "type": "label", "options": "status", "i18nPrefix": "APP.USERS.STATUS" }
     ],
     "metadata": {
       "text": [{ "field": "email_aziendale", "type": "text" }],

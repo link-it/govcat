@@ -23,6 +23,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
 
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
+import { StatoChipComponent } from '@app/components/vetrina/stato-chip.component';
 
 @Component({
   selector: 'app-dashboard-panel',
@@ -33,7 +34,8 @@ import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
     CommonModule,
     TranslateModule,
     TooltipModule,
-    ...APP_COMPONENTS_IMPORTS
+    ...APP_COMPONENTS_IMPORTS,
+    StatoChipComponent
   ]
 })
 export class DashboardPanelComponent {

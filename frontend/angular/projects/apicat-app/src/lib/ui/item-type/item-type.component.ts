@@ -83,7 +83,10 @@ export class ItemTypeComponent implements OnInit {
      *  `options[name].chipVariant`); default `muted`. */
     _chipVariant: string = 'muted';
     _chipSplitValue: string = '';
-    _tagsResolved: { label: string, background: string, border: string, color: string, chipVariant: string }[] = [];
+    /** Size compatto. True quando il config dichiara
+     *  `options[name].small: true` (flag legacy retro-compat). */
+    _chipSmall: boolean = false;
+    _tagsResolved: { label: string, background: string, border: string, color: string, chipVariant: string, small: boolean }[] = [];
     _tooltip: string = '';
     _tooltipDelay: number = 300;
     _tooltipPlacement: any = 'top';
@@ -152,6 +155,7 @@ export class ItemTypeComponent implements OnInit {
                     // dal template (vedi `.lnk-pill*` SCSS globale).
                     this._chipVariant = _optionElem?.chipVariant || this.config.options[_optionsName].chipVariant || 'muted';
                     this._chipSplitValue = _optionElem?.splitValue || '';
+                    this._chipSmall = !!this.config.options[_optionsName].small;
                 }
             }
         }
@@ -175,6 +179,7 @@ export class ItemTypeComponent implements OnInit {
                 if (!this.config.options[_optionsName]) {
                     return;
                 }
+                this._chipSmall = !!this.config.options[_optionsName].small;
                 let _optionValue = this.config.options[_optionsName].values[_origValue];
                 if (!_optionValue) {
                     _optionValue = this.config.options[_optionsName].values['default'];
@@ -188,6 +193,7 @@ export class ItemTypeComponent implements OnInit {
                 this._border = (_optionValue) ? _optionValue.border : '#1f1f1f';
                 this._color = (_optionValue) ? _optionValue.color : '#fff';
                 this._class += this.config.options[_optionsName].small ? ' gl-badge-sm' : ' gl-badge';
+                this._chipVariant = _optionValue?.chipVariant || this.config.options[_optionsName].chipVariant || 'muted';
             }
         }
         if (this.elem.type === 'labelI18n') {
@@ -242,6 +248,7 @@ export class ItemTypeComponent implements OnInit {
                 const _optionsName = this.elem.options;
                 const _optionsConfig = this.config.options[_optionsName];
                 if (_optionsConfig) {
+                    const small = !!_optionsConfig.small;
                     this._tagsResolved = this._value.map((tag: string) => {
                         const opt = _optionsConfig.values[tag] || _optionsConfig.values['default'];
                         return {
@@ -249,7 +256,8 @@ export class ItemTypeComponent implements OnInit {
                             background: opt ? opt.background : '#e9ecef',
                             border: opt ? opt.border : '#dee2e6',
                             color: opt ? opt.color : '#000000',
-                            chipVariant: opt?.chipVariant || _optionsConfig.chipVariant || 'muted'
+                            chipVariant: opt?.chipVariant || _optionsConfig.chipVariant || 'muted',
+                            small
                         };
                     });
                 }

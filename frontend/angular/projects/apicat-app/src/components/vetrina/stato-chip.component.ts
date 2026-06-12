@@ -39,7 +39,8 @@ import { getStatoVariant, LnkStatoVariant } from './stato-variants.const';
   imports: [CommonModule, TranslateModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <span class="lnk-stato-chip" [class]="'is-' + variant()">
+    <span class="lnk-stato-chip"
+          [ngClass]="['is-' + variant(), size === 'sm' ? 'is-sm' : '']">
       @if (i18nPrefix) {
         {{ (i18nPrefix + '.' + _stato()) | translate }}
       } @else {
@@ -75,6 +76,8 @@ import { getStatoVariant, LnkStatoVariant } from './stato-variants.const';
     .lnk-stato-chip.is-prod        { background: var(--ok-soft);   color: var(--ok-ink);   border-color: var(--ok-border); }
     .lnk-stato-chip.is-archived    { background: var(--surface-3); color: var(--ink-2);    border-color: var(--line); }
     .lnk-stato-chip.is-error       { background: var(--accent-soft); color: var(--accent-ink); border-color: var(--accent-border); }
+    /* Size compatto (es. dashboard, liste fitte): padding/font ridotti. */
+    .lnk-stato-chip.is-sm { padding: 1px 8px; font-size: 11px; font-weight: 600; line-height: 1.3; }
   `],
 })
 export class StatoChipComponent {
@@ -84,6 +87,9 @@ export class StatoChipComponent {
 
   /** Prefisso i18n opzionale (es. `APP.ADESIONI.STATO`). */
   @Input() i18nPrefix: string | null = null;
+
+  /** Size compatto (`'sm'`) per liste fitte / dashboard. Default `''`. */
+  @Input() size: '' | 'sm' = '';
 
   /** Esposto per il template — non override-abile. */
   _stato = this._statoSig;

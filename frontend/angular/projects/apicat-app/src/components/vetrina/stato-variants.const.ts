@@ -44,8 +44,13 @@ export type LnkStatoVariant =
 
 export const STATO_VARIANT_MAP: Record<string, LnkStatoVariant> = {
   bozza: 'draft',
+
+  // `nuovo`: client appena creato e non ancora configurato.
+  // Stato neutro/inattivo → `draft` (grigio).
+  // `nuova`: notifica non letta — semanticamente "da gestire"
+  // → `in-progress` (blu) per evidenziarla.
   nuovo: 'draft',
-  nuova: 'draft',
+  nuova: 'in-progress',
 
   richiesto_collaudo: 'pending',
   richiesto_produzione: 'pending',
@@ -56,9 +61,15 @@ export const STATO_VARIANT_MAP: Record<string, LnkStatoVariant> = {
   autorizzato_produzione_senza_collaudo: 'pending',
   processing: 'pending',
   pending: 'pending',
-  pending_update: 'pending',
   non_configurato: 'pending',
   'non configurato': 'pending',
+
+  // `pending_update`: in attesa di approvazione da parte di un
+  // terzo (es. utente che ha richiesto cambio organizzazione,
+  // gestore che deve approvare). Semanticamente "in-progress"
+  // (azione in attesa esterna), distinto da `non_configurato`
+  // (azione richiesta a se stessi).
+  pending_update: 'in-progress',
 
   in_configurazione_collaudo: 'in-progress',
   in_configurazione_automatica_collaudo: 'in-progress',

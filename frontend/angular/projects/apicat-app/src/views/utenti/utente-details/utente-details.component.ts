@@ -37,7 +37,6 @@ import { AuthenticationService } from '@app/services/authentication.service';
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
 import * as _ from 'lodash';
-import { HasPermissionDirective } from '@app/directives/has-permission/has-permission.directive';
 import { TrimOnBlurDirective } from '@app/directives/trim-on-blur/trim-on-blur.directive';
 
 @Component({
@@ -49,7 +48,6 @@ import { TrimOnBlurDirective } from '@app/directives/trim-on-blur/trim-on-blur.d
     CommonModule,
     ...COMPONENTS_IMPORTS,
     ...APP_COMPONENTS_IMPORTS,
-    HasPermissionDirective,
     TrimOnBlurDirective,
     MarkdownModule
   ]

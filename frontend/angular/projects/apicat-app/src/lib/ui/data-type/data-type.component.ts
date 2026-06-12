@@ -80,6 +80,8 @@ export class DataTypeComponent implements OnInit {
    *  `options[name].chipVariant`); default `muted`. */
   _chipVariant: string = 'muted';
   _chipSplitValue: string = '';
+  /** Size compatto, attivato da `options[name].small: true`. */
+  _chipSmall: boolean = false;
 
   constructor(
     private readonly sanitized: DomSanitizer,
@@ -134,6 +136,7 @@ export class DataTypeComponent implements OnInit {
           this._class = options.small ? 'status-label-sm' : '';
           this._chipVariant = options.values[_origValue]?.chipVariant || options.chipVariant || 'muted';
           this._chipSplitValue = options.values[_origValue]?.splitValue || '';
+          this._chipSmall = !!options.small;
         }
       }
     }
@@ -158,6 +161,8 @@ export class DataTypeComponent implements OnInit {
           this._showBadged = (this._elem.badged !== undefined) ? this._elem.badged : true;
           this._class = 'gl-badge badge badge-pill';
           this._class += this._config.options[_optionsName].small ? ' pt-0 pb-0' : '';
+          this._chipVariant = this._config.options[_optionsName].values[_origValue]?.chipVariant || this._config.options[_optionsName].chipVariant || 'muted';
+          this._chipSmall = !!this._config.options[_optionsName].small;
         }
       }
     }

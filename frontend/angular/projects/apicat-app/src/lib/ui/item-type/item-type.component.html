@@ -59,9 +59,9 @@
            es. `APP.LABEL.Status`), parte destra = `_value`
            (chiave i18n del valore, es. `APP.WORKFLOW.STATUS.bozza`).
            Variante palette da `chipVariant` nel config (default
-           `muted`). -->
+           `muted`). `lnk-pill-sm` se `options.small`. -->
       <span class="lnk-pill is-split"
-            [ngClass]="['lnk-pill-' + _chipVariant, elem.class || '']"
+            [ngClass]="['lnk-pill-' + _chipVariant, _chipSmall ? 'lnk-pill-sm' : '', elem.class || '']"
             [tooltip]="_tooltip || ''" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">
         <span class="lnk-pill-label">{{_label | translate}}</span>
         <span class="lnk-pill-value">{{_value | translate}}</span>
@@ -83,9 +83,11 @@
     @if (_useStatoChip) {
       <lnk-stato-chip [stato]="_origStato" [i18nPrefix]="_statoI18nPrefix"></lnk-stato-chip>
     } @else if (_showBadged) {
-      <span class="{{_class}}" [style.background-color]="_background" [style.color]="_color" [tooltip]="_tooltip || ''" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">{{_value | translate}}</span>
+      <span class="lnk-pill"
+            [ngClass]="['lnk-pill-' + _chipVariant, _chipSmall ? 'lnk-pill-sm' : '', elem.class || '']"
+            [tooltip]="_tooltip || ''" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">{{_value | translate}}</span>
     } @else {
-      <span class="">{{_value | translate}}</span>
+      <span>{{_value | translate}}</span>
     }
   }
   @case ('cardinal') {
@@ -140,7 +142,7 @@
     <div class="{{ _class }} d-inline-flex flex-wrap gap-1">
       @if (_tagsResolved.length > 0) {
         @for (tag of _tagsResolved; track tag.label) {
-          <span class="lnk-pill" [ngClass]="'lnk-pill-' + tag.chipVariant">{{ tag.label }}</span>
+          <span class="lnk-pill" [ngClass]="['lnk-pill-' + tag.chipVariant, tag.small ? 'lnk-pill-sm' : '']">{{ tag.label }}</span>
         }
       } @else {
         @for (tag of _value; track tag) {

@@ -481,7 +481,11 @@
 				"ConfigInProgress": "Configurazione da perfezionare",
 				"Configured": "Configurato",
 				"New": "Nuovo",
-				"NotConfigured": "Non configurato"
+				"NotConfigured": "Non configurato",
+				"nuovo": "Non configurato",
+				"non_configurato": "Non configurato",
+				"Non configurato": "Non configurato",
+				"configurato": "Configurato"
 			},
 			"TITLE": {
 				"RequestingUser": "Utente Richiedente"

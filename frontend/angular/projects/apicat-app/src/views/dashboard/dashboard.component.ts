@@ -37,6 +37,7 @@ import { ServiziSearchFormComponent } from './search-forms/servizi-search-form/s
 import { AdesioniSearchFormComponent } from './search-forms/adesioni-search-form/adesioni-search-form.component';
 import { UtentiSearchFormComponent } from './search-forms/utenti-search-form/utenti-search-form.component';
 import { ComunicazioniSearchFormComponent } from './search-forms/comunicazioni-search-form/comunicazioni-search-form.component';
+import { StatoChipComponent } from '@app/components/vetrina/stato-chip.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -52,7 +53,8 @@ import { ComunicazioniSearchFormComponent } from './search-forms/comunicazioni-s
     ServiziSearchFormComponent,
     AdesioniSearchFormComponent,
     UtentiSearchFormComponent,
-    ComunicazioniSearchFormComponent
+    ComunicazioniSearchFormComponent,
+    StatoChipComponent
   ]
 })
 export class DashboardComponent implements OnInit {
