@@ -1,3 +1,23 @@
+2026-06-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Tag/label palette unificata (approccio centralizzato):
+	  `ui-data-type` e `ui-item-type` ora delegano a
+	  `<lnk-stato-chip>` per `type=tag|label|status` con
+	  `options="status"` (palette FE-side AA-passing,
+	  ignora i colori inline dei JSON). Per `label`/`tags`
+	  non-status nuove classi globali `.lnk-pill*`
+	  (info/warn/ok/accent/brand/muted + `.is-split` per
+	  pill compositi `[label | value]`), con variante
+	  selezionabile via campo opzionale `chipVariant` nei
+	  JSON di config. Chip e pill non vanno mai a capo
+	  (`white-space: nowrap`, `word-break: keep-all`,
+	  `flex-shrink: 0`). Aggiunti stati mancanti alla
+	  `STATO_VARIANT_MAP` (nuovo/nuova, pending/
+	  pending_update, non_configurato, active/abilitato/
+	  configurato, archiviata/disabilitato/letta,
+	  config_in_progress, autorizzata_collaudo).
+
 2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

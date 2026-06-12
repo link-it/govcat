@@ -55,6 +55,10 @@ import { getStatoVariant, LnkStatoVariant } from './stato-variants.const';
       padding: 3px 10px; border-radius: 999px;
       font-size: 12px; font-weight: 600;
       border: 1px solid;
+      white-space: nowrap;
+      word-break: keep-all;
+      overflow-wrap: normal;
+      flex-shrink: 0;
       /* A11Y P4: base era --ink-3 su --surface-3 (4.42:1, fail
          AA). Spostato a --ink-2 (#2e445a, 7.92:1) per chip
          "stato sconosciuto" - testo informativo, AA garantita. */

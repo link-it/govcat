@@ -108,6 +108,35 @@ describe('DataTypeComponent', () => {
         expect(component._value).toEqual('2020-01-01');
     });
 
+    it('should delegate to lnk-stato-chip for tag + options=status', () => {
+        component._elem.type = 'tag';
+        component._elem.options = 'status';
+        component._data = { test: 'pubblicato_collaudo' };
+        component._elem.field = 'test';
+        component._config.options = {
+            status: {
+                values: {
+                    pubblicato_collaudo: { label: 'APP.WORKFLOW.STATUS.pubblicato_collaudo' }
+                }
+            }
+        };
+        component.ngOnInit();
+        expect(component._useStatoChip).toBe(true);
+        expect(component._origStato).toEqual('pubblicato_collaudo');
+        expect(component._statoI18nPrefix).toEqual('APP.WORKFLOW.STATUS');
+    });
+
+    it('should respect _elem.i18nPrefix override for stato-chip', () => {
+        component._elem.type = 'tag';
+        component._elem.options = 'status';
+        component._elem.i18nPrefix = 'APP.CUSTOM.STATUS';
+        component._data = { test: 'bozza' };
+        component._elem.field = 'test';
+        component._config.options = { status: { values: { bozza: { label: '...' } } } };
+        component.ngOnInit();
+        expect(component._statoI18nPrefix).toEqual('APP.CUSTOM.STATUS');
+    });
+
     it('should format text', () => {
         component._elem.type = 'text';
         component._elem.truncate = 10;

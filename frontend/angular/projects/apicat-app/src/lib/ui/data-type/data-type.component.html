@@ -51,16 +51,25 @@
     <span [tooltip]="(_elem.tooltip || '') | translate" container="body" [delay]="500" class="{{ _elem.class || '' }}">{{ _value || '-' }}</span>
   }
   @case ('label') {
-    <span class="status-label {{_class}} status-label-scoped status-ml-2-" style="--label-background-color: {{_background}}; --label-inset-border: inset 0 0 0 1px {{_border}};" [style.color]="_color"> <span class="status-link status-label-link"> <span class="status-label-text">{{_label | translate}}</span> <span class="status-label-text-scoped">{{_value | translate}}</span></span></span>
+    @if (_useStatoChip) {
+      <lnk-stato-chip [stato]="_origStato" [i18nPrefix]="_statoI18nPrefix"></lnk-stato-chip>
+    } @else {
+      <!-- Split-pill `[_label | _value]` (legacy behavior). -->
+      <span class="lnk-pill is-split" [ngClass]="['lnk-pill-' + _chipVariant, _elem.class || '']">
+        <span class="lnk-pill-label">{{_label | translate}}</span>
+        <span class="lnk-pill-value">{{_value | translate}}</span>
+      </span>
+    }
   }
   @case ('status') {
     <span class="status-label {{_class}} status-label-scoped status-ml-2-" style="--label-background-color: {{_background}}; --label-inset-border: inset 0 0 0 1px {{_border}};" [style.color]="_color"> <span class="status-link status-label-link"> <span class="status-label-text">{{_label | translate}}</span> <span class="status-label-text-scoped">{{_value | translate}}</span></span></span>
   }
   @case ('tag') {
-    @if (_showBadged) {
+    @if (_useStatoChip) {
+      <lnk-stato-chip [stato]="_origStato" [i18nPrefix]="_statoI18nPrefix"></lnk-stato-chip>
+    } @else if (_showBadged) {
       <span class="{{_class}}" [style.background-color]="_background" [style.color]="_color">{{_value | translate}}</span>
-    }
-    @if (!_showBadged) {
+    } @else {
       <span class="">{{_value | translate}}</span>
     }
   }

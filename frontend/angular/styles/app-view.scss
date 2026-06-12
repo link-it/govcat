@@ -92,6 +92,45 @@ small, .small {
     font-size: 0.875em;
 }
 
+/* `<lnk-pill>` allineato al design system Link.it: stessa
+   palette dei `.chip-*` dentro `.lnk-vetrina`, ma classi
+   globali utilizzabili in qualsiasi template (`ui-item-type`,
+   `ui-data-type` config-driven, badge inline, ...). */
+.lnk-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px; border-radius: 999px;
+  font-size: 12px; font-weight: 550;
+  background: var(--surface-3); color: var(--ink-2);
+  border: 1px solid var(--line);
+  line-height: 1.4;
+  white-space: nowrap;
+  word-break: keep-all;
+  overflow-wrap: normal;
+  flex-shrink: 0;
+}
+.lnk-pill > * { white-space: nowrap; }
+.lnk-pill-info   { background: var(--info-soft);   color: var(--info-ink);   border-color: var(--info-border); }
+.lnk-pill-warn   { background: var(--warn-soft);   color: var(--warn-ink);   border-color: var(--warn-border); }
+.lnk-pill-ok     { background: var(--ok-soft);     color: var(--ok-ink);     border-color: var(--ok-border); }
+.lnk-pill-accent { background: var(--accent-soft); color: var(--accent-ink); border-color: var(--accent-border); }
+.lnk-pill-brand  { background: var(--brand-soft);  color: var(--brand-ink);  border-color: var(--brand-border); }
+.lnk-pill-muted  { background: var(--surface-3);   color: var(--ink-2);      border-color: var(--line); }
+/* split-pill "label | value" (es. mock `[PDND | v.1]`):
+   bordo sul wrapper, due `<span>` interni separati da divisore. */
+.lnk-pill.is-split { padding: 0; gap: 0; overflow: hidden; }
+.lnk-pill.is-split .lnk-pill-label,
+.lnk-pill.is-split .lnk-pill-value {
+  display: inline-flex; align-items: center; padding: 3px 10px;
+}
+.lnk-pill.is-split .lnk-pill-value {
+  background: var(--surface); color: var(--ink-2);
+  border-left: 1px solid currentColor;
+}
+.lnk-pill.is-split.lnk-pill-info  .lnk-pill-value { border-left-color: var(--info-border); }
+.lnk-pill.is-split.lnk-pill-warn  .lnk-pill-value { border-left-color: var(--warn-border); }
+.lnk-pill.is-split.lnk-pill-ok    .lnk-pill-value { border-left-color: var(--ok-border); }
+.lnk-pill.is-split.lnk-pill-muted .lnk-pill-value { border-left-color: var(--line); }
+
 /* Popover overflow tag per `<lnk-api-row>` "+n".
  * Renderizzato in `body` (container="body"), quindi fuori dallo
  * scope `.lnk-vetrina`: stili globali. */
