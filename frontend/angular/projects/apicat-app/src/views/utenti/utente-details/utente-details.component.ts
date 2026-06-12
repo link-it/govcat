@@ -38,6 +38,9 @@ import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
 import * as _ from 'lodash';
 import { TrimOnBlurDirective } from '@app/directives/trim-on-blur/trim-on-blur.directive';
+import { UtenteOrganizzazioneDialogComponent, UtenteOrganizzazioneDialogMode } from '@app/views/organizzazioni/organizzazione-details/organizzazione-utenti-list/utente-organizzazione-dialog.component';
+import { RuoloOrganizzazioneEnum } from '@app/model/ruoloOrganizzazioneEnum';
+import { StatoChipComponent } from '@app/components/vetrina';
 
 @Component({
   selector: 'app-utente-details',
@@ -49,7 +52,8 @@ import { TrimOnBlurDirective } from '@app/directives/trim-on-blur/trim-on-blur.d
     ...COMPONENTS_IMPORTS,
     ...APP_COMPONENTS_IMPORTS,
     TrimOnBlurDirective,
-    MarkdownModule
+    MarkdownModule,
+    StatoChipComponent
   ]
 })
 export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentChecked {
@@ -186,6 +190,80 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
    *  Usato per gating UI di hint/help text riservati al gestore. */
   get _isGestore(): boolean {
     return this.authenticationService.isGestore();
+  }
+
+  /** Righe della tabella "Organizzazioni" dell'utente.
+   *  Combina:
+   *   - `utente.organizzazioni`: associazioni approvate (con ruolo);
+   *   - `utente.organizzazione_pending`: richiesta non ancora
+   *     approvata (mostrata in coda con flag `_pending: true` e
+   *     senza ruolo — l'approvazione avviene dalla card sopra,
+   *     non da questa tabella).
+   *  Dedup per `id_organizzazione`: se la pending coincide con
+   *  un'org gia` associata (caso limite), non la duplichiamo. */
+  get _orgRows(): any[] {
+    const approved = this.utente?.organizzazioni || [];
+    const pending = this.utente?.organizzazione_pending;
+    if (!pending?.id_organizzazione) { return approved; }
+    const already = approved.some((uo: any) =>
+      String(uo?.organizzazione?.id_organizzazione) === String(pending.id_organizzazione)
+    );
+    if (already) { return approved; }
+    return [
+      ...approved,
+      { organizzazione: pending, ruolo_organizzazione: null, _pending: true }
+    ];
+  }
+
+  /** True se la riga della tabella "Organizzazioni" e` editabile:
+   *  siamo nel contesto AMM_ORG (`_fromOrgManage`) E la riga
+   *  riguarda l'organizzazione che stiamo gestendo (l'AMM_ORG puo`
+   *  cambiare il ruolo solo nella propria org). Combinato con
+   *  `_isEdit` nel template per nascondere la matita in view. */
+  _canEditOrgRuolo(uo: any): boolean {
+    const rowOrgId = uo?.organizzazione?.id_organizzazione;
+    if (rowOrgId == null) { return false; }
+    // Determina l'org gestita: prefer state interno gia` popolato
+    // dal subscribe (`_fromOrgManageIdOrg`), con fallback diretto
+    // sullo snapshot della rotta (`route.snapshot.params['id']`)
+    // per coprire eventuali race condition con il subscribe a
+    // `route.data`/`route.params`.
+    const fromState = this._fromOrgManage ? this._fromOrgManageIdOrg : '';
+    const fromRoute = this.route.snapshot?.data?.['fromOrgManage']
+      ? this.route.snapshot?.params?.['id']
+      : '';
+    const managedOrgId = fromState || fromRoute;
+    if (!managedOrgId) { return false; }
+    return String(rowOrgId) === String(managedOrgId);
+  }
+
+  /** Apre la dialog di cambio ruolo (riusata da
+   *  `organizzazione-manage.openEdit`) per la riga
+   *  dell'organizzazione corrente. Al successo invoca
+   *  `PUT /organizzazioni/<orgId>/utenti/<utenteId>` con il
+   *  nuovo `ruolo_organizzazione`, poi ricarica l'utente per
+   *  aggiornare la tabella. */
+  openEditOrgRuolo(uo: any): void {
+    if (!this._canEditOrgRuolo(uo) || !this.id) { return; }
+    const idOrg = this._fromOrgManageIdOrg;
+    const ref = this.modalService.show(UtenteOrganizzazioneDialogComponent, {
+      ignoreBackdropClick: true,
+      initialState: {
+        mode: 'edit' as UtenteOrganizzazioneDialogMode,
+        title: 'APP.UTENTI_ORG.TITLE.Edit',
+        utente: { ...uo, id_utente: this.id, nome: this.utente?.nome, cognome: this.utente?.cognome },
+        ruolo: (uo?.ruolo_organizzazione ?? null) as RuoloOrganizzazioneEnum | null,
+        presetIdOrganizzazione: idOrg,
+        presetNomeOrganizzazione: uo?.organizzazione?.nome ?? null
+      }
+    });
+    ref.content?.onClose.subscribe((payload: { id_utente: string; ruolo_organizzazione: RuoloOrganizzazioneEnum | null } | null) => {
+      if (!payload) { return; }
+      this.apiService.putElementRelated('organizzazioni', idOrg, `utenti/${this.id}`, { ruolo_organizzazione: payload.ruolo_organizzazione }).subscribe({
+        next: () => this._loadAll(),
+        error: (err: any) => Tools.OnError(err)
+      });
+    });
   }
 
   /** True quando il BE ha popolato `organizzazione_partenza` o, in

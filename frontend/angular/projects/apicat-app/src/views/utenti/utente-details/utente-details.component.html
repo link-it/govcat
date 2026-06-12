@@ -494,7 +494,7 @@
                       <ui-data-type
                         class="ms-auto"
                         [data]="utente"
-                        [elem]="{ field: 'stato', type: 'tag', options: 'status' }"
+                        [elem]="{ field: 'stato', type: 'tag', options: 'status', i18nPrefix: 'APP.USERS.STATUS' }"
                         [config]="config">
                       </ui-data-type>
                     </div>
@@ -547,7 +547,7 @@
                 </div>
               </div>
             }
-            @if (!_isNew && utente?.organizzazioni?.length) {
+            @if (!_isNew && _orgRows.length) {
               <div class="row organizzazioni-utente">
                 <div class="col-12">
                   <div class="form-group mb-4">
@@ -557,22 +557,38 @@
                         <tr>
                           <th class="ps-2 label-semibold">{{ 'APP.SOGGETTI.LABEL.OrganizationName' | translate }}</th>
                           <th class="label-semibold">{{ 'APP.UTENTI_ORG.LABEL.Role' | translate }}</th>
+                          <th class="text-end pe-2" style="width: 1%;"></th>
                         </tr>
                       </thead>
                       <tbody>
-                        @for (uo of utente.organizzazioni; track uo?.organizzazione?.id_organizzazione) {
-                          <tr>
+                        @for (uo of _orgRows; track uo?.organizzazione?.id_organizzazione) {
+                          <tr [class.text-muted]="uo._pending">
                             <td class="ps-2">
                               <i class="bi bi-buildings me-2 text-muted"></i>{{ uo?.organizzazione?.nome || '--' }}
                             </td>
                             <td>
-                              <span class="badge text-bg-light border">
-                                @switch (uo?.ruolo_organizzazione) {
-                                  @case ('amministratore_organizzazione') { {{ 'APP.RUOLI.AmministratoreOrganizzazione' | translate }} }
-                                  @case ('operatore_api') { {{ 'APP.RUOLI.OperatoreApi' | translate }} }
-                                  @default { {{ 'APP.ORGANIZATION_SWITCHER.NoRole' | translate }} }
-                                }
-                              </span>
+                              @if (uo._pending) {
+                                <lnk-stato-chip [stato]="'pending_update'" [i18nPrefix]="'APP.USERS.STATUS'" [size]="'sm'"></lnk-stato-chip>
+                              } @else {
+                                <span class="badge text-bg-light border">
+                                  @switch (uo?.ruolo_organizzazione) {
+                                    @case ('amministratore_organizzazione') { {{ 'APP.RUOLI.AmministratoreOrganizzazione' | translate }} }
+                                    @case ('operatore_api') { {{ 'APP.RUOLI.OperatoreApi' | translate }} }
+                                    @default { {{ 'APP.ORGANIZATION_SWITCHER.NoRole' | translate }} }
+                                  }
+                                </span>
+                              }
+                            </td>
+                            <td class="text-end pe-2">
+                              @if (_isEdit && !uo._pending && _canEditOrgRuolo(uo)) {
+                                <button type="button"
+                                        class="btn btn-default btn-md gl-button btn-icon"
+                                        [tooltip]="'APP.UTENTI_ORG.BUTTON.ChangeRole' | translate"
+                                        [attr.aria-label]="'APP.UTENTI_ORG.BUTTON.ChangeRole' | translate"
+                                        (click)="openEditOrgRuolo(uo)">
+                                  <i class="bi bi-pencil"></i>
+                                </button>
+                              }
                             </td>
                           </tr>
                         }
@@ -617,7 +633,7 @@
                       @if (utente) {
                         <ui-data-type
                           [data]="utente"
-                          [elem]="{ field: 'stato', type: 'tag', options: 'status' }"
+                          [elem]="{ field: 'stato', type: 'tag', options: 'status', i18nPrefix: 'APP.USERS.STATUS' }"
                           [config]="config">
                         </ui-data-type>
                       }
@@ -716,7 +732,6 @@
                 <lnk-button
                   [label]="'APP.BUTTON.Cancel'"
                   [ariaLabel]="'APP.BUTTON.Cancel'"
-                  [tertiary]="true"
                   (onAction)="_onCancelEdit()"
                 ></lnk-button>
               </div>

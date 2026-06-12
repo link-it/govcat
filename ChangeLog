@@ -1,6 +1,23 @@
 2026-06-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Utente-details (org-manage): ripristinato cambio ruolo
+	  organizzazione per AMM_ORG. Tabella organizzazioni con
+	  matita gated da `_isEdit + _canEditOrgRuolo(uo)` (solo
+	  riga dell'org gestita); click apre la dialog
+	  `UtenteOrganizzazioneDialogComponent` e PUT
+	  `/organizzazioni/<orgId>/utenti/<utenteId>`. Aggiunta
+	  riga `organizzazione_pending` (badge "In attesa di
+	  approvazione" via `<lnk-stato-chip>`, senza matita —
+	  approvazione resta nella card sopra). `<ui-data-type>`
+	  per lo stato in read-only ora con
+	  `i18nPrefix: 'APP.USERS.STATUS'` (fix traduzione
+	  `disabilitato` ecc.). Nuova i18n key
+	  `APP.UTENTI_ORG.BUTTON.ChangeRole`.
+
+2026-06-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Palette armonizzazione (organizzazione-manage):
 	  `chipVariant` su `utenti-organizzazione-config.ruoloOrganizzazione`
 	  (admin → brand, operatore_api → ok, no_role → muted) e

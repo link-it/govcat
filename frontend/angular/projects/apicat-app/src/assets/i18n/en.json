@@ -43,7 +43,8 @@
 				"Add": "Add",
 				"Remove": "Remove",
 				"NewUser": "New user",
-				"BackToSearch": "Back to search"
+				"BackToSearch": "Back to search",
+				"ChangeRole": "Change role"
 			},
 			"MESSAGE": {
 				"RemoveConfirm": "Do you want to remove {{nome}} from this organization?",

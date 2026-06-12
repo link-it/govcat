@@ -43,7 +43,8 @@
 				"Add": "Aggiungi",
 				"Remove": "Rimuovi",
 				"NewUser": "Nuovo utente",
-				"BackToSearch": "Torna alla ricerca"
+				"BackToSearch": "Torna alla ricerca",
+				"ChangeRole": "Modifica ruolo"
 			},
 			"MESSAGE": {
 				"RemoveConfirm": "Vuoi rimuovere l'associazione di {{nome}} con questa organizzazione?",
