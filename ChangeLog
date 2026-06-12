@@ -1,6 +1,14 @@
 2026-06-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Palette armonizzazione (organizzazione-manage):
+	  `chipVariant` su `utenti-organizzazione-config.ruoloOrganizzazione`
+	  (admin → brand, operatore_api → ok, no_role → muted) e
+	  su `utenti-config.referenteTecnico` (warn).
+
+2026-06-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Hero image: nuova opzione `heroImageObjectPosition`
 	  (servizi/adesioni-config) -> Input `[objectPosition]`
 	  su `<lnk-hero-image>` (default `center`). Controlla
