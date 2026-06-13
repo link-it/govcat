@@ -115,6 +115,11 @@ export class AdesioneFasiBarComponent implements OnChanges {
      *  L'item resta visibile con stile `.is-disabled`. */
     @Input() disabledCodes: string[] = [];
 
+    /** Offset del numero di fase mostrato ("FASE {n}"). Default `1`
+     *  (comportamento storico: prima fase = "FASE 1"). La form di
+     *  creazione passa `0` per numerare da "FASE 0 Creazione". */
+    @Input() numberOffset: number = 1;
+
     @Output() stepClick = new EventEmitter<string>();
 
     items: FasiBarItem[] = [];
@@ -188,9 +193,10 @@ export class AdesioneFasiBarComponent implements OnChanges {
                 state = 'final';
             }
 
-            // Numero della fase: "1", "2", "3" (no zero-padding —
-            // feedback utente rev. 4.12).
-            const numberLabel = String(index + 1);
+            // Numero della fase: di default "1", "2", "3" (no
+            // zero-padding — feedback utente rev. 4.12). `numberOffset`
+            // permette di partire da 0 (form creazione: "FASE 0").
+            const numberLabel = String(index + this.numberOffset);
             // Disabilita esplicita via `disabledCodes` (es. fase
             // "produzione" finche` il servizio non e` pubblicato).
             const isDisabled = this.disabledCodes.includes(step.code);

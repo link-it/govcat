@@ -58,6 +58,13 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
     isSottotipoGroupCompleted: vi.fn().mockReturnValue(true),
     isSottotipoCompleted: vi.fn().mockReturnValue(true),
   } as any;
+  const mockNavigationService = {
+    navigateWithEvent: vi.fn(),
+    shouldOpenInNewTab: vi.fn().mockReturnValue(false),
+    openInNewTab: vi.fn(),
+    extractEvent: vi.fn(),
+    extractData: vi.fn(),
+  } as any;
 
   let savedConfigurazione: any;
 
@@ -68,7 +75,7 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
     component = new AdesioneConfigurazioneWizardComponent(
       mockRoute, mockRouter, mockTranslate, mockModalService,
       mockConfigService, mockEventsManager, mockApiService,
-      mockAuthService, mockUtils, mockCkeckProvider
+      mockAuthService, mockUtils, mockCkeckProvider, mockNavigationService
     );
   });
 
@@ -126,7 +133,7 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
     const comp = new AdesioneConfigurazioneWizardComponent(
       routeWithData, mockRouter, mockTranslate, mockModalService,
       mockConfigService, mockEventsManager, mockApiService,
-      mockAuthService, mockUtils, mockCkeckProvider
+      mockAuthService, mockUtils, mockCkeckProvider, mockNavigationService
     );
     expect(comp.serviceBreadcrumbs).toEqual(breadcrumbsData.serviceBreadcrumbs);
   });

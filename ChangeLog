@@ -1,3 +1,13 @@
+2026-06-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Nuova form di creazione adesione "FASE 0" wizard-like
+	  (componente dedicato AdesioneCreateComponent, rotta
+	  new/edit): header, barra fasi statica a 4 step, card
+	  Servizio/Contatti, chip riepilogo servizio (dominio/stato/
+	  visibilita`), form disabilitato + spinner sul pulsante
+	  durante il salvataggio. Logica di creazione invariata.
+
 2026-06-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

@@ -134,6 +134,26 @@
 				"CurrentStateBadge": "Attuale",
 				"PreviewBadge": "Anteprima"
 			},
+			"STEP_WIZARD_CREATE": {
+				"creazione": "Creazione",
+				"info_referenti": "Informazioni Generali e Referenti",
+				"collaudo": "Collaudo",
+				"produzione": "Produzione"
+			},
+			"CREATE": {
+				"Subtitle": "Compila le informazioni di base per creare l'adesione. Al salvataggio la Fase 1 risulta completa — potrai comunque modificarla — e si abilita la configurazione tecnica delle fasi successive.",
+				"SectionServiceTag": "Servizio",
+				"SectionServiceTitle": "Informazioni generali",
+				"SectionServiceDesc": "Indica il servizio del catalogo a cui aderire e l'organizzazione titolare dell'adesione.",
+				"SectionContactsTag": "Contatti",
+				"SectionContactsTitle": "Ruoli e contatti",
+				"SectionContactsDesc": "Chi è responsabile dell'adesione e chi ne cura l'integrazione tecnica.",
+				"OrganizationHint": "L'ente che risulterà titolare dell'adesione.",
+				"SelfReferenteHint": "Indica il responsabile organizzativo di questa adesione (es. responsabile CED, referente aziendale). Riceverà le comunicazioni istituzionali relative al servizio.",
+				"RefTecnicoHint": "Indica chi gestirà l'integrazione tecnica e supporterà nella compilazione (es. fornitore software, system integrator). Può coincidere con il referente.",
+				"MandatoryHint": "I campi con * sono obbligatori",
+				"Submit": "Crea adesione"
+			},
 			"STEP_WIZARD_SEZIONE": {
 				"in_compilazione": "In Compilazione",
 				"in_approvazione": "In Approvazione",

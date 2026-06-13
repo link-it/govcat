@@ -17,7 +17,13 @@
 
 .gstepper {
   display: grid;
+  // 3 colonne nel wizard; 4 colonne con la FASE 0 della form di creazione
+  // (classe `.cols-4` aggiunta dal template quando le fasi sono 4).
   grid-template-columns: repeat(3, 1fr);
+
+  &.cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
   gap: 6px;
   padding: 6px;
   background: var(--surface-2, #fafcfd);
@@ -169,7 +175,8 @@
 }
 
 @media (max-width: 900px) {
-  .gstepper {
+  .gstepper,
+  .gstepper.cols-4 {
     grid-template-columns: 1fr;
   }
 }

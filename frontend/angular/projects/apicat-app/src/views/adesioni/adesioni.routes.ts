@@ -20,6 +20,7 @@ import { Routes } from '@angular/router';
 
 import { AdesioniComponent } from './adesioni.component';
 import { AdesioneDetailsComponent } from './adesione-details/adesione-details.component';
+import { AdesioneCreateComponent } from './adesione-create/adesione-create.component';
 import { AdesioneViewComponent } from './adesione-view/adesione-view.component';
 import { AdesioneConfigurazioneWizardComponent } from './adesione-configurazione-wizard/adesione-configurazione-wizard.component';
 
@@ -30,6 +31,14 @@ export const ADESIONI_ROUTES: Routes = [
       {
         path: '',
         component: AdesioniComponent
+      },
+      // Nuovo layout creazione adesione (FASE 0 wizard-like).
+      // DEVE precedere `:id/edit` perche` Angular valuta le rotte in
+      // ordine: `new/edit` matcha sia questa che `:id/edit` (id='new').
+      {
+        path: 'new/edit',
+        data: { breadcrumb: 'Nuova adesione' },
+        component: AdesioneCreateComponent
       },
       {
         path: ':id/edit',

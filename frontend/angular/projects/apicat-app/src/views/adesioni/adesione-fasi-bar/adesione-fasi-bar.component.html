@@ -22,7 +22,7 @@
    - `.viewing-mark` (barra colorata sotto) quando viewing
 -->
 @if (items.length > 0) {
-  <div class="gstepper" role="tablist">
+  <div class="gstepper" role="tablist" [class.cols-4]="items.length === 4">
     @for (item of items; track item.code) {
       @let viewing = isViewing(item);
       <button type="button"

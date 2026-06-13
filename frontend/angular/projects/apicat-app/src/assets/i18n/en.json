@@ -134,6 +134,26 @@
 				"CurrentStateBadge": "Current",
 				"PreviewBadge": "Preview"
 			},
+			"STEP_WIZARD_CREATE": {
+				"creazione": "Creation",
+				"info_referenti": "General Information & Referents",
+				"collaudo": "Testing",
+				"produzione": "Production"
+			},
+			"CREATE": {
+				"Subtitle": "Fill in the basic information to create the subscription. On save, Phase 1 is complete — you can still edit it — and the technical configuration of the following phases is enabled.",
+				"SectionServiceTag": "Service",
+				"SectionServiceTitle": "General information",
+				"SectionServiceDesc": "Indicate the catalog service to subscribe to and the organization that will own the subscription.",
+				"SectionContactsTag": "Contacts",
+				"SectionContactsTitle": "Roles and contacts",
+				"SectionContactsDesc": "Who is responsible for the subscription and who handles the technical integration.",
+				"OrganizationHint": "The entity that will own the subscription.",
+				"SelfReferenteHint": "Indicate the organizational owner of this subscription (e.g. IT manager, company contact). They will receive the institutional communications about the service.",
+				"RefTecnicoHint": "Indicate who will handle the technical integration and support the drafting (e.g. software vendor, system integrator). May coincide with the referent.",
+				"MandatoryHint": "Fields marked with * are required",
+				"Submit": "Create subscription"
+			},
 			"STEP_WIZARD_SEZIONE": {
 				"in_compilazione": "Drafting",
 				"in_approvazione": "Awaiting approval",
