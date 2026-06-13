@@ -59,6 +59,15 @@ describe('AdesioneDetailsComponent', () => {
   } as any;
   const mockLocation = { back: vi.fn() } as any;
 
+  // Tools espone metodi statici (singleton): salviamo gli originali e li
+  // ripristiniamo in afterEach per non inquinare gli altri spec file
+  // (es. tools.service.spec testa la vera WorkflowErrorMsg).
+  const _origTools = {
+    OnError: Tools.OnError,
+    showMessage: Tools.showMessage,
+    WorkflowErrorMsg: Tools.WorkflowErrorMsg,
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
     Tools.OnError = vi.fn();
@@ -75,6 +84,9 @@ describe('AdesioneDetailsComponent', () => {
 
   afterEach(() => {
     Tools.Configurazione = null;
+    Tools.OnError = _origTools.OnError;
+    Tools.showMessage = _origTools.showMessage;
+    Tools.WorkflowErrorMsg = _origTools.WorkflowErrorMsg;
   });
 
   // ─── Creation and defaults ───
@@ -987,19 +999,22 @@ describe('AdesioneDetailsComponent', () => {
     it('should init organizzazioni select when scelta_libera_organizzazione is true', () => {
       component._scelta_libera_organizzazione = true;
       mockAuthService.getCurrentSession.mockReturnValue({ utente: { ruolo: 'referente_servizio' } });
-      mockAuthService.getCurrentOrganization.mockReturnValue({ id_organizzazione: 'org-1' });
+      mockAuthService.getCurrentOrganization.mockReturnValue({ id_organizzazione: 'org-1', nome: 'Org1' });
+      vi.spyOn(component, '_checkSoggetto' as any).mockImplementation(() => {});
       const spy = vi.spyOn(component, '_initOrganizzazioniSelect' as any);
       component._loadProfilo();
-      expect(spy).toHaveBeenCalledWith([]);
+      // Con un'org di contesto la lista viene seedata con quell'item.
+      expect(spy).toHaveBeenCalledWith([{ id_organizzazione: 'org-1', nome: 'Org1' }]);
     });
 
     it('should init organizzazioni select for gestore role', () => {
       component._scelta_libera_organizzazione = false;
       mockAuthService.getCurrentSession.mockReturnValue({ utente: { ruolo: 'gestore' } });
-      mockAuthService.getCurrentOrganization.mockReturnValue({ id_organizzazione: 'org-1' });
+      mockAuthService.getCurrentOrganization.mockReturnValue({ id_organizzazione: 'org-1', nome: 'Org1' });
+      vi.spyOn(component, '_checkSoggetto' as any).mockImplementation(() => {});
       const spy = vi.spyOn(component, '_initOrganizzazioniSelect' as any);
       component._loadProfilo();
-      expect(spy).toHaveBeenCalledWith([]);
+      expect(spy).toHaveBeenCalledWith([{ id_organizzazione: 'org-1', nome: 'Org1' }]);
     });
 
     it('should auto-select organizzazione from session when ruolo is not gestore and current org exists', () => {

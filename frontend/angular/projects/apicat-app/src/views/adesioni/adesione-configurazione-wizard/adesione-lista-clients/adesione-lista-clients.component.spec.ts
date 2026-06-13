@@ -860,6 +860,7 @@ describe('AdesioneListaClientsComponent', () => {
           id_client: 'c1',
           nome: 'Client 1',
           nome_proposto: null,
+          stato: StatoConfigurazioneEnum.CONFIGURATO,
           dati_specifici: { auth_type: 'https' }
         }]
       };
@@ -906,8 +907,9 @@ describe('AdesioneListaClientsComponent', () => {
       component.initData();
 
       expect(component.adesioneClients[0].source.stato).toBe(StatoConfigurazioneEnum.NONCONFIGURATO);
-      // Since not CONFIGURATO, id_client should be nulled
-      expect(component.adesioneClients[0].id_client).toBeNull();
+      // id_client viene preservato dalla risposta (l'azzeramento per i
+      // non-configurati e` stato rimosso dal componente).
+      expect(component.adesioneClients[0].id_client).toBe('c1');
     });
 
     it('should handle API error gracefully', () => {
@@ -1348,6 +1350,7 @@ describe('AdesioneListaClientsComponent', () => {
 
     it('should enable tipo_certificato_firma for sign auth type', () => {
       component._auth_type = 'sign';
+      component.isEdit = true; // i campi sono modificabili solo in edit (_isModifiable)
       component.adesione = { soggetto: { organizzazione: { id_organizzazione: 'org1' } } };
       component.environment = AmbienteEnum.Collaudo;
       component.grant = { ruoli: ['referente'], collaudo: RightsEnum.Scrittura, produzione: RightsEnum.Lettura, identificativo: RightsEnum.Lettura, generico: RightsEnum.Lettura, specifica: RightsEnum.Lettura, referenti: RightsEnum.Lettura };

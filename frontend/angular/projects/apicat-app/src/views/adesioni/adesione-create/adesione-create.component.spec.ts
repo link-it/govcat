@@ -49,6 +49,10 @@ describe('AdesioneCreateComponent', () => {
     mockApiService, mockUtils, mockAuthService, mockLocation
   );
 
+  // Tools e` un singleton: salviamo gli static mutati e ripristiniamo in
+  // afterEach per non inquinare altri spec file (es. tools.service.spec).
+  const _origTools = { OnError: Tools.OnError, showMessage: Tools.showMessage };
+
   beforeEach(() => {
     vi.clearAllMocks();
     Tools.OnError = vi.fn();
@@ -59,6 +63,8 @@ describe('AdesioneCreateComponent', () => {
 
   afterEach(() => {
     Tools.Configurazione = null;
+    Tools.OnError = _origTools.OnError;
+    Tools.showMessage = _origTools.showMessage;
   });
 
   it('should be created', () => {

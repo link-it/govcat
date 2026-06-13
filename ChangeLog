@@ -1,6 +1,14 @@
 2026-06-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Test: allineati 14 spec pre-esistenti rotti al codice corrente
+	  (registrazione, adesione-details _loadProfilo, adesione-lista-clients,
+	  item-type) e isolato il leak di static Tools tra spec file
+	  (save/restore). Suite `ng test` verde (8447/8447).
+
+2026-06-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Nuova form di creazione adesione "FASE 0" wizard-like
 	  (componente dedicato AdesioneCreateComponent, rotta
 	  new/edit): header, barra fasi statica a 4 step, card
