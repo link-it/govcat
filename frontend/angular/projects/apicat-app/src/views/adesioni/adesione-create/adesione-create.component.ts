@@ -137,16 +137,16 @@ export class AdesioneCreateComponent implements OnInit {
   _isWeb: boolean = false;
 
   /**
-   * FASE 0 wizard-like: barra fasi statica a 4 step mostrata in cima
-   * alla form di creazione. La fase "creazione" e` `current` (rossa),
-   * le altre 3 sono `pending` (lucchetto, non cliccabili) perche` il
-   * workflow vero parte solo dopo il salvataggio. `currentState` e
-   * `selectedCode` puntano entrambi a 'creazione'. `numberOffset=0`
-   * sulla fasi-bar -> numerazione "FASE 0..3" come da mock.
+   * Barra fasi statica a 3 step mostrata in cima alla form di creazione.
+   * La creazione coincide con la FASE 1 ("Informazioni Generali e
+   * Referenti"): durante la compilazione e` `current` (rossa), le altre 2
+   * (Collaudo, Produzione) sono `pending` (lucchetto, non cliccabili)
+   * perche` il workflow vero parte solo dopo il salvataggio. A salvataggio
+   * riuscito la FASE 1 risulta completata nel wizard di destinazione.
+   * `numberOffset=1` (default) -> numerazione "FASE 1..3".
    */
   readonly _fasiBarSteps: StepWizardItem[] = [
-    { code: 'creazione', descrizione: 'Creazione', stati_adesione: ['creazione'] },
-    { code: 'info_referenti', descrizione: 'Informazioni Generali e Referenti', stati_adesione: [] },
+    { code: 'info_referenti', descrizione: 'Informazioni Generali e Referenti', stati_adesione: ['creazione'] },
     { code: 'collaudo', descrizione: 'Collaudo', stati_adesione: [] },
     { code: 'produzione', descrizione: 'Produzione', stati_adesione: [] }
   ];

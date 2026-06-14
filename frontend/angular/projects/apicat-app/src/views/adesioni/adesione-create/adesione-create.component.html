@@ -46,17 +46,15 @@
       </button>
     </div>
 
-    <!-- Barra fasi statica/placeholder: FASE 0 Creazione (attiva), 1/2/3
-        lucchettate come `pending` (lucchetto semplice, nessun messaggio
-        tipo "produzione bloccata"). 4 colonne per via della FASE 0.
-        Visualizzazione opzionale via `_showFasiBar` (app-config). -->
+    <!-- Barra fasi statica/placeholder: FASE 1 (Info & referenti, attiva =
+        la creazione), FASE 2/3 (Collaudo/Produzione) lucchettate come
+        `pending` (lucchetto semplice, nessun messaggio "produzione
+        bloccata"). Visualizzazione opzionale via `_showFasiBar` (app-config). -->
     @if (_showFasiBar) {
       <app-adesione-fasi-bar
         [steps]="_fasiBarSteps"
         [currentState]="_fasiCurrent"
-        [selectedCode]="_fasiCurrent"
-        [i18nPrefix]="'APP.ADESIONI.STEP_WIZARD_CREATE'"
-        [numberOffset]="0">
+        [i18nPrefix]="'APP.ADESIONI.STEP_WIZARD_CREATE'">
       </app-adesione-fasi-bar>
     }
 

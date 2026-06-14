@@ -1,6 +1,14 @@
 2026-06-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Form creazione adesione: barra fasi senza piu` la "FASE 0".
+	  La creazione coincide con la FASE 1 (Info & referenti, attiva);
+	  barra a 3 step numerati da 1 (Fase 1/2/3), Collaudo e Produzione
+	  lucchettate.
+
+2026-06-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Form creazione adesione: barra fasi (FASE 0) resa opzionale via
 	  app-config (`AppConfig.Adesioni.showCreateFasiBar`, default true).
 
