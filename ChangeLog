@@ -1,3 +1,9 @@
+2026-06-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Form creazione adesione: barra fasi (FASE 0) resa opzionale via
+	  app-config (`AppConfig.Adesioni.showCreateFasiBar`, default true).
+
 2026-06-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

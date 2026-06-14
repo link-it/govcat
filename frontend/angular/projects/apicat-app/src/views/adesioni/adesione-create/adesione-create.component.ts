@@ -152,6 +152,11 @@ export class AdesioneCreateComponent implements OnInit {
   ];
   readonly _fasiCurrent = 'creazione';
 
+  /** Visualizzazione opzionale della barra fasi in cima alla form di
+   *  creazione. Pilotata da app-config (`AppConfig.Adesioni.showCreateFasiBar`);
+   *  default `true` (barra visibile) se la chiave non e` presente. */
+  _showFasiBar: boolean = true;
+
   _hideSoggettoDropdown: boolean = true;
   _elencoSoggetti: any[] = [];
 
@@ -186,6 +191,9 @@ export class AdesioneCreateComponent implements OnInit {
     public authenticationService: AuthenticationService,
     private readonly location: Location
   ) {
+    const _appConfig = this.configService.getConfiguration();
+    this._showFasiBar = _appConfig?.AppConfig?.Adesioni?.showCreateFasiBar ?? true;
+
     this.route.data.subscribe((data) => {
       if (!data.serviceBreadcrumbs) return;
       this._serviceBreadcrumbs = data.serviceBreadcrumbs;
