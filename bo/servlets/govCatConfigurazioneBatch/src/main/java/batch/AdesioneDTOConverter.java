@@ -109,11 +109,16 @@ public class AdesioneDTOConverter {
 	}
 
 	void setSoggetti() {
-		dto.setSoggettoErogatore(new DTOSoggetto(this.soggettoDTOFactory.getNomeGateway(adesione.getServizio().getDominio().getSoggettoReferente()), this.soggettoDTOFactory.getTipoGateway(adesione.getServizio().getDominio().getSoggettoReferente())));
 		dto.setSoggettoAderente(new DTOSoggetto(this.soggettoDTOFactory.getNomeGateway(adesione.getSoggetto()), this.soggettoDTOFactory.getTipoGateway(adesione.getSoggetto())));
-		
-		if(adesione.getServizio().getSoggettoInterno()!=null) {
-			dto.setSoggettoFruitore(new DTOSoggetto(this.soggettoDTOFactory.getNomeGateway(adesione.getServizio().getSoggettoInterno()), this.soggettoDTOFactory.getTipoGateway(adesione.getServizio().getSoggettoInterno())));
+
+		if(adesione.getServizio().isFruizione()) {
+			// Fruizione: erogatore GovWay = ente erogatore (provider) indicato sul servizio;
+			// fruitore GovWay = soggetto interno = referente del dominio.
+			dto.setSoggettoErogatore(new DTOSoggetto(this.soggettoDTOFactory.getNomeGateway(adesione.getServizio().getSoggettoErogatore()), this.soggettoDTOFactory.getTipoGateway(adesione.getServizio().getSoggettoErogatore())));
+			dto.setSoggettoFruitore(new DTOSoggetto(this.soggettoDTOFactory.getNomeGateway(adesione.getServizio().getDominio().getSoggettoReferente()), this.soggettoDTOFactory.getTipoGateway(adesione.getServizio().getDominio().getSoggettoReferente())));
+		} else {
+			// Erogazione: erogatore = referente del dominio; nessun fruitore.
+			dto.setSoggettoErogatore(new DTOSoggetto(this.soggettoDTOFactory.getNomeGateway(adesione.getServizio().getDominio().getSoggettoReferente()), this.soggettoDTOFactory.getTipoGateway(adesione.getServizio().getDominio().getSoggettoReferente())));
 		}
 	}
 

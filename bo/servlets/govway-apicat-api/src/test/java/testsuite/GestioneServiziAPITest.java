@@ -207,7 +207,7 @@ public class GestioneServiziAPITest {
         CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
         
         OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
-        organizzazione.setEsterna(false);
+        organizzazione.setIntermediata(false);
 
         response = organizzazioniController.createOrganizzazione(organizzazione);
         this.setIdOrganizazione(response.getBody().getIdOrganizzazione());
@@ -344,7 +344,7 @@ public class GestioneServiziAPITest {
     		 servizioCreate.setVisibilita(value);
     	 }
     	 
-         servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+         servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
 
          servizioCreate.setIdDominio(dominio.getIdDominio());
 
@@ -412,7 +412,7 @@ public class GestioneServiziAPITest {
     	IdentificativoServizioUpdate identificativo = new IdentificativoServizioUpdate();
     	identificativo.setNome("nuovo nome");
     	identificativo.setVersione("2");
-    	identificativo.setIdSoggettoInterno(idSoggetto);
+    	identificativo.setIdSoggettoErogatore(idSoggetto);
     	identificativo.setIdDominio(dominio.getIdDominio());
     	identificativo.setAdesioneDisabilitata(false);
     	identificativo.setMultiAdesione(true);
@@ -443,7 +443,7 @@ public class GestioneServiziAPITest {
     	IdentificativoServizioUpdate identificativo = new IdentificativoServizioUpdate();
     	identificativo.setNome("nuovo nome");
     	identificativo.setVersione("2");
-    	identificativo.setIdSoggettoInterno(idSoggetto);
+    	identificativo.setIdSoggettoErogatore(idSoggetto);
     	identificativo.setIdDominio(dominio.getIdDominio());
     	identificativo.setAdesioneDisabilitata(false);
     	identificativo.setMultiAdesione(true);
@@ -474,7 +474,7 @@ public class GestioneServiziAPITest {
     	IdentificativoServizioUpdate identificativo = new IdentificativoServizioUpdate();
     	identificativo.setNome("nuovo nome");
     	identificativo.setVersione("2");
-    	identificativo.setIdSoggettoInterno(idSoggetto);
+    	identificativo.setIdSoggettoErogatore(idSoggetto);
     	identificativo.setIdDominio(dominio.getIdDominio());
     	identificativo.setAdesioneDisabilitata(false);
     	identificativo.setMultiAdesione(true);
@@ -505,7 +505,7 @@ public class GestioneServiziAPITest {
     	IdentificativoServizioUpdate identificativo = new IdentificativoServizioUpdate();
     	identificativo.setNome("nuovo nome");
     	identificativo.setVersione("2");
-    	identificativo.setIdSoggettoInterno(idSoggetto);
+    	identificativo.setIdSoggettoErogatore(idSoggetto);
     	identificativo.setIdDominio(dominio.getIdDominio());
     	identificativo.setAdesioneDisabilitata(false);
     	identificativo.setMultiAdesione(true);
@@ -536,7 +536,7 @@ public class GestioneServiziAPITest {
     	IdentificativoServizioUpdate identificativo = new IdentificativoServizioUpdate();
     	identificativo.setNome("nuovo nome");
     	identificativo.setVersione("2");
-    	identificativo.setIdSoggettoInterno(idSoggetto);
+    	identificativo.setIdSoggettoErogatore(idSoggetto);
     	identificativo.setIdDominio(dominio.getIdDominio());
     	identificativo.setAdesioneDisabilitata(false);
     	identificativo.setMultiAdesione(true);

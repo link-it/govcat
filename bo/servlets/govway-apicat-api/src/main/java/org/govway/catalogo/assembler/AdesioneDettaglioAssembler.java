@@ -390,8 +390,8 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 			throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
 		}
 
-		if(entity.getServizio().isFruizione() && !entity.getSoggetto().getId().equals(entity.getServizio().getSoggettoInterno().getId())) {
-			throw new BadRequestException(ErrorCode.ADE_409_STATE_SUBJECT_MISMATCH, java.util.Map.of("servizio", servizioK, "soggetto", entity.getSoggetto().getNome(), "soggettoInterno", entity.getServizio().getSoggettoInterno().getNome()));
+		if(entity.getServizio().isFruizione() && !entity.getSoggetto().getId().equals(entity.getServizio().getDominio().getSoggettoReferente().getId())) {
+			throw new BadRequestException(ErrorCode.ADE_409_STATE_SUBJECT_MISMATCH, java.util.Map.of("servizio", servizioK, "soggetto", entity.getSoggetto().getNome(), "soggettoInterno", entity.getServizio().getDominio().getSoggettoReferente().getNome()));
 		}
 
 		if(!entity.getSoggetto().isAderente()) {

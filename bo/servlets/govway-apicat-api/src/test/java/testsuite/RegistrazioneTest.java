@@ -485,7 +485,7 @@ public class RegistrazioneTest {
         org.setCodiceFiscaleSoggetto("CF" + (System.nanoTime() % 10000000));
         org.setReferente(true);
         org.setAderente(false);
-        org.setEsterna(false);
+        org.setIntermediata(false);
         this.organizzazioneService.save(org);
         return UUID.fromString(org.getIdOrganizzazione());
     }

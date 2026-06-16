@@ -246,7 +246,7 @@ public class WorkflowAdesioniTest {
         CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
         
         OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
-        organizzazione.setEsterna(false);
+        organizzazione.setIntermediata(false);
 
         response = organizzazioniController.createOrganizzazione(organizzazione);
         this.setIdOrganizazione(response.getBody().getIdOrganizzazione());
@@ -412,7 +412,7 @@ public class WorkflowAdesioniTest {
     		 servizioCreate.setVisibilita(value);
     	 }
     	 
-         servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+         servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
 
          servizioCreate.setIdDominio(dominio.getIdDominio());
          

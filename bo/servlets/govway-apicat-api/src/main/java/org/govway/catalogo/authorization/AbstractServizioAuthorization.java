@@ -111,7 +111,7 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 		requireNotNull(entity.getDominio(), "dominio", entity, errore);
 
 		if(entity.isFruizione()) {
-			requireNotNull(entity.getSoggettoInterno(), "soggetto_interno", entity, errore);
+			requireNotNull(entity.getSoggettoErogatore(), "soggetto_erogatore", entity, errore);
 		}
 	}
 

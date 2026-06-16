@@ -1162,7 +1162,7 @@ public class ServiziController implements ServiziApi {
 	}
 
 	@Override
-	public ResponseEntity<PagedModelItemServizio> listServizi(String referente, UUID idDominio, UUID idGruppo, VisibilitaServizioEnum visibilita, UUID idApi,
+	public ResponseEntity<PagedModelItemServizio> listServizi(String referente, UUID idDominio, UUID idOrganizzazioneErogatore, UUID idGruppo, VisibilitaServizioEnum visibilita, UUID idApi,
 			List<String> stato, List<String> categoria, List<String> tag, List<String> profilo, Boolean inAttesa, Boolean mieiServizi, List<RuoloReferenteEnum> ruoloReferente, Boolean dashboard, Boolean adesioneConsentita, String nome, String versione, List<UUID> idServizi, Boolean _package, TipoServizio tipo, String q, Integer page, Integer size, List<String> sort) {
 		try {
 			this.logger.info("Invocazione in corso ...");
@@ -1182,6 +1182,7 @@ public class ServiziController implements ServiziApi {
 				ServizioSpecification specification = new ServizioSpecification();
 				specification.setStatiAderibili(this.configurazione.getServizio().getStatiAdesioneConsentita());
 				specification.setDominio(Optional.ofNullable(idDominio));
+				specification.setIdOrganizzazioneErogatore(Optional.ofNullable(idOrganizzazioneErogatore));
 				specification.setIdApi(Optional.ofNullable(idApi));
 				specification.setIdServizi(idServizi);
 				specification.set_package(Optional.ofNullable(_package));

@@ -52,7 +52,7 @@ public class OrganizzazioneSpecification implements Specification<Organizzazione
 	private Optional<String> tipo = Optional.empty();
 	private Optional<Boolean> referente = Optional.empty();
 	private Optional<Boolean> aderente = Optional.empty();
-	private Optional<Boolean> esterna = Optional.empty();
+	private Optional<Boolean> intermediata = Optional.empty();
 	private Optional<Boolean> soggettoAderente = Optional.empty();
 	private Optional<UtenteEntity> utente = Optional.empty();
 
@@ -156,8 +156,8 @@ public class OrganizzazioneSpecification implements Specification<Organizzazione
 			predLst.add(cb.equal(root.get(OrganizzazioneEntity_.aderente), aderente.get())); 
 		}
 		
-		if (esterna.isPresent()) {
-			predLst.add(cb.equal(root.get(OrganizzazioneEntity_.esterna), esterna.get())); 
+		if (intermediata.isPresent()) {
+			predLst.add(cb.equal(root.get(OrganizzazioneEntity_.intermediata), intermediata.get()));
 		}
 		
 		if (soggettoAderente.isPresent()) {
@@ -202,12 +202,12 @@ public class OrganizzazioneSpecification implements Specification<Organizzazione
 		this.nome = nome;
 	}
 
-	public Optional<Boolean> getEsterna() {
-		return esterna;
+	public Optional<Boolean> getIntermediata() {
+		return intermediata;
 	}
 
-	public void setEsterna(Optional<Boolean> esterna) {
-		this.esterna = esterna;
+	public void setIntermediata(Optional<Boolean> intermediata) {
+		this.intermediata = intermediata;
 	}
 
 	public Optional<UtenteEntity> getUtente() {

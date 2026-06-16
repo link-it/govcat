@@ -202,7 +202,7 @@ public class APITest {
     public Dominio getDominio() {
 
     	OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
-    	organizzazione.setEsterna(false);
+    	organizzazione.setIntermediata(false);
 
     	response = organizzazioniController.createOrganizzazione(organizzazione);
     	this.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
@@ -234,7 +234,7 @@ public class APITest {
     public Servizio getServizio() {
     	Dominio dominio = this.getDominio();
     	ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
-    	servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+    	servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
 
     	servizioCreate.setIdDominio(dominio.getIdDominio());
     	if (immagine.getContent() != null) {

@@ -226,7 +226,7 @@ public class DominiController implements DominiApi {
 		}
 	}
 
-	public ResponseEntity<PagedModelItemDominio> listDomini(UUID idDominio, String nome, UUID idSoggetto, VisibilitaDominioEnum visibilita, Boolean deprecato, Boolean esterno, String q, Integer page, Integer size, List<String> sort) {
+	public ResponseEntity<PagedModelItemDominio> listDomini(UUID idDominio, String nome, UUID idSoggetto, VisibilitaDominioEnum visibilita, Boolean deprecato, String q, Integer page, Integer size, List<String> sort) {
 		try {
 			
 			return this.service.runTransaction(() -> {
@@ -239,7 +239,6 @@ public class DominiController implements DominiApi {
 
 				spec.setVisibilita(Optional.ofNullable(visibilita).map(v -> this.dettaglioAssembler.toVisibilita(v)));
 				spec.setDeprecato(Optional.ofNullable(deprecato));
-				spec.setEsterno(Optional.ofNullable(esterno));
 				spec.setIdDominio(Optional.ofNullable(idDominio));
 				spec.setIdSoggetto(Optional.ofNullable(idSoggetto));
 				spec.setNome(Optional.ofNullable(nome));
@@ -363,7 +362,7 @@ public class DominiController implements DominiApi {
 	private void checkReferenti(DominioEntity dominioEntity) {
 
 		OrganizzazioneEntity organizzazione = dominioEntity.getSoggettoReferente().getOrganizzazione();
-		if(organizzazione.isEsterna()) {
+		if(organizzazione.isIntermediata()) {
 			return;
 		}
 		
@@ -389,7 +388,7 @@ public class DominiController implements DominiApi {
 
 	private void checkReferente(ReferenteDominioEntity referenteEntity) {
 		OrganizzazioneEntity organizzazione = referenteEntity.getDominio().getSoggettoReferente().getOrganizzazione();
-		if(organizzazione.isEsterna()) {
+		if(organizzazione.isIntermediata()) {
 			return;
 		}
 

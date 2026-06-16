@@ -145,7 +145,9 @@ public class OrganizzazioniTest {
     private static final String ID_TIPO_UTENTE = "xyz";
     private static final Boolean REFERENTE = true;
     private static final Boolean ADERENTE = false;
-    private static final Boolean ESTERNA = true;
+    // Org di base operativa (referente): NON intermediata.
+    // Il vincolo impedisce intermediata insieme a referente/aderente.
+    private static final Boolean INTERMEDIATA = false;
 
     @BeforeEach
     public void setUp() {
@@ -173,7 +175,7 @@ public class OrganizzazioniTest {
         organizzazioneCreate.setIdTipoUtente(ID_TIPO_UTENTE);
         organizzazioneCreate.setReferente(REFERENTE);
         organizzazioneCreate.setAderente(ADERENTE);
-        organizzazioneCreate.setEsterna(ESTERNA);
+        organizzazioneCreate.setIntermediata(INTERMEDIATA);
 
         return controller.createOrganizzazione(organizzazioneCreate);
     }
@@ -192,9 +194,50 @@ public class OrganizzazioniTest {
         assertEquals(ID_TIPO_UTENTE, organizzazione.getIdTipoUtente());
         assertEquals(REFERENTE, organizzazione.isReferente());
         assertEquals(ADERENTE, organizzazione.isAderente());
-        assertEquals(ESTERNA, organizzazione.isEsterna());
+        assertEquals(INTERMEDIATA, organizzazione.isIntermediata());
     }
-    
+
+    @Test
+    public void testCreateOrganizzazioneIntermediataSuccess() {
+        OrganizzazioneCreate organizzazioneCreate = new OrganizzazioneCreate();
+        organizzazioneCreate.setNome(NOME_ORGANIZZAZIONE);
+        organizzazioneCreate.setDescrizione(DESCRIZIONE);
+        organizzazioneCreate.setCodiceEnte(CODICE_ENTE);
+        organizzazioneCreate.setCodiceFiscaleSoggetto(CODICE_FISCALE_SOGGETTO);
+        organizzazioneCreate.setIdTipoUtente(ID_TIPO_UTENTE);
+        organizzazioneCreate.setReferente(false);
+        organizzazioneCreate.setAderente(false);
+        organizzazioneCreate.setIntermediata(true);
+
+        ResponseEntity<Organizzazione> response = controller.createOrganizzazione(organizzazioneCreate);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Organizzazione organizzazione = response.getBody();
+        assertNotNull(organizzazione);
+        assertEquals(true, organizzazione.isIntermediata());
+        assertEquals(false, organizzazione.isReferente());
+        assertEquals(false, organizzazione.isAderente());
+    }
+
+    @Test
+    public void testCreateOrganizzazioneIntermediataConReferenteFallisce() {
+        OrganizzazioneCreate organizzazioneCreate = new OrganizzazioneCreate();
+        organizzazioneCreate.setNome(NOME_ORGANIZZAZIONE);
+        organizzazioneCreate.setDescrizione(DESCRIZIONE);
+        organizzazioneCreate.setCodiceEnte(CODICE_ENTE);
+        organizzazioneCreate.setCodiceFiscaleSoggetto(CODICE_FISCALE_SOGGETTO);
+        organizzazioneCreate.setIdTipoUtente(ID_TIPO_UTENTE);
+        organizzazioneCreate.setReferente(true);
+        organizzazioneCreate.setAderente(false);
+        organizzazioneCreate.setIntermediata(true);
+
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            controller.createOrganizzazione(organizzazioneCreate);
+        });
+
+        assertEquals("ORG.400.CONSTRAINT.VIOLATION", exception.getMessage());
+    }
+
     @Test
     public void testCreateOrganizzazioneAltroUtenteSuccess() {
     	UtenteCreate utente = CommonUtils.getUtenteCreate();
@@ -216,7 +259,7 @@ public class OrganizzazioniTest {
         assertEquals(ID_TIPO_UTENTE, organizzazione.getIdTipoUtente());
         assertEquals(REFERENTE, organizzazione.isReferente());
         assertEquals(ADERENTE, organizzazione.isAderente());
-        assertEquals(ESTERNA, organizzazione.isEsterna());
+        assertEquals(INTERMEDIATA, organizzazione.isIntermediata());
     }
 
     @Test
@@ -244,7 +287,7 @@ public class OrganizzazioniTest {
         conflicting.setIdTipoUtente(ID_TIPO_UTENTE);
         conflicting.setReferente(REFERENTE);
         conflicting.setAderente(ADERENTE);
-        conflicting.setEsterna(ESTERNA);
+        conflicting.setIntermediata(INTERMEDIATA);
 
         ConflictException exception = assertThrows(ConflictException.class, () -> {
             controller.createOrganizzazione(conflicting);
@@ -263,7 +306,7 @@ public class OrganizzazioniTest {
         organizzazioneCreate.setIdTipoUtente(ID_TIPO_UTENTE);
         organizzazioneCreate.setReferente(REFERENTE);
         organizzazioneCreate.setAderente(ADERENTE);
-        organizzazioneCreate.setEsterna(ESTERNA);
+        organizzazioneCreate.setIntermediata(INTERMEDIATA);
 
         CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
         
@@ -284,7 +327,7 @@ public class OrganizzazioniTest {
         organizzazioneCreate.setIdTipoUtente(ID_TIPO_UTENTE);
         organizzazioneCreate.setReferente(REFERENTE);
         organizzazioneCreate.setAderente(ADERENTE);
-        organizzazioneCreate.setEsterna(ESTERNA);
+        organizzazioneCreate.setIntermediata(INTERMEDIATA);
 
         this.tearDown();
         
@@ -386,7 +429,7 @@ public class OrganizzazioniTest {
         assertEquals(ID_TIPO_UTENTE, organizzazione.getIdTipoUtente());
         assertEquals(REFERENTE, organizzazione.isReferente());
         assertEquals(ADERENTE, organizzazione.isAderente());
-        assertEquals(ESTERNA, organizzazione.isEsterna());
+        assertEquals(INTERMEDIATA, organizzazione.isIntermediata());
     }
 
     @Test
@@ -405,7 +448,7 @@ public class OrganizzazioniTest {
         organizzazioneUpdate.setIdTipoUtente("NuovoTipoUtente");
         organizzazioneUpdate.setReferente(false);
         organizzazioneUpdate.setAderente(true);
-        organizzazioneUpdate.setEsterna(false);
+        organizzazioneUpdate.setIntermediata(false);
 
         ResponseEntity<Organizzazione> updateResponse = controller.updateOrganizzazione(id, organizzazioneUpdate);
         assertEquals(HttpStatus.OK, updateResponse.getStatusCode());
@@ -419,7 +462,7 @@ public class OrganizzazioniTest {
         assertEquals("NuovoTipoUtente", organizzazioneAggiornata.getIdTipoUtente());
         assertEquals(false, organizzazioneAggiornata.isReferente());
         assertEquals(true, organizzazioneAggiornata.isAderente());
-        assertEquals(false, organizzazioneAggiornata.isEsterna());
+        assertEquals(false, organizzazioneAggiornata.isIntermediata());
     }
 
     @Test
@@ -435,7 +478,7 @@ public class OrganizzazioniTest {
         second.setIdTipoUtente(ID_TIPO_UTENTE);
         second.setReferente(REFERENTE);
         second.setAderente(ADERENTE);
-        second.setEsterna(ESTERNA);
+        second.setIntermediata(INTERMEDIATA);
         ResponseEntity<Organizzazione> secondResponse = controller.createOrganizzazione(second);
         assertEquals(HttpStatus.OK, secondResponse.getStatusCode());
 
@@ -447,7 +490,7 @@ public class OrganizzazioniTest {
         update.setIdTipoUtente(ID_TIPO_UTENTE);
         update.setReferente(REFERENTE);
         update.setAderente(ADERENTE);
-        update.setEsterna(ESTERNA);
+        update.setIntermediata(INTERMEDIATA);
 
         ConflictException exception = assertThrows(ConflictException.class, () -> {
             controller.updateOrganizzazione(secondResponse.getBody().getIdOrganizzazione(), update);
@@ -470,7 +513,7 @@ public class OrganizzazioniTest {
         update.setIdTipoUtente(ID_TIPO_UTENTE);
         update.setReferente(REFERENTE);
         update.setAderente(ADERENTE);
-        update.setEsterna(ESTERNA);
+        update.setIntermediata(INTERMEDIATA);
 
         ResponseEntity<Organizzazione> updateResponse = controller.updateOrganizzazione(id, update);
 
@@ -709,7 +752,7 @@ public class OrganizzazioniTest {
     	String nome = "X";
     	
     	OrganizzazioneCreate organizzazioneA = CommonUtils.getOrganizzazioneCreate();
-    	organizzazioneA.setEsterna(false);
+    	organizzazioneA.setIntermediata(false);
 
     	ResponseEntity<Organizzazione> responseOrganizzazione = controller.createOrganizzazione(organizzazioneA);
     	responseOrganizzazione.getBody().getIdOrganizzazione();
@@ -733,7 +776,7 @@ public class OrganizzazioniTest {
         organizzazioneCreate.setIdTipoUtente(ID_TIPO_UTENTE);
         organizzazioneCreate.setReferente(REFERENTE);
         organizzazioneCreate.setAderente(ADERENTE);
-        organizzazioneCreate.setEsterna(ESTERNA);
+        organizzazioneCreate.setIntermediata(INTERMEDIATA);
     	
         ConflictException exception = assertThrows(ConflictException.class, () -> {
         	controller.createOrganizzazione(organizzazioneCreate);
@@ -753,7 +796,7 @@ public class OrganizzazioniTest {
         UUID id = organizzazione.getIdOrganizzazione();
 
         OrganizzazioneCreate organizzazioneA = CommonUtils.getOrganizzazioneCreate();
-    	organizzazioneA.setEsterna(false);
+    	organizzazioneA.setIntermediata(false);
     	ResponseEntity<Organizzazione> responseOrganizzazione = controller.createOrganizzazione(organizzazioneA);
     	responseOrganizzazione.getBody().getIdOrganizzazione();
     	assertNotNull(responseOrganizzazione.getBody().getIdOrganizzazione());
@@ -775,7 +818,7 @@ public class OrganizzazioniTest {
         organizzazioneUpdate.setIdTipoUtente("NuovoTipoUtente");
         organizzazioneUpdate.setReferente(false);
         organizzazioneUpdate.setAderente(true);
-        organizzazioneUpdate.setEsterna(false);
+        organizzazioneUpdate.setIntermediata(false);
 
         ConflictException exception = assertThrows(ConflictException.class, () -> {
         	controller.updateOrganizzazione(id, organizzazioneUpdate);

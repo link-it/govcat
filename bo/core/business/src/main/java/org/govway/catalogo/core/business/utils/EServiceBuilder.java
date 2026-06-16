@@ -557,8 +557,17 @@ public class EServiceBuilder {
 	public String getUrlInvocazione(ApiEntity api, boolean collaudo) {
 		
 		String prefix = getPrefix(api, collaudo);
-		String soggettoReferente = getNome(api.getServizio().getDominio().getSoggettoReferente()); 
-		String soggettoInterno = getNome(api.getServizio().getSoggettoInterno()); 
+		// Swap coerente col nuovo modello: per le fruizioni il "referente" della URL è il provider
+		// (ente erogatore indicato sul servizio) e il "soggetto interno" è il referente del dominio.
+		String soggettoReferente;
+		String soggettoInterno;
+		if (api.getServizio().isFruizione()) {
+			soggettoReferente = getNome(api.getServizio().getSoggettoErogatore());            // provider
+			soggettoInterno = getNome(api.getServizio().getDominio().getSoggettoReferente()); // interno
+		} else {
+			soggettoReferente = getNome(api.getServizio().getDominio().getSoggettoReferente()); // erogatore interno
+			soggettoInterno = "";                                                              // nessun soggetto interno
+		}
 		
 		String urlInvocazione = Optional.ofNullable(api.getUrlInvocazione())
 		        .or(() -> Optional.ofNullable(api.getServizio().getUrlInvocazione()))

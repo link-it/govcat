@@ -194,7 +194,7 @@ public class NotificheTest {
         CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
         
         OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
-        organizzazione.setEsterna(false);
+        organizzazione.setIntermediata(false);
 
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(organizzazione);
         idOrganizzazione = response.getBody().getIdOrganizzazione();
@@ -267,7 +267,7 @@ public class NotificheTest {
     		 servizioCreate.setVisibilita(value);
     	 }
     	 
-         servizioCreate.setIdSoggettoInterno(idSoggetto);
+         servizioCreate.setIdSoggettoErogatore(idSoggetto);
 
          servizioCreate.setIdDominio(dominio.getIdDominio());
          

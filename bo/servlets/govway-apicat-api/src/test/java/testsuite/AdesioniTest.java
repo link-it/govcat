@@ -285,7 +285,7 @@ public class AdesioniTest {
         CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
         
         OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
-        organizzazione.setEsterna(false);
+        organizzazione.setIntermediata(false);
 
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(organizzazione);
         idOrganizzazione = response.getBody().getIdOrganizzazione();
@@ -359,7 +359,7 @@ public class AdesioniTest {
     		 servizioCreate.setVisibilita(value);
     	 }
     	 
-         servizioCreate.setIdSoggettoInterno(idSoggetto);
+         servizioCreate.setIdSoggettoErogatore(idSoggetto);
 
          servizioCreate.setIdDominio(dominio.getIdDominio());
          
@@ -2739,7 +2739,7 @@ public class AdesioniTest {
         CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
         
         OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
-        organizzazione.setEsterna(false);
+        organizzazione.setIntermediata(false);
 
         response = organizzazioniController.createOrganizzazione(organizzazione);
         this.setIdOrganizazione(response.getBody().getIdOrganizzazione());
@@ -2885,7 +2885,7 @@ public class AdesioniTest {
     		 servizioCreate.setVisibilita(value);
     	 }
     	 
-         servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+         servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
 
          servizioCreate.setIdDominio(dominio.getIdDominio());
          
@@ -6301,7 +6301,7 @@ public class AdesioniTest {
     		servizioCreate.setVisibilita(value);
     	}
     	servizioCreate.setMultiAdesione(true);
-    	servizioCreate.setIdSoggettoInterno(idSoggetto);
+    	servizioCreate.setIdSoggettoErogatore(idSoggetto);
 
     	servizioCreate.setIdDominio(dominio.getIdDominio());
 

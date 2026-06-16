@@ -301,7 +301,7 @@ public class MatricePermessiMultiOrgTest {
 		simulaContestoSessione(org1, RuoloOrganizzazione.OPERATORE_API);
 
 		PagedModelItemDominio list = dominiController.listDomini(
-				null, null, null, null, null, null, null, 0, 100, null).getBody();
+				null, null, null, null, null, null, 0, 100, null).getBody();
 
 		// L'utente deve vedere solo dom-1 (della propria org1), non dom-2 di org2
 		assertFalse(list.getContent().isEmpty());
@@ -338,7 +338,7 @@ public class MatricePermessiMultiOrgTest {
 
 		// Resta il gestore (setUp di default). Nessun filtro di org applicato.
 		PagedModelItemDominio list = dominiController.listDomini(
-				null, null, null, null, null, null, null, 0, 100, null).getBody();
+				null, null, null, null, null, null, 0, 100, null).getBody();
 
 		boolean visto1 = list.getContent().stream().anyMatch(d -> "gest-dom-1".equals(d.getNome()));
 		boolean visto2 = list.getContent().stream().anyMatch(d -> "gest-dom-2".equals(d.getNome()));

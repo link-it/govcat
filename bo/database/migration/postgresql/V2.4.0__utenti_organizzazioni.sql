@@ -111,3 +111,53 @@ ALTER TABLE utenti DROP COLUMN referente_tecnico;
 ALTER TABLE registrazioni_utenti ADD COLUMN id_organizzazione_richiesta BIGINT;
 ALTER TABLE registrazioni_utenti ADD CONSTRAINT fk_registrazioni_organizzazione_richiesta
     FOREIGN KEY (id_organizzazione_richiesta) REFERENCES organizations(id);
+
+-- ===== Organizzazioni intermediate ed ente erogatore sulle fruizioni =====
+--
+-- Il concetto di "organizzazione esterna" viene sostituito da "organizzazione intermediata"
+-- (organizations.intermediata). Per i servizi di tipo fruizione, al posto del riferimento al
+-- soggetto interno (servizi.id_soggetto_interno) si introduce il riferimento all'ente erogatore
+-- (servizi.id_soggetto_erogatore).
+--
+-- Strategia retrocompatibile: si AGGIUNGONO le nuove colonne popolandole dai dati esistenti;
+-- le vecchie colonne (organizations.esterna, servizi.id_soggetto_interno) NON vengono rimosse
+-- in questo step (cleanup demandato, vedi in fondo).
+--
+-- LIMITE NOTO (migrazione parziale delle fruizioni esistenti): per le vecchie fruizioni viene
+-- valorizzato solo l'ente erogatore con il soggetto referente del dominio attuale; il dominio
+-- NON viene sostituito (richiede informazioni non disponibili in automatico).
+
+-- 1) Organizzazioni: flag intermediata (sostituisce esterna)
+ALTER TABLE organizations ADD COLUMN intermediata BOOLEAN NOT NULL DEFAULT false;
+
+-- Le organizzazioni oggi "esterne" diventano "intermediate"
+UPDATE organizations SET intermediata = esterna;
+
+-- Vincolo applicato anche RETROATTIVAMENTE: un'organizzazione intermediata non può essere
+-- né referente né aderente. Eventuali configurazioni storiche con questi flag a true erano
+-- evidentemente errate e vengono normalizzate.
+UPDATE organizations SET referente = false, aderente = false WHERE intermediata = true;
+
+-- 2) Servizi: ente erogatore (sostituisce soggetto interno)
+ALTER TABLE servizi ADD COLUMN id_soggetto_erogatore BIGINT;
+
+-- Per le fruizioni: l'ente erogatore è il soggetto referente del dominio attuale.
+-- Forma con subquery correlata: SQL standard e portabile (PostgreSQL, H2/HSQLDB, Oracle,
+-- MySQL), a differenza di "UPDATE ... FROM" che è specifico di PostgreSQL.
+UPDATE servizi
+   SET id_soggetto_erogatore = (
+       SELECT d.id_soggetto_referente
+         FROM domini d
+        WHERE d.id = servizi.id_dominio
+   )
+ WHERE fruizione = true;
+
+ALTER TABLE servizi ADD CONSTRAINT fk_servizi_soggetto_erogatore
+    FOREIGN KEY (id_soggetto_erogatore) REFERENCES soggetti(id);
+CREATE INDEX idx_servizi_soggetto_erogatore ON servizi (id_soggetto_erogatore);
+
+-- 3) CLEANUP (da eseguire in uno step successivo, quando il software 2.3.x/precedente non è
+--    più in esercizio). Lasciato commentato di proposito.
+-- ALTER TABLE organizations DROP COLUMN esterna;
+-- ALTER TABLE servizi DROP CONSTRAINT fk_servizi_soggetto_interno;
+-- ALTER TABLE servizi DROP COLUMN id_soggetto_interno;

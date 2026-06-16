@@ -95,8 +95,8 @@ public class ServizioEntity {
 
 	// si
 	@ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_soggetto_interno", referencedColumnName = "id")
-    private SoggettoEntity soggettoInterno;
+    @JoinColumn(name = "id_soggetto_erogatore", referencedColumnName = "id")
+    private SoggettoEntity soggettoErogatore;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(

@@ -45,8 +45,10 @@ import org.govway.catalogo.core.orm.entity.PackageServizioEntity_;
 import org.govway.catalogo.core.orm.entity.ReferenteAdesioneEntity_;
 import org.govway.catalogo.core.orm.entity.ReferenteDominioEntity_;
 import org.govway.catalogo.core.orm.entity.ReferenteServizioEntity_;
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity_;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity_;
+import org.govway.catalogo.core.orm.entity.SoggettoEntity_;
 import org.govway.catalogo.core.orm.entity.TagEntity_;
 import org.govway.catalogo.core.orm.entity.TipoServizio;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
@@ -68,6 +70,7 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 	private List<UUID> gruppoList = null;
 	private Optional<Long> idGruppo = Optional.empty();
 	private Optional<UUID> dominio = Optional.empty();
+	private Optional<UUID> idOrganizzazioneErogatore = Optional.empty();
 	private List<UUID> categorie = null;
 	private Optional<VISIBILITA> visibilita = Optional.empty();
 	private Optional<TipoServizio> tipo = Optional.empty();
@@ -200,7 +203,26 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 		if(dominio.isPresent()) {
 			predLst.add(cb.equal(root.get(ServizioEntity_.dominio).get(DominioEntity_.idDominio), dominio.get().toString()));
 		}
-		
+
+		if(idOrganizzazioneErogatore.isPresent()) {
+			String idOrg = idOrganizzazioneErogatore.get().toString();
+
+			// Servizi di tipo fruizione: l'erogatore è il soggetto erogatore indicato sul servizio
+			Predicate fruizioneErogatore = cb.and(
+					cb.isTrue(root.get(ServizioEntity_.fruizione)),
+					cb.equal(root.join(ServizioEntity_.soggettoErogatore, JoinType.LEFT)
+							.get(SoggettoEntity_.organizzazione).get(OrganizzazioneEntity_.idOrganizzazione), idOrg));
+
+			// Altri servizi: l'erogatore è l'organizzazione del soggetto referente del dominio
+			Predicate nonFruizioneErogatore = cb.and(
+					cb.isFalse(root.get(ServizioEntity_.fruizione)),
+					cb.equal(root.join(ServizioEntity_.dominio, JoinType.LEFT)
+							.join(DominioEntity_.soggettoReferente, JoinType.LEFT)
+							.get(SoggettoEntity_.organizzazione).get(OrganizzazioneEntity_.idOrganizzazione), idOrg));
+
+			predLst.add(cb.or(fruizioneErogatore, nonFruizioneErogatore));
+		}
+
 		if(stati != null) {
 			if(!stati.isEmpty()) {
 				ArrayList<Predicate> preds2 = new ArrayList<>();
@@ -362,6 +384,14 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 
 	public void setDominio(Optional<UUID> dominio) {
 		this.dominio = dominio;
+	}
+
+	public Optional<UUID> getIdOrganizzazioneErogatore() {
+		return idOrganizzazioneErogatore;
+	}
+
+	public void setIdOrganizzazioneErogatore(Optional<UUID> idOrganizzazioneErogatore) {
+		this.idOrganizzazioneErogatore = idOrganizzazioneErogatore;
 	}
 
 	public Optional<VISIBILITA> getVisibilita() {
