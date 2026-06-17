@@ -20,6 +20,7 @@
 package testsuite;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -562,6 +563,40 @@ public class RegistrazioneTest {
         boolean trovata = resp.getBody().getContent().stream()
             .anyMatch((ItemOrganizzazione o) -> o.getNome() != null);
         assertTrue(trovata);
+    }
+
+    @Test
+    public void testListOrganizzazioniRegistrazione_EscludeIntermediate() {
+        setupMockForUnregisteredUser(TEST_PRINCIPAL, TEST_EMAIL_JWT, TEST_NOME, TEST_COGNOME);
+
+        String nomeOperativa = "OrgOperativaReg_" + System.nanoTime();
+        String nomeIntermediata = "OrgIntermediataReg_" + System.nanoTime();
+        creaOrganizzazione(nomeOperativa);
+        creaOrganizzazioneIntermediata(nomeIntermediata);
+
+        ResponseEntity<PagedModelItemOrganizzazione> resp =
+            controller.listOrganizzazioniRegistrazione(null, null, 0, 100, null);
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        List<ItemOrganizzazione> content = resp.getBody().getContent();
+        // l'organizzazione operativa è proposta per la registrazione...
+        assertTrue(content.stream().anyMatch(o -> nomeOperativa.equals(o.getNome())));
+        // ...mentre quella intermediata è esclusa
+        assertFalse(content.stream().anyMatch(o -> nomeIntermediata.equals(o.getNome())));
+    }
+
+    private UUID creaOrganizzazioneIntermediata(String nome) {
+        OrganizzazioneEntity org = new OrganizzazioneEntity();
+        org.setIdOrganizzazione(UUID.randomUUID().toString());
+        org.setNome(nome);
+        org.setDescrizione("Organizzazione intermediata di test");
+        org.setCodiceEnte("CODE" + (System.nanoTime() % 1000000));
+        org.setCodiceFiscaleSoggetto("CF" + (System.nanoTime() % 10000000));
+        org.setReferente(false);
+        org.setAderente(false);
+        org.setIntermediata(true);
+        this.organizzazioneService.save(org);
+        return UUID.fromString(org.getIdOrganizzazione());
     }
 
     // ==================== Test completaRegistrazione con organizzazione ====================
