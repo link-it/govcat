@@ -497,6 +497,9 @@ public class RegistrazioneController implements RegistrazioneApi {
                 OrganizzazioneSpecification spec = new OrganizzazioneSpecification();
                 spec.setQ(Optional.ofNullable(q));
                 spec.setNome(Optional.ofNullable(nome));
+                // Le organizzazioni intermediate non sono operative: vanno escluse da quelle
+                // proposte per la registrazione.
+                spec.setIntermediata(Optional.of(false));
 
                 CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("nome"));
 
