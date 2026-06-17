@@ -171,6 +171,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         { field: 'stato', label: 'APP.LABEL.stato', type: 'enum', condition: 'equal', enumValues: this._statiServizioEnum },
         { field: 'visibilita', label: 'APP.LABEL.visibilita', type: 'enum', condition: 'equal', enumValues: this._tipiVisibilitaServizioEnum },
         { field: 'id_dominio', label: 'APP.LABEL.id_dominio', type: 'text', condition: 'equal', params: { resource: 'domini', field: 'nome', urlParam: '?id_dominio=' } },
+        { field: 'id_organizzazione_erogatore', label: 'APP.LABEL.OrganizzazioneErogatore', type: 'text', condition: 'equal', params: { resource: 'organizzazioni', field: 'nome', urlParam: '?id_organizzazione_erogatore=' } },
         { field: 'id_api', label: 'APP.LABEL.id_api', type: 'text', condition: 'equal', params: { resource: 'api', field: '{nome} v.{versione} ({servizio.dominio.nome})' } },
         // { field: 'id_servizio', label: 'APP.LABEL.id_servizio', type: 'text', condition: 'equal', params: { resource: 'servizi', field: 'nome' } },
         { field: 'profilo', label: 'APP.LABEL.Profilo', type: 'text', condition: 'contain', callBack: (value: any) => {
@@ -267,6 +268,10 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     dominiInput$ = new Subject<string>();
     dominiLoading: boolean = false;
     selectedDominio: any;
+
+    organizzazioniErogatore$!: Observable<any[]>;
+    organizzazioniErogatoreInput$ = new Subject<string>();
+    organizzazioniErogatoreLoading: boolean = false;
 
     _settings: any = null;
 
@@ -489,6 +494,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
                 this._initServizioApiSelect([]);
                 this._initTagsSelect([]);
                 this._initDominiSelect([]);
+                this._initOrganizzazioniErogatoreSelect([]);
             }
         );
     }
@@ -585,6 +591,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
             referente: new FormControl(''),
             ruolo_referente: new FormControl([]),
             id_dominio: new FormControl(''),
+            id_organizzazione_erogatore: new FormControl(''),
             id_gruppo: new FormControl(''),
             visibilita: new FormControl(''),
             categoria: new FormControl(''),
@@ -1218,6 +1225,26 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
                     return this.getData('domini', term).pipe(
                         catchError(() => of([])), // empty list on error
                         tap(() => this.dominiLoading = false)
+                    )
+                })
+            )
+        );
+    }
+
+    _initOrganizzazioniErogatoreSelect(defaultValue: any[] = []) {
+        this.organizzazioniErogatore$ = concat(
+            of(defaultValue),
+            this.organizzazioniErogatoreInput$.pipe(
+                filter(res => {
+                    return res !== null && res.length >= this.minLengthTerm
+                }),
+                distinctUntilChanged(),
+                debounceTime(500),
+                tap(() => this.organizzazioniErogatoreLoading = true),
+                switchMap((term: any) => {
+                    return this.getData('organizzazioni', term).pipe(
+                        catchError(() => of([])), // empty list on error
+                        tap(() => this.organizzazioniErogatoreLoading = false)
                     )
                 })
             )

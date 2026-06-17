@@ -543,8 +543,8 @@ describe('AdesioneFormComponent', () => {
     component.initForm();
     const event = {
       item: {
-        dominio: { soggetto_referente: { organizzazione: { esterna: true, id_organizzazione: 'EXT1' }, id_soggetto: 'SE1' } },
-        soggetto_interno: { organizzazione: { id_organizzazione: 'INT1', nome: 'IntOrg' }, id_soggetto: 'SI1' },
+        dominio: { soggetto_referente: { organizzazione: { intermediata: true, id_organizzazione: 'EXT1' }, id_soggetto: 'SE1' } },
+        soggetto_erogatore: { organizzazione: { id_organizzazione: 'INT1', nome: 'IntOrg' }, id_soggetto: 'SI1' },
         multi_adesione: false
       }
     };
@@ -558,7 +558,7 @@ describe('AdesioneFormComponent', () => {
     component.profilo = { utente: { ruolo: 'gestore', organizzazione: null } } as any;
     const event = {
       item: {
-        dominio: { soggetto_referente: { organizzazione: { esterna: false } } },
+        dominio: { soggetto_referente: { organizzazione: { intermediata: false } } },
         multi_adesione: false
       }
     };

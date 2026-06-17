@@ -19,12 +19,13 @@
     ]
   },
 
-
   "itemRow": {
     "primaryText": [
       { "field": "nome", "type": "text" }
     ],
-    "secondaryText": [],
+    "secondaryText": [
+      { "field": "intermediata", "type": "tag", "options": "intermediata" }
+    ],
     "metadata": {
       "text": [
         { "field": "descrizione", "type": "text", "default": "-" }
@@ -37,5 +38,16 @@
   "details": [
     { "label": "APP.LABEL.Name", "field": "nome", "type": "text" },
     { "label": "APP.ORGANIZATIONS.TITLE.Description", "field": "descrizione", "type": "text" }
-  ]
+  ],
+
+  "options": {
+    "intermediata": {
+      "label": "APP.LABEL.intermediata",
+      "small": true,
+      "values": {
+        "true": { "label": "APP.LABEL.intermediata", "chipVariant": "warn", "background": "#efc96c", "border": "#efc96c", "color": "#1f1f1f" },
+        "false": { "label": "", "chipVariant": "muted", "background": "#ffffff", "border": "#ffffff", "color": "#ffffff" }
+      }
+    }
+  }
 }

@@ -808,7 +808,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                 this.apiService.getDetails('servizi', this.sid).subscribe({
                     next: (response: any) => {
                         this.service = response;
-                        this._isDominioEsterno = this.service.dominio.soggetto_referente.organizzazione.esterna || false;
+                        this._isDominioEsterno = this.service.dominio.soggetto_referente.organizzazione.intermediata || false;
                         this._initBreadcrumb();
                         this._initRuoli();
                         this._initOtherActionMenu();

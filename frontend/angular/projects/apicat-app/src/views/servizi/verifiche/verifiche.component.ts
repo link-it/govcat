@@ -415,7 +415,7 @@ export class VerificheComponent implements OnInit, AfterContentChecked, OnChange
 
   _tipoVerificaMapper = (api: any): string => {
     if (api.ruolo === 'erogato_soggetto_dominio') {
-      if (this.service?.soggetto_interno) {
+      if (this.service?.soggetto_erogatore) {
         return 'fruizioni';
       } else {
         return 'erogazioni';

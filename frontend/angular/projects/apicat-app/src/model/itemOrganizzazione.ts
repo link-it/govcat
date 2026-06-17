@@ -36,6 +36,6 @@ export interface ItemOrganizzazione {
     descrizione?: string;
     aderente?: boolean;
     referente?: boolean;
-    esterna?: boolean;
+    intermediata?: boolean;
 }
 

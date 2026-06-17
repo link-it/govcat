@@ -1066,7 +1066,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         this.apiService.getDetails('servizi', id).subscribe((respponse: any) => {
             this.servizio = respponse;
 
-            this.isDominioEsterno = this.servizio.dominio?.soggetto_referente?.organizzazione?.esterna || false;
+            this.isDominioEsterno = this.servizio.dominio?.soggetto_referente?.organizzazione?.intermediata || false;
             this.idDominioEsterno = this.servizio.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
             this.idSoggettoDominioEsterno = this.servizio.dominio?.soggetto_referente?.id_soggetto || null;
         });

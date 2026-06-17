@@ -228,7 +228,7 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
       this.apiService.getDetails(this.model, this.id).subscribe({
         next: (response: any) => {
           this.dominio = response;
-          this._isDominioEsterno = this.dominio?.soggetto_referente?.organizzazione?.esterna || false;
+          this._isDominioEsterno = this.dominio?.soggetto_referente?.organizzazione?.intermediata || false;
           this._idDominioEsterno = this.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
           this._initBreadcrumb();
           this._spin = false;

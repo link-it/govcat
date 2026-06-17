@@ -905,7 +905,7 @@
 			"Errori": "Errors",
 			"ErrorMessages": "Error messages",
 			"Esito": "Outcome",
-			"esterna": "External",
+			"intermediata": "Intermediated",
 			"EventType": "Event Type",
 			"ExpiresIn": "Expires in",
 			"ExternalId": "External id",
@@ -998,7 +998,8 @@
 			"OrganizationID": "Organization ID",
 			"OrganizationOrigin": "Organization Origin",
 			"Organizzazione": "Organization",
-			"OrganizzazioneInterna": "Internal organization",
+			"EnteErogatore": "Providing entity",
+			"OrganizzazioneErogatore": "Providing organization",
 			"Outcome": "Outcome",
 			"package": "Package",
 			"Padre": "Father",
@@ -1093,9 +1094,9 @@
 			"SOAPFault": "SOAP Fault",
 			"soggetto": "Subject",
 			"soggetto_aderente": "Adherent subject",
-			"soggetto_interno": "Internal subject",
+			"soggetto_erogatore": "Providing subject",
 			"soggetto_nome": "Subject",
-			"SoggettoInterno": "Internal subject",
+			"SoggettoErogatore": "Providing subject",
 			"specifica": "Specify",
 			"SpecificaInterfaccia": "Specify interface",
 			"State": "State",
@@ -1355,7 +1356,7 @@
 							"DISABLED": "Membership disabled for service [{{servizio}}]",
 							"VISIBILITY": "Service [{{servizio}}] visibility does not allow direct memberships",
 							"SUBJECT": {
-								"MISMATCH": "Subject [{{soggetto}}] does not match internal subject [{{soggettoInterno}}] for fruition [{{servizio}}]"
+								"MISMATCH": "Subject [{{soggetto}}] does not match providing subject [{{soggettoInterno}}] for fruition [{{servizio}}]"
 							}
 						}
 					}
@@ -2033,7 +2034,7 @@
 				"Aderente": "Organization aderente",
 				"CodiceEnte": "Asset Code",
 				"CodiceFiscaleSoggetto": "Subject Taxcode",
-				"Esterna": "External organization",
+				"Intermediata": "Intermediated organization",
 				"IdTipoUtente": "Subject type",
 				"Referente": "Referent Organization",
 				"SoggettoDefault": "Default subject"

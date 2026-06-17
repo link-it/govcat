@@ -124,10 +124,10 @@
                   <div class="col-sm-12 col-md-6">
                     <div class="row mb-1">
                       <div class="col-sm-4">
-                        <label class="col-form-label col-form-label-fix" for="esterna">{{ 'APP.LABEL.esterna' | translate }}</label>
+                        <label class="col-form-label col-form-label-fix" for="intermediata">{{ 'APP.LABEL.intermediata' | translate }}</label>
                       </div>
                       <div class="col-sm-8">
-                        <select class="form-select form-control-sm" id="esterna" formControlName="esterna">
+                        <select class="form-select form-control-sm" id="intermediata" formControlName="intermediata">
                           <option value="">{{ 'APP.LABEL.All' | translate }}</option>
                           @for (stato of yesNoList; track stato) {
                             <option [value]="stato.value">{{ stato.label | translate }}</option>

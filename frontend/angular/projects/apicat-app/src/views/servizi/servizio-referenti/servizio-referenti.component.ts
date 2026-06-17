@@ -202,7 +202,7 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked {
           (config: any) => {
             this.referentiConfig = config;
             if (this.service) {
-              this._isDominioEsterno = this.service.dominio?.soggetto_referente?.organizzazione?.esterna || false;
+              this._isDominioEsterno = this.service.dominio?.soggetto_referente?.organizzazione?.intermediata || false;
               this._idDominioEsterno = this.service.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
               this._initBreadcrumb();
               this._updateMapper = new Date().getTime().toString();
@@ -293,7 +293,7 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked {
       tap((response: any) => {
         this.service = response;
         const org = this.service.dominio?.soggetto_referente?.organizzazione;
-        this._isDominioEsterno = org?.esterna || false;
+        this._isDominioEsterno = org?.intermediata || false;
         this._idDominioEsterno = org?.id_organizzazione || null;
         this._initBreadcrumb();
         this._updateMapper = new Date().getTime().toString();

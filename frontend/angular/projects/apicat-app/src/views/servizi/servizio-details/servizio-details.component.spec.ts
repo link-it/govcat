@@ -666,7 +666,7 @@ describe('ServizioDetailsComponent', () => {
       component.data = {
         id_servizio: '10', nome: 'Orig', versione: '1',
         dominio: { deprecato: false }, fruizione: false, package: false,
-        soggetto_interno: null
+        soggetto_erogatore: null
       };
       // Provide a formGroup with multi_adesione for _changeEdit to work
       component._formGroup = new FormGroup({ multi_adesione: new FormControl(false) });
@@ -828,28 +828,28 @@ describe('ServizioDetailsComponent', () => {
     beforeEach(() => {
       component._formGroup = new FormGroup({
         id_organizzazione_interna: new FormControl(null),
-        id_soggetto_interno: new FormControl(null)
+        id_soggetto_erogatore: new FormControl(null)
       });
     });
 
     it('should set required validators when checked', () => {
       component._onChangeFruizione({ target: { checked: true } });
-      expect(component._isDominioEsterno).toBe(true);
+      expect(component._isFruizione).toBe(true);
       // Should be invalid without value since required
       expect(component._formGroup.get('id_organizzazione_interna')?.valid).toBe(false);
-      expect(component._formGroup.get('id_soggetto_interno')?.valid).toBe(false);
+      expect(component._formGroup.get('id_soggetto_erogatore')?.valid).toBe(false);
     });
 
     it('should clear validators and values when unchecked', () => {
-      component._isDominioEsterno = true;
+      component._isFruizione = true;
       component._formGroup.get('id_organizzazione_interna')?.setValue(5);
-      component._formGroup.get('id_soggetto_interno')?.setValue(10);
+      component._formGroup.get('id_soggetto_erogatore')?.setValue(10);
 
       component._onChangeFruizione({ target: { checked: false } });
 
-      expect(component._isDominioEsterno).toBe(false);
+      expect(component._isFruizione).toBe(false);
       expect(component._formGroup.get('id_organizzazione_interna')?.value).toBeNull();
-      expect(component._formGroup.get('id_soggetto_interno')?.value).toBeNull();
+      expect(component._formGroup.get('id_soggetto_erogatore')?.value).toBeNull();
       expect(component._formGroup.get('id_organizzazione_interna')?.valid).toBe(true);
     });
   });
@@ -1331,12 +1331,12 @@ describe('ServizioDetailsComponent', () => {
       expect(mockApiService.getList).toHaveBeenCalledWith('domini', expect.objectContaining({ params: { q: 'test' } }));
     });
 
-    it('should add deprecato and esterno params for non-gestore', () => {
+    it('should add deprecato param for non-gestore', () => {
       mockApiService.getList.mockReturnValue(of({ content: [] }));
       mockAuthenticationService.isGestore.mockReturnValue(false);
       component.getDomini(null).subscribe();
       expect(mockApiService.getList).toHaveBeenCalledWith('domini', expect.objectContaining({
-        params: expect.objectContaining({ deprecato: false, esterno: false })
+        params: expect.objectContaining({ deprecato: false })
       }));
     });
   });
@@ -1357,7 +1357,7 @@ describe('ServizioDetailsComponent', () => {
 
     it('should add id_organizzazione when not esterno and has selectedDominio', () => {
       mockApiService.getList.mockReturnValue(of({ content: [] }));
-      component._isDominioEsterno = false;
+      component._isFruizione = false;
       component.selectedDominio = { soggetto_referente: { organizzazione: { id_organizzazione: 99 } } };
       component.getUtenti(null).subscribe();
       expect(mockApiService.getList).toHaveBeenCalledWith('utenti', expect.objectContaining({
@@ -1370,13 +1370,16 @@ describe('ServizioDetailsComponent', () => {
   // getOrganizzazioni
   // ---------------------------------------------------------------------------
   describe('getOrganizzazioni', () => {
-    it('should call getList with term and esterna false', () => {
+    it('should query referente and intermediata orgs (Ente Erogatore) and dedup by id', () => {
       mockApiService.getList.mockReturnValue(of({ content: [{ id_organizzazione: 1 }] }));
-      component.getOrganizzazioni('org', true).subscribe(result => {
-        expect(result).toEqual([{ id_organizzazione: 1 }]);
+      component.getOrganizzazioni('org').subscribe(result => {
+        expect(result).toEqual([{ id_organizzazione: 1 }]); // merge + dedup delle due chiamate
       });
       expect(mockApiService.getList).toHaveBeenCalledWith('organizzazioni', expect.objectContaining({
-        params: expect.objectContaining({ q: 'org', esterna: false, aderente: true })
+        params: expect.objectContaining({ q: 'org', referente: true })
+      }));
+      expect(mockApiService.getList).toHaveBeenCalledWith('organizzazioni', expect.objectContaining({
+        params: expect.objectContaining({ q: 'org', intermediata: true })
       }));
     });
   });
@@ -1441,7 +1444,7 @@ describe('ServizioDetailsComponent', () => {
   describe('onChangeSelect', () => {
     beforeEach(() => {
       component._formGroup = new FormGroup({
-        id_soggetto_interno: new FormControl(null)
+        id_soggetto_erogatore: new FormControl(null)
       });
     });
 
@@ -1464,7 +1467,7 @@ describe('ServizioDetailsComponent', () => {
   describe('_checkSoggetto', () => {
     beforeEach(() => {
       component._formGroup = new FormGroup({
-        id_soggetto_interno: new FormControl(null)
+        id_soggetto_erogatore: new FormControl(null)
       });
     });
 
@@ -1473,7 +1476,7 @@ describe('ServizioDetailsComponent', () => {
       component.selectedOrganizzazione = { id_organizzazione: 5 };
       (component as any)._checkSoggetto({ id_organizzazione: 5 });
       expect(component._hideSoggettoDropdown).toBe(true);
-      expect(component._formGroup.get('id_soggetto_interno')?.value).toBe('s1');
+      expect(component._formGroup.get('id_soggetto_erogatore')?.value).toBe('s1');
     });
 
     it('should show dropdown when multiple results', () => {
@@ -1486,7 +1489,7 @@ describe('ServizioDetailsComponent', () => {
 
     it('should clear soggetto when event is null', () => {
       (component as any)._checkSoggetto(null);
-      expect(component._formGroup.get('id_soggetto_interno')?.value).toBeNull();
+      expect(component._formGroup.get('id_soggetto_erogatore')?.value).toBeNull();
       expect(component._elencoSoggetti).toEqual([]);
       expect(component._hideSoggettoDropdown).toBe(true);
     });

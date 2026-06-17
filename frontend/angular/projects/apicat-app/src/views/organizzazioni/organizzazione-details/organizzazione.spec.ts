@@ -12,8 +12,8 @@ describe('Organizzazione', () => {
     expect(o.id_tipo_utente).toBeNull();
     expect(o.referente).toBe(false);
     expect(o.aderente).toBe(false);
-    expect(o.esterna).toBe(false);
-    expect(o.cambio_esterna_consentito).toBe(false);
+    expect(o.intermediata).toBe(false);
+    expect(o.cambio_intermediata_consentito).toBe(false);
     expect(o.vincola_aderente).toBe(false);
     expect(o.vincola_referente).toBe(false);
     expect(o.id_soggetto_default).toBeNull();
@@ -29,7 +29,7 @@ describe('Organizzazione', () => {
       codice_fiscale_soggetto: 'RSSMRA80A01H501U',
       referente: true,
       aderente: true,
-      esterna: true,
+      intermediata: true,
     });
     expect(o.id_organizzazione).toBe(1);
     expect(o.nome).toBe('Org Test');
@@ -38,7 +38,7 @@ describe('Organizzazione', () => {
     expect(o.codice_fiscale_soggetto).toBe('RSSMRA80A01H501U');
     expect(o.referente).toBe(true);
     expect(o.aderente).toBe(true);
-    expect(o.esterna).toBe(true);
+    expect(o.intermediata).toBe(true);
   });
 
   it('should assign soggetto_default', () => {
@@ -55,11 +55,11 @@ describe('Organizzazione', () => {
     const o = new Organizzazione({
       vincola_aderente: true,
       vincola_referente: true,
-      cambio_esterna_consentito: true,
+      cambio_intermediata_consentito: true,
     });
     expect(o.vincola_aderente).toBe(true);
     expect(o.vincola_referente).toBe(true);
-    expect(o.cambio_esterna_consentito).toBe(true);
+    expect(o.cambio_intermediata_consentito).toBe(true);
   });
 
   it('should ignore null and undefined values', () => {

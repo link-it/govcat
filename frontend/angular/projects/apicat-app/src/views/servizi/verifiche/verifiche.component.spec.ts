@@ -286,13 +286,13 @@ describe('VerificheComponent', () => {
     expect(component._isErogatoSoggettoDominioMapper({ ruolo: 'erogato_soggetto_aderente' })).toBe(false);
   });
 
-  it('should return erogazioni for _tipoVerificaMapper with erogato_soggetto_dominio and no soggetto_interno', () => {
+  it('should return erogazioni for _tipoVerificaMapper with erogato_soggetto_dominio and no soggetto_erogatore', () => {
     component.service = { dominio: { soggetto_referente: { nome: 'test' } } };
     expect(component._tipoVerificaMapper({ ruolo: 'erogato_soggetto_dominio' })).toBe('erogazioni');
   });
 
-  it('should return fruizioni for _tipoVerificaMapper with erogato_soggetto_dominio and soggetto_interno', () => {
-    component.service = { soggetto_interno: { nome: 'test' } };
+  it('should return fruizioni for _tipoVerificaMapper with erogato_soggetto_dominio and soggetto_erogatore', () => {
+    component.service = { soggetto_erogatore: { nome: 'test' } };
     expect(component._tipoVerificaMapper({ ruolo: 'erogato_soggetto_dominio' })).toBe('fruizioni');
   });
 

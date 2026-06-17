@@ -35,8 +35,8 @@ export class Organizzazione {
   id_tipo_utente: string | null = null;
   referente: boolean = false;
   aderente: boolean = false;
-  esterna: boolean = false;
-  cambio_esterna_consentito: boolean = false;
+  intermediata: boolean = false;
+  cambio_intermediata_consentito: boolean = false;
 
   vincola_aderente: boolean = false;
   vincola_referente: boolean = false;

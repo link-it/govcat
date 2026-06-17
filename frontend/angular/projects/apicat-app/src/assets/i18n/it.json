@@ -905,7 +905,7 @@
 			"Errori": "Errori",
 			"ErrorMessages": "Messaggi di errore",
 			"Esito": "Esito",
-			"esterna": "Esterna",
+			"intermediata": "Intermediata",
 			"EventType": "Tipo evento",
 			"ExpiresIn": "Scade tra",
 			"ExternalId": "External Id",
@@ -919,7 +919,7 @@
 			"FreeSearch": "Ricerca libera",
 			"From": "da",
 			"Fruitore": "Fruitore",
-			"fruizione": "Fruizione",
+			"fruizione": "Intermediato",
 			"FullName": "Nome e cognome",
 			"giornaliero": "Giornaliero",
 			"Giorno": "Giorno",
@@ -998,7 +998,8 @@
 			"OrganizationID": "ID Organizzazione",
 			"OrganizationOrigin": "Origine dell'organizzazione",
 			"Organizzazione": "Organizzazione",
-			"OrganizzazioneInterna": "Organizzazione interna",
+			"EnteErogatore": "Ente Erogatore",
+			"OrganizzazioneErogatore": "Soggetto / Organizzazione erogatore",
 			"Outcome": "Esito",
 			"package": "Package",
 			"Padre": "Padre",
@@ -1093,9 +1094,9 @@
 			"SOAPFault": "SOAP Fault",
 			"soggetto": "Soggetto",
 			"soggetto_aderente": "Soggetto aderente",
-			"soggetto_interno": "Soggetto interno",
+			"soggetto_erogatore": "Soggetto erogatore",
 			"soggetto_nome": "Soggetto",
-			"SoggettoInterno": "Soggetto interno",
+			"SoggettoErogatore": "Soggetto erogatore",
 			"specifica": "Specifica",
 			"SpecificaInterfaccia": "Specifica interfaccia",
 			"State": "Stato",
@@ -1355,7 +1356,7 @@
 							"DISABLED": "Adesione disabilitata per il servizio [{{servizio}}]",
 							"VISIBILITY": "Visibilità del servizio [{{servizio}}] non consente adesioni dirette",
 							"SUBJECT": {
-								"MISMATCH": "Soggetto [{{soggetto}}] non corrisponde al soggetto interno [{{soggettoInterno}}] della fruizione [{{servizio}}]"
+								"MISMATCH": "Soggetto [{{soggetto}}] non corrisponde al soggetto erogatore [{{soggettoInterno}}] della fruizione [{{servizio}}]"
 							}
 						}
 					}
@@ -2033,7 +2034,7 @@
 				"Aderente": "Organizzazione aderente",
 				"CodiceEnte": "Codice Ente",
 				"CodiceFiscaleSoggetto": "Codice Fiscale Soggetto",
-				"Esterna": "Organizzazione esterna",
+				"Intermediata": "Organizzazione intermediata",
 				"IdTipoUtente": "Tipologia soggetto",
 				"Referente": "Organizzazione referente",
 				"SoggettoDefault": "Soggetto di default"

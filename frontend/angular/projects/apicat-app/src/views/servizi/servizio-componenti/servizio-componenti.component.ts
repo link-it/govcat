@@ -178,7 +178,7 @@ export class ServizioComponentiComponent implements OnInit, AfterContentChecked,
             if (!this.service) {
               this._loadServizio();
             } else {
-              this._isDominioEsterno = this.service.dominio?.soggetto_referente?.organizzazione?.esterna || false;
+              this._isDominioEsterno = this.service.dominio?.soggetto_referente?.organizzazione?.intermediata || false;
               this._idDominioEsterno = this.service.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
               this._initBreadcrumb();
               this._updateMapper = new Date().getTime().toString();
@@ -244,7 +244,7 @@ export class ServizioComponentiComponent implements OnInit, AfterContentChecked,
           this.apiService.getDetails('servizi', this.id).subscribe({
             next: (response: any) => {
               this.service = response;
-              this._isDominioEsterno = this.service.dominio?.soggetto_referente?.organizzazione?.esterna || false;
+              this._isDominioEsterno = this.service.dominio?.soggetto_referente?.organizzazione?.intermediata || false;
               this._idDominioEsterno = this.service.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
               this._initBreadcrumb();
               this._updateMapper = new Date().getTime().toString();

@@ -927,16 +927,16 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
   }
 
   _getSoggettoId(verifica: string) {
-    return (verifica === 'erogazioni') ? this.service?.dominio?.soggetto_referente?.nome : this.service?.dominio?.soggetto_interno?.nome;
+    return (verifica === 'erogazioni') ? this.service?.dominio?.soggetto_referente?.nome : this.service?.dominio?.soggetto_erogatore?.nome;
   }
 
   _getSoggettoNome() {
-    return this.service?.soggetto_interno?.nome || this.service?.dominio?.soggetto_referente?.nome;
+    return this.service?.soggetto_erogatore?.nome || this.service?.dominio?.soggetto_referente?.nome;
   }
 
   _tipoVerifica(api: any) {
     if (api.ruolo === 'erogato_soggetto_dominio') {
-      if (this.service?.soggetto_interno) {
+      if (this.service?.soggetto_erogatore) {
         return 'fruizioni';
       } else {
         return 'erogazioni';

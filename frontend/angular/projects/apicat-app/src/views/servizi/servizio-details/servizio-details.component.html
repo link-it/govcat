@@ -516,10 +516,10 @@
                       </div>
                     </div>
                   }
-                  @if (_isDominioEsterno) {
-                    <div class="row organizzazione_interna soggetto_interno">
+                  @if (_isFruizione) {
+                    <div class="row organizzazione_interna soggetto_erogatore">
                       <div class="col-6 form-group organizazione_interna">
-                        <label class="label-bold" for="id_organizzazione_interna">{{ 'APP.LABEL.OrganizzazioneInterna' | translate }} @if (_isEdit) {
+                        <label class="label-bold" for="id_organizzazione_interna">{{ 'APP.LABEL.EnteErogatore' | translate }} @if (_isEdit) {
                           <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_organizzazione_interna'"></span>
                         }</label>
                         @if (_isEdit) {
@@ -560,37 +560,37 @@
                         }
                         @if (!_isEdit) {
                           <div class="">
-                            <input type="text" readonly class="form-control-plaintext" id="id_organizzazione_interna" [value]="data.soggetto_interno?.organizzazione?.nome|| '-'">
+                            <input type="text" readonly class="form-control-plaintext" id="id_organizzazione_interna" [value]="data.soggetto_erogatore?.organizzazione?.nome|| '-'">
                           </div>
                         }
                       </div>
-                      <div class="col-6 form-group soggetto_interno">
+                      <div class="col-6 form-group soggetto_erogatore">
                         @if (_isEdit) {
                           <div class="" [hidden]="_hideSoggettoDropdown">
-                            <label class="label-bold" for="id_soggetto_interno">{{ 'APP.LABEL.SoggettoInterno' | translate }} @if (_isEdit) {
-                              <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_soggetto_interno'"></span>
+                            <label class="label-bold" for="id_soggetto_erogatore">{{ 'APP.LABEL.SoggettoErogatore' | translate }} @if (_isEdit) {
+                              <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_soggetto_erogatore'"></span>
                             }</label>
-                            <select class="form-select" id="id_soggetto_interno" name="id_soggetto_interno" formControlName="id_soggetto_interno" [class.gl-field-error-outline]="_hasControlError('id_soggetto_interno')" (change)="onChangeSelect($event, 'soggetto')">
+                            <select class="form-select" id="id_soggetto_erogatore" name="id_soggetto_erogatore" formControlName="id_soggetto_erogatore" [class.gl-field-error-outline]="_hasControlError('id_soggetto_erogatore')" (change)="onChangeSelect($event, 'soggetto')">
                               @for (el of _elencoSoggetti; track el) {
                                 <option [value]="el.id_soggetto">
                                   {{el.nome}}
                                 </option>
                               }
                             </select>
-                            @if (f['id_soggetto_interno'].invalid && (f['id_soggetto_interno'].dirty || f['id_soggetto_interno'].touched)) {
+                            @if (f['id_soggetto_erogatore'].invalid && (f['id_soggetto_erogatore'].dirty || f['id_soggetto_erogatore'].touched)) {
                               <p class="form-text text-danger">
-                                @if (f['id_soggetto_interno'].errors && f['id_soggetto_interno'].errors['required']) {
+                                @if (f['id_soggetto_erogatore'].errors && f['id_soggetto_erogatore'].errors['required']) {
                                   <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                 }
                               </p>
                             }
-                            <ui-input-help field="id_soggetto_interno" context="SERVICE"></ui-input-help>
+                            <ui-input-help field="id_soggetto_erogatore" context="SERVICE"></ui-input-help>
                           </div>
                         }
                         @if (!_isEdit) {
                           <div class="">
-                            <label class="label-bold" for="id_soggetto_interno">{{ 'APP.LABEL.SoggettoInterno' | translate }}</label>
-                            <input type="text" readonly class="form-control-plaintext" [value]="data.soggetto_interno?.nome || '-'">
+                            <label class="label-bold" for="id_soggetto_erogatore">{{ 'APP.LABEL.SoggettoErogatore' | translate }}</label>
+                            <input type="text" readonly class="form-control-plaintext" [value]="data.soggetto_erogatore?.nome || '-'">
                           </div>
                         }
                       </div>

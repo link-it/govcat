@@ -374,7 +374,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     this.apiService.getDetails('servizi', id).subscribe((serv) => {
       this._servizio = serv;
 
-      this._isDominioEsterno = this._servizio.dominio?.soggetto_referente?.organizzazione?.esterna || false;
+      this._isDominioEsterno = this._servizio.dominio?.soggetto_referente?.organizzazione?.intermediata || false;
       this._idDominioEsterno = this._servizio.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
       this._idSoggettoDominioEsterno = this._servizio.dominio?.soggetto_referente?.id_soggetto || null;
 
@@ -1176,16 +1176,16 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
 
   async _onChangeServizio(servizio?: Servizio) {
     this._servizio = servizio;
-    this._isDominioEsterno = this._servizio?.dominio?.soggetto_referente?.organizzazione?.esterna || false;
+    this._isDominioEsterno = this._servizio?.dominio?.soggetto_referente?.organizzazione?.intermediata || false;
     this._idDominioEsterno = this._servizio?.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
     this._idSoggettoDominioEsterno = this._servizio?.dominio?.soggetto_referente?.id_soggetto || null;
 
     this.updateIdLogico(this._servizio);
     
     if (this._isDominioEsterno) {
-      const _organizzazione = this._servizio.soggetto_interno?.organizzazione;
+      const _organizzazione = this._servizio.soggetto_erogatore?.organizzazione;
       this._idDominioEsterno = _organizzazione?.id_organizzazione || null;
-      this._idSoggettoDominioEsterno = this._servizio.soggetto_interno?.id_soggetto || null;
+      this._idSoggettoDominioEsterno = this._servizio.soggetto_erogatore?.id_soggetto || null;
       this._formGroup.get('id_organizzazione')?.setValue(this._idDominioEsterno);
       this._formGroup.get('id_organizzazione')?.disable();
       this._formGroup.get('id_soggetto')?.setValue(this._idSoggettoDominioEsterno);
