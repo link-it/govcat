@@ -47,6 +47,7 @@ public class ConfigurazioneReader {
 
     	this.configurazioneJsonPath = configurazioneJsonPath;
     }
+
     public String getConfigurazione() throws IOException {
 		Resource resource = new FileSystemResource(this.configurazioneJsonPath);
 		if (resource.exists()) {

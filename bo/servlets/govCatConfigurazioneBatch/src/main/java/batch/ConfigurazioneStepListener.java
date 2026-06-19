@@ -44,6 +44,7 @@ public class ConfigurazioneStepListener implements StepExecutionListener {
         try {
             ConfigurazioneReader confReader = new ConfigurazioneReader(configurazioneJsonPath);
             logger.debug("[ConfigurazioneStepListener]: path file di configurazione {}",configurazioneJsonPath);
+
             List<Map<String, String>> statoConf = confReader.getTuttaConfigurazioneAutomatica();
 
             ObjectMapper objectMapper = new ObjectMapper();
