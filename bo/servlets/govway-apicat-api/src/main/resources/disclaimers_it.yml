@@ -31,13 +31,6 @@
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# FALLBACK GENERALE
-# -----------------------------------------------------------------------------
-
-default: |
-  Procedendo con l'adesione, l'ente accetta i termini e le condizioni del servizio.
-
-# -----------------------------------------------------------------------------
 # DISCLAIMER PER STATO (generale, indipendente dal profilo)
 # -----------------------------------------------------------------------------
 
@@ -53,19 +46,19 @@ bozza:
 
 richiesto_collaudo: |
   ## In attesa di autorizzazione
-  La richiesta di adesione in **collaudo** è stata inviata ed è in attesa di autorizzazione da parte del **referente del servizio**. Non sono richieste ulteriori azioni da parte tua in questa fase. Riceverai una notifica quando la richiesta sarà valutata.
+  La richiesta di adesione in **collaudo** è stata inviata ed è in attesa di autorizzazione da parte del **referente del servizio**.
 
 autorizzato_collaudo: |
   ## Autorizzata — in attesa di configurazione
-  La richiesta di adesione in **collaudo** è stata autorizzata. Il gestore della piattaforma sta procedendo con la configurazione sull'API Gateway. Riceverai una notifica al termine.
+  La richiesta di adesione in **collaudo** è stata autorizzata. Il gestore della piattaforma sta procedendo con la configurazione sull'API Gateway.
 
 in_configurazione_manuale_collaudo: |
   ## Configurazione in corso (collaudo)
-  Il gestore sta configurando l'adesione sull'API Gateway di **collaudo**. Non sono richieste azioni da parte tua. Riceverai una notifica al completamento.
+  Il gestore sta configurando l'adesione sull'API Gateway di **collaudo**. Non sono richieste azioni da parte tua.
 
 in_configurazione_automatica_collaudo: |
   ## Configurazione in corso (collaudo)
-  Il gestore della piattaforma sta configurando l'adesione sull'API Gateway di **collaudo**. Non sono richieste azioni da parte tua. Riceverai una notifica al completamento.
+  Il gestore della piattaforma sta configurando l'adesione sull'API Gateway di **collaudo**. Non sono richieste azioni da parte tua.
 
 pubblicato_collaudo: |
   ## Adesione attiva in collaudo
@@ -73,19 +66,19 @@ pubblicato_collaudo: |
 
 richiesto_produzione: |
   ## In attesa di autorizzazione (produzione)
-  La richiesta di adesione in **produzione** è stata inviata ed è in attesa di autorizzazione da parte del **referente del servizio**. Non sono richieste ulteriori azioni da parte tua. Riceverai una notifica quando la richiesta sarà valutata.
+  La richiesta di adesione in **produzione** è stata inviata ed è in attesa di autorizzazione da parte del **referente del servizio**.
 
 autorizzato_produzione: |
   ## Autorizzata — in attesa di configurazione (produzione)
-  La richiesta di adesione in **produzione** è stata autorizzata. Il gestore della piattaforma sta procedendo con la configurazione sull'API Gateway. Riceverai una notifica al termine.
+  La richiesta di adesione in **produzione** è stata autorizzata. Il gestore della piattaforma sta procedendo con la configurazione sull'API Gateway.
 
 in_configurazione_manuale_produzione: |
   ## Configurazione in corso (produzione)
-  Il gestore della piattaforma sta configurando l'adesione sull'API Gateway di **produzione**. Non sono richieste azioni da parte tua. Riceverai una notifica al completamento.
+  Il gestore della piattaforma sta configurando l'adesione sull'API Gateway di **produzione**. Non sono richieste azioni da parte tua.
 
 in_configurazione_automatica_produzione: |
   ## Configurazione automatica in corso (produzione)
-  Il gestore della piattaforma sta configurando l'adesione sull'API Gateway di **produzione**. Non sono richieste azioni da parte tua. Riceverai una notifica al completamento.
+  Il gestore della piattaforma sta configurando l'adesione sull'API Gateway di **produzione**. Non sono richieste azioni da parte tua.
 
 pubblicato_produzione: |
   ## Adesione attiva in produzione ✓

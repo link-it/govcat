@@ -33,9 +33,20 @@ describe('RegistrazioneComponent', () => {
     reloadSession: vi.fn(),
   } as any;
 
+  // Salviamo gli static Tools mutati e li ripristiniamo dopo ogni test
+  // per non inquinare gli altri spec file (Tools e` un singleton).
+  const _origTools = {
+    MultiSnackbarDestroyAll: Tools.MultiSnackbarDestroyAll,
+    GetErrorMsg: Tools.GetErrorMsg,
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
     Tools.MultiSnackbarDestroyAll = vi.fn();
+    // Il componente delega l'estrazione del messaggio d'errore a
+    // Tools.GetErrorMsg: stub deterministico (message o fallback) per
+    // testare il flusso del componente, non l'helper.
+    Tools.GetErrorMsg = vi.fn((e: any) => e?.message ?? 'Errore nel caricamento dello stato');
     // Reset default mock implementations
     mockConfigService.getConfiguration.mockReturnValue({
       AppConfig: { Layout: { Login: { title: 'T', logo: 'l.png' } } }
@@ -57,6 +68,11 @@ describe('RegistrazioneComponent', () => {
       mockRouter, mockTranslate, mockConfigService,
       mockRegistrazioneService, mockAuthService
     );
+  });
+
+  afterEach(() => {
+    Tools.MultiSnackbarDestroyAll = _origTools.MultiSnackbarDestroyAll;
+    Tools.GetErrorMsg = _origTools.GetErrorMsg;
   });
 
   // ─── Constructor / Creation ─────────────────────────────────────────

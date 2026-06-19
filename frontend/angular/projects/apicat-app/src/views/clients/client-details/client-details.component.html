@@ -46,11 +46,11 @@
             <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle  dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="another_actions">
               <i class="bi bi-node-plus"></i> <span class="ms-2">{{ 'APP.CLIENT.BUTTON.ChangeStatus' | translate}}</span>
             </button>
-            <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="sort_toggle">
+            <ul tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="sort_toggle">
               <div class="gl-new-dropdown-inner">
                 <div class="gl-new-dropdown-contents">
                   @if (client?.stato != _statoEnum[0]) {
-                    <li role="presentation" class="gl-new-dropdown-item">
+                    <li class="gl-new-dropdown-item">
                       <button role="menuitem" type="button" class="dropdown-item" (click)="_onStatusChange(_statoEnum[0])">
                         <div class="gl-new-dropdown-item-text-wrapper">
                           <p class="gl-new-dropdown-item-text-primary">{{ 'APP.CLIENT.LABEL.NotConfigured' | translate }}</p>
@@ -58,9 +58,8 @@
                       </button>
                     </li>
                   }
-                  <!-- <li class="gl-new-dropdown-divider"></li> -->
                   @if (client?.stato != _statoEnum[1]) {
-                    <li role="presentation" class="gl-new-dropdown-item">
+                    <li class="gl-new-dropdown-item">
                       <button role="menuitem" type="button" class="dropdown-item" (click)="_onStatusChange(_statoEnum[1])">
                         <div class="gl-new-dropdown-item-text-wrapper">
                           <p class="gl-new-dropdown-item-text-primary">{{ 'APP.CLIENT.LABEL.Configured' | translate }}</p>
@@ -78,15 +77,15 @@
         </div>
       }
       @if (!_isEdit && !_spin) {
-        <div role="group" class="btn-group- ms-1">
+        <div class="btn-group- ms-1">
           <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
             <button aria-label="Altre azioni" aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="other_actions">
               <i class="bi bi-three-dots-vertical"></i>
             </button>
-            <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="sort_toggle">
+            <ul tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="sort_toggle">
               <div class="gl-new-dropdown-inner">
                 <div class="gl-new-dropdown-contents">
-                  <li role="presentation" class="gl-new-dropdown-item">
+                  <li class="gl-new-dropdown-item">
                     <button role="menuitem" type="button" class="dropdown-item" (click)="_deleteClient()">
                       <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
                         <i class="bi bi-trash text-danger"></i>
@@ -103,7 +102,7 @@
         </div>
       }
       @if (_isEdit && !_spin) {
-        <div role="group" class="gl-w-full btn-group- position-relative">
+        <div class="gl-w-full btn-group- position-relative">
           <button aria-label="Annulla" aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-default-tertiary ms-2" [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" (click)="_onCancelEdit()">
             <i class="bi bi-x-lg"></i>
           </button>
@@ -206,7 +205,7 @@
                       @if (_isNew || _isEdit) {
                         <div class="">
                           <select class="form-select" id="id_soggetto" formControlName="id_soggetto" [class.gl-field-error-outline]="_hasControlError('id_soggetto')" (change)="_onChangeSoggetto($event)">
-                            @for (el of _elencoSoggetti; track el) {
+                            @for (el of _elencoSoggetti; track el.id_soggetto) {
                               <option [value]="el.id_soggetto">
                                 {{el.nome}}
                               </option>
@@ -247,7 +246,7 @@
                         @if (_isEdit) {
                           <div class="">
                             <select class="form-select" id="ambiente" formControlName="ambiente" [class.gl-field-error-outline]="_hasControlError('ambiente')" (change)="_changeAmbiente($event)">
-                              @for (ambiente of _ambienteEnum; track ambiente) {
+                              @for (ambiente of _ambienteEnum; track $index) {
                                 <option [value]="ambiente">{{ ambiente }}</option>
                               }
                             </select>
@@ -279,8 +278,21 @@
                         @if (_isEdit) {
                           <div class="">
                             <select class="form-select" id="stato" formControlName="stato" [class.gl-field-error-outline]="_hasControlError('stato')" (change)="_onChangeStato($event)">
-                              @for (stato of _statoEnum; track stato) {
-                                <option [value]="stato">{{ stato }}</option>
+                              @for (stato of _statoEnum; track $index) {
+                                <!-- Label i18n. In `new` usa
+                                     `APP.WORKFLOW.STATUS.<enum>`
+                                     (es. "Nuovo"); in `edit` la label
+                                     semantica `APP.CLIENT.LABEL.*`
+                                     ("Non configurato"/"Configurato"),
+                                     coerente col dropdown "Cambia
+                                     stato" della topbar. -->
+                                <option [value]="stato">
+                                  @if (_isNew) {
+                                    {{ ('APP.WORKFLOW.STATUS.' + stato) | translate }}
+                                  } @else {
+                                    {{ (stato === _statoEnum[0] ? 'APP.CLIENT.LABEL.NotConfigured' : 'APP.CLIENT.LABEL.Configured') | translate }}
+                                  }
+                                </option>
                               }
                             </select>
                             @if (f['stato'].invalid && (f['stato'].dirty || f['stato'].touched)) {
@@ -334,10 +346,10 @@
               </div>
               @if (_isEdit) {
                 <div class="row-content-block footer-block">
-                  <button aria-label="Save" type="submit" class="gl-button btn btn-confirm gl-mr-2" [disabled]="_formGroup.invalid || _spin">
+                  <button type="submit" class="gl-button btn btn-confirm gl-mr-2" [disabled]="_formGroup.invalid || _spin">
                     {{ 'APP.BUTTON.Save' | translate }}
                   </button>
-                  <button aria-label="Cancel" type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">
+                  <button type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">
                     {{ 'APP.BUTTON.Cancel' | translate }}
                   </button>
                 </div>

@@ -35,6 +35,7 @@ import { ErrorViewComponent } from '@app/components/error-view/error-view.compon
 import { ErrorViewCardComponent } from '@app/components/error-view-card/error-view-card.component';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
+import { NavigationService } from '@app/services/navigation.service';
 import { UtilService } from '@app/services/utils.service';
 
 import { ModalAddReferentComponent } from './modal-add-referent/modal-add-referent.component';
@@ -89,6 +90,12 @@ export interface AdesioneDisclaimer {
     severity?: DisclaimerSeverity;
     links?: AdesioneDisclaimerLink[];
     profilo?: string;
+    /** Quando valorizzato, lega il disclaimer a un gruppo di
+     *  custom properties (`nome_gruppo`). In tal caso il disclaimer
+     *  viene reso accanto al gruppo nel wizard e NON nel banner
+     *  ambientale del substepper. Richiede comunque `contesto`
+     *  ('collaudo' | 'produzione'). */
+    nome_gruppo?: string;
 }
 
 @Component({
@@ -392,6 +399,16 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         }
         const currentState = this.adesione?.stato;
         if (currentState) {
+            // Regola speciale: `pubblicato_collaudo` e` terminale di
+            // Collaudo ("configurato") ed e` anche il primo sub-step
+            // ("in_compilazione") di Produzione. Selezioniamo
+            // visivamente FASE 2 senza toccare `selectedStepCode` /
+            // `activeSections` (resta il comportamento naturale
+            // dello step-bar).
+            if (currentState === 'pubblicato_collaudo' && this.stepWizard.some(s => s.code === 'collaudo')) {
+                this._selectedFase = 'collaudo';
+                return;
+            }
             const found = this.stepWizard.find(s => s.stati_adesione?.includes(currentState));
             if (found) {
                 this._selectedFase = found.code;
@@ -593,9 +610,9 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         {
             contesto: 'generale',
             severity: 'INFO',
-            disclaimer: '## Adesione PDND in bozza\nL\'adesione utilizza il profilo **PDND**. Prima di procedere, assicurarsi di aver completato la registrazione sulla piattaforma PDND e di disporre di un e-service attivo.',
+            disclaimer: '## Certificati App2App\n\L\'ente mette a disposizione l\'infrastruttura PKI per l\'emissione di certificati su CA privata. Chi gestisce le chiavi private e si occupa dell\'installazione può seguire la guida al rilascio [link](https://www.dominio.it/Guida-rilascio-certificati.pdf), che illustra i passi necessari per la generazione del nuovo certificato. Per assistenza scrivere a email@dominio.it.\n\n### Common Name\n\nIl Common Name del certificato deve seguire il formato:\n\nEnteRichiedente_Progetto_PDND_COLLAUDO — per l\'ambiente di collaudo\n\nEnteRichiedente_Progetto_PDND — per la produzione\n\nAd esempio: Ente_LibriGratis_PDND_COLLAUDO / Ente_LibriGratis_PDND\n\n### Caricamento\n\nUna volta ottenuto il certificato, caricare la parte pubblica nell\'apposita sezione. Se si intende riutilizzare un certificato già configurato, selezionarlo dalla lista.',
             links: [
-                { label: 'Documentazione PDND', url: 'https://www.pagopa.it/it/cittadini/pdnd' }
+                { label: 'Documentazione', url: 'https://www.dominio.it/it/documentazione' }
             ]
         },
         {
@@ -606,7 +623,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         {
             contesto: 'collaudo',
             severity: 'INFO',
-            disclaimer: 'Nell\'ambiente di **collaudo** puoi effettuare test senza impatto sui dati di produzione.'
+            disclaimer: '## Certificato mTLS\n\L\'ente mette a disposizione l\'infrastruttura PKI per l\'emissione di certificati su CA privata. Chi gestisce le chiavi private e si occupa dell\'installazione può seguire la guida al rilascio (<a href="https://www.dominio.it//Guida-rilascio-certificati.pdf" target="_blank">Scarica</a>), che illustra i passi necessari per la generazione del nuovo certificato. Per assistenza scrivere a ra.pki@regione.toscana.it.\n\n### Common Name\n\nIl Common Name del certificato deve seguire il formato:\n\n- `EnteRichiedente_Progetto_PDND_COLLAUDO` — per l\'ambiente di collaudo\n\n- `EnteRichiedente_Progetto_PDND` — per la produzione\n\nAd esempio: `Ente_LibriGratis_PDND_COLLAUDO` / `Ente_LibriGratis_PDND`\n\n### Caricamento\n\nUna volta ottenuto il certificato, caricare la parte pubblica nell\'apposita sezione. Se si intende riutilizzare un certificato già configurato, selezionarlo dalla lista.'
         },
         {
             contesto: 'collaudo',
@@ -625,6 +642,21 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
             contesto: 'produzione',
             severity: 'WARNING',
             disclaimer: 'Verificare la configurazione PDND in produzione: richieste errate possono comportare la sospensione del servizio.'
+        },
+        // Disclaimer per gruppi di custom properties: legati al gruppo
+        // via `nome_gruppo`, mostrati accanto al gruppo e NON nel
+        // banner ambientale.
+        {
+            contesto: 'collaudo',
+            severity: 'INFO',
+            nome_gruppo: 'PDNDCollaudo',
+            disclaimer: 'Compila gli identificativi PDND di collaudo prima di richiedere la configurazione.'
+        },
+        {
+            contesto: 'produzione',
+            severity: 'WARNING',
+            nome_gruppo: 'PDNDProduzione',
+            disclaimer: '**Produzione PDND**: i dati saranno usati dall\'authorization server reale. Verificare prima della pubblicazione.'
         }
     ];
 
@@ -638,7 +670,8 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         private readonly apiService: OpenAPIService,
         private readonly authenticationService: AuthenticationService,
         private readonly utils: UtilService,
-        private readonly ckeckProvider: CkeckProvider
+        private readonly ckeckProvider: CkeckProvider,
+        private readonly navigationService: NavigationService
     ) {
         this.route.data.subscribe((data) => {
             if (!data.serviceBreadcrumbs) return;
@@ -721,6 +754,8 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
             this.loadCheckDati(this.adesione.id_adesione, this.getNextStateWorkflowName());
             this.loadConfigurazioni(AmbienteEnum.Collaudo);
             this.loadConfigurazioni(AmbienteEnum.Produzione);
+            this._loadClientsCheck(AmbienteEnum.Collaudo);
+            this._loadClientsCheck(AmbienteEnum.Produzione);
         };
         this.eventsManagerService.on(EventType.WIZARD_CHECK_UPDATE, this._wizardCheckUpdateListener);
 
@@ -856,6 +891,8 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
                     this.loadServizio(this.id_servizio);
                     this.loadConfigurazioni(AmbienteEnum.Collaudo);
                     this.loadConfigurazioni(AmbienteEnum.Produzione);
+                    this._loadClientsCheck(AmbienteEnum.Collaudo);
+                    this._loadClientsCheck(AmbienteEnum.Produzione);
                     this.loadReferents();
 
                     this._initBreadcrumb();
@@ -965,6 +1002,12 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
      *  di `ui-workflow._isActionEnabledMapper`). */
     _isWorkflowActionEnabled = (type: string, statusName: string = ''): boolean => {
         if (!this.adesione) { return false; }
+        // Vincolo: una adesione non puo` transizionare verso uno stato
+        // di produzione se il servizio non e` `pubblicato_produzione`.
+        const targetName = statusName || this.getCambioStatoEntry()?.stato_successivo?.nome || '';
+        if (this._isProduzioneBloccata() && this._isStatoProduzione(targetName)) {
+            return false;
+        }
         return this.authenticationService.canChangeStatus(
             'adesione',
             this.adesione.stato,
@@ -972,6 +1015,24 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
             this._combinedRuoli(),
             statusName
         );
+    }
+
+    /** Vero quando l'adesione non puo` ancora andare in produzione
+     *  perche` il servizio non e` `pubblicato_produzione`. Usato
+     *  per disabilitare FASE 3 nella step-bar e per bloccare le
+     *  transizioni workflow verso stati produzione. */
+    _isProduzioneBloccata(): boolean {
+        return this.adesione?.servizio?.stato !== 'pubblicato_produzione';
+    }
+
+    /** True se il nome stato adesione e` di fase produzione. */
+    private _isStatoProduzione(statoNome: string): boolean {
+        return !!statoNome && statoNome.includes('produzione');
+    }
+
+    /** Codici delle fasi da disabilitare nella `<app-adesione-fasi-bar>`. */
+    getDisabledFasiCodes(): string[] {
+        return this._isProduzioneBloccata() ? ['produzione'] : [];
     }
 
     /** Abilitazione dell'azione "Archivia". */
@@ -1005,7 +1066,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         this.apiService.getDetails('servizi', id).subscribe((respponse: any) => {
             this.servizio = respponse;
 
-            this.isDominioEsterno = this.servizio.dominio?.soggetto_referente?.organizzazione?.esterna || false;
+            this.isDominioEsterno = this.servizio.dominio?.soggetto_referente?.organizzazione?.intermediata || false;
             this.idDominioEsterno = this.servizio.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
             this.idSoggettoDominioEsterno = this.servizio.dominio?.soggetto_referente?.id_soggetto || null;
         });
@@ -1051,15 +1112,18 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     }
 
     /**
-     * Nome completo del referente "principale" dell'adesione (tipo
-     * `referente`). Se non disponibile cade su `utente_richiedente`.
+     * Lista dei nomi dei referenti "principali" dell'adesione (tipo
+     * `referente`). Se nessuno, fallback su `utente_richiedente`.
      */
-    get headerOwnerName(): string {
-        const principale = (this.referents || []).find((r: any) => r?.source?.tipo === 'referente');
-        const u = principale?.source?.utente;
-        if (u) {
-            const full = `${u.nome || ''} ${u.cognome || ''}`.trim();
-            if (full) { return full; }
+    get headerOwnerNames(): string[] {
+        const fullName = (u: any): string => `${u?.nome || ''} ${u?.cognome || ''}`.trim();
+        const principali = (this.referents || [])
+            .filter((r: any) => r?.source?.tipo === 'referente')
+            .map((r: any) => fullName(r?.source?.utente))
+            .filter((n: string) => !!n);
+        if (principali.length > 0) {
+            this._headerOwnerIsRichiedente = false;
+            return principali;
         }
         // `utente_richiedente` e' tipizzato come `string` nel model
         // generato da OpenAPI ma a runtime e' un oggetto User completo
@@ -1067,12 +1131,50 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         // `adesione-details`. Quindi compongo nome+cognome qui.
         const richiedente: any = this.adesione?.utente_richiedente;
         if (richiedente && typeof richiedente === 'object') {
-            const full = `${richiedente.nome || ''} ${richiedente.cognome || ''}`.trim();
-            if (full) { return full; }
+            const full = fullName(richiedente);
+            if (full) {
+                this._headerOwnerIsRichiedente = true;
+                return [full];
+            }
         } else if (typeof richiedente === 'string') {
-            return richiedente;
+            this._headerOwnerIsRichiedente = true;
+            return [richiedente];
         }
-        return '';
+        this._headerOwnerIsRichiedente = false;
+        return [];
+    }
+
+    /** True quando `headerOwnerNames` ha fatto fallback su
+     *  `utente_richiedente` (nessun referente di tipo `referente`):
+     *  la label nel meta-header diventa "Richiedente" invece di
+     *  "Referente". */
+    _headerOwnerIsRichiedente: boolean = false;
+
+    get _headerOwnerLabelKey(): string {
+        if (this._headerOwnerIsRichiedente) { return 'APP.LABEL.Richiedente'; }
+        return this.headerOwnerNames.length > 1 ? 'APP.LABEL.OwnerPlural' : 'APP.LABEL.Owner';
+    }
+
+    /** Naviga alla vetrina pubblica del servizio
+     *  (`/servizi/:id_servizio/view`, read-only). Stessa scelta di
+     *  `adesione-view.onGoToService`: la rotta `/view` e`
+     *  accessibile anche a chi non ha grant sul servizio,
+     *  mentre `/servizi/:id` (gestione) reindirizza a `gruppi`
+     *  per utenti privi di ruolo. */
+    onGoToService(event?: MouseEvent): void {
+        const idServizio = this.adesione?.servizio?.id_servizio;
+        if (!idServizio) { return; }
+        const idAdesione = this.adesione?.id_adesione;
+        const queryParams = idAdesione
+            ? { fromAdesione: idAdesione, fromAdesioneMode: 'wizard' }
+            : undefined;
+        this.navigationService.navigateWithEvent(event, ['/servizi', idServizio, 'view'], queryParams);
+    }
+
+    /** Organizzazione del soggetto dell'adesione (stessa fonte usata
+     * dal breadcrumb). */
+    get headerAdesioneOrganization(): string {
+        return this.adesione?.soggetto?.organizzazione?.nome || '';
     }
 
     /** Chiavi delle 3 fasi macro del nuovo layout, tipizzate per il template. */
@@ -1121,16 +1223,14 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         // mappato in wfStati), `workflowReachedFinal` resta false e la
         // fase NON viene marcata "completed" — meglio mostrare "active"
         // che mentire all'utente.
-        const workflowReachedFinal = this._workflowReachedSectionFinal(fase);
-        if (workflowReachedFinal) {
-            if (this.isSectionCompleted(fase)) { return 'completed'; }
-            // Tipico per Collaudo quando l'adesione e` gia` pubblicata in
-            // produzione: la fase non e` "pending" (futura) ma "conclusa".
-            if (this._isSectionPast(fase)) { return 'completed'; }
-        } else if (this._isSectionPast(fase)) {
-            // Fallback: anche senza wfStati riconosciuti, se la step-bar
-            // principale dice che la sezione e` passata (es. adesione in
-            // produzione, sezione collaudo storica), e` davvero conclusa.
+        // Fase conclusa quando il workflow ha raggiunto/superato l'ultimo
+        // sub-step della sezione (verifica strict via wfStati) oppure quando
+        // la step-bar principale segnala la sezione come passata (fallback
+        // per wfStati non riconosciuti, es. adesione in produzione e sezione
+        // collaudo storica). Indipendente dal check-dati del next state, che
+        // potrebbe risultare KO per transizioni successive (es. archiviazione)
+        // non piu` rilevanti per la fase.
+        if (this._workflowReachedSectionFinal(fase) || this._isSectionPast(fase)) {
             return 'completed';
         }
         return this.isSectionActive(fase) ? 'active' : 'pending';
@@ -1147,10 +1247,24 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     private _workflowReachedSectionFinal(section: 'collaudo' | 'produzione'): boolean {
         const steps = this.getStepWizardSezione(section);
         if (!steps.length) { return false; }
-        const wfStati = this.workflowStati;
-        if (!wfStati.length) { return false; }
         const currentStato = this.adesione?.stato;
         if (!currentStato) { return false; }
+
+        // Fallback "terminal reached" — non dipende da `workflowStati`:
+        // se lo stato corrente coincide con l'ULTIMO stato dell'ultimo
+        // sub-step della sezione (es. `pubblicato_produzione` per
+        // "configurato" di Produzione) la fase e` conclusa anche se la
+        // config remota `adesione.workflow.stati` non riporta lo stato
+        // (es. BE non allineato col FE sui nuovi stati).
+        const lastStep = steps[steps.length - 1];
+        const lastStates = lastStep?.stati_adesione || [];
+        const terminalState = lastStates.length > 0 ? lastStates[lastStates.length - 1] : null;
+        if (terminalState !== null && currentStato === terminalState) {
+            return true;
+        }
+
+        const wfStati = this.workflowStati;
+        if (!wfStati.length) { return false; }
         const currentIdx = wfStati.indexOf(currentStato);
         if (currentIdx === -1) { return false; }
         let maxStepIdx = -1;
@@ -1433,7 +1547,13 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
             if (!response) { return; }
             this.apiService.deleteElement(this.model, this.adesione.id_adesione).subscribe({
                 next: () => {
-                    this.router.navigate([this.model]);
+                    // Ripristina il contesto di navigazione: se l'utente
+                    // e` arrivato dalla lista adesioni di un servizio,
+                    // torna a quella; altrimenti alla lista globale.
+                    const target = this.serviceBreadcrumbs
+                        ? ['/servizi', this.serviceBreadcrumbs.service.id_servizio, this.model]
+                        : [this.model];
+                    this.router.navigate(target);
                 },
                 error: (error: any) => {
                     Tools.OnError(error);
@@ -1590,6 +1710,149 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
 
     isSottotipoCompletedMapper = (update: boolean, environment: string, tipo: string, identificativo: string): boolean => {
         return this.ckeckProvider.isSottotipoCompleted(this.dataStructureResults, environment, tipo, identificativo);
+    }
+
+    /**
+     * Vero se almeno un gruppo di custom properties della sezione
+     * ha dati obbligatori non compilati (icon-toggle rosso nel
+     * wizard). Quando true, il sub-step "In compilazione" del
+     * substepper viene forzato a `active` anche se lo stato
+     * workflow e` gia` oltre, cosi` l'utente puo` tornare a
+     * compilare i dati mancanti.
+     */
+    _hasIncompleteCustomProperties(section: 'collaudo' | 'produzione'): boolean {
+        const ambiente = section === 'collaudo' ? AmbienteEnum.Collaudo : AmbienteEnum.Produzione;
+        const groups: any[] = this.proprietaCustomFiltered?.[ambiente] || [];
+        return groups.some((g: any) =>
+            !this.isSottotipoCompletedMapper(false, ambiente, ClassiEnum.CONFIGURAZIONE_GRUPPO, g.nome_gruppo)
+        );
+    }
+
+    /**
+     * Mappa ambiente -> true se almeno un client e` non configurato
+     * (popolata da `_loadClientsCheck`). Necessaria perche` il
+     * check-dati BE in certi stati (es. `in_configurazione_collaudo`)
+     * non segnala il CLIENT come obbligatorio anche quando il
+     * gestore ha ancora un client "non configurato" da gestire.
+     */
+    private _hasNonConfiguredClientsByEnv: { [env: string]: boolean } = {};
+
+    /**
+     * Carica i client dell'ambiente per popolare
+     * `_hasNonConfiguredClientsByEnv`. Stesso endpoint usato dal
+     * componente figlio `<app-adesione-lista-clients>`.
+     */
+    private _loadClientsCheck(environmentId: string): void {
+        if (!this.id) { return; }
+        this.apiService.getDetails(this.model, this.id, environmentId + '/client').subscribe({
+            next: (response: any) => {
+                const associati = response?.content || [];
+                const richiesti = this.adesione?.client_richiesti || [];
+                const hasNotConfigured = richiesti.some((req: any) => {
+                    const found = associati.find((c: any) => c.profilo === req.profilo);
+                    return !found || found.stato !== 'configurato';
+                });
+                this._hasNonConfiguredClientsByEnv[environmentId] = hasNotConfigured;
+                this.updateMapper = Date.now().toString();
+            },
+            error: () => {
+                this._hasNonConfiguredClientsByEnv[environmentId] = false;
+            }
+        });
+    }
+
+    /**
+     * Vero se la sezione richiede ancora client da configurare.
+     * Logica a due step:
+     *
+     * 1. **Gate workflow-side**: i `dati_obbligatori` dello
+     *    STATO CORRENTE (non del prossimo!) devono contenere
+     *    `<section>_configurato`. Se no, la fase "In
+     *    compilazione" non e` ancora un blocker → non rossa.
+     *    Questo evita di marcare la fase come incompleta
+     *    quando il client configurato e` richiesto solo per
+     *    stati successivi (es. `autorizzato_collaudo` ha
+     *    `dati_obbligatori = [..., collaudo]` ma il
+     *    `check-dati/<next-stato>` puo` gia` riportare
+     *    `collaudo_configurato` mancante perche` riflette i
+     *    requisiti del prossimo passaggio).
+     *
+     * 2. **Signal di non-configurazione**: lo stato corrente
+     *    richiede il client configurato → la fase e` rossa
+     *    se effettivamente NON e` configurato.
+     *    - BE `check-dati`: errore con `dato` =
+     *      `<section>_configurato` (chiunque, anche referenti).
+     *    - Gestore: anche `_hasNonConfiguredClientsByEnv`
+     *      via `_loadClientsCheck` (signal locale).
+     */
+    _hasIncompleteClients(section: 'collaudo' | 'produzione'): boolean {
+        if (!this._stateRequiresClientConfigured(section) && !this._isInConfigurazioneStato(section)) {
+            return false;
+        }
+        const ambiente = section === 'collaudo' ? AmbienteEnum.Collaudo : AmbienteEnum.Produzione;
+        // Stesso check usato da `<lnk-icon-toggle>` nell'header
+        // della lista clients (`adesione-lista-clients.component.html`):
+        // se la sezione clients e` segnalata incompleta dal BE
+        // (`isSottotipoGroupCompleted` ritorna false), allora la
+        // fase "In compilazione" deve essere rossa. Cosi` l'icona
+        // ⊗ accanto a "Modalita` di autenticazione" e lo stato
+        // del sub-step "In Compilazione" sono sempre coerenti.
+        if (!this.ckeckProvider.isSottotipoGroupCompleted(this.dataStructureResults, ambiente, ClassiEnum.CLIENT)) {
+            return true;
+        }
+        if (!this.authenticationService.isGestore(this.grant?.ruoli)) { return false; }
+        return !!this._hasNonConfiguredClientsByEnv[ambiente];
+    }
+
+    /** Vero se i `dati_obbligatori` del cambio stato dello
+     *  stato CORRENTE includono `<section>_configurato`. Indica
+     *  che il client configurato e` richiesto come precondizione
+     *  per uscire dallo stato attuale (non del successivo).
+     *  Match diretto sul workflow config (auth scenario manuale:
+     *  e.g. `in_configurazione_manuale_collaudo` -> `collaudo_configurato`). */
+    private _stateRequiresClientConfigured(section: 'collaudo' | 'produzione'): boolean {
+        const stato = this.adesione?.stato;
+        if (!stato) { return false; }
+        const mandatory: string[] = this.authenticationService._getClassesMandatory('adesione', '', stato) || [];
+        const key = section === 'collaudo' ? 'collaudo_configurato' : 'produzione_configurato';
+        return mandatory.includes(key);
+    }
+
+    /** Vero se lo stato corrente e` un `in_configurazione_*_<section>`
+     *  (sub-step "In Configurazione" della sezione attivo).
+     *  Trigger aggiuntivo rispetto al gate workflow per coprire
+     *  il caso `in_configurazione_automatica_<section>`, dove il
+     *  workflow non dichiara `<section>_configurato` come dato
+     *  obbligatorio (il sistema lo configurerebbe in automatico)
+     *  ma se il client risulta comunque "Non configurato" la
+     *  fase compilazione va segnalata come bloccante. */
+    private _isInConfigurazioneStato(section: 'collaudo' | 'produzione'): boolean {
+        const stato = this.adesione?.stato || '';
+        return stato.startsWith('in_configurazione') && stato.endsWith(`_${section}`);
+    }
+
+    /**
+     * Vero se il sub-step e` "naturalmente attivo" — il suo
+     * `stati_adesione` contiene lo stato corrente dell'adesione.
+     * Usato per evitare di renderizzare CTA workflow duplicati
+     * nel sub-step forzato attivo (vedi `forceActiveCodes`).
+     */
+    _isSubstepNaturallyActive(section: 'collaudo' | 'produzione', code: string): boolean {
+        const steps = this.getStepWizardSezione(section);
+        const sub = steps.find(s => s.code === code);
+        return !!sub?.stati_adesione?.includes(this.adesione?.stato);
+    }
+
+    /**
+     * Lista di sub-step `code` da forzare a stato `active` nel
+     * substepper della sezione. `in_compilazione` viene forzato
+     * quando ci sono custom properties obbligatorie incomplete
+     * oppure client non ancora configurati.
+     */
+    getForceActiveSubsteps(section: 'collaudo' | 'produzione'): string[] {
+        const needsAttention = this._hasIncompleteCustomProperties(section)
+            || this._hasIncompleteClients(section);
+        return needsAttention ? ['in_compilazione'] : [];
     }
 
     configurazioni: any = {
@@ -1868,12 +2131,15 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     onWorkflowAction(event: any = null) {
         this.resetError();
 
-        // Se l'utente aveva navigato in una fase diversa da quella
-        // corrente dello stato dell'adesione, riportiamo la selezione
-        // alla fase coerente con lo stato prima del cambio: cosi`
-        // dopo la transizione la UI mostra sempre il contesto giusto
-        // senza richiedere navigazione manuale.
-        this._initSelectedFase();
+        // NB: non chiamiamo `_initSelectedFase()` qui. In caso di
+        // success il riallineamento avviene comunque post-refresh
+        // (`_changeStatus` -> `loadAdesione` -> `_initSelectedFase`).
+        // In caso di errore manteniamo la fase su cui l'utente
+        // stava lavorando (es. Produzione partendo da
+        // `pubblicato_collaudo`): altrimenti la regola speciale
+        // `pubblicato_collaudo -> collaudo` lo riporterebbe alla
+        // fase Collaudo, nascondendo il messaggio di errore
+        // renderizzato sul pannello Produzione.
 
         if (!event) {
             event = { action: 'change', status: this.getStateWorkflow() };
@@ -1909,6 +2175,12 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
                 Tools.showMessage(_msg, 'danger', true);
                 this.changingStatus = false;
                 this.isEdit = this.canEditMapper();
+                // Bump `updateMapper` per forzare il ricalcolo delle
+                // pipe `mapper:isModifiableMapper` nel template: senza
+                // questo le matite di edit (custom properties) restano
+                // nascoste (cached al valore `false` settato sopra a
+                // inizio _changeStatus).
+                this.updateMapper = Date.now().toString();
             },
         });
     }
@@ -2013,13 +2285,13 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         {
             code: 'collaudo',
             descrizione: 'Collaudo',
-            stati_adesione: ['bozza', 'richiesto_collaudo', 'autorizzato_collaudo', 'in_configurazione_manuale_collaudo', 'in_configurazione_automatica_collaudo'],
+            stati_adesione: ['bozza', 'richiesto_collaudo', 'autorizzato_collaudo', 'in_configurazione_collaudo', 'in_configurazione_manuale_collaudo', 'in_configurazione_automatica_collaudo'],
             sezioni_attive: ['collaudo']
         },
         {
             code: 'produzione',
             descrizione: 'Produzione',
-            stati_adesione: ['pubblicato_collaudo', 'richiesto_produzione', 'autorizzato_produzione', 'in_configurazione_manuale_produzione', 'in_configurazione_automatica_produzione', 'pubblicato_produzione'],
+            stati_adesione: ['pubblicato_collaudo', 'richiesto_produzione', 'autorizzato_produzione', 'in_configurazione_produzione', 'in_configurazione_produzione_senza_collaudo', 'in_configurazione_manuale_produzione', 'in_configurazione_automatica_produzione', 'pubblicato_produzione'],
             sezioni_attive: ['produzione']
         }
     ];
@@ -2031,7 +2303,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     private static readonly _STEP_WIZARD_COLLAUDO_FALLBACK: StepWizardItem[] = [
         { code: 'in_compilazione',   descrizione: 'In Compilazione',   stati_adesione: ['bozza'] },
         { code: 'in_approvazione',   descrizione: 'In Approvazione',   stati_adesione: ['richiesto_collaudo'] },
-        { code: 'in_configurazione', descrizione: 'In Configurazione', stati_adesione: ['autorizzato_collaudo', 'in_configurazione_manuale_collaudo', 'in_configurazione_automatica_collaudo'] },
+        { code: 'in_configurazione', descrizione: 'In Configurazione', stati_adesione: ['autorizzato_collaudo', 'in_configurazione_collaudo', 'in_configurazione_manuale_collaudo', 'in_configurazione_automatica_collaudo'] },
         { code: 'configurato',       descrizione: 'Configurato',       stati_adesione: ['pubblicato_collaudo'] }
     ];
 
@@ -2042,7 +2314,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     private static readonly _STEP_WIZARD_PRODUZIONE_FALLBACK: StepWizardItem[] = [
         { code: 'in_compilazione',   descrizione: 'In Compilazione',   stati_adesione: ['pubblicato_collaudo'] },
         { code: 'in_approvazione',   descrizione: 'In Approvazione',   stati_adesione: ['richiesto_produzione'] },
-        { code: 'in_configurazione', descrizione: 'In Configurazione', stati_adesione: ['autorizzato_produzione', 'in_configurazione_manuale_produzione', 'in_configurazione_automatica_produzione'] },
+        { code: 'in_configurazione', descrizione: 'In Configurazione', stati_adesione: ['autorizzato_produzione', 'in_configurazione_produzione', 'in_configurazione_produzione_senza_collaudo', 'in_configurazione_manuale_produzione', 'in_configurazione_automatica_produzione'] },
         { code: 'configurato',       descrizione: 'Configurato',       stati_adesione: ['pubblicato_produzione'] }
     ];
 
@@ -2444,7 +2716,8 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
                 contesto: d.contesto,
                 severity: d.severity,
                 links: Array.isArray(d.links) ? d.links : [],
-                profilo: d.profilo
+                profilo: d.profilo,
+                nome_gruppo: d.nome_gruppo
             }));
     }
 
@@ -2479,27 +2752,45 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     }
 
     // I disclaimer con `profilo` sono destinati al rendering sotto la
-    // specifica riga client (matching per profilo) e NON devono comparire
-    // anche nel banner generale della sezione di contesto.
+    // specifica riga client (matching per profilo); quelli con
+    // `nome_gruppo` vengono mostrati accanto al gruppo di custom
+    // properties corrispondente. In entrambi i casi devono essere
+    // esclusi dal banner ambientale per evitare doppia visualizzazione.
     get disclaimersGenerali(): AdesioneDisclaimer[] {
-        return this.getDisclaimersByContesto('generale').filter(d => !d.profilo);
+        return this.getDisclaimersByContesto('generale').filter(d => !d.profilo && !d.nome_gruppo);
     }
 
     get disclaimersCollaudo(): AdesioneDisclaimer[] {
-        return this.getDisclaimersByContesto('collaudo').filter(d => !d.profilo);
+        return this.getDisclaimersByContesto('collaudo').filter(d => !d.profilo && !d.nome_gruppo);
     }
 
     get disclaimersProduzione(): AdesioneDisclaimer[] {
-        return this.getDisclaimersByContesto('produzione').filter(d => !d.profilo);
+        return this.getDisclaimersByContesto('produzione').filter(d => !d.profilo && !d.nome_gruppo);
     }
 
-    // Usati come @Input delle liste client: solo i disclaimer con `profilo`
-    // per contesto = ambiente; la lista filtrera' poi per profilo del client.
+    /**
+     * Disclaimer legati a un gruppo di custom properties: filtra per
+     * contesto (ambiente) + `nome_gruppo`. Quando `nome_gruppo` e`
+     * valorizzato il disclaimer e` di gruppo a prescindere da
+     * eventuale `profilo` (che resta come informazione
+     * diagnostica/contestuale BE-side). Usato nel wizard per
+     * renderizzare un blocco markdown accanto a ogni
+     * `<app-api-custom-properties>` quando esistono disclaimer
+     * specifici per quel gruppo.
+     */
+    getDisclaimersByGruppo(contesto: DisclaimerContesto, nomeGruppo: string): AdesioneDisclaimer[] {
+        if (!nomeGruppo) { return []; }
+        return this.getDisclaimersByContesto(contesto).filter(d => d.nome_gruppo === nomeGruppo);
+    }
+
+    // Usati come @Input delle liste client: disclaimer con `profilo`
+    // ma SENZA `nome_gruppo` (quando entrambi presenti vincono i
+    // gruppi). La lista filtrera' poi per profilo del client.
     get clientDisclaimersCollaudo(): AdesioneDisclaimer[] {
-        return this.getDisclaimersByContesto('collaudo').filter(d => !!d.profilo);
+        return this.getDisclaimersByContesto('collaudo').filter(d => !!d.profilo && !d.nome_gruppo);
     }
 
     get clientDisclaimersProduzione(): AdesioneDisclaimer[] {
-        return this.getDisclaimersByContesto('produzione').filter(d => !!d.profilo);
+        return this.getDisclaimersByContesto('produzione').filter(d => !!d.profilo && !d.nome_gruppo);
     }
 }

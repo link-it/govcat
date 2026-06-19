@@ -18,7 +18,10 @@
 -->
 <div class="settings mt-0">
   <div class="settings-content">
-    <div class="edit-form">
+    <!-- Wrapper con evidenziazione bordo/shadow rosso quando in
+         edit (stesso pattern di `adesione-config-list-item.is-editing`
+         per le form client). -->
+    <div class="edit-form custom-properties-edit-wrap" [class.is-editing]="_isEdit">
       <form novalidate class="gl-show-field-errors gfm-form" [class.form-readonly]="!_isEdit" [formGroup]="formGroup" (submit)="_onSubmit(formGroup.value)">
         <div class="row custom-properties">
           <div class="col-12">
@@ -34,7 +37,7 @@
                     <button
                       aria-expanded="false"
                       type="button"
-                      class="btn btn-default btn-md gl-button btn-icon"
+                      class="lnk-btn lnk-btn-ghost lnk-btn-sm lnk-btn-icon"
                       [tooltip]="'APP.TOOLTIP.Edit' | translate"  [container]="'body'" [delay]="500"
                       (click)="_onEdit()"
                       >
@@ -47,7 +50,7 @@
                     <button
                       aria-expanded="false"
                       type="button"
-                      class="btn btn-default btn-md gl-button btn-default-tertiary ms-2"
+                      class="lnk-btn lnk-btn-ghost lnk-btn-sm lnk-btn-icon ms-2"
                       [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" [container]="'body'" [delay]="500"
                       (click)="_onCancelEdit()"
                       >
@@ -133,17 +136,19 @@
         }
 
         @if (_isEdit) {
-          <div class="row-content-block footer-block">
-            <button aria-label="Save" type="submit" class="gl-button btn btn-confirm gl-mr-2" [disabled]="formGroup.invalid || _spin">
+          <!-- Pulsanti footer allineati a destra come nelle form
+               client/endpoint (Cancel a sinistra, Save primary). -->
+          <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
+            <button aria-label="Cancel" type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">
+              {{ 'APP.BUTTON.Cancel' | translate }}
+            </button>
+            <button aria-label="Save" type="submit" class="gl-button btn btn-confirm" [disabled]="formGroup.invalid || _spin">
               {{ 'APP.BUTTON.Save' | translate }} @if (_spin) {
-              <span class="spinner-border spinner-border-sm ms-2"></span>
-            }
-          </button>
-          <button aria-label="Cancel" type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">
-            {{ 'APP.BUTTON.Cancel' | translate }}
-          </button>
-        </div>
-      }
+                <span class="spinner-border spinner-border-sm ms-2"></span>
+              }
+            </button>
+          </div>
+        }
     </form>
   </div>
 </div>

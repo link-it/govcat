@@ -1,0 +1,343 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<!--
+  FASE 0 wizard-like: form di creazione adesione allineata alla UI del
+  wizard di configurazione. Riusa <app-adesione-fasi-bar> (barra statica
+  a 4 step), il pattern card `.lnk-phase-section`, i token Link.it. La
+  logica della form (FormGroup, select, _onChangeServizio, _checkSoggetto,
+  _onSubmit) e` invariata rispetto al flusso "new" originale.
+-->
+<div id="route-section" class="lnk-adesione-create">
+  <div class="top-area container-fluid container-limited limit-container-width px-0">
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" [classContainer]="'limit-container-width'" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+  </div>
+</div>
+
+<div class="container-fluid container-limited limit-container-width container-scroller container-scroller-no-search container-scroller-no-top-area">
+
+  <div class="lnk-adesione-create mt-5">
+
+    <!-- Header: titolo + sottotitolo + chiusura -->
+    <div class="create-header d-flex justify-content-between align-items-start gap-3 mb-5">
+      <div class="flex-grow-1">
+        <h2 class="create-title mb-1">{{ 'APP.TITLE.NewAdesione' | translate }}</h2>
+        <p class="create-subtitle mb-0">{{ 'APP.ADESIONI.CREATE.Subtitle' | translate }}</p>
+      </div>
+      <button type="button" class="create-close" (click)="onCloseCreate()"
+              [tooltip]="'APP.BUTTON.Close' | translate" container="body"
+              [attr.aria-label]="'APP.BUTTON.Close' | translate">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <!-- Barra fasi statica/placeholder: FASE 1 (Info & referenti, attiva =
+        la creazione), FASE 2/3 (Collaudo/Produzione) lucchettate come
+        `pending` (lucchetto semplice, nessun messaggio "produzione
+        bloccata"). Visualizzazione opzionale via `_showFasiBar` (app-config). -->
+    @if (_showFasiBar) {
+      <app-adesione-fasi-bar
+        [steps]="_fasiBarSteps"
+        [currentState]="_fasiCurrent"
+        [i18nPrefix]="'APP.ADESIONI.STEP_WIZARD_CREATE'">
+      </app-adesione-fasi-bar>
+    }
+
+    @if (_error) {
+      <div class="gl-alert gl-alert-danger col-md-12 mb-4">
+        @if (!_errors.length) {
+          {{ _errorMsg }}
+        }
+        @if (_errors.length > 0) {
+          <ui-error-view [errors]="_errors"></ui-error-view>
+        }
+      </div>
+    }
+
+    <!-- Durante il salvataggio il form resta visibile ma non-interattivo
+          (`lnk-form-busy` -> pointer-events: none + opacity), e il pulsante
+          "Crea adesione" mostra lo spinner ed e` disabilitato. -->
+    <form novalidate class="lnk-create-form" [class.lnk-form-busy]="_spin" [attr.aria-busy]="_spin" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.getRawValue())">
+
+      <!-- CARD 1 — SERVIZIO / Informazioni generali -->
+      <section class="lnk-phase-section py-0">
+        <header class="lnk-phase-section-hd">
+          <span class="ps-num">1</span>
+          <div class="ps-meta">
+            <span class="ps-tag">{{ 'APP.ADESIONI.CREATE.SectionServiceTag' | translate }}</span>
+            <h3 class="ps-title">{{ 'APP.ADESIONI.CREATE.SectionServiceTitle' | translate }}</h3>
+            <p class="ps-desc">{{ 'APP.ADESIONI.CREATE.SectionServiceDesc' | translate }}</p>
+          </div>
+        </header>
+        <div class="lnk-phase-section-body">
+
+          <!-- Servizio -->
+          <div class="form-group id_servizio">
+            <label class="label-bold" for="id_servizio">{{ 'APP.LABEL.id_servizio' | translate }}
+              <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_servizio'"></span>
+            </label>
+            <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_servizio')"
+              [items]="(servizi$ | async) || []"
+              [typeahead]="serviziInput$"
+              [loading]="serviziLoading"
+              [minTermLength]="minLengthTerm"
+              [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+              [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+              [placeholder]="'APP.PLACEHOLDER.SelectService' | translate"
+              bindValue="id_servizio"
+              bindLabel="nome versione"
+              labelForId="id_servizio"
+              [editableSearchTerm]="true"
+              formControlName="id_servizio"
+              (change)="_onChangeServizio($event)"
+            >
+              <ng-template ng-label-tmp let-item="item">
+                {{ item.nome }} - v. {{ item.versione }}
+              </ng-template>
+              <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                <div class="fw-bold">{{ item.nome }} - v. {{ item.versione }}</div>
+              </ng-template>
+            </ng-select>
+            @if (f['id_servizio'].invalid && (f['id_servizio'].dirty || f['id_servizio'].touched)) {
+              <p class="form-text text-danger">
+                @if (f['id_servizio'].errors && f['id_servizio'].errors['required']) {
+                  <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                }
+              </p>
+            }
+            <ui-input-help field="id_servizio" context="ADESIONE"></ui-input-help>
+
+            <!-- Chip riepilogo servizio selezionato -->
+            @if (_servizio) {
+              <div class="servizio-summary mt-2">
+                <span class="servizio-summary-name">{{ _servizio.nome }}</span>
+                @if (_servizio.versione) {
+                  <span class="lnk-pill lnk-pill-sm lnk-pill-info">v.{{ _servizio.versione }}</span>
+                }
+                @for (chip of _servizioChips; track chip.label) {
+                  <span class="lnk-pill lnk-pill-sm" [ngClass]="chip.variant">
+                    <i class="bi {{ chip.icon }} me-1" aria-hidden="true"></i>{{ chip.label }}
+                  </span>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Identificativo logico (solo servizi multi-adesione) -->
+          @if (_servizio?.multi_adesione) {
+            <div class="form-group id_logico mt-3">
+              <label class="label-bold" for="id_logico">{{ 'APP.LABEL.id_logico' | translate }}
+                <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_logico'"></span>
+              </label>
+              <input aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('id_logico')" type="text" name="id_logico" id="id_logico" formControlName="id_logico" (change)="_onChangeIdLogico($event)">
+              @if (f['id_logico'].invalid && (f['id_logico'].dirty || f['id_logico'].touched)) {
+                <p class="form-text text-danger">
+                  @if (f['id_logico'].errors && f['id_logico'].errors['required']) {
+                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                  }
+                </p>
+              }
+              <ui-input-help field="id_logico" context="ADESIONE"></ui-input-help>
+            </div>
+          }
+
+          <!-- Organizzazione -->
+          <div class="form-group id_organizzazione mt-3">
+            <label class="label-bold" for="id_organizzazione">{{ 'APP.LABEL.id_organizzazione' | translate }}
+              <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_organizzazione'"></span>
+            </label>
+            @if (_lockedOrgNome) {
+              <!-- Auto-select dal contesto di sessione: rendering come
+                  input testuale read-only (evita problemi di bind del
+                  ng-select disabled). -->
+              <input type="text" readonly class="form-control" [value]="_lockedOrgNome">
+            } @else {
+              <ng-select #ngSelectOrganizazione class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_organizzazione')"
+                [items]="(organizzazioni$ | async) || []"
+                [typeahead]="organizzazioniInput$"
+                [loading]="organizzazioniLoading"
+                [minTermLength]="minLengthTerm"
+                [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                [placeholder]="'APP.PLACEHOLDER.SelectOrganization' | translate"
+                bindValue="id_organizzazione"
+                bindLabel="nome"
+                labelForId="id_organizzazione"
+                [editableSearchTerm]="true"
+                formControlName="id_organizzazione"
+                (change)="_checkSoggetto($event)"
+              >
+                <ng-template ng-label-tmp let-item="item">
+                  {{ item.nome }}
+                </ng-template>
+                <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                  <div class="fw-bold">{{ item.nome }}</div>
+                  <div class="">
+                    <span class="small text-muted">{{ item.descrizione }}</span>
+                  </div>
+                </ng-template>
+              </ng-select>
+            }
+            @if (f['id_organizzazione'].invalid && (f['id_organizzazione'].dirty || f['id_organizzazione'].touched)) {
+              <p class="form-text text-danger">
+                @if (f['id_organizzazione'].errors && f['id_organizzazione'].errors['required']) {
+                  <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                }
+              </p>
+            }
+            <small class="form-text text-muted d-block">{{ 'APP.ADESIONI.CREATE.OrganizationHint' | translate }}</small>
+            <ui-input-help field="id_organizzazione" context="ADESIONE"></ui-input-help>
+          </div>
+
+          <!-- Soggetto (mostrato solo se l'organizzazione ha piu` soggetti) -->
+          <div class="form-group id_soggetto mt-3" [hidden]="_hideSoggettoDropdown">
+            <label class="label-bold" for="id_soggetto">{{ 'APP.LABEL.id_soggetto' | translate }}
+              <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_soggetto'"></span>
+            </label>
+            <select class="form-select" id="id_soggetto" formControlName="id_soggetto" [class.gl-field-error-outline]="_hasControlError('id_soggetto')" (change)="_onChangeSoggetto($event)">
+              @for (el of _elencoSoggetti; track el.id_soggetto) {
+                <option [value]="el.id_soggetto">{{ el.nome }}</option>
+              }
+            </select>
+            @if (f['id_soggetto'].invalid && (f['id_soggetto'].dirty || f['id_soggetto'].touched)) {
+              <p class="form-text text-danger">
+                @if (f['id_soggetto'].errors && f['id_soggetto'].errors['required']) {
+                  <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                }
+              </p>
+            }
+            <ui-input-help field="id_soggetto" context="ADESIONE"></ui-input-help>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- CARD 2 — CONTATTI / Ruoli e contatti -->
+      <section class="lnk-phase-section py-0">
+        <header class="lnk-phase-section-hd">
+          <span class="ps-num">2</span>
+          <div class="ps-meta">
+            <span class="ps-tag">{{ 'APP.ADESIONI.CREATE.SectionContactsTag' | translate }}</span>
+            <h3 class="ps-title">{{ 'APP.ADESIONI.CREATE.SectionContactsTitle' | translate }}</h3>
+            <p class="ps-desc">{{ 'APP.ADESIONI.CREATE.SectionContactsDesc' | translate }}</p>
+          </div>
+        </header>
+        <div class="lnk-phase-section-body">
+
+          <!-- Sono il referente dell'adesione -->
+          <div class="form-group referente">
+            <div class="form-check mb-1">
+              <input class="form-check-input" type="checkbox" id="selfReferente" [(ngModel)]="_isSelfReferente" [ngModelOptions]="{standalone: true}">
+              <label class="form-check-label label-bold" for="selfReferente">{{ 'APP.LABEL.referente_self' | translate }}</label>
+            </div>
+
+            @if (!_isSelfReferente) {
+              <label class="label-bold" for="referente">{{ 'APP.LABEL.referente' | translate }}
+                <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'referente'"></span>
+              </label>
+              <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('referente')"
+                [items]="(referenti$ | async) || []"
+                [typeahead]="referentiInput$"
+                [loading]="referentiLoading"
+                [minTermLength]="minLengthTerm"
+                [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                [placeholder]="'APP.PLACEHOLDER.SelectReferente' | translate"
+                bindValue="id_utente"
+                bindLabel="nome_completo"
+                labelForId="referente"
+                [editableSearchTerm]="true"
+                formControlName="referente"
+              >
+                <ng-template ng-label-tmp let-item="item">
+                  {{ item.nome }} {{ item.cognome }}
+                </ng-template>
+                <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                  <div class="fw-bold">{{ item.nome }} {{ item.cognome }}</div>
+                  <div class="">
+                    <span class="small text-muted">{{ item.email_aziendale }}</span>
+                  </div>
+                </ng-template>
+              </ng-select>
+              @if (f['referente'].invalid && (f['referente'].dirty || f['referente'].touched)) {
+                <p class="form-text text-danger">
+                  @if (f['referente'].errors && f['referente'].errors['required']) {
+                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                  }
+                </p>
+              }
+            }
+            <ui-input-help field="referente" context="ADESIONE"></ui-input-help>
+          </div>
+
+          <!-- Referente tecnico -->
+          <div class="form-group referente_tecnico mt-3">
+            <label class="label-bold" for="referente_tecnico">{{ 'APP.LABEL.referente_tecnico' | translate }}
+              <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'referente_tecnico'"></span>
+            </label>
+            <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('referente_tecnico')"
+              [items]="(referentiTecnici$ | async) || []"
+              [typeahead]="referentiTecniciInput$"
+              [loading]="referentiTecniciLoading"
+              [minTermLength]="minLengthTerm"
+              [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+              [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+              [placeholder]="'APP.PLACEHOLDER.SelectReferenteTecnico' | translate"
+              bindValue="id_utente"
+              bindLabel="nome_completo"
+              labelForId="referente_tecnico"
+              [editableSearchTerm]="true"
+              formControlName="referente_tecnico"
+            >
+              <ng-template ng-label-tmp let-item="item">
+                {{ item.nome }} {{ item.cognome }}
+              </ng-template>
+              <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                <div class="fw-bold">{{ item.nome }} {{ item.cognome }}</div>
+                <div class="">
+                  <span class="small text-muted">{{ item.email_aziendale }}</span>
+                </div>
+              </ng-template>
+            </ng-select>
+            <ui-input-help field="referente_tecnico" context="ADESIONE"></ui-input-help>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Footer: hint obbligatori + azioni -->
+      <div class="create-footer d-flex justify-content-between align-items-center gap-3 mt-3">
+        <span class="create-mandatory-hint">
+          <i class="bi bi-info-circle me-1"></i>{{ 'APP.ADESIONI.CREATE.MandatoryHint' | translate }}
+        </span>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn gl-button btn-default" (click)="onCloseCreate()" [disabled]="_spin">
+            {{ 'APP.BUTTON.Cancel' | translate }}
+          </button>
+          <button type="submit" class="btn gl-button btn-confirm" [disabled]="_formGroup.invalid || _spin">
+            @if (_spin) {
+              <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+            }
+            {{ 'APP.ADESIONI.CREATE.Submit' | translate }}
+          </button>
+        </div>
+      </div>
+
+    </form>
+  </div>
+</div>

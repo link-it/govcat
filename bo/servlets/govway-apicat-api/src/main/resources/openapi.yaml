@@ -667,7 +667,7 @@ paths:
       parameters:
       - $ref: "#/components/parameters/referente"
       - $ref: "#/components/parameters/aderente"
-      - $ref: "#/components/parameters/esterna"
+      - $ref: "#/components/parameters/intermediata"
       - $ref: "#/components/parameters/soggetto_aderente"
       - $ref: "#/components/parameters/codice_ente_optional"
       - $ref: "#/components/parameters/codice_fiscale_ente_optional"
@@ -2091,7 +2091,6 @@ paths:
       - $ref: "#/components/parameters/id_soggetto_query_optional"
       - $ref: "#/components/parameters/visibilita_dominio_query_optional"
       - $ref: "#/components/parameters/deprecato_query_optional"
-      - $ref: "#/components/parameters/esterno_query_optional"
       - $ref: "#/components/parameters/q_query_optional"
       - $ref: "#/components/parameters/page_query_optional"
       - $ref: "#/components/parameters/size_query_optional"
@@ -2414,6 +2413,7 @@ paths:
       parameters:
       - $ref: "#/components/parameters/referente_query_optional"
       - $ref: "#/components/parameters/id_dominio_query_optional"
+      - $ref: "#/components/parameters/id_organizzazione_erogatore_query_optional"
       - $ref: "#/components/parameters/id_gruppo_padre_query_optional"
       - $ref: "#/components/parameters/visibilita_servizio_query_optional"
       - $ref: "#/components/parameters/id_api_query_optional"
@@ -8690,8 +8690,8 @@ components:
         - "aderente"
         - "vincola_aderente"
         - "vincola_referente"
-        - "esterna"
-        - "cambio_esterna_consentito"
+        - "intermediata"
+        - "cambio_intermediata_consentito"
       properties:
         id_organizzazione:
           $ref: "#/components/schemas/IdOrganizzazione"
@@ -8715,9 +8715,9 @@ components:
           type: "boolean"
         vincola_aderente:
           type: "boolean"
-        esterna:
+        intermediata:
           type: "boolean"
-        cambio_esterna_consentito:
+        cambio_intermediata_consentito:
           type: "boolean"
     TipoEntitaNotifica:
       type: "string"
@@ -8910,7 +8910,7 @@ components:
           default: false
         multi_soggetto:
           type: boolean
-        esterna:
+        intermediata:
           type: "boolean"
           default: false
     OrganizzazioneCreate:
@@ -8936,7 +8936,7 @@ components:
         aderente:
           type: "boolean"
           default: false
-        esterna:
+        intermediata:
           type: "boolean"
           default: false
     OrganizzazioneUpdate:
@@ -8964,7 +8964,7 @@ components:
         aderente:
           type: "boolean"
           default: false
-        esterna:
+        intermediata:
           type: "boolean"
           default: false
     ClasseUtenteCreate:
@@ -9770,7 +9770,7 @@ components:
             $ref: "#/components/schemas/Dominio"
         fruizione:
           type: boolean
-        soggetto_interno:
+        soggetto_erogatore:
           $ref: "#/components/schemas/ItemSoggetto"
         package:
           type: "boolean"
@@ -9815,7 +9815,7 @@ components:
           $ref: "#/components/schemas/IdDominio"
         fruizione:
           type: boolean
-        id_soggetto_interno:
+        id_soggetto_erogatore:
           $ref: "#/components/schemas/IdSoggetto"
         referenti:
           type: "array"
@@ -9896,7 +9896,7 @@ components:
           $ref: "#/components/schemas/Dominio"
         fruizione:
           type: boolean
-        soggetto_interno:
+        soggetto_erogatore:
           $ref: "#/components/schemas/ItemSoggetto"
         path_gruppo:
           type: array
@@ -9981,7 +9981,7 @@ components:
           type: "boolean"
         fruizione:
           type: boolean
-        id_soggetto_interno:
+        id_soggetto_erogatore:
           $ref: "#/components/schemas/IdSoggetto"
         visibilita:
             $ref: "#/components/schemas/VisibilitaServizioEnum"
@@ -10558,6 +10558,9 @@ components:
         profilo:
           type: "string"
           description: "Codice interno del profilo associato al disclaimer, se il disclaimer e' specifico per un profilo; null altrimenti"
+        nome_gruppo:
+          type: "string"
+          description: "Nome del gruppo eventualmente associato al disclaimer nello yaml di configurazione; null se non specificato"
     AdesioneCreate:
       type: object
       required:
@@ -11425,10 +11428,10 @@ components:
       required: false
       schema:
         type: "boolean"
-    esterna:
-      name: "esterna"
+    intermediata:
+      name: "intermediata"
       in: "query"
-      description: "organizzazione esterna"
+      description: "organizzazione intermediata"
       required: false
       schema:
         type: "boolean"
@@ -11476,13 +11479,13 @@ components:
       required: false
       schema:
         type: boolean
-    esterno_query_optional:
-      name: "esterno"
+    id_organizzazione_erogatore_query_optional:
+      name: "id_organizzazione_erogatore"
       in: "query"
-      description: "Indicazione se il dominio è esterno"
+      description: "Identificativo dell'organizzazione erogatrice. Per le fruizioni filtra sull'ente erogatore indicato sul servizio; per gli altri servizi filtra sull'organizzazione del dominio associato"
       required: false
       schema:
-        type: boolean
+        $ref: "#/components/schemas/IdOrganizzazione"
     ambiente_query_optional:
       name: "ambiente"
       in: "query"

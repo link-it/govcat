@@ -7,7 +7,7 @@
       { "field": "nome", "type": "text" }
     ],
     "secondaryText": [
-      { "field": "stato", "type": "label", "options": "status" }
+      { "field": "stato", "type": "label", "options": "status", "i18nPrefix": "APP.USERS.STATUS" }
     ],
     "metadata": {
       "text": [{ "field": "email_aziendale", "type": "text" }],
@@ -57,8 +57,8 @@
       "label": "APP.ROLE.referente_tecnico",
       "small": true,
       "values": {
-          "default": { "label": "APP.ROLE.referente_tecnico", "background": "#efc96c", "border": "#efc96c", "color": "#1f1f1f" },
-          "true": { "label": "APP.ROLE.referente_tecnico", "background": "#efc96c", "border": "#efc96c", "color": "#1f1f1f" }
+          "default": { "label": "APP.ROLE.referente_tecnico", "chipVariant": "warn", "background": "#efc96c", "border": "#efc96c", "color": "#1f1f1f" },
+          "true": { "label": "APP.ROLE.referente_tecnico", "chipVariant": "warn", "background": "#efc96c", "border": "#efc96c", "color": "#1f1f1f" }
         }
     }
   }

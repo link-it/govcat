@@ -63,8 +63,8 @@ export class ServizioCreate {
 	adesione_disabilitata: boolean = false;
 	
 	id_organizzazione_interna: number | null = null;
-	id_soggetto_interno: number | null = null;
-	soggetto_interno: any = null;
+	id_soggetto_erogatore: number | null = null;
+	soggetto_erogatore: any = null;
 
 	package: boolean = false;
 

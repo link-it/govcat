@@ -87,8 +87,17 @@ export function expandTecnicoGrants(grant: string[]): string[] {
  *
  * `referente_servizio` e' deprecato in favore di `utente_organizzazione`
  * ma viene mantenuto per retrocompatibilita' coi dati legacy.
+ *
+ * Parametro opzionale `module`: quando vale `'adesione'`, i referenti
+ * del servizio e del dominio dell'adesione sono considerati
+ * "superiori" rispetto all'entita` adesione (analogamente a come
+ * il referente_dominio e` superiore al servizio). Vengono quindi
+ * aggiunti `referente_superiore` e `referente_tecnico_superiore`
+ * alle rispettive tech-variant. Cosi` un `referente_servizio`
+ * dell'adesione puo` cambiare stato e modificare i custom properties
+ * come se fosse `referente_superiore`.
  */
-export function expandContextualGrants(grant: string[]): string[] {
+export function expandContextualGrants(grant: string[], module?: string): string[] {
   const out = expandTecnicoGrants(grant);
   if (out.includes(GrantRole.ReferenteAdesione) ||
       out.includes(GrantRole.ReferenteServizio) ||
@@ -100,6 +109,16 @@ export function expandContextualGrants(grant: string[]): string[] {
       out.includes(GrantRole.ReferenteTecnicoServizio) ||
       out.includes(GrantRole.ReferenteTecnicoDominio)) {
     out.push(GrantRole.Referente);
+  }
+  if (module === 'adesione') {
+    if (out.includes(GrantRole.ReferenteServizio) ||
+        out.includes(GrantRole.ReferenteDominio)) {
+      out.push(GrantRole.ReferenteSuperiore);
+    }
+    if (out.includes(GrantRole.ReferenteTecnicoServizio) ||
+        out.includes(GrantRole.ReferenteTecnicoDominio)) {
+      out.push(GrantRole.ReferenteTecnicoSuperiore);
+    }
   }
   return out;
 }

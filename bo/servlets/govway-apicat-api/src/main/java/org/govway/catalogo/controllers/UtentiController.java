@@ -309,7 +309,13 @@ public class UtentiController implements UtentiApi {
 					}
 				}
 
-				CustomPageRequest pageable = new CustomPageRequest(page, size, sort,Arrays.asList("cognome", "nome"));
+				// In dashboard l'ordinamento di default è cronologico decrescente: UtenteEntity non ha
+				// campi data, quindi si usa l'id (sequence) come proxy della data di creazione.
+				// Resta comunque sovrascrivibile da un parametro sort esplicito.
+				List<String> sortDefault = (dashboard != null && dashboard)
+						? Arrays.asList("id,desc")
+						: Arrays.asList("cognome", "nome");
+				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, sortDefault);
 
 				Page<UtenteEntity> findAll = this.service.findAll(spec, pageable);
 

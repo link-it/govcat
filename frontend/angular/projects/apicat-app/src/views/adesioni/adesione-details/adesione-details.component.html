@@ -295,7 +295,14 @@
                       <label class="label-bold" for="id_organizzazione">{{ 'APP.LABEL.id_organizzazione' | translate }} @if (_isEdit) {
                         <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_organizzazione'"></span>
                       }</label>
-                      @if (_isNew  || (_isEdit && _isBozza)) {
+                      @if (_lockedOrgNome) {
+                        <!-- Auto-select dal contesto di sessione:
+                             l'utente non puo` cambiare org, rendering
+                             come input testuale read-only invece di
+                             ng-select (evita problemi di bind del
+                             ng-select disabled). -->
+                        <input type="text" readonly class="form-control" [value]="_lockedOrgNome">
+                      } @else if (_isNew  || (_isEdit && _isBozza)) {
                         <ng-select #ngSelectOrganizazione class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_organizzazione')"
                           [items]="(organizzazioni$ | async) || []"
                           [typeahead]="organizzazioniInput$"

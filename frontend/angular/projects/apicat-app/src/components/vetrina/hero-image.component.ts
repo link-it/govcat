@@ -63,6 +63,7 @@ export type LnkHeroObjectFit = 'cover' | 'contain' | 'fill';
     @if (src) {
       <img [src]="src" [alt]="alt" (error)="imgError.emit($event)"
            [style.object-fit]="objectFit"
+           [style.object-position]="objectPosition"
            style="width:100%;height:100%;display:block;border-radius:inherit;">
     } @else {
       <!-- Placeholder generico: logo project con tinta soft di
@@ -96,6 +97,15 @@ export class HeroImageComponent {
    * Non applicato al placeholder SVG (resta `contain` decorativo).
    */
   @Input() objectFit: LnkHeroObjectFit = 'cover';
+  /**
+   * `object-position` CSS dell'immagine reale: controlla quale
+   * porzione viene mostrata quando `object-fit` causa crop o
+   * bande vuote (rilevante soprattutto con `cover`). Valori
+   * supportati: keyword (`center`, `top`, `bottom`, `left`,
+   * `right`, `top right`, ...) o coppie `<x> <y>` in percentuale
+   * / pixel (es. `50% 25%`). Default `center`.
+   */
+  @Input() objectPosition: string = 'center';
   /** Re-emette l'evento `error` di `<img>` (utile per fallback). */
   @Output() imgError = new EventEmitter<Event>();
 

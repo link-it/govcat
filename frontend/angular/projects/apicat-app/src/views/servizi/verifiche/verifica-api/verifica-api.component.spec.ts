@@ -18,7 +18,7 @@ describe('VerificaApiComponent', () => {
 
   const mockApi = { nome: 'TestApi', versione: 1 };
   const mockService = {
-    soggetto_interno: { nome: 'SoggettoInterno' },
+    soggetto_erogatore: { nome: 'SoggettoInterno' },
     dominio: { soggetto_referente: { nome: 'SoggettoRef' } }
   };
 
@@ -162,11 +162,11 @@ describe('VerificaApiComponent', () => {
   // ========== _getSoggettoNome ==========
 
   it('should return soggetto nome from service for erogazioni', () => {
-    component.service = { soggetto_interno: { nome: 'SoggettoInterno' }, dominio: { soggetto_referente: { nome: 'SoggettoRef' } } };
+    component.service = { soggetto_erogatore: { nome: 'SoggettoInterno' }, dominio: { soggetto_referente: { nome: 'SoggettoRef' } } };
     expect(component._getSoggettoNome('erogazioni')).toBe('SoggettoInterno');
   });
 
-  it('should return soggetto referente when soggetto_interno is missing', () => {
+  it('should return soggetto referente when soggetto_erogatore is missing', () => {
     component.service = { dominio: { soggetto_referente: { nome: 'SoggettoRef' } } };
     expect(component._getSoggettoNome('erogazioni')).toBe('SoggettoRef');
   });
@@ -835,17 +835,17 @@ describe('VerificaApiComponent', () => {
 
   describe('_getSoggettoId', () => {
     it('should return dominio.soggetto_referente.nome for erogazioni', () => {
-      component.service = { dominio: { soggetto_referente: { nome: 'SoggettoRef' } }, soggetto_interno: { nome: 'SoggettoInt' } };
+      component.service = { dominio: { soggetto_referente: { nome: 'SoggettoRef' } }, soggetto_erogatore: { nome: 'SoggettoInt' } };
       expect(component._getSoggettoId('erogazioni')).toBe('SoggettoRef');
     });
 
-    it('should return soggetto_interno.nome for fruizioni', () => {
-      component.service = { dominio: { soggetto_referente: { nome: 'SoggettoRef' } }, soggetto_interno: { nome: 'SoggettoInt' } };
+    it('should return soggetto_erogatore.nome for fruizioni', () => {
+      component.service = { dominio: { soggetto_referente: { nome: 'SoggettoRef' } }, soggetto_erogatore: { nome: 'SoggettoInt' } };
       expect(component._getSoggettoId('fruizioni')).toBe('SoggettoInt');
     });
 
-    it('should return soggetto_interno.nome for any non-erogazioni verifica', () => {
-      component.service = { soggetto_interno: { nome: 'SoggettoInt' } };
+    it('should return soggetto_erogatore.nome for any non-erogazioni verifica', () => {
+      component.service = { soggetto_erogatore: { nome: 'SoggettoInt' } };
       expect(component._getSoggettoId('applicativi')).toBe('SoggettoInt');
     });
 

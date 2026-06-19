@@ -76,7 +76,7 @@ describe('ServizioApiDetailsComponent', () => {
   } as any;
 
   const _safeServiceResponse = {
-    dominio: { nome: 'dom', soggetto_referente: { nome: 'Sogg', organizzazione: { esterna: false } } }
+    dominio: { nome: 'dom', soggetto_referente: { nome: 'Sogg', organizzazione: { intermediata: false } } }
   };
 
   const mockApiService = {
@@ -761,7 +761,7 @@ describe('ServizioApiDetailsComponent', () => {
     it('should call getDetails for grant and service when sid is set', () => {
       component.sid = '42';
       const grantResp = { ruoli: ['admin'] };
-      const serviceResp = { nome: 'Svc', dominio: { soggetto_referente: { nome: 'S1', organizzazione: { esterna: false } } } };
+      const serviceResp = { nome: 'Svc', dominio: { soggetto_referente: { nome: 'S1', organizzazione: { intermediata: false } } } };
       mockApiService.getDetails
         .mockReturnValueOnce(of(grantResp))
         .mockReturnValueOnce(of(serviceResp));
@@ -779,11 +779,11 @@ describe('ServizioApiDetailsComponent', () => {
       expect(initMenuSpy).toHaveBeenCalled();
     });
 
-    it('should set _isDominioEsterno when organizzazione.esterna is true', () => {
+    it('should set _isDominioEsterno when organizzazione.intermediata is true', () => {
       component.sid = '42';
       mockApiService.getDetails
         .mockReturnValueOnce(of({}))
-        .mockReturnValueOnce(of({ dominio: { soggetto_referente: { nome: 'S', organizzazione: { esterna: true } } } }));
+        .mockReturnValueOnce(of({ dominio: { soggetto_referente: { nome: 'S', organizzazione: { intermediata: true } } } }));
       vi.spyOn(component, '_initBreadcrumb').mockImplementation(() => {});
       vi.spyOn(component, '_initRuoli').mockImplementation(() => {});
       vi.spyOn(component, '_initOtherActionMenu').mockImplementation(() => {});
@@ -814,7 +814,7 @@ describe('ServizioApiDetailsComponent', () => {
       component.servizioApi = { id_api: '1' } as any;
       mockApiService.getDetails
         .mockReturnValueOnce(of({}))
-        .mockReturnValueOnce(of({ dominio: { soggetto_referente: { nome: 'S', organizzazione: { esterna: false } } } }));
+        .mockReturnValueOnce(of({ dominio: { soggetto_referente: { nome: 'S', organizzazione: { intermediata: false } } } }));
       vi.spyOn(component, '_initBreadcrumb').mockImplementation(() => {});
       vi.spyOn(component, '_initRuoli').mockImplementation(() => {});
       vi.spyOn(component, '_initOtherActionMenu').mockImplementation(() => {});

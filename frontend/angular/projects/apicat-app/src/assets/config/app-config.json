@@ -56,7 +56,8 @@
     },
 
     "Adesioni": {
-      "showClientDisclaimers": false
+      "showClientDisclaimers": false,
+      "showCreateFasiBar": true
     },
 
     "Profile": {

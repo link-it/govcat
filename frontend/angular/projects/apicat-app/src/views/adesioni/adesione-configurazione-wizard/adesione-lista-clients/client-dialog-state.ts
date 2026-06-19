@@ -317,8 +317,9 @@ export function computeFormConfig(input: ClientDialogInput): FormConfig {
     // editable, a prescindere dallo scenario.
     auth_type: field(authTypeEditable, editableScenario, authTypeEditable),
 
-    // nome: obbligatorio solo in `new`
-    nome: field(showFormBody, editableScenario && isNew, isNew),
+    // nome: editabile sia in `new` sia in `edit`; obbligatorio solo
+    // in `new` (in `edit` arriva gia` valorizzato dal client esistente).
+    nome: field(showFormBody, editableScenario, isNew),
 
     // nome_proposto: visibile e richiesto solo in `proposed`
     nome_proposto: field(isProposed, !isReadonly, true),

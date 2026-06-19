@@ -94,6 +94,7 @@ import org.govway.catalogo.servlets.model.DocumentoUpdateNew;
 import org.govway.catalogo.servlets.model.Dominio;
 import org.govway.catalogo.servlets.model.DominioCreate;
 import org.govway.catalogo.servlets.model.EntitaComplessaError;
+import org.govway.catalogo.servlets.model.Grant;
 import org.govway.catalogo.servlets.model.Gruppo;
 import org.govway.catalogo.servlets.model.GruppoCreate;
 import org.govway.catalogo.servlets.model.ItemAdesione;
@@ -116,6 +117,7 @@ import org.govway.catalogo.servlets.model.ProtocolloEnum;
 import org.govway.catalogo.servlets.model.Referente;
 import org.govway.catalogo.servlets.model.ReferenteCreate;
 import org.govway.catalogo.servlets.model.RuoloAPIEnum;
+import org.govway.catalogo.servlets.model.RuoloOrganizzazioneEnum;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.Servizio;
 import org.govway.catalogo.servlets.model.ServizioCreate;
@@ -283,7 +285,7 @@ public class AdesioniTest {
         CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
         
         OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
-        organizzazione.setEsterna(false);
+        organizzazione.setIntermediata(false);
 
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(organizzazione);
         idOrganizzazione = response.getBody().getIdOrganizzazione();
@@ -357,7 +359,7 @@ public class AdesioniTest {
     		 servizioCreate.setVisibilita(value);
     	 }
     	 
-         servizioCreate.setIdSoggettoInterno(idSoggetto);
+         servizioCreate.setIdSoggettoErogatore(idSoggetto);
 
          servizioCreate.setIdDominio(dominio.getIdDominio());
          
@@ -1986,6 +1988,111 @@ public class AdesioniTest {
     }
 
     @Test
+    void testListAdesioniAmministratoreOrganizzazioneVedeAdesioniDellaSuaOrg() {
+        // Un amministratore di organizzazione (utente non gestore/coordinatore) deve poter
+        // vedere tutte le adesioni della propria organizzazione (lato aderente), anche se
+        // non ne è referente né richiedente.
+
+        // Setup servizio pubblicato
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+
+        // L'adesione è creata dal gestore: referente e richiedente sono il gestore,
+        // NON l'utente org-admin del test.
+        AdesioneCreate adesioneCreate = new AdesioneCreate();
+        adesioneCreate.setIdServizio(idServizio);
+        adesioneCreate.setIdSoggetto(idSoggetto);
+        Adesione adesione = adesioniController.createAdesione(adesioneCreate).getBody();
+
+        // L'utente viene già associato all'organizzazione aderente come OPERATORE_API nel setup.
+        // Come semplice operatore (non referente/richiedente) NON deve vedere l'adesione.
+        CommonUtils.getSessionUtente(UTENTE_RICHIEDENTE_ADESIONE, securityContext, authentication, utenteService);
+        ResponseEntity<PagedModelItemAdesione> responseOperatore = adesioniController.listAdesioni(
+            null, null, null, null, null, null,
+            null, null, null, null, false, null, null, null, null, 0, 10, null);
+        assertEquals(HttpStatus.OK, responseOperatore.getStatusCode());
+        assertNotNull(responseOperatore.getBody());
+        boolean visibileOperatore = responseOperatore.getBody().getContent().stream()
+            .anyMatch(a -> a.getIdAdesione().equals(adesione.getIdAdesione()));
+        assertFalse(visibileOperatore, "Un semplice operatore dell'organizzazione, non referente/richiedente, non deve vedere l'adesione");
+
+        // Promuovo l'utente ad AMMINISTRATORE_ORGANIZZAZIONE dell'organizzazione aderente
+        // (resta utente non gestore/coordinatore).
+        UtenteUpdate upAmministratore = new UtenteUpdate();
+        upAmministratore.setPrincipal(UTENTE_RICHIEDENTE_ADESIONE);
+        CommonUtils.setOrganizzazione(upAmministratore, idOrganizzazione, RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+        upAmministratore.setStato(StatoUtenteEnum.ABILITATO);
+        upAmministratore.setEmailAziendale("mail@aziendale.it");
+        upAmministratore.setTelefonoAziendale("+39 0000000");
+        upAmministratore.setNome("utente");
+        upAmministratore.setCognome("richiedente_adesione");
+        upAmministratore.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+        utentiController.updateUtente(ID_UTENTE_RICHIEDENTE_ADESIONE, upAmministratore);
+
+        // Passo la sessione all'amministratore di organizzazione
+        CommonUtils.getSessionUtente(UTENTE_RICHIEDENTE_ADESIONE, securityContext, authentication, utenteService);
+        ResponseEntity<PagedModelItemAdesione> responseAmministratore = adesioniController.listAdesioni(
+            null, null, null, null, null, null,
+            null, null, null, null, false, null, null, null, null, 0, 10, null);
+        assertEquals(HttpStatus.OK, responseAmministratore.getStatusCode());
+        assertNotNull(responseAmministratore.getBody());
+        boolean visibileAmministratore = responseAmministratore.getBody().getContent().stream()
+            .anyMatch(a -> a.getIdAdesione().equals(adesione.getIdAdesione()));
+        assertTrue(visibileAmministratore, "L'amministratore di organizzazione deve vedere le adesioni della propria organizzazione anche senza esserne referente/richiedente");
+    }
+
+    @Test
+    void testGetGrantEGetAdesioneAmministratoreOrganizzazione() {
+        // L'amministratore di organizzazione deve poter consultare (grant + dettaglio) un'adesione
+        // della propria organizzazione anche senza esserne referente/richiedente; un semplice
+        // operatore non referente/richiedente, invece, non vi accede (404).
+
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+
+        // Adesione creata dal gestore: l'utente del test non ne è referente/richiedente.
+        AdesioneCreate adesioneCreate = new AdesioneCreate();
+        adesioneCreate.setIdServizio(idServizio);
+        adesioneCreate.setIdSoggetto(idSoggetto);
+        Adesione adesione = adesioniController.createAdesione(adesioneCreate).getBody();
+        UUID idAdesione = adesione.getIdAdesione();
+
+        // Come semplice OPERATORE_API (associato nel setup) non referente/richiedente: 404 su grant e dettaglio.
+        CommonUtils.getSessionUtente(UTENTE_RICHIEDENTE_ADESIONE, securityContext, authentication, utenteService);
+        assertThrows(NotFoundException.class, () -> adesioniController.getGrantAdesione(idAdesione));
+        assertThrows(NotFoundException.class, () -> adesioniController.getAdesione(idAdesione));
+
+        // Promuovo l'utente ad AMMINISTRATORE_ORGANIZZAZIONE dell'organizzazione aderente.
+        UtenteUpdate upAmministratore = new UtenteUpdate();
+        upAmministratore.setPrincipal(UTENTE_RICHIEDENTE_ADESIONE);
+        CommonUtils.setOrganizzazione(upAmministratore, idOrganizzazione, RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+        upAmministratore.setStato(StatoUtenteEnum.ABILITATO);
+        upAmministratore.setEmailAziendale("mail@aziendale.it");
+        upAmministratore.setTelefonoAziendale("+39 0000000");
+        upAmministratore.setNome("utente");
+        upAmministratore.setCognome("richiedente_adesione");
+        upAmministratore.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+        utentiController.updateUtente(ID_UTENTE_RICHIEDENTE_ADESIONE, upAmministratore);
+
+        // Da amministratore di organizzazione: grant e dettaglio sono accessibili.
+        CommonUtils.getSessionUtente(UTENTE_RICHIEDENTE_ADESIONE, securityContext, authentication, utenteService);
+        ResponseEntity<Grant> grantResponse = adesioniController.getGrantAdesione(idAdesione);
+        assertEquals(HttpStatus.OK, grantResponse.getStatusCode());
+        assertNotNull(grantResponse.getBody());
+
+        ResponseEntity<Adesione> adesioneResponse = adesioniController.getAdesione(idAdesione);
+        assertEquals(HttpStatus.OK, adesioneResponse.getStatusCode());
+        assertNotNull(adesioneResponse.getBody());
+        assertEquals(idAdesione, adesioneResponse.getBody().getIdAdesione());
+    }
+
+    @Test
     void testListClientCollaudoAdesioneSuccess() {
         // Setup
         Dominio dominio = this.getDominio(null);
@@ -2632,7 +2739,7 @@ public class AdesioniTest {
         CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
         
         OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
-        organizzazione.setEsterna(false);
+        organizzazione.setIntermediata(false);
 
         response = organizzazioniController.createOrganizzazione(organizzazione);
         this.setIdOrganizazione(response.getBody().getIdOrganizzazione());
@@ -2778,7 +2885,7 @@ public class AdesioniTest {
     		 servizioCreate.setVisibilita(value);
     	 }
     	 
-         servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+         servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
 
          servizioCreate.setIdDominio(dominio.getIdDominio());
          
@@ -6194,7 +6301,7 @@ public class AdesioniTest {
     		servizioCreate.setVisibilita(value);
     	}
     	servizioCreate.setMultiAdesione(true);
-    	servizioCreate.setIdSoggettoInterno(idSoggetto);
+    	servizioCreate.setIdSoggettoErogatore(idSoggetto);
 
     	servizioCreate.setIdDominio(dominio.getIdDominio());
 

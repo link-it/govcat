@@ -37,8 +37,10 @@ import { AuthenticationService } from '@app/services/authentication.service';
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
 import * as _ from 'lodash';
-import { HasPermissionDirective } from '@app/directives/has-permission/has-permission.directive';
 import { TrimOnBlurDirective } from '@app/directives/trim-on-blur/trim-on-blur.directive';
+import { UtenteOrganizzazioneDialogComponent, UtenteOrganizzazioneDialogMode } from '@app/views/organizzazioni/organizzazione-details/organizzazione-utenti-list/utente-organizzazione-dialog.component';
+import { RuoloOrganizzazioneEnum } from '@app/model/ruoloOrganizzazioneEnum';
+import { StatoChipComponent } from '@app/components/vetrina';
 
 @Component({
   selector: 'app-utente-details',
@@ -49,9 +51,9 @@ import { TrimOnBlurDirective } from '@app/directives/trim-on-blur/trim-on-blur.d
     CommonModule,
     ...COMPONENTS_IMPORTS,
     ...APP_COMPONENTS_IMPORTS,
-    HasPermissionDirective,
     TrimOnBlurDirective,
-    MarkdownModule
+    MarkdownModule,
+    StatoChipComponent
   ]
 })
 export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentChecked {
@@ -122,6 +124,14 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
   selectedOrganizzazione: any;
 
   _fromDashboard: boolean = false;
+  /** Membership evolutiva 2026-06-11: la rotta
+   *  `organizzazione-manage/:id/utenti/:uid` viene risolta dal
+   *  router con `data.fromOrgManage = true` e param `uid`.
+   *  Adattiamo breadcrumb e back per tornare alla tab
+   *  `utenti_pending` dell'org-manage. */
+  _fromOrgManage: boolean = false;
+  _fromOrgManageIdOrg: string = '';
+  _fromOrgManageTab: string = 'utenti_pending';
   _dashboardSection: string = '';
 
   minLengthTerm = 1;
@@ -163,6 +173,97 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
   get _canChooseApprovingRole(): boolean {
     return this.authenticationService.isGestore()
       || this.authenticationService.isCoordinatore();
+  }
+
+  /** True se l'utente loggato puo` modificare il dettaglio
+   *  dell'utente in pagina. Gestore/Coordinatore via permesso
+   *  globale `utenti.edit`; AMM_ORG quando agisce dalla pagina
+   *  di approvazione in `organizzazione-manage` (flag
+   *  `_fromOrgManage` → la rotta e` gia` gated dal contesto
+   *  org-manage). */
+  get _canEditUser(): boolean {
+    if (this._fromOrgManage) { return true; }
+    return this.authenticationService.hasPermission('utenti', 'edit');
+  }
+
+  /** Esposto al template: true se l'utente loggato e` gestore.
+   *  Usato per gating UI di hint/help text riservati al gestore. */
+  get _isGestore(): boolean {
+    return this.authenticationService.isGestore();
+  }
+
+  /** Righe della tabella "Organizzazioni" dell'utente.
+   *  Combina:
+   *   - `utente.organizzazioni`: associazioni approvate (con ruolo);
+   *   - `utente.organizzazione_pending`: richiesta non ancora
+   *     approvata (mostrata in coda con flag `_pending: true` e
+   *     senza ruolo — l'approvazione avviene dalla card sopra,
+   *     non da questa tabella).
+   *  Dedup per `id_organizzazione`: se la pending coincide con
+   *  un'org gia` associata (caso limite), non la duplichiamo. */
+  get _orgRows(): any[] {
+    const approved = this.utente?.organizzazioni || [];
+    const pending = this.utente?.organizzazione_pending;
+    if (!pending?.id_organizzazione) { return approved; }
+    const already = approved.some((uo: any) =>
+      String(uo?.organizzazione?.id_organizzazione) === String(pending.id_organizzazione)
+    );
+    if (already) { return approved; }
+    return [
+      ...approved,
+      { organizzazione: pending, ruolo_organizzazione: null, _pending: true }
+    ];
+  }
+
+  /** True se la riga della tabella "Organizzazioni" e` editabile:
+   *  siamo nel contesto AMM_ORG (`_fromOrgManage`) E la riga
+   *  riguarda l'organizzazione che stiamo gestendo (l'AMM_ORG puo`
+   *  cambiare il ruolo solo nella propria org). Combinato con
+   *  `_isEdit` nel template per nascondere la matita in view. */
+  _canEditOrgRuolo(uo: any): boolean {
+    const rowOrgId = uo?.organizzazione?.id_organizzazione;
+    if (rowOrgId == null) { return false; }
+    // Determina l'org gestita: prefer state interno gia` popolato
+    // dal subscribe (`_fromOrgManageIdOrg`), con fallback diretto
+    // sullo snapshot della rotta (`route.snapshot.params['id']`)
+    // per coprire eventuali race condition con il subscribe a
+    // `route.data`/`route.params`.
+    const fromState = this._fromOrgManage ? this._fromOrgManageIdOrg : '';
+    const fromRoute = this.route.snapshot?.data?.['fromOrgManage']
+      ? this.route.snapshot?.params?.['id']
+      : '';
+    const managedOrgId = fromState || fromRoute;
+    if (!managedOrgId) { return false; }
+    return String(rowOrgId) === String(managedOrgId);
+  }
+
+  /** Apre la dialog di cambio ruolo (riusata da
+   *  `organizzazione-manage.openEdit`) per la riga
+   *  dell'organizzazione corrente. Al successo invoca
+   *  `PUT /organizzazioni/<orgId>/utenti/<utenteId>` con il
+   *  nuovo `ruolo_organizzazione`, poi ricarica l'utente per
+   *  aggiornare la tabella. */
+  openEditOrgRuolo(uo: any): void {
+    if (!this._canEditOrgRuolo(uo) || !this.id) { return; }
+    const idOrg = this._fromOrgManageIdOrg;
+    const ref = this.modalService.show(UtenteOrganizzazioneDialogComponent, {
+      ignoreBackdropClick: true,
+      initialState: {
+        mode: 'edit' as UtenteOrganizzazioneDialogMode,
+        title: 'APP.UTENTI_ORG.TITLE.Edit',
+        utente: { ...uo, id_utente: this.id, nome: this.utente?.nome, cognome: this.utente?.cognome },
+        ruolo: (uo?.ruolo_organizzazione ?? null) as RuoloOrganizzazioneEnum | null,
+        presetIdOrganizzazione: idOrg,
+        presetNomeOrganizzazione: uo?.organizzazione?.nome ?? null
+      }
+    });
+    ref.content?.onClose.subscribe((payload: { id_utente: string; ruolo_organizzazione: RuoloOrganizzazioneEnum | null } | null) => {
+      if (!payload) { return; }
+      this.apiService.putElementRelated('organizzazioni', idOrg, `utenti/${this.id}`, { ruolo_organizzazione: payload.ruolo_organizzazione }).subscribe({
+        next: () => this._loadAll(),
+        error: (err: any) => Tools.OnError(err)
+      });
+    });
   }
 
   /** True quando il BE ha popolato `organizzazione_partenza` o, in
@@ -217,9 +318,21 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
       ? baseRoles
       : baseRoles.filter(r => r !== Ruolo.COORDINATORE);
 
+    // Origine `fromOrgManage` (membership evolutiva): segnalata via
+    // `route.data` dalla rotta `organizzazione-manage/:id/utenti/:uid`.
+    // Il param org-id e` `params['id']` (parent) e l'utente-id e`
+    // `params['uid']` (child).
+    this.route.data.subscribe(d => {
+      if (d?.['fromOrgManage']) { this._fromOrgManage = true; }
+    });
+
     this.route.params.subscribe(params => {
-      if (params['id'] && params['id'] !== 'new') {
-        this.id = params['id'];
+      if (this._fromOrgManage) {
+        this._fromOrgManageIdOrg = params['id'] || '';
+      }
+      const utenteId = this._fromOrgManage ? params['uid'] : params['id'];
+      if (utenteId && utenteId !== 'new') {
+        this.id = utenteId;
         this._isDetails = true;
         this.configService.getConfig(this.model).subscribe(
           (config: any) => {
@@ -253,6 +366,10 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
       if (val.from === 'dashboard') {
         this._fromDashboard = true;
         this._dashboardSection = val.section || '';
+        this._initBreadcrumb();
+      }
+      if (this._fromOrgManage && val.tab) {
+        this._fromOrgManageTab = val.tab;
         this._initBreadcrumb();
       }
     });
@@ -565,7 +682,19 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
   _initBreadcrumb() {
     const _title = this.utente ? `${this.utente.nome} ${this.utente.cognome}` : this.translate.instant('APP.TITLE.New');
-    if (this._fromDashboard) {
+    if (this._fromOrgManage && this._fromOrgManageIdOrg) {
+      // Membership evolutiva: Gestione organizzazione →
+      //   (lista utenti in attesa) → <utente>
+      this.breadcrumbs = [
+        {
+          label: 'APP.ORGANIZATION_MANAGE.Title',
+          url: `/organizzazione-manage/${this._fromOrgManageIdOrg}`,
+          type: 'link',
+          params: { tab: this._fromOrgManageTab }
+        },
+        { label: `${_title}`, url: '', type: 'title' }
+      ];
+    } else if (this._fromDashboard) {
       const _dashboardParams = this._dashboardSection ? { section: this._dashboardSection } : null;
       this.breadcrumbs = [
         { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2', params: _dashboardParams },

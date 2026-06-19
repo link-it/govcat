@@ -73,9 +73,11 @@ public class OrganizzazioneService extends AbstractService {
 	}
 
 	public void save(OrganizzazioneEntity organization) {
-		if(organization.isAderente() || organization.isReferente()) {
+		// Anche le organizzazioni intermediate hanno un soggetto creato automaticamente
+		// (necessario come ente erogatore), ma senza ruoli referente/aderente.
+		if(organization.isAderente() || organization.isReferente() || organization.isIntermediata()) {
 
-			this.logger.debug("Organizzazione aderente["+organization.isAderente()+"] referente["+organization.isReferente()+"]");
+			this.logger.debug("Organizzazione aderente["+organization.isAderente()+"] referente["+organization.isReferente()+"] intermediata["+organization.isIntermediata()+"]");
 
 			String customCamelCase = customCamelCase(organization.getNome(), true);
 

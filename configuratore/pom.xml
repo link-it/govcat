@@ -48,9 +48,14 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 		</dependency>
+		<!-- Binding SLF4J usato solo per i test del configuratore: scope test
+		     per non propagarlo ai consumatori (govcat-api, govcat-batch), che
+		     forniscono gia` log4j-slf4j2-impl. Un secondo binding nel classpath
+		     dirotterebbe i log applicativi fuori da Log4j2. -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-simple</artifactId>
+			<scope>test</scope>
 		</dependency>
 
 		<!-- JUnit Jupiter API -->

@@ -129,7 +129,7 @@ public class ServizioImmagineTest {
 
 	private Dominio getDominio() {
 		OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
-		organizzazione.setEsterna(false);
+		organizzazione.setIntermediata(false);
 
 		response = organizzazioniController.createOrganizzazione(organizzazione);
 		assertNotNull(response.getBody().getIdOrganizzazione());
@@ -162,7 +162,7 @@ public class ServizioImmagineTest {
 		Dominio dominio = this.getDominio();
 		ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
 		servizioCreate.setSkipCollaudo(true);
-		servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+		servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
 		servizioCreate.setIdDominio(dominio.getIdDominio());
 
 		if (immagine.getContent() != null) {
@@ -209,7 +209,7 @@ public class ServizioImmagineTest {
 		identificativo.setNome("Nome Aggiornato Con Immagine");
 		identificativo.setVersione("2");
 		identificativo.setIdDominio(idDominio);
-		identificativo.setIdSoggettoInterno(idSoggetto);
+		identificativo.setIdSoggettoErogatore(idSoggetto);
 		identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
 		identificativo.setAdesioneDisabilitata(false);
 		identificativo.setMultiAdesione(true);

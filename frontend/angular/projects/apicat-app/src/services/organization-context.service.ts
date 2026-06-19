@@ -145,7 +145,7 @@ export class OrganizationContextService {
                     descrizione: legacy.descrizione,
                     aderente: legacy.aderente,
                     referente: legacy.referente,
-                    esterna: legacy.esterna
+                    intermediata: legacy.intermediata ?? legacy.esterna
                 },
                 ruolo_organizzazione: null
             });

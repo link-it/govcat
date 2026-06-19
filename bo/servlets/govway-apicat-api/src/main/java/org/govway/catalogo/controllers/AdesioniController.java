@@ -66,6 +66,7 @@ import org.govway.catalogo.core.orm.entity.MessaggioAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.NotificaEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteAdesioneEntity;
+import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.StatoAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
@@ -284,7 +285,21 @@ public class AdesioniController implements AdesioniApi {
 	}
 
 	private AdesioneEntity findOne(UUID idAdesione) {
-		
+		return findOne(idAdesione, false);
+	}
+
+	/**
+	 * Variante di {@link #findOne(UUID)} per le operazioni di sola consultazione (endpoint GET):
+	 * un amministratore di organizzazione può consultare tutte le adesioni della/e propria/e
+	 * organizzazione/i (lato aderente), anche senza esserne referente o richiedente.
+	 * Non va usata per le operazioni di scrittura, la cui autorizzazione resta invariata.
+	 */
+	private AdesioneEntity findOneConsultazione(UUID idAdesione) {
+		return findOne(idAdesione, true);
+	}
+
+	private AdesioneEntity findOne(UUID idAdesione, boolean visibilitaAmministratoreOrganizzazione) {
+
 		UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
 		
 		if(utente == null) {
@@ -294,6 +309,9 @@ public class AdesioniController implements AdesioniApi {
 		
 		if(!this.coreAuthorization.isAdmin()) {
 			aspec.setUtente(Optional.of(utente));
+			if(visibilitaAmministratoreOrganizzazione) {
+				aspec.setIdOrganizzazioniAmministrate(getIdOrganizzazioniAmministrate(utente));
+			}
 		}
 
 		aspec.setIdAdesioni(List.of(idAdesione));
@@ -538,7 +556,7 @@ public class AdesioniController implements AdesioniApi {
 
 			return this.service.runTransaction( () -> {
 
-				findOne(idAdesione);
+				findOneConsultazione(idAdesione);
 
 				MessaggioAdesioneEntity messaggio = this.service.findMessaggioAdesione(idAdesione.toString(), idMessaggio.toString())
 						.stream()
@@ -569,7 +587,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction( () -> {
 
 			this.logger.info("Invocazione in corso ...");    
-			AdesioneEntity entity = findOne(idAdesione);
+			AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 			this.logger.debug("Autorizzazione completata con successo");     
 
@@ -597,7 +615,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ..."); 
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 				this.logger.debug("Autorizzazione completata con successo");     
 				
 				if(!this.configurazione.getAdesione().getStatiSchedaAdesione().contains(entity.getStato())) {
@@ -644,7 +662,7 @@ public class AdesioniController implements AdesioniApi {
 
 				this.logger.info("Invocazione in corso ..."); 
 				
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -677,7 +695,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ..."); 
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -711,7 +729,7 @@ public class AdesioniController implements AdesioniApi {
 
 				this.logger.info("Invocazione in corso ...");  
 				
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -783,6 +801,11 @@ public class AdesioniController implements AdesioniApi {
 
 			return this.service.runTransaction( () -> {
 
+				// Marcatore comune per recuperare tutti i log di performance via grep, es:
+				//   grep 'PERF_LIST_ADESIONI' <logfile>   (oppure 'PERF_' per tutte le API strumentate)
+				final String perf = "PERF_LIST_ADESIONI";
+				final long perfInizioTotale = System.currentTimeMillis();
+
 				AdesioneSpecification specification = new AdesioneSpecification();
 				specification.setStatoConfigurazione(Optional.ofNullable(statoConfigurazioneAutomatica).map(s -> {
 					switch(s) {
@@ -811,7 +834,11 @@ public class AdesioniController implements AdesioniApi {
 				boolean admin = this.coreAuthorization.isAdmin() || this.coreAuthorization.isCoordinatore();
 
 				if(!admin) {
-					specification.setUtente(Optional.of(this.coreAuthorization.getUtenteSessione()));
+					UtenteEntity utenteSessione = this.coreAuthorization.getUtenteSessione();
+					specification.setUtente(Optional.of(utenteSessione));
+					// Un amministratore di organizzazione vede tutte le adesioni della/e propria/e
+					// organizzazione/i (lato aderente), anche senza esserne referente o richiedente.
+					specification.setIdOrganizzazioniAmministrate(getIdOrganizzazioniAmministrate(utenteSessione));
 				}
 
 				specification.setStati(stato);
@@ -944,12 +971,26 @@ public class AdesioniController implements AdesioniApi {
 					realSpecification = specification;
 				}
 
-				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("searchTerms"));
+				// In dashboard l'ordinamento di default è cronologico decrescente per data di creazione
+				// (sempre valorizzata e portabile tra DB), resta sovrascrivibile da un sort esplicito.
+				List<String> sortDefault = (dashboard != null && dashboard)
+						? Arrays.asList("dataCreazione,desc")
+						: Arrays.asList("searchTerms");
+				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, sortDefault);
 
+				// --- Fase 1: query su DB ---
+				this.logger.info("{} - inizio query DB findAll adesioni", perf);
+				final long perfInizioQuery = System.currentTimeMillis();
 				Page<AdesioneEntity> findAll = this.service.findAll(
 						realSpecification,
 						pageable
 						);
+				final long perfDurataQuery = System.currentTimeMillis() - perfInizioQuery;
+				this.logger.info("{} - fine query DB findAll adesioni: estratti {} elementi (totale {}) in {} ms", perf, findAll.getNumberOfElements(), findAll.getTotalElements(), perfDurataQuery);
+
+				// --- Fase 2: elaborazione applicativa (assembler + popolamento ruoli_referente) ---
+				this.logger.info("{} - inizio elaborazione applicativa (assembler + ruoli_referente) su {} elementi", perf, findAll.getNumberOfElements());
+				final long perfInizioApplicativa = System.currentTimeMillis();
 
 				Link link = Link.of(ServletUriComponentsBuilder.fromCurrentRequest().build().toUriString(), IanaLinkRelations.SELF);
 
@@ -1014,6 +1055,12 @@ public class AdesioniController implements AdesioniApi {
 
 				list.add(lst.getLinks());
 				list.setPage(new PageMetadata().size((long)findAll.getSize()).number((long)findAll.getNumber()).totalElements(findAll.getTotalElements()).totalPages((long)findAll.getTotalPages()));
+
+				final long perfDurataApplicativa = System.currentTimeMillis() - perfInizioApplicativa;
+				this.logger.info("{} - fine elaborazione applicativa in {} ms", perf, perfDurataApplicativa);
+
+				final long perfDurataTotale = System.currentTimeMillis() - perfInizioTotale;
+				this.logger.info("{} - riepilogo tempi: query DB {} ms, elaborazione applicativa {} ms, totale {} ms", perf, perfDurataQuery, perfDurataApplicativa, perfDurataTotale);
 
 				this.logger.info("Invocazione completata con successo");
 				return ResponseEntity.ok(list);
@@ -1109,7 +1156,7 @@ public class AdesioniController implements AdesioniApi {
 
 				this.logger.info("Invocazione in corso ...");  
 				
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -1141,7 +1188,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ...");     
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				List<ClientAdesioneEntity> lst = entity.getClient().stream()
@@ -1175,7 +1222,7 @@ public class AdesioniController implements AdesioniApi {
 
 				this.logger.info("Invocazione in corso ..."); 
 				
-				findOne(idAdesione);
+				findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -1224,7 +1271,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction(() -> {
 				this.logger.info("Invocazione in corso ...");     
 	
-				findOne(idAdesione);
+				findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");     
 	
@@ -1587,7 +1634,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ...");     
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");     
 				DocumentoEntity allegato = null;
@@ -1630,7 +1677,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ...");   
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");     
 				DocumentoEntity allegato = null;
@@ -1839,7 +1886,7 @@ public class AdesioniController implements AdesioniApi {
 
 				this.logger.info("Invocazione in corso ...");    
 				
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -1866,7 +1913,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ...");
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");
 
@@ -1899,7 +1946,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ...");
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");
 
@@ -2201,7 +2248,7 @@ public class AdesioniController implements AdesioniApi {
 
 			return this.service.runTransaction( () -> {
 
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				List<EstensioneAdesioneEntity> lst = entity.getEstensioni().stream()
 						.filter(c -> c.getDocumento()!= null && c.getDocumento().getUuid().equals(idAllegato.toString()))
@@ -2236,7 +2283,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ...");     
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				CheckDati checkDatiGenerale = new CheckDati();
@@ -2352,6 +2399,26 @@ public class AdesioniController implements AdesioniApi {
 	}
 
 	/**
+	 * Restituisce gli identificativi delle organizzazioni di cui l'utente è amministratore
+	 * (ruolo {@link RuoloOrganizzazione#AMMINISTRATORE_ORGANIZZAZIONE}). Usato per ampliare la
+	 * visibilità in elenco adesioni: l'amministratore vede tutte le adesioni della propria
+	 * organizzazione (lato aderente) anche senza esserne referente o richiedente.
+	 */
+	private List<UUID> getIdOrganizzazioniAmministrate(UtenteEntity utente) {
+		List<UUID> ids = new ArrayList<>();
+		if (utente == null) {
+			return ids;
+		}
+		for (UtenteOrganizzazioneEntity assoc : this.organizzazioneService.findUtenteOrganizzazioniByUtente(utente)) {
+			if (assoc.getRuoloOrganizzazione() == RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE
+					&& assoc.getOrganizzazione() != null) {
+				ids.add(UUID.fromString(assoc.getOrganizzazione().getIdOrganizzazione()));
+			}
+		}
+		return ids;
+	}
+
+	/**
 	 * Aggiunge alla lista dei ruoli il ruolo per-organizzazione dell'utente sull'organizzazione
 	 * indicata (se presente). Se l'utente non ha un'associazione con l'organizzazione, oppure
 	 * l'associazione ha ruolo null (nessun ruolo / sola lettura), non aggiunge nulla.
@@ -2407,7 +2474,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction(() -> {
 
 				this.logger.info("Invocazione in corso ...");
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");
 
@@ -2442,6 +2509,11 @@ public class AdesioniController implements AdesioniApi {
 						Map.of("orgNome", organizzazione.getNome(),
 								"userIdUtente", ref.getReferente().getIdUtente()));
 			}
+			if (!this.organizzazioneService.hasRuoloInOrganizzazione(ref.getReferente(), organizzazione, RuoloOrganizzazione.OPERATORE_API, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
+				throw new NotAuthorizedException(ErrorCode.AUT_403_REFERENT_NO_ROLE,
+						Map.of("orgNome", organizzazione.getNome(),
+								"userIdUtente", ref.getReferente().getIdUtente()));
+			}
 		}
 	}
 
@@ -2456,6 +2528,11 @@ public class AdesioniController implements AdesioniApi {
 		OrganizzazioneEntity organizzazione = referenteEntity.getAdesione().getSoggetto().getOrganizzazione();
 		if (!this.organizzazioneService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
 			throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING,
+					Map.of("orgNome", organizzazione.getNome(),
+							"userIdUtente", referenteEntity.getReferente().getIdUtente()));
+		}
+		if (!this.organizzazioneService.hasRuoloInOrganizzazione(referenteEntity.getReferente(), organizzazione, RuoloOrganizzazione.OPERATORE_API, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
+			throw new NotAuthorizedException(ErrorCode.AUT_403_REFERENT_NO_ROLE,
 					Map.of("orgNome", organizzazione.getNome(),
 							"userIdUtente", referenteEntity.getReferente().getIdUtente()));
 		}

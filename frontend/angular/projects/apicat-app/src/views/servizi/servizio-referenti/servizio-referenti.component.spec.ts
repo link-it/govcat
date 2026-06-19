@@ -443,7 +443,7 @@ describe('ServizioReferentiComponent', () => {
         nome: 'Svc', versione: '1', stato: 'pubblicato',
         dominio: {
           soggetto_referente: {
-            organizzazione: { esterna: true, id_organizzazione: 'org-123' }
+            organizzazione: { intermediata: true, id_organizzazione: 'org-123' }
           }
         }
       };
@@ -461,7 +461,7 @@ describe('ServizioReferentiComponent', () => {
       expect(mockDom).toHaveBeenCalled();
     });
 
-    it('should set _isDominioEsterno=false when dominio has no esterna', () => {
+    it('should set _isDominioEsterno=false when dominio has no intermediata', () => {
       mockConfigService.getConfig.mockReturnValue(of({}));
       component.service = { nome: 'Svc', versione: '1', stato: 'ok', dominio: {} };
       (component as any)._loadServizioReferenti = vi.fn();
@@ -712,7 +712,7 @@ describe('ServizioReferentiComponent', () => {
         dominio: {
           id_dominio: 'dom1',
           soggetto_referente: {
-            organizzazione: { esterna: true, id_organizzazione: 'ext-1' }
+            organizzazione: { intermediata: true, id_organizzazione: 'ext-1' }
           }
         }
       };
@@ -809,7 +809,7 @@ describe('ServizioReferentiComponent', () => {
       expect(component._updateMapper).toBeTruthy();
     });
 
-    it('should set _isDominioEsterno=false when org has no esterna property', () => {
+    it('should set _isDominioEsterno=false when org has no intermediata property', () => {
       const mockService = { nome: 'S', versione: '1', stato: 'ok', dominio: { id_dominio: 'dom1' } };
       mockApiService.getDetails
         .mockReturnValueOnce(of({}))
@@ -2168,13 +2168,13 @@ describe('ServizioReferentiComponent', () => {
   // === Integration: _loadServizio chain ===
 
   describe('_loadServizio integration', () => {
-    it('should handle dominio with esterna=false', () => {
+    it('should handle dominio with intermediata=false', () => {
       const mockService = {
         nome: 'Svc', versione: '1', stato: 'ok',
         dominio: {
           id_dominio: 'dom1',
           soggetto_referente: {
-            organizzazione: { esterna: false, id_organizzazione: 'org1' }
+            organizzazione: { intermediata: false, id_organizzazione: 'org1' }
           }
         }
       };

@@ -135,5 +135,70 @@ public class NotificheUtilsTest {
 
         assertEquals(0, notifiche.size());
     }
+
+    @Test
+    void testMittenteEsclusoAncheSeIstanzaDiversa() {
+        // Mittente e destinatario sono lo stesso utente logico (stesso idUtente)
+        // ma istanze Java diverse: il mittente deve comunque essere escluso.
+        UtenteEntity mittente = new UtenteEntity();
+        mittente.setStato(UtenteEntity.Stato.ABILITATO);
+        mittente.setIdUtente("utente-1");
+        mittente.setPrincipal("mittente");
+
+        UtenteEntity richiedente = new UtenteEntity();
+        richiedente.setStato(UtenteEntity.Stato.ABILITATO);
+        richiedente.setIdUtente("utente-1");
+        richiedente.setPrincipal("richiedente-altra-istanza");
+
+        StatoServizioEntity stato = new StatoServizioEntity();
+        stato.setUuid(UUID.randomUUID().toString());
+        stato.setData(new Date());
+        stato.setStato("APPROVATO");
+
+        ServizioEntity servizio = new ServizioEntity();
+        servizio.setRichiedente(richiedente);
+        servizio.setUtenteUltimaModifica(mittente);
+        servizio.setStati(Collections.singleton(stato));
+        servizio.setReferenti(Collections.emptySet());
+        servizio.setDominio(new DominioEntity());
+        servizio.getDominio().setReferenti(Collections.emptySet());
+
+        List<NotificaEntity> notifiche = notificheUtils.getNotificheCambioStatoServizio(servizio);
+
+        assertEquals(0, notifiche.size());
+    }
+
+    @Test
+    void testDestinatarioDiversoDalMittenteRiceveNotifica() {
+        // Controllo che l'esclusione non sia troppo aggressiva: un utente diverso
+        // dal mittente deve continuare a ricevere le notifiche (push + email).
+        UtenteEntity mittente = new UtenteEntity();
+        mittente.setStato(UtenteEntity.Stato.ABILITATO);
+        mittente.setIdUtente("utente-1");
+        mittente.setPrincipal("mittente");
+
+        UtenteEntity richiedente = new UtenteEntity();
+        richiedente.setStato(UtenteEntity.Stato.ABILITATO);
+        richiedente.setIdUtente("utente-2");
+        richiedente.setPrincipal("richiedente");
+
+        StatoServizioEntity stato = new StatoServizioEntity();
+        stato.setUuid(UUID.randomUUID().toString());
+        stato.setData(new Date());
+        stato.setStato("APPROVATO");
+
+        ServizioEntity servizio = new ServizioEntity();
+        servizio.setRichiedente(richiedente);
+        servizio.setUtenteUltimaModifica(mittente);
+        servizio.setStati(Collections.singleton(stato));
+        servizio.setReferenti(Collections.emptySet());
+        servizio.setDominio(new DominioEntity());
+        servizio.getDominio().setReferenti(Collections.emptySet());
+
+        List<NotificaEntity> notifiche = notificheUtils.getNotificheCambioStatoServizio(servizio);
+
+        // Una notifica push (CAMBIO_STATO) e una email (CAMBIO_STATO_EMAIL)
+        assertEquals(2, notifiche.size());
+    }
 }
 

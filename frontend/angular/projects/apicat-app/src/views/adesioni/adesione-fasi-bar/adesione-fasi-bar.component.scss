@@ -17,7 +17,13 @@
 
 .gstepper {
   display: grid;
+  // 3 colonne nel wizard; 4 colonne con la FASE 0 della form di creazione
+  // (classe `.cols-4` aggiunta dal template quando le fasi sono 4).
   grid-template-columns: repeat(3, 1fr);
+
+  &.cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
   gap: 6px;
   padding: 6px;
   background: var(--surface-2, #fafcfd);
@@ -48,6 +54,37 @@
   &[disabled] {
     cursor: not-allowed;
     pointer-events: none;
+  }
+
+  // Fase esplicitamente bloccata (es. Produzione finche` il servizio
+  // non e` pubblicato). Override piu` aggressivo del semplice
+  // `[disabled]` per renderla chiaramente non azionabile anche se
+  // sarebbe `is-current` dal punto di vista workflow.
+  &.is-disabled {
+    opacity: .55;
+    background: var(--surface-2, #f6f8fa) !important;
+    box-shadow: none !important;
+    outline: none !important;
+
+    .num {
+      background: var(--surface-3, #eef4f8) !important;
+      color: var(--ink-3, #57738a) !important;
+      border-color: var(--line-strong, #c4d6e0) !important;
+    }
+
+    .lbl .n {
+      color: var(--ink-3, #57738a) !important;
+      font-weight: 500 !important;
+    }
+
+    .disabled-hint {
+      font-size: 10.5px;
+      color: var(--ink-3, #57738a);
+      font-style: italic;
+      margin-top: 2px;
+      white-space: normal;
+      line-height: 1.2;
+    }
   }
 
   &.is-current {
@@ -138,7 +175,8 @@
 }
 
 @media (max-width: 900px) {
-  .gstepper {
+  .gstepper,
+  .gstepper.cols-4 {
     grid-template-columns: 1fr;
   }
 }

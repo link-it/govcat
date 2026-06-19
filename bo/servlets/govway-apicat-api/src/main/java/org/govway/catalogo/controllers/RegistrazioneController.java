@@ -55,6 +55,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.IanaLinkRelations;
@@ -128,32 +129,38 @@ public class RegistrazioneController implements RegistrazioneApi {
                     StatoRegistrazioneEnum.GIA_REGISTRATO, null, current));
             }
 
-            // Cerca o crea una registrazione in corso
-            Idm idm = this.requestUtils.getIdm();
-            Optional<RegistrazioneUtenteEntity> existingReg =
-                this.registrazioneService.findByPrincipal(principal);
+            // La lettura della registrazione e la costruzione della risposta devono
+            // avvenire dentro una transazione: buildStatoRegistrazione, tramite l'assembler,
+            // accede ad associazioni LAZY (es. organizzazioneRichiesta) che altrimenti
+            // sarebbero detached e provocherebbero una LazyInitializationException.
+            return this.registrazioneService.runTransaction(() -> {
+                // Cerca o crea una registrazione in corso
+                Idm idm = this.requestUtils.getIdm();
+                Optional<RegistrazioneUtenteEntity> existingReg =
+                    this.registrazioneService.findByPrincipal(principal);
 
-            if (existingReg.isPresent() && existingReg.get().getStato() == StatoRegistrazione.COMPLETED) {
-                // Registrazione già completata ma utente non ancora in sessione
-                return ResponseEntity.ok(buildStatoRegistrazione(
-                    StatoRegistrazioneEnum.GIA_REGISTRATO, existingReg.get(), current));
-            }
+                if (existingReg.isPresent() && existingReg.get().getStato() == StatoRegistrazione.COMPLETED) {
+                    // Registrazione già completata ma utente non ancora in sessione
+                    return ResponseEntity.ok(buildStatoRegistrazione(
+                        StatoRegistrazioneEnum.GIA_REGISTRATO, existingReg.get(), current));
+                }
 
-            // Crea nuova registrazione o recupera quella esistente
-            RegistrazioneUtenteEntity reg = existingReg.orElseGet(() ->
-                this.registrazioneService.createRegistrazione(
-                    principal,
-                    idm.getNome(),
-                    idm.getCognome(),
-                    idm.getEmail(),
-                    getTokenId()
-                )
-            );
+                // Crea nuova registrazione o recupera quella esistente
+                RegistrazioneUtenteEntity reg = existingReg.orElseGet(() ->
+                    this.registrazioneService.createRegistrazione(
+                        principal,
+                        idm.getNome(),
+                        idm.getCognome(),
+                        idm.getEmail(),
+                        getTokenId()
+                    )
+                );
 
-            StatoRegistrazioneEnum stato = mapStatoToEnum(reg.getStato());
+                StatoRegistrazioneEnum stato = mapStatoToEnum(reg.getStato());
 
-            this.logger.info("getStatoRegistrazione: Invocazione completata con successo");
-            return ResponseEntity.ok(buildStatoRegistrazione(stato, reg, current));
+                this.logger.info("getStatoRegistrazione: Invocazione completata con successo");
+                return ResponseEntity.ok(buildStatoRegistrazione(stato, reg, current));
+            });
 
         } catch (RuntimeException e) {
             this.logger.error("getStatoRegistrazione terminata con errore '4xx': " + e.getMessage(), e);
@@ -490,6 +497,9 @@ public class RegistrazioneController implements RegistrazioneApi {
                 OrganizzazioneSpecification spec = new OrganizzazioneSpecification();
                 spec.setQ(Optional.ofNullable(q));
                 spec.setNome(Optional.ofNullable(nome));
+                // Le organizzazioni intermediate non sono operative: vanno escluse da quelle
+                // proposte per la registrazione.
+                spec.setIntermediata(Optional.of(false));
 
                 CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("nome"));
 
@@ -551,9 +561,18 @@ public class RegistrazioneController implements RegistrazioneApi {
             .map(RegistrazioneUtenteEntity::getOrganizzazioneRichiesta)
             .orElse(null);
 
-        // Verifica se esiste già un utente con questa email aziendale
-        Optional<UtenteEntity> existingByEmail =
-            this.registrazioneService.findUtenteByEmailAziendale(emailToUse);
+        // Verifica se esiste già un utente con questa email aziendale.
+        // Se esistono più utenti con la stessa email aziendale il caso è ambiguo
+        // (non è possibile determinare a quale utenza associare il principal):
+        // viene restituito un errore applicativo gestito invece dell'eccezione grezza
+        // sollevata dal data layer.
+        Optional<UtenteEntity> existingByEmail;
+        try {
+            existingByEmail = this.registrazioneService.findUtenteByEmailAziendale(emailToUse);
+        } catch (IncorrectResultSizeDataAccessException e) {
+            throw new ConflictException(ErrorCode.REG_409_MULTIPLE_USERS_EMAIL,
+                Map.of("email", emailToUse), e);
+        }
 
         RisultatoRegistrazione response = new RisultatoRegistrazione();
         UtenteEntity utente;

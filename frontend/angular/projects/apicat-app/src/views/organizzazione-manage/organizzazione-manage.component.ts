@@ -43,6 +43,7 @@ import {
 
 const ORG_MODEL = 'organizzazioni';
 const UTENTI_SUB_PATH = 'utenti';
+const UTENTI_MODEL = 'utenti';
 const DOMINI_MODEL = 'domini';
 
 /**
@@ -53,7 +54,7 @@ const DOMINI_MODEL = 'domini';
  * all'organizzazione di sessione (Issue 229 multi-org, evolutiva
  * domini-AMM_ORG).
  */
-export type OrganizzazioneManageTab = 'utenti' | 'domini';
+export type OrganizzazioneManageTab = 'utenti' | 'domini' | 'utenti_pending';
 
 @Component({
     selector: 'app-organizzazione-manage',
@@ -77,6 +78,10 @@ export class OrganizzazioneManageComponent implements OnInit, AfterContentChecke
     config: any;
     /** Config caricato da `assets/config/utenti-organizzazione-config.json`, passato a `<ui-item-row>`. */
     utentiConfig: any = null;
+    /** Config caricato da `assets/config/utenti-config.json`, riusato per
+     *  la tab "Utenti da gestire" — mostra cognome/nome + chip status
+     *  (`pending_update`, `non_configurato`, ...) come nella dashboard. */
+    utentiPendingConfig: any = null;
     /** Config caricato da `assets/config/domini-config.json`, passato a `<ui-item-row>`. */
     dominiConfig: any = null;
 
@@ -97,6 +102,16 @@ export class OrganizzazioneManageComponent implements OnInit, AfterContentChecke
     dominiItems: any[] = [];
     _dominiPaging: Page = new Page({});
     _dominiLinks: any = {};
+
+    // --- Stato lista utenti in attesa di approvazione --------------------
+    // Membership evolutiva 2026-06-11: nuovo tab `utenti_pending` che
+    // mostra le richieste `pending_update` per questa organizzazione.
+    // Visibilita` decisa da `_pendingPaging.totalElements > 0` (count
+    // utenti pending PER QUESTA ORG, popolato all'init via
+    // `_loadPendingCount` con `size=1`).
+    pendingItems: any[] = [];
+    _pendingPaging: Page = new Page({});
+    _pendingLinks: any = {};
 
     _hasFilter: boolean = true;
     _formGroup: FormGroup = new FormGroup({});
@@ -153,6 +168,9 @@ export class OrganizzazioneManageComponent implements OnInit, AfterContentChecke
         this.configService.getConfig('utenti-organizzazione').subscribe((cfg: any) => {
             this.utentiConfig = cfg;
         });
+        this.configService.getConfig('utenti').subscribe((cfg: any) => {
+            this.utentiPendingConfig = cfg;
+        });
         this.configService.getConfig('domini').subscribe((cfg: any) => {
             this.dominiConfig = cfg;
         });
@@ -162,7 +180,7 @@ export class OrganizzazioneManageComponent implements OnInit, AfterContentChecke
         // delete) per ripristinare il contesto della navigazione.
         this.route.queryParams.subscribe(qp => {
             const tab = qp?.['tab'];
-            if (tab === 'domini' || tab === 'utenti') {
+            if (tab === 'domini' || tab === 'utenti' || tab === 'utenti_pending') {
                 this._activeTab = tab as OrganizzazioneManageTab;
             }
         });
@@ -170,6 +188,15 @@ export class OrganizzazioneManageComponent implements OnInit, AfterContentChecke
             this.id = params['id'] || null;
             if (this.id) {
                 this._loadOrganizzazione();
+                // Counter di tutte le tab sempre visibili all'init:
+                // precarichiamo le liste delle tab NON attive cosi`
+                // ogni `*_paging.totalElements` e` popolato anche
+                // quando la tab non e` ancora stata attivata. La
+                // tab attiva viene caricata da `_loadActiveTab`
+                // sotto, evitando una doppia chiamata.
+                if (this._activeTab !== 'utenti') { this._loadUtenti(); }
+                if (this._activeTab !== 'domini') { this._loadDomini(); }
+                if (this._activeTab !== 'utenti_pending') { this._loadPending(); }
                 // Caricamento iniziale diretto: in `ngOnInit` la
                 // `@ViewChild('searchBarForm')` non e' ancora risolta,
                 // quindi non possiamo passare per `searchBarForm._onSearch()`.
@@ -249,6 +276,8 @@ export class OrganizzazioneManageComponent implements OnInit, AfterContentChecke
     private _loadActiveTab(): void {
         if (this._activeTab === 'domini') {
             this._loadDomini(this._filterData);
+        } else if (this._activeTab === 'utenti_pending') {
+            this._loadPending(this._filterData);
         } else {
             this._loadUtenti(this._filterData);
         }
@@ -343,6 +372,64 @@ export class OrganizzazioneManageComponent implements OnInit, AfterContentChecke
         });
     }
 
+    /**
+     * Carica la lista degli "Utenti da gestire" per l'organizzazione
+     * corrente. Riusa lo stesso endpoint usato dalla dashboard
+     * (`GET /utenti?dashboard=true`): il filtro lato BE include
+     * automaticamente gli utenti in stato `pending_update` ed
+     * eventuali altri che richiedono azione dell'amministratore.
+     * Il filtro utente (se valorizzato) viene unito ai parametri.
+     */
+    private _loadPending(query: any = null, url: string = ''): void {
+        if (!this.id) { return; }
+        this._spin = true;
+        this._setErrorMessages(false);
+
+        let aux: any = undefined;
+        if (!url) {
+            this.pendingItems = [];
+            this._pendingLinks = null;
+            // `dashboard=true` e` il discriminante BE per ottenere
+            // gli utenti "da gestire" (mirror di
+            // `DashboardService.getUtenti()`). Filtri utente
+            // applicati per primi, `dashboard` non sovrascrivibile.
+            const params: any = {
+                ...(query || {}),
+                dashboard: 'true'
+            };
+            aux = { params: this.utils._queryToHttpParams(params) };
+        }
+
+        this.apiService.getList(UTENTI_MODEL, aux, url).subscribe({
+            next: (response: any) => {
+                if (response) {
+                    this._pendingPaging = new Page(response.page);
+                    this._pendingLinks = response._links || null;
+                }
+                const list = Array.isArray(response?.content) ? response.content
+                    : Array.isArray(response?.items) ? response.items
+                    : Array.isArray(response) ? response : [];
+                this.pendingItems = url ? [...this.pendingItems, ...list] : list;
+                // Il tab "Utenti da gestire" e` visibile solo con
+                // `pendingItems.length > 0`: se siamo arrivati con
+                // `?tab=utenti_pending` (es. dashboard AMM_ORG) ma
+                // la lista e` vuota, ricadiamo sul tab di default
+                // `utenti` per evitare un body orfano senza tab.
+                if (this._activeTab === 'utenti_pending' && this.pendingItems.length === 0) {
+                    this._activeTab = 'utenti';
+                }
+                this._preventMultiCall = false;
+                this._spin = false;
+            },
+            error: (err: any) => {
+                this._setErrorMessages(true);
+                this._preventMultiCall = false;
+                this._spin = false;
+                Tools.OnError(err);
+            }
+        });
+    }
+
     /** Estrae i campi anagrafici dal payload relazionale e calcola il ruolo. */
     private _mapItem(raw: any): any {
         const utente = raw?.utente ?? raw;
@@ -362,6 +449,13 @@ export class OrganizzazioneManageComponent implements OnInit, AfterContentChecke
             if (this._dominiLinks?.next) {
                 this._preventMultiCall = true;
                 this._loadDomini(null, this._dominiLinks.next.href);
+            }
+            return;
+        }
+        if (this._activeTab === 'utenti_pending') {
+            if (this._pendingLinks?.next) {
+                this._preventMultiCall = true;
+                this._loadPending(null, this._pendingLinks.next.href);
             }
             return;
         }
@@ -391,9 +485,18 @@ export class OrganizzazioneManageComponent implements OnInit, AfterContentChecke
 
     /** Totale records della tab attiva (per badge tab/counter). */
     get _activeTotal(): number {
-        return this._activeTab === 'domini'
-            ? (this._dominiPaging.totalElements || 0)
-            : (this._paging.totalElements || 0);
+        if (this._activeTab === 'domini') {
+            return this._dominiPaging.totalElements || 0;
+        }
+        if (this._activeTab === 'utenti_pending') {
+            return this._pendingPaging.totalElements || 0;
+        }
+        return this._paging.totalElements || 0;
+    }
+
+    /** Counter pending per il badge tab "Utenti in attesa". */
+    get _pendingTotal(): number {
+        return this._pendingPaging.totalElements || 0;
     }
 
     roleLabelKey(uo: any): string {
@@ -522,6 +625,20 @@ export class OrganizzazioneManageComponent implements OnInit, AfterContentChecke
     openEditDominio(dominio: any): void {
         if (!this.canManage() || !this.id || !dominio?.id_dominio) { return; }
         this.router.navigate(['organizzazione-manage', this.id, 'domini', dominio.id_dominio]);
+    }
+
+    /** Naviga al dettaglio dell'utente in attesa di approvazione nel
+     *  contesto della gestione organizzazione
+     *  (`organizzazione-manage/:id/utenti/:uid`). Sostituisce la
+     *  vecchia dialog di solo cambio ruolo: la form completa di
+     *  `<utente-details>` gestisce sia approvazione/rifiuto sia
+     *  modifica del ruolo. Al ritorno il breadcrumb riporta alla
+     *  lista pending. */
+    openUserDetail(item: any): void {
+        if (!this.canManage() || !this.id || !item?.id_utente) { return; }
+        this.router.navigate(['organizzazione-manage', this.id, 'utenti', item.id_utente], {
+            queryParams: { tab: this._activeTab }
+        });
     }
 
     /** Conferma + DELETE /domini/{id}. Errori BE (es.

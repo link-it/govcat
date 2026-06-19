@@ -29,6 +29,11 @@ import moment from 'moment/moment';
 export interface TargetOption {
   label: string;
   value: string;
+  /** Quando true, il target ha potenzialmente "tecnici associati"
+   *  (referenti tecnici): la checkbox "Includi tecnici" diventa
+   *  rilevante. Tipicamente true per i target referente, false
+   *  per gestore/coordinatore/richiedente. */
+  hasTecnici?: boolean;
 }
 
 @Component({
@@ -69,7 +74,7 @@ export class SenderComponent implements AfterContentChecked {
 
   @ViewChild('targetDropdown', { static: false, read: ElementRef }) _targetDropdown!: ElementRef;
 
-  constructor(private translate: TranslateService) {
+  constructor(private readonly translate: TranslateService) {
     this._formGroup = new FormGroup({
       messaggio: this._msgCtrl,
       allegati: this._allegatiCtrl,
@@ -103,6 +108,17 @@ export class SenderComponent implements AfterContentChecked {
 
   isTargetSelected(value: string): boolean {
     return this._targetCtrl.value && this._targetCtrl.value.includes(value);
+  }
+
+  /** Vero se almeno uno dei target selezionati e` marcato come
+   *  "referente" (`hasTecnici === true`): in tal caso la checkbox
+   *  "Includi tecnici" e` rilevante e va mostrata. Se l'utente ha
+   *  selezionato solo gestore/coordinatore/richiedente la checkbox
+   *  e` nascosta. */
+  get _showIncludiTecnici(): boolean {
+    const selected: string[] = this._targetCtrl.value || [];
+    if (selected.length === 0) { return false; }
+    return selected.some(v => this.targetOptions.find(o => o.value === v)?.hasTecnici === true);
   }
 
   toggleTarget(value: string, checked: boolean) {
@@ -180,7 +196,6 @@ export class SenderComponent implements AfterContentChecked {
   // }
 
   __onChange(event: any) {
-    // console.log('change');
     const MAXK: number = Tools.MaxUpload()
     if (event.currentTarget.files && event.currentTarget.files.length !== 0) {
       this._file = event.currentTarget.files[0];
@@ -196,12 +211,10 @@ export class SenderComponent implements AfterContentChecked {
   }
 
   __reset() {
-    // this._file = undefined;
     if (this._allegatiCtrl) {
       this._allegatiCtrl.setValue('');
-      // this.resetControl.emit({ type: 'reset' });
     }
-    if (this._browse && this._browse.nativeElement) {
+    if (this._browse?.nativeElement) {
       this._browse.nativeElement.value = '';
     }
   }
@@ -227,7 +240,6 @@ export class SenderComponent implements AfterContentChecked {
     if (this._allegatiCtrl) {
       this._allegati.push({ file: _name, data: _data, dataURL: _dataURL, type: _type });
       this._allegatiCtrl.setValue(this._allegati);
-      // this.fileChanged.emit({ type: 'file_changed' });
     }
   }
 

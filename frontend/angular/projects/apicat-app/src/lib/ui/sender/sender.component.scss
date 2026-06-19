@@ -173,15 +173,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   gap: 8px;
   padding: 5px 14px;
   cursor: pointer;
+  user-select: none;
 
   .form-check-input {
     position: static;
-    margin-top: 0.3rem;
+    margin-top: 0;
     margin-left: 0;
     flex-shrink: 0;
+    cursor: pointer;
   }
 
-  label {
+  span {
     font-size: 0.8125rem;
     margin: 0;
     cursor: pointer;

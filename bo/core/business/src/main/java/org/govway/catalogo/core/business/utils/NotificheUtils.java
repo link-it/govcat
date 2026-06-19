@@ -260,11 +260,30 @@ public class NotificheUtils {
 				addIf(list, utente, tipo, tipoEntita, e.getKey());
 			}
 		}
-		
-		list.remove(mittente);
-		
+
+		// Esclude il mittente (chi ha eseguito l'azione che ha generato la notifica) dai destinatari.
+		// Il confronto è basato sull'identità logica dell'utente e non solo sul riferimento Java:
+		// UtenteEntity non implementa equals()/hashCode(), quindi una semplice remove() per riferimento
+		// non escluderebbe il mittente quando questo è un'istanza diversa dello stesso utente presente
+		// nelle liste destinatari (es. entity detached o caricate da query distinte).
+		if(mittente != null) {
+			list.removeIf(u -> isStessoUtente(u, mittente));
+		}
+
 		return list.stream().collect(Collectors.toList());
-		
+
+	}
+
+	private boolean isStessoUtente(UtenteEntity a, UtenteEntity b) {
+		if(a == null || b == null) return false;
+		if(a == b) return true;
+		if(a.getIdUtente() != null && b.getIdUtente() != null) {
+			return a.getIdUtente().equals(b.getIdUtente());
+		}
+		if(a.getId() != null && b.getId() != null) {
+			return a.getId().equals(b.getId());
+		}
+		return false;
 	}
 
 	private void addIf(Set<UtenteEntity> list, UtenteEntity destinatario, TIPO tipo, TIPO_ENTITA tipoEntita,

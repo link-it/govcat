@@ -292,12 +292,12 @@ describe('TransazioniComponent', () => {
 
   // ==================== _getSoggettoNome ====================
 
-  it('should _getSoggettoNome from service soggetto_interno', () => {
-    component.service = { soggetto_interno: { nome: 'SogInterno' } };
+  it('should _getSoggettoNome from service soggetto_erogatore', () => {
+    component.service = { soggetto_erogatore: { nome: 'SogInterno' } };
     expect((component as any)._getSoggettoNome()).toBe('SogInterno');
   });
 
-  it('should _getSoggettoNome from service dominio when soggetto_interno is missing', () => {
+  it('should _getSoggettoNome from service dominio when soggetto_erogatore is missing', () => {
     component.service = { dominio: { soggetto_referente: { nome: 'SogRef' } } };
     expect((component as any)._getSoggettoNome()).toBe('SogRef');
   });
@@ -543,7 +543,7 @@ describe('TransazioniComponent', () => {
   describe('_loadTransazioni', () => {
     beforeEach(() => {
       component.id = 42 as any;
-      component.service = { soggetto_interno: { nome: 'TestSoggetto' }, id_servizio: 'svc-123' };
+      component.service = { soggetto_erogatore: { nome: 'TestSoggetto' }, id_servizio: 'svc-123' };
       (component as any)._apiSelected = { ruolo: 'erogato_soggetto_dominio' };
       // Set a valid id_api
       component._formGroup.get('id_api')?.setValue('api-1');
@@ -862,7 +862,7 @@ describe('TransazioniComponent', () => {
   describe('__exportTransazioni', () => {
     beforeEach(() => {
       component.id = 42 as any;
-      component.service = { soggetto_interno: { nome: 'TestSoggetto' }, id_servizio: 'svc-123' };
+      component.service = { soggetto_erogatore: { nome: 'TestSoggetto' }, id_servizio: 'svc-123' };
       (component as any)._apiSelected = { ruolo: 'erogato_soggetto_dominio' };
       (globalThis as any).saveAs = vi.fn();
     });
@@ -1394,12 +1394,12 @@ describe('TransazioniComponent', () => {
   // ==================== _tipoVerifica ====================
 
   describe('_tipoVerifica', () => {
-    it('should return fruizioni for erogato_soggetto_dominio with soggetto_interno', () => {
-      component.service = { soggetto_interno: { nome: 'Sog' } };
+    it('should return fruizioni for erogato_soggetto_dominio with soggetto_erogatore', () => {
+      component.service = { soggetto_erogatore: { nome: 'Sog' } };
       expect((component as any)._tipoVerifica({ ruolo: 'erogato_soggetto_dominio' })).toBe('fruizioni');
     });
 
-    it('should return erogazioni for erogato_soggetto_dominio without soggetto_interno', () => {
+    it('should return erogazioni for erogato_soggetto_dominio without soggetto_erogatore', () => {
       component.service = {};
       expect((component as any)._tipoVerifica({ ruolo: 'erogato_soggetto_dominio' })).toBe('erogazioni');
     });
@@ -1704,12 +1704,12 @@ describe('TransazioniComponent', () => {
 
   describe('_getSoggettoId', () => {
     it('should return soggetto_referente for erogazioni', () => {
-      component.service = { dominio: { soggetto_referente: { nome: 'SogRef' }, soggetto_interno: { nome: 'SogInt' } } };
+      component.service = { dominio: { soggetto_referente: { nome: 'SogRef' }, soggetto_erogatore: { nome: 'SogInt' } } };
       expect((component as any)._getSoggettoId('erogazioni')).toBe('SogRef');
     });
 
-    it('should return soggetto_interno for non-erogazioni', () => {
-      component.service = { dominio: { soggetto_referente: { nome: 'SogRef' }, soggetto_interno: { nome: 'SogInt' } } };
+    it('should return soggetto_erogatore for non-erogazioni', () => {
+      component.service = { dominio: { soggetto_referente: { nome: 'SogRef' }, soggetto_erogatore: { nome: 'SogInt' } } };
       expect((component as any)._getSoggettoId('fruizioni')).toBe('SogInt');
     });
   });

@@ -17,6 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, EventEmitter, HostBinding, Input, OnInit, Output, SimpleChanges } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { DomSanitizer } from '@angular/platform-browser';
 
 import { TranslateModule } from '@ngx-translate/core';
@@ -25,6 +26,7 @@ import { MarkdownModule } from 'ngx-markdown';
 
 import { UtilsLib } from '../../utils/utils.lib';
 import { LnkAvatarComponent } from '@app/components/lnk-ui/avatar/avatar.component';
+import { StatoChipComponent } from '@app/components/vetrina/stato-chip.component';
 
 import moment from 'moment/moment';
 
@@ -35,7 +37,7 @@ import moment from 'moment/moment';
     './data-type.component.scss'
   ],
   standalone: true,
-  imports: [TranslateModule, TooltipModule, MarkdownModule, LnkAvatarComponent]
+  imports: [CommonModule, TranslateModule, TooltipModule, MarkdownModule, LnkAvatarComponent, StatoChipComponent]
 })
 export class DataTypeComponent implements OnInit {
   @HostBinding('class.empty-space') get emptySpace(): boolean {
@@ -64,6 +66,22 @@ export class DataTypeComponent implements OnInit {
   _color: string = '';
   _class: string = '';
   _showBadged: boolean = false;
+
+  /** True quando il tag/label rappresenta lo `status` di
+   *  un'entita`: delega il rendering al chip semantico unificato
+   *  `<lnk-stato-chip>` (palette FE-side), ignorando i colori
+   *  legacy hardcoded nei JSON di config. */
+  _useStatoChip: boolean = false;
+  _origStato: string = '';
+  _statoI18nPrefix: string = 'APP.WORKFLOW.STATUS';
+
+  /** Variante pill `.lnk-pill-<variant>` per label/tag non-stato.
+   *  Letta dal config (`values[v].chipVariant` o
+   *  `options[name].chipVariant`); default `muted`. */
+  _chipVariant: string = 'muted';
+  _chipSplitValue: string = '';
+  /** Size compatto, attivato da `options[name].small: true`. */
+  _chipSmall: boolean = false;
 
   constructor(
     private readonly sanitized: DomSanitizer,
@@ -99,30 +117,53 @@ export class DataTypeComponent implements OnInit {
       const optionsName = (typeof this._elem.options === 'string') ? this._elem.options : '';
       if (options) {
         const _origValue = this._value;
-        this._label = options.label ? options.label : optionsName;
-        this._value = this._value ? (options.values[_origValue] ? options.values[_origValue].label : this._value) : 'undefined';
-        this._background = options.values[_origValue] ? options.values[_origValue].background : '#1f1f1f';
-        this._border = options.values[_origValue] ? options.values[_origValue].border : '#1f1f1f';
-        this._color = options.values[_origValue] ? options.values[_origValue].color : '#fff';
-        if (!options.values[_origValue] && options.values['default']) {
-          this._background = options.values['default'].background;
-          this._border = options.values['default'].border;
-          this._color = options.values['default'].color;
+        // Allineamento palette unificata: status -> `<lnk-stato-chip>`.
+        if (optionsName === 'status' && _origValue) {
+          this._useStatoChip = true;
+          this._origStato = _origValue;
+          this._statoI18nPrefix = this._elem.i18nPrefix || 'APP.WORKFLOW.STATUS';
+        } else {
+          this._label = options.label ? options.label : optionsName;
+          this._value = this._value ? (options.values[_origValue] ? options.values[_origValue].label : this._value) : 'undefined';
+          this._background = options.values[_origValue] ? options.values[_origValue].background : '#1f1f1f';
+          this._border = options.values[_origValue] ? options.values[_origValue].border : '#1f1f1f';
+          this._color = options.values[_origValue] ? options.values[_origValue].color : '#fff';
+          if (!options.values[_origValue] && options.values['default']) {
+            this._background = options.values['default'].background;
+            this._border = options.values['default'].border;
+            this._color = options.values['default'].color;
+          }
+          this._class = options.small ? 'status-label-sm' : '';
+          this._chipVariant = options.values[_origValue]?.chipVariant || options.chipVariant || 'muted';
+          this._chipSplitValue = options.values[_origValue]?.splitValue || '';
+          this._chipSmall = !!options.small;
         }
-        this._class = options.small ? 'status-label-sm' : '';
       }
     }
     if (this._elem.type === 'tag') {
       if (this._config.options) {
         const _origValue = this._value;
         const _optionsName = this._elem.options;
-        this._value = this._value ? (this._config.options[_optionsName].values[_origValue] ? this._config.options[_optionsName].values[_origValue].label : this._value) : 'undefined';
-        this._background = (this._config.options[_optionsName] && this._config.options[_optionsName].values[_origValue]) ? this._config.options[_optionsName].values[_origValue].background : '#1f1f1f';
-        this._border = (this._config.options[_optionsName] && this._config.options[_optionsName].values[_origValue]) ? this._config.options[_optionsName].values[_origValue].border : '#1f1f1f';
-        this._color = (this._config.options[_optionsName] && this._config.options[_optionsName].values[_origValue]) ? this._config.options[_optionsName].values[_origValue].color : '#fff';
-        this._showBadged = (this._elem.badged !== undefined) ? this._elem.badged : true;
-        this._class = 'gl-badge badge badge-pill';
-        this._class += this._config.options[_optionsName].small ? ' pt-0 pb-0' : '';
+        // Allineamento palette unificata: per i tag che rappresentano
+        // lo `status` di un'entita` (adesione, servizio, ecc.) delego
+        // a `<lnk-stato-chip>` invece di renderizzare lo span legacy
+        // coi colori hardcoded nei JSON. Per gli altri tag (es.
+        // `aderente`, `boolean`, ...) resta il rendering classico.
+        if (_optionsName === 'status') {
+          this._useStatoChip = true;
+          this._origStato = _origValue || '';
+          this._statoI18nPrefix = this._elem.i18nPrefix || 'APP.WORKFLOW.STATUS';
+        } else {
+          this._value = this._value ? (this._config.options[_optionsName].values[_origValue] ? this._config.options[_optionsName].values[_origValue].label : this._value) : 'undefined';
+          this._background = (this._config.options[_optionsName] && this._config.options[_optionsName].values[_origValue]) ? this._config.options[_optionsName].values[_origValue].background : '#1f1f1f';
+          this._border = (this._config.options[_optionsName] && this._config.options[_optionsName].values[_origValue]) ? this._config.options[_optionsName].values[_origValue].border : '#1f1f1f';
+          this._color = (this._config.options[_optionsName] && this._config.options[_optionsName].values[_origValue]) ? this._config.options[_optionsName].values[_origValue].color : '#fff';
+          this._showBadged = (this._elem.badged !== undefined) ? this._elem.badged : true;
+          this._class = 'gl-badge badge badge-pill';
+          this._class += this._config.options[_optionsName].small ? ' pt-0 pb-0' : '';
+          this._chipVariant = this._config.options[_optionsName].values[_origValue]?.chipVariant || this._config.options[_optionsName].chipVariant || 'muted';
+          this._chipSmall = !!this._config.options[_optionsName].small;
+        }
       }
     }
     if (this._elem.type === 'text' && this._elem.truncate) {

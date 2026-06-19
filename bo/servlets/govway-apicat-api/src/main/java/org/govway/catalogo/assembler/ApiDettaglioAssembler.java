@@ -429,7 +429,8 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 				
 				if(p.getTipoDominio()!= null) {
 					
-					ConfigurazioneTipoDominioEnum cd = entity.getServizio().isFruizione() ? ConfigurazioneTipoDominioEnum.ESTERNO: ConfigurazioneTipoDominioEnum.INTERNO;
+					// Rimosso il concetto di dominio esterno: il dominio di un servizio (anche fruizione) è sempre interno
+					ConfigurazioneTipoDominioEnum cd = ConfigurazioneTipoDominioEnum.INTERNO;
 					
 					if(!p.getTipoDominio().equals(cd)) {
 							throw new BadRequestException(ErrorCode.VAL_422);

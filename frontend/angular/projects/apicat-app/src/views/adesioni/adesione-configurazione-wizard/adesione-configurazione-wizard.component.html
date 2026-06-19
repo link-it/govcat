@@ -90,9 +90,13 @@
                   @if (headerVersion) { <span>{{ headerVersion }}</span> }
                   @if (headerVersion && headerUpdatedAt) { <span aria-hidden="true">·</span> }
                   @if (headerUpdatedAt) { <span>{{ headerUpdatedAt }}</span> }
-                  @if (headerOwnerName) {
+                  @if (headerAdesioneOrganization) {
                     <span aria-hidden="true">·</span>
-                    <span>{{ 'APP.LABEL.Owner' | translate }}: {{ headerOwnerName }}</span>
+                    <span>{{ headerAdesioneOrganization }}</span>
+                  }
+                  @if (headerOwnerNames.length) {
+                    <span aria-hidden="true">·</span>
+                    <span>{{ _headerOwnerLabelKey | translate }}: {{ headerOwnerNames.join(', ') }}</span>
                   }
                 </div>
                 <div class="d-flex gap-2 mt-2 align-items-center">
@@ -144,19 +148,31 @@
                 </div>
               }
             </div>
-            @if (showSkipCollaudo) {
-              <div class=""
-                  [tooltip]="'APP.ADESIONI.LABEL.SkipCollaudoTooltip' | translate"
-                  placement="left"
-                  container="body">
-                <lnk-button
-                  [label]="'APP.LABEL.SkipCollaudo' | translate"
-                  [icon]="adesione.skip_collaudo ? 'bi bi-check-square-fill text-primary' : 'bi bi-square'"
-                  [spinner]="saveSkipCollaudo"
-                  (onAction)="toggleSkipCollaudo()"
-                ></lnk-button>
-              </div>
-            }
+            <div class="lnk-vetrina d-flex align-items-center gap-2">
+              @if (adesione?.servizio?.id_servizio) {
+                <button type="button"
+                        class="btnc"
+                        [attr.aria-label]="'APP.BUTTON.GoToService' | translate"
+                        (click)="onGoToService($event)"
+                        (auxclick)="onGoToService($event)">
+                  <i class="bi bi-grid-3x3-gap me-md-2" aria-hidden="true"></i>
+                  <span class="d-none d-md-inline">{{ 'APP.BUTTON.GoToService' | translate }}</span>
+                </button>
+              }
+              @if (showSkipCollaudo) {
+                <div class=""
+                    [tooltip]="'APP.ADESIONI.LABEL.SkipCollaudoTooltip' | translate"
+                    placement="left"
+                    container="body">
+                  <lnk-button
+                    [label]="'APP.LABEL.SkipCollaudo' | translate"
+                    [icon]="adesione.skip_collaudo ? 'bi bi-check-square-fill text-primary' : 'bi bi-square'"
+                    [spinner]="saveSkipCollaudo"
+                    (onAction)="toggleSkipCollaudo()"
+                  ></lnk-button>
+                </div>
+              }
+            </div>
           </div>
           @if (disclaimersGenerali.length > 0) {
             <div class="adesione-disclaimers mb-4">
@@ -275,6 +291,7 @@
                 [currentState]="adesione?.stato || null"
                 [selectedCode]="_selectedFase"
                 [workflowStati]="workflowStati"
+                [disabledCodes]="getDisabledFasiCodes()"
                 (stepClick)="selectFase($event)"
               ></app-adesione-fasi-bar>
             }
@@ -802,15 +819,10 @@
      vecchio rendering (sotto la step-bar interna orizzontale) sia al
      nuovo (incapsulato nello step "active" del sub-stepper verticale). -->
 <ng-template #collaudoBodyTpl let-substepState="substepState">
-  <!-- Disclaimer visibili solo quando il sub-step e` `active`: se e`
-       gia` `completed` il prompt non ha piu` funzione. -->
-  @if (disclaimersCollaudo.length > 0 && substepState === 'active') {
-    <div class="adesione-disclaimers mt-3 my-3">
-      @for (item of disclaimersCollaudo; track $index) {
-        <ng-container *ngTemplateOutlet="disclaimerTpl; context: { $implicit: item }"></ng-container>
-      }
-    </div>
-  }
+  <!-- Disclaimer ambientali Collaudo: NON renderizzati qui per
+       evitare doppione col banner di sezione (`newLayoutEnvCardTpl`,
+       subbanner sopra il substepper). Quel banner copre lo stesso
+       stato (sub `in_compilazione` attivo) con stessa source dati. -->
 
   <!-- Disclaimer "Configura i client" mostrato solo quando ci sono
        ancora client da configurare in Collaudo (gruppo `client` non
@@ -864,6 +876,14 @@
             </div>
           </div>
           <div class="" [class.col-lg-8]="!singleColumn" [class.col-lg-8]="!singleColumn">
+            @let _grpDisclaimersC = getDisclaimersByGruppo('collaudo', item.nome_gruppo);
+            @if (_grpDisclaimersC.length > 0) {
+              <div class="adesione-disclaimers mb-3">
+                @for (d of _grpDisclaimersC; track $index) {
+                  <ng-container *ngTemplateOutlet="bannerStatoNewTpl; context: { $implicit: d }"></ng-container>
+                }
+              </div>
+            }
             <section class="p-0">
               <app-api-custom-properties
                 [ambiente]="AmbienteEnum.Collaudo"
@@ -888,15 +908,7 @@
 
 <!-- Body Produzione (Issue 254 NEW LAYOUT): vedi commento collaudoBodyTpl. -->
 <ng-template #produzioneBodyTpl let-substepState="substepState">
-  <!-- Disclaimer visibili solo quando il sub-step e` `active`: vedi
-       commento su collaudoBodyTpl. -->
-  @if (disclaimersProduzione.length > 0 && substepState === 'active') {
-    <div class="adesione-disclaimers mt-3 mb-3">
-      @for (item of disclaimersProduzione; track $index) {
-        <ng-container *ngTemplateOutlet="disclaimerTpl; context: { $implicit: item }"></ng-container>
-      }
-    </div>
-  }
+  <!-- Disclaimer ambientali Produzione: vedi nota su collaudoBodyTpl. -->
   <app-adesione-lista-clients
     [id]="id"
     [adesione]="adesione"
@@ -940,6 +952,14 @@
             </div>
           </div>
           <div class="" [class.col-lg-8]="!singleColumn" [class.col-lg-8]="!singleColumn">
+            @let _grpDisclaimersP = getDisclaimersByGruppo('produzione', item.nome_gruppo);
+            @if (_grpDisclaimersP.length > 0) {
+              <div class="adesione-disclaimers mb-3">
+                @for (d of _grpDisclaimersP; track $index) {
+                  <ng-container *ngTemplateOutlet="bannerStatoNewTpl; context: { $implicit: d }"></ng-container>
+                }
+              </div>
+            }
             <section class="p-0">
               <app-api-custom-properties
                 [ambiente]="AmbienteEnum.Produzione"
@@ -1385,6 +1405,7 @@
           [steps]="getStepWizardSezione(section)"
           [currentState]="adesione?.stato || null"
           [workflowStati]="workflowStati"
+          [forceActiveCodes]="getForceActiveSubsteps(section)"
           [title]="procLabelKey | translate">
           <ng-template let-sub>
             @switch (sub.code) {
@@ -1395,7 +1416,13 @@
                      e` `completed` (configurazione gia` fatta, prompt
                      non piu` necessario). -->
                 <ng-container *ngTemplateOutlet="body; context: { substepState: sub.state }"></ng-container>
-                @if (sub.state === 'active' && hasNextStateWorkflow() && _hasCambioStato()) {
+                <!-- CTA workflow: solo se in_compilazione e` il sub-step
+                     NATURALMENTE attivo (contiene lo stato corrente).
+                     Quando forzato attivo (via `forceActiveCodes` per
+                     custom-properties/client incompleti) il CTA non va
+                     mostrato qui — verrebbe duplicato col `@default`
+                     dello step reale active. -->
+                @if (sub.state === 'active' && _isSubstepNaturallyActive(section, 'in_compilazione') && hasNextStateWorkflow() && _hasCambioStato()) {
 
                   <div class="mt-3">
                     <ng-container *ngTemplateOutlet="workflowErrorTpl"></ng-container>
@@ -1425,6 +1452,17 @@
                   @let _subStepDisclaimers = section === 'collaudo' ? disclaimersCollaudo : disclaimersProduzione;
                   @for (item of _subStepDisclaimers; track $index) {
                     <markdown class="markdown-inline markdown-small d-block pt-3" [data]="item.disclaimer"></markdown>
+                  }
+                  <!-- Fallback locale: quando il BE non fornisce
+                       disclaimer per lo stato corrente, mostriamo un
+                       messaggio i18n per non lasciare il box vuoto.
+                       Varianti in base alla possibilita` dell'utente
+                       di cambiare stato (`_hasAnyWorkflowAction`). -->
+                  @if (_subStepDisclaimers.length === 0) {
+                    @let _fallbackKey = _hasAnyWorkflowAction()
+                      ? 'APP.ADESIONI.LABEL.SubstepFallbackCanChange'
+                      : 'APP.ADESIONI.LABEL.SubstepFallbackCannotChange';
+                    <markdown class="markdown-inline markdown-small d-block pt-3" [data]="_fallbackKey | translate"></markdown>
                   }
 
                   <!-- Lista pulsanti di cambio stato (analogo al menu

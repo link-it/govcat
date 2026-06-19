@@ -18,7 +18,7 @@
  */
 import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
-import { AbstractControl, FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
@@ -100,7 +100,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
   _isEdit = false;
   _closeEdit = true;
   _isNew = false;
-  _formGroup: UntypedFormGroup = new UntypedFormGroup({});
+  _formGroup: FormGroup = new FormGroup({});
   _client: Client = new Client({});
 
   _statoFormGroup: FormGroup = new FormGroup({});
@@ -236,6 +236,12 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
   _fromDashboard: boolean = false;
   _dashboardSection: string = '';
+  /** Origine "adesione": il client e` stato aperto dal wizard
+   * adesione (link `goToClient`). Permette di ricostruire il
+   * breadcrumb fino al servizio/adesione di provenienza. */
+  _fromAdesione: boolean = false;
+  _fromAdesioneIdAdesione: string = '';
+  _fromAdesioneIdServizio: string = '';
 
   /** Stato di caricamento per il recupero on-demand del secret
       via `GET /client/{id}/client-secret`. */
@@ -293,6 +299,11 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
       if (val.from === 'dashboard') {
         this._fromDashboard = true;
         this._dashboardSection = val.section || '';
+        this._initBreadcrumb();
+      } else if (val.from === 'adesione') {
+        this._fromAdesione = true;
+        this._fromAdesioneIdAdesione = val.id_adesione || '';
+        this._fromAdesioneIdServizio = val.id_servizio || '';
         this._initBreadcrumb();
       }
     });
@@ -367,19 +378,19 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
         switch (key) {
           case 'auth_type':
             value = data.dati_specifici?.auth_type ? data.dati_specifici?.auth_type : null;
-            _group[key] = new UntypedFormControl({ value: value, disabled: true }, []);
+            _group[key] = new FormControl({ value: value, disabled: true }, []);
             break;
           case 'finalita':
             value = data.dati_specifici?.finalita || null;
-            _group[key] = new UntypedFormControl(value, [Validators.pattern(/^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$/i)]);
+            _group[key] = new FormControl(value, [Validators.pattern(/^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$/i)]);
             break;
           case 'nome':
             value = data[key] ? data[key] : null;
-            _group[key] = new UntypedFormControl(value, [Validators.required, CustomValidators.notOnlyWhitespace]);
+            _group[key] = new FormControl(value, [Validators.required, CustomValidators.notOnlyWhitespace]);
             break;
           case 'ambiente':
             value = data[key] ? data[key] : null;
-            _group[key] = new UntypedFormControl(value, [Validators.required]);
+            _group[key] = new FormControl(value, [Validators.required]);
             break;
           case 'tipo_certificato':
           case 'tipo_certificato_firma':
@@ -388,11 +399,11 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
             // 'richiesto_csr'). Inizializziamo a null per evitare che l'
             // ng-select del componente condiviso riceva `[]` come valore
             // iniziale (non matcha alcuna opzione e non emette (change)).
-            _group[key] = new UntypedFormControl(null, []);
+            _group[key] = new FormControl(null, []);
             break;
           default:
             value = data[key] ? data[key] : null;
-            _group[key] = new UntypedFormControl(value, []);
+            _group[key] = new FormControl(value, []);
             break;
         }
       });
@@ -402,7 +413,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
         periodo: new FormControl({value: data?.rate_limiting?.periodo || PeriodEnum.Giorno, disabled: false}),
       }),
 
-      this._formGroup = new UntypedFormGroup(_group);
+      this._formGroup = new FormGroup(_group);
 
       const controls = this._formGroup.controls;
 
@@ -578,10 +589,6 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
       
       controls.id_soggetto.disable();
       this._checkSoggetto(controls.id_organizzazione.value);
-
-      if (data.stato === 'configurato') {
-        controls.nome.disable();
-      }
 
       this._onChangeStato();
 
@@ -1092,6 +1099,22 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
         { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2', params: _dashboardParams },
         { label: `${_title}`, url: '', type: 'title' }
       ];
+    } else if (this._fromAdesione) {
+      // Provenienza wizard adesione: ricostruiamo il path
+      // Servizi > Adesione (se passato `id_servizio`) oppure
+      // Adesioni > Adesione, prima del segmento Client.
+      const _crumbs: any[] = [];
+      if (this._fromAdesioneIdServizio) {
+        _crumbs.push({ label: 'APP.TITLE.Servizi', url: '/servizi', type: 'link' });
+        if (this._fromAdesioneIdAdesione) {
+          _crumbs.push({ label: 'APP.TITLE.Adesione', url: `/servizi/${this._fromAdesioneIdServizio}/adesioni/${this._fromAdesioneIdAdesione}`, type: 'link' });
+        }
+      } else if (this._fromAdesioneIdAdesione) {
+        _crumbs.push({ label: 'APP.TITLE.Adesioni', url: '/adesioni', type: 'link' });
+        _crumbs.push({ label: 'APP.TITLE.Adesione', url: `/adesioni/${this._fromAdesioneIdAdesione}`, type: 'link' });
+      }
+      _crumbs.push({ label: `${_title}`, url: '', type: 'title' });
+      this.breadcrumbs = _crumbs;
     } else {
       this.breadcrumbs = [
         { label: 'APP.TITLE.Configurations', url: '', type: 'title', iconBs: 'gear' },
@@ -1510,7 +1533,11 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
   initTipiCertificato() {
     this._tipoCertificatoEnum = [];
 
-    const auth_type = this._formGroup.controls.auth_type.value;
+    // Guard: il PROFILE_UPDATE puo` arrivare prima che `_formGroup`
+    // sia inizializzato (`_initForm`) — in quel caso usciamo,
+    // verra` chiamato di nuovo dopo l'init del form.
+    const auth_type = this._formGroup?.controls?.['auth_type']?.value;
+    if (auth_type === undefined) { return; }
     const authTypes: any = this.authenticationService._getConfigModule('servizio')?.api?.auth_type || [];
 
     const certificato: Certificato | null = this.utils.getCertificatoByAuthType(authTypes, auth_type);
@@ -1955,10 +1982,10 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
   _hasVerifica = (): boolean => {
     const monitoraggio: any = this.authenticationService._getConfigModule('monitoraggio');
 
-    const _showMonitoraggio: boolean = monitoraggio.abilitato;
-    const _showVerifiche: boolean = monitoraggio.verifiche_abilitate;
+    const _showMonitoraggio: boolean = !!monitoraggio?.abilitato;
+    const _showVerifiche: boolean = !!monitoraggio?.verifiche_abilitate;
 
-    const _authType: string = this.client?.dati_specifici.auth_type || '';
+    const _authType: string = this.client?.dati_specifici?.auth_type || '';
 
     return (
       // _isSoggettoMonitoraggio &&

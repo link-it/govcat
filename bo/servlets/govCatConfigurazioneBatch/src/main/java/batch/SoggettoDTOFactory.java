@@ -33,7 +33,7 @@ public class SoggettoDTOFactory {
 	
 
 	@Value("${org.govway.api.catalogo.configurazione.path:/var/govcat/conf/configurazione.json}")
-	private String configurazionePath;
+	private String configurazioneJsonPath;
 
 	private String tipoGatewayDefault = "ModI";
 	private String tipoGatewayConfigurazione;
@@ -44,7 +44,7 @@ public class SoggettoDTOFactory {
 	private String getTipoGatewayConfigurazione() {
 		if(!this.tipoGatewayConfigurazioneLetto) {
 			try {
-				ConfigurazioneReader confReader = new ConfigurazioneReader (configurazionePath);
+				ConfigurazioneReader confReader = new ConfigurazioneReader (configurazioneJsonPath);
 				String json = confReader.getConfigurazione();
 		        this.tipoGatewayConfigurazione = JsonPath.parse(json).read("$.monitoraggio.profilo_govway_default", String.class);
 		        logger.debug("tipoGatewayConfigurazione: " + this.tipoGatewayConfigurazione);

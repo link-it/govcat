@@ -154,7 +154,8 @@ public class CommonUtils {
         organizzazioneCreate.setIdTipoUtente(ID_TIPO_UTENTE);
         organizzazioneCreate.setReferente(REFERENTE);
         organizzazioneCreate.setAderente(ADERENTE);
-        organizzazioneCreate.setEsterna(ESTERNA);
+        // Org referente operativa: NON intermediata (vincolo: intermediata => non referente/aderente)
+        organizzazioneCreate.setIntermediata(false);
         
         return organizzazioneCreate;
 	}

@@ -57,12 +57,12 @@
                     <small class="text-muted ms-1">v.{{ item.versione }}</small>
                   }
                 </div>
-                <span class="badge text-nowrap" [ngStyle]="getStatusStyle(item.stato)">{{ getStatusLabel(item.stato) | translate }}</span>
+                <lnk-stato-chip [stato]="item.stato" [i18nPrefix]="'APP.WORKFLOW.STATUS'" [size]="'sm'"></lnk-stato-chip>
               </div>
               <div class="d-flex align-items-center gap-1">
                 <small class="text-muted">{{ formatDate(item.data_ultimo_aggiornamento) }}</small>
                 @for (ruolo of item.ruoli_referente; track ruolo) {
-                  <span class="badge badge-ruolo">{{ ('APP.DASHBOARD_PENDING.RUOLO.' + ruolo) | translate }}</span>
+                  <span class="lnk-pill lnk-pill-muted lnk-pill-sm">{{ ('APP.DASHBOARD_PENDING.RUOLO.' + ruolo) | translate }}</span>
                 }
               </div>
             </a>
@@ -76,18 +76,21 @@
                (click)="onViewItem(item)">
               <div class="d-flex justify-content-between align-items-start">
                 <div class="text-truncate me-2">
-                  <span class="fw-semibold">{{ item.soggetto?.nome }}</span>
-                  <small class="text-muted ms-1">{{ item.servizio?.nome }}</small>
+                  <span class="fw-semibold">{{ item.servizio?.nome }}</span>
                   @if (!hideVersions && item.servizio?.versione) {
-                    <small class="text-muted ms-1">v.{{ item.servizio.versione }}</small>
+                    <small class="fw-semibold ms-1">v.{{ item.servizio.versione }}</small>
+                  }
+                  <small class="text-muted ms-1">{{ item.soggetto?.nome }}</small>
+                  @if (item.id_logico) {
+                    <small class="text-muted ms-1">· {{ item.id_logico }}</small>
                   }
                 </div>
-                <span class="badge text-nowrap" [ngStyle]="getStatusStyle(item.stato)">{{ getStatusLabel(item.stato) | translate }}</span>
+                <lnk-stato-chip [stato]="item.stato" [i18nPrefix]="'APP.WORKFLOW.STATUS'" [size]="'sm'"></lnk-stato-chip>
               </div>
               <div class="d-flex align-items-center gap-1 flex-wrap">
                 <small class="text-muted">{{ formatDate(item.data_ultimo_aggiornamento) }}</small>
                 @for (ruolo of item.ruoli_referente; track ruolo) {
-                  <span class="badge badge-ruolo">{{ ('APP.DASHBOARD_PENDING.RUOLO.' + ruolo) | translate }}</span>
+                  <span class="lnk-pill lnk-pill-muted lnk-pill-sm">{{ ('APP.DASHBOARD_PENDING.RUOLO.' + ruolo) | translate }}</span>
                 }
                 @if (item.stato_configurazione_automatica === 'ko') {
                   <span class="auto-config-error-chip text-nowrap ms-auto"
@@ -109,10 +112,10 @@
                   <span class="fw-semibold">{{ item.nome }}</span>
                   <small class="text-muted ms-1">{{ item.soggetto?.nome }}</small>
                 </div>
-                <span class="badge text-nowrap" [ngStyle]="getStatusStyle(item.stato)">{{ getStatusLabel(item.stato) | translate }}</span>
+                <lnk-stato-chip [stato]="item.stato" [i18nPrefix]="'APP.CLIENT.STATUS'" [size]="'sm'"></lnk-stato-chip>
               </div>
               <div class="d-flex align-items-center gap-2 mt-1">
-                <span class="badge text-nowrap" [ngStyle]="getStatusStyle(item.ambiente)">{{ getStatusLabel(item.ambiente) | translate }}</span>
+                <span class="lnk-pill lnk-pill-sm" [ngClass]="item.ambiente === 'produzione' ? 'lnk-pill-ok' : 'lnk-pill-info'">{{ ('APP.CLIENT.LABEL.' + (item.ambiente === 'produzione' ? 'Production' : 'Testing')) | translate }}</span>
                 @if (item.scadenza_certificato) {
                   <span class="cert-expiry text-nowrap" [class.cert-expired]="isCertExpired(item.scadenza_certificato)"
                     [tooltip]="(isCertExpired(item.scadenza_certificato) ? 'APP.DASHBOARD_PENDING.CertExpired' : 'APP.DASHBOARD_PENDING.CertExpiring') | translate"
@@ -141,10 +144,10 @@
               <div class="d-flex align-items-center gap-1 mt-1">
                 <small class="text-muted">{{ ('APP.TOOLTIP.TYPE.' + item.tipo?.tipo) | translate }}</small>
                 @if (item.tipo?.stato) {
-                  <span class="badge text-nowrap" [ngStyle]="getStatusStyle(item.tipo.stato)">{{ getStatusLabel(item.tipo.stato) | translate }}</span>
+                  <lnk-stato-chip [stato]="item.tipo.stato" [i18nPrefix]="'APP.WORKFLOW.STATUS'" [size]="'sm'"></lnk-stato-chip>
                 }
                 @for (ruolo of item.ruoli_referente; track ruolo) {
-                  <span class="badge badge-ruolo">{{ ('APP.DASHBOARD_PENDING.RUOLO.' + ruolo) | translate }}</span>
+                  <span class="lnk-pill lnk-pill-muted lnk-pill-sm">{{ ('APP.DASHBOARD_PENDING.RUOLO.' + ruolo) | translate }}</span>
                 }
               </div>
             </a>
@@ -158,7 +161,7 @@
                 <div class="text-truncate me-2">
                   <span class="fw-semibold">{{ item.nome }} {{ item.cognome }}</span>
                 </div>
-                <span class="badge text-nowrap" [ngStyle]="getStatusStyle(item.stato)">{{ getStatusLabel(item.stato) | translate }}</span>
+                <lnk-stato-chip [stato]="item.stato" [i18nPrefix]="'APP.USERS.STATUS'" [size]="'sm'"></lnk-stato-chip>
               </div>
               <small class="text-muted">{{ item.email_aziendale }}</small>
             </a>

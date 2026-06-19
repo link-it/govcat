@@ -34,12 +34,12 @@ import { NavigationService } from '@app/services/navigation.service';
 
 import { Grant } from '@app/model/grant';
 
-import { AgidJwtDialogComponent } from '@app/components/authemtications-dialogs/agid-jwt-dialog/agid-jwt-dialog.component';
-import { ClientCredentialsDialogComponent } from '@app/components/authemtications-dialogs/client-credentials-dialog/client-credentials-dialog.component';
-import { AgidJwtSignatureDialogComponent } from '@app/components/authemtications-dialogs/agid-jwt-signature-dialog/agid-jwt-signature-dialog.component';
-import { AgidJwtTrackingEvidenceDialogComponent } from '@app/components/authemtications-dialogs/agid-jwt-tracking-evidence-dialog/agid-jwt-tracking-evidence-dialog.component';
-import { CodeGrantDialogComponent } from '@app/components/authemtications-dialogs/code-grant-dialog/code-grant-dialog.component';
-import { AgidJwtSignatureTrackingEvidenceDialogComponent } from '@app/components/authemtications-dialogs/agid-jwt-signature-tracking-evidence-dialog/agid-jwt-signature-tracking-evidence-dialog.component';
+import { AgidJwtDialogComponent } from '@app/components/authentications-dialogs/agid-jwt-dialog/agid-jwt-dialog.component';
+import { ClientCredentialsDialogComponent } from '@app/components/authentications-dialogs/client-credentials-dialog/client-credentials-dialog.component';
+import { AgidJwtSignatureDialogComponent } from '@app/components/authentications-dialogs/agid-jwt-signature-dialog/agid-jwt-signature-dialog.component';
+import { AgidJwtTrackingEvidenceDialogComponent } from '@app/components/authentications-dialogs/agid-jwt-tracking-evidence-dialog/agid-jwt-tracking-evidence-dialog.component';
+import { CodeGrantDialogComponent } from '@app/components/authentications-dialogs/code-grant-dialog/code-grant-dialog.component';
+import { AgidJwtSignatureTrackingEvidenceDialogComponent } from '@app/components/authentications-dialogs/agid-jwt-signature-tracking-evidence-dialog/agid-jwt-signature-tracking-evidence-dialog.component';
 
 import { environment } from '@app/environments/environment';
 
@@ -185,6 +185,12 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         { label: 'APP.TITLE.Services', url: '', type: 'link', iconBs: 'grid-3x3-gap' },
         { label: '...', url: '', type: 'link' }
     ];
+
+    /** Set quando si arriva via `?fromAdesione=:id&fromAdesioneMode=wizard|view`
+     *  (CTA "Vai al Servizio" da wizard / view adesione): abilita
+     *  la CTA "Torna all'adesione" nei banner. */
+    _fromAdesioneId: string = '';
+    _fromAdesioneMode: 'wizard' | 'view' | '' = '';
 
     _error: boolean = false;
     _errorMsg: string = '';
@@ -352,6 +358,17 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                 );
             } else {
                 console.log('NO params', params);
+            }
+        });
+        this.route.queryParams.subscribe(qp => {
+            const id = qp?.['fromAdesione'];
+            const mode = qp?.['fromAdesioneMode'];
+            if (id && (mode === 'wizard' || mode === 'view')) {
+                this._fromAdesioneId = id;
+                this._fromAdesioneMode = mode;
+            } else {
+                this._fromAdesioneId = '';
+                this._fromAdesioneMode = '';
             }
         });
 
@@ -703,6 +720,18 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         this.navigationService.navigateWithEvent(event, route);
     }
 
+    /** Naviga indietro all'adesione di provenienza (CTA "Torna
+     *  all'adesione" visibile quando l'utente e` arrivato qui via
+     *  link "Vai al Servizio" dal wizard o dalla view di un'adesione,
+     *  segnalato da `?fromAdesione=:id&fromAdesioneMode=wizard|view`). */
+    _gotoFromAdesione(event?: MouseEvent): void {
+        if (!this._fromAdesioneId) { return; }
+        const route = this._fromAdesioneMode === 'view'
+            ? ['servizi', this.id, 'adesioni', this._fromAdesioneId, 'view']
+            : ['servizi', this.id, 'adesioni', this._fromAdesioneId];
+        this.navigationService.navigateWithEvent(event, route);
+    }
+
     _openJoinServizioInNewTab(event: MouseEvent) {
         event.stopImmediatePropagation();
         event.preventDefault();
@@ -863,6 +892,15 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
 
     _isAmmissibileMapper = (): boolean => {
         return this._isAmmissibile();
+    }
+
+    /** Vero se l'utente puo` effettivamente creare un'adesione:
+     * gestore/coordinatore sempre OK; gli utenti per-org devono
+     * avere un `ruolo_organizzazione` sulla currentOrg aderente.
+     * Senza ruolo (es. "Nessun ruolo") il banner "Aderisci al
+     * servizio" non va mostrato. */
+    _canCreateAdesioneMapper = (): boolean => {
+        return this.authenticationService.canCreateAdesione();
     }
 
     _isGestoreMapper = (): boolean => {

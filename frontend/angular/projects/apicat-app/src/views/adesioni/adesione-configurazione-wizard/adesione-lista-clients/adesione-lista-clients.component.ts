@@ -162,6 +162,12 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
         if (!idClient) { return; }
         const queryParams: any = { from: 'adesione' };
         if (this.adesione?.id_adesione) { queryParams.id_adesione = this.adesione.id_adesione; }
+        // Se il wizard e` stato aperto via `/servizi/<id>/adesioni/<id>`,
+        // propaghiamo `id_servizio` come query param cosi` `client-details`
+        // puo` ricostruire il breadcrumb completo: Servizi > Adesione > Client.
+        if (/\/servizi\/[^/]+\/adesioni\//.test(this.router.url) && this.adesione?.servizio?.id_servizio) {
+            queryParams.id_servizio = this.adesione.servizio.id_servizio;
+        }
         const urlTree = this.router.createUrlTree(['/client', idClient], { queryParams });
         const openInNewTab = !!event && (event.ctrlKey || event.metaKey || event.shiftKey || event.button === 1);
         if (openInNewTab) {
@@ -333,6 +339,28 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
             return 2; // grigio - non ancora applicabile
         }
 
+        // Override per CLIENT: forziamo rosso SOLO per chi puo`
+        // effettivamente cambiare lo stato del client (gestore).
+        // Per il referente, il client "non configurato" non e` un
+        // suo problema (ha solo associato il client, configurarlo
+        // e` compito del gestore) → si torna al check-dati BE: se
+        // il BE non lo flagga come obbligatorio nello stato
+        // corrente, il toggle e` verde.
+        // Gating allineato al sub-step "In Compilazione"
+        // (`_hasIncompleteClients` lato wizard): l'override
+        // scatta solo se il workflow dello stato corrente
+        // richiede `<env>_configurato` come dato obbligatorio
+        // OPPURE siamo gia` in uno stato `in_configurazione_*_<env>`.
+        // Cosi` icona e step sono sempre coerenti.
+        if (
+            tipo === ClassiEnum.CLIENT
+            && this.authenticationService.isGestore(this.grant?.ruoli)
+            && this._hasNonConfiguredClients()
+            && this._stateRequiresConfiguredClient()
+        ) {
+            return 0;
+        }
+
         if (this.isSottotipoGroupCompletedMapper(update, tipo)) {
             return this.nextState?.dati_non_applicabili?.includes(this.environment) ? 2 : 1;
         } else {
@@ -341,6 +369,36 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
             // l'alert quando il check-dati BE riporta esito != 'ok'.
             return 0;
         }
+    }
+
+    /** Vero se almeno un client in `adesioneClients` non e`
+     * configurato (manca `id_client` o `source.stato !== 'configurato'`). */
+    private _hasNonConfiguredClients(): boolean {
+        const clients = this.adesioneClients || [];
+        if (clients.length === 0) { return false; }
+        return clients.some((c: any) => !c?.id_client || c?.source?.stato !== 'configurato');
+    }
+
+    /** Vero se nello stato corrente il client configurato e` un
+     *  vincolo per la transizione successiva. Allineato al
+     *  gate `_hasIncompleteClients` del wizard padre:
+     *  - `dati_obbligatori` dello stato attuale include
+     *    `<env>_configurato`, oppure
+     *  - lo stato e` `in_configurazione_*_<env>` (caso
+     *    automatica, che non dichiara `<env>_configurato` ma
+     *    pretende comunque che il client sia configurato).
+     *  Negli altri stati l'override "client non configurato"
+     *  non scatta (es. `richiesto_produzione` non richiede
+     *  ancora `produzione_configurato`). */
+    private _stateRequiresConfiguredClient(): boolean {
+        const stato = this.adesione?.stato || '';
+        if (!stato) { return false; }
+        const env = this.environment;
+        if (env !== AmbienteEnum.Collaudo && env !== AmbienteEnum.Produzione) { return false; }
+        const mandatory: string[] = this.authenticationService._getClassesMandatory('adesione', '', stato) || [];
+        const key = env === AmbienteEnum.Collaudo ? 'collaudo_configurato' : 'produzione_configurato';
+        if (mandatory.includes(key)) { return true; }
+        return stato.startsWith('in_configurazione') && stato.endsWith(`_${env}`);
     }
 
     /**
@@ -649,8 +707,15 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
         this._errorMsg = '';
     }
 
+    /** Item attualmente in caricamento (click matita): permette di
+     *  mostrare uno spinner sull'icona del pulsante mentre attendiamo
+     *  i dettagli del client + la lista dei client censiti. */
+    _loadingEditClientItem: any = null;
+
     _onEditClient(client: any) {
         this._resetError();
+
+        this._loadingEditClientItem = client;
 
         this.initTipiCertificato(client.auth_type);
 
@@ -716,10 +781,12 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
                 } else {
                     this._modalEditRef = this.modalService.show(this.editClients, _modalConfig);
                 }
+                this._loadingEditClientItem = null;
             },
             error: (error: any) => {
                 this._error = true;
                 this._errorMsg = this.utils.GetErrorMsg(error);
+                this._loadingEditClientItem = null;
             }
         });
     }
@@ -952,7 +1019,7 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
             this.onChangeCredenziali(_credenziali);
         }
 
-        if (!this._isModifiableMapper(data)) {
+        if (!this._isModifiable()) {
             this._disableAllFields(controls);
         }
 
@@ -2067,12 +2134,15 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
     }
 
     /**
-     * L'utente puo' modificare i dati della dialog? Delega a
-     * `_isModifiableMapper` per applicare la stessa logica di
-     * bypass (gestore, amm.org, op.api, referenti).
+     * L'utente puo' modificare i dati della dialog? Combina il gate
+     * di stato del padre (`isEdit`) con la logica di bypass su ruoli
+     * (`_isModifiableMapper`). I client gia` `configurato` non sono
+     * modificabili dal form (vanno dissociati prima): la dialog si
+     * apre in sola lettura (saveEnabled=false in `computeFormConfig`).
      */
     private _isModifiable(): boolean {
-        return this._isModifiableMapper();
+        if (this.client?.source?.stato === StatoConfigurazioneEnum.CONFIGURATO) { return false; }
+        return this.isEdit && this._isModifiableMapper();
     }
 
     /** Input completo per `computeFormConfig`. */

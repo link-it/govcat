@@ -34,10 +34,10 @@ export class OAuthInterceptor implements HttpInterceptor {
   config: any;
 
   constructor(
-    private configService: ConfigService,
-    private authStorage: OAuthStorage,
-    private errorHandler: OAuthResourceServerErrorHandler,
-    @Optional() private moduleConfig: OAuthModuleConfig
+    private readonly configService: ConfigService,
+    private readonly authStorage: OAuthStorage,
+    private readonly errorHandler: OAuthResourceServerErrorHandler,
+    @Optional() private readonly moduleConfig: OAuthModuleConfig
   ) {
     this.config = this.configService.getConfiguration();
   }
@@ -55,10 +55,6 @@ export class OAuthInterceptor implements HttpInterceptor {
     if (_urls.some(v => req.url.indexOf(v) !== -1) || this.config?.AppConfig?.AUTH_SETTINGS?.OAUTH.BackdoorSpid) {
       return next.handle(req);
     }
-
-    // if (!this.isPrivateRequest(req)) {
-    //   return next.handle(req);
-    // }
 
     const token: string | null = this.authStorage.getItem('access_token');
     if (token) {

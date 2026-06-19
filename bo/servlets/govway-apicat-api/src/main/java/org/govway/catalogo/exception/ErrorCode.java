@@ -454,6 +454,9 @@ public enum ErrorCode {
     /** Utente non abilitato come referente */
     AUT_403_REFERENT_NOT_ELIGIBLE("Utente non abilitato come referente"),
 
+    /** Utente senza un ruolo sufficiente nell'organizzazione per essere referente (richiesto almeno Operatore API) */
+    AUT_403_REFERENT_NO_ROLE("Utente senza un ruolo sufficiente nell'organizzazione per essere referente"),
+
     /** Organizzazione di sessione non abilitata come referente di servizi */
     AUT_403_ORG_NOT_REFERENTE("Organizzazione non abilitata come referente di servizi"),
 
@@ -544,6 +547,9 @@ public enum ErrorCode {
 
     /** Transizione di stato non consentita */
     WFL_400_TRANSITION("Transizione stato non consentita"),
+
+    /** Modifica di dati non consentita nello stato corrente */
+    WFL_400_DATA_NOT_MODIFIABLE("Modifica dati non consentita"),
 
     /** Workflow non trovato */
     WFL_404("Workflow non trovato"),
@@ -648,6 +654,9 @@ public enum ErrorCode {
 
     /** Principal già associato ad altro utente */
     REG_409_PRINCIPAL_EXISTS("Principal già associato a un altro utente"),
+
+    /** Più utenti associati alla stessa email aziendale */
+    REG_409_MULTIPLE_USERS_EMAIL("Più utenti associati alla stessa email aziendale"),
 
     /** Email non presente nei dati di autenticazione (JWT) */
     REG_400_NO_EMAIL_JWT("Email non presente nei dati di autenticazione"),

@@ -2005,7 +2005,7 @@ public class UtentiTest {
         // Creazione del servizio con referente
         var servizioCreate = CommonUtils.getServizioCreate();
         servizioCreate.setIdDominio(responseDominio.getBody().getIdDominio());
-        servizioCreate.setIdSoggettoInterno(responseSoggetto.getBody().getIdSoggetto());
+        servizioCreate.setIdSoggettoErogatore(responseSoggetto.getBody().getIdSoggetto());
         ReferenteCreate referenteCreate = new ReferenteCreate();
         referenteCreate.setTipo(TipoReferenteEnum.REFERENTE);
         referenteCreate.setIdUtente(responseUtente.getBody().getIdUtente());
@@ -2062,7 +2062,7 @@ public class UtentiTest {
         // Creazione del servizio (l'utente loggato diventa richiedente)
         var servizioCreate = CommonUtils.getServizioCreate();
         servizioCreate.setIdDominio(responseDominio.getBody().getIdDominio());
-        servizioCreate.setIdSoggettoInterno(responseSoggetto.getBody().getIdSoggetto());
+        servizioCreate.setIdSoggettoErogatore(responseSoggetto.getBody().getIdSoggetto());
         ReferenteCreate referenteCreate = new ReferenteCreate();
         referenteCreate.setTipo(TipoReferenteEnum.REFERENTE);
         referenteCreate.setIdUtente(responseUtente.getBody().getIdUtente());
@@ -2127,7 +2127,7 @@ public class UtentiTest {
         // Creazione del servizio con referente
         var servizioCreate = CommonUtils.getServizioCreate();
         servizioCreate.setIdDominio(responseDominio.getBody().getIdDominio());
-        servizioCreate.setIdSoggettoInterno(responseSoggetto.getBody().getIdSoggetto());
+        servizioCreate.setIdSoggettoErogatore(responseSoggetto.getBody().getIdSoggetto());
         ReferenteCreate referenteServizioCreate = new ReferenteCreate();
         referenteServizioCreate.setTipo(TipoReferenteEnum.REFERENTE);
         referenteServizioCreate.setIdUtente(responseUtente.getBody().getIdUtente());

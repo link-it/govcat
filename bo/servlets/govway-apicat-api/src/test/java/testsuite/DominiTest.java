@@ -667,7 +667,7 @@ public class DominiTest {
         ResponseEntity<Dominio> createdDominio2 = controller.createDominio(dominioCreate2);
         assertEquals(HttpStatus.OK, createdDominio2.getStatusCode());
 
-        ResponseEntity<PagedModelItemDominio> responseList = controller.listDomini(null, null, null, null, null, null, null, 0, 10, null);
+        ResponseEntity<PagedModelItemDominio> responseList = controller.listDomini(null, null, null, null, null, null, 0, 10, null);
 
         assertNotNull(responseList.getBody());
         assertEquals(2, responseList.getBody().getContent().size());
@@ -695,7 +695,7 @@ public class DominiTest {
         List<String> sort = new ArrayList<>();
         sort.add("nome,desc");
         
-        ResponseEntity<PagedModelItemDominio> responseList = controller.listDomini(null, null, null, null, null, null, null, 0, 10, sort);
+        ResponseEntity<PagedModelItemDominio> responseList = controller.listDomini(null, null, null, null, null, null, 0, 10, sort);
         
         // Verifica del successo
         assertEquals(HttpStatus.OK, responseList.getStatusCode());
@@ -731,7 +731,7 @@ public class DominiTest {
         List<String> sort = new ArrayList<>();
         sort.add("nome,asc");
         
-        ResponseEntity<PagedModelItemDominio> responseList = controller.listDomini(null, null, null, null, null, null, null, 0, 10, sort);
+        ResponseEntity<PagedModelItemDominio> responseList = controller.listDomini(null, null, null, null, null, null, 0, 10, sort);
         
         // Verifica del successo
         assertEquals(HttpStatus.OK, responseList.getStatusCode());
@@ -766,7 +766,7 @@ public class DominiTest {
             assertEquals(HttpStatus.OK, createdDominio1.getStatusCode());
     	}
         for(int n = 0; n < (numeroTotaleDiElementi/numeroElementiPerPagina); n++) {
-        	ResponseEntity<PagedModelItemDominio> responseList = controller.listDomini(null, null, null, null, null, null, null, n, numeroElementiPerPagina, null);
+        	ResponseEntity<PagedModelItemDominio> responseList = controller.listDomini(null, null, null, null, null, null, n, numeroElementiPerPagina, null);
             
             // Verifica del successo
             assertEquals(HttpStatus.OK, responseList.getStatusCode());
@@ -798,7 +798,7 @@ public class DominiTest {
         ResponseEntity<Dominio> createdDominio2 = controller.createDominio(dominioCreate2);
         assertEquals(HttpStatus.OK, createdDominio2.getStatusCode());
 
-        ResponseEntity<PagedModelItemDominio> responseList = controller.listDomini(null, null, null, null, true, null, null, 0, 10, null);
+        ResponseEntity<PagedModelItemDominio> responseList = controller.listDomini(null, null, null, null, true, null, 0, 10, null);
 
         assertNotNull(responseList.getBody());
         assertEquals(1, responseList.getBody().getContent().size());
@@ -826,7 +826,7 @@ public class DominiTest {
         
         // Tentativo di recuperare la lista di domini senza autorizzazione
         assertThrows(NotAuthorizedException.class, () -> {
-            controller.listDomini(null, null, null, null, null, null, null, 0, 10, null);
+            controller.listDomini(null, null, null, null, null, null, 0, 10, null);
         });
     }
     
@@ -1485,7 +1485,7 @@ public class DominiTest {
 
         assertEquals(HttpStatus.OK, createdDominio2.getStatusCode());
 
-        ResponseEntity<PagedModelItemDominio> responseList = controller.listDomini(null, null, null, null, null, null, q, 0, 10, null);
+        ResponseEntity<PagedModelItemDominio> responseList = controller.listDomini(null, null, null, null, null, q, 0, 10, null);
         
         assertNotNull(responseList.getBody());
         assertEquals(0, responseList.getBody().getContent().size());
@@ -1520,7 +1520,7 @@ public class DominiTest {
 
         assertEquals(HttpStatus.OK, createdDominio2.getStatusCode());
 
-        ResponseEntity<PagedModelItemDominio> responseList = controller.listDomini(null, null, null, null, null, null, q, 0, 10, null);
+        ResponseEntity<PagedModelItemDominio> responseList = controller.listDomini(null, null, null, null, null, q, 0, 10, null);
 
         assertNotNull(responseList.getBody());
         assertEquals(1, responseList.getBody().getContent().size());
@@ -1834,7 +1834,7 @@ public class DominiTest {
         setOrgContext(orgX.getIdOrganizzazione(), RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
 
         ResponseEntity<PagedModelItemDominio> response =
-                controller.listDomini(null, null, null, null, null, null, null, 0, 50, null);
+                controller.listDomini(null, null, null, null, null, null, 0, 50, null);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         // Vede solo i due domini di X, non quello di Y

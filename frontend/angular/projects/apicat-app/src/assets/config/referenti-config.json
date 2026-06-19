@@ -44,8 +44,8 @@
       "label": "APP.LABEL.Type",
       "small": true,
       "values": {
-        "referente": { "label": "APP.ROLE.referente", "background": "#E87823", "border": "#E87823", "color": "#ffffff" },
-        "referente_tecnico": { "label": "APP.ROLE.referente_tecnico", "background": "#efc96c", "border": "#efc96c", "color": "#1f1f1f" }
+        "referente": { "label": "APP.ROLE.referente", "chipVariant": "warn", "background": "#E87823", "border": "#E87823", "color": "#ffffff" },
+        "referente_tecnico": { "label": "APP.ROLE.referente_tecnico", "chipVariant": "warn", "background": "#efc96c", "border": "#efc96c", "color": "#1f1f1f" }
       }
     }
   }

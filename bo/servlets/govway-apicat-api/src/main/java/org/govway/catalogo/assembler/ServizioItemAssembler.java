@@ -54,8 +54,8 @@ public class ServizioItemAssembler extends RepresentationModelAssemblerSupport<S
 		dettaglio.setDominio(engine.getDominio(entity));
 		dettaglio.setTipo(engine.toTipo(entity.getTipo()));
 
-		if(entity.getSoggettoInterno()!=null) {
-			dettaglio.setSoggettoInterno(soggettoItemAssembler.toModel(entity.getSoggettoInterno()));
+		if(entity.getSoggettoErogatore()!=null) {
+			dettaglio.setSoggettoErogatore(soggettoItemAssembler.toModel(entity.getSoggettoErogatore()));
 		}
 		
 		dettaglio.setVisibilita(engine.toVisibilita(entity.getVisibilita()));

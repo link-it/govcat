@@ -390,8 +390,8 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 			throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
 		}
 
-		if(entity.getServizio().isFruizione() && !entity.getSoggetto().getId().equals(entity.getServizio().getSoggettoInterno().getId())) {
-			throw new BadRequestException(ErrorCode.ADE_409_STATE_SUBJECT_MISMATCH, java.util.Map.of("servizio", servizioK, "soggetto", entity.getSoggetto().getNome(), "soggettoInterno", entity.getServizio().getSoggettoInterno().getNome()));
+		if(entity.getServizio().isFruizione() && !entity.getSoggetto().getId().equals(entity.getServizio().getDominio().getSoggettoReferente().getId())) {
+			throw new BadRequestException(ErrorCode.ADE_409_STATE_SUBJECT_MISMATCH, java.util.Map.of("servizio", servizioK, "soggetto", entity.getSoggetto().getNome(), "soggettoInterno", entity.getServizio().getDominio().getSoggettoReferente().getNome()));
 		}
 
 		if(!entity.getSoggetto().isAderente()) {
@@ -490,7 +490,8 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 				.findAny().orElseThrow(() -> new BadRequestException(ErrorCode.GRP_404, Map.of("idGruppo", apc.getGruppo())));
 
 		AmbienteEnum ambiente = g.getClasseDato().equals(ConfigurazioneClasseDato.COLLAUDO)
-				|| g.getClasseDato().equals(ConfigurazioneClasseDato.COLLAUDO_CONFIGURATO) ? AmbienteEnum.COLLAUDO
+				|| g.getClasseDato().equals(ConfigurazioneClasseDato.COLLAUDO_CONFIGURATO)
+				|| g.getClasseDato().equals(ConfigurazioneClasseDato.COLLAUDO_PDND) ? AmbienteEnum.COLLAUDO
 						: AmbienteEnum.PRODUZIONE;
 
 		if (g.getSpecificoPer() != null) {

@@ -19,6 +19,7 @@
 import { Routes } from '@angular/router';
 
 import { DashboardComponent } from './dashboard.component';
+import { UtenteDetailsComponent } from '../utenti/utente-details/utente-details.component';
 
 export const DASHBOARD_ROUTES: Routes = [
   {
@@ -27,6 +28,11 @@ export const DASHBOARD_ROUTES: Routes = [
       {
         path: '',
         component: DashboardComponent
+      },
+      {
+        path: 'utente/:id',
+        data: { breadcrumb: ':id' },
+        component: UtenteDetailsComponent
       }
     ]
   }

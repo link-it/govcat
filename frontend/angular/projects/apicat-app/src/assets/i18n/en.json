@@ -17,7 +17,8 @@
 			"HelpText": "From this section you can manage users and domains of the organization.",
 			"AddTooltip": "Add a user to the organization",
 			"TabUtenti": "Users",
-			"TabDomini": "Domains"
+			"TabDomini": "Domains",
+			"TabUtentiPending": "Users to manage"
 		},
 		"RUOLI": {
 			"AmministratoreOrganizzazione": "Organization administrator",
@@ -42,7 +43,8 @@
 				"Add": "Add",
 				"Remove": "Remove",
 				"NewUser": "New user",
-				"BackToSearch": "Back to search"
+				"BackToSearch": "Back to search",
+				"ChangeRole": "Change role"
 			},
 			"MESSAGE": {
 				"RemoveConfirm": "Do you want to remove {{nome}} from this organization?",
@@ -121,7 +123,9 @@
 				"ProceduraAttivazione": "Activation procedure",
 				"ProceduraConfigurazione": "Configuration procedure",
 				"CompletedOf": "{{done}} of {{total}} completed",
-				"BloccatoTooltip": "Available after the previous step is completed"
+				"BloccatoTooltip": "Available after the previous step is completed",
+				"SubstepFallbackCanChange": "The subscription is ready for the next step: use the buttons below to change the state.",
+				"SubstepFallbackCannotChange": "No further action is required from you at this stage. Membership is pending action from an authorized user."
 			},
 			"STEP_WIZARD": {
 				"info_generali": "General Information & Referents",
@@ -129,6 +133,26 @@
 				"produzione": "Production",
 				"CurrentStateBadge": "Current",
 				"PreviewBadge": "Preview"
+			},
+			"STEP_WIZARD_CREATE": {
+				"creazione": "Creation",
+				"info_referenti": "General Information & Referents",
+				"collaudo": "Testing",
+				"produzione": "Production"
+			},
+			"CREATE": {
+				"Subtitle": "Fill in the basic information to create the subscription. On save, Phase 1 is complete — you can still edit it — and the technical configuration of the following phases is enabled.",
+				"SectionServiceTag": "Service",
+				"SectionServiceTitle": "General information",
+				"SectionServiceDesc": "Indicate the catalog service to subscribe to and the organization that will own the subscription.",
+				"SectionContactsTag": "Contacts",
+				"SectionContactsTitle": "Roles and contacts",
+				"SectionContactsDesc": "Who is responsible for the subscription and who handles the technical integration.",
+				"OrganizationHint": "The entity that will own the subscription.",
+				"SelfReferenteHint": "Indicate the organizational owner of this subscription (e.g. IT manager, company contact). They will receive the institutional communications about the service.",
+				"RefTecnicoHint": "Indicate who will handle the technical integration and support the drafting (e.g. software vendor, system integrator). May coincide with the referent.",
+				"MandatoryHint": "Fields marked with * are required",
+				"Submit": "Create subscription"
 			},
 			"STEP_WIZARD_SEZIONE": {
 				"in_compilazione": "Drafting",
@@ -167,7 +191,9 @@
 				"ShowReferents_sub": "Show referents"
 			},
 			"MESSAGE": {
-				"ConfigureClientsDisclaimer": "Configure the authentication clients to proceed. For each profile listed below, click the pencil and enter the required data."
+				"ConfigureClientsDisclaimer": "Configure the authentication clients to proceed. For each profile listed below, click the pencil and enter the required data.",
+				"FaseProduzioneBloccata": "To request production, the service must first be published in production.",
+				"FaseProduzioneBloccataShort": "Service not published in production"
 			},
 			"TOOLTIP": {
 				"EditAdesione": ""
@@ -303,6 +329,7 @@
 		},
 		"BUTTON": {
 			"Add": "Add",
+			"BackToAdesione": "Back to subscription",
 			"GoToService": "Go to the Service",
 			"Copy": "Copy",
 			"ShowAll": "Show all",
@@ -475,7 +502,11 @@
 				"ConfigInProgress": "Configuration to be perfected",
 				"Configured": "Configured",
 				"New": "New",
-				"NotConfigured": "Not configured"
+				"NotConfigured": "Not configured",
+				"nuovo": "Not configured",
+				"non_configurato": "Not configured",
+				"Non configurato": "Not configured",
+				"configurato": "Configured"
 			},
 			"TITLE": {
 				"RequestingUser": "Requesting User"
@@ -730,7 +761,7 @@
 			"Open": "Open",
 			"Production": "Production",
 			"ReferenteAdesione": "Subscription referent",
-			"ReferenteServizioDominio": "Service/domain referent",
+			"ReferenteServizioDominio": "Service / Domain referent",
 			"Richiedente": "Applicant",
 			"SelectAll": "Select All",
 			"Testing": "Testing",
@@ -874,7 +905,7 @@
 			"Errori": "Errors",
 			"ErrorMessages": "Error messages",
 			"Esito": "Outcome",
-			"esterna": "External",
+			"intermediata": "Intermediated",
 			"EventType": "Event Type",
 			"ExpiresIn": "Expires in",
 			"ExternalId": "External id",
@@ -967,7 +998,8 @@
 			"OrganizationID": "Organization ID",
 			"OrganizationOrigin": "Organization Origin",
 			"Organizzazione": "Organization",
-			"OrganizzazioneInterna": "Internal organization",
+			"EnteErogatore": "Providing entity",
+			"OrganizzazioneErogatore": "Providing organization",
 			"Outcome": "Outcome",
 			"package": "Package",
 			"Padre": "Father",
@@ -1062,9 +1094,9 @@
 			"SOAPFault": "SOAP Fault",
 			"soggetto": "Subject",
 			"soggetto_aderente": "Adherent subject",
-			"soggetto_interno": "Internal subject",
+			"soggetto_erogatore": "Providing subject",
 			"soggetto_nome": "Subject",
-			"SoggettoInterno": "Internal subject",
+			"SoggettoErogatore": "Providing subject",
 			"specifica": "Specify",
 			"SpecificaInterfaccia": "Specify interface",
 			"State": "State",
@@ -1100,7 +1132,8 @@
 			"tempo_medio_risposta": "Average response time",
 			"TempoRisposta": "Response time",
 			"termini_ricerca": "Search Terms",
-			"Owner": "Service contact",
+			"Owner": "Contact",
+			"OwnerPlural": "Contacts",
 			"PollingAutoConfig": "Automatic configuration in progress: checking for updates...",
 			"UpdatedRelative": "Updated {{time}}",
 			"ApiDocumentation": "API Documentation",
@@ -1291,6 +1324,8 @@
 			"JoinServiceSubtitle": "Configure your organization to use the APIs of this service.",
 			"GoAdesionePrompt": "You already have an active subscription. Go to the detail to manage it.",
 			"GoAdesioniPrompt": "There are subscriptions associated with this service. View them to manage them.",
+			"GoToAdesioneFromServiceTitle": "Back to the originating subscription",
+			"GoToAdesioneFromServiceSubtitle": "You came here from a subscription page. Continue where you left off.",
 			"GoToServiceSubtitle": "View the details of the service this subscription refers to (APIs, documentation, contacts).",
 			"ERROR": {
 				"ADE": {
@@ -1321,7 +1356,7 @@
 							"DISABLED": "Membership disabled for service [{{servizio}}]",
 							"VISIBILITY": "Service [{{servizio}}] visibility does not allow direct memberships",
 							"SUBJECT": {
-								"MISMATCH": "Subject [{{soggetto}}] does not match internal subject [{{soggettoInterno}}] for fruition [{{servizio}}]"
+								"MISMATCH": "Subject [{{soggetto}}] does not match providing subject [{{soggettoInterno}}] for fruition [{{servizio}}]"
 							}
 						}
 					}
@@ -1371,6 +1406,9 @@
 						"REFERENT": {
 							"NOT": {
 								"ELIGIBLE": "User [{{nomeUtente}} {{cognomeUtente}}] not eligible as referent"
+							},
+							"NO": {
+								"ROLE": "User [{{userIdUtente}}] does not have a sufficient role in organization [{{orgNome}}]: at least the API Operator role is required"
 							}
 						},
 						"RESOURCE": "Access denied to resource [{{resource}}]",
@@ -1612,6 +1650,11 @@
 						"PRINCIPAL": {
 							"EXISTS": "Principal already associated with another user"
 						},
+						"MULTIPLE": {
+							"USERS": {
+								"EMAIL": "Multiple users are associated with the business email [{{email}}]. Please contact the administrator to resolve the conflict."
+							}
+						},
 						"ALREADY": {
 							"PENDING": {
 								"OTHER": {
@@ -1823,7 +1866,10 @@
 					"404": "",
 					"400": {
 						"DATA": {
-							"MISSING": "Cannot perform transition: missing data [{{datiMancanti}}]"
+							"MISSING": "Cannot perform transition: missing data [{{datiMancanti}}]",
+							"NOT": {
+								"MODIFIABLE": "Data not modifiable in the current workflow state"
+							}
 						},
 						"STATE": "",
 						"TRANSITION": "State transition from [{{statoAttuale}}] to [{{statoDesiderato}}] not allowed"
@@ -1988,7 +2034,7 @@
 				"Aderente": "Organization aderente",
 				"CodiceEnte": "Asset Code",
 				"CodiceFiscaleSoggetto": "Subject Taxcode",
-				"Esterna": "External organization",
+				"Intermediata": "Intermediated organization",
 				"IdTipoUtente": "Subject type",
 				"Referente": "Referent Organization",
 				"SoggettoDefault": "Default subject"
@@ -2844,10 +2890,12 @@
 			"DATATYPE": {
 				"collaudo": "Testing",
 				"collaudo_configurato": "Testing",
+				"collaudo_pdnd": "PDND",
 				"generico": "Generic",
 				"identificativo": "Identifier",
 				"produzione": "Production",
 				"produzione_configurato": "Production",
+				"produzione_pdnd": "PDND",
 				"referenti": "Referrals",
 				"specifica": "Specific"
 			},

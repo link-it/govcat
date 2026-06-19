@@ -309,7 +309,7 @@ public class AdesioneServizioIntegrationTest {
         //CREO L'ORGANIZZAZIONE Viaggiar
         OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
         organizzazione.setNome("Viaggiar");
-        organizzazione.setEsterna(false);
+        organizzazione.setIntermediata(false);
         organizzazione.setCodiceFiscaleSoggetto(NOME_GRUPPO);
 
         response = organizzazioniController.createOrganizzazione(organizzazione);
@@ -367,7 +367,7 @@ public class AdesioneServizioIntegrationTest {
         ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
         servizioCreate.setSkipCollaudo(true);
         servizioCreate.setNome("jonio");
-		servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+		servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
 		servizioCreate.setIdDominio(createdDominio.getBody().getIdDominio());
 		servizioCreate.setAdesioneDisabilitata(false);
 		servizioCreate.setMultiAdesione(false);
@@ -514,7 +514,7 @@ public class AdesioneServizioIntegrationTest {
         
         OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
         organizzazione.setNome("Viaggiar");
-        organizzazione.setEsterna(false);
+        organizzazione.setIntermediata(false);
         organizzazione.setCodiceFiscaleSoggetto(NOME_GRUPPO);
 
         response = organizzazioniController.createOrganizzazione(organizzazione);
@@ -552,7 +552,7 @@ public class AdesioneServizioIntegrationTest {
 
         ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
         servizioCreate.setSkipCollaudo(true);
-		servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+		servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
 		servizioCreate.setIdDominio(createdDominio.getBody().getIdDominio());
 		servizioCreate.setMultiAdesione(false);
 		if(immagine.getContent()!=null)

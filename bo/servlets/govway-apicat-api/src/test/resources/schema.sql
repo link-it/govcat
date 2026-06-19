@@ -331,7 +331,7 @@ create sequence seq_aziende_esterne start with 1 increment by 1;
         codice_ente varchar(255),
         codice_fiscale_soggetto varchar(255),
         descrizione varchar(255),
-        esterna boolean not null,
+        intermediata boolean not null,
         id_organizzazione varchar(255) not null,
         id_tipo_utente varchar(255),
         name varchar(255) not null,
@@ -403,7 +403,7 @@ create sequence seq_aziende_esterne start with 1 increment by 1;
         id_dominio bigint,
         id_immagine bigint,
         id_richiedente bigint,
-        id_soggetto_interno bigint,
+        id_soggetto_erogatore bigint,
         id_utente_ultima_modifica bigint,
         primary key (id)
     );
@@ -926,7 +926,7 @@ create sequence seq_aziende_esterne start with 1 increment by 1;
 
     alter table servizi 
        add constraint FKm9mrqqw6i7k02sq5cam8gfk7p 
-       foreign key (id_soggetto_interno) 
+       foreign key (id_soggetto_erogatore)
        references soggetti;
 
     alter table servizi 

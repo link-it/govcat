@@ -121,9 +121,12 @@ describe('ItemTypeComponent', () => {
         component.elem = { type: 'label', field: 'testField', options: 'active' };
         component.data = { source: { testField: 'nonexistent' } }; // _origValue will be 'nonexistent', which is not defined in options
         component.ngOnInit();
-        expect(component._background).toEqual('#1f1f1f');
-        expect(component._border).toEqual('#1f1f1f');
-        expect(component._color).toEqual('#fff');
+        // Il branch `label` ora delega lo stile alla pill SCSS (`_chipVariant`)
+        // e non setta piu` i colori hardcoded: con un valore non mappato si
+        // ricade sul valore raw e sulla variante muted di default.
+        expect(component._value).toEqual('nonexistent');
+        expect(component._chipVariant).toEqual('muted');
+        expect(component._label).toEqual('Active Label');
     });
 
     it('should format _value as tag when elem.type is tag', () => {

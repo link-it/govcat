@@ -98,7 +98,7 @@ export class OrganizzazioniComponent implements OnInit, AfterContentChecked {
     { field: 'q', label: 'APP.LABEL.nome', type: 'string', condition: 'like' },
     { field: 'referente', label: 'APP.LABEL.referente', type: 'enum', condition: 'equal', enumValues: this._enabledEnum },
     { field: 'aderente', label: 'APP.LABEL.aderente', type: 'enum', condition: 'equal', enumValues: this._enabledEnum },
-    { field: 'esterna', label: 'APP.LABEL.esterna', type: 'enum', condition: 'equal', enumValues: this._enabledEnum },
+    { field: 'intermediata', label: 'APP.LABEL.intermediata', type: 'enum', condition: 'equal', enumValues: this._enabledEnum },
     // { field: 'soggetto_aderente', label: 'APP.LABEL.soggetto_aderente', type: 'enum', condition: 'equal', enumValues: this._enabledEnum },
   ];
   useCondition: boolean = false;
@@ -151,7 +151,10 @@ export class OrganizzazioniComponent implements OnInit, AfterContentChecked {
         }
         if (this.organizzazioniConfig.options[key].values) {
           Object.keys(this.organizzazioniConfig.options[key].values).forEach((key2: string) => {
-            this.organizzazioniConfig.options[key].values[key2].label = this.translate.instant(this.organizzazioniConfig.options[key].values[key2].label);
+            const _label = this.organizzazioniConfig.options[key].values[key2].label;
+            if (_label) {
+              this.organizzazioniConfig.options[key].values[key2].label = this.translate.instant(_label);
+            }
           });
         }
       });
@@ -174,7 +177,7 @@ export class OrganizzazioniComponent implements OnInit, AfterContentChecked {
       q: new FormControl(''),
       referente: new FormControl(''),
       aderente: new FormControl(''),
-      esterna: new FormControl(''),
+      intermediata: new FormControl(''),
       // soggetto_aderente: new FormControl('')
     });
   }

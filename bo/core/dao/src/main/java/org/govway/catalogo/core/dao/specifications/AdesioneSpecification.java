@@ -60,6 +60,7 @@ public class AdesioneSpecification implements Specification<AdesioneEntity> {
 	private Optional<UUID> idSoggetto = Optional.empty();
 	private Optional<UUID> idOrganizzazione = Optional.empty();
 	private Optional<UtenteEntity> utente = Optional.empty();
+	private List<UUID> idOrganizzazioniAmministrate = null;
 	private Optional<String> idReferente = Optional.empty();
 	private Optional<UUID> gruppo = Optional.empty();
 	private Optional<UUID> dominio = Optional.empty();
@@ -159,6 +160,16 @@ public class AdesioneSpecification implements Specification<AdesioneEntity> {
 			predLstQ.add(cb.equal(root.join(AdesioneEntity_.servizio, JoinType.LEFT).join(ServizioEntity_.dominio, JoinType.LEFT).join(DominioEntity_.referenti, JoinType.LEFT).get(ReferenteDominioEntity_.referente).get(UtenteEntity_.id), utente.getId()));
 			predLstQ.add(cb.equal(root.get(AdesioneEntity_.richiedente).get(UtenteEntity_.id), utente.getId()));
 			predLstQ.add(cb.equal(root.get(AdesioneEntity_.servizio).get(ServizioEntity_.richiedente).get(UtenteEntity_.id), utente.getId()));
+
+			// Visibilità aggiuntiva: un amministratore di organizzazione vede tutte le adesioni
+			// della/e propria/e organizzazione/i (lato aderente), anche se non ne è referente o richiedente.
+			if(this.idOrganizzazioniAmministrate != null && !this.idOrganizzazioniAmministrate.isEmpty()) {
+				List<Predicate> predOrg = new ArrayList<>();
+				for(UUID idOrg: this.idOrganizzazioniAmministrate) {
+					predOrg.add(cb.equal(root.get(AdesioneEntity_.soggetto).get(SoggettoEntity_.organizzazione).get(OrganizzazioneEntity_.idOrganizzazione), idOrg.toString()));
+				}
+				predLstQ.add(cb.or(predOrg.toArray(new Predicate[] {})));
+			}
 
 			predLst.add(cb.or(predLstQ.toArray(new Predicate[] {})));
 			predLst.add(cb.notEqual(root.get(AdesioneEntity_.stato), "archiviato"));
@@ -278,6 +289,14 @@ public class AdesioneSpecification implements Specification<AdesioneEntity> {
 
 	public void setUtente(Optional<UtenteEntity> utente) {
 		this.utente = utente;
+	}
+
+	public List<UUID> getIdOrganizzazioniAmministrate() {
+		return idOrganizzazioniAmministrate;
+	}
+
+	public void setIdOrganizzazioniAmministrate(List<UUID> idOrganizzazioniAmministrate) {
+		this.idOrganizzazioniAmministrate = idOrganizzazioniAmministrate;
 	}
 
 	public Optional<UUID> getIdRichiedente() {

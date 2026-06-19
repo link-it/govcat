@@ -11,12 +11,16 @@ describe('ClientCredentialsDialogComponent', () => {
   const mockConfigService = { getConfiguration: vi.fn().mockReturnValue({}) } as any;
   const mockUtils = {} as any;
   const mockAuthDialogService = {} as any;
+  const mockApiService = {
+    getList: vi.fn().mockReturnValue({ subscribe: vi.fn() }),
+  } as any;
 
   beforeEach(() => {
     vi.clearAllMocks();
     component = new ClientCredentialsDialogComponent(
       mockHttp, mockClipboard, mockModalRef, mockTranslate,
-      mockAuthService, mockConfigService, mockUtils, mockAuthDialogService
+      mockAuthService, mockConfigService, mockUtils, mockAuthDialogService,
+      mockApiService
     );
   });
 

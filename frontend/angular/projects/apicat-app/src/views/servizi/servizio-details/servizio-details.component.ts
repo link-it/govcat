@@ -286,7 +286,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     _hasFlagConsentiNonSottoscrivibile: boolean = false;
     _hasAdesioniMultiple: boolean = false;
     
-    _isDominioEsterno: boolean = false;
+    _isFruizione: boolean = false;
 
     organizzazioniInterne$!: Observable<any[]>;
     organizzazioniInterneInput$ = new Subject<string>();
@@ -710,7 +710,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             note: body.note || null,
             immagine: body.immagine,
             adesione_disabilitata: body.adesione_disabilitata || false,
-            id_soggetto_interno: body.id_soggetto_interno || null,
+            id_soggetto_erogatore: body.id_soggetto_erogatore || null,
             package: body.package || false,
             skip_collaudo: body.skip_collaudo || false,
             fruizione: body.fruizione || false,
@@ -745,7 +745,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                     this._data = new Servizio({ ...response });
                     this.id = this.data.id_servizio;
                     this._isDominioDeprecato = this.data.dominio.deprecato || false;
-                    this._isDominioEsterno = this.data.fruizione || false;
+                    this._isFruizione = this.data.fruizione || false;
                     this._initBreadcrumb();
                     this.loadCurrentData();
                     if (this.data.package) {
@@ -792,7 +792,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 multi_adesione: body.multi_adesione,
                 classi: _classi,
                 adesione_disabilitata: body.adesione_disabilitata || false,
-                id_soggetto_interno: body.id_soggetto_interno || null,
+                id_soggetto_erogatore: body.id_soggetto_erogatore || null,
                 package: body.package || false,
                 skip_collaudo: body.skip_collaudo || false,
                 fruizione: body.fruizione || false
@@ -842,7 +842,6 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         const _options: any = term ? { params: { q: term } } : { params: {} };
         if (!this.authenticationService.isGestore()) {
             _options.params.deprecato = false;
-            _options.params.esterno = false;
         }
         return this.apiService.getList('domini', _options)
             .pipe(map(resp => {
@@ -865,7 +864,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         if (stato) { _options.params.stato = stato; }
 
         // In caso di erogazione filtrare per organizzazione
-        if (!this._isDominioEsterno && this.selectedDominio) {
+        if (!this._isFruizione && this.selectedDominio) {
             _options.params.id_organizzazione = this.selectedDominio.soggetto_referente.organizzazione.id_organizzazione;
         }
 
@@ -904,7 +903,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                             if (this._canManagement()) {
                                 this._data = new Servizio({ ...response });
                                 this._isDominioDeprecato = this.data.dominio?.deprecato || false;
-                                this._isDominioEsterno = this.data.fruizione || false;
+                                this._isFruizione = this.data.fruizione || false;
                                 this._initForm({ ...this._data });
                                 this._spin = false;
                                 this._initBreadcrumb();
@@ -1035,7 +1034,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 debounceTime(300),
                 tap(() => this.organizzazioniInterneLoading = true),
                 switchMap((term: any) => {
-                    return this.getOrganizzazioni(term, true).pipe(
+                    return this.getOrganizzazioni(term).pipe(
                         catchError(() => of([])), // empty list on error
                         tap(() => this.organizzazioniInterneLoading = false)
                     )
@@ -1047,20 +1046,20 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     loadCurrentData() {
         this._initDominiSelect([this.data.dominio]);
 
-        this.selectedOrganizzazione = this.data.soggetto_interno?.organizzazione ?? null;
+        this.selectedOrganizzazione = this.data.soggetto_erogatore?.organizzazione ?? null;
 
         this._formGroup.get('id_organizzazione_interna')?.disable();
         this._formGroup.patchValue({id_organizzazione_interna: this.selectedOrganizzazione?.id_organizzazione});
 
         if (!this.authenticationService.isGestore()) {
-            if (this._isDominioDeprecato || this._isDominioEsterno) {
+            if (this._isDominioDeprecato || this._isFruizione) {
                 this._formGroup.get('id_dominio')?.disable();
             }
         }
-        this._formGroup.get('id_organizzazione_interna')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
+        this._formGroup.get('id_organizzazione_interna')?.setValidators(this._isFruizione ? [Validators.required] : null);
         this._formGroup.get('id_organizzazione_interna')?.updateValueAndValidity();
-        this._formGroup.get('id_soggetto_interno')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
-        this._formGroup.get('id_soggetto_interno')?.updateValueAndValidity();
+        this._formGroup.get('id_soggetto_erogatore')?.setValidators(this._isFruizione ? [Validators.required] : null);
+        this._formGroup.get('id_soggetto_erogatore')?.updateValueAndValidity();
 
         this._initOrganizzazioniInterneSelect(this.selectedOrganizzazione ? [this.selectedOrganizzazione] : []);
 
@@ -1072,14 +1071,14 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 if (result.length === 1) {
                     this._hideSoggettoDropdown = true;
                     this._hideSoggettoInfo = true;
-                    this._formGroup.controls.id_soggetto_interno.patchValue(result[0].id_soggetto)
-                    this._formGroup.controls.id_soggetto_interno.updateValueAndValidity()
+                    this._formGroup.controls.id_soggetto_erogatore.patchValue(result[0].id_soggetto)
+                    this._formGroup.controls.id_soggetto_erogatore.updateValueAndValidity()
                 } else {
                     this._hideSoggettoDropdown = false;
                     this._hideSoggettoInfo = false;
                     this._elencoSoggetti = [...result];
-                    this._formGroup.controls.id_soggetto_interno.patchValue(this.data.soggetto_interno?.id_soggetto)
-                    this._formGroup.controls.id_soggetto_interno.updateValueAndValidity()
+                    this._formGroup.controls.id_soggetto_erogatore.patchValue(this.data.soggetto_erogatore?.id_soggetto)
+                    this._formGroup.controls.id_soggetto_erogatore.updateValueAndValidity()
                     this._formGroup.updateValueAndValidity();
                 }
             },
@@ -1091,21 +1090,23 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     }
     
 
-    getOrganizzazioni(term: string | null, aderente: true): Observable<any> {
-        const _options: any = { params: { q: term, esterna: false } };
-        if (aderente) {
-            _options.params.aderente = aderente;
-        }
-        return this.apiService.getList('organizzazioni', _options)
-            .pipe(map(resp => {
-                if (resp.Error) {
-                    throwError(() => resp.Error);
-                } else {
-                    const _items = resp.content.map((item: any) => {
-                        return item;
-                    });
-                    return _items;
-                }
+    getOrganizzazioni(term: string | null): Observable<any> {
+        // Ente Erogatore = organizzazione referente OPPURE intermediata.
+        // I parametri BE `referente`/`intermediata` sono booleani indipendenti
+        // (nessun OR lato query): due chiamate + merge con dedup per id.
+        const _params: any = {};
+        if (term) { _params.q = term; }
+        const _referenti$ = this.apiService.getList('organizzazioni', { params: { ..._params, referente: true } });
+        const _intermediate$ = this.apiService.getList('organizzazioni', { params: { ..._params, intermediata: true } });
+        return forkJoin([_referenti$, _intermediate$]).pipe(
+            map(([_resp1, _resp2]: any[]) => {
+                const _merged = [...(_resp1?.content || []), ...(_resp2?.content || [])];
+                const _seen = new Set<any>();
+                return _merged.filter((org: any) => {
+                    if (_seen.has(org.id_organizzazione)) { return false; }
+                    _seen.add(org.id_organizzazione);
+                    return true;
+                });
             })
         );
     }
@@ -1158,15 +1159,15 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                             organizzazione: result[0].organizzazione,
                             referente: result[0].referente,
                         }
-                        controls.id_soggetto_interno.patchValue(aux.id_soggetto);
-                        controls.id_soggetto_interno.disable();
+                        controls.id_soggetto_erogatore.patchValue(aux.id_soggetto);
+                        controls.id_soggetto_erogatore.disable();
                         this._disabled_id_soggetto = aux.id_soggetto;
                         
                     } else {
                         this._elencoSoggetti = [...result];
 
-                        controls.id_soggetto_interno.enable();
-                        controls.id_soggetto_interno.updateValueAndValidity();
+                        controls.id_soggetto_erogatore.enable();
+                        controls.id_soggetto_erogatore.updateValueAndValidity();
                         this._disabled_id_soggetto = null;
                         this._hideSoggettoDropdown = false;
                         this._hideSoggettoInfo = false;
@@ -1178,7 +1179,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             });
         } else {
             const controls = this._formGroup.controls;
-            controls.id_soggetto_interno.patchValue(null);
+            controls.id_soggetto_erogatore.patchValue(null);
             this._formGroup.updateValueAndValidity();
 
             this._elencoSoggetti = [];
@@ -1271,7 +1272,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         } else {
             this._data = new Servizio({ ...this.data });
             this._isDominioDeprecato = this.data.dominio?.deprecato || false;
-            this._isDominioEsterno = this.data.fruizione || false;
+            this._isFruizione = this.data.fruizione || false;
             this._initForm({ ...this._data });
             this._changeEdit(this._isEdit);
             this.loadCurrentData();
@@ -1403,15 +1404,15 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     }
 
     _onChangeFruizione(event: any) {
-        this._isDominioEsterno = event.target.checked;
-        if (!this._isDominioEsterno) {
+        this._isFruizione = event.target.checked;
+        if (!this._isFruizione) {
             this._formGroup.get('id_organizzazione_interna')?.setValue(null);
-            this._formGroup.get('id_soggetto_interno')?.setValue(null);
+            this._formGroup.get('id_soggetto_erogatore')?.setValue(null);
         }
-        this._formGroup.get('id_organizzazione_interna')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
+        this._formGroup.get('id_organizzazione_interna')?.setValidators(this._isFruizione ? [Validators.required] : null);
         this._formGroup.get('id_organizzazione_interna')?.updateValueAndValidity();
-        this._formGroup.get('id_soggetto_interno')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
-        this._formGroup.get('id_soggetto_interno')?.updateValueAndValidity();
+        this._formGroup.get('id_soggetto_erogatore')?.setValidators(this._isFruizione ? [Validators.required] : null);
+        this._formGroup.get('id_soggetto_erogatore')?.updateValueAndValidity();
     }
 
     showReferenti: boolean = true;

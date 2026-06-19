@@ -237,7 +237,7 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 
 	@Override
 	public ResponseEntity<PagedModelItemOrganizzazione> listOrganizzazioni(Boolean referente,
-			Boolean aderente, Boolean esterna, Boolean soggettoAderente, String codice, 
+			Boolean aderente, Boolean intermediata, Boolean soggettoAderente, String codice,
 			String codiceFiscale, String tipo,UUID idOrganizzazione,
 			String nome, String q, Integer page, Integer size, List<String> sort) {
 		try {
@@ -255,9 +255,17 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 				spec.setTipo(Optional.ofNullable(tipo));
 				spec.setReferente(Optional.ofNullable(referente));
 				spec.setAderente(Optional.ofNullable(aderente));
-				spec.setEsterna(Optional.ofNullable(esterna));
+				spec.setIntermediata(Optional.ofNullable(intermediata));
 				spec.setSoggettoAderente(Optional.ofNullable(soggettoAderente));
-	
+
+				// Un gestore (amministratore) o un coordinatore vedono tutte le organizzazioni.
+				// Per ogni altro utente si restituiscono solo le organizzazioni a cui è associato.
+				boolean admin = this.coreAuthorization.isAdmin() || this.coreAuthorization.isCoordinatore();
+				if(!admin) {
+					UtenteEntity utenteSessione = this.coreAuthorization.getUtenteSessione();
+					spec.setUtente(Optional.ofNullable(utenteSessione));
+				}
+
 				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("nome"));
 
 				Page<OrganizzazioneEntity> findAll = this.service.findAll(spec, pageable);
@@ -363,6 +371,11 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 				OrganizzazioneEntity org = this.service.find(idOrganizzazione)
 						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404,
 								Map.of("idOrganizzazione", idOrganizzazione.toString())));
+
+				// Un'organizzazione intermediata non è operativa: non può avere utenti associati
+				if (org.isIntermediata()) {
+					throw new BadRequestException(ErrorCode.ORG_400_CONSTRAINT_VIOLATION);
+				}
 
 				authorizeGestioneAssociazioni(org);
 				this.logger.debug("Autorizzazione completata con successo");

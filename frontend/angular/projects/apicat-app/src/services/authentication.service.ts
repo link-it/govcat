@@ -27,6 +27,7 @@ import { ItemOrganizzazione } from '../model/itemOrganizzazione';
 import { RuoloOrganizzazioneEnum } from '../model/ruoloOrganizzazioneEnum';
 import { GrantRole, expandTecnicoGrants, expandContextualGrants } from './grant-roles.const';
 
+import { firstValueFrom } from 'rxjs';
 import * as _ from 'lodash';
 
 export const AUTH_CONST: any = {
@@ -316,6 +317,40 @@ export class AuthenticationService {
     return this.currentSession;
   }
 
+  /**
+   * Carica `/profilo` e scrive la sessione nel localStorage.
+   * Chiamato dall'`APP_INITIALIZER` (vedi `app.config.ts`) per
+   * garantire che i guard sincroni (`DashboardGuard`,
+   * `OrganizationSelectionGuard`, ...) trovino la sessione gia`
+   * popolata prima del primo routing.
+   *
+   * Casi di skip:
+   *  - utente non autenticato (nessun access token OAuth valido);
+   *  - `appConfig.GOVAPI.HOST` non disponibile (config malformata).
+   *
+   * Errori HTTP vengono ignorati silenziosamente: l'app boota
+   * comunque, i guard scattano in modalita` "anonimo" come prima,
+   * e `GpLayoutComponent.loadProfile()` rieffettuera` il tentativo.
+   * Senza questo preload, in incognito la prima activation del
+   * `DashboardGuard` non trovava la sessione e dirottava a
+   * `/servizi` (race condition con il `loadProfile` async del
+   * layout).
+   */
+  async loadAndStoreProfile(): Promise<void> {
+    if (!this.isAuthLogged()) { return; }
+    if (!this.appConfig?.GOVAPI?.HOST) { return; }
+    try {
+      const url = `${this.appConfig.GOVAPI.HOST}/profilo`;
+      const profile: any = await firstValueFrom(this.http.get(url));
+      if (profile) {
+        this.setCurrentSession(profile);
+        this.reloadSession();
+      }
+    } catch (err) {
+      console.warn('APP_INITIALIZER /profilo preload failed:', err);
+    }
+  }
+
   isAuthLogged() {
     const hasIdToken = this.oauthService.hasValidIdToken();
     const hasAccessToken = this.oauthService.hasValidAccessToken();
@@ -556,7 +591,7 @@ export class AuthenticationService {
       }
     });
 
-    const _grant = expandContextualGrants(grant);
+    const _grant = expandContextualGrants(grant, module);
     const _intersection = _.intersection(_grant, _ssra);
     return _can && (_intersection.length > 0);
   }
@@ -638,7 +673,13 @@ export class AuthenticationService {
     } else if (_entry) {
       _ss = _entry.ruoli_abilitati || [];
     }
-    const _intersection = _.intersection(grant || [], _ss);
+    // Espande le grants per-contesto al modulo corrente: in
+    // particolare per `adesione` ref_servizio/ref_dominio vengono
+    // mappati anche a `referente_superiore` (e tech variants), cosi`
+    // il referente del servizio dell'adesione puo` cambiare stato
+    // come ref_dominio.
+    const _grant = expandContextualGrants(grant || [], module);
+    const _intersection = _.intersection(_grant, _ss);
     return (_intersection.length > 0);
   }
 
@@ -716,8 +757,11 @@ export class AuthenticationService {
     const _entry = _datiSempreModificabili.find((item: any) => item.classe_dato === classeDato);
     if (_entry) {
       // Mappa ruoli specifici per contesto ai ruoli generici della
-      // configurazione (vedi `expandContextualGrants`).
-      const _grant = expandContextualGrants(grant);
+      // configurazione (vedi `expandContextualGrants`). Per module
+      // `adesione` aggiunge anche `referente_superiore` ai referenti
+      // servizio/dominio (e tech variants), cosi` la save dei custom
+      // properties di adesione e` consentita anche al ref_servizio.
+      const _grant = expandContextualGrants(grant, module);
       return _.intersection(_grant, _entry.ruoli).length > 0;
     }
     return false;

@@ -262,7 +262,7 @@ describe('ServizioComponentiComponent', () => {
         stato: 'pubblicato',
         dominio: {
           soggetto_referente: {
-            organizzazione: { esterna: true, id_organizzazione: 'org-123' },
+            organizzazione: { intermediata: true, id_organizzazione: 'org-123' },
           },
         },
       };
@@ -276,7 +276,7 @@ describe('ServizioComponentiComponent', () => {
       expect(spy).toHaveBeenCalled();
     });
 
-    it('should set _isDominioEsterno=false when dominio has no esterna', () => {
+    it('should set _isDominioEsterno=false when dominio has no intermediata', () => {
       mockConfigService.getConfig.mockReturnValue(of({}));
       component.service = { nome: 'Svc', versione: '1', stato: 'ok', dominio: {} };
       vi.spyOn(component as any, '_loadServizioComponenti').mockImplementation(() => {});
@@ -379,7 +379,7 @@ describe('ServizioComponentiComponent', () => {
         nome: 'Svc', versione: '1', stato: 'ok',
         dominio: {
           soggetto_referente: {
-            organizzazione: { esterna: true, id_organizzazione: 'ext-1' },
+            organizzazione: { intermediata: true, id_organizzazione: 'ext-1' },
           },
         },
       };

@@ -33,8 +33,8 @@
           @if (organizzazione.aderente) {
             <span class="chip chip-muted ms-2">{{ 'APP.ORGANIZATIONS.LABEL.Aderente' | translate }}</span>
           }
-          @if (organizzazione.esterna) {
-            <span class="chip chip-warn ms-2">{{ 'APP.ORGANIZATIONS.LABEL.Esterna' | translate }}</span>
+          @if (organizzazione.intermediata) {
+            <span class="chip chip-warn ms-2">{{ 'APP.ORGANIZATIONS.LABEL.Intermediata' | translate }}</span>
           }
         </div>
         @if (organizzazione.descrizione) {
@@ -67,11 +67,23 @@
                (keydown.enter)="setActiveTab('utenti')"
                [attr.aria-label]="'APP.ORGANIZATION_MANAGE.TabUtenti' | translate">
               <span>{{ 'APP.ORGANIZATION_MANAGE.TabUtenti' | translate }}</span>
-              @if (_activeTab === 'utenti') {
-                <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm">{{ _paging.totalElements || 0 }}</span>
-              }
+              <!-- Counter sempre visibile (anche con tab non attiva). -->
+              <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm">{{ _paging.totalElements || 0 }}</span>
             </a>
           </li>
+          @if (pendingItems.length > 0) {
+            <li class="nav-item">
+              <a tabindex="0" target="_self"
+                 class="nav-link gp-tab-nav-item cursor-pointer"
+                 [class.gp-tab-nav-item-active]="_activeTab === 'utenti_pending'"
+                 (click)="setActiveTab('utenti_pending')"
+                 (keydown.enter)="setActiveTab('utenti_pending')"
+                 [attr.aria-label]="'APP.ORGANIZATION_MANAGE.TabUtentiPending' | translate">
+                <span>{{ 'APP.ORGANIZATION_MANAGE.TabUtentiPending' | translate }}</span>
+                <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm">{{ _pendingPaging.totalElements || 0 }}</span>
+              </a>
+            </li>
+          }
           <li class="nav-item">
             <a tabindex="0" target="_self"
                class="nav-link gp-tab-nav-item cursor-pointer"
@@ -80,9 +92,7 @@
                (keydown.enter)="setActiveTab('domini')"
                [attr.aria-label]="'APP.ORGANIZATION_MANAGE.TabDomini' | translate">
               <span>{{ 'APP.ORGANIZATION_MANAGE.TabDomini' | translate }}</span>
-              @if (_activeTab === 'domini') {
-                <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm">{{ _dominiPaging.totalElements || 0 }}</span>
-              }
+              <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm">{{ _dominiPaging.totalElements || 0 }}</span>
             </a>
           </li>
         </ul>
@@ -107,7 +117,7 @@
             [primary]="true"
             (onAction)="openAdd()">
           </lnk-button>
-        } @else {
+        } @else if (_activeTab === 'domini') {
           <lnk-button
             [label]="'APP.DOMINI.BUTTON.Add'"
             [ariaLabel]="'APP.DOMINI.BUTTON.Add'"
@@ -204,7 +214,7 @@
                 [hasAction]="canManage()"
                 [iconAction]="'trash text-danger'"
                 [actionTooltip]="'APP.UTENTI_ORG.BUTTON.Remove' | translate"
-                (itemClick)="openEdit(item)"
+                (itemClick)="openUserDetail(item)"
                 (actionClick)="confirmRemove(item)">
               </ui-item-row>
             }
@@ -241,6 +251,38 @@
                 [actionTooltip]="'APP.DOMINI.BUTTON.Remove' | translate"
                 (itemClick)="openEditDominio(item)"
                 (actionClick)="confirmRemoveDominio(item)">
+              </ui-item-row>
+            }
+          </div>
+        </div>
+      }
+    }
+
+    <!-- Sezione Utenti in attesa di approvazione (membership evolutiva 2026-06-11) -->
+    @if (_activeTab === 'utenti_pending') {
+      <div class="row">
+        @if (pendingItems.length === 0 && !_spin) {
+          <ui-box-message
+            [size]="64"
+            [icon]="'report_problem'"
+            [image]="'./assets/images/illustrations/utenti.svg'"
+            [message]="_message | translate"
+            [subMessage]="_messageHelp | translate">
+          </ui-box-message>
+        }
+      </div>
+
+      @if (pendingItems.length > 0 && utentiPendingConfig) {
+        <div class="row">
+          <div class="col-12">
+            @for (item of pendingItems; track item.id_utente + '_' + $index) {
+              <ui-item-row class="border-bottom"
+                [data]="item"
+                [config]="utentiPendingConfig"
+                [hasLink]="canManage()"
+                [linkRoute]="false"
+                [hasAction]="false"
+                (itemClick)="openUserDetail(item)">
               </ui-item-row>
             }
           </div>

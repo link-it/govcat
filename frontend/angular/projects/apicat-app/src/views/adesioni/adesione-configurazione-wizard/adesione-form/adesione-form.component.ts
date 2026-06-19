@@ -387,16 +387,16 @@ export class AdesioneFormComponent implements OnInit, OnChanges {
 
     async onChangeServizio(event?: any) {
         this.servizio = event.item;
-        this.isDominioEsterno = this.servizio?.dominio?.soggetto_referente?.organizzazione?.esterna || false;
+        this.isDominioEsterno = this.servizio?.dominio?.soggetto_referente?.organizzazione?.intermediata || false;
         this.idDominioEsterno = this.servizio?.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
         this.idSoggettoDominioEsterno = this.servizio?.dominio?.soggetto_referente?.id_soggetto || null;
     
         this.updateIdLogico();
         
         if (this.isDominioEsterno) {
-            const _organizzazione = this.servizio.soggetto_interno?.organizzazione;
+            const _organizzazione = this.servizio.soggetto_erogatore?.organizzazione;
             this.idDominioEsterno = _organizzazione?.id_organizzazione || null;
-            this.idSoggettoDominioEsterno = this.servizio.soggetto_interno?.id_soggetto || null;
+            this.idSoggettoDominioEsterno = this.servizio.soggetto_erogatore?.id_soggetto || null;
             this.initDataOrganizzazione = _organizzazione ? { label: _organizzazione.nome, value: _organizzazione.id_organizzazione, item: _organizzazione } : null;
             this.formGroup.get('id_organizzazione')?.setValue(this.idDominioEsterno);
             this.formGroup.get('id_organizzazione')?.disable();

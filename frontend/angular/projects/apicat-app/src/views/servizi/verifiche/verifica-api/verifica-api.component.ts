@@ -407,11 +407,11 @@ export class VerificaApiComponent {
   }
 
   _getSoggettoId(verifica: string) {
-    return (verifica === 'erogazioni') ? this.service?.dominio?.soggetto_referente?.nome : this.service?.soggetto_interno?.nome;
+    return (verifica === 'erogazioni') ? this.service?.dominio?.soggetto_referente?.nome : this.service?.soggetto_erogatore?.nome;
   }
 
   _getSoggettoNome(verifica: string) {
-    return this.service?.soggetto_interno?.nome || this.service?.dominio?.soggetto_referente?.nome
+    return this.service?.soggetto_erogatore?.nome || this.service?.dominio?.soggetto_referente?.nome
   }
 
   scrollToBottom() {

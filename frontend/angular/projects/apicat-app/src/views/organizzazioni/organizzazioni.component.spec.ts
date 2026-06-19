@@ -66,13 +66,13 @@ describe('OrganizzazioniComponent', () => {
     expect(component.sortDirection).toBe('asc');
   });
 
-  it('should have searchFields with q, referente, aderente, esterna', () => {
+  it('should have searchFields with q, referente, aderente, intermediata', () => {
     expect(component.searchFields.length).toBe(4);
     const fieldNames = component.searchFields.map((f: any) => f.field);
     expect(fieldNames).toContain('q');
     expect(fieldNames).toContain('referente');
     expect(fieldNames).toContain('aderente');
-    expect(fieldNames).toContain('esterna');
+    expect(fieldNames).toContain('intermediata');
   });
 
   it('should set error messages when error is true', () => {
@@ -94,7 +94,7 @@ describe('OrganizzazioniComponent', () => {
     expect(component._formGroup.get('q')).toBeTruthy();
     expect(component._formGroup.get('referente')).toBeTruthy();
     expect(component._formGroup.get('aderente')).toBeTruthy();
-    expect(component._formGroup.get('esterna')).toBeTruthy();
+    expect(component._formGroup.get('intermediata')).toBeTruthy();
   });
 
   it('should reset filter data on _resetForm', () => {

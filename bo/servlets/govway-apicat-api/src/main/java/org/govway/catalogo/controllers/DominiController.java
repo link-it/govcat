@@ -37,6 +37,7 @@ import org.govway.catalogo.core.dao.specifications.ReferenteDominioSpecification
 import org.govway.catalogo.core.orm.entity.DominioEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteDominioEntity;
+import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.services.DominioService;
 import org.govway.catalogo.exception.BadRequestException;
@@ -225,7 +226,7 @@ public class DominiController implements DominiApi {
 		}
 	}
 
-	public ResponseEntity<PagedModelItemDominio> listDomini(UUID idDominio, String nome, UUID idSoggetto, VisibilitaDominioEnum visibilita, Boolean deprecato, Boolean esterno, String q, Integer page, Integer size, List<String> sort) {
+	public ResponseEntity<PagedModelItemDominio> listDomini(UUID idDominio, String nome, UUID idSoggetto, VisibilitaDominioEnum visibilita, Boolean deprecato, String q, Integer page, Integer size, List<String> sort) {
 		try {
 			
 			return this.service.runTransaction(() -> {
@@ -238,7 +239,6 @@ public class DominiController implements DominiApi {
 
 				spec.setVisibilita(Optional.ofNullable(visibilita).map(v -> this.dettaglioAssembler.toVisibilita(v)));
 				spec.setDeprecato(Optional.ofNullable(deprecato));
-				spec.setEsterno(Optional.ofNullable(esterno));
 				spec.setIdDominio(Optional.ofNullable(idDominio));
 				spec.setIdSoggetto(Optional.ofNullable(idSoggetto));
 				spec.setNome(Optional.ofNullable(nome));
@@ -362,7 +362,7 @@ public class DominiController implements DominiApi {
 	private void checkReferenti(DominioEntity dominioEntity) {
 
 		OrganizzazioneEntity organizzazione = dominioEntity.getSoggettoReferente().getOrganizzazione();
-		if(organizzazione.isEsterna()) {
+		if(organizzazione.isIntermediata()) {
 			return;
 		}
 		
@@ -376,13 +376,19 @@ public class DominiController implements DominiApi {
 								"userIdUtente", referenteEntity.getReferente().getIdUtente()));
 			}
 
+			if(!admin && !this.organizzazioneService.hasRuoloInOrganizzazione(referenteEntity.getReferente(), organizzazione, RuoloOrganizzazione.OPERATORE_API, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
+				throw new NotAuthorizedException(ErrorCode.AUT_403_REFERENT_NO_ROLE,
+						Map.of("orgNome", organizzazione.getNome(),
+								"userIdUtente", referenteEntity.getReferente().getIdUtente()));
+			}
+
 		}
 	}
 
 
 	private void checkReferente(ReferenteDominioEntity referenteEntity) {
 		OrganizzazioneEntity organizzazione = referenteEntity.getDominio().getSoggettoReferente().getOrganizzazione();
-		if(organizzazione.isEsterna()) {
+		if(organizzazione.isIntermediata()) {
 			return;
 		}
 
@@ -392,6 +398,12 @@ public class DominiController implements DominiApi {
 
 		if (!this.organizzazioneService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
 			throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING,
+					Map.of("orgNome", organizzazione.getNome(),
+							"userIdUtente", referenteEntity.getReferente().getIdUtente()));
+		}
+
+		if (!this.organizzazioneService.hasRuoloInOrganizzazione(referenteEntity.getReferente(), organizzazione, RuoloOrganizzazione.OPERATORE_API, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
+			throw new NotAuthorizedException(ErrorCode.AUT_403_REFERENT_NO_ROLE,
 					Map.of("orgNome", organizzazione.getNome(),
 							"userIdUtente", referenteEntity.getReferente().getIdUtente()));
 		}

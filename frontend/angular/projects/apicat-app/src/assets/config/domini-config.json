@@ -41,18 +41,18 @@
     "visibilita": {
       "label": "APP.DOMINI.LABEL.Visibility",
       "small": true,
-      "values": {        
-        "pubblico": { "label": "APP.DOMINI.LABEL.Public", "background": "#c7f9cc", "border": "#c7f9cc", "color": "#1f1f1f" },
-        "riservato": { "label": "APP.DOMINI.LABEL.Reserved", "background": "#22577a", "border": "#22577a", "color": "#ffffff" },
-        "privato": { "label": "APP.DOMINI.LABEL.Private", "background": "#dd2b0e", "border": "#dd2b0e", "color": "#ffffff" }
+      "values": {
+        "pubblico": { "label": "APP.DOMINI.LABEL.Public", "chipVariant": "ok", "background": "#c7f9cc", "border": "#c7f9cc", "color": "#1f1f1f" },
+        "riservato": { "label": "APP.DOMINI.LABEL.Reserved", "chipVariant": "info", "background": "#22577a", "border": "#22577a", "color": "#ffffff" },
+        "privato": { "label": "APP.DOMINI.LABEL.Private", "chipVariant": "accent", "background": "#dd2b0e", "border": "#dd2b0e", "color": "#ffffff" }
       }
     },
     "deprecato": {
       "label": "APP.DOMINI.LABEL.Deprecato",
       "small": true,
       "values": {
-        "true": { "label": "APP.DOMINI.LABEL.Deprecato", "background": "#A4ABB6", "border": "#A4ABB6", "color": "#ffffff" },
-        "false": { "label": "", "background": "#ffffff", "border": "#ffffff", "color": "#ffffff" }
+        "true": { "label": "APP.DOMINI.LABEL.Deprecato", "chipVariant": "muted", "background": "#A4ABB6", "border": "#A4ABB6", "color": "#ffffff" },
+        "false": { "label": "", "chipVariant": "muted", "background": "#ffffff", "border": "#ffffff", "color": "#ffffff" }
       }
     }
   }

@@ -20,6 +20,7 @@ import { Routes } from '@angular/router';
 
 import { OrganizzazioneManageComponent } from './organizzazione-manage.component';
 import { DominioDetailsComponent } from '../domini/dominio-details/dominio-details.component';
+import { UtenteDetailsComponent } from '../utenti/utente-details/utente-details.component';
 
 export const ORGANIZZAZIONE_MANAGE_ROUTES: Routes = [
   {
@@ -49,5 +50,14 @@ export const ORGANIZZAZIONE_MANAGE_ROUTES: Routes = [
     path: ':id/domini/:idDominio/referenti',
     loadChildren: () => import('../domini/dominio-referenti/dominio-referenti.routes').then(m => m.DOMINIO_REFERENTI_ROUTES),
     data: { title: 'Referenti dominio', fromOrgManage: true }
+  },
+  // Membership evolutiva 2026-06-11: dettaglio utente (approvazione
+  // pending_update o modifica) nel contesto della gestione
+  // organizzazione. `UtenteDetailsComponent` legge
+  // `data.fromOrgManage` per adattare breadcrumb e back.
+  {
+    path: ':id/utenti/:uid',
+    component: UtenteDetailsComponent,
+    data: { title: 'Dettaglio utente', fromOrgManage: true }
   }
 ];

@@ -76,6 +76,12 @@ public class ServizioAuthorization extends AbstractServizioAuthorization {
 					this.checkCampiObbligatoriProduzione(servizio, errori);
 					this.checkCampiObbligatoriProduzioneApi(servizio, errori);
 					break;
+				case COLLAUDO_PDND:
+					this.checkEstensioniGruppoApi(servizio, ConfigurazioneClasseDato.COLLAUDO_PDND, errori);
+					break;
+				case PRODUZIONE_PDND:
+					this.checkEstensioniGruppoApi(servizio, ConfigurazioneClasseDato.PRODUZIONE_PDND, errori);
+					break;
 				}
 
 				for(EntitaComplessaError errore: errori.values()) {

@@ -72,7 +72,7 @@ public class ConfigurazioneItemProcessor implements ItemProcessor<AdesioneEntity
     SoggettoDTOFactory soggettoDTOFactory;
     
 	@Value("${org.govway.api.catalogo.configurazione.path:/var/govcat/conf/configurazione.json}")
-    String configurazionePath;
+    String configurazioneJsonPath;
 
     @Autowired
 	IntermediateStateService updateService;
@@ -128,7 +128,7 @@ public class ConfigurazioneItemProcessor implements ItemProcessor<AdesioneEntity
             .orElse(null);
 
 		ConfigurazioneAdesioneInput conf = new ConfigurazioneAdesioneInput();
-		AdesioneDTOConverter b = new AdesioneDTOConverter(entity, configurazionePath);
+		AdesioneDTOConverter b = new AdesioneDTOConverter(entity, configurazioneJsonPath);
 		b.setDto(new DTOAdesione(null, null, null, null, null, null, null, null));
 		DTOAdesione c = b.converter(soggettoDTOFactory);
 

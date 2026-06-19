@@ -374,7 +374,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     this.apiService.getDetails('servizi', id).subscribe((serv) => {
       this._servizio = serv;
 
-      this._isDominioEsterno = this._servizio.dominio?.soggetto_referente?.organizzazione?.esterna || false;
+      this._isDominioEsterno = this._servizio.dominio?.soggetto_referente?.organizzazione?.intermediata || false;
       this._idDominioEsterno = this._servizio.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
       this._idSoggettoDominioEsterno = this._servizio.dominio?.soggetto_referente?.id_soggetto || null;
 
@@ -723,22 +723,46 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       );
   }
 
+  /** Quando valorizzato, l'organizzazione e` bloccata sul contesto
+   * di sessione e nel template si rende un input testuale read-only
+   * al posto del ng-select (evita problemi di bind ng-select +
+   * patchValue + disabled durante creazione adesione). */
+  _lockedOrgNome: string = '';
+
   _loadProfilo(spin: boolean = true) {
     this._profilo = this.authenticationService.getCurrentSession();
     console.log('_loadProfilo', this._profilo);
     const _ruolo: string | null = this._profilo?.utente.ruolo || null;
-    const currentOrgId = this.authenticationService.getCurrentOrganization()?.id_organizzazione;
+    const currentOrg: any = this.authenticationService.getCurrentOrganization();
+    const currentOrgId = currentOrg?.id_organizzazione;
 
-    if (this._scelta_libera_organizzazione) {
-      this._initOrganizzazioniSelect([]);
-    } else {
-
-      if (_ruolo == 'gestore' || !currentOrgId) {
-        this._initOrganizzazioniSelect([]);
-      } else {
-        this._loadOrganizzazione(currentOrgId);
+    if (this._scelta_libera_organizzazione || _ruolo == 'gestore' || !currentOrgId) {
+      this._lockedOrgNome = '';
+      // Quando esiste un'organizzazione di contesto (anche con
+      // scelta libera o gestore), seediamo la lista del ng-select
+      // con quell'item: senza seed la lista resta vuota finche`
+      // l'utente non digita un termine di ricerca, e il valore
+      // pre-impostato dal contesto non viene reso a video
+      // (ng-select non trova il match per `bindValue` nell'array
+      // iniziale vuoto). Lasciamo il control abilitato/editabile.
+      const seed = (currentOrg && currentOrgId)
+        ? [{ id_organizzazione: currentOrgId, nome: currentOrg.nome }]
+        : [];
+      this._initOrganizzazioniSelect(seed);
+      if (currentOrgId) {
+        this._formGroup.patchValue({ id_organizzazione: currentOrgId });
+        this._checkSoggetto(currentOrgId);
       }
+      return;
     }
+
+    // Auto-select immediato dal contesto di sessione (no API):
+    // settiamo il control + disabilitiamo + flag per rendering
+    // template come input testo read-only.
+    this._lockedOrgNome = currentOrg.nome || '';
+    this._formGroup.patchValue({ id_organizzazione: currentOrgId });
+    this._formGroup.get('id_organizzazione')?.disable();
+    this._checkSoggetto(currentOrgId);
   }
 
   _loadAdesione(spin: boolean = true) {
@@ -842,18 +866,37 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     const _options: any = { params: { id_organizzazione: `${id}` } };
     this.apiService.getList('soggetti', _options).subscribe({
       next: (response: any) => {
-          this._orgAppartenenzaUtente = response.content[0];
+          // Guard: la lista soggetti per l'organizzazione di sessione
+          // puo` essere vuota (utente abilitato all'org senza soggetti
+          // associati). In quel caso lasciamo il select libero invece
+          // di crashare sull'accesso a `[0].organizzazione`.
+          const soggetto = response?.content?.[0];
+          const org = soggetto?.organizzazione;
+          if (!org?.id_organizzazione) {
+            this._initOrganizzazioniSelect([]);
+            return;
+          }
+          this._orgAppartenenzaUtente = soggetto;
           const aux: any = {
-            id_organizzazione: this._orgAppartenenzaUtente.organizzazione.id_organizzazione,
-            nome: this._orgAppartenenzaUtente.organizzazione.nome,
+            id_organizzazione: org.id_organizzazione,
+            nome: org.nome,
+          }
+
+          // Race-condition guard: se `_onChangeServizio` ha gia` forzato
+          // l'organizzazione (es. servizio con dominio esterno) il control
+          // e` `disabled`. In quel caso non sovrascriviamo: il vincolo
+          // del servizio prevale sull'auto-select dell'utente.
+          const orgCtrl = this._formGroup.get('id_organizzazione');
+          if (orgCtrl?.disabled && orgCtrl.value && orgCtrl.value !== org.id_organizzazione) {
+            return;
           }
 
           this.ngSelectOrganizazione?.handleClearClick();
-          this._formGroup.get('id_organizzazione')?.disable();
+          orgCtrl?.disable();
           this._initOrganizzazioniSelect([aux]);
 
           setTimeout(() => {
-            this._formGroup.patchValue({id_organizzazione: this._orgAppartenenzaUtente.organizzazione.id_organizzazione});
+            this._formGroup.patchValue({id_organizzazione: org.id_organizzazione});
             this._checkSoggetto(this._orgAppartenenzaUtente);
           }, 10);
         },
@@ -1133,16 +1176,16 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
 
   async _onChangeServizio(servizio?: Servizio) {
     this._servizio = servizio;
-    this._isDominioEsterno = this._servizio?.dominio?.soggetto_referente?.organizzazione?.esterna || false;
+    this._isDominioEsterno = this._servizio?.dominio?.soggetto_referente?.organizzazione?.intermediata || false;
     this._idDominioEsterno = this._servizio?.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
     this._idSoggettoDominioEsterno = this._servizio?.dominio?.soggetto_referente?.id_soggetto || null;
 
     this.updateIdLogico(this._servizio);
     
     if (this._isDominioEsterno) {
-      const _organizzazione = this._servizio.soggetto_interno?.organizzazione;
+      const _organizzazione = this._servizio.soggetto_erogatore?.organizzazione;
       this._idDominioEsterno = _organizzazione?.id_organizzazione || null;
-      this._idSoggettoDominioEsterno = this._servizio.soggetto_interno?.id_soggetto || null;
+      this._idSoggettoDominioEsterno = this._servizio.soggetto_erogatore?.id_soggetto || null;
       this._formGroup.get('id_organizzazione')?.setValue(this._idDominioEsterno);
       this._formGroup.get('id_organizzazione')?.disable();
       this._formGroup.get('id_soggetto')?.setValue(this._idSoggettoDominioEsterno);
@@ -1321,7 +1364,13 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       if (!response) { return; }
       this.apiService.deleteElement(this.model, this.adesione.id_adesione).subscribe({
         next: () => {
-          this.router.navigate([this.model]);
+          // Ripristina il contesto di navigazione: se l'utente
+          // e` arrivato dalla lista adesioni di un servizio, torna
+          // a quella; altrimenti alla lista globale.
+          const target = this._serviceBreadcrumbs
+            ? ['/servizi', this._serviceBreadcrumbs.service.id_servizio, this.model]
+            : [this.model];
+          this.router.navigate(target);
         },
         error: (error) => {
           this._error = true;

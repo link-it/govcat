@@ -641,7 +641,7 @@ describe('StatisticheComponent', () => {
     };
 
     function makeFormValid() {
-      component.service = { id_servizio: 100, soggetto_interno: { nome: 'SoggettoTest' } };
+      component.service = { id_servizio: 100, soggetto_erogatore: { nome: 'SoggettoTest' } };
       // Set api directly without triggering valueChanges subscription
       component._formGroup.get('api')?.setValue(mockApi);
       component._formGroup.get('distribution_type')?.setValue(andamentoTemporaleDist);
@@ -969,7 +969,7 @@ describe('StatisticheComponent', () => {
     };
 
     function makeFormValidForExport() {
-      component.service = { id_servizio: 100, soggetto_interno: { nome: 'SoggettoTest' } };
+      component.service = { id_servizio: 100, soggetto_erogatore: { nome: 'SoggettoTest' } };
       component._formGroup.get('api')?.setValue(mockApi);
       component._formGroup.get('distribution_type')?.setValue(dist);
     }
@@ -1051,7 +1051,7 @@ describe('StatisticheComponent', () => {
 
   describe('_getReportUri', () => {
     it('should return correct URI format', () => {
-      component.service = { id_servizio: 100, soggetto_interno: { nome: 'SoggettoTest' } };
+      component.service = { id_servizio: 100, soggetto_erogatore: { nome: 'SoggettoTest' } };
       component.environmentId = 'collaudo';
       const api = { id_api: 1, ruolo: 'erogato_soggetto_dominio' };
       component._formGroup.get('api')?.setValue(api);
@@ -1064,7 +1064,7 @@ describe('StatisticheComponent', () => {
     });
 
     it('should return produzione for produzione environment', () => {
-      component.service = { id_servizio: 100, soggetto_interno: { nome: 'SoggettoTest' } };
+      component.service = { id_servizio: 100, soggetto_erogatore: { nome: 'SoggettoTest' } };
       component.environmentId = 'produzione';
       const api = { id_api: 1, ruolo: 'erogato_soggetto_dominio' };
       component._formGroup.get('api')?.setValue(api);
@@ -1081,13 +1081,13 @@ describe('StatisticheComponent', () => {
   // ========== _tipoVerifica ==========
 
   describe('_tipoVerifica', () => {
-    it('erogato_soggetto_dominio with soggetto_interno should return fruizioni', () => {
-      component.service = { soggetto_interno: { nome: 'Test' } };
+    it('erogato_soggetto_dominio with soggetto_erogatore should return fruizioni', () => {
+      component.service = { soggetto_erogatore: { nome: 'Test' } };
       expect(component._tipoVerifica({ ruolo: 'erogato_soggetto_dominio' })).toBe('fruizioni');
     });
 
-    it('erogato_soggetto_dominio without soggetto_interno should return erogazioni', () => {
-      component.service = { soggetto_interno: null };
+    it('erogato_soggetto_dominio without soggetto_erogatore should return erogazioni', () => {
+      component.service = { soggetto_erogatore: null };
       expect(component._tipoVerifica({ ruolo: 'erogato_soggetto_dominio' })).toBe('erogazioni');
     });
 
@@ -1571,18 +1571,18 @@ describe('StatisticheComponent', () => {
   // ========== _getSoggettoNome ==========
 
   describe('_getSoggettoNome', () => {
-    it('should return soggetto_interno nome when available', () => {
-      component.service = { soggetto_interno: { nome: 'InternalSubject' }, dominio: { soggetto_referente: { nome: 'RefSubject' } } };
+    it('should return soggetto_erogatore nome when available', () => {
+      component.service = { soggetto_erogatore: { nome: 'InternalSubject' }, dominio: { soggetto_referente: { nome: 'RefSubject' } } };
       expect((component as any)._getSoggettoNome()).toBe('InternalSubject');
     });
 
-    it('should return soggetto_referente nome when soggetto_interno is null', () => {
-      component.service = { soggetto_interno: null, dominio: { soggetto_referente: { nome: 'RefSubject' } } };
+    it('should return soggetto_referente nome when soggetto_erogatore is null', () => {
+      component.service = { soggetto_erogatore: null, dominio: { soggetto_referente: { nome: 'RefSubject' } } };
       expect((component as any)._getSoggettoNome()).toBe('RefSubject');
     });
 
     it('should return undefined when both are null', () => {
-      component.service = { soggetto_interno: null, dominio: { soggetto_referente: null } };
+      component.service = { soggetto_erogatore: null, dominio: { soggetto_referente: null } };
       expect((component as any)._getSoggettoNome()).toBeUndefined();
     });
   });
@@ -1736,7 +1736,7 @@ describe('StatisticheComponent', () => {
         label: 'Test',
         tableFirstColumnLabel: 'Data'
       };
-      component.service = { id_servizio: 100, soggetto_interno: { nome: 'SoggettoTest' } };
+      component.service = { id_servizio: 100, soggetto_erogatore: { nome: 'SoggettoTest' } };
       component._formGroup.get('api')?.setValue(mockApi);
       component._formGroup.get('distribution_type')?.setValue(trendDist);
       // trendDist sets report_time_interval to 'orario' which sets useTimepicker=true
@@ -1771,7 +1771,7 @@ describe('StatisticheComponent', () => {
         label: 'Test',
         tableFirstColumnLabel: 'Data'
       };
-      component.service = { id_servizio: 100, soggetto_interno: { nome: 'SoggettoTest' } };
+      component.service = { id_servizio: 100, soggetto_erogatore: { nome: 'SoggettoTest' } };
       component._formGroup.get('api')?.setValue(mockApi);
       component._formGroup.get('distribution_type')?.setValue(dist);
 
@@ -1793,7 +1793,7 @@ describe('StatisticheComponent', () => {
         label: 'Test',
         tableFirstColumnLabel: 'Esito'
       };
-      component.service = { id_servizio: 100, soggetto_interno: { nome: 'SoggettoTest' } };
+      component.service = { id_servizio: 100, soggetto_erogatore: { nome: 'SoggettoTest' } };
       component._formGroup.get('api')?.setValue(mockApi);
       component._formGroup.get('distribution_type')?.setValue(dist);
       component._formGroup.get('report_transaction_outcome_type')?.setValue('personalizzato');

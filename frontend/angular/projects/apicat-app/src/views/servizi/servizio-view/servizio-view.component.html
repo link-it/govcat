@@ -94,6 +94,7 @@
                 [src]="{ path: (data | mapper:_getLogoMapper) } | httpImgSrc"
                 [alt]="data?.nome"
                 [objectFit]="config?.heroImageObjectFit || 'cover'"
+                [objectPosition]="config?.heroImageObjectPosition || 'center'"
               ></lnk-hero-image>
             </div>
           }
@@ -159,6 +160,18 @@
                 a 6/7 quando il join non e` consentito)
              Multipli messaggi possono coesistere: vengono mostrati
              tutti in sequenza. -->
+        @if (_fromAdesioneId) {
+          <lnk-action-banner
+            icon="bi-arrow-return-left"
+            [title]="'APP.MESSAGE.GoToAdesioneFromServiceTitle' | translate"
+            [subtitle]="'APP.MESSAGE.GoToAdesioneFromServiceSubtitle' | translate"
+            [ctaLabel]="'APP.BUTTON.BackToAdesione' | translate"
+            ctaIcon="bi-arrow-return-left"
+            variant="muted"
+            (action)="_gotoFromAdesione($event)"
+          ></lnk-action-banner>
+        }
+
         @if (_adesioneDataReady) {
 
           <!-- 1. CTA Aderisci -->
@@ -167,7 +180,8 @@
                && !(_updateData | mapper:_isReferenteMapper)
                && !(_updateData | mapper:_isReferenteTecnicoAdesioneMapper)
                && !_hasJoined
-               && (_updateData | mapper:_isAmmissibileMapper)) {
+               && (_updateData | mapper:_isAmmissibileMapper)
+               && (_updateData | mapper:_canCreateAdesioneMapper)) {
             <lnk-action-banner
               icon="bi-stars"
               [title]="'APP.MESSAGE.JoinServiceTitle' | translate"
