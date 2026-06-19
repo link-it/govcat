@@ -1,3 +1,12 @@
+2026-06-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Creazione/modifica adesione: l'organizzazione del fruitore resta
+	  sempre quella di sessione (o scelta dall'utente) e non viene piu`
+	  derivata/forzata dal dominio/erogatore del servizio selezionato.
+	  Rimossa la logica residua "dominio esterno" in adesione-create,
+	  adesione-details e adesione-form (+ test allineati).
+
 2026-06-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

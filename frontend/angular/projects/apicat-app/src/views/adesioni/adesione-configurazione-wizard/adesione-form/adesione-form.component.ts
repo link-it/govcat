@@ -104,10 +104,6 @@ export class AdesioneFormComponent implements OnInit, OnChanges {
     hideSoggettoInfo: boolean = true;
     elencoSoggetti: any[] = [];
 
-    isDominioEsterno: boolean = false;
-    idDominioEsterno: string | null = null;
-    idSoggettoDominioEsterno: string | null = null;
-
     scelta_libera_organizzazione: boolean = false;
 
     generalConfig: any = Tools.Configurazione;
@@ -387,36 +383,24 @@ export class AdesioneFormComponent implements OnInit, OnChanges {
 
     async onChangeServizio(event?: any) {
         this.servizio = event.item;
-        this.isDominioEsterno = this.servizio?.dominio?.soggetto_referente?.organizzazione?.intermediata || false;
-        this.idDominioEsterno = this.servizio?.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
-        this.idSoggettoDominioEsterno = this.servizio?.dominio?.soggetto_referente?.id_soggetto || null;
-    
+
         this.updateIdLogico();
-        
-        if (this.isDominioEsterno) {
-            const _organizzazione = this.servizio.soggetto_erogatore?.organizzazione;
-            this.idDominioEsterno = _organizzazione?.id_organizzazione || null;
-            this.idSoggettoDominioEsterno = this.servizio.soggetto_erogatore?.id_soggetto || null;
-            this.initDataOrganizzazione = _organizzazione ? { label: _organizzazione.nome, value: _organizzazione.id_organizzazione, item: _organizzazione } : null;
-            this.formGroup.get('id_organizzazione')?.setValue(this.idDominioEsterno);
-            this.formGroup.get('id_organizzazione')?.disable();
-            this.formGroup.get('id_soggetto')?.setValue(this.idSoggettoDominioEsterno);
-            this.formGroup.get('id_soggetto')?.disable();
-            this.hideSoggettoDropdown = true;
-        } else {
-            if (this.profilo?.utente.ruolo === Ruolo.REFERENTE_SERVIZIO){
-                if (this.servizio && await this.isCurrentUserReferenteServizio(this.servizio)){
-                    this.formGroup.get('id_organizzazione')?.enable();
-                    this.formGroup.get('id_organizzazione')?.reset();
-                } else {
-                    const currentOrgId = this.authenticationService.getCurrentOrganization()?.id_organizzazione;
-                    if (currentOrgId) {
-                        this.loadOrganizzazione(currentOrgId);
-                    }
+
+        // L'organizzazione dell'adesione (fruitore) e` SEMPRE quella di
+        // sessione o scelta dall'utente: non viene derivata dal dominio/
+        // erogatore del servizio.
+        if (this.profilo?.utente.ruolo === Ruolo.REFERENTE_SERVIZIO){
+            if (this.servizio && await this.isCurrentUserReferenteServizio(this.servizio)){
+                this.formGroup.get('id_organizzazione')?.enable();
+                this.formGroup.get('id_organizzazione')?.reset();
+            } else {
+                const currentOrgId = this.authenticationService.getCurrentOrganization()?.id_organizzazione;
+                if (currentOrgId) {
+                    this.loadOrganizzazione(currentOrgId);
                 }
             }
         }
-    
+
         this.showMandatoryFields();
     }
 
@@ -513,7 +497,7 @@ export class AdesioneFormComponent implements OnInit, OnChanges {
         
         } else {
 
-            this.formGroup.controls.id_soggetto.setValue(this.idSoggettoDominioEsterno);
+            this.formGroup.controls.id_soggetto.setValue(null);
             this.formGroup.controls.referente.patchValue(null);
             this.formGroup.updateValueAndValidity();
 

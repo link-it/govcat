@@ -167,10 +167,6 @@ export class AdesioneCreateComponent implements OnInit {
   _fromDashboard: boolean = false;
   _dashboardSection: string = '';
 
-  _isDominioEsterno: boolean = false;
-  _idDominioEsterno: string | null = null;
-  _idSoggettoDominioEsterno: string | null = null;
-
   /** Quando valorizzato, l'organizzazione e` bloccata sul contesto
    * di sessione e nel template si rende un input testuale read-only
    * al posto del ng-select (evita problemi di bind ng-select +
@@ -261,10 +257,6 @@ export class AdesioneCreateComponent implements OnInit {
   _loadServizio(id: string | null, disable = false) {
     this.apiService.getDetails('servizi', id).subscribe((serv) => {
       this._servizio = serv;
-
-      this._isDominioEsterno = this._servizio.dominio?.soggetto_referente?.organizzazione?.intermediata || false;
-      this._idDominioEsterno = this._servizio.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
-      this._idSoggettoDominioEsterno = this._servizio.dominio?.soggetto_referente?.id_soggetto || null;
 
       this._initServiziSelect([{'id_servizio': serv.id_servizio, 'nome': serv.nome, 'versione': serv.versione}]);
 
@@ -803,7 +795,7 @@ export class AdesioneCreateComponent implements OnInit {
     } else {
 
       const controls = this._formGroup.controls;
-      controls.id_soggetto.setValue(this._idSoggettoDominioEsterno);
+      controls.id_soggetto.setValue(null);
       controls.referente.patchValue(null);
       this._initSoggettiSelect([]);
       this._initReferentiSelect([]);
@@ -820,36 +812,27 @@ export class AdesioneCreateComponent implements OnInit {
 
   async _onChangeServizio(servizio?: Servizio) {
     this._servizio = servizio;
-    this._isDominioEsterno = this._servizio?.dominio?.soggetto_referente?.organizzazione?.intermediata || false;
-    this._idDominioEsterno = this._servizio?.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
-    this._idSoggettoDominioEsterno = this._servizio?.dominio?.soggetto_referente?.id_soggetto || null;
 
     this.updateIdLogico(this._servizio);
 
-    if (this._isDominioEsterno) {
-      const _organizzazione = this._servizio.soggetto_erogatore?.organizzazione;
-      this._idDominioEsterno = _organizzazione?.id_organizzazione || null;
-      this._idSoggettoDominioEsterno = this._servizio.soggetto_erogatore?.id_soggetto || null;
-      this._formGroup.get('id_organizzazione')?.setValue(this._idDominioEsterno);
-      this._formGroup.get('id_organizzazione')?.disable();
-      this._formGroup.get('id_soggetto')?.setValue(this._idSoggettoDominioEsterno);
-      this._formGroup.get('id_soggetto')?.disable();
-      this._hideSoggettoDropdown = true;
-      this._initOrganizzazioniSelect([_organizzazione]);
-    } else if (this._profilo?.utente.ruolo === Ruolo.REFERENTE_SERVIZIO) {
-        if (servizio && await this.isCurrentUserReferenteServizio(servizio)){
-          this._formGroup.get('id_organizzazione')?.enable();
-          // Se l'organizzazione è già valorizzata (da _loadProfilo), non resettare
-          if (!this._formGroup.get('id_organizzazione')?.value) {
-            this._initOrganizzazioniSelect([]);
-          }
-        } else {
-          const currentOrgId = this.authenticationService.getCurrentOrganization()?.id_organizzazione;
-          if (currentOrgId) {
-            this._loadOrganizzazione(currentOrgId);
-          }
+    // L'organizzazione dell'adesione (fruitore) e` SEMPRE quella di sessione
+    // (impostata da `_loadProfilo`) o scelta dall'utente: non viene mai
+    // derivata dal dominio/erogatore del servizio. Per il ruolo
+    // referente_servizio carichiamo/abilitiamo l'org corrente.
+    if (this._profilo?.utente.ruolo === Ruolo.REFERENTE_SERVIZIO) {
+      if (servizio && await this.isCurrentUserReferenteServizio(servizio)) {
+        this._formGroup.get('id_organizzazione')?.enable();
+        // Se l'organizzazione è già valorizzata (da _loadProfilo), non resettare
+        if (!this._formGroup.get('id_organizzazione')?.value) {
+          this._initOrganizzazioniSelect([]);
+        }
+      } else {
+        const currentOrgId = this.authenticationService.getCurrentOrganization()?.id_organizzazione;
+        if (currentOrgId) {
+          this._loadOrganizzazione(currentOrgId);
         }
       }
+    }
 
     this._showMandatoryFields(this._formGroup.controls);
   }

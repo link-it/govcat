@@ -1318,18 +1318,6 @@ describe('AdesioneDetailsComponent', () => {
       component._loadServizio('srv-1');
       expect(component._formGroup.get('id_logico')!.hasValidator(Validators.required)).toBe(false);
     });
-
-    it('should set _isDominioEsterno from servizio data', () => {
-      mockApiService.getDetails.mockReturnValue(of({
-        id_servizio: 'srv-1', nome: 'S1', versione: '1', multi_adesione: false,
-        dominio: { soggetto_referente: { organizzazione: { intermediata: true, id_organizzazione: 'org-ext' }, id_soggetto: 'sog-ext' } }
-      }));
-      component._initForm({ ...new AdesioneCreate() });
-      component._loadServizio('srv-1');
-      expect(component._isDominioEsterno).toBe(true);
-      expect(component._idDominioEsterno).toBe('org-ext');
-      expect(component._idSoggettoDominioEsterno).toBe('sog-ext');
-    });
   });
 
   // ─── _dummyAction ───

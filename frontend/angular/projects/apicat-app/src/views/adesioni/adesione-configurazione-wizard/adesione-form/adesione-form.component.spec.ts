@@ -101,9 +101,6 @@ describe('AdesioneFormComponent', () => {
     expect(component.isWeb).toBe(false);
     expect(component.debugMandatoryFields).toBe(false);
     expect(component.limit).toBe(500);
-    expect(component.isDominioEsterno).toBe(false);
-    expect(component.idDominioEsterno).toBeNull();
-    expect(component.idSoggettoDominioEsterno).toBeNull();
     expect(component.scelta_libera_organizzazione).toBe(false);
     expect(component.hideSoggettoDropdown).toBe(true);
     expect(component.hideSoggettoInfo).toBe(true);
@@ -539,7 +536,7 @@ describe('AdesioneFormComponent', () => {
 
   // -------- onChangeServizio --------
 
-  it('onChangeServizio should set isDominioEsterno for external dominio', async () => {
+  it('onChangeServizio should NOT force organizzazione from the service', async () => {
     component.initForm();
     const event = {
       item: {
@@ -549,30 +546,17 @@ describe('AdesioneFormComponent', () => {
       }
     };
     await component.onChangeServizio(event);
-    expect(component.isDominioEsterno).toBe(true);
-    expect(component.hideSoggettoDropdown).toBe(true);
-  });
-
-  it('onChangeServizio should handle non-external dominio', async () => {
-    component.initForm();
-    component.profilo = { utente: { ruolo: 'gestore', organizzazione: null } } as any;
-    const event = {
-      item: {
-        dominio: { soggetto_referente: { organizzazione: { intermediata: false } } },
-        multi_adesione: false
-      }
-    };
-    await component.onChangeServizio(event);
-    expect(component.isDominioEsterno).toBe(false);
+    // L'organizzazione (fruitore) non viene derivata/forzata dall'erogatore
+    // del servizio: resta gestita dal contesto di sessione o dall'utente.
+    expect(component.formGroup.get('id_organizzazione')?.value).not.toBe('INT1');
   });
 
   // -------- checkSoggetto --------
 
   it('checkSoggetto should reset form when event is null', () => {
     component.initForm();
-    component.idSoggettoDominioEsterno = 'EXT_SOG';
     component.checkSoggetto(null);
-    expect(component.formGroup.get('id_soggetto')?.value).toBe('EXT_SOG');
+    expect(component.formGroup.get('id_soggetto')?.value).toBeNull();
     expect(component.elencoSoggetti).toEqual([]);
     expect(component.hideSoggettoDropdown).toBe(true);
   });
