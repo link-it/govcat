@@ -76,7 +76,10 @@ describe('ServizioDetailsComponent', () => {
     canMonitoraggio: vi.fn().mockReturnValue(false),
     _removeDNM: vi.fn().mockImplementation((_a: any, _b: any, body: any) => body),
     _getClassesNotModifiable: vi.fn().mockReturnValue([]),
-    getCurrentSession: vi.fn().mockReturnValue(null)
+    getCurrentSession: vi.fn().mockReturnValue(null),
+    getCurrentOrganization: vi.fn().mockReturnValue(null),
+    isAmministratoreOrganizzazione: vi.fn().mockReturnValue(false),
+    isOperatoreApi: vi.fn().mockReturnValue(false)
   } as any;
 
   beforeEach(() => {
@@ -1199,6 +1202,44 @@ describe('ServizioDetailsComponent', () => {
       component._grant = { ruoli: ['gestore'] } as any;
       mockAuthenticationService.isGestore.mockReturnValue(true);
       expect(component._isGestoreMapper()).toBe(true);
+    });
+
+    describe('_canSetFruizioneMapper', () => {
+      it('should be true for gestore', () => {
+        mockAuthenticationService.isGestore.mockReturnValue(true);
+        expect(component._canSetFruizioneMapper()).toBe(true);
+      });
+
+      it('should be true for amministratore organizzazione of a referente org', () => {
+        mockAuthenticationService.isGestore.mockReturnValue(false);
+        mockAuthenticationService.getCurrentOrganization.mockReturnValue({ referente: true } as any);
+        mockAuthenticationService.isAmministratoreOrganizzazione.mockReturnValue(true);
+        mockAuthenticationService.isOperatoreApi.mockReturnValue(false);
+        expect(component._canSetFruizioneMapper()).toBe(true);
+      });
+
+      it('should be true for operatore API of a referente org', () => {
+        mockAuthenticationService.isGestore.mockReturnValue(false);
+        mockAuthenticationService.getCurrentOrganization.mockReturnValue({ referente: true } as any);
+        mockAuthenticationService.isAmministratoreOrganizzazione.mockReturnValue(false);
+        mockAuthenticationService.isOperatoreApi.mockReturnValue(true);
+        expect(component._canSetFruizioneMapper()).toBe(true);
+      });
+
+      it('should be false when the session org is not referente', () => {
+        mockAuthenticationService.isGestore.mockReturnValue(false);
+        mockAuthenticationService.getCurrentOrganization.mockReturnValue({ referente: false } as any);
+        mockAuthenticationService.isAmministratoreOrganizzazione.mockReturnValue(true);
+        expect(component._canSetFruizioneMapper()).toBe(false);
+      });
+
+      it('should be false for a referente org without amm.org / operatore API role', () => {
+        mockAuthenticationService.isGestore.mockReturnValue(false);
+        mockAuthenticationService.getCurrentOrganization.mockReturnValue({ referente: true } as any);
+        mockAuthenticationService.isAmministratoreOrganizzazione.mockReturnValue(false);
+        mockAuthenticationService.isOperatoreApi.mockReturnValue(false);
+        expect(component._canSetFruizioneMapper()).toBe(false);
+      });
     });
 
     it('_getLogoMapper should return image URL when immagine exists', () => {

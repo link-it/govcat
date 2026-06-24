@@ -1528,6 +1528,22 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         return this.authenticationService.isGestore(this._grant?.ruoli);
     }
 
+    /**
+     * Visibilita` del flag "Intermediato" (fruizione). A differenza di
+     * `package` (solo gestore), e` visibile anche agli utenti che possono
+     * creare servizi per l'organizzazione di sessione: amministratore
+     * organizzazione o operatore API di un'organizzazione referente.
+     * Il ruolo si valuta sull'organizzazione di contesto (sessione).
+     */
+    _canSetFruizioneMapper = (): boolean => {
+        if (this.authenticationService.isGestore(this._grant?.ruoli)) { return true; }
+        const _orgReferente = !!this.authenticationService.getCurrentOrganization()?.referente;
+        return _orgReferente && (
+            this.authenticationService.isAmministratoreOrganizzazione() ||
+            this.authenticationService.isOperatoreApi()
+        );
+    }
+
     onActionMonitor(event: any) {
         let url = '';
         switch (event.action) {
