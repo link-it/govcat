@@ -21,7 +21,7 @@ import { LogLevel } from "../models/log.interface";
 export const environment = {
   production: true,
   version: '2.4.0-SNAPSHOT',
-  build: '260616.1227',
+  build: '260624.1745',
 
   logLevel: LogLevel.info,
   configFile: './assets/config/app-config.json'

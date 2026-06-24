@@ -1806,7 +1806,12 @@
 							}
 						},
 						"RUOLO": {
-							"NULL": "Ruolo non valorizzato per l'utente [{{nomeUtente}} {{cognomeUtente}}]"
+							"NULL": "Ruolo non valorizzato per l'utente [{{nomeUtente}} {{cognomeUtente}}]",
+							"ORG": {
+								"REQUIRES": {
+									"ORG": "Il filtro per ruolo nell'organizzazione richiede il parametro id_organizzazione"
+								}
+							}
 						}
 					},
 					"403": {

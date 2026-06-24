@@ -23,8 +23,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Ruolo;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Stato;
+import org.govway.catalogo.servlets.model.RuoloOrganizzazioneEnum;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnumSearch;
 import org.govway.catalogo.servlets.model.StatoUtenteEnum;
@@ -102,6 +104,25 @@ public class UtenteEngineAssembler extends CoreEngineAssembler {
 		}
 
 		return null;
+	}
+
+	public List<RuoloOrganizzazione> toRuoloOrganizzazioneEntity(List<RuoloOrganizzazioneEnum> ruoli) {
+		if(ruoli == null || ruoli.isEmpty()) {
+			return null;
+		}
+
+		List<RuoloOrganizzazione> r = new ArrayList<>();
+
+		for(RuoloOrganizzazioneEnum rr: ruoli) {
+			switch(rr) {
+			case AMMINISTRATORE_ORGANIZZAZIONE: r.add(RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+				break;
+			case OPERATORE_API: r.add(RuoloOrganizzazione.OPERATORE_API);
+				break;
+			}
+		}
+
+		return r;
 	}
 
 }

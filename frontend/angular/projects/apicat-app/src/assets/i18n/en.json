@@ -1806,7 +1806,12 @@
 							}
 						},
 						"RUOLO": {
-							"NULL": "Role not set for user [{{nomeUtente}} {{cognomeUtente}}]"
+							"NULL": "Role not set for user [{{nomeUtente}} {{cognomeUtente}}]",
+							"ORG": {
+								"REQUIRES": {
+									"ORG": "The organization role filter requires the id_organizzazione parameter"
+								}
+							}
 						}
 					},
 					"403": {

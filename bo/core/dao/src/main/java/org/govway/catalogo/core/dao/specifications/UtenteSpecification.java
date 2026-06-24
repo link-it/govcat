@@ -33,6 +33,7 @@ import jakarta.persistence.criteria.Subquery;
 
 import org.govway.catalogo.core.orm.entity.ClasseUtenteEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity_;
+import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Ruolo;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Stato;
@@ -60,6 +61,7 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 	private Optional<String> principalLike = Optional.empty();
 	private List<Ruolo> ruoli = null;
 	private Optional<Boolean> ruoloNull = Optional.empty();
+	private List<RuoloOrganizzazione> ruoliOrganizzazione = null;
 
 	@Override
 	public Predicate toPredicate(Root<UtenteEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
@@ -132,11 +134,22 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 
 			Subquery<Long> sub = query.subquery(Long.class);
 			Root<UtenteOrganizzazioneEntity> subRoot = sub.from(UtenteOrganizzazioneEntity.class);
+
+			List<Predicate> subPred = new ArrayList<>();
+			subPred.add(cb.equal(
+					subRoot.get(UtenteOrganizzazioneEntity_.organizzazione)
+							.get(OrganizzazioneEntity_.idOrganizzazione),
+					idOrgStr));
+
+			// Filtro per ruolo all'interno dell'organizzazione selezionata (OR tra i ruoli indicati).
+			// Ha senso solo in presenza di idOrganizzazione: si restringe l'appartenenza a quella
+			// organizzazione ai soli ruoli richiesti, mantenendo la stessa IN subquery.
+			if (ruoliOrganizzazione != null && !ruoliOrganizzazione.isEmpty()) {
+				subPred.add(subRoot.get(UtenteOrganizzazioneEntity_.ruoloOrganizzazione).in(ruoliOrganizzazione));
+			}
+
 			sub.select(subRoot.get(UtenteOrganizzazioneEntity_.utente).get(UtenteEntity_.id))
-					.where(cb.equal(
-							subRoot.get(UtenteOrganizzazioneEntity_.organizzazione)
-									.get(OrganizzazioneEntity_.idOrganizzazione),
-							idOrgStr));
+					.where(subPred.toArray(new Predicate[] {}));
 
 			predLst.add(root.get(UtenteEntity_.id).in(sub));
 		}
@@ -233,6 +246,14 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 
 	public void setRuoli(List<Ruolo> ruoli) {
 		this.ruoli = ruoli;
+	}
+
+	public List<RuoloOrganizzazione> getRuoliOrganizzazione() {
+		return ruoliOrganizzazione;
+	}
+
+	public void setRuoliOrganizzazione(List<RuoloOrganizzazione> ruoliOrganizzazione) {
+		this.ruoliOrganizzazione = ruoliOrganizzazione;
 	}
 
 	public Optional<String> getQ() {

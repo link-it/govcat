@@ -324,7 +324,7 @@ public class UtentiTest {
         utenteCreate2.setPrincipal("second.user");
         controller.createUtente(utenteCreate2);
 
-        ResponseEntity<?> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, 0, 10, null);
+        ResponseEntity<?> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, null, 0, 10, null);
 
         assertNotNull(responseList.getBody());
         assertEquals(HttpStatus.OK, responseList.getStatusCode());
@@ -349,7 +349,7 @@ public class UtentiTest {
         controller.createUtente(utenteCreate2);
 
         // Recupero della lista di utenti con filtri applicati (solo utenti ATTIVI)
-        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(StatoUtenteEnum.ABILITATO, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, 0, 10, null);
+        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(StatoUtenteEnum.ABILITATO, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, null, 0, 10, null);
 
         // Asserzioni
         assertNotNull(responseList.getBody());
@@ -376,7 +376,7 @@ public class UtentiTest {
         List<String> sort = new ArrayList<>();
         sort.add("principal,desc");
         
-        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, 0, 10, sort);
+        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, null, 0, 10, sort);
         
         // Verifica del successo
         assertEquals(HttpStatus.OK, responseList.getStatusCode());
@@ -409,7 +409,7 @@ public class UtentiTest {
         List<String> sort = new ArrayList<>();
         sort.add("principal,asc");
         
-        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, 0, 10, sort);
+        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, null, 0, 10, sort);
         
         // Verifica del successo
         assertEquals(HttpStatus.OK, responseList.getStatusCode());
@@ -441,7 +441,7 @@ public class UtentiTest {
             controller.createUtente(utenteCreate);
     	}
         for(int n = 0; n < (numeroTotaleDiElementi/numeroElementiPerPagina); n++) {
-        	ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, n, numeroElementiPerPagina, null);
+        	ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, null, n, numeroElementiPerPagina, null);
 
             // Verifica del successo
             assertEquals(HttpStatus.OK, responseList.getStatusCode());
@@ -466,7 +466,7 @@ public class UtentiTest {
 
         // Verifica che venga lanciata l'eccezione NullPointerException qualora l'utente non fosse loggato
         NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
-            controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, 0, 10, null);
+            controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, null, 0, 10, null);
         });
 
     }
@@ -477,7 +477,7 @@ public class UtentiTest {
 
         // Tentativo di recuperare la lista di utenti filtrata per una classe utente non esistente
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            controller.listUtenti(null, null, null, List.of(idClasseUtenteNonEsistente), null, null, null, null, null, 0, 10, null);
+            controller.listUtenti(null, null, null, null, List.of(idClasseUtenteNonEsistente), null, null, null, null, null, 0, 10, null);
         });
 
         // Asserzioni
@@ -511,7 +511,7 @@ public class UtentiTest {
         controller.createUtente(utenteSenzaOrg);
 
         ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(
-                null, null, null, null, null, null, null, null, cognomeRicerca, 0, 10, null);
+                null, null, null, null, null, null, null, null, null, cognomeRicerca, 0, 10, null);
 
         assertEquals(HttpStatus.OK, responseList.getStatusCode());
         assertNotNull(responseList.getBody());
@@ -520,6 +520,67 @@ public class UtentiTest {
         assertEquals(2, content.size());
         assertTrue(content.stream().anyMatch(u -> "utente.con.org".equals(u.getPrincipal())));
         assertTrue(content.stream().anyMatch(u -> "utente.senza.org".equals(u.getPrincipal())));
+    }
+
+    @Test
+    void testListUtentiFiltroRuoloOrganizzazione() {
+        // Verifica del filtro per ruolo all'interno dell'organizzazione: in presenza di idOrganizzazione
+        // deve restringere il result set ai soli utenti con uno dei ruoli per-organizzazione indicati.
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+        UUID idOrganizzazione = responseOrganizzazione.getBody().getIdOrganizzazione();
+
+        // Amministratore dell'organizzazione
+        UtenteCreate ammOrg = CommonUtils.getUtenteCreate();
+        ammOrg.setPrincipal("utente.amm.org");
+        ammOrg.setEmail("utente.amm.org@test.com");
+        CommonUtils.setOrganizzazione(ammOrg, idOrganizzazione, RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+        controller.createUtente(ammOrg);
+
+        // Operatore API dell'organizzazione
+        UtenteCreate operatoreApi = CommonUtils.getUtenteCreate();
+        operatoreApi.setPrincipal("utente.operatore.api");
+        operatoreApi.setEmail("utente.operatore.api@test.com");
+        CommonUtils.setOrganizzazione(operatoreApi, idOrganizzazione, RuoloOrganizzazioneEnum.OPERATORE_API);
+        controller.createUtente(operatoreApi);
+
+        // Utente associato all'organizzazione senza alcun ruolo per-organizzazione (ruolo nullo)
+        UtenteCreate senzaRuolo = CommonUtils.getUtenteCreate();
+        senzaRuolo.setPrincipal("utente.senza.ruolo.org");
+        senzaRuolo.setEmail("utente.senza.ruolo.org@test.com");
+        CommonUtils.setOrganizzazione(senzaRuolo, idOrganizzazione, null);
+        controller.createUtente(senzaRuolo);
+
+        // Filtro su un solo ruolo: solo l'amministratore
+        ResponseEntity<PagedModelItemUtente> soloAmm = controller.listUtenti(null, idOrganizzazione, null,
+                List.of(RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE), null, null, null, null, null, null, 0, 10, null);
+        assertEquals(HttpStatus.OK, soloAmm.getStatusCode());
+        assertNotNull(soloAmm.getBody());
+        assertEquals(1L, soloAmm.getBody().getPage().getTotalElements().longValue());
+        assertTrue(soloAmm.getBody().getContent().stream().anyMatch(u -> "utente.amm.org".equals(u.getPrincipal())));
+
+        // Filtro su più ruoli (OR): amministratore e operatore API, escluso chi non ha ruolo
+        ResponseEntity<PagedModelItemUtente> ammEdOperatore = controller.listUtenti(null, idOrganizzazione, null,
+                List.of(RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE, RuoloOrganizzazioneEnum.OPERATORE_API),
+                null, null, null, null, null, null, 0, 10, null);
+        assertEquals(HttpStatus.OK, ammEdOperatore.getStatusCode());
+        assertNotNull(ammEdOperatore.getBody());
+        assertEquals(2L, ammEdOperatore.getBody().getPage().getTotalElements().longValue());
+        List<ItemUtente> contentMulti = ammEdOperatore.getBody().getContent();
+        assertTrue(contentMulti.stream().anyMatch(u -> "utente.amm.org".equals(u.getPrincipal())));
+        assertTrue(contentMulti.stream().anyMatch(u -> "utente.operatore.api".equals(u.getPrincipal())));
+        assertFalse(contentMulti.stream().anyMatch(u -> "utente.senza.ruolo.org".equals(u.getPrincipal())));
+    }
+
+    @Test
+    void testListUtentiFiltroRuoloOrganizzazioneSenzaIdOrganizzazione() {
+        // Il filtro per ruolo nell'organizzazione richiede idOrganizzazione: senza, la richiesta è rifiutata.
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            controller.listUtenti(null, null, null, List.of(RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE),
+                    null, null, null, null, null, null, 0, 10, null);
+        });
+
+        assertEquals("UT.400.RUOLO.ORG.REQUIRES.ORG", exception.getMessage());
     }
 
     @Test
@@ -542,7 +603,7 @@ public class UtentiTest {
         controller.createUtente(utenteCreate2);
 
         // Recupero della lista con dashboard=true (utente gestore)
-        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, null, null, null, null, null, null, true, null, 0, 10, null);
+        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, null, null, null, null, null, null, null, true, null, 0, 10, null);
 
         // Asserzioni
         assertNotNull(responseList.getBody());
@@ -2909,7 +2970,7 @@ public class UtentiTest {
         autenticaPrincipal("dash.amm.y");
         setOrgContextSu(orgY.getIdOrganizzazione(), RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
 
-        ResponseEntity<?> respList = controller.listUtenti(null, null, null, null, null, null, null, true, null, 0, 50, null);
+        ResponseEntity<?> respList = controller.listUtenti(null, null, null, null, null, null, null, null, true, null, 0, 50, null);
         assertEquals(HttpStatus.OK, respList.getStatusCode());
         org.govway.catalogo.servlets.model.PagedModelItemUtente body =
                 (org.govway.catalogo.servlets.model.PagedModelItemUtente) respList.getBody();

@@ -1550,6 +1550,7 @@ paths:
       - $ref: "#/components/parameters/stato_utente_query_optional"
       - $ref: "#/components/parameters/id_organizzazione_query_optional"
       - $ref: "#/components/parameters/ruoli_query_optional"
+      - $ref: "#/components/parameters/ruoli_organizzazione_query_optional"
       - $ref: "#/components/parameters/classi_utente_query_optional"
       - $ref: "#/components/parameters/email_query_optional"
       - $ref: "#/components/parameters/principal_query_optional"
@@ -11537,6 +11538,15 @@ components:
         type: "array"
         items:
           $ref: "#/components/schemas/RuoloUtenteEnumSearch"
+    ruoli_organizzazione_query_optional:
+      name: "ruolo_organizzazione"
+      in: "query"
+      description: "ruoli all'interno dell'organizzazione da cercare (OR). Applicabile solo quando è valorizzato id_organizzazione: in caso contrario la richiesta è rifiutata con 400."
+      required: false
+      schema:
+        type: "array"
+        items:
+          $ref: "#/components/schemas/RuoloOrganizzazioneEnum"
     classi_utente_query_optional:
       name: "classe_utente"
       in: "query"

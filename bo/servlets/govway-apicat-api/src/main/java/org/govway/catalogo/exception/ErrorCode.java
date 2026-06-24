@@ -223,6 +223,9 @@ public enum ErrorCode {
     /** Ruolo utente non valorizzato per operazione su utente-organizzazione */
     UT_400_RUOLO_NULL("Ruolo utente non valorizzato"),
 
+    /** Filtro per ruolo nell'organizzazione utilizzato senza valorizzare id_organizzazione */
+    UT_400_RUOLO_ORG_REQUIRES_ORG("Il filtro per ruolo nell'organizzazione richiede il parametro id_organizzazione"),
+
     // ==================== CLASSI UTENTE ====================
 
     /** Classe utente non trovata */

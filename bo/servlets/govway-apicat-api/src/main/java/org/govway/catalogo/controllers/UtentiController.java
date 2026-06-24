@@ -251,7 +251,7 @@ public class UtentiController implements UtentiApi {
 
 	@Override
 	public ResponseEntity<PagedModelItemUtente> listUtenti(StatoUtenteEnum stato, UUID idOrganizzazione,
-			List<RuoloUtenteEnumSearch> ruolo, List<UUID> classiUtente, String email, String principal, UUID idUtente, Boolean dashboard, String q, Integer page,
+			List<RuoloUtenteEnumSearch> ruolo, List<RuoloOrganizzazioneEnum> ruoloOrganizzazione, List<UUID> classiUtente, String email, String principal, UUID idUtente, Boolean dashboard, String q, Integer page,
 			Integer size, List<String> sort) {
 		try {
 
@@ -288,6 +288,15 @@ public class UtentiController implements UtentiApi {
 					if(ruolo.contains(RuoloUtenteEnumSearch.NESSUN_RUOLO)) {
 						spec.setRuoloNull(Optional.of(true));
 					}
+				}
+
+				// Filtro per ruolo all'interno dell'organizzazione: applicabile solo se è valorizzato
+				// idOrganizzazione, perché il ruolo per-organizzazione vive nell'associazione utente-organizzazione.
+				if(ruoloOrganizzazione != null && !ruoloOrganizzazione.isEmpty()) {
+					if(idOrganizzazione == null) {
+						throw new BadRequestException(ErrorCode.UT_400_RUOLO_ORG_REQUIRES_ORG);
+					}
+					spec.setRuoliOrganizzazione(this.engineAssembler.toRuoloOrganizzazioneEntity(ruoloOrganizzazione));
 				}
 
 				// Gestione filtro dashboard
