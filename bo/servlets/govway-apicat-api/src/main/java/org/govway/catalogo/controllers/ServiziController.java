@@ -66,11 +66,9 @@ import org.govway.catalogo.core.dao.specifications.ServizioSpecification;
 import org.govway.catalogo.core.dao.specifications.ServizioSpecification.TipoMieiServizi;
 import org.govway.catalogo.core.dao.specifications.ServizioSpecificationUtils;
 import org.govway.catalogo.core.dao.specifications.TagSpecification;
-import org.govway.catalogo.core.orm.entity.AdesioneEntity;
 import org.govway.catalogo.core.orm.entity.AllegatoServizioEntity;
 import org.govway.catalogo.core.orm.entity.AllegatoServizioEntity.VISIBILITA;
 import org.govway.catalogo.core.orm.entity.CategoriaEntity;
-import org.govway.catalogo.core.orm.entity.ClasseUtenteEntity;
 import org.govway.catalogo.core.orm.entity.DocumentoEntity;
 import org.govway.catalogo.core.orm.entity.GruppoEntity;
 import org.govway.catalogo.core.orm.entity.MessaggioServizioEntity;
@@ -78,8 +76,6 @@ import org.govway.catalogo.core.orm.entity.NotificaEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.PackageServizioEntity;
 import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
-import org.govway.catalogo.core.orm.entity.ReferenteAdesioneEntity;
-import org.govway.catalogo.core.orm.entity.ReferenteDominioEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteServizioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioGruppoEntity;
@@ -1168,11 +1164,6 @@ public class ServiziController implements ServiziApi {
 			this.logger.info("Invocazione in corso ...");
 			return this.service.runTransaction( () -> {
 
-				// Marcatore comune per recuperare tutti i log di performance via grep, es:
-				//   grep 'PERF_LIST_SERVIZI' <logfile>   (oppure 'PERF_' per tutte le API strumentate)
-				final String perf = "PERF_LIST_SERVIZI";
-				final long perfInizioTotale = System.currentTimeMillis();
-
 				this.servizioAuthorization.authorizeList();
 				// Controllo se l'utente è anonimo
 	            boolean anounymous = this.coreAuthorization.isAnounymous();
@@ -1400,19 +1391,10 @@ public class ServiziController implements ServiziApi {
 						: Arrays.asList("nome","versione");
 				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, sortDefault);
 
-				// --- Fase 1: query su DB ---
-				this.logger.info("{} - inizio query DB findAll servizi", perf);
-				final long perfInizioQuery = System.currentTimeMillis();
 				Page<ServizioEntity> findAll = this.service.findAll(
 						realSpecification,
 						pageable
 						);
-				final long perfDurataQuery = System.currentTimeMillis() - perfInizioQuery;
-				this.logger.info("{} - fine query DB findAll servizi: estratti {} elementi (totale {}) in {} ms", perf, findAll.getNumberOfElements(), findAll.getTotalElements(), perfDurataQuery);
-
-				// --- Fase 2: elaborazione applicativa (assembler + popolamento ruoli_referente) ---
-				this.logger.info("{} - inizio elaborazione applicativa (assembler + ruoli_referente) su {} elementi", perf, findAll.getNumberOfElements());
-				final long perfInizioApplicativa = System.currentTimeMillis();
 
 				Link link = Link.of(ServletUriComponentsBuilder.fromCurrentRequest().build().toUriString(), IanaLinkRelations.SELF);
 
@@ -1467,12 +1449,6 @@ public class ServiziController implements ServiziApi {
 
 				list.add(lst.getLinks());
 				list.setPage(new PageMetadata().size((long)findAll.getSize()).number((long)findAll.getNumber()).totalElements(findAll.getTotalElements()).totalPages((long)findAll.getTotalPages()));
-
-				final long perfDurataApplicativa = System.currentTimeMillis() - perfInizioApplicativa;
-				this.logger.info("{} - fine elaborazione applicativa in {} ms", perf, perfDurataApplicativa);
-
-				final long perfDurataTotale = System.currentTimeMillis() - perfInizioTotale;
-				this.logger.info("{} - riepilogo tempi: query DB {} ms, elaborazione applicativa {} ms, totale {} ms", perf, perfDurataQuery, perfDurataApplicativa, perfDurataTotale);
 
 				this.logger.info("Invocazione completata con successo");
 				return ResponseEntity.ok(list);
@@ -1999,11 +1975,6 @@ public class ServiziController implements ServiziApi {
 			this.logger.debug("Autorizzazione completata con successo");     
 			return this.service.runTransaction( () -> {
 
-				// Marcatore comune per recuperare tutti i log di performance via grep, es:
-				//   grep 'PERF_SERVIZI_GRUPPI' <logfile>
-				final String perf = "PERF_SERVIZI_GRUPPI";
-				final long perfInizioTotale = System.currentTimeMillis();
-
 				this.logger.info("PRE init Specification");
 
 				ServizioGruppoSpecification specification = new ServizioGruppoSpecification();
@@ -2040,15 +2011,10 @@ public class ServiziController implements ServiziApi {
 				CustomPageRequest pageable = new CustomPageRequest(0, Integer.MAX_VALUE, sort, Arrays.asList("nome","versione"));
 
 				this.logger.info("PRE findAllServiziGruppi");
-				// --- Fase 1: query su DB ---
-				this.logger.info("{} - inizio query DB findAllServiziGruppi", perf);
-				final long perfInizioQuery = System.currentTimeMillis();
 				Page<ServizioGruppoEntity> findAll = this.service.findAllServiziGruppi(
 						specification,
 						pageable
 						);
-				final long perfDurataQuery = System.currentTimeMillis() - perfInizioQuery;
-				this.logger.info("{} - fine query DB findAllServiziGruppi: estratti {} elementi in {} ms", perf, findAll.getNumberOfElements(), perfDurataQuery);
 
 				this.logger.info("POST findAllServiziGruppi");
 
@@ -2056,13 +2022,26 @@ public class ServiziController implements ServiziApi {
 
 
 				this.logger.info("PRE filtered");
-				// --- Fase 2: elaborazione applicativa (filtro visibilita + assembling) ---
-				this.logger.info("{} - inizio elaborazione applicativa (filtro + assembler) su {} elementi", perf, findAll.getNumberOfElements());
-				final long perfInizioApplicativa = System.currentTimeMillis();
 				UtenteEntity utenteSessione = this.coreAuthorization.getUtenteSessione();
+
+				// Visibilita` in BULK: una sola query restituisce gli id dei servizi visibili all'utente,
+				// riusando la stessa ServizioSpecification che listServizi applica (referente servizio/dominio,
+				// classi, richiedente, referente/richiedente adesione, ramo PUBBLICO+stati). Sostituisce la
+				// navigazione in memoria di referenti e di TUTTE le adesioni per ogni servizio di ogni gruppo.
+				// Per admin/coordinatore ogni servizio e` visibile (set null), come gia` faceva isVisibile.
+				Set<Long> idsServiziVisibili = null;
+				if(!(this.coreAuthorization.isAdmin(utenteSessione) || this.coreAuthorization.isCoordinatore(utenteSessione))) {
+					ServizioSpecification specVisibilita = new ServizioSpecification();
+					specVisibilita.setUtente(Optional.of(utenteSessione));
+					specVisibilita.setStatiAderibili(this.configurazione.getServizio().getStatiAdesioneConsentita());
+					specVisibilita.setUtenteAdmin(Optional.of(false));
+					idsServiziVisibili = this.service.findIds(specVisibilita);
+				}
+				final Set<Long> idsVisibili = idsServiziVisibili;
+
 				List<ServizioGruppoEntity> filtered = findAll
 														.stream()
-														.filter(sg -> !isEmpty(sg, utenteSessione))
+														.filter(sg -> !isEmpty(sg, idsVisibili))
 														.collect(Collectors.toList());
 
 				this.logger.info("POST filtered");
@@ -2077,14 +2056,8 @@ public class ServiziController implements ServiziApi {
 				list.setPage(new PageMetadata().size((long)filtered.size()).number(0L).totalElements((long)filtered.size()).totalPages(1L));
 				this.logger.info("POST pagedmodel");
 
-				final long perfDurataApplicativa = System.currentTimeMillis() - perfInizioApplicativa;
-				this.logger.info("{} - fine elaborazione applicativa: {} elementi dopo il filtro in {} ms", perf, filtered.size(), perfDurataApplicativa);
-
-				final long perfDurataTotale = System.currentTimeMillis() - perfInizioTotale;
-				this.logger.info("{} - riepilogo tempi: query DB {} ms, elaborazione applicativa {} ms, totale {} ms", perf, perfDurataQuery, perfDurataApplicativa, perfDurataTotale);
-
 				this.logger.info("Invocazione completata con successo");
-				
+
 				return ResponseEntity.ok(list);
 
 			});
@@ -2137,7 +2110,7 @@ public class ServiziController implements ServiziApi {
 	}
 	 */
 	
-	private boolean isEmpty(ServizioGruppoEntity sg, UtenteEntity utenteSessione) {
+	private boolean isEmpty(ServizioGruppoEntity sg, Set<Long> idsServiziVisibili) {
 	    if (sg.getTipo().equals(TipoServizioGruppoEnum.SERVIZIO)) {
 	        return false;
 	    }
@@ -2145,112 +2118,34 @@ public class ServiziController implements ServiziApi {
 	    Optional<GruppoEntity> gruppoEntity = this.gruppoService.find(UUID.fromString(sg.getIdEntita()));
 
 	    if (gruppoEntity.isPresent()) {
-	        return isEmpty(gruppoEntity.get(), utenteSessione);
+	        return isEmpty(gruppoEntity.get(), idsServiziVisibili);
 	    }
 
 	    return true;
 	}
 
-	
-	private boolean isEmpty(GruppoEntity gruppo, UtenteEntity utenteSessione) {
+	/**
+	 * Un gruppo e` "vuoto" (da nascondere) se non contiene, ne` direttamente ne` nei sottogruppi,
+	 * alcun servizio visibile all'utente. La visibilita` e` pre-calcolata in BULK dal chiamante:
+	 * {@code idsServiziVisibili} contiene gli id dei servizi visibili, oppure e` {@code null} per
+	 * admin/coordinatore (ogni servizio e` visibile). Cosi` qui si naviga solo l'alberatura
+	 * gruppi/servizi (leggera), senza toccare referenti e adesioni di ogni servizio.
+	 */
+	private boolean isEmpty(GruppoEntity gruppo, Set<Long> idsServiziVisibili) {
 
-		if(!gruppo.getServizi().isEmpty()) {
-			for(ServizioEntity servizio: gruppo.getServizi()) {
-				if(isVisibile(servizio, utenteSessione)) {
-					return false;
-				}
+		for(ServizioEntity servizio: gruppo.getServizi()) {
+			if(idsServiziVisibili == null || idsServiziVisibili.contains(servizio.getId())) {
+				return false;
 			}
 		}
 
 		for(GruppoEntity figlio: gruppo.getFigli()) {
-			if(!isEmpty(figlio, utenteSessione)) {
+			if(!isEmpty(figlio, idsServiziVisibili)) {
 				return false;
 			}
 		}
 
 		return true;
-	}
-
-	private boolean isVisibile(ServizioEntity servizio, UtenteEntity utenteSessione) {
-		
-		if(this.coreAuthorization.isAdmin(utenteSessione) || this.coreAuthorization.isCoordinatore(utenteSessione)) {
-			return true;
-		}
-
-		boolean contains = false;
-
-		org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA visibilita = servizio.getVisibilita() != null ? servizio.getVisibilita(): servizio.getDominio().getVisibilita();
-
-		if(visibilita.equals(org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.PUBBLICO)) {
-			List<String> statiAdesione = this.configurazione.getServizio().getStatiAdesioneConsentita();
-			contains =  contains || statiAdesione.contains(servizio.getStato());
-		}
-		
-		if(utenteSessione != null) {
-
-
-			if(visibilita.equals(org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.PUBBLICO) || visibilita.equals(org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.PRIVATO) || visibilita.equals(org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.RISERVATO) ) {
-				Set<UtenteEntity> utentiVisibili = new HashSet<>();
-				utentiVisibili.add(servizio.getRichiedente());
-				
-				for(ReferenteServizioEntity referente: servizio.getReferenti()) {
-					utentiVisibili.add(referente.getReferente());
-				}
-				for(ReferenteDominioEntity referente: servizio.getDominio().getReferenti()) {
-					utentiVisibili.add(referente.getReferente());
-				}
-
-				// Aggiunge anche i referenti e richiedenti delle adesioni al servizio
-				for(AdesioneEntity adesione: servizio.getAdesioni()) {
-					utentiVisibili.add(adesione.getRichiedente());
-					for(ReferenteAdesioneEntity referenteAdesione: adesione.getReferenti()) {
-						utentiVisibili.add(referenteAdesione.getReferente());
-					}
-				}
-
-				contains =  contains || contains(utentiVisibili, utenteSessione);
-
-				if(visibilita.equals(org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.RISERVATO)) {
-					Set<ClasseUtenteEntity> classiUtentiVisibili = new HashSet<>();
-					
-					classiUtentiVisibili.addAll(servizio.getClassi());
-					classiUtentiVisibili.addAll(servizio.getDominio().getClassi());
-					
-					contains =  contains || contains(classiUtentiVisibili, utenteSessione.getClassi());
-				}
-
-			} else {
-				if(visibilita != null && visibilita == org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.PUBBLICO) {
-					List<String> statiAdesione = this.configurazione.getServizio().getStatiAdesioneConsentita();
-					contains =  contains || statiAdesione.contains(servizio.getStato());
-				}
-			}
-		}
-		
-		return contains;
-		
-	}
-
-	private boolean contains(Set<ClasseUtenteEntity> classiServizio, Set<ClasseUtenteEntity> classiUtente) {
-		for(ClasseUtenteEntity classeServizio: classiServizio) {
-			for(ClasseUtenteEntity classeUtente: classiUtente) {
-				if(classeUtente.getId().equals(classeServizio.getId())) {
-					return true;
-				}
-			}
-		}
-		
-		return false;
-	}
-
-	private boolean contains(Set<UtenteEntity> utentiVisibili, UtenteEntity utenteSessione) {
-		for(UtenteEntity utente: utentiVisibili) {
-			if(utente.getId().equals(utenteSessione.getId())) {
-				return true;
-			}
-		}
-		
-		return false;
 	}
 
 	@Override

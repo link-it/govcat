@@ -20,7 +20,13 @@
 package org.govway.catalogo.core.dao.repositories;
 
 import org.govway.catalogo.core.orm.entity.PackageServizioEntity;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.support.JpaRepositoryImplementation;
 
 public interface PackageServizioRepository extends JpaRepositoryImplementation<PackageServizioEntity, Long> {
+
+    // Esistenza di sotto-servizi (componenti) del package senza materializzare la collezione.
+    // Usata da ServizioService.isEliminabile.
+    @Query(value = "SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END FROM PackageServizioEntity p WHERE p._package.id = ?1")
+    public boolean existsByPackageId(Long idServizioPackage);
 }

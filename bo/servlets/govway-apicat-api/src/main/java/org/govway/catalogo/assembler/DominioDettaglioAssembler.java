@@ -24,6 +24,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.govway.catalogo.controllers.DominiController;
+import org.govway.catalogo.core.dao.repositories.ServizioRepository;
 import org.govway.catalogo.core.orm.entity.DominioEntity;
 import org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA;
 import org.govway.catalogo.core.orm.entity.SoggettoEntity;
@@ -57,6 +58,9 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 
 	@Autowired
 	private ClasseUtenteItemAssembler classeUtenteItemAssembler;
+
+	@Autowired
+	private ServizioRepository servizioRepository;
 
 	public DominioDettaglioAssembler() {
 		super(DominiController.class, Dominio.class);
@@ -119,7 +123,10 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 	}
 
 	private boolean isVincolaSkipCollaudo(DominioEntity entity) {
-		return entity.getServizi().stream().anyMatch(s -> s.isSkipCollaudo());
+		// Esistenza via query invece di entity.getServizi().stream().anyMatch(...): quest'ultimo
+		// materializzava tutti i servizi del dominio ad ogni assemblaggio (collo nelle liste, dove
+		// i domini grossi hanno centinaia di servizi e il dominio viene assemblato per ogni elemento).
+		return this.servizioRepository.existsSkipCollaudoByDominioId(entity.getId());
 	}
 
 	private void setSkipCollaudo(Boolean skipCollaudo, DominioEntity entity) {

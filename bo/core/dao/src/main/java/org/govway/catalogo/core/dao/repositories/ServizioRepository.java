@@ -40,4 +40,10 @@ public interface ServizioRepository extends JpaRepositoryImplementation<Servizio
     @Query(value = "SELECT s FROM ServizioEntity s WHERE s.richiedente.id = ?1")
     public List<ServizioEntity> findByRichiedente(Long id);
 
+    // Esistenza di almeno un servizio del dominio con skip_collaudo=true, senza materializzare la
+    // collezione dominio.getServizi() (che per i domini grossi carica centinaia di servizi ad ogni
+    // assemblaggio del dominio). Usata per il flag vincola_skip_collaudo.
+    @Query(value = "SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END FROM ServizioEntity s WHERE s.dominio.id = ?1 AND s.skipCollaudo = true")
+    public boolean existsSkipCollaudoByDominioId(Long idDominio);
+
 }

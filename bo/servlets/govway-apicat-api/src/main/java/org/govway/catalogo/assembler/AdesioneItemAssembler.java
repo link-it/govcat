@@ -20,6 +20,8 @@
 package org.govway.catalogo.assembler;
 
 import java.time.ZoneOffset;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -27,6 +29,7 @@ import org.govway.catalogo.controllers.AdesioniController;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity.STATO_CONFIGURAZIONE;
 import org.govway.catalogo.servlets.model.ItemAdesione;
+import org.govway.catalogo.servlets.model.ItemServizio;
 import org.govway.catalogo.servlets.model.StatoConfigurazioneAutomaticaEnum;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,15 +52,28 @@ public class AdesioneItemAssembler extends RepresentationModelAssemblerSupport<A
 
 	@Override
 	public ItemAdesione toModel(AdesioneEntity entity) {
-		
+		// Senza cache condivisa (uso singolo): delega alla variante con una cache locale usa-e-getta.
+		return toModel(entity, new HashMap<>());
+	}
+
+	/**
+	 * Variante con cache per-richiesta dell'{@link ItemServizio} (chiave: idServizio).
+	 * In una lista di adesioni molte condividono lo stesso servizio, e quindi lo stesso dominio
+	 * dettagliato (costoso da assemblare): riusare l'ItemServizio gia` costruito evita di
+	 * ri-assemblarlo per ogni adesione. La cache e` locale alla singola richiesta (passata dal
+	 * controller), quindi nessun problema di staleness o concorrenza.
+	 */
+	public ItemAdesione toModel(AdesioneEntity entity, Map<String, ItemServizio> cacheServizi) {
+
 		ItemAdesione dettaglio = instantiateModel(entity);
-		
+
 
 		BeanUtils.copyProperties(entity, dettaglio);
 
 		dettaglio.setIdAdesione(UUID.fromString(entity.getIdAdesione()));
 		dettaglio.setSoggetto(this.soggettoAssembler.toModel(entity.getSoggetto()));
-		dettaglio.setServizio(this.servizioAssembler.toModel(entity.getServizio()));
+		dettaglio.setServizio(cacheServizi.computeIfAbsent(entity.getServizio().getIdServizio(),
+				k -> this.servizioAssembler.toModel(entity.getServizio())));
 		dettaglio.setUtenteRichiedente(this.utenteAssembler.toModel(entity.getRichiedente()));
 
 		dettaglio.setDataCreazione(entity.getDataCreazione().toInstant().atOffset(ZoneOffset.UTC));
