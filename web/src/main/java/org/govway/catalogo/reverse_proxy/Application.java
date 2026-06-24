@@ -31,7 +31,6 @@ import org.govway.catalogo.reverse_proxy.servlets.ProxyServletApi;
 import org.govway.catalogo.reverse_proxy.servlets.ProxyServletMonitor;
 import org.govway.catalogo.reverse_proxy.servlets.ProxyServletPdnd;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.autoconfigure.metrics.jersey.JerseyServerMetricsAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -41,7 +40,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 
 
-@SpringBootApplication(exclude = JerseyServerMetricsAutoConfiguration.class)
+@SpringBootApplication
 @PropertySource("classpath:govcat-web.properties")
 @PropertySource(value = "file:${org.govway.catalogo.resource.path:/var/govcat/conf/govcat-web.properties}", ignoreResourceNotFound = true)
 public class Application  extends SpringBootServletInitializer {

@@ -60,21 +60,22 @@
 		<dependency>
 		  <groupId>jakarta.xml.bind</groupId>
 		  <artifactId>jakarta.xml.bind-api</artifactId>
-		  <version>3.0.1</version>
+		  <version>${jakarta.xml.bind.version}</version>
 		  <scope>provided</scope>
 		</dependency>
-		
+
 		<dependency>
 		  <groupId>jakarta.persistence</groupId>
 		  <artifactId>jakarta.persistence-api</artifactId>
-		  <version>3.1.0</version> 
+		  <version>${jakarta.persistence.version}</version>
 		  <scope>provided</scope>
 		</dependency>
-		
+
+		<!-- Hibernate 7: hibernate-jpamodelgen rinominato hibernate-processor -->
 		<dependency>
 		  <groupId>org.hibernate.orm</groupId>
-		  <artifactId>hibernate-jpamodelgen</artifactId>
-		  <version>6.4.4.Final</version> 
+		  <artifactId>hibernate-processor</artifactId>
+		  <version>${hibernate.jpamodelgen.version}</version>
 		  <scope>provided</scope>
 		</dependency>
 		
@@ -138,7 +139,7 @@
 			  </executions>
 			  <configuration>
 			    <processors>
-			      <processor>org.hibernate.jpamodelgen.JPAMetaModelEntityProcessor</processor>
+			      <processor>org.hibernate.processor.HibernateProcessor</processor>
 			    </processors>
 			  </configuration>
 			</plugin>

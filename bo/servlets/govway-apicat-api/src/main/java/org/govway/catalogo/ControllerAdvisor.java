@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 
 
 @ControllerAdvice
@@ -78,7 +78,7 @@ public class ControllerAdvisor extends AbstractControllerAdvisor {
 				ex.getE() != null ? ex.getE().getResponseBody() : null);
 
 		ObjectMapper om = new ObjectMapper();
-		om.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+		om.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
 		om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		
 		Problem problem;

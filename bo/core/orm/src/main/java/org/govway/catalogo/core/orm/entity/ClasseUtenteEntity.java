@@ -65,7 +65,7 @@ public class ClasseUtenteEntity {
     name = "referenti_classi",
     joinColumns = @JoinColumn(name = "id_classe"),
     inverseJoinColumns = @JoinColumn(name = "id_referente"))
-    @Cascade({CascadeType.PERSIST,CascadeType.DELETE})
+    @Cascade({CascadeType.PERSIST,CascadeType.REMOVE})
     private Set<UtenteEntity> referenti = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.LAZY)

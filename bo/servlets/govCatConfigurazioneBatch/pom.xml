@@ -29,17 +29,17 @@
 		<glassfish.version>1.1.4</glassfish.version>
 		<govregistry.version>0.1.0-SNAPSHOT</govregistry.version>
 		<java.version>21</java.version>
-		<jakarta.annotation.version>2.1.1</jakarta.annotation.version>
+		<jakarta.annotation.version>3.0.0</jakarta.annotation.version>
 		<jsonpatch.version>1.13</jsonpatch.version>
 		<jsr305.version>3.0.2</jsr305.version>
 		<maven.install.plugin.version>2.5.2</maven.install.plugin.version>
 		<maven-processor.version>4.5</maven-processor.version>
 		<openapi.tool.codegen.version>7.10.0</openapi.tool.codegen.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<springdoc.version>1.8.0</springdoc.version>
+		<springdoc.version>3.0.3</springdoc.version>
 		<swagger-annotations.version>2.1.2</swagger-annotations.version>
-		<swagger.version>2.2.38</swagger.version>
-		<version.hibernate-jpamodelgen>6.0.0.Alpha2</version.hibernate-jpamodelgen>
+		<swagger.version>2.2.47</swagger.version>
+		<version.hibernate-jpamodelgen>7.1.31.Final</version.hibernate-jpamodelgen>
 		<wagon-ssh-external.version>1.0-beta-6</wagon-ssh-external.version>
 		<version.mssql.jdbc>7.2.1.jre8</version.mssql.jdbc>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -51,7 +51,7 @@
 		<siuss-api-beans.version>[1.1.0,2.0.0)</siuss-api-beans.version>
 		<version.mssql.jdbc>7.2.1.jre8</version.mssql.jdbc>
 
-		<spring.boot.plugin.version>3.3.0</spring.boot.plugin.version>
+		<spring.boot.plugin.version>4.0.7</spring.boot.plugin.version>
 
 	</properties>
 
@@ -128,7 +128,13 @@
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
+			<artifactId>spring-boot-starter-webmvc</artifactId>
+		</dependency>
+
+		<!-- Jackson 2 retention: autoconfig Jackson 2 al posto di Jackson 3 -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-jackson2</artifactId>
 		</dependency>
 
 		<dependency>
@@ -145,6 +151,13 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-batch</artifactId>
+		</dependency>
+
+		<!-- Spring Boot 4: il JobRepository e' in-memory di default; questo starter
+		     ripristina la persistenza JDBC del repository batch sul DataSource. -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-batch-jdbc</artifactId>
 		</dependency>
 
 		<dependency>

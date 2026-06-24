@@ -56,6 +56,22 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 		</dependency>
 
+		<!-- Spring Boot 4: test slice del DataSource (@AutoConfigureTestDatabase)
+		     ora in modulo dedicato -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-jdbc-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Spring Boot 4: TestRestTemplate / @AutoConfigureTestRestTemplate
+		     ora nel modulo resttestclient -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-resttestclient</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
@@ -152,7 +168,13 @@
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+			<artifactId>spring-boot-starter-security-oauth2-resource-server</artifactId>
+		</dependency>
+
+		<!-- Jackson 2 retention: autoconfig Jackson 2 al posto di Jackson 3 -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-jackson2</artifactId>
 		</dependency>
 
 
@@ -215,15 +237,11 @@
 			<artifactId>jackson-datatype-joda</artifactId>
 		</dependency>
 
-		<dependency>
-			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-rest-core</artifactId>
-		</dependency>
+		<!-- Spring Data REST rimosso: non utilizzato nel codice (nessun @RepositoryRestResource
+		     ne' RepositoryRestConfigurer). Su Boot 4 + springdoc 3.x la sua sola presenza
+		     attiva l'auto-integrazione springdoc-dataRest che richiede un bean
+		     RepositoryRestConfiguration inesistente, rompendo il caricamento del context. -->
 
-		<dependency>
-			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-rest-webmvc</artifactId>
-		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>

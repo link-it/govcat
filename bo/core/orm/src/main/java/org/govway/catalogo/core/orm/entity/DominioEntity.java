@@ -100,7 +100,7 @@ public class DominioEntity {
 	private Set<ClasseUtenteEntity> classi = new HashSet<>();
 
     @OneToMany(mappedBy = "dominio", fetch = FetchType.LAZY)
-    @Cascade({CascadeType.PERSIST,CascadeType.DELETE})
+    @Cascade({CascadeType.PERSIST,CascadeType.REMOVE})
     private Set<ReferenteDominioEntity> referenti = new HashSet<>();
 
     @OneToMany(mappedBy = "dominio", fetch = FetchType.LAZY)

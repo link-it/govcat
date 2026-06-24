@@ -106,7 +106,7 @@ public class ServizioEntity {
     private Set<GruppoEntity> gruppi = new HashSet<>();
 
     @OneToMany(mappedBy = "servizio", fetch = FetchType.LAZY)
-    @Cascade({CascadeType.PERSIST,CascadeType.DELETE})
+    @Cascade({CascadeType.PERSIST,CascadeType.REMOVE})
     private Set<ReferenteServizioEntity> referenti = new HashSet<>();
 
 	@Column(name = "descrizione_sintetica")
@@ -189,7 +189,7 @@ public class ServizioEntity {
 	private Set<NotificaEntity> notifiche = new HashSet<>();
 
     @OneToMany(mappedBy = "servizio", fetch = FetchType.LAZY)
-    @Cascade({CascadeType.PERSIST,CascadeType.DELETE})
+    @Cascade({CascadeType.PERSIST,CascadeType.REMOVE})
 	private Set<MessaggioServizioEntity> messaggi = new HashSet<>();
 
     @OneToMany(mappedBy = "servizio", fetch = FetchType.LAZY)

@@ -151,7 +151,7 @@ import org.springframework.util.FileCopyUtils;
 
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 
 
 @SpringBootApplication
@@ -250,7 +250,7 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
 		byte[] fileData = FileCopyUtils.copyToByteArray(inputStream);
 		String outputString = new String(fileData);
 		ObjectMapper om = new ObjectMapper();
-		om.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+		om.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
 
 		Configurazione configurazione = om.readValue(outputString, Configurazione.class);
 

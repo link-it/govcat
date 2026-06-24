@@ -53,7 +53,7 @@
 
 
 		<!-- Swagger-annotations -->
-		<swagger.version>2.2.38</swagger.version>
+		<swagger.version>2.2.47</swagger.version>
 		<swagger-annotations.version>2.1.2</swagger-annotations.version>
 
 		<com.google.code.findbugs.jsr305.version>3.0.2</com.google.code.findbugs.jsr305.version>
@@ -61,18 +61,18 @@
 		<!-- Jsonschema2pojo-codegen -->
 		<jsonschema2pojo.codegen.version>1.0.0-alpha4</jsonschema2pojo.codegen.version>
 
-		<!-- Jakarta EE -->
-		<jakarta.jaxws-api.version>4.0.0</jakarta.jaxws-api.version>
-		<jakarta.servlet.version>6.0.0</jakarta.servlet.version>
+		<!-- Jakarta EE 11 (allineato al parent) -->
+		<jakarta.jaxws-api.version>4.0.2</jakarta.jaxws-api.version>
+		<jakarta.servlet.version>6.1.0</jakarta.servlet.version>
 		<jakarta.cache.version>3.0.0</jakarta.cache.version>
-		<jakarta.annotation.version>2.1.1</jakarta.annotation.version>
-		<jakarta.validation.version>3.0.2</jakarta.validation.version>
-		<jakarta.el.version>5.0.1</jakarta.el.version>
-		<jakarta.persistence.version>3.1.0</jakarta.persistence.version>
+		<jakarta.annotation.version>3.0.0</jakarta.annotation.version>
+		<jakarta.validation.version>3.1.1</jakarta.validation.version>
+		<jakarta.el.version>6.0.1</jakarta.el.version>
+		<jakarta.persistence.version>3.2.0</jakarta.persistence.version>
 
 		<!-- JAXB -->
-		<jakarta.xml.bind.version>4.0.0</jakarta.xml.bind.version>
-		<org.glassfish.jaxb.runtime.version>4.0.0</org.glassfish.jaxb.runtime.version>
+		<jakarta.xml.bind.version>4.0.2</jakarta.xml.bind.version>
+		<org.glassfish.jaxb.runtime.version>4.0.5</org.glassfish.jaxb.runtime.version>
 
 		<!-- XMLSec -->
 		<xml-security.version>1.3.0</xml-security.version>
@@ -259,7 +259,7 @@
 			<dependency>
 				<groupId>jakarta.platform</groupId>
 				<artifactId>jakarta.jakartaee-api</artifactId>
-				<version>10.0.0</version>
+				<version>11.0.0</version>
 			</dependency>
 
 
