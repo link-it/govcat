@@ -741,6 +741,34 @@ describe('ServizioApiDetailsComponent', () => {
       expect(result.dati_custom).toBeUndefined();
     });
 
+    it('should NOT re-send collaudo/produzione custom groups (managed by configuration)', () => {
+      // I gruppi di classe collaudo/produzione sono gestiti dal componente
+      // di configurazione per-ambiente: dal dettaglio NON vanno reinviati,
+      // anche se presenti nei dati caricati con la GET.
+      Tools.Configurazione!.servizio.api.proprieta_custom = [
+        { nome_gruppo: 'GEN1', classe_dato: 'generico' },
+        { nome_gruppo: 'PDNDCollaudo', classe_dato: 'collaudo' },
+        { nome_gruppo: 'PDNDProduzione', classe_dato: 'produzione' }
+      ] as any;
+      component._apiProprietaCustomGrouped = null;
+      component._servizioApi = {
+        proprieta_custom: [
+          { gruppo: 'GEN1', proprieta: [{ nome: 'g', valore: 'v' }] },
+          { gruppo: 'PDNDCollaudo', proprieta: [{ nome: 'c', valore: 'vc' }] },
+          { gruppo: 'PDNDProduzione', proprieta: [{ nome: 'p', valore: 'vp' }] }
+        ]
+      } as any;
+      const body = {
+        nome: 'A', versione: '1', ruolo: 'erogato_soggetto_aderente',
+        descrizione: null, codice_asset: null
+      };
+      const result = component._prepareBodyUpdateApi(body);
+      const gruppiInviati = (result.dati_custom?.proprieta_custom || []).map((g: any) => g.gruppo);
+      expect(gruppiInviati).toContain('GEN1');
+      expect(gruppiInviati).not.toContain('PDNDCollaudo');
+      expect(gruppiInviati).not.toContain('PDNDProduzione');
+    });
+
     it('should call _removeDNM on the result', () => {
       const body = { nome: 'A', versione: '1', ruolo: 'erogato_soggetto_aderente', descrizione: null, codice_asset: null };
       component._prepareBodyUpdateApi(body);

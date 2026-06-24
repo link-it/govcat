@@ -698,7 +698,19 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             }
 
             if (hasOriginalCustomProps) {
+                // I gruppi di classe collaudo/produzione sono gestiti dal
+                // componente di configurazione per-ambiente: dal dettaglio NON
+                // vanno reinviati (altrimenti verrebbero spediti vuoti e
+                // potenzialmente azzerati lato BE). Li escludiamo dai gruppi
+                // originali riportati nel payload.
+                const _cfgGroups: any[] = Tools.Configurazione?.servizio?.api?.proprieta_custom || [];
+                const _envGroupNames = new Set(
+                    _cfgGroups
+                        .filter((p: any) => p.classe_dato === 'collaudo' || p.classe_dato === 'produzione')
+                        .map((p: any) => p.nome_gruppo)
+                );
                 this._servizioApi?.proprieta_custom?.forEach((originalGroup: any) => {
+                    if (_envGroupNames.has(originalGroup.gruppo)) { return; }
                     if (!risultato[originalGroup.gruppo]) {
                         risultato[originalGroup.gruppo] = [];
                     }
@@ -874,7 +886,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                 const _authTypes: ApiAuthTypeGroup[] = this.servizioApi.gruppi_auth_type || [];
                 this._risorseSelected = [];
                 this._authSelected = [];
-                _authTypes.map((auth: any) => {
+                _authTypes.forEach((auth: any) => {
                     (auth.resources || []).forEach((r: string) => this._risorseSelected.push(r));
                     this._authSelected.push(auth.profilo);
                     const _profile = this._profili.find((item: any) => item.codice_interno === auth.profilo);

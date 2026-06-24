@@ -1,3 +1,11 @@
+2026-06-24  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Dettaglio API: la PUT non reinvia piu` i gruppi di proprieta` custom
+	  di collaudo/produzione (gestiti dal componente di configurazione
+	  per-ambiente), che venivano spediti vuoti dai dati della GET con
+	  rischio di azzeramento. POST (creazione) invariata.
+
 2026-06-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
