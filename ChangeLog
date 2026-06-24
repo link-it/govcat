@@ -1,6 +1,14 @@
 2026-06-24  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Creazione API: per i servizi intermediati (fruizione) la label del
+	  ruolo "Erogato Soggetto Dominio" usa il nome dell'organizzazione
+	  erogatrice del servizio (soggetto_erogatore.organizzazione.nome);
+	  per gli altri servizi resta invariata (soggetto referente dominio).
+
+2026-06-24  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Creazione servizio: il flag "Intermediato" (fruizione) e` visibile
 	  anche ad amministratore organizzazione e operatore API di
 	  un'organizzazione referente (ruolo valutato sull'org di sessione),

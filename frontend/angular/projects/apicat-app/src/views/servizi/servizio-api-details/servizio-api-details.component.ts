@@ -770,7 +770,13 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     _initRuoli() {
-        this._labelDominio = this.translate.instant('APP.ROLE.ErogatoSoggettoDominio.title', { soggetto: this.service.dominio.soggetto_referente.nome });
+        // Per i servizi intermediati (fruizione) la label del ruolo "dominio"
+        // fa riferimento all'organizzazione erogatrice del servizio; per gli
+        // altri resta il soggetto referente del dominio (comportamento attuale).
+        const _soggettoDominio = this.service?.fruizione
+            ? (this.service?.soggetto_erogatore?.organizzazione?.nome ?? this.service?.dominio?.soggetto_referente?.nome)
+            : this.service?.dominio?.soggetto_referente?.nome;
+        this._labelDominio = this.translate.instant('APP.ROLE.ErogatoSoggettoDominio.title', { soggetto: _soggettoDominio });
         this._labelAderente = this.translate.instant('APP.ROLE.ErogatoSoggettoAderente.title');
         this._ruoli = [
             { value: this.EROGATO_SOGGETTO_DOMINIO, label: this._labelDominio, key: this.EROGATO_SOGGETTO_DOMINIO },
