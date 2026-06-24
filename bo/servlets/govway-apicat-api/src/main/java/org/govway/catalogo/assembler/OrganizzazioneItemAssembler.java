@@ -28,12 +28,16 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
+import org.springframework.web.context.request.RequestContextHolder;
 
 public class OrganizzazioneItemAssembler extends RepresentationModelAssemblerSupport<OrganizzazioneEntity, ItemOrganizzazione> {
 
 	@Autowired
 	@Lazy
 	private SoggettoItemAssembler soggettoItemAssembler;
+
+	@Autowired
+	private AssemblerRequestCache cache;
 
 
 	public OrganizzazioneItemAssembler() {
@@ -42,15 +46,25 @@ public class OrganizzazioneItemAssembler extends RepresentationModelAssemblerSup
 
 	@Override
 	public ItemOrganizzazione toModel(OrganizzazioneEntity entity) {
-		
+		// Memoization per-richiesta: la stessa organizzazione ricorre in molti elementi della lista
+		// (e il calcolo di multi_soggetto naviga la collezione soggetti). Fuori da una richiesta HTTP
+		// (cache non disponibile) si assembla normalmente.
+		if(RequestContextHolder.getRequestAttributes() == null) {
+			return buildModel(entity);
+		}
+		return this.cache.getOrganizzazioni().computeIfAbsent(entity.getId(), k -> buildModel(entity));
+	}
+
+	private ItemOrganizzazione buildModel(OrganizzazioneEntity entity) {
+
 		ItemOrganizzazione dettaglio = instantiateModel(entity);
-		
+
 
 		BeanUtils.copyProperties(entity, dettaglio);
 
 		dettaglio.setIdOrganizzazione(UUID.fromString(entity.getIdOrganizzazione()));
 		dettaglio.setMultiSoggetto(entity.getSoggetti().size() > 1);
-		
+
 		if(entity.getSoggettoDefault()!=null) {
 			dettaglio.setSoggettoDefault(this.soggettoItemAssembler.toLimitedModel(entity.getSoggettoDefault()));
 		}

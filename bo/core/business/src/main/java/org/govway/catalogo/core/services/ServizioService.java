@@ -20,9 +20,16 @@
 package org.govway.catalogo.core.services;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 
 import org.govway.catalogo.core.dao.specifications.AllegatoServizioSpecification;
 import org.govway.catalogo.core.dao.specifications.MessaggioServizioSpecification;
@@ -37,6 +44,7 @@ import org.govway.catalogo.core.orm.entity.PackageServizioEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteDominioEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteServizioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
+import org.govway.catalogo.core.orm.entity.ServizioEntity_;
 import org.govway.catalogo.core.orm.entity.ServizioGruppoEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.TagEntity;
@@ -60,6 +68,25 @@ public class ServizioService extends AbstractService {
 
 	public List<ServizioEntity> findAll(Specification<ServizioEntity> spec, Sort s) {
 		return this.servizioRepo.findAll(spec, s);
+	}
+
+	/**
+	 * Restituisce gli id (PK) dei servizi che soddisfano la specification, tramite una query
+	 * {@code SELECT DISTINCT s.id}. A differenza di {@code findAll}, non materializza le entita`
+	 * e il DISTINCT collassa le righe duplicate generate dai JOIN della specification (referenti,
+	 * adesioni, classi): evita il prodotto cartesiano che rende lento il caricamento completo
+	 * quando serve solo sapere "quali servizi" (es. filtro di visibilita` in servizi_gruppi).
+	 */
+	public Set<Long> findIds(Specification<ServizioEntity> spec) {
+		CriteriaBuilder cb = this.entityManager.getCriteriaBuilder();
+		CriteriaQuery<Long> cq = cb.createQuery(Long.class);
+		Root<ServizioEntity> root = cq.from(ServizioEntity.class);
+		cq.select(root.get(ServizioEntity_.id)).distinct(true);
+		Predicate predicate = spec.toPredicate(root, cq, cb);
+		if(predicate != null) {
+			cq.where(predicate);
+		}
+		return new HashSet<>(this.entityManager.createQuery(cq).getResultList());
 	}
 
 	public Page<ServizioGruppoEntity> findAllServiziGruppi(Specification<ServizioGruppoEntity> spec, Pageable p) {
@@ -228,9 +255,14 @@ public class ServizioService extends AbstractService {
 	}
 
 	public boolean isEliminabile(ServizioEntity servizio) {
-	    boolean haAdesioni = !servizio.getAdesioni().isEmpty();
-	    boolean haApi = !servizio.getApi().isEmpty();
-	    boolean haPackageSubServizi = servizio.is_package() && !servizio.getComponenti().isEmpty();
+	    // Verifiche di esistenza via query (SELECT ... LIMIT-like) invece di servizio.getXxx().isEmpty():
+	    // .isEmpty() su collezioni lazy materializza l'intera collezione, e per i servizi con molte adesioni
+	    // questo dominava il tempo di assemblaggio delle liste (~320 ms/elemento per il gestore).
+	    // Nota: isEliminabile e` usato solo dalle viste di lista (ServizioItemAssembler), non da servizi_gruppi,
+	    // e su una pagina (max ~size servizi) le query exists restano poche e veloci.
+	    boolean haAdesioni = this.adesioneRepo.existsByServizioId(servizio.getId());
+	    boolean haApi = this.apiRepo.existsByServizioId(servizio.getId());
+	    boolean haPackageSubServizi = servizio.is_package() && this.packageServizioRepo.existsByPackageId(servizio.getId());
 
 	    return !(haAdesioni || haApi || haPackageSubServizi);
 	}

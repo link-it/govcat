@@ -29,11 +29,15 @@ import org.govway.catalogo.servlets.model.TipoSoggettoGateway;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
+import org.springframework.web.context.request.RequestContextHolder;
 
 public class SoggettoItemAssembler extends RepresentationModelAssemblerSupport<SoggettoEntity, ItemSoggetto> {
 
 	@Autowired
 	private OrganizzazioneItemAssembler organizzazioneItemAssembler;
+
+	@Autowired
+	private AssemblerRequestCache cache;
 
 	public SoggettoItemAssembler() {
 		super(SoggettiController.class, ItemSoggetto.class);
@@ -41,9 +45,18 @@ public class SoggettoItemAssembler extends RepresentationModelAssemblerSupport<S
 
 	@Override
 	public ItemSoggetto toModel(SoggettoEntity entity) {
-		
+		// Memoization per-richiesta: lo stesso soggetto ricorre in molti elementi della lista.
+		// Fuori da una richiesta HTTP (cache non disponibile) si assembla normalmente.
+		if(RequestContextHolder.getRequestAttributes() == null) {
+			return buildModel(entity);
+		}
+		return this.cache.getSoggetti().computeIfAbsent(entity.getId(), k -> buildModel(entity));
+	}
+
+	private ItemSoggetto buildModel(SoggettoEntity entity) {
+
 		ItemSoggetto dettaglio = instantiateModel(entity);
-		
+
 
 		BeanUtils.copyProperties(entity, dettaglio);
 
@@ -58,9 +71,16 @@ public class SoggettoItemAssembler extends RepresentationModelAssemblerSupport<S
 	}
 
 	public ItemSoggettoLimited toLimitedModel(SoggettoEntity entity) {
-		
+		if(RequestContextHolder.getRequestAttributes() == null) {
+			return buildLimitedModel(entity);
+		}
+		return this.cache.getSoggettiLimited().computeIfAbsent(entity.getId(), k -> buildLimitedModel(entity));
+	}
+
+	private ItemSoggettoLimited buildLimitedModel(SoggettoEntity entity) {
+
 		ItemSoggettoLimited dettaglio = new ItemSoggettoLimited();
-		
+
 
 		BeanUtils.copyProperties(entity, dettaglio);
 
