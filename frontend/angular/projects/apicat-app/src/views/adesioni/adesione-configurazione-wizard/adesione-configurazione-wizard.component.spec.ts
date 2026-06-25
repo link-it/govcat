@@ -29,6 +29,7 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
     getList: vi.fn().mockReturnValue(of({ content: [] })),
     saveElement: vi.fn().mockReturnValue(of({})),
     putElement: vi.fn().mockReturnValue(of({})),
+    postElementRelated: vi.fn().mockReturnValue(of({})),
     deleteElementRelated: vi.fn().mockReturnValue(of({})),
     download: vi.fn().mockReturnValue(of({ body: new Blob() })),
   } as any;
@@ -767,5 +768,67 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
   it('getStatusSottotipoCompleteMapper should return 2 for produzione in collaudo phase', () => {
     component.adesione = { stato: 'bozza', skip_collaudo: false };
     expect(component.getStatusSottotipoCompleteMapper(false, AmbienteEnum.Produzione, 'client', 'C1')).toBe(2);
+  });
+
+  // -------- Retry configurazione automatica (Issue #298) --------
+
+  describe('retry configurazione automatica', () => {
+    beforeEach(() => {
+      mockAuthService.isGestore.mockReturnValue(true);
+    });
+
+    it('canRetryAutoConfig: true per gestore con stato auto-config ed esito ko', () => {
+      component.adesione = { stato: 'in_configurazione_automatica_collaudo', stato_configurazione_automatica: 'ko' };
+      expect(component.canRetryAutoConfig).toBe(true);
+    });
+
+    it('canRetryAutoConfig: true anche per esito in_coda e fallita', () => {
+      component.adesione = { stato: 'in_configurazione_automatica_produzione', stato_configurazione_automatica: 'in_coda' };
+      expect(component.canRetryAutoConfig).toBe(true);
+      component.adesione = { stato: 'in_configurazione_automatica_produzione', stato_configurazione_automatica: 'fallita' };
+      expect(component.canRetryAutoConfig).toBe(true);
+    });
+
+    it('canRetryAutoConfig: false se lo stato non e` di auto-configurazione', () => {
+      component.adesione = { stato: 'pubblicato_collaudo', stato_configurazione_automatica: 'ko' };
+      expect(component.canRetryAutoConfig).toBe(false);
+    });
+
+    it('canRetryAutoConfig: false per esito ok', () => {
+      component.adesione = { stato: 'in_configurazione_automatica_collaudo', stato_configurazione_automatica: 'ok' };
+      expect(component.canRetryAutoConfig).toBe(false);
+    });
+
+    it('canRetryAutoConfig: false se non gestore', () => {
+      mockAuthService.isGestore.mockReturnValue(false);
+      component.adesione = { stato: 'in_configurazione_automatica_collaudo', stato_configurazione_automatica: 'ko' };
+      expect(component.canRetryAutoConfig).toBe(false);
+    });
+
+    it('onRetryAutoConfig: POST su configurazione-automatica/retry e reload', () => {
+      component.id = 7;
+      component.adesione = { stato: 'in_configurazione_automatica_collaudo', stato_configurazione_automatica: 'ko' };
+      const reloadSpy = vi.fn();
+      (component as any).loadAdesione = reloadSpy;
+      mockApiService.postElementRelated.mockReturnValue(of({}));
+      component.onRetryAutoConfig();
+      expect(mockApiService.postElementRelated).toHaveBeenCalledWith('adesioni', 7, 'configurazione-automatica/retry', {});
+      expect(reloadSpy).toHaveBeenCalledWith(false);
+      expect(component._retryingAutoConfig).toBe(false);
+    });
+
+    it('onRetryAutoConfig: no-op se gia` in corso', () => {
+      component.id = 7;
+      component._retryingAutoConfig = true;
+      component.onRetryAutoConfig();
+      expect(mockApiService.postElementRelated).not.toHaveBeenCalled();
+    });
+
+    it('onRetryAutoConfig: in errore resetta il flag', () => {
+      component.id = 7;
+      mockApiService.postElementRelated.mockReturnValue(throwError(() => new Error('fail')));
+      component.onRetryAutoConfig();
+      expect(component._retryingAutoConfig).toBe(false);
+    });
   });
 });

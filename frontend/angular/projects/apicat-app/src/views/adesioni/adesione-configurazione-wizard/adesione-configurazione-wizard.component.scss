@@ -940,4 +940,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
       overflow-y: auto;
     }
   }
+
+  // Pulsante "Riprova configurazione automatica" (Issue #298): inline
+  // sotto il box errore, visibile al gestore su esito ko/in_coda/fallita.
+  .auto-config-retry {
+    .btn i { font-size: 14px; }
+  }
 }

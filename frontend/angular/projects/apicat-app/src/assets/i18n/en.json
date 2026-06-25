@@ -329,6 +329,7 @@
 		},
 		"BUTTON": {
 			"Add": "Add",
+			"RetryAutoConfig": "Retry automatic configuration",
 			"BackToAdesione": "Back to subscription",
 			"GoToService": "Go to the Service",
 			"Copy": "Copy",

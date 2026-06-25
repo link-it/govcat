@@ -124,10 +124,24 @@
                     ></ui-data-type>
                   }
                 </div>
-                @if (adesione.stato_configurazione_automatica === 'ko' && adesione.messaggio_configurazione) {
-                  <div class="auto-config-error mt-2" role="alert">
+                @if ((adesione.stato_configurazione_automatica === 'ko' || adesione.stato_configurazione_automatica === 'fallita') && adesione.messaggio_configurazione) {
+                  <div class="auto-config-error mt-2 me-2" role="alert">
                     <i class="bi bi-exclamation-triangle-fill"></i>
                     <span class="auto-config-error-text">{{ adesione.messaggio_configurazione }}</span>
+                  </div>
+                }
+                @if (canRetryAutoConfig) {
+                  <div class="auto-config-retry mt-2">
+                    <button type="button" class="btn btn-sm btn-outline-primary"
+                            [disabled]="_retryingAutoConfig"
+                            (click)="onRetryAutoConfig()">
+                      @if (_retryingAutoConfig) {
+                        <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                      } @else {
+                        <i class="bi bi-arrow-clockwise me-1"></i>
+                      }
+                      {{ 'APP.BUTTON.RetryAutoConfig' | translate }}
+                    </button>
                   </div>
                 }
               } @else {

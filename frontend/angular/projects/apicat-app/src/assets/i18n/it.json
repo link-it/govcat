@@ -329,6 +329,7 @@
 		},
 		"BUTTON": {
 			"Add": "Aggiungi",
+			"RetryAutoConfig": "Riprova configurazione automatica",
 			"BackToAdesione": "Torna all'adesione",
 			"GoToService": "Vai al Servizio",
 			"Copy": "Copia",
