@@ -574,7 +574,14 @@ public class EServiceBuilder {
 		        .or(() -> Optional.ofNullable(api.getServizio().getDominio().getUrlInvocazione()))
 		        .or(() -> Optional.ofNullable(api.getServizio().getDominio().getSoggettoReferente().getUrlInvocazione()))
 		        .orElse(this.configurazione.getTemplateUrlInvocazione());
-		
+
+		// Campo opzionale: stessa gerarchia/ordine della urlInvocazione, stringa vuota se assente a tutti i livelli
+		String canale = Optional.ofNullable(api.getCanale())
+		        .or(() -> Optional.ofNullable(api.getServizio().getCanale()))
+		        .or(() -> Optional.ofNullable(api.getServizio().getDominio().getCanale()))
+		        .or(() -> Optional.ofNullable(api.getServizio().getDominio().getSoggettoReferente().getCanale()))
+		        .orElse("");
+
 		PROTOCOLLO protocollo = getProtocollo(api, collaudo);
 		String url = urlInvocazione
 				.replaceAll("#prefix#", prefix)
@@ -583,6 +590,7 @@ public class EServiceBuilder {
 				.replaceAll("#nome#", getNome(api, collaudo))
 				.replaceAll("#versione#", api.getVersione() + "")
 				.replaceAll("#tecnologia#", getTecnologia(api, collaudo))
+				.replaceAll("#canale#", canale)
 				.replaceAll("#protocollo#", protocollo != null ? protocollo.toString() : "");
 
 		while(url.contains("//")) {

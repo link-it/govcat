@@ -139,6 +139,9 @@ public class ServizioEntity {
     
     @Column(name = "url_invocazione", nullable = true)
 	private String urlInvocazione;
+
+    @Column(name = "canale", length = 255)
+	private String canale;
     
     @Column(name = "url_prefix_collaudo", nullable = true)
     private String urlPrefixCollaudo;

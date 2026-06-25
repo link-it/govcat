@@ -161,3 +161,14 @@ CREATE INDEX idx_servizi_soggetto_erogatore ON servizi (id_soggetto_erogatore);
 -- ALTER TABLE organizations DROP COLUMN esterna;
 -- ALTER TABLE servizi DROP CONSTRAINT fk_servizi_soggetto_interno;
 -- ALTER TABLE servizi DROP COLUMN id_soggetto_interno;
+
+-- ===== Canale di invocazione (placeholder #canale# nella URL di invocazione) =====
+--
+-- Nuova colonna opzionale "canale" presente alla stessa gerarchia della url_invocazione
+-- (api -> servizi -> domini -> soggetti). Viene risolta con lo stesso ordine usato per la
+-- url_invocazione e sostituita al placeholder #canale# (stringa vuota se assente a tutti i
+-- livelli). Colonna nullable: nessun valore di default, pienamente retrocompatibile.
+ALTER TABLE api ADD COLUMN canale VARCHAR(255);
+ALTER TABLE servizi ADD COLUMN canale VARCHAR(255);
+ALTER TABLE domini ADD COLUMN canale VARCHAR(255);
+ALTER TABLE soggetti ADD COLUMN canale VARCHAR(255);
