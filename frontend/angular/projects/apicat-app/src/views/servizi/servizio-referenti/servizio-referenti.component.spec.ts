@@ -1780,17 +1780,16 @@ describe('ServizioReferentiComponent', () => {
       component.referentiInput$.next('Mario');
       vi.advanceTimersByTime(600);
 
-      expect(mockUtilService.getUtenti).toHaveBeenCalledWith('Mario', 'referente_servizio', 'abilitato', 'org1', false);
+      expect(mockUtilService.getUtenti).toHaveBeenCalledWith('Mario', null, 'abilitato', 'org1', ['amministratore_organizzazione', 'operatore_api']);
       expect(results.length).toBe(2); // default + search result
       expect(results[1]).toEqual([{ id: 'u1', nome: 'Mario' }]);
       expect(component.referentiLoading).toBe(false);
       vi.useRealTimers();
     });
 
-    it('should pass null as organizzazione when _isDominioEsterno is true', async () => {
+    it('should always pass the dominio organizzazione and ruolo_organizzazione, also for ref tecnici (Issue #284)', async () => {
       vi.useFakeTimers();
       mockUtilService.getUtenti.mockReturnValue(of([]));
-      component._isDominioEsterno = true;
       component._idDominioEsterno = 'org1';
       component.tipoReferente = 'referente_tecnico';
 
@@ -1800,7 +1799,7 @@ describe('ServizioReferentiComponent', () => {
       component.referentiInput$.next('test');
       vi.advanceTimersByTime(600);
 
-      expect(mockUtilService.getUtenti).toHaveBeenCalledWith('test', '', 'abilitato', null, true);
+      expect(mockUtilService.getUtenti).toHaveBeenCalledWith('test', null, 'abilitato', 'org1', ['amministratore_organizzazione', 'operatore_api']);
       vi.useRealTimers();
     });
 

@@ -27,7 +27,7 @@ import { COMPONENTS_IMPORTS } from '@linkit/components';
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 
 import { OpenAPIService } from '@app/services/openAPI.service';
-import { UtilService } from '@app/services/utils.service';
+import { UtilService, RUOLI_ORG_REFERENTE } from '@app/services/utils.service';
 
 /**
  * Form inline per aggiungere un referente all'adesione (Issue 254
@@ -122,18 +122,15 @@ export class ReferenteAddFormComponent implements OnInit {
         return (_term: string) => of(this.anagraficheTipo);
     }
 
-    /** Search service per il dropdown "Utente". Filtra per:
-     *  - `referente`: utenti dell'organizzazione del soggetto;
-     *  - `referente_tecnico`: utenti con flag `referente_tecnico`. */
+    /** Search service per il dropdown "Utente". Issue #284: filtra sempre per
+     *  l'organizzazione del soggetto (anche per i ref tecnici) e per
+     *  `ruolo_organizzazione` (amm.org/operatore API). */
     getSearchUtente() {
         return (term: string): Observable<any[]> => {
             if (!term) { return of([]); }
             const opts: any = { params: { q: term, stato: 'abilitato' } };
-            if (this.referentiTipo === 'referente') {
-                opts.params.id_organizzazione = this.adesione?.soggetto?.organizzazione?.id_organizzazione;
-            } else {
-                opts.params.referente_tecnico = true;
-            }
+            opts.params.id_organizzazione = this.adesione?.soggetto?.organizzazione?.id_organizzazione;
+            opts.params.ruolo_organizzazione = RUOLI_ORG_REFERENTE;
             return this.apiService.getList('utenti', opts).pipe(
                 map((resp: any) => {
                     if (resp?.Error || !resp?.content) { return []; }

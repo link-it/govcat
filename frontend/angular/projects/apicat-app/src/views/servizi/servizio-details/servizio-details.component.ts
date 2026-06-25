@@ -25,7 +25,7 @@ import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
 import { MenuAction, ConfigService, EventsManagerService, Tools, EventType, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
-import { UtilService } from '@app/services/utils.service';
+import { UtilService, RUOLI_ORG_REFERENTE } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 
 import { ComponentBreadcrumbsData } from '@app/views/servizi/route-resolver/component-breadcrumbs.resolver';
@@ -857,15 +857,24 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         );
     }
 
-    getUtenti(term: string | null = null, role: string | null = null, stato: string = 'abilitato'): Observable<any> {
+    getUtenti(term: string | null = null, role: string | null = null, stato: string = 'abilitato', ruoliOrganizzazione: string[] = []): Observable<any> {
         const _options: any = { params: {} };
         if (term) { _options.params.q = term; }
         if (role) { _options.params.ruolo = role; }
         if (stato) { _options.params.stato = stato; }
 
-        // In caso di erogazione filtrare per organizzazione
-        if (!this._isFruizione && this.selectedDominio) {
-            _options.params.id_organizzazione = this.selectedDominio.soggetto_referente.organizzazione.id_organizzazione;
+        const _idOrgDominio = this.selectedDominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
+        if (ruoliOrganizzazione?.length) {
+            // Issue #284: i referenti del servizio sono utenti dell'organizzazione
+            // referente del dominio; filtriamo per quell'organizzazione e per
+            // `ruolo_organizzazione` (amm.org/operatore API).
+            if (_idOrgDominio) {
+                _options.params.id_organizzazione = _idOrgDominio;
+                _options.params.ruolo_organizzazione = ruoliOrganizzazione;
+            }
+        } else if (!this._isFruizione && _idOrgDominio) {
+            // Select utenti generica: in caso di erogazione filtra per organizzazione.
+            _options.params.id_organizzazione = _idOrgDominio;
         }
 
         return this.apiService.getList('utenti', _options)
@@ -990,7 +999,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                         this.referentiLoading = false;
                         return of([]);
                     }
-                    return this.getUtenti(term, 'utente_organizzazione,gestore,coordinatore').pipe(
+                    return this.getUtenti(term, null, 'abilitato', RUOLI_ORG_REFERENTE).pipe(
                         catchError(() => of([])), // empty list on error
                         tap(() => this.referentiLoading = false)
                     )
@@ -1013,7 +1022,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                         this.referentiTecniciLoading = false;
                         return of([]);
                     }
-                    return this.getUtenti(term).pipe(
+                    return this.getUtenti(term, null, 'abilitato', RUOLI_ORG_REFERENTE).pipe(
                         catchError(() => of([])), // empty list on error
                         tap(() => this.referentiTecniciLoading = false)
                     )

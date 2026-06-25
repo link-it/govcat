@@ -26,7 +26,7 @@ import { TranslateService } from '@ngx-translate/core';
 
 import { COMPONENTS_IMPORTS, ConfigService, Tools, EventsManagerService, SearchBarFormComponent, FieldClass, YesnoDialogBsComponent } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
-import { UtilService } from '@app/services/utils.service';
+import { UtilService, RUOLI_ORG_REFERENTE } from '@app/services/utils.service';
 
 import { Page } from '@app/models/page';
 
@@ -453,9 +453,11 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
         debounceTime(500),
         tap(() => this.referentiLoading = true),
         switchMap((term: any) => {
-          let aux: any = this._isDominioEsterno ? null : this._idDominioEsterno;
-          const referente_tecnico = this.referentiTipo === 'referente_tecnico';
-          return this.utilService.getUtenti(term, this.referentiFilter, 'abilitato', aux, referente_tecnico).pipe(
+          // Issue #284: org del dominio sempre valorizzata e filtro per
+          // ruolo_organizzazione (amm.org/operatore API). Niente piu` filtro
+          // referente_tecnico.
+          const aux: any = this._idDominioEsterno;
+          return this.utilService.getUtenti(term, null, 'abilitato', aux, RUOLI_ORG_REFERENTE).pipe(
             catchError(() => of([])), // empty list on error
             tap(() => this.referentiLoading = false)
           )

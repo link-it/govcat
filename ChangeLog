@@ -1,3 +1,12 @@
+2026-06-25  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 284: le select dei referenti (e referenti tecnici) di adesioni,
+	  servizi e domini filtrano gli utenti per `ruolo_organizzazione`
+	  (amministratore_organizzazione/operatore_api) dell'organizzazione di
+	  riferimento, passando sempre `id_organizzazione`. Rimossi il filtro
+	  `ruolo` globale e il filtro `referente_tecnico=true` dalle ricerche.
+
 2026-06-24  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

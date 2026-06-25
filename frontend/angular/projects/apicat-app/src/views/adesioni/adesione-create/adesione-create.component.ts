@@ -30,7 +30,7 @@ import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asteri
 import { ErrorViewComponent } from '@app/components/error-view/error-view.component';
 
 import { OpenAPIService } from '@app/services/openAPI.service';
-import { UtilService } from '@app/services/utils.service';
+import { UtilService, RUOLI_ORG_REFERENTE } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 
 import { Adesione } from '../adesione-details/adesione';
@@ -471,11 +471,14 @@ export class AdesioneCreateComponent implements OnInit {
       );
   }
 
-  getUtenti(term: string | null = null, org: string | null = null, stato: string = 'abilitato', referenteTecnico: boolean = false): Observable<any> {
+  getUtenti(term: string | null = null, org: string | null = null, stato: string = 'abilitato', ruoliOrganizzazione: string[] = []): Observable<any> {
     const _options: any = { params: { q: term } };
-    if (org) { _options.params.id_organizzazione = org; }
+    if (org) {
+      _options.params.id_organizzazione = org;
+      // Issue #284: `ruolo_organizzazione` solo con id_organizzazione (vincolo BE).
+      if (ruoliOrganizzazione?.length) { _options.params.ruolo_organizzazione = ruoliOrganizzazione; }
+    }
     if (stato) { _options.params.stato = stato; }
-    if (referenteTecnico) { _options.params.referente_tecnico = referenteTecnico; }
 
     return this.apiService.getList('utenti', _options)
       .pipe(
@@ -655,7 +658,7 @@ export class AdesioneCreateComponent implements OnInit {
         debounceTime(500),
         tap(() => this.referentiLoading = true),
         switchMap((term: any) => {
-          return this.getUtenti(term, this._formGroup.controls.id_organizzazione.value).pipe(
+          return this.getUtenti(term, this._formGroup.controls.id_organizzazione.value, 'abilitato', RUOLI_ORG_REFERENTE).pipe(
             catchError(() => of([])),
             tap(() => this.referentiLoading = false)
           )
@@ -675,7 +678,7 @@ export class AdesioneCreateComponent implements OnInit {
         debounceTime(500),
         tap(() => this.referentiTecniciLoading = true),
         switchMap((term: any) => {
-          return this.getUtenti(term, null, 'abilitato', true).pipe(
+          return this.getUtenti(term, this._formGroup.controls.id_organizzazione.value, 'abilitato', RUOLI_ORG_REFERENTE).pipe(
             catchError(() => of([])),
             tap(() => this.referentiTecniciLoading = false)
           )
