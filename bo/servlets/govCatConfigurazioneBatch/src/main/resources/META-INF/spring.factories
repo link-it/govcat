@@ -1,0 +1,2 @@
+org.springframework.boot.EnvironmentPostProcessor=\
+batch.ExternalLog4j2EnvironmentPostProcessor
