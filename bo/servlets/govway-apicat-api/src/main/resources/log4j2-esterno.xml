@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Template di esempio per la configurazione di logging ESTERNA del modulo govcat-api.
+
+    Per attivarla copiare questo file in:
+        /var/govcat/conf/log4j2.xml
+    (oppure nel path indicato dalla system property org.govway.api.catalogo.log4j2.path).
+
+    A differenza del log4j2.xml incluso nella WAR, qui i path sono "materializzati"
+    (nessuna risoluzione a build-time): adattare APP_LOG_ROOT e LOG_FILE_SUFFIX all'ambiente.
+    Grazie a monitorInterval le modifiche vengono ricaricate a caldo, senza riavvio.
+-->
+<Configuration status="WARN" monitorInterval="30">
+    <Properties>
+        <Property name="LOG_PATTERN">%p &lt;%d{dd-MM-yyyy HH:mm:ss.SSS}&gt; %C.%M(%L): %m %n %n</Property>
+        <Property name="APP_LOG_ROOT">/var/govcat/log</Property>
+        <Property name="LOG_FILE_SUFFIX"></Property>
+    </Properties>
+    <Appenders>
+        <RollingFile name="hibernate"
+            fileName="${APP_LOG_ROOT}/govcat-api-hibernate${LOG_FILE_SUFFIX}.log"
+            filePattern="${APP_LOG_ROOT}/govcat-api-hibernate${LOG_FILE_SUFFIX}.log.%i">
+            <PatternLayout pattern="${LOG_PATTERN}" />
+            <Policies>
+                <SizeBasedTriggeringPolicy size="5000KB" />
+            </Policies>
+            <DefaultRolloverStrategy max="5" />
+        </RollingFile>
+
+        <RollingFile name="spring"
+            fileName="${APP_LOG_ROOT}/govcat-api-spring${LOG_FILE_SUFFIX}.log"
+            filePattern="${APP_LOG_ROOT}/govcat-api-spring${LOG_FILE_SUFFIX}.log.%i">
+            <PatternLayout pattern="${LOG_PATTERN}" />
+            <Policies>
+                <SizeBasedTriggeringPolicy size="5000KB" />
+            </Policies>
+            <DefaultRolloverStrategy max="5" />
+        </RollingFile>
+
+        <RollingFile name="core"
+            fileName="${APP_LOG_ROOT}/govcat-api-core${LOG_FILE_SUFFIX}.log"
+            filePattern="${APP_LOG_ROOT}/govcat-api-core${LOG_FILE_SUFFIX}.log.%i">
+            <PatternLayout pattern="${LOG_PATTERN}" />
+            <Policies>
+                <SizeBasedTriggeringPolicy size="5000KB" />
+            </Policies>
+            <DefaultRolloverStrategy max="5" />
+        </RollingFile>
+
+        <RollingFile name="controllers"
+            fileName="${APP_LOG_ROOT}/govcat-api${LOG_FILE_SUFFIX}.log"
+            filePattern="${APP_LOG_ROOT}/govcat-api${LOG_FILE_SUFFIX}.log.%i">
+            <PatternLayout pattern="${LOG_PATTERN}" />
+            <Policies>
+                <SizeBasedTriggeringPolicy size="5000KB" />
+            </Policies>
+            <DefaultRolloverStrategy max="5" />
+        </RollingFile>
+
+        <RollingFile name="oidc"
+            fileName="${APP_LOG_ROOT}/govcat-oidc${LOG_FILE_SUFFIX}.log"
+            filePattern="${APP_LOG_ROOT}/govcat-oidc${LOG_FILE_SUFFIX}.log.%i">
+            <PatternLayout pattern="${LOG_PATTERN}" />
+            <Policies>
+                <SizeBasedTriggeringPolicy size="5000KB" />
+            </Policies>
+            <DefaultRolloverStrategy max="5" />
+        </RollingFile>
+
+        <RollingFile name="oidc-dump"
+            fileName="${APP_LOG_ROOT}/govcat-oidc-dump${LOG_FILE_SUFFIX}.log"
+            filePattern="${APP_LOG_ROOT}/govcat-oidc-dump${LOG_FILE_SUFFIX}.log.%i">
+            <PatternLayout pattern="${LOG_PATTERN}" />
+            <Policies>
+                <SizeBasedTriggeringPolicy size="5000KB" />
+            </Policies>
+            <DefaultRolloverStrategy max="5" />
+        </RollingFile>
+
+    </Appenders>
+    <Loggers>
+
+
+        <Logger name="org.govway.catalogo.controllers" level="info" additivity="false">
+            <AppenderRef ref="controllers" />
+        </Logger>
+
+        <Logger name="org.govway.catalogo.oidc" level="info" additivity="false">
+            <AppenderRef ref="oidc" />
+        </Logger>
+
+        <Logger name="oidc.dump" level="info" additivity="false">
+            <AppenderRef ref="oidc-dump" />
+        </Logger>
+
+        <Logger name="org.govway.catalogo" level="info" additivity="false">
+            <AppenderRef ref="core" />
+        </Logger>
+
+        <Logger name="org.springframework" level="error" additivity="false">
+            <AppenderRef ref="spring" />
+        </Logger>
+
+        <Logger name="org.hibernate" level="debug" additivity="false">
+            <AppenderRef ref="hibernate" />
+        </Logger>
+
+        <Logger name="org.hibernate.type.descriptor.sql" level="trace" additivity="false">
+            <AppenderRef ref="hibernate" />
+        </Logger>
+
+        <Root level="debug">
+            <AppenderRef ref="core" />
+        </Root>
+
+    </Loggers>
+</Configuration>

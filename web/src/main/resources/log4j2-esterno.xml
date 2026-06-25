@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Template di esempio per la configurazione di logging ESTERNA del modulo govcat-web.
+
+    Per attivarla copiare questo file in:
+        /var/govcat/conf/govcat-web-log4j2.xml
+    (oppure nel path indicato dalla system property org.govway.catalogo.web.log4j2.path).
+
+    A differenza del log4j2.xml incluso nella WAR (i cui valori @...@ vengono risolti a
+    build-time tramite il resource filtering Maven), qui i valori sono "materializzati":
+    adattare APP_LOG_ROOT, LOG_FILE_SUFFIX e i livelli all'ambiente.
+    Grazie a monitorInterval le modifiche vengono ricaricate a caldo, senza riavvio.
+-->
+<Configuration status="WARN" monitorInterval="30">
+    <Properties>
+        <Property name="LOG_PATTERN">%p &lt;%d{dd-MM-yyyy HH:mm:ss.SSS}&gt; %C.%M(%L): %m %n %n</Property>
+        <Property name="APP_LOG_ROOT">/var/govcat/log</Property>
+        <Property name="LOG_FILE_SUFFIX"></Property>
+    </Properties>
+    <Appenders>
+        <RollingFile name="root"
+            fileName="${APP_LOG_ROOT}/govcat-web_root${LOG_FILE_SUFFIX}.log"
+            filePattern="${APP_LOG_ROOT}/govcat-web_root${LOG_FILE_SUFFIX}.log.%i">
+            <PatternLayout pattern="${LOG_PATTERN}" />
+            <Policies>
+                <SizeBasedTriggeringPolicy size="5000KB" />
+            </Policies>
+            <DefaultRolloverStrategy max="5" />
+        </RollingFile>
+
+        <RollingFile name="core"
+            fileName="${APP_LOG_ROOT}/govcat-web_core${LOG_FILE_SUFFIX}.log"
+            filePattern="${APP_LOG_ROOT}/govcat-web_core${LOG_FILE_SUFFIX}.log.%i">
+            <PatternLayout pattern="${LOG_PATTERN}" />
+            <Policies>
+                <SizeBasedTriggeringPolicy size="5000KB" />
+            </Policies>
+            <DefaultRolloverStrategy max="5" />
+        </RollingFile>
+
+    </Appenders>
+    <Loggers>
+
+        <Logger name="org.govway.catalogo" level="info" additivity="false">
+            <AppenderRef ref="core" />
+        </Logger>
+
+        <Logger name="org.springframework" level="info" additivity="false">
+            <AppenderRef ref="root" />
+        </Logger>
+
+        <Logger name="boot" level="info" additivity="false">
+            <AppenderRef ref="root" />
+        </Logger>
+
+        <Root level="info" additivity="false">
+            <AppenderRef ref="root" />
+        </Root>
+
+    </Loggers>
+</Configuration>
