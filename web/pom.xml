@@ -28,6 +28,19 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
+			<!-- Il modulo web non usa HATEOAS/springdoc: escludiamo del tutto Jackson 3
+			     cosi' i message converter MVC restano su Jackson 2 (vedi spring-boot-jackson2).
+			     Necessario: AppConfigController serve un com.fasterxml.jackson JsonNode. -->
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-jackson</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-jackson</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<!-- Jackson 2 retention (al posto dell'autoconfig Jackson 3) -->

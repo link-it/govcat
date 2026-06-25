@@ -222,14 +222,38 @@
 			<artifactId>spring-webmvc</artifactId>
 		</dependency>
 
+		<!-- Jackson 2 retention: escludiamo l'AUTOCONFIG Jackson 3 (spring-boot-jackson)
+		     da entrambi i path che lo portano (springdoc, hateoas), cosi' WebMvc registra
+		     il message converter Jackson 2 (da spring-boot-jackson2). La LIBRERIA Jackson 3
+		     (tools.jackson) resta presente come dependency esplicita, perche' le classi di
+		     config di HATEOAS 3.x e springdoc 3.x vi fanno riferimento. -->
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-jackson</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-hateoas</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-jackson</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<!-- Libreria Jackson 3 (senza autoconfig): richiesta a compile/runtime dalle classi
+		     di config di HATEOAS (HalMediaTypeConfiguration) e springdoc. -->
+		<dependency>
+			<groupId>tools.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
 		</dependency>
 
 		<dependency>
