@@ -1,3 +1,21 @@
+2026-06-25  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 298: nel wizard adesioni aggiunto il pulsante "Riprova
+	  configurazione automatica" (solo gestore) per gli stati di
+	  configurazione automatica con esito ko/in_coda/fallita; esegue
+	  POST /adesioni/<id>/configurazione-automatica/retry e riavvia il
+	  polling. `fallita` ora e` terminale come `ko` (stop polling + errore).
+
+2026-06-25  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 284: le select dei referenti (e referenti tecnici) di adesioni,
+	  servizi e domini filtrano gli utenti per `ruolo_organizzazione`
+	  (amministratore_organizzazione/operatore_api) dell'organizzazione di
+	  riferimento, passando sempre `id_organizzazione`. Rimossi il filtro
+	  `ruolo` globale e il filtro `referente_tecnico=true` dalle ricerche.
+
 2026-06-24  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

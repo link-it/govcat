@@ -148,11 +148,19 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         'in_configurazione_automatica_collaudo',
         'in_configurazione_automatica_produzione'
     ];
+    /** Esiti terminali dell'auto-configurazione: il batch ha finito con
+     *  errore, il polling si ferma e si offre il retry (`in_coda` invece
+     *  resta in lavorazione e mantiene il polling attivo). */
+    private static readonly _AUTO_CONFIG_TERMINAL_STATES: string[] = ['ko', 'fallita'];
+    /** Esiti su cui mostrare il pulsante "Riprova configurazione automatica". */
+    private static readonly _AUTO_CONFIG_RETRY_STATES: string[] = ['ko', 'in_coda', 'fallita'];
     private static readonly _AUTO_CONFIG_POLL_INTERVAL_MS = 3000;
     private _autoConfigPollingSub?: Subscription;
     /** Esposto al template per mostrare il dot pulsante affianco al
      *  chip stato durante il polling. */
     _pollingAutoConfig: boolean = false;
+    /** Esposto al template: chiamata di retry in corso (disabilita il bottone). */
+    _retryingAutoConfig: boolean = false;
 
     // Sotto flag wizard_new_layout, attiva la host class `lnk-wizard` che
     // scopa i design-token Link.it definiti nella SCSS del componente.
@@ -785,12 +793,12 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         this._stopAutoConfigPolling();
     }
 
-    /** Vero se l'adesione e` in uno stato di auto-configurazione e
-     *  il batch non ha gia` segnalato un errore (`stato_configurazione_automatica === 'ko'`). */
+    /** Vero se l'adesione e` in uno stato di auto-configurazione e il batch
+     *  non ha gia` riportato un esito terminale (`ko`/`fallita`). */
     private _isAutoConfigInProgress(adesione: any): boolean {
         if (!adesione?.stato) { return false; }
         if (!AdesioneConfigurazioneWizardComponent._AUTO_CONFIG_STATES.includes(adesione.stato)) { return false; }
-        if (adesione.stato_configurazione_automatica === 'ko') { return false; }
+        if (AdesioneConfigurazioneWizardComponent._AUTO_CONFIG_TERMINAL_STATES.includes(adesione.stato_configurazione_automatica)) { return false; }
         return true;
     }
 
@@ -810,8 +818,8 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         ).subscribe({
             next: (response: any) => {
                 const stateChanged = response?.stato && response.stato !== startStato;
-                const isKo = response?.stato_configurazione_automatica === 'ko';
-                if (stateChanged || isKo) {
+                const isTerminal = AdesioneConfigurazioneWizardComponent._AUTO_CONFIG_TERMINAL_STATES.includes(response?.stato_configurazione_automatica);
+                if (stateChanged || isTerminal) {
                     this._stopAutoConfigPolling();
                     this.loadAdesione(false);
                 }
@@ -829,6 +837,32 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
             this._autoConfigPollingSub = undefined;
         }
         this._pollingAutoConfig = false;
+    }
+
+    /** Vero se mostrare il pulsante "Riprova configurazione automatica":
+     *  adesione in stato di auto-configurazione con esito ko/in_coda/fallita
+     *  e utente gestore. */
+    get canRetryAutoConfig(): boolean {
+        if (!this.adesione?.stato) { return false; }
+        if (!AdesioneConfigurazioneWizardComponent._AUTO_CONFIG_STATES.includes(this.adesione.stato)) { return false; }
+        if (!AdesioneConfigurazioneWizardComponent._AUTO_CONFIG_RETRY_STATES.includes(this.adesione.stato_configurazione_automatica)) { return false; }
+        return this.authenticationService.isGestore(this.grant?.ruoli);
+    }
+
+    /** Rilancia il batch di configurazione automatica e riavvia il polling. */
+    onRetryAutoConfig(): void {
+        if (this._retryingAutoConfig || !this.id) { return; }
+        this._retryingAutoConfig = true;
+        this.apiService.postElementRelated(this.model, this.id, 'configurazione-automatica/retry', {}).subscribe({
+            next: () => {
+                this._retryingAutoConfig = false;
+                this.loadAdesione(false);
+            },
+            error: (error: any) => {
+                this._retryingAutoConfig = false;
+                Tools.OnError(error);
+            }
+        });
     }
 
     _updateOtherActions() {
