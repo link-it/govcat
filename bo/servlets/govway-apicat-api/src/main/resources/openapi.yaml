@@ -5079,6 +5079,35 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /adesioni/{id_adesione}/configurazione-automatica/retry:
+    parameters:
+    - $ref: "#/components/parameters/id_adesione"
+    post:
+      tags:
+      - "Adesioni"
+      description: "Ripristina le condizioni affinche' l'adesione, in stato di configurazione automatica, venga rielaborata dal batch (azzera stato di configurazione, tentativi e messaggio)."
+      operationId: "retryConfigurazioneAutomaticaAdesione"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+                schema:
+                  $ref: "#/components/schemas/Adesione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /adesioni/{id_adesione}/comunicazioni:
     parameters:
     - $ref: "#/components/parameters/id_adesione"

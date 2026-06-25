@@ -1544,6 +1544,48 @@ public class AdesioniController implements AdesioniApi {
 	}
 
 	@Override
+	public ResponseEntity<Adesione> retryConfigurazioneAutomaticaAdesione(UUID idAdesione) {
+		try {
+			return this.service.runTransaction(() -> {
+				this.logger.info("Invocazione in corso ...");
+				this.coreAuthorization.requireAdmin();
+				this.logger.debug("Autorizzazione completata con successo");
+
+				AdesioneEntity entity = findOne(idAdesione);
+
+				// L'operazione ha senso solo se l'adesione e' in uno degli stati "in configurazione automatica"
+				Set<String> statiInConfigurazione = this.configurazione.getAdesione().getConfigurazioneAutomatica().stream()
+						.map(ConfigurazioneAutomatica::getStatoInConfigurazione)
+						.collect(Collectors.toSet());
+
+				if(!statiInConfigurazione.contains(entity.getStato())) {
+					throw new BadRequestException(ErrorCode.ADE_400_STATE, Map.of("stato", entity.getStato()));
+				}
+
+				// Ripristina le condizioni di selezione del batch di configurazione automatica
+				entity.setStatoConfigurazione(null);
+				entity.setTentativi(0);
+				entity.setMessaggioConfigurazione(null);
+
+				this.service.save(entity);
+
+				Adesione model = this.dettaglioAssembler.toModel(entity);
+
+				this.logger.info("Invocazione completata con successo");
+				return ResponseEntity.ok(model);
+			});
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	@Override
 	public ResponseEntity<Void> deleteMessaggioAdesione(UUID idAdesione, UUID idMessaggio) {
 		try {
 			return this.service.runTransaction( () -> {
