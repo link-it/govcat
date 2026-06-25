@@ -1177,18 +1177,16 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     // L'organizzazione dell'adesione (fruitore) e` SEMPRE quella di sessione
     // (impostata da `_loadProfilo`) o scelta dall'utente: non viene mai
     // derivata dal dominio/erogatore del servizio.
-    if (this._profilo?.utente.ruolo === Ruolo.REFERENTE_SERVIZIO) {
-      if (servizio && await this.isCurrentUserReferenteServizio(servizio)){
-        this._formGroup.get('id_organizzazione')?.enable();
-        // Se l'organizzazione è già valorizzata (da _loadProfilo), non resettare
-        if (!this._formGroup.get('id_organizzazione')?.value) {
-          this._initOrganizzazioniSelect([]);
-        }
-      } else {
-        const currentOrgId = this.authenticationService.getCurrentOrganization()?.id_organizzazione;
-        if (currentOrgId) {
-          this._loadOrganizzazione(currentOrgId);
-        }
+    if (servizio && await this.isCurrentUserReferenteServizio(servizio)){
+      this._formGroup.get('id_organizzazione')?.enable();
+      // Se l'organizzazione è già valorizzata (da _loadProfilo), non resettare
+      if (!this._formGroup.get('id_organizzazione')?.value) {
+        this._initOrganizzazioniSelect([]);
+      }
+    } else {
+      const currentOrgId = this.authenticationService.getCurrentOrganization()?.id_organizzazione;
+      if (currentOrgId) {
+        this._loadOrganizzazione(currentOrgId);
       }
     }
 

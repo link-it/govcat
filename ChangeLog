@@ -1,6 +1,17 @@
 2026-06-25  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Adesioni (form/create/details): la determinazione dell'organizzazione
+	  del fruitore non e` piu` vincolata al ruolo REFERENTE_SERVIZIO; resta
+	  il controllo `isCurrentUserReferenteServizio`.
+	Profile: la ricerca organizzazioni usa l'endpoint
+	  `registrazione/organizzazioni`.
+	Fix typo chiave tema app-config: `CurrentThems` -> `CurrentTheme`
+	  (app-config.json, ConfigService e documentazione).
+
+2026-06-25  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue 298: nel wizard adesioni aggiunto il pulsante "Riprova
 	  configurazione automatica" (solo gestore) per gli stati di
 	  configurazione automatica con esito ko/in_coda/fallita; esegue

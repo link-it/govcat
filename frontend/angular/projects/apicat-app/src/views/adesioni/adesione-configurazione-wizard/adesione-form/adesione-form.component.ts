@@ -389,15 +389,13 @@ export class AdesioneFormComponent implements OnInit, OnChanges {
         // L'organizzazione dell'adesione (fruitore) e` SEMPRE quella di
         // sessione o scelta dall'utente: non viene derivata dal dominio/
         // erogatore del servizio.
-        if (this.profilo?.utente.ruolo === Ruolo.REFERENTE_SERVIZIO){
-            if (this.servizio && await this.isCurrentUserReferenteServizio(this.servizio)){
-                this.formGroup.get('id_organizzazione')?.enable();
-                this.formGroup.get('id_organizzazione')?.reset();
-            } else {
-                const currentOrgId = this.authenticationService.getCurrentOrganization()?.id_organizzazione;
-                if (currentOrgId) {
-                    this.loadOrganizzazione(currentOrgId);
-                }
+        if (this.servizio && await this.isCurrentUserReferenteServizio(this.servizio)){
+            this.formGroup.get('id_organizzazione')?.enable();
+            this.formGroup.get('id_organizzazione')?.reset();
+        } else {
+            const currentOrgId = this.authenticationService.getCurrentOrganization()?.id_organizzazione;
+            if (currentOrgId) {
+                this.loadOrganizzazione(currentOrgId);
             }
         }
 

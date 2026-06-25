@@ -203,7 +203,7 @@
       }
     ],
 
-    "CurrentThems": "linkit-blue",
+    "CurrentTheme": "linkit-blue",
     "Themes": [
       {
         "Name": "Default",

@@ -903,7 +903,7 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
 
   getOrganizzazioni(term: string | null = null): Observable<any> {
     const _options: any = { params: { q: term } };
-    return this.apiService.getList('organizzazioni', _options)
+    return this.apiService.getList('registrazione/organizzazioni', _options)
       .pipe(map(resp => {
         if (resp.Error) {
           throwError(() => resp.Error);
