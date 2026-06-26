@@ -283,7 +283,64 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 				
 				this.logger.info("Invocazione completata con successo");
 				return ResponseEntity.ok(list);
-			});     
+			});
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+
+	}
+
+	@Override
+	public ResponseEntity<PagedModelItemOrganizzazione> listTutteOrganizzazioni(Boolean referente,
+			Boolean aderente, Boolean intermediata, Boolean soggettoAderente, String codice,
+			String codiceFiscale, String tipo,UUID idOrganizzazione,
+			String nome, String q, Integer page, Integer size, List<String> sort) {
+		try {
+			return this.service.runTransaction( () -> {
+				this.logger.info("Invocazione in corso ...");
+				this.authorization.authorizeList();
+				this.logger.debug("Autorizzazione completata con successo");
+
+				OrganizzazioneSpecification spec = new OrganizzazioneSpecification();
+				spec.setIdOrganizzazione(Optional.ofNullable(idOrganizzazione));
+				spec.setNome(Optional.ofNullable(nome));
+				spec.setQ(Optional.ofNullable(q));
+				spec.setCodice(Optional.ofNullable(codice));
+				spec.setCodiceFiscale(Optional.ofNullable(codiceFiscale));
+				spec.setTipo(Optional.ofNullable(tipo));
+				spec.setReferente(Optional.ofNullable(referente));
+				spec.setAderente(Optional.ofNullable(aderente));
+				spec.setIntermediata(Optional.ofNullable(intermediata));
+				spec.setSoggettoAderente(Optional.ofNullable(soggettoAderente));
+
+				// A differenza di listOrganizzazioni, questa API non applica il vincolo che
+				// limita gli utenti non gestore/coordinatore alle sole organizzazioni a cui
+				// sono associati: tutte le organizzazioni vengono sempre restituite.
+
+				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("nome"));
+
+				Page<OrganizzazioneEntity> findAll = this.service.findAll(spec, pageable);
+
+				Link link = Link.of(ServletUriComponentsBuilder.fromCurrentRequest().build().toUriString(), IanaLinkRelations.SELF);
+
+
+				PagedModel<ItemOrganizzazione> lst = pagedResourceAssembler.toModel(findAll, this.itemAssembler, link);
+
+
+				PagedModelItemOrganizzazione list = new PagedModelItemOrganizzazione();
+				list.setContent(lst.getContent().stream().collect(Collectors.toList()));
+				list.add(lst.getLinks());
+				list.setPage(new PageMetadata().size((long)findAll.getSize()).number((long)findAll.getNumber()).totalElements(findAll.getTotalElements()).totalPages((long)findAll.getTotalPages()));
+
+				this.logger.info("Invocazione completata con successo");
+				return ResponseEntity.ok(list);
+			});
 		}
 		catch(RuntimeException e) {
 			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
