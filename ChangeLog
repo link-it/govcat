@@ -1,6 +1,14 @@
 2026-06-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Adesione (modifica e wizard): estesa anche a adesione-details e
+	  adesione-form la regola di selezione soggetto con
+	  `abilita_selezione_soggetto=false` (soggetto_default org se servizio
+	  non intermediato, soggetto referente del dominio se intermediato).
+
+2026-06-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Creazione adesione: con `abilita_selezione_soggetto=false`, se il
 	  servizio non e` intermediato si seleziona il soggetto_default
 	  dell'organizzazione, mentre se e` intermediato (`fruizione`) si

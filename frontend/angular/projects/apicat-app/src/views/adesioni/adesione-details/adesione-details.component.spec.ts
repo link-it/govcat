@@ -1367,4 +1367,32 @@ describe('AdesioneDetailsComponent', () => {
       expect(component._error).toBe(true);
     });
   });
+
+  describe('_checkSoggetto con abilita_selezione_soggetto=false', () => {
+    beforeEach(() => {
+      component.generalConfig = { adesione: { abilita_selezione_soggetto: false } } as any;
+      component._formGroup = new FormGroup({
+        id_organizzazione: new FormControl('O1'),
+        id_soggetto: new FormControl(null),
+        soggetto_nome: new FormControl(null),
+        referente: new FormControl(null),
+      });
+      // 2 soggetti -> ramo "selezione disabilitata o singolo" (else)
+      mockApiService.getList.mockReturnValue(of({ content: [{ id_soggetto: 'DEF' }, { id_soggetto: 'B' }] }));
+    });
+
+    it('servizio NON intermediato: seleziona il soggetto_default dell\'organizzazione', () => {
+      component._servizio = { fruizione: false } as any;
+      component._checkSoggetto({ soggetto_default: { id_soggetto: 'DEF', nome: 'Default' } });
+      expect(component._formGroup.controls.id_soggetto.value).toBe('DEF');
+      expect(component._formGroup.controls.soggetto_nome.value).toBe('Default');
+    });
+
+    it('servizio intermediato: seleziona il soggetto referente del dominio del servizio', () => {
+      component._servizio = { fruizione: true, dominio: { soggetto_referente: { id_soggetto: 'SR1', nome: 'Ref Dominio' } } } as any;
+      component._checkSoggetto({ soggetto_default: { id_soggetto: 'DEF', nome: 'Default' } });
+      expect(component._formGroup.controls.id_soggetto.value).toBe('SR1');
+      expect(component._formGroup.controls.soggetto_nome.value).toBe('Ref Dominio');
+    });
+  });
 });

@@ -463,15 +463,30 @@ export class AdesioneFormComponent implements OnInit, OnChanges {
                                 controls.soggetto_nome.patchValue(null);
                             }
                         } else {
-                            // Selezione disabilitata o soggetto singolo: usa soggetto_default se presente nella lista
+                            // Selezione disabilitata o soggetto singolo.
                             this.hideSoggettoDropdown = true;
-                            const _soggettoDefaultPresente = result.some((sog: any) => sog.id_soggetto === this.selectedOrganizzazione?.soggetto_default?.id_soggetto);
-                            if (_soggettoDefaultPresente) {
-                                controls.id_soggetto.patchValue(this.selectedOrganizzazione.soggetto_default.id_soggetto);
-                                controls.soggetto_nome.patchValue(this.selectedOrganizzazione.soggetto_default.nome);
+                            if (this.servizio?.fruizione) {
+                                // Servizio intermediato: usa il soggetto referente del
+                                // dominio del servizio su cui si sta aderendo.
+                                const _soggReferenteDominio = this.servizio?.dominio?.soggetto_referente;
+                                if (_soggReferenteDominio?.id_soggetto) {
+                                    this.elencoSoggetti = [_soggReferenteDominio];
+                                    controls.id_soggetto.patchValue(_soggReferenteDominio.id_soggetto);
+                                    controls.soggetto_nome.patchValue(_soggReferenteDominio.nome);
+                                } else {
+                                    controls.id_soggetto.patchValue(null);
+                                    controls.soggetto_nome.patchValue(null);
+                                }
                             } else {
-                                controls.id_soggetto.patchValue(null);
-                                controls.soggetto_nome.patchValue(null);
+                                // Servizio non intermediato: usa il soggetto_default dell'organizzazione.
+                                const _soggettoDefaultPresente = result.some((sog: any) => sog.id_soggetto === this.selectedOrganizzazione?.soggetto_default?.id_soggetto);
+                                if (_soggettoDefaultPresente) {
+                                    controls.id_soggetto.patchValue(this.selectedOrganizzazione.soggetto_default.id_soggetto);
+                                    controls.soggetto_nome.patchValue(this.selectedOrganizzazione.soggetto_default.nome);
+                                } else {
+                                    controls.id_soggetto.patchValue(null);
+                                    controls.soggetto_nome.patchValue(null);
+                                }
                             }
                         }
                         controls.id_soggetto.updateValueAndValidity();

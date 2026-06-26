@@ -1121,16 +1121,31 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
                 controls.soggetto_nome.patchValue(null);
               }
             } else {
-              // Selezione disabilitata o soggetto singolo: usa soggetto_default se presente
+              // Selezione disabilitata o soggetto singolo.
               this._hideSoggettoDropdown = true;
               const _orgObj = this.selectedOrganizzazione?.organizzazione || this.selectedOrganizzazione;
-              const _soggettoDefaultPresente = result.some((sog: any) => sog.id_soggetto === _orgObj?.soggetto_default?.id_soggetto);
-              if (_soggettoDefaultPresente) {
-                controls.id_soggetto.patchValue(_orgObj.soggetto_default.id_soggetto);
-                controls.soggetto_nome.patchValue(_orgObj.soggetto_default.nome);
+              if (this._servizio?.fruizione) {
+                // Servizio intermediato: usa il soggetto referente del dominio
+                // del servizio su cui si sta aderendo.
+                const _soggReferenteDominio = this._servizio?.dominio?.soggetto_referente;
+                if (_soggReferenteDominio?.id_soggetto) {
+                  this._initSoggettiSelect([_soggReferenteDominio]);
+                  controls.id_soggetto.patchValue(_soggReferenteDominio.id_soggetto);
+                  controls.soggetto_nome.patchValue(_soggReferenteDominio.nome);
+                } else {
+                  controls.id_soggetto.patchValue(null);
+                  controls.soggetto_nome.patchValue(null);
+                }
               } else {
-                controls.id_soggetto.patchValue(null);
-                controls.soggetto_nome.patchValue(null);
+                // Servizio non intermediato: usa il soggetto_default dell'organizzazione.
+                const _soggettoDefaultPresente = result.some((sog: any) => sog.id_soggetto === _orgObj?.soggetto_default?.id_soggetto);
+                if (_soggettoDefaultPresente) {
+                  controls.id_soggetto.patchValue(_orgObj.soggetto_default.id_soggetto);
+                  controls.soggetto_nome.patchValue(_orgObj.soggetto_default.nome);
+                } else {
+                  controls.id_soggetto.patchValue(null);
+                  controls.soggetto_nome.patchValue(null);
+                }
               }
             }
             controls.id_soggetto.updateValueAndValidity();
