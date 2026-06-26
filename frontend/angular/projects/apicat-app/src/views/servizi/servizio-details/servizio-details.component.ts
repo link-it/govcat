@@ -1103,10 +1103,12 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         // Ente Erogatore = organizzazione referente OPPURE intermediata.
         // I parametri BE `referente`/`intermediata` sono booleani indipendenti
         // (nessun OR lato query): due chiamate + merge con dedup per id.
+        // Issue #299: endpoint `organizzazioni/all` (stessi filtri, senza i
+        // vincoli di visibilita` troppo stringenti per gli utenti non gestore).
         const _params: any = {};
         if (term) { _params.q = term; }
-        const _referenti$ = this.apiService.getList('organizzazioni', { params: { ..._params, referente: true } });
-        const _intermediate$ = this.apiService.getList('organizzazioni', { params: { ..._params, intermediata: true } });
+        const _referenti$ = this.apiService.getList('organizzazioni/all', { params: { ..._params, referente: true } });
+        const _intermediate$ = this.apiService.getList('organizzazioni/all', { params: { ..._params, intermediata: true } });
         return forkJoin([_referenti$, _intermediate$]).pipe(
             map(([_resp1, _resp2]: any[]) => {
                 const _merged = [...(_resp1?.content || []), ...(_resp2?.content || [])];
@@ -1152,9 +1154,12 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         if (param == 'soggetto') { this.selectedSoggetto = event }
     }
 
-    _checkSoggetto(event: any) {  
+    _checkSoggetto(event: any) {
         if(event) {
-            this.getSoggetti(null, true).subscribe({
+            // Issue #299: filtro `referente=true` solo se l'organizzazione
+            // selezionata NON e` intermediata.
+            const _referente = !this.selectedOrganizzazione?.intermediata;
+            this.getSoggetti(null, _referente).subscribe({
                 next: (result) => {
                     const controls = this._formGroup.controls;
                     if (result.length == 1) {

@@ -1179,7 +1179,7 @@ describe('ProfileComponent', () => {
     it('should call apiService.getList with query param', () => {
       mockApiService.getList.mockReturnValue(of({ content: [{ id: '1', nome: 'Org' }] }));
       component.getOrganizzazioni('test').subscribe();
-      expect(mockApiService.getList).toHaveBeenCalledWith('organizzazioni', { params: { q: 'test' } });
+      expect(mockApiService.getList).toHaveBeenCalledWith('registrazione/organizzazioni', { params: { q: 'test' } });
     });
 
     it('should return mapped items from response.content', () => {
@@ -1202,7 +1202,7 @@ describe('ProfileComponent', () => {
     it('should pass null as query param when term is null', () => {
       mockApiService.getList.mockReturnValue(of({ content: [] }));
       component.getOrganizzazioni(null).subscribe();
-      expect(mockApiService.getList).toHaveBeenCalledWith('organizzazioni', { params: { q: null } });
+      expect(mockApiService.getList).toHaveBeenCalledWith('registrazione/organizzazioni', { params: { q: null } });
     });
   });
 

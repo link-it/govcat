@@ -1,3 +1,12 @@
+2026-06-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 299: la select ente erogatore (servizio intermediato) usa
+	  l'endpoint `organizzazioni/all` (referente=true / intermediata=true),
+	  meno restrittivo per gli utenti non gestore. La GET soggetti applica
+	  il filtro `referente=true` solo se l'organizzazione selezionata non e`
+	  intermediata.
+
 2026-06-25  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

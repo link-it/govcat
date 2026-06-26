@@ -1416,10 +1416,10 @@ describe('ServizioDetailsComponent', () => {
       component.getOrganizzazioni('org').subscribe(result => {
         expect(result).toEqual([{ id_organizzazione: 1 }]); // merge + dedup delle due chiamate
       });
-      expect(mockApiService.getList).toHaveBeenCalledWith('organizzazioni', expect.objectContaining({
+      expect(mockApiService.getList).toHaveBeenCalledWith('organizzazioni/all', expect.objectContaining({
         params: expect.objectContaining({ q: 'org', referente: true })
       }));
-      expect(mockApiService.getList).toHaveBeenCalledWith('organizzazioni', expect.objectContaining({
+      expect(mockApiService.getList).toHaveBeenCalledWith('organizzazioni/all', expect.objectContaining({
         params: expect.objectContaining({ q: 'org', intermediata: true })
       }));
     });
@@ -1533,6 +1533,24 @@ describe('ServizioDetailsComponent', () => {
       expect(component._formGroup.get('id_soggetto_erogatore')?.value).toBeNull();
       expect(component._elencoSoggetti).toEqual([]);
       expect(component._hideSoggettoDropdown).toBe(true);
+    });
+
+    it('should apply referente=true when org is NOT intermediata (Issue #299)', () => {
+      mockApiService.getList.mockReturnValue(of({ content: [{ id_soggetto: 's1' }] }));
+      component.selectedOrganizzazione = { id_organizzazione: 5, intermediata: false };
+      (component as any)._checkSoggetto({ id_organizzazione: 5 });
+      expect(mockApiService.getList).toHaveBeenCalledWith('soggetti', expect.objectContaining({
+        params: expect.objectContaining({ id_organizzazione: 5, referente: true })
+      }));
+    });
+
+    it('should NOT apply referente when org is intermediata (Issue #299)', () => {
+      mockApiService.getList.mockReturnValue(of({ content: [{ id_soggetto: 's1' }] }));
+      component.selectedOrganizzazione = { id_organizzazione: 5, intermediata: true };
+      (component as any)._checkSoggetto({ id_organizzazione: 5 });
+      const callParams = mockApiService.getList.mock.calls[0][1].params;
+      expect(callParams.referente).toBeUndefined();
+      expect(callParams.id_organizzazione).toBe(5);
     });
   });
 
