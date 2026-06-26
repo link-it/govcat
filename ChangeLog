@@ -1,6 +1,16 @@
 2026-06-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Fix infinite-scroll liste: il backend restituisce i link di
+	  paginazione come array `links: [{rel, href}]`, mentre i componenti
+	  leggevano `_links.next.href`; la pagina successiva non veniva mai
+	  caricata. Normalizzazione centralizzata in OpenAPIService
+	  (getList/getListPDND/getMonitor) che ricostruisce `_links` per-rel.
+	  Rimosso il service inutilizzato RestApiService.
+
+2026-06-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue 299: la select ente erogatore (servizio intermediato) usa
 	  l'endpoint `organizzazioni/all` (referente=true / intermediata=true),
 	  meno restrittivo per gli utenti non gestore. La GET soggetti applica
