@@ -158,7 +158,7 @@ CREATE INDEX idx_servizi_soggetto_erogatore ON servizi (id_soggetto_erogatore);
 
 -- 3) CLEANUP (da eseguire in uno step successivo, quando il software 2.3.x/precedente non è
 --    più in esercizio). Lasciato commentato di proposito.
--- ALTER TABLE organizations DROP COLUMN esterna;
+ALTER TABLE organizations DROP COLUMN esterna;
 -- ALTER TABLE servizi DROP CONSTRAINT fk_servizi_soggetto_interno;
 -- ALTER TABLE servizi DROP COLUMN id_soggetto_interno;
 

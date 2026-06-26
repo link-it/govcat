@@ -727,6 +727,46 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /organizzazioni/all:
+    get:
+      tags:
+      - "Organizzazioni"
+      description: "Elenco di tutte le Organizzazioni, senza il vincolo di restituire ai\
+        \ soli utenti non gestore/coordinatore le organizzazioni a cui sono associati"
+      operationId: "listTutteOrganizzazioni"
+      parameters:
+      - $ref: "#/components/parameters/referente"
+      - $ref: "#/components/parameters/aderente"
+      - $ref: "#/components/parameters/intermediata"
+      - $ref: "#/components/parameters/soggetto_aderente"
+      - $ref: "#/components/parameters/codice_ente_optional"
+      - $ref: "#/components/parameters/codice_fiscale_ente_optional"
+      - $ref: "#/components/parameters/tipo_ente_optional"
+      - $ref: "#/components/parameters/id_organizzazione_query_optional"
+      - $ref: "#/components/parameters/nome_query_optional"
+      - $ref: "#/components/parameters/q_query_optional"
+      - $ref: "#/components/parameters/page_query_optional"
+      - $ref: "#/components/parameters/size_query_optional"
+      - $ref: "#/components/parameters/sort_query_optional"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedModelItemOrganizzazione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /organizzazioni/{id_organizzazione}:
     parameters:
     - $ref: "#/components/parameters/id_organizzazione"
