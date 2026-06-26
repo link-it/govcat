@@ -1,6 +1,14 @@
 2026-06-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Creazione adesione: con `abilita_selezione_soggetto=false`, se il
+	  servizio non e` intermediato si seleziona il soggetto_default
+	  dell'organizzazione, mentre se e` intermediato (`fruizione`) si
+	  usa il soggetto referente del dominio del servizio.
+
+2026-06-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Fix infinite-scroll liste: il backend restituisce i link di
 	  paginazione come array `links: [{rel, href}]`, mentre i componenti
 	  leggevano `_links.next.href`; la pagina successiva non veniva mai
