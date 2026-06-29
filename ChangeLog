@@ -1,3 +1,10 @@
+2026-06-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Fix vulnerabilita` OWASP: aggiornate dipendenze Angular a 21.2.17,
+	  swagger-ui-dist a 5.32.8, vite a 7.x; override dompurify 3.4.11 e
+	  nuovo override image-size 2.0.2.
+
 2026-06-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
