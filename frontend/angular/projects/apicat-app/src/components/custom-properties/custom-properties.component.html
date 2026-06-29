@@ -131,7 +131,15 @@
 
         @if (_isEdit && _error) {
           <div class="gl-alert gl-alert-danger col-md-12 mt-3">
-            {{ _errorMsg }}
+            @if (!_errors.length) {
+              <span>{{ _errorMsg }}</span>
+            }
+            @if (_errors.length > 0) {
+              <ui-error-view
+                [errTitle]="_errorMsg"
+                [errors]="_errors">
+              </ui-error-view>
+            }
           </div>
         }
 
