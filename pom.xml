@@ -1267,6 +1267,12 @@
 							<outputDirectory>${owasp.dir}/report</outputDirectory>
 							<format>ALL</format>
 							<suppressionFiles>
+								<!-- NB: rimosse (2026-06-24, post-migrazione Spring Boot 4 / Spring 7)
+								     le suppression risolte: 15 CVE Spring/Boot/Security 2026 + CVE-2024-38810
+								     (ora su Framework 7.0.8 / Security 7.0.6 / Boot 4.0.7, >= versioni di fix OSS);
+								     CVE-2025-15104 (Hibernate Validator 9.0.1 con Jakarta EE 11);
+								     CVE-2025-48924 (commons-lang3 3.18.0) e CVE-2025-54988 (tika-core 3.2.3),
+								     gia' su versioni fixate. -->
 								<suppressionFile>
 									${owasp.dir}/suppression/CVE-2022-1471.xml</suppressionFile>
 								<suppressionFile>
@@ -1280,15 +1286,9 @@
 								<suppressionFile>
 									${owasp.dir}/suppression/CVE-2025-48734.xml</suppressionFile>
 								<suppressionFile>
-									${owasp.dir}/suppression/CVE-2025-48924.xml</suppressionFile>
-								<suppressionFile>
-									${owasp.dir}/suppression/CVE-2024-38810.xml</suppressionFile>
-								<suppressionFile>
 									${owasp.dir}/suppression/CVE-2018-1258.xml</suppressionFile>
 								<suppressionFile>
 									${owasp.dir}/suppression/CVE-2022-34169.xml</suppressionFile>
-								<suppressionFile>
-									${owasp.dir}/suppression/CVE-2025-54988.xml</suppressionFile>
 								<suppressionFile>
 									${owasp.dir}/suppression/CVE-2021-37533.xml</suppressionFile>
 								<suppressionFile>
@@ -1302,44 +1302,12 @@
 							<suppressionFile>
 								${owasp.dir}/suppression/CVE-2025-7962.xml</suppressionFile>
 							<suppressionFile>
-								${owasp.dir}/suppression/CVE-2025-15104.xml</suppressionFile>
-							<suppressionFile>
 								${owasp.dir}/suppression/CVE-2020-29582.xml</suppressionFile>
+							<!-- Apache PDFBox: fix non ancora rilasciate sulla linea in uso (attesa 2.0.37 / 3.0.8) -->
 							<suppressionFile>
 								${owasp.dir}/suppression/CVE-2026-23907.xml</suppressionFile>
 							<suppressionFile>
-								${owasp.dir}/suppression/CVE-2026-22732.xml</suppressionFile>
-							<suppressionFile>
 								${owasp.dir}/suppression/CVE-2026-33929.xml</suppressionFile>
-							<!-- Spring Framework 6.1.x (linea EOL OSS): suppression in attesa upgrade major -->
-							<suppressionFile>
-								${owasp.dir}/suppression/CVE-2026-22741.xml</suppressionFile>
-							<suppressionFile>
-								${owasp.dir}/suppression/CVE-2026-22740.xml</suppressionFile>
-							<suppressionFile>
-								${owasp.dir}/suppression/CVE-2026-22737.xml</suppressionFile>
-							<suppressionFile>
-								${owasp.dir}/suppression/CVE-2026-22735.xml</suppressionFile>
-							<suppressionFile>
-								${owasp.dir}/suppression/CVE-2026-22745.xml</suppressionFile>
-							<!-- Spring Boot 3.3.x (linea EOL OSS): suppression in attesa upgrade major -->
-							<suppressionFile>
-								${owasp.dir}/suppression/CVE-2026-40977.xml</suppressionFile>
-							<suppressionFile>
-								${owasp.dir}/suppression/CVE-2026-40972.xml</suppressionFile>
-							<suppressionFile>
-								${owasp.dir}/suppression/CVE-2026-40975.xml</suppressionFile>
-							<suppressionFile>
-								${owasp.dir}/suppression/CVE-2026-22733.xml</suppressionFile>
-							<suppressionFile>
-								${owasp.dir}/suppression/CVE-2026-40973.xml</suppressionFile>
-							<suppressionFile>
-								${owasp.dir}/suppression/CVE-2026-40974.xml</suppressionFile>
-							<!-- Spring Security 6.3.x (linea EOL OSS): suppression in attesa upgrade major -->
-							<suppressionFile>
-								${owasp.dir}/suppression/CVE-2026-22748.xml</suppressionFile>
-							<suppressionFile>
-								${owasp.dir}/suppression/CVE-2026-22746.xml</suppressionFile>
 							</suppressionFiles>
 							<nvdApiDelay>120000</nvdApiDelay><!-- 2 minuti -->
 							<nvdMaxRetryCount>3</nvdMaxRetryCount> <!-- 3 max
