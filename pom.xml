@@ -1314,6 +1314,9 @@
 							<!-- Kotlin build-cache (build-time), non applicabile al WAR; fix 2.4.20 non ancora stabile -->
 							<suppressionFile>
 								${owasp.dir}/suppression/CVE-2026-53914.xml</suppressionFile>
+							<!-- jackson-databind: feature ACCEPT_CASE_INSENSITIVE_PROPERTIES non usata; fix 2.21.5 non ancora pubblicata -->
+							<suppressionFile>
+								${owasp.dir}/suppression/CVE-2026-54515.xml</suppressionFile>
 							</suppressionFiles>
 							<nvdApiDelay>120000</nvdApiDelay><!-- 2 minuti -->
 							<nvdMaxRetryCount>3</nvdMaxRetryCount> <!-- 3 max
