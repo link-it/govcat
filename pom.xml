@@ -1308,6 +1308,12 @@
 								${owasp.dir}/suppression/CVE-2026-23907.xml</suppressionFile>
 							<suppressionFile>
 								${owasp.dir}/suppression/CVE-2026-33929.xml</suppressionFile>
+							<!-- Falso positivo CPE: CVE-2025-15104 e' del Nu Html Checker (validator.nu), non di Hibernate Validator -->
+							<suppressionFile>
+								${owasp.dir}/suppression/CVE-2025-15104.xml</suppressionFile>
+							<!-- Kotlin build-cache (build-time), non applicabile al WAR; fix 2.4.20 non ancora stabile -->
+							<suppressionFile>
+								${owasp.dir}/suppression/CVE-2026-53914.xml</suppressionFile>
 							</suppressionFiles>
 							<nvdApiDelay>120000</nvdApiDelay><!-- 2 minuti -->
 							<nvdMaxRetryCount>3</nvdMaxRetryCount> <!-- 3 max
