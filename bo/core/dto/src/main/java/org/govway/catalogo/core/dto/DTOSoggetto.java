@@ -23,10 +23,16 @@ public class DTOSoggetto {
 
 	private String nomeGateway;
 	private String tipoGateway;
+	private boolean referente;
 
 	public DTOSoggetto(String nomeGateway,String tipoGateway) {
+		this(nomeGateway, tipoGateway, false);
+	}
+
+	public DTOSoggetto(String nomeGateway,String tipoGateway, boolean referente) {
 		this.nomeGateway = nomeGateway;
 		this.tipoGateway = tipoGateway;
+		this.referente = referente;
 	}
 
 	public String getNomeGateway() {
@@ -34,5 +40,11 @@ public class DTOSoggetto {
 	}
 	public String getTipoGateway() {
 		return tipoGateway;
+	}
+	public boolean isReferente() {
+		return referente;
+	}
+	public void setReferente(boolean referente) {
+		this.referente = referente;
 	}
 }

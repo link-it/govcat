@@ -60,6 +60,12 @@ public class SoggettoDTOFactory {
 		return this.tipoGatewayConfigurazione;
 	}
 	
+	public boolean isOrganizzazioneReferente(SoggettoEntity soggetto) {
+		return soggetto != null
+				&& soggetto.getOrganizzazione() != null
+				&& soggetto.getOrganizzazione().isReferente();
+	}
+
 	public String getNomeGateway(SoggettoEntity soggetto) {
 		if (soggetto == null) return null;
 		if (soggetto.getNomeGateway() == null)

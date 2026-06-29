@@ -254,7 +254,9 @@ public class GovwayConfigInvoker {
 		return this.gson.fromJson(content, ControlloAccessiAutorizzazione.class);
 	}
 	
-	public Response postServizioApplicativo(ServizioApplicativo sa, DTOSoggetto soggetto) throws IOException, TemplateException {			
+	public Response postServizioApplicativo(ServizioApplicativo sa, DTOSoggetto soggetto) throws IOException, TemplateException {
+		sa.setProfilo(soggetto.getTipoGateway());
+
 		HttpUrl url = this.baseUrl.newBuilder()
 				.addPathSegment("applicativi")
 				.addQueryParameter(QUERY_SOGGETTO, soggetto.getNomeGateway())
@@ -494,11 +496,12 @@ public class GovwayConfigInvoker {
 		
 	}
 	
-	public Applicativo getServizioApplicativo(String nome, String profilo) throws IOException {
-		
+	public Applicativo getServizioApplicativo(String nome, String soggetto, String profilo) throws IOException {
+
 		HttpUrl url = this.baseUrl.newBuilder()
 				.addPathSegment("applicativi")
 				.addPathSegment(nome)
+				.addQueryParameter(QUERY_SOGGETTO, soggetto)
 				.addQueryParameter(QUERY_PROFILO, profilo)
 				.build();
 		

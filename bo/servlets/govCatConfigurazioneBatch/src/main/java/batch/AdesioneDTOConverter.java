@@ -53,6 +53,7 @@ import org.govway.catalogo.core.orm.entity.ClientEntity;
 import org.govway.catalogo.core.orm.entity.ClientEntity.AuthType;
 import org.govway.catalogo.core.orm.entity.EstensioneAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
+import org.govway.catalogo.core.orm.entity.SoggettoEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,16 +110,20 @@ public class AdesioneDTOConverter {
 	}
 
 	void setSoggetti() {
-		dto.setSoggettoAderente(new DTOSoggetto(this.soggettoDTOFactory.getNomeGateway(adesione.getSoggetto()), this.soggettoDTOFactory.getTipoGateway(adesione.getSoggetto())));
+		SoggettoEntity aderente = adesione.getSoggetto();
+		dto.setSoggettoAderente(new DTOSoggetto(this.soggettoDTOFactory.getNomeGateway(aderente), this.soggettoDTOFactory.getTipoGateway(aderente), this.soggettoDTOFactory.isOrganizzazioneReferente(aderente)));
 
 		if(adesione.getServizio().isFruizione()) {
 			// Fruizione: erogatore GovWay = ente erogatore (provider) indicato sul servizio;
 			// fruitore GovWay = soggetto interno = referente del dominio.
-			dto.setSoggettoErogatore(new DTOSoggetto(this.soggettoDTOFactory.getNomeGateway(adesione.getServizio().getSoggettoErogatore()), this.soggettoDTOFactory.getTipoGateway(adesione.getServizio().getSoggettoErogatore())));
-			dto.setSoggettoFruitore(new DTOSoggetto(this.soggettoDTOFactory.getNomeGateway(adesione.getServizio().getDominio().getSoggettoReferente()), this.soggettoDTOFactory.getTipoGateway(adesione.getServizio().getDominio().getSoggettoReferente())));
+			SoggettoEntity erogatore = adesione.getServizio().getSoggettoErogatore();
+			SoggettoEntity fruitore = adesione.getServizio().getDominio().getSoggettoReferente();
+			dto.setSoggettoErogatore(new DTOSoggetto(this.soggettoDTOFactory.getNomeGateway(erogatore), this.soggettoDTOFactory.getTipoGateway(erogatore), this.soggettoDTOFactory.isOrganizzazioneReferente(erogatore)));
+			dto.setSoggettoFruitore(new DTOSoggetto(this.soggettoDTOFactory.getNomeGateway(fruitore), this.soggettoDTOFactory.getTipoGateway(fruitore), this.soggettoDTOFactory.isOrganizzazioneReferente(fruitore)));
 		} else {
 			// Erogazione: erogatore = referente del dominio; nessun fruitore.
-			dto.setSoggettoErogatore(new DTOSoggetto(this.soggettoDTOFactory.getNomeGateway(adesione.getServizio().getDominio().getSoggettoReferente()), this.soggettoDTOFactory.getTipoGateway(adesione.getServizio().getDominio().getSoggettoReferente())));
+			SoggettoEntity erogatore = adesione.getServizio().getDominio().getSoggettoReferente();
+			dto.setSoggettoErogatore(new DTOSoggetto(this.soggettoDTOFactory.getNomeGateway(erogatore), this.soggettoDTOFactory.getTipoGateway(erogatore), this.soggettoDTOFactory.isOrganizzazioneReferente(erogatore)));
 		}
 	}
 
