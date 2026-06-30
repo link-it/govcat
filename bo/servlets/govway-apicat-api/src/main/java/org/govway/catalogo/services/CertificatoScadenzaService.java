@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.govway.catalogo.core.dao.specifications.ClientSpecification;
 import org.govway.catalogo.core.orm.entity.ClientEntity;
@@ -73,9 +74,9 @@ public class CertificatoScadenzaService {
 	@Value("${certificati.scadenza.giorni:30}")
 	private int giorniScadenza;
 
-	private volatile Set<Long> clientIdsInScadenza = Collections.emptySet();
+	private final AtomicReference<Set<Long>> clientIdsInScadenza = new AtomicReference<>(Collections.emptySet());
 
-	private volatile Map<UUID, Date> clientScadenzeCertificato = Collections.emptyMap();
+	private final AtomicReference<Map<UUID, Date>> clientScadenzeCertificato = new AtomicReference<>(Collections.emptyMap());
 
 	/**
 	 * Verifica le scadenze dei certificati di autenticazione.
@@ -97,8 +98,8 @@ public class CertificatoScadenzaService {
 				}
 			});
 
-			this.clientIdsInScadenza = Collections.unmodifiableSet(nuoviIds);
-			this.clientScadenzeCertificato = Collections.unmodifiableMap(nuoveScadenze);
+			this.clientIdsInScadenza.set(Collections.unmodifiableSet(nuoviIds));
+			this.clientScadenzeCertificato.set(Collections.unmodifiableMap(nuoveScadenze));
 			this.logger.info("Verifica scadenze completata: {} client con certificato in scadenza", nuoviIds.size());
 
 		} catch (Exception e) {
@@ -107,11 +108,11 @@ public class CertificatoScadenzaService {
 	}
 
 	public Set<Long> getClientIdsInScadenza() {
-		return this.clientIdsInScadenza;
+		return this.clientIdsInScadenza.get();
 	}
 
 	public Map<UUID, Date> getClientScadenzeCertificato() {
-		return this.clientScadenzeCertificato;
+		return this.clientScadenzeCertificato.get();
 	}
 
 	private void verificaClientPerAuthType(AuthType authType, Date soglia, Set<Long> ids, Map<UUID, Date> scadenze) {

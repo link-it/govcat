@@ -23,6 +23,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -63,7 +64,7 @@ public class CspAllowedHostsService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    private volatile CacheEntry cache;
+    private final AtomicReference<CacheEntry> cache = new AtomicReference<>();
 
     /**
      * Restituisce la lista degli host consentiti. Se la feature è disabilitata,
@@ -75,14 +76,14 @@ public class CspAllowedHostsService {
             return Collections.emptyList();
         }
 
-        CacheEntry current = this.cache;
+        CacheEntry current = this.cache.get();
         if (current != null && !current.isExpired(this.ttlSeconds)) {
             return current.hosts;
         }
 
         try {
             List<String> fresh = fetchFromBackend();
-            this.cache = new CacheEntry(fresh, Instant.now());
+            this.cache.set(new CacheEntry(fresh, Instant.now()));
             return fresh;
         } catch (Exception e) {
             if (current != null) {
