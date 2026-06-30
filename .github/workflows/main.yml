@@ -210,6 +210,7 @@ jobs:
             --disableOssIndex
             --nvdApiKey ${{ secrets.NVD_API_KEY }}
             --suppression tools/owasp/suppression/DOMPurify-swagger-ui-dist.xml
+            --suppression tools/owasp/suppression/image-size.xml
       - name: Upload HTML report artifact
         uses: actions/upload-artifact@v6
         with:
