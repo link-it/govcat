@@ -1,5 +1,16 @@
 2026-06-30  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
+	* [Frontend]
+	Servizio view: il CTA "Aderisci"/"Vai alle adesioni" ora dipende
+	  dalla presenza di adesioni (`_hasJoined`) e non dal ruolo. Con zero
+	  adesioni tutti i ruoli abilitati vedono "Aderisci" (vincoli canJoin/
+	  ammissibilita`/canCreate invariati); "Vai alle adesioni" solo se
+	  esistono adesioni. Il CTA "Vai all'adesione" ora naviga al dettaglio
+	  della singola adesione (lista come fallback) distinguendosi da "Vai
+	  alle adesioni".
+
+2026-06-30  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
 	* [GovwayAPICatalogo]
 	Fix vulnerabilita` OWASP: aggiunta suppression per image-size
 	  (CVE-2025-71319/71329/71330, DoS build-time non applicabile, nessuna

@@ -174,11 +174,11 @@
 
         @if (_adesioneDataReady) {
 
-          <!-- 1. CTA Aderisci -->
+          <!-- 1. CTA Aderisci: nessuna adesione ancora presente.
+                  Mostrato a qualsiasi ruolo abilitato (gestore, referenti,
+                  amministratore/operatore org) purche` ammissibile e con
+                  permesso di creare l'adesione. -->
           @if ((_updateData | mapper:_canJoinMapper)
-               && !(_updateData | mapper:_isGestoreMapper)
-               && !(_updateData | mapper:_isReferenteMapper)
-               && !(_updateData | mapper:_isReferenteTecnicoAdesioneMapper)
                && !_hasJoined
                && (_updateData | mapper:_isAmmissibileMapper)
                && (_updateData | mapper:_canCreateAdesioneMapper)) {
@@ -193,14 +193,13 @@
             ></lnk-action-banner>
           }
 
-          <!-- 2. CTA Vai alle adesioni (gestore / referente con adesioni
-                  che possono aderire ulteriormente) -->
+          <!-- 2. CTA Vai alle adesioni (gestore / referente, solo quando
+                  esistono gia` adesioni da consultare) -->
           @if ((_updateData | mapper:_canJoinMapper)
+               && _hasJoined
                && ((_updateData | mapper:_isGestoreMapper)
-                   || (((_updateData | mapper:_isReferenteMapper)
-                        || (_updateData | mapper:_isReferenteTecnicoAdesioneMapper))
-                       && !_hasJoined
-                       && (_updateData | mapper:_isAmmissibileMapper)))) {
+                   || (_updateData | mapper:_isReferenteMapper)
+                   || (_updateData | mapper:_isReferenteTecnicoAdesioneMapper))) {
             <lnk-action-banner
               icon="bi-display"
               [title]="'APP.BUTTON.GoAdesioni' | translate"
@@ -212,9 +211,12 @@
             ></lnk-action-banner>
           }
 
-          <!-- 3. CTA Vai all'adesione (utente non-gestore con adesione attiva) -->
+          <!-- 3. CTA Vai all'adesione (utente fruitore, non gestore ne`
+                  referente, con adesione attiva) -->
           @if ((_updateData | mapper:_canJoinMapper)
                && !(_updateData | mapper:_isGestoreMapper)
+               && !(_updateData | mapper:_isReferenteMapper)
+               && !(_updateData | mapper:_isReferenteTecnicoAdesioneMapper)
                && _hasJoined) {
             <lnk-action-banner
               icon="bi-display"

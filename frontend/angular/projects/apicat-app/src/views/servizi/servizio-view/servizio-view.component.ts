@@ -215,6 +215,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     _updateData: string = '';
 
     _hasJoined: boolean = false;
+    _adesioni: any[] = [];
     _adesioneDataReady: boolean = false;
 
     _modalInfoRef!: BsModalRef;
@@ -438,7 +439,8 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
             ammissibili: this.apiService.getDetails('servizi', this.id, 'ammissibili')
         }).subscribe({
             next: (response: any) => {
-                this._hasJoined = response.joined.content.length > 0;
+                this._adesioni = response.joined.content || [];
+                this._hasJoined = this._adesioni.length > 0;
                 this._ammissibili = response.ammissibili.content;
                 this._adesioneDataReady = true;
                 this._updateData = Date.now().toString();
@@ -710,11 +712,26 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         this.navigationService.navigateWithEvent(event, route, { web: true });
     }
 
+    /** Naviga al dettaglio della singola adesione dell'utente
+     *  (CTA "Vai all'adesione"). Con una sola adesione apre il suo
+     *  dettaglio (view se gia` pubblicata in produzione, altrimenti la
+     *  scheda modificabile); con piu` adesioni ricade sulla lista. */
     _gotoAdesione(event?: MouseEvent) {
+        const adesione = this._adesioni.length === 1 ? this._adesioni[0] : null;
+        if (adesione?.id_adesione) {
+            const viewMode = (adesione.stato || '').includes('pubblicato_produzione');
+            const route = viewMode
+                ? ['servizi', this.id, 'adesioni', adesione.id_adesione, 'view']
+                : ['servizi', this.id, 'adesioni', adesione.id_adesione];
+            this.navigationService.navigateWithEvent(event, route);
+            return;
+        }
         const route = ['servizi', this.id, 'adesioni'];
-        this.navigationService.navigateWithEvent(event, route, { web: true });
+        this.navigationService.navigateWithEvent(event, route);
     }
 
+    /** Naviga alla lista adesioni del servizio (CTA "Vai alle
+     *  adesioni", gestore/referente). */
     _gotoAdesioni(event?: MouseEvent) {
         const route = ['servizi', this.id, 'adesioni'];
         this.navigationService.navigateWithEvent(event, route);
