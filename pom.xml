@@ -1317,6 +1317,9 @@
 							<!-- jackson-databind: feature ACCEPT_CASE_INSENSITIVE_PROPERTIES non usata; fix 2.21.5 non ancora pubblicata -->
 							<suppressionFile>
 								${owasp.dir}/suppression/CVE-2026-54515.xml</suppressionFile>
+							<!-- image-size (build-time, via less/@angular-devkit): DoS su immagini malevole non applicabile; nessuna fix pubblicata -->
+							<suppressionFile>
+								${owasp.dir}/suppression/image-size.xml</suppressionFile>
 							</suppressionFiles>
 							<nvdApiDelay>120000</nvdApiDelay><!-- 2 minuti -->
 							<nvdMaxRetryCount>3</nvdMaxRetryCount> <!-- 3 max

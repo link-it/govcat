@@ -1,3 +1,10 @@
+2026-06-30  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [GovwayAPICatalogo]
+	Fix vulnerabilita` OWASP: aggiunta suppression per image-size
+	  (CVE-2025-71319/71329/71330, DoS build-time non applicabile, nessuna
+	  fix pubblicata) e wiring nel pom.
+
 2026-06-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
