@@ -30,6 +30,14 @@
 	  (CVE-2025-71319/71329/71330, DoS build-time non applicabile, nessuna
 	  fix pubblicata) e wiring nel pom.
 
+2026-06-30  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Risolti i reliability issue segnalati da SonarCloud.
+
+	* [CI/CD]
+	Aggiunta la suppression OWASP image-size.xml alla pipeline GitHub.
+
 2026-06-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -44,6 +52,17 @@
 	Fix vulnerabilita` OWASP: aggiornate dipendenze Angular a 21.2.17,
 	  swagger-ui-dist a 5.32.8, vite a 7.x; override dompurify 3.4.11 e
 	  nuovo override image-size 2.0.2.
+
+2026-06-29  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Fix vari al batch di configurazione automatica delle adesioni:
+	  aggiunta di un query parameter mancante, correzione del request
+	  payload nel caso di profilo ModI con token e fix della creazione
+	  dell'applicativo con soggetto aderente.
+	OWASP: revisione delle suppression dopo l'upgrade di Spring, con
+	  rimozione di quelle non più necessarie, e fix di nuove
+	  vulnerabilità.
 
 2026-06-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
@@ -80,6 +99,11 @@
 	  il filtro `referente=true` solo se l'organizzazione selezionata non e`
 	  intermediata.
 
+2026-06-26  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 299: aggiunta l'API GET /organizzazioni/all.
+
 2026-06-25  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -109,6 +133,17 @@
 	  riferimento, passando sempre `id_organizzazione`. Rimossi il filtro
 	  `ruolo` globale e il filtro `referente_tecnico=true` dalle ricerche.
 
+2026-06-25  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 278: aggiunto il canale a tutte le entità coinvolte nel
+	  calcolo della urlInvocazione e la relativa sostituzione nel
+	  template.
+	Issue 291: log4j configurabile da file esterno.
+	Issue 298: aggiunta la POST di retry per le adesioni in
+	  configurazione automatica in errore o in coda.
+	Fix di un problema Jackson emerso dopo l'upgrade di Spring.
+
 2026-06-24  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -133,6 +168,15 @@
 	  per-ambiente), che venivano spediti vuoti dai dati della GET con
 	  rischio di azzeramento. POST (creazione) invariata.
 
+2026-06-24  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 293: upgrade a Spring 7 e Spring Boot 4.
+	Issue 285: migliorate le prestazioni delle API di servizi e
+	  adesioni.
+	Issue 284: aggiunto il filtro ruoli_organizzazione_query_optional
+	  alla GET utenti.
+
 2026-06-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -142,6 +186,13 @@
 	  Rimossa la logica residua "dominio esterno" in adesione-create,
 	  adesione-details e adesione-form (+ test allineati).
 
+2026-06-19  Giovanni Bussu <giovanni.bussu@link.it>
+
+	* [GovwayAPICatalogo]
+	Aggiunta l'implementazione di ProxyTokenApiDelegate che fa da
+	  proxy verso un provider OIDC esterno per l'endpoint token,
+	  attivabile via configurazione.
+
 2026-06-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -150,6 +201,22 @@
 	  servizio fruizione con selezione "Ente Erogatore" (org referente
 	  o intermediata) e id_soggetto_erogatore; filtro lista servizi
 	  "Organizzazione erogatore"; rinomine modelli/i18n e adeguamento test.
+
+2026-06-17  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 292: fix di listOrganizzazioniRegistrazione escludendo le
+	  organizzazioni intermediate.
+	Aggiunta la property
+	  spring.jpa.properties.hibernate.default_batch_fetch_size per
+	  migliorare le prestazioni riducendo le query N+1.
+
+2026-06-16  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 292: rework delle fruizioni con breaking change su
+	  organizzazioni, domini e servizi e aggiunta del filtro ente
+	  erogatore nella lista dei servizi.
 
 2026-06-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
@@ -252,6 +319,12 @@
 	  pending_update, non_configurato, active/abilitato/
 	  configurato, archiviata/disabilitato/letta,
 	  config_in_progress, autorizzata_collaudo).
+
+2026-06-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #288: reso maggiormente visibile il pulsante per scaricare
+	  la scheda di adesione.
 
 2026-06-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
@@ -476,6 +549,12 @@
 	    `_lockedOrgNome` + `_checkSoggetto` (no piu`
 	    `_loadOrganizzazione`).
 
+2026-06-11  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Fix della gestione degli errori e dello stato dell'API nel
+	  completamento della registrazione.
+
 2026-06-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -607,6 +686,15 @@
 	  reale: `pubblicato_produzione` ancora segnato come
 	  "Azione richiesta" rossa con 4/4 sub-step completati).
 
+2026-06-10  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Fix della visibilità della lista organizzazioni per gli utenti
+	  organizzazione.
+	Fix dei grant delle adesioni per gli amministratori delle
+	  organizzazioni.
+	Fix dei disclaimer.
+
 2026-06-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -690,6 +778,16 @@
 	  inizializzato nell'`APP_INITIALIZER` (constructor di
 	  `Tools` non viene mai invocato a runtime).
 
+2026-06-09  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Mostra le adesioni della propria organizzazione all'amministratore
+	  dell'organizzazione.
+	Aggiunti controlli per evitare che utenti senza ruolo vengano
+	  aggiunti come referenti.
+	Fix del messaggio di errore del wizard adesioni al salvataggio del
+	  client.
+
 2026-06-08  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -752,6 +850,15 @@
 	  questi, un'adesione in `in_configurazione_collaudo`
 	  cadeva sul default `info_generali` e il wizard appariva
 	  bloccato sullo step 1 senza azioni disponibili.
+
+2026-06-08  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Fix della gestione delle properties e dei filters del
+	  batch/configuratore.
+	Fix delle notifiche non inviate al mittente.
+	Fix dell'ordinamento delle liste in dashboard.
+	Rimossi i disclaimer di default.
 
 2026-06-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
@@ -877,6 +984,25 @@
 	  ambientale per evitare doppia visualizzazione. Severity
 	  fallback INFO. Mock aggiornato per test locale.
 
+2026-06-05  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Migliorata la gestione dei disclaimer supportando una lista di
+	  valori per ogni chiave e l'attributo nome_gruppo per i disclaimer
+	  specifici di gruppi di custom properties; pulizia degli yaml dei
+	  disclaimer.
+	Gestione delle nuove classi dato collaudo_pdnd/produzione_pdnd nei
+	  metodi di workflow authorization e correzioni post-deploy
+	  (risoluzione del path del file di properties esterno e classi dato
+	  nell'enum).
+
+2026-06-05  Giovanni Bussu <giovanni.bussu@link.it>
+
+	* [GovwayAPICatalogo]
+	Aggiunta la gestione delle classi dato *_pdnd nel canModify e
+	  rimossi i default nel loop delle classi dato per evidenziare la
+	  mancanza di collaudo_pdnd e produzione_pdnd.
+
 2026-06-04  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -910,6 +1036,16 @@
 	  `GestoreGuard`: gestore o amministrazione con permesso
 	  di lettura su `client`). i18n
 	  `APP.TOOLTIP.GoToClient` (IT/EN).
+
+2026-06-04  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Aggiunti gli stati bozza per i referenti di servizi e adesioni
+	  alla dashboard.
+	Migliorate le prestazioni dell'API servizi_gruppi.
+	Fix della regressione del try-out Swagger dopo l'introduzione
+	  della CSP, con configurazione degli host consentiti.
+	Fix del messaggio di errore in caricamento certificato.
 
 2026-05-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
@@ -988,6 +1124,22 @@
 	  polling; nuova riga sotto il chip con
 	  `messaggio_configurazione` quando KO. i18n
 	  `APP.LABEL.PollingAutoConfig` (IT/EN).
+
+2026-05-28  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 106: migliorato il flusso di configurazione automatica del
+	  client OAuth Client Credentials con creazione del client su
+	  Keycloak, aggiunta un'API per recuperare il secret da Keycloak e
+	  modificato il fixed rate di default del batch.
+	Issue 106: fix della configurazione delle fruizioni su GovWay da
+	  batch.
+
+2026-05-28  Giovanni Bussu <giovanni.bussu@link.it>
+
+	* [GovwayAPICatalogo]
+	Batch: allineate le property al pattern delle API e rimosso
+	  referente_tecnico da init.sql.
 
 2026-05-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
@@ -1198,6 +1350,16 @@
 	  associabili). URL finale:
 	  `?principal=...&ruolo=gestore&ruolo=coordinatore&ruolo=utente_organizzazione`.
 
+2026-05-20  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 243: CSP con nonce su tutti gli script, direttiva
+	  style-src-attr e img-src blob.
+	Aggiunta l'unicità del nome di dominio/organizzazione/servizio con
+	  match case-insensitive e controllo anche in update.
+	Aggiunto il controllo sul ruolo utente non nullo quando si
+	  aggiunge un utente a un'organizzazione.
+
 2026-05-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -1369,6 +1531,14 @@
 	  brand. Audit e fix-set documentati in
 	  NOTE-CLAUDE/ACCESSIBILITY/.
 
+2026-05-18  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 229: chiusura degli open point multi-organizzazione/ruoli
+	  per la 2.4.0.
+	Issue 271: aggiunto l'endpoint /domini/exists per verificare
+	  l'esistenza di un dominio per nome.
+
 2026-05-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -1510,6 +1680,11 @@
 	  (sulla propria), ma cliccabile solo sull'org corrente
 	  (`[disabled]` quando non-current).
 
+2026-05-15  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	OWASP: fix e suppression di nuove vulnerabilità.
+
 2026-05-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -1573,6 +1748,12 @@
 	  (default false; NON attivare in produzione). Utile per
 	  testare la prima esperienza multi-org senza svuotare
 	  manualmente lo storage.
+
+2026-05-14  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 229: fix della regressione nella ricerca utenti introdotta
+	  dalle modifiche per il supporto ai ruoli organizzazione.
 
 2026-05-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
@@ -1650,6 +1831,19 @@
 	  aggiunti ai filtri `roleTabs` e al dropdown
 	  `_allRuoliAdesioni`.
 
+2026-05-13  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 229: aggiunto l'endpoint per annullare/rifiutare le
+	  richieste di cambio organizzazione nello scenario
+	  multi-organizzazione.
+	Issue 229: fix della richiesta di update del profilo
+	  organizzazione nel caso multi-organizzazione e della GET profilo
+	  relativa all'organizzazione di partenza.
+	Aggiunti nuovi disclaimer per la compilazione generica dei client
+	  in collaudo e produzione.
+	OWASP: fix e suppression di nuove vulnerabilità.
+
 2026-05-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -1707,6 +1901,12 @@
 	  ora i18n. Nuova chiave `APP.ADESIONI.MESSAGE.
 	  ConfigureClientsDisclaimer` (it+en), sostituita la
 	  stringa hardcoded italiana nel template.
+
+2026-05-12  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 229: aggiunta la scelta dell'organizzazione richiesta in
+	  fase di first login/registrazione.
 
 2026-05-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
@@ -1776,6 +1976,13 @@
 	  posto di "Configura …" — riflette che il contenuto
 	  resta consultabile/modificabile (a seconda del ruolo)
 	  anche dopo il completamento del workflow.
+
+2026-05-11  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 229: aggiunto il query param q per la ricerca libera degli
+	  utenti di un'organizzazione.
+	Aggiunti ulteriori disclaimer delle adesioni.
 
 2026-05-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
@@ -2022,6 +2229,23 @@
 	  config-driven con content projection), `adesione-lista-erogazioni/erogazione-edit-form`
 	  (form endpoint estratto dal modal legacy per riuso inline).
 
+2026-05-05  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 229: rework del flusso di richiesta e approvazione del
+	  cambio organizzazione nello scenario multi-organizzazione con il
+	  ruolo amministratore_organizzazione.
+	Issue 229: aggiunto nelle API il supporto alla gestione dei domini
+	  dell'organizzazione da parte dell'amministratore_organizzazione.
+
+2026-05-04  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 229: breaking change per la release 2.4.0 con rimozione del
+	  ruolo referente_tecnico e dei campi deprecati.
+	Issue 229: refactor di azienda_esterna, resa entità per fornire
+	  un'API di autocompletamento.
+
 2026-04-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -2076,6 +2300,37 @@
 	  finale (o oltre-fase) torna la regola precedente basata sul
 	  solo completamento dati.
 
+2026-04-29  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 254: integrati gli yaml dei disclaimer del wizard adesioni.
+
+2026-04-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 212: aggiunto il pulsante di eliminazione dell'adesione per
+	  il gestore.
+
+2026-04-28  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 229: aggiunto l'endpoint GET /organizzazioni/{id}/utenti per
+	  recuperare gli utenti di un'organizzazione.
+	Issue 229: adeguato l'endpoint di creazione utenti POST /utenti
+	  per il multi-organizzazione e la creazione utente da parte
+	  dell'amministratore_organizzazione.
+	Issue 229: fix dell'eccezione LazyInitialization
+	  nell'OrganizationContextInterceptor.
+
+2026-04-27  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 261: bonifica delle vulnerabilità backend emerse dal report
+	  OSV, con introduzione di osv-scanner.toml e adeguamento delle
+	  dipendenze.
+	Issue 267: fix del mapping Problem per gli errori PDND e aggiunto
+	  un log di debug delle eccezioni client nel ControllerAdvisor.
+
 2026-04-24  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -2091,6 +2346,12 @@
 	  (3 step info_generali/collaudo/produzione) e aggiunte
 	  `step_wizard_collaudo`/`step_wizard_produzione` in
 	  `configurazione.json`.
+
+2026-04-23  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 212: migliorata la cancellazione dell'adesione
+	  (deleteAdesione).
 
 2026-04-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
@@ -2191,6 +2452,17 @@
 	  cambiato da `<form>` a `<div [formGroup]>` per evitare form
 	  nidificate nei parent.
 
+2026-04-22  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 229: migliorato lo script di upgrade del DB con la gestione
+	  dei constraints.
+	OWASP: aggiunta suppression per CVE-2026-33929.
+
+	* [CI/CD]
+	Aggiunto un workflow di refresh notturno del DB OWASP e riutilizzo
+	  della cache giornaliera in main.yml.
+
 2026-04-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -2226,6 +2498,15 @@
 	  provare la dialog di configurazione auth client (save simulato,
 	  visibile con `wizard_debug_switches`).
 
+2026-04-21  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 229: adeguati gli assembler per il supporto
+	  multi-organizzazione, con relativi test.
+	Issue 229: aggiunto l'endpoint per l'aggiunta di utenti
+	  all'organizzazione da parte dell'amministratore_organizzazione.
+	Issue 229: fix dell'OrganizationContextInterceptor.
+
 2026-04-20  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -2242,6 +2523,16 @@
 	  ci sono più aree di upload. Fix NPE in `servizio-details._loadApis`
 	  (fallback con forma corretta). Ignorate le copie locali di
 	  `app-config-*.json`.
+
+2026-04-20  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 229: riviste le logiche di permesso sulle operazioni di
+	  servizi e adesioni in base ai ruoli dell'organizzazione e allo
+	  scenario multi-organizzazione.
+	Issue 254: aggiunta l'informazione opzionale del profilo
+	  nell'oggetto restituito dall'API disclaimers e integrati nuovi
+	  casi negli yaml dei disclaimer.
 
 2026-04-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
@@ -2261,6 +2552,12 @@
 	  per l'upload dei certificati. Eliminate le 27+ flag booleane
 	  interne e le race condition con setTimeout. Storia dettagliata
 	  sul branch `sprint-2.3.7-237-modale-auth-client`.
+
+2026-04-19  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 229: adeguato il calcolo dei ruoli referente per servizi e
+	  adesioni al modello multi-organizzazione.
 
 2026-04-18  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
