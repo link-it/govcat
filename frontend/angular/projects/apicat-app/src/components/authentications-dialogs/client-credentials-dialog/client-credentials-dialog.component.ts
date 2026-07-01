@@ -156,7 +156,7 @@ export class ClientCredentialsDialogComponent implements OnInit {
         }
         const client = this._availableClients.find((c: any) => c.id_client === idClient);
         if (!client) { return; }
-        this.formGroup.get('clientId')?.setValue(client.client_id || client.nome || null);
+        this.formGroup.get('clientId')?.setValue(client.dati_specifici?.client_id || client.nome || null);
         this.formGroup.get('clientSecret')?.setValue(null);
         this._showSecret = false;
         this._fetchSecret(idClient);

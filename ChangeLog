@@ -1,6 +1,13 @@
 2026-07-01  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	client-credentials-dialog, _onSelectClient: il client_id viene letto
+	  da `dati_specifici.client_id` (prima usava `client.client_id`
+	  inesistente, ricadendo sempre sul nome del client).
+
+2026-07-01  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Wizard adesioni, lista client: il pulsante "Dissocia" ora compare
 	  anche per i client gia` `configurato` (gate su canManage invece di
 	  canModify), coerente con il flusso "dissociare per riconfigurare".
