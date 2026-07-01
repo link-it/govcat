@@ -95,8 +95,11 @@
                   <span class="material-icons-outlined">open_in_new</span>
                 </button>
               }
-              <!-- DISSOCIA: solo per client modificabili (mai in view-only). -->
-              @if (item.id_client && canManage && !isEditing && canModify) {
+              <!-- DISSOCIA: azione di gestione (canManage), disponibile
+                   anche per i client gia` `configurato` (vanno dissociati
+                   per essere ri-configurati). Nascosto solo durante
+                   l'inline-edit. -->
+              @if (item.id_client && canManage && !isEditing) {
                 <button type="button"
                         class="lnk-btn lnk-btn-ghost lnk-btn-sm lnk-btn-icon"
                         [tooltip]="'APP.TOOLTIP.Dissociate' | translate"

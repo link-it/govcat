@@ -1,3 +1,10 @@
+2026-07-01  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Wizard adesioni, lista client: il pulsante "Dissocia" ora compare
+	  anche per i client gia` `configurato` (gate su canManage invece di
+	  canModify), coerente con il flusso "dissociare per riconfigurare".
+
 2026-06-30  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
