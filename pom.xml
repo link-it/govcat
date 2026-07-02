@@ -1320,6 +1320,9 @@
 							<!-- image-size (build-time, via less/@angular-devkit): DoS su immagini malevole non applicabile; nessuna fix pubblicata -->
 							<suppressionFile>
 								${owasp.dir}/suppression/image-size.xml</suppressionFile>
+							<!-- esbuild (build-time, via vite/@angular/build): path traversal dev server Windows non applicabile; fix 0.28.1 fuori dal range ^0.27 di vite -->
+							<suppressionFile>
+								${owasp.dir}/suppression/esbuild.xml</suppressionFile>
 							</suppressionFiles>
 							<nvdApiDelay>120000</nvdApiDelay><!-- 2 minuti -->
 							<nvdMaxRetryCount>3</nvdMaxRetryCount> <!-- 3 max

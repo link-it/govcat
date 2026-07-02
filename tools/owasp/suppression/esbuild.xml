@@ -1,0 +1,26 @@
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+   <suppress>
+      <notes><![CDATA[
+      package: esbuild@0.27.7 (pkg:npm/esbuild@0.27.7)
+
+      GHSA-g7r4-m6w7-qqqr (CVSS 2.5, LOW, nessun CVE assegnato): path traversal nel
+      development server di esbuild su Windows; una richiesta con backslash puo' uscire
+      dalla directory `servedir` e leggere file arbitrari. Affligge esbuild 0.27.3 - 0.28.0
+      (fix in 0.28.1).
+
+      NON APPLICABILE a GovCat: esbuild e' una dipendenza transitiva di build-time (tirata
+      da vite / @angular/build). La vulnerabilita' riguarda esclusivamente il dev server di
+      esbuild (`esbuild serve`) su Windows; la build di produzione (`ng build`) non avvia
+      alcun dev server esbuild e il pacchetto non finisce nel bundle runtime servito agli
+      utenti. La superficie d'attacco e' quindi inesistente nel nostro contesto.
+
+      La versione di esbuild e' vincolata dal range `^0.27.0` dichiarato da vite: la fix
+      0.28.1 non e' raggiungibile senza forzare un override che esce dal range supportato da
+      vite. Rimuovere questa suppression quando vite adottera' nativamente esbuild >= 0.28.1.
+
+      Riferimento: https://github.com/advisories/GHSA-g7r4-m6w7-qqqr
+      ]]></notes>
+      <packageUrl regex="true">^pkg:npm/esbuild@.*$</packageUrl>
+      <vulnerabilityName>GHSA-g7r4-m6w7-qqqr</vulnerabilityName>
+   </suppress>
+</suppressions>
