@@ -1,3 +1,13 @@
+2026-07-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Fix vulnerabilita` OSV (25 CVE, solo devDependencies): aggiornati
+	  vitest 4.1, vite 7.3.5, hono 4.12.25; override mirati per
+	  @babel/core, js-yaml, brace-expansion e override version-scoped per
+	  undici@7, http-proxy-middleware@3, esbuild@0.27 (preservano le major
+	  richieste da node-gyp/webpack-dev-server). npm audit: 0 vulnerabilita`,
+	  build di produzione verde.
+
 2026-07-01  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
