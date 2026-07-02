@@ -1,5 +1,14 @@
 2026-07-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
+	* [Frontend]
+	Logout OAuth: ora esegue sempre il redirect front-channel
+	  all'end_session_endpoint (`logOut()` senza `true`) e passa
+	  `ignoreCorsIssues=true` alla revoca token. Termina la sessione SSO
+	  Keycloak anche su Firefox (Total Cookie Protection), dove la revoca
+	  XHR in background veniva bloccata e il logout restava solo locale.
+
+2026-07-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
 	* [GovwayAPICatalogo]
 	Fix vulnerabilita` OWASP: aggiunta suppression per esbuild
 	  (GHSA-g7r4-m6w7-qqqr, path traversal dev server Windows non
