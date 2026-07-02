@@ -24,26 +24,27 @@ import org.govway.catalogo.core.business.utils.configurazione.ConfigurazioneRead
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.StepExecution;
-import org.springframework.batch.core.StepExecutionListener;
+import org.springframework.batch.core.step.StepExecution;
+import org.springframework.batch.core.listener.StepExecutionListener;
 
 import java.util.List;
 import java.util.Map;
 
 public class ConfigurazioneStepListener implements StepExecutionListener {
 
-    private final String externalPath;
+    private final String configurazioneJsonPath;
 
-    public ConfigurazioneStepListener(String externalPath) {
-        this.externalPath = externalPath;
+    public ConfigurazioneStepListener(String configurazioneJsonPath) {
+        this.configurazioneJsonPath = configurazioneJsonPath;
     }
     private static final Logger logger = LoggerFactory.getLogger(ConfigurazioneStepListener.class);
 
     @Override
     public void beforeStep(StepExecution stepExecution) {
         try {
-            ConfigurazioneReader confReader = new ConfigurazioneReader(externalPath);
-            logger.debug("[ConfigurazioneStepListener]: path file di configurazione {}",externalPath);
+            ConfigurazioneReader confReader = new ConfigurazioneReader(configurazioneJsonPath);
+            logger.debug("[ConfigurazioneStepListener]: path file di configurazione {}",configurazioneJsonPath);
+
             List<Map<String, String>> statoConf = confReader.getTuttaConfigurazioneAutomatica();
 
             ObjectMapper objectMapper = new ObjectMapper();

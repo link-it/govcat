@@ -29,13 +29,17 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 
 import org.govway.catalogo.core.orm.entity.ClasseUtenteEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity_;
+import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Ruolo;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Stato;
 import org.govway.catalogo.core.orm.entity.UtenteEntity_;
+import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity;
+import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity_;
 import org.springframework.data.jpa.domain.Specification;
 
 public class UtenteSpecification implements Specification<UtenteEntity> {
@@ -49,6 +53,7 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 	private Optional<Stato> stato = Optional.empty();
 	private List<Stato> stati = null;
 	private Optional<UUID> idOrganizzazione = Optional.empty();
+	private Optional<Long> idOrganizzazionePending = Optional.empty();
 	private List<ClasseUtenteEntity> idClassiUtente = null;
 	private Optional<String> email = Optional.empty();
 	private Optional<String> emailAziendale = Optional.empty();
@@ -56,7 +61,7 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 	private Optional<String> principalLike = Optional.empty();
 	private List<Ruolo> ruoli = null;
 	private Optional<Boolean> ruoloNull = Optional.empty();
-	private Optional<Boolean> referenteTecnico = Optional.empty();
+	private List<RuoloOrganizzazione> ruoliOrganizzazione = null;
 
 	@Override
 	public Predicate toPredicate(Root<UtenteEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
@@ -77,7 +82,17 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 			predLstQ.add(cb.like(cb.upper(root.get(UtenteEntity_.principal)), "%" + qUpper + "%"));
 			predLstQ.add(cb.like(cb.upper(root.get(UtenteEntity_.nome)), "%" + qUpper + "%"));
 			predLstQ.add(cb.like(cb.upper(root.get(UtenteEntity_.cognome)), "%" + qUpper + "%"));
-			predLstQ.add(cb.like(cb.upper(root.join(UtenteEntity_.organizzazione, JoinType.LEFT).get(OrganizzazioneEntity_.nome)), "%" + qUpper + "%"));
+			// Ricerca per nome organizzazione associata: subquery IN per evitare l'implicit INNER JOIN
+			// che escluderebbe gli utenti senza associazioni in utenti_organizzazioni, e per non duplicare
+			// righe quando un utente è associato a più organizzazioni.
+			Subquery<Long> subOrgNome = query.subquery(Long.class);
+			Root<UtenteOrganizzazioneEntity> subOrgNomeRoot = subOrgNome.from(UtenteOrganizzazioneEntity.class);
+			subOrgNome.select(subOrgNomeRoot.get(UtenteOrganizzazioneEntity_.utente).get(UtenteEntity_.id))
+					.where(cb.like(cb.upper(
+							subOrgNomeRoot.get(UtenteOrganizzazioneEntity_.organizzazione)
+									.get(OrganizzazioneEntity_.nome)),
+							"%" + qUpper + "%"));
+			predLstQ.add(root.get(UtenteEntity_.id).in(subOrgNome));
 			// Ricerca per nome + cognome combinati (es. "Mario Rossi")
 			predLstQ.add(cb.like(cb.upper(cb.concat(cb.concat(root.get(UtenteEntity_.nome), " "), root.get(UtenteEntity_.cognome))), "%" + qUpper + "%"));
 			// Ricerca per cognome + nome combinati (es. "Rossi Mario")
@@ -113,7 +128,36 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 		}
 		
 		if (idOrganizzazione.isPresent()) {
-			predLst.add(cb.equal(root.get(UtenteEntity_.organizzazione).get(OrganizzazioneEntity_.idOrganizzazione), idOrganizzazione.get().toString())); 
+			// Filtro per organizzazione: cerca tra le associazioni in utenti_organizzazioni.
+			// Usiamo una IN subquery per evitare problemi con DISTINCT e paginazione/count di Spring Data JPA.
+			String idOrgStr = idOrganizzazione.get().toString();
+
+			Subquery<Long> sub = query.subquery(Long.class);
+			Root<UtenteOrganizzazioneEntity> subRoot = sub.from(UtenteOrganizzazioneEntity.class);
+
+			List<Predicate> subPred = new ArrayList<>();
+			subPred.add(cb.equal(
+					subRoot.get(UtenteOrganizzazioneEntity_.organizzazione)
+							.get(OrganizzazioneEntity_.idOrganizzazione),
+					idOrgStr));
+
+			// Filtro per ruolo all'interno dell'organizzazione selezionata (OR tra i ruoli indicati).
+			// Ha senso solo in presenza di idOrganizzazione: si restringe l'appartenenza a quella
+			// organizzazione ai soli ruoli richiesti, mantenendo la stessa IN subquery.
+			if (ruoliOrganizzazione != null && !ruoliOrganizzazione.isEmpty()) {
+				subPred.add(subRoot.get(UtenteOrganizzazioneEntity_.ruoloOrganizzazione).in(ruoliOrganizzazione));
+			}
+
+			sub.select(subRoot.get(UtenteOrganizzazioneEntity_.utente).get(UtenteEntity_.id))
+					.where(subPred.toArray(new Predicate[] {}));
+
+			predLst.add(root.get(UtenteEntity_.id).in(sub));
+		}
+
+		if (idOrganizzazionePending.isPresent()) {
+			predLst.add(cb.equal(
+					root.get(UtenteEntity_.organizzazionePending).get(OrganizzazioneEntity_.id),
+					idOrganizzazionePending.get()));
 		}
 		
 		if (email.isPresent()) {
@@ -135,13 +179,10 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 		}
 		
 		if (principal.isPresent()) {
-			predLst.add(cb.equal(root.get(UtenteEntity_.principal), principal.get())); 
+			predLst.add(cb.equal(root.get(UtenteEntity_.principal), principal.get()));
 		}
-		
-		if (referenteTecnico.isPresent()) {
-			predLst.add(cb.equal(root.get(UtenteEntity_.referenteTecnico), referenteTecnico.get())); 
-		}
-		
+
+
 		if(ruoli != null) {
 			if(!ruoli.isEmpty()) {
 				ArrayList<Predicate> preds2 = new ArrayList<>();
@@ -207,6 +248,14 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 		this.ruoli = ruoli;
 	}
 
+	public List<RuoloOrganizzazione> getRuoliOrganizzazione() {
+		return ruoliOrganizzazione;
+	}
+
+	public void setRuoliOrganizzazione(List<RuoloOrganizzazione> ruoliOrganizzazione) {
+		this.ruoliOrganizzazione = ruoliOrganizzazione;
+	}
+
 	public Optional<String> getQ() {
 		return q;
 	}
@@ -239,6 +288,14 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 		this.idOrganizzazione = idOrganizzazione;
 	}
 
+	public Optional<Long> getIdOrganizzazionePending() {
+		return idOrganizzazionePending;
+	}
+
+	public void setIdOrganizzazionePending(Optional<Long> idOrganizzazionePending) {
+		this.idOrganizzazionePending = idOrganizzazionePending;
+	}
+
 	public Optional<String> getEmail() {
 		return email;
 	}
@@ -269,14 +326,6 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 
 	public void setIdClassiUtente(List<ClasseUtenteEntity> idClassiUtente) {
 		this.idClassiUtente = idClassiUtente;
-	}
-
-	public Optional<Boolean> getReferenteTecnico() {
-		return referenteTecnico;
-	}
-
-	public void setReferenteTecnico(Optional<Boolean> referenteTecnico) {
-		this.referenteTecnico = referenteTecnico;
 	}
 
 	public Optional<String> getPrincipal() {

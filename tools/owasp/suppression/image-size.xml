@@ -1,0 +1,31 @@
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+   <suppress>
+      <notes><![CDATA[
+      package: image-size@2.0.2 (pkg:npm/image-size@2.0.2)
+
+      CVE-2025-71319 / CVE-2025-71329 / CVE-2025-71330: vulnerabilita' di Denial of Service
+      (loop infinito) nei parser di image-size quando viene elaborata un'immagine malformata
+      (box con size 0, entry ICNS con length 0). Affliggono tutte le versioni fino alla 2.0.2
+      inclusa; al 2026-06-30 NON esiste ancora una versione corretta pubblicata su npm
+      (2.0.2 e' l'ultima release disponibile).
+
+      NON APPLICABILE a GovCat: image-size e' una dipendenza transitiva di build-time, tirata
+      da less -> @angular-devkit/build-angular. Il compilatore Less invoca image-size solo per
+      le funzioni image-size()/image-width() durante la build; la libreria non finisce nel bundle
+      runtime servito agli utenti e non elabora mai immagini non fidate. La superficie d'attacco
+      (DoS su immagini malevole) e' quindi inesistente nel nostro contesto.
+
+      Rimuovere questa suppression appena sara' pubblicata una versione corretta di image-size,
+      aggiornando di conseguenza l'override "image-size" in frontend/angular/package.json.
+
+      Riferimenti:
+      https://nvd.nist.gov/vuln/detail/CVE-2025-71319
+      https://nvd.nist.gov/vuln/detail/CVE-2025-71329
+      https://nvd.nist.gov/vuln/detail/CVE-2025-71330
+      ]]></notes>
+      <packageUrl regex="true">^pkg:npm/image-size@.*$</packageUrl>
+      <cve>CVE-2025-71319</cve>
+      <cve>CVE-2025-71329</cve>
+      <cve>CVE-2025-71330</cve>
+   </suppress>
+</suppressions>

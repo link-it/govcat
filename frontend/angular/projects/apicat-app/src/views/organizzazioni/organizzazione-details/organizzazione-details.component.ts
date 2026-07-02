@@ -32,6 +32,7 @@ import { CustomValidators } from '@linkit/validators';
 import { Organizzazione } from './organizzazione';
 import { HasPermissionDirective } from '@app/directives/has-permission/has-permission.directive';
 import { TrimOnBlurDirective } from '@app/directives/trim-on-blur/trim-on-blur.directive';
+import { OrganizzazioneUtentiListComponent } from './organizzazione-utenti-list/organizzazione-utenti-list.component';
 
 @Component({
   selector: 'app-organizzazione-details',
@@ -42,7 +43,8 @@ import { TrimOnBlurDirective } from '@app/directives/trim-on-blur/trim-on-blur.d
     CommonModule,
     ...COMPONENTS_IMPORTS,
     HasPermissionDirective,
-    TrimOnBlurDirective
+    TrimOnBlurDirective,
+    OrganizzazioneUtentiListComponent
   ]
 })
 export class OrganizzazioneDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
@@ -228,9 +230,9 @@ export class OrganizzazioneDetailsComponent implements OnInit, OnChanges, AfterC
             value = data[key] ? data[key] : false;
             _group[key] = new UntypedFormControl({ value: value, disabled: data['vincola_referente'] });
             break;
-          case 'esterna':
+          case 'intermediata':
             value = data[key] ? data[key] : false;
-            _group[key] = new UntypedFormControl({ value: value, disabled: this._isNew ? false : !data['cambio_esterna_consentito'] });
+            _group[key] = new UntypedFormControl({ value: value, disabled: this._isNew ? false : !data['cambio_intermediata_consentito'] });
             break;
           case 'descrizione':
             value = data[key] ? data[key] : null;
@@ -507,9 +509,29 @@ export class OrganizzazioneDetailsComponent implements OnInit, OnChanges, AfterC
     this._formGroup.updateValueAndValidity();
   }
 
-  _toggleEsterna() {
-    this._formGroup.controls.esterna.setValue(!this._formGroup.controls.esterna.value);
-    this._formGroup.controls.esterna.updateValueAndValidity();
+  _toggleIntermediata() {
+    const ctrls = this._formGroup.controls;
+    const next = !ctrls.intermediata.value;
+    ctrls.intermediata.setValue(next);
+    ctrls.intermediata.updateValueAndValidity();
+
+    // Vincolo: un'organizzazione intermediata e` sola anagrafica, non puo`
+    // essere ne` referente ne` aderente. Forziamo entrambi a false (e
+    // azzeriamo il soggetto default come fa `_toggleAderente`). I relativi
+    // toggle vengono disabilitati nel template quando intermediata.
+    if (next) {
+      ctrls.referente?.setValue(false);
+      ctrls.aderente?.setValue(false);
+      if (this.organizzazione) {
+        this.organizzazione.referente = false;
+        this.organizzazione.aderente = false;
+      }
+      this._hideSoggettoDropdown = true;
+      ctrls.id_soggetto_default?.setValue(null);
+      ctrls.referente?.updateValueAndValidity();
+      ctrls.aderente?.updateValueAndValidity();
+      ctrls.id_soggetto_default?.updateValueAndValidity();
+    }
     this._formGroup.updateValueAndValidity();
   }
 

@@ -19,3 +19,647 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 .list-group-item {
   border-color: #eee;
 }
+
+// Rewrite F1 — override locali per `.lnk-vetrina` di profile.
+// La maggior parte dello styling arriva dal globale
+// (`styles/app-view.scss`); qui solo i delta specifici della
+// pagina profilo.
+:host #route-section.lnk-vetrina {
+  // Sticky header (hero + tab nav): durante lo scroll del
+  // `#container-scroller` resta ancorato in cima. Background
+  // allineato al token `--bg` di `.lnk-vetrina` per coprire
+  // il contenuto che scorre sotto (la `.hero` ha gia` il
+  // suo bg --surface, ma serve il fill per le aree tra hero
+  // e tabs e tra tabs e content).
+  .profile-sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.85);
+    // Compensa il `mt-3` (~1rem) del hero, cosi` lo sfondo
+    // copre fino al bordo superiore del container-scroller.
+    margin-top: 0;
+    padding-top: 1px; // evita collassi di margine con `.hero.mt-3`
+    padding-bottom: 4px;
+  }
+
+  // Hero compatta: il profilo ha un solo gravatar, niente
+  // testo lungo -> riduciamo padding e margin-bottom
+  // rispetto al default vetrina.
+  // Grid-template-areas: la riga 2 ospita i chip delle organizzazioni
+  // (`.hero-meta-row` ora fratello diretto di `.hero-meta`/`.hero-img`)
+  // span su tutte le colonne, cosi` su mobile i chip vanno sotto
+  // l'avatar a tutta larghezza.
+  .hero {
+    margin-bottom: 16px;
+    padding: 18px 22px;
+    grid-template-columns: 110px minmax(0, 1fr) max-content;
+    grid-template-areas:
+      "avatar meta actions"
+      "chips  chips chips";
+    transition: padding .18s ease, margin-bottom .18s ease;
+  }
+
+  .hero-img {
+    grid-area: avatar;
+    width: 96px;
+    height: 96px;
+    transition: width .18s ease, height .18s ease;
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: var(--radius-lg, 12px);
+    }
+  }
+
+  .hero-meta {
+    grid-area: meta;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .hero-meta-row {
+    grid-area: chips;
+  }
+
+  .hero-title {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    transition: font-size .18s ease;
+  }
+
+  .hero-eyebrow {
+    letter-spacing: 0.06em;
+    font-size: 11px;
+  }
+
+  .hero-actions {
+    grid-area: actions;
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  // Tab nav: vedi `<lnk-pill-tabs>` (components/lnk-ui/pill-tabs).
+
+  // Mobile (<=720px): avatar piu` piccolo, chips full-width sotto
+  // avatar+meta. Layout 2 colonne con riga 2 dedicata ai chip.
+  @media (max-width: 720px) {
+    .hero {
+      grid-template-columns: 72px minmax(0, 1fr);
+      grid-template-areas:
+        "avatar meta"
+        "chips  chips";
+      padding: 14px 16px;
+      gap: 10px 12px;
+    }
+    .hero-img { width: 72px; height: 72px; }
+    .hero-actions { display: none; }
+    .hero-title { font-size: 18px; }
+  }
+
+  // Stato collapsed (scroll attivo) — solo su mobile: rispetto allo
+  // stato idle si riduce SOLO l'avatar e si nascondono eyebrow/desc.
+  // I chip (hero-meta-row) restano visibili sulla seconda riga del
+  // grid. La posizione della colonna meta resta invariata
+  // (grid-template-columns e gap non cambiano) e il titolo mantiene
+  // la stessa font-size. L'avatar small e` allineato a sinistra
+  // dentro la sua track 72px (`justify-self: start`) cosi` la colonna
+  // meta non scivola.
+  @media (max-width: 720px) {
+    .profile-sticky-header.is-scrolled {
+      .hero {
+        grid-template-columns: 36px minmax(0, 1fr);
+        margin-bottom: 8px;
+      }
+      .hero-img {
+        width: 36px;
+        height: 36px;
+        justify-self: start;
+      }
+      .hero-eyebrow,
+      .hero-desc { display: none; }
+    }
+  }
+}
+
+// Issue 229 multi-org — effetto hover sulle card delle
+// organizzazioni del profilo. Border color affine al primary
+// (stesso colore della card in mode replace/selezionato), ma
+// con tinta piu` chiara per distinguere "passo intermedio /
+// invito al click" dallo "stato selezionato".
+// La card gia` aperta in mode `replace` (`border-primary`) e`
+// esclusa per non sovrascrivere lo stato selezionato.
+.profile-orgs-panel {
+  .card {
+    transition: border-color .15s ease, box-shadow .15s ease;
+    cursor: default;
+  }
+  .card:not(.border-primary):hover {
+    // Tinta affine a Bootstrap primary (#0d6efd) ma piu` soft.
+    border-color: #9ec5fe;
+    box-shadow: 0 0 0 1px rgba(13, 110, 253, .15);
+  }
+}
+
+// Fieldset "Organizzazioni" in fondo al form di edit. Reset dei
+// default browser (border/padding) e legend riportata come heading
+// inline (non scoped come label di gruppo controlli).
+.profile-orgs-fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+
+  .profile-orgs-legend {
+    width: auto;
+    padding: 0;
+    font-weight: 600;
+  }
+}
+
+// Chip neutro per "Nessun ruolo" (associazione senza ruolo
+// assegnato). Stile mutuato da `.chip` (app-view.scss) ma con
+// palette grigia per distinguersi dai chip ruolo (chip-accent/
+// chip-info).
+.chip-no-role {
+  background: #f1f5f9;
+  // A11Y P4: era #64748b su #f1f5f9 (4.42:1, fail AA per 0.08).
+  // Spostato a #475569 (6.93:1, AAA) — chip neutro ma porta
+  // info testuale (ruolo assente), serve leggibilita` piena.
+  color: #475569;
+  border-color: #e2e8f0;
+}
+
+.org-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid var(--gc-line-2);
+  flex-shrink: 0;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+
+  &.active {
+    background: color-mix(in srgb, var(--gc-brand) 14%, white);
+    color: var(--gc-brand-600);
+    border-color: color-mix(in srgb, var(--gc-brand) 30%, white);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Rewrite F4 — Tab "Impostazioni": styling inline per le card
+// "Servizi" (view mode + opzioni) e "Notifiche" (matrix +
+// bulk actions). Niente sub-component, footprint contenuto.
+// ─────────────────────────────────────────────────────────────
+
+// Fallback per le variabili di design (se non ancora globali).
+.pref-stack {
+  --pref-line: var(--gc-line, #e2e8f0);
+  --pref-line-2: var(--gc-line-2, #f1f5f9);
+  --pref-ink: var(--gc-ink, #0f172a);
+  --pref-muted: var(--gc-muted, #64748b);
+  --pref-brand: var(--gc-brand, var(--accent, #1f75cb));
+  --pref-brand-600: var(--gc-brand-600, var(--accent-600, #1858a4));
+  --pref-readonly-bg: var(--gc-readonly-bg, #f8fafc);
+  --pref-radius: var(--gc-radius, 8px);
+  --pref-radius-lg: var(--gc-radius-lg, 12px);
+
+  display: block;
+
+  > * + * { margin-top: 20px; }
+}
+
+.pref-card {
+  background: #fff;
+  border: 1px solid var(--pref-line);
+  border-radius: var(--pref-radius-lg);
+  padding: 24px;
+}
+
+.pref-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+
+  h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--pref-ink);
+  }
+
+  p {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: var(--pref-muted);
+    max-width: 560px;
+  }
+
+  .bulk {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+
+    .link {
+      border: 0;
+      background: transparent;
+      color: var(--pref-muted);
+      cursor: pointer;
+      padding: 0;
+      font-family: inherit;
+      text-underline-offset: 2px;
+
+      &:hover {
+        color: var(--pref-ink);
+        text-decoration: underline;
+      }
+    }
+
+    .dot { color: #cbd5e1; }
+  }
+}
+
+.pref-block + .pref-block { margin-top: 24px; }
+
+.pref-block .block-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 12px;
+
+  .counter {
+    font-size: 11.5px;
+    // A11Y P3: era #94a3b8 (2.57:1 su bianco). Spostato a
+    // #64748b (4.54:1) per passare WCAG AA testo normale.
+    color: #64748b;
+  }
+}
+
+.pref-block .field-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #475569;
+  letter-spacing: 0.01em;
+  margin: 0 0 10px;
+}
+
+// ─── View mode cards ─────────────────────────────────────────
+.view-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.vm {
+  width: 100%;
+  text-align: left;
+  background: #fff;
+  border: 1.5px solid var(--pref-line);
+  border-radius: 12px;
+  padding: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  color: #475569;
+  transition: background .15s, border-color .15s, box-shadow .15s, color .15s;
+
+  &:hover { border-color: #cbd5e1; }
+
+  &.active {
+    border-color: var(--pref-brand);
+    background: color-mix(in srgb, var(--pref-brand) 5%, white);
+    color: var(--pref-brand-600);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--pref-brand) 14%, transparent);
+  }
+
+  .preview {
+    height: 68px;
+    border-radius: 8px;
+    background: var(--pref-readonly-bg);
+    border: 1px solid var(--pref-line-2);
+    display: grid;
+    place-items: center;
+    margin-bottom: 10px;
+    padding: 8px;
+    transition: background .15s, border-color .15s;
+
+    svg { width: 100%; height: 100%; }
+    .bg { fill: #cbd5e1; opacity: .6; }
+    .fg { fill: #94a3b8; opacity: .8; }
+    .mute { fill: #cbd5e1; }
+  }
+
+  &.active .preview {
+    background: color-mix(in srgb, var(--pref-brand) 7%, white);
+    border-color: color-mix(in srgb, var(--pref-brand) 25%, white);
+
+    .bg { fill: var(--pref-brand); opacity: .18; }
+    .fg { fill: var(--pref-brand); opacity: .8; }
+    .mute { fill: #cbd5e1; }
+  }
+
+  .head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .label {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--pref-ink);
+    }
+
+    .dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      background: var(--pref-brand);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 10px;
+    }
+  }
+
+  .desc {
+    margin: 2px 0 0;
+    font-size: 11.5px;
+    line-height: 1.3;
+    color: var(--pref-muted);
+  }
+}
+
+// ─── Option rows (opzioni card 2x2) ──────────────────────────
+.opts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.opt-row {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--pref-radius);
+  border: 1px solid var(--pref-line-2);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .15s, border-color .15s, opacity .15s;
+
+  &:hover:not(:disabled) { border-color: #cbd5e1; }
+
+  &.checked {
+    background: color-mix(in srgb, var(--pref-brand) 4%, white);
+    border-color: color-mix(in srgb, var(--pref-brand) 25%, white);
+  }
+
+  &:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+  }
+
+  .cbx {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 1.5px solid #cbd5e1;
+    background: #fff;
+    flex-shrink: 0;
+    margin-top: 2px;
+    display: inline-grid;
+    place-items: center;
+    color: #fff;
+    font-size: 11px;
+    transition: background .15s, border-color .15s;
+
+    &.on {
+      background: var(--pref-brand);
+      border-color: var(--pref-brand);
+    }
+  }
+
+  .meta {
+    flex: 1;
+    min-width: 0;
+
+    .title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--pref-ink);
+    }
+
+    .info-icon {
+      // A11Y P3: era #94a3b8 (2.57:1). Icona informativa con
+      // tooltip → spostato a #64748b (4.54:1) per AA testo
+      // normale (l'icona ha valore informativo, non decorativo).
+      color: #64748b;
+      font-size: 12px;
+    }
+
+    p {
+      margin: 2px 0 0;
+      font-size: 11.5px;
+      line-height: 1.35;
+      color: var(--pref-muted);
+    }
+  }
+}
+
+// ─── Banner info ─────────────────────────────────────────────
+.pref-card .banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--pref-radius);
+  background: #eff6ff;
+  color: #1e3a8a;
+  border: 1px solid #dbeafe;
+  margin-bottom: 20px;
+
+  p { margin: 0; font-size: 12.5px; line-height: 1.4; }
+  strong { font-weight: 600; }
+}
+
+// ─── Notifiche matrix ────────────────────────────────────────
+.matrix-head {
+  display: grid;
+  grid-template-columns: 1fr 90px 90px;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 8px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--pref-line-2);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  // A11Y P3: era #94a3b8 (2.57:1). Header tabella matrix con
+  // ruolo di intestazione semantica → spostato a #475569
+  // (7.59:1, AAA) per garantire leggibilita` su tutti i device.
+  color: #475569;
+  font-weight: 600;
+
+  span:nth-child(2),
+  span:nth-child(3) { text-align: center; }
+
+  @media (max-width: 720px) { display: none; }
+}
+
+.notify-groups { display: block; }
+
+.notify-group {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--pref-line-2);
+
+  &:last-child { border-bottom: 0; padding-bottom: 0; }
+  &:first-child { padding-top: 0; }
+
+  &.disabled-group {
+    opacity: .6;
+  }
+
+  > header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+
+    .ico {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      flex-shrink: 0;
+      background: color-mix(in srgb, var(--pref-brand) 8%, white);
+      color: var(--pref-brand-600);
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+    }
+
+    h4 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--pref-ink);
+    }
+
+    p {
+      margin: 2px 0 0;
+      font-size: 12.5px;
+      color: var(--pref-muted);
+    }
+  }
+
+  .rows {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-left: 44px;
+
+    @media (max-width: 720px) { padding-left: 0; }
+  }
+
+  .notify-row {
+    display: grid;
+    grid-template-columns: 1fr 90px 90px;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 12px;
+    border-radius: var(--pref-radius);
+
+    &:hover { background: #f8fafc; }
+
+    .label {
+      font-size: 13px;
+      color: #334155;
+    }
+
+    .channel {
+      display: flex;
+      justify-content: center;
+    }
+  }
+
+  .hint {
+    margin: 6px 12px 0;
+    font-size: 11.5px;
+    color: var(--pref-muted);
+  }
+}
+
+// ─── Toggle switch ───────────────────────────────────────────
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin: 0;
+
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+
+    &:disabled + .slider { cursor: not-allowed; opacity: .55; }
+
+    &:checked + .slider {
+      background: var(--pref-brand);
+    }
+
+    &:checked + .slider::before {
+      transform: translateX(16px);
+    }
+  }
+
+  .slider {
+    position: absolute;
+    inset: 0;
+    background: #cbd5e1;
+    border-radius: 999px;
+    transition: background .15s;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, .15);
+      transition: transform .15s;
+    }
+  }
+}

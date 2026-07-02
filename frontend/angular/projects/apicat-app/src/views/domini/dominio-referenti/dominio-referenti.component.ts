@@ -26,7 +26,7 @@ import { TranslateService } from '@ngx-translate/core';
 
 import { COMPONENTS_IMPORTS, ConfigService, Tools, EventsManagerService, SearchBarFormComponent, FieldClass, YesnoDialogBsComponent } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
-import { UtilService } from '@app/services/utils.service';
+import { UtilService, RUOLI_ORG_REFERENTE } from '@app/services/utils.service';
 
 import { Page } from '@app/models/page';
 
@@ -78,6 +78,13 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
 
   _useRoute : boolean = false;
   _useDialog : boolean = true;
+
+  /** True quando i referenti del dominio sono aperti nel contesto
+      della pagina `organizzazione-manage` (route
+      `/organizzazione-manage/:id/domini/:idDominio/referenti`).
+      In tal caso il breadcrumb di ritorno punta a org-manage. */
+  _fromOrgManage: boolean = false;
+  _orgManageId: string | null = null;
 
   _message: string = 'APP.MESSAGE.NoResults';
   _messageHelp: string = 'APP.MESSAGE.NoResultsHelp';
@@ -134,9 +141,21 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
   }
 
   ngOnInit() {
+    // Contesto org-manage: la route e`
+    // `/organizzazione-manage/:id/domini/:idDominio/referenti` con
+    // param dominio `idDominio` (anziche` `id` come nella route
+    // standard `/domini/:id/referenti`). Rilevato via URL.
+    const url = this.router.url || '';
+    this._fromOrgManage = url.includes('/organizzazione-manage/');
+    if (this._fromOrgManage) {
+      const m = url.match(/\/organizzazione-manage\/([^\/]+)/);
+      this._orgManageId = m ? m[1] : null;
+    }
+
     this.route.params.subscribe(params => {
-      if (params['id'] && params['id'] !== 'new') {
-        this.id = params['id'];
+      const dominioId = params['idDominio'] || params['id'];
+      if (dominioId && dominioId !== 'new') {
+        this.id = dominioId;
         this.configService.getConfig('referenti').subscribe(
           (config: any) => {
             this.referentiConfig = config;
@@ -145,7 +164,7 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
           }
         );
       } else {
-        
+
       }
     });
   }
@@ -160,6 +179,18 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
 
   _initBreadcrumb() {
     const _title = this.dominio ? `${this.dominio.nome}` : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
+    if (this._fromOrgManage && this._orgManageId) {
+      // Breadcrumb in contesto org-manage: torna alla pagina
+      // organizzazione-manage (tab "domini") e alla card del dominio.
+      this.breadcrumbs = [
+        { label: '', url: '', type: 'title', iconBs: 'gear' },
+        { label: 'APP.MENU.Organizations', url: `/organizzazioni`, type: 'link' },
+        { label: 'APP.LABEL.Domain', url: `/organizzazione-manage/${this._orgManageId}?tab=domini`, type: 'link' },
+        { label: `${_title}`, url: `/organizzazione-manage/${this._orgManageId}/domini/${this.id}`, type: 'link' },
+        { label: 'APP.TITLE.ServiceReferents', url: ``, type: 'link' }
+      ];
+      return;
+    }
     this.breadcrumbs = [
       { label: '', url: '', type: 'title', iconBs: 'gear' },
       { label: 'APP.LABEL.Domain', url: `/${this.model}`, type: 'link' },
@@ -197,7 +228,7 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
       this.apiService.getDetails(this.model, this.id).subscribe({
         next: (response: any) => {
           this.dominio = response;
-          this._isDominioEsterno = this.dominio?.soggetto_referente?.organizzazione?.esterna || false;
+          this._isDominioEsterno = this.dominio?.soggetto_referente?.organizzazione?.intermediata || false;
           this._idDominioEsterno = this.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
           this._initBreadcrumb();
           this._spin = false;
@@ -313,7 +344,16 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
   }
 
   onBreadcrumb(event: any) {
-    this.router.navigate([event.url]);
+    // Allineato a dominio-details: gli URL del breadcrumb in
+    // contesto org-manage contengono query param (es. `?tab=domini`)
+    // che `router.navigate([url])` non parserizza; usare
+    // `navigateByUrl` nativo.
+    const url: string = event?.url || '';
+    if (url.includes('?')) {
+      this.router.navigateByUrl(url);
+    } else {
+      this.router.navigate([url]);
+    }
   }
 
   _resetScroll() {
@@ -413,9 +453,11 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
         debounceTime(500),
         tap(() => this.referentiLoading = true),
         switchMap((term: any) => {
-          let aux: any = this._isDominioEsterno ? null : this._idDominioEsterno;
-          const referente_tecnico = this.referentiTipo === 'referente_tecnico';
-          return this.utilService.getUtenti(term, this.referentiFilter, 'abilitato', aux, referente_tecnico).pipe(
+          // Issue #284: org del dominio sempre valorizzata e filtro per
+          // ruolo_organizzazione (amm.org/operatore API). Niente piu` filtro
+          // referente_tecnico.
+          const aux: any = this._idDominioEsterno;
+          return this.utilService.getUtenti(term, null, 'abilitato', aux, RUOLI_ORG_REFERENTE).pipe(
             catchError(() => of([])), // empty list on error
             tap(() => this.referentiLoading = false)
           )
@@ -426,7 +468,7 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
 
   loadAnagrafiche() {
     this.anagrafiche['tipo-referente'] = [
-      { nome: 'referente', filter: 'referente_servizio,gestore,coordinatore' },
+      { nome: 'referente', filter: 'utente_organizzazione,gestore,coordinatore' },
       { nome: 'referente_tecnico', filter: '' }
     ];
   }

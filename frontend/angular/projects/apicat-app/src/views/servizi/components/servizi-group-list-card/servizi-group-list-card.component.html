@@ -37,52 +37,57 @@
   <div class="group-list-card-content">
     <div class="group-list-card-body">
       @if (primaryText) {
-        <h5 tabindex="0"
+        <div tabindex="0"
           class="group-list-card-title text-hover cursor-pointer text-break"
           [class.supports-new-tab]="data.tipo !== 'gruppo'"
           [attr.title]="primaryText"
           >
-          {{ primaryText }}@if (enableOpenInNewTab && data.tipo !== 'gruppo') {
-          <span class="open-new-tab-icon bi bi-box-arrow-up-right"
-            [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
-          (click)="onOpenInNewTab($event)"></span>
-        }
-      </h5>
-    }
-    @if (secondaryText) {
-      <p class="group-list-card-text">{{ secondaryText }}</p>
-    }
-    @if (metadata) {
-      <p class="group-list-card-metadata">{{ metadata }}</p>
-    }
-  </div>
+          {{ primaryText }}
+          @if (enableOpenInNewTab && data.tipo !== 'gruppo') {
+            <span class="open-new-tab-icon bi bi-box-arrow-up-right"
+              [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
+            (click)="onOpenInNewTab($event)"></span>
+          }
+        </div>
+      }
+      @if (secondaryText) {
+        <p class="group-list-card-text">{{ secondaryText }}</p>
+      }
+      @if (metadata) {
+        <p class="group-list-card-metadata"
+           [tooltip]="(data?.descrizione_sintetica && data.descrizione_sintetica !== metadata) ? data.descrizione_sintetica : ''"
+           [container]="'body'"
+           [placement]="'auto'"
+           [delay]="300">{{ metadata }}</p>
+      }
+    </div>
 
-  <div class="group-list-card-badges">
-    @if (data.stato) {
-      <ui-data-type class="me-2"
-        [data]="data"
-        [elem]="{ field: 'stato', type: 'label', options: 'status' }"
-        [config]="config">
-      </ui-data-type>
-    }
-    @if (data.visibilita && !isAnonymous) {
-      <ui-data-type
-        [data]="data"
-        [elem]="{ field: 'visibilita', type: 'tag', options: 'visibility' }"
-        [config]="config">
-      </ui-data-type>
-    }
-  </div>
-</div>
-
-@if ((data.tipo === 'gruppo') && showGroupIcon) {
-  <div class="group-list-card-icon">
-    <div class="group-icon-wrapper">
-      <i class="bi bi-folder"></i>
-      @if (showGroupLabel) {
-        <div class="group-icon-label">{{ groupLabel }}</div>
+    <div class="group-list-card-badges">
+      @if (data.stato) {
+        <ui-data-type class="me-2"
+          [data]="data"
+          [elem]="{ field: 'stato', type: 'label', options: 'status' }"
+          [config]="config">
+        </ui-data-type>
+      }
+      @if (data.visibilita && !isAnonymous) {
+        <ui-data-type
+          [data]="data"
+          [elem]="{ field: 'visibilita', type: 'tag', options: 'visibility' }"
+          [config]="config">
+        </ui-data-type>
       }
     </div>
   </div>
-}
+
+  @if ((data.tipo === 'gruppo') && showGroupIcon) {
+    <div class="group-list-card-icon">
+      <div class="group-icon-wrapper">
+        <i class="bi bi-folder"></i>
+        @if (showGroupLabel) {
+          <div class="group-icon-label">{{ groupLabel }}</div>
+        }
+      </div>
+    </div>
+  }
 </div>

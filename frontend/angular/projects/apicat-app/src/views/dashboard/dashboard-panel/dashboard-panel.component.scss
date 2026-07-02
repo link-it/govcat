@@ -102,5 +102,43 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     .comunicazione-non-letta {
       background-color: #f0f4ff;
     }
+
+    .cert-expiry {
+      display: inline-flex;
+      align-items: center;
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 0.15em 0.5em;
+      border-radius: 0.25rem;
+      background-color: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeeba;
+      cursor: help;
+
+      &.cert-expired {
+        background-color: #f8d7da;
+        color: #842029;
+        border-color: #f5c2c7;
+      }
+    }
+
+    // Adesione con errore di auto-configurazione (stato_configurazione_automatica='ko'):
+    // bordo sinistro rosso sulla riga + chip inline accanto ai ruoli.
+    .list-group-item.has-auto-config-error {
+      border-left: 3px solid #dc3545;
+      background-color: rgba(220, 53, 69, 0.04);
+    }
+    .auto-config-error-chip {
+      display: inline-flex;
+      align-items: center;
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 0.15em 0.5em;
+      border-radius: 0.25rem;
+      background-color: #f8d7da;
+      color: #842029;
+      border: 1px solid #f5c2c7;
+      cursor: help;
+    }
   }
 }

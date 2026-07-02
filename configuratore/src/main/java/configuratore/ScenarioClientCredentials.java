@@ -49,18 +49,22 @@ public class ScenarioClientCredentials implements ConfigurazioneScenario{
 	private boolean ignoreConflict;
 	private boolean enableKeycloakGovwayConfiguration;
 	private boolean enableKeycloakBackendConfiguration;
-	
+	private boolean enableKeycloakClientCreation;
+
 	public ScenarioClientCredentials(Invokers invokers, Properties properties) {
 		this.invokers = invokers;
-		
+
 		String ignore = ConfigurazioneScenario.getProperty(properties, "ignoreConflict");
 		this.ignoreConflict = Boolean.valueOf(Objects.requireNonNullElse(ignore, Boolean.FALSE.toString()));
-		
+
 		String enableKeycloak = ConfigurazioneScenario.getProperty(properties, "enableKeycloakBackendConfiguration");
 		this.enableKeycloakBackendConfiguration = Boolean.valueOf(Objects.requireNonNullElse(enableKeycloak, Boolean.FALSE.toString()));
-		
+
 		String enableGovway = ConfigurazioneScenario.getProperty(properties, "enableGovwayClientCredentials");
 		this.enableKeycloakGovwayConfiguration = Boolean.valueOf(Objects.requireNonNullElse(enableGovway, Boolean.FALSE.toString()));
+
+		String enableKcCreation = ConfigurazioneScenario.getProperty(properties, "enableKeycloakClientCreation");
+		this.enableKeycloakClientCreation = Boolean.valueOf(Objects.requireNonNullElse(enableKcCreation, Boolean.TRUE.toString()));
 	}
 	
 	@Override
@@ -72,11 +76,23 @@ public class ScenarioClientCredentials implements ConfigurazioneScenario{
 		return null;
 	}
 
+	/**
+	 * Soggetto sotto cui registrare/cercare l'applicativo (client/richiedente): aderente per le
+	 * erogazioni, fruitore per le fruizioni. Coerente con gli altri scenari (TLS, PDND, Sign).
+	 */
+	private DTOSoggetto getSoggettoApplicativo(GruppoServizio api) {
+		return api.isFruizione() ? api.getSoggettoFruitore() : api.getSoggettoAderente();
+	}
+
 	@Override
 	public Map<String, String> configureClient(DTOClient clientRaw, List<GruppoServizio> apis) throws ConfigurazioneException {
 		OauthClientCredentialsClient client = (OauthClientCredentialsClient) clientRaw;
-		
+
 		try {
+			if (this.enableKeycloakClientCreation && !this.invokers.getKeycloak().clientExists(client.getClientId())) {
+				this.invokers.getKeycloak().createClient(client.getClientId(), client.getNome(), client.getDescrizione());
+			}
+
 			if (this.enableKeycloakGovwayConfiguration) {
 				
 				// ottengo la token policy dalle erogazioni
@@ -91,22 +107,19 @@ public class ScenarioClientCredentials implements ConfigurazioneScenario{
 				if (policy == null)
 					throw new IOException("impossibile individuare la token policy configurata");
 				
+				DTOSoggetto soggetto = apis.isEmpty() ? null : getSoggettoApplicativo(apis.get(0));
+
+				// modiDominio = "interno" se l'organizzazione del soggetto usato e' referente, altrimenti "esterno"
+				String modiDominio = (soggetto != null && soggetto.isReferente()) ? "interno" : "esterno";
+
 				ServizioApplicativo sa = new ServizioApplicativo()
 						.setModalitaAccesso("token")
 						.setNomeApplicativo(client.getNome())
 						.setDescrizione(client.getDescrizione())
 						.setTokenPolicy(policy)
-						.setTokenIdentificativo(client.getClientId());
-				
-				DTOSoggetto soggetto = null;
-				if (!apis.isEmpty()) {
-					if (apis.get(0).isFruizione()) {
-						soggetto = apis.get(0).getSoggettoFruitore();
-					} else {
-						soggetto = apis.get(0).getSoggettoErogatore();
-					}
-				}
-				
+						.setTokenIdentificativo(client.getClientId())
+						.setModiDominio(modiDominio);
+
 				Response response = this.invokers.getConfigInvoker().postServizioApplicativo(sa, soggetto);
 				
 				this.invokers.getConfigInvoker().checkResponse(response, this.ignoreConflict);
@@ -125,10 +138,15 @@ public class ScenarioClientCredentials implements ConfigurazioneScenario{
 	public Map<String, String> configureAPI(DTOClient client, GruppoServizio api) throws ConfigurazioneException {
 		
 		try {
+			// L'applicativo e' stato creato in configureClient sotto il soggetto fruitore (fruizione)
+			// o aderente (erogazione): la GET deve usare lo stesso soggetto e profilo per ritrovarlo.
+			DTOSoggetto soggettoApplicativo = getSoggettoApplicativo(api);
+
 			Applicativo applicativo = invokers.getConfigInvoker().getServizioApplicativo(
 					client.getNome(),
-					api.getProfilo());
-			
+					soggettoApplicativo.getNomeGateway(),
+					soggettoApplicativo.getTipoGateway());
+
 			AuthenticationToken authToken = applicativo.getCredenziali();
 			
 			// controllo che l'autenticazione gestione token sia abilitata e la policy coincida con quella dell'applicativo
@@ -151,8 +169,10 @@ public class ScenarioClientCredentials implements ConfigurazioneScenario{
 	
 			if (!authorization.getAutorizzazione().getTokenRichiedente().booleanValue())
 				throw new IOException("autorizzazione non impostata in modalita token richiedente");
-			
-			Response response = this.invokers.getConfigInvoker().postApplicativoToServizioToken(api, client.getNome());
+
+			// L'applicativo risiede sotto il soggetto aderente/fruitore, che puo' differire dal
+			// soggetto dell'erogazione: va indicato esplicitamente nel binding per essere risolto.
+			Response response = this.invokers.getConfigInvoker().postApplicativoToServizioToken(api, client.getNome(), soggettoApplicativo.getNomeGateway());
 			
 			this.invokers.getConfigInvoker().checkResponse(response, this.ignoreConflict);
 		} catch (IOException | TemplateException e) {

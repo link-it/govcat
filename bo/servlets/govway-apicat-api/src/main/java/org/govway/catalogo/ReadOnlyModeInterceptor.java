@@ -89,6 +89,14 @@ public class ReadOnlyModeInterceptor implements HandlerInterceptor {
 
 		log.debug("Path originale: {}, contextPath: {}, pathSenzaContext: {}", path, contextPath, pathSenzaContext);
 
+		// Endpoint di sistema sempre accessibili (anche in modalità anonima/vetrina): viene
+		// invocato dal modulo web in fase di render dell'index.jsp, prima dell'autenticazione,
+		// per costruire dinamicamente la direttiva connect-src della Content-Security-Policy.
+		if ("/tools/csp-allowed-hosts".equals(pathSenzaContext)) {
+			log.debug("Operazione {} {} consentita: endpoint di sistema CSP", method, pathSenzaContext);
+			return true;
+		}
+
 		// Utenti JWT-autenticati ma non registrati possono accedere solo agli endpoint di registrazione
 		if (accessoJwtNonRegistrato) {
 			if (pathSenzaContext.startsWith("/registrazione") || pathSenzaContext.equals("/profilo")) {

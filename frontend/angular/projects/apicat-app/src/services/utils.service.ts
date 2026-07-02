@@ -33,6 +33,17 @@ import moment from 'moment';
 import { FormGroup, Validators } from '@angular/forms';
 
 import { TipiCertificato, TipoCertificatoEnum } from '@app/views/adesioni/adesione-configurazioni/certificato.model';
+import { RuoloOrganizzazioneEnum } from '@app/model/ruoloOrganizzazioneEnum';
+
+/**
+ * Issue #284: ruoli (nell'organizzazione) ammessi come referente/referente
+ * tecnico. Usato come valore del parametro `ruolo_organizzazione` di
+ * `GET /utenti` nelle select dei referenti (richiede sempre `id_organizzazione`).
+ */
+export const RUOLI_ORG_REFERENTE: RuoloOrganizzazioneEnum[] = [
+  RuoloOrganizzazioneEnum.AmministratoreOrganizzazione,
+  RuoloOrganizzazioneEnum.OperatoreApi
+];
 
 export type Certificato = {
     file?: boolean;
@@ -75,12 +86,19 @@ export class UtilService {
     private readonly modalService: BsModalService,
   ) { }
 
-  getUtenti(term: string | null = null, role: string | null = null, stato: string = 'abilitato', organizzazione: string | null = null, referenteTecnico: boolean = false): Observable<any> {
+  getUtenti(term: string | null = null, role: string | null = null, stato: string = 'abilitato', organizzazione: string | null = null, ruoliOrganizzazione: string[] = []): Observable<any> {
     const _options: any = { params: { q: term } };
     if (role) { _options.params.ruolo = role; }
     if (stato) { _options.params.stato = stato; }
-    if (organizzazione && !referenteTecnico) { _options.params.id_organizzazione = organizzazione; }
-    if (referenteTecnico) { _options.params.referente_tecnico = true; }
+    // Issue #284: `id_organizzazione` va passato SEMPRE (anche per i referenti
+    // tecnici), perche` e` requisito del nuovo filtro `ruolo_organizzazione`.
+    // `ruolo_organizzazione` viene aggiunto SOLO se c'e` l'organizzazione
+    // (altrimenti il BE risponde 400): se l'org non e` nota la select non filtra.
+    // Il filtro `referente_tecnico` non e` piu` usato per la ricerca referenti.
+    if (organizzazione) {
+      _options.params.id_organizzazione = organizzazione;
+      if (ruoliOrganizzazione?.length) { _options.params.ruolo_organizzazione = ruoliOrganizzazione; }
+    }
 
     return this.apiService.getList('utenti', _options)
       .pipe(map(resp => {

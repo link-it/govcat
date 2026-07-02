@@ -44,6 +44,30 @@ describe('OpenAPIService', () => {
       service.getList('servizi', undefined, 'http://host/api/v1/servizi?page=2&size=10').subscribe();
       expect(mockApiClient.get).toHaveBeenCalledWith(expect.stringContaining('?page=2&size=10'), undefined);
     });
+
+    it('should normalize links array into _links keyed by rel (paginazione)', () => {
+      mockApiClient.get.mockReturnValue(of({
+        content: [],
+        links: [
+          { rel: 'self', href: 'http://h/servizi?page=0' },
+          { rel: 'next', href: 'http://h/servizi?page=1' },
+          { rel: 'last', href: 'http://h/servizi?page=1' }
+        ]
+      }));
+      let resp: any;
+      service.getList('servizi').subscribe(r => { resp = r; });
+      expect(resp._links).toBeDefined();
+      expect(resp._links.next.href).toBe('http://h/servizi?page=1');
+      expect(resp._links.self.href).toBe('http://h/servizi?page=0');
+    });
+
+    it('should not override an existing _links object', () => {
+      const existing = { next: { href: '/already' } };
+      mockApiClient.get.mockReturnValue(of({ content: [], _links: existing, links: [{ rel: 'next', href: '/other' }] }));
+      let resp: any;
+      service.getList('servizi').subscribe(r => { resp = r; });
+      expect(resp._links).toBe(existing);
+    });
   });
 
   describe('getListPDND', () => {
@@ -57,6 +81,22 @@ describe('OpenAPIService', () => {
         expect(val).toBeNull();
       });
       expect(mockApiClient.getPDND).not.toHaveBeenCalled();
+    });
+
+    it('should normalize links array (paginazione)', () => {
+      mockApiClient.getPDND.mockReturnValue(of({ content: [], links: [{ rel: 'next', href: '/p?page=1' }] }));
+      let resp: any;
+      service.getListPDND('eservices').subscribe(r => { resp = r; });
+      expect(resp._links?.next?.href).toBe('/p?page=1');
+    });
+  });
+
+  describe('getMonitor', () => {
+    it('should normalize links array (paginazione)', () => {
+      mockApiClient.getMonitor.mockReturnValue(of({ content: [], links: [{ rel: 'next', href: '/m?page=1' }] }));
+      let resp: any;
+      service.getMonitor('transazioni').subscribe(r => { resp = r; });
+      expect(resp._links?.next?.href).toBe('/m?page=1');
     });
   });
 

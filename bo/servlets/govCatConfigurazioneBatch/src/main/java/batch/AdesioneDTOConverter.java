@@ -53,6 +53,7 @@ import org.govway.catalogo.core.orm.entity.ClientEntity;
 import org.govway.catalogo.core.orm.entity.ClientEntity.AuthType;
 import org.govway.catalogo.core.orm.entity.EstensioneAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
+import org.govway.catalogo.core.orm.entity.SoggettoEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +61,7 @@ public class AdesioneDTOConverter {
 
 	private static final Logger logger = LoggerFactory.getLogger(AdesioneDTOConverter.class);
 
-	String externalPath;
+	String configurazioneJsonPath;
 	AdesioneEntity adesione;
 	DTOAdesione dto;
 
@@ -78,9 +79,9 @@ public class AdesioneDTOConverter {
 	private static final String NOME_APPLICAZIONE = "nome_applicazione";
 	private static final String HELP_DESK = "help_desk";
 	
-	AdesioneDTOConverter(AdesioneEntity adesione, String externalPath) {
+	AdesioneDTOConverter(AdesioneEntity adesione, String configurazioneJsonPath) {
 		this.adesione = adesione;
-		this.externalPath = externalPath;
+		this.configurazioneJsonPath = configurazioneJsonPath;
 	}
 
 	public void setDto(DTOAdesione dto) {
@@ -109,11 +110,20 @@ public class AdesioneDTOConverter {
 	}
 
 	void setSoggetti() {
-		dto.setSoggettoErogatore(new DTOSoggetto(this.soggettoDTOFactory.getNomeGateway(adesione.getServizio().getDominio().getSoggettoReferente()), this.soggettoDTOFactory.getTipoGateway(adesione.getServizio().getDominio().getSoggettoReferente())));
-		dto.setSoggettoAderente(new DTOSoggetto(this.soggettoDTOFactory.getNomeGateway(adesione.getSoggetto()), this.soggettoDTOFactory.getTipoGateway(adesione.getSoggetto())));
-		
-		if(adesione.getServizio().getSoggettoInterno()!=null) {
-			dto.setSoggettoFruitore(new DTOSoggetto(this.soggettoDTOFactory.getNomeGateway(adesione.getServizio().getSoggettoInterno()), this.soggettoDTOFactory.getTipoGateway(adesione.getServizio().getSoggettoInterno())));
+		SoggettoEntity aderente = adesione.getSoggetto();
+		dto.setSoggettoAderente(new DTOSoggetto(this.soggettoDTOFactory.getNomeGateway(aderente), this.soggettoDTOFactory.getTipoGateway(aderente), this.soggettoDTOFactory.isOrganizzazioneReferente(aderente)));
+
+		if(adesione.getServizio().isFruizione()) {
+			// Fruizione: erogatore GovWay = ente erogatore (provider) indicato sul servizio;
+			// fruitore GovWay = soggetto interno = referente del dominio.
+			SoggettoEntity erogatore = adesione.getServizio().getSoggettoErogatore();
+			SoggettoEntity fruitore = adesione.getServizio().getDominio().getSoggettoReferente();
+			dto.setSoggettoErogatore(new DTOSoggetto(this.soggettoDTOFactory.getNomeGateway(erogatore), this.soggettoDTOFactory.getTipoGateway(erogatore), this.soggettoDTOFactory.isOrganizzazioneReferente(erogatore)));
+			dto.setSoggettoFruitore(new DTOSoggetto(this.soggettoDTOFactory.getNomeGateway(fruitore), this.soggettoDTOFactory.getTipoGateway(fruitore), this.soggettoDTOFactory.isOrganizzazioneReferente(fruitore)));
+		} else {
+			// Erogazione: erogatore = referente del dominio; nessun fruitore.
+			SoggettoEntity erogatore = adesione.getServizio().getDominio().getSoggettoReferente();
+			dto.setSoggettoErogatore(new DTOSoggetto(this.soggettoDTOFactory.getNomeGateway(erogatore), this.soggettoDTOFactory.getTipoGateway(erogatore), this.soggettoDTOFactory.isOrganizzazioneReferente(erogatore)));
 		}
 	}
 
@@ -138,7 +148,7 @@ public class AdesioneDTOConverter {
 		List<EstensioneAdesioneEntity> estensioni = adesione.getEstensioni().stream().filter(e -> ((e.getApi() == null) == (api == null))).collect(Collectors.toList());
 		for (EstensioneAdesioneEntity estensione : estensioni) {
 			String gruppo = estensione.getGruppo();
-			ConfigurazioneReader confReader = new ConfigurazioneReader(externalPath);
+			ConfigurazioneReader confReader = new ConfigurazioneReader(configurazioneJsonPath);
 			String classeDato = null;
 			classeDato = confReader.getClasseDatoAdesione(gruppo);
 			if (classeDato.equals(ambienteConfigurazione.toString().toLowerCase()) ||

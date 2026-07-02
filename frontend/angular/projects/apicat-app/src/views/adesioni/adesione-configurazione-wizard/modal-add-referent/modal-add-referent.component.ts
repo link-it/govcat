@@ -26,7 +26,7 @@ import { COMPONENTS_IMPORTS } from '@linkit/components';
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 
 import { OpenAPIService } from '@services/openAPI.service';
-import { UtilService } from '@app/services/utils.service';
+import { UtilService, RUOLI_ORG_REFERENTE } from '@app/services/utils.service';
 
 import { of, Subject } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
@@ -111,7 +111,7 @@ export class ModalAddReferentComponent implements OnInit {
     
     onChangeTipoReferente(event: any) {
         this.referentiTipo = event.value;
-        this.referentiFilter = (this.referentiTipo === 'referente') ? 'referente_servizio,gestore,coordinatore' : '';
+        this.referentiFilter = (this.referentiTipo === 'referente') ? 'utente_organizzazione,gestore,coordinatore' : '';
     }
 
     loadAnagrafiche() {
@@ -138,13 +138,12 @@ export class ModalAddReferentComponent implements OnInit {
             return of([]);
         }
 
+        // Issue #284: org sempre valorizzata + filtro per ruolo_organizzazione
+        // (amm.org/operatore API), per referenti e referenti tecnici.
         const _options: any = { params: { q: term } };
         _options.params.stato = 'abilitato';
-        if (this.referentiTipo === 'referente') {
-            _options.params.id_organizzazione = this.adesione.soggetto.organizzazione.id_organizzazione;
-        } else {
-            _options.params.referente_tecnico = true;
-        }
+        _options.params.id_organizzazione = this.adesione?.soggetto?.organizzazione?.id_organizzazione;
+        _options.params.ruolo_organizzazione = RUOLI_ORG_REFERENTE;
     
         return this.apiService.getList('utenti', _options)
             .pipe(map(resp => {

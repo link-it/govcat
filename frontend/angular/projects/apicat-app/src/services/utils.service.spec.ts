@@ -380,19 +380,27 @@ describe('UtilService', () => {
       }));
     });
 
-    it('should add organizzazione when not referenteTecnico', () => {
+    it('should add id_organizzazione when provided', () => {
       mockApiService.getList.mockReturnValue(of({ content: [] }));
-      service.getUtenti(null, null, 'abilitato', 'org1', false).subscribe();
+      service.getUtenti(null, null, 'abilitato', 'org1').subscribe();
       expect(mockApiService.getList).toHaveBeenCalledWith('utenti', expect.objectContaining({
         params: expect.objectContaining({ id_organizzazione: 'org1' })
       }));
     });
 
-    it('should add referente_tecnico flag', () => {
+    it('should add ruolo_organizzazione only when id_organizzazione present (Issue #284)', () => {
       mockApiService.getList.mockReturnValue(of({ content: [] }));
-      service.getUtenti(null, null, 'abilitato', 'org1', true).subscribe();
+      service.getUtenti(null, null, 'abilitato', 'org1', ['amministratore_organizzazione', 'operatore_api']).subscribe();
       const callParams = mockApiService.getList.mock.calls[0][1].params;
-      expect(callParams.referente_tecnico).toBe(true);
+      expect(callParams.ruolo_organizzazione).toEqual(['amministratore_organizzazione', 'operatore_api']);
+      expect(callParams.id_organizzazione).toBe('org1');
+    });
+
+    it('should not add ruolo_organizzazione without id_organizzazione (Issue #284)', () => {
+      mockApiService.getList.mockReturnValue(of({ content: [] }));
+      service.getUtenti(null, null, 'abilitato', null, ['amministratore_organizzazione', 'operatore_api']).subscribe();
+      const callParams = mockApiService.getList.mock.calls[0][1].params;
+      expect(callParams.ruolo_organizzazione).toBeUndefined();
       expect(callParams.id_organizzazione).toBeUndefined();
     });
   });

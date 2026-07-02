@@ -23,8 +23,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Ruolo;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Stato;
+import org.govway.catalogo.servlets.model.RuoloOrganizzazioneEnum;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnumSearch;
 import org.govway.catalogo.servlets.model.StatoUtenteEnum;
@@ -63,11 +65,11 @@ public class UtenteEngineAssembler extends CoreEngineAssembler {
 		switch(ruolo) {
 		case AMMINISTRATORE: return RuoloUtenteEnum.GESTORE;
 		case COORDINATORE: return RuoloUtenteEnum.COORDINATORE;
-		case REFERENTE_SERVIZIO: return RuoloUtenteEnum.REFERENTE_SERVIZIO;
+		case RUOLO_ORGANIZZAZIONE: return RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE;
 		default:
 			break;
 		}
-		
+
 		return null;
 	}
 
@@ -75,22 +77,22 @@ public class UtenteEngineAssembler extends CoreEngineAssembler {
 		if(ruolo == null || ruolo.isEmpty()) {
 			return null;
 		}
-		
+
 		List<Ruolo> r = new ArrayList<>();
-		
+
 		for(RuoloUtenteEnumSearch rr: ruolo) {
 			switch(rr) {
 			case GESTORE: r.add(Ruolo.AMMINISTRATORE);
 				break;
 			case COORDINATORE: r.add(Ruolo.COORDINATORE);
-			break;
-			case REFERENTE_SERVIZIO: r.add(Ruolo.REFERENTE_SERVIZIO);
+				break;
+			case UTENTE_ORGANIZZAZIONE: r.add(Ruolo.RUOLO_ORGANIZZAZIONE);
 				break;
 			default:
 				break;
 			}
 		}
-		
+
 		return r;
 	}
 
@@ -98,10 +100,29 @@ public class UtenteEngineAssembler extends CoreEngineAssembler {
 		switch(ruolo) {
 		case GESTORE: return Ruolo.AMMINISTRATORE;
 		case COORDINATORE: return Ruolo.COORDINATORE;
-		case REFERENTE_SERVIZIO: return Ruolo.REFERENTE_SERVIZIO;
+		case UTENTE_ORGANIZZAZIONE: return Ruolo.RUOLO_ORGANIZZAZIONE;
 		}
-		
+
 		return null;
+	}
+
+	public List<RuoloOrganizzazione> toRuoloOrganizzazioneEntity(List<RuoloOrganizzazioneEnum> ruoli) {
+		if(ruoli == null || ruoli.isEmpty()) {
+			return null;
+		}
+
+		List<RuoloOrganizzazione> r = new ArrayList<>();
+
+		for(RuoloOrganizzazioneEnum rr: ruoli) {
+			switch(rr) {
+			case AMMINISTRATORE_ORGANIZZAZIONE: r.add(RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+				break;
+			case OPERATORE_API: r.add(RuoloOrganizzazione.OPERATORE_API);
+				break;
+			}
+		}
+
+		return r;
 	}
 
 }

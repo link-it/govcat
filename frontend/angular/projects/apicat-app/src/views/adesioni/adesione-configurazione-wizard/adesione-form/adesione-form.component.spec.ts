@@ -47,6 +47,7 @@ describe('AdesioneFormComponent', () => {
     canEdit: vi.fn().mockReturnValue(true),
     canDownloadSchedaAdesione: vi.fn().mockReturnValue(true),
     getCurrentSession: vi.fn().mockReturnValue(null),
+    getCurrentOrganization: vi.fn().mockReturnValue(null),
   } as any;
   const mockUtils = {
     GetErrorMsg: vi.fn().mockReturnValue('Error'),
@@ -63,8 +64,7 @@ describe('AdesioneFormComponent', () => {
     savedConfigurazione = Tools.Configurazione;
     Tools.Configurazione = null;
     component = new AdesioneFormComponent(
-      mockRoute, mockRouter, mockFb, mockTranslate,
-      mockApiService, mockAuthService, mockUtils
+      mockFb, mockApiService, mockAuthService, mockUtils
     );
   });
 
@@ -101,9 +101,6 @@ describe('AdesioneFormComponent', () => {
     expect(component.isWeb).toBe(false);
     expect(component.debugMandatoryFields).toBe(false);
     expect(component.limit).toBe(500);
-    expect(component.isDominioEsterno).toBe(false);
-    expect(component.idDominioEsterno).toBeNull();
-    expect(component.idSoggettoDominioEsterno).toBeNull();
     expect(component.scelta_libera_organizzazione).toBe(false);
     expect(component.hideSoggettoDropdown).toBe(true);
     expect(component.hideSoggettoInfo).toBe(true);
@@ -539,40 +536,27 @@ describe('AdesioneFormComponent', () => {
 
   // -------- onChangeServizio --------
 
-  it('onChangeServizio should set isDominioEsterno for external dominio', async () => {
+  it('onChangeServizio should NOT force organizzazione from the service', async () => {
     component.initForm();
     const event = {
       item: {
-        dominio: { soggetto_referente: { organizzazione: { esterna: true, id_organizzazione: 'EXT1' }, id_soggetto: 'SE1' } },
-        soggetto_interno: { organizzazione: { id_organizzazione: 'INT1', nome: 'IntOrg' }, id_soggetto: 'SI1' },
+        dominio: { soggetto_referente: { organizzazione: { intermediata: true, id_organizzazione: 'EXT1' }, id_soggetto: 'SE1' } },
+        soggetto_erogatore: { organizzazione: { id_organizzazione: 'INT1', nome: 'IntOrg' }, id_soggetto: 'SI1' },
         multi_adesione: false
       }
     };
     await component.onChangeServizio(event);
-    expect(component.isDominioEsterno).toBe(true);
-    expect(component.hideSoggettoDropdown).toBe(true);
-  });
-
-  it('onChangeServizio should handle non-external dominio', async () => {
-    component.initForm();
-    component.profilo = { utente: { ruolo: 'gestore', organizzazione: null } } as any;
-    const event = {
-      item: {
-        dominio: { soggetto_referente: { organizzazione: { esterna: false } } },
-        multi_adesione: false
-      }
-    };
-    await component.onChangeServizio(event);
-    expect(component.isDominioEsterno).toBe(false);
+    // L'organizzazione (fruitore) non viene derivata/forzata dall'erogatore
+    // del servizio: resta gestita dal contesto di sessione o dall'utente.
+    expect(component.formGroup.get('id_organizzazione')?.value).not.toBe('INT1');
   });
 
   // -------- checkSoggetto --------
 
   it('checkSoggetto should reset form when event is null', () => {
     component.initForm();
-    component.idSoggettoDominioEsterno = 'EXT_SOG';
     component.checkSoggetto(null);
-    expect(component.formGroup.get('id_soggetto')?.value).toBe('EXT_SOG');
+    expect(component.formGroup.get('id_soggetto')?.value).toBeNull();
     expect(component.elencoSoggetti).toEqual([]);
     expect(component.hideSoggettoDropdown).toBe(true);
   });
@@ -615,11 +599,12 @@ describe('AdesioneFormComponent', () => {
 
   // -------- loadProfilo --------
 
-  it('loadProfilo should load organizzazione when profilo has org and not scelta_libera', () => {
+  it('loadProfilo should load organizzazione when current org exists and not scelta_libera', () => {
     component.scelta_libera_organizzazione = false;
     mockAuthService.getCurrentSession.mockReturnValue({
-      utente: { ruolo: 'referente', organizzazione: { id_organizzazione: 'O1' } }
+      utente: { ruolo: 'referente' }
     });
+    mockAuthService.getCurrentOrganization.mockReturnValue({ id_organizzazione: 'O1' });
     mockApiService.getList.mockReturnValue(of({ content: [{ organizzazione: { id_organizzazione: 'O1', nome: 'Org' } }] }));
     component.loadProfilo();
     expect(mockApiService.getList).toHaveBeenCalledWith('soggetti', { params: { id_organizzazione: 'O1' } });
@@ -628,9 +613,33 @@ describe('AdesioneFormComponent', () => {
   it('loadProfilo should not load organizzazione for gestore', () => {
     component.scelta_libera_organizzazione = false;
     mockAuthService.getCurrentSession.mockReturnValue({
-      utente: { ruolo: 'gestore', organizzazione: null }
+      utente: { ruolo: 'gestore' }
     });
+    mockAuthService.getCurrentOrganization.mockReturnValue({ id_organizzazione: 'O1' });
     component.loadProfilo();
     expect(mockApiService.getList).not.toHaveBeenCalled();
+  });
+
+  describe('checkSoggetto con abilita_selezione_soggetto=false', () => {
+    beforeEach(() => {
+      component.generalConfig = { adesione: { abilita_selezione_soggetto: false } } as any;
+      component.formGroup = buildFormGroup();
+      // 2 soggetti -> ramo "selezione disabilitata o singolo" (else)
+      mockApiService.getData.mockReturnValue(of([{ id_soggetto: 'DEF' }, { id_soggetto: 'B' }]));
+    });
+
+    it('servizio NON intermediato: seleziona il soggetto_default dell\'organizzazione', () => {
+      component.servizio = { fruizione: false } as any;
+      component.checkSoggetto({ item: { soggetto_default: { id_soggetto: 'DEF', nome: 'Default' } } });
+      expect(component.formGroup.controls['id_soggetto'].value).toBe('DEF');
+      expect(component.formGroup.controls['soggetto_nome'].value).toBe('Default');
+    });
+
+    it('servizio intermediato: seleziona il soggetto referente del dominio del servizio', () => {
+      component.servizio = { fruizione: true, dominio: { soggetto_referente: { id_soggetto: 'SR1', nome: 'Ref Dominio' } } } as any;
+      component.checkSoggetto({ item: { soggetto_default: { id_soggetto: 'DEF', nome: 'Default' } } });
+      expect(component.formGroup.controls['id_soggetto'].value).toBe('SR1');
+      expect(component.formGroup.controls['soggetto_nome'].value).toBe('Ref Dominio');
+    });
   });
 });

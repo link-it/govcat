@@ -66,19 +66,16 @@ import org.govway.catalogo.core.dao.specifications.ServizioSpecification;
 import org.govway.catalogo.core.dao.specifications.ServizioSpecification.TipoMieiServizi;
 import org.govway.catalogo.core.dao.specifications.ServizioSpecificationUtils;
 import org.govway.catalogo.core.dao.specifications.TagSpecification;
-import org.govway.catalogo.core.orm.entity.AdesioneEntity;
 import org.govway.catalogo.core.orm.entity.AllegatoServizioEntity;
 import org.govway.catalogo.core.orm.entity.AllegatoServizioEntity.VISIBILITA;
 import org.govway.catalogo.core.orm.entity.CategoriaEntity;
-import org.govway.catalogo.core.orm.entity.ClasseUtenteEntity;
 import org.govway.catalogo.core.orm.entity.DocumentoEntity;
 import org.govway.catalogo.core.orm.entity.GruppoEntity;
 import org.govway.catalogo.core.orm.entity.MessaggioServizioEntity;
 import org.govway.catalogo.core.orm.entity.NotificaEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.PackageServizioEntity;
-import org.govway.catalogo.core.orm.entity.ReferenteAdesioneEntity;
-import org.govway.catalogo.core.orm.entity.ReferenteDominioEntity;
+import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.ReferenteServizioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioGruppoEntity;
@@ -88,6 +85,7 @@ import org.govway.catalogo.core.orm.entity.StatoServizioEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.TagEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
+import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity;
 import org.govway.catalogo.core.services.GruppoService;
 import org.govway.catalogo.core.services.NotificaService;
 import org.govway.catalogo.core.services.OrganizzazioneService;
@@ -405,51 +403,55 @@ public class ServiziController implements ServiziApi {
 		}
 		
 		for(ReferenteServizioEntity referenteEntity: servizioEntity.getReferenti()) {
-			
+
 			boolean admin = this.coreAuthorization.isAdmin(referenteEntity.getReferente());
-			
-			if(!admin) {
-				if(referenteEntity.getTipo().equals(TIPO_REFERENTE.REFERENTE) && !organizzazione.equals(referenteEntity.getReferente().getOrganizzazione())) {
-					if(referenteEntity.getReferente().getOrganizzazione()!=null) {
-						throw new NotAuthorizedException(ErrorCode.AUT_403);
-					} else {
-						throw new NotAuthorizedException(ErrorCode.AUT_403_RESOURCE, Map.of("resource", servizioEntity.getNome() + " v" + servizioEntity.getVersione()));
-					}
-				}
-				
+
+			if(!admin && !this.organizzazioneService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
+				throw new NotAuthorizedException(ErrorCode.AUT_403_RESOURCE,
+						Map.of("resource", servizioEntity.getNome() + " v" + servizioEntity.getVersione()));
+			}
+
+			if(!admin && !this.organizzazioneService.hasRuoloInOrganizzazione(referenteEntity.getReferente(), organizzazione, RuoloOrganizzazione.OPERATORE_API, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
+				throw new NotAuthorizedException(ErrorCode.AUT_403_REFERENT_NO_ROLE,
+						Map.of("orgNome", organizzazione.getNome(),
+								"userIdUtente", referenteEntity.getReferente().getIdUtente()));
 			}
 		}
 	}
-	
+
 	private void checkReferente(ReferenteServizioEntity referenteEntity) {
 
-		
+
 		if(referenteEntity.getServizio().is_package()) {
 			for(PackageServizioEntity componente: referenteEntity.getServizio().getComponenti()) {
 				if(!componente.getServizio().getReferenti().stream().filter(r -> r.getReferente().equals(referenteEntity.getReferente())).findAny().isPresent()) {
-					throw new NotAuthorizedException(ErrorCode.AUT_401_TOKEN);					
+					throw new NotAuthorizedException(ErrorCode.AUT_401_TOKEN);
 				}
 			}
 		}
-		
+
 		OrganizzazioneEntity organizzazione = referenteEntity.getServizio().getDominio().getSoggettoReferente().getOrganizzazione();
 		if(referenteEntity.getServizio().isFruizione()) {
 			return;
 		}
-		
-		if(referenteEntity.getTipo().equals(TIPO_REFERENTE.REFERENTE_TECNICO)) {
+
+		if (this.coreAuthorization.isAdmin(referenteEntity.getReferente())) {
 			return;
 		}
-		
-		if(!organizzazione.equals(referenteEntity.getReferente().getOrganizzazione())) {
-			if(referenteEntity.getReferente().getOrganizzazione()!=null) {
-			throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISMATCH, Map.of("orgNome", organizzazione.getNome(), "userIdUtente", referenteEntity.getReferente().getIdUtente(), "userOrgNome", referenteEntity.getReferente().getOrganizzazione().getNome()));
-			} else {
-			throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING, Map.of("orgNome", organizzazione.getNome(), "userIdUtente", referenteEntity.getReferente().getIdUtente()));
-			}
+
+		if (!this.organizzazioneService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
+			throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING,
+					Map.of("orgNome", organizzazione.getNome(),
+							"userIdUtente", referenteEntity.getReferente().getIdUtente()));
 		}
-		
-		
+
+		if (!this.organizzazioneService.hasRuoloInOrganizzazione(referenteEntity.getReferente(), organizzazione, RuoloOrganizzazione.OPERATORE_API, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
+			throw new NotAuthorizedException(ErrorCode.AUT_403_REFERENT_NO_ROLE,
+					Map.of("orgNome", organizzazione.getNome(),
+							"userIdUtente", referenteEntity.getReferente().getIdUtente()));
+		}
+
+
 	}
 
 
@@ -1005,7 +1007,7 @@ public class ServiziController implements ServiziApi {
 				this.logger.debug("Autorizzazione completata con successo");
 
 				if(servizioUpdate.getIdentificativo()!= null) {
-					boolean nomeCambiato = !entity.getNome().equals(servizioUpdate.getIdentificativo().getNome());
+					boolean nomeCambiato = !entity.getNome().equalsIgnoreCase(servizioUpdate.getIdentificativo().getNome());
 					boolean versioneCambiata = !entity.getVersione().equals(servizioUpdate.getIdentificativo().getVersione());
 
 					if(nomeCambiato || versioneCambiata) {
@@ -1156,11 +1158,12 @@ public class ServiziController implements ServiziApi {
 	}
 
 	@Override
-	public ResponseEntity<PagedModelItemServizio> listServizi(String referente, UUID idDominio, UUID idGruppo, VisibilitaServizioEnum visibilita, UUID idApi,
+	public ResponseEntity<PagedModelItemServizio> listServizi(String referente, UUID idDominio, UUID idOrganizzazioneErogatore, UUID idGruppo, VisibilitaServizioEnum visibilita, UUID idApi,
 			List<String> stato, List<String> categoria, List<String> tag, List<String> profilo, Boolean inAttesa, Boolean mieiServizi, List<RuoloReferenteEnum> ruoloReferente, Boolean dashboard, Boolean adesioneConsentita, String nome, String versione, List<UUID> idServizi, Boolean _package, TipoServizio tipo, String q, Integer page, Integer size, List<String> sort) {
 		try {
-			this.logger.info("Invocazione in corso ...");     
+			this.logger.info("Invocazione in corso ...");
 			return this.service.runTransaction( () -> {
+
 				this.servizioAuthorization.authorizeList();
 				// Controllo se l'utente è anonimo
 	            boolean anounymous = this.coreAuthorization.isAnounymous();
@@ -1170,6 +1173,7 @@ public class ServiziController implements ServiziApi {
 				ServizioSpecification specification = new ServizioSpecification();
 				specification.setStatiAderibili(this.configurazione.getServizio().getStatiAdesioneConsentita());
 				specification.setDominio(Optional.ofNullable(idDominio));
+				specification.setIdOrganizzazioneErogatore(Optional.ofNullable(idOrganizzazioneErogatore));
 				specification.setIdApi(Optional.ofNullable(idApi));
 				specification.setIdServizi(idServizi);
 				specification.set_package(Optional.ofNullable(_package));
@@ -1307,22 +1311,34 @@ public class ServiziController implements ServiziApi {
 					if(!anounymous) {
 						UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
 
-						// Gestione dashboard in base al ruolo
+						// Clausola comune: ogni utente vede sempre in dashboard i PROPRI servizi
+						// (di cui è referente) in stato di bozza (stato iniziale del workflow),
+						// indipendentemente dal ruolo globale (gestore/coordinatore/referente).
+						String statoBozza = this.configurazione.getServizio().getWorkflow().getStatoIniziale();
+						Specification<ServizioEntity> specBozzaReferente = (statoBozza != null)
+								? ServizioSpecificationUtils.byReferenteServizio(utente)
+										.and(ServizioSpecificationUtils.byStati(List.of(statoBozza)))
+								: null;
+
+						// Filtro per stati in base al ruolo
+						Specification<ServizioEntity> specRuolo = null;
+						boolean vediTuttiGliStati = false;
+
 						if(this.coreAuthorization.isAdmin()) {
 							// Gestore: filtra per stati del ruolo "gestore"
 							List<String> statiGestore = getStatiDashboard(ConfigurazioneRuolo.GESTORE);
 							if(!statiGestore.isEmpty()) {
-								realSpecification = specification.and(ServizioSpecificationUtils.byStati(statiGestore));
+								specRuolo = ServizioSpecificationUtils.byStati(statiGestore);
 							} else {
-								realSpecification = specification;
+								vediTuttiGliStati = true;
 							}
 						} else if(this.coreAuthorization.isCoordinatore()) {
 							// Coordinatore: usa ruolo "referente_superiore"
 							List<String> statiCoordinatore = getStatiDashboard(ConfigurazioneRuolo.REFERENTE_SUPERIORE);
 							if(!statiCoordinatore.isEmpty()) {
-								realSpecification = specification.and(ServizioSpecificationUtils.byStati(statiCoordinatore));
+								specRuolo = ServizioSpecificationUtils.byStati(statiCoordinatore);
 							} else {
-								realSpecification = specification;
+								vediTuttiGliStati = true;
 							}
 						} else {
 							// Altri utenti: verifica ruoli tramite getRuoliReferente
@@ -1331,30 +1347,33 @@ public class ServiziController implements ServiziApi {
 							List<String> statiReferenteSuperiore = getStatiDashboard(ConfigurazioneRuolo.REFERENTE_SUPERIORE);
 							List<String> statiReferente = getStatiDashboard(ConfigurazioneRuolo.REFERENTE);
 
-							Specification<ServizioEntity> specDashboard = null;
-
 							// Se referente di dominio -> servizi con quel dominio negli stati "referente_superiore"
 							if(ruoliUtente.contains("REFERENTE_DOMINIO") && !statiReferenteSuperiore.isEmpty()) {
-								Specification<ServizioEntity> specRefDominio = ServizioSpecificationUtils.byReferenteDominio(utente)
+								specRuolo = ServizioSpecificationUtils.byReferenteDominio(utente)
 										.and(ServizioSpecificationUtils.byStati(statiReferenteSuperiore));
-								specDashboard = specRefDominio;
 							}
 
 							// Se referente di servizio -> servizi dove è referente negli stati "referente"
 							if(ruoliUtente.contains("REFERENTE_SERVIZIO") && !statiReferente.isEmpty()) {
 								Specification<ServizioEntity> specRefServizio = ServizioSpecificationUtils.byReferenteServizio(utente)
 										.and(ServizioSpecificationUtils.byStati(statiReferente));
-								if(specDashboard != null) {
-									specDashboard = specDashboard.or(specRefServizio);
-								} else {
-									specDashboard = specRefServizio;
-								}
+								specRuolo = (specRuolo != null) ? specRuolo.or(specRefServizio) : specRefServizio;
 							}
+						}
 
+						if(vediTuttiGliStati) {
+							// admin/coordinatore senza stati dashboard configurati: nessun filtro di stato
+							realSpecification = specification;
+						} else {
+							// Unione tra il filtro del ruolo e i propri servizi in bozza
+							Specification<ServizioEntity> specDashboard = specRuolo;
+							if(specBozzaReferente != null) {
+								specDashboard = (specDashboard != null) ? specDashboard.or(specBozzaReferente) : specBozzaReferente;
+							}
 							if(specDashboard != null) {
 								realSpecification = specification.and(specDashboard);
 							} else {
-								// Nessun ruolo rilevante, nessun risultato
+								// Nessun ruolo rilevante e nessuna bozza: nessun risultato
 								realSpecification = specification.and((root, query, cb) -> cb.disjunction());
 							}
 						}
@@ -1365,7 +1384,12 @@ public class ServiziController implements ServiziApi {
 					realSpecification = specification;
 				}
 
-				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("nome","versione"));
+				// In dashboard l'ordinamento di default è cronologico decrescente per data di creazione
+				// (sempre valorizzata e portabile tra DB), resta sovrascrivibile da un sort esplicito.
+				List<String> sortDefault = (dashboard != null && dashboard)
+						? Arrays.asList("dataCreazione,desc")
+						: Arrays.asList("nome","versione");
+				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, sortDefault);
 
 				Page<ServizioEntity> findAll = this.service.findAll(
 						realSpecification,
@@ -1404,6 +1428,9 @@ public class ServiziController implements ServiziApi {
 						}
 					}
 
+					// Pre-carica le associazioni utente-organizzazione via repository per evitare lazy loading
+					List<UtenteOrganizzazioneEntity> utenteOrganizzazioni = this.organizzazioneService.findUtenteOrganizzazioniByUtente(utente);
+
 					// Mappa per l'associazione servizio -> entity
 					Map<String, ServizioEntity> servizioEntityMap = new java.util.HashMap<>();
 					for(ServizioEntity se : findAll.getContent()) {
@@ -1414,7 +1441,7 @@ public class ServiziController implements ServiziApi {
 					for(ItemServizio item : list.getContent()) {
 						ServizioEntity se = servizioEntityMap.get(item.getIdServizio().toString());
 						if(se != null) {
-							List<RuoloReferenteEnum> ruoli = calcolaRuoliReferente(se, utente, dominiReferente, dominiReferenteTecnico, serviziReferente, serviziReferenteTecnico);
+							List<RuoloReferenteEnum> ruoli = calcolaRuoliReferente(se, utente, dominiReferente, dominiReferenteTecnico, serviziReferente, serviziReferenteTecnico, utenteOrganizzazioni);
 							item.setRuoliReferente(ruoli);
 						}
 					}
@@ -1436,7 +1463,7 @@ public class ServiziController implements ServiziApi {
 		}
 
 	}
-	
+
 	@Override
 	public ResponseEntity<Resource> exportServizi(
 			String referente, UUID idDominio,
@@ -1605,7 +1632,8 @@ public class ServiziController implements ServiziApi {
 	}
 
 	private List<RuoloReferenteEnum> calcolaRuoliReferente(ServizioEntity servizio, UtenteEntity utente,
-			Set<Long> dominiReferente, Set<Long> dominiReferenteTecnico, Set<Long> serviziReferente, Set<Long> serviziReferenteTecnico) {
+			Set<Long> dominiReferente, Set<Long> dominiReferenteTecnico, Set<Long> serviziReferente, Set<Long> serviziReferenteTecnico,
+			List<UtenteOrganizzazioneEntity> utenteOrganizzazioni) {
 		List<RuoloReferenteEnum> ruoli = new ArrayList<>();
 
 		// Verifica se l'utente è referente del dominio del servizio
@@ -1632,7 +1660,57 @@ public class ServiziController implements ServiziApi {
 			ruoli.add(RuoloReferenteEnum.RICHIEDENTE_SERVIZIO);
 		}
 
+		// Ruolo organizzazione: determina il ruolo dell'utente sull'organizzazione di riferimento del servizio
+		// (organizzazione del soggetto referente del dominio)
+		aggiungiRuoloOrganizzazione(ruoli, utenteOrganizzazioni, getOrganizzazioneContesto(servizio));
+
 		return ruoli;
+	}
+
+	/**
+	 * Restituisce l'organizzazione di contesto per un servizio, ovvero l'organizzazione
+	 * del soggetto referente del dominio. Può essere null se il dominio o il soggetto referente
+	 * non sono ancora impostati.
+	 */
+	private org.govway.catalogo.core.orm.entity.OrganizzazioneEntity getOrganizzazioneContesto(ServizioEntity servizio) {
+		if (servizio.getDominio() == null) {
+			return null;
+		}
+		if (servizio.getDominio().getSoggettoReferente() == null) {
+			return null;
+		}
+		return servizio.getDominio().getSoggettoReferente().getOrganizzazione();
+	}
+
+	/**
+	 * Aggiunge alla lista dei ruoli il ruolo per-organizzazione dell'utente sull'organizzazione
+	 * di contesto (se presente). Se l'utente non ha un'associazione con l'organizzazione, oppure
+	 * l'associazione ha ruolo null (nessun ruolo / sola lettura), non aggiunge nulla.
+	 */
+	private void aggiungiRuoloOrganizzazione(List<RuoloReferenteEnum> ruoli,
+			List<UtenteOrganizzazioneEntity> utenteOrganizzazioni,
+			org.govway.catalogo.core.orm.entity.OrganizzazioneEntity organizzazione) {
+		if (organizzazione == null || utenteOrganizzazioni == null) {
+			return;
+		}
+		for (UtenteOrganizzazioneEntity assoc : utenteOrganizzazioni) {
+			if (assoc.getOrganizzazione() != null
+					&& assoc.getOrganizzazione().getId().equals(organizzazione.getId())) {
+				var ruoloOrg = assoc.getRuoloOrganizzazione();
+				if (ruoloOrg == null) {
+					return; // Nessun ruolo = sola lettura
+				}
+				switch (ruoloOrg) {
+				case AMMINISTRATORE_ORGANIZZAZIONE:
+					ruoli.add(RuoloReferenteEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+					break;
+				case OPERATORE_API:
+					ruoli.add(RuoloReferenteEnum.OPERATORE_API);
+					break;
+				}
+				return;
+			}
+		}
 	}
 
 	@Override
@@ -1898,7 +1976,7 @@ public class ServiziController implements ServiziApi {
 			return this.service.runTransaction( () -> {
 
 				this.logger.info("PRE init Specification");
-				
+
 				ServizioGruppoSpecification specification = new ServizioGruppoSpecification();
 				specification.setGruppo(Optional.ofNullable(idGruppoPadre));
 				specification.setGruppoPadreNull(Optional.ofNullable(gruppoPadreNull));
@@ -1944,11 +2022,28 @@ public class ServiziController implements ServiziApi {
 
 
 				this.logger.info("PRE filtered");
+				UtenteEntity utenteSessione = this.coreAuthorization.getUtenteSessione();
+
+				// Visibilita` in BULK: una sola query restituisce gli id dei servizi visibili all'utente,
+				// riusando la stessa ServizioSpecification che listServizi applica (referente servizio/dominio,
+				// classi, richiedente, referente/richiedente adesione, ramo PUBBLICO+stati). Sostituisce la
+				// navigazione in memoria di referenti e di TUTTE le adesioni per ogni servizio di ogni gruppo.
+				// Per admin/coordinatore ogni servizio e` visibile (set null), come gia` faceva isVisibile.
+				Set<Long> idsServiziVisibili = null;
+				if(!(this.coreAuthorization.isAdmin(utenteSessione) || this.coreAuthorization.isCoordinatore(utenteSessione))) {
+					ServizioSpecification specVisibilita = new ServizioSpecification();
+					specVisibilita.setUtente(Optional.of(utenteSessione));
+					specVisibilita.setStatiAderibili(this.configurazione.getServizio().getStatiAdesioneConsentita());
+					specVisibilita.setUtenteAdmin(Optional.of(false));
+					idsServiziVisibili = this.service.findIds(specVisibilita);
+				}
+				final Set<Long> idsVisibili = idsServiziVisibili;
+
 				List<ServizioGruppoEntity> filtered = findAll
 														.stream()
-														.filter(sg -> !isEmpty(sg))
+														.filter(sg -> !isEmpty(sg, idsVisibili))
 														.collect(Collectors.toList());
-				
+
 				this.logger.info("POST filtered");
 				this.logger.info("PRE assembler");
 				PagedModel<ItemServizioGruppo> lst = pagedResourceServizioGruppoAssembler.toModel(new PageImpl<>(filtered, pageable, filtered.size()), this.itemServizioGruppoAssembler, link);
@@ -1962,7 +2057,7 @@ public class ServiziController implements ServiziApi {
 				this.logger.info("POST pagedmodel");
 
 				this.logger.info("Invocazione completata con successo");
-				
+
 				return ResponseEntity.ok(list);
 
 			});
@@ -2015,7 +2110,7 @@ public class ServiziController implements ServiziApi {
 	}
 	 */
 	
-	private boolean isEmpty(ServizioGruppoEntity sg) {
+	private boolean isEmpty(ServizioGruppoEntity sg, Set<Long> idsServiziVisibili) {
 	    if (sg.getTipo().equals(TipoServizioGruppoEnum.SERVIZIO)) {
 	        return false;
 	    }
@@ -2023,114 +2118,34 @@ public class ServiziController implements ServiziApi {
 	    Optional<GruppoEntity> gruppoEntity = this.gruppoService.find(UUID.fromString(sg.getIdEntita()));
 
 	    if (gruppoEntity.isPresent()) {
-	        return isEmpty(gruppoEntity.get());
+	        return isEmpty(gruppoEntity.get(), idsServiziVisibili);
 	    }
 
 	    return true;
 	}
 
-	
-	private boolean isEmpty(GruppoEntity gruppo) {
+	/**
+	 * Un gruppo e` "vuoto" (da nascondere) se non contiene, ne` direttamente ne` nei sottogruppi,
+	 * alcun servizio visibile all'utente. La visibilita` e` pre-calcolata in BULK dal chiamante:
+	 * {@code idsServiziVisibili} contiene gli id dei servizi visibili, oppure e` {@code null} per
+	 * admin/coordinatore (ogni servizio e` visibile). Cosi` qui si naviga solo l'alberatura
+	 * gruppi/servizi (leggera), senza toccare referenti e adesioni di ogni servizio.
+	 */
+	private boolean isEmpty(GruppoEntity gruppo, Set<Long> idsServiziVisibili) {
 
-		if(!gruppo.getServizi().isEmpty()) {
-			UtenteEntity utenteSessione = this.coreAuthorization.getUtenteSessione();
-			
-			for(ServizioEntity servizio: gruppo.getServizi()) {
-				if(isVisibile(servizio, utenteSessione)) {
-					return false;
-				}
-			}
-		}
-		
-		for(GruppoEntity figlio: gruppo.getFigli()) {
-			if(!isEmpty(figlio)) {
+		for(ServizioEntity servizio: gruppo.getServizi()) {
+			if(idsServiziVisibili == null || idsServiziVisibili.contains(servizio.getId())) {
 				return false;
 			}
 		}
-		
+
+		for(GruppoEntity figlio: gruppo.getFigli()) {
+			if(!isEmpty(figlio, idsServiziVisibili)) {
+				return false;
+			}
+		}
+
 		return true;
-	}
-
-	private boolean isVisibile(ServizioEntity servizio, UtenteEntity utenteSessione) {
-		
-		if(this.coreAuthorization.isAdmin(utenteSessione) || this.coreAuthorization.isCoordinatore(utenteSessione)) {
-			return true;
-		}
-
-		boolean contains = false;
-
-		org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA visibilita = servizio.getVisibilita() != null ? servizio.getVisibilita(): servizio.getDominio().getVisibilita();
-
-		if(visibilita.equals(org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.PUBBLICO)) {
-			List<String> statiAdesione = this.configurazione.getServizio().getStatiAdesioneConsentita();
-			contains =  contains || statiAdesione.contains(servizio.getStato());
-		}
-		
-		if(utenteSessione != null) {
-
-
-			if(visibilita.equals(org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.PUBBLICO) || visibilita.equals(org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.PRIVATO) || visibilita.equals(org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.RISERVATO) ) {
-				Set<UtenteEntity> utentiVisibili = new HashSet<>();
-				utentiVisibili.add(servizio.getRichiedente());
-				
-				for(ReferenteServizioEntity referente: servizio.getReferenti()) {
-					utentiVisibili.add(referente.getReferente());
-				}
-				for(ReferenteDominioEntity referente: servizio.getDominio().getReferenti()) {
-					utentiVisibili.add(referente.getReferente());
-				}
-
-				// Aggiunge anche i referenti e richiedenti delle adesioni al servizio
-				for(AdesioneEntity adesione: servizio.getAdesioni()) {
-					utentiVisibili.add(adesione.getRichiedente());
-					for(ReferenteAdesioneEntity referenteAdesione: adesione.getReferenti()) {
-						utentiVisibili.add(referenteAdesione.getReferente());
-					}
-				}
-
-				contains =  contains || contains(utentiVisibili, utenteSessione);
-
-				if(visibilita.equals(org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.RISERVATO)) {
-					Set<ClasseUtenteEntity> classiUtentiVisibili = new HashSet<>();
-					
-					classiUtentiVisibili.addAll(servizio.getClassi());
-					classiUtentiVisibili.addAll(servizio.getDominio().getClassi());
-					
-					contains =  contains || contains(classiUtentiVisibili, utenteSessione.getClassi());
-				}
-
-			} else {
-				if(visibilita != null && visibilita == org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.PUBBLICO) {
-					List<String> statiAdesione = this.configurazione.getServizio().getStatiAdesioneConsentita();
-					contains =  contains || statiAdesione.contains(servizio.getStato());
-				}
-			}
-		}
-		
-		return contains;
-		
-	}
-
-	private boolean contains(Set<ClasseUtenteEntity> classiServizio, Set<ClasseUtenteEntity> classiUtente) {
-		for(ClasseUtenteEntity classeServizio: classiServizio) {
-			for(ClasseUtenteEntity classeUtente: classiUtente) {
-				if(classeUtente.getId().equals(classeServizio.getId())) {
-					return true;
-				}
-			}
-		}
-		
-		return false;
-	}
-
-	private boolean contains(Set<UtenteEntity> utentiVisibili, UtenteEntity utenteSessione) {
-		for(UtenteEntity utente: utentiVisibili) {
-			if(utente.getId().equals(utenteSessione.getId())) {
-				return true;
-			}
-		}
-		
-		return false;
 	}
 
 	@Override

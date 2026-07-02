@@ -22,7 +22,6 @@ import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { ModalModule } from 'ngx-bootstrap/modal';
 import { BsDatepickerModule } from 'ngx-bootstrap/datepicker';
 import { TranslateModule } from '@ngx-translate/core';
-import { GravatarModule } from 'ngx-gravatar';
 import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
@@ -42,7 +41,6 @@ export const COMPONENTS_IMPORTS = [
   TooltipModule,
   ModalModule,
   BsDatepickerModule,
-  GravatarModule,
   InfiniteScrollDirective,
   NgSelectModule,
   NgxChartsModule,

@@ -1,0 +1,80 @@
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+.organization-switcher {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  z-index: 1700;
+}
+
+.organization-switcher .dropdown-menu {
+  z-index: 1700 !important;
+  min-width: 19rem;
+}
+
+.organization-switcher .dropdown-menu.show {
+  z-index: 1700 !important;
+}
+
+.organization-switcher-toggle {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  color: inherit;
+}
+
+.organization-switcher-label {
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: none;
+}
+
+.organization-switcher-row {
+  display: flex;
+  align-items: center;
+
+  // Bootstrap forza `width: 100%` su `.dropdown-item`: in flex row
+  // questo schiaccia il sibling gear. Sovrascriviamo con `flex: 1 1 auto`
+  // e `width: auto` per lasciar spazio al gear a destra.
+  .dropdown-item {
+    flex: 1 1 auto;
+    width: auto !important;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+  }
+
+  // Allinea l'icona di check al centro verticale (override del
+  // `gl-mt-3 gl-align-self-start` ereditato dal pattern del menu
+  // profilo, che assume titolo+sottotitolo allineati in alto).
+  .gl-new-dropdown-item-check-icon {
+    margin-top: 0 !important;
+    align-self: center !important;
+  }
+
+  .organization-switcher-manage {
+    flex: 0 0 auto;
+    align-self: center;
+    margin-right: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    line-height: 1;
+    width: auto !important;
+  }
+}

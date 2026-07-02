@@ -319,7 +319,7 @@
                         @if (_isEdit) {
                           <div class="">
                             <div class="form-check form-switch ml-3">
-                              <input class="form-check-input" type="checkbox" role="switch" id="referente" [checked]="organizzazione?.referente" (click)="_toggleReferente()" [disabled]="organizzazione?.vincola_referente && organizzazione.referente">
+                              <input class="form-check-input" type="checkbox" role="switch" id="referente" [checked]="organizzazione?.referente" (click)="_toggleReferente()" [disabled]="(organizzazione?.vincola_referente && organizzazione.referente) || f['intermediata'].value">
                               @if (f['referente'].invalid && (f['referente'].dirty || f['referente'].touched)) {
                                 <p class="form-text text-danger">
                                   @if (f['referente'].errors && f['referente'].errors['required']) {
@@ -345,7 +345,7 @@
                         @if (_isEdit) {
                           <div class="">
                             <div class="form-check form-switch ml-3">
-                              <input class="form-check-input" type="checkbox" role="switch" id="aderente" [checked]="organizzazione?.aderente" (click)="_toggleAderente()" [disabled]="organizzazione?.vincola_aderente && organizzazione.aderente">
+                              <input class="form-check-input" type="checkbox" role="switch" id="aderente" [checked]="organizzazione?.aderente" (click)="_toggleAderente()" [disabled]="(organizzazione?.vincola_aderente && organizzazione.aderente) || f['intermediata'].value">
                               @if (f['aderente'].invalid && (f['aderente'].dirty || f['aderente'].touched)) {
                                 <p class="form-text text-danger">
                                   @if (f['aderente'].errors && f['aderente'].errors['required']) {
@@ -365,18 +365,18 @@
                         }
                       </div>
                     </div>
-                    <div class="row esterna">
+                    <div class="row intermediata">
                       <div class="col-6">
-                        <label class="label-bold" for="esterna">{{ 'APP.ORGANIZATIONS.LABEL.Esterna' | translate }}@if (_isNew || _isEdit) {
-                          <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'esterna'"></span>
+                        <label class="label-bold" for="intermediata">{{ 'APP.ORGANIZATIONS.LABEL.Intermediata' | translate }}@if (_isNew || _isEdit) {
+                          <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'intermediata'"></span>
                         }</label>
                         @if (_isEdit) {
                           <div class="">
                             <div class="form-check form-switch ml-3">
-                              <input class="form-check-input" type="checkbox" role="switch" id="esterna" [checked]="organizzazione?.esterna" (click)="_toggleEsterna()" [disabled]="!organizzazione?.cambio_esterna_consentito && !_isNew">
-                              @if (f['esterna'].invalid && (f['esterna'].dirty || f['esterna'].touched)) {
+                              <input class="form-check-input" type="checkbox" role="switch" id="intermediata" [checked]="organizzazione?.intermediata" (click)="_toggleIntermediata()" [disabled]="!organizzazione?.cambio_intermediata_consentito && !_isNew">
+                              @if (f['intermediata'].invalid && (f['intermediata'].dirty || f['intermediata'].touched)) {
                                 <p class="form-text text-danger">
-                                  @if (f['esterna'].errors && f['esterna'].errors['required']) {
+                                  @if (f['intermediata'].errors && f['intermediata'].errors['required']) {
                                     <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                   }
                                 </p>
@@ -387,7 +387,7 @@
                         @if (!_isEdit) {
                           <div class="">
                             <div class="form-check form-switch ml-3">
-                              <input class="form-check-input" type="checkbox" role="switch" id="esterna" [checked]="organizzazione.esterna" disabled>
+                              <input class="form-check-input" type="checkbox" role="switch" id="intermediata" [checked]="organizzazione.intermediata" disabled>
                             </div>
                           </div>
                         }
@@ -414,6 +414,13 @@
             </div>
           </div>
         </div>
+        @if (!_isNew && organizzazione?.id_organizzazione && !_isEdit && !organizzazione?.intermediata) {
+          <app-organizzazione-utenti-list
+            [idOrganizzazione]="organizzazione.id_organizzazione"
+            [nomeOrganizzazione]="organizzazione?.nome"
+            [flagAderente]="organizzazione?.aderente">
+          </app-organizzazione-utenti-list>
+        }
       }
     </section>
   </div>

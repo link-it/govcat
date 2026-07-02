@@ -22,11 +22,12 @@ import { Component, EventEmitter, HostBinding, Input, OnInit, Output } from '@an
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { MarkdownModule } from 'ngx-markdown';
-import { GravatarModule } from 'ngx-gravatar';
 
 import { HttpImgSrcPipe } from '../../pipes/http-img-src.pipe';
 import { SetBackgroundImageDirective } from '../../directives/set-background-image.directive';
 import { UtilsLib } from '../../utils/utils.lib';
+import { LnkAvatarComponent } from '@app/components/lnk-ui/avatar/avatar.component';
+import { StatoChipComponent } from '@app/components/vetrina/stato-chip.component';
 
 import moment from 'moment/moment';
 
@@ -37,7 +38,7 @@ import moment from 'moment/moment';
         './item-type.component.scss'
     ],
     standalone: true,
-    imports: [CommonModule, TranslateModule, TooltipModule, MarkdownModule, GravatarModule, HttpImgSrcPipe, SetBackgroundImageDirective]
+    imports: [CommonModule, TranslateModule, TooltipModule, MarkdownModule, LnkAvatarComponent, HttpImgSrcPipe, SetBackgroundImageDirective, StatoChipComponent]
 })
 export class ItemTypeComponent implements OnInit {
     @HostBinding('class.empty-space') get emptySpace(): boolean {
@@ -68,7 +69,24 @@ export class ItemTypeComponent implements OnInit {
     _color: string = '';
     _class: string = '';
     _showBadged: boolean = false;
-    _tagsResolved: { label: string, background: string, border: string, color: string }[] = [];
+
+    /** Allineamento palette unificata: per `type=tag|label` con
+     *  `options=status` delego il rendering al chip semantico
+     *  `<lnk-stato-chip>`, ignorando i colori hardcoded nei
+     *  JSON di config (palette FE-side, AA-passing). */
+    _useStatoChip: boolean = false;
+    _origStato: string = '';
+    _statoI18nPrefix: string = 'APP.WORKFLOW.STATUS';
+
+    /** Variante pill `.lnk-pill-<variant>` per label/tag/tags
+     *  non-stato. Letta dal config (`values[v].chipVariant` o
+     *  `options[name].chipVariant`); default `muted`. */
+    _chipVariant: string = 'muted';
+    _chipSplitValue: string = '';
+    /** Size compatto. True quando il config dichiara
+     *  `options[name].small: true` (flag legacy retro-compat). */
+    _chipSmall: boolean = false;
+    _tagsResolved: { label: string, background: string, border: string, color: string, chipVariant: string, small: boolean }[] = [];
     _tooltip: string = '';
     _tooltipDelay: number = 300;
     _tooltipPlacement: any = 'top';
@@ -122,18 +140,22 @@ export class ItemTypeComponent implements OnInit {
                 const _origValue = this._value;
                 const _optionsName = this.elem.options;
                 const _optionElem = this.config.options[_optionsName] ? this.config.options[_optionsName].values[_origValue] : null;
-                if (_origValue) {
+                // Allineamento palette unificata: stato -> `lnk-stato-chip`.
+                if (_optionsName === 'status' && _origValue) {
+                    this._useStatoChip = true;
+                    this._origStato = _origValue;
+                    this._statoI18nPrefix = this.elem.i18nPrefix || 'APP.WORKFLOW.STATUS';
+                } else if (_origValue) {
                     this._label = (this.config.options[_optionsName].label) ? this.config.options[_optionsName].label : _optionsName;
                     this._value = this._value ? (_optionElem ? _optionElem.label : this._value) : _optionElem.label;
-                    this._background = (this.config.options[_optionsName] && _optionElem) ? _optionElem.background : '#1f1f1f';
-                    this._border = (this.config.options[_optionsName] && _optionElem) ? _optionElem.border : '#1f1f1f';
-                    this._color = (this.config.options[_optionsName] && _optionElem) ? _optionElem.color : '#fff';
-                    if (!((this.config.options[_optionsName] && _optionElem)) && this.config.options[_optionsName].values['default']) {
-                        this._background = this.config.options[_optionsName].values['default'].background;
-                        this._border = this.config.options[_optionsName].values['default'].border;
-                        this._color = this.config.options[_optionsName].values['default'].color;
-                    }
-                    this._class = this.config.options[_optionsName].small ? 'status-label-sm' : '';
+                    // Variante pill: usa il `chipVariant` del config se
+                    // presente (es. `"chipVariant": "info"`), altrimenti
+                    // fallback muted. I colori inline dei JSON restano
+                    // come backup retro-compat ma non vengono piu` usati
+                    // dal template (vedi `.lnk-pill*` SCSS globale).
+                    this._chipVariant = _optionElem?.chipVariant || this.config.options[_optionsName].chipVariant || 'muted';
+                    this._chipSplitValue = _optionElem?.splitValue || '';
+                    this._chipSmall = !!this.config.options[_optionsName].small;
                 }
             }
         }
@@ -145,9 +167,19 @@ export class ItemTypeComponent implements OnInit {
             if (this.config.options) {
                 const _origValue = this._value;
                 const _optionsName = this.elem.options;
+                // Allineamento palette unificata: status -> `<lnk-stato-chip>`.
+                // Per gli altri tag (es. `aderente`, `type`, ...) resta
+                // il rendering classico con i colori dei JSON di config.
+                if (_optionsName === 'status') {
+                    this._useStatoChip = true;
+                    this._origStato = _origValue || '';
+                    this._statoI18nPrefix = this.elem.i18nPrefix || 'APP.WORKFLOW.STATUS';
+                    return;
+                }
                 if (!this.config.options[_optionsName]) {
                     return;
                 }
+                this._chipSmall = !!this.config.options[_optionsName].small;
                 let _optionValue = this.config.options[_optionsName].values[_origValue];
                 if (!_optionValue) {
                     _optionValue = this.config.options[_optionsName].values['default'];
@@ -161,6 +193,7 @@ export class ItemTypeComponent implements OnInit {
                 this._border = (_optionValue) ? _optionValue.border : '#1f1f1f';
                 this._color = (_optionValue) ? _optionValue.color : '#fff';
                 this._class += this.config.options[_optionsName].small ? ' gl-badge-sm' : ' gl-badge';
+                this._chipVariant = _optionValue?.chipVariant || this.config.options[_optionsName].chipVariant || 'muted';
             }
         }
         if (this.elem.type === 'labelI18n') {
@@ -215,13 +248,16 @@ export class ItemTypeComponent implements OnInit {
                 const _optionsName = this.elem.options;
                 const _optionsConfig = this.config.options[_optionsName];
                 if (_optionsConfig) {
+                    const small = !!_optionsConfig.small;
                     this._tagsResolved = this._value.map((tag: string) => {
                         const opt = _optionsConfig.values[tag] || _optionsConfig.values['default'];
                         return {
                             label: opt ? this.translate.instant(opt.label) : tag,
                             background: opt ? opt.background : '#e9ecef',
                             border: opt ? opt.border : '#dee2e6',
-                            color: opt ? opt.color : '#000000'
+                            color: opt ? opt.color : '#000000',
+                            chipVariant: opt?.chipVariant || _optionsConfig.chipVariant || 'muted',
+                            small
                         };
                     });
                 }

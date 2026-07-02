@@ -213,14 +213,17 @@ describe('AdesioneListaErogazioniComponent', () => {
       expect(component.getSottotipoGroupCompletedMapper('', 'erogazioni')).toBe(0);
     });
 
-    it('should return 1 when sottotipo is not completed and hasCambioStato is false', () => {
+    it('should return 0 when sottotipo is not completed (icona stato oggettiva)', () => {
+      // Issue 254 (rev. d0744045): icona stato oggettiva, indipendente
+      // dal ruolo / cambio stato. Quando il check-dati BE riporta gruppo
+      // NON completato il mapper ritorna 0 (alert) per qualsiasi utente.
       component.environment = 'collaudo';
       component.adesione = { skip_collaudo: false, stato: 'pubblicato_produzione' };
       mockCkeckProvider.isSottotipoGroupCompleted.mockReturnValue(false);
       mockAuthService.isGestore.mockReturnValue(false);
       mockAuthService.canChangeStatus.mockReturnValue(false);
       component.grant = { ruoli: [] } as any;
-      expect(component.getSottotipoGroupCompletedMapper('', 'erogazioni')).toBe(1);
+      expect(component.getSottotipoGroupCompletedMapper('', 'erogazioni')).toBe(0);
     });
   });
 

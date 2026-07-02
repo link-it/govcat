@@ -17,12 +17,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
+import { RouterOutlet } from '@angular/router';
 
 import { TranslateService } from '@ngx-translate/core';
 
 import { Tools, ConfigService } from '@linkit/components';
-import { OpenAPIService } from '@services/openAPI.service';
 import { ConsoleToggleService } from '@services/console-toggle.service';
 import { ModifierKeyService } from '@services/modifier-key.service';
 
@@ -38,7 +37,14 @@ import { enGbLocale as ngxEnGbLocale, itLocale as ngxItLocale, frLocale as ngxFr
 import { BsLocaleService } from 'ngx-bootstrap/datepicker';
 
 declare const $: any;
-import moment from 'moment';
+import * as moment from 'moment';
+// Caricamento dei locale data di Moment. Senza questi import
+// `moment.locale('it' | 'en-gb' | 'fr')` non ha effetto e
+// `moment().fromNow()` cade sull'inglese US di default
+// (es. "an hour ago" invece di "un'ora fa").
+import 'moment/locale/it';
+import 'moment/locale/en-gb';
+import 'moment/locale/fr';
 
 enum AppLanguageCode {
   ITALIAN = 'it',
@@ -64,13 +70,11 @@ export class AppComponent implements OnInit {
   configurazione: any = null;
 
   constructor(
-    private router: Router,
-    private translate: TranslateService,
-    private configService: ConfigService,
-    private apiService: OpenAPIService,
-    private consoleToggleService: ConsoleToggleService,
-    private bsLocaleService: BsLocaleService,
-    private modifierKeyService: ModifierKeyService,
+    private readonly translate: TranslateService,
+    private readonly configService: ConfigService,
+    private readonly consoleToggleService: ConsoleToggleService,
+    private readonly bsLocaleService: BsLocaleService,
+    private readonly modifierKeyService: ModifierKeyService,
   ) {
     this.consoleToggleService.disableConsoleInProduction();
     // Inizializza il servizio per rilevare Ctrl/Cmd (startListening è chiamato nel costruttore)
@@ -79,7 +83,7 @@ export class AppComponent implements OnInit {
     Tools.Versione = `Ver. ${environment.version}`;
 
     /* Lang */
-    // const defaultLanguage = this.translate.currentLang || this.translate.getBrowserLang() || AppLanguageCode.ITALIAN;
+    // -> const defaultLanguage = this.translate.currentLang || this.translate.getBrowserLang() || AppLanguageCode.ITALIAN;
     const defaultLanguage = AppLanguageCode.ITALIAN;
     console.log('defaultLanguage', defaultLanguage);
 
@@ -108,11 +112,5 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     console.log('APP Configurazione Remota', Tools.Configurazione);
-  }
-
-  ngAfterViewInit() {
-  }
-
-  ngAfterContentChecked() {
   }
 }

@@ -33,9 +33,20 @@ describe('RegistrazioneComponent', () => {
     reloadSession: vi.fn(),
   } as any;
 
+  // Salviamo gli static Tools mutati e li ripristiniamo dopo ogni test
+  // per non inquinare gli altri spec file (Tools e` un singleton).
+  const _origTools = {
+    MultiSnackbarDestroyAll: Tools.MultiSnackbarDestroyAll,
+    GetErrorMsg: Tools.GetErrorMsg,
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
     Tools.MultiSnackbarDestroyAll = vi.fn();
+    // Il componente delega l'estrazione del messaggio d'errore a
+    // Tools.GetErrorMsg: stub deterministico (message o fallback) per
+    // testare il flusso del componente, non l'helper.
+    Tools.GetErrorMsg = vi.fn((e: any) => e?.message ?? 'Errore nel caricamento dello stato');
     // Reset default mock implementations
     mockConfigService.getConfiguration.mockReturnValue({
       AppConfig: { Layout: { Login: { title: 'T', logo: 'l.png' } } }
@@ -57,6 +68,11 @@ describe('RegistrazioneComponent', () => {
       mockRouter, mockTranslate, mockConfigService,
       mockRegistrazioneService, mockAuthService
     );
+  });
+
+  afterEach(() => {
+    Tools.MultiSnackbarDestroyAll = _origTools.MultiSnackbarDestroyAll;
+    Tools.GetErrorMsg = _origTools.GetErrorMsg;
   });
 
   // ─── Constructor / Creation ─────────────────────────────────────────
@@ -384,12 +400,15 @@ describe('RegistrazioneComponent', () => {
       expect(component.currentStep).toBe('verifica');
     });
 
-    it('should set step to completato for EmailVerificata', () => {
+    it('should set step to seleziona-organizzazione for EmailVerificata (Issue 229)', () => {
+      // Issue 229 — dopo verifica email/OTP l'utente passa allo
+      // step opzionale di selezione organizzazione, NON piu`
+      // direttamente a "completato".
       mockRegistrazioneService.getStato.mockReturnValue(of({
         stato: StatoRegistrazioneEnum.EmailVerificata,
       }));
       component.ngOnInit();
-      expect(component.currentStep).toBe('completato');
+      expect(component.currentStep).toBe('seleziona-organizzazione');
     });
 
     it('should determine step from stato Completata', () => {
@@ -410,46 +429,26 @@ describe('RegistrazioneComponent', () => {
   });
 
   // ─── onConfermaEmail ────────────────────────────────────────────────
+  // Issue 229 — `onConfermaEmail` non chiama piu` subito
+  // `/conferma-email`: transita allo step `seleziona-organizzazione`
+  // (path diretto, senza modifica email). La finalizzazione
+  // avviene da `onSkipOrganizzazione`/`onConfermaOrganizzazione`.
 
   describe('onConfermaEmail', () => {
-    it('should set loading and clear error', () => {
+    it('should not call confermaEmail service immediately', () => {
+      component.onConfermaEmail();
+      expect(mockRegistrazioneService.confermaEmail).not.toHaveBeenCalled();
+    });
+
+    it('should transition to seleziona-organizzazione step', () => {
+      component.onConfermaEmail();
+      expect(component.currentStep).toBe('seleziona-organizzazione');
+    });
+
+    it('should clear error', () => {
       component.error = 'old error';
       component.onConfermaEmail();
-      // After sync observable completes
-      expect(component.loading).toBe(false);
-    });
-
-    it('should set currentStep to completato on success with profilo', () => {
-      mockRegistrazioneService.confermaEmail.mockReturnValue(of({ profilo: { id: 1 } }));
-      component.onConfermaEmail();
-      expect(component.currentStep).toBe('completato');
-      expect(mockAuthService.setCurrentSession).toHaveBeenCalledWith({ id: 1 });
-      expect(mockAuthService.reloadSession).toHaveBeenCalled();
-      expect(component.loading).toBe(false);
-    });
-
-    it('should set currentStep to completato on success without profilo', () => {
-      mockRegistrazioneService.confermaEmail.mockReturnValue(of({}));
-      component.onConfermaEmail();
-      expect(component.currentStep).toBe('completato');
-      expect(mockAuthService.setCurrentSession).not.toHaveBeenCalled();
-      expect(mockAuthService.reloadSession).not.toHaveBeenCalled();
-      expect(component.loading).toBe(false);
-    });
-
-    it('should set currentStep to completato on success with null profilo', () => {
-      mockRegistrazioneService.confermaEmail.mockReturnValue(of({ profilo: null }));
-      component.onConfermaEmail();
-      expect(component.currentStep).toBe('completato');
-      expect(mockAuthService.setCurrentSession).not.toHaveBeenCalled();
-      expect(component.loading).toBe(false);
-    });
-
-    it('should set error on confermaEmail failure', () => {
-      mockRegistrazioneService.confermaEmail.mockReturnValue(throwError(() => new Error('Conferma failed')));
-      component.onConfermaEmail();
-      expect(component.error).toBe('Conferma failed');
-      expect(component.loading).toBe(false);
+      expect(component.error).toBeNull();
     });
   });
 
@@ -524,12 +523,16 @@ describe('RegistrazioneComponent', () => {
       expect(mockRegistrazioneService.verificaCodice).toHaveBeenCalledWith('123456');
     });
 
-    it('should call completaRegistrazione when esito is true', () => {
+    it('should move to seleziona-organizzazione when esito is true (Issue 229)', () => {
+      // Issue 229 — completaRegistrazione non viene piu` chiamata
+      // qui: passiamo allo step opzionale di selezione
+      // organizzazione. Sara` lo step stesso (skip o confirm) a
+      // chiamare completaRegistrazione tramite gli handler
+      // `onSkipOrganizzazione` / `onConfermaOrganizzazione`.
       mockRegistrazioneService.verificaCodice.mockReturnValue(of({ esito: true }));
-      mockRegistrazioneService.completaRegistrazione.mockReturnValue(of({ profilo: { id: 1 } }));
       component.onVerificaCodice('123456');
-      expect(mockRegistrazioneService.completaRegistrazione).toHaveBeenCalled();
-      expect(component.currentStep).toBe('completato');
+      expect(mockRegistrazioneService.completaRegistrazione).not.toHaveBeenCalled();
+      expect(component.currentStep).toBe('seleziona-organizzazione');
       expect(component.loading).toBe(false);
     });
 
@@ -561,13 +564,24 @@ describe('RegistrazioneComponent', () => {
     });
   });
 
-  // ─── completaRegistrazione (private, tested via onVerificaCodice) ───
+  // ─── finalizzaRegistrazione (Issue 229: invocata da
+  //     `onSkipOrganizzazione` / `onConfermaOrganizzazione`) ─────────
+  // L'endpoint cambia in base al path:
+  // - path diretto (`onConfermaEmail`): usa `/conferma-email`
+  // - path OTP (`onVerificaCodice` esito true): usa `/completa`
 
-  describe('completaRegistrazione', () => {
-    it('should update session and go to completato with profilo', () => {
-      mockRegistrazioneService.verificaCodice.mockReturnValue(of({ esito: true }));
-      mockRegistrazioneService.completaRegistrazione.mockReturnValue(of({ profilo: { user: 'abc' } }));
-      component.onVerificaCodice('123456');
+  describe('finalizzaRegistrazione (path diretto: confermaEmail)', () => {
+    beforeEach(() => {
+      // Simuliamo l'arrivo allo step via onConfermaEmail
+      // (path diretto: useCompletaEndpoint=false).
+      component.onConfermaEmail();
+    });
+
+    it('should call confermaEmail service on skip and go to completato', () => {
+      mockRegistrazioneService.confermaEmail.mockReturnValue(of({ profilo: { user: 'abc' } }));
+      component.onSkipOrganizzazione();
+      expect(mockRegistrazioneService.confermaEmail).toHaveBeenCalled();
+      expect(mockRegistrazioneService.completaRegistrazione).not.toHaveBeenCalled();
       expect(mockAuthService.setCurrentSession).toHaveBeenCalledWith({ user: 'abc' });
       expect(mockAuthService.reloadSession).toHaveBeenCalled();
       expect(component.currentStep).toBe('completato');
@@ -575,27 +589,49 @@ describe('RegistrazioneComponent', () => {
     });
 
     it('should go to completato without updating session when no profilo', () => {
-      mockRegistrazioneService.verificaCodice.mockReturnValue(of({ esito: true }));
-      mockRegistrazioneService.completaRegistrazione.mockReturnValue(of({}));
-      component.onVerificaCodice('123456');
+      mockRegistrazioneService.confermaEmail.mockReturnValue(of({}));
+      component.onSkipOrganizzazione();
       expect(mockAuthService.setCurrentSession).not.toHaveBeenCalled();
       expect(mockAuthService.reloadSession).not.toHaveBeenCalled();
+      expect(component.currentStep).toBe('completato');
+    });
+
+    it('should set error on confermaEmail failure', () => {
+      mockRegistrazioneService.confermaEmail.mockReturnValue(throwError(() => new Error('Conferma failed')));
+      component.onSkipOrganizzazione();
+      expect(component.error).toBe('Conferma failed');
+      expect(component.loading).toBe(false);
+    });
+  });
+
+  describe('finalizzaRegistrazione (path OTP: completaRegistrazione)', () => {
+    beforeEach(() => {
+      // Simuliamo l'arrivo allo step via OTP verificato
+      // (useCompletaEndpoint=true).
+      mockRegistrazioneService.verificaCodice.mockReturnValue(of({ esito: true }));
+      component.onVerificaCodice('123456');
+    });
+
+    it('should call completaRegistrazione service on skip and go to completato', () => {
+      mockRegistrazioneService.completaRegistrazione.mockReturnValue(of({ profilo: { user: 'abc' } }));
+      component.onSkipOrganizzazione();
+      expect(mockRegistrazioneService.completaRegistrazione).toHaveBeenCalled();
+      expect(mockRegistrazioneService.confermaEmail).not.toHaveBeenCalled();
+      expect(mockAuthService.setCurrentSession).toHaveBeenCalledWith({ user: 'abc' });
       expect(component.currentStep).toBe('completato');
       expect(component.loading).toBe(false);
     });
 
-    it('should go to completato without updating session when profilo is null', () => {
-      mockRegistrazioneService.verificaCodice.mockReturnValue(of({ esito: true }));
-      mockRegistrazioneService.completaRegistrazione.mockReturnValue(of({ profilo: null }));
-      component.onVerificaCodice('123456');
+    it('should go to completato without updating session when no profilo', () => {
+      mockRegistrazioneService.completaRegistrazione.mockReturnValue(of({}));
+      component.onSkipOrganizzazione();
       expect(mockAuthService.setCurrentSession).not.toHaveBeenCalled();
       expect(component.currentStep).toBe('completato');
     });
 
     it('should set error on completaRegistrazione failure', () => {
-      mockRegistrazioneService.verificaCodice.mockReturnValue(of({ esito: true }));
       mockRegistrazioneService.completaRegistrazione.mockReturnValue(throwError(() => new Error('Completa failed')));
-      component.onVerificaCodice('123456');
+      component.onSkipOrganizzazione();
       expect(component.error).toBe('Completa failed');
       expect(component.loading).toBe(false);
     });

@@ -19,20 +19,22 @@
 import { AfterContentChecked, Component, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateService } from '@ngx-translate/core';
 import { MarkdownModule } from 'ngx-markdown';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
 
-import { Tools, ConfigService, YesnoDialogBsComponent, BreadcrumbComponent, BoxMessageComponent, BoxSpinnerComponent, InputHelpComponent, COMPONENTS_IMPORTS } from '@linkit/components';
+import { Tools, ConfigService, YesnoDialogBsComponent, COMPONENTS_IMPORTS } from '@linkit/components';
 import { LnkButtonComponent } from '@app/components/lnk-ui/button/button.component';
 import { LnkFormFieldComponent } from '@app/components/lnk-ui/form-field/form-field.component';
 import { LnkFormErrorComponent } from '@app/components/lnk-ui/form-error/form-error.component';
 import { LnkFormSubmitComponent } from '@app/components/lnk-ui/form-submit/submit.component';
+import { LnkAvatarComponent } from '@app/components/lnk-ui/avatar/avatar.component';
+import { PillTabsComponent, PillTab } from '@app/components/lnk-ui/pill-tabs/pill-tabs.component';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
@@ -57,11 +59,12 @@ interface BodySettingsType {
     CommonModule,
     ...COMPONENTS_IMPORTS,
     MarkdownModule,
-    InputHelpComponent,
     LnkButtonComponent,
     LnkFormFieldComponent,
     LnkFormErrorComponent,
-    LnkFormSubmitComponent
+    LnkFormSubmitComponent,
+    LnkAvatarComponent,
+    PillTabsComponent
   ]
 })
 export class ProfileComponent implements OnInit, AfterContentChecked {
@@ -77,9 +80,65 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
   config: any;
   profileConfig: any;
 
-  isProfile: boolean = true;
+  /**
+   * Rewrite F1 — state machine a 3 tab (`Informazioni`,
+   * `Organizzazioni`, `Impostazioni`), allineata al design
+   * system `.lnk-vetrina`. Sostituisce il flag boolean
+   * `isProfile` (legacy: Profilo / Impostazioni). I getter
+   * `isInformazioniTab` / `isOrganizzazioniTab` /
+   * `isImpostazioniTab` sono compat shortcut per il template.
+   */
+  currentTab: 'informazioni' | 'organizzazioni' | 'impostazioni' = 'informazioni';
 
-  isEdit: boolean = false;
+  get isInformazioniTab(): boolean { return this.currentTab === 'informazioni'; }
+  get isOrganizzazioniTab(): boolean { return this.currentTab === 'organizzazioni'; }
+  get isImpostazioniTab(): boolean { return this.currentTab === 'impostazioni'; }
+
+  /** Items per `<lnk-pill-tabs>`. Ricostruito a ogni get (counter
+      e badge pending dipendono da stato runtime). */
+  get profileTabs(): PillTab[] {
+    return [
+      {
+        key: 'informazioni',
+        label: 'APP.PROFILE.TAB.Informazioni',
+        icon: 'bi-person-vcard'
+      },
+      {
+        key: 'organizzazioni',
+        label: 'APP.PROFILE.TAB.Organizzazioni',
+        icon: 'bi-buildings',
+        count: this._orgAssociazioniEsistenti.length,
+        badge: this._hasPendingRequest ? {
+          icon: 'bi-hourglass-split',
+          ariaLabel: 'APP.USERS.STATUS.pending_update',
+          tone: 'pending'
+        } : undefined
+      },
+      {
+        key: 'impostazioni',
+        label: 'APP.PROFILE.TAB.Impostazioni',
+        icon: 'bi-sliders'
+      }
+    ];
+  }
+
+  onProfileTabChange(key: string): void {
+    if (key === 'informazioni') { this._showInformazioni(); }
+    else if (key === 'organizzazioni') { this._showOrganizzazioni(); }
+    else if (key === 'impostazioni') { this._showImpostazioni(); }
+  }
+
+  /**
+   * Rewrite F2 — il form del profilo non ha piu` toggle
+   * visualizza/modifica. La form e` SEMPRE in edit
+   * (`isEdit = true`). `onEdit` / `onCancelEdit` restano come
+   * helper interni (reset dati + form re-init), ma il bottone
+   * "Modifica" dell'hero e` stato rimosso e la flag non
+   * commuta. Mantenuta come `boolean = true` (non costante)
+   * per minimizzare la diff sui binding
+   * `<lnk-form-field [isEdit]="isEdit">`.
+   */
+  isEdit: boolean = true;
   saving: boolean = false;
   formGroup: FormGroup = new FormGroup({});
 
@@ -143,11 +202,159 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
   selectedOrganizzazione: any = null;
   minLengthTerm = 1;
 
+  /**
+   * Issue 229 evolutiva 2 — id dell'org di partenza scelta
+   * dall'utente quando ha >=2 associazioni esistenti. Quando ne
+   * ha 1 sola viene auto-popolata silenziosamente in
+   * `requestOrganizationChange()` (decisione: silent).
+   */
+  _selectedOrgPartenzaId: string | null = null;
+
+  // ---------- Multi-org UI state (Issue 229) ----------
+  /**
+   * Modalita` del form di richiesta attivo:
+   * - `null` : nessun form aperto
+   * - `'add'` : form "aggiungi organizzazione"
+   * - `'replace'` : form "sostituisci organizzazione" (su una
+   *   specifica associazione esistente)
+   *
+   * Solo un form alla volta — l'apertura di un nuovo form chiude
+   * eventuali altri. Forms disabilitati globalmente quando
+   * `profile.organizzazione_pending` e` valorizzata.
+   */
+  _orgFormMode: 'add' | 'replace' | null = null;
+
+  /** Id dell'associazione che si sta sostituendo (solo in mode
+   *  `replace`). Pre-popolato all'apertura del form. */
+  _replaceTargetOrgId: string | null = null;
+
   // Modal ref per la conferma cambio organizzazione
   private _modalConfirmRef!: BsModalRef;
 
   get isPendingUpdate(): boolean {
     return this.profile?.stato === 'pending_update';
+  }
+
+  /**
+   * Issue 229 multi-org — associazioni organizzazione attuali
+   * dell'utente. Preferisce `profile.organizzazioni` (multi-org,
+   * nuovo schema BE), cade su `profile.organizzazione` (legacy
+   * single) wrappata in un array di 1 elemento. Vuoto se nessuna
+   * associazione esiste. La forma esposta porta sia i campi
+   * dell'organizzazione che `ruolo_organizzazione`, utili nelle
+   * card della UI.
+   */
+  get _orgAssociazioniEsistenti(): Array<{
+    id_organizzazione: string;
+    nome?: string;
+    ruolo_organizzazione?: string | null;
+  }> {
+    const multi = this.profile?.organizzazioni;
+    if (Array.isArray(multi) && multi.length > 0) {
+      // Normalizza eventuali shape `{ organizzazione: {...},
+      // ruolo_organizzazione: '...' }` (nuovo schema BE) vs piatto
+      // (legacy). Preserva sempre il `ruolo_organizzazione` quando
+      // disponibile per il rendering nelle card.
+      return multi.map((row: any) => {
+        const org = row?.organizzazione ?? row;
+        return {
+          id_organizzazione: org?.id_organizzazione,
+          nome: org?.nome,
+          ruolo_organizzazione: row?.ruolo_organizzazione ?? null
+        };
+      }).filter((o: any) => !!o.id_organizzazione);
+    }
+    const single = this.profile?.organizzazione;
+    return single?.id_organizzazione
+      ? [{ id_organizzazione: single.id_organizzazione, nome: single.nome, ruolo_organizzazione: null }]
+      : [];
+  }
+
+  /**
+   * True quando va mostrato il selettore di partenza (>=2
+   * associazioni). Con 0 o 1 l'utente non sceglie nulla.
+   */
+  get _showOrgPartenzaSelect(): boolean {
+    return this._orgAssociazioniEsistenti.length >= 2;
+  }
+
+  // ---------- Multi-org helpers (Issue 229) ----------
+
+  /**
+   * True quando l'utente ha gia` una richiesta pendente. Il BE
+   * supporta UNA sola richiesta alla volta (decisione 1): finche`
+   * non viene approvata/rifiutata, l'utente non puo` aprire
+   * nuovi form di add / replace.
+   */
+  get _hasPendingRequest(): boolean {
+    return !!this.profile?.organizzazione_pending;
+  }
+
+  /**
+   * Etichetta da mostrare nel banner pending. Se
+   * `organizzazione_partenza` valorizzata -> e` una sostituzione,
+   * mostriamo "Passaggio da X a Y". Altrimenti e` un'aggiunta:
+   * mostriamo "Aggiunta di Y".
+   */
+  get _pendingIsReplace(): boolean {
+    return !!this.profile?.organizzazione_partenza?.id_organizzazione;
+  }
+
+  /**
+   * Stringa markdown gia` tradotta da renderizzare nel banner
+   * pending. Estratta in un getter perche` la direttiva
+   * `markdown` di ngx-markdown valuta il contenuto del tag come
+   * input testuale: con `@if/@else` interni la direttiva non
+   * vede i grassetti `**...**` (i template control flow vengono
+   * espansi dopo che la direttiva ha gia` parserizzato il
+   * contenuto, risultando in markdown non renderizzato).
+   * Risolvere la stringa qui e passarla via `[data]` fa il
+   * routing corretto.
+   */
+  get _pendingMessage(): string {
+    const key = this._pendingIsReplace
+      ? 'APP.PROFILE.ORGANIZATION.PendingReplaceMessage'
+      : 'APP.PROFILE.ORGANIZATION.PendingAddMessage';
+    return this.translate.instant(key, {
+      partenza: this.profile?.organizzazione_partenza?.nome,
+      destinazione: this.profile?.organizzazione_pending?.nome
+    });
+  }
+
+  /**
+   * Apre il form di aggiunta. Disabilita azione se esiste un
+   * pending.
+   */
+  _openAddOrgForm(): void {
+    if (this._hasPendingRequest) { return; }
+    this._orgFormMode = 'add';
+    this._replaceTargetOrgId = null;
+    this._selectedOrgPartenzaId = null;
+    this.selectedOrganizzazione = null;
+    // re-init typeahead per filtrare le org gia` associate
+    this._initOrganizzazioniSelect([]);
+  }
+
+  /**
+   * Apre il form di sostituzione su una specifica associazione.
+   * `partenzaId` viene pre-popolato e usato come
+   * `id_organizzazione_partenza` nel payload.
+   */
+  _openReplaceOrgForm(partenzaId: string): void {
+    if (this._hasPendingRequest) { return; }
+    this._orgFormMode = 'replace';
+    this._replaceTargetOrgId = partenzaId;
+    this._selectedOrgPartenzaId = partenzaId;
+    this.selectedOrganizzazione = null;
+    this._initOrganizzazioniSelect([]);
+  }
+
+  /** Chiude qualsiasi form aperto (annulla). */
+  _closeOrgForm(): void {
+    this._orgFormMode = null;
+    this._replaceTargetOrgId = null;
+    this._selectedOrgPartenzaId = null;
+    this.selectedOrganizzazione = null;
   }
 
   // Getter per verificare se la verifica email è abilitata
@@ -158,6 +365,11 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
   // Getter per verificare se mostrare il campo email (default: false = nascosto)
   get mostraEmail(): boolean {
     return this.config?.AppConfig?.Profile?.showEmail === true;
+  }
+
+  // Getter per verificare se mostrare il campo telefono (default: false = nascosto)
+  get mostraTelefono(): boolean {
+    return this.config?.AppConfig?.Profile?.showPhone === true;
   }
 
   constructor(
@@ -174,8 +386,32 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
     this.config = this.configService.getConfiguration();
   }
 
+  /** True quando il container-scroller ha scrollTop > 0. Su mobile
+      attiva la modalita` compatta del sticky header (avatar piccolo,
+      eyebrow/desc/chips nascosti). */
+  isHeaderScrolled: boolean = false;
+
+  /** Soglia in pixel oltre la quale si attiva la modalita` compatta. */
+  private readonly _scrollCollapseThreshold = 8;
+
+  /** Dimensione avatar: 96 desktop, 72 mobile idle, 36 mobile collapsed. */
+  get avatarSize(): number {
+    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 720;
+    if (isMobile && this.isHeaderScrolled) { return 36; }
+    if (isMobile) { return 72; }
+    return 96;
+  }
+
   @HostListener('window:resize') _onResize() {
     this.desktop = (window.innerWidth >= 992);
+  }
+
+  onContainerScroll(event: Event): void {
+    const target = event.target as HTMLElement;
+    const scrolled = target.scrollTop > this._scrollCollapseThreshold;
+    if (scrolled !== this.isHeaderScrolled) {
+      this.isHeaderScrolled = scrolled;
+    }
   }
 
   ngOnInit() {
@@ -276,14 +512,23 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
     this.router.navigate([event.url]);
   }
 
+  /**
+   * Rewrite F2 — `onEdit` non commuta piu` `isEdit` (sempre
+   * `true`). Tenuto solo per back-compat: pulisce eventuali
+   * stati di errore residui.
+   */
   onEdit() {
-    this.isEdit = true;
     this.error = false;
     this.errorMsg = '';
   }
 
+  /**
+   * Rewrite F2 — `onCancelEdit` non chiude piu` la vista
+   * (no toggle isEdit). Resetta il form ai valori del profilo
+   * caricato e azzera gli errori. Usato sia da `<lnk-form-submit>`
+   * (bottone Annulla) sia dopo errori/save.
+   */
   onCancelEdit() {
-    this.isEdit = false;
     this.error = false;
     this.errorMsg = '';
     this.selectedOrganizzazione = this.profile?.organizzazione || null;
@@ -415,13 +660,24 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
     })
   }
 
-  _showProfile() {
-    this.isProfile = true;
+  _showInformazioni() {
+    this.currentTab = 'informazioni';
   }
 
-  _showSettings() {
-    this.isProfile = false;
+  _showOrganizzazioni() {
+    this.currentTab = 'organizzazioni';
   }
+
+  _showImpostazioni() {
+    this.currentTab = 'impostazioni';
+  }
+
+  // Compat: alcuni call site del codebase legacy chiamavano
+  // `_showProfile` / `_showSettings`. Manteniamo gli alias per
+  // non rompere riferimenti esterni; durante il cleanup F5
+  // verranno rimossi se non piu` referenziati.
+  _showProfile() { this._showInformazioni(); }
+  _showSettings() { this._showImpostazioni(); }
 
   loadSettingsNotifications() {
     this.apiService.getDetails('utenti', this.profile.id_utente, 'settings/notifiche').subscribe({
@@ -438,6 +694,52 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
         this.serverSettings = new ServerSettings({});
         this._initServerForm({});
       }
+    });
+  }
+
+  /**
+   * Rewrite F4 — view mode setter chiamato dalle card SVG
+   * della tab Impostazioni. Stessa pipeline di
+   * `_updateSettings` (rebuild + persist via authenticationService).
+   */
+  _setView(view: 'card' | 'list') {
+    this.settings.servizi.view = view;
+    this._updateSettings(view, 'servizi_view');
+  }
+
+  /**
+   * Rewrite F4 — quante opzioni card sono attive (per il counter
+   * "X di Y attive" della tab Impostazioni).
+   */
+  get _activeCardOptCount(): number {
+    if (!this.settings?.servizi) return 0;
+    const s = this.settings.servizi;
+    return [s.showImage, s.showEmptyImage, s.fillBox, s.showMasonry].filter(Boolean).length;
+  }
+
+  /**
+   * Rewrite F4 — attiva tutte le notifiche (bulk action della
+   * card Notifiche). Tiene conto di `cambioStatoDisabled` perche`
+   * tutte e 4 le toggle diventano `true` automaticamente.
+   */
+  _notifyEnableAll() {
+    this._formSettingsSettings.patchValue({
+      notifiche_inapp: true,
+      notifiche_email: true,
+      cambio_stato_inapp: true,
+      cambio_stato_email: true,
+    });
+  }
+
+  /**
+   * Rewrite F4 — disattiva tutte le notifiche.
+   */
+  _notifyDisableAll() {
+    this._formSettingsSettings.patchValue({
+      notifiche_inapp: false,
+      notifiche_email: false,
+      cambio_stato_inapp: false,
+      cambio_stato_email: false,
     });
   }
 
@@ -601,32 +903,125 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
 
   getOrganizzazioni(term: string | null = null): Observable<any> {
     const _options: any = { params: { q: term } };
-    return this.apiService.getList('organizzazioni', _options)
+    return this.apiService.getList('registrazione/organizzazioni', _options)
       .pipe(map(resp => {
         if (resp.Error) {
-          throwError(resp.Error);
+          throwError(() => resp.Error);
         } else {
-          const _items = resp.content.map((item: any) => {
-            return item;
-          });
+          // Issue 229 multi-org: nei form di add/replace nascondiamo
+          // le organizzazioni gia` associate (evita request duplicate
+          // che il BE rifiuterebbe). In `replace` consentiamo invece
+          // la riga di partenza (e` quella che stiamo sostituendo —
+          // l'utente vuole proprio cambiarla con un'altra).
+          const excludedIds = new Set<string>(
+            this._orgAssociazioniEsistenti
+              .map((o: any) => o?.id_organizzazione)
+              .filter((id: string | null): id is string => !!id)
+          );
+          if (this._orgFormMode === 'replace' && this._replaceTargetOrgId) {
+            excludedIds.delete(this._replaceTargetOrgId);
+          }
+          const _items = resp.content.filter(
+            (item: any) => !excludedIds.has(item?.id_organizzazione)
+          );
           return _items;
         }
       })
       );
   }
 
-  requestOrganizationChange(selectedOrgId: string) {
-    const hasCurrentOrg = !!this.profile?.organizzazione;
-    const warningKey = hasCurrentOrg
-      ? 'APP.PROFILE.ORGANIZATION.ChangeWarningWithOrg'
-      : 'APP.PROFILE.ORGANIZATION.ChangeWarning';
+  /**
+   * Issue 229 multi-org — richiesta verso `PUT /profilo/organizzazione`.
+   *
+   * @param selectedOrgId id dell'organizzazione target richiesta.
+   * @param partenzaOrgId opzionale; quando presente -> SOSTITUZIONE
+   *   (il BE rimpiazza quell'associazione con la nuova). Quando
+   *   assente -> AGGIUNTA (nuova associazione aggiunta a quelle
+   *   esistenti). Il `_orgFormMode` corrente determina il flusso e
+   *   l'eventuale i18n del warning.
+   */
+  requestOrganizationChange(selectedOrgId: string, partenzaOrgId?: string | null) {
+    if (this._hasPendingRequest) {
+      // safety net: il bottone dovrebbe gia` essere disabilitato.
+      return;
+    }
+    const isAdd = !partenzaOrgId;
+    const titleKey = isAdd
+      ? 'APP.PROFILE.ORGANIZATION.AddTitle'
+      : 'APP.PROFILE.ORGANIZATION.ChangeTitle';
+    const warningKey = isAdd
+      ? 'APP.PROFILE.ORGANIZATION.AddWarning'
+      : 'APP.PROFILE.ORGANIZATION.ChangeWarningWithOrg';
     const initialState = {
-      title: this.translate.instant('APP.PROFILE.ORGANIZATION.ChangeTitle'),
+      title: this.translate.instant(titleKey),
       messages: [
         this.translate.instant(warningKey)
       ],
       cancelText: this.translate.instant('APP.BUTTON.Cancel'),
       confirmText: this.translate.instant('APP.BUTTON.Confirm'),
+      confirmColor: isAdd ? 'confirm' : 'danger'
+    };
+
+    this._modalConfirmRef = this.modalService.show(YesnoDialogBsComponent, {
+      ignoreBackdropClick: true,
+      initialState: initialState
+    });
+    this._modalConfirmRef.content.onClose.subscribe(
+      (response: any) => {
+        if (response) {
+          // Payload `ProfiloOrganizationUpdate`:
+          //  - `id_organizzazione` sempre presente (target)
+          //  - `id_organizzazione_partenza` SEMPRE presente nel
+          //    payload, ma con valore `null` per il flusso di
+          //    AGGIUNTA (utente con ≥1 associazione che vuole
+          //    aggiungerne una nuova senza sostituire). Con il
+          //    field omesso, il BE rispondeva
+          //    `UT.400.ORG.PARTENZA.REQUIRED`: il null esplicito
+          //    e` il marker dell'add. Per il REPLACE il valore
+          //    porta l'id dell'associazione da sostituire.
+          const payload: any = {
+            id_organizzazione: selectedOrgId,
+            id_organizzazione_partenza: partenzaOrgId ?? null
+          };
+
+          this.apiService.putElement('profilo/organizzazione', null, payload).subscribe({
+            next: (_response: any) => {
+              Tools.showMessage(this.translate.instant('APP.PROFILE.ORGANIZATION.RequestSent'), 'success');
+              this._closeOrgForm();
+              this.loadProfile();
+            },
+            error: (error: any) => {
+              this.error = true;
+              this.errorMsg = this.utils.GetErrorMsg(error);
+            }
+          });
+        }
+      }
+    );
+  }
+
+  /**
+   * Issue 229 evolutiva 3 — annulla la richiesta di cambio
+   * organizzazione pendente. `DELETE /profilo/organizzazione`
+   * non ha body; risposta = `Utente` aggiornato.
+   *
+   * Stato post-annullamento (BE):
+   * - utente con associazioni esistenti -> `abilitato`;
+   * - utente nuovo da first-login (nessuna associazione) ->
+   *   `non_configurato`.
+   *
+   * Visibile solo quando `isPendingUpdate && _hasPendingRequest`.
+   */
+  cancelOrganizationChange(): void {
+    if (!this._hasPendingRequest) {
+      // safety net.
+      return;
+    }
+    const initialState = {
+      title: this.translate.instant('APP.PROFILE.ORGANIZATION.CancelTitle'),
+      messages: [this.translate.instant('APP.PROFILE.ORGANIZATION.CancelWarning')],
+      cancelText: this.translate.instant('APP.BUTTON.Cancel'),
+      confirmText: this.translate.instant('APP.PROFILE.ORGANIZATION.CancelButton'),
       confirmColor: 'danger'
     };
 
@@ -637,11 +1032,10 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
     this._modalConfirmRef.content.onClose.subscribe(
       (response: any) => {
         if (response) {
-          this.apiService.putElement('profilo/organizzazione', null, { id_organizzazione: selectedOrgId }).subscribe({
-            next: (response: any) => {
-              Tools.showMessage(this.translate.instant('APP.PROFILE.ORGANIZATION.RequestSent'), 'success');
+          this.apiService.deleteElement('profilo/organizzazione', null).subscribe({
+            next: (_response: any) => {
+              Tools.showMessage(this.translate.instant('APP.PROFILE.ORGANIZATION.RequestCancelled'), 'success');
               this.loadProfile();
-              this.onCancelEdit();
             },
             error: (error: any) => {
               this.error = true;
@@ -651,6 +1045,21 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
         }
       }
     );
+  }
+
+  /**
+   * Conferma dal form attivo (`_orgFormMode`). Branch su
+   * add/replace e chiama `requestOrganizationChange` con il
+   * giusto `partenzaOrgId`.
+   */
+  _confirmOrgForm(): void {
+    const targetId = this.selectedOrganizzazione?.id_organizzazione;
+    if (!targetId) { return; }
+    if (this._orgFormMode === 'replace') {
+      this.requestOrganizationChange(targetId, this._replaceTargetOrgId);
+    } else {
+      this.requestOrganizationChange(targetId, null);
+    }
   }
 
   onAvatarError(event: any) {

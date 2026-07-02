@@ -34,12 +34,12 @@ import { NavigationService } from '@app/services/navigation.service';
 
 import { Grant } from '@app/model/grant';
 
-import { AgidJwtDialogComponent } from '@app/components/authemtications-dialogs/agid-jwt-dialog/agid-jwt-dialog.component';
-import { ClientCredentialsDialogComponent } from '@app/components/authemtications-dialogs/client-credentials-dialog/client-credentials-dialog.component';
-import { AgidJwtSignatureDialogComponent } from '@app/components/authemtications-dialogs/agid-jwt-signature-dialog/agid-jwt-signature-dialog.component';
-import { AgidJwtTrackingEvidenceDialogComponent } from '@app/components/authemtications-dialogs/agid-jwt-tracking-evidence-dialog/agid-jwt-tracking-evidence-dialog.component';
-import { CodeGrantDialogComponent } from '@app/components/authemtications-dialogs/code-grant-dialog/code-grant-dialog.component';
-import { AgidJwtSignatureTrackingEvidenceDialogComponent } from '@app/components/authemtications-dialogs/agid-jwt-signature-tracking-evidence-dialog/agid-jwt-signature-tracking-evidence-dialog.component';
+import { AgidJwtDialogComponent } from '@app/components/authentications-dialogs/agid-jwt-dialog/agid-jwt-dialog.component';
+import { ClientCredentialsDialogComponent } from '@app/components/authentications-dialogs/client-credentials-dialog/client-credentials-dialog.component';
+import { AgidJwtSignatureDialogComponent } from '@app/components/authentications-dialogs/agid-jwt-signature-dialog/agid-jwt-signature-dialog.component';
+import { AgidJwtTrackingEvidenceDialogComponent } from '@app/components/authentications-dialogs/agid-jwt-tracking-evidence-dialog/agid-jwt-tracking-evidence-dialog.component';
+import { CodeGrantDialogComponent } from '@app/components/authentications-dialogs/code-grant-dialog/code-grant-dialog.component';
+import { AgidJwtSignatureTrackingEvidenceDialogComponent } from '@app/components/authentications-dialogs/agid-jwt-signature-tracking-evidence-dialog/agid-jwt-signature-tracking-evidence-dialog.component';
 
 import { environment } from '@app/environments/environment';
 
@@ -53,6 +53,17 @@ import { MarkdownModule } from 'ngx-markdown';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
 import { PluralTranslatePipe } from '@app/lib/pipes/plural-translate.pipe';
+import {
+    HeroImageComponent,
+    StatoChipComponent,
+    RefsComponent,
+    EnvToggleComponent,
+    ApiRowComponent,
+    ActionBannerComponent,
+    LnkApiTag,
+    EnvValue,
+    LnkRefItem,
+} from '@app/components/vetrina';
 
 export const EROGATO_SOGGETTO_DOMINIO: string = 'erogato_soggetto_dominio';
 export const EROGATO_SOGGETTO_ADERENTE: string = 'erogato_soggetto_aderente';
@@ -88,7 +99,7 @@ export interface User {
 
 export interface Referent {
     utente: User;
-    tipo: 'referente' | 'referente_servizio' | 'referente_tecnico' | 'referente_dominio';
+    tipo: 'referente' | 'referente_servizio' | 'utente_organizzazione' | 'referente_tecnico' | 'referente_dominio';
 }
 
 export interface ReferentView {
@@ -120,7 +131,13 @@ export enum ApiMode {
         MarkdownModule,
         MapperPipe,
         HttpImgSrcPipe,
-        PluralTranslatePipe
+        PluralTranslatePipe,
+        HeroImageComponent,
+        StatoChipComponent,
+        RefsComponent,
+        EnvToggleComponent,
+        ApiRowComponent,
+        ActionBannerComponent
     ]
 })
 export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChecked {
@@ -169,6 +186,12 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         { label: '...', url: '', type: 'link' }
     ];
 
+    /** Set quando si arriva via `?fromAdesione=:id&fromAdesioneMode=wizard|view`
+     *  (CTA "Vai al Servizio" da wizard / view adesione): abilita
+     *  la CTA "Torna all'adesione" nei banner. */
+    _fromAdesioneId: string = '';
+    _fromAdesioneMode: 'wizard' | 'view' | '' = '';
+
     _error: boolean = false;
     _errorMsg: string = '';
 
@@ -192,6 +215,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     _updateData: string = '';
 
     _hasJoined: boolean = false;
+    _adesioni: any[] = [];
     _adesioneDataReady: boolean = false;
 
     _modalInfoRef!: BsModalRef;
@@ -226,6 +250,75 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
 
     tokenPolicy: any = null;
     hideVersions: boolean = false;
+
+    /** Issue 254 (NEW VETRINA): stato di espansione della
+     *  documentazione tecnica markdown. Default `false` (clip a
+     *  220px con mask fade); toggle via `<button class="doc-toggle">`.
+     *  Ha effetto solo se `_isDocLong` e` true. */
+    public _docExpanded: boolean = false;
+
+    /** Soglia in caratteri oltre la quale la documentazione tecnica
+     *  viene clippata e si mostra il toggle "Mostra tutto" / "Mostra
+     *  meno". Sotto soglia il contenuto e` mostrato per intero senza
+     *  bottone. Override-abile via `config.descrizione_clip_threshold`
+     *  (caricato dal config service). */
+    public readonly _docClipThresholdDefault: number = 900;
+
+    /** True se la documentazione supera la soglia configurata
+     *  (richiede clipping + toggle). */
+    public get _isDocLong(): boolean {
+        const text = this.data?.descrizione || '';
+        const threshold = this.config?.descrizione_clip_threshold ?? this._docClipThresholdDefault;
+        return text.length > threshold;
+    }
+
+    /** Soglia max tag per riga API: oltre, gli extra finiscono nel
+     *  popover "+n" (vedi `<lnk-api-row>`). Override via
+     *  `config.apiMaxTags`. Default 3. Passa `null` per disabilitare
+     *  il raggruppamento. */
+    public get _apiMaxTags(): number | null {
+        const v = this.config?.apiMaxTags;
+        if (v === null) return null;
+        return typeof v === 'number' && v > 0 ? v : 3;
+    }
+
+    /**
+     * Mock per test visivi del raggruppamento "+n": se
+     * `config.apiTagsMockExtras` e` un numero > 0, aggiunge N tag
+     * fittizi alla lista. I tag sono volutamente eterogenei
+     * (size/variant/contenuto) per stressare il layout (wrap,
+     * troncamento, popover overflow).
+     */
+    private _buildMockExtraTags(): LnkApiTag[] {
+        const n = Number(this.config?.apiTagsMockExtras || 0);
+        if (!Number.isFinite(n) || n <= 0) return [];
+        const pool: LnkApiTag[] = [
+            { label: 'A',                          variant: 'custom' },
+            { label: 'PDND',     value: 'v.2',     variant: 'pdnd' },
+            { label: 'Beta',                       variant: 'custom' },
+            { label: 'Profilo',  value: 'MOCK',    variant: 'profilo' },
+            { label: 'REST',                       variant: 'custom' },
+            { label: 'API',      value: 'v.3.1',   variant: 'pdnd' },
+            { label: 'GeoData',                    variant: 'custom' },
+            { label: 'WMS',      value: '1.3.0',   variant: 'custom' },
+            { label: 'Una etichetta lunghissima che deve andare a capo o essere troncata', variant: 'custom' },
+            { label: 'ISO',      value: '19115',   variant: 'custom' },
+            { label: 'INSPIRE',                    variant: 'pdnd' },
+            { label: 'AgID',     value: 'LG1',     variant: 'profilo' },
+            { label: 'X',                          variant: 'custom' },
+            { label: 'Compliance/EU/2024-12-31',   variant: 'custom' },
+            { label: '🚀',        value: 'emoji-test', variant: 'custom' },
+            { label: 'CamelCaseTag',               variant: 'custom' },
+            { label: 'kebab-case-tag',             variant: 'custom' },
+            { label: 'env',      value: 'prod',    variant: 'custom' },
+            { label: 'UPPER',                      variant: 'custom' },
+        ];
+        const out: LnkApiTag[] = [];
+        for (let i = 0; i < n; i++) {
+            out.push(pool[i % pool.length]);
+        }
+        return out;
+    }
 
     constructor (
         private readonly route: ActivatedRoute,
@@ -268,6 +361,17 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                 console.log('NO params', params);
             }
         });
+        this.route.queryParams.subscribe(qp => {
+            const id = qp?.['fromAdesione'];
+            const mode = qp?.['fromAdesioneMode'];
+            if (id && (mode === 'wizard' || mode === 'view')) {
+                this._fromAdesioneId = id;
+                this._fromAdesioneMode = mode;
+            } else {
+                this._fromAdesioneId = '';
+                this._fromAdesioneMode = '';
+            }
+        });
 
         this.eventsManagerService.on(EventType.PROFILE_UPDATE, (event: any) => {
             const _srv: any = Tools.Configurazione.servizio;
@@ -305,11 +409,11 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                         this._initBreadcrumb();
                         this.loadCurrentData();
 
-                        if (!this.authenticationService.isAnonymous()) {
+                        if (this.authenticationService.isAnonymous()) {
+                            this._adesioneDataReady = true;
+                        } else {
                             this._adesioneDataReady = false;
                             this._loadAdesioneData();
-                        } else {
-                            this._adesioneDataReady = true;
                         }
                     },
                     error: (error: any) => {
@@ -335,7 +439,8 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
             ammissibili: this.apiService.getDetails('servizi', this.id, 'ammissibili')
         }).subscribe({
             next: (response: any) => {
-                this._hasJoined = response.joined.content.length > 0;
+                this._adesioni = response.joined.content || [];
+                this._hasJoined = this._adesioni.length > 0;
                 this._ammissibili = response.ammissibili.content;
                 this._adesioneDataReady = true;
                 this._updateData = Date.now().toString();
@@ -607,13 +712,40 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         this.navigationService.navigateWithEvent(event, route, { web: true });
     }
 
+    /** Naviga al dettaglio della singola adesione dell'utente
+     *  (CTA "Vai all'adesione"). Con una sola adesione apre il suo
+     *  dettaglio (view se gia` pubblicata in produzione, altrimenti la
+     *  scheda modificabile); con piu` adesioni ricade sulla lista. */
     _gotoAdesione(event?: MouseEvent) {
+        const adesione = this._adesioni.length === 1 ? this._adesioni[0] : null;
+        if (adesione?.id_adesione) {
+            const viewMode = (adesione.stato || '').includes('pubblicato_produzione');
+            const route = viewMode
+                ? ['servizi', this.id, 'adesioni', adesione.id_adesione, 'view']
+                : ['servizi', this.id, 'adesioni', adesione.id_adesione];
+            this.navigationService.navigateWithEvent(event, route);
+            return;
+        }
         const route = ['servizi', this.id, 'adesioni'];
-        this.navigationService.navigateWithEvent(event, route, { web: true });
+        this.navigationService.navigateWithEvent(event, route);
     }
 
+    /** Naviga alla lista adesioni del servizio (CTA "Vai alle
+     *  adesioni", gestore/referente). */
     _gotoAdesioni(event?: MouseEvent) {
         const route = ['servizi', this.id, 'adesioni'];
+        this.navigationService.navigateWithEvent(event, route);
+    }
+
+    /** Naviga indietro all'adesione di provenienza (CTA "Torna
+     *  all'adesione" visibile quando l'utente e` arrivato qui via
+     *  link "Vai al Servizio" dal wizard o dalla view di un'adesione,
+     *  segnalato da `?fromAdesione=:id&fromAdesioneMode=wizard|view`). */
+    _gotoFromAdesione(event?: MouseEvent): void {
+        if (!this._fromAdesioneId) { return; }
+        const route = this._fromAdesioneMode === 'view'
+            ? ['servizi', this.id, 'adesioni', this._fromAdesioneId, 'view']
+            : ['servizi', this.id, 'adesioni', this._fromAdesioneId];
         this.navigationService.navigateWithEvent(event, route);
     }
 
@@ -770,14 +902,22 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     }
 
     _isAmmissibile() {
-        const user = this.authenticationService.getUser();
-        const id_organizzazione = user?.organizzazione ? user.organizzazione.id_organizzazione : '';
-        const index = this._ammissibili.findIndex((item: any) => item.id_organizzazione === id_organizzazione);
-        return (index !== -1);
+        const currentOrgId = this.authenticationService.getCurrentOrganization()?.id_organizzazione;
+        if (!currentOrgId) { return false; }
+        return this._ammissibili.some((item: any) => item.id_organizzazione === currentOrgId);
     }
 
     _isAmmissibileMapper = (): boolean => {
         return this._isAmmissibile();
+    }
+
+    /** Vero se l'utente puo` effettivamente creare un'adesione:
+     * gestore/coordinatore sempre OK; gli utenti per-org devono
+     * avere un `ruolo_organizzazione` sulla currentOrg aderente.
+     * Senza ruolo (es. "Nessun ruolo") il banner "Aderisci al
+     * servizio" non va mostrato. */
+    _canCreateAdesioneMapper = (): boolean => {
+        return this.authenticationService.canCreateAdesione();
     }
 
     _isGestoreMapper = (): boolean => {
@@ -802,11 +942,12 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
             case 'gestione':
                 this.gotoManagement(mouseEvent);
                 break;
-            default:
+            default: {
                 localStorage.setItem('SERVIZI_VIEW', 'TRUE');
                 const route = ['servizi', this.id, event.action];
                 this.navigationService.navigateWithEvent(mouseEvent, route);
                 break;
+            }
         }
     }
 
@@ -827,7 +968,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     }
 
     scrollToElm(container: any, elm: any, duration: number){
-        var pos = this.getRelativePos(elm);
+        const pos = this.getRelativePos(elm);
 
         this._scrollTo(container, pos.top, duration);  // duration in seconds
     }
@@ -859,5 +1000,146 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
 
     onAvatarError(event: any) {
         event.target.src = './assets/images/avatar.png'
+    }
+
+    // -------------------------------------------------------------------
+    // Issue 254 (NEW VETRINA): helper per il nuovo layout vetrina.
+    // -------------------------------------------------------------------
+
+    /**
+     * Mappa `referenti: ReferentView[]` nello shape `LnkRefItem[]`
+     * consumato da `<lnk-refs>`. Mantiene il primo tipo come ruolo
+     * "umano" e mappa il tag CSS per il colore della pill
+     * (`r-dom`/`r-serv`/`r-tec`/`r-ades`).
+     */
+    public get referentiAsLnkRefs(): LnkRefItem[] {
+        return (this.referenti || []).map((r: ReferentView) => {
+            const primary = r.types?.[0] || '';
+            return {
+                id: r.id,
+                nome: r.name,
+                email: r.email,
+                ruolo: this._humanizeRuolo(primary),
+                tag: this._tagForRuolo(primary),
+            };
+        });
+    }
+
+    private _humanizeRuolo(t: string): string {
+        if (!t) return '';
+        return t
+            .split('_')
+            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+            .join(' ');
+    }
+
+    private _tagForRuolo(t: string): string {
+        const s = (t || '').toLowerCase();
+        if (s.includes('dominio')) return 'dom';
+        if (s.includes('tecnico')) return 'tec';
+        if (s.includes('servizio')) return 'serv';
+        if (s.includes('adesione')) return 'ades';
+        return '';
+    }
+
+    /** Handler del nuovo `<lnk-env-toggle>`: setta `_environmentId` e
+     *  ricarica le API. Mantiene la stessa logica dei vecchi 2 bottoni. */
+    public onEnvToggle(env: EnvValue): void {
+        this._environmentId = env;
+        this._loadApis();
+    }
+
+    /**
+     * Costruisce i tag visualizzati nella riga `<lnk-api-row>` di un
+     * servizio. Tre famiglie di tag:
+     *  - "PDND" — variante `pdnd` (azzurro) se l'auth type del primo
+     *    `gruppi_auth_type` contiene 'pdnd';
+     *  - profilo — variante `profilo` (giallo) con l'etichetta i18n
+     *    del profilo (es. "Profilo Servizio Base");
+     *  - proprieta` custom marcate `vetrina:true` — variante `custom`
+     *    (neutra). Risolte via lo stesso flow di `_loadApis()` (le
+     *    `key` aggiunte come property dinamiche sull'API).
+     */
+    /**
+     * Naviga al dettaglio adesione "appropriato" per l'utente
+     * corrente: il gestore va alla lista adesioni, gli altri al
+     * dettaglio della propria. Usato dal banner "Adesioni
+     * precedenti" che ha una sola CTA logica ma due target.
+     */
+    public _gotoAdesioneOrAdesioni(event: MouseEvent): void {
+        if (this.authenticationService.isGestore(this._grant?.ruoli)) {
+            this._gotoAdesioni(event);
+        } else {
+            this._gotoAdesione(event);
+        }
+    }
+
+    /**
+     * Label dinamica del bottone "Vai..." nel banner "Adesioni
+     * precedenti": gestore -> lista; altri -> dettaglio singolo.
+     */
+    public get _gotoAdesioneOrAdesioniLabel(): string {
+        const isGestore = this.authenticationService.isGestore(this._grant?.ruoli);
+        return this.translate.instant(isGestore ? 'APP.BUTTON.GoAdesioni' : 'APP.BUTTON.GoAdesione');
+    }
+
+    public _apiTagsMapper = (api: any): LnkApiTag[] => {
+        if (!api) return [];
+        const tags: LnkApiTag[] = [];
+
+        // PDND tag: pill split "PDND | v.X" (come il composite badged
+        // del vecchio `<ui-data-type>`). Se versione assente o flag
+        // `hideVersions` attivo -> solo "PDND" non split (allineamento
+        // legacy `configDependency: Services.hideVersions`).
+        const authType = api?.gruppi_auth_type?.[0]?.auth_type || '';
+        const profiloCode = api?.gruppi_auth_type?.[0]?.profilo || '';
+        if (/pdnd/i.test(authType) || /pdnd/i.test(profiloCode)) {
+            const versione = api?.versione;
+            if (!this.hideVersions && versione != null && versione !== '') {
+                tags.push({ label: 'PDND', value: `v.${versione}`, variant: 'pdnd' });
+            } else {
+                tags.push({ label: 'PDND', variant: 'pdnd' });
+            }
+        }
+
+        // Profilo tag — etichetta completa "Profilo:<etichetta>" come
+        // nel vecchio rendering (era prefissata via `profiloLabelI18n`
+        // in `_loadApis`, qui ricostruita per coerenza).
+        if (profiloCode) {
+            const etichetta = this._getProfiloLabelMapper(profiloCode);
+            if (etichetta) {
+                const prefix = this.translate.instant('APP.LABEL.Profilo');
+                tags.push({ label: `${prefix}:${etichetta}`, variant: 'profilo' });
+            }
+        }
+
+        // Tag da proprieta` custom `vetrina:true`. Le `key` sono state
+        // aggiunte come property direttamente sull'oggetto API in
+        // `_loadApis()` (per il rendering legacy `<ui-item-row>`).
+        // Le rileviamo cercando le chiavi che non appartengono allo
+        // shape standard di ApiReadDetails. Filtriamo i pattern "v.N"
+        // (la versione e` gia` inlineata nel PDND tag e mostrata anche
+        // nel nome riga via `[versione]`).
+        const knownFields = new Set([
+            'id_api', 'nome', 'versione', 'descrizione', 'codice_asset',
+            'ruolo', 'protocollo', 'protocollo_dettaglio', 'specifica',
+            'proprieta_custom', 'gruppi_auth_type', 'tipo_profilo',
+            'servizio', 'configurazione_collaudo', 'configurazione_produzione',
+            'allegati', 'note', 'archetipo', 'stato'
+        ]);
+        for (const k of Object.keys(api)) {
+            if (knownFields.has(k)) continue;
+            const v = api[k];
+            if (typeof v !== 'string' || !v) continue;
+            if (/^v\.\d+$/i.test(v.trim())) continue;
+            tags.push({ label: v, variant: 'custom' });
+        }
+
+        // Mock testabile (vedi `_buildMockExtraTags`): se
+        // `config.apiTagsMockExtras > 0` aggiunge N tag fittizi per
+        // verificare il raggruppamento "+n".
+        tags.push(...this._buildMockExtraTags());
+
+        return tags;
     }
 }

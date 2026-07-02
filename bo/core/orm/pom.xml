@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>org.govway.catalogo</groupId>
 		<artifactId>core</artifactId>
-		<version>2.3.6.p2</version>
+		<version>2.4.0-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<properties>
@@ -76,11 +76,11 @@
                 <configuration>
                     <release>21</release>
                     <annotationProcessorPaths>
-                        <!-- Hibernate JPA static metamodel generator for Hibernate 6.x + Jakarta -->
+                        <!-- Hibernate 7: static metamodel generator (artifact rinominato hibernate-processor) -->
                         <path>
                             <groupId>org.hibernate.orm</groupId>
-                            <artifactId>hibernate-jpamodelgen</artifactId>
-                            <version>${hibernate.jpamodelgen.version}</version> <!-- e.g. 6.5.x.Final -->
+                            <artifactId>hibernate-processor</artifactId>
+                            <version>${hibernate.jpamodelgen.version}</version>
                         </path>
                         <!-- (Optional) Lombok, if you use it -->
                         <path>
@@ -92,21 +92,10 @@
                 </configuration>
             </plugin>
 
-			<plugin>
-				<groupId>org.hibernate.orm.tooling</groupId>
-				<artifactId>hibernate-enhance-maven-plugin</artifactId>
-				<version>6.5.2.Final</version><!-- must match Spring Boot managed hibernate-core version -->
-				<executions>
-					<execution>
-						<goals>
-							<goal>enhance</goal>
-						</goals>
-						<configuration>
-							<enableLazyInitialization>true</enableLazyInitialization>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
+			<!-- Hibernate 7: il hibernate-enhance-maven-plugin e' stato discontinuato
+			     (nessuna release stabile 7.x). L'enhancement a build-time e' rimosso:
+			     l'attributo @Basic(fetch=LAZY) di DocumentoEntity.rawData viene quindi
+			     caricato in modo eager. -->
 
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>

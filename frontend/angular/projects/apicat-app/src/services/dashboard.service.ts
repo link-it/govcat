@@ -56,18 +56,27 @@ export class DashboardService {
    *
    * Referente dominio: servizi, adesioni, comunicazioni
    * Referente dominio tecnico: comunicazioni
-   * Referente servizio: servizi, adesioni, comunicazioni
+   * Referente servizio (deprecated, fallback): servizi, adesioni, comunicazioni
    * Referente servizio tecnico: comunicazioni
    * Referente adesione: comunicazioni
    * Referente adesione tecnico: comunicazioni
+   * Utente organizzazione (sostituisce referente_servizio): servizi, adesioni, comunicazioni
+   * Amministratore organizzazione (per-org): + utenti (gestione membership della propria org)
+   * Operatore API (per-org): servizi, adesioni, comunicazioni
    */
   private static readonly _REFERENTE_PANELS: { [ruolo: string]: (keyof DashboardRoleConfig)[] } = {
     referente_dominio: ['servizi', 'adesioni', 'comunicazioni'],
     referente_tecnico_dominio: ['comunicazioni'],
+    /** @deprecated Mantenuto come fallback per dati non aggiornati. */
     referente_servizio: ['servizi', 'adesioni', 'comunicazioni'],
     referente_tecnico_servizio: ['comunicazioni'],
-    referente_adesione: ['comunicazioni'],
-    referente_tecnico_adesione: ['comunicazioni']
+    // Il referente (non tecnico) dell'adesione deve vedere il pannello adesioni
+    // per poter visualizzare in dashboard le proprie adesioni (es. quelle in bozza).
+    referente_adesione: ['adesioni', 'comunicazioni'],
+    referente_tecnico_adesione: ['comunicazioni'],
+    utente_organizzazione: ['servizi', 'adesioni', 'comunicazioni'],
+    amministratore_organizzazione: ['servizi', 'adesioni', 'comunicazioni', 'utenti'],
+    operatore_api: ['servizi', 'adesioni', 'comunicazioni']
   };
 
   private _isHideComunicazioniGestore(): boolean {
@@ -86,7 +95,12 @@ export class DashboardService {
       return { servizi: true, adesioni: true, client: false, comunicazioni: true, utenti: true };
     }
 
-    // Referente: unione dei pannelli per ogni ruolo referente
+    // Referente / Utente organizzazione: unione dei pannelli per ogni
+    // ruolo riferito (referente_* legacy + utente_organizzazione e
+    // ruoli per-org amministratore_organizzazione/operatore_api).
+    // `referente_servizio` e' deprecato: il BE potra' gradualmente
+    // smettere di pubblicarlo, ma rimane qui come fallback se i dati
+    // utente non sono ancora aggiornati alla nuova nomenclatura.
     const config: DashboardRoleConfig = {
       servizi: false,
       adesioni: false,
@@ -95,12 +109,36 @@ export class DashboardService {
       utenti: false
     };
 
-    if (!ruoliReferente || ruoliReferente.length === 0) {
+    // Pool dei ruoli su cui calcoliamo i pannelli. Parte dai
+    // `ruoli_referente` esposti da `/profilo/ruoli` (es.
+    // referente_dominio, referente_servizio, ...).
+    const pool = new Set<string>(ruoliReferente || []);
+
+    // Aggiunge il ruolo per-organizzazione dell'utente per la sessione
+    // corrente (`amministratore_organizzazione` o `operatore_api`).
+    // L'endpoint `profilo/ruoli` non lo include in `ruoli_referente`,
+    // quindi senza questa aggiunta un amministratore di organizzazione
+    // perderebbe il pannello `utenti` in dashboard.
+    const currentOrgRole = this.authenticationService.getCurrentOrganizationRole?.();
+    if (currentOrgRole) {
+      pool.add(currentOrgRole);
+    }
+
+    // `utente_organizzazione` (o `referente_servizio` legacy) viene
+    // aggiunto al pool SOLO se l'utente ha gia` un altro contesto di
+    // ruolo (per-org o ruolo_referente). Un utente_organizzazione
+    // privo di ruolo sulla sessione corrente e senza ruoli referente
+    // non ha permessi specifici: vede solo `comunicazioni`.
+    if (pool.size > 0 && (ruolo === 'utente_organizzazione' || ruolo === 'referente_servizio')) {
+      pool.add('utente_organizzazione');
+    }
+
+    if (pool.size === 0) {
       config.comunicazioni = true;
       return config;
     }
 
-    for (const ruoloRef of ruoliReferente) {
+    for (const ruoloRef of pool) {
       const panels = DashboardService._REFERENTE_PANELS[ruoloRef];
       if (panels) {
         for (const panel of panels) {
@@ -163,19 +201,17 @@ export class DashboardService {
   }
 
   getDashboardCount(timerMs: number): Observable<number> {
-    if (!this._dashboardCount$) {
-      this._dashboardCount$ = this._resolveRoleConfig().pipe(
-        switchMap(roleConfig => {
-          return timer(1, timerMs).pipe(
-            switchMap(() => this._fetchTotalCount(roleConfig)),
-            retry(3),
-            catchError(() => of(0)),
-            share(),
-            takeUntil(this._stopPolling)
-          );
-        })
-      );
-    }
+    this._dashboardCount$ ??= this._resolveRoleConfig().pipe(
+      switchMap(roleConfig => {
+        return timer(1, timerMs).pipe(
+          switchMap(() => this._fetchTotalCount(roleConfig)),
+          retry(3),
+          catchError(() => of(0)),
+          share(),
+          takeUntil(this._stopPolling)
+        );
+      })
+    );
     return this._dashboardCount$;
   }
 

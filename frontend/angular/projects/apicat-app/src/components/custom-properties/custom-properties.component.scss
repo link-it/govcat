@@ -27,3 +27,66 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 .end-16 {
     right: 16px !important;
 }
+
+// Evidenziazione bordo/shadow rossa quando la form custom-properties
+// e` in edit. Allineato al pattern di `.adesione-config-list-item.is-editing`
+// per le righe client del wizard adesione.
+.custom-properties-edit-wrap {
+    border: 1px solid transparent;
+    border-radius: 10px;
+    padding: 1rem;
+    transition: border-color .15s, box-shadow .15s;
+
+    &.is-editing {
+        border-color: var(--accent, #ff4050);
+        box-shadow: 0 0 0 3px var(--accent-soft, #ffe9eb);
+    }
+}
+
+// Bottoni icon-only stile design Link.it (mirror del
+// `.lnk-btn-ghost .lnk-btn-sm .lnk-btn-icon` del wizard adesione —
+// duplicato qui perche` lo scope SCSS del wizard non raggiunge
+// questo child component).
+.lnk-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4375rem;
+    height: 32px;
+    padding: 0 0.8125rem;
+    background: var(--surface, #ffffff);
+    color: var(--ink, #212c49);
+    border: 1px solid var(--line-strong, #c4d6e0);
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .12s;
+    text-decoration: none;
+}
+.lnk-btn:hover {
+    background: var(--surface-3, #eef4f8);
+    border-color: var(--ink-4, #8aa4b8);
+}
+.lnk-btn-ghost {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+}
+.lnk-btn-ghost:hover {
+    background: var(--surface-3, #eef4f8);
+}
+.lnk-btn-sm {
+    height: 28px;
+    font-size: 0.78125rem;
+    padding: 0 0.625rem;
+}
+.lnk-btn-icon {
+    width: 30px;
+    padding: 0;
+
+    &.lnk-btn-sm { width: 28px; }
+
+    i.bi { font-size: 14px; }
+    .material-icons-outlined { font-size: 18px; line-height: 1; }
+}

@@ -28,13 +28,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.web.util.matcher.RequestMatcher;
-import org.springframework.security.web.util.matcher.RequestVariablesExtractor;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 @SuppressWarnings("deprecation")
-public class AntPathRequestMatcher implements RequestMatcher, RequestVariablesExtractor {
+public class AntPathRequestMatcher implements RequestMatcher {
 	
 	private static Logger logger = LoggerFactory.getLogger(AntPathRequestMatcher.class);
 	
@@ -144,7 +143,6 @@ public class AntPathRequestMatcher implements RequestMatcher, RequestVariablesEx
 		return this.matcher.matches(url);
 	}
 	
-	@Override
 	public Map<String, String> extractUriTemplateVariables(HttpServletRequest request) {
 		if (this.matcher == null || !matches(request)) {
 			return Collections.emptyMap();

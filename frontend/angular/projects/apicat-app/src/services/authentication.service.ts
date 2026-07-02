@@ -22,7 +22,12 @@ import { inject, Injectable } from '@angular/core';
 import { Tools, EventType, ConfigService, EventsManagerService } from '@linkit/components';
 import { OAuthService } from 'angular-oauth2-oidc';
 import { PermessiService } from '@services/permessi.service';
+import { OrganizationContextService } from '@services/organization-context.service';
+import { ItemOrganizzazione } from '../model/itemOrganizzazione';
+import { RuoloOrganizzazioneEnum } from '../model/ruoloOrganizzazioneEnum';
+import { GrantRole, expandTecnicoGrants, expandContextualGrants } from './grant-roles.const';
 
+import { firstValueFrom } from 'rxjs';
 import * as _ from 'lodash';
 
 export const AUTH_CONST: any = {
@@ -65,10 +70,10 @@ export const CLASSES: any = {
     referenti: {
       type: 'external',
       fields: [
-        { field: 'referente', view: true, edit: true, create: true, delete: true },
-        { field: 'referente_tecnico', view: true, edit: true, create: true, delete: true },
-        { field: 'referente_superiore', view: true, edit: true, create: true, delete: true },
-        { field: 'referente_tecnico_superiore', view: true, edit: true, create: true, delete: true },
+        { field: GrantRole.Referente, view: true, edit: true, create: true, delete: true },
+        { field: GrantRole.ReferenteTecnico, view: true, edit: true, create: true, delete: true },
+        { field: GrantRole.ReferenteSuperiore, view: true, edit: true, create: true, delete: true },
+        { field: GrantRole.ReferenteTecnicoSuperiore, view: true, edit: true, create: true, delete: true },
       ]
     }
   },
@@ -166,10 +171,10 @@ export const CLASSES: any = {
     referenti: {
       type: 'external',
       fields: [
-        { field: 'referente', view: true, edit: true, create: true, delete: true },
-        { field: 'referente_tecnico', view: true, edit: true, create: true, delete: true },
-        { field: 'referente_superiore', view: true, edit: true, create: true, delete: true },
-        { field: 'referente_tecnico_superiore', view: true, edit: true, create: true, delete: true },
+        { field: GrantRole.Referente, view: true, edit: true, create: true, delete: true },
+        { field: GrantRole.ReferenteTecnico, view: true, edit: true, create: true, delete: true },
+        { field: GrantRole.ReferenteSuperiore, view: true, edit: true, create: true, delete: true },
+        { field: GrantRole.ReferenteTecnicoSuperiore, view: true, edit: true, create: true, delete: true },
       ]
     },
     specifica: {
@@ -226,6 +231,7 @@ export class AuthenticationService {
   private readonly eventsManagerService = inject(EventsManagerService);
   private readonly oauthService = inject(OAuthService);
   private readonly permessiService = inject(PermessiService);
+  private readonly organizationContextService = inject(OrganizationContextService);
 
   constructor() {
     this.config = this.configService.getConfiguration();
@@ -262,6 +268,7 @@ export class AuthenticationService {
 
   logout() {
     localStorage.removeItem(AUTH_CONST.storageSession);
+    this.organizationContextService.clear();
 
     // Check if there's an access token to revoke (even if expired)
     const hasAccessToken = !!this.oauthService.getAccessToken();
@@ -301,8 +308,47 @@ export class AuthenticationService {
 
   reloadSession() {
     this.currentSession = this.getCurrentSession();
+    if (this.currentSession?.utente) {
+      this.organizationContextService.initFromUser(this.currentSession.utente);
+    } else {
+      this.organizationContextService.clear();
+    }
     this.eventsManagerService.broadcast(EventType.SESSION_UPDATE, this.currentSession);
     return this.currentSession;
+  }
+
+  /**
+   * Carica `/profilo` e scrive la sessione nel localStorage.
+   * Chiamato dall'`APP_INITIALIZER` (vedi `app.config.ts`) per
+   * garantire che i guard sincroni (`DashboardGuard`,
+   * `OrganizationSelectionGuard`, ...) trovino la sessione gia`
+   * popolata prima del primo routing.
+   *
+   * Casi di skip:
+   *  - utente non autenticato (nessun access token OAuth valido);
+   *  - `appConfig.GOVAPI.HOST` non disponibile (config malformata).
+   *
+   * Errori HTTP vengono ignorati silenziosamente: l'app boota
+   * comunque, i guard scattano in modalita` "anonimo" come prima,
+   * e `GpLayoutComponent.loadProfile()` rieffettuera` il tentativo.
+   * Senza questo preload, in incognito la prima activation del
+   * `DashboardGuard` non trovava la sessione e dirottava a
+   * `/servizi` (race condition con il `loadProfile` async del
+   * layout).
+   */
+  async loadAndStoreProfile(): Promise<void> {
+    if (!this.isAuthLogged()) { return; }
+    if (!this.appConfig?.GOVAPI?.HOST) { return; }
+    try {
+      const url = `${this.appConfig.GOVAPI.HOST}/profilo`;
+      const profile: any = await firstValueFrom(this.http.get(url));
+      if (profile) {
+        this.setCurrentSession(profile);
+        this.reloadSession();
+      }
+    } catch (err) {
+      console.warn('APP_INITIALIZER /profilo preload failed:', err);
+    }
   }
 
   isAuthLogged() {
@@ -394,14 +440,14 @@ export class AuthenticationService {
   hasRole(roles: string[]) {
     const role = this.getRole();
     if (role) {
-      return roles.findIndex((x: any) => x === role) > -1;
+      return roles.includes(role);
     }
     return false;
   }
 
   isAdmin() {
     if (this.currentSession) {
-      return (_.includes(this.currentSession.roles, 'apicat_adm'));
+      return (this.currentSession.roles.includes('apicat_adm'));
     } else {
       return false;
     }
@@ -439,21 +485,63 @@ export class AuthenticationService {
   }
 
   isGestore(grant: string[] = []) {
-    let _isGestore = (_.indexOf(grant, 'gestore') !== -1);
+    let _isGestore = (grant.includes(GrantRole.Gestore));
     if (!_isGestore) {
       const _user: any = this.getUser();
-      _isGestore = (_user?.ruolo === 'gestore');
+      _isGestore = (_user?.ruolo === GrantRole.Gestore);
     }
     return _isGestore;
   }
 
   isCoordinatore(grant: string[] = []) {
-    let _isCoordinator = (_.indexOf(grant, 'coordinatore') !== -1);
+    let _isCoordinator = (grant.includes(GrantRole.Coordinatore));
     if (!_isCoordinator) {
       const _user: any = this.getUser();
-      _isCoordinator = (_user?.ruolo === 'coordinatore');
+      _isCoordinator = (_user?.ruolo === GrantRole.Coordinatore);
     }
     return _isCoordinator;
+  }
+
+  /**
+   * Organizzazione di sessione corrente (multi-org). Wrap su
+   * `OrganizationContextService` per evitare che i consumer dipendano
+   * direttamente dal service del contesto.
+   */
+  getCurrentOrganization(): ItemOrganizzazione | null {
+    return this.organizationContextService.getCurrentOrganization();
+  }
+
+  getCurrentOrganizationRole(): RuoloOrganizzazioneEnum | null {
+    return this.organizationContextService.getCurrentRole();
+  }
+
+  /**
+   * Vero se l'utente e' amministratore dell'organizzazione indicata
+   * (o di quella di sessione, se `idOrganizzazione` non e' fornito).
+   * Sui gestori la verifica passa sempre.
+   */
+  isAmministratoreOrganizzazione(idOrganizzazione?: string): boolean {
+    if (this.isGestore()) { return true; }
+    return this._hasOrgRole(RuoloOrganizzazioneEnum.AmministratoreOrganizzazione, idOrganizzazione);
+  }
+
+  /**
+   * Vero se l'utente e' operatore API dell'organizzazione indicata
+   * (o di quella di sessione, se `idOrganizzazione` non e' fornito).
+   */
+  isOperatoreApi(idOrganizzazione?: string): boolean {
+    if (this.isGestore()) { return true; }
+    return this._hasOrgRole(RuoloOrganizzazioneEnum.OperatoreApi, idOrganizzazione);
+  }
+
+  private _hasOrgRole(ruolo: RuoloOrganizzazioneEnum, idOrganizzazione?: string): boolean {
+    const utente: any = this.getUser();
+    const organizzazioni: any[] = utente?.organizzazioni || [];
+    if (!organizzazioni.length) { return false; }
+    const targetId = idOrganizzazione || this.getCurrentOrganization()?.id_organizzazione;
+    if (!targetId) { return false; }
+    const match = organizzazioni.find((o: any) => o?.organizzazione?.id_organizzazione === targetId);
+    return match?.ruolo_organizzazione === ruolo;
   }
 
   canAdd(module: string, state: string, grant: string[] = []) {
@@ -469,36 +557,56 @@ export class AuthenticationService {
 
   canEdit(module: string, submodule: string, state: string, grant: string[] = []) {
     if (this.isGestore(grant)) { return true; }
-    if (state) {
-      const _wfcs = this._getWorkflowCambiStato(module, state);
-      const _ssra = (_wfcs?.stato_successivo) ? _wfcs.stato_successivo.ruoli_abilitati : [];
-      const _dnm = (_wfcs?.dati_non_modificabili) ? _wfcs.dati_non_modificabili : [];
+    if (!state) { return false; }
+    if (state === 'archiviato') { return false; }
 
-      let _can: boolean = true;
-      Object.keys(CLASSES[submodule] || []).forEach((key: string) => {
-        if ((CLASSES[submodule][key].type === 'internal') && (_.indexOf(key, _dnm) !== -1)) {
-          _can = false;
-        }
-      });
+    // Stakeholder bypass: amm.org, op.api e referenti
+    // (servizio/dominio/adesione, inclusi tecnici) possono entrare in
+    // edit mode indipendentemente da `stato_successivo.ruoli_abilitati`
+    // (che governa solo le transizioni di workflow). I
+    // `dati_non_modificabili` restano applicati per campo via
+    // `canEditField`.
+    const stakeholders = [
+      'referente_servizio', 'referente_tecnico_servizio',
+      'referente_dominio', 'referente_tecnico_dominio',
+      'referente_adesione', 'referente_tecnico_adesione',
+      'utente_organizzazione'
+    ];
+    const isStakeholder = grant.some((r: string) => stakeholders.includes(r))
+      || this.isAmministratoreOrganizzazione()
+      || this.isOperatoreApi();
+    if (isStakeholder) { return true; }
 
-      const _grant: string[] = [ ...grant ];
-      if (_grant.indexOf('referente_tecnico') !== -1) {
-        _grant.push('referente');
+    // Fallback workflow-based (es. richiedente): edit consentito
+    // solo se l'utente puo` transizionare allo `stato_successivo` e
+    // i dati non sono frozen lato modulo.
+    const _wfcs = this._getWorkflowCambiStato(module, state);
+    const _ssra = (_wfcs?.stato_successivo) ? _wfcs.stato_successivo.ruoli_abilitati : [];
+    const _dnm = (_wfcs?.dati_non_modificabili) ? _wfcs.dati_non_modificabili : [];
+
+    let _can: boolean = true;
+    Object.keys(CLASSES[submodule] || []).forEach((key: string) => {
+      if ((CLASSES[submodule][key].type === 'internal') && _dnm.includes(key)) {
+        _can = false;
       }
-      if (_grant.indexOf('referente_tecnico_superiore') !== -1) {
-        _grant.push('referente_superiore');
-      }
+    });
 
-      const _intersection = _.intersection(_grant, _ssra);
-      return _can && (_intersection.length > 0);
-    }
-    return false;
+    const _grant = expandContextualGrants(grant, module);
+    const _intersection = _.intersection(_grant, _ssra);
+    return _can && (_intersection.length > 0);
   }
 
   canManagement(module: string, submodule: string, state: string, grant: string[] = []) {
     if (this.isGestore(grant)) { return true; }
 
-    const _grantManagement: string[] = ['gestore', 'referente', 'referente_tecnico', 'referente_superiore', 'referente_tecnico_superiore', 'richiedente'];
+    const _grantManagement: string[] = [
+      GrantRole.Gestore,
+      GrantRole.Referente,
+      GrantRole.ReferenteTecnico,
+      GrantRole.ReferenteSuperiore,
+      GrantRole.ReferenteTecnicoSuperiore,
+      GrantRole.Richiedente,
+    ];
 
     const _intersection = _.intersection(grant, _grantManagement);
     return (_intersection.length > 0);
@@ -507,7 +615,14 @@ export class AuthenticationService {
   canManagementComunicazioni(module: string, submodule: string, state: string, grant: string[] = []) {
     if (this.isGestore(grant)) { return true; }
 
-    const _grantManagement: string[] = ['gestore', 'referente', 'referente_tecnico', 'referente_superiore', 'referente_tecnico_superiore', 'richiedente'];
+    const _grantManagement: string[] = [
+      GrantRole.Gestore,
+      GrantRole.Referente,
+      GrantRole.ReferenteTecnico,
+      GrantRole.ReferenteSuperiore,
+      GrantRole.ReferenteTecnicoSuperiore,
+      GrantRole.Richiedente,
+    ];
 
     const _intersection = _.intersection(grant, _grantManagement);
     return (_intersection.length > 0) && !this.isAnonymous();
@@ -517,9 +632,9 @@ export class AuthenticationService {
     if (this.isGestore(grant)) { return true; }
     if (state) {
       const _wfcs = this._getWorkflowCambiStato(module, state);
-      const _ssra = (_wfcs && _wfcs.stato_successivo) ? _wfcs.stato_successivo.ruoli_abilitati : [];
-      const _dnm = (_wfcs && _wfcs.dati_non_modificabili) ? _wfcs.dati_non_modificabili : [];
-      const _do = (_wfcs && _wfcs.dati_obbligatori) ? _wfcs.dati_obbligatori : [];
+      const _ssra = (_wfcs?.stato_successivo) ? _wfcs.stato_successivo.ruoli_abilitati : [];
+      const _dnm = (_wfcs?.dati_non_modificabili) ? _wfcs.dati_non_modificabili : [];
+      const _do = (_wfcs?.dati_obbligatori) ? _wfcs.dati_obbligatori : [];
 
       if (_dnm.length > 0) {
         const _fields: string[] = [];
@@ -535,27 +650,36 @@ export class AuthenticationService {
         }
       }
 
-      const _grant: string[] = [ ...grant ];
-      if (_grant.indexOf('referente_tecnico') !== -1) {
-        _grant.push('referente');
-      }
-      if (_grant.indexOf('referente_tecnico_superiore') !== -1) {
-        _grant.push('referente_superiore');
-      }
+      const _grant = expandTecnicoGrants(grant);
 
       const _intersection = _.intersection(_grant, _ssra);
       return (_intersection.length > 0);
     }
     return false;
   }
-  
+
   canChangeStatus(module: string, state: string, type: string, grant: string[] = [], currentStatus: string = '') {
     const _wfcs = this._getWorkflowCambiStato(module, state);
-    let _ss = (_wfcs?.[type]) ? _wfcs[type].ruoli_abilitati : [];
+    const _entry = _wfcs?.[type];
+    let _ss: string[] = [];
     if (type === 'stati_ulteriori') {
-      _ss = _wfcs[type].find((item: any) => item.nome === currentStatus)?.ruoli_abilitati || [];
+      // `stati_ulteriori` e` un array (o assente per stati terminali);
+      // serve null-check prima del `.find` per evitare TypeError quando
+      // la chiave manca nella configurazione workflow (es. stato
+      // `pubblicato_produzione`).
+      if (Array.isArray(_entry)) {
+        _ss = _entry.find((item: any) => item.nome === currentStatus)?.ruoli_abilitati || [];
+      }
+    } else if (_entry) {
+      _ss = _entry.ruoli_abilitati || [];
     }
-    const _intersection = _.intersection(grant, _ss);
+    // Espande le grants per-contesto al modulo corrente: in
+    // particolare per `adesione` ref_servizio/ref_dominio vengono
+    // mappati anche a `referente_superiore` (e tech variants), cosi`
+    // il referente del servizio dell'adesione puo` cambiare stato
+    // come ref_dominio.
+    const _grant = expandContextualGrants(grant || [], module);
+    const _intersection = _.intersection(_grant, _ss);
     return (_intersection.length > 0);
   }
 
@@ -576,7 +700,8 @@ export class AuthenticationService {
   }
 
   canJoin(module: string, state: string, usePackage: boolean = false) {
-    const _sac = (module === 'adesione') ? this._getConfigModule(module).stati_scheda_adesione : this._getConfigModule(usePackage ? 'package' : module).stati_adesione_consentita;
+    const configModule = usePackage ? 'package' : module;
+    const _sac = (module === 'adesione') ? this._getConfigModule(module).stati_scheda_adesione : this._getConfigModule(configModule).stati_adesione_consentita;
     return (_.indexOf(_sac, state) !== -1);
   }
 
@@ -631,20 +756,12 @@ export class AuthenticationService {
     const _datiSempreModificabili = _config?.dati_sempre_modificabili || [];
     const _entry = _datiSempreModificabili.find((item: any) => item.classe_dato === classeDato);
     if (_entry) {
-      const _grant: string[] = [...grant];
-      // Mappa ruoli specifici per contesto ai ruoli generici della configurazione
-      if (_grant.indexOf('referente_tecnico') !== -1) {
-        _grant.push('referente');
-      }
-      if (_grant.indexOf('referente_tecnico_superiore') !== -1) {
-        _grant.push('referente_superiore');
-      }
-      if (_grant.indexOf('referente_adesione') !== -1 || _grant.indexOf('referente_servizio') !== -1 || _grant.indexOf('referente_dominio') !== -1) {
-        _grant.push('referente');
-      }
-      if (_grant.indexOf('referente_tecnico_adesione') !== -1 || _grant.indexOf('referente_tecnico_servizio') !== -1 || _grant.indexOf('referente_tecnico_dominio') !== -1) {
-        _grant.push('referente');
-      }
+      // Mappa ruoli specifici per contesto ai ruoli generici della
+      // configurazione (vedi `expandContextualGrants`). Per module
+      // `adesione` aggiunge anche `referente_superiore` ai referenti
+      // servizio/dominio (e tech variants), cosi` la save dei custom
+      // properties di adesione e` consentita anche al ref_servizio.
+      const _grant = expandContextualGrants(grant, module);
       return _.intersection(_grant, _entry.ruoli).length > 0;
     }
     return false;
@@ -688,29 +805,64 @@ export class AuthenticationService {
   }
 
   canMonitoraggio(grant: string[] = []) {
-    const _grant = [ ...grant ];
     const _monitoraggio = this._getConfigModule('monitoraggio');
     if (!_monitoraggio) {
       return false;
     }
     const _ruoliAbilitati = _monitoraggio.ruoli_abilitati;
-    if ((_.indexOf(grant, 'referente_tecnico') !== -1) && (_.indexOf(grant, 'referente') === -1)) {
-      _grant.push('referente');
-    }
-    if ((_.indexOf(grant, 'referente_tecnico_superiore') !== -1) && (_.indexOf(grant, 'referente_superiore') === -1)) {
-      _grant.push('referente_superiore');
-    }
-    const _intersection = _.intersection(grant, _ruoliAbilitati);
+    const _grant = expandTecnicoGrants(grant);
+    const _intersection = _.intersection(_grant, _ruoliAbilitati);
     return _monitoraggio.abilitato && !!_intersection.length;
   }
 
   // Verifica permessi menu amministrazione
 
   verificacanPermessiMenuAmministrazione(menu: string): { canRead: boolean; canWrite: boolean } {
-    const ruoli = [ this.getUser().ruolo ];
+    const ruoli = this._effectiveRoles();
     const permessi = Tools.Configurazione ? (Tools.Configurazione['amministrazione'] || {}) : {};
 
     return this.permessiService.verificaPermessi(ruoli, menu, permessi);
+  }
+
+  /**
+   * Ruoli "effettivi" dell'utente per la valutazione dei permessi UI:
+   * il ruolo principale (`gestore`/`coordinatore`/`utente_organizzazione`/...)
+   * affiancato dal ruolo per-org dell'organizzazione di sessione corrente
+   * (`amministratore_organizzazione` o `operatore_api`). Cosi' la
+   * `PermessiService.verificaPermessi` puo' matchare le voci di menu
+   * configurate per i nuovi ruoli senza richiedere un consumer specifico.
+   */
+  private _effectiveRoles(): string[] {
+    const utente: any = this.getUser();
+    const roles: string[] = [];
+    if (utente?.ruolo) { roles.push(utente.ruolo); }
+    const orgRole = this.getCurrentOrganizationRole();
+    if (orgRole) { roles.push(orgRole); }
+    return roles;
+  }
+
+  /**
+   * Vero se l'utente puo' creare un servizio: gestore/coordinatore
+   * passano sempre; gli utenti per-org (amministratore organizzazione
+   * o operatore API) possono creare un servizio sulla propria
+   * organizzazione indipendentemente dal flag `referente` dell'org
+   * (il ruolo per-org gia' implica la competenza operativa).
+   */
+  canCreateServizio(): boolean {
+    if (this.isGestore() || this.isCoordinatore()) { return true; }
+    return !!this.getCurrentOrganizationRole();
+  }
+
+  /**
+   * Vero se l'utente puo' creare un'adesione: gestore/coordinatore
+   * passano sempre; gli utenti per-org solo se l'organizzazione di
+   * sessione ha il flag `aderente`.
+   */
+  canCreateAdesione(): boolean {
+    if (this.isGestore() || this.isCoordinatore()) { return true; }
+    const role = this.getCurrentOrganizationRole();
+    if (!role) { return false; }
+    return !!this.getCurrentOrganization()?.aderente;
   }
 
   hasMenuAmministrazione(): boolean {

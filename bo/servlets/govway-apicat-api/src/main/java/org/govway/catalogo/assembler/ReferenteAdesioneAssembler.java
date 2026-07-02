@@ -29,6 +29,7 @@ import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Stato;
 import org.govway.catalogo.core.services.UtenteService;
+import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.Referente;
@@ -43,6 +44,9 @@ public class ReferenteAdesioneAssembler extends RepresentationModelAssemblerSupp
 
 	@Autowired
 	private UtenteService utenteService;
+	@Autowired
+	private OrganizzazioneService organizzazioneService;
+
 
 	@Autowired
 	private UtenteFullAssembler utenteFullAssembler;
@@ -92,9 +96,8 @@ public class ReferenteAdesioneAssembler extends RepresentationModelAssemblerSupp
 	}
 
 	private boolean isSameOrganization(UtenteEntity viewer, UtenteEntity referente) {
-		OrganizzazioneEntity viewerOrg = viewer.getOrganizzazione();
-		OrganizzazioneEntity referenteOrg = referente.getOrganizzazione();
-		return viewerOrg != null && referenteOrg != null && viewerOrg.equals(referenteOrg);
+		// Multi-org: viewer e referente hanno almeno un'organizzazione in comune.
+		return this.organizzazioneService.hasOrganizzazioneInComune(viewer, referente);
 	}
 	
 	public TipoReferenteEnum toTipoReferente(TIPO_REFERENTE tipo) {
@@ -127,7 +130,10 @@ public class ReferenteAdesioneAssembler extends RepresentationModelAssemblerSupp
 		}
 
 		if(tipoReferente.equals(TIPO_REFERENTE.REFERENTE)) {
-			if(utente.getOrganizzazione() == null || !utente.getOrganizzazione().getId().equals(adesione.getSoggetto().getOrganizzazione().getId())) {
+			// Multi-organizzazione: verifica che l'utente sia associato all'organizzazione del soggetto dell'adesione.
+			// L'appartenenza è verificata indipendentemente dal ruolo (anche ruolo null = sola lettura soddisfa il vincolo
+			// di appartenenza all'organizzazione).
+			if (!this.organizzazioneService.isAssociatoA(utente, adesione.getSoggetto().getOrganizzazione())) {
 				throw new BadRequestException(ErrorCode.UT_400_ORG_MISMATCH, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome(), "nomeOrganizzazione", adesione.getSoggetto().getOrganizzazione().getNome()));
 			}
 		}

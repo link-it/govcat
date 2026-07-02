@@ -46,12 +46,12 @@ public class DominioSpecification implements Specification<DominioEntity> {
 
 	private Optional<String> q = Optional.empty();
 	private Optional<Boolean> deprecato = Optional.empty();
-	private Optional<Boolean> esterno = Optional.empty();
 	private Optional<UUID> idDominio = Optional.empty();
 	private Optional<UUID> idSoggetto = Optional.empty();
 	private Optional<String> idReferente = Optional.empty();
 	private Optional<String> nome = Optional.empty();
 	private Optional<VISIBILITA> visibilita = Optional.empty();
+	private Optional<Long> idOrganizzazioneSoggettoReferente = Optional.empty();
 
 	@Override
 	public Predicate toPredicate(Root<DominioEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
@@ -79,7 +79,7 @@ public class DominioSpecification implements Specification<DominioEntity> {
 		}
 		
 		if (nome.isPresent()) {
-			predLst.add(cb.equal(root.get(DominioEntity_.nome), nome.get())); 
+			predLst.add(cb.equal(cb.upper(root.get(DominioEntity_.nome)), nome.get().toUpperCase()));
 		}
 		
 		if (visibilita.isPresent()) {
@@ -90,11 +90,6 @@ public class DominioSpecification implements Specification<DominioEntity> {
 			predLst.add(cb.equal(root.get(DominioEntity_.deprecato), deprecato.get())); 
 		}
 		
-		if (esterno.isPresent()) {
-			predLst.add(cb.equal(root.join(DominioEntity_.soggettoReferente).join(SoggettoEntity_.organizzazione).get(OrganizzazioneEntity_.esterna), esterno.get())); 
-		}
-		
-
 		if (idDominio.isPresent()) {
 			predLst.add(cb.equal(root.get(DominioEntity_.idDominio), idDominio.get().toString())); 
 		}
@@ -106,6 +101,12 @@ public class DominioSpecification implements Specification<DominioEntity> {
 		if(idReferente.isPresent()) {
 			Path<String> joinedReferentIds = root.join(DominioEntity_.referenti).join(ReferenteDominioEntity_.referente).get(UtenteEntity_.idUtente);
 			predLst.add(cb.literal(idReferente.get()).in(joinedReferentIds));
+		}
+
+		if (idOrganizzazioneSoggettoReferente.isPresent()) {
+			predLst.add(cb.equal(
+					root.join(DominioEntity_.soggettoReferente).join(SoggettoEntity_.organizzazione).get(OrganizzazioneEntity_.id),
+					idOrganizzazioneSoggettoReferente.get()));
 		}
 
 		return predLst;
@@ -166,20 +167,20 @@ public class DominioSpecification implements Specification<DominioEntity> {
 		this.deprecato = deprecato;
 	}
 
-	public Optional<Boolean> getEsterno() {
-		return esterno;
-	}
-
-	public void setEsterno(Optional<Boolean> esterno) {
-		this.esterno = esterno;
-	}
-
 	public Optional<VISIBILITA> getVisibilita() {
 		return visibilita;
 	}
 
 	public void setVisibilita(Optional<VISIBILITA> visibilita) {
 		this.visibilita = visibilita;
+	}
+
+	public Optional<Long> getIdOrganizzazioneSoggettoReferente() {
+		return idOrganizzazioneSoggettoReferente;
+	}
+
+	public void setIdOrganizzazioneSoggettoReferente(Optional<Long> idOrganizzazioneSoggettoReferente) {
+		this.idOrganizzazioneSoggettoReferente = idOrganizzazioneSoggettoReferente;
 	}
 
 }

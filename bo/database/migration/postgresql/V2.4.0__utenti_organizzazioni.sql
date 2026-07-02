@@ -1,0 +1,174 @@
+-- Migration: Supporto multi-organizzazione per utente (versione 2.4.0)
+-- Version: 2.4.0
+--
+-- BREAKING CHANGES rispetto alla versione 2.3.x:
+--   * rimossa la colonna utenti.id_organizzazione (FK singola): il modello multi-org
+--     usa ora esclusivamente la nuova tabella utenti_organizzazioni
+--   * rimossa la colonna utenti.referente_tecnico: il flag è stato eliminato dal modello.
+--     Gli utenti che lo avevano impostato a true vengono migrati ad un'associazione
+--     OPERATORE_API sulla loro organizzazione (se presente)
+--   * il valore REFERENTE_SERVIZIO non è più ammesso nel campo ruolo
+--
+-- Introduce la tabella di associazione utenti-organizzazioni con ruolo per-organizzazione.
+-- Il campo ruolo_organizzazione può essere NULL (equivalente a "nessun ruolo", utente in sola lettura).
+-- Introduce inoltre la tabella aziende_esterne per normalizzare i nomi liberi delle
+-- aziende/software-house esterne associate ad un utente: utenti.id_azienda_esterna FK opzionale.
+
+-- Sequenza per la nuova tabella
+CREATE SEQUENCE seq_utenti_organizzazioni START WITH 1 INCREMENT BY 1;
+
+-- Tabella di associazione utenti-organizzazioni (many-to-many con ruolo)
+CREATE TABLE utenti_organizzazioni (
+    id BIGINT NOT NULL DEFAULT nextval('seq_utenti_organizzazioni'),
+    id_utente BIGINT NOT NULL,
+    id_organizzazione BIGINT NOT NULL,
+    ruolo_organizzazione VARCHAR(255),
+    CONSTRAINT pk_utenti_organizzazioni PRIMARY KEY (id),
+    CONSTRAINT fk_utenti_org_utente FOREIGN KEY (id_utente) REFERENCES utenti(id),
+    CONSTRAINT fk_utenti_org_organizzazione FOREIGN KEY (id_organizzazione) REFERENCES organizations(id),
+    CONSTRAINT uk_utenti_org_utente_org UNIQUE (id_utente, id_organizzazione)
+);
+
+-- Tabella di lookup per i nomi liberi delle aziende esterne (normalizzazione)
+CREATE SEQUENCE seq_aziende_esterne START WITH 1 INCREMENT BY 1;
+CREATE TABLE aziende_esterne (
+    id BIGINT NOT NULL DEFAULT nextval('seq_aziende_esterne'),
+    nome VARCHAR(255) NOT NULL,
+    CONSTRAINT pk_aziende_esterne PRIMARY KEY (id),
+    CONSTRAINT uq_aziende_esterne_nome UNIQUE (nome)
+);
+
+-- Nuova FK opzionale: collega un utente all'azienda esterna di appartenenza
+ALTER TABLE utenti ADD COLUMN id_azienda_esterna BIGINT;
+ALTER TABLE utenti ADD CONSTRAINT fk_utenti_azienda_esterna FOREIGN KEY (id_azienda_esterna) REFERENCES aziende_esterne(id);
+
+-- Nuova FK opzionale: organizzazione di partenza nella richiesta di cambio organizzazione.
+-- Usata insieme a id_organizzazione_pending per identificare quale associazione esistente
+-- dell'utente verrà sostituita in fase di approvazione (necessaria con multi-org).
+ALTER TABLE utenti ADD COLUMN id_organizzazione_partenza BIGINT;
+ALTER TABLE utenti ADD CONSTRAINT fk_utenti_organizzazione_partenza FOREIGN KEY (id_organizzazione_partenza) REFERENCES organizations(id);
+
+-- ===== Migrazione dati =====
+
+-- 1. Utenti REFERENTE_SERVIZIO con organizzazione e referente_tecnico=false:
+--    associazione OPERATORE_API.
+INSERT INTO utenti_organizzazioni (id, id_utente, id_organizzazione, ruolo_organizzazione)
+SELECT nextval('seq_utenti_organizzazioni'), u.id, u.id_organizzazione, 'OPERATORE_API'
+FROM utenti u
+WHERE u.ruolo = 'REFERENTE_SERVIZIO'
+  AND u.id_organizzazione IS NOT NULL
+  AND u.referente_tecnico = false;
+
+-- 2. Utenti senza ruolo (NULL) con organizzazione e referente_tecnico=false:
+--    associazione con ruolo NULL (sola lettura).
+INSERT INTO utenti_organizzazioni (id, id_utente, id_organizzazione, ruolo_organizzazione)
+SELECT nextval('seq_utenti_organizzazioni'), u.id, u.id_organizzazione, NULL
+FROM utenti u
+WHERE u.ruolo IS NULL
+  AND u.id_organizzazione IS NOT NULL
+  AND u.referente_tecnico = false;
+
+-- 3. Utenti con flag referente_tecnico=true e organizzazione associata (qualunque ruolo globale):
+--    associazione OPERATORE_API. Anche utenti con ruolo NULL diventano OPERATORE_API.
+INSERT INTO utenti_organizzazioni (id, id_utente, id_organizzazione, ruolo_organizzazione)
+SELECT nextval('seq_utenti_organizzazioni'), u.id, u.id_organizzazione, 'OPERATORE_API'
+FROM utenti u
+WHERE u.referente_tecnico = true
+  AND u.id_organizzazione IS NOT NULL;
+
+-- 4. Aggiorna il ruolo globale: REFERENTE_SERVIZIO -> RUOLO_ORGANIZZAZIONE
+UPDATE utenti SET ruolo = 'RUOLO_ORGANIZZAZIONE' WHERE ruolo = 'REFERENTE_SERVIZIO';
+
+-- 5. Aggiorna il ruolo globale per utenti con organizzazione associata: NULL -> RUOLO_ORGANIZZAZIONE
+UPDATE utenti SET ruolo = 'RUOLO_ORGANIZZAZIONE'
+WHERE ruolo IS NULL AND id_organizzazione IS NOT NULL;
+
+-- ===== Aggiornamento constraint =====
+
+-- Sostituisci il vecchio CHECK constraint sulla colonna ruolo: rimuove REFERENTE_SERVIZIO
+ALTER TABLE utenti DROP CONSTRAINT IF EXISTS CHK_UTENTI_RUOLO;
+ALTER TABLE utenti ADD CONSTRAINT CHK_UTENTI_RUOLO
+    CHECK (ruolo IN ('AMMINISTRATORE', 'COORDINATORE', 'RUOLO_ORGANIZZAZIONE') OR ruolo IS NULL);
+
+-- ===== DROP campi deprecati =====
+
+-- Rimuove il vincolo FK sulla vecchia colonna id_organizzazione (se presente)
+ALTER TABLE utenti DROP CONSTRAINT IF EXISTS fk_utenti_org;
+ALTER TABLE utenti DROP CONSTRAINT IF EXISTS FK_utenti_organizations;
+
+-- Rimuove la vecchia FK singola id_organizzazione: le associazioni sono ora in utenti_organizzazioni
+ALTER TABLE utenti DROP COLUMN id_organizzazione;
+
+-- Rimuove il flag referente_tecnico: i dati sono stati migrati in associazioni OPERATORE_API
+ALTER TABLE utenti DROP COLUMN referente_tecnico;
+
+-- ===== Selezione organizzazione in fase di registrazione =====
+
+-- Nuova FK opzionale: organizzazione richiesta dall'utente durante il first-login.
+-- Al completamento della registrazione, viene applicata come organizzazione_pending
+-- sull'utente creato/aggiornato (stato PENDING_UPDATE) per essere approvata dal
+-- gestore/coordinatore o dall'amministratore dell'organizzazione target.
+ALTER TABLE registrazioni_utenti ADD COLUMN id_organizzazione_richiesta BIGINT;
+ALTER TABLE registrazioni_utenti ADD CONSTRAINT fk_registrazioni_organizzazione_richiesta
+    FOREIGN KEY (id_organizzazione_richiesta) REFERENCES organizations(id);
+
+-- ===== Organizzazioni intermediate ed ente erogatore sulle fruizioni =====
+--
+-- Il concetto di "organizzazione esterna" viene sostituito da "organizzazione intermediata"
+-- (organizations.intermediata). Per i servizi di tipo fruizione, al posto del riferimento al
+-- soggetto interno (servizi.id_soggetto_interno) si introduce il riferimento all'ente erogatore
+-- (servizi.id_soggetto_erogatore).
+--
+-- Strategia retrocompatibile: si AGGIUNGONO le nuove colonne popolandole dai dati esistenti;
+-- le vecchie colonne (organizations.esterna, servizi.id_soggetto_interno) NON vengono rimosse
+-- in questo step (cleanup demandato, vedi in fondo).
+--
+-- LIMITE NOTO (migrazione parziale delle fruizioni esistenti): per le vecchie fruizioni viene
+-- valorizzato solo l'ente erogatore con il soggetto referente del dominio attuale; il dominio
+-- NON viene sostituito (richiede informazioni non disponibili in automatico).
+
+-- 1) Organizzazioni: flag intermediata (sostituisce esterna)
+ALTER TABLE organizations ADD COLUMN intermediata BOOLEAN NOT NULL DEFAULT false;
+
+-- Le organizzazioni oggi "esterne" diventano "intermediate"
+UPDATE organizations SET intermediata = esterna;
+
+-- Vincolo applicato anche RETROATTIVAMENTE: un'organizzazione intermediata non può essere
+-- né referente né aderente. Eventuali configurazioni storiche con questi flag a true erano
+-- evidentemente errate e vengono normalizzate.
+UPDATE organizations SET referente = false, aderente = false WHERE intermediata = true;
+
+-- 2) Servizi: ente erogatore (sostituisce soggetto interno)
+ALTER TABLE servizi ADD COLUMN id_soggetto_erogatore BIGINT;
+
+-- Per le fruizioni: l'ente erogatore è il soggetto referente del dominio attuale.
+-- Forma con subquery correlata: SQL standard e portabile (PostgreSQL, H2/HSQLDB, Oracle,
+-- MySQL), a differenza di "UPDATE ... FROM" che è specifico di PostgreSQL.
+UPDATE servizi
+   SET id_soggetto_erogatore = (
+       SELECT d.id_soggetto_referente
+         FROM domini d
+        WHERE d.id = servizi.id_dominio
+   )
+ WHERE fruizione = true;
+
+ALTER TABLE servizi ADD CONSTRAINT fk_servizi_soggetto_erogatore
+    FOREIGN KEY (id_soggetto_erogatore) REFERENCES soggetti(id);
+CREATE INDEX idx_servizi_soggetto_erogatore ON servizi (id_soggetto_erogatore);
+
+-- 3) CLEANUP (da eseguire in uno step successivo, quando il software 2.3.x/precedente non è
+--    più in esercizio). Lasciato commentato di proposito.
+ALTER TABLE organizations DROP COLUMN esterna;
+-- ALTER TABLE servizi DROP CONSTRAINT fk_servizi_soggetto_interno;
+-- ALTER TABLE servizi DROP COLUMN id_soggetto_interno;
+
+-- ===== Canale di invocazione (placeholder #canale# nella URL di invocazione) =====
+--
+-- Nuova colonna opzionale "canale" presente alla stessa gerarchia della url_invocazione
+-- (api -> servizi -> domini -> soggetti). Viene risolta con lo stesso ordine usato per la
+-- url_invocazione e sostituita al placeholder #canale# (stringa vuota se assente a tutti i
+-- livelli). Colonna nullable: nessun valore di default, pienamente retrocompatibile.
+ALTER TABLE api ADD COLUMN canale VARCHAR(255);
+ALTER TABLE servizi ADD COLUMN canale VARCHAR(255);
+ALTER TABLE domini ADD COLUMN canale VARCHAR(255);
+ALTER TABLE soggetti ADD COLUMN canale VARCHAR(255);

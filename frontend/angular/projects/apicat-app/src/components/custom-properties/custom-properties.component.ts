@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, Type } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AbstractControl, ReactiveFormsModule, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 
@@ -24,6 +24,7 @@ import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { COMPONENTS_IMPORTS, Tools, EventsManagerService, EventType } from '@linkit/components';
+import { ErrorViewComponent } from '@app/components/error-view/error-view.component';
 import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
@@ -71,9 +72,9 @@ type FileType = {
     templateUrl: './custom-properties.component.html',
     styleUrls: ['./custom-properties.component.scss'],
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, TooltipModule, TranslateModule, ...COMPONENTS_IMPORTS, MarkAsteriskDirective]
+    imports: [CommonModule, ReactiveFormsModule, TooltipModule, TranslateModule, ...COMPONENTS_IMPORTS, MarkAsteriskDirective, ErrorViewComponent]
 })
-export class CustomPropertiesComponent implements OnInit, OnChanges {
+export class CustomPropertiesComponent implements OnChanges {
 
     @Input() ambiente: string | null = null;
     @Input() id_adesione: string | null = null;
@@ -105,15 +106,12 @@ export class CustomPropertiesComponent implements OnInit, OnChanges {
     ProprietaType = ProprietaType;
 
     constructor(
-        private formBuilder: FormBuilder,
-        private eventsManagerService: EventsManagerService,
-        private authenticationService: AuthenticationService,
-        private apiService: OpenAPIService,
-        private utils: UtilService
+        private readonly formBuilder: FormBuilder,
+        private readonly eventsManagerService: EventsManagerService,
+        private readonly authenticationService: AuthenticationService,
+        private readonly apiService: OpenAPIService,
+        private readonly utils: UtilService
     ) {}
-
-    ngOnInit() {
-    }
     
     ngOnChanges(changes: SimpleChanges): void {
         this._item = { ...this.item };
@@ -225,7 +223,6 @@ export class CustomPropertiesComponent implements OnInit, OnChanges {
                 if (required) { _validators.push(Validators.required); }
 
                 if (prop.regular_expression) { _validators.push(Validators.pattern(prop.regular_expression)); }
-                // _cpf[prop.nome] = ['', [..._validators] ];
                 const _proprieta = this._getProprietaCustomValue(prop, this._data);
                 let _val: any = _proprieta ? _proprieta.valore : null;
                 if (!_proprietaCustom?.length && (prop.tipo === ProprietaType.Select)) {
@@ -255,19 +252,20 @@ export class CustomPropertiesComponent implements OnInit, OnChanges {
         this.__resetError();
         const _body = this._prepareBodyUpdate(body);
         this._spin = true;
-        this.apiService.putElementRelated('adesioni', this.id_adesione, `${this.ambiente}/configurazioni`, _body).subscribe(
-            (response: any) => {
+        this.apiService.putElementRelated('adesioni', this.id_adesione, `${this.ambiente}/configurazioni`, _body).subscribe({
+            next: (response: any) => {
                 this._isEdit = false;
                 this.onSave.emit({ id_adesione: this.id_adesione, item: this.item,  response: response });
                 this._spin = false;
                 this.eventsManagerService.broadcast(EventType.WIZARD_CHECK_UPDATE, true);
             },
-            (error: any) => {
+            error: (error: any) => {
                 this._spin = false;
                 this._error = true;
                 this._errorMsg = this.utils.GetErrorMsg(error);
+                this._errors = (error.error?.errori || []).filter((e: any) => Object.keys(e).length > 0);
             }
-        );
+        });
     }
 
     _prepareBodyUpdate(body: any) {
@@ -288,12 +286,7 @@ export class CustomPropertiesComponent implements OnInit, OnChanges {
             };
             this._proprietaCustomGrouped[k].forEach((item: any) => {
                 if (body.proprieta_custom[item.nome]) {
-                    if (item.tipo !== ProprietaType.File) {
-                            _customGrouped.proprieta.push({
-                            nome: item.nome,
-                            valore: body.proprieta_custom[item.nome]
-                        });
-                    } else {
+                    if (item.tipo === ProprietaType.File) {
                         if (body.proprieta_custom[item.nome].data) {
                             _customGrouped.proprieta.push({
                                 nome: item.nome,
@@ -312,13 +305,17 @@ export class CustomPropertiesComponent implements OnInit, OnChanges {
                                 uuid: _proprieta?.uuid
                             });
                         }
+                    } else {
+                        _customGrouped.proprieta.push({
+                            nome: item.nome,
+                            valore: body.proprieta_custom[item.nome]
+                        });
                     }
                 }
             });
             _apiGrouped.gruppi.push(_customGrouped);
             _newBody.proprieta_custom.push(_apiGrouped);
         });
-        // console.log('_prepareBodyUpdate', _newBody);
         return _newBody;
     }
 

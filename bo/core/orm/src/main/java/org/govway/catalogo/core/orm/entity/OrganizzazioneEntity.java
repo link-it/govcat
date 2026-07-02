@@ -73,8 +73,8 @@ public class OrganizzazioneEntity {
     @Column(name = "aderente", nullable = false)
     private boolean aderente;
     
-    @Column(name = "esterna", nullable = false)
-    private boolean esterna;
+    @Column(name = "intermediata", nullable = false)
+    private boolean intermediata;
     
     @OneToMany(mappedBy = "organizzazione", fetch = FetchType.LAZY)
     private Set<SoggettoEntity> soggetti = new HashSet<>();
@@ -82,9 +82,5 @@ public class OrganizzazioneEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_soggetto_default", referencedColumnName = "id")
     private SoggettoEntity soggettoDefault;
-
-    @OneToMany(mappedBy = "organizzazione", fetch = FetchType.LAZY)
-    private Set<UtenteEntity> utenti = new HashSet<>();
-    
 
 }

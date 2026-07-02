@@ -1,0 +1,11 @@
+<span class="lnk-avatar"
+      role="img"
+      [attr.aria-label]="_ariaLabel()"
+      [class.is-round]="round()"
+      [style.width.px]="size()"
+      [style.height.px]="size()"
+      [style.background]="_palette().bg"
+      [style.color]="_palette().fg"
+      [style.font-size.px]="_fontSize()">
+  {{ _initials() }}
+</span>

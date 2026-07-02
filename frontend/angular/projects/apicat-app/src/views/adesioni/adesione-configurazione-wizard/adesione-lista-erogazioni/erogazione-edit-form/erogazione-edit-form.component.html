@@ -1,0 +1,85 @@
+<!--
+  ErogazioneEditFormComponent — Issue 254 NEW LAYOUT.
+  Form di edit dell'endpoint erogazione (nome, versione, url, indirizzi_ip).
+  Riusato sia dal modal legacy in `<app-adesione-lista-erogazioni>` sia dal
+  rendering inline sotto la riga del client (nuovo layout).
+
+  Il `<form>` wrapper e i bottoni di azione (Close/Save) sono
+  responsabilita` del parent — vedi commento nel `.ts` del componente.
+-->
+<fieldset [formGroup]="formGroup">
+  <div class="row">
+    <div class="form-group col-md-10 mb-2">
+      <div class="form-group">
+        <label class="label-bold" for="erogaz-nome">
+          {{ 'APP.LABEL.nome' | translate }}
+          <span appMarkAsterisk [formGroup]="formGroup" [controlName]="'nome'"></span>
+        </label>
+        <input class="form-control form-control-sm" id="erogaz-nome" type="text" formControlName="nome" autocomplete="off">
+        @if (fe['nome'].invalid && (fe['nome'].dirty || fe['nome'].touched)) {
+          <p class="form-text text-danger">
+            @if (fe['nome'].errors && fe['nome'].errors['required']) {
+              <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+            }
+          </p>
+        }
+      </div>
+    </div>
+    <div class="form-group col-md-2 mb-2">
+      <div class="form-group">
+        <label class="label-bold" for="erogaz-versione">
+          {{ 'APP.LABEL.Version' | translate }}
+          <span appMarkAsterisk [formGroup]="formGroup" [controlName]="'versione'"></span>
+        </label>
+        <input class="form-control form-control-sm" id="erogaz-versione" type="text" formControlName="versione" autocomplete="off">
+        @if (fe['versione'].invalid && (fe['versione'].dirty || fe['versione'].touched)) {
+          <p class="form-text text-danger">
+            @if (fe['versione'].errors && fe['versione'].errors['required']) {
+              <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+            }
+          </p>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="form-group mb-2">
+      <label class="label-bold" for="erogaz-url">
+        {{ 'APP.LABEL.Url' | translate }}
+        <span appMarkAsterisk [formGroup]="formGroup" [controlName]="'url'"></span>
+      </label>
+      <input class="form-control form-control-sm" id="erogaz-url" type="text" formControlName="url" autocomplete="off">
+      @if (fe['url'].invalid && (fe['url'].dirty || fe['url'].touched)) {
+        <p class="form-text text-danger">
+          @if (fe['url'].errors && fe['url'].errors['required']) {
+            <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+          }
+        </p>
+      }
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="form-group mb-2">
+      <label class="label-bold" for="erogaz-indirizzi_ip">
+        {{ 'APP.ADESIONI.TITLE.IPaddresses' | translate }}
+        <span appMarkAsterisk [formGroup]="formGroup" [controlName]="'indirizzi_ip'"></span>
+      </label>
+      <input class="form-control form-control-sm" id="erogaz-indirizzi_ip" type="text" formControlName="indirizzi_ip" autocomplete="off">
+      @if (fe['indirizzi_ip'].invalid && (fe['indirizzi_ip'].dirty || fe['indirizzi_ip'].touched)) {
+        <p class="form-text text-danger">
+          @if (fe['indirizzi_ip'].errors && fe['indirizzi_ip'].errors['required']) {
+            <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+          }
+        </p>
+      }
+    </div>
+  </div>
+</fieldset>
+
+@if (error) {
+  <div class="gl-alert gl-alert-danger col-md-12 mb-5 mt-3">
+    {{ errorMsg | translate }}
+  </div>
+}

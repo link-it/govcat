@@ -38,11 +38,15 @@ import org.govway.catalogo.assembler.UtenteEngineAssembler;
 import org.govway.catalogo.assembler.UtenteItemAssembler;
 import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.authorization.UtenteAuthorization;
+import org.govway.catalogo.core.dao.specifications.AziendaEsternaSpecification;
 import org.govway.catalogo.core.dao.specifications.UtenteSpecification;
+import org.govway.catalogo.core.orm.entity.AziendaEsternaEntity;
 import org.govway.catalogo.core.orm.entity.ClasseUtenteEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Stato;
+import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity;
+import org.govway.catalogo.core.services.AziendaEsternaService;
 import org.govway.catalogo.core.services.ClasseUtenteService;
 import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.core.services.UtenteService;
@@ -103,10 +107,13 @@ public class UtentiController implements UtentiApi {
     private CoreAuthorization coreAuthorization;
 
     @Autowired
-    private ProfiloAssembler profiloAssembler;   
+    private ProfiloAssembler profiloAssembler;
 
 	@Autowired
 	private Configurazione configurazione;
+
+	@Autowired
+	private AziendaEsternaService aziendaEsternaService;
 
 	@Autowired
 	private RequestUtils requestUtils;
@@ -244,7 +251,7 @@ public class UtentiController implements UtentiApi {
 
 	@Override
 	public ResponseEntity<PagedModelItemUtente> listUtenti(StatoUtenteEnum stato, UUID idOrganizzazione,
-			List<RuoloUtenteEnumSearch> ruolo, Boolean referenteTecnico, List<UUID> classiUtente, String email, String principal, UUID idUtente, Boolean dashboard, String q, Integer page,
+			List<RuoloUtenteEnumSearch> ruolo, List<RuoloOrganizzazioneEnum> ruoloOrganizzazione, List<UUID> classiUtente, String email, String principal, UUID idUtente, Boolean dashboard, String q, Integer page,
 			Integer size, List<String> sort) {
 		try {
 
@@ -262,7 +269,6 @@ public class UtentiController implements UtentiApi {
 				spec.setPrincipalLike(Optional.ofNullable(principal));
 				spec.setIdUtente(Optional.ofNullable(idUtente).map(u -> u.toString()));
 				spec.setIdOrganizzazione(Optional.ofNullable(idOrganizzazione));
-				spec.setReferenteTecnico(Optional.ofNullable(referenteTecnico));
 
 				if(classiUtente!=null) {
 					List<ClasseUtenteEntity> entities = new ArrayList<>();
@@ -284,17 +290,41 @@ public class UtentiController implements UtentiApi {
 					}
 				}
 
-				// Gestione filtro dashboard
-				if(dashboard != null && dashboard) {
-					// Il filtro dashboard è utilizzabile solo da GESTORE o COORDINATORE
-					if(!this.coreAuthorization.isAdmin() && !this.coreAuthorization.isCoordinatore()) {
-						throw new NotAuthorizedException(ErrorCode.AUT_403);
+				// Filtro per ruolo all'interno dell'organizzazione: applicabile solo se è valorizzato
+				// idOrganizzazione, perché il ruolo per-organizzazione vive nell'associazione utente-organizzazione.
+				if(ruoloOrganizzazione != null && !ruoloOrganizzazione.isEmpty()) {
+					if(idOrganizzazione == null) {
+						throw new BadRequestException(ErrorCode.UT_400_RUOLO_ORG_REQUIRES_ORG);
 					}
-					// Filtra utenti con stato NON_CONFIGURATO o PENDING_UPDATE
-					spec.setStati(Arrays.asList(Stato.NON_CONFIGURATO, Stato.PENDING_UPDATE));
+					spec.setRuoliOrganizzazione(this.engineAssembler.toRuoloOrganizzazioneEntity(ruoloOrganizzazione));
 				}
 
-				CustomPageRequest pageable = new CustomPageRequest(page, size, sort,Arrays.asList("cognome", "nome"));
+				// Gestione filtro dashboard
+				if(dashboard != null && dashboard) {
+					if(this.coreAuthorization.isAdmin() || this.coreAuthorization.isCoordinatore()) {
+						// Gestore/coordinatore: utenti in NON_CONFIGURATO o PENDING_UPDATE
+						spec.setStati(Arrays.asList(Stato.NON_CONFIGURATO, Stato.PENDING_UPDATE));
+					} else if (this.coreAuthorization.hasRuoloInOrganizzazioneSessione(
+							org.govway.catalogo.core.orm.entity.RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
+						// AMM_ORG: solo richieste pending verso la propria organizzazione di sessione
+						OrganizzazioneEntity orgSessione = this.coreAuthorization.getOrganizzazioneSessione();
+						if (orgSessione == null) {
+							throw new NotAuthorizedException(ErrorCode.AUT_403);
+						}
+						spec.setStato(Optional.of(Stato.PENDING_UPDATE));
+						spec.setIdOrganizzazionePending(Optional.of(orgSessione.getId()));
+					} else {
+						throw new NotAuthorizedException(ErrorCode.AUT_403);
+					}
+				}
+
+				// In dashboard l'ordinamento di default è cronologico decrescente: UtenteEntity non ha
+				// campi data, quindi si usa l'id (sequence) come proxy della data di creazione.
+				// Resta comunque sovrascrivibile da un parametro sort esplicito.
+				List<String> sortDefault = (dashboard != null && dashboard)
+						? Arrays.asList("id,desc")
+						: Arrays.asList("cognome", "nome");
+				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, sortDefault);
 
 				Page<UtenteEntity> findAll = this.service.findAll(spec, pageable);
 
@@ -339,65 +369,57 @@ public class UtentiController implements UtentiApi {
 				this.authorization.authorizeUpdate(utenteUpdate, entity);
 				this.logger.debug("Autorizzazione completata con successo");
 
-				// Validazione per approvazione cambio organizzazione
+				// Approvazione richiesta cambio organizzazione: l'organizzazione di partenza viene
+				// sostituita da quella pending mantenendo le altre associazioni esistenti (multi-org).
 				boolean wasInPendingUpdate = entity.getStato().equals(Stato.PENDING_UPDATE);
-				UUID pendingOrgId = null;
 				if (wasInPendingUpdate) {
-					// Verifica che l'organizzazione inviata corrisponda a quella pending
 					if (entity.getOrganizzazionePending() == null) {
 						throw new BadRequestException(ErrorCode.GEN_400_REQUEST);
 					}
-					pendingOrgId = UUID.fromString(entity.getOrganizzazionePending().getIdOrganizzazione());
-					if (utenteUpdate.getIdOrganizzazione() == null || !utenteUpdate.getIdOrganizzazione().equals(pendingOrgId)) {
+					UUID pendingOrgId = UUID.fromString(entity.getOrganizzazionePending().getIdOrganizzazione());
+
+					// Il payload deve contenere esattamente un'associazione per la pending org:
+					// porta il ruolo che l'approvatore vuole assegnare per quella org.
+					org.govway.catalogo.servlets.model.UtenteOrganizzazioneCreate inputOrg = null;
+					if (utenteUpdate.getOrganizzazioni() != null && utenteUpdate.getOrganizzazioni().size() == 1) {
+						inputOrg = utenteUpdate.getOrganizzazioni().get(0);
+					}
+					if (inputOrg == null || !pendingOrgId.equals(inputOrg.getIdOrganizzazione())) {
 						throw new BadRequestException(ErrorCode.GEN_400_REQUEST);
 					}
-				}
 
-				// Gestione approvazione cambio organizzazione
-				if (wasInPendingUpdate && entity.getOrganizzazione() != null) {
-					// Caso 1: Utente con organizzazione esistente -> crea nuovo utente, archivia vecchio
-					String originalPrincipal = entity.getPrincipal();
+					// Ricostruisci la lista da passare a toEntity: tutte le associazioni esistenti tranne
+					// quella di partenza (se ancora presente), più la nuova associazione verso la pending org.
+					List<UtenteOrganizzazioneEntity> esistenti =
+							this.organizzazioneService.findUtenteOrganizzazioniByUtente(entity);
+					Long idPartenza = entity.getOrganizzazionePartenza() != null
+							? entity.getOrganizzazionePartenza().getId() : null;
 
-					// Costruisci UtenteCreate dai dati di UtenteUpdate
-					UtenteCreate utenteCreate = new UtenteCreate();
-					utenteCreate.setPrincipal(originalPrincipal);
-					utenteCreate.setNome(utenteUpdate.getNome());
-					utenteCreate.setCognome(utenteUpdate.getCognome());
-					utenteCreate.setTelefono(utenteUpdate.getTelefono());
-					utenteCreate.setEmail(utenteUpdate.getEmail());
-					utenteCreate.setTelefonoAziendale(utenteUpdate.getTelefonoAziendale());
-					utenteCreate.setEmailAziendale(utenteUpdate.getEmailAziendale());
-					utenteCreate.setNote(utenteUpdate.getNote());
-					utenteCreate.setReferenteTecnico(utenteUpdate.isReferenteTecnico());
-					utenteCreate.setRuolo(utenteUpdate.getRuolo());
-					utenteCreate.setClassiUtente(utenteUpdate.getClassiUtente());
-					// Imposta nuova organizzazione e stato ABILITATO (forzato)
-					utenteCreate.setIdOrganizzazione(pendingOrgId);
-					utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
+					List<org.govway.catalogo.servlets.model.UtenteOrganizzazioneCreate> ricostruite =
+							new java.util.ArrayList<>();
+					for (UtenteOrganizzazioneEntity a : esistenti) {
+						if (a.getOrganizzazione() == null) continue;
+						if (idPartenza != null && a.getOrganizzazione().getId().equals(idPartenza)) {
+							continue;
+						}
+						org.govway.catalogo.servlets.model.UtenteOrganizzazioneCreate uc =
+								new org.govway.catalogo.servlets.model.UtenteOrganizzazioneCreate();
+						uc.setIdOrganizzazione(UUID.fromString(a.getOrganizzazione().getIdOrganizzazione()));
+						uc.setRuoloOrganizzazione(
+								this.dettaglioAssembler.toRuoloOrganizzazioneEnum(a.getRuoloOrganizzazione()));
+						ricostruite.add(uc);
+					}
+					ricostruite.add(inputOrg);
 
-					// Crea nuovo utente tramite assembler
-					UtenteEntity nuovoUtente = this.dettaglioAssembler.toEntity(utenteCreate);
-
-					// Archivia utente vecchio: modifica principal e disabilita
-					entity.setPrincipal(originalPrincipal + ".archived." + System.currentTimeMillis());
-					entity.setStato(Stato.DISABILITATO);
-					entity.setOrganizzazionePending(null);
-
-					// Salva entrambi (flush per liberare il principal prima di inserire il nuovo utente)
-					this.service.saveAndFlush(entity);
-					this.service.save(nuovoUtente);
-
-					Utente model = this.dettaglioAssembler.toModel(nuovoUtente);
-					this.logger.info("Invocazione completata con successo - creato nuovo utente per cambio organizzazione");
-					return ResponseEntity.ok(model);
+					utenteUpdate.setOrganizzazioni(ricostruite);
 				}
 
 				this.dettaglioAssembler.toEntity(utenteUpdate, entity);
 
-				// Se era in PENDING_UPDATE senza organizzazione precedente, imposta stato ABILITATO e pulisci organizzazionePending
 				if (wasInPendingUpdate) {
 					entity.setStato(Stato.ABILITATO);
 					entity.setOrganizzazionePending(null);
+					entity.setOrganizzazionePartenza(null);
 				}
 
 				this.service.save(entity);
@@ -479,8 +501,47 @@ public class UtentiController implements UtentiApi {
 				OrganizzazioneEntity nuovaOrg = this.organizzazioneService.find(profiloOrganizationUpdate.getIdOrganizzazione())
 					.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404, Map.of("idOrganizzazione", profiloOrganizationUpdate.getIdOrganizzazione().toString())));
 
-				// Imposta organizzazione pending e stato
+				// Validazione organizzazione di partenza (sempre opzionale):
+				// - se valorizzata, l'approvazione sostituirà l'associazione di partenza con la nuova (swap)
+				// - se non valorizzata, l'approvazione aggiungerà la nuova associazione mantenendo
+				//   intatte tutte le esistenti
+				List<UtenteOrganizzazioneEntity> associazioniAttuali =
+						this.organizzazioneService.findUtenteOrganizzazioniByUtente(entity);
+
+				OrganizzazioneEntity orgPartenza = null;
+				if (profiloOrganizationUpdate.getIdOrganizzazionePartenza() != null) {
+					orgPartenza = this.organizzazioneService.find(profiloOrganizationUpdate.getIdOrganizzazionePartenza())
+							.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404,
+									Map.of("idOrganizzazione", profiloOrganizationUpdate.getIdOrganizzazionePartenza().toString())));
+
+					if (orgPartenza.getId().equals(nuovaOrg.getId())) {
+						throw new BadRequestException(ErrorCode.UT_400_ORG_PARTENZA_SAME_AS_TARGET);
+					}
+
+					Long idPartenza = orgPartenza.getId();
+					boolean partenzaPresente = associazioniAttuali.stream()
+							.anyMatch(a -> a.getOrganizzazione() != null
+									&& a.getOrganizzazione().getId().equals(idPartenza));
+					if (!partenzaPresente) {
+						throw new BadRequestException(ErrorCode.UT_400_ORG_PARTENZA_NOT_ASSOCIATED,
+								Map.of("orgNome", orgPartenza.getNome()));
+					}
+				}
+
+				if (!associazioniAttuali.isEmpty()) {
+					Long idNuovaOrg = nuovaOrg.getId();
+					boolean targetGiaAssociato = associazioniAttuali.stream()
+							.anyMatch(a -> a.getOrganizzazione() != null
+									&& a.getOrganizzazione().getId().equals(idNuovaOrg));
+					if (targetGiaAssociato) {
+						throw new BadRequestException(ErrorCode.UT_400_ORG_PENDING_ALREADY_ASSOCIATED,
+								Map.of("orgNome", nuovaOrg.getNome()));
+					}
+				}
+
+				// Imposta organizzazione pending, partenza e stato
 				entity.setOrganizzazionePending(nuovaOrg);
+				entity.setOrganizzazionePartenza(orgPartenza);
 				entity.setStato(Stato.PENDING_UPDATE);
 
 				this.service.save(entity);
@@ -500,6 +561,77 @@ public class UtentiController implements UtentiApi {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
 			throw new InternalException(ErrorCode.SYS_500);
 		}
+	}
+
+	@Override
+	public ResponseEntity<Utente> deleteProfiloOrganizationPending() {
+		try {
+			return this.service.runTransaction(() -> {
+				this.logger.info("Invocazione deleteProfiloOrganizationPending in corso ...");
+
+				InfoProfilo current = this.requestUtils.getPrincipal(false);
+				if (current == null || current.utente == null) {
+					throw new NotAuthorizedException(ErrorCode.AUT_403);
+				}
+
+				UtenteEntity entity = current.utente;
+				annullaRichiestaPending(entity);
+
+				Utente model = this.dettaglioAssembler.toModel(entity);
+				this.logger.info("Invocazione completata con successo");
+				return ResponseEntity.ok(model);
+			});
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	@Override
+	public ResponseEntity<Utente> rifiutaUtenteOrganizationPending(UUID idUtente) {
+		try {
+			return this.service.runTransaction(() -> {
+				this.logger.info("Invocazione rifiutaUtenteOrganizationPending in corso ...");
+
+				UtenteEntity entity = this.service.find(idUtente)
+						.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404, Map.of("idUtente", idUtente.toString())));
+
+				this.authorization.authorizeRifiutaPending(entity);
+
+				annullaRichiestaPending(entity);
+
+				Utente model = this.dettaglioAssembler.toModel(entity);
+				this.logger.info("Invocazione completata con successo");
+				return ResponseEntity.ok(model);
+			});
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	/**
+	 * Annulla la richiesta di cambio organizzazione pending dell'utente, riportandolo
+	 * sempre in stato ABILITATO indipendentemente dalle associazioni esistenti.
+	 */
+	private void annullaRichiestaPending(UtenteEntity entity) {
+		if (entity.getStato() != Stato.PENDING_UPDATE || entity.getOrganizzazionePending() == null) {
+			throw new BadRequestException(ErrorCode.UT_400_NO_PENDING_REQUEST);
+		}
+		entity.setOrganizzazionePending(null);
+		entity.setOrganizzazionePartenza(null);
+		entity.setStato(Stato.ABILITATO);
+		this.service.save(entity);
 	}
 
 	@Override
@@ -984,5 +1116,37 @@ public class UtentiController implements UtentiApi {
 		}
 		Boolean abilitato = this.configurazione.getUtente().isCoordinatoreAbilitato();
 		return abilitato == null || abilitato; // default: true
+	}
+
+	@Override
+	public ResponseEntity<List<String>> listAziendeEsterne(String q, Integer page, Integer size, List<String> sort) {
+		try {
+			return this.service.runTransaction(() -> {
+				this.logger.info("Invocazione in corso ...");
+
+				this.authorization.authorizeList();
+
+				this.logger.debug("Autorizzazione completata con successo");
+
+				AziendaEsternaSpecification filter = new AziendaEsternaSpecification();
+				filter.setQ(Optional.ofNullable(q));
+
+				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, null);
+
+				Page<AziendaEsternaEntity> aziende = this.aziendaEsternaService.findAll(filter, pageable);
+
+				List<String> resource = aziende.stream().map(AziendaEsternaEntity::getNome).collect(Collectors.toList());
+				this.logger.info("Invocazione completata con successo");
+				return ResponseEntity.ok(resource);
+			});
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
 	}
 }

@@ -26,7 +26,7 @@ import { TranslateService } from '@ngx-translate/core';
 
 import { Tools, ConfigService, EventsManagerService, SearchBarFormComponent, FieldClass, YesnoDialogBsComponent, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
-import { UtilService } from '@app/services/utils.service';
+import { UtilService, RUOLI_ORG_REFERENTE } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 
 import { ComponentBreadcrumbsData } from '@app/views/servizi/route-resolver/component-breadcrumbs.resolver';
@@ -202,7 +202,7 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked {
           (config: any) => {
             this.referentiConfig = config;
             if (this.service) {
-              this._isDominioEsterno = this.service.dominio?.soggetto_referente?.organizzazione?.esterna || false;
+              this._isDominioEsterno = this.service.dominio?.soggetto_referente?.organizzazione?.intermediata || false;
               this._idDominioEsterno = this.service.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
               this._initBreadcrumb();
               this._updateMapper = new Date().getTime().toString();
@@ -293,7 +293,7 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked {
       tap((response: any) => {
         this.service = response;
         const org = this.service.dominio?.soggetto_referente?.organizzazione;
-        this._isDominioEsterno = org?.esterna || false;
+        this._isDominioEsterno = org?.intermediata || false;
         this._idDominioEsterno = org?.id_organizzazione || null;
         this._initBreadcrumb();
         this._updateMapper = new Date().getTime().toString();
@@ -577,9 +577,11 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked {
         debounceTime(500),
         tap(() => this.referentiLoading = true),
         switchMap((term: any) => {
-          let organizzazione: any = this._isDominioEsterno ? null : this._idDominioEsterno;
-          const referente_tecnico = this.tipoReferente === 'referente_tecnico';
-          return this.utils.getUtenti(term, this.referentiFilter, 'abilitato', organizzazione, referente_tecnico).pipe(
+          // Issue #284: org del dominio sempre valorizzata e filtro per
+          // ruolo_organizzazione (amm.org/operatore API). Niente piu` filtro
+          // referente_tecnico.
+          const organizzazione: any = this._idDominioEsterno;
+          return this.utils.getUtenti(term, null, 'abilitato', organizzazione, RUOLI_ORG_REFERENTE).pipe(
             catchError(() => of([])), // empty list on error
             tap(() => this.referentiLoading = false)
           )
@@ -589,12 +591,12 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked {
   }
 
   _onChangeTipoReferente(isReferent: boolean) {
-    this.referentiFilter = isReferent ? 'referente_servizio,gestore,coordinatore' : '';
+    this.referentiFilter = isReferent ? 'utente_organizzazione,gestore,coordinatore' : '';
   }
 
   loadAnagrafiche() {
     this.anagrafiche['tipo-referente'] = [
-      { nome: 'referente', filter: 'referente_servizio,gestore,coordinatore' },
+      { nome: 'referente', filter: 'utente_organizzazione,gestore,coordinatore' },
       { nome: 'referente_tecnico', filter: '' }
     ];
   }

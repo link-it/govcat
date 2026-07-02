@@ -37,6 +37,7 @@ import { ServiziSearchFormComponent } from './search-forms/servizi-search-form/s
 import { AdesioniSearchFormComponent } from './search-forms/adesioni-search-form/adesioni-search-form.component';
 import { UtentiSearchFormComponent } from './search-forms/utenti-search-form/utenti-search-form.component';
 import { ComunicazioniSearchFormComponent } from './search-forms/comunicazioni-search-form/comunicazioni-search-form.component';
+import { StatoChipComponent } from '@app/components/vetrina/stato-chip.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -52,7 +53,8 @@ import { ComunicazioniSearchFormComponent } from './search-forms/comunicazioni-s
     ServiziSearchFormComponent,
     AdesioniSearchFormComponent,
     UtentiSearchFormComponent,
-    ComunicazioniSearchFormComponent
+    ComunicazioniSearchFormComponent,
+    StatoChipComponent
   ]
 })
 export class DashboardComponent implements OnInit {
@@ -236,6 +238,11 @@ export class DashboardComponent implements OnInit {
     if (!dateStr) return '';
     const d = new Date(dateStr);
     return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+
+  isCertExpired(dateStr: string): boolean {
+    if (!dateStr) return false;
+    return new Date(dateStr).getTime() <= Date.now();
   }
 
   private _initRoleConfig() {
@@ -470,7 +477,19 @@ export class DashboardComponent implements OnInit {
       }
       case 'utenti':
         if (item.id_utente) {
-          this.router.navigate(['/utenti', item.id_utente], { queryParams: { from: 'dashboard', section } });
+          // Solo gestore/coordinatore possono accedere a `/utenti/:id`
+          // (rotta protetta da `GestoreGuard`). L'amministratore di
+          // organizzazione viene routato alla pagina di gestione della
+          // propria organizzazione (tab utenti), dove puo' modificare
+          // gli utenti via il dialog dedicato.
+          if (this.authenticationService.isGestore() || this.authenticationService.isCoordinatore()) {
+            this.router.navigate(['/utenti', item.id_utente], { queryParams: { from: 'dashboard', section } });
+          } else {
+            const orgId = this.authenticationService.getCurrentOrganization()?.id_organizzazione;
+            if (orgId) {
+              this.router.navigate(['/organizzazione-manage', orgId], { queryParams: { tab: 'utenti_pending' } });
+            }
+          }
         }
         break;
     }
@@ -487,29 +506,33 @@ export class DashboardComponent implements OnInit {
     this.apiService.putElement('notifiche', item.id_notifica, { stato }).subscribe({
       next: () => {
         if (this.expandedSection === 'comunicazioni') {
-          if (stato === 'archiviata' && this.comunicazioniTab !== 'archiviata') {
-            // Rimuove l'item dalla lista visibile (non è più in questo tab)
-            this.expandedItems = this.expandedItems.filter(i => i.id_notifica !== item.id_notifica);
-            this.expandedTotal = Math.max(0, this.expandedTotal - 1);
-          } else if (this.comunicazioniTab === 'nuova' && stato === 'letta') {
-            // Tab "Non letti": l'item letto esce dalla lista
-            this.expandedItems = this.expandedItems.filter(i => i.id_notifica !== item.id_notifica);
-            this.expandedTotal = Math.max(0, this.expandedTotal - 1);
-          } else if (this.comunicazioniTab === 'archiviata' && stato === 'nuova') {
-            // Tab "Archiviati": l'item non letto esce dalla lista
-            this.expandedItems = this.expandedItems.filter(i => i.id_notifica !== item.id_notifica);
-            this.expandedTotal = Math.max(0, this.expandedTotal - 1);
-          } else {
-            // Aggiorna lo stato in-place
+          if (this._statoMatchesComunicazioniTab(stato, this.comunicazioniTab)) {
+            // L'item resta nel tab → update in-place
             const idx = this.expandedItems.findIndex(i => i.id_notifica === item.id_notifica);
             if (idx !== -1) {
               this.expandedItems[idx] = { ...this.expandedItems[idx], stato };
             }
+          } else {
+            // Il nuovo stato non e` compatibile col filtro del tab
+            // corrente → l'item esce dalla lista visibile.
+            this.expandedItems = this.expandedItems.filter(i => i.id_notifica !== item.id_notifica);
+            this.expandedTotal = Math.max(0, this.expandedTotal - 1);
           }
         }
         this._reloadComunicazioniCounts();
+      },
+      error: () => {
+        // Ricarico i count per ripristinare lo stato remoto (best-effort).
+        this._reloadComunicazioniCounts();
       }
     });
+  }
+
+  /** Vero se il nuovo `stato` della notifica e` compatibile con il
+   *  filtro del tab corrente. Tab `tutte` accetta sempre. */
+  private _statoMatchesComunicazioniTab(stato: string, tab: string): boolean {
+    if (!tab || tab === 'tutte') { return true; }
+    return stato === tab;
   }
 
   private _reloadComunicazioniCounts() {

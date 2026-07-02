@@ -32,8 +32,8 @@ import com.jayway.jsonpath.JsonPath;
 public class SoggettoDTOFactory {
 	
 
-	@Value("${org.govway.api.catalogo.resource.path:/var/govcat}")
-	private String externalPath;
+	@Value("${org.govway.api.catalogo.configurazione.path:/var/govcat/conf/configurazione.json}")
+	private String configurazioneJsonPath;
 
 	private String tipoGatewayDefault = "ModI";
 	private String tipoGatewayConfigurazione;
@@ -44,7 +44,7 @@ public class SoggettoDTOFactory {
 	private String getTipoGatewayConfigurazione() {
 		if(!this.tipoGatewayConfigurazioneLetto) {
 			try {
-				ConfigurazioneReader confReader = new ConfigurazioneReader (externalPath);
+				ConfigurazioneReader confReader = new ConfigurazioneReader (configurazioneJsonPath);
 				String json = confReader.getConfigurazione();
 		        this.tipoGatewayConfigurazione = JsonPath.parse(json).read("$.monitoraggio.profilo_govway_default", String.class);
 		        logger.debug("tipoGatewayConfigurazione: " + this.tipoGatewayConfigurazione);
@@ -60,6 +60,12 @@ public class SoggettoDTOFactory {
 		return this.tipoGatewayConfigurazione;
 	}
 	
+	public boolean isOrganizzazioneReferente(SoggettoEntity soggetto) {
+		return soggetto != null
+				&& soggetto.getOrganizzazione() != null
+				&& soggetto.getOrganizzazione().isReferente();
+	}
+
 	public String getNomeGateway(SoggettoEntity soggetto) {
 		if (soggetto == null) return null;
 		if (soggetto.getNomeGateway() == null)

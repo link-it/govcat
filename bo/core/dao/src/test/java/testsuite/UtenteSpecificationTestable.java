@@ -59,12 +59,8 @@ class UtenteSpecificationTestable extends UtenteSpecification {
             predLst.add(cb.like(cb.upper(root.get("principal")), pattern));
         });
 
-        getPrincipal().ifPresent(principal -> 
+        getPrincipal().ifPresent(principal ->
             predLst.add(cb.equal(root.get("principal"), principal))
-        );
-
-        getReferenteTecnico().ifPresent(refTecnico ->
-            predLst.add(cb.equal(root.get("referenteTecnico"), refTecnico))
         );
 
         // Il blocco sui ruoli è commentato come nell'originale

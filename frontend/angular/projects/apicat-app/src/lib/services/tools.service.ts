@@ -58,7 +58,11 @@ export class Tools {
 
   constructor(
     private translate: TranslateService
-  ) { }
+  ) {
+    // Espone TranslateService ai metodi statici (es. `GetErrorMsg`,
+    // `_translateBeErrorKey`) che traducono chiavi i18n del BE.
+    Tools.translate = translate;
+  }
 
   getSpinner(): any {
     return Tools.Spinner;
@@ -271,7 +275,7 @@ export class Tools {
       const value = Tools.getObjectValue(data, field.field); // data[field.field]
       switch (field.type) {
         case 'number':
-          const _tooltip = null; // field.tooltip ? this.translate.instant(field.tooltip) : null;
+          const _tooltip = null;
           results.push(GridFormatters.numberFormatter({ value: value, icon: field.icon, hideZero: field.hideZero, tooltip: _tooltip }, true));
           break;
         case 'currency':
@@ -385,18 +389,51 @@ export class Tools {
           item.campi.forEach((field: any) => {
             _msgA.push(`${item.dato} - ${field}`);
           });
-          // const _fields: string = item.campi.join(', ');
-          // _msgA.push(`${item.dato} - [${_fields}]`);
         });
         _msg = _msgA.join(' - ');
       } else {
         _msg = error.message;
       }
-    } catch (e) {
+    } catch {
       _msg = 'Si è verificato un problema non previsto.';
     }
 
     return _msg;
+  }
+
+  /**
+   * Se `detail` ha la forma di una chiave i18n del BE
+   * (es. `VAL.422.COMPLEX`, `WFL.400.DATA.NOT.MODIFIABLE`)
+   * tenta la traduzione sotto `APP.MESSAGE.ERROR.<detail>`,
+   * passando eventuali `parameters` come interpolazione.
+   * Ritorna la stringa tradotta o `null` se la chiave non
+   * esiste / non corrisponde al pattern.
+   */
+  /** Estrae l'oggetto parametri di interpolazione i18n da un
+   *  payload errore BE accettando entrambe le forme note:
+   *  - `parameters` (piatta, es. `{ field: 'nome' }`)
+   *  - `errori: [{ params: {...} }, ...]` (annidata, es.
+   *    `REG.409.MULTIPLE.USERS.EMAIL`). I `params` delle varie
+   *    entry vengono fusi (ultima vince in caso di chiavi
+   *    duplicate). */
+  private static _collectBeErrorParams(errBody: any): any {
+    const flat = errBody?.parameters;
+    const fromErrori = (errBody?.errori || [])
+      .map((e: any) => e?.params)
+      .filter((p: any) => p && typeof p === 'object');
+    if (!flat && fromErrori.length === 0) { return undefined; }
+    return Object.assign({}, ...fromErrori, flat || {});
+  }
+
+  private static _translateBeErrorKey(detail: any, parameters?: any): string | null {
+    if (typeof detail !== 'string' || !detail) { return null; }
+    if (!/^[A-Z0-9_]+(\.[A-Z0-9_]+)+$/.test(detail)) { return null; }
+    const key = `APP.MESSAGE.ERROR.${detail}`;
+    try {
+      const t = this.translate?.instant(key, parameters || {});
+      if (t && t !== key) { return t; }
+    } catch { /* ignore */ }
+    return null;
   }
 
   public static GetErrorMsg(error: any) {
@@ -404,13 +441,29 @@ export class Tools {
     const _msgA: string[] = [];
     try {
       if (error.error && (error.error.title || error.error.detail)) {
-        if (error.error.title) {
-          _msgA.push(error.error.title);
+        // Il BE risponde con `detail` come chiave i18n (es.
+        // `VAL.422.COMPLEX`). Se la chiave esiste sotto
+        // `APP.MESSAGE.ERROR.*` usiamo la traduzione (e
+        // ignoriamo il `title` generico come "Unprocessable
+        // Entity"). Altrimenti fallback al detail letterale.
+        // I parametri di interpolazione possono arrivare come
+        // `parameters` (forma piatta) oppure come `errori[*].params`
+        // (forma annidata, es. REG.409.MULTIPLE.USERS.EMAIL).
+        // Uniamo i `params` di tutte le entry di `errori` per
+        // popolare tutti i placeholder anche con piu` errori.
+        const beParams = this._collectBeErrorParams(error.error);
+        const translated = this._translateBeErrorKey(error.error.detail, beParams);
+        if (translated) {
+          _msg = translated;
+        } else {
+          if (error.error.title) {
+            _msgA.push(error.error.title);
+          }
+          if (error.error.detail) {
+            _msgA.push(error.error.detail);
+          }
+          _msg = _msgA.join(' - ');
         }
-        if (error.error.detail) {
-          _msgA.push(error.error.detail);
-        }
-        _msg = _msgA.join(' - ');
       } else {
         if (error.status !== 0 && error.statusText) {
           _msg = error.status + ': ' + error.statusText;
@@ -424,7 +477,7 @@ export class Tools {
       if (error.name && !error.error) {
         _msg = this.translate.instant(`APP.MESSAGE.ERROR.${error.name}`);
       }
-    } catch (e) {
+    } catch {
       _msg = 'Si è verificato un problema non previsto.';
     }
 
@@ -460,7 +513,7 @@ export class Tools {
       if (_msg.length > 200) {
         _msg = _msg.substring(0, 200);
       }
-    } catch (e) {
+    } catch {
       _msg = 'Si è verificato un problema non previsto.';
     }
     MultiSnackbarComponent.PushMessage((_msg || error.message), true, _keep);

@@ -34,7 +34,7 @@ import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
 import { MonitorDropdwnComponent } from '@app/views/servizi/components/monitor-dropdown/monitor-dropdown.component';
 import { OpenAPIService } from '@app/services/openAPI.service';
-import { UtilService } from '@app/services/utils.service';
+import { UtilService, RUOLI_ORG_REFERENTE } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 
 import { Page } from '@app/models/page';
@@ -497,9 +497,10 @@ export class AdesioneReferentiComponent implements OnInit, AfterContentChecked {
         debounceTime(500),
         tap(() => this.referentiLoading = true),
         switchMap((term: any) => {
-          let aux: any = null;
-          this.referentiTipo == 'referente' ? aux = this.adesione.soggetto.organizzazione.id_organizzazione : aux = null;
-          return this.utilService.getUtenti(term, this.referentiFilter, 'abilitato', aux).pipe(
+          // Issue #284: org sempre valorizzata e filtro per ruolo_organizzazione
+          // (amm.org/operatore API). Niente piu` filtro referente_tecnico.
+          const orgId = this.adesione?.soggetto?.organizzazione?.id_organizzazione || null;
+          return this.utilService.getUtenti(term, null, 'abilitato', orgId, RUOLI_ORG_REFERENTE).pipe(
             catchError(() => of([])), // empty list on error
             tap(() => this.referentiLoading = false)
           )
@@ -509,7 +510,7 @@ export class AdesioneReferentiComponent implements OnInit, AfterContentChecked {
   }
 
   _onChangeTipoReferente(isReferent: boolean) {
-    this.referentiFilter = isReferent ? 'referente_servizio,gestore,coordinatore' : '';
+    this.referentiFilter = isReferent ? 'utente_organizzazione,gestore,coordinatore' : '';
   }
 
   loadAnagrafiche() {

@@ -51,6 +51,8 @@ import org.govway.catalogo.servlets.model.GruppoCreate;
 import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.ProtocolloEnum;
 import org.govway.catalogo.servlets.model.RuoloAPIEnum;
+import org.govway.catalogo.servlets.model.RuoloOrganizzazioneEnum;
+import org.govway.catalogo.servlets.model.UtenteOrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.ServizioCreate;
 import org.govway.catalogo.servlets.model.SoggettoCreate;
 import org.govway.catalogo.servlets.model.StatoClientEnum;
@@ -60,6 +62,7 @@ import org.govway.catalogo.servlets.model.TassonomiaCreate;
 import org.govway.catalogo.servlets.model.TipoServizio;
 import org.govway.catalogo.servlets.model.TipoSoggettoGateway;
 import org.govway.catalogo.servlets.model.UtenteCreate;
+import org.govway.catalogo.servlets.model.UtenteUpdate;
 import org.govway.catalogo.servlets.model.VisibilitaDominioEnum;
 import org.govway.catalogo.servlets.model.VisibilitaServizioEnum;
 import org.springframework.security.core.Authentication;
@@ -151,7 +154,8 @@ public class CommonUtils {
         organizzazioneCreate.setIdTipoUtente(ID_TIPO_UTENTE);
         organizzazioneCreate.setReferente(REFERENTE);
         organizzazioneCreate.setAderente(ADERENTE);
-        organizzazioneCreate.setEsterna(ESTERNA);
+        // Org referente operativa: NON intermediata (vincolo: intermediata => non referente/aderente)
+        organizzazioneCreate.setIntermediata(false);
         
         return organizzazioneCreate;
 	}
@@ -194,6 +198,28 @@ public class CommonUtils {
 		utente.setTelefonoAziendale(TELEFONO_AZIENDALE);
 		utente.setPrincipal(USERNAME);
 		return utente;
+	}
+
+	public static void setOrganizzazione(UtenteCreate utente, UUID idOrganizzazione) {
+		setOrganizzazione(utente, idOrganizzazione, RuoloOrganizzazioneEnum.OPERATORE_API);
+	}
+
+	public static void setOrganizzazione(UtenteCreate utente, UUID idOrganizzazione, RuoloOrganizzazioneEnum ruolo) {
+		UtenteOrganizzazioneCreate assoc = new UtenteOrganizzazioneCreate();
+		assoc.setIdOrganizzazione(idOrganizzazione);
+		assoc.setRuoloOrganizzazione(ruolo);
+		utente.setOrganizzazioni(List.of(assoc));
+	}
+
+	public static void setOrganizzazione(UtenteUpdate utente, UUID idOrganizzazione) {
+		setOrganizzazione(utente, idOrganizzazione, RuoloOrganizzazioneEnum.OPERATORE_API);
+	}
+
+	public static void setOrganizzazione(UtenteUpdate utente, UUID idOrganizzazione, RuoloOrganizzazioneEnum ruolo) {
+		UtenteOrganizzazioneCreate assoc = new UtenteOrganizzazioneCreate();
+		assoc.setIdOrganizzazione(idOrganizzazione);
+		assoc.setRuoloOrganizzazione(ruolo);
+		utente.setOrganizzazioni(List.of(assoc));
 	}
 	
 	public static DominioCreate getDominioCreate() {
@@ -251,13 +277,13 @@ public class CommonUtils {
 	public static InfoProfilo getInfoProfilo(String idUtente, UtenteService utenteService) {
 		return utenteService.runTransaction(() -> {
 			UtenteEntity utente = utenteService.findByPrincipal(idUtente).orElseThrow(() -> new RuntimeException("Utente "+idUtente+" non trovato"));
-			
-			if(utente.getOrganizzazione()!=null) {
-				utente.getOrganizzazione().getSoggetti().stream().forEach(s -> {s.getNome();});
-			}
-			
+
+			utente.getUtenteOrganizzazioni().stream().forEach(uo -> {
+				uo.getOrganizzazione().getSoggetti().stream().forEach(s -> {s.getNome();});
+			});
+
 			utente.getClassi().stream().forEach( e-> {e.getNome();});
-	
+
 			return new InfoProfilo(idUtente, utente, List.of());
 		});
 	}

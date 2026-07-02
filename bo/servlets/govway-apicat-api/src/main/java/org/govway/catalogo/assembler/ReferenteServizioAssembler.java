@@ -29,6 +29,7 @@ import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Stato;
 import org.govway.catalogo.core.services.UtenteService;
+import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.Referente;
@@ -43,6 +44,9 @@ public class ReferenteServizioAssembler extends RepresentationModelAssemblerSupp
 
 	@Autowired
 	private UtenteService utenteService;
+	@Autowired
+	private OrganizzazioneService organizzazioneService;
+
 
 	@Autowired
 	private UtenteFullAssembler utenteFullAssembler;
@@ -92,9 +96,8 @@ public class ReferenteServizioAssembler extends RepresentationModelAssemblerSupp
 	}
 
 	private boolean isSameOrganization(UtenteEntity viewer, UtenteEntity referente) {
-		OrganizzazioneEntity viewerOrg = viewer.getOrganizzazione();
-		OrganizzazioneEntity referenteOrg = referente.getOrganizzazione();
-		return viewerOrg != null && referenteOrg != null && viewerOrg.equals(referenteOrg);
+		// Multi-org: viewer e referente hanno almeno un'organizzazione in comune.
+		return this.organizzazioneService.hasOrganizzazioneInComune(viewer, referente);
 	}
 	
 	public TipoReferenteEnum toTipoReferente(TIPO_REFERENTE tipo) {
@@ -126,12 +129,8 @@ public class ReferenteServizioAssembler extends RepresentationModelAssemblerSupp
 			throw new BadRequestException(ErrorCode.AUT_403_REFERENT_NOT_ELIGIBLE, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));
 		}
 
-		if(tipoReferente.equals(TIPO_REFERENTE.REFERENTE)) {
-			if(utente.getRuolo() == null) {
-				throw new BadRequestException(ErrorCode.AUT_403_REFERENT_NOT_ELIGIBLE, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));
-			}
-
-		}
+		// Il vincolo sul ruolo organizzativo minimo (almeno Operatore API) è verificato in
+		// ServiziController.checkReferente/checkReferenti, dove è disponibile l'organizzazione di riferimento.
 		entity.setReferente(utente);
 		entity.setTipo(tipoReferente);
 

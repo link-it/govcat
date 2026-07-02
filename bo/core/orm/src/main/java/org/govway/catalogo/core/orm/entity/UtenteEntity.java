@@ -34,6 +34,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 
@@ -52,7 +53,7 @@ import org.hibernate.type.SqlTypes;
 public class UtenteEntity {
 	
 	public enum Stato {DISABILITATO, NON_CONFIGURATO, ABILITATO, PENDING_UPDATE}
-	public enum Ruolo {AMMINISTRATORE, COORDINATORE, REFERENTE_SERVIZIO}
+	public enum Ruolo {AMMINISTRATORE, COORDINATORE, RUOLO_ORGANIZZAZIONE}
 
     @Id
     @Column(name = "id")
@@ -72,17 +73,14 @@ public class UtenteEntity {
 
     @Enumerated(EnumType.STRING)
 	private Ruolo ruolo;
-	
-    @Column(name = "referente_tecnico", nullable=false)
-	private boolean referenteTecnico;
-	
-	@ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_organizzazione", referencedColumnName = "id")
-	private OrganizzazioneEntity organizzazione;
 
 	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_organizzazione_pending", referencedColumnName = "id")
 	private OrganizzazioneEntity organizzazionePending;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_organizzazione_partenza", referencedColumnName = "id")
+	private OrganizzazioneEntity organizzazionePartenza;
 
     @Column(nullable=false)
 	private String nome;
@@ -116,5 +114,13 @@ public class UtenteEntity {
 	@ManyToMany(mappedBy = "utentiAssociati", fetch = FetchType.EAGER)
 	@Cascade({CascadeType.MERGE, CascadeType.PERSIST})
 	private Set<ClasseUtenteEntity> classi = new HashSet<>();
-	
+
+	@OneToMany(mappedBy = "utente", fetch = FetchType.LAZY, orphanRemoval = true)
+	@Cascade({CascadeType.ALL})
+	private Set<UtenteOrganizzazioneEntity> utenteOrganizzazioni = new HashSet<>();
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "id_azienda_esterna", referencedColumnName = "id")
+	private AziendaEsternaEntity aziendaEsterna;
+
 }

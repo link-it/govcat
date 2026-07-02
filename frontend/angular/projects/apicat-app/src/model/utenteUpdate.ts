@@ -28,11 +28,12 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { UtenteOrganizzazioneCreateItem } from './utenteCreate';
 import { RuoloUtenteEnum } from './ruoloUtenteEnum';
 import { StatoUtenteEnum } from './statoUtenteEnum';
 
 
-export interface UtenteUpdate { 
+export interface UtenteUpdate {
     nome: string;
     cognome: string;
     telefono?: string;
@@ -43,6 +44,14 @@ export interface UtenteUpdate {
     metadati?: string;
     stato: StatoUtenteEnum;
     ruolo?: RuoloUtenteEnum;
+    referente_tecnico?: boolean;
+    abilitato_domini_esterni?: boolean;
+    organizzazione_esterna?: string;
+    organizzazioni?: Array<UtenteOrganizzazioneCreateItem>;
+    /**
+     * @deprecated Alias retrocompatibile, ignorato se `organizzazioni`
+     * e' presente.
+     */
     id_organizzazione?: string;
     classi_utente?: Array<string>;
 }

@@ -178,7 +178,7 @@ export class ServizioComponentiComponent implements OnInit, AfterContentChecked,
             if (!this.service) {
               this._loadServizio();
             } else {
-              this._isDominioEsterno = this.service.dominio?.soggetto_referente?.organizzazione?.esterna || false;
+              this._isDominioEsterno = this.service.dominio?.soggetto_referente?.organizzazione?.intermediata || false;
               this._idDominioEsterno = this.service.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
               this._initBreadcrumb();
               this._updateMapper = new Date().getTime().toString();
@@ -244,7 +244,7 @@ export class ServizioComponentiComponent implements OnInit, AfterContentChecked,
           this.apiService.getDetails('servizi', this.id).subscribe({
             next: (response: any) => {
               this.service = response;
-              this._isDominioEsterno = this.service.dominio?.soggetto_referente?.organizzazione?.esterna || false;
+              this._isDominioEsterno = this.service.dominio?.soggetto_referente?.organizzazione?.intermediata || false;
               this._idDominioEsterno = this.service.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
               this._initBreadcrumb();
               this._updateMapper = new Date().getTime().toString();
@@ -507,12 +507,12 @@ export class ServizioComponentiComponent implements OnInit, AfterContentChecked,
   }
 
   _onChangeTipoReferente(isReferent: boolean) {
-    this.componentiFilter = isReferent ? 'referente_servizio,gestore,coordinatore' : '';
+    this.componentiFilter = isReferent ? 'utente_organizzazione,gestore,coordinatore' : '';
   }
 
   loadAnagrafiche() {
     this.anagrafiche['tipo-referente'] = [
-      { nome: 'referente', filter: 'referente_servizio,gestore,coordinatore' },
+      { nome: 'referente', filter: 'utente_organizzazione,gestore,coordinatore' },
       { nome: 'referente_tecnico', filter: '' }
     ];
   }

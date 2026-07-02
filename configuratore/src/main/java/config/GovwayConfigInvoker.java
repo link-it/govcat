@@ -202,13 +202,8 @@ public class GovwayConfigInvoker {
 	 * @throws IOException
 	 */
 	public ControlloAccessiGestioneToken getControlloAccessiGestioneToken(GruppoServizio singleAPI) throws IOException {
-		HttpUrl url = this.baseUrl.newBuilder()
-				.addPathSegment("erogazioni")
-				.addPathSegment(singleAPI.getNomeServizio())
-				.addPathSegment(singleAPI.getVersioneServizio().toString())
+		HttpUrl url = this.getUrlConfigurazioneServizio(singleAPI)
 				.addPathSegments("configurazioni/controllo-accessi/gestione-token")
-				.addQueryParameter(QUERY_SOGGETTO, singleAPI.getSoggettoErogatore().getNomeGateway())
-				.addQueryParameter(QUERY_PROFILO, singleAPI.getSoggettoErogatore().getTipoGateway())
 				.addQueryParameter(QUERY_GRUPPO, singleAPI.getGruppo())
 				.build();
 		
@@ -259,7 +254,9 @@ public class GovwayConfigInvoker {
 		return this.gson.fromJson(content, ControlloAccessiAutorizzazione.class);
 	}
 	
-	public Response postServizioApplicativo(ServizioApplicativo sa, DTOSoggetto soggetto) throws IOException, TemplateException {			
+	public Response postServizioApplicativo(ServizioApplicativo sa, DTOSoggetto soggetto) throws IOException, TemplateException {
+		sa.setProfilo(soggetto.getTipoGateway());
+
 		HttpUrl url = this.baseUrl.newBuilder()
 				.addPathSegment("applicativi")
 				.addQueryParameter(QUERY_SOGGETTO, soggetto.getNomeGateway())
@@ -311,17 +308,12 @@ public class GovwayConfigInvoker {
 	
 	public Response postApplicativoToServizioToken(GruppoServizio singleAPI, String saName, String soggetto) throws TemplateException, IOException {
 		// infine assicio il servizio applicativo ai richiedenti
-		HttpUrl url = this.baseUrl.newBuilder()
-				.addPathSegment("erogazioni")
-				.addPathSegment(singleAPI.getNomeServizio())
-				.addPathSegment(singleAPI.getVersioneServizio().toString())
+		HttpUrl url = this.getUrlConfigurazioneServizio(singleAPI)
 				.addPathSegment("configurazioni")
 				.addPathSegment("controllo-accessi")
 				.addPathSegment("autorizzazione")
 				.addPathSegment("token")
 				.addPathSegment("applicativi")
-				.addQueryParameter(QUERY_SOGGETTO, singleAPI.getSoggettoErogatore().getNomeGateway())
-				.addQueryParameter(QUERY_PROFILO, singleAPI.getSoggettoErogatore().getTipoGateway())
 				.addQueryParameter(QUERY_GRUPPO, singleAPI.getGruppo())
 				.build();
 
@@ -504,11 +496,12 @@ public class GovwayConfigInvoker {
 		
 	}
 	
-	public Applicativo getServizioApplicativo(String nome, String profilo) throws IOException {
-		
+	public Applicativo getServizioApplicativo(String nome, String soggetto, String profilo) throws IOException {
+
 		HttpUrl url = this.baseUrl.newBuilder()
 				.addPathSegment("applicativi")
 				.addPathSegment(nome)
+				.addQueryParameter(QUERY_SOGGETTO, soggetto)
 				.addQueryParameter(QUERY_PROFILO, profilo)
 				.build();
 		

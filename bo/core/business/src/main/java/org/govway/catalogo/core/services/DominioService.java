@@ -58,7 +58,15 @@ public class DominioService extends AbstractService {
 	}
 
 	public boolean existsByNome(DominioEntity dominio) {
-		return this.dominioRepo.findOne(filterByNome(dominio)).isPresent();
+		return this.dominioRepo.findOne(filterByNome(dominio.getNome())).isPresent();
+	}
+
+	public boolean existsByNome(String nome) {
+		return this.dominioRepo.findOne(filterByNome(nome)).isPresent();
+	}
+
+	public Optional<DominioEntity> findByNome(String nome) {
+		return this.dominioRepo.findOne(filterByNome(nome));
 	}
 
 	private Specification<DominioEntity> filterByKey(UUID key) {
@@ -67,9 +75,9 @@ public class DominioService extends AbstractService {
 		return dominioFilter;
 	}
 
-	private Specification<DominioEntity> filterByNome(DominioEntity dominio) {
+	private Specification<DominioEntity> filterByNome(String nome) {
 		DominioSpecification dominioFilter = new DominioSpecification();
-		dominioFilter.setNome(Optional.of(dominio.getNome()));
+		dominioFilter.setNome(Optional.of(nome));
 		return dominioFilter;
 	}
 	

@@ -27,11 +27,32 @@ export interface Organizzazione {
   nome: string | null;
 }
 
+/**
+ * Issue 229 multi-org: shape locale dell'associazione utente-org
+ * restituita dal BE in `Utente.organizzazioni[]`. Stub locale finche`
+ * gli stub generati `src/model/utenteOrganizzazione.ts` non vengono
+ * rigenerati dall'OpenAPI aggiornato.
+ */
+export interface UtenteOrganizzazioneShape {
+  organizzazione: Organizzazione | null;
+  ruolo_organizzazione: RuoloOrganizzazione | null;
+}
+
 export enum Ruolo {
   NESSUN_RUOLO = 'nessun_ruolo',
   GESTORE = 'gestore',
+  /**
+   * @deprecated Sostituito da `UTENTE_ORGANIZZAZIONE`. Mantenuto per
+   * retrocompatibilita' lettura — non proporlo in nuove creazioni.
+   */
   REFERENTE_SERVIZIO = 'referente_servizio',
+  UTENTE_ORGANIZZAZIONE = 'utente_organizzazione',
   COORDINATORE = 'coordinatore'
+}
+
+export enum RuoloOrganizzazione {
+  AMMINISTRATORE_ORGANIZZAZIONE = 'amministratore_organizzazione',
+  OPERATORE_API = 'operatore_api'
 }
 
 export enum Stato {
@@ -57,9 +78,26 @@ export class Utente {
   stato: Stato | null = null;
   ruolo: Ruolo | null = null;
   id_organizzazione: string | null = null;
+  ruolo_organizzazione: RuoloOrganizzazione | null = null;
   // classi_utente: Array<any> = [];
   organizzazione: Organizzazione | null = null;
+  /**
+   * Issue 229 multi-org: associazioni dell'utente con organizzazioni
+   * (ognuna con `ruolo_organizzazione`). Sostituisce il legacy mono-org
+   * `organizzazione` nel nuovo schema BE.
+   */
+  organizzazioni: Array<UtenteOrganizzazioneShape> | null = null;
+  organizzazione_esterna: string | null = null;
   organizzazione_pending: Organizzazione | null = null;
+  /**
+   * Issue 229 evolutiva 2: organizzazione di partenza del cambio
+   * org (popolata dal BE in risposta a `PENDING_UPDATE`). Mostrata
+   * accanto a `organizzazione_pending` nella UI di approvazione
+   * per il messaggio "passaggio da X a Y". Stub locale: l'interfaccia
+   * `Utente` in `src/model/utente.ts` (OpenAPI auto-generata) sara`
+   * aggiornata al prossimo refresh BE.
+   */
+  organizzazione_partenza: Organizzazione | null = null;
   classi_utente: ClassiUtente | null = null;
   referente_tecnico: boolean = false;
 

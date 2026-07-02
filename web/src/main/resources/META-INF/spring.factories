@@ -1,0 +1,2 @@
+org.springframework.boot.EnvironmentPostProcessor=\
+org.govway.catalogo.reverse_proxy.ExternalLog4j2EnvironmentPostProcessor

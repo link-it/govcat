@@ -59,9 +59,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.ContextClosedEvent;
@@ -85,7 +84,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 @ExtendWith(SpringExtension.class)  // JUnit 5 extension
 @SpringBootTest(classes = OpenAPI2SpringBoot.class)
-@EnableAutoConfiguration(exclude = {GroovyTemplateAutoConfiguration.class})
+@EnableAutoConfiguration
 @AutoConfigureTestDatabase(replace = Replace.ANY)
 @ActiveProfiles("test")
 @DirtiesContext(classMode = ClassMode.BEFORE_CLASS)
@@ -168,7 +167,7 @@ public class GruppiTest {
         ResponseEntity<Gruppo> createdGruppo = controller.createGruppo(gruppo);
         
         UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        utente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
         
         ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
         
@@ -232,8 +231,7 @@ public class GruppiTest {
     @Test
     public void testCreateReadDeleteGruppoReferenteServizioSuccess() {
     	UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
-        utente.setReferenteTecnico(false);
+        utente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
         utente.setPrincipal("unoqualsiasi");
         
         ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
@@ -258,7 +256,6 @@ public class GruppiTest {
     public void testCreateGruppoCoordinatoreErrore() {
     	UtenteCreate utente = CommonUtils.getUtenteCreate();
         utente.setRuolo(RuoloUtenteEnum.COORDINATORE);
-        utente.setReferenteTecnico(false);
         utente.setPrincipal("unoqualsiasi");
         
         ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);

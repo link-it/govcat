@@ -23,8 +23,8 @@ import jakarta.persistence.EntityManager;
 
 import org.govway.catalogo.core.dao.repositories.AdesioneRepository;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
-import org.springframework.batch.item.Chunk;
-import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.infrastructure.item.Chunk;
+import org.springframework.batch.infrastructure.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

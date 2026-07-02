@@ -1,0 +1,78 @@
+<!--
+  ReferenteAddFormComponent — Issue 254 NEW LAYOUT (rev. 4.29).
+  Form inline per aggiungere un referente all'adesione.
+  Sostituisce la `ModalAddReferentComponent` (dialog) per il flusso
+  del nuovo layout. Stessa logica di search utenti (filtro per
+  `referente` -> organizzazione del soggetto, `referente_tecnico` ->
+  flag dedicato).
+-->
+<form class="referente-add-form" [formGroup]="formGroup" (submit)="onSubmit()">
+  <header class="referente-add-form-hd">
+    <h5 class="referente-add-form-title">{{ 'APP.TITLE.AddReferent' | translate }}</h5>
+  </header>
+  <div class="referente-add-form-fields">
+    <div class="form-group">
+      <lnk-form-live-search
+        [label]="'APP.LABEL.ruolo' | translate"
+        bindLabel="label"
+        bindValue="value"
+        [placeholder]="'APP.MESSAGE.Empty' | translate"
+        [formGroup]="formGroup"
+        formControlName="tipo"
+        [searchable]="true"
+        [typeToSearchText]="'APP.MESSAGE.TypeToSearchText' | translate"
+        [clearable]="false"
+        [disabledSearch]="false"
+        [isEdit]="true"
+        [reduced]="false"
+        [inline]="false"
+        [singleColumn]="true"
+        [appendTo]="''"
+        [searchService]="getSearchTipo()"
+        (changeEvent)="onChangeTipo($event)"
+      ></lnk-form-live-search>
+    </div>
+
+    <div class="form-group">
+      <lnk-form-live-search
+        [label]="'APP.LABEL.id_utente' | translate"
+        bindLabel="label"
+        bindValue="value"
+        [placeholder]="'APP.MESSAGE.Empty' | translate"
+        [formGroup]="formGroup"
+        formControlName="id_utente"
+        [searchable]="true"
+        [typeToSearchText]="'APP.MESSAGE.TypeToSearchText' | translate"
+        [clearable]="false"
+        [isEdit]="true"
+        [reduced]="false"
+        [inline]="false"
+        [singleColumn]="true"
+        [appendTo]="''"
+        [searchService]="getSearchUtente()"
+        [disabledSearch]="!f['tipo'].value"
+      ></lnk-form-live-search>
+    </div>
+  </div>
+
+  @if (error) {
+    <div class="gl-alert gl-alert-danger mt-2">
+      {{ errorMsg }}
+    </div>
+  }
+
+  <div class="referente-add-form-actions">
+    <lnk-button
+      [label]="'APP.BUTTON.Cancel'"
+      (onAction)="onCancel()"
+    ></lnk-button>
+    <lnk-button
+      [type]="'submit'"
+      [label]="'APP.BUTTON.Save'"
+      [primary]="true"
+      [ariaLabel]="'APP.BUTTON.Save'"
+      [disabled]="formGroup.invalid || saving"
+      [spinner]="saving"
+    ></lnk-button>
+  </div>
+</form>

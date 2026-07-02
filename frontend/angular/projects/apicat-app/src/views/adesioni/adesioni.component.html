@@ -22,27 +22,19 @@
       <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
     </div>
     <div class="top-area">
-      <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
-        <div class="">
-          <ul class="nav gp-border-b-0 gp-tabs-nav">
-            @if (!isGestore) {
-              @for (tab of roleTabs; track tab.key) {
-                <li class="nav-item">
-                  <a class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="roleTab === tab.key" (click)="onRoleTabChange(tab.key)">
-                    <span>{{ tab.label | translate }}</span>
-                    @if (roleTab === tab.key) {
-                      <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm ms-1">
-                        @if (_spin) {
-                          <span class="spinner-border spinner-border-sm"></span>
-                        } @else {
-                          {{ _paging.totalElements || 0 }}
-                        }
-                      </span>
-                    }
-                  </a>
-                </li>
-              }
-            } @else {
+      @if (!isGestore) {
+        <lnk-responsive-tabs
+          class="flex-grow-1"
+          [items]="roleTabs"
+          [active]="roleTab"
+          [activeCount]="_paging.totalElements || 0"
+          [loading]="_spin"
+          (activeChange)="onRoleTabChange($event)">
+        </lnk-responsive-tabs>
+      } @else {
+        <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
+          <div class="">
+            <ul class="nav gp-border-b-0 gp-tabs-nav">
               <li class="nav-item">
                 <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer gp-tab-nav-item-active" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + _allElements">
                   <span>{{ 'APP.FILTER.Found' | translate }}</span>
@@ -55,10 +47,10 @@
                   </span>
                 </a>
               </li>
-            }
-          </ul>
+            </ul>
+          </div>
         </div>
-      </div>
+      }
       <div class="nav-controls align-self-center d-flex">
         @if (hasExportSelection) {
           <div class="btn-group- me-2">
@@ -85,11 +77,20 @@
             (action)="onSelectionAction($event)"
           ></ui-selection-dropdown>
         }
-        @if (!service || service.multi_adesione || isGestore || adesioni.length === 0) {
+        @if ((!service || service.multi_adesione || isGestore || adesioni.length === 0) && canCreateAdesione()) {
           <div class="gl-w-full btn-group-">
-            <button aria-label="Add subscription" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
+            <lnk-button
+              [type]="'button'"
+              [icon]="'bi bi-plus-lg'"
+              [label]="'APP.BUTTON.AddSubscription' | translate"
+              [ariaLabel]="'APP.BUTTON.AddSubscription' | translate"
+              [primary]="true"
+              [otherClass]="'ms-2'"
+              (onAction)="_onNew()"
+            ></lnk-button>
+            <!-- <button aria-label="Add subscription" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
               <span class="material-icons-outlined">add</span> <span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddSubscription' | translate }}</span>
-            </button>
+            </button> -->
           </div>
         }
       </div>
@@ -133,7 +134,7 @@
                         <label class="col-form-label col-form-label-fix" for="q">{{ 'APP.LABEL.FreeSearch' | translate }}</label>
                       </div>
                       <div class="col-10">
-                        <input type="text" class="form-control form-control-sm" id="q" formControlName="q">
+                        <input type="text" class="form-control form-control-sm" id="q" formControlName="q" autocomplete="off">
                       </div>
                     </div>
                     <div class="row mb-1">

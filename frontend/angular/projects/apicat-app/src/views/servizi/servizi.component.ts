@@ -16,13 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, AfterViewInit, Component, HostListener, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule, Location } from '@angular/common';
 import { AbstractControl, FormGroup, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { HttpHeaders } from '@angular/common/http';
 
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
+import { PopoverModule } from 'ngx-bootstrap/popover';
 import { NgxMasonryOptions } from 'ngx-masonry';
 
 import { TranslateService } from '@ngx-translate/core';
@@ -48,6 +49,7 @@ import { CardType } from '@app/lib/ui/card/card.component';
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 import { TassonomiaTokenComponent } from '@app/components/token/tassonomia-token.component';
 import { ExportDropdwnComponent, ActionEnum } from '@app/components/lnk-ui/export-dropdown/export-dropdown.component';
+import { ResponsiveTabsComponent } from '@app/components/lnk-ui/responsive-tabs/responsive-tabs.component';
 import { ServiziGroupListCardComponent } from './components/servizi-group-list-card/servizi-group-list-card.component';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.directive';
@@ -64,8 +66,10 @@ declare const saveAs: any;
         ReactiveFormsModule,
         ...COMPONENTS_IMPORTS,
         ...APP_COMPONENTS_IMPORTS,
+        PopoverModule,
         TassonomiaTokenComponent,
         ExportDropdwnComponent,
+        ResponsiveTabsComponent,
         ServiziGroupListCardComponent,
         MapperPipe,
         InfiniteScrollDirective,
@@ -146,6 +150,10 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     ];
     _tipiVisibilitaServizioEnum: any = { ...Tools.VisibilitaServizioEnum };
 
+    // Valori ammessi per il filtro `ruolo_referente` lato BE (vedi
+    // `RuoloReferenteEnum`). `utente_organizzazione` NON e` un
+    // ruolo referente (appartiene a `RuoloUtenteEnum`) e causa 400
+    // se inviato.
     _allRuoliServizi: { value: string, label: string }[] = [
         { value: 'referente_dominio', label: 'APP.ROLE.referente_dominio' },
         { value: 'referente_tecnico_dominio', label: 'APP.ROLE.referente_tecnico_dominio' },
@@ -163,6 +171,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         { field: 'stato', label: 'APP.LABEL.stato', type: 'enum', condition: 'equal', enumValues: this._statiServizioEnum },
         { field: 'visibilita', label: 'APP.LABEL.visibilita', type: 'enum', condition: 'equal', enumValues: this._tipiVisibilitaServizioEnum },
         { field: 'id_dominio', label: 'APP.LABEL.id_dominio', type: 'text', condition: 'equal', params: { resource: 'domini', field: 'nome', urlParam: '?id_dominio=' } },
+        { field: 'id_organizzazione_erogatore', label: 'APP.LABEL.OrganizzazioneErogatore', type: 'text', condition: 'equal', params: { resource: 'organizzazioni', field: 'nome', urlParam: '?id_organizzazione_erogatore=' } },
         { field: 'id_api', label: 'APP.LABEL.id_api', type: 'text', condition: 'equal', params: { resource: 'api', field: '{nome} v.{versione} ({servizio.dominio.nome})' } },
         // { field: 'id_servizio', label: 'APP.LABEL.id_servizio', type: 'text', condition: 'equal', params: { resource: 'servizi', field: 'nome' } },
         { field: 'profilo', label: 'APP.LABEL.Profilo', type: 'text', condition: 'contain', callBack: (value: any) => {
@@ -204,9 +213,17 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     _myServicesCount: number = 0;
 
     roleTab: string = 'tutti';
+    // Issue 229 evolutiva 2 — allineamento al nuovo enum
+    // `RuoloReferente` BE. Includiamo i nuovi ruoli per-org
+    // `amministratore_organizzazione` / `operatore_api` (BE li
+    // ignora silenziosamente sul filtro `ruolo_referente` ma sono
+    // ammessi dall'enum). NB: `utente_organizzazione` NON deve
+    // comparire qui — appartiene a `RuoloUtenteEnum` (ruolo
+    // globale) e Spring restituisce 400 se inviato come
+    // `ruolo_referente`.
     roleTabs: { key: string, label: string, roles: string[] }[] = [
         { key: 'tutti', label: 'APP.FILTER.All', roles: [] },
-        { key: 'referente', label: 'APP.FILTER.ReferenteServizioDominio', roles: ['referente_dominio', 'referente_tecnico_dominio', 'referente_servizio', 'referente_tecnico_servizio'] },
+        { key: 'referente', label: 'APP.FILTER.ReferenteServizioDominio', roles: ['referente_dominio', 'referente_tecnico_dominio', 'referente_servizio', 'referente_tecnico_servizio', 'amministratore_organizzazione', 'operatore_api'] },
         { key: 'richiedente', label: 'APP.FILTER.Richiedente', roles: ['richiedente_servizio'] }
     ];
     _currIdGruppoPadre: string = '';
@@ -214,6 +231,20 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     groupsBreadcrumbs: any[] = [
         // { label: 'APP.GROUPS.TITLE.Root', url: 'root', type: 'link', iconBs: 'folder' }
     ];
+
+    /** Dettagli del gruppo corrente quando si naviga in un sotto-albero.
+     *  Popolato lazy quando `_currIdGruppoPadre` cambia. Usato dal
+     *  template per mostrare descrizione_sintetica/descrizione
+     *  nell'header (vista groups). Null = root o non caricato. */
+    _currentGroup: any = null;
+
+    /** True se il popover della descrizione gruppo deve essere
+     *  attivabile: esiste `descrizione` estesa, oppure la
+     *  `descrizione_sintetica` mostrata in header e` effettivamente
+     *  troncata dall'ellissi CSS. */
+    _currentGroupExpandable: boolean = false;
+
+    @ViewChild('groupHeaderDescText') groupHeaderDescTextRef?: ElementRef<HTMLElement>;
 
     minLengthTerm = 1;
 
@@ -237,6 +268,10 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     dominiInput$ = new Subject<string>();
     dominiLoading: boolean = false;
     selectedDominio: any;
+
+    organizzazioniErogatore$!: Observable<any[]>;
+    organizzazioniErogatoreInput$ = new Subject<string>();
+    organizzazioniErogatoreLoading: boolean = false;
 
     _settings: any = null;
 
@@ -370,6 +405,47 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
     @HostListener('window:resize') _onResize() {
         this.__updateGroupsViewMode();
+        this._updateGroupDescExpandable();
+    }
+
+    /**
+     * Handler del click sull'area descrizione gruppo: toggla il
+     * popover solo se `_currentGroupExpandable` e` true. La direttiva
+     * popover ha `triggers=""` (no auto-trigger) per poter gestire
+     * dinamicamente lo stato cliccabile senza re-instanziare la
+     * direttiva.
+     */
+    _onGroupDescClick(popover: any): void {
+        if (!this._currentGroupExpandable) { return; }
+        popover?.toggle?.();
+    }
+
+    /**
+     * Aggiorna `_currentGroupExpandable`: vero se esiste `descrizione`
+     * estesa, oppure se il testo della `descrizione_sintetica` mostrato
+     * in header e` effettivamente troncato (scrollWidth > clientWidth).
+     * Su `clientWidth === 0` (elemento non ancora laid-out) ritenta
+     * fino a `maxRetries` volte con backoff breve.
+     */
+    private _updateGroupDescExpandable(retries: number = 5): void {
+        if (!this._currentGroup) {
+            this._currentGroupExpandable = false;
+            return;
+        }
+        if (this._currentGroup.descrizione) {
+            this._currentGroupExpandable = true;
+            return;
+        }
+        const el = this.groupHeaderDescTextRef?.nativeElement;
+        if (!el || el.clientWidth === 0) {
+            if (retries > 0) {
+                setTimeout(() => this._updateGroupDescExpandable(retries - 1), 60);
+            } else {
+                this._currentGroupExpandable = false;
+            }
+            return;
+        }
+        this._currentGroupExpandable = el.scrollWidth > el.clientWidth + 1;
     }
 
     ngOnInit() {
@@ -418,6 +494,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
                 this._initServizioApiSelect([]);
                 this._initTagsSelect([]);
                 this._initDominiSelect([]);
+                this._initOrganizzazioniErogatoreSelect([]);
             }
         );
     }
@@ -514,6 +591,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
             referente: new FormControl(''),
             ruolo_referente: new FormControl([]),
             id_dominio: new FormControl(''),
+            id_organizzazione_erogatore: new FormControl(''),
             id_gruppo: new FormControl(''),
             visibilita: new FormControl(''),
             categoria: new FormControl(''),
@@ -530,10 +608,42 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         });
     }
 
+    /**
+     * Carica i dettagli del gruppo corrente (descrizione_sintetica,
+     * descrizione, ...) quando si naviga in un sotto-albero. Cache
+     * basata su `id_gruppo` per evitare fetch duplicate. Su root
+     * resetta `_currentGroup`.
+     */
+    _loadCurrentGroup(): void {
+        if (!this._currIdGruppoPadre) {
+            this._currentGroup = null;
+            this._currentGroupExpandable = false;
+            return;
+        }
+        if (this._currentGroup?.id_gruppo === this._currIdGruppoPadre) {
+            return;
+        }
+        const requestedId = this._currIdGruppoPadre;
+        this.apiService.getDetails('gruppi', requestedId).subscribe({
+            next: (response: any) => {
+                if (requestedId === this._currIdGruppoPadre) {
+                    this._currentGroup = response;
+                    // Misura overflow dopo il render del template.
+                    setTimeout(() => this._updateGroupDescExpandable(), 0);
+                }
+            },
+            error: () => {
+                this._currentGroup = null;
+                this._currentGroupExpandable = false;
+            }
+        });
+    }
+
     _loadServiziGruppi(query: any = null, url: string = '') {
         this._setErrorMessages(false);
 
         if (!url) { this.resetElements(); }
+        if (!url) { this._loadCurrentGroup(); }
         
         let aux: any;
         if (!url) {
@@ -1024,6 +1134,10 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         if (this._isAnonymous()) { return false; }
         const user: any = this.authenticationService.getUser();
         if (!user?.ruolo && !user?.referente_tecnico) { return false; }
+        // Vincolo multi-org: ruoli per-org possono creare un servizio
+        // solo se l'organizzazione di sessione e' abilitata come `referente`.
+        // Gestori e coordinatori passano sempre.
+        if (!this.authenticationService.canCreateServizio()) { return false; }
         return true;
     }
 
@@ -1111,6 +1225,26 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
                     return this.getData('domini', term).pipe(
                         catchError(() => of([])), // empty list on error
                         tap(() => this.dominiLoading = false)
+                    )
+                })
+            )
+        );
+    }
+
+    _initOrganizzazioniErogatoreSelect(defaultValue: any[] = []) {
+        this.organizzazioniErogatore$ = concat(
+            of(defaultValue),
+            this.organizzazioniErogatoreInput$.pipe(
+                filter(res => {
+                    return res !== null && res.length >= this.minLengthTerm
+                }),
+                distinctUntilChanged(),
+                debounceTime(500),
+                tap(() => this.organizzazioniErogatoreLoading = true),
+                switchMap((term: any) => {
+                    return this.getData('organizzazioni', term).pipe(
+                        catchError(() => of([])), // empty list on error
+                        tap(() => this.organizzazioniErogatoreLoading = false)
                     )
                 })
             )

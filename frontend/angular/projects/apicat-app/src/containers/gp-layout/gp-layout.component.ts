@@ -26,6 +26,7 @@ import { OAuthService } from 'angular-oauth2-oidc';
 
 import { Tools, ConfigService, Language, MenuAction, EventType, EventsManagerService, LocalStorageService, BreadcrumbService, HeadBarComponent, SafeHtmlPipe, MapperPipe, MultiSnackbarComponent, RouterLinkMatchDirective } from '@linkit/components';
 import { AuthenticationService } from '@app/services/authentication.service';
+import { OrganizationContextService } from '@app/services/organization-context.service';
 import { OpenAPIService } from '@services/openAPI.service';
 import { DashboardService } from '@services/dashboard.service';
 import { NotificationsCount, NotificationsService } from '@services/notifications.service';
@@ -33,6 +34,7 @@ import { NotificationsCount, NotificationsService } from '@services/notification
 import { AboutDialogComponent } from '@app/components/about-dialog/about-dialog.component';
 import { NewsBoxComponent } from '@app/components/news-box/news-box.component';
 import { AboutMiniBoxComponent } from '@app/components/about-mini-box/about-mini-box.component';
+import { OrganizationSwitcherComponent } from '@app/components/organization-switcher/organization-switcher.component';
 
 import { FlyOutDirective } from './gp-layout.directive';
 
@@ -43,7 +45,7 @@ import { navItemsDashboardMenu, navItemsMainMenu, navItemsAdministratorMenu, nav
 import { environment } from '@app/environments/environment';
 
 import { Observable, of, firstValueFrom, forkJoin } from 'rxjs';
-import { catchError, filter, tap } from 'rxjs/operators';
+import { catchError, filter } from 'rxjs/operators';
 
 import * as _ from 'lodash';
 
@@ -63,7 +65,8 @@ import * as _ from 'lodash';
         RouterLinkMatchDirective,
         NewsBoxComponent,
         AboutMiniBoxComponent,
-        MultiSnackbarComponent
+        MultiSnackbarComponent,
+        OrganizationSwitcherComponent
     ]
 })
 export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy {
@@ -87,6 +90,8 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
     Tools = Tools;
 
     _session: any = null;
+    _userEmail: string = '';
+    _userName: string = '';
     username: string = '';
     loggedIn: boolean = false;
     login: boolean = false;
@@ -193,6 +198,7 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         private readonly localStorageService: LocalStorageService,
         private readonly breadCrumbService: BreadcrumbService,
         private readonly authenticationService: AuthenticationService,
+        private readonly organizationContextService: OrganizationContextService,
         private readonly apiService: OpenAPIService,
         private readonly notificationsService: NotificationsService,
         private readonly dashboardService: DashboardService,
@@ -344,6 +350,46 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         if (event.key === 'l' && event.ctrlKey) {
             this._contentLimited = !this._contentLimited;
         }
+        // Issue 270 / dev-tools — Ctrl+Shift+O: reset del contesto
+        // organizzazione + logout + reload. Disponibile solo quando
+        // il flag `AppConfig.Layout.Dev.organizationContextReset` e`
+        // true (sviluppo locale, per testare la prima esperienza di
+        // login multi-org senza dover svuotare manualmente lo
+        // storage).
+        if (this._devOrgResetEnabled && event.key === 'O' && event.ctrlKey && event.shiftKey) {
+            event.preventDefault();
+            this.devResetOrgContext();
+        }
+    }
+
+    /**
+     * Issue 270 — flag dev-tools (`AppConfig.Layout.Dev.organizationContextReset`).
+     * Quando true, il layout mostra un bottone flottante e abilita
+     * lo shortcut Ctrl+Shift+O per cancellare l'org corrente,
+     * fare logout e ricaricare la pagina. Pensato per
+     * sviluppo/QA locale, NON va attivato in produzione.
+     */
+    get _devOrgResetEnabled(): boolean {
+        return this._config?.AppConfig?.Layout?.Dev?.organizationContextReset === true;
+    }
+
+    /**
+     * Reset organizzazione corrente + logout + reload. Pulisce
+     * `localStorage` dell'org context, della sessione e ricarica
+     * la pagina (cosi` il prossimo bootstrap riparte da capo).
+     * Esposto sia come bottone flottante che come shortcut
+     * tastiera quando il flag dev e` attivo.
+     */
+    devResetOrgContext(): void {
+        try {
+            this.organizationContextService.clear();
+        } catch { /* ignora */ }
+        try {
+            this.authenticationService.logout();
+        } catch { /* ignora */ }
+        // Hard reload alla root: il nuovo bootstrap esercita di
+        // nuovo l'intero flusso (config -> login -> selettore).
+        window.location.href = '/';
     }
 
     async ngOnInit() {
@@ -496,6 +542,24 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
                 this.eventsManagerService.broadcast(EventType.PROFILE_UPDATE, { data: this._session });
 
                 this._spin = false;
+
+                // Issue 270 — safety net: il `OrganizationSelectionGuard`
+                // sulla rotta protetta scatta sulla prossima activation;
+                // se invece l'utente e` gia` dentro la dashboard (es.
+                // ricaricamento profilo post-login, riavvio dopo clear
+                // del contesto) intercettiamo qui e dirottiamo al
+                // selettore. La rotta del selettore stesso fa lo skip
+                // se l'utente ha gia` 0/1 org o un contesto valorizzato.
+                if (!this._isAnonymous) {
+                    const utente: any = response?.utente ?? response;
+                    const orgs: any[] = Array.isArray(utente?.organizzazioni) ? utente.organizzazioni : [];
+                    const current = this.organizationContextService.getCurrentOrganization();
+                    if (orgs.length >= 2 && !current && !this.router.url.startsWith('/auth/select-organization')) {
+                        this.router.navigate(['/auth/select-organization'], {
+                            queryParams: { returnUrl: this.router.url || '/dashboard' }
+                        });
+                    }
+                }
             },
             error: (error: any) => {
                 this.eventsManagerService.broadcast(EventType.PROFILE_UPDATE, { data: null });
@@ -536,6 +600,9 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
             this.loggedIn = (this._session !== null);
             this.login = (this._session !== null);
             this.username = this._session?.utente?.username || '';
+            const _u = this._session?.utente;
+            this._userEmail = _u?.email_aziendale || _u?.email || '';
+            this._userName = [_u?.nome, _u?.cognome].filter(Boolean).join(' ').trim();
             this._startCounters();
         }
     }

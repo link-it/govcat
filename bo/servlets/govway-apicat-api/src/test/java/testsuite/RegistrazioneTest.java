@@ -20,7 +20,9 @@
 package testsuite;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -28,26 +30,38 @@ import static org.mockito.Mockito.when;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.govway.catalogo.InfoProfilo;
 import org.govway.catalogo.OpenAPI2SpringBoot;
 import org.govway.catalogo.RequestUtils;
+import org.govway.catalogo.controllers.OrganizzazioniController;
 import org.govway.catalogo.controllers.RegistrazioneController;
 import org.govway.catalogo.core.dao.repositories.RegistrazioneUtenteRepository;
 import org.govway.catalogo.core.orm.entity.RegistrazioneUtenteEntity;
 import org.govway.catalogo.core.orm.entity.RegistrazioneUtenteEntity.StatoRegistrazione;
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
+import org.govway.catalogo.core.orm.entity.UtenteEntity;
+import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity;
+import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.core.services.RegistrazioneService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.NotAuthorizedException;
+import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneUtente;
 import org.govway.catalogo.servlets.model.CodiceInviato;
 import org.govway.catalogo.servlets.model.EsitoRegistrazioneEnum;
 import org.govway.catalogo.servlets.model.Idm;
+import org.govway.catalogo.servlets.model.ItemOrganizzazione;
 import org.govway.catalogo.servlets.model.ModificaEmailRequest;
+import org.govway.catalogo.servlets.model.Organizzazione;
+import org.govway.catalogo.servlets.model.PagedModelItemOrganizzazione;
 import org.govway.catalogo.servlets.model.RisultatoRegistrazione;
 import org.govway.catalogo.servlets.model.RisultatoVerifica;
+import org.govway.catalogo.servlets.model.SelezionaOrganizzazioneRequest;
 import org.govway.catalogo.servlets.model.StatoRegistrazioneEnum;
 import org.govway.catalogo.servlets.model.VerificaCodiceRequest;
 import org.junit.jupiter.api.AfterEach;
@@ -59,11 +73,10 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -81,7 +94,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = OpenAPI2SpringBoot.class)
-@EnableAutoConfiguration(exclude = {GroovyTemplateAutoConfiguration.class})
+@EnableAutoConfiguration
 @AutoConfigureTestDatabase(replace = Replace.ANY)
 @ActiveProfiles("test")
 @DirtiesContext(classMode = ClassMode.BEFORE_CLASS)
@@ -108,12 +121,18 @@ public class RegistrazioneTest {
     private RegistrazioneUtenteRepository registrazioneRepository;
 
     @Autowired
+    private OrganizzazioniController organizzazioniController;
+
+    @Autowired
+    private OrganizzazioneService organizzazioneService;
+
+    @Autowired
     private Configurazione configurazione;
 
-    @MockBean
+    @MockitoBean
     private RequestUtils requestUtils;
 
-    @MockBean
+    @MockitoBean
     private JavaMailSender mailSender;
 
     private static final String TEST_PRINCIPAL = "TSTNEW80A01H501Z";
@@ -444,5 +463,319 @@ public class RegistrazioneTest {
 
         // Verifica finale
         assertTrue(this.utenteService.findByPrincipal(TEST_PRINCIPAL).isPresent());
+    }
+
+    // ==================== Test selezione organizzazione ====================
+
+    /**
+     * Crea direttamente un'organizzazione di test tramite il service, bypassando
+     * l'authorization del controller (il chiamante in registrazione non è autorizzato
+     * a creare organizzazioni).
+     */
+    private UUID setupOrganizzazioneDiTest() {
+        return creaOrganizzazione("OrgTestReg_" + System.nanoTime());
+    }
+
+    private UUID creaOrganizzazione(String nome) {
+        OrganizzazioneEntity org = new OrganizzazioneEntity();
+        org.setIdOrganizzazione(UUID.randomUUID().toString());
+        org.setNome(nome);
+        org.setDescrizione("Organizzazione di test per RegistrazioneTest");
+        org.setCodiceEnte("CODE" + (System.nanoTime() % 1000000));
+        org.setCodiceFiscaleSoggetto("CF" + (System.nanoTime() % 10000000));
+        org.setReferente(true);
+        org.setAderente(false);
+        org.setIntermediata(false);
+        this.organizzazioneService.save(org);
+        return UUID.fromString(org.getIdOrganizzazione());
+    }
+
+    @Test
+    public void testSelezionaOrganizzazione_NuovaSelezione() {
+        UUID idOrg = setupOrganizzazioneDiTest();
+        setupMockForUnregisteredUser(TEST_PRINCIPAL, TEST_EMAIL_JWT, TEST_NOME, TEST_COGNOME);
+
+        SelezionaOrganizzazioneRequest req = new SelezionaOrganizzazioneRequest();
+        req.setIdOrganizzazione(idOrg);
+
+        ResponseEntity<org.govway.catalogo.servlets.model.StatoRegistrazione> resp =
+            controller.selezionaOrganizzazioneRegistrazione(req);
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertNotNull(resp.getBody().getOrganizzazioneRichiesta());
+        assertEquals(idOrg, resp.getBody().getOrganizzazioneRichiesta().getIdOrganizzazione());
+
+        // Verifica persistenza
+        Optional<RegistrazioneUtenteEntity> reg = registrazioneRepository.findByPrincipal(TEST_PRINCIPAL);
+        assertTrue(reg.isPresent());
+        assertNotNull(reg.get().getOrganizzazioneRichiesta());
+        assertEquals(idOrg.toString(), reg.get().getOrganizzazioneRichiesta().getIdOrganizzazione());
+    }
+
+    @Test
+    public void testSelezionaOrganizzazione_OrgInesistente() {
+        setupMockForUnregisteredUser(TEST_PRINCIPAL, TEST_EMAIL_JWT, TEST_NOME, TEST_COGNOME);
+
+        SelezionaOrganizzazioneRequest req = new SelezionaOrganizzazioneRequest();
+        req.setIdOrganizzazione(UUID.randomUUID());
+
+        NotFoundException ex = assertThrows(NotFoundException.class, () -> {
+            controller.selezionaOrganizzazioneRegistrazione(req);
+        });
+        assertEquals("REG.404.ORG.NOT.FOUND", ex.getMessage());
+    }
+
+    @Test
+    public void testRimuoviOrganizzazione_Success() {
+        UUID idOrg = setupOrganizzazioneDiTest();
+        setupMockForUnregisteredUser(TEST_PRINCIPAL, TEST_EMAIL_JWT, TEST_NOME, TEST_COGNOME);
+
+        // Prima seleziono
+        SelezionaOrganizzazioneRequest req = new SelezionaOrganizzazioneRequest();
+        req.setIdOrganizzazione(idOrg);
+        controller.selezionaOrganizzazioneRegistrazione(req);
+
+        // Poi rimuovo
+        ResponseEntity<org.govway.catalogo.servlets.model.StatoRegistrazione> resp =
+            controller.rimuoviOrganizzazioneRegistrazione();
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertNull(resp.getBody().getOrganizzazioneRichiesta());
+
+        Optional<RegistrazioneUtenteEntity> reg = registrazioneRepository.findByPrincipal(TEST_PRINCIPAL);
+        assertTrue(reg.isPresent());
+        assertNull(reg.get().getOrganizzazioneRichiesta());
+    }
+
+    @Test
+    public void testListOrganizzazioniRegistrazione_Success() {
+        setupOrganizzazioneDiTest();
+        setupMockForUnregisteredUser(TEST_PRINCIPAL, TEST_EMAIL_JWT, TEST_NOME, TEST_COGNOME);
+
+        ResponseEntity<PagedModelItemOrganizzazione> resp =
+            controller.listOrganizzazioniRegistrazione(null, null, 0, 10, null);
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertNotNull(resp.getBody());
+        assertTrue(resp.getBody().getContent().size() >= 1);
+        // Almeno l'organizzazione appena creata è presente
+        boolean trovata = resp.getBody().getContent().stream()
+            .anyMatch((ItemOrganizzazione o) -> o.getNome() != null);
+        assertTrue(trovata);
+    }
+
+    @Test
+    public void testListOrganizzazioniRegistrazione_EscludeIntermediate() {
+        setupMockForUnregisteredUser(TEST_PRINCIPAL, TEST_EMAIL_JWT, TEST_NOME, TEST_COGNOME);
+
+        String nomeOperativa = "OrgOperativaReg_" + System.nanoTime();
+        String nomeIntermediata = "OrgIntermediataReg_" + System.nanoTime();
+        creaOrganizzazione(nomeOperativa);
+        creaOrganizzazioneIntermediata(nomeIntermediata);
+
+        ResponseEntity<PagedModelItemOrganizzazione> resp =
+            controller.listOrganizzazioniRegistrazione(null, null, 0, 100, null);
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        List<ItemOrganizzazione> content = resp.getBody().getContent();
+        // l'organizzazione operativa è proposta per la registrazione...
+        assertTrue(content.stream().anyMatch(o -> nomeOperativa.equals(o.getNome())));
+        // ...mentre quella intermediata è esclusa
+        assertFalse(content.stream().anyMatch(o -> nomeIntermediata.equals(o.getNome())));
+    }
+
+    private UUID creaOrganizzazioneIntermediata(String nome) {
+        OrganizzazioneEntity org = new OrganizzazioneEntity();
+        org.setIdOrganizzazione(UUID.randomUUID().toString());
+        org.setNome(nome);
+        org.setDescrizione("Organizzazione intermediata di test");
+        org.setCodiceEnte("CODE" + (System.nanoTime() % 1000000));
+        org.setCodiceFiscaleSoggetto("CF" + (System.nanoTime() % 10000000));
+        org.setReferente(false);
+        org.setAderente(false);
+        org.setIntermediata(true);
+        this.organizzazioneService.save(org);
+        return UUID.fromString(org.getIdOrganizzazione());
+    }
+
+    // ==================== Test completaRegistrazione con organizzazione ====================
+
+    @Test
+    public void testCompletaRegistrazione_NuovoUtenteConOrganizzazione_PendingUpdate() {
+        UUID idOrg = setupOrganizzazioneDiTest();
+        setupMockForUnregisteredUser(TEST_PRINCIPAL, TEST_EMAIL_JWT, TEST_NOME, TEST_COGNOME);
+
+        // Seleziona organizzazione e prepara registrazione verificata
+        SelezionaOrganizzazioneRequest sel = new SelezionaOrganizzazioneRequest();
+        sel.setIdOrganizzazione(idOrg);
+        controller.selezionaOrganizzazioneRegistrazione(sel);
+
+        Optional<RegistrazioneUtenteEntity> regOpt = registrazioneRepository.findByPrincipal(TEST_PRINCIPAL);
+        assertTrue(regOpt.isPresent());
+        RegistrazioneUtenteEntity reg = regOpt.get();
+        reg.setEmailProposta(TEST_EMAIL_AZIENDALE);
+        reg.setStato(StatoRegistrazione.VERIFIED);
+        registrazioneRepository.save(reg);
+
+        ResponseEntity<RisultatoRegistrazione> resp = controller.completaRegistrazione();
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertEquals(EsitoRegistrazioneEnum.NUOVO_UTENTE, resp.getBody().getEsito());
+
+        // L'utente nuovo deve essere in PENDING_UPDATE con organizzazione_pending valorizzata
+        Optional<UtenteEntity> utenteOpt = this.utenteService.findByPrincipal(TEST_PRINCIPAL);
+        assertTrue(utenteOpt.isPresent());
+        UtenteEntity utente = utenteOpt.get();
+        assertEquals(UtenteEntity.Stato.PENDING_UPDATE, utente.getStato());
+        assertNotNull(utente.getOrganizzazionePending());
+        assertEquals(idOrg.toString(), utente.getOrganizzazionePending().getIdOrganizzazione());
+        assertNull(utente.getOrganizzazionePartenza());
+    }
+
+    @Test
+    public void testCompletaRegistrazione_SenzaOrganizzazione_ComportamentoInvariato() {
+        setupMockForUnregisteredUser(TEST_PRINCIPAL, TEST_EMAIL_JWT, TEST_NOME, TEST_COGNOME);
+
+        // Registrazione verificata senza org scelta
+        RegistrazioneUtenteEntity reg = new RegistrazioneUtenteEntity();
+        reg.setPrincipal(TEST_PRINCIPAL);
+        reg.setNome(TEST_NOME);
+        reg.setCognome(TEST_COGNOME);
+        reg.setEmailJwt(TEST_EMAIL_JWT);
+        reg.setEmailProposta(TEST_EMAIL_AZIENDALE);
+        reg.setStato(StatoRegistrazione.VERIFIED);
+        reg.setTentativiVerifica(1);
+        reg.setTentativiTotali(1);
+        reg.setDataCreazione(new Date());
+        registrazioneRepository.save(reg);
+
+        ResponseEntity<RisultatoRegistrazione> resp = controller.completaRegistrazione();
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        // Con autoabilitazione=true (setUp) e senza org, l'utente è ABILITATO senza org_pending
+        Optional<UtenteEntity> utenteOpt = this.utenteService.findByPrincipal(TEST_PRINCIPAL);
+        assertTrue(utenteOpt.isPresent());
+        UtenteEntity utente = utenteOpt.get();
+        assertEquals(UtenteEntity.Stato.ABILITATO, utente.getStato());
+        assertNull(utente.getOrganizzazionePending());
+    }
+
+    @Test
+    public void testCompletaRegistrazione_EmailEsistenteConOrganizzazione_RichiestaCambio() {
+        UUID idOrg = setupOrganizzazioneDiTest();
+
+        // Crea un utente esistente con quella email aziendale (path PRINCIPAL_AGGIORNATO)
+        String emailEsistente = "esistente." + System.nanoTime() + "@azienda.com";
+        UtenteEntity preEsistente = new UtenteEntity();
+        preEsistente.setIdUtente(UUID.randomUUID().toString());
+        preEsistente.setPrincipal("oldprincipal_" + System.nanoTime());
+        preEsistente.setNome("Pre");
+        preEsistente.setCognome("Esistente");
+        preEsistente.setEmailAziendale(emailEsistente);
+        preEsistente.setTelefonoAziendale("00-000000");
+        preEsistente.setStato(UtenteEntity.Stato.ABILITATO);
+        this.utenteService.save(preEsistente);
+
+        setupMockForUnregisteredUser(TEST_PRINCIPAL, emailEsistente, TEST_NOME, TEST_COGNOME);
+
+        // Selezione org + verified
+        SelezionaOrganizzazioneRequest sel = new SelezionaOrganizzazioneRequest();
+        sel.setIdOrganizzazione(idOrg);
+        controller.selezionaOrganizzazioneRegistrazione(sel);
+
+        RegistrazioneUtenteEntity reg = registrazioneRepository.findByPrincipal(TEST_PRINCIPAL).get();
+        reg.setEmailProposta(emailEsistente);
+        reg.setStato(StatoRegistrazione.VERIFIED);
+        registrazioneRepository.save(reg);
+
+        ResponseEntity<RisultatoRegistrazione> resp = controller.completaRegistrazione();
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertEquals(EsitoRegistrazioneEnum.PRINCIPAL_AGGIORNATO, resp.getBody().getEsito());
+
+        // L'utente preesistente ora ha principal aggiornato e org_pending verso la nuova org
+        UtenteEntity utenteRefreshed = this.utenteService.findByPrincipal(TEST_PRINCIPAL).get();
+        assertEquals(UtenteEntity.Stato.PENDING_UPDATE, utenteRefreshed.getStato());
+        assertNotNull(utenteRefreshed.getOrganizzazionePending());
+        assertEquals(idOrg.toString(), utenteRefreshed.getOrganizzazionePending().getIdOrganizzazione());
+        assertNull(utenteRefreshed.getOrganizzazionePartenza());
+    }
+
+    @Test
+    public void testCompletaRegistrazione_EmailEsistente_GiaAssociato_BadRequest() {
+        UUID idOrg = setupOrganizzazioneDiTest();
+        OrganizzazioneEntity org = this.organizzazioneService.find(idOrg).get();
+
+        // Crea utente preesistente già associato all'org
+        String emailEsistente = "assoc." + System.nanoTime() + "@azienda.com";
+        UtenteEntity preEsistente = new UtenteEntity();
+        preEsistente.setIdUtente(UUID.randomUUID().toString());
+        preEsistente.setPrincipal("oldassoc_" + System.nanoTime());
+        preEsistente.setNome("Pre");
+        preEsistente.setCognome("Assoc");
+        preEsistente.setEmailAziendale(emailEsistente);
+        preEsistente.setTelefonoAziendale("00-000000");
+        preEsistente.setStato(UtenteEntity.Stato.ABILITATO);
+        this.utenteService.save(preEsistente);
+
+        UtenteOrganizzazioneEntity assoc = new UtenteOrganizzazioneEntity();
+        assoc.setUtente(preEsistente);
+        assoc.setOrganizzazione(org);
+        preEsistente.getUtenteOrganizzazioni().add(assoc);
+        this.utenteService.save(preEsistente);
+
+        setupMockForUnregisteredUser(TEST_PRINCIPAL, emailEsistente, TEST_NOME, TEST_COGNOME);
+
+        SelezionaOrganizzazioneRequest sel = new SelezionaOrganizzazioneRequest();
+        sel.setIdOrganizzazione(idOrg);
+        controller.selezionaOrganizzazioneRegistrazione(sel);
+
+        RegistrazioneUtenteEntity reg = registrazioneRepository.findByPrincipal(TEST_PRINCIPAL).get();
+        reg.setEmailProposta(emailEsistente);
+        reg.setStato(StatoRegistrazione.VERIFIED);
+        registrazioneRepository.save(reg);
+
+        BadRequestException ex = assertThrows(BadRequestException.class, () -> {
+            controller.completaRegistrazione();
+        });
+        assertEquals("REG.400.ORG.ALREADY.ASSOCIATED", ex.getMessage());
+    }
+
+    @Test
+    public void testCompletaRegistrazione_EmailEsistente_PendingAltraOrg_Conflict() {
+        UUID idOrgRichiesta = setupOrganizzazioneDiTest();
+
+        // Crea seconda org direttamente via service
+        UUID idOrgAltra = creaOrganizzazione("OrgAltraTest_" + System.nanoTime());
+        OrganizzazioneEntity orgAltra = this.organizzazioneService.find(idOrgAltra).get();
+
+        // Utente preesistente già in PENDING_UPDATE per idOrgAltra
+        String emailEsistente = "pending." + System.nanoTime() + "@azienda.com";
+        UtenteEntity preEsistente = new UtenteEntity();
+        preEsistente.setIdUtente(UUID.randomUUID().toString());
+        preEsistente.setPrincipal("oldpend_" + System.nanoTime());
+        preEsistente.setNome("Pre");
+        preEsistente.setCognome("Pending");
+        preEsistente.setEmailAziendale(emailEsistente);
+        preEsistente.setTelefonoAziendale("00-000000");
+        preEsistente.setStato(UtenteEntity.Stato.PENDING_UPDATE);
+        preEsistente.setOrganizzazionePending(orgAltra);
+        this.utenteService.save(preEsistente);
+
+        setupMockForUnregisteredUser(TEST_PRINCIPAL, emailEsistente, TEST_NOME, TEST_COGNOME);
+
+        SelezionaOrganizzazioneRequest sel = new SelezionaOrganizzazioneRequest();
+        sel.setIdOrganizzazione(idOrgRichiesta);
+        controller.selezionaOrganizzazioneRegistrazione(sel);
+
+        RegistrazioneUtenteEntity reg = registrazioneRepository.findByPrincipal(TEST_PRINCIPAL).get();
+        reg.setEmailProposta(emailEsistente);
+        reg.setStato(StatoRegistrazione.VERIFIED);
+        registrazioneRepository.save(reg);
+
+        ConflictException ex = assertThrows(ConflictException.class, () -> {
+            controller.completaRegistrazione();
+        });
+        assertEquals("REG.409.ALREADY.PENDING.OTHER.ORG", ex.getMessage());
     }
 }

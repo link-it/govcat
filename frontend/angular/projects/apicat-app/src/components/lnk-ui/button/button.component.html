@@ -29,16 +29,16 @@
   [attr.aria-label]="ariaLabel | translate"
   [disabled]="disabled || spinner"
   (click)="_onClick()">
-  <div class="d-flex gap-1">
+  <div class="d-flex gap-2">
     @if (spinner) {
       <span class="spinner-border spinner-border-sm" [style.border-width.px]="2" [class.me-2]="!onlySpinner"></span>
     }
     @if (!onlySpinner) {
       @if (icon) {
-        <i class="{{ icon }}" [ngClass]="{ 'd-block d-md-none': label && !onlyIcon && !forceIcon }"></i>
+        <i class="{{ icon }}" [ngClass]="{ 'd-block d-xs-none': label && !onlyIcon && !forceIcon }"></i>
       }
       @if (label && !onlyIcon) {
-        <span class="" [ngClass]="{ 'd-none d-md-block': !forceText && icon }" [class.ms-md-1]="icon && forceIcon">{{ label | translate }}</span>
+        <span class="text-nowrap" [ngClass]="{ 'd-none d-md-block': !forceText && icon }" [class.ms-md-1]="icon && forceIcon">{{ label | translate }}</span>
       }
     }
     @if (badgeCount) {

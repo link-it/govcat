@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { of, Subject, throwError, EMPTY } from 'rxjs';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { UtenteDetailsComponent } from './utente-details.component';
-import { Utente, Ruolo, Stato } from './utente';
+import { Utente, Ruolo, RuoloOrganizzazione, Stato } from './utente';
 import { Tools } from '@linkit/components';
 
 describe('UtenteDetailsComponent', () => {
@@ -58,11 +58,20 @@ describe('UtenteDetailsComponent', () => {
       getDetails: vi.fn().mockReturnValue(of({})),
       saveElement: vi.fn().mockReturnValue(of({})),
       putElement: vi.fn().mockReturnValue(of({})),
-      deleteElement: vi.fn().mockReturnValue(of({}))
+      deleteElement: vi.fn().mockReturnValue(of({})),
+      deleteElementRelated: vi.fn().mockReturnValue(of({}))
     };
     mockUtils = {
       GetErrorMsg: vi.fn().mockReturnValue('Error'),
       _removeEmpty: vi.fn((obj: any) => obj)
+    };
+
+    // Issue 229 evolutiva 2: nuovo dep AuthenticationService per
+    // determinare se l'approvatore puo` scegliere il ruolo target
+    // (gestore/coordinatore) o e` forzato a operatore_api (AMM_ORG).
+    const mockAuthenticationService = {
+      isGestore: vi.fn().mockReturnValue(true),
+      isCoordinatore: vi.fn().mockReturnValue(false)
     };
 
     component = new UtenteDetailsComponent(
@@ -72,9 +81,9 @@ describe('UtenteDetailsComponent', () => {
       mockModalService as any,
       mockConfigService as any,
       mockTools as any,
-      mockEventsManagerService as any,
       mockApiService as any,
-      mockUtils as any
+      mockUtils as any,
+      mockAuthenticationService as any
     );
   });
 
@@ -125,9 +134,15 @@ describe('UtenteDetailsComponent', () => {
   });
 
   describe('ngOnInit', () => {
-    it('should populate _ruoloArr on init', () => {
+    it('should populate _ruoloArr on init excluding deprecated REFERENTE_SERVIZIO', () => {
+      // Issue 229 (commit dadd48d0): `referente_servizio` e` deprecato in
+      // favore di `utente_organizzazione` e non viene piu` proposto nelle
+      // nuove creazioni / modifiche (resta visibile solo se gia` valorizzato
+      // sull'utente caricato — retrocompat).
       component.ngOnInit();
-      expect(component._ruoloArr).toEqual(Object.values(Ruolo));
+      expect(component._ruoloArr).toEqual(
+        Object.values(Ruolo).filter(r => r !== Ruolo.REFERENTE_SERVIZIO)
+      );
     });
 
     it('should set _statoArr initially then filter for new mode', () => {
@@ -210,12 +225,6 @@ describe('UtenteDetailsComponent', () => {
     it('should set desktop based on window width', () => {
       component.ngAfterContentChecked();
       expect(typeof component.desktop).toBe('boolean');
-    });
-  });
-
-  describe('ngOnDestroy', () => {
-    it('should not throw', () => {
-      expect(() => component.ngOnDestroy()).not.toThrow();
     });
   });
 
@@ -1128,13 +1137,42 @@ describe('UtenteDetailsComponent', () => {
       expect(component._formGroup.get('id_organizzazione')?.valid).toBe(true);
     });
 
-    it('should set required validator for non-Gestore role', () => {
+    it('should set required validator for utente_organizzazione role in new user', () => {
+      // `id_organizzazione` e` obbligatorio SOLO in creazione di un
+      // nuovo utente quando il ruolo selezionato e`
+      // `utente_organizzazione`. In modifica le associazioni sono
+      // gia` gestite dal flusso multi-org.
+      component._isNew = true;
+      component._formGroup = new FormGroup({
+        ruolo: new FormControl('utente_organizzazione'),
+        id_organizzazione: new FormControl(null)
+      });
+      component._changeRuolo();
+      expect(component._formGroup.get('id_organizzazione')?.valid).toBe(false);
+    });
+
+    it('should NOT set required validator for utente_organizzazione role in edit', () => {
+      // In modifica utente il required NON viene applicato anche
+      // se il ruolo selezionato e` `utente_organizzazione`.
+      component._isNew = false;
+      component._formGroup = new FormGroup({
+        ruolo: new FormControl('utente_organizzazione'),
+        id_organizzazione: new FormControl(null)
+      });
+      component._changeRuolo();
+      expect(component._formGroup.get('id_organizzazione')?.valid).toBe(true);
+    });
+
+    it('should NOT set required validator for legacy referente_servizio role', () => {
+      // Comportamento simmetrico al test precedente: il ruolo
+      // `referente_servizio` (deprecato) non richiede l'organizzazione,
+      // quindi `id_organizzazione` resta valido anche se null.
       component._formGroup = new FormGroup({
         ruolo: new FormControl('referente_servizio'),
         id_organizzazione: new FormControl(null)
       });
       component._changeRuolo();
-      expect(component._formGroup.get('id_organizzazione')?.valid).toBe(false);
+      expect(component._formGroup.get('id_organizzazione')?.valid).toBe(true);
     });
 
     it('should handle missing id_organizzazione control gracefully', () => {
@@ -1148,9 +1186,11 @@ describe('UtenteDetailsComponent', () => {
       component._formGroup = new FormGroup({
         id_organizzazione: new FormControl(null)
       });
-      // ruolo is undefined, so role will be undefined, not 'gestore', so validators set to required
+      // ruolo undefined != Ruolo.UTENTE_ORGANIZZAZIONE -> nessun
+      // validator obbligatorio applicato a id_organizzazione, quindi
+      // resta valido anche se null.
       component._changeRuolo();
-      expect(component._formGroup.get('id_organizzazione')?.valid).toBe(false);
+      expect(component._formGroup.get('id_organizzazione')?.valid).toBe(true);
     });
   });
 
@@ -1200,17 +1240,50 @@ describe('UtenteDetailsComponent', () => {
       mockApiService.putElement.mockReturnValue(of(response));
       const saveSpy = vi.fn();
       component.save.subscribe(saveSpy);
+      // Issue 229 evolutiva 3 — il default e` "Nessun ruolo"
+      // (`_approvingRole = ''` -> `null` nel payload). Per
+      // testare il path con ruolo selezionato, settiamo
+      // esplicitamente `operatore_api`.
+      component._approvingRole = RuoloOrganizzazione.OPERATORE_API;
+
+      component.approveOrganizationChange();
+      onCloseSub.next(true);
+
+      // Issue 229 evolutiva 2: payload usa `organizzazioni: [{...}]`
+      // (singola entry sull'org pending col ruolo scelto dall'approvatore),
+      // niente piu` `id_organizzazione` o `organizzazione_pending: null`
+      // a livello root. Le altre associazioni sono mantenute server-side.
+      expect(mockApiService.putElement).toHaveBeenCalledWith('utenti', 1, expect.objectContaining({
+        organizzazioni: [
+          expect.objectContaining({
+            id_organizzazione: 'org2',
+            ruolo_organizzazione: 'operatore_api'
+          })
+        ]
+      }));
+      expect(component._spin).toBe(false);
+      expect(component._isEdit).toBe(false);
+      expect(saveSpy).toHaveBeenCalledWith({ id: component.id, utente: response, update: true });
+    });
+
+    it('should send ruolo_organizzazione null when approving with "Nessun ruolo" (default)', () => {
+      // Issue 229 evolutiva 3 — default `_approvingRole = ''`
+      // ("Nessun ruolo"). Mappato a `null` nel payload, l'utente
+      // viene associato all'organizzazione senza ruolo.
+      mockApiService.putElement.mockReturnValue(of({ id_utente: 1 }));
+      // Default `_approvingRole === ''`, non lo settiamo.
 
       component.approveOrganizationChange();
       onCloseSub.next(true);
 
       expect(mockApiService.putElement).toHaveBeenCalledWith('utenti', 1, expect.objectContaining({
-        id_organizzazione: 'org2',
-        organizzazione_pending: null
+        organizzazioni: [
+          expect.objectContaining({
+            id_organizzazione: 'org2',
+            ruolo_organizzazione: null
+          })
+        ]
       }));
-      expect(component._spin).toBe(false);
-      expect(component._isEdit).toBe(false);
-      expect(saveSpy).toHaveBeenCalledWith({ id: component.id, utente: response, update: true });
     });
 
     it('should set ruolo to null when NESSUN_RUOLO in form', () => {
@@ -1242,6 +1315,71 @@ describe('UtenteDetailsComponent', () => {
       onCloseSub.next(false);
 
       expect(mockApiService.putElement).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('rejectOrganizationChange', () => {
+    let onCloseSub: Subject<any>;
+
+    beforeEach(() => {
+      onCloseSub = new Subject<any>();
+      mockModalService.show.mockReturnValue({
+        content: { onClose: onCloseSub.asObservable() }
+      });
+      component.utente = {
+        id_utente: 42,
+        organizzazione: { id_organizzazione: 'org1', nome: 'Org1' },
+        organizzazione_pending: { id_organizzazione: 'org2', nome: 'Org2' }
+      };
+      component._formGroup = new FormGroup({
+        nome: new FormControl('Mario'),
+        ruolo: new FormControl(Ruolo.GESTORE),
+        id_organizzazione: new FormControl('org1')
+      });
+    });
+
+    it('should not show modal when no pending request', () => {
+      component.utente.organizzazione_pending = null;
+      component.rejectOrganizationChange();
+      expect(mockModalService.show).not.toHaveBeenCalled();
+    });
+
+    it('should call DELETE /utenti/{id}/organizzazione-pending on confirm', () => {
+      // Issue 229 evolutiva 3: il rifiuto va in DELETE
+      // sull'endpoint dedicato. Il BE risponde con l'Utente
+      // aggiornato (stato `abilitato` o `non_configurato`
+      // a seconda del contesto).
+      const response = { id_utente: 42, stato: 'abilitato', organizzazione_pending: null };
+      mockApiService.deleteElementRelated.mockReturnValue(of(response));
+      const saveSpy = vi.fn();
+      component.save.subscribe(saveSpy);
+
+      component.rejectOrganizationChange();
+      onCloseSub.next(true);
+
+      expect(mockApiService.deleteElementRelated).toHaveBeenCalledWith('utenti', 42, 'organizzazione-pending');
+      expect(component._spin).toBe(false);
+      expect(component._isEdit).toBe(false);
+      expect(saveSpy).toHaveBeenCalledWith({ id: component.id, utente: response, update: true });
+    });
+
+    it('should handle API error on reject confirm', () => {
+      const error = { status: 403 };
+      mockApiService.deleteElementRelated.mockReturnValue(throwError(() => error));
+
+      component.rejectOrganizationChange();
+      onCloseSub.next(true);
+
+      expect(component._error).toBe(true);
+      expect(component._errorMsg).toBe('Error');
+      expect(component._spin).toBe(false);
+    });
+
+    it('should not call API on reject cancel', () => {
+      component.rejectOrganizationChange();
+      onCloseSub.next(false);
+
+      expect(mockApiService.deleteElementRelated).not.toHaveBeenCalled();
     });
   });
 });

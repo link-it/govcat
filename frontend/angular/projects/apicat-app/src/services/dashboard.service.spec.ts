@@ -15,7 +15,8 @@ describe('DashboardService', () => {
       getList: vi.fn().mockReturnValue(of({ content: [], page: { totalElements: 0 } }))
     };
     mockAuthService = {
-      getUser: vi.fn().mockReturnValue(null)
+      getUser: vi.fn().mockReturnValue(null),
+      getCurrentOrganizationRole: vi.fn().mockReturnValue(null)
     };
     mockConfigService = {
       getConfiguration: vi.fn().mockReturnValue({ AppConfig: { Layout: {} } })
@@ -125,6 +126,72 @@ describe('DashboardService', () => {
       const config = service.computeRoleConfig('referente', null as any);
       expect(config.comunicazioni).toBe(true);
       expect(config.servizi).toBe(false);
+    });
+
+    describe('multi-org roles (Issue #229)', () => {
+      it('utente_organizzazione senza ruolo per-org ne` ruoli_referente: solo comunicazioni', () => {
+        const config = service.computeRoleConfig('utente_organizzazione', []);
+        expect(config.servizi).toBe(false);
+        expect(config.adesioni).toBe(false);
+        expect(config.comunicazioni).toBe(true);
+        expect(config.utenti).toBe(false);
+      });
+
+      it('referente_servizio (deprecated) senza altri ruoli: solo comunicazioni', () => {
+        const config = service.computeRoleConfig('referente_servizio', []);
+        expect(config.servizi).toBe(false);
+        expect(config.adesioni).toBe(false);
+        expect(config.comunicazioni).toBe(true);
+      });
+
+      it('amministratore_organizzazione in ruoliReferente unlocks utenti panel', () => {
+        const config = service.computeRoleConfig('utente_organizzazione', ['amministratore_organizzazione']);
+        expect(config.utenti).toBe(true);
+        expect(config.servizi).toBe(true);
+        expect(config.adesioni).toBe(true);
+      });
+
+      it('operatore_api in ruoliReferente keeps utenti hidden', () => {
+        const config = service.computeRoleConfig('utente_organizzazione', ['operatore_api']);
+        expect(config.servizi).toBe(true);
+        expect(config.adesioni).toBe(true);
+        expect(config.utenti).toBe(false);
+      });
+
+      it('mixed legacy + new role: union of panels', () => {
+        const config = service.computeRoleConfig('utente_organizzazione', ['referente_servizio', 'operatore_api']);
+        expect(config.servizi).toBe(true);
+        expect(config.adesioni).toBe(true);
+        expect(config.comunicazioni).toBe(true);
+      });
+    });
+
+    describe('current org role (session)', () => {
+      it('amministratore_organizzazione from session unlocks utenti panel', () => {
+        mockAuthService.getCurrentOrganizationRole.mockReturnValue('amministratore_organizzazione');
+        const config = service.computeRoleConfig('utente_organizzazione', []);
+        expect(config.servizi).toBe(true);
+        expect(config.adesioni).toBe(true);
+        expect(config.comunicazioni).toBe(true);
+        expect(config.utenti).toBe(true);
+      });
+
+      it('operatore_api from session does NOT unlock utenti panel', () => {
+        mockAuthService.getCurrentOrganizationRole.mockReturnValue('operatore_api');
+        const config = service.computeRoleConfig('utente_organizzazione', []);
+        expect(config.servizi).toBe(true);
+        expect(config.adesioni).toBe(true);
+        expect(config.utenti).toBe(false);
+      });
+
+      it('null session org role: utente_organizzazione senza altri ruoli vede solo comunicazioni', () => {
+        mockAuthService.getCurrentOrganizationRole.mockReturnValue(null);
+        const config = service.computeRoleConfig('utente_organizzazione', []);
+        expect(config.servizi).toBe(false);
+        expect(config.adesioni).toBe(false);
+        expect(config.comunicazioni).toBe(true);
+        expect(config.utenti).toBe(false);
+      });
     });
   });
 

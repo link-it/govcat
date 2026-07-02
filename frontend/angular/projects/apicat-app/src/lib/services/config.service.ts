@@ -46,7 +46,7 @@ export class ConfigService {
       this.http.get(url)
         .subscribe(config => {
           this.config = config;
-          const _currentTheme = this.config.AppConfig.CurrentThems;
+          const _currentTheme = this.config.AppConfig.CurrentTheme;
           const _theme = this.config.AppConfig.Themes.find((theme: any) => theme.Name === _currentTheme);
 
           // Load font CSS if theme has a font configured

@@ -76,7 +76,7 @@ describe('ServizioApiDetailsComponent', () => {
   } as any;
 
   const _safeServiceResponse = {
-    dominio: { nome: 'dom', soggetto_referente: { nome: 'Sogg', organizzazione: { esterna: false } } }
+    dominio: { nome: 'dom', soggetto_referente: { nome: 'Sogg', organizzazione: { intermediata: false } } }
   };
 
   const mockApiService = {
@@ -700,15 +700,24 @@ describe('ServizioApiDetailsComponent', () => {
       expect(result.dati_specifica).toBeUndefined();
     });
 
-    it('should set dati_custom when _apiProprietaCustomGrouped and not _isPDND', () => {
-      component._isPDND = false;
+    it('should set dati_custom when _apiProprietaCustomGrouped is defined', () => {
+      // `_prepareBodyUpdateApi` legge i valori dai FormControl (non
+      // dal body) perche' i controlli disabilitati via disablePermission
+      // non sono inclusi in `_formGroup.value`. Va quindi inizializzato
+      // un FormGroup `proprieta_custom > GN1 > prop1` con il valore.
       component._apiProprietaCustomGrouped = {
         'Label1': [{ nome_gruppo: 'GN1', nome: 'prop1' }]
       };
+      component._formGroup = new FormGroup({
+        proprieta_custom: new FormGroup({
+          GN1: new FormGroup({
+            prop1: new FormControl('val1')
+          })
+        })
+      }) as any;
       const body = {
         nome: 'A', versione: '1', ruolo: 'erogato_soggetto_aderente',
-        descrizione: null, codice_asset: null,
-        proprieta_custom: { GN1: { prop1: 'val1' } }
+        descrizione: null, codice_asset: null
       };
       const result = component._prepareBodyUpdateApi(body);
       expect(result.dati_custom).toBeDefined();
@@ -717,18 +726,47 @@ describe('ServizioApiDetailsComponent', () => {
       expect(result.dati_custom!.proprieta_custom[0].proprieta).toEqual([{ nome: 'prop1', valore: 'val1' }]);
     });
 
-    it('should not set dati_custom when _isPDND is true', () => {
-      component._isPDND = true;
-      component._apiProprietaCustomGrouped = {
-        'Label1': [{ nome_gruppo: 'GN1', nome: 'prop1' }]
-      };
+    it('should leave dati_custom undefined when no custom props are present', () => {
+      // Senza `_apiProprietaCustomGrouped` e senza
+      // `_servizioApi.proprieta_custom`, `dati_custom` non viene
+      // settato sul body. Il flag `_isPDND` non e` piu` un gate
+      // dedicato: il branch e` puramente data-driven.
+      component._apiProprietaCustomGrouped = null;
+      component._servizioApi = { proprieta_custom: [] } as any;
       const body = {
         nome: 'A', versione: '1', ruolo: 'erogato_soggetto_aderente',
-        descrizione: null, codice_asset: null,
-        proprieta_custom: { GN1: { prop1: 'val1' } }
+        descrizione: null, codice_asset: null
       };
       const result = component._prepareBodyUpdateApi(body);
       expect(result.dati_custom).toBeUndefined();
+    });
+
+    it('should NOT re-send collaudo/produzione custom groups (managed by configuration)', () => {
+      // I gruppi di classe collaudo/produzione sono gestiti dal componente
+      // di configurazione per-ambiente: dal dettaglio NON vanno reinviati,
+      // anche se presenti nei dati caricati con la GET.
+      Tools.Configurazione!.servizio.api.proprieta_custom = [
+        { nome_gruppo: 'GEN1', classe_dato: 'generico' },
+        { nome_gruppo: 'PDNDCollaudo', classe_dato: 'collaudo' },
+        { nome_gruppo: 'PDNDProduzione', classe_dato: 'produzione' }
+      ] as any;
+      component._apiProprietaCustomGrouped = null;
+      component._servizioApi = {
+        proprieta_custom: [
+          { gruppo: 'GEN1', proprieta: [{ nome: 'g', valore: 'v' }] },
+          { gruppo: 'PDNDCollaudo', proprieta: [{ nome: 'c', valore: 'vc' }] },
+          { gruppo: 'PDNDProduzione', proprieta: [{ nome: 'p', valore: 'vp' }] }
+        ]
+      } as any;
+      const body = {
+        nome: 'A', versione: '1', ruolo: 'erogato_soggetto_aderente',
+        descrizione: null, codice_asset: null
+      };
+      const result = component._prepareBodyUpdateApi(body);
+      const gruppiInviati = (result.dati_custom?.proprieta_custom || []).map((g: any) => g.gruppo);
+      expect(gruppiInviati).toContain('GEN1');
+      expect(gruppiInviati).not.toContain('PDNDCollaudo');
+      expect(gruppiInviati).not.toContain('PDNDProduzione');
     });
 
     it('should call _removeDNM on the result', () => {
@@ -751,7 +789,7 @@ describe('ServizioApiDetailsComponent', () => {
     it('should call getDetails for grant and service when sid is set', () => {
       component.sid = '42';
       const grantResp = { ruoli: ['admin'] };
-      const serviceResp = { nome: 'Svc', dominio: { soggetto_referente: { nome: 'S1', organizzazione: { esterna: false } } } };
+      const serviceResp = { nome: 'Svc', dominio: { soggetto_referente: { nome: 'S1', organizzazione: { intermediata: false } } } };
       mockApiService.getDetails
         .mockReturnValueOnce(of(grantResp))
         .mockReturnValueOnce(of(serviceResp));
@@ -769,11 +807,11 @@ describe('ServizioApiDetailsComponent', () => {
       expect(initMenuSpy).toHaveBeenCalled();
     });
 
-    it('should set _isDominioEsterno when organizzazione.esterna is true', () => {
+    it('should set _isDominioEsterno when organizzazione.intermediata is true', () => {
       component.sid = '42';
       mockApiService.getDetails
         .mockReturnValueOnce(of({}))
-        .mockReturnValueOnce(of({ dominio: { soggetto_referente: { nome: 'S', organizzazione: { esterna: true } } } }));
+        .mockReturnValueOnce(of({ dominio: { soggetto_referente: { nome: 'S', organizzazione: { intermediata: true } } } }));
       vi.spyOn(component, '_initBreadcrumb').mockImplementation(() => {});
       vi.spyOn(component, '_initRuoli').mockImplementation(() => {});
       vi.spyOn(component, '_initOtherActionMenu').mockImplementation(() => {});
@@ -804,7 +842,7 @@ describe('ServizioApiDetailsComponent', () => {
       component.servizioApi = { id_api: '1' } as any;
       mockApiService.getDetails
         .mockReturnValueOnce(of({}))
-        .mockReturnValueOnce(of({ dominio: { soggetto_referente: { nome: 'S', organizzazione: { esterna: false } } } }));
+        .mockReturnValueOnce(of({ dominio: { soggetto_referente: { nome: 'S', organizzazione: { intermediata: false } } } }));
       vi.spyOn(component, '_initBreadcrumb').mockImplementation(() => {});
       vi.spyOn(component, '_initRuoli').mockImplementation(() => {});
       vi.spyOn(component, '_initOtherActionMenu').mockImplementation(() => {});

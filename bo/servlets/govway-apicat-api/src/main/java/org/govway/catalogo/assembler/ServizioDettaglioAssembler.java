@@ -137,8 +137,8 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		
 		dettaglio.setEliminabile(engine.isEliminabile(entity));
 		
-		if(entity.getSoggettoInterno()!=null) {
-			dettaglio.setSoggettoInterno(soggettoItemAssembler.toModel(entity.getSoggettoInterno()));
+		if(entity.getSoggettoErogatore()!=null) {
+			dettaglio.setSoggettoErogatore(soggettoItemAssembler.toModel(entity.getSoggettoErogatore()));
 		}
 		
 		dettaglio.setDataCreazione(entity.getDataCreazione().toInstant().atOffset(ZoneOffset.UTC));
@@ -200,7 +200,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		entity.setFruizione(Boolean.TRUE.equals(src.isFruizione()));
 
 		if(src.getIdDominio()!=null) {
-			saveDominioServizio(src.getIdDominio(), src.getIdSoggettoInterno(), entity);
+			saveDominioServizio(src.getIdDominio(), src.getIdSoggettoErogatore(), entity);
 		} else {
 			entity.setDominio(null);
 		}
@@ -263,15 +263,21 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 			if(idSoggetto==null) {
 				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422);
 			}
-			
-			SoggettoEntity soggettoInterno = this.soggettoService.find(idSoggetto).
+
+			SoggettoEntity soggettoErogatore = this.soggettoService.find(idSoggetto).
 					orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404, Map.of("idSoggetto", idSoggetto.toString())));
-			
-			if(soggettoInterno.getOrganizzazione().isEsterna()) {
+
+			// L'ente erogatore deve appartenere a un'organizzazione referente o intermediata
+			if(!soggettoErogatore.getOrganizzazione().isReferente() && !soggettoErogatore.getOrganizzazione().isIntermediata()) {
 				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422);
 			}
-			
-			entity.setSoggettoInterno(soggettoInterno);
+
+			// Il dominio di una fruizione deve avere un referente interno (non intermediato)
+			if(newDominio.getSoggettoReferente().getOrganizzazione().isIntermediata()) {
+				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422);
+			}
+
+			entity.setSoggettoErogatore(soggettoErogatore);
 
 		}
 
@@ -361,7 +367,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		entity.setFruizione(Boolean.TRUE.equals(src.isFruizione()));
 
 		if(src.getIdDominio()!=null) {
-			saveDominioServizio(src.getIdDominio(), src.getIdSoggettoInterno(), entity);
+			saveDominioServizio(src.getIdDominio(), src.getIdSoggettoErogatore(), entity);
 		}
 		
 		setSkipCollaudo(src.isSkipCollaudo(), entity);

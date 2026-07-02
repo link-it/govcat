@@ -98,9 +98,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -120,7 +119,7 @@ import jakarta.persistence.PersistenceContext;
 
 @ExtendWith(SpringExtension.class)  // JUnit 5 extension
 @SpringBootTest(classes = OpenAPI2SpringBoot.class)
-@EnableAutoConfiguration(exclude = {GroovyTemplateAutoConfiguration.class})
+@EnableAutoConfiguration
 @AutoConfigureTestDatabase(replace = Replace.ANY)
 @ActiveProfiles("test")
 @DirtiesContext(classMode = ClassMode.BEFORE_CLASS)
@@ -309,7 +308,7 @@ public class AdesioneServizioIntegrationTest {
         //CREO L'ORGANIZZAZIONE Viaggiar
         OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
         organizzazione.setNome("Viaggiar");
-        organizzazione.setEsterna(false);
+        organizzazione.setIntermediata(false);
         organizzazione.setCodiceFiscaleSoggetto(NOME_GRUPPO);
 
         response = organizzazioniController.createOrganizzazione(organizzazione);
@@ -320,15 +319,28 @@ public class AdesioneServizioIntegrationTest {
         organizzazioniController.updateOrganizzazione(response.getBody().getIdOrganizzazione(), organizzazioneUpdate);
         */
         UtenteUpdate utenteUpdate = new UtenteUpdate();
-        utenteUpdate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utenteUpdate, response.getBody().getIdOrganizzazione());
         utenteUpdate.setNome("Cesare");
         utenteUpdate.setCognome("Rossi");
         utenteUpdate.setEmailAziendale("qualsiais@mail.com");
         utenteUpdate.setPrincipal(UTENTE_REFERENTE_SERVIZIO);
-        utenteUpdate.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        utenteUpdate.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
         utenteUpdate.setStato(StatoUtenteEnum.ABILITATO);
         utenteUpdate.setTelefonoAziendale("0000000000");
         utentiController.updateUtente(ID_UTENTE_REFERENTE_SERVIZIO, utenteUpdate);
+
+        // REFERENTE_TECNICO deve essere associato all'org (policy 2.4.0)
+        UtenteUpdate utenteTecnicoUpdate = new UtenteUpdate();
+        CommonUtils.setOrganizzazione(utenteTecnicoUpdate, response.getBody().getIdOrganizzazione());
+        utenteTecnicoUpdate.setNome("Barba");
+        utenteTecnicoUpdate.setCognome("Rossa");
+        utenteTecnicoUpdate.setEmailAziendale("barbarossa@mail.com");
+        utenteTecnicoUpdate.setPrincipal(UTENTE_REFERENTE_TECNICO);
+        utenteTecnicoUpdate.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        utenteTecnicoUpdate.setStato(StatoUtenteEnum.ABILITATO);
+        utenteTecnicoUpdate.setTelefonoAziendale("0000000000");
+        utentiController.updateUtente(ID_UTENTE_REFERENTE_TECNICO, utenteTecnicoUpdate);
+
         this.setIdOrganizazione(response.getBody().getIdOrganizzazione());
         assertNotNull(response.getBody().getIdOrganizzazione());
         
@@ -354,7 +366,7 @@ public class AdesioneServizioIntegrationTest {
         ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
         servizioCreate.setSkipCollaudo(true);
         servizioCreate.setNome("jonio");
-		servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+		servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
 		servizioCreate.setIdDominio(createdDominio.getBody().getIdDominio());
 		servizioCreate.setAdesioneDisabilitata(false);
 		servizioCreate.setMultiAdesione(false);
@@ -461,7 +473,7 @@ public class AdesioneServizioIntegrationTest {
         utente.setPrincipal(UTENTE_ADERENTE);
         utente.setNome(UTENTE_ADERENTE);
         utente.setRuolo(RuoloUtenteEnum.GESTORE);
-        utente.setIdOrganizzazione(idOrganizzazione);
+        CommonUtils.setOrganizzazione(utente, idOrganizzazione);
 
         responseUtente = utentiController.createUtente(utente);
         assertNotNull(responseUtente.getBody().getIdUtente());
@@ -479,9 +491,8 @@ public class AdesioneServizioIntegrationTest {
         
         long idOrg = organizzazioneService.findByNome("Viaggiar").get().getId();
         
-        OrganizzazioneEntity organizzazioneEntity = organizzazioneRepository.findById(idOrg).orElseThrow();
-        organizzazioneEntity.getUtenti();
-             
+        organizzazioneRepository.findById(idOrg).orElseThrow();
+
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
         nuovaAdesione.setIdServizio(idServizio);
         nuovaAdesione.setIdSoggetto(soggettoCreato.getBody().getIdSoggetto());
@@ -502,7 +513,7 @@ public class AdesioneServizioIntegrationTest {
         
         OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
         organizzazione.setNome("Viaggiar");
-        organizzazione.setEsterna(false);
+        organizzazione.setIntermediata(false);
         organizzazione.setCodiceFiscaleSoggetto(NOME_GRUPPO);
 
         response = organizzazioniController.createOrganizzazione(organizzazione);
@@ -520,7 +531,7 @@ public class AdesioneServizioIntegrationTest {
         utente2.setPrincipal(UTENTE_ADERENTE);
         utente2.setNome(UTENTE_ADERENTE);
         utente2.setRuolo(RuoloUtenteEnum.GESTORE);
-        utente2.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utente2, response.getBody().getIdOrganizzazione());
 
         responseUtente = utentiController.createUtente(utente2);
         assertNotNull(responseUtente.getBody().getIdUtente());
@@ -540,7 +551,7 @@ public class AdesioneServizioIntegrationTest {
 
         ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
         servizioCreate.setSkipCollaudo(true);
-		servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+		servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
 		servizioCreate.setIdDominio(createdDominio.getBody().getIdDominio());
 		servizioCreate.setMultiAdesione(false);
 		if(immagine.getContent()!=null)

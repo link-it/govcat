@@ -131,8 +131,8 @@ export class ServizioComunicazioniComponent implements OnInit, AfterContentCheck
     this.targetOptionsServizio = [
       { label: 'APP.LABEL.TargetGestore', value: 'GESTORE' },
       ...(coordinatoreAbilitato ? [{ label: 'APP.LABEL.TargetCoordinatore', value: 'COORDINATORE' }] : []),
-      { label: 'APP.LABEL.TargetReferentiDominio', value: 'REFERENTI_DOMINIO' },
-      { label: 'APP.LABEL.TargetReferentiServizio', value: 'REFERENTI_SERVIZIO' },
+      { label: 'APP.LABEL.TargetReferentiDominio', value: 'REFERENTI_DOMINIO', hasTecnici: true },
+      { label: 'APP.LABEL.TargetReferentiServizio', value: 'REFERENTI_SERVIZIO', hasTecnici: true },
       { label: 'APP.LABEL.TargetRichiedente', value: 'RICHIEDENTE' },
       { label: 'APP.LABEL.TargetAderenti', value: 'ADERENTI' }
     ];

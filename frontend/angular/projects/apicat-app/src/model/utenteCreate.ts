@@ -28,11 +28,21 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { RuoloOrganizzazioneEnum } from './ruoloOrganizzazioneEnum';
 import { RuoloUtenteEnum } from './ruoloUtenteEnum';
 import { StatoUtenteEnum } from './statoUtenteEnum';
 
 
-export interface UtenteCreate { 
+export interface UtenteOrganizzazioneCreateItem {
+    id_organizzazione: string;
+    /**
+     * `null` o assente = utente in sola lettura sull'organizzazione.
+     */
+    ruolo_organizzazione?: RuoloOrganizzazioneEnum | null;
+}
+
+export interface UtenteCreate {
+    principal?: string;
     nome: string;
     cognome: string;
     telefono?: string;
@@ -43,8 +53,22 @@ export interface UtenteCreate {
     metadati?: string;
     stato: StatoUtenteEnum;
     ruolo?: RuoloUtenteEnum;
+    referente_tecnico?: boolean;
+    abilitato_domini_esterni?: boolean;
+    organizzazione_esterna?: string;
+    /**
+     * Lista delle organizzazioni associate all'utente con il relativo
+     * ruolo per-organizzazione. Da preferire al campo legacy
+     * `id_organizzazione`.
+     */
+    organizzazioni?: Array<UtenteOrganizzazioneCreateItem>;
+    /**
+     * @deprecated Alias retrocompatibile, ignorato se `organizzazioni`
+     * e' presente.
+     */
     id_organizzazione?: string;
     classi_utente?: Array<string>;
+    settings?: { [key: string]: any };
 }
 export namespace UtenteCreate {
 }

@@ -34,8 +34,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 
 
 @ControllerAdvice
@@ -72,8 +73,13 @@ public class ControllerAdvisor extends AbstractControllerAdvisor {
 	protected ResponseEntity<Object> toEntity(ClientApiException ex) {
 		
 		
+		logger.error("Errore restituito dal client (HTTP {}): {}",
+				ex.getE() != null ? ex.getE().getCode() : null,
+				ex.getE() != null ? ex.getE().getResponseBody() : null);
+
 		ObjectMapper om = new ObjectMapper();
-		om.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+		om.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+		om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		
 		Problem problem;
 		HttpStatus status;

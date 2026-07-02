@@ -30,6 +30,7 @@ import { ConfigService, COMPONENTS_IMPORTS, Tools, SearchBarFormComponent, Yesno
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 import { MonitorDropdwnComponent } from '@app/views/servizi/components/monitor-dropdown/monitor-dropdown.component';
 import { ApiCustomPropertiesComponent } from '@app/components/api-custom-properties/api-custom-properties.component';
+import { ErrorViewComponent } from '@app/components/error-view/error-view.component';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
@@ -82,7 +83,8 @@ import * as _ from 'lodash';
         MapperPipe,
         TooltipModule,
         MonitorDropdwnComponent,
-        ApiCustomPropertiesComponent
+        ApiCustomPropertiesComponent,
+        ErrorViewComponent
     ]
 })
 export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChecked, OnDestroy {
@@ -109,8 +111,6 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
     _listaClient: any[] = [];
     _paging: Page = new Page({});
     _links: any = {};
-    // _pagingErogaz: Page = new Page({});
-    // _linksErogaz: any = {};
 
     _isEdit: boolean = false;
     _currClient: any = null;
@@ -137,6 +137,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
 
     _error: boolean = false;
     _errorMsg: string = '';
+    _errors: any[] = [];
 
     showHistory: boolean = true;
     showSearch: boolean = true;
@@ -262,14 +263,14 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
     showGroupLabel: boolean = false;
 
     constructor(
-        private route: ActivatedRoute,
-        private router: Router,
-        private modalService: BsModalService,
-        private translate: TranslateService,
-        private configService: ConfigService,
-        private apiService: OpenAPIService,
-        private authenticationService: AuthenticationService,
-        private utils: UtilService
+        private readonly route: ActivatedRoute,
+        private readonly router: Router,
+        private readonly modalService: BsModalService,
+        private readonly translate: TranslateService,
+        private readonly configService: ConfigService,
+        private readonly apiService: OpenAPIService,
+        private readonly authenticationService: AuthenticationService,
+        private readonly utils: UtilService
     ) {
         this.route.data.subscribe((data) => {
             if (!data.serviceBreadcrumbs) return;
@@ -332,7 +333,6 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
     }
 
     ngOnDestroy() {
-        // this.eventsManagerService.off(EventType.NAVBAR_ACTION);
         if (this.showSubscription) {
             this.showSubscription.unsubscribe();
         }
@@ -425,21 +425,21 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
         this._isConfigClients = true;
         this._setErrorMessages(false);
         if (this.id) {
-            this._spin = ignoreSpin ? false : true;
+            this._spin = !ignoreSpin;
             if (!url && !ignoreSpin) { this.adesioneConfigClients = []; }
             let _ambiente: string = this.environmentId;
-            // this._collaudo ? _ambiente = 'collaudo' : _ambiente = 'produzione';
             this.apiService.getDetails(this.model, this.id, _ambiente + '/client').subscribe({
                 next: (response: any) => {
 
-                    response ? this._paging = new Page(response.page) : null;
-                    response ? this._links = response._links || null : null;
+                    if (response) {
+                        this._paging = new Page(response.page);
+                        this._links = response._links || null;
+                    }
             
-                    // ============== new =============
                     const _clientsArr: any = [];
 
                     // clclo sui client_richiesti per sottoscrivere l'adesione
-                    _.uniqWith(this.adesione.client_richiesti, _.isEqual).map((item: any) => {
+                    _.uniqWith(this.adesione.client_richiesti, _.isEqual).forEach((item: any) => {
 
                         // guardo la configurazione (da general config) per il profilo item.profilo
                         const _temp_profilo: any = this._generalConfig.servizio.api.profili.find((pro: any) => { return pro.codice_interno === item.profilo });
@@ -489,10 +489,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
                         }
 
                         _clientsArr.push(_element);
-                    })
-                    // console.log('client richiesti: ', this.adesione.client_richiesti)
-                    // console.log(_clientsArr)
-                    // ================================
+                    });
 
                     const _list: any = _clientsArr.map((client: any) => {
                         const element = {
@@ -510,7 +507,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
                     this.adesioneConfigClients = (url) ? [...this.adesioneConfigClients, ..._list] : [..._list];
                     this._preventMultiCall = false;
 
-                    this.adesioneConfigClients.map((el) => {
+                    this.adesioneConfigClients.forEach((el) => {
                         if (el.source.stato != StatoConfigurazioneEnum.CONFIGURATO) {
                             el.id_client = null;
                             el.source.id_client = null;
@@ -524,7 +521,6 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
                     this._setErrorMessages(true);
                     this._preventMultiCall = false;
                     this._spin = false;
-                    // Tools.OnError(error);
                 }
             });
         }
@@ -541,11 +537,6 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
             this.apiService.getDetails(this.model, this.id, _ambiente + '/erogazioni').subscribe({
                 next: (response: any) => {
 
-                    // console.log('adesione: ', this.adesione)
-                    // console.log('res. erogazioni: ', response)
-                    // console.log('rEROGAZIONI RICHIESTE: ', this.adesione.erogazioni_richieste)
-
-                    // ============== new =============
                     const _erogazioniArr: any = [];
 
                     // clclo sulle erogaz_richieste per sottoscrivere l'adesione
@@ -602,10 +593,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
                         }
 
                         _erogazioniArr.push(_element)
-                    })
-                    // console.log('erogazioni richieste: ', _erogaz_richieste)
-                    // console.log('_erogazioniArr: ',_erogazioniArr)
-                    // ================================
+                    });
 
                     const _list: any = _erogazioniArr.map((erogazioni: any) => {
                         const element = {
@@ -625,21 +613,18 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
                     this.adesioneConfigErogazioni = (url) ? [...this.adesioneConfigErogazioni, ..._list] : [..._list];
                     this._preventMultiCall = false;
 
-                    // console.log('adesioneConfigErogazioni: ', this.adesioneConfigErogazioni)
-                    
                     Tools.ScrollTo(0);
                 },
                 error: (error: any) => {
                     this._setErrorMessages(true);
                     this._preventMultiCall = false;
-                    // Tools.OnError(error);
                 }
             });
         }
     }
 
     __loadMoreData() {
-        if (this._links && this._links.next && !this._preventMultiCall) {
+        if (this._links?.next && !this._preventMultiCall) {
             this._preventMultiCall = true;
             (this._isConfigClients) ? this._loadAdesioneConfigClients() : this._loadAdesioneConfigErogazioni();
         }
@@ -734,8 +719,6 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
     }
 
     _downloadsEnabled() {
-        // console.log('form cred', this._editFormGroupClients.get('credenziali')?.value)
-        // console.log('current cred', this._currentServiceClient)
         return this._currentServiceClient === this._editFormGroupClients.get('credenziali')?.value;
     }
 
@@ -771,9 +754,8 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
         let _client_id: string | null = null;
         let _username: string | null = null;
 
-        const ambiente: string = this.environmentId; // this._collaudo ? 'collaudo' : 'produzione';
+        const ambiente: string = this.environmentId;
         const organizzazione: string = this.adesione?.soggetto?.organizzazione?.id_organizzazione || '';
-        // const organizzazione: string = this.adesione?.servizio?.dominio?.soggetto?.organizzazione?.id_organizzazione || '';
         this._loadCredenziali(this._auth_type, organizzazione, ambiente);
 
         if (data) {
@@ -788,14 +770,14 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
 
         if (data?.dati_specifici) {
             _tipo_certificato = data.dati_specifici.certificato_autenticazione?.tipo_certificato;
-            this._isFornito = (_tipo_certificato === 'fornito') ? true : false;
-            this._isRichiesto_cn = (_tipo_certificato === 'richiesto_cn') ? true : false;
-            this._isRichiesto_csr = (_tipo_certificato === 'richiesto_csr') ? true : false;
+            this._isFornito = _tipo_certificato === 'fornito';
+            this._isRichiesto_cn = _tipo_certificato === 'richiesto_cn';
+            this._isRichiesto_csr = _tipo_certificato === 'richiesto_csr';
 
             _tipo_certificato_firma = data.dati_specifici.certificato_firma?.tipo_certificato;
-            this._isFornito_firma = (_tipo_certificato_firma === 'fornito') ? true : false;
-            this._isRichiesto_cn_firma = (_tipo_certificato_firma === 'richiesto_cn') ? true : false;
-            this._isRichiesto_csr_firma = (_tipo_certificato_firma === 'richiesto_csr') ? true : false;
+            this._isFornito_firma = _tipo_certificato_firma === 'fornito';
+            this._isRichiesto_cn_firma = _tipo_certificato_firma === 'richiesto_cn';
+            this._isRichiesto_csr_firma = _tipo_certificato_firma === 'richiesto_csr';
         }
 
         if (data?.source?.stato === StatoConfigurazioneEnum.NONCONFIGURATO) {
@@ -1014,7 +996,6 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
 
         delete _body.credenziali;
 
-        // this._collaudo ? _body.ambiente = 'collaudo' : _body.ambiente = 'produzione';
         _body.ambiente = this.environmentId;
 
         let _datiSpecifici: Datispecifici = {
@@ -1159,18 +1140,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
             _datiSpecifici.nome_applicazione_portale = this._editFormGroupClients.getRawValue().nome_applicazione_portale;
         }
 
-    // =============TEST FOR CHANGES ====================
-        // const _bodyPatch: any[] = jsonpatch.compare(this._currDatiSpecifici, _body.dati_specifici);
-        // if (_bodyPatch) {
-        //   console.log('Hai modificato !!') 
-        // } else {
-        //   console.log('No difference');
-        // }
-    // =================================================
-
         const _DVLP_invia: boolean = true;
-
-        // console.log('_datiSpecifici: ', _datiSpecifici);
 
         if (this._currClient?.id_client) {
             // se è presente id_client ==> devo fare una modifica ad un client esistente
@@ -1187,7 +1157,6 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
             console.log('PUT for UPDATING: ', _payload);
 
             if (_DVLP_invia) {
-                // this.apiService.putElement('client', this._currClient.id_client, _payload).subscribe(
                 this.apiService.putElementRelated('adesioni', id_adesione, path, _payload).subscribe(
                     (response: any) => {
                         this._loadAdesioneConfigClients();
@@ -1196,6 +1165,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
                     (error: any) => {
                         this._error = true;
                         this._errorMsg = this.utils.GetErrorMsg(error);
+                        this._errors = (error.error?.errori || []).filter((e: any) => Object.keys(e).length > 0);
                     }
                 );
             }
@@ -1203,27 +1173,28 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
         // se NON è presente id_client ==> devo registrare un nuovo client
 
         const id_adesione: string = this.adesione.id_adesione;
-        const ambiente: string = this.environmentId; // this._collaudo ? 'collaudo' : 'produzione';
+        const ambiente: string = this.environmentId;
         const profilo: string = this._codice_interno_profilo;
         const path: string = `${ambiente}` + '/client/' + `${profilo}`;
         
-        _payload.ambiente = this.environmentId; // this._collaudo ? 'collaudo' : 'produzione';
+        _payload.ambiente = this.environmentId;
         _payload.nome = _nome;
         _payload.dati_specifici = _datiSpecifici;
         
         console.log('PUT: ', _payload);
 
         if (_DVLP_invia) {
-            this.apiService.putElementRelated('adesioni', id_adesione, path, _payload).subscribe(
-                (response: any) => {
+            this.apiService.putElementRelated('adesioni', id_adesione, path, _payload).subscribe({
+                next: (response: any) => {
                     this._loadAdesioneConfigClients();
                     this.closeModal();
                 },
-                (error: any) => {
+                error: (error: any) => {
                     this._error = true;
                     this._errorMsg = this.utils.GetErrorMsg(error);
+                    this._errors = (error.error?.errori || []).filter((e: any) => Object.keys(e).length > 0);
                 }
-            );
+            });
         }
         }
     }
@@ -1246,21 +1217,25 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
         console.log('PUT for UPDATING: ', _payload, path);
 
         if (_DVLP_invia) {
-            this.apiService.putElementRelated('adesioni', id_adesione, path, _payload).subscribe(
-                (response: any) => {
+            this.apiService.putElementRelated('adesioni', id_adesione, path, _payload).subscribe({
+                next: (response: any) => {
                     this._loadAdesioneConfigErogazioni();
                     this.closeModal();
                 },
-                (error: any) => {
+                error: (error: any) => {
                     this._error = true;
                     this._errorMsg = this.utils.GetErrorMsg(error);
+                    this._errors = (error.error?.errori || []).filter((e: any) => Object.keys(e).length > 0);
                 }
-            );
+            });
         }
     }
 
     closeModal(){
         this._arr_clients_riuso = [];
+        this._error = false;
+        this._errorMsg = '';
+        this._errors = [];
         this._modalEditRef.hide();
         this._isEdit = false;
         if (this.showSubscription) {
@@ -1286,10 +1261,9 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
         };
 
         const _isNotConfigurato = (client.source.stato === StatoConfigurazioneEnum.NONCONFIGURATO);
-        const _isNomeProposto = client?.source?.nome_proposto ? true : false;
+        const _isNomeProposto = !!client?.source?.nome_proposto;
         this._show_nome_proposto = _isNomeProposto;
 
-        // this.loadingDialog = false;
         this.showSubscription = this.modalService.onShown.subscribe(($event: any, reason: string) => {
             setTimeout(() => {
                 const _id_client =  client.id_client;
@@ -1301,7 +1275,6 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
                     this._editFormGroupClients.controls['credenziali'].setValue(_id_client || '');
                     this.onChangeCredenziali(SelectedClientEnum.Default);
                 }
-                // this.loadingDialog = false;
             }, 400);
         });
 
@@ -1355,7 +1328,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
     }
 
     _hasControlError(name: string) {
-        return !!(this.f[name] && this.f[name].errors && this.f[name].touched);
+        return !!(this.f[name]?.errors && this.f[name]?.touched);
     }
 
     _showCollaudo() {
@@ -1383,7 +1356,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
     }
 
     _onChangeTipoReferente(isReferent: boolean) {
-        this.referentiFilter = isReferent ? 'referente_servizio,gestore,coordinatore' : '';
+        this.referentiFilter = isReferent ? 'utente_organizzazione,gestore,coordinatore' : '';
     }
 
     _onShowTab(item: any, tab: string = '') {
@@ -1425,7 +1398,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
 
     loadAnagrafiche() {
         this.anagrafiche['tipo-referente'] = [
-            { nome: 'referente', filter: 'referente_servizio,gestore,coordinatore' },
+            { nome: 'referente', filter: 'utente_organizzazione,gestore,coordinatore' },
             { nome: 'referente_tecnico', filter: '' }
         ];
     }
@@ -1566,9 +1539,6 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
                     let _cert_type: any = null
                     this._checkAndSetAuthTypeCase(this._auth_type)
 
-                    // console.log('onChangeCredenziali _currClient', this._currClient);
-                    // console.log('onChangeCredenziali default aux', _aux);
-
                     this._id_client_riuso = _aux?.id_client || null;
                     controls.client_id.patchValue(this._id_client_riuso);
 
@@ -1677,12 +1647,10 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
 
                     controls.finalita.disable();
                     controls.finalita.patchValue(_aux?.dati_specifici?.finalita);
-                    // controls.finalita.clearValidators();
 
                     controls.tipo_certificato.updateValueAndValidity();
                     controls.tipo_certificato_firma.updateValueAndValidity();
                     this._editFormGroupClients.updateValueAndValidity();
-                    // ==========================
 
                     controls.url_redirezione.patchValue(_aux?.dati_specifici?.url_redirezione);
                     controls.url_esposizione.patchValue(_aux?.dati_specifici?.url_esposizione);
@@ -1705,39 +1673,29 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
             }
         } else {
             controls.nome.disable();
-            // controls.nome.patchValue(null);
             controls.nome.updateValueAndValidity();
 
             controls.nome.disable();
-            // controls.tipo_certificato.patchValue(null);
             controls.tipo_certificato.clearValidators();
 
             if (this._isOauthAuthCode) {
                 controls.url_redirezione.disable();
-                // controls.url_redirezione.clearValidators();
                 controls.url_redirezione.updateValueAndValidity();
                 controls.url_esposizione.disable();
-                // controls.url_esposizione.clearValidators();
                 controls.url_esposizione.updateValueAndValidity();
                 controls.help_desk.disable();
-                // controls.help_desk.clearValidators();
                 controls.help_desk.updateValueAndValidity();
                 controls.nome_applicazione_portale.disable();
-                // controls.nome_applicazione_portale.clearValidators();
                 controls.nome_applicazione_portale.updateValueAndValidity();
             }
             
             controls.descrizione.disable();
-            // controls.descrizione.patchValue(null);
             controls.descrizione.updateValueAndValidity();
             controls.ip_fruizione.disable();
-            // controls.ip_fruizione.patchValue(null);
             controls.ip_fruizione.updateValueAndValidity();
             controls.rate_limiting.disable();
-            // controls.rate_limiting.patchValue({ quota: null, periodo: null });
             controls.rate_limiting.updateValueAndValidity();
             controls.finalita.disable();
-            // controls.finalita.patchValue(null);
             controls.finalita.updateValueAndValidity()
         }
         
@@ -1754,7 +1712,6 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
             case SelectedClientEnum.NuovoCliente:
             case SelectedClientEnum.Default:
 
-                // controls.nome_proposto.patchValue(null);
                 controls.nome_proposto.clearValidators();
 
                 if (this._isPdnd || this._isHttpsPdnd || this._isHttpsPdndSign || this._isSignPdnd) {
@@ -2067,7 +2024,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
 
     __descrittoreChange(value: any, csr?: boolean ) {
         
-        !csr ? csr = false : null;
+        csr ??= false;
         const controls = this._editFormGroupClients.controls;
 
         if (csr) {
@@ -2082,6 +2039,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
         this._editFormGroupClients.updateValueAndValidity();
         this._error = false;
         this._errorMsg = '';
+        this._errors = [];
     }
 
     __descrittoreChangeFirma(value: any, csr?: boolean ) {
@@ -2101,21 +2059,17 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
         this._editFormGroupClients.updateValueAndValidity();
         this._error = false;
         this._errorMsg = '';
+        this._errors = [];
     }
 
     _downloadAllegato(data: any) {
-        // const _data = data.source;
-        // this.__resetError();
         this._downloading = true;
 
         let _ambiente: string = this.environmentId;
-        // this._collaudo ? _ambiente = 'collaudo' : _ambiente = 'produzione';
         
         const _partial = `${_ambiente}/client/${data.uuid}/download`;
         this.apiService.download(this.model, this.id, _partial).subscribe({
             next: (response: any) => {
-                // const _ext = data.filename.split('/')[1];
-                // let name: string = `${data.filename}.${_ext}`;
                 let name: string = `${data.filename}`;
                 saveAs(response.body, name);
                 this._downloading = false;
@@ -2150,10 +2104,6 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
             this._isFornito = (tipo_cert == 'fornito')
             this._isRichiesto_cn = (tipo_cert == 'richiesto_cn')
             this._isRichiesto_csr = (tipo_cert == 'richiesto_csr')
-
-            // this._isFornito_firma = (this.client.dati_specifici.certificato_firma.tipo_certificato == 'fornito')
-            // this._isRichiesto_cn_firma = (this.client.dati_specifici.certificato_firma.tipo_certificato == 'richiesto_cn')
-            // this._isRichiesto_csr_firma = (this.client.dati_specifici.certificato_firma.tipo_certificato == 'richiesto_csr')
         }
     }
 
@@ -2228,7 +2178,9 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
 
     _removeNullProperties(obj: any) {
         Object.keys(obj).forEach((k: string) => {
-            obj[k] == null ? delete obj[k] : null;
+            if (obj[k] == null) {
+                delete obj[k];
+            }
         })
     }
 
@@ -2256,18 +2208,17 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
                 if (response) {
                     this._codice_interno_profilo = this._getProfilo(item);
                     let _ambiente: string = this.environmentId;
-                    // this._collaudo ? _ambiente = 'collaudo' : _ambiente = 'produzione';
                     const _url: any = this.adesione.id_adesione + '/' + _ambiente + '/client/' + this._codice_interno_profilo;
 
-                    this.apiService.deleteElement(this.model, _url).subscribe(
-                        (response) => {
+                    this.apiService.deleteElement(this.model, _url).subscribe({
+                        next: (response) => {
                             this._loadAdesioneConfigClients();
                         },
-                        (error) => {
+                        error: (error) => {
                             this._error = true;
                             this._errorMsg = this.utils.GetErrorMsg(error);
                         }
-                    );
+                    });
                 }
             }
         );
@@ -2288,7 +2239,9 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
                     _nessuno = false
                 }
             });
-            (_nessuno == true) ? console.log('NESSUN CAMPO OBBLIGATORIO') : null;
+            if (_nessuno) {
+                console.log('NESSUN CAMPO OBBLIGATORIO');
+            }
             console.groupEnd()
         }
     }
@@ -2318,7 +2271,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
     
     _isConfiguratoMapper = (item: any): boolean => {
         let _isConfigurato = (item.source.stato === StatoConfigurazioneEnum.CONFIGURATO);
-        const _isNomeProposto = item?.source?.nome_proposto ? true : false;
+        const _isNomeProposto = !!item?.source?.nome_proposto;
         if (_isNomeProposto) {
             _isConfigurato = false;
         }
@@ -2356,7 +2309,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
             });
 
             let _isModificabile = (_can && this._hasActions()) || (item && (item.source ? (item.source.stato !== StatoConfigurazioneEnum.CONFIGURATO) : item.stato !== StatoConfigurazioneEnum.CONFIGURATO));
-            const _isNomeProposto = item?.source?.nome_proposto ? true : false;
+            const _isNomeProposto = !!item?.source?.nome_proposto;
             if (_isNomeProposto) {
                 _isModificabile = true;
             }

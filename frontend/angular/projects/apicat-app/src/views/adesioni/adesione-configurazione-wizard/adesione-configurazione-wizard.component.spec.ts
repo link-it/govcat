@@ -29,6 +29,7 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
     getList: vi.fn().mockReturnValue(of({ content: [] })),
     saveElement: vi.fn().mockReturnValue(of({})),
     putElement: vi.fn().mockReturnValue(of({})),
+    postElementRelated: vi.fn().mockReturnValue(of({})),
     deleteElementRelated: vi.fn().mockReturnValue(of({})),
     download: vi.fn().mockReturnValue(of({ body: new Blob() })),
   } as any;
@@ -58,6 +59,13 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
     isSottotipoGroupCompleted: vi.fn().mockReturnValue(true),
     isSottotipoCompleted: vi.fn().mockReturnValue(true),
   } as any;
+  const mockNavigationService = {
+    navigateWithEvent: vi.fn(),
+    shouldOpenInNewTab: vi.fn().mockReturnValue(false),
+    openInNewTab: vi.fn(),
+    extractEvent: vi.fn(),
+    extractData: vi.fn(),
+  } as any;
 
   let savedConfigurazione: any;
 
@@ -68,7 +76,7 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
     component = new AdesioneConfigurazioneWizardComponent(
       mockRoute, mockRouter, mockTranslate, mockModalService,
       mockConfigService, mockEventsManager, mockApiService,
-      mockAuthService, mockUtils, mockCkeckProvider
+      mockAuthService, mockUtils, mockCkeckProvider, mockNavigationService
     );
   });
 
@@ -126,7 +134,7 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
     const comp = new AdesioneConfigurazioneWizardComponent(
       routeWithData, mockRouter, mockTranslate, mockModalService,
       mockConfigService, mockEventsManager, mockApiService,
-      mockAuthService, mockUtils, mockCkeckProvider
+      mockAuthService, mockUtils, mockCkeckProvider, mockNavigationService
     );
     expect(comp.serviceBreadcrumbs).toEqual(breadcrumbsData.serviceBreadcrumbs);
   });
@@ -215,7 +223,7 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
     component.config = { useEditWizard: true };
     component.serviceBreadcrumbs = null;
     component._initBreadcrumb();
-    expect(component.breadcrumbs[1].label).toBe('LOG-123 (OrgY)');
+    expect(component.breadcrumbs[1].label).toBe('OrgY - SvcY v. 1.0 (LOG-123)');
   });
 
   it('_initBreadcrumb should prepend serviceBreadcrumbs when present', () => {
@@ -310,19 +318,46 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
     expect(component.isModifiableMapper('', AmbienteEnum.Collaudo)).toBe(false);
   });
 
-  // -------- isGestoredMapper --------
+  // -------- canChangeStatoMapper --------
 
-  it('isGestoredMapper should delegate to authenticationService.isGestore', () => {
-    component.grant = { ruoli: ['gestore'] } as any;
+  it('canChangeStatoMapper: true per gestore', () => {
     mockAuthService.isGestore.mockReturnValue(true);
-    expect(component.isGestoredMapper('')).toBe(true);
+    component._ruoliReferenteProfilo = [];
+    expect(component.canChangeStatoMapper('')).toBe(true);
     expect(mockAuthService.isGestore).toHaveBeenCalled();
   });
 
-  it('isGestoredMapper should use empty array when grant is null', () => {
-    component.grant = null;
+  it('canChangeStatoMapper: false con profilo ruoli vuoto e non gestore', () => {
     mockAuthService.isGestore.mockReturnValue(false);
-    expect(component.isGestoredMapper('')).toBe(false);
+    component._ruoliReferenteProfilo = [];
+    expect(component.canChangeStatoMapper('')).toBe(false);
+  });
+
+  it('canChangeStatoMapper: true per referente_servizio nel profilo', () => {
+    mockAuthService.isGestore.mockReturnValue(false);
+    component._ruoliReferenteProfilo = ['referente_servizio'];
+    expect(component.canChangeStatoMapper('')).toBe(true);
+  });
+
+  it('canChangeStatoMapper: true per referente_dominio nel profilo', () => {
+    mockAuthService.isGestore.mockReturnValue(false);
+    component._ruoliReferenteProfilo = ['referente_dominio'];
+    expect(component.canChangeStatoMapper('')).toBe(true);
+  });
+
+  it('canChangeStatoMapper: true per referente_tecnico_servizio/dominio', () => {
+    mockAuthService.isGestore.mockReturnValue(false);
+    component._ruoliReferenteProfilo = ['referente_tecnico_servizio'];
+    expect(component.canChangeStatoMapper('')).toBe(true);
+
+    component._ruoliReferenteProfilo = ['referente_tecnico_dominio'];
+    expect(component.canChangeStatoMapper('')).toBe(true);
+  });
+
+  it('canChangeStatoMapper: false per ruoli non abilitati (es. richiedente_servizio)', () => {
+    mockAuthService.isGestore.mockReturnValue(false);
+    component._ruoliReferenteProfilo = ['richiedente_servizio'];
+    expect(component.canChangeStatoMapper('')).toBe(false);
   });
 
   // -------- canEditMapper --------
@@ -712,11 +747,13 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
     expect(result).toBe(false);
   });
 
-  it('isSottotipoCompletedMapper should return true when _hasCambioStato is false', () => {
+  it('isSottotipoCompletedMapper should delegate to ckeckProvider', () => {
+    // Issue 254 (rev. d0744045): il mapper ora delega a
+    // `ckeckProvider.isSottotipoCompleted` ed e' indipendente dal
+    // ruolo / cambio stato.
     component.grant = { ruoli: ['referente'] } as any;
     component.adesione = { stato: 'bozza' };
-    mockAuthService.isGestore.mockReturnValue(false);
-    mockAuthService.canChangeStatus.mockReturnValue(false);
+    mockCkeckProvider.isSottotipoCompleted.mockReturnValue(true);
     const result = component.isSottotipoCompletedMapper(false, 'collaudo', 'client', 'C1');
     expect(result).toBe(true);
   });
@@ -731,5 +768,67 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
   it('getStatusSottotipoCompleteMapper should return 2 for produzione in collaudo phase', () => {
     component.adesione = { stato: 'bozza', skip_collaudo: false };
     expect(component.getStatusSottotipoCompleteMapper(false, AmbienteEnum.Produzione, 'client', 'C1')).toBe(2);
+  });
+
+  // -------- Retry configurazione automatica (Issue #298) --------
+
+  describe('retry configurazione automatica', () => {
+    beforeEach(() => {
+      mockAuthService.isGestore.mockReturnValue(true);
+    });
+
+    it('canRetryAutoConfig: true per gestore con stato auto-config ed esito ko', () => {
+      component.adesione = { stato: 'in_configurazione_automatica_collaudo', stato_configurazione_automatica: 'ko' };
+      expect(component.canRetryAutoConfig).toBe(true);
+    });
+
+    it('canRetryAutoConfig: true anche per esito in_coda e fallita', () => {
+      component.adesione = { stato: 'in_configurazione_automatica_produzione', stato_configurazione_automatica: 'in_coda' };
+      expect(component.canRetryAutoConfig).toBe(true);
+      component.adesione = { stato: 'in_configurazione_automatica_produzione', stato_configurazione_automatica: 'fallita' };
+      expect(component.canRetryAutoConfig).toBe(true);
+    });
+
+    it('canRetryAutoConfig: false se lo stato non e` di auto-configurazione', () => {
+      component.adesione = { stato: 'pubblicato_collaudo', stato_configurazione_automatica: 'ko' };
+      expect(component.canRetryAutoConfig).toBe(false);
+    });
+
+    it('canRetryAutoConfig: false per esito ok', () => {
+      component.adesione = { stato: 'in_configurazione_automatica_collaudo', stato_configurazione_automatica: 'ok' };
+      expect(component.canRetryAutoConfig).toBe(false);
+    });
+
+    it('canRetryAutoConfig: false se non gestore', () => {
+      mockAuthService.isGestore.mockReturnValue(false);
+      component.adesione = { stato: 'in_configurazione_automatica_collaudo', stato_configurazione_automatica: 'ko' };
+      expect(component.canRetryAutoConfig).toBe(false);
+    });
+
+    it('onRetryAutoConfig: POST su configurazione-automatica/retry e reload', () => {
+      component.id = 7;
+      component.adesione = { stato: 'in_configurazione_automatica_collaudo', stato_configurazione_automatica: 'ko' };
+      const reloadSpy = vi.fn();
+      (component as any).loadAdesione = reloadSpy;
+      mockApiService.postElementRelated.mockReturnValue(of({}));
+      component.onRetryAutoConfig();
+      expect(mockApiService.postElementRelated).toHaveBeenCalledWith('adesioni', 7, 'configurazione-automatica/retry', {});
+      expect(reloadSpy).toHaveBeenCalledWith(false);
+      expect(component._retryingAutoConfig).toBe(false);
+    });
+
+    it('onRetryAutoConfig: no-op se gia` in corso', () => {
+      component.id = 7;
+      component._retryingAutoConfig = true;
+      component.onRetryAutoConfig();
+      expect(mockApiService.postElementRelated).not.toHaveBeenCalled();
+    });
+
+    it('onRetryAutoConfig: in errore resetta il flag', () => {
+      component.id = 7;
+      mockApiService.postElementRelated.mockReturnValue(throwError(() => new Error('fail')));
+      component.onRetryAutoConfig();
+      expect(component._retryingAutoConfig).toBe(false);
+    });
   });
 });

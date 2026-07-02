@@ -1,0 +1,32 @@
+{
+  "defaultView": "list",
+
+  "itemRow": {
+    "primaryText": [
+      { "field": "cognome", "type": "text", "class": "", "emptySpace": true },
+      { "field": "nome", "type": "text" }
+    ],
+    "secondaryText": [
+      { "field": "ruolo_organizzazione", "type": "tag", "options": "ruoloOrganizzazione", "default": "no_role" }
+    ],
+    "metadata": {
+      "text": [
+        { "field": "email_aziendale", "type": "text" }
+      ],
+      "label": []
+    },
+    "secondaryMetadata": []
+  },
+
+  "options": {
+    "ruoloOrganizzazione": {
+      "label": "APP.UTENTI_ORG.LABEL.Role",
+      "small": true,
+      "values": {
+        "amministratore_organizzazione": { "label": "APP.RUOLI.AmministratoreOrganizzazione", "chipVariant": "brand", "background": "#1f75cb", "border": "#1f75cb", "color": "#ffffff" },
+        "operatore_api":                 { "label": "APP.RUOLI.OperatoreApi",                 "chipVariant": "ok",    "background": "#108548", "border": "#108548", "color": "#ffffff" },
+        "no_role":                       { "label": "APP.ORGANIZATION_SWITCHER.NoRole",       "chipVariant": "muted", "background": "#A4ABB6", "border": "#A4ABB6", "color": "#ffffff" }
+      }
+    }
+  }
+}

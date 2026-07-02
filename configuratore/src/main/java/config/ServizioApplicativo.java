@@ -35,6 +35,7 @@ public class ServizioApplicativo {
 	private String tokenPolicy;
 	private String tokenIdentificativo;
 	private String modiDominio;
+	private String profilo;
 	
 	public ServizioApplicativo setNomeApplicativo(String nomeApplicativo) {
 		this.nomeApplicativo = nomeApplicativo;
@@ -101,5 +102,14 @@ public class ServizioApplicativo {
 		this.modiDominio = modiDominio;
 		return this;
 	}
-	
+
+	public String getProfilo() {
+		return profilo;
+	}
+
+	public ServizioApplicativo setProfilo(String profilo) {
+		this.profilo = profilo;
+		return this;
+	}
+
 }

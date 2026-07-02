@@ -6,13 +6,15 @@ import { map, catchError, tap } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 
 import { ApiClient } from './api.client';
+import { HttpParams } from '@angular/common/http';
 import {
   StatoRegistrazione,
   StatoRegistrazioneEnum,
   ModificaEmailRequest,
   VerificaCodiceRequest,
   RegistrazioneResponse,
-  VerificaCodiceResponse
+  VerificaCodiceResponse,
+  SelezionaOrganizzazioneRequest
 } from '../model/registrazione';
 
 @Injectable({
@@ -122,6 +124,51 @@ export class RegistrazioneService implements OnDestroy {
     );
   }
 
+  // ---------- Issue 229: scelta organizzazione (opzionale) ----------
+
+  /**
+   * GET /api/v1/registrazione/organizzazioni
+   * Lista paginata delle organizzazioni selezionabili durante
+   * la registrazione. Richiede JWT first-login. Supporta
+   * `q` (full-text), `nome` (esatto), `page`, `size`, `sort`.
+   */
+  listOrganizzazioni(query: { q?: string; nome?: string; page?: number; size?: number; sort?: string } = {}): Observable<any> {
+    let params = new HttpParams();
+    if (query.q) { params = params.set('q', query.q); }
+    if (query.nome) { params = params.set('nome', query.nome); }
+    if (typeof query.page === 'number') { params = params.set('page', String(query.page)); }
+    if (typeof query.size === 'number') { params = params.set('size', String(query.size)); }
+    if (query.sort) { params = params.set('sort', query.sort); }
+    return this.http.get<any>(`${this.BASE_PATH}/organizzazioni`, { params }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * POST /api/v1/registrazione/organizzazione
+   * Salva la scelta dell'organizzazione richiesta per il
+   * primo accesso. Body: `{ id_organizzazione }`. La scelta
+   * non e` ancora vincolante: viene confermata da
+   * `completaRegistrazione` e poi richiede approvazione admin.
+   */
+  selezionaOrganizzazione(idOrganizzazione: string): Observable<StatoRegistrazione> {
+    const body: SelezionaOrganizzazioneRequest = { id_organizzazione: idOrganizzazione };
+    return this.http.post<StatoRegistrazione>(`${this.BASE_PATH}/organizzazione`, body).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * DELETE /api/v1/registrazione/organizzazione
+   * Rimuove la scelta dell'organizzazione (l'utente puo`
+   * tornare a "saltare" lo step prima del completamento).
+   */
+  rimuoviOrganizzazione(): Observable<StatoRegistrazione> {
+    return this.http.delete<StatoRegistrazione>(`${this.BASE_PATH}/organizzazione`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
   // Gestione countdown OTP
 
   startCountdown(secondi: number): void {
@@ -173,8 +220,21 @@ export class RegistrazioneService implements OnDestroy {
       // Errore server-side - prova a tradurre il codice di errore dal campo detail
       if (error.error?.detail) {
         const code = error.error.detail;
+        // Parametri di interpolazione: il BE puo` veicolarli come
+        // `parameters` (forma piatta) oppure come `errori[*].params`
+        // (forma annidata, es. REG.409.MULTIPLE.USERS.EMAIL ->
+        // `errori: [{ params: { email: '...' } }]`). Unisco entrambe
+        // le forme cosi` i placeholder `{{name}}` vengono sempre
+        // sostituiti.
+        const flat = error.error?.parameters;
+        const fromErrori = (error.error?.errori || [])
+          .map((e: any) => e?.params)
+          .filter((p: any) => p && typeof p === 'object');
+        const params = (flat || fromErrori.length)
+          ? Object.assign({}, ...fromErrori, flat || {})
+          : {};
         // Prova a tradurre il codice (es: REG.400.NO.EMAIL.JWT -> APP.MESSAGE.ERROR.REG.400.NO.EMAIL.JWT)
-        const translated = this.translate.instant(`APP.MESSAGE.ERROR.${code}`);
+        const translated = this.translate.instant(`APP.MESSAGE.ERROR.${code}`, params);
         // Se la traduzione esiste (non ritorna la chiave stessa), usala
         if (translated !== `APP.MESSAGE.ERROR.${code}`) {
           errorMessage = translated;

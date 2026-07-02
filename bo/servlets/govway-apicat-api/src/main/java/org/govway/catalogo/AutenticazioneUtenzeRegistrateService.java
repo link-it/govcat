@@ -79,12 +79,12 @@ public class AutenticazioneUtenzeRegistrateService extends AbstractService imple
 
 				UtenteEntity contact = oContact.get();
 
-				if(contact.getOrganizzazione()!=null) {
-					contact.getOrganizzazione().getSoggetti().stream().forEach(s -> {s.getNome();});
-				}
-
 				if(contact.getOrganizzazionePending()!=null) {
 					contact.getOrganizzazionePending().getSoggetti().stream().forEach(s -> {s.getNome();});
+				}
+
+				if(contact.getOrganizzazionePartenza()!=null) {
+					contact.getOrganizzazionePartenza().getSoggetti().stream().forEach(s -> {s.getNome();});
 				}
 
 				contact.getClassi().stream().forEach( e-> {e.getNome();});

@@ -60,6 +60,8 @@ import org.govway.catalogo.servlets.model.APIDatiErogazione;
 import org.govway.catalogo.servlets.model.Allegato;
 import org.govway.catalogo.servlets.model.AllegatoItemCreate;
 import org.govway.catalogo.servlets.model.AmbienteEnum;
+import org.govway.catalogo.servlets.model.StatoUtenteEnum;
+import org.govway.catalogo.servlets.model.UtenteUpdate;
 import org.govway.catalogo.servlets.model.AuthTypeEnum;
 import org.govway.catalogo.servlets.model.AuthTypeHttpsPdndCreate;
 import org.govway.catalogo.servlets.model.CertificatoClientCreate;
@@ -106,9 +108,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -127,7 +128,7 @@ import jakarta.persistence.PersistenceContext;
 
 @ExtendWith(SpringExtension.class)  // JUnit 5 extension
 @SpringBootTest(classes = OpenAPI2SpringBoot.class)
-@EnableAutoConfiguration(exclude = {GroovyTemplateAutoConfiguration.class})
+@EnableAutoConfiguration
 @AutoConfigureTestDatabase(replace = Replace.ANY)
 @ActiveProfiles("test")
 @DirtiesContext(classMode = ClassMode.BEFORE_CLASS)
@@ -250,7 +251,7 @@ public class RegistrazioneServizioIntegrationTest {
     	CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
 
         OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
-        organizzazione.setEsterna(false);
+        organizzazione.setIntermediata(false);
 
         response = organizzazioniController.createOrganizzazione(organizzazione);
         assertNotNull(response.getBody().getIdOrganizzazione());
@@ -261,7 +262,7 @@ public class RegistrazioneServizioIntegrationTest {
         
         createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utente, response.getBody().getIdOrganizzazione());
         utente.setRuolo(RuoloUtenteEnum.GESTORE);
         responseUtente = utentiController.createUtente(utente);
 
@@ -306,7 +307,7 @@ public class RegistrazioneServizioIntegrationTest {
         CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
 
         OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
-        organizzazione.setEsterna(false);
+        organizzazione.setIntermediata(false);
 
         response = organizzazioniController.createOrganizzazione(organizzazione);
         assertNotNull(response.getBody().getIdOrganizzazione());
@@ -320,9 +321,21 @@ public class RegistrazioneServizioIntegrationTest {
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
         UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utente, response.getBody().getIdOrganizzazione());
         utente.setRuolo(RuoloUtenteEnum.GESTORE);
         responseUtente = utentiController.createUtente(utente);
+
+        // REFERENTE_TECNICO (colombo) deve essere associato all'org per essere designato (policy 2.4.0)
+        UtenteUpdate upRefTecnico = new UtenteUpdate();
+        upRefTecnico.setPrincipal(UTENTE_REFERENTE_TECNICO);
+        CommonUtils.setOrganizzazione(upRefTecnico, response.getBody().getIdOrganizzazione());
+        upRefTecnico.setStato(StatoUtenteEnum.ABILITATO);
+        upRefTecnico.setEmailAziendale("colombo@aziendale.it");
+        upRefTecnico.setTelefonoAziendale("0000000000");
+        upRefTecnico.setNome("Colombo");
+        upRefTecnico.setCognome("Tecnico");
+        upRefTecnico.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        utentiController.updateUtente(ID_UTENTE_REFERENTE_TECNICO, upRefTecnico);
 
         GruppoCreate gruppoCreate = CommonUtils.getGruppoCreate();
         gruppoCreate.setNome(NOME_GRUPPO);
@@ -352,7 +365,7 @@ public class RegistrazioneServizioIntegrationTest {
 
         // Step 3: Creare un servizio
         ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
-        servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+        servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
         servizioCreate.setIdDominio(dominio.getIdDominio());
 
         if (immagine.getContent() != null) {
@@ -428,7 +441,7 @@ public class RegistrazioneServizioIntegrationTest {
 
         // Verifica che un utente anonimo non riceva nulla
         assertThrows(NotAuthorizedException.class, () -> {
-        	serviziController.listServizi(null, null, null, null, null, null, null, null, null, false, true, null, null, null, null, null, null, null, null, null, 0, 10, null);
+        	serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, false, true, null, null, null, null, null, null, null, null, null, 0, 10, null);
         });
     }
     
@@ -635,7 +648,7 @@ public class RegistrazioneServizioIntegrationTest {
         
         List<String> stato = new ArrayList<String>();
         stato.add("autorizzato_collaudo");
-        ResponseEntity<PagedModelItemServizio> listServizi = serviziController.listServizi(null, null, null, null, idAPI, stato, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+        ResponseEntity<PagedModelItemServizio> listServizi = serviziController.listServizi(null, null, null, null, null, idAPI, stato, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
         //System.out.println("NOME SERVIZIO: " + listServizi.getBody().getContent().get(0).getNome());
         assertEquals(CommonUtils.NOME_SERVIZIO, listServizi.getBody().getContent().get(0).getNome());
         

@@ -95,8 +95,8 @@ public class ServizioEntity {
 
 	// si
 	@ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_soggetto_interno", referencedColumnName = "id")
-    private SoggettoEntity soggettoInterno;
+    @JoinColumn(name = "id_soggetto_erogatore", referencedColumnName = "id")
+    private SoggettoEntity soggettoErogatore;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -106,7 +106,7 @@ public class ServizioEntity {
     private Set<GruppoEntity> gruppi = new HashSet<>();
 
     @OneToMany(mappedBy = "servizio", fetch = FetchType.LAZY)
-    @Cascade({CascadeType.PERSIST,CascadeType.DELETE})
+    @Cascade({CascadeType.PERSIST,CascadeType.REMOVE})
     private Set<ReferenteServizioEntity> referenti = new HashSet<>();
 
 	@Column(name = "descrizione_sintetica")
@@ -139,6 +139,9 @@ public class ServizioEntity {
     
     @Column(name = "url_invocazione", nullable = true)
 	private String urlInvocazione;
+
+    @Column(name = "canale", length = 255)
+	private String canale;
     
     @Column(name = "url_prefix_collaudo", nullable = true)
     private String urlPrefixCollaudo;
@@ -189,7 +192,7 @@ public class ServizioEntity {
 	private Set<NotificaEntity> notifiche = new HashSet<>();
 
     @OneToMany(mappedBy = "servizio", fetch = FetchType.LAZY)
-    @Cascade({CascadeType.PERSIST,CascadeType.DELETE})
+    @Cascade({CascadeType.PERSIST,CascadeType.REMOVE})
 	private Set<MessaggioServizioEntity> messaggi = new HashSet<>();
 
     @OneToMany(mappedBy = "servizio", fetch = FetchType.LAZY)

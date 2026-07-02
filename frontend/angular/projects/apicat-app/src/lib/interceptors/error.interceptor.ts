@@ -220,10 +220,35 @@ export class ErrorInterceptor implements HttpInterceptor {
 
   /**
    * Gestisce gli errori diversi da 401
+   *
+   * Issue 229 evolutiva multi-org/domini — quando il BE invia un
+   * codice errore nel campo `detail` (es.
+   * `AUT.403.AMM.ORG.DOMINIO.FUORI.ORG`), tentiamo la traduzione
+   * via `APP.MESSAGE.ERROR.<code>` con eventuali `params` dal
+   * primo elemento di `errori[]`. Cosi` la UI mostra messaggi
+   * specifici (es. "Operazione consentita solo per i domini
+   * dell'organizzazione {orgNome}") invece del generico
+   * "Unauthorized".
    */
   private handleOtherErrors(err: HttpErrorResponse): Observable<never> {
     if (err.status === 403) {
-      Tools.OnError(err, this.translate.instant('APP.MESSAGE.ERROR.Unauthorized'));
+      const detailCode = err.error?.detail;
+      let translated: string | null = null;
+      if (detailCode) {
+        const params = err.error?.errori?.[0]?.params || {};
+        const candidate = this.translate.instant(`APP.MESSAGE.ERROR.${detailCode}`, params);
+        // Se l'i18n contiene una key non risolta (ngx-translate
+        // ritorna la chiave originale), o un oggetto annidato
+        // (`{ DEFAULT: ... }`), gestiamo i due casi:
+        if (typeof candidate === 'object' && candidate !== null) {
+          const def = this.translate.instant(`APP.MESSAGE.ERROR.${detailCode}.DEFAULT`, params);
+          translated = typeof def === 'string' ? def : null;
+        } else if (typeof candidate === 'string' && candidate !== `APP.MESSAGE.ERROR.${detailCode}`) {
+          translated = candidate;
+        }
+      }
+      const fallback = this.translate.instant('APP.MESSAGE.ERROR.Unauthorized');
+      Tools.OnError(err, translated || fallback);
     }
 
     this.pageloaderService.hideLoader();

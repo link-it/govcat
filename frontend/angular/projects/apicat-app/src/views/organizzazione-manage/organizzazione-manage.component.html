@@ -1,0 +1,297 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div id="route-section" class="organizzazione-manage">
+  <div class="alert-wrapper gp-force-block-formatting-context">
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+  </div>
+
+  <!-- Intestazione organizzazione (sola lettura) -->
+  @if (organizzazione) {
+    <div class="lnk-vetrina mt-3 mb-3 organization-manage-header">
+      <div class="card card-pad-tight">
+        <div class="d-flex align-items-center mb-2">
+          <h5 class="mb-0 flex-grow-1">{{ organizzazione.nome || '--' }}</h5>
+          @if (organizzazione.referente) {
+            <span class="chip chip-info ms-2">{{ 'APP.ORGANIZATIONS.LABEL.Referente' | translate }}</span>
+          }
+          @if (organizzazione.aderente) {
+            <span class="chip chip-muted ms-2">{{ 'APP.ORGANIZATIONS.LABEL.Aderente' | translate }}</span>
+          }
+          @if (organizzazione.intermediata) {
+            <span class="chip chip-warn ms-2">{{ 'APP.ORGANIZATIONS.LABEL.Intermediata' | translate }}</span>
+          }
+        </div>
+        @if (organizzazione.descrizione) {
+          <p class="text-muted mb-0">{{ organizzazione.descrizione }}</p>
+        }
+        @if (canManage()) {
+          <small class="text-muted d-flex align-items-center mt-2">
+            <i class="bi bi-info-circle me-2"></i>
+            <span>{{ 'APP.ORGANIZATION_MANAGE.HelpText' | translate }}</span>
+          </small>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Tabs Utenti / Domini — Issue 229 evolutiva multi-org/domini.
+       Pattern markup `.gp-tabs-nav` allineato al resto dell'app
+       (es. `domini.component.html`, `profile.component.html`). Il
+       badge counter usa `_activeTotal` che selecta paging della tab
+       attiva. -->
+  <div class="top-area">
+    <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
+      <div class="">
+        <ul class="nav gp-border-b-0 gp-tabs-nav">
+          <li class="nav-item">
+            <a tabindex="0" target="_self"
+               class="nav-link gp-tab-nav-item cursor-pointer"
+               [class.gp-tab-nav-item-active]="_activeTab === 'utenti'"
+               (click)="setActiveTab('utenti')"
+               (keydown.enter)="setActiveTab('utenti')"
+               [attr.aria-label]="'APP.ORGANIZATION_MANAGE.TabUtenti' | translate">
+              <span>{{ 'APP.ORGANIZATION_MANAGE.TabUtenti' | translate }}</span>
+              <!-- Counter sempre visibile (anche con tab non attiva). -->
+              <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm">{{ _paging.totalElements || 0 }}</span>
+            </a>
+          </li>
+          @if (pendingItems.length > 0) {
+            <li class="nav-item">
+              <a tabindex="0" target="_self"
+                 class="nav-link gp-tab-nav-item cursor-pointer"
+                 [class.gp-tab-nav-item-active]="_activeTab === 'utenti_pending'"
+                 (click)="setActiveTab('utenti_pending')"
+                 (keydown.enter)="setActiveTab('utenti_pending')"
+                 [attr.aria-label]="'APP.ORGANIZATION_MANAGE.TabUtentiPending' | translate">
+                <span>{{ 'APP.ORGANIZATION_MANAGE.TabUtentiPending' | translate }}</span>
+                <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm">{{ _pendingPaging.totalElements || 0 }}</span>
+              </a>
+            </li>
+          }
+          <li class="nav-item">
+            <a tabindex="0" target="_self"
+               class="nav-link gp-tab-nav-item cursor-pointer"
+               [class.gp-tab-nav-item-active]="_activeTab === 'domini'"
+               (click)="setActiveTab('domini')"
+               (keydown.enter)="setActiveTab('domini')"
+               [attr.aria-label]="'APP.ORGANIZATION_MANAGE.TabDomini' | translate">
+              <span>{{ 'APP.ORGANIZATION_MANAGE.TabDomini' | translate }}</span>
+              <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm">{{ _dominiPaging.totalElements || 0 }}</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="nav-controls align-self-center d-flex">
+      <lnk-button
+        [icon]="'bi bi-arrow-clockwise'"
+        [onlyIcon]="true"
+        [ariaLabel]="'APP.BUTTON.Refresh'"
+        [btnTooltip]="'APP.BUTTON.Refresh'"
+        [otherClass]="'me-2'"
+        [disabled]="_spin"
+        (onAction)="refresh()">
+      </lnk-button>
+      @if (canManage()) {
+        @if (_activeTab === 'utenti') {
+          <lnk-button
+            [label]="'APP.UTENTI_ORG.BUTTON.Add'"
+            [ariaLabel]="'APP.UTENTI_ORG.BUTTON.Add'"
+            [icon]="'bi bi-person-plus'"
+            [primary]="true"
+            (onAction)="openAdd()">
+          </lnk-button>
+        } @else if (_activeTab === 'domini') {
+          <lnk-button
+            [label]="'APP.DOMINI.BUTTON.Add'"
+            [ariaLabel]="'APP.DOMINI.BUTTON.Add'"
+            [icon]="'bi bi-plus-lg'"
+            [primary]="true"
+            (onAction)="openAddDominio()">
+          </lnk-button>
+        }
+      }
+    </div>
+  </div>
+
+  @if (_hasFilter) {
+    <section class="search-bar container-fluid px-0">
+      <div class="row align-items-center">
+        <div class="col-12">
+          <ui-search-bar-form #searchBarForm
+            [classBlock]="''"
+            [placeholder]="'APP.PLACEHOLDER.Search' | translate"
+            [showHistory]="showHistory"
+            [historyStore]="model"
+            [showSearch]="showSearch"
+            [searchFields]="searchFields"
+            [useCondition]="useCondition"
+            [showSorting]="showSorting"
+            [sortField]="sortField"
+            [sortDirection]="sortDirection"
+            [sortFields]="sortFields"
+            [formGroup]="_formGroup"
+            [simple]="true"
+            (onSearch)="_onSearch($event)"
+            (onSort)="_onSort($event)">
+            <div form-search [class.search-material-custom]="_useNewSearchUI">
+              <form class="row" [formGroup]="_formGroup" (submit)="_onSubmit()">
+                <fieldset>
+                  <div class="row mb-1">
+                    <div class="col-2">
+                      <label class="col-form-label col-form-label-fix">{{ 'APP.LABEL.FreeSearch' | translate }}</label>
+                    </div>
+                    <div class="col-10">
+                      <input type="text" class="form-control form-control-sm" id="q" formControlName="q" autocomplete="off">
+                    </div>
+                  </div>
+                  @if (_useNewSearchUI) {
+                    <div class="d-flex justify-content-end pt-4">
+                      <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary" (click)="searchBarForm._closeSearchDropDpwn(null)">{{ 'APP.BUTTON.Close' | translate }}</button>
+                      <button type="submit" class="btn btn-confirm btn-md gl-button ms-2">{{ 'APP.BUTTON.Search' | translate }}</button>
+                    </div>
+                  }
+                  @if (!_useNewSearchUI) {
+                    <button type="submit" class="d-none">hidden submit</button>
+                  }
+                </fieldset>
+              </form>
+            </div>
+          </ui-search-bar-form>
+        </div>
+      </div>
+    </section>
+  }
+
+  <section id="container-scroller" class="container-fluid container-scroller px-0" [class.container-scroller-no-search]="!_hasFilter"
+    infiniteScroll
+    [infiniteScrollDistance]="2"
+    [infiniteScrollThrottle]="50"
+    (scrolled)="__loadMoreData()"
+    [scrollWindow]="false"
+    [autoFillScroll]="true"
+    (autoFillNeeded)="__loadMoreData()">
+
+    <!-- Sezione Utenti -->
+    @if (_activeTab === 'utenti') {
+      <div class="row">
+        @if (items.length === 0 && !_spin) {
+          <ui-box-message
+            [size]="64"
+            [icon]="'report_problem'"
+            [image]="'./assets/images/illustrations/utenti.svg'"
+            [message]="_message | translate"
+            [subMessage]="_messageHelp | translate">
+          </ui-box-message>
+        }
+      </div>
+
+      @if (items.length > 0 && utentiConfig) {
+        <div class="row">
+          <div class="col-12">
+            @for (item of items; track item.id_utente + '_' + $index) {
+              <ui-item-row class="border-bottom"
+                [data]="item"
+                [config]="utentiConfig"
+                [hasLink]="canManage()"
+                [linkRoute]="false"
+                [hasAction]="canManage()"
+                [iconAction]="'trash text-danger'"
+                [actionTooltip]="'APP.UTENTI_ORG.BUTTON.Remove' | translate"
+                (itemClick)="openUserDetail(item)"
+                (actionClick)="confirmRemove(item)">
+              </ui-item-row>
+            }
+          </div>
+        </div>
+      }
+    }
+
+    <!-- Sezione Domini (Issue 229 evolutiva multi-org/domini) -->
+    @if (_activeTab === 'domini') {
+      <div class="row">
+        @if (dominiItems.length === 0 && !_spin) {
+          <ui-box-message
+            [size]="64"
+            [icon]="'report_problem'"
+            [image]="'./assets/images/illustrations/domini.svg'"
+            [message]="_message | translate"
+            [subMessage]="_messageHelp | translate">
+          </ui-box-message>
+        }
+      </div>
+
+      @if (dominiItems.length > 0 && dominiConfig) {
+        <div class="row">
+          <div class="col-12">
+            @for (item of dominiItems; track item.id_dominio + '_' + $index) {
+              <ui-item-row class="border-bottom"
+                [data]="item"
+                [config]="dominiConfig"
+                [hasLink]="canManage()"
+                [linkRoute]="false"
+                [hasAction]="canManage()"
+                [iconAction]="'trash text-danger'"
+                [actionTooltip]="'APP.DOMINI.BUTTON.Remove' | translate"
+                (itemClick)="openEditDominio(item)"
+                (actionClick)="confirmRemoveDominio(item)">
+              </ui-item-row>
+            }
+          </div>
+        </div>
+      }
+    }
+
+    <!-- Sezione Utenti in attesa di approvazione (membership evolutiva 2026-06-11) -->
+    @if (_activeTab === 'utenti_pending') {
+      <div class="row">
+        @if (pendingItems.length === 0 && !_spin) {
+          <ui-box-message
+            [size]="64"
+            [icon]="'report_problem'"
+            [image]="'./assets/images/illustrations/utenti.svg'"
+            [message]="_message | translate"
+            [subMessage]="_messageHelp | translate">
+          </ui-box-message>
+        }
+      </div>
+
+      @if (pendingItems.length > 0 && utentiPendingConfig) {
+        <div class="row">
+          <div class="col-12">
+            @for (item of pendingItems; track item.id_utente + '_' + $index) {
+              <ui-item-row class="border-bottom"
+                [data]="item"
+                [config]="utentiPendingConfig"
+                [hasLink]="canManage()"
+                [linkRoute]="false"
+                [hasAction]="false"
+                (itemClick)="openUserDetail(item)">
+              </ui-item-row>
+            }
+          </div>
+        </div>
+      }
+    }
+
+    @if (_spin) {
+      <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3"></ui-box-spinner>
+    }
+  </section>
+</div>

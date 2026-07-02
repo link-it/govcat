@@ -34,18 +34,18 @@ import org.govway.catalogo.core.orm.entity.AdesioneEntity;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity.STATO_CONFIGURAZIONE;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.Step;
-import org.springframework.batch.core.StepExecutionListener;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.step.Step;
+import org.springframework.batch.core.listener.StepExecutionListener;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.item.ItemProcessor;
-import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.UnexpectedInputException;
-import org.springframework.batch.item.database.JpaPagingItemReader;
-import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
+import org.springframework.batch.infrastructure.item.ItemProcessor;
+import org.springframework.batch.infrastructure.item.ItemWriter;
+import org.springframework.batch.infrastructure.item.UnexpectedInputException;
+import org.springframework.batch.infrastructure.item.database.JpaPagingItemReader;
+import org.springframework.batch.infrastructure.item.database.builder.JpaPagingItemReaderBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -71,8 +71,8 @@ public class ConfigurazioneBatchJobConfig {
 	@Autowired
 	AdesioneRepository adesioneRepository;
 
-	@Value("${org.govway.api.catalogo.resource.path:/var/govcat/conf}")
-	String externalPath;
+	@Value("${org.govway.api.catalogo.configurazione.path:/var/govcat/conf/configurazione.json}")
+	String configurazioneJsonPath;
 
 	private static final Logger logger = LoggerFactory.getLogger(ConfigurazioneBatchJobConfig.class);
 
@@ -85,14 +85,14 @@ public class ConfigurazioneBatchJobConfig {
 
 	@Bean
 	public StepExecutionListener configurazioneStepListener() {
-		return new ConfigurazioneStepListener(externalPath);
+		return new ConfigurazioneStepListener(configurazioneJsonPath);
 	}
 
 	@Bean
 	@Qualifier("ConfigurazioneItemReader")
 	public JpaPagingItemReader<AdesioneEntity> configurazioneItemReader(        EntityManagerFactory entityManagerFactory) throws IOException {
 
-		ConfigurazioneReader confReader = new ConfigurazioneReader(externalPath);
+		ConfigurazioneReader confReader = new ConfigurazioneReader(configurazioneJsonPath);
 
 		List<Map<String, String>> statoConf = confReader.getTuttaConfigurazioneAutomatica();
 		List<String> statiInConfigurazione = statoConf.stream()

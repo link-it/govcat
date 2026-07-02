@@ -61,7 +61,7 @@
         <div class="main-info main-content">
           <div class="main-data">
             <div class="primary-text text-break fw-bold-600 {{ primaryClass }}">
-              <a href="javascript:void(0);" class="item-row-link" [class.text-hover]="hasLink && !rowClick" [class.cursor-pointer]="hasLink && !rowClick" [class.supports-new-tab]="hasLink && linkRoute" (click)="__itemClick($event, ir)" (auxclick)="__itemClick($event, ir)">
+              <a role="button" tabindex="0" class="item-row-link" [class.text-hover]="hasLink && !rowClick" [class.cursor-pointer]="hasLink && !rowClick" [class.supports-new-tab]="hasLink && linkRoute" (click)="__itemClick($event, ir)" (auxclick)="__itemClick($event, ir)" (keydown.enter)="__itemClick($any($event), ir)" (keydown.space)="$event.preventDefault(); __itemClick($any($event), ir)">
                 @for (elem of _itemRowConfig?.primaryText; track elem) {
                   @if (_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)) {
                     <ui-item-type

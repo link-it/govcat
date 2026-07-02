@@ -19,8 +19,7 @@
 import { Injectable } from '@angular/core';
 import { HttpHeaders, HttpParams } from '@angular/common/http';
 
-import { ApiClient, IRequestOptions, IRawRequestOptions } from './api.client';
-import { environment } from '../environments/environment';
+import { ApiClient, IRequestOptions } from './api.client';
 
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -30,26 +29,49 @@ import { map } from 'rxjs/operators';
 })
 export class OpenAPIService {
 
-  private proxyPath: string;
+  private readonly proxyPath: string = "";
 
-  constructor( private http: ApiClient) 
-  {
-    this.proxyPath = ""
-  }
+  constructor( private readonly http: ApiClient) {}
 
   getList(name: string, options?: IRequestOptions, pageUrl: string = '') : Observable<any> {
     let url = `${this.proxyPath}/${name}`;
-    
+
     // gestione delle chiamate url per ngx-infinite-scroll o per la paginazione
     if (pageUrl) {
-      url = pageUrl;
-      // if (!environment.production) {
-        let path = pageUrl.replace(/^[^:]+:\/\/[^/?#]+.+?(?=\?)/, '');
-        url = `${this.proxyPath}/${name}${path}`;
-      // }
+      let path = pageUrl.replace(/^[^:]+:\/\/[^/?#]+.+?(?=\?)/, '');
+      url = `${this.proxyPath}/${name}${path}`;
     }
-    
-    return this.http.get<any>(url, options);
+
+    return this._withPagedLinks(this.http.get<any>(url, options));
+  }
+
+  /**
+   * Operatore condiviso applicato a TUTTE le API che restituiscono liste
+   * paginate (`getList`, `getListPDND`, `getMonitor`, e di conseguenza
+   * `getData`/`getDataPagination` che delegano a `getList`). Centralizza la
+   * normalizzazione dei link di paginazione: qualsiasi nuova API lista deve
+   * solo passare per questo operatore, senza interventi sui componenti.
+   */
+  private _withPagedLinks(obs: Observable<any>): Observable<any> {
+    return obs.pipe(map((resp: any) => this._normalizePagedLinks(resp)));
+  }
+
+  /**
+   * Normalizza i link di paginazione. Il backend restituisce `links` come
+   * array `[{ rel, href }]` (rel: first/self/next/last); i componenti lista
+   * (infinite-scroll) leggono invece `_links.next.href` come oggetto per-rel.
+   * Qui costruiamo `_links` (oggetto) a partire dall'array `links` quando
+   * assente, mantenendo retro-compatibilita` senza toccare i componenti.
+   */
+  private _normalizePagedLinks(resp: any): any {
+    if (resp && typeof resp === 'object' && !resp._links && Array.isArray(resp.links)) {
+      const _links: any = {};
+      for (const link of resp.links) {
+        if (link?.rel) { _links[link.rel] = { href: link.href }; }
+      }
+      resp._links = _links;
+    }
+    return resp;
   }
 
   getListPDND(name: string, options?: IRequestOptions, pageUrl: string = '') : Observable<any> {
@@ -57,21 +79,15 @@ export class OpenAPIService {
     
     // gestione delle chiamate url per ngx-infinite-scroll o per la paginazione
     if (pageUrl) {
-      url = pageUrl;
-      // if (!environment.production) {
-        let path = pageUrl.replace(/^[^:]+:\/\/[^/?#]+.+?(?=\?)/, '');
-        url = `${this.proxyPath}/${name}${path}`;
-      // }
+      let path = pageUrl.replace(/^[^:]+:\/\/[^/?#]+.+?(?=\?)/, '');
+      url = `${this.proxyPath}/${name}${path}`;
     }
     
-    switch (name) {
-      case "others":
-        return of(null); 
-        break;
-
-      default:
-        return this.http.getPDND<any>(url, options);
+    if (name === "others") {
+      return of(null);
     }
+
+    return this._withPagedLinks(this.http.getPDND<any>(url, options));
   }
 
   postPDND(name: string, body: Object, options?: IRequestOptions) {
@@ -80,48 +96,53 @@ export class OpenAPIService {
   }
 
   getDetails(name: string, id: any, type?: string, options?: IRequestOptions) {
-    if(!options) options = {};
+    options ??= {};
     
     const _url = type ? `${this.proxyPath}/${name}/${id}/${type}` : `${this.proxyPath}/${name}/${id}`;
     return this.http.get<any>(_url, options);
   }
 
   saveElement(name: string, body: Object, options?: IRequestOptions) {
-    if(!options) options = {};
+    options ??= {};
     
     const _url = `${this.proxyPath}/${name}`;
     return this.http.post<any>(_url, body, options);
   }
 
   updateElement(name: string, id: any, body: Object | null, options?: IRequestOptions) {
-    if(!options) options = {};
+    options ??= {};
+
     options.headers = new HttpHeaders();
-    // options.headers = options.headers.set('Content-type', 'application/json-patch+json');
 
     const _url = `${this.proxyPath}/${name}/${id}`;
     return this.http.patch<any>(_url, body, options);
   }
 
   putElement(name: string, id: any, body: Object | null, options?: IRequestOptions) {
-    if(!options) options = {};
+    options ??= {};
+
     options.headers = new HttpHeaders();
-    // options.headers = options.headers.set('Content-type', 'application/json');
 
     const _url = id ? `${this.proxyPath}/${name}/${id}` : `${this.proxyPath}/${name}`;
     return this.http.put<any>(_url, body, options);
   }
 
   deleteElement(name: string, id: any, options?: IRequestOptions) {
-    if(!options) options = {};
-    
-    const _url = `${this.proxyPath}/${name}/${id}`;
+    options ??= {};
+
+    // Issue 229 evolutiva 3 — l'`id` opzionale permette di
+    // chiamare endpoint con path fissi (es.
+    // `DELETE /profilo/organizzazione`) coerentemente con
+    // `putElement` (vedi sopra). Senza questa guardia veniva
+    // costruito un URL con il letterale "null"/"undefined".
+    const _url = id ? `${this.proxyPath}/${name}/${id}` : `${this.proxyPath}/${name}`;
     return this.http.delete<any>(_url, options);
   }
 
   upload(name: string, body: any, options?: IRequestOptions) {
-    if (!options) options = {};
+    options ??= {};
+
     options.headers = new HttpHeaders();
-    // options.headers = options.headers.set('Content-type', 'multipart/form-data');
 
     const _url = `${this.proxyPath}/${name}`;
     return this.http.post<any>(_url, body, options);
@@ -138,9 +159,9 @@ export class OpenAPIService {
   }
 
   putElementRelated(name: string, id: any, path: string, body: Object | null, options?: IRequestOptions) {
-    if(!options) options = {};
+    options ??= {};
+
     options.headers = new HttpHeaders();
-    // options.headers = options.headers.set('Content-type', 'application/json');
 
     const _url = `${this.proxyPath}/${name}/${id}/${path}`;
     
@@ -148,9 +169,9 @@ export class OpenAPIService {
   }
 
   postElementRelated(name: string, id: any, path: string, body: Object, options?: IRequestOptions) {
-    if(!options) options = {};
+    options ??= {};
+
     options.headers = new HttpHeaders();
-    // options.headers = options.headers.set('Content-type', 'application/json');
 
     const _url = `${this.proxyPath}/${name}/${id}/${path}`;
     return this.http.post<any>(_url, body, options);
@@ -158,7 +179,8 @@ export class OpenAPIService {
 
 
   postElement(name: string, body: Object, options?: IRequestOptions) {
-    if(!options) options = {};
+    options ??= {};
+
     options.headers = new HttpHeaders();
 
     const _url = `${this.proxyPath}/${name}`;
@@ -167,7 +189,7 @@ export class OpenAPIService {
   
 
   deleteElementRelated(name: string, id: any, path: string, options?: IRequestOptions) {
-    if(!options) options = {};
+    options ??= {};
     
     const _url = `${this.proxyPath}/${name}/${id}/${path}`;
     return this.http.delete<any>(_url, options);
@@ -179,32 +201,26 @@ export class OpenAPIService {
     let url = `${this.proxyPath}/${name}`;
     
     if (pageUrl) {
-      url = pageUrl;
-      // if (!environment.production) {
-        let path = pageUrl.replace(/^[^:]+:\/\/[^/?#]+.+?(?=\?)/, '');
-        url = `${this.proxyPath}/${name}${path}`;
-      // }
+      let path = pageUrl.replace(/^[^:]+:\/\/[^/?#]+.+?(?=\?)/, '');
+      url = `${this.proxyPath}/${name}${path}`;
     }
     
-    switch (name) {
-      case "others":
-        return of(null); 
-        break;
-
-      default:
-        return this.http.getMonitor<any>(url, options);
+    if (name === "others") {
+      return of(null);
     }
+
+    return this._withPagedLinks(this.http.getMonitor<any>(url, options));
   }
 
   postMonitor(name: string, body: Object, options?: IRequestOptions) {
-    if(!options) options = {};
+    options ??= {};
     
     const _url = `${this.proxyPath}/${name}`;
     return this.http.postMonitor<any>(_url, body, options);
   }
 
   getMonitorDetails(name: string, id: any, type?: string, options?: IRequestOptions) {
-    if(!options) options = {};
+    options ??= {};
     
     const _url = type ? `${this.proxyPath}/${name}/${id}/${type}` : `${this.proxyPath}/${name}/${id}`;
     return this.http.getMonitor<any>(_url, options);
@@ -221,12 +237,9 @@ export class OpenAPIService {
     let httpParams = new HttpParams();
 
     Object.keys(query).forEach(key => {
-        if (query[key] !== null) {
-            switch (key) {
-                default:
-                    httpParams = httpParams.set(key, query[key]);
-            }
-        }
+      if (query[key] !== null) {
+        httpParams = httpParams.set(key, query[key]);
+      }
     });
 
     return httpParams;
@@ -234,58 +247,54 @@ export class OpenAPIService {
 
   getData(model: string, term: any = null, pageSize: number = 100, sort: string = 'id', sort_direction: string = 'asc'): Observable<any> {
     let _options: any = { params: { PageSize: pageSize, PageNumber: 1, OrderTerm: `${sort},${sort_direction}` } };
-    // let _options: any = { params: { limit: 100, sort: sort, sort_direction: 'asc' } };
-    // let _options: any = { params: { } };
     if (term) {
-        if (typeof term === 'string' ) {
-            _options.params =  { ..._options.params, q: term };
-        }
-        if (typeof term === 'object' ) {
-            _options.params =  { ..._options.params, ...term };
-        }
+      if (typeof term === 'string' ) {
+        _options.params =  { ..._options.params, q: term };
+      }
+      if (typeof term === 'object' ) {
+        _options.params =  { ..._options.params, ...term };
+      }
     }
 
     return this.getList(model, _options)
-        .pipe(
-            map((resp: any) => {
-                if (resp.Error) {
-                    return of({status: 500, message: resp.Error});
-                    // throwError(resp.Error);
-                } else {
-                    const _items = (resp.content || resp).map((item: any) => {
-                        return item;
-                    });
-                    return _items;
-                }
-            })
-        );
+      .pipe(
+        map((resp: any) => {
+          if (resp.Error) {
+            return of({status: 500, message: resp.Error});
+          } else {
+            const _items = (resp.content || resp).map((item: any) => {
+              return item;
+            });
+            return _items;
+          }
+        })
+      );
   }
 
   getDataPagination(model: string, term: any = null, pageNumber: number = 0, pageSize: number = 100, sort: string = 'id', sort_direction: string = 'asc'): Observable<any> {
     let _options: any = { params: { size: pageSize, page: pageNumber, sort: `${sort},${sort_direction}` } };
     if (term) {
-        if (typeof term === 'string' ) {
-            _options.params =  { ..._options.params, q: term };
-        }
-        if (typeof term === 'object' ) {
-            _options.params =  { ..._options.params, ...term };
-        }
+      if (typeof term === 'string' ) {
+        _options.params =  { ..._options.params, q: term };
+      }
+      if (typeof term === 'object' ) {
+        _options.params =  { ..._options.params, ...term };
+      }
     }
 
     return this.getList(model, _options)
-        .pipe(
-            map((resp: any) => {
-                if (resp.Error) {
-                    return of({status: 500, message: resp.Error});
-                    // throwError(resp.Error);
-                } else {
-                    const _items = (resp.content || resp).map((item: any) => {
-                        return item;
-                    });
-                    return _items;
-                }
-            })
-        );
+      .pipe(
+        map((resp: any) => {
+          if (resp.Error) {
+            return of({status: 500, message: resp.Error});
+          } else {
+            const _items = (resp.content || resp).map((item: any) => {
+              return item;
+            });
+            return _items;
+          }
+        })
+      );
   }
 
 }

@@ -25,6 +25,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -74,25 +75,20 @@ public class SecurityConfig {
    		filter.setAuthenticationDetailsSource(new ReverseProxyAuthenticationDetailsSource(webConsoleConfig));
    		
    		// Disabilita csrf perchè abbiamo solo richieste pre-autenticate con header
-   		applyAuthRules(http).csrf().disable()		
+   		applyAuthRules(http)
+   		.csrf(csrf -> csrf.disable())
    		// Autenticazione per header
-   		.addFilterBefore(filter, filter.getClass())																											
+   		.addFilterBefore(filter, filter.getClass())
    		.addFilterBefore(preAuthenticatedExceptionHandler, LogoutFilter.class)
-   		.exceptionHandling()
+   		.exceptionHandling(exceptionHandling -> exceptionHandling
    				// Gestisci accessDenied in modo da restituire un problem ben formato
-   				.accessDeniedHandler(accessDeniedHandler())																	
+   				.accessDeniedHandler(accessDeniedHandler())
    				// Gestisci la mancata autenticazione con un problem ben formato
-   				.authenticationEntryPoint(new UnauthorizedAuthenticationEntryPoint(jsonMapper))	
-   				;
-   		
-   		http
-   				// Arrivano solo richieste autenticate.
-   			.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-   		.and()
-   			.headers()
-   			.xssProtection()
-               ;
-   		
+   				.authenticationEntryPoint(new UnauthorizedAuthenticationEntryPoint(jsonMapper)))
+   		// Arrivano solo richieste autenticate.
+   		.sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+   		.headers(headers -> headers.xssProtection(Customizer.withDefaults()));
+
    		return http.build();
    		
 	}

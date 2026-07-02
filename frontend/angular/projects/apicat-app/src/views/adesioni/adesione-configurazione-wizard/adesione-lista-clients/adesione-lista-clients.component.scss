@@ -16,23 +16,237 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-.flex-container {
-    display: flex;
-    // flex-wrap: wrap;
-    // align-content: center;
+
+// ----------------------------------------------------------------------
+// Hint inline sotto ogni riga di client (rev. 2 — preservato).
+// ----------------------------------------------------------------------
+.adesione-item-hint {
+  font-size: 0.8125rem;
+  line-height: 1.3;
+
+  // L'hint sta sotto la riga del client (dentro la stessa card
+  // host): i border-top arrotondati creano uno scalino visivo
+  // contro il bordo superiore. Flat in alto, arrotondato sotto.
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+
+  i.bi {
+    opacity: 0.85;
+  }
+
+  markdown.disclaimer-inline {
+    display: inline;
+
+    ::ng-deep p {
+      display: inline;
+      margin: 0;
+    }
+  }
 }
 
-.flex-container > div {
-    padding: 0.1rem;
+// ----------------------------------------------------------------------
+// Lista "Configurazione autenticazione" (Issue 254 NEW LAYOUT, rev. 4.27)
+// I token CSS (`--ink`, `--surface`, ecc.) sono ereditati dal wizard
+// host `.lnk-wizard` (sono variabili DOM-level, attraversano view
+// encapsulation).
+// ----------------------------------------------------------------------
+// Override del `section { padding: 3rem 0 }` globale di
+// `app-custom.scss:201` — qui il `<section>` e` il root della
+// lista, dentro un pannello del wizard nuovo layout.
+section.adesione-config-list {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
 }
 
-.flex-auto {
-    flex: auto;
-    padding: 0px;
+.adesione-config-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.flex-initial {
-    align-self: center;
-    text-align: right;
-    min-width: 75px
+.adesione-config-list-hd {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.adesione-config-list-title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink, #212c49);
+
+  &.text-danger { color: var(--err, #ff4050); }
+}
+
+.adesione-config-list-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.adesione-config-list-item {
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--line, #dee8ef);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color .15s, box-shadow .15s;
+
+  &.is-editing {
+    border-color: var(--accent, #ff4050);
+    box-shadow: 0 0 0 3px var(--accent-soft, #ffe9eb);
+  }
+
+  // View-only (icona eye): evidenziazione verde — segnala
+  // che la riga e` "aperta" senza dare la sensazione che
+  // ci siano dati ancora da compilare (rosso).
+  &.is-viewing {
+    border-color: var(--ok-border, #b6dcc7);
+    box-shadow: 0 0 0 3px var(--ok-soft, #e3f3ec);
+  }
+}
+
+.adesione-config-list-item-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+}
+
+.adesione-config-list-item-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.adesione-config-list-item-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink, #212c49);
+  letter-spacing: -0.005em;
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+
+  .version {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--ink-3, #57738a);
+    background: var(--surface-3, #eef4f8);
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+
+  &.text-danger { color: var(--err, #ff4050); }
+}
+
+.adesione-config-list-item-meta {
+  font-size: 0.75rem;
+  color: var(--ink-3, #57738a);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+
+  .sep { opacity: 0.5; }
+
+  .mono-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--surface-3, #eef4f8);
+    border: 1px solid var(--line, #dee8ef);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.6875rem;
+    color: var(--ink-2, #2e445a);
+  }
+
+  .config-status {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    padding: 1px 8px;
+    border-radius: 999px;
+
+    &.config-status-configurato {
+      background: #e8f6ee;
+      color: #1f6b3a;
+    }
+    &.config-status-NONCONFIGURATO,
+    &.config-status-Non.config-status-configurato,
+    &.config-status-config_in_progress {
+      background: var(--surface-3, #eef4f8);
+      color: var(--ink-3, #57738a);
+    }
+  }
+}
+
+.adesione-config-list-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+// Bottoni icon-only stile design Link.it (mirror del `.lnk-btn-ghost
+// .lnk-btn-sm .lnk-btn-icon` del wizard SCSS — necessario duplicare
+// qui perche` quel scope non raggiunge i child component).
+.lnk-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4375rem;
+  height: 32px;
+  padding: 0 0.8125rem;
+  background: var(--surface, #ffffff);
+  color: var(--ink, #212c49);
+  border: 1px solid var(--line-strong, #c4d6e0);
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .12s;
+  text-decoration: none;
+}
+.lnk-btn:hover {
+  background: var(--surface-3, #eef4f8);
+  border-color: var(--ink-4, #8aa4b8);
+}
+.lnk-btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+.lnk-btn-ghost:hover {
+  background: var(--surface-3, #eef4f8);
+}
+.lnk-btn-sm {
+  height: 28px;
+  font-size: 0.78125rem;
+  padding: 0 0.625rem;
+}
+.lnk-btn-icon {
+  width: 30px;
+  padding: 0;
+
+  &.lnk-btn-sm { width: 28px; }
+
+  i.bi { font-size: 14px; }
+  .material-icons-outlined { font-size: 18px; line-height: 1; }
+}
+
+// Pannello edit inline (rev. 4 — preservato + integrato col nuovo
+// item card).
+.adesione-inline-edit-panel {
+  background-color: var(--surface-2, #fafcfd);
+  border-top: 1px solid var(--line, #dee8ef);
+  padding: 0.75rem 1rem;
 }

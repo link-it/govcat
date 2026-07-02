@@ -342,14 +342,14 @@ L'array `Fonts` definisce i font disponibili per i temi.
 
 Per maggiori dettagli sull'aggiunta di nuovi font, consulta: `assets/fonts/README.md`
 
-#### 2.11 CurrentThems e Themes - Sistema di Tematizzazione
+#### 2.11 CurrentTheme e Themes - Sistema di Tematizzazione
 
 ```json
-"CurrentThems": "linkit-lato",
+"CurrentTheme": "linkit-lato",
 "Themes": [...]
 ```
 
-- **CurrentThems**: Nome del tema attualmente attivo
+- **CurrentTheme**: Nome del tema attualmente attivo
 - **Themes**: Array di temi disponibili
 
 ##### Temi Disponibili
@@ -503,10 +503,10 @@ Le variabili CSS personalizzabili includono:
 
 ### Cambiare il Tema Attivo
 
-Modifica il valore di `CurrentThems` con uno dei nomi disponibili:
+Modifica il valore di `CurrentTheme` con uno dei nomi disponibili:
 
 ```json
-"CurrentThems": "linkit-blue"
+"CurrentTheme": "linkit-blue"
 ```
 
 ### Personalizzare un Tema

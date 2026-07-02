@@ -30,10 +30,15 @@
  */
 
 
-export type RuoloUtenteEnum = 'referente_servizio' | 'gestore' | 'coordinatore';
+export type RuoloUtenteEnum = 'referente_servizio' | 'utente_organizzazione' | 'gestore' | 'coordinatore';
 
 export const RuoloUtenteEnum = {
+    /**
+     * @deprecated In favore di `UtenteOrganizzazione`. Mantenuto per
+     * retrocompatibilita' finche' il BE pubblica entrambi i ruoli.
+     */
     ReferenteServizio: 'referente_servizio' as RuoloUtenteEnum,
+    UtenteOrganizzazione: 'utente_organizzazione' as RuoloUtenteEnum,
     Gestore: 'gestore' as RuoloUtenteEnum,
     Coordinatore: 'coordinatore' as RuoloUtenteEnum
 };

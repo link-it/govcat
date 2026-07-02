@@ -417,7 +417,7 @@ public class EServiceBuilder {
 					} else {
 						tipoRef = "Referente tecnico";
 					}
-					ReferentItemType gritm = getReferentItem(ref.getReferente(), tipoRef);
+					ReferentItemType gritm = getReferentItem(ref.getReferente(), tipoRef, api.getServizio());
 					servRef.getItem().add(gritm);
 				}
 
@@ -557,15 +557,31 @@ public class EServiceBuilder {
 	public String getUrlInvocazione(ApiEntity api, boolean collaudo) {
 		
 		String prefix = getPrefix(api, collaudo);
-		String soggettoReferente = getNome(api.getServizio().getDominio().getSoggettoReferente()); 
-		String soggettoInterno = getNome(api.getServizio().getSoggettoInterno()); 
+		// Swap coerente col nuovo modello: per le fruizioni il "referente" della URL è il provider
+		// (ente erogatore indicato sul servizio) e il "soggetto interno" è il referente del dominio.
+		String soggettoReferente;
+		String soggettoInterno;
+		if (api.getServizio().isFruizione()) {
+			soggettoReferente = getNome(api.getServizio().getSoggettoErogatore());            // provider
+			soggettoInterno = getNome(api.getServizio().getDominio().getSoggettoReferente()); // interno
+		} else {
+			soggettoReferente = getNome(api.getServizio().getDominio().getSoggettoReferente()); // erogatore interno
+			soggettoInterno = "";                                                              // nessun soggetto interno
+		}
 		
 		String urlInvocazione = Optional.ofNullable(api.getUrlInvocazione())
 		        .or(() -> Optional.ofNullable(api.getServizio().getUrlInvocazione()))
 		        .or(() -> Optional.ofNullable(api.getServizio().getDominio().getUrlInvocazione()))
 		        .or(() -> Optional.ofNullable(api.getServizio().getDominio().getSoggettoReferente().getUrlInvocazione()))
 		        .orElse(this.configurazione.getTemplateUrlInvocazione());
-		
+
+		// Campo opzionale: stessa gerarchia/ordine della urlInvocazione, stringa vuota se assente a tutti i livelli
+		String canale = Optional.ofNullable(api.getCanale())
+		        .or(() -> Optional.ofNullable(api.getServizio().getCanale()))
+		        .or(() -> Optional.ofNullable(api.getServizio().getDominio().getCanale()))
+		        .or(() -> Optional.ofNullable(api.getServizio().getDominio().getSoggettoReferente().getCanale()))
+		        .orElse("");
+
 		PROTOCOLLO protocollo = getProtocollo(api, collaudo);
 		String url = urlInvocazione
 				.replaceAll("#prefix#", prefix)
@@ -574,6 +590,7 @@ public class EServiceBuilder {
 				.replaceAll("#nome#", getNome(api, collaudo))
 				.replaceAll("#versione#", api.getVersione() + "")
 				.replaceAll("#tecnologia#", getTecnologia(api, collaudo))
+				.replaceAll("#canale#", canale)
 				.replaceAll("#protocollo#", protocollo != null ? protocollo.toString() : "");
 
 		while(url.contains("//")) {
@@ -655,7 +672,7 @@ public class EServiceBuilder {
 		return mapToZip(getApiFiles(api, "", true));
 	}
 
-	private ReferentItemType getReferentItem(UtenteEntity referent, String tipo) {
+	private ReferentItemType getReferentItem(UtenteEntity referent, String tipo, ServizioEntity servizioContesto) {
 		ReferentItemType ref = new ReferentItemType();
 
 		// Issue 137/140: Formato compatto per visualizzazione referenti nel PDF
@@ -665,23 +682,52 @@ public class EServiceBuilder {
 		sb.append(tipo);
 		sb.append(" - ");
 		sb.append(referent.getNome()).append(" ").append(referent.getCognome());
-		if(referent.getOrganizzazione() != null) {
-			sb.append(" - ").append(referent.getOrganizzazione().getNome());
+		String nomeOrgReferente = nomeOrganizzazioneReferenteNelContesto(referent, servizioContesto);
+		if (nomeOrgReferente != null) {
+			sb.append(" - ").append(nomeOrgReferente);
 		}
 		// Usa solo il campo nome per la visualizzazione compatta
 		ref.setNome(sb.toString());
 
-		// Codice originale commentato - visualizzazione multi-riga con tutti i campi separati
-		// ref.setTipoReferente(tipo);
-		// ref.setNome(referent.getNome());
-		// ref.setCognome(referent.getCognome());
-		// ref.setBusinessTelefono(referent.getTelefonoAziendale());
-		// ref.setBusinessEmail(referent.getEmailAziendale());
-		// if(referent.getOrganizzazione()!= null) {
-		// 	ref.setOrganization(referent.getOrganizzazione().getNome());
-		// }
-
 		return ref;
+	}
+
+	/**
+	 * Restituisce il nome dell'organizzazione del referente nel contesto del servizio indicato.
+	 * Cerca tra le associazioni utenti_organizzazioni del referente quella corrispondente
+	 * all'organizzazione del soggetto referente del dominio del servizio. Se non presente,
+	 * ricade sulla prima associazione del referente (best effort per casi legacy).
+	 */
+	private String nomeOrganizzazioneReferenteNelContesto(UtenteEntity referent, ServizioEntity servizio) {
+		if (referent.getUtenteOrganizzazioni() == null || referent.getUtenteOrganizzazioni().isEmpty()) {
+			return null;
+		}
+
+		// Identifica l'organizzazione del servizio (via dominio.soggettoReferente.organizzazione)
+		Long idOrgServizio = null;
+		if (servizio != null && servizio.getDominio() != null
+				&& servizio.getDominio().getSoggettoReferente() != null
+				&& servizio.getDominio().getSoggettoReferente().getOrganizzazione() != null) {
+			idOrgServizio = servizio.getDominio().getSoggettoReferente().getOrganizzazione().getId();
+		}
+
+		// Cerca tra le associazioni del referente quella sull'organizzazione del servizio
+		if (idOrgServizio != null) {
+			for (org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity assoc : referent.getUtenteOrganizzazioni()) {
+				if (assoc.getOrganizzazione() != null
+						&& idOrgServizio.equals(assoc.getOrganizzazione().getId())) {
+					return assoc.getOrganizzazione().getNome();
+				}
+			}
+		}
+
+		// Fallback: prima associazione del referente
+		org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity prima =
+				referent.getUtenteOrganizzazioni().iterator().next();
+		if (prima.getOrganizzazione() != null) {
+			return prima.getOrganizzazione().getNome();
+		}
+		return null;
 	}
 
 }

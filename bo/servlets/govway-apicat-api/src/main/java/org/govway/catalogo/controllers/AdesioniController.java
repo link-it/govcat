@@ -64,12 +64,16 @@ import org.govway.catalogo.core.orm.entity.EstensioneAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
 import org.govway.catalogo.core.orm.entity.MessaggioAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.NotificaEntity;
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteAdesioneEntity;
+import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.StatoAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
+import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity;
 import org.govway.catalogo.core.services.AdesioneService;
 import org.govway.catalogo.core.services.UtenteService;
+import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.core.services.NotificaService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
@@ -77,10 +81,12 @@ import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
+import org.govway.catalogo.services.DisclaimerService;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
 import org.govway.catalogo.servlets.api.AdesioniApi;
 import org.govway.catalogo.servlets.model.Adesione;
 import org.govway.catalogo.servlets.model.AdesioneClientUpdate;
+import org.govway.catalogo.servlets.model.AdesioneDisclaimer;
 import org.govway.catalogo.servlets.model.AdesioneCreate;
 import org.govway.catalogo.servlets.model.AdesioneErogazioneUpdate;
 import org.govway.catalogo.servlets.model.AdesioneUpdate;
@@ -101,6 +107,7 @@ import org.govway.catalogo.servlets.model.ItemAdesione;
 import org.govway.catalogo.servlets.model.ItemComunicazione;
 import org.govway.catalogo.servlets.model.ItemErogazioneAdesione;
 import org.govway.catalogo.servlets.model.ItemMessaggio;
+import org.govway.catalogo.servlets.model.ItemServizio;
 import org.govway.catalogo.servlets.model.MessaggioAdesioneCreate;
 import org.govway.catalogo.servlets.model.MessaggioCreate;
 import org.govway.catalogo.servlets.model.MessaggioUpdate;
@@ -202,6 +209,12 @@ public class AdesioniController implements AdesioniApi {
 
 	@Autowired
 	private UtenteService utenteService;
+	@Autowired
+	private OrganizzazioneService organizzazioneService;
+
+
+	@Autowired
+	private DisclaimerService disclaimerService;
 
 	@Override
 	public ResponseEntity<Adesione> createAdesione(AdesioneCreate adesioneCreate) {
@@ -210,19 +223,23 @@ public class AdesioniController implements AdesioniApi {
 				
 				logger.info("PRE assembler toentity");
 				
-				this.logger.info("Invocazione in corso ...");     
+				this.logger.info("Invocazione in corso ...");
+				this.authorization.authorizeCreate(adesioneCreate);
+
 				AdesioneEntity entity = this.dettaglioAssembler.toEntity(adesioneCreate);
 
 				logger.info("POST assembler toentity");
-				
+
 				logger.info("PRE authorization");
-				
+
 				this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.IDENTIFICATIVO));
 				
 				logger.info("POST authorization");
 				
+				checkReferenti(entity);
+
 				logger.info("PRE existsBySoggettoServizioNonArchiviato");
-				
+
 				if(this.service.existsBySoggettoServizioNonArchiviato(entity, configurazione.getAdesione().getWorkflow().getStatoArchiviato())) {
 					if(!entity.getServizio().isMultiAdesione()) {
 						throw new ConflictException(ErrorCode.ADE_409, java.util.Map.of("soggetto", entity.getSoggetto().getNome(), "servizio", entity.getServizio().getNome(), "versione", entity.getServizio().getVersione().toString()));
@@ -269,7 +286,21 @@ public class AdesioniController implements AdesioniApi {
 	}
 
 	private AdesioneEntity findOne(UUID idAdesione) {
-		
+		return findOne(idAdesione, false);
+	}
+
+	/**
+	 * Variante di {@link #findOne(UUID)} per le operazioni di sola consultazione (endpoint GET):
+	 * un amministratore di organizzazione può consultare tutte le adesioni della/e propria/e
+	 * organizzazione/i (lato aderente), anche senza esserne referente o richiedente.
+	 * Non va usata per le operazioni di scrittura, la cui autorizzazione resta invariata.
+	 */
+	private AdesioneEntity findOneConsultazione(UUID idAdesione) {
+		return findOne(idAdesione, true);
+	}
+
+	private AdesioneEntity findOne(UUID idAdesione, boolean visibilitaAmministratoreOrganizzazione) {
+
 		UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
 		
 		if(utente == null) {
@@ -279,6 +310,9 @@ public class AdesioniController implements AdesioniApi {
 		
 		if(!this.coreAuthorization.isAdmin()) {
 			aspec.setUtente(Optional.of(utente));
+			if(visibilitaAmministratoreOrganizzazione) {
+				aspec.setIdOrganizzazioniAmministrate(getIdOrganizzazioniAmministrate(utente));
+			}
 		}
 
 		aspec.setIdAdesioni(List.of(idAdesione));
@@ -376,19 +410,21 @@ public class AdesioniController implements AdesioniApi {
 		try {
 			return this.service.runTransaction( () -> {
 
-				this.logger.info("Invocazione in corso ...");     
+				this.logger.info("Invocazione in corso ...");
 				AdesioneEntity entity = findOne(idAdesione);
-				
+
 				Grant grant = this.dettaglioAssembler.toGrant(entity);
 
 				if(!isForce(force, grant.getRuoli())) {
 					this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.REFERENTI));
 				}
 
-				this.logger.debug("Autorizzazione completata con successo");     
+				this.logger.debug("Autorizzazione completata con successo");
 
 				ReferenteAdesioneEntity referenteEntity = referenteAssembler.toEntity(referente, entity);
-				
+
+				checkReferente(referenteEntity);
+
 				this.service.save(referenteEntity);
 				this.service.save(entity);
 				
@@ -521,7 +557,7 @@ public class AdesioniController implements AdesioniApi {
 
 			return this.service.runTransaction( () -> {
 
-				findOne(idAdesione);
+				findOneConsultazione(idAdesione);
 
 				MessaggioAdesioneEntity messaggio = this.service.findMessaggioAdesione(idAdesione.toString(), idMessaggio.toString())
 						.stream()
@@ -552,7 +588,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction( () -> {
 
 			this.logger.info("Invocazione in corso ...");    
-			AdesioneEntity entity = findOne(idAdesione);
+			AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 			this.logger.debug("Autorizzazione completata con successo");     
 
@@ -580,7 +616,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ..."); 
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 				this.logger.debug("Autorizzazione completata con successo");     
 				
 				if(!this.configurazione.getAdesione().getStatiSchedaAdesione().contains(entity.getStato())) {
@@ -627,7 +663,7 @@ public class AdesioniController implements AdesioniApi {
 
 				this.logger.info("Invocazione in corso ..."); 
 				
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -660,7 +696,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ..."); 
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -694,7 +730,7 @@ public class AdesioniController implements AdesioniApi {
 
 				this.logger.info("Invocazione in corso ...");  
 				
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -794,7 +830,11 @@ public class AdesioniController implements AdesioniApi {
 				boolean admin = this.coreAuthorization.isAdmin() || this.coreAuthorization.isCoordinatore();
 
 				if(!admin) {
-					specification.setUtente(Optional.of(this.coreAuthorization.getUtenteSessione()));
+					UtenteEntity utenteSessione = this.coreAuthorization.getUtenteSessione();
+					specification.setUtente(Optional.of(utenteSessione));
+					// Un amministratore di organizzazione vede tutte le adesioni della/e propria/e
+					// organizzazione/i (lato aderente), anche senza esserne referente o richiedente.
+					specification.setIdOrganizzazioniAmministrate(getIdOrganizzazioniAmministrate(utenteSessione));
 				}
 
 				specification.setStati(stato);
@@ -853,22 +893,35 @@ public class AdesioniController implements AdesioniApi {
 					if(!anounymous) {
 						UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
 
+						// Clausola comune: ogni utente vede sempre in dashboard le PROPRIE adesioni
+						// (di cui è referente) in stato di bozza (stato iniziale del workflow),
+						// indipendentemente dal ruolo globale (gestore/coordinatore/referente).
+						String statoBozza = this.configurazione.getAdesione().getWorkflow().getStatoIniziale();
+						Specification<AdesioneEntity> specBozzaReferente = (statoBozza != null)
+								? AdesioneSpecificationUtils.byReferenteAdesione(utente)
+										.and(AdesioneSpecificationUtils.byStati(List.of(statoBozza)))
+								: null;
+
+						// Filtro per stati in base al ruolo
+						Specification<AdesioneEntity> specRuolo = null;
+						boolean vediTuttiGliStati = false;
+
 						// Gestione dashboard in base al ruolo
 						if(this.coreAuthorization.isAdmin()) {
 							// Gestore: filtra per stati del ruolo "gestore"
 							List<String> statiGestore = getStatiDashboardAdesione(ConfigurazioneRuolo.GESTORE);
 							if(!statiGestore.isEmpty()) {
-								realSpecification = specification.and(AdesioneSpecificationUtils.byStati(statiGestore));
+								specRuolo = AdesioneSpecificationUtils.byStati(statiGestore);
 							} else {
-								realSpecification = specification;
+								vediTuttiGliStati = true;
 							}
 						} else if(this.coreAuthorization.isCoordinatore()) {
 							// Coordinatore: usa ruolo "referente_superiore"
 							List<String> statiCoordinatore = getStatiDashboardAdesione(ConfigurazioneRuolo.REFERENTE_SUPERIORE);
 							if(!statiCoordinatore.isEmpty()) {
-								realSpecification = specification.and(AdesioneSpecificationUtils.byStati(statiCoordinatore));
+								specRuolo = AdesioneSpecificationUtils.byStati(statiCoordinatore);
 							} else {
-								realSpecification = specification;
+								vediTuttiGliStati = true;
 							}
 						} else {
 							// Altri utenti: verifica ruoli tramite getRuoliReferente
@@ -877,30 +930,33 @@ public class AdesioniController implements AdesioniApi {
 							List<String> statiReferenteSuperiore = getStatiDashboardAdesione(ConfigurazioneRuolo.REFERENTE_SUPERIORE);
 							List<String> statiReferente = getStatiDashboardAdesione(ConfigurazioneRuolo.REFERENTE);
 
-							Specification<AdesioneEntity> specDashboard = null;
-
 							// Se referente di dominio -> adesioni con servizi di quel dominio negli stati "referente_superiore"
 							if(ruoliUtente.contains("REFERENTE_DOMINIO") && !statiReferenteSuperiore.isEmpty()) {
-								Specification<AdesioneEntity> specRefDominio = AdesioneSpecificationUtils.byReferenteDominio(utente)
+								specRuolo = AdesioneSpecificationUtils.byReferenteDominio(utente)
 										.and(AdesioneSpecificationUtils.byStati(statiReferenteSuperiore));
-								specDashboard = specRefDominio;
 							}
 
 							// Se referente di servizio -> adesioni dove è referente del servizio negli stati "referente"
 							if(ruoliUtente.contains("REFERENTE_SERVIZIO") && !statiReferente.isEmpty()) {
 								Specification<AdesioneEntity> specRefServizio = AdesioneSpecificationUtils.byReferenteServizio(utente)
 										.and(AdesioneSpecificationUtils.byStati(statiReferente));
-								if(specDashboard != null) {
-									specDashboard = specDashboard.or(specRefServizio);
-								} else {
-									specDashboard = specRefServizio;
-								}
+								specRuolo = (specRuolo != null) ? specRuolo.or(specRefServizio) : specRefServizio;
 							}
+						}
 
+						if(vediTuttiGliStati) {
+							// admin/coordinatore senza stati dashboard configurati: nessun filtro di stato
+							realSpecification = specification;
+						} else {
+							// Unione tra il filtro del ruolo e le proprie adesioni in bozza
+							Specification<AdesioneEntity> specDashboard = specRuolo;
+							if(specBozzaReferente != null) {
+								specDashboard = (specDashboard != null) ? specDashboard.or(specBozzaReferente) : specBozzaReferente;
+							}
 							if(specDashboard != null) {
 								realSpecification = specification.and(specDashboard);
 							} else {
-								// Nessun ruolo rilevante, nessun risultato
+								// Nessun ruolo rilevante e nessuna bozza: nessun risultato
 								realSpecification = specification.and((root, query, cb) -> cb.disjunction());
 							}
 						}
@@ -911,7 +967,12 @@ public class AdesioniController implements AdesioniApi {
 					realSpecification = specification;
 				}
 
-				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("searchTerms"));
+				// In dashboard l'ordinamento di default è cronologico decrescente per data di creazione
+				// (sempre valorizzata e portabile tra DB), resta sovrascrivibile da un sort esplicito.
+				List<String> sortDefault = (dashboard != null && dashboard)
+						? Arrays.asList("dataCreazione,desc")
+						: Arrays.asList("searchTerms");
+				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, sortDefault);
 
 				Page<AdesioneEntity> findAll = this.service.findAll(
 						realSpecification,
@@ -921,7 +982,12 @@ public class AdesioniController implements AdesioniApi {
 				Link link = Link.of(ServletUriComponentsBuilder.fromCurrentRequest().build().toUriString(), IanaLinkRelations.SELF);
 
 
-				PagedModel<ItemAdesione> lst = pagedResourceAssembler.toModel(findAll, this.itemAssembler, link);
+				// Cache per-richiesta dell'ItemServizio condivisa tra tutte le adesioni della pagina:
+				// adesioni sullo stesso servizio riusano l'ItemServizio gia` assemblato (incluso il dominio
+				// dettagliato), evitando di ricostruirlo per ogni elemento.
+				Map<String, ItemServizio> cacheServizi = new HashMap<>();
+				PagedModel<ItemAdesione> lst = pagedResourceAssembler.toModel(findAll,
+						(AdesioneEntity a) -> this.itemAssembler.toModel(a, cacheServizi), link);
 
 				PagedModelItemAdesione list = new PagedModelItemAdesione();
 				list.setContent(lst.getContent().stream().collect(Collectors.toList()));
@@ -960,6 +1026,9 @@ public class AdesioniController implements AdesioniApi {
 						}
 					}
 
+					// Pre-carica le associazioni utente-organizzazione via repository per evitare lazy loading
+					List<UtenteOrganizzazioneEntity> utenteOrganizzazioni = this.organizzazioneService.findUtenteOrganizzazioniByUtente(utente);
+
 					// Mappa per l'associazione adesione -> entity
 					Map<String, AdesioneEntity> adesioneEntityMap = new HashMap<>();
 					for(AdesioneEntity ae : findAll.getContent()) {
@@ -970,7 +1039,7 @@ public class AdesioniController implements AdesioniApi {
 					for(ItemAdesione item : list.getContent()) {
 						AdesioneEntity ae = adesioneEntityMap.get(item.getIdAdesione().toString());
 						if(ae != null) {
-							List<RuoloReferenteEnum> ruoli = calcolaRuoliReferenteAdesione(ae, utente, dominiReferente, dominiReferenteTecnico, serviziReferente, serviziReferenteTecnico, adesioniReferente, adesioniReferenteTecnico);
+							List<RuoloReferenteEnum> ruoli = calcolaRuoliReferenteAdesione(ae, utente, dominiReferente, dominiReferenteTecnico, serviziReferente, serviziReferenteTecnico, adesioniReferente, adesioniReferenteTecnico, utenteOrganizzazioni);
 							item.setRuoliReferente(ruoli);
 						}
 					}
@@ -1073,7 +1142,7 @@ public class AdesioniController implements AdesioniApi {
 
 				this.logger.info("Invocazione in corso ...");  
 				
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -1105,7 +1174,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ...");     
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				List<ClientAdesioneEntity> lst = entity.getClient().stream()
@@ -1139,7 +1208,7 @@ public class AdesioniController implements AdesioniApi {
 
 				this.logger.info("Invocazione in corso ..."); 
 				
-				findOne(idAdesione);
+				findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -1188,7 +1257,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction(() -> {
 				this.logger.info("Invocazione in corso ...");     
 	
-				findOne(idAdesione);
+				findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");     
 	
@@ -1475,6 +1544,48 @@ public class AdesioniController implements AdesioniApi {
 	}
 
 	@Override
+	public ResponseEntity<Adesione> retryConfigurazioneAutomaticaAdesione(UUID idAdesione) {
+		try {
+			return this.service.runTransaction(() -> {
+				this.logger.info("Invocazione in corso ...");
+				this.coreAuthorization.requireAdmin();
+				this.logger.debug("Autorizzazione completata con successo");
+
+				AdesioneEntity entity = findOne(idAdesione);
+
+				// L'operazione ha senso solo se l'adesione e' in uno degli stati "in configurazione automatica"
+				Set<String> statiInConfigurazione = this.configurazione.getAdesione().getConfigurazioneAutomatica().stream()
+						.map(ConfigurazioneAutomatica::getStatoInConfigurazione)
+						.collect(Collectors.toSet());
+
+				if(!statiInConfigurazione.contains(entity.getStato())) {
+					throw new BadRequestException(ErrorCode.ADE_400_STATE, Map.of("stato", entity.getStato()));
+				}
+
+				// Ripristina le condizioni di selezione del batch di configurazione automatica
+				entity.setStatoConfigurazione(null);
+				entity.setTentativi(0);
+				entity.setMessaggioConfigurazione(null);
+
+				this.service.save(entity);
+
+				Adesione model = this.dettaglioAssembler.toModel(entity);
+
+				this.logger.info("Invocazione completata con successo");
+				return ResponseEntity.ok(model);
+			});
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	@Override
 	public ResponseEntity<Void> deleteMessaggioAdesione(UUID idAdesione, UUID idMessaggio) {
 		try {
 			return this.service.runTransaction( () -> {
@@ -1551,7 +1662,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ...");     
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");     
 				DocumentoEntity allegato = null;
@@ -1594,7 +1705,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ...");   
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");     
 				DocumentoEntity allegato = null;
@@ -1803,7 +1914,7 @@ public class AdesioniController implements AdesioniApi {
 
 				this.logger.info("Invocazione in corso ...");    
 				
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -1830,7 +1941,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ...");
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");
 
@@ -1863,7 +1974,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ...");
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				this.logger.debug("Autorizzazione completata con successo");
 
@@ -2165,7 +2276,7 @@ public class AdesioniController implements AdesioniApi {
 
 			return this.service.runTransaction( () -> {
 
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 
 				List<EstensioneAdesioneEntity> lst = entity.getEstensioni().stream()
 						.filter(c -> c.getDocumento()!= null && c.getDocumento().getUuid().equals(idAllegato.toString()))
@@ -2200,7 +2311,7 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ...");     
-				AdesioneEntity entity = findOne(idAdesione);
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				CheckDati checkDatiGenerale = new CheckDati();
@@ -2241,7 +2352,8 @@ public class AdesioniController implements AdesioniApi {
 	private List<RuoloReferenteEnum> calcolaRuoliReferenteAdesione(AdesioneEntity adesione, UtenteEntity utente,
 			Set<Long> dominiReferente, Set<Long> dominiReferenteTecnico,
 			Set<Long> serviziReferente, Set<Long> serviziReferenteTecnico,
-			Set<Long> adesioniReferente, Set<Long> adesioniReferenteTecnico) {
+			Set<Long> adesioniReferente, Set<Long> adesioniReferenteTecnico,
+			List<UtenteOrganizzazioneEntity> utenteOrganizzazioni) {
 		List<RuoloReferenteEnum> ruoli = new ArrayList<>();
 
 		// Ruoli di dominio
@@ -2282,7 +2394,94 @@ public class AdesioniController implements AdesioniApi {
 			ruoli.add(RuoloReferenteEnum.RICHIEDENTE_ADESIONE);
 		}
 
+		// TODO [MULTI-ORG] Da chiarire: per un'adesione è corretto considerare il ruolo
+		// dell'utente sia sull'organizzazione aderente sia su quella erogatrice?
+		// Per ora aggiungiamo entrambi con deduplicazione, ma è un punto aperto da rivedere.
+		aggiungiRuoloOrganizzazione(ruoli, utenteOrganizzazioni, getOrganizzazioneAderente(adesione));
+		aggiungiRuoloOrganizzazione(ruoli, utenteOrganizzazioni, getOrganizzazioneErogatrice(adesione));
+
 		return ruoli;
+	}
+
+	/**
+	 * Organizzazione aderente: quella del soggetto dell'adesione (lato consumer).
+	 */
+	private org.govway.catalogo.core.orm.entity.OrganizzazioneEntity getOrganizzazioneAderente(AdesioneEntity adesione) {
+		if (adesione.getSoggetto() == null) {
+			return null;
+		}
+		return adesione.getSoggetto().getOrganizzazione();
+	}
+
+	/**
+	 * Organizzazione erogatrice: quella del soggetto referente del dominio del servizio (lato provider).
+	 */
+	private org.govway.catalogo.core.orm.entity.OrganizzazioneEntity getOrganizzazioneErogatrice(AdesioneEntity adesione) {
+		if (adesione.getServizio() == null || adesione.getServizio().getDominio() == null) {
+			return null;
+		}
+		if (adesione.getServizio().getDominio().getSoggettoReferente() == null) {
+			return null;
+		}
+		return adesione.getServizio().getDominio().getSoggettoReferente().getOrganizzazione();
+	}
+
+	/**
+	 * Restituisce gli identificativi delle organizzazioni di cui l'utente è amministratore
+	 * (ruolo {@link RuoloOrganizzazione#AMMINISTRATORE_ORGANIZZAZIONE}). Usato per ampliare la
+	 * visibilità in elenco adesioni: l'amministratore vede tutte le adesioni della propria
+	 * organizzazione (lato aderente) anche senza esserne referente o richiedente.
+	 */
+	private List<UUID> getIdOrganizzazioniAmministrate(UtenteEntity utente) {
+		List<UUID> ids = new ArrayList<>();
+		if (utente == null) {
+			return ids;
+		}
+		for (UtenteOrganizzazioneEntity assoc : this.organizzazioneService.findUtenteOrganizzazioniByUtente(utente)) {
+			if (assoc.getRuoloOrganizzazione() == RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE
+					&& assoc.getOrganizzazione() != null) {
+				ids.add(UUID.fromString(assoc.getOrganizzazione().getIdOrganizzazione()));
+			}
+		}
+		return ids;
+	}
+
+	/**
+	 * Aggiunge alla lista dei ruoli il ruolo per-organizzazione dell'utente sull'organizzazione
+	 * indicata (se presente). Se l'utente non ha un'associazione con l'organizzazione, oppure
+	 * l'associazione ha ruolo null (nessun ruolo / sola lettura), non aggiunge nulla.
+	 * Evita duplicati se il ruolo è già presente nella lista.
+	 */
+	private void aggiungiRuoloOrganizzazione(List<RuoloReferenteEnum> ruoli,
+			List<UtenteOrganizzazioneEntity> utenteOrganizzazioni,
+			org.govway.catalogo.core.orm.entity.OrganizzazioneEntity organizzazione) {
+		if (organizzazione == null || utenteOrganizzazioni == null) {
+			return;
+		}
+		for (UtenteOrganizzazioneEntity assoc : utenteOrganizzazioni) {
+			if (assoc.getOrganizzazione() != null
+					&& assoc.getOrganizzazione().getId().equals(organizzazione.getId())) {
+				var ruoloOrg = assoc.getRuoloOrganizzazione();
+				if (ruoloOrg == null) {
+					return; // Nessun ruolo = sola lettura
+				}
+				RuoloReferenteEnum mapped;
+				switch (ruoloOrg) {
+				case AMMINISTRATORE_ORGANIZZAZIONE:
+					mapped = RuoloReferenteEnum.AMMINISTRATORE_ORGANIZZAZIONE;
+					break;
+				case OPERATORE_API:
+					mapped = RuoloReferenteEnum.OPERATORE_API;
+					break;
+				default:
+					return;
+				}
+				if (!ruoli.contains(mapped)) {
+					ruoli.add(mapped);
+				}
+				return;
+			}
+		}
 	}
 
 	/**
@@ -2295,6 +2494,76 @@ public class AdesioniController implements AdesioniApi {
 		}
 		Boolean abilitato = this.configurazione.getUtente().isCoordinatoreAbilitato();
 		return abilitato == null || abilitato; // default: true
+	}
+
+	@Override
+	public ResponseEntity<List<AdesioneDisclaimer>> getDisclaimersAdesione(UUID idAdesione, String languageCode) {
+		try {
+			return this.service.runTransaction(() -> {
+
+				this.logger.info("Invocazione in corso ...");
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
+
+				this.logger.debug("Autorizzazione completata con successo");
+
+				List<AdesioneDisclaimer> disclaimers = this.disclaimerService.resolveDisclaimers(entity, languageCode);
+
+				this.logger.info("Invocazione completata con successo");
+
+				return ResponseEntity.ok(disclaimers);
+			});
+
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
+			throw e;
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	/**
+	 * Valida che tutti i referenti di un'adesione (sia REFERENTE che REFERENTE_TECNICO)
+	 * siano associati all'organizzazione del soggetto aderente. Gestori esentati.
+	 */
+	private void checkReferenti(AdesioneEntity adesione) {
+		OrganizzazioneEntity organizzazione = adesione.getSoggetto().getOrganizzazione();
+		for (ReferenteAdesioneEntity ref : adesione.getReferenti()) {
+			if (this.coreAuthorization.isAdmin(ref.getReferente())) {
+				continue;
+			}
+			if (!this.organizzazioneService.isAssociatoA(ref.getReferente(), organizzazione)) {
+				throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING,
+						Map.of("orgNome", organizzazione.getNome(),
+								"userIdUtente", ref.getReferente().getIdUtente()));
+			}
+			if (!this.organizzazioneService.hasRuoloInOrganizzazione(ref.getReferente(), organizzazione, RuoloOrganizzazione.OPERATORE_API, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
+				throw new NotAuthorizedException(ErrorCode.AUT_403_REFERENT_NO_ROLE,
+						Map.of("orgNome", organizzazione.getNome(),
+								"userIdUtente", ref.getReferente().getIdUtente()));
+			}
+		}
+	}
+
+	/**
+	 * Valida che il singolo referente (REFERENTE o REFERENTE_TECNICO) sia associato
+	 * all'organizzazione del soggetto aderente. Gestori esentati.
+	 */
+	private void checkReferente(ReferenteAdesioneEntity referenteEntity) {
+		if (this.coreAuthorization.isAdmin(referenteEntity.getReferente())) {
+			return;
+		}
+		OrganizzazioneEntity organizzazione = referenteEntity.getAdesione().getSoggetto().getOrganizzazione();
+		if (!this.organizzazioneService.isAssociatoA(referenteEntity.getReferente(), organizzazione)) {
+			throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING,
+					Map.of("orgNome", organizzazione.getNome(),
+							"userIdUtente", referenteEntity.getReferente().getIdUtente()));
+		}
+		if (!this.organizzazioneService.hasRuoloInOrganizzazione(referenteEntity.getReferente(), organizzazione, RuoloOrganizzazione.OPERATORE_API, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
+			throw new NotAuthorizedException(ErrorCode.AUT_403_REFERENT_NO_ROLE,
+					Map.of("orgNome", organizzazione.getNome(),
+							"userIdUtente", referenteEntity.getReferente().getIdUtente()));
+		}
 	}
 
 }

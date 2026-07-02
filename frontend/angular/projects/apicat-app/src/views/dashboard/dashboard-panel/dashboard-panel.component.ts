@@ -23,6 +23,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
 
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
+import { StatoChipComponent } from '@app/components/vetrina/stato-chip.component';
 
 @Component({
   selector: 'app-dashboard-panel',
@@ -33,7 +34,8 @@ import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
     CommonModule,
     TranslateModule,
     TooltipModule,
-    ...APP_COMPONENTS_IMPORTS
+    ...APP_COMPONENTS_IMPORTS,
+    StatoChipComponent
   ]
 })
 export class DashboardPanelComponent {
@@ -77,5 +79,10 @@ export class DashboardPanelComponent {
     if (!dateStr) return '';
     const d = new Date(dateStr);
     return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+
+  isCertExpired(dateStr: string): boolean {
+    if (!dateStr) return false;
+    return new Date(dateStr).getTime() <= Date.now();
   }
 }

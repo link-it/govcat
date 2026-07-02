@@ -54,9 +54,20 @@ export class EventsManagerService {
     this.listeners[name].push(listener);
   }
 
-  off(name: string) {
-    if (this.listeners[name]) {
-      // console.log('Removing listener for event: ' + name);
+  /**
+   * Rimuove i listener per un evento. Se `listener` e` passato,
+   * rimuove solo quella funzione (consente unsubscribe per-component
+   * senza impattare altri subscriber). Senza `listener` rimuove
+   * tutti i listener per quel name (comportamento legacy).
+   */
+  off(name: string, listener?: any) {
+    if (!this.listeners[name]) { return; }
+    if (listener) {
+      this.listeners[name] = this.listeners[name].filter((l: any) => l !== listener);
+      if (this.listeners[name].length === 0) {
+        delete this.listeners[name];
+      }
+    } else {
       delete this.listeners[name];
     }
   }

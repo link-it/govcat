@@ -46,9 +46,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -63,7 +62,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = OpenAPI2SpringBoot.class)
-@EnableAutoConfiguration(exclude = {GroovyTemplateAutoConfiguration.class})
+@EnableAutoConfiguration
 @AutoConfigureTestDatabase(replace = Replace.ANY)
 @ActiveProfiles("test")
 @DirtiesContext(classMode = ClassMode.BEFORE_CLASS)
@@ -129,7 +128,7 @@ public class ServizioImmagineTest {
 
 	private Dominio getDominio() {
 		OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
-		organizzazione.setEsterna(false);
+		organizzazione.setIntermediata(false);
 
 		response = organizzazioniController.createOrganizzazione(organizzazione);
 		assertNotNull(response.getBody().getIdOrganizzazione());
@@ -162,7 +161,7 @@ public class ServizioImmagineTest {
 		Dominio dominio = this.getDominio();
 		ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
 		servizioCreate.setSkipCollaudo(true);
-		servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+		servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
 		servizioCreate.setIdDominio(dominio.getIdDominio());
 
 		if (immagine.getContent() != null) {
@@ -209,7 +208,7 @@ public class ServizioImmagineTest {
 		identificativo.setNome("Nome Aggiornato Con Immagine");
 		identificativo.setVersione("2");
 		identificativo.setIdDominio(idDominio);
-		identificativo.setIdSoggettoInterno(idSoggetto);
+		identificativo.setIdSoggettoErogatore(idSoggetto);
 		identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
 		identificativo.setAdesioneDisabilitata(false);
 		identificativo.setMultiAdesione(true);

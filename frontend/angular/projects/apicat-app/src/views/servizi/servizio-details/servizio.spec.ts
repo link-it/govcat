@@ -31,8 +31,8 @@ describe('Servizio', () => {
     expect(m.dominio).toBeNull();
     expect(m.adesione_disabilitata).toBe(false);
     expect(m.id_organizzazione_interna).toBeNull();
-    expect(m.id_soggetto_interno).toBeNull();
-    expect(m.soggetto_interno).toBeNull();
+    expect(m.id_soggetto_erogatore).toBeNull();
+    expect(m.soggetto_erogatore).toBeNull();
     expect(m.package).toBe(false);
     expect(m.tipo).toBe('API');
     expect(m.skip_collaudo).toBe(false);
@@ -69,8 +69,8 @@ describe('Servizio', () => {
       dominio: { id: 'd1' },
       adesione_disabilitata: true,
       id_organizzazione_interna: 42,
-      id_soggetto_interno: 7,
-      soggetto_interno: { nome: 'Sogg' },
+      id_soggetto_erogatore: 7,
+      soggetto_erogatore: { nome: 'Sogg' },
       package: true,
       tipo: 'Generico',
       skip_collaudo: true,
@@ -104,8 +104,8 @@ describe('Servizio', () => {
     expect(m.dominio).toEqual({ id: 'd1' });
     expect(m.adesione_disabilitata).toBe(true);
     expect(m.id_organizzazione_interna).toBe(42);
-    expect(m.id_soggetto_interno).toBe(7);
-    expect(m.soggetto_interno).toEqual({ nome: 'Sogg' });
+    expect(m.id_soggetto_erogatore).toBe(7);
+    expect(m.soggetto_erogatore).toEqual({ nome: 'Sogg' });
     expect(m.package).toBe(true);
     expect(m.tipo).toBe('Generico');
     expect(m.skip_collaudo).toBe(true);

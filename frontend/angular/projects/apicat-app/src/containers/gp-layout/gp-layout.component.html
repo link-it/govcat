@@ -40,6 +40,8 @@
             [login]="login"
             [loginLabel]="loginLabel"
             [username]="username"
+            [user-email]="_userEmail"
+            [user-name]="_userName"
             [menu-action-list]="_menuActions"
             [menu-app-action-list]="_menuAppActions"
             [language-list]="_languages"
@@ -51,7 +53,9 @@
             (on-change-language)="_onChangeLanguage($event)"
             (on-menu-action)="_onMenuHeaderAction($event)"
             (on-menu-app-action)="_onMenuAppHeaderAction($event)"
-          ></app-head-bar>
+          >
+            <app-organization-switcher organization-switcher *ngIf="loggedIn"></app-organization-switcher>
+          </app-head-bar>
         }
       </div>
     </div>
@@ -75,7 +79,7 @@
                         <a class="divider">&nbsp;</a>
                       }
                       @case ('title') {
-                        <a href="javascript: void(0);" class="gl-link cursor-pointer supports-new-tab" [class.has-sub-items]="_item?.children?.length" (click)="_onClickMenu($event, _item)">
+                        <a role="button" tabindex="0" class="gl-link cursor-pointer supports-new-tab" [class.has-sub-items]="_item?.children?.length" (click)="_onClickMenu($event, _item)">
                           <span class="nav-icon-container">
                             @if (sidebarNavHelper.hasIcon(_item)) {
                               <span class="material-icons-outlined">{{ _item.icon}}</span>
@@ -110,7 +114,7 @@
                           @for (_subItem of _item.children; track $index) {
                             @if (_subItem | mapper:_showMenu) {
                               <li class="" [appRouterLinkMatch]="{ 'active': _subItem.path + '' }">
-                                <a href="javascript: void(0);" class="gl-link cursor-pointer supports-new-tab" (click)="_onClickMenu($event, _subItem)">
+                                <a role="button" tabindex="0" class="gl-link cursor-pointer supports-new-tab" (click)="_onClickMenu($event, _subItem)">
                                   @if (false) {
                                     <span class="nav-icon-container">
                                       @if (sidebarNavHelper.hasIcon(_subItem)) {
@@ -162,7 +166,7 @@
             <div class="version-area d-flex pb-1" [class.justify-content-end]="!_sideBarCollapsed" [class.justify-content-center]="_sideBarCollapsed">
               <ul class="sidebar-top-level-items mb-0">
                 <li class="" appFlyOut>
-                  <a href="javascript: void(0);" class="gl-link cursor-pointer" (click)="showInfo()">
+                  <a role="button" tabindex="0" class="gl-link cursor-pointer" (click)="showInfo()">
                     @if (_showAbout || _sideBarCollapsed) {
                       <span class="nav-icon-container" [title]="('APP.LABEL.Version' | translate) + ' ' + version"><i class="bi bi-info-circle"></i></span>
                     }
@@ -182,7 +186,7 @@
             </div>
           }
           <div class="toggle-area">
-            <a href="javascript: void(0);" class="toggle-sidebar-button js-toggle-sidebar qa-toggle-sidebar rspec-toggle-sidebar position-relative" title="Toggle sidebar [v.{{ version }}]" type="button" (click)="__toggelCollapse()">
+            <a role="button" tabindex="0" class="toggle-sidebar-button js-toggle-sidebar qa-toggle-sidebar rspec-toggle-sidebar position-relative" title="Toggle sidebar [v.{{ version }}]" type="button" (click)="__toggelCollapse()">
               <span class="material-icons-outlined">{{ (_sideBarCollapsed) ? 'keyboard_double_arrow_right' : 'keyboard_double_arrow_left' }}</span>
               <span class="collapse-text gp-ml-3">{{ 'APP.BUTTON.CollapseSidebar' | translate }}</span>
             </a>
@@ -238,4 +242,19 @@
   <div #watermark class="staging-box d-flex align-items-center justify-content-center">
     <span class="text-truncate">{{ _config.AppConfig?.WatermarkText }}</span>
   </div>
+}
+<!-- Issue 270 / dev-tools — bottone flottante per resettare
+     l'organizzazione corrente (clear localStorage + logout +
+     reload). Visibile solo quando
+     `AppConfig.Layout.Dev.organizationContextReset = true`.
+     Lo stesso comando e` disponibile via Ctrl+Shift+O. Da NON
+     attivare in produzione. -->
+@if (_devOrgResetEnabled) {
+  <button type="button"
+          class="dev-org-reset-fab"
+          title="Dev: reset org context (Ctrl+Shift+O)"
+          aria-label="Reset organization context"
+          (click)="devResetOrgContext()">
+    <i class="bi bi-building-fill-slash"></i>
+  </button>
 }

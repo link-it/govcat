@@ -52,11 +52,21 @@ describe('AdesioneDetailsComponent', () => {
     getUser: vi.fn().mockReturnValue({ ruolo: 'referente_servizio' }),
     _getConfigModule: vi.fn().mockReturnValue({}),
     getCurrentSession: vi.fn().mockReturnValue(null),
+    getCurrentOrganization: vi.fn().mockReturnValue(null),
     canJoin: vi.fn().mockReturnValue(true),
     canDownloadSchedaAdesione: vi.fn().mockReturnValue(true),
     canEdit: vi.fn().mockReturnValue(true),
   } as any;
   const mockLocation = { back: vi.fn() } as any;
+
+  // Tools espone metodi statici (singleton): salviamo gli originali e li
+  // ripristiniamo in afterEach per non inquinare gli altri spec file
+  // (es. tools.service.spec testa la vera WorkflowErrorMsg).
+  const _origTools = {
+    OnError: Tools.OnError,
+    showMessage: Tools.showMessage,
+    WorkflowErrorMsg: Tools.WorkflowErrorMsg,
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -74,6 +84,9 @@ describe('AdesioneDetailsComponent', () => {
 
   afterEach(() => {
     Tools.Configurazione = null;
+    Tools.OnError = _origTools.OnError;
+    Tools.showMessage = _origTools.showMessage;
+    Tools.WorkflowErrorMsg = _origTools.WorkflowErrorMsg;
   });
 
   // ─── Creation and defaults ───
@@ -653,7 +666,7 @@ describe('AdesioneDetailsComponent', () => {
         id_logico: 'MY-LOGICO'
       };
       component._initBreadcrumb();
-      expect(component.breadcrumbs[1].label).toBe('MY-LOGICO (OrgA)');
+      expect(component.breadcrumbs[1].label).toBe('OrgA - ServizioX v. 2 (MY-LOGICO)');
     });
 
     it('should use dashboard breadcrumbs when _fromDashboard is true', () => {
@@ -985,31 +998,42 @@ describe('AdesioneDetailsComponent', () => {
 
     it('should init organizzazioni select when scelta_libera_organizzazione is true', () => {
       component._scelta_libera_organizzazione = true;
-      mockAuthService.getCurrentSession.mockReturnValue({ utente: { ruolo: 'referente_servizio', organizzazione: { id_organizzazione: 'org-1' } } });
+      mockAuthService.getCurrentSession.mockReturnValue({ utente: { ruolo: 'referente_servizio' } });
+      mockAuthService.getCurrentOrganization.mockReturnValue({ id_organizzazione: 'org-1', nome: 'Org1' });
+      vi.spyOn(component, '_checkSoggetto' as any).mockImplementation(() => {});
       const spy = vi.spyOn(component, '_initOrganizzazioniSelect' as any);
       component._loadProfilo();
-      expect(spy).toHaveBeenCalledWith([]);
+      // Con un'org di contesto la lista viene seedata con quell'item.
+      expect(spy).toHaveBeenCalledWith([{ id_organizzazione: 'org-1', nome: 'Org1' }]);
     });
 
     it('should init organizzazioni select for gestore role', () => {
       component._scelta_libera_organizzazione = false;
-      mockAuthService.getCurrentSession.mockReturnValue({ utente: { ruolo: 'gestore', organizzazione: { id_organizzazione: 'org-1' } } });
+      mockAuthService.getCurrentSession.mockReturnValue({ utente: { ruolo: 'gestore' } });
+      mockAuthService.getCurrentOrganization.mockReturnValue({ id_organizzazione: 'org-1', nome: 'Org1' });
+      vi.spyOn(component, '_checkSoggetto' as any).mockImplementation(() => {});
       const spy = vi.spyOn(component, '_initOrganizzazioniSelect' as any);
       component._loadProfilo();
-      expect(spy).toHaveBeenCalledWith([]);
+      expect(spy).toHaveBeenCalledWith([{ id_organizzazione: 'org-1', nome: 'Org1' }]);
     });
 
-    it('should load organizzazione when ruolo is not gestore and organizzazione exists', () => {
+    it('should auto-select organizzazione from session when ruolo is not gestore and current org exists', () => {
+      // Refactor: `_loadProfilo` non chiama piu` `_loadOrganizzazione`
+      // (API call), bensi` setta `_lockedOrgNome` dal contesto e
+      // delega il caricamento soggetti a `_checkSoggetto`.
       component._scelta_libera_organizzazione = false;
-      mockAuthService.getCurrentSession.mockReturnValue({ utente: { ruolo: 'referente_servizio', organizzazione: { id_organizzazione: 'org-99' } } });
-      const spy = vi.spyOn(component, '_loadOrganizzazione' as any).mockImplementation(() => {});
+      mockAuthService.getCurrentSession.mockReturnValue({ utente: { ruolo: 'referente_servizio' } });
+      mockAuthService.getCurrentOrganization.mockReturnValue({ id_organizzazione: 'org-99', nome: 'OrgNinetyNine' });
+      const spy = vi.spyOn(component, '_checkSoggetto' as any).mockImplementation(() => {});
       component._loadProfilo();
+      expect(component._lockedOrgNome).toBe('OrgNinetyNine');
       expect(spy).toHaveBeenCalledWith('org-99');
     });
 
-    it('should init organizzazioni select when profilo has no organizzazione', () => {
+    it('should init organizzazioni select when current org is null', () => {
       component._scelta_libera_organizzazione = false;
-      mockAuthService.getCurrentSession.mockReturnValue({ utente: { ruolo: 'referente_servizio', organizzazione: null } });
+      mockAuthService.getCurrentSession.mockReturnValue({ utente: { ruolo: 'referente_servizio' } });
+      mockAuthService.getCurrentOrganization.mockReturnValue(null);
       const spy = vi.spyOn(component, '_initOrganizzazioniSelect' as any);
       component._loadProfilo();
       expect(spy).toHaveBeenCalledWith([]);
@@ -1294,18 +1318,6 @@ describe('AdesioneDetailsComponent', () => {
       component._loadServizio('srv-1');
       expect(component._formGroup.get('id_logico')!.hasValidator(Validators.required)).toBe(false);
     });
-
-    it('should set _isDominioEsterno from servizio data', () => {
-      mockApiService.getDetails.mockReturnValue(of({
-        id_servizio: 'srv-1', nome: 'S1', versione: '1', multi_adesione: false,
-        dominio: { soggetto_referente: { organizzazione: { esterna: true, id_organizzazione: 'org-ext' }, id_soggetto: 'sog-ext' } }
-      }));
-      component._initForm({ ...new AdesioneCreate() });
-      component._loadServizio('srv-1');
-      expect(component._isDominioEsterno).toBe(true);
-      expect(component._idDominioEsterno).toBe('org-ext');
-      expect(component._idSoggettoDominioEsterno).toBe('sog-ext');
-    });
   });
 
   // ─── _dummyAction ───
@@ -1353,6 +1365,34 @@ describe('AdesioneDetailsComponent', () => {
       component.adesione = { id: 5 };
       component._deleteService();
       expect(component._error).toBe(true);
+    });
+  });
+
+  describe('_checkSoggetto con abilita_selezione_soggetto=false', () => {
+    beforeEach(() => {
+      component.generalConfig = { adesione: { abilita_selezione_soggetto: false } } as any;
+      component._formGroup = new FormGroup({
+        id_organizzazione: new FormControl('O1'),
+        id_soggetto: new FormControl(null),
+        soggetto_nome: new FormControl(null),
+        referente: new FormControl(null),
+      });
+      // 2 soggetti -> ramo "selezione disabilitata o singolo" (else)
+      mockApiService.getList.mockReturnValue(of({ content: [{ id_soggetto: 'DEF' }, { id_soggetto: 'B' }] }));
+    });
+
+    it('servizio NON intermediato: seleziona il soggetto_default dell\'organizzazione', () => {
+      component._servizio = { fruizione: false } as any;
+      component._checkSoggetto({ soggetto_default: { id_soggetto: 'DEF', nome: 'Default' } });
+      expect(component._formGroup.controls.id_soggetto.value).toBe('DEF');
+      expect(component._formGroup.controls.soggetto_nome.value).toBe('Default');
+    });
+
+    it('servizio intermediato: seleziona il soggetto referente del dominio del servizio', () => {
+      component._servizio = { fruizione: true, dominio: { soggetto_referente: { id_soggetto: 'SR1', nome: 'Ref Dominio' } } } as any;
+      component._checkSoggetto({ soggetto_default: { id_soggetto: 'DEF', nome: 'Default' } });
+      expect(component._formGroup.controls.id_soggetto.value).toBe('SR1');
+      expect(component._formGroup.controls.soggetto_nome.value).toBe('Ref Dominio');
     });
   });
 });

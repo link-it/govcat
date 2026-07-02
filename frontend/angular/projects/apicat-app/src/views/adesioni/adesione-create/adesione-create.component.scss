@@ -1,0 +1,170 @@
+/*
+GovCat - GovWay API Catalogue
+https://github.com/link-it/govcat
+
+Copyright (c) 2021-2026 Link.it srl (https://link.it).
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3, as published by
+the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/* FASE 0 — form creazione adesione wizard-like.
+   Riusa i design token globali Link.it (--ink, --surface, --accent, ...)
+   definiti in styles/app-view.scss :root e le classi globali `.lnk-pill*`.
+   Le card replicano il pattern `.lnk-phase-section` del wizard
+   (header/label a sinistra, campi a destra) ma scoped qui per non
+   dipendere dall'encapsulation del componente wizard. */
+
+.lnk-adesione-create {
+
+  /* ── Header ─────────────────────────────────────────────── */
+  .create-header { margin-top: 8px; }
+
+  .create-title {
+    font-size: 22px;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    color: var(--ink, #212c49);
+  }
+
+  .create-subtitle {
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--ink-3, #57738a);
+    max-width: 70ch;
+  }
+
+  .create-close {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: var(--surface, #fff);
+    color: var(--ink-3, #57738a);
+    border: 1px solid var(--line-strong, #c4d6e0);
+    cursor: pointer;
+    transition: all .12s;
+
+    &:hover { background: var(--surface-3, #eef4f8); color: var(--ink, #212c49); }
+  }
+
+  /* ── Card sezione (label sx + campi dx) ─────────────────── */
+  .lnk-phase-section {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 0;
+    background: var(--surface, #fff);
+    border: 1px solid var(--line, #dee8ef);
+    border-radius: var(--radius-lg, 14px);
+    overflow: hidden;
+    margin-bottom: var(--gap, 16px);
+  }
+
+  .lnk-phase-section-hd {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 20px;
+    background: var(--surface-2, #fafcfd);
+    border-right: 1px solid var(--line, #dee8ef);
+  }
+
+  .ps-num {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--surface-3, #eef4f8);
+    color: var(--ink-3, #57738a);
+    border: 1px solid var(--line-strong, #c4d6e0);
+  }
+
+  .ps-meta { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+
+  .ps-tag {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    color: var(--ink-4, #8aa4b8);
+  }
+
+  .ps-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink, #212c49);
+    margin: 0;
+  }
+
+  .ps-desc {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--ink-3, #57738a);
+    margin: 0;
+  }
+
+  .lnk-phase-section-body { padding: 20px; }
+
+  /* ── Riepilogo servizio selezionato ─────────────────────── */
+  .servizio-summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    background: var(--surface-2, #fafcfd);
+    border: 1px solid var(--line, #dee8ef);
+    border-radius: 8px;
+  }
+
+  .servizio-summary-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink, #212c49);
+  }
+
+  /* ── Form in salvataggio: visibile ma non-interattivo ───── */
+  .lnk-create-form.lnk-form-busy {
+    pointer-events: none;
+    opacity: 0.6;
+    transition: opacity .12s;
+  }
+
+  /* ── Footer ─────────────────────────────────────────────── */
+  .create-footer {
+    padding-top: 4px;
+    padding-bottom: 24px;
+  }
+
+  .create-mandatory-hint {
+    font-size: 12.5px;
+    color: var(--ink-3, #57738a);
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* ── Responsive: card a colonna singola su mobile ───────── */
+  @media (max-width: 767.98px) {
+    .lnk-phase-section { grid-template-columns: 1fr; }
+    .lnk-phase-section-hd {
+      border-right: none;
+      border-bottom: 1px solid var(--line, #dee8ef);
+    }
+  }
+}

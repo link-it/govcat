@@ -51,12 +51,20 @@
     <span [tooltip]="(_tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay" class="{{ elem.class || '' }}">{{ _value }}</span>
   }
   @case ('label') {
-    @if (_value) {
-      <span class="status-label {{_class}} status-label-scoped status-ml-2" style="--label-background-color: {{_background}}; --label-inset-border: inset 0 0 0 1px {{_border}};" [style.color]="_color" [tooltip]="_tooltip || ''" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">
-        <span class="status-link status-label-link">
-          <span class="status-label-text">{{_label | translate}}</span>
-          <span class="status-label-text-scoped">{{_value | translate}}</span>
-        </span>
+    @if (_useStatoChip) {
+      <lnk-stato-chip [stato]="_origStato" [i18nPrefix]="_statoI18nPrefix"></lnk-stato-chip>
+    } @else if (_value) {
+      <!-- Pattern split-pill ereditato dal legacy `label`:
+           parte sinistra = `_label` (chiave i18n del campo,
+           es. `APP.LABEL.Status`), parte destra = `_value`
+           (chiave i18n del valore, es. `APP.WORKFLOW.STATUS.bozza`).
+           Variante palette da `chipVariant` nel config (default
+           `muted`). `lnk-pill-sm` se `options.small`. -->
+      <span class="lnk-pill is-split"
+            [ngClass]="['lnk-pill-' + _chipVariant, _chipSmall ? 'lnk-pill-sm' : '', elem.class || '']"
+            [tooltip]="_tooltip || ''" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">
+        <span class="lnk-pill-label">{{_label | translate}}</span>
+        <span class="lnk-pill-value">{{_value | translate}}</span>
       </span>
     }
   }
@@ -72,11 +80,14 @@
     </span>
   }
   @case ('tag') {
-    @if (_showBadged) {
-      <span class="{{_class}}" [style.background-color]="_background" [style.color]="_color" [tooltip]="_tooltip || ''" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">{{_value | translate}}</span>
-    }
-    @if (!_showBadged) {
-      <span class="">{{_value | translate}}</span>
+    @if (_useStatoChip) {
+      <lnk-stato-chip [stato]="_origStato" [i18nPrefix]="_statoI18nPrefix"></lnk-stato-chip>
+    } @else if (_showBadged) {
+      <span class="lnk-pill"
+            [ngClass]="['lnk-pill-' + _chipVariant, _chipSmall ? 'lnk-pill-sm' : '', elem.class || '']"
+            [tooltip]="_tooltip || ''" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">{{_value | translate}}</span>
+    } @else {
+      <span>{{_value | translate}}</span>
     }
   }
   @case ('cardinal') {
@@ -90,7 +101,7 @@
   }
   @case ('avatar') {
     <span class="position-relative" [tooltip]="(_value || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">
-      <img class="align-top" [alt]="'Gravatar'" ngxGravatar [email]="_value" [size]="20" fallback="mp" (error)="onAvatarError($event)">
+      <lnk-avatar class="align-top" [email]="_value" [size]="20"></lnk-avatar>
     </span>
   }
   @case ('image') {
@@ -111,8 +122,8 @@
     </span>
   }
   @case ('gravatar-image') {
-    <span class="position-relative border rounded-circle d-flex justify-content-center align-content-center" [class.square]="elem.square || false" style="width: 48px;height: 48px;" [tooltip]="(_tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">
-      <img class="align-top" [alt]="'Gravatar'" ngxGravatar [email]="_value" [size]="46" fallback="mp" (error)="onAvatarError($event)">
+    <span class="position-relative d-flex justify-content-center align-content-center" [tooltip]="(_tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">
+      <lnk-avatar class="align-top" [email]="_value" [size]="46"></lnk-avatar>
     </span>
   }
   @case ('iconBs') {
@@ -128,14 +139,14 @@
     <span class="bi bi-{{ _value }} {{ _class }}" [tooltip]="elem.hideTooltip ? '' : toolTipIconTemplate" data-bs-html="true" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay"></span>
   }
   @case ('tags') {
-    <div class="{{ _class }}">
+    <div class="{{ _class }} d-inline-flex flex-wrap gap-1">
       @if (_tagsResolved.length > 0) {
         @for (tag of _tagsResolved; track tag.label) {
-          <span class="badge badge-pill fw-light fs-8 me-2" [style.background-color]="tag.background" [style.border-color]="tag.border" [style.color]="tag.color">{{ tag.label }}</span>
+          <span class="lnk-pill" [ngClass]="['lnk-pill-' + tag.chipVariant, tag.small ? 'lnk-pill-sm' : '']">{{ tag.label }}</span>
         }
       } @else {
         @for (tag of _value; track tag) {
-          <span class="badge text-dark border fw-light fs-8 me-1">{{ tag }}</span>
+          <span class="lnk-pill lnk-pill-muted">{{ tag }}</span>
         }
       }
     </div>

@@ -31,6 +31,8 @@ export class MenuAction {
   enabled: boolean = true;
   checked: boolean = false;
   submenus: MenuAction[] = [];
+  /** Stile dell'icona: `danger` colora l'icona in rosso (azioni distruttive). */
+  danger: boolean = false;
 
   constructor(_data?: any) {
     if (_data) {

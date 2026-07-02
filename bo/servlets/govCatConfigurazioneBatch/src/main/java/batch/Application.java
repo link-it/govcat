@@ -20,25 +20,28 @@
 package batch;
 
 import java.time.Instant;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.springframework.batch.core.ExitStatus;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.batch.core.JobParametersInvalidException;
+import org.springframework.batch.core.job.Job;
+import org.springframework.batch.core.job.JobExecution;
+import org.springframework.batch.core.job.parameters.JobParameters;
+import org.springframework.batch.core.job.parameters.JobParametersBuilder;
+import org.springframework.batch.core.job.parameters.InvalidJobParametersException;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
-import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
-import org.springframework.batch.core.repository.JobRestartException;
+import org.springframework.batch.core.launch.JobExecutionAlreadyRunningException;
+import org.springframework.batch.core.launch.JobInstanceAlreadyCompleteException;
+import org.springframework.batch.core.launch.JobRestartException;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.PropertySource;
@@ -53,9 +56,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 @EnableJpaRepositories(basePackages = {"org.govway.catalogo.core.dao.repositories"})
 @EntityScan(basePackages = "org.govway.catalogo.core.orm.entity")
 @PropertySource("classpath:govcat-batch-configurazione.properties" )
-@PropertySource("file:${org.govway.api.catalogo.resource.path:/var/govcat/conf}/govcat-batch-configurazione.properties"  )
-@PropertySource("file:${org.govway.api.catalogo.resource.path:/var/govcat/conf}/configurazione.json"  )
+@PropertySource("file:${org.govway.api.catalogo.batch.resource.path:/var/govcat/conf/govcat-batch-configurazione.properties}"  )
+@PropertySource("file:${org.govway.api.catalogo.configurazione.path:/var/govcat/conf/configurazione.json}"  )
 public class Application extends SpringBootServletInitializer{
+
+    private static final Logger logger = LoggerFactory.getLogger(Application.class);
 
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
@@ -74,22 +79,32 @@ public class Application extends SpringBootServletInitializer{
 
 	public static final int EXIT_CODE_FAILURE = 1;
 
-	@Scheduled(fixedRateString = "${scheduled.fixedRate}")
-    public String runJob() throws JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException, JobParametersInvalidException, batch.JobExecutionException {
-        JobParameters params = new JobParametersBuilder()
-                .addString("When", Instant.now().toString())
-                .addString("ConfigurazioneJob", "job")
-                .toJobParameters();
-        JobExecution jobExecution = null;
-        try {
-            jobExecution = jobLauncher.run(configurazioneJob, params);
-        } catch (Exception e) {
-        	logger.error(e.getMessage()); 	
-            throw new JobExecutionException(e.getMessage());
-        }
-        ExitStatus exitStatus = jobExecution.getExitStatus();
+	private final AtomicBoolean running = new AtomicBoolean(false);
 
-        return exitStatus.getExitCode();
+	@Scheduled(fixedRateString = "${scheduled.fixedRate}")
+    public String runJob() throws JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException, InvalidJobParametersException, batch.JobExecutionException {
+        if (!running.compareAndSet(false, true)) {
+            logger.debug("[runJob] esecuzione precedente ancora in corso, tick saltato");
+            return null;
+        }
+        try {
+            JobParameters params = new JobParametersBuilder()
+                    .addString("When", Instant.now().toString())
+                    .addString("ConfigurazioneJob", "job")
+                    .toJobParameters();
+            JobExecution jobExecution = null;
+            try {
+                jobExecution = jobLauncher.run(configurazioneJob, params);
+            } catch (Exception e) {
+                logger.error(e.getMessage());
+                throw new JobExecutionException(e.getMessage());
+            }
+            ExitStatus exitStatus = jobExecution.getExitStatus();
+
+            return exitStatus.getExitCode();
+        } finally {
+            running.set(false);
+        }
     }
 
 	public static void main(String[] args) throws BeansException, Exception {

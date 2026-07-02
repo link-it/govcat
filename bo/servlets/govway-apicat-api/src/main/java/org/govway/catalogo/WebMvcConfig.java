@@ -25,6 +25,8 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
+import org.springframework.hateoas.config.EnableHypermediaSupport;
+import org.springframework.hateoas.config.EnableHypermediaSupport.HypermediaType;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -40,10 +42,17 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 @EnableScheduling
 @EnableAsync
+// Spring Boot 4 + springdoc 3.x: abilitiamo esplicitamente l'hypermedia HAL come config
+// utente, cosi' LinkRelationProvider e' registrato prima che springdoc crei il suo
+// CollectionModelContentConverter (l'autoconfig HATEOAS gira troppo tardi).
+@EnableHypermediaSupport(type = HypermediaType.HAL)
 public class WebMvcConfig implements WebMvcConfigurer {
 
     @Autowired
     private ReadOnlyModeInterceptor readOnlyModeInterceptor;
+
+    @Autowired
+    private OrganizationContextInterceptor organizationContextInterceptor;
 
     @Value("${email.notifiche.messages.path:/var/govcat/conf}")
     private String externalMessagesPath;
@@ -52,6 +61,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         // Registra l'interceptor per la modalità readonly su tutti i path
         registry.addInterceptor(readOnlyModeInterceptor)
+                .addPathPatterns("/**");
+        // Registra l'interceptor per il contesto organizzazione su tutti i path
+        registry.addInterceptor(organizationContextInterceptor)
                 .addPathPatterns("/**");
     }
 

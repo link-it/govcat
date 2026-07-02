@@ -73,7 +73,7 @@ describe('ConfigService', () => {
     });
 
     it('should load configuration without OAuth config', async () => {
-        const mockConfig = { AppConfig: { CurrentThems: 'default', Themes: [{ Name: 'default' }] } };
+        const mockConfig = { AppConfig: { CurrentTheme: 'default', Themes: [{ Name: 'default' }] } };
         const promise = service.load('url');
 
         const req = httpMock.expectOne('url');
@@ -88,7 +88,7 @@ describe('ConfigService', () => {
         mockOAuthService.hasValidAccessToken.mockReturnValue(true);
         const mockConfig = {
             AppConfig: {
-                CurrentThems: 'default',
+                CurrentTheme: 'default',
                 Themes: [{ Name: 'default' }],
                 AUTH_SETTINGS: {
                     OAUTH: {
@@ -119,7 +119,7 @@ describe('ConfigService', () => {
     it('should load configuration with OAuth without Issuer (manual endpoints)', async () => {
         const mockConfig = {
             AppConfig: {
-                CurrentThems: 'default',
+                CurrentTheme: 'default',
                 Themes: [{ Name: 'default' }],
                 AUTH_SETTINGS: {
                     OAUTH: {
@@ -148,7 +148,7 @@ describe('ConfigService', () => {
     it('should load configuration with OAuth DummyClientSecret', async () => {
         const mockConfig = {
             AppConfig: {
-                CurrentThems: 'default',
+                CurrentTheme: 'default',
                 Themes: [{ Name: 'default' }],
                 AUTH_SETTINGS: {
                     OAUTH: {
@@ -173,7 +173,7 @@ describe('ConfigService', () => {
     it('should load configuration with OAuth StrictDiscoveryDocumentValidation=false', async () => {
         const mockConfig = {
             AppConfig: {
-                CurrentThems: 'default',
+                CurrentTheme: 'default',
                 Themes: [{ Name: 'default' }],
                 AUTH_SETTINGS: {
                     OAUTH: {
@@ -198,7 +198,7 @@ describe('ConfigService', () => {
     it('should load configuration with BackdoorOAuth=true', async () => {
         const mockConfig = {
             AppConfig: {
-                CurrentThems: 'default',
+                CurrentTheme: 'default',
                 Themes: [{ Name: 'default' }],
                 AUTH_SETTINGS: {
                     OAUTH: {
@@ -226,7 +226,7 @@ describe('ConfigService', () => {
 
         const mockConfig = {
             AppConfig: {
-                CurrentThems: 'default',
+                CurrentTheme: 'default',
                 Themes: [{ Name: 'default' }],
                 AUTH_SETTINGS: {
                     OAUTH: {
@@ -250,7 +250,7 @@ describe('ConfigService', () => {
     it('should handle OAuthErrorEvent with reason', async () => {
         const mockConfig = {
             AppConfig: {
-                CurrentThems: 'default',
+                CurrentTheme: 'default',
                 Themes: [{ Name: 'default' }],
                 AUTH_SETTINGS: {
                     OAUTH: {
@@ -279,7 +279,7 @@ describe('ConfigService', () => {
     it('should handle session_terminated event', async () => {
         const mockConfig = {
             AppConfig: {
-                CurrentThems: 'default',
+                CurrentTheme: 'default',
                 Themes: [{ Name: 'default' }],
                 AUTH_SETTINGS: {
                     OAUTH: {
@@ -317,7 +317,7 @@ describe('ConfigService', () => {
     });
 
     it('should get configuration', () => {
-        const mockConfig = { AppConfig: { CurrentThems: 'default', Themes: [{ Name: 'default' }] } };
+        const mockConfig = { AppConfig: { CurrentTheme: 'default', Themes: [{ Name: 'default' }] } };
         service['config'] = mockConfig;
         expect(service.getConfiguration()).toEqual(mockConfig);
     });
@@ -433,7 +433,7 @@ describe('ConfigService', () => {
     });
 
     it('should get app config', () => {
-        const mockConfig = { AppConfig: { CurrentThems: 'default', Themes: [{ Name: 'default' }] } };
+        const mockConfig = { AppConfig: { CurrentTheme: 'default', Themes: [{ Name: 'default' }] } };
         service['config'] = mockConfig;
         expect(service.getAppConfig()).toEqual(mockConfig.AppConfig);
     });
@@ -531,7 +531,7 @@ describe('ConfigService', () => {
         it('should not do anything if theme has no FontName', async () => {
             const mockConfig = {
                 AppConfig: {
-                    CurrentThems: 'default',
+                    CurrentTheme: 'default',
                     Themes: [{ Name: 'default' }]
                 }
             };
@@ -548,7 +548,7 @@ describe('ConfigService', () => {
         it('should not do anything if Fonts array is missing', async () => {
             const mockConfig = {
                 AppConfig: {
-                    CurrentThems: 'themed',
+                    CurrentTheme: 'themed',
                     Themes: [{ Name: 'themed', FontName: 'MyFont' }]
                 }
             };
@@ -565,7 +565,7 @@ describe('ConfigService', () => {
             const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
             const mockConfig = {
                 AppConfig: {
-                    CurrentThems: 'themed',
+                    CurrentTheme: 'themed',
                     Themes: [{ Name: 'themed', FontName: 'NonExistent' }],
                     Fonts: [{ Name: 'OtherFont', CssFile: 'other.css', FontFamily: 'Other' }]
                 }
@@ -586,7 +586,7 @@ describe('ConfigService', () => {
 
             const mockConfig = {
                 AppConfig: {
-                    CurrentThems: 'themed',
+                    CurrentTheme: 'themed',
                     Themes: [{ Name: 'themed', FontName: 'MyFont' }],
                     Fonts: [{ Name: 'MyFont', CssFile: 'fonts/myfont.css', FontFamily: '"My Font", sans-serif' }]
                 }
@@ -606,7 +606,7 @@ describe('ConfigService', () => {
 
             const mockConfig = {
                 AppConfig: {
-                    CurrentThems: 'themed',
+                    CurrentTheme: 'themed',
                     Themes: [{ Name: 'themed', FontName: 'MyFont' }],
                     Fonts: [{ Name: 'MyFont', CssFile: 'fonts/myfont.css' }]
                 }
@@ -630,7 +630,7 @@ describe('ConfigService', () => {
 
             const mockConfig = {
                 AppConfig: {
-                    CurrentThems: 'themed',
+                    CurrentTheme: 'themed',
                     Themes: [{ Name: 'themed', FontName: 'MyFont' }],
                     Fonts: [{ Name: 'MyFont', CssFile: 'fonts/myfont.css' }]
                 }
@@ -649,7 +649,7 @@ describe('ConfigService', () => {
 
             const mockConfig = {
                 AppConfig: {
-                    CurrentThems: 'themed',
+                    CurrentTheme: 'themed',
                     Themes: [{ Name: 'themed', FontName: 'MyFont' }],
                     Fonts: [{ Name: 'MyFont', FontFamily: 'Arial, sans-serif' }]
                 }
@@ -668,7 +668,7 @@ describe('ConfigService', () => {
         mockOAuthService.hasValidAccessToken.mockReturnValue(false);
         const mockConfig = {
             AppConfig: {
-                CurrentThems: 'default',
+                CurrentTheme: 'default',
                 Themes: [{ Name: 'default' }],
                 AUTH_SETTINGS: {
                     OAUTH: {
@@ -690,7 +690,7 @@ describe('ConfigService', () => {
     it('should handle Fonts as non-array gracefully', async () => {
         const mockConfig = {
             AppConfig: {
-                CurrentThems: 'themed',
+                CurrentTheme: 'themed',
                 Themes: [{ Name: 'themed', FontName: 'MyFont' }],
                 Fonts: 'not-an-array'
             }
@@ -708,7 +708,7 @@ describe('ConfigService', () => {
     it('should handle theme not found in Themes array', async () => {
         const mockConfig = {
             AppConfig: {
-                CurrentThems: 'nonexistent',
+                CurrentTheme: 'nonexistent',
                 Themes: [{ Name: 'default' }]
             }
         };

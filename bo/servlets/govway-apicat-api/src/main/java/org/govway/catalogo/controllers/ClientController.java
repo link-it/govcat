@@ -19,10 +19,14 @@
  */
 package org.govway.catalogo.controllers;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -34,6 +38,7 @@ import org.govway.catalogo.authorization.ClientAuthorization;
 import org.govway.catalogo.core.dao.specifications.AdesioneSpecification;
 import org.govway.catalogo.core.dao.specifications.ClientSpecification;
 import org.govway.catalogo.core.orm.entity.ClientEntity;
+import org.govway.catalogo.core.orm.entity.ClientEntity.AuthType;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
 import org.govway.catalogo.core.orm.entity.ClientEntity.StatoEnum;
 import org.govway.catalogo.core.services.AdesioneService;
@@ -49,6 +54,7 @@ import org.govway.catalogo.servlets.model.AmbienteEnum;
 import org.govway.catalogo.servlets.model.AuthTypeEnum;
 import org.govway.catalogo.servlets.model.Client;
 import org.govway.catalogo.servlets.model.ClientCreate;
+import org.govway.catalogo.servlets.model.ClientSecret;
 import org.govway.catalogo.servlets.model.ClientUpdate;
 import org.govway.catalogo.servlets.model.ItemClient;
 import org.govway.catalogo.servlets.model.PageMetadata;
@@ -58,6 +64,8 @@ import org.govway.catalogo.servlets.model.StatoClientUpdate;
 import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.exception.NotAuthorizedException;
+import org.govway.catalogo.services.CertificatoScadenzaService;
+import org.govway.catalogo.services.KeycloakClientSecretService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,6 +110,12 @@ public class ClientController implements ClientApi {
 
 	@Autowired
 	private Configurazione configurazione;
+
+	@Autowired
+	private CertificatoScadenzaService certScadenzaService;
+
+	@Autowired
+	private KeycloakClientSecretService keycloakClientSecretService;
 
 	private Logger logger = LoggerFactory.getLogger(ClientController.class);
 
@@ -175,20 +189,70 @@ public class ClientController implements ClientApi {
 	public ResponseEntity<Client> getClient(UUID idClient) {
 		try {
 			return this.service.runTransaction( () -> {
-	
-				this.logger.info("Invocazione in corso ...");     
+
+				this.logger.info("Invocazione in corso ...");
 
 				ClientEntity entity = this.service.find(idClient)
 						.orElseThrow(() -> new NotFoundException(ErrorCode.CLT_404));
-	
+
 				this.authorization.authorizeGet(entity);
-				
-				this.logger.debug("Autorizzazione completata con successo");     
+
+				this.logger.debug("Autorizzazione completata con successo");
 
 				Client model = this.dettaglioAssembler.toModel(entity);
-	
+
 				this.logger.info("Invocazione completata con successo");
-	
+
+				return ResponseEntity.ok(model);
+			});
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	@Override
+	public ResponseEntity<ClientSecret> getClientSecret(UUID idClient) {
+		try {
+			return this.service.runTransaction( () -> {
+
+				this.logger.info("Invocazione in corso ...");
+
+				ClientEntity entity = this.service.find(idClient)
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CLT_404));
+
+				this.authorization.authorizeGet(entity);
+
+				this.logger.debug("Autorizzazione completata con successo");
+
+				if(!AuthType.OAUTH_CLIENT_CREDENTIALS.equals(entity.getAuthType())) {
+					throw new BadRequestException(ErrorCode.CLT_400_CONFIG, Map.of("authType", entity.getAuthType().toString()));
+				}
+
+				String clientId = entity.getEstensioni().stream()
+						.filter(e -> "client_id".equals(e.getNome()))
+						.map(EstensioneClientEntity::getValore)
+						.findFirst()
+						.orElseThrow(() -> new BadRequestException(ErrorCode.CLT_400_CONFIG, Map.of("missing", "client_id")));
+
+				String secret;
+				try {
+					secret = this.keycloakClientSecretService.getSecret(clientId);
+				} catch (java.io.IOException e) {
+					this.logger.error("Errore nella lettura del client secret da Keycloak per clientId {}", clientId, e);
+					throw new InternalException(ErrorCode.SYS_500);
+				}
+
+				ClientSecret model = new ClientSecret();
+				model.setSecret(secret);
+
+				this.logger.info("Invocazione completata con successo");
+
 				return ResponseEntity.ok(model);
 			});
 		}
@@ -239,17 +303,29 @@ public class ClientController implements ClientApi {
 						throw new NotAuthorizedException(ErrorCode.AUT_403);
 					}
 
-					// Filtra client in stato NUOVO
-					spec.setStato(Optional.of(StatoEnum.NUOVO));
+					// Filtra client in stato NUOVO (filtro base dashboard)
+					spec.setDashboardStato(Optional.of(StatoEnum.NUOVO));
 
 					// Filtra client associati ad adesioni negli stati configurati
 					List<String> statiDashboardClient = this.configurazione.getAdesione().getStatiDashboardClient();
 					if(statiDashboardClient != null && !statiDashboardClient.isEmpty()) {
 						spec.setAdesioniStati(statiDashboardClient);
 					}
+
+					// Aggiungi client con certificato in scadenza (indipendentemente dallo stato)
+					Set<Long> clientIdsInScadenza = this.certScadenzaService.getClientIdsInScadenza();
+					if(!clientIdsInScadenza.isEmpty()) {
+						spec.setOrClientIds(clientIdsInScadenza);
+					}
 				}
 
-				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("nome"));
+				// In dashboard l'ordinamento di default è cronologico decrescente: ClientEntity non ha
+				// campi data, quindi si usa l'id (sequence) come proxy della data di creazione.
+				// Resta comunque sovrascrivibile da un parametro sort esplicito.
+				List<String> sortDefault = (dashboard != null && dashboard)
+						? Arrays.asList("id,desc")
+						: Arrays.asList("nome");
+				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, sortDefault);
 
 				Page<ClientEntity> findAll = this.service.findAll(spec, pageable);
 
@@ -257,6 +333,18 @@ public class ClientController implements ClientApi {
 
 				PagedModel<ItemClient> lst = pagedResourceAssembler.toModel(findAll, this.itemAssembler, link);
 
+				// Popola la data di scadenza certificato per i client in scadenza (solo dashboard)
+				if(dashboard != null && dashboard) {
+					Map<UUID, Date> scadenze = this.certScadenzaService.getClientScadenzeCertificato();
+					if(!scadenze.isEmpty()) {
+						for(ItemClient item : lst.getContent()) {
+							Date scadenza = scadenze.get(item.getIdClient());
+							if(scadenza != null) {
+								item.setScadenzaCertificato(scadenza.toInstant().atOffset(ZoneOffset.UTC));
+							}
+						}
+					}
+				}
 
 				PagedModelItemClient list = new PagedModelItemClient();
 				list.setContent(lst.getContent().stream().collect(Collectors.toList()));

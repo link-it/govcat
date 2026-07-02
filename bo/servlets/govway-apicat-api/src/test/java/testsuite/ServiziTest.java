@@ -120,9 +120,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
@@ -143,7 +142,7 @@ import jakarta.persistence.PersistenceContext;
 
 @ExtendWith(SpringExtension.class)  // JUnit 5 extension
 @SpringBootTest(classes = OpenAPI2SpringBoot.class)
-@EnableAutoConfiguration(exclude = {GroovyTemplateAutoConfiguration.class})
+@EnableAutoConfiguration
 @AutoConfigureTestDatabase(replace = Replace.ANY)
 @ActiveProfiles("test")
 @DirtiesContext(classMode = ClassMode.BEFORE_CLASS)
@@ -262,7 +261,7 @@ public class ServiziTest {
     private Dominio getDominio() {
 
     	OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
-    	organizzazione.setEsterna(false);
+    	organizzazione.setIntermediata(false);
 
     	response = organizzazioniController.createOrganizzazione(organizzazione);
     	this.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
@@ -300,7 +299,7 @@ public class ServiziTest {
     	ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
     	servizioCreate.setSkipCollaudo(true);
 
-    	servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+    	servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
 
     	servizioCreate.setIdDominio(dominio.getIdDominio());
 
@@ -332,7 +331,7 @@ public class ServiziTest {
     	ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
     	servizioCreate.setNome(NOME_SERVIZIO_1);
 
-    	servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+    	servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
 
     	servizioCreate.setIdDominio(dominio.getIdDominio());
     	
@@ -359,7 +358,7 @@ public class ServiziTest {
     	
     	servizioCreate.setVersione("11");
 
-    	servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+    	servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
 
     	servizioCreate.setIdDominio(dominio.getIdDominio());
 
@@ -373,7 +372,7 @@ public class ServiziTest {
     	
     	servizioCreate.setVersione("2");
 
-    	servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+    	servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
 
     	servizioCreate.setIdDominio(dominio.getIdDominio());
 
@@ -394,7 +393,7 @@ public class ServiziTest {
     		
     		servizioCreate.setNome(CommonUtils.NOME_SERVIZIO + n);
     		
-    		servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+    		servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
 
         	servizioCreate.setIdDominio(dominio.getIdDominio());
         	
@@ -418,7 +417,7 @@ public class ServiziTest {
     @Test
     void testCreateAllegatoServizioSuccess() {
         OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
-        organizzazione.setEsterna(false);
+        organizzazione.setIntermediata(false);
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(organizzazione);
         assertNotNull(response.getBody().getIdOrganizzazione());
 
@@ -436,13 +435,13 @@ public class ServiziTest {
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
 
         ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
-        servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+        servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
         servizioCreate.setIdDominio(createdDominio.getBody().getIdDominio());
         ReferenteCreate referente = new ReferenteCreate();
         referente.setTipo(TipoReferenteEnum.REFERENTE);
 
         UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utente, response.getBody().getIdOrganizzazione());
         utente.setRuolo(RuoloUtenteEnum.GESTORE);
         ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
 
@@ -477,7 +476,7 @@ public class ServiziTest {
     @Test
     void testCreateAllegatoServizioVisibilitaNonConsentita() {
         OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
-        organizzazione.setEsterna(false);
+        organizzazione.setIntermediata(false);
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(organizzazione);
         assertNotNull(response.getBody().getIdOrganizzazione());
 
@@ -494,11 +493,11 @@ public class ServiziTest {
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
 
         ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
-        servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+        servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
         servizioCreate.setIdDominio(createdDominio.getBody().getIdDominio());
 
         UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utente, response.getBody().getIdOrganizzazione());
         utente.setRuolo(RuoloUtenteEnum.GESTORE);
         ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
 
@@ -532,7 +531,7 @@ public class ServiziTest {
     @Test
     void testCreateAllegatoServizioDuplicato() {
         OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
-        organizzazione.setEsterna(false);
+        organizzazione.setIntermediata(false);
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(organizzazione);
         assertNotNull(response.getBody().getIdOrganizzazione());
 
@@ -549,11 +548,11 @@ public class ServiziTest {
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
 
         ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
-        servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+        servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
         servizioCreate.setIdDominio(createdDominio.getBody().getIdDominio());
 
         UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        CommonUtils.setOrganizzazione(utente, response.getBody().getIdOrganizzazione());
         utente.setRuolo(RuoloUtenteEnum.GESTORE);
         ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
 
@@ -832,7 +831,7 @@ public class ServiziTest {
         identificativo.setNome("Nuovo Nome");
         identificativo.setVersione("2");
         identificativo.setIdDominio(idDominio);
-        identificativo.setIdSoggettoInterno(idSoggetto);
+        identificativo.setIdSoggettoErogatore(idSoggetto);
         identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
         identificativo.setAdesioneDisabilitata(false);
         identificativo.setMultiAdesione(true);
@@ -863,7 +862,7 @@ public class ServiziTest {
         identificativo.setNome("Nuovo Nome");
         identificativo.setVersione("2");
         identificativo.setIdDominio(UUID.randomUUID());
-        identificativo.setIdSoggettoInterno(UUID.randomUUID());
+        identificativo.setIdSoggettoErogatore(UUID.randomUUID());
         identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
         identificativo.setAdesioneDisabilitata(false);
         identificativo.setMultiAdesione(true);
@@ -890,7 +889,7 @@ public class ServiziTest {
 	    // Creazione di un altro servizio con lo stesso nome e versione
 	    ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
 	    servizioCreate.setNome("NuovoServizio");
-		servizioCreate.setIdSoggettoInterno(idSoggetto);
+		servizioCreate.setIdSoggettoErogatore(idSoggetto);
 		servizioCreate.setIdDominio(idDominio);
 		ReferenteCreate referente = new ReferenteCreate();
 		referente.setTipo(TipoReferenteEnum.REFERENTE);
@@ -908,7 +907,7 @@ public class ServiziTest {
 	    identificativo.setNome(servizio.getNome());
 	    identificativo.setVersione(servizio.getVersione());
 	    identificativo.setIdDominio(idDominio);
-	    identificativo.setIdSoggettoInterno(idSoggetto);
+	    identificativo.setIdSoggettoErogatore(idSoggetto);
 	    identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
 	    identificativo.setAdesioneDisabilitata(false);
 	    identificativo.setMultiAdesione(true);
@@ -919,6 +918,84 @@ public class ServiziTest {
 	    assertThrows(ConflictException.class, () -> {
 	        serviziController.updateServizio(servizio2.getBody().getIdServizio(), null, servizioUpdate);
 	    });
+	}
+
+	@Test
+	public void testCreateServizioConflictCaseInsensitive() {
+		Servizio servizio = this.getServizio();
+
+		ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+		servizioCreate.setNome(servizio.getNome().toUpperCase());
+		servizioCreate.setVersione(servizio.getVersione());
+		servizioCreate.setIdSoggettoErogatore(idSoggetto);
+		servizioCreate.setIdDominio(idDominio);
+		ReferenteCreate referente = new ReferenteCreate();
+		referente.setTipo(TipoReferenteEnum.REFERENTE);
+		referente.setIdUtente(ID_UTENTE_GESTORE);
+		List<ReferenteCreate> referenti = new ArrayList<>();
+		referenti.add(referente);
+		servizioCreate.setReferenti(referenti);
+
+		assertThrows(ConflictException.class, () -> {
+			serviziController.createServizio(servizioCreate);
+		});
+	}
+
+	@Test
+	public void testUpdateServizioConflictCaseInsensitive() {
+		Servizio primo = this.getServizio();
+
+		ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+		servizioCreate.setNome("AltroServizio");
+		servizioCreate.setVersione(primo.getVersione());
+		servizioCreate.setIdSoggettoErogatore(idSoggetto);
+		servizioCreate.setIdDominio(idDominio);
+		ReferenteCreate referente = new ReferenteCreate();
+		referente.setTipo(TipoReferenteEnum.REFERENTE);
+		referente.setIdUtente(ID_UTENTE_GESTORE);
+		List<ReferenteCreate> referenti = new ArrayList<>();
+		referenti.add(referente);
+		servizioCreate.setReferenti(referenti);
+		ResponseEntity<Servizio> secondo = serviziController.createServizio(servizioCreate);
+
+		ServizioUpdate servizioUpdate = new ServizioUpdate();
+		IdentificativoServizioUpdate identificativo = new IdentificativoServizioUpdate();
+		identificativo.setNome(primo.getNome().toUpperCase());
+		identificativo.setVersione(primo.getVersione());
+		identificativo.setIdDominio(idDominio);
+		identificativo.setIdSoggettoErogatore(idSoggetto);
+		identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
+		identificativo.setAdesioneDisabilitata(false);
+		identificativo.setMultiAdesione(true);
+		identificativo.setTipo(TipoServizio.GENERICO);
+		servizioUpdate.setIdentificativo(identificativo);
+
+		assertThrows(ConflictException.class, () -> {
+			serviziController.updateServizio(secondo.getBody().getIdServizio(), null, servizioUpdate);
+		});
+	}
+
+	@Test
+	public void testUpdateServizioCambioSoloCaseSuccess() {
+		Servizio servizio = this.getServizio();
+
+		ServizioUpdate servizioUpdate = new ServizioUpdate();
+		IdentificativoServizioUpdate identificativo = new IdentificativoServizioUpdate();
+		identificativo.setNome(servizio.getNome().toUpperCase());
+		identificativo.setVersione(servizio.getVersione());
+		identificativo.setIdDominio(idDominio);
+		identificativo.setIdSoggettoErogatore(idSoggetto);
+		identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
+		identificativo.setAdesioneDisabilitata(false);
+		identificativo.setMultiAdesione(true);
+		identificativo.setTipo(TipoServizio.API);
+		identificativo.setPackage(false);
+		servizioUpdate.setIdentificativo(identificativo);
+
+		ResponseEntity<Servizio> response = serviziController.updateServizio(servizio.getIdServizio(), null, servizioUpdate);
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(servizio.getNome().toUpperCase(), response.getBody().getNome());
 	}
 
     @Test
@@ -997,7 +1074,7 @@ public class ServiziTest {
         Servizio servizio = this.getServizio();
 
         // Invocazione del metodo listServizi senza filtri
-        ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+        ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
 
         // Verifica del successo
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1021,7 +1098,7 @@ public class ServiziTest {
         
         // Invocazione del metodo listServizi con filtri
         ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-            null, idDominio, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, null, 0, 10, sort
+            null, idDominio, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, null, 0, 10, sort
         );
 
         // Verifica del successo
@@ -1048,7 +1125,7 @@ public class ServiziTest {
         
         // Invocazione del metodo listServizi con filtri
         ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-            null, idDominio, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, null, 0, 10, sort
+            null, idDominio, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, null, 0, 10, sort
         );
 
         // Verifica del successo
@@ -1072,7 +1149,7 @@ public class ServiziTest {
         
         // Invocazione del metodo listServizi con filtri
         ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-            null, idDominio, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, null, 0, 10, sort
+            null, idDominio, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, null, 0, 10, sort
         );
 
         // Verifica del successo
@@ -1099,7 +1176,7 @@ public class ServiziTest {
         
         // Invocazione del metodo listServizi con filtri
         ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-            null, idDominio, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, null, 0, 10, sort
+            null, idDominio, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, null, 0, 10, sort
         );
 
         // Verifica del successo
@@ -1122,7 +1199,7 @@ public class ServiziTest {
         for(int n = 0; n < (numeroTotaleDiElementi/numeroElementiPerPagina); n++) {
         	// Invocazione del metodo listServizi con filtri
             ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-                null, idDominio, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, null, n, numeroElementiPerPagina, null
+                null, idDominio, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, null, n, numeroElementiPerPagina, null
             );
 
             // Verifica del successo
@@ -1140,7 +1217,7 @@ public class ServiziTest {
 
         // Invocazione del metodo listServizi con filtri
         ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-            null, idDominio, null, null, null, null, null, null, null, false, false, null, null, null, nomeServizio, null, null, null, null, null, 0, 10, null
+            null, idDominio, null, null, null, null, null, null, null, null, false, false, null, null, null, nomeServizio, null, null, null, null, null, 0, 10, null
         );
 
         // Verifica del successo
@@ -1160,7 +1237,7 @@ public class ServiziTest {
          //TODO: controllare
         // Test per utente anonimo che richiede servizi in attesa
         Exception exception = assertThrows(BadRequestException.class, () -> {
-            serviziController.listServizi(null, null, null, null, null, null, null, null, null, true, false, null, null, null, null, null, null, null, null, null, 0, 10, null);
+            serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, true, false, null, null, null, null, null, null, null, null, null, 0, 10, null);
         });
 
         String expectedMessage = "Utente non registrato, impossibile recuperare servizi in attesa";
@@ -1913,7 +1990,7 @@ public class ServiziTest {
 		
 		OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
 		organizzazione.setNome("Altro nome Organizzazione");
-    	organizzazione.setEsterna(false);
+    	organizzazione.setIntermediata(false);
 
     	response = organizzazioniController.createOrganizzazione(organizzazione);
     	this.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
@@ -1928,7 +2005,7 @@ public class ServiziTest {
     	ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
     	servizioCreate.setNome("Altro servizio package");
     	servizioCreate.setPackage(true);
-    	servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+    	servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
 
     	servizioCreate.setIdDominio(createdDominio.getBody().getIdDominio());
 
@@ -2097,7 +2174,7 @@ public class ServiziTest {
 		List<String> profiloNonValido = Arrays.asList("PROFILO_INESISTENTE");
 
 		assertThrows(BadRequestException.class, () -> {
-			serviziController.listServizi(null, null, null, null, null, null, null, null, profiloNonValido, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+			serviziController.listServizi(null, null, null, null, null, null, null, null, null, profiloNonValido, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
 		});
 	}
 
@@ -2108,7 +2185,7 @@ public class ServiziTest {
 		List<String> profiloValido = Arrays.asList("MODI_P1");
 
 		ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-			null, null, null, null, null, null, null, null, profiloValido, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null
+			null, null, null, null, null, null, null, null, null, profiloValido, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null
 		);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -2122,7 +2199,7 @@ public class ServiziTest {
 		List<String> profiliValidi = Arrays.asList("MODI_P1", "INTERNO_HTTPS");
 
 		ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-			null, null, null, null, null, null, null, null, profiliValidi, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null
+			null, null, null, null, null, null, null, null, null, profiliValidi, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null
 		);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -2135,7 +2212,7 @@ public class ServiziTest {
 		List<String> profiloMisto = Arrays.asList("MODI_P1", "PROFILO_INESISTENTE");
 
 		assertThrows(BadRequestException.class, () -> {
-			serviziController.listServizi(null, null, null, null, null, null, null, null, profiloMisto, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+			serviziController.listServizi(null, null, null, null, null, null, null, null, null, profiloMisto, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
 		});
 	}
 
@@ -2146,7 +2223,7 @@ public class ServiziTest {
 		/*
 		 //TODO: controllare - il mock coreAuthorization non è iniettato nel controller
 		assertThrows(BadRequestException.class, () -> {
-			serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null, 0, 10, null);
+			serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null, 0, 10, null);
 		});
 		 */
 	}
@@ -2159,7 +2236,7 @@ public class ServiziTest {
 
 		// Dovrebbe ritornare OK anche se non ci sono servizi negli stati configurati
 		ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-			null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null, 0, 10, null
+			null, null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null, 0, 10, null
 		);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -2175,7 +2252,7 @@ public class ServiziTest {
 
 		// Dovrebbe ritornare OK anche se non ci sono servizi negli stati configurati
 		ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-			null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null, 0, 10, null
+			null, null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null, 0, 10, null
 		);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -2186,11 +2263,88 @@ public class ServiziTest {
 	void testListServiziDashboardFilterFalse() {
 		// Test con dashboard=false, dovrebbe comportarsi come la ricerca normale
 		ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-			null, null, null, null, null, null, null, null, null, null, null, null, false, null, null, null, null, null, null, null, 0, 10, null
+			null, null, null, null, null, null, null, null, null, null, null, null, null, false, null, null, null, null, null, null, null, 0, 10, null
 		);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertNotNull(response.getBody());
+	}
+
+	@Test
+	void testListServiziDashboardReferenteVedeBozza() {
+		// RIPRODUZIONE: un referente (esplicito) di servizio deve vedere in dashboard
+		// i propri servizi in stato bozza (stato iniziale del workflow).
+
+		// 1) Creo un servizio (resta in bozza) con un referente NON gestore
+		final String PRINCIPAL_REFERENTE = "utente_referente__servizio";
+		UUID idReferente = UUID.fromString(CommonUtils.getInfoProfilo(PRINCIPAL_REFERENTE, utenteService).utente.getIdUtente());
+
+		Dominio dominio = this.getDominio();
+
+		// Policy 2.4.0: il referente deve essere associato all'organizzazione del servizio
+		UtenteUpdate upReferente = new UtenteUpdate();
+		upReferente.setPrincipal(PRINCIPAL_REFERENTE);
+		CommonUtils.setOrganizzazione(upReferente, this.idOrganizzazione);
+		upReferente.setStato(StatoUtenteEnum.ABILITATO);
+		upReferente.setEmailAziendale("mail@aziendale.it");
+		upReferente.setTelefonoAziendale("+39 0000000");
+		upReferente.setNome("referente");
+		upReferente.setCognome("servizio");
+		upReferente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+		utentiController.updateUtente(idReferente, upReferente);
+
+		ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+		servizioCreate.setSkipCollaudo(true);
+		servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
+		servizioCreate.setIdDominio(dominio.getIdDominio());
+
+		ReferenteCreate referente = new ReferenteCreate();
+		referente.setTipo(TipoReferenteEnum.REFERENTE);
+		referente.setIdUtente(idReferente);
+		servizioCreate.setReferenti(new ArrayList<>(List.of(referente)));
+
+		Servizio servizio = serviziController.createServizio(servizioCreate).getBody();
+		assertEquals("bozza", servizio.getStato());
+
+		// 2) Passo la sessione al referente (non admin / non coordinatore)
+		CommonUtils.getSessionUtente(PRINCIPAL_REFERENTE, securityContext, authentication, utenteService);
+
+		// 3) Chiamo la dashboard
+		ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
+			null, null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null, 0, 10, null
+		);
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertNotNull(response.getBody());
+
+		// 4) Il servizio in bozza del referente deve essere presente
+		boolean trovato = response.getBody().getContent().stream()
+			.anyMatch(s -> s.getIdServizio().equals(servizio.getIdServizio()));
+		assertTrue(trovato, "Il referente dovrebbe vedere in dashboard il proprio servizio in bozza");
+	}
+
+	@Test
+	void testListServiziDashboardGestoreReferenteVedeBozza() {
+		// RIPRODUZIONE scenario reale: un utente gestore/coordinatore che è ANCHE
+		// referente deve vedere in dashboard i propri servizi in bozza, anche se gli
+		// stati dashboard del ruolo gestore non includono la bozza.
+		// (config di test: stati_dashboard gestore = ["richiesto_collaudo"])
+
+		// getServizio() crea un servizio in bozza con ID_UTENTE_GESTORE come referente.
+		// La sessione di default è il gestore (admin).
+		Servizio servizio = this.getServizio();
+		assertEquals("bozza", servizio.getStato());
+
+		ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
+			null, null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null, 0, 10, null
+		);
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertNotNull(response.getBody());
+
+		boolean trovato = response.getBody().getContent().stream()
+			.anyMatch(s -> s.getIdServizio().equals(servizio.getIdServizio()));
+		assertTrue(trovato, "Il gestore che è anche referente dovrebbe vedere in dashboard il proprio servizio in bozza");
 	}
 }
 

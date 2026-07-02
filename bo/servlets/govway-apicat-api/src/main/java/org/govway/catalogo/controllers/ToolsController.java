@@ -38,6 +38,7 @@ import org.govway.catalogo.core.services.DocumentoService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotFoundException;
+import org.govway.catalogo.services.CspService;
 import org.govway.catalogo.servlets.model.AmbienteEnum;
 import org.govway.catalogo.servlets.api.ToolsApi;
 import org.govway.catalogo.servlets.model.DocumentoApiInline;
@@ -65,6 +66,9 @@ public class ToolsController implements ToolsApi {
 
 	@Autowired
 	private EServiceBuilder eServiceBuilder;
+
+	@Autowired
+	private CspService cspService;
 
 	@Override
 	public ResponseEntity<List<String>> listaRisorseApi(ListaRisorseApiRichiesta listaRisorseApiRichiesta) {
@@ -200,6 +204,14 @@ public class ToolsController implements ToolsApi {
 			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
 			throw new BadRequestException(ErrorCode.DOC_500, Map.of("errore", e.getMessage()));
 		}
+	}
+
+	@Override
+	public ResponseEntity<List<String>> getCspAllowedHosts() {
+		this.logger.debug("Invocazione getCspAllowedHosts in corso ...");
+		List<String> hosts = this.cspService.getCspAllowedHosts();
+		this.logger.debug("Invocazione getCspAllowedHosts completata: {} host", hosts.size());
+		return ResponseEntity.ok(hosts);
 	}
 
 }

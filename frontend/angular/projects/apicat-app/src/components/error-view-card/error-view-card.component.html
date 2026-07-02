@@ -1,0 +1,71 @@
+<!--
+  ErrorViewCardComponent — Issue 254 NEW LAYOUT (rev. 4.32).
+  Card compatta degli errori di validazione: una riga per errore con
+  icona + tipo:identificativo + dato (chip) + campi inline.
+  Drop-in alternativo a `<ui-error-view>` per il nuovo wizard.
+-->
+<section class="error-view-card" [class.is-closing]="_closing">
+  <header class="error-view-card-hd">
+    <h5 class="error-view-card-title">
+      <i class="bi bi-exclamation-circle-fill" aria-hidden="true"></i>
+      <span>{{ title }}</span>
+    </h5>
+    @if (showClose) {
+      <button type="button"
+              class="error-view-card-close"
+              [attr.aria-label]="'APP.BUTTON.Close' | translate"
+              (click)="closeMessages()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    }
+  </header>
+
+  @if (errors.length) {
+    <div class="error-view-card-subtitle">
+      {{ 'APP.WORKFLOW.ERROR.TitoloInformazioniMancanti' | translate }}
+    </div>
+
+    <ul class="error-view-card-list">
+      @for (_err of errors; track _err) {
+        <li class="error-view-card-item">
+          <i class="bi bi-dot error-view-card-item-bullet" aria-hidden="true"></i>
+          <div class="error-view-card-item-body">
+            <div class="error-view-card-item-head">
+              @if (_err.sottotipo) {
+                <span class="error-view-card-item-type">
+                  {{ 'APP.WORKFLOW.ERROR.' + _getSottotipoKey(_err.sottotipo) | translate }}
+                </span>
+                <span class="error-view-card-item-id">
+                  {{ 'APP.WORKFLOW.ERROR.' + _getSottotipoKey(_err.sottotipo) + 'Description' | translate:_getParms(_err) }}
+                </span>
+              }
+              @if (_err.dato) {
+                <span class="error-view-card-item-dato">
+                  {{ 'APP.WORKFLOW.DATATYPE.' + _err.dato | translate }}
+                </span>
+              }
+            </div>
+            @if (_err.campi?.length) {
+              <div class="error-view-card-item-fields">
+                @for (campo of _err.campi; track campo; let last = $last) {
+                  <span class="error-view-card-item-field" [title]="_err.dato">
+                    @if (campo.custom) {
+                      @if (_hasCustomFieldLabel(campo.nome_campo)) {
+                        {{ _getCustomFieldLabel(campo.nome_campo) | translate }}
+                      } @else {
+                        {{ 'APP.LABEL.' + _getCustomFieldLabel(campo.nome_campo) | translate }}
+                      }
+                    } @else {
+                      {{ 'APP.LABEL.' + campo.nome_campo | translate:_getParms(_err) }}
+                    }
+                  </span>
+                  @if (!last) { <span class="error-view-card-item-fields-sep">·</span> }
+                }
+              </div>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</section>

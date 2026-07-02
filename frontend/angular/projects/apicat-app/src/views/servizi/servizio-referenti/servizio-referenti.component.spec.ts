@@ -301,7 +301,7 @@ describe('ServizioReferentiComponent', () => {
 
   it('should handle _onChangeTipoReferente', () => {
     component._onChangeTipoReferente(true);
-    expect(component.referentiFilter).toBe('referente_servizio,gestore,coordinatore');
+    expect(component.referentiFilter).toBe('utente_organizzazione,gestore,coordinatore');
     component._onChangeTipoReferente(false);
     expect(component.referentiFilter).toBe('');
   });
@@ -443,7 +443,7 @@ describe('ServizioReferentiComponent', () => {
         nome: 'Svc', versione: '1', stato: 'pubblicato',
         dominio: {
           soggetto_referente: {
-            organizzazione: { esterna: true, id_organizzazione: 'org-123' }
+            organizzazione: { intermediata: true, id_organizzazione: 'org-123' }
           }
         }
       };
@@ -461,7 +461,7 @@ describe('ServizioReferentiComponent', () => {
       expect(mockDom).toHaveBeenCalled();
     });
 
-    it('should set _isDominioEsterno=false when dominio has no esterna', () => {
+    it('should set _isDominioEsterno=false when dominio has no intermediata', () => {
       mockConfigService.getConfig.mockReturnValue(of({}));
       component.service = { nome: 'Svc', versione: '1', stato: 'ok', dominio: {} };
       (component as any)._loadServizioReferenti = vi.fn();
@@ -712,7 +712,7 @@ describe('ServizioReferentiComponent', () => {
         dominio: {
           id_dominio: 'dom1',
           soggetto_referente: {
-            organizzazione: { esterna: true, id_organizzazione: 'ext-1' }
+            organizzazione: { intermediata: true, id_organizzazione: 'ext-1' }
           }
         }
       };
@@ -809,7 +809,7 @@ describe('ServizioReferentiComponent', () => {
       expect(component._updateMapper).toBeTruthy();
     });
 
-    it('should set _isDominioEsterno=false when org has no esterna property', () => {
+    it('should set _isDominioEsterno=false when org has no intermediata property', () => {
       const mockService = { nome: 'S', versione: '1', stato: 'ok', dominio: { id_dominio: 'dom1' } };
       mockApiService.getDetails
         .mockReturnValueOnce(of({}))
@@ -1780,17 +1780,16 @@ describe('ServizioReferentiComponent', () => {
       component.referentiInput$.next('Mario');
       vi.advanceTimersByTime(600);
 
-      expect(mockUtilService.getUtenti).toHaveBeenCalledWith('Mario', 'referente_servizio', 'abilitato', 'org1', false);
+      expect(mockUtilService.getUtenti).toHaveBeenCalledWith('Mario', null, 'abilitato', 'org1', ['amministratore_organizzazione', 'operatore_api']);
       expect(results.length).toBe(2); // default + search result
       expect(results[1]).toEqual([{ id: 'u1', nome: 'Mario' }]);
       expect(component.referentiLoading).toBe(false);
       vi.useRealTimers();
     });
 
-    it('should pass null as organizzazione when _isDominioEsterno is true', async () => {
+    it('should always pass the dominio organizzazione and ruolo_organizzazione, also for ref tecnici (Issue #284)', async () => {
       vi.useFakeTimers();
       mockUtilService.getUtenti.mockReturnValue(of([]));
-      component._isDominioEsterno = true;
       component._idDominioEsterno = 'org1';
       component.tipoReferente = 'referente_tecnico';
 
@@ -1800,7 +1799,7 @@ describe('ServizioReferentiComponent', () => {
       component.referentiInput$.next('test');
       vi.advanceTimersByTime(600);
 
-      expect(mockUtilService.getUtenti).toHaveBeenCalledWith('test', '', 'abilitato', null, true);
+      expect(mockUtilService.getUtenti).toHaveBeenCalledWith('test', null, 'abilitato', 'org1', ['amministratore_organizzazione', 'operatore_api']);
       vi.useRealTimers();
     });
 
@@ -2104,7 +2103,7 @@ describe('ServizioReferentiComponent', () => {
   describe('loadAnagrafiche (additional)', () => {
     it('should set referente with correct filter', () => {
       component.loadAnagrafiche();
-      expect(component.anagrafiche['tipo-referente'][0].filter).toBe('referente_servizio,gestore,coordinatore');
+      expect(component.anagrafiche['tipo-referente'][0].filter).toBe('utente_organizzazione,gestore,coordinatore');
     });
 
     it('should set referente_tecnico with empty filter', () => {
@@ -2156,7 +2155,7 @@ describe('ServizioReferentiComponent', () => {
   describe('_onChangeTipoReferente (additional)', () => {
     it('should set specific filter string for referent=true', () => {
       component._onChangeTipoReferente(true);
-      expect(component.referentiFilter).toBe('referente_servizio,gestore,coordinatore');
+      expect(component.referentiFilter).toBe('utente_organizzazione,gestore,coordinatore');
     });
 
     it('should set empty string for referent=false', () => {
@@ -2168,13 +2167,13 @@ describe('ServizioReferentiComponent', () => {
   // === Integration: _loadServizio chain ===
 
   describe('_loadServizio integration', () => {
-    it('should handle dominio with esterna=false', () => {
+    it('should handle dominio with intermediata=false', () => {
       const mockService = {
         nome: 'Svc', versione: '1', stato: 'ok',
         dominio: {
           id_dominio: 'dom1',
           soggetto_referente: {
-            organizzazione: { esterna: false, id_organizzazione: 'org1' }
+            organizzazione: { intermediata: false, id_organizzazione: 'org1' }
           }
         }
       };

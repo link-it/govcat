@@ -19,6 +19,8 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
+
 import { ConfigService, COMPONENTS_IMPORTS } from '@linkit/components';
 import { UtilsLib } from '@app/lib/utils/utils.lib';
 import { SetBackgroundImageDirective } from '@app/lib/directives/set-background-image.directive';
@@ -29,7 +31,7 @@ import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
   templateUrl: './servizi-group-list-card.component.html',
   styleUrls: ['./servizi-group-list-card.component.scss'],
   standalone: true,
-  imports: [CommonModule, ...COMPONENTS_IMPORTS, SetBackgroundImageDirective, HttpImgSrcPipe]
+  imports: [CommonModule, ...COMPONENTS_IMPORTS, TooltipModule, SetBackgroundImageDirective, HttpImgSrcPipe]
 })
 export class ServiziGroupListCardComponent implements OnInit {
 

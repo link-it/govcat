@@ -29,7 +29,7 @@
   </button>
   <ul tabindex="-1" class="dropdown-menu dropdown-menu-end">
     <div class="gl-new-dropdown-inner">
-      @if (_currentStatus !== _statoArchiviato.nome) {
+      @if (_currentStatus !== _statoArchiviato.nome && _cambioStato) {
         <div class="gl-new-dropdown-contents">
           @if (_cambioStato.stato_precedente) {
             <li class="gl-new-dropdown-item">
@@ -60,7 +60,7 @@
               </button>
             </li>
           }
-          @if (_cambioStato.stati_ulteriori.length) {
+          @if (_cambioStato.stati_ulteriori?.length) {
             <li class="gl-new-dropdown-divider">
               <hr class="dropdown-divider">
             </li>

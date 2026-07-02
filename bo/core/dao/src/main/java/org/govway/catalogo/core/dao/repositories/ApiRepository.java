@@ -20,8 +20,14 @@
 package org.govway.catalogo.core.dao.repositories;
 
 import org.govway.catalogo.core.orm.entity.ApiEntity;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.support.JpaRepositoryImplementation;
 
 public interface ApiRepository extends JpaRepositoryImplementation<ApiEntity, Long> {
+
+    // Esistenza di api associate al servizio (relazione ManyToMany) senza materializzare la collezione.
+    // Usata da ServizioService.isEliminabile.
+    @Query(value = "SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END FROM ApiEntity a JOIN a.servizi s WHERE s.id = ?1")
+    public boolean existsByServizioId(Long idServizio);
 
 }

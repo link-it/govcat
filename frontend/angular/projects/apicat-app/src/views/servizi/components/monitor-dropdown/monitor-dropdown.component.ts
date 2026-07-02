@@ -41,6 +41,12 @@ export class MonitorDropdwnComponent implements OnInit, OnChanges {
   @Input() returnWeb: boolean = false;
   @Input() returnWebTitle: string = 'APP.MENU.BackView';
   @Input() otherActions: any[] = [];
+  /**
+   * Voci aggiuntive appese in fondo al menu (dopo le voci interne come
+   * monitoring/management/backview). Utile per azioni "ultime in lista"
+   * tipo l'eliminazione di un'entita'.
+   */
+  @Input() bottomActions: any[] = [];
 
   @Output() action: EventEmitter<any> = new EventEmitter();
 
@@ -156,7 +162,8 @@ export class MonitorDropdwnComponent implements OnInit, OnChanges {
       //   type: 'divider',
       //   enabled: this.otherActions.length
       // }),
-      ..._menuActions
+      ..._menuActions,
+      ...this.bottomActions
     ];
   }
 

@@ -21,44 +21,37 @@
     <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="_groupsView" [hideToggleMobile]="_updateMapper | mapper:_isAnonymousMapper" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
   </div>
   <div class="top-area container-fluid px-0" [class.container-limited]="_contentLimeted">
+    <!-- Spacer/header tabs sempre presente: occupa `flex-grow-1`
+         del top-area cosi` le `.nav-controls` restano allineate a
+         destra anche quando nessun branch interno e` attivo. -->
     <div class="tabs gl-tabs d-flex p-0 m-0 flex-grow-1 mobile-separator">
-      <div class="">
-        @if (!_groupsView) {
+      @if (!_groupsView) {
+        @if (_isMyServices) {
+          <lnk-responsive-tabs
+            class="flex-grow-1"
+            [items]="roleTabs"
+            [active]="roleTab"
+            [activeCount]="_allElements || 0"
+            [loading]="_spin"
+            (activeChange)="onRoleTabChange($event)">
+          </lnk-responsive-tabs>
+        } @else {
           <ul class="nav gp-border-b-0 gp-tabs-nav">
-            @if (_isMyServices) {
-              @for (tab of roleTabs; track tab.key) {
-                <li class="nav-item">
-                  <a class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="roleTab === tab.key" (click)="onRoleTabChange(tab.key)">
-                    <span>{{ tab.label | translate }}</span>
-                    @if (roleTab === tab.key) {
-                      <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm ms-1">
-                        @if (_spin) {
-                          <span class="spinner-border spinner-border-sm"></span>
-                        } @else {
-                          {{ _allElements || 0 }}
-                        }
-                      </span>
-                    }
-                  </a>
-                </li>
-              }
-            } @else {
-              <li class="nav-item">
-                <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer gp-tab-nav-item-active" (click)="_showAllServices()" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + _allElements">
-                  <span title="Services found">{{ 'APP.FILTER.Found' | translate }}</span>
-                  <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm ms-1" [title]="_allElements">
-                    @if (_spin) {
-                      <span class="spinner-border spinner-border-sm"></span>
-                    } @else {
-                      {{ _allElements || 0 }}
-                    }
-                  </span>
-                </a>
-              </li>
-            }
+            <li class="nav-item">
+              <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer gp-tab-nav-item-active" (click)="_showAllServices()" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + _allElements">
+                <span title="Services found">{{ 'APP.FILTER.Found' | translate }}</span>
+                <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm ms-1" [title]="_allElements">
+                  @if (_spin) {
+                    <span class="spinner-border spinner-border-sm"></span>
+                  } @else {
+                    {{ _allElements || 0 }}
+                  }
+                </span>
+              </a>
+            </li>
           </ul>
         }
-      </div>
+      }
       @if (!_production && _groupsView) {
         <div class="nav-controls align-self-center">
           <div class="btn-group">
@@ -79,8 +72,31 @@
           </div>
         </div>
       }
+      @if (_groupsView && _currIdGruppoPadre && _currentGroup && (_currentGroup.descrizione_sintetica || _currentGroup.descrizione)) {
+        <div class="group-header-desc"
+             [class.is-clickable]="_currentGroupExpandable"
+             [attr.role]="_currentGroupExpandable ? 'button' : null"
+             [attr.tabindex]="_currentGroupExpandable ? 0 : null"
+             #groupDescPopover="bs-popover"
+             [popover]="groupDescTpl"
+             [containerClass]="'group-header-desc-popover'"
+             [placement]="'bottom'"
+             [container]="'body'"
+             [outsideClick]="true"
+             triggers=""
+             [attr.aria-label]="_currentGroupExpandable ? ('APP.TOOLTIP.GroupDescription' | translate) : null"
+             (click)="_onGroupDescClick(groupDescPopover)"
+             (keydown.enter)="_onGroupDescClick(groupDescPopover); $event.preventDefault()"
+             (keydown.space)="_onGroupDescClick(groupDescPopover); $event.preventDefault()">
+          <i class="bi bi-folder group-header-desc-icon" aria-hidden="true"></i>
+          <span #groupHeaderDescText class="group-header-desc-text">{{ _currentGroup.descrizione_sintetica || _currentGroup.descrizione }}</span>
+          @if (_currentGroupExpandable) {
+            <i class="bi bi-info-circle group-header-desc-info-icon" aria-hidden="true"></i>
+          }
+        </div>
+      }
     </div>
-    <div class="nav-controls align-self-center d-flex">
+    <div class="nav-controls align-self-center d-flex align-items-center">
       @if (!_production) {
         <div class="btn-group me-5">
           <div class="form-check form-switch">
@@ -118,11 +134,16 @@
         </div>
       }
       @if (_groupsView && !_currIdGruppoPadre) {
-        <div class="btn-group me-2">
-          <button type="button" class="btn btn-default btn-md gl-button" (click)="onExportAll()" [disabled]="_downloading">
-            <i class="bi bi-download me-2"></i>
-            <span>{{ 'APP.MENU.ExportAll' | translate }}</span>
-          </button>
+        <div class="btn-group">
+          <lnk-button
+            [type]="'button'"
+            [icon]="'bi bi-download'"
+            [label]="'APP.MENU.ExportAll' | translate"
+            [ariaLabel]="'APP.MENU.ExportAll' | translate"
+            [otherClass]="'ms-2'"
+            [disabled]="_downloading"
+            (onAction)="onExportAll()"
+          ></lnk-button>
         </div>
       }
       @if (_groupsView && desktop) {
@@ -154,9 +175,14 @@
       }
       @if (_updateMapper | mapper:_canAddServiceMapper) {
         <div class="btn-group">
-          <button aria-label="Add service" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
-            <i class="bi bi-plus-lg"></i><span class="text-nowrap ms-2">{{ 'APP.MENU.AddService' | translate }}</span>
-          </button>
+          <lnk-button
+            [type]="'button'"
+            [icon]="'bi bi-plus-lg'"
+            [label]="'APP.MENU.AddService' | translate"
+            [ariaLabel]="'APP.MENU.AddService' | translate"
+            [primary]="true"
+            (onAction)="_onNew()"
+          ></lnk-button>
         </div>
       }
     </div>
@@ -195,12 +221,13 @@
             <div form-search class="" [class.search-material-custom]="_useNewSearchUI">
               <form class="row" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
                 <fieldset>
+                  <legend class="sr-only">{{ 'APP.LABEL.Search' | translate }}</legend>
                   <div class="row mb-1">
                     <div class="col-sm-2">
                       <label class="col-form-label col-form-label-fix" for="q">{{ 'APP.LABEL.FreeSearch' | translate }}</label>
                     </div>
                     <div class="col-sm-10">
-                      <input type="text" class="form-control form-control-sm" id="q" formControlName="q">
+                      <input type="text" class="form-control form-control-sm" id="q" formControlName="q" autocomplete="off">
                     </div>
                   </div>
                   <div class="row">
@@ -280,6 +307,35 @@
                         [editableSearchTerm]="true"
                         bindValue="id_dominio"
                         formControlName="id_dominio"
+                        (change)="onChangeSearchDropdwon($event)"
+                        >
+                        <ng-template ng-label-tmp let-item="item">
+                          {{ item?.nome }}
+                        </ng-template>
+                        <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                          <div class="fw-bold">{{ item.nome }}</div>
+                          <div class="">
+                            <span class="small text-muted">{{ item.descrizione }}</span>
+                          </div>
+                        </ng-template>
+                      </ng-select>
+                    </div>
+                  </div>
+                  <div class="row mb-1">
+                    <div class="col-sm-2">
+                      <label class="col-form-label col-form-label-fix" for="id_organizzazione_erogatore">{{ 'APP.LABEL.OrganizzazioneErogatore' | translate }}</label>
+                    </div>
+                    <div class="col-sm-10">
+                      <ng-select class="" (click)="onSelectedSearchDropdwon($event)"
+                        [items]="(organizzazioniErogatore$ | async) || []"
+                        [typeahead]="organizzazioniErogatoreInput$"
+                        [minTermLength]="minLengthTerm"
+                        [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                        [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                        labelForId="id_organizzazione_erogatore"
+                        [editableSearchTerm]="true"
+                        bindValue="id_organizzazione"
+                        formControlName="id_organizzazione_erogatore"
                         (change)="onChangeSearchDropdwon($event)"
                         >
                         <ng-template ng-label-tmp let-item="item">
@@ -605,3 +661,20 @@
 
   </section>
 </div>
+
+<!-- Tooltip content per la descrizione del gruppo corrente (vista
+     groups). Mostra entrambe le sezioni quando presenti. -->
+<ng-template #groupDescTpl>
+  @if (_currentGroup?.descrizione_sintetica) {
+    <div class="group-desc-section">
+      <div class="group-desc-label">{{ 'APP.LABEL.DescrizioneSintetica' | translate }}</div>
+      <div class="group-desc-body">{{ _currentGroup.descrizione_sintetica }}</div>
+    </div>
+  }
+  @if (_currentGroup?.descrizione) {
+    <div class="group-desc-section">
+      <div class="group-desc-label">{{ 'APP.LABEL.descrizione' | translate }}</div>
+      <div class="group-desc-body">{{ _currentGroup.descrizione }}</div>
+    </div>
+  }
+</ng-template>

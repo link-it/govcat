@@ -8,8 +8,13 @@ import org.govway.catalogo.core.orm.entity.AllegatoApiEntity.VISIBILITA;
 import org.govway.catalogo.core.orm.entity.ApiConfigEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.DocumentoEntity;
+import org.govway.catalogo.core.orm.entity.DominioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
+import org.govway.catalogo.core.orm.entity.SoggettoEntity;
 import org.govway.catalogo.core.orm.entity.TipoServizio;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import org.govway.catalogo.stampe.StampePdf;
 import org.junit.jupiter.api.BeforeEach;
@@ -166,6 +171,58 @@ class EServiceBuilderTest {
         api.setServizi(servizi);
 
         return api;
+    }
+
+    /**
+     * Costruisce un grafo minimo api -> servizio -> dominio -> soggetto referente,
+     * sufficiente a risolvere url_invocazione, prefix e canale lungo la gerarchia.
+     */
+    private ApiEntity createApiPerUrl() {
+        SoggettoEntity soggetto = new SoggettoEntity();
+        soggetto.setNome("soggetto");
+
+        DominioEntity dominio = new DominioEntity();
+        dominio.setSoggettoReferente(soggetto);
+
+        ServizioEntity servizio = new ServizioEntity();
+        servizio.setFruizione(false);
+        servizio.setDominio(dominio);
+
+        ApiEntity api = new ApiEntity();
+        api.setNome("apitest");
+        api.setVersione(2);
+        Set<ServizioEntity> servizi = new HashSet<>();
+        servizi.add(servizio);
+        api.setServizi(servizi);
+        return api;
+    }
+
+    @Test
+    void testGetUrlInvocazione_placeholderCanale() throws Exception {
+        EServiceBuilder builder = new EServiceBuilder();
+
+        ConfigurazioneEService conf = new ConfigurazioneEService();
+        conf.setTemplateUrlInvocazione("#prefix#/#canale##nome#/v#versione#");
+        conf.setDefaultUrlPrefixProduzione("https://host");
+        conf.setDefaultUrlPrefixCollaudo("https://host");
+
+        Field field = EServiceBuilder.class.getDeclaredField("configurazione");
+        field.setAccessible(true);
+        field.set(builder, conf);
+
+        // Canale assente a tutti i livelli: nessun token dangling, nessun doppio slash nel path
+        ApiEntity apiSenzaCanale = createApiPerUrl();
+        String urlSenzaCanale = builder.getUrlInvocazione(apiSenzaCanale, false);
+        assertEquals("https://host/apitest/v2", urlSenzaCanale);
+        assertFalse(urlSenzaCanale.contains("#canale#"));
+        // doppio slash ammesso solo nello schema (https://), non nel resto del path
+        assertFalse(urlSenzaCanale.substring("https://".length()).contains("//"));
+
+        // Canale valorizzato sull'api: URL = .../<canale><nome>/v<versione>
+        ApiEntity apiConCanale = createApiPerUrl();
+        apiConCanale.setCanale("canale-");
+        String urlConCanale = builder.getUrlInvocazione(apiConCanale, false);
+        assertEquals("https://host/canale-apitest/v2", urlConCanale);
     }
 
     @Test

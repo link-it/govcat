@@ -1,0 +1,61 @@
+# OSV Scanner configuration file
+# Documentazione: https://google.github.io/osv-scanner/configuration/
+#
+# Suppression delle vulnerabilita' che non possono essere risolte sulla
+# linea di versione attualmente in uso (Spring Boot 3.3.x / Spring Framework 6.1.x
+# OSS / Spring Security 6.3.x). La rimozione avverra' contestualmente
+# all'upgrade strutturale a Spring Boot 3.4+/Spring 7 gia' pianificato.
+#
+# IMPORTANTE: rivedere periodicamente le suppression sotto. La data
+# ignoreUntil e' un promemoria per forzare la verifica al successivo
+# refresh delle dipendenze.
+
+[[IgnoredVulns]]
+id = "CVE-2025-41242"
+ignoreUntil = 2027-06-30
+reason = """
+spring-webmvc 6.1.x: la fix e' disponibile solo nella linea 6.2.x (a partire da 6.2.10).
+La 6.1.x OSS si e' fermata a 6.1.21 (EOL OSS). L'upgrade a 6.2.x richiede Spring Boot 3.4+
+e verra' eseguito contestualmente alla migrazione a Spring 7 gia' pianificata.
+"""
+
+[[IgnoredVulns]]
+id = "CVE-2025-41249"
+ignoreUntil = 2027-06-30
+reason = """
+spring-core 6.1.x: la fix e' disponibile solo nella linea 6.2.x (a partire da 6.2.11).
+La 6.1.x OSS si e' fermata a 6.1.21 (EOL OSS). L'upgrade a 6.2.x richiede Spring Boot 3.4+
+e verra' eseguito contestualmente alla migrazione a Spring 7 gia' pianificata.
+Inoltre la vulnerabilita' impatta solo applicazioni che usano @EnableMethodSecurity con
+annotazioni di sicurezza in superclassi/interfacce generiche.
+"""
+
+[[IgnoredVulns]]
+id = "CVE-2026-22735"
+ignoreUntil = 2027-06-30
+reason = """
+spring-webmvc 6.1.x: la fix e' disponibile solo nella linea 6.2.x (a partire da 6.2.17).
+La 6.1.x OSS si e' fermata a 6.1.21 (EOL OSS). L'upgrade a 6.2.x richiede Spring Boot 3.4+
+e verra' eseguito contestualmente alla migrazione a Spring 7 gia' pianificata.
+"""
+
+[[IgnoredVulns]]
+id = "CVE-2026-22737"
+ignoreUntil = 2027-06-30
+reason = """
+spring-webmvc 6.1.x: la fix e' disponibile solo nella linea 6.2.x (a partire da 6.2.17).
+La 6.1.x OSS si e' fermata a 6.1.21 (EOL OSS). L'upgrade a 6.2.x richiede Spring Boot 3.4+
+e verra' eseguito contestualmente alla migrazione a Spring 7 gia' pianificata.
+"""
+
+[[IgnoredVulns]]
+id = "CVE-2026-22732"
+ignoreUntil = 2027-06-30
+reason = """
+spring-security-web 6.3.x: la fix sulla linea 6.3.x (versione 6.3.15) e' distribuita solo
+come Enterprise Support, non OSS. Le uniche fix OSS pubbliche sono in 6.5.9 e 7.0.4, che
+richiedono un upgrade coordinato di Spring Boot e Spring Framework.
+Vulnerabilita' gia' soppressa anche in OWASP Dependency-Check (vedi
+tools/owasp/suppression/CVE-2026-22732.xml). La rimozione di entrambe le suppression
+avverra' al prossimo upgrade tecnologico a Spring 7.
+"""

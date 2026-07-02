@@ -28,7 +28,7 @@
       <h3 class="page-title">{{ 'APP.DOMINI.NewDomain' | translate }}</h3>
     }
     <div class="d-flex flex-grow-1">&nbsp;</div>
-    <ng-template [appHasPermission]="'domini'" [action]="'edit'">
+    @if (_canEditDominio) {
       <div class="nav-controls">
         @if (!_spin && !_isEdit) {
           <div class="position-relative me-2">
@@ -80,7 +80,7 @@
           </div>
         }
       </div>
-    </ng-template>
+    }
   </div>
   <section class="container-fluid container-limited limit-container-width container-scroller container-scroller-no-search">
     @if (_spin && !_isNew) {
@@ -120,8 +120,15 @@
                           }
                         </label>
                         @if (_isEdit) {
-                          <div class="">
+                          <div class="position-relative">
                             <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome')" type="text" name="nomeg" id="nome" formControlName="nome" appTrimOnBlur>
+                            <!-- Issue #271 — spinner durante l'async validation
+                                 (`exists` check). -->
+                            @if (f['nome'].pending) {
+                              <span class="spinner-border spinner-border-sm position-absolute end-0 top-50 translate-middle-y me-2 text-muted"
+                                    role="status"
+                                    [attr.aria-label]="'APP.LABEL.Loading' | translate"></span>
+                            }
                             @if (f['nome'].invalid && (f['nome'].dirty || f['nome'].touched)) {
                               <p class="form-text text-danger">
                                 @if (f['nome'].errors && f['nome'].errors['required']) {
@@ -132,6 +139,9 @@
                                 }
                                 @if (f['nome'].errors && f['nome'].errors['maxlength']) {
                                   <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['nome'].errors['maxlength'].requiredLength } }}</span>
+                                }
+                                @if (f['nome'].errors && f['nome'].errors['alreadyExists']) {
+                                  <span class="d-block">{{ 'APP.DOMINI.VALIDATION.NameAlreadyExists' | translate }}</span>
                                 }
                               </p>
                             }
@@ -400,6 +410,11 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-12">
+      <hr>
     </div>
   </div>
   <div class="row gl-mt-3">

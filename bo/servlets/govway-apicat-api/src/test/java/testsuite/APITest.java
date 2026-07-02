@@ -78,9 +78,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -99,7 +98,7 @@ import jakarta.persistence.PersistenceContext;
 
 @ExtendWith(SpringExtension.class)  // JUnit 5 extension
 @SpringBootTest(classes = OpenAPI2SpringBoot.class)
-@EnableAutoConfiguration(exclude = {GroovyTemplateAutoConfiguration.class})
+@EnableAutoConfiguration
 @AutoConfigureTestDatabase(replace = Replace.ANY)
 @ActiveProfiles("test")
 @DirtiesContext(classMode = ClassMode.BEFORE_CLASS)
@@ -202,7 +201,7 @@ public class APITest {
     public Dominio getDominio() {
 
     	OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
-    	organizzazione.setEsterna(false);
+    	organizzazione.setIntermediata(false);
 
     	response = organizzazioniController.createOrganizzazione(organizzazione);
     	this.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
@@ -234,7 +233,7 @@ public class APITest {
     public Servizio getServizio() {
     	Dominio dominio = this.getDominio();
     	ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
-    	servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+    	servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
 
     	servizioCreate.setIdDominio(dominio.getIdDominio());
     	if (immagine.getContent() != null) {

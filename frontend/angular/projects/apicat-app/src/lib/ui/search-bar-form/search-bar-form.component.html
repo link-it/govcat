@@ -108,7 +108,7 @@
         }
         <div class="gl-h-auto gl-filtered-search-term gl-filtered-search-item gl-filtered-search-last-item">
           <div class="gl-filtered-search-token-segment gl-filtered-search-term-token" [class.gl-w-full]="!_tokens.length">
-            <input type="text" [(ngModel)]="query" [placeholder]="_placeholder" [attr.aria-label]="_placeholder" class="gl-filtered-search-term-input w-100" style="background-color: transparent;" [readonly]="!freeSearch" (click)="_onClickSearchInput($event)" (keyup.enter)="_onSearch()" (keyup)="_onKeyup($event)">
+            <input type="text" [(ngModel)]="query" [placeholder]="_placeholder" [attr.aria-label]="_placeholder" class="gl-filtered-search-term-input w-100" style="background-color: transparent;" [readonly]="!freeSearch" (click)="_onClickSearchInput($event)" (keyup.enter)="_onSearch()" (keyup)="_onKeyup($event)" autocomplete="off">
             <!-- <ul class="dropdown-menu form-search-container w-100 px-2" [ngStyle]="{'background-color': backColor, 'max-width': maxWidth}">
             <li><button type="button" class="close" style="width: auto;" (click)="_closeSearchDropDpwn($event)" *ngIf="!hideClose"><em class="bi bi-x"></em></button></li>
             <div class="dropdown-menu-content p-3">

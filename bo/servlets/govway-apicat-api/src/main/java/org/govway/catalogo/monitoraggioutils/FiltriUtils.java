@@ -196,7 +196,7 @@ public class FiltriUtils {
 						id.setRuolo(ap.getRuolo());
 						id.setProtocollo(conf.getProtocollo());
 
-						if(servizio.getSoggettoInterno()!=null) {
+						if(servizio.getSoggettoErogatore()!=null) {
 							id.setFruizione(true);
 						}
 

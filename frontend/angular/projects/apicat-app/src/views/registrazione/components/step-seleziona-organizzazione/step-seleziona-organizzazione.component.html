@@ -1,0 +1,95 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- Issue 229 — Step opzionale "Seleziona organizzazione" del
+-- wizard di registrazione. Mostra una card riassuntiva quando
+-- l'utente ha gia` scelto (con Cambia/Rimuovi), altrimenti un
+-- `<ng-select>` con typeahead full-text via `q`.
+-->
+<div class="step-seleziona-organizzazione">
+  <h2 class="step-title">{{ 'APP.REGISTRAZIONE.TITLE.SelezionaOrganizzazione' | translate }}</h2>
+  <p class="step-subtitle text-muted">{{ 'APP.REGISTRAZIONE.MESSAGE.SelezionaOrganizzazioneDesc' | translate }}</p>
+
+  @if (_hasExistingSelection) {
+    <!-- Card riassuntiva: l'utente ha gia` selezionato un'org
+         in una sessione precedente. Mostriamo nome + bottoni. -->
+    <div class="card card-pad-tight mb-3">
+      <div class="d-flex align-items-center gap-3">
+        <div class="flex-grow-1">
+          <div class="text-muted small">{{ 'APP.REGISTRAZIONE.LABEL.OrganizzazioneSelezionata' | translate }}</div>
+          <div class="fw-semibold">{{ organizzazioneRichiesta?.nome }}</div>
+          @if (organizzazioneRichiesta?.descrizione) {
+            <div class="text-muted small">{{ organizzazioneRichiesta?.descrizione }}</div>
+          }
+        </div>
+        <div class="d-flex gap-2">
+          <lnk-button
+            [label]="'APP.REGISTRAZIONE.BUTTON.Cambia'"
+            [ariaLabel]="'APP.REGISTRAZIONE.BUTTON.Cambia'"
+            [tertiary]="true"
+            [size]="'sm'"
+            [disabled]="loading"
+            (onAction)="onChange()"
+          ></lnk-button>
+          <lnk-button
+            [label]="'APP.REGISTRAZIONE.BUTTON.Rimuovi'"
+            [ariaLabel]="'APP.REGISTRAZIONE.BUTTON.Rimuovi'"
+            [danger]="true"
+            [size]="'sm'"
+            [disabled]="loading"
+            (onAction)="onRemove()"
+          ></lnk-button>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <!-- Search via ng-select typeahead -->
+    <div class="form-group mb-3">
+      <label for="org_search" class="form-label">{{ 'APP.REGISTRAZIONE.LABEL.SearchOrganizzazione' | translate }}</label>
+      <ng-select
+        labelForId="org_search"
+        bindLabel="nome"
+        [items]="(items$ | async) || []"
+        [(ngModel)]="_selected"
+        (change)="onSelect($event)"
+        [typeahead]="typeahead$"
+        [loading]="(searching$ | async) ?? false"
+        [searchable]="true"
+        [clearable]="true"
+        [searchFn]="trueFn"
+        [placeholder]="'APP.REGISTRAZIONE.LABEL.SearchOrganizzazionePlaceholder' | translate"
+        [notFoundText]="'APP.REGISTRAZIONE.ERROR.OrganizzazioneNotFound' | translate"
+        [typeToSearchText]="'APP.REGISTRAZIONE.LABEL.SearchOrganizzazionePlaceholder' | translate">
+        <ng-template ng-label-tmp let-item="item">
+          {{ item?.nome }}
+        </ng-template>
+        <ng-template ng-option-tmp let-item="item">
+          <div class="fw-semibold">{{ item.nome }}</div>
+          @if (item.descrizione) {
+            <div class="small text-muted">{{ item.descrizione }}</div>
+          }
+        </ng-template>
+      </ng-select>
+    </div>
+  }
+
+  <div class="d-flex justify-content-between align-items-center mt-4">
+    <lnk-button
+      [label]="'APP.REGISTRAZIONE.BUTTON.Salta'"
+      [ariaLabel]="'APP.REGISTRAZIONE.BUTTON.Salta'"
+      [tertiary]="true"
+      [disabled]="loading"
+      (onAction)="onSkip()"
+    ></lnk-button>
+    <lnk-button
+      [label]="'APP.REGISTRAZIONE.BUTTON.ConfermaERegistra'"
+      [ariaLabel]="'APP.REGISTRAZIONE.BUTTON.ConfermaERegistra'"
+      [primary]="true"
+      [disabled]="!_canConfirm"
+      [spinner]="loading"
+      (onAction)="onConfirm()"
+    ></lnk-button>
+  </div>
+</div>

@@ -104,7 +104,7 @@ public class AdesioneEntity {
 	private Set<NotificaEntity> notifiche = new HashSet<>();
 
     @OneToMany(mappedBy = "adesione", fetch = FetchType.LAZY)
-    @Cascade({CascadeType.PERSIST,CascadeType.DELETE})
+    @Cascade({CascadeType.PERSIST,CascadeType.REMOVE})
     private Set<ReferenteAdesioneEntity> referenti = new HashSet<>();
 
     @OneToMany(mappedBy = "adesione", fetch = FetchType.LAZY)

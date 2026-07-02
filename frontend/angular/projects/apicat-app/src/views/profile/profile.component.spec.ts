@@ -23,6 +23,7 @@ describe('ProfileComponent', () => {
     getDetails: vi.fn().mockReturnValue(of({})),
     putElement: vi.fn().mockReturnValue(of({})),
     putElementRelated: vi.fn().mockReturnValue(of({})),
+    deleteElement: vi.fn().mockReturnValue(of({})),
   } as any;
   const mockAuthService = {
     getCurrentSession: vi.fn().mockReturnValue({}),
@@ -51,6 +52,7 @@ describe('ProfileComponent', () => {
     mockApiService.getDetails.mockReturnValue(of({}));
     mockApiService.putElement.mockReturnValue(of({}));
     mockApiService.putElementRelated.mockReturnValue(of({}));
+    mockApiService.deleteElement.mockReturnValue(of({}));
     mockAuthService.getSettings.mockReturnValue({});
     mockAuthService.isGestore.mockReturnValue(false);
     component = new ProfileComponent(
@@ -76,8 +78,17 @@ describe('ProfileComponent', () => {
   });
 
   it('should have default values', () => {
-    expect(component.isProfile).toBe(true);
-    expect(component.isEdit).toBe(false);
+    // Rewrite F1: `isProfile` (boolean Profile/Settings) sostituito
+    // dal 3-tab state `currentTab` (informazioni/organizzazioni/
+    // impostazioni). Il getter `isInformazioniTab` rimpiazza
+    // semanticamente il vecchio `isProfile === true`.
+    expect(component.currentTab).toBe('informazioni');
+    expect(component.isInformazioniTab).toBe(true);
+    expect(component.isOrganizzazioniTab).toBe(false);
+    expect(component.isImpostazioniTab).toBe(false);
+    // Rewrite F2: form sempre in edit (no toggle modifica/annulla).
+    // `isEdit` defaulta a `true`.
+    expect(component.isEdit).toBe(true);
     expect(component.saving).toBe(false);
     expect(component.spin).toBe(true);
   });
@@ -112,18 +123,38 @@ describe('ProfileComponent', () => {
     expect(component.error).toBe(false);
   });
 
-  it('should cancel edit mode', () => {
+  it('should reset form state on cancel (no toggle isEdit)', () => {
+    // Rewrite F2: `onCancelEdit` non commuta piu` `isEdit`
+    // (sempre `true`). Resetta solo error/errorMsg e re-inizializza
+    // il form ai valori del profilo caricato.
     component.profile = { nome: 'Test' };
-    component.isEdit = true;
+    component.error = true;
+    component.errorMsg = 'old';
     component.onCancelEdit();
-    expect(component.isEdit).toBe(false);
+    expect(component.isEdit).toBe(true);
+    expect(component.error).toBe(false);
+    expect(component.errorMsg).toBe('');
   });
 
-  it('should show profile and settings tabs', () => {
-    component._showProfile();
-    expect(component.isProfile).toBe(true);
+  it('should switch between the 3 tabs (informazioni / organizzazioni / impostazioni)', () => {
+    // Rewrite F1: 3-tab state. Manteniamo qui anche un check sugli
+    // alias legacy `_showProfile` / `_showSettings` (mappano
+    // rispettivamente a Informazioni / Impostazioni) per coprire
+    // call site esterni durante la transizione.
+    component._showOrganizzazioni();
+    expect(component.currentTab).toBe('organizzazioni');
+    expect(component.isOrganizzazioniTab).toBe(true);
+    component._showImpostazioni();
+    expect(component.currentTab).toBe('impostazioni');
+    expect(component.isImpostazioniTab).toBe(true);
+    component._showInformazioni();
+    expect(component.currentTab).toBe('informazioni');
+    expect(component.isInformazioniTab).toBe(true);
+    // Alias legacy
     component._showSettings();
-    expect(component.isProfile).toBe(false);
+    expect(component.currentTab).toBe('impostazioni');
+    component._showProfile();
+    expect(component.currentTab).toBe('informazioni');
   });
 
   it('should prepare body for update', () => {
@@ -503,14 +534,16 @@ describe('ProfileComponent', () => {
   // ---------------------------------------------------------------
 
   describe('onCancelEdit', () => {
-    it('should reset isEdit, error, errorMsg and restore selectedOrganizzazione', () => {
+    it('should reset error/errorMsg and restore selectedOrganizzazione (no toggle isEdit)', () => {
+      // Rewrite F2: il form e` sempre in edit; `onCancelEdit` non
+      // commuta piu` `isEdit`. Resetta solo error/errorMsg +
+      // selectedOrganizzazione al profilo caricato.
       component.profile = { organizzazione: { id: 'org1' } };
-      component.isEdit = true;
       component.error = true;
       component.errorMsg = 'some error';
       component.selectedOrganizzazione = { id: 'org2' };
       component.onCancelEdit();
-      expect(component.isEdit).toBe(false);
+      expect(component.isEdit).toBe(true);
       expect(component.error).toBe(false);
       expect(component.errorMsg).toBe('');
       expect(component.selectedOrganizzazione).toEqual({ id: 'org1' });
@@ -1146,7 +1179,7 @@ describe('ProfileComponent', () => {
     it('should call apiService.getList with query param', () => {
       mockApiService.getList.mockReturnValue(of({ content: [{ id: '1', nome: 'Org' }] }));
       component.getOrganizzazioni('test').subscribe();
-      expect(mockApiService.getList).toHaveBeenCalledWith('organizzazioni', { params: { q: 'test' } });
+      expect(mockApiService.getList).toHaveBeenCalledWith('registrazione/organizzazioni', { params: { q: 'test' } });
     });
 
     it('should return mapped items from response.content', () => {
@@ -1169,7 +1202,7 @@ describe('ProfileComponent', () => {
     it('should pass null as query param when term is null', () => {
       mockApiService.getList.mockReturnValue(of({ content: [] }));
       component.getOrganizzazioni(null).subscribe();
-      expect(mockApiService.getList).toHaveBeenCalledWith('organizzazioni', { params: { q: null } });
+      expect(mockApiService.getList).toHaveBeenCalledWith('registrazione/organizzazioni', { params: { q: null } });
     });
   });
 
@@ -1188,30 +1221,46 @@ describe('ProfileComponent', () => {
       });
     });
 
-    it('should show YesnoDialog with ChangeWarningWithOrg when profile has org', () => {
-      component.requestOrganizationChange('org2');
+    it('should show YesnoDialog with ChangeWarningWithOrg when called with partenza (replace flow)', () => {
+      // Issue 229 multi-org: la firma e` ora
+      // requestOrganizationChange(targetId, partenzaId?). Quando
+      // partenzaId e` valorizzato -> flusso "replace" con i18n
+      // `ChangeWarningWithOrg`.
+      component.requestOrganizationChange('org2', 'org1');
       expect(mockModalService.show).toHaveBeenCalled();
       expect(mockTranslate.instant).toHaveBeenCalledWith('APP.PROFILE.ORGANIZATION.ChangeWarningWithOrg');
     });
 
-    it('should show YesnoDialog with ChangeWarning when profile has no org', () => {
+    it('should show YesnoDialog with AddWarning when called without partenza (add flow)', () => {
+      // Senza partenzaId -> flusso "add" -> i18n `AddWarning`.
       component.profile = { id_utente: '1' };
       component.requestOrganizationChange('org2');
-      expect(mockTranslate.instant).toHaveBeenCalledWith('APP.PROFILE.ORGANIZATION.ChangeWarning');
+      expect(mockTranslate.instant).toHaveBeenCalledWith('APP.PROFILE.ORGANIZATION.AddWarning');
     });
 
     it('should call putElement on confirm and show success message', () => {
       const showMsgSpy = vi.spyOn(Tools, 'showMessage').mockImplementation(() => {});
       const loadProfileSpy = vi.spyOn(component, 'loadProfile').mockImplementation(() => {});
-      const cancelEditSpy = vi.spyOn(component, 'onCancelEdit').mockImplementation(() => {});
+      // Issue 229 multi-org: post-success usa `_closeOrgForm()`
+      // invece di `onCancelEdit()` (che resta solo per il form
+      // dati personali).
+      const closeOrgSpy = vi.spyOn(component, '_closeOrgForm').mockImplementation(() => {});
 
       component.requestOrganizationChange('org2');
       onCloseSubject.next(true);
 
-      expect(mockApiService.putElement).toHaveBeenCalledWith('profilo/organizzazione', null, { id_organizzazione: 'org2' });
+      // Issue 229 multi-org: il payload include sempre
+      // `id_organizzazione_partenza` (null per il flusso add,
+      // valorizzato per replace). Il BE rispondeva
+      // `UT.400.ORG.PARTENZA.REQUIRED` quando il field era omesso.
+      expect(mockApiService.putElement).toHaveBeenCalledWith(
+        'profilo/organizzazione',
+        null,
+        { id_organizzazione: 'org2', id_organizzazione_partenza: null }
+      );
       expect(showMsgSpy).toHaveBeenCalledWith('APP.PROFILE.ORGANIZATION.RequestSent', 'success');
       expect(loadProfileSpy).toHaveBeenCalled();
-      expect(cancelEditSpy).toHaveBeenCalled();
+      expect(closeOrgSpy).toHaveBeenCalled();
     });
 
     it('should set error on putElement failure after confirm', () => {
@@ -1448,6 +1497,66 @@ describe('ProfileComponent', () => {
   describe('minLengthTerm', () => {
     it('should default to 1', () => {
       expect(component.minLengthTerm).toBe(1);
+    });
+  });
+
+  // ---------------------------------------------------------------
+  // Issue 229 evolutiva 3 — cancelOrganizationChange
+  // ---------------------------------------------------------------
+
+  describe('cancelOrganizationChange', () => {
+    let onCloseSub: Subject<any>;
+
+    beforeEach(() => {
+      onCloseSub = new Subject<any>();
+      mockModalService.show.mockReturnValue({
+        content: { onClose: onCloseSub.asObservable() }
+      });
+    });
+
+    it('should be no-op when no pending request', () => {
+      component.profile = { organizzazione_pending: null };
+      component.cancelOrganizationChange();
+      expect(mockModalService.show).not.toHaveBeenCalled();
+    });
+
+    it('should show modal with danger color when pending request', () => {
+      component.profile = { organizzazione_pending: { id_organizzazione: 'org2', nome: 'Org2' } };
+      component.cancelOrganizationChange();
+      expect(mockModalService.show).toHaveBeenCalled();
+      const callArgs = mockModalService.show.mock.calls[0];
+      expect(callArgs[1].initialState.confirmColor).toBe('danger');
+    });
+
+    it('should call DELETE /profilo/organizzazione on confirm', () => {
+      component.profile = { organizzazione_pending: { id_organizzazione: 'org2', nome: 'Org2' } };
+      mockApiService.deleteElement.mockReturnValue(of({ id_utente: '1', stato: 'abilitato' }));
+
+      component.cancelOrganizationChange();
+      onCloseSub.next(true);
+
+      expect(mockApiService.deleteElement).toHaveBeenCalledWith('profilo/organizzazione', null);
+      // loadProfile e` chiamato da next: ricarica i dati.
+      expect(mockApiService.getList).toHaveBeenCalled();
+    });
+
+    it('should set error message on DELETE failure', () => {
+      component.profile = { organizzazione_pending: { id_organizzazione: 'org2', nome: 'Org2' } };
+      mockApiService.deleteElement.mockReturnValue(throwError(() => ({ status: 400 })));
+
+      component.cancelOrganizationChange();
+      onCloseSub.next(true);
+
+      expect(component.error).toBe(true);
+      expect(component.errorMsg).toBe('error');
+    });
+
+    it('should not call DELETE on modal cancel', () => {
+      component.profile = { organizzazione_pending: { id_organizzazione: 'org2', nome: 'Org2' } };
+      component.cancelOrganizationChange();
+      onCloseSub.next(false);
+
+      expect(mockApiService.deleteElement).not.toHaveBeenCalled();
     });
   });
 });

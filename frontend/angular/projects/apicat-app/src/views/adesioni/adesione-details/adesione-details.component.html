@@ -90,7 +90,7 @@
         <div class="btn-group me-1">
           <div class="btn-group" id="actions">
             <button type="button" [tooltip]="'APP.TOOLTIP.ChangeStatus' | translate" class="btn btn-default btn-md gl-button" id="workflow_actions" disabled>
-              <i class="bi bi-node-plus"></i> <span class="ms-2">{{ 'APP.STATUS.' + _adesione.stato | translate }}</span>
+              <i class="bi bi-node-plus"></i> <span class="ms-2">{{ 'APP.WORKFLOW.STATUS.' + _adesione.stato | translate }}</span>
             </button>
           </div>
         </div>
@@ -99,6 +99,13 @@
         <div class="position-relative">
           <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.EditAdesione' | translate" (click)="_editAdesione()" [disabled]="!(_updateMapper | mapper:_canEditMapper) || adesione?.stato !== 'bozza'">
             <i class="bi bi-pencil"></i>
+          </button>
+        </div>
+      }
+      @if (!_isEdit && !_isNew && !_spin && (_updateMapper | mapper:_isGestoreMapper)) {
+        <div class="btn-group- ms-2 d-inline-block">
+          <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.DeleteAdesione' | translate" (click)="_confirmDeleteAdesione()">
+            <i class="bi bi-trash text-danger"></i>
           </button>
         </div>
       }
@@ -288,7 +295,14 @@
                       <label class="label-bold" for="id_organizzazione">{{ 'APP.LABEL.id_organizzazione' | translate }} @if (_isEdit) {
                         <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_organizzazione'"></span>
                       }</label>
-                      @if (_isNew  || (_isEdit && _isBozza)) {
+                      @if (_lockedOrgNome) {
+                        <!-- Auto-select dal contesto di sessione:
+                             l'utente non puo` cambiare org, rendering
+                             come input testuale read-only invece di
+                             ng-select (evita problemi di bind del
+                             ng-select disabled). -->
+                        <input type="text" readonly class="form-control" [value]="_lockedOrgNome">
+                      } @else if (_isNew  || (_isEdit && _isBozza)) {
                         <ng-select #ngSelectOrganizazione class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_organizzazione')"
                           [items]="(organizzazioni$ | async) || []"
                           [typeahead]="organizzazioniInput$"

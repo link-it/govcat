@@ -51,4 +51,13 @@ public interface AdesioneRepository extends JpaRepositoryImplementation<Adesione
     @Query(value = "SELECT a FROM AdesioneEntity a WHERE a.richiedente.id = ?1")
     public List<AdesioneEntity> findByRichiedente(Long id);
 
+    @Query(value = "SELECT a FROM AdesioneEntity a WHERE a.adesioneCollaudo = ?1")
+    public List<AdesioneEntity> findByAdesioneCollaudo(AdesioneEntity adesioneCollaudo);
+
+    // Esistenza di adesioni per il servizio senza materializzare la collezione (SELECT ... LIMIT-like):
+    // usata da ServizioService.isEliminabile per le viste di lista (servizi/adesioni), dove .isEmpty()
+    // sulla collezione lazy caricava tutte le adesioni del servizio (collo di bottiglia per i servizi popolari).
+    @Query(value = "SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END FROM AdesioneEntity a WHERE a.servizio.id = ?1")
+    public boolean existsByServizioId(Long idServizio);
+
 }

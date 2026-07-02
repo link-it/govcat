@@ -55,7 +55,15 @@
       <div class="">
         @if (!_isEdit && _error) {
           <div class="gl-alert gl-alert-danger col-md-12 mb-5">
-            {{ _errorMsg }}
+            @if (!_errors.length) {
+              <span>{{ _errorMsg }}</span>
+            }
+            @if (_errors.length > 0) {
+              <ui-error-view
+                [errTitle]="_errorMsg"
+                [errors]="_errors">
+              </ui-error-view>
+            }
           </div>
         }
         @if (!_spin && !environmentId) {
@@ -254,7 +262,15 @@
         }
         @if (!_isEdit && _error) {
           <div class="gl-alert gl-alert-danger col-md-12 mb-5">
-            {{ _errorMsg }}
+            @if (!_errors.length) {
+              <span>{{ _errorMsg }}</span>
+            }
+            @if (_errors.length > 0) {
+              <ui-error-view
+                [errTitle]="_errorMsg"
+                [errors]="_errors">
+              </ui-error-view>
+            }
           </div>
         }
         @if (!_spin && !environmentId) {
@@ -391,6 +407,19 @@
         </div>
         <div class="modal-body">
           <div class="p-3">
+            @if (_error) {
+              <div class="gl-alert gl-alert-danger col-md-12 mb-3">
+                @if (!_errors.length) {
+                  <span>{{ _errorMsg }}</span>
+                }
+                @if (_errors.length > 0) {
+                  <ui-error-view
+                    [errTitle]="_errorMsg"
+                    [errors]="_errors">
+                  </ui-error-view>
+                }
+              </div>
+            }
             <form class="row" [formGroup]="_editFormGroupClients" (submit)="_onSubmit(_formGroup.value)">
               <fieldset>
 
@@ -484,7 +513,6 @@
                 <div class="form-group col-6 mb-2">
                   <label class="label-bold" for="quota">
                     {{ 'APP.ADESIONI.LABEL.Quota' | translate }}
-                    <!-- <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'quota'"></span> -->
                   </label>
                   <input class="form-control form-control-sm" id="quota" type="number" min="1" formControlName="quota">
                   @if (fRate['quota'].invalid && (fRate['quota'].dirty || fRate['quota'].touched)) {
@@ -499,9 +527,8 @@
                   }
                 </div>
                 <div class="form-group col-6 mb-2">
-                  <label class="label-bold" for="periodo">
+                  <label class="label-bold" for="periodo">ß
                     {{ 'APP.ADESIONI.LABEL.Periodo' | translate }}
-                    <!-- <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'periodo'"></span> -->
                   </label>
                   <select class="form-select" id="periodo" formControlName="periodo" [class.gl-field-error-outline]="_hasControlError('periodo')">
                     @for (periodo of ratePeriods; track periodo) {
@@ -1047,6 +1074,19 @@
       </div>
       <div class="modal-body">
         <div class="p-3">
+          @if (_error) {
+            <div class="gl-alert gl-alert-danger col-md-12 mb-3">
+              @if (!_errors.length) {
+                <span>{{ _errorMsg }}</span>
+              }
+              @if (_errors.length > 0) {
+                <ui-error-view
+                  [errTitle]="_errorMsg"
+                  [errors]="_errors">
+                </ui-error-view>
+              }
+            </div>
+          }
           <form class="row" [formGroup]="_editFormGroupErogazioni" (submit)="_onSubmit(_formGroup.value)">
             <fieldset>
 

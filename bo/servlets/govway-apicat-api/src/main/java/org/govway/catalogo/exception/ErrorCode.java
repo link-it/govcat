@@ -208,6 +208,24 @@ public enum ErrorCode {
     /** Ruolo coordinatore non abilitato nella configurazione */
     UT_400_COORDINATORE_DISABLED("Ruolo coordinatore non abilitato"),
 
+    /** Richiesta cambio organizzazione: organizzazione di partenza non corrisponde a una delle associazioni dell'utente */
+    UT_400_ORG_PARTENZA_NOT_ASSOCIATED("Organizzazione di partenza non associata all'utente"),
+
+    /** Richiesta cambio organizzazione: organizzazione di partenza coincide con quella target */
+    UT_400_ORG_PARTENZA_SAME_AS_TARGET("Organizzazione di partenza e organizzazione richiesta non possono coincidere"),
+
+    /** Richiesta cambio organizzazione: utente già associato all'organizzazione richiesta */
+    UT_400_ORG_PENDING_ALREADY_ASSOCIATED("Utente già associato all'organizzazione richiesta"),
+
+    /** Annullamento richiesta cambio organizzazione: nessuna richiesta pending da annullare */
+    UT_400_NO_PENDING_REQUEST("Nessuna richiesta di cambio organizzazione da annullare"),
+
+    /** Ruolo utente non valorizzato per operazione su utente-organizzazione */
+    UT_400_RUOLO_NULL("Ruolo utente non valorizzato"),
+
+    /** Filtro per ruolo nell'organizzazione utilizzato senza valorizzare id_organizzazione */
+    UT_400_RUOLO_ORG_REQUIRES_ORG("Il filtro per ruolo nell'organizzazione richiede il parametro id_organizzazione"),
+
     // ==================== CLASSI UTENTE ====================
 
     /** Classe utente non trovata */
@@ -253,6 +271,9 @@ public enum ErrorCode {
 
     /** Estensione client non supportata */
     CLT_400_EXTENSION("Estensione client non supportata"),
+
+    /** Certificato client non valido o non elaborabile */
+    CLT_422_CERTIFICATE("Certificato client non valido"),
 
     // ==================== ADESIONI ====================
 
@@ -436,6 +457,27 @@ public enum ErrorCode {
     /** Utente non abilitato come referente */
     AUT_403_REFERENT_NOT_ELIGIBLE("Utente non abilitato come referente"),
 
+    /** Utente senza un ruolo sufficiente nell'organizzazione per essere referente (richiesto almeno Operatore API) */
+    AUT_403_REFERENT_NO_ROLE("Utente senza un ruolo sufficiente nell'organizzazione per essere referente"),
+
+    /** Organizzazione di sessione non abilitata come referente di servizi */
+    AUT_403_ORG_NOT_REFERENTE("Organizzazione non abilitata come referente di servizi"),
+
+    /** Organizzazione di sessione non abilitata come aderente */
+    AUT_403_ORG_NOT_ADERENTE("Organizzazione non abilitata come aderente"),
+
+    /** Un amministratore organizzazione non può assegnare il ruolo richiesto */
+    AUT_403_AMM_ORG_INVALID_ROLE("Ruolo globale non assegnabile da amministratore organizzazione"),
+
+    /** L'utente da creare deve essere associato esclusivamente all'organizzazione di sessione */
+    AUT_403_AMM_ORG_INVALID_ORGS("Vincoli organizzazioni utente non soddisfatti per amministratore organizzazione"),
+
+    /** Un amministratore organizzazione può operare solo sui domini il cui soggetto referente appartiene alla propria organizzazione di sessione */
+    AUT_403_AMM_ORG_DOMINIO_FUORI_ORG("Dominio non appartenente all'organizzazione di sessione dell'amministratore"),
+
+    /** Un amministratore organizzazione può approvare la richiesta cambio organizzazione solo quando è amministratore dell'organizzazione target */
+    AUT_403_AMM_ORG_NOT_TARGET("L'amministratore non è target della richiesta di cambio organizzazione"),
+
     /** Token di autenticazione non valido */
     AUT_401_TOKEN("Token non valido"),
 
@@ -508,6 +550,9 @@ public enum ErrorCode {
 
     /** Transizione di stato non consentita */
     WFL_400_TRANSITION("Transizione stato non consentita"),
+
+    /** Modifica di dati non consentita nello stato corrente */
+    WFL_400_DATA_NOT_MODIFIABLE("Modifica dati non consentita"),
 
     /** Workflow non trovato */
     WFL_404("Workflow non trovato"),
@@ -613,8 +658,20 @@ public enum ErrorCode {
     /** Principal già associato ad altro utente */
     REG_409_PRINCIPAL_EXISTS("Principal già associato a un altro utente"),
 
+    /** Più utenti associati alla stessa email aziendale */
+    REG_409_MULTIPLE_USERS_EMAIL("Più utenti associati alla stessa email aziendale"),
+
     /** Email non presente nei dati di autenticazione (JWT) */
-    REG_400_NO_EMAIL_JWT("Email non presente nei dati di autenticazione");
+    REG_400_NO_EMAIL_JWT("Email non presente nei dati di autenticazione"),
+
+    /** Organizzazione selezionata non trovata */
+    REG_404_ORG_NOT_FOUND("Organizzazione selezionata non trovata"),
+
+    /** Utente già associato all'organizzazione richiesta */
+    REG_400_ORG_ALREADY_ASSOCIATED("Utente già associato all'organizzazione richiesta"),
+
+    /** Utente già in attesa di approvazione per un'altra organizzazione */
+    REG_409_ALREADY_PENDING_OTHER_ORG("Utente già in attesa di approvazione per un'altra organizzazione");
 
     // ==================== ATTRIBUTI E METODI ====================
 

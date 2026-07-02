@@ -1,0 +1,182 @@
+// ----------------------------------------------------------------------
+// AdesioneFasiBarComponent — Issue 254 NEW LAYOUT (rev. 4.8)
+// Stili 1:1 dal design-code `.gstepper` / `.gstep` (vedi
+// `NOTE-CLAUDE/ISSUE-254-NEW-LAYOUT/design-code/Stylesheets/styles.css`).
+//
+// Le rules sono dichiarate qui (non nel SCSS del wizard) per
+// rispettare la view encapsulation Angular: il template di questo
+// componente ha i suoi propri attributi `_ngcontent-XXX`, distinti da
+// quelli del wizard. Le CSS variables (--accent, --ink, ecc.) sono
+// pero` ereditate dal `:host(.lnk-wizard)` del wizard — variabili CSS
+// attraversano view encapsulation perche` sono attributi DOM-level.
+// ----------------------------------------------------------------------
+
+:host {
+  display: block;
+}
+
+.gstepper {
+  display: grid;
+  // 3 colonne nel wizard; 4 colonne con la FASE 0 della form di creazione
+  // (classe `.cols-4` aggiunta dal template quando le fasi sono 4).
+  grid-template-columns: repeat(3, 1fr);
+
+  &.cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  gap: 6px;
+  padding: 6px;
+  background: var(--surface-2, #fafcfd);
+  border: 1px solid var(--line, #dee8ef);
+  border-radius: var(--radius-lg, 14px);
+  margin-bottom: 22px;
+}
+
+.gstep {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: transparent;
+  position: relative;
+  transition: background .15s;
+  overflow: hidden;
+  border: none;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+  color: inherit;
+
+  // Lock disabilitato: cursore not-allowed + niente hover. Mantiene il
+  // visual di stato (icona lock, testo muted) ma il click non fa nulla.
+  &.is-disabled,
+  &[disabled] {
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  // Fase esplicitamente bloccata (es. Produzione finche` il servizio
+  // non e` pubblicato). Override piu` aggressivo del semplice
+  // `[disabled]` per renderla chiaramente non azionabile anche se
+  // sarebbe `is-current` dal punto di vista workflow.
+  &.is-disabled {
+    opacity: .55;
+    background: var(--surface-2, #f6f8fa) !important;
+    box-shadow: none !important;
+    outline: none !important;
+
+    .num {
+      background: var(--surface-3, #eef4f8) !important;
+      color: var(--ink-3, #57738a) !important;
+      border-color: var(--line-strong, #c4d6e0) !important;
+    }
+
+    .lbl .n {
+      color: var(--ink-3, #57738a) !important;
+      font-weight: 500 !important;
+    }
+
+    .disabled-hint {
+      font-size: 10.5px;
+      color: var(--ink-3, #57738a);
+      font-style: italic;
+      margin-top: 2px;
+      white-space: normal;
+      line-height: 1.2;
+    }
+  }
+
+  &.is-current {
+    background: var(--surface, #ffffff);
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(33, 44, 73, .04));
+  }
+
+  &.is-viewing {
+    background: var(--surface, #ffffff);
+    box-shadow: var(--shadow, 0 8px 24px -8px rgba(33, 44, 73, .08));
+    outline: 2px solid var(--line-strong, #c4d6e0) !important;
+    outline-offset: -2px;
+
+    .lbl .n {
+      color: var(--ink, #212c49);
+      font-weight: 600;
+    }
+  }
+
+  .num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 11.5px;
+    font-weight: 600;
+    background: var(--surface-3, #eef4f8);
+    color: var(--ink-3, #57738a);
+    border: 1px solid var(--line-strong, #c4d6e0);
+    flex-shrink: 0;
+  }
+
+  &.is-done .num {
+    background: var(--ink, #212c49);
+    color: white;
+    border-color: var(--ink, #212c49);
+  }
+
+  &.is-current .num {
+    background: var(--accent, #ff4050);
+    color: white;
+    border-color: var(--accent, #ff4050);
+  }
+
+  .lbl {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+
+  .lbl .t {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-3, #8aa4b8);
+    font-weight: 600;
+  }
+
+  .lbl .n {
+    font-size: 13.5px;
+    font-weight: 550;
+    color: var(--ink, #212c49);
+    letter-spacing: -0.005em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &.is-locked .lbl .n {
+    color: var(--ink-3, #57738a);
+  }
+
+  &.is-locked .num i {
+    font-size: 11px;
+    opacity: .6;
+  }
+
+  .viewing-mark {
+    position: absolute;
+    bottom: 0;
+    left: 6px;
+    right: 6px;
+    height: 3px;
+    border-radius: 3px 3px 0 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .gstepper,
+  .gstepper.cols-4 {
+    grid-template-columns: 1fr;
+  }
+}

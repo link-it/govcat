@@ -62,6 +62,9 @@ public class ApiEntity {
 	
     @Column(name = "url_invocazione", nullable = true)
 	private String urlInvocazione;
+
+    @Column(name = "canale", length = 255)
+	private String canale;
     
     @Column(nullable=false)
 	private Integer versione;

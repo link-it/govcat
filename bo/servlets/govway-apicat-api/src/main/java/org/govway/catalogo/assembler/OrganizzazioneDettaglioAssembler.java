@@ -52,6 +52,9 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 	@Autowired
 	private SoggettoService soggettoService;
 
+	@Autowired
+	private org.govway.catalogo.core.services.OrganizzazioneService organizzazioneService;
+
 	public OrganizzazioneDettaglioAssembler() {
 		super(OrganizzazioniController.class, Organizzazione.class);
 	}
@@ -68,7 +71,7 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 		dettaglio.setVincolaAderente(isVincolaAderente(entity));
 		dettaglio.setVincolaReferente(isVincolaReferente(entity));
 		
-		dettaglio.setCambioEsternaConsentito(isCambioConsentito(entity));
+		dettaglio.setCambioIntermediataConsentito(isCambioConsentito(entity));
 		
 		if(entity.getSoggettoDefault()!=null) {
 			dettaglio.setSoggettoDefault(this.soggettoItemAssembler.toLimitedModel(entity.getSoggettoDefault()));
@@ -91,13 +94,16 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 					return false;
 				}
 
-				if(entity.isEsterna()) {
+				if(entity.isIntermediata()) {
 					if(d.getReferenti()!= null) {
+						// Multi-org: un referente è "di altra org" se NON è associato a `entity`
+						// nella tabella utenti_organizzazioni.
 						boolean referenteDiAltraOrg = d.getReferenti().stream()
 								.anyMatch(r -> {
-									return r.getTipo().equals(TIPO_REFERENTE.REFERENTE) && !entity.equals(r.getReferente().getOrganizzazione());	
+									return r.getTipo().equals(TIPO_REFERENTE.REFERENTE)
+										&& this.organizzazioneService.findUtenteOrganizzazione(r.getReferente(), entity).isEmpty();
 								});
-								
+
 						if(referenteDiAltraOrg) {
 							return false;
 						}
@@ -148,15 +154,20 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 		
 		entity.setReferente(src.isReferente());
 		
-		if(src.isEsterna() != null) {
-			
-			if(src.isEsterna().booleanValue() != entity.isEsterna()) {
+		if(src.isIntermediata() != null) {
+
+			if(src.isIntermediata().booleanValue() != entity.isIntermediata()) {
 				if(!isCambioConsentito(entity)) {
 					throw new BadRequestException(ErrorCode.ORG_400_CONSTRAINT_VIOLATION);
 				}
 			}
-			
-			entity.setEsterna(src.isEsterna());
+
+			entity.setIntermediata(src.isIntermediata());
+		}
+
+		// Un'organizzazione intermediata non può essere né referente né aderente
+		if(entity.isIntermediata() && (entity.isReferente() || entity.isAderente())) {
+			throw new BadRequestException(ErrorCode.ORG_400_CONSTRAINT_VIOLATION);
 		}
 
 		if(src.getIdSoggettoDefault()!=null) {
@@ -191,7 +202,12 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 		
 		entity.setAderente(src.isAderente());
 		entity.setReferente(src.isReferente());
-		entity.setEsterna(src.isEsterna());
+		entity.setIntermediata(src.isIntermediata());
+
+		// Un'organizzazione intermediata non può essere né referente né aderente
+		if(entity.isIntermediata() && (entity.isReferente() || entity.isAderente())) {
+			throw new BadRequestException(ErrorCode.ORG_400_CONSTRAINT_VIOLATION);
+		}
 
 		if(configurazione.getOrganizzazione().isCodiceFiscaleEnteAbilitato()) {
 			if(entity.getCodiceFiscaleSoggetto()==null) {

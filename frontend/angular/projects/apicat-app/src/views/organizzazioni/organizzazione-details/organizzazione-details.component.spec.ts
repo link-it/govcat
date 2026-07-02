@@ -213,15 +213,15 @@ describe('OrganizzazioneDetailsComponent', () => {
     expect(component._hideSoggettoDropdown).toBe(false);
   });
 
-  it('should toggle esterna in form', () => {
+  it('should toggle intermediata in form', () => {
     component._isNew = true;
     component._initForm({
-      esterna: false, cambio_esterna_consentito: true,
+      intermediata: false, cambio_intermediata_consentito: true,
       referente: false, vincola_referente: false,
       aderente: false, vincola_aderente: false,
     });
-    component._toggleEsterna();
-    expect(component._formGroup.controls['esterna'].value).toBe(true);
+    component._toggleIntermediata();
+    expect(component._formGroup.controls['intermediata'].value).toBe(true);
   });
 
   it('should have image placeholder path', () => {
@@ -394,8 +394,8 @@ describe('OrganizzazioneDetailsComponent', () => {
         vincola_aderente: false,
         referente: false,
         vincola_referente: true,
-        esterna: false,
-        cambio_esterna_consentito: true,
+        intermediata: false,
+        cambio_intermediata_consentito: true,
         descrizione: 'A description',
         id_soggetto_default: null
       };
@@ -470,16 +470,16 @@ describe('OrganizzazioneDetailsComponent', () => {
       expect(component._formGroup.get('referente')?.disabled).toBe(true);
     });
 
-    it('should disable esterna control when not new and cambio_esterna_consentito is false', () => {
+    it('should disable intermediata control when not new and cambio_intermediata_consentito is false', () => {
       component._isNew = false;
-      component._initForm({ esterna: false, cambio_esterna_consentito: false });
-      expect(component._formGroup.get('esterna')?.disabled).toBe(true);
+      component._initForm({ intermediata: false, cambio_intermediata_consentito: false });
+      expect(component._formGroup.get('intermediata')?.disabled).toBe(true);
     });
 
-    it('should enable esterna control when isNew', () => {
+    it('should enable intermediata control when isNew', () => {
       component._isNew = true;
-      component._initForm({ esterna: false, cambio_esterna_consentito: false, referente: false, vincola_referente: false, aderente: false, vincola_aderente: false });
-      expect(component._formGroup.get('esterna')?.disabled).toBe(false);
+      component._initForm({ intermediata: false, cambio_intermediata_consentito: false, referente: false, vincola_referente: false, aderente: false, vincola_aderente: false });
+      expect(component._formGroup.get('intermediata')?.disabled).toBe(false);
     });
 
     it('should set id_soggetto_default from organizzazione.soggetto_default', () => {
@@ -972,15 +972,15 @@ describe('OrganizzazioneDetailsComponent', () => {
     });
   });
 
-  describe('_toggleEsterna toggle back', () => {
-    it('should toggle esterna back to false', () => {
+  describe('_toggleIntermediata toggle back', () => {
+    it('should toggle intermediata back to false', () => {
       component._isNew = true;
-      component._initForm({ esterna: true, cambio_esterna_consentito: true, referente: false, vincola_referente: false, aderente: false, vincola_aderente: false });
-      component._formGroup.controls['esterna'].setValue(true);
+      component._initForm({ intermediata: true, cambio_intermediata_consentito: true, referente: false, vincola_referente: false, aderente: false, vincola_aderente: false });
+      component._formGroup.controls['intermediata'].setValue(true);
 
-      component._toggleEsterna();
+      component._toggleIntermediata();
 
-      expect(component._formGroup.controls['esterna'].value).toBe(false);
+      expect(component._formGroup.controls['intermediata'].value).toBe(false);
     });
   });
 
@@ -1005,10 +1005,10 @@ describe('OrganizzazioneDetailsComponent', () => {
       expect(component._formGroup.get('referente')?.value).toBe(false);
     });
 
-    it('should default esterna to false when value is falsy', () => {
+    it('should default intermediata to false when value is falsy', () => {
       component._isNew = true;
-      component._initForm({ esterna: null, cambio_esterna_consentito: true, referente: false, vincola_referente: false, aderente: false, vincola_aderente: false });
-      expect(component._formGroup.get('esterna')?.value).toBe(false);
+      component._initForm({ intermediata: null, cambio_intermediata_consentito: true, referente: false, vincola_referente: false, aderente: false, vincola_aderente: false });
+      expect(component._formGroup.get('intermediata')?.value).toBe(false);
     });
   });
 });

@@ -86,6 +86,9 @@ public class DominioEntity {
     @Column(name = "url_invocazione", nullable = true)
 	private String urlInvocazione;
 
+    @Column(name = "canale", length = 255)
+	private String canale;
+
     @Column(name = "url_prefix_collaudo", nullable = true)
     private String urlPrefixCollaudo;
 
@@ -100,7 +103,7 @@ public class DominioEntity {
 	private Set<ClasseUtenteEntity> classi = new HashSet<>();
 
     @OneToMany(mappedBy = "dominio", fetch = FetchType.LAZY)
-    @Cascade({CascadeType.PERSIST,CascadeType.DELETE})
+    @Cascade({CascadeType.PERSIST,CascadeType.REMOVE})
     private Set<ReferenteDominioEntity> referenti = new HashSet<>();
 
     @OneToMany(mappedBy = "dominio", fetch = FetchType.LAZY)

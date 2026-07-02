@@ -1,0 +1,48 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<nav class="lnk-pill-tabs"
+     role="tablist"
+     [attr.aria-label]="ariaLabel ? (ariaLabel | translate) : null">
+  <div class="lnk-pill-tabs__track">
+    @for (tab of items; track tab.key) {
+      <button type="button"
+              role="tab"
+              class="lnk-pill-tabs__tab"
+              [class.active]="active === tab.key"
+              [attr.aria-selected]="active === tab.key"
+              (click)="select(tab.key)">
+        @if (tab.icon) {
+          <i class="bi" [ngClass]="tab.icon"></i>
+        }
+        <span class="lnk-pill-tabs__label">{{ tab.label | translate }}</span>
+        @if (tab.count != null && tab.count > 0) {
+          <span class="lnk-pill-tabs__count">{{ tab.count }}</span>
+        }
+        @if (tab.badge) {
+          <span class="lnk-pill-tabs__badge"
+                [ngClass]="'lnk-pill-tabs__badge--' + (tab.badge.tone || 'pending')"
+                [attr.aria-label]="tab.badge.ariaLabel ? (tab.badge.ariaLabel | translate) : null"
+                [title]="tab.badge.ariaLabel ? (tab.badge.ariaLabel | translate) : null">
+            <i class="bi" [ngClass]="tab.badge.icon"></i>
+          </span>
+        }
+      </button>
+    }
+  </div>
+</nav>
