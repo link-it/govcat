@@ -1,3 +1,11 @@
+2026-07-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [GovwayAPICatalogo]
+	Fix vulnerabilita` OWASP: aggiunta suppression per esbuild
+	  (GHSA-g7r4-m6w7-qqqr, path traversal dev server Windows non
+	  applicabile, build-time via vite; fix 0.28.1 fuori dal range ^0.27
+	  di vite) e wiring nel pom.
+
 2026-07-02  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
