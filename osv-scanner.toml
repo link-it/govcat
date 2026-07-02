@@ -59,3 +59,19 @@ Vulnerabilita' gia' soppressa anche in OWASP Dependency-Check (vedi
 tools/owasp/suppression/CVE-2026-22732.xml). La rimozione di entrambe le suppression
 avverra' al prossimo upgrade tecnologico a Spring 7.
 """
+
+[[IgnoredVulns]]
+id = "CVE-2026-54515"
+ignoreUntil = 2026-10-31
+reason = """
+jackson-databind 2.21.4 (GHSA-5jmj-h7xm-6q6v): l'abilitazione della deserializzazione
+case-insensitive per-property (JsonFormat.Feature.ACCEPT_CASE_INSENSITIVE_PROPERTIES) fa
+sì che le esclusioni @JsonIgnoreProperties vengano scartate, riesponendo proprietà non
+scrivibili (mass-assignment). NON APPLICABILE a GovCat: il progetto NON usa
+ACCEPT_CASE_INSENSITIVE_PROPERTIES (0 occorrenze), quindi la precondizione dell'exploit
+non è soddisfatta. La fix sulla linea 2.21.x (2.21.5) non è ancora pubblicata su Maven
+Central (ultima disponibile: 2.21.4), quindi l'upgrade non-breaking non è possibile.
+Vulnerabilita' gia' soppressa anche in OWASP Dependency-Check (vedi
+tools/owasp/suppression/CVE-2026-54515.xml). Rimuovere entrambe le suppression appena
+jackson-databind 2.21.5 sarà disponibile, aggiornando ${jackson.version} a 2.21.5.
+"""
