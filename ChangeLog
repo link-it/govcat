@@ -1,3 +1,16 @@
+2026-07-02  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Fix vulnerabilità OSV/OWASP: aggiornato tomcat-catalina (scope test)
+	  da 10.1.54 a 10.1.55 (CVE-2026-43512, CVE-2026-41293, CVE-2026-43515,
+	  CVE-2026-43513, CVE-2026-42498, CVE-2026-41284, CVE-2026-43514).
+
+	* [CI/CD]
+	Aggiunta suppression OSV Scanner per CVE-2026-54515 (jackson-databind:
+	  feature ACCEPT_CASE_INSENSITIVE_PROPERTIES non usata, fix 2.21.5 non
+	  ancora pubblicata su Maven Central), coerente con la suppression
+	  OWASP già esistente.
+
 2026-07-01  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
