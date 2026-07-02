@@ -282,12 +282,18 @@ export class AuthenticationService {
       const revocationEndpoint = configRevocationEndpoint || discoveryRevocationEndpoint;
 
       if (revocationEndpoint) {
-        this.oauthService.revokeTokenAndLogout().catch((error: any) => {
-          this.oauthService.logOut(true);
+        // ignoreCorsIssues=true: se la XHR di revoca viene bloccata (status 0,
+        // tipico di Firefox con Total Cookie Protection) non fa reject ma
+        // prosegue verso logOut() con redirect. Il fallback usa logOut() SENZA
+        // `true` per redirigere comunque all'end_session_endpoint: solo il
+        // redirect front-channel (top-level, cookie first-party) termina la
+        // sessione SSO su tutti i browser.
+        this.oauthService.revokeTokenAndLogout({}, true).catch(() => {
+          this.oauthService.logOut();
         });
       } else {
-        // No revocation endpoint configured, just logout
-        this.oauthService.logOut(true);
+        // Nessun revocation endpoint: logout front-channel diretto.
+        this.oauthService.logOut();
       }
     }
   }
