@@ -297,8 +297,8 @@
 		<!-- Log4j version override for CVE-2025-68161 fix and CVE-2026-34477/34478/34479/34480 -->
 		<log4j2.version>2.25.4</log4j2.version>
 
-		<!-- Logback override for CVE-2024-12798, CVE-2024-12801, CVE-2025-11226, CVE-2026-1225 -->
-		<logback.version>1.5.25</logback.version>
+		<!-- Logback override for CVE-2024-12798, CVE-2024-12801, CVE-2025-11226, CVE-2026-1225, CVE-2026-9828 -->
+		<logback.version>1.5.33</logback.version>
 
 	</properties>
 

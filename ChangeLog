@@ -32,7 +32,8 @@
 	* [GovwayAPICatalogo]
 	Fix vulnerabilità OSV/OWASP: aggiornato tomcat-catalina (scope test)
 	  da 10.1.54 a 10.1.55 (CVE-2026-43512, CVE-2026-41293, CVE-2026-43515,
-	  CVE-2026-43513, CVE-2026-42498, CVE-2026-41284, CVE-2026-43514).
+	  CVE-2026-43513, CVE-2026-42498, CVE-2026-41284, CVE-2026-43514) e
+	  logback da 1.5.25 a 1.5.33 (CVE-2026-9828).
 
 	* [CI/CD]
 	Aggiunta suppression OSV Scanner per CVE-2026-54515 (jackson-databind:
