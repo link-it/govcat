@@ -1,5 +1,11 @@
 {
 	"APP": {
+		"MESSAGES": {
+			"TITLE": {
+				"GeneralInformations": "General information",
+				"GeneralInformations_sub": "General information details"
+			}
+		},
 		"ORGANIZATION_SWITCHER": {
 			"Title": "Organization",
 			"NoRole": "No role",
@@ -282,6 +288,9 @@
 				"VoucherPDND": "Voucher PDND"
 			},
 			"MESSAGE": {
+				"ERROR": {
+					"CheckPrivateKey": "Check the private key"
+				},
 				"NetworkOrCspError": "Cannot reach the token endpoint. Check network connectivity or the browser Content Security Policy.",
 				"NoTokenGenerator": "No Token Generator",
 				"SendingData": "Sending data",
@@ -328,6 +337,7 @@
 			"Yes": "Yes"
 		},
 		"BUTTON": {
+			"Reset": "Reset",
 			"Add": "Add",
 			"RetryAutoConfig": "Retry automatic configuration",
 			"BackToAdesione": "Back to subscription",
@@ -809,6 +819,27 @@
 			"wsdl_12": "Wsdl 1.2"
 		},
 		"LABEL": {
+			"CreationDate": "Creation Date",
+			"Erogato": "Provided",
+			"HttpMethod": "HTTP Method",
+			"Logo": "Logo",
+			"Nome": "Name",
+			"Phone": "Phone",
+			"Protocollo": "Protocol",
+			"Tipo": "Type",
+			"TipoProfilo": "Profile type",
+			"Traccia": "Trace",
+			"Visibility": "Visibility",
+			"eMail": "E-mail",
+			"metodo_http": "HTTP Method",
+			"return_code_http": "HTTP Return Code",
+			"return_code_http_backend": "HTTP Return Code (backend)",
+			"ruolo_component": "Role",
+			"tempo_elaborazione": "Processing time",
+			"url_invocazione": "Invocation URL",
+			"None": "None",
+			"NotSpecified": "Not specified",
+			"Search": "Search",
 			"Abilitato": "Enabled",
 			"AcquiredMessages": "Acquired messages",
 			"Acquisita": "Acquired",
@@ -958,6 +989,7 @@
 			"Invalid": "Invalid",
 			"IPfruizione": "used IP",
 			"IpRichiedente": "Requesting IP",
+			"Issuer": "Issuer",
 			"KID": "KID",
 			"Last24Hours": "Last 24 Hours",
 			"LastEventID": "Last event ID",
@@ -1146,6 +1178,7 @@
 			"TipoCertificato": "Certificate type",
 			"Tipologia": "Type",
 			"To": "to",
+			"Token": "Token",
 			"TrascinaFileOClicca": "Drag the file here or click to select",
 			"TRANSACTION_OUTCOME": {
 				"errori_consegna": "Delivery error",
@@ -1307,6 +1340,7 @@
 			"WorkflowSendRequest": "Send request"
 		},
 		"MESSAGE": {
+			"NoElements": "No elements",
 			"AdesioneDisabilitata": "Subscription is disabled for this service",
 			"AdesioneGiaEsistente": "Your organization already has an active subscription. This service does not allow multiple subscriptions",
 			"AdesioneNonConsentita": "The service is not in a state that allows subscriptions",
@@ -1951,6 +1985,9 @@
 			"TypeToSearchText": "Type to search...",
 			"Unimplemented": "Unimplemented yet",
 			"VALIDATION": {
+				"MinLength": "Minimum length {{length}} characters",
+				"Organizationdescrizione": "The description contains invalid characters",
+				"PrincipalPattern": "Invalid principal format",
 				"Email": "Insert valid email",
 				"FieldRequired": "Field required",
 				"GreaterThanEqual": "The field must have a value greater than or equal to {{value}}",
@@ -2021,6 +2058,8 @@
 				"NeedRefresh": "Need to update"
 			},
 			"TYPE": {
+				"cambio_stato": "State change",
+				"comunicazione": "Communication",
 				"CambioStato": "State change",
 				"Comunicazione": "Communication"
 			},
@@ -2313,6 +2352,7 @@
 				"PDNDUsers": "Consumer"
 			},
 			"TITLE": {
+				"EditAttachments": "Edit attachments",
 				"AddAttachment-generico": "Add generic attachment",
 				"AddAttachment-specifica": "Add specification attachment",
 				"AddAttachments": "Add attachments",
@@ -2451,6 +2491,8 @@
 			}
 		},
 		"STATUS": {
+			"cambio_stato": "Status change",
+			"messaggio": "Message",
 			"ACTIVE": "Active",
 			"archiviato": "Filed",
 			"AUTORIZZATA": "Authorized",
@@ -2517,6 +2559,7 @@
 			"Generico": "Generic"
 		},
 		"TITLE": {
+			"AddGroup": "Add group",
 			"About": "About",
 			"AddApi": "Add APIs",
 			"AddAttachment": "Add attachment",
@@ -2632,6 +2675,8 @@
 			"Watermark": "Staging"
 		},
 		"TOOLTIP": {
+			"ruolo_component": "Role",
+			"Loading": "Loading…",
 			"AcquiredMessages": "Acquired messages",
 			"Add": "Add",
 			"AddCategory": "Add Category",
@@ -3005,6 +3050,13 @@
 				"ChangeStatusSuccess": "Status change successful [{{status}}]"
 			},
 			"STATUS": {
+				"PROCESSING": "Processing",
+				"DENIED": "Denied",
+				"BAD_REQUEST": "Bad request",
+				"REJECTED": "Rejected",
+				"FORBIDDEN": "Forbidden",
+				"PROFILE_NOT_EXISTS": "Profile does not exist",
+				"SENDER_NOT_ALLOWED": "Sender not allowed",
 				"archiviato": "Filed",
 				"autorizzata_collaudo": "Authorized for testing",
 				"autorizzata_produzione": "Authorized in production",

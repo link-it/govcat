@@ -1,5 +1,11 @@
 {
 	"APP": {
+		"MESSAGES": {
+			"TITLE": {
+				"GeneralInformations": "Informazioni generali",
+				"GeneralInformations_sub": "Dettaglio delle informazioni generali"
+			}
+		},
 		"ORGANIZATION_SWITCHER": {
 			"Title": "Organizzazione",
 			"NoRole": "Nessun ruolo",
@@ -282,6 +288,9 @@
 				"VoucherPDND": "Voucher PDND"
 			},
 			"MESSAGE": {
+				"ERROR": {
+					"CheckPrivateKey": "Verificare la chiave privata"
+				},
 				"NetworkOrCspError": "Impossibile contattare il token endpoint. Verifica la connettivita` di rete o la Content Security Policy del browser.",
 				"NoTokenGenerator": "Nessun Generatore di Token",
 				"SendingData": "Invio dati…",
@@ -328,6 +337,7 @@
 			"Yes": "Sì"
 		},
 		"BUTTON": {
+			"Reset": "Reimposta",
 			"Add": "Aggiungi",
 			"RetryAutoConfig": "Riprova configurazione automatica",
 			"BackToAdesione": "Torna all'adesione",
@@ -809,6 +819,27 @@
 			"wsdl_12": "Wsdl 1.2"
 		},
 		"LABEL": {
+			"CreationDate": "Data creazione",
+			"Erogato": "Erogato",
+			"HttpMethod": "Metodo HTTP",
+			"Logo": "Logo",
+			"Nome": "Nome",
+			"Phone": "Telefono",
+			"Protocollo": "Protocollo",
+			"Tipo": "Tipo",
+			"TipoProfilo": "Tipo profilo",
+			"Traccia": "Traccia",
+			"Visibility": "Visibilità",
+			"eMail": "E-mail",
+			"metodo_http": "Metodo HTTP",
+			"return_code_http": "Return Code Http",
+			"return_code_http_backend": "Return Code Http Backend",
+			"ruolo_component": "Ruolo",
+			"tempo_elaborazione": "Tempo elaborazione",
+			"url_invocazione": "URL Invocazione",
+			"None": "Nessuno",
+			"NotSpecified": "Non specificato",
+			"Search": "Cerca",
 			"Abilitato": "Abilitato",
 			"AcquiredMessages": "Messaggi acquisiti",
 			"Acquisita": "Acquisita",
@@ -958,6 +989,7 @@
 			"Invalid": "Invalido",
 			"IPfruizione": "IP di fruizione",
 			"IpRichiedente": "IP richiedente",
+			"Issuer": "Issuer",
 			"KID": "KID",
 			"Last24Hours": "Ultime 24 ore",
 			"LastEventID": "Id ultimo evento",
@@ -1146,6 +1178,7 @@
 			"TipoCertificato": "Tipo di Certificato",
 			"Tipologia": "Tipologia",
 			"To": "a",
+			"Token": "Token",
 			"TrascinaFileOClicca": "Trascina il file qui o clicca per selezionare",
 			"TRANSACTION_OUTCOME": {
 				"errori_consegna": "Errori di Consegna",
@@ -1307,6 +1340,7 @@
 			"WorkflowSendRequest": "Invia richiesta"
 		},
 		"MESSAGE": {
+			"NoElements": "Nessun elemento",
 			"AdesioneDisabilitata": "L'adesione è disabilitata per questo servizio",
 			"AdesioneGiaEsistente": "La tua organizzazione ha già un'adesione attiva. Questo servizio non consente adesioni multiple",
 			"AdesioneNonConsentita": "Il servizio non è in uno stato che consente l'adesione",
@@ -1951,6 +1985,9 @@
 			"TypeToSearchText": "Digita per cercare...",
 			"Unimplemented": "Funzionalità attualmente non disponibile",
 			"VALIDATION": {
+				"MinLength": "Lunghezza minima {{length}} caratteri",
+				"Organizationdescrizione": "La descrizione contiene caratteri non consentiti",
+				"PrincipalPattern": "Formato del principal non valido",
 				"Email": "Inserisci una e-mail valida",
 				"FieldRequired": "Campo richiesto",
 				"GreaterThanEqual": "Il campo deve avere un valore maggiore o uguale a {{value}}",
@@ -2021,6 +2058,8 @@
 				"NeedRefresh": "È necessario aggiornare"
 			},
 			"TYPE": {
+				"cambio_stato": "Cambio stato",
+				"comunicazione": "Comunicazione",
 				"CambioStato": "Cambio stato",
 				"Comunicazione": "Comunicazione"
 			},
@@ -2313,6 +2352,7 @@
 				"PDNDUsers": "Fruitori"
 			},
 			"TITLE": {
+				"EditAttachments": "Modifica allegati",
 				"AddAttachment-generico": "Aggiungi allegato generico",
 				"AddAttachment-specifica": "Aggiungi allegato di specifica",
 				"AddAttachments": "Aggiungi allegati",
@@ -2451,6 +2491,8 @@
 			}
 		},
 		"STATUS": {
+			"cambio_stato": "Cambio di stato",
+			"messaggio": "Messaggio",
 			"ACTIVE": "Attivo",
 			"archiviato": "Archiviato",
 			"AUTORIZZATA": "Autorizzata",
@@ -2517,6 +2559,7 @@
 			"Generico": "Generico"
 		},
 		"TITLE": {
+			"AddGroup": "Aggiungi gruppo",
 			"About": "Informazioni",
 			"AddApi": "Aggiungi API",
 			"AddAttachment": "Aggiungi allegato",
@@ -2632,6 +2675,8 @@
 			"Watermark": "Staging"
 		},
 		"TOOLTIP": {
+			"ruolo_component": "Ruolo",
+			"Loading": "Caricamento…",
 			"AcquiredMessages": "Messaggi acquisiti",
 			"Add": "Aggiungi",
 			"AddCategory": "Aggiungi categoria",
@@ -3005,6 +3050,13 @@
 				"ChangeStatusSuccess": "Cambio di stato effettuato con successo [{{status}}]"
 			},
 			"STATUS": {
+				"PROCESSING": "In elaborazione",
+				"DENIED": "Negato",
+				"BAD_REQUEST": "Richiesta non valida",
+				"REJECTED": "Rifiutato",
+				"FORBIDDEN": "Non consentito",
+				"PROFILE_NOT_EXISTS": "Profilo non esistente",
+				"SENDER_NOT_ALLOWED": "Mittente non autorizzato",
 				"archiviato": "Archiviato",
 				"autorizzata_collaudo": "Autorizzata in collaudo",
 				"autorizzata_produzione": "Autorizzata in produzione",

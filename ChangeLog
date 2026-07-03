@@ -1,3 +1,14 @@
+2026-07-03  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	i18n: audit delle chiavi di traduzione referenziate da config e
+	  template. Aggiunte 46 label mancanti in it/en (tra cui
+	  `APP.LABEL.Issuer`/`Token`, `APP.LABEL.CreationDate`, gli stati
+	  `APP.WORKFLOW.STATUS.*` maiuscoli, `APP.STATUS.*`,
+	  `APP.NOTIFICATIONS.TYPE.*`, validazioni e nuove sezioni
+	  `APP.MESSAGES.TITLE` e `APP.AUTHENTICATION.MESSAGE.ERROR`).
+	  Verificata la parita` it/en (nessuna divergenza).
+
 2026-07-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
