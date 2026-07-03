@@ -44,6 +44,11 @@
 	  feature ACCEPT_CASE_INSENSITIVE_PROPERTIES non usata, fix 2.21.5 non
 	  ancora pubblicata su Maven Central), coerente con la suppression
 	  OWASP già esistente.
+	OWASP: la suppression di CVE-2026-53914 (kotlin-stdlib) ora usa anche
+	  un match per filePath oltre al packageUrl: nello scan aggregate i jar
+	  kotlin-stdlib* annidati nei WAR sono identificati solo via CPE e il
+	  match per packageUrl non scattava, facendo fallire la build di
+	  release.
 
 2026-07-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
