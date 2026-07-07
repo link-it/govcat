@@ -784,6 +784,20 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
         return new JsonNullableModule();
     }
 
+    /**
+     * Ripristina l'omissione dei link HATEOAS vuoti (Spring Boot 4 / HATEOAS 3.x): registra un
+     * mixin che applica @JsonInclude(NON_EMPTY) alla sola proprieta' {@code links} di
+     * RepresentationModel, evitando che ogni response contenga "links": [].
+     */
+    @Bean
+    public Module representationModelLinksModule() {
+        com.fasterxml.jackson.databind.module.SimpleModule module =
+                new com.fasterxml.jackson.databind.module.SimpleModule("govcat-hateoas-links-nonempty");
+        module.setMixInAnnotation(org.springframework.hateoas.RepresentationModel.class,
+                RepresentationModelLinksMixin.class);
+        return module;
+    }
+
     @Bean
     @ConfigurationProperties(prefix="pdnd.v1.collaudo.client.properties")
     public Properties pdndV1CollaudoClientProperties() {

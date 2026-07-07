@@ -18,6 +18,13 @@
 	  negli endpoint Tools non vengono più ri-avvolte dai blocchi catch, così
 	  da preservarne codice e messaggio originali (es. "Lista vuota") anziché
 	  sovrascriverli con il generico "DOC.500".
+	Ripristinata l'omissione dei link HATEOAS vuoti nelle response JSON: dopo
+	  l'upgrade a Spring Boot 4 / Spring HATEOAS 3.x ogni oggetto includeva una
+	  proprietà `links: []` (i model generati estendono RepresentationModel),
+	  con possibili regressioni sui client. Risolto alla radice registrando un
+	  mixin Jackson che applica @JsonInclude(NON_EMPTY) a
+	  RepresentationModel.getLinks(): i link vuoti non vengono più serializzati,
+	  quelli valorizzati restano invariati.
 
 2026-07-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
