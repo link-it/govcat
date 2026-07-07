@@ -171,7 +171,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         { field: 'stato', label: 'APP.LABEL.stato', type: 'enum', condition: 'equal', enumValues: this._statiServizioEnum },
         { field: 'visibilita', label: 'APP.LABEL.visibilita', type: 'enum', condition: 'equal', enumValues: this._tipiVisibilitaServizioEnum },
         { field: 'id_dominio', label: 'APP.LABEL.id_dominio', type: 'text', condition: 'equal', params: { resource: 'domini', field: 'nome', urlParam: '?id_dominio=' } },
-        { field: 'id_organizzazione_erogatore', label: 'APP.LABEL.OrganizzazioneErogatore', type: 'text', condition: 'equal', params: { resource: 'organizzazioni', field: 'nome', urlParam: '?id_organizzazione_erogatore=' } },
+        { field: 'id_organizzazione', label: 'APP.LABEL.OrganizzazioneErogatore', type: 'text', condition: 'equal', params: { resource: 'organizzazioni', field: 'nome', urlParam: '?id_organizzazione=' } },
         { field: 'id_api', label: 'APP.LABEL.id_api', type: 'text', condition: 'equal', params: { resource: 'api', field: '{nome} v.{versione} ({servizio.dominio.nome})' } },
         // { field: 'id_servizio', label: 'APP.LABEL.id_servizio', type: 'text', condition: 'equal', params: { resource: 'servizi', field: 'nome' } },
         { field: 'profilo', label: 'APP.LABEL.Profilo', type: 'text', condition: 'contain', callBack: (value: any) => {
@@ -591,7 +591,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
             referente: new FormControl(''),
             ruolo_referente: new FormControl([]),
             id_dominio: new FormControl(''),
-            id_organizzazione_erogatore: new FormControl(''),
+            id_organizzazione: new FormControl(''),
             id_gruppo: new FormControl(''),
             visibilita: new FormControl(''),
             categoria: new FormControl(''),
