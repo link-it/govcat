@@ -86,20 +86,32 @@ public class WsdlUtils {
 	}
 	
 	public static PROTOCOLLO getProtocolloApi(byte[] wsdlBytes) throws Exception {
+		// Validazione del WSDL (lancia eccezione se malformato)
 		WsdlUtils.getInfoFromWsdl(wsdlBytes);
-		return PROTOCOLLO.WSDL11;
+
+		// NOTA: WSDL11/WSDL12 nell'enum PROTOCOLLO indicano in realta' la versione del binding SOAP
+		// (1.1/1.2), non la versione del linguaggio WSDL. Vedi commento sull'enum in ApiEntity.
+		// Assegniamo WSDL12 solo quando e' presente un binding SOAP 1.2; in tutti gli altri casi
+		// (binding SOAP 1.1, binding misto SOAP 1.1+1.2 oppure WSDL privo di binding) manteniamo
+		// WSDL11, cosi' da non richiedere bonifiche dei dati gia' persistiti come WSDL11.
+		BINDING binding = getBindingApi(wsdlBytes);
+		return binding == BINDING.SOAP12 ? PROTOCOLLO.WSDL12 : PROTOCOLLO.WSDL11;
 	}
-	
+
 	public enum BINDING {SOAP, SOAP11, SOAP12}
-	
+
+	/**
+	 * Determina la versione del binding SOAP presente nel WSDL, oppure {@code null} se il WSDL
+	 * non contiene alcun binding SOAP (es. WSDL con soli portType).
+	 */
 	public static BINDING getBindingApi(byte[] wsdlBytes) throws Exception {
 		try(ByteArrayInputStream bais = new ByteArrayInputStream(wsdlBytes)) {
 			Document xmlDocument = getDocumentBuilder().parse(bais);
-	
+
 			NodeList nodes = (NodeList) getBindingExpression().evaluate(xmlDocument, XPathConstants.NODESET);
-	
+
 			if(nodes.getLength() == 0) {
-				throw new Exception("Nessun binding trovato");
+				return null;
 			} else {
 				boolean soap11found = false;
 				boolean soap12found = false;
@@ -112,7 +124,7 @@ public class WsdlUtils {
 						soap12found = true;
 					}
 				}
-				
+
 				if(soap11found && soap12found) {
 					return BINDING.SOAP;
 				} else if(soap12found) {
@@ -120,14 +132,18 @@ public class WsdlUtils {
 				} else if(soap11found) {
 					return BINDING.SOAP11;
 				} else {
-					throw new Exception("Nessun binding trovato");
+					return null;
 				}
 			}
 		}
 	}
 	
 	public static List<String> getOperationFromWsdl(byte[] wsdlBytes) throws WSDLException, IOException {
-		List<ServiceInfo> info = WsdlUtils.getInfoFromWsdl(wsdlBytes);
+		return getOperationFromWsdl(wsdlBytes, false);
+	}
+
+	public static List<String> getOperationFromWsdl(byte[] wsdlBytes, boolean supportaWsdlSenzaBinding) throws WSDLException, IOException {
+		List<ServiceInfo> info = WsdlUtils.getInfoFromWsdl(wsdlBytes, supportaWsdlSenzaBinding);
 		List<String> operations = new ArrayList<>();
 		
 		for(ServiceInfo s: info) {
@@ -140,13 +156,17 @@ public class WsdlUtils {
 	}
 	
 	public static List<ServiceInfo> getInfoFromWsdl(byte[] wsdlBytes) throws WSDLException, IOException {
-	   
+		return getInfoFromWsdl(wsdlBytes, false);
+	}
+
+	public static List<ServiceInfo> getInfoFromWsdl(byte[] wsdlBytes, boolean supportaWsdlSenzaBinding) throws WSDLException, IOException {
+
 		Definition wsdl = getDefinition(wsdlBytes);
 
 	    Map<String, ServiceInfo> services = new HashMap<>();
-		
+
 		Map<?,?> bindings = wsdl.getAllBindings();
-		
+
 		if(bindings!=null && bindings.size()>0){
 
 			Iterator<?> it = bindings.keySet().iterator();
@@ -214,13 +234,43 @@ public class WsdlUtils {
 					soapAction.setValue(soapActionValue);
 					soapAction.setVersion(version);
 					operation.getSoapActions().add(soapAction);
-					
-					
+
+
 				}
-				
+
+			}
+		} else if(supportaWsdlSenzaBinding) {
+			// Fallback per WSDL privi di binding SOAP: le operazioni vengono estratte direttamente
+			// dai portType. Non essendoci binding non sono disponibili ne' SOAPAction ne' versione SOAP.
+			Map<?,?> portTypes = wsdl.getAllPortTypes();
+			if(portTypes != null) {
+				for(Object ptObj : portTypes.values()) {
+					javax.wsdl.PortType portType = (javax.wsdl.PortType) ptObj;
+					String ptName = portType.getQName().getLocalPart();
+					logger.debug("PortType (WSDL senza binding): " + ptName);
+
+					ServiceInfo service = new ServiceInfo();
+					service.setNome(ptName);
+
+					for(Object opObj : portType.getOperations()) {
+						javax.wsdl.Operation opWSDL = (javax.wsdl.Operation) opObj;
+						String opK = opWSDL.getName();
+						logger.debug("- Operation: " + opK);
+						if(service.getOperazioni().containsKey(opK)) {
+							continue;
+						}
+						OperationInfo operation = new OperationInfo();
+						operation.setNome(opK);
+						MessaggioType messaggio = opWSDL.getOutput() != null ? MessaggioType.INPUT_OUTPUT : MessaggioType.INPUT;
+						operation.setMessaggio(messaggio);
+						service.getOperazioni().put(opK, operation);
+					}
+
+					services.put(ptName, service);
+				}
 			}
 		}
-		
+
 		return services.entrySet().stream().map(o -> o.getValue()).collect(Collectors.toList());
 
 	}
