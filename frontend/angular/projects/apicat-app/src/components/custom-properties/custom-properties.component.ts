@@ -263,7 +263,7 @@ export class CustomPropertiesComponent implements OnChanges {
                 this._spin = false;
                 this._error = true;
                 this._errorMsg = this.utils.GetErrorMsg(error);
-                this._errors = (error.error?.errori || []).filter((e: any) => Object.keys(e).length > 0);
+                this._errors = Tools.filtraErroriComplessi(error.error?.errori);
             }
         });
     }

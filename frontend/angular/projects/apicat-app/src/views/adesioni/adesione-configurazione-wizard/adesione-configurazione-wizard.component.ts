@@ -2202,7 +2202,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
             error: (error: any) => {
                 this._error = true;
                 this._errorMsg = Tools.WorkflowErrorMsg(error);
-                this._errors = (error.error.errori || []).filter((e: any) => Object.keys(e).length > 0);
+                this._errors = Tools.filtraErroriComplessi(error.error?.errori);
                 this._fromStatus = this.translate.instant('APP.WORKFLOW.STATUS.' + this.adesione.stato);
                 this._toStatus = this.translate.instant('APP.WORKFLOW.STATUS.' + newStatus);
                 const _msg: string = this.translate.instant('APP.WORKFLOW.MESSAGE.ChangeStatusError', {status: this._toStatus});

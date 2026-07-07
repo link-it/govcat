@@ -1,3 +1,13 @@
+2026-07-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 304: ripristinato il fallback all'errore semplice quando la
+	  lista errori complessi e` vuota. Post-upgrade Spring il BE serializza
+	  le entry errore con `links: []` di default, quindi il filtro
+	  `Object.keys(e).length > 0` non le scartava piu`. Introdotto
+	  `Tools.filtraErroriComplessi` (ignora la chiave `links`) applicato
+	  ai 12 punti che valorizzano `_errors`.
+
 2026-07-03  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* Rilasciata versione 2.4.0
