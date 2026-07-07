@@ -1,3 +1,24 @@
+2026-07-07  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Parsing WSDL: aggiunta la property
+	  `org.govway.api.catalogo.wsdl.parsing.senza-binding.enabled` (default
+	  false) che, se abilitata, consente agli endpoint di analisi SOAP
+	  (`listaRisorseApi` e `listaOperazioniWsdl`) di estrarre le operazioni
+	  direttamente dai portType anche quando il WSDL non contiene binding.
+	Gli endpoint `listaRisorseApi` e `listaOperazioniWsdl` restituiscono ora
+	  un errore quando il WSDL SOAP non contiene operazioni, coerentemente con
+	  quanto già avviene per le specifiche REST, invece di una lista vuota che
+	  generava un comportamento errato sul client.
+	Corretta l'assegnazione del protocollo per le API SOAP con binding
+	  SOAP 1.2: viene ora impostato WSDL12 (in precedenza sempre WSDL11);
+	  i binding SOAP 1.1, misti o assenti restano WSDL11, senza necessità di
+	  bonifica dei dati già presenti.
+	Le eccezioni di dominio (BadRequestException, NotFoundException) sollevate
+	  negli endpoint Tools non vengono più ri-avvolte dai blocchi catch, così
+	  da preservarne codice e messaggio originali (es. "Lista vuota") anziché
+	  sovrascriverli con il generico "DOC.500".
+
 2026-07-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
