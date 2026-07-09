@@ -498,6 +498,14 @@ export class AdesioneFormComponent implements OnInit, OnChanges {
                         this.disabled_id_soggetto = null;
                     }
 
+                    // Allinea la visibilita` readonly (`hideSoggettoInfo`) a
+                    // quella del dropdown: `checkSoggetto` calcola
+                    // `hideSoggettoDropdown` tenendo conto anche di
+                    // `abilita_selezione_soggetto`, mentre `hideSoggettoInfo`
+                    // era aggiornato solo da `loadSoggetti` (in base al numero
+                    // di soggetti), causando divergenza in sola lettura.
+                    this.hideSoggettoInfo = this.hideSoggettoDropdown;
+
                     controls.referente.patchValue(null);
 
                     this.formGroup.updateValueAndValidity();
@@ -516,6 +524,7 @@ export class AdesioneFormComponent implements OnInit, OnChanges {
 
             this.elencoSoggetti = [];
             this.hideSoggettoDropdown = true;
+            this.hideSoggettoInfo = this.hideSoggettoDropdown;
         }
     }
 

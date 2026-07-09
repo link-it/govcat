@@ -1,3 +1,12 @@
+2026-07-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Adesione form: il soggetto in sola lettura ora rispetta la stessa
+	  visibilita` del dropdown in modifica. `checkSoggetto` allinea
+	  `hideSoggettoInfo` a `hideSoggettoDropdown` (che tiene conto di
+	  `abilita_selezione_soggetto`), evitando che il soggetto restasse
+	  visibile in readonly con soggetti multipli e selezione disabilitata.
+
 2026-07-08  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
