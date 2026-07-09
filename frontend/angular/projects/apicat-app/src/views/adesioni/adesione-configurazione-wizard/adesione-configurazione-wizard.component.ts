@@ -1069,6 +1069,13 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         return this._isProduzioneBloccata() ? ['produzione'] : [];
     }
 
+    /** Codici delle fasi da marcare come "saltate" nella
+     *  `<app-adesione-fasi-bar>`: con `skip_collaudo` la fase Collaudo e`
+     *  saltata (non cliccabile, stile dedicato). */
+    getSkippedFasiCodes(): string[] {
+        return this.adesione?.skip_collaudo ? ['collaudo'] : [];
+    }
+
     /** Abilitazione dell'azione "Archivia". */
     _canArchiviareAdesione = (): boolean => {
         if (!this.adesione) { return false; }
@@ -2292,10 +2299,12 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
 
         this.apiService.putElement(this.model, this.id, body).subscribe({
             next: (response: any) => {
-                this.adesione.skip_collaudo = !this.adesione.skip_collaudo;
-                this.updateMapper = Date.now().toString();
-                this.loadCheckDati(this.adesione.id_adesione, this.getNextStateWorkflowName());
                 this.saveSkipCollaudo = false;
+                // Refresh completo del wizard: ricarica l'adesione col flag
+                // persistito e ri-esegue il ricalcolo (step config, sezioni
+                // attive, fase selezionata). Il solo aggiornamento del flag
+                // locale lasciava fase/sezioni ai valori pre-toggle.
+                this.loadAdesione(false);
             },
             error: (error: any) => {
                 this.saveSkipCollaudo = false;
@@ -2325,7 +2334,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         {
             code: 'produzione',
             descrizione: 'Produzione',
-            stati_adesione: ['pubblicato_collaudo', 'richiesto_produzione', 'autorizzato_produzione', 'in_configurazione_produzione', 'in_configurazione_produzione_senza_collaudo', 'in_configurazione_manuale_produzione', 'in_configurazione_automatica_produzione', 'pubblicato_produzione'],
+            stati_adesione: ['pubblicato_collaudo', 'richiesto_produzione', 'richiesto_produzione_senza_collaudo', 'autorizzato_produzione', 'autorizzato_produzione_senza_collaudo', 'in_configurazione_produzione', 'in_configurazione_produzione_senza_collaudo', 'in_configurazione_manuale_produzione', 'in_configurazione_automatica_produzione', 'in_configurazione_manuale_produzione_senza_collaudo', 'in_configurazione_automatica_produzione_senza_collaudo', 'pubblicato_produzione', 'pubblicato_produzione_senza_collaudo'],
             sezioni_attive: ['produzione']
         }
     ];
@@ -2347,9 +2356,9 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
      */
     private static readonly _STEP_WIZARD_PRODUZIONE_FALLBACK: StepWizardItem[] = [
         { code: 'in_compilazione',   descrizione: 'In Compilazione',   stati_adesione: ['pubblicato_collaudo'] },
-        { code: 'in_approvazione',   descrizione: 'In Approvazione',   stati_adesione: ['richiesto_produzione'] },
-        { code: 'in_configurazione', descrizione: 'In Configurazione', stati_adesione: ['autorizzato_produzione', 'in_configurazione_produzione', 'in_configurazione_produzione_senza_collaudo', 'in_configurazione_manuale_produzione', 'in_configurazione_automatica_produzione'] },
-        { code: 'configurato',       descrizione: 'Configurato',       stati_adesione: ['pubblicato_produzione'] }
+        { code: 'in_approvazione',   descrizione: 'In Approvazione',   stati_adesione: ['richiesto_produzione', 'richiesto_produzione_senza_collaudo'] },
+        { code: 'in_configurazione', descrizione: 'In Configurazione', stati_adesione: ['autorizzato_produzione', 'autorizzato_produzione_senza_collaudo', 'in_configurazione_produzione', 'in_configurazione_produzione_senza_collaudo', 'in_configurazione_manuale_produzione', 'in_configurazione_automatica_produzione', 'in_configurazione_manuale_produzione_senza_collaudo', 'in_configurazione_automatica_produzione_senza_collaudo'] },
+        { code: 'configurato',       descrizione: 'Configurato',       stati_adesione: ['pubblicato_produzione', 'pubblicato_produzione_senza_collaudo'] }
     ];
 
     /**
@@ -2372,7 +2381,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
      * Rimettere a `false` (o rimuovere il flag e il fallback) appena il BE
      * è aggiornato.
      */
-    private static readonly _FORCE_STEP_WIZARD_FALLBACK = true;
+    private static readonly _FORCE_STEP_WIZARD_FALLBACK = false;
 
     private _loadStepWizardConfig(): void {
         const forceFallback = AdesioneConfigurazioneWizardComponent._FORCE_STEP_WIZARD_FALLBACK;
@@ -2393,6 +2402,40 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
                 ? remoteProduzione
                 : AdesioneConfigurazioneWizardComponent._STEP_WIZARD_PRODUZIONE_FALLBACK
         };
+
+        if (this.adesione?.skip_collaudo) {
+            this._applySkipCollaudoStepWizard();
+        }
+    }
+
+    /**
+     * Adatta la mappatura degli step quando l'adesione ha `skip_collaudo`:
+     * il collaudo e` saltato, quindi `bozza` (fase di compilazione) appartiene
+     * alla sezione Produzione (step interno `in_compilazione`) e non a Collaudo.
+     * Cosi` `_initSelectedFase`/`_computeActiveSections` portano l'utente sulla
+     * fase Produzione per compilarne la config, e gli stati `*_senza_collaudo`
+     * (gia` mappati nello step produzione) risultano coerenti.
+     * Non muta le costanti di fallback condivise (crea nuove strutture).
+     */
+    private _applySkipCollaudoStepWizard(): void {
+        this.stepWizard = this.stepWizard.map(step => {
+            if (step.code === 'collaudo') {
+                return { ...step, stati_adesione: (step.stati_adesione || []).filter(s => s !== 'bozza') };
+            }
+            if (step.code === 'produzione') {
+                const stati = step.stati_adesione || [];
+                return { ...step, stati_adesione: stati.includes('bozza') ? stati : ['bozza', ...stati] };
+            }
+            return step;
+        });
+        const produzione = (this.stepWizardSezione.produzione || []).map(sub => {
+            if (sub.code === 'in_compilazione') {
+                const stati = sub.stati_adesione || [];
+                return { ...sub, stati_adesione: stati.includes('bozza') ? stati : ['bozza', ...stati] };
+            }
+            return sub;
+        });
+        this.stepWizardSezione = { ...this.stepWizardSezione, produzione };
     }
 
     /**

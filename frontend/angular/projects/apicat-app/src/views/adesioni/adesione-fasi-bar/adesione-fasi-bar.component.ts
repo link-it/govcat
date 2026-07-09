@@ -32,8 +32,10 @@ import { StepWizardItem } from '../adesione-step-bar/adesione-step-bar.component
  *  - `pending`: la fase non e` ancora stata raggiunta (futura).
  *  - `final`: lo stato corrente e` l'ultimo stato dell'ultima fase
  *    (traguardo terminale del workflow). Reso come fase `done`.
+ *  - `skipped`: la fase e` esplicitamente saltata (es. Collaudo quando
+ *    l'adesione ha `skip_collaudo`). Non cliccabile e resa attenuata.
  */
-type FaseState = 'completed' | 'current' | 'pending' | 'final';
+type FaseState = 'completed' | 'current' | 'pending' | 'final' | 'skipped';
 
 export interface FasiBarItem {
     code: string;
@@ -114,6 +116,11 @@ export class AdesioneFasiBarComponent implements OnChanges {
      *  quando il servizio non e` ancora `pubblicato_produzione`).
      *  L'item resta visibile con stile `.is-disabled`. */
     @Input() disabledCodes: string[] = [];
+
+    /** Codici di fase da marcare come "saltate" (es. `collaudo` quando
+     *  l'adesione ha `skip_collaudo`). Non cliccabili, stile dedicato
+     *  `.is-skipped`. */
+    @Input() skippedCodes: string[] = [];
 
     /** Offset del numero di fase mostrato ("FASE {n}"). Default `1`
      *  (comportamento storico: prima fase = "FASE 1"). La form di
@@ -196,6 +203,11 @@ export class AdesioneFasiBarComponent implements OnChanges {
             // Numero della fase: di default "1", "2", "3" (no
             // zero-padding — feedback utente rev. 4.12). `numberOffset`
             // permette di partire da 0 (form creazione: "FASE 0").
+            // Fase saltata (es. Collaudo con `skip_collaudo`): sovrascrive
+            // lo stato calcolato e la rende non cliccabile.
+            const isSkipped = this.skippedCodes.includes(step.code);
+            if (isSkipped) { state = 'skipped'; }
+
             const numberLabel = String(index + this.numberOffset);
             // Disabilita esplicita via `disabledCodes` (es. fase
             // "produzione" finche` il servizio non e` pubblicato).
@@ -206,12 +218,11 @@ export class AdesioneFasiBarComponent implements OnChanges {
                 numberLabel,
                 state,
                 index,
-                // Le fasi `pending` (lock) NON sono cliccabili — il workflow
-                // non le ha ancora raggiunte e non hanno contenuto da
-                // visualizzare in anteprima. Le altre (current/completed/
-                // final) sono cliccabili come tab. Bloccati anche i code
-                // presenti in `disabledCodes`.
-                clickable: state !== 'pending' && !isDisabled,
+                // Le fasi `pending` (lock) e `skipped` NON sono cliccabili —
+                // il workflow non le ha raggiunte / sono saltate. Le altre
+                // (current/completed/final) sono cliccabili come tab.
+                // Bloccati anche i code presenti in `disabledCodes`.
+                clickable: !isSkipped && state !== 'pending' && !isDisabled,
                 isReal: index === realIndex,
                 disabled: isDisabled,
             } as FasiBarItem;

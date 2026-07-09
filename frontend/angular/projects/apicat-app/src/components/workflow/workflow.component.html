@@ -43,7 +43,7 @@
               </button>
             </li>
           }
-          @if (_cambioStato.stato_successivo) {
+          @if (_cambioStato.stato_successivo && _isTransitionVisible(_cambioStato.stato_successivo.nome)) {
             @if (_cambioStato.stato_precedente) {
               <li class="gl-new-dropdown-divider">
                 <hr class="dropdown-divider">
@@ -60,11 +60,13 @@
               </button>
             </li>
           }
-          @if (_cambioStato.stati_ulteriori?.length) {
-            <li class="gl-new-dropdown-divider">
-              <hr class="dropdown-divider">
-            </li>
-            @for (status of _cambioStato.stati_ulteriori; track status) {
+          @if (_visibleStatiUlteriori.length) {
+            @if (_cambioStato.stato_precedente || (_cambioStato.stato_successivo && _isTransitionVisible(_cambioStato.stato_successivo.nome))) {
+              <li class="gl-new-dropdown-divider">
+                <hr class="dropdown-divider">
+              </li>
+            }
+            @for (status of _visibleStatiUlteriori; track status) {
               <li class="gl-new-dropdown-item">
                 <button role="menuitem" type="button" class="dropdown-item" (click)="onAction('change', status);" [disabled]="!('stati_ulteriori' | mapper:_isActionEnabledMapper:status.nome)">
                   <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">

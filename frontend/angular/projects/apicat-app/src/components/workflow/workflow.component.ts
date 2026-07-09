@@ -72,6 +72,30 @@ export class WorkflowComponent implements OnInit {
     this.action.emit({action: action, status: status});
   }
 
+  private get _isAdesione(): boolean {
+    return this.module === 'adesione';
+  }
+
+  /**
+   * Per il modulo adesione, la scelta collaudo vs salta-collaudo (flag
+   * `data.skip_collaudo`) deve riflettersi nelle transizioni offerte:
+   * con `skip_collaudo` attivo si nascondono le transizioni verso il
+   * collaudo, con `skip_collaudo` disattivo si nascondono quelle
+   * `*_senza_collaudo`. Per gli altri moduli/transizioni non filtra.
+   */
+  _isTransitionVisible = (nome: string): boolean => {
+    if (!this._isAdesione || !nome) { return true; }
+    const isSenzaCollaudo = nome.includes('senza_collaudo');
+    const isCollaudo = nome.includes('collaudo') && !isSenzaCollaudo;
+    return this.data?.skip_collaudo ? !isCollaudo : !isSenzaCollaudo;
+  };
+
+  /** `stati_ulteriori` filtrati in base a `skip_collaudo` (vedi
+   *  `_isTransitionVisible`). */
+  get _visibleStatiUlteriori(): any[] {
+    return (this._cambioStato?.stati_ulteriori || []).filter((s: any) => this._isTransitionVisible(s?.nome));
+  }
+
   isActionEnabled(type: string) {
     return this.authenticationService.canChangeStatus(this.module, this.data.stato, type, this.grant?.ruoli);
   }

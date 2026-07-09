@@ -1,3 +1,20 @@
+2026-07-08  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 305: fix wizard adesioni con "Salta collaudo". Il toggle ora
+	  ricarica il wizard (`loadAdesione`) ricalcolando fase e sezioni;
+	  con `skip_collaudo` la `bozza` viene mappata sulla fase Produzione
+	  (collaudo saltato) cosi` l'utente puo` compilarne la configurazione.
+	  Attivata la lettura della config step-wizard dal BE aggiornato
+	  (`_FORCE_STEP_WIZARD_FALLBACK = false`); i fallback FE allineati come
+	  safety net includono ora tutti gli stati `*_produzione_senza_collaudo`
+	  (incluse le varianti manuale/automatica). Con `skip_collaudo` la fase
+	  Collaudo nella fasi-bar e` marcata "saltata" (stato `skipped`,
+	  non cliccabile). Il componente `ui-workflow` ora e` coerente con
+	  `skip_collaudo`: mostra solo il ramo di cambio stato pertinente
+	  (nasconde la transizione verso il collaudo quando salta-collaudo e`
+	  attivo, e le transizioni `*_senza_collaudo` quando e` disattivo).
+
 2026-07-07  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
