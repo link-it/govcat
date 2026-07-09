@@ -1498,6 +1498,9 @@
 						"EXTENSION": "Estensione client [{{tipo}}] non supportata",
 						"HAS": {
 							"ADHESIONS": "Client [{{nome}}] per soggetto [{{soggetto}}] e ambiente [{{ambiente}}] ha [{{numAdesioni}}] adesioni attive"
+						},
+						"SUBJECT": {
+							"MISMATCH": "Il client [{{nomeClient}}] appartiene al soggetto [{{soggettoClient}}], diverso dal soggetto [{{soggettoAdesione}}] dell'adesione"
 						}
 					},
 					"404": {

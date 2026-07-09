@@ -1,3 +1,13 @@
+2026-07-09  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 306: nella configurazione del client di un'adesione viene ora
+	  verificato che il soggetto del client coincida con quello dell'adesione,
+	  sia riferendo un client già censito sia creandone uno nuovo; in caso di
+	  soggetto diverso viene restituito il nuovo errore CLT.400.SUBJECT.MISMATCH
+	  (in precedenza il vincolo era demandato al solo frontend). Aggiunte le
+	  traduzioni i18n (it/en) del nuovo codice di errore.
+
 2026-07-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

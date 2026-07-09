@@ -1498,6 +1498,9 @@
 						"EXTENSION": "Client extension [{{tipo}}] not supported",
 						"HAS": {
 							"ADHESIONS": "Client [{{nome}}] for subject [{{soggetto}}] and environment [{{ambiente}}] has [{{numAdesioni}}] active memberships"
+						},
+						"SUBJECT": {
+							"MISMATCH": "Client [{{nomeClient}}] belongs to subject [{{soggettoClient}}], which differs from the membership subject [{{soggettoAdesione}}]"
 						}
 					},
 					"404": {
