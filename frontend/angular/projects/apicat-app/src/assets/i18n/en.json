@@ -1525,7 +1525,7 @@
 				"DefaultHelp": "Please try again later",
 				"DOC": {
 					"400": {
-						"FORMAT": "Document format [{{formato}}] not supported",
+						"FORMAT": "Document format not supported",
 						"SIZE": "Document size [{{dimensione}}] exceeds limit of [{{limite}}]"
 					},
 					"404": {
