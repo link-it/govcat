@@ -162,6 +162,26 @@ export class AdesioneFormComponent implements OnInit, OnChanges {
     }
 
     loadSoggetti() {
+        const _abilitaSelezioneSoggetto = this.generalConfig?.adesione?.abilita_selezione_soggetto ?? false;
+
+        // Servizio intermediato: soggetto SEMPRE = referente del dominio,
+        // bloccato; il numero di soggetti dell'organizzazione e` irrilevante.
+        // `abilita_selezione_soggetto` controlla solo la visibilita` della select.
+        if (this.servizio?.fruizione) {
+            const _soggReferenteDominio = this.servizio?.dominio?.soggetto_referente || this.adesione?.soggetto;
+            this.elencoSoggetti = _soggReferenteDominio ? [_soggReferenteDominio] : [];
+            if (_soggReferenteDominio?.id_soggetto) {
+                this.formGroup.controls.id_soggetto.patchValue(_soggReferenteDominio.id_soggetto);
+            }
+            this.formGroup.controls.id_soggetto.disable();
+            this.disabled_id_soggetto = _soggReferenteDominio?.id_soggetto ?? null;
+            this.hideSoggettoDropdown = !_abilitaSelezioneSoggetto;
+            this.hideSoggettoInfo = this.hideSoggettoDropdown;
+            this.formGroup.controls.id_soggetto.updateValueAndValidity();
+            this.formGroup.updateValueAndValidity();
+            return;
+        }
+
         this._getSoggetti().subscribe({
             next: (result: any) => {
                 this.elencoSoggetti = [...result];
@@ -170,8 +190,10 @@ export class AdesioneFormComponent implements OnInit, OnChanges {
                     this.hideSoggettoDropdown = true;
                     this.hideSoggettoInfo = true;
                 } else {
-                    this.hideSoggettoDropdown = false;
-                    this.hideSoggettoInfo = false;
+                    // Non intermediato con soggetti multipli: la select e`
+                    // mostrata solo se `abilita_selezione_soggetto`.
+                    this.hideSoggettoDropdown = !(_abilitaSelezioneSoggetto && result.length > 1);
+                    this.hideSoggettoInfo = this.hideSoggettoDropdown;
                     this.elencoSoggetti = [...result];
                     this.formGroup.controls.id_soggetto.patchValue(this.adesione.soggetto.id_soggetto)
                     this.formGroup.controls.id_soggetto.updateValueAndValidity()
@@ -428,7 +450,29 @@ export class AdesioneFormComponent implements OnInit, OnChanges {
             this._getSoggetti().subscribe({
                 next: (result: any) => {
                     const controls = this.formGroup.controls;
-                    if (result.length === 1) {
+                    const _abilitaSelezioneSoggetto = this.generalConfig?.adesione?.abilita_selezione_soggetto ?? false;
+
+                    if (this.servizio?.fruizione) {
+                        // Servizio intermediato: il soggetto e` SEMPRE il referente
+                        // del dominio, a prescindere da `abilita_selezione_soggetto`
+                        // e dal numero di soggetti. Il campo resta bloccato; il flag
+                        // controlla solo la visibilita` della select.
+                        const _soggReferenteDominio = this.servizio?.dominio?.soggetto_referente;
+                        if (_soggReferenteDominio?.id_soggetto) {
+                            this.elencoSoggetti = [_soggReferenteDominio];
+                            controls.id_soggetto.patchValue(_soggReferenteDominio.id_soggetto);
+                            controls.soggetto_nome.patchValue(_soggReferenteDominio.nome);
+                        } else {
+                            controls.id_soggetto.patchValue(null);
+                            controls.soggetto_nome.patchValue(null);
+                        }
+                        controls.referente.enable();
+                        controls.id_soggetto.disable();
+                        controls.id_soggetto.updateValueAndValidity();
+                        controls.soggetto_nome.updateValueAndValidity();
+                        this.disabled_id_soggetto = _soggReferenteDominio?.id_soggetto ?? null;
+                        this.hideSoggettoDropdown = !_abilitaSelezioneSoggetto;
+                    } else if (result.length === 1) {
                         this.hideSoggettoDropdown = true;
 
                         let aux: Soggetto = {
@@ -447,47 +491,18 @@ export class AdesioneFormComponent implements OnInit, OnChanges {
 
                         this.elencoSoggetti = [...result];
 
-                        const _abilitaSelezioneSoggetto = this.generalConfig?.adesione?.abilita_selezione_soggetto ?? false;
+                        // Non intermediato con soggetti multipli: la select e`
+                        // selezionabile solo se `abilita_selezione_soggetto`; in ogni
+                        // caso viene preselezionato il soggetto_default dell'org.
+                        this.hideSoggettoDropdown = !(_abilitaSelezioneSoggetto && result.length > 1);
 
-                        if (_abilitaSelezioneSoggetto && result.length > 1) {
-                            // Config abilitata e soggetti multipli: mostra il dropdown
-                            this.hideSoggettoDropdown = false;
-
-                            // Pre-seleziona soggetto_default se presente nella lista
-                            const _soggettoDefaultPresente = result.some((sog: any) => sog.id_soggetto === this.selectedOrganizzazione?.soggetto_default?.id_soggetto);
-                            if (_soggettoDefaultPresente) {
-                                controls.id_soggetto.patchValue(this.selectedOrganizzazione.soggetto_default.id_soggetto);
-                                controls.soggetto_nome.patchValue(this.selectedOrganizzazione.soggetto_default.nome);
-                            } else {
-                                controls.id_soggetto.patchValue(null);
-                                controls.soggetto_nome.patchValue(null);
-                            }
+                        const _soggettoDefaultPresente = result.some((sog: any) => sog.id_soggetto === this.selectedOrganizzazione?.soggetto_default?.id_soggetto);
+                        if (_soggettoDefaultPresente) {
+                            controls.id_soggetto.patchValue(this.selectedOrganizzazione.soggetto_default.id_soggetto);
+                            controls.soggetto_nome.patchValue(this.selectedOrganizzazione.soggetto_default.nome);
                         } else {
-                            // Selezione disabilitata o soggetto singolo.
-                            this.hideSoggettoDropdown = true;
-                            if (this.servizio?.fruizione) {
-                                // Servizio intermediato: usa il soggetto referente del
-                                // dominio del servizio su cui si sta aderendo.
-                                const _soggReferenteDominio = this.servizio?.dominio?.soggetto_referente;
-                                if (_soggReferenteDominio?.id_soggetto) {
-                                    this.elencoSoggetti = [_soggReferenteDominio];
-                                    controls.id_soggetto.patchValue(_soggReferenteDominio.id_soggetto);
-                                    controls.soggetto_nome.patchValue(_soggReferenteDominio.nome);
-                                } else {
-                                    controls.id_soggetto.patchValue(null);
-                                    controls.soggetto_nome.patchValue(null);
-                                }
-                            } else {
-                                // Servizio non intermediato: usa il soggetto_default dell'organizzazione.
-                                const _soggettoDefaultPresente = result.some((sog: any) => sog.id_soggetto === this.selectedOrganizzazione?.soggetto_default?.id_soggetto);
-                                if (_soggettoDefaultPresente) {
-                                    controls.id_soggetto.patchValue(this.selectedOrganizzazione.soggetto_default.id_soggetto);
-                                    controls.soggetto_nome.patchValue(this.selectedOrganizzazione.soggetto_default.nome);
-                                } else {
-                                    controls.id_soggetto.patchValue(null);
-                                    controls.soggetto_nome.patchValue(null);
-                                }
-                            }
+                            controls.id_soggetto.patchValue(null);
+                            controls.soggetto_nome.patchValue(null);
                         }
                         controls.id_soggetto.updateValueAndValidity();
                         controls.soggetto_nome.updateValueAndValidity();

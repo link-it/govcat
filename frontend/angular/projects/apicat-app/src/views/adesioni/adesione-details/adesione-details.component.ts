@@ -1084,7 +1084,28 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       this.getSoggetti().subscribe({
         next: (result) => {
           const controls = this._formGroup.controls;
-          if (result.length === 1) {
+          const _abilitaSelezioneSoggetto = this.generalConfig?.adesione?.abilita_selezione_soggetto ?? false;
+          const _orgObj = this.selectedOrganizzazione?.organizzazione || this.selectedOrganizzazione;
+
+          if (this._servizio?.fruizione) {
+            // Servizio intermediato: soggetto SEMPRE = referente del dominio,
+            // bloccato; `abilita_selezione_soggetto` controlla solo la visibilita`.
+            const _soggReferenteDominio = this._servizio?.dominio?.soggetto_referente;
+            if (_soggReferenteDominio?.id_soggetto) {
+              this._initSoggettiSelect([_soggReferenteDominio]);
+              controls.id_soggetto.patchValue(_soggReferenteDominio.id_soggetto);
+              controls.soggetto_nome.patchValue(_soggReferenteDominio.nome);
+            } else {
+              controls.id_soggetto.patchValue(null);
+              controls.soggetto_nome.patchValue(null);
+            }
+            controls.referente.enable();
+            controls.id_soggetto.disable();
+            controls.id_soggetto.updateValueAndValidity();
+            controls.soggetto_nome.updateValueAndValidity();
+            this._disabled_id_soggetto = _soggReferenteDominio?.id_soggetto ?? null;
+            this._hideSoggettoDropdown = !_abilitaSelezioneSoggetto;
+          } else if (result.length === 1) {
             this._hideSoggettoDropdown = true;
 
             let aux: Soggetto = {
@@ -1104,49 +1125,17 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
 
             this._elencoSoggetti = [...result];
 
-            const _abilitaSelezioneSoggetto = this.generalConfig?.adesione?.abilita_selezione_soggetto ?? false;
+            // Non intermediato con soggetti multipli: select selezionabile solo se
+            // `abilita_selezione_soggetto`; comunque preselezionato il soggetto_default.
+            this._hideSoggettoDropdown = !(_abilitaSelezioneSoggetto && result.length > 1);
 
-            if (_abilitaSelezioneSoggetto && result.length > 1) {
-              // Config abilitata e soggetti multipli: mostra il dropdown per permettere la scelta
-              this._hideSoggettoDropdown = false;
-
-              // Pre-seleziona soggetto_default se presente
-              const _orgObj = this.selectedOrganizzazione?.organizzazione || this.selectedOrganizzazione;
-              const _soggettoDefaultPresente = result.some((sog: any) => sog.id_soggetto === _orgObj?.soggetto_default?.id_soggetto);
-              if (_soggettoDefaultPresente) {
-                controls.id_soggetto.patchValue(_orgObj.soggetto_default.id_soggetto);
-                controls.soggetto_nome.patchValue(_orgObj.soggetto_default.nome);
-              } else {
-                controls.id_soggetto.patchValue(null);
-                controls.soggetto_nome.patchValue(null);
-              }
+            const _soggettoDefaultPresente = result.some((sog: any) => sog.id_soggetto === _orgObj?.soggetto_default?.id_soggetto);
+            if (_soggettoDefaultPresente) {
+              controls.id_soggetto.patchValue(_orgObj.soggetto_default.id_soggetto);
+              controls.soggetto_nome.patchValue(_orgObj.soggetto_default.nome);
             } else {
-              // Selezione disabilitata o soggetto singolo.
-              this._hideSoggettoDropdown = true;
-              const _orgObj = this.selectedOrganizzazione?.organizzazione || this.selectedOrganizzazione;
-              if (this._servizio?.fruizione) {
-                // Servizio intermediato: usa il soggetto referente del dominio
-                // del servizio su cui si sta aderendo.
-                const _soggReferenteDominio = this._servizio?.dominio?.soggetto_referente;
-                if (_soggReferenteDominio?.id_soggetto) {
-                  this._initSoggettiSelect([_soggReferenteDominio]);
-                  controls.id_soggetto.patchValue(_soggReferenteDominio.id_soggetto);
-                  controls.soggetto_nome.patchValue(_soggReferenteDominio.nome);
-                } else {
-                  controls.id_soggetto.patchValue(null);
-                  controls.soggetto_nome.patchValue(null);
-                }
-              } else {
-                // Servizio non intermediato: usa il soggetto_default dell'organizzazione.
-                const _soggettoDefaultPresente = result.some((sog: any) => sog.id_soggetto === _orgObj?.soggetto_default?.id_soggetto);
-                if (_soggettoDefaultPresente) {
-                  controls.id_soggetto.patchValue(_orgObj.soggetto_default.id_soggetto);
-                  controls.soggetto_nome.patchValue(_orgObj.soggetto_default.nome);
-                } else {
-                  controls.id_soggetto.patchValue(null);
-                  controls.soggetto_nome.patchValue(null);
-                }
-              }
+              controls.id_soggetto.patchValue(null);
+              controls.soggetto_nome.patchValue(null);
             }
             controls.id_soggetto.updateValueAndValidity();
             controls.soggetto_nome.updateValueAndValidity();

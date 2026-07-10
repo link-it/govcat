@@ -1,3 +1,14 @@
+2026-07-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Adesioni a servizi intermediati (fruizione): il soggetto e` sempre
+	  quello referente del dominio e il campo resta bloccato, a
+	  prescindere da `abilita_selezione_soggetto` (che ora controlla solo
+	  la visibilita` della select). Corretta la logica di selezione
+	  soggetto in adesione-create, adesione-form (wizard, incl.
+	  `loadSoggetti`) e adesione-details, dove con selezione abilitata e
+	  soggetti multipli veniva erroneamente mostrata una select libera.
+
 2026-07-09  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
