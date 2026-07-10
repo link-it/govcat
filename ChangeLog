@@ -1,6 +1,17 @@
 2026-07-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 306: coerenza soggetto tra client e adesione. Nella modifica di
+	  un client con adesioni collegate il soggetto resta bloccato anche con
+	  organizzazione multi-soggetto (client-details `_checkSoggetto`). La
+	  lista dei client riutilizzabili in adesione e` filtrata anche per
+	  `id_soggetto` dell'adesione (adesione-lista-clients
+	  `_loadClientsRiuso$`), evitando l'associazione di client di soggetto
+	  diverso.
+
+2026-07-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Adesioni a servizi intermediati (fruizione): il soggetto e` sempre
 	  quello referente del dominio e il campo resta bloccato, a
 	  prescindere da `abilita_selezione_soggetto` (che ora controlla solo
