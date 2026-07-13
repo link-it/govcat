@@ -1,6 +1,15 @@
 2026-07-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Soggetto referente del dominio in evidenza (solo gestore): in servizio
+	  view (hero-eyebrow) tooltip sul dominio col nome del soggetto
+	  referente; in servizio details (gestione), in sola lettura, icona
+	  info accanto al campo dominio con lo stesso tooltip. Riuso della
+	  label `APP.TOOLTIP.SoggettoReferente`.
+
+2026-07-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	lnk-stato-chip: il testo lungo dello stato (es. "Pubblicato in
 	  produzione senza collaudo") va a capo entro la larghezza del
 	  contenitore invece di overfloware e sovrapporsi agli elementi

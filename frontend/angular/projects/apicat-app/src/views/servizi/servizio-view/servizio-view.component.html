@@ -103,12 +103,17 @@
               {{ 'APP.TITLE.Service' | translate }}
               <span class="dot"></span>
               {{ data?.dominio?.soggetto_referente?.organizzazione?.nome }}
+              <!-- Tooltip col soggetto referente del dominio: solo per il
+                   gestore (e solo se il referente e` valorizzato). -->
+              @let _domReferenteTooltip = ((_updateData | mapper:_isGestoreMapper) && data?.dominio?.soggetto_referente?.nome)
+                ? ('APP.TOOLTIP.SoggettoReferente' | translate:{ soggetto: data?.dominio?.soggetto_referente?.nome })
+                : null;
               @if (data?.dominio?.tag) {
                 <span class="mx-1">·</span>
-                <span>{{ data?.dominio?.tag }}</span>
+                <span [tooltip]="_domReferenteTooltip" container="body">{{ data?.dominio?.tag }}</span>
               } @else if (data?.dominio?.nome) {
                 <span class="mx-1">·</span>
-                <span>{{ data?.dominio?.nome }}</span>
+                <span [tooltip]="_domReferenteTooltip" container="body">{{ data?.dominio?.nome }}</span>
               }
             </div>
             <h1>
