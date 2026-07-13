@@ -49,17 +49,21 @@ import { getStatoVariant, LnkStatoVariant } from './stato-variants.const';
     </span>
   `,
   styles: [`
-    :host { display: inline-flex; }
+    :host { display: inline-flex; max-width: 100%; }
 
     .lnk-stato-chip {
       display: inline-flex; align-items: center;
       padding: 3px 10px; border-radius: 999px;
       font-size: 12px; font-weight: 600;
       border: 1px solid;
-      white-space: nowrap;
-      word-break: keep-all;
-      overflow-wrap: normal;
-      flex-shrink: 0;
+      /* Il testo lungo (es. "Pubblicato in produzione senza collaudo") va a
+         capo SOLO quando eccede la larghezza del contenitore, evitando
+         l'overflow/sovrapposizione su schermi stretti. Con spazio
+         sufficiente il chip resta su una riga (niente collasso a
+         min-content: no overflow-wrap anywhere, no min-width 0). */
+      white-space: normal;
+      overflow-wrap: break-word;
+      max-width: 100%;
       /* A11Y P4: base era --ink-3 su --surface-3 (4.42:1, fail
          AA). Spostato a --ink-2 (#2e445a, 7.92:1) per chip
          "stato sconosciuto" - testo informativo, AA garantita. */
