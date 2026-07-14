@@ -1486,7 +1486,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
       error: (error: any) => {
         this._error = true;
         this._errorMsg = this.utils.GetErrorMsg(error);
-        this._errors = (error.error.errori || []).filter((e: any) => Object.keys(e).length > 0);
+        this._errors = Tools.filtraErroriComplessi(error.error?.errori);
         this._fromStatus = this.translate.instant('APP.WORKFLOW.STATUS.' + this.client.stato);
         this._toStatus = this.translate.instant('APP.WORKFLOW.STATUS.' + event);
         const _msg: string = this.translate.instant('APP.WORKFLOW.MESSAGE.ChangeStatusError', {status: this._toStatus});
@@ -1949,11 +1949,22 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
           } else {
             const currentValue = controls.id_soggetto.value;
             this._elencoSoggetti = [...result];
-            controls.id_soggetto.enable();
-            controls.id_soggetto.setValidators(Validators.required);
-            controls.id_soggetto.updateValueAndValidity();
-            this._hideSoggettoDropdown = false;
-            setTimeout(() => controls.id_soggetto.setValue(currentValue));
+            if (this._isClientUsedInSomeAdesioni) {
+              // Client con adesioni collegate: il soggetto NON e` modificabile
+              // a prescindere dal numero di soggetti dell'organizzazione (il BE
+              // rifiuta con CLT.400.HAS_ADHESIONS). Campo readonly col valore
+              // corrente; il gating "adesioni" prevale sul conteggio soggetti.
+              controls.id_soggetto.disable();
+              controls.id_soggetto.clearValidators();
+              controls.id_soggetto.updateValueAndValidity();
+              this._hideSoggettoDropdown = true;
+            } else {
+              controls.id_soggetto.enable();
+              controls.id_soggetto.setValidators(Validators.required);
+              controls.id_soggetto.updateValueAndValidity();
+              this._hideSoggettoDropdown = false;
+              setTimeout(() => controls.id_soggetto.setValue(currentValue));
+            }
           }
 
           this._formGroup.updateValueAndValidity();

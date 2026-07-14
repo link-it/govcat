@@ -199,7 +199,9 @@
 			"MESSAGE": {
 				"ConfigureClientsDisclaimer": "Configure the authentication clients to proceed. For each profile listed below, click the pencil and enter the required data.",
 				"FaseProduzioneBloccata": "To request production, the service must first be published in production.",
-				"FaseProduzioneBloccataShort": "Service not published in production"
+				"FaseProduzioneBloccataShort": "Service not published in production",
+				"FaseCollaudoSaltata": "Testing phase skipped (skip testing enabled).",
+				"FaseSaltata": "Skipped"
 			},
 			"TOOLTIP": {
 				"EditAdesione": ""
@@ -1496,6 +1498,9 @@
 						"EXTENSION": "Client extension [{{tipo}}] not supported",
 						"HAS": {
 							"ADHESIONS": "Client [{{nome}}] for subject [{{soggetto}}] and environment [{{ambiente}}] has [{{numAdesioni}}] active memberships"
+						},
+						"SUBJECT": {
+							"MISMATCH": "Client [{{nomeClient}}] belongs to subject [{{soggettoClient}}], which differs from the membership subject [{{soggettoAdesione}}]"
 						}
 					},
 					"404": {
@@ -1520,7 +1525,7 @@
 				"DefaultHelp": "Please try again later",
 				"DOC": {
 					"400": {
-						"FORMAT": "Document format [{{formato}}] not supported",
+						"FORMAT": "Document format not supported",
 						"SIZE": "Document size [{{dimensione}}] exceeds limit of [{{limite}}]"
 					},
 					"404": {

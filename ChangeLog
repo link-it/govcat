@@ -1,3 +1,121 @@
+2026-07-14  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* Rilasciata versione 2.4.1
+
+2026-07-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Soggetto referente del dominio in evidenza (solo gestore): in servizio
+	  view (hero-eyebrow) tooltip sul dominio col nome del soggetto
+	  referente; in servizio details (gestione), in sola lettura, icona
+	  info accanto al campo dominio con lo stesso tooltip. Riuso della
+	  label `APP.TOOLTIP.SoggettoReferente`.
+
+2026-07-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	lnk-stato-chip: il testo lungo dello stato (es. "Pubblicato in
+	  produzione senza collaudo") va a capo entro la larghezza del
+	  contenitore invece di overfloware e sovrapporsi agli elementi
+	  adiacenti su schermi stretti (rimossi nowrap/flex-shrink, aggiunto
+	  max-width 100%).
+
+2026-07-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 306: coerenza soggetto tra client e adesione. Nella modifica di
+	  un client con adesioni collegate il soggetto resta bloccato anche con
+	  organizzazione multi-soggetto (client-details `_checkSoggetto`). La
+	  lista dei client riutilizzabili in adesione e` filtrata anche per
+	  `id_soggetto` dell'adesione (adesione-lista-clients
+	  `_loadClientsRiuso$`), evitando l'associazione di client di soggetto
+	  diverso.
+
+2026-07-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Adesioni a servizi intermediati (fruizione): il soggetto e` sempre
+	  quello referente del dominio e il campo resta bloccato, a
+	  prescindere da `abilita_selezione_soggetto` (che ora controlla solo
+	  la visibilita` della select). Corretta la logica di selezione
+	  soggetto in adesione-create, adesione-form (wizard, incl.
+	  `loadSoggetti`) e adesione-details, dove con selezione abilitata e
+	  soggetti multipli veniva erroneamente mostrata una select libera.
+
+2026-07-09  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 306: nella configurazione del client di un'adesione viene ora
+	  verificato che il soggetto del client coincida con quello dell'adesione,
+	  sia riferendo un client già censito sia creandone uno nuovo; in caso di
+	  soggetto diverso viene restituito il nuovo errore CLT.400.SUBJECT.MISMATCH
+	  (in precedenza il vincolo era demandato al solo frontend). Aggiunte le
+	  traduzioni i18n (it/en) del nuovo codice di errore.
+
+2026-07-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Adesione form: il soggetto in sola lettura ora rispetta la stessa
+	  visibilita` del dropdown in modifica. `checkSoggetto` allinea
+	  `hideSoggettoInfo` a `hideSoggettoDropdown` (che tiene conto di
+	  `abilita_selezione_soggetto`), evitando che il soggetto restasse
+	  visibile in readonly con soggetti multipli e selezione disabilitata.
+
+2026-07-08  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 305: fix wizard adesioni con "Salta collaudo". Il toggle ora
+	  ricarica il wizard (`loadAdesione`) ricalcolando fase e sezioni;
+	  con `skip_collaudo` la `bozza` viene mappata sulla fase Produzione
+	  (collaudo saltato) cosi` l'utente puo` compilarne la configurazione.
+	  Attivata la lettura della config step-wizard dal BE aggiornato
+	  (`_FORCE_STEP_WIZARD_FALLBACK = false`); i fallback FE allineati come
+	  safety net includono ora tutti gli stati `*_produzione_senza_collaudo`
+	  (incluse le varianti manuale/automatica). Con `skip_collaudo` la fase
+	  Collaudo nella fasi-bar e` marcata "saltata" (stato `skipped`,
+	  non cliccabile). Il componente `ui-workflow` ora e` coerente con
+	  `skip_collaudo`: mostra solo il ramo di cambio stato pertinente
+	  (nasconde la transizione verso il collaudo quando salta-collaudo e`
+	  attivo, e le transizioni `*_senza_collaudo` quando e` disattivo).
+
+2026-07-07  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Parsing WSDL: aggiunta la property
+	  `org.govway.api.catalogo.wsdl.parsing.senza-binding.enabled` (default
+	  false) che, se abilitata, consente agli endpoint di analisi SOAP
+	  (`listaRisorseApi` e `listaOperazioniWsdl`) di estrarre le operazioni
+	  direttamente dai portType anche quando il WSDL non contiene binding.
+	Gli endpoint `listaRisorseApi` e `listaOperazioniWsdl` restituiscono ora
+	  un errore quando il WSDL SOAP non contiene operazioni, coerentemente con
+	  quanto già avviene per le specifiche REST, invece di una lista vuota che
+	  generava un comportamento errato sul client.
+	Corretta l'assegnazione del protocollo per le API SOAP con binding
+	  SOAP 1.2: viene ora impostato WSDL12 (in precedenza sempre WSDL11);
+	  i binding SOAP 1.1, misti o assenti restano WSDL11, senza necessità di
+	  bonifica dei dati già presenti.
+	Le eccezioni di dominio (BadRequestException, NotFoundException) sollevate
+	  negli endpoint Tools non vengono più ri-avvolte dai blocchi catch, così
+	  da preservarne codice e messaggio originali (es. "Lista vuota") anziché
+	  sovrascriverli con il generico "DOC.500".
+	Ripristinata l'omissione dei link HATEOAS vuoti nelle response JSON: dopo
+	  l'upgrade a Spring Boot 4 / Spring HATEOAS 3.x ogni oggetto includeva una
+	  proprietà `links: []` (i model generati estendono RepresentationModel),
+	  con possibili regressioni sui client. Risolto alla radice registrando un
+	  mixin Jackson che applica @JsonInclude(NON_EMPTY) a
+	  RepresentationModel.getLinks(): i link vuoti non vengono più serializzati,
+	  quelli valorizzati restano invariati.
+
+2026-07-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 304: ripristinato il fallback all'errore semplice quando la
+	  lista errori complessi e` vuota. Post-upgrade Spring il BE serializza
+	  le entry errore con `links: []` di default, quindi il filtro
+	  `Object.keys(e).length > 0` non le scartava piu`. Introdotto
+	  `Tools.filtraErroriComplessi` (ignora la chiave `links`) applicato
+	  ai 12 punti che valorizzano `_errors`.
+
 2026-07-03  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* Rilasciata versione 2.4.0

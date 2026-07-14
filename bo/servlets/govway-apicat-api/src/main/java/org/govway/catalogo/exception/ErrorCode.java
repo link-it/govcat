@@ -260,6 +260,9 @@ public enum ErrorCode {
     /** Auth type client non corrisponde al profilo */
     CLT_400_AUTH_MISMATCH("Auth type client non corrisponde al profilo"),
 
+    /** Soggetto del client non corrisponde al soggetto dell'adesione */
+    CLT_400_SUBJECT_MISMATCH("Soggetto del client non corrisponde al soggetto dell'adesione"),
+
     /** Client duplicati nell'operazione */
     CLT_409_DUPLICATES("Client duplicati nell'operazione"),
 

@@ -270,7 +270,7 @@ public class ToolsTest {
         richiesta.setApiType(ProtocolloEnum.REST);
 
         BadRequestException exception = assertThrows(BadRequestException.class, () -> toolsController.listaOperazioniWsdl(richiesta));
-        assertEquals("DOC.500", exception.getMessage());
+        assertEquals("SYS.501", exception.getMessage());
     }
 
     @Test

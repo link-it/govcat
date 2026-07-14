@@ -686,7 +686,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 this._error = true;
                 this._errorMsg = this.utils.GetErrorMsg(error);
                 this._spin = false;
-                this._errors = (error.error.errori || []).filter((e: any) => Object.keys(e).length > 0);
+                this._errors = Tools.filtraErroriComplessi(error.error?.errori);
             }
         });
     }
@@ -764,7 +764,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 this._error = true;
                 this._errorMsg = this.utils.GetErrorMsg(error);
                 this._spin = false;
-                this._errors = (error.error.errori || []).filter((e: any) => Object.keys(e).length > 0);
+                this._errors = Tools.filtraErroriComplessi(error.error?.errori);
             }
         });
     }
@@ -1391,7 +1391,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 this._changingStatus = false;
                 this._error = true;
                 this._errorMsg = Tools.WorkflowErrorMsg(error);
-                this._errors = (error.error.errori || []).filter((e: any) => Object.keys(e).length > 0);
+                this._errors = Tools.filtraErroriComplessi(error.error?.errori);
                 this._fromStatus = this.translate.instant('APP.WORKFLOW.STATUS.' + this.data.stato);
                 this._toStatus = this.translate.instant('APP.WORKFLOW.STATUS.' + event.status.nome);
                 const _msg: string = this.translate.instant('APP.WORKFLOW.MESSAGE.ChangeStatusError', {status: this._toStatus});

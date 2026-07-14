@@ -235,6 +235,15 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 			throw new BadRequestException(ErrorCode.VAL_400_ENVIRONMENT_MISMATCH, java.util.Map.of("ambienteUrl", ambiente.toString(), "ambienteBody", ambienteBody.toString()));
 		}
 
+		// Il soggetto del client (nuovo o riferito) deve coincidere con quello dell'adesione:
+		// non e' ammesso associare/creare un client di un soggetto diverso da quello dell'adesione.
+		if(client != null && !client.getSoggetto().getIdSoggetto().equals(entity.getSoggetto().getIdSoggetto())) {
+			throw new BadRequestException(ErrorCode.CLT_400_SUBJECT_MISMATCH, java.util.Map.of(
+					"nomeClient", client.getNome(),
+					"soggettoClient", client.getSoggetto().getNome(),
+					"soggettoAdesione", entity.getSoggetto().getNome()));
+		}
+
 		ClientAdesioneEntity adC = entity.getClient().stream().filter(ac -> ac.getProfilo().equals(profilo) && ac.getAmbiente().equals(ambiente)).findAny()
 				.orElseGet(() -> {
 					ClientAdesioneEntity adC1 = new ClientAdesioneEntity();

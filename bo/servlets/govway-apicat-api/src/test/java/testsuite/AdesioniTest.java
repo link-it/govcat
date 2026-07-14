@@ -3247,7 +3247,57 @@ public class AdesioniTest {
         adesioniController.deleteClientProduzioneAdesione(adesione.getBody().getIdAdesione(), PROFILO, true);
         adesioniController.createReferenteAdesione(adesione.getBody().getIdAdesione(), newReferente, true);
     }
-    
+
+    @Test
+    void testSaveClientRiferitoSoggettoDiversoAdesione() {
+        ResponseEntity<Adesione> adesione = this.getInizializza();
+
+        // Creo un secondo soggetto nella stessa organizzazione dell'adesione
+        SoggettoCreate soggettoCreate = new SoggettoCreate();
+        soggettoCreate.setNome("altro_soggetto");
+        soggettoCreate.setIdOrganizzazione(idOrganizzazione);
+        soggettoCreate.setAderente(true);
+        soggettoCreate.setReferente(false);
+        ResponseEntity<Soggetto> altroSoggetto = soggettiController.createSoggetto(soggettoCreate);
+        assertEquals(HttpStatus.OK, altroSoggetto.getStatusCode());
+        UUID idAltroSoggetto = altroSoggetto.getBody().getIdSoggetto();
+
+        // Creo un client CONFIGURATO sotto il secondo soggetto
+        ClientCreate clientCreate = new ClientCreate();
+        clientCreate.setIdSoggetto(idAltroSoggetto);
+        clientCreate.setNome("ClientAltroSoggetto");
+        clientCreate.setAmbiente(AmbienteEnum.COLLAUDO);
+        AuthTypeHttpsCreate dati = new AuthTypeHttpsCreate();
+        dati.setAuthType(AuthTypeEnum.HTTPS);
+        CertificatoClientFornitoCreate certificato = new CertificatoClientFornitoCreate();
+        certificato.setTipoCertificato(TipoCertificatoEnum.FORNITO);
+        DocumentoUpdateNew documento = new DocumentoUpdateNew();
+        documento.setTipoDocumento(TipoDocumentoEnum.NUOVO);
+        documento.setFilename("certificato.pem");
+        documento.setContent(pemCert);
+        documento.setContentType("application/x-pem-file");
+        certificato.setCertificato(documento);
+        dati.setCertificatoAutenticazione(certificato);
+        clientCreate.setDatiSpecifici(dati);
+        clientCreate.setDescrizione("descrizione");
+        clientCreate.setIndirizzoIp("1.1.1.1");
+        clientCreate.setStato(StatoClientEnum.CONFIGURATO);
+        clientController.createClient(clientCreate);
+
+        // Riferire all'adesione un client di un soggetto diverso da quello dell'adesione deve fallire
+        AdesioneIdClient adesioneIdClient = new AdesioneIdClient();
+        adesioneIdClient.setNome("ClientAltroSoggetto");
+        adesioneIdClient.setAmbiente(AmbienteEnum.COLLAUDO);
+        adesioneIdClient.setIdSoggetto(idAltroSoggetto);
+        adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
+
+        UUID idAdesione = adesione.getBody().getIdAdesione();
+        Exception exception = assertThrows(BadRequestException.class, () -> {
+            adesioniController.saveClientCollaudoAdesione(idAdesione, PROFILO, adesioneIdClient, null);
+        });
+        assertTrue(exception.getMessage().startsWith("CLT.400.SUBJECT.MISMATCH"));
+    }
+
     @Test
     void testCreateReferenteAdesioneErrore() {
     	ResponseEntity<Adesione> adesione = this.getInizializza();

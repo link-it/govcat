@@ -376,6 +376,8 @@
                     <div class="form-group dominio">
                       <label class="label-bold" for="id_dominio">{{ 'APP.LABEL.id_dominio' | translate }} @if (_isEdit) {
                         <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_dominio'"></span>
+                      } @else if ((_updateData | mapper:_isGestoreMapper) && data.dominio?.soggetto_referente?.nome) {
+                        <span class="ms-1" [tooltip]="'APP.TOOLTIP.SoggettoReferente' | translate:{ soggetto: data.dominio?.soggetto_referente?.nome }" container="body"><i class="bi bi-info-circle"></i></span>
                       }</label>
                       @if (_isEdit) {
                         <div class="">

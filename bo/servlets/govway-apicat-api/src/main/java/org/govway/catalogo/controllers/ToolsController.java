@@ -35,6 +35,7 @@ import org.govway.catalogo.core.business.utils.WsdlUtils;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.services.ApiService;
 import org.govway.catalogo.core.services.DocumentoService;
+import org.govway.catalogo.exception.AbstractGovCatException;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotFoundException;
@@ -51,6 +52,7 @@ import org.govway.catalogo.servlets.model.TipoApiRisorsaEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 
 @ApiV1Controller
@@ -69,6 +71,13 @@ public class ToolsController implements ToolsApi {
 
 	@Autowired
 	private CspService cspService;
+
+	/**
+	 * Se abilitata, consente il parsing dei WSDL SOAP privi di binding estraendo le operazioni
+	 * direttamente dai portType. Default: false.
+	 */
+	@Value("${org.govway.api.catalogo.wsdl.parsing.senza-binding.enabled:false}")
+	private boolean supportaWsdlSenzaBinding;
 
 	@Override
 	public ResponseEntity<List<String>> listaRisorseApi(ListaRisorseApiRichiesta listaRisorseApiRichiesta) {
@@ -99,12 +108,16 @@ public class ToolsController implements ToolsApi {
 			this.logger.info("Invocazione completata con successo");
 
 			return ResponseEntity.ok(lst);
+		} catch(AbstractGovCatException e) {
+			// Eccezione di dominio gia' ben formata (con codice e parametri): la si rilancia
+			// senza ri-avvolgerla, per non perdere il messaggio originale (es. "Lista vuota").
+			throw e;
 		} catch(Exception e) {
 			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
 			throw new BadRequestException(ErrorCode.DOC_500, Map.of("errore", e.getMessage()));
 		}
 	}
-	
+
 	private List<String> getProtocolInfoFromRest(byte[] restBytes) {
 	    try {
 	    	if(OpenapiUtils.isOpenapi(restBytes)) {
@@ -122,7 +135,9 @@ public class ToolsController implements ToolsApi {
 	    	} else {
 				throw new BadRequestException(ErrorCode.DOC_500, Map.of("errore", "Documento non riconosciuto"));
 	    	}
-	    	
+
+	    } catch(AbstractGovCatException e) {
+	    	throw e;
 	    } catch(Exception e) {
 	    	this.logger.error("Errore durante la lettura delle operazioni dal descrittore REST: " + e.getMessage(), e);
 	    	throw new BadRequestException(ErrorCode.DOC_500, Map.of("errore", e.getMessage()));
@@ -131,7 +146,13 @@ public class ToolsController implements ToolsApi {
 	
 	private List<String> getProtocolInfoFromWsdl(byte[] wsdlBytes) {
 	    try {
-	    	return WsdlUtils.getOperationFromWsdl(wsdlBytes);
+	    	List<String> operations = WsdlUtils.getOperationFromWsdl(wsdlBytes, this.supportaWsdlSenzaBinding);
+	    	if(operations.isEmpty()) {
+	    		throw new BadRequestException(ErrorCode.DOC_500, Map.of("errore", "Lista vuota"));
+	    	}
+	    	return operations;
+	    } catch(AbstractGovCatException e) {
+	    	throw e;
 	    } catch(Exception e) {
 	    	this.logger.error("Errore durante la lettura delle operazioni dal WSDL: " + e.getMessage(), e);
 	    	throw new BadRequestException(ErrorCode.DOC_500, Map.of("errore", e.getMessage()));
@@ -172,7 +193,7 @@ public class ToolsController implements ToolsApi {
 			List<ServizioWsdl> lst = null;
 			switch(listaRisorseApiRichiesta.getApiType()) {
 			case REST: throw new BadRequestException(ErrorCode.SYS_501);
-			case SOAP: lst = WsdlUtils.getInfoFromWsdl(body).stream()
+			case SOAP: lst = WsdlUtils.getInfoFromWsdl(body, this.supportaWsdlSenzaBinding).stream()
 					.map(serv -> {
 						ServizioWsdl servizioW = new ServizioWsdl();
 
@@ -197,9 +218,15 @@ public class ToolsController implements ToolsApi {
 
 			}
 
+			if(lst == null || lst.isEmpty()) {
+				throw new BadRequestException(ErrorCode.DOC_500, Map.of("errore", "Lista vuota"));
+			}
+
 			this.logger.info("Invocazione completata con successo");
 
 			return ResponseEntity.ok(lst);
+		} catch(AbstractGovCatException e) {
+			throw e;
 		} catch(Exception e) {
 			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
 			throw new BadRequestException(ErrorCode.DOC_500, Map.of("errore", e.getMessage()));

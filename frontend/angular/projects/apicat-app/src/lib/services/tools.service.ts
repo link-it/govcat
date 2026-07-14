@@ -425,6 +425,18 @@ export class Tools {
     return Object.assign({}, ...fromErrori, flat || {});
   }
 
+  /**
+   * Filtra la lista `errori` complessi del BE tenendo solo le entry
+   * significative. Dopo l'upgrade di Spring gli oggetti errore vengono
+   * serializzati con `links: []` di default: un errore "vuoto" non e`
+   * piu` `{}` ma `{ links: [] }`. Senza questo filtro la UI mostrerebbe
+   * un errore complesso privo di messaggio invece di ricadere
+   * sull'errore semplice (traduzione del `detail`).
+   */
+  public static filtraErroriComplessi(errori: any): any[] {
+    return (errori || []).filter((e: any) => Object.keys(e || {}).some((k: string) => k !== 'links'));
+  }
+
   private static _translateBeErrorKey(detail: any, parameters?: any): string | null {
     if (typeof detail !== 'string' || !detail) { return null; }
     if (!/^[A-Z0-9_]+(\.[A-Z0-9_]+)+$/.test(detail)) { return null; }

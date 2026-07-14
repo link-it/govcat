@@ -31,16 +31,19 @@
               [class.is-done]="item.state === 'completed' || item.state === 'final'"
               [class.is-current]="item.state === 'current'"
               [class.is-locked]="item.state === 'pending'"
+              [class.is-skipped]="item.state === 'skipped'"
               [class.is-viewing]="viewing"
-              [class.is-disabled]="!item.clickable"
+              [class.is-disabled]="!item.clickable && item.state !== 'skipped'"
               [disabled]="!item.clickable"
-              [attr.title]="item.disabled ? ('APP.ADESIONI.MESSAGE.FaseProduzioneBloccata' | translate) : null"
+              [attr.title]="item.state === 'skipped' ? ('APP.ADESIONI.MESSAGE.FaseCollaudoSaltata' | translate) : (item.disabled ? ('APP.ADESIONI.MESSAGE.FaseProduzioneBloccata' | translate) : null)"
               [attr.aria-selected]="viewing"
               [attr.aria-disabled]="!item.clickable"
               [attr.tabindex]="item.clickable ? 0 : -1"
               (click)="onStepClick(item)">
         <div class="num">
-          @if (item.disabled) {
+          @if (item.state === 'skipped') {
+            <i class="bi bi-slash-circle"></i>
+          } @else if (item.disabled) {
             <i class="bi bi-lock-fill"></i>
           } @else if (item.state === 'completed' || item.state === 'final') {
             <i class="bi bi-check-lg"></i>
@@ -53,7 +56,9 @@
         <div class="lbl">
           <span class="t">{{ 'APP.ADESIONI.LABEL.FaseLabel' | translate }} {{ item.numberLabel }}</span>
           <span class="n">{{ item.label }}</span>
-          @if (item.disabled) {
+          @if (item.state === 'skipped') {
+            <span class="disabled-hint">{{ 'APP.ADESIONI.MESSAGE.FaseSaltata' | translate }}</span>
+          } @else if (item.disabled) {
             <span class="disabled-hint">{{ 'APP.ADESIONI.MESSAGE.FaseProduzioneBloccataShort' | translate }}</span>
           }
         </div>

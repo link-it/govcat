@@ -42,6 +42,16 @@ import lombok.Setter;
 public class ApiEntity {
 
 	public enum RUOLO {EROGATO_SOGGETTO_DOMINIO,EROGATO_SOGGETTO_ADERENTE}
+	/*
+	 * NOTA sul naming: WSDL11 e WSDL12 sono usati in modo IMPROPRIO. Non indicano la versione del
+	 * linguaggio WSDL (che e' sempre 1.1; il "WSDL 1.2" come spec finale non esiste, e' diventato
+	 * WSDL 2.0, che qui non e' supportato), ma la versione del BINDING SOAP contenuto nel WSDL:
+	 *   WSDL11 -> binding SOAP 1.1   |   WSDL12 -> binding SOAP 1.2
+	 * Sono due assi ortogonali: un singolo WSDL 1.1 puo' contenere sia binding SOAP 1.1 che 1.2,
+	 * caso che questo enum a valore singolo non riesce a rappresentare.
+	 * Rinominare in SOAP11/SOAP12 sarebbe piu' corretto ma impatta i valori gia' persistiti su
+	 * api_config.protocollo (EnumType.STRING) -> richiederebbe migrazione dati.
+	 */
 	public enum PROTOCOLLO {WSDL11, WSDL12, SWAGGER_2,OPENAPI_3}
 
 	@Id

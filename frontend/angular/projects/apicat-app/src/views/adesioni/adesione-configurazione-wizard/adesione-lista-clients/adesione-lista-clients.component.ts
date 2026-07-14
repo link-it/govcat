@@ -1074,12 +1074,18 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
      */
     _loadClientsRiuso$(auth_type: string = '', organizzazione: string = '', ambiente: string = ''): Observable<any[]> {
         const size = 100;
+        // I client riutilizzabili vanno filtrati per soggetto dell'adesione
+        // (non solo per organizzazione): un'organizzazione puo` avere piu`
+        // soggetti e non si deve poter associare un client di soggetto diverso
+        // (il BE rifiuta con CLT.400.SUBJECT.MISMATCH).
+        const idSoggetto: string = this.adesione?.soggetto?.id_soggetto || '';
         const baseOptions: any = {
             params: {
                 size,
                 page: 0,
                 auth_type,
                 id_organizzazione: organizzazione,
+                id_soggetto: idSoggetto,
                 ambiente,
                 stato: StatoConfigurazioneEnum.CONFIGURATO
             }
