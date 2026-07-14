@@ -2,6 +2,17 @@
 
 	* Rilasciata versione 2.4.1
 
+2026-07-14  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Fix vulnerabilita` OSV/OWASP: aggiornato httpcore5 da 5.3.6 a 5.4.3
+	  (override esplicito del BOM Spring Boot; CVE-2026-54399 e
+	  CVE-2026-54428, DoS memory exhaustion su parser HTTP/1.1 e decoder
+	  HPACK HTTP/2) e logback da 1.5.33 a 1.5.38 (GHSA-jhq6-gfmj-v8fx),
+	  allineato tra parent e bo. Aggiunta suppression per httpcore 4.4.16
+	  (ramo 4.x classic): le stesse CVE riguardano solo il ramo 5.x, il
+	  match e` un falso positivo da CPE e 4.4.16 e` l'ultima 4.4.x.
+
 2026-07-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

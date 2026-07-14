@@ -281,6 +281,9 @@
 		<!-- Additional dependencies -->
 		<antlr.version>4.13.0</antlr.version>
 		<httpclient.version>4.5.14</httpclient.version>
+		<!-- Override httpcore5 (BOM Spring Boot: 5.3.6) per CVE-2026-54399 e CVE-2026-54428
+		     (DoS memory exhaustion su parser HTTP/1.1 e decoder HPACK HTTP/2); fix in 5.4.3 -->
+		<httpcore5.version>5.4.3</httpcore5.version>
 		<servlet-api.version>4.0.1</servlet-api.version>
 
 		<!-- Jakarta EE 11 versions -->
@@ -297,8 +300,8 @@
 		<!-- Log4j version override for CVE-2025-68161 fix and CVE-2026-34477/34478/34479/34480 -->
 		<log4j2.version>2.25.4</log4j2.version>
 
-		<!-- Logback override for CVE-2024-12798, CVE-2024-12801, CVE-2025-11226, CVE-2026-1225, CVE-2026-9828 -->
-		<logback.version>1.5.33</logback.version>
+		<!-- Logback override for CVE-2024-12798, CVE-2024-12801, CVE-2025-11226, CVE-2026-1225, CVE-2026-9828, GHSA-jhq6-gfmj-v8fx -->
+		<logback.version>1.5.38</logback.version>
 
 	</properties>
 
@@ -1230,6 +1233,13 @@
 				<version>${httpclient.version}</version>
 			</dependency>
 
+			<!-- Override esplicito httpcore5 (BOM Spring Boot: 5.3.6) per CVE-2026-54399/54428; fix 5.4.3 -->
+			<dependency>
+				<groupId>org.apache.httpcomponents.core5</groupId>
+				<artifactId>httpcore5</artifactId>
+				<version>${httpcore5.version}</version>
+			</dependency>
+
 			<dependency>
 				<groupId>jakarta.servlet</groupId>
 				<artifactId>jakarta.servlet-api</artifactId>
@@ -1323,6 +1333,9 @@
 							<!-- esbuild (build-time, via vite/@angular/build): path traversal dev server Windows non applicabile; fix 0.28.1 fuori dal range ^0.27 di vite -->
 							<suppressionFile>
 								${owasp.dir}/suppression/esbuild.xml</suppressionFile>
+							<!-- httpcore 4.x: falso positivo CPE, CVE-2026-54399/54428 riguardano solo il ramo 5.x (httpcore5); 4.4.16 e' l'ultima 4.4.x -->
+							<suppressionFile>
+								${owasp.dir}/suppression/CVE-2026-54399-54428-httpcore4.xml</suppressionFile>
 							</suppressionFiles>
 							<nvdApiDelay>120000</nvdApiDelay><!-- 2 minuti -->
 							<nvdMaxRetryCount>3</nvdMaxRetryCount> <!-- 3 max
