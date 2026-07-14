@@ -249,7 +249,9 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     debug: boolean = !environment.production;
 
     tokenPolicy: any = null;
-    hideVersions: boolean = false;
+    /** Visibilita` versioni: derivata live dalla sorgente di verita`
+     *  (`ConfigService.isHideVersions`) per evitare la race col config remoto. */
+    get hideVersions(): boolean { return this.configService.isHideVersions(); }
 
     /** Issue 254 (NEW VETRINA): stato di espansione della
      *  documentazione tecnica markdown. Default `false` (clip a
@@ -341,7 +343,6 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         const _srv: any = Tools.Configurazione?.servizio || null;
         this._profili = (_srv?.api) ? _srv.api.profili : [];
         this._proprieta_custom = (_srv?.api) ? _srv.api.proprieta_custom : [];
-        this.hideVersions = this.appConfig?.AppConfig?.Services?.hideVersions || false;
     }
 
     ngOnInit() {

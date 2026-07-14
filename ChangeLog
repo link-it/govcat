@@ -1,3 +1,18 @@
+2026-07-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Fix "v1" mostrato a intermittenza accanto al nome servizio (lista a
+	  gruppi e breadcrumb della vista): era una race col caricamento
+	  asincrono del config remoto. Centralizzata la visibilita` versioni in
+	  `ConfigService.isHideVersions()` (deriva live da `servizio.mostra_versione`
+	  con fallback `AppConfig.Services.hideVersions`); `hideVersions` in
+	  servizi.component e servizio-view e` ora un getter, non un valore
+	  catturato all'init.
+
+	* [Frontend]
+	Title della pagina: impostato dal config (`Layout.Header.title`) al
+	  caricamento, invece di restare il valore statico di index.html.
+
 2026-07-14  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* Rilasciata versione 2.4.1
