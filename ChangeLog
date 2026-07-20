@@ -1,3 +1,14 @@
+2026-07-19  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Fix errore 500 `NoClassDefFoundError: jakarta.validation.ValidationException`
+	  sulle API (`govcat-api.war`): la dipendenza `jakarta.validation-api` era
+	  dichiarata in scope `provided` e non veniva inclusa nel WAR, ma Tomcat 11
+	  non fornisce la Bean Validation API. Portata a scope `compile` (default),
+	  allineandola al modulo batch. Difetto latente emerso con l'upgrade a Spring
+	  Boot 4, la cui nuova struttura a moduli (`spring-boot-validation`) non
+	  trascina piu` l'API nel WAR tramite le dipendenze transitive.
+
 2026-07-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
