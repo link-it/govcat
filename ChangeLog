@@ -1,3 +1,17 @@
+2026-07-20  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 311: aggiunta al modello di configurazione la gestione dei
+	  "pdnd type". Ogni profilo (`servizio.api.profili[].pdnd_type`) può
+	  ora riferire, opzionalmente, un elemento della nuova lista
+	  `servizio.api.pdnd_types`; ciascun pdnd_type definisce
+	  `identificativo`, `etichetta` e `required_proprieta_custom` (elenco
+	  di coppie `nome_gruppo`/`nome_proprieta`). Aggiornati l'OpenAPI
+	  (nuove schema `ConfigurazionePdndType` e
+	  `ConfigurazionePdndTypeProprietaCustom`, nuovi campi su
+	  `ConfigurazioneProfilo` e `ConfigurazioneApi`) e la configurazione
+	  di esempio. Modifica retrocompatibile: i nuovi campi sono opzionali.
+
 2026-07-19  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
