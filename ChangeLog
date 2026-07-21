@@ -1,3 +1,14 @@
+2026-07-21  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Fix generazione dell'URL di invocazione (`EServiceBuilder`): il
+	  placeholder `#versione#` ora usa la stessa logica di priorita` gia`
+	  applicata a `#nome#`, ossia la versione impostata sul gateway
+	  (`versioneGateway` della configurazione di collaudo/produzione) e, in
+	  sua assenza, la versione dell'API. In precedenza veniva sempre usata
+	  direttamente la versione dell'API, ignorando l'eventuale override sul
+	  gateway.
+
 2026-07-20  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

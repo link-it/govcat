@@ -588,7 +588,7 @@ public class EServiceBuilder {
 				.replaceAll("#soggetto_interno#", soggettoInterno)
 				.replaceAll("#soggetto_referente#", soggettoReferente)
 				.replaceAll("#nome#", getNome(api, collaudo))
-				.replaceAll("#versione#", api.getVersione() + "")
+				.replaceAll("#versione#", getVersione(api, collaudo) + "")
 				.replaceAll("#tecnologia#", getTecnologia(api, collaudo))
 				.replaceAll("#canale#", canale)
 				.replaceAll("#protocollo#", protocollo != null ? protocollo.toString() : "");
@@ -646,6 +646,24 @@ public class EServiceBuilder {
 						.map(b -> b.getNomeGateway())
 							.orElse(a.getNome());
 					}).orElse("");
+		}
+	}
+
+	private Integer getVersione(ApiEntity api, boolean collaudo) {
+		if(collaudo) {
+			return Optional.of(api)
+					.map(a -> {
+						return Optional.ofNullable(a.getCollaudo())
+							.map(b -> b.getVersioneGateway())
+							.orElse(a.getVersione());
+					}).orElse(api.getVersione());
+		} else {
+			return Optional.of(api)
+					.map(a -> {
+						return Optional.ofNullable(a.getProduzione())
+						.map(b -> b.getVersioneGateway())
+							.orElse(a.getVersione());
+					}).orElse(api.getVersione());
 		}
 	}
 
