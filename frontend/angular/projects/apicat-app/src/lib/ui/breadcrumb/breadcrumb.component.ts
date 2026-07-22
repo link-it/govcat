@@ -41,6 +41,8 @@ export class BreadcrumbComponent implements OnInit, OnChanges {
   @Input() classContainer: string = '';
   @Input() optional: boolean = false;
   @Input() hideToggleMobile: boolean = false;
+  /** Se true, espone il titolo della pagina (ultimo crumb) come <h1> per screen reader. */
+  @Input() mainHeading: boolean = false;
 
   @Output() onClick: EventEmitter<any> = new EventEmitter();
 
@@ -56,6 +58,11 @@ export class BreadcrumbComponent implements OnInit, OnChanges {
     this.eventsManagerService.on('UPDATE_BREADCRUMBS', (event: any) => {
       this._updateBreadcrumbs();
     });
+  }
+
+  get headingLabel(): string {
+    const items = this._breadcrumbs?.length ? this._breadcrumbs : this.breadcrumbs;
+    return items?.length ? (items[items.length - 1]?.label ?? '') : '';
   }
 
   ngOnInit(): void {

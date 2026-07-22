@@ -1,6 +1,16 @@
 2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Accessibilita` (WCAG 2.2 AA): aggiunto <h1> (visually-hidden) col titolo
+	  di pagina alle viste elenco tramite il flag `mainHeading` del breadcrumb
+	  condiviso (servizi, adesioni, domini, soggetti, organizzazioni, client,
+	  utenti, classi-utente, gruppi, taxonomies). Titolo delle card portato da
+	  <h5> a <h2> per non rompere l'ordine delle intestazioni. Rifinita la
+	  posizione dello skip link.
+
+2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Accessibilita` (WCAG 2.2 AA): skip link, nome accessibile dello switcher
 	  organizzazione e dei modali (aria-labelledby + heading order), label
 	  sull'input file immagine, aria-label su icon-button; form resi accessibili

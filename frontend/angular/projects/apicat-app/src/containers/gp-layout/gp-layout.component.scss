@@ -29,8 +29,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     color: #303030;
 
     &:focus {
-        left: auto;
-        top: 16px;
+        left: 16px;
+        top: 7px;
         right: auto;
         width: auto;
         height: auto;
@@ -38,7 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         box-shadow: inset 0 0 0 0 #868686, 0 0 0 1px #fff, 0 0 0 3px #428fdc;
         border: none;
         outline: none;
-        z-index: 1600;
+        z-index: 1601;
     }
 }
 

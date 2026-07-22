@@ -19,7 +19,7 @@
 @if (!_isEdit) {
   <div id="route-section" class="">
     <div class="breadcrumbs-area">
-      <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+      <ui-breadcrumb [breadcrumbs]="breadcrumbs" [mainHeading]="true" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
     </div>
     <div class="top-area">
       @if (!isGestore) {

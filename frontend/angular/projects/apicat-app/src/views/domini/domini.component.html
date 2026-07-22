@@ -19,7 +19,7 @@
 @if (!_isEdit) {
   <div id="route-section" class="">
     <div class="breadcrumbs-area">
-      <ui-breadcrumb [breadcrumbs]="breadcrumbs" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+      <ui-breadcrumb [breadcrumbs]="breadcrumbs" [mainHeading]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
     </div>
     <div class="flash-container flash-container-page sticky gp-display-block d-none">
       <div class="flash-notice" data-testid="alert-info">
