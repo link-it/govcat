@@ -1,6 +1,15 @@
 2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Accessibilita`: aggiunto audit automatico ripetibile (`npm run a11y:report`,
+	  `scripts/a11y-audit.mjs`) basato su Playwright + Lighthouse + axe-core, che
+	  autentica via header dev, naviga le rotte principali e genera un report di
+	  stato (punteggio per pagina + violazioni WCAG). Output in `a11y-report/`
+	  (gitignorato). Aggiunte le relative devDependencies.
+
+2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Accessibilita` (WCAG 2.2 AA): aggiunto <h1> (visually-hidden) col titolo
 	  di pagina alle viste elenco tramite il flag `mainHeading` del breadcrumb
 	  condiviso (servizi, adesioni, domini, soggetti, organizzazioni, client,
