@@ -381,7 +381,7 @@
                       }</label>
                       @if (_isEdit) {
                         <div class="">
-                          <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_dominio')"
+                          <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_dominio')" [errorId]="'id_dominio-error'"
                             [items]="(domini$ | async) || []"
                             [typeahead]="dominiInput$"
                             [minTermLength]="minLengthTerm"
@@ -410,7 +410,7 @@
                             </ng-template>
                           </ng-select>
                           @if (f['id_dominio'].invalid && (f['id_dominio'].dirty || f['id_dominio'].touched)) {
-                            <p class="form-text text-danger">
+                            <p class="form-text text-danger" id="id_dominio-error" aria-live="polite">
                               @if (f['id_dominio'].errors && f['id_dominio'].errors['required']) {
                                 <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                               }
@@ -481,7 +481,7 @@
                             }</label>
                             @if (_isEdit) {
                               <div class="">
-                                <ng-select [class.gl-field-error-outline]="_hasControlError('classi')"
+                                <ng-select [class.gl-field-error-outline]="_hasControlError('classi')" [errorId]="'classi-error'"
                                   [items]="anagrafiche['classi-utente'] || []"
                                   [multiple]="true"
                                   [compareWith]="_compareClassiFn"
@@ -497,7 +497,7 @@
                                   </ng-template>
                                 </ng-select>
                                 @if (f['classi'].invalid && (f['classi'].dirty || f['classi'].touched)) {
-                                  <p class="form-text text-danger">
+                                  <p class="form-text text-danger" id="classi-error" aria-live="polite">
                                     @if (f['classi'].errors && f['classi'].errors['required']) {
                                       <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                     }
@@ -526,7 +526,7 @@
                         }</label>
                         @if (_isEdit) {
                           <div class="">
-                            <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_organizzazione_interna')"
+                            <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_organizzazione_interna')" [errorId]="'id_organizzazione_interna-error'"
                               [items]="(organizzazioniInterne$ | async) || []"
                               [typeahead]="organizzazioniInterneInput$"
                               [minTermLength]="minLengthTerm"
@@ -551,7 +551,7 @@
                               </ng-template>
                             </ng-select>
                             @if (f['id_organizzazione_interna'].invalid && (f['id_organizzazione_interna'].dirty || f['id_organizzazione_interna'].touched)) {
-                              <p class="form-text text-danger">
+                              <p class="form-text text-danger" id="id_organizzazione_interna-error" aria-live="polite">
                                 @if (f['id_organizzazione_interna'].errors && f['id_organizzazione_interna'].errors['required']) {
                                   <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                 }
@@ -604,7 +604,7 @@
                         <label class="label-bold" for="referente">{{ 'APP.LABEL.referente' | translate }} @if (_isEdit) {
                           <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'referente'"></span>
                         }</label>
-                        <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('referente')"
+                        <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('referente')" [errorId]="'referente-error'"
                           [items]="(referenti$ | async) || []"
                           [typeahead]="referentiInput$"
                           [minTermLength]="minLengthTerm"
@@ -627,7 +627,7 @@
                           </ng-template>
                         </ng-select>
                         @if (f['referente'].invalid && (f['referente'].dirty || f['referente'].touched)) {
-                          <p class="form-text text-danger">
+                          <p class="form-text text-danger" id="referente-error" aria-live="polite">
                             @if (f['referente'].errors && f['referente'].errors['required']) {
                               <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                             }
@@ -639,7 +639,7 @@
                         <label class="label-bold" for="referente_tecnico">{{ 'APP.LABEL.referente_tecnico' | translate }} @if (_isEdit) {
                           <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'referente_tecnico'"></span>
                         }</label>
-                        <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('referente_tecnico')"
+                        <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('referente_tecnico')" [errorId]="'referente_tecnico-error'"
                           [items]="(referentiTecnici$ | async) || []"
                           [typeahead]="referentiTecniciInput$"
                           [minTermLength]="minLengthTerm"
@@ -662,7 +662,7 @@
                           </ng-template>
                         </ng-select>
                         @if (f['referente_tecnico'].invalid && (f['referente_tecnico'].dirty || f['referente_tecnico'].touched)) {
-                          <p class="form-text text-danger">
+                          <p class="form-text text-danger" id="referente_tecnico-error" aria-live="polite">
                             @if (f['referente_tecnico'].errors && f['referente_tecnico'].errors['required']) {
                               <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                             }
@@ -678,9 +678,9 @@
                     }</label>
                     @if (_isEdit) {
                       <div class="">
-                        <textarea aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione_sintetica')" name="descrizione_sintetica" placeholder="{{ 'APP.LABEL.DescrizioneSintetica' | translate }}" id="descrizione_sintetica" formControlName="descrizione_sintetica" rows="3" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant"></textarea>
+                        <textarea aria-required="true" [attr.aria-invalid]="(_hasControlError('descrizione_sintetica')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('descrizione_sintetica')) ? 'descrizione_sintetica-error' : null" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione_sintetica')" name="descrizione_sintetica" placeholder="{{ 'APP.LABEL.DescrizioneSintetica' | translate }}" id="descrizione_sintetica" formControlName="descrizione_sintetica" rows="3" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant"></textarea>
                         @if (f['descrizione_sintetica'].invalid && (f['descrizione_sintetica'].dirty || f['descrizione_sintetica'].touched)) {
-                          <p class="form-text text-danger">
+                          <p class="form-text text-danger" id="descrizione_sintetica-error" aria-live="polite">
                             @if (f['descrizione_sintetica'].errors && f['descrizione_sintetica'].errors['required']) {
                               <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                             }
@@ -706,9 +706,9 @@
                     }</label>
                     @if (_isEdit && !_showMarkdownPreview) {
                       <div class="">
-                        <textarea aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" name="descrizione" placeholder="{{ 'APP.PLACEHOLDER.DocumentazioneTecnica' | translate }}" id="descrizione" formControlName="descrizione" rows="8" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant"></textarea>
+                        <textarea aria-required="true" [attr.aria-invalid]="(_hasControlError('descrizione')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('descrizione')) ? 'descrizione-error' : null" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" name="descrizione" placeholder="{{ 'APP.PLACEHOLDER.DocumentazioneTecnica' | translate }}" id="descrizione" formControlName="descrizione" rows="8" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant"></textarea>
                         @if (f['descrizione'].invalid && (f['descrizione'].dirty || f['descrizione'].touched)) {
-                          <p class="form-text text-danger">
+                          <p class="form-text text-danger" id="descrizione-error" aria-live="polite">
                             @if (f['descrizione'].errors && f['descrizione'].errors['required']) {
                               <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                             }
@@ -743,7 +743,7 @@
                     }</label>
                     @if (_isEdit) {
                       <div class="">
-                        <ng-select [class.gl-field-error-outline]="_hasControlError('tags')"
+                        <ng-select [class.gl-field-error-outline]="_hasControlError('tags')" [errorId]="'tags-error'"
                           [items]="anagrafiche['tags'] || []"
                           [multiple]="true"
                           [addTag]="true"
@@ -755,7 +755,7 @@
                           disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant"
                         ></ng-select>
                         @if (f['tags'].invalid && (f['tags'].dirty || f['tags'].touched)) {
-                          <p class="form-text text-danger">
+                          <p class="form-text text-danger" id="tags-error" aria-live="polite">
                             @if (f['tags'].errors && f['tags'].errors['required']) {
                               <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                             }
@@ -781,9 +781,9 @@
                     }</label>
                     @if (_isEdit) {
                       <div class="">
-                        <input aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('termini_ricerca')" type="text" name="termini_ricerca" id="termini_ricerca" formControlName="termini_ricerca" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant">
+                        <input aria-required="true" [attr.aria-invalid]="(_hasControlError('termini_ricerca')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('termini_ricerca')) ? 'termini_ricerca-error' : null" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('termini_ricerca')" type="text" name="termini_ricerca" id="termini_ricerca" formControlName="termini_ricerca" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant">
                         @if (f['termini_ricerca'].invalid && (f['termini_ricerca'].dirty || f['termini_ricerca'].touched)) {
-                          <p class="form-text text-danger">
+                          <p class="form-text text-danger" id="termini_ricerca-error" aria-live="polite">
                             @if (f['termini_ricerca'].errors && f['termini_ricerca'].errors['required']) {
                               <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                             }
@@ -807,9 +807,9 @@
                     }</label>
                     @if (_isEdit) {
                       <div class="">
-                        <textarea aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('note')" type="text" name="note" id="note" formControlName="note" rows="3" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant"></textarea>
+                        <textarea aria-required="true" [attr.aria-invalid]="(_hasControlError('note')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('note')) ? 'note-error' : null" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('note')" type="text" name="note" id="note" formControlName="note" rows="3" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant"></textarea>
                         @if (f['note'].invalid && (f['note'].dirty || f['note'].touched)) {
-                          <p class="form-text text-danger">
+                          <p class="form-text text-danger" id="note-error" aria-live="polite">
                             @if (f['note'].errors && f['note'].errors['required']) {
                               <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                             }

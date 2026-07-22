@@ -1,3 +1,14 @@
+2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Accessibilita` (WCAG 2.2 AA): skip link, nome accessibile dello switcher
+	  organizzazione e dei modali (aria-labelledby + heading order), label
+	  sull'input file immagine, aria-label su icon-button; form resi accessibili
+	  con aria-required/aria-invalid/aria-describedby su input, textarea, select
+	  e ng-select (nuova direttiva `NgSelectAriaDirective`); chip "rimuovi filtro"
+	  operabile da tastiera; rimossi id duplicati (`id="actions"`); sfondo reso
+	  `inert` quando e` aperta una modale (`ModalInertService`).
+
 2026-07-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

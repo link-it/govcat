@@ -151,9 +151,9 @@
           </div>
           <div class="form-group descrizione">
             <label class="label-bold" for="descrizione">{{ 'APP.LABEL.descrizione' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroup" [controlName]="'descrizione'"></span></label>
-            <textarea aria-required="true" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" type="text" name="descrizione" id="descrizione" formControlName="descrizione" rows="4"></textarea>
+            <textarea aria-required="true" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" [attr.aria-invalid]="(_hasControlError('descrizione')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('descrizione')) ? 'descrizione-error' : null" type="text" name="descrizione" id="descrizione" formControlName="descrizione" rows="4"></textarea>
             @if (f['descrizione'].invalid && (f['descrizione'].dirty || f['descrizione'].touched)) {
-              <p class="form-text text-danger">
+              <p class="form-text text-danger" id="descrizione-error" aria-live="polite">
                 @if (f['descrizione'].errors && f['descrizione'].errors['required']) {
                   <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                 }

@@ -335,7 +335,11 @@
                           [placeholder]="'APP.LABEL.All' | translate"
                           >
                           <ng-template ng-label-tmp let-item="item" let-clear="clear">
-                            <span class="ng-value-icon left" (click)="clear(item)" aria-hidden="true">×</span>
+                            <span class="ng-value-icon left" role="button" tabindex="0"
+                              [attr.aria-label]="('APP.LABEL.RemoveFilter' | translate) + ': ' + (item.label | translate)"
+                              (click)="clear(item)"
+                              (keydown.enter)="clear(item)"
+                              (keydown.space)="$event.preventDefault(); clear(item)">×</span>
                             <span class="ng-value-label">{{ item.label | translate }}</span>
                           </ng-template>
                           <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">

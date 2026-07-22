@@ -788,6 +788,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         this._modalInfoRef = this.modalService.show(this.openApiInfoTemplate, {
             id: 'open-api-info',
             ignoreBackdropClick: false,
+            ariaLabelledBy: 'open-api-info-title',
             class: 'modal-lg-custom modal-with-65 modal-fullscreen-sm-down'
         });
     }

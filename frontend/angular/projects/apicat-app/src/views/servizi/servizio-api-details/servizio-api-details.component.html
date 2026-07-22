@@ -45,7 +45,7 @@
       @if (!_isEdit) {
         @if (!_spin && !_isNew && _isPDND) {
           <div class="btn-group- ms-1">
-            <div class="dropdown b-dropdown gl-new-dropdown btn-group me-2" id="actions">
+            <div class="dropdown b-dropdown gl-new-dropdown btn-group me-2">
               <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static">
                 <span>{{ 'APP.SERVICES.TITLE.PDND' | translate }}</span> <i class="bi bi-chevron-down ms-2"></i>
               </button>
@@ -220,9 +220,9 @@
                           }</label>
                           @if (_isEdit) {
                             <div class="">
-                              <input aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome_gateway')" type="text" name="nome_gateway" id="nome_gateway" formControlName="nome_gateway" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                              <input aria-required="true" [attr.aria-invalid]="(_hasControlError('nome_gateway')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('nome_gateway')) ? 'nome_gateway-error' : null" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome_gateway')" type="text" name="nome_gateway" id="nome_gateway" formControlName="nome_gateway" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
                               @if (f['nome_gateway'].invalid && (f['nome_gateway'].dirty || f['nome_gateway'].touched)) {
-                                <p class="form-text text-danger">
+                                <p class="form-text text-danger" id="nome_gateway-error" aria-live="polite">
                                   @if (f['nome_gateway'].errors && f['nome_gateway'].errors['required']) {
                                     <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                   }
@@ -243,9 +243,9 @@
                           }</label>
                           @if (_isEdit) {
                             <div class="">
-                              <input aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('versione_gateway')" type="text" name="versione_gateway" id="versione_gateway" formControlName="versione_gateway" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                              <input aria-required="true" [attr.aria-invalid]="(_hasControlError('versione_gateway')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('versione_gateway')) ? 'versione_gateway-error' : null" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('versione_gateway')" type="text" name="versione_gateway" id="versione_gateway" formControlName="versione_gateway" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
                               @if (f['versione_gateway'].invalid && (f['versione_gateway'].dirty || f['versione_gateway'].touched)) {
-                                <p class="form-text text-danger">
+                                <p class="form-text text-danger" id="versione_gateway-error" aria-live="polite">
                                   @if (f['versione_gateway'].errors && f['versione_gateway'].errors['required']) {
                                     <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                   }
@@ -340,9 +340,9 @@
                     }</label>
                     @if (_isEdit) {
                       <div class="">
-                        <textarea aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" name="descrizione" id="descrizione" formControlName="descrizione" rows="4" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant"></textarea>
+                        <textarea aria-required="true" [attr.aria-invalid]="(_hasControlError('descrizione')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('descrizione')) ? 'descrizione-error' : null" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" name="descrizione" id="descrizione" formControlName="descrizione" rows="4" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant"></textarea>
                         @if (f['descrizione'].invalid && (f['descrizione'].dirty || f['descrizione'].touched)) {
-                          <p class="form-text text-danger">
+                          <p class="form-text text-danger" id="descrizione-error" aria-live="polite">
                             @if (f['descrizione'].errors && f['descrizione'].errors['required']) {
                               <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                             }
@@ -367,9 +367,9 @@
                       }</label>
                       @if (_isEdit) {
                         <div class="">
-                          <input aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('codice_asset')" type="text" name="codice_asset" id="codice_asset" formControlName="codice_asset" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                          <input aria-required="true" [attr.aria-invalid]="(_hasControlError('codice_asset')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('codice_asset')) ? 'codice_asset-error' : null" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('codice_asset')" type="text" name="codice_asset" id="codice_asset" formControlName="codice_asset" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
                           @if (f['codice_asset'].invalid && (f['codice_asset'].dirty || f['codice_asset'].touched)) {
-                            <p class="form-text text-danger">
+                            <p class="form-text text-danger" id="codice_asset-error" aria-live="polite">
                               @if (f['codice_asset'].errors && f['codice_asset'].errors['required']) {
                                 <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                               }
@@ -397,9 +397,9 @@
                           }</label>
                           @if (_isEdit) {
                             <div class="">
-                              <input aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_produzione')" type="text" name="url_produzione" id="url_produzione" formControlName="url_produzione" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                              <input aria-required="true" [attr.aria-invalid]="(_hasControlError('url_produzione')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('url_produzione')) ? 'url_produzione-error' : null" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_produzione')" type="text" name="url_produzione" id="url_produzione" formControlName="url_produzione" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
                               @if (f['url_produzione'].invalid && (f['url_produzione'].dirty || f['url_produzione'].touched)) {
-                                <p class="form-text text-danger">
+                                <p class="form-text text-danger" id="url_produzione-error" aria-live="polite">
                                   @if (f['url_produzione'].errors && f['url_produzione'].errors['required']) {
                                     <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                   }
@@ -417,9 +417,9 @@
                           }</label>
                           @if (_isEdit) {
                             <div class="">
-                              <input aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_collaudo')" type="text" name="url_collaudo" id="url_collaudo" formControlName="url_collaudo" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                              <input aria-required="true" [attr.aria-invalid]="(_hasControlError('url_collaudo')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('url_collaudo')) ? 'url_collaudo-error' : null" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_collaudo')" type="text" name="url_collaudo" id="url_collaudo" formControlName="url_collaudo" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
                               @if (f['url_collaudo'].invalid && (f['url_collaudo'].dirty || f['url_collaudo'].touched)) {
-                                <p class="form-text text-danger">
+                                <p class="form-text text-danger" id="url_collaudo-error" aria-live="polite">
                                   @if (f['url_collaudo'].errors && f['url_collaudo'].errors['required']) {
                                     <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                   }

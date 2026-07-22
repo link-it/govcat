@@ -821,6 +821,8 @@
 			"wsdl_12": "Wsdl 1.2"
 		},
 		"LABEL": {
+			"SkipToContent": "Salta al contenuto",
+			"RemoveFilter": "Rimuovi filtro",
 			"CreationDate": "Data creazione",
 			"Erogato": "Erogato",
 			"HttpMethod": "Metodo HTTP",

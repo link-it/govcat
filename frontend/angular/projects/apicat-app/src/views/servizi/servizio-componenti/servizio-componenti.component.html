@@ -153,7 +153,7 @@
             <label class="label-bold" for="id_servizio">{{ 'APP.LABEL.id_servizio' | translate }} @if (!f['id_servizio'].disabled) {
               <span appMarkAsterisk [formGroup]="_editFormGroup" [controlName]="'id_servizio'"></span>
             }</label>
-            <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_servizio')"
+            <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_servizio')" [errorId]="'id_servizio-error'"
               [items]="(componenti$ | async) || []"
               [typeahead]="componentiInput$"
               [minTermLength]="minLengthTerm"
@@ -177,7 +177,7 @@
               </ng-template>
             </ng-select>
             @if (f['id_servizio'].invalid && (f['id_servizio'].dirty || f['id_servizio'].touched)) {
-              <p class="form-text text-danger">
+              <p class="form-text text-danger" id="id_servizio-error" aria-live="polite">
                 @if (f['id_servizio'].errors && f['id_servizio'].errors['required']) {
                   <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                 }

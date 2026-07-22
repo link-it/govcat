@@ -144,23 +144,23 @@
           ></ui-allegato>
           <div class="form-group filename">
             <label class="label-bold" for="filename">{{ 'APP.LABEL.filename' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroup" [controlName]="'filename'"></span></label>
-            <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('filename')" type="text" name="filename" id="filename" formControlName="filename">
-            <p *ngIf="f['filename'].invalid && (f['filename'].dirty || f['filename'].touched)" class="form-text text-danger">
+            <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('filename')" [attr.aria-invalid]="(_hasControlError('filename')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('filename')) ? 'filename-error' : null" type="text" name="filename" id="filename" formControlName="filename">
+            <p *ngIf="f['filename'].invalid && (f['filename'].dirty || f['filename'].touched)" id="filename-error" aria-live="polite" class="form-text text-danger">
               <span *ngIf="f['filename'].errors && f['filename'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
             </p>
             <ui-input-help field="filename" context="SPECIFICA"></ui-input-help>
           </div>
           <div class="form-group descrizione">
             <label class="label-bold" for="descrizione">{{ 'APP.LABEL.descrizione' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroup" [controlName]="'descrizione'"></span></label>
-            <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" type="text" name="descrizione" id="descrizione" formControlName="descrizione">
-            <p *ngIf="f['descrizione'].invalid && (f['descrizione'].dirty || f['descrizione'].touched)" class="form-text text-danger">
+            <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" [attr.aria-invalid]="(_hasControlError('descrizione')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('descrizione')) ? 'descrizione-error' : null" type="text" name="descrizione" id="descrizione" formControlName="descrizione">
+            <p *ngIf="f['descrizione'].invalid && (f['descrizione'].dirty || f['descrizione'].touched)" id="descrizione-error" aria-live="polite" class="form-text text-danger">
               <span *ngIf="f['descrizione'].errors && f['descrizione'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
             </p>
             <ui-input-help field="descrizione" context="SPECIFICA"></ui-input-help>
           </div>
           <div class="form-group visibilita">
             <label class="label-bold" for="visibilita">{{ 'APP.LABEL.visibilita' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroup" [controlName]="'visibilita'" *ngIf="_isEdit"></span></label>
-            <ng-select [class.gl-field-error-outline]="_hasControlError('visibilita')"
+            <ng-select [class.gl-field-error-outline]="_hasControlError('visibilita')" [errorId]="'visibilita-error'"
               [items]="Tools.TipiVisibilitaAllegato"
               bindValue="value"
               bindLabel="label"
@@ -175,7 +175,7 @@
                 {{ 'APP.VISIBILITY.' + item.value | translate }}
               </ng-template>
             </ng-select>
-            <p *ngIf="f['visibilita'].invalid && (f['visibilita'].dirty || f['visibilita'].touched)" class="form-text text-danger">
+            <p *ngIf="f['visibilita'].invalid && (f['visibilita'].dirty || f['visibilita'].touched)" id="visibilita-error" aria-live="polite" class="form-text text-danger">
               <span *ngIf="f['visibilita'].errors && f['visibilita'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
             </p>
             <ui-input-help field="visibilita" context="SPECIFICA"></ui-input-help>

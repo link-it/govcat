@@ -11,11 +11,11 @@
             data-bs-toggle="dropdown"
             data-bs-strategy="fixed"
             aria-expanded="false"
-            [attr.aria-label]="'APP.ORGANIZATION_SWITCHER.Title' | translate"
+            [attr.aria-label]="('APP.ORGANIZATION_SWITCHER.Title' | translate) + ': ' + currentLabel"
             [title]="'APP.ORGANIZATION_SWITCHER.Title' | translate">
-      <i class="bi bi-buildings align-middle"></i>
+      <i class="bi bi-buildings align-middle" aria-hidden="true"></i>
       <span class="d-none d-md-inline ms-2 align-middle organization-switcher-label">{{ currentLabel }}</span>
-      <span class="material-icons-outlined align-middle mx-1">expand_more</span>
+      <span class="material-icons-outlined align-middle mx-1" aria-hidden="true">expand_more</span>
     </button>
     <ul tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="organization-switcher">
       <div class="gl-new-dropdown-inner">

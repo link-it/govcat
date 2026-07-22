@@ -162,9 +162,9 @@
           </div>
           <div class="form-group descrizione_sintetica">
             <label class="label-bold" for="descrizione_sintetica">{{ 'APP.LABEL.descrizione_sintetica' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroup" [controlName]="'descrizione_sintetica'"></span></label>
-            <textarea aria-required="true" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione_sintetica')" type="text" name="descrizione_sintetica" id="descrizione_sintetica" formControlName="descrizione_sintetica" rows="2" appTrimOnBlur></textarea>
+            <textarea aria-required="true" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione_sintetica')" [attr.aria-invalid]="(_hasControlError('descrizione_sintetica')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('descrizione_sintetica')) ? 'descrizione_sintetica-error' : null" type="text" name="descrizione_sintetica" id="descrizione_sintetica" formControlName="descrizione_sintetica" rows="2" appTrimOnBlur></textarea>
             @if (f['descrizione_sintetica'].invalid && (f['descrizione_sintetica'].dirty || f['descrizione_sintetica'].touched)) {
-              <p class="form-text text-danger">
+              <p class="form-text text-danger" id="descrizione_sintetica-error" aria-live="polite">
                 @if (f['descrizione_sintetica'].errors && f['descrizione_sintetica'].errors['required']) {
                   <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                 }
@@ -177,9 +177,9 @@
           </div>
           <div class="form-group descrizione">
             <label class="label-bold" for="descrizione">{{ 'APP.LABEL.descrizione' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroup" [controlName]="'descrizione'"></span></label>
-            <textarea aria-required="true" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" type="text" name="descrizione" id="descrizione" formControlName="descrizione" rows="4" appTrimOnBlur></textarea>
+            <textarea aria-required="true" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" [attr.aria-invalid]="(_hasControlError('descrizione')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('descrizione')) ? 'descrizione-error' : null" type="text" name="descrizione" id="descrizione" formControlName="descrizione" rows="4" appTrimOnBlur></textarea>
             @if (f['descrizione'].invalid && (f['descrizione'].dirty || f['descrizione'].touched)) {
-              <p class="form-text text-danger">
+              <p class="form-text text-danger" id="descrizione-error" aria-live="polite">
                 @if (f['descrizione'].errors && f['descrizione'].errors['required']) {
                   <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                 }

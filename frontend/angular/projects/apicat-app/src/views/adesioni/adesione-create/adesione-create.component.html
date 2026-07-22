@@ -104,6 +104,7 @@
               labelForId="id_servizio"
               [editableSearchTerm]="true"
               formControlName="id_servizio"
+              [errorId]="'id_servizio-error'"
               (change)="_onChangeServizio($event)"
             >
               <ng-template ng-label-tmp let-item="item">
@@ -114,7 +115,7 @@
               </ng-template>
             </ng-select>
             @if (f['id_servizio'].invalid && (f['id_servizio'].dirty || f['id_servizio'].touched)) {
-              <p class="form-text text-danger">
+              <p class="form-text text-danger" id="id_servizio-error" aria-live="polite">
                 @if (f['id_servizio'].errors && f['id_servizio'].errors['required']) {
                   <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                 }
@@ -144,9 +145,9 @@
               <label class="label-bold" for="id_logico">{{ 'APP.LABEL.id_logico' | translate }}
                 <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_logico'"></span>
               </label>
-              <input aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('id_logico')" type="text" name="id_logico" id="id_logico" formControlName="id_logico" (change)="_onChangeIdLogico($event)">
+              <input aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('id_logico')" [attr.aria-invalid]="(_hasControlError('id_logico')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('id_logico')) ? 'id_logico-error' : null" type="text" name="id_logico" id="id_logico" formControlName="id_logico" (change)="_onChangeIdLogico($event)">
               @if (f['id_logico'].invalid && (f['id_logico'].dirty || f['id_logico'].touched)) {
-                <p class="form-text text-danger">
+                <p class="form-text text-danger" id="id_logico-error" aria-live="polite">
                   @if (f['id_logico'].errors && f['id_logico'].errors['required']) {
                     <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                   }
@@ -180,6 +181,7 @@
                 labelForId="id_organizzazione"
                 [editableSearchTerm]="true"
                 formControlName="id_organizzazione"
+                [errorId]="'id_organizzazione-error'"
                 (change)="_checkSoggetto($event)"
               >
                 <ng-template ng-label-tmp let-item="item">
@@ -194,7 +196,7 @@
               </ng-select>
             }
             @if (f['id_organizzazione'].invalid && (f['id_organizzazione'].dirty || f['id_organizzazione'].touched)) {
-              <p class="form-text text-danger">
+              <p class="form-text text-danger" id="id_organizzazione-error" aria-live="polite">
                 @if (f['id_organizzazione'].errors && f['id_organizzazione'].errors['required']) {
                   <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                 }
@@ -263,6 +265,7 @@
                 labelForId="referente"
                 [editableSearchTerm]="true"
                 formControlName="referente"
+                [errorId]="'referente-error'"
               >
                 <ng-template ng-label-tmp let-item="item">
                   {{ item.nome }} {{ item.cognome }}
@@ -275,7 +278,7 @@
                 </ng-template>
               </ng-select>
               @if (f['referente'].invalid && (f['referente'].dirty || f['referente'].touched)) {
-                <p class="form-text text-danger">
+                <p class="form-text text-danger" id="referente-error" aria-live="polite">
                   @if (f['referente'].errors && f['referente'].errors['required']) {
                     <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                   }

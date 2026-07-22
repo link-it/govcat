@@ -39,6 +39,7 @@ export class PhotoBase64Component implements OnChanges {
   @Input() isImageSaved: boolean = false;
   @Input() maxSize: number = 200000;
   @Input() removeLabel: string = 'Remove';
+  @Input() uploadLabel: string = 'Carica immagine';
   @Input() fileTypes: string[] = ['image/png', 'image/jpeg'];
 
   @Output() imageLoaded: EventEmitter<any> = new EventEmitter();
