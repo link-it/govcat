@@ -1,6 +1,15 @@
 2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Accessibilita` (WCAG 2.2 AA): le tab `<a class="nav-link">` senza href (usate
+	  come pulsanti) ora hanno `role="button"` (nome accessibile valido) e sono
+	  attivabili da tastiera con Enter/Spazio tramite la direttiva condivisa
+	  `RoleButtonKeyboardDirective`. Risolve `aria-prohibited-attr` e il gap di
+	  operabilita` da tastiera su ~40 viste (elenchi, verifiche, statistiche, tab).
+
+2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Accessibilita` (WCAG 2.2 AA): nome accessibile sul bottone "seleziona tutti"
 	  (lista servizi/adesioni), regioni scrollabili dei pannelli dashboard rese
 	  focusabili da tastiera (tabindex/role/aria-label), label singola sulle

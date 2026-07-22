@@ -25,7 +25,7 @@
       <div class="">
         <ul class="nav gp-border-b-0 gp-tabs-nav">
           <li class="nav-item">
-            <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="currentTab === notificationState.Tutte" (click)="_setCurrentTab(notificationState.Tutte)" [attr.aria-label]="_allElements">
+            <a role="button" tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="currentTab === notificationState.Tutte" (click)="_setCurrentTab(notificationState.Tutte)" [attr.aria-label]="_allElements">
               <span title="Notifications found">{{ 'APP.FILTER.All' | translate }}</span>
               @if (currentTab === notificationState.Tutte) {
                 <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm">
@@ -39,7 +39,7 @@
           </a>
         </li>
         <li class="nav-item">
-          <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="currentTab === notificationState.Nuova" (click)="_setCurrentTab(notificationState.Nuova)" [attr.aria-label]="_allElements">
+          <a role="button" tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="currentTab === notificationState.Nuova" (click)="_setCurrentTab(notificationState.Nuova)" [attr.aria-label]="_allElements">
             <span title="Notifications found">{{ 'APP.FILTER.Unread' | translate }}</span>
             @if (currentTab === notificationState.Nuova) {
               <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm">
@@ -53,7 +53,7 @@
         </a>
       </li>
       <li class="nav-item">
-        <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="currentTab === notificationState.Archiviata" (click)="_setCurrentTab(notificationState.Archiviata)" [attr.aria-label]="_allElements">
+        <a role="button" tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="currentTab === notificationState.Archiviata" (click)="_setCurrentTab(notificationState.Archiviata)" [attr.aria-label]="_allElements">
           <span title="Notifications found">{{ 'APP.FILTER.Archived' | translate }}</span>
           @if (currentTab === notificationState.Archiviata) {
             <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm">

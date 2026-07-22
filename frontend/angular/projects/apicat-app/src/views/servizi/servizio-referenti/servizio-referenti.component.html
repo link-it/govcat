@@ -40,12 +40,12 @@
     <div class="">
       <ul class="nav gp-border-b-0 gp-tabs-nav">
         <li class="nav-item">
-          <a tabindex="0" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="currTab === TabType.REFERENTI" (click)="setCurrTab(TabType.REFERENTI)" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + _paging.totalElements || 0 ">
+          <a role="button" tabindex="0" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="currTab === TabType.REFERENTI" (click)="setCurrTab(TabType.REFERENTI)" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + _paging.totalElements || 0 ">
             <span title="Show all referents.">{{ 'APP.SERVICES.TITLE.ReferentiServizio' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="servizioReferenti.length">{{ _paging.totalElements || 0 }}</span>
           </a>
         </li>
         <li class="nav-item">
-          <a tabindex="0" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="currTab === TabType.DOMINIO" (click)="setCurrTab(TabType.DOMINIO)" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + _pagingDomain.totalElements || 0 ">
+          <a role="button" tabindex="0" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="currTab === TabType.DOMINIO" (click)="setCurrTab(TabType.DOMINIO)" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + _pagingDomain.totalElements || 0 ">
             <span title="Show all domain referents.">{{ 'APP.SERVICES.TITLE.ReferentiDominio' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="dominioReferenti.length">{{ _pagingDomain.totalElements || 0 }}</span>
           </a>
         </li>
