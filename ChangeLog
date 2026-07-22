@@ -1,6 +1,15 @@
 2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Accessibilita` (WCAG 2.2 AA): risolto il doppio `<label for>` sui checkbox del
+	  form servizio (package, fruizione, adesione_disabilitata, multi_adesione,
+	  skip_collaudo): la label-box decorativa non e` piu` associata (una sola label
+	  per campo), mantenendo il toggle da click sul box tramite riferimento al
+	  controllo. Risolve `form-field-multiple-labels`.
+
+2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Accessibilita` (WCAG 2.2 AA): le tab `<a class="nav-link">` senza href (usate
 	  come pulsanti) ora hanno `role="button"` (nome accessibile valido) e sono
 	  attivabili da tastiera con Enter/Spazio tramite la direttiva condivisa

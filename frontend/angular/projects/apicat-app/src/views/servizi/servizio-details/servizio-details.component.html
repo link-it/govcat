@@ -292,8 +292,8 @@
                             }
                             @if (_isEdit) {
                               <div class="gl-form-checkbox custom-control custom-checkbox">
-                                <input class="custom-control-input" type="checkbox" name="package" id="package" formControlName="package" (change)="_onChangePackage($event)">
-                                <label class="custom-control-label" for="package"></label>
+                                <input #chkPackage class="custom-control-input" type="checkbox" name="package" id="package" formControlName="package" (change)="_onChangePackage($event)">
+                                <label class="custom-control-label" aria-hidden="true" (click)="chkPackage.click()"></label>
                                 @if (hasHelpPackage) {
                                   <span class="ms-1" [tooltip]="helpTooltipPackage | translate" container="body"><i class="bi bi-question-circle"></i></span>
                                 }
@@ -324,8 +324,8 @@
                             }</label>
                             @if (_isEdit) {
                               <div class="gl-form-checkbox custom-control custom-checkbox">
-                                <input class="custom-control-input" type="checkbox" name="fruizione" id="fruizione" formControlName="fruizione" (change)="_onChangeFruizione($event)">
-                                <label class="custom-control-label" for="fruizione"></label>
+                                <input #chkFruizione class="custom-control-input" type="checkbox" name="fruizione" id="fruizione" formControlName="fruizione" (change)="_onChangeFruizione($event)">
+                                <label class="custom-control-label" aria-hidden="true" (click)="chkFruizione.click()"></label>
                               </div>
                             }
                             @if (!_isEdit) {
@@ -967,8 +967,8 @@
                             }
                             @if (_isEdit) {
                               <div class="gl-form-checkbox custom-control custom-checkbox">
-                                <input class="custom-control-input" type="checkbox" name="adesione_disabilitata" id="adesione_disabilitata" formControlName="adesione_disabilitata">
-                                <label class="custom-control-label" for="adesione_disabilitata"></label>
+                                <input #chkAdesioneDisabilitata class="custom-control-input" type="checkbox" name="adesione_disabilitata" id="adesione_disabilitata" formControlName="adesione_disabilitata">
+                                <label class="custom-control-label" aria-hidden="true" (click)="chkAdesioneDisabilitata.click()"></label>
                                 @if (isComponente) {
                                   <span class="ms-1" [tooltip]="helpTooltipAdesioneConsentita | translate" container="body"><i class="bi bi-question-circle"></i></span>
                                 }
@@ -1000,8 +1000,8 @@
                               }</label>
                               @if (_isEdit) {
                                 <div class="gl-form-checkbox custom-control custom-checkbox">
-                                  <input class="custom-control-input" type="checkbox" name="multi_adesione" id="multi_adesione" formControlName="multi_adesione" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant">
-                                  <label class="custom-control-label" for="multi_adesione"></label>
+                                  <input #chkMultiAdesione class="custom-control-input" type="checkbox" name="multi_adesione" id="multi_adesione" formControlName="multi_adesione" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant">
+                                  <label class="custom-control-label" aria-hidden="true" (click)="chkMultiAdesione.click()"></label>
                                 </div>
                               }
                               @if (!_isEdit) {
@@ -1030,8 +1030,8 @@
                         </label>
                         @if (_isEdit) {
                           <div class="gl-form-checkbox custom-control custom-checkbox">
-                            <input class="custom-control-input" type="checkbox" name="skip_collaudo" id="skip_collaudo" formControlName="skip_collaudo">
-                            <label class="custom-control-label" for="skip_collaudo"></label>
+                            <input #chkSkipCollaudo class="custom-control-input" type="checkbox" name="skip_collaudo" id="skip_collaudo" formControlName="skip_collaudo">
+                            <label class="custom-control-label" aria-hidden="true" (click)="chkSkipCollaudo.click()"></label>
                           </div>
                         }
                         @if (!_isEdit) {
