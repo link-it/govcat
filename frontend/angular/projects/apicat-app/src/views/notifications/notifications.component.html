@@ -159,7 +159,7 @@
                 <div class="notification-list-item-unread-indicator circle d-none d-md-block" [ngStyle]="{'margin-top': _showBulkSelection ? '0px' : '10px'}"></div>
                 @if (_showBulkSelection) {
                   <label class="ps-2 py-2 mb-0 clearfix">
-                    <input class="float-start js-notification-bulk-action-check-item" type="checkbox" name="notification_ids[]" [value]="element.id" autocomplete="off">
+                    <input class="float-start js-notification-bulk-action-check-item" type="checkbox" name="notification_ids[]" [attr.aria-label]="'APP.LABEL.SelectRow' | translate" [value]="element.id" autocomplete="off">
                   </label>
                 }
               </div>

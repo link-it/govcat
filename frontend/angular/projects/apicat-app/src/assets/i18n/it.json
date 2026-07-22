@@ -823,6 +823,7 @@
 		"LABEL": {
 			"SkipToContent": "Salta al contenuto",
 			"RemoveFilter": "Rimuovi filtro",
+			"SelectRow": "Seleziona elemento",
 			"CreationDate": "Data creazione",
 			"Erogato": "Erogato",
 			"HttpMethod": "Metodo HTTP",

@@ -1,6 +1,14 @@
 2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Accessibilita` (WCAG 2.2 AA): `alt=""` sugli avatar/logo decorativi dei
+	  gruppi (tree-view e tree-view-category) e `aria-label` sulle checkbox di
+	  selezione riga in lista adesioni, servizi e notifiche (erano in una
+	  <label> vuota). Nuova chiave i18n `APP.LABEL.SelectRow`.
+
+2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Accessibilita`: aggiunto audit automatico ripetibile (`npm run a11y:report`,
 	  `scripts/a11y-audit.mjs`) basato su Playwright + Lighthouse + axe-core, che
 	  autentica via header dev, naviga le rotte principali e genera un report di
