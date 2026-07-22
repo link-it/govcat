@@ -1,6 +1,14 @@
 2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Allineati i test `_gotoAdesione` di servizio-view al comportamento reale di
+	  `navigateWithEvent` (senza terzo argomento). In `servizio-api-details`,
+	  usato `forEach` al posto di `map` nell'iterazione con soli side-effect su
+	  `gruppi_auth_type` (verifica PDND).
+
+2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Test: ripristinata la compilazione/esecuzione della suite unit. Gli spec di
 	  `servizi`/`servizio-view` assegnavano a `hideVersions` (ora getter
 	  read-only), bloccando la compilazione di tutti i test: sostituito con il

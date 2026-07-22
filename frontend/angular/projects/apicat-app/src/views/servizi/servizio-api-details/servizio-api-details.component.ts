@@ -1549,7 +1549,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             return _hasPDND;
         }
 
-        this.servizioApi.gruppi_auth_type.map((auth: any) => {
+        this.servizioApi.gruppi_auth_type.forEach((auth: any) => {
             const _profile = this._profili.find((item: any) => item.codice_interno === auth.profilo);
             if (_profile.auth_type.includes('pdnd')) {
                 if (this.servizioApi?.proprieta_custom?.length) {

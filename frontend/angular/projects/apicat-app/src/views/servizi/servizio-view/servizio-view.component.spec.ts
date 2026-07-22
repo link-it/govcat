@@ -1321,7 +1321,7 @@ describe('ServizioViewComponent', () => {
 
       (component as any)._gotoAdesione();
 
-      expect(mockNavigationService.navigateWithEvent).toHaveBeenCalledWith(undefined, ['servizi', 42, 'adesioni'], { web: true });
+      expect(mockNavigationService.navigateWithEvent).toHaveBeenCalledWith(undefined, ['servizi', 42, 'adesioni']);
     });
 
     it('should pass mouse event when provided', () => {
@@ -1330,7 +1330,7 @@ describe('ServizioViewComponent', () => {
 
       (component as any)._gotoAdesione(mockEvent);
 
-      expect(mockNavigationService.navigateWithEvent).toHaveBeenCalledWith(mockEvent, ['servizi', 42, 'adesioni'], { web: true });
+      expect(mockNavigationService.navigateWithEvent).toHaveBeenCalledWith(mockEvent, ['servizi', 42, 'adesioni']);
     });
   });
 
