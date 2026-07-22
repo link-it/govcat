@@ -1,3 +1,13 @@
+2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 316: fase Produzione del wizard adesioni non attivabile. Il click
+	  sulla fasi-bar a 3 fasi (`selectFase`) aggiornava solo l'evidenziazione
+	  ma non le sezioni attive (che dipendevano dalla logica legacy
+	  `selectedStepCode`): ora allinea la selezione e ricalcola le sezioni.
+	  Rese cliccabili le fasi future (anteprima) e riconosciuto anche lo stato
+	  servizio `pubblicato_produzione_senza_collaudo` come pubblicato in produzione.
+
 2026-07-21  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

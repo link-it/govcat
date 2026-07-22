@@ -434,6 +434,13 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
      */
     selectFase(faseCode: string): void {
         this._selectedFase = faseCode;
+        // Allinea la selezione delle sezioni attive alla fase scelta (stessa
+        // logica di `onStepBarClick` della step-bar legacy): senza questo, il
+        // click sulla fasi-bar aggiornava solo l'evidenziazione ma non
+        // attivava le sezioni della fase (es. Produzione restava inattiva).
+        const realStep = this.stepWizard.find(s => s.stati_adesione?.includes(this.adesione?.stato));
+        this.selectedStepCode = realStep?.code === faseCode ? null : faseCode;
+        this._computeActiveSections();
     }
 
     /**
@@ -1056,7 +1063,11 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
      *  per disabilitare FASE 3 nella step-bar e per bloccare le
      *  transizioni workflow verso stati produzione. */
     _isProduzioneBloccata(): boolean {
-        return this.adesione?.servizio?.stato !== 'pubblicato_produzione';
+        const stato = this.adesione?.servizio?.stato;
+        // Il servizio e` in produzione sia con `pubblicato_produzione` (percorso
+        // con collaudo) sia con `pubblicato_produzione_senza_collaudo` (skip
+        // collaudo): entrambi sbloccano la fase Produzione dell'adesione.
+        return stato !== 'pubblicato_produzione' && stato !== 'pubblicato_produzione_senza_collaudo';
     }
 
     /** True se il nome stato adesione e` di fase produzione. */

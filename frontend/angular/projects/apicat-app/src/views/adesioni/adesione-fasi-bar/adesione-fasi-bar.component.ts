@@ -218,11 +218,13 @@ export class AdesioneFasiBarComponent implements OnChanges {
                 numberLabel,
                 state,
                 index,
-                // Le fasi `pending` (lock) e `skipped` NON sono cliccabili —
-                // il workflow non le ha raggiunte / sono saltate. Le altre
-                // (current/completed/final) sono cliccabili come tab.
-                // Bloccati anche i code presenti in `disabledCodes`.
-                clickable: !isSkipped && state !== 'pending' && !isDisabled,
+                // Tutte le fasi sono cliccabili come tab (anche quelle future
+                // `pending`, per anteprima: il click cambia solo la fase
+                // visualizzata, non avanza il workflow). Restano NON cliccabili
+                // solo le fasi `skipped` (saltate) e quelle in `disabledCodes`
+                // (es. produzione quando il servizio non e` pubblicato in
+                // produzione).
+                clickable: !isSkipped && !isDisabled,
                 isReal: index === realIndex,
                 disabled: isDisabled,
             } as FasiBarItem;

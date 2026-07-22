@@ -831,4 +831,31 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
       expect(component._retryingAutoConfig).toBe(false);
     });
   });
+
+  // -------- Fase Produzione: sblocco per servizio pubblicato in produzione --------
+  describe('_isProduzioneBloccata / getDisabledFasiCodes', () => {
+    it('sblocca la produzione con servizio pubblicato_produzione', () => {
+      component.adesione = { servizio: { stato: 'pubblicato_produzione' } };
+      expect(component._isProduzioneBloccata()).toBe(false);
+      expect(component.getDisabledFasiCodes()).toEqual([]);
+    });
+
+    it('sblocca la produzione con servizio pubblicato_produzione_senza_collaudo (bug fix)', () => {
+      component.adesione = { servizio: { stato: 'pubblicato_produzione_senza_collaudo' } };
+      expect(component._isProduzioneBloccata()).toBe(false);
+      expect(component.getDisabledFasiCodes()).toEqual([]);
+    });
+
+    it('blocca la produzione se il servizio non e` ancora pubblicato in produzione', () => {
+      component.adesione = { servizio: { stato: 'pubblicato_collaudo' } };
+      expect(component._isProduzioneBloccata()).toBe(true);
+      expect(component.getDisabledFasiCodes()).toEqual(['produzione']);
+    });
+
+    it('blocca la produzione se manca lo stato del servizio', () => {
+      component.adesione = { servizio: {} };
+      expect(component._isProduzioneBloccata()).toBe(true);
+      expect(component.getDisabledFasiCodes()).toEqual(['produzione']);
+    });
+  });
 });
