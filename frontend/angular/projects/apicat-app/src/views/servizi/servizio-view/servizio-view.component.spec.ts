@@ -31,6 +31,7 @@ describe('ServizioViewComponent', () => {
   } as any;
 
   const mockConfigService = {
+    isHideVersions: vi.fn().mockReturnValue(false),
     getConfiguration: vi.fn().mockReturnValue({
       AppConfig: {
         GOVAPI: { HOST: 'http://localhost' },
@@ -153,14 +154,14 @@ describe('ServizioViewComponent', () => {
 
   it('should initialize _initBreadcrumb with data', () => {
     component.data = { nome: 'TestService', versione: '1', id_servizio: '42' };
-    component.hideVersions = false;
+    vi.spyOn(component, 'hideVersions', 'get').mockReturnValue(false);
     (component as any)._initBreadcrumb();
     expect(component.breadcrumbs[1].label).toBe('TestService v. 1');
   });
 
   it('should initialize _initBreadcrumb with hideVersions', () => {
     component.data = { nome: 'TestService', versione: '1', id_servizio: '42' };
-    component.hideVersions = true;
+    vi.spyOn(component, 'hideVersions', 'get').mockReturnValue(true);
     (component as any)._initBreadcrumb();
     expect(component.breadcrumbs[1].label).toBe('TestService');
   });
@@ -1890,6 +1891,7 @@ describe('ServizioViewComponent', () => {
           Layout: { enableOpenInNewTab: false }
         }
       });
+      mockConfigService.isHideVersions.mockReturnValue(true);
 
       const comp = new ServizioViewComponent(
         mockRoute, mockRouter, mockClipboard, mockTranslate, mockModalService,
@@ -1900,6 +1902,7 @@ describe('ServizioViewComponent', () => {
       expect(comp.hideVersions).toBe(true);
 
       // Reset
+      mockConfigService.isHideVersions.mockReturnValue(false);
       mockConfigService.getConfiguration.mockReturnValue({
         AppConfig: {
           GOVAPI: { HOST: 'http://localhost' },

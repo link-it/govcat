@@ -1,6 +1,15 @@
 2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Test: ripristinata la compilazione/esecuzione della suite unit. Gli spec di
+	  `servizi`/`servizio-view` assegnavano a `hideVersions` (ora getter
+	  read-only), bloccando la compilazione di tutti i test: sostituito con il
+	  mock di `configService.isHideVersions`. Corretto anche il test success di
+	  `toggleSkipCollaudo` (spy su `loadAdesione` per isolare il cascade).
+
+2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue 316: fase Produzione del wizard adesioni non attivabile. Il click
 	  sulla fasi-bar a 3 fasi (`selectFase`) aggiornava solo l'evidenziazione
 	  ma non le sezioni attive (che dipendevano dalla logica legacy

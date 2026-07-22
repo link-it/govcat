@@ -683,11 +683,15 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
       stato: 'archiviato'
     };
     mockApiService.putElement.mockReturnValue(of({}));
+    // Il success path ricarica l'adesione via `loadAdesione`: lo spiamo per
+    // isolare il test dal cascade di caricamenti (servizio, config, disclaimer).
+    const reloadSpy = vi.fn();
+    (component as any).loadAdesione = reloadSpy;
     component.toggleSkipCollaudo();
     expect(mockApiService.putElement).toHaveBeenCalledWith('adesioni', 5, expect.objectContaining({
       identificativo: expect.objectContaining({ skip_collaudo: true })
     }));
-    expect(component.adesione.skip_collaudo).toBe(true);
+    expect(reloadSpy).toHaveBeenCalledWith(false);
     expect(component.saveSkipCollaudo).toBe(false);
   });
 
