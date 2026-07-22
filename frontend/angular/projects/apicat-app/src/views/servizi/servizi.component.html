@@ -196,8 +196,9 @@
               <button type="button"
                 class="btn gl-button shadow-0 btn-icon"
                 (click)="allSelected ? deselectAll() : selectAll()"
+                [attr.aria-label]="(allSelected ? 'APP.BUTTON.DeselectAll' : 'APP.BUTTON.SelectAll') | translate"
                 [tooltip]="(allSelected ? 'APP.BUTTON.DeselectAll' : 'APP.BUTTON.SelectAll') | translate" container="body">
-                <i class="bi" [class.bi-check-square]="allSelected" [class.bi-square]="!allSelected"></i>
+                <i class="bi" [class.bi-check-square]="allSelected" [class.bi-square]="!allSelected" aria-hidden="true"></i>
               </button>
             </div>
           }
@@ -637,7 +638,8 @@
                     <div class="d-flex flex-column flex-sm-row align-self-start align-items-center h-100" [class.mt-2]="!desktop">
                       @if (hasMultiSelection) {
                         <label class="ps-2 py-2 mb-0 clearfix">
-                          <input class="float-start js-notification-bulk-action-check-item" type="checkbox" id="element-{{ element.id }}" name="element_ids[]" [attr.aria-label]="'APP.LABEL.SelectRow' | translate" [value]="element.id" autocomplete="off" [checked]="element.selected" (click)="_onSelect($event, element)">
+                          <input class="float-start js-notification-bulk-action-check-item" type="checkbox" id="element-{{ element.id }}" name="element_ids[]" [value]="element.id" autocomplete="off" [checked]="element.selected" (click)="_onSelect($event, element)">
+                          <span class="sr-only">{{ 'APP.LABEL.SelectRow' | translate }}</span>
                         </label>
                       }
                     </div>

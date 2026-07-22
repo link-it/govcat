@@ -1,6 +1,17 @@
 2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Accessibilita` (WCAG 2.2 AA): nome accessibile sul bottone "seleziona tutti"
+	  (lista servizi/adesioni), regioni scrollabili dei pannelli dashboard rese
+	  focusabili da tastiera (tabindex/role/aria-label), label singola sulle
+	  checkbox di selezione riga (testo sr-only nella label invece di aria-label),
+	  risolto un aria-labelledby penzolante sullo switcher organizzazione.
+	  Migliorato lo script `a11y:report`: riporta anche gli axe "incomplete",
+	  reso deterministico (attesa fonts.ready) e cattura i selettori.
+
+2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Accessibilita` (WCAG 2.2 AA): `alt=""` sugli avatar/logo decorativi dei
 	  gruppi (tree-view e tree-view-category) e `aria-label` sulle checkbox di
 	  selezione riga in lista adesioni, servizi e notifiche (erano in una

@@ -30,7 +30,7 @@
       }
     </span>
   </div>
-  <div class="card-body p-0 panel-body-scroll">
+  <div class="card-body p-0 panel-body-scroll" tabindex="0" role="group" [attr.aria-label]="title | translate">
     @if (loading) {
       <div class="text-center py-4">
         <span class="spinner-border spinner-border-sm" [ngStyle]="{'color': borderColor}"></span>

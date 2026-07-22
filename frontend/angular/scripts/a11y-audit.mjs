@@ -114,18 +114,27 @@ async function discoverDetailRoutes(page) {
 async function auditRoute(page, route) {
   const url = route.url.startsWith('http') ? route.url : `${BASE}${route.url}`;
   await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 }).catch(() => {});
-  await sleep(1200);
+  // Attende il rendering dei font: axe `color-contrast` è sensibile al testo
+  // effettivamente dipinto e senza questa attesa risulta non deterministico.
+  await page.evaluate(() => document.fonts?.ready ?? null).catch(() => {});
+  await sleep(1800);
 
-  // axe-core (violazioni WCAG)
+  // axe-core (violazioni WCAG + "incomplete" = da verificare manualmente)
   let axeViolations = [];
+  let axeIncomplete = [];
   try {
     const axe = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze();
-    axeViolations = axe.violations.map((v) => ({
+    const mapItem = (v) => ({
       id: v.id,
       impact: v.impact,
       help: v.help,
       nodes: v.nodes.length,
-    }));
+      targets: v.nodes.slice(0, 3).map((n) => (Array.isArray(n.target) ? n.target.join(' ') : String(n.target))),
+    });
+    axeViolations = axe.violations.map(mapItem);
+    // Gli "incomplete" sono controlli che axe non ha potuto decidere da solo
+    // (es. color-contrast su sfondi calcolati): NON sono un pass, vanno verificati.
+    axeIncomplete = axe.incomplete.map(mapItem);
   } catch (e) {
     axeViolations = [{ id: 'axe-error', impact: 'n/a', help: String(e).slice(0, 120), nodes: 0 }];
   }
@@ -155,13 +164,14 @@ async function auditRoute(page, route) {
     lhFailed = [`lighthouse-error: ${String(e).slice(0, 120)}`];
   }
 
-  return { ...route, url, score, lhFailed, axeViolations };
+  return { ...route, url, score, lhFailed, axeViolations, axeIncomplete };
 }
 
 function buildMarkdown(results, meta) {
   const scored = results.filter((r) => typeof r.score === 'number');
   const avg = scored.length ? Math.round(scored.reduce((s, r) => s + r.score, 0) / scored.length) : 0;
   const totalAxe = results.reduce((s, r) => s + r.axeViolations.reduce((n, v) => n + v.nodes, 0), 0);
+  const totalIncomplete = results.reduce((s, r) => s + (r.axeIncomplete || []).reduce((n, v) => n + v.nodes, 0), 0);
 
   let md = `# Stato accessibilità — GovCat (apicat-app)\n\n`;
   md += `**Standard**: WCAG 2.2 AA · **Data**: ${meta.date} · **Ambiente**: ${meta.base}\n`;
@@ -170,14 +180,16 @@ function buildMarkdown(results, meta) {
   md += `## Sintesi\n\n`;
   md += `- **Punteggio medio Lighthouse**: **${avg}/100** su ${scored.length} rotte\n`;
   md += `- **Violazioni axe-core totali** (nodi): **${totalAxe}**\n`;
+  md += `- **Da verificare — axe "incomplete"** (nodi): **${totalIncomplete}** (axe non ha potuto decidere da solo, es. contrasto su sfondi calcolati: NON sono un pass)\n`;
   md += `- **Rotte verificate**: ${results.length}\n\n`;
   md += `## Dettaglio per rotta\n\n`;
-  md += `| Rotta | URL | Lighthouse | Violazioni axe (nodi) | Regole axe fallite |\n`;
-  md += `|---|---|:--:|:--:|---|\n`;
+  md += `| Rotta | URL | Lighthouse | Violazioni axe (nodi) | Da verificare (nodi) | Regole axe fallite |\n`;
+  md += `|---|---|:--:|:--:|:--:|---|\n`;
   for (const r of results) {
     const axeRules = r.axeViolations.length ? r.axeViolations.map((v) => `${v.id}(${v.nodes})`).join(', ') : '—';
     const axeNodes = r.axeViolations.reduce((n, v) => n + v.nodes, 0);
-    md += `| ${r.name} | \`${r.url.replace(meta.base, '')}\` | ${r.score ?? 'n/a'} | ${axeNodes} | ${axeRules} |\n`;
+    const incNodes = (r.axeIncomplete || []).reduce((n, v) => n + v.nodes, 0);
+    md += `| ${r.name} | \`${r.url.replace(meta.base, '')}\` | ${r.score ?? 'n/a'} | ${axeNodes} | ${incNodes} | ${axeRules} |\n`;
   }
   md += `\n## Violazioni axe per rotta (dettaglio)\n\n`;
   for (const r of results) {
@@ -188,8 +200,17 @@ function buildMarkdown(results, meta) {
     }
     md += `\n`;
   }
+  md += `## Da verificare (axe "incomplete") per rotta\n\n`;
+  for (const r of results) {
+    if (!(r.axeIncomplete || []).length) continue;
+    md += `### ${r.name}\n`;
+    for (const v of r.axeIncomplete) {
+      md += `- **${v.id}** (${v.impact || 'n/a'}, ${v.nodes} nodi): ${v.help}\n`;
+    }
+    md += `\n`;
+  }
   md += `---\n_Report generato da \`scripts/a11y-audit.mjs\`. Rieseguibile con \`npm run a11y:report\`._\n`;
-  return { md, avg, totalAxe };
+  return { md, avg, totalAxe, totalIncomplete };
 }
 
 async function main() {
@@ -210,29 +231,32 @@ async function main() {
     for (const route of routes) {
       process.stdout.write(`[a11y] Audit ${route.name} (${route.url}) ... `);
       const res = await auditRoute(page, route);
-      console.log(`LH=${res.score ?? 'n/a'}  axe-violations=${res.axeViolations.length}`);
+      console.log(`LH=${res.score ?? 'n/a'}  axe-violations=${res.axeViolations.length}  da-verificare=${(res.axeIncomplete || []).length}`);
       results.push(res);
     }
 
     const date = new Date().toISOString();
     const meta = { date, base: BASE, principal: PRINCIPAL, org: ORG };
-    const { md, avg, totalAxe } = buildMarkdown(results, meta);
+    const { md, avg, totalAxe, totalIncomplete } = buildMarkdown(results, meta);
 
     mkdirSync(OUT_DIR, { recursive: true });
     const stamp = date.replace(/[:.]/g, '-');
+    const jsonPayload = JSON.stringify({ meta, avg, totalAxe, totalIncomplete, results }, null, 2);
     writeFileSync(join(OUT_DIR, `report-${stamp}.md`), md);
-    writeFileSync(join(OUT_DIR, `report-${stamp}.json`), JSON.stringify({ meta, avg, totalAxe, results }, null, 2));
+    writeFileSync(join(OUT_DIR, `report-${stamp}.json`), jsonPayload);
     writeFileSync(join(OUT_DIR, `latest.md`), md);
-    writeFileSync(join(OUT_DIR, `latest.json`), JSON.stringify({ meta, avg, totalAxe, results }, null, 2));
+    writeFileSync(join(OUT_DIR, `latest.json`), jsonPayload);
 
-    console.log(`\n[a11y] FATTO. Media Lighthouse: ${avg}/100 — violazioni axe (nodi): ${totalAxe}`);
+    console.log(`\n[a11y] FATTO. Media Lighthouse: ${avg}/100 — violazioni axe (nodi): ${totalAxe} — da verificare (nodi): ${totalIncomplete}`);
     console.log(`[a11y] Report: ${join(OUT_DIR, 'latest.md')}`);
   } finally {
     await browser.close();
   }
 }
 
-main().catch((e) => {
+try {
+  await main();
+} catch (e) {
   console.error('[a11y] Errore:', e);
-  process.exit(1);
-});
+  process.exitCode = 1;
+}
