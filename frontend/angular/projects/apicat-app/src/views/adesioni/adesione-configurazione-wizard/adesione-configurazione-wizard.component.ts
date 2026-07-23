@@ -1310,8 +1310,11 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         // (es. BE non allineato col FE sui nuovi stati).
         const lastStep = steps[steps.length - 1];
         const lastStates = lastStep?.stati_adesione || [];
-        const terminalState = lastStates.length > 0 ? lastStates[lastStates.length - 1] : null;
-        if (terminalState !== null && currentStato === terminalState) {
+        // Terminale raggiunto se lo stato corrente e` uno QUALSIASI degli stati
+        // dell'ultimo sub-step: "configurato" elenca entrambe le varianti
+        // pubblicate (`pubblicato_produzione` e `..._senza_collaudo`), mutuamente
+        // esclusive a seconda del percorso con/senza collaudo dell'adesione.
+        if (lastStates.includes(currentStato)) {
             return true;
         }
 
@@ -1370,13 +1373,13 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
             return { done: total, total };
         }
 
-        // Terminal reached: lo stato corrente coincide con l'ultimo
-        // `stati_adesione` dell'ultimo step della sezione (e.g.,
-        // `pubblicato_collaudo` per "configurato" di Collaudo).
+        // Terminal reached: lo stato corrente e` uno QUALSIASI degli
+        // `stati_adesione` dell'ultimo step della sezione (es.
+        // `pubblicato_produzione` OPPURE `..._senza_collaudo` per
+        // "configurato" di Produzione).
         const lastStep = steps[steps.length - 1];
         const lastStates = lastStep?.stati_adesione || [];
-        const terminalState = lastStates.length > 0 ? lastStates[lastStates.length - 1] : null;
-        if (terminalState !== null && currentStato === terminalState) {
+        if (lastStates.includes(currentStato)) {
             return { done: total, total };
         }
 
@@ -1413,7 +1416,15 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         const wfStati = this.workflowStati;
         const currentStato = this.adesione?.stato;
         const currentIdx = (wfStati?.length && currentStato) ? wfStati.indexOf(currentStato) : -1;
+        // Terminale raggiunto: lo stato corrente e` uno degli stati dell'ultimo
+        // sub-step ("configurato") -> l'intera procedura e` conclusa e tutti gli
+        // step risultano completati (nessuna azione richiesta).
+        const lastStates = steps[steps.length - 1]?.stati_adesione || [];
+        const reachedTerminal = !!currentStato && lastStates.includes(currentStato);
         return steps.map((step, i) => {
+            if (reachedTerminal) {
+                return { index: i + 1, code: step.code, descrizione: step.descrizione, state: 'completed' as const };
+            }
             const indices = (step.stati_adesione || [])
                 .map(st => wfStati.indexOf(st))
                 .filter(idx => idx !== -1);
@@ -1439,6 +1450,14 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
      * - `null`: nessun badge (sezione attiva senza richieste).
      */
     getSezioneBadge(section: string): 'completed' | 'action' | 'locked' | null {
+        // Sezioni con step-bar interna (collaudo/produzione): se il workflow ha
+        // raggiunto il sub-step finale (stato pubblicato terminale) o la sezione
+        // e` gia` passata, la fase e` conclusa a prescindere dal check-dati di
+        // transizioni successive (es. archiviazione). Allineato a getFaseStatus.
+        if ((section === 'collaudo' || section === 'produzione') &&
+            (this._workflowReachedSectionFinal(section) || this._isSectionPast(section))) {
+            return 'completed';
+        }
         if (this.isSectionCompleted(section)) { return 'completed'; }
         if (this.isSectionDisabled(section) || !this.isSectionActive(section)) { return 'locked'; }
         return 'action';

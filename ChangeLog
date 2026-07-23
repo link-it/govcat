@@ -1,6 +1,15 @@
 2026-07-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 317: wizard adesioni mostrava "Azione richiesta" su una fase gia`
+	  conclusa (es. pubblicato_produzione sul percorso con collaudo). Corretto
+	  il riconoscimento dello stato terminale: ora considera tutti gli stati
+	  pubblicati dell'ultimo sub-step (con/senza collaudo), non solo l'ultimo
+	  dell'array. Badge, counter e sub-step risultano completati.
+
+2026-07-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue 317: selezione soggetto non funzionante in creazione adesione. Per i
 	  servizi intermediati la select del soggetto era mostrata ma disabilitata
 	  (con `abilita_selezione_soggetto=true`): ora è sempre nascosta e il

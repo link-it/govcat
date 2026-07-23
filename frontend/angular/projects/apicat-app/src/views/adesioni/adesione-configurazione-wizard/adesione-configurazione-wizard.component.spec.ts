@@ -862,4 +862,36 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
       expect(component.getDisabledFasiCodes()).toEqual(['produzione']);
     });
   });
+
+  describe('stato terminale sezione produzione (Issue 317 follow-up)', () => {
+    const PRODUZIONE_STEPS = [
+      { code: 'in_compilazione',   descrizione: 'In Compilazione',   stati_adesione: ['pubblicato_collaudo'] },
+      { code: 'in_approvazione',   descrizione: 'In Approvazione',   stati_adesione: ['richiesto_produzione', 'richiesto_produzione_senza_collaudo'] },
+      { code: 'in_configurazione', descrizione: 'In Configurazione', stati_adesione: ['autorizzato_produzione', 'in_configurazione_produzione'] },
+      { code: 'configurato',       descrizione: 'Configurato',       stati_adesione: ['pubblicato_produzione', 'pubblicato_produzione_senza_collaudo'] }
+    ];
+
+    beforeEach(() => {
+      component.stepWizardSezione = { collaudo: [], produzione: PRODUZIONE_STEPS } as any;
+    });
+
+    it('marca tutti i sub-step come completati con pubblicato_produzione (percorso con collaudo)', () => {
+      component.adesione = { stato: 'pubblicato_produzione' };
+      const stati = component.getSezioneStepStates('produzione');
+      expect(stati.every(s => s.state === 'completed')).toBe(true);
+      expect((component as any)._workflowReachedSectionFinal('produzione')).toBe(true);
+    });
+
+    it('marca tutti i sub-step come completati con pubblicato_produzione_senza_collaudo', () => {
+      component.adesione = { stato: 'pubblicato_produzione_senza_collaudo' };
+      const stati = component.getSezioneStepStates('produzione');
+      expect(stati.every(s => s.state === 'completed')).toBe(true);
+      expect((component as any)._workflowReachedSectionFinal('produzione')).toBe(true);
+    });
+
+    it('NON e` terminale in uno stato intermedio (in_configurazione_produzione)', () => {
+      component.adesione = { stato: 'in_configurazione_produzione' };
+      expect((component as any)._workflowReachedSectionFinal('produzione')).toBe(false);
+    });
+  });
 });
