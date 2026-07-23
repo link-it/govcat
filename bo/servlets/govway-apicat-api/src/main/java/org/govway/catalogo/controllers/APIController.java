@@ -483,6 +483,7 @@ public class APIController implements ApiApi {
 							try {
 								resource = new ByteArrayResource(this.serviceBuilder.getTryOutOpenAPI(entityA, entity, ambiente.equals(AmbienteEnum.COLLAUDO)));
 							} catch (IOException e) {
+								this.logger.warn("Generazione della specifica TRY_OUT fallita, fallback sulla specifica originale: " + e.getMessage(), e);
 								resource = new ByteArrayResource(entity.getSpecifica().getRawData());
 							}
 						} else {
