@@ -1,3 +1,10 @@
+2026-07-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Aggiunto script `build-apicat-dev`: build non di produzione (config
+	  `development-baseref`, ottimizzazioni off, sourcemap, `environment.ts`)
+	  per il debug con i messaggi di console attivi.
+
 2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
