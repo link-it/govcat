@@ -1,6 +1,15 @@
 2026-07-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 317: selezione soggetto non funzionante in creazione adesione. Per i
+	  servizi intermediati la select del soggetto era mostrata ma disabilitata
+	  (con `abilita_selezione_soggetto=true`): ora è sempre nascosta e il
+	  soggetto valorizzato con il referente del dominio, in adesione-form,
+	  adesione-create e adesione-details.
+
+2026-07-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Aggiunto script `build-apicat-dev`: build non di produzione (config
 	  `development-baseref`, ottimizzazioni off, sourcemap, `environment.ts`)
 	  per il debug con i messaggi di console attivi.

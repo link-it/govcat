@@ -523,6 +523,7 @@ describe('AdesioneFormComponent', () => {
 
   it('loadSoggetti should set hideSoggettoDropdown to false when multiple results', () => {
     component.initForm();
+    component.generalConfig = { adesione: { abilita_selezione_soggetto: true } } as any;
     component.formGroup.get('id_organizzazione')?.setValue('O1');
     component.adesione = { soggetto: { id_soggetto: 'SG1' } };
     mockApiService.getData.mockReturnValue(of([
@@ -532,6 +533,17 @@ describe('AdesioneFormComponent', () => {
     component.loadSoggetti();
     expect(component.hideSoggettoDropdown).toBe(false);
     expect(component.elencoSoggetti.length).toBe(2);
+  });
+
+  it('loadSoggetti should always hide soggetto for servizio intermediato even if abilita_selezione_soggetto=true', () => {
+    component.initForm();
+    component.generalConfig = { adesione: { abilita_selezione_soggetto: true } } as any;
+    component.servizio = { fruizione: true, dominio: { soggetto_referente: { id_soggetto: 'SR1', nome: 'Referente' } } } as any;
+    component.loadSoggetti();
+    expect(component.hideSoggettoDropdown).toBe(true);
+    expect(component.hideSoggettoInfo).toBe(true);
+    expect(component.formGroup.get('id_soggetto')?.value).toBe('SR1');
+    expect(component.disabled_id_soggetto).toBe('SR1');
   });
 
   // -------- onChangeServizio --------

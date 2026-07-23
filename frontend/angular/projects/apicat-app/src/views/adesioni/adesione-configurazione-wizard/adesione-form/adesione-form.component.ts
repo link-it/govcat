@@ -164,9 +164,8 @@ export class AdesioneFormComponent implements OnInit, OnChanges {
     loadSoggetti() {
         const _abilitaSelezioneSoggetto = this.generalConfig?.adesione?.abilita_selezione_soggetto ?? false;
 
-        // Servizio intermediato: soggetto SEMPRE = referente del dominio,
-        // bloccato; il numero di soggetti dell'organizzazione e` irrilevante.
-        // `abilita_selezione_soggetto` controlla solo la visibilita` della select.
+        // Servizio intermediato: soggetto SEMPRE = referente del dominio, bloccato
+        // e select sempre nascosta, a prescindere da `abilita_selezione_soggetto`.
         if (this.servizio?.fruizione) {
             const _soggReferenteDominio = this.servizio?.dominio?.soggetto_referente || this.adesione?.soggetto;
             this.elencoSoggetti = _soggReferenteDominio ? [_soggReferenteDominio] : [];
@@ -175,7 +174,7 @@ export class AdesioneFormComponent implements OnInit, OnChanges {
             }
             this.formGroup.controls.id_soggetto.disable();
             this.disabled_id_soggetto = _soggReferenteDominio?.id_soggetto ?? null;
-            this.hideSoggettoDropdown = !_abilitaSelezioneSoggetto;
+            this.hideSoggettoDropdown = true;
             this.hideSoggettoInfo = this.hideSoggettoDropdown;
             this.formGroup.controls.id_soggetto.updateValueAndValidity();
             this.formGroup.updateValueAndValidity();
@@ -455,8 +454,8 @@ export class AdesioneFormComponent implements OnInit, OnChanges {
                     if (this.servizio?.fruizione) {
                         // Servizio intermediato: il soggetto e` SEMPRE il referente
                         // del dominio, a prescindere da `abilita_selezione_soggetto`
-                        // e dal numero di soggetti. Il campo resta bloccato; il flag
-                        // controlla solo la visibilita` della select.
+                        // e dal numero di soggetti. Il campo resta bloccato e la
+                        // select sempre nascosta.
                         const _soggReferenteDominio = this.servizio?.dominio?.soggetto_referente;
                         if (_soggReferenteDominio?.id_soggetto) {
                             this.elencoSoggetti = [_soggReferenteDominio];
@@ -471,7 +470,7 @@ export class AdesioneFormComponent implements OnInit, OnChanges {
                         controls.id_soggetto.updateValueAndValidity();
                         controls.soggetto_nome.updateValueAndValidity();
                         this.disabled_id_soggetto = _soggReferenteDominio?.id_soggetto ?? null;
-                        this.hideSoggettoDropdown = !_abilitaSelezioneSoggetto;
+                        this.hideSoggettoDropdown = true;
                     } else if (result.length === 1) {
                         this.hideSoggettoDropdown = true;
 

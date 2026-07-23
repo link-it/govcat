@@ -1089,7 +1089,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
 
           if (this._servizio?.fruizione) {
             // Servizio intermediato: soggetto SEMPRE = referente del dominio,
-            // bloccato; `abilita_selezione_soggetto` controlla solo la visibilita`.
+            // bloccato e select sempre nascosta (a prescindere dal parametro).
             const _soggReferenteDominio = this._servizio?.dominio?.soggetto_referente;
             if (_soggReferenteDominio?.id_soggetto) {
               this._initSoggettiSelect([_soggReferenteDominio]);
@@ -1104,7 +1104,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
             controls.id_soggetto.updateValueAndValidity();
             controls.soggetto_nome.updateValueAndValidity();
             this._disabled_id_soggetto = _soggReferenteDominio?.id_soggetto ?? null;
-            this._hideSoggettoDropdown = !_abilitaSelezioneSoggetto;
+            this._hideSoggettoDropdown = true;
           } else if (result.length === 1) {
             this._hideSoggettoDropdown = true;
 
