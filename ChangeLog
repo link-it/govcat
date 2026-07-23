@@ -17,6 +17,14 @@
 	  ed erogatore restino sempre allineati. Aggiunto test di regressione
 	  `FiltriUtilsGetApiSoggettoTest`.
 
+	* [GovwayAPICatalogo]
+	Download specifica API: in modalità visualizzazione il server URL viene ora
+	  riscritto con la stessa logica del try-out (`getUrlInvocazione`), invece di
+	  restare quello dichiarato nel documento della specifica; la modalità download
+	  continua a restituire la specifica originale invariata. Estratto in
+	  `EServiceBuilder.applicaServerUrl` il riuso della sola riscrittura del server
+	  URL, senza abilitare un vero try-out.
+
 2026-07-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

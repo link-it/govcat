@@ -158,6 +158,15 @@ public class EServiceBuilder {
 	
 	
     public static byte[] getTryOutOpenAPIFromJson(byte[] originalOpenapi, ConfigurazioneTryout conf) throws IOException {
+    	return applicaServerUrl(originalOpenapi, conf.getServerUrl());
+	}
+
+    /**
+     * Riscrive il server URL nella specifica OpenAPI/Swagger passata (JSON) e la riserializza.
+     * Per OpenAPI 3.0 aggiorna il nodo {@code servers}, per Swagger 2.0 aggiorna {@code host}/{@code basePath}/{@code schemes}.
+     * Non aggiunge alcuna funzionalita` di try-out: si limita a sovrascrivere l'endpoint dichiarato nel documento.
+     */
+    public static byte[] applicaServerUrl(byte[] openapiJson, String serverUrl) throws IOException {
 
         ObjectMapper reader = new ObjectMapper();
         reader.setSerializationInclusion(JsonInclude.Include.NON_NULL);
@@ -165,7 +174,7 @@ public class EServiceBuilder {
         Logger logger = LoggerFactory.getLogger(EServiceBuilder.class);
 
         // Step 2: Parse OpenAPI file
-        JsonNode openApiJson = reader.readTree(originalOpenapi);
+        JsonNode openApiJson = reader.readTree(openapiJson);
 
         logger.debug("Parsing OpenAPI JSON for try-out. OpenAPI root type: {}", openApiJson.getClass().getName());
 
@@ -181,7 +190,6 @@ public class EServiceBuilder {
         if (isSwagger2) {
             // Swagger 2.0: parse URL and set host, basePath, schemes
             logger.debug("Processing Swagger 2.0 format");
-            String serverUrl = conf.getServerUrl();
 
             try {
                 java.net.URL url = new java.net.URL(serverUrl);
@@ -227,20 +235,20 @@ public class EServiceBuilder {
             if (serversNode.isArray() && serversNode.size() > 0) {
                 logger.debug("Modifying existing servers node with first server");
                 ObjectNode serverNode = ((ObjectNode) serversNode.get(0));
-                serverNode.put("url", conf.getServerUrl());
+                serverNode.put("url", serverUrl);
 
                 serversNode = reader.createArrayNode().add(serverNode);
                 ((ObjectNode) openApiJson).set("servers", serversNode);
-                logger.debug("Updated servers node with URL: {}", conf.getServerUrl());
+                logger.debug("Updated servers node with URL: {}", serverUrl);
             } else {
                 logger.debug("Creating new servers node (servers was missing or empty)");
                 ObjectNode serverNode = reader.createObjectNode();
-                serverNode.put("url", conf.getServerUrl());
+                serverNode.put("url", serverUrl);
 
                 // If no servers node exists, create one
                 ArrayNode newServersArray = reader.createArrayNode().add(serverNode);
                 ((ObjectNode) openApiJson).set("servers", newServersArray);
-                logger.debug("Created new servers array with URL: {}", conf.getServerUrl());
+                logger.debug("Created new servers array with URL: {}", serverUrl);
 
                 // Verify the node was actually set
                 JsonNode verifyServers = openApiJson.path("servers");

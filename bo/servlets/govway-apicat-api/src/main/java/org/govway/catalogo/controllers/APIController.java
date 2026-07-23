@@ -487,31 +487,29 @@ public class APIController implements ApiApi {
 								resource = new ByteArrayResource(entity.getSpecifica().getRawData());
 							}
 						} else {
+							byte[] rawData;
 							if(versione!=null) {
 								DocumentoEntity documentoEntity = this.documentoService.findDocumentoByUuidAndVersion(entity.getSpecifica().getUuid(), Integer.parseInt(versione))
 										.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404));
-								
-								if(mode == null || mode.equals(DownloadSpecificaAPIModeEnum.DOWNLOAD)) {
-									resource = new ByteArrayResource(documentoEntity.getRawData());
-								} else {
-                                    try {
-                                        byte[] jsonOpenapi = YamltoJsonUtils.convertYamlToJson(documentoEntity.getRawData());
-                                        resource = new ByteArrayResource(jsonOpenapi);
-                                    } catch (IOException e) {
-                                        resource = new ByteArrayResource(documentoEntity.getRawData());
-                                    }
-                                }
+								rawData = documentoEntity.getRawData();
 							} else {
-								if(mode == null || mode.equals(DownloadSpecificaAPIModeEnum.DOWNLOAD)) {
-									resource = new ByteArrayResource(entity.getSpecifica().getRawData());
-								} else {
-                                    try {
-                                        byte[] jsonOpenapi = YamltoJsonUtils.convertYamlToJson(entity.getSpecifica().getRawData());
-                                        resource = new ByteArrayResource(jsonOpenapi);
-                                    } catch (IOException e) {
-                                        resource = new ByteArrayResource(entity.getSpecifica().getRawData());
-                                    }
-                                }
+								rawData = entity.getSpecifica().getRawData();
+							}
+
+							if(mode == null || mode.equals(DownloadSpecificaAPIModeEnum.DOWNLOAD)) {
+								// DOWNLOAD: la specifica viene restituita cosi` com'e`.
+								resource = new ByteArrayResource(rawData);
+							} else {
+								// VISUALIZZAZIONE: come il TRY_OUT riscrive il server URL con getUrlInvocazione
+								// (senza pero` abilitare un vero try-out), con fallback sulla specifica originale.
+								try {
+									byte[] jsonOpenapi = YamltoJsonUtils.convertYamlToJson(rawData);
+									String serverUrl = this.serviceBuilder.getUrlInvocazione(entityA, ambiente.equals(AmbienteEnum.COLLAUDO));
+									resource = new ByteArrayResource(EServiceBuilder.applicaServerUrl(jsonOpenapi, serverUrl));
+								} catch (IOException e) {
+									this.logger.warn("Riscrittura del server URL per la visualizzazione fallita, fallback sulla specifica originale: " + e.getMessage(), e);
+									resource = new ByteArrayResource(rawData);
+								}
 							}
 						}
 						
