@@ -2032,7 +2032,10 @@ public class ServiziController implements ServiziApi {
 				Set<Long> idsServiziVisibili = null;
 				if(!(this.coreAuthorization.isAdmin(utenteSessione) || this.coreAuthorization.isCoordinatore(utenteSessione))) {
 					ServizioSpecification specVisibilita = new ServizioSpecification();
-					specVisibilita.setUtente(Optional.of(utenteSessione));
+					// Accesso anonimo: getUtenteSessione() puo` restituire null (consentiAccessoAnonimo=true).
+					// Usa un UtenteEntity "vuoto" come gia` fa il filtro principale (vedi ramo `anounymous` sopra),
+					// evitando l'NPE di Optional.of(null).
+					specVisibilita.setUtente(Optional.of(utenteSessione != null ? utenteSessione : new UtenteEntity()));
 					specVisibilita.setStatiAderibili(this.configurazione.getServizio().getStatiAdesioneConsentita());
 					specVisibilita.setUtenteAdmin(Optional.of(false));
 					idsServiziVisibili = this.service.findIds(specVisibilita);
