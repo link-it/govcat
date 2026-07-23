@@ -22,3 +22,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     padding-top: 48px;
   }
 }
+
+/* Modalità embedded (dialog): il contenuto scorre nel body del modal, la barra
+   dei tab Collaudo/Produzione resta sticky in cima all'area scrollabile. */
+.embedded {
+  .top-area {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: #fff;
+  }
+
+  #container-scroller {
+    height: auto;
+    overflow: visible;
+    padding-top: .5rem;
+  }
+}

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnInit } from '@angular/core';
+import { AfterContentChecked, Component, HostListener, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { COMPONENTS_IMPORTS, Tools, ConfigService } from '@linkit/components';
@@ -44,6 +44,14 @@ import * as _ from 'lodash';
 export class ServizioApiPdndInformationsComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'ServizioApiPdndInformationsComponent';
   readonly model: string = 'api';
+
+  // Modalità "embedded" (dialog): i dati arrivano da @Input invece che dalla
+  // route; il chrome di pagina (breadcrumb/monitor) viene nascosto.
+  @Input() embedded: boolean = false;
+  @Input() inputSid: string | null = null;
+  @Input() inputApiId: number | null = null;
+  @Input() inputProducerIdCollaudo: string = '';
+  @Input() inputProducerIdProduzione: string = '';
 
   id: number = 0;
   sid: string | null = null;
@@ -124,6 +132,17 @@ export class ServizioApiPdndInformationsComponent implements OnInit, AfterConten
   }
 
   ngOnInit() {
+    if (this.embedded) {
+      this.sid = this.inputSid;
+      this.id = this.inputApiId || 0;
+      this.producerIdCollaudo = this.inputProducerIdCollaudo || '';
+      this.producerIdProduzione = this.inputProducerIdProduzione || '';
+      if (this.sid) {
+        this._loadServizio();
+      }
+      return;
+    }
+
     this.route.params.subscribe(params => {
       let _id = params['id'];
       const _cid = params['cid'];

@@ -1,6 +1,16 @@
 2026-07-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 311 (evolutiva): menu PDND nella vetrina del servizio. Dropdown
+	  nell'hero (sotto "Scarica descrittore") visibile a chi puo` gestire il
+	  servizio; le voci aprono una dialog con selettore delle API abilitate che
+	  mostra, per l'API scelta, la pagina Informazioni o Fruitori in modalita`
+	  embedded. Estratta logica condivisa in pdnd-menu.util.ts. Fix layout
+	  dialog (scroll nel body, tab Collaudo/Produzione sticky, padding body).
+
+2026-07-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue 311: logica menu PDND (Gestione API) guidata dalla configurazione.
 	  Il button dipende ora dalla proprieta` `pdnd_type` del profilo e
 	  l'abilitazione dalle `required_proprieta_custom` del relativo pdnd_type

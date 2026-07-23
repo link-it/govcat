@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, HostListener, Input, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { COMPONENTS_IMPORTS, Tools, ConfigService, SearchBarFormComponent } from '@linkit/components';
@@ -55,6 +55,13 @@ export class ServizioApiSubscribersComponent implements OnInit, AfterContentChec
 
   @ViewChild('searchBarForm') searchBarForm!: SearchBarFormComponent;
   @ViewChild('editTemplate') editTemplate!: any;
+
+  // Modalità "embedded" (dialog): dati da @Input, chrome di pagina nascosto.
+  @Input() embedded: boolean = false;
+  @Input() inputSid: string | null = null;
+  @Input() inputApiId: number | null = null;
+  @Input() inputProducerIdCollaudo: string = '';
+  @Input() inputProducerIdProduzione: string = '';
 
   id: number = 0;
   sid: string | null = null;
@@ -184,6 +191,20 @@ export class ServizioApiSubscribersComponent implements OnInit, AfterContentChec
   }
 
   ngOnInit() {
+    if (this.embedded) {
+      this.sid = this.inputSid;
+      this.id = this.inputApiId || 0;
+      this.producerIdCollaudo = this.inputProducerIdCollaudo || '';
+      this.producerIdProduzione = this.inputProducerIdProduzione || '';
+      this.configService.getConfig('subscribers').subscribe((config: any) => {
+        this.apisubscribersConfig = config;
+        if (this.sid) {
+          this._loadServizio();
+        }
+      });
+      return;
+    }
+
     this.route.params.subscribe(params => {
       let _id = params['id'];
       const _cid = params['cid'];

@@ -26,7 +26,9 @@ import { catchError } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { ConfigService, EventsManagerService, MenuAction, EventType, Tools, COMPONENTS_IMPORTS } from '@linkit/components';
+import { ConfigService, EventsManagerService, MenuAction, EventType, Tools, COMPONENTS_IMPORTS, YesnoDialogBsComponent } from '@linkit/components';
+import { apiHasPdndProfile, isApiPdndConfigured, isSoggettoInPdndConfig, getPdndProducerIds } from '../pdnd-menu.util';
+import { PdndMenuDialogComponent } from '../pdnd-menu-dialog/pdnd-menu-dialog.component';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -153,6 +155,8 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
 
     _profili: any = null;
     _proprieta_custom: CustomPropertyDefinition[] = [];
+    _pdndTypes: any[] = [];
+    _pdnd: any = null;
 
     Tools = Tools;
 
@@ -343,6 +347,8 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         const _srv: any = Tools.Configurazione?.servizio || null;
         this._profili = (_srv?.api) ? _srv.api.profili : [];
         this._proprieta_custom = (_srv?.api) ? _srv.api.proprieta_custom : [];
+        this._pdndTypes = (_srv?.api) ? _srv.api.pdnd_types || [] : [];
+        this._pdnd = Tools.Configurazione?.pdnd || null;
     }
 
     ngOnInit() {
@@ -378,6 +384,8 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
             const _srv: any = Tools.Configurazione.servizio;
             this._profili = (_srv?.api) ? _srv.api.profili : [];
             this._proprieta_custom = (_srv?.api) ? _srv.api.proprieta_custom : [];
+            this._pdndTypes = (_srv?.api) ? _srv.api.pdnd_types || [] : [];
+            this._pdnd = Tools.Configurazione?.pdnd || null;
         });
     }
 
@@ -822,6 +830,70 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                 this._error = true;
                 this._errorMsg = this.utils.GetErrorMsg(error);
                 this._downloading = false;
+            }
+        });
+    }
+
+    // Menù PDND (vetrina) — Issue 311 evolutiva. Dropdown nell'hero: gli item
+    // aprono una dialog con selettore delle API abilitate e la relativa pagina
+    // PDND (Informazioni / Fruitori) in modalità embedded.
+
+    _soggettoReferenteNome(): string | null {
+        return this.data?.dominio?.soggetto_referente?.nome || null;
+    }
+
+    private _allServiceApis(): any[] {
+        return [...(this.serviceApiDominio || []), ...(this.serviceApiAderente || [])];
+    }
+
+    /** API con il menù PDND abilitato: profilo con `pdnd_type`, configurate
+     *  correttamente e con soggetto referente in config PDND. */
+    _enabledPdndApis(): any[] {
+        if (!isSoggettoInPdndConfig(this._soggettoReferenteNome(), this._pdnd)) {
+            return [];
+        }
+        return this._allServiceApis().filter((api: any) =>
+            isApiPdndConfigured(api, this._profili || [], this._pdndTypes || []));
+    }
+
+    /** Il menù PDND nell'hero è mostrato a chi può gestire il servizio, se esiste
+     *  almeno una API con profilo PDND e il soggetto referente è in config PDND. */
+    _canShowPdndHeroMenu(): boolean {
+        return this._canManagementMapper()
+            && this._allServiceApis().some((api: any) => apiHasPdndProfile(api, this._profili || []))
+            && isSoggettoInPdndConfig(this._soggettoReferenteNome(), this._pdnd);
+    }
+
+    _openPdndDialog(mode: 'informations' | 'subscribers') {
+        const _apis = this._enabledPdndApis();
+        if (!_apis.length) {
+            this._alertPdndNotAvailable();
+            return;
+        }
+        const _producerIds = getPdndProducerIds(this._soggettoReferenteNome()!, this._pdnd);
+        this.modalService.show(PdndMenuDialogComponent, {
+            class: 'modal-lg-custom modal-with-65 modal-fullscreen-sm-down',
+            ignoreBackdropClick: false,
+            initialState: {
+                mode,
+                apis: _apis,
+                sid: this.id != null ? `${this.id}` : null,
+                producerIdCollaudo: _producerIds?.producerIdCollaudo || '',
+                producerIdProduzione: _producerIds?.producerIdProduzione || '',
+                selectedApiId: _apis[0].id_api
+            }
+        });
+    }
+
+    _alertPdndNotAvailable() {
+        this.modalService.show(YesnoDialogBsComponent, {
+            ignoreBackdropClick: true,
+            initialState: {
+                title: this.translate.instant('APP.TITLE.Attention'),
+                messages: [this.translate.instant('APP.SERVICES.PDND_ALERT.Message')],
+                confirmText: this.translate.instant('APP.BUTTON.Close'),
+                confirmColor: 'primary',
+                hideCancel: true
             }
         });
     }

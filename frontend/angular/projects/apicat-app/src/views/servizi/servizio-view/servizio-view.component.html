@@ -147,6 +147,33 @@
                 }
               </button>
             }
+            @if (_canShowPdndHeroMenu()) {
+              <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="pdnd-hero-actions">
+                <button aria-haspopup="true" aria-expanded="false" type="button" class="btnc btnc-default dropdown-toggle dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static">
+                  <span>{{ 'APP.SERVICES.TITLE.PDND' | translate }}</span> <i class="bi bi-chevron-down ms-2"></i>
+                </button>
+                <ul tabindex="-1" class="dropdown-menu dropdown-menu-end">
+                  <div class="gl-new-dropdown-inner">
+                    <div class="gl-new-dropdown-contents">
+                      <li class="gl-new-dropdown-item">
+                        <button role="menuitem" type="button" class="dropdown-item" (click)="_openPdndDialog('informations')">
+                          <div class="gl-new-dropdown-item-text-wrapper">
+                            <p class="gl-new-dropdown-item-text-primary">{{ 'APP.SERVICES.MENU.PDNDGeneralInformations' | translate }}</p>
+                          </div>
+                        </button>
+                      </li>
+                      <li class="gl-new-dropdown-item">
+                        <button role="menuitem" type="button" class="dropdown-item" (click)="_openPdndDialog('subscribers')">
+                          <div class="gl-new-dropdown-item-text-wrapper">
+                            <p class="gl-new-dropdown-item-text-primary">{{ 'APP.SERVICES.MENU.PDNDUsers' | translate }}</p>
+                          </div>
+                        </button>
+                      </li>
+                    </div>
+                  </div>
+                </ul>
+              </div>
+            }
           </div>
         </div>
 

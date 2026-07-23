@@ -36,6 +36,7 @@ import { ServizioApiCreate } from './servizio-api-create';
 import { ModalChoicesComponent } from '@app/components/modal-choices/modal-choices.component';
 
 import { ApiAuthTypeGroup, ApiConfiguration, ApiCreateRequest, ApiReadDetails, ApiUpdateRequest, IHistory, Profile } from './servizio-api-interfaces';
+import { isApiPdndConfigured } from '../pdnd-menu.util';
 import { Grant } from '@app/model/grant';
 
 import { CommonModule } from '@angular/common';
@@ -1545,44 +1546,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     _hasPDNDConfiguredMapper = (): boolean => {
-        if (!this.servizioApi?.gruppi_auth_type) {
-            return false;
-        }
-        // PDND configurata se almeno un profilo con `pdnd_type` ha soddisfatto le
-        // proprieta` richieste dal relativo pdnd_type (semantica OR: basta che una
-        // delle `required_proprieta_custom` sia valorizzata).
-        return this.servizioApi.gruppi_auth_type.some((auth: any) => {
-            const _profile = this._profili.find((item: any) => item.codice_interno === auth.profilo);
-            if (!_profile?.pdnd_type) {
-                return false;
-            }
-            const _pdndType = this._pdndTypes.find((t: any) => t.identificativo === _profile.pdnd_type);
-            if (!_pdndType) {
-                return false;
-            }
-            const _required = _pdndType.required_proprieta_custom || [];
-            if (!_required.length) {
-                return true;
-            }
-            return _required.some((req: any) => this._isRequiredPropertyValued(req));
-        });
-    }
-
-    /**
-     * Verifica che una proprieta` richiesta (`{nome_gruppo, nome_proprieta}`) sia
-     * presente e valorizzata nelle `proprieta_custom` dell'API. Il match sul
-     * gruppo accetta sia il nome esatto sia le varianti con suffisso (es.
-     * `PDNDProduzione_identificativo`) per retrocompatibilita`.
-     */
-    private _isRequiredPropertyValued = (req: { nome_gruppo: string; nome_proprieta: string }): boolean => {
-        const _groups = this.servizioApi?.proprieta_custom || [];
-        const _group = _groups.find((item: any) =>
-            item.gruppo === req.nome_gruppo || item.gruppo?.startsWith(req.nome_gruppo + '_'));
-        if (!_group) {
-            return false;
-        }
-        const _property = (_group.proprieta || []).find((p: any) => p.nome === req.nome_proprieta);
-        return !!_property?.valore;
+        return isApiPdndConfigured(this.servizioApi, this._profili, this._pdndTypes);
     }
 
     _canShowPDNDActionsMapper = (): boolean => {

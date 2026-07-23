@@ -2119,4 +2119,94 @@ describe('ServizioViewComponent', () => {
       expect(component._showScroll).toBe(true);
     });
   });
+
+  // =========================================================================
+  // Menù PDND per API (vetrina) — Issue 311 evolutiva
+  // =========================================================================
+  describe('menù PDND per API (vetrina)', () => {
+    const PDND_TYPES = [{
+      identificativo: 'erogazione_pdnd',
+      etichetta: 'Erogazione PDND',
+      required_proprieta_custom: [
+        { nome_gruppo: 'PDNDCollaudo', nome_proprieta: 'identificativo_eservice_pdnd' },
+        { nome_gruppo: 'PDNDProduzione', nome_proprieta: 'identificativo_eservice_pdnd' }
+      ]
+    }];
+    const PROFILI = [
+      { codice_interno: 'PDND', auth_type: 'pdnd', pdnd_type: 'erogazione_pdnd' },
+      { codice_interno: 'MTLS', auth_type: 'https' }
+    ];
+    const apiConfigurata = {
+      id_api: 'A1',
+      gruppi_auth_type: [{ profilo: 'PDND' }],
+      proprieta_custom: [{ gruppo: 'PDNDProduzione', proprieta: [{ nome: 'identificativo_eservice_pdnd', valore: 'e-1' }] }]
+    };
+    const apiNonConfigurata = {
+      id_api: 'A2',
+      gruppi_auth_type: [{ profilo: 'PDND' }],
+      proprieta_custom: []
+    };
+    const apiNoPdnd = { id_api: 'A3', gruppi_auth_type: [{ profilo: 'MTLS' }], proprieta_custom: [] };
+
+    beforeEach(() => {
+      component._profili = PROFILI;
+      component._pdndTypes = PDND_TYPES;
+      component._pdnd = [{ nome_soggetto: 'SoggA', collaudo: { id_producer: 'c1' }, produzione: { id_producer: 'p1' } }];
+      component.data = { dominio: { soggetto_referente: { nome: 'SoggA' } } };
+      component.id = 42 as any;
+      component.serviceApiDominio = [apiConfigurata];
+      component.serviceApiAderente = [];
+      vi.spyOn(component, '_canManagementMapper').mockReturnValue(true);
+    });
+
+    it('_enabledPdndApis ritorna le API configurate con soggetto in config', () => {
+      expect(component._enabledPdndApis().map((a: any) => a.id_api)).toEqual(['A1']);
+    });
+
+    it('_enabledPdndApis esclude API non configurate e senza pdnd_type', () => {
+      component.serviceApiDominio = [apiConfigurata, apiNonConfigurata, apiNoPdnd];
+      expect(component._enabledPdndApis().map((a: any) => a.id_api)).toEqual(['A1']);
+    });
+
+    it('_enabledPdndApis vuoto se soggetto non in config PDND', () => {
+      component._pdnd = [{ nome_soggetto: 'AltroSogg' }];
+      expect(component._enabledPdndApis()).toEqual([]);
+    });
+
+    it('_canShowPdndHeroMenu true con manager + API pdnd + soggetto in config', () => {
+      expect(component._canShowPdndHeroMenu()).toBe(true);
+    });
+
+    it('_canShowPdndHeroMenu false se utente non puo` gestire', () => {
+      (component._canManagementMapper as any).mockReturnValue(false);
+      expect(component._canShowPdndHeroMenu()).toBe(false);
+    });
+
+    it('_canShowPdndHeroMenu false se nessuna API con pdnd_type', () => {
+      component.serviceApiDominio = [apiNoPdnd];
+      expect(component._canShowPdndHeroMenu()).toBe(false);
+    });
+
+    it('_openPdndDialog apre la dialog con le API abilitate e la modalità scelta', () => {
+      mockModalService.show.mockClear();
+      component._openPdndDialog('informations');
+      expect(mockModalService.show).toHaveBeenCalled();
+      const initialState = mockModalService.show.mock.calls[0][1].initialState;
+      expect(initialState.mode).toBe('informations');
+      expect(initialState.apis.map((a: any) => a.id_api)).toEqual(['A1']);
+      expect(initialState.selectedApiId).toBe('A1');
+      expect(initialState.producerIdCollaudo).toBe('c1');
+      expect(initialState.producerIdProduzione).toBe('p1');
+      expect(initialState.hideCancel).toBeUndefined();
+    });
+
+    it('_openPdndDialog mostra alert quando nessuna API è abilitata', () => {
+      component.serviceApiDominio = [apiNonConfigurata];
+      mockModalService.show.mockClear();
+      component._openPdndDialog('subscribers');
+      expect(mockModalService.show).toHaveBeenCalled();
+      const initialState = mockModalService.show.mock.calls[0][1].initialState;
+      expect(initialState.hideCancel).toBe(true);
+    });
+  });
 });
