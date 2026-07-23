@@ -196,13 +196,24 @@ public class FiltriUtils {
 						id.setRuolo(ap.getRuolo());
 						id.setProtocollo(conf.getProtocollo());
 
-						if(servizio.getSoggettoErogatore()!=null) {
+						// Il flag isFruizione() è il segnale autoritativo; soggettoErogatore deve comunque
+						// essere valorizzato (protegge da NPE e da dati sporchi). Calcolato una sola volta
+						// così che "tipo" ed "erogatore" restino sempre coerenti tra loro.
+						boolean fruizione = servizio.isFruizione() && servizio.getSoggettoErogatore()!=null;
+
+						if(fruizione) {
 							id.setFruizione(true);
 						}
 
 						if(adesione != null) {
 							id.setSoggetto(getSoggettoNome(adesione.getSoggetto().getNome()));
+						} else if(fruizione) {
+							// Fruizione: l'erogatore verso GovWay è l'ente erogatore (provider) indicato sul servizio.
+							// Coerente con il nuovo modello (vedi EServiceBuilder.getUrlInvocazione e AdesioneDTOConverter):
+							// per le fruizioni dominio.getSoggettoReferente() è il fruitore interno, non l'erogatore.
+							id.setSoggetto(getSoggettoNome(servizio.getSoggettoErogatore().getNome()));
 						} else {
+							// Erogazione: l'erogatore è il soggetto referente del dominio.
 							id.setSoggetto(getSoggettoNome(servizio.getDominio().getSoggettoReferente().getNome()));
 						}
 

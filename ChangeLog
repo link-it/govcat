@@ -1,3 +1,22 @@
+2026-07-23  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Fix lista transazioni vuota per i servizi in fruizione nel monitoraggio
+	  (`FiltriUtils.getApi`). Dopo il rework dei soggetti (Issue 292), per le
+	  API `EROGATO_SOGGETTO_DOMINIO` l'erogatore inviato a GovWay per le
+	  fruizioni era erroneamente il referente del dominio (che nel nuovo
+	  modello e` il fruitore interno) invece dell'ente erogatore indicato sul
+	  servizio (`soggettoErogatore`): la ricerca non combaciava col campo
+	  `erogatore` indicizzato e restituiva una lista vuota. Ora, coerentemente
+	  con `EServiceBuilder.getUrlInvocazione` e `AdesioneDTOConverter`,
+	  l'erogatore e` `servizio.getSoggettoErogatore()` per le fruizioni e resta
+	  `dominio.getSoggettoReferente()` per le erogazioni. La distinzione
+	  fruizione/erogazione e` calcolata una sola volta a partire dal flag
+	  autoritativo `servizio.isFruizione()` (con `soggettoErogatore` valorizzato
+	  a protezione da NPE e da dati incoerenti), cosi` che tipo di transazione
+	  ed erogatore restino sempre allineati. Aggiunto test di regressione
+	  `FiltriUtilsGetApiSoggettoTest`.
+
 2026-07-21  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
