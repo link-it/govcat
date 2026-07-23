@@ -21,6 +21,18 @@ export interface Profile {
     codice_interno: string;
     domini: string[];
     etichetta: string;
+    pdnd_type?: string;
+}
+
+export interface PdndTypeRequiredProperty {
+    nome_gruppo: string;
+    nome_proprieta: string;
+}
+
+export interface PdndType {
+    identificativo: string;
+    etichetta: string;
+    required_proprieta_custom: PdndTypeRequiredProperty[];
 }
 
 export interface CustomProperty {

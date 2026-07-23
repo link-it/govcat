@@ -23,7 +23,7 @@ import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Reacti
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { MenuAction, ConfigService, Tools, EventsManagerService, EventType, AllegatoComponent, COMPONENTS_IMPORTS } from '@linkit/components';
+import { MenuAction, ConfigService, Tools, EventsManagerService, EventType, AllegatoComponent, COMPONENTS_IMPORTS, YesnoDialogBsComponent } from '@linkit/components';
 import { UtilsLib } from '@app/lib/utils/utils.lib';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
@@ -170,6 +170,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     _authTypes: any[] = [];
     _profili: any[] = [];
     _profiliFiltered: any[] = [];
+    _pdndTypes: any[] = [];
     _pdnd: any = null;
     _apiProprietaCustom: any[] = [];
     _apiProprietaCustomGrouped: any = null;
@@ -266,6 +267,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         this._specificaObbligatorio = (_srv?.api) ? _srv.api.specifica_obbligatorio : false;
         this._authTypes = (_srv?.api) ? _srv.api.auth_type : [];
         this._profili = (_srv?.api) ? _srv.api.profili : [];
+        this._pdndTypes = (_srv?.api) ? _srv.api.pdnd_types || [] : [];
         this._info_gateway_visualizzate = (_srv?.api) ? _srv.api.info_gateway_visualizzate : false;
         this._pdnd = Tools.Configurazione?.pdnd || null;
     }
@@ -334,6 +336,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             this._specificaObbligatorio = (_srv?.api) ? _srv.api.specifica_obbligatorio : false;
             this._authTypes = (_srv?.api) ? _srv.api.auth_type : [];
             this._profili = (_srv?.api) ? _srv.api.profili : [];
+            this._pdndTypes = (_srv?.api) ? _srv.api.pdnd_types || [] : [];
             this._info_gateway_visualizzate = (_srv?.api) ? _srv.api.info_gateway_visualizzate : false;
             this._pdnd = Tools.Configurazione?.pdnd || null;
         });
@@ -896,7 +899,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                     (auth.resources || []).forEach((r: string) => this._risorseSelected.push(r));
                     this._authSelected.push(auth.profilo);
                     const _profile = this._profili.find((item: any) => item.codice_interno === auth.profilo);
-                    if (_profile?.auth_type.includes('pdnd')) {
+                    if (_profile?.pdnd_type) {
                         this._isPDND = true;
                     }
                 });
@@ -1375,7 +1378,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         this._markAsteriskUpdated = false;
 
         const profilo_codice_interno = this._getProfiloProprietaValue(index);
-        this._isPDND = profilo_codice_interno?.includes('PDND') || false;
+        this._isPDND = !!this._getProfilo(profilo_codice_interno)?.pdnd_type;
 
         this._markAsteriskUpdated = true;
 
@@ -1542,50 +1545,44 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     _hasPDNDConfiguredMapper = (): boolean => {
-        let _hasPDND: boolean = false;
-        let _index: number = -1;
-
-        if(!this.servizioApi?.gruppi_auth_type){
-            return _hasPDND;
+        if (!this.servizioApi?.gruppi_auth_type) {
+            return false;
         }
-
-        this.servizioApi.gruppi_auth_type.forEach((auth: any) => {
+        // PDND configurata se almeno un profilo con `pdnd_type` ha soddisfatto le
+        // proprieta` richieste dal relativo pdnd_type (semantica OR: basta che una
+        // delle `required_proprieta_custom` sia valorizzata).
+        return this.servizioApi.gruppi_auth_type.some((auth: any) => {
             const _profile = this._profili.find((item: any) => item.codice_interno === auth.profilo);
-            if (_profile.auth_type.includes('pdnd')) {
-                if (this.servizioApi?.proprieta_custom?.length) {
-                    // Cerca nei gruppi con suffisso _identificativo (nuova convenzione)
-                    _index = this.servizioApi.proprieta_custom?.findIndex((item: any) => item.gruppo === 'PDNDProduzione_identificativo');
-                    if (_index !== -1) {
-                        const _property = this.servizioApi.proprieta_custom[_index].proprieta.find((item: any) => item.nome === 'identificativo_eservice_pdnd');
-                        _hasPDND = _property ? !!_property.valore : false;
-                    }
-                    if (!_hasPDND) {
-                        _index = this.servizioApi.proprieta_custom?.findIndex((item: any) => item.gruppo === 'PDNDCollaudo_identificativo');
-                        if (_index !== -1) {
-                            const _property = this.servizioApi.proprieta_custom[_index].proprieta.find((item: any) => item.nome === 'identificativo_eservice_pdnd');
-                            _hasPDND = _property ? !!_property.valore : false;
-                        }
-                    }
-                    // Fallback: cerca nei gruppi senza suffisso (vecchia convenzione per retrocompatibilità)
-                    if (!_hasPDND) {
-                        _index = this.servizioApi.proprieta_custom?.findIndex((item: any) => item.gruppo === 'PDNDProduzione');
-                        if (_index !== -1) {
-                            const _property = this.servizioApi.proprieta_custom[_index].proprieta.find((item: any) => item.nome === 'identificativo_eservice_pdnd');
-                            _hasPDND = _property ? !!_property.valore : false;
-                        }
-                    }
-                    if (!_hasPDND) {
-                        _index = this.servizioApi.proprieta_custom?.findIndex((item: any) => item.gruppo === 'PDNDCollaudo');
-                        if (_index !== -1) {
-                            const _property = this.servizioApi.proprieta_custom[_index].proprieta.find((item: any) => item.nome === 'identificativo_eservice_pdnd');
-                            _hasPDND = _property ? !!_property.valore : false;
-                        }
-                    }
-                }
+            if (!_profile?.pdnd_type) {
+                return false;
             }
+            const _pdndType = this._pdndTypes.find((t: any) => t.identificativo === _profile.pdnd_type);
+            if (!_pdndType) {
+                return false;
+            }
+            const _required = _pdndType.required_proprieta_custom || [];
+            if (!_required.length) {
+                return true;
+            }
+            return _required.some((req: any) => this._isRequiredPropertyValued(req));
         });
+    }
 
-        return _hasPDND;
+    /**
+     * Verifica che una proprieta` richiesta (`{nome_gruppo, nome_proprieta}`) sia
+     * presente e valorizzata nelle `proprieta_custom` dell'API. Il match sul
+     * gruppo accetta sia il nome esatto sia le varianti con suffisso (es.
+     * `PDNDProduzione_identificativo`) per retrocompatibilita`.
+     */
+    private _isRequiredPropertyValued = (req: { nome_gruppo: string; nome_proprieta: string }): boolean => {
+        const _groups = this.servizioApi?.proprieta_custom || [];
+        const _group = _groups.find((item: any) =>
+            item.gruppo === req.nome_gruppo || item.gruppo?.startsWith(req.nome_gruppo + '_'));
+        if (!_group) {
+            return false;
+        }
+        const _property = (_group.proprieta || []).find((p: any) => p.nome === req.nome_proprieta);
+        return !!_property?.valore;
     }
 
     _canShowPDNDActionsMapper = (): boolean => {
@@ -1604,6 +1601,19 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         const _index = this._pdnd.findIndex((item: any) => item.nome_soggetto === _soggetto);
 
         return _index !== -1;
+    }
+
+    _alertPDNDNotAvailable() {
+        this.modalService.show(YesnoDialogBsComponent, {
+            ignoreBackdropClick: true,
+            initialState: {
+                title: this.translate.instant('APP.TITLE.Attention'),
+                messages: [this.translate.instant('APP.SERVICES.PDND_ALERT.Message')],
+                confirmText: this.translate.instant('APP.BUTTON.Close'),
+                confirmColor: 'primary',
+                hideCancel: true
+            }
+        });
     }
 
     // API Proprietà custom
@@ -1812,6 +1822,10 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     _showPDND() {
+        if (!this._canShowPDNDActionsMapper()) {
+            this._alertPDNDNotAvailable();
+            return;
+        }
         const _soggetto = this.service.dominio.soggetto_referente.nome;
         const _index = this._pdnd.findIndex((item: any) => item.nome_soggetto === _soggetto);
         if (_index !== -1) {
@@ -1835,6 +1849,10 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     _showGeneralInformationsPDND() {
+        if (!this._canShowPDNDActionsMapper()) {
+            this._alertPDNDNotAvailable();
+            return;
+        }
         const _soggetto = this.service.dominio.soggetto_referente.nome;
         const _index = this._pdnd.findIndex((item: any) => item.nome_soggetto === _soggetto);
         if (_index !== -1) {

@@ -1,6 +1,16 @@
 2026-07-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 311: logica menu PDND (Gestione API) guidata dalla configurazione.
+	  Il button dipende ora dalla proprieta` `pdnd_type` del profilo e
+	  l'abilitazione dalle `required_proprieta_custom` del relativo pdnd_type
+	  (semantica OR), invece che da nomi hardcoded. Le voci restano sempre
+	  cliccabili: se l'informazione PDND manca mostrano un alert e un'icona di
+	  warning. Aggiunto flag `hideCancel` a YesnoDialogBs per l'alert.
+
+2026-07-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue 317: wizard adesioni mostrava "Azione richiesta" su una fase gia`
 	  conclusa (es. pubblicato_produzione sul percorso con collaudo). Corretto
 	  il riconoscimento dello stato terminale: ora considera tutti gli stati

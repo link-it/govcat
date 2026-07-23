@@ -2356,6 +2356,10 @@
 				"PDNDGeneralInformations": "Informazioni generali",
 				"PDNDUsers": "Fruitori"
 			},
+			"PDND_ALERT": {
+				"Message": "Le informazioni PDND per questa API non sono disponibili. Verifica che l'identificativo eService PDND sia configurato e che il soggetto referente del dominio sia presente nella configurazione PDND.",
+				"IconTooltip": "Azione non disponibile: informazione PDND mancante"
+			},
 			"TITLE": {
 				"EditAttachments": "Modifica allegati",
 				"AddAttachment-generico": "Aggiungi allegato generico",

@@ -38,7 +38,9 @@
       </div>
     </div>
     <div class="modal-footer">
-      <button type="button" class="btn gl-button btn-default btn-sm-" (click)="closeModal()">{{ cancelText }}</button>
+      @if (!hideCancel) {
+        <button type="button" class="btn gl-button btn-default btn-sm-" (click)="closeModal()">{{ cancelText }}</button>
+      }
       <button type="button" class="btn gl-button btn-{{ confirmColor }} btn-sm-" (click)="closeModal(true)">{{ confirmText }}</button>
     </div>
   <!-- </div>

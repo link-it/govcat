@@ -2379,8 +2379,19 @@ describe('ServizioApiDetailsComponent', () => {
   // _hasPDNDConfiguredMapper (extended)
   // =========================================================================
   describe('_hasPDNDConfiguredMapper (extended)', () => {
+    beforeEach(() => {
+      component._pdndTypes = [{
+        identificativo: 'erogazione_pdnd',
+        etichetta: 'Erogazione PDND',
+        required_proprieta_custom: [
+          { nome_gruppo: 'PDNDCollaudo', nome_proprieta: 'identificativo_eservice_pdnd' },
+          { nome_gruppo: 'PDNDProduzione', nome_proprieta: 'identificativo_eservice_pdnd' }
+        ]
+      }];
+    });
+
     it('should return true when PDNDProduzione_identificativo group has identificativo_eservice_pdnd', () => {
-      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'] }];
+      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'], pdnd_type: 'erogazione_pdnd' }];
       component.servizioApi = {
         gruppi_auth_type: [{ profilo: 'pdndProf', resources: ['/r'], note: '' }],
         proprieta_custom: [
@@ -2395,7 +2406,7 @@ describe('ServizioApiDetailsComponent', () => {
     });
 
     it('should return true when PDNDCollaudo_identificativo group has identificativo_eservice_pdnd', () => {
-      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'] }];
+      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'], pdnd_type: 'erogazione_pdnd' }];
       component.servizioApi = {
         gruppi_auth_type: [{ profilo: 'pdndProf', resources: ['/r'], note: '' }],
         proprieta_custom: [
@@ -2410,7 +2421,7 @@ describe('ServizioApiDetailsComponent', () => {
     });
 
     it('should return true with fallback to PDNDProduzione (old convention)', () => {
-      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'] }];
+      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'], pdnd_type: 'erogazione_pdnd' }];
       component.servizioApi = {
         gruppi_auth_type: [{ profilo: 'pdndProf', resources: ['/r'], note: '' }],
         proprieta_custom: [
@@ -2425,7 +2436,7 @@ describe('ServizioApiDetailsComponent', () => {
     });
 
     it('should return true with fallback to PDNDCollaudo (old convention)', () => {
-      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'] }];
+      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'], pdnd_type: 'erogazione_pdnd' }];
       component.servizioApi = {
         gruppi_auth_type: [{ profilo: 'pdndProf', resources: ['/r'], note: '' }],
         proprieta_custom: [
@@ -2440,7 +2451,7 @@ describe('ServizioApiDetailsComponent', () => {
     });
 
     it('should return false when property has empty valore', () => {
-      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'] }];
+      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'], pdnd_type: 'erogazione_pdnd' }];
       component.servizioApi = {
         gruppi_auth_type: [{ profilo: 'pdndProf', resources: ['/r'], note: '' }],
         proprieta_custom: [
@@ -2454,7 +2465,7 @@ describe('ServizioApiDetailsComponent', () => {
       expect(component._hasPDNDConfiguredMapper()).toBe(false);
     });
 
-    it('should return false when auth_type does not include pdnd', () => {
+    it('should return false when profilo has no pdnd_type', () => {
       component._profili = [{ codice_interno: 'mtlsProf', auth_type: ['mtls'] }];
       component.servizioApi = {
         gruppi_auth_type: [{ profilo: 'mtlsProf', resources: ['/r'], note: '' }],
@@ -2465,7 +2476,7 @@ describe('ServizioApiDetailsComponent', () => {
     });
 
     it('should return false when proprieta_custom is empty', () => {
-      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'] }];
+      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'], pdnd_type: 'erogazione_pdnd' }];
       component.servizioApi = {
         gruppi_auth_type: [{ profilo: 'pdndProf', resources: ['/r'], note: '' }],
         proprieta_custom: []
@@ -2473,14 +2484,60 @@ describe('ServizioApiDetailsComponent', () => {
 
       expect(component._hasPDNDConfiguredMapper()).toBe(false);
     });
+
+    it('should return true (OR) when only PDNDProduzione is valued and PDNDCollaudo is missing', () => {
+      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'], pdnd_type: 'erogazione_pdnd' }];
+      component.servizioApi = {
+        gruppi_auth_type: [{ profilo: 'pdndProf', resources: ['/r'], note: '' }],
+        proprieta_custom: [
+          { gruppo: 'PDNDProduzione', proprieta: [{ nome: 'identificativo_eservice_pdnd', valore: 'val' }] }
+        ]
+      } as any;
+
+      expect(component._hasPDNDConfiguredMapper()).toBe(true);
+    });
+
+    it('should return false when profilo pdnd_type is not resolved in _pdndTypes', () => {
+      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'], pdnd_type: 'sconosciuto' }];
+      component.servizioApi = {
+        gruppi_auth_type: [{ profilo: 'pdndProf', resources: ['/r'], note: '' }],
+        proprieta_custom: [
+          { gruppo: 'PDNDProduzione', proprieta: [{ nome: 'identificativo_eservice_pdnd', valore: 'val' }] }
+        ]
+      } as any;
+
+      expect(component._hasPDNDConfiguredMapper()).toBe(false);
+    });
+
+    it('should return true when pdnd_type has no required_proprieta_custom', () => {
+      component._pdndTypes = [{ identificativo: 'erogazione_pdnd', etichetta: 'x', required_proprieta_custom: [] }];
+      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'], pdnd_type: 'erogazione_pdnd' }];
+      component.servizioApi = {
+        gruppi_auth_type: [{ profilo: 'pdndProf', resources: ['/r'], note: '' }],
+        proprieta_custom: []
+      } as any;
+
+      expect(component._hasPDNDConfiguredMapper()).toBe(true);
+    });
   });
 
   // =========================================================================
   // _canShowPDNDActionsMapper (extended)
   // =========================================================================
   describe('_canShowPDNDActionsMapper (extended)', () => {
+    beforeEach(() => {
+      component._pdndTypes = [{
+        identificativo: 'erogazione_pdnd',
+        etichetta: 'Erogazione PDND',
+        required_proprieta_custom: [
+          { nome_gruppo: 'PDNDCollaudo', nome_proprieta: 'identificativo_eservice_pdnd' },
+          { nome_gruppo: 'PDNDProduzione', nome_proprieta: 'identificativo_eservice_pdnd' }
+        ]
+      }];
+    });
+
     it('should return true when PDND is configured and soggetto matches _pdnd', () => {
-      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'] }];
+      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'], pdnd_type: 'erogazione_pdnd' }];
       component.servizioApi = {
         gruppi_auth_type: [{ profilo: 'pdndProf', resources: ['/r'], note: '' }],
         proprieta_custom: [
@@ -2497,7 +2554,7 @@ describe('ServizioApiDetailsComponent', () => {
     });
 
     it('should return false when soggetto not in _pdnd', () => {
-      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'] }];
+      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'], pdnd_type: 'erogazione_pdnd' }];
       component.servizioApi = {
         gruppi_auth_type: [{ profilo: 'pdndProf', resources: ['/r'], note: '' }],
         proprieta_custom: [
@@ -2514,7 +2571,7 @@ describe('ServizioApiDetailsComponent', () => {
     });
 
     it('should return false when _pdnd is null', () => {
-      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'] }];
+      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'], pdnd_type: 'erogazione_pdnd' }];
       component.servizioApi = {
         gruppi_auth_type: [{ profilo: 'pdndProf', resources: ['/r'], note: '' }],
         proprieta_custom: [
@@ -2531,7 +2588,7 @@ describe('ServizioApiDetailsComponent', () => {
     });
 
     it('should return false when service has no soggetto_referente nome', () => {
-      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'] }];
+      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'], pdnd_type: 'erogazione_pdnd' }];
       component.servizioApi = {
         gruppi_auth_type: [{ profilo: 'pdndProf', resources: ['/r'], note: '' }],
         proprieta_custom: [
@@ -2592,6 +2649,7 @@ describe('ServizioApiDetailsComponent', () => {
         { nome_soggetto: 'SoggA', collaudo: { id_producer: 'c1' }, produzione: { id_producer: 'p1' } }
       ];
 
+      vi.spyOn(component, '_canShowPDNDActionsMapper').mockReturnValue(true);
       component._showPDND();
 
       expect(mockRouter.navigate).toHaveBeenCalledWith(
@@ -2609,6 +2667,7 @@ describe('ServizioApiDetailsComponent', () => {
         { nome_soggetto: 'SoggA', collaudo: { id_producer: 'c1' }, produzione: { id_producer: 'p1' } }
       ];
 
+      vi.spyOn(component, '_canShowPDNDActionsMapper').mockReturnValue(true);
       component._showPDND();
 
       expect(mockRouter.navigate).toHaveBeenCalledWith(
@@ -2630,6 +2689,18 @@ describe('ServizioApiDetailsComponent', () => {
 
       expect(mockRouter.navigate).not.toHaveBeenCalled();
     });
+
+    it('should show alert dialog (no navigation) when action is not available', () => {
+      mockModalService.show.mockClear();
+      vi.spyOn(component, '_canShowPDNDActionsMapper').mockReturnValue(false);
+
+      component._showPDND();
+
+      expect(mockRouter.navigate).not.toHaveBeenCalled();
+      expect(mockModalService.show).toHaveBeenCalled();
+      const initialState = mockModalService.show.mock.calls[0][1].initialState;
+      expect(initialState.hideCancel).toBe(true);
+    });
   });
 
   // =========================================================================
@@ -2645,6 +2716,7 @@ describe('ServizioApiDetailsComponent', () => {
         { nome_soggetto: 'SoggA', collaudo: { id_producer: 'c1' }, produzione: { id_producer: 'p1' } }
       ];
 
+      vi.spyOn(component, '_canShowPDNDActionsMapper').mockReturnValue(true);
       component._showGeneralInformationsPDND();
 
       expect(mockRouter.navigate).toHaveBeenCalledWith(
@@ -2662,6 +2734,7 @@ describe('ServizioApiDetailsComponent', () => {
         { nome_soggetto: 'SoggA', collaudo: { id_producer: 'c1' }, produzione: { id_producer: 'p1' } }
       ];
 
+      vi.spyOn(component, '_canShowPDNDActionsMapper').mockReturnValue(true);
       component._showGeneralInformationsPDND();
 
       expect(mockRouter.navigate).toHaveBeenCalledWith(
@@ -3133,13 +3206,13 @@ describe('ServizioApiDetailsComponent', () => {
       expect(initPropSpy).toHaveBeenCalled();
     });
 
-    it('should set _isPDND when profilo includes PDND', () => {
+    it('should set _isPDND when profilo has pdnd_type', () => {
       component._formGroup = new FormGroup({
         authTypes: new FormArray([
-          new FormGroup({ profilo: new FormControl('mtls_PDND'), resources: new FormControl([]) })
+          new FormGroup({ profilo: new FormControl('PDND'), resources: new FormControl([]) })
         ])
       });
-      component._profili = [];
+      component._profili = [{ codice_interno: 'PDND', auth_type: 'pdnd', pdnd_type: 'erogazione_pdnd' }];
       const removeSpy = vi.spyOn(component as any, '_removeCustomControls').mockImplementation(() => {});
       vi.spyOn(component as any, '_updateAuthTypesSelected').mockImplementation(() => {});
       vi.spyOn(component, '_initProprietaCustom' as any).mockImplementation(() => {});
@@ -3149,13 +3222,13 @@ describe('ServizioApiDetailsComponent', () => {
       expect(component._isPDND).toBe(true);
     });
 
-    it('should set _isPDND to false when profilo does not include PDND', () => {
+    it('should set _isPDND to false when profilo has no pdnd_type', () => {
       component._formGroup = new FormGroup({
         authTypes: new FormArray([
-          new FormGroup({ profilo: new FormControl('mtls_only'), resources: new FormControl([]) })
+          new FormGroup({ profilo: new FormControl('PDND-INTEGRITY-REST'), resources: new FormControl([]) })
         ])
       });
-      component._profili = [];
+      component._profili = [{ codice_interno: 'PDND-INTEGRITY-REST', auth_type: 'pdnd' }];
       vi.spyOn(component as any, '_removeCustomControls').mockImplementation(() => {});
       vi.spyOn(component as any, '_updateAuthTypesSelected').mockImplementation(() => {});
       vi.spyOn(component, '_initProprietaCustom' as any).mockImplementation(() => {});
@@ -3833,7 +3906,7 @@ const routeWithBc = {
       component.service = { stato: 'pubblicato', dominio: { nome: 'd', soggetto_referente: { nome: 's' } } };
       component._profili = [
         { codice_interno: 'prof1', auth_type: ['mtls'] },
-        { codice_interno: 'prof2', auth_type: ['pdnd'] }
+        { codice_interno: 'prof2', auth_type: ['pdnd'], pdnd_type: 'erogazione_pdnd' }
       ];
       component.servizioApi = {
         ruolo: 'erogato_soggetto_dominio',
