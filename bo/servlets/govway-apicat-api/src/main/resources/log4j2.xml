@@ -90,11 +90,15 @@
             <AppenderRef ref="spring" />
         </Logger>
 
-        <Logger name="org.hibernate" level="debug" additivity="false">
+        <!-- ATTENZIONE: NON riportare org.hibernate a "debug" in produzione.
+             Al flush, AbstractFlushingEventListener.logFlushResults -> EntityPrinter fa il
+             toString() di TUTTE le entita` in sessione; su endpoint che caricano molti record
+             (es. listServiziGruppi con pageSize Integer.MAX_VALUE) questo causa OutOfMemoryError. -->
+        <Logger name="org.hibernate" level="info" additivity="false">
             <AppenderRef ref="hibernate" />
         </Logger>
 
-        <Logger name="org.hibernate.type.descriptor.sql" level="trace" additivity="false">
+        <Logger name="org.hibernate.type.descriptor.sql" level="info" additivity="false">
             <AppenderRef ref="hibernate" />
         </Logger>
 
