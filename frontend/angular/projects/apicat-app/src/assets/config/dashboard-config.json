@@ -6,7 +6,7 @@
       "icon": "bi-grid-3x3-gap",
       "borderColor": "#3b7ddd",
       "summary": {
-        "gradientFrom": "#3b7ddd",
+        "gradientFrom": "#3068bf",
         "gradientTo": "#2c5ea0",
         "textColor": "#ffffff"
       }
@@ -15,8 +15,8 @@
       "icon": "bi-display",
       "borderColor": "#1cbb8c",
       "summary": {
-        "gradientFrom": "#1cbb8c",
-        "gradientTo": "#158c69",
+        "gradientFrom": "#0f7a58",
+        "gradientTo": "#0b5e44",
         "textColor": "#ffffff"
       }
     },
@@ -42,7 +42,7 @@
       "icon": "bi-people",
       "borderColor": "#17a2b8",
       "summary": {
-        "gradientFrom": "#17a2b8",
+        "gradientFrom": "#127d8e",
         "gradientTo": "#117a8b",
         "textColor": "#ffffff"
       }

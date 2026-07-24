@@ -24,7 +24,7 @@
       <span class="fw-semibold">{{ title | translate }}</span>
     </div>
     <span class="position-relative" [ngStyle]="panelType === 'comunicazioni' && totalCount > 0 ? {'cursor': 'help'} : {}" [tooltip]="panelType === 'comunicazioni' && totalCount > 0 ? ('APP.DASHBOARD_PENDING.UnreadComunicazioni' | translate) : ''" [placement]="'top'" [container]="'body'">
-      <span class="badge rounded-pill" [ngStyle]="{'background-color': borderColor, 'color': '#fff'}">{{ totalCount }}</span>
+      <span class="badge rounded-pill" [ngStyle]="{'background-color': badgePillBg, 'color': badgePillText}">{{ totalCount }}</span>
       @if (panelType === 'comunicazioni' && totalCount > 0) {
         <span class="unread-dot-top"></span>
       }

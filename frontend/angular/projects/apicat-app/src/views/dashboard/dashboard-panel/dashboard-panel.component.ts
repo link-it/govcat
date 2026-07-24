@@ -62,6 +62,38 @@ export class DashboardPanelComponent {
     this.viewItem.emit(item);
   }
 
+  // Badge conteggio "pill tenue": sfondo tinta chiara del colore-sezione +
+  // testo colorato scurito fino a contrasto AA (>=4.5:1) sulla tinta. Derivato
+  // da `borderColor`, così funziona per qualsiasi colore configurato.
+  private _hexToRgb(hex: string): number[] {
+    const h = (hex || '#0d6efd').replace('#', '');
+    const v = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
+    return [parseInt(v.slice(0, 2), 16), parseInt(v.slice(2, 4), 16), parseInt(v.slice(4, 6), 16)];
+  }
+  private _relLum(rgb: number[]): number {
+    const f = (c: number) => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+    return 0.2126 * f(rgb[0]) + 0.7152 * f(rgb[1]) + 0.0722 * f(rgb[2]);
+  }
+  private _contrast(a: number[], b: number[]): number {
+    const la = this._relLum(a) + 0.05, lb = this._relLum(b) + 0.05;
+    return Math.max(la, lb) / Math.min(la, lb);
+  }
+  private _badgeBgRgb(): number[] {
+    return this._hexToRgb(this.borderColor).map((c) => Math.round(c * 0.14 + 255 * 0.86));
+  }
+  get badgePillBg(): string {
+    const [r, g, b] = this._badgeBgRgb();
+    return `rgb(${r}, ${g}, ${b})`;
+  }
+  get badgePillText(): string {
+    let rgb = this._hexToRgb(this.borderColor);
+    const bg = this._badgeBgRgb();
+    for (let i = 0; i < 30 && this._contrast(rgb, bg) < 4.6; i++) {
+      rgb = rgb.map((c) => Math.round(c * 0.85));
+    }
+    return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+  }
+
   getStatusStyle(stato: string): { [key: string]: string } {
     const cfg = this.statusConfig[stato];
     if (cfg) {
