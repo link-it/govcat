@@ -319,8 +319,11 @@
           }
         }
 
-        <!-- Layout 2-col: sidebar Referenti + main Documentazione + API. -->
-        <div class="layout">
+        <!-- Layout 2-col: sidebar Referenti + main Documentazione + API.
+             La griglia `.layout` (320px 1fr) si applica SOLO quando i referenti
+             sono mostrati; senza aside la classe non viene messa e la section
+             (unico figlio) occupa tutta la larghezza (div block full-width). -->
+        <div [class.layout]="_showReferents">
           @if (_showReferents) {
             <aside>
               <div class="card card-pad-tight">

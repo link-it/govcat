@@ -1,3 +1,11 @@
+2026-07-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Vetrina servizio: con referenti non mostrati (`_showReferents=false`) la
+	  griglia a 2 colonne lasciava il contenuto nella colonna stretta da 320px.
+	  La classe `.layout` viene ora applicata solo quando i referenti sono
+	  presenti, così senza aside il contenuto occupa tutta la larghezza.
+
 2026-07-23  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
