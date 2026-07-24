@@ -2,9 +2,9 @@
   "content": [
     {
       "id_adesione": "ade-001",
-      "soggetto": { "id_soggetto": "sog-001", "nome": "Comune di Roma" },
+      "soggetto": { "id_soggetto": "sog-001", "nome": "Ente Alfa" },
       "servizio": { "id_servizio": "srv-001", "nome": "Servizio Anagrafe Nazionale", "versione": "2.1" },
-      "id_logico": "ANPR-ROMA-001",
+      "id_logico": "ANAGRAFE-ALFA-001",
       "stato": "richiesto_collaudo",
       "skip_collaudo": false,
       "stato_configurazione_automatica": "non_prevista",
@@ -14,7 +14,7 @@
     },
     {
       "id_adesione": "ade-002",
-      "soggetto": { "id_soggetto": "sog-002", "nome": "Regione Lazio" },
+      "soggetto": { "id_soggetto": "sog-002", "nome": "Ente Beta" },
       "servizio": { "id_servizio": "srv-002", "nome": "Servizio Fatturazione Elettronica", "versione": "1.0" },
       "stato": "autorizzato_collaudo",
       "skip_collaudo": true,
@@ -26,9 +26,9 @@
     },
     {
       "id_adesione": "ade-003",
-      "soggetto": { "id_soggetto": "sog-003", "nome": "Ministero dell'Interno" },
+      "soggetto": { "id_soggetto": "sog-003", "nome": "Ente Gamma" },
       "servizio": { "id_servizio": "srv-003", "nome": "Servizio Notifiche Digitali", "versione": "3.0" },
-      "id_logico": "NOTIFICHE-MI-001",
+      "id_logico": "NOTIFICHE-GAMMA-001",
       "stato": "pubblicato_produzione",
       "skip_collaudo": false,
       "stato_configurazione_automatica": "non_prevista",

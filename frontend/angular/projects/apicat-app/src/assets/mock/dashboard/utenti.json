@@ -6,7 +6,7 @@
       "nome": "Giuseppe",
       "cognome": "Neri",
       "telefono_aziendale": "+39 06 1234567",
-      "email_aziendale": "giuseppe.neri@comune.roma.it",
+      "email_aziendale": "giuseppe.neri@ente-alfa.example.it",
       "stato": "abilitato"
     },
     {
@@ -15,7 +15,7 @@
       "nome": "Francesca",
       "cognome": "Gialli",
       "telefono_aziendale": "+39 06 7654321",
-      "email_aziendale": "francesca.gialli@regione.lazio.it",
+      "email_aziendale": "francesca.gialli@ente-beta.example.it",
       "stato": "disabilitato"
     }
   ],

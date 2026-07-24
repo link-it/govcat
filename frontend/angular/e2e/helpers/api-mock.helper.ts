@@ -54,12 +54,12 @@ export const mockAdesioni = [
 
 export const mockOrganizzazioni = [
   { id: 1, id_organizzazione: 1, nome: 'Ente Test', codice_ipa: 'ente_test', external_id: 'ext1' },
-  { id: 2, id_organizzazione: 2, nome: 'Comune di Roma', codice_ipa: 'c_h501', external_id: 'ext2' }
+  { id: 2, id_organizzazione: 2, nome: 'Ente Beta', codice_ipa: 'ente_beta', external_id: 'ext2' }
 ];
 
 export const mockSoggetti = [
   { id: 1, id_soggetto: 1, nome: 'Soggetto Test', id_organizzazione: 1, organizzazione_nome: 'Ente Test', referente: true, aderente: false },
-  { id: 2, id_soggetto: 2, nome: 'Soggetto Due', id_organizzazione: 2, organizzazione_nome: 'Comune di Roma', referente: false, aderente: true }
+  { id: 2, id_soggetto: 2, nome: 'Soggetto Due', id_organizzazione: 2, organizzazione_nome: 'Ente Beta', referente: false, aderente: true }
 ];
 
 export const mockDashboard = {
