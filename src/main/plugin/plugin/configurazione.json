@@ -172,6 +172,22 @@
           "type": "no_dati"
         }
       ],
+      "pdnd_types": [
+        {
+          "identificativo": "erogazione_pdnd",
+          "etichetta": "Erogazione PDND",
+          "required_proprieta_custom": [
+            {
+              "nome_gruppo": "PDNDCollaudo",
+              "nome_proprieta": "identificativo_eservice_pdnd"
+            },
+            {
+              "nome_gruppo": "PDNDProduzione",
+              "nome_proprieta": "identificativo_eservice_pdnd"
+            }
+          ]
+        }
+      ],
       "profili": [
         {
           "codice_interno": "INTERNO_HTTPS",
@@ -249,6 +265,7 @@
           "codice_interno": "PDND",
           "etichetta": "PDND",
           "auth_type": "pdnd",
+          "pdnd_type": "erogazione_pdnd",
           "domini": [
             "PDND",
             "Test"
@@ -258,6 +275,7 @@
           "codice_interno": "PDND-HTTPS",
           "etichetta": "PDND + mTLS",
           "auth_type": "https_pdnd",
+          "pdnd_type": "erogazione_pdnd",
           "domini": [
             "PDND",
             "Test"

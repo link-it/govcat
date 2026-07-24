@@ -2,7 +2,7 @@
  * GovCat - GovWay API Catalogue
  * https://github.com/link-it/govcat
  *
- * Copyright (c) 2021-2025 Link.it srl (https://link.it).
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3, as published by
@@ -129,13 +129,13 @@ public class EServicePdfGenerationTest {
 		RigaScopoType rigaBaseurlCollaudo = new RigaScopoType();
 		rigaBaseurlCollaudo.setDato("Base URL pubblica (Collaudo)");
 
-		rigaBaseurlCollaudo.setValore("https://apistage.regione.toscana.it/C02/soap/out/PDND/ANAC/issue6/v1");
+		rigaBaseurlCollaudo.setValore("https://apistage.ente.example.it/C02/soap/out/PDND/ENTE/issue6/v1");
 		righeLst.add(rigaBaseurlCollaudo);
 
 		RigaScopoType rigaBaseurlProd = new RigaScopoType();
 		rigaBaseurlProd.setDato("Base URL pubblica (Produzione)");
 
-		rigaBaseurlProd.setValore("https://api.regione.toscana.it/C02/soap/out/PDND/ANAC/issue6/v1");
+		rigaBaseurlProd.setValore("https://api.ente.example.it/C02/soap/out/PDND/ENTE/issue6/v1");
 		righeLst.add(rigaBaseurlProd);
 
 		RigheScopoType righe = new RigheScopoType();

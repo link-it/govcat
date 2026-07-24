@@ -225,10 +225,12 @@ export class AdesioneSubstepperComponent implements OnChanges {
         const lastIndex = this.steps.length - 1;
         const lastStep = this.steps[lastIndex];
         const lastStatesOfLastStep = lastStep?.stati_adesione || [];
-        const terminalState = lastStatesOfLastStep.length > 0
-            ? lastStatesOfLastStep[lastStatesOfLastStep.length - 1]
-            : null;
-        const reachedTerminal = realIndex === lastIndex && terminalState !== null && this.currentState === terminalState;
+        // Terminale raggiunto se lo stato corrente e` uno QUALSIASI degli stati
+        // dell'ultimo step (es. `pubblicato_produzione` o la variante
+        // `..._senza_collaudo`), non solo l'ultimo elemento dell'array.
+        const reachedTerminal = realIndex === lastIndex
+            && !!this.currentState
+            && lastStatesOfLastStep.includes(this.currentState);
 
         return this.steps.map((step, index) => {
             let state: SubstepState;

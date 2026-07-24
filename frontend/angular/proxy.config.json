@@ -17,7 +17,7 @@
     "logLevel": "debug",
     "changeOrigin": true
   },
-  "/govcat-web-v2-3-infocamere/proxyServlet/**": {
+  "/govcat-web-v2-3/proxyServlet/**": {
     "target": "http://localhost:9999",
     "secure": false,
     "logLevel": "debug",

@@ -2356,6 +2356,10 @@
 				"PDNDGeneralInformations": "General informations",
 				"PDNDUsers": "Consumer"
 			},
+			"PDND_ALERT": {
+				"Message": "PDND information for this API is not available. Check that the PDND eService identifier is configured and that the domain reference party is present in the PDND configuration.",
+				"IconTooltip": "Action not available: missing PDND information"
+			},
 			"TITLE": {
 				"EditAttachments": "Edit attachments",
 				"AddAttachment-generico": "Add generic attachment",

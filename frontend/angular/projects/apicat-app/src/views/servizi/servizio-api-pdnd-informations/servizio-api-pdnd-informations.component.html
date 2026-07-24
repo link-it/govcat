@@ -16,22 +16,24 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
-<div id="route-section" class="">
-  <div class="top-area px-0">
-    <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
-    <div class="d-flex flex-grow-1">&nbsp;</div>
-    <div class="nav-controls">
-      @if (service) {
-        <app-monitor-dropdown
-          [showComunications]="false"
-          [showMonitoring]="false"
-          [returnWeb]="true"
-          [otherActions]="[]"
-          (action)="onActionMonitor($event)">
-        </app-monitor-dropdown>
-      }
+<div id="route-section" class="" [class.embedded]="embedded">
+  @if (!embedded) {
+    <div class="top-area px-0">
+      <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+      <div class="d-flex flex-grow-1">&nbsp;</div>
+      <div class="nav-controls">
+        @if (service) {
+          <app-monitor-dropdown
+            [showComunications]="false"
+            [showMonitoring]="false"
+            [returnWeb]="true"
+            [otherActions]="[]"
+            (action)="onActionMonitor($event)">
+          </app-monitor-dropdown>
+        }
+      </div>
     </div>
-  </div>
+  }
   <div class="top-area">
     <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
       <div class="">

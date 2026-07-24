@@ -18,7 +18,7 @@
       "stato": "da_leggere",
       "autore": { "id_utente": "usr-002", "nome": "Anna", "cognome": "Bianchi" },
       "allegati": [],
-      "entita": { "tipo": "adesione", "id": "ade-002", "nome": "Adesione Regione Lazio - FE" }
+      "entita": { "tipo": "adesione", "id": "ade-002", "nome": "Adesione Ente Beta - FE" }
     },
     {
       "uuid": "com-003",

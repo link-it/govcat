@@ -47,10 +47,8 @@
             <i class="bi bi-lock-fill"></i>
           } @else if (item.state === 'completed' || item.state === 'final') {
             <i class="bi bi-check-lg"></i>
-          } @else if (item.state === 'current') {
-            {{ item.numberLabel }}
           } @else {
-            <i class="bi bi-lock-fill"></i>
+            {{ item.numberLabel }}
           }
         </div>
         <div class="lbl">

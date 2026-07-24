@@ -1,3 +1,165 @@
+2026-07-24  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* Rilasciata versione 2.4.2
+
+2026-07-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Vetrina servizio: con referenti non mostrati (`_showReferents=false`) la
+	  griglia a 2 colonne lasciava il contenuto nella colonna stretta da 320px.
+	  La classe `.layout` viene ora applicata solo quando i referenti sono
+	  presenti, così senza aside il contenuto occupa tutta la larghezza.
+
+2026-07-23  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Fix lista transazioni vuota per i servizi in fruizione nel monitoraggio
+	  (`FiltriUtils.getApi`). Dopo il rework dei soggetti (Issue 292), per le
+	  API `EROGATO_SOGGETTO_DOMINIO` l'erogatore inviato a GovWay per le
+	  fruizioni era erroneamente il referente del dominio (che nel nuovo
+	  modello e` il fruitore interno) invece dell'ente erogatore indicato sul
+	  servizio (`soggettoErogatore`): la ricerca non combaciava col campo
+	  `erogatore` indicizzato e restituiva una lista vuota. Ora, coerentemente
+	  con `EServiceBuilder.getUrlInvocazione` e `AdesioneDTOConverter`,
+	  l'erogatore e` `servizio.getSoggettoErogatore()` per le fruizioni e resta
+	  `dominio.getSoggettoReferente()` per le erogazioni. La distinzione
+	  fruizione/erogazione e` calcolata una sola volta a partire dal flag
+	  autoritativo `servizio.isFruizione()` (con `soggettoErogatore` valorizzato
+	  a protezione da NPE e da dati incoerenti), cosi` che tipo di transazione
+	  ed erogatore restino sempre allineati. Aggiunto test di regressione
+	  `FiltriUtilsGetApiSoggettoTest`.
+
+	* [GovwayAPICatalogo]
+	Download specifica API: in modalità visualizzazione il server URL viene ora
+	  riscritto con la stessa logica del try-out (`getUrlInvocazione`), invece di
+	  restare quello dichiarato nel documento della specifica; la modalità download
+	  continua a restituire la specifica originale invariata. Estratto in
+	  `EServiceBuilder.applicaServerUrl` il riuso della sola riscrittura del server
+	  URL, senza abilitare un vero try-out.
+
+2026-07-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 311 (evolutiva): menu PDND nella vetrina del servizio. Dropdown
+	  nell'hero (sotto "Scarica descrittore") visibile a chi puo` gestire il
+	  servizio; le voci aprono una dialog con selettore delle API abilitate che
+	  mostra, per l'API scelta, la pagina Informazioni o Fruitori in modalita`
+	  embedded. Estratta logica condivisa in pdnd-menu.util.ts. Fix layout
+	  dialog (scroll nel body, tab Collaudo/Produzione sticky, padding body).
+
+2026-07-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 311: logica menu PDND (Gestione API) guidata dalla configurazione.
+	  Il button dipende ora dalla proprieta` `pdnd_type` del profilo e
+	  l'abilitazione dalle `required_proprieta_custom` del relativo pdnd_type
+	  (semantica OR), invece che da nomi hardcoded. Le voci restano sempre
+	  cliccabili: se l'informazione PDND manca mostrano un alert e un'icona di
+	  warning. Aggiunto flag `hideCancel` a YesnoDialogBs per l'alert.
+
+2026-07-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 317: wizard adesioni mostrava "Azione richiesta" su una fase gia`
+	  conclusa (es. pubblicato_produzione sul percorso con collaudo). Corretto
+	  il riconoscimento dello stato terminale: ora considera tutti gli stati
+	  pubblicati dell'ultimo sub-step (con/senza collaudo), non solo l'ultimo
+	  dell'array. Badge, counter e sub-step risultano completati.
+
+2026-07-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 317: selezione soggetto non funzionante in creazione adesione. Per i
+	  servizi intermediati la select del soggetto era mostrata ma disabilitata
+	  (con `abilita_selezione_soggetto=true`): ora è sempre nascosta e il
+	  soggetto valorizzato con il referente del dominio, in adesione-form,
+	  adesione-create e adesione-details.
+
+2026-07-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Aggiunto script `build-apicat-dev`: build non di produzione (config
+	  `development-baseref`, ottimizzazioni off, sourcemap, `environment.ts`)
+	  per il debug con i messaggi di console attivi.
+
+2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Allineati i test `_gotoAdesione` di servizio-view al comportamento reale di
+	  `navigateWithEvent` (senza terzo argomento). In `servizio-api-details`,
+	  usato `forEach` al posto di `map` nell'iterazione con soli side-effect su
+	  `gruppi_auth_type` (verifica PDND).
+
+2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Test: ripristinata la compilazione/esecuzione della suite unit. Gli spec di
+	  `servizi`/`servizio-view` assegnavano a `hideVersions` (ora getter
+	  read-only), bloccando la compilazione di tutti i test: sostituito con il
+	  mock di `configService.isHideVersions`. Corretto anche il test success di
+	  `toggleSkipCollaudo` (spy su `loadAdesione` per isolare il cascade).
+
+2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 316: fase Produzione del wizard adesioni non attivabile. Il click
+	  sulla fasi-bar a 3 fasi (`selectFase`) aggiornava solo l'evidenziazione
+	  ma non le sezioni attive (che dipendevano dalla logica legacy
+	  `selectedStepCode`): ora allinea la selezione e ricalcola le sezioni.
+	  Rese cliccabili le fasi future (anteprima) e riconosciuto anche lo stato
+	  servizio `pubblicato_produzione_senza_collaudo` come pubblicato in produzione.
+
+2026-07-21  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Fix generazione dell'URL di invocazione (`EServiceBuilder`): il
+	  placeholder `#versione#` ora usa la stessa logica di priorita` gia`
+	  applicata a `#nome#`, ossia la versione impostata sul gateway
+	  (`versioneGateway` della configurazione di collaudo/produzione) e, in
+	  sua assenza, la versione dell'API. In precedenza veniva sempre usata
+	  direttamente la versione dell'API, ignorando l'eventuale override sul
+	  gateway.
+
+2026-07-20  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 311: aggiunta al modello di configurazione la gestione dei
+	  "pdnd type". Ogni profilo (`servizio.api.profili[].pdnd_type`) può
+	  ora riferire, opzionalmente, un elemento della nuova lista
+	  `servizio.api.pdnd_types`; ciascun pdnd_type definisce
+	  `identificativo`, `etichetta` e `required_proprieta_custom` (elenco
+	  di coppie `nome_gruppo`/`nome_proprieta`). Aggiornati l'OpenAPI
+	  (nuove schema `ConfigurazionePdndType` e
+	  `ConfigurazionePdndTypeProprietaCustom`, nuovi campi su
+	  `ConfigurazioneProfilo` e `ConfigurazioneApi`) e la configurazione
+	  di esempio. Modifica retrocompatibile: i nuovi campi sono opzionali.
+
+2026-07-19  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Fix errore 500 `NoClassDefFoundError: jakarta.validation.ValidationException`
+	  sulle API (`govcat-api.war`): la dipendenza `jakarta.validation-api` era
+	  dichiarata in scope `provided` e non veniva inclusa nel WAR, ma Tomcat 11
+	  non fornisce la Bean Validation API. Portata a scope `compile` (default),
+	  allineandola al modulo batch. Difetto latente emerso con l'upgrade a Spring
+	  Boot 4, la cui nuova struttura a moduli (`spring-boot-validation`) non
+	  trascina piu` l'API nel WAR tramite le dipendenze transitive.
+
+2026-07-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Fix "v1" mostrato a intermittenza accanto al nome servizio (lista a
+	  gruppi e breadcrumb della vista): era una race col caricamento
+	  asincrono del config remoto. Centralizzata la visibilita` versioni in
+	  `ConfigService.isHideVersions()` (deriva live da `servizio.mostra_versione`
+	  con fallback `AppConfig.Services.hideVersions`); `hideVersions` in
+	  servizi.component e servizio-view e` ora un getter, non un valore
+	  catturato all'init.
+
+	* [Frontend]
+	Title della pagina: impostato dal config (`Layout.Header.title`) al
+	  caricamento, invece di restare il valore statico di index.html.
+
 2026-07-14  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* Rilasciata versione 2.4.1

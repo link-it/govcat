@@ -334,3 +334,15 @@ word-break: break-word;
     border-radius: .5rem;
     background-color: #ffffff;
 }
+
+/* Il dropdown PDND nell'hero deve poter uscire dal box: l'hero globale
+   (app-view.scss) ha `overflow: hidden` per clippare il gradiente `::before`.
+   Qui lo rendiamo visibile e arrotondiamo il gradiente, così il menu non
+   viene tagliato senza introdurre artefatti agli angoli. */
+.lnk-vetrina .hero {
+    overflow: visible;
+}
+
+.lnk-vetrina .hero::before {
+    border-radius: var(--radius-xl);
+}

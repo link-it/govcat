@@ -683,11 +683,15 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
       stato: 'archiviato'
     };
     mockApiService.putElement.mockReturnValue(of({}));
+    // Il success path ricarica l'adesione via `loadAdesione`: lo spiamo per
+    // isolare il test dal cascade di caricamenti (servizio, config, disclaimer).
+    const reloadSpy = vi.fn();
+    (component as any).loadAdesione = reloadSpy;
     component.toggleSkipCollaudo();
     expect(mockApiService.putElement).toHaveBeenCalledWith('adesioni', 5, expect.objectContaining({
       identificativo: expect.objectContaining({ skip_collaudo: true })
     }));
-    expect(component.adesione.skip_collaudo).toBe(true);
+    expect(reloadSpy).toHaveBeenCalledWith(false);
     expect(component.saveSkipCollaudo).toBe(false);
   });
 
@@ -829,6 +833,65 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
       mockApiService.postElementRelated.mockReturnValue(throwError(() => new Error('fail')));
       component.onRetryAutoConfig();
       expect(component._retryingAutoConfig).toBe(false);
+    });
+  });
+
+  // -------- Fase Produzione: sblocco per servizio pubblicato in produzione --------
+  describe('_isProduzioneBloccata / getDisabledFasiCodes', () => {
+    it('sblocca la produzione con servizio pubblicato_produzione', () => {
+      component.adesione = { servizio: { stato: 'pubblicato_produzione' } };
+      expect(component._isProduzioneBloccata()).toBe(false);
+      expect(component.getDisabledFasiCodes()).toEqual([]);
+    });
+
+    it('sblocca la produzione con servizio pubblicato_produzione_senza_collaudo (bug fix)', () => {
+      component.adesione = { servizio: { stato: 'pubblicato_produzione_senza_collaudo' } };
+      expect(component._isProduzioneBloccata()).toBe(false);
+      expect(component.getDisabledFasiCodes()).toEqual([]);
+    });
+
+    it('blocca la produzione se il servizio non e` ancora pubblicato in produzione', () => {
+      component.adesione = { servizio: { stato: 'pubblicato_collaudo' } };
+      expect(component._isProduzioneBloccata()).toBe(true);
+      expect(component.getDisabledFasiCodes()).toEqual(['produzione']);
+    });
+
+    it('blocca la produzione se manca lo stato del servizio', () => {
+      component.adesione = { servizio: {} };
+      expect(component._isProduzioneBloccata()).toBe(true);
+      expect(component.getDisabledFasiCodes()).toEqual(['produzione']);
+    });
+  });
+
+  describe('stato terminale sezione produzione (Issue 317 follow-up)', () => {
+    const PRODUZIONE_STEPS = [
+      { code: 'in_compilazione',   descrizione: 'In Compilazione',   stati_adesione: ['pubblicato_collaudo'] },
+      { code: 'in_approvazione',   descrizione: 'In Approvazione',   stati_adesione: ['richiesto_produzione', 'richiesto_produzione_senza_collaudo'] },
+      { code: 'in_configurazione', descrizione: 'In Configurazione', stati_adesione: ['autorizzato_produzione', 'in_configurazione_produzione'] },
+      { code: 'configurato',       descrizione: 'Configurato',       stati_adesione: ['pubblicato_produzione', 'pubblicato_produzione_senza_collaudo'] }
+    ];
+
+    beforeEach(() => {
+      component.stepWizardSezione = { collaudo: [], produzione: PRODUZIONE_STEPS } as any;
+    });
+
+    it('marca tutti i sub-step come completati con pubblicato_produzione (percorso con collaudo)', () => {
+      component.adesione = { stato: 'pubblicato_produzione' };
+      const stati = component.getSezioneStepStates('produzione');
+      expect(stati.every(s => s.state === 'completed')).toBe(true);
+      expect((component as any)._workflowReachedSectionFinal('produzione')).toBe(true);
+    });
+
+    it('marca tutti i sub-step come completati con pubblicato_produzione_senza_collaudo', () => {
+      component.adesione = { stato: 'pubblicato_produzione_senza_collaudo' };
+      const stati = component.getSezioneStepStates('produzione');
+      expect(stati.every(s => s.state === 'completed')).toBe(true);
+      expect((component as any)._workflowReachedSectionFinal('produzione')).toBe(true);
+    });
+
+    it('NON e` terminale in uno stato intermedio (in_configurazione_produzione)', () => {
+      component.adesione = { stato: 'in_configurazione_produzione' };
+      expect((component as any)._workflowReachedSectionFinal('produzione')).toBe(false);
     });
   });
 });

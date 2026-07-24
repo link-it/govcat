@@ -2,7 +2,7 @@
  * GovCat - GovWay API Catalogue
  * https://github.com/link-it/govcat
  *
- * Copyright (c) 2021-2025 Link.it srl (https://link.it).
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3, as published by
@@ -204,12 +204,12 @@ public class SchedaAdesionePdfGenerationTest {
         scheda.setTitolo("Richiesta di Adesione");
         scheda.setServizio("API Gestione Pagamenti Multi-Canale");
         scheda.setVersioneServizio("3.0.0");
-        scheda.setOrganizzazioneAderente("Regione Lombardia");
+        scheda.setOrganizzazioneAderente("Ente Alfa");
         scheda.setSoggettoAderente("Direzione Generale Sistemi Informativi");
-        scheda.setIdLogico("LOMBARDIA-PAG-MULTI-001");
+        scheda.setIdLogico("ENTE-ALFA-PAG-MULTI-001");
         scheda.setRichiedente("Giuseppe Verdi");
         scheda.setStato("APPROVATA");
-        scheda.setDescrizione("Adesione completa al servizio di gestione pagamenti multi-canale con integrazione per tutti i sistemi regionali di riscossione, gestione tributi, pagamenti PagoPA e servizi aggiuntivi per il cittadino digitale.");
+        scheda.setDescrizione("Adesione completa al servizio di gestione pagamenti multi-canale con integrazione per tutti i sistemi regionali di riscossione, gestione tributi, pagamenti digitali e servizi aggiuntivi per il cittadino digitale.");
 
         // Date
         String now = LocalDateTime.now().format(DATE_FORMATTER);
@@ -224,7 +224,7 @@ public class SchedaAdesionePdfGenerationTest {
         String[] labels = {"Nome Servizio", "Versione", "Erogatore", "Tipologia", "Profilo Interoperabilità",
             "Dominio Applicativo", "Categoria", "SLA Garantito", "Disponibilità", "Throughput Massimo",
             "Latenza Media", "Timeout", "Retry Policy", "Autenticazione", "Autorizzazione"};
-        String[] values = {"API Gestione Pagamenti Multi-Canale", "3.0.0", "Agenzia per l'Italia Digitale",
+        String[] values = {"API Gestione Pagamenti Multi-Canale", "3.0.0", "Ente Beta",
             "REST/JSON", "ModI - ID_AUTH_CHANNEL_02 + INTEGRITY_REST_01",
             "Servizi Finanziari PA", "Core Services", "99.9%", "24/7 con manutenzione programmata",
             "10000 TPS", "<100ms (p95)", "30 secondi", "3 tentativi con backoff esponenziale",
@@ -250,7 +250,7 @@ public class SchedaAdesionePdfGenerationTest {
         for (int i = 1; i <= 5; i++) {
             RowType confRow = new RowType();
             confRow.setLabel("App Test Collaudo " + i);
-            confRow.setValore("ModI | CN=AppTestCollaudo" + i + ",O=RegioneLombardia,C=IT | Scadenza Certificato: 31/12/202" + (5+i));
+            confRow.setValore("ModI | CN=AppTestCollaudo" + i + ",O=EnteAlfa,C=IT | Scadenza Certificato: 31/12/202" + (5+i));
             configsCollaudo.getRow().add(confRow);
         }
         scheda.setConfigsCollaudo(configsCollaudo);
@@ -262,7 +262,7 @@ public class SchedaAdesionePdfGenerationTest {
         for (int i = 1; i <= 8; i++) {
             RowType confRow = new RowType();
             confRow.setLabel("App Produzione " + i);
-            confRow.setValore("ModI | CN=AppProduzione" + i + ",O=RegioneLombardia,C=IT | Scadenza Certificato: 30/06/202" + (6+i) + " | PDND Client ID: lombardia-prod-" + String.format("%03d", i));
+            confRow.setValore("ModI | CN=AppProduzione" + i + ",O=EnteAlfa,C=IT | Scadenza Certificato: 30/06/202" + (6+i) + " | PDND Client ID: ente-prod-" + String.format("%03d", i));
             configsProduzione.getRow().add(confRow);
         }
         scheda.setConfigsProduzione(configsProduzione);
@@ -280,8 +280,8 @@ public class SchedaAdesionePdfGenerationTest {
             ref.setNome(nomiAdesione[i]);
             ref.setCognome(cognomiAdesione[i]);
             ref.setBusinessTelefono("+39 02 " + String.format("%08d", 10000000 + i * 1111111));
-            ref.setBusinessEmail(nomiAdesione[i].toLowerCase() + "." + cognomiAdesione[i].toLowerCase() + "@regione.lombardia.it");
-            ref.setOrganization("Regione Lombardia - DG Sistemi Informativi");
+            ref.setBusinessEmail(nomiAdesione[i].toLowerCase() + "." + cognomiAdesione[i].toLowerCase() + "@ente-alfa.example.it");
+            ref.setOrganization("Ente Alfa - DG Sistemi Informativi");
             refAdesione.getItem().add(ref);
         }
         referents.setSubscription(refAdesione);
@@ -296,8 +296,8 @@ public class SchedaAdesionePdfGenerationTest {
             ref.setNome(nomiServizio[i]);
             ref.setCognome(cognomiServizio[i]);
             ref.setBusinessTelefono("+39 06 " + String.format("%08d", 50000000 + i * 2222222));
-            ref.setBusinessEmail(nomiServizio[i].toLowerCase() + "." + cognomiServizio[i].toLowerCase() + "@agid.gov.it");
-            ref.setOrganization("AgID - Area Servizi Digitali");
+            ref.setBusinessEmail(nomiServizio[i].toLowerCase() + "." + cognomiServizio[i].toLowerCase() + "@ente-beta.example.it");
+            ref.setOrganization("Ente Beta - Area Servizi Digitali");
             refServizio.getItem().add(ref);
         }
         referents.setService(refServizio);
@@ -312,8 +312,8 @@ public class SchedaAdesionePdfGenerationTest {
             ref.setNome(nomiGruppo[i]);
             ref.setCognome(cognomiGruppo[i]);
             ref.setBusinessTelefono("+39 06 " + String.format("%08d", 70000000 + i * 3333333));
-            ref.setBusinessEmail(nomiGruppo[i].toLowerCase() + "." + cognomiGruppo[i].toLowerCase() + "@governo.it");
-            ref.setOrganization("Presidenza del Consiglio - Dipartimento Trasformazione Digitale");
+            ref.setBusinessEmail(nomiGruppo[i].toLowerCase() + "." + cognomiGruppo[i].toLowerCase() + "@ente-gamma.example.it");
+            ref.setOrganization("Ente Gamma");
             refGruppo.getItem().add(ref);
         }
         referents.setGroup(refGruppo);
@@ -326,22 +326,22 @@ public class SchedaAdesionePdfGenerationTest {
 
         RowType urlColl1 = new RowType();
         urlColl1.setLabel("Base URL API v3");
-        urlColl1.setValore("https://api-test.servizipubblici.lombardia.it/pagamenti/v3");
+        urlColl1.setValore("https://api-test.ente-alfa.example.it/pagamenti/v3");
         baseUrlCollaudo.getRow().add(urlColl1);
 
         RowType urlColl2 = new RowType();
         urlColl2.setLabel("Base URL Notifiche");
-        urlColl2.setValore("https://api-test.servizipubblici.lombardia.it/notifiche/v2");
+        urlColl2.setValore("https://api-test.ente-alfa.example.it/notifiche/v2");
         baseUrlCollaudo.getRow().add(urlColl2);
 
         RowType urlColl3 = new RowType();
         urlColl3.setLabel("Base URL Ricevute");
-        urlColl3.setValore("https://api-test.servizipubblici.lombardia.it/ricevute/v1");
+        urlColl3.setValore("https://api-test.ente-alfa.example.it/ricevute/v1");
         baseUrlCollaudo.getRow().add(urlColl3);
 
         RowType urlColl4 = new RowType();
         urlColl4.setLabel("Client ID");
-        urlColl4.setValore("lombardia-pagamenti-test-multicanale-001");
+        urlColl4.setValore("ente-alfa-pagamenti-test-multicanale-001");
         baseUrlCollaudo.getRow().add(urlColl4);
 
         scheda.setBaseUrlCollaudo(baseUrlCollaudo);
@@ -352,22 +352,22 @@ public class SchedaAdesionePdfGenerationTest {
 
         RowType urlProd1 = new RowType();
         urlProd1.setLabel("Base URL API v3");
-        urlProd1.setValore("https://api.servizipubblici.lombardia.it/pagamenti/v3");
+        urlProd1.setValore("https://api.ente-alfa.example.it/pagamenti/v3");
         baseUrlProduzione.getRow().add(urlProd1);
 
         RowType urlProd2 = new RowType();
         urlProd2.setLabel("Base URL Notifiche");
-        urlProd2.setValore("https://api.servizipubblici.lombardia.it/notifiche/v2");
+        urlProd2.setValore("https://api.ente-alfa.example.it/notifiche/v2");
         baseUrlProduzione.getRow().add(urlProd2);
 
         RowType urlProd3 = new RowType();
         urlProd3.setLabel("Base URL Ricevute");
-        urlProd3.setValore("https://api.servizipubblici.lombardia.it/ricevute/v1");
+        urlProd3.setValore("https://api.ente-alfa.example.it/ricevute/v1");
         baseUrlProduzione.getRow().add(urlProd3);
 
         RowType urlProd4 = new RowType();
         urlProd4.setLabel("Client ID");
-        urlProd4.setValore("lombardia-pagamenti-prod-multicanale-001");
+        urlProd4.setValore("ente-alfa-pagamenti-prod-multicanale-001");
         baseUrlProduzione.getRow().add(urlProd4);
 
         scheda.setBaseUrlProduzione(baseUrlProduzione);
@@ -415,9 +415,9 @@ public class SchedaAdesionePdfGenerationTest {
         scheda.setTitolo("Richiesta di Adesione");
         scheda.setServizio("API Gestione Pagamenti");
         scheda.setVersioneServizio("2.1.0");
-        scheda.setOrganizzazioneAderente("Comune di Roma");
+        scheda.setOrganizzazioneAderente("Ente Delta");
         scheda.setSoggettoAderente("Direzione Servizi Digitali");
-        scheda.setIdLogico("ROMA-PAG-001");
+        scheda.setIdLogico("ENTE-DELTA-PAG-001");
         scheda.setRichiedente("Mario Rossi");
         scheda.setStato("APPROVATA");
         scheda.setDescrizione("Adesione al servizio di gestione pagamenti per integrazione con il sistema di riscossione comunale");
@@ -442,7 +442,7 @@ public class SchedaAdesionePdfGenerationTest {
 
         RowType row3 = new RowType();
         row3.setLabel("Erogatore");
-        row3.setValore("Ministero dell'Economia");
+        row3.setValore("Ente Epsilon");
 
         RowType row4 = new RowType();
         row4.setLabel("Tipologia");
@@ -501,8 +501,8 @@ public class SchedaAdesionePdfGenerationTest {
         refAdes1.setNome("Mario");
         refAdes1.setCognome("Rossi");
         refAdes1.setBusinessTelefono("+39 06 12345678");
-        refAdes1.setBusinessEmail("mario.rossi@comune.roma.it");
-        refAdes1.setOrganization("Comune di Roma - IT");
+        refAdes1.setBusinessEmail("mario.rossi@ente-delta.example.it");
+        refAdes1.setOrganization("Ente Delta - IT");
         refAdesione.getItem().add(refAdes1);
         referents.setSubscription(refAdesione);
 
@@ -513,8 +513,8 @@ public class SchedaAdesionePdfGenerationTest {
         refServ1.setNome("Laura");
         refServ1.setCognome("Bianchi");
         refServ1.setBusinessTelefono("+39 06 87654321");
-        refServ1.setBusinessEmail("laura.bianchi@mef.gov.it");
-        refServ1.setOrganization("Ministero dell'Economia");
+        refServ1.setBusinessEmail("laura.bianchi@ente-epsilon.example.it");
+        refServ1.setOrganization("Ente Epsilon");
         refServizio.getItem().add(refServ1);
         referents.setService(refServizio);
 
@@ -525,8 +525,8 @@ public class SchedaAdesionePdfGenerationTest {
         refGroup1.setNome("Giuseppe");
         refGroup1.setCognome("Verdi");
         refGroup1.setBusinessTelefono("+39 06 11111111");
-        refGroup1.setBusinessEmail("giuseppe.verdi@agid.gov.it");
-        refGroup1.setOrganization("AgID");
+        refGroup1.setBusinessEmail("giuseppe.verdi@ente-beta.example.it");
+        refGroup1.setOrganization("Ente Beta");
         refGruppo.getItem().add(refGroup1);
         referents.setGroup(refGruppo);
 
@@ -538,11 +538,11 @@ public class SchedaAdesionePdfGenerationTest {
 
         RowType urlColl1 = new RowType();
         urlColl1.setLabel("Base URL");
-        urlColl1.setValore("https://api-test.comune.roma.it/pagamenti/v2");
+        urlColl1.setValore("https://api-test.ente-delta.example.it/pagamenti/v2");
 
         RowType urlColl2 = new RowType();
         urlColl2.setLabel("Client ID");
-        urlColl2.setValore("roma-pagamenti-test-001");
+        urlColl2.setValore("ente-delta-pagamenti-test-001");
 
         baseUrlCollaudo.getRow().add(urlColl1);
         baseUrlCollaudo.getRow().add(urlColl2);
@@ -554,11 +554,11 @@ public class SchedaAdesionePdfGenerationTest {
 
         RowType urlProd1 = new RowType();
         urlProd1.setLabel("Base URL");
-        urlProd1.setValore("https://api.comune.roma.it/pagamenti/v2");
+        urlProd1.setValore("https://api.ente-delta.example.it/pagamenti/v2");
 
         RowType urlProd2 = new RowType();
         urlProd2.setLabel("Client ID");
-        urlProd2.setValore("roma-pagamenti-prod-001");
+        urlProd2.setValore("ente-delta-pagamenti-prod-001");
 
         RowType urlProd3 = new RowType();
         urlProd3.setLabel("Rate Limit");

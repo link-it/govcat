@@ -2,20 +2,20 @@
   "content": [
     {
       "id_client": "cli-001",
-      "soggetto": { "id_soggetto": "sog-001", "nome": "Comune di Roma" },
+      "soggetto": { "id_soggetto": "sog-001", "nome": "Ente Alfa" },
       "ambiente": "collaudo",
-      "nome": "Client ANPR Roma",
+      "nome": "Client Anagrafe Ente Alfa",
       "stato": "nuovo",
       "indirizzo_ip": "10.0.1.100",
-      "descrizione": "Client per accesso ANPR in ambiente di collaudo"
+      "descrizione": "Client per accesso all'anagrafe in ambiente di collaudo"
     },
     {
       "id_client": "cli-002",
-      "soggetto": { "id_soggetto": "sog-002", "nome": "Regione Lazio" },
+      "soggetto": { "id_soggetto": "sog-002", "nome": "Ente Beta" },
       "ambiente": "produzione",
-      "nome": "Client FE Lazio",
+      "nome": "Client FE Ente Beta",
       "stato": "configurato",
-      "descrizione": "Client fatturazione elettronica Regione Lazio"
+      "descrizione": "Client fatturazione elettronica Ente Beta"
     }
   ],
   "page": {

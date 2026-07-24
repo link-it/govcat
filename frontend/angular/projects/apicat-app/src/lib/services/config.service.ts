@@ -46,6 +46,13 @@ export class ConfigService {
       this.http.get(url)
         .subscribe(config => {
           this.config = config;
+
+          // Titolo del documento dal config (`Layout.Header.title`): evita che
+          // resti il valore statico di index.html quando il deployment usa un
+          // app-config con titolo diverso.
+          const _pageTitle = this.config?.AppConfig?.Layout?.Header?.title;
+          if (_pageTitle) { document.title = _pageTitle; }
+
           const _currentTheme = this.config.AppConfig.CurrentTheme;
           const _theme = this.config.AppConfig.Themes.find((theme: any) => theme.Name === _currentTheme);
 
@@ -181,6 +188,22 @@ export class ConfigService {
       });
     }
     Tools.CustomFieldsLabel = _customFields;
+  }
+
+  /**
+   * Visibilita` delle versioni servizio, derivata (live) dalla sorgente di
+   * verita`: il config remoto `servizio.mostra_versione` se presente
+   * (`enabled` => versioni visibili), altrimenti il default locale
+   * `AppConfig.Services.hideVersions`. Va letta al momento dell'uso (es.
+   * getter nei componenti) per evitare la race col caricamento asincrono
+   * del config remoto (che causava il "v1" mostrato a intermittenza).
+   */
+  isHideVersions(): boolean {
+    const _mostraVersione = Tools.Configurazione?.servizio?.mostra_versione;
+    if (_mostraVersione) {
+      return _mostraVersione !== 'enabled';
+    }
+    return this.config?.AppConfig?.Services?.hideVersions || false;
   }
 
   getConfiguration() {

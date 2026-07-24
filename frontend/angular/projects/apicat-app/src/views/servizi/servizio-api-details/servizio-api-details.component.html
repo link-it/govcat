@@ -53,17 +53,23 @@
                 <div class="gl-new-dropdown-inner">
                   <div class="gl-new-dropdown-contents">
                     <li class="gl-new-dropdown-item">
-                      <button role="menuitem" type="button" class="dropdown-item" (click)="_showGeneralInformationsPDND()" [disabled]="!(_updateMapper | mapper:_canShowPDNDActionsMapper)">
+                      <button role="menuitem" type="button" class="dropdown-item d-flex align-items-center justify-content-between" (click)="_showGeneralInformationsPDND()">
                         <div class="gl-new-dropdown-item-text-wrapper">
                           <p class="gl-new-dropdown-item-text-primary">{{ 'APP.SERVICES.MENU.PDNDGeneralInformations' | translate }}</p>
                         </div>
+                        @if (!(_updateMapper | mapper:_canShowPDNDActionsMapper)) {
+                          <i class="bi bi-exclamation-triangle-fill text-warning ms-2" [tooltip]="'APP.SERVICES.PDND_ALERT.IconTooltip' | translate" container="body"></i>
+                        }
                       </button>
                     </li>
                     <li class="gl-new-dropdown-item">
-                      <button role="menuitem" type="button" class="dropdown-item" (click)="_showPDND()" [disabled]="!(_updateMapper | mapper:_canShowPDNDActionsMapper)">
+                      <button role="menuitem" type="button" class="dropdown-item d-flex align-items-center justify-content-between" (click)="_showPDND()">
                         <div class="gl-new-dropdown-item-text-wrapper">
                           <p class="gl-new-dropdown-item-text-primary">{{ 'APP.SERVICES.MENU.PDNDUsers' | translate }}</p>
                         </div>
+                        @if (!(_updateMapper | mapper:_canShowPDNDActionsMapper)) {
+                          <i class="bi bi-exclamation-triangle-fill text-warning ms-2" [tooltip]="'APP.SERVICES.PDND_ALERT.IconTooltip' | translate" container="body"></i>
+                        }
                       </button>
                     </li>
                   </div>

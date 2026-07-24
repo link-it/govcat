@@ -6443,6 +6443,9 @@ components:
           $ref: "#/components/schemas/String255"
         auth_type:
           $ref: "#/components/schemas/AuthTypeEnum"
+        pdnd_type:
+          description: "Identificativo di un pdnd_type configurato nella lista pdnd_types. Opzionale."
+          $ref: "#/components/schemas/String255"
         compatibilita:
           $ref: "#/components/schemas/ConfigurazioneCompatibilitaApiEnum"
         canale_default:
@@ -6461,6 +6464,31 @@ components:
             type: "string"
         codice_token_policy:
           type: "string"
+    ConfigurazionePdndType:
+      type: "object"
+      required:
+        - identificativo
+        - etichetta
+        - required_proprieta_custom
+      properties:
+        identificativo:
+          $ref: "#/components/schemas/String255"
+        etichetta:
+          $ref: "#/components/schemas/String255"
+        required_proprieta_custom:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigurazionePdndTypeProprietaCustom"
+    ConfigurazionePdndTypeProprietaCustom:
+      type: "object"
+      required:
+        - nome_gruppo
+        - nome_proprieta
+      properties:
+        nome_gruppo:
+          $ref: "#/components/schemas/String255"
+        nome_proprieta:
+          $ref: "#/components/schemas/String255"
     TipoConfigurazioneCustomProprieta:
       type: "string"
       enum:
@@ -6798,6 +6826,10 @@ components:
           type: "array"
           items:
             $ref: "#/components/schemas/ConfigurazioneAuthType"
+        pdnd_types:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ConfigurazionePdndType"
         profili:
           type: "array"
           items:

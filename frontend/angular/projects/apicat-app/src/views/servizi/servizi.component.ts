@@ -277,7 +277,10 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
     _updateMapper: string = '';
 
-    hideVersions: boolean = false;
+    /** Visibilita` versioni: derivata live dalla sorgente di verita`
+     *  (`ConfigService.isHideVersions`) per evitare la race col config remoto
+     *  che mostrava il "v1" a intermittenza al refresh. */
+    get hideVersions(): boolean { return this.configService.isHideVersions(); }
 
     _useNewSearchUI : boolean = true;
 
@@ -479,9 +482,6 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
                 this._showEmptyImage = this.serviziConfig.showEmptyImage || false;
                 this._fillBox = this.serviziConfig.fillBox || true;
                 this._showMasonry = this.serviziConfig.showMasonry || false;
-
-                const appConfig = this.configService.getConfiguration();
-                this.hideVersions = appConfig?.AppConfig?.Services?.hideVersions || false;
 
                 if (!this.authenticationService.isGestore()) {
                     this.hasMultiSelection = false;

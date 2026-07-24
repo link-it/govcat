@@ -15,20 +15,15 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
-package testsuite.utils;
 
-import java.util.Optional;
+/* L'host del componente-dialog non deve generare un box, altrimenti spezza la
+   catena delle altezze percentuali del modal (`.modal-content > .modal-body`
+   con `height: 80%`): senza questo il body non scrolla e il contenuto eccede. */
+:host {
+  display: contents;
+}
 
-import org.apache.commons.lang3.StringUtils;
-
-public class Optionals {
-
-	public static final Optional<String> ofNonEmpty(String s) {
-		if (StringUtils.isEmpty(s))
-			return Optional.empty();
-		else
-			return Optional.of(s);
-	}
+.modal-body {
+  padding: 0 1rem;
 }

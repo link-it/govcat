@@ -434,6 +434,13 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
      */
     selectFase(faseCode: string): void {
         this._selectedFase = faseCode;
+        // Allinea la selezione delle sezioni attive alla fase scelta (stessa
+        // logica di `onStepBarClick` della step-bar legacy): senza questo, il
+        // click sulla fasi-bar aggiornava solo l'evidenziazione ma non
+        // attivava le sezioni della fase (es. Produzione restava inattiva).
+        const realStep = this.stepWizard.find(s => s.stati_adesione?.includes(this.adesione?.stato));
+        this.selectedStepCode = realStep?.code === faseCode ? null : faseCode;
+        this._computeActiveSections();
     }
 
     /**
@@ -631,7 +638,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         {
             contesto: 'collaudo',
             severity: 'INFO',
-            disclaimer: '## Certificato mTLS\n\L\'ente mette a disposizione l\'infrastruttura PKI per l\'emissione di certificati su CA privata. Chi gestisce le chiavi private e si occupa dell\'installazione può seguire la guida al rilascio (<a href="https://www.dominio.it//Guida-rilascio-certificati.pdf" target="_blank">Scarica</a>), che illustra i passi necessari per la generazione del nuovo certificato. Per assistenza scrivere a ra.pki@regione.toscana.it.\n\n### Common Name\n\nIl Common Name del certificato deve seguire il formato:\n\n- `EnteRichiedente_Progetto_PDND_COLLAUDO` — per l\'ambiente di collaudo\n\n- `EnteRichiedente_Progetto_PDND` — per la produzione\n\nAd esempio: `Ente_LibriGratis_PDND_COLLAUDO` / `Ente_LibriGratis_PDND`\n\n### Caricamento\n\nUna volta ottenuto il certificato, caricare la parte pubblica nell\'apposita sezione. Se si intende riutilizzare un certificato già configurato, selezionarlo dalla lista.'
+            disclaimer: '## Certificato mTLS\n\L\'ente mette a disposizione l\'infrastruttura PKI per l\'emissione di certificati su CA privata. Chi gestisce le chiavi private e si occupa dell\'installazione può seguire la guida al rilascio (<a href="https://www.dominio.it//Guida-rilascio-certificati.pdf" target="_blank">Scarica</a>), che illustra i passi necessari per la generazione del nuovo certificato. Per assistenza scrivere a ra.pki@ente.example.it.\n\n### Common Name\n\nIl Common Name del certificato deve seguire il formato:\n\n- `EnteRichiedente_Progetto_PDND_COLLAUDO` — per l\'ambiente di collaudo\n\n- `EnteRichiedente_Progetto_PDND` — per la produzione\n\nAd esempio: `Ente_LibriGratis_PDND_COLLAUDO` / `Ente_LibriGratis_PDND`\n\n### Caricamento\n\nUna volta ottenuto il certificato, caricare la parte pubblica nell\'apposita sezione. Se si intende riutilizzare un certificato già configurato, selezionarlo dalla lista.'
         },
         {
             contesto: 'collaudo',
@@ -1056,7 +1063,11 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
      *  per disabilitare FASE 3 nella step-bar e per bloccare le
      *  transizioni workflow verso stati produzione. */
     _isProduzioneBloccata(): boolean {
-        return this.adesione?.servizio?.stato !== 'pubblicato_produzione';
+        const stato = this.adesione?.servizio?.stato;
+        // Il servizio e` in produzione sia con `pubblicato_produzione` (percorso
+        // con collaudo) sia con `pubblicato_produzione_senza_collaudo` (skip
+        // collaudo): entrambi sbloccano la fase Produzione dell'adesione.
+        return stato !== 'pubblicato_produzione' && stato !== 'pubblicato_produzione_senza_collaudo';
     }
 
     /** True se il nome stato adesione e` di fase produzione. */
@@ -1299,8 +1310,11 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         // (es. BE non allineato col FE sui nuovi stati).
         const lastStep = steps[steps.length - 1];
         const lastStates = lastStep?.stati_adesione || [];
-        const terminalState = lastStates.length > 0 ? lastStates[lastStates.length - 1] : null;
-        if (terminalState !== null && currentStato === terminalState) {
+        // Terminale raggiunto se lo stato corrente e` uno QUALSIASI degli stati
+        // dell'ultimo sub-step: "configurato" elenca entrambe le varianti
+        // pubblicate (`pubblicato_produzione` e `..._senza_collaudo`), mutuamente
+        // esclusive a seconda del percorso con/senza collaudo dell'adesione.
+        if (lastStates.includes(currentStato)) {
             return true;
         }
 
@@ -1359,13 +1373,13 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
             return { done: total, total };
         }
 
-        // Terminal reached: lo stato corrente coincide con l'ultimo
-        // `stati_adesione` dell'ultimo step della sezione (e.g.,
-        // `pubblicato_collaudo` per "configurato" di Collaudo).
+        // Terminal reached: lo stato corrente e` uno QUALSIASI degli
+        // `stati_adesione` dell'ultimo step della sezione (es.
+        // `pubblicato_produzione` OPPURE `..._senza_collaudo` per
+        // "configurato" di Produzione).
         const lastStep = steps[steps.length - 1];
         const lastStates = lastStep?.stati_adesione || [];
-        const terminalState = lastStates.length > 0 ? lastStates[lastStates.length - 1] : null;
-        if (terminalState !== null && currentStato === terminalState) {
+        if (lastStates.includes(currentStato)) {
             return { done: total, total };
         }
 
@@ -1402,7 +1416,15 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         const wfStati = this.workflowStati;
         const currentStato = this.adesione?.stato;
         const currentIdx = (wfStati?.length && currentStato) ? wfStati.indexOf(currentStato) : -1;
+        // Terminale raggiunto: lo stato corrente e` uno degli stati dell'ultimo
+        // sub-step ("configurato") -> l'intera procedura e` conclusa e tutti gli
+        // step risultano completati (nessuna azione richiesta).
+        const lastStates = steps[steps.length - 1]?.stati_adesione || [];
+        const reachedTerminal = !!currentStato && lastStates.includes(currentStato);
         return steps.map((step, i) => {
+            if (reachedTerminal) {
+                return { index: i + 1, code: step.code, descrizione: step.descrizione, state: 'completed' as const };
+            }
             const indices = (step.stati_adesione || [])
                 .map(st => wfStati.indexOf(st))
                 .filter(idx => idx !== -1);
@@ -1428,6 +1450,14 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
      * - `null`: nessun badge (sezione attiva senza richieste).
      */
     getSezioneBadge(section: string): 'completed' | 'action' | 'locked' | null {
+        // Sezioni con step-bar interna (collaudo/produzione): se il workflow ha
+        // raggiunto il sub-step finale (stato pubblicato terminale) o la sezione
+        // e` gia` passata, la fase e` conclusa a prescindere dal check-dati di
+        // transizioni successive (es. archiviazione). Allineato a getFaseStatus.
+        if ((section === 'collaudo' || section === 'produzione') &&
+            (this._workflowReachedSectionFinal(section) || this._isSectionPast(section))) {
+            return 'completed';
+        }
         if (this.isSectionCompleted(section)) { return 'completed'; }
         if (this.isSectionDisabled(section) || !this.isSectionActive(section)) { return 'locked'; }
         return 'action';

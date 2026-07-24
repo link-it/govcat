@@ -21,6 +21,7 @@ describe('ServiziComponent', () => {
   } as any;
 
   const mockConfigService = {
+    isHideVersions: vi.fn().mockReturnValue(false),
     getConfiguration: vi.fn().mockReturnValue({
       AppConfig: {
         GOVAPI: { HOST: 'http://localhost' },
@@ -133,6 +134,7 @@ describe('ServiziComponent', () => {
       }
     });
     mockConfigService.getConfig.mockReturnValue(of({}));
+    mockConfigService.isHideVersions.mockReturnValue(false);
     mockLocalStorageService.getItem.mockReturnValue(null);
     mockApiService.getList.mockReturnValue(of({ content: [], page: { totalElements: 0 }, _links: {} }));
     mockApiService.getDetails.mockReturnValue(of({}));
@@ -300,13 +302,13 @@ describe('ServiziComponent', () => {
   });
 
   it('should get primary text with version', () => {
-    component.hideVersions = false;
+    vi.spyOn(component, 'hideVersions', 'get').mockReturnValue(false);
     const result = component._getPrimaryText({ nome: 'Test', versione: '1' });
     expect(result).toBe('Test - v.1');
   });
 
   it('should get primary text without version when hideVersions', () => {
-    component.hideVersions = true;
+    vi.spyOn(component, 'hideVersions', 'get').mockReturnValue(true);
     const result = component._getPrimaryText({ nome: 'Test', versione: '1' });
     expect(result).toBe('Test');
   });
@@ -780,13 +782,13 @@ describe('ServiziComponent', () => {
     });
 
     it('should return nome only when hideVersions is true', () => {
-      component.hideVersions = true;
+      vi.spyOn(component, 'hideVersions', 'get').mockReturnValue(true);
       const result = component._getServicePrimaryText({ nome: 'SvcName', versione: '2' });
       expect(result).toBe('SvcName');
     });
 
     it('should return nome with versione', () => {
-      component.hideVersions = false;
+      vi.spyOn(component, 'hideVersions', 'get').mockReturnValue(false);
       const result = component._getServicePrimaryText({ nome: 'SvcName', versione: '3' });
       expect(result).toBe('SvcName - v.3');
     });
@@ -1331,6 +1333,7 @@ describe('ServiziComponent', () => {
           }
         }
       });
+      mockConfigService.isHideVersions.mockReturnValue(true);
 
       component.ngOnInit();
 
@@ -2636,7 +2639,7 @@ describe('ServiziComponent', () => {
 
   describe('_getPrimaryText (extended)', () => {
     it('should return nome when no versione and not hiding versions', () => {
-      component.hideVersions = false;
+      vi.spyOn(component, 'hideVersions', 'get').mockReturnValue(false);
       const result = component._getPrimaryText({ nome: 'TestSvc' });
       expect(result).toBe('TestSvc');
     });
@@ -2646,7 +2649,7 @@ describe('ServiziComponent', () => {
 
   describe('_getServicePrimaryText (extended)', () => {
     it('should return nome when no versione and not hiding versions', () => {
-      component.hideVersions = false;
+      vi.spyOn(component, 'hideVersions', 'get').mockReturnValue(false);
       const result = component._getServicePrimaryText({ nome: 'TestSvc' });
       expect(result).toBe('TestSvc');
     });

@@ -36,6 +36,7 @@ export class YesnoDialogBsComponent implements OnInit {
   cancelText: string = 'Cencel';
   confirmText: string = 'Confirm';
   confirmColor: string = 'confirm';
+  hideCancel: boolean = false;
 
   onClose: Subject<any> = new Subject();
 
