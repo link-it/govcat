@@ -1,6 +1,14 @@
 2026-07-24  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Accessibilita` (WCAG 2.2 AA): icone sezione dashboard scurite a contrasto
+	  >=3:1 su bianco (SC 1.4.11, getter `iconColor`); bottone "Anteprima"
+	  markdown convertito da `<span>` a `<button type=button [disabled]>` per
+	  l'operabilita` da tastiera.
+
+2026-07-24  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Accessibilita` (WCAG 2.2 AA) contrasto colori: violazioni axe 13->0,
 	  Lighthouse 100/100. Rosso brand #ff4050 (3.44:1) -> #d81f2c (5.06:1),
 	  centralizzato sul knob `--accent` (hex nel config per-tema + fallback

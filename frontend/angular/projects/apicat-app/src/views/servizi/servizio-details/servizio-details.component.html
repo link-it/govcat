@@ -702,7 +702,7 @@
                     <label class="label-bold w-100" for="descrizione">{{ 'APP.LABEL.DocumentazioneTecnica' | translate }} @if (_isEdit) {
                       <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'descrizione'"></span>
                       } @if (_isEdit) {
-                      <span role="button" [attr.tabindex]="!f['descrizione'].value ? null : 0" class="btn btn-default btn-sm gl-button btn-default-tertiary float-end" [class.btn-secondary]="_showMarkdownPreview" (click)="_toggleMarkdownPreview()" [class.disabled]="!f['descrizione'].value" [attr.aria-disabled]="!f['descrizione'].value ? 'true' : null">{{ (_showMarkdownPreview ? 'APP.BUTTON.Write' : 'APP.BUTTON.Preview') | translate }}</span>
+                      <button type="button" class="btn btn-default btn-sm gl-button btn-default-tertiary float-end" [class.btn-secondary]="_showMarkdownPreview" [disabled]="!f['descrizione'].value" (click)="_toggleMarkdownPreview()">{{ (_showMarkdownPreview ? 'APP.BUTTON.Write' : 'APP.BUTTON.Preview') | translate }}</button>
                     }</label>
                     @if (_isEdit && !_showMarkdownPreview) {
                       <div class="">

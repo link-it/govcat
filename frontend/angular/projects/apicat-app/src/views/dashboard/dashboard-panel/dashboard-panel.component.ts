@@ -93,6 +93,16 @@ export class DashboardPanelComponent {
     }
     return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
   }
+  // Colore icona sezione scurito fino a contrasto >=3:1 su bianco (WCAG 1.4.11
+  // non-testo): i colori chiari (giallo/verde) su bianco erano < 3:1.
+  get iconColor(): string {
+    let rgb = this._hexToRgb(this.borderColor);
+    const white = [255, 255, 255];
+    for (let i = 0; i < 30 && this._contrast(rgb, white) < 3.2; i++) {
+      rgb = rgb.map((c) => Math.round(c * 0.85));
+    }
+    return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+  }
 
   getStatusStyle(stato: string): { [key: string]: string } {
     const cfg = this.statusConfig[stato];

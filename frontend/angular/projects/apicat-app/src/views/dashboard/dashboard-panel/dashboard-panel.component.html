@@ -20,7 +20,7 @@
   <div class="card-header d-flex justify-content-between align-items-center py-2"
     [ngStyle]="{'background-color': borderColor + '0d'}">
     <div class="d-flex align-items-center">
-      <i class="bi me-2 fs-5" [ngClass]="icon" [ngStyle]="{'color': borderColor}"></i>
+      <i class="bi me-2 fs-5" [ngClass]="icon" [ngStyle]="{'color': iconColor}"></i>
       <span class="fw-semibold">{{ title | translate }}</span>
     </div>
     <span class="position-relative" [ngStyle]="panelType === 'comunicazioni' && totalCount > 0 ? {'cursor': 'help'} : {}" [tooltip]="panelType === 'comunicazioni' && totalCount > 0 ? ('APP.DASHBOARD_PENDING.UnreadComunicazioni' | translate) : ''" [placement]="'top'" [container]="'body'">
@@ -33,7 +33,7 @@
   <div class="card-body p-0 panel-body-scroll" tabindex="0" role="group" [attr.aria-label]="title | translate">
     @if (loading) {
       <div class="text-center py-4">
-        <span class="spinner-border spinner-border-sm" [ngStyle]="{'color': borderColor}"></span>
+        <span class="spinner-border spinner-border-sm" [ngStyle]="{'color': iconColor}"></span>
       </div>
     }
 
