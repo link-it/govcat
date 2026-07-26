@@ -1,6 +1,15 @@
 2026-07-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Accessibilita` (WCAG 2.1.1): il contenitore lista `section.container-scroller`
+	  (condiviso da 33 viste) andava in overflow senza essere raggiungibile da
+	  tastiera. Nuova direttiva `ScrollableRegionFocusableDirective` che assegna
+	  `tabindex="0"` solo quando la regione e` effettivamente scrollabile. Risolve
+	  axe `scrollable-region-focusable`.
+
+2026-07-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Rimosso lo script `a11y-audit.mjs` e le devDeps solo-a11y (@axe-core/
 	  playwright, axe-core, lighthouse, playwright-lighthouse): l'audit di
 	  accessibilita` e` ora un tool esterno (linkit-a11y), cosi` il progetto

@@ -25,6 +25,7 @@ import { MarkAsteriskDirective } from "./mark-asterisk.directive";
 import { NgSelectAriaDirective } from "./ng-select-aria.directive";
 import { RoleButtonKeyboardDirective } from "./role-button-keyboard.directive";
 import { RouterLinkMatchDirective } from "./router-link-match.directive";
+import { ScrollableRegionFocusableDirective } from "./scrollable-region-focusable.directive";
 import { SetBackgroundImageDirective } from "./set-background-image.directive";
 import { TextUppercaseDirective } from "./uppercase.directive";
 
@@ -39,7 +40,8 @@ export const directives = [
     TextUppercaseDirective,
     MarkAsteriskDirective,
     NgSelectAriaDirective,
-    RoleButtonKeyboardDirective
+    RoleButtonKeyboardDirective,
+    ScrollableRegionFocusableDirective
 ]
 
 export {
@@ -53,5 +55,6 @@ export {
     TextUppercaseDirective,
     MarkAsteriskDirective,
     NgSelectAriaDirective,
-    RoleButtonKeyboardDirective
+    RoleButtonKeyboardDirective,
+    ScrollableRegionFocusableDirective
 };
