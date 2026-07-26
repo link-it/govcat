@@ -1,3 +1,12 @@
+2026-07-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Rimosso lo script `a11y-audit.mjs` e le devDeps solo-a11y (@axe-core/
+	  playwright, axe-core, lighthouse, playwright-lighthouse): l'audit di
+	  accessibilita` e` ora un tool esterno (linkit-a11y), cosi` il progetto
+	  resta piu` snello e senza quella superficie di dipendenze. `@playwright/
+	  test` (e2e) invariato.
+
 2026-07-24  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
