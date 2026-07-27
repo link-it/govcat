@@ -542,6 +542,10 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         return !!_cambioStato?.dati_obbligatori?.includes('referenti');
     }
 
+    _userFullName(user: any): string {
+        return [user?.nome, user?.cognome].filter(Boolean).join(' ');
+    }
+
     _initForm(data: any = null) {
         if (data) {
             let _group: any = {};

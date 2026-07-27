@@ -836,7 +836,7 @@
                           }</label>
                           @if (_isEdit) {
                             <div class="">
-                              <input type="text" readonly class="form-control" id="utente_richiedente" [value]="richiedente?.nome + ' ' + richiedente?.cognome" disabled>
+                              <input type="text" readonly class="form-control" id="utente_richiedente" [value]="_userFullName(richiedente)" disabled>
                               @if (f['utente_richiedente'].invalid && (f['utente_richiedente'].dirty || f['utente_richiedente'].touched)) {
                                 <p class="form-text text-danger">
                                   @if (f['utente_richiedente'].errors && f['utente_richiedente'].errors['required']) {
@@ -849,7 +849,7 @@
                           }
                           @if (!_isEdit) {
                             <div class="">
-                              <input type="text" readonly class="form-control-plaintext" id="utente_richiedente" [value]="richiedente?.nome + ' ' + richiedente?.cognome">
+                              <input type="text" readonly class="form-control-plaintext" id="utente_richiedente" [value]="_userFullName(richiedente)">
                             </div>
                           }
                         </div>
@@ -896,7 +896,7 @@
                           }</label>
                           @if (_isEdit) {
                             <div class="">
-                              <input type="text" readonly class="form-control" id="utente_ultima_modifica" [value]="utenteUltimaModifica?.nome + ' ' + utenteUltimaModifica?.cognome" disabled>
+                              <input type="text" readonly class="form-control" id="utente_ultima_modifica" [value]="_userFullName(utenteUltimaModifica)" disabled>
                               @if (f['utente_ultima_modifica'].invalid && (f['utente_ultima_modifica'].dirty || f['utente_ultima_modifica'].touched)) {
                                 <p class="form-text text-danger">
                                   @if (f['utente_ultima_modifica'].errors && f['utente_ultima_modifica'].errors['required']) {
@@ -909,7 +909,7 @@
                           }
                           @if (!_isEdit) {
                             <div class="">
-                              <input type="text" readonly class="form-control-plaintext" id="utente_ultima_modifica" [value]="utenteUltimaModifica?.nome + ' ' + utenteUltimaModifica?.cognome">
+                              <input type="text" readonly class="form-control-plaintext" id="utente_ultima_modifica" [value]="_userFullName(utenteUltimaModifica)">
                             </div>
                           }
                         </div>

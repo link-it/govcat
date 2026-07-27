@@ -1,6 +1,13 @@
 2026-07-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Dettaglio servizio: i campi "utente ultima modifica" e "utente richiedente"
+	  non mostrano piu` "null null" quando l'utente e` assente; unite solo le
+	  parti valorizzate di nome/cognome (metodo `_userFullName`).
+
+2026-07-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue 318: in creazione servizio, con referente non specificato l'array
 	  `referenti` non contiene piu` la voce con `id_utente: null` (che faceva
 	  fallire la POST): include solo le voci effettivamente valorizzate.
