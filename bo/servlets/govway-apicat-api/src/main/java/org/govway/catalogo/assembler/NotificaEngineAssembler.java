@@ -54,11 +54,13 @@ public class NotificaEngineAssembler extends CoreEngineAssembler {
 		en.setTipoEntitaPadre(tipo);
 		en.setIdEntita(UUID.fromString(entity.getIdEntita()));
 		
-		switch(tipo) {
-		case ADESIONE: en.setAdesione(getAdesione(entity)); 
-			break;
-		case SERVIZIO: en.setServizio(getServizio(entity));
-			break;}
+		if(tipo != null) {
+			switch(tipo) {
+			case ADESIONE: en.setAdesione(getAdesione(entity));
+				break;
+			case SERVIZIO: en.setServizio(getServizio(entity));
+				break;}
+		}
 		
 		return en;
 	}
@@ -73,6 +75,8 @@ public class NotificaEngineAssembler extends CoreEngineAssembler {
 
 	public TipoNotifica getTipoNotifica(NotificaEntity entity) {
 		TipoNotificaEnum tipo = this.getTipoNotificaEnum(entity.getTipo());
+
+		if(tipo == null) return null;
 
 		switch(tipo) {
 		case CAMBIO_STATO:
