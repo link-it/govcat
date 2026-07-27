@@ -20,7 +20,9 @@
 	* [GovwayAPICatalogo]
 	Fix vulnerabilità OSV/OWASP (Issue 320): aggiornato jackson-databind
 	  da 2.21.4 a 2.21.5 (CVE-2026-54515, GHSA-5gvw-p9qm-jgwh,
-	  GHSA-mhm7-754m-9p8w).
+	  GHSA-mhm7-754m-9p8w), log4j-core da 2.25.4 a 2.25.5 (CVE-2026-49844;
+	  la 2.26.0 risulta ancora affetta, quindi si resta sulla linea 2.25.x)
+	  e Jetty da 12.0.35 a 12.0.37 (CVE-2026-10051).
 
 	* [CI/CD]
 	Rimossa la suppression OSV/OWASP per CVE-2026-54515 (jackson-databind),
