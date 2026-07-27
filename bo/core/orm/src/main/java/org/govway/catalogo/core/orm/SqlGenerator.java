@@ -27,10 +27,10 @@ public class SqlGenerator {
 			generate("govcat");
 	}
 
-	public static void generate(String punit) {
+	public static void generate(String schemaName) {
 		String folder = "target/database/sql/";
 		try {
-			JakartaPersistenceSqlGenerator.generate(punit, folder);
+			HibernateSqlGenerator.generate(schemaName, folder);
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
 			e.printStackTrace(System.err);

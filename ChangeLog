@@ -1,3 +1,21 @@
+2026-07-27  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* Rilasciata versione 2.4.2
+
+2026-07-27  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [ORM]
+	Ripristinata la generazione degli script DDL, silenziosamente inattiva dopo
+	  la migrazione a Hibernate 7: il generatore usa ora l'API nativa di
+	  Hibernate al posto di `Persistence.generateSchema`, che richiede una
+	  connessione JDBC e non individua piu` le entity per autodetection dalla
+	  persistence unit. Le classi mappate (entity e converter) sono individuate
+	  scandendo il classpath. Allineata la versione di
+	  `hibernate-community-dialects` a quella di `hibernate-core`: quella
+	  ereditata dal BOM di Spring Boot non e` compatibile con il core e mandava
+	  in errore il dialect Derby. Il fallimento su un singolo database non
+	  blocca la build ma viene riportato nel riepilogo finale.
+
 2026-07-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -27,7 +45,9 @@
 	* [GovwayAPICatalogo]
 	Fix vulnerabilità OSV/OWASP (Issue 320): aggiornato jackson-databind
 	  da 2.21.4 a 2.21.5 (CVE-2026-54515, GHSA-5gvw-p9qm-jgwh,
-	  GHSA-mhm7-754m-9p8w).
+	  GHSA-mhm7-754m-9p8w), log4j-core da 2.25.4 a 2.25.5 (CVE-2026-49844;
+	  la 2.26.0 risulta ancora affetta, quindi si resta sulla linea 2.25.x)
+	  e Jetty da 12.0.35 a 12.0.37 (CVE-2026-10051).
 
 	* [CI/CD]
 	Rimossa la suppression OSV/OWASP per CVE-2026-54515 (jackson-databind),
@@ -69,10 +89,6 @@
 	  originale negli SCSS). Sistemati anche: `.ps-tag` (--ink-4->--ink-3),
 	  bottone "Anteprima" (aria-disabled), badge conteggio dashboard (pill tenue
 	  colorata) e gradienti summary-card. Dettaglio in NOTE-CLAUDE/a11y/.
-
-2026-07-24  Giovanni De Luca <giovanni.deluca@link.it>
-
-	* Rilasciata versione 2.4.2
 
 2026-07-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 

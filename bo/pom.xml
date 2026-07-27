@@ -38,8 +38,8 @@
 		<commons.beanutils.version>1.11.0</commons.beanutils.version>
 		<commons.text.version>1.12.0</commons.text.version>
 
-	<!-- Log: allineato col parent, fix CVE-2026-34477/34478/34479/34480 -->
-	<log4j2.version>2.25.4</log4j2.version>
+	<!-- Log: allineato col parent, fix CVE-2026-34477/34478/34479/34480 e CVE-2026-49844 (JSON MapMessage non-finite float, fix in 2.25.5; la 2.26.0 e' ancora affetta) -->
+	<log4j2.version>2.25.5</log4j2.version>
 	<slf4j-api.version>2.0.9</slf4j-api.version>
 		<!-- CXF -->
 		<cxf.version>3.3.3</cxf.version>
