@@ -16,7 +16,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
-<div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
+<div class="dropdown b-dropdown gl-new-dropdown btn-group">
   <button aria-haspopup="true" aria-expanded="false" type="button" [tooltip]="(showStatus ? 'APP.TOOLTIP.ChangeStatus' : '') | translate" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="workflow_actions" [style.background-color]="showStatus ? _configStatus.background : ''" [style.color]="showStatus ? _configStatus.color : ''" [disabled]="!_hasActions()">
     <i class="bi bi-node-plus"></i>
     @if (showStatus) {

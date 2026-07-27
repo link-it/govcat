@@ -35,12 +35,12 @@
       <div class="">
         <ul class="nav gp-border-b-0 gp-tabs-nav">
           <li class="nav-item">
-            <a tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isCollaudo()" (click)="_showCollaudo()">
+            <a role="button" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isCollaudo()" (click)="_showCollaudo()">
               <span title="Testing">{{ 'APP.FILTER.Testing' | translate }}</span>
             </a>
           </li>
           <li class="nav-item">
-            <a tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isProduzione()" (click)="_showProduzione()">
+            <a role="button" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isProduzione()" (click)="_showProduzione()">
               <span title="Production">{{ 'APP.FILTER.Production' | translate }}</span>
             </a>
           </li>
@@ -235,14 +235,14 @@
           <div class="">
             <ul class="nav gp-border-b-0 gp-tabs-nav">
               <li class="nav-item active" style="margin-right: 0.5rem">
-                <a tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_currentTab === 'clients'" (click)="_onShowTab(null, 'clients')">
+                <a role="button" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_currentTab === 'clients'" (click)="_onShowTab(null, 'clients')">
                   <span>{{ 'APP.ADESIONI.TITLE.ConfigurationAuth' | translate }}
                     </span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="adesioneConfigClients.length">{{adesioneConfigClients.length }}</span>
                   </a>
                 </li>
                 @if (adesioneConfigErogazioni.length > 0) {
                   <li class="nav-item">
-                    <a tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_currentTab === 'erogazioni'" (click)="_onShowTab(null, 'erogazioni')">
+                    <a role="button" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_currentTab === 'erogazioni'" (click)="_onShowTab(null, 'erogazioni')">
                       <span>{{ 'APP.ADESIONI.TITLE.ConfigurationAPI' | translate }}
                         </span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="adesioneConfigErogazioni.length">{{adesioneConfigErogazioni.length }}</span>
                       </a>
@@ -250,7 +250,7 @@
                   }
                   @for (item of _proprietaCustomFiltered; track item) {
                     <li class="nav-item">
-                      <a tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_currentTab === item.nome_gruppo" (click)="_onShowTab(item)">
+                      <a role="button" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_currentTab === item.nome_gruppo" (click)="_onShowTab(item)">
                         <span>{{ item.label_gruppo }}</span>
                       </a>
                     </li>
@@ -637,6 +637,7 @@
                     labelForId="tipo_certificato"
                     [closeOnSelect]="true"
                     formControlName="tipo_certificato"
+                    [errorId]="'tipo_certificato-error'"
                     (change)="onChangeTipoCertificato($event)"
                     >
                     <ng-template ng-label-tmp let-item="item">
@@ -647,7 +648,7 @@
                     </ng-template>
                   </ng-select>
                   @if (f['tipo_certificato'].invalid && (f['tipo_certificato'].dirty || f['tipo_certificato'].touched)) {
-                    <p class="form-text text-danger">
+                    <p class="form-text text-danger" id="tipo_certificato-error" aria-live="polite">
                       @if (f['tipo_certificato'].errors && f['tipo_certificato'].errors['required']) {
                         <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                       }
@@ -791,6 +792,7 @@
                     labelForId="tipo_certificato_firma"
                     [closeOnSelect]="true"
                     formControlName="tipo_certificato_firma"
+                    [errorId]="'tipo_certificato_firma-error'"
                     (change)="onChangeTipoCertificatoFirma($event)"
                     >
                     <ng-template ng-label-tmp let-item="item">
@@ -801,7 +803,7 @@
                     </ng-template>
                   </ng-select>
                   @if (f['tipo_certificato_firma'].invalid && (f['tipo_certificato_firma'].dirty || f['tipo_certificato_firma'].touched)) {
-                    <p class="form-text text-danger">
+                    <p class="form-text text-danger" id="tipo_certificato_firma-error" aria-live="polite">
                       @if (f['tipo_certificato_firma'].errors && f['tipo_certificato_firma'].errors['required']) {
                         <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                       }

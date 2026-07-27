@@ -35,7 +35,7 @@
       <div class="">
         <ul class="nav gp-border-b-0 gp-tabs-nav">
           <li class="nav-item">
-            <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + _paging.totalElements || 0">
+            <a role="button" tabindex="0" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + _paging.totalElements || 0">
               <span>{{ 'APP.FILTER.Found' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="adesionereferenti.length">{{ _paging.totalElements || 0 }}</span>
             </a>
           </li>
@@ -156,6 +156,7 @@
               labelForId="tipo"
               [closeOnSelect]="true"
               formControlName="tipo"
+              [errorId]="'tipo-error'"
               (change)="onChangeTipo($event)">
               <ng-template ng-label-tmp let-item="item">
                 {{ 'APP.ROLE.' + item.nome | translate }}
@@ -165,7 +166,7 @@
               </ng-template>
             </ng-select>
             @if (f['tipo'].invalid && (f['tipo'].dirty || f['tipo'].touched)) {
-              <p class="form-text text-danger">
+              <p class="form-text text-danger" id="tipo-error" aria-live="polite">
                 @if (f['tipo'].errors && f['tipo'].errors['required']) {
                   <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                 }
@@ -186,7 +187,8 @@
               labelForId="id_utente"
               appendTo="body"
               [editableSearchTerm]="true"
-              formControlName="id_utente">
+              formControlName="id_utente"
+              [errorId]="'id_utente-error'">
               <ng-template ng-label-tmp let-item="item">
                 {{ item.nome }} {{ item.cognome }}
               </ng-template>
@@ -198,7 +200,7 @@
               </ng-template>
             </ng-select>
             @if (f['id_utente'].invalid && (f['id_utente'].dirty || f['id_utente'].touched)) {
-              <p class="form-text text-danger">
+              <p class="form-text text-danger" id="id_utente-error" aria-live="polite">
                 @if (f['id_utente'].errors && f['id_utente'].errors['required']) {
                   <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                 }

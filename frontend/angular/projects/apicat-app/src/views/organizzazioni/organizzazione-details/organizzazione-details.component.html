@@ -40,7 +40,7 @@
         <ng-template [appHasPermission]="'organizzazioni'" [action]="'delete'">
           @if (!_isEdit && !_spin) {
             <div role="group" class="btn-group- ms-1">
-              <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
+              <div class="dropdown b-dropdown gl-new-dropdown btn-group">
                 <button aria-label="Altre azioni" aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="other_actions">
                   <i class="bi bi-three-dots-vertical"></i>
                 </button>
@@ -129,9 +129,9 @@
                           }</label>
                           @if (_isEdit) {
                             <div class="">
-                              <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome')" type="text" name="nome" id="nome" formControlName="nome" appTrimOnBlur>
+                              <input aria-required="true" [attr.aria-invalid]="(_hasControlError('nome')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('nome')) ? 'nome-error' : null" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome')" type="text" name="nome" id="nome" formControlName="nome" appTrimOnBlur>
                               @if (f['nome'].invalid && (f['nome'].dirty || f['nome'].touched)) {
-                                <p class="form-text text-danger">
+                                <p class="form-text text-danger" id="nome-error" aria-live="polite">
                                   @if (f['nome'].errors && f['nome'].errors['required']) {
                                     <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                   }
@@ -160,9 +160,9 @@
                           }</label>
                           @if (_isEdit) {
                             <div class="">
-                              <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" type="text" name="descrizione" id="descrizione" formControlName="descrizione" appTrimOnBlur>
+                              <input aria-required="true" [attr.aria-invalid]="(_hasControlError('descrizione')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('descrizione')) ? 'descrizione-error' : null" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" type="text" name="descrizione" id="descrizione" formControlName="descrizione" appTrimOnBlur>
                               @if (f['descrizione'].invalid && (f['descrizione'].dirty || f['descrizione'].touched)) {
-                                <p class="form-text text-danger">
+                                <p class="form-text text-danger" id="descrizione-error" aria-live="polite">
                                   @if (f['descrizione'].errors && f['descrizione'].errors['required']) {
                                     <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                   }
@@ -195,9 +195,9 @@
                           }</label>
                           @if (_isEdit) {
                             <div class="">
-                              <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('codice_ente')" type="text" name="codice_ente" id="codice_ente" formControlName="codice_ente" appTrimOnBlur>
+                              <input aria-required="true" [attr.aria-invalid]="(_hasControlError('codice_ente')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('codice_ente')) ? 'codice_ente-error' : null" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('codice_ente')" type="text" name="codice_ente" id="codice_ente" formControlName="codice_ente" appTrimOnBlur>
                               @if (f['codice_ente'].invalid && (f['codice_ente'].dirty || f['codice_ente'].touched)) {
-                                <p class="form-text text-danger">
+                                <p class="form-text text-danger" id="codice_ente-error" aria-live="polite">
                                   @if (f['codice_ente'].errors && f['codice_ente'].errors['required']) {
                                     <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                   }
@@ -225,9 +225,9 @@
                           }</label>
                           @if (_isEdit) {
                             <div class="">
-                              <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('codice_fiscale_soggetto')" type="text" name="codice_fiscale_soggetto" id="codice_fiscale_soggetto" formControlName="codice_fiscale_soggetto" appTrimOnBlur>
+                              <input aria-required="true" [attr.aria-invalid]="(_hasControlError('codice_fiscale_soggetto')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('codice_fiscale_soggetto')) ? 'codice_fiscale_soggetto-error' : null" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('codice_fiscale_soggetto')" type="text" name="codice_fiscale_soggetto" id="codice_fiscale_soggetto" formControlName="codice_fiscale_soggetto" appTrimOnBlur>
                               @if (f['codice_fiscale_soggetto'].invalid && (f['codice_fiscale_soggetto'].dirty || f['codice_fiscale_soggetto'].touched)) {
-                                <p class="form-text text-danger">
+                                <p class="form-text text-danger" id="codice_fiscale_soggetto-error" aria-live="polite">
                                   @if (f['codice_fiscale_soggetto'].errors && f['codice_fiscale_soggetto'].errors['required']) {
                                     <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                   }
@@ -258,9 +258,9 @@
                           }</label>
                           @if (_isEdit) {
                             <div class="">
-                              <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('id_tipo_utente')" type="text" name="id_tipo_utente" id="id_tipo_utente" formControlName="id_tipo_utente" appTrimOnBlur>
+                              <input aria-required="true" [attr.aria-invalid]="(_hasControlError('id_tipo_utente')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('id_tipo_utente')) ? 'id_tipo_utente-error' : null" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('id_tipo_utente')" type="text" name="id_tipo_utente" id="id_tipo_utente" formControlName="id_tipo_utente" appTrimOnBlur>
                               @if (f['id_tipo_utente'].invalid && (f['id_tipo_utente'].dirty || f['id_tipo_utente'].touched)) {
-                                <p class="form-text text-danger">
+                                <p class="form-text text-danger" id="id_tipo_utente-error" aria-live="polite">
                                   @if (f['id_tipo_utente'].errors && f['id_tipo_utente'].errors['required']) {
                                     <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                   }

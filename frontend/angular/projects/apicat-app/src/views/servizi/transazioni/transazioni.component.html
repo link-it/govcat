@@ -31,14 +31,14 @@
     <div class="">
       <ul class="nav gp-border-b-0 gp-tabs-nav">
         <li class="nav-item">
-          <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isCollaudo()" (click)="_showCollaudo()" [attr.aria-label]="_allElements || elements.length">
+          <a role="button" tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isCollaudo()" (click)="_showCollaudo()" [attr.aria-label]="_allElements || elements.length">
             <span>{{ 'APP.FILTER.Testing' | translate }}</span> @if (_isCollaudo()) {
             <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="_allElements">{{ _allElements || elements.length }}</span>
           }
         </a>
       </li>
       <li class="nav-item">
-        <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="!_isCollaudo()" (click)="_showProduzione()" [attr.aria-label]="_allElements || elements.length">
+        <a role="button" tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="!_isCollaudo()" (click)="_showProduzione()" [attr.aria-label]="_allElements || elements.length">
           <span>{{ 'APP.FILTER.Production' | translate }}</span> @if (!_isCollaudo()) {
           <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="_allElements">{{ _allElements || elements.length }}</span>
         }
@@ -225,7 +225,7 @@
                     </label>
                   </div>
                   <div class="col-sm-10">
-                    <ng-select class="" [class.gl-field-error-outline]="_hasControlError('esito')" (click)="onSelectedSearchDropdwon($event)"
+                    <ng-select class="" [class.gl-field-error-outline]="_hasControlError('esito')" [errorId]="'esito-error'" (click)="onSelectedSearchDropdwon($event)"
                       [items]="outcomes"
                       [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
                       labelForId="esito"
@@ -239,7 +239,7 @@
                       </ng-template>
                     </ng-select>
                     @if (_formGroup.get('esito')?.dirty || _formGroup.get('esito')?.touched) {
-                      <p class="form-text text-danger">
+                      <p class="form-text text-danger" id="esito-error" aria-live="polite">
                         @if (_formGroup.get('esito')?.hasError('required')) {
                           <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                         }
@@ -255,7 +255,7 @@
                       </label>
                     </div>
                     <div class="col-sm-10">
-                      <ng-select class="" [class.gl-field-error-outline]="_hasControlError('transaction_outcome_codes')" (click)="onSelectedSearchDropdwon($event)"
+                      <ng-select class="" [class.gl-field-error-outline]="_hasControlError('transaction_outcome_codes')" [errorId]="'transaction_outcome_codes-error'" (click)="onSelectedSearchDropdwon($event)"
                         [items]="transactionDetailedOutcomes"
                         [multiple]="true"
                         [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
@@ -270,7 +270,7 @@
                         </ng-template>
                       </ng-select>
                       @if (_formGroup.get('transaction_outcome_codes')?.dirty || _formGroup.get('transaction_outcome_codes')?.touched) {
-                        <p class="form-text text-danger">
+                        <p class="form-text text-danger" id="transaction_outcome_codes-error" aria-live="polite">
                           @if (_formGroup.get('transaction_outcome_codes')?.hasError('required')) {
                             <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                           }

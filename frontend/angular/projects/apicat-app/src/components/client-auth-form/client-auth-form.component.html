@@ -334,6 +334,7 @@
                   <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'tipo_certificato'"></span>
                 </label>
                 <ng-select [class.gl-field-error-outline-select]="_hasControlError('tipo_certificato')"
+                  [errorId]="'tipo_certificato-error'"
                   [items]="input.tipiCertificato"
                   bindValue="nome"
                   bindLabel="nome"
@@ -350,7 +351,7 @@
                   </ng-template>
                 </ng-select>
                 @if (f['tipo_certificato'].invalid && (f['tipo_certificato'].dirty || f['tipo_certificato'].touched)) {
-                  <p class="form-text text-danger">
+                  <p class="form-text text-danger" id="tipo_certificato-error" aria-live="polite">
                     @if (f['tipo_certificato'].errors && f['tipo_certificato'].errors['required']) {
                       <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                     }
@@ -543,6 +544,7 @@
                   <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'tipo_certificato_firma'"></span>
                 </label>
                 <ng-select [class.gl-field-error-outline-select]="_hasControlError('tipo_certificato_firma')"
+                  [errorId]="'tipo_certificato_firma-error'"
                   [items]="input.tipiCertificato"
                   bindValue="nome"
                   bindLabel="nome"
@@ -559,7 +561,7 @@
                   </ng-template>
                 </ng-select>
                 @if (f['tipo_certificato_firma'].invalid && (f['tipo_certificato_firma'].dirty || f['tipo_certificato_firma'].touched)) {
-                  <p class="form-text text-danger">
+                  <p class="form-text text-danger" id="tipo_certificato_firma-error" aria-live="polite">
                     @if (f['tipo_certificato_firma'].errors && f['tipo_certificato_firma'].errors['required']) {
                       <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                     }

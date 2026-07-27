@@ -26,12 +26,12 @@
         <div class="">
           <ul class="nav gp-border-b-0 gp-tabs-nav">
             <li class="nav-item">
-              <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isCollaudo()" (click)="_showCollaudo()" [attr.aria-label]="'APP.FILTER.Testing' | translate">
+              <a role="button" tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isCollaudo()" (click)="_showCollaudo()" [attr.aria-label]="'APP.FILTER.Testing' | translate">
                 <span>{{ 'APP.FILTER.Testing' | translate }}</span>
               </a>
             </li>
             <li class="nav-item">
-              <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isProduzione()" (click)="_showProduzione()" [attr.aria-label]="'APP.FILTER.Testing' | translate">
+              <a role="button" tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isProduzione()" (click)="_showProduzione()" [attr.aria-label]="'APP.FILTER.Testing' | translate">
                 <span>{{ 'APP.FILTER.Production' | translate }}</span>
               </a>
             </li>

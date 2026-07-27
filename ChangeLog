@@ -1,6 +1,87 @@
-2026-07-24  Giovanni De Luca <giovanni.deluca@link.it>
+2026-07-27  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* Rilasciata versione 2.4.2
+
+2026-07-27  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [ORM]
+	Ripristinata la generazione degli script DDL, silenziosamente inattiva dopo
+	  la migrazione a Hibernate 7: il generatore usa ora l'API nativa di
+	  Hibernate al posto di `Persistence.generateSchema`, che richiede una
+	  connessione JDBC e non individua piu` le entity per autodetection dalla
+	  persistence unit. Le classi mappate (entity e converter) sono individuate
+	  scandendo il classpath. Allineata la versione di
+	  `hibernate-community-dialects` a quella di `hibernate-core`: quella
+	  ereditata dal BOM di Spring Boot non e` compatibile con il core e mandava
+	  in errore il dialect Derby. Il fallimento su un singolo database non
+	  blocca la build ma viene riportato nel riepilogo finale.
+
+2026-07-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 319: risolte le vulnerabilita` OWASP/OSV del frontend con bump delle
+	  dipendenze negli `overrides` (dompurify 3.4.12, hono, @hono/node-server,
+	  fast-uri, js-yaml, brace-expansion, body-parser, webpack-dev-server) e
+	  `swagger-ui-dist` a ^5.32.11 (bundla DOMPurify 3.4.12). Nessuna nuova
+	  suppression.
+
+2026-07-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 318: l'obbligatorieta` del referente in creazione servizio (stato
+	  `bozza`) deriva ora dai `dati_obbligatori` del workflow invece di essere
+	  cablata. Se `referenti` non e` fra i dati obbligatori il campo non e` piu`
+	  richiesto (niente asterisco/errore/blocco salvataggio).
+
+2026-07-27  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Fix vulnerabilità OSV/OWASP (Issue 320): aggiornato jackson-databind
+	  da 2.21.4 a 2.21.5 (CVE-2026-54515, GHSA-5gvw-p9qm-jgwh,
+	  GHSA-mhm7-754m-9p8w), log4j-core da 2.25.4 a 2.25.5 (CVE-2026-49844;
+	  la 2.26.0 risulta ancora affetta, quindi si resta sulla linea 2.25.x)
+	  e Jetty da 12.0.35 a 12.0.37 (CVE-2026-10051).
+
+	* [CI/CD]
+	Rimossa la suppression OSV/OWASP per CVE-2026-54515 (jackson-databind),
+	  non più necessaria dopo l'upgrade a 2.21.5: eliminati il riferimento
+	  in `pom.xml` e il file `tools/owasp/suppression/CVE-2026-54515.xml`.
+
+2026-07-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Accessibilita` (WCAG 2.1.1): il contenitore lista `section.container-scroller`
+	  (condiviso da 33 viste) andava in overflow senza essere raggiungibile da
+	  tastiera. Nuova direttiva `ScrollableRegionFocusableDirective` che assegna
+	  `tabindex="0"` solo quando la regione e` effettivamente scrollabile. Risolve
+	  axe `scrollable-region-focusable`.
+
+2026-07-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Rimosso lo script `a11y-audit.mjs` e le devDeps solo-a11y (@axe-core/
+	  playwright, axe-core, lighthouse, playwright-lighthouse): l'audit di
+	  accessibilita` e` ora un tool esterno (linkit-a11y), cosi` il progetto
+	  resta piu` snello e senza quella superficie di dipendenze. `@playwright/
+	  test` (e2e) invariato.
+
+2026-07-24  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Accessibilita` (WCAG 2.2 AA): icone sezione dashboard scurite a contrasto
+	  >=3:1 su bianco (SC 1.4.11, getter `iconColor`); bottone "Anteprima"
+	  markdown convertito da `<span>` a `<button type=button [disabled]>` per
+	  l'operabilita` da tastiera.
+
+2026-07-24  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Accessibilita` (WCAG 2.2 AA) contrasto colori: violazioni axe 13->0,
+	  Lighthouse 100/100. Rosso brand #ff4050 (3.44:1) -> #d81f2c (5.06:1),
+	  centralizzato sul knob `--accent` (hex nel config per-tema + fallback
+	  originale negli SCSS). Sistemati anche: `.ps-tag` (--ink-4->--ink-3),
+	  bottone "Anteprima" (aria-disabled), badge conteggio dashboard (pill tenue
+	  colorata) e gradienti summary-card. Dettaglio in NOTE-CLAUDE/a11y/.
 
 2026-07-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
@@ -93,11 +174,29 @@
 2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Accessibilita` (WCAG 2.2 AA): risolto il doppio `<label for>` sui checkbox del
+	  form servizio (package, fruizione, adesione_disabilitata, multi_adesione,
+	  skip_collaudo): la label-box decorativa non e` piu` associata (una sola label
+	  per campo), mantenendo il toggle da click sul box tramite riferimento al
+	  controllo. Risolve `form-field-multiple-labels`.
+
+2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Test: ripristinata la compilazione/esecuzione della suite unit. Gli spec di
 	  `servizi`/`servizio-view` assegnavano a `hideVersions` (ora getter
 	  read-only), bloccando la compilazione di tutti i test: sostituito con il
 	  mock di `configService.isHideVersions`. Corretto anche il test success di
 	  `toggleSkipCollaudo` (spy su `loadAdesione` per isolare il cascade).
+
+2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Accessibilita` (WCAG 2.2 AA): le tab `<a class="nav-link">` senza href (usate
+	  come pulsanti) ora hanno `role="button"` (nome accessibile valido) e sono
+	  attivabili da tastiera con Enter/Spazio tramite la direttiva condivisa
+	  `RoleButtonKeyboardDirective`. Risolve `aria-prohibited-attr` e il gap di
+	  operabilita` da tastiera su ~40 viste (elenchi, verifiche, statistiche, tab).
 
 2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
@@ -108,6 +207,55 @@
 	  `selectedStepCode`): ora allinea la selezione e ricalcola le sezioni.
 	  Rese cliccabili le fasi future (anteprima) e riconosciuto anche lo stato
 	  servizio `pubblicato_produzione_senza_collaudo` come pubblicato in produzione.
+
+2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Accessibilita` (WCAG 2.2 AA): nome accessibile sul bottone "seleziona tutti"
+	  (lista servizi/adesioni), regioni scrollabili dei pannelli dashboard rese
+	  focusabili da tastiera (tabindex/role/aria-label), label singola sulle
+	  checkbox di selezione riga (testo sr-only nella label invece di aria-label),
+	  risolto un aria-labelledby penzolante sullo switcher organizzazione.
+	  Migliorato lo script `a11y:report`: riporta anche gli axe "incomplete",
+	  reso deterministico (attesa fonts.ready) e cattura i selettori.
+
+2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Accessibilita` (WCAG 2.2 AA): `alt=""` sugli avatar/logo decorativi dei
+	  gruppi (tree-view e tree-view-category) e `aria-label` sulle checkbox di
+	  selezione riga in lista adesioni, servizi e notifiche (erano in una
+	  <label> vuota). Nuova chiave i18n `APP.LABEL.SelectRow`.
+
+2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Accessibilita`: aggiunto audit automatico ripetibile (`npm run a11y:report`,
+	  `scripts/a11y-audit.mjs`) basato su Playwright + Lighthouse + axe-core, che
+	  autentica via header dev, naviga le rotte principali e genera un report di
+	  stato (punteggio per pagina + violazioni WCAG). Output in `a11y-report/`
+	  (gitignorato). Aggiunte le relative devDependencies.
+
+2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Accessibilita` (WCAG 2.2 AA): aggiunto <h1> (visually-hidden) col titolo
+	  di pagina alle viste elenco tramite il flag `mainHeading` del breadcrumb
+	  condiviso (servizi, adesioni, domini, soggetti, organizzazioni, client,
+	  utenti, classi-utente, gruppi, taxonomies). Titolo delle card portato da
+	  <h5> a <h2> per non rompere l'ordine delle intestazioni. Rifinita la
+	  posizione dello skip link.
+
+2026-07-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Accessibilita` (WCAG 2.2 AA): skip link, nome accessibile dello switcher
+	  organizzazione e dei modali (aria-labelledby + heading order), label
+	  sull'input file immagine, aria-label su icon-button; form resi accessibili
+	  con aria-required/aria-invalid/aria-describedby su input, textarea, select
+	  e ng-select (nuova direttiva `NgSelectAriaDirective`); chip "rimuovi filtro"
+	  operabile da tastiera; rimossi id duplicati (`id="actions"`); sfondo reso
+	  `inert` quando e` aperta una modale (`ModalInertService`).
 
 2026-07-21  Giovanni De Luca <giovanni.deluca@link.it>
 

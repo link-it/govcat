@@ -16,10 +16,13 @@
   --ink-3:        #57738a;
   --ink-4:        #8aa4b8;
 
-  /* primary accent — overridable via tweak */
-  --accent:        #ff4050;
-  --accent-600:    #e6303f;
-  --accent-hover:  #e6303f;
+  /* primary accent — overridable via tweak.
+     Rosso brand scurito per conformità WCAG 2.2 AA: #ff4050 (~3.44:1 su bianco)
+     falliva il testo normale; #d81f2c raggiunge ~5.06:1 (bianco su rosso e rosso
+     su bianco). Le varianti hover/-600 restano più scure del base. */
+  --accent:        #d81f2c;
+  --accent-600:    #b81e2b;
+  --accent-hover:  #b81e2b;
   --accent-soft:   #ffe9eb;
   --accent-soft-2: #ffd4d8;
   --accent-ink:    #b81e2b;

@@ -40,7 +40,7 @@
     <div class="">
       <ul class="nav gp-border-b-0 gp-tabs-nav">
         <li class="nav-item">
-          <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + _paging.totalElements">
+          <a role="button" tabindex="0" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + _paging.totalElements">
             <span title="Show all components.">{{ 'APP.FILTER.Found' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="servizioComponenti.length">{{ _paging.totalElements || 0 }}</span>
           </a>
         </li>
@@ -153,7 +153,7 @@
             <label class="label-bold" for="id_servizio">{{ 'APP.LABEL.id_servizio' | translate }} @if (!f['id_servizio'].disabled) {
               <span appMarkAsterisk [formGroup]="_editFormGroup" [controlName]="'id_servizio'"></span>
             }</label>
-            <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_servizio')"
+            <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_servizio')" [errorId]="'id_servizio-error'"
               [items]="(componenti$ | async) || []"
               [typeahead]="componentiInput$"
               [minTermLength]="minLengthTerm"
@@ -177,7 +177,7 @@
               </ng-template>
             </ng-select>
             @if (f['id_servizio'].invalid && (f['id_servizio'].dirty || f['id_servizio'].touched)) {
-              <p class="form-text text-danger">
+              <p class="form-text text-danger" id="id_servizio-error" aria-live="polite">
                 @if (f['id_servizio'].errors && f['id_servizio'].errors['required']) {
                   <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                 }

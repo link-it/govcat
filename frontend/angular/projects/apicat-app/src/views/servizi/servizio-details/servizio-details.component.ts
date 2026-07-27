@@ -537,6 +537,11 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         return this._formGroup.controls;
     }
 
+    _isReferenteRequired(): boolean {
+        const _cambioStato = this.authenticationService._getWorkflowCambiStato('servizio', 'bozza');
+        return !!_cambioStato?.dati_obbligatori?.includes('referenti');
+    }
+
     _initForm(data: any = null) {
         if (data) {
             let _group: any = {};
@@ -553,7 +558,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                     case 'referente':
                     // case 'referente_tecnico':
                         value = data[key] ? data[key] : null;
-                        _group[key] = new FormControl(value, [Validators.required]);
+                        _group[key] = new FormControl(value, this._isReferenteRequired() ? [Validators.required] : []);
                         break;
                     case 'versione':
                         value = data[key] ? data[key] : '';

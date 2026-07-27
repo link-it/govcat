@@ -18,7 +18,7 @@
  */
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnInit, Output, SimpleChanges } from '@angular/core';
-import { AbstractControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { AbstractControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { AvailableBSPositions } from 'ngx-bootstrap/positioning';
 
@@ -81,6 +81,14 @@ export class LnkFormFieldComponent implements OnInit {
 
     hasError() {
         return (this.formControl && this.formControl.errors && this.formControl.touched);
+    }
+
+    isRequired(): boolean {
+        return !!this.formControl?.hasValidator(Validators.required);
+    }
+
+    get errorId(): string {
+        return `${this.id || this.name}-error`;
     }
 
     ngOnInit(): void {

@@ -39,7 +39,7 @@
           <ul  class="nav gp-border-b-0 gp-tabs-nav">
             @if (serviceApiDominio.length) {
               <li class="nav-item">
-                <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isSoggettoDominio" (click)="_showSoggettoDominio()" [attr.aria-label]="'APP.ROLE.ErogatoSoggettoDominio' | pluralTranslate:(serviceApiDominio.length || 0) | translate:{soggetto: service?.dominio?.soggetto_referente?.organizzazione?.nome }">
+                <a role="button" tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isSoggettoDominio" (click)="_showSoggettoDominio()" [attr.aria-label]="'APP.ROLE.ErogatoSoggettoDominio' | pluralTranslate:(serviceApiDominio.length || 0) | translate:{soggetto: service?.dominio?.soggetto_referente?.organizzazione?.nome }">
                   <span>
                     {{ ('APP.ROLE.ErogatoSoggettoDominio' | pluralTranslate:(serviceApiDominio.length || 0)) | translate:{soggetto: service?.dominio?.soggetto_referente?.organizzazione?.nome } }}
                     </span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="serviceApiDominio.length">{{ _pagingDominio.totalElements || serviceApiDominio.length }}</span>
@@ -48,7 +48,7 @@
               }
               @if (serviceApiAderente.length) {
                 <li class="nav-item">
-                  <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" [class.gp-tab-nav-item-active]="!_isSoggettoDominio" (click)="_showSoggettoAderente()" [attr.aria-label]="'APP.ROLE.ErogatoSoggettoAderente' | pluralTranslate:(serviceApiAderente.length || 0)">
+                  <a role="button" tabindex="0" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" [class.gp-tab-nav-item-active]="!_isSoggettoDominio" (click)="_showSoggettoAderente()" [attr.aria-label]="'APP.ROLE.ErogatoSoggettoAderente' | pluralTranslate:(serviceApiAderente.length || 0)">
                     <span>{{ ('APP.ROLE.ErogatoSoggettoAderente' | pluralTranslate:(serviceApiAderente.length || 0)) | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="serviceApiAderente.length">{{ _pagingAderente.totalElements || serviceApiAderente.length }}</span>
                   </a>
                 </li>
