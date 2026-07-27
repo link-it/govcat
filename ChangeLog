@@ -1,3 +1,10 @@
+2026-07-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 318: in creazione servizio, con referente non specificato l'array
+	  `referenti` non contiene piu` la voce con `id_utente: null` (che faceva
+	  fallire la POST): include solo le voci effettivamente valorizzate.
+
 2026-07-27  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* Rilasciata versione 2.4.2
