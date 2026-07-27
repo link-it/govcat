@@ -22,6 +22,7 @@ package org.govway.catalogo.authorization;
 import java.util.List;
 import java.util.Optional;
 
+import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Ruolo;
 import org.govway.catalogo.servlets.model.AccessoAmministrazioneItem;
 import org.govway.catalogo.servlets.model.Configurazione;
@@ -98,10 +99,15 @@ public abstract class DefaultAuthorization<CREATE,UPDATE,ENTITY> implements IAut
 		if(specifico == null) {
 			this.coreAuthorization.requireAdmin();
 		} else {
+			// l'utente di sessione e' null se e' consentito l'accesso anonimo: in tal caso
+			// authorizeContains richiede il ruolo di amministratore
+			UtenteEntity utenteSessione = this.coreAuthorization.getUtenteSessione();
+			Ruolo ruolo = utenteSessione != null ? utenteSessione.getRuolo() : null;
+
 			if(read) {
-				authorizeContains(specifico.getLettura(), this.coreAuthorization.getUtenteSessione().getRuolo());
+				authorizeContains(specifico.getLettura(), ruolo);
 			} else {
-				authorizeContains(specifico.getScrittura(), this.coreAuthorization.getUtenteSessione().getRuolo());
+				authorizeContains(specifico.getScrittura(), ruolo);
 			}
 		}
 		
