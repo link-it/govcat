@@ -1,5 +1,9 @@
 2026-07-27  Giovanni De Luca <giovanni.deluca@link.it>
 
+	* Rilasciata versione 2.4.2
+
+2026-07-27  Giovanni De Luca <giovanni.deluca@link.it>
+
 	* [ORM]
 	Ripristinata la generazione degli script DDL, silenziosamente inattiva dopo
 	  la migrazione a Hibernate 7: il generatore usa ora l'API nativa di
@@ -78,10 +82,6 @@
 	  originale negli SCSS). Sistemati anche: `.ps-tag` (--ink-4->--ink-3),
 	  bottone "Anteprima" (aria-disabled), badge conteggio dashboard (pill tenue
 	  colorata) e gradienti summary-card. Dettaglio in NOTE-CLAUDE/a11y/.
-
-2026-07-24  Giovanni De Luca <giovanni.deluca@link.it>
-
-	* Rilasciata versione 2.4.2
 
 2026-07-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
