@@ -27,7 +27,7 @@ describe('Message', () => {
   it('should assign all properties from data', () => {
     const data = {
       id: 42,
-      legal_name: 'Comune di Roma',
+      legal_name: 'Ente Alfa',
       office_at: 'Ufficio IT',
       office_address: 'Via Roma 1',
       office_address_details: 'Interno 5',
@@ -37,15 +37,15 @@ describe('Message', () => {
       office_province: 'Roma',
       office_foreign_state: null,
       office_phone_number: '+39 06 1234567',
-      office_email_address: 'info@comune.roma.it',
-      office_pec_address: 'pec@comune.roma.it',
+      office_email_address: 'info@ente-alfa.example.it',
+      office_pec_address: 'pec@ente-alfa.example.it',
       tax_code: '12345678901',
       logo_miniature: 'base64mini',
       logo: 'base64full'
     };
     const model = new Message(data);
     expect(model.id).toBe(42);
-    expect(model.legal_name).toBe('Comune di Roma');
+    expect(model.legal_name).toBe('Ente Alfa');
     expect(model.office_at).toBe('Ufficio IT');
     expect(model.office_address).toBe('Via Roma 1');
     expect(model.office_address_details).toBe('Interno 5');
@@ -54,8 +54,8 @@ describe('Message', () => {
     expect(model.office_municipality_details).toBe('RM');
     expect(model.office_province).toBe('Roma');
     expect(model.office_phone_number).toBe('+39 06 1234567');
-    expect(model.office_email_address).toBe('info@comune.roma.it');
-    expect(model.office_pec_address).toBe('pec@comune.roma.it');
+    expect(model.office_email_address).toBe('info@ente-alfa.example.it');
+    expect(model.office_pec_address).toBe('pec@ente-alfa.example.it');
     expect(model.tax_code).toBe('12345678901');
     expect(model.logo_miniature).toBe('base64mini');
     expect(model.logo).toBe('base64full');

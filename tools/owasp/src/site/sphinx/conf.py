@@ -2,7 +2,7 @@
 import sys, os
 
 project = u'gestione vulnerabilita OWASP'
-copyright = u'Copyright (c) 2021-2025 Link.it srl (https://link.it).'
+copyright = u'Copyright (c) 2021-2026 Link.it srl (https://link.it).'
 version = '2.0'
 release = '2.0.0'
 

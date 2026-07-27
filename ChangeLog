@@ -34,6 +34,10 @@
 	  bottone "Anteprima" (aria-disabled), badge conteggio dashboard (pill tenue
 	  colorata) e gradienti summary-card. Dettaglio in NOTE-CLAUDE/a11y/.
 
+2026-07-24  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* Rilasciata versione 2.4.2
+
 2026-07-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
