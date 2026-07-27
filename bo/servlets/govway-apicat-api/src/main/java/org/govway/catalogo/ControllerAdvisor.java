@@ -21,6 +21,7 @@ package org.govway.catalogo;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Objects;
 
 import org.govway.catalogo.exception.AbstractGovCatException;
 import org.govway.catalogo.exception.ClientApiException;
@@ -28,6 +29,7 @@ import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticament
 import org.govway.catalogo.servlets.model.Campo;
 import org.govway.catalogo.servlets.model.EntitaComplessaError;
 import org.govway.catalogo.servlets.model.Problem;
+import org.govway.catalogo.servlets.pdnd.client.api.impl.ApiException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -73,9 +75,11 @@ public class ControllerAdvisor extends AbstractControllerAdvisor {
 	protected ResponseEntity<Object> toEntity(ClientApiException ex) {
 		
 		
+		ApiException apiException = ex.getE();
+
 		logger.error("Errore restituito dal client (HTTP {}): {}",
-				ex.getE() != null ? ex.getE().getCode() : null,
-				ex.getE() != null ? ex.getE().getResponseBody() : null);
+				apiException != null ? apiException.getCode() : null,
+				apiException != null ? apiException.getResponseBody() : null);
 
 		ObjectMapper om = new ObjectMapper();
 		om.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
@@ -84,7 +88,8 @@ public class ControllerAdvisor extends AbstractControllerAdvisor {
 		Problem problem;
 		HttpStatus status;
 		try {
-		    problem = om.readValue(ex.getE().getResponseBody().getBytes(), Problem.class);
+		    Objects.requireNonNull(apiException, "ApiException non valorizzata");
+		    problem = om.readValue(apiException.getResponseBody().getBytes(), Problem.class);
 		    status = HttpStatus.resolve(problem.getStatus());
 		    
 		    // Se status è null, assegna un valore di default (es. INTERNAL_SERVER_ERROR)
@@ -93,7 +98,7 @@ public class ControllerAdvisor extends AbstractControllerAdvisor {
 		    }
 		} catch(Exception e) {
 		    logger.error("Errore serializzazione: " + e.getMessage(), e);
-		    status = HttpStatus.resolve(ex.getE().getCode());
+		    status = apiException != null ? HttpStatus.resolve(apiException.getCode()) : null;
 
 		    // Se status è ancora null, assegna un valore di default
 		    if (status == null) {
