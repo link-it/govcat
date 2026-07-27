@@ -909,6 +909,15 @@
 				<version>${hibernate.jpamodelgen.version}</version>
 			</dependency>
 
+			<!-- Va tenuto allineato a hibernate-core: la versione ereditata dal BOM di
+			     Spring Boot e' piu' recente e i dialect community non sono compatibili
+			     con il core (NoSuchMethodError sulle API interne di Hibernate). -->
+			<dependency>
+				<groupId>org.hibernate.orm</groupId>
+				<artifactId>hibernate-community-dialects</artifactId>
+				<version>${hibernate.version}</version>
+			</dependency>
+
 			<dependency>
 				<groupId>org.hibernate.validator</groupId>
 				<artifactId>hibernate-validator</artifactId>

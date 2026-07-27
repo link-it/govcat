@@ -1,3 +1,17 @@
+2026-07-27  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [ORM]
+	Ripristinata la generazione degli script DDL, silenziosamente inattiva dopo
+	  la migrazione a Hibernate 7: il generatore usa ora l'API nativa di
+	  Hibernate al posto di `Persistence.generateSchema`, che richiede una
+	  connessione JDBC e non individua piu` le entity per autodetection dalla
+	  persistence unit. Le classi mappate (entity e converter) sono individuate
+	  scandendo il classpath. Allineata la versione di
+	  `hibernate-community-dialects` a quella di `hibernate-core`: quella
+	  ereditata dal BOM di Spring Boot non e` compatibile con il core e mandava
+	  in errore il dialect Derby. Il fallimento su un singolo database non
+	  blocca la build ma viene riportato nel riepilogo finale.
+
 2026-07-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
