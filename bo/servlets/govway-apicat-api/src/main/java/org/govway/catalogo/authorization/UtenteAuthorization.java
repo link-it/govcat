@@ -94,7 +94,7 @@ public class UtenteAuthorization extends DefaultAuthorization<UtenteCreate,Utent
 
 		UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
 
-		if(!utente.getId().equals(entity.getId())) {
+		if(utente == null || !utente.getId().equals(entity.getId())) {
 			super.authorizeWrite(EntitaEnum.UTENTE);
 		}
 
@@ -132,7 +132,7 @@ public class UtenteAuthorization extends DefaultAuthorization<UtenteCreate,Utent
 		UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
 
 		if(!this.coreAuthorization.isAdmin(utente)) {
-			if(!utente.getId().equals(entity.getId())) {
+			if(utente == null || !utente.getId().equals(entity.getId())) {
 				throw new NotAuthorizedException(ErrorCode.AUT_403);
 			}
 		}

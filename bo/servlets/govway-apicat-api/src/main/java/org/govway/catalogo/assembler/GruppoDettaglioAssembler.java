@@ -22,6 +22,7 @@ package org.govway.catalogo.assembler;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.govway.catalogo.controllers.GruppiController;
@@ -115,7 +116,7 @@ public class GruppoDettaglioAssembler extends RepresentationModelAssemblerSuppor
 
 		org.govway.catalogo.core.orm.entity.TipoServizio tipo = engine.toTipo(src.getTipo());
 		
-		if(!tipo.equals(entity.getTipo())) {
+		if(!Objects.equals(tipo, entity.getTipo())) {
 			if(!entity.getServizi().isEmpty()) {
 				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422);
 			}

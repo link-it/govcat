@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -210,7 +211,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 
 		org.govway.catalogo.core.orm.entity.TipoServizio tipo = engine.toTipo(src.getTipo());
 		
-		if(!tipo.equals(entity.getTipo())) {
+		if(!Objects.equals(tipo, entity.getTipo())) {
 			if(!entity.getGruppi().isEmpty()) {
 				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422);
 			}
