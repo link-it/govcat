@@ -722,9 +722,10 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         };
 
             if (!body.package) {
-            _newBody.referenti = [
-                { id_utente: body.referente, tipo: 'referente' }
-            ];
+            _newBody.referenti = [];
+            if (body.referente) {
+                _newBody.referenti.push({ id_utente: body.referente, tipo: 'referente' });
+            }
             if (body.referente_tecnico) {
                 _newBody.referenti.push({ id_utente: body.referente_tecnico, tipo: 'referente_tecnico' });
             }
