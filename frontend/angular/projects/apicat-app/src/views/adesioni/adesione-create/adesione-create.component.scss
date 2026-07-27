@@ -102,7 +102,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     text-transform: uppercase;
     letter-spacing: 0.08em;
     font-weight: 600;
-    color: var(--ink-4, #8aa4b8);
+    // --ink-3 (4.97:1) invece di --ink-4 (2.60:1): il tag e` testo piccolo
+    // uppercase, deve rispettare il contrasto AA 4.5:1.
+    color: var(--ink-3, #57738a);
   }
 
   .ps-title {

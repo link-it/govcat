@@ -70,7 +70,9 @@
         @if (type !== 'checkbox' && type !== 'select' && type !== 'textarea') {
           <input class="form-control"
             [type]="type"
-            aria-required="true"
+            [attr.aria-required]="isRequired() ? 'true' : null"
+            [attr.aria-invalid]="hasError() ? 'true' : null"
+            [attr.aria-describedby]="hasError() ? errorId : null"
             [attr.autocomplete]="autocomplete"
             [placeholder]="placeholder ?? ''"
             [class.gl-field-error-outline]="hasError()"
@@ -83,7 +85,9 @@
         }
         @if (type === 'textarea') {
           <textarea class="form-control"
-            aria-required="true"
+            [attr.aria-required]="isRequired() ? 'true' : null"
+            [attr.aria-invalid]="hasError() ? 'true' : null"
+            [attr.aria-describedby]="hasError() ? errorId : null"
             [attr.autocomplete]="autocomplete"
             [placeholder]="placeholder ?? ''"
             [class.gl-field-error-outline]="hasError()"
@@ -99,7 +103,9 @@
             @if (type === 'checkbox') {
               <input class="custom-control-input"
                 type="checkbox"
-                aria-required="true"
+                [attr.aria-required]="isRequired() ? 'true' : null"
+                [attr.aria-invalid]="hasError() ? 'true' : null"
+                [attr.aria-describedby]="hasError() ? errorId : null"
                 [class.gl-field-error-outline]="hasError()"
                 [name]="name"
                 [id]="id || name"
@@ -126,6 +132,9 @@
         <select class="form-select"
           [id]="id || name"
           [name]="name"
+          [attr.aria-required]="isRequired() ? 'true' : null"
+          [attr.aria-invalid]="hasError() ? 'true' : null"
+          [attr.aria-describedby]="hasError() ? errorId : null"
           [formControlName]="name"
           [class.gl-field-error-outline]="hasError()"
           (change)="onChange($event)"
@@ -137,6 +146,7 @@
       }
       <lnk-form-field-error
         [control]="formGroup.get(name)"
+        [id]="errorId"
       ></lnk-form-field-error>
       <!-- <lnk-input-help [field]="name" [context]="context"></ui-input-help> -->
     </div>

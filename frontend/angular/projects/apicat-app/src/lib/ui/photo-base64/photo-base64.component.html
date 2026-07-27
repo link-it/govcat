@@ -23,7 +23,7 @@
         <div class="alert alert-danger mb-1">{{imageError}}</div>
       }
       <div class="custom-file fileInputProfileWrap">
-        <input type="file" [accept]="fileTypes.join(',')" (change)="fileChangeEvent($event)" class="fileInputProfile">
+        <input type="file" [accept]="fileTypes.join(',')" (change)="fileChangeEvent($event)" class="fileInputProfile" [attr.aria-label]="uploadLabel">
         <div class="img-space" [ngStyle]="{'width': boxWidth, 'height': boxHeight}">
           @if (isImageSaved) {
             <img [src]="cardImageBase64" alt="Immagine" />
@@ -32,7 +32,7 @@
           }
         </div>
         <div class="position-absolute top-0 end-0">
-          <div class="btn btn-default btn-md gl-button btn-icon"><i class="bi bi-pencil"></i></div>
+          <div class="btn btn-default btn-md gl-button btn-icon"><i class="bi bi-pencil" aria-hidden="true"></i></div>
         </div>
       </div>
     </fieldset>

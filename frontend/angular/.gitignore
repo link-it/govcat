@@ -51,6 +51,9 @@ Thumbs.db
 /playwright-report
 /test-results
 
+# Report accessibilità generati (npm run a11y:report)
+/a11y-report
+
 # Custom - Develop
 /@NOTE
 

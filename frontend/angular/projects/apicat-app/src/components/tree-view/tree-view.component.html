@@ -55,7 +55,7 @@
             }
             @if (item.immagine) {
               <div class="gl-avatar gl-avatar-identicon gl-avatar-s32">
-                <img class="" [src]="{ path: item | mapper:getLogoMapper } | httpImgSrc" style="width: 32px;height: auto;">
+                <img class="" alt="" [src]="{ path: item | mapper:getLogoMapper } | httpImgSrc" style="width: 32px;height: auto;">
               </div>
             }
           </a>

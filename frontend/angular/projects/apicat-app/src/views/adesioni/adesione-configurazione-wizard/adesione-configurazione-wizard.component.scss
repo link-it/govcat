@@ -203,8 +203,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   --ink-3:        #57738a;
   --ink-4:        #8aa4b8;
 
-  --accent:        #ff4050;
-  --accent-hover:  #e6303f;
+  // --accent / --accent-hover: ereditati da :root (variabile del tema nel
+  // config, con fallback in app-view.scss) per avere un unico punto di ritocco
+  // del rosso brand — vedi WCAG darken.
   --accent-soft:   #ffe9eb;
   --accent-soft-2: #ffd4d8;
   --accent-ink:    #b81e2b;
@@ -225,7 +226,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   --warn-soft: #fbf1e2;
   --warn-ink:  #8a5310;
 
-  --err:       #ff4050;
+  --err:       #d81f2c;
   --err-soft:  #ffe9eb;
   --err-ink:   #b81e2b;
 
@@ -837,7 +838,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   }
   .approval-card .av {
     width: 32px; height: 32px; border-radius: 50%;
-    background: linear-gradient(135deg, #ff8a93, #ff4050);
+    background: linear-gradient(135deg, #ff8a93, var(--accent));
     display: grid; place-items: center; color: white;
     font-size: 12px; font-weight: 600; flex-shrink: 0;
   }

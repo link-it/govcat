@@ -24,6 +24,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { Tools, ConfigService } from '@linkit/components';
 import { ConsoleToggleService } from '@services/console-toggle.service';
 import { ModifierKeyService } from '@services/modifier-key.service';
+import { ModalInertService } from '@services/modal-inert.service';
 
 import { environment } from '../environments/environment.prod';
 import { registerLocaleData } from '@angular/common';
@@ -75,8 +76,11 @@ export class AppComponent implements OnInit {
     private readonly consoleToggleService: ConsoleToggleService,
     private readonly bsLocaleService: BsLocaleService,
     private readonly modifierKeyService: ModifierKeyService,
+    private readonly modalInertService: ModalInertService,
   ) {
     this.consoleToggleService.disableConsoleInProduction();
+    // Rende inerte lo sfondo quando è aperta una modale (accessibilità).
+    this.modalInertService.init();
     // Inizializza il servizio per rilevare Ctrl/Cmd (startListening è chiamato nel costruttore)
     this.modifierKeyService.startListening();
     this._config = this.configService.getConfiguration();

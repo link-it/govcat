@@ -71,14 +71,14 @@
               </div>
             </ul>
           </div>
-          <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.EditClient' | translate" (click)="_editClient()">
-            <i class="bi bi-pencil"></i>
+          <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.EditClient' | translate" [attr.aria-label]="'APP.TOOLTIP.EditClient' | translate" (click)="_editClient()">
+            <i class="bi bi-pencil" aria-hidden="true"></i>
           </button>
         </div>
       }
       @if (!_isEdit && !_spin) {
         <div class="btn-group- ms-1">
-          <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
+          <div class="dropdown b-dropdown gl-new-dropdown btn-group">
             <button aria-label="Altre azioni" aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="other_actions">
               <i class="bi bi-three-dots-vertical"></i>
             </button>
@@ -159,6 +159,7 @@
                       @if (_isNew || _isEdit) {
                         <div class="">
                           <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_organizzazione')"
+                            [errorId]="'id_organizzazione-error'"
                             [items]="(organizzazioni$ | async) || []"
                             [typeahead]="organizzazioniInput$"
                             [minTermLength]="minLengthTerm"
@@ -181,7 +182,7 @@
                             </ng-template>
                           </ng-select>
                           @if (f['id_organizzazione'].invalid && (f['id_organizzazione'].dirty || f['id_organizzazione'].touched)) {
-                            <p class="form-text text-danger">
+                            <p class="form-text text-danger" id="id_organizzazione-error" aria-live="polite">
                               @if (f['id_organizzazione'].errors && f['id_organizzazione'].errors['required']) {
                                 <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                               }

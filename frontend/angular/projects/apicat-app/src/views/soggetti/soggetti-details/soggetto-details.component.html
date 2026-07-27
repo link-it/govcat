@@ -49,7 +49,7 @@
         <ng-template [appHasPermission]="'soggetti'" [action]="'delete'">
           @if (!_isEdit && !_spin) {
             <div class="btn-group- ms-1">
-              <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
+              <div class="dropdown b-dropdown gl-new-dropdown btn-group">
                 <button aria-label="Altre azioni" aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="other_actions">
                   <i class="bi bi-three-dots-vertical"></i>
                 </button>
@@ -119,9 +119,9 @@
                         }</label>
                         @if (_isEdit) {
                           <div class="">
-                            <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome')" type="text" name="nome" id="nome" formControlName="nome" appTrimOnBlur>
+                            <input aria-required="true" [attr.aria-invalid]="(_hasControlError('nome')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('nome')) ? 'nome-error' : null" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome')" type="text" name="nome" id="nome" formControlName="nome" appTrimOnBlur>
                             @if (f['nome'].invalid && (f['nome'].dirty || f['nome'].touched)) {
-                              <p class="form-text text-danger">
+                              <p class="form-text text-danger" id="nome-error" aria-live="polite">
                                 @if (f['nome'].errors && f['nome'].errors['required']) {
                                   <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                 }
@@ -152,9 +152,9 @@
                         }</label>
                         @if (_isEdit) {
                           <div class="">
-                            <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" type="text" name="descrizione" id="descrizione" formControlName="descrizione" appTrimOnBlur>
+                            <input aria-required="true" [attr.aria-invalid]="(_hasControlError('descrizione')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('descrizione')) ? 'descrizione-error' : null" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" type="text" name="descrizione" id="descrizione" formControlName="descrizione" appTrimOnBlur>
                             @if (f['descrizione'].invalid && (f['descrizione'].dirty || f['descrizione'].touched)) {
-                              <p class="form-text text-danger">
+                              <p class="form-text text-danger" id="descrizione-error" aria-live="polite">
                                 @if (f['descrizione'].errors && f['descrizione'].errors['required']) {
                                   <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                 }
@@ -195,6 +195,7 @@
                               bindLabel="organizzazione"
                               labelForId="id_organizzazione"
                               [editableSearchTerm]="true"
+                              [errorId]="'organizzazione-error'"
                               formControlName="organizzazione"
                               (change)="_onOrganizzazioneLoaded($event)">
                               <ng-template ng-label-tmp let-item="item">
@@ -208,7 +209,7 @@
                             </ng-template>
                           </ng-select>
                           @if (f['organizzazione'].invalid && (f['organizzazione'].dirty || f['organizzazione'].touched)) {
-                            <p class="form-text text-danger">
+                            <p class="form-text text-danger" id="organizzazione-error" aria-live="polite">
                               @if (f['organizzazione'].errors && f['organizzazione'].errors['required']) {
                                 <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                               }
@@ -298,9 +299,9 @@
                     }</label>
                     @if (_isEdit) {
                       <div class="">
-                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome_gateway')" type="text" name="nome_gateway" id="nome_gateway" formControlName="nome_gateway" appTrimOnBlur>
+                        <input aria-required="true" [attr.aria-invalid]="(_hasControlError('nome_gateway')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('nome_gateway')) ? 'nome_gateway-error' : null" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome_gateway')" type="text" name="nome_gateway" id="nome_gateway" formControlName="nome_gateway" appTrimOnBlur>
                         @if (f['nome_gateway'].invalid && (f['nome_gateway'].dirty || f['nome_gateway'].touched)) {
-                          <p class="form-text text-danger">
+                          <p class="form-text text-danger" id="nome_gateway-error" aria-live="polite">
                             @if (f['nome_gateway'].errors && f['nome_gateway'].errors['required']) {
                               <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                             }
@@ -407,9 +408,9 @@
                 </label>
                 @if (_isEdit) {
                   <div class="">
-                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_invocazione')" type="text" name="url_invocazione" id="url_invocazione" formControlName="url_invocazione" appTrimOnBlur>
+                    <input aria-required="true" [attr.aria-invalid]="(_hasControlError('url_invocazione')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('url_invocazione')) ? 'url_invocazione-error' : null" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_invocazione')" type="text" name="url_invocazione" id="url_invocazione" formControlName="url_invocazione" appTrimOnBlur>
                     @if (f['url_invocazione'].invalid && (f['url_invocazione'].dirty || f['url_invocazione'].touched)) {
-                      <p class="form-text text-danger">
+                      <p class="form-text text-danger" id="url_invocazione-error" aria-live="polite">
                         @if (f['url_invocazione'].errors && f['url_invocazione'].errors['required']) {
                           <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                         }
@@ -436,9 +437,9 @@
                 </label>
                 @if (_isEdit) {
                   <div class="">
-                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_prefix_collaudo')" type="text" name="url_prefix_collaudo" id="url_prefix_collaudo" formControlName="url_prefix_collaudo" appTrimOnBlur>
+                    <input aria-required="true" [attr.aria-invalid]="(_hasControlError('url_prefix_collaudo')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('url_prefix_collaudo')) ? 'url_prefix_collaudo-error' : null" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_prefix_collaudo')" type="text" name="url_prefix_collaudo" id="url_prefix_collaudo" formControlName="url_prefix_collaudo" appTrimOnBlur>
                     @if (f['url_prefix_collaudo'].invalid && (f['url_prefix_collaudo'].dirty || f['url_prefix_collaudo'].touched)) {
-                      <p class="form-text text-danger">
+                      <p class="form-text text-danger" id="url_prefix_collaudo-error" aria-live="polite">
                         @if (f['url_prefix_collaudo'].errors && f['url_prefix_collaudo'].errors['required']) {
                           <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                         }
@@ -465,9 +466,9 @@
                 </label>
                 @if (_isEdit) {
                   <div class="">
-                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_prefix_produzione')" type="text" name="url_prefix_produzione" id="url_prefix_produzione" formControlName="url_prefix_produzione" appTrimOnBlur>
+                    <input aria-required="true" [attr.aria-invalid]="(_hasControlError('url_prefix_produzione')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('url_prefix_produzione')) ? 'url_prefix_produzione-error' : null" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_prefix_produzione')" type="text" name="url_prefix_produzione" id="url_prefix_produzione" formControlName="url_prefix_produzione" appTrimOnBlur>
                     @if (f['url_prefix_produzione'].invalid && (f['url_prefix_produzione'].dirty || f['url_descrizione'].touched)) {
-                      <p class="form-text text-danger">
+                      <p class="form-text text-danger" id="url_prefix_produzione-error" aria-live="polite">
                         @if (f['url_prefix_produzione'].errors && f['url_prefix_produzione'].errors['required']) {
                           <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                         }

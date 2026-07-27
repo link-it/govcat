@@ -29,4 +29,5 @@ import { TranslateModule } from '@ngx-translate/core';
 })
 export class LnkFormFieldErrorComponent {
   @Input() control: AbstractControl | null = null;
+  @Input() id: string | null = null;
 }

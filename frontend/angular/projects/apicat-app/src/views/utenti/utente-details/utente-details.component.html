@@ -39,7 +39,7 @@
         }
         <!-- <ng-template [appHasPermission]="'utenti'" [action]="'delete'">
         <div role="group" class="btn-group- ms-1" *ngIf="!_isEdit && !_spin">
-          <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
+          <div class="dropdown b-dropdown gl-new-dropdown btn-group">
             <button aria-label="Altre azioni" aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="other_actions">
               <i class="bi bi-three-dots-vertical"></i>
             </button>
@@ -117,9 +117,9 @@
                   </label>
                   @if (_isEdit) {
                     <div class="">
-                      <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('principal')" type="text" name="principal" id="principal" formControlName="principal" appTrimOnBlur>
+                      <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('principal')" [attr.aria-invalid]="(_hasControlError('principal')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('principal')) ? 'principal-error' : null" type="text" name="principal" id="principal" formControlName="principal" appTrimOnBlur>
                       @if (f['principal'].invalid && (f['principal'].dirty || f['principal'].touched)) {
-                        <p class="form-text text-danger">
+                        <p class="form-text text-danger" id="principal-error" aria-live="polite">
                           @if (f['principal'].errors && f['principal'].errors['required']) {
                             <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                           }
@@ -152,9 +152,9 @@
                   </label>
                   @if (_isEdit) {
                     <div class="">
-                      <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome')" type="text" name="nome" id="nome" formControlName="nome" appTrimOnBlur>
+                      <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome')" [attr.aria-invalid]="(_hasControlError('nome')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('nome')) ? 'nome-error' : null" type="text" name="nome" id="nome" formControlName="nome" appTrimOnBlur>
                       @if (f['nome'].invalid && (f['nome'].dirty || f['nome'].touched)) {
-                        <p class="form-text text-danger">
+                        <p class="form-text text-danger" id="nome-error" aria-live="polite">
                           @if (f['nome'].errors && f['nome'].errors['required']) {
                             <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                           }
@@ -185,9 +185,9 @@
                   </label>
                   @if (_isEdit) {
                     <div class="">
-                      <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('cognome')" type="text" name="cognome" id="cognome" formControlName="cognome" appTrimOnBlur>
+                      <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('cognome')" [attr.aria-invalid]="(_hasControlError('cognome')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('cognome')) ? 'cognome-error' : null" type="text" name="cognome" id="cognome" formControlName="cognome" appTrimOnBlur>
                       @if (f['cognome'].invalid && (f['cognome'].dirty || f['cognome'].touched)) {
-                        <p class="form-text text-danger">
+                        <p class="form-text text-danger" id="cognome-error" aria-live="polite">
                           @if (f['cognome'].errors && f['cognome'].errors['required']) {
                             <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                           }
@@ -222,9 +222,9 @@
                       </label>
                       @if (_isEdit) {
                         <div class="">
-                          <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('telefono')" type="text" name="telefono" id="telefono" formControlName="telefono" appTrimOnBlur>
+                          <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('telefono')" [attr.aria-invalid]="(_hasControlError('telefono')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('telefono')) ? 'telefono-error' : null" type="text" name="telefono" id="telefono" formControlName="telefono" appTrimOnBlur>
                           @if (f['telefono'].invalid && (f['telefono'].dirty || f['telefono'].touched)) {
-                            <p class="form-text text-danger">
+                            <p class="form-text text-danger" id="telefono-error" aria-live="polite">
                               @if (f['telefono'].errors && f['telefono'].errors['required']) {
                                 <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                               }
@@ -254,9 +254,9 @@
                       </label>
                       @if (_isEdit) {
                         <div class="">
-                          <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('email')" type="text" name="email" id="email" formControlName="email" appTrimOnBlur>
+                          <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('email')" [attr.aria-invalid]="(_hasControlError('email')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('email')) ? 'email-error' : null" type="text" name="email" id="email" formControlName="email" appTrimOnBlur>
                           @if (f['email'].invalid && (f['email'].dirty || f['email'].touched)) {
-                            <p class="form-text text-danger">
+                            <p class="form-text text-danger" id="email-error" aria-live="polite">
                               @if (f['email'].errors && f['email'].errors['required']) {
                                 <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                               }
@@ -291,9 +291,9 @@
                   </label>
                   @if (_isEdit) {
                     <div class="">
-                      <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('telefono_aziendale')" type="text" name="telefono_aziendale" id="telefono_aziendale" formControlName="telefono_aziendale" appTrimOnBlur>
+                      <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('telefono_aziendale')" [attr.aria-invalid]="(_hasControlError('telefono_aziendale')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('telefono_aziendale')) ? 'telefono_aziendale-error' : null" type="text" name="telefono_aziendale" id="telefono_aziendale" formControlName="telefono_aziendale" appTrimOnBlur>
                       @if (f['telefono_aziendale'].invalid && (f['telefono_aziendale'].dirty || f['telefono_aziendale'].touched)) {
-                        <p class="form-text text-danger">
+                        <p class="form-text text-danger" id="telefono_aziendale-error" aria-live="polite">
                           @if (f['telefono_aziendale'].errors && f['telefono_aziendale'].errors['required']) {
                             <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                           }
@@ -324,9 +324,9 @@
                   </label>
                   @if (_isEdit) {
                     <div class="">
-                      <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('email_aziendale')" type="text" name="email_aziendale" id="email_aziendale" formControlName="email_aziendale" appTrimOnBlur>
+                      <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('email_aziendale')" [attr.aria-invalid]="(_hasControlError('email_aziendale')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('email_aziendale')) ? 'email_aziendale-error' : null" type="text" name="email_aziendale" id="email_aziendale" formControlName="email_aziendale" appTrimOnBlur>
                       @if (f['email_aziendale'].invalid && (f['email_aziendale'].dirty || f['email_aziendale'].touched)) {
-                        <p class="form-text text-danger">
+                        <p class="form-text text-danger" id="email_aziendale-error" aria-live="polite">
                           @if (f['email_aziendale'].errors && f['email_aziendale'].errors['required']) {
                             <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                           }
@@ -423,6 +423,7 @@
                       <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_organizzazione'"></span>
                     </label>
                     <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_organizzazione')"
+                      [errorId]="'id_organizzazione-error'"
                       [items]="(organizzazioni$ | async) || []"
                       [typeahead]="organizzazioniInput$"
                       [minTermLength]="minLengthTerm"
@@ -441,7 +442,7 @@
                       </ng-template>
                     </ng-select>
                     @if (f['id_organizzazione'].invalid && (f['id_organizzazione'].dirty || f['id_organizzazione'].touched)) {
-                      <p class="form-text text-danger">
+                      <p class="form-text text-danger" id="id_organizzazione-error" aria-live="polite">
                         @if (f['id_organizzazione'].errors && f['id_organizzazione'].errors['required']) {
                           <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                         }
@@ -651,6 +652,7 @@
                   @if (_isEdit) {
                     <div class="">
                       <ng-select [class.gl-field-error-outline]="_hasControlError('classi_utente')"
+                        [errorId]="'classi_utente-error'"
                         [items]="_classi_utente"
                         [multiple]="true"
                         [compareWith]="_compareClassiFn"
@@ -663,7 +665,7 @@
                         </ng-template>
                       </ng-select>
                       @if (f['classi_utente'].invalid && (f['classi_utente'].dirty || f['classi_utente'].touched)) {
-                        <p class="form-text text-danger">
+                        <p class="form-text text-danger" id="classi_utente-error" aria-live="polite">
                           @if (f['classi_utente'].errors && f['classi_utente'].errors['required']) {
                             <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                           }
@@ -692,9 +694,9 @@
                   </label>
                   @if (_isEdit) {
                     <div class="">
-                      <textarea aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('note')" name="note" placeholder="{{ 'APP.LABEL.DescrizioneSintetica' | translate }}" id="note" formControlName="note" rows="3" appTrimOnBlur></textarea>
+                      <textarea aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('note')" [attr.aria-invalid]="(_hasControlError('note')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('note')) ? 'note-error' : null" name="note" placeholder="{{ 'APP.LABEL.DescrizioneSintetica' | translate }}" id="note" formControlName="note" rows="3" appTrimOnBlur></textarea>
                       @if (f['note'].invalid && (f['note'].dirty || f['note'].touched)) {
-                        <p class="form-text text-danger">
+                        <p class="form-text text-danger" id="note-error" aria-live="polite">
                           @if (f['note'].errors && f['note'].errors['required']) {
                             <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                           }

@@ -40,12 +40,12 @@
     <div class="">
       <ul class="nav gp-border-b-0 gp-tabs-nav">
         <li class="nav-item">
-          <a tabindex="0" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="currTab === TabType.REFERENTI" (click)="setCurrTab(TabType.REFERENTI)" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + _paging.totalElements || 0 ">
+          <a role="button" tabindex="0" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="currTab === TabType.REFERENTI" (click)="setCurrTab(TabType.REFERENTI)" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + _paging.totalElements || 0 ">
             <span title="Show all referents.">{{ 'APP.SERVICES.TITLE.ReferentiServizio' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="servizioReferenti.length">{{ _paging.totalElements || 0 }}</span>
           </a>
         </li>
         <li class="nav-item">
-          <a tabindex="0" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="currTab === TabType.DOMINIO" (click)="setCurrTab(TabType.DOMINIO)" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + _pagingDomain.totalElements || 0 ">
+          <a role="button" tabindex="0" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="currTab === TabType.DOMINIO" (click)="setCurrTab(TabType.DOMINIO)" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + _pagingDomain.totalElements || 0 ">
             <span title="Show all domain referents.">{{ 'APP.SERVICES.TITLE.ReferentiDominio' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="dominioReferenti.length">{{ _pagingDomain.totalElements || 0 }}</span>
           </a>
         </li>
@@ -200,7 +200,7 @@
         <div class="p-3">
           <div class="form-group tipo">
             <label class="label-bold" for="tipo">{{ 'APP.LABEL.ruolo' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroup" [controlName]="'tipo'"></span></label>
-            <ng-select [class.gl-field-error-outline]="_hasControlError('tipo')"
+            <ng-select [class.gl-field-error-outline]="_hasControlError('tipo')" [errorId]="'tipo-error'"
               [items]="anagrafiche['tipo-referente']"
               bindValue="nome"
               bindLabel="nome"
@@ -216,7 +216,7 @@
               </ng-template>
             </ng-select>
             @if (f['tipo'].invalid && (f['tipo'].dirty || f['tipo'].touched)) {
-              <p class="form-text text-danger">
+              <p class="form-text text-danger" id="tipo-error" aria-live="polite">
                 @if (f['tipo'].errors && f['tipo'].errors['required']) {
                   <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                 }
@@ -228,7 +228,7 @@
             <label class="label-bold" for="id_utente">{{ 'APP.LABEL.id_utente' | translate }} @if (!f['id_utente'].disabled) {
               <span appMarkAsterisk [formGroup]="_editFormGroup" [controlName]="'id_utente'"></span>
             }</label>
-            <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_utente')"
+            <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_utente')" [errorId]="'id_utente-error'"
               [items]="(referenti$ | async) || []"
               [typeahead]="referentiInput$"
               [minTermLength]="minLengthTerm"
@@ -252,7 +252,7 @@
               </ng-template>
             </ng-select>
             @if (f['id_utente'].invalid && (f['id_utente'].dirty || f['id_utente'].touched)) {
-              <p class="form-text text-danger">
+              <p class="form-text text-danger" id="id_utente-error" aria-live="polite">
                 @if (f['id_utente'].errors && f['id_utente'].errors['required']) {
                   <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                 }

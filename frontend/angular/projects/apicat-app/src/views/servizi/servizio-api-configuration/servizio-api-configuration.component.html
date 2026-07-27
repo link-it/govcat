@@ -102,7 +102,9 @@
                             <div class="">
                               <div class="input-group">
                                 <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control"
-                                  [class.gl-field-error-outline]="_hasControlError('nome_gateway')" type="text"
+                                  [class.gl-field-error-outline]="_hasControlError('nome_gateway')"
+                                  [attr.aria-invalid]="(_hasControlError('nome_gateway')) ? 'true' : null"
+                                  [attr.aria-describedby]="(_hasControlError('nome_gateway')) ? 'nome_gateway-error' : null" type="text"
                                   name="nome_gateway" id="nome_gateway" formControlName="nome_gateway" disablePermission
                                   [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato"
                                   [grant]="_grant">
@@ -117,6 +119,7 @@
                               </div>
                               @if (f['nome_gateway'].invalid && (f['nome_gateway'].dirty || f['nome_gateway'].touched)) {
                                 <p
+                                  id="nome_gateway-error" aria-live="polite"
                                   class="form-text text-danger">
                                   @if (f['nome_gateway'].errors && f['nome_gateway'].errors['required']) {
                                     <span
@@ -151,7 +154,9 @@
                               <div>
                                 <div class="input-group">
                                   <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control"
-                                    [class.gl-field-error-outline]="_hasControlError('versione_gateway')" type="number"
+                                    [class.gl-field-error-outline]="_hasControlError('versione_gateway')"
+                                    [attr.aria-invalid]="(_hasControlError('versione_gateway')) ? 'true' : null"
+                                    [attr.aria-describedby]="(_hasControlError('versione_gateway')) ? 'versione_gateway-error' : null" type="number"
                                     name="versione_gateway" id="versione_gateway" formControlName="versione_gateway"
                                     disablePermission [module]="'servizio'" [submodule]="'api'" [state]="service?.stato"
                                     [grant]="_grant" min="1">
@@ -166,6 +171,7 @@
                                 </div>
                                 @if (f['versione_gateway'].invalid && (f['versione_gateway'].dirty || f['versione_gateway'].touched)) {
                                   <p
+                                    id="versione_gateway-error" aria-live="polite"
                                     class="form-text text-danger">
                                     @if (f['versione_gateway'].errors && f['versione_gateway'].errors['required']) {
                                       <span
@@ -345,7 +351,9 @@
                                 <div class="">
                                   <div class="input-group">
                                     <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control"
-                                      [class.gl-field-error-outline]="_hasControlError('url')" type="text" name="url" id="url"
+                                      [class.gl-field-error-outline]="_hasControlError('url')"
+                                      [attr.aria-invalid]="(_hasControlError('url')) ? 'true' : null"
+                                      [attr.aria-describedby]="(_hasControlError('url')) ? 'url-error' : null" type="text" name="url" id="url"
                                       formControlName="url" disablePermission [isNew]="_isNew" [module]="'servizio'"
                                       [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
                                     @if (environmentId === 'produzione') {
@@ -358,6 +366,7 @@
                                   </div>
                                   @if (f['url'].invalid && (f['url'].dirty || f['url'].touched)) {
                                     <p
+                                      id="url-error" aria-live="polite"
                                       class="form-text text-danger">
                                       @if (f['url'].errors && f['url'].errors['required']) {
                                         <span class="d-block">{{

@@ -17,6 +17,9 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 @if (breadcrumbs.length > 0) {
+  @if (mainHeading && headingLabel) {
+    <h1 class="sr-only">{{ headingLabel | translate }}</h1>
+  }
   <nav class="breadcrumbs container-fluid {{ classContainer }} px-0">
     <div class="breadcrumbs-container" [class.container-mobile-nav]="optional">
       @if (!hideToggleMobile) {

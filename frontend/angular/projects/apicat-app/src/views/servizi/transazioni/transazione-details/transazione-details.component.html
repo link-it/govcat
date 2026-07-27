@@ -35,7 +35,7 @@
             <ng-container class="nav-item">
               @if (tab.enabled) {
                 <li class="nav-item">
-                  <a tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_currentTab === tab.link" (click)="_onTabs(tab.link)" [attr.aria-label]="tab.label | translate">
+                  <a role="button" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_currentTab === tab.link" (click)="_onTabs(tab.link)" [attr.aria-label]="tab.label | translate">
                     <span>{{ tab.label | translate }}</span>
                   </a>
                 </li>

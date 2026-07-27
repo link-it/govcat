@@ -19,6 +19,8 @@
 @if (control?.invalid && (control?.dirty || control?.touched)) {
   <p
     class="form-text text-danger mb-0"
+    [attr.id]="id"
+    aria-live="polite"
     >
     @if (control?.errors?.['required']) {
       <span class="d-block">

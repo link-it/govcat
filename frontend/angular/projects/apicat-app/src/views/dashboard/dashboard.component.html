@@ -226,7 +226,7 @@
           <div class="comunicazioni-tabs px-3 py-2 border-bottom">
             <ul class="nav gp-border-b-0 gp-tabs-nav">
               <li class="nav-item">
-                <a class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="comunicazioniTab === 'tutte'" (click)="onComunicazioniTabChange('tutte')">
+                <a role="button" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="comunicazioniTab === 'tutte'" (click)="onComunicazioniTabChange('tutte')">
                   <span>{{ 'APP.FILTER.All' | translate }}</span>
                   @if (comunicazioniTab === 'tutte') {
                     <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm ms-1">
@@ -240,7 +240,7 @@
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="comunicazioniTab === 'nuova'" (click)="onComunicazioniTabChange('nuova')">
+                <a role="button" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="comunicazioniTab === 'nuova'" (click)="onComunicazioniTabChange('nuova')">
                   <span>{{ 'APP.FILTER.Unread' | translate }}</span>
                   @if (comunicazioniTab === 'nuova') {
                     <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm ms-1">
@@ -254,7 +254,7 @@
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="comunicazioniTab === 'archiviata'" (click)="onComunicazioniTabChange('archiviata')">
+                <a role="button" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="comunicazioniTab === 'archiviata'" (click)="onComunicazioniTabChange('archiviata')">
                   <span>{{ 'APP.FILTER.Archived' | translate }}</span>
                   @if (comunicazioniTab === 'archiviata') {
                     <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm ms-1">

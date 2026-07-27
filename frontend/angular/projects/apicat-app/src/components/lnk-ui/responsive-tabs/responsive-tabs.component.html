@@ -23,7 +23,7 @@
       <ul class="nav gp-border-b-0 gp-tabs-nav" role="tablist">
         @for (tab of items; track tab.key) {
           <li class="nav-item" role="presentation">
-            <a class="nav-link gp-tab-nav-item cursor-pointer"
+            <a role="button" class="nav-link gp-tab-nav-item cursor-pointer"
                role="tab"
                tabindex="0"
                [class.gp-tab-nav-item-active]="active === tab.key"

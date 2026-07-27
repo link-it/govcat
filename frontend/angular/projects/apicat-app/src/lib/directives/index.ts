@@ -22,7 +22,10 @@ import { CountUpDirective } from "./count-up.directive";
 import { HtmlAttributesDirective } from "./html-attr.directive";
 import { TextLowercaseDirective } from "./lowercase.directive";
 import { MarkAsteriskDirective } from "./mark-asterisk.directive";
+import { NgSelectAriaDirective } from "./ng-select-aria.directive";
+import { RoleButtonKeyboardDirective } from "./role-button-keyboard.directive";
 import { RouterLinkMatchDirective } from "./router-link-match.directive";
+import { ScrollableRegionFocusableDirective } from "./scrollable-region-focusable.directive";
 import { SetBackgroundImageDirective } from "./set-background-image.directive";
 import { TextUppercaseDirective } from "./uppercase.directive";
 
@@ -35,7 +38,10 @@ export const directives = [
     RouterLinkMatchDirective,
     SetBackgroundImageDirective,
     TextUppercaseDirective,
-    MarkAsteriskDirective
+    MarkAsteriskDirective,
+    NgSelectAriaDirective,
+    RoleButtonKeyboardDirective,
+    ScrollableRegionFocusableDirective
 ]
 
 export {
@@ -47,5 +53,8 @@ export {
     RouterLinkMatchDirective,
     SetBackgroundImageDirective,
     TextUppercaseDirective,
-    MarkAsteriskDirective
+    MarkAsteriskDirective,
+    NgSelectAriaDirective,
+    RoleButtonKeyboardDirective,
+    ScrollableRegionFocusableDirective
 };

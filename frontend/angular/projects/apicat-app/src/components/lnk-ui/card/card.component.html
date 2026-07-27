@@ -61,8 +61,8 @@
       }
       <div class="card-body" (click)="__cardClick($event)" (auxclick)="__cardClick($event)">
         @if (_primaryText) {
-          <h5 tabindex="0"
-            class="card-title text-hover cursor-pointer text-break"
+          <h2 tabindex="0"
+            class="card-title text-hover cursor-pointer text-break h5"
             [class.supports-new-tab]="data.tipo !== 'gruppo'"
             [attr.title]="_primaryText"
             (click)="__simpleClick($event)"
@@ -71,7 +71,7 @@
             <span class="open-new-tab-icon bi bi-box-arrow-up-right"
               [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
             (click)="__openInNewTab($event)"></span>
-          }</h5>
+          }</h2>
         }
         <p class="card-text">@if (_secondaryText) {
           <span>{{ _secondaryText }}</span>
