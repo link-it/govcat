@@ -1,3 +1,15 @@
+2026-07-27  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Fix vulnerabilità OSV/OWASP (Issue 320): aggiornato jackson-databind
+	  da 2.21.4 a 2.21.5 (CVE-2026-54515, GHSA-5gvw-p9qm-jgwh,
+	  GHSA-mhm7-754m-9p8w).
+
+	* [CI/CD]
+	Rimossa la suppression OSV/OWASP per CVE-2026-54515 (jackson-databind),
+	  non più necessaria dopo l'upgrade a 2.21.5: eliminati il riferimento
+	  in `pom.xml` e il file `tools/owasp/suppression/CVE-2026-54515.xml`.
+
 2026-07-24  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* Rilasciata versione 2.4.2
