@@ -1,6 +1,15 @@
 2026-07-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 319: risolte le vulnerabilita` OWASP/OSV del frontend con bump delle
+	  dipendenze negli `overrides` (dompurify 3.4.12, hono, @hono/node-server,
+	  fast-uri, js-yaml, brace-expansion, body-parser, webpack-dev-server) e
+	  `swagger-ui-dist` a ^5.32.11 (bundla DOMPurify 3.4.12). Nessuna nuova
+	  suppression.
+
+2026-07-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue 318: l'obbligatorieta` del referente in creazione servizio (stato
 	  `bozza`) deriva ora dai `dati_obbligatori` del workflow invece di essere
 	  cablata. Se `referenti` non e` fra i dati obbligatori il campo non e` piu`
