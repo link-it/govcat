@@ -19,6 +19,13 @@
 2026-07-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 319: secondo giro vulnerabilita` OSV frontend, alzate altre dipendenze
+	  negli `overrides` (esbuild 0.28.1 come override piatto, postcss 8.5.18,
+	  tar 7.5.21, @hono/node-server 2.0.10, brace-expansion 5.0.8). `npm audit` a 0.
+
+2026-07-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue 319: risolte le vulnerabilita` OWASP/OSV del frontend con bump delle
 	  dipendenze negli `overrides` (dompurify 3.4.12, hono, @hono/node-server,
 	  fast-uri, js-yaml, brace-expansion, body-parser, webpack-dev-server) e
