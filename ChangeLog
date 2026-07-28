@@ -1,6 +1,14 @@
 2026-07-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 324: nella vetrina del servizio, per i servizi riservati vengono ora
+	  mostrati il tag "Riservato" e le classi (nell'hero, accanto allo stato),
+	  con stile e altezza allineati allo `lnk-stato-chip` e i colori del tag
+	  precedente (accent).
+
+2026-07-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue 323: il soggetto erogatore non viene piu` mostrato (in visualizzazione
 	  ne` in edit) quando l'ente ha 0 o 1 soggetto (nessuna scelta reale): il flag
 	  `_hideSoggettoInfo` e` ora usato anche sulla vista, in edit gate `@if` al

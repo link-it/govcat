@@ -128,6 +128,12 @@
                 [stato]="data.stato"
                 [i18nPrefix]="'APP.WORKFLOW.STATUS'"
               ></lnk-stato-chip>
+              @if (data?.visibilita === 'riservato') {
+                <span class="vetrina-tag vetrina-tag--riservato">{{ 'APP.VISIBILITY.riservato' | translate }}</span>
+                @for (classe of data?.classi; track classe) {
+                  <span class="vetrina-tag vetrina-tag--classe">{{ classe.nome }}</span>
+                }
+              }
             </div>
           </div>
 

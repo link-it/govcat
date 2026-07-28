@@ -346,3 +346,30 @@ word-break: break-word;
 .lnk-vetrina .hero::before {
     border-radius: var(--radius-xl);
 }
+
+/* Issue #324: tag "Riservato" + classi nell'hero, dimensionati come
+   `lnk-stato-chip` (stesso padding/font/border-radius) per uniformita' con lo
+   stato-chip gia' presente nella meta-row. */
+.lnk-vetrina .hero .meta-row .vetrina-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid;
+    white-space: nowrap;
+}
+
+/* Stessi colori del tag precedente (`.lnk-pill-accent`, chipVariant "accent"). */
+.lnk-vetrina .hero .meta-row .vetrina-tag--riservato {
+    background: var(--accent-soft);
+    color: var(--accent-ink);
+    border-color: var(--accent-border);
+}
+
+.lnk-vetrina .hero .meta-row .vetrina-tag--classe {
+    background: var(--surface-3);
+    color: var(--ink-2);
+    border-color: var(--line);
+}
