@@ -1093,8 +1093,11 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                     this._formGroup.controls.id_soggetto_erogatore.patchValue(result[0].id_soggetto)
                     this._formGroup.controls.id_soggetto_erogatore.updateValueAndValidity()
                 } else {
-                    this._hideSoggettoDropdown = false;
-                    this._hideSoggettoInfo = false;
+                    // Mostra il soggetto erogatore solo se c'e' una scelta reale (piu' di un soggetto);
+                    // con 0 soggetti non va mostrato (ne' dropdown vuota in edit, ne' in visualizzazione).
+                    const _hasChoice = result.length > 1;
+                    this._hideSoggettoDropdown = !_hasChoice;
+                    this._hideSoggettoInfo = !_hasChoice;
                     this._elencoSoggetti = [...result];
                     this._formGroup.controls.id_soggetto_erogatore.patchValue(this.data.soggetto_erogatore?.id_soggetto)
                     this._formGroup.controls.id_soggetto_erogatore.updateValueAndValidity()
@@ -1188,13 +1191,15 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                         this._disabled_id_soggetto = aux.id_soggetto;
                         
                     } else {
+                        // Solo con piu' di un soggetto ha senso mostrare la dropdown; con 0 va nascosta.
+                        const _hasChoice = result.length > 1;
                         this._elencoSoggetti = [...result];
 
                         controls.id_soggetto_erogatore.enable();
                         controls.id_soggetto_erogatore.updateValueAndValidity();
                         this._disabled_id_soggetto = null;
-                        this._hideSoggettoDropdown = false;
-                        this._hideSoggettoInfo = false;
+                        this._hideSoggettoDropdown = !_hasChoice;
+                        this._hideSoggettoInfo = !_hasChoice;
                     }
 
                     this._formGroup.updateValueAndValidity();
