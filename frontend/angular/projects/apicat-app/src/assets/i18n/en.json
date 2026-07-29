@@ -1919,6 +1919,7 @@
 								"MODIFIABLE": "Data not modifiable in the current workflow state"
 							}
 						},
+						"PROFILO": "State transition from [{{statoAttuale}}] to [{{statoDesiderato}}] not enabled for the profiles [{{profili}}] required by the service",
 						"STATE": "",
 						"TRANSITION": "State transition from [{{statoAttuale}}] to [{{statoDesiderato}}] not allowed"
 					},

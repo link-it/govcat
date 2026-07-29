@@ -42,6 +42,7 @@ import org.govway.catalogo.controllers.ServiziController;
 import org.govway.catalogo.controllers.SoggettiController;
 import org.govway.catalogo.controllers.UtentiController;
 import org.govway.catalogo.core.services.UtenteService;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
 import org.govway.catalogo.servlets.model.API;
@@ -62,6 +63,7 @@ import org.govway.catalogo.servlets.model.Client;
 import org.govway.catalogo.servlets.model.ClientCreate;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
+import org.govway.catalogo.servlets.model.ConfigurazioneStato;
 import org.govway.catalogo.servlets.model.DocumentoCreate;
 import org.govway.catalogo.servlets.model.DocumentoUpdate.TipoDocumentoEnum;
 import org.govway.catalogo.servlets.model.DocumentoUpdateNew;
@@ -157,6 +159,9 @@ public class WorkflowAdesioniTest {
 	private static final String STATO_AUTORIZZATO_IN_PRODUZIONE = "autorizzato_produzione";
 	private static final String STATO_IN_CONFIGURAZIONE_PRODUZIONE = "in_configurazione_produzione";
 	private static final String STATO_PUBBLICATO_IN_PRODUZIONE = "pubblicato_produzione";
+
+	private static final String PROFILO_MODI_P1 = "MODI_P1";
+	private static final String PROFILO_INTERNO_HTTPS = "INTERNO_HTTPS";
     
     @Mock
     private SecurityContext securityContext;
@@ -454,6 +459,14 @@ public class WorkflowAdesioniTest {
     }
     
     public API getAPI() {
+    	return this.getAPI(List.of(PROFILO_MODI_P1));
+    }
+
+    /**
+     * Crea l'API del dominio dichiarando un gruppo authType per ciascun profilo indicato:
+     * i profili risultano quindi i client richiesti dal servizio.
+     */
+    public API getAPI(List<String> profili) {
     	APICreate apiCreate = CommonUtils.getAPICreate();
         apiCreate.setIdServizio(idServizio);
         apiCreate.setRuolo(RuoloAPIEnum.DOMINIO);
@@ -482,24 +495,29 @@ public class WorkflowAdesioniTest {
         
         
         List<AuthTypeApiResource> gruppiAuthType = new ArrayList<AuthTypeApiResource>();
-        
-        AuthTypeApiResource authType = new AuthTypeApiResource();
-        authType.setProfilo("MODI_P1");
-        
-        List<String> risorse = new ArrayList<String>();
-        risorse.add("risorsa1");
-        authType.setResources(risorse);
-        
-        List<AuthTypeApiResourceProprietaCustom> proprietaCustom = new ArrayList<AuthTypeApiResourceProprietaCustom>();
-        
-        AuthTypeApiResourceProprietaCustom autResource = new AuthTypeApiResourceProprietaCustom();
-        autResource.setNome("custom resorce");
-        autResource.setValore("56");
-        
-        proprietaCustom.add(autResource);
-        
-        gruppiAuthType.add(authType);
-        
+
+        int indiceRisorsa = 0;
+        for(String profilo: profili) {
+            indiceRisorsa++;
+
+            AuthTypeApiResource authType = new AuthTypeApiResource();
+            authType.setProfilo(profilo);
+
+            List<String> risorse = new ArrayList<String>();
+            risorse.add("risorsa" + indiceRisorsa);
+            authType.setResources(risorse);
+
+            List<AuthTypeApiResourceProprietaCustom> proprietaCustom = new ArrayList<AuthTypeApiResourceProprietaCustom>();
+
+            AuthTypeApiResourceProprietaCustom autResource = new AuthTypeApiResourceProprietaCustom();
+            autResource.setNome("custom resorce");
+            autResource.setValore("56");
+
+            proprietaCustom.add(autResource);
+
+            gruppiAuthType.add(authType);
+        }
+
         apiCreate.setGruppiAuthType(gruppiAuthType);
         
         DocumentoCreate doc = new DocumentoCreate();
@@ -1406,10 +1424,128 @@ public class WorkflowAdesioniTest {
     	
     	//Referente tecnico dominio
     	CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO_DOMINIO, securityContext, authentication, utenteService);
-    	
+
     	assertThrows(NotAuthorizedException.class, ()->{
     		this.passaAlloStatoSuccessivo(STATO_IN_CONFIGURAZIONE_PRODUZIONE);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
+    }
+
+    /**
+     * Restituisce la configurazione dello stato successivo a quello indicato, per poter
+     * applicare al volo il vincolo sui profili nei test che seguono.
+     */
+    private ConfigurazioneStato getConfigurazioneStatoSuccessivo(String statoAttuale) {
+    	return this.configurazione.getAdesione().getWorkflow().getCambiStato().stream()
+    			.filter(c -> c.getStatoAttuale().equals(statoAttuale))
+    			.findAny()
+    			.orElseThrow(() -> new IllegalStateException("Cambio stato non configurato per lo stato " + statoAttuale))
+    			.getStatoSuccessivo();
+    }
+
+    private void cambiaStatoAdesione(String stato) {
+    	StatoUpdate statoUpdate = new StatoUpdate();
+    	statoUpdate.setStato(stato);
+    	statoUpdate.setCommento(stato);
+    	adesioniController.updateStatoAdesione(idAdesione, statoUpdate, null);
+    	entityManager.flush();
+    	entityManager.clear();
+    }
+
+    /**
+     * Il cambio stato non deve essere consentito se il profilo richiesto dal servizio non e'
+     * fra quelli abilitati per lo stato di arrivo.
+     */
+    @Test
+    public void cambioStatoNonConsentitoSeProfiloRichiestoNonAbilitato() {
+    	Dominio dominio = this.getDominio(null);
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	this.getAPI();
+
+    	CommonUtils.cambioStatoFinoA(STATO_PUBBLICATO_IN_COLLAUDO, serviziController, idServizio);
+    	entityManager.flush();
+    	entityManager.clear();
+
+    	this.getAdesione();
+
+    	ConfigurazioneStato statoSuccessivo = this.getConfigurazioneStatoSuccessivo(STATO_BOZZA);
+    	try {
+    		// Il servizio richiede il profilo MODI_P1, che non e' abilitato per la transizione
+    		statoSuccessivo.setProfili(List.of(PROFILO_INTERNO_HTTPS));
+
+    		NotAuthorizedException e = assertThrows(NotAuthorizedException.class, () -> {
+    			this.cambiaStatoAdesione(STATO_RICHIESTO_IN_COLLAUDO);
+    		}, "Profilo richiesto dal servizio non abilitato per la transizione");
+
+    		assertEquals(ErrorCode.WFL_400_PROFILO, e.getErrorCode());
+    		assertEquals(PROFILO_MODI_P1, e.getParameters().get("profili"));
+    	} finally {
+    		statoSuccessivo.setProfili(null);
+    	}
+
+    	// Rimosso il vincolo, la transizione torna consentita
+    	this.cambiaStatoAdesione(STATO_RICHIESTO_IN_COLLAUDO);
+    	assertEquals(STATO_RICHIESTO_IN_COLLAUDO,
+    			adesioniController.getAdesione(idAdesione).getBody().getStato());
+    }
+
+    /**
+     * Il cambio stato deve essere consentito se tutti i profili richiesti dal servizio sono
+     * fra quelli abilitati, anche quando lo stato ne abilita altri non richiesti.
+     */
+    @Test
+    public void cambioStatoConsentitoSeTuttiIProfiliRichiestiAbilitati() {
+    	Dominio dominio = this.getDominio(null);
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	this.getAPI();
+
+    	CommonUtils.cambioStatoFinoA(STATO_PUBBLICATO_IN_COLLAUDO, serviziController, idServizio);
+    	entityManager.flush();
+    	entityManager.clear();
+
+    	this.getAdesione();
+
+    	ConfigurazioneStato statoSuccessivo = this.getConfigurazioneStatoSuccessivo(STATO_BOZZA);
+    	try {
+    		statoSuccessivo.setProfili(List.of(PROFILO_MODI_P1, PROFILO_INTERNO_HTTPS));
+
+    		this.cambiaStatoAdesione(STATO_RICHIESTO_IN_COLLAUDO);
+    		assertEquals(STATO_RICHIESTO_IN_COLLAUDO,
+    				adesioniController.getAdesione(idAdesione).getBody().getStato());
+    	} finally {
+    		statoSuccessivo.setProfili(null);
+    	}
+    }
+
+    /**
+     * Il vincolo e' valutato in AND su tutti i profili richiesti dal servizio: se ne resta
+     * fuori anche uno solo la transizione non e' consentita.
+     */
+    @Test
+    public void cambioStatoNonConsentitoSeSoloAlcuniProfiliRichiestiAbilitati() {
+    	Dominio dominio = this.getDominio(null);
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	this.getAPI(List.of(PROFILO_MODI_P1, PROFILO_INTERNO_HTTPS));
+
+    	CommonUtils.cambioStatoFinoA(STATO_PUBBLICATO_IN_COLLAUDO, serviziController, idServizio);
+    	entityManager.flush();
+    	entityManager.clear();
+
+    	this.getAdesione();
+
+    	ConfigurazioneStato statoSuccessivo = this.getConfigurazioneStatoSuccessivo(STATO_BOZZA);
+    	try {
+    		statoSuccessivo.setProfili(List.of(PROFILO_MODI_P1));
+
+    		NotAuthorizedException e = assertThrows(NotAuthorizedException.class, () -> {
+    			this.cambiaStatoAdesione(STATO_RICHIESTO_IN_COLLAUDO);
+    		}, "Uno dei profili richiesti dal servizio non e' abilitato per la transizione");
+
+    		assertEquals(ErrorCode.WFL_400_PROFILO, e.getErrorCode());
+    		// nel messaggio finisce solo il profilo che ha fatto scartare la transizione
+    		assertEquals(PROFILO_INTERNO_HTTPS, e.getParameters().get("profili"));
+    	} finally {
+    		statoSuccessivo.setProfili(null);
+    	}
     }
 }
 

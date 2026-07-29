@@ -7083,6 +7083,16 @@ components:
           type: "array"
           items:
             $ref: '#/components/schemas/ConfigurazioneRuolo'
+        profili:
+          description: "Profili (codice_interno definito in servizio.api.profili) per i quali la
+            transizione verso questo stato e' abilitata. Il vincolo si applica al workflow delle
+            adesioni ed e' valutato sui profili dei client richiesti dal servizio a cui si sta
+            aderendo: la transizione e' consentita solo se TUTTI i profili richiesti sono presenti
+            in questa lista. Se la lista e' assente o vuota la transizione e' abilitata per
+            qualunque profilo (comportamento di default)."
+          type: array
+          items:
+            type: "string"
     ConfigurazioneCambioStato:
       type: "object"
       required:
