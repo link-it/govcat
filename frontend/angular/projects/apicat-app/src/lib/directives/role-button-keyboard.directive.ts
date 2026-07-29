@@ -19,13 +19,15 @@
 import { Directive, ElementRef, HostListener } from '@angular/core';
 
 /**
- * Rende attivabili da tastiera (Enter / Spazio) i tab `<a class="nav-link" role="button">`
- * che non hanno `href`: un ancora senza href non emette `click` alla pressione di Enter,
- * quindi con solo `(click)` non erano operabili da tastiera (WCAG 2.1.1). La direttiva
- * sintetizza il click sul solo elemento host quando riceve Enter/Spazio.
+ * Rende attivabili da tastiera (Enter / Spazio) gli ancora usati come pulsanti
+ * `<a role="button">` privi di `href` (es. voci di menu sidebar, tab): un ancora senza
+ * href non emette `click` alla pressione di Enter, quindi con solo `(click)` non erano
+ * operabili da tastiera (WCAG 2.1.1). Gli ancora con `href`/`routerLink` sono esclusi
+ * (`:not([href])`) perche' attivano gia` nativamente. La direttiva sintetizza il click
+ * sul solo elemento host quando riceve Enter/Spazio.
  */
 @Directive({
-  selector: 'a.nav-link[role="button"]',
+  selector: 'a[role="button"]:not([href])',
   standalone: true
 })
 export class RoleButtonKeyboardDirective {

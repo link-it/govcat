@@ -1,6 +1,14 @@
 2026-07-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Accessibilita` (WCAG 2.1.1): risolta regressione per cui gli `<a role="button">`
+	  senza href (es. menu sidebar) erano focusabili ma non attivabili con
+	  Enter/Spazio. Selettore di `RoleButtonKeyboardDirective` allargato a
+	  `a[role="button"]:not([href])` e direttiva importata in `gp-layout`.
+
+2026-07-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Traduzioni stati subscriber PDND: il campo stato in `subscribers-config`
 	  usa ora il prefisso i18n `APP.STATUS` (prima cercava `APP.WORKFLOW.STATUS.*`
 	  inesistenti). Aggiunti sotto `APP.STATUS` gli stati mancanti SUSPENDED,
