@@ -4,7 +4,7 @@
       { "field": "name", "type": "text", "emptySpace": true }
     ],
     "secondaryText": [
-      { "field": "state", "type": "label", "options": "status" }
+      { "field": "state", "type": "label", "options": "status", "i18nPrefix": "APP.STATUS" }
     ],
     "metadata": {
       "text": [

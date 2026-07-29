@@ -1,3 +1,12 @@
+2026-07-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Traduzioni stati subscriber PDND: il campo stato in `subscribers-config`
+	  usa ora il prefisso i18n `APP.STATUS` (prima cercava `APP.WORKFLOW.STATUS.*`
+	  inesistenti). Aggiunti sotto `APP.STATUS` gli stati mancanti SUSPENDED,
+	  ARCHIVED, MISSING_CERTIFIED_ATTRIBUTES, REJECTED (it/en); PENDING e ACTIVE
+	  gia` presenti.
+
 2026-07-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
