@@ -21,7 +21,7 @@
     <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" [classContainer]="'limit-container-width'" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
     <div class="d-flex flex-grow-1">&nbsp;</div>
     <div class="nav-controls">
-      @if (data) {
+      @if (data && !_isNew) {
         <app-monitor-dropdown
           [showMonitoring]="Tools.Configurazione?.servizio?.api?.transazioni && _canJoin() && (_updateData | mapper:_canMonitoraggioMapper)"
           [returnWeb]="true"

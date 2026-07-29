@@ -1,6 +1,12 @@
 2026-07-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Form creazione servizio: `app-monitor-dropdown` non e` piu` mostrato in
+	  creazione di un nuovo servizio (`_isNew`); resta in visualizzazione/modifica.
+
+2026-07-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Accessibilita` (WCAG 2.1.1): risolta regressione per cui gli `<a role="button">`
 	  senza href (es. menu sidebar) erano focusabili ma non attivabili con
 	  Enter/Spazio. Selettore di `RoleButtonKeyboardDirective` allargato a
