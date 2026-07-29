@@ -1,6 +1,15 @@
 2026-07-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Temi: ripristinati i colori branding originali (rosso `#ff4050`) nei temi e
+	  aggiunto un tema accessibile dedicato `linkit-blue-aa` (rosso `#d81f2c`,
+	  contrasto AA), impostato come `CurrentTheme` di default. Le variabili
+	  `--accent`/`--accent-hover` restano: cambiati solo i valori (coral e
+	  step/header) da `#d81f2c` a `#ff4050` nei temi originali.
+
+2026-07-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Form creazione servizio: `app-monitor-dropdown` non e` piu` mostrato in
 	  creazione di un nuovo servizio (`_isNew`); resta in visualizzazione/modifica.
 
