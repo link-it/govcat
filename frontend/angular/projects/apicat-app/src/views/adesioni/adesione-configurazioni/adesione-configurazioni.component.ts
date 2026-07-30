@@ -2319,9 +2319,12 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
     }
 
     _hasActions() {
+        // Issue #322: il gate `profili` vincola anche il gestore -> prima del bypass.
+        const _reqProfiles = this.authenticationService.getRequiredProfiles(this.adesione);
+        if (this.adesione && !this.authenticationService.isTransitionAllowedForProfiles('adesione', this.adesione.stato, 'stato_successivo', _reqProfiles)) { return false; }
         if (this.authenticationService.isGestore(this._grant?.ruoli)) { return true; }
         if (this.adesione) {
-            const _statoSuccessivo: boolean = this.authenticationService.canChangeStatus('adesione', this.adesione.stato, 'stato_successivo', this._grant?.ruoli);
+            const _statoSuccessivo: boolean = this.authenticationService.canChangeStatus('adesione', this.adesione.stato, 'stato_successivo', this._grant?.ruoli, '', _reqProfiles);
             return _statoSuccessivo;
         }
         return false;

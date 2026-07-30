@@ -1,3 +1,14 @@
+2026-07-30  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 322: le transizioni di workflow dell'adesione rispettano il nuovo
+	  campo `profili` dello stato di arrivo: la transizione (e quindi la
+	  configurazione automatica) e` consentita solo se tutti i profili dei client
+	  richiesti dell'adesione sono nella lista (AND); lista vuota o adesione senza
+	  client richiesti = nessun vincolo. Vincolo di applicabilita`, applicato
+	  anche al gestore, su tutti i pulsanti/menu di cambio stato (incluso
+	  `stati_ulteriori`: menu `ui-workflow` e substepper del wizard).
+
 2026-07-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

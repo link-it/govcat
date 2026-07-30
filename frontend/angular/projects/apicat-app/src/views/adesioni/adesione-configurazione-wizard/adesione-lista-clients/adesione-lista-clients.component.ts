@@ -538,8 +538,11 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
     }
 
     _hasCambioStato() {
+        // Issue #322: il gate `profili` vincola anche il gestore -> prima del bypass.
+        const _reqProfiles = this.authenticationService.getRequiredProfiles(this.adesione);
+        if (!this.authenticationService.isTransitionAllowedForProfiles('adesione', this.adesione.stato, 'stato_successivo', _reqProfiles)) { return false; }
         if (this.authenticationService.isGestore(this.grant?.ruoli)) { return true; }
-        const _statoSuccessivo: boolean = this.authenticationService.canChangeStatus('adesione', this.adesione.stato, 'stato_successivo', this.grant?.ruoli);
+        const _statoSuccessivo: boolean = this.authenticationService.canChangeStatus('adesione', this.adesione.stato, 'stato_successivo', this.grant?.ruoli, '', _reqProfiles);
         return _statoSuccessivo;
     }
 

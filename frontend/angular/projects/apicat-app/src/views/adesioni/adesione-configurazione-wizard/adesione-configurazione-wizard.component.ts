@@ -1000,10 +1000,24 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         return 'nessun_cambio_stato';
     }
 
+    /**
+     * Profili dei client richiesti dell'adesione, per il gate `profili` sulle
+     * transizioni (Issue #322). Vuoto -> nessun vincolo.
+     */
+    private _requiredProfiles(): string[] {
+        return this.authenticationService.getRequiredProfiles(this.adesione);
+    }
+
     _hasCambioStato() {
+        // Il gate `profili` (Issue #322) e` un vincolo di applicabilita` della
+        // transizione: si applica anche al gestore, quindi PRIMA del bypass.
+        const _reqProfiles = this._requiredProfiles();
+        if (!this.authenticationService.isTransitionAllowedForProfiles('adesione', this.adesione.stato, 'stato_successivo', _reqProfiles)) {
+            return false;
+        }
         if (this.authenticationService.isGestore(this.grant?.ruoli)) { return true; }
         const _statoPrecedente: boolean = false;
-        const _statoSuccessivo: boolean = this.authenticationService.canChangeStatus('adesione', this.adesione.stato, 'stato_successivo', this.grant?.ruoli);
+        const _statoSuccessivo: boolean = this.authenticationService.canChangeStatus('adesione', this.adesione.stato, 'stato_successivo', this.grant?.ruoli, '', _reqProfiles);
         const _statiUlteriori: boolean = false;
         return (_statoPrecedente || _statoSuccessivo || _statiUlteriori);
     }
@@ -1054,7 +1068,8 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
             this.adesione.stato,
             type,
             this._combinedRuoli(),
-            statusName
+            statusName,
+            this._requiredProfiles()
         );
     }
 
@@ -2157,9 +2172,12 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
 
     hasActions() {
         const _grant: any = this.grant || [];
+        // Issue #322: il gate `profili` vincola anche il gestore -> prima del bypass.
+        const _reqProfiles = this._requiredProfiles();
+        if (this.adesione && !this.authenticationService.isTransitionAllowedForProfiles('adesione', this.adesione.stato, 'stato_successivo', _reqProfiles)) { return false; }
         if (this.authenticationService.isGestore(_grant)) { return true; }
         if (this.adesione) {
-            const _statoSuccessivo: boolean = this.authenticationService.canChangeStatus('adesione', this.adesione.stato, 'stato_successivo', _grant);
+            const _statoSuccessivo: boolean = this.authenticationService.canChangeStatus('adesione', this.adesione.stato, 'stato_successivo', _grant, '', _reqProfiles);
             return _statoSuccessivo;
         }
         return false;
