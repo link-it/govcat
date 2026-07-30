@@ -41,6 +41,32 @@
 	  ARCHIVED, MISSING_CERTIFIED_ATTRIBUTES, REJECTED (it/en); PENDING e ACTIVE
 	  gia` presenti.
 
+2026-07-29  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 322: workflow adesioni, il singolo cambio di stato puo` ora essere
+	  abilitato solo per alcuni profili tramite il nuovo campo `profili` degli
+	  stati di arrivo (`stato_successivo`, `stato_precedente`, `stati_ulteriori`):
+	  la transizione e` consentita solo se tutti i profili dei client richiesti
+	  dal servizio sono elencati. Senza il campo la transizione resta abilitata
+	  per qualunque profilo, quindi le configurazioni esistenti non cambiano
+	  comportamento. Consente, tra l'altro, di limitare la configurazione
+	  automatica ai soli profili supportati, prima attivata a prescindere per
+	  tutte le adesioni che entravano negli stati `in_configurazione_*`. Nuovo
+	  codice errore `WFL.400.PROFILO`.
+	Nel `configurazione.json` di esempio il workflow adesioni sdoppia ora lo
+	  stato di configurazione in `in_configurazione_manuale_*` (stato successivo)
+	  e `in_configurazione_automatica_*` (stato ulteriore), abilitato al solo
+	  profilo `INTERNO_OAUTH_CLIENT_CREDENTIALS` per collaudo e produzione, ed e`
+	  stata aggiunta la sezione `adesione.configurazione_automatica` finora
+	  mancante, che il batch legge per selezionare le adesioni da configurare.
+	  Gli stati automatici non richiedono `<ambiente>_configurato` nei
+	  `dati_obbligatori`, altrimenti la configurazione non potrebbe partire.
+	  Le installazioni che aggiornano il proprio file di configurazione con i
+	  nuovi nomi di stato devono allineare le adesioni gia` presenti negli stati
+	  `in_configurazione_collaudo`, `in_configurazione_produzione` e
+	  `in_configurazione_produzione_senza_collaudo`.
+
 2026-07-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

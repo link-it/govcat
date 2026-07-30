@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.govway.catalogo.exception.InternalException;
@@ -84,16 +86,24 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 			}
 
 			List<ConfigurazioneStato> lstStatiArrivo = new ArrayList<>();
+			// Profili che hanno fatto scartare una transizione altrimenti valida: servono solo
+			// a distinguere l'errore restituito quando non resta alcuno stato di arrivo
+			Set<String> profiliNonAbilitati = new TreeSet<>();
 			for(ConfigurazioneCambioStato confCambioStato: lstStatoPartenza) {
-				addStato(confCambioStato.getStatoSuccessivo(), statoFinale, lstStatiArrivo);
-				addStato(confCambioStato.getStatoPrecedente(), statoFinale,  lstStatiArrivo);
-				
+				addStato(entity, confCambioStato.getStatoSuccessivo(), statoFinale, lstStatiArrivo, profiliNonAbilitati);
+				addStato(entity, confCambioStato.getStatoPrecedente(), statoFinale,  lstStatiArrivo, profiliNonAbilitati);
+
 				for(ConfigurazioneStato ulteriore: confCambioStato.getStatiUlteriori()) {
-					addStato(ulteriore, statoFinale, lstStatiArrivo);
+					addStato(entity, ulteriore, statoFinale, lstStatiArrivo, profiliNonAbilitati);
 				}
 			}
-			
+
 			if(lstStatiArrivo.isEmpty()) {
+				if(!profiliNonAbilitati.isEmpty()) {
+					throw new NotAuthorizedException(ErrorCode.WFL_400_PROFILO,
+							Map.of("statoAttuale", statoIniziale, "statoDesiderato", statoFinale,
+									"profili", String.join(", ", profiliNonAbilitati)));
+				}
 				throw new NotAuthorizedException(ErrorCode.WFL_400_TRANSITION,
 						Map.of("statoAttuale", statoIniziale, "statoDesiderato", statoFinale));
 			}
@@ -121,10 +131,33 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 		
 	}
 
-	private void addStato(ConfigurazioneStato stato, String statoFinale, List<ConfigurazioneStato> lstStati) {
+	private void addStato(ENTITY entity, ConfigurazioneStato stato, String statoFinale,
+			List<ConfigurazioneStato> lstStati, Set<String> profiliNonAbilitati) {
 		if(stato != null && stato.getNome().equals(statoFinale)) {
-			lstStati.add(stato);
+			List<String> nonAbilitati = getProfiliNonAbilitati(entity, stato);
+			if(nonAbilitati.isEmpty()) {
+				lstStati.add(stato);
+			} else {
+				this.logger.debug("Transizione verso lo stato {} scartata: profili non abilitati {}", statoFinale, nonAbilitati);
+				profiliNonAbilitati.addAll(nonAbilitati);
+			}
 		}
+	}
+
+	/**
+	 * Restituisce i profili che impediscono la transizione verso lo stato indicato, ovvero i
+	 * profili richiesti dall'entita' che non compaiono nella lista {@code profili} dello stato
+	 * di arrivo. Una lista vuota significa che la transizione e' abilitata.
+	 *
+	 * L'implementazione di default non applica alcun vincolo sui profili: le sottoclassi che
+	 * gestiscono un'entita' con dei profili associati possono ridefinire il metodo.
+	 *
+	 * @param entity entita' di cui si sta valutando il cambio stato
+	 * @param stato configurazione dello stato di arrivo della transizione
+	 * @return i profili non abilitati, lista vuota se la transizione e' consentita
+	 */
+	protected List<String> getProfiliNonAbilitati(ENTITY entity, ConfigurazioneStato stato) {
+		return List.of();
 	}
 	
 	public void checkCampiObbligatori(ENTITY entity, String stato) {

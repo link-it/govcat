@@ -56,6 +56,7 @@ import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
 import org.govway.catalogo.servlets.model.ConfigurazioneCustomAdesioneProprietaList;
 import org.govway.catalogo.servlets.model.ConfigurazioneCustomProprieta;
+import org.govway.catalogo.servlets.model.ConfigurazioneStato;
 import org.govway.catalogo.servlets.model.ConfigurazioneWorkflow;
 import org.govway.catalogo.servlets.model.ConfigurazioneDatoSempreModificabile;
 import org.govway.catalogo.servlets.model.EntitaComplessaError;
@@ -720,6 +721,27 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 	@Override
 	protected ConfigurazioneWorkflow getWorkflow(AdesioneEntity entity) {
 		return this.configurazione.getAdesione().getWorkflow();
+	}
+
+	/**
+	 * Il vincolo sui profili configurato su uno stato di arrivo del workflow adesioni viene
+	 * valutato sui profili dei client richiesti dal servizio a cui si sta aderendo: la
+	 * transizione e' consentita solo se tutti i profili richiesti sono abilitati.
+	 * Se lo stato non dichiara alcun profilo la transizione e' abilitata per tutti.
+	 */
+	@Override
+	protected List<String> getProfiliNonAbilitati(AdesioneEntity entity, ConfigurazioneStato stato) {
+		List<String> profiliAbilitati = stato.getProfili();
+
+		if(profiliAbilitati == null || profiliAbilitati.isEmpty()) {
+			return List.of();
+		}
+
+		return this.getClientRichiesti(entity.getServizio()).stream()
+				.map(ClientRichiesto::getProfilo)
+				.filter(p -> p != null && !profiliAbilitati.contains(p))
+				.distinct()
+				.collect(Collectors.toList());
 	}
 
 	@Override
