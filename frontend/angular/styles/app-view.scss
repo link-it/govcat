@@ -13,7 +13,7 @@
 
   --ink:          #212c49;
   --ink-2:        #2e445a;
-  --ink-3:        #57738a;
+  --ink-3:        #516980;
   --ink-4:        #8aa4b8;
 
   /* primary accent — overridable via tweak.
@@ -93,6 +93,14 @@
 
 small, .small {
     font-size: 0.875em;
+}
+
+/* A11Y (WCAG 1.4.1): i link dentro il contenuto markdown (es. descrizione API
+   nella vetrina servizio) devono essere distinguibili non solo dal colore ->
+   underline. `!important` per prevalere sul reset globale `a { text-decoration:
+   none !important }` (app-custom.scss). Risolve axe `link-in-text-block`. */
+.markdown a[href] {
+    text-decoration: underline !important;
 }
 
 /* `<lnk-pill>` allineato al design system Link.it: stessa

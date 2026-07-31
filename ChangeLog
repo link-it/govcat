@@ -1,6 +1,14 @@
 2026-07-31  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Accessibilita` (WCAG 1.4.3 / 1.4.1) vetrine adesione e servizio: token
+	  `--ink-3` scurito da #57738a a #516980 (contrasto testo secondario su
+	  sfondo chiaro da 4.48 a 5.14:1); link nel contenuto markdown ora
+	  sottolineati (distinguibili non solo dal colore, risolve `link-in-text-block`).
+
+2026-07-31  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Accessibilita` (WCAG 2.4.3 / 2.4.7) wizard adesioni: al cambio fase il focus
 	  si sposta sul corpo della fase attiva. Reso visibile il focus da tastiera,
 	  prima assente o non evidenziato, su: fase attiva/visualizzata dello stepper,
