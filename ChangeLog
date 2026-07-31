@@ -1,3 +1,13 @@
+2026-07-31  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Accessibilita` (WCAG 2.1.1 / 2.4.7) wizard adesioni: gli header a fisarmonica
+	  (sezioni di fase e gruppi referenti) ora sono raggiungibili e attivabili da
+	  tastiera (`role="button"` + `tabindex`; per il gruppo con bottone annidato il
+	  toggle e` sull'h4 per evitare nested-interactive). Reso visibile il focus da
+	  tastiera su passi dello stepper e tab (prima assente): anello inset
+	  `box-shadow` (immune al clipping da `overflow:hidden`).
+
 2026-07-30  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

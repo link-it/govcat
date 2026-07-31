@@ -1111,7 +1111,7 @@
        contiene il bottone "Modifica" e la form. -->
   @let openInfo = isPhaseSectionOpen('info_generali');
   <section class="lnk-phase-section" [class.is-open]="openInfo">
-    <header class="lnk-phase-section-hd"
+    <header class="lnk-phase-section-hd" role="button" tabindex="0"
             [attr.aria-expanded]="openInfo"
             (click)="togglePhaseSection('info_generali')"
             (keydown.enter)="togglePhaseSection('info_generali')"
@@ -1174,7 +1174,7 @@
   <!-- Card "Referenti" — collassabile come Informazioni generali. -->
   @let openRef = isPhaseSectionOpen('referenti');
   <section class="lnk-phase-section" [class.is-open]="openRef">
-    <header class="lnk-phase-section-hd"
+    <header class="lnk-phase-section-hd" role="button" tabindex="0"
             [attr.aria-expanded]="openRef"
             (click)="togglePhaseSection('referenti')"
             (keydown.enter)="togglePhaseSection('referenti')"
@@ -1201,11 +1201,11 @@
       @let openA = isReferentGroupOpen('adesione');
       <div class="lnk-ref-group" [class.is-open]="openA">
         <div class="lnk-ref-group-hd"
-             [attr.aria-expanded]="openA"
-             (click)="toggleReferentGroup('adesione')"
-             (keydown.enter)="toggleReferentGroup('adesione')"
-             (keydown.space)="toggleReferentGroup('adesione'); $event.preventDefault()">
-          <h4>
+             (click)="toggleReferentGroup('adesione')">
+          <h4 role="button" tabindex="0"
+              [attr.aria-expanded]="openA"
+              (keydown.enter)="toggleReferentGroup('adesione')"
+              (keydown.space)="toggleReferentGroup('adesione'); $event.preventDefault()">
             {{ 'APP.ADESIONI.TITLE.Referents' | translate }}
             <span class="lnk-ref-count">{{ referents.length }}</span>
           </h4>
@@ -1251,7 +1251,7 @@
       <!-- Referenti servizio -->
       @let openS = isReferentGroupOpen('servizio');
       <div class="lnk-ref-group" [class.is-open]="openS">
-        <div class="lnk-ref-group-hd"
+        <div class="lnk-ref-group-hd" role="button" tabindex="0"
              [attr.aria-expanded]="openS"
              (click)="toggleReferentGroup('servizio')"
              (keydown.enter)="toggleReferentGroup('servizio')"
@@ -1276,7 +1276,7 @@
       <!-- Referenti dominio -->
       @let openD = isReferentGroupOpen('dominio');
       <div class="lnk-ref-group" [class.is-open]="openD">
-        <div class="lnk-ref-group-hd"
+        <div class="lnk-ref-group-hd" role="button" tabindex="0"
              [attr.aria-expanded]="openD"
              (click)="toggleReferentGroup('dominio')"
              (keydown.enter)="toggleReferentGroup('dominio')"

@@ -553,9 +553,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   // Hover: NIENTE highlight della barra intera. Su feedback utente
   // (rev. 4.11): evidenziamo SOLO il chevron a destra. Il click
   // resta su tutta la barra come prima.
+  // Anello di focus INSET (box-shadow): disegnato dentro l'elemento, quindi
+  // sempre visibile anche dentro i contenitori `overflow: hidden` delle
+  // card-fase (l'outline con offset veniva clippato / risultava poco evidente).
   .lnk-phase-section-hd:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: -2px;
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--accent);
   }
   .lnk-phase-section.is-open .lnk-phase-section-hd { border-bottom: 1px solid var(--line); }
   .lnk-phase-section-icon {
@@ -791,13 +794,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   }
   // Hover (rev. 4.11): solo il chevron si evidenzia, non l'header.
   .lnk-ref-group-hd:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 1px;
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--accent);
   }
   .lnk-ref-group-hd h4 {
     margin: 0; flex: 1;
     display: flex; align-items: center; gap: 8px;
     font-size: 13.5px; font-weight: 600;
+  }
+  // Il titolo del gruppo "adesione" e' il toggle focusabile (contiene un
+  // bottone azione fratello, quindi il role="button" sta sull'h4, non sull'header).
+  .lnk-ref-group-hd h4[role="button"] {
+    cursor: pointer;
+  }
+  .lnk-ref-group-hd h4[role="button"]:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--accent);
+    border-radius: 6px;
   }
   .lnk-ref-group-chev {
     font-size: 12px;
