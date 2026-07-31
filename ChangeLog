@@ -1,3 +1,23 @@
+2026-07-31  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Accessibilita` (WCAG 2.4.3 / 2.4.7) wizard adesioni: al cambio fase il focus
+	  si sposta sul corpo della fase attiva. Reso visibile il focus da tastiera,
+	  prima assente o non evidenziato, su: fase attiva/visualizzata dello stepper,
+	  sub-step collassabili, accordion referenti, "Vai al Servizio" e pulsanti
+	  azione di autenticazioni/endpoint/erogazioni. Anello inset `box-shadow`
+	  (immune al clipping da `overflow:hidden`).
+
+2026-07-31  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Accessibilita` (WCAG 2.1.1 / 2.4.7) wizard adesioni: gli header a fisarmonica
+	  (sezioni di fase e gruppi referenti) ora sono raggiungibili e attivabili da
+	  tastiera (`role="button"` + `tabindex`; per il gruppo con bottone annidato il
+	  toggle e` sull'h4 per evitare nested-interactive). Reso visibile il focus da
+	  tastiera su passi dello stepper e tab (prima assente): anello inset
+	  `box-shadow` (immune al clipping da `overflow:hidden`).
+
 2026-07-30  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

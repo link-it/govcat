@@ -48,6 +48,17 @@
   cursor: pointer;
   color: inherit;
 
+  // Focus da tastiera: anello INSET (il passo ha `overflow: hidden`, quindi un
+  // outline/box-shadow esterno verrebbe clippato). Prima il focus non era
+  // visibile affatto (outline soppresso, nessun box-shadow) -> a11y 2.4.7.
+  // `!important` per prevalere sui box-shadow degli stati `is-current`/`is-viewing`
+  // (definiti piu` sotto, stessa specificita'): senza, la fase attiva/visualizzata
+  // non mostrava il focus.
+  &:focus-visible {
+    outline: none !important;
+    box-shadow: inset 0 0 0 2px var(--accent) !important;
+  }
+
   // Lock disabilitato: cursore not-allowed + niente hover. Mantiene il
   // visual di stato (icona lock, testo muted) ma il click non fa nulla.
   &.is-disabled,
@@ -132,6 +143,16 @@
       color: var(--ink, #212c49);
       font-weight: 600;
     }
+  }
+
+  // Focus sugli stati con bordo/ombra propria (current/viewing): specificita'
+  // maggiore per rimuovere l'outline grigio di `is-viewing` e mostrare un anello
+  // rosso ben distinguibile anche sulla fase attiva/visualizzata (prima il focus
+  // si confondeva col bordo di stato).
+  &.is-current:focus-visible,
+  &.is-viewing:focus-visible {
+    outline: none !important;
+    box-shadow: inset 0 0 0 3px var(--accent) !important;
   }
 
   .num {
