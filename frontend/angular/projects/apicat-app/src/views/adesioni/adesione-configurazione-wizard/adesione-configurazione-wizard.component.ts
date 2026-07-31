@@ -169,6 +169,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     }
 
     @ViewChild("myScroll") myScroll!: ElementRef;
+    @ViewChild('faseBody') faseBody?: ElementRef<HTMLElement>;
 
     /**
      * Issue 254 NEW LAYOUT (rev. 4.6): riferimento al `<app-adesione-form>`
@@ -441,6 +442,12 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         const realStep = this.stepWizard.find(s => s.stati_adesione?.includes(this.adesione?.stato));
         this.selectedStepCode = realStep?.code === faseCode ? null : faseCode;
         this._computeActiveSections();
+        // A11Y (WCAG 2.4.3): al cambio fase da tastiera/click sullo stepper, il
+        // contenuto cambia ma il focus resterebbe sul passo. Lo spostiamo sul
+        // corpo della fase attiva (contenitore `tabindex="-1"`) dopo il render,
+        // cosi` chi naviga da tastiera/screen reader viene portato al nuovo
+        // contenuto.
+        setTimeout(() => this.faseBody?.nativeElement?.focus());
     }
 
     /**

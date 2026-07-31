@@ -80,6 +80,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   }
 }
 
+// Focus da tastiera sugli accordion-button (bootstrap) del wizard: su alcuni
+// (referenti servizio/dominio) la classe `shadow-none` azzera il box-shadow di
+// focus di bootstrap -> chevron collassabile non evidenziato. Ripristino un
+// anello inset (`!important` per prevalere su `shadow-none`).
+.accordion-button:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--accent) !important;
+}
+
 .adesione-disclaimers {
   .alert {
     padding: 0.75rem 1rem;
@@ -335,6 +344,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     text-decoration: none;
   }
   .lnk-btn:hover { background: var(--surface-3); border-color: var(--ink-4); }
+  .lnk-btn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--accent); }
   .lnk-btn i.bi, .lnk-btn svg { font-size: 14px; }
   .lnk-btn-primary {
     background: var(--ink); color: white; border-color: var(--ink);

@@ -125,9 +125,11 @@
   }
   // Hover (rev. 4.11): solo il chevron si evidenzia, non la riga
   // intera. Il click resta su tutta la `.tl-row.is-collapsible`.
+  // Anello di focus INSET: coerente con stepper/tab/header e immune al clipping
+  // (l'outline con offset veniva tagliato dai contenitori della timeline).
   &.is-collapsible:focus-visible {
-    outline: 2px solid var(--accent, #ff4050);
-    outline-offset: 1px;
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--accent);
   }
 
   .tl-name {

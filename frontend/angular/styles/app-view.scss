@@ -380,6 +380,11 @@ small, .small {
   }
   .btnc:hover { background: var(--surface-3); border-color: var(--ink-4); }
   .btnc:active { transform: translateY(1px); }
+  // Focus da tastiera: mancava del tutto un indicatore (a11y 2.4.7).
+  .btnc:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--accent);
+  }
   .btnc svg { width: 14px; height: 14px; }
   .btnc-primary {
     background: var(--ink); color: var(--surface); border-color: var(--ink);

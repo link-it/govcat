@@ -670,7 +670,7 @@
                  fase scelta dalla step-bar. UNA SOLA fase visibile alla
                  volta (mock 1: Collaudo aperto, mock 2: Fase 01 con 2
                  sub-card, mock 3: Produzione bloccato). -->
-            <div class="envs mt-4">
+            <div class="envs mt-4" #faseBody tabindex="-1">
               @switch (_selectedFase) {
                 @case ('info_generali') {
                   <ng-container *ngTemplateOutlet="newLayoutFaseInfoTpl"></ng-container>
