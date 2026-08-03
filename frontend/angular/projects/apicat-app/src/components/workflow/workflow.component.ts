@@ -96,8 +96,17 @@ export class WorkflowComponent implements OnInit {
     return (this._cambioStato?.stati_ulteriori || []).filter((s: any) => this._isTransitionVisible(s?.nome));
   }
 
+  /**
+   * Profili dei client richiesti dell'entita` (adesione), usati per il gate
+   * `profili` sulle transizioni (Issue #322). Vuoto per moduli/entita` senza
+   * `client_richiesti` -> nessun vincolo.
+   */
+  private _requiredProfiles(): string[] {
+    return this.authenticationService.getRequiredProfiles(this.data);
+  }
+
   isActionEnabled(type: string) {
-    return this.authenticationService.canChangeStatus(this.module, this.data.stato, type, this.grant?.ruoli);
+    return this.authenticationService.canChangeStatus(this.module, this.data.stato, type, this.grant?.ruoli, '', this._requiredProfiles());
   }
   
   isGestore() {
@@ -109,7 +118,7 @@ export class WorkflowComponent implements OnInit {
   }
 
   _isActionEnabledMapper = (type: string, statusName: string = ''): boolean => {
-    return this.authenticationService.canChangeStatus(this.module, this.data.stato, type, this.grant?.ruoli, statusName);
+    return this.authenticationService.canChangeStatus(this.module, this.data.stato, type, this.grant?.ruoli, statusName, this._requiredProfiles());
   }
 
   _isGestoreMapper = (): boolean => {

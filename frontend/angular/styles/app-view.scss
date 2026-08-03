@@ -13,7 +13,7 @@
 
   --ink:          #212c49;
   --ink-2:        #2e445a;
-  --ink-3:        #57738a;
+  --ink-3:        #516980;
   --ink-4:        #8aa4b8;
 
   /* primary accent — overridable via tweak.
@@ -93,6 +93,14 @@
 
 small, .small {
     font-size: 0.875em;
+}
+
+/* A11Y (WCAG 1.4.1): i link dentro il contenuto markdown (es. descrizione API
+   nella vetrina servizio) devono essere distinguibili non solo dal colore ->
+   underline. `!important` per prevalere sul reset globale `a { text-decoration:
+   none !important }` (app-custom.scss). Risolve axe `link-in-text-block`. */
+.markdown a[href] {
+    text-decoration: underline !important;
 }
 
 /* `<lnk-pill>` allineato al design system Link.it: stessa
@@ -380,6 +388,11 @@ small, .small {
   }
   .btnc:hover { background: var(--surface-3); border-color: var(--ink-4); }
   .btnc:active { transform: translateY(1px); }
+  // Focus da tastiera: mancava del tutto un indicatore (a11y 2.4.7).
+  .btnc:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--accent);
+  }
   .btnc svg { width: 14px; height: 14px; }
   .btnc-primary {
     background: var(--ink); color: var(--surface); border-color: var(--ink);

@@ -1231,6 +1231,23 @@
     "referente_obbligatorio": false,
     "abilita_selezione_soggetto": true,
     "workflow_produzione_senza_collaudo": "disabilitato",
+    "configurazione_automatica": [
+      {
+        "stato_iniziale": "autorizzato_collaudo",
+        "stato_in_configurazione": "in_configurazione_automatica_collaudo",
+        "stato_finale": "pubblicato_collaudo"
+      },
+      {
+        "stato_iniziale": "autorizzato_produzione",
+        "stato_in_configurazione": "in_configurazione_automatica_produzione",
+        "stato_finale": "pubblicato_produzione"
+      },
+      {
+        "stato_iniziale": "autorizzato_produzione_senza_collaudo",
+        "stato_in_configurazione": "in_configurazione_automatica_produzione_senza_collaudo",
+        "stato_finale": "pubblicato_produzione_senza_collaudo"
+      }
+    ],
     "dati_sempre_modificabili": [
       {
         "classe_dato": "referenti",
@@ -1242,15 +1259,18 @@
         "bozza",
         "richiesto_collaudo",
         "autorizzato_collaudo",
-        "in_configurazione_collaudo",
+        "in_configurazione_manuale_collaudo",
+        "in_configurazione_automatica_collaudo",
         "pubblicato_collaudo",
         "richiesto_produzione",
         "autorizzato_produzione",
-        "in_configurazione_produzione",
+        "in_configurazione_manuale_produzione",
+        "in_configurazione_automatica_produzione",
         "pubblicato_produzione",
         "richiesto_produzione_senza_collaudo",
         "autorizzato_produzione_senza_collaudo",
-        "in_configurazione_produzione_senza_collaudo",
+        "in_configurazione_manuale_produzione_senza_collaudo",
+        "in_configurazione_automatica_produzione_senza_collaudo",
         "pubblicato_produzione_senza_collaudo",
         "archiviato"
       ],
@@ -1319,7 +1339,7 @@
             "collaudo"
           ],
           "stato_successivo": {
-            "nome": "in_configurazione_collaudo",
+            "nome": "in_configurazione_manuale_collaudo",
             "ruoli_abilitati": [
               "gestore"
             ]
@@ -1331,15 +1351,52 @@
               "gestore"
             ]
           },
-          "stati_ulteriori": []
+          "stati_ulteriori": [
+            {
+              "nome": "in_configurazione_automatica_collaudo",
+              "ruoli_abilitati": [
+                "gestore"
+              ],
+              "profili": [
+                "INTERNO_OAUTH_CLIENT_CREDENTIALS"
+              ]
+            }
+          ]
         },
         {
-          "stato_attuale": "in_configurazione_collaudo",
+          "stato_attuale": "in_configurazione_manuale_collaudo",
           "dati_obbligatori": [
             "identificativo",
             "referenti",
             "specifica",
             "collaudo_configurato"
+          ],
+          "dati_non_modificabili": [
+            "identificativo",
+            "specifica",
+            "collaudo"
+          ],
+          "stato_successivo": {
+            "nome": "pubblicato_collaudo",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stato_precedente": {
+            "nome": "autorizzato_collaudo",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        },
+        {
+          "stato_attuale": "in_configurazione_automatica_collaudo",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "collaudo"
           ],
           "dati_non_modificabili": [
             "identificativo",
@@ -1383,7 +1440,7 @@
             ]
           },
           "stato_precedente": {
-            "nome": "in_configurazione_collaudo",
+            "nome": "in_configurazione_manuale_collaudo",
             "ruoli_abilitati": [
               "gestore"
             ]
@@ -1432,7 +1489,7 @@
             "produzione"
           ],
           "stato_successivo": {
-            "nome": "in_configurazione_produzione",
+            "nome": "in_configurazione_manuale_produzione",
             "ruoli_abilitati": [
               "gestore"
             ]
@@ -1444,16 +1501,55 @@
               "gestore"
             ]
           },
-          "stati_ulteriori": []
+          "stati_ulteriori": [
+            {
+              "nome": "in_configurazione_automatica_produzione",
+              "ruoli_abilitati": [
+                "gestore"
+              ],
+              "profili": [
+                "INTERNO_OAUTH_CLIENT_CREDENTIALS"
+              ]
+            }
+          ]
         },
         {
-          "stato_attuale": "in_configurazione_produzione",
+          "stato_attuale": "in_configurazione_manuale_produzione",
           "dati_obbligatori": [
             "identificativo",
             "referenti",
             "specifica",
             "collaudo_configurato",
             "produzione_configurato"
+          ],
+          "dati_non_modificabili": [
+            "identificativo",
+            "specifica",
+            "collaudo",
+            "produzione"
+          ],
+          "stato_successivo": {
+            "nome": "pubblicato_produzione",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stato_precedente": {
+            "nome": "autorizzato_produzione",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        },
+        {
+          "stato_attuale": "in_configurazione_automatica_produzione",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "collaudo_configurato",
+            "produzione"
           ],
           "dati_non_modificabili": [
             "identificativo",
@@ -1491,7 +1587,7 @@
             "produzione"
           ],
           "stato_precedente": {
-            "nome": "in_configurazione_produzione",
+            "nome": "in_configurazione_manuale_produzione",
             "ruoli_abilitati": [
               "gestore"
             ]
@@ -1537,7 +1633,7 @@
             "produzione"
           ],
           "stato_successivo": {
-            "nome": "in_configurazione_produzione_senza_collaudo",
+            "nome": "in_configurazione_manuale_produzione_senza_collaudo",
             "ruoli_abilitati": [
               "gestore"
             ]
@@ -1549,15 +1645,49 @@
               "gestore"
             ]
           },
-          "stati_ulteriori": []
+          "stati_ulteriori": [
+            {
+              "nome": "in_configurazione_automatica_produzione_senza_collaudo",
+              "ruoli_abilitati": [
+                "gestore"
+              ]
+            }
+          ]
         },
         {
-          "stato_attuale": "in_configurazione_produzione_senza_collaudo",
+          "stato_attuale": "in_configurazione_manuale_produzione_senza_collaudo",
           "dati_obbligatori": [
             "identificativo",
             "referenti",
             "specifica",
             "produzione_configurato"
+          ],
+          "dati_non_modificabili": [
+            "identificativo",
+            "specifica",
+            "produzione"
+          ],
+          "stato_successivo": {
+            "nome": "pubblicato_produzione_senza_collaudo",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stato_precedente": {
+            "nome": "autorizzato_produzione_senza_collaudo",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        },
+        {
+          "stato_attuale": "in_configurazione_automatica_produzione_senza_collaudo",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "produzione"
           ],
           "dati_non_modificabili": [
             "identificativo",
@@ -1592,7 +1722,7 @@
             "produzione"
           ],
           "stato_precedente": {
-            "nome": "in_configurazione_produzione_senza_collaudo",
+            "nome": "in_configurazione_manuale_produzione_senza_collaudo",
             "ruoli_abilitati": [
               "gestore"
             ]
@@ -1605,12 +1735,14 @@
       "pubblicato_collaudo",
       "richiesto_produzione",
       "autorizzato_produzione",
-      "in_configurazione_produzione",
+      "in_configurazione_manuale_produzione",
+      "in_configurazione_automatica_produzione",
       "pubblicato_produzione",
       "pubblicato_produzione_senza_collaudo",
       "richiesto_produzione_senza_collaudo",
       "autorizzato_produzione_senza_collaudo",
-      "in_configurazione_produzione_senza_collaudo",
+      "in_configurazione_manuale_produzione_senza_collaudo",
+      "in_configurazione_automatica_produzione_senza_collaudo",
       "pubblicato_produzione_senza_collaudo"
     ],
     "proprieta_custom": [

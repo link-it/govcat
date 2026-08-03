@@ -664,20 +664,24 @@ export class AuthenticationService {
     return false;
   }
 
-  canChangeStatus(module: string, state: string, type: string, grant: string[] = [], currentStatus: string = '') {
+  canChangeStatus(module: string, state: string, type: string, grant: string[] = [], currentStatus: string = '', requiredProfiles: string[] = []) {
     const _wfcs = this._getWorkflowCambiStato(module, state);
     const _entry = _wfcs?.[type];
     let _ss: string[] = [];
+    let _profili: string[] | undefined | null;
     if (type === 'stati_ulteriori') {
       // `stati_ulteriori` e` un array (o assente per stati terminali);
       // serve null-check prima del `.find` per evitare TypeError quando
       // la chiave manca nella configurazione workflow (es. stato
       // `pubblicato_produzione`).
       if (Array.isArray(_entry)) {
-        _ss = _entry.find((item: any) => item.nome === currentStatus)?.ruoli_abilitati || [];
+        const _item = _entry.find((item: any) => item.nome === currentStatus);
+        _ss = _item?.ruoli_abilitati || [];
+        _profili = _item?.profili;
       }
     } else if (_entry) {
       _ss = _entry.ruoli_abilitati || [];
+      _profili = _entry.profili;
     }
     // Espande le grants per-contesto al modulo corrente: in
     // particolare per `adesione` ref_servizio/ref_dominio vengono
@@ -686,7 +690,52 @@ export class AuthenticationService {
     // come ref_dominio.
     const _grant = expandContextualGrants(grant || [], module);
     const _intersection = _.intersection(_grant, _ss);
-    return (_intersection.length > 0);
+    return (_intersection.length > 0) && this._profilesAllowed(_profili, requiredProfiles);
+  }
+
+  /**
+   * Gate "profili" sullo stato di ARRIVO di una transizione (campo opzionale
+   * `profili` in ConfigurazioneStato). Vincolo di APPLICABILITA` della
+   * transizione (non di autorizzazione utente), quindi vale per tutti, gestore
+   * incluso: la transizione e` consentita solo se TUTTI i profili richiesti
+   * (profili dei client richiesti dall'adesione) sono nella lista (AND).
+   * - `profili` assente/vuoto  -> stato non vincolato (nessuna installazione cambia).
+   * - `requiredProfiles` vuoto -> adesione senza client richiesti -> non vincolata.
+   */
+  private _profilesAllowed(allowed: string[] | undefined | null, requiredProfiles: string[] = []): boolean {
+    if (!allowed || allowed.length === 0) { return true; }
+    if (!requiredProfiles || requiredProfiles.length === 0) { return true; }
+    return requiredProfiles.every((p) => allowed.includes(p));
+  }
+
+  /**
+   * Profili dei client richiesti dell'entita` (adesione), usati per il gate
+   * `profili` sulle transizioni (Issue #322): `entity.client_richiesti[].profilo`
+   * deduplicati (falsy esclusi). Entita`/moduli senza `client_richiesti` -> `[]`
+   * -> nessun vincolo.
+   */
+  getRequiredProfiles(entity: any): string[] {
+    const _richiesti = entity?.client_richiesti || [];
+    return [...new Set(_richiesti.map((c: any) => c?.profilo).filter(Boolean))] as string[];
+  }
+
+  /**
+   * Verifica il solo gate "profili" della transizione (senza i ruoli), per i
+   * punti in cui il gestore bypassa `canChangeStatus` ma il vincolo profili
+   * deve comunque applicarsi.
+   */
+  isTransitionAllowedForProfiles(module: string, state: string, type: string, requiredProfiles: string[] = [], currentStatus: string = ''): boolean {
+    const _wfcs = this._getWorkflowCambiStato(module, state);
+    const _entry = _wfcs?.[type];
+    let _profili: string[] | undefined | null;
+    if (type === 'stati_ulteriori') {
+      if (Array.isArray(_entry)) {
+        _profili = _entry.find((item: any) => item.nome === currentStatus)?.profili;
+      }
+    } else if (_entry) {
+      _profili = _entry.profili;
+    }
+    return this._profilesAllowed(_profili, requiredProfiles);
   }
 
   canArchiviare(module: string, state: string, grant: string[] = []): boolean {

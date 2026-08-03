@@ -220,6 +220,11 @@ section.adesione-config-list {
   background: var(--surface-3, #eef4f8);
   border-color: var(--ink-4, #8aa4b8);
 }
+// Focus da tastiera: mancava sui pulsanti azione (autenticazioni/endpoint).
+.lnk-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent);
+}
 .lnk-btn-ghost {
   background: transparent;
   border-color: transparent;

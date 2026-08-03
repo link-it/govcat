@@ -554,6 +554,9 @@ public enum ErrorCode {
     /** Transizione di stato non consentita */
     WFL_400_TRANSITION("Transizione stato non consentita"),
 
+    /** Transizione di stato non abilitata per i profili richiesti dal servizio */
+    WFL_400_PROFILO("Transizione stato non abilitata per i profili richiesti"),
+
     /** Modifica di dati non consentita nello stato corrente */
     WFL_400_DATA_NOT_MODIFIABLE("Modifica dati non consentita"),
 

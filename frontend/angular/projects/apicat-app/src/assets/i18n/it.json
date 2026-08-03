@@ -1919,6 +1919,7 @@
 								"MODIFIABLE": "Dati non modificabili nello stato corrente del workflow"
 							}
 						},
+						"PROFILO": "Transizione di stato da [{{statoAttuale}}] a [{{statoDesiderato}}] non abilitata per i profili [{{profili}}] richiesti dal servizio",
 						"STATE": "Stato workflow [{{stato}}] non valido",
 						"TRANSITION": "Transizione di stato da [{{statoAttuale}}] a [{{statoDesiderato}}] non consentita"
 					},
@@ -2506,6 +2507,10 @@
 			"cambio_stato": "Cambio di stato",
 			"messaggio": "Messaggio",
 			"ACTIVE": "Attivo",
+			"SUSPENDED": "Sospeso",
+			"ARCHIVED": "Archiviato",
+			"MISSING_CERTIFIED_ATTRIBUTES": "Attributi certificati mancanti",
+			"REJECTED": "Rifiutato",
 			"archiviato": "Archiviato",
 			"AUTORIZZATA": "Autorizzata",
 			"autorizzata_collaudo": "Autorizzata in collaudo",

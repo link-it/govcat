@@ -169,6 +169,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     }
 
     @ViewChild("myScroll") myScroll!: ElementRef;
+    @ViewChild('faseBody') faseBody?: ElementRef<HTMLElement>;
 
     /**
      * Issue 254 NEW LAYOUT (rev. 4.6): riferimento al `<app-adesione-form>`
@@ -441,6 +442,12 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         const realStep = this.stepWizard.find(s => s.stati_adesione?.includes(this.adesione?.stato));
         this.selectedStepCode = realStep?.code === faseCode ? null : faseCode;
         this._computeActiveSections();
+        // A11Y (WCAG 2.4.3): al cambio fase da tastiera/click sullo stepper, il
+        // contenuto cambia ma il focus resterebbe sul passo. Lo spostiamo sul
+        // corpo della fase attiva (contenitore `tabindex="-1"`) dopo il render,
+        // cosi` chi naviga da tastiera/screen reader viene portato al nuovo
+        // contenuto.
+        setTimeout(() => this.faseBody?.nativeElement?.focus());
     }
 
     /**
@@ -1000,10 +1007,24 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         return 'nessun_cambio_stato';
     }
 
+    /**
+     * Profili dei client richiesti dell'adesione, per il gate `profili` sulle
+     * transizioni (Issue #322). Vuoto -> nessun vincolo.
+     */
+    private _requiredProfiles(): string[] {
+        return this.authenticationService.getRequiredProfiles(this.adesione);
+    }
+
     _hasCambioStato() {
+        // Il gate `profili` (Issue #322) e` un vincolo di applicabilita` della
+        // transizione: si applica anche al gestore, quindi PRIMA del bypass.
+        const _reqProfiles = this._requiredProfiles();
+        if (!this.authenticationService.isTransitionAllowedForProfiles('adesione', this.adesione.stato, 'stato_successivo', _reqProfiles)) {
+            return false;
+        }
         if (this.authenticationService.isGestore(this.grant?.ruoli)) { return true; }
         const _statoPrecedente: boolean = false;
-        const _statoSuccessivo: boolean = this.authenticationService.canChangeStatus('adesione', this.adesione.stato, 'stato_successivo', this.grant?.ruoli);
+        const _statoSuccessivo: boolean = this.authenticationService.canChangeStatus('adesione', this.adesione.stato, 'stato_successivo', this.grant?.ruoli, '', _reqProfiles);
         const _statiUlteriori: boolean = false;
         return (_statoPrecedente || _statoSuccessivo || _statiUlteriori);
     }
@@ -1054,7 +1075,8 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
             this.adesione.stato,
             type,
             this._combinedRuoli(),
-            statusName
+            statusName,
+            this._requiredProfiles()
         );
     }
 
@@ -2157,9 +2179,12 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
 
     hasActions() {
         const _grant: any = this.grant || [];
+        // Issue #322: il gate `profili` vincola anche il gestore -> prima del bypass.
+        const _reqProfiles = this._requiredProfiles();
+        if (this.adesione && !this.authenticationService.isTransitionAllowedForProfiles('adesione', this.adesione.stato, 'stato_successivo', _reqProfiles)) { return false; }
         if (this.authenticationService.isGestore(_grant)) { return true; }
         if (this.adesione) {
-            const _statoSuccessivo: boolean = this.authenticationService.canChangeStatus('adesione', this.adesione.stato, 'stato_successivo', _grant);
+            const _statoSuccessivo: boolean = this.authenticationService.canChangeStatus('adesione', this.adesione.stato, 'stato_successivo', _grant, '', _reqProfiles);
             return _statoSuccessivo;
         }
         return false;

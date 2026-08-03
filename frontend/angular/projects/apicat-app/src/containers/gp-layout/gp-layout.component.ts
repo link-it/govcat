@@ -24,7 +24,7 @@ import { TranslateModule, LangChangeEvent, TranslateService } from '@ngx-transla
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { OAuthService } from 'angular-oauth2-oidc';
 
-import { Tools, ConfigService, Language, MenuAction, EventType, EventsManagerService, LocalStorageService, BreadcrumbService, HeadBarComponent, SafeHtmlPipe, MapperPipe, MultiSnackbarComponent, RouterLinkMatchDirective } from '@linkit/components';
+import { Tools, ConfigService, Language, MenuAction, EventType, EventsManagerService, LocalStorageService, BreadcrumbService, HeadBarComponent, SafeHtmlPipe, MapperPipe, MultiSnackbarComponent, RouterLinkMatchDirective, RoleButtonKeyboardDirective } from '@linkit/components';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { OrganizationContextService } from '@app/services/organization-context.service';
 import { OpenAPIService } from '@services/openAPI.service';
@@ -63,6 +63,7 @@ import * as _ from 'lodash';
         HeadBarComponent,
         FlyOutDirective,
         RouterLinkMatchDirective,
+        RoleButtonKeyboardDirective,
         NewsBoxComponent,
         AboutMiniBoxComponent,
         MultiSnackbarComponent,

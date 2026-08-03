@@ -1919,6 +1919,7 @@
 								"MODIFIABLE": "Data not modifiable in the current workflow state"
 							}
 						},
+						"PROFILO": "State transition from [{{statoAttuale}}] to [{{statoDesiderato}}] not enabled for the profiles [{{profili}}] required by the service",
 						"STATE": "",
 						"TRANSITION": "State transition from [{{statoAttuale}}] to [{{statoDesiderato}}] not allowed"
 					},
@@ -2506,6 +2507,10 @@
 			"cambio_stato": "Status change",
 			"messaggio": "Message",
 			"ACTIVE": "Active",
+			"SUSPENDED": "Suspended",
+			"ARCHIVED": "Archived",
+			"MISSING_CERTIFIED_ATTRIBUTES": "Missing certified attributes",
+			"REJECTED": "Rejected",
 			"archiviato": "Filed",
 			"AUTORIZZATA": "Authorized",
 			"autorizzata_collaudo": "Authorized for testing",
