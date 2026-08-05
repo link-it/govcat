@@ -4,7 +4,9 @@
 	Issue 327: dati PDND "Informazioni generali" non aggiornati al cambio
 	  collaudo/produzione (istanze `ui-data-type`/`ui-item-type` riusate). I due
 	  componenti foglia ora ricalcolano il valore mostrato anche in `ngOnChanges`,
-	  non solo in `ngOnInit`.
+	  non solo in `ngOnInit`. In `pdnd-eservice-view` reso non mutante il mapping
+	  dei descrittori (sort su copia, `audience`/`serverUrls` via `at(-1)`,
+	  accessi null-safe).
 
 2026-07-31  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 

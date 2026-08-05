@@ -333,7 +333,7 @@ export class PdndEServiceViewComponent implements OnChanges {
           this.loading.emit(false);
         }
         const descriptorsMap = eServiceDescriptorsResponse.data
-          ? eServiceDescriptorsResponse.data.descriptors
+          ? [...eServiceDescriptorsResponse.data.descriptors]
               .sort((a: any, b: any) => Number(b.version) - Number(a.version))
               .map((descriptor: any) => ({
                 data: {
@@ -341,12 +341,12 @@ export class PdndEServiceViewComponent implements OnChanges {
                   version: descriptor.version,
                   versionLabel: `v. ${descriptor.version}`,
                   state: descriptor.state,
-                  audience_url: descriptor.audience.pop(),
-                  server_url: descriptor.serverUrls.pop(),
+                  audience_url: descriptor.audience?.at(-1) ?? '',
+                  server_url: descriptor.serverUrls?.at(-1) ?? '',
                   voucher_lifespan: descriptor.voucherLifespan,
                   daily_calls_per_consumer: descriptor.dailyCallsPerConsumer,
                   daily_calls_total: descriptor.dailyCallsTotal,
-                  interface_name: descriptor.interface.name,
+                  interface_name: descriptor.interface?.name ?? '',
                 },
                 list: descriptor.docs
               }))
