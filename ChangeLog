@@ -15,6 +15,10 @@
 	  dei descrittori (sort su copia, `audience`/`serverUrls` via `at(-1)`,
 	  accessi null-safe).
 
+2026-08-03  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* Rilasciata versione 2.4.3
+
 2026-07-31  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
