@@ -2818,6 +2818,7 @@
 			"Show": "Mostra",
 			"ShowDetails": "Mostra dettagli",
 			"SoggettoReferente": "Soggetto referente: {{soggetto}}",
+			"ErogatoDa": "Erogato da {{ente}}",
 			"StatoConfigurazioneAutomatica": "Stato configurazione automatica",
 			"StatusChange": "Cambio di stato",
 			"TempoRispostaServizio": "Tempo Risposta Servizio",

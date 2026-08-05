@@ -1,6 +1,16 @@
 2026-08-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 330: indicatore "Intermediato" per i servizi in fruizione. Chip ambra
+	  nelle liste servizi (card grid, list card, riga di ricerca) quando
+	  `fruizione`; nella vetrina il chip e` nell'eyebrow dell'hero con tooltip
+	  sull'ente erogatore. Corretta la traduzione EN di `APP.LABEL.fruizione`
+	  (era "Enjoyment"). Mock FE temporaneo su GET /servizi_gruppi (BE da adeguare
+	  per restituire `fruizione`/`soggetto_erogatore`; GET /servizi li fornisce gia`).
+
+2026-08-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue 326: ricerca servizi per organizzazione, il filtro invia ora il
 	  parametro `id_organizzazione_erogatore` (era `id_organizzazione`).
 	  Rinominati field del filtro e FormControl in `servizi.component`.

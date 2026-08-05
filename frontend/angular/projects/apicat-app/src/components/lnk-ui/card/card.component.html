@@ -82,20 +82,29 @@
              [placement]="'top'"
              [delay]="300">{{ _metadata }}</p>
         }
-        @if (data.stato) {
-          <ui-data-type class="me-2"
-            [data]="data"
-            [elem]="{ field: 'stato', type: 'label', options: 'status' }"
-            [config]="config">
-          </ui-data-type>
-        }
-        @if (data.visibilita && !isAnonymous) {
-          <ui-data-type
-            [data]="data"
-            [elem]="{ field: 'visibilita', type: 'tag', options: 'visibility' }"
-            [config]="config">
-          </ui-data-type>
-        }
+        <div class="d-flex flex-wrap gap-2 mt-2">
+          @if (data.stato) {
+            <ui-data-type
+              [data]="data"
+              [elem]="{ field: 'stato', type: 'label', options: 'status' }"
+              [config]="config">
+            </ui-data-type>
+          }
+          @if (data.visibilita && !isAnonymous) {
+            <ui-data-type
+              [data]="data"
+              [elem]="{ field: 'visibilita', type: 'tag', options: 'visibility' }"
+              [config]="config">
+            </ui-data-type>
+          }
+          @if (data.tipo === 'servizio' && data.fruizione) {
+            <ui-data-type
+              [data]="data"
+              [elem]="{ field: 'fruizione', type: 'tag', options: 'intermediato' }"
+              [config]="config">
+            </ui-data-type>
+          }
+        </div>
       </div>
       @if ((data.tipo === 'gruppo') && showGroupIcon) {
         <div class="group-button">

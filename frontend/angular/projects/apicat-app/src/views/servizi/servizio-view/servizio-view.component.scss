@@ -373,3 +373,20 @@ word-break: break-word;
     color: var(--ink-2);
     border-color: var(--line);
 }
+
+/* Indicatore "Intermediato" (fruizione) nell'eyebrow dell'hero: chip ambra
+   (colori del chip "warn" usato nelle liste servizi) con tooltip sull'ente
+   erogatore. */
+.lnk-vetrina .hero .hero-eyebrow .eyebrow-chip--intermediato {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid var(--warn-border, #ecd6b0);
+    background: var(--warn-soft, #fbf1e2);
+    color: var(--warn-ink, #8a5310);
+    white-space: nowrap;
+    cursor: default;
+}

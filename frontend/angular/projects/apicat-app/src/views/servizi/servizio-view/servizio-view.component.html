@@ -115,6 +115,12 @@
                 <span class="mx-1">·</span>
                 <span [tooltip]="_domReferenteTooltip" container="body">{{ data?.dominio?.nome }}</span>
               }
+              @if (data?.fruizione) {
+                @let _erogatoreNome = data?.soggetto_erogatore?.organizzazione?.nome || data?.soggetto_erogatore?.nome;
+                @let _erogatoreTooltip = _erogatoreNome ? ('APP.TOOLTIP.ErogatoDa' | translate:{ ente: _erogatoreNome }) : null;
+                <span class="mx-1">·</span>
+                <span class="eyebrow-chip eyebrow-chip--intermediato" [tooltip]="_erogatoreTooltip" container="body">{{ 'APP.LABEL.fruizione' | translate }}</span>
+              }
             </div>
             <h1>
               {{ data?.nome }}
