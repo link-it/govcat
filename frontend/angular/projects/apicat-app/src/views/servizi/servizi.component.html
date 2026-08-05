@@ -328,7 +328,7 @@
                   </div>
                   <div class="row mb-1">
                     <div class="col-sm-2">
-                      <label class="col-form-label col-form-label-fix" for="id_organizzazione">{{ 'APP.LABEL.OrganizzazioneErogatore' | translate }}</label>
+                      <label class="col-form-label col-form-label-fix" for="id_organizzazione_erogatore">{{ 'APP.LABEL.OrganizzazioneErogatore' | translate }}</label>
                     </div>
                     <div class="col-sm-10">
                       <ng-select class="" (click)="onSelectedSearchDropdwon($event)"
@@ -337,10 +337,10 @@
                         [minTermLength]="minLengthTerm"
                         [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
                         [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
-                        labelForId="id_organizzazione"
+                        labelForId="id_organizzazione_erogatore"
                         [editableSearchTerm]="true"
                         bindValue="id_organizzazione"
-                        formControlName="id_organizzazione"
+                        formControlName="id_organizzazione_erogatore"
                         (change)="onChangeSearchDropdwon($event)"
                         >
                         <ng-template ng-label-tmp let-item="item">

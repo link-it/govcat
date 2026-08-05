@@ -1,6 +1,13 @@
 2026-08-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 326: ricerca servizi per organizzazione, il filtro invia ora il
+	  parametro `id_organizzazione_erogatore` (era `id_organizzazione`).
+	  Rinominati field del filtro e FormControl in `servizi.component`.
+
+2026-08-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue 327: dati PDND "Informazioni generali" non aggiornati al cambio
 	  collaudo/produzione (istanze `ui-data-type`/`ui-item-type` riusate). I due
 	  componenti foglia ora ricalcolano il valore mostrato anche in `ngOnChanges`,
