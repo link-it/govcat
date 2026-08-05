@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, EventEmitter, HostBinding, Input, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, HostBinding, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer } from '@angular/platform-browser';
 
@@ -39,7 +39,7 @@ import moment from 'moment/moment';
   standalone: true,
   imports: [CommonModule, TranslateModule, TooltipModule, MarkdownModule, LnkAvatarComponent, StatoChipComponent]
 })
-export class DataTypeComponent implements OnInit {
+export class DataTypeComponent implements OnInit, OnChanges {
   @HostBinding('class.empty-space') get emptySpace(): boolean {
     return this._elem.emptySpace;
   }
@@ -89,6 +89,19 @@ export class DataTypeComponent implements OnInit {
   ) { }
 
   ngOnInit() {
+    this._computeValue();
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    // Ricalcola il valore quando cambia il dato in ingresso a istanza riusata
+    // (es. switch collaudo/produzione): senza questo resterebbe il valore
+    // calcolato al primo ngOnInit.
+    if (changes['_data'] && !changes['_data'].firstChange) {
+      this._computeValue();
+    }
+  }
+
+  private _computeValue() {
     this._value = this.utilsLib.getObjectValue(this._data, this._elem.field);
     if (this._elem.type === 'date') {
       this._value = this.utilsLib.dateFormatter(this._value, this._elem.format);

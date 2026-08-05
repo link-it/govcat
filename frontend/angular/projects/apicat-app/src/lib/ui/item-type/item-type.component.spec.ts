@@ -272,4 +272,18 @@ it('should return original text when text length does not exceed maxchars and nu
         component.onAvatarError(event);
         expect(event.target.src).toEqual('./assets/images/avatar.png');
     });
+
+    it('should recompute _value on data change with reused instance (issue 327)', () => {
+        component.elem = { type: 'text', field: 'testField' };
+        component.config = { options: {} };
+        component.data = { source: { testField: 'collaudo' } };
+        component.ngOnInit();
+        expect(component._value).toEqual('collaudo');
+        // Switch collaudo -> produzione: istanza riusata, solo il dato cambia.
+        component.data = { source: { testField: 'produzione' } };
+        component.ngOnChanges({
+            data: { currentValue: component.data, previousValue: { source: { testField: 'collaudo' } }, firstChange: false, isFirstChange: () => false } as any
+        });
+        expect(component._value).toEqual('produzione');
+    });
 });
