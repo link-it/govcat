@@ -161,6 +161,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   background-color: #ffffff;
 }
 
+/* Icona "relay" a destra del titolo, nel wrapper flex `.card-title-wrapper`
+   (variante `relayIconPosition: title`). */
+.card-title-wrapper .card-title { margin-bottom: 0; }
+.relay-inline {
+  flex-shrink: 0;
+  margin-left: 8px;
+  font-size: 0.85em;
+  color: var(--ink-2, #2e445a);
+}
+
 /* Icona "relay" flottante (servizio intermediato) in alto a destra della card.
    Sfondo a pill (bianco + bordo + ombra) per restare leggibile anche sopra
    l'immagine del servizio. */

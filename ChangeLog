@@ -1,6 +1,13 @@
 2026-08-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 330: posizione dell'icona relay nella card griglia configurabile via
+	  `relayIconPosition` in servizi-config.json: `title` (a destra del titolo)
+	  oppure flottante in alto a destra (default).
+
+2026-08-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue 330: sostituito il chip "Intermediato" con un'icona "relay" (nuovo
 	  componente `app-relay-icon`) con tooltip. Vetrina: icona nell'eyebrow;
 	  card griglia: icona flottante in alto a destra; list card: icona a destra

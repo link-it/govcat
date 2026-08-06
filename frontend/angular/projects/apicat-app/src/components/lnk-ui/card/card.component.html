@@ -46,7 +46,7 @@
   }
   @if (cardBs) {
     <div class="card h-100" [class.group]="data.tipo === 'gruppo'">
-      @if (data.tipo === 'servizio' && data.fruizione) {
+      @if (data.tipo === 'servizio' && data.fruizione && config?.relayIconPosition !== 'title') {
         @let _erogatore = data.soggetto_erogatore?.organizzazione?.nome || data.soggetto_erogatore?.nome;
         <app-relay-icon class="relay-float"
           [tooltip]="_erogatore ? ('APP.TOOLTIP.ErogatoDa' | translate:{ ente: _erogatore }) : ('APP.LABEL.fruizione' | translate)"
@@ -67,17 +67,25 @@
       }
       <div class="card-body" (click)="__cardClick($event)" (auxclick)="__cardClick($event)">
         @if (_primaryText) {
-          <h2 tabindex="0"
-            class="card-title text-hover cursor-pointer text-break h5"
-            [class.supports-new-tab]="data.tipo !== 'gruppo'"
-            [attr.title]="_primaryText"
-            (click)="__simpleClick($event)"
-            (auxclick)="__simpleClick($event)"
-            >{{ _primaryText }}@if (enableOpenInNewTab && data.tipo !== 'gruppo') {
-            <span class="open-new-tab-icon bi bi-box-arrow-up-right"
-              [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
-            (click)="__openInNewTab($event)"></span>
-          }</h2>
+          <div class="card-title-wrapper d-flex align-items-center justify-content-between">
+            <h2 tabindex="0"
+              class="card-title text-hover cursor-pointer text-break h5"
+              [class.supports-new-tab]="data.tipo !== 'gruppo'"
+              [attr.title]="_primaryText"
+              (click)="__simpleClick($event)"
+              (auxclick)="__simpleClick($event)"
+              >{{ _primaryText }}@if (enableOpenInNewTab && data.tipo !== 'gruppo') {
+              <span class="open-new-tab-icon bi bi-box-arrow-up-right"
+                [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
+              (click)="__openInNewTab($event)"></span>
+            }</h2>
+            @if (data.tipo === 'servizio' && data.fruizione && config?.relayIconPosition === 'title') {
+              @let _erogatoreTitle = data.soggetto_erogatore?.organizzazione?.nome || data.soggetto_erogatore?.nome;
+              <app-relay-icon class="relay-inline"
+                [tooltip]="_erogatoreTitle ? ('APP.TOOLTIP.ErogatoDa' | translate:{ ente: _erogatoreTitle }) : ('APP.LABEL.fruizione' | translate)"
+                container="body"></app-relay-icon>
+            }
+          </div>
         }
         <p class="card-text">@if (_secondaryText) {
           <span>{{ _secondaryText }}</span>

@@ -21,8 +21,9 @@
     "showTechnicalReferent": false,
     "showDomainReferent": true,
     "showGroups": true,
-    "groupsExpanded": true,
+    "groupsExpanded": false,
     "groupsShowChildren": false,
+    "relayIconPosition": "title",
 
     "swagger" : {
         "allowTryIt": true,
