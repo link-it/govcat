@@ -1,3 +1,12 @@
+2026-08-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 334: fix client https, il caricamento del certificato non abilitava
+	  "Salva" (e in update non inviava il nuovo cert). L'adapter di client-details
+	  ora mappa il `type` emesso dal componente condiviso client-auth-form
+	  (`cert`/`csr`/...) ai `tipo` attesi dagli switch `__descrittoreChange`,
+	  disambiguando `cert` col `tipo_certificato` corrente.
+
 2026-08-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
