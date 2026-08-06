@@ -211,6 +211,18 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
 
     api_url: string = '';
 
+    // Issue 331 — gruppi di appartenenza del servizio (vetrina): chip sulle
+    // foglie di default, espansione on-demand nel tree ricorsivo.
+    _showGroups: boolean = false;
+    _gruppiAlwaysExpanded: boolean = false;
+    _gruppiShowChildren: boolean = false;
+    _gruppi: any[] = [];
+    _gruppiLeaves: any[] = [];
+    _gruppiTree: any[] = [];
+    _gruppiHasHierarchy: boolean = false;
+    _gruppiExpanded: boolean = false;
+    _gruppiLoading: boolean = false;
+
     _maxReferenti: number = 3;
     _showReferents: boolean = true;
 
@@ -358,6 +370,9 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                 this.configService.getConfig(this.model).subscribe(
                     (config: any) => {
                         this.config = config;
+                        this._showGroups = !!config?.showGroups;
+                        this._gruppiAlwaysExpanded = !!config?.groupsExpanded;
+                        this._gruppiShowChildren = !!config?.groupsShowChildren;
                         this._singleColumn = config.editSingleColumn || false;
                         this.allowTryIt = config.swagger?.allowTryIt || false;
                         this.showAuthorizeBtn = config.swagger?.showAuthorizeBtn || false;
@@ -466,7 +481,112 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
 
         this._showReferents = Tools.Configurazione?.servizio?.mostra_referenti === 'enabled';
         this.loadReferenti();
+        this._loadGruppi();
         this._loadServiceApi();
+    }
+
+    // Issue 331 — carica i gruppi di appartenenza del servizio (stessa
+    // GET /servizi/:sid/gruppi della gestione) per mostrarli in vetrina.
+    _loadGruppi() {
+        this._gruppi = [];
+        this._gruppiLeaves = [];
+        this._gruppiTree = [];
+        this._gruppiHasHierarchy = false;
+        // Se `groupsExpanded` è attivo, si parte (e si resta) espansi.
+        this._gruppiExpanded = this._gruppiAlwaysExpanded;
+        // Sezione gruppi opzionale: flag `showGroups` in servizi-config.json.
+        if (!this._showGroups) { return; }
+        this._gruppiLoading = true;
+        this.apiService.getDetails(this.model, this.id, 'gruppi').subscribe({
+            next: (response: any) => {
+                this._gruppi = response?.content || [];
+                // Gruppi di APPARTENENZA = item di `content`. Gli antenati
+                // (`path_gruppo`) sono contesto; i `figli` sono sottogruppi a cui
+                // il servizio NON appartiene (mostrati solo se `groupsShowChildren`).
+                this._gruppiLeaves = (this._gruppi || []).slice().sort(this._compareGruppoByNome);
+                this._gruppiTree = this._buildGruppiTree(this._gruppiLeaves, this._gruppiShowChildren);
+                this._gruppiHasHierarchy =
+                    this._gruppiLeaves.some((g: any) => g.path_gruppo?.length) ||
+                    (this._gruppiShowChildren && this._gruppiLeaves.some((g: any) => g.figli?.length));
+                this._gruppiLoading = false;
+            },
+            error: () => {
+                this._gruppiLoading = false;
+            }
+        });
+    }
+
+    _compareGruppoByNome = (a: any, b: any): number =>
+        (a?.nome || '').localeCompare(b?.nome || '', 'it', { sensitivity: 'base' });
+
+    /** Ricostruisce l'albero dei gruppi dai `path_gruppo` (catena antenati) dei
+     *  gruppi di appartenenza. Gli antenati con lo stesso id sono condivisi; i
+     *  gruppi di appartenenza sono marcati `_membership`. Se `includeChildren`,
+     *  vengono appesi anche i `figli` (sottogruppi) marcati `_child`, distinti dai
+     *  gruppi di appartenenza. Ogni livello è ordinato per nome. */
+    _buildGruppiTree(memberships: any[], includeChildren: boolean): any[] {
+        const _byId = new Map<string, any>();
+        const _roots: any[] = [];
+        // `figli` in ingresso viene sempre ignorato: la gerarchia dei figli è
+        // gestita a parte (accumulatore `figli` del nodo costruito).
+        const _getNode = (id: string, nome: string, extra?: any) => {
+            let _n = _byId.get(id);
+            if (!_n) {
+                _n = { id_gruppo: id, nome, figli: [] };
+                _byId.set(id, _n);
+            }
+            if (extra) {
+                const { figli: _ignored, ...rest } = extra;
+                Object.assign(_n, rest);
+            }
+            return _n;
+        };
+        const _attachFigli = (parent: any, figli: any[]) => {
+            (figli || []).forEach((f: any) => {
+                const _child = _getNode(f.id_gruppo, f.nome, { ...f });
+                if (!_child._membership) { _child._child = true; }
+                if (!parent.figli.includes(_child)) { parent.figli.push(_child); }
+                _attachFigli(_child, f.figli);
+            });
+        };
+        (memberships || []).forEach((m: any) => {
+            let _parent: any = null;
+            (m.path_gruppo || []).forEach((anc: any) => {
+                const _node = _getNode(anc.id_gruppo, anc.nome, { _ancestor: true });
+                const _target = _parent ? _parent.figli : _roots;
+                if (!_target.includes(_node)) { _target.push(_node); }
+                _parent = _node;
+            });
+            const _leaf = _getNode(m.id_gruppo, m.nome, { ...m, _membership: true });
+            const _target = _parent ? _parent.figli : _roots;
+            if (!_target.includes(_leaf)) { _target.push(_leaf); }
+            if (includeChildren) { _attachFigli(_leaf, m.figli); }
+        });
+        const _sortRec = (nodes: any[]) => {
+            nodes.sort(this._compareGruppoByNome);
+            nodes.forEach((n: any) => { if (n.figli?.length) { _sortRec(n.figli); } });
+        };
+        _sortRec(_roots);
+        return _roots;
+    }
+
+    _gruppoLogo(node: any): string {
+        return node?.immagine ? `${this.api_url}/gruppi/${node.id_gruppo}/immagine` : '';
+    }
+
+    _gruppoPathTooltip(node: any): string {
+        const _path = (node?.path_gruppo || []).map((p: any) => p.nome);
+        return [..._path, node?.nome].filter(Boolean).join(' › ');
+    }
+
+    _toggleGruppi() {
+        if (this._gruppiAlwaysExpanded) { return; }
+        this._gruppiExpanded = !this._gruppiExpanded;
+    }
+
+    _goToGruppo(idGruppo: string) {
+        if (!idGruppo) { return; }
+        this.router.navigate(['/servizi'], { queryParams: { gruppo: idGruppo } });
     }
 
     loadReferenti() {

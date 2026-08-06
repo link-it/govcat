@@ -20,6 +20,9 @@
     "showPresentation": true,
     "showTechnicalReferent": false,
     "showDomainReferent": true,
+    "showGroups": true,
+    "groupsExpanded": true,
+    "groupsShowChildren": false,
 
     "swagger" : {
         "allowTryIt": true,

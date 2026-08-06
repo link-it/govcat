@@ -335,23 +335,90 @@
              La griglia `.layout` (320px 1fr) si applica SOLO quando i referenti
              sono mostrati; senza aside la classe non viene messa e la section
              (unico figlio) occupa tutta la larghezza (div block full-width). -->
-        <div [class.layout]="_showReferents">
-          @if (_showReferents) {
+        <div [class.layout]="_showReferents || (_showGroups && _gruppiLeaves.length > 1)">
+          @if (_showReferents || (_showGroups && _gruppiLeaves.length > 1)) {
             <aside>
-              <div class="card card-pad-tight">
-                <div class="section-title">
-                  <span>{{ 'APP.TITLE.ServiceReferents' | translate }}</span>
-                  <span class="grow"></span>
-                  @if (!referentiLoading) {
-                    <span class="count">{{ referenti.length }}</span>
+              @if (_showReferents) {
+                <div class="card card-pad-tight">
+                  <div class="section-title">
+                    <span>{{ 'APP.TITLE.ServiceReferents' | translate }}</span>
+                    <span class="grow"></span>
+                    @if (!referentiLoading) {
+                      <span class="count">{{ referenti.length }}</span>
+                    }
+                  </div>
+                  @if (referentiLoading) {
+                    <span class="spinner-border spinner-border-sm"></span>
+                  } @else {
+                    <lnk-refs [list]="referentiAsLnkRefs" variant="cards"></lnk-refs>
                   }
                 </div>
-                @if (referentiLoading) {
-                  <span class="spinner-border spinner-border-sm"></span>
-                } @else {
-                  <lnk-refs [list]="referentiAsLnkRefs" variant="cards"></lnk-refs>
-                }
-              </div>
+              }
+
+              <!-- Issue 331 — Gruppi del servizio: chip (foglie) + espandi nel
+                   tree ricorsivo; ogni voce naviga a /servizi?gruppo=<id>.
+                   Opzionale via flag `showGroups` in servizi-config.json.
+                   Mostrato solo se il servizio appartiene a piu` di un gruppo. -->
+              @if (_showGroups && _gruppiLeaves.length > 1) {
+                <div class="card card-pad-tight" [class.mt-3]="_showReferents">
+                  <div class="section-title">
+                    <span>{{ 'APP.TITLE.Groups' | translate }}</span>
+                    <span class="grow"></span>
+                    <span class="count">{{ _gruppiLeaves.length }}</span>
+                    @if (!_gruppiAlwaysExpanded && _gruppiHasHierarchy) {
+                      <button type="button" class="btn btn-sm btn-link p-0 ms-2 gruppi-toggle" (click)="_toggleGruppi()">
+                        <i class="bi" [class.bi-diagram-3]="!_gruppiExpanded" [class.bi-tags]="_gruppiExpanded"></i>
+                        {{ (_gruppiExpanded ? 'APP.BUTTON.Collapse' : 'APP.BUTTON.Expand') | translate }}
+                      </button>
+                    }
+                  </div>
+
+                  @if (!_gruppiExpanded) {
+                    <div class="gruppi-chips">
+                      @for (g of _gruppiLeaves; track g.id_gruppo) {
+                        <a class="gruppo-chip" role="link" tabindex="0"
+                          [tooltip]="_gruppoPathTooltip(g)" container="body"
+                          (click)="_goToGruppo(g.id_gruppo)"
+                          (keydown.enter)="_goToGruppo(g.id_gruppo)">
+                          @if (g.immagine) {
+                            <img class="gruppo-chip-img" [src]="{ path: _gruppoLogo(g) } | httpImgSrc" alt="">
+                          } @else {
+                            <i class="bi bi-folder2"></i>
+                          }
+                          <span>{{ g.nome }}</span>
+                        </a>
+                      }
+                    </div>
+                  } @else {
+                    <ng-container *ngTemplateOutlet="gruppiTree; context: { $implicit: _gruppiTree, level: 0 }"></ng-container>
+                  }
+
+                  <ng-template #gruppiTree let-nodes let-level="level">
+                    <ul class="gruppi-tree" [class.gruppi-tree--root]="level === 0">
+                      @for (node of nodes; track node.id_gruppo) {
+                        <li class="gruppi-tree-item">
+                          <a class="gruppo-node" role="link" tabindex="0"
+                            [class.gruppo-node--membership]="node._membership"
+                            [class.gruppo-node--other]="!node._membership"
+                            [tooltip]="_gruppoPathTooltip(node)" container="body"
+                            (click)="_goToGruppo(node.id_gruppo)"
+                            (keydown.enter)="_goToGruppo(node.id_gruppo)">
+                            @if (node.immagine) {
+                              <img class="gruppo-node-img" [src]="{ path: _gruppoLogo(node) } | httpImgSrc" alt="">
+                            } @else {
+                              <i class="bi" [class.bi-folder2]="node.figli?.length" [class.bi-diagram-2]="!node.figli?.length"></i>
+                            }
+                            <span>{{ node.nome }}</span>
+                          </a>
+                          @if (node.figli?.length) {
+                            <ng-container *ngTemplateOutlet="gruppiTree; context: { $implicit: node.figli, level: level + 1 }"></ng-container>
+                          }
+                        </li>
+                      }
+                    </ul>
+                  </ng-template>
+                </div>
+              }
             </aside>
           }
 
