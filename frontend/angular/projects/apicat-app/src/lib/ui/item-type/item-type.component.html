@@ -154,4 +154,12 @@
   @case ('labelI18n') {
     <span class="{{ elem.class || '' }}" [tooltip]="(_tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">{{ _value | translate }} {{ _appendOriginalValue }}</span>
   }
+  @case ('relay') {
+    @if (_value) {
+      @let _erogatore = _sourceData?.soggetto_erogatore?.organizzazione?.nome || _sourceData?.soggetto_erogatore?.nome;
+      <app-relay-icon class="relay-icon"
+        [tooltip]="_erogatore ? ('APP.TOOLTIP.ErogatoDa' | translate:{ ente: _erogatore }) : ('APP.LABEL.fruizione' | translate)"
+        container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay"></app-relay-icon>
+    }
+  }
 }

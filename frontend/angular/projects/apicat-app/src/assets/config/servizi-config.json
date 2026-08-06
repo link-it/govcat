@@ -37,6 +37,7 @@
             { "field": "versione", "type": "text", "options": "status", "badged": true, "configDependency": "Services.hideVersions" }
         ],
         "secondaryText": [
+            { "field": "fruizione", "type": "relay", "hideEmpty": true },
             { "field": "stato", "type": "label", "options": "status" }
         ],
         "metadata": {
@@ -46,8 +47,7 @@
             "label": []
         },
         "secondaryMetadata": [
-            { "field": "visibilita", "type": "tag", "options": "visibility", "default": "nd", "hideAnonymous": true },
-            { "field": "fruizione", "type": "tag", "options": "intermediato", "hideEmpty": true }
+            { "field": "visibilita", "type": "tag", "options": "visibility", "default": "nd", "hideAnonymous": true }
         ],
         "footer": [
             { "field": "ruoli_referente_label", "type": "tags", "options": "roles", "hideEmpty": true }
@@ -113,13 +113,6 @@
                 "riservato": { "label": "APP.VISIBILITY.riservato", "chipVariant": "accent", "background": "#FF3700", "border": "#FF3700", "color": "#ffffff" },
                 "riservato_dominio": { "label": "APP.VISIBILITY.riservato_dominio", "chipVariant": "accent", "background": "#FF3700", "border": "#FF3700", "color": "#ffffff" },
                 "componente": { "label": "APP.VISIBILITY.componente", "chipVariant": "warn", "background": "#eeef20", "border": "#eeef20", "color": "#1f1f1f" }
-            }
-        },
-
-        "intermediato": {
-            "label": "APP.LABEL.fruizione",
-            "values": {
-                "true": { "label": "APP.LABEL.fruizione", "chipVariant": "warn", "background": "#efc96c", "border": "#efc96c", "color": "#1f1f1f" }
             }
         },
 

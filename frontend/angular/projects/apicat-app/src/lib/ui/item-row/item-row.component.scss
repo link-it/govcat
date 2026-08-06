@@ -101,6 +101,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     font-size: var(--item-row-metadata-font-size, 14px);
 }
 
+.main-data {
+    margin-bottom: 4px;
+}
+
 .main-data .primary-text,
 .main-data .secondary-text {
     font-size: .875rem;

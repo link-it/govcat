@@ -117,9 +117,9 @@
               }
               @if (data?.fruizione) {
                 @let _erogatoreNome = data?.soggetto_erogatore?.organizzazione?.nome || data?.soggetto_erogatore?.nome;
-                @let _erogatoreTooltip = _erogatoreNome ? ('APP.TOOLTIP.ErogatoDa' | translate:{ ente: _erogatoreNome }) : null;
+                @let _relayTooltip = _erogatoreNome ? ('APP.TOOLTIP.ErogatoDa' | translate:{ ente: _erogatoreNome }) : ('APP.LABEL.fruizione' | translate);
                 <span class="mx-1">·</span>
-                <span class="eyebrow-chip eyebrow-chip--intermediato" [tooltip]="_erogatoreTooltip" container="body">{{ 'APP.LABEL.fruizione' | translate }}</span>
+                <app-relay-icon class="eyebrow-relay" [tooltip]="_relayTooltip" container="body"></app-relay-icon>
               }
             </div>
             <h1>

@@ -26,13 +26,14 @@ import { ConfigService } from '@linkit/components';
 import { SetBackgroundImageDirective } from '@app/lib/directives/set-background-image.directive';
 import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
 import { DataTypeComponent } from '@app/lib/ui/data-type/data-type.component';
+import { RelayIconComponent } from '@app/components/relay-icon/relay-icon.component';
 
 @Component({
   selector: 'lnk-card',
   templateUrl: './card.component.html',
   styleUrls: ['./card.component.scss'],
   standalone: true,
-  imports: [CommonModule, TooltipModule, TranslateModule, SetBackgroundImageDirective, HttpImgSrcPipe, DataTypeComponent]
+  imports: [CommonModule, TooltipModule, TranslateModule, SetBackgroundImageDirective, HttpImgSrcPipe, DataTypeComponent, RelayIconComponent]
 })
 export class LnkCardComponent implements OnInit {
 

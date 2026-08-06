@@ -46,6 +46,12 @@
   }
   @if (cardBs) {
     <div class="card h-100" [class.group]="data.tipo === 'gruppo'">
+      @if (data.tipo === 'servizio' && data.fruizione) {
+        @let _erogatore = data.soggetto_erogatore?.organizzazione?.nome || data.soggetto_erogatore?.nome;
+        <app-relay-icon class="relay-float"
+          [tooltip]="_erogatore ? ('APP.TOOLTIP.ErogatoDa' | translate:{ ente: _erogatore }) : ('APP.LABEL.fruizione' | translate)"
+          container="body"></app-relay-icon>
+      }
       @if (_showImage && (_image || _showEmptyImage)) {
         <div tabindex="0"
           class="card-image"
@@ -94,13 +100,6 @@
             <ui-data-type
               [data]="data"
               [elem]="{ field: 'visibilita', type: 'tag', options: 'visibility' }"
-              [config]="config">
-            </ui-data-type>
-          }
-          @if (data.tipo === 'servizio' && data.fruizione) {
-            <ui-data-type
-              [data]="data"
-              [elem]="{ field: 'fruizione', type: 'tag', options: 'intermediato' }"
               [config]="config">
             </ui-data-type>
           }

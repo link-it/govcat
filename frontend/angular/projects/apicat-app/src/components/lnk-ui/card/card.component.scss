@@ -160,3 +160,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   min-height: 150px;
   background-color: #ffffff;
 }
+
+/* Icona "relay" flottante (servizio intermediato) in alto a destra della card.
+   Sfondo a pill (bianco + bordo + ombra) per restare leggibile anche sopra
+   l'immagine del servizio. */
+.relay-float {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 7px;
+  font-size: 12px;
+  line-height: 0;
+  color: var(--ink-1, #1f1f1f);
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid var(--line, #e0e0e0);
+  border-radius: 999px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+}
