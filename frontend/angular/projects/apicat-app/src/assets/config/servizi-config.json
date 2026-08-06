@@ -23,6 +23,7 @@
     "showGroups": true,
     "groupsExpanded": false,
     "groupsShowChildren": false,
+    "groupsRequireMultiple": false,
     "relayIconPosition": "title",
 
     "swagger" : {

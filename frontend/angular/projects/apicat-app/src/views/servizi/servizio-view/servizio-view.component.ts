@@ -218,12 +218,19 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     _showGroups: boolean = false;
     _gruppiAlwaysExpanded: boolean = false;
     _gruppiShowChildren: boolean = false;
+    _gruppiRequireMultiple: boolean = true;
     _gruppi: any[] = [];
     _gruppiLeaves: any[] = [];
     _gruppiTree: any[] = [];
     _gruppiHasHierarchy: boolean = false;
     _gruppiExpanded: boolean = false;
     _gruppiLoading: boolean = false;
+
+    /** Visibilità del box "Gruppi" in sidebar: abilitato e con abbastanza gruppi
+     *  di appartenenza (>=2 se `groupsRequireMultiple`, altrimenti >=1). */
+    get _showGruppiBox(): boolean {
+        return this._showGroups && this._gruppiLeaves.length >= (this._gruppiRequireMultiple ? 2 : 1);
+    }
 
     _maxReferenti: number = 3;
     _showReferents: boolean = true;
@@ -375,6 +382,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                         this._showGroups = !!config?.showGroups;
                         this._gruppiAlwaysExpanded = !!config?.groupsExpanded;
                         this._gruppiShowChildren = !!config?.groupsShowChildren;
+                        this._gruppiRequireMultiple = config?.groupsRequireMultiple !== false;
                         this._singleColumn = config.editSingleColumn || false;
                         this.allowTryIt = config.swagger?.allowTryIt || false;
                         this.showAuthorizeBtn = config.swagger?.showAuthorizeBtn || false;

@@ -677,27 +677,12 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
                         const _primaryText = this._getPrimaryText(sg);
 
-                        const _source: any = { ...sg, visibilita: _visibilita };
-                        // MOCK TEMPORANEO (Issue 330): GET /servizi_gruppi non restituisce
-                        // ancora `fruizione` e `soggetto_erogatore` (a differenza di GET
-                        // /servizi). Si simula il dato sui nodi servizio finche' il BE non
-                        // li espone. RIMUOVERE quando il backend restituira' questi campi.
-                        if (sg.tipo === 'servizio' && _source.fruizione === undefined) {
-                            const _key = String(sg.id_servizio ?? sg.id ?? sg.nome ?? '');
-                            let _hash = 0;
-                            for (let _i = 0; _i < _key.length; _i++) { _hash += _key.charCodeAt(_i); }
-                            _source.fruizione = _key.length > 0 && (_hash % 2 === 0);
-                            if (_source.fruizione) {
-                                _source.soggetto_erogatore = { nome: `${sg.nome} (erogatore mock)`, organizzazione: { nome: 'Ente Erogatore (mock)' } };
-                            }
-                        }
-
                         const element = {
                             id: sg.id,
                             type: sg.tipo,
                             nome: sg.nome,
                             editMode: false,
-                            source: _source,
+                            source: { ...sg, visibilita: _visibilita },
                             primaryText: _primaryText,
                             secondaryText: '', // (sg.descrizione || ''),
                             metadata: _meta.join(', '),

@@ -1,6 +1,14 @@
 2026-08-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 330/331: rimosso il mock temporaneo di `fruizione`/`soggetto_erogatore`
+	  su GET /servizi_gruppi. Box "Gruppi" in vetrina: soglia minima gruppi
+	  configurabile via `groupsRequireMultiple` in servizi-config.json (true =
+	  visibile solo con >1 gruppo; false = anche con 1).
+
+2026-08-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue 330: posizione dell'icona relay nella card griglia configurabile via
 	  `relayIconPosition` in servizi-config.json: `title` (a destra del titolo)
 	  oppure flottante in alto a destra (default).

@@ -335,8 +335,8 @@
              La griglia `.layout` (320px 1fr) si applica SOLO quando i referenti
              sono mostrati; senza aside la classe non viene messa e la section
              (unico figlio) occupa tutta la larghezza (div block full-width). -->
-        <div [class.layout]="_showReferents || (_showGroups && _gruppiLeaves.length > 1)">
-          @if (_showReferents || (_showGroups && _gruppiLeaves.length > 1)) {
+        <div [class.layout]="_showReferents || _showGruppiBox">
+          @if (_showReferents || _showGruppiBox) {
             <aside>
               @if (_showReferents) {
                 <div class="card card-pad-tight">
@@ -358,8 +358,9 @@
               <!-- Issue 331 — Gruppi del servizio: chip (foglie) + espandi nel
                    tree ricorsivo; ogni voce naviga a /servizi?gruppo=<id>.
                    Opzionale via flag `showGroups` in servizi-config.json.
-                   Mostrato solo se il servizio appartiene a piu` di un gruppo. -->
-              @if (_showGroups && _gruppiLeaves.length > 1) {
+                   Mostrato solo se il servizio appartiene a piu` di un gruppo
+                   (soglia disattivabile via `groupsRequireMultiple`). -->
+              @if (_showGruppiBox) {
                 <div class="card card-pad-tight" [class.mt-3]="_showReferents">
                   <div class="section-title">
                     <span>{{ 'APP.TITLE.Groups' | translate }}</span>
