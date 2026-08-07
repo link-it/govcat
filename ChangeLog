@@ -1,3 +1,11 @@
+2026-08-07  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 330: gli elementi dell'API servizi_gruppi riportano ora anche il flag
+	  `fruizione` e l'oggetto `soggetto_erogatore`, allineandosi alla risposta
+	  dell'API servizi. I due campi sono valorizzati solo per gli elementi di
+	  tipo "servizio"; per quelli di tipo "gruppo" restano assenti.
+
 2026-08-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

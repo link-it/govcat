@@ -9812,6 +9812,10 @@ components:
           $ref: "#/components/schemas/Documento"
         dominio:
           $ref: "#/components/schemas/Dominio"
+        fruizione:
+          type: boolean
+        soggetto_erogatore:
+          $ref: "#/components/schemas/ItemSoggetto"
         id_gruppo_padre:
           $ref: "#/components/schemas/IdGruppo"
         path_gruppo:
