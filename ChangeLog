@@ -1,3 +1,13 @@
+2026-08-07  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 329: filtro "Intermediato" nella ricerca servizi (select Tutti/Sì/No),
+	  mappato sul parametro BE `fruizione` (true/false), come il filtro
+	  `intermediata` delle organizzazioni; posizionato sulla stessa riga del
+	  filtro Organizzazione. I select Stato/Visibilità/Intermediato usano ora
+	  `[ngValue]` con opzione "Tutti" = `null` (placeholder), così mostrano "Tutti"
+	  di default senza valorizzare il filtro.
+
 2026-08-07  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
