@@ -1,3 +1,11 @@
+2026-08-07  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 330: gli elementi dell'API servizi_gruppi riportano ora anche il flag
+	  `fruizione` e l'oggetto `soggetto_erogatore`, allineandosi alla risposta
+	  dell'API servizi. I due campi sono valorizzati solo per gli elementi di
+	  tipo "servizio"; per quelli di tipo "gruppo" restano assenti.
+
 2026-08-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -69,6 +77,22 @@
 	  non solo in `ngOnInit`. In `pdnd-eservice-view` reso non mutante il mapping
 	  dei descrittori (sort su copia, `audience`/`serverUrls` via `at(-1)`,
 	  accessi null-safe).
+
+2026-08-05  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 328: il criterio di univocità delle API comprende l'ente erogatore per i
+	  soli servizi intermediati. Servizi intermediati e non intermediati ricadono in
+	  namespace distinti: la stessa API (nome, versione, dominio) può esistere una
+	  volta su un servizio non intermediato e una volta su ciascun servizio
+	  intermediato con ente erogatore diverso. Il vincolo è verificato in creazione e
+	  modifica dell'API e, novità, anche quando la modifica del servizio (dominio,
+	  flag di intermediazione, ente erogatore) sposta le sue API in un altro
+	  namespace. Nuovo errore API.409.INTERMEDIATO che indica l'ente erogatore in
+	  conflitto. La risoluzione inversa (nome, versione, soggetto) usata da
+	  monitoraggio, statistiche e allarmi non usa più findOne, che con più
+	  corrispondenze falliva con errore 500: la scelta è deterministica (prima i
+	  servizi non intermediati, poi id crescente).
 
 2026-08-03  Giovanni De Luca <giovanni.deluca@link.it>
 

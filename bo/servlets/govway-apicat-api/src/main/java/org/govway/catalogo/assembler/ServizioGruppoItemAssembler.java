@@ -22,6 +22,7 @@ package org.govway.catalogo.assembler;
 import java.util.UUID;
 
 import org.govway.catalogo.controllers.ServiziController;
+import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioGruppoEntity;
 import org.govway.catalogo.core.orm.entity.ServizioGruppoEntity.TipoServizioGruppoEnum;
 import org.govway.catalogo.servlets.model.Documento;
@@ -45,6 +46,9 @@ public class ServizioGruppoItemAssembler extends RepresentationModelAssemblerSup
 	@Autowired
 	private DominioDettaglioAssembler dominioDettaglioAssembler;
 
+	@Autowired
+	private SoggettoItemAssembler soggettoItemAssembler;
+
 	public ServizioGruppoItemAssembler() {
 		super(ServiziController.class, ItemServizioGruppo.class);
 	}
@@ -61,7 +65,14 @@ public class ServizioGruppoItemAssembler extends RepresentationModelAssemblerSup
 		dettaglio.setTipoComponente(this.gruppoEngineAssembler.toTipo(entity.getTipoComponente()));
 		if(dettaglio.getTipo().equals(TipoServizioGruppo.SERVIZIO)) {
 			dettaglio.setVisibilita(this.servizioEngineAssembler.toVisibilita(entity.getVisibilita()));
-			dettaglio.setDominio(this.dominioDettaglioAssembler.toModel(entity.getServizio().getDominio()));
+			ServizioEntity servizio = entity.getServizio();
+			dettaglio.setDominio(this.dominioDettaglioAssembler.toModel(servizio.getDominio()));
+			// Allineamento a listServizi: fruizione e soggetto erogatore sono valorizzati
+			// solo per gli elementi di tipo "servizio" (per i gruppi restano assenti).
+			dettaglio.setFruizione(servizio.isFruizione());
+			if(servizio.getSoggettoErogatore()!=null) {
+				dettaglio.setSoggettoErogatore(this.soggettoItemAssembler.toModel(servizio.getSoggettoErogatore()));
+			}
 		} else {
 			dettaglio.setStato(null);
 		}

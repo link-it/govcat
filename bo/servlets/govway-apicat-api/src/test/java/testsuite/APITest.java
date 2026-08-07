@@ -52,6 +52,7 @@ import org.govway.catalogo.servlets.model.DownloadSpecificaAPIModeEnum;
 import org.govway.catalogo.servlets.model.Gruppo;
 import org.govway.catalogo.servlets.model.GruppoCreate;
 import org.govway.catalogo.servlets.model.IdentificativoApiUpdate;
+import org.govway.catalogo.servlets.model.IdentificativoServizioUpdate;
 import org.govway.catalogo.servlets.model.Organizzazione;
 import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.PagedModelAllegato;
@@ -62,9 +63,11 @@ import org.govway.catalogo.servlets.model.ReferenteCreate;
 import org.govway.catalogo.servlets.model.RuoloAPIEnum;
 import org.govway.catalogo.servlets.model.Servizio;
 import org.govway.catalogo.servlets.model.ServizioCreate;
+import org.govway.catalogo.servlets.model.ServizioUpdate;
 import org.govway.catalogo.servlets.model.Soggetto;
 import org.govway.catalogo.servlets.model.SoggettoCreate;
 import org.govway.catalogo.servlets.model.TipoReferenteEnum;
+import org.govway.catalogo.servlets.model.TipoServizio;
 import org.govway.catalogo.servlets.model.TipologiaAllegatoEnum;
 import org.govway.catalogo.servlets.model.Utente;
 import org.govway.catalogo.servlets.model.VisibilitaAllegatoEnum;
@@ -256,7 +259,184 @@ public class APITest {
 
     	return servizio;
     }
-    
+
+    /**
+     * Crea un ulteriore soggetto referente nella stessa organizzazione, utilizzabile come ente
+     * erogatore alternativo per i servizi intermediati.
+     */
+    private UUID creaSoggetto(String nome) {
+    	SoggettoCreate soggetto = new SoggettoCreate();
+    	soggetto.setNome(nome);
+    	soggetto.setIdOrganizzazione(this.idOrganizzazione);
+    	soggetto.setAderente(true);
+    	soggetto.setReferente(true);
+
+    	ResponseEntity<Soggetto> created = soggettiController.createSoggetto(soggetto);
+    	assertEquals(HttpStatus.OK, created.getStatusCode());
+    	return created.getBody().getIdSoggetto();
+    }
+
+    private Servizio creaServizio(String nome, UUID idDominio, boolean intermediato, UUID idSoggettoErogatore) {
+    	ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+    	servizioCreate.setNome(nome);
+    	servizioCreate.setIdDominio(idDominio);
+    	servizioCreate.setFruizione(intermediato);
+    	servizioCreate.setIdSoggettoErogatore(idSoggettoErogatore);
+
+    	ReferenteCreate referente = new ReferenteCreate();
+    	referente.setTipo(TipoReferenteEnum.REFERENTE);
+    	referente.setIdUtente(ID_UTENTE_GESTORE);
+    	servizioCreate.setReferenti(List.of(referente));
+
+    	ResponseEntity<Servizio> created = serviziController.createServizio(servizioCreate);
+    	assertEquals(HttpStatus.OK, created.getStatusCode());
+    	return created.getBody();
+    }
+
+    private ResponseEntity<API> creaApi(String nome, Integer versione, Servizio servizio) {
+    	APICreate apiCreate = CommonUtils.getAPICreate();
+    	apiCreate.setNome(nome);
+    	apiCreate.setVersione(versione);
+    	apiCreate.setIdServizio(servizio.getIdServizio());
+    	return apiController.createApi(apiCreate);
+    }
+
+    private ApiUpdate getApiUpdate(String nome, Integer versione) {
+    	ApiUpdate apiUpdate = new ApiUpdate();
+    	IdentificativoApiUpdate identificativo = new IdentificativoApiUpdate();
+    	identificativo.setNome(nome);
+    	identificativo.setVersione(versione);
+    	identificativo.setRuolo(RuoloAPIEnum.ADERENTE);
+    	apiUpdate.setIdentificativo(identificativo);
+    	return apiUpdate;
+    }
+
+    private ServizioUpdate getServizioUpdate(Servizio servizio, UUID idDominio, boolean intermediato, UUID idSoggettoErogatore) {
+    	IdentificativoServizioUpdate identificativo = new IdentificativoServizioUpdate();
+    	identificativo.setNome(servizio.getNome());
+    	identificativo.setVersione(servizio.getVersione());
+    	identificativo.setTipo(TipoServizio.API);
+    	identificativo.setIdDominio(idDominio);
+    	identificativo.setFruizione(intermediato);
+    	identificativo.setIdSoggettoErogatore(idSoggettoErogatore);
+    	identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
+    	identificativo.setAdesioneDisabilitata(false);
+    	identificativo.setMultiAdesione(true);
+    	identificativo.setPackage(false);
+
+    	ServizioUpdate servizioUpdate = new ServizioUpdate();
+    	servizioUpdate.setIdentificativo(identificativo);
+    	return servizioUpdate;
+    }
+
+    @Test
+    void testCreateApiDuplicataNonIntermediatoConflitto() {
+    	Dominio dominio = this.getDominio();
+    	Servizio servizio1 = creaServizio("servizio_non_intermediato_1", dominio.getIdDominio(), false, null);
+    	Servizio servizio2 = creaServizio("servizio_non_intermediato_2", dominio.getIdDominio(), false, null);
+
+    	assertEquals(HttpStatus.OK, creaApi("API_X", 1, servizio1).getStatusCode());
+
+    	assertThrows(ConflictException.class, () -> creaApi("API_X", 1, servizio2));
+    }
+
+    @Test
+    void testCreateApiIntermediatoStessoErogatoreConflitto() {
+    	Dominio dominio = this.getDominio();
+    	Servizio servizio1 = creaServizio("servizio_intermediato_1", dominio.getIdDominio(), true, this.idSoggetto);
+    	Servizio servizio2 = creaServizio("servizio_intermediato_2", dominio.getIdDominio(), true, this.idSoggetto);
+
+    	assertEquals(HttpStatus.OK, creaApi("API_X", 1, servizio1).getStatusCode());
+
+    	assertThrows(ConflictException.class, () -> creaApi("API_X", 1, servizio2));
+    }
+
+    @Test
+    void testCreateApiIntermediatoErogatoriDiversiConsentito() {
+    	Dominio dominio = this.getDominio();
+    	UUID idSoggettoErogatoreAlternativo = creaSoggetto("nome_soggetto_erogatore");
+
+    	Servizio servizio1 = creaServizio("servizio_intermediato_1", dominio.getIdDominio(), true, this.idSoggetto);
+    	Servizio servizio2 = creaServizio("servizio_intermediato_2", dominio.getIdDominio(), true, idSoggettoErogatoreAlternativo);
+
+    	assertEquals(HttpStatus.OK, creaApi("API_X", 1, servizio1).getStatusCode());
+    	assertEquals(HttpStatus.OK, creaApi("API_X", 1, servizio2).getStatusCode());
+    }
+
+    @Test
+    void testCreateApiIntermediatoENonIntermediatoConsentito() {
+    	Dominio dominio = this.getDominio();
+    	Servizio servizioNonIntermediato = creaServizio("servizio_non_intermediato", dominio.getIdDominio(), false, null);
+    	Servizio servizioIntermediato = creaServizio("servizio_intermediato", dominio.getIdDominio(), true, this.idSoggetto);
+
+    	assertEquals(HttpStatus.OK, creaApi("API_X", 1, servizioNonIntermediato).getStatusCode());
+    	assertEquals(HttpStatus.OK, creaApi("API_X", 1, servizioIntermediato).getStatusCode());
+    }
+
+    @Test
+    void testUpdateApiIntermediatoErogatoriDiversiConsentito() {
+    	Dominio dominio = this.getDominio();
+    	UUID idSoggettoErogatoreAlternativo = creaSoggetto("nome_soggetto_erogatore");
+
+    	Servizio servizio1 = creaServizio("servizio_intermediato_1", dominio.getIdDominio(), true, this.idSoggetto);
+    	Servizio servizio2 = creaServizio("servizio_intermediato_2", dominio.getIdDominio(), true, idSoggettoErogatoreAlternativo);
+
+    	assertEquals(HttpStatus.OK, creaApi("API_X", 1, servizio1).getStatusCode());
+    	ResponseEntity<API> api2 = creaApi("API_Y", 1, servizio2);
+    	assertEquals(HttpStatus.OK, api2.getStatusCode());
+
+    	ResponseEntity<API> aggiornata = apiController.updateApi(api2.getBody().getIdApi(), getApiUpdate("API_X", 1), null);
+    	assertEquals(HttpStatus.OK, aggiornata.getStatusCode());
+    	assertEquals("API_X", aggiornata.getBody().getNome());
+    }
+
+    @Test
+    void testUpdateApiIntermediatoStessoErogatoreConflitto() {
+    	Dominio dominio = this.getDominio();
+    	Servizio servizio1 = creaServizio("servizio_intermediato_1", dominio.getIdDominio(), true, this.idSoggetto);
+    	Servizio servizio2 = creaServizio("servizio_intermediato_2", dominio.getIdDominio(), true, this.idSoggetto);
+
+    	assertEquals(HttpStatus.OK, creaApi("API_X", 1, servizio1).getStatusCode());
+    	ResponseEntity<API> api2 = creaApi("API_Y", 1, servizio2);
+    	assertEquals(HttpStatus.OK, api2.getStatusCode());
+
+    	assertThrows(ConflictException.class, () -> apiController.updateApi(api2.getBody().getIdApi(), getApiUpdate("API_X", 1), null));
+    }
+
+    @Test
+    void testUpdateServizioRimozioneIntermediazioneConflitto() {
+    	Dominio dominio = this.getDominio();
+    	Servizio servizioNonIntermediato = creaServizio("servizio_non_intermediato", dominio.getIdDominio(), false, null);
+    	Servizio servizioIntermediato = creaServizio("servizio_intermediato", dominio.getIdDominio(), true, this.idSoggetto);
+
+    	assertEquals(HttpStatus.OK, creaApi("API_X", 1, servizioNonIntermediato).getStatusCode());
+    	assertEquals(HttpStatus.OK, creaApi("API_X", 1, servizioIntermediato).getStatusCode());
+
+    	// Togliendo l'intermediazione l'API si sposterebbe nel namespace del servizio non
+    	// intermediato, dove API_X/1 e` gia` presente
+    	ServizioUpdate servizioUpdate = getServizioUpdate(servizioIntermediato, dominio.getIdDominio(), false, null);
+
+    	assertThrows(ConflictException.class, () -> serviziController.updateServizio(servizioIntermediato.getIdServizio(), null, servizioUpdate));
+    }
+
+    @Test
+    void testUpdateServizioSenzaCambioNamespaceConsentito() {
+    	Dominio dominio = this.getDominio();
+    	Servizio servizioNonIntermediato = creaServizio("servizio_non_intermediato", dominio.getIdDominio(), false, null);
+    	Servizio servizioIntermediato = creaServizio("servizio_intermediato", dominio.getIdDominio(), true, this.idSoggetto);
+
+    	assertEquals(HttpStatus.OK, creaApi("API_X", 1, servizioNonIntermediato).getStatusCode());
+    	assertEquals(HttpStatus.OK, creaApi("API_X", 1, servizioIntermediato).getStatusCode());
+
+    	// Namespace invariato: le api del servizio non devono entrare in conflitto con se stesse
+    	ServizioUpdate servizioUpdate = getServizioUpdate(servizioIntermediato, dominio.getIdDominio(), true, this.idSoggetto);
+    	servizioUpdate.getIdentificativo().setNome("servizio_intermediato_rinominato");
+
+    	ResponseEntity<Servizio> aggiornato = serviziController.updateServizio(servizioIntermediato.getIdServizio(), null, servizioUpdate);
+    	assertEquals(HttpStatus.OK, aggiornato.getStatusCode());
+    	assertEquals("servizio_intermediato_rinominato", aggiornato.getBody().getNome());
+    }
+
     UUID idApi = null;
     
     private ResponseEntity<API> getAPI() {
