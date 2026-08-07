@@ -64,7 +64,7 @@
 
     <div class="group-list-card-badges">
       @if (data.stato) {
-        <ui-data-type class="me-2"
+        <ui-data-type
           [data]="data"
           [elem]="{ field: 'stato', type: 'label', options: 'status' }"
           [config]="config">
@@ -79,6 +79,15 @@
       }
     </div>
   </div>
+
+  @if (data.tipo === 'servizio' && data.fruizione) {
+    @let _erogatore = data.soggetto_erogatore?.organizzazione?.nome || data.soggetto_erogatore?.nome;
+    <div class="group-list-card-relay">
+      <app-relay-icon
+        [tooltip]="_erogatore ? ('APP.TOOLTIP.ErogatoDa' | translate:{ ente: _erogatore }) : ('APP.LABEL.fruizione' | translate)"
+        container="body"></app-relay-icon>
+    </div>
+  }
 
   @if ((data.tipo === 'gruppo') && showGroupIcon) {
     <div class="group-list-card-icon">

@@ -20,6 +20,11 @@
     "showPresentation": true,
     "showTechnicalReferent": false,
     "showDomainReferent": true,
+    "showGroups": true,
+    "groupsExpanded": false,
+    "groupsShowChildren": false,
+    "groupsRequireMultiple": false,
+    "relayIconPosition": "title",
 
     "swagger" : {
         "allowTryIt": true,
@@ -34,6 +39,7 @@
             { "field": "versione", "type": "text", "options": "status", "badged": true, "configDependency": "Services.hideVersions" }
         ],
         "secondaryText": [
+            { "field": "fruizione", "type": "relay", "hideEmpty": true },
             { "field": "stato", "type": "label", "options": "status" }
         ],
         "metadata": {
@@ -100,7 +106,6 @@
 
         "visibility": {
             "label": "APP.LABEL.Visibility",
-            "small": true,
             "values": {
                 "nd": { "label": "nd", "chipVariant": "muted", "background": "#ffffff", "border": "#ffffff", "color": "#ffffff" },
                 "pubblico": { "label": "APP.VISIBILITY.public", "chipVariant": "ok", "background": "#a6d75b", "border": "#a6d75b", "color": "#1f1f1f" },

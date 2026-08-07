@@ -28,6 +28,7 @@ import { SetBackgroundImageDirective } from '../../directives/set-background-ima
 import { UtilsLib } from '../../utils/utils.lib';
 import { LnkAvatarComponent } from '@app/components/lnk-ui/avatar/avatar.component';
 import { StatoChipComponent } from '@app/components/vetrina/stato-chip.component';
+import { RelayIconComponent } from '@app/components/relay-icon/relay-icon.component';
 
 import moment from 'moment/moment';
 
@@ -38,7 +39,7 @@ import moment from 'moment/moment';
         './item-type.component.scss'
     ],
     standalone: true,
-    imports: [CommonModule, TranslateModule, TooltipModule, MarkdownModule, LnkAvatarComponent, HttpImgSrcPipe, SetBackgroundImageDirective, StatoChipComponent]
+    imports: [CommonModule, TranslateModule, TooltipModule, MarkdownModule, LnkAvatarComponent, HttpImgSrcPipe, SetBackgroundImageDirective, StatoChipComponent, RelayIconComponent]
 })
 export class ItemTypeComponent implements OnInit, OnChanges {
     @HostBinding('class.empty-space') get emptySpace(): boolean {
