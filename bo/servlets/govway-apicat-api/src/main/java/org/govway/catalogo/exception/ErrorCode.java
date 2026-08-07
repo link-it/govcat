@@ -48,6 +48,9 @@ public enum ErrorCode {
     /** API già esistente */
     API_409("API già esistente"),
 
+    /** API già esistente su un servizio intermediato con lo stesso ente erogatore */
+    API_409_INTERMEDIATO("API già esistente per l'ente erogatore"),
+
     /** Visibilità allegato non consentita */
     API_400_VISIBILITY("Visibilità allegato non consentita"),
 

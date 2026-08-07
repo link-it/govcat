@@ -1423,7 +1423,10 @@
 							"SERVICE": "No API found for service [{{idServizio}}]"
 						}
 					},
-					"409": "API [{{nome}}/{{versione}}/{{soggetto}}] already exists"
+					"409": {
+						"DEFAULT": "API [{{nome}}/{{versione}}/{{soggetto}}] already exists",
+						"INTERMEDIATO": "API [{{nome}}/{{versione}}/{{soggetto}}] already exists for provider [{{erogatore}}]"
+					}
 				},
 				"ApiNoDelete": "The API cannot be deleted in its current state.",
 				"AUT": {

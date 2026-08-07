@@ -1423,7 +1423,10 @@
 							"SERVICE": "Nessuna API trovata per il servizio [{{idServizio}}]"
 						}
 					},
-					"409": "API [{{nome}}/{{versione}}/{{soggetto}}] esiste gia"
+					"409": {
+						"DEFAULT": "API [{{nome}}/{{versione}}/{{soggetto}}] esiste gia",
+						"INTERMEDIATO": "API [{{nome}}/{{versione}}/{{soggetto}}] esiste gia per l'ente erogatore [{{erogatore}}]"
+					}
 				},
 				"ApiNoDelete": "L'API non può essere eliminata allo stato corrente.",
 				"AUT": {

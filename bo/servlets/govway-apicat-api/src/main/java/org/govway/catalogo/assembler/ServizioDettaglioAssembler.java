@@ -47,6 +47,7 @@ import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.RichiestaNonValidaSemanticamenteException;
 import org.govway.catalogo.exception.ErrorCode;
+import org.govway.catalogo.services.ApiUnivocitaService;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.DatiGenericiServizioUpdate;
 import org.govway.catalogo.servlets.model.Documento;
@@ -78,6 +79,9 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 
 	@Autowired
 	private ClasseUtenteService classeUtenteService;
+
+	@Autowired
+	private ApiUnivocitaService apiUnivocitaService;
 
 	@Autowired
 	private ServizioEngineAssembler engine;
@@ -187,6 +191,11 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 	}
 	
 	public ServizioEntity toEntity(IdentificativoServizioUpdate src, ServizioEntity entity) {
+		// Namespace di univocita` delle api prima della modifica: il cambio di dominio, del flag di
+		// intermediazione o dell'ente erogatore sposta le api del servizio su un altro namespace e
+		// puo` far emergere conflitti (va letto prima di copyProperties, che sovrascrive il flag).
+		NamespaceApi namespaceApiPrecedente = getNamespaceApi(entity);
+
 		BeanUtils.copyProperties(src, entity);
 		
 		if(src.isSkipCollaudo() != null) {
@@ -205,7 +214,9 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		} else {
 			entity.setDominio(null);
 		}
-		
+
+		checkUnivocitaApi(entity, namespaceApiPrecedente);
+
 		entity.set_package(src.isPackage());
 		entity.setVisibilita(engine.toVisibilita(src.getVisibilita(), !entity.is_package()));
 
@@ -295,9 +306,46 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		if(entity.getDominio().isDeprecato() && !this.coreAuthorization.isAdmin()) {
 			throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422);
 		}
-		
+
 	}
-	
+
+	/**
+	 * Namespace di univocita` delle api di un servizio: soggetto referente del dominio, flag di
+	 * intermediazione e, per i soli servizi intermediati, ente erogatore.
+	 * Restituisce null se il servizio non ha ancora un dominio.
+	 */
+	private NamespaceApi getNamespaceApi(ServizioEntity entity) {
+		if(entity.getDominio() == null || entity.getDominio().getSoggettoReferente() == null) {
+			return null;
+		}
+
+		boolean intermediato = entity.isFruizione();
+		SoggettoEntity erogatore = intermediato ? entity.getSoggettoErogatore() : null;
+
+		return new NamespaceApi(
+				entity.getDominio().getSoggettoReferente().getIdSoggetto(),
+				intermediato,
+				erogatore != null ? erogatore.getIdSoggetto() : null);
+	}
+
+	/**
+	 * Se la modifica ha spostato le api del servizio su un altro namespace di univocita`, verifica
+	 * che nessuna di esse entri in conflitto con api gia` presenti in quel namespace.
+	 * Le api del servizio stesso sono escluse dal confronto: non possono collidere con se stesse.
+	 */
+	private void checkUnivocitaApi(ServizioEntity entity, NamespaceApi namespacePrecedente) {
+		NamespaceApi namespaceAttuale = getNamespaceApi(entity);
+
+		if(namespaceAttuale == null || namespaceAttuale.equals(namespacePrecedente)) {
+			return;
+		}
+
+		this.apiUnivocitaService.checkUnivocitaApiServizio(entity,
+				entity.getDominio().getSoggettoReferente(), entity.isFruizione(), entity.getSoggettoErogatore());
+	}
+
+	private record NamespaceApi(String idSoggettoReferente, boolean intermediato, String idSoggettoErogatore) {}
+
 	public ServizioEntity toEntity(DatiGenericiServizioUpdate src, ServizioEntity entity) {
 		BeanUtils.copyProperties(src, entity);
 

@@ -58,11 +58,11 @@ import org.govway.catalogo.core.services.ApiService;
 import org.govway.catalogo.core.services.DocumentoService;
 import org.govway.catalogo.core.services.ServizioService;
 import org.govway.catalogo.exception.BadRequestException;
-import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
+import org.govway.catalogo.services.ApiUnivocitaService;
 import org.govway.catalogo.servlets.api.ApiApi;
 import org.govway.catalogo.servlets.model.*;
 import org.slf4j.Logger;
@@ -102,6 +102,9 @@ public class APIController implements ApiApi {
 
 	@Autowired
 	private ApiDettaglioAssembler dettaglioAssembler;
+
+	@Autowired
+	private ApiUnivocitaService apiUnivocitaService;
 
 	@Autowired
 	private ServizioDettaglioAssembler servizioDettaglioAssembler;
@@ -228,9 +231,7 @@ public class APIController implements ApiApi {
 				this.servizioAuthorization.authorizeModifica(servizio, Arrays.asList(ConfigurazioneClasseDato.IDENTIFICATIVO));
 				this.logger.debug("Autorizzazione completata con successo");     
 
-				if(this.service.existsByNomeVersioneSoggetto(apiCreate.getNome(), apiCreate.getVersione(), UUID.fromString(servizio.getDominio().getSoggettoReferente().getIdSoggetto()))) {
-					throw new ConflictException(ErrorCode.API_409, java.util.Map.of("nome", apiCreate.getNome(), "versione", apiCreate.getVersione().toString(), "soggetto", servizio.getDominio().getSoggettoReferente().getNome()));
-				}
+				this.apiUnivocitaService.checkUnivocita(apiCreate.getNome(), apiCreate.getVersione(), servizio);
 
 				this.service.save(entity);
 				API api = this.dettaglioAssembler.toModel(entity);
@@ -635,10 +636,7 @@ public class APIController implements ApiApi {
 					boolean versioneCambiata = !entity.getVersione().equals(apiUpdate.getIdentificativo().getVersione());
 
 					if(nomeCambiato || versioneCambiata) {
-						if(this.service.existsByNomeVersioneSoggetto(apiUpdate.getIdentificativo().getNome(), apiUpdate.getIdentificativo().getVersione(), UUID.fromString(servizio.getDominio().getSoggettoReferente().getIdSoggetto()))) {
-							throw new ConflictException(ErrorCode.API_409, java.util.Map.of("nome", apiUpdate.getIdentificativo().getNome(), "versione", apiUpdate.getIdentificativo().getVersione().toString(), "soggetto", servizio.getDominio().getSoggettoReferente().getNome()));
-						}
-
+						this.apiUnivocitaService.checkUnivocita(apiUpdate.getIdentificativo().getNome(), apiUpdate.getIdentificativo().getVersione(), servizio);
 					}
 
 					this.dettaglioAssembler.toEntity(apiUpdate.getIdentificativo(), entity);

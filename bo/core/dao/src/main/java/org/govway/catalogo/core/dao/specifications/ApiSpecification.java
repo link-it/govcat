@@ -47,6 +47,10 @@ public class ApiSpecification implements Specification<ApiEntity> {
 	private Optional<RUOLO> ruolo = Optional.empty();
 	private Optional<String> nome = Optional.empty();
 	private Optional<Integer> versione = Optional.empty();
+	private Optional<Boolean> servizioIntermediato = Optional.empty();
+	private boolean filtraSoggettoErogatore = false;
+	private Optional<UUID> idSoggettoErogatore = Optional.empty();
+	private List<UUID> idApiEscluse = new ArrayList<>();
 
 	@Override
 	public Predicate toPredicate(Root<ApiEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
@@ -101,10 +105,33 @@ public class ApiSpecification implements Specification<ApiEntity> {
 			}
 		}
 		
-		if (idSoggetto.isPresent()) {
-			predLst.add(cb.equal(root.join(ApiEntity_.servizi).get(ServizioEntity_.dominio).get(DominioEntity_.soggettoReferente).get(SoggettoEntity_.idSoggetto), idSoggetto.get().toString())); 
+		// I filtri su soggetto referente, intermediazione ed ente erogatore condividono UN SOLO join
+		// sui servizi: usando join distinti la condizione diventerebbe "esiste un servizio con quel
+		// referente E (un altro) servizio intermediato", mentre devono valere sullo stesso servizio.
+		if (idSoggetto.isPresent() || servizioIntermediato.isPresent() || filtraSoggettoErogatore) {
+			Join<ApiEntity, ServizioEntity> servizioJoin = root.join(ApiEntity_.servizi);
+
+			if (idSoggetto.isPresent()) {
+				predLst.add(cb.equal(servizioJoin.get(ServizioEntity_.dominio).get(DominioEntity_.soggettoReferente).get(SoggettoEntity_.idSoggetto), idSoggetto.get().toString()));
+			}
+
+			if (servizioIntermediato.isPresent()) {
+				predLst.add(cb.equal(servizioJoin.get(ServizioEntity_.fruizione), servizioIntermediato.get()));
+			}
+
+			if (filtraSoggettoErogatore) {
+				if (idSoggettoErogatore.isPresent()) {
+					predLst.add(cb.equal(servizioJoin.get(ServizioEntity_.soggettoErogatore).get(SoggettoEntity_.idSoggetto), idSoggettoErogatore.get().toString()));
+				} else {
+					predLst.add(cb.isNull(servizioJoin.get(ServizioEntity_.soggettoErogatore)));
+				}
+			}
 		}
-		
+
+		if (!idApiEscluse.isEmpty()) {
+			predLst.add(cb.not(root.get(ApiEntity_.idApi).in(idApiEscluse.stream().map(UUID::toString).toList())));
+		}
+
 		if (ruolo.isPresent()) {
 			predLst.add(cb.equal(root.get(ApiEntity_.ruolo), ruolo.get())); 
 		}
@@ -166,6 +193,42 @@ public class ApiSpecification implements Specification<ApiEntity> {
 
 	public void setServiziList(List<UUID> serviziList) {
 		this.serviziList = serviziList;
+	}
+
+	public Optional<Boolean> getServizioIntermediato() {
+		return servizioIntermediato;
+	}
+
+	/**
+	 * Filtra le api in base al flag di intermediazione del servizio a cui sono associate.
+	 */
+	public void setServizioIntermediato(Optional<Boolean> servizioIntermediato) {
+		this.servizioIntermediato = servizioIntermediato;
+	}
+
+	public Optional<UUID> getIdSoggettoErogatore() {
+		return idSoggettoErogatore;
+	}
+
+	/**
+	 * Attiva il filtro sull'ente erogatore del servizio. A differenza degli altri filtri, un
+	 * valore vuoto NON significa "nessun filtro" ma "ente erogatore non valorizzato" (IS NULL):
+	 * serve a tenere separati i servizi intermediati privi di ente erogatore.
+	 */
+	public void setIdSoggettoErogatore(Optional<UUID> idSoggettoErogatore) {
+		this.filtraSoggettoErogatore = true;
+		this.idSoggettoErogatore = idSoggettoErogatore;
+	}
+
+	public List<UUID> getIdApiEscluse() {
+		return idApiEscluse;
+	}
+
+	/**
+	 * Esclude dal risultato le api indicate (per idApi).
+	 */
+	public void setIdApiEscluse(List<UUID> idApiEscluse) {
+		this.idApiEscluse = idApiEscluse != null ? idApiEscluse : new ArrayList<>();
 	}
 
 }
