@@ -2472,6 +2472,7 @@ paths:
       - $ref: "#/components/parameters/id_servizio_query_optional_multi"
       - $ref: "#/components/parameters/package_query_optional"
       - $ref: "#/components/parameters/tipo_servizio_query_optional"
+      - $ref: "#/components/parameters/fruizione_query_optional"
       - $ref: "#/components/parameters/q_query_optional"
       - $ref: "#/components/parameters/page_query_optional"
       - $ref: "#/components/parameters/size_query_optional"
@@ -11139,6 +11140,13 @@ components:
       required: false
       schema:
         $ref: "#/components/schemas/TipoServizio"
+    fruizione_query_optional:
+      name: "fruizione"
+      in: "query"
+      description: "servizio in fruizione"
+      required: false
+      schema:
+        type: "boolean"
     tipo_gruppo_query_optional:
       name: "tipo_gruppo"
       in: "query"

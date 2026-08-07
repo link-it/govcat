@@ -6,6 +6,12 @@
 	  dell'API servizi. I due campi sono valorizzati solo per gli elementi di
 	  tipo "servizio"; per quelli di tipo "gruppo" restano assenti.
 
+	* [GovwayAPICatalogo]
+	Issue 329: l'API di elenco dei servizi accetta il nuovo parametro di ricerca
+	  `fruizione`, che filtra i servizi in base all'omonimo flag: `true` restituisce
+	  i soli servizi in fruizione, `false` i soli servizi in erogazione. Se il
+	  parametro non è valorizzato l'elenco non viene filtrato.
+
 2026-08-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
