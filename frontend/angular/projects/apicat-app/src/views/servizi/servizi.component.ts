@@ -823,7 +823,15 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     }
 
     _onNew() {
-        this.router.navigate([this.model, 'new']);
+        // Convivenza wizard/form classico: il flag AppConfig.Services.wizardNewLayout
+        // instrada al nuovo wizard di creazione a step. Il form classico resta
+        // raggiungibile a `servizi/new` (default: wizard attivo).
+        const _useWizard = this.config?.AppConfig?.Services?.wizardNewLayout !== false;
+        if (_useWizard) {
+            this.router.navigate([this.model, 'new', 'wizard']);
+        } else {
+            this.router.navigate([this.model, 'new']);
+        }
     }
 
     _onEdit(event: any, param: any) {

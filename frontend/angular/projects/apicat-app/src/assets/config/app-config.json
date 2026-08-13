@@ -52,7 +52,8 @@
 
     "Services": {
       "showReferents": true,
-      "hideVersions": false
+      "hideVersions": false,
+      "wizardNewLayout": true
     },
 
     "Adesioni": {

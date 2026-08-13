@@ -1,3 +1,12 @@
+2026-08-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Nuovo wizard di creazione servizio a step (Identità, Classificazione,
+	  Referenti, Descrizione, Adesione, Riepilogo), affiancato al form classico e
+	  attivabile via `AppConfig.Services.wizardNewLayout` (rotta `servizi/new/wizard`).
+	  Navigazione con validazione progressiva e gating di completamento degli step;
+	  riepilogo completo e chiavi i18n dedicate (`APP.SERVICES.WIZARD.*`).
+
 2026-08-07  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

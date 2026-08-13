@@ -2002,6 +2002,7 @@
 				"PrincipalPattern": "Formato del principal non valido",
 				"Email": "Inserisci una e-mail valida",
 				"FieldRequired": "Campo richiesto",
+				"FormInvalid": "Alcuni campi obbligatori non sono compilati correttamente",
 				"GreaterThanEqual": "Il campo deve avere un valore maggiore o uguale a {{value}}",
 				"GreaterThanZero": "Il campo deve avere un valore maggiore di zero",
 				"IntegerGreaterThanZero": "Il campo deve avere un valore intero maggiore di zero",
@@ -2347,6 +2348,31 @@
 			"View": "Vista"
 		},
 		"SERVICES": {
+			"WIZARD": {
+				"Title": "Nuovo servizio",
+				"StepOf": "Passo {{current}} di {{total}}",
+				"Logo": "Logo",
+				"BUTTON": {
+					"Next": "Avanti",
+					"Back": "Indietro",
+					"Create": "Crea servizio",
+					"Cancel": "Annulla"
+				},
+				"STEP": {
+					"identita": "Identità",
+					"identita_sub": "Tipo, nome, versione e dominio del servizio",
+					"classificazione": "Classificazione e visibilità",
+					"classificazione_sub": "Visibilità, package ed erogazione",
+					"referenti": "Referenti",
+					"referenti_sub": "Referente e referente tecnico",
+					"descrizione": "Descrizione e metadati",
+					"descrizione_sub": "Descrizioni, tag e note",
+					"adesione": "Opzioni di adesione",
+					"adesione_sub": "Impostazioni relative alle adesioni",
+					"riepilogo": "Riepilogo",
+					"riepilogo_sub": "Verifica i dati e crea il servizio"
+				}
+			},
 			"BUTTON": {
 				"AddAttachment": "Aggiungi allegato",
 				"AddAttachment-generico": "Aggiungi allegato generico",

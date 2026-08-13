@@ -1,0 +1,193 @@
+// ----------------------------------------------------------------------
+// ServizioCreateWizardComponent — wizard di creazione servizio (parte A).
+// Step-bar `.gstepper` / `.gstep` ispirata al nuovo layout del wizard
+// adesioni (`adesione-fasi-bar`), adattata a un numero variabile di step
+// (flex anziche` grid a colonne fisse).
+// ----------------------------------------------------------------------
+
+// Design token allineati 1:1 al wizard adesioni (`:host(.lnk-wizard)`), cosi`
+// la step-bar ha lo stesso aspetto. `--accent`/`--accent-hover` NON sono
+// ridefiniti: vengono ereditati da `:root` (variabile del tema), come nel
+// wizard adesioni.
+:host {
+  --surface:      #ffffff;
+  --surface-2:    #fafcfd;
+  --surface-3:    #eef4f8;
+  --line:         #dee8ef;
+  --line-strong:  #c4d6e0;
+
+  --ink:          #212c49;
+  --ink-2:        #2e445a;
+  --ink-3:        #57738a;
+  --ink-4:        #8aa4b8;
+
+  --radius:    10px;
+  --radius-lg: 14px;
+
+  --shadow-sm: 0 1px 0 rgba(33, 44, 73, .04), 0 1px 2px rgba(33, 44, 73, .04);
+  --shadow:    0 1px 0 rgba(33, 44, 73, .04), 0 8px 24px -8px rgba(33, 44, 73, .08);
+}
+
+.gstepper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px;
+  background: var(--surface-2, #fafcfd);
+  border: 1px solid var(--line, #dee8ef);
+  border-radius: var(--radius-lg, 14px);
+}
+
+.gstep {
+  flex: 1 1 0;
+  min-width: 160px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: transparent;
+  position: relative;
+  transition: background .15s, box-shadow .15s;
+  overflow: hidden;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+
+  // Focus da tastiera: anello inset accent (il passo ha overflow:hidden,
+  // quindi un outline esterno verrebbe clippato). Allineato al wizard adesioni.
+  &:focus-visible {
+    outline: none !important;
+    box-shadow: inset 0 0 0 2px var(--accent, #ff4050) !important;
+  }
+
+  // Step selezionato/corrente: sfondo bianco + ombra. Il bordo di selezione e`
+  // reso da uno pseudo-elemento (`::before`) cosi` NON viene sovrascritto dallo
+  // stato di focus (che agisce su outline/box-shadow del bottone): il bordo
+  // resta visibile sia navigando con Avanti/Indietro sia cliccando lo step.
+  &.is-current {
+    background: var(--surface, #ffffff);
+    box-shadow: var(--shadow, 0 8px 24px -8px rgba(33, 44, 73, .08));
+  }
+
+  &.is-current::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 10px;
+    box-shadow: inset 0 0 0 2px var(--line-strong, #c4d6e0);
+    pointer-events: none;
+  }
+
+  // Barra colorata inferiore sotto lo step corrente (equivalente al
+  // `.viewing-mark` del wizard adesioni).
+  &.is-current::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 6px;
+    right: 6px;
+    height: 3px;
+    border-radius: 3px 3px 0 0;
+    background: var(--accent, #ff4050);
+    z-index: 1;
+  }
+
+  // Step non raggiungibile (step precedenti incompleti): non cliccabile e
+  // attenuato.
+  &.is-disabled,
+  &[disabled] {
+    cursor: not-allowed;
+    opacity: .55;
+  }
+
+  .num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 11.5px;
+    font-weight: 600;
+    background: var(--surface-3, #eef4f8);
+    color: var(--ink-3, #57738a);
+    border: 1px solid var(--line-strong, #c4d6e0);
+    flex-shrink: 0;
+  }
+
+  &.is-done .num {
+    background: var(--ink, #212c49);
+    color: white;
+    border-color: var(--ink, #212c49);
+  }
+
+  &.is-current .num {
+    background: var(--accent, #ff4050);
+    color: white;
+    border-color: var(--accent, #ff4050);
+  }
+
+  .lbl {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+
+  .lbl .t {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-3, #8aa4b8);
+    font-weight: 600;
+  }
+
+  .lbl .n {
+    font-size: 13.5px;
+    font-weight: 550;
+    color: var(--ink, #212c49);
+    letter-spacing: -0.005em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &.is-locked .lbl .n {
+    color: var(--ink-3, #57738a);
+  }
+}
+
+@media (max-width: 900px) {
+  .gstep {
+    flex-basis: 100%;
+  }
+}
+
+.wizard-body {
+  min-height: 320px;
+}
+
+.summary-group {
+  margin-top: 1rem;
+  margin-bottom: .5rem;
+  padding-bottom: .25rem;
+  border-bottom: 1px solid var(--line, #dee8ef);
+  font-weight: 600;
+  color: var(--ink, #212c49);
+}
+
+.summary {
+  dt {
+    font-weight: 600;
+    color: var(--ink-3, #57738a);
+  }
+  dd {
+    margin-bottom: .5rem;
+  }
+}
+
+.footer-block {
+  display: flex;
+  align-items: center;
+}

@@ -2002,6 +2002,7 @@
 				"PrincipalPattern": "Invalid principal format",
 				"Email": "Insert valid email",
 				"FieldRequired": "Field required",
+				"FormInvalid": "Some required fields are not filled in correctly",
 				"GreaterThanEqual": "The field must have a value greater than or equal to {{value}}",
 				"GreaterThanZero": "The field must have a value greater than zero",
 				"IntegerGreaterThanZero": "The field must have an integer value greater than zero",
@@ -2347,6 +2348,31 @@
 			"View": "View"
 		},
 		"SERVICES": {
+			"WIZARD": {
+				"Title": "New service",
+				"StepOf": "Step {{current}} of {{total}}",
+				"Logo": "Logo",
+				"BUTTON": {
+					"Next": "Next",
+					"Back": "Back",
+					"Create": "Create service",
+					"Cancel": "Cancel"
+				},
+				"STEP": {
+					"identita": "Identity",
+					"identita_sub": "Service type, name, version and domain",
+					"classificazione": "Classification and visibility",
+					"classificazione_sub": "Visibility, package and provisioning",
+					"referenti": "Contacts",
+					"referenti_sub": "Contact and technical contact",
+					"descrizione": "Description and metadata",
+					"descrizione_sub": "Descriptions, tags and notes",
+					"adesione": "Subscription options",
+					"adesione_sub": "Subscription-related settings",
+					"riepilogo": "Summary",
+					"riepilogo_sub": "Review the data and create the service"
+				}
+			},
 			"BUTTON": {
 				"AddAttachment": "Add Attachment",
 				"AddAttachment-generico": "Add generic attachment",
