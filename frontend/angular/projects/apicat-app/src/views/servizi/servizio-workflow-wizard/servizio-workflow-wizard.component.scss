@@ -1,0 +1,25 @@
+// ----------------------------------------------------------------------
+// ServizioWorkflowWizardComponent — wizard a fasi del workflow servizio
+// (Parte B, skeleton). Riusa `AdesioneFasiBarComponent`; i design token del
+// `:host` sono allineati 1:1 al wizard adesioni cosi` la fasi-bar ha lo stesso
+// aspetto. `--accent`/`--accent-hover` sono ereditati da `:root` (tema).
+// ----------------------------------------------------------------------
+
+:host {
+  --surface:      #ffffff;
+  --surface-2:    #fafcfd;
+  --surface-3:    #eef4f8;
+  --line:         #dee8ef;
+  --line-strong:  #c4d6e0;
+
+  --ink:          #212c49;
+  --ink-2:        #2e445a;
+  --ink-3:        #57738a;
+  --ink-4:        #8aa4b8;
+
+  --radius:    10px;
+  --radius-lg: 14px;
+
+  --shadow-sm: 0 1px 0 rgba(33, 44, 73, .04), 0 1px 2px rgba(33, 44, 73, .04);
+  --shadow:    0 1px 0 rgba(33, 44, 73, .04), 0 8px 24px -8px rgba(33, 44, 73, .08);
+}

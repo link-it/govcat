@@ -7,6 +7,13 @@
 	  Navigazione con validazione progressiva e gating di completamento degli step;
 	  riepilogo completo e chiavi i18n dedicate (`APP.SERVICES.WIZARD.*`).
 
+	* [Frontend]
+	Wizard a fasi del workflow servizio (rotta `servizi/:id/wizard`): barra fasi
+	  Collaudo/Produzione e timeline sotto-step, riusando i componenti del wizard
+	  adesioni; transizioni di stato via `ui-workflow`. Config fasi da
+	  `Configurazione.servizio.step_wizard*` con fallback mock frontend. Fase
+	  Informazioni Generali con riepilogo servizio e link alle sezioni.
+
 2026-08-07  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

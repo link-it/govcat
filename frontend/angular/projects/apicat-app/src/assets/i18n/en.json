@@ -2352,6 +2352,25 @@
 				"Title": "New service",
 				"StepOf": "Step {{current}} of {{total}}",
 				"Logo": "Logo",
+				"PhasePlaceholder": "Phase content coming soon.",
+				"Sections": "Service sections",
+				"ProcedureCollaudo": "Test procedure",
+				"ProcedureProduzione": "Production procedure",
+				"PHASE": {
+					"info_generali": "General Information",
+					"collaudo": "Test",
+					"produzione": "Production"
+				},
+				"SUBSTEP": {
+					"in_compilazione": "Drafting",
+					"in_approvazione": "Under approval",
+					"in_configurazione": "Configuring",
+					"configurato": "Configured",
+					"in_compilazione_body": "Fill in the service data and start the request to proceed.",
+					"in_approvazione_body": "Request sent: awaiting approval from the manager.",
+					"in_configurazione_body": "Configuration in progress on the API Gateway.",
+					"configurato_body": "Phase completed: the service is published in this environment."
+				},
 				"BUTTON": {
 					"Next": "Next",
 					"Back": "Back",

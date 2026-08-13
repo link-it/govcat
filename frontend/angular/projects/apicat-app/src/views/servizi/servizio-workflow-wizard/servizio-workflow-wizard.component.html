@@ -1,0 +1,135 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div id="route-section" class="">
+  <div class="top-area container-fluid container-limited limit-container-width px-0">
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" [classContainer]="'limit-container-width'" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+    <div class="d-flex flex-grow-1">&nbsp;</div>
+    <div class="nav-controls">
+      @if (_changingStatus) {
+        <span class="spinner-border spinner-border-sm"></span>
+      }
+      @if (data && !_changingStatus && generalConfig) {
+        <ui-workflow
+          [data]="data"
+          [module]="'servizio'"
+          [grant]="_grant"
+          [config]="config"
+          [workflow]="data.package ? generalConfig?.package?.workflow : generalConfig?.servizio?.workflow"
+          (action)="onWorkflowAction($event)"
+        ></ui-workflow>
+      }
+    </div>
+  </div>
+
+  <div class="top-area container-fluid container-limited limit-container-width px-0">
+    <h3 class="page-title text-break">{{ data?.nome }}</h3>
+  </div>
+
+  <section class="container-fluid container-limited limit-container-width container-scroller container-scroller-no-search">
+    @if (_spin) {
+      <app-spinner></app-spinner>
+    }
+
+    @if (!_spin && data) {
+      <app-adesione-fasi-bar
+        [steps]="stepWizard"
+        [currentState]="data?.stato || null"
+        [selectedCode]="_selectedFase"
+        [workflowStati]="workflowStati"
+        [disabledCodes]="getDisabledFasiCodes()"
+        [skippedCodes]="getSkippedFasiCodes()"
+        [i18nPrefix]="'APP.SERVICES.WIZARD.PHASE'"
+        (stepClick)="selectFase($event)"
+      ></app-adesione-fasi-bar>
+
+      @if (_error) {
+        <div class="gl-alert gl-alert-danger col-12 mt-3">
+          @if (!_errors.length) {
+            <span>{{ _errorMsg }}</span>
+          }
+          @if (_errors.length) {
+            <ui-error-view [errTitle]="'Errori'" [errors]="_errors"></ui-error-view>
+          }
+        </div>
+      }
+
+      <!-- Contenuto della fase selezionata -->
+      <div class="card mt-3">
+        <div class="card-body">
+          <h5 class="mb-3">{{ ('APP.SERVICES.WIZARD.PHASE.' + activeFase?.code) | translate }}</h5>
+
+          <!-- Fase: Informazioni Generali -->
+          @if (activeFase?.code === 'info_generali') {
+            <div class="row">
+              <div class="col-lg-7">
+                <dl class="row mb-0">
+                  <dt class="col-sm-4">{{ 'APP.LABEL.nome' | translate }}</dt>
+                  <dd class="col-sm-8">{{ data?.nome || '-' }}</dd>
+                  <dt class="col-sm-4">{{ 'APP.LABEL.versione' | translate }}</dt>
+                  <dd class="col-sm-8">{{ data?.versione || '-' }}</dd>
+                  @if (data?.tipo) {
+                    <dt class="col-sm-4">{{ 'APP.LABEL.tipo' | translate }}</dt>
+                    <dd class="col-sm-8">{{ data?.tipo }}</dd>
+                  }
+                  <dt class="col-sm-4">{{ 'APP.LABEL.id_dominio' | translate }}</dt>
+                  <dd class="col-sm-8">{{ data?.dominio?.nome || '-' }}</dd>
+                  <dt class="col-sm-4">{{ 'APP.LABEL.VisibilitaServizio' | translate }}</dt>
+                  <dd class="col-sm-8">{{ _visibilitaLabel() }}</dd>
+                  <dt class="col-sm-4">{{ 'APP.LABEL.DescrizioneSintetica' | translate }}</dt>
+                  <dd class="col-sm-8 white-space-pre-wrap text-wrap">{{ data?.descrizione_sintetica || '-' }}</dd>
+                  <dt class="col-sm-4">{{ 'APP.LABEL.tags' | translate }}</dt>
+                  <dd class="col-sm-8">
+                    @for (tag of data?.tags; track tag) {
+                      <span class="badge rounded-pill badge-tag text-bg-tags me-1 mb-1">{{ tag }}</span>
+                    }
+                    @if (!data?.tags?.length) { <span>-</span> }
+                  </dd>
+                </dl>
+              </div>
+              <div class="col-lg-5">
+                <div class="text-uppercase small text-muted mb-2">{{ 'APP.SERVICES.WIZARD.Sections' | translate }}</div>
+                <div class="d-flex flex-column gap-2">
+                  @for (link of sezioniLinks; track link.route) {
+                    <button type="button" class="btn btn-default btn-md gl-button text-start" (click)="openSection(link.route)">
+                      <i class="{{ link.icon }} me-2"></i>{{ link.label | translate }}
+                    </button>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Fasi: Collaudo / Produzione (timeline sotto-step) -->
+          @if (activeFase?.code === 'collaudo' || activeFase?.code === 'produzione') {
+            <app-adesione-substepper
+              [steps]="subStepsForActiveFase"
+              [currentState]="data?.stato || null"
+              [workflowStati]="workflowStati"
+              [i18nPrefix]="'APP.SERVICES.WIZARD.SUBSTEP'"
+              [title]="procedureTitle">
+              <ng-template let-sub>
+                <p class="mb-0 text-muted">{{ ('APP.SERVICES.WIZARD.SUBSTEP.' + sub.code + '_body') | translate }}</p>
+              </ng-template>
+            </app-adesione-substepper>
+          }
+        </div>
+      </div>
+    }
+  </section>
+</div>

@@ -21,6 +21,7 @@ import { Routes } from '@angular/router';
 import { ServiziComponent } from './servizi.component';
 import { ServizioDetailsComponent } from './servizio-details/servizio-details.component';
 import { ServizioCreateWizardComponent } from './servizio-create-wizard/servizio-create-wizard.component';
+import { ServizioWorkflowWizardComponent } from './servizio-workflow-wizard/servizio-workflow-wizard.component';
 import { ServizioViewComponent } from './servizio-view/servizio-view.component';
 import { ServiceBreadcrumbsResolver } from './route-resolver/service-breadcrumbs.resolver';
 
@@ -48,6 +49,12 @@ export const SERVIZI_ROUTES: Routes = [
         canActivate: [ForbidAnonymousGuard],
         data: { breadcrumb: 'Dettaglio servizio' },
         component: ServizioDetailsComponent
+      },
+      {
+        path: ':id/wizard',
+        canActivate: [ForbidAnonymousGuard],
+        data: { breadcrumb: 'Wizard servizio' },
+        component: ServizioWorkflowWizardComponent
       },
       {
         path: ':sid/view',

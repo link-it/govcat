@@ -2352,6 +2352,25 @@
 				"Title": "Nuovo servizio",
 				"StepOf": "Passo {{current}} di {{total}}",
 				"Logo": "Logo",
+				"PhasePlaceholder": "Contenuto della fase in arrivo.",
+				"Sections": "Sezioni del servizio",
+				"ProcedureCollaudo": "Procedura di collaudo",
+				"ProcedureProduzione": "Procedura di produzione",
+				"PHASE": {
+					"info_generali": "Informazioni Generali",
+					"collaudo": "Collaudo",
+					"produzione": "Produzione"
+				},
+				"SUBSTEP": {
+					"in_compilazione": "In compilazione",
+					"in_approvazione": "In approvazione",
+					"in_configurazione": "In configurazione",
+					"configurato": "Configurato",
+					"in_compilazione_body": "Compila i dati del servizio e avvia la richiesta per procedere.",
+					"in_approvazione_body": "Richiesta inviata: in attesa di approvazione da parte del gestore.",
+					"in_configurazione_body": "Configurazione in corso sull'API Gateway.",
+					"configurato_body": "Fase completata: il servizio è pubblicato in questo ambiente."
+				},
 				"BUTTON": {
 					"Next": "Avanti",
 					"Back": "Indietro",
