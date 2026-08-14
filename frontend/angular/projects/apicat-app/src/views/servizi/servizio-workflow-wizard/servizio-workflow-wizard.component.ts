@@ -20,8 +20,12 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 import { TranslateService } from '@ngx-translate/core';
+import { BsModalService } from 'ngx-bootstrap/modal';
 
 import { ConfigService, Tools, COMPONENTS_IMPORTS } from '@linkit/components';
+import { AllegatiDialogComponent } from '@app/components/allegati-dialog/allegati-dialog.component';
+import { ModalGroupChoiceComponent } from '@app/components/modal-group-choice/modal-group-choice.component';
+import { TipologiaAllegatoEnum } from '@app/model/tipologiaAllegatoEnum';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -31,6 +35,7 @@ import { CommonModule } from '@angular/common';
 
 import { WorkflowComponent } from '@app/components/workflow/workflow.component';
 import { ErrorViewComponent } from '@app/components/error-view/error-view.component';
+import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
 import { AdesioneFasiBarComponent } from '@app/views/adesioni/adesione-fasi-bar/adesione-fasi-bar.component';
 import { AdesioneSubstepperComponent } from '@app/views/adesioni/adesione-substepper/adesione-substepper.component';
 import { StepWizardItem } from '@app/views/adesioni/adesione-step-bar/adesione-step-bar.component';
@@ -43,6 +48,8 @@ import {
     STEP_WIZARD_PRODUZIONE_SERVIZIO,
     WORKFLOW_STATI_SERVIZIO
 } from './servizio-wizard.config';
+
+declare const saveAs: any;
 
 /**
  * Wizard a fasi del workflow servizio (Parte B, skeleton).
@@ -69,7 +76,8 @@ import {
         AdesioneFasiBarComponent,
         AdesioneSubstepperComponent,
         ServizioInfoFormComponent,
-        ServizioReferenteAddFormComponent
+        ServizioReferenteAddFormComponent,
+        HttpImgSrcPipe
     ]
 })
 export class ServizioWorkflowWizardComponent implements OnInit {
@@ -108,12 +116,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
 
     @ViewChild('infoFormRef') infoFormRef?: ServizioInfoFormComponent;
 
-    // Sezioni della FASE 1 ancora gestite via link alla rotta esistente
-    // (allegati/gruppi: gestione inline nei prossimi incrementi).
-    fase1Sections: Array<{ key: string; icon: string; title: string; route: string }> = [
-        { key: 'allegati', icon: 'bi bi-file-earmark-text', title: 'APP.SERVICES.TITLE.Attachments', route: 'allegati' },
-        { key: 'gruppi', icon: 'bi bi-folder', title: 'APP.SERVICES.TITLE.ShowGroups', route: 'gruppi' }
-    ];
+    apiUrl: string = '';
 
     // Referenti (gestione inline, pattern wizard adesioni).
     servizioReferenti: any[] = [];
@@ -121,6 +124,15 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     _referentGroupOpen: { [k: string]: boolean } = { servizio: true, dominio: false };
     _addReferentOpen: boolean = false;
     _idDominioEsterno: string | null = null;
+
+    // Allegati (gestione inline; upload/edit via AllegatiDialogComponent).
+    serviceAllegati: any[] = [];
+    _allegatiConfig: any = null;
+    _showAllAttachments: boolean = false;
+    _downloadings: boolean[] = [];
+
+    // Gruppi (gestione inline; scelta via ModalGroupChoiceComponent).
+    servizioGruppi: any[] = [];
 
     breadcrumbs: any[] = [
         { label: 'APP.TITLE.Services', url: '/servizi', type: 'link', iconBs: 'grid-3x3-gap' },
@@ -132,15 +144,22 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         private readonly router: Router,
         private readonly translate: TranslateService,
         private readonly configService: ConfigService,
+        private readonly modalService: BsModalService,
         private readonly apiService: OpenAPIService,
         private readonly utils: UtilService,
         private readonly authenticationService: AuthenticationService
-    ) {}
+    ) {
+        this.apiUrl = this.configService.getConfiguration()?.AppConfig?.GOVAPI?.HOST || '';
+    }
 
     ngOnInit() {
         this.route.params.subscribe((params) => {
             this.id = params['id'];
             this._loadStepWizard();
+            this.configService.getConfig('allegati').subscribe((cfg: any) => {
+                this._allegatiConfig = cfg;
+                this._showAllAttachments = cfg?.showAllAttachments || false;
+            });
             this.configService.getConfig(this.model).subscribe((config: any) => {
                 this.config = config;
                 this._loadService();
@@ -171,6 +190,8 @@ export class ServizioWorkflowWizardComponent implements OnInit {
                         this._initSelectedFase();
                         this._initBreadcrumb();
                         this.loadReferenti();
+                        this.loadAllegati();
+                        this.loadGruppi();
                         this._spin = false;
                     },
                     error: (error: any) => { Tools.OnError(error); this._spin = false; }
@@ -346,6 +367,118 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         const n = (ref?.utente?.nome || '').charAt(0);
         const c = (ref?.utente?.cognome || '').charAt(0);
         return (n + c).toUpperCase() || '?';
+    }
+
+    // -------------------------------------------------------------------------
+    // FASE 1 — Allegati (gestione inline; upload via AllegatiDialogComponent)
+    // -------------------------------------------------------------------------
+
+    loadAllegati() {
+        if (!this.id) { return; }
+        let query: any = { sort: 'documento.filename,asc' };
+        if (!this._showAllAttachments) {
+            query = { ...query, tipologia_allegato: TipologiaAllegatoEnum.Generico };
+        }
+        const aux = { params: this.utils._queryToHttpParams({ ...query }) };
+        this.apiService.getDetails(this.model, this.id, 'allegati', aux).subscribe({
+            next: (resp: any) => { this.serviceAllegati = resp?.content || []; },
+            error: () => { this.serviceAllegati = []; }
+        });
+    }
+
+    canAddAllegato(): boolean {
+        return this.authenticationService.canAdd('servizio', this.data?.stato, this._grant?.ruoli);
+    }
+
+    canEditAllegato(): boolean {
+        return this.authenticationService.canEdit('servizio', 'allegati', this.data?.stato, this._grant?.ruoli);
+    }
+
+    openAllegatoDialog(allegato: any = null) {
+        const initialState = {
+            model: this.model,
+            id: this.id,
+            current: allegato || null,
+            isEdit: allegato !== null,
+            isNew: allegato === null,
+            showAllAttachments: this._showAllAttachments,
+            multiple: allegato === null
+        };
+        const ref = this.modalService.show(AllegatiDialogComponent, { ignoreBackdropClick: true, initialState });
+        ref.content?.onClose?.subscribe((result: boolean) => {
+            if (result) { this.loadAllegati(); }
+        });
+    }
+
+    confirmDeleteAllegato(allegato: any) {
+        this.utils._confirmDelection(allegato, () => this._deleteAllegato(allegato));
+    }
+
+    private _deleteAllegato(allegato: any) {
+        this.apiService.deleteElementRelated(this.model, this.id, `allegati/${allegato.uuid}`).subscribe({
+            next: () => { this.loadAllegati(); },
+            error: (error: any) => { Tools.showMessage(this.utils.GetErrorMsg(error), 'danger', true); }
+        });
+    }
+
+    downloadAllegato(allegato: any, index: number = -1) {
+        this._downloadings[index] = true;
+        this.apiService.download(this.model, this.id, `allegati/${allegato.uuid}/download`).subscribe({
+            next: (response: any) => {
+                saveAs(response.body, `${allegato.filename}`);
+                this._downloadings[index] = false;
+            },
+            error: (error: any) => {
+                this._downloadings[index] = false;
+                Tools.showMessage(this.utils.GetErrorMsg(error), 'danger', true);
+            }
+        });
+    }
+
+    // -------------------------------------------------------------------------
+    // FASE 1 — Gruppi (gestione inline; scelta via ModalGroupChoiceComponent)
+    // -------------------------------------------------------------------------
+
+    loadGruppi() {
+        if (!this.id) { return; }
+        this.apiService.getDetails(this.model, this.id, 'gruppi').subscribe({
+            next: (resp: any) => { this.servizioGruppi = resp?.content || []; },
+            error: () => { this.servizioGruppi = []; }
+        });
+    }
+
+    /** Permesso di gestione gruppi (analogo servizio-gruppi). */
+    canManageGruppi(): boolean {
+        const _cnm = this.authenticationService._getClassesNotModifiable('servizio', 'servizio', this.data?.stato) || [];
+        return _cnm.indexOf('referente') === -1 && _cnm.indexOf('referente_superiore') === -1;
+    }
+
+    gruppoLogo(g: any): string {
+        return g?.immagine ? `${this.apiUrl}/gruppi/${g.id_gruppo}/immagine` : '';
+    }
+
+    openAddGruppo() {
+        const initialState = { gruppi: [], selected: [], notSelectable: this.servizioGruppi };
+        const ref = this.modalService.show(ModalGroupChoiceComponent, { ignoreBackdropClick: true, initialState });
+        ref.content?.onClose?.subscribe((result: any) => {
+            const idGruppo = result?.[0]?.id_gruppo;
+            if (!idGruppo) { return; }
+            this.apiService.postElementRelated(this.model, this.id, `gruppi/${idGruppo}`, {}).subscribe({
+                next: () => { this.loadGruppi(); },
+                error: (error: any) => { Tools.showMessage(this.utils.GetErrorMsg(error), 'danger', true); }
+            });
+        });
+    }
+
+    confirmDeleteGruppo(g: any) {
+        this.utils._confirmDelection(g, () => this._deleteGruppo(g));
+    }
+
+    private _deleteGruppo(g: any) {
+        this.apiService.deleteElementRelated(this.model, this.id, `gruppi/${g.id_gruppo}`).subscribe({
+            next: () => { this.loadGruppi(); },
+            error: (error: any) => { Tools.showMessage(this.utils.GetErrorMsg(error), 'danger', true); }
+        });
     }
 
     /** Etichetta tradotta della visibilita` del servizio per il riepilogo info. */

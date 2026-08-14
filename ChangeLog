@@ -6,6 +6,11 @@
 	  salvataggio PUT) e gestione inline dei Referenti (servizio + dominio ereditati).
 	  Mock config fasi esteso col percorso "produzione senza collaudo".
 
+	* [Frontend]
+	Wizard a fasi servizio, FASE 1: gestione inline anche di Allegati
+	  (upload/modifica via dialog, download, eliminazione) e Gruppi (aggiunta via
+	  modale di scelta, rimozione). FASE 1 ora interamente inline.
+
 2026-08-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

@@ -161,7 +161,7 @@
                               <span class="referent-role-tag">{{ ('APP.ROLE.' + ref.tipo) | translate }}</span>
                             }
                             @if (canAddReferente()) {
-                              <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Delete' | translate" (click)="confirmDeleteReferente(ref)">
+                              <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Remove' | translate" (click)="confirmDeleteReferente(ref)">
                                 <i class="bi bi-trash text-danger"></i>
                               </button>
                             }
@@ -207,30 +207,104 @@
               }
             </section>
 
-            <!-- Allegati / Gruppi (gestione inline in arrivo) -->
-            @for (sec of fase1Sections; track sec.key) {
-              @let openSec = isPhaseSectionOpen(sec.key);
-              <section class="lnk-phase-section" [class.is-open]="openSec">
-                <header class="lnk-phase-section-hd" role="button" tabindex="0" [attr.aria-expanded]="openSec"
-                        (click)="togglePhaseSection(sec.key)"
-                        (keydown.enter)="togglePhaseSection(sec.key)"
-                        (keydown.space)="togglePhaseSection(sec.key); $event.preventDefault()">
-                  <div class="lnk-phase-section-icon"><i class="{{ sec.icon }}"></i></div>
-                  <div class="lnk-phase-section-title">{{ sec.title | translate }}</div>
-                  <i class="bi bi-chevron-down lnk-phase-section-chev" [class.is-open]="openSec" aria-hidden="true"></i>
-                </header>
-                @if (openSec) {
-                  <div class="lnk-phase-section-body">
-                    <div class="d-flex align-items-center justify-content-between gap-2">
-                      <span class="text-muted">{{ 'APP.SERVICES.WIZARD.InlineComingSoon' | translate }}</span>
-                      <button type="button" class="lnk-btn lnk-btn-sm" (click)="openSection(sec.route)">
-                        <i class="bi bi-box-arrow-up-right"></i><span>{{ 'APP.SERVICES.WIZARD.OpenSection' | translate }}</span>
+            <!-- Allegati (gestione inline) -->
+            @let openAll = isPhaseSectionOpen('allegati');
+            <section class="lnk-phase-section" [class.is-open]="openAll">
+              <header class="lnk-phase-section-hd" role="button" tabindex="0" [attr.aria-expanded]="openAll"
+                      (click)="togglePhaseSection('allegati')"
+                      (keydown.enter)="togglePhaseSection('allegati')"
+                      (keydown.space)="togglePhaseSection('allegati'); $event.preventDefault()">
+                <div class="lnk-phase-section-icon"><i class="bi bi-file-earmark-text"></i></div>
+                <div class="lnk-phase-section-title">{{ 'APP.SERVICES.TITLE.Attachments' | translate }}
+                  <span class="lnk-ref-count">{{ serviceAllegati.length }}</span>
+                </div>
+                <i class="bi bi-chevron-down lnk-phase-section-chev" [class.is-open]="openAll" aria-hidden="true"></i>
+              </header>
+              @if (openAll) {
+                <div class="lnk-phase-section-body">
+                  @if (canAddAllegato()) {
+                    <div class="d-flex justify-content-end mb-2">
+                      <button type="button" class="lnk-btn lnk-btn-sm" (click)="openAllegatoDialog()">
+                        <i class="bi bi-plus-lg"></i><span>{{ 'APP.SERVICES.BUTTON.AddAttachment' | translate }}</span>
                       </button>
                     </div>
-                  </div>
-                }
-              </section>
-            }
+                  }
+                  @for (all of serviceAllegati; track all.uuid; let i = $index) {
+                    <div class="approval-card">
+                      <div class="av av-file"><i class="bi bi-file-earmark"></i></div>
+                      <div class="body">
+                        <div class="who text-break">{{ all.filename || all.documento?.filename || all.uuid }}</div>
+                        <div class="when">
+                          @if (all.tipologia_allegato) { <span>{{ ('APP.ALLEGATI.TIPI.' + all.tipologia_allegato) | translate }}</span> }
+                          @if (all.visibilita_allegato) { <span class="ms-2">{{ ('APP.VISIBILITY.' + all.visibilita_allegato) | translate }}</span> }
+                        </div>
+                      </div>
+                      <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [disabled]="_downloadings[i]" [attr.aria-label]="'APP.BUTTON.Download' | translate" (click)="downloadAllegato(all, i)">
+                        @if (_downloadings[i]) { <span class="spinner-border spinner-border-sm"></span> } @else { <i class="bi bi-download"></i> }
+                      </button>
+                      @if (canEditAllegato()) {
+                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Edit' | translate" (click)="openAllegatoDialog(all)">
+                          <i class="bi bi-pencil"></i>
+                        </button>
+                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Remove' | translate" (click)="confirmDeleteAllegato(all)">
+                          <i class="bi bi-trash text-danger"></i>
+                        </button>
+                      }
+                    </div>
+                  }
+                  @if (!serviceAllegati.length) {
+                    <div class="text-muted small py-1">{{ 'APP.MESSAGE.NoResults' | translate }}</div>
+                  }
+                </div>
+              }
+            </section>
+
+            <!-- Gruppi (gestione inline) -->
+            @let openGrp = isPhaseSectionOpen('gruppi');
+            <section class="lnk-phase-section" [class.is-open]="openGrp">
+              <header class="lnk-phase-section-hd" role="button" tabindex="0" [attr.aria-expanded]="openGrp"
+                      (click)="togglePhaseSection('gruppi')"
+                      (keydown.enter)="togglePhaseSection('gruppi')"
+                      (keydown.space)="togglePhaseSection('gruppi'); $event.preventDefault()">
+                <div class="lnk-phase-section-icon"><i class="bi bi-folder"></i></div>
+                <div class="lnk-phase-section-title">{{ 'APP.SERVICES.TITLE.ShowGroups' | translate }}
+                  <span class="lnk-ref-count">{{ servizioGruppi.length }}</span>
+                </div>
+                <i class="bi bi-chevron-down lnk-phase-section-chev" [class.is-open]="openGrp" aria-hidden="true"></i>
+              </header>
+              @if (openGrp) {
+                <div class="lnk-phase-section-body">
+                  @if (canManageGruppi()) {
+                    <div class="d-flex justify-content-end mb-2">
+                      <button type="button" class="lnk-btn lnk-btn-sm" (click)="openAddGruppo()">
+                        <i class="bi bi-plus-lg"></i><span>{{ 'APP.BUTTON.AddGroup' | translate }}</span>
+                      </button>
+                    </div>
+                  }
+                  @for (g of servizioGruppi; track g.id_gruppo) {
+                    <div class="approval-card">
+                      @if (gruppoLogo(g)) {
+                        <img class="av av-logo" [src]="{ path: gruppoLogo(g) } | httpImgSrc" alt="" />
+                      } @else {
+                        <div class="av av-file"><i class="bi bi-folder"></i></div>
+                      }
+                      <div class="body">
+                        <div class="who text-break">{{ g.nome }}</div>
+                        @if (g.descrizione_sintetica) { <div class="when text-break">{{ g.descrizione_sintetica }}</div> }
+                      </div>
+                      @if (canManageGruppi()) {
+                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Remove' | translate" (click)="confirmDeleteGruppo(g)">
+                          <i class="bi bi-trash text-danger"></i>
+                        </button>
+                      }
+                    </div>
+                  }
+                  @if (!servizioGruppi.length) {
+                    <div class="text-muted small py-1">{{ 'APP.MESSAGE.NoResults' | translate }}</div>
+                  }
+                </div>
+              }
+            </section>
           }
 
           <!-- Fasi: Collaudo / Produzione (timeline sotto-step) -->

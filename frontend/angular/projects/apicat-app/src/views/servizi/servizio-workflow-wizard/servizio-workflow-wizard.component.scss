@@ -174,6 +174,15 @@
     display: grid; place-items: center; color: white;
     font-size: 12px; font-weight: 600; flex-shrink: 0;
   }
+  .approval-card .av.av-file {
+    background: var(--surface-3);
+    color: var(--ink-3);
+    font-size: 15px;
+  }
+  .approval-card .av.av-logo {
+    object-fit: cover;
+    background: var(--surface-3);
+  }
   .approval-card .body { flex: 1; min-width: 0; }
   .approval-card .who { font-size: 13px; font-weight: 600; }
   .approval-card .when { font-size: 12px; color: var(--ink-3); }
