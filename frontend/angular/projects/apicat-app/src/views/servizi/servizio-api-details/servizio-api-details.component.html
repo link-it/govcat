@@ -17,6 +17,7 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <div id="route-section" class="">
+  @if (!embedded) {
   <div class="top-area container-fluid container-limited limit-container-width px-0">
     <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" [classContainer]="'limit-container-width'" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
     <div class="d-flex flex-grow-1">&nbsp;</div>
@@ -155,7 +156,8 @@
     </div>
 
   </div>
-  <section class="container-fluid container-limited limit-container-width container-scroller container-scroller-no-search">
+  }
+  <section class="container-fluid container-limited limit-container-width" [class.container-scroller]="!embedded" [class.container-scroller-no-search]="!embedded">
     @if (_spin && !_isNew) {
       <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3"></ui-box-spinner>
     }

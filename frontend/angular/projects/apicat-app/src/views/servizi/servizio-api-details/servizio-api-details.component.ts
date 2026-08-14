@@ -99,6 +99,12 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     @Input() servizioApi: ApiReadDetails | null = null;
     @Input() config: any = null;
 
+    /** Modalità embedded: nessuna route, nessun chrome di pagina; init da
+     *  @Input, salvataggio/annulla via @Output (usato dal wizard workflow). */
+    @Input() embedded: boolean = false;
+    /** In embedded: apre direttamente in creazione (nuova API). */
+    @Input() createMode: boolean = false;
+
     @Output() close: EventEmitter<any> = new EventEmitter<any>();
     @Output() save: EventEmitter<any> = new EventEmitter<any>();
 
@@ -278,6 +284,10 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             this._initData(true);
         });
 
+        if (this.embedded) {
+            this._useRoute = false;
+            this._initEmbedded();
+        } else {
         this.route.params.subscribe(params => {
             let _id = params['id'];
             const _cid = params['cid'];
@@ -326,6 +336,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                 }
             }
         );
+        }
 
         this.eventsManagerService.on(EventType.PROFILE_UPDATE, (event: any) => {
             const _srv: any = Tools.Configurazione?.servizio;
@@ -340,6 +351,31 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             this._pdndTypes = (_srv?.api) ? _srv.api.pdnd_types || [] : [];
             this._info_gateway_visualizzate = (_srv?.api) ? _srv.api.info_gateway_visualizzate : false;
             this._pdnd = Tools.Configurazione?.pdnd || null;
+        });
+    }
+
+    /** Init in modalità embedded (nessuna route): creazione o dettaglio da @Input. */
+    private _initEmbedded() {
+        this.configService.getConfig('api').subscribe((config: any) => {
+            this.config = config;
+            this._singleColumn = config.editSingleColumn || false;
+            this._showAllAttachments = config.showAllAttachments || false;
+            if (this.createMode) {
+                this._isNew = true;
+                this._isEdit = true;
+                if (!this.service) { this._loadServizio(); }
+                this._servizioApiCreate.id_servizio = this.sid;
+                this._initForm({ ...this._servizioApiCreate });
+            } else {
+                this._isDetails = true;
+                if (!this.service) {
+                    this._loadAll();
+                } else {
+                    this._initRuoli();
+                    this._initOtherActionMenu();
+                    this._loadServiceApi();
+                }
+            }
         });
     }
 
@@ -490,7 +526,9 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                     this._isNew = false;
                     this._spin--;
                     this.save.emit({ id: this.id, api: response, update: false });
-                    this.router.navigate(['servizi', this.sid, this.model, this.id], { replaceUrl: true, queryParamsHandling: 'preserve' });
+                    if (this._useRoute) {
+                        this.router.navigate(['servizi', this.sid, this.model, this.id], { replaceUrl: true, queryParamsHandling: 'preserve' });
+                    }
                 },
                 error: (error: any) => {
                     this._spin--;

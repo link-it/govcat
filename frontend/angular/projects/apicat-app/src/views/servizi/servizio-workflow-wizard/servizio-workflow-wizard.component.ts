@@ -33,6 +33,9 @@ import { AuthenticationService } from '@app/services/authentication.service';
 import { Grant } from '@app/model/grant';
 import { CommonModule } from '@angular/common';
 
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+
 import { WorkflowComponent } from '@app/components/workflow/workflow.component';
 import { ErrorViewComponent } from '@app/components/error-view/error-view.component';
 import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
@@ -41,6 +44,7 @@ import { AdesioneSubstepperComponent } from '@app/views/adesioni/adesione-subste
 import { StepWizardItem } from '@app/views/adesioni/adesione-step-bar/adesione-step-bar.component';
 import { ServizioInfoFormComponent } from './servizio-info-form/servizio-info-form.component';
 import { ServizioReferenteAddFormComponent } from './servizio-referente-add-form/servizio-referente-add-form.component';
+import { ServizioApiDetailsComponent } from '@app/views/servizi/servizio-api-details/servizio-api-details.component';
 
 import {
     STEP_WIZARD_SERVIZIO_FALLBACK,
@@ -77,6 +81,7 @@ declare const saveAs: any;
         AdesioneSubstepperComponent,
         ServizioInfoFormComponent,
         ServizioReferenteAddFormComponent,
+        ServizioApiDetailsComponent,
         HttpImgSrcPipe
     ]
 })
@@ -111,8 +116,12 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         info_generali: true,
         referenti: false,
         allegati: false,
-        gruppi: false
+        gruppi: false,
+        api: false
     };
+
+    /** True quando è aperto il form embedded di creazione API in FASE 1. */
+    _createApiOpen: boolean = false;
 
     @ViewChild('infoFormRef') infoFormRef?: ServizioInfoFormComponent;
 
@@ -133,6 +142,9 @@ export class ServizioWorkflowWizardComponent implements OnInit {
 
     // Gruppi (gestione inline; scelta via ModalGroupChoiceComponent).
     servizioGruppi: any[] = [];
+
+    // API del servizio (erogazione per ambiente collaudo/produzione).
+    servizioApiList: any[] = [];
 
     breadcrumbs: any[] = [
         { label: 'APP.TITLE.Services', url: '/servizi', type: 'link', iconBs: 'grid-3x3-gap' },
@@ -192,6 +204,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
                         this.loadReferenti();
                         this.loadAllegati();
                         this.loadGruppi();
+                        this.loadServizioApi();
                         this._spin = false;
                     },
                     error: (error: any) => { Tools.OnError(error); this._spin = false; }
@@ -481,6 +494,83 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         });
     }
 
+    // -------------------------------------------------------------------------
+    // Collaudo/Produzione — API del servizio (erogazione per ambiente)
+    // -------------------------------------------------------------------------
+
+    /** Carica le API del servizio (ruoli erogato_soggetto_dominio/aderente). */
+    loadServizioApi() {
+        if (!this.id) { return; }
+        const ruoli = ['erogato_soggetto_dominio', 'erogato_soggetto_aderente'];
+        const reqs = ruoli.map((ruolo) => {
+            const params = this.utils._queryToHttpParams({ id_servizio: this.id, ruolo });
+            return this.apiService.getList('api', { params }).pipe(catchError(() => of({ content: [] })));
+        });
+        forkJoin(reqs).subscribe({
+            next: (results: any[]) => {
+                const merged = results.reduce((acc: any[], r: any) => acc.concat(r?.content || []), []);
+                const seen = new Set<any>();
+                this.servizioApiList = merged.filter((a: any) => {
+                    if (seen.has(a.id_api)) { return false; }
+                    seen.add(a.id_api);
+                    return true;
+                });
+            },
+            error: () => { this.servizioApiList = []; }
+        });
+    }
+
+    /** Ambiente della fase visualizzata (collaudo/produzione), o null. */
+    get currentAmbiente(): string | null {
+        return (this._selectedFase === 'collaudo' || this._selectedFase === 'produzione') ? this._selectedFase : null;
+    }
+
+    /** True se l'API ha una configurazione per l'ambiente della fase attiva. */
+    apiHasConfig(api: any): boolean {
+        if (this.currentAmbiente === 'collaudo') { return !!api?.configurazione_collaudo; }
+        if (this.currentAmbiente === 'produzione') { return !!api?.configurazione_produzione; }
+        return false;
+    }
+
+    apiProfilo(api: any): string {
+        const g = api?.gruppi_auth_type;
+        if (Array.isArray(g) && g.length) {
+            return g.length === 1 ? g[0].profilo : this.translate.instant('APP.LABEL.Multipli');
+        }
+        return '';
+    }
+
+    openApiConfig(api: any) {
+        const amb = this.currentAmbiente || 'collaudo';
+        this.router.navigate([this.model, this.id, 'api', api.id_api, 'configuration', amb]);
+    }
+
+    openApiDetail(api: any) {
+        this.router.navigate([this.model, this.id, 'api', api.id_api]);
+    }
+
+    // -------------------------------------------------------------------------
+    // FASE 1 — API: creazione inline (embed ServizioApiDetailsComponent)
+    // -------------------------------------------------------------------------
+
+    canAddApi(): boolean {
+        return this.authenticationService.canAdd('servizio', this.data?.stato, this._grant?.ruoli);
+    }
+
+    openCreateApi() {
+        this._phaseSectionOpen['api'] = true;
+        this._createApiOpen = true;
+    }
+
+    closeCreateApi() {
+        this._createApiOpen = false;
+    }
+
+    onApiSaved(_event: any) {
+        this._createApiOpen = false;
+        this.loadServizioApi();
+    }
+
     /** Etichetta tradotta della visibilita` del servizio per il riepilogo info. */
     _visibilitaLabel(): string {
         const v = this.data?.visibilita;
@@ -495,10 +585,15 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         return this.data?.skip_collaudo ? ['collaudo'] : [];
     }
 
-    /** Skeleton: nessuna fase esplicitamente bloccata (tutte navigabili in
-     *  anteprima). L'eventuale blocco (es. produzione prima della pubblicazione
-     *  in collaudo) sara` definito con il contenuto delle fasi. */
+    /** Produzione bloccata finché il servizio non è pubblicato in collaudo,
+     *  tranne nel percorso `skip_collaudo` (produzione raggiungibile da bozza). */
     getDisabledFasiCodes(): string[] {
+        if (this.data?.skip_collaudo) { return []; }
+        const curIdx = this.workflowStati.indexOf(this.data?.stato);
+        const pubCollaudoIdx = this.workflowStati.indexOf('pubblicato_collaudo');
+        if (curIdx !== -1 && pubCollaudoIdx !== -1 && curIdx < pubCollaudoIdx) {
+            return ['produzione'];
+        }
         return [];
     }
 

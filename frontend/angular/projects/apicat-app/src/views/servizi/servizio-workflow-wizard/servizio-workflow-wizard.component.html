@@ -305,10 +305,71 @@
                 </div>
               }
             </section>
+
+            <!-- API (informazioni generali: lista + creazione inline) -->
+            @let openApi = isPhaseSectionOpen('api');
+            <section class="lnk-phase-section" [class.is-open]="openApi">
+              <header class="lnk-phase-section-hd" role="button" tabindex="0" [attr.aria-expanded]="openApi"
+                      (click)="togglePhaseSection('api')"
+                      (keydown.enter)="togglePhaseSection('api')"
+                      (keydown.space)="togglePhaseSection('api'); $event.preventDefault()">
+                <div class="lnk-phase-section-icon"><i class="bi bi-code-slash"></i></div>
+                <div class="lnk-phase-section-title">{{ 'APP.SERVICES.TITLE.ApiInformations' | translate }}
+                  <span class="lnk-ref-count">{{ servizioApiList.length }}</span>
+                </div>
+                <i class="bi bi-chevron-down lnk-phase-section-chev" [class.is-open]="openApi" aria-hidden="true"></i>
+              </header>
+              @if (openApi) {
+                <div class="lnk-phase-section-body">
+                  @if (canAddApi() && !_createApiOpen) {
+                    <div class="d-flex justify-content-end mb-2">
+                      <button type="button" class="lnk-btn lnk-btn-sm" (click)="openCreateApi()">
+                        <i class="bi bi-plus-lg"></i><span>{{ 'APP.SERVICES.WIZARD.AddApi' | translate }}</span>
+                      </button>
+                    </div>
+                  }
+                  @if (_createApiOpen) {
+                    <div class="mb-3 border rounded p-2">
+                      <app-servizio-api-details
+                        [embedded]="true"
+                        [createMode]="true"
+                        [sid]="id"
+                        (save)="onApiSaved($event)"
+                        (close)="closeCreateApi()"
+                      ></app-servizio-api-details>
+                    </div>
+                  }
+                  @for (api of servizioApiList; track api.id_api) {
+                    <div class="approval-card">
+                      <div class="av av-file"><i class="bi bi-code-slash"></i></div>
+                      <div class="body">
+                        <div class="who text-break">{{ api.nome }} <span class="text-muted">v. {{ api.versione }}</span></div>
+                        @if (apiProfilo(api)) { <div class="when">{{ apiProfilo(api) }}</div> }
+                      </div>
+                      <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.SERVICES.TITLE.ApiInformations' | translate" (click)="openApiDetail(api)">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                      </button>
+                    </div>
+                  }
+                  @if (!servizioApiList.length && !_createApiOpen) {
+                    <div class="text-muted small py-1">{{ 'APP.MESSAGE.NoResults' | translate }}</div>
+                  }
+                </div>
+              }
+            </section>
           }
 
           <!-- Fasi: Collaudo / Produzione (timeline sotto-step) -->
           @if (activeFase?.code === 'collaudo' || activeFase?.code === 'produzione') {
+
+            <!-- Stato corrente del servizio -->
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span class="text-muted small text-uppercase">{{ 'APP.LABEL.stato' | translate }}</span>
+              @if (data) {
+                <ui-data-type [data]="data" [elem]="{ field: 'stato', type: 'tag', options: 'status' }" [config]="config"></ui-data-type>
+              }
+            </div>
+
             <app-adesione-substepper
               [steps]="subStepsForActiveFase"
               [currentState]="data?.stato || null"
@@ -316,9 +377,50 @@
               [i18nPrefix]="'APP.SERVICES.WIZARD.SUBSTEP'"
               [title]="procedureTitle">
               <ng-template let-sub>
-                <p class="mb-0 text-muted">{{ ('APP.SERVICES.WIZARD.SUBSTEP.' + sub.code + '_body') | translate }}</p>
+                @if (sub.state === 'active') {
+                  <span class="chip chip-accent"><span class="pulse"></span>{{ 'APP.SERVICES.WIZARD.AzioneRichiesta' | translate }}</span>
+                  <p class="mb-0 mt-2 text-muted">{{ ('APP.SERVICES.WIZARD.SUBSTEP.' + sub.code + '_body') | translate }}</p>
+                } @else if (sub.state === 'locked') {
+                  <p class="mb-0 text-muted">{{ 'APP.SERVICES.WIZARD.SubstepLocked' | translate }}</p>
+                } @else {
+                  <p class="mb-0 text-muted">{{ ('APP.SERVICES.WIZARD.SUBSTEP.' + sub.code + '_body') | translate }}</p>
+                }
               </ng-template>
             </app-adesione-substepper>
+
+            <!-- API del servizio: erogazione per l'ambiente della fase -->
+            <div class="lnk-phase-section is-open mt-3">
+              <header class="lnk-phase-section-hd" style="cursor: default;">
+                <div class="lnk-phase-section-icon"><i class="bi bi-code-slash"></i></div>
+                <div class="lnk-phase-section-title">{{ 'APP.SERVICES.TITLE.ApiInformations' | translate }}
+                  <span class="lnk-ref-count">{{ servizioApiList.length }}</span>
+                </div>
+              </header>
+              <div class="lnk-phase-section-body">
+                <div class="small text-muted mb-2">{{ 'APP.SERVICES.WIZARD.ApiHint' | translate }}</div>
+                @for (api of servizioApiList; track api.id_api) {
+                  <div class="approval-card">
+                    <div class="av av-file"><i class="bi bi-code-slash"></i></div>
+                    <div class="body">
+                      <div class="who text-break">{{ api.nome }} <span class="text-muted">v. {{ api.versione }}</span></div>
+                      @if (apiProfilo(api)) { <div class="when">{{ apiProfilo(api) }}</div> }
+                    </div>
+                    <span class="chip" [class.chip-ok]="apiHasConfig(api)" [class.chip-muted]="!apiHasConfig(api)">
+                      {{ (apiHasConfig(api) ? 'APP.SERVICES.WIZARD.ApiConfigured' : 'APP.SERVICES.WIZARD.ApiToConfigure') | translate }}
+                    </span>
+                    <button type="button" class="lnk-btn lnk-btn-sm" (click)="openApiConfig(api)">
+                      <i class="bi bi-gear"></i><span>{{ 'APP.SERVICES.WIZARD.ConfigureApi' | translate }}</span>
+                    </button>
+                    <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.SERVICES.TITLE.ApiInformations' | translate" (click)="openApiDetail(api)">
+                      <i class="bi bi-box-arrow-up-right"></i>
+                    </button>
+                  </div>
+                }
+                @if (!servizioApiList.length) {
+                  <div class="text-muted small py-1">{{ 'APP.MESSAGE.NoResults' | translate }}</div>
+                }
+              </div>
+            </div>
           }
         </div>
       </div>

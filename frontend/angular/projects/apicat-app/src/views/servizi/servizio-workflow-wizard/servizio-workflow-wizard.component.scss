@@ -48,6 +48,14 @@
   }
   .chip-ok    { background: var(--ok-soft); color: var(--ok-ink); border-color: var(--ok-border); }
   .chip-muted { background: var(--surface-3); color: var(--ink-3); }
+  .chip-accent { background: var(--accent-soft); color: var(--accent-ink); border-color: #ffc4c9; }
+  .chip .pulse { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .chip-accent .pulse {
+    position: relative;
+    background: var(--accent, #ff4050);
+    box-shadow: 0 0 0 0 rgba(255, 64, 80, .5);
+    animation: lnk-pulse 1.6s ease-out infinite;
+  }
 
   // ─── buttons ──────────────────────────────────────────────────────
   .lnk-btn {
@@ -195,4 +203,10 @@
     background: var(--surface-3); color: var(--ink-2);
     border: 1px solid var(--line); white-space: nowrap;
   }
+}
+
+@keyframes lnk-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(255, 64, 80, .5); }
+  70%  { box-shadow: 0 0 0 6px rgba(255, 64, 80, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 64, 80, 0); }
 }

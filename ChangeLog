@@ -1,6 +1,14 @@
 2026-08-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard a fasi servizio: rifiniture Collaudo/Produzione (Produzione bloccata
+	  finché non pubblicato in collaudo, contenuto sotto-step con stato e "azione
+	  richiesta") e sezione API. In FASE 1 sezione API con lista e creazione inline
+	  (embed di ServizioApiDetailsComponent in modalità embedded); in
+	  Collaudo/Produzione lista API con stato configurazione e link ai settaggi per
+	  ambiente.
+
+	* [Frontend]
 	Wizard a fasi servizio, FASE 1 (Informazioni Generali) sul modello del wizard
 	  adesioni: sezioni collassabili, form Informazioni Generali completo (view+edit,
 	  salvataggio PUT) e gestione inline dei Referenti (servizio + dominio ereditati).
