@@ -104,6 +104,8 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     @Input() embedded: boolean = false;
     /** In embedded: apre direttamente in creazione (nuova API). */
     @Input() createMode: boolean = false;
+    /** In embedded dettaglio: entra direttamente in modifica dopo il load. */
+    @Input() startEdit: boolean = false;
 
     @Output() close: EventEmitter<any> = new EventEmitter<any>();
     @Output() save: EventEmitter<any> = new EventEmitter<any>();
@@ -913,6 +915,10 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                     this._spin--;
 
                     this.__disableUrlFields(this._formGroup.controls);
+
+                    if (this.embedded && this.startEdit) {
+                        this._editServizioApi();
+                    }
                 },
                 error: (error: any) => {
                     this._spin--;

@@ -1,6 +1,13 @@
 2026-08-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard a fasi servizio, API inline: in FASE 1 modifica delle informazioni
+	  generali dell'API (embed ServizioApiDetailsComponent in edit); in
+	  Collaudo/Produzione settaggi per ambiente (embed ServizioApiConfigurationComponent
+	  reso embeddabile via @Input/@Output). Modifiche additive: le pagine classiche
+	  routed restano invariate.
+
+	* [Frontend]
 	Wizard a fasi servizio: rifiniture Collaudo/Produzione (Produzione bloccata
 	  finché non pubblicato in collaudo, contenuto sotto-step con stato e "azione
 	  richiesta") e sezione API. In FASE 1 sezione API con lista e creazione inline

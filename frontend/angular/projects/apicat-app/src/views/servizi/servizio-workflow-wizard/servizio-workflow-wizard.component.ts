@@ -45,6 +45,7 @@ import { StepWizardItem } from '@app/views/adesioni/adesione-step-bar/adesione-s
 import { ServizioInfoFormComponent } from './servizio-info-form/servizio-info-form.component';
 import { ServizioReferenteAddFormComponent } from './servizio-referente-add-form/servizio-referente-add-form.component';
 import { ServizioApiDetailsComponent } from '@app/views/servizi/servizio-api-details/servizio-api-details.component';
+import { ServizioApiConfigurationComponent } from '@app/views/servizi/servizio-api-configuration/servizio-api-configuration.component';
 
 import {
     STEP_WIZARD_SERVIZIO_FALLBACK,
@@ -82,6 +83,7 @@ declare const saveAs: any;
         ServizioInfoFormComponent,
         ServizioReferenteAddFormComponent,
         ServizioApiDetailsComponent,
+        ServizioApiConfigurationComponent,
         HttpImgSrcPipe
     ]
 })
@@ -122,6 +124,10 @@ export class ServizioWorkflowWizardComponent implements OnInit {
 
     /** True quando è aperto il form embedded di creazione API in FASE 1. */
     _createApiOpen: boolean = false;
+    /** Id API in modifica generale inline (embedded), o null. */
+    _editApiId: string | null = null;
+    /** Id API di cui si stanno configurando i settaggi per ambiente inline. */
+    _configApiId: string | null = null;
 
     @ViewChild('infoFormRef') infoFormRef?: ServizioInfoFormComponent;
 
@@ -545,6 +551,20 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         this.router.navigate([this.model, this.id, 'api', api.id_api, 'configuration', amb]);
     }
 
+    /** Settaggi per ambiente dell'API inline (embedded config). */
+    openApiSettings(api: any) {
+        this._configApiId = api.id_api;
+    }
+
+    closeApiSettings() {
+        this._configApiId = null;
+    }
+
+    onApiSettingsSaved(_event: any) {
+        this._configApiId = null;
+        this.loadServizioApi();
+    }
+
     openApiDetail(api: any) {
         this.router.navigate([this.model, this.id, 'api', api.id_api]);
     }
@@ -557,8 +577,13 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         return this.authenticationService.canAdd('servizio', this.data?.stato, this._grant?.ruoli);
     }
 
+    canEditApi(): boolean {
+        return this.authenticationService.canEdit('servizio', 'api', this.data?.stato, this._grant?.ruoli);
+    }
+
     openCreateApi() {
         this._phaseSectionOpen['api'] = true;
+        this._editApiId = null;
         this._createApiOpen = true;
     }
 
@@ -566,8 +591,20 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         this._createApiOpen = false;
     }
 
+    /** Modifica delle informazioni generali di un'API (embedded, in edit). */
+    openEditApi(api: any) {
+        this._phaseSectionOpen['api'] = true;
+        this._createApiOpen = false;
+        this._editApiId = api.id_api;
+    }
+
+    closeEditApi() {
+        this._editApiId = null;
+    }
+
     onApiSaved(_event: any) {
         this._createApiOpen = false;
+        this._editApiId = null;
         this.loadServizioApi();
     }
 

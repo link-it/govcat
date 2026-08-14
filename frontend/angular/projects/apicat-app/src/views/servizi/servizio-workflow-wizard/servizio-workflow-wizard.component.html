@@ -321,13 +321,15 @@
               </header>
               @if (openApi) {
                 <div class="lnk-phase-section-body">
-                  @if (canAddApi() && !_createApiOpen) {
+                  @if (canAddApi() && !_createApiOpen && !_editApiId) {
                     <div class="d-flex justify-content-end mb-2">
                       <button type="button" class="lnk-btn lnk-btn-sm" (click)="openCreateApi()">
                         <i class="bi bi-plus-lg"></i><span>{{ 'APP.SERVICES.WIZARD.AddApi' | translate }}</span>
                       </button>
                     </div>
                   }
+
+                  <!-- Creazione API inline -->
                   @if (_createApiOpen) {
                     <div class="mb-3 border rounded p-2">
                       <app-servizio-api-details
@@ -339,20 +341,48 @@
                       ></app-servizio-api-details>
                     </div>
                   }
-                  @for (api of servizioApiList; track api.id_api) {
-                    <div class="approval-card">
-                      <div class="av av-file"><i class="bi bi-code-slash"></i></div>
-                      <div class="body">
-                        <div class="who text-break">{{ api.nome }} <span class="text-muted">v. {{ api.versione }}</span></div>
-                        @if (apiProfilo(api)) { <div class="when">{{ apiProfilo(api) }}</div> }
+
+                  <!-- Modifica informazioni generali API inline -->
+                  @if (_editApiId) {
+                    <div class="mb-3 border rounded p-2">
+                      <div class="d-flex justify-content-end mb-1">
+                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm" (click)="closeEditApi()">
+                          <i class="bi bi-x-lg"></i><span>{{ 'APP.BUTTON.Close' | translate }}</span>
+                        </button>
                       </div>
-                      <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.SERVICES.TITLE.ApiInformations' | translate" (click)="openApiDetail(api)">
-                        <i class="bi bi-box-arrow-up-right"></i>
-                      </button>
+                      <app-servizio-api-details
+                        [embedded]="true"
+                        [id]="_editApiId"
+                        [sid]="id"
+                        [startEdit]="true"
+                        (save)="onApiSaved($event)"
+                        (close)="closeEditApi()"
+                      ></app-servizio-api-details>
                     </div>
                   }
-                  @if (!servizioApiList.length && !_createApiOpen) {
-                    <div class="text-muted small py-1">{{ 'APP.MESSAGE.NoResults' | translate }}</div>
+
+                  <!-- Lista API (nascosta durante crea/modifica) -->
+                  @if (!_createApiOpen && !_editApiId) {
+                    @for (api of servizioApiList; track api.id_api) {
+                      <div class="approval-card">
+                        <div class="av av-file"><i class="bi bi-code-slash"></i></div>
+                        <div class="body">
+                          <div class="who text-break">{{ api.nome }} <span class="text-muted">v. {{ api.versione }}</span></div>
+                          @if (apiProfilo(api)) { <div class="when">{{ apiProfilo(api) }}</div> }
+                        </div>
+                        @if (canEditApi()) {
+                          <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Modify' | translate" (click)="openEditApi(api)">
+                            <i class="bi bi-pencil"></i>
+                          </button>
+                        }
+                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.SERVICES.TITLE.ApiInformations' | translate" (click)="openApiDetail(api)">
+                          <i class="bi bi-box-arrow-up-right"></i>
+                        </button>
+                      </div>
+                    }
+                    @if (!servizioApiList.length) {
+                      <div class="text-muted small py-1">{{ 'APP.MESSAGE.NoResults' | translate }}</div>
+                    }
                   }
                 </div>
               }
@@ -397,27 +427,45 @@
                 </div>
               </header>
               <div class="lnk-phase-section-body">
-                <div class="small text-muted mb-2">{{ 'APP.SERVICES.WIZARD.ApiHint' | translate }}</div>
-                @for (api of servizioApiList; track api.id_api) {
-                  <div class="approval-card">
-                    <div class="av av-file"><i class="bi bi-code-slash"></i></div>
-                    <div class="body">
-                      <div class="who text-break">{{ api.nome }} <span class="text-muted">v. {{ api.versione }}</span></div>
-                      @if (apiProfilo(api)) { <div class="when">{{ apiProfilo(api) }}</div> }
-                    </div>
-                    <span class="chip" [class.chip-ok]="apiHasConfig(api)" [class.chip-muted]="!apiHasConfig(api)">
-                      {{ (apiHasConfig(api) ? 'APP.SERVICES.WIZARD.ApiConfigured' : 'APP.SERVICES.WIZARD.ApiToConfigure') | translate }}
-                    </span>
-                    <button type="button" class="lnk-btn lnk-btn-sm" (click)="openApiConfig(api)">
-                      <i class="bi bi-gear"></i><span>{{ 'APP.SERVICES.WIZARD.ConfigureApi' | translate }}</span>
-                    </button>
-                    <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.SERVICES.TITLE.ApiInformations' | translate" (click)="openApiDetail(api)">
-                      <i class="bi bi-box-arrow-up-right"></i>
+                @if (_configApiId) {
+                  <!-- Settaggi per ambiente inline -->
+                  <div class="d-flex justify-content-end mb-1">
+                    <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm" (click)="closeApiSettings()">
+                      <i class="bi bi-x-lg"></i><span>{{ 'APP.BUTTON.Close' | translate }}</span>
                     </button>
                   </div>
-                }
-                @if (!servizioApiList.length) {
-                  <div class="text-muted small py-1">{{ 'APP.MESSAGE.NoResults' | translate }}</div>
+                  <app-servizio-api-configuration
+                    [embedded]="true"
+                    [apiId]="_configApiId"
+                    [sidInput]="id"
+                    [ambiente]="currentAmbiente"
+                    [startEdit]="true"
+                    (saved)="onApiSettingsSaved($event)"
+                    (closed)="closeApiSettings()"
+                  ></app-servizio-api-configuration>
+                } @else {
+                  <div class="small text-muted mb-2">{{ 'APP.SERVICES.WIZARD.ApiHint' | translate }}</div>
+                  @for (api of servizioApiList; track api.id_api) {
+                    <div class="approval-card">
+                      <div class="av av-file"><i class="bi bi-code-slash"></i></div>
+                      <div class="body">
+                        <div class="who text-break">{{ api.nome }} <span class="text-muted">v. {{ api.versione }}</span></div>
+                        @if (apiProfilo(api)) { <div class="when">{{ apiProfilo(api) }}</div> }
+                      </div>
+                      <span class="chip" [class.chip-ok]="apiHasConfig(api)" [class.chip-muted]="!apiHasConfig(api)">
+                        {{ (apiHasConfig(api) ? 'APP.SERVICES.WIZARD.ApiConfigured' : 'APP.SERVICES.WIZARD.ApiToConfigure') | translate }}
+                      </span>
+                      <button type="button" class="lnk-btn lnk-btn-sm" (click)="openApiSettings(api)">
+                        <i class="bi bi-gear"></i><span>{{ 'APP.SERVICES.WIZARD.ConfigureApi' | translate }}</span>
+                      </button>
+                      <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.SERVICES.TITLE.ApiInformations' | translate" (click)="openApiDetail(api)">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                      </button>
+                    </div>
+                  }
+                  @if (!servizioApiList.length) {
+                    <div class="text-muted small py-1">{{ 'APP.MESSAGE.NoResults' | translate }}</div>
+                  }
                 }
               </div>
             </div>

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnInit } from '@angular/core';
+import { AfterContentChecked, Component, EventEmitter, HostListener, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { COMPONENTS_IMPORTS, Tools, ConfigService } from '@linkit/components';
@@ -90,6 +90,17 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
   sid: string | null = null;
 
   environmentId: 'collaudo' | 'produzione' = 'collaudo'; // collaudo / produzione
+
+  /** Modalità embedded: nessuna route/chrome; init da @Input, save via @Output. */
+  @Input() embedded: boolean = false;
+  @Input() apiId: string | null = null;
+  @Input() sidInput: string | null = null;
+  @Input() ambiente: string | null = null;
+  /** Entra direttamente in modifica dopo il load (embedded). */
+  @Input() startEdit: boolean = false;
+
+  @Output() saved: EventEmitter<any> = new EventEmitter<any>();
+  @Output() closed: EventEmitter<any> = new EventEmitter<any>();
 
   Tools = Tools;
 
@@ -222,6 +233,13 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
   }
 
   ngOnInit() {
+    if (this.embedded) {
+      this.sid = this.sidInput ?? this.sid;
+      this.id = this.apiId as any;
+      this.environmentId = (this.ambiente as any) || 'collaudo';
+      this._loadServizio();
+      return;
+    }
     this.route.params.subscribe(params => {
       let _id = params['id'];
       const _cid = params['cid'];
@@ -503,6 +521,10 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
     this._initProprietaCustom();
 
     this.__checkAutenticazione(this.servizioApi.ruolo);
+
+    if (this.embedded && this.startEdit) {
+      this._isEdit = true;
+    }
   }
 
   _downloadSpecifica(versione: number = 0) {
@@ -813,6 +835,7 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
       next: (response: any) => {
         this._isEdit = false;
         this._loadServizioApi();
+        if (this.embedded) { this.saved.emit(response); }
       },
       error: (error: any) => {
         this._error = true;
