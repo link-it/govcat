@@ -1,6 +1,11 @@
 2026-08-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard a fasi servizio: revisione UI del form Informazioni Generali
+	  (servizio-info-form) - campi raggruppati in sotto-sezioni con intestazioni e
+	  stile compatto allineato ai design token del wizard.
+
+	* [Frontend]
 	Wizard a fasi servizio, API inline: in FASE 1 modifica delle informazioni
 	  generali dell'API (embed ServizioApiDetailsComponent in edit); in
 	  Collaudo/Produzione settaggi per ambiente (embed ServizioApiConfigurationComponent

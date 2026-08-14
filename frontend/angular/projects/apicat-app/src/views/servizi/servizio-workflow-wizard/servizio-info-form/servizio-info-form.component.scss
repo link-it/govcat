@@ -1,0 +1,69 @@
+// ----------------------------------------------------------------------
+// ServizioInfoFormComponent — revisione UI (form del wizard).
+// Layout compatto, campi raggruppati in sotto-sezioni con intestazione,
+// tipografia/spaziatura allineate ai design token del wizard (ereditati
+// dal `:host(.lnk-wizard)` del wizard).
+// ----------------------------------------------------------------------
+
+:host {
+  display: block;
+}
+
+.servizio-info-form {
+
+  // Intestazione di sotto-sezione (Identità, Classificazione, Descrizione, …)
+  .lnk-form-section {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .09em;
+    font-weight: 700;
+    color: var(--ink-3, #57738a);
+    margin: 20px 0 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--line, #dee8ef);
+  }
+  .lnk-form-section:first-of-type {
+    margin-top: 0;
+  }
+
+  // Label più discrete e compatte
+  .label-bold {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-2, #2e445a);
+    margin-bottom: 4px;
+  }
+
+  .form-group {
+    margin-bottom: 14px;
+  }
+
+  // In view mode i valori sono testo semplice, non input pieni
+  &.form-readonly .form-group .mt-1 > span,
+  .form-group .mt-1 > span {
+    color: var(--ink, #212c49);
+  }
+
+  // Righe checkbox più allineate
+  .gl-form-checkbox {
+    margin-top: 2px;
+  }
+
+  // Logo più contenuto e con cornice leggera
+  .form-group.logo img,
+  .form-group.logo app-photo-base64 {
+    border-radius: 10px;
+  }
+
+  // Footer submit: spazio sopra
+  lnk-form-submit {
+    display: block;
+    margin-top: 8px;
+  }
+
+  // Riepilogo metadati (read-only) attenuato
+  .meta-row .label-bold {
+    color: var(--ink-3, #57738a);
+    font-weight: 600;
+  }
+}

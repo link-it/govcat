@@ -49,6 +49,7 @@ import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchM
 @Component({
     selector: 'app-servizio-info-form',
     templateUrl: 'servizio-info-form.component.html',
+    styleUrls: ['servizio-info-form.component.scss'],
     standalone: true,
     imports: [
         CommonModule,
