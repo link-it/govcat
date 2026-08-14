@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 import { TranslateService } from '@ngx-translate/core';
@@ -34,6 +34,8 @@ import { ErrorViewComponent } from '@app/components/error-view/error-view.compon
 import { AdesioneFasiBarComponent } from '@app/views/adesioni/adesione-fasi-bar/adesione-fasi-bar.component';
 import { AdesioneSubstepperComponent } from '@app/views/adesioni/adesione-substepper/adesione-substepper.component';
 import { StepWizardItem } from '@app/views/adesioni/adesione-step-bar/adesione-step-bar.component';
+import { ServizioInfoFormComponent } from './servizio-info-form/servizio-info-form.component';
+import { ServizioReferenteAddFormComponent } from './servizio-referente-add-form/servizio-referente-add-form.component';
 
 import {
     STEP_WIZARD_SERVIZIO_FALLBACK,
@@ -65,7 +67,9 @@ import {
         WorkflowComponent,
         ErrorViewComponent,
         AdesioneFasiBarComponent,
-        AdesioneSubstepperComponent
+        AdesioneSubstepperComponent,
+        ServizioInfoFormComponent,
+        ServizioReferenteAddFormComponent
     ]
 })
 export class ServizioWorkflowWizardComponent implements OnInit {
@@ -93,6 +97,30 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     stepWizardProduzione: StepWizardItem[] = [];
     workflowStati: string[] = WORKFLOW_STATI_SERVIZIO;
     _selectedFase: string | null = null;
+
+    // Sezioni collassabili della FASE 1 (parità wizard adesioni).
+    _phaseSectionOpen: { [k: string]: boolean } = {
+        info_generali: true,
+        referenti: false,
+        allegati: false,
+        gruppi: false
+    };
+
+    @ViewChild('infoFormRef') infoFormRef?: ServizioInfoFormComponent;
+
+    // Sezioni della FASE 1 ancora gestite via link alla rotta esistente
+    // (allegati/gruppi: gestione inline nei prossimi incrementi).
+    fase1Sections: Array<{ key: string; icon: string; title: string; route: string }> = [
+        { key: 'allegati', icon: 'bi bi-file-earmark-text', title: 'APP.SERVICES.TITLE.Attachments', route: 'allegati' },
+        { key: 'gruppi', icon: 'bi bi-folder', title: 'APP.SERVICES.TITLE.ShowGroups', route: 'gruppi' }
+    ];
+
+    // Referenti (gestione inline, pattern wizard adesioni).
+    servizioReferenti: any[] = [];
+    dominioReferenti: any[] = [];
+    _referentGroupOpen: { [k: string]: boolean } = { servizio: true, dominio: false };
+    _addReferentOpen: boolean = false;
+    _idDominioEsterno: string | null = null;
 
     breadcrumbs: any[] = [
         { label: 'APP.TITLE.Services', url: '/servizi', type: 'link', iconBs: 'grid-3x3-gap' },
@@ -139,8 +167,10 @@ export class ServizioWorkflowWizardComponent implements OnInit {
                 this.apiService.getDetails(this.model, this.id).subscribe({
                     next: (response: any) => {
                         this.data = response;
+                        this._idDominioEsterno = this.data?.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
                         this._initSelectedFase();
                         this._initBreadcrumb();
+                        this.loadReferenti();
                         this._spin = false;
                     },
                     error: (error: any) => { Tools.OnError(error); this._spin = false; }
@@ -202,6 +232,120 @@ export class ServizioWorkflowWizardComponent implements OnInit {
 
     openSection(route: string) {
         this.router.navigate([this.model, this.id, route]);
+    }
+
+    // -------------------------------------------------------------------------
+    // FASE 1 — sezioni collassabili + form Informazioni Generali
+    // -------------------------------------------------------------------------
+
+    isPhaseSectionOpen(key: string): boolean {
+        return !!this._phaseSectionOpen[key];
+    }
+
+    togglePhaseSection(key: string) {
+        this._phaseSectionOpen[key] = !this._phaseSectionOpen[key];
+    }
+
+    /** Permesso di modifica delle informazioni generali. */
+    canEditInfo(): boolean {
+        return this.authenticationService.canEdit('servizio', 'servizio', this.data?.stato, this._grant?.ruoli);
+    }
+
+    get isInfoFormEditing(): boolean {
+        return !!this.infoFormRef?.isEdit;
+    }
+
+    /** Ingresso/uscita edit del form info, pilotato dal bottone di sezione. */
+    enterEditModeForInfoGenerali() {
+        this.infoFormRef?.toggleEdit();
+    }
+
+    /** Dopo il salvataggio del form info, aggiorna i dati del servizio. */
+    onInfoSaved(event: any) {
+        if (event?.data) {
+            this.data = { ...event.data };
+            this._idDominioEsterno = this.data?.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
+            this._initSelectedFase();
+            this.loadReferenti();
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // FASE 1 — Referenti (gestione inline)
+    // -------------------------------------------------------------------------
+
+    loadReferenti() {
+        if (!this.id) { return; }
+        this.apiService.getDetails(this.model, this.id, 'referenti').subscribe({
+            next: (resp: any) => { this.servizioReferenti = resp?.content || []; },
+            error: () => { this.servizioReferenti = []; }
+        });
+        const idDominio = this.data?.dominio?.id_dominio;
+        if (idDominio) {
+            this.apiService.getDetails('domini', idDominio, 'referenti').subscribe({
+                next: (resp: any) => { this.dominioReferenti = resp?.content || []; },
+                error: () => { this.dominioReferenti = []; }
+            });
+        }
+    }
+
+    isReferentGroupOpen(key: string): boolean {
+        return !!this._referentGroupOpen[key];
+    }
+
+    toggleReferentGroup(key: string) {
+        this._referentGroupOpen[key] = !this._referentGroupOpen[key];
+    }
+
+    /** Permesso di aggiungere/rimuovere referenti (analogo servizio-referenti). */
+    canAddReferente(): boolean {
+        const _ruoli: any = this._grant?.ruoli || [];
+        if (this.authenticationService._isDatoSempreModificabile('servizio', 'referenti', _ruoli)) { return true; }
+        const _cnm = this.authenticationService._getClassesNotModifiable('servizio', 'servizio', this.data?.stato) || [];
+        return _cnm.indexOf('referente') === -1 && _cnm.indexOf('referente_superiore') === -1;
+    }
+
+    openAddReferente() {
+        if (!this._referentGroupOpen['servizio']) { this._referentGroupOpen['servizio'] = true; }
+        this._addReferentOpen = true;
+    }
+
+    closeAddReferente() {
+        this._addReferentOpen = false;
+    }
+
+    onReferentAdded() {
+        this._addReferentOpen = false;
+        this.loadReferenti();
+    }
+
+    confirmDeleteReferente(ref: any) {
+        this.utils._confirmDelection(ref, () => this._deleteReferente(ref));
+    }
+
+    private _deleteReferente(ref: any) {
+        const idUtente = ref?.utente?.id_utente;
+        const tipo = ref?.tipo;
+        this.apiService.deleteElementRelated(this.model, this.id, `referenti/${idUtente}?tipo_referente=${tipo}`).subscribe({
+            next: () => { this.loadReferenti(); },
+            error: () => {
+                Tools.showMessage(this.translate.instant('APP.MESSAGE.ERROR.NoDeleteReferent'), 'danger', true);
+            }
+        });
+    }
+
+    getReferentName(ref: any): string {
+        return [ref?.utente?.nome, ref?.utente?.cognome].filter(Boolean).join(' ') || (ref?.utente?.id_utente || '-');
+    }
+
+    getReferentEmail(ref: any): string {
+        return ref?.utente?.email_aziendale || ref?.utente?.email || '';
+    }
+
+    getReferentInitials(ref: any): string {
+        const n = (ref?.utente?.nome || '').charAt(0);
+        const c = (ref?.utente?.cognome || '').charAt(0);
+        return (n + c).toUpperCase() || '?';
     }
 
     /** Etichetta tradotta della visibilita` del servizio per il riepilogo info. */

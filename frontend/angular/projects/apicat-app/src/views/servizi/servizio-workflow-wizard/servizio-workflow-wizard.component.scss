@@ -1,11 +1,11 @@
 // ----------------------------------------------------------------------
-// ServizioWorkflowWizardComponent — wizard a fasi del workflow servizio
-// (Parte B, skeleton). Riusa `AdesioneFasiBarComponent`; i design token del
-// `:host` sono allineati 1:1 al wizard adesioni cosi` la fasi-bar ha lo stesso
-// aspetto. `--accent`/`--accent-hover` sono ereditati da `:root` (tema).
+// ServizioWorkflowWizardComponent — wizard a fasi del workflow servizio.
+// Design token + stili sezione (env / chip / lnk-btn / lnk-phase-section /
+// tl-panel) replicati 1:1 dal wizard adesioni per parità visiva. `--accent`,
+// `--accent-hover` e i token `--ok-*` sono ereditati da `:root` (tema/globali).
 // ----------------------------------------------------------------------
 
-:host {
+:host, .lnk-wizard {
   --surface:      #ffffff;
   --surface-2:    #fafcfd;
   --surface-3:    #eef4f8;
@@ -17,9 +17,173 @@
   --ink-3:        #57738a;
   --ink-4:        #8aa4b8;
 
+  --accent-soft:   #ffe9eb;
+  --accent-soft-2: #ffd4d8;
+  --accent-ink:    #b81e2b;
+
+  --warn:      #c97a1a;
+  --warn-soft: #fbf1e2;
+  --warn-ink:  #8a5310;
+
+  --err:       #d81f2c;
+  --err-soft:  #ffe9eb;
+  --err-ink:   #b81e2b;
+
   --radius:    10px;
   --radius-lg: 14px;
 
   --shadow-sm: 0 1px 0 rgba(33, 44, 73, .04), 0 1px 2px rgba(33, 44, 73, .04);
   --shadow:    0 1px 0 rgba(33, 44, 73, .04), 0 8px 24px -8px rgba(33, 44, 73, .08);
+}
+
+.lnk-wizard {
+
+  // ─── chips & badges ───────────────────────────────────────────────
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 9px; border-radius: 999px;
+    font-size: 12px; font-weight: 500;
+    background: var(--surface-3); color: var(--ink-2);
+    border: 1px solid var(--line);
+  }
+  .chip-ok    { background: var(--ok-soft); color: var(--ok-ink); border-color: var(--ok-border); }
+  .chip-muted { background: var(--surface-3); color: var(--ink-3); }
+
+  // ─── buttons ──────────────────────────────────────────────────────
+  .lnk-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    height: 32px; padding: 0 13px;
+    background: var(--surface); color: var(--ink);
+    border: 1px solid var(--line-strong); border-radius: 8px;
+    font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all .12s;
+    box-shadow: var(--shadow-sm);
+    text-decoration: none;
+  }
+  .lnk-btn:hover { background: var(--surface-3); border-color: var(--ink-4); }
+  .lnk-btn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--accent, #ff4050); }
+  .lnk-btn i.bi { font-size: 14px; }
+  .lnk-btn-ghost { background: transparent; border-color: transparent; box-shadow: none; }
+  .lnk-btn-ghost:hover { background: var(--surface-3); }
+  .lnk-btn-sm { height: 28px; font-size: 12.5px; padding: 0 10px; }
+
+  // ─── env card (contenitore fase) ──────────────────────────────────
+  .env {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    padding: 0;
+  }
+  .env.is-open { border-color: var(--line-strong); box-shadow: var(--shadow); }
+  .env-hd { display: flex; align-items: center; gap: 14px; padding: 16px 20px; user-select: none; }
+  .env-icon {
+    width: 32px; height: 32px; border-radius: 9px;
+    display: grid; place-items: center; flex-shrink: 0;
+    background: var(--accent-soft); color: var(--accent, #ff4050);
+  }
+  .env-icon i { font-size: 16px; }
+  .env-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .env-title { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); }
+  .env-body-pad { padding: 20px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 16px; }
+
+  // ─── PhaseSection (sezioni collassabili FASE 1) ───────────────────
+  .lnk-phase-section {
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    padding: 0;
+  }
+  .lnk-phase-section + .lnk-phase-section { margin-top: 16px; }
+  .lnk-phase-section-hd {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 20px; cursor: pointer; user-select: none;
+    transition: background-color .15s;
+  }
+  .lnk-phase-section-hd:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--accent, #ff4050); }
+  .lnk-phase-section.is-open .lnk-phase-section-hd { border-bottom: 1px solid var(--line); }
+  .lnk-phase-section-icon {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--ok-soft); border: 1px solid var(--ok-border);
+    display: grid; place-items: center; flex-shrink: 0; color: var(--ok-ink);
+  }
+  .lnk-phase-section-icon i { font-size: 12px; }
+  .lnk-phase-section-title {
+    flex: 1; font-size: 14px; font-weight: 600;
+    letter-spacing: -0.005em; color: var(--ink);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .lnk-phase-section-chev {
+    font-size: 13px; color: var(--ink-3);
+    width: 28px; height: 28px; border-radius: 7px;
+    display: inline-grid; place-items: center;
+    transition: transform .25s, background-color .15s, color .15s;
+    flex-shrink: 0;
+  }
+  .lnk-phase-section-hd:hover .lnk-phase-section-chev { background: var(--surface-3); color: var(--ink); }
+  .lnk-phase-section-chev.is-open { transform: rotate(180deg); }
+  .lnk-phase-section-body {
+    margin: 16px; padding: 16px 18px;
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+  .lnk-phase-section-body.tl-panel { position: relative; }
+  .phase-section-edit-toggle { position: absolute; top: 10px; right: 12px; z-index: 1; }
+
+  .lnk-btn-icon { width: 30px; padding: 0; justify-content: center; }
+
+  // ─── gruppi referenti + righe (approval-card) ─────────────────────
+  .lnk-ref-group {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+  }
+  .lnk-ref-group.is-open { padding-bottom: 14px; }
+  .lnk-ref-group-hd {
+    display: flex; align-items: center; gap: 8px;
+    cursor: pointer; user-select: none;
+    border-radius: 6px; margin: -4px -6px; padding: 4px 6px;
+  }
+  .lnk-ref-group-hd h4 {
+    margin: 0; flex: 1;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13.5px; font-weight: 600;
+  }
+  .lnk-ref-group-body { margin-top: 8px; }
+  .lnk-ref-count {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--surface-3); border: 1px solid var(--line);
+    font-size: 11.5px; font-weight: 600; color: var(--ink-3);
+  }
+
+  .approval-card {
+    display: flex; align-items: center; gap: 12px; padding: 14px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    margin-top: 4px;
+  }
+  .approval-card .av {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, #ff8a93, var(--accent, #ff4050));
+    display: grid; place-items: center; color: white;
+    font-size: 12px; font-weight: 600; flex-shrink: 0;
+  }
+  .approval-card .body { flex: 1; min-width: 0; }
+  .approval-card .who { font-size: 13px; font-weight: 600; }
+  .approval-card .when { font-size: 12px; color: var(--ink-3); }
+
+  .referent-role-tag {
+    align-self: center; flex-shrink: 0;
+    display: inline-flex; align-items: center;
+    padding: 3px 10px; border-radius: 999px;
+    font-size: 11.5px; font-weight: 500;
+    background: var(--surface-3); color: var(--ink-2);
+    border: 1px solid var(--line); white-space: nowrap;
+  }
 }

@@ -60,6 +60,10 @@ export const STEP_WIZARD_SERVIZIO_FALLBACK: StepWizardItem[] = [
             'autorizzato_produzione',
             'in_configurazione_produzione',
             'pubblicato_produzione',
+            // percorso senza collaudo (skip_collaudo): bozza -> produzione
+            'richiesto_produzione_senza_collaudo',
+            'autorizzato_produzione_senza_collaudo',
+            'in_configurazione_produzione_senza_collaudo',
             'pubblicato_produzione_senza_collaudo'
         ],
         sezioni_attive: ['produzione']
@@ -75,11 +79,13 @@ export const STEP_WIZARD_COLLAUDO_SERVIZIO: StepWizardItem[] = [
     { code: 'configurato', descrizione: 'Pubblicato in Collaudo', stati_adesione: ['pubblicato_collaudo'] }
 ];
 
-/** Sotto-step della fase Produzione (mock). */
+/** Sotto-step della fase Produzione (mock). Mappa sia il percorso normale
+ *  (da `pubblicato_collaudo`) sia quello "senza collaudo" (da `bozza`, quando
+ *  `skip_collaudo`). */
 export const STEP_WIZARD_PRODUZIONE_SERVIZIO: StepWizardItem[] = [
-    { code: 'in_compilazione', descrizione: 'In Compilazione', stati_adesione: ['pubblicato_collaudo'] },
-    { code: 'in_approvazione', descrizione: 'In Approvazione', stati_adesione: ['richiesto_produzione'] },
-    { code: 'in_configurazione', descrizione: 'In Configurazione', stati_adesione: ['autorizzato_produzione', 'in_configurazione_produzione'] },
+    { code: 'in_compilazione', descrizione: 'In Compilazione', stati_adesione: ['pubblicato_collaudo', 'bozza'] },
+    { code: 'in_approvazione', descrizione: 'In Approvazione', stati_adesione: ['richiesto_produzione', 'richiesto_produzione_senza_collaudo'] },
+    { code: 'in_configurazione', descrizione: 'In Configurazione', stati_adesione: ['autorizzato_produzione', 'in_configurazione_produzione', 'autorizzato_produzione_senza_collaudo', 'in_configurazione_produzione_senza_collaudo'] },
     { code: 'configurato', descrizione: 'Pubblicato in Produzione', stati_adesione: ['pubblicato_produzione', 'pubblicato_produzione_senza_collaudo'] }
 ];
 
@@ -95,6 +101,9 @@ export const WORKFLOW_STATI_SERVIZIO: string[] = [
     'autorizzato_produzione',
     'in_configurazione_produzione',
     'pubblicato_produzione',
+    'richiesto_produzione_senza_collaudo',
+    'autorizzato_produzione_senza_collaudo',
+    'in_configurazione_produzione_senza_collaudo',
     'pubblicato_produzione_senza_collaudo',
     'archiviato'
 ];

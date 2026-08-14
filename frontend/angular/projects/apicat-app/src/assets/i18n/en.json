@@ -2354,6 +2354,10 @@
 				"Logo": "Logo",
 				"PhasePlaceholder": "Phase content coming soon.",
 				"Sections": "Service sections",
+				"InlineComingSoon": "Inline management coming soon.",
+				"OpenSection": "Open section",
+				"ReferentiServizio": "Service contacts",
+				"ReferentiDominio": "Domain contacts",
 				"ProcedureCollaudo": "Test procedure",
 				"ProcedureProduzione": "Production procedure",
 				"PHASE": {

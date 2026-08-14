@@ -16,7 +16,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
-<div id="route-section" class="">
+<div id="route-section" class="lnk-wizard">
   <div class="top-area container-fluid container-limited limit-container-width px-0">
     <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" [classContainer]="'limit-container-width'" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
     <div class="d-flex flex-grow-1">&nbsp;</div>
@@ -76,43 +76,161 @@
 
           <!-- Fase: Informazioni Generali -->
           @if (activeFase?.code === 'info_generali') {
-            <div class="row">
-              <div class="col-lg-7">
-                <dl class="row mb-0">
-                  <dt class="col-sm-4">{{ 'APP.LABEL.nome' | translate }}</dt>
-                  <dd class="col-sm-8">{{ data?.nome || '-' }}</dd>
-                  <dt class="col-sm-4">{{ 'APP.LABEL.versione' | translate }}</dt>
-                  <dd class="col-sm-8">{{ data?.versione || '-' }}</dd>
-                  @if (data?.tipo) {
-                    <dt class="col-sm-4">{{ 'APP.LABEL.tipo' | translate }}</dt>
-                    <dd class="col-sm-8">{{ data?.tipo }}</dd>
-                  }
-                  <dt class="col-sm-4">{{ 'APP.LABEL.id_dominio' | translate }}</dt>
-                  <dd class="col-sm-8">{{ data?.dominio?.nome || '-' }}</dd>
-                  <dt class="col-sm-4">{{ 'APP.LABEL.VisibilitaServizio' | translate }}</dt>
-                  <dd class="col-sm-8">{{ _visibilitaLabel() }}</dd>
-                  <dt class="col-sm-4">{{ 'APP.LABEL.DescrizioneSintetica' | translate }}</dt>
-                  <dd class="col-sm-8 white-space-pre-wrap text-wrap">{{ data?.descrizione_sintetica || '-' }}</dd>
-                  <dt class="col-sm-4">{{ 'APP.LABEL.tags' | translate }}</dt>
-                  <dd class="col-sm-8">
-                    @for (tag of data?.tags; track tag) {
-                      <span class="badge rounded-pill badge-tag text-bg-tags me-1 mb-1">{{ tag }}</span>
-                    }
-                    @if (!data?.tags?.length) { <span>-</span> }
-                  </dd>
-                </dl>
-              </div>
-              <div class="col-lg-5">
-                <div class="text-uppercase small text-muted mb-2">{{ 'APP.SERVICES.WIZARD.Sections' | translate }}</div>
-                <div class="d-flex flex-column gap-2">
-                  @for (link of sezioniLinks; track link.route) {
-                    <button type="button" class="btn btn-default btn-md gl-button text-start" (click)="openSection(link.route)">
-                      <i class="{{ link.icon }} me-2"></i>{{ link.label | translate }}
+
+            <!-- Informazioni generali (view + edit) -->
+            @let openInfo = isPhaseSectionOpen('info_generali');
+            <section class="lnk-phase-section" [class.is-open]="openInfo">
+              <header class="lnk-phase-section-hd" role="button" tabindex="0" [attr.aria-expanded]="openInfo"
+                      (click)="togglePhaseSection('info_generali')"
+                      (keydown.enter)="togglePhaseSection('info_generali')"
+                      (keydown.space)="togglePhaseSection('info_generali'); $event.preventDefault()">
+                <div class="lnk-phase-section-icon"><i class="bi bi-card-text"></i></div>
+                <div class="lnk-phase-section-title">{{ 'APP.SERVICES.TITLE.GeneralInformations' | translate }}</div>
+                <i class="bi bi-chevron-down lnk-phase-section-chev" [class.is-open]="openInfo" aria-hidden="true"></i>
+              </header>
+              @if (openInfo) {
+                <div class="lnk-phase-section-body tl-panel">
+                  @if (canEditInfo()) {
+                    <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm phase-section-edit-toggle" (click)="enterEditModeForInfoGenerali()">
+                      @if (isInfoFormEditing) {
+                        <i class="bi bi-x-lg"></i><span>{{ 'APP.BUTTON.Cancel' | translate }}</span>
+                      } @else {
+                        <i class="bi bi-pencil"></i><span>{{ 'APP.BUTTON.Modify' | translate }}</span>
+                      }
                     </button>
                   }
+                  <app-servizio-info-form
+                    #infoFormRef
+                    [id]="id"
+                    [data]="data"
+                    [config]="config"
+                    [grant]="_grant"
+                    [editable]="canEditInfo()"
+                    [externalEditControl]="true"
+                    (saved)="onInfoSaved($event)"
+                  ></app-servizio-info-form>
                 </div>
-              </div>
-            </div>
+              }
+            </section>
+
+            <!-- Referenti (gestione inline) -->
+            @let openRef = isPhaseSectionOpen('referenti');
+            <section class="lnk-phase-section" [class.is-open]="openRef">
+              <header class="lnk-phase-section-hd" role="button" tabindex="0" [attr.aria-expanded]="openRef"
+                      (click)="togglePhaseSection('referenti')"
+                      (keydown.enter)="togglePhaseSection('referenti')"
+                      (keydown.space)="togglePhaseSection('referenti'); $event.preventDefault()">
+                <div class="lnk-phase-section-icon"><i class="bi bi-people"></i></div>
+                <div class="lnk-phase-section-title">{{ 'APP.SERVICES.TITLE.ShowReferents' | translate }}</div>
+                <i class="bi bi-chevron-down lnk-phase-section-chev" [class.is-open]="openRef" aria-hidden="true"></i>
+              </header>
+              @if (openRef) {
+                <div class="lnk-phase-section-body">
+
+                  <!-- Gruppo: Referenti servizio (editabile) -->
+                  @let openS = isReferentGroupOpen('servizio');
+                  <div class="lnk-ref-group" [class.is-open]="openS">
+                    <div class="lnk-ref-group-hd" (click)="toggleReferentGroup('servizio')">
+                      <h4 class="mb-0">{{ 'APP.SERVICES.WIZARD.ReferentiServizio' | translate }}
+                        <span class="lnk-ref-count">{{ servizioReferenti.length }}</span>
+                      </h4>
+                      @if (openS && canAddReferente() && !_addReferentOpen) {
+                        <button type="button" class="lnk-btn lnk-btn-sm" (click)="$event.stopPropagation(); openAddReferente()">
+                          <i class="bi bi-plus-lg"></i><span>{{ 'APP.BUTTON.AddReferent' | translate }}</span>
+                        </button>
+                      }
+                    </div>
+                    @if (openS) {
+                      <div class="lnk-ref-group-body">
+                        @if (_addReferentOpen) {
+                          <app-servizio-referente-add-form
+                            [id]="id"
+                            [idOrganizzazione]="_idDominioEsterno"
+                            (saved)="onReferentAdded()"
+                            (close)="closeAddReferente()"
+                          ></app-servizio-referente-add-form>
+                        }
+                        @for (ref of servizioReferenti; track ref.id) {
+                          <div class="approval-card">
+                            <div class="av">{{ getReferentInitials(ref) }}</div>
+                            <div class="body">
+                              <div class="who">{{ getReferentName(ref) }}</div>
+                              <div class="when">{{ getReferentEmail(ref) }}</div>
+                            </div>
+                            @if (ref.tipo) {
+                              <span class="referent-role-tag">{{ ('APP.ROLE.' + ref.tipo) | translate }}</span>
+                            }
+                            @if (canAddReferente()) {
+                              <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Delete' | translate" (click)="confirmDeleteReferente(ref)">
+                                <i class="bi bi-trash text-danger"></i>
+                              </button>
+                            }
+                          </div>
+                        }
+                        @if (!servizioReferenti.length && !_addReferentOpen) {
+                          <div class="text-muted small py-1">{{ 'APP.MESSAGE.NoReferent' | translate }}</div>
+                        }
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Gruppo: Referenti dominio (sola lettura) -->
+                  @let openD = isReferentGroupOpen('dominio');
+                  <div class="lnk-ref-group" [class.is-open]="openD">
+                    <div class="lnk-ref-group-hd" (click)="toggleReferentGroup('dominio')">
+                      <h4 class="mb-0">{{ 'APP.SERVICES.WIZARD.ReferentiDominio' | translate }}
+                        <span class="lnk-ref-count">{{ dominioReferenti.length }}</span>
+                      </h4>
+                    </div>
+                    @if (openD) {
+                      <div class="lnk-ref-group-body">
+                        @for (ref of dominioReferenti; track ref.id) {
+                          <div class="approval-card">
+                            <div class="av">{{ getReferentInitials(ref) }}</div>
+                            <div class="body">
+                              <div class="who">{{ getReferentName(ref) }}</div>
+                              <div class="when">{{ getReferentEmail(ref) }}</div>
+                            </div>
+                            @if (ref.tipo) {
+                              <span class="referent-role-tag">{{ ('APP.ROLE.' + ref.tipo) | translate }}</span>
+                            }
+                          </div>
+                        }
+                        @if (!dominioReferenti.length) {
+                          <div class="text-muted small py-1">{{ 'APP.MESSAGE.NoReferent' | translate }}</div>
+                        }
+                      </div>
+                    }
+                  </div>
+
+                </div>
+              }
+            </section>
+
+            <!-- Allegati / Gruppi (gestione inline in arrivo) -->
+            @for (sec of fase1Sections; track sec.key) {
+              @let openSec = isPhaseSectionOpen(sec.key);
+              <section class="lnk-phase-section" [class.is-open]="openSec">
+                <header class="lnk-phase-section-hd" role="button" tabindex="0" [attr.aria-expanded]="openSec"
+                        (click)="togglePhaseSection(sec.key)"
+                        (keydown.enter)="togglePhaseSection(sec.key)"
+                        (keydown.space)="togglePhaseSection(sec.key); $event.preventDefault()">
+                  <div class="lnk-phase-section-icon"><i class="{{ sec.icon }}"></i></div>
+                  <div class="lnk-phase-section-title">{{ sec.title | translate }}</div>
+                  <i class="bi bi-chevron-down lnk-phase-section-chev" [class.is-open]="openSec" aria-hidden="true"></i>
+                </header>
+                @if (openSec) {
+                  <div class="lnk-phase-section-body">
+                    <div class="d-flex align-items-center justify-content-between gap-2">
+                      <span class="text-muted">{{ 'APP.SERVICES.WIZARD.InlineComingSoon' | translate }}</span>
+                      <button type="button" class="lnk-btn lnk-btn-sm" (click)="openSection(sec.route)">
+                        <i class="bi bi-box-arrow-up-right"></i><span>{{ 'APP.SERVICES.WIZARD.OpenSection' | translate }}</span>
+                      </button>
+                    </div>
+                  </div>
+                }
+              </section>
+            }
           }
 
           <!-- Fasi: Collaudo / Produzione (timeline sotto-step) -->

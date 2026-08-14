@@ -1,0 +1,53 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<form class="servizio-referente-add-form p-2" novalidate [formGroup]="_formGroup" (submit)="onSubmit()">
+  <div class="row g-2">
+    <div class="col-md-5">
+      <label class="label-bold" for="tipo">{{ 'APP.LABEL.tipo' | translate }}</label>
+      <ng-select id="tipo" [items]="tipiReferente" bindValue="value" labelForId="tipo"
+        [clearable]="false" [searchable]="false" formControlName="tipo"
+        [class.gl-field-error-outline]="_hasControlError('tipo')" (change)="onChangeTipo($event)">
+        <ng-template ng-label-tmp let-item="item">{{ item.label | translate }}</ng-template>
+        <ng-template ng-option-tmp let-item="item">{{ item.label | translate }}</ng-template>
+      </ng-select>
+    </div>
+    <div class="col-md-7">
+      <label class="label-bold" for="id_utente">{{ 'APP.LABEL.id_utente' | translate }}</label>
+      <ng-select id="id_utente" class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_utente')"
+        [items]="(referenti$ | async) || []" [typeahead]="referentiInput$" [minTermLength]="minLengthTerm" [loading]="referentiLoading"
+        [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate" [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+        bindValue="id_utente" labelForId="id_utente" [editableSearchTerm]="true" formControlName="id_utente">
+        <ng-template ng-label-tmp let-item="item">{{ item.nome }} {{ item.cognome }}</ng-template>
+        <ng-template ng-option-tmp let-item="item">
+          <div class="fw-bold">{{ item.nome }} {{ item.cognome }}</div>
+          <div class=""><span class="small text-muted">{{ item.email_aziendale }}</span></div>
+        </ng-template>
+      </ng-select>
+    </div>
+  </div>
+
+  @if (_error) {
+    <div class="gl-alert gl-alert-danger mt-2"><span>{{ _errorMsg }}</span></div>
+  }
+
+  <div class="d-flex justify-content-end gap-2 mt-2">
+    <button type="button" class="btn btn-default btn-sm gl-button" (click)="onCancel()">{{ 'APP.BUTTON.Cancel' | translate }}</button>
+    <button type="submit" class="btn btn-confirm btn-sm gl-button" [disabled]="saving">{{ 'APP.BUTTON.Add' | translate }}</button>
+  </div>
+</form>
