@@ -54,30 +54,29 @@
     </div>
   </div>
 
-  @if (data) {
-    <div class="container-fluid container-limited limit-container-width px-0 mt-5 mb-3">
-      <div class="wizard-title-block">
-        <h2 class="wizard-header-title text-break mb-1">
-          {{ data?.nome }}@if (data?.versione && !hideVersions) {<span class="wizard-header-version"> v. {{ data?.versione }}</span>}
-        </h2>
-        <div class="wizard-header-meta d-flex flex-wrap gap-2 align-items-center">
-          @if (data?.dominio?.nome) { <span>{{ data.dominio.nome }}</span> }
-          @if (data?.tipo) { <span aria-hidden="true">·</span><span>{{ ('APP.TIPO.' + data.tipo) | translate }}</span> }
-          @if (data?.visibilita) { <span aria-hidden="true">·</span><span>{{ ('APP.VISIBILITY.' + data.visibilita) | translate }}</span> }
-        </div>
-        <div class="d-flex gap-2 mt-2 align-items-center">
-          <ui-data-type [data]="data" [elem]="{ field: 'stato', type: 'tag', options: 'status' }" [config]="config"></ui-data-type>
-        </div>
-      </div>
-    </div>
-  }
-
+  
   <section class="container-fluid container-limited limit-container-width container-scroller container-scroller-no-search px-0">
     @if (_spin) {
-      <app-spinner></app-spinner>
+      <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3"></ui-box-spinner>
     }
 
     @if (!_spin && data) {
+      <div class="mt-5 mb-5">
+        <div class="wizard-title-block">
+          <h2 class="wizard-header-title text-break mb-1">
+            {{ data?.nome }}@if (data?.versione && !hideVersions) {<span class="wizard-header-version"> v. {{ data?.versione }}</span>}
+          </h2>
+          <div class="wizard-header-meta d-flex flex-wrap gap-2 align-items-center">
+            @if (data?.dominio?.nome) { <span>{{ data.dominio.nome }}</span> }
+            @if (data?.tipo) { <span aria-hidden="true">·</span><span>{{ ('APP.TIPO.' + data.tipo) | translate }}</span> }
+            @if (data?.visibilita) { <span aria-hidden="true">·</span><span>{{ ('APP.VISIBILITY.' + data.visibilita) | translate }}</span> }
+          </div>
+          <div class="d-flex gap-2 mt-2 align-items-center">
+            <ui-data-type [data]="data" [elem]="{ field: 'stato', type: 'tag', options: 'status' }" [config]="config"></ui-data-type>
+          </div>
+        </div>
+      </div>
+
       <app-adesione-fasi-bar
         [steps]="stepWizard"
         [currentState]="data?.stato || null"
@@ -375,8 +374,31 @@
                     </div>
                   }
 
+                  <!-- Vista sola lettura informazioni generali API inline -->
+                  @if (_editApiId && !_editApiStartEdit) {
+                    <div class="mb-3 border rounded p-2">
+                      <div class="d-flex justify-content-end gap-2 mb-1">
+                        @if (canEditApi()) {
+                          <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm" (click)="_editApiStartEdit = true">
+                            <i class="bi bi-pencil"></i><span>{{ 'APP.BUTTON.Modify' | translate }}</span>
+                          </button>
+                        }
+                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm" (click)="closeEditApi()">
+                          <i class="bi bi-x-lg"></i><span>{{ 'APP.BUTTON.Close' | translate }}</span>
+                        </button>
+                      </div>
+                      <app-servizio-api-details
+                        [embedded]="true"
+                        [id]="_editApiId"
+                        [sid]="id"
+                        (save)="onApiSaved($event)"
+                        (close)="closeEditApi()"
+                      ></app-servizio-api-details>
+                    </div>
+                  }
+
                   <!-- Modifica informazioni generali API inline -->
-                  @if (_editApiId) {
+                  @if (_editApiId && _editApiStartEdit) {
                     <div class="mb-3 border rounded p-2">
                       <div class="d-flex justify-content-end mb-1">
                         <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm" (click)="closeEditApi()">
@@ -394,7 +416,7 @@
                     </div>
                   }
 
-                  <!-- Lista API (nascosta durante crea/modifica) -->
+                  <!-- Lista API (nascosta durante crea/vista/modifica) -->
                   @if (!_createApiOpen && !_editApiId) {
                     @for (api of servizioApiList; track api.id_api) {
                       <div class="approval-card">
@@ -408,8 +430,8 @@
                             <i class="bi bi-pencil"></i>
                           </button>
                         }
-                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.SERVICES.TITLE.ApiInformations' | translate" (click)="openApiDetail(api)">
-                          <i class="bi bi-box-arrow-up-right"></i>
+                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.SERVICES.TITLE.ApiInformations' | translate" (click)="openApiView(api)">
+                          <i class="bi bi-eye"></i>
                         </button>
                       </div>
                     }

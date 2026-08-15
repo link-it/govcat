@@ -1,6 +1,13 @@
 2026-08-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard a fasi servizio, form API embedded: stile boxato dei campi (solo nel
+	  wizard), vista sola lettura inline delle informazioni generali dell'API (al
+	  posto del link alla vecchia view, con passaggio a modifica) e rimozione della
+	  colonna-titolo di sinistra in embedded (form a tutta larghezza). Pagine
+	  classiche routed invariate.
+
+	* [Frontend]
 	Wizard a fasi servizio, allineamenti UI al wizard adesioni: banner "sunto" del
 	  servizio (nome/versione, dominio·tipo·visibilità, badge stato) sopra la barra
 	  fasi; controlli workflow + monitor-dropdown in una top-area dedicata (monitor a

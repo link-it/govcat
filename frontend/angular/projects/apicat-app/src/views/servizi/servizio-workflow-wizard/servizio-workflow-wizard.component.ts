@@ -126,8 +126,10 @@ export class ServizioWorkflowWizardComponent implements OnInit {
 
     /** True quando è aperto il form embedded di creazione API in FASE 1. */
     _createApiOpen: boolean = false;
-    /** Id API in modifica generale inline (embedded), o null. */
+    /** Id API aperta inline (embedded) in FASE 1, o null. */
     _editApiId: string | null = null;
+    /** Pannello API inline aperto in modifica (true) o in sola lettura (false). */
+    _editApiStartEdit: boolean = false;
     /** Id API di cui si stanno configurando i settaggi per ambiente inline. */
     _configApiId: string | null = null;
 
@@ -611,20 +613,31 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         this._createApiOpen = false;
     }
 
+    /** Vista sola lettura delle informazioni generali di un'API (embedded). */
+    openApiView(api: any) {
+        this._phaseSectionOpen['api'] = true;
+        this._createApiOpen = false;
+        this._editApiStartEdit = false;
+        this._editApiId = api.id_api;
+    }
+
     /** Modifica delle informazioni generali di un'API (embedded, in edit). */
     openEditApi(api: any) {
         this._phaseSectionOpen['api'] = true;
         this._createApiOpen = false;
+        this._editApiStartEdit = true;
         this._editApiId = api.id_api;
     }
 
     closeEditApi() {
         this._editApiId = null;
+        this._editApiStartEdit = false;
     }
 
     onApiSaved(_event: any) {
         this._createApiOpen = false;
         this._editApiId = null;
+        this._editApiStartEdit = false;
         this.loadServizioApi();
     }
 

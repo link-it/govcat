@@ -186,13 +186,13 @@
           <div class="edit-form">
             <form novalidate class="issue-form common-note-form mt-3 gl-show-field-errors gfm-form" [class.form-readonly]="!_isEdit" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
               <div class="row gl-mt-3" [class.justify-content-center]="_isNew || _singleColumn">
-                @if (!_isNew) {
+                @if (!_isNew && !embedded) {
                   <div class="" [class.col-lg-4]="!_singleColumn" [class.col-lg-9]="_singleColumn" [class.mb-5]="_singleColumn">
                     <h4 class="gl-mt-0 text-break">{{ 'APP.API.TITLE.GeneralInformations' | translate }}</h4>
                     <div class="text-break mb-sm-4 mb-lg-1" markdown>{{ 'APP.API.TITLE.GeneralInformations_sub' | translate }}</div>
                   </div>
                 }
-                <div class="" [class.col-lg-8]="!_singleColumn" [class.col-lg-9]="_singleColumn">
+                <div class="" [class.col-lg-8]="!_singleColumn && !embedded" [class.col-lg-9]="_singleColumn && !embedded" [class.col-lg-12]="embedded">
                   <div class="row">
                     <div [class.col-9]="!hideVersions || _isEdit" [class.col-12]="hideVersions && !_isEdit">
                       <lnk-form-field

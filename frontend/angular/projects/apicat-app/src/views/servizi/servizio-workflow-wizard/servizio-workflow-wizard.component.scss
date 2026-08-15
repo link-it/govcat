@@ -240,3 +240,84 @@
   70%  { box-shadow: 0 0 0 6px rgba(255, 64, 80, 0); }
   100% { box-shadow: 0 0 0 0 rgba(255, 64, 80, 0); }
 }
+
+// ----------------------------------------------------------------------
+// Stile boxato dei form API embedded (solo dentro il wizard). Usa
+// `:host ::ng-deep` per raggiungere gli elementi interni dei componenti
+// classici `app-servizio-api-details` / `app-servizio-api-configuration`
+// senza toccare le loro pagine routed. I token CSS sono ereditati dal
+// `.lnk-wizard` del wizard.
+// ----------------------------------------------------------------------
+:host ::ng-deep app-servizio-api-details,
+:host ::ng-deep app-servizio-api-configuration {
+
+  .label-bold,
+  label.label-bold {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-2, #2e445a);
+    margin-bottom: 4px;
+  }
+
+  .form-control,
+  .form-select {
+    min-height: 36px;
+    padding: 6px 14px;
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--line-strong, #c4d6e0);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--ink, #212c49);
+
+    &:focus {
+      border-color: var(--accent, #ff4050);
+      box-shadow: 0 0 0 3px var(--accent-soft, #ffe9eb);
+      outline: none;
+    }
+    &:disabled,
+    &[readonly] {
+      background: var(--surface-2, #fafcfd);
+      color: var(--ink, #212c49);
+    }
+  }
+  textarea.form-control {
+    min-height: 80px;
+    padding: 10px 14px;
+    line-height: 1.5;
+  }
+
+  .form-control-plaintext {
+    min-height: 36px;
+    padding: 6px 14px;
+    display: flex;
+    align-items: center;
+    background: var(--surface-2, #fafcfd);
+    border: 1px solid var(--line, #dee8ef);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--ink, #212c49);
+    line-height: 1.4;
+    margin: 0;
+    width: 100%;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .ng-select .ng-select-container {
+    min-height: 36px;
+    border-radius: 8px;
+    border-color: var(--line-strong, #c4d6e0);
+  }
+
+  ui-data-type {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 6px 14px;
+    background: var(--surface-2, #fafcfd);
+    border: 1px solid var(--line, #dee8ef);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--ink, #212c49);
+  }
+}
