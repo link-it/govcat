@@ -63,7 +63,7 @@
             }
           </select>
         } @else {
-          <div class="mt-1"><span>{{ ('APP.TIPO.' + data?.tipo) | translate }}</span></div>
+          <div class="readonly-box">{{ ('APP.TIPO.' + data?.tipo) | translate }}</div>
         }
       </div>
     }
@@ -98,7 +98,7 @@
             </ng-template>
           </ng-select>
         } @else {
-          <div class="mt-1"><span>{{ (data?.dominio?.soggetto_referente?.organizzazione?.nome ? data?.dominio?.soggetto_referente?.organizzazione?.nome + ' - ' : '') + (data?.dominio?.nome || '-') }}</span></div>
+          <div class="readonly-box">{{ (data?.dominio?.soggetto_referente?.organizzazione?.nome ? data?.dominio?.soggetto_referente?.organizzazione?.nome + ' - ' : '') + (data?.dominio?.nome || '-') }}</div>
         }
       </div>
     }
@@ -153,7 +153,7 @@
                 }
               </select>
             } @else {
-              <div class="mt-1"><span>{{ _visibilitaLabel() }}</span></div>
+              <div class="readonly-box">{{ _visibilitaLabel() }}</div>
             }
           </div>
         </div>
@@ -176,7 +176,7 @@
                   </p>
                 }
               } @else {
-                <div class="mt-1">
+                <div class="readonly-box">
                   @for (classe of data?.classi; track classe) { <span class="badge rounded-pill badge-tag text-bg-tags me-1 mb-1">{{ classe.nome || classe }}</span> }
                   @if (!data?.classi?.length) { <span>-</span> }
                 </div>
@@ -202,7 +202,7 @@
               <ng-template ng-label-tmp let-item="item">{{ item.nome }}</ng-template>
             </ng-select>
           } @else {
-            <div class="mt-1"><span>{{ data?.soggetto_erogatore?.organizzazione?.nome || '-' }}</span></div>
+            <div class="readonly-box">{{ data?.soggetto_erogatore?.organizzazione?.nome || '-' }}</div>
           }
         </div>
         <div class="col-6 form-group">
@@ -212,7 +212,7 @@
               @for (el of _elencoSoggetti; track el) { <option [value]="el.id_soggetto">{{ el.nome }}</option> }
             </select>
           } @else {
-            <div class="mt-1"><span>{{ data?.soggetto_erogatore?.nome || '-' }}</span></div>
+            <div class="readonly-box">{{ data?.soggetto_erogatore?.nome || '-' }}</div>
           }
         </div>
       </div>
@@ -235,7 +235,7 @@
           </p>
         }
       } @else {
-        <div class="mt-1"><span class="white-space-pre text-wrap">{{ data?.descrizione_sintetica || '-' }}</span></div>
+        <div class="readonly-box readonly-box--multiline">{{ data?.descrizione_sintetica || '-' }}</div>
       }
     </div>
 
@@ -265,7 +265,7 @@
         <ng-select [items]="anagrafiche['tags'] || []" [multiple]="true" [addTag]="true" [hideSelected]="true" bindValue="nome" bindLabel="nome" labelForId="tags" formControlName="tags"
           disablePermission [isNew]="false" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="grant"></ng-select>
       } @else {
-        <div class="mt-1">
+        <div class="readonly-box">
           @for (tag of data?.tags; track tag) { <span class="badge rounded-pill badge-tag text-bg-tags me-1 mb-1">{{ tag }}</span> }
           @if (!data?.tags?.length) { <span>-</span> }
         </div>
@@ -273,10 +273,8 @@
     </div>
 
     <!-- Termini di ricerca -->
-    <div class="row">
-      <div class="col-12">
-        <lnk-form-field name="termini_ricerca" [label]="'APP.LABEL.termini_ricerca' | translate" [formGroup]="_formGroup" [value]="data?.termini_ricerca" [isEdit]="isEdit" [plainText]="true" [helpContext]="'SERVICE.POPOVER'"></lnk-form-field>
-      </div>
+    <div class="form-group termini_ricerca">
+      <lnk-form-field name="termini_ricerca" [label]="'APP.LABEL.termini_ricerca' | translate" [formGroup]="_formGroup" [value]="data?.termini_ricerca" [isEdit]="isEdit" [plainText]="true" [helpContext]="'SERVICE.POPOVER'"></lnk-form-field>
     </div>
 
     <!-- Note -->
@@ -287,7 +285,7 @@
           disablePermission [isNew]="false" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="grant"></textarea>
         @if (f['note'].errors?.['maxlength']) { <p class="form-text text-danger"><span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['note'].errors?.['maxlength'].requiredLength } }}</span></p> }
       } @else {
-        <div class="mt-1"><span class="white-space-pre text-wrap">{{ data?.note || '-' }}</span></div>
+        <div class="readonly-box readonly-box--multiline">{{ data?.note || '-' }}</div>
       }
     </div>
 
@@ -296,15 +294,29 @@
       <div class="col-6">
         <div class="form-group">
           <label class="label-bold">{{ 'APP.LABEL.utente_richiedente' | translate }}</label>
-          <div class="mt-1"><span>{{ _userFullName(richiedente) || '-' }}</span></div>
+          <div class="readonly-box">{{ _userFullName(richiedente) || '-' }}</div>
         </div>
       </div>
       <div class="col-6">
         <div class="form-group">
           <label class="label-bold">{{ 'APP.LABEL.data_creazione' | translate }}</label>
-          <div class="mt-1">
-            @if (data) { <ui-data-type [data]="data" [elem]="{ field: 'data_creazione', type: 'date', format: 'DD-MM-YYYY HH:mm:ss' }" [config]="config"></ui-data-type> }
-          </div>
+          @if (data) { <ui-data-type [data]="data" [elem]="{ field: 'data_creazione', type: 'date', format: 'DD-MM-YYYY HH:mm:ss' }" [config]="config"></ui-data-type> }
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="form-group">
+          <label class="label-bold">{{ 'APP.LABEL.utente_ultima_modifica' | translate }}</label>
+          <div class="readonly-box">{{ _userFullName(utenteUltimaModifica) || '-' }}</div>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="form-group">
+          <label class="label-bold">{{ 'APP.LABEL.data_ultima_modifica' | translate }}</label>
+          @if (data?.data_ultima_modifica) {
+            <ui-data-type [data]="data" [elem]="{ field: 'data_ultima_modifica', type: 'date', format: 'DD-MM-YYYY HH:mm:ss' }" [config]="config"></ui-data-type>
+          } @else {
+            <div class="readonly-box">-</div>
+          }
         </div>
       </div>
     </div>

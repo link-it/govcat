@@ -1,3 +1,12 @@
+2026-08-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Wizard a fasi servizio, allineamenti UI al wizard adesioni: banner "sunto" del
+	  servizio (nome/versione, dominio·tipo·visibilità, badge stato) sopra la barra
+	  fasi; controlli workflow + monitor-dropdown in una top-area dedicata (monitor a
+	  destra); form Informazioni Generali con campi boxati, "Data ultima modifica" e
+	  layout a 2 colonne; chevron sui gruppi referenti servizio/dominio.
+
 2026-08-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

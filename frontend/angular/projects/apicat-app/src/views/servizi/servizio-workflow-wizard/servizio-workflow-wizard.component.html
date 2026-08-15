@@ -20,28 +20,59 @@
   <div class="top-area container-fluid container-limited limit-container-width px-0">
     <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" [classContainer]="'limit-container-width'" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
     <div class="d-flex flex-grow-1">&nbsp;</div>
-    <div class="nav-controls">
-      @if (_changingStatus) {
-        <span class="spinner-border spinner-border-sm"></span>
+    <div class="nav-controls"></div>
+  </div>
+
+  <div class="top-area container-fluid container-limited limit-container-width px-0">
+    <div class="d-flex flex-grow-1">&nbsp;</div>
+    <div class="nav-controls align-self-center d-flex gap-1">
+      @if (data && (_changingStatus || (!_changingStatus && generalConfig))) {
+        <div class="btn-group me-1 d-flex gap-2">
+          @if (_changingStatus) {
+            <span class="spinner-border spinner-border-sm align-self-center"></span>
+          }
+          @if (!_changingStatus && generalConfig) {
+            <ui-workflow
+              [data]="data"
+              [module]="'servizio'"
+              [grant]="_grant"
+              [config]="config"
+              [workflow]="data.package ? generalConfig?.package?.workflow : generalConfig?.servizio?.workflow"
+              (action)="onWorkflowAction($event)"
+            ></ui-workflow>
+          }
+        </div>
       }
-      @if (data && !_changingStatus && generalConfig) {
-        <ui-workflow
-          [data]="data"
-          [module]="'servizio'"
-          [grant]="_grant"
-          [config]="config"
-          [workflow]="data.package ? generalConfig?.package?.workflow : generalConfig?.servizio?.workflow"
-          (action)="onWorkflowAction($event)"
-        ></ui-workflow>
+      @if (data) {
+        <app-monitor-dropdown
+          [showMonitoring]="Tools.Configurazione?.servizio?.api?.transazioni && _canJoin() && (_updateData | mapper:_canMonitoraggioMapper)"
+          [returnWeb]="true"
+          [otherActions]="_showExternalOtherActions ? _otherActions : []"
+          (action)="onActionMonitor($event)"
+        ></app-monitor-dropdown>
       }
     </div>
   </div>
 
-  <div class="top-area container-fluid container-limited limit-container-width px-0">
-    <h3 class="page-title text-break">{{ data?.nome }}</h3>
-  </div>
+  @if (data) {
+    <div class="container-fluid container-limited limit-container-width px-0 mt-5 mb-3">
+      <div class="wizard-title-block">
+        <h2 class="wizard-header-title text-break mb-1">
+          {{ data?.nome }}@if (data?.versione && !hideVersions) {<span class="wizard-header-version"> v. {{ data?.versione }}</span>}
+        </h2>
+        <div class="wizard-header-meta d-flex flex-wrap gap-2 align-items-center">
+          @if (data?.dominio?.nome) { <span>{{ data.dominio.nome }}</span> }
+          @if (data?.tipo) { <span aria-hidden="true">·</span><span>{{ ('APP.TIPO.' + data.tipo) | translate }}</span> }
+          @if (data?.visibilita) { <span aria-hidden="true">·</span><span>{{ ('APP.VISIBILITY.' + data.visibilita) | translate }}</span> }
+        </div>
+        <div class="d-flex gap-2 mt-2 align-items-center">
+          <ui-data-type [data]="data" [elem]="{ field: 'stato', type: 'tag', options: 'status' }" [config]="config"></ui-data-type>
+        </div>
+      </div>
+    </div>
+  }
 
-  <section class="container-fluid container-limited limit-container-width container-scroller container-scroller-no-search">
+  <section class="container-fluid container-limited limit-container-width container-scroller container-scroller-no-search px-0">
     @if (_spin) {
       <app-spinner></app-spinner>
     }
@@ -139,6 +170,7 @@
                           <i class="bi bi-plus-lg"></i><span>{{ 'APP.BUTTON.AddReferent' | translate }}</span>
                         </button>
                       }
+                      <i class="bi bi-chevron-down lnk-ref-group-chev" [class.is-open]="openS" aria-hidden="true"></i>
                     </div>
                     @if (openS) {
                       <div class="lnk-ref-group-body">
@@ -181,6 +213,7 @@
                       <h4 class="mb-0">{{ 'APP.SERVICES.WIZARD.ReferentiDominio' | translate }}
                         <span class="lnk-ref-count">{{ dominioReferenti.length }}</span>
                       </h4>
+                      <i class="bi bi-chevron-down lnk-ref-group-chev" [class.is-open]="openD" aria-hidden="true"></i>
                     </div>
                     @if (openD) {
                       <div class="lnk-ref-group-body">

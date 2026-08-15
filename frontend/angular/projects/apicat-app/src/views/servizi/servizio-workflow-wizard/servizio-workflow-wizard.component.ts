@@ -22,7 +22,8 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService } from 'ngx-bootstrap/modal';
 
-import { ConfigService, Tools, COMPONENTS_IMPORTS } from '@linkit/components';
+import { ConfigService, MenuAction, Tools, COMPONENTS_IMPORTS } from '@linkit/components';
+import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
 import { AllegatiDialogComponent } from '@app/components/allegati-dialog/allegati-dialog.component';
 import { ModalGroupChoiceComponent } from '@app/components/modal-group-choice/modal-group-choice.component';
 import { TipologiaAllegatoEnum } from '@app/model/tipologiaAllegatoEnum';
@@ -84,6 +85,7 @@ declare const saveAs: any;
         ServizioReferenteAddFormComponent,
         ServizioApiDetailsComponent,
         ServizioApiConfigurationComponent,
+        MonitorDropdwnComponent,
         HttpImgSrcPipe
     ]
 })
@@ -132,6 +134,22 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     @ViewChild('infoFormRef') infoFormRef?: ServizioInfoFormComponent;
 
     apiUrl: string = '';
+    hideVersions: boolean = false;
+    _downloading: boolean = false;
+
+    // Azioni della top-area (app-monitor-dropdown), come in servizio-details.
+    _showExternalOtherActions: boolean = true;
+    _otherActions: MenuAction[] = [
+        new MenuAction({ type: 'menu', title: 'APP.MENU.JoinService', icon: 'display', subTitle: '', action: 'join_service', enabled: true }),
+        new MenuAction({
+            type: 'submenu', title: 'APP.MENU.eServiceDescriptor', icon: 'download', subTitle: '', action: 'download_service', enabled: true,
+            submenus: [
+                new MenuAction({ type: 'submenu', title: 'APP.MENU.DownloadeServiceDescriptorZip', icon: 'file-zip', subTitle: '', action: 'download_service', enabled: true }),
+                new MenuAction({ type: 'menu', title: 'APP.MENU.DownloadeServiceDescriptorCsv', icon: 'filetype-csv', subTitle: '', action: 'download_service_extended', enabled: true })
+            ]
+        }),
+        new MenuAction({ type: 'divider', title: '', enabled: true })
+    ];
 
     // Referenti (gestione inline, pattern wizard adesioni).
     servizioReferenti: any[] = [];
@@ -168,6 +186,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         private readonly authenticationService: AuthenticationService
     ) {
         this.apiUrl = this.configService.getConfiguration()?.AppConfig?.GOVAPI?.HOST || '';
+        this.hideVersions = this.configService.getConfiguration()?.AppConfig?.Services?.hideVersions || false;
     }
 
     ngOnInit() {
@@ -207,6 +226,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
                         this._idDominioEsterno = this.data?.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
                         this._initSelectedFase();
                         this._initBreadcrumb();
+                        this._updateOtherActions();
                         this.loadReferenti();
                         this.loadAllegati();
                         this.loadGruppi();
@@ -676,6 +696,102 @@ export class ServizioWorkflowWizardComponent implements OnInit {
 
     onBreadcrumb(event: any) {
         if (event?.url) { this.router.navigate([event.url]); }
+    }
+
+    // -------------------------------------------------------------------------
+    // Top-area — azioni (app-monitor-dropdown), come in servizio-details
+    // -------------------------------------------------------------------------
+
+    _canJoin(): boolean {
+        const _usePackage = this.data?.package || false;
+        return this.authenticationService.canJoin('servizio', this.data?.stato, _usePackage);
+    }
+
+    _canMonitoraggioMapper = (): boolean => {
+        return this.authenticationService.canMonitoraggio(this._grant?.ruoli);
+    }
+
+    /** Abilita/disabilita le azioni in base ai permessi (come servizio-details). */
+    _updateOtherActions() {
+        const _isGestore = this.authenticationService.isGestore();
+        const _canJoin = this._canJoin();
+        this._otherActions = this._otherActions.map((item: any) => {
+            let _enabled = true;
+            switch (item.action) {
+                case 'join_service':
+                case 'download_service':
+                    _enabled = _canJoin;
+                    break;
+                default:
+                    if (item.type === 'divider') { _enabled = _canJoin; }
+            }
+            let _subMenus: any[] = [];
+            if (item.submenus) {
+                _subMenus = item.submenus.map((subItem: any) => {
+                    let _subEnabled = true;
+                    if (subItem.action === 'download_service_extended') { _subEnabled = _isGestore; }
+                    return { ...subItem, enabled: _subEnabled };
+                });
+            }
+            const _item = { ...item, enabled: _enabled };
+            if (_subMenus.length > 0) { _item.submenus = _subMenus; }
+            return _item;
+        });
+    }
+
+    onActionMonitor(event: any) {
+        let url = '';
+        switch (event.action) {
+            case 'join_service':
+                this._joinServizio();
+                break;
+            case 'download_service':
+                this._downloadServizioExport();
+                break;
+            case 'download_service_extended':
+                this._downloadServizioEstesoExport();
+                break;
+            case 'backview':
+                this.router.navigate([`/servizi/${this.data.id_servizio}/view`]);
+                break;
+            default:
+                url = `/servizi/${this.data.id_servizio}/${event.action}`;
+                this.router.navigate([url], { queryParamsHandling: 'preserve' });
+                break;
+        }
+    }
+
+    _joinServizio() {
+        this.router.navigate(['adesioni', 'new', 'edit'], { queryParams: { id_servizio: this.id } });
+    }
+
+    _downloadServizioExport() {
+        this._downloading = true;
+        this.apiService.download(this.model, this.id, `export`).subscribe({
+            next: (response: any) => {
+                saveAs(response.body, Tools.GetFilenameFromHeader(response));
+                this._downloading = false;
+            },
+            error: (error: any) => {
+                this._downloading = false;
+                Tools.showMessage(this.utils.GetErrorMsg(error), 'danger', true);
+            }
+        });
+    }
+
+    _downloadServizioEstesoExport() {
+        this._downloading = true;
+        const aux = this.utils._queryToHttpParams({ id_servizio: [this.id] });
+        this.apiService.download(`${this.model}-export`, null, undefined, aux).subscribe({
+            next: (response: any) => {
+                saveAs(response.body, Tools.GetFilenameFromHeader(response));
+                this._downloading = false;
+            },
+            error: (error: any) => {
+                this._downloading = false;
+                Tools.showMessage(this.utils.GetErrorMsg(error), 'danger', true);
+            }
+        });
     }
 
     _backToDetails() {

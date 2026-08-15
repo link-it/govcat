@@ -38,6 +38,22 @@
 
 .lnk-wizard {
 
+  // ─── banner sunto (titolo + meta + stato) sopra la barra fasi ─────
+  .wizard-header-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--ink, #212c49);
+  }
+  .wizard-header-version {
+    font-weight: 500;
+    color: var(--ink-3, #57738a);
+  }
+  .wizard-header-meta {
+    font-size: 12.5px;
+    color: var(--ink-3, #57738a);
+  }
+
   // ─── chips & badges ───────────────────────────────────────────────
   .chip {
     display: inline-flex; align-items: center; gap: 6px;
@@ -161,6 +177,20 @@
     display: flex; align-items: center; gap: 8px;
     font-size: 13.5px; font-weight: 600;
   }
+  .lnk-ref-group-chev {
+    font-size: 12px;
+    color: var(--ink-3, #57738a);
+    width: 24px; height: 24px; border-radius: 6px;
+    display: inline-grid; place-items: center;
+    transition: transform .18s, background-color .15s, color .15s;
+    transform: rotate(-90deg);
+    flex-shrink: 0;
+  }
+  .lnk-ref-group-hd:hover .lnk-ref-group-chev {
+    background: var(--surface-3, #eef4f8);
+    color: var(--ink, #212c49);
+  }
+  .lnk-ref-group-chev.is-open { transform: rotate(0deg); }
   .lnk-ref-group-body { margin-top: 8px; }
   .lnk-ref-count {
     display: inline-flex; align-items: center; justify-content: center;
