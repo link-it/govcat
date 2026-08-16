@@ -1,3 +1,14 @@
+2026-08-16  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Wizard a fasi servizio, fix: in Collaudo/Produzione la vista sola lettura delle
+	  API mostrava le informazioni generali invece della configurazione per ambiente;
+	  ora sia "Configura" (modifica) sia l'occhio (sola lettura) usano il form di
+	  configurazione dell'ambiente. Fix barra fasi: la fase Produzione non risultava
+	  conclusa quando pubblicata (i due stati terminali con/senza collaudo confondevano
+	  il rilevamento); lo stato terminale applicabile viene ora ordinato per ultimo in
+	  base a skip_collaudo.
+
 2026-08-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

@@ -482,8 +482,28 @@
                 </div>
               </header>
               <div class="lnk-phase-section-body">
-                @if (_configApiId) {
-                  <!-- Settaggi per ambiente inline -->
+                @if (_configApiId && !_configApiStartEdit) {
+                  <!-- Settaggi per ambiente in sola lettura -->
+                  <div class="d-flex justify-content-end gap-2 mb-1">
+                    @if (canEditApi()) {
+                      <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm" (click)="_configApiStartEdit = true">
+                        <i class="bi bi-pencil"></i><span>{{ 'APP.BUTTON.Modify' | translate }}</span>
+                      </button>
+                    }
+                    <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm" (click)="closeApiSettings()">
+                      <i class="bi bi-x-lg"></i><span>{{ 'APP.BUTTON.Close' | translate }}</span>
+                    </button>
+                  </div>
+                  <app-servizio-api-configuration
+                    [embedded]="true"
+                    [apiId]="_configApiId"
+                    [sidInput]="id"
+                    [ambiente]="currentAmbiente"
+                    (saved)="onApiSettingsSaved($event)"
+                    (closed)="closeApiSettings()"
+                  ></app-servizio-api-configuration>
+                } @else if (_configApiId && _configApiStartEdit) {
+                  <!-- Settaggi per ambiente in modifica -->
                   <div class="d-flex justify-content-end mb-1">
                     <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm" (click)="closeApiSettings()">
                       <i class="bi bi-x-lg"></i><span>{{ 'APP.BUTTON.Close' | translate }}</span>
@@ -513,8 +533,8 @@
                       <button type="button" class="lnk-btn lnk-btn-sm" (click)="openApiSettings(api)">
                         <i class="bi bi-gear"></i><span>{{ 'APP.SERVICES.WIZARD.ConfigureApi' | translate }}</span>
                       </button>
-                      <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.SERVICES.TITLE.ApiInformations' | translate" (click)="openApiDetail(api)">
-                        <i class="bi bi-box-arrow-up-right"></i>
+                      <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Show' | translate" (click)="openApiSettingsView(api)">
+                        <i class="bi bi-eye"></i>
                       </button>
                     </div>
                   }

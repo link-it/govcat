@@ -132,6 +132,8 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     _editApiStartEdit: boolean = false;
     /** Id API di cui si stanno configurando i settaggi per ambiente inline. */
     _configApiId: string | null = null;
+    /** Pannello settaggi per ambiente aperto in modifica (true) o sola lettura (false). */
+    _configApiStartEdit: boolean = false;
 
     @ViewChild('infoFormRef') infoFormRef?: ServizioInfoFormComponent;
 
@@ -226,6 +228,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
                     next: (response: any) => {
                         this.data = response;
                         this._idDominioEsterno = this.data?.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
+                        this._adjustStepWizardTerminal();
                         this._initSelectedFase();
                         this._initBreadcrumb();
                         this._updateOtherActions();
@@ -242,6 +245,22 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         });
     }
 
+    /**
+     * La fasi-bar promuove la fase a "conclusa" solo se lo stato corrente coincide
+     * con l'ultimo stato della fase. La produzione ha due stati terminali
+     * (con e senza collaudo): riordino l'array mettendo per ultimo quello applicabile
+     * a questo servizio in base a skip_collaudo.
+     */
+    private _adjustStepWizardTerminal() {
+        const terminal = this.data?.skip_collaudo ? 'pubblicato_produzione_senza_collaudo' : 'pubblicato_produzione';
+        this.stepWizard = this.stepWizard.map((step) => {
+            if (step.code !== 'produzione' || !step.stati_adesione?.includes(terminal)) { return step; }
+            const stati = step.stati_adesione.filter((s: string) => s !== terminal);
+            stati.push(terminal);
+            return { ...step, stati_adesione: stati };
+        });
+    }
+
     /** Imposta la fase visualizzata su quella corrente del workflow. */
     private _initSelectedFase() {
         const stato = this.data?.stato;
@@ -255,6 +274,17 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     }
 
     selectFase(code: string) {
+        // Cambiando fase, chiudo i pannelli inline aperti: la sezione API di
+        // Collaudo/Produzione è un unico blocco condiviso, quindi lasciare aperto
+        // un pannello (config/vista/modifica) mostrerebbe l'ambiente precedente
+        // (componente non ricreato) → collaudo e produzione con la stessa form.
+        if (this._selectedFase !== code) {
+            this._configApiId = null;
+            this._configApiStartEdit = false;
+            this._editApiId = null;
+            this._editApiStartEdit = false;
+            this._createApiOpen = false;
+        }
         this._selectedFase = code;
     }
 
@@ -573,23 +603,29 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         this.router.navigate([this.model, this.id, 'api', api.id_api, 'configuration', amb]);
     }
 
-    /** Settaggi per ambiente dell'API inline (embedded config). */
+    /** Settaggi per ambiente dell'API inline (embedded config) in modifica. */
     openApiSettings(api: any) {
+        this._configApiStartEdit = true;
+        this._configApiId = api.id_api;
+    }
+
+    /** Settaggi per ambiente dell'API inline in sola lettura. */
+    openApiSettingsView(api: any) {
+        this._configApiStartEdit = false;
         this._configApiId = api.id_api;
     }
 
     closeApiSettings() {
         this._configApiId = null;
+        this._configApiStartEdit = false;
     }
 
     onApiSettingsSaved(_event: any) {
         this._configApiId = null;
+        this._configApiStartEdit = false;
         this.loadServizioApi();
     }
 
-    openApiDetail(api: any) {
-        this.router.navigate([this.model, this.id, 'api', api.id_api]);
-    }
 
     // -------------------------------------------------------------------------
     // FASE 1 — API: creazione inline (embed ServizioApiDetailsComponent)
