@@ -20,14 +20,19 @@
 package org.govway.catalogo.core.services;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.govway.catalogo.core.dao.specifications.AdesioneSpecification;
 import org.govway.catalogo.core.dao.specifications.MessaggioAdesioneSpecification;
 import org.govway.catalogo.core.dao.specifications.ReferenteAdesioneSpecification;
 import org.govway.catalogo.core.exceptions.NotFoundException;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
+import org.govway.catalogo.core.orm.entity.ClientAdesioneEntity;
+import org.govway.catalogo.core.orm.entity.ClientEntity;
+import org.govway.catalogo.core.orm.entity.ClientEntity.StatoEnum;
 import org.govway.catalogo.core.orm.entity.MessaggioAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteDominioEntity;
@@ -58,8 +63,30 @@ public class AdesioneService extends AbstractService {
 		for (AdesioneEntity riferita : this.adesioneRepo.findByAdesioneCollaudo(adesione)) {
 			riferita.setAdesioneCollaudo(null);
 		}
+
+		List<ClientEntity> clientDaEliminare = getClientEliminabili(adesione);
+
 		this.messaggioAdesioneRepo.deleteAll(adesione.getMessaggi());
 		this.adesioneRepo.delete(adesione);
+
+		for (ClientEntity client : clientDaEliminare) {
+			this.clientRepo.delete(client);
+		}
+	}
+
+	/**
+	 * Individua i client associati all'adesione che possono essere eliminati insieme ad essa:
+	 * i client non ancora configurati (stato NUOVO) e non associati ad altre adesioni.
+	 */
+	private List<ClientEntity> getClientEliminabili(AdesioneEntity adesione) {
+		return adesione.getClient().stream()
+				.map(ClientAdesioneEntity::getClient)
+				.filter(Objects::nonNull)
+				.distinct()
+				.filter(client -> StatoEnum.NUOVO.equals(client.getStato()))
+				.filter(client -> client.getAdesioni().stream()
+						.allMatch(clientAdesione -> clientAdesione.getAdesione().getId().equals(adesione.getId())))
+				.collect(Collectors.toList());
 	}
 
 	public void save(AdesioneEntity adesione) {

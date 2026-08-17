@@ -1,6 +1,12 @@
 2026-08-17  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
+	Issue 301: l'eliminazione di un'adesione elimina ora anche i client ad essa
+	  associati, limitatamente a quelli non ancora configurati (stato "nuovo") e
+	  non associati ad altre adesioni. I client già configurati e quelli condivisi
+	  con altre adesioni vengono invece mantenuti.
+
+	* [GovwayAPICatalogo]
 	Issue 335: corretta la gestione del soggetto di default nello spostamento di
 	  un soggetto su un'altra organizzazione. In precedenza l'organizzazione di
 	  provenienza continuava a riferire il soggetto migrato, impedendone la
