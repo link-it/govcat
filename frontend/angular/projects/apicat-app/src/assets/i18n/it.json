@@ -1722,8 +1722,7 @@
 					"400": {
 						"DEFAULT": {
 							"ORG": {
-								"ADERENTE": "Il soggetto [{{nome}}] è il soggetto default dell'organizzazione aderente [{{organizzazione}}] e non può essere reso non aderente",
-								"MOVE": "Il soggetto [{{nome}}] è il soggetto default dell'organizzazione aderente [{{organizzazione}}] e non può essere spostato in un'altra organizzazione"
+								"ADERENTE": "Il soggetto [{{nome}}] è il soggetto default dell'organizzazione aderente [{{organizzazione}}] e non può essere reso non aderente"
 							}
 						},
 						"HAS": {

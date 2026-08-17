@@ -22,7 +22,6 @@ package testsuite;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -40,16 +39,13 @@ import org.govway.catalogo.controllers.OrganizzazioniController;
 import org.govway.catalogo.controllers.SoggettiController;
 import org.govway.catalogo.controllers.UtentiController;
 import org.govway.catalogo.core.dao.repositories.SoggettoRepository;
-import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.core.services.SoggettoService;
 import org.govway.catalogo.core.services.UtenteService;
-import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.model.ItemSoggetto;
 import org.govway.catalogo.servlets.model.Organizzazione;
 import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
-import org.govway.catalogo.servlets.model.OrganizzazioneUpdate;
 import org.govway.catalogo.servlets.model.PagedModelItemSoggetto;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.Soggetto;
@@ -116,9 +112,6 @@ public class SoggettiTest {
 
     @Autowired
     private OrganizzazioniController controller;
-
-    @Autowired
-    private OrganizzazioneService organizzazioneService;
 
     private static final String UTENTE_GESTORE = "gestore";
     private static UUID ID_UTENTE_GESTORE;
@@ -628,73 +621,6 @@ public class SoggettiTest {
     	});
 
         assertEquals("AUT.403", exception.getMessage());
-    }
-
-    @Test
-    public void testUpdateSoggettoCambioOrganizzazioneRimuoveSoggettoDefault() {
-        ResponseEntity<Organizzazione> responseOrganizzazione = controller.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
-        UUID idOrganizzazione = responseOrganizzazione.getBody().getIdOrganizzazione();
-
-        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
-        soggettoCreate.setIdOrganizzazione(idOrganizzazione);
-        UUID idSoggetto = soggettiController.createSoggetto(soggettoCreate).getBody().getIdSoggetto();
-
-        OrganizzazioneUpdate organizzazioneUpdate = new OrganizzazioneUpdate();
-        organizzazioneUpdate.setNome(CommonUtils.NOME_ORGANIZZAZIONE);
-        organizzazioneUpdate.setDescrizione(CommonUtils.DESCRIZIONE);
-        organizzazioneUpdate.setCodiceEnte(CommonUtils.CODICE_ENTE);
-        organizzazioneUpdate.setCodiceFiscaleSoggetto(CommonUtils.CODICE_FISCALE_SOGGETTO);
-        organizzazioneUpdate.setIdTipoUtente(CommonUtils.ID_TIPO_UTENTE);
-        organizzazioneUpdate.setReferente(CommonUtils.REFERENTE);
-        organizzazioneUpdate.setAderente(CommonUtils.ADERENTE);
-        organizzazioneUpdate.setIntermediata(false);
-        organizzazioneUpdate.setIdSoggettoDefault(idSoggetto);
-        controller.updateOrganizzazione(idOrganizzazione, organizzazioneUpdate);
-
-        OrganizzazioneCreate altraOrganizzazione = CommonUtils.getOrganizzazioneCreate();
-        altraOrganizzazione.setNome("Altra Organizzazione TEST");
-        altraOrganizzazione.setCodiceEnte("AltroCodiceEnte");
-        altraOrganizzazione.setCodiceFiscaleSoggetto("AltroCodiceFiscale");
-        UUID idAltraOrganizzazione = controller.createOrganizzazione(altraOrganizzazione).getBody().getIdOrganizzazione();
-
-        SoggettoUpdate soggettoUpdate = new SoggettoUpdate();
-        soggettoUpdate.setNome(NOME_SOGGETTO);
-        soggettoUpdate.setIdOrganizzazione(idAltraOrganizzazione);
-
-        ResponseEntity<Soggetto> responseUpdate = soggettiController.updateSoggetto(idSoggetto, soggettoUpdate);
-
-        assertEquals(HttpStatus.OK, responseUpdate.getStatusCode());
-        assertEquals(idAltraOrganizzazione, responseUpdate.getBody().getOrganizzazione().getIdOrganizzazione());
-
-        // Il soggetto non appartiene piu' all'organizzazione di provenienza: il riferimento
-        // al soggetto default deve essere stato rimosso
-        assertNull(this.organizzazioneService.find(idOrganizzazione).get().getSoggettoDefault());
-    }
-
-    @Test
-    public void testUpdateSoggettoCambioOrganizzazioneAderenteErrore() {
-        OrganizzazioneCreate organizzazioneCreate = CommonUtils.getOrganizzazioneCreate();
-        organizzazioneCreate.setAderente(true);
-        ResponseEntity<Organizzazione> responseOrganizzazione = controller.createOrganizzazione(organizzazioneCreate);
-        UUID idOrganizzazione = responseOrganizzazione.getBody().getIdOrganizzazione();
-        UUID idSoggettoDefault = responseOrganizzazione.getBody().getSoggettoDefault().getIdSoggetto();
-
-        OrganizzazioneCreate altraOrganizzazione = CommonUtils.getOrganizzazioneCreate();
-        altraOrganizzazione.setNome("Altra Organizzazione TEST");
-        altraOrganizzazione.setCodiceEnte("AltroCodiceEnte");
-        altraOrganizzazione.setCodiceFiscaleSoggetto("AltroCodiceFiscale");
-        UUID idAltraOrganizzazione = controller.createOrganizzazione(altraOrganizzazione).getBody().getIdOrganizzazione();
-
-        SoggettoUpdate soggettoUpdate = new SoggettoUpdate();
-        soggettoUpdate.setNome(responseOrganizzazione.getBody().getSoggettoDefault().getNome());
-        soggettoUpdate.setAderente(true);
-        soggettoUpdate.setIdOrganizzazione(idAltraOrganizzazione);
-
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            soggettiController.updateSoggetto(idSoggettoDefault, soggettoUpdate);
-        });
-
-        assertEquals("SOG.400.DEFAULT.ORG.MOVE", exception.getMessage());
     }
 }
 

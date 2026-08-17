@@ -1722,8 +1722,7 @@
 					"400": {
 						"DEFAULT": {
 							"ORG": {
-								"ADERENTE": "Subject [{{nome}}] is the default subject of the adhering organization [{{organizzazione}}] and cannot be set as non-adhering",
-								"MOVE": "Subject [{{nome}}] is the default subject of the adhering organization [{{organizzazione}}] and cannot be moved to another organization"
+								"ADERENTE": "Subject [{{nome}}] is the default subject of the adhering organization [{{organizzazione}}] and cannot be set as non-adhering"
 							}
 						},
 						"HAS": {

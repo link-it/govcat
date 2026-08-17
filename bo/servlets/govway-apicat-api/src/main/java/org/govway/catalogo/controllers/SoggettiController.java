@@ -248,24 +248,7 @@ public class SoggettiController implements SoggettiApi {
 								Map.of("nome", entity.getNome(), "organizzazione", organizzazione.getNome()));
 					}
 				}
-
-				// Se il soggetto viene spostato su un'altra organizzazione ed era il soggetto default
-				// di quella di provenienza, il riferimento va rimosso: altrimenti l'organizzazione
-				// resterebbe legata ad un soggetto non piu' suo.
-				var vecchiaOrganizzazione = entity.getOrganizzazione();
-				if(vecchiaOrganizzazione != null && soggettoUpdate.getIdOrganizzazione() != null
-						&& !vecchiaOrganizzazione.getIdOrganizzazione().equals(soggettoUpdate.getIdOrganizzazione().toString())
-						&& vecchiaOrganizzazione.getSoggettoDefault() != null
-						&& vecchiaOrganizzazione.getSoggettoDefault().getId().equals(entity.getId())) {
-
-					if(vecchiaOrganizzazione.isAderente()) {
-						throw new BadRequestException(ErrorCode.SOG_400_DEFAULT_ORG_MOVE,
-								Map.of("nome", entity.getNome(), "organizzazione", vecchiaOrganizzazione.getNome()));
-					}
-
-					vecchiaOrganizzazione.setSoggettoDefault(null);
-				}
-
+				
 				this.logger.debug("Autorizzazione completata con successo");     
 
 	

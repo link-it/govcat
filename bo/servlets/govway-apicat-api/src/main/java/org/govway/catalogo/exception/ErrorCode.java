@@ -182,9 +182,6 @@ public enum ErrorCode {
     /** Soggetto default di organizzazione aderente, non può essere reso non aderente */
     SOG_400_DEFAULT_ORG_ADERENTE("Soggetto default di organizzazione aderente non può essere reso non aderente"),
 
-    /** Soggetto default di organizzazione aderente, non può essere spostato in un'altra organizzazione */
-    SOG_400_DEFAULT_ORG_MOVE("Soggetto default di organizzazione aderente non può essere spostato in un'altra organizzazione"),
-
     /** Soggetto già esistente in altra organizzazione */
     SOG_409_IN_ORG("Soggetto già esistente in altra organizzazione"),
 
