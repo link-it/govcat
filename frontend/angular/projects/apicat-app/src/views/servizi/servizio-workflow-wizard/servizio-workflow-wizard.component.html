@@ -363,62 +363,30 @@
 
                   <!-- Creazione API inline -->
                   @if (_createApiOpen) {
-                    <div class="mb-3 border rounded p-2">
-                      <app-servizio-api-details
-                        [embedded]="true"
-                        [createMode]="true"
-                        [sid]="id"
-                        (save)="onApiSaved($event)"
-                        (close)="closeCreateApi()"
-                      ></app-servizio-api-details>
-                    </div>
-                  }
-
-                  <!-- Vista sola lettura informazioni generali API inline -->
-                  @if (_editApiId && !_editApiStartEdit) {
-                    <div class="mb-3 border rounded p-2">
-                      <div class="d-flex justify-content-end gap-2 mb-1">
-                        @if (canEditApi()) {
-                          <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm" (click)="_editApiStartEdit = true">
-                            <i class="bi bi-pencil"></i><span>{{ 'APP.BUTTON.Modify' | translate }}</span>
+                    <div class="api-row is-editing mb-2">
+                      <div class="api-inline-edit-panel">
+                        <div class="d-flex justify-content-end mb-1">
+                          <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm" (click)="closeCreateApi()">
+                            <i class="bi bi-x-lg"></i><span>{{ 'APP.BUTTON.Close' | translate }}</span>
                           </button>
-                        }
-                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm" (click)="closeEditApi()">
-                          <i class="bi bi-x-lg"></i><span>{{ 'APP.BUTTON.Close' | translate }}</span>
-                        </button>
+                        </div>
+                        <app-servizio-api-details
+                          [embedded]="true"
+                          [createMode]="true"
+                          [sid]="id"
+                          (save)="onApiSaved($event)"
+                          (close)="closeCreateApi()"
+                        ></app-servizio-api-details>
                       </div>
-                      <app-servizio-api-details
-                        [embedded]="true"
-                        [id]="_editApiId"
-                        [sid]="id"
-                        (save)="onApiSaved($event)"
-                        (close)="closeEditApi()"
-                      ></app-servizio-api-details>
                     </div>
                   }
 
-                  <!-- Modifica informazioni generali API inline -->
-                  @if (_editApiId && _editApiStartEdit) {
-                    <div class="mb-3 border rounded p-2">
-                      <div class="d-flex justify-content-end mb-1">
-                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm" (click)="closeEditApi()">
-                          <i class="bi bi-x-lg"></i><span>{{ 'APP.BUTTON.Close' | translate }}</span>
-                        </button>
-                      </div>
-                      <app-servizio-api-details
-                        [embedded]="true"
-                        [id]="_editApiId"
-                        [sid]="id"
-                        [startEdit]="true"
-                        (save)="onApiSaved($event)"
-                        (close)="closeEditApi()"
-                      ></app-servizio-api-details>
-                    </div>
-                  }
-
-                  <!-- Lista API (nascosta durante crea/vista/modifica) -->
-                  @if (!_createApiOpen && !_editApiId) {
-                    @for (api of servizioApiList; track api.id_api) {
+                  <!-- Lista API con vista/modifica inline sotto la riga -->
+                  @for (api of servizioApiList; track api.id_api) {
+                    @let isRowOpen = _editApiId === api.id_api;
+                    @let isRowEdit = isRowOpen && _editApiStartEdit;
+                    @let isRowView = isRowOpen && !_editApiStartEdit;
+                    <div class="api-row" [class.is-editing]="isRowEdit" [class.is-viewing]="isRowView">
                       <div class="approval-card">
                         <div class="av av-file"><i class="bi bi-code-slash"></i></div>
                         <div class="body">
@@ -426,18 +394,44 @@
                           @if (apiProfilo(api)) { <div class="when">{{ apiProfilo(api) }}</div> }
                         </div>
                         @if (canEditApi()) {
-                          <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Modify' | translate" (click)="openEditApi(api)">
-                            <i class="bi bi-pencil"></i>
+                          <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon"
+                                  [attr.aria-label]="(isRowEdit ? 'APP.BUTTON.Close' : 'APP.BUTTON.Modify') | translate"
+                                  (click)="isRowEdit ? closeEditApi() : openEditApi(api)">
+                            <i class="bi" [class.bi-x-lg]="isRowEdit" [class.bi-pencil]="!isRowEdit"></i>
                           </button>
                         }
-                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.SERVICES.TITLE.ApiInformations' | translate" (click)="openApiView(api)">
-                          <i class="bi bi-eye"></i>
+                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon"
+                                [attr.aria-label]="(isRowView ? 'APP.BUTTON.Close' : 'APP.BUTTON.Show') | translate"
+                                (click)="isRowView ? closeEditApi() : openApiView(api)">
+                          <i class="bi" [class.bi-x-lg]="isRowView" [class.bi-eye]="!isRowView"></i>
                         </button>
                       </div>
-                    }
-                    @if (!servizioApiList.length) {
-                      <div class="text-muted small py-1">{{ 'APP.MESSAGE.NoResults' | translate }}</div>
-                    }
+                      @if (isRowOpen) {
+                        <div class="api-inline-edit-panel">
+                          @if (isRowEdit) {
+                            <app-servizio-api-details
+                              [embedded]="true"
+                              [id]="_editApiId"
+                              [sid]="id"
+                              [startEdit]="true"
+                              (save)="onApiSaved($event)"
+                              (close)="closeEditApi()"
+                            ></app-servizio-api-details>
+                          } @else {
+                            <app-servizio-api-details
+                              [embedded]="true"
+                              [id]="_editApiId"
+                              [sid]="id"
+                              (save)="onApiSaved($event)"
+                              (close)="closeEditApi()"
+                            ></app-servizio-api-details>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                  @if (!servizioApiList.length && !_createApiOpen) {
+                    <div class="text-muted small py-1">{{ 'APP.MESSAGE.NoResults' | translate }}</div>
                   }
                 </div>
               }
@@ -482,45 +476,12 @@
                 </div>
               </header>
               <div class="lnk-phase-section-body">
-                @if (_configApiId && !_configApiStartEdit) {
-                  <!-- Settaggi per ambiente in sola lettura -->
-                  <div class="d-flex justify-content-end gap-2 mb-1">
-                    @if (canEditApi()) {
-                      <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm" (click)="_configApiStartEdit = true">
-                        <i class="bi bi-pencil"></i><span>{{ 'APP.BUTTON.Modify' | translate }}</span>
-                      </button>
-                    }
-                    <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm" (click)="closeApiSettings()">
-                      <i class="bi bi-x-lg"></i><span>{{ 'APP.BUTTON.Close' | translate }}</span>
-                    </button>
-                  </div>
-                  <app-servizio-api-configuration
-                    [embedded]="true"
-                    [apiId]="_configApiId"
-                    [sidInput]="id"
-                    [ambiente]="currentAmbiente"
-                    (saved)="onApiSettingsSaved($event)"
-                    (closed)="closeApiSettings()"
-                  ></app-servizio-api-configuration>
-                } @else if (_configApiId && _configApiStartEdit) {
-                  <!-- Settaggi per ambiente in modifica -->
-                  <div class="d-flex justify-content-end mb-1">
-                    <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm" (click)="closeApiSettings()">
-                      <i class="bi bi-x-lg"></i><span>{{ 'APP.BUTTON.Close' | translate }}</span>
-                    </button>
-                  </div>
-                  <app-servizio-api-configuration
-                    [embedded]="true"
-                    [apiId]="_configApiId"
-                    [sidInput]="id"
-                    [ambiente]="currentAmbiente"
-                    [startEdit]="true"
-                    (saved)="onApiSettingsSaved($event)"
-                    (closed)="closeApiSettings()"
-                  ></app-servizio-api-configuration>
-                } @else {
-                  <div class="small text-muted mb-2">{{ 'APP.SERVICES.WIZARD.ApiHint' | translate }}</div>
-                  @for (api of servizioApiList; track api.id_api) {
+                <div class="small text-muted mb-2">{{ 'APP.SERVICES.WIZARD.ApiHint' | translate }}</div>
+                @for (api of servizioApiList; track api.id_api) {
+                  @let isRowOpen = _configApiId === api.id_api;
+                  @let isRowEdit = isRowOpen && _configApiStartEdit;
+                  @let isRowView = isRowOpen && !_configApiStartEdit;
+                  <div class="api-row" [class.is-editing]="isRowEdit" [class.is-viewing]="isRowView">
                     <div class="approval-card">
                       <div class="av av-file"><i class="bi bi-code-slash"></i></div>
                       <div class="body">
@@ -530,17 +491,49 @@
                       <span class="chip" [class.chip-ok]="apiHasConfig(api)" [class.chip-muted]="!apiHasConfig(api)">
                         {{ (apiHasConfig(api) ? 'APP.SERVICES.WIZARD.ApiConfigured' : 'APP.SERVICES.WIZARD.ApiToConfigure') | translate }}
                       </span>
-                      <button type="button" class="lnk-btn lnk-btn-sm" (click)="openApiSettings(api)">
-                        <i class="bi bi-gear"></i><span>{{ 'APP.SERVICES.WIZARD.ConfigureApi' | translate }}</span>
-                      </button>
-                      <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Show' | translate" (click)="openApiSettingsView(api)">
-                        <i class="bi bi-eye"></i>
+                      @if (canEditApi()) {
+                        <button type="button" class="lnk-btn lnk-btn-sm" (click)="isRowEdit ? closeApiSettings() : openApiSettings(api)">
+                          @if (isRowEdit) {
+                            <i class="bi bi-x-lg"></i><span>{{ 'APP.BUTTON.Close' | translate }}</span>
+                          } @else {
+                            <i class="bi bi-gear"></i><span>{{ 'APP.SERVICES.WIZARD.ConfigureApi' | translate }}</span>
+                          }
+                        </button>
+                      }
+                      <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon"
+                              [attr.aria-label]="(isRowView ? 'APP.BUTTON.Close' : 'APP.BUTTON.Show') | translate"
+                              (click)="isRowView ? closeApiSettings() : openApiSettingsView(api)">
+                        <i class="bi" [class.bi-x-lg]="isRowView" [class.bi-eye]="!isRowView"></i>
                       </button>
                     </div>
-                  }
-                  @if (!servizioApiList.length) {
-                    <div class="text-muted small py-1">{{ 'APP.MESSAGE.NoResults' | translate }}</div>
-                  }
+                    @if (isRowOpen) {
+                      <div class="api-inline-edit-panel">
+                        @if (isRowEdit) {
+                          <app-servizio-api-configuration
+                            [embedded]="true"
+                            [apiId]="_configApiId"
+                            [sidInput]="id"
+                            [ambiente]="currentAmbiente"
+                            [startEdit]="true"
+                            (saved)="onApiSettingsSaved($event)"
+                            (closed)="closeApiSettings()"
+                          ></app-servizio-api-configuration>
+                        } @else {
+                          <app-servizio-api-configuration
+                            [embedded]="true"
+                            [apiId]="_configApiId"
+                            [sidInput]="id"
+                            [ambiente]="currentAmbiente"
+                            (saved)="onApiSettingsSaved($event)"
+                            (closed)="closeApiSettings()"
+                          ></app-servizio-api-configuration>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+                @if (!servizioApiList.length) {
+                  <div class="text-muted small py-1">{{ 'APP.MESSAGE.NoResults' | translate }}</div>
                 }
               </div>
             </div>

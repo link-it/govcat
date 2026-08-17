@@ -1029,6 +1029,10 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         this._errorMsg = '';
         this._errors = [];
         this._customAuth = this._customAuthOrig;
+        if (this.embedded) {
+            this.close.emit({ id: this.id, servizioApi: this._isNew ? null : this._servizioApi });
+            return;
+        }
         if (this._isNew) {
             if (this._useRoute) {
                 if (this._componentBreadcrumbs) {

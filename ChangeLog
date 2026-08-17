@@ -1,3 +1,14 @@
+2026-08-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Wizard a fasi servizio, API inline sul modello del wizard adesioni: la form di
+	  vista/modifica si espande sotto la riga (lista sempre visibile), con riga
+	  evidenziata (accent in modifica, verde in sola lettura) e pulsanti che
+	  diventano "Chiudi". Vale sia per le informazioni generali (FASE 1) sia per i
+	  settaggi per ambiente (Collaudo/Produzione). Inoltre, in modalità embedded il
+	  pulsante "Annulla" della form ora chiude il pannello come "Chiudi". Pagine
+	  classiche routed invariate.
+
 2026-08-16  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

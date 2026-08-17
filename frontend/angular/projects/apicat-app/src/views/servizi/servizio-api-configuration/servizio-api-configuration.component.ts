@@ -577,6 +577,10 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
     this._isEdit = false;
     this._error = false;
     this._errorMsg = '';
+    if (this.embedded) {
+      this.closed.emit();
+      return;
+    }
     this.mapApiDetailsToFormValues();
   }
 

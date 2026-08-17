@@ -225,6 +225,44 @@
   .approval-card .who { font-size: 13px; font-weight: 600; }
   .approval-card .when { font-size: 12px; color: var(--ink-3); }
 
+  // ─── righe API con espansione inline (pattern wizard adesioni) ────
+  .api-row {
+    border: 1px solid transparent;
+    border-radius: 10px;
+    margin-top: 4px;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  .api-row > .approval-card { margin-top: 0; }
+  .api-row.is-editing,
+  .api-row.is-viewing {
+    background: var(--surface);
+  }
+  .api-row.is-editing {
+    border-color: var(--accent, #ff4050);
+    box-shadow: 0 0 0 3px var(--accent-soft, #ffe9eb);
+  }
+  .api-row.is-viewing {
+    border-color: var(--ok-border, #b6dcc7);
+    box-shadow: 0 0 0 3px var(--ok-soft, #e3f3ec);
+  }
+  .api-row.is-editing > .approval-card,
+  .api-row.is-viewing > .approval-card {
+    border-color: transparent;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+  .api-inline-edit-panel {
+    background: var(--surface-2, #fafcfd);
+    border-top: 1px solid var(--line, #dee8ef);
+    border-bottom-left-radius: 9px;
+    border-bottom-right-radius: 9px;
+    padding: 14px;
+  }
+  .api-inline-edit-panel:first-child {
+    border-top: none;
+    border-radius: 9px;
+  }
+
   .referent-role-tag {
     align-self: center; flex-shrink: 0;
     display: inline-flex; align-items: center;
