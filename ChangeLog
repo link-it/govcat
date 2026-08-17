@@ -1,3 +1,18 @@
+2026-08-17  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 335: corretta la gestione del soggetto di default nello spostamento di
+	  un soggetto su un'altra organizzazione. In precedenza l'organizzazione di
+	  provenienza continuava a riferire il soggetto migrato, impedendone la
+	  cancellazione (errore SOG.400.HAS.DOMAINS) e, in assenza di domini,
+	  comportando la cancellazione di un soggetto ormai appartenente ad
+	  un'altra organizzazione. Il riferimento viene ora rimosso in fase di
+	  aggiornamento del soggetto; se l'organizzazione di provenienza è aderente
+	  lo spostamento viene rifiutato con il nuovo errore SOG.400.DEFAULT.ORG.MOVE.
+	  La cancellazione dell'organizzazione ignora inoltre i riferimenti obsoleti
+	  già presenti; per ripulirli sulle installazioni esistenti è disponibile lo
+	  script bo/database/migration/postgresql/bonifica_organizations_soggetto_default.sql.
+
 2026-08-07  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
