@@ -20,7 +20,15 @@
   <div class="top-area container-fluid container-limited limit-container-width px-0">
     <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" [classContainer]="'limit-container-width'" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
     <div class="d-flex flex-grow-1">&nbsp;</div>
-    <div class="nav-controls"></div>
+    <div class="nav-controls">
+      @if (data) {
+        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm"
+                [attr.aria-label]="'APP.SERVICES.WIZARD.OpenClassic' | translate"
+                (click)="openClassic()">
+          <i class="bi bi-card-list"></i><span>{{ 'APP.SERVICES.WIZARD.OpenClassic' | translate }}</span>
+        </button>
+      }
+    </div>
   </div>
 
   <div class="top-area container-fluid container-limited limit-container-width px-0">

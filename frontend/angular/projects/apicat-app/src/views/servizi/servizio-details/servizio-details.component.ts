@@ -1275,6 +1275,16 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         if (this.debugMandatoryFields) { this.utils._showMandatoryFields(this._formGroup); }
     }
 
+    /** Convivenza wizard/form classico: true se il wizard a fasi è abilitato. */
+    get _wizardWorkflowEnabled(): boolean {
+        return this.appConfig?.AppConfig?.Services?.wizardWorkflowLayout !== false;
+    }
+
+    /** Apre la vista guidata (wizard a fasi) del servizio, affiancata a questa. */
+    _openWizard() {
+        this.router.navigate([this.model, this.id, 'wizard']);
+    }
+
     _onClose() {
         this.close.emit({ id: this.id, service: this._data });
     }

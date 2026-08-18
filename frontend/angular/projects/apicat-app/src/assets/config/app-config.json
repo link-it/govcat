@@ -53,7 +53,8 @@
     "Services": {
       "showReferents": true,
       "hideVersions": false,
-      "wizardNewLayout": true
+      "wizardNewLayout": true,
+      "wizardWorkflowLayout": true
     },
 
     "Adesioni": {

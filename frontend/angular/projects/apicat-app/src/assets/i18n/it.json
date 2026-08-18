@@ -2363,6 +2363,8 @@
 				"Sections": "Sezioni del servizio",
 				"InlineComingSoon": "Gestione inline in arrivo.",
 				"OpenSection": "Apri sezione",
+				"OpenWizard": "Vista guidata",
+				"OpenClassic": "Vista classica",
 				"ReferentiServizio": "Referenti servizio",
 				"ReferentiDominio": "Referenti dominio",
 				"ProcedureCollaudo": "Procedura di collaudo",

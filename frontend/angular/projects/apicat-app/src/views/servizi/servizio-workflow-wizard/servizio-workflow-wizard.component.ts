@@ -326,6 +326,11 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         this.router.navigate([this.model, this.id, route]);
     }
 
+    /** Convivenza: torna alla vista classica del servizio (servizio-details). */
+    openClassic() {
+        this.router.navigate([this.model, this.id]);
+    }
+
     // -------------------------------------------------------------------------
     // FASE 1 — sezioni collassabili + form Informazioni Generali
     // -------------------------------------------------------------------------

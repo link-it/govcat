@@ -1,3 +1,12 @@
+2026-08-18  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Wizard a fasi servizio: entry point in convivenza con la vista classica. Nel
+	  dettaglio servizio pulsante "Vista guidata" (apre servizi/:id/wizard, distinto
+	  dalla matita di modifica classica) e nel wizard pulsante "Vista classica" per
+	  tornare a servizio-details. Nuovo flag AppConfig.Services.wizardWorkflowLayout
+	  (default true, rollback a false).
+
 2026-08-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

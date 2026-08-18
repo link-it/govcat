@@ -113,6 +113,18 @@
               }
             </div>
           }
+          @if (!_isEdit && !_spin && !_isNew && _wizardWorkflowEnabled) {
+            <div class="position-relative me-2 d-inline-block">
+              <lnk-button
+                [type]="'button'"
+                [label]="'APP.SERVICES.WIZARD.OpenWizard'"
+                [icon]="'bi bi-list-check'"
+                [ariaLabel]="'APP.SERVICES.WIZARD.OpenWizard' | translate"
+                [btnTooltip]="'APP.SERVICES.WIZARD.OpenWizard'"
+                (onAction)="_openWizard()"
+              ></lnk-button>
+            </div>
+          }
           @if (!_isEdit && !_spin && _editable) {
             <div class="position-relative d-inline-block">
               <lnk-button

@@ -2363,6 +2363,8 @@
 				"Sections": "Service sections",
 				"InlineComingSoon": "Inline management coming soon.",
 				"OpenSection": "Open section",
+				"OpenWizard": "Guided view",
+				"OpenClassic": "Classic view",
 				"ReferentiServizio": "Service contacts",
 				"ReferentiDominio": "Domain contacts",
 				"ProcedureCollaudo": "Test procedure",
