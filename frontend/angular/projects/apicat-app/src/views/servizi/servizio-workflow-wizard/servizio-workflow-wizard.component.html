@@ -115,9 +115,32 @@
           <!-- Fase: Informazioni Generali -->
           @if (activeFase?.code === 'info_generali') {
 
+            <!-- Barra "vai a" sezioni (sempre visibile, sticky) -->
+            <nav class="lnk-section-nav" [attr.aria-label]="'APP.SERVICES.WIZARD.Sections' | translate">
+              <button type="button" class="lnk-section-nav-chip" [class.is-active]="isPhaseSectionOpen('info_generali')" (click)="goToSection('info_generali')">
+                <i class="bi bi-card-text" aria-hidden="true"></i><span>{{ 'APP.SERVICES.TITLE.GeneralInformations' | translate }}</span>
+              </button>
+              <button type="button" class="lnk-section-nav-chip" [class.is-active]="isPhaseSectionOpen('referenti')" (click)="goToSection('referenti')">
+                <i class="bi bi-people" aria-hidden="true"></i><span>{{ 'APP.SERVICES.TITLE.ShowReferents' | translate }}</span>
+                <span class="lnk-ref-count">{{ servizioReferenti.length }}</span>
+              </button>
+              <button type="button" class="lnk-section-nav-chip" [class.is-active]="isPhaseSectionOpen('allegati')" (click)="goToSection('allegati')">
+                <i class="bi bi-file-earmark-text" aria-hidden="true"></i><span>{{ 'APP.SERVICES.TITLE.Attachments' | translate }}</span>
+                <span class="lnk-ref-count">{{ serviceAllegati.length }}</span>
+              </button>
+              <button type="button" class="lnk-section-nav-chip" [class.is-active]="isPhaseSectionOpen('gruppi')" (click)="goToSection('gruppi')">
+                <i class="bi bi-folder" aria-hidden="true"></i><span>{{ 'APP.SERVICES.TITLE.ShowGroups' | translate }}</span>
+                <span class="lnk-ref-count">{{ servizioGruppi.length }}</span>
+              </button>
+              <button type="button" class="lnk-section-nav-chip" [class.is-active]="isPhaseSectionOpen('api')" (click)="goToSection('api')">
+                <i class="bi bi-code-slash" aria-hidden="true"></i><span>{{ 'APP.SERVICES.TITLE.ApiInformations' | translate }}</span>
+                <span class="lnk-ref-count">{{ servizioApiList.length }}</span>
+              </button>
+            </nav>
+
             <!-- Informazioni generali (view + edit) -->
             @let openInfo = isPhaseSectionOpen('info_generali');
-            <section class="lnk-phase-section" [class.is-open]="openInfo">
+            <section id="phase-section-info_generali" class="lnk-phase-section" [class.is-open]="openInfo">
               <header class="lnk-phase-section-hd" role="button" tabindex="0" [attr.aria-expanded]="openInfo"
                       (click)="togglePhaseSection('info_generali')"
                       (keydown.enter)="togglePhaseSection('info_generali')"
@@ -153,7 +176,7 @@
 
             <!-- Referenti (gestione inline) -->
             @let openRef = isPhaseSectionOpen('referenti');
-            <section class="lnk-phase-section" [class.is-open]="openRef">
+            <section id="phase-section-referenti" class="lnk-phase-section" [class.is-open]="openRef">
               <header class="lnk-phase-section-hd" role="button" tabindex="0" [attr.aria-expanded]="openRef"
                       (click)="togglePhaseSection('referenti')"
                       (keydown.enter)="togglePhaseSection('referenti')"
@@ -249,7 +272,7 @@
 
             <!-- Allegati (gestione inline) -->
             @let openAll = isPhaseSectionOpen('allegati');
-            <section class="lnk-phase-section" [class.is-open]="openAll">
+            <section id="phase-section-allegati" class="lnk-phase-section" [class.is-open]="openAll">
               <header class="lnk-phase-section-hd" role="button" tabindex="0" [attr.aria-expanded]="openAll"
                       (click)="togglePhaseSection('allegati')"
                       (keydown.enter)="togglePhaseSection('allegati')"
@@ -301,7 +324,7 @@
 
             <!-- Gruppi (gestione inline) -->
             @let openGrp = isPhaseSectionOpen('gruppi');
-            <section class="lnk-phase-section" [class.is-open]="openGrp">
+            <section id="phase-section-gruppi" class="lnk-phase-section" [class.is-open]="openGrp">
               <header class="lnk-phase-section-hd" role="button" tabindex="0" [attr.aria-expanded]="openGrp"
                       (click)="togglePhaseSection('gruppi')"
                       (keydown.enter)="togglePhaseSection('gruppi')"
@@ -348,7 +371,7 @@
 
             <!-- API (informazioni generali: lista + creazione inline) -->
             @let openApi = isPhaseSectionOpen('api');
-            <section class="lnk-phase-section" [class.is-open]="openApi">
+            <section id="phase-section-api" class="lnk-phase-section" [class.is-open]="openApi">
               <header class="lnk-phase-section-hd" role="button" tabindex="0" [attr.aria-expanded]="openApi"
                       (click)="togglePhaseSection('api')"
                       (keydown.enter)="togglePhaseSection('api')"

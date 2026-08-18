@@ -32,6 +32,13 @@
   --radius:    10px;
   --radius-lg: 14px;
 
+  // Altezza barra "vai a" e padding-top dello scroller globale
+  // (.container-scroller ha padding-top: .75rem): serve compensarlo
+  // negli offset sticky, altrimenti resta una striscia in cima dove
+  // il contenuto scorre sotto/sopra la barra.
+  --section-nav-h:    48px;
+  --scroller-pad-top: .75rem;
+
   --shadow-sm: 0 1px 0 rgba(33, 44, 73, .04), 0 1px 2px rgba(33, 44, 73, .04);
   --shadow:    0 1px 0 rgba(33, 44, 73, .04), 0 8px 24px -8px rgba(33, 44, 73, .08);
 }
@@ -111,6 +118,39 @@
   .env-title { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); }
   .env-body-pad { padding: 20px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 16px; }
 
+  // ─── Barra "vai a" sezioni FASE 1 (sticky) ───────────────────────
+  .lnk-section-nav {
+    position: sticky;
+    // -.75rem compensa il padding-top dello scroller: la barra pinnata
+    // copre la striscia in cima invece di lasciarla scoperta.
+    top: calc(-1 * var(--scroller-pad-top)); z-index: 20;
+    display: flex; gap: 8px; flex-wrap: nowrap;
+    overflow-x: auto;
+    box-sizing: border-box; height: var(--section-nav-h);
+    align-items: center;
+    padding: 0 2px; margin: 0 0 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+  }
+  .lnk-section-nav-chip {
+    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+    padding: 6px 12px; border-radius: 999px;
+    background: var(--surface-2); border: 1px solid var(--line-strong);
+    color: var(--ink-2); font-size: 12.5px; font-weight: 500; cursor: pointer;
+    transition: background-color .15s, border-color .15s, color .15s;
+  }
+  .lnk-section-nav-chip:hover { background: var(--surface-3); }
+  .lnk-section-nav-chip:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--accent, #ff4050); }
+  .lnk-section-nav-chip.is-active {
+    background: var(--accent-soft); border-color: #ffc4c9; color: var(--accent-ink);
+  }
+  .lnk-section-nav-chip .lnk-ref-count {
+    display: inline-grid; place-items: center; min-width: 18px; height: 18px;
+    padding: 0 5px; border-radius: 999px; font-size: 11px; font-weight: 600;
+    background: var(--surface-3); color: var(--ink-3);
+  }
+  .lnk-section-nav-chip.is-active .lnk-ref-count { background: var(--accent-soft-2); color: var(--accent-ink); }
+
   // ─── PhaseSection (sezioni collassabili FASE 1) ───────────────────
   .lnk-phase-section {
     background: var(--surface);
@@ -121,9 +161,26 @@
     padding: 0;
   }
   .lnk-phase-section + .lnk-phase-section { margin-top: 16px; }
+
+  // Sezioni raggiungibili dalla barra "vai a": header appiccicato sotto la
+  // barra mentre si scorre una form lunga. Serve overflow non-hidden perché
+  // lo sticky sia relativo allo scroller, non alla sezione.
+  .lnk-phase-section[id^="phase-section-"] {
+    overflow: visible;
+    scroll-margin-top: calc(var(--section-nav-h) + 12px);
+  }
+  .lnk-phase-section[id^="phase-section-"] > .lnk-phase-section-hd { border-radius: var(--radius-lg); }
+  .lnk-phase-section[id^="phase-section-"].is-open > .lnk-phase-section-hd {
+    // Stessa compensazione del padding scroller: l'header si aggancia
+    // esattamente sotto la barra "vai a".
+    position: sticky; top: calc(var(--section-nav-h) - var(--scroller-pad-top)); z-index: 10;
+    border-bottom-left-radius: 0; border-bottom-right-radius: 0;
+  }
+
   .lnk-phase-section-hd {
     display: flex; align-items: center; gap: 12px;
     padding: 14px 20px; cursor: pointer; user-select: none;
+    background: var(--surface);
     transition: background-color .15s;
   }
   .lnk-phase-section-hd:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--accent, #ff4050); }

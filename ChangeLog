@@ -1,6 +1,14 @@
 2026-08-18  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard a fasi servizio, FASE 1: navigazione tra sezioni migliorata. Barra "vai a"
+	  sticky con le sezioni (Informazioni generali/Referenti/Allegati/Gruppi/API) e
+	  relativi conteggi, accordion esclusivo (una sola sezione aperta per volta) e
+	  header della sezione aperta appiccicato sotto la barra durante lo scroll, così
+	  le altre sezioni restano sempre visibili anche con la form lunga in modifica.
+	  Compensato il padding-top dello scroller per evitare la striscia in cima.
+
+	* [Frontend]
 	Wizard a fasi servizio: entry point in convivenza con la vista classica. Nel
 	  dettaglio servizio pulsante "Vista guidata" (apre servizi/:id/wizard, distinto
 	  dalla matita di modifica classica) e nel wizard pulsante "Vista classica" per

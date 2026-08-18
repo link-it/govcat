@@ -339,8 +339,23 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         return !!this._phaseSectionOpen[key];
     }
 
+    /** Accordion esclusivo: apre la sezione richiesta e chiude le altre. */
     togglePhaseSection(key: string) {
-        this._phaseSectionOpen[key] = !this._phaseSectionOpen[key];
+        const willOpen = !this._phaseSectionOpen[key];
+        Object.keys(this._phaseSectionOpen).forEach((k) => (this._phaseSectionOpen[k] = false));
+        this._phaseSectionOpen[key] = willOpen;
+    }
+
+    /** Barra "vai a": apre la sezione (esclusiva) e ci scorre sopra. */
+    goToSection(key: string) {
+        Object.keys(this._phaseSectionOpen).forEach((k) => (this._phaseSectionOpen[k] = false));
+        this._phaseSectionOpen[key] = true;
+        setTimeout(() => {
+            const el = document.getElementById('phase-section-' + key);
+            if (el && typeof el.scrollIntoView === 'function') {
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }, 50);
     }
 
     /** Permesso di modifica delle informazioni generali. */
