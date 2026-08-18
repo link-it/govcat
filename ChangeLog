@@ -1,3 +1,16 @@
+2026-08-18  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [ReverseProxy]
+	Issue 312: la Content-Security-Policy dell'index.jsp viene emessa come header
+	  del documento e non è modificabile a runtime: i servizi creati dopo il
+	  caricamento della pagina avevano l'host di invocazione fuori da connect-src e
+	  il try-out della specifica veniva bloccato fino a un ricaricamento manuale.
+	  La pagina ora intercetta la violazione, verifica sul modulo web se quell'host
+	  è ormai tra quelli consentiti (forzando l'aggiornamento della lista, al
+	  massimo una volta ogni 10 secondi) e in caso affermativo propone il
+	  ricaricamento della pagina tramite un avviso. Nuovo endpoint interno
+	  GET /csp/allowed-origin, autenticato come le altre risorse della console.
+
 2026-08-17  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
