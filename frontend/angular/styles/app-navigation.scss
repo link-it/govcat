@@ -117,6 +117,14 @@ ui-item-row-mobile,
 // Card components (lnk-card, servizi-group-list-card)
 lnk-card,
 app-servizi-group-list-card {
+  .card-title-wrapper {
+    margin-bottom: 0.75rem;
+
+    .card-title {
+      margin-bottom: 0;
+    }
+  }
+
   .card-title,
   .group-list-card-title {
     display: inline-flex;

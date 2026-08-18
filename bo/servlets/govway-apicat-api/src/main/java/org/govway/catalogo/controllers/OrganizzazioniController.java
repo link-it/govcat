@@ -171,7 +171,10 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 				}
 
 				SoggettoEntity sd = null;
-				if(entity.getSoggettoDefault()!=null) {
+				// Il soggetto default viene considerato solo se appartiene ancora all'organizzazione:
+				// se e' stato spostato su un'altra organizzazione il riferimento e' obsoleto e non
+				// deve ne' bloccare la cancellazione ne' comportare la cancellazione del soggetto.
+				if(entity.getSoggettoDefault()!=null && appartieneAOrganizzazione(entity.getSoggettoDefault(), entity)) {
 					sd = entity.getSoggettoDefault();
 
 					if(!sd.getDomini().isEmpty()) {
@@ -616,5 +619,13 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(ErrorCode.SYS_500);
 		}
+	}
+
+	/**
+	 * Verifica che il soggetto appartenga effettivamente all'organizzazione indicata.
+	 */
+	private boolean appartieneAOrganizzazione(SoggettoEntity soggetto, OrganizzazioneEntity organizzazione) {
+		return soggetto.getOrganizzazione() != null
+				&& soggetto.getOrganizzazione().getId().equals(organizzazione.getId());
 	}
 }

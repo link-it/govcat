@@ -1,3 +1,151 @@
+2026-08-19  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* Rilasciata versione 2.4.4
+
+2026-08-18  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [ReverseProxy]
+	Issue 312: la Content-Security-Policy dell'index.jsp viene emessa come header
+	  del documento e non è modificabile a runtime: i servizi creati dopo il
+	  caricamento della pagina avevano l'host di invocazione fuori da connect-src e
+	  il try-out della specifica veniva bloccato fino a un ricaricamento manuale.
+	  La pagina ora intercetta la violazione, verifica sul modulo web se quell'host
+	  è ormai tra quelli consentiti (forzando l'aggiornamento della lista, al
+	  massimo una volta ogni 10 secondi) e in caso affermativo propone il
+	  ricaricamento della pagina tramite un avviso. Nuovo endpoint interno
+	  GET /csp/allowed-origin, autenticato come le altre risorse della console.
+
+2026-08-17  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 301: l'eliminazione di un'adesione elimina ora anche i client ad essa
+	  associati, limitatamente a quelli non ancora configurati (stato "nuovo") e
+	  non associati ad altre adesioni. I client già configurati e quelli condivisi
+	  con altre adesioni vengono invece mantenuti.
+
+	* [GovwayAPICatalogo]
+	Issue 335: corretta la cancellazione di un'organizzazione il cui soggetto di
+	  default è stato spostato su un'altra organizzazione. Il riferimento, ormai
+	  obsoleto, non viene più considerato: in precedenza la cancellazione falliva
+	  con SOG.400.HAS.DOMAINS oppure, in assenza di domini, comportava la
+	  cancellazione di un soggetto appartenente ad un'altra organizzazione. Lo
+	  spostamento del soggetto resta consentito senza ulteriori vincoli, così da
+	  poter svuotare un'organizzazione prima di eliminarla. Per ripulire i
+	  riferimenti obsoleti sulle installazioni esistenti è disponibile lo script
+	  bo/database/migration/postgresql/bonifica_organizations_soggetto_default.sql.
+
+2026-08-07  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 329: filtro "Intermediato" nella ricerca servizi (select Tutti/Sì/No),
+	  mappato sul parametro BE `fruizione` (true/false), come il filtro
+	  `intermediata` delle organizzazioni; posizionato sulla stessa riga del
+	  filtro Organizzazione. I select Stato/Visibilità/Intermediato usano ora
+	  `[ngValue]` con opzione "Tutti" = `null` (placeholder), così mostrano "Tutti"
+	  di default senza valorizzare il filtro.
+
+2026-08-07  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 330: gli elementi dell'API servizi_gruppi riportano ora anche il flag
+	  `fruizione` e l'oggetto `soggetto_erogatore`, allineandosi alla risposta
+	  dell'API servizi. I due campi sono valorizzati solo per gli elementi di
+	  tipo "servizio"; per quelli di tipo "gruppo" restano assenti.
+
+	* [GovwayAPICatalogo]
+	Issue 329: l'API di elenco dei servizi accetta il nuovo parametro di ricerca
+	  `fruizione`, che filtra i servizi in base all'omonimo flag: `true` restituisce
+	  i soli servizi in fruizione, `false` i soli servizi in erogazione. Se il
+	  parametro non è valorizzato l'elenco non viene filtrato.
+
+2026-08-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 334: fix client https, il caricamento del certificato non abilitava
+	  "Salva" (e in update non inviava il nuovo cert). L'adapter di client-details
+	  ora mappa il `type` emesso dal componente condiviso client-auth-form
+	  (`cert`/`csr`/...) ai `tipo` attesi dagli switch `__descrittoreChange`,
+	  disambiguando `cert` col `tipo_certificato` corrente.
+
+2026-08-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 330/331: rimosso il mock temporaneo di `fruizione`/`soggetto_erogatore`
+	  su GET /servizi_gruppi. Box "Gruppi" in vetrina: soglia minima gruppi
+	  configurabile via `groupsRequireMultiple` in servizi-config.json (true =
+	  visibile solo con >1 gruppo; false = anche con 1).
+
+2026-08-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 330: posizione dell'icona relay nella card griglia configurabile via
+	  `relayIconPosition` in servizi-config.json: `title` (a destra del titolo)
+	  oppure flottante in alto a destra (default).
+
+2026-08-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 330: sostituito il chip "Intermediato" con un'icona "relay" (nuovo
+	  componente `app-relay-icon`) con tooltip. Vetrina: icona nell'eyebrow;
+	  card griglia: icona flottante in alto a destra; list card: icona a destra
+	  centrata (come il folder dei gruppi); lista ricerca: icona prima dello stato
+	  (nuovo tipo `relay` in `ui-item-type`).
+
+2026-08-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 331: nella vetrina del servizio, box "Gruppi" nella sidebar con i
+	  gruppi di appartenenza. Chip (foglie) di default, espansione on-demand in un
+	  tree ricorsivo dedicato (ricostruito dai `path_gruppo`) con icona/immagine
+	  del gruppo; ogni voce naviga a /servizi?gruppo=<id>. Dati da
+	  GET /servizi/:sid/gruppi, ordinati per nome; mostrata solo se il servizio
+	  appartiene a piu` di un gruppo. Flag in servizi-config.json: `showGroups`
+	  (on/off), `groupsExpanded` (tree sempre espanso), `groupsShowChildren`
+	  (mostra anche i sottogruppi `figli`, distinti dai gruppi di appartenenza).
+
+2026-08-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 330: indicatore "Intermediato" per i servizi in fruizione. Chip ambra
+	  nelle liste servizi (card grid, list card, riga di ricerca) quando
+	  `fruizione`; nella vetrina il chip e` nell'eyebrow dell'hero con tooltip
+	  sull'ente erogatore. Corretta la traduzione EN di `APP.LABEL.fruizione`
+	  (era "Enjoyment"). Mock FE temporaneo su GET /servizi_gruppi (BE da adeguare
+	  per restituire `fruizione`/`soggetto_erogatore`; GET /servizi li fornisce gia`).
+
+2026-08-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 326: ricerca servizi per organizzazione, il filtro invia ora il
+	  parametro `id_organizzazione_erogatore` (era `id_organizzazione`).
+	  Rinominati field del filtro e FormControl in `servizi.component`.
+
+2026-08-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 327: dati PDND "Informazioni generali" non aggiornati al cambio
+	  collaudo/produzione (istanze `ui-data-type`/`ui-item-type` riusate). I due
+	  componenti foglia ora ricalcolano il valore mostrato anche in `ngOnChanges`,
+	  non solo in `ngOnInit`. In `pdnd-eservice-view` reso non mutante il mapping
+	  dei descrittori (sort su copia, `audience`/`serverUrls` via `at(-1)`,
+	  accessi null-safe).
+
+2026-08-05  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 328: il criterio di univocità delle API comprende l'ente erogatore per i
+	  soli servizi intermediati. Servizi intermediati e non intermediati ricadono in
+	  namespace distinti: la stessa API (nome, versione, dominio) può esistere una
+	  volta su un servizio non intermediato e una volta su ciascun servizio
+	  intermediato con ente erogatore diverso. Il vincolo è verificato in creazione e
+	  modifica dell'API e, novità, anche quando la modifica del servizio (dominio,
+	  flag di intermediazione, ente erogatore) sposta le sue API in un altro
+	  namespace. Nuovo errore API.409.INTERMEDIATO che indica l'ente erogatore in
+	  conflitto. La risoluzione inversa (nome, versione, soggetto) usata da
+	  monitoraggio, statistiche e allarmi non usa più findOne, che con più
+	  corrispondenze falliva con errore 500: la scelta è deterministica (prima i
+	  servizi non intermediati, poi id crescente).
+
 2026-08-03  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* Rilasciata versione 2.4.3

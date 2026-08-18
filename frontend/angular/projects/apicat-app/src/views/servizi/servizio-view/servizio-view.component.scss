@@ -373,3 +373,84 @@ word-break: break-word;
     color: var(--ink-2);
     border-color: var(--line);
 }
+
+/* Icona "relay" (servizio intermediato) nell'eyebrow dell'hero, con tooltip
+   sull'ente erogatore. */
+.lnk-vetrina .hero .hero-eyebrow .eyebrow-relay {
+    font-size: 15px;
+    cursor: default;
+    vertical-align: middle;
+}
+
+/* Issue 331 — box "Gruppi" nella sidebar della vetrina: chip (foglie) + tree. */
+.lnk-vetrina .gruppi-toggle {
+    font-size: 12px;
+    white-space: nowrap;
+    text-decoration: none;
+}
+.lnk-vetrina .gruppi-toggle .bi { margin-right: 4px; }
+
+.lnk-vetrina .gruppi-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.lnk-vetrina .gruppo-chip,
+.lnk-vetrina .gruppo-node {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--ink-1, inherit);
+    max-width: 100%;
+}
+.lnk-vetrina .gruppo-chip {
+    padding: 3px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--surface-3);
+    font-size: 12px;
+    font-weight: 600;
+}
+.lnk-vetrina .gruppo-chip > span,
+.lnk-vetrina .gruppo-node > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.lnk-vetrina .gruppo-chip:hover,
+.lnk-vetrina .gruppo-node:hover { text-decoration: underline; }
+.lnk-vetrina .gruppo-chip:focus-visible,
+.lnk-vetrina .gruppo-node:focus-visible {
+    outline: 2px solid var(--focus, #1a73e8);
+    outline-offset: 2px;
+}
+
+.lnk-vetrina .gruppo-chip-img,
+.lnk-vetrina .gruppo-node-img {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+.lnk-vetrina .gruppo-chip .bi,
+.lnk-vetrina .gruppo-node .bi { font-size: 14px; color: var(--ink-2); }
+
+.lnk-vetrina .gruppi-tree {
+    list-style: none;
+    margin: 0;
+    padding-left: 0;
+}
+.lnk-vetrina .gruppi-tree:not(.gruppi-tree--root) {
+    padding-left: 16px;
+    border-left: 1px solid var(--line);
+    margin-left: 8px;
+}
+.lnk-vetrina .gruppi-tree-item { padding: 3px 0; }
+
+/* Distinzione gruppi di appartenenza vs sottogruppi (figli)/antenati. */
+.lnk-vetrina .gruppo-node--membership { font-weight: 600; color: var(--ink-1, inherit); }
+.lnk-vetrina .gruppo-node--other { color: var(--ink-2); font-weight: 400; }

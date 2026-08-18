@@ -195,4 +195,18 @@ describe('DataTypeComponent', () => {
         component.onAvatarError(event);
         expect(event.target.src).toEqual(expectedOutput);
     });
+
+    it('should recompute _value on data change with reused instance (issue 327)', () => {
+        component._elem = { field: 'test', type: 'text' };
+        component._config = { options: {} };
+        component._data = { test: 'collaudo' };
+        component.ngOnInit();
+        expect(component._value).toEqual('collaudo');
+        // Switch collaudo -> produzione: istanza riusata, solo il dato cambia.
+        component._data = { test: 'produzione' };
+        component.ngOnChanges({
+            _data: { currentValue: component._data, previousValue: { test: 'collaudo' }, firstChange: false, isFirstChange: () => false } as any
+        });
+        expect(component._value).toEqual('produzione');
+    });
 });

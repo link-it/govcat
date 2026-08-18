@@ -150,6 +150,15 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     ];
     _tipiVisibilitaServizioEnum: any = { ...Tools.VisibilitaServizioEnum };
 
+    // Filtro "Intermediato" (BE: `fruizione` booleano). Select a 3 valori:
+    // Tutti (nessun filtro) / Sì (true) / No (false), come `intermediata`
+    // nelle organizzazioni.
+    _yesNoList: { value: string, label: string }[] = [
+        { value: 'true', label: 'APP.BOOLEAN.Yes' },
+        { value: 'false', label: 'APP.BOOLEAN.No' }
+    ];
+    _fruizioneEnum: any = { 'true': 'APP.BOOLEAN.Yes', 'false': 'APP.BOOLEAN.No' };
+
     // Valori ammessi per il filtro `ruolo_referente` lato BE (vedi
     // `RuoloReferenteEnum`). `utente_organizzazione` NON e` un
     // ruolo referente (appartiene a `RuoloUtenteEnum`) e causa 400
@@ -170,8 +179,9 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         { field: 'q', label: 'APP.LABEL.FreeSearch', type: 'text', condition: 'like' },
         { field: 'stato', label: 'APP.LABEL.stato', type: 'enum', condition: 'equal', enumValues: this._statiServizioEnum },
         { field: 'visibilita', label: 'APP.LABEL.visibilita', type: 'enum', condition: 'equal', enumValues: this._tipiVisibilitaServizioEnum },
+        { field: 'fruizione', label: 'APP.LABEL.fruizione', type: 'enum', condition: 'equal', enumValues: this._fruizioneEnum },
         { field: 'id_dominio', label: 'APP.LABEL.id_dominio', type: 'text', condition: 'equal', params: { resource: 'domini', field: 'nome', urlParam: '?id_dominio=' } },
-        { field: 'id_organizzazione', label: 'APP.LABEL.OrganizzazioneErogatore', type: 'text', condition: 'equal', params: { resource: 'organizzazioni', field: 'nome', urlParam: '?id_organizzazione=' } },
+        { field: 'id_organizzazione_erogatore', label: 'APP.LABEL.OrganizzazioneErogatore', type: 'text', condition: 'equal', params: { resource: 'organizzazioni', field: 'nome', urlParam: '?id_organizzazione=' } },
         { field: 'id_api', label: 'APP.LABEL.id_api', type: 'text', condition: 'equal', params: { resource: 'api', field: '{nome} v.{versione} ({servizio.dominio.nome})' } },
         // { field: 'id_servizio', label: 'APP.LABEL.id_servizio', type: 'text', condition: 'equal', params: { resource: 'servizi', field: 'nome' } },
         { field: 'profilo', label: 'APP.LABEL.Profilo', type: 'text', condition: 'contain', callBack: (value: any) => {
@@ -586,14 +596,15 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     _initSearchForm() {
         this._formGroup = new FormGroup({
             q: new FormControl(''),
-            stato: new FormControl(''),
+            stato: new FormControl(null),
             type: new FormControl(''),
             referente: new FormControl(''),
             ruolo_referente: new FormControl([]),
             id_dominio: new FormControl(''),
-            id_organizzazione: new FormControl(''),
+            id_organizzazione_erogatore: new FormControl(''),
             id_gruppo: new FormControl(''),
-            visibilita: new FormControl(''),
+            visibilita: new FormControl(null),
+            fruizione: new FormControl(null),
             categoria: new FormControl(''),
             categoriaLabel: new FormControl(''),
             profilo: new FormControl(''),

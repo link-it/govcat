@@ -124,6 +124,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   padding-left: 1rem;
 }
 
+/* Icona "relay" (servizio intermediato) a destra, centrata verticalmente,
+   in luogo dell'icona folder dei gruppi. */
+.group-list-card-relay {
+  flex-shrink: 0;
+  margin-left: auto;
+  padding-left: 1rem;
+  display: flex;
+  align-items: center;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
 .group-icon-wrapper {
   display: flex;
   flex-direction: column;

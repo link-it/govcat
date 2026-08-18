@@ -1159,7 +1159,7 @@ public class ServiziController implements ServiziApi {
 
 	@Override
 	public ResponseEntity<PagedModelItemServizio> listServizi(String referente, UUID idDominio, UUID idOrganizzazioneErogatore, UUID idGruppo, VisibilitaServizioEnum visibilita, UUID idApi,
-			List<String> stato, List<String> categoria, List<String> tag, List<String> profilo, Boolean inAttesa, Boolean mieiServizi, List<RuoloReferenteEnum> ruoloReferente, Boolean dashboard, Boolean adesioneConsentita, String nome, String versione, List<UUID> idServizi, Boolean _package, TipoServizio tipo, String q, Integer page, Integer size, List<String> sort) {
+			List<String> stato, List<String> categoria, List<String> tag, List<String> profilo, Boolean inAttesa, Boolean mieiServizi, List<RuoloReferenteEnum> ruoloReferente, Boolean dashboard, Boolean adesioneConsentita, String nome, String versione, List<UUID> idServizi, Boolean _package, TipoServizio tipo, Boolean fruizione, String q, Integer page, Integer size, List<String> sort) {
 		try {
 			this.logger.info("Invocazione in corso ...");
 			return this.service.runTransaction( () -> {
@@ -1197,6 +1197,9 @@ public class ServiziController implements ServiziApi {
 				if(tipo != null) {
 					specification.setTipo(Optional.of(this.dettaglioAssembler.toTipo(tipo)));
 				}
+
+				specification.setFruizione(Optional.ofNullable(fruizione));
+
 				specification.setQ(Optional.ofNullable(q));
 
 				specification.setTag(tag);

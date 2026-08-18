@@ -334,6 +334,37 @@ describe('ClientDetailsComponent', () => {
     });
   });
 
+  describe('_onAuthDescriptorChange (issue 334)', () => {
+    it('should patch cert_fornito_content when type "cert" and tipo_certificato "fornito"', () => {
+      initFormWithDefaults(component);
+      component._formGroup.controls['tipo_certificato'].setValue('fornito');
+      component._onAuthDescriptorChange({ value: { file: 'c.pem', data: 'BASE64', type: 'application/x-pem-file' }, type: 'cert' });
+      expect(component._formGroup.controls['cert_fornito_content'].value).toBe('BASE64');
+      expect(component._formGroup.controls['cert_fornito_filename'].value).toBe('c.pem');
+    });
+
+    it('should patch csr_modulo_ric_content when type "cert" and tipo_certificato "richiesto_csr"', () => {
+      initFormWithDefaults(component);
+      component._formGroup.controls['tipo_certificato'].setValue('richiesto_csr');
+      component._onAuthDescriptorChange({ value: { file: 'm.pdf', data: 'DATA', type: 'application/pdf' }, type: 'cert' });
+      expect(component._formGroup.controls['csr_modulo_ric_content'].value).toBe('DATA');
+    });
+
+    it('should patch csr_richiesta_content when type "csr"', () => {
+      initFormWithDefaults(component);
+      component._formGroup.controls['tipo_certificato'].setValue('richiesto_csr');
+      component._onAuthDescriptorChange({ value: { file: 'r.csr', data: 'CSR', type: 'text/plain' }, type: 'csr' });
+      expect(component._formGroup.controls['csr_richiesta_content'].value).toBe('CSR');
+    });
+
+    it('should patch cert_fornito_content_firma when firma type "cert" and tipo_certificato_firma "fornito"', () => {
+      initFormWithDefaults(component);
+      component._formGroup.controls['tipo_certificato_firma'].setValue('fornito');
+      component._onAuthDescriptorChangeFirma({ value: { file: 'f.pem', data: 'FBASE64', type: 'application/x-pem-file' }, type: 'cert' });
+      expect(component._formGroup.controls['cert_fornito_content_firma'].value).toBe('FBASE64');
+    });
+  });
+
   // ---- Helper to build client data for _initForm ----
   function buildClientData(overrides: any = {}) {
     return {

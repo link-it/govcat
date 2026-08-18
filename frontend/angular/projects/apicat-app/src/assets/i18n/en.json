@@ -956,7 +956,7 @@
 			"FreeSearch": "Free search",
 			"From": "from",
 			"Fruitore": "User shall",
-			"fruizione": "Enjoyment",
+			"fruizione": "Intermediated",
 			"FullName": "Fullname",
 			"giornaliero": "Daily",
 			"Giorno": "Day",
@@ -1423,7 +1423,10 @@
 							"SERVICE": "No API found for service [{{idServizio}}]"
 						}
 					},
-					"409": "API [{{nome}}/{{versione}}/{{soggetto}}] already exists"
+					"409": {
+						"DEFAULT": "API [{{nome}}/{{versione}}/{{soggetto}}] already exists",
+						"INTERMEDIATO": "API [{{nome}}/{{versione}}/{{soggetto}}] already exists for provider [{{erogatore}}]"
+					}
 				},
 				"ApiNoDelete": "The API cannot be deleted in its current state.",
 				"AUT": {
@@ -2818,6 +2821,7 @@
 			"Show": "Show",
 			"ShowDetails": "Show details",
 			"SoggettoReferente": "Referent subject: {{soggetto}}",
+			"ErogatoDa": "Provided by {{ente}}",
 			"StatoConfigurazioneAutomatica": "Automatic Configuration status",
 			"StatusChange": "Status change",
 			"TempoRispostaServizio": "Service Response Time",

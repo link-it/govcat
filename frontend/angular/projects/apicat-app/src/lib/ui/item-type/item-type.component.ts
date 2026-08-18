@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, HostBinding, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, HostBinding, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
@@ -28,6 +28,7 @@ import { SetBackgroundImageDirective } from '../../directives/set-background-ima
 import { UtilsLib } from '../../utils/utils.lib';
 import { LnkAvatarComponent } from '@app/components/lnk-ui/avatar/avatar.component';
 import { StatoChipComponent } from '@app/components/vetrina/stato-chip.component';
+import { RelayIconComponent } from '@app/components/relay-icon/relay-icon.component';
 
 import moment from 'moment/moment';
 
@@ -38,9 +39,9 @@ import moment from 'moment/moment';
         './item-type.component.scss'
     ],
     standalone: true,
-    imports: [CommonModule, TranslateModule, TooltipModule, MarkdownModule, LnkAvatarComponent, HttpImgSrcPipe, SetBackgroundImageDirective, StatoChipComponent]
+    imports: [CommonModule, TranslateModule, TooltipModule, MarkdownModule, LnkAvatarComponent, HttpImgSrcPipe, SetBackgroundImageDirective, StatoChipComponent, RelayIconComponent]
 })
-export class ItemTypeComponent implements OnInit {
+export class ItemTypeComponent implements OnInit, OnChanges {
     @HostBinding('class.empty-space') get emptySpace(): boolean {
         return this.elem.emptySpace;
     }
@@ -101,6 +102,20 @@ export class ItemTypeComponent implements OnInit {
     ) { }
 
     ngOnInit() {
+        this._computeValue();
+    }
+
+    ngOnChanges(changes: SimpleChanges) {
+        // Ricalcola il valore quando cambia il dato in ingresso a istanza
+        // riusata (es. switch collaudo/produzione): senza questo resterebbe
+        // il valore calcolato al primo ngOnInit.
+        if (changes['data'] && !changes['data'].firstChange) {
+            this._computeValue();
+        }
+    }
+
+    private _computeValue() {
+        if (!this.data) { return; }
         this._sourceData = this.data.source || this.data
 
         this._value = this.utilsLib.getObjectValue(this._sourceData, this.elem.field);

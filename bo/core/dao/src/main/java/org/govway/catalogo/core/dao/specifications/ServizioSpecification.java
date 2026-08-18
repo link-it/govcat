@@ -74,6 +74,7 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 	private List<UUID> categorie = null;
 	private Optional<VISIBILITA> visibilita = Optional.empty();
 	private Optional<TipoServizio> tipo = Optional.empty();
+	private Optional<Boolean> fruizione = Optional.empty();
 	private Optional<UUID> idApi = Optional.empty();
 	private Optional<UtenteEntity> utente = Optional.empty();
 	private Optional<Boolean> utenteAdmin = Optional.empty();
@@ -156,7 +157,11 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 		if (tipo.isPresent()) {
 			predLst.add(cb.equal(root.get(ServizioEntity_.tipo), tipo.get()));
 		}
-		
+
+		if (fruizione.isPresent()) {
+			predLst.add(cb.equal(root.get(ServizioEntity_.fruizione), fruizione.get()));
+		}
+
 		if (idApi.isPresent()) {
 			Path<String> joinedComponentId = root.join(ServizioEntity_.api).get(ApiEntity_.idApi);
 			predLst.add(joinedComponentId.in(idApi.get().toString()));
@@ -536,6 +541,14 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 
 	public void setTipo(Optional<TipoServizio> tipo) {
 		this.tipo = tipo;
+	}
+
+	public Optional<Boolean> getFruizione() {
+		return fruizione;
+	}
+
+	public void setFruizione(Optional<Boolean> fruizione) {
+		this.fruizione = fruizione;
 	}
 
 	public Optional<Boolean> getUtenteAdmin() {

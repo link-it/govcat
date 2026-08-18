@@ -25,13 +25,14 @@ import { ConfigService, COMPONENTS_IMPORTS } from '@linkit/components';
 import { UtilsLib } from '@app/lib/utils/utils.lib';
 import { SetBackgroundImageDirective } from '@app/lib/directives/set-background-image.directive';
 import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
+import { RelayIconComponent } from '@app/components/relay-icon/relay-icon.component';
 
 @Component({
   selector: 'app-servizi-group-list-card',
   templateUrl: './servizi-group-list-card.component.html',
   styleUrls: ['./servizi-group-list-card.component.scss'],
   standalone: true,
-  imports: [CommonModule, ...COMPONENTS_IMPORTS, TooltipModule, SetBackgroundImageDirective, HttpImgSrcPipe]
+  imports: [CommonModule, ...COMPONENTS_IMPORTS, TooltipModule, SetBackgroundImageDirective, HttpImgSrcPipe, RelayIconComponent]
 })
 export class ServiziGroupListCardComponent implements OnInit {
 

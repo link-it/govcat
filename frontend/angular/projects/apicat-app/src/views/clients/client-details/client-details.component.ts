@@ -1727,12 +1727,34 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
   /** Adapter per `(descriptorChange)` — mappa sul metodo legacy `__descrittoreChange`. */
   _onAuthDescriptorChange(event: { value: any; type: string }): void {
-    this.__descrittoreChange(event.value, event.type);
+    const _tipo = this._formGroup.controls.tipo_certificato?.value;
+    this.__descrittoreChange(event.value, this._mapDescriptorType(event.type, _tipo));
   }
 
   /** Adapter per `(descriptorChangeFirma)`. */
   _onAuthDescriptorChangeFirma(event: { value: any; type: string }): void {
-    this.__descrittoreChangeFirma(event.value, event.type);
+    const _tipo = this._formGroup.controls.tipo_certificato_firma?.value;
+    this.__descrittoreChangeFirma(event.value, this._mapDescriptorType(event.type, _tipo));
+  }
+
+  /**
+   * Mappa il `type` emesso dal componente condiviso `client-auth-form`
+   * (`cert` | `csr` | `cert_generato` | `cert_generato_csr[_firma]`) verso i
+   * `tipo` attesi dagli switch `__descrittoreChange[Firma]`. Il generico `cert`
+   * è ambiguo (upload del certificato "fornito" oppure del modulo di richiesta
+   * nel flusso CSR): si disambigua col `tipo_certificato` corrente. Senza questa
+   * mappatura il `patchValue` del contenuto certificato non avveniva (Issue 334).
+   */
+  private _mapDescriptorType(type: string, tipoCertificato: any): string {
+    switch (type) {
+      case 'csr': return 'csr_richiesta';
+      case 'cert_generato': return 'cert_generato';
+      case 'cert_generato_csr': return 'cert_generato_csr';
+      case 'cert_generato_csr_firma': return 'cert_generato_csr_firma';
+      case 'cert':
+      default:
+        return (tipoCertificato === 'richiesto_csr') ? 'csr_modulo_richiesta' : 'cert_fornito';
+    }
   }
 
   /** Adapter per `(changeAuthType)` dal dropdown del componente condiviso. */

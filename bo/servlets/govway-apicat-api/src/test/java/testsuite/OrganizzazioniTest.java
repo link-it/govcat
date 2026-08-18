@@ -26,6 +26,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -56,6 +59,7 @@ import org.govway.catalogo.servlets.model.RuoloOrganizzazioneEnum;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.Soggetto;
 import org.govway.catalogo.servlets.model.SoggettoCreate;
+import org.govway.catalogo.servlets.model.SoggettoUpdate;
 import org.govway.catalogo.servlets.model.Utente;
 import org.govway.catalogo.servlets.model.UtenteCreate;
 import org.govway.catalogo.servlets.model.PagedModelItemUtenteOrganizzazione;
@@ -132,6 +136,9 @@ public class OrganizzazioniTest {
 
     @Autowired
     private OrganizzazioniController controller;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private UUID organizzazioneId;
 
@@ -380,6 +387,56 @@ public class OrganizzazioniTest {
         });
 
         assertEquals("ORG.404", exception.getMessage());
+    }
+
+    @Test
+    public void testDeleteOrganizzazioneConSoggettoDefaultSpostato() {
+        OrganizzazioneCreate organizzazioneCreate = new OrganizzazioneCreate();
+        organizzazioneCreate.setNome(NOME_ORGANIZZAZIONE);
+        organizzazioneCreate.setDescrizione(DESCRIZIONE);
+        organizzazioneCreate.setCodiceEnte(CODICE_ENTE);
+        organizzazioneCreate.setCodiceFiscaleSoggetto(CODICE_FISCALE_SOGGETTO);
+        organizzazioneCreate.setIdTipoUtente(ID_TIPO_UTENTE);
+        organizzazioneCreate.setReferente(REFERENTE);
+        organizzazioneCreate.setAderente(true);
+        organizzazioneCreate.setIntermediata(INTERMEDIATA);
+        Organizzazione organizzazione = controller.createOrganizzazione(organizzazioneCreate).getBody();
+        UUID id = organizzazione.getIdOrganizzazione();
+        UUID idSoggettoDefault = organizzazione.getSoggettoDefault().getIdSoggetto();
+
+        OrganizzazioneCreate altraOrganizzazione = new OrganizzazioneCreate();
+        altraOrganizzazione.setNome("Altra Organizzazione TEST");
+        altraOrganizzazione.setDescrizione(DESCRIZIONE);
+        altraOrganizzazione.setCodiceEnte("AltroCodiceEnte");
+        altraOrganizzazione.setCodiceFiscaleSoggetto("AltroCodiceFiscale");
+        altraOrganizzazione.setIdTipoUtente(ID_TIPO_UTENTE);
+        altraOrganizzazione.setReferente(REFERENTE);
+        altraOrganizzazione.setAderente(true);
+        altraOrganizzazione.setIntermediata(INTERMEDIATA);
+        UUID idAltraOrganizzazione = controller.createOrganizzazione(altraOrganizzazione).getBody().getIdOrganizzazione();
+
+        // Il soggetto default viene spostato sull'altra organizzazione: il riferimento
+        // dell'organizzazione di provenienza resta obsoleto
+        SoggettoUpdate soggettoUpdate = new SoggettoUpdate();
+        soggettoUpdate.setNome(organizzazione.getSoggettoDefault().getNome());
+        soggettoUpdate.setReferente(true);
+        soggettoUpdate.setAderente(true);
+        soggettoUpdate.setIdOrganizzazione(idAltraOrganizzazione);
+        soggettiController.updateSoggetto(idSoggettoDefault, soggettoUpdate);
+
+        // In esercizio la cancellazione arriva su una nuova sessione: qui va forzato lo
+        // svuotamento del persistence context, altrimenti l'organizzazione di provenienza
+        // conserva in cache il soggetto ormai spostato
+        this.entityManager.flush();
+        this.entityManager.clear();
+
+        // La cancellazione deve andare a buon fine senza valutare (ne' cancellare) il
+        // soggetto ormai appartenente all'altra organizzazione
+        assertEquals(HttpStatus.OK, controller.deleteOrganizzazione(id).getStatusCode());
+
+        Soggetto soggetto = soggettiController.getSoggetto(idSoggettoDefault).getBody();
+        assertNotNull(soggetto);
+        assertEquals(idAltraOrganizzazione, soggetto.getOrganizzazione().getIdOrganizzazione());
     }
 
     @Test

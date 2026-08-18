@@ -19,6 +19,8 @@
  */
 package org.govway.catalogo.core.services;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -26,6 +28,7 @@ import org.govway.catalogo.core.dao.specifications.AllegatoApiSpecification;
 import org.govway.catalogo.core.dao.specifications.ApiSpecification;
 import org.govway.catalogo.core.orm.entity.AllegatoApiEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
+import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -71,12 +74,72 @@ public class ApiService extends AbstractService {
 		return specification;
 	}
 
-	public boolean existsByNomeVersioneSoggetto(String nome, Integer versione, UUID soggetto) {
-		return this.apiRepo.count(filterByNomeVersione(nome, versione, soggetto)) > 0;
+	/**
+	 * Verifica se esiste gia` una api con lo stesso nome e versione nello stesso "namespace" di
+	 * univocita`.
+	 *
+	 * Il namespace e` dato da nome + versione + soggetto referente del dominio; per i servizi
+	 * intermediati comprende anche l'ente erogatore. Servizi intermediati e non intermediati
+	 * ricadono quindi in namespace distinti: la stessa api puo` esistere su un servizio non
+	 * intermediato e, contemporaneamente, su servizi intermediati con enti erogatori diversi.
+	 *
+	 * @param idSoggettoErogatore ente erogatore del servizio intermediato; se null i servizi
+	 *        intermediati privi di ente erogatore formano un namespace a se`. Ignorato se
+	 *        intermediato e` false.
+	 * @param idApiEscluse api da non considerare nel confronto (tipicamente quelle del servizio
+	 *        che si sta modificando, che non possono entrare in conflitto con se stesse).
+	 */
+	public boolean existsApiInConflitto(String nome, Integer versione, UUID idSoggettoReferente, boolean intermediato, UUID idSoggettoErogatore, List<UUID> idApiEscluse) {
+		ApiSpecification specification = new ApiSpecification();
+		specification.setNome(Optional.of(nome));
+		specification.setVersione(Optional.of(versione));
+		specification.setIdSoggetto(Optional.of(idSoggettoReferente));
+		specification.setServizioIntermediato(Optional.of(intermediato));
+
+		if(intermediato) {
+			specification.setIdSoggettoErogatore(Optional.ofNullable(idSoggettoErogatore));
+		}
+
+		specification.setIdApiEscluse(idApiEscluse);
+
+		return this.apiRepo.count(specification) > 0;
 	}
 
+	/**
+	 * Api associate al servizio indicato.
+	 *
+	 * Interroga il database invece di usare la collection dell'entita`: api_servizi ha due lati
+	 * owning (ApiEntity.servizi e ServizioEntity.api), quindi la collection del servizio puo`
+	 * risultare non aggiornata nella sessione corrente.
+	 */
+	public List<ApiEntity> findByServizio(UUID idServizio) {
+		ApiSpecification specification = new ApiSpecification();
+		specification.setServiziList(List.of(idServizio));
+		return this.apiRepo.findAll(specification);
+	}
+
+	/**
+	 * Risolve una api a partire dai dati provenienti dal gateway (nome, versione, soggetto).
+	 *
+	 * Il criterio di univocita` delle api distingue i servizi intermediati per ente erogatore,
+	 * quindi questa ricerca puo` restituire piu` di un risultato: in quel caso la scelta e`
+	 * deterministica (prima le api dei servizi non intermediati, poi id crescente) per non
+	 * dipendere dall'ordinamento del database.
+	 */
 	public Optional<ApiEntity> findByNomeVersioneSoggetto(String nome, Integer versione, UUID soggetto) {
-		return this.apiRepo.findOne(filterByNomeVersione(nome, versione, soggetto));
+		List<ApiEntity> apiList = this.apiRepo.findAll(filterByNomeVersione(nome, versione, soggetto));
+
+		if(apiList.isEmpty()) {
+			return Optional.empty();
+		}
+
+		return apiList.stream()
+				.min(Comparator.comparing(ApiService::isIntermediata)
+						.thenComparing(ApiEntity::getId));
+	}
+
+	private static Boolean isIntermediata(ApiEntity api) {
+		return api.getServizi().stream().anyMatch(ServizioEntity::isFruizione);
 	}
 
 	public Page<AllegatoApiEntity> findAllAllegatiApi(Specification<AllegatoApiEntity> spec, Pageable p) {

@@ -1089,13 +1089,142 @@ public class AdesioniTest {
         CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
         Adesione adesione = this.getAdesione();
 
-        this.tearDown();        
-        
+        this.tearDown();
+
         assertThrows(NotAuthorizedException.class, () -> {
         	adesioniController.deleteAdesione(adesione.getIdAdesione());
         });
     }
-    
+
+    private UUID creaClientCollaudo(String nome, StatoClientEnum stato) {
+        ClientCreate clientCreate = new ClientCreate();
+        clientCreate.setIdSoggetto(idSoggetto);
+        clientCreate.setNome(nome);
+        clientCreate.setAmbiente(AmbienteEnum.COLLAUDO);
+
+        AuthTypeHttpsCreate dati = new AuthTypeHttpsCreate();
+        dati.setAuthType(AuthTypeEnum.HTTPS);
+
+        CertificatoClientFornitoCreate certificato = new CertificatoClientFornitoCreate();
+        certificato.setTipoCertificato(TipoCertificatoEnum.FORNITO);
+
+        DocumentoUpdateNew documento = new DocumentoUpdateNew();
+        documento.setTipoDocumento(TipoDocumentoEnum.NUOVO);
+        documento.setFilename("certificato.cer");
+        documento.setContent(pemCert);
+        documento.setContentType("application/cert");
+
+        certificato.setCertificato(documento);
+        dati.setCertificatoAutenticazione(certificato);
+
+        clientCreate.setDatiSpecifici(dati);
+        clientCreate.setDescrizione("descrizione");
+        clientCreate.setIndirizzoIp("1.1.1.1");
+        clientCreate.setStato(stato);
+
+        return clientController.createClient(clientCreate).getBody().getIdClient();
+    }
+
+    private void associaClientCollaudo(UUID idAdesione, String nomeClient) {
+        AdesioneIdClient adesioneIdClient = new AdesioneIdClient();
+        adesioneIdClient.setNome(nomeClient);
+        adesioneIdClient.setAmbiente(AmbienteEnum.COLLAUDO);
+        adesioneIdClient.setIdSoggetto(idSoggetto);
+        adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
+
+        adesioniController.saveClientCollaudoAdesione(idAdesione, PROFILO, adesioneIdClient, null);
+    }
+
+    @Test
+    void testDeleteAdesioneEliminaClientNuovoNonCondiviso() {
+        // Setup
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+        Adesione adesione = this.getAdesione();
+
+        UUID idClient = this.creaClientCollaudo("ClientTestNuovo", StatoClientEnum.NUOVO);
+        this.associaClientCollaudo(adesione.getIdAdesione(), "ClientTestNuovo");
+
+        // Allineo la sessione al DB: il persistence context del test e' condiviso tra le chiamate
+        entityManager.flush();
+        entityManager.clear();
+
+        // Act
+        ResponseEntity<Void> response = adesioniController.deleteAdesione(adesione.getIdAdesione());
+
+        // Assert: il client, non configurato e associato alla sola adesione eliminata, viene eliminato
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertThrows(NotFoundException.class, () -> clientController.getClient(idClient));
+    }
+
+    @Test
+    void testDeleteAdesioneNonEliminaClientConfigurato() {
+        // Setup
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+        Adesione adesione = this.getAdesione();
+
+        UUID idClient = this.creaClientCollaudo("ClientTestConfigurato", StatoClientEnum.CONFIGURATO);
+        this.associaClientCollaudo(adesione.getIdAdesione(), "ClientTestConfigurato");
+
+        // Allineo la sessione al DB: il persistence context del test e' condiviso tra le chiamate
+        entityManager.flush();
+        entityManager.clear();
+
+        // Act
+        ResponseEntity<Void> response = adesioniController.deleteAdesione(adesione.getIdAdesione());
+
+        // Assert: il client configurato sopravvive all'eliminazione dell'adesione
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(clientController.getClient(idClient).getBody());
+    }
+
+    @Test
+    void testDeleteAdesioneNonEliminaClientNuovoCondiviso() {
+        // Setup
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizioMultiAdesione(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+
+        List<ReferenteCreate> listaReferenti = new ArrayList<>();
+        ReferenteCreate newReferente = new ReferenteCreate();
+        newReferente.setIdUtente(ID_UTENTE_GESTORE);
+        newReferente.setTipo(TipoReferenteEnum.REFERENTE);
+        listaReferenti.add(newReferente);
+
+        UUID idAdesione1 = this.creaAdesioneConIdLogico(listaReferenti, "a");
+        UUID idAdesione2 = this.creaAdesioneConIdLogico(listaReferenti, "b");
+
+        UUID idClient = this.creaClientCollaudo("ClientTestCondiviso", StatoClientEnum.NUOVO);
+        this.associaClientCollaudo(idAdesione1, "ClientTestCondiviso");
+        this.associaClientCollaudo(idAdesione2, "ClientTestCondiviso");
+
+        // Allineo la sessione al DB: il persistence context del test e' condiviso tra le chiamate
+        entityManager.flush();
+        entityManager.clear();
+
+        // Act
+        ResponseEntity<Void> response = adesioniController.deleteAdesione(idAdesione1);
+
+        // Assert: il client resta perche' ancora associato alla seconda adesione
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(clientController.getClient(idClient).getBody());
+    }
+
+    private UUID creaAdesioneConIdLogico(List<ReferenteCreate> listaReferenti, String idLogico) {
+        AdesioneCreate nuovaAdesione = new AdesioneCreate();
+        nuovaAdesione.setIdServizio(idServizio);
+        nuovaAdesione.setIdSoggetto(idSoggetto);
+        nuovaAdesione.setReferenti(listaReferenti);
+        nuovaAdesione.setIdLogico(idLogico);
+        return adesioniController.createAdesione(nuovaAdesione).getBody().getIdAdesione();
+    }
+
     @Test
     void testDeleteReferenteAdesioneSuccess() {
         // Setup
