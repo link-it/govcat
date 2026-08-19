@@ -2361,6 +2361,7 @@
 				"ConfigureApi": "Configure",
 				"AddApi": "Create API",
 				"Sections": "Service sections",
+				"NoItems": "There are no items",
 				"InlineComingSoon": "Inline management coming soon.",
 				"OpenSection": "Open section",
 				"OpenWizard": "Guided view",

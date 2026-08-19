@@ -352,8 +352,17 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         this._phaseSectionOpen[key] = true;
         setTimeout(() => {
             const el = document.getElementById('phase-section-' + key);
-            if (el && typeof el.scrollIntoView === 'function') {
-                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            if (!el) { return; }
+            // Scrolla SOLO il contenitore .container-scroller: scrollIntoView
+            // propagherebbe lo scroll alla finestra, nascondendo breadcrumb/head-bar.
+            const scroller = el.closest('.container-scroller') as HTMLElement | null;
+            if (scroller) {
+                const nav = scroller.querySelector('.lnk-section-nav') as HTMLElement | null;
+                const offset = (nav?.offsetHeight || 48) + 12;
+                const top = scroller.scrollTop + el.getBoundingClientRect().top - scroller.getBoundingClientRect().top - offset;
+                scroller.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+            } else if (typeof el.scrollIntoView === 'function') {
+                el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
         }, 50);
     }

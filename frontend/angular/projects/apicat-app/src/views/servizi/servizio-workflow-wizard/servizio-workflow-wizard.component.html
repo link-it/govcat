@@ -316,7 +316,10 @@
                     </div>
                   }
                   @if (!serviceAllegati.length) {
-                    <div class="text-muted small py-1">{{ 'APP.MESSAGE.NoResults' | translate }}</div>
+                    <div class="lnk-empty">
+                      <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
+                      <span>{{ 'APP.SERVICES.WIZARD.NoItems' | translate }}</span>
+                    </div>
                   }
                 </div>
               }
@@ -363,7 +366,10 @@
                     </div>
                   }
                   @if (!servizioGruppi.length) {
-                    <div class="text-muted small py-1">{{ 'APP.MESSAGE.NoResults' | translate }}</div>
+                    <div class="lnk-empty">
+                      <i class="bi bi-folder" aria-hidden="true"></i>
+                      <span>{{ 'APP.SERVICES.WIZARD.NoItems' | translate }}</span>
+                    </div>
                   }
                 </div>
               }

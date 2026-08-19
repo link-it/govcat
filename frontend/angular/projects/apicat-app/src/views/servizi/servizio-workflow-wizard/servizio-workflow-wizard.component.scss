@@ -215,6 +215,17 @@
 
   .lnk-btn-icon { width: 30px; padding: 0; justify-content: center; }
 
+  // ─── empty-state sezioni (nessun elemento) ────────────────────────
+  .lnk-empty {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; padding: 22px 16px; text-align: center;
+    color: var(--ink-3);
+    background: var(--surface); border: 1px dashed var(--line-strong);
+    border-radius: 10px;
+  }
+  .lnk-empty i { font-size: 22px; color: var(--ink-4); line-height: 1; }
+  .lnk-empty span { font-size: 13px; }
+
   // ─── gruppi referenti + righe (approval-card) ─────────────────────
   .lnk-ref-group {
     background: var(--surface-2);

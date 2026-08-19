@@ -1,6 +1,13 @@
 2026-08-18  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard a fasi servizio, FASE 1: empty-state di Allegati e Gruppi con messaggio
+	  dedicato ("Non sono presenti elementi") e rendering migliorato (icona + testo in
+	  box tratteggiato) al posto del messaggio di filtro. Fix barra "vai a": lo scroll
+	  alla sezione avviene solo dentro .container-scroller, così breadcrumb e head-bar
+	  non vengono più trascinati sotto la testata.
+
+	* [Frontend]
 	Wizard a fasi servizio, FASE 1: navigazione tra sezioni migliorata. Barra "vai a"
 	  sticky con le sezioni (Informazioni generali/Referenti/Allegati/Gruppi/API) e
 	  relativi conteggi, accordion esclusivo (una sola sezione aperta per volta) e
