@@ -1,5 +1,14 @@
 2026-08-19  Giovanni De Luca <giovanni.deluca@link.it>
 
+	* [GovwayAPICatalogo]
+	Fix vulnerabilità OWASP: aggiornato tika-core da 3.2.3 a 3.3.2
+	  (CVE-2026-66755, path traversal nel parser ISA-Tab). La libreria è
+	  utilizzata solo per il rilevamento del content type e i moduli parser di
+	  Tika non sono inclusi nel classpath, ma la correzione risiede in
+	  tika-core.
+
+2026-08-19  Giovanni De Luca <giovanni.deluca@link.it>
+
 	* Rilasciata versione 2.4.4
 
 2026-08-18  Giovanni De Luca <giovanni.deluca@link.it>
