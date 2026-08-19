@@ -46,6 +46,13 @@
 	  sono state inserite anche nella `allowlist` di `audit-ci.json`, che con
 	  `skip-dev` le vedeva come finding di produzione tramite `vite` -> `less`.
 	  Rimuovere tutte le suppression appena uscira` una release fixata.
+	Il job `osv_scan_FE` di `.github/workflows/main.yml` passa ora
+	  `--config=./osv-scanner.toml` come gia` fa `osv_scan_BE`: osv-scanner cerca il
+	  file di configurazione solo nella directory del manifest analizzato e non
+	  risale alle directory superiori, quindi scansionando `./frontend/angular` le
+	  suppression della radice venivano ignorate e il job restava rosso sui due
+	  finding di image-size. Il requisito e` documentato nell'intestazione di
+	  `osv-scanner.toml`, perche' valga anche per le scansioni locali.
 
 2026-08-19  Giovanni De Luca <giovanni.deluca@link.it>
 

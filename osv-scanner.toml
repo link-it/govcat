@@ -16,6 +16,14 @@
 # tools/owasp/suppression/ che nei <suppressionFiles> del pom.xml radice (job
 # backend) e negli argomenti --suppression di .github/workflows/main.yml (job
 # frontend).
+#
+# ATTENZIONE: osv-scanner cerca il file di configurazione solo nella directory
+# del manifest analizzato e NON risale alle directory superiori. Poiche' questo
+# file sta nella radice del repository, va sempre passato esplicitamente con
+# --config, sia dai job osv_scan_BE/osv_scan_FE di .github/workflows/main.yml
+# sia nelle scansioni locali, altrimenti le suppression vengono ignorate:
+#
+#   osv-scanner scan source --config=./osv-scanner.toml -r ./frontend/angular
 
 [[IgnoredVulns]]
 id = "GHSA-5p2g-fcmc-qvqq"
