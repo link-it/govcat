@@ -2,6 +2,60 @@
 
 	* Rilasciata versione 2.4.4
 
+2026-08-19  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [Frontend]
+	Fix vulnerabilita` OSV/OWASP del frontend: aggiornato Angular da 21.2.17 a
+	  21.2.20 (GHSA-jhpw-976m-542j su `@angular/common`, GHSA-jj27-h5hq-8x99 su
+	  `@angular/core`/`@angular/compiler`) e alzate le dipendenze transitive negli
+	  `overrides`: dompurify 3.4.13, mermaid 11.16.1, postcss 8.5.26
+	  (GHSA-fxqj-rqcc-2cmp, alias CVE-2026-69153), nanoid 3.3.18 (nuovo override,
+	  la 3.3.17 richiesta da postcss e` ancora vulnerabile), ip-address 10.3.1,
+	  fast-uri 3.1.5, hono 4.12.34, js-yaml 4.3.1, brace-expansion 5.0.9 e undici,
+	  ora con override distinti per linea di versione (`undici@^6` a 6.28.0,
+	  `undici@^7` a 7.29.0) dato che nel progetto convivono entrambe le major.
+	  L'override selettivo di `body-parser`, non piu` corrispondente alla versione
+	  risolta e per questo causa di un `package-lock` non allineato al
+	  `package.json`, e` diventato un override di linea (`body-parser@^2` a 2.3.0).
+	Aggiornato `swagger-ui-dist` da ^5.32.11 a ^5.32.14: i bundle
+	  `swagger-ui-bundle.js` e `swagger-ui-es-bundle.js` includono DOMPurify
+	  minificato al loro interno, quindi il finding GHSA-55q2-fjhq-7xh7 (DOMPurify
+	  3.4.12, XSS in modalita` IN_PLACE) non era risolvibile via `overrides`; la
+	  5.32.13 e` la prima release che bundla DOMPurify 3.4.13.
+	Rimossa la suppression OWASP `DOMPurify-swagger-ui-dist.xml`, ormai obsoleta:
+	  copriva la logic inconsistency FORBID_TAGS/ADD_TAGS di DOMPurify (fix in
+	  3.4.0) sui bundle di swagger-ui-dist, che ora ne incorpora la 3.4.13. Rimosso
+	  anche il relativo argomento `--suppression` dallo step OWASP del frontend in
+	  `.github/workflows/main.yml`: quel job non legge i `<suppressionFiles>` del
+	  pom, quindi ogni suppression aggiunta o rimossa va allineata su entrambi.
+	Bonificato `osv-scanner.toml` dai riferimenti non piu` attuali: rimosse le
+	  suppression di CVE-2025-41242, CVE-2025-41249, CVE-2026-22735, CVE-2026-22737
+	  (spring-webmvc/spring-core 6.1.x), CVE-2026-22732 (spring-security-web 6.3.x)
+	  e CVE-2026-54515 (jackson-databind 2.21.4), tutte non piu` applicabili con
+	  Spring Boot 4.0.7 / Spring Framework 7.0.8 / Spring Security 7.0.6 e
+	  jackson-databind 2.21.5; le prime cinque rinviavano a una migrazione a Spring 7
+	  gia` completata, e le note delle ultime due citavano file di suppression OWASP
+	  nel frattempo cancellati. Aggiornata l'intestazione del file con l'elenco dei
+	  punti da tenere allineati quando si aggiunge o rimuove una suppression.
+	Aggiunta suppression OSV per GHSA-5p2g-fcmc-qvqq e GHSA-w3rx-r6r6-pgpr
+	  (image-size 2.0.2, DoS per loop infinito nei parser JXL/HEIF e ICNS): non
+	  esiste alcuna versione fixata pubblicata e la dipendenza e` di sola build
+	  (`@angular-devkit/build-angular` -> `less` -> `image-size`), non presente nel
+	  bundle distribuito. Le stesse CVE erano gia` soppresse in OWASP
+	  Dependency-Check (`tools/owasp/suppression/image-size.xml`). Le due advisory
+	  sono state inserite anche nella `allowlist` di `audit-ci.json`, che con
+	  `skip-dev` le vedeva come finding di produzione tramite `vite` -> `less`.
+	  Rimuovere tutte le suppression appena uscira` una release fixata.
+
+2026-08-19  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Fix vulnerabilità OWASP: aggiornato tika-core da 3.2.3 a 3.3.2
+	  (CVE-2026-66755, path traversal nel parser ISA-Tab). La libreria è
+	  utilizzata solo per il rilevamento del content type e i moduli parser di
+	  Tika non sono inclusi nel classpath, ma la correzione risiede in
+	  tika-core.
+
 2026-08-18  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [ReverseProxy]
