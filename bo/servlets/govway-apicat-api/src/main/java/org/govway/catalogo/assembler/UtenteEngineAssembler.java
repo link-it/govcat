@@ -25,8 +25,10 @@ import java.util.Optional;
 
 import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Ruolo;
+import org.govway.catalogo.core.orm.entity.UtenteEntity.RuoloPdnd;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Stato;
 import org.govway.catalogo.servlets.model.RuoloOrganizzazioneEnum;
+import org.govway.catalogo.servlets.model.RuoloPdndEnum;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnumSearch;
 import org.govway.catalogo.servlets.model.StatoUtenteEnum;
@@ -101,6 +103,35 @@ public class UtenteEngineAssembler extends CoreEngineAssembler {
 		case GESTORE: return Ruolo.AMMINISTRATORE;
 		case COORDINATORE: return Ruolo.COORDINATORE;
 		case UTENTE_ORGANIZZAZIONE: return Ruolo.RUOLO_ORGANIZZAZIONE;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Il ruolo PDND non valorizzato sull'utente equivale a "nessuno".
+	 */
+	public RuoloPdndEnum toRuoloPdnd(RuoloPdnd ruoloPdnd) {
+		if(ruoloPdnd == null) {
+			return RuoloPdndEnum.NESSUNO;
+		}
+
+		switch(ruoloPdnd) {
+		case ADMIN: return RuoloPdndEnum.ADMIN;
+		case NESSUNO: return RuoloPdndEnum.NESSUNO;
+		}
+
+		return RuoloPdndEnum.NESSUNO;
+	}
+
+	public RuoloPdnd toEntity(RuoloPdndEnum ruoloPdnd) {
+		if(ruoloPdnd == null) {
+			return null;
+		}
+
+		switch(ruoloPdnd) {
+		case ADMIN: return RuoloPdnd.ADMIN;
+		case NESSUNO: return RuoloPdnd.NESSUNO;
 		}
 
 		return null;

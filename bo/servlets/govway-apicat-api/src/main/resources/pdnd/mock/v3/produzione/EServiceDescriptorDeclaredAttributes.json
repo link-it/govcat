@@ -1,0 +1,17 @@
+{
+  "results": [
+    {
+      "groupIndex": 0,
+      "attribute": {
+        "id": "c9999999-9999-9999-9999-999999999999",
+        "name": "Attributo dichiarato",
+        "description": "Attributo dichiarato dal fruitore"
+      }
+    }
+  ],
+  "pagination": {
+    "offset": 0,
+    "limit": 50,
+    "totalCount": 1
+  }
+}

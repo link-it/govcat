@@ -1,3 +1,68 @@
+2026-08-24  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 250: introdotto il ruolo dell'utente sulla PDND (`ruolo_pdnd`), con i
+	  valori `nessuno` e `admin`. Il campo e` esposto nel dettaglio utente,
+	  nell'elenco utenti e nel profilo, ed e` valorizzabile in creazione e in
+	  aggiornamento da chi e` autorizzato alla scrittura degli utenti (gestore ed
+	  eventualmente coordinatore, secondo `amministrazione.utenti.scrittura`). Un
+	  amministratore di organizzazione non puo` assegnarlo ne` modificarlo: riceve
+	  un 403 `AUT.403.AMM.ORG.RUOLO.PDND`, coerentemente con il vincolo gia`
+	  presente sul ruolo globale. Il valore non impostato equivale a `nessuno` ed e`
+	  riportato come tale in lettura, quindi gli utenti esistenti non richiedono
+	  alcuna migrazione dei dati. La vista ridotta dell'utente, riservata a chi non
+	  e` abilitato al dettaglio, continua a non esporre il campo.
+	Aggiunto lo script di aggiornamento del database
+	  `V2.4.5__ruolo_pdnd_utenti.sql`: nuova colonna `utenti.ruolo_pdnd` nullable e
+	  senza valore di default, con il consueto CHECK sui valori ammessi. Nessuna
+	  modifica ai dati esistenti: lo script e` retrocompatibile con il software in
+	  esercizio, che ignora la nuova colonna.
+
+2026-08-21  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 250: l'integrazione con la PDND utilizza ora le API PDND core v3, che
+	  sostituiscono le API "Interoperability API Gateway" v1 ormai deprecate. La
+	  versione da utilizzare e` scelta dalla nuova proprieta` `pdnd.versione`
+	  (`v3` per default, `v1` per mantenere il comportamento precedente): la v1 resta
+	  quindi disponibile e le proprieta` `pdnd.v1.*` sono invariate, affiancate dalle
+	  nuove `pdnd.v3.<ambiente>.client.url|username|password` e
+	  `pdnd.v3.<ambiente>.client.properties.*`. Le url `pdnd.v1.*.client.url` non
+	  sono piu` obbligatorie all'avvio, dato che in configurazione v3 non servono.
+	  L'API PDND esposta da GovCat sotto `/pdnd/v1` non cambia, ne` nei path ne` nel
+	  modello dati: frontend e altri client restano invariati, mentre le risposte
+	  della v3 vengono riportate nel modello v1 dal nuovo `PDNDClientV3` (i due
+	  client implementano l'interfaccia comune `IPDNDClient`, selezionata da
+	  `PDNDClientFactory`). Il client v3 e` generato dalla specifica ufficiale
+	  ridotta alle sole operazioni utilizzate (`pdnd/openapi_pdnd_client_v3.yaml`);
+	  l'autenticazione verso la PDND (voucher e DPoP) resta a carico del gateway
+	  GovWay, come per la v1.
+	Le operazioni dell'API esposta che non hanno un equivalente nella v3
+	  restituiscono, in configurazione `pdnd.versione=v3`, un errore 501 con codice
+	  `SYS.501`: gli eventi (`/events`, `/events/eservices`, `/events/keys`), dove la
+	  v3 identifica gli eventi con un UUID e non con il progressivo numerico previsto
+	  dal modello esposto, gli attributi di un accordo
+	  (`/agreements/{id}/attributes`), e l'assegnazione e la revoca di un attributo
+	  certificato per codice (`upsertTenant`, `revokeTenantAttribute`), non
+	  risolvibile perche` la v3 non offre la ricerca degli attributi per `code`.
+	  Introdotta a questo scopo l'eccezione `NotImplementedException`, mappata su
+	  HTTP 501 dal controller advisor.
+	Ricostruzioni e approssimazioni necessarie a mantenere il modello dati esposto,
+	  in configurazione v3: `category` dell'organizzazione riporta la tipologia di
+	  tenant (PA, PRIVATE, GSP, SCP), non essendo piu` esposta la categoria IPA;
+	  versione, stato, url di invocazione e attributi dell'e-service provengono dal
+	  descrittore corrente (il piu` recente tra quelli pubblicati); il filtro per
+	  attributo dell'elenco e-service di un ente si applica agli attributi
+	  certificati, gli unici per cui la v3 espone origine e codice; i metadati
+	  dell'interfaccia del descrittore non sono disponibili, mentre i documenti
+	  allegati sono letti dall'apposita operazione; accordi, descrittori e finalita`
+	  in stati non rappresentabili nel modello esposto (bozza, in attesa di
+	  approvazione, rifiutata) sono esclusi dagli elenchi.
+	Aggiunto il mock delle API PDND v3 sotto `/pdnd/mock/v3/<ambiente>`, analogo a
+	  quello gia` presente per la v1, con le risposte simulate in
+	  `pdnd/mock/v3/<ambiente>`: le url `pdnd.v3.*.client.url` di default vi puntano,
+	  come avviene per la v1.
+
 2026-08-19  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* Rilasciata versione 2.4.4

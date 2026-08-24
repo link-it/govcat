@@ -478,6 +478,9 @@ public enum ErrorCode {
     /** L'utente da creare deve essere associato esclusivamente all'organizzazione di sessione */
     AUT_403_AMM_ORG_INVALID_ORGS("Vincoli organizzazioni utente non soddisfatti per amministratore organizzazione"),
 
+    /** Un amministratore organizzazione non può assegnare o modificare il ruolo PDND di un utente */
+    AUT_403_AMM_ORG_RUOLO_PDND("Ruolo PDND non assegnabile da amministratore organizzazione"),
+
     /** Un amministratore organizzazione può operare solo sui domini il cui soggetto referente appartiene alla propria organizzazione di sessione */
     AUT_403_AMM_ORG_DOMINIO_FUORI_ORG("Dominio non appartenente all'organizzazione di sessione dell'amministratore"),
 

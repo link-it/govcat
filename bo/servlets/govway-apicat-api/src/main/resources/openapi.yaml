@@ -9184,6 +9184,12 @@ components:
         - utente_organizzazione
         - gestore
         - coordinatore
+    RuoloPdndEnum:
+      type: "string"
+      description: "Ruolo dell'utente sulla PDND"
+      enum:
+        - nessuno
+        - admin
     RuoloUtenteEnumSearch:
       type: "string"
       enum:
@@ -9265,6 +9271,8 @@ components:
           $ref: "#/components/schemas/StatoUtenteEnum"
         ruolo:
           $ref: "#/components/schemas/RuoloUtenteEnum"
+        ruolo_pdnd:
+          $ref: "#/components/schemas/RuoloPdndEnum"
         abilitato_domini_esterni:
           type: 'boolean'
         organizzazioni:
@@ -9311,6 +9319,8 @@ components:
           $ref: "#/components/schemas/StatoUtenteEnum"
         ruolo:
           $ref: "#/components/schemas/RuoloUtenteEnum"
+        ruolo_pdnd:
+          $ref: "#/components/schemas/RuoloPdndEnum"
         abilitato_domini_esterni:
           type: 'boolean'
         organizzazioni:
@@ -9434,6 +9444,8 @@ components:
           $ref: "#/components/schemas/StatoUtenteEnum"
         ruolo:
           $ref: "#/components/schemas/RuoloUtenteEnum"
+        ruolo_pdnd:
+          $ref: "#/components/schemas/RuoloPdndEnum"
         abilitato_domini_esterni:
           type: 'boolean'
         azienda_esterna:
@@ -9481,6 +9493,8 @@ components:
           $ref: "#/components/schemas/StatoUtenteEnum"
         ruolo:
           $ref: "#/components/schemas/RuoloUtenteEnum"
+        ruolo_pdnd:
+          $ref: "#/components/schemas/RuoloPdndEnum"
         abilitato_domini_esterni:
           type: 'boolean'
         organizzazione_pending:

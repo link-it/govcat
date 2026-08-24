@@ -1,0 +1,15 @@
+{
+  "results": [
+    {
+      "id": "cbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+      "name": "openapi.yaml",
+      "prettyName": "Specifica OpenAPI",
+      "contentType": "application/yaml"
+    }
+  ],
+  "pagination": {
+    "offset": 0,
+    "limit": 50,
+    "totalCount": 1
+  }
+}

@@ -1,0 +1,2133 @@
+# NOTA: file generato dalla specifica ufficiale PDND core v3
+# (pagopa/interop-be-monorepo -> packages/api-clients/open-api/m2mGatewayApiV3.yml)
+# tramite lo script documentato in ChangeLog; contiene le sole operazioni usate da GovCat.
+openapi: 3.0.3
+info:
+  contact:
+    name: API Support
+    url: https://github.com/pagopa/pdnd-interop-frontend/issues
+  description: 'Sottoinsieme della specifica ufficiale PDND core v3 (m2mGatewayApiV3) contenente le sole
+    operazioni invocate da GovCat. L''autenticazione verso la PDND (voucher e DPoP) e'' delegata al gateway
+    GovWay: la specifica non dichiara quindi alcuno schema di sicurezza.'
+  termsOfService: https://selfcare.interop.pagopa.it/ui/it/termini-di-servizio
+  title: PDND Interoperability API (v3) - operazioni utilizzate da GovCat
+  version: 3.1.0
+  x-summary: PDND Interoperability API
+servers:
+- url: /v3
+  description: PDND core v3
+tags:
+- name: gateway
+  description: Operazioni PDND v3 utilizzate da GovCat
+paths:
+  /status:
+    get:
+      description: Retrieve the status of the API
+      operationId: getStatus
+      responses:
+        '200':
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+          description: Status retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Retrieve the status of the API
+      tags:
+      - gateway
+  /agreements:
+    get:
+      description: Retrieve a list of Agreements based on filters
+      operationId: getAgreements
+      parameters:
+      - description: Filter Agreements by states. If not specified, return Agreements in any state
+        explode: false
+        in: query
+        name: states
+        required: false
+        schema:
+          default: []
+          items:
+            $ref: '#/components/schemas/AgreementState'
+          type: array
+      - description: Filter Agreements by producer IDs. If not specified, return Agreements for any producer
+        explode: false
+        in: query
+        name: producerIds
+        required: false
+        schema:
+          default: []
+          items:
+            format: uuid
+            type: string
+          type: array
+      - description: Filter Agreements by consumer IDs. If not specified, return Agreements for any consumer
+        explode: false
+        in: query
+        name: consumerIds
+        required: false
+        schema:
+          default: []
+          items:
+            format: uuid
+            type: string
+          type: array
+      - description: Filter Agreements by Descriptor IDs. If not specified, return Agreements for any
+          Descriptor
+        explode: false
+        in: query
+        name: descriptorIds
+        required: false
+        schema:
+          default: []
+          items:
+            $ref: '#/components/schemas/DescriptorId'
+          type: array
+      - $ref: '#/components/parameters/EserviceIdsParam'
+      - $ref: '#/components/parameters/OffsetParam'
+      - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agreements'
+          description: Agreements retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: List Agreements
+      tags:
+      - gateway
+  /agreements/{agreementId}:
+    get:
+      description: Retrieve an Agreement
+      operationId: getAgreement
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agreement'
+          description: Agreement retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Retrieve an Agreement
+      tags:
+      - gateway
+      parameters:
+      - description: The ID of the Agreement
+        in: path
+        name: agreementId
+        required: true
+        schema:
+          $ref: '#/components/schemas/AgreementId'
+  /agreements/{agreementId}/purposes:
+    get:
+      description: Retrieve a list of Purposes associated with an Agreement
+      operationId: getAgreementPurposes
+      parameters:
+      - description: The ID of the Agreement to retrieve purposes for
+        in: path
+        name: agreementId
+        required: true
+        schema:
+          $ref: '#/components/schemas/AgreementId'
+      - $ref: '#/components/parameters/LimitParam'
+      - $ref: '#/components/parameters/OffsetParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Purposes'
+          description: Purposes retrieved for the Agreement
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: List Purposes for an Agreement
+      tags:
+      - gateway
+  /purposes/{purposeId}:
+    get:
+      description: Retrieve a Purpose
+      operationId: getPurpose
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Purpose'
+          description: Purpose retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Retrieve a Purpose
+      tags:
+      - gateway
+      parameters:
+      - description: The ID of the Purpose to retrieve
+        in: path
+        name: purposeId
+        required: true
+        schema:
+          $ref: '#/components/schemas/PurposeId'
+  /purposes/{purposeId}/agreement:
+    get:
+      description: Retrieve the Agreement associated to a Purpose
+      operationId: getPurposeAgreement
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agreement'
+          description: Agreement retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Retrieve a Purpose Agreement
+      tags:
+      - gateway
+      parameters:
+      - description: The ID of the Purpose to retrieve the agreement for
+        in: path
+        name: purposeId
+        required: true
+        schema:
+          $ref: '#/components/schemas/PurposeId'
+  /clients/{clientId}:
+    get:
+      description: Retrieve a Client by its ID
+      operationId: getClient
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+          description: Client retrieved successfully
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Retrieve a Client
+      tags:
+      - gateway
+      parameters:
+      - description: The ID of the Client to retrieve
+        in: path
+        name: clientId
+        required: true
+        schema:
+          $ref: '#/components/schemas/ClientId'
+  /eservices:
+    get:
+      description: Retrieve a list of E-Services based on filters
+      operationId: getEServices
+      parameters:
+      - description: Filter E-Services by producer IDs. If not specified, return E-Services for any producer
+        explode: false
+        in: query
+        name: producerIds
+        schema:
+          default: []
+          items:
+            format: uuid
+            type: string
+          type: array
+      - $ref: '#/components/parameters/TemplateIdsParam'
+      - description: Filter E-Services by name
+        in: query
+        name: name
+        schema:
+          type: string
+      - description: Filter E-Services by technology
+        in: query
+        name: technology
+        schema:
+          $ref: '#/components/schemas/EServiceTechnology'
+      - description: Filter E-Services by mode
+        in: query
+        name: mode
+        schema:
+          $ref: '#/components/schemas/EServiceMode'
+      - description: Filter E-Services by Signal Hub enabled status
+        in: query
+        name: isSignalHubEnabled
+        schema:
+          type: boolean
+      - description: Filter E-Services by consumer delegable status
+        in: query
+        name: isConsumerDelegable
+        schema:
+          type: boolean
+      - description: Filter E-Services by client access delegable status
+        in: query
+        name: isClientAccessDelegable
+        schema:
+          type: boolean
+      - $ref: '#/components/parameters/OffsetParam'
+      - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EServices'
+          description: E-Services retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: List E-Services
+      tags:
+      - gateway
+  /eservices/{eserviceId}:
+    get:
+      description: Retrieve an E-Service
+      operationId: getEService
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EService'
+          description: E-Service retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Retrieve an E-Service
+      tags:
+      - gateway
+      parameters:
+      - description: The E-Service ID
+        in: path
+        name: eserviceId
+        required: true
+        schema:
+          $ref: '#/components/schemas/EServiceId'
+  /eservices/{eserviceId}/descriptors:
+    get:
+      description: Retrieve a list of E-Service Descriptors based on filters
+      operationId: getEServiceDescriptors
+      parameters:
+      - description: The E-Service ID of the Descriptors to retrieve
+        in: path
+        name: eserviceId
+        required: true
+        schema:
+          $ref: '#/components/schemas/EServiceId'
+      - description: Filter Descriptors by states. If not specified, return Descriptors in any state
+        in: query
+        name: state
+        schema:
+          $ref: '#/components/schemas/EServiceDescriptorState'
+      - $ref: '#/components/parameters/OffsetParam'
+      - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EServiceDescriptors'
+          description: E-Service Descriptors retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: List E-Service Descriptors
+      tags:
+      - gateway
+  /eservices/{eserviceId}/descriptors/{descriptorId}:
+    get:
+      description: Retrieve an E-Service Descriptor
+      operationId: getEServiceDescriptor
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EServiceDescriptor'
+          description: E-Service Descriptor retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Retrieve an E-Service Descriptor
+      tags:
+      - gateway
+      parameters:
+      - description: The E-Service ID of the Descriptor
+        in: path
+        name: eserviceId
+        required: true
+        schema:
+          $ref: '#/components/schemas/EServiceId'
+      - description: The ID of the Descriptor
+        in: path
+        name: descriptorId
+        required: true
+        schema:
+          $ref: '#/components/schemas/DescriptorId'
+  /eservices/{eserviceId}/descriptors/{descriptorId}/documents:
+    get:
+      description: Retrieve a list of documents for the specified E-Service Descriptor
+      operationId: getEServiceDescriptorDocuments
+      parameters:
+      - description: The E-Service ID of the Descriptor
+        in: path
+        name: eserviceId
+        required: true
+        schema:
+          $ref: '#/components/schemas/EServiceId'
+      - description: The ID of the Descriptor
+        in: path
+        name: descriptorId
+        required: true
+        schema:
+          $ref: '#/components/schemas/DescriptorId'
+      - $ref: '#/components/parameters/OffsetParam'
+      - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Documents'
+          description: E-Service Descriptor Documents retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: List E-Service Descriptor Documents
+      tags:
+      - gateway
+  /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedAttributes:
+    get:
+      description: Retrieve a list of E-Service Descriptor Certified Attributes
+      operationId: getEServiceDescriptorCertifiedAttributes
+      parameters:
+      - description: The E-Service ID of the Descriptor
+        in: path
+        name: eserviceId
+        required: true
+        schema:
+          $ref: '#/components/schemas/EServiceId'
+      - description: The ID of the Descriptor
+        in: path
+        name: descriptorId
+        required: true
+        schema:
+          $ref: '#/components/schemas/DescriptorId'
+      - $ref: '#/components/parameters/OffsetParam'
+      - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EServiceDescriptorCertifiedAttributes'
+          description: E-Service Descriptors Certified Attributes retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: List E-Service Descriptor Certified Attributes
+      tags:
+      - gateway
+  /eservices/{eserviceId}/descriptors/{descriptorId}/declaredAttributes:
+    get:
+      description: Retrieve a list of E-Service Descriptor Declared Attributes
+      operationId: getEServiceDescriptorDeclaredAttributes
+      parameters:
+      - description: The E-Service ID of the Descriptor
+        in: path
+        name: eserviceId
+        required: true
+        schema:
+          $ref: '#/components/schemas/EServiceId'
+      - description: The ID of the Descriptor
+        in: path
+        name: descriptorId
+        required: true
+        schema:
+          $ref: '#/components/schemas/DescriptorId'
+      - $ref: '#/components/parameters/OffsetParam'
+      - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EServiceDescriptorDeclaredAttributes'
+          description: E-Service Descriptors Declared Attributes retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: List E-Service Descriptor Declared Attributes
+      tags:
+      - gateway
+  /eservices/{eserviceId}/descriptors/{descriptorId}/verifiedAttributes:
+    get:
+      description: Retrieve a list of E-Service Descriptor Verified Attributes
+      operationId: getEServiceDescriptorVerifiedAttributes
+      parameters:
+      - description: The E-Service ID of the Descriptor
+        in: path
+        name: eserviceId
+        required: true
+        schema:
+          $ref: '#/components/schemas/EServiceId'
+      - description: The ID of the Descriptor
+        in: path
+        name: descriptorId
+        required: true
+        schema:
+          $ref: '#/components/schemas/DescriptorId'
+      - $ref: '#/components/parameters/OffsetParam'
+      - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EServiceDescriptorVerifiedAttributes'
+          description: E-Service Descriptors Verified Attributes retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: List E-Service Descriptor Verified Attributes
+      tags:
+      - gateway
+  /tenants:
+    get:
+      description: Retrieve a list of Tenants based on filters
+      operationId: getTenants
+      parameters:
+      - description: 'IPA code of the Tenant
+
+          If the Tenant is an AOO, it corresponds to "codice AOO" in IPA
+
+          If the Tenant is an UO, it corresponds to "codice UO" in IPA
+
+          Available only for Tenants listed in IPA
+
+          Mutually exclusive with taxCode
+
+          '
+        in: query
+        name: IPACode
+        schema:
+          type: string
+      - description: 'Tax code of the Tenant
+
+          Available only for Tenants not listed in IPA
+
+          Mutually exclusive with IPACode
+
+          '
+        in: query
+        name: taxCode
+        schema:
+          type: string
+      - $ref: '#/components/parameters/OffsetParam'
+      - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenants'
+          description: Tenants retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: List Tenants
+      tags:
+      - gateway
+  /tenants/{tenantId}:
+    get:
+      description: Retrieve a Tenant
+      operationId: getTenant
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+          description: Tenant retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Retrieve a Tenant
+      tags:
+      - gateway
+      parameters:
+      - description: The ID of the Tenant to retrieve
+        in: path
+        name: tenantId
+        required: true
+        schema:
+          $ref: '#/components/schemas/TenantId'
+  /keys/{kid}:
+    get:
+      description: Retrieve the JWK by kid
+      operationId: getJWKByKid
+      parameters:
+      - description: The unique identifier of the Key (kid)
+        in: path
+        name: kid
+        required: true
+        schema:
+          $ref: '#/components/schemas/Kid'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Key'
+          description: Key retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Retrieve a Key in JWK format
+      tags:
+      - gateway
+  /certifiedAttributes:
+    post:
+      description: "Create a certified Attribute\nThe Attribute must\n  - have a unique name across all\
+        \ Attributes in the Platform\n  - have a unique code across certified Attributes owned by the\
+        \ requester\n"
+      operationId: createCertifiedAttribute
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CertifiedAttributeSeed'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertifiedAttribute'
+          description: Certified Attribute created
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Create a certified Attribute
+      tags:
+      - gateway
+  /certifiedAttributes/{attributeId}:
+    get:
+      description: Retrieve a certified Attribute
+      operationId: getCertifiedAttribute
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertifiedAttribute'
+          description: Certified attribute retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Retrieve a certified Attribute
+      tags:
+      - gateway
+      parameters:
+      - description: The ID of the Attribute to retrieve
+        in: path
+        name: attributeId
+        required: true
+        schema:
+          $ref: '#/components/schemas/AttributeId'
+  /declaredAttributes/{attributeId}:
+    get:
+      description: Retrieve a declared Attribute
+      operationId: getDeclaredAttribute
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeclaredAttribute'
+          description: Declared attribute retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Retrieve a declared Attribute
+      tags:
+      - gateway
+      parameters:
+      - description: The ID of the Attribute to retrieve
+        in: path
+        name: attributeId
+        required: true
+        schema:
+          $ref: '#/components/schemas/AttributeId'
+  /verifiedAttributes/{attributeId}:
+    get:
+      description: Retrieve a verified Attribute
+      operationId: getVerifiedAttribute
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifiedAttribute'
+          description: Verified attribute retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Retrieve a verified Attribute
+      tags:
+      - gateway
+      parameters:
+      - description: The ID of the Attribute to retrieve
+        in: path
+        name: attributeId
+        required: true
+        schema:
+          $ref: '#/components/schemas/AttributeId'
+components:
+  headers:
+    IntegrityRest02AgidJwtSignatureHeader:
+      description: 'The `Agid-JWT-Signature` header contains a JSON Web Signature (JWS) signed with the
+        PDND API private key.
+
+        It ensures payload integrity and non-repudiation across all responses (both success and error),
+        in compliance with: 1) Linee Guida sull''interoperabilità tecnica delle Pubbliche Amministrazioni
+        - Pattern di sicurezza,  2) RFC 7515 and 3) RFC 7519.
+
+        '
+      schema:
+        type: string
+    IntegrityRest02DigestHeader:
+      description: 'Digest of the body using the canonical JSON representation of the response body.
+
+        The digest is calculated using the SHA-256 algorithm on the response body
+
+        exactly as it is sent to the client, encoded in Base64 as per RFC 3230
+
+        '
+      schema:
+        pattern: ^SHA-256=[a-zA-Z0-9+/]{43}=$
+        type: string
+    RateLimitIntervalHeader:
+      description: Time interval in milliseconds. Allowed requests will be constantly replenished during
+        the interval. At the end of the interval the max allowed requests will be available
+      schema:
+        format: int32
+        minimum: 0
+        type: integer
+    RateLimitLimitHeader:
+      description: Max allowed requests within time interval
+      schema:
+        format: int32
+        minimum: 0
+        type: integer
+    RateLimitRemainingHeader:
+      description: Remaining requests within time interval
+      schema:
+        format: int32
+        minimum: 0
+        type: integer
+  parameters:
+    EserviceIdsParam:
+      description: Filter by E-Service IDs. If not specified, return results for any E-Service. For e-services
+        that are instances of an e-service template, purpose templates linked to the originating e-service
+        template are also returned.
+      explode: false
+      in: query
+      name: eserviceIds
+      required: false
+      schema:
+        default: []
+        items:
+          format: uuid
+          type: string
+        type: array
+    LimitParam:
+      description: Maximum number of results to return
+      in: query
+      name: limit
+      required: true
+      schema:
+        format: int32
+        maximum: 50
+        minimum: 1
+        type: integer
+    OffsetParam:
+      description: Pagination starting position
+      in: query
+      name: offset
+      required: true
+      schema:
+        format: int32
+        minimum: 0
+        type: integer
+    TemplateIdsParam:
+      description: Filter E-Services by template IDs. If not specified, return E-Services for any template,
+        and E-Services without a template
+      explode: false
+      in: query
+      name: templateIds
+      required: false
+      schema:
+        default: []
+        items:
+          format: uuid
+          type: string
+        type: array
+  responses:
+    BadRequest:
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+      description: Bad Request
+      headers:
+        Agid-JWT-Signature:
+          $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+        Digest:
+          $ref: '#/components/headers/IntegrityRest02DigestHeader'
+        X-Rate-Limit-Interval:
+          $ref: '#/components/headers/RateLimitIntervalHeader'
+        X-Rate-Limit-Limit:
+          $ref: '#/components/headers/RateLimitLimitHeader'
+        X-Rate-Limit-Remaining:
+          $ref: '#/components/headers/RateLimitRemainingHeader'
+    Conflict:
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+      description: Conflict
+      headers:
+        Agid-JWT-Signature:
+          $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+        Digest:
+          $ref: '#/components/headers/IntegrityRest02DigestHeader'
+        X-Rate-Limit-Interval:
+          $ref: '#/components/headers/RateLimitIntervalHeader'
+        X-Rate-Limit-Limit:
+          $ref: '#/components/headers/RateLimitLimitHeader'
+        X-Rate-Limit-Remaining:
+          $ref: '#/components/headers/RateLimitRemainingHeader'
+    Forbidden:
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+      description: Forbidden
+      headers:
+        Agid-JWT-Signature:
+          $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+        Digest:
+          $ref: '#/components/headers/IntegrityRest02DigestHeader'
+        X-Rate-Limit-Interval:
+          $ref: '#/components/headers/RateLimitIntervalHeader'
+        X-Rate-Limit-Limit:
+          $ref: '#/components/headers/RateLimitLimitHeader'
+        X-Rate-Limit-Remaining:
+          $ref: '#/components/headers/RateLimitRemainingHeader'
+    NotFound:
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+      description: Not Found
+      headers:
+        Agid-JWT-Signature:
+          $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+        Digest:
+          $ref: '#/components/headers/IntegrityRest02DigestHeader'
+        X-Rate-Limit-Interval:
+          $ref: '#/components/headers/RateLimitIntervalHeader'
+        X-Rate-Limit-Limit:
+          $ref: '#/components/headers/RateLimitLimitHeader'
+        X-Rate-Limit-Remaining:
+          $ref: '#/components/headers/RateLimitRemainingHeader'
+    TooManyRequests:
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+      description: Too Many Requests
+      headers:
+        Agid-JWT-Signature:
+          $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+        Digest:
+          $ref: '#/components/headers/IntegrityRest02DigestHeader'
+        X-Rate-Limit-Interval:
+          $ref: '#/components/headers/RateLimitIntervalHeader'
+        X-Rate-Limit-Limit:
+          $ref: '#/components/headers/RateLimitLimitHeader'
+        X-Rate-Limit-Remaining:
+          $ref: '#/components/headers/RateLimitRemainingHeader'
+    Unauthorized:
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+      description: Unauthorized
+      headers:
+        Agid-JWT-Signature:
+          $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+        Digest:
+          $ref: '#/components/headers/IntegrityRest02DigestHeader'
+        X-Rate-Limit-Interval:
+          $ref: '#/components/headers/RateLimitIntervalHeader'
+        X-Rate-Limit-Limit:
+          $ref: '#/components/headers/RateLimitLimitHeader'
+        X-Rate-Limit-Remaining:
+          $ref: '#/components/headers/RateLimitRemainingHeader'
+  schemas:
+    Agreement:
+      additionalProperties: false
+      properties:
+        consumerId:
+          format: uuid
+          type: string
+        consumerNotes:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        delegationId:
+          $ref: '#/components/schemas/DelegationId'
+        descriptorId:
+          $ref: '#/components/schemas/DescriptorId'
+        eserviceId:
+          $ref: '#/components/schemas/EServiceId'
+        id:
+          format: uuid
+          type: string
+        producerId:
+          format: uuid
+          type: string
+        rejectionReason:
+          type: string
+        state:
+          $ref: '#/components/schemas/AgreementState'
+        suspendedAt:
+          format: date-time
+          type: string
+        suspendedByConsumer:
+          type: boolean
+        suspendedByPlatform:
+          type: boolean
+        suspendedByProducer:
+          type: boolean
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+      - id
+      - eserviceId
+      - descriptorId
+      - producerId
+      - consumerId
+      - state
+      - createdAt
+      type: object
+    AgreementApprovalPolicy:
+      description: E-Service Descriptor policy for new Agreements approval
+      enum:
+      - AUTOMATIC
+      - MANUAL
+      type: string
+    AgreementId:
+      description: The unique identifier of the Agreement
+      format: uuid
+      type: string
+    AgreementState:
+      description: Agreement State
+      enum:
+      - DRAFT
+      - ACTIVE
+      - ARCHIVED
+      - PENDING
+      - SUSPENDED
+      - MISSING_CERTIFIED_ATTRIBUTES
+      - REJECTED
+      type: string
+    Agreements:
+      additionalProperties: false
+      properties:
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        results:
+          items:
+            $ref: '#/components/schemas/Agreement'
+          type: array
+      required:
+      - results
+      - pagination
+      type: object
+    ArchivingSchedule:
+      additionalProperties: false
+      properties:
+        archivableOn:
+          format: date-time
+          type: string
+        scope:
+          $ref: '#/components/schemas/ArchivingScope'
+        startedAt:
+          format: date-time
+          type: string
+      type: object
+    ArchivingScope:
+      description: Archiving Scope
+      enum:
+      - ESERVICE
+      - DESCRIPTOR
+      type: string
+    AsyncExchangeProperties:
+      properties:
+        bulk:
+          type: boolean
+        confirmation:
+          type: boolean
+        maxResultSet:
+          format: int32
+          maximum: 99999
+          minimum: 1
+          type: integer
+        resourceAvailableTime:
+          format: int32
+          maximum: 999999
+          minimum: 1
+          type: integer
+        responseTime:
+          format: int32
+          maximum: 999999
+          minimum: 1
+          type: integer
+      required:
+      - responseTime
+      - resourceAvailableTime
+      - confirmation
+      - bulk
+      - maxResultSet
+      type: object
+    AttributeId:
+      description: The unique identifier of the Attribute
+      format: uuid
+      type: string
+    CertifiedAttribute:
+      additionalProperties: false
+      properties:
+        code:
+          description: The identifier of the attribute on the source registry
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        description:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+        origin:
+          description: Identifier of the origin of this attribute, e.g. "IPA"
+          type: string
+      required:
+      - id
+      - name
+      - description
+      - code
+      - origin
+      - createdAt
+      type: object
+    CertifiedAttributeSeed:
+      additionalProperties: false
+      description: Models the attribute registry entry as payload response
+      properties:
+        code:
+          description: The identifier of the attribute on the source registry
+          maxLength: 64
+          minLength: 1
+          type: string
+        description:
+          maxLength: 500
+          minLength: 1
+          type: string
+        name:
+          maxLength: 500
+          minLength: 1
+          type: string
+      required:
+      - description
+      - name
+      - code
+      type: object
+    Client:
+      description: Client PDND. I campi diversi da id e consumerId sono valorizzati solo se il chiamante
+        e' proprietario del client.
+      type: object
+      properties:
+        consumerId:
+          description: Tenant ID of the Client owner
+          format: uuid
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        description:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - consumerId
+    ClientId:
+      description: The unique identifier of the Client
+      format: uuid
+      type: string
+    DeclaredAttribute:
+      additionalProperties: false
+      properties:
+        createdAt:
+          format: date-time
+          type: string
+        description:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      - description
+      - createdAt
+      type: object
+    DelegationId:
+      description: The unique identifier of the Delegation
+      format: uuid
+      type: string
+    DescriptorId:
+      description: The unique identifier of the Descriptor
+      format: uuid
+      type: string
+    Document:
+      additionalProperties: false
+      properties:
+        contentType:
+          description: The content type of the file
+          type: string
+        createdAt:
+          description: The date and time when the file was uploaded
+          format: date-time
+          type: string
+        id:
+          description: Unique identifier of the file
+          format: uuid
+          type: string
+        name:
+          description: The name of the file
+          type: string
+        prettyName:
+          description: A human-readable name for the file
+          type: string
+      required:
+      - id
+      - name
+      - prettyName
+      - contentType
+      - createdAt
+      type: object
+    Documents:
+      additionalProperties: false
+      properties:
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        results:
+          items:
+            $ref: '#/components/schemas/Document'
+          type: array
+      required:
+      - results
+      - pagination
+      type: object
+    EService:
+      additionalProperties: false
+      properties:
+        archivingReason:
+          type: string
+        asyncExchange:
+          type: boolean
+        description:
+          type: string
+        id:
+          format: uuid
+          type: string
+        isClientAccessDelegable:
+          type: boolean
+        isConsumerDelegable:
+          type: boolean
+        isSignalHubEnabled:
+          type: boolean
+        mode:
+          $ref: '#/components/schemas/EServiceMode'
+        name:
+          type: string
+        personalData:
+          type: boolean
+        producerId:
+          format: uuid
+          type: string
+        technology:
+          $ref: '#/components/schemas/EServiceTechnology'
+        templateId:
+          $ref: '#/components/schemas/TemplateId'
+      required:
+      - id
+      - producerId
+      - name
+      - description
+      - technology
+      - mode
+      type: object
+    EServiceDescriptor:
+      additionalProperties: false
+      properties:
+        agreementApprovalPolicy:
+          $ref: '#/components/schemas/AgreementApprovalPolicy'
+        archivedAt:
+          format: date-time
+          type: string
+        archivingSchedule:
+          $ref: '#/components/schemas/ArchivingSchedule'
+        asyncExchangeProperties:
+          $ref: '#/components/schemas/AsyncExchangeProperties'
+        audience:
+          items:
+            type: string
+          type: array
+        dailyCallsPerConsumer:
+          description: Maximum number of daily calls that this descriptor can afford per consumer
+          format: int32
+          maximum: 1000000000
+          minimum: 1
+          type: integer
+        dailyCallsTotal:
+          description: Total daily calls available for this E-Service
+          format: int32
+          maximum: 1000000000
+          minimum: 1
+          type: integer
+        deprecatedAt:
+          format: date-time
+          type: string
+        description:
+          type: string
+        id:
+          format: uuid
+          type: string
+        publishedAt:
+          format: date-time
+          type: string
+        serverUrls:
+          items:
+            type: string
+          type: array
+        state:
+          $ref: '#/components/schemas/EServiceDescriptorState'
+        suspendedAt:
+          format: date-time
+          type: string
+        templateVersionId:
+          format: uuid
+          type: string
+        version:
+          type: string
+        voucherLifespan:
+          format: int32
+          type: integer
+      required:
+      - id
+      - version
+      - state
+      - audience
+      - voucherLifespan
+      - dailyCallsPerConsumer
+      - dailyCallsTotal
+      - agreementApprovalPolicy
+      - serverUrls
+      type: object
+    EServiceDescriptorCertifiedAttribute:
+      description: Represents an E-Service Descriptor Certified attribute with the index of its attribute
+        group.
+      properties:
+        attribute:
+          $ref: '#/components/schemas/CertifiedAttribute'
+        groupIndex:
+          description: The index of the group to which the attribute belongs.
+          format: int32
+          minimum: 0
+          type: integer
+      required:
+      - groupIndex
+      - attribute
+      type: object
+    EServiceDescriptorCertifiedAttributes:
+      additionalProperties: false
+      properties:
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        results:
+          items:
+            $ref: '#/components/schemas/EServiceDescriptorCertifiedAttribute'
+          type: array
+      required:
+      - results
+      - pagination
+      type: object
+    EServiceDescriptorDeclaredAttribute:
+      description: Represents an E-Service Descriptor Declared attribute with the index of its attribute
+        group.
+      properties:
+        attribute:
+          $ref: '#/components/schemas/DeclaredAttribute'
+        groupIndex:
+          description: The index of the group to which the attribute belongs.
+          format: int32
+          minimum: 0
+          type: integer
+      required:
+      - groupIndex
+      - attribute
+      type: object
+    EServiceDescriptorDeclaredAttributes:
+      additionalProperties: false
+      properties:
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        results:
+          items:
+            $ref: '#/components/schemas/EServiceDescriptorDeclaredAttribute'
+          type: array
+      required:
+      - results
+      - pagination
+      type: object
+    EServiceDescriptorState:
+      description: E-Service Descriptor State
+      enum:
+      - DRAFT
+      - PUBLISHED
+      - DEPRECATED
+      - SUSPENDED
+      - ARCHIVED
+      - WAITING_FOR_APPROVAL
+      - ARCHIVING
+      - ARCHIVING_SUSPENDED
+      type: string
+    EServiceDescriptorVerifiedAttribute:
+      description: Represents an E-Service Descriptor Verified attribute with the index of its attribute
+        group.
+      properties:
+        attribute:
+          $ref: '#/components/schemas/VerifiedAttribute'
+        groupIndex:
+          description: The index of the group to which the attribute belongs.
+          format: int32
+          minimum: 0
+          type: integer
+      required:
+      - groupIndex
+      - attribute
+      type: object
+    EServiceDescriptorVerifiedAttributes:
+      additionalProperties: false
+      properties:
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        results:
+          items:
+            $ref: '#/components/schemas/EServiceDescriptorVerifiedAttribute'
+          type: array
+      required:
+      - results
+      - pagination
+      type: object
+    EServiceDescriptors:
+      additionalProperties: false
+      properties:
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        results:
+          items:
+            $ref: '#/components/schemas/EServiceDescriptor'
+          type: array
+      required:
+      - results
+      - pagination
+      type: object
+    EServiceId:
+      description: The unique identifier of the E-Service
+      format: uuid
+      type: string
+    EServiceMode:
+      description: Indicates if the E-Service is intended for receiving or delivering data
+      enum:
+      - RECEIVE
+      - DELIVER
+      type: string
+    EServiceTechnology:
+      description: API Technology
+      enum:
+      - REST
+      - SOAP
+      type: string
+    EServices:
+      additionalProperties: false
+      properties:
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        results:
+          items:
+            $ref: '#/components/schemas/EService'
+          type: array
+      required:
+      - results
+      - pagination
+      type: object
+    ExternalId:
+      properties:
+        origin:
+          maxLength: 64
+          minLength: 3
+          type: string
+        value:
+          type: string
+      required:
+      - origin
+      - value
+    JWK:
+      additionalProperties: false
+      description: JSON Web Key
+      properties:
+        alg:
+          type: string
+        crv:
+          type: string
+        d:
+          type: string
+        dp:
+          type: string
+        dq:
+          type: string
+        e:
+          type: string
+        k:
+          type: string
+        key_ops:
+          items:
+            type: string
+          type: array
+        kid:
+          $ref: '#/components/schemas/Kid'
+        kty:
+          type: string
+        n:
+          type: string
+        oth:
+          items:
+            $ref: '#/components/schemas/OtherPrimeInfo'
+          minItems: 1
+          type: array
+          uniqueItems: false
+        p:
+          type: string
+        q:
+          type: string
+        qi:
+          type: string
+        use:
+          type: string
+        x:
+          type: string
+        x5c:
+          items:
+            type: string
+          type: array
+        x5t:
+          type: string
+        x5t#S256:
+          type: string
+        x5u:
+          minLength: 1
+          type: string
+        y:
+          type: string
+      required:
+      - kty
+      - kid
+      type: object
+    Key:
+      additionalProperties: false
+      description: Key
+      properties:
+        clientId:
+          $ref: '#/components/schemas/ClientId'
+        jwk:
+          $ref: '#/components/schemas/JWK'
+      required:
+      - clientId
+      - jwk
+      type: object
+    Kid:
+      description: The unique identifier of the Key
+      type: string
+    OtherPrimeInfo:
+      additionalProperties: false
+      properties:
+        d:
+          type: string
+        r:
+          type: string
+        t:
+          type: string
+      required:
+      - r
+      - d
+      - t
+      type: object
+    Pagination:
+      additionalProperties: false
+      properties:
+        limit:
+          format: int32
+          maximum: 50
+          minimum: 1
+          type: integer
+        offset:
+          format: int32
+          minimum: 0
+          type: integer
+        totalCount:
+          format: int32
+          minimum: 0
+          type: integer
+      required:
+      - offset
+      - limit
+      - totalCount
+      type: object
+    Problem:
+      additionalProperties: false
+      properties:
+        correlationId:
+          description: Unique identifier of the request
+          example: 53af4f2d-0c87-41ef-a645-b726a821852b
+          maxLength: 64
+          type: string
+        detail:
+          description: A human readable explanation of the problem
+          example: Request took too long to complete
+          maxLength: 4096
+          pattern: ^.{0,1024}$
+          type: string
+        errors:
+          items:
+            $ref: '#/components/schemas/ProblemError'
+          minItems: 1
+          type: array
+        status:
+          description: The HTTP status code generated by the origin server for this occurrence of the
+            problem
+          example: 503
+          exclusiveMaximum: true
+          format: int32
+          maximum: 600
+          minimum: 100
+          type: integer
+        title:
+          description: A short, summary of the problem type. Written in english and readable
+          example: Service Unavailable
+          maxLength: 64
+          pattern: ^[ -~]{0,64}$
+          type: string
+        type:
+          description: URI reference of type definition
+          type: string
+      required:
+      - type
+      - status
+      - title
+    ProblemError:
+      properties:
+        code:
+          description: Internal code of the error
+          example: 123-4567
+          maxLength: 8
+          minLength: 8
+          pattern: ^[0-9]{3}-[0-9]{4}$
+          type: string
+        detail:
+          description: A human readable explanation specific to this occurrence of the problem
+          example: Parameter not valid
+          maxLength: 4096
+          pattern: ^.{0,1024}$
+          type: string
+      required:
+      - code
+      - detail
+    Purpose:
+      additionalProperties: false
+      properties:
+        consumerId:
+          format: uuid
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        currentVersion:
+          $ref: '#/components/schemas/PurposeVersion'
+        delegationId:
+          $ref: '#/components/schemas/DelegationId'
+        description:
+          type: string
+        eserviceId:
+          $ref: '#/components/schemas/EServiceId'
+        freeOfChargeReason:
+          type: string
+        id:
+          format: uuid
+          type: string
+        isFreeOfCharge:
+          type: boolean
+        purposeTemplateId:
+          $ref: '#/components/schemas/PurposeTemplateId'
+        rejectedVersion:
+          $ref: '#/components/schemas/PurposeVersion'
+        suspendedByConsumer:
+          type: boolean
+        suspendedByProducer:
+          type: boolean
+        title:
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+        waitingForApprovalVersion:
+          $ref: '#/components/schemas/PurposeVersion'
+      required:
+      - id
+      - eserviceId
+      - consumerId
+      - title
+      - description
+      - createdAt
+      - isFreeOfCharge
+      type: object
+    PurposeId:
+      description: The unique identifier of the Purpose
+      format: uuid
+      type: string
+    PurposeTemplateId:
+      description: The unique identifier of the Purpose Template
+      format: uuid
+      type: string
+    PurposeVersion:
+      additionalProperties: false
+      description: business representation of a purpose version
+      properties:
+        createdAt:
+          format: date-time
+          type: string
+        dailyCalls:
+          description: Maximum number of daily calls performed using this version
+          format: int32
+          maximum: 1000000000
+          minimum: 1
+          type: integer
+        firstActivationAt:
+          format: date-time
+          type: string
+        id:
+          format: uuid
+          type: string
+        rejectionReason:
+          type: string
+        state:
+          $ref: '#/components/schemas/PurposeVersionState'
+        suspendedAt:
+          format: date-time
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+      - id
+      - state
+      - dailyCalls
+      - createdAt
+      type: object
+    PurposeVersionState:
+      description: Purpose State
+      enum:
+      - ACTIVE
+      - DRAFT
+      - SUSPENDED
+      - WAITING_FOR_APPROVAL
+      - ARCHIVED
+      - REJECTED
+      type: string
+    Purposes:
+      additionalProperties: false
+      properties:
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        results:
+          items:
+            $ref: '#/components/schemas/Purpose'
+          type: array
+      required:
+      - results
+      - pagination
+      type: object
+    TemplateId:
+      description: The unique identifier of the Template
+      format: uuid
+      type: string
+    Tenant:
+      additionalProperties: false
+      description: Tenant model
+      properties:
+        createdAt:
+          format: date-time
+          type: string
+        externalId:
+          $ref: '#/components/schemas/ExternalId'
+        id:
+          format: uuid
+          type: string
+        kind:
+          $ref: '#/components/schemas/TenantKind'
+        name:
+          type: string
+        onboardedAt:
+          format: date-time
+          type: string
+        selfcareInstitutionType:
+          type: string
+        subUnitType:
+          $ref: '#/components/schemas/TenantSubUnitType'
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+      - id
+      - externalId
+      - createdAt
+      - name
+      type: object
+    TenantId:
+      description: The unique identifier of the Tenant
+      format: uuid
+      type: string
+    TenantKind:
+      enum:
+      - PA
+      - PRIVATE
+      - GSP
+      - SCP
+      type: string
+    TenantSubUnitType:
+      enum:
+      - AOO
+      - UO
+      type: string
+    Tenants:
+      additionalProperties: false
+      properties:
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        results:
+          items:
+            $ref: '#/components/schemas/Tenant'
+          type: array
+      required:
+      - results
+      - pagination
+      type: object
+    VerifiedAttribute:
+      additionalProperties: false
+      properties:
+        createdAt:
+          format: date-time
+          type: string
+        description:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      - description
+      - createdAt
+      type: object

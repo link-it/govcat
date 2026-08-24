@@ -810,7 +810,7 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
     	return new Properties();
     }
 
-    @Value("${pdnd.v1.collaudo.client.url}")
+    @Value("${pdnd.v1.collaudo.client.url:#{null}}")
 	String pdndV1CollaudoClientUrl;
     
     @Value("${pdnd.v1.collaudo.client.username:#{null}}")
@@ -819,7 +819,7 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
     @Value("${pdnd.v1.collaudo.client.password:#{null}}")
 	String pdndV1CollaudoClientPassword;
     
-    @Value("${pdnd.v1.produzione.client.url}")
+    @Value("${pdnd.v1.produzione.client.url:#{null}}")
 	String pdndV1ProduzioneClientUrl;
     
     @Value("${pdnd.v1.produzione.client.username:#{null}}")
@@ -831,8 +831,10 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
     @Bean(name = "PDNDClientCollaudo")
     public ApiClient getApiClientStaging() {
     	ApiClient apiClient = new ApiClient();
-    	
-		apiClient.setBasePath(pdndV1CollaudoClientUrl);
+
+    	if(pdndV1CollaudoClientUrl != null) {
+    		apiClient.setBasePath(pdndV1CollaudoClientUrl);
+    	}
 
     	if(pdndV1CollaudoClientUsername!=null && !pdndV1CollaudoClientUsername.isEmpty() && pdndV1CollaudoClientPassword!=null && !pdndV1CollaudoClientPassword.isEmpty()) {
 			apiClient.addDefaultHeader("Authorization", "Basic " + new String(Base64.getEncoder().encode((pdndV1CollaudoClientUsername+":"+pdndV1CollaudoClientPassword).getBytes())));
@@ -849,20 +851,89 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
     @Bean(name = "PDNDClientProduzione")
     public ApiClient getApiClientProduzione() {
     	ApiClient apiClient = new ApiClient();
-    	
-		apiClient.setBasePath(pdndV1ProduzioneClientUrl);
+
+    	if(pdndV1ProduzioneClientUrl != null) {
+    		apiClient.setBasePath(pdndV1ProduzioneClientUrl);
+    	}
 
     	if(pdndV1ProduzioneClientUsername!=null && !pdndV1ProduzioneClientUsername.isEmpty() && pdndV1ProduzioneClientPassword!=null && !pdndV1ProduzioneClientPassword.isEmpty()) {
 			apiClient.addDefaultHeader("Authorization", "Basic " + new String(Base64.getEncoder().encode((pdndV1ProduzioneClientUsername+":"+pdndV1ProduzioneClientPassword).getBytes())));
     	}
-    	
+
     	Properties p = pdndV1ProduzioneClientProperties();
-    			
+
     	for(String name: p.stringPropertyNames()) {
         	apiClient.addDefaultHeader(name, p.getProperty(name));
     	}
     	return apiClient;
     }
-    
-    
+
+    @Bean
+    @ConfigurationProperties(prefix="pdnd.v3.collaudo.client.properties")
+    public Properties pdndV3CollaudoClientProperties() {
+    	return new Properties();
+    }
+
+    @Bean
+    @ConfigurationProperties(prefix="pdnd.v3.produzione.client.properties")
+    public Properties pdndV3ProduzioneClientProperties() {
+    	return new Properties();
+    }
+
+    @Value("${pdnd.v3.collaudo.client.url:#{null}}")
+	String pdndV3CollaudoClientUrl;
+
+    @Value("${pdnd.v3.collaudo.client.username:#{null}}")
+	String pdndV3CollaudoClientUsername;
+
+    @Value("${pdnd.v3.collaudo.client.password:#{null}}")
+	String pdndV3CollaudoClientPassword;
+
+    @Value("${pdnd.v3.produzione.client.url:#{null}}")
+	String pdndV3ProduzioneClientUrl;
+
+    @Value("${pdnd.v3.produzione.client.username:#{null}}")
+	String pdndV3ProduzioneClientUsername;
+
+    @Value("${pdnd.v3.produzione.client.password:#{null}}")
+	String pdndV3ProduzioneClientPassword;
+
+    @Bean(name = "PDNDClientV3Collaudo")
+    public org.govway.catalogo.servlets.pdnd.v3.client.api.impl.ApiClient getApiClientV3Staging() {
+    	return getApiClientV3(pdndV3CollaudoClientUrl, pdndV3CollaudoClientUsername, pdndV3CollaudoClientPassword,
+    			pdndV3CollaudoClientProperties());
+    }
+
+    @Bean(name = "PDNDClientV3Produzione")
+    public org.govway.catalogo.servlets.pdnd.v3.client.api.impl.ApiClient getApiClientV3Produzione() {
+    	return getApiClientV3(pdndV3ProduzioneClientUrl, pdndV3ProduzioneClientUsername, pdndV3ProduzioneClientPassword,
+    			pdndV3ProduzioneClientProperties());
+    }
+
+    private org.govway.catalogo.servlets.pdnd.v3.client.api.impl.ApiClient getApiClientV3(String url, String username,
+    		String password, Properties properties) {
+    	org.govway.catalogo.servlets.pdnd.v3.client.api.impl.ApiClient apiClient =
+    			new org.govway.catalogo.servlets.pdnd.v3.client.api.impl.ApiClient();
+
+    	if(url != null) {
+    		apiClient.setBasePath(url);
+    	}
+
+    	if(username!=null && !username.isEmpty() && password!=null && !password.isEmpty()) {
+			apiClient.addDefaultHeader("Authorization", "Basic " + new String(Base64.getEncoder().encode((username+":"+password).getBytes())));
+    	}
+
+    	for(String name: properties.stringPropertyNames()) {
+        	apiClient.addDefaultHeader(name, properties.getProperty(name));
+    	}
+
+    	return apiClient;
+    }
+
+    @Bean
+    public org.govway.catalogo.pdnd.controllers.PDNDClientFactory pdndClientFactory() {
+    	return new org.govway.catalogo.pdnd.controllers.PDNDClientFactory();
+    }
+
+
 }

@@ -57,6 +57,7 @@ import org.govway.catalogo.servlets.model.PagedModelItemUtente;
 import org.govway.catalogo.servlets.model.ProfiloRuoli;
 import org.govway.catalogo.servlets.model.ReferenteCreate;
 import org.govway.catalogo.servlets.model.RuoloReferenteEnum;
+import org.govway.catalogo.servlets.model.RuoloPdndEnum;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.Servizio;
 import org.govway.catalogo.servlets.model.Soggetto;
@@ -3177,6 +3178,134 @@ public class UtentiTest {
                 resp.getBody().getOrganizzazioni().get(0).getOrganizzazione().getIdOrganizzazione());
         assertEquals(RuoloOrganizzazioneEnum.OPERATORE_API,
                 resp.getBody().getOrganizzazioni().get(0).getRuoloOrganizzazione());
+    }
+
+    // ============================================================
+    // ruolo PDND dell'utente
+    // ============================================================
+
+    @Test
+    public void testCreateUtenteRuoloPdndAdmin() {
+        Organizzazione org = organizzazioniController.createOrganizzazione(
+                CommonUtils.getOrganizzazioneCreate()).getBody();
+
+        UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
+        CommonUtils.setOrganizzazione(utenteCreate, org.getIdOrganizzazione());
+        utenteCreate.setPrincipal("utente.ruolo.pdnd.admin");
+        utenteCreate.setRuoloPdnd(RuoloPdndEnum.ADMIN);
+
+        Utente creato = controller.createUtente(utenteCreate).getBody();
+        assertEquals(RuoloPdndEnum.ADMIN, creato.getRuoloPdnd());
+
+        // il valore è persistito e riletto sia nel dettaglio sia nell'elenco
+        assertEquals(RuoloPdndEnum.ADMIN,
+                controller.getUtente(creato.getIdUtente()).getBody().getRuoloPdnd());
+
+        ItemUtente item = controller.listUtenti(null, null, null, null, null, null,
+                "utente.ruolo.pdnd.admin", null, null, null, 0, 10, null).getBody().getContent().get(0);
+        assertEquals(RuoloPdndEnum.ADMIN, item.getRuoloPdnd());
+    }
+
+    @Test
+    public void testCreateUtenteSenzaRuoloPdndRestituisceNessuno() {
+        Organizzazione org = organizzazioniController.createOrganizzazione(
+                CommonUtils.getOrganizzazioneCreate()).getBody();
+
+        UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
+        CommonUtils.setOrganizzazione(utenteCreate, org.getIdOrganizzazione());
+
+        // il ruolo PDND non valorizzato equivale a "nessuno"
+        Utente creato = controller.createUtente(utenteCreate).getBody();
+        assertEquals(RuoloPdndEnum.NESSUNO, creato.getRuoloPdnd());
+    }
+
+    @Test
+    public void testUpdateUtenteRuoloPdnd() {
+        Organizzazione org = organizzazioniController.createOrganizzazione(
+                CommonUtils.getOrganizzazioneCreate()).getBody();
+
+        UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
+        CommonUtils.setOrganizzazione(utenteCreate, org.getIdOrganizzazione());
+        Utente creato = controller.createUtente(utenteCreate).getBody();
+        assertEquals(RuoloPdndEnum.NESSUNO, creato.getRuoloPdnd());
+
+        UtenteUpdate utenteUpdate = buildUtenteUpdate(creato);
+        utenteUpdate.setRuoloPdnd(RuoloPdndEnum.ADMIN);
+        assertEquals(RuoloPdndEnum.ADMIN,
+                controller.updateUtente(creato.getIdUtente(), utenteUpdate).getBody().getRuoloPdnd());
+    }
+
+    @Test
+    public void testUpdateUtenteRimuoveRuoloPdnd() {
+        Organizzazione org = organizzazioniController.createOrganizzazione(
+                CommonUtils.getOrganizzazioneCreate()).getBody();
+
+        UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
+        CommonUtils.setOrganizzazione(utenteCreate, org.getIdOrganizzazione());
+        utenteCreate.setRuoloPdnd(RuoloPdndEnum.ADMIN);
+        Utente creato = controller.createUtente(utenteCreate).getBody();
+        assertEquals(RuoloPdndEnum.ADMIN, creato.getRuoloPdnd());
+
+        UtenteUpdate utenteUpdate = buildUtenteUpdate(creato);
+        utenteUpdate.setRuoloPdnd(RuoloPdndEnum.NESSUNO);
+        assertEquals(RuoloPdndEnum.NESSUNO,
+                controller.updateUtente(creato.getIdUtente(), utenteUpdate).getBody().getRuoloPdnd());
+    }
+
+    @Test
+    public void testCreateUtente_AmmOrg_RuoloPdnd_Forbidden() {
+        Organizzazione org = organizzazioniController.createOrganizzazione(
+                CommonUtils.getOrganizzazioneCreate()).getBody();
+        creaAmmOrgEAutentica("amm.org.create.pdnd", org);
+
+        UtenteCreate nuovo = CommonUtils.getUtenteCreate();
+        nuovo.setPrincipal("amm.org.create.pdnd.target");
+        nuovo.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        nuovo.setRuoloPdnd(RuoloPdndEnum.ADMIN);
+        UtenteOrganizzazioneCreate ass = new UtenteOrganizzazioneCreate();
+        ass.setIdOrganizzazione(org.getIdOrganizzazione());
+        ass.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.OPERATORE_API);
+        nuovo.setOrganizzazioni(List.of(ass));
+
+        NotAuthorizedException ex = assertThrows(NotAuthorizedException.class, () -> {
+            controller.createUtente(nuovo);
+        });
+        assertEquals("AUT.403.AMM.ORG.RUOLO.PDND", ex.getMessage());
+    }
+
+    @Test
+    public void testCreateUtente_AmmOrg_RuoloPdndNessuno_Success() {
+        Organizzazione org = organizzazioniController.createOrganizzazione(
+                CommonUtils.getOrganizzazioneCreate()).getBody();
+        creaAmmOrgEAutentica("amm.org.create.pdnd.nessuno", org);
+
+        UtenteCreate nuovo = CommonUtils.getUtenteCreate();
+        nuovo.setPrincipal("amm.org.create.pdnd.nessuno.target");
+        nuovo.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        nuovo.setRuoloPdnd(RuoloPdndEnum.NESSUNO);
+        UtenteOrganizzazioneCreate ass = new UtenteOrganizzazioneCreate();
+        ass.setIdOrganizzazione(org.getIdOrganizzazione());
+        ass.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.OPERATORE_API);
+        nuovo.setOrganizzazioni(List.of(ass));
+
+        assertEquals(RuoloPdndEnum.NESSUNO,
+                controller.createUtente(nuovo).getBody().getRuoloPdnd());
+    }
+
+    /**
+     * Costruisce un UtenteUpdate a partire dai dati attuali dell'utente, senza modificarli.
+     */
+    private UtenteUpdate buildUtenteUpdate(Utente utente) {
+        UtenteUpdate utenteUpdate = new UtenteUpdate();
+        utenteUpdate.setPrincipal(utente.getPrincipal());
+        utenteUpdate.setNome(utente.getNome());
+        utenteUpdate.setCognome(utente.getCognome());
+        utenteUpdate.setEmail(utente.getEmail());
+        utenteUpdate.setEmailAziendale(utente.getEmailAziendale());
+        utenteUpdate.setTelefonoAziendale(utente.getTelefonoAziendale());
+        utenteUpdate.setStato(utente.getStato());
+        utenteUpdate.setRuolo(utente.getRuolo());
+        return utenteUpdate;
     }
 }
 

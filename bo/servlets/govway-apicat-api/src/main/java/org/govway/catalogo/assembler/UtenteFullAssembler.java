@@ -85,6 +85,8 @@ public class UtenteFullAssembler extends RepresentationModelAssemblerSupport<Ute
 			dettaglio.setRuolo(utenteEngineAssembler.toRuolo(entity.getRuolo()));
 		}
 
+		dettaglio.setRuoloPdnd(utenteEngineAssembler.toRuoloPdnd(entity.getRuoloPdnd()));
+
 		dettaglio.setClassiUtente(classeUtenteItemAssembler.toCollectionModel(entity.getClassi()).getContent().stream().collect(Collectors.toList()));
 
 		return dettaglio;

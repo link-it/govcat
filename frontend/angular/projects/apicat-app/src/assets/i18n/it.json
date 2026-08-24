@@ -1467,6 +1467,9 @@
 										"ORG": "Operazione consentita solo per i domini dell'organizzazione [{{orgNome}}]"
 									}
 								},
+								"RUOLO": {
+									"PDND": "Un amministratore organizzazione non può assegnare o modificare il ruolo PDND di un utente"
+								},
 								"NOT": {
 									"TARGET": "Operazione consentita solo all'amministratore dell'organizzazione target della richiesta di cambio"
 								}

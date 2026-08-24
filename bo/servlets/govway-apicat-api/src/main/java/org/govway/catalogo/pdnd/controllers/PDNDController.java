@@ -31,9 +31,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import org.govway.catalogo.PdndV1Controller;
-import org.govway.catalogo.servlets.pdnd.client.api.GatewayApi;
-import org.govway.catalogo.servlets.pdnd.client.api.HealthApi;
-import org.govway.catalogo.servlets.pdnd.client.api.impl.ApiClient;
 import org.govway.catalogo.servlets.pdnd.model.Agreement;
 import org.govway.catalogo.servlets.pdnd.model.AgreementState;
 import org.govway.catalogo.servlets.pdnd.model.Agreements;
@@ -57,7 +54,6 @@ import org.govway.catalogo.servlets.pdnd.model.Subscribers;
 import org.govway.catalogo.servlets.pdnd.server.api.CatalogApi;
 import org.govway.catalogo.servlets.pdnd.server.api.ConfigurazioneApi;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -67,33 +63,16 @@ public class PDNDController implements CatalogApi, ConfigurazioneApi, org.govway
 
 
 	@Autowired
-	@Qualifier("PDNDClientCollaudo")
-	private ApiClient apiClientCollaudo;
+	private PDNDClientFactory clientFactory;
 
-	@Autowired
-	@Qualifier("PDNDClientProduzione")
-	private ApiClient apiClientProduzione;
-
-
-	private PDNDClient clientCollaudo;
-	private PDNDClient clientProduzione;
-	
 	private static String collaudo = "collaudo";
 
-	private PDNDClient getClientCollaudo() {
-		if(this.clientCollaudo == null) {
-			this.clientCollaudo = new PDNDClient(new GatewayApi(this.apiClientCollaudo), new HealthApi(this.apiClientCollaudo));
-		}
-
-		return this.clientCollaudo;
+	private IPDNDClient getClientCollaudo() {
+		return this.clientFactory.getClientCollaudo();
 	}
 
-	private PDNDClient getClientProduzione() {
-		if(this.clientProduzione == null) {
-			this.clientProduzione = new PDNDClient(new GatewayApi(this.apiClientProduzione), new HealthApi(this.apiClientProduzione));
-		}
-
-		return this.clientProduzione;
+	private IPDNDClient getClientProduzione() {
+		return this.clientFactory.getClientProduzione();
 	}
 
 	@Override

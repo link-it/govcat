@@ -49,7 +49,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 
-public class PDNDClient {
+/**
+ * Implementazione basata sull'API PDND "Interoperability API Gateway" v1.
+ */
+public class PDNDClient implements IPDNDClient {
 
 
 	private Logger logger = LoggerFactory.getLogger(PDNDClient.class);

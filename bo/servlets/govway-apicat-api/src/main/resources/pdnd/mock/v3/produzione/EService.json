@@ -1,0 +1,11 @@
+{
+  "id": "c3333333-3333-3333-3333-333333333333",
+  "producerId": "c1111111-1111-1111-1111-111111111111",
+  "name": "Anagrafe Comunale",
+  "description": "E-service di esempio esposto dal mock PDND v3",
+  "technology": "REST",
+  "mode": "DELIVER",
+  "isSignalHubEnabled": false,
+  "isConsumerDelegable": false,
+  "isClientAccessDelegable": false
+}

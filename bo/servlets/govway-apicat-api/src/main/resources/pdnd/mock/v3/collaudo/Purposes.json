@@ -1,0 +1,22 @@
+{
+  "results": [
+    {
+      "id": "66666666-6666-6666-6666-666666666666",
+      "eserviceId": "33333333-3333-3333-3333-333333333333",
+      "consumerId": "22222222-2222-2222-2222-222222222222",
+      "title": "Finalita' di esempio",
+      "description": "Finalita' di esempio esposta dal mock PDND v3",
+      "isFreeOfCharge": true,
+      "currentVersion": {
+        "id": "66666666-6666-6666-6666-6666666666aa",
+        "state": "ACTIVE",
+        "dailyCalls": 1000
+      }
+    }
+  ],
+  "pagination": {
+    "offset": 0,
+    "limit": 50,
+    "totalCount": 1
+  }
+}

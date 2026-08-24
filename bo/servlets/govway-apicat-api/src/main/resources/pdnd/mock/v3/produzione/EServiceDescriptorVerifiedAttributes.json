@@ -1,0 +1,17 @@
+{
+  "results": [
+    {
+      "groupIndex": 0,
+      "attribute": {
+        "id": "caaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        "name": "Attributo verificato",
+        "description": "Attributo verificato dall'erogatore"
+      }
+    }
+  ],
+  "pagination": {
+    "offset": 0,
+    "limit": 50,
+    "totalCount": 1
+  }
+}

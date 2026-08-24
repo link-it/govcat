@@ -54,6 +54,7 @@ public class UtenteEntity {
 	
 	public enum Stato {DISABILITATO, NON_CONFIGURATO, ABILITATO, PENDING_UPDATE}
 	public enum Ruolo {AMMINISTRATORE, COORDINATORE, RUOLO_ORGANIZZAZIONE}
+	public enum RuoloPdnd {NESSUNO, ADMIN}
 
     @Id
     @Column(name = "id")
@@ -73,6 +74,10 @@ public class UtenteEntity {
 
     @Enumerated(EnumType.STRING)
 	private Ruolo ruolo;
+
+    @Column(name = "ruolo_pdnd")
+    @Enumerated(EnumType.STRING)
+	private RuoloPdnd ruoloPdnd;
 
 	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_organizzazione_pending", referencedColumnName = "id")

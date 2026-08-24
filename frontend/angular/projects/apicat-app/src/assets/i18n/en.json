@@ -1467,6 +1467,9 @@
 										"ORG": "Operation allowed only for domains of organization [{{orgNome}}]"
 									}
 								},
+								"RUOLO": {
+									"PDND": "An organization administrator cannot assign or change the PDND role of a user"
+								},
 								"NOT": {
 									"TARGET": "Operation allowed only to the administrator of the target organization of the change request"
 								}
@@ -1797,7 +1800,7 @@
 						"DB": "",
 						"IO": ""
 					},
-					"501": "",
+					"501": "Operation [{{operazione}}] not supported",
 					"503": "Service unavailable"
 				},
 				"TAX": {
