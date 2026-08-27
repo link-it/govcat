@@ -920,6 +920,93 @@ paths:
       summary: Create a certified Attribute
       tags:
       - gateway
+  /agreements/{agreementId}/approve:
+    post:
+      description: Approve an Agreement that is in Pending state, transitioning it to Active state
+      operationId: approveAgreement
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agreement'
+          description: Agreement approved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Approve an Agreement in Pending state
+      tags:
+      - gateway
+      parameters:
+      - description: The ID of the Agreement to approve
+        in: path
+        name: agreementId
+        required: true
+        schema:
+          $ref: '#/components/schemas/AgreementId'
+  /purposes/{purposeId}/approve:
+    post:
+      description: Approve a Purpose that is in Waiting for Approval state, transitioning it to Active
+        state
+      operationId: approvePurpose
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Purpose'
+          description: Purpose approved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Approve a Purpose in Waiting for Approval state
+      tags:
+      - gateway
+      parameters:
+      - description: The ID of the Purpose to approve
+        in: path
+        name: purposeId
+        required: true
+        schema:
+          $ref: '#/components/schemas/PurposeId'
   /certifiedAttributes/{attributeId}:
     get:
       description: Retrieve a certified Attribute

@@ -26,6 +26,7 @@ import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Ruolo;
+import org.govway.catalogo.core.orm.entity.UtenteEntity.RuoloPdnd;
 import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.NotAuthorizedException;
@@ -91,6 +92,18 @@ public class CoreAuthorization {
 	public void requireAdmin() {
 		if(!isAdmin()) {
 			throw new NotAuthorizedException(ErrorCode.AUT_403);
+		}
+	}
+
+	/**
+	 * Verifica che l'utente in sessione abbia ruolo PDND amministratore: requisito delle
+	 * operazioni di scrittura verso la PDND.
+	 */
+	public void requireRuoloPdndAdmin() {
+		UtenteEntity utente = getUtenteSessione();
+
+		if(utente == null || !RuoloPdnd.ADMIN.equals(utente.getRuoloPdnd())) {
+			throw new NotAuthorizedException(ErrorCode.AUT_403_RUOLO_PDND);
 		}
 	}
 

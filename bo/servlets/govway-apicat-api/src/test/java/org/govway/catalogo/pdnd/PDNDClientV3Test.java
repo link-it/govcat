@@ -122,6 +122,32 @@ class PDNDClientV3Test {
 	}
 
 	@Test
+	void lApprovazioneDellAccordoRiportaIlNuovoStato() throws Exception {
+		GatewayApi api = mock(GatewayApi.class);
+		when(api.approveAgreement(AGREEMENT_ID)).thenReturn(
+				agreement(AGREEMENT_ID, org.govway.catalogo.servlets.pdnd.v3.model.AgreementState.ACTIVE));
+
+		org.govway.catalogo.servlets.pdnd.model.Agreement response =
+				new PDNDClientV3(api).approveAgreement(AGREEMENT_ID).getBody();
+
+		assertEquals(AGREEMENT_ID, response.getId());
+		assertEquals(AgreementState.ACTIVE, response.getState());
+	}
+
+	@Test
+	void lApprovazioneDellaFinalitaRiportaIlNuovoStato() throws Exception {
+		GatewayApi api = mock(GatewayApi.class);
+		when(api.approvePurpose(PURPOSE_ID)).thenReturn(purpose(PurposeVersionState.ACTIVE, 1000));
+
+		org.govway.catalogo.servlets.pdnd.model.Purpose response =
+				new PDNDClientV3(api).approvePurpose(PURPOSE_ID).getBody();
+
+		assertEquals(PURPOSE_ID, response.getId());
+		assertEquals(PurposeState.ACTIVE, response.getState());
+		assertEquals(1000, response.getThroughput());
+	}
+
+	@Test
 	void iSottoscrittoriRiportanoIDatiDellOrganizzazione() throws Exception {
 		GatewayApi api = mock(GatewayApi.class);
 
@@ -136,6 +162,8 @@ class PDNDClientV3Test {
 
 		assertEquals(1, response.getSubscribers().size());
 		assertEquals(CONSUMER_ID, response.getSubscribers().get(0).getConsumerId());
+		// l'identificativo dell'accordo consente di approvarlo direttamente dalla lista fruitori
+		assertEquals(AGREEMENT_ID, response.getSubscribers().get(0).getAgreementId());
 		assertEquals("Comune di Test", response.getSubscribers().get(0).getName());
 		// la v3 non espone la categoria IPA: viene riportata la tipologia di tenant
 		assertEquals("PA", response.getSubscribers().get(0).getCategory());

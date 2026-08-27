@@ -31,6 +31,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import org.govway.catalogo.PdndV1Controller;
+import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.servlets.pdnd.model.Agreement;
 import org.govway.catalogo.servlets.pdnd.model.AgreementState;
 import org.govway.catalogo.servlets.pdnd.model.Agreements;
@@ -65,7 +66,14 @@ public class PDNDController implements CatalogApi, ConfigurazioneApi, org.govway
 	@Autowired
 	private PDNDClientFactory clientFactory;
 
+	@Autowired
+	private CoreAuthorization coreAuthorization;
+
 	private static String collaudo = "collaudo";
+
+	private IPDNDClient getClient(AmbienteEnum ambiente) {
+		return ambiente.getValue().equals(collaudo) ? this.getClientCollaudo() : this.getClientProduzione();
+	}
 
 	private IPDNDClient getClientCollaudo() {
 		return this.clientFactory.getClientCollaudo();
@@ -150,6 +158,28 @@ public class PDNDController implements CatalogApi, ConfigurazioneApi, org.govway
 			return this.getClientCollaudo().getAgreement(agreementId);
 		else 
 			return this.getClientProduzione().getAgreement(agreementId);
+	}
+
+	/**
+	 * Operazione di scrittura verso la PDND: consentita ai soli utenti con ruolo PDND
+	 * amministratore e supportata unicamente dall'API PDND v3.
+	 */
+	@Override
+	public ResponseEntity<Agreement> approveAgreement(AmbienteEnum ambiente, UUID agreementId) {
+		this.coreAuthorization.requireRuoloPdndAdmin();
+
+		return this.getClient(ambiente).approveAgreement(agreementId);
+	}
+
+	/**
+	 * Operazione di scrittura verso la PDND: consentita ai soli utenti con ruolo PDND
+	 * amministratore e supportata unicamente dall'API PDND v3.
+	 */
+	@Override
+	public ResponseEntity<Purpose> approvePurpose(AmbienteEnum ambiente, UUID purposeId) {
+		this.coreAuthorization.requireRuoloPdndAdmin();
+
+		return this.getClient(ambiente).approvePurpose(purposeId);
 	}
 
 	@Override

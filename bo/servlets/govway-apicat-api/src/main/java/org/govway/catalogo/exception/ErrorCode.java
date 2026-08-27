@@ -481,6 +481,9 @@ public enum ErrorCode {
     /** Un amministratore organizzazione non può assegnare o modificare il ruolo PDND di un utente */
     AUT_403_AMM_ORG_RUOLO_PDND("Ruolo PDND non assegnabile da amministratore organizzazione"),
 
+    /** Operazione di scrittura verso la PDND riservata agli utenti con ruolo PDND amministratore */
+    AUT_403_RUOLO_PDND("Operazione riservata agli utenti con ruolo PDND amministratore"),
+
     /** Un amministratore organizzazione può operare solo sui domini il cui soggetto referente appartiene alla propria organizzazione di sessione */
     AUT_403_AMM_ORG_DOMINIO_FUORI_ORG("Dominio non appartenente all'organizzazione di sessione dell'amministratore"),
 

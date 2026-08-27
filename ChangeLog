@@ -1,6 +1,23 @@
 2026-08-24  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
+	Issue 250: l'API PDND esposta da GovCat consente ora di approvare, dalla
+	  console, la richiesta di fruizione di un aderente e la finalita` in attesa di
+	  approvazione: nuove operazioni `POST /pdnd/v1/{ambiente}/agreements/{id}/approve`
+	  e `POST /pdnd/v1/{ambiente}/purposes/{id}/approve`, che restituiscono
+	  rispettivamente l'accordo e la finalita` aggiornati. Sono le prime operazioni di
+	  scrittura verso la PDND: per questo sono consentite ai soli utenti con
+	  `ruolo_pdnd` uguale ad `admin`, che altrimenti ricevono un 403
+	  `AUT.403.RUOLO.PDND`. Non essendo previste dall'API PDND v1, con
+	  `pdnd.versione=v1` rispondono 501 `SYS.501`, come le altre operazioni senza
+	  equivalente. Il corpo opzionale `DelegationRef` della v3 non e` esposto:
+	  l'approvazione avviene come titolare, non come delegato.
+	L'elemento `Subscriber` dell'operazione `GET /pdnd/v1/{ambiente}/subscribers`
+	  riporta ora anche `agreementId`, l'identificativo dell'accordo di fruizione:
+	  consente di approvare direttamente dalla lista dei fruitori, senza doverlo
+	  ricavare con ulteriori invocazioni. Campo aggiuntivo e opzionale, valorizzato da
+	  entrambe le implementazioni (v1 e v3): i client esistenti non sono impattati.
+
 	Issue 250: introdotto il ruolo dell'utente sulla PDND (`ruolo_pdnd`), con i
 	  valori `nessuno` e `admin`. Il campo e` esposto nel dettaglio utente,
 	  nell'elenco utenti e nel profilo, ed e` valorizzabile in creazione e in

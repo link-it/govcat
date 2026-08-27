@@ -1456,6 +1456,9 @@
 						},
 						"RESOURCE": "Accesso negato alla risorsa [{{resource}}]",
 						"ROLE": "L'utente deve avere uno dei ruoli [{{ruoli}}] per eseguire la force",
+						"RUOLO": {
+							"PDND": "Operazione riservata agli utenti con ruolo PDND amministratore"
+						},
 						"AMM": {
 							"ORG": {
 								"INVALID": {
