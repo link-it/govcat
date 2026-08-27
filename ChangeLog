@@ -1,3 +1,11 @@
+2026-08-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 336: fix client id errato nella vetrina adesioni. Nella card "Modalità di
+	  autenticazione" veniva mostrato `id_client` (UUID interno) invece di
+	  `dati_specifici.client_id`, a differenza del dettaglio client. Corretto il
+	  mapping in adesione-view.
+
 2026-08-24  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
