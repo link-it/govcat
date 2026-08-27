@@ -1,3 +1,11 @@
+2026-08-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 250: campo `ruolo_pdnd` (nessuno|admin) sull'utente. Mostrato/modificabile
+	  nel form utente (modifica solo dal gestore, disclaimer su admin), filtro e badge
+	  in lista utenti, sola lettura nel profilo. In gestione organizzazione nascosto in
+	  creazione e badge in lista se admin. Modelli generati non toccati (enum locale).
+
 2026-08-24  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

@@ -1456,6 +1456,9 @@
 						},
 						"RESOURCE": "Accesso negato alla risorsa [{{resource}}]",
 						"ROLE": "L'utente deve avere uno dei ruoli [{{ruoli}}] per eseguire la force",
+						"RUOLO": {
+							"PDND": "Non hai il ruolo di amministratore PDND richiesto per questa operazione"
+						},
 						"AMM": {
 							"ORG": {
 								"INVALID": {
@@ -2905,6 +2908,12 @@
 				"nessun_ruolo": "Nessun ruolo",
 				"referente_servizio": "Referente servizio",
 				"utente_organizzazione": "Utente organizzazione"
+			},
+			"RUOLO_PDND": {
+				"Label": "Ruolo PDND",
+				"nessuno": "Nessuno",
+				"admin": "Amministratore PDND",
+				"AdminWarning": "Attenzione: stai assegnando poteri di amministrazione sulla PDND."
 			},
 			"STATUS": {
 				"abilitato": "Abilitato",

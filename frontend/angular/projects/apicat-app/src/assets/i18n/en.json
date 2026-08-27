@@ -1456,6 +1456,9 @@
 						},
 						"RESOURCE": "Access denied to resource [{{resource}}]",
 						"ROLE": "User must have one of the roles [{{ruoli}}] to execute the force",
+						"RUOLO": {
+							"PDND": "You do not have the required PDND administrator role for this operation"
+						},
 						"AMM": {
 							"ORG": {
 								"INVALID": {
@@ -2905,6 +2908,12 @@
 				"nessun_ruolo": "No role",
 				"referente_servizio": "Service contact person",
 				"utente_organizzazione": "Organization user"
+			},
+			"RUOLO_PDND": {
+				"Label": "PDND role",
+				"nessuno": "None",
+				"admin": "PDND administrator",
+				"AdminWarning": "Warning: you are granting administration powers on PDND."
 			},
 			"STATUS": {
 				"abilitato": "Enabled",

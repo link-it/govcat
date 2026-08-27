@@ -415,6 +415,41 @@
                 }
               </div>
             </div>
+            <!-- Issue 250: ruolo PDND. Editabile solo dal gestore; per gli
+                 altri (o in sola lettura) mostra il valore. Il control resta
+                 nel form anche se disabilitato, per il reinvio in PUT.
+                 In gestione organizzazione (_fromOrgManage) NON mostrato in
+                 creazione; in modifica resta in sola lettura. -->
+            @if (!(_fromOrgManage && _isNew)) {
+            <div class="row ruolo_pdnd">
+              <div class="col-6">
+                <div class="form-group">
+                  <label class="label-bold" for="ruolo_pdnd">{{ 'APP.USERS.RUOLO_PDND.Label' | translate }}</label>
+                  @if (_isEdit && _canEditRuoloPdnd) {
+                    <div class="">
+                      <select class="form-select" id="ruolo_pdnd" formControlName="ruolo_pdnd">
+                        @for (rp of _ruoloPdndArr; track rp) {
+                          <option [value]="rp">{{ 'APP.USERS.RUOLO_PDND.' + rp | translate }}</option>
+                        }
+                      </select>
+                      @if (f['ruolo_pdnd'].value === 'admin') {
+                        <div class="alert alert-warning small d-flex align-items-start gap-2 mt-2 mb-0" role="alert">
+                          <i class="bi bi-exclamation-triangle-fill"></i>
+                          <span>{{ 'APP.USERS.RUOLO_PDND.AdminWarning' | translate }}</span>
+                        </div>
+                      }
+                      <ui-input-help field="ruolo_pdnd" context="USERS"></ui-input-help>
+                    </div>
+                  }
+                  @if (!_isEdit || !_canEditRuoloPdnd) {
+                    <div class="">
+                      {{ 'APP.USERS.RUOLO_PDND.' + (utente.ruolo_pdnd || 'nessuno') | translate }}
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+            }
             @if (_isNew) {
               <div class="row id_organizzazione ruolo_organizzazione">
                 <div class="col-6">

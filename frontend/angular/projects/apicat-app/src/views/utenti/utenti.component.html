@@ -116,6 +116,25 @@
                       </div>
                     </div>
                   </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <div class="row mb-1">
+                        <div class="col-4">
+                          <label class="col-form-label col-form-label-fix">{{ 'APP.USERS.RUOLO_PDND.Label' | translate }}</label>
+                        </div>
+                        <div class="col-8">
+                          <select class="form-select form-control-sm" id="ruolo_pdnd" formControlName="ruolo_pdnd">
+                            <option value="">{{ 'APP.LABEL.All' | translate }}</option>
+                            @for (rp of _ruoloPdndArr; track rp) {
+                              <option [value]="rp">
+                                {{ 'APP.USERS.RUOLO_PDND.' + rp | translate }}
+                              </option>
+                            }
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   <div class="row mb-1">
                     <div class="col-2">
                       <label class="col-form-label col-form-label-fix">{{ 'APP.USERS.LABEL.Principal' | translate }}</label>
