@@ -443,6 +443,13 @@ export class AuthenticationService {
     return user?.ruolo ?? null;
   }
 
+  /** Issue 250: true se l'utente corrente ha ruolo PDND admin
+   *  (da GET /profilo -> utente.ruolo_pdnd). Il BE normalizza a
+   *  `nessuno`, quindi il confronto con `admin` e` sufficiente. */
+  isPdndAdmin(): boolean {
+    return this.getUser()?.ruolo_pdnd === 'admin';
+  }
+
   hasRole(roles: string[]) {
     const role = this.getRole();
     if (role) {

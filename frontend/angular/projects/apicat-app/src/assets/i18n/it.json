@@ -2558,6 +2558,10 @@
 			"VISIBLE": "Visibile",
 			"YES": "Si"
 		},
+		"SUBSCRIBERS": {
+			"Approve": "Approva",
+			"ApproveConfirm": "Vuoi approvare l'accordo del fruitore {{name}}?"
+		},
 		"SWAGGER": {
 			"ERROR": {
 				"Loading": "Impossibile caricare la definizione API"

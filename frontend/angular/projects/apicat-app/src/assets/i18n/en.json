@@ -2558,6 +2558,10 @@
 			"VISIBLE": "Visible",
 			"YES": "Yes"
 		},
+		"SUBSCRIBERS": {
+			"Approve": "Approve",
+			"ApproveConfirm": "Do you want to approve the agreement for subscriber {{name}}?"
+		},
 		"SWAGGER": {
 			"ERROR": {
 				"Loading": "Failed to load API definition"

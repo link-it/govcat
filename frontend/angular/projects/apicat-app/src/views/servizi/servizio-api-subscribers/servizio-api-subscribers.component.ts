@@ -19,13 +19,14 @@
 import { AfterContentChecked, Component, HostListener, Input, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import { COMPONENTS_IMPORTS, Tools, ConfigService, SearchBarFormComponent } from '@linkit/components';
+import { COMPONENTS_IMPORTS, Tools, ConfigService, SearchBarFormComponent, YesnoDialogBsComponent } from '@linkit/components';
+import { PdndService } from '@app/views/pdnd/pdnd.service';
 import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.directive';
 import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormGroup, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 
-import { BsModalRef } from 'ngx-bootstrap/modal';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 
 import { TranslateService } from '@ngx-translate/core';
 
@@ -161,7 +162,9 @@ export class ServizioApiSubscribersComponent implements OnInit, AfterContentChec
     public tools: Tools,
     public apiService: OpenAPIService,
     public utils: UtilService,
-    public authenticationService: AuthenticationService
+    public authenticationService: AuthenticationService,
+    private readonly modalService: BsModalService,
+    private readonly pdndService: PdndService
   ) {
     this.route.data.subscribe((data) => {
       if (!data.componentBreadcrumbs) return;
@@ -423,6 +426,52 @@ export class ServizioApiSubscribersComponent implements OnInit, AfterContentChec
       this._preventMultiCall = true;
       this._loadServizioApiSubscribers(null, this._links.next.href);
     }
+  }
+
+  // -------------------------------------------------------------------------
+  // Issue 250 (Fase 2): approvazione accordo del fruitore (solo PDND admin).
+  // -------------------------------------------------------------------------
+
+  /** L'approvazione non e` disponibile se l'installazione usa PDND v1. */
+  get _pdndApprovalAvailable(): boolean {
+    return Tools.Configurazione?.pdnd?.versione !== 'v1';
+  }
+
+  /** Mostra l'azione "Approva" solo per un PDND admin, con approvazione
+   *  disponibile (PDND != v1) e su righe con accordo in PENDING. */
+  _canApprove(source: any): boolean {
+    return this.authenticationService.isPdndAdmin()
+      && this._pdndApprovalAvailable
+      && source?.state === 'PENDING'
+      && !!source?.agreementId;
+  }
+
+  /** Conferma e approva l'accordo del fruitore, poi ricarica la lista. */
+  _onApprove(source: any) {
+    if (!this._canApprove(source)) { return; }
+    const _modalRef: BsModalRef = this.modalService.show(YesnoDialogBsComponent, {
+      ignoreBackdropClick: true,
+      initialState: {
+        title: this.translate.instant('APP.TITLE.Attention'),
+        messages: [this.translate.instant('APP.SUBSCRIBERS.ApproveConfirm', { name: source?.name || '' })],
+        cancelText: this.translate.instant('APP.BUTTON.Cancel'),
+        confirmText: this.translate.instant('APP.BUTTON.Confirm'),
+        confirmColor: 'primary'
+      }
+    });
+    _modalRef.content.onClose.subscribe((confirmed: boolean) => {
+      if (!confirmed) { return; }
+      this._spin = true;
+      this.pdndService.approveAgreement(this.environmentId, source.agreementId).subscribe((res: any) => {
+        if (res?.error) {
+          this._spin = false;
+          Tools.OnError(res.error);
+          return;
+        }
+        // La response porta il nuovo state (ACTIVE): ricarico la lista.
+        this._loadServizioApiSubscribers(this._filterData);
+      });
+    });
   }
 
   _onSubmit(form: any) {

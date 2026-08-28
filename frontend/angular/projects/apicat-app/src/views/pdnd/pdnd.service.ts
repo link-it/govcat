@@ -231,6 +231,23 @@ export class PdndService {
         return this.get<Agreement>(`${environmentId}/purposes/${purposeId}/agreement`);
     }
 
+    /**
+     * Issue 250 (Fase 2): approvazione dell'accordo di un fruitore (PENDING).
+     * POST senza body ne` query param. Solo per utenti con ruolo PDND admin.
+     */
+    public approveAgreement(environmentId: string, agreementId: string) {
+        return this.post<Agreement>(`${environmentId}/agreements/${agreementId}/approve`);
+    }
+
+    /**
+     * Issue 250 (Fase 2): approvazione di una finalita`. Flusso distinto
+     * (aumento chiamate giornaliere); metodo disponibile ma non ancora
+     * cablato in UI.
+     */
+    public approvePurpose(environmentId: string, purposeId: string) {
+        return this.post<Purpose>(`${environmentId}/purposes/${purposeId}/approve`);
+    }
+
     public serviceList(environmentId: string, organizationOrigin: string, organizationExternalId: string, attributeOrigin: string, attributeCode: string) {
         let params = new HttpParams();
         params = params.append('attributeOrigin', attributeOrigin);

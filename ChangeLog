@@ -1,3 +1,11 @@
+2026-08-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 250: approvazione accordo dei fruitori PDND. Pulsante "Approva" per riga
+	  nei fruitori API (visibile solo a utente PDND admin, con PDND != v1 e accordo in
+	  PENDING); conferma e chiamata a POST agreements/{id}/approve, poi ricarica lista.
+	  Nuovi metodi approveAgreement/approvePurpose nel PdndService, getter isPdndAdmin.
+
 2026-08-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
