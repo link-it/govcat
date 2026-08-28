@@ -76,6 +76,16 @@ public class PDNDControllerMockV3Produzione implements GatewayApi {
 	}
 
 	@Override
+	public ResponseEntity<Agreement> approveAgreement(UUID agreementId) {
+		return this.server.approveAgreement(agreementId);
+	}
+
+	@Override
+	public ResponseEntity<Purpose> approvePurpose(UUID purposeId) {
+		return this.server.approvePurpose(purposeId);
+	}
+
+	@Override
 	public ResponseEntity<Agreements> getAgreements(Integer offset, Integer limit, List<AgreementState> states,
 			List<UUID> producerIds, List<UUID> consumerIds, List<UUID> descriptorIds, List<UUID> eserviceIds) {
 		return this.server.getAgreements(offset, limit, states, producerIds, consumerIds, descriptorIds, eserviceIds);

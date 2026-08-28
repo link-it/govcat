@@ -167,6 +167,7 @@ export interface Client {
   stato: string;
   dati_specifici: {
     auth_type: string;
+    client_id?: string;
     certificato_autenticazione: {
       tipo_certificato: string;
       certificato: Certificate;
@@ -640,7 +641,7 @@ export class AdesioneViewComponent implements OnInit {
 
             return {
               iop: profiloRichiesto.etichetta,
-              client_id: client ? client.id_client : '-',
+              client_id: client?.dati_specifici?.client_id || '-',
               client_id_label: this.getLabelClientId(client?.dati_specifici?.auth_type),
               canViewClientId: this.canViewClientId(client?.dati_specifici?.auth_type),
               name: client ? client.nome : '-',

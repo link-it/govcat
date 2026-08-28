@@ -121,6 +121,7 @@ public class PDNDClientV3 implements IPDNDClient {
 				Subscriber subscriber = new Subscriber();
 				subscriber.setState(toAgreementState(agreement.getState()));
 				subscriber.setConsumerId(agreement.getConsumerId());
+				subscriber.setAgreementId(agreement.getId());
 
 				org.govway.catalogo.servlets.pdnd.v3.model.Tenant tenant =
 						tenants.get(agreement.getConsumerId());
@@ -172,6 +173,37 @@ public class PDNDClientV3 implements IPDNDClient {
 	public ResponseEntity<Agreement> getAgreement(UUID agreementId) {
 		try {
 			return ResponseEntity.ok(toAgreement(this.gatewayApiClient.getAgreement(agreementId)));
+		} catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		} catch(ApiException e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw toClientApiException(e);
+		}
+	}
+
+	@Override
+	public ResponseEntity<Agreement> approveAgreement(UUID agreementId) {
+		try {
+			return ResponseEntity.ok(toAgreement(this.gatewayApiClient.approveAgreement(agreementId)));
+		} catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		} catch(ApiException e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw toClientApiException(e);
+		}
+	}
+
+	@Override
+	public ResponseEntity<Purpose> approvePurpose(UUID purposeId) {
+		try {
+			org.govway.catalogo.servlets.pdnd.v3.model.Purpose purpose =
+					this.gatewayApiClient.approvePurpose(purposeId);
+
+			return ResponseEntity.ok(toPurpose(purpose).orElseThrow(() ->
+					new InternalException(ErrorCode.INT_500_PDND, Map.of("dettagli",
+							"stato della finalita' ["+purposeId+"] non rappresentabile nel modello dati esposto"))));
 		} catch(RuntimeException e) {
 			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
 			throw e;

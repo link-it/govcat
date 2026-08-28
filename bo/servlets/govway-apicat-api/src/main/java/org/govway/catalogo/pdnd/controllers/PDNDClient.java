@@ -20,11 +20,13 @@
 package org.govway.catalogo.pdnd.controllers;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.govway.catalogo.exception.ClientApiException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.InternalException;
+import org.govway.catalogo.exception.NotImplementedException;
 import org.govway.catalogo.servlets.pdnd.client.api.impl.ApiException;
 import org.govway.catalogo.servlets.pdnd.model.Agreement;
 import org.govway.catalogo.servlets.pdnd.model.AgreementState;
@@ -90,6 +92,7 @@ public class PDNDClient implements IPDNDClient {
 				Subscriber subscriber = new Subscriber();
 				subscriber.setState(agreement.getState());
 				subscriber.setConsumerId(agreement.getConsumerId());
+				subscriber.setAgreementId(agreement.getId());
 				
 				Organization organization = this.gatewayApiClient.getOrganization(agreement.getConsumerId());
 				
@@ -136,6 +139,25 @@ public class PDNDClient implements IPDNDClient {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
 			throw new ClientApiException(e);
 		}
+	}
+
+	/**
+	 * L'API PDND v1 non prevede l'approvazione di un accordo di fruizione.
+	 */
+	public ResponseEntity<Agreement> approveAgreement(UUID agreementId) {
+		throw notImplemented("approveAgreement");
+	}
+
+	/**
+	 * L'API PDND v1 non prevede l'approvazione di una finalita'.
+	 */
+	public ResponseEntity<Purpose> approvePurpose(UUID purposeId) {
+		throw notImplemented("approvePurpose");
+	}
+
+	private NotImplementedException notImplemented(String operazione) {
+		this.logger.error("Operazione [{}] non supportata dall'API PDND v1", operazione);
+		return new NotImplementedException(ErrorCode.SYS_501, Map.of("operazione", operazione));
 	}
 
 	public ResponseEntity<Attributes> getAgreementAttributes(UUID agreementId) {

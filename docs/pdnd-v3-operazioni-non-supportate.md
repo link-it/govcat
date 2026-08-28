@@ -97,6 +97,18 @@ per invocazione, più la paginazione.
 Nota: queste due operazioni non sono utilizzate dal frontend GovCat; l'impatto riguarda eventuali
 client esterni dell'API esposta.
 
+### 1.4 Approvazioni: supportate solo in v3
+
+`POST /{ambiente}/agreements/{agreementId}/approve` e `POST /{ambiente}/purposes/{purposeId}/approve`
+sono le prime operazioni di scrittura dell'API PDND esposta da GovCat. Non esistono nell'API v1,
+quindi con `pdnd.versione=v1` rispondono **501** (`SYS.501`) esattamente come le operazioni della
+sezione precedente; con `pdnd.versione=v3` invocano gli endpoint omonimi della PDND.
+
+Sono inoltre le uniche operazioni PDND soggette a un controllo di ruolo: sono consentite ai soli
+utenti con `ruolo_pdnd = admin`, altrimenti **403** (`AUT.403.RUOLO.PDND`). Il corpo opzionale
+`DelegationRef` della v3 non è esposto: l'approvazione avviene sempre come titolare, mai come
+delegato.
+
 ---
 
 ## 2. Approssimazioni sulle operazioni supportate
@@ -128,6 +140,7 @@ all'ultima (nessun troncamento; limite di guardia a 1000 pagine per collezione, 
 | `getEServiceDescriptors` | 1 + 1 per descrittore (documenti) |
 | `getEServiceDescriptor` | 2: descrittore e documenti |
 | `getSubscribers` | 1 (accordi, paginati) + 1 per organizzazione fruitrice distinta |
+| `approveAgreement`, `approvePurpose` | 1 — solo in v3: in v1 rispondono 501 |
 | `getOrganizationEServices` | 1 (ricerca tenant) + N/50 (elenco e-service) + **4 per e-service** (descrittori e 3 endpoint attributi) |
 | altre operazioni | 1 |
 

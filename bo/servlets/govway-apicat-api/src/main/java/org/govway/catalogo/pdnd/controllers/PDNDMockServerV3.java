@@ -180,6 +180,16 @@ public class PDNDMockServerV3 {
 		return ResponseEntity.ok(readMockResponse(Agreements.class));
 	}
 
+	public ResponseEntity<Agreement> approveAgreement(UUID agreementId) {
+		checkInput(agreementId);
+		return ResponseEntity.ok(readMockResponse(Agreement.class));
+	}
+
+	public ResponseEntity<Purpose> approvePurpose(UUID purposeId) {
+		checkInput(purposeId);
+		return ResponseEntity.ok(readMockResponse(Purpose.class));
+	}
+
 	public ResponseEntity<Purposes> getAgreementPurposes(UUID agreementId, Integer limit, Integer offset) {
 		checkInput(agreementId);
 		if(!isPrimaPagina(offset)) {

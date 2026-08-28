@@ -61,6 +61,16 @@ public interface IPDNDClient {
 
 	ResponseEntity<Agreement> getAgreement(UUID agreementId);
 
+	/**
+	 * Operazione di scrittura: approva l'accordo di fruizione in stato PENDING.
+	 */
+	ResponseEntity<Agreement> approveAgreement(UUID agreementId);
+
+	/**
+	 * Operazione di scrittura: approva la finalita' in stato WAITING_FOR_APPROVAL.
+	 */
+	ResponseEntity<Purpose> approvePurpose(UUID purposeId);
+
 	ResponseEntity<Attributes> getAgreementAttributes(UUID agreementId);
 
 	ResponseEntity<Agreement> getAgreementByPurpose(UUID purposeId);
