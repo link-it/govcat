@@ -1651,7 +1651,8 @@
 					"409": {
 						"DEFAULT": "Organizzazione [{{nome}}] già esistente",
 						"ADERENTE": "Soggetto aderente vincolato, impossibile modificare",
-						"REFERENT": "Referente [{{nomeUtente}} {{cognomeUtente}}] di tipo [{{tipoReferente}}] già presente per il dominio [{{nomeDominio}}]"
+						"REFERENT": "Referente [{{nomeUtente}} {{cognomeUtente}}] di tipo [{{tipoReferente}}] già presente per il dominio [{{nomeDominio}}]",
+						"USER": "L'utente [{{nomeUtente}} {{cognomeUtente}}] è già associato all'organizzazione [{{nomeOrganizzazione}}]"
 					}
 				},
 				"PRF": {
@@ -1793,6 +1794,7 @@
 						"CATEGORY": "Categoria [{{categoria}}] gia associato al servizio [{{nome}}/{{versione}}]",
 						"CONFLICT": "Servizio con stesso nome e versione gia esistente",
 						"GROUP": "Gruppo [{{gruppo}}] gia associato al servizio [{{nome}}/{{versione}}]",
+						"REFERENT": "L'utente [{{nomeUtente}} {{cognomeUtente}}] è già {{tipoReferente}} del servizio [{{nomeServizio}} v{{versioneServizio}}]",
 						"STATE": ""
 					}
 				},

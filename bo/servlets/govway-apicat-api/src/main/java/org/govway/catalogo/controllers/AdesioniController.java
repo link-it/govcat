@@ -413,6 +413,12 @@ public class AdesioniController implements AdesioniApi {
 				this.logger.info("Invocazione in corso ...");
 				AdesioneEntity entity = findOne(idAdesione);
 
+				// Lock esclusivo sull'adesione prima di navigare i referenti: serializza le richieste
+				// concorrenti sulla stessa adesione, altrimenti due invocazioni sovrapposte (es. doppio
+				// click sul salvataggio) leggono entrambe i referenti senza vedere l'insert dell'altra
+				// e superano entrambe il controllo di duplicazione.
+				this.service.lock(entity);
+
 				Grant grant = this.dettaglioAssembler.toGrant(entity);
 
 				if(!isForce(force, grant.getRuoli())) {

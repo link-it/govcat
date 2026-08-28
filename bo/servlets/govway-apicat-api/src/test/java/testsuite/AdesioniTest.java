@@ -968,6 +968,55 @@ public class AdesioniTest {
     }
     
     @Test
+    void testCreateReferenteAdesioneDuplicato() {
+    	// Creo il dominio
+    	Dominio dominio = this.getDominio(null);
+    	// Creo un servizio
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	// Creo API
+    	this.getAPI();
+
+    	//per l'adesione lo stato del servizio deve essere a "Pubblicato in collaudo"
+    	CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+
+    	// Creo l'Adesione
+    	Adesione adesione = this.getAdesione();
+
+    	assertNotNull(adesione);
+
+    	UtenteUpdate upUtente = new UtenteUpdate();
+        upUtente.setPrincipal(UTENTE_RICHIEDENTE_ADESIONE);
+        CommonUtils.setOrganizzazione(upUtente, idOrganizzazione);
+        upUtente.setStato(StatoUtenteEnum.ABILITATO);
+        upUtente.setEmailAziendale("mail@aziendale.it");
+        upUtente.setTelefonoAziendale("+39 0000000");
+        upUtente.setNome("utente");
+        upUtente.setCognome("richiedente_adesione");
+
+        utentiController.updateUtente(ID_UTENTE_RICHIEDENTE_ADESIONE, upUtente);
+
+    	ReferenteCreate referente = new ReferenteCreate();
+    	referente.setIdUtente(ID_UTENTE_RICHIEDENTE_ADESIONE);
+    	referente.setTipo(TipoReferenteEnum.REFERENTE);
+
+    	ResponseEntity<Referente> response = adesioniController.createReferenteAdesione(adesione.getIdAdesione(), referente, null);
+
+    	assertEquals(HttpStatus.CREATED, response.getStatusCode());
+
+    	// il test condivide una sola transazione: si svuota il contesto di persistenza per
+    	// simulare la seconda richiesta HTTP, che rilegge i referenti dell'adesione dal database
+    	this.entityManager.flush();
+    	this.entityManager.clear();
+
+    	// la seconda aggiunta dello stesso utente con lo stesso tipo deve essere rifiutata
+    	Exception exception = assertThrows(BadRequestException.class, () -> {
+    		adesioniController.createReferenteAdesione(adesione.getIdAdesione(), referente, null);
+    	});
+
+    	assertTrue(exception.getMessage().contains("ADE.409.REFERENT"));
+    }
+
+    @Test
     void testCreateReferenteAdesioneNotAuthorized() { 
     	// Creo il dominio
     	Dominio dominio = this.getDominio(null);
