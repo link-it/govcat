@@ -61,6 +61,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 /**
  * Simulazione delle operazioni PDND v3 utilizzate da GovCat, analoga a {@link PDNDMockServer}
@@ -97,7 +98,9 @@ public class PDNDMockServerV3 {
 				try {
 					is = PDNDMockServerV3.class.getResourceAsStream(getPrefix() + key);
 					if(is != null) {
-						ObjectMapper om = new ObjectMapper();
+						// il modello v3 utilizza OffsetDateTime: senza il modulo dedicato le date
+						// presenti nelle risposte simulate non sarebbero leggibili
+						ObjectMapper om = new ObjectMapper().registerModule(new JavaTimeModule());
 						byte[] value = IOUtils.toByteArray(is);
 
 						Object obj = om.readValue(value, valueType);

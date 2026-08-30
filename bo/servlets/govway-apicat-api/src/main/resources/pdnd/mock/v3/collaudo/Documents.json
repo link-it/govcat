@@ -4,7 +4,8 @@
       "id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
       "name": "openapi.yaml",
       "prettyName": "Specifica OpenAPI",
-      "contentType": "application/yaml"
+      "contentType": "application/yaml",
+      "createdAt": "2026-01-15T09:30:00Z"
     }
   ],
   "pagination": {
