@@ -1,6 +1,12 @@
 2026-08-31  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 339: fix tag creati di recente non suggeriti nel dettaglio servizio con piu`
+	  di 20 tag. Caricamento anagrafica tags con `size` capiente (GET /tags e` paginato)
+	  e ricarica delle anagrafiche dopo il salvataggio, cosi` un tag appena creato
+	  compare subito in un edit immediato.
+
+	* [Frontend]
 	Issue 338: fix aggiunta multipla dello stesso referente per doppio clic su Salva.
 	  Aggiunto guard `_saving` (bottone disabilitato durante il salvataggio) in
 	  aggiunta referenti di servizi, adesioni e domini.
