@@ -853,7 +853,10 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     }
 
     getDomini(term: string | null = null): Observable<any> {
-        const _options: any = term ? { params: { q: term } } : { params: {} };
+        // Issue 340: GET /domini e` paginato (size default 20). Senza `size`
+        // la ricerca mostrerebbe solo i primi 20 domini (es. >20 domini per la
+        // stessa organizzazione), quindi richiediamo una pagina capiente.
+        const _options: any = term ? { params: { q: term, size: 1000 } } : { params: { size: 1000 } };
         if (!this.authenticationService.isGestore()) {
             _options.params.deprecato = false;
         }

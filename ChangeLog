@@ -1,6 +1,11 @@
 2026-08-31  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 340: fix ricerca domini limitata ai primi 20 in creazione/modifica servizio
+	  e adesione. La `getList('domini')` dei typeahead (getDomini) ora richiede una
+	  pagina capiente (`size`), cosi` con piu` di 20 domini vengono mostrati tutti.
+
+	* [Frontend]
 	Issue 339: fix tag creati di recente non suggeriti nel dettaglio servizio con piu`
 	  di 20 tag. Caricamento anagrafica tags con `size` capiente (GET /tags e` paginato)
 	  e ricarica delle anagrafiche dopo il salvataggio, cosi` un tag appena creato
