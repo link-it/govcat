@@ -50,12 +50,14 @@ import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { MarkdownModule } from 'ngx-markdown';
+import { Observable } from 'rxjs';
 
 import { COMPONENTS_IMPORTS } from '@linkit/components';
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
+import { LnkFormLiveSearchComponent } from '@app/components/lnk-ui/form-live-search/form-live-search.component';
 
-import { AuthType, FormConfig } from '@app/views/adesioni/adesione-configurazione-wizard/adesione-lista-clients/client-dialog-state';
+import { FormConfig } from '@app/views/adesioni/adesione-configurazione-wizard/adesione-lista-clients/client-dialog-state';
 import { SelectedClientEnum } from '@app/views/adesioni/adesione-configurazioni/adesione-configurazioni.component';
 
 /**
@@ -71,6 +73,17 @@ export interface ClientAuthFormInput {
 
     /** Lista client riusabili per il dropdown / toggle "Client gia' censito". */
     clientsRiuso: Array<{ id_client: any; nome: string }>;
+    /**
+     * Issue 337: ricerca server-side (query `q` + paginazione) dei client
+     * riusabili. Se valorizzata, il dropdown "Client gia' censito" usa
+     * `lnk-form-live-search` (prima pagina + scroll infinito) invece del
+     * `<select>` statico su `clientsRiuso`.
+     */
+    searchClients?: (term: string, page?: number) => Observable<any[]>;
+    /** Issue 337: valore iniziale (client selezionato) per il dropdown server-side. */
+    initValueClient?: any;
+    /** Issue 337: conteggio totale dei client riusabili (dal server), per il gating UI. */
+    clientsRiusoCount?: number;
     /** Opzioni del dropdown "tipo certificato" (e firma). */
     tipiCertificato: Array<{ nome: string; valore: string }>;
     /** Opzioni del dropdown "periodo" rate-limiting. */
@@ -159,6 +172,7 @@ export type ClientAuthFormLayout = 'vertical' | 'horizontal';
         NgSelectModule,
         MarkAsteriskDirective,
         MarkdownModule,
+        LnkFormLiveSearchComponent,
     ],
 })
 export class ClientAuthFormComponent implements OnChanges {
@@ -191,6 +205,9 @@ export class ClientAuthFormComponent implements OnChanges {
     @Output() changeAuthType = new EventEmitter<any>();
     @Output() selectCredenziali = new EventEmitter<SelectedClientEnum>();
     @Output() changeCredenziali = new EventEmitter<any>();
+    /** Issue 337: selezione dal dropdown server-side; emette l'item completo
+     *  `{ label, value, item }` cosi' il parent ha anche il client (`item`). */
+    @Output() changeRiusoClient = new EventEmitter<any>();
     @Output() changeTipoCertificato = new EventEmitter<any>();
     @Output() changeTipoCertificatoFirma = new EventEmitter<any>();
     @Output() descriptorChange = new EventEmitter<{ value: any; type: string }>();
@@ -345,6 +362,10 @@ export class ClientAuthFormComponent implements OnChanges {
     /** True quando il toggle "Client gia' censito" e' selezionato. */
     get isClientGiaCensitoSelected(): boolean {
         return this.f['credenziali']?.value === SelectedClientEnum.UsaClientEsistente
-            || this.managedClients.some((c) => c.id_client === this.f['credenziali']?.value);
+            || this.managedClients.some((c) => c.id_client === this.f['credenziali']?.value)
+            // Issue 337: con la ricerca server-side il client selezionato puo' non
+            // essere nella prima pagina (`managedClients`): il control dedicato
+            // `credenzialiRiuso` (valorizzato dal dropdown) tiene attivo il toggle.
+            || !!this.f['credenzialiRiuso']?.value;
     }
 }

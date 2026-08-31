@@ -1,6 +1,13 @@
 2026-08-31  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 337: filtro sui "Client gia` censiti" nel wizard adesioni. La tendina usa
+	  ora la ricerca server-side (query `q`) con paginazione e scroll infinito tramite
+	  lnk-form-live-search (prima pagina caricata all'apertura); il caricamento
+	  completo dei client riusabili e` sostituito da prima pagina + conteggio. Aggiunti
+	  label, placeholder e clear coerenti.
+
+	* [Frontend]
 	Issue 340: fix ricerca domini limitata ai primi 20 in creazione/modifica servizio
 	  e adesione. La `getList('domini')` dei typeahead (getDomini) ora richiede una
 	  pagina capiente (`size`), cosi` con piu` di 20 domini vengono mostrati tutti.
