@@ -72,6 +72,7 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
   _filterData: any[] = [];
 
   _preventMultiCall: boolean = false;
+  _saving: boolean = false;
 
   _spin: boolean = false;
   desktop: boolean = false;
@@ -388,12 +389,16 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
   }
 
   saveModal(body: any){
+    if (this._saving) { return; }
+    this._saving = true;
     this.apiService.postElementRelated(this.model, this.id, 'referenti', body).subscribe(
       (response: any) => {
+        this._saving = false;
         this._modalEditRef.hide();
         this._loadDominioReferenti();
       },
       (error: any) => {
+        this._saving = false;
         console.log('error', error);
       }
     );

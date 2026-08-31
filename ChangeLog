@@ -1,3 +1,10 @@
+2026-08-31  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 338: fix aggiunta multipla dello stesso referente per doppio clic su Salva.
+	  Aggiunto guard `_saving` (bottone disabilitato durante il salvataggio) in
+	  aggiunta referenti di servizi, adesioni e domini.
+
 2026-08-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

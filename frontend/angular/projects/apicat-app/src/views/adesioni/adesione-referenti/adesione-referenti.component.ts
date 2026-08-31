@@ -94,6 +94,7 @@ export class AdesioneReferentiComponent implements OnInit, AfterContentChecked {
   _filterData: any[] = [];
 
   _preventMultiCall: boolean = false;
+  _saving: boolean = false;
 
   _spin: boolean = false;
   desktop: boolean = false;
@@ -432,12 +433,16 @@ export class AdesioneReferentiComponent implements OnInit, AfterContentChecked {
   }
 
   saveModal(body: any){
+    if (this._saving) { return; }
+    this._saving = true;
     this.apiService.postElementRelated(this.model, this.id, 'referenti', body).subscribe({
       next: (response: any) => {
+        this._saving = false;
         this._modalEditRef.hide();
         this._loadAdesioneReferenti();
       },
       error: (error: any) => {
+        this._saving = false;
         console.log('error', error);
       }
     });
