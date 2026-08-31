@@ -621,6 +621,30 @@ public class ServiziTest {
     }
 
     @Test
+    void testCreateReferenteServizioDuplicato() {
+        Servizio servizio = this.getServizio();
+        UUID idServizio = servizio.getIdServizio();
+
+        ReferenteCreate referenteCreate = new ReferenteCreate();
+        referenteCreate.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
+        referenteCreate.setIdUtente(ID_UTENTE_GESTORE);
+
+        ResponseEntity<Referente> response = serviziController.createReferenteServizio(idServizio, null, referenteCreate);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        // la seconda aggiunta dello stesso utente con lo stesso tipo deve essere rifiutata
+        Exception exception = assertThrows(BadRequestException.class, () -> {
+            serviziController.createReferenteServizio(idServizio, null, referenteCreate);
+        });
+
+        assertTrue(exception.getMessage().contains("SRV.409.REFERENT"));
+
+        ResponseEntity<PagedModelReferente> referenti = serviziController.listReferentiServizio(idServizio, null, null, 0, 10, null);
+        assertEquals(2, referenti.getBody().getContent().size());
+    }
+
+    @Test
     void testCreateAllegatoMessaggioServizioSuccess() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();

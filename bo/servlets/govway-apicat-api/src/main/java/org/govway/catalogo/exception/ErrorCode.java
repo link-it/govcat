@@ -119,6 +119,9 @@ public enum ErrorCode {
     /** Conflitto servizio */
     SRV_409_CONFLICT("Conflitto servizio"),
 
+    /** Utente gia' associato al servizio con lo stesso tipo referente */
+    SRV_409_REFERENT("Referente gia' associato al servizio"),
+
     /** Package non trovato */
     SRV_404_PACKAGE("Package non trovato"),
 
@@ -144,6 +147,9 @@ public enum ErrorCode {
 
     /** Soggetto aderente vincolato */
     ORG_409_ADERENTE("Soggetto aderente vincolato"),
+
+    /** Utente gia' associato all'organizzazione */
+    ORG_409_USER("Utente gia' associato all'organizzazione"),
 
     // ==================== DOMINI ====================
 

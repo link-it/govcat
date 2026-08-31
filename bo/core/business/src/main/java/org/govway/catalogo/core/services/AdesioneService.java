@@ -89,6 +89,15 @@ public class AdesioneService extends AbstractService {
 				.collect(Collectors.toList());
 	}
 
+	/**
+	 * Acquisisce un lock esclusivo sulla riga dell'adesione per la durata della transazione corrente,
+	 * per serializzare le richieste concorrenti che ne modificano le collection (es. i referenti).
+	 * Vedi {@link AbstractService#lockRow(String, Long)}.
+	 */
+	public void lock(AdesioneEntity entity) {
+		lockRow("adesioni", entity.getId());
+	}
+
 	public void save(AdesioneEntity adesione) {
 		this.adesioneRepo.save(adesione);
 	}

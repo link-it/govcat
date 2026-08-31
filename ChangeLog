@@ -19,6 +19,27 @@
 	  PENDING); conferma e chiamata a POST agreements/{id}/approve, poi ricarica lista.
 	  Nuovi metodi approveAgreement/approvePurpose nel PdndService, getter isPdndAdmin.
 
+2026-08-28  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 338: risolto l'inserimento multiplo dello stesso referente. L'aggiunta di un
+	  referente a un servizio verificava la duplicazione solo in memoria, all'interno
+	  della transazione: due invocazioni sovrapposte di `POST /servizi/{id}/referenti`
+	  (tipiche del doppio click quando la risposta tarda ad arrivare) leggevano entrambe
+	  lo stato precedente all'inserimento dell'altra e superavano entrambe il controllo,
+	  associando più volte lo stesso utente al servizio. Ora la richiesta acquisisce un
+	  lock esclusivo sulla riga del servizio prima di leggere i referenti, serializzando
+	  le invocazioni concorrenti. Lo stesso accorgimento è stato applicato all'aggiunta
+	  dei referenti di un'adesione e di un dominio, che presentavano il medesimo
+	  scoperto.
+	Il conflitto sul referente di un servizio è ora segnalato con il codice dedicato
+	  `SRV.409.REFERENT` al posto del generico `GEN.409`, la cui traduzione richiede un
+	  parametro `risorsa` che non veniva valorizzato: il messaggio mostrato all'utente
+	  conteneva il segnaposto non sostituito. Per lo stesso motivo l'associazione di un
+	  utente già presente in un'organizzazione risponde ora con `ORG.409.USER`.
+	Aggiunto lo script `bonifica_referenti_servizi_duplicati.sql` per rimuovere le
+	  associazioni duplicate già presenti in banca dati, mantenendo la prima inserita.
+
 2026-08-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

@@ -5,9 +5,11 @@
   "title": "Finalita' di esempio",
   "description": "Finalita' di esempio esposta dal mock PDND v3",
   "isFreeOfCharge": true,
+  "createdAt": "2026-01-15T09:30:00Z",
   "currentVersion": {
     "id": "66666666-6666-6666-6666-6666666666aa",
     "state": "ACTIVE",
-    "dailyCalls": 1000
+    "dailyCalls": 1000,
+    "createdAt": "2026-01-15T09:30:00Z"
   }
 }

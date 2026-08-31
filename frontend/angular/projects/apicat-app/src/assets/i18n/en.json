@@ -1651,7 +1651,8 @@
 					"409": {
 						"DEFAULT": "Organization [{{nome}}] already exists",
 						"ADERENTE": "Adhering subject constrained, cannot modify",
-						"REFERENT": "Referent [{{nomeUtente}} {{cognomeUtente}}] of type [{{tipoReferente}}] already exists for domain [{{nomeDominio}}]"
+						"REFERENT": "Referent [{{nomeUtente}} {{cognomeUtente}}] of type [{{tipoReferente}}] already exists for domain [{{nomeDominio}}]",
+						"USER": "User [{{nomeUtente}} {{cognomeUtente}}] is already associated to organization [{{nomeOrganizzazione}}]"
 					}
 				},
 				"PRF": {
@@ -1793,6 +1794,7 @@
 						"CATEGORY": "Category [{{categoria}}] already associated to service [{{nome}}/{{versione}}]",
 						"CONFLICT": "Service with same name and version already exists",
 						"GROUP": "Group [{{gruppo}}] already associated to service [{{nome}}/{{versione}}]",
+						"REFERENT": "User [{{nomeUtente}} {{cognomeUtente}}] is already {{tipoReferente}} of service [{{nomeServizio}} v{{versioneServizio}}]",
 						"STATE": "Cannot modify service in current state"
 					}
 				},
