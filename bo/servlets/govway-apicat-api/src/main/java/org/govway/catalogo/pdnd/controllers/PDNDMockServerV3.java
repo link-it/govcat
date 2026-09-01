@@ -49,6 +49,7 @@ import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.EServiceDescriptors
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.EServiceMode;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.EServiceTechnology;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.EServices;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.ExternalId;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Key;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Problem;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Purpose;
@@ -314,7 +315,36 @@ public class PDNDMockServerV3 {
 
 	public ResponseEntity<Tenant> getTenant(UUID tenantId) {
 		checkInput(tenantId);
-		return ResponseEntity.ok(readMockResponse(Tenant.class));
+		return ResponseEntity.ok(readMockResponseTenant(tenantId));
+	}
+
+	/**
+	 * Il mock non dispone di un registro di organizzazioni: per gli identificativi diversi da
+	 * quello della risposta simulata (ad esempio i fruitori presenti negli accordi) vengono
+	 * restituiti nome e codice IPA derivati dall'identificativo richiesto, in modo che le
+	 * organizzazioni risultino distinguibili.
+	 */
+	private Tenant readMockResponseTenant(UUID tenantId) {
+		Tenant tenant = readMockResponse(Tenant.class);
+
+		if(tenantId == null || tenantId.equals(tenant.getId())) {
+			return tenant;
+		}
+
+		String suffisso = tenantId.toString().substring(0, 4);
+
+		ExternalId externalId = new ExternalId();
+		externalId.setOrigin(tenant.getExternalId() != null ? tenant.getExternalId().getOrigin() : "IPA");
+		externalId.setValue("c_" + suffisso);
+
+		Tenant fruitore = new Tenant();
+		fruitore.setId(tenantId);
+		fruitore.setExternalId(externalId);
+		fruitore.setName("Ente fruitore " + suffisso);
+		fruitore.setKind(tenant.getKind());
+		fruitore.setCreatedAt(tenant.getCreatedAt());
+
+		return fruitore;
 	}
 
 	public ResponseEntity<Tenants> getTenants(Integer offset, Integer limit, String ipACode, String taxCode) {

@@ -22,13 +22,17 @@ package org.govway.catalogo.pdnd;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.UUID;
 
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.pdnd.controllers.PDNDMockServerV3;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.AgreementState;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Tenant;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -86,8 +90,32 @@ class PDNDMockServerV3Test {
 	void leCollezioniSimulateContengonoUnaSolaPagina() {
 		PDNDMockServerV3 server = new PDNDMockServerV3("collaudo");
 
-		assertEquals(1, server.getAgreements(0, 50, null, null, null, null, null).getBody().getResults().size());
+		// due accordi simulati: uno attivo e uno in attesa di approvazione
+		assertEquals(2, server.getAgreements(0, 50, null, null, null, null, null).getBody().getResults().size());
 		assertEquals(null, server.getAgreements(50, 50, null, null, null, null, null).getBody().getResults());
+	}
+
+	@Test
+	void laListaAccordiContieneUnFruitoreInAttesaDiApprovazione() {
+		PDNDMockServerV3 server = new PDNDMockServerV3("collaudo");
+
+		// consente di provare l'approvazione dell'accordo dalla lista dei fruitori
+		assertTrue(server.getAgreements(0, 50, null, null, null, null, null).getBody().getResults().stream()
+				.anyMatch(a -> AgreementState.PENDING.equals(a.getState())));
+	}
+
+	@Test
+	void leOrganizzazioniSonoDistinguibiliPerIdentificativo() {
+		PDNDMockServerV3 server = new PDNDMockServerV3("collaudo");
+
+		UUID altroTenant = UUID.fromString("d2222222-2222-2222-2222-222222222222");
+
+		Tenant erogatore = server.getTenant(ID).getBody();
+		Tenant fruitore = server.getTenant(altroTenant).getBody();
+
+		assertEquals(altroTenant, fruitore.getId());
+		assertNotEquals(erogatore.getName(), fruitore.getName());
+		assertNotEquals(erogatore.getExternalId().getValue(), fruitore.getExternalId().getValue());
 	}
 
 	@Test
