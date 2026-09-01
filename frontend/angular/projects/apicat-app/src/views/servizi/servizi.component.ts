@@ -834,6 +834,18 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         }
     }
 
+    /** Rotta di dettaglio/edit di un servizio. In presentazione -> vista
+     *  read-only. Altrimenti, di default, il wizard a fasi (`:id/wizard`),
+     *  salvo disattivazione via flag `Services.wizardWorkflowLayout=false`
+     *  (che riporta al dettaglio classico `:id`). */
+    private _serviceDetailRoute(id: any): any[] {
+        if (this.showPresentation) { return [this.model, id, 'view']; }
+        // Default: il dettaglio `:id` e' il wizard. Con il flag disattivato si
+        // apre la vista classica sulla rotta dedicata `:id/classic`.
+        const useWizard = this.config?.AppConfig?.Services?.wizardWorkflowLayout !== false;
+        return useWizard ? [this.model, id] : [this.model, id, 'classic'];
+    }
+
     _onEdit(event: any, param: any) {
         if (this.searchBarForm) {
             this.searchBarForm._pinLastSearch();
@@ -841,28 +853,19 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         // Supporto per apertura in nuova scheda (Ctrl+Click, Cmd+Click, middle-click)
         const mouseEvent = this.navigationService.extractEvent(event);
         const data = this.navigationService.extractData(param) || param;
-        const route = this.showPresentation
-            ? [this.model, data.idServizio, 'view']
-            : [this.model, data.idServizio];
-        this.navigationService.navigateWithEvent(mouseEvent, route);
+        this.navigationService.navigateWithEvent(mouseEvent, this._serviceDetailRoute(data.idServizio));
     }
 
     _onOpenInNewTab(event: any) {
         const data = this.navigationService.extractData(event);
-        const route = this.showPresentation
-            ? [this.model, data.idServizio, 'view']
-            : [this.model, data.idServizio];
-        this.navigationService.openInNewTab(route);
+        this.navigationService.openInNewTab(this._serviceDetailRoute(data.idServizio));
     }
 
     _onOpenInNewTabGroup(event: any) {
         const data = this.navigationService.extractData(event);
         // Solo per i servizi, non per i gruppi
         if (data.type === 'servizio') {
-            const route = this.showPresentation
-                ? [this.model, data.id, 'view']
-                : [this.model, data.id];
-            this.navigationService.openInNewTab(route);
+            this.navigationService.openInNewTab(this._serviceDetailRoute(data.id));
         }
     }
 

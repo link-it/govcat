@@ -1,3 +1,23 @@
+2026-09-01  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Wizard servizio, creazione unificata a pagina unica a sezioni (stile nuova
+	  adesione): flag package/fruizione e ente/soggetto erogatore in "Informazioni
+	  generali" (flag sotto il logo, erogatore sotto il dominio), select native
+	  convertite in ng-select. Pulsante "Avanti" salva la bozza a cascata (servizio
+	  + gruppi + allegati) e apre la FASE 2 API sul servizio reale.
+
+	* [Frontend]
+	Wizard servizio: allegati raccolti in creazione. Nuova modalità draftMode della
+	  dialog allegati (restituisce il payload senza POST) e sezione "Allegati" nel
+	  wizard; gli allegati vengono persistiti a cascata dopo la creazione.
+
+	* [Frontend]
+	Wizard servizio: il dettaglio servizio (servizi/:id) ora apre il wizard come
+	  default; vista/modifica classica spostata su servizi/:id/classic (con redirect
+	  di compatibilità da :id/wizard). Navigazioni sotto-sezioni rese context-aware
+	  per non rompere il dettaglio componente.
+
 2026-08-18  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

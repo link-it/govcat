@@ -45,16 +45,32 @@ export const SERVIZI_ROUTES: Routes = [
         component: ServizioCreateWizardComponent
       },
       {
+        // Creazione classica: rotta esplicita PRIMA di `:id` (che ora e' il
+        // wizard), altrimenti `servizi/new` verrebbe intercettata dal wizard.
+        path: 'new',
+        canActivate: [ForbidAnonymousGuard],
+        data: { breadcrumb: 'Nuovo servizio' },
+        component: ServizioDetailsComponent
+      },
+      {
+        // Default: il dettaglio del servizio e' ora il wizard a fasi.
         path: ':id',
+        canActivate: [ForbidAnonymousGuard],
+        data: { breadcrumb: 'Dettaglio servizio' },
+        component: ServizioWorkflowWizardComponent
+      },
+      {
+        // Vista/modifica classica, accessibile su rotta dedicata.
+        path: ':id/classic',
         canActivate: [ForbidAnonymousGuard],
         data: { breadcrumb: 'Dettaglio servizio' },
         component: ServizioDetailsComponent
       },
       {
+        // Backward-compat: la vecchia rotta wizard reindirizza al default.
         path: ':id/wizard',
-        canActivate: [ForbidAnonymousGuard],
-        data: { breadcrumb: 'Wizard servizio' },
-        component: ServizioWorkflowWizardComponent
+        redirectTo: ':id',
+        pathMatch: 'full'
       },
       {
         path: ':sid/view',

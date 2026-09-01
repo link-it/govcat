@@ -121,8 +121,11 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         referenti: false,
         allegati: false,
         gruppi: false,
-        api: false
+        // API e' una fase dedicata (FASE 2): la relativa sezione parte aperta.
+        api: true
     };
+    // Fase richiesta via query param (?fase=api), es. dopo la creazione.
+    _requestedFase: string | null = null;
 
     /** True quando è aperto il form embedded di creazione API in FASE 1. */
     _createApiOpen: boolean = false;
@@ -194,6 +197,9 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     }
 
     ngOnInit() {
+        this.route.queryParams.subscribe((qp) => {
+            this._requestedFase = qp['fase'] || null;
+        });
         this.route.params.subscribe((params) => {
             this.id = params['id'];
             this._loadStepWizard();
@@ -263,6 +269,12 @@ export class ServizioWorkflowWizardComponent implements OnInit {
 
     /** Imposta la fase visualizzata su quella corrente del workflow. */
     private _initSelectedFase() {
+        // Fase richiesta esplicitamente (es. ?fase=api dopo la creazione).
+        if (this._requestedFase && this.stepWizard.some((s) => s.code === this._requestedFase)) {
+            this._selectedFase = this._requestedFase;
+            this._requestedFase = null;
+            return;
+        }
         const stato = this.data?.stato;
         const fase = this.stepWizard.find((s) => s.stati_adesione?.includes(stato));
         this._selectedFase = fase ? fase.code : (this.stepWizard[0]?.code || null);
@@ -326,9 +338,10 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         this.router.navigate([this.model, this.id, route]);
     }
 
-    /** Convivenza: torna alla vista classica del servizio (servizio-details). */
+    /** Convivenza: torna alla vista classica del servizio (servizio-details),
+     *  ora su rotta dedicata `:id/classic` (il default `:id` e' il wizard). */
     openClassic() {
-        this.router.navigate([this.model, this.id]);
+        this.router.navigate([this.model, this.id, 'classic']);
     }
 
     // -------------------------------------------------------------------------

@@ -21,13 +21,19 @@ import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
+import { BsModalService } from 'ngx-bootstrap/modal';
 
 import { ConfigService, Tools, COMPONENTS_IMPORTS } from '@linkit/components';
+import { ModalGroupChoiceComponent } from '@app/components/modal-group-choice/modal-group-choice.component';
+import { AllegatiDialogComponent } from '@app/components/allegati-dialog/allegati-dialog.component';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService, RUOLI_ORG_REFERENTE } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 
 import { ServizioCreate, Soggetto } from '../servizio-details/servizioCreate';
+import { ServizioWizardDraft, emptyServizioWizardDraft, cascadeCreateServizio, cascadeHasErrors, CascadeResult, AllegatoDraft } from '../servizio-workflow-wizard/servizio-wizard-draft';
+import { AdesioneFasiBarComponent } from '@app/views/adesioni/adesione-fasi-bar/adesione-fasi-bar.component';
+import { StepWizardItem } from '@app/views/adesioni/adesione-step-bar/adesione-step-bar.component';
 
 import { concat, forkJoin, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
@@ -69,7 +75,8 @@ interface WizardStep {
         MarkAsteriskDirective,
         ErrorViewComponent,
         MarkdownModule,
-        MapperPipe
+        MapperPipe,
+        AdesioneFasiBarComponent
     ]
 })
 export class ServizioCreateWizardComponent implements OnInit {
@@ -98,6 +105,29 @@ export class ServizioCreateWizardComponent implements OnInit {
     _error: boolean = false;
     _errorMsg: string = '';
     _errors: any[] = [];
+
+    // Evolutiva: draft del wizard (servizio + sotto-risorse) per il salvataggio
+    // a cascata. Le sotto-risorse vengono raccolte in draftMode e persistite
+    // dopo la POST del servizio.
+    _draft: ServizioWizardDraft = emptyServizioWizardDraft();
+    // Gruppi selezionati in creazione (oggetti gruppo per il display; gli id
+    // finiscono in `_draft.gruppi` al submit).
+    _selectedGruppi: any[] = [];
+    // Allegati raccolti in creazione (draftMode base64); confluiscono in
+    // `_draft.allegati` al submit e vengono inviati a cascata.
+    _selectedAllegati: AllegatoDraft[] = [];
+
+    // Barra fasi (statica) in cima alla creazione, stile nuova adesione:
+    // FASE 1 (Informazioni generali) attiva = creazione; API/Collaudo/Produzione
+    // in attesa (lucchetto). Label da `APP.SERVICES.WIZARD.PHASE.<code>`.
+    readonly _fasiBarSteps: StepWizardItem[] = [
+        { code: 'info_generali', descrizione: 'Informazioni Generali', stati_adesione: ['creazione'] },
+        { code: 'api', descrizione: 'API', stati_adesione: [] },
+        { code: 'collaudo', descrizione: 'Collaudo', stati_adesione: [] },
+        { code: 'produzione', descrizione: 'Produzione', stati_adesione: [] }
+    ];
+    readonly _fasiCurrent = 'creazione';
+    _showFasiBar: boolean = true;
 
     // Etichette dei campi che bloccano l'avanzamento allo step successivo.
     _stepErrorLabels: string[] = [];
@@ -192,6 +222,7 @@ export class ServizioCreateWizardComponent implements OnInit {
         { code: 'referenti', controls: ['referente', 'referente_tecnico'], visible: () => this.showReferenti },
         { code: 'descrizione', controls: ['descrizione_sintetica', 'descrizione', 'tags', 'termini_ricerca', 'note'], visible: () => true },
         { code: 'adesione', controls: ['adesione_disabilitata', 'multi_adesione', 'skip_collaudo'], visible: () => this._isGestore() },
+        { code: 'gruppi', controls: [], visible: () => true },
         { code: 'riepilogo', controls: [], visible: () => true }
     ];
     _currentStepCode: string = 'identita';
@@ -203,7 +234,8 @@ export class ServizioCreateWizardComponent implements OnInit {
         private readonly configService: ConfigService,
         private readonly apiService: OpenAPIService,
         private readonly utils: UtilService,
-        private readonly authenticationService: AuthenticationService
+        private readonly authenticationService: AuthenticationService,
+        private readonly modalService: BsModalService
     ) {
         this.appConfig = this.configService.getConfiguration();
         this.apiUrl = this.appConfig.AppConfig.GOVAPI.HOST;
@@ -911,20 +943,86 @@ export class ServizioCreateWizardComponent implements OnInit {
 
         this.__resetError();
         const _body = this._prepareBodySaveServizio(this._formGroup.getRawValue());
+        // Evolutiva: salvataggio a cascata (best-effort) sul draft: servizio +
+        // gruppi + allegati (raccolti in draftMode). Le API restano FASE 2 sul
+        // servizio reale.
+        this._draft = {
+            ...emptyServizioWizardDraft(),
+            servizio: _body,
+            gruppi: this._selectedGruppi.map((g) => g.id_gruppo),
+            allegati: this._selectedAllegati
+        };
         this._submitting = true;
-        this.apiService.saveElement(this.model, _body).subscribe({
-            next: (response: any) => {
+        cascadeCreateServizio(this.apiService, this._draft).subscribe({
+            next: (result: CascadeResult) => {
                 this._submitting = false;
-                const _id = response.id_servizio;
-                this.router.navigate([this.model, _id], { replaceUrl: true });
-            },
-            error: (error: any) => {
-                this._submitting = false;
-                this._error = true;
-                this._errorMsg = this.utils.GetErrorMsg(error);
-                this._errors = Tools.filtraErroriComplessi(error.error?.errori);
+                if (!result.idServizio) {
+                    // Servizio non creato: errore bloccante.
+                    const srvErr: any = result.items.find((i) => i.step === 'servizio')?.error;
+                    this._error = true;
+                    this._errorMsg = srvErr ? this.utils.GetErrorMsg(srvErr) : this.translate.instant('APP.MESSAGE.ERROR.Default');
+                    this._errors = Tools.filtraErroriComplessi(srvErr?.error?.errori);
+                    return;
+                }
+                if (cascadeHasErrors(result)) {
+                    // Best-effort: il servizio e' creato; alcune sotto-risorse non
+                    // sono state salvate e andranno completate in modifica.
+                    // (Il riepilogo degli errori sara' mostrato in UI in un incremento successivo.)
+                    console.warn('Cascade parziale: sotto-risorse non salvate', result.items.filter((i) => !i.ok));
+                }
+                // Opzione A: servizio creato (bozza) -> dettaglio (ora wizard),
+                // posizionato sulla FASE 2 API dove l'utente inserisce le API.
+                this.router.navigate([this.model, result.idServizio], { replaceUrl: true, queryParams: { fase: 'api' } });
             }
         });
+    }
+
+    // -------------------------------------------------------------------------
+    // Evolutiva — Gruppi (raccolti in creazione, salvati in cascata)
+    // -------------------------------------------------------------------------
+
+    gruppoLogo(g: any): string {
+        return g?.immagine ? `${this.apiUrl}/gruppi/${g.id_gruppo}/immagine` : '';
+    }
+
+    openAddGruppo() {
+        const initialState = { gruppi: [], selected: [], notSelectable: this._selectedGruppi };
+        const ref = this.modalService.show(ModalGroupChoiceComponent, { ignoreBackdropClick: true, initialState });
+        ref.content?.onClose?.subscribe((result: any) => {
+            const g = result?.[0];
+            if (!g?.id_gruppo) { return; }
+            if (this._selectedGruppi.some((x) => x.id_gruppo === g.id_gruppo)) { return; }
+            this._selectedGruppi = [...this._selectedGruppi, g];
+        });
+    }
+
+    removeGruppo(g: any) {
+        this._selectedGruppi = this._selectedGruppi.filter((x) => x.id_gruppo !== g.id_gruppo);
+    }
+
+    // -------------------------------------------------------------------------
+    // Evolutiva — Allegati (raccolti in creazione via dialog in draftMode)
+    // -------------------------------------------------------------------------
+
+    openAddAllegato() {
+        const initialState = {
+            model: this.model,
+            id: null,
+            isNew: true,
+            isEdit: false,
+            multiple: true,
+            draftMode: true,
+            showAllAttachments: true
+        };
+        const ref = this.modalService.show(AllegatiDialogComponent, { ignoreBackdropClick: true, initialState });
+        ref.content?.onClose?.subscribe((result: any) => {
+            const nuovi: AllegatoDraft[] = result?.allegati || [];
+            if (nuovi.length) { this._selectedAllegati = [...this._selectedAllegati, ...nuovi]; }
+        });
+    }
+
+    removeAllegato(index: number) {
+        this._selectedAllegati = this._selectedAllegati.filter((_, i) => i !== index);
     }
 
     _onCancel() {

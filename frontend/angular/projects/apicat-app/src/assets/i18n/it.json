@@ -2348,6 +2348,32 @@
 			"View": "Vista"
 		},
 		"SERVICES": {
+			"CREATE": {
+				"Subtitle": "Compila le sezioni per creare un nuovo servizio nel catalogo.",
+				"SectionGeneraleTag": "SERVIZIO",
+				"SectionGeneraleTitle": "Informazioni generali",
+				"SectionGeneraleDesc": "Definisci tipo, nome, versione e dominio del servizio.",
+				"SectionClassificazioneTag": "CLASSIFICAZIONE",
+				"SectionClassificazioneTitle": "Classificazione e visibilità",
+				"SectionClassificazioneDesc": "Imposta la visibilità, le classi utente e la modalità di erogazione.",
+				"SectionReferentiTag": "CONTATTI",
+				"SectionReferentiTitle": "Referenti",
+				"SectionReferentiDesc": "Indica il referente del servizio e il referente tecnico.",
+				"SectionDescrizioneTag": "CONTENUTI",
+				"SectionDescrizioneTitle": "Descrizione e metadati",
+				"SectionDescrizioneDesc": "Aggiungi descrizioni, documentazione, tag e note del servizio.",
+					"SectionAllegatiTag": "DOCUMENTI",
+					"SectionAllegatiTitle": "Allegati",
+					"SectionAllegatiDesc": "Carica i documenti da allegare al servizio (facoltativo).",
+				"SectionGruppiTag": "ORGANIZZAZIONE",
+				"SectionGruppiTitle": "Gruppi",
+				"SectionGruppiDesc": "Associa il servizio a uno o più gruppi del catalogo.",
+				"SectionAdesioneTag": "ADESIONI",
+				"SectionAdesioneTitle": "Opzioni di adesione",
+				"SectionAdesioneDesc": "Impostazioni che regolano le adesioni al servizio.",
+				"MandatoryHint": "I campi con * sono obbligatori",
+				"Submit": "Crea servizio"
+			},
 			"WIZARD": {
 				"Title": "Nuovo servizio",
 				"StepOf": "Passo {{current}} di {{total}}",
@@ -2372,6 +2398,7 @@
 				"ProcedureProduzione": "Procedura di produzione",
 				"PHASE": {
 					"info_generali": "Informazioni Generali",
+					"api": "API",
 					"collaudo": "Collaudo",
 					"produzione": "Produzione"
 				},
@@ -2402,6 +2429,8 @@
 					"descrizione_sub": "Descrizioni, tag e note",
 					"adesione": "Opzioni di adesione",
 					"adesione_sub": "Impostazioni relative alle adesioni",
+					"gruppi": "Gruppi",
+					"gruppi_sub": "Gruppi a cui associare il servizio",
 					"riepilogo": "Riepilogo",
 					"riepilogo_sub": "Verifica i dati e crea il servizio"
 				}

@@ -59,8 +59,7 @@
                                 @if (menu.show) {
                                   <li class="gl-new-dropdown-item">
                                     <button role="menuitem" type="button" class="dropdown-item"
-                                      [routerLink]="[menu.route]"
-                                      [relativeTo]="route">
+                                      [routerLink]="_sectionRoute(menu.route)">
                                       <div class="gl-new-dropdown-item-text-wrapper">
                                         <p class="gl-new-dropdown-item-text-primary">{{ menu.title | translate }}</p>
                                       </div>

@@ -50,6 +50,13 @@ export class AllegatiDialogComponent implements OnInit {
     current: any = null;
     grant: Grant | null = null;
 
+    /**
+     * Modalita' bozza (creazione servizio): il servizio non esiste ancora, quindi
+     * gli allegati non vengono postati ma restituiti via `onClose` per essere
+     * persistiti a cascata dopo la POST del servizio.
+     */
+    draftMode: boolean = false;
+
     isEdit: boolean = false;
 
     editFormGroup: FormGroup = new FormGroup({});
@@ -165,6 +172,12 @@ export class AllegatiDialogComponent implements OnInit {
                     content_type: body.estensione,
                     content: body.content
                 });
+            }
+            if (this.draftMode) {
+                this.saving = false;
+                this.onClose.next({ allegati: _allegati });
+                this.bsModalRef.hide();
+                return;
             }
             _resultObject = this.apiService.postElementRelated(this.model, this.id, 'allegati', _allegati);
         } else {

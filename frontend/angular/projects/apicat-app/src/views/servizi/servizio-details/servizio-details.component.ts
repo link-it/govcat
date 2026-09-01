@@ -528,9 +528,22 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         });
     }
 
+    /**
+     * Path assoluto verso una sotto-sezione del dettaglio, valido in entrambi i
+     * contesti d'uso di questo componente:
+     *  - dettaglio servizio (rotta `servizi/:id/classic`) -> `servizi/:id/<route>`
+     *  - dettaglio componente (rotta `servizi/:id/componenti/:cid`) -> `servizi/:id/componenti/:cid/<route>`
+     * Nel contesto componente la sezione classica vive sotto `:id`, non sotto `/classic`.
+     */
+    _sectionRoute(route: string): any[] {
+        if (this._componentBreadcrumbs) {
+            return [this.model, this._componentBreadcrumbs.service.id_servizio, 'componenti', this.id, route];
+        }
+        return [this.model, this.id, route];
+    }
+
     onLinkClick(item: any) {
-        // [routerLink]="[link.route]" [state]="{ service: data, grant: _grant }" [relativeTo]="route"
-        this.router.navigate([item.route], { state: { service: this.data, grant: this._grant }, relativeTo: this.route, queryParamsHandling: 'preserve' });
+        this.router.navigate(this._sectionRoute(item.route), { state: { service: this.data, grant: this._grant }, queryParamsHandling: 'preserve' });
     }
 
     get f(): { [key: string]: AbstractControl } {
@@ -839,7 +852,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     __deleteService() {
         this.apiService.deleteElement(this.model, this.data.id_servizio).subscribe({
             next: (response) => {
-                this.router.navigate([this.model], { relativeTo: this.route });
+                this.router.navigate([this.model]);
             },
             error: (error) => {
                 this._error = true;
@@ -935,7 +948,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                                 }
                                 this._enableDisableSkipCollaudo(this.data.dominio);
                             } else {
-                                this.router.navigate(['servizi', this.data.id_servizio, 'view'], { relativeTo: this.route });
+                                this.router.navigate(['servizi', this.data.id_servizio, 'view']);
                             }
                             this._showDeleteActions = this.data.eliminabile || false;
                         },
@@ -1282,7 +1295,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     /** Apre la vista guidata (wizard a fasi) del servizio, affiancata a questa. */
     _openWizard() {
-        this.router.navigate([this.model, this.id, 'wizard']);
+        this.router.navigate([this.model, this.id]);
     }
 
     _onClose() {
@@ -1301,9 +1314,9 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         if (this._isNew) {
             if (this._useRoute) {
                 if (this.id) {
-                    this.router.navigate([this.model, this.id], { replaceUrl: true , relativeTo: this.route });
+                    this.router.navigate([this.model, this.id], { replaceUrl: true });
                 } else {
-                    this.router.navigate([this.model], { relativeTo: this.route });
+                    this.router.navigate([this.model]);
                 }
             } else {
                 this.close.emit({ id: this.id, service: null });
@@ -1339,7 +1352,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             if (event.params) {
                 this.router.navigate([event.url], { queryParams: event.params });
             } else {
-                this.router.navigate([event.url], { relativeTo: this.route, queryParamsHandling: 'preserve' });
+                this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
             }
         } else {
             this._onClose();
@@ -1607,7 +1620,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     }
 
     _onCloseNotificationBar(event: any) {
-        this.router.navigate([this.model, this.id], { relativeTo: this.route });
+        this.router.navigate([this.model, this.id, 'classic']);
     }
 
     _isGestore() {

@@ -2348,6 +2348,32 @@
 			"View": "View"
 		},
 		"SERVICES": {
+			"CREATE": {
+				"Subtitle": "Fill in the sections to create a new service in the catalogue.",
+				"SectionGeneraleTag": "SERVICE",
+				"SectionGeneraleTitle": "General information",
+				"SectionGeneraleDesc": "Define the service type, name, version and domain.",
+				"SectionClassificazioneTag": "CLASSIFICATION",
+				"SectionClassificazioneTitle": "Classification and visibility",
+				"SectionClassificazioneDesc": "Set visibility, user classes and provision mode.",
+				"SectionReferentiTag": "CONTACTS",
+				"SectionReferentiTitle": "Contacts",
+				"SectionReferentiDesc": "Indicate the service contact and the technical contact.",
+				"SectionDescrizioneTag": "CONTENT",
+				"SectionDescrizioneTitle": "Description and metadata",
+				"SectionDescrizioneDesc": "Add descriptions, documentation, tags and notes for the service.",
+					"SectionAllegatiTag": "DOCUMENTS",
+					"SectionAllegatiTitle": "Attachments",
+					"SectionAllegatiDesc": "Upload the documents to attach to the service (optional).",
+				"SectionGruppiTag": "ORGANIZATION",
+				"SectionGruppiTitle": "Groups",
+				"SectionGruppiDesc": "Associate the service with one or more catalogue groups.",
+				"SectionAdesioneTag": "SUBSCRIPTIONS",
+				"SectionAdesioneTitle": "Subscription options",
+				"SectionAdesioneDesc": "Settings that govern subscriptions to the service.",
+				"MandatoryHint": "Fields marked with * are mandatory",
+				"Submit": "Create service"
+			},
 			"WIZARD": {
 				"Title": "New service",
 				"StepOf": "Step {{current}} of {{total}}",
@@ -2372,6 +2398,7 @@
 				"ProcedureProduzione": "Production procedure",
 				"PHASE": {
 					"info_generali": "General Information",
+					"api": "API",
 					"collaudo": "Test",
 					"produzione": "Production"
 				},
@@ -2402,6 +2429,8 @@
 					"descrizione_sub": "Descriptions, tags and notes",
 					"adesione": "Subscription options",
 					"adesione_sub": "Subscription-related settings",
+					"gruppi": "Groups",
+					"gruppi_sub": "Groups to associate the service with",
 					"riepilogo": "Summary",
 					"riepilogo_sub": "Review the data and create the service"
 				}
