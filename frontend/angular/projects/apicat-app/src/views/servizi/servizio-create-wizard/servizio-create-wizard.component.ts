@@ -116,6 +116,9 @@ export class ServizioCreateWizardComponent implements OnInit {
     // Allegati raccolti in creazione (draftMode base64); confluiscono in
     // `_draft.allegati` al submit e vengono inviati a cascata.
     _selectedAllegati: AllegatoDraft[] = [];
+    // Riepilogo (best-effort): servizio creato ma sotto-risorse non salvate.
+    _cascadeWarnings: { step: string; count: number }[] = [];
+    _cascadeIdServizio: string | null = null;
 
     // Barra fasi (statica) in cima alla creazione, stile nuova adesione:
     // FASE 1 (Informazioni generali) attiva = creazione; API/Collaudo/Produzione
@@ -965,16 +968,31 @@ export class ServizioCreateWizardComponent implements OnInit {
                     return;
                 }
                 if (cascadeHasErrors(result)) {
-                    // Best-effort: il servizio e' creato; alcune sotto-risorse non
-                    // sono state salvate e andranno completate in modifica.
-                    // (Il riepilogo degli errori sara' mostrato in UI in un incremento successivo.)
-                    console.warn('Cascade parziale: sotto-risorse non salvate', result.items.filter((i) => !i.ok));
+                    // Best-effort: il servizio e' creato ma alcune sotto-risorse no.
+                    // Non navighiamo subito: mostriamo un riepilogo non bloccante e
+                    // lasciamo all'utente il proseguimento verso il servizio.
+                    this._cascadeIdServizio = result.idServizio;
+                    this._cascadeWarnings = this._buildCascadeWarnings(result);
+                    return;
                 }
                 // Opzione A: servizio creato (bozza) -> dettaglio (ora wizard),
                 // posizionato sulla FASE 2 API dove l'utente inserisce le API.
                 this.router.navigate([this.model, result.idServizio], { replaceUrl: true, queryParams: { fase: 'api' } });
             }
         });
+    }
+
+    /** Raggruppa le sotto-risorse fallite della cascata per tipo, con conteggio. */
+    private _buildCascadeWarnings(result: CascadeResult): { step: string; count: number }[] {
+        const byStep = new Map<string, number>();
+        result.items.filter((i) => !i.ok).forEach((i) => byStep.set(i.step, (byStep.get(i.step) || 0) + 1));
+        return Array.from(byStep.entries()).map(([step, count]) => ({ step, count }));
+    }
+
+    /** Prosegue verso il servizio creato (FASE 2 API) dopo il riepilogo avvisi. */
+    _proceedAfterWarnings() {
+        if (!this._cascadeIdServizio) { return; }
+        this.router.navigate([this.model, this._cascadeIdServizio], { replaceUrl: true, queryParams: { fase: 'api' } });
     }
 
     // -------------------------------------------------------------------------

@@ -67,6 +67,25 @@
         </div>
       }
 
+      <!-- Riepilogo best-effort: servizio creato, alcune sotto-risorse no. -->
+      @if (_cascadeWarnings.length) {
+        <div class="gl-alert gl-alert-warning col-md-12 mb-4">
+          <h5 class="mb-2"><i class="bi bi-exclamation-triangle me-2"></i>{{ 'APP.SERVICES.CREATE.CascadeWarningTitle' | translate }}</h5>
+          <p class="mb-2">{{ 'APP.SERVICES.CREATE.CascadeWarningIntro' | translate }}</p>
+          <ul class="mb-3">
+            @for (w of _cascadeWarnings; track w.step) {
+              <li>{{ 'APP.SERVICES.CREATE.CascadeStep.' + w.step | translate }}: {{ w.count }}</li>
+            }
+          </ul>
+          <div class="d-flex justify-content-end">
+            <button type="button" class="btn gl-button btn-confirm" (click)="_proceedAfterWarnings()">
+              {{ 'APP.SERVICES.CREATE.CascadeProceed' | translate }}<i class="bi bi-arrow-right ms-1"></i>
+            </button>
+          </div>
+        </div>
+      }
+
+      @if (!_cascadeWarnings.length) {
       <form novalidate class="lnk-create-form gl-show-field-errors" [class.lnk-form-busy]="_submitting" [attr.aria-busy]="_submitting" [formGroup]="_formGroup" (ngSubmit)="_onSubmit()">
 
         <!-- SEZIONE 1 — Informazioni generali -->
@@ -646,6 +665,7 @@
         </div>
 
       </form>
+      }
     }
 
   </div>

@@ -2365,6 +2365,15 @@
 					"SectionAllegatiTag": "DOCUMENTS",
 					"SectionAllegatiTitle": "Attachments",
 					"SectionAllegatiDesc": "Upload the documents to attach to the service (optional).",
+					"CascadeWarningTitle": "Service created with warnings",
+					"CascadeWarningIntro": "The service was created, but some items were not saved. You can complete them by editing the service:",
+					"CascadeProceed": "Continue to the service",
+					"CascadeStep": {
+						"api": "API not saved",
+						"gruppo": "Groups not associated",
+						"allegati": "Attachments not uploaded",
+						"referente": "Referents not saved"
+					},
 				"SectionGruppiTag": "ORGANIZATION",
 				"SectionGruppiTitle": "Groups",
 				"SectionGruppiDesc": "Associate the service with one or more catalogue groups.",

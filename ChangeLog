@@ -1,6 +1,12 @@
 2026-09-01  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard servizio, creazione: riepilogo errori del salvataggio a cascata. Se il
+	  servizio viene creato ma alcune sotto-risorse falliscono (best-effort), viene
+	  mostrato un avviso non bloccante con l'elenco per tipo e un pulsante per
+	  proseguire al servizio, invece del solo log in console.
+
+	* [Frontend]
 	Wizard servizio, creazione unificata a pagina unica a sezioni (stile nuova
 	  adesione): flag package/fruizione e ente/soggetto erogatore in "Informazioni
 	  generali" (flag sotto il logo, erogatore sotto il dominio), select native

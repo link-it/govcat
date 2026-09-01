@@ -2365,6 +2365,15 @@
 					"SectionAllegatiTag": "DOCUMENTI",
 					"SectionAllegatiTitle": "Allegati",
 					"SectionAllegatiDesc": "Carica i documenti da allegare al servizio (facoltativo).",
+					"CascadeWarningTitle": "Servizio creato con avvisi",
+					"CascadeWarningIntro": "Il servizio è stato creato, ma alcuni elementi non sono stati salvati. Potrai completarli dalla modifica del servizio:",
+					"CascadeProceed": "Prosegui al servizio",
+					"CascadeStep": {
+						"api": "API non salvate",
+						"gruppo": "Gruppi non associati",
+						"allegati": "Allegati non caricati",
+						"referente": "Referenti non salvati"
+					},
 				"SectionGruppiTag": "ORGANIZZAZIONE",
 				"SectionGruppiTitle": "Gruppi",
 				"SectionGruppiDesc": "Associa il servizio a uno o più gruppi del catalogo.",
