@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -1385,6 +1386,97 @@ public class ServiziTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getHeaders().get("Content-Disposition").get(0).contains("attachment; filename=servizi.csv"));
+    }
+
+    @Test
+    void testExportServiziSoggettoErogatore() throws Exception {
+        Dominio dominio = this.getDominio();
+        String nomeReferenteDominio = createdSoggetto.getBody().getNome();
+
+        // Ente erogatore distinto dal soggetto referente del dominio
+        SoggettoCreate erogatoreCreate = new SoggettoCreate();
+        erogatoreCreate.setNome("nome_soggetto_erogatore");
+        erogatoreCreate.setIdOrganizzazione(this.idOrganizzazione);
+        erogatoreCreate.setReferente(true);
+        erogatoreCreate.setAderente(true);
+        erogatoreCreate.setSkipCollaudo(true);
+        ResponseEntity<Soggetto> erogatore = soggettiController.createSoggetto(erogatoreCreate);
+        assertEquals(HttpStatus.OK, erogatore.getStatusCode());
+
+        Servizio servizioErogazione = creaServizioConApi("servizio_export_erogazione", dominio.getIdDominio(),
+                false, null, "api_export_erogazione");
+        Servizio servizioFruizione = creaServizioConApi("servizio_export_fruizione", dominio.getIdDominio(),
+                true, erogatore.getBody().getIdSoggetto(), "api_export_fruizione");
+
+        // Il legame api-servizio e` scritto dal lato ApiEntity.servizi: la collection
+        // ServizioEntity.api, gia` inizializzata in questa persistence context, non la vedrebbe.
+        entityManager.flush();
+        entityManager.clear();
+
+        ResponseEntity<Resource> response = serviziController.exportServizi(
+            null, null, null, null, null, null, null, null, false, false, null, null, null, null, null
+        );
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+
+        String csv = new String(response.getBody().getContentAsByteArray());
+
+        // Erogazione: l'erogatore è il soggetto referente del dominio
+        assertEquals(nomeReferenteDominio, getSoggettoErogatoreCsv(csv, servizioErogazione));
+
+        // Fruizione: l'erogatore è l'ente erogatore del servizio, non il referente del dominio
+        assertEquals("nome_soggetto_erogatore", getSoggettoErogatoreCsv(csv, servizioFruizione));
+    }
+
+    private Servizio creaServizioConApi(String nome, UUID idDominio, boolean fruizione,
+            UUID idSoggettoErogatore, String nomeApi) {
+        ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+        servizioCreate.setNome(nome);
+        servizioCreate.setSkipCollaudo(true);
+        servizioCreate.setIdDominio(idDominio);
+        servizioCreate.setFruizione(fruizione);
+        servizioCreate.setIdSoggettoErogatore(idSoggettoErogatore);
+
+        ReferenteCreate referente = new ReferenteCreate();
+        referente.setTipo(TipoReferenteEnum.REFERENTE);
+        referente.setIdUtente(ID_UTENTE_GESTORE);
+        servizioCreate.setReferenti(Arrays.asList(referente));
+
+        ResponseEntity<Servizio> created = serviziController.createServizio(servizioCreate);
+        assertEquals(HttpStatus.OK, created.getStatusCode());
+
+        APICreate apiCreate = CommonUtils.getAPICreate();
+        apiCreate.setNome(nomeApi);
+        apiCreate.setIdServizio(created.getBody().getIdServizio());
+        assertEquals(HttpStatus.OK, apiController.createApi(apiCreate).getStatusCode());
+
+        return created.getBody();
+    }
+
+    /**
+     * Prima colonna ("Soggetto Erogatore") della riga di CSV relativa al servizio indicato.
+     * Le prime colonne non contengono separatori, quindi lo split è sufficiente.
+     */
+    private String getSoggettoErogatoreCsv(String csv, Servizio servizio) {
+        String servizioCsv = servizio.getNome() + " v" + servizio.getVersione();
+
+        String[] righe = csv.split("\\n");
+        for(int i = 1; i < righe.length; i++) {   // riga 0: header
+            String[] colonne = righe[i].split(",");
+            if(colonne.length > 1 && unquote(colonne[1]).equals(servizioCsv)) {
+                return unquote(colonne[0]);
+            }
+        }
+
+        fail("Servizio " + servizioCsv + " non presente nel CSV: " + csv);
+        return null;
+    }
+
+    private String unquote(String valore) {
+        return valore.startsWith("\"") && valore.endsWith("\"")
+                ? valore.substring(1, valore.length() - 1)
+                : valore;
     }
 
     @Test

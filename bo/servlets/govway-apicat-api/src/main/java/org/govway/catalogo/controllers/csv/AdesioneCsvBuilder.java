@@ -45,8 +45,8 @@ import org.govway.catalogo.core.orm.entity.EstensioneAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
+import org.govway.catalogo.core.orm.entity.SoggettoEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
-import org.govway.catalogo.servlets.model.Configurazione;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,9 +58,6 @@ public class AdesioneCsvBuilder {
 
 	@Autowired
 	private EServiceBuilder eServiceBuilder;
-
-	@Autowired
-	private Configurazione configurazione;
 
 	private List<Pair<String, String>> custom;
 
@@ -100,13 +97,6 @@ public class AdesioneCsvBuilder {
 	private AdesioneCsv toListEntries(AdesioneEntity adesione) {
 		this.logger.debug("Adesione: " + adesione.getIdLogico() + " stato: " + adesione.getStato());
 
-		if(!this.configurazione.getAdesione().getStatiSchedaAdesione().contains(adesione.getStato())) {
-			this.logger.debug("Adesione: " + adesione.getIdLogico() + " in stato: " + adesione.getStato()+" non consentito per l'export. Stati consentiti ["+this.configurazione.getAdesione().getStatiSchedaAdesione()+"]");
-			return null;
-		}
-
-		this.logger.debug("Adesione: " + adesione.getIdLogico() + " stato: " + adesione.getStato() +" OK");
-
 		ServizioEntity servizioEntity = getCachedServizio(adesione);
 
 		boolean hasCollaudo = hasCollaudo(adesione.getStato());
@@ -114,14 +104,16 @@ public class AdesioneCsvBuilder {
 
 		AdesioneCsv a = new AdesioneCsv();
 
-		// Soggetto Erogatore
-		a.setErogatore(servizioEntity.getDominio().getSoggettoReferente().getNome());
+		// Soggetto Erogatore: per le fruizioni è l'ente erogatore indicato sul servizio,
+		// il referente del dominio è il fruitore interno.
+		SoggettoEntity erogatore = this.eServiceBuilder.getSoggettoErogatore(servizioEntity);
+		a.setErogatore(erogatore != null ? erogatore.getNome() : "");
 
 		// Servizio
 		a.setServizio(servizioEntity.getNome() + " v" + servizioEntity.getVersione());
 
-		// Soggetto Aderente
-		a.setAderente(adesione.getSoggetto().getOrganizzazione().getNome());
+		// Soggetto Aderente: il soggetto dell'adesione, non la sua organizzazione
+		a.setAderente(adesione.getSoggetto().getNome());
 
 		// Identificativo Adesione
 		a.setIdAdesione(adesione.getIdLogico());
@@ -582,10 +574,7 @@ public class AdesioneCsvBuilder {
 			Collection<AdesioneCsv> adesioniCSV = new ArrayList<>();
 
 			for(AdesioneEntity adesione: adesioni) {
-				AdesioneCsv csv = toListEntries(adesione);
-				if(csv != null) {
-					adesioniCSV.add(csv);
-				}
+				adesioniCSV.add(toListEntries(adesione));
 			}
 
 			String csv = "";

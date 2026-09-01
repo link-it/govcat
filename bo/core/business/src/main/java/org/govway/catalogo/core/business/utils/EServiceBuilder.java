@@ -562,6 +562,21 @@ public class EServiceBuilder {
 		}
 	}
 
+	/**
+	 * Soggetto erogatore del servizio: per le fruizioni è l'ente erogatore indicato sul servizio,
+	 * per le erogazioni il soggetto referente del dominio (per le fruizioni quest'ultimo è invece
+	 * il fruitore interno). Il flag isFruizione() è il segnale autoritativo; il null check su
+	 * soggettoErogatore protegge da dati sporchi.
+	 * Restituisce null se il servizio non ha un dominio o un soggetto referente valorizzati.
+	 */
+	public SoggettoEntity getSoggettoErogatore(ServizioEntity servizio) {
+		if(servizio.isFruizione() && servizio.getSoggettoErogatore() != null) {
+			return servizio.getSoggettoErogatore();
+		}
+
+		return servizio.getDominio() != null ? servizio.getDominio().getSoggettoReferente() : null;
+	}
+
 	public String getUrlInvocazione(ApiEntity api, boolean collaudo) {
 		
 		String prefix = getPrefix(api, collaudo);

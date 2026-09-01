@@ -99,6 +99,7 @@ import org.govway.catalogo.servlets.model.Gruppo;
 import org.govway.catalogo.servlets.model.GruppoCreate;
 import org.govway.catalogo.servlets.model.ItemAdesione;
 import org.govway.catalogo.servlets.model.ItemComunicazione;
+import org.govway.catalogo.servlets.model.IdentificativoServizioUpdate;
 import org.govway.catalogo.servlets.model.ItemMessaggio;
 import org.govway.catalogo.servlets.model.MessaggioAdesioneCreate;
 import org.govway.catalogo.servlets.model.TargetComunicazioneAdesioneEnum;
@@ -122,6 +123,7 @@ import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.Servizio;
 import org.govway.catalogo.servlets.model.ServizioCreate;
 import org.govway.catalogo.servlets.model.ServizioUpdate;
+import org.govway.catalogo.servlets.model.TipoServizio;
 import org.govway.catalogo.servlets.model.Soggetto;
 import org.govway.catalogo.servlets.model.SoggettoCreate;
 import org.govway.catalogo.servlets.model.StatoClientEnum;
@@ -485,6 +487,139 @@ public class AdesioniTest {
     	Adesione adesione = this.getAdesione();
     	
     	assertNotNull(adesione);
+    }
+
+    @Test
+    void testExportAdesioniSoggettoErogatoreEAderente() throws Exception {
+        Dominio dominio = this.getDominioFull(null);
+        Servizio servizio = this.getServizioFull(dominio, VisibilitaServizioEnum.PUBBLICO);
+
+        // Ente erogatore distinto dal soggetto referente del dominio
+        SoggettoCreate erogatoreCreate = new SoggettoCreate();
+        erogatoreCreate.setNome("nome_soggetto_erogatore");
+        erogatoreCreate.setIdOrganizzazione(this.idOrganizzazione);
+        erogatoreCreate.setReferente(true);
+        erogatoreCreate.setAderente(true);
+        ResponseEntity<Soggetto> erogatore = soggettiController.createSoggetto(erogatoreCreate);
+        assertEquals(HttpStatus.OK, erogatore.getStatusCode());
+
+        // Trasformo il servizio in fruizione indicando l'ente erogatore
+        ServizioUpdate servizioUpdate = new ServizioUpdate();
+        IdentificativoServizioUpdate identificativo = new IdentificativoServizioUpdate();
+        identificativo.setNome(servizio.getNome());
+        identificativo.setVersione(servizio.getVersione());
+        identificativo.setTipo(TipoServizio.API);
+        identificativo.setIdDominio(dominio.getIdDominio());
+        identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
+        identificativo.setPackage(false);
+        identificativo.setMultiAdesione(false);
+        identificativo.setAdesioneDisabilitata(false);
+        identificativo.setFruizione(true);
+        identificativo.setIdSoggettoErogatore(erogatore.getBody().getIdSoggetto());
+        servizioUpdate.setIdentificativo(identificativo);
+
+        assertEquals(HttpStatus.OK,
+                serviziController.updateServizio(servizio.getIdServizio(), null, servizioUpdate).getStatusCode());
+
+        this.getAPIFull();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+
+        Adesione adesione = this.getAdesioneFull();
+        this.cambioStatoAdesioneFinoA(adesione.getIdAdesione(), STATO_PUBBLICATO_IN_COLLAUDO);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        ResponseEntity<Resource> response = adesioniController.exportAdesioni(
+            null, null, null, null, null, null, null, null, null, false, null, null, null
+        );
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+
+        String csv = new String(response.getBody().getContentAsByteArray());
+
+        // Fruizione: l'erogatore è l'ente erogatore del servizio, non il referente del dominio
+        assertEquals("nome_soggetto_erogatore", getColonnaCsv(csv, servizio, "Soggetto Erogatore"));
+
+        // Aderente: il soggetto dell'adesione, non la sua organizzazione
+        assertEquals("nome_soggetto", getColonnaCsv(csv, servizio, "Soggetto Aderente"));
+    }
+
+    @Test
+    void testExportAdesioniIncludeAdesioniInBozza() throws Exception {
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+
+        Adesione adesione = this.getAdesione();
+        assertEquals("bozza", adesione.getStato());
+
+        entityManager.flush();
+        entityManager.clear();
+
+        ResponseEntity<Resource> response = adesioniController.exportAdesioni(
+            null, null, null, null, null, null, null, null, null, false, null,
+            Arrays.asList(adesione.getIdAdesione()), null
+        );
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+
+        String csv = new String(response.getBody().getContentAsByteArray());
+
+        // Anche le adesioni in stati fuori da stati_scheda_adesione devono comparire nell'export,
+        // con le colonne di configurazione vuote
+        assertEquals("Bozza", getColonnaCsv(csv, servizio, "Stato Adesione"));
+        assertEquals("nome_soggetto", getColonnaCsv(csv, servizio, "Soggetto Aderente"));
+        assertEquals("", getColonnaCsv(csv, servizio, "Applicativi Autorizzati (Coll)"));
+    }
+
+    /**
+     * Valore della colonna indicata, nella riga di CSV relativa al servizio indicato.
+     */
+    private String getColonnaCsv(String csv, Servizio servizio, String colonna) {
+        String servizioCsv = servizio.getNome() + " v" + servizio.getVersione();
+
+        String[] righe = csv.split("\\n");
+        List<String> header = splitRigaCsv(righe[0]);
+        int indiceServizio = header.indexOf("Servizio");
+        int indiceColonna = header.indexOf(colonna);
+        assertTrue(indiceServizio >= 0 && indiceColonna >= 0, "Colonne non presenti nell'header: " + righe[0]);
+
+        for(int i = 1; i < righe.length; i++) {
+            List<String> valori = splitRigaCsv(righe[i]);
+            if(valori.size() > indiceServizio && valori.get(indiceServizio).equals(servizioCsv)) {
+                return valori.get(indiceColonna);
+            }
+        }
+
+        fail("Servizio " + servizioCsv + " non presente nel CSV: " + csv);
+        return null;
+    }
+
+    /**
+     * Split di una riga di CSV che tiene conto delle virgole all'interno dei valori quotati.
+     */
+    private List<String> splitRigaCsv(String riga) {
+        List<String> valori = new ArrayList<>();
+        StringBuilder valore = new StringBuilder();
+        boolean dentroQuote = false;
+
+        for(char c: riga.toCharArray()) {
+            if(c == '"') {
+                dentroQuote = !dentroQuote;
+            } else if(c == ',' && !dentroQuote) {
+                valori.add(valore.toString());
+                valore.setLength(0);
+            } else {
+                valore.append(c);
+            }
+        }
+        valori.add(valore.toString());
+
+        return valori;
     }
     
     @Test
