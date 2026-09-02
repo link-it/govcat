@@ -345,6 +345,7 @@
 			"BackToAdesione": "Back to subscription",
 			"GoToService": "Go to the Service",
 			"Copy": "Copy",
+			"Copied": "Copied",
 			"ShowAll": "Show all",
 			"ShowLess": "Show less",
 			"ShowSecret": "Show secret",
@@ -822,6 +823,7 @@
 		},
 		"LABEL": {
 			"SkipToContent": "Skip to content",
+			"UrlEsposizione": "Exposure URL",
 			"RemoveFilter": "Remove filter",
 			"SelectRow": "Select item",
 			"CreationDate": "Creation Date",

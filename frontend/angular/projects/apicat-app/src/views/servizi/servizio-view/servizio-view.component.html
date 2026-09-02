@@ -569,6 +569,22 @@
   }
   <div class="modal-body" [class.modal-body-disabled]="generateJwtOpened">
     <div class="p-md-3">
+      <!-- Issue #332: URL di esposizione dell'API (REST e SOAP), con pulsante Copia.
+           Per SOAP il viewer wsdl nasconde il proprio blocco URL (hideUrlInvocazione). -->
+      @if (_showUrlInvocazioneBar) {
+        <div class="url-esposizione">
+          <span class="url-esposizione__icon"><i class="bi bi-link-45deg"></i></span>
+          <div class="url-esposizione__content">
+            <span class="url-esposizione__label">{{ 'APP.LABEL.UrlEsposizione' | translate }}</span>
+            <span class="url-esposizione__value" [title]="_urlInvocazione">{{ _urlInvocazione }}</span>
+          </div>
+          <button type="button" class="url-esposizione__copy" [class.is-copied]="_showMessageClipboard"
+                  (click)="copyUrlInvocazione()" [attr.aria-label]="'APP.BUTTON.Copy' | translate">
+            <i class="bi" [ngClass]="_showMessageClipboard ? 'bi-check2' : 'bi-clipboard'"></i>
+            <span>{{ (_showMessageClipboard ? 'APP.BUTTON.Copied' : 'APP.BUTTON.Copy') | translate }}</span>
+          </button>
+        </div>
+      }
       <div class="view-template" style="min-height: 150px;">
         @if (!_currentApiConfiguration?.protocollo) {
           <p class="p-5 text-center">{{ 'APP.MESSAGE.NoSpecification' | translate }}</p>
@@ -592,6 +608,7 @@
             <ui-wsdl
               [api]="_currentApi"
               [environment]="_environmentId"
+              [hideUrlInvocazione]="_showUrlInvocazioneBar"
             ></ui-wsdl>
           </div>
         }

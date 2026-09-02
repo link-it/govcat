@@ -1,3 +1,13 @@
+2026-09-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 332: URL di esposizione dell'API nella vetrina. All'apertura della dialog
+	  di una API viene mostrato l'URL di esposizione (nuova API backend
+	  `api/{id}/{ambiente}/url-invocazione`) anche quando manca la specifica, sia REST
+	  che SOAP, con pulsante "Copia". Barra unificata in stile card; per SOAP il
+	  viewer wsdl nasconde il proprio blocco URL (nuovo input `hideUrlInvocazione`)
+	  per evitare la ripetizione, con fallback se l'URL non e` disponibile.
+
 2026-08-31  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
