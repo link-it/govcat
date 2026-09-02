@@ -595,6 +595,25 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     }
 
     // -------------------------------------------------------------------------
+    // Elimina servizio (parità con la vista classica): visibile solo se
+    // `data.eliminabile`. Conferma -> DELETE /servizi/:id -> torna alla lista.
+    // -------------------------------------------------------------------------
+
+    confirmDeleteServizio() {
+        this.utils._confirmDelection(this.data, () => this._deleteServizio());
+    }
+
+    private _deleteServizio() {
+        this.apiService.deleteElement(this.model, this.data.id_servizio).subscribe({
+            next: () => { this.router.navigate([this.model]); },
+            error: (error: any) => {
+                this._error = true;
+                this._errorMsg = this.utils.GetErrorMsg(error);
+            }
+        });
+    }
+
+    // -------------------------------------------------------------------------
     // Collaudo/Produzione — API del servizio (erogazione per ambiente)
     // -------------------------------------------------------------------------
 

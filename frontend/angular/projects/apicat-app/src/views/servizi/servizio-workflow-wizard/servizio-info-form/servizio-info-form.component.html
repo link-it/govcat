@@ -16,6 +16,12 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
+<!--
+  Evolutiva: il blocco "Informazioni generali" della modifica usa la UI a
+  sezioni della creazione (card `.lnk-phase-section` + `.ps-*`), limitata ai
+  campi propri del servizio. Referenti/Allegati/Gruppi/API restano nei loro
+  accordion/FASE dedicati. Mantenuti vista/modifica (`isEdit`) e salvataggio.
+-->
 <div class="servizio-info-form position-relative">
 
   @if (editable && !externalEditControl) {
@@ -34,341 +40,400 @@
 
   <form novalidate class="issue-form gl-show-field-errors gfm-form" [class.form-readonly]="!isEdit" [formGroup]="_formGroup" (submit)="onSubmit()">
 
-    <h6 class="lnk-form-section">{{ 'APP.SERVICES.WIZARD.STEP.identita' | translate }}</h6>
+    <!-- SEZIONE 1 — Informazioni generali -->
+    <section class="lnk-phase-section py-0">
+      <header class="lnk-phase-section-hd">
+        <span class="ps-num">1</span>
+        <div class="ps-meta">
+          <span class="ps-tag">{{ 'APP.SERVICES.CREATE.SectionGeneraleTag' | translate }}</span>
+          <h3 class="ps-title">{{ 'APP.SERVICES.CREATE.SectionGeneraleTitle' | translate }}</h3>
+          <p class="ps-desc">{{ 'APP.SERVICES.CREATE.SectionGeneraleDesc' | translate }}</p>
+        </div>
+      </header>
+      <div class="lnk-phase-section-body">
 
-    <!-- Logo -->
-    <div class="row logo">
-      <div class="col-12">
-        <div class="form-group logo">
-          @if (isEdit) {
-            <app-photo-base64 [boxWidth]="'200px'" [boxHeight]="'auto'" [maxSize]="_maxImageSize" [placeHolder]="_imagePlaceHolder"
-              [imageSaved]="{ path: data | mapper:_getLogoMapper } | httpImgSrc" [isImageSaved]="data?.immagine"
-              [removeLabel]="'APP.BUTTON.Remove' | translate" (imageLoaded)="_onImageLoaded($event)"></app-photo-base64>
-          } @else {
-            <img class="img-space" alt="Logo servizio" style="width: 200px; height: auto;" [src]="{ path: data | mapper:_getLogoMapper } | httpImgSrc" />
+        <!-- Logo -->
+        <div class="row logo">
+          <div class="col-12">
+            <div class="form-group logo">
+              @if (isEdit) {
+                <app-photo-base64 [boxWidth]="'200px'" [boxHeight]="'auto'" [maxSize]="_maxImageSize" [placeHolder]="_imagePlaceHolder"
+                  [imageSaved]="{ path: data | mapper:_getLogoMapper } | httpImgSrc" [isImageSaved]="data?.immagine"
+                  [removeLabel]="'APP.BUTTON.Remove' | translate" (imageLoaded)="_onImageLoaded($event)"></app-photo-base64>
+              } @else {
+                <img class="img-space" alt="Logo servizio" style="width: 200px; height: auto;" [src]="{ path: data | mapper:_getLogoMapper } | httpImgSrc" />
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Package / Fruizione (intermediario) -->
+        <div class="row">
+          @if ((_updateData | mapper:_isGestoreMapper)) {
+            <div class="col-4">
+              <div class="form-group package">
+                <label class="label-bold" for="package">{{ 'APP.LABEL.package' | translate }}</label>
+                @if (isEdit) {
+                  <div class="gl-form-checkbox custom-control custom-checkbox">
+                    <input class="custom-control-input" type="checkbox" name="package" id="package" formControlName="package">
+                    <label class="custom-control-label" aria-hidden="true"></label>
+                  </div>
+                } @else {
+                  <div class="mt-1"><i class="bi" [class.bi-check-square]="data?.package" [class.bi-square]="!data?.package"></i></div>
+                }
+              </div>
+            </div>
+          }
+          @if ((_updateData | mapper:_canSetFruizioneMapper)) {
+            <div class="col-4">
+              <div class="form-group fruizione">
+                <label class="label-bold" for="fruizione">{{ 'APP.LABEL.fruizione' | translate }}</label>
+                @if (isEdit) {
+                  <div class="gl-form-checkbox custom-control custom-checkbox">
+                    <input #chkFruizione class="custom-control-input" type="checkbox" name="fruizione" id="fruizione" formControlName="fruizione" (change)="_onChangeFruizione($event)">
+                    <label class="custom-control-label" aria-hidden="true" (click)="chkFruizione.click()"></label>
+                  </div>
+                } @else {
+                  <div class="mt-1"><i class="bi" [class.bi-check-square]="data?.fruizione" [class.bi-square]="!data?.fruizione"></i></div>
+                }
+              </div>
+            </div>
           }
         </div>
-      </div>
-    </div>
 
-    <!-- Tipo -->
-    @if (hasServiziApi && hasGenerico) {
-      <div class="form-group tipo">
-        <label class="label-bold" for="tipo">{{ 'APP.LABEL.tipo' | translate }}</label>
-        @if (isEdit) {
-          <select class="form-select" id="tipo" formControlName="tipo" [class.gl-field-error-outline]="_hasControlError('tipo')"
-            disablePermission [isNew]="false" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="grant">
-            @for (item of _tipiServizio; track item) {
-              <option [value]="item.value" [disabled]="!item.enabled">{{ 'APP.TIPO.' + item.label | translate }}</option>
-            }
-          </select>
-        } @else {
-          <div class="readonly-box">{{ ('APP.TIPO.' + data?.tipo) | translate }}</div>
-        }
-      </div>
-    }
-
-    <!-- Nome / Versione -->
-    <div class="row">
-      <div class="col-8">
-        <lnk-form-field name="nome" [label]="'APP.LABEL.nome' | translate" [formGroup]="_formGroup" [value]="data?.nome" [isEdit]="isEdit" [plainText]="true" [helpContext]="'SERVICE.POPOVER'"></lnk-form-field>
-      </div>
-      <div class="col-4">
-        <lnk-form-field type="number" name="versione" [label]="'APP.LABEL.versione' | translate" [formGroup]="_formGroup" [value]="data?.versione" [isEdit]="isEdit" [plainText]="true" [helpContext]="'SERVICE.POPOVER'"></lnk-form-field>
-      </div>
-    </div>
-
-    <!-- Dominio -->
-    @if (_hasMultiDominio) {
-      <div class="form-group dominio">
-        <label class="label-bold" for="id_dominio">{{ 'APP.LABEL.id_dominio' | translate }}
-          @if (isEdit) { <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_dominio'"></span> }
-        </label>
-        @if (isEdit) {
-          <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_dominio')"
-            [items]="(domini$ | async) || []" [typeahead]="dominiInput$" [minTermLength]="minLengthTerm"
-            [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate" [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
-            bindValue="id_dominio" labelForId="id_dominio" [editableSearchTerm]="true" formControlName="id_dominio"
-            disablePermission [isNew]="false" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="grant"
-            (change)="_onChangeDominio($event)">
-            <ng-template ng-label-tmp let-item="item">{{ item.soggetto_referente?.organizzazione?.nome }} - {{ item.nome }}</ng-template>
-            <ng-template ng-option-tmp let-item="item">
-              <div class="fw-bold">{{ item.soggetto_referente?.organizzazione?.nome }} - {{ item.nome }}</div>
-              <div class=""><span class="small text-muted">{{ item.descrizione }}</span></div>
-            </ng-template>
-          </ng-select>
-        } @else {
-          <div class="readonly-box">{{ (data?.dominio?.soggetto_referente?.organizzazione?.nome ? data?.dominio?.soggetto_referente?.organizzazione?.nome + ' - ' : '') + (data?.dominio?.nome || '-') }}</div>
-        }
-      </div>
-    }
-
-    <h6 class="lnk-form-section">{{ 'APP.SERVICES.WIZARD.STEP.classificazione' | translate }}</h6>
-
-    <!-- Package / Fruizione -->
-    <div class="row">
-      @if ((_updateData | mapper:_isGestoreMapper)) {
-        <div class="col-4">
-          <div class="form-group package">
-            <label class="label-bold" for="package">{{ 'APP.LABEL.package' | translate }}</label>
+        <!-- Tipo -->
+        @if (hasServiziApi && hasGenerico) {
+          <div class="form-group tipo">
+            <label class="label-bold" for="tipo">{{ 'APP.LABEL.tipo' | translate }}</label>
             @if (isEdit) {
-              <div class="gl-form-checkbox custom-control custom-checkbox">
-                <input class="custom-control-input" type="checkbox" name="package" id="package" formControlName="package">
-                <label class="custom-control-label" aria-hidden="true"></label>
-              </div>
-            } @else {
-              <div class="mt-1"><i class="bi" [class.bi-check-square]="data?.package" [class.bi-square]="!data?.package"></i></div>
-            }
-          </div>
-        </div>
-      }
-      @if ((_updateData | mapper:_canSetFruizioneMapper)) {
-        <div class="col-4">
-          <div class="form-group fruizione">
-            <label class="label-bold" for="fruizione">{{ 'APP.LABEL.fruizione' | translate }}</label>
-            @if (isEdit) {
-              <div class="gl-form-checkbox custom-control custom-checkbox">
-                <input #chkFruizione class="custom-control-input" type="checkbox" name="fruizione" id="fruizione" formControlName="fruizione" (change)="_onChangeFruizione($event)">
-                <label class="custom-control-label" aria-hidden="true" (click)="chkFruizione.click()"></label>
-              </div>
-            } @else {
-              <div class="mt-1"><i class="bi" [class.bi-check-square]="data?.fruizione" [class.bi-square]="!data?.fruizione"></i></div>
-            }
-          </div>
-        </div>
-      }
-    </div>
-
-    <!-- Visibilità / Classi -->
-    @if ((_updateData | mapper:_isGestoreMapper)) {
-      <div class="row visibilita">
-        <div class="col-6">
-          <div class="form-group">
-            <label class="label-bold" for="visibilita">{{ 'APP.LABEL.VisibilitaServizio' | translate }}</label>
-            @if (isEdit) {
-              <select class="form-select" id="visibilita" formControlName="visibilita" [class.gl-field-error-outline]="_hasControlError('visibilita')"
-                disablePermission [isNew]="false" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="grant" (change)="_onChangeVisibilita($event)">
-                @for (item of _tipiVisibilitaServizio; track item) {
-                  <option [ngValue]="item.value">{{ ('APP.VISIBILITY.' + (item.value || 'EreditataDominio')) | translate }}</option>
+              <select class="form-select" id="tipo" formControlName="tipo" [class.gl-field-error-outline]="_hasControlError('tipo')"
+                disablePermission [isNew]="false" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="grant">
+                @for (item of _tipiServizio; track item) {
+                  <option [value]="item.value" [disabled]="!item.enabled">{{ 'APP.TIPO.' + item.label | translate }}</option>
                 }
               </select>
             } @else {
-              <div class="readonly-box">{{ _visibilitaLabel() }}</div>
+              <div class="readonly-box">{{ ('APP.TIPO.' + data?.tipo) | translate }}</div>
             }
           </div>
+        }
+
+        <!-- Nome / Versione -->
+        <div class="row">
+          <div class="col-8">
+            <lnk-form-field name="nome" [label]="'APP.LABEL.nome' | translate" [formGroup]="_formGroup" [value]="data?.nome" [isEdit]="isEdit" [plainText]="true" [helpContext]="'SERVICE.POPOVER'"></lnk-form-field>
+          </div>
+          <div class="col-4">
+            <lnk-form-field type="number" name="versione" [label]="'APP.LABEL.versione' | translate" [formGroup]="_formGroup" [value]="data?.versione" [isEdit]="isEdit" [plainText]="true" [helpContext]="'SERVICE.POPOVER'"></lnk-form-field>
+          </div>
         </div>
-        <div class="col-6">
-          @if (_isVisibilita('riservato')) {
-            <div class="form-group classi">
-              <label class="label-bold" for="classi">{{ 'APP.LABEL.classi' | translate }}
-                @if (isEdit) { <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'classi'"></span> }
-              </label>
+
+        <!-- Dominio -->
+        @if (_hasMultiDominio) {
+          <div class="form-group dominio">
+            <label class="label-bold" for="id_dominio">{{ 'APP.LABEL.id_dominio' | translate }}
+              @if (isEdit) { <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_dominio'"></span> }
+            </label>
+            @if (isEdit) {
+              <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_dominio')"
+                [items]="(domini$ | async) || []" [typeahead]="dominiInput$" [minTermLength]="minLengthTerm"
+                [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate" [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                bindValue="id_dominio" labelForId="id_dominio" [editableSearchTerm]="true" formControlName="id_dominio"
+                disablePermission [isNew]="false" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="grant"
+                (change)="_onChangeDominio($event)">
+                <ng-template ng-label-tmp let-item="item">{{ item.soggetto_referente?.organizzazione?.nome }} - {{ item.nome }}</ng-template>
+                <ng-template ng-option-tmp let-item="item">
+                  <div class="fw-bold">{{ item.soggetto_referente?.organizzazione?.nome }} - {{ item.nome }}</div>
+                  <div class=""><span class="small text-muted">{{ item.descrizione }}</span></div>
+                </ng-template>
+              </ng-select>
+            } @else {
+              <div class="readonly-box">{{ (data?.dominio?.soggetto_referente?.organizzazione?.nome ? data?.dominio?.soggetto_referente?.organizzazione?.nome + ' - ' : '') + (data?.dominio?.nome || '-') }}</div>
+            }
+          </div>
+        }
+
+        <!-- Ente erogatore / Soggetto erogatore (sotto il dominio, per le fruizioni) -->
+        @if (_isFruizione) {
+          <div class="row">
+            <div class="col-6 form-group">
+              <label class="label-bold" for="id_organizzazione_interna">{{ 'APP.LABEL.EnteErogatore' | translate }}</label>
               @if (isEdit) {
-                <ng-select [class.gl-field-error-outline]="_hasControlError('classi')" [items]="anagrafiche['classi-utente'] || []" [multiple]="true"
-                  [compareWith]="_compareClassiFn" bindValue="id_classe_utente" bindLabel="nome" labelForId="classi" [closeOnSelect]="false" formControlName="classi">
-                  <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
-                    <input id="classe-{{index}}" type="checkbox" [checked]="item$.selected"/> {{ item.nome }}
-                  </ng-template>
+                <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_organizzazione_interna')"
+                  [items]="(organizzazioniInterne$ | async) || []" [typeahead]="organizzazioniInterneInput$" [minTermLength]="minLengthTerm"
+                  [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate" [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                  bindValue="id_organizzazione" bindLabel="nome" labelForId="id_organizzazione_interna" [editableSearchTerm]="true" formControlName="id_organizzazione_interna"
+                  disablePermission [isNew]="false" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="grant"
+                  (change)="onChangeSelect($event, 'organizzazione')">
+                  <ng-template ng-label-tmp let-item="item">{{ item.nome }}</ng-template>
                 </ng-select>
-                @if (f['classi'].invalid && (f['classi'].dirty || f['classi'].touched)) {
+              } @else {
+                <div class="readonly-box">{{ data?.soggetto_erogatore?.organizzazione?.nome || '-' }}</div>
+              }
+            </div>
+            <div class="col-6 form-group soggetto_erogatore">
+              @if (isEdit && !_hideSoggettoDropdown) {
+                <label class="label-bold" for="id_soggetto_erogatore">{{ 'APP.LABEL.SoggettoErogatore' | translate }}
+                  <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_soggetto_erogatore'"></span>
+                </label>
+                <select class="form-select" id="id_soggetto_erogatore" formControlName="id_soggetto_erogatore" [class.gl-field-error-outline]="_hasControlError('id_soggetto_erogatore')" (change)="onChangeSelect($event, 'soggetto')">
+                  @for (el of _elencoSoggetti; track el) { <option [value]="el.id_soggetto">{{ el.nome }}</option> }
+                </select>
+                @if (f['id_soggetto_erogatore'].invalid && (f['id_soggetto_erogatore'].dirty || f['id_soggetto_erogatore'].touched)) {
                   <p class="form-text text-danger">
-                    @if (f['classi'].errors?.['required']) { <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span> }
+                    @if (f['id_soggetto_erogatore'].errors?.['required']) { <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span> }
                   </p>
                 }
-              } @else {
-                <div class="readonly-box">
-                  @for (classe of data?.classi; track classe) { <span class="badge rounded-pill badge-tag text-bg-tags me-1 mb-1">{{ classe.nome || classe }}</span> }
-                  @if (!data?.classi?.length) { <span>-</span> }
-                </div>
               }
-            </div>
-          }
-        </div>
-      </div>
-    }
-
-    <!-- Ente erogatore / Soggetto erogatore (fruizione) -->
-    @if (_isFruizione) {
-      <div class="row">
-        <div class="col-6 form-group">
-          <label class="label-bold" for="id_organizzazione_interna">{{ 'APP.LABEL.EnteErogatore' | translate }}</label>
-          @if (isEdit) {
-            <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_organizzazione_interna')"
-              [items]="(organizzazioniInterne$ | async) || []" [typeahead]="organizzazioniInterneInput$" [minTermLength]="minLengthTerm"
-              [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate" [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
-              bindValue="id_organizzazione" bindLabel="nome" labelForId="id_organizzazione_interna" [editableSearchTerm]="true" formControlName="id_organizzazione_interna"
-              disablePermission [isNew]="false" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="grant"
-              (change)="onChangeSelect($event, 'organizzazione')">
-              <ng-template ng-label-tmp let-item="item">{{ item.nome }}</ng-template>
-            </ng-select>
-          } @else {
-            <div class="readonly-box">{{ data?.soggetto_erogatore?.organizzazione?.nome || '-' }}</div>
-          }
-        </div>
-        <div class="col-6 form-group">
-          <label class="label-bold" for="id_soggetto_erogatore">{{ 'APP.LABEL.SoggettoErogatore' | translate }}</label>
-          @if (isEdit && !_hideSoggettoDropdown) {
-            <select class="form-select" id="id_soggetto_erogatore" formControlName="id_soggetto_erogatore" [class.gl-field-error-outline]="_hasControlError('id_soggetto_erogatore')" (change)="onChangeSelect($event, 'soggetto')">
-              @for (el of _elencoSoggetti; track el) { <option [value]="el.id_soggetto">{{ el.nome }}</option> }
-            </select>
-          } @else {
-            <div class="readonly-box">{{ data?.soggetto_erogatore?.nome || '-' }}</div>
-          }
-        </div>
-      </div>
-    }
-
-    <h6 class="lnk-form-section">{{ 'APP.SERVICES.WIZARD.STEP.descrizione' | translate }}</h6>
-
-    <!-- Descrizione sintetica -->
-    <div class="form-group descrizione_sintetica">
-      <label class="label-bold" for="descrizione_sintetica">{{ 'APP.LABEL.DescrizioneSintetica' | translate }}
-        @if (isEdit) { <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'descrizione_sintetica'"></span> }
-      </label>
-      @if (isEdit) {
-        <textarea class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione_sintetica')" name="descrizione_sintetica" id="descrizione_sintetica" formControlName="descrizione_sintetica" rows="3"
-          disablePermission [isNew]="false" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="grant"></textarea>
-        @if (f['descrizione_sintetica'].invalid && (f['descrizione_sintetica'].dirty || f['descrizione_sintetica'].touched)) {
-          <p class="form-text text-danger">
-            @if (f['descrizione_sintetica'].errors?.['required']) { <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span> }
-            @if (f['descrizione_sintetica'].errors?.['maxlength']) { <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['descrizione_sintetica'].errors?.['maxlength'].requiredLength } }}</span> }
-          </p>
-        }
-      } @else {
-        <div class="readonly-box readonly-box--multiline">{{ data?.descrizione_sintetica || '-' }}</div>
-      }
-    </div>
-
-    <!-- Documentazione tecnica (markdown) -->
-    <div class="form-group descrizione">
-      <label class="label-bold w-100" for="descrizione">{{ 'APP.LABEL.DocumentazioneTecnica' | translate }}
-        @if (isEdit) {
-          <button type="button" class="btn btn-default btn-sm gl-button btn-default-tertiary float-end" [class.btn-secondary]="_showMarkdownPreview" [disabled]="!f['descrizione'].value" (click)="_toggleMarkdownPreview()">{{ (_showMarkdownPreview ? 'APP.BUTTON.Write' : 'APP.BUTTON.Preview') | translate }}</button>
-        }
-      </label>
-      @if (isEdit && !_showMarkdownPreview) {
-        <textarea class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" name="descrizione" id="descrizione" formControlName="descrizione" rows="8"
-          disablePermission [isNew]="false" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="grant"></textarea>
-        @if (f['descrizione'].errors?.['maxlength']) { <p class="form-text text-danger"><span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['descrizione'].errors?.['maxlength'].requiredLength } }}</span></p> }
-      }
-      @if (!isEdit || _showMarkdownPreview) {
-        <div class="mb-2 markdown-container" [class.p-2]="_showMarkdownPreview" [class.border]="_showMarkdownPreview" [class.border-info]="_showMarkdownPreview">
-          <markdown ngPreserveWhitespaces [data]="_showMarkdownPreview ? f['descrizione'].value : (data?.descrizione || '-')" class="markdown"></markdown>
-        </div>
-      }
-    </div>
-
-    <!-- Tags -->
-    <div class="form-group tags">
-      <label class="label-bold" for="tags">{{ 'APP.LABEL.tags' | translate }}</label>
-      @if (isEdit) {
-        <ng-select [items]="anagrafiche['tags'] || []" [multiple]="true" [addTag]="true" [hideSelected]="true" bindValue="nome" bindLabel="nome" labelForId="tags" formControlName="tags"
-          disablePermission [isNew]="false" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="grant"></ng-select>
-      } @else {
-        <div class="readonly-box">
-          @for (tag of data?.tags; track tag) { <span class="badge rounded-pill badge-tag text-bg-tags me-1 mb-1">{{ tag }}</span> }
-          @if (!data?.tags?.length) { <span>-</span> }
-        </div>
-      }
-    </div>
-
-    <!-- Termini di ricerca -->
-    <div class="form-group termini_ricerca">
-      <lnk-form-field name="termini_ricerca" [label]="'APP.LABEL.termini_ricerca' | translate" [formGroup]="_formGroup" [value]="data?.termini_ricerca" [isEdit]="isEdit" [plainText]="true" [helpContext]="'SERVICE.POPOVER'"></lnk-form-field>
-    </div>
-
-    <!-- Note -->
-    <div class="form-group note">
-      <label class="label-bold" for="note">{{ 'APP.LABEL.note' | translate }}</label>
-      @if (isEdit) {
-        <textarea class="form-control" [class.gl-field-error-outline]="_hasControlError('note')" name="note" id="note" formControlName="note" rows="3"
-          disablePermission [isNew]="false" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="grant"></textarea>
-        @if (f['note'].errors?.['maxlength']) { <p class="form-text text-danger"><span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['note'].errors?.['maxlength'].requiredLength } }}</span></p> }
-      } @else {
-        <div class="readonly-box readonly-box--multiline">{{ data?.note || '-' }}</div>
-      }
-    </div>
-
-    <!-- Metadati (read-only) -->
-    <div class="row meta-row">
-      <div class="col-6">
-        <div class="form-group">
-          <label class="label-bold">{{ 'APP.LABEL.utente_richiedente' | translate }}</label>
-          <div class="readonly-box">{{ _userFullName(richiedente) || '-' }}</div>
-        </div>
-      </div>
-      <div class="col-6">
-        <div class="form-group">
-          <label class="label-bold">{{ 'APP.LABEL.data_creazione' | translate }}</label>
-          @if (data) { <ui-data-type [data]="data" [elem]="{ field: 'data_creazione', type: 'date', format: 'DD-MM-YYYY HH:mm:ss' }" [config]="config"></ui-data-type> }
-        </div>
-      </div>
-      <div class="col-6">
-        <div class="form-group">
-          <label class="label-bold">{{ 'APP.LABEL.utente_ultima_modifica' | translate }}</label>
-          <div class="readonly-box">{{ _userFullName(utenteUltimaModifica) || '-' }}</div>
-        </div>
-      </div>
-      <div class="col-6">
-        <div class="form-group">
-          <label class="label-bold">{{ 'APP.LABEL.data_ultima_modifica' | translate }}</label>
-          @if (data?.data_ultima_modifica) {
-            <ui-data-type [data]="data" [elem]="{ field: 'data_ultima_modifica', type: 'date', format: 'DD-MM-YYYY HH:mm:ss' }" [config]="config"></ui-data-type>
-          } @else {
-            <div class="readonly-box">-</div>
-          }
-        </div>
-      </div>
-    </div>
-
-    <!-- Opzioni adesione (gestore) -->
-    @if ((_updateData | mapper:_isGestoreMapper)) {
-      <h6 class="lnk-form-section">{{ 'APP.SERVICES.TITLE.AdhesionInformations' | translate }}</h6>
-      <div class="row">
-        @if (_hasFlagConsentiNonSottoscrivibile) {
-          <div class="col-4">
-            <div class="form-group">
-              <label class="label-bold" for="adesione_disabilitata">{{ 'APP.LABEL.DisabilitaAdesione' | translate }}</label>
-              @if (isEdit) {
-                <div class="gl-form-checkbox custom-control custom-checkbox">
-                  <input #chkAd class="custom-control-input" type="checkbox" name="adesione_disabilitata" id="adesione_disabilitata" formControlName="adesione_disabilitata">
-                  <label class="custom-control-label" aria-hidden="true" (click)="chkAd.click()"></label>
-                </div>
-              } @else {
-                <div class="mt-1"><i class="bi" [class.bi-check-square]="data?.adesione_disabilitata" [class.bi-square]="!data?.adesione_disabilitata"></i></div>
+              @if (!isEdit && !_hideSoggettoInfo) {
+                <label class="label-bold" for="id_soggetto_erogatore">{{ 'APP.LABEL.SoggettoErogatore' | translate }}</label>
+                <div class="readonly-box">{{ data?.soggetto_erogatore?.nome || '-' }}</div>
               }
             </div>
           </div>
         }
-        @if (_hasAdesioniMultiple) {
-          <div class="col-4">
-            <div class="form-group">
-              <label class="label-bold" for="multi_adesione">{{ 'APP.LABEL.multi_adesione' | translate }}</label>
-              @if (isEdit) {
-                <div class="gl-form-checkbox custom-control custom-checkbox">
-                  <input class="custom-control-input" type="checkbox" name="multi_adesione" id="multi_adesione" formControlName="multi_adesione">
-                  <label class="custom-control-label" aria-hidden="true"></label>
-                </div>
-              } @else {
-                <div class="mt-1"><i class="bi" [class.bi-check-square]="data?.multi_adesione" [class.bi-square]="!data?.multi_adesione"></i></div>
-              }
-            </div>
-          </div>
-        }
-        <div class="col-4">
-          <div class="form-group">
-            <label class="label-bold" for="skip_collaudo">{{ 'APP.LABEL.SkipCollaudo' | translate }}</label>
-            @if (isEdit) {
-              <div class="gl-form-checkbox custom-control custom-checkbox">
-                <input #chkSc class="custom-control-input" type="checkbox" name="skip_collaudo" id="skip_collaudo" formControlName="skip_collaudo">
-                <label class="custom-control-label" aria-hidden="true" (click)="chkSc.click()"></label>
+
+      </div>
+    </section>
+
+    <!-- SEZIONE 2 — Classificazione e visibilità -->
+    <section class="lnk-phase-section py-0">
+      <header class="lnk-phase-section-hd">
+        <span class="ps-num">2</span>
+        <div class="ps-meta">
+          <span class="ps-tag">{{ 'APP.SERVICES.CREATE.SectionClassificazioneTag' | translate }}</span>
+          <h3 class="ps-title">{{ 'APP.SERVICES.CREATE.SectionClassificazioneTitle' | translate }}</h3>
+          <p class="ps-desc">{{ 'APP.SERVICES.CREATE.SectionClassificazioneDesc' | translate }}</p>
+        </div>
+      </header>
+      <div class="lnk-phase-section-body">
+
+        <!-- Visibilità / Classi -->
+        @if ((_updateData | mapper:_isGestoreMapper)) {
+          <div class="row visibilita">
+            <div class="col-6">
+              <div class="form-group">
+                <label class="label-bold" for="visibilita">{{ 'APP.LABEL.VisibilitaServizio' | translate }}</label>
+                @if (isEdit) {
+                  <select class="form-select" id="visibilita" formControlName="visibilita" [class.gl-field-error-outline]="_hasControlError('visibilita')"
+                    disablePermission [isNew]="false" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="grant" (change)="_onChangeVisibilita($event)">
+                    @for (item of _tipiVisibilitaServizio; track item) {
+                      <option [ngValue]="item.value">{{ ('APP.VISIBILITY.' + (item.value || 'EreditataDominio')) | translate }}</option>
+                    }
+                  </select>
+                } @else {
+                  <div class="readonly-box">{{ _visibilitaLabel() }}</div>
+                }
               </div>
-            } @else {
-              <div class="mt-1"><i class="bi" [class.bi-check-square]="data?.skip_collaudo" [class.bi-square]="!data?.skip_collaudo"></i></div>
+            </div>
+            <div class="col-6">
+              @if (_isVisibilita('riservato')) {
+                <div class="form-group classi">
+                  <label class="label-bold" for="classi">{{ 'APP.LABEL.classi' | translate }}
+                    @if (isEdit) { <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'classi'"></span> }
+                  </label>
+                  @if (isEdit) {
+                    <ng-select [class.gl-field-error-outline]="_hasControlError('classi')" [items]="anagrafiche['classi-utente'] || []" [multiple]="true"
+                      [compareWith]="_compareClassiFn" bindValue="id_classe_utente" bindLabel="nome" labelForId="classi" [closeOnSelect]="false" formControlName="classi">
+                      <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
+                        <input id="classe-{{index}}" type="checkbox" [checked]="item$.selected"/> {{ item.nome }}
+                      </ng-template>
+                    </ng-select>
+                    @if (f['classi'].invalid && (f['classi'].dirty || f['classi'].touched)) {
+                      <p class="form-text text-danger">
+                        @if (f['classi'].errors?.['required']) { <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span> }
+                      </p>
+                    }
+                  } @else {
+                    <div class="readonly-box">
+                      @for (classe of data?.classi; track classe) { <span class="badge rounded-pill badge-tag text-bg-tags me-1 mb-1">{{ classe.nome || classe }}</span> }
+                      @if (!data?.classi?.length) { <span>-</span> }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+      </div>
+    </section>
+
+    <!-- SEZIONE 3 — Descrizione e metadati -->
+    <section class="lnk-phase-section py-0">
+      <header class="lnk-phase-section-hd">
+        <span class="ps-num">3</span>
+        <div class="ps-meta">
+          <span class="ps-tag">{{ 'APP.SERVICES.CREATE.SectionDescrizioneTag' | translate }}</span>
+          <h3 class="ps-title">{{ 'APP.SERVICES.CREATE.SectionDescrizioneTitle' | translate }}</h3>
+          <p class="ps-desc">{{ 'APP.SERVICES.CREATE.SectionDescrizioneDesc' | translate }}</p>
+        </div>
+      </header>
+      <div class="lnk-phase-section-body">
+
+        <!-- Descrizione sintetica -->
+        <div class="form-group descrizione_sintetica">
+          <label class="label-bold" for="descrizione_sintetica">{{ 'APP.LABEL.DescrizioneSintetica' | translate }}
+            @if (isEdit) { <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'descrizione_sintetica'"></span> }
+          </label>
+          @if (isEdit) {
+            <textarea class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione_sintetica')" name="descrizione_sintetica" id="descrizione_sintetica" formControlName="descrizione_sintetica" rows="3"
+              disablePermission [isNew]="false" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="grant"></textarea>
+            @if (f['descrizione_sintetica'].invalid && (f['descrizione_sintetica'].dirty || f['descrizione_sintetica'].touched)) {
+              <p class="form-text text-danger">
+                @if (f['descrizione_sintetica'].errors?.['required']) { <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span> }
+                @if (f['descrizione_sintetica'].errors?.['maxlength']) { <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['descrizione_sintetica'].errors?.['maxlength'].requiredLength } }}</span> }
+              </p>
             }
+          } @else {
+            <div class="readonly-box readonly-box--multiline">{{ data?.descrizione_sintetica || '-' }}</div>
+          }
+        </div>
+
+        <!-- Documentazione tecnica (markdown) -->
+        <div class="form-group descrizione">
+          <label class="label-bold w-100" for="descrizione">{{ 'APP.LABEL.DocumentazioneTecnica' | translate }}
+            @if (isEdit) {
+              <button type="button" class="btn btn-default btn-sm gl-button btn-default-tertiary float-end" [class.btn-secondary]="_showMarkdownPreview" [disabled]="!f['descrizione'].value" (click)="_toggleMarkdownPreview()">{{ (_showMarkdownPreview ? 'APP.BUTTON.Write' : 'APP.BUTTON.Preview') | translate }}</button>
+            }
+          </label>
+          @if (isEdit && !_showMarkdownPreview) {
+            <textarea class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" name="descrizione" id="descrizione" formControlName="descrizione" rows="8"
+              disablePermission [isNew]="false" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="grant"></textarea>
+            @if (f['descrizione'].errors?.['maxlength']) { <p class="form-text text-danger"><span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['descrizione'].errors?.['maxlength'].requiredLength } }}</span></p> }
+          }
+          @if (!isEdit || _showMarkdownPreview) {
+            <div class="mb-2 markdown-container" [class.p-2]="_showMarkdownPreview" [class.border]="_showMarkdownPreview" [class.border-info]="_showMarkdownPreview">
+              <markdown ngPreserveWhitespaces [data]="_showMarkdownPreview ? f['descrizione'].value : (data?.descrizione || '-')" class="markdown"></markdown>
+            </div>
+          }
+        </div>
+
+        <!-- Tags -->
+        <div class="form-group tags">
+          <label class="label-bold" for="tags">{{ 'APP.LABEL.tags' | translate }}</label>
+          @if (isEdit) {
+            <ng-select [items]="anagrafiche['tags'] || []" [multiple]="true" [addTag]="true" [hideSelected]="true" bindValue="nome" bindLabel="nome" labelForId="tags" formControlName="tags"
+              disablePermission [isNew]="false" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="grant"></ng-select>
+          } @else {
+            <div class="readonly-box">
+              @for (tag of data?.tags; track tag) { <span class="badge rounded-pill badge-tag text-bg-tags me-1 mb-1">{{ tag }}</span> }
+              @if (!data?.tags?.length) { <span>-</span> }
+            </div>
+          }
+        </div>
+
+        <!-- Termini di ricerca -->
+        <div class="form-group termini_ricerca">
+          <lnk-form-field name="termini_ricerca" [label]="'APP.LABEL.termini_ricerca' | translate" [formGroup]="_formGroup" [value]="data?.termini_ricerca" [isEdit]="isEdit" [plainText]="true" [helpContext]="'SERVICE.POPOVER'"></lnk-form-field>
+        </div>
+
+        <!-- Note -->
+        <div class="form-group note">
+          <label class="label-bold" for="note">{{ 'APP.LABEL.note' | translate }}</label>
+          @if (isEdit) {
+            <textarea class="form-control" [class.gl-field-error-outline]="_hasControlError('note')" name="note" id="note" formControlName="note" rows="3"
+              disablePermission [isNew]="false" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="grant"></textarea>
+            @if (f['note'].errors?.['maxlength']) { <p class="form-text text-danger"><span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['note'].errors?.['maxlength'].requiredLength } }}</span></p> }
+          } @else {
+            <div class="readonly-box readonly-box--multiline">{{ data?.note || '-' }}</div>
+          }
+        </div>
+
+        <!-- Metadati (read-only) -->
+        <div class="row meta-row">
+          <div class="col-6">
+            <div class="form-group">
+              <label class="label-bold">{{ 'APP.LABEL.utente_richiedente' | translate }}</label>
+              <div class="readonly-box">{{ _userFullName(richiedente) || '-' }}</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="form-group">
+              <label class="label-bold">{{ 'APP.LABEL.data_creazione' | translate }}</label>
+              @if (data) { <ui-data-type [data]="data" [elem]="{ field: 'data_creazione', type: 'date', format: 'DD-MM-YYYY HH:mm:ss' }" [config]="config"></ui-data-type> }
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="form-group">
+              <label class="label-bold">{{ 'APP.LABEL.utente_ultima_modifica' | translate }}</label>
+              <div class="readonly-box">{{ _userFullName(utenteUltimaModifica) || '-' }}</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="form-group">
+              <label class="label-bold">{{ 'APP.LABEL.data_ultima_modifica' | translate }}</label>
+              @if (data?.data_ultima_modifica) {
+                <ui-data-type [data]="data" [elem]="{ field: 'data_ultima_modifica', type: 'date', format: 'DD-MM-YYYY HH:mm:ss' }" [config]="config"></ui-data-type>
+              } @else {
+                <div class="readonly-box">-</div>
+              }
+            </div>
           </div>
         </div>
+
       </div>
+    </section>
+
+    <!-- SEZIONE 4 — Opzioni di adesione (gestore) -->
+    @if ((_updateData | mapper:_isGestoreMapper)) {
+      <section class="lnk-phase-section py-0">
+        <header class="lnk-phase-section-hd">
+          <span class="ps-num">4</span>
+          <div class="ps-meta">
+            <span class="ps-tag">{{ 'APP.SERVICES.CREATE.SectionAdesioneTag' | translate }}</span>
+            <h3 class="ps-title">{{ 'APP.SERVICES.CREATE.SectionAdesioneTitle' | translate }}</h3>
+            <p class="ps-desc">{{ 'APP.SERVICES.CREATE.SectionAdesioneDesc' | translate }}</p>
+          </div>
+        </header>
+        <div class="lnk-phase-section-body">
+          <div class="row">
+            @if (_hasFlagConsentiNonSottoscrivibile) {
+              <div class="col-4">
+                <div class="form-group">
+                  <label class="label-bold" for="adesione_disabilitata">{{ 'APP.LABEL.DisabilitaAdesione' | translate }}</label>
+                  @if (isEdit) {
+                    <div class="gl-form-checkbox custom-control custom-checkbox">
+                      <input #chkAd class="custom-control-input" type="checkbox" name="adesione_disabilitata" id="adesione_disabilitata" formControlName="adesione_disabilitata">
+                      <label class="custom-control-label" aria-hidden="true" (click)="chkAd.click()"></label>
+                    </div>
+                  } @else {
+                    <div class="mt-1"><i class="bi" [class.bi-check-square]="data?.adesione_disabilitata" [class.bi-square]="!data?.adesione_disabilitata"></i></div>
+                  }
+                </div>
+              </div>
+            }
+            @if (_hasAdesioniMultiple) {
+              <div class="col-4">
+                <div class="form-group">
+                  <label class="label-bold" for="multi_adesione">{{ 'APP.LABEL.multi_adesione' | translate }}</label>
+                  @if (isEdit) {
+                    <div class="gl-form-checkbox custom-control custom-checkbox">
+                      <input class="custom-control-input" type="checkbox" name="multi_adesione" id="multi_adesione" formControlName="multi_adesione">
+                      <label class="custom-control-label" aria-hidden="true"></label>
+                    </div>
+                  } @else {
+                    <div class="mt-1"><i class="bi" [class.bi-check-square]="data?.multi_adesione" [class.bi-square]="!data?.multi_adesione"></i></div>
+                  }
+                </div>
+              </div>
+            }
+            <div class="col-4">
+              <div class="form-group">
+                <label class="label-bold" for="skip_collaudo">{{ 'APP.LABEL.SkipCollaudo' | translate }}</label>
+                @if (isEdit) {
+                  <div class="gl-form-checkbox custom-control custom-checkbox">
+                    <input #chkSc class="custom-control-input" type="checkbox" name="skip_collaudo" id="skip_collaudo" formControlName="skip_collaudo">
+                    <label class="custom-control-label" aria-hidden="true" (click)="chkSc.click()"></label>
+                  </div>
+                } @else {
+                  <div class="mt-1"><i class="bi" [class.bi-check-square]="data?.skip_collaudo" [class.bi-square]="!data?.skip_collaudo"></i></div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     }
 
     @if (isEdit && _error) {

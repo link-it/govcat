@@ -11,42 +11,76 @@
 
 .servizio-info-form {
 
-  // Layout a 2 colonne: i campi singoli si affiancano; intestazioni, righe
-  // multi-campo (Bootstrap `.row`), textarea e footer restano a tutta larghezza.
-  form {
+  // UI a sezioni-card (allineata al wizard di creazione): ogni sezione ha una
+  // colonna sinistra meta (numero/tag/titolo/descrizione) e il corpo a destra.
+  .lnk-phase-section {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    column-gap: 16px;
-    align-items: start;
+    grid-template-columns: 280px 1fr;
+    gap: 0;
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--line, #dee8ef);
+    border-radius: var(--radius-lg, 14px);
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 16px;
   }
-  form > .lnk-form-section,
-  form > .row,
-  form > .form-group.logo,
-  form > .form-group.descrizione_sintetica,
-  form > .form-group.descrizione,
-  form > .form-group.note,
-  form > lnk-form-error,
-  form > lnk-form-submit {
-    grid-column: 1 / -1;
+  // Quando un ng-select è aperto, sblocca l'overflow ed eleva la card.
+  .lnk-phase-section:has(.ng-select-opened) {
+    overflow: visible;
+    z-index: 20;
   }
-
-  @media (max-width: 768px) {
-    form { grid-template-columns: 1fr; }
+  .lnk-phase-section-hd {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 20px;
+    background: var(--surface-2, #fafcfd);
+    border-right: 1px solid var(--line, #dee8ef);
   }
-
-  // Intestazione di sotto-sezione (Identità, Classificazione, Descrizione, …)
-  .lnk-form-section {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: .09em;
-    font-weight: 700;
+  .ps-num {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: none; // grid
+    place-items: center;
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--surface-3, #eef4f8);
     color: var(--ink-3, #57738a);
-    margin: 20px 0 12px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid var(--line, #dee8ef);
+    border: 1px solid var(--line-strong, #c4d6e0);
   }
-  .lnk-form-section:first-of-type {
-    margin-top: 0;
+  .ps-meta { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .ps-tag {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    color: var(--ink-3, #57738a);
+  }
+  .ps-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink, #212c49);
+    margin: 0;
+  }
+  .ps-desc {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--ink-3, #57738a);
+    margin: 0;
+  }
+  .lnk-phase-section-body {
+    padding: 20px;
+    margin: 20px;
+  }
+
+  @media (max-width: 767.98px) {
+    .lnk-phase-section { grid-template-columns: 1fr; }
+    .lnk-phase-section-hd {
+      border-right: none;
+      border-bottom: 1px solid var(--line, #dee8ef);
+    }
   }
 
   // Label più discrete e compatte
@@ -165,6 +199,10 @@
   .form-group.logo img,
   .form-group.logo app-photo-base64 {
     border-radius: 10px;
+  }
+  // Bordo del logo solo in visualizzazione (readonly), non in modifica.
+  .form-readonly .form-group.logo img {
+    border: 1px solid var(--line, #dee8ef);
   }
 
   // Footer submit: spazio sopra

@@ -121,7 +121,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     margin: 0;
   }
 
-  .lnk-phase-section-body { padding: 20px; }
+  .lnk-phase-section-body {
+    padding: 20px;
+    margin: 20px;
+  }
 
   /* ── Riepilogo servizio selezionato ─────────────────────── */
   .servizio-summary {

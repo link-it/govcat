@@ -59,6 +59,14 @@
           (action)="onActionMonitor($event)"
         ></app-monitor-dropdown>
       }
+      @if (data?.eliminabile) {
+        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm"
+                [attr.aria-label]="'APP.TOOLTIP.DeleteService' | translate"
+                [title]="'APP.TOOLTIP.DeleteService' | translate"
+                (click)="confirmDeleteServizio()">
+          <i class="bi bi-trash text-danger"></i>
+        </button>
+      }
     </div>
   </div>
 

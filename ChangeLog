@@ -1,6 +1,16 @@
 2026-09-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard servizio, modifica: il blocco "Informazioni generali" (servizio-info-form)
+	  usa la UI a sezioni-card della creazione (campi propri del servizio), con flag
+	  package/fruizione sotto il logo ed ente/soggetto erogatore sotto il dominio;
+	  Referenti/Allegati/Gruppi/API restano nei loro accordion/FASE. Neutralizzata la
+	  cornice del pannello per la sezione info. Corretta la logica di visualizzazione
+	  del soggetto erogatore (allineata alla classica: `_hideSoggettoDropdown` /
+	  `_hideSoggettoInfo`). Aggiunta l'azione "Elimina servizio" nell'header del
+	  wizard (cestino, solo se eliminabile), in parità con la vista classica.
+
+	* [Frontend]
 	Wizard servizio, creazione: conteggio elementi nell'header delle sezioni
 	  Allegati e Gruppi (badge aggiornato in tempo reale su aggiunta/rimozione), al
 	  posto di uno step di riepilogo dedicato.

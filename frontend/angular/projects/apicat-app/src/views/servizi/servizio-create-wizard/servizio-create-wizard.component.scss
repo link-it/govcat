@@ -315,7 +315,10 @@
     margin: 0;
   }
 
-  .lnk-phase-section-body { padding: 20px; }
+  .lnk-phase-section-body {
+    padding: 20px;
+    margin: 20px;
+  }
 
   .lnk-create-form.lnk-form-busy {
     pointer-events: none;

@@ -213,6 +213,17 @@
   .lnk-phase-section-body.tl-panel { position: relative; }
   .phase-section-edit-toggle { position: absolute; top: 10px; right: 12px; z-index: 1; }
 
+  // Sezione "Informazioni generali": l'info-form usa già le card a sezioni (come
+  // in creazione). Il pannello dell'accordion non deve aggiungere una seconda
+  // cornice: rimuovo bordo, padding e sfondo mantenendo il contenitore.
+  #phase-section-info_generali > .lnk-phase-section-body {
+    margin: 20px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+  }
+
   .lnk-btn-icon { width: 30px; padding: 0; justify-content: center; }
 
   // ─── empty-state sezioni (nessun elemento) ────────────────────────
