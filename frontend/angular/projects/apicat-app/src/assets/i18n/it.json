@@ -1259,7 +1259,18 @@
 				"descrizione": "È possibile inserire testo `markdown`.",
 				"id_dominio": "Se non si riesce ad individuare un dominio adeguato per il servizio, è possibile richiedere la creazione di un nuovo dominio via email a {{email}}",
 				"id_dominio_deprecato": "Dominio deprecato",
-				"visibilita": "Viene ereditata la visiblità **{{visibilita}}** impostata nel dominio."
+				"visibilita": "Viene ereditata la visiblità **{{visibilita}}** impostata nel dominio.",
+				"visibilita_servizio": "Determina chi può vedere il servizio nel catalogo. Con «riservato» l'accesso è limitato alle classi utente selezionate.",
+				"tipo": "Tipologia del servizio: «API» per servizi esposti tramite API, «Generico» per servizi non basati su API.",
+				"id_organizzazione_interna": "Ente della tua organizzazione che eroga il servizio in intermediazione. Disponibile per i servizi di fruizione.",
+				"id_soggetto_erogatore": "Soggetto che eroga effettivamente il servizio per l'ente selezionato.",
+				"classi": "Classi utente abilitate a vedere il servizio quando la visibilità è «riservato»: solo gli utenti appartenenti alle classi indicate potranno accedervi.",
+				"referente": "Responsabile organizzativo del servizio: riceverà le comunicazioni istituzionali e approverà le adesioni.",
+				"referente_tecnico": "Responsabile tecnico del servizio: gestisce gli aspetti di integrazione e riceve le comunicazioni tecniche.",
+				"descrizione_sintetica": "Breve descrizione del servizio (una o due frasi) mostrata nella lista del catalogo.",
+				"tags": "Parole chiave per categorizzare il servizio e agevolarne la ricerca. Premi Invio per aggiungere ogni tag.",
+				"termini_ricerca": "Termini aggiuntivi (sinonimi, acronimi) usati per migliorare la ricerca del servizio; non compaiono nella scheda.",
+				"note": "Note interne sul servizio, visibili ai referenti; non compaiono nella scheda pubblica del catalogo."
 			},
 			"SETTINGS": {
 				"servizi_view": "Scegli la modalità di visualizzazione di default della lista dei servizi."

@@ -1,3 +1,12 @@
+2026-09-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Wizard servizio, creazione: testi di help sotto i campi. Popolate le chiavi
+	  APP.LABEL_HELP.SERVICE mancanti (tipo, erogatore, classi, referenti, descrizione
+	  sintetica, tag, termini di ricerca, note) — valide anche per la form classica.
+	  Aggiunta chiave dedicata "visibilita_servizio" per la scelta del gestore
+	  (la chiave condivisa "visibilita" mostrava un placeholder vuoto in creazione).
+
 2026-09-01  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

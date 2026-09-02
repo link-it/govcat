@@ -1259,7 +1259,18 @@
 				"descrizione": "You can enter `markdown` text.",
 				"id_dominio": "If you are unable to identify a suitable domain for the service, you can request the creation of a new domain by email to {{email}}",
 				"id_dominio_deprecato": "Deprecated domain",
-				"visibilita": "The visibility **{{visibilita}}** set in the domain is inherited."
+				"visibilita": "The visibility **{{visibilita}}** set in the domain is inherited.",
+				"visibilita_servizio": "Determines who can see the service in the catalog. With «restricted» access is limited to the selected user classes.",
+				"tipo": "Service type: «API» for services exposed through APIs, «Generic» for services not based on APIs.",
+				"id_organizzazione_interna": "Entity of your organization that provides the service as an intermediary. Available for consumption (fruizione) services.",
+				"id_soggetto_erogatore": "Subject that actually provides the service for the selected entity.",
+				"classi": "User classes allowed to see the service when visibility is «restricted»: only users belonging to the selected classes can access it.",
+				"referente": "Organizational owner of the service: receives institutional communications and approves subscriptions.",
+				"referente_tecnico": "Technical owner of the service: handles integration aspects and receives technical communications.",
+				"descrizione_sintetica": "Short description of the service (one or two sentences) shown in the catalog list.",
+				"tags": "Keywords to categorize the service and make it easier to find. Press Enter to add each tag.",
+				"termini_ricerca": "Additional terms (synonyms, acronyms) used to improve service search; they do not appear on the service page.",
+				"note": "Internal notes about the service, visible to the referents; they do not appear on the public catalog page."
 			},
 			"SETTINGS": {
 				"servizi_view": "Choose the default display mode of the list of services."
