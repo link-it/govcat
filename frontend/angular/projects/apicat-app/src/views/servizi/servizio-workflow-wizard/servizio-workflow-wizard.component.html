@@ -142,6 +142,10 @@
                 <i class="bi bi-folder" aria-hidden="true"></i><span>{{ 'APP.SERVICES.TITLE.ShowGroups' | translate }}</span>
                 <span class="lnk-ref-count">{{ servizioGruppi.length }}</span>
               </button>
+              <button type="button" class="lnk-section-nav-chip" [class.is-active]="isPhaseSectionOpen('api')" (click)="goToSection('api')">
+                <i class="bi bi-code-slash" aria-hidden="true"></i><span>{{ 'APP.SERVICES.TITLE.ApiInformations' | translate }}</span>
+                <span class="lnk-ref-count">{{ servizioApiList.length }}</span>
+              </button>
             </nav>
 
             <!-- Informazioni generali (view + edit) -->
@@ -390,10 +394,8 @@
                 </div>
               }
             </section>
-          }
 
-          <!-- Fase: API (lista + creazione inline) -->
-          @if (activeFase?.code === 'api') {
+            <!-- Sezione: API (lista + creazione/modifica inline) -->
             @let openApi = isPhaseSectionOpen('api');
             <section id="phase-section-api" class="lnk-phase-section" [class.is-open]="openApi">
               <header class="lnk-phase-section-hd" role="button" tabindex="0" [attr.aria-expanded]="openApi"
@@ -408,6 +410,12 @@
               </header>
               @if (openApi) {
                 <div class="lnk-phase-section-body">
+                  @if (!servizioApiList.length) {
+                    <div class="gl-alert gl-alert-warning d-flex align-items-start gap-2 mb-3">
+                      <i class="bi bi-exclamation-triangle mt-1" aria-hidden="true"></i>
+                      <span>{{ 'APP.SERVICES.WIZARD.ApiRequiredHint' | translate }}</span>
+                    </div>
+                  }
                   @if (canAddApi() && !_createApiOpen && !_editApiId) {
                     <div class="d-flex justify-content-end mb-2">
                       <button type="button" class="lnk-btn lnk-btn-sm" (click)="openCreateApi()">
@@ -420,11 +428,6 @@
                   @if (_createApiOpen) {
                     <div class="api-row is-editing mb-2">
                       <div class="api-inline-edit-panel">
-                        <div class="d-flex justify-content-end mb-1">
-                          <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm" (click)="closeCreateApi()">
-                            <i class="bi bi-x-lg"></i><span>{{ 'APP.BUTTON.Close' | translate }}</span>
-                          </button>
-                        </div>
                         <app-servizio-api-details
                           [embedded]="true"
                           [createMode]="true"

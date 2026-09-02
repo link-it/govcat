@@ -42,6 +42,7 @@ import { TipologiaAllegatoEnum } from '@app/model/tipologiaAllegatoEnum';
 @Component({
     selector: 'app-servizio-allegato-add-form',
     templateUrl: 'servizio-allegato-add-form.component.html',
+    styleUrls: ['servizio-allegato-add-form.component.scss'],
     standalone: true,
     imports: [
         CommonModule,

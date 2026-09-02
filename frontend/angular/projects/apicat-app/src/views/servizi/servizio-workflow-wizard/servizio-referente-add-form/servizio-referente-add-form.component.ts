@@ -36,6 +36,7 @@ import { catchError, debounceTime, distinctUntilChanged, filter, switchMap, tap 
 @Component({
     selector: 'app-servizio-referente-add-form',
     templateUrl: 'servizio-referente-add-form.component.html',
+    styleUrls: ['servizio-referente-add-form.component.scss'],
     standalone: true,
     imports: [
         CommonModule,

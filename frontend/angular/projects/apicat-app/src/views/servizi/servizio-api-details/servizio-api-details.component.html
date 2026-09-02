@@ -641,17 +641,32 @@
                 </div>
               }
               @if (_isEdit) {
-                <div class="row-content-block footer-block">
-                  <button type="submit" class="gl-button btn btn-confirm gl-mr-2" [disabled]="_formGroup.invalid || _spin">
-                    {{ 'APP.BUTTON.Save' | translate }} @if (_spin) {
-                    <span class="spinner-border spinner-border-sm ms-2"></span>
-                  }
-                </button>
-                <button type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">
-                  {{ 'APP.BUTTON.Cancel' | translate }}
-                </button>
-              </div>
-            }
+                @if (embedded) {
+                  <!-- Form inline: footer allineato alle altre form (a destra,
+                       Annulla poi Salva, senza sfondo/padding del blocco). -->
+                  <div class="d-flex justify-content-end gap-2 mt-3">
+                    <button type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">
+                      {{ 'APP.BUTTON.Cancel' | translate }}
+                    </button>
+                    <button type="submit" class="gl-button btn btn-confirm" [disabled]="_formGroup.invalid || _spin">
+                      {{ 'APP.BUTTON.Save' | translate }} @if (_spin) {
+                        <span class="spinner-border spinner-border-sm ms-2"></span>
+                      }
+                    </button>
+                  </div>
+                } @else {
+                  <div class="row-content-block footer-block">
+                    <button type="submit" class="gl-button btn btn-confirm gl-mr-2" [disabled]="_formGroup.invalid || _spin">
+                      {{ 'APP.BUTTON.Save' | translate }} @if (_spin) {
+                      <span class="spinner-border spinner-border-sm ms-2"></span>
+                    }
+                  </button>
+                  <button type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">
+                    {{ 'APP.BUTTON.Cancel' | translate }}
+                  </button>
+                </div>
+                }
+              }
           </form>
         </div>
       </div>

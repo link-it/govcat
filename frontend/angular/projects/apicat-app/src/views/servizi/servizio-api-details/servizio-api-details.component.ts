@@ -1445,7 +1445,10 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
     _createAuthGroup(data: any) {
         const _auth: any = {
-            profilo: [data.profilo, [Validators.required]],
+            // "Autenticazione prevista" obbligatoria solo quando è presente una
+            // specifica di interfaccia. Senza specifica il profilo è facoltativo
+            // (altrimenti bloccherebbe il salvataggio, cfr. Issue gitlab-162).
+            profilo: [data.profilo, this._hasSpecifica ? [Validators.required] : []],
             resources: [data.resources, [Validators.required]],
             note: [data.note, [Validators.maxLength(255)]]
         };

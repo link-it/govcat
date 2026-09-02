@@ -1,6 +1,25 @@
 2026-09-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard servizio: le API diventano una sezione (accordion, lista + inserimento
+	  inline) della FASE 1; rimossa la fase API dedicata (fasi-bar: Informazioni
+	  generali · Collaudo · Produzione). Finché non esiste almeno una API, Collaudo
+	  e Produzione sono disabilitati e la vista resta su FASE 1 con la sezione API
+	  aperta, un disclaimer e la form di creazione già aperta.
+
+	* [Frontend]
+	Creazione API: "Autenticazione prevista" obbligatoria solo con specifica di
+	  interfaccia (senza specifica il salvataggio non era più possibile, regressione
+	  da Issue gitlab-162).
+
+	* [Frontend]
+	Wizard servizio: UI delle form inline uniformata (API/configurazione/allegati/
+	  referenti): bordo rosso di evidenziazione, footer pulsanti a destra
+	  (Annulla poi Salva) senza sfondo, rimossa la barra "Chiudi" ridondante della
+	  form API. Rimossa l'icona dal pulsante Avanti in creazione. Fix warning NG0956
+	  (track by value nelle option di lnk-form-field).
+
+	* [Frontend]
 	Wizard servizio: inserimento allegato tramite form INLINE al posto della dialog,
 	  sia in creazione (draftMode, accumulo nel draft) sia in modifica (POST immediato).
 	  Nuovo componente ServizioAllegatoAddFormComponent (riusa la logica della dialog:

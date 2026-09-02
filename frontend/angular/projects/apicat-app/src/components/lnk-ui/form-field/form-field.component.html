@@ -139,7 +139,7 @@
           [class.gl-field-error-outline]="hasError()"
           (change)="onChange($event)"
           >
-          @for (item of selectOptions; track item) {
+          @for (item of selectOptions; track item.value) {
             <option [value]="item.value">{{ item.label }}</option>
           }
         </select>
