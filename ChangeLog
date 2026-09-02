@@ -1,6 +1,11 @@
 2026-09-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard servizio, creazione: conteggio elementi nell'header delle sezioni
+	  Allegati e Gruppi (badge aggiornato in tempo reale su aggiunta/rimozione), al
+	  posto di uno step di riepilogo dedicato.
+
+	* [Frontend]
 	Wizard servizio, creazione: testi di help sotto i campi. Popolate le chiavi
 	  APP.LABEL_HELP.SERVICE mancanti (tipo, erogatore, classi, referenti, descrizione
 	  sintetica, tag, termini di ricerca, note) — valide anche per la form classica.

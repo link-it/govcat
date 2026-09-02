@@ -288,6 +288,24 @@
     font-weight: 600;
     color: var(--ink, #212c49);
     margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  // Badge conteggio elementi raccolti (Allegati/Gruppi) accanto al titolo.
+  .ps-count {
+    display: inline-grid;
+    place-items: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    background: var(--surface-3, #eef4f8);
+    color: var(--ink-3, #57738a);
+    border: 1px solid var(--line-strong, #c4d6e0);
   }
 
   .ps-desc {
