@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 import org.govway.catalogo.core.business.utils.EServiceBuilder;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
+import org.govway.catalogo.core.orm.entity.SoggettoEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,11 @@ public class ServizioBuilder {
 
 		this.logger.debug("Servizio: " + servizioEntity.getNome() + " v" + servizioEntity.getVersione());
 
+		// Soggetto Erogatore: per le fruizioni è l'ente erogatore indicato sul servizio,
+		// il referente del dominio è il fruitore interno. Uguale per tutte le api del servizio.
+		SoggettoEntity erogatore = this.eServiceBuilder.getSoggettoErogatore(servizioEntity);
+		String nomeErogatore = erogatore != null ? erogatore.getNome() : "";
+
 		Set<ApiEntity> apiLst = servizioEntity.getApi();
 		this.logger.debug("Servizio: " + servizioEntity.getNome() + " api size: " + apiLst.size());
 
@@ -56,8 +62,7 @@ public class ServizioBuilder {
 			this.logger.debug("Servizio: " + servizioEntity.getNome() + " api: " + api.getNome());
 			Servizio s = new Servizio();
 
-			// Erogatore
-			s.setErogatore(servizioEntity.getDominio().getSoggettoReferente().getNome());
+			s.setErogatore(nomeErogatore);
 
 			// Servizio
 			s.setServizio(servizioEntity.getNome() + " v" + servizioEntity.getVersione());

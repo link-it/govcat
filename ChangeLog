@@ -8,6 +8,35 @@
 	  viewer wsdl nasconde il proprio blocco URL (nuovo input `hideUrlInvocazione`)
 	  per evitare la ripetizione, con fallback se l'URL non e` disponibile.
 
+2026-09-01  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 332: nuova API `GET /api/{id_api}/{id_ambiente}/url-invocazione` per ottenere
+	  in modo puntuale l'URL di invocazione di un componente sull'ambiente indicato.
+	  Finora l'URL era ricavabile solo indirettamente, leggendolo dal server URL della
+	  specifica scaricata in modalità visualizzazione oppure dalla scheda di adesione.
+	  La nuova operazione restituisce il valore calcolato da `EServiceBuilder`, con la
+	  stessa gerarchia di fallback (componente, servizio, dominio, soggetto referente,
+	  template di configurazione) già usata dagli altri flussi, e con le stesse
+	  autorizzazioni di visibilità del dettaglio del componente.
+
+	* [GovwayAPICatalogo]
+	Issue 342: corrette le colonne dei soggetti negli export CSV di servizi e adesioni.
+	  La colonna "Soggetto Erogatore" veniva sempre letta dal soggetto referente del
+	  dominio, che per i servizi in fruizione è il fruitore interno e non l'erogatore:
+	  le fruizioni riportavano quindi il soggetto sbagliato. Ora riporta l'ente erogatore
+	  indicato sul servizio se si tratta di una fruizione e il soggetto referente del
+	  dominio altrimenti, con la stessa logica già applicata alla generazione delle URL
+	  di invocazione e ai filtri del monitoraggio. Nell'export delle adesioni la colonna
+	  "Soggetto Aderente" riportava il nome dell'organizzazione del soggetto anziché il
+	  nome del soggetto dell'adesione: ora le due colonne sono coerenti fra loro ed
+	  espongono entrambe un soggetto. Sempre nell'export delle adesioni, le adesioni
+	  negli stati fuori da `stati_scheda_adesione` venivano scartate silenziosamente e
+	  una selezione di sole adesioni in bozza produceva un file con la sola riga di
+	  intestazione: ora l'export include tutte le adesioni selezionate, come già
+	  avviene per l'export dei servizi, e le colonne di configurazione di collaudo e
+	  produzione restano vuote finché non c'è nulla di configurato.
+
 2026-08-31  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

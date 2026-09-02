@@ -3753,6 +3753,36 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /api/{id_api}/{id_ambiente}/url-invocazione:
+    get:
+      tags:
+      - "API"
+      description: "URL di invocazione di un componente sull'ambiente indicato"
+      operationId: getUrlInvocazioneAPI
+      parameters:
+      - $ref: "#/components/parameters/id_api"
+      - $ref: "#/components/parameters/id_ambiente"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UrlInvocazioneAPI"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /api/{id_api}/export:
     parameters:
     - $ref: "#/components/parameters/id_api"
@@ -6207,6 +6237,13 @@ components:
             $ref: "#/components/schemas/ProprietaCustom"
         url_invocazione:
           $ref: "#/components/schemas/String255"
+    UrlInvocazioneAPI:
+      type: "object"
+      required:
+        - url_invocazione
+      properties:
+        url_invocazione:
+          $ref: "#/components/schemas/URL"
     Configurazione:
       type: "object"
       required:
