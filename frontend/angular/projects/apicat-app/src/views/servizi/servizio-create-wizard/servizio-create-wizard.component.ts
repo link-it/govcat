@@ -25,7 +25,7 @@ import { BsModalService } from 'ngx-bootstrap/modal';
 
 import { ConfigService, Tools, COMPONENTS_IMPORTS } from '@linkit/components';
 import { ModalGroupChoiceComponent } from '@app/components/modal-group-choice/modal-group-choice.component';
-import { AllegatiDialogComponent } from '@app/components/allegati-dialog/allegati-dialog.component';
+import { ServizioAllegatoAddFormComponent } from '../servizio-workflow-wizard/servizio-allegato-add-form/servizio-allegato-add-form.component';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService, RUOLI_ORG_REFERENTE } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -76,7 +76,8 @@ interface WizardStep {
         ErrorViewComponent,
         MarkdownModule,
         MapperPipe,
-        AdesioneFasiBarComponent
+        AdesioneFasiBarComponent,
+        ServizioAllegatoAddFormComponent
     ]
 })
 export class ServizioCreateWizardComponent implements OnInit {
@@ -116,6 +117,7 @@ export class ServizioCreateWizardComponent implements OnInit {
     // Allegati raccolti in creazione (draftMode base64); confluiscono in
     // `_draft.allegati` al submit e vengono inviati a cascata.
     _selectedAllegati: AllegatoDraft[] = [];
+    _addAllegatoOpen: boolean = false;
     // Riepilogo (best-effort): servizio creato ma sotto-risorse non salvate.
     _cascadeWarnings: { step: string; count: number }[] = [];
     _cascadeIdServizio: string | null = null;
@@ -1022,21 +1024,20 @@ export class ServizioCreateWizardComponent implements OnInit {
     // Evolutiva — Allegati (raccolti in creazione via dialog in draftMode)
     // -------------------------------------------------------------------------
 
+    /** Apre la form INLINE di aggiunta allegato (draftMode). */
     openAddAllegato() {
-        const initialState = {
-            model: this.model,
-            id: null,
-            isNew: true,
-            isEdit: false,
-            multiple: true,
-            draftMode: true,
-            showAllAttachments: true
-        };
-        const ref = this.modalService.show(AllegatiDialogComponent, { ignoreBackdropClick: true, initialState });
-        ref.content?.onClose?.subscribe((result: any) => {
-            const nuovi: AllegatoDraft[] = result?.allegati || [];
-            if (nuovi.length) { this._selectedAllegati = [...this._selectedAllegati, ...nuovi]; }
-        });
+        this._addAllegatoOpen = true;
+    }
+
+    closeAddAllegato() {
+        this._addAllegatoOpen = false;
+    }
+
+    /** La form inline (draftMode) emette `{ allegati }`: li accumulo nel draft. */
+    onAllegatoAdded(result: any) {
+        const nuovi: AllegatoDraft[] = result?.allegati || [];
+        if (nuovi.length) { this._selectedAllegati = [...this._selectedAllegati, ...nuovi]; }
+        this._addAllegatoOpen = false;
     }
 
     removeAllegato(index: number) {

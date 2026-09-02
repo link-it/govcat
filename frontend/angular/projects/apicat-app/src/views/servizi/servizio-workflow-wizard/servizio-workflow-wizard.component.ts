@@ -25,6 +25,8 @@ import { BsModalService } from 'ngx-bootstrap/modal';
 import { ConfigService, MenuAction, Tools, COMPONENTS_IMPORTS } from '@linkit/components';
 import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
 import { AllegatiDialogComponent } from '@app/components/allegati-dialog/allegati-dialog.component';
+import { ServizioAllegatoAddFormComponent } from './servizio-allegato-add-form/servizio-allegato-add-form.component';
+import { LnkButtonComponent } from '@app/components/lnk-ui/button/button.component';
 import { ModalGroupChoiceComponent } from '@app/components/modal-group-choice/modal-group-choice.component';
 import { TipologiaAllegatoEnum } from '@app/model/tipologiaAllegatoEnum';
 import { OpenAPIService } from '@app/services/openAPI.service';
@@ -83,6 +85,8 @@ declare const saveAs: any;
         AdesioneSubstepperComponent,
         ServizioInfoFormComponent,
         ServizioReferenteAddFormComponent,
+        ServizioAllegatoAddFormComponent,
+        LnkButtonComponent,
         ServizioApiDetailsComponent,
         ServizioApiConfigurationComponent,
         MonitorDropdwnComponent,
@@ -170,6 +174,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     _allegatiConfig: any = null;
     _showAllAttachments: boolean = false;
     _downloadings: boolean[] = [];
+    _addAllegatoOpen: boolean = false;
 
     // Gruppi (gestione inline; scelta via ModalGroupChoiceComponent).
     servizioGruppi: any[] = [];
@@ -507,6 +512,21 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         return this.authenticationService.canEdit('servizio', 'allegati', this.data?.stato, this._grant?.ruoli);
     }
 
+    /** Aggiunta allegato tramite form INLINE (non più dialog). */
+    openAddAllegato() {
+        this._addAllegatoOpen = true;
+    }
+
+    closeAddAllegato() {
+        this._addAllegatoOpen = false;
+    }
+
+    onAllegatoAdded() {
+        this._addAllegatoOpen = false;
+        this.loadAllegati();
+    }
+
+    /** Modifica di un allegato ESISTENTE: resta via dialog (richiede uuid). */
     openAllegatoDialog(allegato: any = null) {
         const initialState = {
             model: this.model,

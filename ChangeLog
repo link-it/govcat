@@ -1,6 +1,14 @@
 2026-09-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard servizio: inserimento allegato tramite form INLINE al posto della dialog,
+	  sia in creazione (draftMode, accumulo nel draft) sia in modifica (POST immediato).
+	  Nuovo componente ServizioAllegatoAddFormComponent (riusa la logica della dialog:
+	  upload multi-file, tipologia/visibilità/descrizione). La modifica di un allegato
+	  esistente resta via dialog. Rimosso appendTo="body" dai ng-select (in inline
+	  faceva chiudere il dropdown alla selezione).
+
+	* [Frontend]
 	Wizard servizio, modifica: il blocco "Informazioni generali" (servizio-info-form)
 	  usa la UI a sezioni-card della creazione (campi propri del servizio), con flag
 	  package/fruizione sotto il logo ed ente/soggetto erogatore sotto il dominio;

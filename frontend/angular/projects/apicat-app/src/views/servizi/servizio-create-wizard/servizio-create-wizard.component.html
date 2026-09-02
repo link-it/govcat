@@ -545,11 +545,23 @@
             </div>
           </header>
           <div class="lnk-phase-section-body">
-            <div class="d-flex justify-content-end mb-2">
-              <button type="button" class="btn btn-default btn-sm gl-button" (click)="openAddAllegato()">
-                <i class="bi bi-plus-lg me-1"></i>{{ 'APP.BUTTON.AddAttachment' | translate }}
-              </button>
-            </div>
+            @if (!_addAllegatoOpen) {
+              <div class="d-flex justify-content-end mb-2">
+                <button type="button" class="btn btn-default btn-sm gl-button" (click)="openAddAllegato()">
+                  <i class="bi bi-plus-lg me-1"></i>{{ 'APP.BUTTON.AddAttachment' | translate }}
+                </button>
+              </div>
+            }
+            @if (_addAllegatoOpen) {
+              <app-servizio-allegato-add-form
+                [model]="model"
+                [id]="null"
+                [draftMode]="true"
+                [showAllAttachments]="true"
+                (saved)="onAllegatoAdded($event)"
+                (close)="closeAddAllegato()"
+              ></app-servizio-allegato-add-form>
+            }
             @for (a of _selectedAllegati; track $index) {
               <div class="d-flex align-items-center gap-2 border rounded p-2 mb-2">
                 <i class="bi bi-file-earmark-text fs-5"></i>

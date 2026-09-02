@@ -60,12 +60,14 @@
         ></app-monitor-dropdown>
       }
       @if (data?.eliminabile) {
-        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm"
-                [attr.aria-label]="'APP.TOOLTIP.DeleteService' | translate"
-                [title]="'APP.TOOLTIP.DeleteService' | translate"
-                (click)="confirmDeleteServizio()">
-          <i class="bi bi-trash text-danger"></i>
-        </button>
+        <lnk-button
+          [type]="'button'"
+          [icon]="'bi bi-trash text-danger'"
+          [onlyIcon]="true"
+          [ariaLabel]="'APP.TOOLTIP.DeleteService' | translate"
+          [btnTooltip]="'APP.TOOLTIP.DeleteService'"
+          (onAction)="confirmDeleteServizio()"
+        ></lnk-button>
       }
     </div>
   </div>
@@ -289,12 +291,22 @@
               </header>
               @if (openAll) {
                 <div class="lnk-phase-section-body">
-                  @if (canAddAllegato()) {
+                  @if (canAddAllegato() && !_addAllegatoOpen) {
                     <div class="d-flex justify-content-end mb-2">
-                      <button type="button" class="lnk-btn lnk-btn-sm" (click)="openAllegatoDialog()">
+                      <button type="button" class="lnk-btn lnk-btn-sm" (click)="openAddAllegato()">
                         <i class="bi bi-plus-lg"></i><span>{{ 'APP.SERVICES.BUTTON.AddAttachment' | translate }}</span>
                       </button>
                     </div>
+                  }
+                  @if (_addAllegatoOpen) {
+                    <app-servizio-allegato-add-form
+                      [model]="model"
+                      [id]="id"
+                      [grant]="_grant"
+                      [showAllAttachments]="_showAllAttachments"
+                      (saved)="onAllegatoAdded()"
+                      (close)="closeAddAllegato()"
+                    ></app-servizio-allegato-add-form>
                   }
                   @for (all of serviceAllegati; track all.uuid; let i = $index) {
                     <div class="approval-card">
