@@ -8,6 +8,30 @@
 	  viewer wsdl nasconde il proprio blocco URL (nuovo input `hideUrlInvocazione`)
 	  per evitare la ripetizione, con fallback se l'URL non e` disponibile.
 
+2026-09-02  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 345: Keycloak configurato per ambiente e autenticazione tramite header custom.
+	  I client OAuth client_credentials di collaudo e di produzione risiedono su istanze
+	  Keycloak distinte: sia il batch di configurazione automatica (creazione del client e
+	  lettura del secret negli scenari client_credentials) sia il catalogo (lettura
+	  on-demand del secret esposta da `GET /client/{id}/secret`) selezionano ora l'istanza
+	  in base all'ambiente dell'adesione e del client. Le properties sono di conseguenza
+	  duplicate per ambiente: `configuratore.ConfigurazioneExecutor.keycloak.collaudo.*` e
+	  `.produzione.*` per il batch, `org.govway.api.catalogo.keycloak.collaudo.*` e
+	  `.produzione.*` per il catalogo; un ambiente privo di url non viene configurato e le
+	  operazioni Keycloak su quell'ambiente terminano con un errore esplicito.
+	  In alternativa (o in aggiunta) al login con username e password, l'autenticazione
+	  verso Keycloak può ora avvenire con header applicativi configurabili tramite le
+	  properties `...keycloak.<ambiente>.properties.<nome header>`, con lo stesso
+	  meccanismo già disponibile per i client PDND: gli header vengono aggiunti ad ogni
+	  richiesta e sovrascrivono gli omonimi impostati dal login, che non viene effettuato
+	  se username e password non sono valorizzati.
+	  ATTENZIONE: le precedenti properties Keycloak prive di ambiente
+	  (`configuratore.ConfigurazioneExecutor.keycloak.url|username|password|realm` e
+	  `org.govway.api.catalogo.keycloak.url|username|password|realm`) non sono più
+	  supportate e vanno riscritte nella forma per ambiente in fase di aggiornamento.
+
 2026-09-01  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

@@ -56,6 +56,7 @@ public class KeycloakInvoker {
 	private KeycloakLogin token;
 	private Long lastTokenTimestamp = 0l;
 	private String realm;
+	private Map<String, String> defaultHeaders;
 	
 	private Gson gson;
 	private Configuration templateCfg;
@@ -64,19 +65,52 @@ public class KeycloakInvoker {
 	public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 	
 	public KeycloakInvoker(HttpUrl url, String username, String password, Configuration cfg) throws IOException {
-		this(url, username, password, null, cfg);
+		this(url, username, password, null, null, cfg);
 	}
 
 	public KeycloakInvoker(HttpUrl url, String username, String password, String realm, Configuration cfg) throws IOException {
+		this(url, username, password, realm, null, cfg);
+	}
+
+	/**
+	 * @param defaultHeaders header aggiunti ad ogni richiesta verso keycloak, alternativi
+	 *        (o aggiuntivi) al login con username e password: gli header sovrascrivono gli
+	 *        omonimi impostati dal login.
+	 */
+	public KeycloakInvoker(HttpUrl url, String username, String password, String realm, Map<String, String> defaultHeaders, Configuration cfg) throws IOException {
 		this.url = url;
 		this.username = username;
 		this.password = password;
 		this.client = new OkHttpClient();
 		this.realm = Objects.requireNonNullElse(realm, "master");
+		this.defaultHeaders = defaultHeaders == null ? Map.of() : Map.copyOf(defaultHeaders);
 		this.gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
 		this.templateCfg = ((Configuration)cfg.clone());
 		this.templateCfg.setClassForTemplateLoading(this.getClass(), "../templates/keycloak");
 
+	}
+	
+	private boolean hasCredenziali() {
+		return this.username != null && !this.username.isEmpty()
+				&& this.password != null && !this.password.isEmpty();
+	}
+	
+	/**
+	 * Richiesta verso l'API admin di keycloak con le credenziali configurate: il token ottenuto
+	 * dal login (se username e password sono valorizzati) e gli header di default, che
+	 * sovrascrivono gli omonimi.
+	 */
+	private Request.Builder authenticatedRequest(HttpUrl url) throws IOException {
+		Request.Builder builder = new Request.Builder().url(url);
+		
+		if (this.hasCredenziali()) {
+			this.login();
+			builder.header("Authorization", "Bearer " + this.token.getAccessToken());
+		}
+		
+		this.defaultHeaders.forEach(builder::header);
+		
+		return builder;
 	}
 	
 	// login via POST /realms/{realm}/protocol/openid-connect/token
@@ -118,11 +152,7 @@ public class KeycloakInvoker {
 				.addQueryParameter("clientId", clientId)
 				.build();
 		
-		this.login();
-		
-		Request request = new Request.Builder()
-		        .url(clientUrl)
-		        .addHeader("Authorization", "Bearer " + this.token.getAccessToken())
+		Request request = this.authenticatedRequest(clientUrl)
 		        .get()
 		        .build();
 		
@@ -148,11 +178,7 @@ public class KeycloakInvoker {
 				.addQueryParameter("clientId", clientId)
 				.build();
 
-		this.login();
-
-		Request request = new Request.Builder()
-		        .url(clientUrl)
-		        .addHeader("Authorization", "Bearer " + this.token.getAccessToken())
+		Request request = this.authenticatedRequest(clientUrl)
 		        .get()
 		        .build();
 
@@ -174,8 +200,6 @@ public class KeycloakInvoker {
 				.addPathSegment("clients")
 				.build();
 
-		this.login();
-
 		Map<String, Object> model = new HashMap<>();
 		model.put("client_id", clientId);
 		model.put("name", nome);
@@ -187,9 +211,7 @@ public class KeycloakInvoker {
 
 		RequestBody body = RequestBody.create(sw.toString(), JSON);
 
-		Request request = new Request.Builder()
-		        .url(clientUrl)
-		        .addHeader("Authorization", "Bearer " + this.token.getAccessToken())
+		Request request = this.authenticatedRequest(clientUrl)
 		        .post(body)
 		        .build();
 
@@ -210,12 +232,7 @@ public class KeycloakInvoker {
 				.addPathSegment("client-secret")
 				.build();
 		
-		this.login();
-
-		
-		Request request = new Request.Builder()
-		        .url(clientUrl)
-		        .addHeader("Authorization", "Bearer " + this.token.getAccessToken())
+		Request request = this.authenticatedRequest(clientUrl)
 		        .get()
 		        .build();
 				

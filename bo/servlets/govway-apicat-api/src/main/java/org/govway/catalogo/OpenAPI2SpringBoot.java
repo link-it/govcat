@@ -930,6 +930,22 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
     	return apiClient;
     }
 
+    /**
+     * Header aggiuntivi per l'autenticazione verso keycloak di collaudo, in alternativa a
+     * username e password: ogni property definisce un header con il nome che segue il prefisso.
+     */
+    @Bean
+    @ConfigurationProperties(prefix="org.govway.api.catalogo.keycloak.collaudo.properties")
+    public Properties keycloakCollaudoProperties() {
+    	return new Properties();
+    }
+
+    @Bean
+    @ConfigurationProperties(prefix="org.govway.api.catalogo.keycloak.produzione.properties")
+    public Properties keycloakProduzioneProperties() {
+    	return new Properties();
+    }
+
     @Bean
     public org.govway.catalogo.pdnd.controllers.PDNDClientFactory pdndClientFactory() {
     	return new org.govway.catalogo.pdnd.controllers.PDNDClientFactory();

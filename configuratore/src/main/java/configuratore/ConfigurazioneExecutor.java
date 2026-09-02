@@ -23,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,7 @@ import org.govway.catalogo.core.configurazione.ConfigurazioneException;
 import org.govway.catalogo.core.configurazione.EsitoConfigurazioneAdesione;
 import org.govway.catalogo.core.configurazione.IConfigurazioneExecutor;
 import org.govway.catalogo.core.dto.DTOAdesione;
+import org.govway.catalogo.core.dto.DTOAdesione.AmbienteEnum;
 import org.govway.catalogo.core.dto.DTOAdesioneAPI;
 import org.govway.catalogo.core.dto.DTOApi;
 import org.govway.catalogo.core.dto.DTOClient;
@@ -86,15 +88,13 @@ public class ConfigurazioneExecutor implements IConfigurazioneExecutor {
 
 		String className = this.getClass().getName();
 		
-		String kcUsername = properties.getProperty(className+".keycloak.username");
-		String kcPassword = properties.getProperty(className+".keycloak.password");
-		String kcRealm = properties.getProperty(className+".keycloak.realm");
-
-		KeycloakInvoker keycloakApi = new KeycloakInvoker(HttpUrl.get(properties.getProperty(className+".keycloak.url")),
-				kcUsername,
-				kcPassword,
-				kcRealm,
-				cfg);
+		Map<AmbienteEnum, KeycloakInvoker> keycloakApi = new EnumMap<>(AmbienteEnum.class);
+		
+		for (AmbienteEnum ambiente : AmbienteEnum.values()) {
+			KeycloakInvoker invoker = this.initKeycloak(properties, cfg, className, ambiente);
+			if (invoker != null)
+				keycloakApi.put(ambiente, invoker);
+		}
 		
 		HttpUrl configAPIUrl = HttpUrl.get(properties.getProperty(className+".govwayConfig.url"));
 		
@@ -106,6 +106,44 @@ public class ConfigurazioneExecutor implements IConfigurazioneExecutor {
 		
 		this.invokers = new Invokers(keycloakApi, govwayConfigClient);
 		
+	}
+	
+	/**
+	 * Keycloak e' configurato per ambiente (.keycloak.collaudo.*, .keycloak.produzione.*) perche'
+	 * le due istanze sono distinte. Un ambiente privo di url non viene configurato: le adesioni
+	 * di quell'ambiente che richiedono keycloak falliscono con un errore esplicito.
+	 */
+	private KeycloakInvoker initKeycloak(Properties properties, Configuration cfg, String className, AmbienteEnum ambiente) throws IOException {
+		String prefix = className + ".keycloak." + ambiente.toString().toLowerCase() + ".";
+		
+		String kcUrl = properties.getProperty(prefix + "url");
+		
+		if (kcUrl == null || kcUrl.isBlank()) {
+			this.logger.info("keycloak non configurato per l'ambiente {}", ambiente);
+			return null;
+		}
+		
+		return new KeycloakInvoker(HttpUrl.get(kcUrl),
+				properties.getProperty(prefix + "username"),
+				properties.getProperty(prefix + "password"),
+				properties.getProperty(prefix + "realm"),
+				getHeaders(properties, prefix + "properties."),
+				cfg);
+	}
+	
+	/**
+	 * Header aggiuntivi per l'autenticazione verso keycloak, in alternativa a username e password:
+	 * ogni property con il prefisso indicato definisce un header con il nome che segue il prefisso.
+	 */
+	private static Map<String, String> getHeaders(Properties properties, String prefix) {
+		Map<String, String> headers = new HashMap<>();
+		
+		for (String name : properties.stringPropertyNames()) {
+			if (name.startsWith(prefix) && name.length() > prefix.length())
+				headers.put(name.substring(prefix.length()), properties.getProperty(name));
+		}
+		
+		return headers;
 	}
 	
 	private Configuration initTemplateConfiguration() {
