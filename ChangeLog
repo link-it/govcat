@@ -1,6 +1,16 @@
 2026-09-01  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
+	Issue 332: nuova API `GET /api/{id_api}/{id_ambiente}/url-invocazione` per ottenere
+	  in modo puntuale l'URL di invocazione di un componente sull'ambiente indicato.
+	  Finora l'URL era ricavabile solo indirettamente, leggendolo dal server URL della
+	  specifica scaricata in modalità visualizzazione oppure dalla scheda di adesione.
+	  La nuova operazione restituisce il valore calcolato da `EServiceBuilder`, con la
+	  stessa gerarchia di fallback (componente, servizio, dominio, soggetto referente,
+	  template di configurazione) già usata dagli altri flussi, e con le stesse
+	  autorizzazioni di visibilità del dettaglio del componente.
+
+	* [GovwayAPICatalogo]
 	Issue 342: corrette le colonne dei soggetti negli export CSV di servizi e adesioni.
 	  La colonna "Soggetto Erogatore" veniva sempre letta dal soggetto referente del
 	  dominio, che per i servizi in fruizione è il fruitore interno e non l'erogatore:

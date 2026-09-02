@@ -69,6 +69,7 @@ import org.govway.catalogo.servlets.model.SoggettoCreate;
 import org.govway.catalogo.servlets.model.TipoReferenteEnum;
 import org.govway.catalogo.servlets.model.TipoServizio;
 import org.govway.catalogo.servlets.model.TipologiaAllegatoEnum;
+import org.govway.catalogo.servlets.model.UrlInvocazioneAPI;
 import org.govway.catalogo.servlets.model.Utente;
 import org.govway.catalogo.servlets.model.VisibilitaAllegatoEnum;
 import org.govway.catalogo.servlets.model.VisibilitaServizioEnum;
@@ -735,6 +736,97 @@ public class APITest {
         // Test per la specifica non presente
         assertThrows(NullPointerException.class, () -> {
             apiController.downloadSpecificaAPI(idApi, AmbienteEnum.COLLAUDO, null, false, DownloadSpecificaAPIModeEnum.TRY_OUT);
+        });
+    }
+
+    private APIDatiAmbienteCreate getApiDatiAmbienteCreate(String nomeGateway, Integer versioneGateway, String urlPrefix) {
+        APIDatiAmbienteCreate apiDatiAmbienteCreate = new APIDatiAmbienteCreate();
+        apiDatiAmbienteCreate.setProtocollo(ProtocolloEnum.REST);
+
+        DocumentoCreate documento = new DocumentoCreate();
+        documento.setContentType("application/yaml");
+        documento.setContent(Base64.encodeBase64String(CommonUtils.openApiSpec.getBytes()));
+        documento.setFilename("openapi.yaml");
+        apiDatiAmbienteCreate.setSpecifica(documento);
+
+        APIDatiErogazione apiDatiErogazione = new APIDatiErogazione();
+        apiDatiErogazione.setNomeGateway(nomeGateway);
+        apiDatiErogazione.setVersioneGateway(versioneGateway);
+        apiDatiErogazione.setUrlPrefix(urlPrefix);
+        apiDatiErogazione.setUrl("testurl.com/test");
+        apiDatiAmbienteCreate.setDatiErogazione(apiDatiErogazione);
+
+        return apiDatiAmbienteCreate;
+    }
+
+    @Test
+    void testGetUrlInvocazioneAPISuccess() {
+        // Creazione di una API tramite il metodo di utilità: entrambi gli ambienti hanno la stessa
+        // configurazione (nome gateway "APIGateway", versione 1, prefisso "http://") e il template
+        // di default "#prefix#/#canale##nome#/v#versione#".
+        this.getAPI();
+
+        ResponseEntity<UrlInvocazioneAPI> response = apiController.getUrlInvocazioneAPI(idApi, AmbienteEnum.COLLAUDO);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("http://APIGateway/v1", response.getBody().getUrlInvocazione());
+    }
+
+    @Test
+    void testGetUrlInvocazioneAPIAmbientiDistinti() {
+        // Configurazioni di collaudo e produzione differenti, per verificare che l'ambiente
+        // richiesto venga effettivamente rispettato.
+        Servizio servizio = this.getServizio();
+
+        APICreate apiCreate = CommonUtils.getAPICreate();
+        apiCreate.setIdServizio(servizio.getIdServizio());
+        apiCreate.setConfigurazioneCollaudo(getApiDatiAmbienteCreate("GatewayCollaudo", 1, "http://collaudo.example.it"));
+        apiCreate.setConfigurazioneProduzione(getApiDatiAmbienteCreate("GatewayProduzione", 2, "https://produzione.example.it"));
+
+        ResponseEntity<API> responseApi = apiController.createApi(apiCreate);
+        assertEquals(HttpStatus.OK, responseApi.getStatusCode());
+        UUID idApiAmbienti = responseApi.getBody().getIdApi();
+
+        ResponseEntity<UrlInvocazioneAPI> collaudo = apiController.getUrlInvocazioneAPI(idApiAmbienti, AmbienteEnum.COLLAUDO);
+        assertEquals(HttpStatus.OK, collaudo.getStatusCode());
+        assertEquals("http://collaudo.example.it/GatewayCollaudo/v1", collaudo.getBody().getUrlInvocazione());
+
+        ResponseEntity<UrlInvocazioneAPI> produzione = apiController.getUrlInvocazioneAPI(idApiAmbienti, AmbienteEnum.PRODUZIONE);
+        assertEquals(HttpStatus.OK, produzione.getStatusCode());
+        assertEquals("https://produzione.example.it/GatewayProduzione/v2", produzione.getBody().getUrlInvocazione());
+    }
+
+    @Test
+    void testGetUrlInvocazioneAPINotFound() {
+        // ID di una API inesistente
+        UUID idApiNonEsistente = UUID.randomUUID();
+
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+            apiController.getUrlInvocazioneAPI(idApiNonEsistente, AmbienteEnum.COLLAUDO);
+        });
+        assertTrue(exception.getMessage().startsWith("API."));  // Error code check
+    }
+
+    @Test
+    void testGetUrlInvocazioneAPINotAuthorized() {
+        this.getAPI();
+
+        CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
+
+        assertThrows(NotAuthorizedException.class, () -> {
+            apiController.getUrlInvocazioneAPI(idApi, AmbienteEnum.COLLAUDO);
+        });
+    }
+
+    @Test
+    void testGetUrlInvocazioneAPIUtenteAnonimo() {
+        this.getAPI();
+
+        this.tearDown();
+
+        assertThrows(NotAuthorizedException.class, () -> {
+            apiController.getUrlInvocazioneAPI(idApi, AmbienteEnum.COLLAUDO);
         });
     }
 

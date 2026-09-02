@@ -548,6 +548,33 @@ public class APIController implements ApiApi {
 	}
 
 	@Override
+	public ResponseEntity<UrlInvocazioneAPI> getUrlInvocazioneAPI(UUID idApi, AmbienteEnum idAmbiente) {
+		try {
+			this.logger.info("Invocazione in corso ...");     
+			this.logger.debug("Autorizzazione completata con successo");     
+
+			return this.service.runTransaction( () -> {
+
+				ApiEntity entity = findApi(idApi);
+
+				UrlInvocazioneAPI urlInvocazione = new UrlInvocazioneAPI();
+				urlInvocazione.setUrlInvocazione(this.serviceBuilder.getUrlInvocazione(entity, idAmbiente.equals(AmbienteEnum.COLLAUDO)));
+
+				this.logger.info("Invocazione completata con successo");
+				return ResponseEntity.ok(urlInvocazione);
+			});
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	@Override
 	public ResponseEntity<PagedModelItemApi> listAPI(UUID idServizio, RuoloAPIEnum ruolo, UUID idApi, String nome, String versione, String q, 
 			Integer page, Integer size, List<String> sort) {
 		try {
