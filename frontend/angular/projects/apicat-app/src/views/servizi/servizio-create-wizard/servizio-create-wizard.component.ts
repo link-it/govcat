@@ -127,7 +127,6 @@ export class ServizioCreateWizardComponent implements OnInit {
     // in attesa (lucchetto). Label da `APP.SERVICES.WIZARD.PHASE.<code>`.
     readonly _fasiBarSteps: StepWizardItem[] = [
         { code: 'info_generali', descrizione: 'Informazioni Generali', stati_adesione: ['creazione'] },
-        { code: 'api', descrizione: 'API', stati_adesione: [] },
         { code: 'collaudo', descrizione: 'Collaudo', stati_adesione: [] },
         { code: 'produzione', descrizione: 'Produzione', stati_adesione: [] }
     ];

@@ -411,9 +411,9 @@
               @if (openApi) {
                 <div class="lnk-phase-section-body">
                   @if (!servizioApiList.length) {
-                    <div class="gl-alert gl-alert-warning d-flex align-items-start gap-2 mb-3">
-                      <i class="bi bi-exclamation-triangle mt-1" aria-hidden="true"></i>
-                      <span>{{ 'APP.SERVICES.WIZARD.ApiRequiredHint' | translate }}</span>
+                    <div class="lnk-banner is-warn mb-3" role="alert">
+                      <div class="icon"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i></div>
+                      <div class="body"><span>{{ 'APP.SERVICES.WIZARD.ApiRequiredHint' | translate }}</span></div>
                     </div>
                   }
                   @if (canAddApi() && !_createApiOpen && !_editApiId) {

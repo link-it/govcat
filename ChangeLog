@@ -1,6 +1,14 @@
 2026-09-03  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard servizio: la fasi-bar di creazione allineata alla modifica (rimosso lo
+	  step API: Informazioni generali · Collaudo · Produzione), con nota informativa
+	  in creazione ("dopo il salvataggio serve almeno una API per il collaudo"). I
+	  disclaimer (creazione e sezione API) usano la stessa UI del wizard adesioni
+	  (`.lnk-banner`: card arrotondata con bordo, barra colorata, icona; varianti
+	  info/warning).
+
+	* [Frontend]
 	Wizard servizio, sezione API: per ogni API pannello inline (show/hide) con gli
 	  allegati dell'API (lista + aggiunta via form inline + download + eliminazione).
 	  Area allegati caratterizzata (bordo/sfondo dedicati, header con titolo e count);

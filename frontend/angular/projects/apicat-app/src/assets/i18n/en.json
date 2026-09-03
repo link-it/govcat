@@ -2392,7 +2392,8 @@
 				"SectionAdesioneTitle": "Subscription options",
 				"SectionAdesioneDesc": "Settings that govern subscriptions to the service.",
 				"MandatoryHint": "Fields marked with * are mandatory",
-				"Submit": "Create service"
+				"ApiRequiredAfterSave": "After saving you will need to add at least one API to be able to proceed to testing.",
+					"Submit": "Create service"
 			},
 			"WIZARD": {
 				"Title": "New service",

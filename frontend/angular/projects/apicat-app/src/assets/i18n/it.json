@@ -2392,7 +2392,8 @@
 				"SectionAdesioneTitle": "Opzioni di adesione",
 				"SectionAdesioneDesc": "Impostazioni che regolano le adesioni al servizio.",
 				"MandatoryHint": "I campi con * sono obbligatori",
-				"Submit": "Crea servizio"
+				"ApiRequiredAfterSave": "Dopo il salvataggio dovrai aggiungere almeno una API per poter procedere al collaudo.",
+					"Submit": "Crea servizio"
 			},
 			"WIZARD": {
 				"Title": "Nuovo servizio",

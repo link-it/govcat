@@ -105,6 +105,40 @@
   .lnk-btn-ghost.is-active:hover { background: var(--accent-soft-2, #ffd4d8); }
   .lnk-btn-sm { height: 28px; font-size: 12.5px; padding: 0 10px; }
 
+  // ─── Banner/disclaimer (allineato al wizard adesioni) ─────────────
+  .lnk-banner {
+    display: flex; gap: 14px;
+    padding: 16px 18px;
+    background: var(--brand-soft, #cce3ed);
+    border: 1px solid #b3d4e2;
+    border-radius: var(--radius-lg, 14px);
+    position: relative; overflow: hidden;
+  }
+  .lnk-banner::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--brand, #2e445a);
+  }
+  .lnk-banner .icon {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: var(--surface, #ffffff); color: var(--brand, #2e445a);
+    display: grid; place-items: center; flex-shrink: 0;
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(33, 44, 73, .06));
+  }
+  .lnk-banner .icon i { font-size: 15px; }
+  .lnk-banner .body { flex: 1; min-width: 0; }
+  .lnk-banner .body p, .lnk-banner .body span {
+    margin: 0; font-size: 13px; color: var(--brand-ink, #21324a);
+    line-height: 1.55; display: block;
+  }
+  .lnk-banner.is-warn { background: var(--warn-soft, #fbf1e2); border-color: #ecd6b0; }
+  .lnk-banner.is-warn::before { background: var(--warn, #c97a1a); }
+  .lnk-banner.is-warn .icon { color: var(--warn, #c97a1a); }
+  .lnk-banner.is-warn .body p, .lnk-banner.is-warn .body span { color: var(--warn-ink, #8a5310); }
+  .lnk-banner.is-err { background: var(--err-soft, #ffe9eb); border-color: #ffc4c9; }
+  .lnk-banner.is-err::before { background: var(--err, #d81f2c); }
+  .lnk-banner.is-err .icon { color: var(--err, #d81f2c); }
+  .lnk-banner.is-err .body p, .lnk-banner.is-err .body span { color: var(--err-ink, #b81e2b); }
+
   // ─── env card (contenitore fase) ──────────────────────────────────
   .env {
     background: var(--surface);
