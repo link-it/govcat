@@ -612,6 +612,9 @@ export class ServizioWorkflowWizardComponent implements OnInit {
             this._apiAllegatiAddOpen = false;
             return;
         }
+        // Mutua esclusività: aprendo gli allegati chiudo edit/vista dell'API.
+        this._editApiId = null;
+        this._editApiStartEdit = false;
         this._apiAllegatiOpenId = api.id_api;
         this._apiAllegatiAddOpen = false;
         this.loadApiAllegati(api.id_api);
@@ -854,6 +857,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     openApiView(api: any) {
         this._phaseSectionOpen['api'] = true;
         this._createApiOpen = false;
+        this._closeApiAllegati();
         this._editApiStartEdit = false;
         this._editApiId = api.id_api;
     }
@@ -862,8 +866,15 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     openEditApi(api: any) {
         this._phaseSectionOpen['api'] = true;
         this._createApiOpen = false;
+        this._closeApiAllegati();
         this._editApiStartEdit = true;
         this._editApiId = api.id_api;
+    }
+
+    /** Chiude il pannello allegati di una API (aprendo edit/vista). */
+    private _closeApiAllegati() {
+        this._apiAllegatiOpenId = null;
+        this._apiAllegatiAddOpen = false;
     }
 
     closeEditApi() {

@@ -6,7 +6,8 @@
 	  Area allegati caratterizzata (bordo/sfondo dedicati, header con titolo e count);
 	  badge conteggio accanto all'icona graffetta (per API); tooltip sulle icone;
 	  la graffetta usa lo stato "selezionato" al posto della X. Sfondo bianco della
-	  form di aggiunta allegati per staccarla dal pannello.
+	  form di aggiunta allegati per staccarla dal pannello. Mutua esclusività tra il
+	  pannello allegati e la form edit/vista dell'API (aprendone uno si chiude l'altro).
 
 2026-09-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
