@@ -73,13 +73,13 @@ export type StepBarVariant = 'circles' | 'chevron';
  * è cliccabile e l'evento non viene emesso.
  */
 @Component({
-  selector: 'app-adesione-step-bar',
+  selector: 'app-wizard-step-bar',
   standalone: true,
   imports: [CommonModule, TranslateModule],
-  templateUrl: './adesione-step-bar.component.html',
-  styleUrls: ['./adesione-step-bar.component.scss']
+  templateUrl: './wizard-step-bar.component.html',
+  styleUrls: ['./wizard-step-bar.component.scss']
 })
-export class AdesioneStepBarComponent implements OnChanges {
+export class WizardStepBarComponent implements OnChanges {
 
   @Input() steps: StepWizardItem[] = [];
   @Input() currentState: string | null = null;

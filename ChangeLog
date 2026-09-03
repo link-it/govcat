@@ -1,6 +1,14 @@
 2026-09-03  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Refactor: estratti i componenti wizard condivisi (fasi-bar, substepper, step-bar)
+	  da views/adesioni a components/wizard, rinominati in modo neutro
+	  (app-wizard-fasi-bar / -substepper / -step-bar; classi Wizard*Component).
+	  Aggiornati tutti gli import/usi in adesioni e servizi. Nessuna modifica di
+	  comportamento. (Il campo di config stati_adesione resta invariato: e' la chiave
+	  del config backend step_wizard.)
+
+	* [Frontend]
 	Wizard servizio, fasi Collaudo/Produzione allineate al workflow adesioni: la
 	  configurazione delle API è nel sub-step "In compilazione" e resta sempre
 	  esaminabile (modificabile se stato/permessi lo consentono); slot riservato per

@@ -44,9 +44,9 @@ import { AdesioneListaClientsComponent } from './adesione-lista-clients/adesione
 import { AdesioneDialogMockPanelComponent } from './adesione-dialog-mock-panel/adesione-dialog-mock-panel.component';
 import { AdesioneListaErogazioniComponent } from './adesione-lista-erogazioni/adesione-lista-erogazioni.component';
 import { AdesioneFormComponent } from './adesione-form/adesione-form.component';
-import { AdesioneStepBarComponent, StepBarVariant, StepWizardItem } from '../adesione-step-bar/adesione-step-bar.component';
-import { AdesioneFasiBarComponent } from '../adesione-fasi-bar/adesione-fasi-bar.component';
-import { AdesioneSubstepperComponent } from '../adesione-substepper/adesione-substepper.component';
+import { WizardStepBarComponent, StepBarVariant, StepWizardItem } from '@app/components/wizard/wizard-step-bar/wizard-step-bar.component';
+import { WizardFasiBarComponent } from '@app/components/wizard/wizard-fasi-bar/wizard-fasi-bar.component';
+import { WizardSubstepperComponent } from '@app/components/wizard/wizard-substepper/wizard-substepper.component';
 import { StatoChipComponent } from '@app/components/vetrina';
 
 import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/service-breadcrumbs.resolver';
@@ -119,9 +119,9 @@ export interface AdesioneDisclaimer {
         AdesioneListaErogazioniComponent,
         AdesioneDialogMockPanelComponent,
         AdesioneFormComponent,
-        AdesioneStepBarComponent,
-        AdesioneFasiBarComponent,
-        AdesioneSubstepperComponent,
+        WizardStepBarComponent,
+        WizardFasiBarComponent,
+        WizardSubstepperComponent,
         StatoChipComponent,
         ReferenteAddFormComponent,
         NotificationBarComponent,
@@ -429,7 +429,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
 
     /**
      * Set della fase visualizzata. Triggerato dal click sulla
-     * `<app-adesione-fasi-bar>`. Tutte le 3 fasi sono cliccabili (anche
+     * `<app-wizard-fasi-bar>`. Tutte le 3 fasi sono cliccabili (anche
      * `pending` delle fasi future), per poter visionare in anteprima
      * cosa contiene.
      */
@@ -1097,13 +1097,13 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         return !!statoNome && statoNome.includes('produzione');
     }
 
-    /** Codici delle fasi da disabilitare nella `<app-adesione-fasi-bar>`. */
+    /** Codici delle fasi da disabilitare nella `<app-wizard-fasi-bar>`. */
     getDisabledFasiCodes(): string[] {
         return this._isProduzioneBloccata() ? ['produzione'] : [];
     }
 
     /** Codici delle fasi da marcare come "saltate" nella
-     *  `<app-adesione-fasi-bar>`: con `skip_collaudo` la fase Collaudo e`
+     *  `<app-wizard-fasi-bar>`: con `skip_collaudo` la fase Collaudo e`
      *  saltata (non cliccabile, stile dedicato). */
     getSkippedFasiCodes(): string[] {
         return this.adesione?.skip_collaudo ? ['collaudo'] : [];
@@ -1359,7 +1359,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
      * Counter "X/Y" dei sub-step di una sezione (collaudo/produzione)
      * basato sull'ordine dello workflow.
      *
-     * Regole (allineate al `_buildItems()` di `<app-adesione-substepper>`):
+     * Regole (allineate al `_buildItems()` di `<app-wizard-substepper>`):
      *  - "past phase": currentState posizionato nel workflow DOPO tutti
      *    gli stati della sezione -> tutti gli step done (es. Collaudo
      *    quando l'adesione e` gia` in Produzione);
@@ -2505,7 +2505,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     /**
      * Elenco ordinato cronologicamente degli stati dell'adesione, passato
      * alle step-bar per abilitare il rilevamento "oltre-fase" (vedi
-     * `AdesioneStepBarComponent.workflowStati`). Preferisce
+     * `WizardStepBarComponent.workflowStati`). Preferisce
      * `adesione.workflow.stati` dalla config remota; in mancanza, deriva
      * l'ordine concatenando gli `stati_adesione` della step-bar principale.
      */
@@ -2614,7 +2614,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     /**
      * Vero quando il sub-step `in_compilazione` di una sezione
      * (collaudo/produzione) risulta superato. Replica la logica
-     * di `AdesioneSubstepperComponent._buildItems`: trova
+     * di `WizardSubstepperComponent._buildItems`: trova
      * l'indice del sub-step che contiene lo stato corrente nel
      * proprio `stati_adesione` (`realIndex`) e considera
      * "completed" tutti i sub-step con indice < realIndex.

@@ -20,7 +20,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Out
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
-import { StepWizardItem } from '../adesione-step-bar/adesione-step-bar.component';
+import { StepWizardItem } from '@app/components/wizard/wizard-step-bar/wizard-step-bar.component';
 
 /**
  * Stato visivo di una card-fase nella step-bar 3-fasi del nuovo layout.
@@ -57,7 +57,7 @@ export interface FasiBarItem {
 /**
  * Step-bar 3-fasi del nuovo layout (Issue 254 NEW LAYOUT, rev. 4.8).
  *
- * Differenze rispetto a `<app-adesione-step-bar>`:
+ * Differenze rispetto a `<app-wizard-step-bar>`:
  *  - rendering visivo a 3 card (`.gstepper > .gstep`) anziche` cerchi o
  *    chevron;
  *  - sempre interattiva (le 3 fasi sono sempre cliccabili come tab —
@@ -68,7 +68,7 @@ export interface FasiBarItem {
  *
  * La logica di derivazione stato dagli `stati_adesione` di ogni step e
  * dal `currentState` (= `adesione.stato`) e` la stessa di
- * `<app-adesione-step-bar>` ma semplificata: niente regola "empty"
+ * `<app-wizard-step-bar>` ma semplificata: niente regola "empty"
  * (non rilevante per la step-bar a fasi che e` sempre 3 step concreti)
  * e niente `selectedCode` constraint (qui qualsiasi fase e` cliccabile).
  *
@@ -76,14 +76,14 @@ export interface FasiBarItem {
  * — questo componente e` puro structural template, non porta SCSS.
  */
 @Component({
-    selector: 'app-adesione-fasi-bar',
+    selector: 'app-wizard-fasi-bar',
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [CommonModule, TranslateModule],
-    templateUrl: './adesione-fasi-bar.component.html',
-    styleUrls: ['./adesione-fasi-bar.component.scss'],
+    templateUrl: './wizard-fasi-bar.component.html',
+    styleUrls: ['./wizard-fasi-bar.component.scss'],
 })
-export class AdesioneFasiBarComponent implements OnChanges {
+export class WizardFasiBarComponent implements OnChanges {
 
     /**
      * Lista delle fasi (3 elementi) — pilotata da `adesione.step_wizard`

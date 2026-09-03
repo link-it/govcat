@@ -42,9 +42,9 @@ import { catchError } from 'rxjs/operators';
 import { WorkflowComponent } from '@app/components/workflow/workflow.component';
 import { ErrorViewComponent } from '@app/components/error-view/error-view.component';
 import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
-import { AdesioneFasiBarComponent } from '@app/views/adesioni/adesione-fasi-bar/adesione-fasi-bar.component';
-import { AdesioneSubstepperComponent } from '@app/views/adesioni/adesione-substepper/adesione-substepper.component';
-import { StepWizardItem } from '@app/views/adesioni/adesione-step-bar/adesione-step-bar.component';
+import { WizardFasiBarComponent } from '@app/components/wizard/wizard-fasi-bar/wizard-fasi-bar.component';
+import { WizardSubstepperComponent } from '@app/components/wizard/wizard-substepper/wizard-substepper.component';
+import { StepWizardItem } from '@app/components/wizard/wizard-step-bar/wizard-step-bar.component';
 import { ServizioInfoFormComponent } from './servizio-info-form/servizio-info-form.component';
 import { ServizioReferenteAddFormComponent } from './servizio-referente-add-form/servizio-referente-add-form.component';
 import { ServizioApiDetailsComponent } from '@app/views/servizi/servizio-api-details/servizio-api-details.component';
@@ -63,7 +63,7 @@ declare const saveAs: any;
  * Wizard a fasi del workflow servizio (Parte B, skeleton).
  *
  * Presenta il workflow del servizio (fasi Collaudo/Produzione) come step-bar,
- * riusando `AdesioneFasiBarComponent` (senza modificarlo) e l'esistente
+ * riusando `WizardFasiBarComponent` (senza modificarlo) e l'esistente
  * `<ui-workflow>` per le transizioni di stato (`PUT /servizi/:id/stato`).
  * La configurazione delle fasi arriva da `Tools.Configurazione.servizio.step_wizard`
  * se presente, altrimenti dal MOCK frontend (`STEP_WIZARD_SERVIZIO_FALLBACK`).
@@ -81,8 +81,8 @@ declare const saveAs: any;
         ...COMPONENTS_IMPORTS,
         WorkflowComponent,
         ErrorViewComponent,
-        AdesioneFasiBarComponent,
-        AdesioneSubstepperComponent,
+        WizardFasiBarComponent,
+        WizardSubstepperComponent,
         ServizioInfoFormComponent,
         ServizioReferenteAddFormComponent,
         ServizioAllegatoAddFormComponent,

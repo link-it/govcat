@@ -18,7 +18,7 @@
 -->
 <!--
   FASE 0 wizard-like: form di creazione adesione allineata alla UI del
-  wizard di configurazione. Riusa <app-adesione-fasi-bar> (barra statica
+  wizard di configurazione. Riusa <app-wizard-fasi-bar> (barra statica
   a 4 step), il pattern card `.lnk-phase-section`, i token Link.it. La
   logica della form (FormGroup, select, _onChangeServizio, _checkSoggetto,
   _onSubmit) e` invariata rispetto al flusso "new" originale.
@@ -51,11 +51,11 @@
         `pending` (lucchetto semplice, nessun messaggio "produzione
         bloccata"). Visualizzazione opzionale via `_showFasiBar` (app-config). -->
     @if (_showFasiBar) {
-      <app-adesione-fasi-bar
+      <app-wizard-fasi-bar
         [steps]="_fasiBarSteps"
         [currentState]="_fasiCurrent"
         [i18nPrefix]="'APP.ADESIONI.STEP_WIZARD_CREATE'">
-      </app-adesione-fasi-bar>
+      </app-wizard-fasi-bar>
     }
 
     @if (_error) {

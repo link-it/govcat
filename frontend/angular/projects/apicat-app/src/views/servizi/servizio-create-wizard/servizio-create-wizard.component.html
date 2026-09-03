@@ -53,11 +53,11 @@
 
       <!-- Barra fasi (FASE 1 attiva = creazione; le altre in attesa). -->
       @if (_showFasiBar) {
-        <app-adesione-fasi-bar
+        <app-wizard-fasi-bar
           [steps]="_fasiBarSteps"
           [currentState]="_fasiCurrent"
           [i18nPrefix]="'APP.SERVICES.WIZARD.PHASE'">
-        </app-adesione-fasi-bar>
+        </app-wizard-fasi-bar>
       }
 
       @if (_error) {

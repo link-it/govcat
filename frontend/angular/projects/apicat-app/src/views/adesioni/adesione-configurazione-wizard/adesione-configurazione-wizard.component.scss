@@ -362,7 +362,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   .lnk-btn-icon { width: 30px; padding: 0; justify-content: center; }
 
   // NOTE: le rules `.gstepper` / `.gstep` (step-bar 3-fasi) sono state
-  // migrate dentro `<app-adesione-fasi-bar>` (rev. 4.8) per coerenza con
+  // migrate dentro `<app-wizard-fasi-bar>` (rev. 4.8) per coerenza con
   // la view encapsulation Angular. Vedi `adesione-fasi-bar.component.scss`.
 
   // ─── status banner (azzurro, con barra rossa a sinistra) ────────────
@@ -495,7 +495,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
   // NOTE: le rules `.timeline` / `.tl-step` / `.tl-bullet` /
   // `.tl-panel` / ecc. (sub-stepper verticale) sono state migrate
-  // dentro `<app-adesione-substepper>` (rev. 4.10) per coerenza con
+  // dentro `<app-wizard-substepper>` (rev. 4.10) per coerenza con
   // la view encapsulation Angular. Vedi
   // `adesione-substepper.component.scss`.
 

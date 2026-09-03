@@ -36,8 +36,8 @@ import { AuthenticationService } from '@app/services/authentication.service';
 import { Adesione } from '../adesione-details/adesione';
 import { AdesioneCreate } from '../adesione-details/adesioneCreate';
 import { Servizio, Soggetto } from '../adesione-details/adesioneUpdate';
-import { AdesioneFasiBarComponent } from '../adesione-fasi-bar/adesione-fasi-bar.component';
-import { StepWizardItem } from '../adesione-step-bar/adesione-step-bar.component';
+import { WizardFasiBarComponent } from '@app/components/wizard/wizard-fasi-bar/wizard-fasi-bar.component';
+import { StepWizardItem } from '@app/components/wizard/wizard-step-bar/wizard-step-bar.component';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
@@ -72,7 +72,7 @@ import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/servic
     ErrorViewComponent,
     NgSelectModule,
     TooltipModule,
-    AdesioneFasiBarComponent
+    WizardFasiBarComponent
   ]
 })
 export class AdesioneCreateComponent implements OnInit {

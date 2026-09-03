@@ -28,7 +28,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
-import { StepWizardItem } from '../adesione-step-bar/adesione-step-bar.component';
+import { StepWizardItem } from '@app/components/wizard/wizard-step-bar/wizard-step-bar.component';
 
 /**
  * Stato visivo di un sub-step nella timeline (substepper di sezione).
@@ -83,14 +83,14 @@ export interface SubstepItem {
  * `open=true`. Esempio:
  *
  * ```html
- * <app-adesione-substepper [steps]="..." [currentState]="...">
+ * <app-wizard-substepper [steps]="..." [currentState]="...">
  *   <ng-template let-sub>
  *     &#64;switch (sub.code) {
  *       &#64;case ('in_compilazione') { ... lista clients ... }
  *       &#64;default { ... messaggio waiting ... }
  *     }
  *   </ng-template>
- * </app-adesione-substepper>
+ * </app-wizard-substepper>
  * ```
  *
  * State default di apertura per ogni sub-step:
@@ -99,14 +99,14 @@ export interface SubstepItem {
  * L'utente puo` overridare cliccando l'header (active/completed solo).
  */
 @Component({
-    selector: 'app-adesione-substepper',
+    selector: 'app-wizard-substepper',
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [CommonModule, TranslateModule],
-    templateUrl: './adesione-substepper.component.html',
-    styleUrls: ['./adesione-substepper.component.scss'],
+    templateUrl: './wizard-substepper.component.html',
+    styleUrls: ['./wizard-substepper.component.scss'],
 })
-export class AdesioneSubstepperComponent implements OnChanges {
+export class WizardSubstepperComponent implements OnChanges {
 
     /** Lista dei sub-step (4 elementi tipici: in_compilazione,
      *  in_approvazione, in_configurazione, configurato). Pilotata da
@@ -150,7 +150,7 @@ export class AdesioneSubstepperComponent implements OnChanges {
 
     /**
      * Body content projection: il parent fornisce `<ng-template let-sub>`
-     * dentro il tag `<app-adesione-substepper>...</...>`. Il template
+     * dentro il tag `<app-wizard-substepper>...</...>`. Il template
      * riceve `sub: SubstepItem` come `$implicit` e tipicamente fa
      * dispatching su `sub.code`.
      */
@@ -220,7 +220,7 @@ export class AdesioneSubstepperComponent implements OnChanges {
         // `pubblicato_collaudo` per la sezione Collaudo, `pubblicato_produzione`
         // per Produzione). In questo caso lo step e` raggiunto e
         // concluso — lo trattiamo come `completed`, non come `active`,
-        // coerente col `<app-adesione-step-bar>` legacy che lo
+        // coerente col `<app-wizard-step-bar>` legacy che lo
         // promuove a `final`.
         const lastIndex = this.steps.length - 1;
         const lastStep = this.steps[lastIndex];

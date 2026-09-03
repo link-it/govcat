@@ -280,7 +280,7 @@
               </div>
             }
             @if (!wizardNewLayout) {
-              <app-adesione-step-bar
+              <app-wizard-step-bar
                 class="mb-4"
                 [steps]="stepWizard"
                 [currentState]="adesione.stato"
@@ -291,16 +291,16 @@
                 [workflowStati]="workflowStati"
                 [ngStyle]="stepBarDarkMode ? stepBarDarkVars : null"
                 (stepClick)="onStepBarClick($event)"
-              ></app-adesione-step-bar>
+              ></app-wizard-step-bar>
             } @else {
               <!-- Issue 254 NEW LAYOUT (rev. 4.8) — step-bar 3-fasi
-                   cliccabile (component dedicato `<app-adesione-fasi-bar>`).
+                   cliccabile (component dedicato `<app-wizard-fasi-bar>`).
                    La logica di derivazione stati (completed/current/
                    pending/final) e` pilotata dalla stessa source data
                    della step-bar principale: `stepWizard` config +
                    `adesione.stato` + `workflowStati`. Click su una
                    fase emette `stepClick` -> `selectFase($event)`. -->
-              <app-adesione-fasi-bar
+              <app-wizard-fasi-bar
                 [steps]="stepWizard"
                 [currentState]="adesione?.stato || null"
                 [selectedCode]="_selectedFase"
@@ -308,7 +308,7 @@
                 [disabledCodes]="getDisabledFasiCodes()"
                 [skippedCodes]="getSkippedFasiCodes()"
                 (stepClick)="selectFase($event)"
-              ></app-adesione-fasi-bar>
+              ></app-wizard-fasi-bar>
             }
           }
           @if (!wizardNewLayout) {
@@ -587,7 +587,7 @@
                       <ng-container *ngTemplateOutlet="substepListTpl; context: { section: 'collaudo', titleKey: 'APP.ADESIONI.LABEL.ProceduraAttivazione', body: collaudoBodyTpl }"></ng-container>
                     } @else {
                       @if (getStepWizardSezione('collaudo').length > 0) {
-                        <app-adesione-step-bar
+                        <app-wizard-step-bar
                           class="mb-4 adesione-step-bar-interna"
                           [steps]="getStepWizardSezione('collaudo')"
                           [currentState]="adesione.stato"
@@ -598,7 +598,7 @@
                           [i18nPrefix]="'APP.ADESIONI.STEP_WIZARD_SEZIONE'"
                           [workflowStati]="workflowStati"
                           [ngStyle]="stepBarDarkMode ? stepBarDarkVars : null"
-                        ></app-adesione-step-bar>
+                        ></app-wizard-step-bar>
                       }
                       <ng-container *ngTemplateOutlet="collaudoBodyTpl"></ng-container>
                     }
@@ -644,7 +644,7 @@
                       <ng-container *ngTemplateOutlet="substepListTpl; context: { section: 'produzione', titleKey: 'APP.ADESIONI.LABEL.ProceduraConfigurazione', body: produzioneBodyTpl }"></ng-container>
                     } @else {
                       @if (getStepWizardSezione('produzione').length > 0) {
-                        <app-adesione-step-bar
+                        <app-wizard-step-bar
                           class="mb-4 adesione-step-bar-interna"
                           [steps]="getStepWizardSezione('produzione')"
                           [currentState]="adesione.stato"
@@ -655,7 +655,7 @@
                           [i18nPrefix]="'APP.ADESIONI.STEP_WIZARD_SEZIONE'"
                           [workflowStati]="workflowStati"
                           [ngStyle]="stepBarDarkMode ? stepBarDarkVars : null"
-                        ></app-adesione-step-bar>
+                        ></app-wizard-step-bar>
                       }
                       <ng-container *ngTemplateOutlet="produzioneBodyTpl"></ng-container>
                     }
@@ -1407,7 +1407,7 @@
 
         <!-- Substepper verticale config-driven (rev. 4.10).
              Pilotato dalla stessa source data del legacy
-             `<app-adesione-step-bar>` per le step-bar interne:
+             `<app-wizard-step-bar>` per le step-bar interne:
              `getStepWizardSezione('collaudo')` /
              `getStepWizardSezione('produzione')` (StepWizardItem[] dal
              config `adesione.step_wizard_collaudo` / `_produzione`).
@@ -1416,7 +1416,7 @@
              Content projection: il body si dispatcha sul `sub.code`
              (in_compilazione -> lista clients/endpoint + CTA workflow;
              altri -> messaggio "in attesa gestore"). -->
-        <app-adesione-substepper
+        <app-wizard-substepper
           [steps]="getStepWizardSezione(section)"
           [currentState]="adesione?.stato || null"
           [workflowStati]="workflowStati"
@@ -1522,7 +1522,7 @@
               }
             }
           </ng-template>
-        </app-adesione-substepper>
+        </app-wizard-substepper>
       </div>
     }
   </section>

@@ -95,7 +95,7 @@
         </div>
       </div>
 
-      <app-adesione-fasi-bar
+      <app-wizard-fasi-bar
         [steps]="stepWizard"
         [currentState]="data?.stato || null"
         [selectedCode]="_selectedFase"
@@ -104,7 +104,7 @@
         [skippedCodes]="getSkippedFasiCodes()"
         [i18nPrefix]="'APP.SERVICES.WIZARD.PHASE'"
         (stepClick)="selectFase($event)"
-      ></app-adesione-fasi-bar>
+      ></app-wizard-fasi-bar>
 
       @if (_error) {
         <div class="gl-alert gl-alert-danger col-12 mt-3">
@@ -573,7 +573,7 @@
               }
             </div>
 
-            <app-adesione-substepper
+            <app-wizard-substepper
               [steps]="subStepsForActiveFase"
               [currentState]="data?.stato || null"
               [workflowStati]="workflowStati"
@@ -661,7 +661,7 @@
                   <p class="mb-0 text-muted">{{ ('APP.SERVICES.WIZARD.SUBSTEP.' + sub.code + '_body') | translate }}</p>
                 }
               </ng-template>
-            </app-adesione-substepper>
+            </app-wizard-substepper>
           }
         </div>
       </div>

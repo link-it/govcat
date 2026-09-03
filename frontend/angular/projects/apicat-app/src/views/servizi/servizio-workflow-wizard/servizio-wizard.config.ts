@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { StepWizardItem } from '@app/views/adesioni/adesione-step-bar/adesione-step-bar.component';
+import { StepWizardItem } from '@app/components/wizard/wizard-step-bar/wizard-step-bar.component';
 
 /**
  * MOCK della configurazione remota del wizard servizio (Parte B).
@@ -27,7 +27,7 @@ import { StepWizardItem } from '@app/views/adesioni/adesione-step-bar/adesione-s
  * ancora fornito dal backend.
  *
  * NOTA: il campo degli stati e` denominato `stati_adesione` (non
- * `stati_servizio`) per poter riusare `AdesioneFasiBarComponent` senza
+ * `stati_servizio`) per poter riusare `WizardFasiBarComponent` senza
  * modificarlo (evita regressioni sul wizard adesioni). L'unificazione della
  * chiave su un nome neutro (`stati`) e` rimandata alla fase di estrazione dei
  * componenti condivisi.
@@ -71,7 +71,7 @@ export const STEP_WIZARD_SERVIZIO_FALLBACK: StepWizardItem[] = [
 ];
 
 /** Sotto-step della fase Collaudo (mock; chiave `stati_adesione` per riuso di
- *  `AdesioneSubstepperComponent`). */
+ *  `WizardSubstepperComponent`). */
 export const STEP_WIZARD_COLLAUDO_SERVIZIO: StepWizardItem[] = [
     { code: 'in_compilazione', descrizione: 'In Compilazione', stati_adesione: ['bozza'] },
     { code: 'in_approvazione', descrizione: 'In Approvazione', stati_adesione: ['richiesto_collaudo'] },

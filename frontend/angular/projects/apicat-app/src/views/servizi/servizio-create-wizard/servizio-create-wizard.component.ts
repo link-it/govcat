@@ -32,8 +32,8 @@ import { AuthenticationService } from '@app/services/authentication.service';
 
 import { ServizioCreate, Soggetto } from '../servizio-details/servizioCreate';
 import { ServizioWizardDraft, emptyServizioWizardDraft, cascadeCreateServizio, cascadeHasErrors, CascadeResult, AllegatoDraft } from '../servizio-workflow-wizard/servizio-wizard-draft';
-import { AdesioneFasiBarComponent } from '@app/views/adesioni/adesione-fasi-bar/adesione-fasi-bar.component';
-import { StepWizardItem } from '@app/views/adesioni/adesione-step-bar/adesione-step-bar.component';
+import { WizardFasiBarComponent } from '@app/components/wizard/wizard-fasi-bar/wizard-fasi-bar.component';
+import { StepWizardItem } from '@app/components/wizard/wizard-step-bar/wizard-step-bar.component';
 
 import { concat, forkJoin, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
@@ -76,7 +76,7 @@ interface WizardStep {
         ErrorViewComponent,
         MarkdownModule,
         MapperPipe,
-        AdesioneFasiBarComponent,
+        WizardFasiBarComponent,
         ServizioAllegatoAddFormComponent
     ]
 })
