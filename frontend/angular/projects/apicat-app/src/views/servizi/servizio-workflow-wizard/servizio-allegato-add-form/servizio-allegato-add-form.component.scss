@@ -2,6 +2,7 @@
 
 // Evidenzia la form inline con bordo accent (coerente con il pannello API inline).
 .servizio-allegato-add-form {
+  background: var(--surface, #ffffff);
   border: 1px solid var(--accent, #ff4050);
   box-shadow: 0 0 0 3px var(--accent-soft, #ffe9eb);
   border-radius: 10px;

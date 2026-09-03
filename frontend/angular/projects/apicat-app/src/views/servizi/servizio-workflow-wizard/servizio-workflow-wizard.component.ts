@@ -582,6 +582,87 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     }
 
     // -------------------------------------------------------------------------
+    // FASE 1 — Allegati DI UNA API (pannello inline show/hide per riga API)
+    // -------------------------------------------------------------------------
+
+    /** id_api della riga con il pannello allegati aperto (uno per volta). */
+    _apiAllegatiOpenId: string | null = null;
+    _apiAllegatiList: any[] = [];
+    _apiAllegatiAddOpen: boolean = false;
+    _apiAllegatiDownloadings: boolean[] = [];
+    /** Conteggio allegati per id_api (per il badge accanto alla graffetta). */
+    _apiAllegatiCount: { [idApi: string]: number } = {};
+
+    /** Carica il conteggio allegati per ogni API della lista (badge graffetta). */
+    private _loadApiAllegatiCounts() {
+        (this.servizioApiList || []).forEach((api: any) => {
+            let query: any = {};
+            if (!this._showAllAttachments) { query = { tipologia_allegato: TipologiaAllegatoEnum.Generico }; }
+            const aux = { params: this.utils._queryToHttpParams({ ...query }) };
+            this.apiService.getDetails('api', api.id_api, 'allegati', aux).subscribe({
+                next: (resp: any) => { this._apiAllegatiCount[api.id_api] = resp?.content?.length || 0; },
+                error: () => { this._apiAllegatiCount[api.id_api] = 0; }
+            });
+        });
+    }
+
+    toggleApiAllegati(api: any) {
+        if (this._apiAllegatiOpenId === api.id_api) {
+            this._apiAllegatiOpenId = null;
+            this._apiAllegatiAddOpen = false;
+            return;
+        }
+        this._apiAllegatiOpenId = api.id_api;
+        this._apiAllegatiAddOpen = false;
+        this.loadApiAllegati(api.id_api);
+    }
+
+    loadApiAllegati(idApi: string) {
+        this._apiAllegatiList = [];
+        let query: any = { sort: 'documento.filename,asc' };
+        if (!this._showAllAttachments) {
+            query = { ...query, tipologia_allegato: TipologiaAllegatoEnum.Generico };
+        }
+        const aux = { params: this.utils._queryToHttpParams({ ...query }) };
+        this.apiService.getDetails('api', idApi, 'allegati', aux).subscribe({
+            next: (resp: any) => {
+                this._apiAllegatiList = resp?.content || [];
+                this._apiAllegatiCount[idApi] = this._apiAllegatiList.length;
+            },
+            error: () => { this._apiAllegatiList = []; }
+        });
+    }
+
+    openAddApiAllegato() { this._apiAllegatiAddOpen = true; }
+    closeAddApiAllegato() { this._apiAllegatiAddOpen = false; }
+    onApiAllegatoAdded(api: any) { this._apiAllegatiAddOpen = false; this.loadApiAllegati(api.id_api); }
+
+    confirmDeleteApiAllegato(api: any, allegato: any) {
+        this.utils._confirmDelection(allegato, () => this._deleteApiAllegato(api, allegato));
+    }
+
+    private _deleteApiAllegato(api: any, allegato: any) {
+        this.apiService.deleteElementRelated('api', api.id_api, `allegati/${allegato.uuid}`).subscribe({
+            next: () => { this.loadApiAllegati(api.id_api); },
+            error: (error: any) => { Tools.showMessage(this.utils.GetErrorMsg(error), 'danger', true); }
+        });
+    }
+
+    downloadApiAllegato(api: any, allegato: any, index: number = -1) {
+        this._apiAllegatiDownloadings[index] = true;
+        this.apiService.download('api', api.id_api, `allegati/${allegato.uuid}/download`).subscribe({
+            next: (response: any) => {
+                saveAs(response.body, `${allegato.filename}`);
+                this._apiAllegatiDownloadings[index] = false;
+            },
+            error: (error: any) => {
+                this._apiAllegatiDownloadings[index] = false;
+                Tools.showMessage(this.utils.GetErrorMsg(error), 'danger', true);
+            }
+        });
+    }
+
+    // -------------------------------------------------------------------------
     // FASE 1 — Gruppi (gestione inline; scelta via ModalGroupChoiceComponent)
     // -------------------------------------------------------------------------
 
@@ -670,6 +751,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
                 this._apiListLoaded = true;
                 this._enforceApiRequiredForCollaudo();
                 this._maybeAutoOpenCreateApi();
+                this._loadApiAllegatiCounts();
             },
             error: () => { this.servizioApiList = []; this._apiListLoaded = true; this._enforceApiRequiredForCollaudo(); this._maybeAutoOpenCreateApi(); }
         });

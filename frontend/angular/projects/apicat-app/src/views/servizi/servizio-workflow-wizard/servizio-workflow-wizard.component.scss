@@ -96,6 +96,13 @@
   .lnk-btn i.bi { font-size: 14px; }
   .lnk-btn-ghost { background: transparent; border-color: transparent; box-shadow: none; }
   .lnk-btn-ghost:hover { background: var(--surface-3); }
+  // Stato selezionato (es. graffetta allegati con pannello aperto).
+  .lnk-btn-ghost.is-active {
+    background: var(--accent-soft, #ffe9eb);
+    color: var(--accent-ink, #b81e2b);
+    border-color: #ffc4c9;
+  }
+  .lnk-btn-ghost.is-active:hover { background: var(--accent-soft-2, #ffd4d8); }
   .lnk-btn-sm { height: 28px; font-size: 12.5px; padding: 0 10px; }
 
   // ─── env card (contenitore fase) ──────────────────────────────────
@@ -225,6 +232,8 @@
   }
 
   .lnk-btn-icon { width: 30px; padding: 0; justify-content: center; }
+  // Con il badge conteggio (graffetta allegati) la larghezza si adatta.
+  .lnk-btn-icon:has(.lnk-ref-count) { width: auto; padding: 0 8px; }
 
   // ─── empty-state sezioni (nessun elemento) ────────────────────────
   .lnk-empty {
@@ -341,6 +350,27 @@
     border-top: none;
     border-radius: 9px;
   }
+
+  // Area allegati dell'API: caratterizzata con bordo e sfondo diversi dal
+  // pannello di modifica/vista, per distinguerla visivamente.
+  .api-allegati-panel {
+    background: var(--surface-3, #eef4f8);
+    border: 1px solid var(--line-strong, #c4d6e0);
+    border-radius: 9px;
+    margin-top: 6px;
+  }
+  .api-allegati-hd {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line, #dee8ef);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink, #212c49);
+  }
+  .api-allegati-hd > .bi { color: var(--ink-3, #57738a); }
 
   .referent-role-tag {
     align-self: center; flex-shrink: 0;

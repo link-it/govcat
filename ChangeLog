@@ -1,3 +1,13 @@
+2026-09-03  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Wizard servizio, sezione API: per ogni API pannello inline (show/hide) con gli
+	  allegati dell'API (lista + aggiunta via form inline + download + eliminazione).
+	  Area allegati caratterizzata (bordo/sfondo dedicati, header con titolo e count);
+	  badge conteggio accanto all'icona graffetta (per API); tooltip sulle icone;
+	  la graffetta usa lo stato "selezionato" al posto della X. Sfondo bianco della
+	  form di aggiunta allegati per staccarla dal pannello.
+
 2026-09-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

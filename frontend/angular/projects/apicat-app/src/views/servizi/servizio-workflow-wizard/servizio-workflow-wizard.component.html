@@ -454,14 +454,27 @@
                         @if (canEditApi()) {
                           <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon"
                                   [attr.aria-label]="(isRowEdit ? 'APP.BUTTON.Close' : 'APP.BUTTON.Modify') | translate"
+                                  [title]="(isRowEdit ? 'APP.BUTTON.Close' : 'APP.BUTTON.Modify') | translate"
                                   (click)="isRowEdit ? closeEditApi() : openEditApi(api)">
                             <i class="bi" [class.bi-x-lg]="isRowEdit" [class.bi-pencil]="!isRowEdit"></i>
                           </button>
                         }
                         <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon"
                                 [attr.aria-label]="(isRowView ? 'APP.BUTTON.Close' : 'APP.BUTTON.Show') | translate"
+                                [title]="(isRowView ? 'APP.BUTTON.Close' : 'APP.BUTTON.Show') | translate"
                                 (click)="isRowView ? closeEditApi() : openApiView(api)">
                           <i class="bi" [class.bi-x-lg]="isRowView" [class.bi-eye]="!isRowView"></i>
+                        </button>
+                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon"
+                                [class.is-active]="_apiAllegatiOpenId === api.id_api"
+                                [attr.aria-label]="'APP.SERVICES.TITLE.Attachments' | translate"
+                                [attr.aria-pressed]="_apiAllegatiOpenId === api.id_api"
+                                [title]="'APP.SERVICES.TITLE.Attachments' | translate"
+                                (click)="toggleApiAllegati(api)">
+                          <i class="bi bi-paperclip"></i>
+                          @if (_apiAllegatiCount[api.id_api]) {
+                            <span class="lnk-ref-count ms-1">{{ _apiAllegatiCount[api.id_api] }}</span>
+                          }
                         </button>
                       </div>
                       @if (isRowOpen) {
@@ -483,6 +496,59 @@
                               (save)="onApiSaved($event)"
                               (close)="closeEditApi()"
                             ></app-servizio-api-details>
+                          }
+                        </div>
+                      }
+
+                      <!-- Pannello inline: allegati DELL'API (lista + add/delete) -->
+                      @if (_apiAllegatiOpenId === api.id_api) {
+                        <div class="api-inline-edit-panel api-allegati-panel">
+                          <div class="api-allegati-hd">
+                            <i class="bi bi-paperclip" aria-hidden="true"></i>
+                            <span>{{ 'APP.SERVICES.TITLE.Attachments' | translate }}</span>
+                            <span class="lnk-ref-count">{{ _apiAllegatiList.length }}</span>
+                            <div class="flex-grow-1"></div>
+                            @if (canEditApi() && !_apiAllegatiAddOpen) {
+                              <button type="button" class="lnk-btn lnk-btn-sm" (click)="openAddApiAllegato()">
+                                <i class="bi bi-plus-lg"></i><span>{{ 'APP.SERVICES.BUTTON.AddAttachment' | translate }}</span>
+                              </button>
+                            }
+                          </div>
+                          @if (_apiAllegatiAddOpen) {
+                            <app-servizio-allegato-add-form
+                              [model]="'api'"
+                              [id]="api.id_api"
+                              [grant]="_grant"
+                              [showAllAttachments]="_showAllAttachments"
+                              (saved)="onApiAllegatoAdded(api)"
+                              (close)="closeAddApiAllegato()"
+                            ></app-servizio-allegato-add-form>
+                          }
+                          @for (all of _apiAllegatiList; track all.uuid; let i = $index) {
+                            <div class="approval-card">
+                              <div class="av av-file"><i class="bi bi-file-earmark"></i></div>
+                              <div class="body">
+                                <div class="who text-break">{{ all.filename || all.documento?.filename || all.uuid }}</div>
+                                <div class="when">
+                                  @if (all.tipologia_allegato) { <span>{{ ('APP.ALLEGATI.TIPI.' + all.tipologia_allegato) | translate }}</span> }
+                                  @if (all.visibilita_allegato) { <span class="ms-2">{{ ('APP.VISIBILITY.' + all.visibilita_allegato) | translate }}</span> }
+                                </div>
+                              </div>
+                              <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [disabled]="_apiAllegatiDownloadings[i]" [attr.aria-label]="'APP.BUTTON.Download' | translate" [title]="'APP.BUTTON.Download' | translate" (click)="downloadApiAllegato(api, all, i)">
+                                @if (_apiAllegatiDownloadings[i]) { <span class="spinner-border spinner-border-sm"></span> } @else { <i class="bi bi-download"></i> }
+                              </button>
+                              @if (canEditApi()) {
+                                <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Remove' | translate" [title]="'APP.BUTTON.Remove' | translate" (click)="confirmDeleteApiAllegato(api, all)">
+                                  <i class="bi bi-trash text-danger"></i>
+                                </button>
+                              }
+                            </div>
+                          }
+                          @if (!_apiAllegatiList.length && !_apiAllegatiAddOpen) {
+                            <div class="lnk-empty">
+                              <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
+                              <span>{{ 'APP.SERVICES.WIZARD.NoItems' | translate }}</span>
+                            </div>
                           }
                         </div>
                       }
