@@ -1886,6 +1886,9 @@
 				"VAL": {
 					"400": {
 						"CF": "Tax code [{{codiceFiscale}}] not valid",
+						"CUSTOM": {
+							"PROPERTY": "Property [{{nome}}] not allowed for group [{{gruppo}}]"
+						},
 						"DATE": "Date [{{data}}] not valid",
 						"EMAIL": "Email [{{email}}] not valid",
 						"ENUM": "Cannot convert [{{source}}] to type [{{tipo}}]",
@@ -1901,6 +1904,7 @@
 						"ORIGIN": "Origin [{{origine}}] not valid for parsing",
 						"PATTERN": "Pattern [{{pattern}}] not satisfied for field [{{campo}}]",
 						"PIVA": "VAT number [{{partitaIva}}] not valid",
+						"PROFILE": "Profile [{{profilo}}] not present in configuration",
 						"RANGE": "Value [{{valore}}] out of allowed range [{{min}} - {{max}}]",
 						"REQUIRED": "Required field [{{campo}}] missing",
 						"URL": "URL [{{url}}] not valid"

@@ -510,6 +510,12 @@ public enum ErrorCode {
     /** Formato campo non valido */
     VAL_400_FORMAT("Formato campo non valido"),
 
+    /** Proprietà custom non prevista per il gruppo indicato */
+    VAL_400_CUSTOM_PROPERTY("Proprietà custom non prevista per il gruppo"),
+
+    /** Profilo non presente nella configurazione */
+    VAL_400_PROFILE("Profilo non presente nella configurazione"),
+
     /** Valore fuori dal range consentito */
     VAL_400_RANGE("Valore fuori range"),
 

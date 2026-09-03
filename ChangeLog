@@ -31,6 +31,13 @@
 	  (`configuratore.ConfigurazioneExecutor.keycloak.url|username|password|realm` e
 	  `org.govway.api.catalogo.keycloak.url|username|password|realm`) non sono più
 	  supportate e vanno riscritte nella forma per ambiente in fase di aggiornamento.
+	Gli errori di validazione delle proprietà custom e dei profili di un'API sono ora
+	  segnalati con codici dedicati al posto del generico `VAL.400.FORMAT`, che non
+	  riportava alcun parametro: il messaggio mostrato all'utente non permetteva di
+	  capire quale dato fosse rifiutato. Una proprietà custom inviata su un gruppo che
+	  non la prevede risponde con `VAL.400.CUSTOM.PROPERTY` indicando nome della
+	  proprietà e gruppo, un profilo non presente nella configurazione con
+	  `VAL.400.PROFILE` indicando il profilo.
 
 2026-09-01  Giovanni De Luca <giovanni.deluca@link.it>
 
