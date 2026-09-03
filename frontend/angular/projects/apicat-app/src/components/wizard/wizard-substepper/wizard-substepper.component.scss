@@ -247,7 +247,7 @@
   border: 1px solid var(--line, #dee8ef);
   border-radius: 12px;
   animation: lnk-panel-in .25s ease;
-  padding-top: 0;
+  // padding-top: 0;
   padding-bottom: 1rem;
 
   // ::ng-deep necessario per stilare il content proiettato dal parent

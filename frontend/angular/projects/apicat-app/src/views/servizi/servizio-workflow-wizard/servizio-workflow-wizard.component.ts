@@ -312,6 +312,73 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         return this.stepWizard.find((s) => s.code === this._selectedFase) || null;
     }
 
+    /** Icona della shell `.env` per la fase (allineamento visuale wizard adesioni). */
+    faseIcon(code: string | null | undefined): string {
+        switch (code) {
+            case 'info_generali': return 'bi-info-circle';
+            case 'collaudo': return 'bi-hammer';
+            case 'produzione': return 'bi-rocket-takeoff';
+            default: return 'bi-diagram-3';
+        }
+    }
+
+    /**
+     * Stato della fase per l'header `.env` (chip): `active`/`completed`/`pending`.
+     * Coerente con la derivazione della fasi-bar: confronto della posizione
+     * della fase con quella che ospita lo stato corrente del servizio.
+     */
+    getFaseStatus(code: string | null | undefined): 'active' | 'completed' | 'pending' {
+        if (!code) return 'active';
+        const steps = this.stepWizard || [];
+        const targetIdx = steps.findIndex((s) => s.code === code);
+        if (targetIdx === -1) return 'active';
+
+        const cur: string | null = this.data?.stato || null;
+        let realIdx = cur ? steps.findIndex((s) => (s.stati_adesione || []).includes(cur)) : -1;
+
+        // Stato corrente oltre l'ultima fase mappata: tutte le fasi fino a
+        // quella con lo stato piu` avanzato risultano concluse.
+        if (realIdx === -1 && cur && this.workflowStati.length > 0) {
+            const curWi = this.workflowStati.indexOf(cur);
+            let maxIdx = -1;
+            steps.forEach((s, i) => {
+                (s.stati_adesione || []).forEach((st) => {
+                    const wi = this.workflowStati.indexOf(st);
+                    if (wi !== -1 && curWi > wi) { maxIdx = Math.max(maxIdx, i); }
+                });
+            });
+            realIdx = maxIdx;
+        }
+
+        // Nessun match: `info_generali` (stati vuoti) e` attiva in bozza.
+        if (realIdx === -1) { return targetIdx === 0 ? 'active' : 'pending'; }
+
+        if (targetIdx < realIdx) { return 'completed'; }
+        if (targetIdx === realIdx) {
+            // Stato terminale (pubblicato) della fase raggiunto: tutti i
+            // sotto-step sono conclusi -> fase conclusa (verde), non attiva.
+            if (this._isFaseTerminalReached(code)) { return 'completed'; }
+            return 'active';
+        }
+        return 'pending';
+    }
+
+    /**
+     * True se lo stato corrente coincide con l'ultimo sotto-step (pubblicato)
+     * della fase: la fase e` interamente completata. Stessa logica del
+     * `reachedTerminal` del substepper, ma a livello di fase.
+     */
+    private _isFaseTerminalReached(code: string): boolean {
+        const subs = code === 'collaudo'
+            ? this.stepWizardCollaudo
+            : code === 'produzione'
+                ? this.stepWizardProduzione
+                : [];
+        if (!subs.length) { return false; }
+        const lastSub = subs[subs.length - 1];
+        return (lastSub.stati_adesione || []).includes(this.data?.stato);
+    }
+
     selectFase(code: string) {
         // Cambiando fase, chiudo i pannelli inline aperti: la sezione API di
         // Collaudo/Produzione è un unico blocco condiviso, quindi lasciare aperto
@@ -335,6 +402,46 @@ export class ServizioWorkflowWizardComponent implements OnInit {
             case 'produzione': return this.stepWizardProduzione;
             default: return [];
         }
+    }
+
+    // ─── Workflow inline (CTA stato successivo nel sub-step attivo) ──────
+    // Stessa logica di `<ui-workflow>` (header), riportata inline nel
+    // pannello del sub-step come nel wizard adesioni: pulsanti di cambio
+    // stato se l'utente ha i permessi, altrimenti disclaimer di attesa.
+
+    /** Config workflow del servizio (package o servizio). */
+    private _serviceWorkflow(): any {
+        return this.data?.package ? this.generalConfig?.package?.workflow : this.generalConfig?.servizio?.workflow;
+    }
+
+    private _serviceRequiredProfiles(): string[] {
+        return this.authenticationService.getRequiredProfiles(this.data);
+    }
+
+    /** Entry `cambi_stato` del workflow per lo stato corrente del servizio. */
+    serviceCambioStato(): any {
+        const wf = this._serviceWorkflow();
+        if (!wf?.cambi_stato || !this.data) { return null; }
+        return wf.cambi_stato.find((i: any) => i.stato_attuale === this.data.stato) || null;
+    }
+
+    /** Gate di una transizione (module `servizio`) per ruoli/profili utente. */
+    canServiceChangeStatus(type: string, statusName: string = ''): boolean {
+        if (!this.data) { return false; }
+        return this.authenticationService.canChangeStatus('servizio', this.data.stato, type, this._grant?.ruoli, statusName, this._serviceRequiredProfiles());
+    }
+
+    /** True se l'utente ha almeno un'azione di cambio stato disponibile. */
+    hasServiceWorkflowActions(): boolean {
+        if (!this.data) { return false; }
+        return this.canServiceChangeStatus('stato_successivo') || this.canServiceChangeStatus('stati_ulteriori');
+    }
+
+    /** True se lo stato corrente coincide col sub-step "In compilazione"
+     *  della fase attiva (disclaimer di configurazione ancora pertinente). */
+    isCompilazioneStep(): boolean {
+        const sub = this.subStepsForActiveFase.find((s) => s.code === 'in_compilazione');
+        return !!sub && (sub.stati_adesione || []).includes(this.data?.stato);
     }
 
     /** Titolo della procedura sopra la timeline della fase attiva. */

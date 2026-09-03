@@ -1,6 +1,14 @@
 2026-09-03  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard servizio: contenuto fase allineato alla shell ".env" delle adesioni
+	  (header con icona, titolo e chip di stato; icona verde e chip "Fase conclusa"
+	  quando lo stato terminale della fase è raggiunto). Nel sub-step attivo:
+	  disclaimer di configurazione (banner) e pulsanti di cambio stato inline
+	  (stato successivo/ulteriori, gated per ruolo/permessi) oppure disclaimer di
+	  attesa. Sezione API riportata dentro il sub-step "In compilazione".
+
+	* [Frontend]
 	Refactor: estratti i componenti wizard condivisi (fasi-bar, substepper, step-bar)
 	  da views/adesioni a components/wizard, rinominati in modo neutro
 	  (app-wizard-fasi-bar / -substepper / -step-bar; classi Wizard*Component).
