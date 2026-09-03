@@ -185,6 +185,15 @@ export class ServizioWorkflowWizardComponent implements OnInit {
      *  Collaudo prima di conoscere il numero di API). */
     _apiListLoaded: boolean = false;
 
+    /**
+     * Disclaimers di aiuto mostrati nel sub-step attivo di Collaudo/Produzione
+     * (slot riservato, come nel wizard adesioni). Attualmente non esiste una
+     * fonte lato servizio: l'array resta vuoto ed è pronto a essere popolato
+     * quando il backend fornirà i disclaimers del servizio.
+     * `variant`: '' (info) | 'is-warn' | 'is-err'; `icon`: classe bootstrap-icons.
+     */
+    _faseDisclaimers: { text: string; variant: string; icon: string }[] = [];
+
     breadcrumbs: any[] = [
         { label: 'APP.TITLE.Services', url: '/servizi', type: 'link', iconBs: 'grid-3x3-gap' },
         { label: '...', url: '', type: 'link' }

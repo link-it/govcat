@@ -1,6 +1,13 @@
 2026-09-03  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard servizio, fasi Collaudo/Produzione allineate al workflow adesioni: la
+	  configurazione delle API è nel sub-step "In compilazione" e resta sempre
+	  esaminabile (modificabile se stato/permessi lo consentono); slot riservato per
+	  i disclaimers di aiuto nel sub-step attivo; i pulsanti di cambio stato restano
+	  nell'header (mostrano lo stato successivo se consentito dal ruolo).
+
+	* [Frontend]
 	Wizard servizio: la fasi-bar di creazione allineata alla modifica (rimosso lo
 	  step API: Informazioni generali · Collaudo · Produzione), con nota informativa
 	  in creazione ("dopo il salvataggio serve almeno una API per il collaudo"). I
