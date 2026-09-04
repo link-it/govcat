@@ -109,14 +109,17 @@ public class AdesioneCsvBuilder {
 		SoggettoEntity erogatore = this.eServiceBuilder.getSoggettoErogatore(servizioEntity);
 		a.setErogatore(erogatore != null ? erogatore.getNome() : "");
 
-		// Servizio
-		a.setServizio(servizioEntity.getNome() + " v" + servizioEntity.getVersione());
+		// Servizio: nome, versione e uuid su colonne distinte
+		a.setServizio(servizioEntity.getNome());
+		a.setVersioneServizio(servizioEntity.getVersione());
+		a.setUuidServizio(servizioEntity.getIdServizio());
 
 		// Soggetto Aderente: il soggetto dell'adesione, non la sua organizzazione
 		a.setAderente(adesione.getSoggetto().getNome());
 
-		// Identificativo Adesione
-		a.setIdAdesione(adesione.getIdLogico());
+		// Adesione: identificativo logico (opzionale, indicato in fase di creazione) e uuid
+		a.setIdLogicoAdesione(adesione.getIdLogico());
+		a.setUuidAdesione(adesione.getIdAdesione());
 
 		// Stato Adesione
 		a.setStatoAdesione(processStato(adesione.getStato()));

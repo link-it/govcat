@@ -1,3 +1,18 @@
+2026-09-03  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 341: nuove colonne nell'export CSV dei servizi: soggetto fruitore, valorizzato
+	  solo per i servizi intermediati dove riporta il soggetto referente del dominio (che
+	  per le fruizioni è il fruitore interno); dominio; referenti e referenti tecnici del
+	  servizio e del dominio, come indirizzi email aziendali separati da newline così come
+	  nell'export delle adesioni; UUID del servizio e UUID dell'api. Nome e versione sono
+	  inoltre passati su colonne distinte: le colonne "Servizio" e "API" riportano ora il
+	  solo nome e la versione si legge nelle nuove colonne "Versione Servizio" e "Versione
+	  API", dove prima era incorporata nel nome. Con lo stesso criterio l'export CSV delle
+	  adesioni espone le nuove colonne "Versione Servizio", "UUID Servizio" e "UUID
+	  Adesione", e anche qui la colonna "Servizio" riporta il solo nome; l'identificativo
+	  logico dell'adesione resta nella colonna "Identificativo Adesione".
+
 2026-09-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

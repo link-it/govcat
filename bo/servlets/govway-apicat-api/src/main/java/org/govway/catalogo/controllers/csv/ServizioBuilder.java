@@ -24,13 +24,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.govway.catalogo.core.business.utils.EServiceBuilder;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
+import org.govway.catalogo.core.orm.entity.DominioEntity;
+import org.govway.catalogo.core.orm.entity.ReferenteDominioEntity;
+import org.govway.catalogo.core.orm.entity.ReferenteServizioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.SoggettoEntity;
+import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
+import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,10 +57,21 @@ public class ServizioBuilder {
 
 		this.logger.debug("Servizio: " + servizioEntity.getNome() + " v" + servizioEntity.getVersione());
 
+		// Valori uguali per tutte le api del servizio: calcolati una sola volta.
+
 		// Soggetto Erogatore: per le fruizioni è l'ente erogatore indicato sul servizio,
-		// il referente del dominio è il fruitore interno. Uguale per tutte le api del servizio.
+		// il referente del dominio è il fruitore interno.
 		SoggettoEntity erogatore = this.eServiceBuilder.getSoggettoErogatore(servizioEntity);
 		String nomeErogatore = erogatore != null ? erogatore.getNome() : "";
+		String nomeFruitore = getNomeFruitore(servizioEntity);
+
+		DominioEntity dominioEntity = servizioEntity.getDominio();
+		String nomeDominio = dominioEntity != null ? dominioEntity.getNome() : "";
+
+		String referentiServizio = getReferentiServizio(servizioEntity, TIPO_REFERENTE.REFERENTE);
+		String referentiTecniciServizio = getReferentiServizio(servizioEntity, TIPO_REFERENTE.REFERENTE_TECNICO);
+		String referentiDominio = getReferentiDominio(dominioEntity, TIPO_REFERENTE.REFERENTE);
+		String referentiTecniciDominio = getReferentiDominio(dominioEntity, TIPO_REFERENTE.REFERENTE_TECNICO);
 
 		Set<ApiEntity> apiLst = servizioEntity.getApi();
 		this.logger.debug("Servizio: " + servizioEntity.getNome() + " api size: " + apiLst.size());
@@ -63,12 +81,18 @@ public class ServizioBuilder {
 			Servizio s = new Servizio();
 
 			s.setErogatore(nomeErogatore);
+			s.setFruitore(nomeFruitore);
+			s.setDominio(nomeDominio);
 
 			// Servizio
-			s.setServizio(servizioEntity.getNome() + " v" + servizioEntity.getVersione());
+			s.setServizio(servizioEntity.getNome());
+			s.setVersioneServizio(servizioEntity.getVersione());
+			s.setUuidServizio(servizioEntity.getIdServizio());
 
 			// API
-			s.setApi(api.getNome() + " v" + api.getVersione());
+			s.setApi(api.getNome());
+			s.setVersioneApi(Objects.toString(api.getVersione(), ""));
+			s.setUuidApi(api.getIdApi());
 
 			// Tipologia API (soap/rest)
 			s.setTipoApi(api.getCollaudo() != null && api.getCollaudo().getProtocollo() != null
@@ -83,6 +107,12 @@ public class ServizioBuilder {
 
 			// Stato Servizio
 			s.setStatoServizio(processStato(servizioEntity.getStato()));
+
+			// Referenti
+			s.setReferentiServizio(referentiServizio);
+			s.setReferentiTecniciServizio(referentiTecniciServizio);
+			s.setReferentiDominio(referentiDominio);
+			s.setReferentiTecniciDominio(referentiTecniciDominio);
 
 			// URL Invocazione
 			s.setUrlInvocazioneCollaudo(this.eServiceBuilder.getUrlInvocazione(api, true));
@@ -100,6 +130,46 @@ public class ServizioBuilder {
 		}
 
 		return serviziCSV;
+	}
+
+	/**
+	 * Soggetto fruitore: valorizzato solo per i servizi intermediati, dove il soggetto referente
+	 * del dominio è il fruitore interno e non l'erogatore (vedi EServiceBuilder.getSoggettoErogatore).
+	 * Per le erogazioni la colonna resta vuota: non esiste un fruitore interno.
+	 */
+	private String getNomeFruitore(ServizioEntity servizioEntity) {
+		if(!servizioEntity.isFruizione() || servizioEntity.getDominio() == null) {
+			return "";
+		}
+
+		SoggettoEntity fruitore = servizioEntity.getDominio().getSoggettoReferente();
+		return fruitore != null ? fruitore.getNome() : "";
+	}
+
+	private String getReferentiServizio(ServizioEntity servizioEntity, TIPO_REFERENTE tipo) {
+		return getEmailReferenti(servizioEntity.getReferenti().stream()
+				.filter(r -> tipo.equals(r.getTipo()))
+				.map(ReferenteServizioEntity::getReferente));
+	}
+
+	private String getReferentiDominio(DominioEntity dominioEntity, TIPO_REFERENTE tipo) {
+		if(dominioEntity == null) {
+			return "";
+		}
+
+		return getEmailReferenti(dominioEntity.getReferenti().stream()
+				.filter(r -> tipo.equals(r.getTipo()))
+				.map(ReferenteDominioEntity::getReferente));
+	}
+
+	/**
+	 * Email aziendali dei referenti separate da newline, come nel csv delle adesioni. I referenti
+	 * privi di email non compaiono, per non produrre celle con separatori vuoti.
+	 */
+	private String getEmailReferenti(Stream<UtenteEntity> referenti) {
+		return referenti.map(UtenteEntity::getEmailAziendale)
+				.filter(email -> email != null && !email.isBlank())
+				.collect(Collectors.joining("\n"));
 	}
 
 	private String processStato(String stato) {

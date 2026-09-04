@@ -540,10 +540,10 @@ public class AdesioniTest {
         String csv = new String(response.getBody().getContentAsByteArray());
 
         // Fruizione: l'erogatore è l'ente erogatore del servizio, non il referente del dominio
-        assertEquals("nome_soggetto_erogatore", getColonnaCsv(csv, servizio, "Soggetto Erogatore"));
+        assertEquals("nome_soggetto_erogatore", getColonnaCsv(csv, adesione, "Soggetto Erogatore"));
 
         // Aderente: il soggetto dell'adesione, non la sua organizzazione
-        assertEquals("nome_soggetto", getColonnaCsv(csv, servizio, "Soggetto Aderente"));
+        assertEquals("nome_soggetto", getColonnaCsv(csv, adesione, "Soggetto Aderente"));
     }
 
     @Test
@@ -571,55 +571,84 @@ public class AdesioniTest {
 
         // Anche le adesioni in stati fuori da stati_scheda_adesione devono comparire nell'export,
         // con le colonne di configurazione vuote
-        assertEquals("Bozza", getColonnaCsv(csv, servizio, "Stato Adesione"));
-        assertEquals("nome_soggetto", getColonnaCsv(csv, servizio, "Soggetto Aderente"));
-        assertEquals("", getColonnaCsv(csv, servizio, "Applicativi Autorizzati (Coll)"));
+        assertEquals("Bozza", getColonnaCsv(csv, adesione, "Stato Adesione"));
+        assertEquals("nome_soggetto", getColonnaCsv(csv, adesione, "Soggetto Aderente"));
+        assertEquals("", getColonnaCsv(csv, adesione, "Applicativi Autorizzati (Coll)"));
+
+        // Nome, versione e uuid del servizio su colonne distinte: la versione non è più
+        // incorporata nel nome. L'identificativo logico non è stato indicato in creazione.
+        assertEquals(servizio.getNome(), getColonnaCsv(csv, adesione, "Servizio"));
+        assertEquals(servizio.getVersione(), getColonnaCsv(csv, adesione, "Versione Servizio"));
+        assertEquals(servizio.getIdServizio().toString(), getColonnaCsv(csv, adesione, "UUID Servizio"));
+        assertEquals("", getColonnaCsv(csv, adesione, "Identificativo Adesione"));
     }
 
     /**
-     * Valore della colonna indicata, nella riga di CSV relativa al servizio indicato.
+     * Valore della colonna indicata, nella riga di CSV relativa all'adesione indicata. La riga è
+     * individuata tramite la colonna "UUID Adesione": trovarla verifica anche quella colonna.
      */
-    private String getColonnaCsv(String csv, Servizio servizio, String colonna) {
-        String servizioCsv = servizio.getNome() + " v" + servizio.getVersione();
+    private String getColonnaCsv(String csv, Adesione adesione, String colonna) {
+        List<List<String>> righe = parseCsv(csv);
+        List<String> header = righe.get(0);
 
-        String[] righe = csv.split("\\n");
-        List<String> header = splitRigaCsv(righe[0]);
-        int indiceServizio = header.indexOf("Servizio");
+        int indiceUuid = header.indexOf("UUID Adesione");
         int indiceColonna = header.indexOf(colonna);
-        assertTrue(indiceServizio >= 0 && indiceColonna >= 0, "Colonne non presenti nell'header: " + righe[0]);
+        assertTrue(indiceUuid >= 0 && indiceColonna >= 0, "Colonne non presenti nell'header: " + header);
 
-        for(int i = 1; i < righe.length; i++) {
-            List<String> valori = splitRigaCsv(righe[i]);
-            if(valori.size() > indiceServizio && valori.get(indiceServizio).equals(servizioCsv)) {
+        for(int i = 1; i < righe.size(); i++) {
+            List<String> valori = righe.get(i);
+            if(valori.size() > indiceUuid && valori.get(indiceUuid).equals(adesione.getIdAdesione().toString())) {
                 return valori.get(indiceColonna);
             }
         }
 
-        fail("Servizio " + servizioCsv + " non presente nel CSV: " + csv);
+        fail("Adesione " + adesione.getIdAdesione() + " non presente nel CSV: " + csv);
         return null;
     }
 
     /**
-     * Split di una riga di CSV che tiene conto delle virgole all'interno dei valori quotati.
+     * Parsing del CSV che tiene conto di virgole e newline all'interno dei valori quotati: le celle
+     * dei referenti contengono più email separate da newline.
      */
-    private List<String> splitRigaCsv(String riga) {
-        List<String> valori = new ArrayList<>();
+    private List<List<String>> parseCsv(String csv) {
+        List<List<String>> righe = new ArrayList<>();
+        List<String> riga = new ArrayList<>();
         StringBuilder valore = new StringBuilder();
         boolean dentroQuote = false;
 
-        for(char c: riga.toCharArray()) {
-            if(c == '"') {
-                dentroQuote = !dentroQuote;
-            } else if(c == ',' && !dentroQuote) {
-                valori.add(valore.toString());
+        for(int i = 0; i < csv.length(); i++) {
+            char c = csv.charAt(i);
+
+            if(dentroQuote) {
+                if(c != '"') {
+                    valore.append(c);
+                } else if(i + 1 < csv.length() && csv.charAt(i + 1) == '"') {   // quote raddoppiato
+                    valore.append('"');
+                    i++;
+                } else {
+                    dentroQuote = false;
+                }
+            } else if(c == '"') {
+                dentroQuote = true;
+            } else if(c == ',') {
+                riga.add(valore.toString());
                 valore.setLength(0);
-            } else {
+            } else if(c == '\n') {
+                riga.add(valore.toString());
+                righe.add(riga);
+                riga = new ArrayList<>();
+                valore.setLength(0);
+            } else if(c != '\r') {
                 valore.append(c);
             }
         }
-        valori.add(valore.toString());
 
-        return valori;
+        if(valore.length() > 0 || !riga.isEmpty()) {
+            riga.add(valore.toString());
+            righe.add(riga);
+        }
+
+        return righe;
     }
     
     @Test

@@ -1404,9 +1404,9 @@ public class ServiziTest {
         assertEquals(HttpStatus.OK, erogatore.getStatusCode());
 
         Servizio servizioErogazione = creaServizioConApi("servizio_export_erogazione", dominio.getIdDominio(),
-                false, null, "api_export_erogazione");
+                false, null, "api_export_erogazione").servizio();
         Servizio servizioFruizione = creaServizioConApi("servizio_export_fruizione", dominio.getIdDominio(),
-                true, erogatore.getBody().getIdSoggetto(), "api_export_fruizione");
+                true, erogatore.getBody().getIdSoggetto(), "api_export_fruizione").servizio();
 
         // Il legame api-servizio e` scritto dal lato ApiEntity.servizi: la collection
         // ServizioEntity.api, gia` inizializzata in questa persistence context, non la vedrebbe.
@@ -1423,13 +1423,103 @@ public class ServiziTest {
         String csv = new String(response.getBody().getContentAsByteArray());
 
         // Erogazione: l'erogatore è il soggetto referente del dominio
-        assertEquals(nomeReferenteDominio, getSoggettoErogatoreCsv(csv, servizioErogazione));
+        assertEquals(nomeReferenteDominio, getColonnaCsv(csv, servizioErogazione, "Soggetto Erogatore"));
 
         // Fruizione: l'erogatore è l'ente erogatore del servizio, non il referente del dominio
-        assertEquals("nome_soggetto_erogatore", getSoggettoErogatoreCsv(csv, servizioFruizione));
+        assertEquals("nome_soggetto_erogatore", getColonnaCsv(csv, servizioFruizione, "Soggetto Erogatore"));
     }
 
-    private Servizio creaServizioConApi(String nome, UUID idDominio, boolean fruizione,
+    @Test
+    void testExportServiziNuoveColonne() throws Exception {
+        Dominio dominio = this.getDominio();
+        String nomeReferenteDominio = createdSoggetto.getBody().getNome();
+
+        SoggettoCreate erogatoreCreate = new SoggettoCreate();
+        erogatoreCreate.setNome("nome_soggetto_erogatore");
+        erogatoreCreate.setIdOrganizzazione(this.idOrganizzazione);
+        erogatoreCreate.setReferente(true);
+        erogatoreCreate.setAderente(true);
+        erogatoreCreate.setSkipCollaudo(true);
+        ResponseEntity<Soggetto> erogatore = soggettiController.createSoggetto(erogatoreCreate);
+        assertEquals(HttpStatus.OK, erogatore.getStatusCode());
+
+        // Servizio in fruizione: ha sia erogatore (ente erogatore) sia fruitore (referente dominio)
+        ServizioConApi creato = creaServizioConApi("servizio_export_colonne", dominio.getIdDominio(),
+                true, erogatore.getBody().getIdSoggetto(), "api_export_colonne");
+        Servizio servizio = creato.servizio();
+        API api = creato.api();
+
+        // Referente tecnico del servizio e referente del dominio, su utenti distinti dal gestore
+        ReferenteCreate tecnicoServizio = new ReferenteCreate();
+        tecnicoServizio.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
+        tecnicoServizio.setIdUtente(getIdUtente("cesare"));
+        assertEquals(HttpStatus.OK,
+                serviziController.createReferenteServizio(servizio.getIdServizio(), null, tecnicoServizio).getStatusCode());
+
+        ReferenteCreate referenteDominio = new ReferenteCreate();
+        referenteDominio.setTipo(TipoReferenteEnum.REFERENTE);
+        referenteDominio.setIdUtente(getIdUtente("referente_dominio"));
+        assertEquals(HttpStatus.OK,
+                dominiController.createReferenteDominio(dominio.getIdDominio(), referenteDominio).getStatusCode());
+
+        entityManager.flush();
+        entityManager.clear();
+
+        ResponseEntity<Resource> response = serviziController.exportServizi(
+            null, null, null, null, null, null, null, null, false, false, null, null, null, null, null
+        );
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+
+        String csv = new String(response.getBody().getContentAsByteArray());
+
+        // Soggetti e dominio
+        assertEquals("nome_soggetto_erogatore", getColonnaCsv(csv, servizio, "Soggetto Erogatore"));
+        assertEquals(nomeReferenteDominio, getColonnaCsv(csv, servizio, "Soggetto Fruitore"));
+        assertEquals(CommonUtils.NOME_DOMINIO, getColonnaCsv(csv, servizio, "Dominio"));
+
+        // Nome, versione e uuid su colonne distinte: la versione non è più incorporata nel nome
+        assertEquals("servizio_export_colonne", getColonnaCsv(csv, servizio, "Servizio"));
+        assertEquals(servizio.getVersione(), getColonnaCsv(csv, servizio, "Versione Servizio"));
+        assertEquals(servizio.getIdServizio().toString(), getColonnaCsv(csv, servizio, "UUID Servizio"));
+        assertEquals("api_export_colonne", getColonnaCsv(csv, servizio, "API"));
+        assertEquals(String.valueOf(api.getVersione()), getColonnaCsv(csv, servizio, "Versione API"));
+        assertEquals(api.getIdApi().toString(), getColonnaCsv(csv, servizio, "UUID API"));
+
+        // Referenti: email aziendali, separate per tipo e per entità
+        assertEquals("m.rossi@acme.inc", getColonnaCsv(csv, servizio, "Referenti Servizio"));
+        assertEquals("cesare@acme.inc", getColonnaCsv(csv, servizio, "Referenti Tecnici Servizio"));
+        assertEquals("refcme.inc", getColonnaCsv(csv, servizio, "Referenti Dominio"));
+        assertEquals("", getColonnaCsv(csv, servizio, "Referenti Tecnici Dominio"));
+    }
+
+    @Test
+    void testExportServiziSoggettoFruitoreVuotoPerErogazioni() throws Exception {
+        Dominio dominio = this.getDominio();
+
+        Servizio servizio = creaServizioConApi("servizio_export_erogazione", dominio.getIdDominio(),
+                false, null, "api_export_erogazione").servizio();
+
+        entityManager.flush();
+        entityManager.clear();
+
+        ResponseEntity<Resource> response = serviziController.exportServizi(
+            null, null, null, null, null, null, null, null, false, false, null, null, null, null, null
+        );
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        String csv = new String(response.getBody().getContentAsByteArray());
+
+        // Per un servizio in erogazione non esiste un fruitore interno: la colonna resta vuota
+        assertEquals("", getColonnaCsv(csv, servizio, "Soggetto Fruitore"));
+        assertEquals(createdSoggetto.getBody().getNome(), getColonnaCsv(csv, servizio, "Soggetto Erogatore"));
+    }
+
+    private record ServizioConApi(Servizio servizio, API api) {}
+
+    private ServizioConApi creaServizioConApi(String nome, UUID idDominio, boolean fruizione,
             UUID idSoggettoErogatore, String nomeApi) {
         ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
         servizioCreate.setNome(nome);
@@ -1449,34 +1539,82 @@ public class ServiziTest {
         APICreate apiCreate = CommonUtils.getAPICreate();
         apiCreate.setNome(nomeApi);
         apiCreate.setIdServizio(created.getBody().getIdServizio());
-        assertEquals(HttpStatus.OK, apiController.createApi(apiCreate).getStatusCode());
+        ResponseEntity<API> createdApi = apiController.createApi(apiCreate);
+        assertEquals(HttpStatus.OK, createdApi.getStatusCode());
 
-        return created.getBody();
+        return new ServizioConApi(created.getBody(), createdApi.getBody());
     }
 
     /**
-     * Prima colonna ("Soggetto Erogatore") della riga di CSV relativa al servizio indicato.
-     * Le prime colonne non contengono separatori, quindi lo split è sufficiente.
+     * Valore della colonna indicata, nella riga di CSV relativa al servizio indicato. La riga è
+     * individuata tramite la colonna "UUID Servizio".
      */
-    private String getSoggettoErogatoreCsv(String csv, Servizio servizio) {
-        String servizioCsv = servizio.getNome() + " v" + servizio.getVersione();
+    private String getColonnaCsv(String csv, Servizio servizio, String colonna) {
+        List<List<String>> righe = parseCsv(csv);
+        List<String> header = righe.get(0);
 
-        String[] righe = csv.split("\\n");
-        for(int i = 1; i < righe.length; i++) {   // riga 0: header
-            String[] colonne = righe[i].split(",");
-            if(colonne.length > 1 && unquote(colonne[1]).equals(servizioCsv)) {
-                return unquote(colonne[0]);
+        int indiceUuid = header.indexOf("UUID Servizio");
+        int indiceColonna = header.indexOf(colonna);
+        assertTrue(indiceUuid >= 0 && indiceColonna >= 0, "Colonne non presenti nell'header: " + header);
+
+        for(int i = 1; i < righe.size(); i++) {
+            List<String> valori = righe.get(i);
+            if(valori.size() > indiceUuid && valori.get(indiceUuid).equals(servizio.getIdServizio().toString())) {
+                return valori.get(indiceColonna);
             }
         }
 
-        fail("Servizio " + servizioCsv + " non presente nel CSV: " + csv);
+        fail("Servizio " + servizio.getIdServizio() + " non presente nel CSV: " + csv);
         return null;
     }
 
-    private String unquote(String valore) {
-        return valore.startsWith("\"") && valore.endsWith("\"")
-                ? valore.substring(1, valore.length() - 1)
-                : valore;
+    /**
+     * Parsing del CSV che tiene conto di virgole e newline all'interno dei valori quotati: le celle
+     * dei referenti contengono più email separate da newline.
+     */
+    private List<List<String>> parseCsv(String csv) {
+        List<List<String>> righe = new ArrayList<>();
+        List<String> riga = new ArrayList<>();
+        StringBuilder valore = new StringBuilder();
+        boolean dentroQuote = false;
+
+        for(int i = 0; i < csv.length(); i++) {
+            char c = csv.charAt(i);
+
+            if(dentroQuote) {
+                if(c != '"') {
+                    valore.append(c);
+                } else if(i + 1 < csv.length() && csv.charAt(i + 1) == '"') {   // quote raddoppiato
+                    valore.append('"');
+                    i++;
+                } else {
+                    dentroQuote = false;
+                }
+            } else if(c == '"') {
+                dentroQuote = true;
+            } else if(c == ',') {
+                riga.add(valore.toString());
+                valore.setLength(0);
+            } else if(c == '\n') {
+                riga.add(valore.toString());
+                righe.add(riga);
+                riga = new ArrayList<>();
+                valore.setLength(0);
+            } else if(c != '\r') {
+                valore.append(c);
+            }
+        }
+
+        if(valore.length() > 0 || !riga.isEmpty()) {
+            riga.add(valore.toString());
+            righe.add(riga);
+        }
+
+        return righe;
+    }
+
+    private UUID getIdUtente(String principal) {
+        return UUID.fromString(CommonUtils.getInfoProfilo(principal, utenteService).utente.getIdUtente());
     }
 
     @Test
