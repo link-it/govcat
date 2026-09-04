@@ -7245,6 +7245,14 @@ components:
           items:
             type: string
           description: "Operazioni consentite quando istanza_vetrina=true nel formato 'METHOD PATH' (es. 'GET /servizi', 'POST /adesioni'). Supporta wildcards nei path: * (singolo segmento), ** (tutti i sotto-path)"
+        pdnd_version:
+          $ref: "#/components/schemas/PdndVersionEnum"
+    PdndVersionEnum:
+      type: "string"
+      description: "Versione delle API PDND utilizzate dall'integrazione. Se non indicata vale v1."
+      enum:
+        - v1
+        - v3
     AccessoAmministrazioneItem:
       type: "object"
       required:

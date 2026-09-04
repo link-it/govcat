@@ -1862,6 +1862,9 @@
 							}
 						},
 						"RUOLO": {
+							"PDND": {
+								"DISABLED": "Ruolo PDND non assegnabile: l'integrazione utilizza l'API PDND v1"
+							},
 							"NULL": "Ruolo non valorizzato per l'utente [{{nomeUtente}} {{cognomeUtente}}]",
 							"ORG": {
 								"REQUIRES": {

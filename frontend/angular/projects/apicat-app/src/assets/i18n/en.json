@@ -1862,6 +1862,9 @@
 							}
 						},
 						"RUOLO": {
+							"PDND": {
+								"DISABLED": "PDND role cannot be assigned: the integration uses the PDND v1 API"
+							},
 							"NULL": "Role not set for user [{{nomeUtente}} {{cognomeUtente}}]",
 							"ORG": {
 								"REQUIRES": {

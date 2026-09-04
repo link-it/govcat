@@ -217,6 +217,9 @@ public enum ErrorCode {
     /** Ruolo coordinatore non abilitato nella configurazione */
     UT_400_COORDINATORE_DISABLED("Ruolo coordinatore non abilitato"),
 
+    /** Ruolo PDND non assegnabile: ha effetto solo con l'API PDND v3 */
+    UT_400_RUOLO_PDND_DISABLED("Ruolo PDND non assegnabile con l'API PDND v1"),
+
     /** Richiesta cambio organizzazione: organizzazione di partenza non corrisponde a una delle associazioni dell'utente */
     UT_400_ORG_PARTENZA_NOT_ASSOCIATED("Organizzazione di partenza non associata all'utente"),
 

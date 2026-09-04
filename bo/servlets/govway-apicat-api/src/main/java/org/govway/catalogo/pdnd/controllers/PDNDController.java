@@ -20,6 +20,7 @@
 package org.govway.catalogo.pdnd.controllers;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -32,6 +33,8 @@ import jakarta.validation.constraints.Size;
 
 import org.govway.catalogo.PdndV1Controller;
 import org.govway.catalogo.authorization.CoreAuthorization;
+import org.govway.catalogo.exception.ErrorCode;
+import org.govway.catalogo.exception.NotImplementedException;
 import org.govway.catalogo.servlets.pdnd.model.Agreement;
 import org.govway.catalogo.servlets.pdnd.model.AgreementState;
 import org.govway.catalogo.servlets.pdnd.model.Agreements;
@@ -161,25 +164,37 @@ public class PDNDController implements CatalogApi, ConfigurazioneApi, org.govway
 	}
 
 	/**
-	 * Operazione di scrittura verso la PDND: consentita ai soli utenti con ruolo PDND
-	 * amministratore e supportata unicamente dall'API PDND v3.
+	 * Operazione di scrittura verso la PDND: supportata unicamente dall'API PDND v3 e
+	 * consentita ai soli utenti con ruolo PDND amministratore.
 	 */
 	@Override
 	public ResponseEntity<Agreement> approveAgreement(AmbienteEnum ambiente, UUID agreementId) {
+		checkVersionePdnd("approveAgreement");
 		this.coreAuthorization.requireRuoloPdndAdmin();
 
 		return this.getClient(ambiente).approveAgreement(agreementId);
 	}
 
 	/**
-	 * Operazione di scrittura verso la PDND: consentita ai soli utenti con ruolo PDND
-	 * amministratore e supportata unicamente dall'API PDND v3.
+	 * Operazione di scrittura verso la PDND: supportata unicamente dall'API PDND v3 e
+	 * consentita ai soli utenti con ruolo PDND amministratore.
 	 */
 	@Override
 	public ResponseEntity<Purpose> approvePurpose(AmbienteEnum ambiente, UUID purposeId) {
+		checkVersionePdnd("approvePurpose");
 		this.coreAuthorization.requireRuoloPdndAdmin();
 
 		return this.getClient(ambiente).approvePurpose(purposeId);
+	}
+
+	/**
+	 * Con l'API PDND v1 le approvazioni non sono disponibili: la segnalazione precede la verifica
+	 * del ruolo PDND, che con quella configurazione non e' nemmeno assegnabile.
+	 */
+	private void checkVersionePdnd(String operazione) {
+		if(this.clientFactory.isVersioneV1()) {
+			throw new NotImplementedException(ErrorCode.SYS_501, Map.of("operazione", operazione));
+		}
 	}
 
 	@Override

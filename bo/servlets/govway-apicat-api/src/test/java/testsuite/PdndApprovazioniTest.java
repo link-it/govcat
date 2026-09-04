@@ -33,6 +33,7 @@ import org.govway.catalogo.controllers.OrganizzazioniController;
 import org.govway.catalogo.controllers.UtentiController;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.NotAuthorizedException;
+import org.govway.catalogo.exception.NotImplementedException;
 import org.govway.catalogo.pdnd.controllers.IPDNDClient;
 import org.govway.catalogo.pdnd.controllers.PDNDClientFactory;
 import org.govway.catalogo.pdnd.controllers.PDNDController;
@@ -172,6 +173,26 @@ public class PdndApprovazioniTest {
 
         assertEquals(PurposeState.ACTIVE, response.getBody().getState());
         verify(this.client).approvePurpose(PURPOSE_ID);
+    }
+
+    @Test
+    public void approvazioniNonDisponibiliConApiPdndV1() {
+        // l'utente viene creato con la configurazione v3, dove il ruolo PDND e' assegnabile
+        autenticaUtenteConRuoloPdndAdmin("pdnd.admin.v1");
+
+        // con l'API v1 l'operazione non esiste: la segnalazione precede il controllo del ruolo
+        when(this.clientFactory.isVersioneV1()).thenReturn(true);
+
+        NotImplementedException agreement = assertThrows(NotImplementedException.class,
+                () -> this.controller.approveAgreement(AmbienteEnum.COLLAUDO, AGREEMENT_ID));
+        assertEquals("SYS.501", agreement.getMessage());
+
+        NotImplementedException purpose = assertThrows(NotImplementedException.class,
+                () -> this.controller.approvePurpose(AmbienteEnum.COLLAUDO, PURPOSE_ID));
+        assertEquals("SYS.501", purpose.getMessage());
+
+        verify(this.client, never()).approveAgreement(AGREEMENT_ID);
+        verify(this.client, never()).approvePurpose(PURPOSE_ID);
     }
 
     /**

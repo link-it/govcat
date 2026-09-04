@@ -1,3 +1,27 @@
+2026-09-04  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 250: la versione delle API PDND utilizzate dall'integrazione non e` piu` una
+	  proprieta` del backend ma una voce di configurazione: `generale.pdnd_version` nel
+	  file `configurazione.json`, con valori `v1` e `v3`, esposta dall'API di
+	  configurazione e quindi leggibile dalla console. La proprieta` `pdnd.versione`
+	  in `govcat-api.properties` e` stata rimossa: restano nelle properties i soli
+	  parametri di connessione (`pdnd.v1.*` e `pdnd.v3.*`). In mancanza
+	  dell'indicazione si utilizza la **v1**, che diventa cosi` il comportamento di
+	  default in attesa del completamento delle operazioni ancora non disponibili con
+	  la v3.
+	Il ruolo PDND dell'utente ha effetto solo con l'API v3: con la v1 configurata,
+	  l'assegnazione di `ruolo_pdnd` uguale ad `admin` in creazione o aggiornamento
+	  viene rifiutata con 400 `UT.400.RUOLO.PDND.DISABLED`, mentre il valore `nessuno`
+	  resta sempre ammesso. I ruoli gia` assegnati restano in banca dati e continuano ad
+	  essere esposti dall'API: tornando alla v3 sono di nuovo operativi, senza alcuna
+	  migrazione dei dati.
+	Le approvazioni verso la PDND (`agreements/{id}/approve` e `purposes/{id}/approve`)
+	  segnalano ora 501 `SYS.501` prima della verifica del ruolo quando la
+	  configurazione e` `v1`: l'operazione non e` prevista da quell'API e con quella
+	  configurazione il ruolo PDND non e` nemmeno assegnabile, quindi un 403 sarebbe
+	  stato fuorviante.
+
 2026-09-03  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

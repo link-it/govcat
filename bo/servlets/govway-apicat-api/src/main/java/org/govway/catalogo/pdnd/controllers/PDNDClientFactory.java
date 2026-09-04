@@ -19,10 +19,8 @@
  */
 package org.govway.catalogo.pdnd.controllers;
 
-import java.util.Map;
-
-import org.govway.catalogo.exception.ErrorCode;
-import org.govway.catalogo.exception.InternalException;
+import org.govway.catalogo.servlets.model.Configurazione;
+import org.govway.catalogo.servlets.model.PdndVersionEnum;
 import org.govway.catalogo.servlets.pdnd.client.api.GatewayApi;
 import org.govway.catalogo.servlets.pdnd.client.api.HealthApi;
 import org.govway.catalogo.servlets.pdnd.client.api.impl.ApiClient;
@@ -30,24 +28,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 
 /**
  * Fornisce il client PDND da utilizzare per ciascun ambiente, in base alla versione
- * dell'API PDND configurata tramite la proprieta' {@code pdnd.versione}.
+ * dell'API PDND indicata da {@code generale.pdnd_version} nella configurazione.
  *
- * Valori ammessi: {@code v3} (default, API PDND core v3) e {@code v1}
- * (API Interoperability API Gateway v1, deprecata).
+ * Valori ammessi: {@code v1} (API Interoperability API Gateway v1) e {@code v3}
+ * (API PDND core v3). In mancanza dell'indicazione si utilizza la v1.
  */
 public class PDNDClientFactory {
 
-	public static final String VERSIONE_V1 = "v1";
-	public static final String VERSIONE_V3 = "v3";
+	private static final PdndVersionEnum VERSIONE_DEFAULT = PdndVersionEnum.V1;
 
 	private Logger logger = LoggerFactory.getLogger(PDNDClientFactory.class);
 
-	@Value("${pdnd.versione:v3}")
-	private String versione;
+	@Autowired
+	private Configurazione configurazione;
 
 	@Autowired
 	@Qualifier("PDNDClientCollaudo")
@@ -68,48 +64,66 @@ public class PDNDClientFactory {
 	private IPDNDClient clientCollaudo;
 	private IPDNDClient clientProduzione;
 
+	/** Versione con cui sono stati costruiti i client, per riallinearli se la configurazione cambia. */
+	private PdndVersionEnum versioneClient;
+
 	public IPDNDClient getClientCollaudo() {
-		if(this.clientCollaudo == null) {
+		if(this.clientCollaudo == null || isVersioneCambiata()) {
+			resetClient();
+
 			this.clientCollaudo = isVersioneV1()
 					? new PDNDClient(new GatewayApi(this.apiClientCollaudo), new HealthApi(this.apiClientCollaudo))
 					: new PDNDClientV3(new org.govway.catalogo.servlets.pdnd.v3.client.api.GatewayApi(this.apiClientV3Collaudo));
 
-			this.logger.debug("Client PDND ambiente [collaudo] versione [{}]", getVersione());
+			this.logger.debug("Client PDND ambiente [collaudo] versione [{}]", getVersione().getValue());
 		}
 
 		return this.clientCollaudo;
 	}
 
 	public IPDNDClient getClientProduzione() {
-		if(this.clientProduzione == null) {
+		if(this.clientProduzione == null || isVersioneCambiata()) {
+			resetClient();
+
 			this.clientProduzione = isVersioneV1()
 					? new PDNDClient(new GatewayApi(this.apiClientProduzione), new HealthApi(this.apiClientProduzione))
 					: new PDNDClientV3(new org.govway.catalogo.servlets.pdnd.v3.client.api.GatewayApi(this.apiClientV3Produzione));
 
-			this.logger.debug("Client PDND ambiente [produzione] versione [{}]", getVersione());
+			this.logger.debug("Client PDND ambiente [produzione] versione [{}]", getVersione().getValue());
 		}
 
 		return this.clientProduzione;
 	}
 
-	/**
-	 * Restituisce la versione dell'API PDND configurata, validandone il valore.
-	 */
-	public String getVersione() {
-		if(VERSIONE_V1.equalsIgnoreCase(this.versione)) {
-			return VERSIONE_V1;
-		}
-
-		if(VERSIONE_V3.equalsIgnoreCase(this.versione)) {
-			return VERSIONE_V3;
-		}
-
-		throw new InternalException(ErrorCode.SYS_500_CONFIG, Map.of("dettagli",
-				"valore ["+this.versione+"] non ammesso per la proprieta' [pdnd.versione], attesi ["
-						+VERSIONE_V1+", "+VERSIONE_V3+"]"));
+	private boolean isVersioneCambiata() {
+		return !getVersione().equals(this.versioneClient);
 	}
 
-	private boolean isVersioneV1() {
-		return VERSIONE_V1.equals(getVersione());
+	private void resetClient() {
+		if(isVersioneCambiata()) {
+			this.clientCollaudo = null;
+			this.clientProduzione = null;
+			this.versioneClient = getVersione();
+		}
+	}
+
+	/**
+	 * Restituisce la versione dell'API PDND configurata in {@code generale.pdnd_version},
+	 * oppure la versione di default se non indicata.
+	 */
+	public PdndVersionEnum getVersione() {
+		if(this.configurazione == null || this.configurazione.getGenerale() == null
+				|| this.configurazione.getGenerale().getPdndVersion() == null) {
+			return VERSIONE_DEFAULT;
+		}
+
+		return this.configurazione.getGenerale().getPdndVersion();
+	}
+
+	/**
+	 * @return true se l'integrazione utilizza l'API PDND v1
+	 */
+	public boolean isVersioneV1() {
+		return PdndVersionEnum.V1.equals(getVersione());
 	}
 }

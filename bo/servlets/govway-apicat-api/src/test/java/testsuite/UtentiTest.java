@@ -57,6 +57,7 @@ import org.govway.catalogo.servlets.model.PagedModelItemUtente;
 import org.govway.catalogo.servlets.model.ProfiloRuoli;
 import org.govway.catalogo.servlets.model.ReferenteCreate;
 import org.govway.catalogo.servlets.model.RuoloReferenteEnum;
+import org.govway.catalogo.servlets.model.PdndVersionEnum;
 import org.govway.catalogo.servlets.model.RuoloPdndEnum;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.Servizio;
@@ -3290,6 +3291,34 @@ public class UtentiTest {
 
         assertEquals(RuoloPdndEnum.NESSUNO,
                 controller.createUtente(nuovo).getBody().getRuoloPdnd());
+    }
+
+    @Test
+    public void testCreateUtenteRuoloPdndAdminNonAssegnabileConApiPdndV1() {
+        Organizzazione org = organizzazioniController.createOrganizzazione(
+                CommonUtils.getOrganizzazioneCreate()).getBody();
+
+        UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
+        CommonUtils.setOrganizzazione(utenteCreate, org.getIdOrganizzazione());
+        utenteCreate.setPrincipal("utente.ruolo.pdnd.v1");
+        utenteCreate.setRuoloPdnd(RuoloPdndEnum.ADMIN);
+
+        PdndVersionEnum precedente = this.configurazione.getGenerale().getPdndVersion();
+        try {
+            // il ruolo PDND ha effetto solo con l'API v3: con la v1 non e' assegnabile
+            this.configurazione.getGenerale().setPdndVersion(PdndVersionEnum.V1);
+
+            BadRequestException ex = assertThrows(BadRequestException.class,
+                    () -> controller.createUtente(utenteCreate));
+            assertEquals("UT.400.RUOLO.PDND.DISABLED", ex.getMessage());
+
+            // il valore "nessuno" resta ammesso
+            utenteCreate.setRuoloPdnd(RuoloPdndEnum.NESSUNO);
+            assertEquals(RuoloPdndEnum.NESSUNO,
+                    controller.createUtente(utenteCreate).getBody().getRuoloPdnd());
+        } finally {
+            this.configurazione.getGenerale().setPdndVersion(precedente);
+        }
     }
 
     /**
