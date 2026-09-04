@@ -959,6 +959,34 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         return this.authenticationService.canEdit('servizio', 'api', this.data?.stato, this._grant?.ruoli);
     }
 
+    /**
+     * Abilitazione eliminazione API: stessa logica dell'originale
+     * (`_canAddMapper` di servizio-componenti / servizio-api-details):
+     * consentita se almeno una tra le classi `referente` /
+     * `referente_superiore` e` modificabile nello stato corrente.
+     */
+    canDeleteApi(): boolean {
+        const _cnm = this.authenticationService._getClassesNotModifiable('servizio', 'servizio', this.data?.stato) || [];
+        return _cnm.indexOf('referente') === -1 || _cnm.indexOf('referente_superiore') === -1;
+    }
+
+    confirmDeleteApi(api: any) {
+        this.utils._confirmDelection(api, () => this._deleteApi(api));
+    }
+
+    private _deleteApi(api: any) {
+        this.apiService.deleteElement('api', api.id_api).subscribe({
+            next: () => {
+                if (this._editApiId === api.id_api) { this.closeEditApi(); }
+                if (this._apiAllegatiOpenId === api.id_api) { this._closeApiAllegati(); }
+                this.loadServizioApi();
+            },
+            error: (error: any) => {
+                Tools.showMessage(this.utils.GetErrorMsg(error), 'danger', true);
+            }
+        });
+    }
+
     openCreateApi() {
         this._phaseSectionOpen['api'] = true;
         this._editApiId = null;

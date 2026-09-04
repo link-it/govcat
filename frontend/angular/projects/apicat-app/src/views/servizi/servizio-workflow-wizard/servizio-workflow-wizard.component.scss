@@ -272,6 +272,15 @@
   // Con il badge conteggio (graffetta allegati) la larghezza si adatta.
   .lnk-btn-icon:has(.lnk-ref-count) { width: auto; padding: 0 8px; }
 
+  // Segmento compatto modifica+vista (azioni "apri dettaglio" accorpate).
+  .api-actions-seg {
+    display: inline-flex; align-items: center;
+    border: 1px solid var(--line); border-radius: 8px;
+    background: var(--surface); overflow: hidden;
+  }
+  .api-actions-seg .lnk-btn-icon { border-radius: 0; }
+  .api-actions-seg .lnk-btn-icon + .lnk-btn-icon { border-left: 1px solid var(--line); }
+
   // ─── empty-state sezioni (nessun elemento) ────────────────────────
   .lnk-empty {
     display: flex; flex-direction: column; align-items: center; justify-content: center;

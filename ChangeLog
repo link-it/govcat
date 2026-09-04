@@ -1,3 +1,13 @@
+2026-09-04  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Wizard servizio, lista API (FASE 1): aggiunto il pulsante di eliminazione API
+	  con la stessa abilitazione dell'originale (classi referente/referente_superiore
+	  modificabili). Azioni modifica/vista accorpate in un segmento compatto per
+	  ridurre l'affollamento delle icone. Rimosso il sottotitolo ridondante della
+	  fase Produzione ("Servizio non pubblicato in produzione") nella fasi-bar via
+	  nuovo input showDisabledHint (adesioni invariato).
+
 2026-09-03  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

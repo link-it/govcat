@@ -102,6 +102,7 @@
         [workflowStati]="workflowStati"
         [disabledCodes]="getDisabledFasiCodes()"
         [skippedCodes]="getSkippedFasiCodes()"
+        [showDisabledHint]="false"
         [i18nPrefix]="'APP.SERVICES.WIZARD.PHASE'"
         (stepClick)="selectFase($event)"
       ></app-wizard-fasi-bar>
@@ -469,20 +470,26 @@
                           <div class="who text-break">{{ api.nome }} <span class="text-muted">v. {{ api.versione }}</span></div>
                           @if (apiProfilo(api)) { <div class="when">{{ apiProfilo(api) }}</div> }
                         </div>
-                        @if (canEditApi()) {
+                        <!-- Modifica + vista readonly raggruppate in un
+                             segmento compatto (azioni "apri dettaglio"). -->
+                        <div class="api-actions-seg">
+                          @if (canEditApi()) {
+                            <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon"
+                                    [class.is-active]="isRowEdit"
+                                    [attr.aria-label]="(isRowEdit ? 'APP.BUTTON.Close' : 'APP.BUTTON.Modify') | translate"
+                                    [title]="(isRowEdit ? 'APP.BUTTON.Close' : 'APP.BUTTON.Modify') | translate"
+                                    (click)="isRowEdit ? closeEditApi() : openEditApi(api)">
+                              <i class="bi" [class.bi-x-lg]="isRowEdit" [class.bi-pencil]="!isRowEdit"></i>
+                            </button>
+                          }
                           <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon"
-                                  [attr.aria-label]="(isRowEdit ? 'APP.BUTTON.Close' : 'APP.BUTTON.Modify') | translate"
-                                  [title]="(isRowEdit ? 'APP.BUTTON.Close' : 'APP.BUTTON.Modify') | translate"
-                                  (click)="isRowEdit ? closeEditApi() : openEditApi(api)">
-                            <i class="bi" [class.bi-x-lg]="isRowEdit" [class.bi-pencil]="!isRowEdit"></i>
+                                  [class.is-active]="isRowView"
+                                  [attr.aria-label]="(isRowView ? 'APP.BUTTON.Close' : 'APP.BUTTON.Show') | translate"
+                                  [title]="(isRowView ? 'APP.BUTTON.Close' : 'APP.BUTTON.Show') | translate"
+                                  (click)="isRowView ? closeEditApi() : openApiView(api)">
+                            <i class="bi" [class.bi-x-lg]="isRowView" [class.bi-eye]="!isRowView"></i>
                           </button>
-                        }
-                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon"
-                                [attr.aria-label]="(isRowView ? 'APP.BUTTON.Close' : 'APP.BUTTON.Show') | translate"
-                                [title]="(isRowView ? 'APP.BUTTON.Close' : 'APP.BUTTON.Show') | translate"
-                                (click)="isRowView ? closeEditApi() : openApiView(api)">
-                          <i class="bi" [class.bi-x-lg]="isRowView" [class.bi-eye]="!isRowView"></i>
-                        </button>
+                        </div>
                         <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon"
                                 [class.is-active]="_apiAllegatiOpenId === api.id_api"
                                 [attr.aria-label]="'APP.SERVICES.TITLE.Attachments' | translate"
@@ -494,6 +501,14 @@
                             <span class="lnk-ref-count ms-1">{{ _apiAllegatiCount[api.id_api] }}</span>
                           }
                         </button>
+                        @if (canDeleteApi()) {
+                          <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon"
+                                  [attr.aria-label]="'APP.BUTTON.Remove' | translate"
+                                  [title]="'APP.BUTTON.Remove' | translate"
+                                  (click)="confirmDeleteApi(api)">
+                            <i class="bi bi-trash text-danger"></i>
+                          </button>
+                        }
                       </div>
                       @if (isRowOpen) {
                         <div class="api-inline-edit-panel">

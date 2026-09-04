@@ -127,6 +127,11 @@ export class WizardFasiBarComponent implements OnChanges {
      *  creazione passa `0` per numerare da "FASE 0 Creazione". */
     @Input() numberOffset: number = 1;
 
+    /** Mostra il sotto-testo di aiuto sotto il titolo delle fasi disabilitate
+     *  (es. "Servizio non pubblicato in produzione"). Default `true`
+     *  (adesioni). Il wizard servizio lo disattiva perche` ridondante. */
+    @Input() showDisabledHint: boolean = true;
+
     @Output() stepClick = new EventEmitter<string>();
 
     items: FasiBarItem[] = [];
