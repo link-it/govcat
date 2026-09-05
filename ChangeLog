@@ -1,3 +1,12 @@
+2026-09-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 347: corrette anomalie in edit "informazioni generali" del wizard adesioni.
+	  Per un'adesione esistente non si ricalcola piu` l'organizzazione dall'org di
+	  sessione (l'operatore API vedeva la propria org al posto di quella dell'adesione);
+	  aggiunto il fallback in sola lettura del soggetto quando non editabile via
+	  dropdown (prima spariva in edit pur essendo visibile in vista).
+
 2026-09-04  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
