@@ -420,7 +420,7 @@
                  nel form anche se disabilitato, per il reinvio in PUT.
                  In gestione organizzazione (_fromOrgManage) NON mostrato in
                  creazione; in modifica resta in sola lettura. -->
-            @if (!(_fromOrgManage && _isNew)) {
+            @if (_pdndV3 && !(_fromOrgManage && _isNew)) {
             <div class="row ruolo_pdnd">
               <div class="col-6">
                 <div class="form-group">

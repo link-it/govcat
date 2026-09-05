@@ -432,9 +432,10 @@ export class ServizioApiSubscribersComponent implements OnInit, AfterContentChec
   // Issue 250 (Fase 2): approvazione accordo del fruitore (solo PDND admin).
   // -------------------------------------------------------------------------
 
-  /** L'approvazione non e` disponibile se l'installazione usa PDND v1. */
+  /** L'approvazione e` disponibile solo con integrazione PDND v3
+   *  (`generale.pdnd_version === 'v3'`; assente = v1). */
   get _pdndApprovalAvailable(): boolean {
-    return Tools.Configurazione?.pdnd?.versione !== 'v1';
+    return this.authenticationService.isPdndV3();
   }
 
   /** Mostra l'azione "Approva" solo per un PDND admin, con approvazione

@@ -200,6 +200,12 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
     return this.authenticationService.isGestore();
   }
 
+  /** Issue 250 (evolutiva): il campo ruolo PDND ha senso solo con
+   *  integrazione PDND v3. Con v1 (o config assente) va nascosto. */
+  get _pdndV3(): boolean {
+    return this.authenticationService.isPdndV3();
+  }
+
   /** Righe della tabella "Organizzazioni" dell'utente.
    *  Combina:
    *   - `utente.organizzazioni`: associazioni approvate (con ruolo);
@@ -575,7 +581,9 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
       ruolo: (body.ruolo == Ruolo.NESSUN_RUOLO) ? null : body.ruolo,
       // Issue 250: `nessuno` e` un valore reale (mai null). Va sempre inviato
       // (PUT full-replace): se assente il BE lo riporterebbe a `nessuno`.
-      ruolo_pdnd: body.ruolo_pdnd || RuoloPdnd.NESSUNO,
+      // Con PDND v1 il campo e` nascosto e `admin` sarebbe rifiutato (400
+      // UT.400.RUOLO.PDND.DISABLED): si forza sempre `nessuno`.
+      ruolo_pdnd: this._pdndV3 ? (body.ruolo_pdnd || RuoloPdnd.NESSUNO) : RuoloPdnd.NESSUNO,
     };
 
     // Multi-org: trasforma `id_organizzazione` + `ruolo_organizzazione`

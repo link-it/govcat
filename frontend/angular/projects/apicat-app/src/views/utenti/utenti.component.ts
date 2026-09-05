@@ -164,10 +164,23 @@ export class UtentiComponent implements OnInit, AfterViewInit, AfterContentCheck
     this.desktop = (window.innerWidth >= 992);
   }
 
+  /** Issue 250 (evolutiva): il ruolo PDND (filtro/colonna) ha effetto solo
+   *  con integrazione PDND v3 (`generale.pdnd_version`; assente = v1). Con v1
+   *  il dato resta esposto ma inefficace: lo nascondiamo per non confondere.
+   *  Fonte canonica: `AuthenticationService.isPdndV3()`. */
+  get _pdndV3(): boolean {
+    return Tools.Configurazione?.generale?.pdnd_version === 'v3';
+  }
+
   ngOnInit() {
     this._statoArr = Object.values(Stato);
     this._ruoloArr = Object.values(Ruolo);
     this._ruoloPdndArr = Object.values(RuoloPdnd);
+
+    // Con PDND v1 rimuovi il filtro "ruolo PDND" dalla search bar.
+    if (!this._pdndV3) {
+      this.searchFields = this.searchFields.filter((f: any) => f.field !== 'ruolo_pdnd');
+    }
 
     this.configService.getConfig(this.model).subscribe(
       (config: any) => {

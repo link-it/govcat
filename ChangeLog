@@ -1,6 +1,13 @@
 2026-09-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 250 (evolutiva): funzionalita` PDND admin condizionate alla nuova
+	  configurazione `generale.pdnd_version` (v1|v3, assente=v1) via helper
+	  `AuthenticationService.isPdndV3()`. Con v1: campo ruolo PDND nascosto nel form
+	  utente (submit forza `nessuno`), pulsante approvazione fruitori nascosto,
+	  filtro ruolo PDND rimosso dalla lista utenti.
+
+	* [Frontend]
 	Issue 347: corrette anomalie in edit "informazioni generali" del wizard adesioni.
 	  Per un'adesione esistente non si ricalcola piu` l'organizzazione dall'org di
 	  sessione (l'operatore API vedeva la propria org al posto di quella dell'adesione);
