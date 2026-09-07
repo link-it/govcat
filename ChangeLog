@@ -1,3 +1,11 @@
+2026-09-07  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Fix vulnerabilita` OSV del frontend (dipendenze dev transitive, tutte con
+	  versione fixata disponibile): alzate negli `overrides` browserslist 4.28.7,
+	  fast-uri 3.1.6, postcss-selector-parser 7.1.3, qs 6.16.0 (9 advisory su 4
+	  pacchetti). Aggiornato di conseguenza il package-lock.
+
 2026-09-07  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
