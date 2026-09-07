@@ -1,3 +1,14 @@
+2026-09-07  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Risolte alcune segnalazioni dell'analisi statica del codice, senza alcuna modifica
+	  funzionale. Semplificata l'espressione regolare con cui il motore di generazione
+	  dei PDF suddivide le condizioni composte, che aveva un costo super-lineare per
+	  backtracking sugli spazi (`PdfBoxReportEngine`). Sostituita la sottrazione con
+	  `Long.compare` nei comparatori che ordinano le modalità di autenticazione di una
+	  API (`ApiDettaglioAssembler`, `ApiItemAssembler`): il troncamento a `int` della
+	  differenza fra due identificativi molto distanti poteva invertire l'ordinamento.
+
 2026-09-06  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

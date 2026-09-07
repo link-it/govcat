@@ -1872,8 +1872,8 @@ public class PdfBoxReportEngine {
                 return true;
             }
 
-            // Split by && and evaluate each part
-            String[] parts = condition.split("\\s*&&\\s*");
+            // Split by && and evaluate each part (gli spazi sono rimossi dal trim() successivo)
+            String[] parts = condition.split("&&");
 
             for (String part : parts) {
                 part = part.trim();
