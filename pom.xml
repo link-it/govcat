@@ -215,16 +215,30 @@
 		<commons.logging.version>1.3.4</commons.logging.version>
 
 		<!-- Versioni spring (Spring Boot 4.0 / Spring Framework 7.0 - Jakarta EE 11) -->
-		<spring.boot.version>4.0.7</spring.boot.version>
-		<spring.framework.version>7.0.8</spring.framework.version>
-		<spring.security.version>7.0.6</spring.security.version>
+		<!-- Il BOM 4.0.8 gestisce anche spring-integration-core 7.0.6, che arriva come
+		     transitiva di spring-batch-integration nel batch di configurazione:
+		     fix CVE-2026-47864 (deserializzazione Java non filtrata in
+		     SerializingHttpMessageConverter), CVE-2026-59307, CVE-2026-59324,
+		     CVE-2026-59311, CVE-2026-59293, CVE-2026-47859, CVE-2026-59274,
+		     CVE-2026-47856, CVE-2026-47861, CVE-2026-59322, CVE-2026-47862,
+		     CVE-2026-59321, CVE-2026-59292 -->
+		<spring.boot.version>4.0.8</spring.boot.version>
+		<!-- Fix (7.0.9) CVE-2026-59313, CVE-2026-59314, CVE-2026-47890, CVE-2026-47891,
+		     CVE-2026-47892, CVE-2026-47893, CVE-2026-59280, CVE-2026-59281,
+		     CVE-2026-59282, CVE-2026-59283 -->
+		<spring.framework.version>7.0.9</spring.framework.version>
+		<!-- Fix (7.0.7) CVE-2026-59270, CVE-2026-47841, CVE-2026-47842, CVE-2026-47877,
+		     CVE-2026-59276 -->
+		<spring.security.version>7.0.7</spring.security.version>
 
 		<!-- Spring Data JPA (train 2025.1) -->
-		<spring-data.version>4.0.6</spring-data.version>
+		<!-- Fix (4.0.7) CVE-2026-47834: bypass della validazione dei parametri Sort -->
+		<spring-data.version>4.0.7</spring-data.version>
 
-		<spring.batch.version>6.0.4</spring.batch.version>
+		<!-- Allineato al BOM Spring Boot 4.0.8 -->
+		<spring.batch.version>6.0.5</spring.batch.version>
 		<!-- Spring Data Rest (train 2025.1) -->
-		<spring-data-rest.version>5.0.6</spring-data-rest.version>
+		<spring-data-rest.version>5.0.7</spring-data-rest.version>
 
 		<!-- Spring-doc (compatibile Spring Boot 4 / Spring Framework 7) -->
 		<springdoc.version>3.0.3</springdoc.version>
