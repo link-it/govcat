@@ -75,7 +75,7 @@ public class ApiItemAssembler extends RepresentationModelAssemblerSupport<ApiEnt
 		}
 		
 		Comparator<? super AuthTypeEntity> c = (o1, o2) -> {
-			return (int) (o1.getId() - o2.getId());
+			return Long.compare(o1.getId(), o2.getId());
 		};
 		
 		List<AuthTypeEntity> lst = entity.getAuthType().stream().sorted(c).collect(Collectors.toList());

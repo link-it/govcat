@@ -126,7 +126,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		}
 		
 		Comparator<? super AuthTypeEntity> c = (o1, o2) -> {
-			return (int) (o1.getId() - o2.getId());
+			return Long.compare(o1.getId(), o2.getId());
 		};
 		
 		List<AuthTypeEntity> lst = entity.getAuthType().stream().sorted(c).collect(Collectors.toList());
@@ -563,7 +563,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		if(entity.getRuolo().equals(RUOLO.EROGATO_SOGGETTO_DOMINIO)) {
 
 			Comparator<? super AuthTypeEntity> c = (o1, o2) -> {
-				return (int) (o1.getId() - o2.getId());
+				return Long.compare(o1.getId(), o2.getId());
 			};
 			List<AuthTypeEntity> lst = entity.getAuthType().stream().sorted(c).collect(Collectors.toList());
 			

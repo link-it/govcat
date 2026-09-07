@@ -449,7 +449,9 @@
 			     CVE-2026-29145, CVE-2026-34483, CVE-2026-34487, CVE-2026-34500 -->
 			<!-- Fix (10.1.55) CVE-2026-43512, CVE-2026-41293, CVE-2026-43515, CVE-2026-43513,
 			     CVE-2026-42498, CVE-2026-41284, CVE-2026-43514 -->
-			<version>10.1.55</version>
+			<!-- Fix (10.1.58, distribuita su Maven Central come 10.1.59) CVE-2026-65905,
+			     CVE-2026-65182, CVE-2026-68525 -->
+			<version>10.1.59</version>
 			<scope>test</scope>
 		</dependency>
 
