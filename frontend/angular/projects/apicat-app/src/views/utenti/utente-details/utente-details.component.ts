@@ -31,7 +31,7 @@ import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { CustomValidators } from '@linkit/validators';
 
-import { Utente, Ruolo, RuoloOrganizzazione, Stato } from './utente';
+import { Utente, Ruolo, RuoloOrganizzazione, RuoloPdnd, Stato } from './utente';
 import { AuthenticationService } from '@app/services/authentication.service';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
@@ -112,6 +112,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
   _classi_utente: any[] = [];
   _statoArr: any[] = [];
   _ruoloArr: any[] = [];
+  _ruoloPdndArr: any[] = Object.values(RuoloPdnd);
 
   classiUtente$!: Observable<any[]>;
   classiUtenteInput$ = new Subject<string>();
@@ -190,6 +191,19 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
    *  Usato per gating UI di hint/help text riservati al gestore. */
   get _isGestore(): boolean {
     return this.authenticationService.isGestore();
+  }
+
+  /** Issue 250: il ruolo PDND e` assegnabile solo dal gestore (richiede
+   *  la configurazione di un client Interop Admin sulla PDND). Per gli
+   *  altri il campo resta in sola lettura. */
+  get _canEditRuoloPdnd(): boolean {
+    return this.authenticationService.isGestore();
+  }
+
+  /** Issue 250 (evolutiva): il campo ruolo PDND ha senso solo con
+   *  integrazione PDND v3. Con v1 (o config assente) va nascosto. */
+  get _pdndV3(): boolean {
+    return this.authenticationService.isPdndV3();
   }
 
   /** Righe della tabella "Organizzazioni" dell'utente.
@@ -483,6 +497,14 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
       } else {
         this._statoArr = Object.values(Stato).filter(s => s !== Stato.NON_CONFIGURATO && s !== Stato.PENDING_UPDATE);
       }
+
+      // Issue 250: ruolo_pdnd modificabile solo dal gestore. Per gli altri
+      // il control resta nel form ma disabilitato (sola lettura): cosi` il
+      // valore corrente viene comunque reinviato dal PUT full-replace
+      // (getRawValue include i control disabilitati) e non viene azzerato.
+      if (!this._canEditRuoloPdnd) {
+        this._formGroup.get('ruolo_pdnd')?.disable();
+      }
     }
   }
 
@@ -557,6 +579,11 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
     const _newBody: any = {
       ...body,
       ruolo: (body.ruolo == Ruolo.NESSUN_RUOLO) ? null : body.ruolo,
+      // Issue 250: `nessuno` e` un valore reale (mai null). Va sempre inviato
+      // (PUT full-replace): se assente il BE lo riporterebbe a `nessuno`.
+      // Con PDND v1 il campo e` nascosto e `admin` sarebbe rifiutato (400
+      // UT.400.RUOLO.PDND.DISABLED): si forza sempre `nessuno`.
+      ruolo_pdnd: this._pdndV3 ? (body.ruolo_pdnd || RuoloPdnd.NESSUNO) : RuoloPdnd.NESSUNO,
     };
 
     // Multi-org: trasforma `id_organizzazione` + `ruolo_organizzazione`

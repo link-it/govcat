@@ -31,10 +31,13 @@ import org.govway.catalogo.gest.clients.govwaymonitor.impl.ApiException;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.DiagnosticoSeveritaEnum;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.Evento;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.ListaEventi;
+import org.govway.catalogo.monitoraggioutils.AbstractGovwayMonitorClient;
 import org.govway.catalogo.monitoraggioutils.ConfigurazioneConnessione;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+
+import httpauth.OutboundAuthentication;
 
 public class GovwayCache {
 
@@ -84,12 +87,15 @@ public class GovwayCache {
 	}
 	
 	protected PatchedApiClient getClient(ConfigurazioneConnessione configurazioneConnessione) {
+		OutboundAuthentication autenticazione = configurazioneConnessione.getAutenticazione();
+
 		PatchedApiClient client = new PatchedApiClient(
-				Optional.ofNullable(configurazioneConnessione.getUsername()),
-				Optional.ofNullable(configurazioneConnessione.getPassword())
+				autenticazione.isOauthClientCredentials() ? Optional.empty() : Optional.ofNullable(configurazioneConnessione.getUsername()),
+				autenticazione.isOauthClientCredentials() ? Optional.empty() : Optional.ofNullable(configurazioneConnessione.getPassword())
 				);		
 		client.setDebugging(false);
 		client.setBasePath(configurazioneConnessione.getUrl());
+		AbstractGovwayMonitorClient.aggiungiAutenticazione(client, autenticazione);
 		return client;
 	}
 

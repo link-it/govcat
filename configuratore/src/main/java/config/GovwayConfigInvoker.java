@@ -47,6 +47,7 @@ import freemarker.template.MalformedTemplateNameException;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateNotFoundException;
+import httpauth.OutboundAuthentication;
 import okhttp3.Credentials;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
@@ -72,6 +73,7 @@ public class GovwayConfigInvoker {
 
 	private final HttpUrl baseUrl;
 	private String credentials;	
+	private OutboundAuthentication authentication = OutboundAuthentication.none();
 	private final OkHttpClient client;
 	private Gson gson;
 	
@@ -88,6 +90,35 @@ public class GovwayConfigInvoker {
 	public GovwayConfigInvoker credentials(String username, String password) {
 		this.credentials = Credentials.basic(username, password);
 		return this;
+	}
+	
+	/**
+	 * Autenticazione verso l'API di configurazione di govway, alternativa alle credenziali basic.
+	 *
+	 * @param authentication autenticazione da usare, nulla per mantenere le credenziali basic
+	 * @return questo invoker
+	 */
+	public GovwayConfigInvoker authentication(OutboundAuthentication authentication) {
+		this.authentication = authentication == null ? OutboundAuthentication.none() : authentication;
+		return this;
+	}
+	
+	/**
+	 * Valore dell'header Authorization di ogni richiesta.
+	 *
+	 * Con il client credentials il token arriva dalla cache del token store e viene negoziato solo
+	 * alla scadenza, non a ogni chiamata.
+	 *
+	 * @return header Authorization, le credenziali basic se non e' configurata altra autenticazione
+	 * @throws IOException se la negoziazione del token non riesce
+	 */
+	private String getAuthorization() throws IOException {
+		if(this.authentication.isOauthClientCredentials()) {
+			return this.authentication.getAuthorizationHeader()
+					.orElseThrow(() -> new IOException("autenticazione verso govway non disponibile"));
+		}
+		
+		return this.credentials;
 	}
 	
 	public GovwayConfigInvoker(HttpUrl url, Configuration cfg) {
@@ -126,7 +157,7 @@ public class GovwayConfigInvoker {
 		RequestBody body = templateToRequestBody(JSON, this.template.getTemplate(PATH_TEMPLATE_CREATE_SOGGETTO), soggetto);
 		Request req = new Request.Builder()
 				.url(url)
-				.addHeader(HEADER_AUTHORIZATION, credentials)
+				.addHeader(HEADER_AUTHORIZATION, getAuthorization())
 				.post(body)
 				.build();
 		
@@ -176,7 +207,7 @@ public class GovwayConfigInvoker {
 		
 		Request req = new Request.Builder()
 				.url(url)
-				.addHeader(HEADER_AUTHORIZATION, credentials)
+				.addHeader(HEADER_AUTHORIZATION, getAuthorization())
 				.get()
 				.build();
 		
@@ -209,7 +240,7 @@ public class GovwayConfigInvoker {
 		
 		Request req = new Request.Builder()
 				.url(url)
-				.addHeader(HEADER_AUTHORIZATION, credentials)
+				.addHeader(HEADER_AUTHORIZATION, getAuthorization())
 				.get()
 				.build();
 		
@@ -237,7 +268,7 @@ public class GovwayConfigInvoker {
 		
 		Request req = new Request.Builder()
 				.url(url)
-				.addHeader(HEADER_AUTHORIZATION, credentials)
+				.addHeader(HEADER_AUTHORIZATION, getAuthorization())
 				.get()
 				.build();
 		
@@ -265,7 +296,7 @@ public class GovwayConfigInvoker {
 		
 		Request request = new Request.Builder()
 		        .url(url)
-		        .addHeader(GovwayConfigInvoker.HEADER_AUTHORIZATION, this.credentials)
+		        .addHeader(GovwayConfigInvoker.HEADER_AUTHORIZATION, getAuthorization())
 		        .post(templateToRequestBody(JSON, this.template.getTemplate(PATH_TEMPLATE_APPLICATIVO), sa))
 		        .build();
 		
@@ -295,7 +326,7 @@ public class GovwayConfigInvoker {
 		
 		Request request = new Request.Builder()
 		        .url(url)
-		        .addHeader(HEADER_AUTHORIZATION, this.credentials)
+		        .addHeader(HEADER_AUTHORIZATION, getAuthorization())
 		        .post(templateToRequestBody)
 		        .build();
 				
@@ -331,7 +362,7 @@ public class GovwayConfigInvoker {
 
 		Request request = new Request.Builder()
 		        .url(url)
-		        .addHeader(HEADER_AUTHORIZATION, this.credentials)
+		        .addHeader(HEADER_AUTHORIZATION, getAuthorization())
 		        .post(templateToRequestBody(JSON, this.template.getTemplate(PATH_TEMPLATE_EROGAZIONE_APPLICATIVI), root))
 		        .build();
 					
@@ -374,7 +405,7 @@ public class GovwayConfigInvoker {
 		do {
 			req = new Request.Builder()
 					.url(listaRisorse.getNext())
-					.addHeader(HEADER_AUTHORIZATION, credentials)
+					.addHeader(HEADER_AUTHORIZATION, getAuthorization())
 					.get()
 					.build();
 			
@@ -437,7 +468,7 @@ public class GovwayConfigInvoker {
 		do {
 			req = new Request.Builder()
 					.url(listaGruppi.getNext())
-					.addHeader(HEADER_AUTHORIZATION, credentials)
+					.addHeader(HEADER_AUTHORIZATION, getAuthorization())
 					.get()
 					.build();
 			
@@ -474,7 +505,7 @@ public class GovwayConfigInvoker {
 		
 		Request req = new Request.Builder()
 				.url(url)
-				.addHeader(HEADER_AUTHORIZATION, this.credentials)
+				.addHeader(HEADER_AUTHORIZATION, getAuthorization())
 				.get()
 				.build();
 		
@@ -507,7 +538,7 @@ public class GovwayConfigInvoker {
 		
 		Request req = new Request.Builder()
 				.url(url)
-				.addHeader(HEADER_AUTHORIZATION, this.credentials)
+				.addHeader(HEADER_AUTHORIZATION, getAuthorization())
 				.get()
 				.build();
 		
@@ -534,7 +565,7 @@ public class GovwayConfigInvoker {
 		
 		Request req = new Request.Builder()
 				.url(url)
-				.addHeader(HEADER_AUTHORIZATION, this.credentials)
+				.addHeader(HEADER_AUTHORIZATION, getAuthorization())
 				.put(templateToRequestBody(JSON, this.template.getTemplate(PATH_TEMPLATE_CREDENZIALI), credenziali))
 				.build();
 		
@@ -555,7 +586,7 @@ public class GovwayConfigInvoker {
 		
 		Request request = new Request.Builder()
 		        .url(url)
-		        .addHeader(HEADER_AUTHORIZATION, this.credentials)
+		        .addHeader(HEADER_AUTHORIZATION, getAuthorization())
 		        .post(templateToRequestBody(JSON, this.template.getTemplate(PATH_TEMPLATE_SOGGETTO_AUTORIZZATO), root))
 		        .build();
 				

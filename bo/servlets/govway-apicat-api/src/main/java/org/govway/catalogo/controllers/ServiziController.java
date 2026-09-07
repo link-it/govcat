@@ -347,7 +347,13 @@ public class ServiziController implements ServiziApi {
 				this.logger.info("Invocazione in corso ...");     
 
 				ServizioEntity entity = this.findOne(idServizio);
-				
+
+				// Lock esclusivo sul servizio prima di navigare i referenti: serializza le richieste
+				// concorrenti sullo stesso servizio, altrimenti due invocazioni sovrapposte (es. doppio
+				// click sul salvataggio) leggono entrambe i referenti senza vedere l'insert dell'altra
+				// e superano entrambe il controllo di duplicazione.
+				this.service.lock(entity);
+
 				ReferenteServizioEntity referenteEntity = referenteAssembler.toEntity(referente, entity);
 				
 				checkReferente(referenteEntity);

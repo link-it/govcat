@@ -37,6 +37,7 @@ import org.govway.catalogo.controllers.CustomPageRequest;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.monitor.controllers.StatisticheController.TipoVerifica;
+import org.govway.catalogo.monitoraggioutils.AutenticazioniMonitoraggio;
 import org.govway.catalogo.monitoraggioutils.ConfigurazioneConnessione;
 import org.govway.catalogo.monitoraggioutils.GetDetailRequest;
 import org.govway.catalogo.monitoraggioutils.GetDetailResponse;
@@ -95,6 +96,9 @@ public class VerificaController implements VerificaApi {
 
 	@Autowired
 	private AllarmiClient allarmiClient;   
+
+	@Autowired
+	private AutenticazioniMonitoraggio autenticazioniMonitoraggio;   
 
 	@Autowired
 	private RequestUtils requestUtils;   
@@ -225,6 +229,7 @@ public class VerificaController implements VerificaApi {
 		
 		ConfigurazioneConnessione conf = new ConfigurazioneConnessione();
 		conf.setAmbiente(ambiente);
+		conf.setAutenticazione(this.autenticazioniMonitoraggio.allarmi(ambiente));
 		
 		if(ambiente.equals(AmbienteEnum.COLLAUDO)) {
 			conf.setUrl(this.uriAllarmiCollaudo);
@@ -278,6 +283,7 @@ public class VerificaController implements VerificaApi {
 		conf.setUrl(ambiente.equals(AmbienteEnum.COLLAUDO) ? this.uriMonitorCollaudo:this.uriMonitorProduzione);
 		conf.setUsername(ambiente.equals(AmbienteEnum.COLLAUDO) ? this.userMonitorCollaudo:this.userMonitorProduzione);
 		conf.setPassword(ambiente.equals(AmbienteEnum.COLLAUDO) ? this.passwordMonitorCollaudo:this.passwordMonitorProduzione);
+		conf.setAutenticazione(this.autenticazioniMonitoraggio.monitor(ambiente));
 
 		return conf;
 	}

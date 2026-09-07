@@ -157,6 +157,15 @@ public class ServizioService extends AbstractService {
 		return organizationFilter;
 	}
 
+	/**
+	 * Acquisisce un lock esclusivo sulla riga del servizio per la durata della transazione corrente,
+	 * per serializzare le richieste concorrenti che ne modificano le collection (es. i referenti).
+	 * Vedi {@link AbstractService#lockRow(String, Long)}.
+	 */
+	public void lock(ServizioEntity entity) {
+		lockRow("servizi", entity.getId());
+	}
+
 	public Page<ReferenteServizioEntity> findAllReferentiServizio(ReferenteServizioSpecification spec,
 			Pageable pageable) {
 		return this.referenteServizioRepo.findAll(spec, pageable);

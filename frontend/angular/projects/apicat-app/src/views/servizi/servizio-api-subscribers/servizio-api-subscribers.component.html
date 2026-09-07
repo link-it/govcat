@@ -116,7 +116,11 @@
           [data]="subscriber.source"
           [config]="apisubscribersConfig"
           [enableCollapse]="subscriber.enableCollapse"
-          [hasLink]="true">
+          [hasLink]="true"
+          [hasAction]="_canApprove(subscriber.source)"
+          [iconAction]="'check-lg'"
+          [actionTooltip]="'APP.SUBSCRIBERS.Approve' | translate"
+          (actionClick)="_onApprove($event)">
           @if (subscriber.enableCollapse) {
             <div collapse-content class="p-4 my-1 bg-lightest">
               <div class="d-flex flex-row">

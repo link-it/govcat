@@ -29,12 +29,18 @@ public abstract class AdesioneCsvFormat {
 	abstract String getErogatore();
 	@JsonProperty("Servizio")
 	abstract String getServizio();
+	@JsonProperty("Versione Servizio")
+	abstract String getVersioneServizio();
+	@JsonProperty("UUID Servizio")
+	abstract String getUuidServizio();
 	@JsonProperty("Modalità Autenticazione")
 	abstract String getAutenticazioneStato();
 	@JsonProperty("Soggetto Aderente")
 	abstract String getAderente();
 	@JsonProperty("Identificativo Adesione")
-	abstract String getIdAdesione();
+	abstract String getIdLogicoAdesione();
+	@JsonProperty("UUID Adesione")
+	abstract String getUuidAdesione();
 	@JsonProperty("Stato Adesione")
 	abstract String getStatoAdesione();
 	@JsonProperty("Referente Regionale Adesione")

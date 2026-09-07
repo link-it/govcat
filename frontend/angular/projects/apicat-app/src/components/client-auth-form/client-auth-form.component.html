@@ -76,7 +76,39 @@
           </div>
 
           @if (isClientGiaCensitoSelected) {
-            @if (managedClients.length > 0) {
+            @if (input.searchClients) {
+              <!-- Issue 337: ricerca server-side (q) + scroll infinito paginato. -->
+              @if ((input.clientsRiusoCount ?? 0) > 0) {
+                <div class="mt-2">
+                  <lnk-form-live-search
+                    [label]="'APP.ADESIONI.LABEL.Client' | translate"
+                    [formGroup]="input.formGroup"
+                    formControlName="credenzialiRiuso"
+                    bindLabel="label"
+                    bindValue="value"
+                    [searchable]="true"
+                    [clearable]="true"
+                    [isEdit]="true"
+                    [inline]="false"
+                    [plainText]="false"
+                    [showHelp]="false"
+                    [reduced]="true"
+                    [appendTo]="''"
+                    [initValue]="input.initValueClient"
+                    [searchService]="input.searchClients"
+                    [disabledSearch]="f['credenziali'].disabled"
+                    [placeholder]="'APP.ADESIONI.LABEL.SelezionaClient' | translate"
+                    [typeToSearchText]="''"
+                    (changeEvent)="changeRiusoClient.emit($event)">
+                  </lnk-form-live-search>
+                </div>
+              } @else {
+                <div class="alert alert-warning small mt-2 mb-0" role="alert">
+                  <i class="bi bi-exclamation-triangle me-2"></i>
+                  {{ 'APP.ADESIONI.LABEL.NoClientDisponibili' | translate }}
+                </div>
+              }
+            } @else if (managedClients.length > 0) {
               <div class="mt-2">
                 <select #credenzialiSel class="form-select" id="credenziali"
                   formControlName="credenziali"

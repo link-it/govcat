@@ -19,6 +19,11 @@
  */
 package configuratore;
 
+import java.io.IOException;
+import java.util.Map;
+
+import org.govway.catalogo.core.dto.DTOAdesione.AmbienteEnum;
+
 import config.GovwayConfigInvoker;
 import keycloak.KeycloakInvoker;
 
@@ -28,16 +33,28 @@ import keycloak.KeycloakInvoker;
  * @version $Rev$, $Date$
  */
 public class Invokers {
-	private KeycloakInvoker keycloak;
+	private Map<AmbienteEnum, KeycloakInvoker> keycloak;
 	private GovwayConfigInvoker config;
 	
-	public Invokers(KeycloakInvoker keycloak, GovwayConfigInvoker config) {
-		this.keycloak = keycloak;
+	public Invokers(Map<AmbienteEnum, KeycloakInvoker> keycloak, GovwayConfigInvoker config) {
+		this.keycloak = keycloak == null ? Map.of() : Map.copyOf(keycloak);
 		this.config = config;
 	}
 	
-	public KeycloakInvoker getKeycloak() {
-		return keycloak;
+	/**
+	 * Keycloak dell'ambiente dell'adesione in configurazione: collaudo e produzione sono
+	 * istanze distinte, configurate separatamente nelle properties del configuratore.
+	 */
+	public KeycloakInvoker getKeycloak(AmbienteEnum ambiente) throws IOException {
+		if (ambiente == null)
+			throw new IOException("ambiente dell'adesione non valorizzato, impossibile individuare keycloak");
+		
+		KeycloakInvoker invoker = this.keycloak.get(ambiente);
+		
+		if (invoker == null)
+			throw new IOException("keycloak non configurato per l'ambiente " + ambiente);
+		
+		return invoker;
 	}
 	
 	public GovwayConfigInvoker getConfigInvoker() {

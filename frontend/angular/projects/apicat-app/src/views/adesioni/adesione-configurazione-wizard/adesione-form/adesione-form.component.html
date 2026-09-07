@@ -115,6 +115,11 @@
           ></lnk-form-live-search>
         </div>
         <div class="col-12 mb-3">
+          <!-- Il soggetto e` editabile (dropdown) solo se in edit, adesione in
+               bozza e selezione soggetto disponibile. Negli altri casi va
+               comunque mostrato in sola lettura: senza questo fallback il
+               soggetto spariva in edit pur essendo visibile in vista (#347). -->
+          @let soggettoEditable = isEdit && isBozza && !hideSoggettoDropdown;
           @if (isEdit && isBozza) {
             <div class="" [hidden]="hideSoggettoDropdown">
               <lnk-form-live-search
@@ -141,7 +146,7 @@
               ></lnk-form-live-search>
             </div>
           }
-          @if (!isEdit && !hideSoggettoInfo) {
+          @if (!soggettoEditable && !hideSoggettoInfo) {
             <div class="">
               <lnk-field-plaintext
                 [label]="'APP.LABEL.id_soggetto'"

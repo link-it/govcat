@@ -242,9 +242,9 @@ public class ClientController implements ClientApi {
 
 				String secret;
 				try {
-					secret = this.keycloakClientSecretService.getSecret(clientId);
+					secret = this.keycloakClientSecretService.getSecret(clientId, entity.getAmbiente());
 				} catch (java.io.IOException e) {
-					this.logger.error("Errore nella lettura del client secret da Keycloak per clientId {}", clientId, e);
+					this.logger.error("Errore nella lettura del client secret da Keycloak per clientId {} (ambiente {})", clientId, entity.getAmbiente(), e);
 					throw new InternalException(ErrorCode.SYS_500);
 				}
 

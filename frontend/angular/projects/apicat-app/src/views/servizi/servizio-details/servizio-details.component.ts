@@ -767,6 +767,10 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                     this._loadService(false);
                 }
                 HttpImgSrcPipe.invalidateCache(`/servizi/${this.id}/immagine`);
+                // Issue 339: le anagrafiche (tra cui i tag) sono caricate all'apertura
+                // della maschera; senza ricaricarle, un tag appena creato non comparirebbe
+                // fra i suggerimenti in un edit immediato dopo il salvataggio.
+                this.loadAnagrafiche();
                 this.save.emit({ id: this.id, data: response, update: true });
                 this._spin = false;
             },
@@ -849,7 +853,10 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     }
 
     getDomini(term: string | null = null): Observable<any> {
-        const _options: any = term ? { params: { q: term } } : { params: {} };
+        // Issue 340: GET /domini e` paginato (size default 20). Senza `size`
+        // la ricerca mostrerebbe solo i primi 20 domini (es. >20 domini per la
+        // stessa organizzazione), quindi richiediamo una pagina capiente.
+        const _options: any = term ? { params: { q: term, size: 1000 } } : { params: { size: 1000 } };
         if (!this.authenticationService.isGestore()) {
             _options.params.deprecato = false;
         }
@@ -1223,7 +1230,10 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             // 'domini',
             'classi-utente',
             'gruppi',
-            'tags',
+            // Issue 339: GET /tags e` paginato (size default 20, ordine id,asc):
+            // senza `size` la tendina mostrava solo i 20 tag piu` vecchi e i nuovi
+            // (id piu` alto) non comparivano mai fra i suggerimenti.
+            { name: 'tags', param: { size: 1000 } },
             'tassonomie'
         ];
         this.anagrafiche = await this.utils.getAnagrafiche(tables);

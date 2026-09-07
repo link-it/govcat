@@ -1,3 +1,313 @@
+2026-09-06  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 345: negoziazione di un token OAuth 2.0 client credentials verso i sistemi
+	  esterni, terza modalità di autenticazione accanto alla basic auth e all'header
+	  statico. È utilizzabile su tutte le integrazioni: GovWay per monitoraggio,
+	  statistiche, allarmi e API di configurazione usata dal batch, Keycloak sia dal
+	  batch di configurazione automatica sia dal catalogo per la lettura on-demand del
+	  client secret, e i client PDND v1 e v3 (dove autentica verso l'erogazione GovWay
+	  che fa da tramite, non verso PagoPA).
+	  I parametri della negoziazione si dichiarano in profili nominati
+	  (`outbound.auth.<nome>.token-endpoint|client-id|client-secret|scope|audience`)
+	  che ogni integrazione referenzia per nome con `<integrazione>.authn.ref`, così
+	  che più integrazioni verso lo stesso sistema condividano un'unica configurazione
+	  e un unico segreto da ruotare. Le credenziali si presentano al token endpoint con
+	  `client_secret_basic` (default) o `client_secret_post`, secondo la property
+	  `client-auth`.
+	  Il token viene negoziato una sola volta e mantenuto in cache: la rinegoziazione
+	  avviene soltanto alla scadenza — per default al 90% di `expires_in`, modificabile
+	  con `refresh-margin` — oppure quando il sistema esterno risponde 401, nel qual
+	  caso la richiesta viene ritentata una volta con il token appena ottenuto. La cache
+	  è condivisa dalle integrazioni che usano lo stesso token endpoint con le stesse
+	  credenziali, quindi monitoraggio, statistiche e allarmi di uno stesso ambiente
+	  usano un solo token. Le negoziazioni concorrenti sono serializzate per profilo e,
+	  dopo un fallimento, le richieste successive sullo stesso profilo terminano subito
+	  per pochi secondi invece di accodarsi in attesa di un authorization server
+	  irraggiungibile.
+	  La modalità è opzionale e additiva: senza riferimento a un profilo ogni
+	  integrazione continua ad autenticarsi come prima. Gli header configurati con
+	  `...properties.<nome header>` restano prevalenti anche sul token negoziato. Un
+	  profilo referenziato ma non configurato impedisce l'avvio del catalogo, invece di
+	  ricadere silenziosamente su credenziali diverse da quelle attese.
+
+2026-09-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 250 (evolutiva): funzionalita` PDND admin condizionate alla nuova
+	  configurazione `generale.pdnd_version` (v1|v3, assente=v1) via helper
+	  `AuthenticationService.isPdndV3()`. Con v1: campo ruolo PDND nascosto nel form
+	  utente (submit forza `nessuno`), pulsante approvazione fruitori nascosto,
+	  filtro ruolo PDND rimosso dalla lista utenti.
+
+	* [Frontend]
+	Issue 347: corrette anomalie in edit "informazioni generali" del wizard adesioni.
+	  Per un'adesione esistente non si ricalcola piu` l'organizzazione dall'org di
+	  sessione (l'operatore API vedeva la propria org al posto di quella dell'adesione);
+	  aggiunto il fallback in sola lettura del soggetto quando non editabile via
+	  dropdown (prima spariva in edit pur essendo visibile in vista).
+
+2026-09-04  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 250: la versione delle API PDND utilizzate dall'integrazione non e` piu` una
+	  proprieta` del backend ma una voce di configurazione: `generale.pdnd_version` nel
+	  file `configurazione.json`, con valori `v1` e `v3`, esposta dall'API di
+	  configurazione e quindi leggibile dalla console. La proprieta` `pdnd.versione`
+	  in `govcat-api.properties` e` stata rimossa: restano nelle properties i soli
+	  parametri di connessione (`pdnd.v1.*` e `pdnd.v3.*`). In mancanza
+	  dell'indicazione si utilizza la **v1**, che diventa cosi` il comportamento di
+	  default in attesa del completamento delle operazioni ancora non disponibili con
+	  la v3.
+	Il ruolo PDND dell'utente ha effetto solo con l'API v3: con la v1 configurata,
+	  l'assegnazione di `ruolo_pdnd` uguale ad `admin` in creazione o aggiornamento
+	  viene rifiutata con 400 `UT.400.RUOLO.PDND.DISABLED`, mentre il valore `nessuno`
+	  resta sempre ammesso. I ruoli gia` assegnati restano in banca dati e continuano ad
+	  essere esposti dall'API: tornando alla v3 sono di nuovo operativi, senza alcuna
+	  migrazione dei dati.
+	Le approvazioni verso la PDND (`agreements/{id}/approve` e `purposes/{id}/approve`)
+	  segnalano ora 501 `SYS.501` prima della verifica del ruolo quando la
+	  configurazione e` `v1`: l'operazione non e` prevista da quell'API e con quella
+	  configurazione il ruolo PDND non e` nemmeno assegnabile, quindi un 403 sarebbe
+	  stato fuorviante.
+
+2026-09-03  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 341: nuove colonne nell'export CSV dei servizi: soggetto fruitore, valorizzato
+	  solo per i servizi intermediati dove riporta il soggetto referente del dominio (che
+	  per le fruizioni è il fruitore interno); dominio; referenti e referenti tecnici del
+	  servizio e del dominio, come indirizzi email aziendali separati da newline così come
+	  nell'export delle adesioni; UUID del servizio e UUID dell'api. Nome e versione sono
+	  inoltre passati su colonne distinte: le colonne "Servizio" e "API" riportano ora il
+	  solo nome e la versione si legge nelle nuove colonne "Versione Servizio" e "Versione
+	  API", dove prima era incorporata nel nome. Con lo stesso criterio l'export CSV delle
+	  adesioni espone le nuove colonne "Versione Servizio", "UUID Servizio" e "UUID
+	  Adesione", e anche qui la colonna "Servizio" riporta il solo nome; l'identificativo
+	  logico dell'adesione resta nella colonna "Identificativo Adesione".
+
+2026-09-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 332: URL di esposizione dell'API nella vetrina. All'apertura della dialog
+	  di una API viene mostrato l'URL di esposizione (nuova API backend
+	  `api/{id}/{ambiente}/url-invocazione`) anche quando manca la specifica, sia REST
+	  che SOAP, con pulsante "Copia". Barra unificata in stile card; per SOAP il
+	  viewer wsdl nasconde il proprio blocco URL (nuovo input `hideUrlInvocazione`)
+	  per evitare la ripetizione, con fallback se l'URL non e` disponibile.
+
+2026-09-02  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 345: Keycloak configurato per ambiente e autenticazione tramite header custom.
+	  I client OAuth client_credentials di collaudo e di produzione risiedono su istanze
+	  Keycloak distinte: sia il batch di configurazione automatica (creazione del client e
+	  lettura del secret negli scenari client_credentials) sia il catalogo (lettura
+	  on-demand del secret esposta da `GET /client/{id}/secret`) selezionano ora l'istanza
+	  in base all'ambiente dell'adesione e del client. Le properties sono di conseguenza
+	  duplicate per ambiente: `configuratore.ConfigurazioneExecutor.keycloak.collaudo.*` e
+	  `.produzione.*` per il batch, `org.govway.api.catalogo.keycloak.collaudo.*` e
+	  `.produzione.*` per il catalogo; un ambiente privo di url non viene configurato e le
+	  operazioni Keycloak su quell'ambiente terminano con un errore esplicito.
+	  In alternativa (o in aggiunta) al login con username e password, l'autenticazione
+	  verso Keycloak può ora avvenire con header applicativi configurabili tramite le
+	  properties `...keycloak.<ambiente>.properties.<nome header>`, con lo stesso
+	  meccanismo già disponibile per i client PDND: gli header vengono aggiunti ad ogni
+	  richiesta e sovrascrivono gli omonimi impostati dal login, che non viene effettuato
+	  se username e password non sono valorizzati.
+	  ATTENZIONE: le precedenti properties Keycloak prive di ambiente
+	  (`configuratore.ConfigurazioneExecutor.keycloak.url|username|password|realm` e
+	  `org.govway.api.catalogo.keycloak.url|username|password|realm`) non sono più
+	  supportate e vanno riscritte nella forma per ambiente in fase di aggiornamento.
+	Gli errori di validazione delle proprietà custom e dei profili di un'API sono ora
+	  segnalati con codici dedicati al posto del generico `VAL.400.FORMAT`, che non
+	  riportava alcun parametro: il messaggio mostrato all'utente non permetteva di
+	  capire quale dato fosse rifiutato. Una proprietà custom inviata su un gruppo che
+	  non la prevede risponde con `VAL.400.CUSTOM.PROPERTY` indicando nome della
+	  proprietà e gruppo, un profilo non presente nella configurazione con
+	  `VAL.400.PROFILE` indicando il profilo.
+
+2026-09-01  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 332: nuova API `GET /api/{id_api}/{id_ambiente}/url-invocazione` per ottenere
+	  in modo puntuale l'URL di invocazione di un componente sull'ambiente indicato.
+	  Finora l'URL era ricavabile solo indirettamente, leggendolo dal server URL della
+	  specifica scaricata in modalità visualizzazione oppure dalla scheda di adesione.
+	  La nuova operazione restituisce il valore calcolato da `EServiceBuilder`, con la
+	  stessa gerarchia di fallback (componente, servizio, dominio, soggetto referente,
+	  template di configurazione) già usata dagli altri flussi, e con le stesse
+	  autorizzazioni di visibilità del dettaglio del componente.
+
+	* [GovwayAPICatalogo]
+	Issue 342: corrette le colonne dei soggetti negli export CSV di servizi e adesioni.
+	  La colonna "Soggetto Erogatore" veniva sempre letta dal soggetto referente del
+	  dominio, che per i servizi in fruizione è il fruitore interno e non l'erogatore:
+	  le fruizioni riportavano quindi il soggetto sbagliato. Ora riporta l'ente erogatore
+	  indicato sul servizio se si tratta di una fruizione e il soggetto referente del
+	  dominio altrimenti, con la stessa logica già applicata alla generazione delle URL
+	  di invocazione e ai filtri del monitoraggio. Nell'export delle adesioni la colonna
+	  "Soggetto Aderente" riportava il nome dell'organizzazione del soggetto anziché il
+	  nome del soggetto dell'adesione: ora le due colonne sono coerenti fra loro ed
+	  espongono entrambe un soggetto. Sempre nell'export delle adesioni, le adesioni
+	  negli stati fuori da `stati_scheda_adesione` venivano scartate silenziosamente e
+	  una selezione di sole adesioni in bozza produceva un file con la sola riga di
+	  intestazione: ora l'export include tutte le adesioni selezionate, come già
+	  avviene per l'export dei servizi, e le colonne di configurazione di collaudo e
+	  produzione restano vuote finché non c'è nulla di configurato.
+
+2026-08-31  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 337: filtro sui "Client gia` censiti" nel wizard adesioni. La tendina usa
+	  ora la ricerca server-side (query `q`) con paginazione e scroll infinito tramite
+	  lnk-form-live-search (prima pagina caricata all'apertura); il caricamento
+	  completo dei client riusabili e` sostituito da prima pagina + conteggio. Aggiunti
+	  label, placeholder e clear coerenti.
+
+	* [Frontend]
+	Issue 340: fix ricerca domini limitata ai primi 20 in creazione/modifica servizio
+	  e adesione. La `getList('domini')` dei typeahead (getDomini) ora richiede una
+	  pagina capiente (`size`), cosi` con piu` di 20 domini vengono mostrati tutti.
+
+	* [Frontend]
+	Issue 339: fix tag creati di recente non suggeriti nel dettaglio servizio con piu`
+	  di 20 tag. Caricamento anagrafica tags con `size` capiente (GET /tags e` paginato)
+	  e ricarica delle anagrafiche dopo il salvataggio, cosi` un tag appena creato
+	  compare subito in un edit immediato.
+
+	* [Frontend]
+	Issue 338: fix aggiunta multipla dello stesso referente per doppio clic su Salva.
+	  Aggiunto guard `_saving` (bottone disabilitato durante il salvataggio) in
+	  aggiunta referenti di servizi, adesioni e domini.
+
+2026-08-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 250: approvazione accordo dei fruitori PDND. Pulsante "Approva" per riga
+	  nei fruitori API (visibile solo a utente PDND admin, con PDND != v1 e accordo in
+	  PENDING); conferma e chiamata a POST agreements/{id}/approve, poi ricarica lista.
+	  Nuovi metodi approveAgreement/approvePurpose nel PdndService, getter isPdndAdmin.
+
+2026-08-28  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 338: risolto l'inserimento multiplo dello stesso referente. L'aggiunta di un
+	  referente a un servizio verificava la duplicazione solo in memoria, all'interno
+	  della transazione: due invocazioni sovrapposte di `POST /servizi/{id}/referenti`
+	  (tipiche del doppio click quando la risposta tarda ad arrivare) leggevano entrambe
+	  lo stato precedente all'inserimento dell'altra e superavano entrambe il controllo,
+	  associando più volte lo stesso utente al servizio. Ora la richiesta acquisisce un
+	  lock esclusivo sulla riga del servizio prima di leggere i referenti, serializzando
+	  le invocazioni concorrenti. Lo stesso accorgimento è stato applicato all'aggiunta
+	  dei referenti di un'adesione e di un dominio, che presentavano il medesimo
+	  scoperto.
+	Il conflitto sul referente di un servizio è ora segnalato con il codice dedicato
+	  `SRV.409.REFERENT` al posto del generico `GEN.409`, la cui traduzione richiede un
+	  parametro `risorsa` che non veniva valorizzato: il messaggio mostrato all'utente
+	  conteneva il segnaposto non sostituito. Per lo stesso motivo l'associazione di un
+	  utente già presente in un'organizzazione risponde ora con `ORG.409.USER`.
+	Aggiunto lo script `bonifica_referenti_servizi_duplicati.sql` per rimuovere le
+	  associazioni duplicate già presenti in banca dati, mantenendo la prima inserita.
+
+2026-08-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 250: campo `ruolo_pdnd` (nessuno|admin) sull'utente. Mostrato/modificabile
+	  nel form utente (modifica solo dal gestore, disclaimer su admin), filtro e badge
+	  in lista utenti, sola lettura nel profilo. In gestione organizzazione nascosto in
+	  creazione e badge in lista se admin. Modelli generati non toccati (enum locale).
+
+2026-08-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 336: fix client id errato nella vetrina adesioni. Nella card "Modalità di
+	  autenticazione" veniva mostrato `id_client` (UUID interno) invece di
+	  `dati_specifici.client_id`, a differenza del dettaglio client. Corretto il
+	  mapping in adesione-view.
+
+2026-08-24  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 250: l'API PDND esposta da GovCat consente ora di approvare, dalla
+	  console, la richiesta di fruizione di un aderente e la finalita` in attesa di
+	  approvazione: nuove operazioni `POST /pdnd/v1/{ambiente}/agreements/{id}/approve`
+	  e `POST /pdnd/v1/{ambiente}/purposes/{id}/approve`, che restituiscono
+	  rispettivamente l'accordo e la finalita` aggiornati. Sono le prime operazioni di
+	  scrittura verso la PDND: per questo sono consentite ai soli utenti con
+	  `ruolo_pdnd` uguale ad `admin`, che altrimenti ricevono un 403
+	  `AUT.403.RUOLO.PDND`. Non essendo previste dall'API PDND v1, con
+	  `pdnd.versione=v1` rispondono 501 `SYS.501`, come le altre operazioni senza
+	  equivalente. Il corpo opzionale `DelegationRef` della v3 non e` esposto:
+	  l'approvazione avviene come titolare, non come delegato.
+	L'elemento `Subscriber` dell'operazione `GET /pdnd/v1/{ambiente}/subscribers`
+	  riporta ora anche `agreementId`, l'identificativo dell'accordo di fruizione:
+	  consente di approvare direttamente dalla lista dei fruitori, senza doverlo
+	  ricavare con ulteriori invocazioni. Campo aggiuntivo e opzionale, valorizzato da
+	  entrambe le implementazioni (v1 e v3): i client esistenti non sono impattati.
+
+	Issue 250: introdotto il ruolo dell'utente sulla PDND (`ruolo_pdnd`), con i
+	  valori `nessuno` e `admin`. Il campo e` esposto nel dettaglio utente,
+	  nell'elenco utenti e nel profilo, ed e` valorizzabile in creazione e in
+	  aggiornamento da chi e` autorizzato alla scrittura degli utenti (gestore ed
+	  eventualmente coordinatore, secondo `amministrazione.utenti.scrittura`). Un
+	  amministratore di organizzazione non puo` assegnarlo ne` modificarlo: riceve
+	  un 403 `AUT.403.AMM.ORG.RUOLO.PDND`, coerentemente con il vincolo gia`
+	  presente sul ruolo globale. Il valore non impostato equivale a `nessuno` ed e`
+	  riportato come tale in lettura, quindi gli utenti esistenti non richiedono
+	  alcuna migrazione dei dati. La vista ridotta dell'utente, riservata a chi non
+	  e` abilitato al dettaglio, continua a non esporre il campo.
+	Aggiunto lo script di aggiornamento del database
+	  `V2.4.5__ruolo_pdnd_utenti.sql`: nuova colonna `utenti.ruolo_pdnd` nullable e
+	  senza valore di default, con il consueto CHECK sui valori ammessi. Nessuna
+	  modifica ai dati esistenti: lo script e` retrocompatibile con il software in
+	  esercizio, che ignora la nuova colonna.
+
+2026-08-21  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 250: l'integrazione con la PDND utilizza ora le API PDND core v3, che
+	  sostituiscono le API "Interoperability API Gateway" v1 ormai deprecate. La
+	  versione da utilizzare e` scelta dalla nuova proprieta` `pdnd.versione`
+	  (`v3` per default, `v1` per mantenere il comportamento precedente): la v1 resta
+	  quindi disponibile e le proprieta` `pdnd.v1.*` sono invariate, affiancate dalle
+	  nuove `pdnd.v3.<ambiente>.client.url|username|password` e
+	  `pdnd.v3.<ambiente>.client.properties.*`. Le url `pdnd.v1.*.client.url` non
+	  sono piu` obbligatorie all'avvio, dato che in configurazione v3 non servono.
+	  L'API PDND esposta da GovCat sotto `/pdnd/v1` non cambia, ne` nei path ne` nel
+	  modello dati: frontend e altri client restano invariati, mentre le risposte
+	  della v3 vengono riportate nel modello v1 dal nuovo `PDNDClientV3` (i due
+	  client implementano l'interfaccia comune `IPDNDClient`, selezionata da
+	  `PDNDClientFactory`). Il client v3 e` generato dalla specifica ufficiale
+	  ridotta alle sole operazioni utilizzate (`pdnd/openapi_pdnd_client_v3.yaml`);
+	  l'autenticazione verso la PDND (voucher e DPoP) resta a carico del gateway
+	  GovWay, come per la v1.
+	Le operazioni dell'API esposta che non hanno un equivalente nella v3
+	  restituiscono, in configurazione `pdnd.versione=v3`, un errore 501 con codice
+	  `SYS.501`: gli eventi (`/events`, `/events/eservices`, `/events/keys`), dove la
+	  v3 identifica gli eventi con un UUID e non con il progressivo numerico previsto
+	  dal modello esposto, gli attributi di un accordo
+	  (`/agreements/{id}/attributes`), e l'assegnazione e la revoca di un attributo
+	  certificato per codice (`upsertTenant`, `revokeTenantAttribute`), non
+	  risolvibile perche` la v3 non offre la ricerca degli attributi per `code`.
+	  Introdotta a questo scopo l'eccezione `NotImplementedException`, mappata su
+	  HTTP 501 dal controller advisor.
+	Ricostruzioni e approssimazioni necessarie a mantenere il modello dati esposto,
+	  in configurazione v3: `category` dell'organizzazione riporta la tipologia di
+	  tenant (PA, PRIVATE, GSP, SCP), non essendo piu` esposta la categoria IPA;
+	  versione, stato, url di invocazione e attributi dell'e-service provengono dal
+	  descrittore corrente (il piu` recente tra quelli pubblicati); il filtro per
+	  attributo dell'elenco e-service di un ente si applica agli attributi
+	  certificati, gli unici per cui la v3 espone origine e codice; i metadati
+	  dell'interfaccia del descrittore non sono disponibili, mentre i documenti
+	  allegati sono letti dall'apposita operazione; accordi, descrittori e finalita`
+	  in stati non rappresentabili nel modello esposto (bozza, in attesa di
+	  approvazione, rifiutata) sono esclusi dagli elenchi.
+	Aggiunto il mock delle API PDND v3 sotto `/pdnd/mock/v3/<ambiente>`, analogo a
+	  quello gia` presente per la v1, con le risposte simulate in
+	  `pdnd/mock/v3/<ambiente>`: le url `pdnd.v3.*.client.url` di default vi puntano,
+	  come avviene per la v1.
+
 2026-08-19  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* Rilasciata versione 2.4.4

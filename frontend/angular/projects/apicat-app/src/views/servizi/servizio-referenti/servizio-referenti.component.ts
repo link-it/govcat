@@ -103,6 +103,7 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked {
   _error: boolean = false;
 
   _errorSave: boolean = false;
+  _saving: boolean = false;
   _errorSaveMsg: string = 'false';
 
   showHistory: boolean = true;
@@ -506,14 +507,18 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked {
   }
 
   saveModal(body: any){
+    if (this._saving) { return; }
+    this._saving = true;
     this._errorSave = false;
-    this._errorSaveMsg = '';    
+    this._errorSaveMsg = '';
     this.apiService.postElementRelated(this.model, this.id, 'referenti', body).subscribe({
       next: (response: any) => {
+        this._saving = false;
         this._modalEditRef.hide();
         this._loadServizioReferenti();
       },
       error: (error: any) => {
+        this._saving = false;
         this._errorSave = true;
         this._errorSaveMsg = error.details || this.utils.GetErrorMsg(error);
         console.log('error', error);

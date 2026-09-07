@@ -139,7 +139,7 @@ public class ReferenteServizioAssembler extends RepresentationModelAssemblerSupp
 		boolean exists = servizio.getReferenti().stream().anyMatch(r -> r.getReferente().equals(entity.getReferente()) && r.getTipo().equals(entity.getTipo()));
 
 		if(exists) {
-			throw new BadRequestException(ErrorCode.GEN_409, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome(), "tipoReferente", entity.getTipo().toString(), "nomeServizio", entity.getServizio().getNome(), "versioneServizio", entity.getServizio().getVersione().toString()));
+			throw new BadRequestException(ErrorCode.SRV_409_REFERENT, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome(), "tipoReferente", entity.getTipo().toString(), "nomeServizio", entity.getServizio().getNome(), "versioneServizio", entity.getServizio().getVersione().toString()));
 		}
 		
 		this.servizioDettaglioAssembler.setUltimaModifica(servizio);

@@ -36,6 +36,7 @@ import config.ControlloAccessiAutorizzazione;
 import config.ControlloAccessiGestioneToken;
 import config.ServizioApplicativo;
 import freemarker.template.TemplateException;
+import keycloak.KeycloakInvoker;
 import okhttp3.Response;
 
 /**
@@ -77,6 +78,16 @@ public class ScenarioClientCredentials implements ConfigurazioneScenario{
 	}
 
 	/**
+	 * Keycloak dell'ambiente dell'adesione: collaudo e produzione risiedono su istanze distinte.
+	 */
+	private KeycloakInvoker getKeycloak(List<GruppoServizio> apis) throws IOException {
+		if (apis.isEmpty())
+			throw new IOException("nessun servizio associato al client, impossibile individuare l'ambiente");
+		
+		return this.invokers.getKeycloak(apis.get(0).getAmbienteConfigurazione());
+	}
+
+	/**
 	 * Soggetto sotto cui registrare/cercare l'applicativo (client/richiedente): aderente per le
 	 * erogazioni, fruitore per le fruizioni. Coerente con gli altri scenari (TLS, PDND, Sign).
 	 */
@@ -89,8 +100,11 @@ public class ScenarioClientCredentials implements ConfigurazioneScenario{
 		OauthClientCredentialsClient client = (OauthClientCredentialsClient) clientRaw;
 
 		try {
-			if (this.enableKeycloakClientCreation && !this.invokers.getKeycloak().clientExists(client.getClientId())) {
-				this.invokers.getKeycloak().createClient(client.getClientId(), client.getNome(), client.getDescrizione());
+			if (this.enableKeycloakClientCreation) {
+				KeycloakInvoker keycloak = this.getKeycloak(apis);
+				
+				if (!keycloak.clientExists(client.getClientId()))
+					keycloak.createClient(client.getClientId(), client.getNome(), client.getDescrizione());
 			}
 
 			if (this.enableKeycloakGovwayConfiguration) {
@@ -126,7 +140,7 @@ public class ScenarioClientCredentials implements ConfigurazioneScenario{
 			}
 			
 			if (this.enableKeycloakBackendConfiguration)
-				return Map.of("client-secret", this.invokers.getKeycloak().getSecret(client.getClientId()));
+				return Map.of("client-secret", this.getKeycloak(apis).getSecret(client.getClientId()));
 		} catch (IOException | TemplateException e) {
 			throw new ConfigurazioneException(e.getMessage());
 		}

@@ -451,7 +451,7 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 				}
 
 				if (this.service.findUtenteOrganizzazione(utente, org).isPresent()) {
-					throw new ConflictException(ErrorCode.GEN_409,
+					throw new ConflictException(ErrorCode.ORG_409_USER,
 							Map.of("nomeUtente", utente.getNome(),
 									"cognomeUtente", utente.getCognome(),
 									"nomeOrganizzazione", org.getNome()));

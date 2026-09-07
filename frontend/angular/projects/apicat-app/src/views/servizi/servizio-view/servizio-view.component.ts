@@ -250,6 +250,10 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     _environmentId: 'collaudo' | 'produzione' = 'collaudo';
     _currentApi: ApiReadDetails|null = null;
     _currentApiConfiguration: ApiConfigurationRead|null = null;
+    // Issue #332: URL di esposizione dell'API per l'ambiente corrente, calcolato
+    // dal backend. Mostrato nella dialog anche quando manca la specifica.
+    _urlInvocazione: string | null = null;
+    _urlInvocazioneLoading: boolean = false;
 
     allowTryIt: boolean = false;
     showAuthorizeBtn: boolean = false;
@@ -919,7 +923,46 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         const _srv: any = Tools.Configurazione.servizio;
         this.tokenPolicy = _srv.api?.token_policies?.find((item: any) => item.tipo_policy === this.tipoTokenPolicy);
         this.showJwtGenerator = this.allowTryIt && this._environmentId !== 'produzione';
+        this._loadUrlInvocazione(data.id_api);
         this._openApiInfo();
+    }
+
+    /**
+     * Issue #332: recupera l'URL di esposizione dell'API per l'ambiente corrente
+     * (`GET /api/{idApi}/{ambiente}/url-invocazione`). In errore (es. erogazione
+     * non configurata per quell'ambiente) la barra resta nascosta.
+     */
+    _loadUrlInvocazione(idApi: string) {
+        this._urlInvocazione = null;
+        this._urlInvocazioneLoading = true;
+        this.apiService.getDetails('api', idApi, `${this._environmentId}/url-invocazione`).subscribe({
+            next: (response: any) => {
+                this._urlInvocazione = response?.url_invocazione || null;
+                this._urlInvocazioneLoading = false;
+            },
+            error: () => {
+                this._urlInvocazione = null;
+                this._urlInvocazioneLoading = false;
+            }
+        });
+    }
+
+    /**
+     * Issue #332: la barra URL (con Copia) è mostrata ogni volta che il backend
+     * restituisce l'URL, sia REST che SOAP. Per SOAP il viewer `ui-wsdl` nasconde
+     * il proprio blocco URL (via `[hideUrlInvocazione]`) per evitare la
+     * ripetizione; se l'URL non è disponibile la barra resta nascosta e il wsdl
+     * mostra il suo (fallback).
+     */
+    get _showUrlInvocazioneBar(): boolean {
+        return !!this._urlInvocazione;
+    }
+
+    copyUrlInvocazione() {
+        if (!this._urlInvocazione) { return; }
+        this.clipboard.copy(this._urlInvocazione);
+        this._showMessageClipboard = true;
+        setTimeout(() => { this._showMessageClipboard = false; }, 3000);
     }
 
     _openApiInfo() {

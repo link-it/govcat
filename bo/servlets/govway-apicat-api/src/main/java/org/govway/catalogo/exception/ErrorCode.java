@@ -119,6 +119,9 @@ public enum ErrorCode {
     /** Conflitto servizio */
     SRV_409_CONFLICT("Conflitto servizio"),
 
+    /** Utente gia' associato al servizio con lo stesso tipo referente */
+    SRV_409_REFERENT("Referente gia' associato al servizio"),
+
     /** Package non trovato */
     SRV_404_PACKAGE("Package non trovato"),
 
@@ -144,6 +147,9 @@ public enum ErrorCode {
 
     /** Soggetto aderente vincolato */
     ORG_409_ADERENTE("Soggetto aderente vincolato"),
+
+    /** Utente gia' associato all'organizzazione */
+    ORG_409_USER("Utente gia' associato all'organizzazione"),
 
     // ==================== DOMINI ====================
 
@@ -210,6 +216,9 @@ public enum ErrorCode {
 
     /** Ruolo coordinatore non abilitato nella configurazione */
     UT_400_COORDINATORE_DISABLED("Ruolo coordinatore non abilitato"),
+
+    /** Ruolo PDND non assegnabile: ha effetto solo con l'API PDND v3 */
+    UT_400_RUOLO_PDND_DISABLED("Ruolo PDND non assegnabile con l'API PDND v1"),
 
     /** Richiesta cambio organizzazione: organizzazione di partenza non corrisponde a una delle associazioni dell'utente */
     UT_400_ORG_PARTENZA_NOT_ASSOCIATED("Organizzazione di partenza non associata all'utente"),
@@ -478,6 +487,12 @@ public enum ErrorCode {
     /** L'utente da creare deve essere associato esclusivamente all'organizzazione di sessione */
     AUT_403_AMM_ORG_INVALID_ORGS("Vincoli organizzazioni utente non soddisfatti per amministratore organizzazione"),
 
+    /** Un amministratore organizzazione non può assegnare o modificare il ruolo PDND di un utente */
+    AUT_403_AMM_ORG_RUOLO_PDND("Ruolo PDND non assegnabile da amministratore organizzazione"),
+
+    /** Operazione di scrittura verso la PDND riservata agli utenti con ruolo PDND amministratore */
+    AUT_403_RUOLO_PDND("Operazione riservata agli utenti con ruolo PDND amministratore"),
+
     /** Un amministratore organizzazione può operare solo sui domini il cui soggetto referente appartiene alla propria organizzazione di sessione */
     AUT_403_AMM_ORG_DOMINIO_FUORI_ORG("Dominio non appartenente all'organizzazione di sessione dell'amministratore"),
 
@@ -497,6 +512,12 @@ public enum ErrorCode {
 
     /** Formato campo non valido */
     VAL_400_FORMAT("Formato campo non valido"),
+
+    /** Proprietà custom non prevista per il gruppo indicato */
+    VAL_400_CUSTOM_PROPERTY("Proprietà custom non prevista per il gruppo"),
+
+    /** Profilo non presente nella configurazione */
+    VAL_400_PROFILE("Profilo non presente nella configurazione"),
 
     /** Valore fuori dal range consentito */
     VAL_400_RANGE("Valore fuori range"),

@@ -345,6 +345,7 @@
 			"BackToAdesione": "Torna all'adesione",
 			"GoToService": "Vai al Servizio",
 			"Copy": "Copia",
+			"Copied": "Copiato",
 			"ShowAll": "Mostra tutto",
 			"ShowLess": "Mostra meno",
 			"ShowSecret": "Mostra secret",
@@ -822,6 +823,7 @@
 		},
 		"LABEL": {
 			"SkipToContent": "Salta al contenuto",
+			"UrlEsposizione": "Url di esposizione",
 			"RemoveFilter": "Rimuovi filtro",
 			"SelectRow": "Seleziona elemento",
 			"CreationDate": "Data creazione",
@@ -1456,6 +1458,9 @@
 						},
 						"RESOURCE": "Accesso negato alla risorsa [{{resource}}]",
 						"ROLE": "L'utente deve avere uno dei ruoli [{{ruoli}}] per eseguire la force",
+						"RUOLO": {
+							"PDND": "Non hai il ruolo di amministratore PDND richiesto per questa operazione"
+						},
 						"AMM": {
 							"ORG": {
 								"INVALID": {
@@ -1466,6 +1471,9 @@
 									"FUORI": {
 										"ORG": "Operazione consentita solo per i domini dell'organizzazione [{{orgNome}}]"
 									}
+								},
+								"RUOLO": {
+									"PDND": "Un amministratore organizzazione non può assegnare o modificare il ruolo PDND di un utente"
 								},
 								"NOT": {
 									"TARGET": "Operazione consentita solo all'amministratore dell'organizzazione target della richiesta di cambio"
@@ -1645,7 +1653,8 @@
 					"409": {
 						"DEFAULT": "Organizzazione [{{nome}}] già esistente",
 						"ADERENTE": "Soggetto aderente vincolato, impossibile modificare",
-						"REFERENT": "Referente [{{nomeUtente}} {{cognomeUtente}}] di tipo [{{tipoReferente}}] già presente per il dominio [{{nomeDominio}}]"
+						"REFERENT": "Referente [{{nomeUtente}} {{cognomeUtente}}] di tipo [{{tipoReferente}}] già presente per il dominio [{{nomeDominio}}]",
+						"USER": "L'utente [{{nomeUtente}} {{cognomeUtente}}] è già associato all'organizzazione [{{nomeOrganizzazione}}]"
 					}
 				},
 				"PRF": {
@@ -1787,6 +1796,7 @@
 						"CATEGORY": "Categoria [{{categoria}}] gia associato al servizio [{{nome}}/{{versione}}]",
 						"CONFLICT": "Servizio con stesso nome e versione gia esistente",
 						"GROUP": "Gruppo [{{gruppo}}] gia associato al servizio [{{nome}}/{{versione}}]",
+						"REFERENT": "L'utente [{{nomeUtente}} {{cognomeUtente}}] è già {{tipoReferente}} del servizio [{{nomeServizio}} v{{versioneServizio}}]",
 						"STATE": ""
 					}
 				},
@@ -1852,6 +1862,9 @@
 							}
 						},
 						"RUOLO": {
+							"PDND": {
+								"DISABLED": "Ruolo PDND non assegnabile: l'integrazione utilizza l'API PDND v1"
+							},
 							"NULL": "Ruolo non valorizzato per l'utente [{{nomeUtente}} {{cognomeUtente}}]",
 							"ORG": {
 								"REQUIRES": {
@@ -1876,6 +1889,9 @@
 				"VAL": {
 					"400": {
 						"CF": "Codice fiscale [{{codiceFiscale}}] non valido",
+						"CUSTOM": {
+							"PROPERTY": "Proprietà [{{nome}}] non prevista per il gruppo [{{gruppo}}]"
+						},
 						"DATE": "Data [{{data}}] non valida",
 						"EMAIL": "Email [{{email}}] non valida",
 						"ENUM": "Impossibile convertire [{{source}}] nel tipo [{{tipo}}]",
@@ -1891,6 +1907,7 @@
 						"ORIGIN": "Origine [{{origine}}] non valida per il parsing",
 						"PATTERN": "Pattern [{{pattern}}] non rispettato per il campo [{{campo}}]",
 						"PIVA": "Partita IVA [{{partitaIva}}] non valida",
+						"PROFILE": "Profilo [{{profilo}}] non presente nella configurazione",
 						"RANGE": "Valore [{{valore}}] fuori dal range consentito [{{min}} - {{max}}]",
 						"REQUIRED": "Campo obbligatorio [{{campo}}] mancante",
 						"URL": "URL [{{url}}] non valido"
@@ -2552,6 +2569,10 @@
 			"VISIBLE": "Visibile",
 			"YES": "Si"
 		},
+		"SUBSCRIBERS": {
+			"Approve": "Approva",
+			"ApproveConfirm": "Vuoi approvare l'accordo del fruitore {{name}}?"
+		},
 		"SWAGGER": {
 			"ERROR": {
 				"Loading": "Impossibile caricare la definizione API"
@@ -2902,6 +2923,12 @@
 				"nessun_ruolo": "Nessun ruolo",
 				"referente_servizio": "Referente servizio",
 				"utente_organizzazione": "Utente organizzazione"
+			},
+			"RUOLO_PDND": {
+				"Label": "Ruolo PDND",
+				"nessuno": "Nessuno",
+				"admin": "Amministratore PDND",
+				"AdminWarning": "Attenzione: stai assegnando poteri di amministrazione sulla PDND."
 			},
 			"STATUS": {
 				"abilitato": "Abilitato",

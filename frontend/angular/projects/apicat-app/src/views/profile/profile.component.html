@@ -151,6 +151,11 @@
                               [disabled]="true"
                             ></lnk-form-field>
                           </div>
+                          <!-- Issue 250: ruolo PDND in sola lettura. -->
+                          <div class="col-md-6">
+                            <label class="label-bold d-block">{{ 'APP.USERS.RUOLO_PDND.Label' | translate }}</label>
+                            <span class="text-muted">{{ ('APP.USERS.RUOLO_PDND.' + (profile?.ruolo_pdnd || 'nessuno')) | translate }}</span>
+                          </div>
                         </div>
                       </div>
                     </section>

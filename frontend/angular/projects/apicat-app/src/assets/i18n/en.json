@@ -345,6 +345,7 @@
 			"BackToAdesione": "Back to subscription",
 			"GoToService": "Go to the Service",
 			"Copy": "Copy",
+			"Copied": "Copied",
 			"ShowAll": "Show all",
 			"ShowLess": "Show less",
 			"ShowSecret": "Show secret",
@@ -822,6 +823,7 @@
 		},
 		"LABEL": {
 			"SkipToContent": "Skip to content",
+			"UrlEsposizione": "Exposure URL",
 			"RemoveFilter": "Remove filter",
 			"SelectRow": "Select item",
 			"CreationDate": "Creation Date",
@@ -1456,6 +1458,9 @@
 						},
 						"RESOURCE": "Access denied to resource [{{resource}}]",
 						"ROLE": "User must have one of the roles [{{ruoli}}] to execute the force",
+						"RUOLO": {
+							"PDND": "You do not have the required PDND administrator role for this operation"
+						},
 						"AMM": {
 							"ORG": {
 								"INVALID": {
@@ -1466,6 +1471,9 @@
 									"FUORI": {
 										"ORG": "Operation allowed only for domains of organization [{{orgNome}}]"
 									}
+								},
+								"RUOLO": {
+									"PDND": "An organization administrator cannot assign or change the PDND role of a user"
 								},
 								"NOT": {
 									"TARGET": "Operation allowed only to the administrator of the target organization of the change request"
@@ -1645,7 +1653,8 @@
 					"409": {
 						"DEFAULT": "Organization [{{nome}}] already exists",
 						"ADERENTE": "Adhering subject constrained, cannot modify",
-						"REFERENT": "Referent [{{nomeUtente}} {{cognomeUtente}}] of type [{{tipoReferente}}] already exists for domain [{{nomeDominio}}]"
+						"REFERENT": "Referent [{{nomeUtente}} {{cognomeUtente}}] of type [{{tipoReferente}}] already exists for domain [{{nomeDominio}}]",
+						"USER": "User [{{nomeUtente}} {{cognomeUtente}}] is already associated to organization [{{nomeOrganizzazione}}]"
 					}
 				},
 				"PRF": {
@@ -1787,6 +1796,7 @@
 						"CATEGORY": "Category [{{categoria}}] already associated to service [{{nome}}/{{versione}}]",
 						"CONFLICT": "Service with same name and version already exists",
 						"GROUP": "Group [{{gruppo}}] already associated to service [{{nome}}/{{versione}}]",
+						"REFERENT": "User [{{nomeUtente}} {{cognomeUtente}}] is already {{tipoReferente}} of service [{{nomeServizio}} v{{versioneServizio}}]",
 						"STATE": "Cannot modify service in current state"
 					}
 				},
@@ -1797,7 +1807,7 @@
 						"DB": "",
 						"IO": ""
 					},
-					"501": "",
+					"501": "Operation [{{operazione}}] not supported",
 					"503": "Service unavailable"
 				},
 				"TAX": {
@@ -1852,6 +1862,9 @@
 							}
 						},
 						"RUOLO": {
+							"PDND": {
+								"DISABLED": "PDND role cannot be assigned: the integration uses the PDND v1 API"
+							},
 							"NULL": "Role not set for user [{{nomeUtente}} {{cognomeUtente}}]",
 							"ORG": {
 								"REQUIRES": {
@@ -1876,6 +1889,9 @@
 				"VAL": {
 					"400": {
 						"CF": "Tax code [{{codiceFiscale}}] not valid",
+						"CUSTOM": {
+							"PROPERTY": "Property [{{nome}}] not allowed for group [{{gruppo}}]"
+						},
 						"DATE": "Date [{{data}}] not valid",
 						"EMAIL": "Email [{{email}}] not valid",
 						"ENUM": "Cannot convert [{{source}}] to type [{{tipo}}]",
@@ -1891,6 +1907,7 @@
 						"ORIGIN": "Origin [{{origine}}] not valid for parsing",
 						"PATTERN": "Pattern [{{pattern}}] not satisfied for field [{{campo}}]",
 						"PIVA": "VAT number [{{partitaIva}}] not valid",
+						"PROFILE": "Profile [{{profilo}}] not present in configuration",
 						"RANGE": "Value [{{valore}}] out of allowed range [{{min}} - {{max}}]",
 						"REQUIRED": "Required field [{{campo}}] missing",
 						"URL": "URL [{{url}}] not valid"
@@ -2552,6 +2569,10 @@
 			"VISIBLE": "Visible",
 			"YES": "Yes"
 		},
+		"SUBSCRIBERS": {
+			"Approve": "Approve",
+			"ApproveConfirm": "Do you want to approve the agreement for subscriber {{name}}?"
+		},
 		"SWAGGER": {
 			"ERROR": {
 				"Loading": "Failed to load API definition"
@@ -2902,6 +2923,12 @@
 				"nessun_ruolo": "No role",
 				"referente_servizio": "Service contact person",
 				"utente_organizzazione": "Organization user"
+			},
+			"RUOLO_PDND": {
+				"Label": "PDND role",
+				"nessuno": "None",
+				"admin": "PDND administrator",
+				"AdminWarning": "Warning: you are granting administration powers on PDND."
 			},
 			"STATUS": {
 				"abilitato": "Enabled",

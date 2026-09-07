@@ -115,6 +115,8 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 			dettaglio.setRuolo(utenteEngineAssembler.toRuolo(entity.getRuolo()));
 		}
 
+		dettaglio.setRuoloPdnd(utenteEngineAssembler.toRuoloPdnd(entity.getRuoloPdnd()));
+
 		// Popola la lista di associazioni utente-organizzazione (multi-org).
 		// Utilizza il repository per evitare LazyInitializationException quando l'entità è detached.
 		List<UtenteOrganizzazioneEntity> associazioni = organizzazioneService.findUtenteOrganizzazioniByUtente(entity);
@@ -156,7 +158,9 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		} else {
 			entity.setRuolo(null);
 		}
-		
+
+		entity.setRuoloPdnd(utenteEngineAssembler.toEntity(src.getRuoloPdnd()));
+
 		if(src.getStato() != null && !src.getStato().getValue().trim().isEmpty()) {
 			entity.setStato(utenteEngineAssembler.toEntity(src.getStato()));
 		} else {
@@ -201,6 +205,8 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		if(src.getRuolo()!=null) {
 			entity.setRuolo(utenteEngineAssembler.toEntity(src.getRuolo()));
 		}
+
+		entity.setRuoloPdnd(utenteEngineAssembler.toEntity(src.getRuoloPdnd()));
 
 		if(src.getStato() != null && !src.getStato().getValue().trim().isEmpty()) {
 			entity.setStato(utenteEngineAssembler.toEntity(src.getStato()));

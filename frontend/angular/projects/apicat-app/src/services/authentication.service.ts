@@ -443,6 +443,21 @@ export class AuthenticationService {
     return user?.ruolo ?? null;
   }
 
+  /** Issue 250: true se l'utente corrente ha ruolo PDND admin
+   *  (da GET /profilo -> utente.ruolo_pdnd). Il BE normalizza a
+   *  `nessuno`, quindi il confronto con `admin` e` sufficiente. */
+  isPdndAdmin(): boolean {
+    return this.getUser()?.ruolo_pdnd === 'admin';
+  }
+
+  /** Issue 250 (evolutiva): true se l'installazione usa l'integrazione PDND
+   *  v3. Fonte: `generale.pdnd_version` della configurazione remota; valori
+   *  `v1` | `v3`, con campo assente = `v1`. Le funzionalita` PDND admin
+   *  (ruolo_pdnd, approvazione fruitori) sono abilitate solo con v3. */
+  isPdndV3(): boolean {
+    return Tools.Configurazione?.generale?.pdnd_version === 'v3';
+  }
+
   hasRole(roles: string[]) {
     const role = this.getRole();
     if (role) {

@@ -1,4 +1,7 @@
 {
+  "generale": {
+    "pdnd_version": "v3"
+  },
   "amministrazione": {
     "gruppi": {
       "lettura": [

@@ -28,6 +28,7 @@ import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.ConfigurazioneNotifiche;
+import org.govway.catalogo.servlets.model.RuoloPdndEnum;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.UtenteCreate;
 import org.govway.catalogo.servlets.model.UtenteOrganizzazioneCreate;
@@ -59,6 +60,7 @@ public class UtenteAuthorization extends DefaultAuthorization<UtenteCreate,Utent
 	 * Verifica che l'utente in sessione sia AMMINISTRATORE_ORGANIZZAZIONE sull'organizzazione
 	 * di sessione e che il payload UtenteCreate rispetti i vincoli applicabili in tal caso:
 	 * - ruolo globale, se presente, deve essere utente_organizzazione (no gestore/coordinatore)
+	 * - ruolo PDND, se presente, deve essere nessuno
 	 * - organizzazioni deve contenere esattamente l'organizzazione di sessione (singola)
 	 */
 	private void validaCreateComeAmmOrg(UtenteCreate utenteCreate) {
@@ -75,6 +77,12 @@ public class UtenteAuthorization extends DefaultAuthorization<UtenteCreate,Utent
 				&& utenteCreate.getRuolo() != RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE) {
 			throw new NotAuthorizedException(ErrorCode.AUT_403_AMM_ORG_INVALID_ROLE,
 					Map.of("ruolo", utenteCreate.getRuolo().getValue()));
+		}
+
+		// Vincolo: il ruolo PDND è assegnabile solo da chi è autorizzato alla scrittura degli utenti
+		if (utenteCreate.getRuoloPdnd() != null
+				&& utenteCreate.getRuoloPdnd() != RuoloPdndEnum.NESSUNO) {
+			throw new NotAuthorizedException(ErrorCode.AUT_403_AMM_ORG_RUOLO_PDND);
 		}
 
 		// Vincolo: deve essere indicata esattamente una organizzazione, e deve coincidere
@@ -124,7 +132,24 @@ public class UtenteAuthorization extends DefaultAuthorization<UtenteCreate,Utent
 					|| !entity.getOrganizzazionePending().getId().equals(orgSessione.getId())) {
 				throw new NotAuthorizedException(ErrorCode.AUT_403_AMM_ORG_NOT_TARGET);
 			}
+
+			// Vincolo: il ruolo PDND non è modificabile in questo path, riservato a chi è
+			// autorizzato alla scrittura degli utenti.
+			if (isRuoloPdndModificato(update, entity)) {
+				throw new NotAuthorizedException(ErrorCode.AUT_403_AMM_ORG_RUOLO_PDND);
+			}
 		}
+	}
+
+	/**
+	 * Confronta il ruolo PDND richiesto con quello attuale dell'utente, trattando come
+	 * equivalenti il valore non impostato e {@code nessuno}.
+	 */
+	private boolean isRuoloPdndModificato(UtenteUpdate update, UtenteEntity entity) {
+		boolean richiestoAdmin = update.getRuoloPdnd() == RuoloPdndEnum.ADMIN;
+		boolean attualeAdmin = entity.getRuoloPdnd() == UtenteEntity.RuoloPdnd.ADMIN;
+
+		return richiestoAdmin != attualeAdmin;
 	}
 
 	public void authorizeGetNotifiche(UtenteEntity entity) {
