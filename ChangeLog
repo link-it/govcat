@@ -1,3 +1,36 @@
+2026-09-06  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 345: negoziazione di un token OAuth 2.0 client credentials verso i sistemi
+	  esterni, terza modalità di autenticazione accanto alla basic auth e all'header
+	  statico. È utilizzabile su tutte le integrazioni: GovWay per monitoraggio,
+	  statistiche, allarmi e API di configurazione usata dal batch, Keycloak sia dal
+	  batch di configurazione automatica sia dal catalogo per la lettura on-demand del
+	  client secret, e i client PDND v1 e v3 (dove autentica verso l'erogazione GovWay
+	  che fa da tramite, non verso PagoPA).
+	  I parametri della negoziazione si dichiarano in profili nominati
+	  (`outbound.auth.<nome>.token-endpoint|client-id|client-secret|scope|audience`)
+	  che ogni integrazione referenzia per nome con `<integrazione>.authn.ref`, così
+	  che più integrazioni verso lo stesso sistema condividano un'unica configurazione
+	  e un unico segreto da ruotare. Le credenziali si presentano al token endpoint con
+	  `client_secret_basic` (default) o `client_secret_post`, secondo la property
+	  `client-auth`.
+	  Il token viene negoziato una sola volta e mantenuto in cache: la rinegoziazione
+	  avviene soltanto alla scadenza — per default al 90% di `expires_in`, modificabile
+	  con `refresh-margin` — oppure quando il sistema esterno risponde 401, nel qual
+	  caso la richiesta viene ritentata una volta con il token appena ottenuto. La cache
+	  è condivisa dalle integrazioni che usano lo stesso token endpoint con le stesse
+	  credenziali, quindi monitoraggio, statistiche e allarmi di uno stesso ambiente
+	  usano un solo token. Le negoziazioni concorrenti sono serializzate per profilo e,
+	  dopo un fallimento, le richieste successive sullo stesso profilo terminano subito
+	  per pochi secondi invece di accodarsi in attesa di un authorization server
+	  irraggiungibile.
+	  La modalità è opzionale e additiva: senza riferimento a un profilo ogni
+	  integrazione continua ad autenticarsi come prima. Gli header configurati con
+	  `...properties.<nome header>` restano prevalenti anche sul token negoziato. Un
+	  profilo referenziato ma non configurato impedisce l'avvio del catalogo, invece di
+	  ricadere silenziosamente su credenziali diverse da quelle attese.
+
 2026-09-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

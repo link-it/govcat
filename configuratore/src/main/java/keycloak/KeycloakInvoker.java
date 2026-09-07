@@ -32,6 +32,8 @@ import com.google.gson.GsonBuilder;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+import httpauth.BearerAuthInterceptor;
+import httpauth.OutboundAuthentication;
 import okhttp3.FormBody;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
@@ -57,6 +59,7 @@ public class KeycloakInvoker {
 	private Long lastTokenTimestamp = 0l;
 	private String realm;
 	private Map<String, String> defaultHeaders;
+	private OutboundAuthentication authentication;
 	
 	private Gson gson;
 	private Configuration templateCfg;
@@ -78,16 +81,36 @@ public class KeycloakInvoker {
 	 *        omonimi impostati dal login.
 	 */
 	public KeycloakInvoker(HttpUrl url, String username, String password, String realm, Map<String, String> defaultHeaders, Configuration cfg) throws IOException {
+		this(url, username, password, realm, defaultHeaders, null, cfg);
+	}
+
+	/**
+	 * @param authentication autenticazione verso keycloak alternativa al login con username e
+	 *        password: se e' un client credentials il token viene negoziato e mantenuto in cache
+	 *        dal token store, e il login non viene eseguito. Nullo per il comportamento storico.
+	 */
+	public KeycloakInvoker(HttpUrl url, String username, String password, String realm, Map<String, String> defaultHeaders, OutboundAuthentication authentication, Configuration cfg) throws IOException {
 		this.url = url;
 		this.username = username;
 		this.password = password;
-		this.client = new OkHttpClient();
+		this.authentication = authentication == null ? OutboundAuthentication.none() : authentication;
+		this.client = buildClient(this.authentication);
 		this.realm = Objects.requireNonNullElse(realm, "master");
 		this.defaultHeaders = defaultHeaders == null ? Map.of() : Map.copyOf(defaultHeaders);
 		this.gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
 		this.templateCfg = ((Configuration)cfg.clone());
 		this.templateCfg.setClassForTemplateLoading(this.getClass(), "../templates/keycloak");
 
+	}
+	
+	/**
+	 * Con il client credentials l'header Authorization viene applicato dall'interceptor, che usa
+	 * il token in cache e lo rinegozia solo alla scadenza o dopo un 401.
+	 */
+	private static OkHttpClient buildClient(OutboundAuthentication authentication) {
+		return authentication.interceptor()
+				.map(interceptor -> new OkHttpClient.Builder().addInterceptor(interceptor).build())
+				.orElseGet(OkHttpClient::new);
 	}
 	
 	private boolean hasCredenziali() {
@@ -99,11 +122,15 @@ public class KeycloakInvoker {
 	 * Richiesta verso l'API admin di keycloak con le credenziali configurate: il token ottenuto
 	 * dal login (se username e password sono valorizzati) e gli header di default, che
 	 * sovrascrivono gli omonimi.
+	 *
+	 * Con il client credentials il login non serve: l'header lo aggiunge
+	 * {@link BearerAuthInterceptor}, che lascia intatto un Authorization gia' presente e quindi
+	 * non scavalca gli header di default.
 	 */
 	private Request.Builder authenticatedRequest(HttpUrl url) throws IOException {
 		Request.Builder builder = new Request.Builder().url(url);
 		
-		if (this.hasCredenziali()) {
+		if (!this.authentication.isOauthClientCredentials() && this.hasCredenziali()) {
 			this.login();
 			builder.header("Authorization", "Bearer " + this.token.getAccessToken());
 		}

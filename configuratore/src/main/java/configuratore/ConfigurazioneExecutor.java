@@ -50,6 +50,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import config.GovwayConfigInvoker;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateExceptionHandler;
+import httpauth.ClientCredentialsTokenStore;
+import httpauth.OutboundAuthRegistry;
 import keycloak.KeycloakInvoker;
 import okhttp3.HttpUrl;
 
@@ -60,8 +62,21 @@ import okhttp3.HttpUrl;
  */
 
 public class ConfigurazioneExecutor implements IConfigurazioneExecutor {
+	
+	/** Suffisso della property con cui una integrazione referenzia un profilo di autenticazione. */
+	private static final String SUFFISSO_AUTHN_REF = "authn.ref";
+	
+	/** Prefisso, relativo al nome della classe, sotto cui sono dichiarati i profili. */
+	private static final String PREFISSO_PROFILI = ".outbound.auth.";
+	
 	private Invokers invokers;	
 	private Properties properties;
+	
+	/**
+	 * Cache dei token condivisa da tutte le integrazioni del batch: il ConfigurazioneExecutor e'
+	 * istanziato una sola volta come bean, quindi il token negoziato sopravvive ai tick del job.
+	 */
+	private final ClientCredentialsTokenStore tokenStore = new ClientCredentialsTokenStore();
 	private Logger logger = LoggerFactory.getLogger(ConfigurazioneExecutor.class);
 	private Map<ScenariEnum, ScenarioCondition> scenariConditions;
 	
@@ -88,10 +103,13 @@ public class ConfigurazioneExecutor implements IConfigurazioneExecutor {
 
 		String className = this.getClass().getName();
 		
+		OutboundAuthRegistry authRegistry = new OutboundAuthRegistry(properties,
+				className + PREFISSO_PROFILI, this.tokenStore);
+		
 		Map<AmbienteEnum, KeycloakInvoker> keycloakApi = new EnumMap<>(AmbienteEnum.class);
 		
 		for (AmbienteEnum ambiente : AmbienteEnum.values()) {
-			KeycloakInvoker invoker = this.initKeycloak(properties, cfg, className, ambiente);
+			KeycloakInvoker invoker = this.initKeycloak(properties, cfg, className, ambiente, authRegistry);
 			if (invoker != null)
 				keycloakApi.put(ambiente, invoker);
 		}
@@ -102,7 +120,10 @@ public class ConfigurazioneExecutor implements IConfigurazioneExecutor {
 		String govwayPassword = properties.getProperty(className+".govwayConfig.password");
 		
 		GovwayConfigInvoker govwayConfigClient = new GovwayConfigInvoker(configAPIUrl, cfg)
-				.credentials(govwayUsername, govwayPassword);
+				.credentials(govwayUsername, govwayPassword)
+				.authentication(authRegistry.resolve(
+						properties.getProperty(className + ".govwayConfig." + SUFFISSO_AUTHN_REF),
+						govwayUsername, govwayPassword));
 		
 		this.invokers = new Invokers(keycloakApi, govwayConfigClient);
 		
@@ -113,7 +134,7 @@ public class ConfigurazioneExecutor implements IConfigurazioneExecutor {
 	 * le due istanze sono distinte. Un ambiente privo di url non viene configurato: le adesioni
 	 * di quell'ambiente che richiedono keycloak falliscono con un errore esplicito.
 	 */
-	private KeycloakInvoker initKeycloak(Properties properties, Configuration cfg, String className, AmbienteEnum ambiente) throws IOException {
+	private KeycloakInvoker initKeycloak(Properties properties, Configuration cfg, String className, AmbienteEnum ambiente, OutboundAuthRegistry authRegistry) throws IOException {
 		String prefix = className + ".keycloak." + ambiente.toString().toLowerCase() + ".";
 		
 		String kcUrl = properties.getProperty(prefix + "url");
@@ -123,11 +144,15 @@ public class ConfigurazioneExecutor implements IConfigurazioneExecutor {
 			return null;
 		}
 		
+		String kcUsername = properties.getProperty(prefix + "username");
+		String kcPassword = properties.getProperty(prefix + "password");
+		
 		return new KeycloakInvoker(HttpUrl.get(kcUrl),
-				properties.getProperty(prefix + "username"),
-				properties.getProperty(prefix + "password"),
+				kcUsername,
+				kcPassword,
 				properties.getProperty(prefix + "realm"),
 				getHeaders(properties, prefix + "properties."),
+				authRegistry.resolve(properties.getProperty(prefix + SUFFISSO_AUTHN_REF), kcUsername, kcPassword),
 				cfg);
 	}
 	

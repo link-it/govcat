@@ -29,6 +29,9 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 import javax.naming.NamingException;
+import httpauth.ClientCredentialsTokenStore;
+import httpauth.OutboundAuthRegistry;
+import httpauth.OutboundAuthentication;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
@@ -798,6 +801,37 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
         return module;
     }
 
+    /**
+     * Profili di autenticazione verso i sistemi esterni, dichiarati con il prefisso
+     * <code>outbound.auth.&lt;nome&gt;.*</code>. Ogni integrazione li referenzia per nome con la
+     * property <code>&lt;integrazione&gt;.authn.ref</code>.
+     */
+    @Bean
+    @ConfigurationProperties(prefix="outbound.auth")
+    public Properties outboundAuthProperties() {
+    	return new Properties();
+    }
+
+    /**
+     * Cache dei token client credentials, condivisa da tutte le integrazioni del modulo: il token
+     * viene negoziato solo alla scadenza di quello in cache, mai a ogni chiamata. Deve essere un
+     * singleton perche' i client http del monitoraggio vengono ricostruiti a ogni invocazione.
+     */
+    @Bean
+    public ClientCredentialsTokenStore clientCredentialsTokenStore() {
+    	return new ClientCredentialsTokenStore();
+    }
+
+    /**
+     * Un profilo referenziato ma non configurato impedisce l'avvio: meglio un errore in fase di
+     * deploy che una integrazione che ricade silenziosamente su credenziali diverse da quelle
+     * attese.
+     */
+    @Bean
+    public OutboundAuthRegistry outboundAuthRegistry() throws IOException {
+    	return new OutboundAuthRegistry(outboundAuthProperties(), "", clientCredentialsTokenStore());
+    }
+
     @Bean
     @ConfigurationProperties(prefix="pdnd.v1.collaudo.client.properties")
     public Properties pdndV1CollaudoClientProperties() {
@@ -827,16 +861,25 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
     
     @Value("${pdnd.v1.produzione.client.password:#{null}}")
 	String pdndV1ProduzioneClientPassword;
+
+    @Value("${pdnd.v1.collaudo.client.authn.ref:#{null}}")
+	String pdndV1CollaudoClientAuthnRef;
+
+    @Value("${pdnd.v1.produzione.client.authn.ref:#{null}}")
+	String pdndV1ProduzioneClientAuthnRef;
     
     @Bean(name = "PDNDClientCollaudo")
-    public ApiClient getApiClientStaging() {
+    public ApiClient getApiClientStaging() throws IOException {
     	ApiClient apiClient = new ApiClient();
 
     	if(pdndV1CollaudoClientUrl != null) {
     		apiClient.setBasePath(pdndV1CollaudoClientUrl);
     	}
 
-    	if(pdndV1CollaudoClientUsername!=null && !pdndV1CollaudoClientUsername.isEmpty() && pdndV1CollaudoClientPassword!=null && !pdndV1CollaudoClientPassword.isEmpty()) {
+    	OutboundAuthentication autenticazione = outboundAuthRegistry().resolve(pdndV1CollaudoClientAuthnRef,
+    			pdndV1CollaudoClientUsername, pdndV1CollaudoClientPassword);
+
+    	if(autenticazione.getBasicUsername().isPresent()) {
 			apiClient.addDefaultHeader("Authorization", "Basic " + new String(Base64.getEncoder().encode((pdndV1CollaudoClientUsername+":"+pdndV1CollaudoClientPassword).getBytes())));
     	}
     	
@@ -845,18 +888,36 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
     	for(String name: p.stringPropertyNames()) {
         	apiClient.addDefaultHeader(name, p.getProperty(name));
     	}
+
+    	aggiungiAutenticazione(apiClient, autenticazione);
+
     	return apiClient;
+    }
+
+    /**
+     * Aggiunge al client pdnd l'interceptor che autentica le richieste con il token negoziato.
+     *
+     * Va chiamato dopo gli header di default: l'interceptor lascia intatto un Authorization gia'
+     * presente, quindi gli header custom configurati sul client mantengono la precedenza che
+     * hanno oggi.
+     */
+    private static void aggiungiAutenticazione(ApiClient apiClient, OutboundAuthentication autenticazione) {
+    	autenticazione.interceptor().ifPresent(interceptor ->
+    			apiClient.setHttpClient(apiClient.getHttpClient().newBuilder().addInterceptor(interceptor).build()));
     }
     
     @Bean(name = "PDNDClientProduzione")
-    public ApiClient getApiClientProduzione() {
+    public ApiClient getApiClientProduzione() throws IOException {
     	ApiClient apiClient = new ApiClient();
 
     	if(pdndV1ProduzioneClientUrl != null) {
     		apiClient.setBasePath(pdndV1ProduzioneClientUrl);
     	}
 
-    	if(pdndV1ProduzioneClientUsername!=null && !pdndV1ProduzioneClientUsername.isEmpty() && pdndV1ProduzioneClientPassword!=null && !pdndV1ProduzioneClientPassword.isEmpty()) {
+    	OutboundAuthentication autenticazione = outboundAuthRegistry().resolve(pdndV1ProduzioneClientAuthnRef,
+    			pdndV1ProduzioneClientUsername, pdndV1ProduzioneClientPassword);
+
+    	if(autenticazione.getBasicUsername().isPresent()) {
 			apiClient.addDefaultHeader("Authorization", "Basic " + new String(Base64.getEncoder().encode((pdndV1ProduzioneClientUsername+":"+pdndV1ProduzioneClientPassword).getBytes())));
     	}
 
@@ -865,6 +926,9 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
     	for(String name: p.stringPropertyNames()) {
         	apiClient.addDefaultHeader(name, p.getProperty(name));
     	}
+
+    	aggiungiAutenticazione(apiClient, autenticazione);
+
     	return apiClient;
     }
 
@@ -898,20 +962,26 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
     @Value("${pdnd.v3.produzione.client.password:#{null}}")
 	String pdndV3ProduzioneClientPassword;
 
+    @Value("${pdnd.v3.collaudo.client.authn.ref:#{null}}")
+	String pdndV3CollaudoClientAuthnRef;
+
+    @Value("${pdnd.v3.produzione.client.authn.ref:#{null}}")
+	String pdndV3ProduzioneClientAuthnRef;
+
     @Bean(name = "PDNDClientV3Collaudo")
-    public org.govway.catalogo.servlets.pdnd.v3.client.api.impl.ApiClient getApiClientV3Staging() {
+    public org.govway.catalogo.servlets.pdnd.v3.client.api.impl.ApiClient getApiClientV3Staging() throws IOException {
     	return getApiClientV3(pdndV3CollaudoClientUrl, pdndV3CollaudoClientUsername, pdndV3CollaudoClientPassword,
-    			pdndV3CollaudoClientProperties());
+    			pdndV3CollaudoClientProperties(), pdndV3CollaudoClientAuthnRef);
     }
 
     @Bean(name = "PDNDClientV3Produzione")
-    public org.govway.catalogo.servlets.pdnd.v3.client.api.impl.ApiClient getApiClientV3Produzione() {
+    public org.govway.catalogo.servlets.pdnd.v3.client.api.impl.ApiClient getApiClientV3Produzione() throws IOException {
     	return getApiClientV3(pdndV3ProduzioneClientUrl, pdndV3ProduzioneClientUsername, pdndV3ProduzioneClientPassword,
-    			pdndV3ProduzioneClientProperties());
+    			pdndV3ProduzioneClientProperties(), pdndV3ProduzioneClientAuthnRef);
     }
 
     private org.govway.catalogo.servlets.pdnd.v3.client.api.impl.ApiClient getApiClientV3(String url, String username,
-    		String password, Properties properties) {
+    		String password, Properties properties, String authnRef) throws IOException {
     	org.govway.catalogo.servlets.pdnd.v3.client.api.impl.ApiClient apiClient =
     			new org.govway.catalogo.servlets.pdnd.v3.client.api.impl.ApiClient();
 
@@ -919,13 +989,18 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
     		apiClient.setBasePath(url);
     	}
 
-    	if(username!=null && !username.isEmpty() && password!=null && !password.isEmpty()) {
+    	OutboundAuthentication autenticazione = outboundAuthRegistry().resolve(authnRef, username, password);
+
+    	if(autenticazione.getBasicUsername().isPresent()) {
 			apiClient.addDefaultHeader("Authorization", "Basic " + new String(Base64.getEncoder().encode((username+":"+password).getBytes())));
     	}
 
     	for(String name: properties.stringPropertyNames()) {
         	apiClient.addDefaultHeader(name, properties.getProperty(name));
     	}
+
+    	autenticazione.interceptor().ifPresent(interceptor ->
+    			apiClient.setHttpClient(apiClient.getHttpClient().newBuilder().addInterceptor(interceptor).build()));
 
     	return apiClient;
     }

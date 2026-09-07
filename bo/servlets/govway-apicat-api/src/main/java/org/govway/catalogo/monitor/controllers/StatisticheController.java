@@ -30,6 +30,7 @@ import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.ProfiloEnum;
+import org.govway.catalogo.monitoraggioutils.AutenticazioniMonitoraggio;
 import org.govway.catalogo.monitoraggioutils.ConfigurazioneConnessione;
 import org.govway.catalogo.monitoraggioutils.FiltriUtils;
 import org.govway.catalogo.monitoraggioutils.GetReportRequest;
@@ -96,6 +97,9 @@ public class StatisticheController implements StatisticheApi {
 
 	@Autowired
 	private FiltriUtils filtriUtils;
+
+	@Autowired
+	private AutenticazioniMonitoraggio autenticazioniMonitoraggio;
 
 	@Value("${statistiche.collaudo.uri}")
 	protected String uriStatisticheCollaudo;
@@ -215,6 +219,7 @@ public class StatisticheController implements StatisticheApi {
 				ambiente.equals(AmbienteEnum.COLLAUDO) ? this.userStatisticheCollaudo : this.userStatisticheProduzione);
 		conf.setPassword(ambiente.equals(AmbienteEnum.COLLAUDO) ? this.passwordStatisticheCollaudo
 				: this.passwordStatisticheProduzione);
+		conf.setAutenticazione(this.autenticazioniMonitoraggio.statistiche(ambiente));
 
 		return conf;
 	}

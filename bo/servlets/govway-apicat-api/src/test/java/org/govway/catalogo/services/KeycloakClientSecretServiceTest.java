@@ -32,6 +32,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import httpauth.ClientCredentialsTokenStore;
+import httpauth.OutboundAuthRegistry;
+
 /**
  * Keycloak e' configurato per ambiente: solo gli ambienti con url valorizzato vengono
  * inizializzati, per gli altri la lettura del secret termina con errore esplicito.
@@ -39,7 +42,22 @@ import org.springframework.test.util.ReflectionTestUtils;
 class KeycloakClientSecretServiceTest {
 
 	private KeycloakClientSecretService service(String urlCollaudo, String urlProduzione) throws IOException {
+		return this.service(urlCollaudo, urlProduzione, new Properties(), null, null);
+	}
+
+	/**
+	 * @param profili properties dei profili di autenticazione, con il prefisso gia' rimosso
+	 * @param refCollaudo profilo referenziato dall'ambiente di collaudo, null per la basic auth
+	 * @param refProduzione profilo referenziato dall'ambiente di produzione, null per la basic auth
+	 */
+	private KeycloakClientSecretService service(String urlCollaudo, String urlProduzione, Properties profili,
+			String refCollaudo, String refProduzione) throws IOException {
 		KeycloakClientSecretService service = new KeycloakClientSecretService();
+
+		ReflectionTestUtils.setField(service, "authRegistry",
+				new OutboundAuthRegistry(profili, "", new ClientCredentialsTokenStore()));
+		ReflectionTestUtils.setField(service, "keycloakCollaudoAuthnRef", refCollaudo);
+		ReflectionTestUtils.setField(service, "keycloakProduzioneAuthnRef", refProduzione);
 
 		ReflectionTestUtils.setField(service, "keycloakCollaudoUrl", urlCollaudo);
 		ReflectionTestUtils.setField(service, "keycloakCollaudoUsername", "admin");
@@ -85,6 +103,29 @@ class KeycloakClientSecretServiceTest {
 		IOException e = assertThrows(IOException.class,
 				() -> service.getSecret("client-di-test", AmbienteEnum.PRODUZIONE));
 		assertTrue(e.getMessage().contains(AmbienteEnum.PRODUZIONE.toString()));
+	}
+
+	@Test
+	@DisplayName("Un profilo di autenticazione referenziato ma non configurato impedisce l'inizializzazione")
+	void testProfiloReferenziatoNonConfigurato() {
+		IOException e = assertThrows(IOException.class, () -> this.service("http://collaudo.example:9083/auth",
+				null, new Properties(), "keycloak-collaudo", null));
+
+		assertTrue(e.getMessage().contains("keycloak-collaudo"), e.getMessage());
+	}
+
+	@Test
+	@DisplayName("Con un profilo client credentials l'ambiente viene configurato senza login")
+	void testProfiloClientCredentials() throws IOException {
+		Properties profili = new Properties();
+		profili.setProperty("keycloak-collaudo.token-endpoint", "http://collaudo.example:9083/auth/realms/master/protocol/openid-connect/token");
+		profili.setProperty("keycloak-collaudo.client-id", "govcat");
+		profili.setProperty("keycloak-collaudo.client-secret", "segreto");
+
+		KeycloakClientSecretService service = this.service("http://collaudo.example:9083/auth", null,
+				profili, "keycloak-collaudo", null);
+
+		assertTrue(this.invokers(service).containsKey(AmbienteEnum.COLLAUDO));
 	}
 
 	@Test

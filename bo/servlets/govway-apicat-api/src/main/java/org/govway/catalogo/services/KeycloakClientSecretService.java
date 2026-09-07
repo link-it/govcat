@@ -38,6 +38,8 @@ import org.springframework.stereotype.Service;
 
 import freemarker.template.Configuration;
 import freemarker.template.TemplateExceptionHandler;
+import httpauth.OutboundAuthRegistry;
+import httpauth.OutboundAuthentication;
 import keycloak.KeycloakInvoker;
 import okhttp3.HttpUrl;
 
@@ -70,6 +72,12 @@ public class KeycloakClientSecretService {
 	@Value("${org.govway.api.catalogo.keycloak.produzione.realm:master}")
 	private String keycloakProduzioneRealm;
 
+	@Value("${org.govway.api.catalogo.keycloak.collaudo.authn.ref:#{null}}")
+	private String keycloakCollaudoAuthnRef;
+
+	@Value("${org.govway.api.catalogo.keycloak.produzione.authn.ref:#{null}}")
+	private String keycloakProduzioneAuthnRef;
+
 	@Autowired
 	@Qualifier("keycloakCollaudoProperties")
 	private Properties keycloakCollaudoProperties;
@@ -77,6 +85,9 @@ public class KeycloakClientSecretService {
 	@Autowired
 	@Qualifier("keycloakProduzioneProperties")
 	private Properties keycloakProduzioneProperties;
+
+	@Autowired
+	private OutboundAuthRegistry authRegistry;
 
 	private Map<AmbienteEnum, KeycloakInvoker> keycloakInvokers;
 
@@ -93,9 +104,11 @@ public class KeycloakClientSecretService {
 		Map<AmbienteEnum, KeycloakInvoker> invokers = new EnumMap<>(AmbienteEnum.class);
 
 		this.addInvoker(invokers, AmbienteEnum.COLLAUDO, this.keycloakCollaudoUrl, this.keycloakCollaudoUsername,
-				this.keycloakCollaudoPassword, this.keycloakCollaudoRealm, this.keycloakCollaudoProperties, cfg);
+				this.keycloakCollaudoPassword, this.keycloakCollaudoRealm, this.keycloakCollaudoProperties,
+				this.keycloakCollaudoAuthnRef, cfg);
 		this.addInvoker(invokers, AmbienteEnum.PRODUZIONE, this.keycloakProduzioneUrl, this.keycloakProduzioneUsername,
-				this.keycloakProduzionePassword, this.keycloakProduzioneRealm, this.keycloakProduzioneProperties, cfg);
+				this.keycloakProduzionePassword, this.keycloakProduzioneRealm, this.keycloakProduzioneProperties,
+				this.keycloakProduzioneAuthnRef, cfg);
 
 		this.keycloakInvokers = invokers;
 	}
@@ -106,11 +119,14 @@ public class KeycloakClientSecretService {
 	 * quell'ambiente termina con errore esplicito.
 	 */
 	private void addInvoker(Map<AmbienteEnum, KeycloakInvoker> invokers, AmbienteEnum ambiente, String url,
-			String username, String password, String realm, Properties properties, Configuration cfg) throws IOException {
+			String username, String password, String realm, Properties properties, String authnRef,
+			Configuration cfg) throws IOException {
 		if(url == null || url.isBlank()) {
 			logger.info("KeycloakClientSecretService: keycloak non configurato per l'ambiente {}", ambiente);
 			return;
 		}
+
+		OutboundAuthentication autenticazione = this.authRegistry.resolve(authnRef, username, password);
 
 		invokers.put(ambiente, new KeycloakInvoker(
 				HttpUrl.get(url),
@@ -118,8 +134,10 @@ public class KeycloakClientSecretService {
 				password,
 				realm,
 				toHeaders(properties),
+				autenticazione,
 				cfg));
-		logger.info("KeycloakClientSecretService inizializzato per l'ambiente {} (realm={})", ambiente, realm);
+		logger.info("KeycloakClientSecretService inizializzato per l'ambiente {} (realm={}, autenticazione={})",
+				ambiente, realm, autenticazione);
 	}
 
 	/**

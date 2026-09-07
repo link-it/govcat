@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
@@ -43,6 +44,9 @@ import com.sun.net.httpserver.HttpServer;
 
 import configuratore.Invokers;
 import freemarker.template.Configuration;
+import httpauth.ClientCredentialsConfig;
+import httpauth.ClientCredentialsTokenStore;
+import httpauth.OutboundAuthentication;
 import keycloak.KeycloakInvoker;
 import okhttp3.HttpUrl;
 
@@ -66,10 +70,12 @@ class KeycloakInvokerTest {
 	private static class Richiesta {
 		private final String path;
 		private final Map<String, String> headers;
+		private final String body;
 
-		private Richiesta(String path, Map<String, String> headers) {
+		private Richiesta(String path, Map<String, String> headers, String body) {
 			this.path = path;
 			this.headers = headers;
+			this.body = body;
 		}
 	}
 
@@ -82,7 +88,13 @@ class KeycloakInvokerTest {
 
 			Map<String, String> headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 			exchange.getRequestHeaders().forEach((nome, valori) -> headers.put(nome, String.join(",", valori)));
-			this.richieste.add(new Richiesta(path, headers));
+
+			String richiestaBody;
+			try(InputStream is = exchange.getRequestBody()) {
+				richiestaBody = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+			}
+
+			this.richieste.add(new Richiesta(path, headers, richiestaBody));
 
 			String body;
 			if(path.endsWith(PATH_LOGIN)) {
@@ -109,9 +121,26 @@ class KeycloakInvokerTest {
 	}
 
 	private KeycloakInvoker invoker(String username, String password, Map<String, String> headers) throws IOException {
+		return this.invoker(username, password, headers, null);
+	}
+
+	private KeycloakInvoker invoker(String username, String password, Map<String, String> headers,
+			OutboundAuthentication authentication) throws IOException {
 		HttpUrl url = HttpUrl.get("http://127.0.0.1:" + this.server.getAddress().getPort() + "/auth");
-		return new KeycloakInvoker(url, username, password, "master", headers,
+		return new KeycloakInvoker(url, username, password, "master", headers, authentication,
 				new Configuration(Configuration.VERSION_2_3_29));
+	}
+
+	/**
+	 * @param tokenStore cache da riusare tra piu' invoker, per verificare che il token venga
+	 *        negoziato una sola volta
+	 */
+	private OutboundAuthentication clientCredentials(ClientCredentialsTokenStore tokenStore) throws IOException {
+		String tokenEndpoint = "http://127.0.0.1:" + this.server.getAddress().getPort()
+				+ "/auth/realms/master" + PATH_LOGIN;
+
+		return OutboundAuthentication.clientCredentials(tokenStore, new ClientCredentialsConfig(
+				"keycloak", tokenEndpoint, "govcat", "segreto", null, null, null, null));
 	}
 
 	private Stream<Richiesta> richiesteAdmin() {
@@ -119,7 +148,14 @@ class KeycloakInvokerTest {
 	}
 
 	private boolean loginEffettuato() {
-		return this.richieste.stream().anyMatch(r -> r.path.endsWith(PATH_LOGIN));
+		return this.richieste.stream()
+				.anyMatch(r -> r.path.endsWith(PATH_LOGIN) && r.body.contains("grant_type=password"));
+	}
+
+	private long negoziazioniClientCredentials() {
+		return this.richieste.stream()
+				.filter(r -> r.path.endsWith(PATH_LOGIN) && r.body.contains("grant_type=client_credentials"))
+				.count();
 	}
 
 	@Test
@@ -167,6 +203,47 @@ class KeycloakInvokerTest {
 
 		assertSame(collaudo, invokers.getKeycloak(AmbienteEnum.COLLAUDO));
 		assertSame(produzione, invokers.getKeycloak(AmbienteEnum.PRODUZIONE));
+	}
+
+	@Test
+	void testClientCredentialsSostituisceIlLogin() throws IOException {
+		KeycloakInvoker invoker = this.invoker("admin", "admin", Map.of(),
+				this.clientCredentials(new ClientCredentialsTokenStore()));
+
+		assertEquals(SECRET, invoker.getSecret(CLIENT_ID));
+
+		assertTrue(!this.loginEffettuato(),
+				"con il client credentials il login con username e password non deve essere effettuato");
+		assertEquals(1, this.negoziazioniClientCredentials());
+		assertTrue(this.richiesteAdmin().count() > 0);
+		assertTrue(this.richiesteAdmin().allMatch(r -> ("Bearer " + TOKEN_LOGIN).equals(r.headers.get("Authorization"))),
+				"le richieste admin devono portare il token negoziato");
+	}
+
+	@Test
+	void testClientCredentialsNegoziaIlTokenUnaSolaVolta() throws IOException {
+		ClientCredentialsTokenStore tokenStore = new ClientCredentialsTokenStore();
+		KeycloakInvoker invoker = this.invoker(null, null, Map.of(), this.clientCredentials(tokenStore));
+
+		for(int i = 0; i < 5; i++) {
+			assertEquals(SECRET, invoker.getSecret(CLIENT_ID));
+		}
+
+		assertEquals(1, this.negoziazioniClientCredentials(),
+				"il token in cache va riusato fino alla scadenza");
+	}
+
+	@Test
+	void testHeaderCustomPrevaleSulClientCredentials() throws IOException {
+		KeycloakInvoker invoker = this.invoker(null, null, Map.of("Authorization", "Bearer token-statico"),
+				this.clientCredentials(new ClientCredentialsTokenStore()));
+
+		assertEquals(SECRET, invoker.getSecret(CLIENT_ID));
+
+		assertTrue(this.richiesteAdmin().allMatch(r -> "Bearer token-statico".equals(r.headers.get("Authorization"))),
+				"l'header custom deve prevalere anche sul token negoziato");
+		assertEquals(0, this.negoziazioniClientCredentials(),
+				"con l'header custom il token non serve e non viene negoziato");
 	}
 
 	@Test
