@@ -498,23 +498,35 @@
                 </div>
               </div>
             }
-            @if (_isEdit || utente?.organizzazione_esterna) {
-              <div class="row organizzazione_esterna">
+            @if (_isEdit || utente?.azienda_esterna) {
+              <div class="row azienda_esterna">
                 <div class="col-12">
                   <div class="form-group">
-                    <label class="label-bold" for="organizzazione_esterna">{{ 'APP.USERS.LABEL.OrganizzazioneEsterna' | translate }}</label>
+                    <label class="label-bold" for="azienda_esterna">{{ 'APP.USERS.LABEL.OrganizzazioneEsterna' | translate }}</label>
                     @if (_isEdit) {
-                      <input autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('organizzazione_esterna')" type="text" name="organizzazione_esterna" id="organizzazione_esterna" formControlName="organizzazione_esterna" appTrimOnBlur>
-                      @if (f['organizzazione_esterna']?.invalid && (f['organizzazione_esterna'].dirty || f['organizzazione_esterna'].touched)) {
+                      <!-- Issue 350: autocompletamento con possibilita` di inserire
+                           un nome nuovo (addTag): il BE crea l'azienda al volo. -->
+                      <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('azienda_esterna')"
+                        [items]="(aziendeEsterne$ | async) || []"
+                        [typeahead]="aziendeEsterneInput$"
+                        [minTermLength]="minLengthTerm"
+                        [addTag]="true"
+                        [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                        [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                        [editableSearchTerm]="true"
+                        labelForId="azienda_esterna"
+                        formControlName="azienda_esterna">
+                      </ng-select>
+                      @if (f['azienda_esterna']?.invalid && (f['azienda_esterna'].dirty || f['azienda_esterna'].touched)) {
                         <p class="form-text text-danger">
-                          @if (f['organizzazione_esterna'].errors && f['organizzazione_esterna'].errors['maxlength']) {
-                            <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['organizzazione_esterna'].errors['maxlength'].requiredLength } }}</span>
+                          @if (f['azienda_esterna'].errors && f['azienda_esterna'].errors['maxlength']) {
+                            <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['azienda_esterna'].errors['maxlength'].requiredLength } }}</span>
                           }
                         </p>
                       }
                     }
                     @if (!_isEdit) {
-                      <input type="text" readonly class="form-control-plaintext" id="organizzazione_esterna" [value]="utente.organizzazione_esterna || '--'">
+                      <input type="text" readonly class="form-control-plaintext" id="azienda_esterna" [value]="utente.azienda_esterna || '--'">
                     }
                   </div>
                 </div>

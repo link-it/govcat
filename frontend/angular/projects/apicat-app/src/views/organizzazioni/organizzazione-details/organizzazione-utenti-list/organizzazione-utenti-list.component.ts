@@ -210,6 +210,7 @@ export class OrganizzazioneUtentiListComponent implements OnInit, OnChanges, OnD
             nome: utente?.nome,
             cognome: utente?.cognome,
             email_aziendale: utente?.email_aziendale,
+            azienda_esterna: utente?.azienda_esterna ?? null,
             ruolo_organizzazione: ruolo
         };
     }

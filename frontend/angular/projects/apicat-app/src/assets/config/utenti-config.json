@@ -10,8 +10,11 @@
       { "field": "stato", "type": "label", "options": "status", "i18nPrefix": "APP.USERS.STATUS" }
     ],
     "metadata": {
-      "text": [{ "field": "email_aziendale", "type": "text" }],
+      "text": [
+        { "field": "email_aziendale", "type": "text" }
+      ],
       "label": [
+        { "field": "azienda_esterna", "type": "tag", "options": "aziendaEsterna", "tooltip": "APP.USERS.LABEL.AziendaEsterna", "hideEmpty": true },
         { "field": "referente_tecnico_hide", "type": "tag", "options": "referenteTecnico", "hideEmpty": true },
         { "field": "ruolo_pdnd_admin", "type": "tag", "options": "ruoloPdnd", "hideEmpty": true }
       ]
@@ -68,6 +71,13 @@
       "values": {
           "admin": { "label": "APP.USERS.RUOLO_PDND.admin", "chipVariant": "danger", "background": "#f8d7da", "border": "#f5c2c7", "color": "#842029" }
         }
+    },
+    "aziendaEsterna": {
+      "label": "APP.USERS.LABEL.OrganizzazioneEsterna",
+      "small": true,
+      "values": {
+        "default": { "chipVariant": "brand" }
+      }
     }
   }
 }

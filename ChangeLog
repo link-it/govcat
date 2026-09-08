@@ -1,3 +1,14 @@
+2026-09-08  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 350: allineato il campo "Azienda esterna" al backend (rinominato
+	  organizzazione_esterna -> azienda_esterna in model e form: il valore non
+	  veniva piu` persistito) e integrato l'autocompletamento GET /aziende-esterne
+	  con ng-select in typeahead e addTag (consente di censire nomi nuovi) nei form
+	  dettaglio utente e dialog di aggiunta a organizzazione. In lista utenti
+	  (globale, org-manage e lista org) l'azienda esterna, se presente, e` mostrata
+	  come chip con tooltip "Azienda esterna".
+
 2026-09-07  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

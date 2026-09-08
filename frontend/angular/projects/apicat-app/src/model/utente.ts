@@ -52,7 +52,7 @@ export interface Utente {
      */
     organizzazione?: Organizzazione;
     organizzazioni?: Array<UtenteOrganizzazione>;
-    organizzazione_esterna?: string;
+    azienda_esterna?: string;
     organizzazione_pending?: Organizzazione;
     classi_utente?: Array<string>;
 }

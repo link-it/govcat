@@ -124,6 +124,13 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
   organizzazioniLoading: boolean = false;
   selectedOrganizzazione: any;
 
+  // Issue 350: autocompletamento "Azienda esterna" (GET /aziende-esterne,
+  // array di stringhe). Con `[addTag]` resta possibile inserire un nome nuovo
+  // (il BE lo crea via findOrCreate).
+  aziendeEsterne$!: Observable<any[]>;
+  aziendeEsterneInput$ = new Subject<string>();
+  aziendeEsterneLoading: boolean = false;
+
   _fromDashboard: boolean = false;
   /** Membership evolutiva 2026-06-11: la rotta
    *  `organizzazione-manage/:id/utenti/:uid` viene risolta dal
@@ -463,7 +470,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
           case 'telefono':
           case 'metadati':
           case 'note':
-          case 'organizzazione_esterna':
+          case 'azienda_esterna':
             value = data[key] ? data[key] : null;
             _group[key] = new FormControl(value, [
               Validators.maxLength(255)
@@ -480,6 +487,10 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
         }
       });
       this._formGroup = new FormGroup(_group);
+
+      // Issue 350: precarica il valore corrente come opzione, cosi` l'ng-select
+      // dell'azienda esterna lo mostra in edit anche prima di digitare.
+      this._initAziendeEsterneSelect(data?.azienda_esterna ? [data.azienda_esterna] : []);
 
       if(this._isEdit) {
         const primaryOrg = this._getPrimaryOrg(this._utente);
@@ -849,6 +860,32 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
         })
       )
     );
+  }
+
+  /** Issue 350: typeahead delle aziende esterne (array di stringhe). */
+  _initAziendeEsterneSelect(defaultValue: string[] = []) {
+    this.aziendeEsterne$ = concat(
+      of(defaultValue),
+      this.aziendeEsterneInput$.pipe(
+        filter(res => res !== null && res.length >= this.minLengthTerm),
+        distinctUntilChanged(),
+        debounceTime(500),
+        tap(() => this.aziendeEsterneLoading = true),
+        switchMap((term: any) => {
+          return this.getAziendeEsterne(term).pipe(
+            catchError(() => of([])),
+            tap(() => this.aziendeEsterneLoading = false)
+          )
+        })
+      )
+    );
+  }
+
+  /** GET /aziende-esterne -> array di nomi (stringhe). */
+  getAziendeEsterne(term: string | null = null): Observable<any> {
+    const _options: any = { params: { q: term } };
+    return this.apiService.getList('aziende-esterne', _options)
+      .pipe(map((resp: any) => Array.isArray(resp) ? resp : (resp?.content || [])));
   }
 
   getOrganizzazioni(term: string | null = null): Observable<any> {

@@ -194,10 +194,23 @@
           </ng-select>
         </div>
 
-        <!-- 7. Organizzazione esterna (full-width) -->
+        <!-- 7. Azienda esterna (full-width) — autocompletamento con addTag:
+             consente di inserire un nome nuovo (findOrCreate lato BE). Issue 350. -->
         <div class="col-12">
           <label class="label-bold" for="new-utente-org-esterna">{{ 'APP.USERS.LABEL.OrganizzazioneEsterna' | translate }}</label>
-          <input id="new-utente-org-esterna" type="text" class="form-control" formControlName="organizzazione_esterna" autocomplete="off">
+          <ng-select id="new-utente-org-esterna"
+                     class="select-custom"
+                     appendTo="body"
+                     [items]="(aziendeEsterne$ | async) || []"
+                     [typeahead]="aziendeEsterneInput$"
+                     [loading]="aziendeEsterneLoading"
+                     [addTag]="true"
+                     [minTermLength]="1"
+                     [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: 1 }"
+                     [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                     [editableSearchTerm]="true"
+                     formControlName="azienda_esterna">
+          </ng-select>
         </div>
 
         <!-- 8. Stato (col-6) -->
