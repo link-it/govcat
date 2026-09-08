@@ -20,6 +20,13 @@
 2026-09-07  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
+	Fix vulnerabilità OSV: aggiornato tomcat-catalina (scope test) da 10.1.55 a
+	  10.1.59 (CVE-2026-65905, replay sull'autenticatore DIGEST; CVE-2026-65182 e
+	  CVE-2026-68525, bypass di security constraint). La versione indicata come fix,
+	  la 10.1.58, non è pubblicata su Maven Central: la 10.1.59 è la prima release
+	  disponibile che include le correzioni.
+
+	* [GovwayAPICatalogo]
 	Risolte alcune segnalazioni dell'analisi statica del codice, senza alcuna modifica
 	  funzionale. Semplificata l'espressione regolare con cui il motore di generazione
 	  dei PDF suddivide le condizioni composte, che aveva un costo super-lineare per
