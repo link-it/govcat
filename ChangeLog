@@ -1,6 +1,12 @@
 2026-09-08  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 350: rimosso `referente_tecnico` dal salvataggio utente (non e` piu` una
+	  caratteristica dell'utente): tolta la proprieta` dalla classe locale Utente,
+	  il relativo campo/form control nel dettaglio utente e il campo nei model
+	  UtenteCreate/UtenteUpdate, cosi` non viene piu` inviato nel payload POST/PUT.
+
+	* [Frontend]
 	Issue 350: allineato il campo "Azienda esterna" al backend (rinominato
 	  organizzazione_esterna -> azienda_esterna in model e form: il valore non
 	  veniva piu` persistito) e integrato l'autocompletamento GET /aziende-esterne

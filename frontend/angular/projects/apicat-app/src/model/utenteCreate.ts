@@ -53,7 +53,6 @@ export interface UtenteCreate {
     metadati?: string;
     stato: StatoUtenteEnum;
     ruolo?: RuoloUtenteEnum;
-    referente_tecnico?: boolean;
     abilitato_domini_esterni?: boolean;
     azienda_esterna?: string;
     /**

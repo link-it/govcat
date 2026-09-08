@@ -109,7 +109,6 @@ export class Utente {
    */
   organizzazione_partenza: Organizzazione | null = null;
   classi_utente: ClassiUtente | null = null;
-  referente_tecnico: boolean = false;
 
   constructor(_data?: any) {
     if (_data) {

@@ -476,10 +476,6 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
               Validators.maxLength(255)
             ]);
             break;
-          case 'referente_tecnico':
-            value = data[key] ? data[key] : false;
-            _group[key] = new FormControl(value, []);
-            break;
           default:
             value = data[key] ? data[key] : null;
             _group[key] = new FormControl(value, []);

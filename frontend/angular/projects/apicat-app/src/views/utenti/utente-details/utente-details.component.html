@@ -349,7 +349,7 @@
                 </div>
               </div>
             </div>
-            <div class="row ruolo referente_tecnico">
+            <div class="row ruolo">
               <div class="col-6">
                 <div class="form-group">
                   <label class="label-bold" for="ruolo">{{ 'APP.USERS.LABEL.Role' | translate }}
@@ -380,39 +380,6 @@
                     </div>
                   }
                 </div>
-              </div>
-              <!-- Issue 229 — flag "Referente tecnico" nascosto
-                   sempre (sia in read-only che in
-                   creazione/modifica): il valore non e` piu`
-                   gestibile dall'operatore via UI ne` mostrato.
-                   Default `false` dal model `Utente`; per utenti
-                   esistenti con flag attivo, il FormControl
-                   conserva il valore corrente nel payload. -->
-              <div class="col-6 d-none">
-                <label class="label-bold" for="referente_tecnico">{{ 'APP.LABEL.ReferenteTecnico' | translate }}@if (_isNew || _isEdit) {
-                  <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'referente_tecnico'"></span>
-                }</label>
-                @if (_isEdit) {
-                  <div class="">
-                    <div class="form-check form-switch ml-3">
-                      <input class="form-check-input" type="checkbox" role="switch" id="referente_tecnico" [checked]="utente?.referente_tecnico" formControlName="referente_tecnico">
-                      @if (f['referente_tecnico'].invalid && (f['referente_tecnico'].dirty || f['referente_tecnico'].touched)) {
-                        <p class="form-text text-danger">
-                          @if (f['referente_tecnico'].errors && f['referente_tecnico'].errors['required']) {
-                            <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                          }
-                        </p>
-                      }
-                    </div>
-                  </div>
-                }
-                @if (!_isEdit) {
-                  <div class="">
-                    <div class="form-check form-switch ml-3">
-                      <input class="form-check-input" type="checkbox" role="switch" id="referente_tecnico" [checked]="utente.referente_tecnico" disabled>
-                    </div>
-                  </div>
-                }
               </div>
             </div>
             <!-- Issue 250: ruolo PDND. Editabile solo dal gestore; per gli
