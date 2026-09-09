@@ -1,3 +1,12 @@
+2026-09-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 353: fix dropdown (Servizio/Organizzazione) tagliato in creazione nuova
+	  adesione. La card `.lnk-phase-section` non taglia piu` il pannello quando un
+	  ng-select e` aperto (`:has(.ng-select-opened)` -> overflow visible + z-index),
+	  aggiunto `position: relative` sulla card perche` lo z-index abbia effetto
+	  (altrimenti il pannello restava coperto dalla card successiva).
+
 2026-09-08  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
