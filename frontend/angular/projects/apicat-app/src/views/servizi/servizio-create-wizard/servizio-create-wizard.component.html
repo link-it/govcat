@@ -603,7 +603,11 @@
             </div>
             @for (g of _selectedGruppi; track g.id_gruppo) {
               <div class="d-flex align-items-center gap-2 border rounded p-2 mb-2">
-                <i class="bi bi-folder fs-5"></i>
+                @if (gruppoLogo(g)) {
+                  <img class="av av-logo" style="width:32px;height:32px;object-fit:cover;border-radius:50%;flex-shrink:0;" [src]="{ path: gruppoLogo(g), width: '32', height: '32' } | httpImgSrc" alt="" />
+                } @else {
+                  <i class="bi bi-folder fs-5"></i>
+                }
                 <div class="flex-grow-1">
                   <div class="fw-semibold">{{ g.nome }}</div>
                   @if (g.descrizione_sintetica) { <div class="small text-muted">{{ g.descrizione_sintetica }}</div> }

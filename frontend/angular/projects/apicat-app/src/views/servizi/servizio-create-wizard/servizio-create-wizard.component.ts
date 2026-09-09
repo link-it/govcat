@@ -44,6 +44,7 @@ import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asteri
 import { ErrorViewComponent } from '@app/components/error-view/error-view.component';
 import { MarkdownModule } from 'ngx-markdown';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
+import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
 
 /**
  * Step del wizard di creazione (compilazione client-side). A differenza
@@ -76,6 +77,7 @@ interface WizardStep {
         ErrorViewComponent,
         MarkdownModule,
         MapperPipe,
+        HttpImgSrcPipe,
         WizardFasiBarComponent,
         ServizioAllegatoAddFormComponent
     ]

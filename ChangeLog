@@ -1,3 +1,9 @@
+2026-09-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Wizard creazione servizio, sezione Gruppi: mostra l'immagine del gruppo (avatar
+	  tondo) come nel wizard di modifica, con fallback all'icona cartella.
+
 2026-09-04  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
