@@ -69,7 +69,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     border: 1px solid var(--line, #dee8ef);
     border-radius: var(--radius-lg, 14px);
     overflow: hidden;
+    position: relative;
     margin-bottom: var(--gap, 16px);
+  }
+
+  // Issue 353: quando un ng-select (Servizio/Organizzazione) e' aperto la card
+  // non deve tagliare il pannello (reso inline, senza `appendTo`): sblocca
+  // l'overflow ed eleva la card (z-index sopra la successiva). Richiede
+  // `position: relative` sulla card, altrimenti lo z-index viene ignorato e il
+  // pannello resta coperto dalla card seguente.
+  .lnk-phase-section:has(.ng-select-opened) {
+    overflow: visible;
+    z-index: 20;
   }
 
   .lnk-phase-section-hd {
