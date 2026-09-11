@@ -1,3 +1,24 @@
+2026-09-11  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 345: anche l'API di configurazione di GovWay utilizzata dal batch di
+	  configurazione automatica è ora configurata per ambiente, come già avveniva per
+	  Keycloak. Le adesioni di collaudo vengono configurate sull'installazione GovWay di
+	  collaudo e quelle di produzione su quella di produzione, con credenziali distinte:
+	  è quindi possibile, ad esempio, autenticarsi verso il collaudo con la negoziazione
+	  di un token OAuth client credentials e verso la produzione con le credenziali
+	  basic, indicando il riferimento al profilo di autenticazione sul solo ambiente
+	  desiderato. Restano supportate tutte le modalità di autenticazione disponibili.
+	  Le properties sono di conseguenza duplicate per ambiente:
+	  `configuratore.ConfigurazioneExecutor.govwayConfig.collaudo.*` e `.produzione.*`,
+	  ciascuna con i propri `url`, `username`, `password` e `authn.ref`. Un ambiente
+	  privo di url non viene configurato e le adesioni di quell'ambiente terminano con un
+	  errore esplicito, senza essere indirizzate all'installazione dell'altro ambiente.
+	  ATTENZIONE: le precedenti properties prive di ambiente
+	  (`configuratore.ConfigurazioneExecutor.govwayConfig.url|username|password`) non
+	  sono più supportate e vanno riscritte nella forma per ambiente in fase di
+	  aggiornamento.
+
 2026-09-10  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

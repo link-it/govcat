@@ -114,19 +114,45 @@ public class ConfigurazioneExecutor implements IConfigurazioneExecutor {
 				keycloakApi.put(ambiente, invoker);
 		}
 		
-		HttpUrl configAPIUrl = HttpUrl.get(properties.getProperty(className+".govwayConfig.url"));
+		Map<AmbienteEnum, GovwayConfigInvoker> govwayConfigApi = new EnumMap<>(AmbienteEnum.class);
 		
-		String govwayUsername = properties.getProperty(className+".govwayConfig.username");
-		String govwayPassword = properties.getProperty(className+".govwayConfig.password");
+		for (AmbienteEnum ambiente : AmbienteEnum.values()) {
+			GovwayConfigInvoker invoker = this.initGovwayConfig(properties, cfg, className, ambiente, authRegistry);
+			if (invoker != null)
+				govwayConfigApi.put(ambiente, invoker);
+		}
 		
-		GovwayConfigInvoker govwayConfigClient = new GovwayConfigInvoker(configAPIUrl, cfg)
-				.credentials(govwayUsername, govwayPassword)
-				.authentication(authRegistry.resolve(
-						properties.getProperty(className + ".govwayConfig." + SUFFISSO_AUTHN_REF),
-						govwayUsername, govwayPassword));
+		this.invokers = new Invokers(keycloakApi, govwayConfigApi);
 		
-		this.invokers = new Invokers(keycloakApi, govwayConfigClient);
+	}
+	
+	/**
+	 * L'API di configurazione di govway e' configurata per ambiente (.govwayConfig.collaudo.*,
+	 * .govwayConfig.produzione.*) perche' le due installazioni sono distinte. Un ambiente privo
+	 * di url non viene configurato: le adesioni di quell'ambiente falliscono con un errore
+	 * esplicito.
+	 */
+	private GovwayConfigInvoker initGovwayConfig(Properties properties, Configuration cfg, String className, AmbienteEnum ambiente, OutboundAuthRegistry authRegistry) throws IOException {
+		String prefix = className + ".govwayConfig." + ambiente.toString().toLowerCase() + ".";
 		
+		String url = properties.getProperty(prefix + "url");
+		
+		if (url == null || url.isBlank()) {
+			this.logger.info("govway non configurato per l'ambiente {}", ambiente);
+			return null;
+		}
+		
+		String username = properties.getProperty(prefix + "username");
+		String password = properties.getProperty(prefix + "password");
+		
+		GovwayConfigInvoker invoker = new GovwayConfigInvoker(HttpUrl.get(url), cfg);
+		
+		// le credenziali basic restano opzionali: con un profilo di autenticazione non servono
+		if (username != null && !username.isEmpty() && password != null && !password.isEmpty())
+			invoker.credentials(username, password);
+		
+		return invoker.authentication(authRegistry.resolve(
+				properties.getProperty(prefix + SUFFISSO_AUTHN_REF), username, password));
 	}
 	
 	/**
@@ -219,7 +245,11 @@ public class ConfigurazioneExecutor implements IConfigurazioneExecutor {
 	}
 	
 	
-	private ConfigurazioneScenario getConfigurazioneScenario(DTOClient client, List<GruppoServizio> gruppiServizio) {
+	/**
+	 * @param invokersAdesione invoker gia' risolti sull'ambiente dell'adesione, che gli scenari
+	 *        ricevono al posto di quelli generali
+	 */
+	private ConfigurazioneScenario getConfigurazioneScenario(DTOClient client, List<GruppoServizio> gruppiServizio, Invokers invokersAdesione) {
 		ScenariEnum possibleScenario = null;
 		for (ScenariEnum scenario : ScenariEnum.values()) {
 			ScenarioCondition condition = this.scenariConditions.get(scenario);
@@ -231,19 +261,19 @@ public class ConfigurazioneExecutor implements IConfigurazioneExecutor {
 		
 		switch (possibleScenario) {
 		case PDND:
-			return new ScenarioPDND(invokers, properties).configureGovway(true);
+			return new ScenarioPDND(invokersAdesione, properties).configureGovway(true);
 		case PDND_VOUCHER:
-			return new ScenarioPDND(invokers, properties).configureGovway(false);
+			return new ScenarioPDND(invokersAdesione, properties).configureGovway(false);
 		case MTLS:
-			return new ScenarioTLS(invokers, properties);
+			return new ScenarioTLS(invokersAdesione, properties);
 		case MTLS_PDND:
-			return new ScenarioTLSPDND(invokers, properties);
+			return new ScenarioTLSPDND(invokersAdesione, properties);
 		case MTLS_SIGN:
-			return new ScenarioTLSSign(invokers, properties);
+			return new ScenarioTLSSign(invokersAdesione, properties);
 		case SIGN:
-			return new ScenarioSign(invokers, properties);
+			return new ScenarioSign(invokersAdesione, properties);
 		case OAUTH_CLIENT_CREDENTIALS:
-			return new ScenarioClientCredentials(invokers, properties);
+			return new ScenarioClientCredentials(invokersAdesione, properties);
 		default: return null;
 		}
 	}
@@ -278,6 +308,19 @@ public class ConfigurazioneExecutor implements IConfigurazioneExecutor {
 		this.logger.debug("nuova richiesta configurazione");
 		esito.setChiaveRestituita(new HashMap<>());
 		
+		// govway e keycloak sono configurati per ambiente: l'ambiente e' quello dell'adesione,
+		// quindi si risolve una volta sola e vale per tutti gli scenari e i servizi
+		Invokers invokersAdesione;
+		
+		try {
+			invokersAdesione = this.invokers.perAmbiente(dtoAdesione.getAmbienteConfigurazione());
+		} catch (IOException e) {
+			this.logger.error("configurazione non eseguibile: {}", e.getMessage(), e);
+			esito.setEsito(ESITO.KO_DEFINITIVO);
+			esito.setMessaggioErrore(e.getMessage());
+			return esito;
+		}
+		
 		// operazione preliminare unwrapping dei dati
 		Map<String, DTOClient> clients = new HashMap<>();
 		Map<String, List<GruppoServizio>> clientToApis = new HashMap<>();
@@ -293,7 +336,7 @@ public class ConfigurazioneExecutor implements IConfigurazioneExecutor {
 					.api(api);
 			
 			try {
-				singleAPI.nomeAPI(this.invokers.getConfigInvoker().getNomeApiFromSingleApi(singleAPI));
+				singleAPI.nomeAPI(invokersAdesione.getConfigInvoker().getNomeApiFromSingleApi(singleAPI));
 			} catch (IOException e) {
 				messaggioErrore.add(e.getMessage());
 				this.logger.error("nome api non trovato, servizio: {}", singleAPI.getNomeServizio(), e);
@@ -305,7 +348,7 @@ public class ConfigurazioneExecutor implements IConfigurazioneExecutor {
 				
 				List<String> gruppi;
 				try {
-					gruppi = this.invokers.getConfigInvoker().getGruppiFromRisorse(singleAPI, List.of(adesioneApi.getRisorse().split(",")));
+					gruppi = invokersAdesione.getConfigInvoker().getGruppiFromRisorse(singleAPI, List.of(adesioneApi.getRisorse().split(",")));
 					for (String gruppo : gruppi) {
 						singleAPI.gruppo(gruppo);
 						clientToApis.get(adesioneApi.getClient()).add(new GruppoServizio(singleAPI));
@@ -326,7 +369,7 @@ public class ConfigurazioneExecutor implements IConfigurazioneExecutor {
 			}
 			// configurazione client
 			DTOClient client = clients.get(clientApi.getKey());
-			ConfigurazioneScenario configurazioneScenario = this.getConfigurazioneScenario(client, clientApi.getValue());
+			ConfigurazioneScenario configurazioneScenario = this.getConfigurazioneScenario(client, clientApi.getValue(), invokersAdesione);
 			Map<String, String> secrets;
 			
 			if (configurazioneScenario == null) {
