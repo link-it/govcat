@@ -1,3 +1,23 @@
+2026-09-10  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Le liste di servizi e adesioni ignoravano l'header di contesto
+	  `X-Organization-Context`: l'header veniva validato dall'interceptor ma nessun
+	  filtro lo usava, così un utente associato a più organizzazioni vedeva
+	  ovunque gli elementi di tutte, e un amministratore di organizzazione vedeva
+	  le adesioni di ogni organizzazione amministrata a prescindere da quella
+	  selezionata. Il filtro è ora applicato alle viste operative di GET /servizi
+	  (`in_attesa`, `miei_servizi`, `ruolo_referente`, `dashboard`) e alla lista
+	  adesioni, oltre ai rispettivi export CSV. La lista di catalogo resta non
+	  filtrata, altrimenti nasconderebbe i servizi pubblici delle altre
+	  organizzazioni; gestore e coordinatore mantengono la visibilità globale.
+	  Un servizio è considerato collegato all'organizzazione quando ne è
+	  titolare (organizzazione del soggetto referente del dominio), quando ne è
+	  l'ente erogatore o quando l'organizzazione vi ha aderito; un servizio
+	  intermediato resta quindi visibile sia dall'organizzazione del suo dominio
+	  sia da quella del suo ente erogatore. Un'adesione è collegata
+	  all'organizzazione quando questa è aderente o eroga il servizio.
+
 2026-09-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

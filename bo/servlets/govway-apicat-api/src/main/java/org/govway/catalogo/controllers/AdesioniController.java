@@ -841,6 +841,7 @@ public class AdesioniController implements AdesioniApi {
 					// Un amministratore di organizzazione vede tutte le adesioni della/e propria/e
 					// organizzazione/i (lato aderente), anche senza esserne referente o richiedente.
 					specification.setIdOrganizzazioniAmministrate(getIdOrganizzazioniAmministrate(utenteSessione));
+					applicaFiltroOrganizzazioneSessione(specification);
 				}
 
 				specification.setStati(stato);
@@ -1113,6 +1114,7 @@ public class AdesioniController implements AdesioniApi {
 
 				if(!admin && !isWhiteListed) {
 					specification.setUtente(Optional.of(this.coreAuthorization.getUtenteSessione()));
+					applicaFiltroOrganizzazioneSessione(specification);
 				}
 
 				specification.setStati(stato);
@@ -2430,6 +2432,25 @@ public class AdesioniController implements AdesioniApi {
 			return null;
 		}
 		return adesione.getServizio().getDominio().getSoggettoReferente().getOrganizzazione();
+	}
+
+	/**
+	 * Isolamento multi-organizzazione: la lista delle adesioni e` ristretta a quelle collegate
+	 * all'organizzazione di sessione (header X-Organization-Context), come aderente o come
+	 * erogatrice del servizio.
+	 *
+	 * Il chiamante applica il filtro solo agli utenti gia` soggetti al filtro per referenze:
+	 * gestore e coordinatore hanno visibilita` globale e restano esclusi. Senza contesto di
+	 * sessione (utente con piu` organizzazioni che non ne ha selezionata alcuna, oppure chiamata
+	 * diretta all'API) il filtro non si applica.
+	 */
+	private void applicaFiltroOrganizzazioneSessione(AdesioneSpecification specification) {
+		if(this.coreAuthorization.getOrganizationContext() == null
+				|| !this.coreAuthorization.getOrganizationContext().hasOrganizzazione()) {
+			return;
+		}
+		specification.setIdOrganizzazioneVisibilita(
+				Optional.of(this.coreAuthorization.getOrganizationContext().getIdOrganizzazione()));
 	}
 
 	/**
