@@ -1,3 +1,12 @@
+2026-09-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Fix vulnerabilita` OSV del frontend (dipendenze dev): alzati negli `overrides`
+	  hono 4.13.5 (3 advisory) e js-yaml 4.3.2 (1 advisory). vitest/@vitest/mocker
+	  (GHSA-82fw-gwwq-j7x9) soppressi in osv-scanner.toml: il fix >= 4.1.11 rompe il
+	  build Angular (de-hoisting di @angular/build), tooling di test dev-only non nel
+	  bundle; da rivalutare al prossimo upgrade Angular.
+
 2026-09-14  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
