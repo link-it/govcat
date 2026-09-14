@@ -8,6 +8,15 @@
 	  dall'entità padre"), coerentemente con gli altri controlli dello stesso vincolo
 	  già presenti nel salvataggio del servizio e del dominio. ATTENZIONE: per questo
 	  caso lo stato HTTP della risposta passa da 422 a 400.
+	Fix vulnerabilità OWASP: aggiornato freemarker da 2.3.34 a 2.3.35
+	  (CVE-2026-84939, path traversal nel caricamento dei template quando il locale
+	  richiesto è malformato e il localized lookup, attivo per impostazione predefinita,
+	  è abilitato). Il BOM di Spring Boot 4.0.8 gestisce ancora la 2.3.34, quindi la
+	  versione è imposta con un override esplicito in `dependencyManagement` del pom
+	  radice. Nel catalogo i template FreeMarker sono risorse interne caricate con nomi
+	  costanti (invocazione di Keycloak e dell'API di configurazione di GovWay) e il
+	  locale non viene impostato né derivato dalla richiesta, per cui l'esposizione era
+	  nulla; l'aggiornamento resta sulla linea 2.3.x e non comporta modifiche al codice.
 
 2026-09-11  Giovanni De Luca <giovanni.deluca@link.it>
 

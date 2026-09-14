@@ -298,6 +298,10 @@
 		<!-- Override httpcore5 (BOM Spring Boot: 5.3.6) per CVE-2026-54399 e CVE-2026-54428
 		     (DoS memory exhaustion su parser HTTP/1.1 e decoder HPACK HTTP/2); fix in 5.4.3 -->
 		<httpcore5.version>5.4.3</httpcore5.version>
+		<!-- Override freemarker (BOM Spring Boot: 2.3.34) per CVE-2026-84939
+		     (path traversal nel caricamento dei template con localized lookup
+		     attivo, di default, e locale malformato); fix in 2.3.35 -->
+		<freemarker.version>2.3.35</freemarker.version>
 		<servlet-api.version>4.0.1</servlet-api.version>
 
 		<!-- Jakarta EE 11 versions -->
@@ -1262,6 +1266,13 @@
 				<groupId>org.apache.httpcomponents.core5</groupId>
 				<artifactId>httpcore5</artifactId>
 				<version>${httpcore5.version}</version>
+			</dependency>
+
+			<!-- Override esplicito freemarker (BOM Spring Boot: 2.3.34) per CVE-2026-84939; fix 2.3.35 -->
+			<dependency>
+				<groupId>org.freemarker</groupId>
+				<artifactId>freemarker</artifactId>
+				<version>${freemarker.version}</version>
 			</dependency>
 
 			<dependency>
