@@ -88,6 +88,12 @@ export class UtenteOrganizzazioneDialogComponent implements OnInit {
     /** Pool corrente di organizzazioni mostrate nel select (preset + ricerche). */
     organizzazioniItems: any[] = [];
 
+    // Issue 350: autocompletamento "Azienda esterna" (array di stringhe),
+    // con `[addTag]` per censire nomi nuovi (findOrCreate lato BE).
+    aziendeEsterne$: Observable<any[]> = of([]);
+    aziendeEsterneInput$ = new Subject<string>();
+    aziendeEsterneLoading = false;
+
     /** Form per la creazione di un nuovo utente. */
     newUserForm!: FormGroup;
 
@@ -159,6 +165,7 @@ export class UtenteOrganizzazioneDialogComponent implements OnInit {
             this._initUtentiTypeahead();
             this._initNewUserForm();
             this._initOrganizzazioniTypeahead();
+            this._initAziendeEsterneTypeahead();
         }
     }
 
@@ -231,7 +238,7 @@ export class UtenteOrganizzazioneDialogComponent implements OnInit {
             stato: new FormControl<StatoUtenteEnum>(StatoUtenteEnum.Abilitato, [Validators.required]),
             note: new FormControl<string | null>(null, [Validators.maxLength(255)]),
             id_organizzazione: new FormControl<string | null>(this.presetIdOrganizzazione, [this._idOrganizzazioneRequiredIfRuolo()]),
-            organizzazione_esterna: new FormControl<string | null>(null, [Validators.maxLength(255)])
+            azienda_esterna: new FormControl<string | null>(null, [Validators.maxLength(255)])
         });
 
         // Ruolo bloccato a `utente_organizzazione`: ri-valutiamo subito
@@ -278,7 +285,7 @@ export class UtenteOrganizzazioneDialogComponent implements OnInit {
         if (raw.telefono) { body.telefono = raw.telefono; }
         if (raw.note) { body.note = raw.note; }
         if (raw.ruolo) { body.ruolo = raw.ruolo; }
-        if (raw.organizzazione_esterna) { body.organizzazione_esterna = raw.organizzazione_esterna; }
+        if (raw.azienda_esterna) { body.azienda_esterna = raw.azienda_esterna; }
         if (raw.id_organizzazione) {
             body.organizzazioni = [{
                 id_organizzazione: raw.id_organizzazione,
@@ -394,6 +401,28 @@ export class UtenteOrganizzazioneDialogComponent implements OnInit {
                     : of(this.organizzazioniItems)
                 ),
                 tap(() => this.organizzazioniLoading = false)
+            )
+        );
+    }
+
+    // --- Typeahead aziende esterne (Issue 350) --------------------------
+
+    private _initAziendeEsterneTypeahead(): void {
+        this.aziendeEsterne$ = concat(
+            of([]),
+            this.aziendeEsterneInput$.pipe(
+                debounceTime(300),
+                distinctUntilChanged(),
+                tap(() => this.aziendeEsterneLoading = true),
+                switchMap(term => term && term.length >= 1
+                    ? this.apiService.getList('aziende-esterne', { params: { q: term } as any }).pipe(
+                        map((res: any) => Array.isArray(res) ? res
+                            : Array.isArray(res?.content) ? res.content : []),
+                        catchError(() => of([]))
+                    )
+                    : of([])
+                ),
+                tap(() => this.aziendeEsterneLoading = false)
             )
         );
     }

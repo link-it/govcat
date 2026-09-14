@@ -29,7 +29,9 @@ import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import org.govway.catalogo.core.dto.DTOAdesione.AmbienteEnum;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -38,6 +40,7 @@ import org.junit.jupiter.api.Test;
 import com.sun.net.httpserver.HttpServer;
 
 import config.GovwayConfigInvoker;
+import configuratore.Invokers;
 import freemarker.template.Configuration;
 import httpauth.ClientCredentialsConfig;
 import httpauth.ClientCredentialsTokenStore;
@@ -137,6 +140,29 @@ class GovwayConfigInvokerAutenticazioneTest {
 		assertEquals(1, this.bodyTokenEndpoint.size());
 		assertTrue(this.bodyTokenEndpoint.get(0).contains("grant_type=client_credentials"),
 				this.bodyTokenEndpoint.get(0));
+	}
+
+	@Test
+	@DisplayName("collaudo con token negoziato e produzione con basic nella stessa esecuzione")
+	void ambientiConAutenticazioniDiverse() throws IOException {
+		GovwayConfigInvoker collaudo = this.invoker()
+				.authentication(this.clientCredentials(new ClientCredentialsTokenStore()));
+
+		GovwayConfigInvoker produzione = this.invoker().credentials("amministratore", "123456");
+
+		Invokers invokers = new Invokers(Map.of(), Map.of(
+				AmbienteEnum.COLLAUDO, collaudo,
+				AmbienteEnum.PRODUZIONE, produzione));
+
+		invokers.perAmbiente(AmbienteEnum.COLLAUDO).getConfigInvoker()
+				.getServizioApplicativo("applicativo-di-test", "ente", "APIGateway");
+		invokers.perAmbiente(AmbienteEnum.PRODUZIONE).getConfigInvoker()
+				.getServizioApplicativo("applicativo-di-test", "ente", "APIGateway");
+
+		assertEquals(List.of("Bearer " + TOKEN, Credentials.basic("amministratore", "123456")),
+				this.authorizationRicevuti);
+		assertEquals(1, this.bodyTokenEndpoint.size(),
+				"solo l'ambiente con il profilo negozia un token");
 	}
 
 	@Test

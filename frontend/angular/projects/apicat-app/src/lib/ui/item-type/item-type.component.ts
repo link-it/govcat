@@ -175,7 +175,21 @@ export class ItemTypeComponent implements OnInit, OnChanges {
             }
         }
         if (this.elem.type === 'tag') {
-            this._tooltip = this.elem.tooltip ? this.utilsLib.getObjectValue(this._sourceData, this.elem.tooltip) : '';
+            // `tooltip` puo` essere un path sul dato (comportamento storico) o
+            // una chiave i18n: se il path non risolve si prova la traduzione,
+            // usata solo quando la chiave esiste davvero (nessuna regressione
+            // sui tooltip da field-path che restano vuoti).
+            if (this.elem.tooltip) {
+                const _fromField = this.utilsLib.getObjectValue(this._sourceData, this.elem.tooltip);
+                if (_fromField) {
+                    this._tooltip = _fromField;
+                } else {
+                    const _translated = this.translate.instant(this.elem.tooltip);
+                    this._tooltip = (_translated && _translated !== this.elem.tooltip) ? _translated : '';
+                }
+            } else {
+                this._tooltip = '';
+            }
             this._class = 'badge badge-pill';
             this._class += this.elem.class ? ' ' + this.elem.class : '';
             this._showBadged = (this.elem.badged === undefined) ? true : this.elem.badged;

@@ -2910,6 +2910,7 @@
 				"Nome": "Nome",
 				"Note": "Note",
 				"OrganizzazioneEsterna": "Azienda esterna (es. software house)",
+					"AziendaEsterna": "Azienda esterna",
 				"Phone": "Telefono",
 				"Principal": "Principal",
 				"Role": "Ruolo",

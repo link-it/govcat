@@ -53,9 +53,8 @@ export interface UtenteCreate {
     metadati?: string;
     stato: StatoUtenteEnum;
     ruolo?: RuoloUtenteEnum;
-    referente_tecnico?: boolean;
     abilitato_domini_esterni?: boolean;
-    organizzazione_esterna?: string;
+    azienda_esterna?: string;
     /**
      * Lista delle organizzazioni associate all'utente con il relativo
      * ruolo per-organizzazione. Da preferire al campo legacy

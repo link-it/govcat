@@ -1252,6 +1252,9 @@ public class ServiziController implements ServiziApi {
 					specification.setUtente(Optional.of(new UtenteEntity()));
 				}
 
+				applicaFiltroOrganizzazioneSessione(specification, admin, anounymous,
+						isVistaOperativa(inAttesa, mieiServizi, dashboard, ruoloReferente));
+
 				Specification<ServizioEntity> realSpecification = null;
 				if(inAttesa!= null && inAttesa) {
 					if(!anounymous) {
@@ -1543,6 +1546,9 @@ public class ServiziController implements ServiziApi {
 					specification.setUtente(Optional.of(new UtenteEntity()));
 				}
 
+				applicaFiltroOrganizzazioneSessione(specification, admin, anounymous,
+						isVistaOperativa(inAttesa, mieiServizi, null, null));
+
 				Specification<ServizioEntity> realSpecification = null;
 				if(inAttesa!= null && inAttesa) {
 					if(!anounymous) {
@@ -1589,6 +1595,41 @@ public class ServiziController implements ServiziApi {
 		}
 	}
 
+
+	/**
+	 * Le viste "operative" della lista servizi sono quelle che mostrano gli elementi su cui
+	 * l'utente ha un ruolo: servizi in attesa, i propri servizi (con o senza filtro per ruolo)
+	 * e la dashboard. La lista di catalogo (nessuno di questi filtri) non e` una vista operativa
+	 * e non va ristretta all'organizzazione di sessione, altrimenti nasconderebbe i servizi
+	 * pubblici delle altre organizzazioni, che sono proprio quelli a cui si puo` aderire.
+	 */
+	private boolean isVistaOperativa(Boolean inAttesa, Boolean mieiServizi, Boolean dashboard, List<RuoloReferenteEnum> ruoloReferente) {
+		return Boolean.TRUE.equals(inAttesa)
+				|| Boolean.TRUE.equals(mieiServizi)
+				|| Boolean.TRUE.equals(dashboard)
+				|| (ruoloReferente != null && !ruoloReferente.isEmpty());
+	}
+
+	/**
+	 * Isolamento multi-organizzazione: nelle viste operative la lista e` ristretta ai servizi
+	 * collegati all'organizzazione di sessione (header X-Organization-Context).
+	 *
+	 * Non si applica a gestore e coordinatore, che hanno visibilita` globale su tutte le
+	 * organizzazioni, ne` agli utenti in white list, che nelle stesse viste non ricevono il
+	 * filtro per referenze. Senza contesto di sessione (utente con piu` organizzazioni che non
+	 * ne ha selezionata alcuna, oppure chiamata diretta all'API) il filtro non si applica.
+	 */
+	private void applicaFiltroOrganizzazioneSessione(ServizioSpecification specification, boolean admin, boolean anounymous, boolean vistaOperativa) {
+		if(!vistaOperativa || admin || anounymous || this.coreAuthorization.isWhiteListed()) {
+			return;
+		}
+		if(this.coreAuthorization.getOrganizationContext() == null
+				|| !this.coreAuthorization.getOrganizationContext().hasOrganizzazione()) {
+			return;
+		}
+		specification.setIdOrganizzazioneVisibilita(
+				Optional.of(this.coreAuthorization.getOrganizationContext().getIdOrganizzazione()));
+	}
 
 	private List<String> getStatiAdmin() {
 		return getStati(ConfigurazioneRuolo.GESTORE, Arrays.asList(ConfigurazioneRuolo.RICHIEDENTE, ConfigurazioneRuolo.REFERENTE, ConfigurazioneRuolo.REFERENTE_SUPERIORE));
