@@ -50,3 +50,22 @@ sola build (less), non presente nel bundle distribuito. Vulnerabilita' gia' sopp
 anche in OWASP Dependency-Check (vedi tools/owasp/suppression/image-size.xml).
 Rimuovere entrambe le suppression appena esce una release fixata.
 """
+
+[[IgnoredVulns]]
+id = "GHSA-82fw-gwwq-j7x9"
+ignoreUntil = 2026-11-30
+reason = """
+vitest 4.1.9 e @vitest/mocker 4.1.9 (GHSA-82fw-gwwq-j7x9, Path Traversal / Arbitrary
+File Read via redirect mock del @vitest/mocker): dipendenze di sola build/test
+(vitest), NON incluse nel bundle distribuito.
+Il fix (>= 4.1.11) non e' applicabile senza rompere il build Angular: portando vitest a
+4.1.11 npm de-hoista @angular/build (dipendenza transitiva di
+@angular-devkit/build-angular) in un node_modules annidato, e la Angular CLI non trova
+piu' il builder `@angular/build:application` (ng build fallisce). vitest e' dipendenza
+diretta quindi non e' overridabile (EOVERRIDE) e aggiungere @angular/build come dep
+esplicita produce un ERESOLVE (peer conflict).
+Da rivalutare al prossimo upgrade di Angular (Angular 21+ integra nativamente vitest):
+il riallineamento delle versioni vite/vitest dovrebbe sbloccare il bump. Nessuna
+suppression OWASP Dependency-Check aggiunta: e' tooling di test dev-only, non
+intercettato dal matching CPE del job backend.
+"""
