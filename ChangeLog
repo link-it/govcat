@@ -1,3 +1,14 @@
+2026-09-14  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Il cambio di dominio di un servizio con skip collaudo attivo verso un dominio che
+	  non lo consente terminava con un generico VAL.422 ("Richiesta non valida
+	  semanticamente"), che non dava all'utente alcuna indicazione sulla causa del
+	  rifiuto. Viene ora restituito GEN.400 skip collaudo ("Skip collaudo vincolato
+	  dall'entità padre"), coerentemente con gli altri controlli dello stesso vincolo
+	  già presenti nel salvataggio del servizio e del dominio. ATTENZIONE: per questo
+	  caso lo stato HTTP della risposta passa da 422 a 400.
+
 2026-09-11  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

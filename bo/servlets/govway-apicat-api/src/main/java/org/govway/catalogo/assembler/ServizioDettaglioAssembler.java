@@ -299,8 +299,9 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		
 		entity.setDominio(newDominio);
 		
+		// Il nuovo dominio deve consentire lo skip collaudo gia` attivo sul servizio
 		if(entity.isSkipCollaudo() && !entity.getDominio().isSkipCollaudo()) {
-			throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422);
+			throw new BadRequestException(ErrorCode.GEN_400_SKIP_COLLAUDO);
 		}
 		
 		if(entity.getDominio().isDeprecato() && !this.coreAuthorization.isAdmin()) {
