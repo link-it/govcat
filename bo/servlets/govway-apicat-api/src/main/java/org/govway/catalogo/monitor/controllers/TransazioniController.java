@@ -35,6 +35,7 @@ import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.monitor.controllers.StatisticheController.ErogazioneFruizioneEnum;
+import org.govway.catalogo.monitoraggioutils.AutenticazioniMonitoraggio;
 import org.govway.catalogo.monitoraggioutils.ConfigurazioneConnessione;
 import org.govway.catalogo.monitoraggioutils.FiltriUtils;
 import org.govway.catalogo.monitoraggioutils.IMonitoraggioClient;
@@ -85,6 +86,9 @@ public class TransazioniController implements TransazioniApi {
 
 	@Autowired
 	private FiltriUtils filtriUtils;
+
+	@Autowired
+	private AutenticazioniMonitoraggio autenticazioniMonitoraggio;
 
     @Value("${monitor.collaudo.uri}")
 	protected String uriMonitorCollaudo;
@@ -238,6 +242,7 @@ public class TransazioniController implements TransazioniApi {
 		conf.setUsername(ambiente.equals(AmbienteEnum.COLLAUDO) ? this.userMonitorCollaudo:this.userMonitorProduzione);
 		conf.setPassword(ambiente.equals(AmbienteEnum.COLLAUDO) ? this.passwordMonitorCollaudo:this.passwordMonitorProduzione);
 		conf.setAmbiente(ambiente);
+		conf.setAutenticazione(this.autenticazioniMonitoraggio.monitor(ambiente));
 		
 		return conf;
 	}

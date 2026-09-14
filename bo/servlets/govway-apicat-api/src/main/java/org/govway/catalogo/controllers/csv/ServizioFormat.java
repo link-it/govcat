@@ -27,16 +27,36 @@ public abstract class ServizioFormat {
 
 	@JsonProperty("Soggetto Erogatore")
 	abstract String getErogatore();
+	@JsonProperty("Soggetto Fruitore")
+	abstract String getFruitore();
+	@JsonProperty("Dominio")
+	abstract String getDominio();
 	@JsonProperty("Servizio")
 	abstract String getServizio();
+	@JsonProperty("Versione Servizio")
+	abstract String getVersioneServizio();
+	@JsonProperty("UUID Servizio")
+	abstract String getUuidServizio();
 	@JsonProperty("API")
 	abstract String getApi();
+	@JsonProperty("Versione API")
+	abstract String getVersioneApi();
+	@JsonProperty("UUID API")
+	abstract String getUuidApi();
 	@JsonProperty("Tipologia API")
 	abstract String getTipoApi();
 	@JsonProperty("Modalità Autenticazione")
 	abstract String getAutenticazioneStato();
 	@JsonProperty("Stato Servizio")
 	abstract String getStatoServizio();
+	@JsonProperty("Referenti Servizio")
+	abstract String getReferentiServizio();
+	@JsonProperty("Referenti Tecnici Servizio")
+	abstract String getReferentiTecniciServizio();
+	@JsonProperty("Referenti Dominio")
+	abstract String getReferentiDominio();
+	@JsonProperty("Referenti Tecnici Dominio")
+	abstract String getReferentiTecniciDominio();
 	@JsonProperty("URL Invocazione (Prod)")
 	abstract String getUrlInvocazioneProduzione();
 	@JsonProperty("Backend URL (Prod)")

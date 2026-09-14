@@ -43,7 +43,8 @@ import org.govway.catalogo.exception.ClientApiException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.monitoraggioutils.ConfigurazioneConnessione;
-import org.govway.catalogo.pdnd.controllers.PDNDClient;
+import org.govway.catalogo.pdnd.controllers.IPDNDClient;
+import org.govway.catalogo.pdnd.controllers.PDNDClientFactory;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.monitor.model.EsitoVerificaBackend;
 import org.govway.catalogo.servlets.monitor.model.EsitoVerificaBackendEnum;
@@ -54,58 +55,29 @@ import org.govway.catalogo.servlets.monitor.model.EsitoVerificaCertificatiScadut
 import org.govway.catalogo.servlets.monitor.model.ItemApplicativoVerificato;
 import org.govway.catalogo.servlets.monitor.model.ItemServizioVerificato;
 import org.govway.catalogo.servlets.monitor.model.TipoVerificaEnum;
-import org.govway.catalogo.servlets.pdnd.client.api.GatewayApi;
-import org.govway.catalogo.servlets.pdnd.client.api.HealthApi;
-import org.govway.catalogo.servlets.pdnd.client.api.impl.ApiClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public class AllarmiClient {
 
 	@Autowired
-    @Qualifier("PDNDClientCollaudo")
-	private ApiClient apiClientCollaudo;
-	
-	@Autowired
-    @Qualifier("PDNDClientProduzione")
-	private ApiClient apiClientProduzione;
-	
-	
-	private PDNDClient clientCollaudo;
-	private PDNDClient clientProduzione;
+	private PDNDClientFactory clientFactoryPdnd;
 
 	private Logger logger = LoggerFactory.getLogger(AllarmiClient.class);
 
 
-	private PDNDClient getClientPdnd(org.govway.catalogo.servlets.monitor.model.AmbienteEnum ambiente) {
+	private IPDNDClient getClientPdnd(org.govway.catalogo.servlets.monitor.model.AmbienteEnum ambiente) {
 		switch(ambiente) {
-		case COLLAUDO: return getClientPdndCollaudo();
-		case PRODUZIONE:return getClientPdndProduzione();
+		case COLLAUDO: return this.clientFactoryPdnd.getClientCollaudo();
+		case PRODUZIONE:return this.clientFactoryPdnd.getClientProduzione();
 		}
-		
+
 		return null;
 	}
 
-	private PDNDClient getClientPdndCollaudo() {
-		if(this.clientCollaudo == null) {
-			this.clientCollaudo = new PDNDClient(new GatewayApi(this.apiClientCollaudo), new HealthApi(this.apiClientCollaudo));
-		}
-		
-		return this.clientCollaudo;
-	}
-
-	private PDNDClient getClientPdndProduzione() {
-		if(this.clientProduzione == null) {
-			this.clientProduzione = new PDNDClient(new GatewayApi(this.apiClientProduzione), new HealthApi(this.apiClientProduzione));
-		}
-		
-		return this.clientProduzione;
-	}
-	
 
 	@Autowired
 	protected Configurazione configurazione;

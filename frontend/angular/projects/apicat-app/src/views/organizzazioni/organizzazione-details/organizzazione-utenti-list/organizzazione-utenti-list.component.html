@@ -96,7 +96,14 @@
             @for (uo of items; track uo?.id_utente) {
               <tr>
                 <td class="ps-3 align-middle">{{ uo?.nome }} {{ uo?.cognome }}</td>
-                <td class="align-middle text-muted">{{ uo?.email_aziendale }}</td>
+                <td class="align-middle text-muted">
+                  {{ uo?.email_aziendale }}
+                  @if (uo?.azienda_esterna) {
+                    <div class="mt-1">
+                      <span class="lnk-pill lnk-pill-brand lnk-pill-sm" [tooltip]="'APP.USERS.LABEL.AziendaEsterna' | translate" container="body">{{ uo.azienda_esterna }}</span>
+                    </div>
+                  }
+                </td>
                 <td class="align-middle">
                   <span class="badge text-bg-light border">{{ roleLabelKey(uo) | translate }}</span>
                 </td>

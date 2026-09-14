@@ -42,8 +42,8 @@ import { AmbienteEnum } from '@app/model/ambienteEnum';
 
 import { PeriodEnum, Datispecifici, DatiSpecItem, CommonName, DoubleCert } from '../../adesione-configurazioni/datispecifici';
 
-import { EMPTY, Observable, Subject, of } from 'rxjs';
-import { concatMap, expand, map, reduce, takeUntil, tap } from 'rxjs/operators';
+import { Observable, Subject, of } from 'rxjs';
+import { concatMap, map, takeUntil, tap } from 'rxjs/operators';
 
 import {
     AuthType,
@@ -620,6 +620,11 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
     _modulo_richiesta_csr: any = {};
 
     _arr_clients_riuso: any[] = [];
+    // Issue 337: conteggio totale (server) dei client riusabili e client
+    // selezionato dal dropdown server-side (per il lookup in onChangeCredenziali).
+    _clientsRiusoCount: number = 0;
+    _selectedRiusoClient: any = null;
+    _initValueClientRiuso: any = null;
 
     _auth_type: any = null;
     _tipo_client: any = null;
@@ -812,6 +817,18 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
         this._resetDescrittoriAll()
 
         this._checkAndSetAuthTypeCase(this._auth_type);
+
+        // Issue 337: valore iniziale (stabile) del dropdown server-side dal
+        // client corrente, e reset del client selezionato dal dropdown.
+        this._selectedRiusoClient = null;
+        this._updateInitValueClientRiuso();
+        // Control dedicato per il dropdown server-side: null => mostra il
+        // placeholder; valorizzato => selezione (disaccoppiato dal sentinel
+        // `UsaClientEsistente` su `credenziali`).
+        if (!this._editFormGroupClients.get('credenzialiRiuso')) {
+            this._editFormGroupClients.addControl('credenzialiRiuso', new FormControl(null));
+        }
+        this._editFormGroupClients.get('credenzialiRiuso')?.setValue(this._initValueClientRiuso?.value ?? null);
 
         this._currDatiSpecifici = data?.dati_specifici || null;
         this._tipo_client = (this._currDatiSpecifici?.certificato_autenticazione ) ? TipoClientEnum.Riferito : TipoClientEnum.Nuovo;
@@ -1014,10 +1031,15 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
         // eseguire sincrono senza il vecchio setTimeout(100).
         const _ctrl = this._editFormGroupClients.controls;
         if (this._arr_clients_riuso.length === 1) {
-            _ctrl['credenziali'].patchValue(this._arr_clients_riuso[0].id_client);
+            const _single: any = this._arr_clients_riuso[0];
+            _ctrl['credenziali'].patchValue(_single.id_client);
             _ctrl['credenziali'].updateValueAndValidity();
+            // Issue 337: riflette la selezione automatica anche nel dropdown server-side.
+            this._selectedRiusoClient = _single;
+            this._initValueClientRiuso = { label: _single.nome, value: _single.id_client, item: _single };
+            _ctrl['credenzialiRiuso']?.setValue(_single.id_client);
             this._editFormGroupClients.updateValueAndValidity();
-            this.onChangeCredenziali(this._arr_clients_riuso[0].id_client);
+            this.onChangeCredenziali(_single.id_client);
         } else {
             this.onChangeCredenziali(_credenziali);
         }
@@ -1076,15 +1098,15 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
      * il consumatore riceve l'array completo in un unico emit finale.
      */
     _loadClientsRiuso$(auth_type: string = '', organizzazione: string = '', ambiente: string = ''): Observable<any[]> {
-        const size = 100;
-        // I client riutilizzabili vanno filtrati per soggetto dell'adesione
-        // (non solo per organizzazione): un'organizzazione puo` avere piu`
-        // soggetti e non si deve poter associare un client di soggetto diverso
-        // (il BE rifiuta con CLT.400.SUBJECT.MISMATCH).
+        // Issue 337: solo la PRIMA pagina + conteggio totale (`totalElements`),
+        // niente piu` caricamento di tutte le pagine: la tendina "Client gia`
+        // censito" usa la ricerca server-side paginata (`searchClientsRiuso`).
+        // La prima pagina serve al fallback/lookup e all'auto-select del client
+        // singolo; il conteggio pilota il toggle "Nuove credenziali".
         const idSoggetto: string = this.adesione?.soggetto?.id_soggetto || '';
         const baseOptions: any = {
             params: {
-                size,
+                size: 20,
                 page: 0,
                 auth_type,
                 id_organizzazione: organizzazione,
@@ -1095,19 +1117,69 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
         };
 
         return this.apiService.getList('client', baseOptions).pipe(
-            expand((response: any) => {
-                const { number, totalPages } = response.page;
-                if (number + 1 < totalPages) {
-                    return this.apiService.getList('client', {
-                        ...baseOptions,
-                        params: { ...baseOptions.params, page: number + 1 }
-                    });
-                }
-                return EMPTY;
+            tap((res: any) => {
+                this._clientsRiusoCount = res?.page?.totalElements ?? (res?.content?.length || 0);
             }),
-            map((res: any) => res.content),
-            reduce((acc, curr) => acc.concat(curr), [] as any[])
+            map((res: any) => res.content || [])
         );
+    }
+
+    /**
+     * Issue 337: ricerca server-side (query `q` + paginazione) dei client
+     * riusabili, passata a `lnk-form-live-search`. `page` 0-based; il
+     * componente incrementa la pagina su scroll e accumula i risultati.
+     */
+    searchClientsRiuso = (term: string, page: number = 0): Observable<any[]> => {
+        const idSoggetto: string = this.adesione?.soggetto?.id_soggetto || '';
+        const organizzazione: string = this.adesione?.soggetto?.organizzazione?.id_organizzazione || '';
+        const options: any = {
+            params: {
+                q: term || '',
+                size: 20,
+                page,
+                auth_type: this._auth_type,
+                id_organizzazione: organizzazione,
+                id_soggetto: idSoggetto,
+                ambiente: this.environment,
+                stato: StatoConfigurazioneEnum.CONFIGURATO
+            }
+        };
+        return this.apiService.getList('client', options).pipe(
+            map((res: any) => (res?.content || []).map((c: any) => ({ label: c.nome, value: c.id_client, item: c })))
+        );
+    };
+
+    /**
+     * Issue 337: aggiorna il valore iniziale (STABILE) del dropdown server-side
+     * dal client corrente. Dev'essere un riferimento stabile: un nuovo oggetto a
+     * ogni change-detection farebbe ri-settare il valore nel componente
+     * `lnk-form-live-search` (ngOnChanges), sovrascrivendo la selezione utente.
+     */
+    private _updateInitValueClientRiuso(): void {
+        const cur: any = this._currClient?.source || this._currClient;
+        this._initValueClientRiuso = (cur && cur.id_client)
+            ? { label: cur.nome, value: cur.id_client, item: cur }
+            : null;
+    }
+
+    /**
+     * Issue 337: selezione dal dropdown server-side. Memorizza il client
+     * completo (per il lookup in `onChangeCredenziali`, che altrimenti non lo
+     * troverebbe in `_arr_clients_riuso` se non e` nella prima pagina) e
+     * inoltra al normale flusso di cambio credenziali.
+     */
+    onRiusoClientSelected(item: any) {
+        // Issue 337: clear del dropdown (X) -> torna in "Client gia' censito"
+        // senza selezione: ripristina il sentinel su `credenziali`, azzera il
+        // dropdown e resetta i campi client-specifici (via onChangeCredenziali).
+        if (!item || item.value === null || item.value === undefined) {
+            this._onSelectCredenzialiOption(SelectedClientEnum.UsaClientEsistente);
+            return;
+        }
+        this._selectedRiusoClient = item?.item ?? null;
+        // Mantieni allineato il valore iniziale stabile con la selezione corrente.
+        this._initValueClientRiuso = item;
+        this.onChangeCredenziali(item.value);
     }
 
     /**
@@ -1307,6 +1379,11 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
         if (!ctrl) return;
         ctrl.patchValue(value);
         ctrl.updateValueAndValidity();
+        // Issue 337: al cambio toggle azzera la selezione del dropdown
+        // server-side (torna a mostrare il placeholder).
+        this._selectedRiusoClient = null;
+        this._initValueClientRiuso = null;
+        this._editFormGroupClients.get('credenzialiRiuso')?.setValue(null);
         this.onChangeCredenziali(value);
     }
 
@@ -1452,7 +1529,10 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
 
                     _aux = this._arr_clients_riuso.find((el) => el.id_client == selected_client_id);
                     if (!_aux) {
-                        _aux = this._currClient?.source || this._currClient;
+                        // Issue 337: con la ricerca server-side il client selezionato
+                        // puo` non essere nella prima pagina di `_arr_clients_riuso`:
+                        // usa quello catturato dall'evento del dropdown.
+                        _aux = this._selectedRiusoClient || this._currClient?.source || this._currClient;
                     }
                     this._currClient = _aux;
 
@@ -2164,10 +2244,9 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
             isModifiable: this._isModifiable(),
             credentialsMode: this._currentCredentialsMode(),
             riusoObbligatorio: !!this._generalConfig?.adesione?.riuso_client_obbligatorio,
-            clientsRiusoCount: this._arr_clients_riuso?.filter((c: any) =>
-                c.id_client !== SelectedClientEnum.NuovoCliente
-                && c.id_client !== SelectedClientEnum.UsaClientEsistente
-            ).length || 0,
+            // Issue 337: conteggio totale dal server (non piu` la lunghezza della
+            // lista pre-caricata, che ora e' solo la prima pagina).
+            clientsRiusoCount: this._clientsRiusoCount || 0,
             showIpFruizione: !!this._show_erogazione_ip_fruizione,
             showRateLimiting: !!this._show_erogazione_rate_limiting,
             showFinalita: !!this._show_erogazione_finalita,
@@ -2189,6 +2268,10 @@ export class AdesioneListaClientsComponent implements OnInit, OnDestroy, OnChang
             formGroup: this._editFormGroupClients,
             formConfig: this.formConfig,
             clientsRiuso: this._arr_clients_riuso,
+            // Issue 337: ricerca server-side (q + paginazione) per il dropdown.
+            searchClients: this.searchClientsRiuso,
+            initValueClient: this._initValueClientRiuso,
+            clientsRiusoCount: this._clientsRiusoCount,
             tipiCertificato: this._tipiCertificato,
             saving: this._saving,
             error: this._error,

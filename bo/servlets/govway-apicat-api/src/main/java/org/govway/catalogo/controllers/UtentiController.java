@@ -38,6 +38,7 @@ import org.govway.catalogo.assembler.UtenteEngineAssembler;
 import org.govway.catalogo.assembler.UtenteItemAssembler;
 import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.authorization.UtenteAuthorization;
+import org.govway.catalogo.pdnd.controllers.PDNDClientFactory;
 import org.govway.catalogo.core.dao.specifications.AziendaEsternaSpecification;
 import org.govway.catalogo.core.dao.specifications.UtenteSpecification;
 import org.govway.catalogo.core.orm.entity.AziendaEsternaEntity;
@@ -107,6 +108,9 @@ public class UtentiController implements UtentiApi {
     private CoreAuthorization coreAuthorization;
 
     @Autowired
+    private PDNDClientFactory pdndClientFactory;
+
+    @Autowired
     private ProfiloAssembler profiloAssembler;
 
 	@Autowired
@@ -146,6 +150,9 @@ public class UtentiController implements UtentiApi {
 
 			// Verifica che il ruolo coordinatore sia abilitato
 			checkRuoloCoordinatoreAbilitato(utenteCreate.getRuolo());
+
+			// Verifica che il ruolo PDND sia assegnabile con la versione API PDND configurata
+			checkRuoloPdndAssegnabile(utenteCreate.getRuoloPdnd());
 
 			return this.service.runTransaction( () -> {
 
@@ -359,6 +366,9 @@ public class UtentiController implements UtentiApi {
 		try {
 			// Verifica che il ruolo coordinatore sia abilitato
 			checkRuoloCoordinatoreAbilitato(utenteUpdate.getRuolo());
+
+			// Verifica che il ruolo PDND sia assegnabile con la versione API PDND configurata
+			checkRuoloPdndAssegnabile(utenteUpdate.getRuoloPdnd());
 
 			return this.service.runTransaction( () -> {
 
@@ -1103,6 +1113,20 @@ public class UtentiController implements UtentiApi {
 	private void checkRuoloCoordinatoreAbilitato(RuoloUtenteEnum ruolo) {
 		if (RuoloUtenteEnum.COORDINATORE.equals(ruolo) && !isCoordinatoreAbilitato()) {
 			throw new BadRequestException(ErrorCode.UT_400_COORDINATORE_DISABLED);
+		}
+	}
+
+	/**
+	 * Verifica che il ruolo PDND richiesto sia assegnabile.
+	 *
+	 * Il ruolo ha effetto solo sulle operazioni dell'API PDND v3: con l'API v1 configurata
+	 * l'assegnazione viene rifiutata.
+	 *
+	 * @param ruoloPdnd il ruolo PDND richiesto
+	 */
+	private void checkRuoloPdndAssegnabile(RuoloPdndEnum ruoloPdnd) {
+		if (RuoloPdndEnum.ADMIN.equals(ruoloPdnd) && this.pdndClientFactory.isVersioneV1()) {
+			throw new BadRequestException(ErrorCode.UT_400_RUOLO_PDND_DISABLED);
 		}
 	}
 

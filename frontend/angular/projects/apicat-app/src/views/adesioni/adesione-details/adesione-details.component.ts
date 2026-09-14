@@ -678,7 +678,9 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
   }
 
   getDomini(term: string | null = null): Observable<any> {
-    const _options: any = { params: { q: term } };
+    // Issue 340: GET /domini e` paginato (size default 20). Senza `size` la
+    // ricerca mostrerebbe solo i primi 20 domini: richiediamo una pagina capiente.
+    const _options: any = { params: { q: term, size: 1000 } };
     return this.apiService.getList('domini', _options)
       .pipe(map(resp => {
         if (resp.Error) {

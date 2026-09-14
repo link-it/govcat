@@ -334,6 +334,12 @@ public class DominiController implements DominiApi {
 				DominioEntity entity = this.service.find(idDominio)
 						.orElseThrow(() -> new NotFoundException(ErrorCode.DOM_404, Map.of("idDominio", idDominio.toString())));
 
+				// Lock esclusivo sul dominio prima di navigare i referenti: serializza le richieste
+				// concorrenti sullo stesso dominio, altrimenti due invocazioni sovrapposte (es. doppio
+				// click sul salvataggio) leggono entrambe i referenti senza vedere l'insert dell'altra
+				// e superano entrambe il controllo di duplicazione.
+				this.service.lock(entity);
+
 				this.authorization.authorizeReferenteScrittura(entity);
 				this.logger.debug("Autorizzazione completata con successo");
 

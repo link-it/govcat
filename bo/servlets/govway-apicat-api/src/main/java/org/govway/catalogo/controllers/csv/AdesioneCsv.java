@@ -23,9 +23,12 @@ public class AdesioneCsv {
 
 	private String erogatore;
 	private String servizio;
+	private String versioneServizio;
+	private String uuidServizio;
 	private String autenticazioneStato;
 	private String aderente;
-	private String idAdesione;
+	private String idLogicoAdesione;
+	private String uuidAdesione;
 	private String statoAdesione;
 	private String referenteRegionaleAdesione;
 	private String referenteTecnicoAdesione;
@@ -52,6 +55,18 @@ public class AdesioneCsv {
 	public void setServizio(String servizio) {
 		this.servizio = servizio;
 	}
+	public String getVersioneServizio() {
+		return versioneServizio;
+	}
+	public void setVersioneServizio(String versioneServizio) {
+		this.versioneServizio = versioneServizio;
+	}
+	public String getUuidServizio() {
+		return uuidServizio;
+	}
+	public void setUuidServizio(String uuidServizio) {
+		this.uuidServizio = uuidServizio;
+	}
 	public String getAutenticazioneStato() {
 		return autenticazioneStato;
 	}
@@ -64,11 +79,17 @@ public class AdesioneCsv {
 	public void setAderente(String aderente) {
 		this.aderente = aderente;
 	}
-	public String getIdAdesione() {
-		return idAdesione;
+	public String getIdLogicoAdesione() {
+		return idLogicoAdesione;
 	}
-	public void setIdAdesione(String idAdesione) {
-		this.idAdesione = idAdesione;
+	public void setIdLogicoAdesione(String idLogicoAdesione) {
+		this.idLogicoAdesione = idLogicoAdesione;
+	}
+	public String getUuidAdesione() {
+		return uuidAdesione;
+	}
+	public void setUuidAdesione(String uuidAdesione) {
+		this.uuidAdesione = uuidAdesione;
 	}
 	public String getStatoAdesione() {
 		return statoAdesione;
@@ -112,6 +133,12 @@ public class AdesioneCsv {
 	public void setRateLimitingProduzione(String rateLimitingProduzione) {
 		this.rateLimitingProduzione = rateLimitingProduzione;
 	}
+	public String getProprietaProduzione() {
+		return proprietaProduzione;
+	}
+	public void setProprietaProduzione(String proprietaProduzione) {
+		this.proprietaProduzione = proprietaProduzione;
+	}
 	public String getApplicativiAutorizzatiCollaudo() {
 		return applicativiAutorizzatiCollaudo;
 	}
@@ -141,12 +168,6 @@ public class AdesioneCsv {
 	}
 	public void setProprietaCollaudo(String proprietaCollaudo) {
 		this.proprietaCollaudo = proprietaCollaudo;
-	}
-	public String getProprietaProduzione() {
-		return proprietaProduzione;
-	}
-	public void setProprietaProduzione(String proprietaProduzione) {
-		this.proprietaProduzione = proprietaProduzione;
 	}
 
 }

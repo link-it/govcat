@@ -44,9 +44,8 @@ export interface UtenteUpdate {
     metadati?: string;
     stato: StatoUtenteEnum;
     ruolo?: RuoloUtenteEnum;
-    referente_tecnico?: boolean;
     abilitato_domini_esterni?: boolean;
-    organizzazione_esterna?: string;
+    azienda_esterna?: string;
     organizzazioni?: Array<UtenteOrganizzazioneCreateItem>;
     /**
      * @deprecated Alias retrocompatibile, ignorato se `organizzazioni`

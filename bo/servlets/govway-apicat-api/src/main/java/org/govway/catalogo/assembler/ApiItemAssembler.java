@@ -22,6 +22,7 @@ package org.govway.catalogo.assembler;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -74,7 +75,7 @@ public class ApiItemAssembler extends RepresentationModelAssemblerSupport<ApiEnt
 		}
 		
 		Comparator<? super AuthTypeEntity> c = (o1, o2) -> {
-			return (int) (o1.getId() - o2.getId());
+			return Long.compare(o1.getId(), o2.getId());
 		};
 		
 		List<AuthTypeEntity> lst = entity.getAuthType().stream().sorted(c).collect(Collectors.toList());
@@ -87,10 +88,8 @@ public class ApiItemAssembler extends RepresentationModelAssemblerSupport<ApiEnt
 					.stream()
 					.filter(p -> p.getCodiceInterno().equals(authType.getProfilo()))
 					.findAny();
-					//.orElseThrow(() -> new BadRequestException("Profilo ["+authType.getProfilo()+"] non trovato"));
 			if (configurazioneProfilo.isEmpty()) {
-			    String errorMessage = String.format("Profilo [%s] non trovato", authType.getProfilo());
-			    throw new BadRequestException(ErrorCode.VAL_400_FORMAT);
+			    throw new BadRequestException(ErrorCode.VAL_400_PROFILE, Map.of("profilo", authType.getProfilo()));
 			}
 
 			g.setProfilo(authType.getProfilo());

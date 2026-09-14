@@ -53,6 +53,15 @@ public class DominioService extends AbstractService {
 		return this.dominioRepo.findOne(filterByKey(key));
 	}
 
+	/**
+	 * Acquisisce un lock esclusivo sulla riga del dominio per la durata della transazione corrente,
+	 * per serializzare le richieste concorrenti che ne modificano le collection (es. i referenti).
+	 * Vedi {@link AbstractService#lockRow(String, Long)}.
+	 */
+	public void lock(DominioEntity entity) {
+		lockRow("domini", entity.getId());
+	}
+
 	public void save(DominioEntity dominio) {
 		this.dominioRepo.save(dominio);
 	}

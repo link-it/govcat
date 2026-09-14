@@ -32,6 +32,7 @@ import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule } from '@a
 
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
+import { Observable } from 'rxjs';
 
 import { COMPONENTS_IMPORTS } from '@linkit/components';
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
@@ -49,6 +50,10 @@ export interface ModalEditClientInput {
     formGroup: FormGroup;
     formConfig: FormConfig;
     clientsRiuso: Array<{ id_client: any; nome: string }>;
+    // Issue 337: ricerca server-side (q + paginazione) dei client riusabili.
+    searchClients?: (term: string, page?: number) => Observable<any[]>;
+    initValueClient?: any;
+    clientsRiusoCount?: number;
     tipiCertificato: Array<{ nome: string; valore: string }>;
 
     // Stato salvataggio / errore
@@ -138,6 +143,8 @@ export class ModalEditClientComponent {
 
     /** Cambio sul selettore credenziali (dropdown mode). */
     @Output() changeCredenziali = new EventEmitter<any>();
+    /** Issue 337: forward della selezione dal dropdown server-side. */
+    @Output() changeRiusoClient = new EventEmitter<any>();
 
     /** Cambio di un descrittore (auth cert upload). */
     @Output() descriptorChange = new EventEmitter<{ value: any; type: string }>();

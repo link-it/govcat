@@ -55,6 +55,15 @@ export enum RuoloOrganizzazione {
   OPERATORE_API = 'operatore_api'
 }
 
+/**
+ * Issue 250: ruolo dell'utente sulla PDND. Enum a due valori (giustificata
+ * per ampliare in futuro). Il BE normalizza sempre a `nessuno` (mai null).
+ */
+export enum RuoloPdnd {
+  NESSUNO = 'nessuno',
+  ADMIN = 'admin'
+}
+
 export enum Stato {
   NON_CONFIGURATO = 'non_configurato',
   ABILITATO = 'abilitato',
@@ -77,6 +86,7 @@ export class Utente {
   metadati: string | null = null;
   stato: Stato | null = null;
   ruolo: Ruolo | null = null;
+  ruolo_pdnd: RuoloPdnd | null = RuoloPdnd.NESSUNO;
   id_organizzazione: string | null = null;
   ruolo_organizzazione: RuoloOrganizzazione | null = null;
   // classi_utente: Array<any> = [];
@@ -87,7 +97,7 @@ export class Utente {
    * `organizzazione` nel nuovo schema BE.
    */
   organizzazioni: Array<UtenteOrganizzazioneShape> | null = null;
-  organizzazione_esterna: string | null = null;
+  azienda_esterna: string | null = null;
   organizzazione_pending: Organizzazione | null = null;
   /**
    * Issue 229 evolutiva 2: organizzazione di partenza del cambio
@@ -99,7 +109,6 @@ export class Utente {
    */
   organizzazione_partenza: Organizzazione | null = null;
   classi_utente: ClassiUtente | null = null;
-  referente_tecnico: boolean = false;
 
   constructor(_data?: any) {
     if (_data) {

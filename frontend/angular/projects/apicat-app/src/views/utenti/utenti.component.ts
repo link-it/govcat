@@ -31,7 +31,7 @@ import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith,
 
 import { NavigationService } from '@app/services/navigation.service';
 import { Page } from '../../models/page';
-import { Ruolo, Stato } from './utente-details/utente';
+import { Ruolo, RuoloPdnd, Stato } from './utente-details/utente';
 import { HasPermissionDirective } from '@app/directives/has-permission/has-permission.directive';
 
 @Component({
@@ -99,6 +99,11 @@ export class UtentiComponent implements OnInit, AfterViewInit, AfterContentCheck
     this._roleEnum =  { ...this._roleEnum, [value]: `APP.USERS.ROLES.${value}`};
     return value;
   });
+  _ruoloPdndEnum: any = {};
+  _tempRuoloPdnd = Object.values(RuoloPdnd).map((value: any) => {
+    this._ruoloPdndEnum =  { ...this._ruoloPdndEnum, [value]: `APP.USERS.RUOLO_PDND.${value}`};
+    return value;
+  });
   _statoEnum: any = {};
   _tempStato = Object.values(Stato).map((value: any) => {
     this._statoEnum =  { ...this._statoEnum, [value]: `APP.USERS.STATUS.${value}`};
@@ -109,6 +114,7 @@ export class UtentiComponent implements OnInit, AfterViewInit, AfterContentCheck
     { field: 'q', label: 'APP.LABEL.FreeSearch', type: 'string', condition: 'like' },
     { field: 'email', label: 'APP.LABEL.email', type: 'string', condition: 'like' },
     { field: 'ruolo', label: 'APP.LABEL.Role', type: 'enum', condition: 'equal', enumValues: this._roleEnum },
+    { field: 'ruolo_pdnd', label: 'APP.USERS.RUOLO_PDND.Label', type: 'enum', condition: 'equal', enumValues: this._ruoloPdndEnum },
     { field: 'stato', label: 'APP.LABEL.Status', type: 'enum', condition: 'equal', enumValues: this._statoEnum },
     { field: 'principal', label: 'APP.USERS.LABEL.Principal', type: 'string', condition: 'like' },
     { field: 'id_organizzazione', label: 'APP.LABEL.Organization', type: 'text', condition: 'equal', params: { resource: 'organizzazioni', field: 'nome' } },
@@ -130,6 +136,7 @@ export class UtentiComponent implements OnInit, AfterViewInit, AfterContentCheck
 
   _statoArr: any[] = [];
   _ruoloArr: any[] = [];
+  _ruoloPdndArr: any[] = [];
 
   minLengthTerm = 1;
 
@@ -157,9 +164,23 @@ export class UtentiComponent implements OnInit, AfterViewInit, AfterContentCheck
     this.desktop = (window.innerWidth >= 992);
   }
 
+  /** Issue 250 (evolutiva): il ruolo PDND (filtro/colonna) ha effetto solo
+   *  con integrazione PDND v3 (`generale.pdnd_version`; assente = v1). Con v1
+   *  il dato resta esposto ma inefficace: lo nascondiamo per non confondere.
+   *  Fonte canonica: `AuthenticationService.isPdndV3()`. */
+  get _pdndV3(): boolean {
+    return Tools.Configurazione?.generale?.pdnd_version === 'v3';
+  }
+
   ngOnInit() {
     this._statoArr = Object.values(Stato);
     this._ruoloArr = Object.values(Ruolo);
+    this._ruoloPdndArr = Object.values(RuoloPdnd);
+
+    // Con PDND v1 rimuovi il filtro "ruolo PDND" dalla search bar.
+    if (!this._pdndV3) {
+      this.searchFields = this.searchFields.filter((f: any) => f.field !== 'ruolo_pdnd');
+    }
 
     this.configService.getConfig(this.model).subscribe(
       (config: any) => {
@@ -204,6 +225,7 @@ export class UtentiComponent implements OnInit, AfterViewInit, AfterContentCheck
       q: new FormControl(''),
       email: new FormControl(''),
       ruolo: new FormControl(''),
+      ruolo_pdnd: new FormControl(''),
       stato: new FormControl(''),
       principal: new FormControl(''),
       id_organizzazione: new FormControl(null),
@@ -240,7 +262,9 @@ export class UtentiComponent implements OnInit, AfterViewInit, AfterContentCheck
               id: org.id_utente,
               editMode: false,
               enableCollapse: false,
-              source: { ...org }
+              // Issue 250: campo calcolato per mostrare il badge "Ruolo PDND"
+              // in lista SOLO per gli admin (vuoto per `nessuno` -> hideEmpty).
+              source: { ...org, ruolo_pdnd_admin: org.ruolo_pdnd === RuoloPdnd.ADMIN ? org.ruolo_pdnd : '' }
             };
             return element;
           });

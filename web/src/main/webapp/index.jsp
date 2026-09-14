@@ -33,6 +33,130 @@
   <meta charset="utf-8">
   <meta name="description" content="Catalogo API ModI">
   <title>Catalogo API ModI</title>
+  <script nonce="<%= cspNonce %>">
+(function () {
+  "use strict";
+
+  // La Content-Security-Policy viene emessa come header di questo documento e non e' modificabile
+  // a runtime: se un servizio viene creato dopo il caricamento della pagina, il suo host di
+  // invocazione non compare in connect-src e il browser blocca la chiamata. Non potendo allargare
+  // una CSP gia' consegnata, si intercetta la violazione e si propone il ricaricamento della
+  // pagina, ma solo dopo aver verificato che quell'host sia ormai tra quelli consentiti.
+
+  var CHECK_URL = "<%= request.getContextPath() %>" + "/csp/allowed-origin?origin=";
+  var STORAGE_PREFIX = "govcatCspBlocked:";
+  var RETRY_WINDOW_MS = 30000;
+
+  var avviso = null;
+
+  function originBloccato(blockedUri) {
+    if (!blockedUri) {
+      return null;
+    }
+    try {
+      var parsed = new URL(blockedUri, window.location.href);
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+        return null;
+      }
+      if (parsed.origin === window.location.origin) {
+        return null;
+      }
+      return parsed.origin;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function giaVerificato(origin) {
+    try {
+      var ultimo = window.sessionStorage.getItem(STORAGE_PREFIX + origin);
+      return ultimo !== null && (Date.now() - parseInt(ultimo, 10)) < RETRY_WINDOW_MS;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function segnaVerificato(origin) {
+    try {
+      window.sessionStorage.setItem(STORAGE_PREFIX + origin, String(Date.now()));
+    } catch (e) {
+      // sessionStorage non disponibile: si rinuncia alla protezione dalle verifiche ripetute
+    }
+  }
+
+  function creaBottone(etichetta, stile, azione) {
+    var bottone = document.createElement("button");
+    bottone.type = "button";
+    bottone.textContent = etichetta;
+    bottone.style.cssText = stile;
+    bottone.addEventListener("click", azione);
+    return bottone;
+  }
+
+  function mostraAvviso() {
+    if (avviso !== null || !document.body) {
+      return;
+    }
+
+    avviso = document.createElement("div");
+    avviso.setAttribute("role", "alert");
+    avviso.style.cssText = "position:fixed;z-index:2147483647;bottom:16px;left:50%;transform:translateX(-50%);"
+      + "display:flex;align-items:center;gap:12px;max-width:90%;padding:12px 16px;border-radius:6px;"
+      + "background:#212121;color:#fff;font:14px sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.3)";
+
+    var testo = document.createElement("span");
+    testo.textContent = "La configurazione del catalogo \u00e8 cambiata dopo l'apertura della pagina: "
+      + "ricarica la pagina per abilitare l'invocazione del servizio.";
+
+    var ricarica = creaBottone("Ricarica",
+      "flex:none;padding:6px 12px;border:0;border-radius:4px;background:#0d6efd;color:#fff;font:inherit;cursor:pointer",
+      function () {
+        window.location.reload();
+      });
+
+    var chiudi = creaBottone("\u00d7",
+      "flex:none;padding:0 4px;border:0;background:transparent;color:#fff;font:18px/1 sans-serif;cursor:pointer",
+      function () {
+        if (avviso !== null && avviso.parentNode !== null) {
+          avviso.parentNode.removeChild(avviso);
+        }
+        avviso = null;
+      });
+    chiudi.setAttribute("aria-label", "Chiudi");
+
+    avviso.appendChild(testo);
+    avviso.appendChild(ricarica);
+    avviso.appendChild(chiudi);
+    document.body.appendChild(avviso);
+  }
+
+  document.addEventListener("securitypolicyviolation", function (event) {
+    var direttiva = String(event.effectiveDirective || event.violatedDirective || "");
+    if (direttiva.indexOf("connect-src") !== 0) {
+      return;
+    }
+
+    var origin = originBloccato(event.blockedURI);
+    if (origin === null || giaVerificato(origin)) {
+      return;
+    }
+    segnaVerificato(origin);
+
+    fetch(CHECK_URL + encodeURIComponent(origin), {
+      credentials: "same-origin",
+      headers: { "Accept": "application/json" }
+    }).then(function (response) {
+      return response.ok ? response.json() : null;
+    }).then(function (esito) {
+      if (esito !== null && esito.allowed === true) {
+        mostraAvviso();
+      }
+    }).catch(function () {
+      // Verifica non riuscita: resta il comportamento attuale, con ricaricamento manuale.
+    });
+  });
+})();
+  </script>
   <script src="<%=request.getContextPath()%>/BaseInit.js" defer nonce="<%= cspNonce %>"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">

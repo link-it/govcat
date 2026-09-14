@@ -126,7 +126,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		}
 		
 		Comparator<? super AuthTypeEntity> c = (o1, o2) -> {
-			return (int) (o1.getId() - o2.getId());
+			return Long.compare(o1.getId(), o2.getId());
 		};
 		
 		List<AuthTypeEntity> lst = entity.getAuthType().stream().sorted(c).collect(Collectors.toList());
@@ -139,10 +139,8 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 					.stream()
 					.filter(p -> p.getCodiceInterno().equals(authType.getProfilo()))
 					.findAny();
-					//.orElseThrow(() -> new BadRequestException("Profilo ["+authType.getProfilo()+"] non trovato"));
 			if (configurazioneProfilo.isEmpty()) {
-			    String errorMessage = String.format("Profilo [%s] non trovato", authType.getProfilo());
-			    throw new BadRequestException(ErrorCode.VAL_400_FORMAT);
+			    throw new BadRequestException(ErrorCode.VAL_400_PROFILE, Map.of("profilo", authType.getProfilo()));
 			}
 
 			g.setProfilo(authType.getProfilo());
@@ -374,11 +372,9 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 					.stream()
 					.filter(c -> c.getNome().equals(p.getNome()))
 					.findAny();
-					//.orElseThrow(() -> new BadRequestException("Proprieta ["+p.getNome()+"] non trovata per il gruppo ["+g.getNomeGruppo()+"]"));
-					
+
 					if (configurazioneCustomProprieta.isEmpty()) {
-					    String errorMessage = String.format("Proprietà [%s] non trovata per il gruppo [%s]", p.getNome(), g.getNomeGruppo());
-					    throw new BadRequestException(ErrorCode.VAL_400_FORMAT);
+					    throw new BadRequestException(ErrorCode.VAL_400_CUSTOM_PROPERTY, Map.of("nome", p.getNome(), "gruppo", g.getNomeGruppo()));
 					}
 					
 					EstensioneApiEntity e = new EstensioneApiEntity();
@@ -423,7 +419,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 						.stream()
 						.filter(pr -> pr.getCodiceInterno().equals(gruppo.getProfilo()))
 						.findAny()
-						.orElseThrow(() -> new BadRequestException(ErrorCode.VAL_400_FORMAT));
+						.orElseThrow(() -> new BadRequestException(ErrorCode.VAL_400_PROFILE, Map.of("profilo", gruppo.getProfilo())));
 
 				DominioEntity d = entity.getServizio().getDominio();
 				
@@ -567,7 +563,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		if(entity.getRuolo().equals(RUOLO.EROGATO_SOGGETTO_DOMINIO)) {
 
 			Comparator<? super AuthTypeEntity> c = (o1, o2) -> {
-				return (int) (o1.getId() - o2.getId());
+				return Long.compare(o1.getId(), o2.getId());
 			};
 			List<AuthTypeEntity> lst = entity.getAuthType().stream().sorted(c).collect(Collectors.toList());
 			

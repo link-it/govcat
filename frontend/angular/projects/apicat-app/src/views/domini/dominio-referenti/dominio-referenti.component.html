@@ -198,7 +198,7 @@
       </div>
       <div class="modal-footer py-2">
         <button type="button" class="btn btn-default btn-md gl-button" (click)="closeModal()">{{ 'APP.BUTTON.Close' | translate }}</button>
-        <button type="submit" class="btn btn-confirm btn-md gl-button" [disabled]="_editFormGroup.invalid">{{ 'APP.BUTTON.Save' | translate }}</button>
+        <button type="submit" class="btn btn-confirm btn-md gl-button" [disabled]="_editFormGroup.invalid || _saving">{{ 'APP.BUTTON.Save' | translate }}</button>
       </div>
     </form>
   </div>

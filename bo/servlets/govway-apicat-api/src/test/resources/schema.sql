@@ -493,6 +493,7 @@ create sequence seq_aziende_esterne start with 1 increment by 1;
         principal varchar(255) not null,
         ruoli_notifiche_abilitate varchar(1024),
         ruolo varchar(255),
+        ruolo_pdnd varchar(255),
         stato varchar(255) not null,
         telefono varchar(255),
         telefono_aziendale varchar(255),

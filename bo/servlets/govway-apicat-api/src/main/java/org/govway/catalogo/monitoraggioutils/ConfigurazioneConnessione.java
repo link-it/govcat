@@ -21,12 +21,21 @@ package org.govway.catalogo.monitoraggioutils;
 
 import org.govway.catalogo.servlets.monitor.model.AmbienteEnum;
 
+import httpauth.OutboundAuthentication;
+
 public class ConfigurazioneConnessione {
 
 	private String url;
 	private String username;
 	private String password;
 	private AmbienteEnum ambiente;
+
+	/**
+	 * Autenticazione verso govway. Vale quanto risolto dalla configurazione: il profilo di
+	 * autenticazione referenziato dall'integrazione, altrimenti il basic con username e password.
+	 * Mai nulla: se non valorizzata esplicitamente ricade sul basic di questa configurazione.
+	 */
+	private OutboundAuthentication autenticazione;
 
 	private String idAllarmeSoggetti;
 	private String idAllarmeApplicativi;
@@ -121,6 +130,18 @@ public class ConfigurazioneConnessione {
 	}
 	public void setIdAllarmeFruizioniPdndBackend(String idAllarmeFruizioniPdndBackend) {
 		this.idAllarmeFruizioniPdndBackend = idAllarmeFruizioniPdndBackend;
+	}
+
+	/**
+	 * @return autenticazione configurata, il basic con username e password se non impostata
+	 */
+	public OutboundAuthentication getAutenticazione() {
+		return this.autenticazione != null
+				? this.autenticazione
+				: OutboundAuthentication.basic(this.username, this.password);
+	}
+	public void setAutenticazione(OutboundAuthentication autenticazione) {
+		this.autenticazione = autenticazione;
 	}
 
 	public String getPassword() {

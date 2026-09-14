@@ -257,7 +257,7 @@ export class AdesioneFormComponent implements OnInit, OnChanges {
         this.formGroup.get('id_organizzazione')?.updateValueAndValidity();
         this.formGroup.get('soggetto_nome')?.updateValueAndValidity();
 
-        this.onChangeServizio(this.initDataService);
+        this.onChangeServizio(this.initDataService, true);
 
         this.loadSoggetti();
     }
@@ -402,21 +402,31 @@ export class AdesioneFormComponent implements OnInit, OnChanges {
         console.log('onChangeSoggetto', event)
     }
 
-    async onChangeServizio(event?: any) {
+    async onChangeServizio(event?: any, fromInit: boolean = false) {
         this.servizio = event.item;
 
         this.updateIdLogico();
 
-        // L'organizzazione dell'adesione (fruitore) e` SEMPRE quella di
-        // sessione o scelta dall'utente: non viene derivata dal dominio/
-        // erogatore del servizio.
-        if (this.servizio && await this.isCurrentUserReferenteServizio(this.servizio)){
-            this.formGroup.get('id_organizzazione')?.enable();
-            this.formGroup.get('id_organizzazione')?.reset();
-        } else {
-            const currentOrgId = this.authenticationService.getCurrentOrganization()?.id_organizzazione;
-            if (currentOrgId) {
-                this.loadOrganizzazione(currentOrgId);
+        // Issue #347: per un'adesione ESISTENTE, in fase di inizializzazione
+        // del form, l'organizzazione (fruitore) e` gia` quella dell'adesione ed
+        // il campo e` in sola lettura. NON va ricalcolata: derivarla dall'org
+        // di sessione dell'utente sovrascriveva org e soggetto mostrati in edit
+        // (bug visibile con l'operatore API, la cui org differisce da quella
+        // dell'adesione). Il ricalcolo resta attivo in creazione / cambio
+        // servizio esplicito da parte dell'utente.
+        const _skipOrg = fromInit && !!this.adesione?.id_adesione;
+        if (!_skipOrg) {
+            // L'organizzazione dell'adesione (fruitore) e` SEMPRE quella di
+            // sessione o scelta dall'utente: non viene derivata dal dominio/
+            // erogatore del servizio.
+            if (this.servizio && await this.isCurrentUserReferenteServizio(this.servizio)){
+                this.formGroup.get('id_organizzazione')?.enable();
+                this.formGroup.get('id_organizzazione')?.reset();
+            } else {
+                const currentOrgId = this.authenticationService.getCurrentOrganization()?.id_organizzazione;
+                if (currentOrgId) {
+                    this.loadOrganizzazione(currentOrgId);
+                }
             }
         }
 

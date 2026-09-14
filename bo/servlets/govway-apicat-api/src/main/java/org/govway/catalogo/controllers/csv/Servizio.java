@@ -22,11 +22,21 @@ package org.govway.catalogo.controllers.csv;
 public class Servizio {
 
 	private String erogatore;
+	private String fruitore;
+	private String dominio;
 	private String servizio;
+	private String versioneServizio;
+	private String uuidServizio;
 	private String api;
+	private String versioneApi;
+	private String uuidApi;
 	private String tipoApi;
 	private String autenticazioneStato;
 	private String statoServizio;
+	private String referentiServizio;
+	private String referentiTecniciServizio;
+	private String referentiDominio;
+	private String referentiTecniciDominio;
 	private String urlInvocazioneProduzione;
 	private String connettoreProduzione;
 	private String urlInvocazioneCollaudo;
@@ -38,17 +48,53 @@ public class Servizio {
 	public void setErogatore(String erogatore) {
 		this.erogatore = erogatore;
 	}
+	public String getFruitore() {
+		return fruitore;
+	}
+	public void setFruitore(String fruitore) {
+		this.fruitore = fruitore;
+	}
+	public String getDominio() {
+		return dominio;
+	}
+	public void setDominio(String dominio) {
+		this.dominio = dominio;
+	}
 	public String getServizio() {
 		return servizio;
 	}
 	public void setServizio(String servizio) {
 		this.servizio = servizio;
 	}
+	public String getVersioneServizio() {
+		return versioneServizio;
+	}
+	public void setVersioneServizio(String versioneServizio) {
+		this.versioneServizio = versioneServizio;
+	}
+	public String getUuidServizio() {
+		return uuidServizio;
+	}
+	public void setUuidServizio(String uuidServizio) {
+		this.uuidServizio = uuidServizio;
+	}
 	public String getApi() {
 		return api;
 	}
 	public void setApi(String api) {
 		this.api = api;
+	}
+	public String getVersioneApi() {
+		return versioneApi;
+	}
+	public void setVersioneApi(String versioneApi) {
+		this.versioneApi = versioneApi;
+	}
+	public String getUuidApi() {
+		return uuidApi;
+	}
+	public void setUuidApi(String uuidApi) {
+		this.uuidApi = uuidApi;
 	}
 	public String getTipoApi() {
 		return tipoApi;
@@ -67,6 +113,30 @@ public class Servizio {
 	}
 	public void setStatoServizio(String statoServizio) {
 		this.statoServizio = statoServizio;
+	}
+	public String getReferentiServizio() {
+		return referentiServizio;
+	}
+	public void setReferentiServizio(String referentiServizio) {
+		this.referentiServizio = referentiServizio;
+	}
+	public String getReferentiTecniciServizio() {
+		return referentiTecniciServizio;
+	}
+	public void setReferentiTecniciServizio(String referentiTecniciServizio) {
+		this.referentiTecniciServizio = referentiTecniciServizio;
+	}
+	public String getReferentiDominio() {
+		return referentiDominio;
+	}
+	public void setReferentiDominio(String referentiDominio) {
+		this.referentiDominio = referentiDominio;
+	}
+	public String getReferentiTecniciDominio() {
+		return referentiTecniciDominio;
+	}
+	public void setReferentiTecniciDominio(String referentiTecniciDominio) {
+		this.referentiTecniciDominio = referentiTecniciDominio;
 	}
 	public String getUrlInvocazioneProduzione() {
 		return urlInvocazioneProduzione;

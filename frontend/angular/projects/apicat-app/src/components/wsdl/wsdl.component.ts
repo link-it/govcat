@@ -37,6 +37,11 @@ export class WsdlComponent implements OnChanges {
 
   @Input() api: any = null;
   @Input() environment: string = '';
+  /**
+   * Issue #332: nasconde il blocco "Url invocazione" per port_type quando l'URL
+   * è già mostrato dal contenitore (barra unificata con pulsante Copia).
+   */
+  @Input() hideUrlInvocazione: boolean = false;
   
   // @ViewChild('wsdlui') wsdlDom!: ElementRef<HTMLDivElement>;
 

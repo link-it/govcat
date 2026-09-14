@@ -439,7 +439,12 @@ export class OrganizzazioneManageComponent implements OnInit, AfterContentChecke
             nome: utente?.nome,
             cognome: utente?.cognome,
             email_aziendale: utente?.email_aziendale,
-            ruolo_organizzazione: ruolo
+            ruolo_organizzazione: ruolo,
+            // Issue 350: azienda esterna mostrata in lista se presente (hideEmpty).
+            azienda_esterna: utente?.azienda_esterna ?? '',
+            // Issue 250: mostra il badge "Ruolo PDND" in lista solo se admin
+            // (vuoto per `nessuno`/assente -> hideEmpty).
+            ruolo_pdnd_admin: utente?.ruolo_pdnd === 'admin' ? utente.ruolo_pdnd : ''
         };
     }
 

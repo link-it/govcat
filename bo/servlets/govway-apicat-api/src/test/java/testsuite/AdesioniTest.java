@@ -99,6 +99,7 @@ import org.govway.catalogo.servlets.model.Gruppo;
 import org.govway.catalogo.servlets.model.GruppoCreate;
 import org.govway.catalogo.servlets.model.ItemAdesione;
 import org.govway.catalogo.servlets.model.ItemComunicazione;
+import org.govway.catalogo.servlets.model.IdentificativoServizioUpdate;
 import org.govway.catalogo.servlets.model.ItemMessaggio;
 import org.govway.catalogo.servlets.model.MessaggioAdesioneCreate;
 import org.govway.catalogo.servlets.model.TargetComunicazioneAdesioneEnum;
@@ -122,6 +123,7 @@ import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.Servizio;
 import org.govway.catalogo.servlets.model.ServizioCreate;
 import org.govway.catalogo.servlets.model.ServizioUpdate;
+import org.govway.catalogo.servlets.model.TipoServizio;
 import org.govway.catalogo.servlets.model.Soggetto;
 import org.govway.catalogo.servlets.model.SoggettoCreate;
 import org.govway.catalogo.servlets.model.StatoClientEnum;
@@ -485,6 +487,168 @@ public class AdesioniTest {
     	Adesione adesione = this.getAdesione();
     	
     	assertNotNull(adesione);
+    }
+
+    @Test
+    void testExportAdesioniSoggettoErogatoreEAderente() throws Exception {
+        Dominio dominio = this.getDominioFull(null);
+        Servizio servizio = this.getServizioFull(dominio, VisibilitaServizioEnum.PUBBLICO);
+
+        // Ente erogatore distinto dal soggetto referente del dominio
+        SoggettoCreate erogatoreCreate = new SoggettoCreate();
+        erogatoreCreate.setNome("nome_soggetto_erogatore");
+        erogatoreCreate.setIdOrganizzazione(this.idOrganizzazione);
+        erogatoreCreate.setReferente(true);
+        erogatoreCreate.setAderente(true);
+        ResponseEntity<Soggetto> erogatore = soggettiController.createSoggetto(erogatoreCreate);
+        assertEquals(HttpStatus.OK, erogatore.getStatusCode());
+
+        // Trasformo il servizio in fruizione indicando l'ente erogatore
+        ServizioUpdate servizioUpdate = new ServizioUpdate();
+        IdentificativoServizioUpdate identificativo = new IdentificativoServizioUpdate();
+        identificativo.setNome(servizio.getNome());
+        identificativo.setVersione(servizio.getVersione());
+        identificativo.setTipo(TipoServizio.API);
+        identificativo.setIdDominio(dominio.getIdDominio());
+        identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
+        identificativo.setPackage(false);
+        identificativo.setMultiAdesione(false);
+        identificativo.setAdesioneDisabilitata(false);
+        identificativo.setFruizione(true);
+        identificativo.setIdSoggettoErogatore(erogatore.getBody().getIdSoggetto());
+        servizioUpdate.setIdentificativo(identificativo);
+
+        assertEquals(HttpStatus.OK,
+                serviziController.updateServizio(servizio.getIdServizio(), null, servizioUpdate).getStatusCode());
+
+        this.getAPIFull();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+
+        Adesione adesione = this.getAdesioneFull();
+        this.cambioStatoAdesioneFinoA(adesione.getIdAdesione(), STATO_PUBBLICATO_IN_COLLAUDO);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        ResponseEntity<Resource> response = adesioniController.exportAdesioni(
+            null, null, null, null, null, null, null, null, null, false, null, null, null
+        );
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+
+        String csv = new String(response.getBody().getContentAsByteArray());
+
+        // Fruizione: l'erogatore è l'ente erogatore del servizio, non il referente del dominio
+        assertEquals("nome_soggetto_erogatore", getColonnaCsv(csv, adesione, "Soggetto Erogatore"));
+
+        // Aderente: il soggetto dell'adesione, non la sua organizzazione
+        assertEquals("nome_soggetto", getColonnaCsv(csv, adesione, "Soggetto Aderente"));
+    }
+
+    @Test
+    void testExportAdesioniIncludeAdesioniInBozza() throws Exception {
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+
+        Adesione adesione = this.getAdesione();
+        assertEquals("bozza", adesione.getStato());
+
+        entityManager.flush();
+        entityManager.clear();
+
+        ResponseEntity<Resource> response = adesioniController.exportAdesioni(
+            null, null, null, null, null, null, null, null, null, false, null,
+            Arrays.asList(adesione.getIdAdesione()), null
+        );
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+
+        String csv = new String(response.getBody().getContentAsByteArray());
+
+        // Anche le adesioni in stati fuori da stati_scheda_adesione devono comparire nell'export,
+        // con le colonne di configurazione vuote
+        assertEquals("Bozza", getColonnaCsv(csv, adesione, "Stato Adesione"));
+        assertEquals("nome_soggetto", getColonnaCsv(csv, adesione, "Soggetto Aderente"));
+        assertEquals("", getColonnaCsv(csv, adesione, "Applicativi Autorizzati (Coll)"));
+
+        // Nome, versione e uuid del servizio su colonne distinte: la versione non è più
+        // incorporata nel nome. L'identificativo logico non è stato indicato in creazione.
+        assertEquals(servizio.getNome(), getColonnaCsv(csv, adesione, "Servizio"));
+        assertEquals(servizio.getVersione(), getColonnaCsv(csv, adesione, "Versione Servizio"));
+        assertEquals(servizio.getIdServizio().toString(), getColonnaCsv(csv, adesione, "UUID Servizio"));
+        assertEquals("", getColonnaCsv(csv, adesione, "Identificativo Adesione"));
+    }
+
+    /**
+     * Valore della colonna indicata, nella riga di CSV relativa all'adesione indicata. La riga è
+     * individuata tramite la colonna "UUID Adesione": trovarla verifica anche quella colonna.
+     */
+    private String getColonnaCsv(String csv, Adesione adesione, String colonna) {
+        List<List<String>> righe = parseCsv(csv);
+        List<String> header = righe.get(0);
+
+        int indiceUuid = header.indexOf("UUID Adesione");
+        int indiceColonna = header.indexOf(colonna);
+        assertTrue(indiceUuid >= 0 && indiceColonna >= 0, "Colonne non presenti nell'header: " + header);
+
+        for(int i = 1; i < righe.size(); i++) {
+            List<String> valori = righe.get(i);
+            if(valori.size() > indiceUuid && valori.get(indiceUuid).equals(adesione.getIdAdesione().toString())) {
+                return valori.get(indiceColonna);
+            }
+        }
+
+        fail("Adesione " + adesione.getIdAdesione() + " non presente nel CSV: " + csv);
+        return null;
+    }
+
+    /**
+     * Parsing del CSV che tiene conto di virgole e newline all'interno dei valori quotati: le celle
+     * dei referenti contengono più email separate da newline.
+     */
+    private List<List<String>> parseCsv(String csv) {
+        List<List<String>> righe = new ArrayList<>();
+        List<String> riga = new ArrayList<>();
+        StringBuilder valore = new StringBuilder();
+        boolean dentroQuote = false;
+
+        for(int i = 0; i < csv.length(); i++) {
+            char c = csv.charAt(i);
+
+            if(dentroQuote) {
+                if(c != '"') {
+                    valore.append(c);
+                } else if(i + 1 < csv.length() && csv.charAt(i + 1) == '"') {   // quote raddoppiato
+                    valore.append('"');
+                    i++;
+                } else {
+                    dentroQuote = false;
+                }
+            } else if(c == '"') {
+                dentroQuote = true;
+            } else if(c == ',') {
+                riga.add(valore.toString());
+                valore.setLength(0);
+            } else if(c == '\n') {
+                riga.add(valore.toString());
+                righe.add(riga);
+                riga = new ArrayList<>();
+                valore.setLength(0);
+            } else if(c != '\r') {
+                valore.append(c);
+            }
+        }
+
+        if(valore.length() > 0 || !riga.isEmpty()) {
+            riga.add(valore.toString());
+            righe.add(riga);
+        }
+
+        return righe;
     }
     
     @Test
@@ -968,6 +1132,55 @@ public class AdesioniTest {
     }
     
     @Test
+    void testCreateReferenteAdesioneDuplicato() {
+    	// Creo il dominio
+    	Dominio dominio = this.getDominio(null);
+    	// Creo un servizio
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	// Creo API
+    	this.getAPI();
+
+    	//per l'adesione lo stato del servizio deve essere a "Pubblicato in collaudo"
+    	CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+
+    	// Creo l'Adesione
+    	Adesione adesione = this.getAdesione();
+
+    	assertNotNull(adesione);
+
+    	UtenteUpdate upUtente = new UtenteUpdate();
+        upUtente.setPrincipal(UTENTE_RICHIEDENTE_ADESIONE);
+        CommonUtils.setOrganizzazione(upUtente, idOrganizzazione);
+        upUtente.setStato(StatoUtenteEnum.ABILITATO);
+        upUtente.setEmailAziendale("mail@aziendale.it");
+        upUtente.setTelefonoAziendale("+39 0000000");
+        upUtente.setNome("utente");
+        upUtente.setCognome("richiedente_adesione");
+
+        utentiController.updateUtente(ID_UTENTE_RICHIEDENTE_ADESIONE, upUtente);
+
+    	ReferenteCreate referente = new ReferenteCreate();
+    	referente.setIdUtente(ID_UTENTE_RICHIEDENTE_ADESIONE);
+    	referente.setTipo(TipoReferenteEnum.REFERENTE);
+
+    	ResponseEntity<Referente> response = adesioniController.createReferenteAdesione(adesione.getIdAdesione(), referente, null);
+
+    	assertEquals(HttpStatus.CREATED, response.getStatusCode());
+
+    	// il test condivide una sola transazione: si svuota il contesto di persistenza per
+    	// simulare la seconda richiesta HTTP, che rilegge i referenti dell'adesione dal database
+    	this.entityManager.flush();
+    	this.entityManager.clear();
+
+    	// la seconda aggiunta dello stesso utente con lo stesso tipo deve essere rifiutata
+    	Exception exception = assertThrows(BadRequestException.class, () -> {
+    		adesioniController.createReferenteAdesione(adesione.getIdAdesione(), referente, null);
+    	});
+
+    	assertTrue(exception.getMessage().contains("ADE.409.REFERENT"));
+    }
+
+    @Test
     void testCreateReferenteAdesioneNotAuthorized() { 
     	// Creo il dominio
     	Dominio dominio = this.getDominio(null);
@@ -1089,13 +1302,142 @@ public class AdesioniTest {
         CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
         Adesione adesione = this.getAdesione();
 
-        this.tearDown();        
-        
+        this.tearDown();
+
         assertThrows(NotAuthorizedException.class, () -> {
         	adesioniController.deleteAdesione(adesione.getIdAdesione());
         });
     }
-    
+
+    private UUID creaClientCollaudo(String nome, StatoClientEnum stato) {
+        ClientCreate clientCreate = new ClientCreate();
+        clientCreate.setIdSoggetto(idSoggetto);
+        clientCreate.setNome(nome);
+        clientCreate.setAmbiente(AmbienteEnum.COLLAUDO);
+
+        AuthTypeHttpsCreate dati = new AuthTypeHttpsCreate();
+        dati.setAuthType(AuthTypeEnum.HTTPS);
+
+        CertificatoClientFornitoCreate certificato = new CertificatoClientFornitoCreate();
+        certificato.setTipoCertificato(TipoCertificatoEnum.FORNITO);
+
+        DocumentoUpdateNew documento = new DocumentoUpdateNew();
+        documento.setTipoDocumento(TipoDocumentoEnum.NUOVO);
+        documento.setFilename("certificato.cer");
+        documento.setContent(pemCert);
+        documento.setContentType("application/cert");
+
+        certificato.setCertificato(documento);
+        dati.setCertificatoAutenticazione(certificato);
+
+        clientCreate.setDatiSpecifici(dati);
+        clientCreate.setDescrizione("descrizione");
+        clientCreate.setIndirizzoIp("1.1.1.1");
+        clientCreate.setStato(stato);
+
+        return clientController.createClient(clientCreate).getBody().getIdClient();
+    }
+
+    private void associaClientCollaudo(UUID idAdesione, String nomeClient) {
+        AdesioneIdClient adesioneIdClient = new AdesioneIdClient();
+        adesioneIdClient.setNome(nomeClient);
+        adesioneIdClient.setAmbiente(AmbienteEnum.COLLAUDO);
+        adesioneIdClient.setIdSoggetto(idSoggetto);
+        adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
+
+        adesioniController.saveClientCollaudoAdesione(idAdesione, PROFILO, adesioneIdClient, null);
+    }
+
+    @Test
+    void testDeleteAdesioneEliminaClientNuovoNonCondiviso() {
+        // Setup
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+        Adesione adesione = this.getAdesione();
+
+        UUID idClient = this.creaClientCollaudo("ClientTestNuovo", StatoClientEnum.NUOVO);
+        this.associaClientCollaudo(adesione.getIdAdesione(), "ClientTestNuovo");
+
+        // Allineo la sessione al DB: il persistence context del test e' condiviso tra le chiamate
+        entityManager.flush();
+        entityManager.clear();
+
+        // Act
+        ResponseEntity<Void> response = adesioniController.deleteAdesione(adesione.getIdAdesione());
+
+        // Assert: il client, non configurato e associato alla sola adesione eliminata, viene eliminato
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertThrows(NotFoundException.class, () -> clientController.getClient(idClient));
+    }
+
+    @Test
+    void testDeleteAdesioneNonEliminaClientConfigurato() {
+        // Setup
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+        Adesione adesione = this.getAdesione();
+
+        UUID idClient = this.creaClientCollaudo("ClientTestConfigurato", StatoClientEnum.CONFIGURATO);
+        this.associaClientCollaudo(adesione.getIdAdesione(), "ClientTestConfigurato");
+
+        // Allineo la sessione al DB: il persistence context del test e' condiviso tra le chiamate
+        entityManager.flush();
+        entityManager.clear();
+
+        // Act
+        ResponseEntity<Void> response = adesioniController.deleteAdesione(adesione.getIdAdesione());
+
+        // Assert: il client configurato sopravvive all'eliminazione dell'adesione
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(clientController.getClient(idClient).getBody());
+    }
+
+    @Test
+    void testDeleteAdesioneNonEliminaClientNuovoCondiviso() {
+        // Setup
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizioMultiAdesione(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+
+        List<ReferenteCreate> listaReferenti = new ArrayList<>();
+        ReferenteCreate newReferente = new ReferenteCreate();
+        newReferente.setIdUtente(ID_UTENTE_GESTORE);
+        newReferente.setTipo(TipoReferenteEnum.REFERENTE);
+        listaReferenti.add(newReferente);
+
+        UUID idAdesione1 = this.creaAdesioneConIdLogico(listaReferenti, "a");
+        UUID idAdesione2 = this.creaAdesioneConIdLogico(listaReferenti, "b");
+
+        UUID idClient = this.creaClientCollaudo("ClientTestCondiviso", StatoClientEnum.NUOVO);
+        this.associaClientCollaudo(idAdesione1, "ClientTestCondiviso");
+        this.associaClientCollaudo(idAdesione2, "ClientTestCondiviso");
+
+        // Allineo la sessione al DB: il persistence context del test e' condiviso tra le chiamate
+        entityManager.flush();
+        entityManager.clear();
+
+        // Act
+        ResponseEntity<Void> response = adesioniController.deleteAdesione(idAdesione1);
+
+        // Assert: il client resta perche' ancora associato alla seconda adesione
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(clientController.getClient(idClient).getBody());
+    }
+
+    private UUID creaAdesioneConIdLogico(List<ReferenteCreate> listaReferenti, String idLogico) {
+        AdesioneCreate nuovaAdesione = new AdesioneCreate();
+        nuovaAdesione.setIdServizio(idServizio);
+        nuovaAdesione.setIdSoggetto(idSoggetto);
+        nuovaAdesione.setReferenti(listaReferenti);
+        nuovaAdesione.setIdLogico(idLogico);
+        return adesioniController.createAdesione(nuovaAdesione).getBody().getIdAdesione();
+    }
+
     @Test
     void testDeleteReferenteAdesioneSuccess() {
         // Setup

@@ -22,6 +22,7 @@ package org.govway.catalogo.core.services;
 import java.util.function.Supplier;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.FlushModeType;
 
 import org.govway.catalogo.core.dao.repositories.AdesioneRepository;
 import org.govway.catalogo.core.dao.repositories.AllegatoApiRepository;
@@ -128,6 +129,33 @@ public class AbstractService {
 	protected EntityManager entityManager;
 
 	private Logger logger = LoggerFactory.getLogger(AbstractService.class);
+
+	/**
+	 * Acquisisce un lock esclusivo sulla riga indicata (SELECT ... FOR UPDATE) per la durata della
+	 * transazione corrente. Serve a serializzare le richieste concorrenti che modificano le collection
+	 * di una stessa entita`: senza lock due transazioni sovrapposte leggono entrambe lo stato
+	 * precedente all'insert dell'altra e i controlli applicativi di duplicazione non intercettano il
+	 * conflitto (es. doppio click sul salvataggio di un referente).
+	 *
+	 * Va invocato prima di navigare le collection da controllare, cosi` che il caricamento lazy
+	 * avvenga dopo l'acquisizione del lock e legga i dati committati dalla transazione precedente.
+	 *
+	 * Il lock e` acquisito con una query nativa e non con {@code EntityManager.lock(PESSIMISTIC_WRITE)}
+	 * perche` per quest'ultimo Hibernate genera la clausola {@code for no key update}, specifica di
+	 * PostgreSQL e non supportata dall'H2 usato nei test. La query non forza il flush del contesto di
+	 * persistenza ({@code FlushModeType.COMMIT}): le eventuali modifiche pendenti restano in attesa
+	 * del commit come senza lock.
+	 *
+	 * @param tabella nome della tabella su cui acquisire il lock. E` un valore costante deciso dal
+	 *                service chiamante, mai un dato proveniente dalla richiesta.
+	 * @param id chiave primaria della riga da bloccare
+	 */
+	protected void lockRow(String tabella, Long id) {
+		this.entityManager.createNativeQuery("SELECT id FROM " + tabella + " WHERE id = :id FOR UPDATE")
+			.setParameter("id", id)
+			.setFlushMode(FlushModeType.COMMIT)
+			.getSingleResult();
+	}
 
 	// Questi metodi potranno diventare protected se non vogliamo che ci si acceda
 	// dai vari ServiceImpl

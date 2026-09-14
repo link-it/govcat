@@ -42,7 +42,11 @@ import org.govway.catalogo.monitoraggioutils.ConfigurazioneConnessione;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import httpauth.OutboundAuthentication;
+
 public abstract class AbstractAllarmeClient {
+
+	private static final String HEADER_AUTHORIZATION = "Authorization";
 
 	
 	protected Logger logger = LoggerFactory.getLogger(AbstractAllarmeClient.class);
@@ -160,18 +164,35 @@ public abstract class AbstractAllarmeClient {
 	private List<String> getAllarmeViaHTTP(ConfigurazioneConnessione connessione, String idAllarme) {
 		
 		try {
-	        CredentialsProvider provider = new BasicCredentialsProvider();
-	        provider.setCredentials(
-	                AuthScope.ANY,
-	                new UsernamePasswordCredentials(connessione.getUsername(), connessione.getPassword())
-	        );
+			OutboundAuthentication autenticazione = connessione.getAutenticazione();
 
-	        CloseableHttpClient httpClient = HttpClientBuilder.create()
-	                .setDefaultCredentialsProvider(provider)
-	                .build();
+	        HttpClientBuilder clientBuilder = HttpClientBuilder.create();
+
+	        if(!autenticazione.isOauthClientCredentials()) {
+		        CredentialsProvider provider = new BasicCredentialsProvider();
+		        provider.setCredentials(
+		                AuthScope.ANY,
+		                new UsernamePasswordCredentials(connessione.getUsername(), connessione.getPassword())
+		        );
+
+		        clientBuilder.setDefaultCredentialsProvider(provider);
+	        }
+
+	        CloseableHttpClient httpClient = clientBuilder.build();
 
 
 			HttpGet request = new HttpGet(connessione.getUrl() + "/" + idAllarme);
+
+			// il token arriva dalla cache e viene negoziato solo alla scadenza; gli allarmi sono
+			// l'unica integrazione su apache httpclient, quindi l'header viene aggiunto qui
+			// anziche' da un interceptor okhttp
+			if(autenticazione.isOauthClientCredentials()) {
+				Optional<String> authorization = autenticazione.getAuthorizationHeader();
+
+				if(authorization.isPresent()) {
+					request.addHeader(HEADER_AUTHORIZATION, authorization.get());
+				}
+			}
 	
 			CloseableHttpResponse response = httpClient.execute(request);
 	

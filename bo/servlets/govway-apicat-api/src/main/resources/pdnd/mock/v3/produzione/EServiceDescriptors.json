@@ -1,0 +1,25 @@
+{
+  "results": [
+    {
+      "id": "c4444444-4444-4444-4444-444444444444",
+      "version": "1",
+      "description": "Versione di esempio",
+      "audience": [
+        "anagrafe/v1"
+      ],
+      "voucherLifespan": 600,
+      "dailyCallsPerConsumer": 1000,
+      "dailyCallsTotal": 10000,
+      "state": "PUBLISHED",
+      "agreementApprovalPolicy": "AUTOMATIC",
+      "serverUrls": [
+        "https://example.gov.it/anagrafe/v1"
+      ]
+    }
+  ],
+  "pagination": {
+    "offset": 0,
+    "limit": 50,
+    "totalCount": 1
+  }
+}

@@ -171,6 +171,7 @@ jobs:
       matrix-property: 'fe-'
       fail-on-vuln: ${{ github.ref_name == 'main' || github.ref_type == 'tag' }}
       scan-args: |-
+        --config=./osv-scanner.toml
         -r
         ./frontend/angular
 
@@ -209,7 +210,6 @@ jobs:
             --nodePackageSkipDevDependencies
             --disableOssIndex
             --nvdApiKey ${{ secrets.NVD_API_KEY }}
-            --suppression tools/owasp/suppression/DOMPurify-swagger-ui-dist.xml
             --suppression tools/owasp/suppression/image-size.xml
             --suppression tools/owasp/suppression/esbuild.xml
       - name: Upload HTML report artifact

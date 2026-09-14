@@ -25,6 +25,7 @@ import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
+import org.govway.catalogo.exception.NotImplementedException;
 import org.govway.catalogo.exception.RichiestaNonValidaSemanticamenteException;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
 import org.hibernate.service.spi.ServiceException;
@@ -88,6 +89,11 @@ public abstract class AbstractControllerAdvisor extends ResponseEntityExceptionH
 	@ExceptionHandler({NotAuthorizedException.class})
 	public ResponseEntity<Object> handleNotAuthorized(RuntimeException ex) {
 		return toEntity(ex, HttpStatus.FORBIDDEN);
+	}
+
+	@ExceptionHandler({NotImplementedException.class})
+	public ResponseEntity<Object> handleNotImplemented(RuntimeException ex) {
+		return toEntity(ex, HttpStatus.NOT_IMPLEMENTED);
 	}
 
 	@ExceptionHandler({InternalException.class, ServiceException.class})

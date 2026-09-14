@@ -3753,6 +3753,36 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /api/{id_api}/{id_ambiente}/url-invocazione:
+    get:
+      tags:
+      - "API"
+      description: "URL di invocazione di un componente sull'ambiente indicato"
+      operationId: getUrlInvocazioneAPI
+      parameters:
+      - $ref: "#/components/parameters/id_api"
+      - $ref: "#/components/parameters/id_ambiente"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UrlInvocazioneAPI"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /api/{id_api}/export:
     parameters:
     - $ref: "#/components/parameters/id_api"
@@ -6207,6 +6237,13 @@ components:
             $ref: "#/components/schemas/ProprietaCustom"
         url_invocazione:
           $ref: "#/components/schemas/String255"
+    UrlInvocazioneAPI:
+      type: "object"
+      required:
+        - url_invocazione
+      properties:
+        url_invocazione:
+          $ref: "#/components/schemas/URL"
     Configurazione:
       type: "object"
       required:
@@ -7208,6 +7245,14 @@ components:
           items:
             type: string
           description: "Operazioni consentite quando istanza_vetrina=true nel formato 'METHOD PATH' (es. 'GET /servizi', 'POST /adesioni'). Supporta wildcards nei path: * (singolo segmento), ** (tutti i sotto-path)"
+        pdnd_version:
+          $ref: "#/components/schemas/PdndVersionEnum"
+    PdndVersionEnum:
+      type: "string"
+      description: "Versione delle API PDND utilizzate dall'integrazione. Se non indicata vale v1."
+      enum:
+        - v1
+        - v3
     AccessoAmministrazioneItem:
       type: "object"
       required:
@@ -9184,6 +9229,12 @@ components:
         - utente_organizzazione
         - gestore
         - coordinatore
+    RuoloPdndEnum:
+      type: "string"
+      description: "Ruolo dell'utente sulla PDND"
+      enum:
+        - nessuno
+        - admin
     RuoloUtenteEnumSearch:
       type: "string"
       enum:
@@ -9265,6 +9316,8 @@ components:
           $ref: "#/components/schemas/StatoUtenteEnum"
         ruolo:
           $ref: "#/components/schemas/RuoloUtenteEnum"
+        ruolo_pdnd:
+          $ref: "#/components/schemas/RuoloPdndEnum"
         abilitato_domini_esterni:
           type: 'boolean'
         organizzazioni:
@@ -9311,6 +9364,8 @@ components:
           $ref: "#/components/schemas/StatoUtenteEnum"
         ruolo:
           $ref: "#/components/schemas/RuoloUtenteEnum"
+        ruolo_pdnd:
+          $ref: "#/components/schemas/RuoloPdndEnum"
         abilitato_domini_esterni:
           type: 'boolean'
         organizzazioni:
@@ -9434,6 +9489,8 @@ components:
           $ref: "#/components/schemas/StatoUtenteEnum"
         ruolo:
           $ref: "#/components/schemas/RuoloUtenteEnum"
+        ruolo_pdnd:
+          $ref: "#/components/schemas/RuoloPdndEnum"
         abilitato_domini_esterni:
           type: 'boolean'
         azienda_esterna:
@@ -9481,6 +9538,8 @@ components:
           $ref: "#/components/schemas/StatoUtenteEnum"
         ruolo:
           $ref: "#/components/schemas/RuoloUtenteEnum"
+        ruolo_pdnd:
+          $ref: "#/components/schemas/RuoloPdndEnum"
         abilitato_domini_esterni:
           type: 'boolean'
         organizzazione_pending:

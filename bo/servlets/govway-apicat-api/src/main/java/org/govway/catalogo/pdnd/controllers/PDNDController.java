@@ -20,6 +20,7 @@
 package org.govway.catalogo.pdnd.controllers;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -31,9 +32,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import org.govway.catalogo.PdndV1Controller;
-import org.govway.catalogo.servlets.pdnd.client.api.GatewayApi;
-import org.govway.catalogo.servlets.pdnd.client.api.HealthApi;
-import org.govway.catalogo.servlets.pdnd.client.api.impl.ApiClient;
+import org.govway.catalogo.authorization.CoreAuthorization;
+import org.govway.catalogo.exception.ErrorCode;
+import org.govway.catalogo.exception.NotImplementedException;
 import org.govway.catalogo.servlets.pdnd.model.Agreement;
 import org.govway.catalogo.servlets.pdnd.model.AgreementState;
 import org.govway.catalogo.servlets.pdnd.model.Agreements;
@@ -57,7 +58,6 @@ import org.govway.catalogo.servlets.pdnd.model.Subscribers;
 import org.govway.catalogo.servlets.pdnd.server.api.CatalogApi;
 import org.govway.catalogo.servlets.pdnd.server.api.ConfigurazioneApi;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -67,33 +67,23 @@ public class PDNDController implements CatalogApi, ConfigurazioneApi, org.govway
 
 
 	@Autowired
-	@Qualifier("PDNDClientCollaudo")
-	private ApiClient apiClientCollaudo;
+	private PDNDClientFactory clientFactory;
 
 	@Autowired
-	@Qualifier("PDNDClientProduzione")
-	private ApiClient apiClientProduzione;
+	private CoreAuthorization coreAuthorization;
 
-
-	private PDNDClient clientCollaudo;
-	private PDNDClient clientProduzione;
-	
 	private static String collaudo = "collaudo";
 
-	private PDNDClient getClientCollaudo() {
-		if(this.clientCollaudo == null) {
-			this.clientCollaudo = new PDNDClient(new GatewayApi(this.apiClientCollaudo), new HealthApi(this.apiClientCollaudo));
-		}
-
-		return this.clientCollaudo;
+	private IPDNDClient getClient(AmbienteEnum ambiente) {
+		return ambiente.getValue().equals(collaudo) ? this.getClientCollaudo() : this.getClientProduzione();
 	}
 
-	private PDNDClient getClientProduzione() {
-		if(this.clientProduzione == null) {
-			this.clientProduzione = new PDNDClient(new GatewayApi(this.apiClientProduzione), new HealthApi(this.apiClientProduzione));
-		}
+	private IPDNDClient getClientCollaudo() {
+		return this.clientFactory.getClientCollaudo();
+	}
 
-		return this.clientProduzione;
+	private IPDNDClient getClientProduzione() {
+		return this.clientFactory.getClientProduzione();
 	}
 
 	@Override
@@ -171,6 +161,40 @@ public class PDNDController implements CatalogApi, ConfigurazioneApi, org.govway
 			return this.getClientCollaudo().getAgreement(agreementId);
 		else 
 			return this.getClientProduzione().getAgreement(agreementId);
+	}
+
+	/**
+	 * Operazione di scrittura verso la PDND: supportata unicamente dall'API PDND v3 e
+	 * consentita ai soli utenti con ruolo PDND amministratore.
+	 */
+	@Override
+	public ResponseEntity<Agreement> approveAgreement(AmbienteEnum ambiente, UUID agreementId) {
+		checkVersionePdnd("approveAgreement");
+		this.coreAuthorization.requireRuoloPdndAdmin();
+
+		return this.getClient(ambiente).approveAgreement(agreementId);
+	}
+
+	/**
+	 * Operazione di scrittura verso la PDND: supportata unicamente dall'API PDND v3 e
+	 * consentita ai soli utenti con ruolo PDND amministratore.
+	 */
+	@Override
+	public ResponseEntity<Purpose> approvePurpose(AmbienteEnum ambiente, UUID purposeId) {
+		checkVersionePdnd("approvePurpose");
+		this.coreAuthorization.requireRuoloPdndAdmin();
+
+		return this.getClient(ambiente).approvePurpose(purposeId);
+	}
+
+	/**
+	 * Con l'API PDND v1 le approvazioni non sono disponibili: la segnalazione precede la verifica
+	 * del ruolo PDND, che con quella configurazione non e' nemmeno assegnabile.
+	 */
+	private void checkVersionePdnd(String operazione) {
+		if(this.clientFactory.isVersioneV1()) {
+			throw new NotImplementedException(ErrorCode.SYS_501, Map.of("operazione", operazione));
+		}
 	}
 
 	@Override

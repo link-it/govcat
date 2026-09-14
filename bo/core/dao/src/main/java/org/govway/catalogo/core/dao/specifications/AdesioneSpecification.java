@@ -61,6 +61,7 @@ public class AdesioneSpecification implements Specification<AdesioneEntity> {
 	private Optional<UUID> idOrganizzazione = Optional.empty();
 	private Optional<UtenteEntity> utente = Optional.empty();
 	private List<UUID> idOrganizzazioniAmministrate = null;
+	private Optional<Long> idOrganizzazioneVisibilita = Optional.empty();
 	private Optional<String> idReferente = Optional.empty();
 	private Optional<UUID> gruppo = Optional.empty();
 	private Optional<UUID> dominio = Optional.empty();
@@ -187,8 +188,49 @@ public class AdesioneSpecification implements Specification<AdesioneEntity> {
 				predLst.add(cb.disjunction());
 			}
 		}
-		
+
+		if(this.idOrganizzazioneVisibilita.isPresent()) {
+			predLst.add(getOrganizzazioneVisibilitaFilter(this.idOrganizzazioneVisibilita.get(), root, cb));
+		}
+
 		return predLst;
+	}
+
+	/**
+	 * Filtro di isolamento multi-organizzazione: l'adesione e` collegata all'organizzazione
+	 * indicata quando questa e` l'organizzazione aderente (soggetto dell'adesione) oppure
+	 * quando eroga il servizio, sia come titolare del dominio sia come ente erogatore di una
+	 * fruizione (dove il dominio puo` riferire un'altra organizzazione, anche per dati legacy).
+	 *
+	 * Tutti i join sono LEFT: un join implicito (inner) dentro un OR eliminerebbe dal risultato
+	 * le righe prive della relazione, non solo quelle che non soddisfano il predicato.
+	 */
+	private Predicate getOrganizzazioneVisibilitaFilter(Long idOrganizzazione, Root<AdesioneEntity> root, CriteriaBuilder cb) {
+
+		Predicate aderente = cb.equal(
+				root.join(AdesioneEntity_.soggetto, JoinType.LEFT)
+					.join(SoggettoEntity_.organizzazione, JoinType.LEFT)
+					.get(OrganizzazioneEntity_.id),
+				idOrganizzazione);
+
+		var servizio = root.join(AdesioneEntity_.servizio, JoinType.LEFT);
+
+		Predicate erogatoreDominio = cb.equal(
+				servizio.join(ServizioEntity_.dominio, JoinType.LEFT)
+					.join(DominioEntity_.soggettoReferente, JoinType.LEFT)
+					.join(SoggettoEntity_.organizzazione, JoinType.LEFT)
+					.get(OrganizzazioneEntity_.id),
+				idOrganizzazione);
+
+		Predicate erogatoreFruizione = cb.and(
+				cb.isTrue(servizio.get(ServizioEntity_.fruizione)),
+				cb.equal(
+						servizio.join(ServizioEntity_.soggettoErogatore, JoinType.LEFT)
+							.join(SoggettoEntity_.organizzazione, JoinType.LEFT)
+							.get(OrganizzazioneEntity_.id),
+						idOrganizzazione));
+
+		return cb.or(aderente, erogatoreDominio, erogatoreFruizione);
 	}
 
 	public Optional<String> getQ() {
@@ -297,6 +339,14 @@ public class AdesioneSpecification implements Specification<AdesioneEntity> {
 
 	public void setIdOrganizzazioniAmministrate(List<UUID> idOrganizzazioniAmministrate) {
 		this.idOrganizzazioniAmministrate = idOrganizzazioniAmministrate;
+	}
+
+	public Optional<Long> getIdOrganizzazioneVisibilita() {
+		return idOrganizzazioneVisibilita;
+	}
+
+	public void setIdOrganizzazioneVisibilita(Optional<Long> idOrganizzazioneVisibilita) {
+		this.idOrganizzazioneVisibilita = idOrganizzazioneVisibilita;
 	}
 
 	public Optional<UUID> getIdRichiedente() {

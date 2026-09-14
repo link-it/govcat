@@ -31,7 +31,7 @@ import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { CustomValidators } from '@linkit/validators';
 
-import { Utente, Ruolo, RuoloOrganizzazione, Stato } from './utente';
+import { Utente, Ruolo, RuoloOrganizzazione, RuoloPdnd, Stato } from './utente';
 import { AuthenticationService } from '@app/services/authentication.service';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
@@ -112,6 +112,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
   _classi_utente: any[] = [];
   _statoArr: any[] = [];
   _ruoloArr: any[] = [];
+  _ruoloPdndArr: any[] = Object.values(RuoloPdnd);
 
   classiUtente$!: Observable<any[]>;
   classiUtenteInput$ = new Subject<string>();
@@ -122,6 +123,13 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
   organizzazioniInput$ = new Subject<string>();
   organizzazioniLoading: boolean = false;
   selectedOrganizzazione: any;
+
+  // Issue 350: autocompletamento "Azienda esterna" (GET /aziende-esterne,
+  // array di stringhe). Con `[addTag]` resta possibile inserire un nome nuovo
+  // (il BE lo crea via findOrCreate).
+  aziendeEsterne$!: Observable<any[]>;
+  aziendeEsterneInput$ = new Subject<string>();
+  aziendeEsterneLoading: boolean = false;
 
   _fromDashboard: boolean = false;
   /** Membership evolutiva 2026-06-11: la rotta
@@ -190,6 +198,19 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
    *  Usato per gating UI di hint/help text riservati al gestore. */
   get _isGestore(): boolean {
     return this.authenticationService.isGestore();
+  }
+
+  /** Issue 250: il ruolo PDND e` assegnabile solo dal gestore (richiede
+   *  la configurazione di un client Interop Admin sulla PDND). Per gli
+   *  altri il campo resta in sola lettura. */
+  get _canEditRuoloPdnd(): boolean {
+    return this.authenticationService.isGestore();
+  }
+
+  /** Issue 250 (evolutiva): il campo ruolo PDND ha senso solo con
+   *  integrazione PDND v3. Con v1 (o config assente) va nascosto. */
+  get _pdndV3(): boolean {
+    return this.authenticationService.isPdndV3();
   }
 
   /** Righe della tabella "Organizzazioni" dell'utente.
@@ -449,15 +470,11 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
           case 'telefono':
           case 'metadati':
           case 'note':
-          case 'organizzazione_esterna':
+          case 'azienda_esterna':
             value = data[key] ? data[key] : null;
             _group[key] = new FormControl(value, [
               Validators.maxLength(255)
             ]);
-            break;
-          case 'referente_tecnico':
-            value = data[key] ? data[key] : false;
-            _group[key] = new FormControl(value, []);
             break;
           default:
             value = data[key] ? data[key] : null;
@@ -466,6 +483,10 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
         }
       });
       this._formGroup = new FormGroup(_group);
+
+      // Issue 350: precarica il valore corrente come opzione, cosi` l'ng-select
+      // dell'azienda esterna lo mostra in edit anche prima di digitare.
+      this._initAziendeEsterneSelect(data?.azienda_esterna ? [data.azienda_esterna] : []);
 
       if(this._isEdit) {
         const primaryOrg = this._getPrimaryOrg(this._utente);
@@ -482,6 +503,14 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
         this._statoArr = Object.values(Stato).filter(s => s !== Stato.PENDING_UPDATE);
       } else {
         this._statoArr = Object.values(Stato).filter(s => s !== Stato.NON_CONFIGURATO && s !== Stato.PENDING_UPDATE);
+      }
+
+      // Issue 250: ruolo_pdnd modificabile solo dal gestore. Per gli altri
+      // il control resta nel form ma disabilitato (sola lettura): cosi` il
+      // valore corrente viene comunque reinviato dal PUT full-replace
+      // (getRawValue include i control disabilitati) e non viene azzerato.
+      if (!this._canEditRuoloPdnd) {
+        this._formGroup.get('ruolo_pdnd')?.disable();
       }
     }
   }
@@ -557,6 +586,11 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
     const _newBody: any = {
       ...body,
       ruolo: (body.ruolo == Ruolo.NESSUN_RUOLO) ? null : body.ruolo,
+      // Issue 250: `nessuno` e` un valore reale (mai null). Va sempre inviato
+      // (PUT full-replace): se assente il BE lo riporterebbe a `nessuno`.
+      // Con PDND v1 il campo e` nascosto e `admin` sarebbe rifiutato (400
+      // UT.400.RUOLO.PDND.DISABLED): si forza sempre `nessuno`.
+      ruolo_pdnd: this._pdndV3 ? (body.ruolo_pdnd || RuoloPdnd.NESSUNO) : RuoloPdnd.NESSUNO,
     };
 
     // Multi-org: trasforma `id_organizzazione` + `ruolo_organizzazione`
@@ -822,6 +856,32 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
         })
       )
     );
+  }
+
+  /** Issue 350: typeahead delle aziende esterne (array di stringhe). */
+  _initAziendeEsterneSelect(defaultValue: string[] = []) {
+    this.aziendeEsterne$ = concat(
+      of(defaultValue),
+      this.aziendeEsterneInput$.pipe(
+        filter(res => res !== null && res.length >= this.minLengthTerm),
+        distinctUntilChanged(),
+        debounceTime(500),
+        tap(() => this.aziendeEsterneLoading = true),
+        switchMap((term: any) => {
+          return this.getAziendeEsterne(term).pipe(
+            catchError(() => of([])),
+            tap(() => this.aziendeEsterneLoading = false)
+          )
+        })
+      )
+    );
+  }
+
+  /** GET /aziende-esterne -> array di nomi (stringhe). */
+  getAziendeEsterne(term: string | null = null): Observable<any> {
+    const _options: any = { params: { q: term } };
+    return this.apiService.getList('aziende-esterne', _options)
+      .pipe(map((resp: any) => Array.isArray(resp) ? resp : (resp?.content || [])));
   }
 
   getOrganizzazioni(term: string | null = null): Observable<any> {

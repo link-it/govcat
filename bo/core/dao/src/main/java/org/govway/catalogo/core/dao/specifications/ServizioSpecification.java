@@ -31,7 +31,9 @@ import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 
+import org.govway.catalogo.core.orm.entity.AdesioneEntity;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity_;
 import org.govway.catalogo.core.orm.entity.ApiEntity_;
 import org.govway.catalogo.core.orm.entity.AuthTypeEntity_;
@@ -79,6 +81,7 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 	private Optional<UtenteEntity> utente = Optional.empty();
 	private Optional<Boolean> utenteAdmin = Optional.empty();
 	private Optional<Boolean> aderibili = Optional.empty();
+	private Optional<Long> idOrganizzazioneVisibilita = Optional.empty();
 	private List<String> stati = null;
 	private List<String> statiAderibili = new ArrayList<>();
 	private List<String> tag = null;
@@ -344,11 +347,60 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 
 		}
 
+		if(this.idOrganizzazioneVisibilita.isPresent()) {
+			predLst.add(getOrganizzazioneVisibilitaFilter(this.idOrganizzazioneVisibilita.get(), root, query, cb));
+		}
+
 		if(this.utenteAdmin.isPresent() && !this.utenteAdmin.get()) {
 			predLst.add(cb.notEqual(root.get(ServizioEntity_.stato), "archiviato"));
 		}
 		
 		return predLst;
+	}
+
+	/**
+	 * Filtro di isolamento multi-organizzazione: il servizio e` collegato all'organizzazione
+	 * indicata quando ne e` titolare (organizzazione del soggetto referente del dominio),
+	 * quando l'organizzazione ne e` l'ente erogatore in una fruizione, oppure quando
+	 * l'organizzazione ha aderito al servizio.
+	 *
+	 * Le tre gambe in OR sono necessarie per non nascondere nulla di legittimo: le fruizioni
+	 * possono avere il dominio riferito a un'altra organizzazione (dati legacy) e un utente
+	 * vede i servizi di terzi ai quali la propria organizzazione ha aderito.
+	 *
+	 * Tutti i join sono LEFT: un join implicito (inner) all'interno di un OR eliminerebbe
+	 * dal risultato le righe prive della relazione, non solo quelle che non soddisfano il
+	 * predicato. Per lo stesso motivo la gamba sulle adesioni usa una subquery EXISTS, che
+	 * non altera la cardinalita` del result set.
+	 */
+	private Predicate getOrganizzazioneVisibilitaFilter(Long idOrganizzazione, Root<ServizioEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+
+		Predicate titolareDominio = cb.equal(
+				root.join(ServizioEntity_.dominio, JoinType.LEFT)
+					.join(DominioEntity_.soggettoReferente, JoinType.LEFT)
+					.join(SoggettoEntity_.organizzazione, JoinType.LEFT)
+					.get(OrganizzazioneEntity_.id),
+				idOrganizzazione);
+
+		Predicate erogatoreFruizione = cb.and(
+				cb.isTrue(root.get(ServizioEntity_.fruizione)),
+				cb.equal(
+						root.join(ServizioEntity_.soggettoErogatore, JoinType.LEFT)
+							.join(SoggettoEntity_.organizzazione, JoinType.LEFT)
+							.get(OrganizzazioneEntity_.id),
+						idOrganizzazione));
+
+		Subquery<Integer> subAdesioni = query.subquery(Integer.class);
+		Root<AdesioneEntity> adesione = subAdesioni.from(AdesioneEntity.class);
+		subAdesioni.select(cb.literal(1)).where(
+				cb.equal(adesione.get(AdesioneEntity_.servizio), root),
+				cb.equal(
+						adesione.join(AdesioneEntity_.soggetto, JoinType.LEFT)
+							.join(SoggettoEntity_.organizzazione, JoinType.LEFT)
+							.get(OrganizzazioneEntity_.id),
+						idOrganizzazione));
+
+		return cb.or(titolareDominio, erogatoreFruizione, cb.exists(subAdesioni));
 	}
 	
 	private Predicate getVisibilitaFilter(VISIBILITA visibilita, Root<ServizioEntity> root, CriteriaBuilder cb) {
@@ -477,6 +529,14 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 
 	public void setAderibili(Optional<Boolean> aderibili) {
 		this.aderibili = aderibili;
+	}
+
+	public Optional<Long> getIdOrganizzazioneVisibilita() {
+		return idOrganizzazioneVisibilita;
+	}
+
+	public void setIdOrganizzazioneVisibilita(Optional<Long> idOrganizzazioneVisibilita) {
+		this.idOrganizzazioneVisibilita = idOrganizzazioneVisibilita;
 	}
 
 	public List<String> getStatiAderibili() {
