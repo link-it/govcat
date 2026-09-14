@@ -130,6 +130,8 @@ import org.govway.catalogo.monitoraggioutils.allarmi.AllarmiClient;
 import org.govway.catalogo.monitoraggioutils.transazioni.TransazioneBuilder;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneProfilo;
+import org.govway.catalogo.servlets.model.ConfigurazioneStepWizard;
+import org.govway.catalogo.servlets.model.ConfigurazioneStepWizardSezione;
 import org.govway.catalogo.servlets.pdnd.client.api.impl.ApiClient;
 import org.openapitools.jackson.nullable.JsonNullableModule;
 import org.springframework.beans.factory.annotation.Value;
@@ -142,6 +144,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -170,7 +174,12 @@ basePackages = {"org.govway.catalogo.core.dao.repositories"})
     @PropertySource(value = "file:${org.govway.api.catalogo.stampe.path:/var/govcat/conf/govcat-stampe.properties}", ignoreResourceNotFound = true, encoding = "UTF-8")
 })
 public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
- 
+
+	private static final Logger logger = LoggerFactory.getLogger(OpenAPI2SpringBoot.class);
+
+	/** Vecchio nome della chiave degli stati negli step del wizard, oggi {@code stati}. */
+	private static final String CHIAVE_STATI_WIZARD_DEPRECATA = "\"stati_adesione\"";
+
     @Value("${spring.datasource.jndi-name}")
 	String jndiName;
 	
@@ -254,6 +263,13 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
 		String outputString = new String(fileData);
 		ObjectMapper om = new ObjectMapper();
 		om.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+		om.registerModule(stepWizardStatiAliasModule());
+
+		if(outputString.contains(CHIAVE_STATI_WIZARD_DEPRECATA)) {
+			logger.warn("Il file di configurazione [{}] usa la chiave deprecata 'stati_adesione' negli step del wizard: "
+					+ "rinominarla in 'stati'. La chiave e' ancora accettata in lettura ma il supporto verra' rimosso.",
+					this.configurazioneJsonPath);
+		}
 
 		Configurazione configurazione = om.readValue(outputString, Configurazione.class);
 
@@ -792,6 +808,21 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
      * mixin che applica @JsonInclude(NON_EMPTY) alla sola proprieta' {@code links} di
      * RepresentationModel, evitando che ogni response contenga "links": [].
      */
+    /**
+     * Accetta in lettura la vecchia chiave {@code stati_adesione} negli step del wizard, rinominata
+     * in {@code stati} da quando lo schema e' condiviso con il wizard dei servizi. Registrato solo
+     * sull'ObjectMapper che legge il {@code configurazione.json}: serve alla retrocompatibilita' dei
+     * file di configurazione esistenti, compresi quelli dei plugin custom, non alle response.
+     * Vedi {@link StepWizardStatiAliasMixin}.
+     */
+    public static Module stepWizardStatiAliasModule() {
+        com.fasterxml.jackson.databind.module.SimpleModule module =
+                new com.fasterxml.jackson.databind.module.SimpleModule("govcat-step-wizard-stati-alias");
+        module.setMixInAnnotation(ConfigurazioneStepWizard.class, StepWizardStatiAliasMixin.class);
+        module.setMixInAnnotation(ConfigurazioneStepWizardSezione.class, StepWizardStatiAliasMixin.class);
+        return module;
+    }
+
     @Bean
     public Module representationModelLinksModule() {
         com.fasterxml.jackson.databind.module.SimpleModule module =

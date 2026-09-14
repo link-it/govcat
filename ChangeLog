@@ -1,3 +1,21 @@
+2026-09-14  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 352: il wizard dei servizi è ora pilotato dalla configurazione come già
+	  quello delle adesioni: aggiunte al blocco `servizio` le chiavi `step_wizard`,
+	  `step_wizard_collaudo` e `step_wizard_produzione`, con lo stesso schema di
+	  `adesione`. Completato inoltre il workflow del servizio con il percorso senza
+	  collaudo (stati `*_produzione_senza_collaudo` e transizioni relative a partire
+	  da `bozza`), finora previsto dal dato `skip_collaudo` del servizio ma non
+	  configurato.
+	Negli step del wizard l'elenco degli stati è stato rinominato da
+	  `stati_adesione` a `stati`: lo schema è condiviso fra le entità e il vecchio
+	  nome, oltre a non descrivere stati di un'adesione, nel blocco `servizio` si
+	  confondeva con `stati_adesione_consentita`, che ha tutt'altro significato. Il
+	  nome precedente resta accettato in lettura come alias deprecato (con warning
+	  in avvio), così i `configurazione.json` esistenti, compresi quelli dei plugin
+	  custom, continuano a funzionare senza modifiche.
+
 2026-09-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
