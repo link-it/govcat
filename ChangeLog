@@ -1,5 +1,18 @@
 2026-09-14  Giovanni De Luca <giovanni.deluca@link.it>
 
+	* Rilasciata versione 2.4.5
+
+2026-09-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Fix vulnerabilita` OSV del frontend (dipendenze dev): alzati negli `overrides`
+	  hono 4.13.5 (3 advisory) e js-yaml 4.3.2 (1 advisory). vitest/@vitest/mocker
+	  (GHSA-82fw-gwwq-j7x9) soppressi in osv-scanner.toml: il fix >= 4.1.11 rompe il
+	  build Angular (de-hoisting di @angular/build), tooling di test dev-only non nel
+	  bundle; da rivalutare al prossimo upgrade Angular.
+
+2026-09-14  Giovanni De Luca <giovanni.deluca@link.it>
+
 	* [GovwayAPICatalogo]
 	Issue 352: il wizard dei servizi è ora pilotato dalla configurazione come già
 	  quello delle adesioni: aggiunte al blocco `servizio` le chiavi `step_wizard`,
@@ -272,6 +285,15 @@
 	  dall'entità padre"), coerentemente con gli altri controlli dello stesso vincolo
 	  già presenti nel salvataggio del servizio e del dominio. ATTENZIONE: per questo
 	  caso lo stato HTTP della risposta passa da 422 a 400.
+	Fix vulnerabilità OWASP: aggiornato freemarker da 2.3.34 a 2.3.35
+	  (CVE-2026-84939, path traversal nel caricamento dei template quando il locale
+	  richiesto è malformato e il localized lookup, attivo per impostazione predefinita,
+	  è abilitato). Il BOM di Spring Boot 4.0.8 gestisce ancora la 2.3.34, quindi la
+	  versione è imposta con un override esplicito in `dependencyManagement` del pom
+	  radice. Nel catalogo i template FreeMarker sono risorse interne caricate con nomi
+	  costanti (invocazione di Keycloak e dell'API di configurazione di GovWay) e il
+	  locale non viene impostato né derivato dalla richiesta, per cui l'esposizione era
+	  nulla; l'aggiornamento resta sulla linea 2.3.x e non comporta modifiche al codice.
 
 2026-09-11  Giovanni De Luca <giovanni.deluca@link.it>
 
