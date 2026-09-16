@@ -61,6 +61,7 @@ import org.govway.catalogo.servlets.model.DocumentoUpdate.TipoDocumentoEnum;
 import org.govway.catalogo.servlets.model.DocumentoUpdateId;
 import org.govway.catalogo.servlets.model.DocumentoUpdateNew;
 import org.govway.catalogo.servlets.model.Dominio;
+import org.govway.catalogo.servlets.model.FiltroArchiviatiEnum;
 import org.govway.catalogo.servlets.model.DominioCreate;
 import org.govway.catalogo.servlets.model.TargetComunicazioneServizioEnum;
 import org.govway.catalogo.servlets.model.Grant;
@@ -216,6 +217,10 @@ public class ServiziTest {
 	
 	private static UUID ID_UTENTE_GESTORE;
 	
+	private static final String UTENTE_NON_GESTORE = "utente_non_gestore";
+
+	private static final String STATO_ARCHIVIATO = "archiviato";
+
 	private static final String NOME_SERVIZIO_1 = "primo servizio - versione 3";
 	private static final String NOME_SERVIZIO_2 = "secondo servizio - versione 11";
 	private static final String NOME_SERVIZIO_3 = "terzo servizio - versione 2";
@@ -1103,7 +1108,7 @@ public class ServiziTest {
         Servizio servizio = this.getServizio();
 
         // Invocazione del metodo listServizi senza filtri
-        ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+        ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
 
         // Verifica del successo
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1137,7 +1142,7 @@ public class ServiziTest {
         Servizio servizioFruizione = serviziController.createServizio(servizioCreate).getBody();
 
         // fruizione = true: solo il servizio in fruizione
-        ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, true, null, 0, 10, null);
+        ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, true, null, 0, 10, null);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -1146,7 +1151,7 @@ public class ServiziTest {
         assertFalse(servizi.stream().anyMatch(s -> s.getIdServizio().equals(servizioErogazione.getIdServizio())));
 
         // fruizione = false: solo il servizio in erogazione
-        response = serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, false, null, 0, 10, null);
+        response = serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, false, null, 0, 10, null);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -1155,13 +1160,175 @@ public class ServiziTest {
         assertFalse(servizi.stream().anyMatch(s -> s.getIdServizio().equals(servizioFruizione.getIdServizio())));
 
         // filtro non valorizzato: entrambi i servizi
-        response = serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+        response = serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         servizi = response.getBody().getContent();
         assertTrue(servizi.stream().anyMatch(s -> s.getIdServizio().equals(servizioErogazione.getIdServizio())));
         assertTrue(servizi.stream().anyMatch(s -> s.getIdServizio().equals(servizioFruizione.getIdServizio())));
+    }
+
+    /**
+     * Issue 346: i servizi archiviati sono esclusi di default da listServizi; il parametro
+     * `archiviati` permette al gestore di includerli o di vedere solo quelli, e un filtro
+     * `stato` che chiede esplicitamente lo stato archiviato prevale sull'esclusione implicita.
+     */
+    @Test
+    void testListServiziFiltroArchiviati() {
+        Servizio servizioAttivo = this.getServizio();
+        Servizio servizioArchiviato = this.creaServizioArchiviato(NOME_SERVIZIO_1);
+
+        // Nessun parametro: gli archiviati sono esclusi
+        List<ItemServizio> servizi = this.listServiziArchiviati(null, null);
+        assertTrue(this.contieneServizio(servizi, servizioAttivo));
+        assertFalse(this.contieneServizio(servizi, servizioArchiviato));
+
+        // archiviati=escludi: esplicita il default
+        servizi = this.listServiziArchiviati(FiltroArchiviatiEnum.ESCLUDI, null);
+        assertTrue(this.contieneServizio(servizi, servizioAttivo));
+        assertFalse(this.contieneServizio(servizi, servizioArchiviato));
+
+        // archiviati=includi: archiviati insieme agli altri
+        servizi = this.listServiziArchiviati(FiltroArchiviatiEnum.INCLUDI, null);
+        assertTrue(this.contieneServizio(servizi, servizioAttivo));
+        assertTrue(this.contieneServizio(servizi, servizioArchiviato));
+
+        // archiviati=solo: soltanto gli archiviati
+        servizi = this.listServiziArchiviati(FiltroArchiviatiEnum.SOLO, null);
+        assertFalse(this.contieneServizio(servizi, servizioAttivo));
+        assertTrue(this.contieneServizio(servizi, servizioArchiviato));
+
+        // stato=archiviato senza parametro: la richiesta esplicita prevale sull'esclusione di default
+        servizi = this.listServiziArchiviati(null, Arrays.asList(STATO_ARCHIVIATO));
+        assertFalse(this.contieneServizio(servizi, servizioAttivo));
+        assertTrue(this.contieneServizio(servizi, servizioArchiviato));
+
+        // stato=archiviato + archiviati=escludi: i due filtri esplicitamente in conflitto non lasciano nulla
+        servizi = this.listServiziArchiviati(FiltroArchiviatiEnum.ESCLUDI, Arrays.asList(STATO_ARCHIVIATO));
+        assertFalse(this.contieneServizio(servizi, servizioAttivo));
+        assertFalse(this.contieneServizio(servizi, servizioArchiviato));
+    }
+
+    /**
+     * Issue 346: il parametro `archiviati` e` riservato al gestore. Un referente del servizio,
+     * che prima dell'archiviazione lo vede, non lo recupera nemmeno chiedendolo esplicitamente.
+     */
+    @Test
+    void testListServiziFiltroArchiviatiNonGestore() {
+        Servizio servizio = this.getServizio();
+
+        UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
+        utenteCreate.setPrincipal(UTENTE_NON_GESTORE);
+        utenteCreate.setNome("Utente");
+        utenteCreate.setCognome("Non gestore");
+        CommonUtils.setOrganizzazione(utenteCreate, this.idOrganizzazione);
+        UUID idUtenteNonGestore = utentiController.createUtente(utenteCreate).getBody().getIdUtente();
+
+        ReferenteCreate referente = new ReferenteCreate();
+        referente.setTipo(TipoReferenteEnum.REFERENTE);
+        referente.setIdUtente(idUtenteNonGestore);
+        serviziController.createReferenteServizio(servizio.getIdServizio(), null, referente);
+
+        // Da referente il servizio non archiviato e` visibile
+        CommonUtils.getSessionUtente(UTENTE_NON_GESTORE, securityContext, authentication, utenteService);
+        assertTrue(this.contieneServizio(this.listServiziArchiviati(null, null), servizio));
+
+        CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+        this.archivia(servizio.getIdServizio());
+
+        // Archiviato resta invisibile qualunque valore assuma il parametro
+        CommonUtils.getSessionUtente(UTENTE_NON_GESTORE, securityContext, authentication, utenteService);
+        assertFalse(this.contieneServizio(this.listServiziArchiviati(null, null), servizio));
+        assertFalse(this.contieneServizio(this.listServiziArchiviati(FiltroArchiviatiEnum.INCLUDI, null), servizio));
+        assertFalse(this.contieneServizio(this.listServiziArchiviati(FiltroArchiviatiEnum.SOLO, null), servizio));
+        assertFalse(this.contieneServizio(this.listServiziArchiviati(null, Arrays.asList(STATO_ARCHIVIATO)), servizio));
+    }
+
+    /**
+     * Issue 346: lo stesso filtro vale su servizi_gruppi, dove l'esclusione deve portarsi dietro
+     * anche i gruppi rimasti senza servizi visibili.
+     */
+    @Test
+    void testListServiziGruppiFiltroArchiviati() {
+        Servizio servizio = this.getServizio();
+        UUID idGruppo = responseGruppo.getBody().getIdGruppo();
+        serviziController.addGruppoServizio(servizio.getIdServizio(), idGruppo);
+
+        // La vista SERVIZI_GRUPPI e` mappata con @Subselect: senza flush esplicito le entita`
+        // create in questo test non sono ancora visibili alla query sulla vista.
+        this.entityManager.flush();
+        this.entityManager.clear();
+
+        List<ItemServizioGruppo> content = this.listServiziGruppiArchiviati(null);
+        assertTrue(this.contieneServizioGruppo(content, servizio.getIdServizio()));
+        assertTrue(this.contieneGruppo(content, idGruppo));
+
+        this.archivia(servizio.getIdServizio());
+        this.entityManager.flush();
+        this.entityManager.clear();
+
+        // Default: sparisce il servizio archiviato e con esso il gruppo, rimasto senza servizi visibili
+        content = this.listServiziGruppiArchiviati(null);
+        assertFalse(this.contieneServizioGruppo(content, servizio.getIdServizio()));
+        assertFalse(this.contieneGruppo(content, idGruppo));
+
+        content = this.listServiziGruppiArchiviati(FiltroArchiviatiEnum.INCLUDI);
+        assertTrue(this.contieneServizioGruppo(content, servizio.getIdServizio()));
+        assertTrue(this.contieneGruppo(content, idGruppo));
+
+        content = this.listServiziGruppiArchiviati(FiltroArchiviatiEnum.SOLO);
+        assertTrue(this.contieneServizioGruppo(content, servizio.getIdServizio()));
+        assertTrue(this.contieneGruppo(content, idGruppo));
+    }
+
+    private Servizio creaServizioArchiviato(String nome) {
+        ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+        servizioCreate.setNome(nome);
+        servizioCreate.setSkipCollaudo(true);
+        servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
+        servizioCreate.setIdDominio(this.idDominio);
+
+        ReferenteCreate referente = new ReferenteCreate();
+        referente.setTipo(TipoReferenteEnum.REFERENTE);
+        referente.setIdUtente(ID_UTENTE_GESTORE);
+        servizioCreate.setReferenti(Arrays.asList(referente));
+
+        Servizio servizio = serviziController.createServizio(servizioCreate).getBody();
+        this.archivia(servizio.getIdServizio());
+        return servizio;
+    }
+
+    private void archivia(UUID idServizio) {
+        StatoUpdate statoUpdate = new StatoUpdate();
+        statoUpdate.setStato(STATO_ARCHIVIATO);
+        serviziController.updateStatoServizio(idServizio, statoUpdate, null);
+    }
+
+    private List<ItemServizio> listServiziArchiviati(FiltroArchiviatiEnum archiviati, List<String> stato) {
+        ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(null, null, null, null, null, null, stato, archiviati, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 100, null);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        return response.getBody().getContent();
+    }
+
+    private List<ItemServizioGruppo> listServiziGruppiArchiviati(FiltroArchiviatiEnum archiviati) {
+        ResponseEntity<PagedModelItemServizioGruppo> response = serviziController.listServiziGruppi(null, null, null, archiviati, null, 0, 100, null);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        return response.getBody().getContent();
+    }
+
+    private boolean contieneServizio(List<ItemServizio> servizi, Servizio servizio) {
+        return servizi.stream().anyMatch(s -> s.getIdServizio().equals(servizio.getIdServizio()));
+    }
+
+    private boolean contieneServizioGruppo(List<ItemServizioGruppo> content, UUID idServizio) {
+        return content.stream().anyMatch(i -> TipoServizioGruppo.SERVIZIO.equals(i.getTipo()) && i.getId().equals(idServizio));
+    }
+
+    private boolean contieneGruppo(List<ItemServizioGruppo> content, UUID idGruppo) {
+        return content.stream().anyMatch(i -> TipoServizioGruppo.GRUPPO.equals(i.getTipo()) && i.getId().equals(idGruppo));
     }
 
     @Test
@@ -1189,7 +1356,7 @@ public class ServiziTest {
         this.entityManager.flush();
         this.entityManager.clear();
 
-        ResponseEntity<PagedModelItemServizioGruppo> response = serviziController.listServiziGruppi(null, null, null, null, 0, 10, null);
+        ResponseEntity<PagedModelItemServizioGruppo> response = serviziController.listServiziGruppi(null, null, null, null, null, 0, 10, null);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -1227,7 +1394,7 @@ public class ServiziTest {
         
         // Invocazione del metodo listServizi con filtri
         ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-            null, idDominio, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, null, null, 0, 10, sort
+            null, idDominio, null, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, null, null, 0, 10, sort
         );
 
         // Verifica del successo
@@ -1254,7 +1421,7 @@ public class ServiziTest {
         
         // Invocazione del metodo listServizi con filtri
         ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-            null, idDominio, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, null, null, 0, 10, sort
+            null, idDominio, null, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, null, null, 0, 10, sort
         );
 
         // Verifica del successo
@@ -1278,7 +1445,7 @@ public class ServiziTest {
         
         // Invocazione del metodo listServizi con filtri
         ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-            null, idDominio, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, null, null, 0, 10, sort
+            null, idDominio, null, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, null, null, 0, 10, sort
         );
 
         // Verifica del successo
@@ -1305,7 +1472,7 @@ public class ServiziTest {
         
         // Invocazione del metodo listServizi con filtri
         ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-            null, idDominio, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, null, null, 0, 10, sort
+            null, idDominio, null, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, null, null, 0, 10, sort
         );
 
         // Verifica del successo
@@ -1328,7 +1495,7 @@ public class ServiziTest {
         for(int n = 0; n < (numeroTotaleDiElementi/numeroElementiPerPagina); n++) {
         	// Invocazione del metodo listServizi con filtri
             ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-                null, idDominio, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, null, null, n, numeroElementiPerPagina, null
+                null, idDominio, null, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, null, null, n, numeroElementiPerPagina, null
             );
 
             // Verifica del successo
@@ -1346,7 +1513,7 @@ public class ServiziTest {
 
         // Invocazione del metodo listServizi con filtri
         ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-            null, idDominio, null, null, null, null, null, null, null, null, false, false, null, null, null, nomeServizio, null, null, null, null, null, null, 0, 10, null
+            null, idDominio, null, null, null, null, null, null, null, null, null, false, false, null, null, null, nomeServizio, null, null, null, null, null, null, 0, 10, null
         );
 
         // Verifica del successo
@@ -1366,7 +1533,7 @@ public class ServiziTest {
          //TODO: controllare
         // Test per utente anonimo che richiede servizi in attesa
         Exception exception = assertThrows(BadRequestException.class, () -> {
-            serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, true, false, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+            serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, true, false, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
         });
 
         String expectedMessage = "Utente non registrato, impossibile recuperare servizi in attesa";
@@ -1380,7 +1547,7 @@ public class ServiziTest {
 
         // Invocazione del metodo exportServizi senza filtri
         ResponseEntity<Resource> response = serviziController.exportServizi(
-            null, null, null, null, null, null, null, null, false, false, null, null, null, null, null
+            null, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null
         );
 
         // Verifica del successo
@@ -1415,7 +1582,7 @@ public class ServiziTest {
         entityManager.clear();
 
         ResponseEntity<Resource> response = serviziController.exportServizi(
-            null, null, null, null, null, null, null, null, false, false, null, null, null, null, null
+            null, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null
         );
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1467,7 +1634,7 @@ public class ServiziTest {
         entityManager.clear();
 
         ResponseEntity<Resource> response = serviziController.exportServizi(
-            null, null, null, null, null, null, null, null, false, false, null, null, null, null, null
+            null, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null
         );
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1506,7 +1673,7 @@ public class ServiziTest {
         entityManager.clear();
 
         ResponseEntity<Resource> response = serviziController.exportServizi(
-            null, null, null, null, null, null, null, null, false, false, null, null, null, null, null
+            null, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null
         );
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -2532,7 +2699,7 @@ public class ServiziTest {
 		List<String> profiloNonValido = Arrays.asList("PROFILO_INESISTENTE");
 
 		assertThrows(BadRequestException.class, () -> {
-			serviziController.listServizi(null, null, null, null, null, null, null, null, null, profiloNonValido, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+			serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, profiloNonValido, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
 		});
 	}
 
@@ -2543,7 +2710,7 @@ public class ServiziTest {
 		List<String> profiloValido = Arrays.asList("MODI_P1");
 
 		ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-			null, null, null, null, null, null, null, null, null, profiloValido, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null
+			null, null, null, null, null, null, null, null, null, null, profiloValido, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null
 		);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -2557,7 +2724,7 @@ public class ServiziTest {
 		List<String> profiliValidi = Arrays.asList("MODI_P1", "INTERNO_HTTPS");
 
 		ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-			null, null, null, null, null, null, null, null, null, profiliValidi, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null
+			null, null, null, null, null, null, null, null, null, null, profiliValidi, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null
 		);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -2570,7 +2737,7 @@ public class ServiziTest {
 		List<String> profiloMisto = Arrays.asList("MODI_P1", "PROFILO_INESISTENTE");
 
 		assertThrows(BadRequestException.class, () -> {
-			serviziController.listServizi(null, null, null, null, null, null, null, null, null, profiloMisto, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+			serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, profiloMisto, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
 		});
 	}
 
@@ -2581,7 +2748,7 @@ public class ServiziTest {
 		/*
 		 //TODO: controllare - il mock coreAuthorization non è iniettato nel controller
 		assertThrows(BadRequestException.class, () -> {
-			serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null, null, 0, 10, null);
+			serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null, null, 0, 10, null);
 		});
 		 */
 	}
@@ -2594,7 +2761,7 @@ public class ServiziTest {
 
 		// Dovrebbe ritornare OK anche se non ci sono servizi negli stati configurati
 		ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-			null, null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null, null, 0, 10, null
+			null, null, null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null, null, 0, 10, null
 		);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -2610,7 +2777,7 @@ public class ServiziTest {
 
 		// Dovrebbe ritornare OK anche se non ci sono servizi negli stati configurati
 		ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-			null, null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null, null, 0, 10, null
+			null, null, null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null, null, 0, 10, null
 		);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -2621,7 +2788,7 @@ public class ServiziTest {
 	void testListServiziDashboardFilterFalse() {
 		// Test con dashboard=false, dovrebbe comportarsi come la ricerca normale
 		ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-			null, null, null, null, null, null, null, null, null, null, null, null, null, false, null, null, null, null, null, null, null, null, 0, 10, null
+			null, null, null, null, null, null, null, null, null, null, null, null, null, null, false, null, null, null, null, null, null, null, null, 0, 10, null
 		);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -2669,7 +2836,7 @@ public class ServiziTest {
 
 		// 3) Chiamo la dashboard
 		ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-			null, null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null, null, 0, 10, null
+			null, null, null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null, null, 0, 10, null
 		);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -2694,7 +2861,7 @@ public class ServiziTest {
 		assertEquals("bozza", servizio.getStato());
 
 		ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-			null, null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null, null, 0, 10, null
+			null, null, null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null, null, 0, 10, null
 		);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());

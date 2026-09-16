@@ -1,6 +1,17 @@
 2026-09-16  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
+	Issue 346: i servizi in stato archiviato sono ora esclusi di default da
+	  `GET /servizi`, `GET /servizi_gruppi` e `GET /servizi-export`, dove finora erano
+	  visibili al gestore. Il nuovo parametro `archiviati` (`escludi`, valore di
+	  default, `includi`, `solo`) permette di richiederli esplicitamente ed è
+	  riservato al gestore: per gli altri ruoli i servizi archiviati restano esclusi
+	  come prima. Il filtro `stato` mantiene la precedenza, così una ricerca per lo
+	  stato archiviato continua a restituirli senza bisogno del nuovo parametro. Su
+	  `servizi_gruppi` l'esclusione si porta dietro anche i gruppi rimasti senza
+	  servizi visibili. Il nuovo filtro riconosce come archiviato lo stato dichiarato
+	  dal workflow (`stato_archiviato`), con fallback al valore finora cablato nelle
+	  query quando la configurazione non lo indica.
 	Issue 352: aggiunto l'endpoint `GET /servizi/{id_servizio}/disclaimers`, omologo
 	  di quello già disponibile per le adesioni, che espone al wizard dei servizi i
 	  disclaimer risolti gerarchicamente per stato del servizio, profilo dei client

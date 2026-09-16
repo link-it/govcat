@@ -2380,6 +2380,7 @@ paths:
       - $ref: "#/components/parameters/id_gruppo_padre_query_optional"
       - $ref: "#/components/parameters/gruppo_padre_null_query_optional"
       - $ref: "#/components/parameters/tipo_servizio_query_optional"
+      - $ref: "#/components/parameters/archiviati_query_optional"
       - $ref: "#/components/parameters/q_query_optional"
       - $ref: "#/components/parameters/page_query_optional"
       - $ref: "#/components/parameters/size_query_optional"
@@ -2416,6 +2417,7 @@ paths:
       - $ref: "#/components/parameters/visibilita_servizio_query_optional"
       - $ref: "#/components/parameters/id_api_query_optional"
       - $ref: "#/components/parameters/stato_query_optional"
+      - $ref: "#/components/parameters/archiviati_query_optional"
       - $ref: "#/components/parameters/categoria_query_optional"
       - $ref: "#/components/parameters/tag_query_optional"
       - $ref: "#/components/parameters/in_attesa_query_optional"
@@ -2459,6 +2461,7 @@ paths:
       - $ref: "#/components/parameters/visibilita_servizio_query_optional"
       - $ref: "#/components/parameters/id_api_query_optional"
       - $ref: "#/components/parameters/stato_query_optional"
+      - $ref: "#/components/parameters/archiviati_query_optional"
       - $ref: "#/components/parameters/categoria_query_optional"
       - $ref: "#/components/parameters/tag_query_optional"
       - $ref: "#/components/parameters/profilo_query_optional"
@@ -9963,6 +9966,15 @@ components:
       enum:
         - API
         - Generico
+    FiltroArchiviatiEnum:
+      type: "string"
+      description: "Trattamento dei servizi in stato archiviato: 'escludi' li omette\
+        \ dai risultati, 'includi' li aggiunge a quelli negli altri stati, 'solo'\
+        \ restituisce esclusivamente gli archiviati"
+      enum:
+        - escludi
+        - includi
+        - solo
     ItemServizio:
       type: "object"
       required:
@@ -11494,6 +11506,16 @@ components:
         type: array
         items:
           $ref: "#/components/schemas/GenericSearchString"
+    archiviati_query_optional:
+      name: "archiviati"
+      in: "query"
+      description: "Trattamento dei servizi in stato archiviato. In assenza del parametro\
+        \ gli archiviati sono esclusi, a meno che il filtro 'stato' non li richieda\
+        \ esplicitamente. Utilizzabile solo dal gestore: per gli altri ruoli i servizi\
+        \ archiviati restano comunque esclusi"
+      required: false
+      schema:
+        $ref: "#/components/schemas/FiltroArchiviatiEnum"
     stato_client_query_optional:
       name: "stato"
       in: "query"

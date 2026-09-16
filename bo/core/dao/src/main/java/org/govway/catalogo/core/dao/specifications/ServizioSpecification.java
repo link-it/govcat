@@ -92,6 +92,9 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 	public enum TipoMieiServizi {TUTTI,MIEI_SERVIZI}
 	private TipoMieiServizi tipoMieiServizi = TipoMieiServizi.TUTTI;
 
+	private FiltroArchiviati filtroArchiviati = FiltroArchiviati.INCLUDI;
+	private String statoArchiviato = null;
+
 	@Override
 	public Predicate toPredicate(Root<ServizioEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 		List<Predicate> predLst = this._toPredicateList(root, query, cb);
@@ -354,7 +357,21 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 		if(this.utenteAdmin.isPresent() && !this.utenteAdmin.get()) {
 			predLst.add(cb.notEqual(root.get(ServizioEntity_.stato), "archiviato"));
 		}
-		
+
+		if(this.statoArchiviato != null) {
+			switch(this.filtroArchiviati) {
+			case ESCLUDI:
+				predLst.add(cb.notEqual(root.get(ServizioEntity_.stato), this.statoArchiviato));
+				break;
+			case SOLO:
+				predLst.add(cb.equal(root.get(ServizioEntity_.stato), this.statoArchiviato));
+				break;
+			case INCLUDI:
+			default:
+				break;
+			}
+		}
+
 		return predLst;
 	}
 
@@ -625,6 +642,22 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 
 	public void setIdGruppo(Optional<Long> idGruppo) {
 		this.idGruppo = idGruppo;
+	}
+
+	public FiltroArchiviati getFiltroArchiviati() {
+		return filtroArchiviati;
+	}
+
+	public void setFiltroArchiviati(FiltroArchiviati filtroArchiviati) {
+		this.filtroArchiviati = filtroArchiviati;
+	}
+
+	public String getStatoArchiviato() {
+		return statoArchiviato;
+	}
+
+	public void setStatoArchiviato(String statoArchiviato) {
+		this.statoArchiviato = statoArchiviato;
 	}
 
 }

@@ -57,6 +57,7 @@ import org.govway.catalogo.core.business.utils.EServiceBuilder;
 import org.govway.catalogo.core.business.utils.NotificheUtils;
 import org.govway.catalogo.core.business.utils.TargetComunicazioneServizioEnum;
 import org.govway.catalogo.core.dao.specifications.AllegatoServizioSpecification;
+import org.govway.catalogo.core.dao.specifications.FiltroArchiviati;
 import org.govway.catalogo.core.dao.specifications.MessaggioServizioSpecification;
 import org.govway.catalogo.core.dao.specifications.OrganizzazioneSpecification;
 import org.govway.catalogo.core.dao.specifications.PackageServizioSpecification;
@@ -114,6 +115,7 @@ import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
 import org.govway.catalogo.servlets.model.ConfigurazioneRuolo;
 import org.govway.catalogo.servlets.model.ConfigurazioneStatoDashboard;
 import org.govway.catalogo.servlets.model.RuoloReferenteEnum;
+import org.govway.catalogo.servlets.model.FiltroArchiviatiEnum;
 import org.govway.catalogo.servlets.model.Grant;
 import org.govway.catalogo.servlets.model.GrantType;
 import org.govway.catalogo.servlets.model.ItemCategoriaServizio;
@@ -174,6 +176,12 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @ApiV1Controller
 public class ServiziController implements ServiziApi {
+
+	/**
+	 * Stato archiviato assunto quando il workflow non lo dichiara: e` il valore che le
+	 * Specification usavano cablato prima che diventasse un parametro.
+	 */
+	private static final String STATO_ARCHIVIATO_DEFAULT = "archiviato";
 
 	private Logger logger = LoggerFactory.getLogger(ServiziController.class);
 	
@@ -1170,7 +1178,7 @@ public class ServiziController implements ServiziApi {
 
 	@Override
 	public ResponseEntity<PagedModelItemServizio> listServizi(String referente, UUID idDominio, UUID idOrganizzazioneErogatore, UUID idGruppo, VisibilitaServizioEnum visibilita, UUID idApi,
-			List<String> stato, List<String> categoria, List<String> tag, List<String> profilo, Boolean inAttesa, Boolean mieiServizi, List<RuoloReferenteEnum> ruoloReferente, Boolean dashboard, Boolean adesioneConsentita, String nome, String versione, List<UUID> idServizi, Boolean _package, TipoServizio tipo, Boolean fruizione, String q, Integer page, Integer size, List<String> sort) {
+			List<String> stato, FiltroArchiviatiEnum archiviati, List<String> categoria, List<String> tag, List<String> profilo, Boolean inAttesa, Boolean mieiServizi, List<RuoloReferenteEnum> ruoloReferente, Boolean dashboard, Boolean adesioneConsentita, String nome, String versione, List<UUID> idServizi, Boolean _package, TipoServizio tipo, Boolean fruizione, String q, Integer page, Integer size, List<String> sort) {
 		try {
 			this.logger.info("Invocazione in corso ...");
 			return this.service.runTransaction( () -> {
@@ -1228,6 +1236,10 @@ public class ServiziController implements ServiziApi {
 				}
 
 				specification.setStati(stato);
+
+				String statoArchiviato = getStatoArchiviatoServizio();
+				specification.setStatoArchiviato(statoArchiviato);
+				specification.setFiltroArchiviati(getFiltroArchiviati(archiviati, stato, statoArchiviato));
 
 				specification.setAderibili(Optional.ofNullable(adesioneConsentita));
 				specification.setUtenteAdmin(Optional.of(this.coreAuthorization.isAdmin()));
@@ -1485,6 +1497,7 @@ public class ServiziController implements ServiziApi {
 	public ResponseEntity<Resource> exportServizi(
 			String referente, UUID idDominio,
 			UUID idGruppo, VisibilitaServizioEnum visibilita, UUID idApi, List<String> stato,
+			FiltroArchiviatiEnum archiviati,
 			List<String> categoria, List<String> tag, Boolean inAttesa, Boolean mieiServizi,
 			Boolean adesioneConsentita, String nome,
 			String versione, List<UUID> idServizi,
@@ -1522,6 +1535,10 @@ public class ServiziController implements ServiziApi {
 				specification.setTag(tag);
 
 				specification.setStati(stato);
+
+				String statoArchiviato = getStatoArchiviatoServizio();
+				specification.setStatoArchiviato(statoArchiviato);
+				specification.setFiltroArchiviati(getFiltroArchiviati(archiviati, stato, statoArchiviato));
 
 				specification.setAderibili(Optional.ofNullable(adesioneConsentita));
 				specification.setUtenteAdmin(Optional.of(this.coreAuthorization.isAdmin()));
@@ -1600,6 +1617,51 @@ public class ServiziController implements ServiziApi {
 		}
 	}
 
+
+	/**
+	 * Nome dello stato "archiviato" nel workflow dei servizi. In configurazione il dato e`
+	 * opzionale: in sua assenza si ricade sul valore storicamente cablato nelle Specification,
+	 * cosi` il filtro resta attivo anche sulle installazioni che non lo dichiarano.
+	 */
+	private String getStatoArchiviatoServizio() {
+		String statoArchiviato = this.configurazione.getServizio().getWorkflow().getStatoArchiviato();
+		return statoArchiviato != null ? statoArchiviato : STATO_ARCHIVIATO_DEFAULT;
+	}
+
+	/**
+	 * Risolve il trattamento dei servizi archiviati nelle liste.
+	 *
+	 * I servizi archiviati sono esclusi di default. Le eccezioni, in ordine di precedenza:
+	 * <ol>
+	 * <li>per chi non e` gestore restano sempre esclusi, come avveniva prima
+	 *     dell'introduzione del parametro;</li>
+	 * <li>il parametro esplicito, quando presente, decide;</li>
+	 * <li>in sua assenza, un filtro `stato` che chiede esplicitamente lo stato archiviato
+	 *     e` gia` di per se` una richiesta esplicita e non va contraddetto dal default.</li>
+	 * </ol>
+	 *
+	 * @param stato filtro per stato della richiesta, {@code null} dove l'endpoint non lo prevede
+	 */
+	private FiltroArchiviati getFiltroArchiviati(FiltroArchiviatiEnum archiviati, List<String> stato, String statoArchiviato) {
+		if(!this.coreAuthorization.isAdmin()) {
+			return FiltroArchiviati.ESCLUDI;
+		}
+
+		if(archiviati != null) {
+			switch(archiviati) {
+			case INCLUDI: return FiltroArchiviati.INCLUDI;
+			case SOLO: return FiltroArchiviati.SOLO;
+			case ESCLUDI:
+			default: return FiltroArchiviati.ESCLUDI;
+			}
+		}
+
+		if(stato != null && stato.contains(statoArchiviato)) {
+			return FiltroArchiviati.INCLUDI;
+		}
+
+		return FiltroArchiviati.ESCLUDI;
+	}
 
 	/**
 	 * Le viste "operative" della lista servizi sono quelle che mostrano gli elementi su cui
@@ -2021,7 +2083,7 @@ public class ServiziController implements ServiziApi {
 	}
 
 	@Override
-	public ResponseEntity<PagedModelItemServizioGruppo> listServiziGruppi(UUID idGruppoPadre, Boolean gruppoPadreNull, TipoServizio tipo, String q, 
+	public ResponseEntity<PagedModelItemServizioGruppo> listServiziGruppi(UUID idGruppoPadre, Boolean gruppoPadreNull, TipoServizio tipo, FiltroArchiviatiEnum archiviati, String q, 
 			Integer page, Integer size, List<String> sort) {
 		try {
 			
@@ -2041,6 +2103,11 @@ public class ServiziController implements ServiziApi {
 				if(tipo != null) {
 					specification.setTipoComponente(Optional.of(this.dettaglioAssembler.toTipo(tipo)));
 				}
+
+				String statoArchiviato = getStatoArchiviatoServizio();
+				FiltroArchiviati filtroArchiviati = getFiltroArchiviati(archiviati, null, statoArchiviato);
+				specification.setStatoArchiviato(statoArchiviato);
+				specification.setFiltroArchiviati(filtroArchiviati);
 
 				this.logger.info("POST init Specification");
 
@@ -2083,16 +2150,24 @@ public class ServiziController implements ServiziApi {
 				// riusando la stessa ServizioSpecification che listServizi applica (referente servizio/dominio,
 				// classi, richiedente, referente/richiedente adesione, ramo PUBBLICO+stati). Sostituisce la
 				// navigazione in memoria di referenti e di TUTTE le adesioni per ogni servizio di ogni gruppo.
-				// Per admin/coordinatore ogni servizio e` visibile (set null), come gia` faceva isVisibile.
+				// Per admin/coordinatore ogni servizio e` visibile: il set resta null (come gia` faceva
+				// isVisibile) a meno che il filtro sugli archiviati non richieda comunque una selezione.
 				Set<Long> idsServiziVisibili = null;
-				if(!(this.coreAuthorization.isAdmin(utenteSessione) || this.coreAuthorization.isCoordinatore(utenteSessione))) {
+				boolean vedeTuttiIServizi = this.coreAuthorization.isAdmin(utenteSessione) || this.coreAuthorization.isCoordinatore(utenteSessione);
+				// Il calcolo serve anche ad admin/coordinatore quando gli archiviati sono filtrati: senza,
+				// un gruppo i cui servizi sono tutti esclusi resterebbe in elenco pur risultando vuoto.
+				if(!vedeTuttiIServizi || filtroArchiviati != FiltroArchiviati.INCLUDI) {
 					ServizioSpecification specVisibilita = new ServizioSpecification();
-					// Accesso anonimo: getUtenteSessione() puo` restituire null (consentiAccessoAnonimo=true).
-					// Usa un UtenteEntity "vuoto" come gia` fa il filtro principale (vedi ramo `anounymous` sopra),
-					// evitando l'NPE di Optional.of(null).
-					specVisibilita.setUtente(Optional.of(utenteSessione != null ? utenteSessione : new UtenteEntity()));
-					specVisibilita.setStatiAderibili(this.configurazione.getServizio().getStatiAdesioneConsentita());
-					specVisibilita.setUtenteAdmin(Optional.of(false));
+					if(!vedeTuttiIServizi) {
+						// Accesso anonimo: getUtenteSessione() puo` restituire null (consentiAccessoAnonimo=true).
+						// Usa un UtenteEntity "vuoto" come gia` fa il filtro principale (vedi ramo `anounymous` sopra),
+						// evitando l'NPE di Optional.of(null).
+						specVisibilita.setUtente(Optional.of(utenteSessione != null ? utenteSessione : new UtenteEntity()));
+						specVisibilita.setStatiAderibili(this.configurazione.getServizio().getStatiAdesioneConsentita());
+						specVisibilita.setUtenteAdmin(Optional.of(false));
+					}
+					specVisibilita.setStatoArchiviato(statoArchiviato);
+					specVisibilita.setFiltroArchiviati(filtroArchiviati);
 					idsServiziVisibili = this.service.findIds(specVisibilita);
 				}
 				final Set<Long> idsVisibili = idsServiziVisibili;
