@@ -23,6 +23,13 @@
 # combination (states and profiles never start with "__") and are used only to
 # define reusable values (e.g. the same text for several profiles or all states).
 #
+# SERVICE DISCLAIMERS: the same rules apply to the disclaimers shown in the
+# service wizard, but their keys must be prefixed with "servizio."
+# (e.g. "servizio.bozza", "servizio.bozza.pdnd.domain_name.collaudo"), where
+# {state} is the service state. No fallback is applied for services: if no
+# "servizio.*" key matches, no disclaimer is returned (the "default" key only
+# applies to subscriptions).
+#
 # To override these disclaimers externally, copy this file to:
 #   /var/govcat/conf/disclaimers_en.yml
 # =============================================================================

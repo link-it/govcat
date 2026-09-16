@@ -93,6 +93,7 @@ import org.govway.catalogo.servlets.model.RuoloAPIEnum;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.Servizio;
 import org.govway.catalogo.servlets.model.ServizioCreate;
+import org.govway.catalogo.servlets.model.ServizioDisclaimer;
 import org.govway.catalogo.servlets.model.ServizioUpdate;
 import org.govway.catalogo.servlets.model.Soggetto;
 import org.govway.catalogo.servlets.model.SoggettoCreate;
@@ -2703,5 +2704,58 @@ public class ServiziTest {
 			.anyMatch(s -> s.getIdServizio().equals(servizio.getIdServizio()));
 		assertTrue(trovato, "Il gestore che è anche referente dovrebbe vedere in dashboard il proprio servizio in bozza");
 	}
-}
 
+	// =========================================================================
+	// TEST getDisclaimersServizio
+	// =========================================================================
+
+	@Test
+	void testGetDisclaimersServizioSuccessIt() {
+		Servizio servizio = this.getServizio();
+
+		ResponseEntity<List<ServizioDisclaimer>> response = serviziController.getDisclaimersServizio(servizio.getIdServizio(), "it");
+
+		// L'endpoint non fallisce mai: senza chiavi "servizio.*" configurate la lista e' vuota
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertNotNull(response.getBody());
+
+		for (ServizioDisclaimer d : response.getBody()) {
+			assertNotNull(d.getDisclaimer(), "Il campo 'disclaimer' non deve essere null");
+			assertFalse(d.getDisclaimer().isBlank(), "Il testo del disclaimer non deve essere vuoto");
+			assertNotNull(d.getContesto(), "Il campo 'contesto' non deve essere null");
+			assertNotNull(d.getSeverity(), "Il campo 'severity' non deve essere null");
+		}
+	}
+
+	@Test
+	void testGetDisclaimersServizioSuccessEn() {
+		Servizio servizio = this.getServizio();
+
+		ResponseEntity<List<ServizioDisclaimer>> response = serviziController.getDisclaimersServizio(servizio.getIdServizio(), "en");
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertNotNull(response.getBody());
+	}
+
+	@Test
+	void testGetDisclaimersServizioFallbackLinguaNullOSconosciuta() {
+		Servizio servizio = this.getServizio();
+
+		// language_code null e lingua non supportata -> fallback a "it", nessun errore
+		ResponseEntity<List<ServizioDisclaimer>> responseNull = serviziController.getDisclaimersServizio(servizio.getIdServizio(), null);
+		assertEquals(HttpStatus.OK, responseNull.getStatusCode());
+		assertNotNull(responseNull.getBody());
+
+		ResponseEntity<List<ServizioDisclaimer>> responseFr = serviziController.getDisclaimersServizio(servizio.getIdServizio(), "fr");
+		assertEquals(HttpStatus.OK, responseFr.getStatusCode());
+		assertNotNull(responseFr.getBody());
+	}
+
+	@Test
+	void testGetDisclaimersServizioNotFound() {
+		UUID randomId = UUID.randomUUID();
+
+		assertThrows(NotFoundException.class,
+				() -> serviziController.getDisclaimersServizio(randomId, "it"));
+	}
+}

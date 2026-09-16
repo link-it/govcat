@@ -33,10 +33,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.govway.catalogo.authorization.AdesioneAuthorization;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
+import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.servlets.model.AdesioneDisclaimer;
 import org.govway.catalogo.servlets.model.ClientRichiesto;
 import org.govway.catalogo.servlets.model.DisclaimerContestoEnum;
 import org.govway.catalogo.servlets.model.DisclaimerSeverityEnum;
+import org.govway.catalogo.servlets.model.ServizioDisclaimer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +63,11 @@ import jakarta.annotation.PostConstruct;
  *   <li>default (fallback)</li>
  * </ol>
  *
+ * Le stesse regole valgono per i disclaimer dei servizi, le cui chiavi sono
+ * distinte da quelle delle adesioni tramite il prefisso "servizio." (es.
+ * "servizio.{stato}.{codice_interno}"). Per i servizi non e' previsto alcun
+ * fallback: se nessuna chiave corrisponde, la lista restituita e' vuota.
+ *
  * Il contesto del disclaimer e' derivato dal suffisso della chiave matched:
  * ".collaudo" -> COLLAUDO, ".produzione" -> PRODUZIONE, altrimenti GENERALE.
  *
@@ -73,6 +80,7 @@ import jakarta.annotation.PostConstruct;
 public class DisclaimerService {
 
 	private static final String DEFAULT_KEY = "default";
+	private static final String PREFIX_SERVIZIO = "servizio.";
 	private static final String SUFFIX_COLLAUDO = ".collaudo";
 	private static final String SUFFIX_PRODUZIONE = ".produzione";
 	private static final String HARDCODED_FALLBACK_IT = "Procedendo con l'adesione, l'ente accetta i termini e le condizioni del servizio.";
@@ -108,58 +116,121 @@ public class DisclaimerService {
 	 * Non lancia mai eccezioni: restituisce sempre almeno il disclaimer di fallback.
 	 */
 	public List<AdesioneDisclaimer> resolveDisclaimers(AdesioneEntity adesione, String languageCode) {
+		String lang = normalizeLang(languageCode);
 		try {
-			String lang = (languageCode != null) ? languageCode.toLowerCase() : "it";
 			Map<String, List<DisclaimerEntry>> disclaimers = cache.getOrDefault(lang, cache.get("it"));
 			if (disclaimers == null || disclaimers.isEmpty()) {
 				return List.of(buildHardcodedFallback(lang));
 			}
 
-			String stato = normalize(adesione.getStato());
-			String dominio = extractDominio(adesione);
-			// I profili sono restituiti con il case originale (coerente con quanto
-			// presente in ClientAdesioneEntity.profilo restituito da listClient*Adesione)
-			List<String> profili = extractProfili(adesione);
-
-			// LinkedHashSet di chiavi gia' consumate per evitare duplicati
-			Set<String> matchedKeys = new LinkedHashSet<>();
-			List<AdesioneDisclaimer> result = new ArrayList<>();
-
-			for (String profilo : profili) {
-				String profiloNormalizzato = normalize(profilo);
-				if (dominio != null) {
-					String baseKey = stato + "." + profiloNormalizzato + "." + dominio;
-					tryAllContexts(disclaimers, baseKey, profilo, matchedKeys, result);
-				}
-				String baseKey = stato + "." + profiloNormalizzato;
-				tryAllContexts(disclaimers, baseKey, profilo, matchedKeys, result);
-			}
-
-			// Disclaimer per livello stato (chiavi che non contengono il profilo -> profilo=null)
-			tryAllContexts(disclaimers, stato, null, matchedKeys, result);
+			List<ResolvedDisclaimer> resolved = resolveGerarchia(disclaimers, "",
+					normalize(adesione.getStato()), adesione.getServizio());
 
 			// Se nessun disclaimer specifico trovato, usa il default (profilo=null)
+			if (resolved.isEmpty()) {
+				resolved = resolveDefault(disclaimers);
+			}
+
+			List<AdesioneDisclaimer> result = new ArrayList<>();
+			for (ResolvedDisclaimer entry : resolved) {
+				result.add(buildDisclaimer(entry.testo, entry.contesto, entry.severity, entry.profilo, entry.nomeGruppo));
+			}
+
 			if (result.isEmpty()) {
-				List<DisclaimerEntry> defaultEntries = disclaimers.get(DEFAULT_KEY);
-				if (defaultEntries != null) {
-					for (DisclaimerEntry defaultEntry : defaultEntries) {
-						if (defaultEntry.testo != null && !defaultEntry.testo.isBlank()) {
-							result.add(buildDisclaimer(defaultEntry.testo, DisclaimerContestoEnum.GENERALE, defaultEntry.severity, null, defaultEntry.nomeGruppo));
-						}
-					}
-				}
-				if (result.isEmpty()) {
-					result.add(buildHardcodedFallback(lang));
-				}
+				result.add(buildHardcodedFallback(lang));
 			}
 
 			return Collections.unmodifiableList(result);
 
 		} catch (Exception e) {
 			this.logger.error("Errore nella risoluzione dei disclaimer: " + e.getMessage(), e);
-			String lang = (languageCode != null) ? languageCode.toLowerCase() : "it";
 			return List.of(buildHardcodedFallback(lang));
 		}
+	}
+
+	/**
+	 * Risolve i disclaimer per un dato servizio e lingua. Usa lo stesso file di
+	 * configurazione delle adesioni, limitatamente alle chiavi con prefisso "servizio.".
+	 *
+	 * A differenza delle adesioni non e' previsto alcun fallback: se nessuna chiave
+	 * "servizio.*" corrisponde, la lista restituita e' vuota. Non lancia mai eccezioni.
+	 */
+	public List<ServizioDisclaimer> resolveDisclaimersServizio(ServizioEntity servizio, String languageCode) {
+		try {
+			String lang = normalizeLang(languageCode);
+			Map<String, List<DisclaimerEntry>> disclaimers = cache.getOrDefault(lang, cache.get("it"));
+			if (disclaimers == null || disclaimers.isEmpty()) {
+				return List.of();
+			}
+
+			List<ResolvedDisclaimer> resolved = resolveGerarchia(disclaimers, PREFIX_SERVIZIO,
+					normalize(servizio.getStato()), servizio);
+
+			List<ServizioDisclaimer> result = new ArrayList<>();
+			for (ResolvedDisclaimer entry : resolved) {
+				result.add(buildDisclaimerServizio(entry));
+			}
+
+			return Collections.unmodifiableList(result);
+
+		} catch (Exception e) {
+			this.logger.error("Errore nella risoluzione dei disclaimer del servizio: " + e.getMessage(), e);
+			return List.of();
+		}
+	}
+
+	/**
+	 * Risoluzione gerarchica delle chiavi, dal livello piu' specifico al piu' generico,
+	 * a partire dal prefisso indicato ("" per le adesioni, "servizio." per i servizi).
+	 *
+	 * @param servizio servizio di riferimento, da cui sono derivati dominio e profili
+	 *                 dei client richiesti (per le adesioni e' il servizio aderito)
+	 */
+	private List<ResolvedDisclaimer> resolveGerarchia(Map<String, List<DisclaimerEntry>> disclaimers,
+			String prefix, String stato, ServizioEntity servizio) {
+
+		String dominio = extractDominio(servizio);
+		// I profili sono restituiti con il case originale (coerente con quanto
+		// presente in ClientAdesioneEntity.profilo restituito da listClient*Adesione)
+		List<String> profili = extractProfili(servizio);
+
+		// LinkedHashSet di chiavi gia' consumate per evitare duplicati
+		Set<String> matchedKeys = new LinkedHashSet<>();
+		List<ResolvedDisclaimer> result = new ArrayList<>();
+
+		for (String profilo : profili) {
+			String profiloNormalizzato = normalize(profilo);
+			if (dominio != null) {
+				String baseKey = prefix + stato + "." + profiloNormalizzato + "." + dominio;
+				tryAllContexts(disclaimers, baseKey, profilo, matchedKeys, result);
+			}
+			String baseKey = prefix + stato + "." + profiloNormalizzato;
+			tryAllContexts(disclaimers, baseKey, profilo, matchedKeys, result);
+		}
+
+		// Disclaimer per livello stato (chiavi che non contengono il profilo -> profilo=null)
+		tryAllContexts(disclaimers, prefix + stato, null, matchedKeys, result);
+
+		return result;
+	}
+
+	/** Voci della chiave di default, usate solo dalle adesioni (profilo=null). */
+	private List<ResolvedDisclaimer> resolveDefault(Map<String, List<DisclaimerEntry>> disclaimers) {
+		List<ResolvedDisclaimer> result = new ArrayList<>();
+		List<DisclaimerEntry> defaultEntries = disclaimers.get(DEFAULT_KEY);
+		if (defaultEntries != null) {
+			for (DisclaimerEntry defaultEntry : defaultEntries) {
+				if (defaultEntry.testo != null && !defaultEntry.testo.isBlank()) {
+					result.add(new ResolvedDisclaimer(defaultEntry.testo, DisclaimerContestoEnum.GENERALE,
+							defaultEntry.severity, null, defaultEntry.nomeGruppo));
+				}
+			}
+		}
+		return result;
+	}
+
+	private String normalizeLang(String languageCode) {
+		return (languageCode != null) ? languageCode.toLowerCase() : "it";
 	}
 
 	/**
@@ -170,14 +241,14 @@ public class DisclaimerService {
 	 *                non contiene il segmento profilo, es. per il livello "stato" puro)
 	 */
 	private void tryAllContexts(Map<String, List<DisclaimerEntry>> disclaimers, String baseKey,
-			String profilo, Set<String> matchedKeys, List<AdesioneDisclaimer> result) {
+			String profilo, Set<String> matchedKeys, List<ResolvedDisclaimer> result) {
 		tryAddKey(disclaimers, baseKey, DisclaimerContestoEnum.GENERALE, profilo, matchedKeys, result);
 		tryAddKey(disclaimers, baseKey + SUFFIX_COLLAUDO, DisclaimerContestoEnum.COLLAUDO, profilo, matchedKeys, result);
 		tryAddKey(disclaimers, baseKey + SUFFIX_PRODUZIONE, DisclaimerContestoEnum.PRODUZIONE, profilo, matchedKeys, result);
 	}
 
 	private void tryAddKey(Map<String, List<DisclaimerEntry>> disclaimers, String key,
-			DisclaimerContestoEnum contesto, String profilo, Set<String> matchedKeys, List<AdesioneDisclaimer> result) {
+			DisclaimerContestoEnum contesto, String profilo, Set<String> matchedKeys, List<ResolvedDisclaimer> result) {
 		if (matchedKeys.contains(key)) {
 			return;
 		}
@@ -191,7 +262,7 @@ public class DisclaimerService {
 		boolean matched = false;
 		for (DisclaimerEntry entry : entries) {
 			if (entry.testo != null && !entry.testo.isBlank()) {
-				result.add(buildDisclaimer(entry.testo, contesto, entry.severity, profilo, entry.nomeGruppo));
+				result.add(new ResolvedDisclaimer(entry.testo, contesto, entry.severity, profilo, entry.nomeGruppo));
 				matched = true;
 			}
 		}
@@ -211,37 +282,47 @@ public class DisclaimerService {
 		return d;
 	}
 
+	private ServizioDisclaimer buildDisclaimerServizio(ResolvedDisclaimer resolved) {
+		ServizioDisclaimer d = new ServizioDisclaimer();
+		d.setDisclaimer(resolved.testo.trim());
+		d.setContesto(resolved.contesto);
+		d.setSeverity(resolved.severity != null ? resolved.severity : DisclaimerSeverityEnum.INFO);
+		d.setProfilo(resolved.profilo);
+		d.setNomeGruppo(resolved.nomeGruppo);
+		return d;
+	}
+
 	private AdesioneDisclaimer buildHardcodedFallback(String lang) {
 		String testo = "en".equals(lang) ? HARDCODED_FALLBACK_EN : HARDCODED_FALLBACK_IT;
 		return buildDisclaimer(testo, DisclaimerContestoEnum.GENERALE, DisclaimerSeverityEnum.INFO, null, null);
 	}
 
 	/**
-	 * Estrae i profili client richiesti per l'adesione. I valori sono restituiti con il
+	 * Estrae i profili client richiesti per il servizio. I valori sono restituiti con il
 	 * case originale (come memorizzati nel DB) per consentire al FE di fare matching diretto
 	 * tra il campo profilo del disclaimer e il profilo degli elementi restituiti dagli
 	 * endpoint listClient*Adesione.
 	 */
-	private List<String> extractProfili(AdesioneEntity adesione) {
+	private List<String> extractProfili(ServizioEntity servizio) {
 		try {
-			List<ClientRichiesto> clientRichiesti = this.adesioneAuthorization.getClientRichiesti(adesione.getServizio());
+			List<ClientRichiesto> clientRichiesti = this.adesioneAuthorization.getClientRichiesti(servizio);
 			return clientRichiesti.stream()
 					.map(ClientRichiesto::getProfilo)
 					.filter(p -> p != null && !p.isBlank())
 					.distinct()
 					.toList();
 		} catch (Exception e) {
-			this.logger.warn("Impossibile recuperare i profili client richiesti per l'adesione {}: {}",
-					adesione.getIdAdesione(), e.getMessage());
+			this.logger.warn("Impossibile recuperare i profili client richiesti per il servizio {}: {}",
+					(servizio != null) ? servizio.getIdServizio() : null, e.getMessage());
 			return List.of();
 		}
 	}
 
-	private String extractDominio(AdesioneEntity adesione) {
-		if (adesione.getServizio() == null || adesione.getServizio().getDominio() == null) {
+	private String extractDominio(ServizioEntity servizio) {
+		if (servizio == null || servizio.getDominio() == null) {
 			return null;
 		}
-		String nome = adesione.getServizio().getDominio().getNome();
+		String nome = servizio.getDominio().getNome();
 		return (nome != null && !nome.isBlank()) ? normalize(nome) : null;
 	}
 
@@ -346,6 +427,26 @@ public class DisclaimerService {
 		} catch (IllegalArgumentException e) {
 			this.logger.warn("Severity non riconosciuta '{}', uso INFO come default", s);
 			return DisclaimerSeverityEnum.INFO;
+		}
+	}
+
+	/**
+	 * Voce disclaimer risolta, indipendente dal DTO di risposta (adesione o servizio).
+	 */
+	private static final class ResolvedDisclaimer {
+		final String testo;
+		final DisclaimerContestoEnum contesto;
+		final DisclaimerSeverityEnum severity;
+		final String profilo;
+		final String nomeGruppo;
+
+		ResolvedDisclaimer(String testo, DisclaimerContestoEnum contesto, DisclaimerSeverityEnum severity,
+				String profilo, String nomeGruppo) {
+			this.testo = testo;
+			this.contesto = contesto;
+			this.severity = severity;
+			this.profilo = profilo;
+			this.nomeGruppo = nomeGruppo;
 		}
 	}
 

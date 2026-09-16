@@ -100,6 +100,7 @@ import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.RichiestaNonValidaSemanticamenteException;
+import org.govway.catalogo.services.DisclaimerService;
 import org.govway.catalogo.servlets.api.ServiziApi;
 import org.govway.catalogo.servlets.model.Allegato;
 import org.govway.catalogo.servlets.model.AllegatoItemCreate;
@@ -140,6 +141,7 @@ import org.govway.catalogo.servlets.model.ReferenteCreate;
 import org.govway.catalogo.servlets.model.Ruolo;
 import org.govway.catalogo.servlets.model.Servizio;
 import org.govway.catalogo.servlets.model.ServizioCreate;
+import org.govway.catalogo.servlets.model.ServizioDisclaimer;
 import org.govway.catalogo.servlets.model.ServizioUpdate;
 import org.govway.catalogo.servlets.model.StatoUpdate;
 import org.govway.catalogo.servlets.model.TipoComunicazione;
@@ -267,6 +269,9 @@ public class ServiziController implements ServiziApi {
 
 	@Autowired
 	private EntityManager entityManager;   
+
+	@Autowired
+	private DisclaimerService disclaimerService;
 
 	private AbstractServizioAuthorization getServizioAuthorization(ServizioEntity entity) {
 		if(entity.is_package()) {
@@ -2123,6 +2128,33 @@ public class ServiziController implements ServiziApi {
 			throw new InternalException(ErrorCode.SYS_500);
 		}
 
+	}
+
+	@Override
+	public ResponseEntity<List<ServizioDisclaimer>> getDisclaimersServizio(UUID idServizio, String languageCode) {
+		try {
+			return this.service.runTransaction( () -> {
+
+				this.logger.info("Invocazione in corso ...");
+				ServizioEntity entity = this.findOne(idServizio);
+
+				this.logger.debug("Autorizzazione completata con successo");
+
+				List<ServizioDisclaimer> disclaimers = this.disclaimerService.resolveDisclaimersServizio(entity, languageCode);
+
+				this.logger.info("Invocazione completata con successo");
+
+				return ResponseEntity.ok(disclaimers);
+			});
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
 	}
 
 	private ServizioEntity findOne(UUID idServizio) {

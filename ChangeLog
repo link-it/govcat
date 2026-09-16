@@ -1,3 +1,15 @@
+2026-09-16  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 352: aggiunto l'endpoint `GET /servizi/{id_servizio}/disclaimers`, omologo
+	  di quello già disponibile per le adesioni, che espone al wizard dei servizi i
+	  disclaimer risolti gerarchicamente per stato del servizio, profilo dei client
+	  richiesti e dominio. Le chiavi sono lette dagli stessi file
+	  `disclaimers_{lingua}.yml` con il prefisso `servizio.`, così da non interferire
+	  con quelle delle adesioni; per i servizi non è previsto alcun fallback (né
+	  chiave `default` né testo predefinito): se nessuna chiave corrisponde la
+	  risposta è vuota.
+
 2026-09-14  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* Rilasciata versione 2.4.5

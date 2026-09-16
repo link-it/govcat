@@ -2636,6 +2636,46 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /servizi/{id_servizio}/disclaimers:
+    parameters:
+      - $ref: "#/components/parameters/id_servizio"
+    get:
+      tags:
+      - "Servizi"
+      description: "Lista dei disclaimer applicabili al servizio, risolti gerarchicamente in base a stato, profilo client e dominio del servizio"
+      operationId: "getDisclaimersServizio"
+      parameters:
+      - name: "language_code"
+        in: "query"
+        description: "Codice lingua dei disclaimer (it, en). Default: it"
+        required: false
+        schema:
+          type: "string"
+          default: "it"
+          enum:
+            - "it"
+            - "en"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/ServizioDisclaimer"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /servizi/{id_servizio}/ammissibili:
     parameters:
       - $ref: "#/components/parameters/id_servizio"
@@ -10734,6 +10774,26 @@ components:
         - "WARNING"
         - "ERROR"
     AdesioneDisclaimer:
+      type: "object"
+      required:
+        - "disclaimer"
+        - "contesto"
+        - "severity"
+      properties:
+        disclaimer:
+          type: "string"
+          description: "Testo del disclaimer in formato Markdown"
+        contesto:
+          $ref: "#/components/schemas/DisclaimerContestoEnum"
+        severity:
+          $ref: "#/components/schemas/DisclaimerSeverityEnum"
+        profilo:
+          type: "string"
+          description: "Codice interno del profilo associato al disclaimer, se il disclaimer e' specifico per un profilo; null altrimenti"
+        nome_gruppo:
+          type: "string"
+          description: "Nome del gruppo eventualmente associato al disclaimer nello yaml di configurazione; null se non specificato"
+    ServizioDisclaimer:
       type: "object"
       required:
         - "disclaimer"

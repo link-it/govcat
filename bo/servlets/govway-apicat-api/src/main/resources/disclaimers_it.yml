@@ -26,6 +26,13 @@
 #
 # Se il nome del dominio contiene spazi, racchiudere la chiave tra virgolette.
 #
+# DISCLAIMER DEI SERVIZI: le stesse regole valgono per i disclaimer mostrati nel
+# wizard dei servizi, ma le relative chiavi devono avere il prefisso "servizio."
+# (es. "servizio.bozza", "servizio.bozza.pdnd.nome_dominio.collaudo"), dove
+# {stato} e' lo stato del servizio. Per i servizi non e' previsto alcun
+# fallback: se nessuna chiave "servizio.*" corrisponde, non viene mostrato
+# alcun disclaimer (la chiave "default" vale solo per le adesioni).
+#
 # Per sovrascrivere questi disclaimer dall'esterno, copiare questo file in:
 #   /var/govcat/conf/disclaimers_it.yml
 # =============================================================================
