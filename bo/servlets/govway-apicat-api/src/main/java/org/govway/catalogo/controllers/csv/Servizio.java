@@ -23,6 +23,7 @@ public class Servizio {
 
 	private String erogatore;
 	private String fruitore;
+	private String intermediato;
 	private String dominio;
 	private String servizio;
 	private String versioneServizio;
@@ -53,6 +54,12 @@ public class Servizio {
 	}
 	public void setFruitore(String fruitore) {
 		this.fruitore = fruitore;
+	}
+	public String getIntermediato() {
+		return intermediato;
+	}
+	public void setIntermediato(String intermediato) {
+		this.intermediato = intermediato;
 	}
 	public String getDominio() {
 		return dominio;

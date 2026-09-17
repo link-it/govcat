@@ -1831,6 +1831,40 @@ public class ServiziTest {
         assertEquals(createdSoggetto.getBody().getNome(), getColonnaCsv(csv, servizio, "Soggetto Erogatore"));
     }
 
+    @Test
+    void testExportServiziColonnaIntermediato() throws Exception {
+        Dominio dominio = this.getDominio();
+
+        SoggettoCreate erogatoreCreate = new SoggettoCreate();
+        erogatoreCreate.setNome("nome_soggetto_erogatore");
+        erogatoreCreate.setIdOrganizzazione(this.idOrganizzazione);
+        erogatoreCreate.setReferente(true);
+        erogatoreCreate.setAderente(true);
+        erogatoreCreate.setSkipCollaudo(true);
+        ResponseEntity<Soggetto> erogatore = soggettiController.createSoggetto(erogatoreCreate);
+        assertEquals(HttpStatus.OK, erogatore.getStatusCode());
+
+        Servizio servizioErogazione = creaServizioConApi("servizio_export_erogazione", dominio.getIdDominio(),
+                false, null, "api_export_erogazione").servizio();
+        Servizio servizioFruizione = creaServizioConApi("servizio_export_fruizione", dominio.getIdDominio(),
+                true, erogatore.getBody().getIdSoggetto(), "api_export_fruizione").servizio();
+
+        entityManager.flush();
+        entityManager.clear();
+
+        ResponseEntity<Resource> response = serviziController.exportServizi(
+            null, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null
+        );
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        String csv = new String(response.getBody().getContentAsByteArray());
+
+        // Intermediato riflette il flag fruizione del servizio
+        assertEquals("No", getColonnaCsv(csv, servizioErogazione, "Intermediato"));
+        assertEquals("Sì", getColonnaCsv(csv, servizioFruizione, "Intermediato"));
+    }
+
     private record ServizioConApi(Servizio servizio, API api) {}
 
     private ServizioConApi creaServizioConApi(String nome, UUID idDominio, boolean fruizione,

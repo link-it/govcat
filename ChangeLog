@@ -37,6 +37,10 @@
 	  i testi di default per i quattordici stati del workflow del servizio,
 	  compreso il percorso senza collaudo, e per le pagine di configurazione di
 	  collaudo e produzione.
+	Issue 357: il csv di export dei servizi riporta la nuova colonna `Intermediato`
+	  (`Sì`/`No`), che distingue i servizi in fruizione da quelli in erogazione. La
+	  colonna è affiancata a `Soggetto Fruitore`, valorizzato solo per i servizi
+	  intermediati.
 
 2026-09-17  Giovanni De Luca <giovanni.deluca@link.it>
 
