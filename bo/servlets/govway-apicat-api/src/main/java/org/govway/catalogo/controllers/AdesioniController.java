@@ -308,7 +308,11 @@ public class AdesioniController implements AdesioniApi {
 		}
 		AdesioneSpecification aspec = new AdesioneSpecification();
 		
-		if(!this.coreAuthorization.isAdmin()) {
+		// Il coordinatore ha visibilita` su tutte le adesioni, come il gestore: e` coerente con
+		// la lista adesioni (listAdesioni) e con i ruoli di workflow, dove il coordinatore assume
+		// REFERENTE_SUPERIORE su qualsiasi adesione. Senza questo bypass riceve le comunicazioni
+		// indirizzate al suo ruolo ma non puo` aprire l'adesione a cui si riferiscono.
+		if(!this.coreAuthorization.isAdmin() && !this.coreAuthorization.isCoordinatore()) {
 			aspec.setUtente(Optional.of(utente));
 			if(visibilitaAmministratoreOrganizzazione) {
 				aspec.setIdOrganizzazioniAmministrate(getIdOrganizzazioniAmministrate(utente));

@@ -2434,6 +2434,46 @@ public class AdesioniTest {
     }
 
     @Test
+    void testGetAdesioneECoordinatoreVedeQualsiasiAdesione() {
+        // RIPRODUZIONE: il coordinatore riceve le comunicazioni indirizzate al suo ruolo
+        // (target COORDINATORE) su qualsiasi adesione, ma non ne e` referente/richiedente.
+        // Deve quindi poter aprire la scheda e le comunicazioni dell'adesione, come il gestore.
+
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+
+        // Adesione creata dal gestore: il coordinatore non e` referente ne` richiedente,
+        // e non e` referente del servizio o del dominio.
+        AdesioneCreate adesioneCreate = new AdesioneCreate();
+        adesioneCreate.setIdServizio(idServizio);
+        adesioneCreate.setIdSoggetto(idSoggetto);
+        Adesione adesione = adesioniController.createAdesione(adesioneCreate).getBody();
+        UUID idAdesione = adesione.getIdAdesione();
+
+        // Creo un utente con ruolo COORDINATORE, senza alcun legame con l'adesione.
+        String utenteCoordinatore = "utente_coordinatore_adesione";
+        UtenteCreate coordinatore = CommonUtils.getUtenteCreate();
+        coordinatore.setPrincipal(utenteCoordinatore);
+        coordinatore.setRuolo(RuoloUtenteEnum.COORDINATORE);
+        CommonUtils.setOrganizzazione(coordinatore, idOrganizzazione);
+        coordinatore.setStato(StatoUtenteEnum.ABILITATO);
+        utentiController.createUtente(coordinatore);
+
+        CommonUtils.getSessionUtente(utenteCoordinatore, securityContext, authentication, utenteService);
+
+        ResponseEntity<Adesione> adesioneResponse = adesioniController.getAdesione(idAdesione);
+        assertEquals(HttpStatus.OK, adesioneResponse.getStatusCode());
+        assertNotNull(adesioneResponse.getBody());
+        assertEquals(idAdesione, adesioneResponse.getBody().getIdAdesione());
+
+        ResponseEntity<PagedModelItemComunicazione> comunicazioniResponse = adesioniController.listComunicazioniAdesione(idAdesione, 0, 10, null);
+        assertEquals(HttpStatus.OK, comunicazioniResponse.getStatusCode());
+        assertNotNull(comunicazioniResponse.getBody());
+    }
+
+    @Test
     void testListClientCollaudoAdesioneSuccess() {
         // Setup
         Dominio dominio = this.getDominio(null);
