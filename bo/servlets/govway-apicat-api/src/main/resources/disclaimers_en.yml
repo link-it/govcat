@@ -768,3 +768,103 @@ bozza.pdnd.pdnd: |
   testo: |
     ## ModI P1 - Test Domain in production
     Example of a disclaimer that combines profile and a domain with spaces.
+
+# =============================================================================
+# SERVICE DISCLAIMERS ("servizio." prefix)
+#
+# Displayed in the service wizard. The same rules as subscriptions apply, but
+# {state} is the SERVICE state and every key is prefixed with "servizio.":
+#   1. servizio.{state}.{codice_interno}.{domain}[.{ambiente}]
+#   2. servizio.{state}.{codice_interno}[.{ambiente}]
+#   3. servizio.{state}[.{ambiente}]
+# No fallback level exists for services: if no "servizio.*" key matches, no
+# disclaimer is returned.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# SERVICE STATE-LEVEL DISCLAIMERS (generic, profile-independent)
+# -----------------------------------------------------------------------------
+
+servizio.bozza:
+  severity: WARNING
+  testo: |
+    ## Service in draft
+    The service has been created but has not been submitted for publication yet. To proceed:
+    - Complete the **General Information** (identifier, contacts) and the APIs with their interface specifications
+    - Fill in the provisioning details in the **Test** and/or **Production** sections
+    - Submit the request with the **"Request test configuration"** button
+
+    While the service stays in draft it is not published and no subscription can be requested.
+
+servizio.richiesto_collaudo: |
+  ## Waiting for authorisation
+  The **test** publication request has been submitted and is waiting for authorisation by the **platform manager** or the **senior contact**.
+
+servizio.autorizzato_collaudo: |
+  ## Authorised — waiting for configuration
+  The **test** publication request has been authorised. The platform manager is configuring the API provisioning on the API Gateway.
+
+servizio.in_configurazione_collaudo: |
+  ## Configuration in progress (test)
+  The platform manager is configuring the API provisioning on the **test** API Gateway. No action is required on your side: identifier, interface specifications and test provisioning details can no longer be modified.
+
+servizio.pubblicato_collaudo: |
+  ## Service published in test
+  The service is **published in the test environment** and is available for test subscriptions. When the API is ready, fill in the provisioning details in the **Production** section and start the production publication procedure.
+
+servizio.richiesto_produzione: |
+  ## Waiting for authorisation (production)
+  The **production** publication request has been submitted and is waiting for authorisation by the **platform manager** or the **senior contact**.
+
+servizio.autorizzato_produzione: |
+  ## Authorised — waiting for configuration (production)
+  The **production** publication request has been authorised. The platform manager is configuring the API provisioning on the API Gateway.
+
+servizio.in_configurazione_produzione: |
+  ## Configuration in progress (production)
+  The platform manager is configuring the API provisioning on the **production** API Gateway. No action is required on your side: identifier, interface specifications and production provisioning details can no longer be modified.
+
+servizio.pubblicato_produzione: |
+  ## Service published in production ✓
+  The service is **published in production** and is available in the catalogue for subscriptions. To change the interface specifications or the provisioning details contact the platform manager.
+
+# Path without test environment: the service is published straight to production
+servizio.richiesto_produzione_senza_collaudo: |
+  ## Waiting for authorisation (production)
+  The **production** publication request has been submitted **skipping the test environment** and is waiting for authorisation by the **platform manager** or the **senior contact**.
+
+servizio.autorizzato_produzione_senza_collaudo: |
+  ## Authorised — waiting for configuration (production)
+  The request to publish straight to **production** has been authorised. The platform manager is configuring the API provisioning on the API Gateway.
+
+servizio.in_configurazione_produzione_senza_collaudo: |
+  ## Configuration in progress (production)
+  The platform manager is configuring the API provisioning on the **production** API Gateway. No action is required on your side: identifier, interface specifications and production provisioning details can no longer be modified.
+
+servizio.pubblicato_produzione_senza_collaudo: |
+  ## Service published in production ✓
+  The service is **published in production** without going through the test environment and is available in the catalogue for subscriptions. To change the interface specifications or the provisioning details contact the platform manager.
+
+servizio.archiviato:
+  severity: WARNING
+  testo: |
+    ## Service archived
+    This service has been **archived**: it is no longer published in the catalogue and no new subscription can be requested. To make it available again contact the platform manager.
+
+# -----------------------------------------------------------------------------
+# ENVIRONMENT-LEVEL DISCLAIMERS (test / production), profile-independent
+#
+# Displayed on the configuration page of each environment, only for the states
+# where the environment data can actually be filled in, i.e. "bozza" (test and
+# production, the latter for the path without test environment) and
+# "pubblicato_collaudo" (production data).
+# Severity: INFO (default for a plain string).
+# -----------------------------------------------------------------------------
+
+__anchor_ambiente_servizio: &disclaimer_ambiente_servizio |
+  Fill in the provisioning details of the service APIs for this environment: interface specification, provisioning endpoint and the security profiles required from clients. Click (pencil) on each API to enter the required data. All mandatory data must be filled in before the request can be submitted.
+
+servizio.bozza.collaudo: *disclaimer_ambiente_servizio
+servizio.bozza.produzione: *disclaimer_ambiente_servizio
+servizio.pubblicato_collaudo.collaudo: *disclaimer_ambiente_servizio
+servizio.pubblicato_collaudo.produzione: *disclaimer_ambiente_servizio

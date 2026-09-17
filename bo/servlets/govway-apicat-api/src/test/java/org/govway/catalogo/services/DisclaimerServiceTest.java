@@ -20,6 +20,7 @@
 package org.govway.catalogo.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -878,6 +879,25 @@ class DisclaimerServiceTest {
 		List<ServizioDisclaimer> result = service.resolveDisclaimersServizio(servizio, "it");
 
 		assertTrue(result.isEmpty(), "I disclaimer delle adesioni non devono essere restituiti per i servizi");
+	}
+
+	@Test
+	@DisplayName("Servizio: i disclaimer di default del classpath coprono gli stati del servizio")
+	void servizioDisclaimerDalClasspath(@TempDir Path tempDir) {
+		ReflectionTestUtils.setField(service, "externalPath", tempDir.resolve("inesistente").toString());
+		service.reload();
+
+		mockProfili();
+		ServizioEntity servizio = buildServizio("bozza", null);
+
+		List<ServizioDisclaimer> result = service.resolveDisclaimersServizio(servizio, "it");
+
+		assertFalse(result.isEmpty(), "Lo yaml distribuito deve contenere i disclaimer per lo stato del servizio");
+		assertTrue(result.stream().anyMatch(d -> d.getDisclaimer().contains("Servizio in bozza")
+						&& DisclaimerSeverityEnum.WARNING.equals(d.getSeverity())),
+				"Deve essere presente il disclaimer di stato 'servizio.bozza' con severity WARNING");
+		assertTrue(result.stream().anyMatch(d -> DisclaimerContestoEnum.COLLAUDO.equals(d.getContesto())),
+				"Deve essere presente il disclaimer d'ambiente 'servizio.bozza.collaudo'");
 	}
 
 	@Test

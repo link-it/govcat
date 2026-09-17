@@ -1,4 +1,4 @@
-2026-09-16  Giovanni De Luca <giovanni.deluca@link.it>
+2026-09-17  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
 	Issue 325: il criterio di univocità del servizio comprende il dominio: nome e
@@ -33,7 +33,10 @@
 	  `disclaimers_{lingua}.yml` con il prefisso `servizio.`, così da non interferire
 	  con quelle delle adesioni; per i servizi non è previsto alcun fallback (né
 	  chiave `default` né testo predefinito): se nessuna chiave corrisponde la
-	  risposta è vuota.
+	  risposta è vuota. Aggiunti ai file `disclaimers_it.yml` e `disclaimers_en.yml`
+	  i testi di default per i quattordici stati del workflow del servizio,
+	  compreso il percorso senza collaudo, e per le pagine di configurazione di
+	  collaudo e produzione.
 
 2026-09-14  Giovanni De Luca <giovanni.deluca@link.it>
 

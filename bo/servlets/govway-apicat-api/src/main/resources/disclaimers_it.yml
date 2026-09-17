@@ -772,3 +772,103 @@ bozza.pdnd.pdnd: |
   testo: |
     ## ModI P1 - Dominio di Test in produzione
     Esempio di disclaimer che combina profilo e dominio con spazi.
+
+# =============================================================================
+# DISCLAIMER DEI SERVIZI (prefisso "servizio.")
+#
+# Mostrati nel wizard dei servizi. Valgono le stesse regole delle adesioni, ma
+# {stato} e' lo stato del SERVIZIO e ogni chiave e' prefissata con "servizio.":
+#   1. servizio.{stato}.{codice_interno}.{dominio}[.{ambiente}]
+#   2. servizio.{stato}.{codice_interno}[.{ambiente}]
+#   3. servizio.{stato}[.{ambiente}]
+# Per i servizi NON esiste il livello di fallback: se nessuna chiave
+# "servizio.*" corrisponde, non viene mostrato alcun disclaimer.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# DISCLAIMER PER STATO DEL SERVIZIO (generale, indipendente dal profilo)
+# -----------------------------------------------------------------------------
+
+servizio.bozza:
+  severity: WARNING
+  testo: |
+    ## Servizio in bozza
+    Il servizio è stato creato ma non è ancora stato inviato per la pubblicazione. Per procedere:
+    - Completa le **Informazioni Generali** (identificativo, referenti) e le API con le relative specifiche
+    - Compila i dati di erogazione nelle sezioni **Collaudo** e/o **Produzione**
+    - Invia la richiesta tramite il pulsante **"Richiesta configurazione in collaudo"**
+
+    Finché il servizio rimane in bozza non è pubblicato e non è possibile aderirvi.
+
+servizio.richiesto_collaudo: |
+  ## In attesa di autorizzazione
+  La richiesta di pubblicazione in **collaudo** è stata inviata ed è in attesa di autorizzazione da parte del **gestore della piattaforma** o del **referente superiore**.
+
+servizio.autorizzato_collaudo: |
+  ## Autorizzato — in attesa di configurazione
+  La richiesta di pubblicazione in **collaudo** è stata autorizzata. Il gestore della piattaforma sta procedendo con la configurazione dell'erogazione sull'API Gateway.
+
+servizio.in_configurazione_collaudo: |
+  ## Configurazione in corso (collaudo)
+  Il gestore della piattaforma sta configurando l'erogazione sull'API Gateway di **collaudo**. Non sono richieste azioni da parte tua: identificativo, specifiche e dati di erogazione di collaudo non sono più modificabili.
+
+servizio.pubblicato_collaudo: |
+  ## Servizio pubblicato in collaudo
+  Il servizio è **pubblicato nell'ambiente di collaudo** ed è disponibile per le adesioni di test. Quando l'API è pronta, compila i dati di erogazione nella sezione **Produzione** e avvia la procedura di pubblicazione in produzione.
+
+servizio.richiesto_produzione: |
+  ## In attesa di autorizzazione (produzione)
+  La richiesta di pubblicazione in **produzione** è stata inviata ed è in attesa di autorizzazione da parte del **gestore della piattaforma** o del **referente superiore**.
+
+servizio.autorizzato_produzione: |
+  ## Autorizzato — in attesa di configurazione (produzione)
+  La richiesta di pubblicazione in **produzione** è stata autorizzata. Il gestore della piattaforma sta procedendo con la configurazione dell'erogazione sull'API Gateway.
+
+servizio.in_configurazione_produzione: |
+  ## Configurazione in corso (produzione)
+  Il gestore della piattaforma sta configurando l'erogazione sull'API Gateway di **produzione**. Non sono richieste azioni da parte tua: identificativo, specifiche e dati di erogazione di produzione non sono più modificabili.
+
+servizio.pubblicato_produzione: |
+  ## Servizio pubblicato in produzione ✓
+  Il servizio è **pubblicato in produzione** ed è disponibile nel catalogo per le adesioni. Per modifiche alle specifiche o ai dati di erogazione contatta il gestore della piattaforma.
+
+# Percorso senza collaudo: il servizio viene pubblicato direttamente in produzione
+servizio.richiesto_produzione_senza_collaudo: |
+  ## In attesa di autorizzazione (produzione)
+  La richiesta di pubblicazione in **produzione** è stata inviata **senza passare dall'ambiente di collaudo** ed è in attesa di autorizzazione da parte del **gestore della piattaforma** o del **referente superiore**.
+
+servizio.autorizzato_produzione_senza_collaudo: |
+  ## Autorizzato — in attesa di configurazione (produzione)
+  La richiesta di pubblicazione diretta in **produzione** è stata autorizzata. Il gestore della piattaforma sta procedendo con la configurazione dell'erogazione sull'API Gateway.
+
+servizio.in_configurazione_produzione_senza_collaudo: |
+  ## Configurazione in corso (produzione)
+  Il gestore della piattaforma sta configurando l'erogazione sull'API Gateway di **produzione**. Non sono richieste azioni da parte tua: identificativo, specifiche e dati di erogazione di produzione non sono più modificabili.
+
+servizio.pubblicato_produzione_senza_collaudo: |
+  ## Servizio pubblicato in produzione ✓
+  Il servizio è **pubblicato in produzione** senza essere passato dall'ambiente di collaudo ed è disponibile nel catalogo per le adesioni. Per modifiche alle specifiche o ai dati di erogazione contatta il gestore della piattaforma.
+
+servizio.archiviato:
+  severity: WARNING
+  testo: |
+    ## Servizio archiviato
+    Questo servizio è stato **archiviato**: non è più pubblicato nel catalogo e non è possibile presentare nuove adesioni. Per renderlo nuovamente disponibile contatta il gestore della piattaforma.
+
+# -----------------------------------------------------------------------------
+# DISCLAIMER PER AMBIENTE (collaudo / produzione), indipendente dal profilo
+#
+# Mostrato nella pagina di configurazione di ciascun ambiente. Mostrato solo per
+# gli stati in cui i dati dell'ambiente sono effettivamente compilabili, cioe'
+# "bozza" (collaudo e produzione, quest'ultima per il percorso senza collaudo) e
+# "pubblicato_collaudo" (compilazione dei dati di produzione).
+# Severity: INFO (default per stringa semplice).
+# -----------------------------------------------------------------------------
+
+__anchor_ambiente_servizio: &disclaimer_ambiente_servizio |
+  Completa i dati di erogazione delle API del servizio per questo ambiente: specifica dell'interfaccia, endpoint di erogazione e profili di sicurezza richiesti ai client. Premi (matita) su ciascuna API per inserire i dati richiesti. Tutti i dati obbligatori devono essere compilati prima di poter inviare la richiesta.
+
+servizio.bozza.collaudo: *disclaimer_ambiente_servizio
+servizio.bozza.produzione: *disclaimer_ambiente_servizio
+servizio.pubblicato_collaudo.collaudo: *disclaimer_ambiente_servizio
+servizio.pubblicato_collaudo.produzione: *disclaimer_ambiente_servizio
