@@ -1,3 +1,17 @@
+2026-09-17  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 358: un utente con ruolo coordinatore riceveva le comunicazioni indirizzate al
+	  proprio ruolo su qualsiasi adesione, ma aprendole dalla dashboard otteneva ADE.404
+	  sia sul dettaglio dell'adesione sia sull'elenco delle comunicazioni. Il filtro di
+	  visibilità applicato alla singola adesione ammetteva infatti il solo gestore, e il
+	  coordinatore non rientra in nessuno degli altri criteri previsti (referente di
+	  adesione, servizio o dominio, richiedente, amministratore dell'organizzazione
+	  aderente). Il coordinatore ha ora visibilità su tutte le adesioni, comprese quelle
+	  archiviate, coerentemente con quanto già avveniva nella lista delle adesioni e nel
+	  dettaglio dei servizi, e con i ruoli di workflow, dove al coordinatore è assegnato
+	  "referente superiore" su qualsiasi adesione.
+
 2026-09-14  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* Rilasciata versione 2.4.5
