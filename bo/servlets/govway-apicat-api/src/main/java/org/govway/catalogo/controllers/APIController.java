@@ -192,7 +192,11 @@ public class APIController implements ApiApi {
 		ServizioSpecification aspec = new ServizioSpecification();
 		aspec.setStatiAderibili(this.configurazione.getServizio().getStatiAdesioneConsentita());
 
-		if(!this.coreAuthorization.isAdmin()) {
+		// Il coordinatore ha visibilita' su tutti i servizi al pari dell'amministratore:
+		// stesso criterio applicato da ServiziController.findOne
+		boolean admin = this.coreAuthorization.isAdmin() || this.coreAuthorization.isCoordinatore();
+
+		if(!admin) {
 			if(this.coreAuthorization.isAnounymous()) {
 				aspec.setUtente(Optional.of(new UtenteEntity()));
 			} else {
