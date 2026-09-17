@@ -50,6 +50,7 @@ import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.TagEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -118,23 +119,25 @@ public class ServizioService extends AbstractService {
 	}
 
 
-	public Optional<ServizioEntity> findByNomeVersioneNonArchiviato(String nome, String versione, String statoArchiviato) {
-		return this.servizioRepo.findOne(getSpecificationByNomeVersioneNonArchiviato(nome, versione, statoArchiviato));
+	/**
+	 * Servizio non archiviato in conflitto con la terna nome/versione/dominio, se esiste.
+	 *
+	 * Il dominio fa parte del criterio di univocita`: lo stesso nome e versione possono essere
+	 * riusati su domini diversi, come gia` avviene per le api (vedi ApiUnivocitaService).
+	 * Con idDominio null il confronto resta globale su nome e versione: non potendo determinare
+	 * il dominio di destinazione non si allarga il vincolo.
+	 */
+	public Optional<ServizioEntity> findConflittoNomeVersioneNonArchiviato(String nome, String versione, UUID idDominio, String statoArchiviato) {
+		Specification<ServizioEntity> spec = getSpecificationByNomeVersioneNonArchiviato(nome, versione, idDominio, statoArchiviato);
+		return this.servizioRepo.findAll(spec, PageRequest.of(0, 1)).getContent().stream().findFirst();
 	}
 
-	public boolean existsByNomeVersioneNonArchiviato(ServizioEntity servizio, String statoArchiviato) {
-		return existsByNomeVersioneNonArchiviato(servizio.getNome(), servizio.getVersione(), statoArchiviato);
-	}
-
-	public boolean existsByNomeVersioneNonArchiviato(String nome, String versione, String statoArchiviato) {
-		return this.servizioRepo.count(getSpecificationByNomeVersioneNonArchiviato(nome, versione, statoArchiviato)) > 0;
-	}
-
-	private Specification<ServizioEntity> getSpecificationByNomeVersioneNonArchiviato(String nome, String versione, String statoArchiviato) {
+	private Specification<ServizioEntity> getSpecificationByNomeVersioneNonArchiviato(String nome, String versione, UUID idDominio, String statoArchiviato) {
 
 		ServizioSpecification spec = new ServizioSpecification();
 		spec.setNome(Optional.of(nome));
 		spec.setVersione(Optional.of(versione));
+		spec.setDominio(Optional.ofNullable(idDominio));
 
 		
 		ServizioSpecification specStatoArchiviato = new ServizioSpecification();

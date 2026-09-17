@@ -23,11 +23,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -139,10 +141,72 @@ public class EServiceBuilder {
 
 		this.addDocumentFilesServizio(servizio.getAllegati(), servizio.getNome()+"_v"+servizio.getVersione() + "/", map);
 
+		Map<String, String> prefissi = getPrefissiComponenti(servizio.getComponenti());
+
 		for(PackageServizioEntity componente: servizio.getComponenti()) {
-			populateEServiceServizio(componente.getServizio(), map, componente.getServizio().getNome() + "_" + componente.getServizio().getVersione(), mostraRichiedente, mostraReferenti, mostraVersione);
+			populateEServiceServizio(componente.getServizio(), map, prefissi.get(componente.getServizio().getIdServizio()), mostraRichiedente, mostraReferenti, mostraVersione);
 		}
 		return this.mapToZip(map);
+	}
+
+	/**
+	 * Prefisso nello zip di ciascun componente del package, indicizzato per id del servizio.
+	 *
+	 * Nome e versione non identificano piu` da soli un servizio, potendo esistere gli stessi su
+	 * domini diversi: due componenti omonimi produrrebbero lo stesso prefisso e si
+	 * sovrascriverebbero le voci nello zip. Il dominio entra nel prefisso dei soli omonimi, cosi`
+	 * il layout dell'export resta invariato quando l'ambiguita` non si presenta; se nemmeno il
+	 * dominio li distingue (componenti senza dominio) si ricade sull'id del servizio.
+	 */
+	private Map<String, String> getPrefissiComponenti(Set<PackageServizioEntity> componenti) {
+		// Lo stesso servizio puo` comparire piu` volte fra i componenti: va contato una sola volta,
+		// altrimenti risulterebbe omonimo di se stesso.
+		Map<String, ServizioEntity> serviziPerId = new LinkedHashMap<>();
+		for(PackageServizioEntity componente: componenti) {
+			serviziPerId.putIfAbsent(componente.getServizio().getIdServizio(), componente.getServizio());
+		}
+
+		Map<String, Long> occorrenzeNomeVersione = serviziPerId.values().stream()
+				.collect(Collectors.groupingBy(EServiceBuilder::getNomeVersione, Collectors.counting()));
+
+		Map<String, String> candidati = new HashMap<>();
+		for(ServizioEntity componente: serviziPerId.values()) {
+			String nomeVersione = getNomeVersione(componente);
+			candidati.put(componente.getIdServizio(), occorrenzeNomeVersione.get(nomeVersione) > 1
+					? nomeVersione + getSegmentoDominio(componente)
+					: nomeVersione);
+		}
+
+		Map<String, Long> occorrenzeCandidati = candidati.values().stream()
+				.collect(Collectors.groupingBy(prefisso -> prefisso, Collectors.counting()));
+
+		Map<String, String> prefissi = new HashMap<>();
+		for(Entry<String, String> candidato: candidati.entrySet()) {
+			String prefisso = candidato.getValue();
+			prefissi.put(candidato.getKey(), occorrenzeCandidati.get(prefisso) > 1
+					? prefisso + "_" + candidato.getKey()
+					: prefisso);
+		}
+
+		return prefissi;
+	}
+
+	private static String getNomeVersione(ServizioEntity servizio) {
+		return servizio.getNome() + "_" + servizio.getVersione();
+	}
+
+	/**
+	 * Segmento di prefisso che identifica il dominio del servizio, ridotto ai caratteri ammessi in
+	 * un path per non introdurre separatori nel nome delle voci dello zip. Vuoto se il servizio
+	 * non ha dominio, cosi` il prefisso non resta con un separatore finale a vuoto.
+	 */
+	private static String getSegmentoDominio(ServizioEntity servizio) {
+		if(servizio.getDominio() == null) {
+			return "";
+		}
+
+		String nome = servizio.getDominio().getNome().replaceAll("[^A-Za-z0-9._-]", "_");
+		return "_" + (nome.length() > 50 ? nome.substring(0, 50) : nome);
 	}
 	
     public byte[] getTryOutOpenAPI(ApiEntity api, ApiConfigEntity entity, boolean isCollaudo) throws IOException {

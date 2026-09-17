@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -71,6 +72,7 @@ import org.govway.catalogo.core.orm.entity.AllegatoServizioEntity;
 import org.govway.catalogo.core.orm.entity.AllegatoServizioEntity.VISIBILITA;
 import org.govway.catalogo.core.orm.entity.CategoriaEntity;
 import org.govway.catalogo.core.orm.entity.DocumentoEntity;
+import org.govway.catalogo.core.orm.entity.DominioEntity;
 import org.govway.catalogo.core.orm.entity.GruppoEntity;
 import org.govway.catalogo.core.orm.entity.MessaggioServizioEntity;
 import org.govway.catalogo.core.orm.entity.NotificaEntity;
@@ -583,8 +585,11 @@ public class ServiziController implements ServiziApi {
 				this.checkReferenti(entity);
 				this.logger.debug("Autorizzazione completata con successo");
 
-				if(this.service.existsByNomeVersioneNonArchiviato(entity, configurazione.getServizio().getWorkflow().getStatoArchiviato())) {
-					throw new ConflictException(ErrorCode.SRV_409_CONFLICT);
+				UUID idDominio = getIdDominio(entity);
+				Optional<ServizioEntity> conflitto = this.service.findConflittoNomeVersioneNonArchiviato(
+						entity.getNome(), entity.getVersione(), idDominio, configurazione.getServizio().getWorkflow().getStatoArchiviato());
+				if(conflitto.isPresent()) {
+					throw toConflittoServizio(entity.getNome(), entity.getVersione(), idDominio, conflitto.get());
 				}
 
 				this.service.save(entity);
@@ -1026,12 +1031,21 @@ public class ServiziController implements ServiziApi {
 				this.logger.debug("Autorizzazione completata con successo");
 
 				if(servizioUpdate.getIdentificativo()!= null) {
-					boolean nomeCambiato = !entity.getNome().equalsIgnoreCase(servizioUpdate.getIdentificativo().getNome());
-					boolean versioneCambiata = !entity.getVersione().equals(servizioUpdate.getIdentificativo().getVersione());
+					String nome = servizioUpdate.getIdentificativo().getNome();
+					String versione = servizioUpdate.getIdentificativo().getVersione();
+					// Il dominio fa parte del criterio di univocita`: anche il solo spostamento del
+					// servizio su un altro dominio puo` creare un omonimo e va quindi verificato.
+					UUID idDominioRichiesto = servizioUpdate.getIdentificativo().getIdDominio();
 
-					if(nomeCambiato || versioneCambiata) {
-						if(this.service.existsByNomeVersioneNonArchiviato(servizioUpdate.getIdentificativo().getNome(), servizioUpdate.getIdentificativo().getVersione(), configurazione.getServizio().getWorkflow().getStatoArchiviato())) {
-							throw new ConflictException(ErrorCode.SRV_409_CONFLICT);
+					boolean nomeCambiato = !entity.getNome().equalsIgnoreCase(nome);
+					boolean versioneCambiata = !entity.getVersione().equals(versione);
+					boolean dominioCambiato = !Objects.equals(getIdDominio(entity), idDominioRichiesto);
+
+					if(nomeCambiato || versioneCambiata || dominioCambiato) {
+						Optional<ServizioEntity> conflitto = this.service.findConflittoNomeVersioneNonArchiviato(
+								nome, versione, idDominioRichiesto, configurazione.getServizio().getWorkflow().getStatoArchiviato());
+						if(conflitto.isPresent()) {
+							throw toConflittoServizio(nome, versione, idDominioRichiesto, conflitto.get());
 						}
 
 					}
@@ -1078,6 +1092,33 @@ public class ServiziController implements ServiziApi {
 		return checkOnly != null && checkOnly;
 	}
 
+	private static UUID getIdDominio(ServizioEntity entity) {
+		return entity.getDominio() != null ? UUID.fromString(entity.getDominio().getIdDominio()) : null;
+	}
+
+	/**
+	 * Conflitto sul criterio di univocita` del servizio, che comprende il dominio: il messaggio
+	 * lo riporta, perche` lo stesso nome e versione restano disponibili sugli altri domini.
+	 *
+	 * Quando il dominio di destinazione non e` determinato (richiesta senza dominio) il confronto
+	 * e` rimasto globale su nome e versione, e si usa il messaggio generico: indicare il dominio
+	 * del servizio in conflitto sarebbe fuorviante, non essendo quello del servizio in modifica.
+	 */
+	private ConflictException toConflittoServizio(String nome, String versione, UUID idDominio, ServizioEntity conflitto) {
+		DominioEntity dominio = idDominio != null ? conflitto.getDominio() : null;
+
+		if(dominio != null) {
+			return new ConflictException(ErrorCode.SRV_409_CONFLICT, Map.of(
+					"nome", nome,
+					"versione", versione,
+					"dominio", dominio.getNome()));
+		}
+
+		return new ConflictException(ErrorCode.SRV_409, Map.of(
+				"nome", nome,
+				"versione", versione));
+	}
+
 	@Override
 	public ResponseEntity<Servizio> updateStatoServizio(UUID idServizio, StatoUpdate statoServizioUpdate, Boolean checkOnly) {
 		try {
@@ -1089,8 +1130,11 @@ public class ServiziController implements ServiziApi {
 				boolean wasArchiviato = entity.getStato().equals(configurazione.getServizio().getWorkflow().getStatoArchiviato());
 				boolean isArchiviato = statoServizioUpdate.getStato().equals(configurazione.getServizio().getWorkflow().getStatoArchiviato());
 				if(wasArchiviato && !isArchiviato) {
-					if(this.service.existsByNomeVersioneNonArchiviato(entity, configurazione.getServizio().getWorkflow().getStatoArchiviato())) {
-						throw new ConflictException(ErrorCode.SRV_409_CONFLICT);
+					UUID idDominio = getIdDominio(entity);
+					Optional<ServizioEntity> conflitto = this.service.findConflittoNomeVersioneNonArchiviato(
+							entity.getNome(), entity.getVersione(), idDominio, configurazione.getServizio().getWorkflow().getStatoArchiviato());
+					if(conflitto.isPresent()) {
+						throw toConflittoServizio(entity.getNome(), entity.getVersione(), idDominio, conflitto.get());
 					}
 				}
 

@@ -220,6 +220,8 @@ public class ServiziTest {
 	private static final String UTENTE_NON_GESTORE = "utente_non_gestore";
 
 	private static final String STATO_ARCHIVIATO = "archiviato";
+	private static final String STATO_INIZIALE = "bozza";
+	private static final String NOME_DOMINIO_SECONDARIO = "dominio_secondario";
 
 	private static final String NOME_SERVIZIO_1 = "primo servizio - versione 3";
 	private static final String NOME_SERVIZIO_2 = "secondo servizio - versione 11";
@@ -1030,6 +1032,150 @@ public class ServiziTest {
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals(servizio.getNome().toUpperCase(), response.getBody().getNome());
+	}
+
+	/**
+	 * Issue 325: il criterio di univocita` del servizio comprende il dominio, quindi lo stesso
+	 * nome e versione possono essere riusati su un dominio diverso.
+	 */
+	@Test
+	public void testCreateServizioStessoNomeVersioneDominioDiverso() {
+		Servizio servizio = this.getServizio();
+		UUID idDominioSecondario = this.creaDominio(NOME_DOMINIO_SECONDARIO);
+
+		Servizio omonimo = this.creaServizio(servizio.getNome(), servizio.getVersione(), idDominioSecondario);
+
+		assertNotNull(omonimo);
+		assertEquals(servizio.getNome(), omonimo.getNome());
+		assertEquals(servizio.getVersione(), omonimo.getVersione());
+		assertEquals(idDominioSecondario, omonimo.getDominio().getIdDominio());
+	}
+
+	/**
+	 * Issue 325: sullo stesso dominio nome e versione restano in conflitto.
+	 */
+	@Test
+	public void testCreateServizioStessoNomeVersioneStessoDominio() {
+		Servizio servizio = this.getServizio();
+
+		assertThrows(ConflictException.class, () -> {
+			this.creaServizio(servizio.getNome(), servizio.getVersione(), this.idDominio);
+		});
+	}
+
+	/**
+	 * Issue 325: il solo spostamento su un altro dominio, a nome e versione invariati, puo`
+	 * creare un omonimo e deve essere intercettato anche se l'identificativo non cambia.
+	 */
+	@Test
+	public void testUpdateServizioSpostamentoSuDominioConOmonimo() {
+		Servizio primo = this.getServizio();
+		UUID idDominioSecondario = this.creaDominio(NOME_DOMINIO_SECONDARIO);
+		Servizio secondo = this.creaServizio(primo.getNome(), primo.getVersione(), idDominioSecondario);
+
+		ServizioUpdate servizioUpdate = new ServizioUpdate();
+		servizioUpdate.setIdentificativo(this.identificativoServizioUpdate(secondo, this.idDominio));
+
+		assertThrows(ConflictException.class, () -> {
+			serviziController.updateServizio(secondo.getIdServizio(), null, servizioUpdate);
+		});
+	}
+
+	/**
+	 * Issue 325: lo spostamento su un dominio dove non esistono omonimi resta consentito.
+	 */
+	@Test
+	public void testUpdateServizioSpostamentoSuDominioLibero() {
+		Servizio servizio = this.getServizio();
+		UUID idDominioSecondario = this.creaDominio(NOME_DOMINIO_SECONDARIO);
+
+		ServizioUpdate servizioUpdate = new ServizioUpdate();
+		servizioUpdate.setIdentificativo(this.identificativoServizioUpdate(servizio, idDominioSecondario));
+
+		ResponseEntity<Servizio> response = serviziController.updateServizio(servizio.getIdServizio(), null, servizioUpdate);
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(idDominioSecondario, response.getBody().getDominio().getIdDominio());
+	}
+
+	/**
+	 * Issue 325: la dis-archiviazione torna possibile quando l'omonimo attivo sta su un altro
+	 * dominio, mentre resta bloccata se sta sullo stesso.
+	 */
+	@Test
+	public void testUpdateStatoServizioDisarchiviazioneOmonimoAltroDominio() {
+		Servizio servizio = this.getServizio();
+		this.archivia(servizio.getIdServizio());
+
+		UUID idDominioSecondario = this.creaDominio(NOME_DOMINIO_SECONDARIO);
+		this.creaServizio(servizio.getNome(), servizio.getVersione(), idDominioSecondario);
+
+		StatoUpdate statoUpdate = new StatoUpdate();
+		statoUpdate.setStato(STATO_INIZIALE);
+		ResponseEntity<Servizio> response = serviziController.updateStatoServizio(servizio.getIdServizio(), statoUpdate, null);
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(STATO_INIZIALE, response.getBody().getStato());
+	}
+
+	@Test
+	public void testUpdateStatoServizioDisarchiviazioneOmonimoStessoDominio() {
+		Servizio servizio = this.getServizio();
+		this.archivia(servizio.getIdServizio());
+
+		this.creaServizio(servizio.getNome(), servizio.getVersione(), this.idDominio);
+
+		StatoUpdate statoUpdate = new StatoUpdate();
+		statoUpdate.setStato(STATO_INIZIALE);
+
+		assertThrows(ConflictException.class, () -> {
+			serviziController.updateStatoServizio(servizio.getIdServizio(), statoUpdate, null);
+		});
+	}
+
+	/**
+	 * Dominio aggiuntivo sullo stesso soggetto referente, per verificare l'univocita` per dominio.
+	 */
+	private UUID creaDominio(String nome) {
+		DominioCreate dominio = CommonUtils.getDominioCreate();
+		dominio.setNome(nome);
+		dominio.setSkipCollaudo(true);
+		dominio.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
+
+		ResponseEntity<Dominio> createdDominio = dominiController.createDominio(dominio);
+		assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
+
+		return createdDominio.getBody().getIdDominio();
+	}
+
+	private Servizio creaServizio(String nome, String versione, UUID idDominio) {
+		ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+		servizioCreate.setNome(nome);
+		servizioCreate.setVersione(versione);
+		servizioCreate.setSkipCollaudo(true);
+		servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
+		servizioCreate.setIdDominio(idDominio);
+
+		ReferenteCreate referente = new ReferenteCreate();
+		referente.setTipo(TipoReferenteEnum.REFERENTE);
+		referente.setIdUtente(ID_UTENTE_GESTORE);
+		servizioCreate.setReferenti(Arrays.asList(referente));
+
+		return serviziController.createServizio(servizioCreate).getBody();
+	}
+
+	private IdentificativoServizioUpdate identificativoServizioUpdate(Servizio servizio, UUID idDominio) {
+		IdentificativoServizioUpdate identificativo = new IdentificativoServizioUpdate();
+		identificativo.setNome(servizio.getNome());
+		identificativo.setVersione(servizio.getVersione());
+		identificativo.setIdDominio(idDominio);
+		identificativo.setIdSoggettoErogatore(idSoggetto);
+		identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
+		identificativo.setAdesioneDisabilitata(false);
+		identificativo.setMultiAdesione(true);
+		identificativo.setTipo(TipoServizio.API);
+		identificativo.setPackage(false);
+		return identificativo;
 	}
 
     @Test

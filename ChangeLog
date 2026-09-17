@@ -1,6 +1,20 @@
 2026-09-16  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
+	Issue 325: il criterio di univocità del servizio comprende il dominio: nome e
+	  versione possono essere riusati su domini diversi, mentre sullo stesso dominio
+	  il conflitto resta. Il vincolo è verificato in creazione, in modifica del
+	  servizio e alla dis-archiviazione; in modifica scatta anche quando cambia il
+	  solo dominio, perché lo spostamento su un altro dominio può creare un omonimo
+	  senza toccare nome e versione. Il criterio si allinea a quello già in vigore
+	  per le API, che dal 2.4.x comprende il soggetto referente del dominio. Il
+	  messaggio di SRV.409.CONFLICT indica ora il servizio e il dominio in conflitto;
+	  quando la richiesta di modifica non indica un dominio il confronto resta
+	  globale su nome e versione, come prima. Adeguato di conseguenza l'export di un
+	  package: due componenti omonimi su domini diversi si sovrascrivevano le voci
+	  nello zip, il prefisso dei soli componenti in ambiguità riporta ora anche il
+	  dominio (o l'id del servizio se il dominio non basta a distinguerli), mentre
+	  resta nome_versione quando l'ambiguità non si presenta.
 	Issue 346: i servizi in stato archiviato sono ora esclusi di default da
 	  `GET /servizi`, `GET /servizi_gruppi` e `GET /servizi-export`, dove finora erano
 	  visibili al gestore. Il nuovo parametro `archiviati` (`escludi`, valore di

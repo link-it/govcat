@@ -2,6 +2,16 @@ package testsuite;
 
 import org.govway.catalogo.core.business.utils.ConfigurazioneEService;
 import org.govway.catalogo.core.business.utils.EServiceBuilder;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import org.govway.catalogo.core.orm.entity.AllegatoServizioEntity;
+import org.govway.catalogo.core.orm.entity.PackageServizioEntity;
 import org.govway.catalogo.core.orm.entity.AllegatoApiEntity;
 import org.govway.catalogo.core.orm.entity.AllegatoApiEntity.TIPOLOGIA;
 import org.govway.catalogo.core.orm.entity.AllegatoApiEntity.VISIBILITA;
@@ -251,5 +261,137 @@ class EServiceBuilderTest {
     }
 
 
+
+
+    /**
+     * Issue 325: due componenti con lo stesso nome e versione, resi possibili dal fatto che il
+     * criterio di univocita` del servizio comprende il dominio, non devono sovrascriversi le voci
+     * nello zip del package.
+     */
+    @Test
+    void testGetEServicePackageComponentiOmonimiSuDominiDiversi() throws Exception {
+        EServiceBuilder builder = creaBuilder();
+
+        // Stesso nome di file sui due componenti: senza un prefisso distinto una delle due voci
+        // andrebbe persa.
+        ServizioEntity _package = creaPackage(
+                creaComponentePackage("Componente", "1", "dominio-a", "api-a", "allegato.pdf", "contenuto-a"),
+                creaComponentePackage("Componente", "1", "dominio-b", "api-b", "allegato.pdf", "contenuto-b"));
+
+        Map<String, String> voci = vociZip(builder.getEService(_package, false, false, false));
+
+        assertEquals(2, voci.size(), voci.toString());
+        assertEquals("contenuto-a", voci.get("Componente_1_dominio-aallegati/allegato.pdf"), voci.toString());
+        assertEquals("contenuto-b", voci.get("Componente_1_dominio-ballegati/allegato.pdf"), voci.toString());
+    }
+
+    /**
+     * Issue 325: senza omonimi il prefisso resta nome_versione, cosi` il layout dell'export non
+     * cambia per i package gia` esistenti.
+     */
+    @Test
+    void testGetEServicePackageComponentiDistintiMantengonoIlPrefisso() throws Exception {
+        EServiceBuilder builder = creaBuilder();
+
+        ServizioEntity _package = creaPackage(
+                creaComponentePackage("Primo", "1", "dominio-a", "api-a", "allegato.pdf", "contenuto-a"),
+                creaComponentePackage("Secondo", "2", "dominio-b", "api-b", "allegato.pdf", "contenuto-b"));
+
+        Map<String, String> voci = vociZip(builder.getEService(_package, false, false, false));
+
+        assertEquals(2, voci.size(), voci.toString());
+        assertEquals("contenuto-a", voci.get("Primo_1allegati/allegato.pdf"), voci.toString());
+        assertEquals("contenuto-b", voci.get("Secondo_2allegati/allegato.pdf"), voci.toString());
+    }
+
+    /**
+     * Issue 325: componenti omonimi e senza dominio restano distinguibili tramite l'id servizio.
+     */
+    @Test
+    void testGetEServicePackageComponentiOmonimiSenzaDominio() throws Exception {
+        EServiceBuilder builder = creaBuilder();
+
+        ServizioEntity primo = creaComponentePackage("Componente", "1", null, "api-a", "allegato.pdf", "contenuto-a");
+        ServizioEntity secondo = creaComponentePackage("Componente", "1", null, "api-b", "allegato.pdf", "contenuto-b");
+
+        Map<String, String> voci = vociZip(builder.getEService(creaPackage(primo, secondo), false, false, false));
+
+        assertEquals(2, voci.size(), voci.toString());
+        assertEquals("contenuto-a", voci.get("Componente_1_" + primo.getIdServizio() + "allegati/allegato.pdf"), voci.toString());
+        assertEquals("contenuto-b", voci.get("Componente_1_" + secondo.getIdServizio() + "allegati/allegato.pdf"), voci.toString());
+    }
+
+    private EServiceBuilder creaBuilder() throws Exception {
+        EServiceBuilder builder = new EServiceBuilder();
+
+        Field field = EServiceBuilder.class.getDeclaredField("configurazione");
+        field.setAccessible(true);
+        field.set(builder, new ConfigurazioneEService());
+
+        return builder;
+    }
+
+    private ServizioEntity creaComponentePackage(String nome, String versione, String nomeDominio, String nomeApi, String nomeAllegato, String contenuto) {
+        ServizioEntity servizio = new ServizioEntity();
+        servizio.setIdServizio(UUID.randomUUID().toString());
+        servizio.setNome(nome);
+        servizio.setVersione(versione);
+
+        if(nomeDominio != null) {
+            DominioEntity dominio = new DominioEntity();
+            dominio.setNome(nomeDominio);
+            servizio.setDominio(dominio);
+        }
+
+        DocumentoEntity documento = new DocumentoEntity();
+        documento.setFilename(nomeAllegato);
+        documento.setRawData(contenuto.getBytes(StandardCharsets.UTF_8));
+
+        AllegatoServizioEntity allegato = new AllegatoServizioEntity();
+        allegato.setServizio(servizio);
+        allegato.setTipologia(AllegatoServizioEntity.TIPOLOGIA.GENERICO);
+        allegato.setVisibilita(AllegatoServizioEntity.VISIBILITA.PUBBLICO);
+        allegato.setDocumento(documento);
+        servizio.getAllegati().add(allegato);
+
+        ApiEntity api = new ApiEntity();
+        api.setNome(nomeApi);
+        api.setVersione(1);
+        api.setRuolo(ApiEntity.RUOLO.EROGATO_SOGGETTO_ADERENTE);
+        api.setCollaudo(new ApiConfigEntity());
+        servizio.getApi().add(api);
+
+        return servizio;
+    }
+
+    private ServizioEntity creaPackage(ServizioEntity... componenti) {
+        ServizioEntity _package = new ServizioEntity();
+        _package.setIdServizio(UUID.randomUUID().toString());
+        _package.setNome("Package");
+        _package.setVersione("1");
+        _package.set_package(true);
+
+        for(ServizioEntity componente: componenti) {
+            PackageServizioEntity pse = new PackageServizioEntity();
+            pse.set_package(_package);
+            pse.setServizio(componente);
+            _package.getComponenti().add(pse);
+        }
+
+        return _package;
+    }
+
+    private Map<String, String> vociZip(byte[] zip) throws IOException {
+        Map<String, String> voci = new HashMap<>();
+
+        try(ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zip))) {
+            ZipEntry entry;
+            while((entry = zis.getNextEntry()) != null) {
+                voci.put(entry.getName(), new String(zis.readAllBytes(), StandardCharsets.UTF_8));
+            }
+        }
+
+        return voci;
+    }
 
 }

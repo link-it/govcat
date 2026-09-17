@@ -1805,7 +1805,7 @@
 					"409": {
 						"DEFAULT": "Servizio [{{nome}} v{{versione}}] esiste gia",
 						"CATEGORY": "Categoria [{{categoria}}] gia associato al servizio [{{nome}}/{{versione}}]",
-						"CONFLICT": "Servizio con stesso nome e versione gia esistente",
+						"CONFLICT": "Servizio [{{nome}} v{{versione}}] gia esistente nel dominio [{{dominio}}]",
 						"GROUP": "Gruppo [{{gruppo}}] gia associato al servizio [{{nome}}/{{versione}}]",
 						"REFERENT": "L'utente [{{nomeUtente}} {{cognomeUtente}}] è già {{tipoReferente}} del servizio [{{nomeServizio}} v{{versioneServizio}}]",
 						"STATE": ""
