@@ -61,16 +61,19 @@ import org.govway.catalogo.servlets.model.ProprietaCustom;
 import org.govway.catalogo.servlets.model.ProtocolloEnum;
 import org.govway.catalogo.servlets.model.ReferenteCreate;
 import org.govway.catalogo.servlets.model.RuoloAPIEnum;
+import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.Servizio;
 import org.govway.catalogo.servlets.model.ServizioCreate;
 import org.govway.catalogo.servlets.model.ServizioUpdate;
 import org.govway.catalogo.servlets.model.Soggetto;
 import org.govway.catalogo.servlets.model.SoggettoCreate;
+import org.govway.catalogo.servlets.model.StatoUtenteEnum;
 import org.govway.catalogo.servlets.model.TipoReferenteEnum;
 import org.govway.catalogo.servlets.model.TipoServizio;
 import org.govway.catalogo.servlets.model.TipologiaAllegatoEnum;
 import org.govway.catalogo.servlets.model.UrlInvocazioneAPI;
 import org.govway.catalogo.servlets.model.Utente;
+import org.govway.catalogo.servlets.model.UtenteCreate;
 import org.govway.catalogo.servlets.model.VisibilitaAllegatoEnum;
 import org.govway.catalogo.servlets.model.VisibilitaServizioEnum;
 import org.junit.jupiter.api.AfterEach;
@@ -328,6 +331,36 @@ public class APITest {
     	ServizioUpdate servizioUpdate = new ServizioUpdate();
     	servizioUpdate.setIdentificativo(identificativo);
     	return servizioUpdate;
+    }
+
+    @Test
+    void testGetAPICoordinatoreVedeQualsiasiApi() {
+    	// RIPRODUZIONE: il coordinatore ha visibilita` su tutti i servizi al pari del gestore.
+    	// Deve quindi poter aprire anche il dettaglio delle API di quel servizio, altrimenti
+    	// la scheda del servizio e` accessibile ma quella delle sue API risponde 404.
+
+    	Dominio dominio = this.getDominio();
+    	Servizio servizio = creaServizio("servizio_coordinatore", dominio.getIdDominio(), false, null);
+    	UUID idApi = creaApi("API_COORD", 1, servizio).getBody().getIdApi();
+
+    	// Utente con ruolo COORDINATORE, senza alcun legame con il servizio o il dominio.
+    	String principalCoordinatore = "utente_coordinatore_api";
+    	UtenteCreate coordinatore = CommonUtils.getUtenteCreate();
+    	coordinatore.setPrincipal(principalCoordinatore);
+    	coordinatore.setRuolo(RuoloUtenteEnum.COORDINATORE);
+    	CommonUtils.setOrganizzazione(coordinatore, idOrganizzazione);
+    	coordinatore.setStato(StatoUtenteEnum.ABILITATO);
+    	utentiController.createUtente(coordinatore);
+
+    	CommonUtils.getSessionUtente(principalCoordinatore, securityContext, authentication, utenteService);
+
+    	ResponseEntity<Servizio> servizioResponse = serviziController.getServizio(servizio.getIdServizio());
+    	assertEquals(HttpStatus.OK, servizioResponse.getStatusCode());
+
+    	ResponseEntity<API> apiResponse = apiController.getAPI(idApi);
+    	assertEquals(HttpStatus.OK, apiResponse.getStatusCode());
+    	assertNotNull(apiResponse.getBody());
+    	assertEquals(idApi, apiResponse.getBody().getIdApi());
     }
 
     @Test
