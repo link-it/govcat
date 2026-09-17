@@ -1,3 +1,13 @@
+2026-09-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 352 (Parte 2): integrati i disclaimer del servizio nel wizard
+	  (GET /servizi/{id}/disclaimers). Caricamento con language_code e ricarica al
+	  cambio lingua, split per contesto (banner ambientale collaudo/produzione +
+	  banner generale), rendering Markdown con severity; lista vuota gestita come
+	  stato normale. I disclaimer con profilo/nome_gruppo sono esclusi dai banner
+	  (rendering accanto a riga API/gruppo custom properties rimandato a follow-up).
+
 2026-09-17  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

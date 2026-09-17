@@ -141,6 +141,15 @@
         </header>
         <div class="env-body-pad">
 
+          <!-- Issue 352: disclaimer generali del servizio (contesto 'generale' o
+               assente), in cima al contenuto della fase. Lista vuota = niente. -->
+          @for (d of _disclaimersGenerali; track $index) {
+            <div class="lnk-banner mb-3" [ngClass]="_disclaimerVariant(d.severity)" role="alert">
+              <div class="icon"><i class="bi" [ngClass]="_disclaimerIcon(d.severity)"></i></div>
+              <div class="body"><markdown [data]="d.disclaimer"></markdown></div>
+            </div>
+          }
+
           <!-- Fase: Informazioni Generali -->
           @if (activeFase?.code === 'info_generali') {
 
@@ -598,21 +607,23 @@
           <!-- Fasi: Collaudo / Produzione (timeline sotto-step) -->
           @if (activeFase?.code === 'collaudo' || activeFase?.code === 'produzione') {
 
-            <!-- Disclaimer di fase (banner): mostrato quando la fase e`
-                 attiva e lo stato e` ancora "in compilazione" (azione
-                 richiesta). Slot `_faseDisclaimers` per eventuali disclaimers
-                 lato backend + hint statico di configurazione. -->
-            @if (stFase === 'active' && isCompilazioneStep()) {
-              @for (d of _faseDisclaimers; track $index) {
-                <div class="lnk-banner mb-3" [ngClass]="d.variant" role="alert">
-                  <div class="icon"><i class="bi" [ngClass]="d.icon"></i></div>
-                  <div class="body"><span>{{ d.text }}</span></div>
+            <!-- Issue 352: disclaimer ambientali del servizio (contesto della
+                 fase), resi in Markdown con severity. Lista vuota = nessun banner
+                 (stato normale). Mostrati quando la fase e` attiva; l'hint statico
+                 di configurazione resta legato al sub-step "in compilazione". -->
+            @if (stFase === 'active') {
+              @for (d of _disclaimersForContesto(activeFase?.code); track $index) {
+                <div class="lnk-banner mb-3" [ngClass]="_disclaimerVariant(d.severity)" role="alert">
+                  <div class="icon"><i class="bi" [ngClass]="_disclaimerIcon(d.severity)"></i></div>
+                  <div class="body"><markdown [data]="d.disclaimer"></markdown></div>
                 </div>
               }
-              <div class="lnk-banner is-warn mb-4" role="alert">
-                <div class="icon"><i class="bi bi-info-circle"></i></div>
-                <div class="body"><span>{{ 'APP.SERVICES.WIZARD.PhaseHint' | translate }}</span></div>
-              </div>
+              @if (isCompilazioneStep()) {
+                <div class="lnk-banner is-warn mb-4" role="alert">
+                  <div class="icon"><i class="bi bi-info-circle"></i></div>
+                  <div class="body"><span>{{ 'APP.SERVICES.WIZARD.PhaseHint' | translate }}</span></div>
+                </div>
+              }
             }
 
             <app-wizard-substepper

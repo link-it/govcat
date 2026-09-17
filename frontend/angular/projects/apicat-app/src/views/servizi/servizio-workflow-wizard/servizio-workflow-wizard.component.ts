@@ -23,6 +23,22 @@ import { TranslateService } from '@ngx-translate/core';
 import { BsModalService } from 'ngx-bootstrap/modal';
 
 import { ConfigService, MenuAction, Tools, COMPONENTS_IMPORTS } from '@linkit/components';
+import { MarkdownModule } from 'ngx-markdown';
+
+/**
+ * Issue 352: disclaimer del servizio (GET /servizi/{id}/disclaimers). Stessa forma
+ * di AdesioneDisclaimer; il campo `links` non e` prodotto dal BE e viene ignorato.
+ * La lista puo` essere vuota: e` uno stato normale (nessun fallback lato servizio).
+ */
+export type ServizioDisclaimerSeverity = 'INFO' | 'WARNING' | 'ERROR';
+export type ServizioDisclaimerContesto = 'generale' | 'collaudo' | 'produzione';
+export interface ServizioDisclaimer {
+    disclaimer: string;
+    contesto?: ServizioDisclaimerContesto;
+    severity?: ServizioDisclaimerSeverity;
+    profilo?: string;
+    nome_gruppo?: string;
+}
 import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
 import { AllegatiDialogComponent } from '@app/components/allegati-dialog/allegati-dialog.component';
 import { ServizioAllegatoAddFormComponent } from './servizio-allegato-add-form/servizio-allegato-add-form.component';
@@ -89,6 +105,7 @@ declare const saveAs: any;
         LnkButtonComponent,
         ServizioApiDetailsComponent,
         ServizioApiConfigurationComponent,
+        MarkdownModule,
         MonitorDropdwnComponent,
         HttpImgSrcPipe
     ]
@@ -186,13 +203,14 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     _apiListLoaded: boolean = false;
 
     /**
-     * Disclaimers di aiuto mostrati nel sub-step attivo di Collaudo/Produzione
-     * (slot riservato, come nel wizard adesioni). Attualmente non esiste una
-     * fonte lato servizio: l'array resta vuoto ed è pronto a essere popolato
-     * quando il backend fornirà i disclaimers del servizio.
-     * `variant`: '' (info) | 'is-warn' | 'is-err'; `icon`: classe bootstrap-icons.
+     * Issue 352: disclaimer del servizio caricati da GET /servizi/{id}/disclaimers.
+     * Mostrati come banner ambientale nel sub-step attivo di Collaudo/Produzione
+     * (contesto) e come banner generale. La lista puo` essere vuota (stato
+     * normale). I disclaimer con `profilo`/`nome_gruppo` sono esclusi dal banner
+     * ambientale (destinati al rendering accanto alla riga API / al gruppo di
+     * custom properties).
      */
-    _faseDisclaimers: { text: string; variant: string; icon: string }[] = [];
+    _disclaimers: ServizioDisclaimer[] = [];
 
     breadcrumbs: any[] = [
         { label: 'APP.TITLE.Services', url: '/servizi', type: 'link', iconBs: 'grid-3x3-gap' },
@@ -214,6 +232,8 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     }
 
     ngOnInit() {
+        // Issue 352: ricarica i disclaimer al cambio lingua (testi it/en).
+        this.translate.onLangChange.subscribe(() => this._loadServizioDisclaimers());
         this.route.queryParams.subscribe((qp) => {
             this._requestedFase = qp['fase'] || null;
         });
@@ -241,6 +261,62 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         this.stepWizardProduzione = _pick(cfg.step_wizard_produzione, STEP_WIZARD_PRODUZIONE_SERVIZIO);
     }
 
+    // ─── Issue 352: disclaimer del servizio ──────────────────────────────────
+
+    /** Carica i disclaimer del servizio (GET /servizi/{id}/disclaimers).
+     *  Errore o lista vuota -> [] (assenza non bloccante, stato normale). */
+    private _loadServizioDisclaimers(): void {
+        if (!this.id) { return; }
+        const languageCode = this.translate.currentLang || this.translate.getDefaultLang() || 'it';
+        this.apiService.getDetails('servizi', this.id, 'disclaimers', { params: { language_code: languageCode } }).subscribe({
+            next: (response: any) => { this._disclaimers = this._normalizeDisclaimers(response); },
+            error: () => { this._disclaimers = []; }
+        });
+    }
+
+    private _normalizeDisclaimers(response: any): ServizioDisclaimer[] {
+        if (!Array.isArray(response)) { return []; }
+        return response
+            .filter((d: any) => d && typeof d.disclaimer === 'string' && d.disclaimer.length > 0)
+            .map((d: any) => ({
+                disclaimer: d.disclaimer,
+                contesto: d.contesto,
+                severity: d.severity,
+                profilo: d.profilo,
+                nome_gruppo: d.nome_gruppo
+            }));
+    }
+
+    /** Disclaimer ambientali di una fase (contesto = collaudo | produzione),
+     *  esclusi quelli con `profilo`/`nome_gruppo` (resi altrove). */
+    _disclaimersForContesto(code: string | null | undefined): ServizioDisclaimer[] {
+        if (code !== 'collaudo' && code !== 'produzione') { return []; }
+        return (this._disclaimers || []).filter(d => d.contesto === code && !d.profilo && !d.nome_gruppo);
+    }
+
+    /** Disclaimer generali (contesto assente o 'generale'), esclusi profilo/gruppo. */
+    get _disclaimersGenerali(): ServizioDisclaimer[] {
+        return (this._disclaimers || []).filter(d => (d.contesto || 'generale') === 'generale' && !d.profilo && !d.nome_gruppo);
+    }
+
+    /** Variante `.lnk-banner` in base alla severity. */
+    _disclaimerVariant(severity?: ServizioDisclaimerSeverity): string {
+        switch (severity) {
+            case 'ERROR': return 'is-err';
+            case 'WARNING': return 'is-warn';
+            default: return '';
+        }
+    }
+
+    /** Icona bootstrap-icons in base alla severity. */
+    _disclaimerIcon(severity?: ServizioDisclaimerSeverity): string {
+        switch (severity) {
+            case 'ERROR': return 'bi-x-circle';
+            case 'WARNING': return 'bi-exclamation-triangle';
+            default: return 'bi-info-circle';
+        }
+    }
+
     private _loadService() {
         if (!this.id) { return; }
         this._spin = true;
@@ -259,6 +335,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
                         this.loadAllegati();
                         this.loadGruppi();
                         this.loadServizioApi();
+                        this._loadServizioDisclaimers();
                         this._spin = false;
                     },
                     error: (error: any) => { Tools.OnError(error); this._spin = false; }
