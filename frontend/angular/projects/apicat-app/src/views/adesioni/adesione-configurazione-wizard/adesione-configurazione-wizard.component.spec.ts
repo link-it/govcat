@@ -865,10 +865,10 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
 
   describe('stato terminale sezione produzione (Issue 317 follow-up)', () => {
     const PRODUZIONE_STEPS = [
-      { code: 'in_compilazione',   descrizione: 'In Compilazione',   stati_adesione: ['pubblicato_collaudo'] },
-      { code: 'in_approvazione',   descrizione: 'In Approvazione',   stati_adesione: ['richiesto_produzione', 'richiesto_produzione_senza_collaudo'] },
-      { code: 'in_configurazione', descrizione: 'In Configurazione', stati_adesione: ['autorizzato_produzione', 'in_configurazione_produzione'] },
-      { code: 'configurato',       descrizione: 'Configurato',       stati_adesione: ['pubblicato_produzione', 'pubblicato_produzione_senza_collaudo'] }
+      { code: 'in_compilazione',   descrizione: 'In Compilazione',   stati: ['pubblicato_collaudo'] },
+      { code: 'in_approvazione',   descrizione: 'In Approvazione',   stati: ['richiesto_produzione', 'richiesto_produzione_senza_collaudo'] },
+      { code: 'in_configurazione', descrizione: 'In Configurazione', stati: ['autorizzato_produzione', 'in_configurazione_produzione'] },
+      { code: 'configurato',       descrizione: 'Configurato',       stati: ['pubblicato_produzione', 'pubblicato_produzione_senza_collaudo'] }
     ];
 
     beforeEach(() => {

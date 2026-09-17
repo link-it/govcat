@@ -189,9 +189,9 @@ export class WizardSubstepperComponent implements OnChanges {
         if (!this.steps || this.steps.length === 0) { return []; }
 
         // Indice del sub-step reale: contiene `currentState` nel suo
-        // array `stati_adesione`.
+        // array `stati`.
         const realIndex = this.currentState
-            ? this.steps.findIndex(s => s.stati_adesione?.includes(this.currentState!))
+            ? this.steps.findIndex(s => s.stati?.includes(this.currentState!))
             : -1;
 
         // Rilevamento "oltre-fase": stato corrente posizionato nel
@@ -204,7 +204,7 @@ export class WizardSubstepperComponent implements OnChanges {
             if (currentIdx !== -1) {
                 let maxStepStateIdx = -1;
                 for (const step of this.steps) {
-                    for (const st of step.stati_adesione || []) {
+                    for (const st of step.stati || []) {
                         const idx = this.workflowStati.indexOf(st);
                         if (idx > maxStepStateIdx) { maxStepStateIdx = idx; }
                     }
@@ -216,7 +216,7 @@ export class WizardSubstepperComponent implements OnChanges {
         }
 
         // Stato terminale: sull'ultimo step della bar, il currentState
-        // coincide con l'ULTIMO `stati_adesione` dello step (es.
+        // coincide con l'ULTIMO `stati` dello step (es.
         // `pubblicato_collaudo` per la sezione Collaudo, `pubblicato_produzione`
         // per Produzione). In questo caso lo step e` raggiunto e
         // concluso — lo trattiamo come `completed`, non come `active`,
@@ -224,7 +224,7 @@ export class WizardSubstepperComponent implements OnChanges {
         // promuove a `final`.
         const lastIndex = this.steps.length - 1;
         const lastStep = this.steps[lastIndex];
-        const lastStatesOfLastStep = lastStep?.stati_adesione || [];
+        const lastStatesOfLastStep = lastStep?.stati || [];
         // Terminale raggiunto se lo stato corrente e` uno QUALSIASI degli stati
         // dell'ultimo step (es. `pubblicato_produzione` o la variante
         // `..._senza_collaudo`), non solo l'ultimo elemento dell'array.

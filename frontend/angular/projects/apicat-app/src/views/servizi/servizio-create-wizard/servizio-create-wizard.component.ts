@@ -128,9 +128,9 @@ export class ServizioCreateWizardComponent implements OnInit {
     // FASE 1 (Informazioni generali) attiva = creazione; API/Collaudo/Produzione
     // in attesa (lucchetto). Label da `APP.SERVICES.WIZARD.PHASE.<code>`.
     readonly _fasiBarSteps: StepWizardItem[] = [
-        { code: 'info_generali', descrizione: 'Informazioni Generali', stati_adesione: ['creazione'] },
-        { code: 'collaudo', descrizione: 'Collaudo', stati_adesione: [] },
-        { code: 'produzione', descrizione: 'Produzione', stati_adesione: [] }
+        { code: 'info_generali', descrizione: 'Informazioni Generali', stati: ['creazione'] },
+        { code: 'collaudo', descrizione: 'Collaudo', stati: [] },
+        { code: 'produzione', descrizione: 'Produzione', stati: [] }
     ];
     readonly _fasiCurrent = 'creazione';
     _showFasiBar: boolean = true;

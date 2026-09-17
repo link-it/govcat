@@ -66,7 +66,7 @@ export interface FasiBarItem {
  *    `is-viewing` (selezione utente, sfondo + outline + barra colorata
  *    sotto). Implementata con due classi CSS distinte sul `.gstep`.
  *
- * La logica di derivazione stato dagli `stati_adesione` di ogni step e
+ * La logica di derivazione stato dagli `stati` di ogni step e
  * dal `currentState` (= `adesione.stato`) e` la stessa di
  * `<app-wizard-step-bar>` ma semplificata: niente regola "empty"
  * (non rilevante per la step-bar a fasi che e` sempre 3 step concreti)
@@ -87,7 +87,7 @@ export class WizardFasiBarComponent implements OnChanges {
 
     /**
      * Lista delle fasi (3 elementi) — pilotata da `adesione.step_wizard`
-     * del config (chiavi: code, descrizione, stati_adesione,
+     * del config (chiavi: code, descrizione, stati,
      * sezioni_attive). Stessa source data della step-bar principale.
      */
     @Input() steps: StepWizardItem[] = [];
@@ -146,9 +146,9 @@ export class WizardFasiBarComponent implements OnChanges {
         if (!this.steps || this.steps.length === 0) { return []; }
 
         // Indice della fase reale (workflow position): step il cui array
-        // `stati_adesione` contiene lo stato corrente.
+        // `stati` contiene lo stato corrente.
         const realIndex = this.currentState
-            ? this.steps.findIndex(s => s.stati_adesione?.includes(this.currentState!))
+            ? this.steps.findIndex(s => s.stati?.includes(this.currentState!))
             : -1;
 
         // Rilevamento "oltre-fase": stato corrente posizionato nel workflow
@@ -161,7 +161,7 @@ export class WizardFasiBarComponent implements OnChanges {
             if (currentIdx !== -1) {
                 let maxStepStateIdx = -1;
                 for (const step of this.steps) {
-                    for (const st of step.stati_adesione || []) {
+                    for (const st of step.stati || []) {
                         const idx = this.workflowStati.indexOf(st);
                         if (idx > maxStepStateIdx) { maxStepStateIdx = idx; }
                     }
@@ -176,7 +176,7 @@ export class WizardFasiBarComponent implements OnChanges {
         // coincidente con `currentState`. Promuove `current` -> `final`.
         const lastIndex = this.steps.length - 1;
         const lastStep = this.steps[lastIndex];
-        const lastStatesOfLastStep = lastStep?.stati_adesione || [];
+        const lastStatesOfLastStep = lastStep?.stati || [];
         const terminalState = lastStatesOfLastStep.length > 0
             ? lastStatesOfLastStep[lastStatesOfLastStep.length - 1]
             : null;

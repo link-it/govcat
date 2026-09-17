@@ -254,8 +254,12 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     /** Carica la config delle fasi: remota se presente, altrimenti MOCK FE. */
     private _loadStepWizard() {
         const cfg = Tools.Configurazione?.servizio || {};
+        // Issue 352: la config remota usa la chiave `stati`. Normalizzazione
+        // difensiva: eventuali config legacy con `stati_adesione` vengono mappate.
         const _pick = (remote: any, fallback: StepWizardItem[]) =>
-            (Array.isArray(remote) && remote.length) ? remote : fallback;
+            (Array.isArray(remote) && remote.length)
+                ? remote.map((s: any) => ({ ...s, stati: s.stati ?? s.stati_adesione ?? [] }))
+                : fallback;
         this.stepWizard = _pick(cfg.step_wizard, STEP_WIZARD_SERVIZIO_FALLBACK);
         this.stepWizardCollaudo = _pick(cfg.step_wizard_collaudo, STEP_WIZARD_COLLAUDO_SERVIZIO);
         this.stepWizardProduzione = _pick(cfg.step_wizard_produzione, STEP_WIZARD_PRODUZIONE_SERVIZIO);
@@ -354,10 +358,10 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     private _adjustStepWizardTerminal() {
         const terminal = this.data?.skip_collaudo ? 'pubblicato_produzione_senza_collaudo' : 'pubblicato_produzione';
         this.stepWizard = this.stepWizard.map((step) => {
-            if (step.code !== 'produzione' || !step.stati_adesione?.includes(terminal)) { return step; }
-            const stati = step.stati_adesione.filter((s: string) => s !== terminal);
+            if (step.code !== 'produzione' || !step.stati?.includes(terminal)) { return step; }
+            const stati = step.stati.filter((s: string) => s !== terminal);
             stati.push(terminal);
-            return { ...step, stati_adesione: stati };
+            return { ...step, stati: stati };
         });
     }
 
@@ -380,7 +384,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
             return;
         }
         const stato = this.data?.stato;
-        const fase = this.stepWizard.find((s) => s.stati_adesione?.includes(stato));
+        const fase = this.stepWizard.find((s) => s.stati?.includes(stato));
         this._selectedFase = fase ? fase.code : (this.stepWizard[0]?.code || null);
     }
 
@@ -411,7 +415,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         if (targetIdx === -1) return 'active';
 
         const cur: string | null = this.data?.stato || null;
-        let realIdx = cur ? steps.findIndex((s) => (s.stati_adesione || []).includes(cur)) : -1;
+        let realIdx = cur ? steps.findIndex((s) => (s.stati || []).includes(cur)) : -1;
 
         // Stato corrente oltre l'ultima fase mappata: tutte le fasi fino a
         // quella con lo stato piu` avanzato risultano concluse.
@@ -419,7 +423,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
             const curWi = this.workflowStati.indexOf(cur);
             let maxIdx = -1;
             steps.forEach((s, i) => {
-                (s.stati_adesione || []).forEach((st) => {
+                (s.stati || []).forEach((st) => {
                     const wi = this.workflowStati.indexOf(st);
                     if (wi !== -1 && curWi > wi) { maxIdx = Math.max(maxIdx, i); }
                 });
@@ -453,7 +457,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
                 : [];
         if (!subs.length) { return false; }
         const lastSub = subs[subs.length - 1];
-        return (lastSub.stati_adesione || []).includes(this.data?.stato);
+        return (lastSub.stati || []).includes(this.data?.stato);
     }
 
     selectFase(code: string) {
@@ -518,7 +522,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
      *  della fase attiva (disclaimer di configurazione ancora pertinente). */
     isCompilazioneStep(): boolean {
         const sub = this.subStepsForActiveFase.find((s) => s.code === 'in_compilazione');
-        return !!sub && (sub.stati_adesione || []).includes(this.data?.stato);
+        return !!sub && (sub.stati || []).includes(this.data?.stato);
     }
 
     /** Titolo della procedura sopra la timeline della fase attiva. */

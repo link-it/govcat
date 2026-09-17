@@ -26,7 +26,7 @@ import { StepWizardItem } from '@app/components/wizard/wizard-step-bar/wizard-st
  * Usata come FALLBACK quando `Tools.Configurazione.servizio.step_wizard` non e`
  * ancora fornito dal backend.
  *
- * NOTA: il campo degli stati e` denominato `stati_adesione` (non
+ * NOTA: il campo degli stati e` denominato `stati` (non
  * `stati_servizio`) per poter riusare `WizardFasiBarComponent` senza
  * modificarlo (evita regressioni sul wizard adesioni). L'unificazione della
  * chiave su un nome neutro (`stati`) e` rimandata alla fase di estrazione dei
@@ -36,13 +36,13 @@ export const STEP_WIZARD_SERVIZIO_FALLBACK: StepWizardItem[] = [
     {
         code: 'info_generali',
         descrizione: 'Informazioni Generali',
-        stati_adesione: [],
+        stati: [],
         sezioni_attive: ['info_generali', 'allegati', 'referenti', 'gruppi', 'categorie', 'api']
     },
     {
         code: 'collaudo',
         descrizione: 'Collaudo',
-        stati_adesione: [
+        stati: [
             'bozza',
             'richiesto_collaudo',
             'autorizzato_collaudo',
@@ -54,7 +54,7 @@ export const STEP_WIZARD_SERVIZIO_FALLBACK: StepWizardItem[] = [
     {
         code: 'produzione',
         descrizione: 'Produzione',
-        stati_adesione: [
+        stati: [
             'pubblicato_collaudo',
             'richiesto_produzione',
             'autorizzato_produzione',
@@ -70,23 +70,23 @@ export const STEP_WIZARD_SERVIZIO_FALLBACK: StepWizardItem[] = [
     }
 ];
 
-/** Sotto-step della fase Collaudo (mock; chiave `stati_adesione` per riuso di
+/** Sotto-step della fase Collaudo (mock; chiave `stati` per riuso di
  *  `WizardSubstepperComponent`). */
 export const STEP_WIZARD_COLLAUDO_SERVIZIO: StepWizardItem[] = [
-    { code: 'in_compilazione', descrizione: 'In Compilazione', stati_adesione: ['bozza'] },
-    { code: 'in_approvazione', descrizione: 'In Approvazione', stati_adesione: ['richiesto_collaudo'] },
-    { code: 'in_configurazione', descrizione: 'In Configurazione', stati_adesione: ['autorizzato_collaudo', 'in_configurazione_collaudo'] },
-    { code: 'configurato', descrizione: 'Pubblicato in Collaudo', stati_adesione: ['pubblicato_collaudo'] }
+    { code: 'in_compilazione', descrizione: 'In Compilazione', stati: ['bozza'] },
+    { code: 'in_approvazione', descrizione: 'In Approvazione', stati: ['richiesto_collaudo'] },
+    { code: 'in_configurazione', descrizione: 'In Configurazione', stati: ['autorizzato_collaudo', 'in_configurazione_collaudo'] },
+    { code: 'configurato', descrizione: 'Pubblicato in Collaudo', stati: ['pubblicato_collaudo'] }
 ];
 
 /** Sotto-step della fase Produzione (mock). Mappa sia il percorso normale
  *  (da `pubblicato_collaudo`) sia quello "senza collaudo" (da `bozza`, quando
  *  `skip_collaudo`). */
 export const STEP_WIZARD_PRODUZIONE_SERVIZIO: StepWizardItem[] = [
-    { code: 'in_compilazione', descrizione: 'In Compilazione', stati_adesione: ['pubblicato_collaudo', 'bozza'] },
-    { code: 'in_approvazione', descrizione: 'In Approvazione', stati_adesione: ['richiesto_produzione', 'richiesto_produzione_senza_collaudo'] },
-    { code: 'in_configurazione', descrizione: 'In Configurazione', stati_adesione: ['autorizzato_produzione', 'in_configurazione_produzione', 'autorizzato_produzione_senza_collaudo', 'in_configurazione_produzione_senza_collaudo'] },
-    { code: 'configurato', descrizione: 'Pubblicato in Produzione', stati_adesione: ['pubblicato_produzione', 'pubblicato_produzione_senza_collaudo'] }
+    { code: 'in_compilazione', descrizione: 'In Compilazione', stati: ['pubblicato_collaudo', 'bozza'] },
+    { code: 'in_approvazione', descrizione: 'In Approvazione', stati: ['richiesto_produzione', 'richiesto_produzione_senza_collaudo'] },
+    { code: 'in_configurazione', descrizione: 'In Configurazione', stati: ['autorizzato_produzione', 'in_configurazione_produzione', 'autorizzato_produzione_senza_collaudo', 'in_configurazione_produzione_senza_collaudo'] },
+    { code: 'configurato', descrizione: 'Pubblicato in Produzione', stati: ['pubblicato_produzione', 'pubblicato_produzione_senza_collaudo'] }
 ];
 
 /** Elenco ordinato di tutti gli stati del workflow servizio (per il

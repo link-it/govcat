@@ -83,7 +83,7 @@ describe('AdesioneCreateComponent', () => {
   it('should expose 3 static fasi-bar steps starting at "info_referenti" (FASE 1)', () => {
     expect(component._fasiBarSteps).toHaveLength(3);
     expect(component._fasiBarSteps[0].code).toBe('info_referenti');
-    expect(component._fasiBarSteps[0].stati_adesione).toContain('creazione');
+    expect(component._fasiBarSteps[0].stati).toContain('creazione');
     expect(component._fasiCurrent).toBe('creazione');
   });
 

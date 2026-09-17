@@ -1,6 +1,14 @@
 2026-09-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 352: allineato il frontend alla nuova chiave di config `stati` (ex
+	  `stati_adesione`) degli step wizard: rinominata nell'interfaccia StepWizardItem,
+	  nei componenti wizard condivisi (fasi-bar/substepper/step-bar), nei wizard e
+	  fallback di servizi e adesioni. Aggiunta normalizzazione difensiva nei loader
+	  (`stati ?? stati_adesione`) per reggere config legacy. Senza questo allineamento
+	  i wizard non derivavano piu` fasi/sub-step dalla config remota rinominata.
+
+	* [Frontend]
 	Issue 352 (Parte 2): integrati i disclaimer del servizio nel wizard
 	  (GET /servizi/{id}/disclaimers). Caricamento con language_code e ricarica al
 	  cambio lingua, split per contesto (banner ambientale collaudo/produzione +

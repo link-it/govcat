@@ -397,7 +397,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
 
     /**
      * Inizializza/aggiorna `_selectedFase` allo step corrente del
-     * `stepWizard` config: cerca lo step il cui array `stati_adesione`
+     * `stepWizard` config: cerca lo step il cui array `stati`
      * contiene lo stato corrente dell'adesione. Fallback: primo step
      * (`info_generali`).
      */
@@ -418,7 +418,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
                 this._selectedFase = 'collaudo';
                 return;
             }
-            const found = this.stepWizard.find(s => s.stati_adesione?.includes(currentState));
+            const found = this.stepWizard.find(s => s.stati?.includes(currentState));
             if (found) {
                 this._selectedFase = found.code;
                 return;
@@ -439,7 +439,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         // logica di `onStepBarClick` della step-bar legacy): senza questo, il
         // click sulla fasi-bar aggiornava solo l'evidenziazione ma non
         // attivava le sezioni della fase (es. Produzione restava inattiva).
-        const realStep = this.stepWizard.find(s => s.stati_adesione?.includes(this.adesione?.stato));
+        const realStep = this.stepWizard.find(s => s.stati?.includes(this.adesione?.stato));
         this.selectedStepCode = realStep?.code === faseCode ? null : faseCode;
         this._computeActiveSections();
         // A11Y (WCAG 2.4.3): al cambio fase da tastiera/click sullo stepper, il
@@ -1313,7 +1313,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     /**
      * Strict variant di `_isInternalStepFinal`: ritorna `true` SOLO
      * quando possiamo verificare che lo stato corrente dell'adesione
-     * coincide con o segue l'ultimo `stati_adesione` dell'ultimo
+     * coincide con o segue l'ultimo `stati` dell'ultimo
      * sub-step della sezione. Nessun fallback difensivo `true`: se
      * config / stato non sono mappati, ritorna `false` (la fase NON
      * verra` mostrata come conclusa per default).
@@ -1331,7 +1331,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         // config remota `adesione.workflow.stati` non riporta lo stato
         // (es. BE non allineato col FE sui nuovi stati).
         const lastStep = steps[steps.length - 1];
-        const lastStates = lastStep?.stati_adesione || [];
+        const lastStates = lastStep?.stati || [];
         // Terminale raggiunto se lo stato corrente e` uno QUALSIASI degli stati
         // dell'ultimo sub-step: "configurato" elenca entrambe le varianti
         // pubblicate (`pubblicato_produzione` e `..._senza_collaudo`), mutuamente
@@ -1346,7 +1346,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         if (currentIdx === -1) { return false; }
         let maxStepIdx = -1;
         for (const step of steps) {
-            for (const st of step.stati_adesione || []) {
+            for (const st of step.stati || []) {
                 const idx = wfStati.indexOf(st);
                 if (idx > maxStepIdx) { maxStepIdx = idx; }
             }
@@ -1366,7 +1366,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
      *  - "terminal reached": currentState e` l'ULTIMO stato dell'ULTIMO
      *    step (es. `pubblicato_collaudo` per Collaudo step `configurato`)
      *    -> tutti gli step done (rev. 4.23);
-     *  - altrimenti: count degli step la cui ultima `stati_adesione`
+     *  - altrimenti: count degli step la cui ultima `stati`
      *    PRECEDE STRETTAMENTE lo stato corrente.
      *
      * Restituisce `null` per sezioni che non hanno step interni.
@@ -1386,7 +1386,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         // dopo TUTTI gli stati di questa sezione.
         let maxStepStateIdx = -1;
         for (const step of steps) {
-            for (const st of step.stati_adesione || []) {
+            for (const st of step.stati || []) {
                 const idx = wfStati.indexOf(st);
                 if (idx > maxStepStateIdx) { maxStepStateIdx = idx; }
             }
@@ -1396,20 +1396,20 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         }
 
         // Terminal reached: lo stato corrente e` uno QUALSIASI degli
-        // `stati_adesione` dell'ultimo step della sezione (es.
+        // `stati` dell'ultimo step della sezione (es.
         // `pubblicato_produzione` OPPURE `..._senza_collaudo` per
         // "configurato" di Produzione).
         const lastStep = steps[steps.length - 1];
-        const lastStates = lastStep?.stati_adesione || [];
+        const lastStates = lastStep?.stati || [];
         if (lastStates.includes(currentStato)) {
             return { done: total, total };
         }
 
-        // Caso comune: count step "passati" (ultima `stati_adesione`
+        // Caso comune: count step "passati" (ultima `stati`
         // precedente strettamente lo stato corrente).
         let done = 0;
         for (const step of steps) {
-            const indices = (step.stati_adesione || [])
+            const indices = (step.stati || [])
                 .map(st => wfStati.indexOf(st))
                 .filter(i => i !== -1);
             if (!indices.length) { continue; }
@@ -1441,13 +1441,13 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         // Terminale raggiunto: lo stato corrente e` uno degli stati dell'ultimo
         // sub-step ("configurato") -> l'intera procedura e` conclusa e tutti gli
         // step risultano completati (nessuna azione richiesta).
-        const lastStates = steps[steps.length - 1]?.stati_adesione || [];
+        const lastStates = steps[steps.length - 1]?.stati || [];
         const reachedTerminal = !!currentStato && lastStates.includes(currentStato);
         return steps.map((step, i) => {
             if (reachedTerminal) {
                 return { index: i + 1, code: step.code, descrizione: step.descrizione, state: 'completed' as const };
             }
-            const indices = (step.stati_adesione || [])
+            const indices = (step.stati || [])
                 .map(st => wfStati.indexOf(st))
                 .filter(idx => idx !== -1);
             let state: 'completed' | 'active' | 'locked' = 'locked';
@@ -1926,14 +1926,14 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
 
     /**
      * Vero se il sub-step e` "naturalmente attivo" — il suo
-     * `stati_adesione` contiene lo stato corrente dell'adesione.
+     * `stati` contiene lo stato corrente dell'adesione.
      * Usato per evitare di renderizzare CTA workflow duplicati
      * nel sub-step forzato attivo (vedi `forceActiveCodes`).
      */
     _isSubstepNaturallyActive(section: 'collaudo' | 'produzione', code: string): boolean {
         const steps = this.getStepWizardSezione(section);
         const sub = steps.find(s => s.code === code);
-        return !!sub?.stati_adesione?.includes(this.adesione?.stato);
+        return !!sub?.stati?.includes(this.adesione?.stato);
     }
 
     /**
@@ -2377,19 +2377,19 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         {
             code: 'info_generali',
             descrizione: 'Informazioni Generali e Referenti',
-            stati_adesione: [],
+            stati: [],
             sezioni_attive: ['info_generali', 'referenti']
         },
         {
             code: 'collaudo',
             descrizione: 'Collaudo',
-            stati_adesione: ['bozza', 'richiesto_collaudo', 'autorizzato_collaudo', 'in_configurazione_collaudo', 'in_configurazione_manuale_collaudo', 'in_configurazione_automatica_collaudo'],
+            stati: ['bozza', 'richiesto_collaudo', 'autorizzato_collaudo', 'in_configurazione_collaudo', 'in_configurazione_manuale_collaudo', 'in_configurazione_automatica_collaudo'],
             sezioni_attive: ['collaudo']
         },
         {
             code: 'produzione',
             descrizione: 'Produzione',
-            stati_adesione: ['pubblicato_collaudo', 'richiesto_produzione', 'richiesto_produzione_senza_collaudo', 'autorizzato_produzione', 'autorizzato_produzione_senza_collaudo', 'in_configurazione_produzione', 'in_configurazione_produzione_senza_collaudo', 'in_configurazione_manuale_produzione', 'in_configurazione_automatica_produzione', 'in_configurazione_manuale_produzione_senza_collaudo', 'in_configurazione_automatica_produzione_senza_collaudo', 'pubblicato_produzione', 'pubblicato_produzione_senza_collaudo'],
+            stati: ['pubblicato_collaudo', 'richiesto_produzione', 'richiesto_produzione_senza_collaudo', 'autorizzato_produzione', 'autorizzato_produzione_senza_collaudo', 'in_configurazione_produzione', 'in_configurazione_produzione_senza_collaudo', 'in_configurazione_manuale_produzione', 'in_configurazione_automatica_produzione', 'in_configurazione_manuale_produzione_senza_collaudo', 'in_configurazione_automatica_produzione_senza_collaudo', 'pubblicato_produzione', 'pubblicato_produzione_senza_collaudo'],
             sezioni_attive: ['produzione']
         }
     ];
@@ -2399,10 +2399,10 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
      * Mantenere allineato con `src/main/plugin/plugin/configurazione.json`.
      */
     private static readonly _STEP_WIZARD_COLLAUDO_FALLBACK: StepWizardItem[] = [
-        { code: 'in_compilazione',   descrizione: 'In Compilazione',   stati_adesione: ['bozza'] },
-        { code: 'in_approvazione',   descrizione: 'In Approvazione',   stati_adesione: ['richiesto_collaudo'] },
-        { code: 'in_configurazione', descrizione: 'In Configurazione', stati_adesione: ['autorizzato_collaudo', 'in_configurazione_collaudo', 'in_configurazione_manuale_collaudo', 'in_configurazione_automatica_collaudo'] },
-        { code: 'configurato',       descrizione: 'Configurato',       stati_adesione: ['pubblicato_collaudo'] }
+        { code: 'in_compilazione',   descrizione: 'In Compilazione',   stati: ['bozza'] },
+        { code: 'in_approvazione',   descrizione: 'In Approvazione',   stati: ['richiesto_collaudo'] },
+        { code: 'in_configurazione', descrizione: 'In Configurazione', stati: ['autorizzato_collaudo', 'in_configurazione_collaudo', 'in_configurazione_manuale_collaudo', 'in_configurazione_automatica_collaudo'] },
+        { code: 'configurato',       descrizione: 'Configurato',       stati: ['pubblicato_collaudo'] }
     ];
 
     /**
@@ -2410,10 +2410,10 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
      * Mantenere allineato con `src/main/plugin/plugin/configurazione.json`.
      */
     private static readonly _STEP_WIZARD_PRODUZIONE_FALLBACK: StepWizardItem[] = [
-        { code: 'in_compilazione',   descrizione: 'In Compilazione',   stati_adesione: ['pubblicato_collaudo'] },
-        { code: 'in_approvazione',   descrizione: 'In Approvazione',   stati_adesione: ['richiesto_produzione', 'richiesto_produzione_senza_collaudo'] },
-        { code: 'in_configurazione', descrizione: 'In Configurazione', stati_adesione: ['autorizzato_produzione', 'autorizzato_produzione_senza_collaudo', 'in_configurazione_produzione', 'in_configurazione_produzione_senza_collaudo', 'in_configurazione_manuale_produzione', 'in_configurazione_automatica_produzione', 'in_configurazione_manuale_produzione_senza_collaudo', 'in_configurazione_automatica_produzione_senza_collaudo'] },
-        { code: 'configurato',       descrizione: 'Configurato',       stati_adesione: ['pubblicato_produzione', 'pubblicato_produzione_senza_collaudo'] }
+        { code: 'in_compilazione',   descrizione: 'In Compilazione',   stati: ['pubblicato_collaudo'] },
+        { code: 'in_approvazione',   descrizione: 'In Approvazione',   stati: ['richiesto_produzione', 'richiesto_produzione_senza_collaudo'] },
+        { code: 'in_configurazione', descrizione: 'In Configurazione', stati: ['autorizzato_produzione', 'autorizzato_produzione_senza_collaudo', 'in_configurazione_produzione', 'in_configurazione_produzione_senza_collaudo', 'in_configurazione_manuale_produzione', 'in_configurazione_automatica_produzione', 'in_configurazione_manuale_produzione_senza_collaudo', 'in_configurazione_automatica_produzione_senza_collaudo'] },
+        { code: 'configurato',       descrizione: 'Configurato',       stati: ['pubblicato_produzione', 'pubblicato_produzione_senza_collaudo'] }
     ];
 
     /**
@@ -2442,19 +2442,23 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         const forceFallback = AdesioneConfigurazioneWizardComponent._FORCE_STEP_WIZARD_FALLBACK;
         const adesioneConfig: any = forceFallback ? {} : (Tools.Configurazione?.adesione || {});
 
+        // Issue 352: la config remota usa la chiave `stati`. Normalizzazione
+        // difensiva: eventuali config legacy con `stati_adesione` sono mappate.
+        const _norm = (arr: any[]) => arr.map((s: any) => ({ ...s, stati: s.stati ?? s.stati_adesione ?? [] }));
+
         const remoteSteps = adesioneConfig.step_wizard;
         this.stepWizard = (Array.isArray(remoteSteps) && remoteSteps.length > 0)
-            ? remoteSteps
+            ? _norm(remoteSteps)
             : AdesioneConfigurazioneWizardComponent._STEP_WIZARD_FALLBACK;
 
         const remoteCollaudo = adesioneConfig.step_wizard_collaudo;
         const remoteProduzione = adesioneConfig.step_wizard_produzione;
         this.stepWizardSezione = {
             collaudo: (Array.isArray(remoteCollaudo) && remoteCollaudo.length > 0)
-                ? remoteCollaudo
+                ? _norm(remoteCollaudo)
                 : AdesioneConfigurazioneWizardComponent._STEP_WIZARD_COLLAUDO_FALLBACK,
             produzione: (Array.isArray(remoteProduzione) && remoteProduzione.length > 0)
-                ? remoteProduzione
+                ? _norm(remoteProduzione)
                 : AdesioneConfigurazioneWizardComponent._STEP_WIZARD_PRODUZIONE_FALLBACK
         };
 
@@ -2475,18 +2479,18 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     private _applySkipCollaudoStepWizard(): void {
         this.stepWizard = this.stepWizard.map(step => {
             if (step.code === 'collaudo') {
-                return { ...step, stati_adesione: (step.stati_adesione || []).filter(s => s !== 'bozza') };
+                return { ...step, stati: (step.stati || []).filter(s => s !== 'bozza') };
             }
             if (step.code === 'produzione') {
-                const stati = step.stati_adesione || [];
-                return { ...step, stati_adesione: stati.includes('bozza') ? stati : ['bozza', ...stati] };
+                const stati = step.stati || [];
+                return { ...step, stati: stati.includes('bozza') ? stati : ['bozza', ...stati] };
             }
             return step;
         });
         const produzione = (this.stepWizardSezione.produzione || []).map(sub => {
             if (sub.code === 'in_compilazione') {
-                const stati = sub.stati_adesione || [];
-                return { ...sub, stati_adesione: stati.includes('bozza') ? stati : ['bozza', ...stati] };
+                const stati = sub.stati || [];
+                return { ...sub, stati: stati.includes('bozza') ? stati : ['bozza', ...stati] };
             }
             return sub;
         });
@@ -2507,7 +2511,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
      * alle step-bar per abilitare il rilevamento "oltre-fase" (vedi
      * `WizardStepBarComponent.workflowStati`). Preferisce
      * `adesione.workflow.stati` dalla config remota; in mancanza, deriva
-     * l'ordine concatenando gli `stati_adesione` della step-bar principale.
+     * l'ordine concatenando gli `stati` della step-bar principale.
      */
     get workflowStati(): string[] {
         const fromConfig = Tools.Configurazione?.adesione?.workflow?.stati;
@@ -2516,7 +2520,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         }
         const derived: string[] = [];
         for (const step of this.stepWizard) {
-            for (const st of step.stati_adesione || []) {
+            for (const st of step.stati || []) {
                 if (!derived.includes(st)) derived.push(st);
             }
         }
@@ -2542,7 +2546,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         if (this.selectedStepCode) {
             selected = this.stepWizard.find(s => s.code === this.selectedStepCode);
         }
-        selected ??= this.stepWizard.find(s => s.stati_adesione?.includes(this.adesione.stato));
+        selected ??= this.stepWizard.find(s => s.stati?.includes(this.adesione.stato));
         this.activeSections = selected?.sezioni_attive
             ? [...selected.sezioni_attive]
             : ['info_generali', 'referenti', 'collaudo', 'produzione'];
@@ -2555,7 +2559,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
      * così la UI torna a seguire automaticamente lo stato dell'adesione.
      */
     onStepBarClick(code: string): void {
-        const realStep = this.stepWizard.find(s => s.stati_adesione?.includes(this.adesione?.stato));
+        const realStep = this.stepWizard.find(s => s.stati?.includes(this.adesione?.stato));
         if (realStep?.code === code) {
             this.selectedStepCode = null;
         } else {
@@ -2616,12 +2620,12 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
      * (collaudo/produzione) risulta superato. Replica la logica
      * di `WizardSubstepperComponent._buildItems`: trova
      * l'indice del sub-step che contiene lo stato corrente nel
-     * proprio `stati_adesione` (`realIndex`) e considera
+     * proprio `stati` (`realIndex`) e considera
      * "completed" tutti i sub-step con indice < realIndex.
      *
      * Vantaggio: NON dipende da `workflowStati` (la cui
      * derivazione puo` divergere dal BE), ma solo dalle
-     * `stati_adesione` di ciascun sub-step — stessa source che
+     * `stati` di ciascun sub-step — stessa source che
      * usa il substepper visivo per dire "In Compilazione
      * Completato".
      */
@@ -2632,7 +2636,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         if (!currentStato) { return false; }
         const inCompilazioneIdx = steps.findIndex(s => s.code === 'in_compilazione');
         if (inCompilazioneIdx === -1) { return false; }
-        const realIndex = steps.findIndex(s => s.stati_adesione?.includes(currentStato));
+        const realIndex = steps.findIndex(s => s.stati?.includes(currentStato));
         if (realIndex === -1) {
             // "Past phase": stato corrente oltre tutti i sub-step
             // (es. Collaudo quando adesione e` in Produzione).
@@ -2645,7 +2649,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
             if (currentIdx === -1) { return false; }
             let maxStepStateIdx = -1;
             for (const step of steps) {
-                for (const st of step.stati_adesione || []) {
+                for (const st of step.stati || []) {
                     const idx = wfStati.indexOf(st);
                     if (idx > maxStepStateIdx) { maxStepStateIdx = idx; }
                 }
@@ -2673,7 +2677,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         if (currentIdx === -1) return true;
         let maxStepIdx = -1;
         for (const step of steps) {
-            for (const st of step.stati_adesione || []) {
+            for (const st of step.stati || []) {
                 const idx = wfStati.indexOf(st);
                 if (idx > maxStepIdx) maxStepIdx = idx;
             }
@@ -2739,7 +2743,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
 
     private _currentMainStepIndex(): number {
         if (!this.adesione?.stato || !this.stepWizard?.length) return -1;
-        return this.stepWizard.findIndex(s => s.stati_adesione?.includes(this.adesione.stato));
+        return this.stepWizard.findIndex(s => s.stati?.includes(this.adesione.stato));
     }
 
     private _minMainStepIndexForSection(section: string): number {

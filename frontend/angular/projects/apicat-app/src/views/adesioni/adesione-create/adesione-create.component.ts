@@ -146,9 +146,9 @@ export class AdesioneCreateComponent implements OnInit {
    * `numberOffset=1` (default) -> numerazione "FASE 1..3".
    */
   readonly _fasiBarSteps: StepWizardItem[] = [
-    { code: 'info_referenti', descrizione: 'Informazioni Generali e Referenti', stati_adesione: ['creazione'] },
-    { code: 'collaudo', descrizione: 'Collaudo', stati_adesione: [] },
-    { code: 'produzione', descrizione: 'Produzione', stati_adesione: [] }
+    { code: 'info_referenti', descrizione: 'Informazioni Generali e Referenti', stati: ['creazione'] },
+    { code: 'collaudo', descrizione: 'Collaudo', stati: [] },
+    { code: 'produzione', descrizione: 'Produzione', stati: [] }
   ];
   readonly _fasiCurrent = 'creazione';
 

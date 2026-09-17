@@ -23,7 +23,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 export interface StepWizardItem {
   code: string;
   descrizione: string;
-  stati_adesione: string[];
+  stati: string[];
   /** Opzionale: usato solo dalla step-bar principale per pilotare le sezioni
    *  attive del wizard. Non significativo per le step-bar interne di sezione. */
   sezioni_attive?: string[];
@@ -56,12 +56,12 @@ export type StepBarVariant = 'circles' | 'chevron';
  * `adesione.step_wizard`) sia per le step-bar interne di sezione
  * (collaudo/produzione, pilotate da `adesione.step_wizard_sezione`).
  *
- * Lo step "reale" (`currentState`) è quello il cui array `stati_adesione`
+ * Lo step "reale" (`currentState`) è quello il cui array `stati`
  * contiene lo stato dell'adesione. Opzionalmente può essere selezionato uno
  * step precedente via `selectedCode` per mostrarne le sezioni attive senza
  * modificare lo stato reale dell'adesione.
  *
- * Regola "empty": uno step con `stati_adesione` vuoto viene sempre reso come
+ * Regola "empty": uno step con `stati` vuoto viene sempre reso come
  * `completed` e funge da terminale di fase; quando lo stato corrente non
  * matcha alcuno step esplicito, gli step precedenti all'empty vengono
  * anch'essi marcati completed (catch-all oltre-fase).
@@ -123,7 +123,7 @@ export class WizardStepBarComponent implements OnChanges {
   /**
    * Elenco ordinato cronologicamente di tutti gli stati del workflow
    * dell'adesione (tipicamente derivato da `adesione.workflow.stati` o, in
-   * mancanza, concatenando gli `stati_adesione` della step-bar principale).
+   * mancanza, concatenando gli `stati` della step-bar principale).
    * Serve alle step-bar interne per capire se l'adesione è "oltre-fase":
    * quando lo stato corrente è posizionato nel workflow DOPO tutti gli stati
    * mappati negli step di questa bar, tutti gli step vengono marcati come
@@ -147,7 +147,7 @@ export class WizardStepBarComponent implements OnChanges {
     if (!this.steps || this.steps.length === 0) return [];
 
     const realIndex = this.currentState
-      ? this.steps.findIndex(s => s.stati_adesione?.includes(this.currentState!))
+      ? this.steps.findIndex(s => s.stati?.includes(this.currentState!))
       : -1;
 
     const selectedIndex = this.selectedCode
@@ -161,7 +161,7 @@ export class WizardStepBarComponent implements OnChanges {
       : realIndex;
 
     // Fallback "oltre-fase": se lo stato corrente non matcha alcuno step
-    // esplicito e la config include uno step terminale con stati_adesione
+    // esplicito e la config include uno step terminale con stati
     // vuoto (regola "empty = completed"), questo rappresenta il punto di
     // arrivo a cui siamo giunti — gli step precedenti vengono marcati
     // completed perché di fatto già attraversati.
@@ -192,7 +192,7 @@ export class WizardStepBarComponent implements OnChanges {
       if (currentIdx !== -1) {
         let maxStepStateIdx = -1;
         for (const step of this.steps) {
-          for (const st of step.stati_adesione || []) {
+          for (const st of step.stati || []) {
             const idx = this.workflowStati.indexOf(st);
             if (idx > maxStepStateIdx) maxStepStateIdx = idx;
           }
@@ -204,13 +204,13 @@ export class WizardStepBarComponent implements OnChanges {
     }
 
     // Stato terminale: se ci troviamo sul LAST step del percorso E lo stato
-    // corrente è l'ULTIMO stato della sua lista `stati_adesione`, trattiamo
+    // corrente è l'ULTIMO stato della sua lista `stati`, trattiamo
     // il passo come "final" (non come "current"). Visivamente si rende come
     // traguardo raggiunto, evitando di suggerire che ci sia ancora qualcosa
     // da fare. La promozione è fatta dopo il calcolo base.
     const lastIndex = this.steps.length - 1;
     const lastStep = this.steps[lastIndex];
-    const lastStatesOfLastStep = lastStep?.stati_adesione || [];
+    const lastStatesOfLastStep = lastStep?.stati || [];
     const terminalState = lastStatesOfLastStep.length > 0
       ? lastStatesOfLastStep[lastStatesOfLastStep.length - 1]
       : null;
@@ -234,7 +234,7 @@ export class WizardStepBarComponent implements OnChanges {
 
       // Promozione a 'final': solo sul last step, solo se è davvero lo step
       // reale (nessuna navigazione-preview), e solo se lo stato corrente è
-      // l'ultimo della sua stati_adesione (stato terminale del percorso).
+      // l'ultimo della sua stati (stato terminale del percorso).
       if (
         state === 'current' &&
         index === lastIndex &&
@@ -263,7 +263,7 @@ export class WizardStepBarComponent implements OnChanges {
   }
 
   private _isEmptyStep(step: StepWizardItem): boolean {
-    return !step.stati_adesione || step.stati_adesione.length === 0;
+    return !step.stati || step.stati.length === 0;
   }
 
   onStepClick(item: StepBarItem): void {
