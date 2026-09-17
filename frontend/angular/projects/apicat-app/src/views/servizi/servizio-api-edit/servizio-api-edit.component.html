@@ -1,0 +1,59 @@
+<div class="api-edit">
+  <!-- Barra dei tab (visibili in base a fase / skip_collaudo) -->
+  @if (tabs.length > 1) {
+    <div class="api-edit-tabs" role="tablist" [attr.aria-label]="'APP.SERVICES.TITLE.ApiInformations' | translate">
+      @for (tab of tabs; track tab) {
+        <button type="button" class="api-edit-tab" role="tab"
+                [class.is-active]="activeTab === tab"
+                [attr.aria-selected]="activeTab === tab"
+                (click)="selectTab(tab)">
+          {{ tabLabelKey(tab) | translate }}
+        </button>
+      }
+    </div>
+  }
+
+  <!-- Keep-alive: ogni tab viene istanziato una sola volta (alla prima
+       apertura) e poi solo nascosto/mostrato con [hidden]. Evita che il cambio
+       tab distrugga e ricrei il componente ri-scatenando le chiamate di init. -->
+  <div class="api-edit-body">
+    @if (tabs.includes('info_generali') && rendered.has('info_generali')) {
+      <div [hidden]="activeTab !== 'info_generali'">
+        <app-servizio-api-details
+          [embedded]="true"
+          [id]="apiId"
+          [sid]="sid"
+          [startEdit]="startEdit"
+          (save)="onChildSaved($event)"
+          (close)="onChildClosed($event)"
+        ></app-servizio-api-details>
+      </div>
+    }
+    @if (tabs.includes('collaudo') && rendered.has('collaudo')) {
+      <div [hidden]="activeTab !== 'collaudo'">
+        <app-servizio-api-configuration
+          [embedded]="true"
+          [apiId]="apiId"
+          [sidInput]="sid"
+          [ambiente]="'collaudo'"
+          [startEdit]="startEdit"
+          (saved)="onChildSaved($event)"
+          (closed)="onChildClosed($event)"
+        ></app-servizio-api-configuration>
+      </div>
+    }
+    @if (tabs.includes('produzione') && rendered.has('produzione')) {
+      <div [hidden]="activeTab !== 'produzione'">
+        <app-servizio-api-configuration
+          [embedded]="true"
+          [apiId]="apiId"
+          [sidInput]="sid"
+          [ambiente]="'produzione'"
+          [startEdit]="startEdit"
+          (saved)="onChildSaved($event)"
+          (closed)="onChildClosed($event)"
+        ></app-servizio-api-configuration>
+      </div>
+    }
+  </div>
+</div>

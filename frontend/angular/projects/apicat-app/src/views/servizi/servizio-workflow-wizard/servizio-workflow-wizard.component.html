@@ -170,10 +170,6 @@
                 <i class="bi bi-folder" aria-hidden="true"></i><span>{{ 'APP.SERVICES.TITLE.ShowGroups' | translate }}</span>
                 <span class="lnk-ref-count">{{ servizioGruppi.length }}</span>
               </button>
-              <button type="button" class="lnk-section-nav-chip" [class.is-active]="isPhaseSectionOpen('api')" (click)="goToSection('api')">
-                <i class="bi bi-code-slash" aria-hidden="true"></i><span>{{ 'APP.SERVICES.TITLE.ApiInformations' | translate }}</span>
-                <span class="lnk-ref-count">{{ servizioApiList.length }}</span>
-              </button>
             </nav>
 
             <!-- Informazioni generali (view + edit) -->
@@ -261,7 +257,7 @@
                               <span class="referent-role-tag">{{ ('APP.ROLE.' + ref.tipo) | translate }}</span>
                             }
                             @if (canAddReferente()) {
-                              <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Remove' | translate" (click)="confirmDeleteReferente(ref)">
+                              <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Remove' | translate" [tooltip]="'APP.BUTTON.Remove' | translate" container="body" (click)="confirmDeleteReferente(ref)">
                                 <i class="bi bi-trash text-danger"></i>
                               </button>
                             }
@@ -350,14 +346,14 @@
                           @if (all.visibilita_allegato) { <span class="ms-2">{{ ('APP.VISIBILITY.' + all.visibilita_allegato) | translate }}</span> }
                         </div>
                       </div>
-                      <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [disabled]="_downloadings[i]" [attr.aria-label]="'APP.BUTTON.Download' | translate" (click)="downloadAllegato(all, i)">
+                      <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [disabled]="_downloadings[i]" [attr.aria-label]="'APP.BUTTON.Download' | translate" [tooltip]="'APP.BUTTON.Download' | translate" container="body" (click)="downloadAllegato(all, i)">
                         @if (_downloadings[i]) { <span class="spinner-border spinner-border-sm"></span> } @else { <i class="bi bi-download"></i> }
                       </button>
                       @if (canEditAllegato()) {
-                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Edit' | translate" (click)="openAllegatoDialog(all)">
+                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.TOOLTIP.Edit' | translate" [tooltip]="'APP.TOOLTIP.Edit' | translate" container="body" (click)="openAllegatoDialog(all)">
                           <i class="bi bi-pencil"></i>
                         </button>
-                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Remove' | translate" (click)="confirmDeleteAllegato(all)">
+                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Remove' | translate" [tooltip]="'APP.BUTTON.Remove' | translate" container="body" (click)="confirmDeleteAllegato(all)">
                           <i class="bi bi-trash text-danger"></i>
                         </button>
                       }
@@ -407,7 +403,7 @@
                         @if (g.descrizione_sintetica) { <div class="when text-break">{{ g.descrizione_sintetica }}</div> }
                       </div>
                       @if (canManageGruppi()) {
-                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Remove' | translate" (click)="confirmDeleteGruppo(g)">
+                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Remove' | translate" [tooltip]="'APP.BUTTON.Remove' | translate" container="body" (click)="confirmDeleteGruppo(g)">
                           <i class="bi bi-trash text-danger"></i>
                         </button>
                       }
@@ -423,185 +419,6 @@
               }
             </section>
 
-            <!-- Sezione: API (lista + creazione/modifica inline) -->
-            @let openApi = isPhaseSectionOpen('api');
-            <section id="phase-section-api" class="lnk-phase-section" [class.is-open]="openApi">
-              <header class="lnk-phase-section-hd" role="button" tabindex="0" [attr.aria-expanded]="openApi"
-                      (click)="togglePhaseSection('api')"
-                      (keydown.enter)="togglePhaseSection('api')"
-                      (keydown.space)="togglePhaseSection('api'); $event.preventDefault()">
-                <div class="lnk-phase-section-icon"><i class="bi bi-code-slash"></i></div>
-                <div class="lnk-phase-section-title">{{ 'APP.SERVICES.TITLE.ApiInformations' | translate }}
-                  <span class="lnk-ref-count">{{ servizioApiList.length }}</span>
-                </div>
-                <i class="bi bi-chevron-down lnk-phase-section-chev" [class.is-open]="openApi" aria-hidden="true"></i>
-              </header>
-              @if (openApi) {
-                <div class="lnk-phase-section-body">
-                  @if (!servizioApiList.length) {
-                    <div class="lnk-banner is-warn mb-3" role="alert">
-                      <div class="icon"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i></div>
-                      <div class="body"><span>{{ 'APP.SERVICES.WIZARD.ApiRequiredHint' | translate }}</span></div>
-                    </div>
-                  }
-                  @if (canAddApi() && !_createApiOpen && !_editApiId) {
-                    <div class="d-flex justify-content-end mb-2">
-                      <button type="button" class="lnk-btn lnk-btn-sm" (click)="openCreateApi()">
-                        <i class="bi bi-plus-lg"></i><span>{{ 'APP.SERVICES.WIZARD.AddApi' | translate }}</span>
-                      </button>
-                    </div>
-                  }
-
-                  <!-- Creazione API inline -->
-                  @if (_createApiOpen) {
-                    <div class="api-row is-editing mb-2">
-                      <div class="api-inline-edit-panel">
-                        <app-servizio-api-details
-                          [embedded]="true"
-                          [createMode]="true"
-                          [sid]="id"
-                          (save)="onApiSaved($event)"
-                          (close)="closeCreateApi()"
-                        ></app-servizio-api-details>
-                      </div>
-                    </div>
-                  }
-
-                  <!-- Lista API con vista/modifica inline sotto la riga -->
-                  @for (api of servizioApiList; track api.id_api) {
-                    @let isRowOpen = _editApiId === api.id_api;
-                    @let isRowEdit = isRowOpen && _editApiStartEdit;
-                    @let isRowView = isRowOpen && !_editApiStartEdit;
-                    <div class="api-row" [class.is-editing]="isRowEdit" [class.is-viewing]="isRowView">
-                      <div class="approval-card">
-                        <div class="av av-file"><i class="bi bi-code-slash"></i></div>
-                        <div class="body">
-                          <div class="who text-break">{{ api.nome }} <span class="text-muted">v. {{ api.versione }}</span></div>
-                          @if (apiProfilo(api)) { <div class="when">{{ apiProfilo(api) }}</div> }
-                        </div>
-                        <!-- Modifica + vista readonly raggruppate in un
-                             segmento compatto (azioni "apri dettaglio"). -->
-                        <div class="api-actions-seg">
-                          @if (canEditApi()) {
-                            <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon"
-                                    [class.is-active]="isRowEdit"
-                                    [attr.aria-label]="(isRowEdit ? 'APP.BUTTON.Close' : 'APP.BUTTON.Modify') | translate"
-                                    [title]="(isRowEdit ? 'APP.BUTTON.Close' : 'APP.BUTTON.Modify') | translate"
-                                    (click)="isRowEdit ? closeEditApi() : openEditApi(api)">
-                              <i class="bi" [class.bi-x-lg]="isRowEdit" [class.bi-pencil]="!isRowEdit"></i>
-                            </button>
-                          }
-                          <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon"
-                                  [class.is-active]="isRowView"
-                                  [attr.aria-label]="(isRowView ? 'APP.BUTTON.Close' : 'APP.BUTTON.Show') | translate"
-                                  [title]="(isRowView ? 'APP.BUTTON.Close' : 'APP.BUTTON.Show') | translate"
-                                  (click)="isRowView ? closeEditApi() : openApiView(api)">
-                            <i class="bi" [class.bi-x-lg]="isRowView" [class.bi-eye]="!isRowView"></i>
-                          </button>
-                        </div>
-                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon"
-                                [class.is-active]="_apiAllegatiOpenId === api.id_api"
-                                [attr.aria-label]="'APP.SERVICES.TITLE.Attachments' | translate"
-                                [attr.aria-pressed]="_apiAllegatiOpenId === api.id_api"
-                                [title]="'APP.SERVICES.TITLE.Attachments' | translate"
-                                (click)="toggleApiAllegati(api)">
-                          <i class="bi bi-paperclip"></i>
-                          @if (_apiAllegatiCount[api.id_api]) {
-                            <span class="lnk-ref-count ms-1">{{ _apiAllegatiCount[api.id_api] }}</span>
-                          }
-                        </button>
-                        @if (canDeleteApi()) {
-                          <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon"
-                                  [attr.aria-label]="'APP.BUTTON.Remove' | translate"
-                                  [title]="'APP.BUTTON.Remove' | translate"
-                                  (click)="confirmDeleteApi(api)">
-                            <i class="bi bi-trash text-danger"></i>
-                          </button>
-                        }
-                      </div>
-                      @if (isRowOpen) {
-                        <div class="api-inline-edit-panel">
-                          @if (isRowEdit) {
-                            <app-servizio-api-details
-                              [embedded]="true"
-                              [id]="_editApiId"
-                              [sid]="id"
-                              [startEdit]="true"
-                              (save)="onApiSaved($event)"
-                              (close)="closeEditApi()"
-                            ></app-servizio-api-details>
-                          } @else {
-                            <app-servizio-api-details
-                              [embedded]="true"
-                              [id]="_editApiId"
-                              [sid]="id"
-                              (save)="onApiSaved($event)"
-                              (close)="closeEditApi()"
-                            ></app-servizio-api-details>
-                          }
-                        </div>
-                      }
-
-                      <!-- Pannello inline: allegati DELL'API (lista + add/delete) -->
-                      @if (_apiAllegatiOpenId === api.id_api) {
-                        <div class="api-inline-edit-panel api-allegati-panel">
-                          <div class="api-allegati-hd">
-                            <i class="bi bi-paperclip" aria-hidden="true"></i>
-                            <span>{{ 'APP.SERVICES.TITLE.Attachments' | translate }}</span>
-                            <span class="lnk-ref-count">{{ _apiAllegatiList.length }}</span>
-                            <div class="flex-grow-1"></div>
-                            @if (canEditApi() && !_apiAllegatiAddOpen) {
-                              <button type="button" class="lnk-btn lnk-btn-sm" (click)="openAddApiAllegato()">
-                                <i class="bi bi-plus-lg"></i><span>{{ 'APP.SERVICES.BUTTON.AddAttachment' | translate }}</span>
-                              </button>
-                            }
-                          </div>
-                          @if (_apiAllegatiAddOpen) {
-                            <app-servizio-allegato-add-form
-                              [model]="'api'"
-                              [id]="api.id_api"
-                              [grant]="_grant"
-                              [showAllAttachments]="_showAllAttachments"
-                              (saved)="onApiAllegatoAdded(api)"
-                              (close)="closeAddApiAllegato()"
-                            ></app-servizio-allegato-add-form>
-                          }
-                          @for (all of _apiAllegatiList; track all.uuid; let i = $index) {
-                            <div class="approval-card">
-                              <div class="av av-file"><i class="bi bi-file-earmark"></i></div>
-                              <div class="body">
-                                <div class="who text-break">{{ all.filename || all.documento?.filename || all.uuid }}</div>
-                                <div class="when">
-                                  @if (all.tipologia_allegato) { <span>{{ ('APP.ALLEGATI.TIPI.' + all.tipologia_allegato) | translate }}</span> }
-                                  @if (all.visibilita_allegato) { <span class="ms-2">{{ ('APP.VISIBILITY.' + all.visibilita_allegato) | translate }}</span> }
-                                </div>
-                              </div>
-                              <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [disabled]="_apiAllegatiDownloadings[i]" [attr.aria-label]="'APP.BUTTON.Download' | translate" [title]="'APP.BUTTON.Download' | translate" (click)="downloadApiAllegato(api, all, i)">
-                                @if (_apiAllegatiDownloadings[i]) { <span class="spinner-border spinner-border-sm"></span> } @else { <i class="bi bi-download"></i> }
-                              </button>
-                              @if (canEditApi()) {
-                                <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Remove' | translate" [title]="'APP.BUTTON.Remove' | translate" (click)="confirmDeleteApiAllegato(api, all)">
-                                  <i class="bi bi-trash text-danger"></i>
-                                </button>
-                              }
-                            </div>
-                          }
-                          @if (!_apiAllegatiList.length && !_apiAllegatiAddOpen) {
-                            <div class="lnk-empty">
-                              <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
-                              <span>{{ 'APP.SERVICES.WIZARD.NoItems' | translate }}</span>
-                            </div>
-                          }
-                        </div>
-                      }
-                    </div>
-                  }
-                  @if (!servizioApiList.length && !_createApiOpen) {
-                    <div class="text-muted small py-1">{{ 'APP.MESSAGE.NoResults' | translate }}</div>
-                  }
-                </div>
-              }
-            </section>
           }
 
           <!-- Fasi: Collaudo / Produzione (timeline sotto-step) -->
@@ -646,7 +463,31 @@
                       </div>
                     </header>
                     <div class="lnk-phase-section-body">
-                      <div class="small text-muted mb-2">{{ 'APP.SERVICES.WIZARD.ApiHint' | translate }}</div>
+                      <!-- Creazione API (spostata dalla FASE 1 al Collaudo). La
+                           creazione resta invariata: form info generali via
+                           ServizioApiDetailsComponent. Disponibile in collaudo
+                           (o in produzione quando il collaudo e` saltato). -->
+                      @if (canAddApi() && canCreateApiInPhase() && !_createApiOpen) {
+                        <div class="d-flex justify-content-end mb-2">
+                          <button type="button" class="lnk-btn lnk-btn-sm" (click)="openCreateApi()">
+                            <i class="bi bi-plus-lg"></i><span>{{ 'APP.SERVICES.WIZARD.AddApi' | translate }}</span>
+                          </button>
+                        </div>
+                      }
+                      @if (_createApiOpen) {
+                        <div class="api-row is-editing mb-2">
+                          <div class="api-inline-edit-panel">
+                            <app-servizio-api-details
+                              [embedded]="true"
+                              [createMode]="true"
+                              [sid]="id"
+                              (save)="onApiSaved($event)"
+                              (close)="closeCreateApi()"
+                            ></app-servizio-api-details>
+                          </div>
+                        </div>
+                      }
+
                       @for (api of servizioApiList; track api.id_api) {
                         @let isRowOpen = _configApiId === api.id_api;
                         @let isRowEdit = isRowOpen && _configApiStartEdit;
@@ -661,7 +502,10 @@
                             <span class="chip" [class.chip-ok]="apiHasConfig(api)" [class.chip-muted]="!apiHasConfig(api)">
                               {{ (apiHasConfig(api) ? 'APP.SERVICES.WIZARD.ApiConfigured' : 'APP.SERVICES.WIZARD.ApiToConfigure') | translate }}
                             </span>
-                            @if (canEditApi()) {
+                            <!-- Configura (modifica) e Visualizza sono mutuamente
+                                 esclusivi: in assenza di una regola da specifiche,
+                                 di default si mostra "Configura" (mostraConfiguraApi). -->
+                            @if (mostraConfiguraApi() && canEditApi()) {
                               <button type="button" class="lnk-btn lnk-btn-sm" (click)="isRowEdit ? closeApiSettings() : openApiSettings(api)">
                                 @if (isRowEdit) {
                                   <i class="bi bi-x-lg"></i><span>{{ 'APP.BUTTON.Close' | translate }}</span>
@@ -669,35 +513,102 @@
                                   <i class="bi bi-gear"></i><span>{{ 'APP.SERVICES.WIZARD.ConfigureApi' | translate }}</span>
                                 }
                               </button>
+                            } @else {
+                              <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon"
+                                      [attr.aria-label]="(isRowView ? 'APP.BUTTON.Close' : 'APP.BUTTON.Show') | translate"
+                                      [tooltip]="(isRowView ? 'APP.BUTTON.Close' : 'APP.BUTTON.Show') | translate" container="body"
+                                      (click)="isRowView ? closeApiSettings() : openApiSettingsView(api)">
+                                <i class="bi" [class.bi-x-lg]="isRowView" [class.bi-eye]="!isRowView"></i>
+                              </button>
                             }
-                            <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon"
-                                    [attr.aria-label]="(isRowView ? 'APP.BUTTON.Close' : 'APP.BUTTON.Show') | translate"
-                                    [title]="(isRowView ? 'APP.BUTTON.Close' : 'APP.BUTTON.Show') | translate"
-                                    (click)="isRowView ? closeApiSettings() : openApiSettingsView(api)">
-                              <i class="bi" [class.bi-x-lg]="isRowView" [class.bi-eye]="!isRowView"></i>
-                            </button>
+                            @if (!isRowOpen) {
+                              <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon"
+                                      [class.is-active]="_apiAllegatiOpenId === api.id_api"
+                                      [attr.aria-label]="'APP.SERVICES.TITLE.Attachments' | translate"
+                                      [attr.aria-pressed]="_apiAllegatiOpenId === api.id_api"
+                                      [tooltip]="'APP.SERVICES.TITLE.Attachments' | translate" container="body"
+                                      (click)="toggleApiAllegati(api)">
+                                <i class="bi bi-paperclip"></i>
+                                @if (_apiAllegatiCount[api.id_api]) {
+                                  <span class="lnk-ref-count ms-1">{{ _apiAllegatiCount[api.id_api] }}</span>
+                                }
+                              </button>
+                            }
+                            @if (canDeleteApi() && !isRowOpen) {
+                              <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon"
+                                      [attr.aria-label]="'APP.BUTTON.Remove' | translate"
+                                      [tooltip]="'APP.BUTTON.Remove' | translate" container="body"
+                                      (click)="confirmDeleteApi(api)">
+                                <i class="bi bi-trash text-danger"></i>
+                              </button>
+                            }
                           </div>
                           @if (isRowOpen) {
                             <div class="api-inline-edit-panel">
-                              @if (isRowEdit) {
-                                <app-servizio-api-configuration
-                                  [embedded]="true"
-                                  [apiId]="_configApiId"
-                                  [sidInput]="id"
-                                  [ambiente]="currentAmbiente"
-                                  [startEdit]="true"
-                                  (saved)="onApiSettingsSaved($event)"
-                                  (closed)="closeApiSettings()"
-                                ></app-servizio-api-configuration>
-                              } @else {
-                                <app-servizio-api-configuration
-                                  [embedded]="true"
-                                  [apiId]="_configApiId"
-                                  [sidInput]="id"
-                                  [ambiente]="currentAmbiente"
-                                  (saved)="onApiSettingsSaved($event)"
-                                  (closed)="closeApiSettings()"
-                                ></app-servizio-api-configuration>
+                              <!-- Modifica/configurazione API a tab (Issue 352):
+                                   Informazioni generali + Collaudo/Produzione in
+                                   base alla fase e a skip_collaudo. -->
+                              <app-servizio-api-edit
+                                [apiId]="_configApiId"
+                                [sid]="id"
+                                [ambiente]="currentAmbiente"
+                                [skipCollaudo]="!!data?.skip_collaudo"
+                                [startEdit]="isRowEdit"
+                                (saved)="onApiSettingsSaved($event)"
+                                (closed)="closeApiSettings()"
+                              ></app-servizio-api-edit>
+                            </div>
+                          }
+
+                          <!-- Pannello inline: allegati DELL'API (lista + add/delete) -->
+                          @if (_apiAllegatiOpenId === api.id_api) {
+                            <div class="api-inline-edit-panel api-allegati-panel">
+                              <div class="api-allegati-hd">
+                                <i class="bi bi-paperclip" aria-hidden="true"></i>
+                                <span>{{ 'APP.SERVICES.TITLE.Attachments' | translate }}</span>
+                                <span class="lnk-ref-count">{{ _apiAllegatiList.length }}</span>
+                                <div class="flex-grow-1"></div>
+                                @if (canEditApi() && !_apiAllegatiAddOpen) {
+                                  <button type="button" class="lnk-btn lnk-btn-sm" (click)="openAddApiAllegato()">
+                                    <i class="bi bi-plus-lg"></i><span>{{ 'APP.SERVICES.BUTTON.AddAttachment' | translate }}</span>
+                                  </button>
+                                }
+                              </div>
+                              @if (_apiAllegatiAddOpen) {
+                                <app-servizio-allegato-add-form
+                                  [model]="'api'"
+                                  [id]="api.id_api"
+                                  [grant]="_grant"
+                                  [showAllAttachments]="_showAllAttachments"
+                                  (saved)="onApiAllegatoAdded(api)"
+                                  (close)="closeAddApiAllegato()"
+                                ></app-servizio-allegato-add-form>
+                              }
+                              @for (all of _apiAllegatiList; track all.uuid; let i = $index) {
+                                <div class="approval-card">
+                                  <div class="av av-file"><i class="bi bi-file-earmark"></i></div>
+                                  <div class="body">
+                                    <div class="who text-break">{{ all.filename || all.documento?.filename || all.uuid }}</div>
+                                    <div class="when">
+                                      @if (all.tipologia_allegato) { <span>{{ ('APP.ALLEGATI.TIPI.' + all.tipologia_allegato) | translate }}</span> }
+                                      @if (all.visibilita_allegato) { <span class="ms-2">{{ ('APP.VISIBILITY.' + all.visibilita_allegato) | translate }}</span> }
+                                    </div>
+                                  </div>
+                                  <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [disabled]="_apiAllegatiDownloadings[i]" [attr.aria-label]="'APP.BUTTON.Download' | translate" [tooltip]="'APP.BUTTON.Download' | translate" container="body" (click)="downloadApiAllegato(api, all, i)">
+                                    @if (_apiAllegatiDownloadings[i]) { <span class="spinner-border spinner-border-sm"></span> } @else { <i class="bi bi-download"></i> }
+                                  </button>
+                                  @if (canEditApi()) {
+                                    <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Remove' | translate" [tooltip]="'APP.BUTTON.Remove' | translate" container="body" (click)="confirmDeleteApiAllegato(api, all)">
+                                      <i class="bi bi-trash text-danger"></i>
+                                    </button>
+                                  }
+                                </div>
+                              }
+                              @if (!_apiAllegatiList.length && !_apiAllegatiAddOpen) {
+                                <div class="lnk-empty">
+                                  <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
+                                  <span>{{ 'APP.SERVICES.WIZARD.NoItems' | translate }}</span>
+                                </div>
                               }
                             </div>
                           }
@@ -709,8 +620,10 @@
                     </div>
                   </div>
                   <!-- CTA cambio stato quando "In compilazione" e` il
-                       sub-step attivo (es. "Richiesta configurazione"). -->
-                  @if (sub.state === 'active') {
+                       sub-step attivo (es. "Richiesta configurazione"). Senza
+                       almeno un'API i pulsanti di cambio stato non si mostrano:
+                       prima va definita l'API. -->
+                  @if (sub.state === 'active' && servizioApiList.length) {
                     <ng-container *ngTemplateOutlet="serviceWorkflowCtaTpl"></ng-container>
                   }
                 } @else if (sub.state === 'active') {

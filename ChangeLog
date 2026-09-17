@@ -1,6 +1,17 @@
 2026-09-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 352 (Parte 1): spostata la gestione delle API dalla FASE 1 (Informazioni
+	  generali) al sub-step "In compilazione" del Collaudo (creazione, lista,
+	  allegati); rimossa la sezione API dalle info generali e adattate le
+	  validazioni (0 API non blocca piu` il passaggio al Collaudo, dove ora si crea
+	  l'API). Nuovo componente a tab `servizio-api-edit` per modifica/config
+	  (Informazioni generali + Collaudo/Produzione in base a fase e skip_collaudo),
+	  con keep-alive dei tab. Rimosso l'hint statico (coperto dai disclaimer),
+	  tasti Configura/Visualizza mutuamente esclusivi e tooltip ngx-bootstrap
+	  sui pulsanti icona delle liste.
+
+	* [Frontend]
 	Issue 352: allineato il frontend alla nuova chiave di config `stati` (ex
 	  `stati_adesione`) degli step wizard: rinominata nell'interfaccia StepWizardItem,
 	  nei componenti wizard condivisi (fasi-bar/substepper/step-bar), nei wizard e

@@ -37,7 +37,7 @@ export const STEP_WIZARD_SERVIZIO_FALLBACK: StepWizardItem[] = [
         code: 'info_generali',
         descrizione: 'Informazioni Generali',
         stati: [],
-        sezioni_attive: ['info_generali', 'allegati', 'referenti', 'gruppi', 'categorie', 'api']
+        sezioni_attive: ['info_generali', 'allegati', 'referenti', 'gruppi', 'categorie']
     },
     {
         code: 'collaudo',

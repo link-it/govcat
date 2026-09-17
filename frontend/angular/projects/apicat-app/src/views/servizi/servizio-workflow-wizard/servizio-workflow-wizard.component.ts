@@ -64,7 +64,7 @@ import { StepWizardItem } from '@app/components/wizard/wizard-step-bar/wizard-st
 import { ServizioInfoFormComponent } from './servizio-info-form/servizio-info-form.component';
 import { ServizioReferenteAddFormComponent } from './servizio-referente-add-form/servizio-referente-add-form.component';
 import { ServizioApiDetailsComponent } from '@app/views/servizi/servizio-api-details/servizio-api-details.component';
-import { ServizioApiConfigurationComponent } from '@app/views/servizi/servizio-api-configuration/servizio-api-configuration.component';
+import { ServizioApiEditComponent } from '@app/views/servizi/servizio-api-edit/servizio-api-edit.component';
 
 import {
     STEP_WIZARD_SERVIZIO_FALLBACK,
@@ -104,7 +104,7 @@ declare const saveAs: any;
         ServizioAllegatoAddFormComponent,
         LnkButtonComponent,
         ServizioApiDetailsComponent,
-        ServizioApiConfigurationComponent,
+        ServizioApiEditComponent,
         MarkdownModule,
         MonitorDropdwnComponent,
         HttpImgSrcPipe
@@ -367,14 +367,11 @@ export class ServizioWorkflowWizardComponent implements OnInit {
 
     /** Imposta la fase visualizzata su quella corrente del workflow. */
     private _initSelectedFase() {
-        // `?fase=api` (dopo la creazione): le API sono ora una sezione di FASE 1,
-        // quindi seleziono info_generali e apro la sezione API.
+        // `?fase=api` (dopo la creazione): la gestione API e` stata spostata nel
+        // sub-step "In compilazione" del Collaudo, quindi seleziono la fase collaudo.
         if (this._requestedFase === 'api') {
             this._requestedFase = null;
-            this._selectedFase = 'info_generali';
-            this._phaseSectionOpen = { ...this._phaseSectionOpen };
-            Object.keys(this._phaseSectionOpen).forEach((k) => (this._phaseSectionOpen[k] = false));
-            this._phaseSectionOpen['api'] = true;
+            this._selectedFase = 'collaudo';
             return;
         }
         // Fase richiesta esplicitamente (es. da un link diretto).
@@ -473,6 +470,8 @@ export class ServizioWorkflowWizardComponent implements OnInit {
             this._createApiOpen = false;
         }
         this._selectedFase = code;
+        // Con 0 API nella nuova fase, riapre subito la form di creazione.
+        this._maybeAutoOpenCreateApi();
     }
 
     /** Sotto-step della fase attualmente visualizzata (vuoto per
@@ -809,9 +808,13 @@ export class ServizioWorkflowWizardComponent implements OnInit {
             this._apiAllegatiAddOpen = false;
             return;
         }
-        // Mutua esclusività: aprendo gli allegati chiudo edit/vista dell'API.
+        // Mutua esclusività: aprendo gli allegati chiudo edit/vista/config e
+        // l'eventuale creazione dell'API in corso.
         this._editApiId = null;
         this._editApiStartEdit = false;
+        this._configApiId = null;
+        this._configApiStartEdit = false;
+        this._createApiOpen = false;
         this._apiAllegatiOpenId = api.id_api;
         this._apiAllegatiAddOpen = false;
         this.loadApiAllegati(api.id_api);
@@ -949,32 +952,22 @@ export class ServizioWorkflowWizardComponent implements OnInit {
                     return true;
                 });
                 this._apiListLoaded = true;
-                this._enforceApiRequiredForCollaudo();
                 this._maybeAutoOpenCreateApi();
                 this._loadApiAllegatiCounts();
             },
-            error: () => { this.servizioApiList = []; this._apiListLoaded = true; this._enforceApiRequiredForCollaudo(); this._maybeAutoOpenCreateApi(); }
+            error: () => { this.servizioApiList = []; this._apiListLoaded = true; this._maybeAutoOpenCreateApi(); }
         });
     }
 
-    /** Con 0 API il Collaudo/Produzione è bloccato: se la fase selezionata è una
-     *  di quelle, riporta la vista a FASE 1 (Informazioni generali). */
-    private _enforceApiRequiredForCollaudo() {
-        if ((this.servizioApiList?.length || 0) === 0 &&
-            (this._selectedFase === 'collaudo' || this._selectedFase === 'produzione')) {
-            this._selectedFase = 'info_generali';
-            // Porta l'utente sulla sezione API per inserire la prima API.
-            Object.keys(this._phaseSectionOpen).forEach((k) => (this._phaseSectionOpen[k] = false));
-            this._phaseSectionOpen['api'] = true;
-        }
-    }
-
-    /** Con 0 API e la sezione API aperta, apre già la form di creazione della
-     *  prima API (flussi guidati: post-creazione `?fase=api` o riapertura bozza). */
+    /** Nessuna API definita: nella fase in cui la creazione e` consentita
+     *  (Collaudo, o Produzione con skip_collaudo) apre gia` la form di creazione
+     *  della prima API, come nel flusso precedente. */
     private _maybeAutoOpenCreateApi() {
-        if ((this.servizioApiList?.length || 0) === 0 &&
-            this._phaseSectionOpen['api'] &&
-            this.canAddApi() && !this._createApiOpen && !this._editApiId) {
+        if (this._apiListLoaded &&
+            (this.servizioApiList?.length || 0) === 0 &&
+            this.canCreateApiInPhase() &&
+            this.canAddApi() &&
+            !this._createApiOpen) {
             this._createApiOpen = true;
         }
     }
@@ -1006,12 +999,17 @@ export class ServizioWorkflowWizardComponent implements OnInit {
 
     /** Settaggi per ambiente dell'API inline (embedded config) in modifica. */
     openApiSettings(api: any) {
+        // Una sola form aperta per volta: chiude creazione e allegati.
+        this._createApiOpen = false;
+        this._closeApiAllegati();
         this._configApiStartEdit = true;
         this._configApiId = api.id_api;
     }
 
     /** Settaggi per ambiente dell'API inline in sola lettura. */
     openApiSettingsView(api: any) {
+        this._createApiOpen = false;
+        this._closeApiAllegati();
         this._configApiStartEdit = false;
         this._configApiId = api.id_api;
     }
@@ -1036,8 +1034,25 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         return this.authenticationService.canAdd('servizio', this.data?.stato, this._grant?.ruoli);
     }
 
+    /** La creazione dell'API e` disponibile nel Collaudo; in Produzione solo
+     *  quando il collaudo e` saltato (skip_collaudo), che rende la produzione
+     *  l'ambiente di compilazione iniziale. */
+    canCreateApiInPhase(): boolean {
+        if (this._selectedFase === 'collaudo') { return true; }
+        if (this._selectedFase === 'produzione') { return !!this.data?.skip_collaudo; }
+        return false;
+    }
+
     canEditApi(): boolean {
         return this.authenticationService.canEdit('servizio', 'api', this.data?.stato, this._grant?.ruoli);
+    }
+
+    /** Regola provvisoria (in attesa di specifiche): "Configura" e "Visualizza"
+     *  nella riga API sono mutuamente esclusivi. Di default si mostra
+     *  "Configura" (true); false → si mostra solo la vista in sola lettura. */
+    private _mostraConfiguraApi: boolean = true;
+    mostraConfiguraApi(): boolean {
+        return this._mostraConfiguraApi;
     }
 
     /**
@@ -1069,7 +1084,10 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     }
 
     openCreateApi() {
-        this._phaseSectionOpen['api'] = true;
+        // Una sola form aperta per volta: chiude config/vista e allegati.
+        this._configApiId = null;
+        this._configApiStartEdit = false;
+        this._closeApiAllegati();
         this._editApiId = null;
         this._createApiOpen = true;
     }
@@ -1131,11 +1149,9 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     /** Produzione bloccata finché il servizio non è pubblicato in collaudo,
      *  tranne nel percorso `skip_collaudo` (produzione raggiungibile da bozza). */
     getDisabledFasiCodes(): string[] {
-        // Finché il servizio non ha almeno una API non si può passare a Collaudo
-        // (né a Produzione): la pubblicazione richiede almeno un'API.
-        if (this._apiListLoaded && (this.servizioApiList?.length || 0) === 0) {
-            return ['collaudo', 'produzione'];
-        }
+        // La gestione API e` stata spostata nel Collaudo: la fase dev'essere
+        // raggiungibile anche con 0 API (l'API si crea li`), quindi non si blocca
+        // piu` in base al numero di API.
         if (this.data?.skip_collaudo) { return []; }
         const curIdx = this.workflowStati.indexOf(this.data?.stato);
         const pubCollaudoIdx = this.workflowStati.indexOf('pubblicato_collaudo');

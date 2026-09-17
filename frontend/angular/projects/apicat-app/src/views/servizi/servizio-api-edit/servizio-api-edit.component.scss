@@ -1,0 +1,50 @@
+:host {
+  display: block;
+}
+
+.api-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.api-edit-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  border-bottom: 1px solid var(--line, #dee8ef);
+}
+
+.api-edit-tab {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink-3, #57738a);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+  transition: color .15s ease, border-color .15s ease;
+
+  &:hover {
+    color: var(--ink, #212c49);
+  }
+
+  &.is-active {
+    color: var(--accent, #ff4050);
+    border-bottom-color: var(--accent, #ff4050);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent, #ff4050);
+    outline-offset: 2px;
+    border-radius: 4px 4px 0 0;
+  }
+}
+
+.api-edit-body {
+  min-width: 0;
+}

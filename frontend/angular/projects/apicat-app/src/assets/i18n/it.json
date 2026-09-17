@@ -2423,7 +2423,7 @@
 					"PhaseHint": "Configura l'erogazione di ogni API per questo ambiente. Tutte le API devono essere configurate prima di inviare la richiesta.",
 					"WaitingAction": "In attesa dell'elaborazione da parte del gestore.",
 					"SubstepLocked": "In attesa del completamento delle fasi precedenti.",
-				"ApiHint": "Configura l'erogazione di ogni API per questo ambiente per procedere con la pubblicazione.",
+				"ApiHint": "Definisci le API del servizio: informazioni generali, interfaccia e configurazione dell'erogazione per questo ambiente.",
 				"ApiRequiredHint": "Per procedere al collaudo è necessario inserire almeno una API. Compila la form qui sotto per crearne una.",
 				"ApiConfigured": "Configurata",
 				"ApiToConfigure": "Da configurare",
