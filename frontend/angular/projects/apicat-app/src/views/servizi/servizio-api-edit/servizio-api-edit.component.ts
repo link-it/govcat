@@ -45,6 +45,10 @@ export class ServizioApiEditComponent implements OnInit, OnChanges {
     @Input() skipCollaudo: boolean = false;
     /** Apre i form gia` in modifica (altrimenti sola lettura). */
     @Input() startEdit: boolean = false;
+    /** Se valorizzato, mostra un solo tab (senza tab bar): `info_generali`
+     *  (matita "Modifica informazioni generali") oppure l'ambiente
+     *  (`collaudo`/`produzione`, pulsante "Configura"). */
+    @Input() singleTab: string | null = null;
 
     @Output() saved: EventEmitter<any> = new EventEmitter<any>();
     @Output() closed: EventEmitter<any> = new EventEmitter<any>();
@@ -60,13 +64,16 @@ export class ServizioApiEditComponent implements OnInit, OnChanges {
     }
 
     ngOnChanges(changes: SimpleChanges): void {
-        if (changes['ambiente'] || changes['skipCollaudo']) {
+        if (changes['ambiente'] || changes['skipCollaudo'] || changes['singleTab']) {
             this._computeTabs();
         }
     }
 
     private _computeTabs(): void {
-        if (this.ambiente === 'produzione') {
+        if (this.singleTab === 'info_generali' || this.singleTab === 'collaudo' || this.singleTab === 'produzione') {
+            // Un solo tab richiesto dall'esterno (matita / Configura): niente tab bar.
+            this.tabs = [this.singleTab];
+        } else if (this.ambiente === 'produzione') {
             this.tabs = this.skipCollaudo ? ['info_generali', 'produzione'] : ['produzione'];
         } else {
             // collaudo (default)

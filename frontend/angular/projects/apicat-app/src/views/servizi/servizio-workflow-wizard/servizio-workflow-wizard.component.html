@@ -492,6 +492,8 @@
                         @let isRowOpen = _configApiId === api.id_api;
                         @let isRowEdit = isRowOpen && _configApiStartEdit;
                         @let isRowView = isRowOpen && !_configApiStartEdit;
+                        @let isRowInfo = isRowOpen && _configApiTab === 'info_generali';
+                        @let isRowEnvEdit = isRowOpen && _configApiTab !== 'info_generali' && _configApiStartEdit;
                         <div class="api-row" [class.is-editing]="isRowEdit" [class.is-viewing]="isRowView">
                           <div class="approval-card">
                             <div class="av av-file"><i class="bi bi-code-slash"></i></div>
@@ -502,12 +504,27 @@
                             <span class="chip" [class.chip-ok]="apiHasConfig(api)" [class.chip-muted]="!apiHasConfig(api)">
                               {{ (apiHasConfig(api) ? 'APP.SERVICES.WIZARD.ApiConfigured' : 'APP.SERVICES.WIZARD.ApiToConfigure') | translate }}
                             </span>
-                            <!-- Configura (modifica) e Visualizza sono mutuamente
-                                 esclusivi: in assenza di una regola da specifiche,
-                                 di default si mostra "Configura" (mostraConfiguraApi). -->
-                            @if (mostraConfiguraApi() && canEditApi()) {
-                              <button type="button" class="lnk-btn lnk-btn-sm" (click)="isRowEdit ? closeApiSettings() : openApiSettings(api)">
-                                @if (isRowEdit) {
+                            @if (canEditApi()) {
+                              <!-- Matita: modifica delle informazioni generali dell'API
+                                   (apre il pannello sul solo tab Informazioni generali).
+                                   Da aperta assume lo stesso stile del pulsante Configura
+                                   ("X Chiudi"). -->
+                              @if (isRowInfo) {
+                                <button type="button" class="lnk-btn lnk-btn-sm" (click)="closeApiSettings()">
+                                  <i class="bi bi-x-lg"></i><span>{{ 'APP.BUTTON.Close' | translate }}</span>
+                                </button>
+                              } @else {
+                                <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon"
+                                        [attr.aria-label]="'APP.SERVICES.WIZARD.EditApiGeneralInfo' | translate"
+                                        [tooltip]="'APP.SERVICES.WIZARD.EditApiGeneralInfo' | translate" container="body"
+                                        (click)="openApiInfo(api)">
+                                  <i class="bi bi-pencil"></i>
+                                </button>
+                              }
+                              <!-- Configura: configurazione per l'ambiente corrente
+                                   (apre il pannello sul solo tab collaudo/produzione). -->
+                              <button type="button" class="lnk-btn lnk-btn-sm" (click)="isRowEnvEdit ? closeApiSettings() : openApiSettings(api)">
+                                @if (isRowEnvEdit) {
                                   <i class="bi bi-x-lg"></i><span>{{ 'APP.BUTTON.Close' | translate }}</span>
                                 } @else {
                                   <i class="bi bi-gear"></i><span>{{ 'APP.SERVICES.WIZARD.ConfigureApi' | translate }}</span>
@@ -553,6 +570,7 @@
                                 [sid]="id"
                                 [ambiente]="currentAmbiente"
                                 [skipCollaudo]="!!data?.skip_collaudo"
+                                [singleTab]="_configApiTab"
                                 [startEdit]="isRowEdit"
                                 (saved)="onApiSettingsSaved($event)"
                                 (closed)="closeApiSettings()"

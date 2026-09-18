@@ -110,7 +110,7 @@
                                   name="nome_gateway" id="nome_gateway" formControlName="nome_gateway" disablePermission
                                   [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato"
                                   [grant]="_grant">
-                                @if (environmentId === 'produzione') {
+                                @if (showCopyFromTesting()) {
                                   <button class="btn btn-default btn-md gl-button" type="button"
                                     [disabled]="!getTestingValue('nome_gateway')"
                                     (click)="copyTestingValue('nome_gateway')"
@@ -162,7 +162,7 @@
                                     name="versione_gateway" id="versione_gateway" formControlName="versione_gateway"
                                     disablePermission [module]="'servizio'" [submodule]="'api'" [state]="service?.stato"
                                     [grant]="_grant" min="1">
-                                  @if (environmentId === 'produzione') {
+                                  @if (showCopyFromTesting()) {
                                     <button class="btn btn-default btn-md gl-button" type="button"
                                       [disabled]="!getTestingValue('versione_gateway')"
                                       (click)="copyTestingValue('versione_gateway')"
@@ -231,7 +231,7 @@
                                     </option>
                                   }
                                 </select>
-                                @if (environmentId === 'produzione') {
+                                @if (showCopyFromTesting()) {
                                   <button class="btn btn-default btn-md gl-button" type="button"
                                     [disabled]="!getTestingValue('protocollo')"
                                     (click)="copyTestingValue('protocollo')"
@@ -358,7 +358,7 @@
                                       [attr.aria-describedby]="(_hasControlError('url')) ? 'url-error' : null" type="text" name="url" id="url"
                                       formControlName="url" disablePermission [isNew]="_isNew" [module]="'servizio'"
                                       [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
-                                    @if (environmentId === 'produzione') {
+                                    @if (showCopyFromTesting()) {
                                       <button class="btn btn-default btn-md gl-button" type="button"
                                         [disabled]="!getTestingValue('url')"
                                         (click)="copyTestingValue('url')" [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate">
@@ -435,7 +435,7 @@
                                               [maxUpload]="null"
                                             ></ui-allegato>
                                           </ng-container> -->
-                                          @if (environmentId === 'produzione') {
+                                          @if (showCopyFromTesting()) {
                                             <button class="btn btn-default btn-md gl-button" type="button"
                                               [disabled]="!getCustomPropertyTestingValue(cp[fieldToGroup], cp.nome)"
                                               (click)="copyCustomPropertyTestingValue(cp[fieldToGroup], cp.nome)"
@@ -490,7 +490,7 @@
                       @if (embedded) {
                         <!-- Form inline: footer a destra, Annulla poi Salva, senza sfondo/padding. -->
                         <div class="d-flex justify-content-end gap-2 mt-3">
-                          @if (environmentId === 'produzione') {
+                          @if (showCopyFromTesting()) {
                             <button type="button" class="gl-button btn btn-confirm" (click)="copyAllTestingValues()">
                               {{ 'APP.BUTTON.CopyTestingValues' | translate }}
                             </button>
@@ -519,7 +519,7 @@
                               {{ 'APP.BUTTON.Cancel' | translate }}
                             </button>
                           </div>
-                          @if (environmentId === 'produzione') {
+                          @if (showCopyFromTesting()) {
                             <button type="button" class="gl-button btn btn-confirm" (click)="copyAllTestingValues()">
                               {{ 'APP.BUTTON.CopyTestingValues' | translate }}
                             </button>

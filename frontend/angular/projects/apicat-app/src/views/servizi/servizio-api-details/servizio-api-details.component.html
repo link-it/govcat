@@ -173,6 +173,9 @@
     @if (servizioApi || _isNew) {
       <div class="settings">
         <div class="settings-content">
+          @if (embedded && _isNew) {
+            <h4 class="gl-mt-0 text-break">{{ 'APP.TITLE.NewApi' | translate }}</h4>
+          }
           @if (!_isEdit && _error) {
             <div class="gl-alert gl-alert-danger col-md-12 mb-5">
               @if (!_errors.length) {
@@ -418,7 +421,7 @@
                           }
                         </div>
                       </div>
-                      <div class="col-12">
+                      <div class="col-12" [hidden]="service?.skip_collaudo">
                         <div class="form-group url_collaudo">
                           <label class="label-bold" for="url_collaudo">{{ 'APP.LABEL.url_collaudo' | translate }} @if (_isEdit) {
                             <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'url_collaudo'"></span>
@@ -460,7 +463,7 @@
                       @if (!_loadingRisorse) {
                         <div class="col-12">
                           <div class="" formArrayName="authTypes">
-                            @for (at of authTypesArray().controls; track at; let authIndex = $index) {
+                            @for (at of authTypesArray().controls; track $index; let authIndex = $index) {
                               <div [ngClass]="{ 'text-bg-light p-3': (_customAuth || _customAuthOrig), 'border-top- border-bottom-': (_customAuth || _customAuthOrig), 'mt-3': authIndex > 0 }" >
                                 <div [formGroupName]="authIndex">
                                   @if (authTypesArray().controls.length > 1) {

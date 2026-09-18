@@ -1,4 +1,15 @@
-2026-09-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+2026-09-18  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 352 (Parte 1): rifinita la UX di gestione API nel Collaudo. Separate le
+	  azioni sulla riga API: matita "Modifica informazioni generali" e "Configura"
+	  aprono il componente a tab sul singolo tab (info generali / ambiente),
+	  allineate graficamente in chiusura. Skip_collaudo: nascosti i pulsanti "Copia
+	  valori collaudo" nella config di produzione e sostituita la sezione collaudo
+	  con produzione nella creazione (payload duplicato in collaudo+produzione,
+	  obbligatorieta` spostata sulla url di produzione). Aggiunto il titolo "Nuova
+	  API" alla form di creazione embedded, sistemati i tooltip mancanti/nativi
+	  (ngx-bootstrap) e corretto un track NG0956 sull'array authTypes.
 
 	* [Frontend]
 	Issue 352 (Parte 1): spostata la gestione delle API dalla FASE 1 (Informazioni

@@ -158,6 +158,9 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     _configApiId: string | null = null;
     /** Pannello settaggi per ambiente aperto in modifica (true) o sola lettura (false). */
     _configApiStartEdit: boolean = false;
+    /** Tab da mostrare nel pannello API inline: `info_generali` (matita) o
+     *  l'ambiente `collaudo`/`produzione` (Configura). */
+    _configApiTab: string | null = null;
 
     @ViewChild('infoFormRef') infoFormRef?: ServizioInfoFormComponent;
 
@@ -997,19 +1000,32 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         this.router.navigate([this.model, this.id, 'api', api.id_api, 'configuration', amb]);
     }
 
-    /** Settaggi per ambiente dell'API inline (embedded config) in modifica. */
-    openApiSettings(api: any) {
-        // Una sola form aperta per volta: chiude creazione e allegati.
+    /** Modifica delle informazioni generali dell'API (matita): apre il pannello
+     *  a tab sul solo tab "Informazioni generali". */
+    openApiInfo(api: any) {
         this._createApiOpen = false;
         this._closeApiAllegati();
+        this._configApiTab = 'info_generali';
         this._configApiStartEdit = true;
         this._configApiId = api.id_api;
     }
 
-    /** Settaggi per ambiente dell'API inline in sola lettura. */
+    /** Configurazione per ambiente dell'API inline (Configura): apre il pannello
+     *  a tab sul solo tab dell'ambiente corrente (collaudo/produzione). */
+    openApiSettings(api: any) {
+        // Una sola form aperta per volta: chiude creazione e allegati.
+        this._createApiOpen = false;
+        this._closeApiAllegati();
+        this._configApiTab = this.currentAmbiente;
+        this._configApiStartEdit = true;
+        this._configApiId = api.id_api;
+    }
+
+    /** Configurazione per ambiente dell'API inline in sola lettura. */
     openApiSettingsView(api: any) {
         this._createApiOpen = false;
         this._closeApiAllegati();
+        this._configApiTab = this.currentAmbiente;
         this._configApiStartEdit = false;
         this._configApiId = api.id_api;
     }
@@ -1017,11 +1033,13 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     closeApiSettings() {
         this._configApiId = null;
         this._configApiStartEdit = false;
+        this._configApiTab = null;
     }
 
     onApiSettingsSaved(_event: any) {
         this._configApiId = null;
         this._configApiStartEdit = false;
+        this._configApiTab = null;
         this.loadServizioApi();
     }
 
@@ -1045,14 +1063,6 @@ export class ServizioWorkflowWizardComponent implements OnInit {
 
     canEditApi(): boolean {
         return this.authenticationService.canEdit('servizio', 'api', this.data?.stato, this._grant?.ruoli);
-    }
-
-    /** Regola provvisoria (in attesa di specifiche): "Configura" e "Visualizza"
-     *  nella riga API sono mutuamente esclusivi. Di default si mostra
-     *  "Configura" (true); false → si mostra solo la vista in sola lettura. */
-    private _mostraConfiguraApi: boolean = true;
-    mostraConfiguraApi(): boolean {
-        return this._mostraConfiguraApi;
     }
 
     /**

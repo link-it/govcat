@@ -258,6 +258,13 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
     });
   }
 
+  /** Copia dei valori dal collaudo: ha senso solo in produzione e quando il
+   *  collaudo NON e` stato saltato (con `skip_collaudo` non esiste alcuna
+   *  configurazione di collaudo da cui copiare). */
+  showCopyFromTesting(): boolean {
+    return this.environmentId === 'produzione' && !this.service?.skip_collaudo;
+  }
+
   copyTestingValue(field: string, overwrite: boolean = true) {
     const control = this._formGroup.get(field);
     if (!control || (!overwrite && control.value)) {

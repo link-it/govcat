@@ -542,22 +542,29 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
     _prepareBodySaveApi(body: any) {
         console.log('_prepareBodySaveApi', body);
+        // skip_collaudo: in creazione la sezione collaudo e` sostituita dalla
+        // produzione. Non esiste un collaudo reale, quindi i valori di base
+        // provengono dal campo produzione e vengono duplicati nelle due
+        // configurazioni (il tipo richiede comunque configurazione_collaudo).
+        const _skipCollaudo = !!this.service?.skip_collaudo;
+        const _baseUrl = _skipCollaudo ? body.url_produzione : body.url_collaudo;
+
         const configurazioneCollaudo: ApiConfiguration = {
             protocollo: body.protocollo,
             dati_erogazione: {
-                url: body.url_collaudo || null,
+                url: _baseUrl || null,
                 nome_gateway: body.nome_gateway || null,
                 versione_gateway: body.versione_gateway || null,
             }
         };
-        
+
         let configurazioneProduzione: ApiConfiguration | undefined = undefined;
 
-        if (body.url_produzione) {
+        if (_skipCollaudo || body.url_produzione) {
             configurazioneProduzione = {
                 protocollo: body.protocollo,
                 dati_erogazione: {
-                    url: body.url_produzione
+                    url: body.url_produzione || null
                 }
             };
         }
@@ -1147,6 +1154,20 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                 controls[field].updateValueAndValidity();
             }
         });
+
+        // skip_collaudo: la sezione collaudo e` nascosta e sostituita dalla
+        // produzione; sposto l'obbligatorieta` dalla url di collaudo a quella di
+        // produzione per non bloccare il salvataggio con un campo nascosto.
+        if (this._isNew && this.service?.skip_collaudo) {
+            if (controls.url_collaudo) {
+                controls.url_collaudo.clearValidators();
+                controls.url_collaudo.updateValueAndValidity();
+            }
+            if (controls.url_produzione) {
+                controls.url_produzione.setValidators([Validators.required]);
+                controls.url_produzione.updateValueAndValidity();
+            }
+        }
 
         if (!this._isNew) {
             _notModifiableFields.forEach((field: string) => {
