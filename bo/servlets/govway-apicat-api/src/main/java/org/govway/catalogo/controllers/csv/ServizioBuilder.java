@@ -64,6 +64,7 @@ public class ServizioBuilder {
 		SoggettoEntity erogatore = this.eServiceBuilder.getSoggettoErogatore(servizioEntity);
 		String nomeErogatore = erogatore != null ? erogatore.getNome() : "";
 		String nomeFruitore = getNomeFruitore(servizioEntity);
+		String intermediato = servizioEntity.isFruizione() ? "Sì" : "No";
 
 		DominioEntity dominioEntity = servizioEntity.getDominio();
 		String nomeDominio = dominioEntity != null ? dominioEntity.getNome() : "";
@@ -82,6 +83,7 @@ public class ServizioBuilder {
 
 			s.setErogatore(nomeErogatore);
 			s.setFruitore(nomeFruitore);
+			s.setIntermediato(intermediato);
 			s.setDominio(nomeDominio);
 
 			// Servizio

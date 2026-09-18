@@ -77,6 +77,34 @@
 	  i testi di default per i quattordici stati del workflow del servizio,
 	  compreso il percorso senza collaudo, e per le pagine di configurazione di
 	  collaudo e produzione.
+	Issue 357: il csv di export dei servizi riporta la nuova colonna `Intermediato`
+	  (`Sì`/`No`), che distingue i servizi in fruizione da quelli in erogazione. La
+	  colonna è affiancata a `Soggetto Fruitore`, valorizzato solo per i servizi
+	  intermediati.
+
+2026-09-17  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 358: un utente con ruolo coordinatore riceveva le comunicazioni indirizzate al
+	  proprio ruolo su qualsiasi adesione, ma aprendole dalla dashboard otteneva ADE.404
+	  sia sul dettaglio dell'adesione sia sull'elenco delle comunicazioni. Il filtro di
+	  visibilità applicato alla singola adesione ammetteva infatti il solo gestore, e il
+	  coordinatore non rientra in nessuno degli altri criteri previsti (referente di
+	  adesione, servizio o dominio, richiedente, amministratore dell'organizzazione
+	  aderente). Il coordinatore ha ora visibilità su tutte le adesioni, comprese quelle
+	  archiviate, coerentemente con quanto già avveniva nella lista delle adesioni e nel
+	  dettaglio dei servizi, e con i ruoli di workflow, dove al coordinatore è assegnato
+	  "referente superiore" su qualsiasi adesione.
+	Issue 359: un utente con ruolo coordinatore accedeva alla scheda di un servizio ma
+	  otteneva API.404 aprendo il dettaglio di una qualsiasi API dello stesso servizio.
+	  Il recupero dell'API verifica infatti la visibilità del servizio a cui appartiene,
+	  e quel controllo ammetteva il solo gestore, mentre il dettaglio del servizio
+	  equipara da tempo coordinatore e gestore. Il criterio è ora allineato: il
+	  coordinatore ha visibilità su tutti i servizi anche quando vi accede a partire
+	  dalle relative API. Ne beneficiano, oltre al dettaglio, tutte le operazioni che
+	  passano dallo stesso controllo (export, download della specifica, url di
+	  invocazione, allegati, token policy). I permessi di modifica non cambiano: restano
+	  regolati dalle autorizzazioni sul servizio.
 
 2026-09-14  Giovanni De Luca <giovanni.deluca@link.it>
 
