@@ -38,6 +38,28 @@
 	  stato normale. I disclaimer con profilo/nome_gruppo sono esclusi dai banner
 	  (rendering accanto a riga API/gruppo custom properties rimandato a follow-up).
 
+2026-09-18  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 360: introdotta la classe di dato `api` nel workflow dei servizi, che governa
+	  la composizione della lista delle API di un servizio: creazione, eliminazione e
+	  modifica di nome, versione e ruolo di un'API esistente. Finora quelle operazioni
+	  ricadevano sulla classe `identificativo`, condivisa con i dati anagrafici del
+	  servizio, e il divieto per il referente derivava solo, in modo implicito, dal non
+	  essere abilitato alla transizione verso lo stato successivo. Con la nuova classe il
+	  vincolo è dichiarato nei `dati_non_modificabili` di ciascuno stato ed è quindi
+	  configurabile: dove `api` compare fra i dati non modificabili le API restano
+	  gestibili al solo gestore, dove non compare valgono i ruoli abilitati alla
+	  transizione. Nella configurazione di default `api` è non modificabile in tutti gli
+	  stati tranne `bozza`, così dalla richiesta di configurazione in collaudo, e dalla
+	  richiesta di configurazione in produzione quando il collaudo è saltato, solo il
+	  gestore può aggiungere o rimuovere API. La classe è richiesta in AND con
+	  `identificativo`, così le configurazioni che non la dichiarano mantengono i
+	  vincoli già in vigore. Restano governati dalle classi preesistenti i dati delle
+	  singole API, compresa la configurazione di produzione, che il referente deve poter
+	  compilare a servizio pubblicato in collaudo. Il grant del servizio espone il nuovo
+	  diritto nel campo `api`.
+
 2026-09-17  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

@@ -7142,6 +7142,7 @@ components:
         - produzione_configurato
         - collaudo_pdnd
         - produzione_pdnd
+        - api
     VisibilitaRichiedenteReferentiEnum:
       type: "string"
       enum:
@@ -7670,6 +7671,8 @@ components:
         collaudo:
           $ref: '#/components/schemas/GrantType'
         produzione:
+          $ref: '#/components/schemas/GrantType'
+        api:
           $ref: '#/components/schemas/GrantType'
     GrantType:
       type: "string"
