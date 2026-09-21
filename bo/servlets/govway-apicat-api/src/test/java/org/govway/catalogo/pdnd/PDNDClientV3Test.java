@@ -28,18 +28,23 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import org.govway.catalogo.exception.ClientApiException;
-import org.govway.catalogo.exception.NotImplementedException;
+import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.pdnd.controllers.PDNDClientV3;
 import org.govway.catalogo.servlets.pdnd.model.AgreementState;
 import org.govway.catalogo.servlets.pdnd.model.AttributeKind;
+import org.govway.catalogo.servlets.pdnd.model.AttributeValidity;
+import org.govway.catalogo.servlets.pdnd.model.AttributeValidityState;
+import org.govway.catalogo.servlets.pdnd.model.Events;
 import org.govway.catalogo.servlets.pdnd.model.EService;
 import org.govway.catalogo.servlets.pdnd.model.EServiceAttribute;
 import org.govway.catalogo.servlets.pdnd.model.EServiceDescriptorState;
@@ -49,6 +54,34 @@ import org.govway.catalogo.servlets.pdnd.model.PurposeState;
 import org.govway.catalogo.servlets.pdnd.model.Subscribers;
 import org.govway.catalogo.servlets.pdnd.v3.client.api.GatewayApi;
 import org.govway.catalogo.servlets.pdnd.v3.client.api.impl.ApiException;
+import org.govway.catalogo.servlets.pdnd.v3.model.AgreementEvents;
+import org.govway.catalogo.servlets.pdnd.v3.model.AttributeEvents;
+import org.govway.catalogo.servlets.pdnd.v3.model.CertifiedAttributes;
+import org.govway.catalogo.servlets.pdnd.v3.model.ClientEvents;
+import org.govway.catalogo.servlets.pdnd.v3.model.ConsumerDelegationEvents;
+import org.govway.catalogo.servlets.pdnd.v3.model.EServiceDescriptorDeclaredAttribute;
+import org.govway.catalogo.servlets.pdnd.v3.model.EServiceDescriptorVerifiedAttribute;
+import org.govway.catalogo.servlets.pdnd.v3.model.EServiceEvent;
+import org.govway.catalogo.servlets.pdnd.v3.model.EServiceEvents;
+import org.govway.catalogo.servlets.pdnd.v3.model.EServiceTemplateEvents;
+import org.govway.catalogo.servlets.pdnd.v3.model.KeyEvent;
+import org.govway.catalogo.servlets.pdnd.v3.model.KeyEvents;
+import org.govway.catalogo.servlets.pdnd.v3.model.ProducerDelegationEvents;
+import org.govway.catalogo.servlets.pdnd.v3.model.ProducerKeyEvents;
+import org.govway.catalogo.servlets.pdnd.v3.model.ProducerKeychainEvents;
+import org.govway.catalogo.servlets.pdnd.v3.model.PurposeEvents;
+import org.govway.catalogo.servlets.pdnd.v3.model.PurposeTemplateEvents;
+import org.govway.catalogo.servlets.pdnd.v3.model.TenantCertifiedAttribute;
+import org.govway.catalogo.servlets.pdnd.v3.model.TenantCertifiedAttributeSeed;
+import org.govway.catalogo.servlets.pdnd.v3.model.TenantCertifiedAttributes;
+import org.govway.catalogo.servlets.pdnd.v3.model.TenantDeclaredAttribute;
+import org.govway.catalogo.servlets.pdnd.v3.model.TenantDeclaredAttributes;
+import org.govway.catalogo.servlets.pdnd.v3.model.TenantEvents;
+import org.govway.catalogo.servlets.pdnd.v3.model.TenantVerifiedAttribute;
+import org.govway.catalogo.servlets.pdnd.v3.model.TenantVerifiedAttributeVerifier;
+import org.govway.catalogo.servlets.pdnd.v3.model.TenantVerifiedAttributeVerifiers;
+import org.govway.catalogo.servlets.pdnd.v3.model.TenantVerifiedAttributes;
+import org.govway.catalogo.servlets.pdnd.v3.model.VerifiedAttribute;
 import org.govway.catalogo.servlets.pdnd.v3.model.Agreement;
 import org.govway.catalogo.servlets.pdnd.v3.model.Agreements;
 import org.govway.catalogo.servlets.pdnd.v3.model.CertifiedAttribute;
@@ -68,6 +101,7 @@ import org.govway.catalogo.servlets.pdnd.v3.model.Tenant;
 import org.govway.catalogo.servlets.pdnd.v3.model.TenantKind;
 import org.govway.catalogo.servlets.pdnd.v3.model.Tenants;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 /**
  * Verifica l'adattamento delle risposte dell'API PDND v3 verso il modello dati dell'API
@@ -82,23 +116,207 @@ class PDNDClientV3Test {
 	private static final UUID AGREEMENT_ID = UUID.fromString("55555555-5555-5555-5555-555555555555");
 	private static final UUID PURPOSE_ID = UUID.fromString("66666666-6666-6666-6666-666666666666");
 	private static final UUID ATTRIBUTE_ID = UUID.fromString("88888888-8888-8888-8888-888888888888");
+	private static final UUID ATTRIBUTO_DICHIARATO = UUID.fromString("99999999-9999-9999-9999-999999999999");
+	private static final UUID ATTRIBUTO_VERIFICATO = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+	private static final UUID ATTRIBUTO_CERCATO = UUID.fromString("88888888-8888-8888-8888-888888888555");
+	private static final OffsetDateTime IERI = OffsetDateTime.now().minusDays(1);
 
 
-	// ==================== operazioni non supportate dalla v3 ====================
+	// ==================== operazioni ricostruite sulla v3 ====================
 
 	@Test
-	void operazioniSenzaEquivalenteV3RestituisconoNotImplemented() throws Exception {
+	void gliAttributiDellAccordoRiportanoLaValiditaPerIlFruitore() throws Exception {
 		GatewayApi api = mock(GatewayApi.class);
-		PDNDClientV3 client = new PDNDClientV3(api);
 
-		assertThrows(NotImplementedException.class, () -> client.getAgreementAttributes(AGREEMENT_ID));
-		assertThrows(NotImplementedException.class, () -> client.getEventsFromId(1L, 10));
-		assertThrows(NotImplementedException.class, () -> client.getEservicesEventsFromId(1L, 10));
-		assertThrows(NotImplementedException.class, () -> client.getKeysEventsFromId(1L, 10));
-		assertThrows(NotImplementedException.class, () -> client.upsertTenant("IPA", "c_h501", "L5"));
-		assertThrows(NotImplementedException.class, () -> client.revokeTenantAttribute("IPA", "c_h501", "L5"));
+		when(api.getAgreement(AGREEMENT_ID)).thenReturn(
+				agreement(AGREEMENT_ID, org.govway.catalogo.servlets.pdnd.v3.model.AgreementState.ACTIVE));
+
+		// attributi richiesti dal descrittore dell'e-service
+		when(api.getEServiceDescriptorCertifiedAttributes(eq(ESERVICE_ID), eq(DESCRIPTOR_ID), eq(0), any()))
+			.thenReturn(new EServiceDescriptorCertifiedAttributes().results(List.of(
+					new EServiceDescriptorCertifiedAttribute().groupIndex(0)
+						.attribute(certificato(ATTRIBUTE_ID, "L5")))));
+		when(api.getEServiceDescriptorDeclaredAttributes(eq(ESERVICE_ID), eq(DESCRIPTOR_ID), eq(0), any()))
+			.thenReturn(new EServiceDescriptorDeclaredAttributes().results(List.of(
+					new EServiceDescriptorDeclaredAttribute().groupIndex(0)
+						.attribute(new DeclaredAttribute().id(ATTRIBUTO_DICHIARATO).name("dichiarato")))));
+		when(api.getEServiceDescriptorVerifiedAttributes(eq(ESERVICE_ID), eq(DESCRIPTOR_ID), eq(0), any()))
+			.thenReturn(new EServiceDescriptorVerifiedAttributes().results(List.of(
+					new EServiceDescriptorVerifiedAttribute().groupIndex(0)
+						.attribute(new VerifiedAttribute().id(ATTRIBUTO_VERIFICATO).name("verificato")))));
+
+		// attributi posseduti dal fruitore: il certificato e' valido, il dichiarato e' revocato
+		when(api.getTenantCertifiedAttributes(eq(CONSUMER_ID), eq(0), any()))
+			.thenReturn(new TenantCertifiedAttributes().results(List.of(
+					new TenantCertifiedAttribute().id(ATTRIBUTE_ID).assignedAt(IERI))));
+		when(api.getTenantDeclaredAttributes(eq(CONSUMER_ID), eq(0), any(), isNull()))
+			.thenReturn(new TenantDeclaredAttributes().results(List.of(
+					new TenantDeclaredAttribute().id(ATTRIBUTO_DICHIARATO).assignedAt(IERI).revokedAt(IERI))));
+		when(api.getTenantVerifiedAttributes(eq(CONSUMER_ID), eq(0), any()))
+			.thenReturn(new TenantVerifiedAttributes().results(List.of(
+					new TenantVerifiedAttribute().id(ATTRIBUTO_VERIFICATO).assignedAt(IERI))));
+
+		// l'attributo verificato e' stato verificato dall'erogatore dell'accordo
+		when(api.getTenantVerifiedAttributeVerifiers(eq(CONSUMER_ID), eq(ATTRIBUTO_VERIFICATO), eq(0), any()))
+			.thenReturn(new TenantVerifiedAttributeVerifiers().results(List.of(
+					new TenantVerifiedAttributeVerifier().id(PRODUCER_ID).verifiedAt(IERI)
+						.expiresAt(IERI.plusYears(1)))));
+
+		org.govway.catalogo.servlets.pdnd.model.Attributes response =
+				new PDNDClientV3(api).getAgreementAttributes(AGREEMENT_ID).getBody();
+
+		assertEquals(AttributeValidity.VALID, validita(response.getCertified(), ATTRIBUTE_ID));
+		assertEquals(AttributeValidity.INVALID, validita(response.getDeclared(), ATTRIBUTO_DICHIARATO));
+		assertEquals(AttributeValidity.VALID, validita(response.getVerified(), ATTRIBUTO_VERIFICATO));
 	}
 
+	@Test
+	void unAttributoVerificatoDaAltriNonEValidoPerLAccordo() throws Exception {
+		GatewayApi api = mock(GatewayApi.class);
+
+		when(api.getAgreement(AGREEMENT_ID)).thenReturn(
+				agreement(AGREEMENT_ID, org.govway.catalogo.servlets.pdnd.v3.model.AgreementState.ACTIVE));
+		when(api.getEServiceDescriptorCertifiedAttributes(eq(ESERVICE_ID), eq(DESCRIPTOR_ID), eq(0), any()))
+			.thenReturn(new EServiceDescriptorCertifiedAttributes());
+		when(api.getEServiceDescriptorDeclaredAttributes(eq(ESERVICE_ID), eq(DESCRIPTOR_ID), eq(0), any()))
+			.thenReturn(new EServiceDescriptorDeclaredAttributes());
+		when(api.getEServiceDescriptorVerifiedAttributes(eq(ESERVICE_ID), eq(DESCRIPTOR_ID), eq(0), any()))
+			.thenReturn(new EServiceDescriptorVerifiedAttributes().results(List.of(
+					new EServiceDescriptorVerifiedAttribute().groupIndex(0)
+						.attribute(new VerifiedAttribute().id(ATTRIBUTO_VERIFICATO).name("verificato")))));
+		when(api.getTenantCertifiedAttributes(eq(CONSUMER_ID), eq(0), any()))
+			.thenReturn(new TenantCertifiedAttributes());
+		when(api.getTenantDeclaredAttributes(eq(CONSUMER_ID), eq(0), any(), isNull()))
+			.thenReturn(new TenantDeclaredAttributes());
+		when(api.getTenantVerifiedAttributes(eq(CONSUMER_ID), eq(0), any()))
+			.thenReturn(new TenantVerifiedAttributes().results(List.of(
+					new TenantVerifiedAttribute().id(ATTRIBUTO_VERIFICATO).assignedAt(IERI))));
+
+		// verificato da un'organizzazione diversa dall'erogatore, e con verifica scaduta
+		when(api.getTenantVerifiedAttributeVerifiers(eq(CONSUMER_ID), eq(ATTRIBUTO_VERIFICATO), eq(0), any()))
+			.thenReturn(new TenantVerifiedAttributeVerifiers().results(List.of(
+					new TenantVerifiedAttributeVerifier().id(CONSUMER_ID).verifiedAt(IERI),
+					new TenantVerifiedAttributeVerifier().id(PRODUCER_ID).verifiedAt(IERI).expiresAt(IERI))));
+
+		org.govway.catalogo.servlets.pdnd.model.Attributes response =
+				new PDNDClientV3(api).getAgreementAttributes(AGREEMENT_ID).getBody();
+
+		assertEquals(AttributeValidity.INVALID, validita(response.getVerified(), ATTRIBUTO_VERIFICATO));
+	}
+
+	@Test
+	void lAssegnazionePerCodiceRisolveIlCodiceNelRegistroDegliAttributi() throws Exception {
+		GatewayApi api = mock(GatewayApi.class);
+
+		Tenants tenants = new Tenants();
+		tenants.setResults(List.of(tenant()));
+		when(api.getTenants(eq(0), any(), eq("c_h501"), isNull())).thenReturn(tenants);
+
+		// il codice cercato si trova nella seconda pagina del registro
+		when(api.getCertifiedAttributes(eq(0), any())).thenReturn(
+				new CertifiedAttributes().results(pagina("L1", 50)));
+		when(api.getCertifiedAttributes(eq(50), any())).thenReturn(
+				new CertifiedAttributes().results(List.of(certificato(ATTRIBUTO_CERCATO, "L5"))));
+
+		new PDNDClientV3(api).upsertTenant("IPA", "c_h501", "L5");
+
+		ArgumentCaptor<TenantCertifiedAttributeSeed> seed =
+				ArgumentCaptor.forClass(TenantCertifiedAttributeSeed.class);
+		verify(api).assignTenantCertifiedAttribute(eq(CONSUMER_ID), seed.capture());
+		assertEquals(ATTRIBUTO_CERCATO, seed.getValue().getId());
+	}
+
+	@Test
+	void ilCodiceRisoltoNonVieneRicercatoUnaSecondaVolta() throws Exception {
+		GatewayApi api = mock(GatewayApi.class);
+
+		Tenants tenants = new Tenants();
+		tenants.setResults(List.of(tenant()));
+		when(api.getTenants(eq(0), any(), eq("c_h501"), isNull())).thenReturn(tenants);
+		when(api.getCertifiedAttributes(eq(0), any())).thenReturn(
+				new CertifiedAttributes().results(List.of(certificato(ATTRIBUTO_CERCATO, "L5"))));
+
+		PDNDClientV3 client = new PDNDClientV3(api);
+		client.upsertTenant("IPA", "c_h501", "L5");
+		client.revokeTenantAttribute("IPA", "c_h501", "L5");
+
+		verify(api, times(1)).getCertifiedAttributes(eq(0), any());
+		verify(api).revokeTenantCertifiedAttribute(CONSUMER_ID, ATTRIBUTO_CERCATO);
+	}
+
+	@Test
+	void unCodiceInesistenteNonVieneTrovato() throws Exception {
+		GatewayApi api = mock(GatewayApi.class);
+
+		Tenants tenants = new Tenants();
+		tenants.setResults(List.of(tenant()));
+		when(api.getTenants(eq(0), any(), eq("c_h501"), isNull())).thenReturn(tenants);
+		when(api.getCertifiedAttributes(eq(0), any())).thenReturn(
+				new CertifiedAttributes().results(List.of(certificato(ATTRIBUTO_CERCATO, "L5"))));
+
+		PDNDClientV3 client = new PDNDClientV3(api);
+
+		assertThrows(NotFoundException.class, () -> client.upsertTenant("IPA", "c_h501", "L99"));
+	}
+
+	// ==================== eventi ====================
+
+	@Test
+	void gliEventiSonoNumeratiPerPosizioneNelFlusso() throws Exception {
+		GatewayApi api = mock(GatewayApi.class);
+		when(api.getEServicesEvents(any(), isNull(), isNull())).thenReturn(
+				new EServiceEvents().events(List.of(eventoEService(1), eventoEService(2), eventoEService(3))));
+
+		Events response = new PDNDClientV3(api).getEservicesEventsFromId(0L, 10).getBody();
+
+		assertEquals(3, response.getEvents().size());
+		assertEquals(1L, response.getEvents().get(0).getEventId());
+		assertEquals(3L, response.getEvents().get(2).getEventId());
+		assertEquals(3L, response.getLastEventId());
+		assertEquals("ESERVICE", response.getEvents().get(0).getObjectType());
+		assertEquals(ESERVICE_ID.toString(), response.getEvents().get(0).getObjectId().get("eserviceId"));
+	}
+
+	@Test
+	void laLetturaDegliEventiRiprendeDallaPosizioneIndicata() throws Exception {
+		GatewayApi api = mock(GatewayApi.class);
+		when(api.getEServicesEvents(any(), isNull(), isNull())).thenReturn(
+				new EServiceEvents().events(List.of(eventoEService(1), eventoEService(2), eventoEService(3))));
+
+		Events response = new PDNDClientV3(api).getEservicesEventsFromId(2L, 10).getBody();
+
+		// i primi due eventi sono gia' stati consegnati
+		assertEquals(1, response.getEvents().size());
+		assertEquals(3L, response.getEvents().get(0).getEventId());
+	}
+
+	@Test
+	void ilFlussoUnicoAggregaGliEventiInOrdineCronologico() throws Exception {
+		GatewayApi api = mock(GatewayApi.class);
+		when(api.getEServicesEvents(any(), isNull(), isNull())).thenReturn(
+				new EServiceEvents().events(List.of(eventoEService(1), eventoEService(3))));
+		when(api.getKeyEvents(any(), isNull())).thenReturn(
+				new KeyEvents().events(List.of(eventoChiave(2))));
+		when(api.getAgreementsEvents(any(), isNull(), isNull())).thenReturn(new AgreementEvents().events(List.of()));
+		when(api.getPurposeEvents(any(), isNull(), isNull())).thenReturn(new PurposeEvents().events(List.of()));
+		when(api.getTenantEvents(any(), isNull())).thenReturn(new TenantEvents().events(List.of()));
+		when(api.getAttributesEvents(any(), isNull())).thenReturn(new AttributeEvents().events(List.of()));
+		when(api.getClientEvents(any(), isNull())).thenReturn(new ClientEvents().events(List.of()));
+		when(api.getProducerKeyEvents(any(), isNull())).thenReturn(new ProducerKeyEvents().events(List.of()));
+		when(api.getProducerKeychainEvents(any(), isNull())).thenReturn(new ProducerKeychainEvents().events(List.of()));
+		when(api.getConsumerDelegationEvents(any(), isNull())).thenReturn(new ConsumerDelegationEvents().events(List.of()));
+		when(api.getProducerDelegationEvents(any(), isNull())).thenReturn(new ProducerDelegationEvents().events(List.of()));
+		when(api.getEServiceTemplateEvents(any(), isNull())).thenReturn(new EServiceTemplateEvents().events(List.of()));
+		when(api.getPurposeTemplateEvents(any(), isNull())).thenReturn(new PurposeTemplateEvents().events(List.of()));
+
+		Events response = new PDNDClientV3(api).getEventsFromId(0L, 10).getBody();
+
+		assertEquals(3, response.getEvents().size());
+		assertEquals("ESERVICE", response.getEvents().get(0).getObjectType());
+		assertEquals("KEY", response.getEvents().get(1).getObjectType());
+		assertEquals("ESERVICE", response.getEvents().get(2).getObjectType());
+		assertEquals(2L, response.getEvents().get(1).getEventId());
+	}
 
 	// ==================== accordi ====================
 
@@ -186,6 +404,41 @@ class PDNDClientV3Test {
 		assertEquals(PURPOSE_ID, response.getId());
 		assertEquals(500, response.getThroughput());
 		assertEquals(PurposeState.ACTIVE, response.getState());
+	}
+
+	@Test
+	void laFinalitaRiportaTitoloEVersioneInAttesaDiApprovazione() throws Exception {
+		GatewayApi api = mock(GatewayApi.class);
+
+		Purpose finalita = purpose(PurposeVersionState.ACTIVE, 1000);
+		finalita.setTitle("Consultazione anagrafica");
+		finalita.setWaitingForApprovalVersion(new PurposeVersion()
+				.id(UUID.randomUUID())
+				.state(PurposeVersionState.WAITING_FOR_APPROVAL)
+				.dailyCalls(20000));
+
+		when(api.getPurpose(PURPOSE_ID)).thenReturn(finalita);
+
+		org.govway.catalogo.servlets.pdnd.model.Purpose response =
+				new PDNDClientV3(api).getPurpose(PURPOSE_ID).getBody();
+
+		assertEquals("Consultazione anagrafica", response.getTitle());
+		// la previsione di carico corrente resta quella attiva
+		assertEquals(1000, response.getThroughput());
+		assertEquals(PurposeState.ACTIVE, response.getState());
+		// la richiesta del fruitore in attesa di approvazione e' esposta a parte
+		assertEquals(20000, response.getWaitingForApproval().getThroughput());
+	}
+
+	@Test
+	void unaFinalitaSenzaRichiesteInAttesaNonRiportaLaVersioneInApprovazione() throws Exception {
+		GatewayApi api = mock(GatewayApi.class);
+		when(api.getPurpose(PURPOSE_ID)).thenReturn(purpose(PurposeVersionState.ACTIVE, 1000));
+
+		org.govway.catalogo.servlets.pdnd.model.Purpose response =
+				new PDNDClientV3(api).getPurpose(PURPOSE_ID).getBody();
+
+		assertNull(response.getWaitingForApproval());
 	}
 
 	@Test
@@ -467,6 +720,43 @@ class PDNDClientV3Test {
 			.thenReturn(new EServiceDescriptorDeclaredAttributes());
 		when(api.getEServiceDescriptorVerifiedAttributes(eq(ESERVICE_ID), eq(DESCRIPTOR_ID), eq(0), any()))
 			.thenReturn(new EServiceDescriptorVerifiedAttributes());
+	}
+
+	private AttributeValidity validita(java.util.Set<AttributeValidityState> attributi, UUID id) {
+		return attributi.stream().filter(a -> id.equals(a.getId())).findFirst()
+				.map(AttributeValidityState::getValidity)
+				.orElseThrow(() -> new AssertionError("attributo [" + id + "] non presente nella risposta"));
+	}
+
+	private CertifiedAttribute certificato(UUID id, String code) {
+		return new CertifiedAttribute().id(id).code(code).origin("IPA").name("Attributo " + code)
+				.description("Attributo certificato");
+	}
+
+	private List<CertifiedAttribute> pagina(String prefissoCodice, int quanti) {
+		List<CertifiedAttribute> attributi = new ArrayList<>();
+		for(int i = 0; i < quanti; i++) {
+			attributi.add(certificato(UUID.randomUUID(), prefissoCodice + i));
+		}
+		return attributi;
+	}
+
+	private EServiceEvent eventoEService(int minuto) {
+		return new EServiceEvent()
+				.id(UUID.nameUUIDFromBytes(("eservice-" + minuto).getBytes()))
+				.eventType(EServiceEvent.EventTypeEnum.ESERVICE_DESCRIPTOR_PUBLISHED)
+				.eventTimestamp(IERI.plusMinutes(minuto))
+				.eserviceId(ESERVICE_ID)
+				.descriptorId(DESCRIPTOR_ID);
+	}
+
+	private KeyEvent eventoChiave(int minuto) {
+		return new KeyEvent()
+				.id(UUID.nameUUIDFromBytes(("key-" + minuto).getBytes()))
+				.eventType(KeyEvent.EventTypeEnum.ADDED)
+				.eventTimestamp(IERI.plusMinutes(minuto))
+				.kid("kid-" + minuto)
+				.clientId(CONSUMER_ID);
 	}
 
 	private EServiceDescriptorCertifiedAttribute certifiedAttribute(int groupIndex, String code) {

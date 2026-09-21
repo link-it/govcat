@@ -2370,6 +2370,33 @@ components:
         - WAITING_FOR_APPROVAL
         - ARCHIVED
     Purpose:
+      # NOTA: title e waitingForApproval non fanno parte della specifica PDND v1 e non sono
+      # quindi mai valorizzati da questa API. Sono dichiarati qui perche' il modello Purpose
+      # e' condiviso con l'API PDND esposta da GovCat, dove riportano la finalita' e la
+      # versione in attesa di approvazione lette dall'API PDND v3.
+      type: object
+      additionalProperties: true
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        throughput:
+          type: integer
+          format: int32
+        state:
+          $ref: '#/components/schemas/PurposeState'
+        waitingForApproval:
+          $ref: '#/components/schemas/PurposeWaitingForApproval'
+      required:
+        - id
+        - throughput
+        - state
+    PurposeWaitingForApproval:
+      description: |
+        Purpose version waiting for the producer approval. Not part of the PDND v1 API: declared
+        here because the Purpose model is shared with the PDND API exposed by GovCat.
       type: object
       additionalProperties: true
       properties:
@@ -2379,12 +2406,9 @@ components:
         throughput:
           type: integer
           format: int32
-        state:
-          $ref: '#/components/schemas/PurposeState'
       required:
         - id
         - throughput
-        - state
     Purposes:
       type: object
       additionalProperties: true

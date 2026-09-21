@@ -3182,15 +3182,38 @@ components:
         id:
           type: string
           format: uuid
+        title:
+          description: purpose title as declared by the subscriber
+          type: string
         throughput:
           type: integer
           format: int32
         state:
           $ref: '#/components/schemas/PurposeState'
+        waitingForApproval:
+          $ref: '#/components/schemas/PurposeWaitingForApproval'
       required:
         - id
         - throughput
         - state
+    PurposeWaitingForApproval:
+      description: |
+        Purpose version waiting for the producer approval, present when the subscriber declared
+        a daily calls estimate above the threshold allowed by the e-service descriptor.
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          description: purpose version identifier
+          type: string
+          format: uuid
+        throughput:
+          description: daily calls declared by the subscriber for the version waiting for approval
+          type: integer
+          format: int32
+      required:
+        - id
+        - throughput
     Purposes:
       type: object
       properties:

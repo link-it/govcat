@@ -1,3 +1,39 @@
+2026-09-20  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 250: completata l'integrazione con le API PDND v3. Le tre operazioni che
+	  ancora rispondevano 501 sono ora disponibili anche con `generale.pdnd_version`
+	  impostata a `v3`, senza alcuna modifica all'interfaccia esposta:
+	  - gli attributi di un accordo (`agreements/{id}/attributes`), che la v3 non
+	    espone, sono ricostruiti intersecando gli attributi richiesti dal descrittore
+	    dell'e-service con quelli assegnati al fruitore: un attributo certificato o
+	    dichiarato e` valido se assegnato e non revocato, un attributo verificato se
+	    verificato dall'erogatore dell'accordo con una verifica non scaduta;
+	  - l'assegnazione e la revoca di un attributo certificato per codice
+	    (`organizations/origin/{origin}/externalId/{externalId}/attributes/{code}`)
+	    risolvono il codice nell'identificativo richiesto dalla v3 leggendo il
+	    registro degli attributi certificati, che non offre una ricerca per codice; la
+	    corrispondenza viene memorizzata, cosi` le richieste successive non ripetono la
+	    lettura;
+	  - gli eventi (`events`, `events/eservices`, `events/keys`) riportano come
+	    progressivo la posizione dell'evento nel flusso PDND: i flussi sono in sola
+	    aggiunta e restituiti in ordine cronologico, quindi la posizione e` stabile e
+	    confrontabile come richiede il contratto, che la v3 identifica invece con un
+	    UUID. Il flusso unico aggrega cronologicamente i tredici flussi tipizzati
+	    della v3.
+	Issue 250: a supporto della gestione dei fruitori di un e-service, le finalita`
+	  riportano ora il titolo dichiarato dal fruitore e, quando presente, la versione
+	  in attesa di approvazione con la previsione di carico richiesta
+	  (`waitingForApproval`). E` il dato che consente al referente di riconoscere le
+	  finalita` bloccate perche` eccedono la soglia del descrittore e di sbloccarle con
+	  l'operazione di approvazione gia` disponibile. Campi aggiuntivi e opzionali: i
+	  client esistenti non sono impattati e con l'API PDND v1, che non espone queste
+	  informazioni, restano non valorizzati.
+	Il mock PDND v3 copre le nuove operazioni: attributi assegnati al fruitore e
+	  relativi verificatori, registro degli attributi certificati con piu` codici,
+	  flussi di eventi che onorano il parametro di ripresa, e una finalita` con
+	  richiesta di aumento delle chiamate in attesa di approvazione.
+
 2026-09-18  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

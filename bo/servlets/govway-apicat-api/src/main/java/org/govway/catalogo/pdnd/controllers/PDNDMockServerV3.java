@@ -21,16 +21,42 @@ package org.govway.catalogo.pdnd.controllers;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
 
 import org.apache.commons.io.IOUtils;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotFoundException;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.AgreementEvent;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.AgreementEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.AttributeEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.CertifiedAttributes;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.ClientEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.ConsumerDelegationEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.EServiceEvent;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.EServiceEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.EServiceTemplateEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.KeyEvent;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.KeyEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.ProducerDelegationEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.ProducerKeyEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.ProducerKeychainEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.PurposeEvent;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.PurposeEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.PurposeTemplateEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.TenantCertifiedAttribute;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.TenantCertifiedAttributeSeed;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.TenantCertifiedAttributes;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.TenantDeclaredAttributes;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.TenantEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.TenantVerifiedAttributeVerifiers;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.TenantVerifiedAttributes;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Agreement;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.AgreementState;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Agreements;
@@ -355,5 +381,164 @@ public class PDNDMockServerV3 {
 		}
 
 		return ResponseEntity.ok(readMockResponse(Tenants.class));
+	}
+
+	// ==================== attributi assegnati al tenant ====================
+
+	public ResponseEntity<TenantCertifiedAttributes> getTenantCertifiedAttributes(UUID tenantId, Integer offset,
+			Integer limit) {
+		checkInput(tenantId);
+		if(!isPrimaPagina(offset)) {
+			return ResponseEntity.ok(new TenantCertifiedAttributes());
+		}
+
+		return ResponseEntity.ok(readMockResponse(TenantCertifiedAttributes.class));
+	}
+
+	public ResponseEntity<TenantDeclaredAttributes> getTenantDeclaredAttributes(UUID tenantId, Integer offset,
+			Integer limit, UUID delegationId) {
+		checkInput(tenantId);
+		if(!isPrimaPagina(offset)) {
+			return ResponseEntity.ok(new TenantDeclaredAttributes());
+		}
+
+		return ResponseEntity.ok(readMockResponse(TenantDeclaredAttributes.class));
+	}
+
+	public ResponseEntity<TenantVerifiedAttributes> getTenantVerifiedAttributes(UUID tenantId, Integer offset,
+			Integer limit) {
+		checkInput(tenantId);
+		if(!isPrimaPagina(offset)) {
+			return ResponseEntity.ok(new TenantVerifiedAttributes());
+		}
+
+		return ResponseEntity.ok(readMockResponse(TenantVerifiedAttributes.class));
+	}
+
+	public ResponseEntity<TenantVerifiedAttributeVerifiers> getTenantVerifiedAttributeVerifiers(UUID tenantId,
+			UUID attributeId, Integer offset, Integer limit) {
+		checkInput(tenantId);
+		checkInput(attributeId);
+		if(!isPrimaPagina(offset)) {
+			return ResponseEntity.ok(new TenantVerifiedAttributeVerifiers());
+		}
+
+		return ResponseEntity.ok(readMockResponse(TenantVerifiedAttributeVerifiers.class));
+	}
+
+	public ResponseEntity<TenantCertifiedAttribute> assignTenantCertifiedAttribute(UUID tenantId,
+			TenantCertifiedAttributeSeed tenantCertifiedAttributeSeed) {
+		checkInput(tenantId);
+		return ResponseEntity.ok(readMockResponse(TenantCertifiedAttribute.class));
+	}
+
+	public ResponseEntity<TenantCertifiedAttribute> revokeTenantCertifiedAttribute(UUID tenantId, UUID attributeId) {
+		checkInput(tenantId);
+		checkInput(attributeId);
+		return ResponseEntity.ok(readMockResponse(TenantCertifiedAttribute.class));
+	}
+
+	public ResponseEntity<CertifiedAttributes> getCertifiedAttributes(Integer offset, Integer limit) {
+		if(!isPrimaPagina(offset)) {
+			return ResponseEntity.ok(new CertifiedAttributes());
+		}
+
+		return ResponseEntity.ok(readMockResponse(CertifiedAttributes.class));
+	}
+
+	// ==================== eventi ====================
+
+	/**
+	 * Restituisce gli eventi successivi a quello indicato, come fa l'API PDND: consente di
+	 * verificare la ripresa incrementale della lettura.
+	 */
+	private <T> List<T> daUltimoEvento(List<T> eventi, Function<T, UUID> idEvento, UUID lastEventId,
+			Integer limit) {
+		if(eventi == null || eventi.isEmpty()) {
+			return List.of();
+		}
+
+		int inizio = 0;
+		if(lastEventId != null) {
+			for(int i = 0; i < eventi.size(); i++) {
+				if(lastEventId.equals(idEvento.apply(eventi.get(i)))) {
+					inizio = i + 1;
+					break;
+				}
+			}
+		}
+
+		int fine = limit != null && limit > 0 ? Math.min(eventi.size(), inizio + limit) : eventi.size();
+
+		return inizio >= eventi.size() ? List.of() : new ArrayList<>(eventi.subList(inizio, fine));
+	}
+
+	public ResponseEntity<EServiceEvents> getEServicesEvents(Integer limit, UUID delegationId, UUID lastEventId) {
+		EServiceEvents response = new EServiceEvents();
+		response.setEvents(daUltimoEvento(readMockResponse(EServiceEvents.class).getEvents(),
+				EServiceEvent::getId, lastEventId, limit));
+		return ResponseEntity.ok(response);
+	}
+
+	public ResponseEntity<KeyEvents> getKeyEvents(Integer limit, UUID lastEventId) {
+		KeyEvents response = new KeyEvents();
+		response.setEvents(daUltimoEvento(readMockResponse(KeyEvents.class).getEvents(),
+				KeyEvent::getId, lastEventId, limit));
+		return ResponseEntity.ok(response);
+	}
+
+	public ResponseEntity<AgreementEvents> getAgreementsEvents(Integer limit, UUID lastEventId, UUID delegationId) {
+		AgreementEvents response = new AgreementEvents();
+		response.setEvents(daUltimoEvento(readMockResponse(AgreementEvents.class).getEvents(),
+				AgreementEvent::getId, lastEventId, limit));
+		return ResponseEntity.ok(response);
+	}
+
+	public ResponseEntity<PurposeEvents> getPurposeEvents(Integer limit, UUID lastEventId, UUID delegationId) {
+		PurposeEvents response = new PurposeEvents();
+		response.setEvents(daUltimoEvento(readMockResponse(PurposeEvents.class).getEvents(),
+				PurposeEvent::getId, lastEventId, limit));
+		return ResponseEntity.ok(response);
+	}
+
+	/*
+	 * Per i flussi rimanenti il mock non simula alcun evento: le risposte vuote sono
+	 * sufficienti a verificare l'aggregazione del flusso unico.
+	 */
+
+	public ResponseEntity<TenantEvents> getTenantEvents(Integer limit, UUID lastEventId) {
+		return ResponseEntity.ok(new TenantEvents().events(List.of()));
+	}
+
+	public ResponseEntity<AttributeEvents> getAttributesEvents(Integer limit, UUID lastEventId) {
+		return ResponseEntity.ok(new AttributeEvents().events(List.of()));
+	}
+
+	public ResponseEntity<ClientEvents> getClientEvents(Integer limit, UUID lastEventId) {
+		return ResponseEntity.ok(new ClientEvents().events(List.of()));
+	}
+
+	public ResponseEntity<ProducerKeyEvents> getProducerKeyEvents(Integer limit, UUID lastEventId) {
+		return ResponseEntity.ok(new ProducerKeyEvents().events(List.of()));
+	}
+
+	public ResponseEntity<ProducerKeychainEvents> getProducerKeychainEvents(Integer limit, UUID lastEventId) {
+		return ResponseEntity.ok(new ProducerKeychainEvents().events(List.of()));
+	}
+
+	public ResponseEntity<ConsumerDelegationEvents> getConsumerDelegationEvents(Integer limit, UUID lastEventId) {
+		return ResponseEntity.ok(new ConsumerDelegationEvents().events(List.of()));
+	}
+
+	public ResponseEntity<ProducerDelegationEvents> getProducerDelegationEvents(Integer limit, UUID lastEventId) {
+		return ResponseEntity.ok(new ProducerDelegationEvents().events(List.of()));
+	}
+
+	public ResponseEntity<EServiceTemplateEvents> getEServiceTemplateEvents(Integer limit, UUID lastEventId) {
+		return ResponseEntity.ok(new EServiceTemplateEvents().events(List.of()));
+	}
+
+	public ResponseEntity<PurposeTemplateEvents> getPurposeTemplateEvents(Integer limit, UUID lastEventId) {
+		return ResponseEntity.ok(new PurposeTemplateEvents().events(List.of()));
 	}
 }

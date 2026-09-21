@@ -24,6 +24,26 @@ import java.util.UUID;
 
 import org.govway.catalogo.PdndMockV3ControllerCollaudo;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.api.GatewayApi;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.AgreementEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.AttributeEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.CertifiedAttributes;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.ClientEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.ConsumerDelegationEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.EServiceEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.EServiceTemplateEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.KeyEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.ProducerDelegationEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.ProducerKeyEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.ProducerKeychainEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.PurposeEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.PurposeTemplateEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.TenantCertifiedAttribute;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.TenantCertifiedAttributeSeed;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.TenantCertifiedAttributes;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.TenantDeclaredAttributes;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.TenantEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.TenantVerifiedAttributeVerifiers;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.TenantVerifiedAttributes;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Agreement;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.AgreementState;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Agreements;
@@ -187,5 +207,110 @@ public class PDNDControllerMockV3Collaudo implements GatewayApi {
 	@Override
 	public ResponseEntity<Tenants> getTenants(Integer offset, Integer limit, String ipACode, String taxCode) {
 		return this.server.getTenants(offset, limit, ipACode, taxCode);
+	}
+
+	@Override
+	public ResponseEntity<TenantCertifiedAttributes> getTenantCertifiedAttributes(UUID tenantId, Integer offset,
+			Integer limit) {
+		return this.server.getTenantCertifiedAttributes(tenantId, offset, limit);
+	}
+
+	@Override
+	public ResponseEntity<TenantDeclaredAttributes> getTenantDeclaredAttributes(UUID tenantId, Integer offset,
+			Integer limit, UUID delegationId) {
+		return this.server.getTenantDeclaredAttributes(tenantId, offset, limit, delegationId);
+	}
+
+	@Override
+	public ResponseEntity<TenantVerifiedAttributes> getTenantVerifiedAttributes(UUID tenantId, Integer offset,
+			Integer limit) {
+		return this.server.getTenantVerifiedAttributes(tenantId, offset, limit);
+	}
+
+	@Override
+	public ResponseEntity<TenantVerifiedAttributeVerifiers> getTenantVerifiedAttributeVerifiers(UUID tenantId,
+			UUID attributeId, Integer offset, Integer limit) {
+		return this.server.getTenantVerifiedAttributeVerifiers(tenantId, attributeId, offset, limit);
+	}
+
+	@Override
+	public ResponseEntity<TenantCertifiedAttribute> assignTenantCertifiedAttribute(UUID tenantId,
+			TenantCertifiedAttributeSeed tenantCertifiedAttributeSeed) {
+		return this.server.assignTenantCertifiedAttribute(tenantId, tenantCertifiedAttributeSeed);
+	}
+
+	@Override
+	public ResponseEntity<TenantCertifiedAttribute> revokeTenantCertifiedAttribute(UUID tenantId, UUID attributeId) {
+		return this.server.revokeTenantCertifiedAttribute(tenantId, attributeId);
+	}
+
+	@Override
+	public ResponseEntity<CertifiedAttributes> getCertifiedAttributes(Integer offset, Integer limit) {
+		return this.server.getCertifiedAttributes(offset, limit);
+	}
+
+	@Override
+	public ResponseEntity<EServiceEvents> getEServicesEvents(Integer limit, UUID delegationId, UUID lastEventId) {
+		return this.server.getEServicesEvents(limit, delegationId, lastEventId);
+	}
+
+	@Override
+	public ResponseEntity<KeyEvents> getKeyEvents(Integer limit, UUID lastEventId) {
+		return this.server.getKeyEvents(limit, lastEventId);
+	}
+
+	@Override
+	public ResponseEntity<AgreementEvents> getAgreementsEvents(Integer limit, UUID lastEventId, UUID delegationId) {
+		return this.server.getAgreementsEvents(limit, lastEventId, delegationId);
+	}
+
+	@Override
+	public ResponseEntity<PurposeEvents> getPurposeEvents(Integer limit, UUID lastEventId, UUID delegationId) {
+		return this.server.getPurposeEvents(limit, lastEventId, delegationId);
+	}
+
+	@Override
+	public ResponseEntity<TenantEvents> getTenantEvents(Integer limit, UUID lastEventId) {
+		return this.server.getTenantEvents(limit, lastEventId);
+	}
+
+	@Override
+	public ResponseEntity<AttributeEvents> getAttributesEvents(Integer limit, UUID lastEventId) {
+		return this.server.getAttributesEvents(limit, lastEventId);
+	}
+
+	@Override
+	public ResponseEntity<ClientEvents> getClientEvents(Integer limit, UUID lastEventId) {
+		return this.server.getClientEvents(limit, lastEventId);
+	}
+
+	@Override
+	public ResponseEntity<ProducerKeyEvents> getProducerKeyEvents(Integer limit, UUID lastEventId) {
+		return this.server.getProducerKeyEvents(limit, lastEventId);
+	}
+
+	@Override
+	public ResponseEntity<ProducerKeychainEvents> getProducerKeychainEvents(Integer limit, UUID lastEventId) {
+		return this.server.getProducerKeychainEvents(limit, lastEventId);
+	}
+
+	@Override
+	public ResponseEntity<ConsumerDelegationEvents> getConsumerDelegationEvents(Integer limit, UUID lastEventId) {
+		return this.server.getConsumerDelegationEvents(limit, lastEventId);
+	}
+
+	@Override
+	public ResponseEntity<ProducerDelegationEvents> getProducerDelegationEvents(Integer limit, UUID lastEventId) {
+		return this.server.getProducerDelegationEvents(limit, lastEventId);
+	}
+
+	@Override
+	public ResponseEntity<EServiceTemplateEvents> getEServiceTemplateEvents(Integer limit, UUID lastEventId) {
+		return this.server.getEServiceTemplateEvents(limit, lastEventId);
+	}
+
+	@Override
+	public ResponseEntity<PurposeTemplateEvents> getPurposeTemplateEvents(Integer limit, UUID lastEventId) {
+		return this.server.getPurposeTemplateEvents(limit, lastEventId);
 	}
 }

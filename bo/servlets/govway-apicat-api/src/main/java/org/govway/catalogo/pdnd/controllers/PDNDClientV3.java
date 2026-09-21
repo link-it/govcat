@@ -19,26 +19,32 @@
  */
 package org.govway.catalogo.pdnd.controllers;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.govway.catalogo.exception.ClientApiException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotFoundException;
-import org.govway.catalogo.exception.NotImplementedException;
 import org.govway.catalogo.servlets.pdnd.model.Agreement;
 import org.govway.catalogo.servlets.pdnd.model.AgreementState;
 import org.govway.catalogo.servlets.pdnd.model.Agreements;
 import org.govway.catalogo.servlets.pdnd.model.Attribute;
 import org.govway.catalogo.servlets.pdnd.model.AttributeKind;
 import org.govway.catalogo.servlets.pdnd.model.AttributeSeed;
+import org.govway.catalogo.servlets.pdnd.model.AttributeValidity;
+import org.govway.catalogo.servlets.pdnd.model.AttributeValidityState;
 import org.govway.catalogo.servlets.pdnd.model.Attributes;
 import org.govway.catalogo.servlets.pdnd.model.Client;
 import org.govway.catalogo.servlets.pdnd.model.EService;
@@ -60,6 +66,7 @@ import org.govway.catalogo.servlets.pdnd.model.Problem;
 import org.govway.catalogo.servlets.pdnd.model.ProblemError;
 import org.govway.catalogo.servlets.pdnd.model.Purpose;
 import org.govway.catalogo.servlets.pdnd.model.PurposeState;
+import org.govway.catalogo.servlets.pdnd.model.PurposeWaitingForApproval;
 import org.govway.catalogo.servlets.pdnd.model.Purposes;
 import org.govway.catalogo.servlets.pdnd.model.Subscriber;
 import org.govway.catalogo.servlets.pdnd.model.Subscribers;
@@ -74,8 +81,8 @@ import org.springframework.http.ResponseEntity;
  *
  * L'interfaccia esposta da GovCat resta quella modellata sull'API PDND v1: questa classe
  * si occupa di orchestrare le operazioni v3 necessarie e di riportare i risultati nel
- * modello dati v1. Le operazioni per le quali la v3 non offre un equivalente sono
- * segnalate con {@link NotImplementedException} (HTTP 501).
+ * modello dati v1: dove la v3 non offre un'operazione equivalente, il risultato viene
+ * ricostruito componendo piu' invocazioni.
  */
 public class PDNDClientV3 implements IPDNDClient {
 
@@ -91,8 +98,18 @@ public class PDNDClientV3 implements IPDNDClient {
 
 	private GatewayApi gatewayApiClient;
 
+	/**
+	 * Corrispondenza fra codice e identificativo degli attributi certificati, popolata dalle
+	 * letture del registro PDND: l'API v3 non offre una ricerca per codice.
+	 */
+	private Map<String, UUID> attributiCertificatiPerCodice = new ConcurrentHashMap<>();
+
+	/** Lettura dei flussi di eventi, che richiede l'adattamento dei progressivi. */
+	private PDNDEventiV3 eventi;
+
 	public PDNDClientV3(GatewayApi gatewayApiClient) {
 		this.gatewayApiClient = gatewayApiClient;
+		this.eventi = new PDNDEventiV3(gatewayApiClient);
 	}
 
 	@Override
@@ -159,6 +176,9 @@ public class PDNDClientV3 implements IPDNDClient {
 			org.govway.catalogo.servlets.pdnd.v3.model.CertifiedAttribute response =
 					this.gatewayApiClient.createCertifiedAttribute(seed);
 
+			// l'attributo appena creato entra nella corrispondenza codice-identificativo
+			memorizzaAttributoCertificato(response);
+
 			return ResponseEntity.ok(toAttribute(response.getId(), response.getName(), AttributeKind.CERTIFIED));
 		} catch(RuntimeException e) {
 			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
@@ -213,9 +233,156 @@ public class PDNDClientV3 implements IPDNDClient {
 		}
 	}
 
+	/**
+	 * L'API v3 non espone gli attributi di un accordo: la risposta viene ricostruita
+	 * intersecando gli attributi richiesti dal descrittore dell'e-service con quelli
+	 * assegnati al fruitore, da cui si ricava la validita'.
+	 */
 	@Override
 	public ResponseEntity<Attributes> getAgreementAttributes(UUID agreementId) {
-		throw notImplemented("getAgreementAttributes");
+		try {
+			org.govway.catalogo.servlets.pdnd.v3.model.Agreement agreement =
+					this.gatewayApiClient.getAgreement(agreementId);
+
+			UUID eserviceId = agreement.getEserviceId();
+			UUID descriptorId = agreement.getDescriptorId();
+			UUID consumerId = agreement.getConsumerId();
+
+			Attributes response = new Attributes();
+			response.setCertified(getAttributiCertificati(eserviceId, descriptorId, consumerId));
+			response.setDeclared(getAttributiDichiarati(eserviceId, descriptorId, consumerId));
+			response.setVerified(getAttributiVerificati(eserviceId, descriptorId, consumerId,
+					agreement.getProducerId()));
+
+			return ResponseEntity.ok(response);
+		} catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		} catch(ApiException e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw toClientApiException(e);
+		}
+	}
+
+	/**
+	 * Un attributo certificato e' valido se assegnato al fruitore e non revocato.
+	 */
+	private Set<AttributeValidityState> getAttributiCertificati(UUID eserviceId, UUID descriptorId,
+			UUID consumerId) throws ApiException {
+
+		Map<UUID, Boolean> assegnati = new HashMap<>();
+		for(org.govway.catalogo.servlets.pdnd.v3.model.TenantCertifiedAttribute attributo:
+				fetchAll(offset -> this.gatewayApiClient.getTenantCertifiedAttributes(consumerId, offset,
+						PAGE_SIZE).getResults())) {
+			assegnati.put(attributo.getId(), attributo.getRevokedAt() == null);
+		}
+
+		Set<AttributeValidityState> attributi = new LinkedHashSet<>();
+		for(org.govway.catalogo.servlets.pdnd.v3.model.EServiceDescriptorCertifiedAttribute richiesto:
+				fetchAll(offset -> this.gatewayApiClient.getEServiceDescriptorCertifiedAttributes(eserviceId,
+						descriptorId, offset, PAGE_SIZE).getResults())) {
+
+			if(richiesto.getAttribute() != null) {
+				attributi.add(toAttributeValidityState(richiesto.getAttribute().getId(),
+						Boolean.TRUE.equals(assegnati.get(richiesto.getAttribute().getId()))));
+			}
+		}
+
+		return attributi;
+	}
+
+	/**
+	 * Un attributo dichiarato e' valido se dichiarato dal fruitore e non revocato.
+	 */
+	private Set<AttributeValidityState> getAttributiDichiarati(UUID eserviceId, UUID descriptorId,
+			UUID consumerId) throws ApiException {
+
+		Map<UUID, Boolean> assegnati = new HashMap<>();
+		for(org.govway.catalogo.servlets.pdnd.v3.model.TenantDeclaredAttribute attributo:
+				fetchAll(offset -> this.gatewayApiClient.getTenantDeclaredAttributes(consumerId, offset,
+						PAGE_SIZE, null).getResults())) {
+			assegnati.put(attributo.getId(), attributo.getRevokedAt() == null);
+		}
+
+		Set<AttributeValidityState> attributi = new LinkedHashSet<>();
+		for(org.govway.catalogo.servlets.pdnd.v3.model.EServiceDescriptorDeclaredAttribute richiesto:
+				fetchAll(offset -> this.gatewayApiClient.getEServiceDescriptorDeclaredAttributes(eserviceId,
+						descriptorId, offset, PAGE_SIZE).getResults())) {
+
+			if(richiesto.getAttribute() != null) {
+				attributi.add(toAttributeValidityState(richiesto.getAttribute().getId(),
+						Boolean.TRUE.equals(assegnati.get(richiesto.getAttribute().getId()))));
+			}
+		}
+
+		return attributi;
+	}
+
+	/**
+	 * Un attributo verificato e' valido se assegnato al fruitore e verificato dall'erogatore
+	 * dell'accordo con una verifica non scaduta.
+	 */
+	private Set<AttributeValidityState> getAttributiVerificati(UUID eserviceId, UUID descriptorId,
+			UUID consumerId, UUID producerId) throws ApiException {
+
+		Set<UUID> assegnati = new HashSet<>();
+		for(org.govway.catalogo.servlets.pdnd.v3.model.TenantVerifiedAttribute attributo:
+				fetchAll(offset -> this.gatewayApiClient.getTenantVerifiedAttributes(consumerId, offset,
+						PAGE_SIZE).getResults())) {
+			assegnati.add(attributo.getId());
+		}
+
+		Set<AttributeValidityState> attributi = new LinkedHashSet<>();
+		for(org.govway.catalogo.servlets.pdnd.v3.model.EServiceDescriptorVerifiedAttribute richiesto:
+				fetchAll(offset -> this.gatewayApiClient.getEServiceDescriptorVerifiedAttributes(eserviceId,
+						descriptorId, offset, PAGE_SIZE).getResults())) {
+
+			if(richiesto.getAttribute() == null) {
+				continue;
+			}
+
+			UUID attributoId = richiesto.getAttribute().getId();
+			boolean valido = assegnati.contains(attributoId)
+					&& isVerificatoDa(consumerId, attributoId, producerId);
+
+			attributi.add(toAttributeValidityState(attributoId, valido));
+		}
+
+		return attributi;
+	}
+
+	/**
+	 * Verifica se l'erogatore indicato compare fra i verificatori dell'attributo con una
+	 * verifica ancora valida: la scadenza, se prorogata, e' quella della proroga.
+	 */
+	private boolean isVerificatoDa(UUID consumerId, UUID attributoId, UUID producerId) throws ApiException {
+		OffsetDateTime adesso = OffsetDateTime.now();
+
+		for(org.govway.catalogo.servlets.pdnd.v3.model.TenantVerifiedAttributeVerifier verificatore:
+				fetchAll(offset -> this.gatewayApiClient.getTenantVerifiedAttributeVerifiers(consumerId,
+						attributoId, offset, PAGE_SIZE).getResults())) {
+
+			if(!verificatore.getId().equals(producerId)) {
+				continue;
+			}
+
+			OffsetDateTime scadenza = verificatore.getExtendedAt() != null
+					? verificatore.getExtendedAt()
+					: verificatore.getExpiresAt();
+
+			if(scadenza == null || scadenza.isAfter(adesso)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private AttributeValidityState toAttributeValidityState(UUID attributoId, boolean valido) {
+		AttributeValidityState stato = new AttributeValidityState();
+		stato.setId(attributoId);
+		stato.setValidity(valido ? AttributeValidity.VALID : AttributeValidity.INVALID);
+		return stato;
 	}
 
 	@Override
@@ -378,12 +545,32 @@ public class PDNDClientV3 implements IPDNDClient {
 
 	@Override
 	public ResponseEntity<Events> getEservicesEventsFromId(Long lastEventId, Integer limit) {
-		throw notImplemented("getEservicesEventsFromId");
+		return getEventi(PDNDEventiV3.Flusso.ESERVICE, lastEventId, limit);
 	}
 
 	@Override
 	public ResponseEntity<Events> getEventsFromId(Long lastEventId, Integer limit) {
-		throw notImplemented("getEventsFromId");
+		try {
+			return ResponseEntity.ok(this.eventi.getEventi(lastEventId, limit));
+		} catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		} catch(ApiException e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw toClientApiException(e);
+		}
+	}
+
+	private ResponseEntity<Events> getEventi(PDNDEventiV3.Flusso flusso, Long lastEventId, Integer limit) {
+		try {
+			return ResponseEntity.ok(this.eventi.getEventi(flusso, lastEventId, limit));
+		} catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		} catch(ApiException e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw toClientApiException(e);
+		}
 	}
 
 	@Override
@@ -402,7 +589,7 @@ public class PDNDClientV3 implements IPDNDClient {
 
 	@Override
 	public ResponseEntity<Events> getKeysEventsFromId(Long lastEventId, Integer limit) {
-		throw notImplemented("getKeysEventsFromId");
+		return getEventi(PDNDEventiV3.Flusso.KEY, lastEventId, limit);
 	}
 
 	@Override
@@ -466,12 +653,90 @@ public class PDNDClientV3 implements IPDNDClient {
 
 	@Override
 	public ResponseEntity<Void> revokeTenantAttribute(String origin, String externalId, String code) {
-		throw notImplemented("revokeTenantAttribute");
+		try {
+			org.govway.catalogo.servlets.pdnd.v3.model.Tenant tenant = findTenant(origin, externalId);
+			UUID attributoId = risolviAttributoCertificato(origin, code);
+
+			this.gatewayApiClient.revokeTenantCertifiedAttribute(tenant.getId(), attributoId);
+
+			return ResponseEntity.ok().build();
+		} catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		} catch(ApiException e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw toClientApiException(e);
+		}
 	}
 
 	@Override
 	public ResponseEntity<Void> upsertTenant(String origin, String externalId, String code) {
-		throw notImplemented("upsertTenant");
+		try {
+			org.govway.catalogo.servlets.pdnd.v3.model.Tenant tenant = findTenant(origin, externalId);
+			UUID attributoId = risolviAttributoCertificato(origin, code);
+
+			org.govway.catalogo.servlets.pdnd.v3.model.TenantCertifiedAttributeSeed seed =
+					new org.govway.catalogo.servlets.pdnd.v3.model.TenantCertifiedAttributeSeed();
+			seed.setId(attributoId);
+
+			this.gatewayApiClient.assignTenantCertifiedAttribute(tenant.getId(), seed);
+
+			return ResponseEntity.ok().build();
+		} catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		} catch(ApiException e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw toClientApiException(e);
+		}
+	}
+
+	/**
+	 * Risolve il codice di un attributo certificato nel relativo identificativo.
+	 *
+	 * L'API v3 non offre una ricerca per codice: il registro degli attributi certificati viene
+	 * quindi scorso una volta e memorizzato, cosi' che le richieste successive non ripetano la
+	 * lettura. La corrispondenza e' stabile, perche' il codice di un attributo certificato e'
+	 * univoco e non viene modificato.
+	 */
+	private UUID risolviAttributoCertificato(String origin, String code) throws ApiException {
+		UUID attributoId = this.attributiCertificatiPerCodice.get(code);
+		if(attributoId != null) {
+			return attributoId;
+		}
+
+		int offset = 0;
+		for(int pagina = 0; pagina < MAX_PAGES; pagina++) {
+			List<org.govway.catalogo.servlets.pdnd.v3.model.CertifiedAttribute> attributi =
+					this.gatewayApiClient.getCertifiedAttributes(offset, PAGE_SIZE).getResults();
+
+			if(attributi == null || attributi.isEmpty()) {
+				break;
+			}
+
+			attributi.forEach(this::memorizzaAttributoCertificato);
+
+			attributoId = this.attributiCertificatiPerCodice.get(code);
+			if(attributoId != null) {
+				return attributoId;
+			}
+
+			if(attributi.size() < PAGE_SIZE) {
+				break;
+			}
+
+			offset = offset + PAGE_SIZE;
+		}
+
+		throw new NotFoundException(ErrorCode.GEN_404,
+				Map.of("risorsa", "attributo certificato ["+origin+"/"+code+"]"));
+	}
+
+	private void memorizzaAttributoCertificato(
+			org.govway.catalogo.servlets.pdnd.v3.model.CertifiedAttribute attributo) {
+		if(attributo.getCode() != null && attributo.getId() != null) {
+			this.attributiCertificatiPerCodice.put(attributo.getCode(), attributo.getId());
+		}
 	}
 
 
@@ -637,10 +902,33 @@ public class PDNDClientV3 implements IPDNDClient {
 
 		Purpose response = new Purpose();
 		response.setId(purpose.getId());
+		response.setTitle(purpose.getTitle());
 		response.setThroughput(version != null ? version.getDailyCalls() : null);
 		response.setState(state.get());
+		response.setWaitingForApproval(toWaitingForApproval(purpose));
 
 		return Optional.of(response);
+	}
+
+	/**
+	 * Riporta la versione della finalita' in attesa dell'approvazione dell'erogatore, presente
+	 * quando il fruitore ha dichiarato una previsione di carico oltre la soglia del descrittore.
+	 */
+	private PurposeWaitingForApproval toWaitingForApproval(
+			org.govway.catalogo.servlets.pdnd.v3.model.Purpose purpose) {
+
+		org.govway.catalogo.servlets.pdnd.v3.model.PurposeVersion inAttesa =
+				purpose.getWaitingForApprovalVersion();
+
+		if(inAttesa == null) {
+			return null;
+		}
+
+		PurposeWaitingForApproval versione = new PurposeWaitingForApproval();
+		versione.setId(inAttesa.getId());
+		versione.setThroughput(inAttesa.getDailyCalls());
+
+		return versione;
 	}
 
 	private Optional<PurposeState> toPurposeState(org.govway.catalogo.servlets.pdnd.v3.model.PurposeVersion version) {
@@ -1002,11 +1290,6 @@ public class PDNDClientV3 implements IPDNDClient {
 
 	private <T> List<T> toList(T value) {
 		return value != null ? List.of(value) : null;
-	}
-
-	private NotImplementedException notImplemented(String operazione) {
-		this.logger.error("Operazione [{}] non supportata dall'API PDND v3", operazione);
-		return new NotImplementedException(ErrorCode.SYS_501, Map.of("operazione", operazione));
 	}
 
 	private void rethrowIfNotNotFound(ApiException e) throws ApiException {

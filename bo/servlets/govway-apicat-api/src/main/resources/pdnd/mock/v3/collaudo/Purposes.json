@@ -14,11 +14,32 @@
         "dailyCalls": 1000,
         "createdAt": "2026-01-15T09:30:00Z"
       }
+    },
+    {
+      "id": "e6666666-6666-6666-6666-666666666666",
+      "eserviceId": "33333333-3333-3333-3333-333333333333",
+      "consumerId": "22222222-2222-2222-2222-222222222222",
+      "title": "Finalita' con richiesta di aumento delle chiamate",
+      "description": "Finalita' di esempio esposta dal mock PDND v3",
+      "isFreeOfCharge": true,
+      "createdAt": "2026-01-15T09:30:00Z",
+      "currentVersion": {
+        "id": "e6666666-6666-6666-6666-6666666666aa",
+        "state": "ACTIVE",
+        "dailyCalls": 1000,
+        "createdAt": "2026-01-15T09:30:00Z"
+      },
+      "waitingForApprovalVersion": {
+        "id": "ea666666-6666-6666-6666-6666666666aa",
+        "state": "WAITING_FOR_APPROVAL",
+        "dailyCalls": 20000,
+        "createdAt": "2026-02-01T10:00:00Z"
+      }
     }
   ],
   "pagination": {
     "offset": 0,
     "limit": 50,
-    "totalCount": 1
+    "totalCount": 2
   }
 }
