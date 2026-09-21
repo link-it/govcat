@@ -39,6 +39,23 @@
 	  toggle (riclick richiude la sezione attiva) e corretto il track NG0955 delle
 	  liste referenti (chiave composita utente+tipo al posto di ref.id vuoto).
 
+2026-09-21  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 250: la versione delle API PDND utilizzata quando `generale.pdnd_version` non
+	  e` indicata torna a essere la **v3**. Il default era stato riportato
+	  temporaneamente a `v1` in attesa del completamento delle operazioni non ancora
+	  disponibili con la v3: completate quelle operazioni, il presupposto e` venuto
+	  meno. Le installazioni che indicano esplicitamente la versione nel proprio
+	  `configurazione.json` non sono interessate; quelle che omettono il campo passano
+	  alla v3 al primo riavvio e devono quindi avere configurati i parametri di
+	  connessione `pdnd.v3.*` in `govcat-api.properties`. Il `configurazione.json`
+	  distribuito riporta ora `v3`.
+	L'API di configurazione espone ora `generale.pdnd_version` anche quando il file non
+	  la indica, riportando la versione effettivamente in uso: la console decide in base
+	  a quel campo quali funzionalita` PDND mostrare e, considerando il campo assente
+	  equivalente alla v1, avrebbe altrimenti continuato a nasconderle.
+
 2026-09-20  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

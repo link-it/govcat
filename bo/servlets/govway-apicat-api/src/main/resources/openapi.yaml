@@ -7309,7 +7309,7 @@ components:
           $ref: "#/components/schemas/PdndVersionEnum"
     PdndVersionEnum:
       type: "string"
-      description: "Versione delle API PDND utilizzate dall'integrazione. Se non indicata vale v1."
+      description: "Versione delle API PDND utilizzate dall'integrazione. Se non indicata vale v3."
       enum:
         - v1
         - v3

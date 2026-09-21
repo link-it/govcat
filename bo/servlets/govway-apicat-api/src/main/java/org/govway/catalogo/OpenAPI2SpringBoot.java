@@ -128,6 +128,7 @@ import org.govway.catalogo.monitoraggioutils.IStatisticheClient;
 import org.govway.catalogo.oidc.TokenApiDelegate;
 import org.govway.catalogo.monitoraggioutils.allarmi.AllarmiClient;
 import org.govway.catalogo.monitoraggioutils.transazioni.TransazioneBuilder;
+import org.govway.catalogo.pdnd.controllers.PDNDClientFactory;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneProfilo;
 import org.govway.catalogo.servlets.model.ConfigurazioneStepWizard;
@@ -272,6 +273,14 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
 		}
 
 		Configurazione configurazione = om.readValue(outputString, Configurazione.class);
+
+		// La versione delle API PDND e' letta anche dalla console, attraverso l'API di configurazione,
+		// per decidere quali funzionalita' mostrare: se il file non la indica si espone comunque il
+		// default effettivo, altrimenti l'integrazione userebbe la v3 mentre la console, che considera
+		// il campo assente equivalente alla v1, continuerebbe a nascondere le funzionalita' disponibili.
+		if(configurazione.getGenerale() != null && configurazione.getGenerale().getPdndVersion() == null) {
+			configurazione.getGenerale().setPdndVersion(PDNDClientFactory.VERSIONE_DEFAULT);
+		}
 
 		configurazione.getMonitoraggio().setLimitata(monitoraggioClient.isLimitata());
 		if (configurazione.getMonitoraggio() != null) {

@@ -1,7 +1,7 @@
 {
   "generale": {
     "site": "https://esempio.it",
-    "pdnd_version": "v1",
+    "pdnd_version": "v3",
     "whitelist_vetrina": [
       "GET /configurazione",
       "GET /profilo",
