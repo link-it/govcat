@@ -1,6 +1,13 @@
 2026-09-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 346: i servizi archiviati sono esclusi di default dalle liste. Aggiunto
+	  al filtro avanzato (solo gestore) il controllo "Servizi archiviati" a 3 voci
+	  (Escludi/Includi/Solo) mappato sul nuovo query param `archiviati`, propagato a
+	  lista, vista a gruppi ed export CSV; rimosso `archiviato` dal filtro stato.
+	  Lo stato archiviato e` letto dalla config (stato_archiviato). Voci i18n it/en.
+
+	* [Frontend]
 	Issue 352 (Parte 1): la barra "vai a" delle sezioni di FASE 1 torna a fare
 	  toggle (riclick richiude la sezione attiva) e corretto il track NG0955 delle
 	  liste referenti (chiave composita utente+tipo al posto di ref.id vuoto).

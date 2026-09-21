@@ -265,6 +265,25 @@
                       </div>
                     }
                   </div>
+                  <!-- Issue 346: filtro "Servizi archiviati" (solo gestore). -->
+                  @if (_isGestore()) {
+                    <div class="row">
+                      <div class="col-sm-12 col-md-6">
+                        <div class="row mb-1">
+                          <div class="col-sm-4">
+                            <label class="col-form-label col-form-label-fix" for="archiviati">{{ 'APP.LABEL.archiviati' | translate }}</label>
+                          </div>
+                          <div class="col-sm-8 pt-2">
+                            <select class="form-select form-control-sm" id="archiviati" formControlName="archiviati">
+                              <option [ngValue]="null">{{ 'APP.SERVICES.ARCHIVED.escludi' | translate }}</option>
+                              <option [ngValue]="'includi'">{{ 'APP.SERVICES.ARCHIVED.includi' | translate }}</option>
+                              <option [ngValue]="'solo'">{{ 'APP.SERVICES.ARCHIVED.solo' | translate }}</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  }
                   @if (_isMyServices) {
                     <div class="row mb-1">
                       <div class="col-sm-2">

@@ -956,6 +956,7 @@
 			"Finalita": "Purpose",
 			"FormatiAccettati": "Accepted formats",
 			"FreeSearch": "Free search",
+			"archiviati": "Archived services",
 			"From": "from",
 			"Fruitore": "User shall",
 			"fruizione": "Intermediated",
@@ -2376,6 +2377,11 @@
 			"View": "View"
 		},
 		"SERVICES": {
+			"ARCHIVED": {
+				"escludi": "Exclude",
+				"includi": "Include",
+				"solo": "Only archived"
+			},
 			"CREATE": {
 				"Subtitle": "Fill in the sections to create a new service in the catalogue.",
 				"SectionGeneraleTag": "SERVICE",

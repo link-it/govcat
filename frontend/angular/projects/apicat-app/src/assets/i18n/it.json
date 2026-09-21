@@ -956,6 +956,7 @@
 			"Finalita": "Finalità",
 			"FormatiAccettati": "Formati accettati",
 			"FreeSearch": "Ricerca libera",
+			"archiviati": "Servizi archiviati",
 			"From": "da",
 			"Fruitore": "Fruitore",
 			"fruizione": "Intermediato",
@@ -2376,6 +2377,11 @@
 			"View": "Vista"
 		},
 		"SERVICES": {
+			"ARCHIVED": {
+				"escludi": "Escludi",
+				"includi": "Includi",
+				"solo": "Solo archiviati"
+			},
 			"CREATE": {
 				"Subtitle": "Compila le sezioni per creare un nuovo servizio nel catalogo.",
 				"SectionGeneraleTag": "SERVIZIO",

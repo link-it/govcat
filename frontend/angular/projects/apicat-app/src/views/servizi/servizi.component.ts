@@ -178,6 +178,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         // { field: 'creationDateTo', label: 'APP.LABEL.Date', type: 'date', condition: 'lt', format: 'DD/MM/YYYY' },
         { field: 'q', label: 'APP.LABEL.FreeSearch', type: 'text', condition: 'like' },
         { field: 'stato', label: 'APP.LABEL.stato', type: 'enum', condition: 'equal', enumValues: this._statiServizioEnum },
+        { field: 'archiviati', label: 'APP.LABEL.archiviati', type: 'enum', condition: 'equal', enumValues: { includi: 'APP.SERVICES.ARCHIVED.includi', solo: 'APP.SERVICES.ARCHIVED.solo' } },
         { field: 'visibilita', label: 'APP.LABEL.visibilita', type: 'enum', condition: 'equal', enumValues: this._tipiVisibilitaServizioEnum },
         { field: 'fruizione', label: 'APP.LABEL.fruizione', type: 'enum', condition: 'equal', enumValues: this._fruizioneEnum },
         { field: 'id_dominio', label: 'APP.LABEL.id_dominio', type: 'text', condition: 'equal', params: { resource: 'domini', field: 'nome', urlParam: '?id_dominio=' } },
@@ -509,13 +510,21 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         );
     }
 
+    /** Stato considerato "archiviato" dalla configurazione remota
+     *  (`servizio.workflow.stato_archiviato`), con fallback al letterale. */
+    get _statoArchiviato(): string {
+        return Tools.Configurazione?.servizio?.workflow?.stato_archiviato || 'archiviato';
+    }
+
     _createWorkflowStati() {
         const _configServizio = Tools.Configurazione?.servizio;
         if (_configServizio) {
             this._workflowStati = this._isAnonymous() ? _configServizio.stati_adesione_consentita : _configServizio.workflow.stati;
             this._workflowStatiFiltered = [];
             this._workflowStati.forEach((element: string, index: number) => {
-                if (element === 'archiviato' && !this._isGestore()) { return; }
+                // Issue 346: lo stato archiviato non e` piu` una voce del filtro
+                // "stato" (gestito dal controllo dedicato "Servizi archiviati").
+                if (element === this._statoArchiviato) { return; }
                 this._workflowStatiFiltered.push({ value: element, label: element });
             });
 
@@ -597,6 +606,9 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         this._formGroup = new FormGroup({
             q: new FormControl(''),
             stato: new FormControl(null),
+            // Issue 346: filtro servizi archiviati (solo gestore). null = default
+            // (BE esclude gli archiviati); 'includi' / 'solo' inviano il param.
+            archiviati: new FormControl(null),
             type: new FormControl(''),
             referente: new FormControl(''),
             ruolo_referente: new FormControl([]),
@@ -661,6 +673,9 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
             query = { ...query, miei_servizi: this._isMyServices, tipo_servizio: this.tipo_servizio };
             if (this._currIdGruppoPadre) { query = { ...query, id_gruppo_padre: this._currIdGruppoPadre }; }
             if (this._gruppoPadreNull) { query = { ...query, gruppo_padre_null: this._gruppoPadreNull }; }
+            // Issue 346: propaga il filtro "archiviati" anche alla vista a gruppi.
+            const _archiviati = this._archiviatiParam();
+            if (_archiviati) { query = { ...query, archiviati: _archiviati }; }
             if (query) aux = { params: this.utils._queryToHttpParams(query) };
         }
         this._spin = !this._hideLoader;
@@ -955,6 +970,9 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         const _tempFilter = { ...values };
         // delete _tempFilter.taxonomiesGroup;
         delete _tempFilter.categoriaLabel;
+        // Issue 346: "archiviati" e` un modificatore trasversale (lista + vista a
+        // gruppi), non conta come filtro per decidere lista vs vista a gruppi.
+        delete _tempFilter.archiviati;
 
         this.resetElements();
         this._groupsView = false;
@@ -1138,6 +1156,15 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
     _isGestore() {
         return this.authenticationService.isGestore();
+    }
+
+    /** Issue 346: valore del param `archiviati` da inviare al BE. Efficace solo
+     *  per il gestore; `null` (default) → il BE esclude gli archiviati, quindi si
+     *  invia il param solo per `includi`/`solo`. */
+    _archiviatiParam(): string | null {
+        if (!this._isGestore()) { return null; }
+        const v = this._filterData?.archiviati ?? this._formGroup.get('archiviati')?.value;
+        return (v === 'includi' || v === 'solo') ? v : null;
     }
 
     _isAnonymous() {
