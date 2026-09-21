@@ -1,6 +1,12 @@
 2026-09-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 363: la finestra di upload dei descrittori (specifiche API) e` pre-filtrata
+	  per estensione (.json, .yml, .yaml, .wsdl). Aggiunto l'input `accept` al
+	  componente ui-allegato e applicato agli upload della specifica in
+	  servizio-api-details, servizio-api-configuration e servizio-specifica.
+
+	* [Frontend]
 	Snackbar: la "x" di chiusura non era visibile sulla snackbar "default" (colore
 	  forzato dalle classi gl-button uguale allo sfondo scuro). Rimosse le classi
 	  del design system dal pulsante di chiusura e stilizzato in modo minimale, cosi`

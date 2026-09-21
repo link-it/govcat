@@ -299,6 +299,7 @@
                           @if (_isEdit && _hasSpecifica) {
                             <ui-allegato #des class="miw-50" [control]="_descrittoreCtrl"
                               [label]="'APP.LABEL.specifica' | translate"
+                              [accept]="'.json,.yml,.yaml,.wsdl'"
                               (resetControl)="_onDescrittoreChange(_descrittoreCtrl.value)"
                               (fileChanged)="_onDescrittoreChange(_descrittoreCtrl.value)"
                               [required]="_specificaObbligatorio || this._hasSpecifica"

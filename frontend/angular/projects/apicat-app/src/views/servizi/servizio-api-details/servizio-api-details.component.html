@@ -334,6 +334,7 @@
                               [control]="_descrittoreCtrl"
                               [label]="'APP.LABEL.specifica' | translate"
                               [required]="_specificaObbligatorio || _hasSpecifica"
+                              [accept]="'.json,.yml,.yaml,.wsdl'"
                               (resetControl)="_onDescrittoreChange(_descrittoreCtrl.value)"
                               (fileChanged)="_onDescrittoreChange(_descrittoreCtrl.value)"
                               [disabled]="!f['protocollo'].value || !('allegati' | mapper:_canEditFieldMapper)"

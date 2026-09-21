@@ -137,6 +137,7 @@
             [control]="_descrittoreCtrl"
             [label]="'APP.TITLE.AllegatoSpecifica' | translate"
             [required]="true"
+            [accept]="'.json,.yml,.yaml,.wsdl'"
             (resetControl)="__descrittoreChange(_descrittoreCtrl.value)"
             (fileChanged)="__descrittoreChange(_descrittoreCtrl.value)"
             [disabled]="_descrittoreCtrl.disabled"
