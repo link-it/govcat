@@ -30,8 +30,8 @@ import { BehaviorSubject } from 'rxjs';
         [style.color]="_colors[snackbar.type].color">
         <p class="m-0">{{ snackbar.message }}</p>
         @if (snackbar.action) {
-          <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary"
-            [style.border-color]="_colors[snackbar.type].border"
+          <button type="button" class="snackbar-close"
+            [attr.aria-label]="snackbar.action"
             [style.color]="_colors[snackbar.type].color"
             (click)="__cleanMessage(idx)"><em class="bi bi-x-lg"></em><span class="d-none">{{ snackbar.action }}</span></button>
         }
@@ -73,6 +73,25 @@ import { BehaviorSubject } from 'rxjs';
       height: initial;
       min-width: initial;
       padding-right: 0;
+    }
+
+    /* Pulsante di chiusura minimale: niente stili del design system (gl-button),
+       cosi' il colore inline per tipo (bianco su "default" scuro) e' rispettato. */
+    .snackbar-close {
+      background: transparent;
+      border: 0;
+      padding: 4px 8px;
+      margin-left: .5rem;
+      line-height: 1;
+      font-size: 1rem;
+      cursor: pointer;
+      color: inherit;
+      opacity: .85;
+    }
+
+    .snackbar-close:hover,
+    .snackbar-close:focus-visible {
+      opacity: 1;
     }
 
     @media(min-width: 768px) {

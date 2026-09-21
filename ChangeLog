@@ -1,6 +1,12 @@
 2026-09-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Snackbar: la "x" di chiusura non era visibile sulla snackbar "default" (colore
+	  forzato dalle classi gl-button uguale allo sfondo scuro). Rimosse le classi
+	  del design system dal pulsante di chiusura e stilizzato in modo minimale, cosi`
+	  il colore per tipo e` rispettato; aggiunti aria-label e stati hover/focus.
+
+	* [Frontend]
 	Issue 346: i servizi archiviati sono esclusi di default dalle liste. Aggiunto
 	  al filtro avanzato (solo gestore) il controllo "Servizi archiviati" a 3 voci
 	  (Escludi/Includi/Solo) mappato sul nuovo query param `archiviati`, propagato a
