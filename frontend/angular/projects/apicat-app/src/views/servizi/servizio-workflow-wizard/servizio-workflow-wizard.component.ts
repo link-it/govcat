@@ -576,10 +576,13 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         this._phaseSectionOpen[key] = willOpen;
     }
 
-    /** Barra "vai a": apre la sezione (esclusiva) e ci scorre sopra. */
+    /** Barra "vai a": toggle esclusivo della sezione; se la apre, ci scorre
+     *  sopra. Ricliccando la sezione attiva la richiude (nessuno scroll). */
     goToSection(key: string) {
+        const willOpen = !this._phaseSectionOpen[key];
         Object.keys(this._phaseSectionOpen).forEach((k) => (this._phaseSectionOpen[k] = false));
-        this._phaseSectionOpen[key] = true;
+        this._phaseSectionOpen[key] = willOpen;
+        if (!willOpen) { return; }
         setTimeout(() => {
             const el = document.getElementById('phase-section-' + key);
             if (!el) { return; }

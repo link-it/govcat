@@ -1,3 +1,10 @@
+2026-09-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 352 (Parte 1): la barra "vai a" delle sezioni di FASE 1 torna a fare
+	  toggle (riclick richiude la sezione attiva) e corretto il track NG0955 delle
+	  liste referenti (chiave composita utente+tipo al posto di ref.id vuoto).
+
 2026-09-18  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

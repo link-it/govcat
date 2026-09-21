@@ -246,7 +246,7 @@
                             (close)="closeAddReferente()"
                           ></app-servizio-referente-add-form>
                         }
-                        @for (ref of servizioReferenti; track ref.id) {
+                        @for (ref of servizioReferenti; track (ref.utente?.id_utente || '') + '-' + (ref.tipo || '')) {
                           <div class="approval-card">
                             <div class="av">{{ getReferentInitials(ref) }}</div>
                             <div class="body">
@@ -281,7 +281,7 @@
                     </div>
                     @if (openD) {
                       <div class="lnk-ref-group-body">
-                        @for (ref of dominioReferenti; track ref.id) {
+                        @for (ref of dominioReferenti; track (ref.utente?.id_utente || '') + '-' + (ref.tipo || '')) {
                           <div class="approval-card">
                             <div class="av">{{ getReferentInitials(ref) }}</div>
                             <div class="body">
