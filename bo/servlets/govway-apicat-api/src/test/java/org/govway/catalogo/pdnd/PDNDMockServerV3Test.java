@@ -32,8 +32,11 @@ import java.util.UUID;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.pdnd.controllers.PDNDMockServerV3;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Agreement;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.AgreementState;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.EServiceEvent;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Purpose;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.PurposeVersionState;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Tenant;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -47,6 +50,10 @@ class PDNDMockServerV3Test {
 
 	private static final UUID ID = UUID.fromString("33333333-3333-3333-3333-333333333333");
 	private static final UUID ID_NON_TROVATO = UUID.fromString("eeeee404-0000-0000-0000-000000000000");
+	private static final UUID AGREEMENT_ATTIVO = UUID.fromString("55555555-5555-5555-5555-555555555555");
+	private static final UUID AGREEMENT_IN_ATTESA = UUID.fromString("d5555555-5555-5555-5555-555555555555");
+	private static final UUID PURPOSE_ATTIVA = UUID.fromString("66666666-6666-6666-6666-666666666666");
+	private static final UUID PURPOSE_IN_ATTESA = UUID.fromString("e6666666-6666-6666-6666-666666666666");
 
 	@ParameterizedTest
 	@ValueSource(strings = {"collaudo", "produzione"})
@@ -149,6 +156,63 @@ class PDNDMockServerV3Test {
 		// consente di provare lo sblocco della finalita' oltre soglia
 		assertTrue(server.getAgreementPurposes(ID, 50, 0).getBody().getResults().stream()
 				.anyMatch(p -> p.getWaitingForApprovalVersion() != null));
+	}
+
+	@Test
+	void gliOggettiSimulatiSonoDistinguibiliPerIdentificativo() {
+		PDNDMockServerV3 server = new PDNDMockServerV3("collaudo");
+
+		assertEquals(AgreementState.PENDING, server.getAgreement(AGREEMENT_IN_ATTESA).getBody().getState());
+		assertEquals(AgreementState.ACTIVE, server.getAgreement(AGREEMENT_ATTIVO).getBody().getState());
+
+		assertNotNull(server.getPurpose(PURPOSE_IN_ATTESA).getBody().getWaitingForApprovalVersion());
+		assertEquals(null, server.getPurpose(PURPOSE_ATTIVA).getBody().getWaitingForApprovalVersion());
+	}
+
+	@Test
+	void unIdentificativoSconosciutoOttieneLOggettoDiDefault() {
+		PDNDMockServerV3 server = new PDNDMockServerV3("collaudo");
+
+		// il mock resta utilizzabile con identificativi qualsiasi, come prima
+		assertNotNull(server.getAgreement(ID).getBody().getId());
+		assertNotNull(server.getPurpose(ID).getBody().getId());
+	}
+
+	@Test
+	void lApprovazioneRestituisceLAccordoAttivoSenzaAlterareIDatiSimulati() {
+		PDNDMockServerV3 server = new PDNDMockServerV3("collaudo");
+
+		assertEquals(AgreementState.ACTIVE, server.approveAgreement(AGREEMENT_IN_ATTESA).getBody().getState());
+
+		// la risposta approvata e' una copia: l'accordo simulato resta in attesa
+		assertEquals(AgreementState.PENDING, server.getAgreement(AGREEMENT_IN_ATTESA).getBody().getState());
+	}
+
+	@Test
+	void lApprovazioneDiUnaFinalitaAttivaLaVersioneInAttesa() {
+		PDNDMockServerV3 server = new PDNDMockServerV3("collaudo");
+
+		Integer richieste = server.getPurpose(PURPOSE_IN_ATTESA).getBody().getWaitingForApprovalVersion().getDailyCalls();
+
+		Purpose approvata = server.approvePurpose(PURPOSE_IN_ATTESA).getBody();
+
+		assertEquals(null, approvata.getWaitingForApprovalVersion());
+		assertEquals(PurposeVersionState.ACTIVE, approvata.getCurrentVersion().getState());
+		assertEquals(richieste, approvata.getCurrentVersion().getDailyCalls());
+
+		// anche qui i dati simulati non cambiano
+		assertNotNull(server.getPurpose(PURPOSE_IN_ATTESA).getBody().getWaitingForApprovalVersion());
+	}
+
+	@Test
+	void lAccordoDiUnaFinalitaEQuelloDelSuoFruitore() {
+		PDNDMockServerV3 server = new PDNDMockServerV3("collaudo");
+
+		Purpose finalita = server.getPurpose(PURPOSE_ATTIVA).getBody();
+		Agreement accordo = server.getPurposeAgreement(PURPOSE_ATTIVA).getBody();
+
+		assertEquals(finalita.getConsumerId(), accordo.getConsumerId());
+		assertEquals(finalita.getEserviceId(), accordo.getEserviceId());
 	}
 
 	@Test

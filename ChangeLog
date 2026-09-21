@@ -55,6 +55,22 @@
 	  la indica, riportando la versione effettivamente in uso: la console decide in base
 	  a quel campo quali funzionalita` PDND mostrare e, considerando il campo assente
 	  equivalente alla v1, avrebbe altrimenti continuato a nasconderle.
+	Issue 250: corretto il path dell'operazione che elenca gli e-service di una
+	  organizzazione (`getOrganizationEServices`), che nel contratto conteneva una
+	  sequenza di due slash dopo l'ambiente. L'operazione era irraggiungibile: invocata
+	  con il doppio slash veniva rifiutata dal container con 400, invocata con uno solo
+	  non corrispondeva ad alcun mapping e rispondeva 404. Il path e` ora
+	  `/{ambiente}/organizations/origin/{origin}/externalId/{externalId}/eservices`,
+	  lo stesso dell'API PDND da cui deriva.
+	Issue 250: il mock dell'API PDND v3 distingue ora gli accordi e le finalita` per
+	  identificativo, invece di restituire sempre il primo: richiedendo l'accordo del
+	  fruitore in attesa si ottiene quello in attesa, e l'approvazione restituisce lo
+	  stesso accordo attivo, cosi` la transizione e` osservabile. L'approvazione di una
+	  finalita` attiva la versione in attesa, che prende il posto di quella corrente con
+	  la previsione di carico richiesta. Gli identificativi non presenti tra i dati
+	  simulati continuano a ottenere l'oggetto di default, come prima. Le risposte
+	  simulate sono condivise tra le richieste: le approvazioni ne restituiscono una
+	  copia e non alterano i dati delle chiamate successive.
 
 2026-09-20  Giovanni De Luca <giovanni.deluca@link.it>
 

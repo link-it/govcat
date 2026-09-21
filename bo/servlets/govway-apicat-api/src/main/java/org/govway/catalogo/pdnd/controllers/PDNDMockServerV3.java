@@ -80,6 +80,8 @@ import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Key;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Problem;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Purpose;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Purposes;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.PurposeVersionState;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.PurposeVersion;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Tenant;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Tenants;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.VerifiedAttribute;
@@ -198,7 +200,7 @@ public class PDNDMockServerV3 {
 
 	public ResponseEntity<Agreement> getAgreement(UUID agreementId) {
 		checkInput(agreementId);
-		return ResponseEntity.ok(readMockResponse(Agreement.class));
+		return ResponseEntity.ok(readMockResponseAgreement(agreementId));
 	}
 
 	public ResponseEntity<Agreements> getAgreements(Integer offset, Integer limit, List<AgreementState> states,
@@ -212,12 +214,29 @@ public class PDNDMockServerV3 {
 
 	public ResponseEntity<Agreement> approveAgreement(UUID agreementId) {
 		checkInput(agreementId);
-		return ResponseEntity.ok(readMockResponse(Agreement.class));
+
+		// le risposte simulate sono condivise tra le richieste: l'accordo approvato e' una copia,
+		// cosi' l'approvazione non altera i dati restituiti dalle chiamate successive
+		Agreement approvato = copia(readMockResponseAgreement(agreementId), Agreement.class);
+		approvato.setState(AgreementState.ACTIVE);
+
+		return ResponseEntity.ok(approvato);
 	}
 
 	public ResponseEntity<Purpose> approvePurpose(UUID purposeId) {
 		checkInput(purposeId);
-		return ResponseEntity.ok(readMockResponse(Purpose.class));
+
+		Purpose approvata = copia(readMockResponsePurpose(purposeId), Purpose.class);
+
+		// approvare significa attivare la versione in attesa, che prende il posto di quella corrente
+		PurposeVersion inAttesa = approvata.getWaitingForApprovalVersion();
+		if(inAttesa != null) {
+			inAttesa.setState(PurposeVersionState.ACTIVE);
+			approvata.setCurrentVersion(inAttesa);
+			approvata.setWaitingForApprovalVersion(null);
+		}
+
+		return ResponseEntity.ok(approvata);
 	}
 
 	public ResponseEntity<Purposes> getAgreementPurposes(UUID agreementId, Integer limit, Integer offset) {
@@ -231,11 +250,25 @@ public class PDNDMockServerV3 {
 
 	public ResponseEntity<Purpose> getPurpose(UUID purposeId) {
 		checkInput(purposeId);
-		return ResponseEntity.ok(readMockResponse(Purpose.class));
+		return ResponseEntity.ok(readMockResponsePurpose(purposeId));
 	}
 
 	public ResponseEntity<Agreement> getPurposeAgreement(UUID purposeId) {
 		checkInput(purposeId);
+
+		Purpose purpose = readMockResponsePurpose(purposeId);
+
+		// l'accordo di una finalita' e' quello che lega il suo fruitore all'e-service
+		Agreements agreements = readMockResponse(Agreements.class);
+		if(agreements.getResults() != null) {
+			for(Agreement agreement: agreements.getResults()) {
+				if(agreement.getConsumerId() != null && agreement.getConsumerId().equals(purpose.getConsumerId())
+						&& agreement.getEserviceId() != null && agreement.getEserviceId().equals(purpose.getEserviceId())) {
+					return ResponseEntity.ok(agreement);
+				}
+			}
+		}
+
 		return ResponseEntity.ok(readMockResponse(Agreement.class));
 	}
 
@@ -350,6 +383,53 @@ public class PDNDMockServerV3 {
 	 * restituiti nome e codice IPA derivati dall'identificativo richiesto, in modo che le
 	 * organizzazioni risultino distinguibili.
 	 */
+	/**
+	 * Restituisce l'accordo con l'identificativo richiesto, se presente tra quelli simulati.
+	 * Un identificativo sconosciuto ottiene comunque l'accordo di default, come per gli altri
+	 * oggetti del mock.
+	 */
+	private Agreement readMockResponseAgreement(UUID agreementId) {
+		if(agreementId != null) {
+			Agreements agreements = readMockResponse(Agreements.class);
+			if(agreements.getResults() != null) {
+				for(Agreement agreement: agreements.getResults()) {
+					if(agreementId.equals(agreement.getId())) {
+						return agreement;
+					}
+				}
+			}
+		}
+
+		return readMockResponse(Agreement.class);
+	}
+
+	/**
+	 * Restituisce la finalita' con l'identificativo richiesto, se presente tra quelle simulate,
+	 * altrimenti quella di default.
+	 */
+	private Purpose readMockResponsePurpose(UUID purposeId) {
+		if(purposeId != null) {
+			Purposes purposes = readMockResponse(Purposes.class);
+			if(purposes.getResults() != null) {
+				for(Purpose purpose: purposes.getResults()) {
+					if(purposeId.equals(purpose.getId())) {
+						return purpose;
+					}
+				}
+			}
+		}
+
+		return readMockResponse(Purpose.class);
+	}
+
+	/**
+	 * Copia una risposta simulata prima di modificarla: le risposte lette dai file sono
+	 * conservate e riutilizzate, quindi non vanno alterate.
+	 */
+	private <T> T copia(T risposta, Class<T> valueType) {
+		return new ObjectMapper().registerModule(new JavaTimeModule()).convertValue(risposta, valueType);
+	}
+
 	private Tenant readMockResponseTenant(UUID tenantId) {
 		Tenant tenant = readMockResponse(Tenant.class);
 

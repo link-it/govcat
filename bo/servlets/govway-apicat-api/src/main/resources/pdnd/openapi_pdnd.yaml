@@ -2271,7 +2271,7 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  '/{ambiente}//organizations/origin/{origin}/externalId/{externalId}/eservices':
+  '/{ambiente}/organizations/origin/{origin}/externalId/{externalId}/eservices':
     post:
       tags:
         - gateway
