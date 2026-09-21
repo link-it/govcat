@@ -1,6 +1,14 @@
 2026-09-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 366: in creazione adesione da un servizio l'identificativo logico
+	  (id_logico) spariva perche` la select veniva preinizializzata con un oggetto
+	  parziale del servizio (senza multi_adesione). Ora _onChangeServizio carica il
+	  dettaglio completo quando manca multi_adesione; id_logico e` obbligatorio solo
+	  quando visibile (servizio multi-adesione) e il timeout d'init non azzera piu`
+	  il servizio selezionato.
+
+	* [Frontend]
 	Issue 363: la finestra di upload dei descrittori (specifiche API) e` pre-filtrata
 	  per estensione (.json, .yml, .yaml, .wsdl). Aggiunto l'input `accept` al
 	  componente ui-allegato e applicato agli upload della specifica in

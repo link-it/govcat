@@ -39,7 +39,7 @@ import { Servizio, Soggetto } from '../adesione-details/adesioneUpdate';
 import { WizardFasiBarComponent } from '@app/components/wizard/wizard-fasi-bar/wizard-fasi-bar.component';
 import { StepWizardItem } from '@app/components/wizard/wizard-step-bar/wizard-step-bar.component';
 
-import { concat, Observable, of, Subject, throwError } from 'rxjs';
+import { concat, firstValueFrom, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
 
 import moment from 'moment';
@@ -223,7 +223,13 @@ export class AdesioneCreateComponent implements OnInit {
         }
         this._initReferentiTecniciSelect([]);
         setTimeout(() => {
-          this._onChangeServizio(this._servizio);
+          // Rilancia la logica di selezione solo se un servizio e` gia`
+          // preselezionato (breadcrumb/queryParam). Con `_servizio` non ancora
+          // valorizzato NON si chiama con undefined, altrimenti si azzererebbe
+          // `_servizio` nascondendo l'identificativo logico (Issue 366).
+          if (this._servizio) {
+            this._onChangeServizio(this._servizio);
+          }
         }, 900);
 
         this._loadProfilo();
@@ -576,14 +582,17 @@ export class AdesioneCreateComponent implements OnInit {
   }
 
   updateIdLogico(servizio: any) {
-    if (this._servizio) {
-      if (this._servizio.multi_adesione) {
-        this._formGroup.get('id_logico')?.setValidators([Validators.required]);
-      } else {
-        this._formGroup.get('id_logico')?.clearValidators();
-      }
-      this._formGroup.get('id_logico')?.updateValueAndValidity();
+    // id_logico e` obbligatorio SOLO per i servizi multi-adesione (quando il
+    // campo e` effettivamente visibile). In tutti gli altri casi (servizio non
+    // multi-adesione o nessun servizio selezionato) il validator va rimosso,
+    // altrimenti resterebbe un required su un campo nascosto → form bloccato.
+    const _ctrl = this._formGroup.get('id_logico');
+    if (this._servizio?.multi_adesione) {
+      _ctrl?.setValidators([Validators.required]);
+    } else {
+      _ctrl?.clearValidators();
     }
+    _ctrl?.updateValueAndValidity();
   }
 
   _initServiziSelect(defaultValue: any[] = []) {
@@ -818,6 +827,17 @@ export class AdesioneCreateComponent implements OnInit {
   }
 
   async _onChangeServizio(servizio?: Servizio) {
+    // Il servizio puo` arrivare come oggetto parziale: dalla select (item della
+    // lista) o dalla select preinizializzata in `_loadServizio` con solo
+    // id/nome/versione. In quei casi `multi_adesione` non e` presente e
+    // l'identificativo logico sparirebbe. Carico il dettaglio completo per
+    // popolare correttamente `_servizio` (Issue 366).
+    const _idServizio = (servizio as any)?.id_servizio;
+    if (_idServizio && (servizio as any)?.multi_adesione === undefined) {
+      try {
+        servizio = await firstValueFrom(this.apiService.getDetails('servizi', _idServizio));
+      } catch { /* fallback all'oggetto ricevuto */ }
+    }
     this._servizio = servizio;
 
     this.updateIdLogico(this._servizio);
