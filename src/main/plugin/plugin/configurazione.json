@@ -771,6 +771,9 @@
             "specifica",
             "collaudo"
           ],
+          "dati_non_modificabili": [
+            "api"
+          ],
           "stato_successivo": {
             "nome": "autorizzato_collaudo",
             "ruoli_abilitati": [
@@ -796,6 +799,9 @@
             "referenti",
             "specifica",
             "collaudo"
+          ],
+          "dati_non_modificabili": [
+            "api"
           ],
           "stato_successivo": {
             "nome": "in_configurazione_collaudo",
@@ -823,7 +829,8 @@
           "dati_non_modificabili": [
             "identificativo",
             "specifica",
-            "collaudo"
+            "collaudo",
+            "api"
           ],
           "stato_successivo": {
             "nome": "pubblicato_collaudo",
@@ -850,7 +857,8 @@
           "dati_non_modificabili": [
             "identificativo",
             "specifica",
-            "collaudo"
+            "collaudo",
+            "api"
           ],
           "stato_successivo": {
             "nome": "richiesto_produzione",
@@ -881,7 +889,8 @@
           "dati_non_modificabili": [
             "identificativo",
             "specifica",
-            "collaudo"
+            "collaudo",
+            "api"
           ],
           "stato_successivo": {
             "nome": "autorizzato_produzione",
@@ -907,6 +916,9 @@
             "specifica",
             "collaudo",
             "produzione"
+          ],
+          "dati_non_modificabili": [
+            "api"
           ],
           "stato_successivo": {
             "nome": "in_configurazione_produzione",
@@ -936,7 +948,8 @@
             "identificativo",
             "specifica",
             "collaudo",
-            "produzione"
+            "produzione",
+            "api"
           ],
           "stato_successivo": {
             "nome": "pubblicato_produzione",
@@ -965,7 +978,8 @@
             "identificativo",
             "specifica",
             "collaudo",
-            "produzione"
+            "produzione",
+            "api"
           ],
           "stato_precedente": {
             "nome": "in_configurazione_produzione",
@@ -985,7 +999,8 @@
           ],
           "dati_non_modificabili": [
             "identificativo",
-            "specifica"
+            "specifica",
+            "api"
           ],
           "stato_successivo": {
             "nome": "autorizzato_produzione_senza_collaudo",
@@ -1013,6 +1028,9 @@
             "specifica",
             "produzione"
           ],
+          "dati_non_modificabili": [
+            "api"
+          ],
           "stato_successivo": {
             "nome": "in_configurazione_produzione_senza_collaudo",
             "ruoli_abilitati": [
@@ -1039,7 +1057,8 @@
           "dati_non_modificabili": [
             "identificativo",
             "specifica",
-            "produzione"
+            "produzione",
+            "api"
           ],
           "stato_successivo": {
             "nome": "pubblicato_produzione_senza_collaudo",
@@ -1066,7 +1085,8 @@
           "dati_non_modificabili": [
             "identificativo",
             "specifica",
-            "produzione"
+            "produzione",
+            "api"
           ],
           "stato_precedente": {
             "nome": "in_configurazione_produzione_senza_collaudo",

@@ -1,0 +1,16 @@
+{
+  "events": [
+    {
+      "id": "1ec00000-0000-0000-0000-000000000001",
+      "eventType": "AGREEMENT_ADDED",
+      "eventTimestamp": "2026-01-15T09:31:00Z",
+      "agreementId": "c5555555-5555-5555-5555-555555555555"
+    },
+    {
+      "id": "2ec00000-0000-0000-0000-000000000002",
+      "eventType": "AGREEMENT_ACTIVATED",
+      "eventTimestamp": "2026-01-15T09:32:00Z",
+      "agreementId": "c5555555-5555-5555-5555-555555555555"
+    }
+  ]
+}

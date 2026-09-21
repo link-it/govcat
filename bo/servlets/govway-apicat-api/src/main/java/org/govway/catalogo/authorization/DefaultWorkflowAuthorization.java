@@ -335,6 +335,8 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 		break;
 		case SPECIFICA:  gt = grant.getSpecifica();
 		break;
+		case API:  gt = grant.getApi();
+		break;
 		}
 
 		if(gt==null) {
@@ -465,6 +467,7 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 		grant.setGenerico(this.getGrantType(ConfigurazioneClasseDato.GENERICO, lst, entity));
 		grant.setCollaudo(this.getGrantType(ConfigurazioneClasseDato.COLLAUDO, lst, entity));
 		grant.setProduzione(this.getGrantType(ConfigurazioneClasseDato.PRODUZIONE, lst, entity));
+		grant.setApi(this.getGrantType(ConfigurazioneClasseDato.API, lst, entity));
 
 		return grant;
 	}

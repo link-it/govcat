@@ -26,12 +26,14 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.pdnd.controllers.PDNDMockServerV3;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.AgreementState;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.EServiceEvent;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Tenant;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -116,6 +118,37 @@ class PDNDMockServerV3Test {
 		assertEquals(altroTenant, fruitore.getId());
 		assertNotEquals(erogatore.getName(), fruitore.getName());
 		assertNotEquals(erogatore.getExternalId().getValue(), fruitore.getExternalId().getValue());
+	}
+
+	@Test
+	void ilMockDegliEventiRiprendeDallUltimoEventoRicevuto() {
+		PDNDMockServerV3 server = new PDNDMockServerV3("collaudo");
+
+		List<EServiceEvent> tutti = server.getEServicesEvents(50, null, null).getBody().getEvents();
+		assertTrue(tutti.size() > 1, "servono piu' eventi simulati per verificare la ripresa");
+
+		List<EServiceEvent> successivi = server.getEServicesEvents(50, null, tutti.get(0).getId())
+				.getBody().getEvents();
+
+		assertEquals(tutti.size() - 1, successivi.size());
+		assertEquals(tutti.get(1).getId(), successivi.get(0).getId());
+	}
+
+	@Test
+	void ilRegistroAttributiSimulatoContienePiuCodici() {
+		PDNDMockServerV3 server = new PDNDMockServerV3("collaudo");
+
+		// consente di verificare la risoluzione di un codice nel registro
+		assertTrue(server.getCertifiedAttributes(0, 50).getBody().getResults().size() > 1);
+	}
+
+	@Test
+	void unaFinalitaSimulataEInAttesaDiApprovazione() {
+		PDNDMockServerV3 server = new PDNDMockServerV3("collaudo");
+
+		// consente di provare lo sblocco della finalita' oltre soglia
+		assertTrue(server.getAgreementPurposes(ID, 50, 0).getBody().getResults().stream()
+				.anyMatch(p -> p.getWaitingForApprovalVersion() != null));
 	}
 
 	@Test

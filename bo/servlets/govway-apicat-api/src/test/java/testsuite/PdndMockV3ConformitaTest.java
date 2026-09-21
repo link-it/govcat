@@ -100,6 +100,21 @@ public class PdndMockV3ConformitaTest {
         risposte.add(server.approveAgreement(ID));
         risposte.add(server.approvePurpose(ID));
 
+        // attributi assegnati al fruitore e registro degli attributi certificati
+        risposte.add(server.getTenantCertifiedAttributes(ID, 0, 50));
+        risposte.add(server.getTenantDeclaredAttributes(ID, 0, 50, null));
+        risposte.add(server.getTenantVerifiedAttributes(ID, 0, 50));
+        risposte.add(server.getTenantVerifiedAttributeVerifiers(ID, ID, 0, 50));
+        risposte.add(server.getCertifiedAttributes(0, 50));
+        risposte.add(server.assignTenantCertifiedAttribute(ID, null));
+        risposte.add(server.revokeTenantCertifiedAttribute(ID, ID));
+
+        // flussi di eventi
+        risposte.add(server.getEServicesEvents(50, null, null));
+        risposte.add(server.getKeyEvents(50, null));
+        risposte.add(server.getAgreementsEvents(50, null, null));
+        risposte.add(server.getPurposeEvents(50, null, null));
+
         for (ResponseEntity<?> risposta : risposte) {
             Object body = risposta.getBody();
             assertNotNull(body, "risposta simulata senza corpo");

@@ -232,7 +232,10 @@ public class APIController implements ApiApi {
 				this.logger.info("Invocazione in corso ...");     
 				ApiEntity entity = this.dettaglioAssembler.toEntity(apiCreate);
 				ServizioEntity servizio = entity.getServizio();
-				this.servizioAuthorization.authorizeModifica(servizio, Arrays.asList(ConfigurazioneClasseDato.IDENTIFICATIVO));
+				// La classe dato API governa la composizione della lista delle API del servizio:
+				// e' richiesta in AND con IDENTIFICATIVO, cosi' le configurazioni che non la
+				// dichiarano mantengono i vincoli gia' in vigore.
+				this.servizioAuthorization.authorizeModifica(servizio, Arrays.asList(ConfigurazioneClasseDato.IDENTIFICATIVO, ConfigurazioneClasseDato.API));
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				this.apiUnivocitaService.checkUnivocita(apiCreate.getNome(), apiCreate.getVersione(), servizio);
@@ -274,7 +277,7 @@ public class APIController implements ApiApi {
 				}
 
 				this.service.delete(entity);
-				this.servizioAuthorization.authorizeModifica(entity.getServizio(), Arrays.asList(ConfigurazioneClasseDato.IDENTIFICATIVO));
+				this.servizioAuthorization.authorizeModifica(entity.getServizio(), Arrays.asList(ConfigurazioneClasseDato.IDENTIFICATIVO, ConfigurazioneClasseDato.API));
 
 				this.servizioDettaglioAssembler.setUltimaModifica(entity.getServizio());
 				this.servizioService.save(entity.getServizio());
@@ -663,6 +666,9 @@ public class APIController implements ApiApi {
 
 				if(apiUpdate.getIdentificativo()!=null) {
 					lstClassiDato.add(ConfigurazioneClasseDato.IDENTIFICATIVO);
+					// Cambiare nome, versione o ruolo re-identifica l'API: vale come modifica
+					// della composizione della lista delle API del servizio.
+					lstClassiDato.add(ConfigurazioneClasseDato.API);
 					boolean nomeCambiato = !entity.getNome().equals(apiUpdate.getIdentificativo().getNome());
 					boolean versioneCambiata = !entity.getVersione().equals(apiUpdate.getIdentificativo().getVersione());
 

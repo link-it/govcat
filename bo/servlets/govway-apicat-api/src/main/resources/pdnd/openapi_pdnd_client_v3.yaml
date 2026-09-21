@@ -11,7 +11,7 @@ info:
     GovWay: la specifica non dichiara quindi alcuno schema di sicurezza.'
   termsOfService: https://selfcare.interop.pagopa.it/ui/it/termini-di-servizio
   title: PDND Interoperability API (v3) - operazioni utilizzate da GovCat
-  version: 3.1.0
+  version: 3.1.1
   x-summary: PDND Interoperability API
 servers:
 - url: /v3
@@ -211,6 +211,50 @@ paths:
       summary: List Purposes for an Agreement
       tags:
       - gateway
+  /agreements/{agreementId}/approve:
+    post:
+      description: Approve an Agreement that is in Pending state, transitioning it to Active state
+      operationId: approveAgreement
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agreement'
+          description: Agreement approved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Approve an Agreement in Pending state
+      tags:
+      - gateway
+      parameters:
+      - description: The ID of the Agreement to approve
+        in: path
+        name: agreementId
+        required: true
+        schema:
+          $ref: '#/components/schemas/AgreementId'
   /purposes/{purposeId}:
     get:
       description: Retrieve a Purpose
@@ -292,6 +336,49 @@ paths:
       - gateway
       parameters:
       - description: The ID of the Purpose to retrieve the agreement for
+        in: path
+        name: purposeId
+        required: true
+        schema:
+          $ref: '#/components/schemas/PurposeId'
+  /purposes/{purposeId}/approve:
+    post:
+      description: Approve a Purpose that is in Waiting for Approval state, transitioning it to Active
+        state
+      operationId: approvePurpose
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Purpose'
+          description: Purpose approved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Approve a Purpose in Waiting for Approval state
+      tags:
+      - gateway
+      parameters:
+      - description: The ID of the Purpose to approve
         in: path
         name: purposeId
         required: true
@@ -839,6 +926,285 @@ paths:
         required: true
         schema:
           $ref: '#/components/schemas/TenantId'
+  /tenants/{tenantId}/certifiedAttributes:
+    get:
+      description: Retrieve a list of Certified Attributes assigned to the Tenant
+      operationId: getTenantCertifiedAttributes
+      parameters:
+      - description: The Tenant ID of the Certified Attributes
+        in: path
+        name: tenantId
+        required: true
+        schema:
+          $ref: '#/components/schemas/TenantId'
+      - $ref: '#/components/parameters/OffsetParam'
+      - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantCertifiedAttributes'
+          description: Tenant Certified Attributes retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: List Tenant Certified Attributes
+      tags:
+      - gateway
+    post:
+      description: Assign a Certified Attribute to a Tenant
+      operationId: assignTenantCertifiedAttribute
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantCertifiedAttributeSeed'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantCertifiedAttribute'
+          description: Certified Attribute assigned
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Assign a Certified Attribute to a Tenant
+      tags:
+      - gateway
+      parameters:
+      - description: The Tenant ID of the Certified Attributes
+        in: path
+        name: tenantId
+        required: true
+        schema:
+          $ref: '#/components/schemas/TenantId'
+  /tenants/{tenantId}/certifiedAttributes/{attributeId}:
+    delete:
+      description: Revoke a Certified Attribute from a Tenant
+      operationId: revokeTenantCertifiedAttribute
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantCertifiedAttribute'
+          description: Certified Attribute revoked
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Revoke a Certified Attribute from a Tenant
+      tags:
+      - gateway
+      parameters:
+      - description: The Tenant ID of the Certified Attribute
+        in: path
+        name: tenantId
+        required: true
+        schema:
+          $ref: '#/components/schemas/TenantId'
+      - description: The Certified Attribute ID
+        in: path
+        name: attributeId
+        required: true
+        schema:
+          $ref: '#/components/schemas/AttributeId'
+  /tenants/{tenantId}/declaredAttributes:
+    get:
+      description: Retrieve a list of Declared Attributes assigned to the Tenant
+      operationId: getTenantDeclaredAttributes
+      parameters:
+      - description: The Tenant ID of the Declared Attributes
+        in: path
+        name: tenantId
+        required: true
+        schema:
+          $ref: '#/components/schemas/TenantId'
+      - description: The ID of the Delegation to filter the Declared Attributes
+        in: query
+        name: delegationId
+        schema:
+          format: uuid
+          type: string
+      - $ref: '#/components/parameters/OffsetParam'
+      - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantDeclaredAttributes'
+          description: Tenant Declared Attributes retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: List Tenant Declared Attributes
+      tags:
+      - gateway
+  /tenants/{tenantId}/verifiedAttributes:
+    get:
+      description: Retrieve a list of Verified Attributes assigned to the Tenant
+      operationId: getTenantVerifiedAttributes
+      parameters:
+      - description: The Tenant ID of the Verified Attributes
+        in: path
+        name: tenantId
+        required: true
+        schema:
+          $ref: '#/components/schemas/TenantId'
+      - $ref: '#/components/parameters/OffsetParam'
+      - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantVerifiedAttributes'
+          description: Tenant Verified Attributes retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: List Tenant Verified Attributes
+      tags:
+      - gateway
+  /tenants/{tenantId}/verifiedAttributes/{attributeId}/verifiers:
+    get:
+      description: Retrieve a list of Verifiers for a specific Verified Attribute of a Tenant
+      operationId: getTenantVerifiedAttributeVerifiers
+      parameters:
+      - description: The Tenant ID
+        in: path
+        name: tenantId
+        required: true
+        schema:
+          $ref: '#/components/schemas/TenantId'
+      - description: The Verified Attribute ID
+        in: path
+        name: attributeId
+        required: true
+        schema:
+          $ref: '#/components/schemas/AttributeId'
+      - $ref: '#/components/parameters/OffsetParam'
+      - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantVerifiedAttributeVerifiers'
+          description: Verified Attribute Verifiers retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: List Tenant Verified Attribute Verifiers
+      tags:
+      - gateway
   /keys/{kid}:
     get:
       description: Retrieve the JWK by kid
@@ -878,6 +1244,39 @@ paths:
       tags:
       - gateway
   /certifiedAttributes:
+    get:
+      description: Retrieve a list of Certified Attributes
+      operationId: getCertifiedAttributes
+      parameters:
+      - $ref: '#/components/parameters/OffsetParam'
+      - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertifiedAttributes'
+          description: Certified Attributes retrieved successfully
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: List Certified Attributes
+      tags:
+      - gateway
     post:
       description: "Create a certified Attribute\nThe Attribute must\n  - have a unique name across all\
         \ Attributes in the Platform\n  - have a unique code across certified Attributes owned by the\
@@ -920,93 +1319,6 @@ paths:
       summary: Create a certified Attribute
       tags:
       - gateway
-  /agreements/{agreementId}/approve:
-    post:
-      description: Approve an Agreement that is in Pending state, transitioning it to Active state
-      operationId: approveAgreement
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Agreement'
-          description: Agreement approved
-          headers:
-            Agid-JWT-Signature:
-              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
-            Digest:
-              $ref: '#/components/headers/IntegrityRest02DigestHeader'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/RateLimitIntervalHeader'
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/RateLimitLimitHeader'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/RateLimitRemainingHeader'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-      summary: Approve an Agreement in Pending state
-      tags:
-      - gateway
-      parameters:
-      - description: The ID of the Agreement to approve
-        in: path
-        name: agreementId
-        required: true
-        schema:
-          $ref: '#/components/schemas/AgreementId'
-  /purposes/{purposeId}/approve:
-    post:
-      description: Approve a Purpose that is in Waiting for Approval state, transitioning it to Active
-        state
-      operationId: approvePurpose
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Purpose'
-          description: Purpose approved
-          headers:
-            Agid-JWT-Signature:
-              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
-            Digest:
-              $ref: '#/components/headers/IntegrityRest02DigestHeader'
-            X-Rate-Limit-Interval:
-              $ref: '#/components/headers/RateLimitIntervalHeader'
-            X-Rate-Limit-Limit:
-              $ref: '#/components/headers/RateLimitLimitHeader'
-            X-Rate-Limit-Remaining:
-              $ref: '#/components/headers/RateLimitRemainingHeader'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-      summary: Approve a Purpose in Waiting for Approval state
-      tags:
-      - gateway
-      parameters:
-      - description: The ID of the Purpose to approve
-        in: path
-        name: purposeId
-        required: true
-        schema:
-          $ref: '#/components/schemas/PurposeId'
   /certifiedAttributes/{attributeId}:
     get:
       description: Retrieve a certified Attribute
@@ -1127,6 +1439,521 @@ paths:
         required: true
         schema:
           $ref: '#/components/schemas/AttributeId'
+  /eserviceEvents:
+    get:
+      description: 'Retrieve list of E-Service events that occurred after the specified event ID.
+
+        Results are ordered in ascending order (oldest events first).
+
+        '
+      operationId: getEServicesEvents
+      parameters:
+      - $ref: '#/components/parameters/EventsDelegationId'
+      - $ref: '#/components/parameters/LastEventId'
+      - $ref: '#/components/parameters/EventsLimit'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EServiceEvents'
+          description: E-Service events retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Get E-Service events
+      tags:
+      - gateway
+  /keyEvents:
+    get:
+      description: 'Retrieve list of Key events that occurred after the specified event ID.
+
+        Results are ordered in ascending order (oldest events first).
+
+        '
+      operationId: getKeyEvents
+      parameters:
+      - $ref: '#/components/parameters/LastEventId'
+      - $ref: '#/components/parameters/EventsLimit'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KeyEvents'
+          description: Key events retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Get Key events
+      tags:
+      - gateway
+  /agreementEvents:
+    get:
+      description: 'Retrieve list of Agreement events that occurred after the specified event ID.
+
+        Results are ordered in ascending order (oldest events first).
+
+        '
+      operationId: getAgreementsEvents
+      parameters:
+      - $ref: '#/components/parameters/LastEventId'
+      - $ref: '#/components/parameters/EventsLimit'
+      - $ref: '#/components/parameters/EventsDelegationId'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgreementEvents'
+          description: Agreement events retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Get Agreement events
+      tags:
+      - gateway
+  /purposeEvents:
+    get:
+      description: 'Retrieve list of Purpose events that occurred after the specified event ID.
+
+        Results are ordered in ascending order (oldest events first).
+
+        '
+      operationId: getPurposeEvents
+      parameters:
+      - $ref: '#/components/parameters/LastEventId'
+      - $ref: '#/components/parameters/EventsLimit'
+      - $ref: '#/components/parameters/EventsDelegationId'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurposeEvents'
+          description: Purpose events retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Get Purpose events
+      tags:
+      - gateway
+  /tenantEvents:
+    get:
+      description: 'Retrieve list of Tenant events that occurred after the specified event ID.
+
+        Results are ordered in ascending order (oldest events first).
+
+        '
+      operationId: getTenantEvents
+      parameters:
+      - $ref: '#/components/parameters/LastEventId'
+      - $ref: '#/components/parameters/EventsLimit'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantEvents'
+          description: Tenant events retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Get Tenant events
+      tags:
+      - gateway
+  /attributeEvents:
+    get:
+      description: 'Retrieve list of Attribute events that occurred after the specified event ID.
+
+        Results are ordered in ascending order (oldest events first).
+
+        '
+      operationId: getAttributesEvents
+      parameters:
+      - $ref: '#/components/parameters/LastEventId'
+      - $ref: '#/components/parameters/EventsLimit'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttributeEvents'
+          description: Attribute events retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Get Attribute events
+      tags:
+      - gateway
+  /clientEvents:
+    get:
+      description: 'Retrieve list of Client events that occurred after the specified event ID.
+
+        Results are ordered in ascending order (oldest events first).
+
+        '
+      operationId: getClientEvents
+      parameters:
+      - $ref: '#/components/parameters/LastEventId'
+      - $ref: '#/components/parameters/EventsLimit'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientEvents'
+          description: Client events retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Get Client events
+      tags:
+      - gateway
+  /producerKeyEvents:
+    get:
+      description: 'Retrieve list of Producer Key events that occurred after the specified event ID.
+
+        Results are ordered in ascending order (oldest events first).
+
+        '
+      operationId: getProducerKeyEvents
+      parameters:
+      - $ref: '#/components/parameters/LastEventId'
+      - $ref: '#/components/parameters/EventsLimit'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProducerKeyEvents'
+          description: Producer Key events retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Get Producer Key events
+      tags:
+      - gateway
+  /producerKeychainEvents:
+    get:
+      description: 'Retrieve list of Producer Keychain events that occurred after the specified event
+        ID.
+
+        Results are ordered in ascending order (oldest events first).
+
+        '
+      operationId: getProducerKeychainEvents
+      parameters:
+      - $ref: '#/components/parameters/LastEventId'
+      - $ref: '#/components/parameters/EventsLimit'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProducerKeychainEvents'
+          description: Producer Keychain events retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Get Producer Keychain events
+      tags:
+      - gateway
+  /consumerDelegationEvents:
+    get:
+      description: 'Retrieve list of Consumer Delegation events that occurred after the specified event
+        ID.
+
+        Results are ordered in ascending order (oldest events first).
+
+        '
+      operationId: getConsumerDelegationEvents
+      parameters:
+      - $ref: '#/components/parameters/LastEventId'
+      - $ref: '#/components/parameters/EventsLimit'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsumerDelegationEvents'
+          description: Consumer Delegation events retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Get Consumer Delegations events
+      tags:
+      - gateway
+  /producerDelegationEvents:
+    get:
+      description: 'Retrieve list of Producer Delegation events that occurred after the specified event
+        ID.
+
+        Results are ordered in ascending order (oldest events first).
+
+        '
+      operationId: getProducerDelegationEvents
+      parameters:
+      - $ref: '#/components/parameters/LastEventId'
+      - $ref: '#/components/parameters/EventsLimit'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProducerDelegationEvents'
+          description: Producer Delegation events retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Get Producer Delegations events
+      tags:
+      - gateway
+  /eserviceTemplateEvents:
+    get:
+      description: 'Retrieve list of EServiceTemplate events that occurred after the specified event ID.
+
+        Results are ordered in ascending order (oldest events first).
+
+        '
+      operationId: getEServiceTemplateEvents
+      parameters:
+      - $ref: '#/components/parameters/LastEventId'
+      - $ref: '#/components/parameters/EventsLimit'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EServiceTemplateEvents'
+          description: EServiceTemplate events retrieved
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Get EServiceTemplate events
+      tags:
+      - gateway
+  /purposeTemplateEvents:
+    get:
+      description: 'Retrieve list of Purpose Template events that occurred after the specified event ID.
+
+        Results are ordered in ascending order (oldest events first).
+
+        '
+      operationId: getPurposeTemplateEvents
+      parameters:
+      - $ref: '#/components/parameters/LastEventId'
+      - $ref: '#/components/parameters/EventsLimit'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurposeTemplateEvents'
+          description: Purpose Template events retrieved
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Get Purpose Template events
+      tags:
+      - gateway
 components:
   headers:
     IntegrityRest02AgidJwtSignatureHeader:
@@ -1185,6 +2012,41 @@ components:
           format: uuid
           type: string
         type: array
+    EventsDelegationId:
+      description: "Filter events by delegation ID.\n- Omitted: Return all events, both for delegated\
+        \ and non-delegated resources.\n- Delegation UUID: Return only events for resources related to\
+        \ the specified delegation.\n- null: Return only events for resources accessible without delegation\n\
+        \    (public resources, resources accessible as consumer/producer, owned resources, etc.)\n"
+      in: query
+      name: delegationId
+      required: false
+      schema:
+        format: uuid
+        nullable: true
+        type: string
+    EventsLimit:
+      description: Maximum number of events to return.
+      in: query
+      name: limit
+      required: true
+      schema:
+        format: int32
+        maximum: 500
+        minimum: 1
+        type: integer
+    LastEventId:
+      description: 'ID of the last event already received.
+
+        Only events that occurred after this ID will be returned.
+
+        If not provided, the oldest events up to the specified limit will be returned.
+
+        '
+      in: query
+      name: lastEventId
+      schema:
+        format: uuid
+        type: string
     LimitParam:
       description: Maximum number of results to return
       in: query
@@ -1375,6 +2237,64 @@ components:
       - AUTOMATIC
       - MANUAL
       type: string
+    AgreementEvent:
+      additionalProperties: false
+      properties:
+        agreementId:
+          $ref: '#/components/schemas/AgreementId'
+        consumerDelegationId:
+          format: uuid
+          type: string
+        eventTimestamp:
+          format: date-time
+          type: string
+        eventType:
+          enum:
+          - AGREEMENT_ADDED
+          - DRAFT_AGREEMENT_UPDATED
+          - AGREEMENT_DELETED
+          - AGREEMENT_ACTIVATED
+          - AGREEMENT_REJECTED
+          - AGREEMENT_UPGRADED
+          - AGREEMENT_SUBMITTED
+          - AGREEMENT_ARCHIVED_BY_CONSUMER
+          - AGREEMENT_SUSPENDED_BY_CONSUMER
+          - AGREEMENT_UNSUSPENDED_BY_CONSUMER
+          - AGREEMENT_SUSPENDED_BY_PRODUCER
+          - AGREEMENT_UNSUSPENDED_BY_PRODUCER
+          - AGREEMENT_SUSPENDED_BY_PLATFORM
+          - AGREEMENT_UNSUSPENDED_BY_PLATFORM
+          - AGREEMENT_ARCHIVED_BY_UPGRADE
+          - AGREEMENT_CONSUMER_DOCUMENT_ADDED
+          - AGREEMENT_CONSUMER_DOCUMENT_REMOVED
+          - AGREEMENT_ARCHIVED_BY_REVOKED_DELEGATION
+          - AGREEMENT_DELETED_BY_REVOKED_DELEGATION
+          - AGREEMENT_SET_MISSING_CERTIFIED_ATTRIBUTES_BY_PLATFORM
+          - AGREEMENT_SET_DRAFT_BY_PLATFORM
+          - AGREEMENT_CONTRACT_GENERATED
+          type: string
+        id:
+          format: uuid
+          type: string
+        producerDelegationId:
+          format: uuid
+          type: string
+      required:
+      - id
+      - eventType
+      - eventTimestamp
+      - agreementId
+      type: object
+    AgreementEvents:
+      additionalProperties: false
+      properties:
+        events:
+          items:
+            $ref: '#/components/schemas/AgreementEvent'
+          type: array
+      required:
+      - events
+      type: object
     AgreementId:
       description: The unique identifier of the Agreement
       format: uuid
@@ -1409,11 +2329,18 @@ components:
         archivableOn:
           format: date-time
           type: string
+        gracePeriodDays:
+          $ref: '#/components/schemas/GracePeriodDays'
         scope:
           $ref: '#/components/schemas/ArchivingScope'
         startedAt:
           format: date-time
           type: string
+      required:
+      - archivableOn
+      - startedAt
+      - scope
+      - gracePeriodDays
       type: object
     ArchivingScope:
       description: Archiving Scope
@@ -1448,6 +2375,37 @@ components:
       - confirmation
       - bulk
       - maxResultSet
+      type: object
+    AttributeEvent:
+      additionalProperties: false
+      properties:
+        attributeId:
+          $ref: '#/components/schemas/AttributeId'
+        eventTimestamp:
+          format: date-time
+          type: string
+        eventType:
+          enum:
+          - ATTRIBUTE_ADDED
+          type: string
+        id:
+          format: uuid
+          type: string
+      required:
+      - id
+      - eventType
+      - eventTimestamp
+      - attributeId
+      type: object
+    AttributeEvents:
+      additionalProperties: false
+      properties:
+        events:
+          items:
+            $ref: '#/components/schemas/AttributeEvent'
+          type: array
+      required:
+      - events
       type: object
     AttributeId:
       description: The unique identifier of the Attribute
@@ -1502,6 +2460,19 @@ components:
       - name
       - code
       type: object
+    CertifiedAttributes:
+      additionalProperties: false
+      properties:
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        results:
+          items:
+            $ref: '#/components/schemas/CertifiedAttribute'
+          type: array
+      required:
+      - results
+      - pagination
+      type: object
     Client:
       description: Client PDND. I campi diversi da id e consumerId sono valorizzati solo se il chiamante
         e' proprietario del client.
@@ -1524,10 +2495,79 @@ components:
       required:
       - id
       - consumerId
+    ClientEvent:
+      additionalProperties: false
+      properties:
+        clientId:
+          $ref: '#/components/schemas/ClientId'
+        eventTimestamp:
+          format: date-time
+          type: string
+        eventType:
+          enum:
+          - CLIENT_ADDED
+          - CLIENT_DELETED
+          - CLIENT_PURPOSE_ADDED
+          - CLIENT_PURPOSE_REMOVED
+          type: string
+        id:
+          format: uuid
+          type: string
+      required:
+      - id
+      - eventType
+      - eventTimestamp
+      - clientId
+      type: object
+    ClientEvents:
+      additionalProperties: false
+      properties:
+        events:
+          items:
+            $ref: '#/components/schemas/ClientEvent'
+          type: array
+      required:
+      - events
+      type: object
     ClientId:
       description: The unique identifier of the Client
       format: uuid
       type: string
+    ConsumerDelegationEvent:
+      additionalProperties: false
+      properties:
+        delegationId:
+          $ref: '#/components/schemas/DelegationId'
+        eventTimestamp:
+          format: date-time
+          type: string
+        eventType:
+          enum:
+          - CONSUMER_DELEGATION_APPROVED
+          - CONSUMER_DELEGATION_REVOKED
+          - CONSUMER_DELEGATION_REJECTED
+          - CONSUMER_DELEGATION_SUBMITTED
+          - DELEGATION_CONTRACT_GENERATED
+          type: string
+        id:
+          format: uuid
+          type: string
+      required:
+      - id
+      - eventType
+      - eventTimestamp
+      - delegationId
+      type: object
+    ConsumerDelegationEvents:
+      additionalProperties: false
+      properties:
+        events:
+          items:
+            $ref: '#/components/schemas/ConsumerDelegationEvent'
+          type: array
+      required:
+      - events
+      type: object
     DeclaredAttribute:
       additionalProperties: false
       properties:
@@ -1810,6 +2850,97 @@ components:
       - results
       - pagination
       type: object
+    EServiceEvent:
+      additionalProperties: false
+      properties:
+        descriptorId:
+          $ref: '#/components/schemas/DescriptorId'
+        eserviceId:
+          $ref: '#/components/schemas/EServiceId'
+        eventTimestamp:
+          format: date-time
+          type: string
+        eventType:
+          enum:
+          - ESERVICE_ADDED
+          - DRAFT_ESERVICE_UPDATED
+          - ESERVICE_CLONED
+          - ESERVICE_DELETED
+          - ESERVICE_DESCRIPTOR_PUBLISHED
+          - ESERVICE_DESCRIPTOR_ACTIVATED
+          - ESERVICE_DESCRIPTOR_APPROVED_BY_DELEGATOR
+          - ESERVICE_DESCRIPTOR_SUSPENDED
+          - ESERVICE_DESCRIPTOR_ARCHIVED
+          - ESERVICE_DESCRIPTOR_ADDED
+          - ESERVICE_DRAFT_DESCRIPTOR_DELETED
+          - ESERVICE_DRAFT_DESCRIPTOR_UPDATED
+          - ESERVICE_DESCRIPTOR_SUBMITTED_BY_DELEGATE
+          - ESERVICE_DESCRIPTOR_REJECTED_BY_DELEGATOR
+          - ESERVICE_DESCRIPTOR_DOCUMENT_ADDED
+          - ESERVICE_DESCRIPTOR_DOCUMENT_UPDATED
+          - ESERVICE_DESCRIPTOR_DOCUMENT_DELETED
+          - ESERVICE_DESCRIPTOR_INTERFACE_ADDED
+          - ESERVICE_DESCRIPTOR_INTERFACE_UPDATED
+          - ESERVICE_DESCRIPTOR_INTERFACE_DELETED
+          - ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_ADDED
+          - ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_UPDATED
+          - ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_DELETED
+          - ESERVICE_RISK_ANALYSIS_ADDED
+          - ESERVICE_RISK_ANALYSIS_UPDATED
+          - ESERVICE_RISK_ANALYSIS_DELETED
+          - ESERVICE_NAME_UPDATED
+          - ESERVICE_DESCRIPTION_UPDATED
+          - ESERVICE_IS_CONSUMER_DELEGABLE_ENABLED
+          - ESERVICE_IS_CONSUMER_DELEGABLE_DISABLED
+          - ESERVICE_IS_CLIENT_ACCESS_DELEGABLE_ENABLED
+          - ESERVICE_IS_CLIENT_ACCESS_DELEGABLE_DISABLED
+          - ESERVICE_SIGNAL_HUB_ENABLED
+          - ESERVICE_SIGNAL_HUB_DISABLED
+          - ESERVICE_DESCRIPTOR_ATTRIBUTES_UPDATED
+          - ESERVICE_DESCRIPTOR_ATTRIBUTE_DAILY_CALLS_PER_CONSUMER_UPDATED
+          - ESERVICE_DESCRIPTOR_QUOTAS_UPDATED
+          - ESERVICE_DESCRIPTOR_AGREEMENT_APPROVAL_POLICY_UPDATED
+          - ESERVICE_PERSONAL_DATA_FLAG_UPDATED_AFTER_PUBLICATION
+          - ESERVICE_NAME_UPDATED_BY_TEMPLATE_UPDATE
+          - ESERVICE_DESCRIPTION_UPDATED_BY_TEMPLATE_UPDATE
+          - ESERVICE_PERSONAL_DATA_FLAG_UPDATED_BY_TEMPLATE_UPDATE
+          - ESERVICE_DESCRIPTOR_ATTRIBUTES_UPDATED_BY_TEMPLATE_UPDATE
+          - ESERVICE_DESCRIPTOR_DOCUMENT_ADDED_BY_TEMPLATE_UPDATE
+          - ESERVICE_DESCRIPTOR_DOCUMENT_DELETED_BY_TEMPLATE_UPDATE
+          - ESERVICE_DESCRIPTOR_DOCUMENT_UPDATED_BY_TEMPLATE_UPDATE
+          - ESERVICE_DESCRIPTOR_QUOTAS_UPDATED_BY_TEMPLATE_UPDATE
+          - ESERVICE_INSTANCE_LABEL_UPDATED
+          - ESERVICE_ARCHIVING_SCHEDULED
+          - ESERVICE_ARCHIVING_CANCELED
+          - ESERVICE_ARCHIVING_COMPLETED
+          - ESERVICE_DESCRIPTOR_ARCHIVING_SCHEDULED
+          - ESERVICE_DESCRIPTOR_ARCHIVING_CANCELED
+          - ESERVICE_DESCRIPTOR_ARCHIVING_COMPLETED
+          - MAINTENANCE_ESERVICE_PERSONAL_DATA_FLAG_RESET
+          - MAINTENANCE_ESERVICE_DESCRIPTOR_UNARCHIVED
+          type: string
+        id:
+          format: uuid
+          type: string
+        producerDelegationId:
+          format: uuid
+          type: string
+      required:
+      - id
+      - eventType
+      - eventTimestamp
+      - eserviceId
+      type: object
+    EServiceEvents:
+      additionalProperties: false
+      properties:
+        events:
+          items:
+            $ref: '#/components/schemas/EServiceEvent'
+          type: array
+      required:
+      - events
+      type: object
     EServiceId:
       description: The unique identifier of the E-Service
       format: uuid
@@ -1825,6 +2956,68 @@ components:
       enum:
       - REST
       - SOAP
+      type: string
+    EServiceTemplateEvent:
+      additionalProperties: false
+      properties:
+        eserviceTemplateId:
+          $ref: '#/components/schemas/EServiceTemplateId'
+        eserviceTemplateVersionId:
+          format: uuid
+          type: string
+        eventTimestamp:
+          format: date-time
+          type: string
+        eventType:
+          enum:
+          - ESERVICE_TEMPLATE_DELETED
+          - ESERVICE_TEMPLATE_VERSION_ACTIVATED
+          - ESERVICE_TEMPLATE_ADDED
+          - ESERVICE_TEMPLATE_INTENDED_TARGET_UPDATED
+          - ESERVICE_TEMPLATE_DESCRIPTION_UPDATED
+          - ESERVICE_TEMPLATE_DRAFT_VERSION_DELETED
+          - ESERVICE_TEMPLATE_DRAFT_VERSION_UPDATED
+          - ESERVICE_TEMPLATE_DRAFT_UPDATED
+          - ESERVICE_TEMPLATE_NAME_UPDATED
+          - ESERVICE_TEMPLATE_RISK_ANALYSIS_ADDED
+          - ESERVICE_TEMPLATE_RISK_ANALYSIS_DELETED
+          - ESERVICE_TEMPLATE_RISK_ANALYSIS_UPDATED
+          - ESERVICE_TEMPLATE_VERSION_SUSPENDED
+          - ESERVICE_TEMPLATE_VERSION_ADDED
+          - ESERVICE_TEMPLATE_VERSION_ATTRIBUTES_UPDATED
+          - ESERVICE_TEMPLATE_VERSION_DOCUMENT_ADDED
+          - ESERVICE_TEMPLATE_VERSION_DOCUMENT_DELETED
+          - ESERVICE_TEMPLATE_VERSION_DOCUMENT_UPDATED
+          - ESERVICE_TEMPLATE_VERSION_INTERFACE_ADDED
+          - ESERVICE_TEMPLATE_VERSION_INTERFACE_DELETED
+          - ESERVICE_TEMPLATE_VERSION_INTERFACE_UPDATED
+          - ESERVICE_TEMPLATE_VERSION_ASYNC_EXCHANGE_CALLBACK_INTERFACE_ADDED
+          - ESERVICE_TEMPLATE_VERSION_ASYNC_EXCHANGE_CALLBACK_INTERFACE_UPDATED
+          - ESERVICE_TEMPLATE_VERSION_ASYNC_EXCHANGE_CALLBACK_INTERFACE_DELETED
+          - ESERVICE_TEMPLATE_VERSION_PUBLISHED
+          - ESERVICE_TEMPLATE_VERSION_QUOTAS_UPDATED
+          - ESERVICE_TEMPLATE_PERSONAL_DATA_FLAG_UPDATED_AFTER_PUBLICATION
+          type: string
+        id:
+          format: uuid
+          type: string
+      required:
+      - id
+      - eventType
+      type: object
+    EServiceTemplateEvents:
+      additionalProperties: false
+      properties:
+        events:
+          items:
+            $ref: '#/components/schemas/EServiceTemplateEvent'
+          type: array
+      required:
+      - events
+      type: object
+    EServiceTemplateId:
+      description: The unique identifier of the E-Service Template
+      format: uuid
       type: string
     EServices:
       additionalProperties: false
@@ -1850,6 +3043,16 @@ components:
       required:
       - origin
       - value
+    GracePeriodDays:
+      default: 60
+      description: Number of days for the archiving grace period
+      enum:
+      - 30
+      - 60
+      - 90
+      - 120
+      format: int32
+      type: integer
     JWK:
       additionalProperties: false
       description: JSON Web Key
@@ -1922,6 +3125,41 @@ components:
       required:
       - clientId
       - jwk
+      type: object
+    KeyEvent:
+      additionalProperties: false
+      properties:
+        clientId:
+          $ref: '#/components/schemas/ClientId'
+        eventTimestamp:
+          format: date-time
+          type: string
+        eventType:
+          enum:
+          - CLIENT_KEY_ADDED
+          - CLIENT_KEY_DELETED
+          type: string
+        id:
+          format: uuid
+          type: string
+        kid:
+          $ref: '#/components/schemas/Kid'
+      required:
+      - id
+      - eventType
+      - eventTimestamp
+      - kid
+      - clientId
+      type: object
+    KeyEvents:
+      additionalProperties: false
+      properties:
+        events:
+          items:
+            $ref: '#/components/schemas/KeyEvent'
+          type: array
+      required:
+      - events
       type: object
     Kid:
       description: The unique identifier of the Key
@@ -2020,6 +3258,114 @@ components:
       required:
       - code
       - detail
+    ProducerDelegationEvent:
+      additionalProperties: false
+      properties:
+        delegationId:
+          $ref: '#/components/schemas/DelegationId'
+        eventTimestamp:
+          format: date-time
+          type: string
+        eventType:
+          enum:
+          - PRODUCER_DELEGATION_APPROVED
+          - PRODUCER_DELEGATION_REVOKED
+          - PRODUCER_DELEGATION_REJECTED
+          - PRODUCER_DELEGATION_SUBMITTED
+          - DELEGATION_CONTRACT_GENERATED
+          type: string
+        id:
+          format: uuid
+          type: string
+      required:
+      - id
+      - eventType
+      - eventTimestamp
+      - delegationId
+      type: object
+    ProducerDelegationEvents:
+      additionalProperties: false
+      properties:
+        events:
+          items:
+            $ref: '#/components/schemas/ProducerDelegationEvent'
+          type: array
+      required:
+      - events
+      type: object
+    ProducerKeyEvent:
+      additionalProperties: false
+      properties:
+        eventTimestamp:
+          format: date-time
+          type: string
+        eventType:
+          enum:
+          - PRODUCER_KEYCHAIN_KEY_ADDED
+          - PRODUCER_KEYCHAIN_KEY_DELETED
+          type: string
+        id:
+          format: uuid
+          type: string
+        kid:
+          $ref: '#/components/schemas/Kid'
+        producerKeychainId:
+          $ref: '#/components/schemas/ProducerKeychainId'
+      required:
+      - id
+      - eventType
+      - eventTimestamp
+      - kid
+      - producerKeychainId
+      type: object
+    ProducerKeyEvents:
+      additionalProperties: false
+      properties:
+        events:
+          items:
+            $ref: '#/components/schemas/ProducerKeyEvent'
+          type: array
+      required:
+      - events
+      type: object
+    ProducerKeychainEvent:
+      additionalProperties: false
+      properties:
+        eventTimestamp:
+          format: date-time
+          type: string
+        eventType:
+          enum:
+          - PRODUCER_KEYCHAIN_ADDED
+          - PRODUCER_KEYCHAIN_DELETED
+          - PRODUCER_KEYCHAIN_ESERVICE_ADDED
+          - PRODUCER_KEYCHAIN_ESERVICE_REMOVED
+          type: string
+        id:
+          format: uuid
+          type: string
+        producerKeychainId:
+          $ref: '#/components/schemas/ProducerKeychainId'
+      required:
+      - id
+      - eventType
+      - eventTimestamp
+      - producerKeychainId
+      type: object
+    ProducerKeychainEvents:
+      additionalProperties: false
+      properties:
+        events:
+          items:
+            $ref: '#/components/schemas/ProducerKeychainEvent'
+          type: array
+      required:
+      - events
+      type: object
+    ProducerKeychainId:
+      description: The unique identifier of the Producer Keychain
+      format: uuid
+      type: string
     Purpose:
       additionalProperties: false
       properties:
@@ -2068,10 +3414,120 @@ components:
       - createdAt
       - isFreeOfCharge
       type: object
+    PurposeEvent:
+      additionalProperties: false
+      properties:
+        consumerDelegationId:
+          format: uuid
+          type: string
+        eventTimestamp:
+          format: date-time
+          type: string
+        eventType:
+          enum:
+          - DRAFT_PURPOSE_DELETED
+          - WAITING_FOR_APPROVAL_PURPOSE_DELETED
+          - PURPOSE_DELETED_BY_REVOKED_DELEGATION
+          - PURPOSE_ADDED
+          - DRAFT_PURPOSE_UPDATED
+          - NEW_PURPOSE_VERSION_ACTIVATED
+          - NEW_PURPOSE_VERSION_WAITING_FOR_APPROVAL
+          - PURPOSE_ACTIVATED
+          - PURPOSE_ARCHIVED
+          - PURPOSE_VERSION_OVER_QUOTA_UNSUSPENDED
+          - PURPOSE_VERSION_REJECTED
+          - PURPOSE_VERSION_SUSPENDED_BY_CONSUMER
+          - PURPOSE_VERSION_SUSPENDED_BY_PRODUCER
+          - PURPOSE_VERSION_UNSUSPENDED_BY_CONSUMER
+          - PURPOSE_VERSION_UNSUSPENDED_BY_PRODUCER
+          - PURPOSE_WAITING_FOR_APPROVAL
+          - WAITING_FOR_APPROVAL_PURPOSE_VERSION_DELETED
+          - PURPOSE_VERSION_ACTIVATED
+          - PURPOSE_CLONED
+          - PURPOSE_VERSION_ARCHIVED_BY_REVOKED_DELEGATION
+          - RISK_ANALYSIS_DOCUMENT_GENERATED
+          - PURPOSE_RISK_ANALYSIS_WORKFLOW_CREATED
+          - PURPOSE_RISK_ANALYSIS_ASSIGNED
+          - PURPOSE_RISK_ANALYSIS_SUBMITTED
+          - PURPOSE_RISK_ANALYSIS_SIGNED
+          - PURPOSE_RISK_ANALYSIS_REJECTED
+          - PURPOSE_RISK_ANALYSIS_FORM_EDITED
+          type: string
+        id:
+          format: uuid
+          type: string
+        producerDelegationId:
+          format: uuid
+          type: string
+        purposeId:
+          $ref: '#/components/schemas/PurposeId'
+        purposeVersionId:
+          format: uuid
+          type: string
+      required:
+      - id
+      - eventType
+      - eventTimestamp
+      - purposeId
+      type: object
+    PurposeEvents:
+      additionalProperties: false
+      properties:
+        events:
+          items:
+            $ref: '#/components/schemas/PurposeEvent'
+          type: array
+      required:
+      - events
+      type: object
     PurposeId:
       description: The unique identifier of the Purpose
       format: uuid
       type: string
+    PurposeTemplateEvent:
+      additionalProperties: false
+      properties:
+        eventTimestamp:
+          format: date-time
+          type: string
+        eventType:
+          enum:
+          - PURPOSE_TEMPLATE_ADDED
+          - PURPOSE_TEMPLATE_ANNOTATION_DOCUMENT_ADDED
+          - PURPOSE_TEMPLATE_ANNOTATION_DOCUMENT_DELETED
+          - PURPOSE_TEMPLATE_ANNOTATION_DOCUMENT_UPDATED
+          - PURPOSE_TEMPLATE_DRAFT_UPDATED
+          - PURPOSE_TEMPLATE_DRAFT_DELETED
+          - PURPOSE_TEMPLATE_PUBLISHED
+          - PURPOSE_TEMPLATE_SUSPENDED
+          - PURPOSE_TEMPLATE_UNSUSPENDED
+          - PURPOSE_TEMPLATE_ARCHIVED
+          - RISK_ANALYSIS_TEMPLATE_DOCUMENT_GENERATED
+          - PURPOSE_TEMPLATE_ESERVICE_LINKED
+          - PURPOSE_TEMPLATE_ESERVICE_UNLINKED
+          type: string
+        id:
+          format: uuid
+          type: string
+        purposeTemplateId:
+          format: uuid
+          type: string
+      required:
+      - id
+      - eventType
+      - eventTimestamp
+      - purposeTemplateId
+      type: object
+    PurposeTemplateEvents:
+      additionalProperties: false
+      properties:
+        events:
+          items:
+            $ref: '#/components/schemas/PurposeTemplateEvent'
+          type: array
+      required:
+      - events
+      type: object
     PurposeTemplateId:
       description: The unique identifier of the Purpose Template
       format: uuid
@@ -2170,6 +3626,129 @@ components:
       - createdAt
       - name
       type: object
+    TenantCertifiedAttribute:
+      additionalProperties: false
+      properties:
+        assignedAt:
+          format: date-time
+          type: string
+        id:
+          format: uuid
+          type: string
+        revokedAt:
+          format: date-time
+          type: string
+      required:
+      - id
+      - assignedAt
+      type: object
+    TenantCertifiedAttributeSeed:
+      additionalProperties: false
+      properties:
+        id:
+          format: uuid
+          type: string
+      required:
+      - id
+      type: object
+    TenantCertifiedAttributes:
+      additionalProperties: false
+      properties:
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        results:
+          items:
+            $ref: '#/components/schemas/TenantCertifiedAttribute'
+          type: array
+      required:
+      - results
+      - pagination
+      type: object
+    TenantDeclaredAttribute:
+      additionalProperties: false
+      properties:
+        assignedAt:
+          format: date-time
+          type: string
+        delegationId:
+          $ref: '#/components/schemas/DelegationId'
+        id:
+          format: uuid
+          type: string
+        revokedAt:
+          format: date-time
+          type: string
+      required:
+      - id
+      - assignedAt
+      type: object
+    TenantDeclaredAttributes:
+      additionalProperties: false
+      properties:
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        results:
+          items:
+            $ref: '#/components/schemas/TenantDeclaredAttribute'
+          type: array
+      required:
+      - results
+      - pagination
+      type: object
+    TenantEvent:
+      additionalProperties: false
+      properties:
+        eventTimestamp:
+          format: date-time
+          type: string
+        eventType:
+          enum:
+          - MAINTENANCE_TENANT_DELETED
+          - TENANT_PROMOTED_TO_CERTIFIER
+          - MAINTENANCE_TENANT_UPDATED
+          - TENANT_CERTIFIED_ATTRIBUTE_ASSIGNED
+          - TENANT_CERTIFIED_ATTRIBUTE_REVOKED
+          - TENANT_CERTIFIED_DISCRETE_ATTRIBUTE_ASSIGNED
+          - TENANT_CERTIFIED_DISCRETE_ATTRIBUTE_REVOKED
+          - TENANT_CERTIFIED_DISCRETE_ATTRIBUTE_UPDATED
+          - TENANT_DECLARED_ATTRIBUTE_ASSIGNED
+          - TENANT_DECLARED_ATTRIBUTE_REVOKED
+          - TENANT_DELEGATED_CONSUMER_FEATURE_ADDED
+          - TENANT_DELEGATED_CONSUMER_FEATURE_REMOVED
+          - TENANT_DELEGATED_PRODUCER_FEATURE_ADDED
+          - TENANT_DELEGATED_PRODUCER_FEATURE_REMOVED
+          - TENANT_KIND_UPDATED
+          - TENANT_MAIL_ADDED
+          - TENANT_MAIL_DELETED
+          - TENANT_ONBOARD_DETAILS_UPDATED
+          - TENANT_ONBOARDED
+          - TENANT_VERIFIED_ATTRIBUTE_ASSIGNED
+          - TENANT_VERIFIED_ATTRIBUTE_EXPIRATION_UPDATED
+          - TENANT_VERIFIED_ATTRIBUTE_EXTENSION_UPDATED
+          - TENANT_VERIFIED_ATTRIBUTE_REVOKED
+          - TENANT_REMOTE_ID_ASSIGNED
+          type: string
+        id:
+          format: uuid
+          type: string
+        tenantId:
+          $ref: '#/components/schemas/TenantId'
+      required:
+      - id
+      - eventType
+      - eventTimestamp
+      - tenantId
+      type: object
+    TenantEvents:
+      additionalProperties: false
+      properties:
+        events:
+          items:
+            $ref: '#/components/schemas/TenantEvent'
+          type: array
+      required:
+      - events
+      type: object
     TenantId:
       description: The unique identifier of the Tenant
       format: uuid
@@ -2186,6 +3765,66 @@ components:
       - AOO
       - UO
       type: string
+    TenantVerifiedAttribute:
+      additionalProperties: false
+      properties:
+        assignedAt:
+          format: date-time
+          type: string
+        id:
+          format: uuid
+          type: string
+      required:
+      - id
+      - assignedAt
+      type: object
+    TenantVerifiedAttributeVerifier:
+      additionalProperties: false
+      properties:
+        delegationId:
+          $ref: '#/components/schemas/DelegationId'
+        expiresAt:
+          format: date-time
+          type: string
+        extendedAt:
+          format: date-time
+          type: string
+        id:
+          format: uuid
+          type: string
+        verifiedAt:
+          format: date-time
+          type: string
+      required:
+      - id
+      - verifiedAt
+      type: object
+    TenantVerifiedAttributeVerifiers:
+      additionalProperties: false
+      properties:
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        results:
+          items:
+            $ref: '#/components/schemas/TenantVerifiedAttributeVerifier'
+          type: array
+      required:
+      - results
+      - pagination
+      type: object
+    TenantVerifiedAttributes:
+      additionalProperties: false
+      properties:
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        results:
+          items:
+            $ref: '#/components/schemas/TenantVerifiedAttribute'
+          type: array
+      required:
+      - results
+      - pagination
+      type: object
     Tenants:
       additionalProperties: false
       properties:
