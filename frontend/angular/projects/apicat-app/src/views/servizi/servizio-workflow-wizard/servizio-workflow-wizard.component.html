@@ -21,7 +21,7 @@
     <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" [classContainer]="'limit-container-width'" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
     <div class="d-flex flex-grow-1">&nbsp;</div>
     <div class="nav-controls">
-      @if (data) {
+      @if (data && _showOpenClassic) {
         <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm"
                 [attr.aria-label]="'APP.SERVICES.WIZARD.OpenClassic' | translate"
                 (click)="openClassic()">

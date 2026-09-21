@@ -166,6 +166,9 @@ export class ServizioWorkflowWizardComponent implements OnInit {
 
     apiUrl: string = '';
     hideVersions: boolean = false;
+    /** Pulsante "vista classica": nascosto di default, abilitabile da
+     *  app-config (`AppConfig.Services.showOpenClassic`). */
+    _showOpenClassic: boolean = false;
     _downloading: boolean = false;
 
     // Azioni della top-area (app-monitor-dropdown), come in servizio-details.
@@ -232,6 +235,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     ) {
         this.apiUrl = this.configService.getConfiguration()?.AppConfig?.GOVAPI?.HOST || '';
         this.hideVersions = this.configService.getConfiguration()?.AppConfig?.Services?.hideVersions || false;
+        this._showOpenClassic = this.configService.getConfiguration()?.AppConfig?.Services?.showOpenClassic === true;
     }
 
     ngOnInit() {
@@ -1188,6 +1192,10 @@ export class ServizioWorkflowWizardComponent implements OnInit {
                 this.data = { ...response };
                 this._changingStatus = false;
                 this._initSelectedFase();
+                // I disclaimer dipendono dallo stato del servizio: dopo un cambio
+                // di stato vanno ricaricati, altrimenti restano quelli dello stato
+                // precedente (es. resta "Bozza" fino al reload della pagina).
+                this._loadServizioDisclaimers();
                 const _status: string = this.translate.instant('APP.WORKFLOW.STATUS.' + this.data.stato);
                 const _msg: string = this.translate.instant('APP.WORKFLOW.MESSAGE.ChangeStatusSuccess', { status: _status });
                 Tools.showMessage(_msg, 'success', true);

@@ -1,6 +1,13 @@
 2026-09-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard servizi: flag "Salta collaudo" e "Package" spostati nella sezione
+	  Classificazione (impilati in colonna) in creazione e modifica; pulsante
+	  "vista classica" nascosto di default e reso configurabile
+	  (AppConfig.Services.showOpenClassic); i disclaimer ora si ricaricano ad ogni
+	  cambio di stato (prima restavano quelli dello stato precedente fino al reload).
+
+	* [Frontend]
 	Issue 366: in creazione adesione da un servizio l'identificativo logico
 	  (id_logico) spariva perche` la select veniva preinizializzata con un oggetto
 	  parziale del servizio (senza multi_adesione). Ora _onChangeServizio carica il
