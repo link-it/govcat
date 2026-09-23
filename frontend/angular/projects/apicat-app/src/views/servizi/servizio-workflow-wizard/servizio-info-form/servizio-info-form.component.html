@@ -424,7 +424,8 @@
                   <label class="label-bold" for="multi_adesione">{{ 'APP.LABEL.multi_adesione' | translate }}</label>
                   @if (isEdit) {
                     <div class="gl-form-checkbox custom-control custom-checkbox">
-                      <input class="custom-control-input" type="checkbox" name="multi_adesione" id="multi_adesione" formControlName="multi_adesione">
+                      <input class="custom-control-input" type="checkbox" name="multi_adesione" id="multi_adesione" formControlName="multi_adesione"
+                             disablePermission [isNew]="false" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="grant">
                       <label class="custom-control-label" aria-hidden="true"></label>
                     </div>
                   } @else {

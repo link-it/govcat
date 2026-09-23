@@ -486,7 +486,10 @@ export class ServizioCreateWizardComponent implements OnInit {
                     break;
                 case 'multi_adesione':
                     value = data[key] ? data[key] : false;
-                    _group[key] = new FormControl({ value: value, disabled: true }, [Validators.required]);
+                    // Allineato alla vista classica: flag editabile (gestore, con
+                    // adesioni_multiple attiva). Nessun `required`: e` un boolean
+                    // opzionale, un checkbox `required` bloccherebbe il submit.
+                    _group[key] = new FormControl(value, []);
                     break;
                 case 'id_dominio':
                     value = data['dominio'] ? data['dominio'].id_dominio : this.generalConfig?.dominio?.dominio_default;

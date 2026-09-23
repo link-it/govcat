@@ -245,7 +245,7 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
             note: new FormControl(data.note || null, [Validators.maxLength(1000)]),
             immagine: new FormControl(null, []),
             adesione_disabilitata: new FormControl(data.adesione_disabilitata || false, []),
-            multi_adesione: new FormControl({ value: data.multi_adesione || false, disabled: true }, []),
+            multi_adesione: new FormControl(data.multi_adesione || false, []),
             skip_collaudo: new FormControl(data.skip_collaudo || false, [])
         };
         this._formGroup = new FormGroup(_group);
