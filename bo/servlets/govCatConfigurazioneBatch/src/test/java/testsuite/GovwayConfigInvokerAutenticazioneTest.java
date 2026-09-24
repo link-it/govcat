@@ -20,6 +20,8 @@
 package testsuite;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -32,14 +34,18 @@ import java.util.List;
 import java.util.Map;
 
 import org.govway.catalogo.core.dto.DTOAdesione.AmbienteEnum;
+import org.govway.catalogo.core.dto.DTOSoggetto;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.sun.net.httpserver.HttpServer;
 
 import config.GovwayConfigInvoker;
+import config.ServizioApplicativo;
 import configuratore.Invokers;
 import freemarker.template.Configuration;
 import httpauth.ClientCredentialsConfig;
@@ -47,6 +53,7 @@ import httpauth.ClientCredentialsTokenStore;
 import httpauth.OutboundAuthentication;
 import okhttp3.Credentials;
 import okhttp3.HttpUrl;
+import okhttp3.Response;
 
 /**
  * Autenticazione verso l'API di configurazione di govway: le credenziali basic restano il
@@ -60,11 +67,13 @@ class GovwayConfigInvokerAutenticazioneTest {
 	private HttpServer server;
 	private List<String> authorizationRicevuti;
 	private List<String> bodyTokenEndpoint;
+	private List<String> bodyRicevuti;
 
 	@BeforeEach
 	void setUp() throws IOException {
 		this.authorizationRicevuti = new ArrayList<>();
 		this.bodyTokenEndpoint = new ArrayList<>();
+		this.bodyRicevuti = new ArrayList<>();
 
 		this.server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
 		this.server.createContext("/", exchange -> {
@@ -81,6 +90,11 @@ class GovwayConfigInvokerAutenticazioneTest {
 				body = "{\"access_token\":\"" + TOKEN + "\",\"token_type\":\"Bearer\",\"expires_in\":300}";
 			} else {
 				this.authorizationRicevuti.add(authorization == null ? "" : authorization);
+
+				try(InputStream is = exchange.getRequestBody()) {
+					this.bodyRicevuti.add(new String(is.readAllBytes(), StandardCharsets.UTF_8));
+				}
+
 				body = "{\"nome\":\"applicativo-di-test\"}";
 			}
 
@@ -105,8 +119,31 @@ class GovwayConfigInvokerAutenticazioneTest {
 	}
 
 	private GovwayConfigInvoker invoker() {
-		return new GovwayConfigInvoker(HttpUrl.get(this.baseUrl()),
-				new Configuration(Configuration.VERSION_2_3_29));
+		Configuration cfg = new Configuration(Configuration.VERSION_2_3_29);
+		cfg.setClassLoaderForTemplateLoading(this.getClass().getClassLoader(), "templates/config");
+
+		return new GovwayConfigInvoker(HttpUrl.get(this.baseUrl()), cfg);
+	}
+
+	private ServizioApplicativo applicativoToken() {
+		return new ServizioApplicativo()
+				.setModalitaAccesso("token")
+				.setNomeApplicativo("fse-client")
+				.setTokenPolicy("KeycloakPolicy")
+				.setTokenIdentificativo("fse-client.RegionePuglia")
+				.setModiDominio("interno");
+	}
+
+	private JsonObject postApplicativo(String profilo) throws Exception {
+		GovwayConfigInvoker invoker = this.invoker().credentials("amministratore", "123456");
+
+		try(Response res = invoker.postServizioApplicativo(this.applicativoToken(),
+				new DTOSoggetto("RegionePuglia", profilo))) {
+			assertEquals(200, res.code());
+		}
+
+		assertEquals(1, this.bodyRicevuti.size());
+		return JsonParser.parseString(this.bodyRicevuti.get(0)).getAsJsonObject();
 	}
 
 	private OutboundAuthentication clientCredentials(ClientCredentialsTokenStore tokenStore) throws IOException {
@@ -178,5 +215,25 @@ class GovwayConfigInvokerAutenticazioneTest {
 		assertEquals(10, this.authorizationRicevuti.size());
 		assertTrue(this.authorizationRicevuti.stream().allMatch(("Bearer " + TOKEN)::equals));
 		assertEquals(1, this.bodyTokenEndpoint.size(), "il token in cache va riusato fino alla scadenza");
+	}
+
+	@Test
+	@DisplayName("il profilo ModIPA porta la configurazione modi come il profilo ModI")
+	void modiPaEquivalenteAModi() throws Exception {
+		JsonObject modi = this.postApplicativo("ModIPA").getAsJsonObject("modi");
+
+		assertNotNull(modi, "l'applicativo di dominio interno deve portare la sezione modi");
+		assertEquals("interno", modi.get("dominio").getAsString());
+		assertEquals("fse-client.RegionePuglia", modi.getAsJsonObject("token").get("identificativo").getAsString());
+		assertEquals("KeycloakPolicy", modi.getAsJsonObject("token").get("token_policy").getAsString());
+	}
+
+	@Test
+	@DisplayName("fuori da ModI la configurazione modi resta assente")
+	void altriProfiliSenzaConfigurazioneModi() throws Exception {
+		JsonObject applicativo = this.postApplicativo("APIGateway");
+
+		assertNull(applicativo.get("modi"), "la sezione modi vale solo per il profilo ModI");
+		assertEquals("fse-client", applicativo.get("nome").getAsString());
 	}
 }

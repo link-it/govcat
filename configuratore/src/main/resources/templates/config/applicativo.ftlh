@@ -12,7 +12,7 @@
 		"token_policy": "${tokenPolicy}",
 		"identificativo": "${tokenIdentificativo}"</#if>
 	},
-	<#if (modiDominio!"") == "interno" && (profilo!"") == "ModI" && (modalitaAccesso!"") == "token">"modi": {
+	<#if (modiDominio!"") == "interno" && ((profilo!"") == "ModI" || (profilo!"") == "ModIPA") && (modalitaAccesso!"") == "token">"modi": {
         "dominio": "interno",
         "token": {
           "identificativo": "${tokenIdentificativo}",
