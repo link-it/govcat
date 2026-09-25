@@ -105,7 +105,8 @@
   position: absolute;
   right: 2px;
   top: 68%;
-  color: #868686;
+  // a11y (WCAG 1.4.3): #868686 su bianco = 3.64:1 (insufficiente); #6c757d ~4.7:1.
+  color: #6c757d;
   transform: translateY(-50%);
 }
 

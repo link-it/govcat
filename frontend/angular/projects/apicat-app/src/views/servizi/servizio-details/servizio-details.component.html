@@ -33,10 +33,10 @@
   </div>
   <div class="top-area container-fluid container-limited limit-container-width px-0">
     @if (_isEdit && !_isNew) {
-      <h3 class="page-title">{{ 'APP.TITLE.EditService' | translate }}</h3>
+      <h1 class="page-title">{{ 'APP.TITLE.EditService' | translate }}</h1>
     }
     @if (_isEdit && _isNew) {
-      <h3 class="page-title">{{ 'APP.TITLE.NewService' | translate }}</h3>
+      <h1 class="page-title">{{ 'APP.TITLE.NewService' | translate }}</h1>
     }
     <div class="d-flex flex-grow-1">&nbsp;</div>
     @if (_data.id_servizio) {
@@ -212,7 +212,7 @@
             <form novalidate class="issue-form common-note-form mt-3 gl-show-field-errors gfm-form" [class.form-readonly]="!_isEdit" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.getRawValue())">
               <div class="row gl-mt-3" [class.justify-content-center]="_isNew || _singleColumn">
                 <div class="" [class.col-lg-4]="!_singleColumn" [class.col-lg-9]="_singleColumn" [class.mb-5]="_singleColumn">
-                  <h4 class="gl-mt-0 text-break">{{ 'APP.SERVICES.TITLE.GeneralInformations' | translate }}</h4>
+                  <h2 class="h4 gl-mt-0 text-break">{{ 'APP.SERVICES.TITLE.GeneralInformations' | translate }}</h2>
                   <div class="text-break mb-sm-4 mb-lg-1" markdown>{{ 'APP.SERVICES.TITLE.GeneralInformations_sub' | translate }}</div>
                   <div class="row logo mt-4">
                     <div class="col-12">
@@ -963,7 +963,7 @@
               @if ((_updateData | mapper:_isGestoreMapper)) {
                 <div class="row mt-4" [class.justify-content-center]="(_isNew || _singleColumn)">
                   <div class="" [class.col-lg-4]="!_singleColumn" [class.col-lg-9]="_singleColumn" [class.mb-5]="_singleColumn">
-                    <h4 class="gl-mt-0 text-break">{{ 'APP.SERVICES.TITLE.AdhesionInformations' | translate }}</h4>
+                    <h2 class="h4 gl-mt-0 text-break">{{ 'APP.SERVICES.TITLE.AdhesionInformations' | translate }}</h2>
                     <div class="text-break mb-sm-4 mb-lg-1" markdown>{{ 'APP.SERVICES.TITLE.AdhesionInformations_sub' | translate }}</div>
                   </div>
                   <div class="" [class.col-lg-8]="!_singleColumn" [class.col-lg-9]="_singleColumn">

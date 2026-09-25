@@ -58,7 +58,9 @@
     }
 
     @if (adesione && !_spin) {
-      <main class="main" data-hide-image="true">
+      <!-- a11y: era <main>, ma il layout (gp-layout) ha gia` il landmark
+           <main id="main-content">; qui basta un contenitore per lo stile. -->
+      <div class="main" data-hide-image="true">
 
         <!-- Hero block: illustrazione + titolo + descrizione + meta + actions. -->
         <div class="hero">
@@ -339,7 +341,7 @@
           <div class="toast">{{ toast }}</div>
         }
 
-      </main>
+      </div>
     }
   </section>
 </div>

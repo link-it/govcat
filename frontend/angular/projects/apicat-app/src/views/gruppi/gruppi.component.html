@@ -35,8 +35,9 @@
     </div>
     <div class="nav-controls align-self-center d-flex">
       @if (_spin) {
-        <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary me-4">
-          <span class="spinner-border spinner-border-sm text-primary"></span>
+        <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary me-4"
+                disabled [attr.aria-busy]="true" [attr.aria-label]="'APP.LABEL.Loading' | translate">
+          <span class="spinner-border spinner-border-sm text-primary" aria-hidden="true"></span>
         </button>
       }
       <ng-template [appHasPermission]="'gruppi'" [action]="'create'">
