@@ -1,6 +1,12 @@
 2026-09-25  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Accessibilita' (WCAG 1.4.3): risolto il contrasto insufficiente del link "Gruppi"
+	  nella sidebar (adesione-dettaglio): `--link-hover-color` #0078ac -> #006692
+	  (3.94:1 -> 5.09:1 su `--navbar-link-active-back-color` #dfe8ec) in app-config.json.
+	  Stessa modifica va replicata nei config d'ambiente app-config-*.json (gitignored).
+
+	* [Frontend]
 	Vulnerabilita' image-size (DoS, infinite loop nei parser JXL/HEIF, GHSA):
 	  override di sicurezza bumpato da 2.0.2 (vulnerabile) a 2.0.4 (patched >=2.0.3).
 
