@@ -499,6 +499,9 @@ public enum ErrorCode {
     /** Un amministratore organizzazione può approvare la richiesta cambio organizzazione solo quando è amministratore dell'organizzazione target */
     AUT_403_AMM_ORG_NOT_TARGET("L'amministratore non è target della richiesta di cambio organizzazione"),
 
+    /** Gruppo di proprietà custom riservato al gestore */
+    AUT_403_GRUPPO_RISERVATO_GESTORE("Gruppo di proprietà custom modificabile solo dal gestore"),
+
     /** Token di autenticazione non valido */
     AUT_401_TOKEN("Token non valido"),
 
@@ -518,6 +521,9 @@ public enum ErrorCode {
 
     /** Profilo non presente nella configurazione */
     VAL_400_PROFILE("Profilo non presente nella configurazione"),
+
+    /** Valore non ammesso per il profilo di interoperabilità GovWay */
+    VAL_400_PROFILO_GOVWAY("Profilo di interoperabilità GovWay non valido"),
 
     /** Valore fuori dal range consentito */
     VAL_400_RANGE("Valore fuori range"),
@@ -572,6 +578,9 @@ public enum ErrorCode {
 
     /** Skip collaudo non consentito */
     VAL_422_SKIP_COLLAUDO("Skip collaudo non consentito"),
+
+    /** Profilo non compatibile con il profilo di interoperabilità GovWay dell'API */
+    VAL_422_PROFILO_GOVWAY("Profilo non compatibile con il profilo di interoperabilità GovWay dell'API"),
 
     // ==================== WORKFLOW ====================
 

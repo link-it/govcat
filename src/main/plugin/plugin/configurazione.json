@@ -194,6 +194,7 @@
           "codice_interno": "INTERNO_HTTPS",
           "etichetta": "mTLS",
           "auth_type": "https",
+          "profilo_govway": "APIGateway",
           "domini": [
             "Interno",
             "Test"
@@ -203,6 +204,7 @@
           "codice_interno": "INTERNO_HTTP_BASIC",
           "etichetta": "HTTP Basic",
           "auth_type": "http_basic",
+          "profilo_govway": "APIGateway",
           "domini": [
             "Interno",
             "Test"
@@ -212,6 +214,7 @@
           "codice_interno": "INTERNO_NO_DATI",
           "etichetta": "Nessuna",
           "auth_type": "no_dati",
+          "profilo_govway": "APIGateway",
           "domini": [
             "Interno",
             "Test"
@@ -221,6 +224,7 @@
           "codice_interno": "INTERNO_OAUTH_CLIENT_CREDENTIALS",
           "etichetta": "OAuth Client Credentials",
           "auth_type": "oauth_client_credentials",
+          "profilo_govway": "APIGateway",
           "domini": [
             "Interno",
             "Test"
@@ -230,6 +234,7 @@
           "codice_interno": "INTERNO_OAUTH_AUTHORIZATION_CODE",
           "etichetta": "OAuth Authorization Code",
           "auth_type": "oauth_authorization_code",
+          "profilo_govway": "APIGateway",
           "domini": [
             "Interno",
             "Test"
@@ -239,6 +244,7 @@
           "codice_interno": "MODI_P1",
           "etichetta": "ModI P1",
           "auth_type": "https",
+          "profilo_govway": "ModIPA",
           "domini": [
             "ModI",
             "Test"
@@ -248,6 +254,7 @@
           "codice_interno": "MODI_P2",
           "etichetta": "ModI P2",
           "auth_type": "https_sign",
+          "profilo_govway": "ModIPA",
           "domini": [
             "ModI",
             "Test"
@@ -257,6 +264,7 @@
           "codice_interno": "MODI_P3",
           "etichetta": "ModI P3",
           "auth_type": "https_sign",
+          "profilo_govway": "ModIPA",
           "domini": [
             "ModI",
             "Test"
@@ -266,6 +274,7 @@
           "codice_interno": "PDND",
           "etichetta": "PDND",
           "auth_type": "pdnd",
+          "profilo_govway": "ModIPA",
           "pdnd_type": "erogazione_pdnd",
           "domini": [
             "PDND",
@@ -276,6 +285,7 @@
           "codice_interno": "PDND-HTTPS",
           "etichetta": "PDND + mTLS",
           "auth_type": "https_pdnd",
+          "profilo_govway": "ModIPA",
           "pdnd_type": "erogazione_pdnd",
           "domini": [
             "PDND",
@@ -286,6 +296,7 @@
           "codice_interno": "PDND-INTEGRITY-REST",
           "etichetta": "PDND + Integrity",
           "auth_type": "pdnd",
+          "profilo_govway": "ModIPA",
           "compatibilita": "rest",
           "domini": [
             "PDND",
@@ -296,6 +307,7 @@
           "codice_interno": "PDND-INTEGRITY-SOAP",
           "etichetta": "PDND + Integrity",
           "auth_type": "sign_pdnd",
+          "profilo_govway": "ModIPA",
           "compatibilita": "soap",
           "domini": [
             "PDND",
@@ -306,6 +318,7 @@
           "codice_interno": "PDND-INTEGRITY-REST-HTTPS",
           "etichetta": "PDND + Integrity + mTLS",
           "auth_type": "https_pdnd",
+          "profilo_govway": "ModIPA",
           "compatibilita": "rest",
           "domini": [
             "PDND",
@@ -316,6 +329,7 @@
           "codice_interno": "PDND-INTEGRITY-SOAP-HTTPS",
           "etichetta": "PDND + Integrity + mTLS",
           "auth_type": "https_pdnd_sign",
+          "profilo_govway": "ModIPA",
           "compatibilita": "soap",
           "domini": [
             "PDND",
@@ -326,6 +340,7 @@
           "codice_interno": "MTLS_FRUIZIONI",
           "etichetta": "mTLS - Fruizioni PDND",
           "auth_type": "https",
+          "profilo_govway": "ModIPA",
           "tipo_dominio": "esterno",
           "proprieta_custom": [
             {
@@ -354,6 +369,7 @@
           "codice_interno": "BASIC_FRUIZIONI",
           "etichetta": "Basic - Fruizioni PDND",
           "auth_type": "http_basic",
+          "profilo_govway": "ModIPA",
           "tipo_dominio": "esterno",
           "proprieta_custom": [
             {
@@ -382,6 +398,7 @@
           "codice_interno": "OAUTH_AC_FRUIZIONI",
           "etichetta": "OAuth Authorization Code - Fruizioni PDND",
           "auth_type": "oauth_authorization_code",
+          "profilo_govway": "ModIPA",
           "tipo_dominio": "esterno",
           "proprieta_custom": [
             {
@@ -410,6 +427,7 @@
           "codice_interno": "OAUTH_CC_FRUIZIONI",
           "etichetta": "OAuth Client Credentials - Fruizioni PDND",
           "auth_type": "oauth_client_credentials",
+          "profilo_govway": "ModIPA",
           "tipo_dominio": "esterno",
           "proprieta_custom": [
             {
@@ -551,8 +569,42 @@
               "regular_expression": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
             }
           ]
+        },
+        {
+          "nome_gruppo": "ProfiloGovway",
+          "label_gruppo": "Profilo di interoperabilità GovWay",
+          "classe_dato": "generico",
+          "ruoli_abilitati": [
+            "gestore"
+          ],
+          "proprieta": [
+            {
+              "nome": "profilo_govway",
+              "etichetta": "Profilo di interoperabilità",
+              "tipo": "select",
+              "required": false,
+              "valori": [
+                {
+                  "nome": "APIGateway",
+                  "etichetta": "API Gateway"
+                },
+                {
+                  "nome": "ModIPA",
+                  "etichetta": "ModI"
+                },
+                {
+                  "nome": "SPCoop",
+                  "etichetta": "SPCoop"
+                }
+              ]
+            }
+          ]
         }
-      ]
+      ],
+      "proprieta_profilo_govway": {
+        "nome_gruppo": "ProfiloGovway",
+        "nome_proprieta": "profilo_govway"
+      }
     },
     "generico": {
       "abilitato": true,

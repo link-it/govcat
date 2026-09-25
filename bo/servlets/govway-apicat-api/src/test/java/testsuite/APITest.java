@@ -31,7 +31,21 @@ import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
+import org.govway.catalogo.exception.ErrorCode;
+import org.govway.catalogo.monitoraggioutils.FiltriUtils;
 import org.govway.catalogo.servlets.model.API;
+import org.govway.catalogo.servlets.model.AuthTypeApiResource;
+import org.govway.catalogo.servlets.model.AuthTypeApiResourceProprietaCustom;
+import org.govway.catalogo.servlets.model.Configurazione;
+import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
+import org.govway.catalogo.servlets.model.ConfigurazioneCustomProprietaList;
+import org.govway.catalogo.servlets.model.ConfigurazioneProfilo;
+import org.govway.catalogo.servlets.model.ConfigurazioneProfiloCustomProprietaText;
+import org.govway.catalogo.servlets.model.ConfigurazioneRiferimentoProprietaCustom;
+import org.govway.catalogo.servlets.model.ConfigurazioneTipoDominioEnum;
+import org.govway.catalogo.servlets.model.Ruolo;
+import org.govway.catalogo.servlets.model.TipoConfigurazioneCustomProprieta;
+import org.govway.catalogo.servlets.model.TipoSoggettoGateway;
 import org.govway.catalogo.servlets.model.APICreate;
 import org.govway.catalogo.servlets.model.APIDatiAmbienteCreate;
 import org.govway.catalogo.servlets.model.APIDatiErogazione;
@@ -1876,5 +1890,304 @@ public class APITest {
     }
 */
 
-}
 
+    // ==================== Issue 354: profili API per profilo GovWay ed erogazione/fruizione ====================
+
+    private static final String GRUPPO_PROFILO_GOVWAY = "ProfiloGovwayTest";
+    private static final String PROPRIETA_PROFILO_GOVWAY = "profilo_govway";
+
+    @Autowired
+    private Configurazione configurazione;
+
+    @Autowired
+    private FiltriUtils filtriUtils;
+
+    private ConfigurazioneProfilo getProfiloConfigurazione(String codice) {
+    	return this.configurazione.getServizio().getApi().getProfili().stream()
+    			.filter(p -> p.getCodiceInterno().equals(codice))
+    			.findAny()
+    			.orElseThrow();
+    }
+
+    private ConfigurazioneCustomProprietaList abilitaOverrideProfiloGovway() {
+    	ConfigurazioneProfiloCustomProprietaText proprieta = new ConfigurazioneProfiloCustomProprietaText();
+    	proprieta.setNome(PROPRIETA_PROFILO_GOVWAY);
+    	proprieta.setEtichetta("Profilo di interoperabilità");
+    	proprieta.setTipo(TipoConfigurazioneCustomProprieta.TEXT);
+    	proprieta.setRequired(false);
+
+    	ConfigurazioneCustomProprietaList gruppo = new ConfigurazioneCustomProprietaList();
+    	gruppo.setNomeGruppo(GRUPPO_PROFILO_GOVWAY);
+    	gruppo.setLabelGruppo("Profilo GovWay");
+    	gruppo.setClasseDato(ConfigurazioneClasseDato.GENERICO);
+    	gruppo.setRuoliAbilitati(List.of(Ruolo.GESTORE));
+    	gruppo.setProprieta(List.of(proprieta));
+    	this.configurazione.getServizio().getApi().getProprietaCustom().add(gruppo);
+
+    	ConfigurazioneRiferimentoProprietaCustom riferimento = new ConfigurazioneRiferimentoProprietaCustom();
+    	riferimento.setNomeGruppo(GRUPPO_PROFILO_GOVWAY);
+    	riferimento.setNomeProprieta(PROPRIETA_PROFILO_GOVWAY);
+    	this.configurazione.getServizio().getApi().setProprietaProfiloGovway(riferimento);
+    	return gruppo;
+    }
+
+    private void disabilitaOverrideProfiloGovway(ConfigurazioneCustomProprietaList gruppo) {
+    	this.configurazione.getServizio().getApi().getProprietaCustom().remove(gruppo);
+    	this.configurazione.getServizio().getApi().setProprietaProfiloGovway(null);
+    }
+
+    private List<ProprietaCustom> getOverrideProfiloGovway(String valore) {
+    	AuthTypeApiResourceProprietaCustom proprieta = new AuthTypeApiResourceProprietaCustom();
+    	proprieta.setNome(PROPRIETA_PROFILO_GOVWAY);
+    	proprieta.setValore(valore);
+    	ProprietaCustom gruppo = new ProprietaCustom();
+    	gruppo.setGruppo(GRUPPO_PROFILO_GOVWAY);
+    	gruppo.setProprieta(List.of(proprieta));
+    	return List.of(gruppo);
+    }
+
+    private ApiUpdate getApiUpdateOverrideProfiloGovway(String valore) {
+    	DatiCustomUpdate datiCustom = new DatiCustomUpdate();
+    	datiCustom.setProprietaCustom(getOverrideProfiloGovway(valore));
+    	ApiUpdate apiUpdate = new ApiUpdate();
+    	apiUpdate.setDatiCustom(datiCustom);
+    	return apiUpdate;
+    }
+
+    private UUID creaSoggetto(String nome, TipoSoggettoGateway tipoGateway) {
+    	SoggettoCreate soggetto = new SoggettoCreate();
+    	soggetto.setNome(nome);
+    	soggetto.setIdOrganizzazione(this.idOrganizzazione);
+    	soggetto.setAderente(true);
+    	soggetto.setReferente(true);
+    	soggetto.setTipoGateway(tipoGateway);
+
+    	ResponseEntity<Soggetto> created = soggettiController.createSoggetto(soggetto);
+    	assertEquals(HttpStatus.OK, created.getStatusCode());
+    	return created.getBody().getIdSoggetto();
+    }
+
+    private APICreate getApiCreateDominio(String nome, Servizio servizio, String profilo) {
+    	APICreate apiCreate = CommonUtils.getAPICreate();
+    	apiCreate.setNome(nome);
+    	apiCreate.setIdServizio(servizio.getIdServizio());
+    	apiCreate.setRuolo(RuoloAPIEnum.DOMINIO);
+
+    	APIDatiAmbienteCreate datiAmbiente = new APIDatiAmbienteCreate();
+    	datiAmbiente.setProtocollo(ProtocolloEnum.REST);
+    	apiCreate.setConfigurazioneCollaudo(datiAmbiente);
+
+    	AuthTypeApiResource authType = new AuthTypeApiResource();
+    	authType.setProfilo(profilo);
+    	authType.setResources(List.of("risorsa1"));
+    	apiCreate.setGruppiAuthType(List.of(authType));
+    	return apiCreate;
+    }
+
+    @Test
+    void testCreateApiProfiloSoloFruizioniSuErogazioneRifiutato() {
+    	Dominio dominio = this.getDominio();
+    	Servizio servizio = creaServizio("servizio_erogazione", dominio.getIdDominio(), false, null);
+
+    	assertThrows(BadRequestException.class, () -> apiController.createApi(getApiCreateDominio("API_X", servizio, "MTLS_FRUIZIONI")));
+    }
+
+    @Test
+    void testCreateApiProfiloSoloFruizioniSuFruizioneConsentito() {
+    	Dominio dominio = this.getDominio();
+    	Servizio servizio = creaServizio("servizio_fruizione", dominio.getIdDominio(), true, this.idSoggetto);
+
+    	ResponseEntity<API> response = apiController.createApi(getApiCreateDominio("API_X", servizio, "MTLS_FRUIZIONI"));
+    	assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    void testCreateApiProfiloSoloErogazioniSuFruizioneRifiutato() {
+    	ConfigurazioneProfilo profilo = getProfiloConfigurazione("INTERNO_HTTPS");
+    	try {
+    		profilo.setTipoDominio(ConfigurazioneTipoDominioEnum.INTERNO);
+
+    		Dominio dominio = this.getDominio();
+    		Servizio erogazione = creaServizio("servizio_erogazione", dominio.getIdDominio(), false, null);
+    		Servizio fruizione = creaServizio("servizio_fruizione", dominio.getIdDominio(), true, this.idSoggetto);
+
+    		assertEquals(HttpStatus.OK, apiController.createApi(getApiCreateDominio("API_X", erogazione, "INTERNO_HTTPS")).getStatusCode());
+    		assertThrows(BadRequestException.class, () -> apiController.createApi(getApiCreateDominio("API_Y", fruizione, "INTERNO_HTTPS")));
+    	} finally {
+    		profilo.setTipoDominio(null);
+    	}
+    }
+
+    @Test
+    void testCreateApiProfiloGovwayIncompatibileConDefaultRifiutato() {
+    	ConfigurazioneProfilo profilo = getProfiloConfigurazione("MODI_P1");
+    	try {
+    		profilo.setProfiloGovway("ModIPA");
+
+    		// soggetto referente senza tipo gateway: vale soggetto.profilo_gateway_default (APIGateway)
+    		Dominio dominio = this.getDominio();
+    		Servizio servizio = creaServizio("servizio_erogazione", dominio.getIdDominio(), false, null);
+
+    		BadRequestException e = assertThrows(BadRequestException.class,
+    				() -> apiController.createApi(getApiCreateDominio("API_X", servizio, "MODI_P1")));
+    		assertEquals(ErrorCode.VAL_422_PROFILO_GOVWAY, e.getErrorCode());
+    		assertEquals("MODI_P1", e.getParameters().get("profilo"));
+    		assertEquals("ModIPA", e.getParameters().get("profiloGovwayProfilo"));
+    		assertEquals("APIGateway", e.getParameters().get("profiloGovwayApi"));
+    	} finally {
+    		profilo.setProfiloGovway(null);
+    	}
+    }
+
+    @Test
+    void testCreateApiProfiloGovwayFruizioneUsaEnteErogatore() {
+    	ConfigurazioneProfilo profilo = getProfiloConfigurazione("MODI_P1");
+    	try {
+    		// ModI e` equivalente a ModIPA
+    		profilo.setProfiloGovway("ModI");
+
+    		Dominio dominio = this.getDominio();
+    		UUID idErogatoreModI = creaSoggetto("soggetto_erogatore_modi", TipoSoggettoGateway.MOD_IPA);
+    		Servizio fruizione = creaServizio("servizio_fruizione", dominio.getIdDominio(), true, idErogatoreModI);
+    		Servizio erogazione = creaServizio("servizio_erogazione", dominio.getIdDominio(), false, null);
+
+    		// fruizione: conta il tipo gateway dell'ente erogatore (ModIPA)
+    		assertEquals(HttpStatus.OK, apiController.createApi(getApiCreateDominio("API_X", fruizione, "MODI_P1")).getStatusCode());
+    		// erogazione: conta il soggetto referente del dominio (default APIGateway)
+    		assertThrows(BadRequestException.class, () -> apiController.createApi(getApiCreateDominio("API_Y", erogazione, "MODI_P1")));
+    	} finally {
+    		profilo.setProfiloGovway(null);
+    	}
+    }
+
+    @Test
+    void testCreateApiErogataDaAderenteNonVerificaProfiloGovway() {
+    	ConfigurazioneProfilo profilo = getProfiloConfigurazione("MODI_P1");
+    	try {
+    		profilo.setProfiloGovway("ModIPA");
+
+    		Dominio dominio = this.getDominio();
+    		Servizio servizio = creaServizio("servizio_erogazione", dominio.getIdDominio(), false, null);
+    		APICreate apiCreate = getApiCreateDominio("API_X", servizio, "MODI_P1");
+    		apiCreate.setRuolo(RuoloAPIEnum.ADERENTE);
+
+    		assertEquals(HttpStatus.OK, apiController.createApi(apiCreate).getStatusCode());
+    	} finally {
+    		profilo.setProfiloGovway(null);
+    	}
+    }
+
+    @Test
+    void testUpdateApiProfiloGovwayNonBloccaModificheNonCorrelate() {
+    	ConfigurazioneProfilo profilo = getProfiloConfigurazione("MODI_P1");
+    	try {
+    		Dominio dominio = this.getDominio();
+    		Servizio servizio = creaServizio("servizio_erogazione", dominio.getIdDominio(), false, null);
+    		UUID idApi = apiController.createApi(getApiCreateDominio("API_X", servizio, "MODI_P1")).getBody().getIdApi();
+
+    		// vincolo introdotto dopo la creazione dell'API: l'API esistente diventa incompatibile
+    		profilo.setProfiloGovway("ModIPA");
+
+    		DatiGenericiApiUpdate datiGenerici = new DatiGenericiApiUpdate();
+    		datiGenerici.setDescrizione("descrizione aggiornata");
+    		ApiUpdate apiUpdate = new ApiUpdate();
+    		apiUpdate.setDatiGenerici(datiGenerici);
+
+    		assertEquals(HttpStatus.OK, apiController.updateApi(idApi, apiUpdate, null).getStatusCode());
+    	} finally {
+    		profilo.setProfiloGovway(null);
+    	}
+    }
+
+    @Test
+    void testOverrideProfiloGovwayGestore() {
+    	ConfigurazioneProfilo profilo = getProfiloConfigurazione("MODI_P1");
+    	ConfigurazioneCustomProprietaList gruppo = abilitaOverrideProfiloGovway();
+    	try {
+    		profilo.setProfiloGovway("ModIPA");
+
+    		Dominio dominio = this.getDominio();
+    		Servizio servizio = creaServizio("servizio_erogazione", dominio.getIdDominio(), false, null);
+
+    		// la ridefinizione del gestore prevale sul tipo gateway del soggetto (APIGateway)
+    		APICreate apiCreate = getApiCreateDominio("API_X", servizio, "MODI_P1");
+    		apiCreate.setProprietaCustom(getOverrideProfiloGovway("ModIPA"));
+    		ResponseEntity<API> response = apiController.createApi(apiCreate);
+    		assertEquals(HttpStatus.OK, response.getStatusCode());
+    		UUID idApi = response.getBody().getIdApi();
+
+    		assertTrue(response.getBody().getProprietaCustom().stream().anyMatch(pc -> pc.getGruppo().equals(GRUPPO_PROFILO_GOVWAY)));
+
+    		this.entityManager.flush();
+    		this.entityManager.clear();
+
+    		// il monitoraggio usa la ridefinizione
+    		assertEquals("ModIPA", this.filtriUtils.getProfilo(servizio.getIdServizio(), idApi));
+
+    		// modificare solo la ridefinizione rivalida i profili gia` associati all'API
+    		BadRequestException e = assertThrows(BadRequestException.class,
+    				() -> apiController.updateApi(idApi, getApiUpdateOverrideProfiloGovway("APIGateway"), null));
+    		assertEquals(ErrorCode.VAL_422_PROFILO_GOVWAY, e.getErrorCode());
+    	} finally {
+    		profilo.setProfiloGovway(null);
+    		disabilitaOverrideProfiloGovway(gruppo);
+    	}
+    }
+
+    @Test
+    void testOverrideProfiloGovwayValoreNonValido() {
+    	ConfigurazioneCustomProprietaList gruppo = abilitaOverrideProfiloGovway();
+    	try {
+    		Dominio dominio = this.getDominio();
+    		Servizio servizio = creaServizio("servizio_erogazione", dominio.getIdDominio(), false, null);
+
+    		APICreate apiCreate = getApiCreateDominio("API_X", servizio, "MODI_P1");
+    		apiCreate.setProprietaCustom(getOverrideProfiloGovway("ProfiloInesistente"));
+
+    		BadRequestException e = assertThrows(BadRequestException.class, () -> apiController.createApi(apiCreate));
+    		assertEquals(ErrorCode.VAL_400_PROFILO_GOVWAY, e.getErrorCode());
+    		assertEquals("ProfiloInesistente", e.getParameters().get("valore"));
+    		assertNotNull(e.getParameters().get("valoriAmmessi"));
+    	} finally {
+    		disabilitaOverrideProfiloGovway(gruppo);
+    	}
+    }
+
+    @Test
+    void testOverrideProfiloGovwayRiservatoAlGestore() {
+    	ConfigurazioneCustomProprietaList gruppo = abilitaOverrideProfiloGovway();
+    	try {
+    		Dominio dominio = this.getDominio();
+    		Servizio servizio = creaServizio("servizio_erogazione", dominio.getIdDominio(), false, null);
+
+    		APICreate apiCreate = getApiCreateDominio("API_X", servizio, "MODI_P1");
+    		apiCreate.setProprietaCustom(getOverrideProfiloGovway("ModIPA"));
+    		UUID idApi = apiController.createApi(apiCreate).getBody().getIdApi();
+
+    		// utente non gestore con visibilita` sulle API
+    		String principalCoordinatore = "utente_coordinatore_profilo_govway";
+    		UtenteCreate coordinatore = CommonUtils.getUtenteCreate();
+    		coordinatore.setPrincipal(principalCoordinatore);
+    		coordinatore.setRuolo(RuoloUtenteEnum.COORDINATORE);
+    		CommonUtils.setOrganizzazione(coordinatore, idOrganizzazione);
+    		coordinatore.setStato(StatoUtenteEnum.ABILITATO);
+    		utentiController.createUtente(coordinatore);
+
+    		CommonUtils.getSessionUtente(principalCoordinatore, securityContext, authentication, utenteService);
+
+    		// il gruppo e` leggibile (la console lo usa per filtrare i profili)
+    		ResponseEntity<API> api = apiController.getAPI(idApi);
+    		assertEquals(HttpStatus.OK, api.getStatusCode());
+    		assertTrue(api.getBody().getProprietaCustom().stream().anyMatch(pc -> pc.getGruppo().equals(GRUPPO_PROFILO_GOVWAY)));
+
+    		// e non e` modificabile
+    		NotAuthorizedException e = assertThrows(NotAuthorizedException.class,
+    				() -> apiController.updateApi(idApi, getApiUpdateOverrideProfiloGovway("APIGateway"), null));
+    		assertEquals(ErrorCode.AUT_403_GRUPPO_RISERVATO_GESTORE, e.getErrorCode());
+    		assertEquals(GRUPPO_PROFILO_GOVWAY, e.getParameters().get("gruppo"));
+    	} finally {
+    		disabilitaOverrideProfiloGovway(gruppo);
+    	}
+    }
+
+}

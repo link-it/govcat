@@ -46,6 +46,7 @@ import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.ErrorCode;
+import org.govway.catalogo.services.ProfiloGovwayService;
 import org.govway.catalogo.servlets.model.API;
 import org.govway.catalogo.servlets.model.APICreate;
 import org.govway.catalogo.servlets.model.APIDatiAmbienteCreate;
@@ -100,6 +101,9 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 
 	@Autowired
 	private Configurazione configurazione;
+
+	@Autowired
+	private ProfiloGovwayService profiloGovwayService;
 
 	public static final String SEPARATOR = ",";
 
@@ -284,6 +288,8 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 			entity.getAuthType().addAll(getAuthType(src.getGruppiAuthType(), entity));
 		}
 
+		this.profiloGovwayService.checkProfili(entity);
+
 		this.servizioDettaglioAssembler.setUltimaModifica(entity.getServizio());
 		this.servizioService.save(entity.getServizio());
 
@@ -367,6 +373,8 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 				.findAny()
 				.orElseThrow(() -> new BadRequestException(ErrorCode.GRP_404, Map.of("idGruppo", apc.getGruppo())));
 
+				this.profiloGovwayService.checkModificaGruppo(apc.getGruppo());
+
 				for(AuthTypeApiResourceProprietaCustom p: apc.getProprieta()) {
 					Optional<ConfigurazioneCustomProprieta> configurazioneCustomProprieta = g.getProprieta()
 					.stream()
@@ -376,6 +384,8 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 					if (configurazioneCustomProprieta.isEmpty()) {
 					    throw new BadRequestException(ErrorCode.VAL_400_CUSTOM_PROPERTY, Map.of("nome", p.getNome(), "gruppo", g.getNomeGruppo()));
 					}
+
+					this.profiloGovwayService.checkValoreOverride(apc.getGruppo(), p.getNome(), p.getValore());
 					
 					EstensioneApiEntity e = new EstensioneApiEntity();
 					
@@ -425,8 +435,8 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 				
 				if(p.getTipoDominio()!= null) {
 					
-					// Rimosso il concetto di dominio esterno: il dominio di un servizio (anche fruizione) è sempre interno
-					ConfigurazioneTipoDominioEnum cd = ConfigurazioneTipoDominioEnum.INTERNO;
+					// tipo_dominio limita il profilo alle erogazioni (interno) o alle fruizioni (esterno)
+					ConfigurazioneTipoDominioEnum cd = entity.getServizio().isFruizione() ? ConfigurazioneTipoDominioEnum.ESTERNO : ConfigurazioneTipoDominioEnum.INTERNO;
 					
 					if(!p.getTipoDominio().equals(cd)) {
 							throw new BadRequestException(ErrorCode.VAL_422);

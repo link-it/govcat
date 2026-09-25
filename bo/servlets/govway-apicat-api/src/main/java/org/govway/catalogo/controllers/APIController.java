@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -63,6 +64,7 @@ import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.services.ApiUnivocitaService;
+import org.govway.catalogo.services.ProfiloGovwayService;
 import org.govway.catalogo.servlets.api.ApiApi;
 import org.govway.catalogo.servlets.model.*;
 import org.slf4j.Logger;
@@ -105,6 +107,9 @@ public class APIController implements ApiApi {
 
 	@Autowired
 	private ApiUnivocitaService apiUnivocitaService;
+
+	@Autowired
+	private ProfiloGovwayService profiloGovwayService;
 
 	@Autowired
 	private ServizioDettaglioAssembler servizioDettaglioAssembler;
@@ -662,6 +667,8 @@ public class APIController implements ApiApi {
 
 				ServizioEntity servizio = entity.getServizio();
 
+				String profiloGovwayOverridePrima = this.profiloGovwayService.getOverride(entity);
+
 				List<ConfigurazioneClasseDato> lstClassiDato = new ArrayList<>();
 
 				if(apiUpdate.getIdentificativo()!=null) {
@@ -717,6 +724,12 @@ public class APIController implements ApiApi {
 				if(apiUpdate.getConfigurazioneProduzione()!=null) {
 					lstClassiDato.add(ConfigurazioneClasseDato.PRODUZIONE);
 					this.dettaglioAssembler.toEntityProduzione(apiUpdate.getConfigurazioneProduzione(), entity);
+				}
+
+				// La compatibilita` dei profili con il profilo di interoperabilita` GovWay si verifica sullo stato
+				// finale dell'API: quando cambiano i profili o la ridefinizione del profilo di interoperabilita`
+				if(apiUpdate.getDatiSpecifica()!=null || !Objects.equals(profiloGovwayOverridePrima, this.profiloGovwayService.getOverride(entity))) {
+					this.profiloGovwayService.checkProfili(entity);
 				}
 
 				Grant grant = this.servizioDettaglioAssembler.toGrant(entity.getServizio());
