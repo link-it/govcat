@@ -26,9 +26,9 @@
       "label": "APP.LABEL.Status",
       "small": true,
       "values": {        
-        "nuova": { "label": "APP.NOTIFICATIONS.STATUS.Nuova", "background": "#297cc1", "border": "#297cc1", "color": "#ffffff" },
+        "nuova": { "label": "APP.NOTIFICATIONS.STATUS.Nuova", "background": "#2777b9", "border": "#2777b9", "color": "#ffffff" },
         "letta": { "label": "APP.NOTIFICATIONS.STATUS.Letta", "background": "#f1f1f1", "border": "#f1f1f1", "color": "#333333" },
-        "archiviata": { "label": "APP.NOTIFICATIONS.STATUS.Archiviata", "background": "#A4ABB6", "border": "#A4ABB6", "color": "#ffffff" }
+        "archiviata": { "label": "APP.NOTIFICATIONS.STATUS.Archiviata", "background": "#6c717a", "border": "#6c717a", "color": "#ffffff" }
       }
     },
     "tipoIcon": {

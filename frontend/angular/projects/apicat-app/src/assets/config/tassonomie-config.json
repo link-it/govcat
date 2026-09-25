@@ -26,7 +26,7 @@
       "small": true,
       "values": {
         "true": { "label": "APP.STATUS.Enabled", "background": "#eeef20", "border": "#eeef20", "color": "#1f1f1f" },
-        "false": { "label": "APP.STATUS.Disabled", "background": "#A4ABB6", "border": "#A4ABB6", "color": "#ffffff" }
+        "false": { "label": "APP.STATUS.Disabled", "background": "#6c717a", "border": "#6c717a", "color": "#ffffff" }
       }
     },
     "obbligatorio": {
@@ -34,7 +34,7 @@
       "small": true,
       "values": {
         "true": { "label": "APP.STATUS.YES", "background": "#22577a", "border": "#22577a", "color": "#ffffff" },
-        "false": { "label": "APP.STATUS.NO", "background": "#A4ABB6", "border": "#A4ABB6", "color": "#ffffff" }
+        "false": { "label": "APP.STATUS.NO", "background": "#6c717a", "border": "#6c717a", "color": "#ffffff" }
       }
     }
   }

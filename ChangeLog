@@ -1,6 +1,15 @@
 2026-09-25  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Accessibilita' (WCAG 1.4.3): audit completo dei colori dei chip di stato/visibilita'
+	  nei config (options.status/visibilita.values e simili). 84 coppie testo-bianco su
+	  fondo con contrasto < 4.5:1 corrette scurendo i 15 sfondi coinvolti (bianco
+	  invariato), ora tutte >= 4.6:1: grigio #A4ABB6->#6c717a, arancio #f18701->#ad6201
+	  e #E87823->#ae5a1c, rossi #FF3700->#d92f00 e #E82323->#df2222, vari blu/verde/ciano.
+	  Restano i chip "nd"/blank (#ffffff su #ffffff, invisibili di proposito). 19 config
+	  aggiornati.
+
+	* [Frontend]
 	Accessibilita': azzerate anche moderate e minor residue dello scan gov-a11y.
 	  h1 di pagina per servizio-details in vista (sr-only) e h1 fallback per
 	  servizio-view durante il caricamento (page-has-heading-one, robusto rispetto

@@ -28,7 +28,7 @@
       "values": {
         "amministratore_organizzazione": { "label": "APP.RUOLI.AmministratoreOrganizzazione", "chipVariant": "brand", "background": "#1f75cb", "border": "#1f75cb", "color": "#ffffff" },
         "operatore_api":                 { "label": "APP.RUOLI.OperatoreApi",                 "chipVariant": "ok",    "background": "#108548", "border": "#108548", "color": "#ffffff" },
-        "no_role":                       { "label": "APP.ORGANIZATION_SWITCHER.NoRole",       "chipVariant": "muted", "background": "#A4ABB6", "border": "#A4ABB6", "color": "#ffffff" }
+        "no_role":                       { "label": "APP.ORGANIZATION_SWITCHER.NoRole",       "chipVariant": "muted", "background": "#6c717a", "border": "#6c717a", "color": "#ffffff" }
       }
     },
     "ruoloPdnd": {

@@ -29,7 +29,7 @@
       "small": true,
       "values": {
         "generico": { "label": "APP.VISIBILITY.generico", "background": "#D1D100", "border": "#D1D100", "color": "#1f1f1f" },
-        "specifica": { "label": "APP.VISIBILITY.specifica", "background": "#E82323", "border": "#E82323", "color": "#ffffff" }
+        "specifica": { "label": "APP.VISIBILITY.specifica", "background": "#df2222", "border": "#df2222", "color": "#ffffff" }
       }
     },
     "visibility": {
@@ -37,9 +37,9 @@
       "small": true,
       "values": {
         "pubblico": { "label": "APP.VISIBILITY.public", "background": "#D1D100", "border": "#D1D100", "color": "#1f1f1f" },
-        "private": { "label": "APP.VISIBILITY.private", "background": "#E82323", "border": "#E82323", "color": "#ffffff" },
-        "riservato": { "label": "APP.VISIBILITY.riservato", "background": "#E82323", "border": "#A82323", "color": "#ffffff" },
-        "privato": { "label": "APP.VISIBILITY.privato", "background": "#E82323", "border": "#E82323", "color": "#ffffff" }
+        "private": { "label": "APP.VISIBILITY.private", "background": "#df2222", "border": "#df2222", "color": "#ffffff" },
+        "riservato": { "label": "APP.VISIBILITY.riservato", "background": "#df2222", "border": "#A82323", "color": "#ffffff" },
+        "privato": { "label": "APP.VISIBILITY.privato", "background": "#df2222", "border": "#df2222", "color": "#ffffff" }
       }
     }
   }
