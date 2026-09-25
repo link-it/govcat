@@ -72,7 +72,9 @@
     }
 
     @if (data && !_spin) {
-      <main class="main">
+      <!-- a11y: era <main>, ma il layout (gp-layout) ha gia` il landmark
+           <main id="main-content">; qui basta un contenitore per lo stile. -->
+      <div class="main">
 
         @if (_error) {
           <div class="gl-alert gl-alert-danger col-md-12 mb-3">
@@ -525,7 +527,7 @@
           </section>
         </div>
 
-      </main>
+      </div>
     }
   </section>
 </div>

@@ -465,6 +465,9 @@ word-break: break-word;
     font-size: 12px;
     white-space: nowrap;
     text-decoration: none;
+    // a11y (WCAG 1.4.3): il blu link Bootstrap #007bff su bianco e` 3.97:1
+    // (insufficiente a 12px); #0056b3 ~5.6:1.
+    color: #0056b3;
 }
 .lnk-vetrina .gruppi-toggle .bi { margin-right: 4px; }
 

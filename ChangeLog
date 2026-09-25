@@ -1,3 +1,14 @@
+2026-09-25  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Accessibilita' (WCAG 2.1 AA): risolte le criticita' emerse dallo scan gov-a11y.
+	  button-name sui bottoni-spinner (gruppi, comunicazioni adesione/servizio):
+	  aria-label + disabled + aria-busy. color-contrast: separatore breadcrumb
+	  #868686->#6c757d e link .gruppi-toggle #007bff->#0056b3. Rimosso il doppio
+	  <main> annidato (adesione-view/servizio-view: <main> interno -> <div>).
+	  Aggiunto l'h1 di pagina dove mancava (adesione-create, servizio-details,
+	  dashboard) e sistemato l'heading-order delle sezioni (h2). Scan a11y pulito.
+
 2026-09-17  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
