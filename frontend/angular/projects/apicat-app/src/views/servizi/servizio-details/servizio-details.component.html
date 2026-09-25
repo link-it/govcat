@@ -38,6 +38,11 @@
     @if (_isEdit && _isNew) {
       <h1 class="page-title">{{ 'APP.TITLE.NewService' | translate }}</h1>
     }
+    <!-- a11y (WCAG 2.4.6): in vista (non-edit) manca il page-title; h1 sr-only
+         (condizione sincrona, sempre presente subito) per la gerarchia heading. -->
+    @if (!_isEdit) {
+      <h1 class="sr-only">{{ 'APP.TITLE.Service' | translate }}</h1>
+    }
     <div class="d-flex flex-grow-1">&nbsp;</div>
     @if (_data.id_servizio) {
       <div class="nav-controls">

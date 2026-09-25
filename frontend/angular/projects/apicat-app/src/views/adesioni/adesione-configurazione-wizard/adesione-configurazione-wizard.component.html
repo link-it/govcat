@@ -1113,7 +1113,7 @@
        contiene il bottone "Modifica" e la form. -->
   @let openInfo = isPhaseSectionOpen('info_generali');
   <section class="lnk-phase-section" [class.is-open]="openInfo">
-    <header class="lnk-phase-section-hd" role="button" tabindex="0"
+    <div class="lnk-phase-section-hd" role="button" tabindex="0"
             [attr.aria-expanded]="openInfo"
             (click)="togglePhaseSection('info_generali')"
             (keydown.enter)="togglePhaseSection('info_generali')"
@@ -1133,7 +1133,7 @@
       <i class="bi bi-chevron-down lnk-phase-section-chev"
          [class.is-open]="openInfo"
          aria-hidden="true"></i>
-    </header>
+    </div>
     @if (openInfo) {
       <!-- Pannello grigio (`.tl-panel` style) che avvolge bottone +
            form. Allineato al design-code app.jsx (PhaseSection child
@@ -1176,7 +1176,7 @@
   <!-- Card "Referenti" — collassabile come Informazioni generali. -->
   @let openRef = isPhaseSectionOpen('referenti');
   <section class="lnk-phase-section" [class.is-open]="openRef">
-    <header class="lnk-phase-section-hd" role="button" tabindex="0"
+    <div class="lnk-phase-section-hd" role="button" tabindex="0"
             [attr.aria-expanded]="openRef"
             (click)="togglePhaseSection('referenti')"
             (keydown.enter)="togglePhaseSection('referenti')"
@@ -1196,18 +1196,18 @@
       <i class="bi bi-chevron-down lnk-phase-section-chev"
          [class.is-open]="openRef"
          aria-hidden="true"></i>
-    </header>
+    </div>
     @if (openRef) {
     <div class="lnk-phase-section-body tl-panel">
       <!-- Referenti adesione -->
       @let openA = isReferentGroupOpen('adesione');
       <div class="lnk-ref-group" [class.is-open]="openA">
-        <div class="lnk-ref-group-hd"
-             (click)="toggleReferentGroup('adesione')">
-          <h3 class="h4" role="button" tabindex="0"
-              [attr.aria-expanded]="openA"
-              (keydown.enter)="toggleReferentGroup('adesione')"
-              (keydown.space)="toggleReferentGroup('adesione'); $event.preventDefault()">
+        <div class="lnk-ref-group-hd" role="button" tabindex="0"
+             [attr.aria-expanded]="openA"
+             (click)="toggleReferentGroup('adesione')"
+             (keydown.enter)="toggleReferentGroup('adesione')"
+             (keydown.space)="toggleReferentGroup('adesione'); $event.preventDefault()">
+          <h3 class="h4">
             {{ 'APP.ADESIONI.TITLE.Referents' | translate }}
             <span class="lnk-ref-count">{{ referents.length }}</span>
           </h3>

@@ -57,6 +57,12 @@
            class="container-fluid limit-container-width container-scroller container-scroller-no-top-area container-scroller-no-search px-2 mt-2 py-1"
            (scroll)="onScroll($event)">
 
+    <!-- a11y (WCAG 2.4.6): l'h1 visibile (nome servizio) e` data-gated; questo
+         h1 di fallback (sr-only) garantisce sempre un heading di livello 1 anche
+         durante il caricamento. Mostrato solo quando l'h1 reale non e` reso. -->
+    @if (_spin || !data) {
+      <h1 class="sr-only">{{ 'APP.TITLE.Service' | translate }}</h1>
+    }
     @if (_spin) {
       <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3"></ui-box-spinner>
     }

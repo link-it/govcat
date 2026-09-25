@@ -1,6 +1,15 @@
 2026-09-25  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Accessibilita': azzerate anche moderate e minor residue dello scan gov-a11y.
+	  h1 di pagina per servizio-details in vista (sr-only) e h1 fallback per
+	  servizio-view durante il caricamento (page-has-heading-one, robusto rispetto
+	  al render data-gated). aria-allowed-role: header collassabili
+	  lnk-phase-section-hd <header role=button> -> <div role=button> e role="button"
+	  spostato dall'h3 al wrapper .lnk-ref-group-hd in adesione-configurazione-wizard.
+	  Scan a11y: 0 violazioni.
+
+	* [Frontend]
 	Accessibilita' (WCAG 2.1 AA), seconda tornata scan gov-a11y: associata la label
 	  agli input readonly di servizio-details (termini_ricerca/tipo/id_soggetto_erogatore,
 	  fix `label` critical); aggiunto l'h1 di pagina alle sotto-sezioni servizio
