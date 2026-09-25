@@ -18,6 +18,8 @@
 -->
 @if (!_isEdit) {
   <div id="route-section" class="">
+    <!-- a11y (WCAG 2.4.6): titolo di pagina per la gerarchia heading (sezione API). -->
+    <h1 class="sr-only">{{ 'APP.SERVICES.TITLE.ApiInformations' | translate }}</h1>
     <div class="top-area px-0">
       <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
       <div class="d-flex flex-grow-1">&nbsp;</div>

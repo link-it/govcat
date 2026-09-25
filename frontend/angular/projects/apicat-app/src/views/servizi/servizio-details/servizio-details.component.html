@@ -256,7 +256,7 @@
                           }
                           @if (!_isEdit) {
                             <div class="">
-                              <input type="text" readonly class="form-control-plaintext" [value]="data?.tipo">
+                              <input type="text" readonly id="tipo" class="form-control-plaintext" [value]="data?.tipo">
                             </div>
                           }
                         </div>
@@ -592,7 +592,7 @@
                         @if (!_isEdit && !_hideSoggettoInfo) {
                           <div class="">
                             <label class="label-bold" for="id_soggetto_erogatore">{{ 'APP.LABEL.SoggettoErogatore' | translate }}</label>
-                            <input type="text" readonly class="form-control-plaintext" [value]="data.soggetto_erogatore?.nome || '-'">
+                            <input type="text" readonly id="id_soggetto_erogatore" class="form-control-plaintext" [value]="data.soggetto_erogatore?.nome || '-'">
                           </div>
                         }
                       </div>
@@ -797,7 +797,7 @@
                     }
                     @if (!_isEdit) {
                       <div class="">
-                        <input type="text" readonly class="form-control-plaintext" [value]="data?.termini_ricerca || '-'">
+                        <input type="text" readonly id="termini_ricerca" class="form-control-plaintext" [value]="data?.termini_ricerca || '-'">
                       </div>
                     }
                   </div>

@@ -34,7 +34,9 @@
     </div>
   }
   <div class="top-area">
-    <h3 class="page-title">{{ 'APP.TITLE.Empty' | translate }}</h3>
+    <!-- a11y: era un heading vuoto (empty-heading); qui e` solo uno slot di
+         layout, il titolo di pagina e` l'h1 wizard-header-title piu` sotto. -->
+    <div class="page-title">{{ 'APP.TITLE.Empty' | translate }}</div>
     <div class="d-flex flex-grow-1">&nbsp;</div>
     <div class="nav-controls align-self-center d-flex gap-1">
       @if (!spin && adesione && (updateMapper | mapper:canChangeStatoMapper)) {
@@ -85,7 +87,7 @@
           <div class="d-flex justify-content-between mb-5 wizard-title-block">
             <div class="flex-grow-1">
               @if (wizardNewLayout) {
-                <h2 class="wizard-header-title mb-1">{{ headerTitle }}</h2>
+                <h1 class="wizard-header-title mb-1">{{ headerTitle }}</h1>
                 <div class="wizard-header-meta text-muted small d-flex flex-wrap gap-2 align-items-center">
                   @if (headerVersion) { <span>{{ headerVersion }}</span> }
                   @if (headerVersion && headerUpdatedAt) { <span aria-hidden="true">·</span> }
@@ -1202,13 +1204,13 @@
       <div class="lnk-ref-group" [class.is-open]="openA">
         <div class="lnk-ref-group-hd"
              (click)="toggleReferentGroup('adesione')">
-          <h4 role="button" tabindex="0"
+          <h3 class="h4" role="button" tabindex="0"
               [attr.aria-expanded]="openA"
               (keydown.enter)="toggleReferentGroup('adesione')"
               (keydown.space)="toggleReferentGroup('adesione'); $event.preventDefault()">
             {{ 'APP.ADESIONI.TITLE.Referents' | translate }}
             <span class="lnk-ref-count">{{ referents.length }}</span>
-          </h4>
+          </h3>
           @if (openA && (isEdit || (updateMapper | mapper:canAddMapper)) && !_addReferentOpen) {
             <button type="button" class="lnk-btn lnk-btn-sm"
                     (click)="$event.stopPropagation(); addReferenteModal($event)">
@@ -1256,10 +1258,10 @@
              (click)="toggleReferentGroup('servizio')"
              (keydown.enter)="toggleReferentGroup('servizio')"
              (keydown.space)="toggleReferentGroup('servizio'); $event.preventDefault()">
-          <h4>
+          <h3 class="h4">
             {{ 'APP.ADESIONI.TITLE.ServiceReferents' | translate }}
             <span class="lnk-ref-count">{{ serviceReferents.length }}</span>
-          </h4>
+          </h3>
           <i class="bi bi-chevron-down lnk-ref-group-chev"
              [class.is-open]="openS"
              aria-hidden="true"></i>
@@ -1281,10 +1283,10 @@
              (click)="toggleReferentGroup('dominio')"
              (keydown.enter)="toggleReferentGroup('dominio')"
              (keydown.space)="toggleReferentGroup('dominio'); $event.preventDefault()">
-          <h4>
+          <h3 class="h4">
             {{ 'APP.ADESIONI.TITLE.DomainReferents' | translate }}
             <span class="lnk-ref-count">{{ domainReferents.length }}</span>
-          </h4>
+          </h3>
           <i class="bi bi-chevron-down lnk-ref-group-chev"
              [class.is-open]="openD"
              aria-hidden="true"></i>
