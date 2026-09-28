@@ -24,7 +24,7 @@
       "small": true,
       "values": {
         "cambio_stato": { "label": "APP.STATUS.cambio_stato", "background": "#D1D100", "border": "#D1D100", "color": "#1f1f1f" },
-        "messaggio": { "label": "APP.STATUS.messaggio", "background": "#E82323", "border": "#E82323", "color": "#ffffff" }
+        "messaggio": { "label": "APP.STATUS.messaggio", "background": "#df2222", "border": "#df2222", "color": "#ffffff" }
       }
     }
   }

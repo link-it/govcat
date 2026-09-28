@@ -38,6 +38,11 @@
     @if (_isEdit && _isNew) {
       <h1 class="page-title">{{ 'APP.TITLE.NewService' | translate }}</h1>
     }
+    <!-- a11y (WCAG 2.4.6): in vista (non-edit) manca il page-title; h1 sr-only
+         (condizione sincrona, sempre presente subito) per la gerarchia heading. -->
+    @if (!_isEdit) {
+      <h1 class="sr-only">{{ 'APP.TITLE.Service' | translate }}</h1>
+    }
     <div class="d-flex flex-grow-1">&nbsp;</div>
     @if (_data.id_servizio) {
       <div class="nav-controls">
@@ -267,7 +272,7 @@
                           }
                           @if (!_isEdit) {
                             <div class="">
-                              <input type="text" readonly class="form-control-plaintext" [value]="data?.tipo">
+                              <input type="text" readonly id="tipo" class="form-control-plaintext" [value]="data?.tipo">
                             </div>
                           }
                         </div>
@@ -603,7 +608,7 @@
                         @if (!_isEdit && !_hideSoggettoInfo) {
                           <div class="">
                             <label class="label-bold" for="id_soggetto_erogatore">{{ 'APP.LABEL.SoggettoErogatore' | translate }}</label>
-                            <input type="text" readonly class="form-control-plaintext" [value]="data.soggetto_erogatore?.nome || '-'">
+                            <input type="text" readonly id="id_soggetto_erogatore" class="form-control-plaintext" [value]="data.soggetto_erogatore?.nome || '-'">
                           </div>
                         }
                       </div>
@@ -808,7 +813,7 @@
                     }
                     @if (!_isEdit) {
                       <div class="">
-                        <input type="text" readonly class="form-control-plaintext" [value]="data?.termini_ricerca || '-'">
+                        <input type="text" readonly id="termini_ricerca" class="form-control-plaintext" [value]="data?.termini_ricerca || '-'">
                       </div>
                     }
                   </div>

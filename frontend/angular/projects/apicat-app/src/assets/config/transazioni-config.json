@@ -193,7 +193,7 @@
       "label": "APP.LABEL.Status",
       "small": true,
       "values": {
-        "bozza": { "label": "APP.WORKFLOW.STATUS.bozza", "background": "#A4ABB6", "border": "#A4ABB6", "color": "#ffffff" },
+        "bozza": { "label": "APP.WORKFLOW.STATUS.bozza", "background": "#6c717a", "border": "#6c717a", "color": "#ffffff" },
         "richiesto_collaudo": { "label": "APP.WORKFLOW.STATUS.richiesto_collaudo", "background": "#eeef20", "border": "#eeef20", "color": "#1f1f1f" },
         "in_configurazione_collaudo": { "label": "APP.WORKFLOW.STATUS.in_configurazione_collaudo", "background": "#d4d700", "border": "#d4d700", "color": "#1f1f1f" },
         "pubblicato_collaudo": { "label": "APP.WORKFLOW.STATUS.pubblicato_collaudo", "background": "#c7f9cc", "border": "#c7f9cc", "color": "#1f1f1f" },
@@ -210,9 +210,9 @@
       "values": {
         "200": { "label": "APP.HTTP.200", "background": "#a6d75b", "border": "#a6d75b", "color": "#1f1f1f" },
         "300": { "label": "APP.HTTP.300", "background": "#a2d6f9", "border": "#a2d6f9", "color": "#1f1f1f" },
-        "400": { "label": "APP.HTTP.400", "background": "#f18701", "border": "#f18701", "color": "#ffffff" },
-        "500": { "label": "APP.HTTP.500", "background": "#FF3700", "border": "#FF3700", "color": "#ffffff" },
-        "503": { "label": "APP.HTTP.503", "background": "#FF3700", "border": "#FF3700", "color": "#ffffff" }
+        "400": { "label": "APP.HTTP.400", "background": "#ad6201", "border": "#ad6201", "color": "#ffffff" },
+        "500": { "label": "APP.HTTP.500", "background": "#d92f00", "border": "#d92f00", "color": "#ffffff" },
+        "503": { "label": "APP.HTTP.503", "background": "#d92f00", "border": "#d92f00", "color": "#ffffff" }
       }
     },
 
@@ -359,10 +359,10 @@
       "values": {
         "ok": { "label": "OK", "background": "#a6d75b", "border": "#a6d75b", "color": "#1f1f1f" },
         "200": { "label": "200", "background": "#a6d75b", "border": "#a6d75b", "color": "#1f1f1f" },
-        "fault": { "label": "FAULT", "background": "#f18701", "border": "#f18701", "color": "#ffffff" },
-        "fallito": { "label": "FALLITO", "background": "#FF3700", "border": "#FF3700", "color": "#ffffff" },
-        "500": { "label": "500", "background": "#FF3700", "border": "#FF3700", "color": "#ffffff" },
-        "2": { "label": "Fault Applicativo", "background": "#f18701", "border": "#f18701", "color": "#ffffff" }
+        "fault": { "label": "FAULT", "background": "#ad6201", "border": "#ad6201", "color": "#ffffff" },
+        "fallito": { "label": "FALLITO", "background": "#d92f00", "border": "#d92f00", "color": "#ffffff" },
+        "500": { "label": "500", "background": "#d92f00", "border": "#d92f00", "color": "#ffffff" },
+        "2": { "label": "Fault Applicativo", "background": "#ad6201", "border": "#ad6201", "color": "#ffffff" }
       }
     },
 
@@ -371,10 +371,10 @@
       "small": true,
       "values": {
         "GET": { "label": "GET", "background": "#a6d75b", "border": "#a6d75b", "color": "#1f1f1f" },
-        "POST": { "label": "POST", "background": "#f18701", "border": "#f18701", "color": "#ffffff" },
-        "PUT": { "label": "PUT", "background": "#1e96fc", "border": "#1e96fc", "color": "#ffffff" },
+        "POST": { "label": "POST", "background": "#ad6201", "border": "#ad6201", "color": "#ffffff" },
+        "PUT": { "label": "PUT", "background": "#1875c5", "border": "#1875c5", "color": "#ffffff" },
         "PATCH": { "label": "PATCH", "background": "#a2d6f9", "border": "#a2d6f9", "color": "#1f1f1f" },
-        "DELETE": { "label": "DELETE", "background": "#FF3700", "border": "#FF3700", "color": "#ffffff" }
+        "DELETE": { "label": "DELETE", "background": "#d92f00", "border": "#d92f00", "color": "#ffffff" }
       }
     }
   }

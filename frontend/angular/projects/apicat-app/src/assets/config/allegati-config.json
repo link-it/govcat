@@ -31,9 +31,9 @@
       "small": true,
       "values": {
         "generico": { "label": "APP.VISIBILITY.generico", "chipVariant": "muted", "background": "#D1D100", "border": "#D1D100", "color": "#1f1f1f" },
-        "specifica": { "label": "APP.VISIBILITY.specifica", "chipVariant": "warn", "background": "#E82323", "border": "#A82323", "color": "#ffffff" },
-        "specifica_collaudo": { "label": "APP.VISIBILITY.specifica_collaudo", "chipVariant": "ok", "background": "#4CAF50", "border": "#388E3C", "color": "#ffffff" },
-        "specifica_produzione": { "label": "APP.VISIBILITY.specifica_produzione", "chipVariant": "info", "background": "#2196F3", "border": "#1976D2", "color": "#ffffff" }
+        "specifica": { "label": "APP.VISIBILITY.specifica", "chipVariant": "warn", "background": "#df2222", "border": "#A82323", "color": "#ffffff" },
+        "specifica_collaudo": { "label": "APP.VISIBILITY.specifica_collaudo", "chipVariant": "ok", "background": "#39843c", "border": "#388E3C", "color": "#ffffff" },
+        "specifica_produzione": { "label": "APP.VISIBILITY.specifica_produzione", "chipVariant": "info", "background": "#1b75be", "border": "#1976D2", "color": "#ffffff" }
       }
     },
     "visibility": {
@@ -41,12 +41,12 @@
       "small": true,
       "values": {
         "pubblico": { "label": "APP.VISIBILITY.public", "chipVariant": "ok", "background": "#b8e477", "border": "#b8e477", "color": "#1f1f1f" },
-        "private": { "label": "APP.VISIBILITY.private", "chipVariant": "warn", "background": "#E82323", "border": "#E82323", "color": "#ffffff" },
-        "riservato": { "label": "APP.VISIBILITY.riservato", "chipVariant": "accent", "background": "#E82323", "border": "#A82323", "color": "#ffffff" },
-        "privato": { "label": "APP.VISIBILITY.privato", "chipVariant": "warn", "background": "#E82323", "border": "#E82323", "color": "#ffffff" },
+        "private": { "label": "APP.VISIBILITY.private", "chipVariant": "warn", "background": "#df2222", "border": "#df2222", "color": "#ffffff" },
+        "riservato": { "label": "APP.VISIBILITY.riservato", "chipVariant": "accent", "background": "#df2222", "border": "#A82323", "color": "#ffffff" },
+        "privato": { "label": "APP.VISIBILITY.privato", "chipVariant": "warn", "background": "#df2222", "border": "#df2222", "color": "#ffffff" },
         "adesione": { "label": "APP.VISIBILITY.adesione", "chipVariant": "ok", "background": "#108548", "border": "#108548", "color": "#ffffff" },
-        "referente": { "label": "APP.VISIBILITY.referente", "chipVariant": "info", "background": "#428fdc", "border": "#428fdc", "color": "#ffffff" },
-        "servizio": { "label": "APP.VISIBILITY.servizio", "chipVariant": "info", "background": "#428fdc", "border": "#428fdc", "color": "#ffffff" },
+        "referente": { "label": "APP.VISIBILITY.referente", "chipVariant": "info", "background": "#3675b4", "border": "#3675b4", "color": "#ffffff" },
+        "servizio": { "label": "APP.VISIBILITY.servizio", "chipVariant": "info", "background": "#3675b4", "border": "#3675b4", "color": "#ffffff" },
         "gestore": { "label": "APP.VISIBILITY.gestore", "chipVariant": "accent", "background": "#d12100", "border": "#d12100", "color": "#ffffff" }
       }
     }
