@@ -24,6 +24,7 @@ import { OAuthService } from 'angular-oauth2-oidc';
 import { PermessiService } from '@services/permessi.service';
 import { OrganizationContextService } from '@services/organization-context.service';
 import { ItemOrganizzazione } from '../model/itemOrganizzazione';
+import { Grant, RightsEnum } from '../model/grant';
 import { RuoloOrganizzazioneEnum } from '../model/ruoloOrganizzazioneEnum';
 import { GrantRole, expandTecnicoGrants, expandContextualGrants } from './grant-roles.const';
 
@@ -78,6 +79,14 @@ export const CLASSES: any = {
     }
   },
   api: {
+    api: {
+      type: 'external',
+      fields: [
+        { field: 'nome', view: true, edit: false, create: false, delete: false },
+        { field: 'versione', view: true, edit: false, create: false, delete: false },
+        { field: 'ruolo', view: true, edit: false, create: false, delete: false },
+      ]
+    },
     identificativo: {
       type: 'external',
       fields: [
@@ -569,11 +578,18 @@ export class AuthenticationService {
     if (this.isGestore(grant)) { return true; }
     if (state) {
       const _wfcs = this._getWorkflowCambiStato(module, state);
-      const _dnm = (_wfcs?.dati_non_modificabili) ? _wfcs.dati_non_modificabili : [];
+      // La classe `api` governa solo la lista delle API: vedi `canManageApi`.
+      const _dnm = (_wfcs?.dati_non_modificabili || []).filter((c: string) => c !== 'api');
 
       return (_dnm.length === 0);
     }
     return false;
+  }
+
+  /** Creazione, eliminazione e modifica dell'identificativo delle API del servizio. */
+  canManageApi(grant: Grant | null) {
+    if (this.isGestore(grant?.ruoli || [])) { return true; }
+    return grant?.api === RightsEnum.Scrittura;
   }
 
   canEdit(module: string, submodule: string, state: string, grant: string[] = []) {

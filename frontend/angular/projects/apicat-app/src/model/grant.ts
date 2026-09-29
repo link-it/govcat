@@ -30,5 +30,6 @@ export interface Grant {
   specifica: RightsEnum,
   referenti: RightsEnum,
   collaudo: RightsEnum,
-  produzione: RightsEnum
+  produzione: RightsEnum,
+  api?: RightsEnum
 }

@@ -486,6 +486,10 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             if (this.servizioApi?.configurazione_collaudo?.protocollo) {
                 this._formGroup.get('protocollo')?.setValue(this.servizioApi.configurazione_collaudo.protocollo);
             }
+
+            if (!this._isNew && !this._canAdd()) {
+                ['nome', 'versione', 'ruolo'].forEach((key: string) => this._formGroup.get(key)?.disable());
+            }
         }
     }
 
@@ -677,6 +681,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     _prepareBodyUpdateApi(body: any) {
+        const _ruolo = this._formGroup.get('ruolo')?.value;
         let _newBody: ApiUpdateRequest = {
             identificativo: {
                 nome: body.nome,
@@ -689,7 +694,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             },
         };
 
-        if (body.ruolo === this.EROGATO_SOGGETTO_DOMINIO) {
+        if (_ruolo === this.EROGATO_SOGGETTO_DOMINIO) {
             _newBody.dati_specifica = {
                 ..._newBody.dati_specifica,
                 gruppi_auth_type: body.authTypes?.map((item: any) => {
@@ -776,7 +781,12 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             };
         }
 
-        return this.authenticationService._removeDNM('servizio', this.service.stato, _newBody, this._grant?.ruoli);
+        const _body: any = this.authenticationService._removeDNM('servizio', this.service.stato, _newBody, this._grant?.ruoli);
+        // Il BE autorizza il blocco `identificativo` anche sulla classe `api`, pure a valori invariati.
+        if (!this._canAdd()) {
+            delete _body.identificativo;
+        }
+        return _body;
     }
 
     _getGroupNameByLabel(group: any) {
@@ -1606,7 +1616,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     _canAdd() {
-        return this.authenticationService.canAdd('servizio', this.service?.stato, this._grant?.ruoli);
+        return this.authenticationService.canManageApi(this._grant);
     }
 
     _canAddMapper = (): boolean => {

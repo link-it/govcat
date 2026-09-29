@@ -1056,7 +1056,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     // -------------------------------------------------------------------------
 
     canAddApi(): boolean {
-        return this.authenticationService.canAdd('servizio', this.data?.stato, this._grant?.ruoli);
+        return this.authenticationService.canManageApi(this._grant);
     }
 
     /** La creazione dell'API e` disponibile nel Collaudo; in Produzione solo
@@ -1072,15 +1072,8 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         return this.authenticationService.canEdit('servizio', 'api', this.data?.stato, this._grant?.ruoli);
     }
 
-    /**
-     * Abilitazione eliminazione API: stessa logica dell'originale
-     * (`_canAddMapper` di servizio-componenti / servizio-api-details):
-     * consentita se almeno una tra le classi `referente` /
-     * `referente_superiore` e` modificabile nello stato corrente.
-     */
     canDeleteApi(): boolean {
-        const _cnm = this.authenticationService._getClassesNotModifiable('servizio', 'servizio', this.data?.stato) || [];
-        return _cnm.indexOf('referente') === -1 || _cnm.indexOf('referente_superiore') === -1;
+        return this.authenticationService.canManageApi(this._grant);
     }
 
     confirmDeleteApi(api: any) {

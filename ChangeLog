@@ -1,6 +1,11 @@
 2026-09-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 360: creazione, eliminazione e modifica di nome/versione/ruolo delle API del
+	  servizio abilitate dal grant "api" (wizard e vista classica); la classe "api" non blocca
+	  piu' gli altri pulsanti di aggiunta e il blocco identificativo non viene inviato nel
+	  salvataggio dell'API quando non modificabile.
+
 	Vulnerabilita' dipendenze (dev, tooling di build): override di sicurezza aggiornati a
 	  versioni patchate nella stessa major: fast-uri 3.1.6 -> 3.1.8 (GHSA-58mr, GHSA-qw65),
 	  ip-address 10.3.1 -> 10.7.2 (GHSA-rpw4, GHSA-2vr4), undici 6.28.0 -> 6.28.1 e

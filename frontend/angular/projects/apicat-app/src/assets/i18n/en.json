@@ -3109,6 +3109,7 @@
 		},
 		"WORKFLOW": {
 			"DATATYPE": {
+				"api": "API",
 				"collaudo": "Testing",
 				"collaudo_configurato": "Testing",
 				"collaudo_pdnd": "PDND",
