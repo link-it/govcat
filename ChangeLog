@@ -1,6 +1,10 @@
 2026-09-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 369: lista servizi aperta su un gruppo (ritorno dalla scheda servizio, link diretto)
+	  mostra di nuovo l'intera gerarchia nel breadcrumb: riuso del percorso di navigazione
+	  salvato e, in mancanza, risalita dei gruppi padre livello per livello.
+
 	Vulnerabilita' dipendenze (dev, tooling di build): override di sicurezza aggiornati a
 	  versioni patchate nella stessa major: fast-uri 3.1.6 -> 3.1.8 (GHSA-58mr, GHSA-qw65),
 	  ip-address 10.3.1 -> 10.7.2 (GHSA-rpw4, GHSA-2vr4), undici 6.28.0 -> 6.28.1 e

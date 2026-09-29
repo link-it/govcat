@@ -978,13 +978,14 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
     async _resolveGroupHierarchy(idGruppo: string) {
         try {
+            const storedPath = this._getStoredGroupsPath(idGruppo);
             const query = { id_gruppo_padre: idGruppo, tipo_servizio: this.tipo_servizio };
-            const params = this.utils._queryToHttpParams(query);
-            const response: any = await firstValueFrom(this.apiService.getList('servizi_gruppi', { params }));
-            const firstItem = response?.content?.[0];
-            const pathGruppo: { id_gruppo: string; nome: string }[] = firstItem?.path_gruppo || [];
-            if (pathGruppo.length > 0) {
-                this.groupsBreadcrumbs = pathGruppo.map((g) => ({
+            const pathGruppo = storedPath ? [] : await this._getPathGruppo(query);
+            if (storedPath) {
+                this.groupsBreadcrumbs = storedPath;
+            } else if (pathGruppo.length > 0) {
+                const fullPath = await this._completePathGruppo(pathGruppo);
+                this.groupsBreadcrumbs = fullPath.map((g) => ({
                     label: g.nome, url: g.id_gruppo, type: 'link', icon: '', group: true, tooltip: 'APP.TOOLTIP.Group'
                 }));
             } else {
@@ -1004,6 +1005,34 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
             this._gruppoPadreNull = true;
             this.groupsBreadcrumbs = [];
         }
+    }
+
+    /** Percorso gia` noto dalla navigazione (breadcrumb salvato), troncato al gruppo richiesto. */
+    private _getStoredGroupsPath(idGruppo: string): any[] | null {
+        const stored: any[] = this.breadCrumbService.getBreadcrumbs()?.groupsBreadcrumbs || [];
+        const index = stored.findIndex((item: any) => item.url === idGruppo);
+        return (index !== -1) ? stored.slice(0, index + 1) : null;
+    }
+
+    private async _getPathGruppo(query: any): Promise<{ id_gruppo: string; nome: string }[]> {
+        const params = this.utils._queryToHttpParams({ ...query, size: 1 });
+        const response: any = await firstValueFrom(this.apiService.getList('servizi_gruppi', { params }));
+        return response?.content?.[0]?.path_gruppo || [];
+    }
+
+    /** `path_gruppo` puo` riportare solo gli ultimi livelli: risale dal primo
+     *  elemento finche` non si raggiunge un gruppo radice. */
+    private async _completePathGruppo(path: { id_gruppo: string; nome: string }[]) {
+        let fullPath = [...path];
+        const seen = new Set(fullPath.map((g) => g.id_gruppo));
+        while (fullPath.length > 1) {
+            const upper = await this._getPathGruppo({ id_gruppo_padre: fullPath[0].id_gruppo });
+            const ancestors = upper.slice(0, -1).filter((g) => !seen.has(g.id_gruppo));
+            if (!ancestors.length) { break; }
+            ancestors.forEach((g) => seen.add(g.id_gruppo));
+            fullPath = [...ancestors, ...fullPath];
+        }
+        return fullPath;
     }
 
     _resetForm() {
