@@ -617,6 +617,8 @@ $tagColorHover: #dbdbdb;
     width: 1em;
     height: 1em;
     right: 12px;
+    // Spostata sopra la .ng-input (z-index 2 nelle multiple): deve restare cliccabile.
+    z-index: 3;
 
     .ng-arrow {
       display: none !important;
@@ -625,6 +627,12 @@ $tagColorHover: #dbdbdb;
 
   .ng-clear-wrapper {
     right: 18px;
+    z-index: 3;
+  }
+
+  // Placeholder che rappresenta un valore (es. "Tutti"): stesso colore del valore selezionato.
+  &.ng-select-default-value .ng-select-container .ng-value-container .ng-placeholder {
+    color: inherit;
   }
 
   &.ng-select-opened {

@@ -238,12 +238,17 @@
                           <label class="col-form-label col-form-label-fix" for="stato">{{ 'APP.LABEL.stato' | translate }}</label>
                         </div>
                         <div class="col-sm-8 pt-2">
-                          <select class="form-select form-control-sm" id="stato" formControlName="stato">
-                            <option [ngValue]="null">{{ 'APP.LABEL.All' | translate }}</option>
+                          <ng-select class="ng-select-default-value"
+                            [searchable]="false"
+                            [clearable]="false"
+                            [placeholder]="'APP.LABEL.All' | translate"
+                            labelForId="stato"
+                            formControlName="stato">
+                            <ng-option [value]="null">{{ 'APP.LABEL.All' | translate }}</ng-option>
                             @for (stato of _workflowStatiFiltered; track stato.value) {
-                              <option [ngValue]="stato.value">{{ 'APP.WORKFLOW.STATUS.' + stato.value | translate }}</option>
+                              <ng-option [value]="stato.value">{{ 'APP.WORKFLOW.STATUS.' + stato.value | translate }}</ng-option>
                             }
-                          </select>
+                          </ng-select>
                         </div>
                       </div>
                     </div>
@@ -254,12 +259,17 @@
                             <label class="col-form-label col-form-label-fix" for="visibilita">{{ 'APP.LABEL.visibilita' | translate }}</label>
                           </div>
                           <div class="col-sm-8 pt-2">
-                            <select class="form-select form-control-sm" id="visibilita" formControlName="visibilita">
-                              <option [ngValue]="null">{{ 'APP.LABEL.All' | translate }}</option>
+                            <ng-select class="ng-select-default-value"
+                              [searchable]="false"
+                              [clearable]="false"
+                              [placeholder]="'APP.LABEL.All' | translate"
+                              labelForId="visibilita"
+                              formControlName="visibilita">
+                              <ng-option [value]="null">{{ 'APP.LABEL.All' | translate }}</ng-option>
                               @for (t of _tipiVisibilitaServizio; track t) {
-                                <option [ngValue]="t.value">{{ 'APP.VISIBILITY.' + t.label | translate }}</option>
+                                <ng-option [value]="t.value">{{ 'APP.VISIBILITY.' + t.label | translate }}</ng-option>
                               }
-                            </select>
+                            </ng-select>
                           </div>
                         </div>
                       </div>
@@ -358,12 +368,17 @@
                       <label class="col-form-label col-form-label-fix" for="fruizione">{{ 'APP.LABEL.fruizione' | translate }}</label>
                     </div>
                     <div class="col-sm-2">
-                      <select class="form-select form-control-sm" id="fruizione" formControlName="fruizione">
-                        <option [ngValue]="null">{{ 'APP.LABEL.All' | translate }}</option>
+                      <ng-select class="ng-select-default-value"
+                        [searchable]="false"
+                        [clearable]="false"
+                        [placeholder]="'APP.LABEL.All' | translate"
+                        labelForId="fruizione"
+                        formControlName="fruizione">
+                        <ng-option [value]="null">{{ 'APP.LABEL.All' | translate }}</ng-option>
                         @for (yn of _yesNoList; track yn.value) {
-                          <option [ngValue]="yn.value">{{ yn.label | translate }}</option>
+                          <ng-option [value]="yn.value">{{ yn.label | translate }}</ng-option>
                         }
-                      </select>
+                      </ng-select>
                     </div>
                   </div>
                   <div class="row mb-1">
