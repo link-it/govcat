@@ -1,6 +1,10 @@
 2026-09-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 369: lista servizi aperta su un gruppo (ritorno dalla scheda servizio, link diretto)
+	  mostra di nuovo l'intera gerarchia nel breadcrumb: riuso del percorso di navigazione
+	  salvato e, in mancanza, risalita dei gruppi padre livello per livello.
+
 	Issue 360: creazione, eliminazione e modifica di nome/versione/ruolo delle API del
 	  servizio abilitate dal grant "api" (wizard e vista classica); la classe "api" non blocca
 	  piu' gli altri pulsanti di aggiunta e il blocco identificativo non viene inviato nel
