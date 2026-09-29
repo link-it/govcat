@@ -426,9 +426,12 @@ export class SearchBarFormComponent implements OnInit, OnChanges, AfterViewInit 
         this._placeholder = this.placeholder;
       }
       const currentVal = this.formGroup.get(token.key)?.value;
-      this.formGroup.patchValue({
-        [token.key]: Array.isArray(currentVal) ? [] : ''
-      });
+      const _patch: any = { [token.key]: Array.isArray(currentVal) ? [] : '' };
+      // Campo collegato (es. etichetta mostrata nel form): va svuotato insieme al valore.
+      if (token.data?.related) {
+        _patch[token.data.related] = '';
+      }
+      this.formGroup.patchValue(_patch);
     }
     this._onSearch();
   }

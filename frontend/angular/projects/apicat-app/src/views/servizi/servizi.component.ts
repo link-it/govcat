@@ -198,7 +198,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         { field: 'tag', label: 'APP.LABEL.tags', type: 'text', condition: 'contain' },
         { field: 'categoria', label: 'APP.LABEL.categoria', type: 'multiple', condition: 'equal', related: 'categoriaLabel' },
         { field: 'categoriaLabel', label: 'APP.LABEL.categoria', type: 'related', condition: 'equal', params: { resource: 'tassonomie', path: 'categorie', field: 'nome' }, options: { hide: true } },
-        { field: 'id_gruppo_padre', label: 'APP.LABEL.gruppo', type: 'text', condition: 'equal', params: { resource: 'gruppi', path: '', field: 'nome' } },
+        { field: 'id_gruppo_padre', label: 'APP.LABEL.gruppo', type: 'text', condition: 'equal', params: { resource: 'gruppi', path: '', field: 'nome' }, related: 'id_gruppo_padre_label' },
         { field: 'id_gruppo_padre_label', label: 'APP.LABEL.gruppo', type: 'related', condition: 'equal', options: { hide: true } },
         { field: 'ruolo_referente', label: 'APP.LABEL.ruolo_referente', type: 'enum', condition: 'equal', enumValues: this._ruoloReferenteEnumValues },
         // { field: 'taxonomiesGroup', label: 'APP.LABEL.tassonomie', type: 'group', condition: 'equal', options: { hide: true } }
