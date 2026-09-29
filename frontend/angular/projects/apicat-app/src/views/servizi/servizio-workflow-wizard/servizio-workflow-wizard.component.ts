@@ -119,7 +119,8 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     id: string | null = null;
     data: any = null;
     config: any = null;
-    generalConfig: any = Tools.Configurazione || null;
+    // Getter: la configurazione puo` non essere ancora caricata alla creazione del componente (reload/link diretto).
+    get generalConfig(): any { return Tools.Configurazione || null; }
     _grant: Grant | null = null;
 
     _spin: boolean = true;
@@ -388,7 +389,12 @@ export class ServizioWorkflowWizardComponent implements OnInit {
             return;
         }
         const stato = this.data?.stato;
-        const fase = this.stepWizard.find((s) => s.stati?.includes(stato));
+        const skipped = this.getSkippedFasiCodes();
+        let fase = this.stepWizard.find((s) => s.stati?.includes(stato) && !skipped.includes(s.code));
+        // Collaudo saltato: la compilazione (bozza) avviene nella fase Produzione.
+        if (!fase && skipped.includes('collaudo') && stato === 'bozza') {
+            fase = this.stepWizard.find((s) => s.code === 'produzione');
+        }
         this._selectedFase = fase ? fase.code : (this.stepWizard[0]?.code || null);
     }
 
@@ -419,7 +425,11 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         if (targetIdx === -1) return 'active';
 
         const cur: string | null = this.data?.stato || null;
-        let realIdx = cur ? steps.findIndex((s) => (s.stati || []).includes(cur)) : -1;
+        const skipped = this.getSkippedFasiCodes();
+        let realIdx = cur ? steps.findIndex((s) => (s.stati || []).includes(cur) && !skipped.includes(s.code)) : -1;
+        if (realIdx === -1 && cur === 'bozza' && skipped.includes('collaudo')) {
+            realIdx = steps.findIndex((s) => s.code === 'produzione');
+        }
 
         // Stato corrente oltre l'ultima fase mappata: tutte le fasi fino a
         // quella con lo stato piu` avanzato risultano concluse.
@@ -519,6 +529,11 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     }
 
     /** True se l'utente ha almeno un'azione di cambio stato disponibile. */
+    /** Transizione coerente con `skip_collaudo` (vedi `ui-workflow`). */
+    isServiceTransitionVisible(nome: string | null | undefined): boolean {
+        return !!nome && this.authenticationService.isTransitionVisibleForSkipCollaudo(this.serviceCambioStato(), nome, !!this.data?.skip_collaudo);
+    }
+
     hasServiceWorkflowActions(): boolean {
         if (!this.data) { return false; }
         return this.canServiceChangeStatus('stato_successivo') || this.canServiceChangeStatus('stati_ulteriori');

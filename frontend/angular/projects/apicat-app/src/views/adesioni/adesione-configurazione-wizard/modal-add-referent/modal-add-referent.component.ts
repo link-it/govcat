@@ -112,6 +112,10 @@ export class ModalAddReferentComponent implements OnInit {
     onChangeTipoReferente(event: any) {
         this.referentiTipo = event.value;
         this.referentiFilter = (this.referentiTipo === 'referente') ? 'utente_organizzazione,gestore,coordinatore' : '';
+        // Abilitato solo con il ruolo scelto: da disabilitato non concorre alla validita` del form.
+        const _utente = this.editFormGroup.controls.id_utente;
+        if (this.referentiTipo) { _utente.enable(); } else { _utente.disable(); }
+        _utente.setValue(null);
     }
 
     loadAnagrafiche() {

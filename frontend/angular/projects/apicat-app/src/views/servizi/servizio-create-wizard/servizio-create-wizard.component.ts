@@ -515,6 +515,7 @@ export class ServizioCreateWizardComponent implements OnInit {
             }
         });
         this._formGroup = new FormGroup(_group);
+        this._bindAdesioneFlagsExclusion();
 
         const controls: any = this._formGroup.controls;
         if (this._isVisibilita('riservato')) {
@@ -543,6 +544,15 @@ export class ServizioCreateWizardComponent implements OnInit {
         } else if (this._isGestore()) {
             this._tipiVisibilitaServizio = [..._origTipiVisibilitaServizio, { value: 'componente', label: 'componente' }];
         }
+    }
+
+    /** "Disabilita adesione" e "Multi adesione" si escludono a vicenda. */
+    private _bindAdesioneFlagsExclusion() {
+        const _disabilitata = this._formGroup.get('adesione_disabilitata');
+        const _multi = this._formGroup.get('multi_adesione');
+        if (!_disabilitata || !_multi) { return; }
+        _disabilitata.valueChanges.subscribe((value: boolean) => { if (value && _multi.value) { _multi.setValue(false); } });
+        _multi.valueChanges.subscribe((value: boolean) => { if (value && _disabilitata.value) { _disabilitata.setValue(false); } });
     }
 
     enableDisableControlPackage() {

@@ -1272,7 +1272,12 @@
 				"referente_tecnico": "Technical owner of the service: handles integration aspects and receives technical communications.",
 				"descrizione_sintetica": "Short description of the service (one or two sentences) shown in the catalog list.",
 				"tags": "Keywords to categorize the service and make it easier to find. Press Enter to add each tag.",
-				"termini_ricerca": "Additional terms (synonyms, acronyms) used to improve service search; they do not appear on the service page.",
+				"termini_ricerca": "Additional terms (synonyms, acronyms) separated by commas, e.g. «registry, ANPR»: they improve service search and do not appear on the service page.",
+				"fruizione": "The service is provided as an intermediary by an entity of your organization: the entity and the providing subject must be specified.",
+				"package": "Groups several services (components) into a single service to subscribe to; a package has no APIs of its own.",
+				"skip_collaudo": "The service goes straight to production: the testing phase is skipped.",
+				"adesione_disabilitata": "The service remains visible in the catalog but subscriptions cannot be requested.",
+				"multi_adesione": "Allows the same subscribing subject to have more than one subscription to the service.",
 				"note": "Internal notes about the service, visible to the referents; they do not appear on the public catalog page."
 			},
 			"SETTINGS": {
@@ -2400,7 +2405,7 @@
 				"SectionDescrizioneDesc": "Add descriptions, documentation, tags and notes for the service.",
 					"SectionAllegatiTag": "DOCUMENTS",
 					"SectionAllegatiTitle": "Attachments",
-					"SectionAllegatiDesc": "Upload the documents to attach to the service (optional).",
+					"SectionAllegatiDesc": "Upload the documents to attach to the service.",
 					"CascadeWarningTitle": "Service created with warnings",
 					"CascadeWarningIntro": "The service was created, but some items were not saved. You can complete them by editing the service:",
 					"CascadeProceed": "Continue to the service",

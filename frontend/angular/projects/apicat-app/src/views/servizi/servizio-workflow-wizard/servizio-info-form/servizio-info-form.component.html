@@ -24,21 +24,28 @@
 -->
 <div class="servizio-info-form position-relative">
 
-  @if (editable && !externalEditControl) {
+  @if (editable && !externalEditControl && !isEdit) {
     <div class="position-absolute end-0 z-3" style="top: -6px;">
-      @if (!isEdit) {
-        <lnk-button [label]="'APP.BUTTON.Modify'" [icon]="'bi bi-pencil'" [onlyIcon]="true"
-          [tooltip]="'APP.TOOLTIP.Edit' | translate" [delay]="500"
-          [disabled]="!(_updateData | mapper:_canEditMapper)" (onAction)="onEdit()"></lnk-button>
-      }
-      @if (isEdit) {
-        <lnk-button [label]="'APP.BUTTON.Cancel'" [icon]="'bi bi-x-lg'" [onlyIcon]="true" [tertiary]="true"
-          [tooltip]="'APP.TOOLTIP.CancelEdit' | translate" [delay]="500" (onAction)="onCancelEdit()"></lnk-button>
-      }
+      <lnk-button [label]="'APP.BUTTON.Modify'" [icon]="'bi bi-pencil'" [onlyIcon]="true"
+        [tooltip]="'APP.TOOLTIP.Edit' | translate" [delay]="500"
+        [disabled]="!(_updateData | mapper:_canEditMapper)" (onAction)="onEdit()"></lnk-button>
     </div>
   }
 
   <form novalidate class="issue-form gl-show-field-errors gfm-form" [class.form-readonly]="!isEdit" [formGroup]="_formGroup" (submit)="onSubmit()">
+
+    @if (isEdit) {
+      <div class="info-form-edit-bar d-flex justify-content-between align-items-center gap-3 mb-3">
+        <p class="info-form-mandatory-hint mb-0">
+          <i class="bi bi-info-circle me-1" aria-hidden="true"></i>{{ 'APP.SERVICES.CREATE.MandatoryHint' | translate }}
+        </p>
+        @if (editable && !externalEditControl) {
+          <lnk-button [label]="'APP.BUTTON.Cancel'" [icon]="'bi bi-x-lg'" [onlyIcon]="true" [tertiary]="true"
+            [tooltip]="'APP.TOOLTIP.CancelEdit' | translate" [delay]="500" (onAction)="onCancelEdit()"></lnk-button>
+        }
+        <ng-content select="[edit-actions]"></ng-content>
+      </div>
+    }
 
     <!-- SEZIONE 1 — Informazioni generali -->
     <section class="lnk-phase-section py-0">
@@ -70,7 +77,7 @@
         <!-- Fruizione (intermediario) -->
         <div class="row">
           @if ((_updateData | mapper:_canSetFruizioneMapper)) {
-            <div class="col-4">
+            <div class="col-12">
               <div class="form-group fruizione">
                 <label class="label-bold" for="fruizione">{{ 'APP.LABEL.fruizione' | translate }}</label>
                 @if (isEdit) {
@@ -78,6 +85,7 @@
                     <input #chkFruizione class="custom-control-input" type="checkbox" name="fruizione" id="fruizione" formControlName="fruizione" (change)="_onChangeFruizione($event)">
                     <label class="custom-control-label" aria-hidden="true" (click)="chkFruizione.click()"></label>
                   </div>
+                  <ui-input-help field="fruizione" context="SERVICE"></ui-input-help>
                 } @else {
                   <div class="mt-1"><i class="bi" [class.bi-check-square]="data?.fruizione" [class.bi-square]="!data?.fruizione"></i></div>
                 }
@@ -244,7 +252,7 @@
         <!-- Package / Salta collaudo (gestore) — impilati in colonna -->
         @if ((_updateData | mapper:_isGestoreMapper)) {
           <div class="row">
-            <div class="col-4">
+            <div class="col-12">
               <div class="form-group package">
                 <label class="label-bold" for="package">{{ 'APP.LABEL.package' | translate }}</label>
                 @if (isEdit) {
@@ -252,6 +260,7 @@
                     <input class="custom-control-input" type="checkbox" name="package" id="package" formControlName="package">
                     <label class="custom-control-label" aria-hidden="true"></label>
                   </div>
+                  <ui-input-help field="package" context="SERVICE"></ui-input-help>
                 } @else {
                   <div class="mt-1"><i class="bi" [class.bi-check-square]="data?.package" [class.bi-square]="!data?.package"></i></div>
                 }
@@ -263,6 +272,7 @@
                     <input #chkSc class="custom-control-input" type="checkbox" name="skip_collaudo" id="skip_collaudo" formControlName="skip_collaudo">
                     <label class="custom-control-label" aria-hidden="true" (click)="chkSc.click()"></label>
                   </div>
+                  <ui-input-help field="skip_collaudo" context="SERVICE"></ui-input-help>
                 } @else {
                   <div class="mt-1"><i class="bi" [class.bi-check-square]="data?.skip_collaudo" [class.bi-square]="!data?.skip_collaudo"></i></div>
                 }
@@ -404,7 +414,7 @@
         <div class="lnk-phase-section-body">
           <div class="row">
             @if (_hasFlagConsentiNonSottoscrivibile) {
-              <div class="col-4">
+              <div class="col-12">
                 <div class="form-group">
                   <label class="label-bold" for="adesione_disabilitata">{{ 'APP.LABEL.DisabilitaAdesione' | translate }}</label>
                   @if (isEdit) {
@@ -412,6 +422,7 @@
                       <input #chkAd class="custom-control-input" type="checkbox" name="adesione_disabilitata" id="adesione_disabilitata" formControlName="adesione_disabilitata">
                       <label class="custom-control-label" aria-hidden="true" (click)="chkAd.click()"></label>
                     </div>
+                    <ui-input-help field="adesione_disabilitata" context="SERVICE"></ui-input-help>
                   } @else {
                     <div class="mt-1"><i class="bi" [class.bi-check-square]="data?.adesione_disabilitata" [class.bi-square]="!data?.adesione_disabilitata"></i></div>
                   }
@@ -419,7 +430,7 @@
               </div>
             }
             @if (_hasAdesioniMultiple) {
-              <div class="col-4">
+              <div class="col-12">
                 <div class="form-group">
                   <label class="label-bold" for="multi_adesione">{{ 'APP.LABEL.multi_adesione' | translate }}</label>
                   @if (isEdit) {
@@ -428,6 +439,7 @@
                              disablePermission [isNew]="false" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="grant">
                       <label class="custom-control-label" aria-hidden="true"></label>
                     </div>
+                    <ui-input-help field="multi_adesione" context="SERVICE"></ui-input-help>
                   } @else {
                     <div class="mt-1"><i class="bi" [class.bi-check-square]="data?.multi_adesione" [class.bi-square]="!data?.multi_adesione"></i></div>
                   }

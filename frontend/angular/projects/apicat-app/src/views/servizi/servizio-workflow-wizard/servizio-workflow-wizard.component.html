@@ -185,13 +185,9 @@
               </header>
               @if (openInfo) {
                 <div class="lnk-phase-section-body tl-panel">
-                  @if (canEditInfo()) {
+                  @if (canEditInfo() && !isInfoFormEditing) {
                     <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm phase-section-edit-toggle" (click)="enterEditModeForInfoGenerali()">
-                      @if (isInfoFormEditing) {
-                        <i class="bi bi-x-lg"></i><span>{{ 'APP.BUTTON.Cancel' | translate }}</span>
-                      } @else {
-                        <i class="bi bi-pencil"></i><span>{{ 'APP.BUTTON.Modify' | translate }}</span>
-                      }
+                      <i class="bi bi-pencil"></i><span>{{ 'APP.BUTTON.Modify' | translate }}</span>
                     </button>
                   }
                   <app-servizio-info-form
@@ -203,7 +199,14 @@
                     [editable]="canEditInfo()"
                     [externalEditControl]="true"
                     (saved)="onInfoSaved($event)"
-                  ></app-servizio-info-form>
+                  >
+                    <!-- In modifica "Annulla" sta nella riga dell'hint dei campi obbligatori. -->
+                    @if (canEditInfo() && isInfoFormEditing) {
+                      <button edit-actions type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm" (click)="enterEditModeForInfoGenerali()">
+                        <i class="bi bi-x-lg"></i><span>{{ 'APP.BUTTON.Cancel' | translate }}</span>
+                      </button>
+                    }
+                  </app-servizio-info-form>
                 </div>
               }
             </section>
@@ -665,12 +668,14 @@
               @if (hasServiceWorkflowActions()) {
                 @let entry = serviceCambioStato();
                 <div class="d-flex flex-wrap gap-2 justify-content-end mt-3 pt-3" style="border-top: 1px solid var(--line);">
+                  @let successivoVisible = isServiceTransitionVisible(entry?.stato_successivo?.nome);
                   @if (entry?.stati_ulteriori?.length) {
                     @for (status of entry.stati_ulteriori; track status.nome) {
-                      @if (canServiceChangeStatus('stati_ulteriori', status.nome)) {
+                      @if (isServiceTransitionVisible(status.nome) && canServiceChangeStatus('stati_ulteriori', status.nome)) {
                         <lnk-button
                           [label]="'APP.WORKFLOW.MENU_INLINE.' + status.nome | translate"
-                          [secondary]="true"
+                          [secondary]="successivoVisible"
+                          [primary]="!successivoVisible"
                           [ariaLabel]="'APP.WORKFLOW.MENU_INLINE.' + status.nome | translate"
                           (onAction)="onWorkflowAction({ action: 'change', status: status })"
                           [disabled]="_changingStatus">
@@ -678,7 +683,7 @@
                       }
                     }
                   }
-                  @if (entry?.stato_successivo && canServiceChangeStatus('stato_successivo')) {
+                  @if (entry?.stato_successivo && successivoVisible && canServiceChangeStatus('stato_successivo')) {
                     <lnk-button
                       [label]="'APP.WORKFLOW.MENU_INLINE.' + entry.stato_successivo.nome | translate"
                       [primary]="true"

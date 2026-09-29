@@ -846,6 +846,19 @@ export class AuthenticationService {
     return [..._classi];
   }
 
+  /**
+   * Transizioni coerenti con `skip_collaudo`: se attivo si nascondono quelle verso il collaudo
+   * (solo quando esiste l'alternativa `*_senza_collaudo`), altrimenti quelle `*_senza_collaudo`.
+   */
+  isTransitionVisibleForSkipCollaudo(cambioStato: any, nome: string, skipCollaudo: boolean): boolean {
+    if (!nome) { return true; }
+    const _isSenzaCollaudo = nome.includes('senza_collaudo');
+    if (!skipCollaudo) { return !_isSenzaCollaudo; }
+    if (_isSenzaCollaudo || !nome.includes('collaudo')) { return true; }
+    const _nomi: string[] = [cambioStato?.stato_successivo?.nome, ...(cambioStato?.stati_ulteriori || []).map((s: any) => s?.nome)];
+    return !_nomi.some((n: string) => n?.includes('senza_collaudo'));
+  }
+
   /** Stato raggiunto dalla transizione principale, coerente con `skip_collaudo`. */
   _getNextWorkflowState(module: string, state: string, skipCollaudo: boolean = false): string | null {
     const _wfcs = this._getWorkflowCambiStato(module, state);

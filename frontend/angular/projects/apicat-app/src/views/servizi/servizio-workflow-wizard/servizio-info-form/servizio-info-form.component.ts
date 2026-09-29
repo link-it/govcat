@@ -249,6 +249,7 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
             skip_collaudo: new FormControl(data.skip_collaudo || false, [])
         };
         this._formGroup = new FormGroup(_group);
+        this._bindAdesioneFlagsExclusion();
 
         this._applyClassiValidator();
         this._applyFruizioneValidators(this._isFruizione);
@@ -555,6 +556,15 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
                 this._errors = Tools.filtraErroriComplessi(error.error?.errori);
             }
         });
+    }
+
+    /** "Disabilita adesione" e "Multi adesione" si escludono a vicenda. */
+    private _bindAdesioneFlagsExclusion() {
+        const _disabilitata = this._formGroup.get('adesione_disabilitata');
+        const _multi = this._formGroup.get('multi_adesione');
+        if (!_disabilitata || !_multi) { return; }
+        _disabilitata.valueChanges.subscribe((value: boolean) => { if (value && _multi.value) { _multi.setValue(false); } });
+        _multi.valueChanges.subscribe((value: boolean) => { if (value && _disabilitata.value) { _disabilitata.setValue(false); } });
     }
 
     private _prepareBodyUpdateServizio(body: any) {

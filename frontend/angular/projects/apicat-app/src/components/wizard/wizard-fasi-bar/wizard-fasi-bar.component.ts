@@ -147,9 +147,13 @@ export class WizardFasiBarComponent implements OnChanges {
 
         // Indice della fase reale (workflow position): step il cui array
         // `stati` contiene lo stato corrente.
-        const realIndex = this.currentState
+        let realIndex = this.currentState
             ? this.steps.findIndex(s => s.stati?.includes(this.currentState!))
             : -1;
+        // Fase reale saltata (es. Collaudo con `skip_collaudo`): la fase corrente e` la successiva.
+        while (realIndex !== -1 && realIndex < this.steps.length - 1 && this.skippedCodes.includes(this.steps[realIndex].code)) {
+            realIndex++;
+        }
 
         // Rilevamento "oltre-fase": stato corrente posizionato nel workflow
         // dopo TUTTI gli stati di TUTTE le fasi della bar. Marcatutte le

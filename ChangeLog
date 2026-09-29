@@ -1,6 +1,11 @@
 2026-09-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 368: wizard servizi: "Salta collaudo" propone solo le transizioni senza collaudo (anche
+	  nell'header e nella vista classica), Fase 2 saltata e Produzione come fase corrente; descrizioni
+	  dei flag, esclusione Disabilita/Multi adesione, hint campi obbligatori anche in modifica;
+	  Salva del referente disabilitato senza entrambi i valori; cambio stato visibile dopo reload.
+
 	Issue 361: proprieta' custom di servizi e adesioni: oltre all'asterisco per quelle obbligatorie
 	  nello stato attuale, indicazione di quelle obbligatorie al prossimo cambio di stato (asterisco +
 	  hint) o in uno stato successivo (icona con tooltip), calcolate da classe dato e workflow.

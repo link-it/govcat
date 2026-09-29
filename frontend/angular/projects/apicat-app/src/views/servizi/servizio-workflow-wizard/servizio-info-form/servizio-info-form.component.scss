@@ -217,3 +217,10 @@
     font-weight: 600;
   }
 }
+
+.info-form-mandatory-hint {
+  font-size: 12.5px;
+  color: var(--ink-3, #57738a);
+  display: flex;
+  align-items: center;
+}

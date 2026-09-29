@@ -1272,7 +1272,12 @@
 				"referente_tecnico": "Responsabile tecnico del servizio: gestisce gli aspetti di integrazione e riceve le comunicazioni tecniche.",
 				"descrizione_sintetica": "Breve descrizione del servizio (una o due frasi) mostrata nella lista del catalogo.",
 				"tags": "Parole chiave per categorizzare il servizio e agevolarne la ricerca. Premi Invio per aggiungere ogni tag.",
-				"termini_ricerca": "Termini aggiuntivi (sinonimi, acronimi) usati per migliorare la ricerca del servizio; non compaiono nella scheda.",
+				"termini_ricerca": "Termini aggiuntivi (sinonimi, acronimi) separati da virgola, es. «anagrafe, ANPR»: migliorano la ricerca del servizio e non compaiono nella scheda.",
+				"fruizione": "Il servizio è erogato in intermediazione da un ente della tua organizzazione: andranno indicati l'ente e il soggetto erogatore.",
+				"package": "Raggruppa più servizi (componenti) in un unico servizio a cui aderire; un package non ha API proprie.",
+				"skip_collaudo": "Il servizio passa direttamente in produzione: la fase di collaudo viene saltata.",
+				"adesione_disabilitata": "Il servizio resta consultabile nel catalogo ma non è possibile richiederne l'adesione.",
+				"multi_adesione": "Consente allo stesso soggetto aderente di avere più adesioni al servizio.",
 				"note": "Note interne sul servizio, visibili ai referenti; non compaiono nella scheda pubblica del catalogo."
 			},
 			"SETTINGS": {
@@ -2400,7 +2405,7 @@
 				"SectionDescrizioneDesc": "Aggiungi descrizioni, documentazione, tag e note del servizio.",
 					"SectionAllegatiTag": "DOCUMENTI",
 					"SectionAllegatiTitle": "Allegati",
-					"SectionAllegatiDesc": "Carica i documenti da allegare al servizio (facoltativo).",
+					"SectionAllegatiDesc": "Carica i documenti da allegare al servizio.",
 					"CascadeWarningTitle": "Servizio creato con avvisi",
 					"CascadeWarningIntro": "Il servizio è stato creato, ma alcuni elementi non sono stati salvati. Potrai completarli dalla modifica del servizio:",
 					"CascadeProceed": "Prosegui al servizio",

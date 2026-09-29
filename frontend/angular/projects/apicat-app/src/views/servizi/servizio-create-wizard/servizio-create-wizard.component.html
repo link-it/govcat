@@ -43,6 +43,9 @@
         <div class="flex-grow-1">
           <h2 class="create-title mb-1">{{ 'APP.SERVICES.WIZARD.Title' | translate }}</h2>
           <p class="create-subtitle mb-0">{{ 'APP.SERVICES.CREATE.Subtitle' | translate }}</p>
+          <p class="create-mandatory-hint mt-2 mb-0">
+            <i class="bi bi-info-circle me-1" aria-hidden="true"></i>{{ 'APP.SERVICES.CREATE.MandatoryHint' | translate }}
+          </p>
         </div>
         <button type="button" class="create-close" (click)="_onCancel()"
                 [tooltip]="'APP.BUTTON.Close' | translate" container="body"
@@ -140,13 +143,14 @@
             <!-- Flag strutturale: fruizione (intermediario) -->
             <div class="row">
               @if ((_updateData | mapper:_canSetFruizioneMapper)) {
-                <div class="col-4">
+                <div class="col-12">
                   <div class="form-group fruizione">
                     <label class="label-bold" for="fruizione">{{ 'APP.LABEL.fruizione' | translate }}</label>
                     <div class="gl-form-checkbox custom-control custom-checkbox">
                       <input #chkFruizione class="custom-control-input" type="checkbox" name="fruizione" id="fruizione" formControlName="fruizione" (change)="_onChangeFruizione($event)">
                       <label class="custom-control-label" aria-hidden="true" (click)="chkFruizione.click()"></label>
                     </div>
+                    <ui-input-help field="fruizione" context="SERVICE"></ui-input-help>
                   </div>
                 </div>
               }
@@ -350,7 +354,7 @@
             <!-- Package / Salta collaudo (gestore) — impilati in colonna -->
             @if ((_updateData | mapper:_isGestoreMapper)) {
               <div class="row">
-                <div class="col-4">
+                <div class="col-12">
                   <div class="form-group package">
                     @if (!isComponente) {
                       <label class="label-bold" for="package">{{ 'APP.LABEL.package' | translate }}
@@ -361,6 +365,7 @@
                       <input #chkPackage class="custom-control-input" type="checkbox" name="package" id="package" formControlName="package" (change)="_onChangePackage($event)">
                       <label class="custom-control-label" aria-hidden="true" (click)="chkPackage.click()"></label>
                     </div>
+                    <ui-input-help field="package" context="SERVICE"></ui-input-help>
                   </div>
                   <div class="form-group skip_collaudo mt-2">
                     <label class="label-bold" for="skip_collaudo">{{ 'APP.LABEL.SkipCollaudo' | translate }}</label>
@@ -368,6 +373,7 @@
                       <input #chkSkipCollaudo class="custom-control-input" type="checkbox" name="skip_collaudo" id="skip_collaudo" formControlName="skip_collaudo">
                       <label class="custom-control-label" aria-hidden="true" (click)="chkSkipCollaudo.click()"></label>
                     </div>
+                    <ui-input-help field="skip_collaudo" context="SERVICE"></ui-input-help>
                   </div>
                 </div>
               </div>
@@ -655,6 +661,7 @@
                     <input #chkAdesioneDisabilitata class="custom-control-input" type="checkbox" name="adesione_disabilitata" id="adesione_disabilitata" formControlName="adesione_disabilitata">
                     <label class="custom-control-label" aria-hidden="true" (click)="chkAdesioneDisabilitata.click()"></label>
                   </div>
+                  <ui-input-help field="adesione_disabilitata" context="SERVICE"></ui-input-help>
                 </div>
               }
               @if (_hasAdesioniMultiple) {
@@ -664,6 +671,7 @@
                     <input #chkMultiAdesione class="custom-control-input" type="checkbox" name="multi_adesione" id="multi_adesione" formControlName="multi_adesione">
                     <label class="custom-control-label" aria-hidden="true" (click)="chkMultiAdesione.click()"></label>
                   </div>
+                  <ui-input-help field="multi_adesione" context="SERVICE"></ui-input-help>
                 </div>
               }
             </div>
@@ -677,10 +685,7 @@
         </div>
 
         <!-- Footer -->
-        <div class="create-footer d-flex justify-content-between align-items-center gap-3 mt-3">
-          <span class="create-mandatory-hint">
-            <i class="bi bi-info-circle me-1"></i>{{ 'APP.SERVICES.CREATE.MandatoryHint' | translate }}
-          </span>
+        <div class="create-footer d-flex justify-content-end align-items-center gap-3 mt-3">
           <div class="d-flex gap-2">
             <button type="button" class="btn gl-button btn-default" (click)="_onCancel()" [disabled]="_submitting">
               {{ 'APP.BUTTON.Cancel' | translate }}
