@@ -2031,6 +2031,8 @@
 				"PrincipalPattern": "Invalid principal format",
 				"Email": "Insert valid email",
 				"FieldRequired": "Field required",
+				"RequiredForNextState": "Required to move to «{{stato}}»",
+				"RequiredFromState": "Required from «{{stato}}»",
 				"FormInvalid": "Some required fields are not filled in correctly",
 				"GreaterThanEqual": "The field must have a value greater than or equal to {{value}}",
 				"GreaterThanZero": "The field must have a value greater than zero",

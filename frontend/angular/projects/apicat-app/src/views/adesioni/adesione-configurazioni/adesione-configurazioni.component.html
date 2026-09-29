@@ -210,6 +210,7 @@
                       [ambiente]="environmentId"
                       [id_adesione]="adesione.id_adesione"
                       [stato_adesione]="adesione.stato"
+                      [skip_collaudo]="!!adesione.skip_collaudo"
                       [id_servizio]="adesione.servizio.id_servizio"
                       [data]="configurazioni"
                       [group]="item"
@@ -377,7 +378,8 @@
               <app-api-custom-properties
                 [ambiente]="environmentId"
                 [id_adesione]="adesione.id_adesione"
-                [stato_adesione]="adesione.state"
+                [stato_adesione]="adesione.stato"
+                [skip_collaudo]="!!adesione.skip_collaudo"
                 [id_servizio]="adesione.servizio.id_servizio"
                 [data]="configurazioni"
                 [group]="_currentTabCustom"

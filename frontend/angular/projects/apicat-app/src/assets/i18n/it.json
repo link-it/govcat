@@ -2031,6 +2031,8 @@
 				"PrincipalPattern": "Formato del principal non valido",
 				"Email": "Inserisci una e-mail valida",
 				"FieldRequired": "Campo richiesto",
+				"RequiredForNextState": "Obbligatorio per il passaggio a «{{stato}}»",
+				"RequiredFromState": "Obbligatorio a partire da «{{stato}}»",
 				"FormInvalid": "Alcuni campi obbligatori non sono compilati correttamente",
 				"GreaterThanEqual": "Il campo deve avere un valore maggiore o uguale a {{value}}",
 				"GreaterThanZero": "Il campo deve avere un valore maggiore di zero",

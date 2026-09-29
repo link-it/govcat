@@ -31,6 +31,12 @@ import { GrantRole, expandTecnicoGrants, expandContextualGrants } from './grant-
 import { firstValueFrom } from 'rxjs';
 import * as _ from 'lodash';
 
+export interface CustomPropertyRequirement {
+  now: boolean;
+  nextState: string | null;
+  fromState: string | null;
+}
+
 export const AUTH_CONST: any = {
   storageSession: 'GWAC_SESSION'
 };
@@ -830,6 +836,50 @@ export class AuthenticationService {
   _getClassesMandatory(module: string, submodule: string, state: string) {
     const _wfcs = this._getWorkflowCambiStato(module, state);
     return (_wfcs?.dati_obbligatori) ? _wfcs.dati_obbligatori : [];
+  }
+
+  /** Classi delle proprieta' custom verificate dal BE per le classi obbligatorie di uno stato. */
+  _getCustomPropertyMandatoryClasses(module: string, state: string): string[] {
+    const _classi = new Set<string>(this._getClassesMandatory(module, module, state));
+    if (_classi.has('collaudo_configurato')) { _classi.add('collaudo'); }
+    if (_classi.has('produzione_configurato')) { _classi.add('produzione'); }
+    return [..._classi];
+  }
+
+  /** Stato raggiunto dalla transizione principale, coerente con `skip_collaudo`. */
+  _getNextWorkflowState(module: string, state: string, skipCollaudo: boolean = false): string | null {
+    const _wfcs = this._getWorkflowCambiStato(module, state);
+    const _next: string | null = _wfcs?.stato_successivo?.nome || null;
+    if (!skipCollaudo || _next?.includes('senza_collaudo')) { return _next; }
+    const _senzaCollaudo = (_wfcs?.stati_ulteriori || []).find((s: any) => s?.nome?.includes('senza_collaudo'));
+    return _senzaCollaudo?.nome || _next;
+  }
+
+  /**
+   * Obbligatorieta' di una proprieta' custom rispetto al workflow: `now` se la sua classe dato e'
+   * obbligatoria nello stato attuale, altrimenti il primo stato successivo in cui lo diventa
+   * (`nextState` se e' il prossimo passaggio, `fromState` se e' piu' avanti).
+   */
+  getCustomPropertyRequirement(module: string, state: string, classeDato: string, required: boolean, skipCollaudo: boolean = false): CustomPropertyRequirement {
+    const _req: CustomPropertyRequirement = { now: false, nextState: null, fromState: null };
+    if (!required || !state || !classeDato) { return _req; }
+    if (this._getCustomPropertyMandatoryClasses(module, state).includes(classeDato)) {
+      _req.now = true;
+      return _req;
+    }
+    const _visited = new Set<string>([state]);
+    let _state = this._getNextWorkflowState(module, state, skipCollaudo);
+    let _isNext = true;
+    while (_state && !_visited.has(_state)) {
+      if (this._getCustomPropertyMandatoryClasses(module, _state).includes(classeDato)) {
+        if (_isNext) { _req.nextState = _state; } else { _req.fromState = _state; }
+        break;
+      }
+      _visited.add(_state);
+      _isNext = false;
+      _state = this._getNextWorkflowState(module, _state, skipCollaudo);
+    }
+    return _req;
   }
 
   _getClassesNotModifiable(module: string, submodule: string, state: string) {

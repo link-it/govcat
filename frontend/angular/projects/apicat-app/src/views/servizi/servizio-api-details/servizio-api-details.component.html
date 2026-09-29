@@ -585,19 +585,28 @@
                                 <div [formArrayName]="cp.nome_gruppo" class="col-12 form-group">
                                   <label class="label-bold" [for]="cp.nome">{{ cp.etichetta }} @if (_markAsteriskUpdated && _isEdit) {
                                     <span appMarkAsterisk [formGroup]="acfgc(cp.nome_gruppo)" [controlName]="cp.nome"></span>
+                                    @if (cp._req?.nextState) {
+                                      <span aria-hidden="true">*</span>
+                                    }
+                                    @if (cp._req?.fromState) {
+                                      <i class="bi bi-info-circle ms-1 text-muted" tabindex="0" role="img" [attr.aria-label]="'APP.MESSAGE.VALIDATION.RequiredFromState' | translate: { stato: ('APP.WORKFLOW.STATUS.' + cp._req.fromState | translate) }" [tooltip]="'APP.MESSAGE.VALIDATION.RequiredFromState' | translate: { stato: ('APP.WORKFLOW.STATUS.' + cp._req.fromState | translate) }" container="body"></i>
+                                    }
                                   }</label>
                                   @if (_isEdit) {
                                     <div class="">
                                       @if (cp.tipo === 'text') {
-                                        <input autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp.nome_gruppo, cp.nome)" [type]="cp.type" [name]="cp.nome" [id]="cp.nome" [formControlName]="cp.nome" disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                                        <input autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp.nome_gruppo, cp.nome)" [type]="cp.type" [name]="cp.nome" [id]="cp.nome" [formControlName]="cp.nome" disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant" [attr.aria-describedby]="cp._req?.nextState ? cp.nome + '-req-hint' : null">
                                       }
                                       @if (cp.tipo === 'select') {
-                                        <select class="form-select" [id]="cp.nome" [formControlName]="cp.nome" [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp.nome_gruppo, cp.nome)" disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                                        <select class="form-select" [id]="cp.nome" [formControlName]="cp.nome" [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp.nome_gruppo, cp.nome)" [attr.aria-describedby]="cp._req?.nextState ? cp.nome + '-req-hint' : null" disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
                                           <option value="">{{ 'APP.MESSAGE.Select' | translate }}</option>
                                           @for (cpv of cp.valori; track cpv) {
                                             <option [value]="cpv.nome">{{ cpv.etichetta }}</option>
                                           }
                                         </select>
+                                      }
+                                      @if (cp._req?.nextState) {
+                                        <p class="form-text text-muted mb-0" [id]="cp.nome + '-req-hint'">{{ 'APP.MESSAGE.VALIDATION.RequiredForNextState' | translate: { stato: ('APP.WORKFLOW.STATUS.' + cp._req.nextState | translate) } }}</p>
                                       }
                                       @if (acfgc(cp.nome_gruppo).controls[cp.nome]?.invalid && (acfgc(cp.nome_gruppo).controls[cp.nome]?.touched)) {
                                         <p class="form-text text-danger">

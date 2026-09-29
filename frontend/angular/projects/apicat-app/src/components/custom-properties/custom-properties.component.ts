@@ -79,6 +79,7 @@ export class CustomPropertiesComponent implements OnChanges {
     @Input() ambiente: string | null = null;
     @Input() id_adesione: string | null = null;
     @Input() stato_adesione: string = '';
+    @Input() skip_collaudo: boolean = false;
     @Input() api: any = null;
     @Input() data: any[] | null = null;
     @Input() item: any = null;
@@ -196,31 +197,13 @@ export class CustomPropertiesComponent implements OnChanges {
         });
         this._proprietaCustomGrouped = _.groupBy(this._proprietaCustom, 'nome_gruppo');
 
-        const mandatoryClasses = this.authenticationService._getClassesMandatory('adesione', 'adesione', this.stato_adesione);
-        const genericoCustomPropertiesAreMandatory = mandatoryClasses.some((item: string) => item === 'generico');
-        const collaudoCustomPropertiesAreMandatory = mandatoryClasses.some((item: string) => item === 'collaudo');
-        const produzioneCustomPropertiesAreMandatory = mandatoryClasses.some((item: string) => item === 'produzione');
-
         if (this._proprietaCustom.length) {
             const _cpf: any = {};
             this._proprietaCustom.forEach((prop: any) => {
                 const _validators = [];
 
-                let required = false;
-
-                if (this._item.classe_dato === 'generico' && genericoCustomPropertiesAreMandatory) {
-                    required = prop.required;
-                }
-
-                if (this._item.classe_dato === 'collaudo' && collaudoCustomPropertiesAreMandatory) {
-                    required = prop.required;
-                }
-
-                if (this._item.classe_dato === 'produzione' && produzioneCustomPropertiesAreMandatory) {
-                    required = prop.required;
-                }
-
-                if (required) { _validators.push(Validators.required); }
+                prop._req = this.authenticationService.getCustomPropertyRequirement('adesione', this.stato_adesione, this._item.classe_dato, prop.required, this.skip_collaudo);
+                if (prop._req.now) { _validators.push(Validators.required); }
 
                 if (prop.regular_expression) { _validators.push(Validators.pattern(prop.regular_expression)); }
                 const _proprieta = this._getProprietaCustomValue(prop, this._data);

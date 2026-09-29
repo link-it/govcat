@@ -1,6 +1,10 @@
 2026-09-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 361: proprieta' custom di servizi e adesioni: oltre all'asterisco per quelle obbligatorie
+	  nello stato attuale, indicazione di quelle obbligatorie al prossimo cambio di stato (asterisco +
+	  hint) o in uno stato successivo (icona con tooltip), calcolate da classe dato e workflow.
+
 	Issue 371: rimuovendo il token "Gruppo" dai filtri di ricerca dei servizi viene svuotato
 	  anche il campo Gruppo del pannello; la "x" che cancella tutte le scelte delle select
 	  multiple funziona (fix Issue 370).

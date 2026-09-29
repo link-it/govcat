@@ -1739,10 +1739,6 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
         const filtered = this.filtraCampiPerRuoli(this._apiProprietaCustomGrouped, this._grant?.ruoli || []);
 
-        const mandatoryFields = this.authenticationService._getFieldsMandatory('servizio', 'api', this.service.stato);
-        const genericoCustomPropertiesAreMandatory = mandatoryFields.some((item: string) => item === 'generico');
-        const collaudoCustomPropertiesAreMandatory = mandatoryFields.some((item: string) => item === 'collaudo');
-
         if (this._apiProprietaCustom.length) {
             this._formGroup.addControl('proprieta_custom', this.formBuilder.group({}));
 
@@ -1750,17 +1746,8 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                 (filtered[key] || []).forEach((item: any) => {
                     const _validators = [];
 
-                    let required = false;
-
-                    if (item.classe_dato === 'generico' && genericoCustomPropertiesAreMandatory) {
-                        required = item.required;
-                    }
-
-                    if (item.classe_dato === 'collaudo' && collaudoCustomPropertiesAreMandatory) {
-                        required = item.required;
-                    }
-
-                    if (required) { _validators.push(Validators.required); }
+                    item._req = this.authenticationService.getCustomPropertyRequirement('servizio', this.service?.stato, item.classe_dato, item.required, !!this.service?.skip_collaudo);
+                    if (item._req.now) { _validators.push(Validators.required); }
                     if (item.regular_expression) { _validators.push(Validators.pattern(item.regular_expression)); }
 
                     if (!this.proprietaCustom.contains(item.nome_gruppo)) {
