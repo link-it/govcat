@@ -1,6 +1,10 @@
 2026-09-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 370: menu a tendina dei filtri di ricerca uniformati: i select nativi diventano ng-select
+	  (stessa freccia apri/chiudi e stesso pannello); la freccia chiude di nuovo le select multiple
+	  (Profilo, Tags); i menu non vengono piu' tagliati dal pannello di ricerca.
+
 	Issue 369: lista servizi aperta su un gruppo (ritorno dalla scheda servizio, link diretto)
 	  mostra di nuovo l'intera gerarchia nel breadcrumb: riuso del percorso di navigazione
 	  salvato e, in mancanza, risalita dei gruppi padre livello per livello.

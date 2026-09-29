@@ -60,14 +60,19 @@
                       <label for="ruolo" class="col-form-label col-form-label-fix">{{ 'APP.LABEL.Role' | translate }}</label>
                     </div>
                     <div class="col-8">
-                      <select class="form-select form-control-sm" id="ruolo" formControlName="ruolo">
-                        <option value="">{{ 'APP.LABEL.All' | translate }}</option>
+                      <ng-select class="ng-select-default-value"
+                        [searchable]="false"
+                        [clearable]="false"
+                        [placeholder]="'APP.LABEL.All' | translate"
+                        labelForId="ruolo"
+                        formControlName="ruolo">
+                        <ng-option value="">{{ 'APP.LABEL.All' | translate }}</ng-option>
                         @for (ruolo of _ruoloArr; track ruolo) {
-                          <option [value]="ruolo">
+                          <ng-option [value]="ruolo">
                             {{ 'APP.USERS.ROLES.' + ruolo | translate }}
-                          </option>
+                          </ng-option>
                         }
-                      </select>
+                      </ng-select>
                     </div>
                   </div>
                 </div>
@@ -77,14 +82,19 @@
                       <label for="stato" class="col-form-label col-form-label-fix">{{ 'APP.LABEL.Status' | translate }}</label>
                     </div>
                     <div class="col-8">
-                      <select class="form-select form-control-sm" id="stato" formControlName="stato">
-                        <option value="">{{ 'APP.LABEL.All' | translate }}</option>
+                      <ng-select class="ng-select-default-value"
+                        [searchable]="false"
+                        [clearable]="false"
+                        [placeholder]="'APP.LABEL.All' | translate"
+                        labelForId="stato"
+                        formControlName="stato">
+                        <ng-option value="">{{ 'APP.LABEL.All' | translate }}</ng-option>
                         @for (stato of _statoArr; track stato) {
-                          <option [value]="stato">
+                          <ng-option [value]="stato">
                             {{ 'APP.USERS.STATUS.' + stato | translate }}
-                          </option>
+                          </ng-option>
                         }
-                      </select>
+                      </ng-select>
                     </div>
                   </div>
                 </div>
@@ -157,14 +167,19 @@
                   <label for="referente_tecnico" class="col-form-label col-form-label-fix">{{ 'APP.LABEL.ReferenteTecnico' | translate }}</label>
                 </div>
                 <div class="col-10">
-                  <select class="form-select form-control-sm" id="referente_tecnico" formControlName="referente_tecnico">
-                    <option value="">{{ 'APP.LABEL.All' | translate }}</option>
+                  <ng-select class="ng-select-default-value"
+                    [searchable]="false"
+                    [clearable]="false"
+                    [placeholder]="'APP.LABEL.All' | translate"
+                    labelForId="referente_tecnico"
+                    formControlName="referente_tecnico">
+                    <ng-option value="">{{ 'APP.LABEL.All' | translate }}</ng-option>
                     @for (yn of yesNoList; track yn) {
-                      <option [value]="yn.value">
+                      <ng-option [value]="yn.value">
                         {{ yn.label | translate }}
-                      </option>
+                      </ng-option>
                     }
-                  </select>
+                  </ng-select>
                 </div>
               </div>
 

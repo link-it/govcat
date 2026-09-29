@@ -80,12 +80,17 @@
                           <label class="col-form-label col-form-label-fix" for="referente">{{ 'APP.LABEL.referente' | translate }}</label>
                         </div>
                         <div class="col-sm-8">
-                          <select class="form-select form-control-sm" id="referente" formControlName="referente">
-                            <option value="">{{ 'APP.LABEL.All' | translate }}</option>
+                          <ng-select class="ng-select-default-value"
+                            [searchable]="false"
+                            [clearable]="false"
+                            [placeholder]="'APP.LABEL.All' | translate"
+                            labelForId="referente"
+                            formControlName="referente">
+                            <ng-option value="">{{ 'APP.LABEL.All' | translate }}</ng-option>
                             @for (stato of yesNoList; track stato) {
-                              <option [value]="stato.value">{{ stato.label | translate }}</option>
+                              <ng-option [value]="stato.value">{{ stato.label | translate }}</ng-option>
                             }
-                          </select>
+                          </ng-select>
                         </div>
                       </div>
                     </div>
@@ -95,12 +100,17 @@
                           <label class="col-form-label col-form-label-fix" for="aderente">{{ 'APP.LABEL.aderente' | translate }}</label>
                         </div>
                         <div class="col-sm-8">
-                          <select class="form-select form-control-sm" id="aderente" formControlName="aderente">
-                            <option value="">{{ 'APP.LABEL.All' | translate }}</option>
+                          <ng-select class="ng-select-default-value"
+                            [searchable]="false"
+                            [clearable]="false"
+                            [placeholder]="'APP.LABEL.All' | translate"
+                            labelForId="aderente"
+                            formControlName="aderente">
+                            <ng-option value="">{{ 'APP.LABEL.All' | translate }}</ng-option>
                             @for (stato of yesNoList; track stato) {
-                              <option [value]="stato.value">{{ stato.label | translate }}</option>
+                              <ng-option [value]="stato.value">{{ stato.label | translate }}</ng-option>
                             }
-                          </select>
+                          </ng-select>
                         </div>
                       </div>
                     </div>
@@ -112,10 +122,15 @@
                         <label class="col-form-label col-form-label-fix" for="aderente">{{ 'APP.LABEL.soggetto_aderente' | translate }}</label>
                       </div>
                       <div class="col-sm-8">
-                        <select class="form-select form-control-sm" id="soggetto_aderente" formControlName="soggetto_aderente">
-                          <option value="">{{ 'APP.LABEL.All' | translate }}</option>
-                          <option *ngFor="let stato of yesNoList" [value]="stato.value">{{ stato.label | translate }}</option>
-                        </select>
+                        <ng-select class="ng-select-default-value"
+                          [searchable]="false"
+                          [clearable]="false"
+                          [placeholder]="'APP.LABEL.All' | translate"
+                          labelForId="soggetto_aderente"
+                          formControlName="soggetto_aderente">
+                          <ng-option value="">{{ 'APP.LABEL.All' | translate }}</ng-option>
+                          <ng-option *ngFor="let stato of yesNoList" [value]="stato.value">{{ stato.label | translate }}</ng-option>
+                        </ng-select>
                       </div>
                     </div>
                   </div>
@@ -127,12 +142,17 @@
                         <label class="col-form-label col-form-label-fix" for="intermediata">{{ 'APP.LABEL.intermediata' | translate }}</label>
                       </div>
                       <div class="col-sm-8">
-                        <select class="form-select form-control-sm" id="intermediata" formControlName="intermediata">
-                          <option value="">{{ 'APP.LABEL.All' | translate }}</option>
+                        <ng-select class="ng-select-default-value"
+                          [searchable]="false"
+                          [clearable]="false"
+                          [placeholder]="'APP.LABEL.All' | translate"
+                          labelForId="intermediata"
+                          formControlName="intermediata">
+                          <ng-option value="">{{ 'APP.LABEL.All' | translate }}</ng-option>
                           @for (stato of yesNoList; track stato) {
-                            <option [value]="stato.value">{{ stato.label | translate }}</option>
+                            <ng-option [value]="stato.value">{{ stato.label | translate }}</ng-option>
                           }
-                        </select>
+                        </ng-select>
                       </div>
                     </div>
                   </div>
