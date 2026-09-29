@@ -1,6 +1,10 @@
 2026-09-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 371: rimuovendo il token "Gruppo" dai filtri di ricerca dei servizi viene svuotato
+	  anche il campo Gruppo del pannello; la "x" che cancella tutte le scelte delle select
+	  multiple funziona (fix Issue 370).
+
 	Issue 370: menu a tendina dei filtri di ricerca uniformati: i select nativi diventano ng-select
 	  (stessa freccia apri/chiudi e stesso pannello); la freccia chiude di nuovo le select multiple
 	  (Profilo, Tags); i menu non vengono piu' tagliati dal pannello di ricerca.
