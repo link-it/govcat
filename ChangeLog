@@ -1,3 +1,10 @@
+2026-09-30  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Caricamento immagine (app-photo-base64): l'area attiva e il cursore a mano sono limitati
+	  all'icona matita (prima il cursore a mano era sull'immagine, non cliccabile); focus da tastiera
+	  visibile sulla matita.
+
 2026-09-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
