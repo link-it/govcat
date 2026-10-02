@@ -37,6 +37,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   }
 }
 
+// Focus da tastiera su titolo e immagine cliccabili. Box-shadow perche' l'outline e` azzerato
+// globalmente; sull'immagine (ritagliata dalla card) l'anello e` interno.
+.card-title:focus-visible {
+  box-shadow: 0 0 0 1px #fff, 0 0 0 3px #428fdc;
+  border-radius: 2px;
+}
+
+.card-image:focus-visible {
+  box-shadow: inset 0 0 0 3px #428fdc;
+}
+
 .card-image {
   position: relative;
   width: 100%;

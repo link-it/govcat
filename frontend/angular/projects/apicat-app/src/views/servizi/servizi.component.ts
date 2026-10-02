@@ -849,8 +849,8 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
     _onOpenInNewTabGroup(event: any) {
         const data = this.navigationService.extractData(event);
-        // Solo per i servizi, non per i gruppi
-        if (data.type === 'servizio') {
+        // Solo per i servizi, non per i gruppi. La card emette l'item del BE (`tipo`), non l'elemento della lista (`type`).
+        if ((data?.type ?? data?.tipo) === 'servizio') {
             const route = this.showPresentation
                 ? [this.model, data.id, 'view']
                 : [this.model, data.id];
