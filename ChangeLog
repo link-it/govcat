@@ -1,6 +1,10 @@
 2026-10-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Griglia gruppi dei servizi: l'icona cartella della card apre il gruppo; l'icona "Apri in nuova
+	  scheda" dei servizi funziona; titolo, immagine e cartella della card mostrano il focus da
+	  tastiera e si attivano con Invio.
+
 	Statistiche servizi: nel grafico a barre raggruppate (es. distribuzione per esiti) le colonne
 	  non si assottigliano piu' con molti intervalli: spaziatura tra i gruppi calcolata in base al
 	  loro numero (ngx-charts la ricava da un padding fisso in pixel).

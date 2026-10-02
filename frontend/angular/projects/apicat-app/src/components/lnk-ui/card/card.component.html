@@ -53,10 +53,14 @@
           container="body"></app-relay-icon>
       }
       @if (_showImage && (_image || _showEmptyImage)) {
-        <div tabindex="0"
+        <div [attr.tabindex]="_enabledImageLink ? 0 : null"
+          [attr.role]="_enabledImageLink ? 'button' : null"
+          [attr.aria-label]="_enabledImageLink ? _primaryText : null"
           class="card-image"
           [class.cursor-pointer]="_enabledImageLink"
           (click)="__imageClick($event)" (auxclick)="__imageClick($event)"
+          (keydown.enter)="__imageClick($any($event))"
+          (keydown.space)="_enabledImageLink && $event.preventDefault(); __imageClick($any($event))"
           setBackgroundImage [imageUrl]="{ path: _image } | httpImgSrc"
           [position]="'cover'" [ngStyle]="{ 'background-color': _backColor }"
           >
@@ -74,6 +78,7 @@
               [attr.title]="_primaryText"
               (click)="__simpleClick($event)"
               (auxclick)="__simpleClick($event)"
+              (keydown.enter)="__simpleClick($any($event))"
               >{{ _primaryText }}@if (enableOpenInNewTab && data.tipo !== 'gruppo') {
               <span class="open-new-tab-icon bi bi-box-arrow-up-right"
                 [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
@@ -114,7 +119,11 @@
         </div>
       </div>
       @if ((data.tipo === 'gruppo') && showGroupIcon) {
-        <div class="group-button">
+        <div class="group-button" role="button" tabindex="0"
+          [attr.aria-label]="groupLabel + ': ' + _primaryText"
+          (click)="__simpleClick($event)" (auxclick)="__simpleClick($event)"
+          (keydown.enter)="__simpleClick($any($event))"
+          (keydown.space)="$event.preventDefault(); __simpleClick($any($event))">
           <div class="group-button-icon">
             <i class="bi bi-folder"></i>
           </div>
