@@ -1,3 +1,10 @@
+2026-10-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Statistiche servizi: nel grafico a barre raggruppate (es. distribuzione per esiti) le colonne
+	  non si assottigliano piu' con molti intervalli: spaziatura tra i gruppi calcolata in base al
+	  loro numero (ngx-charts la ricava da un padding fisso in pixel).
+
 2026-09-30  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

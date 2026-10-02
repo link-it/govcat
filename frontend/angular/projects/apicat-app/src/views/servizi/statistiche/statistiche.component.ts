@@ -283,6 +283,8 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
   innerPadding: string = '10%';
   barPadding: number = 8;
   groupPadding: number = 16;
+  // Spaziatura del grafico a barre raggruppate (vedi `groupPadding2d`).
+  barPadding2d: number = 1;
   roundDomains: boolean = false;
   maxRadius: number = 10;
   minRadius: number = 3;
@@ -826,6 +828,18 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
     httpParams = httpParams.set('tipo_report', this.tipoGrafico);
     httpParams = httpParams.set('tipo_informazione_report', formValue.report_information_type);
     return httpParams;
+  }
+
+  /**
+   * ngx-charts ricava lo spazio tra i gruppi da `dims.height / groupPadding` e il numero di gruppi:
+   * con molti gruppi (es. un mese in giornaliero) lo spazio occupa quasi tutta la banda e le colonne
+   * diventano sottili. Si calcola il padding che mantiene uno spazio tra i gruppi di circa il 20%.
+   */
+  get groupPadding2d(): number {
+    const groups = this.multi_bar_chart?.length || 1;
+    const spacing = 0.2;
+    const chartHeight = 400;
+    return chartHeight / Math.max(groups / spacing - 1, 1);
   }
 
   _onSubmit(formValue: any) {
