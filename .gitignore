@@ -46,3 +46,6 @@ read-mic.md
 # System Files
 .DS_Store
 Thumbs.db
+
+# Tool locali
+.nodeterm/

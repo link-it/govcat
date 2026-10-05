@@ -2699,7 +2699,15 @@
 		},
 		"SUBSCRIBERS": {
 			"Approve": "Approva",
-			"ApproveConfirm": "Vuoi approvare l'accordo del fruitore {{name}}?"
+			"ApproveConfirm": "Vuoi approvare l'accordo del fruitore {{name}}?",
+			"Purposes": "Finalità",
+			"PurposesLoading": "Caricamento delle finalità…",
+			"PurposesError": "Impossibile caricare le finalità del fruitore.",
+			"NoPurposes": "Nessuna finalità attivata dal fruitore.",
+			"PurposeThroughput": "Previsione di carico: {{value}} chiamate/giorno",
+			"PurposeWaiting": "Richiesta di aumento a {{value}} chiamate/giorno in attesa di approvazione",
+			"ApprovePurpose": "Sblocca",
+			"ApprovePurposeConfirm": "Vuoi sbloccare la finalità «{{name}}» approvando la richiesta di {{value}} chiamate/giorno?"
 		},
 		"SWAGGER": {
 			"ERROR": {

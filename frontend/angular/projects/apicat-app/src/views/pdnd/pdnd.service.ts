@@ -126,10 +126,18 @@ interface AgreementAttributesResponse {
     declared: Attribute[];
 }
 
-interface Purpose {
+export interface Purpose {
     id: string;
+    title?: string;
+    /** Previsione di carico attiva (chiamate/giorno). */
     throughput: number;
+    /** ACTIVE | DRAFT | SUSPENDED | WAITING_FOR_APPROVAL | ARCHIVED */
     state: string;
+    /** Presente solo se esiste una versione in attesa di approvazione. */
+    waitingForApproval?: {
+        id: string;
+        throughput: number;
+    };
 }
 
 interface AgreementPurposesResponse {
@@ -240,9 +248,8 @@ export class PdndService {
     }
 
     /**
-     * Issue 250 (Fase 2): approvazione di una finalita`. Flusso distinto
-     * (aumento chiamate giornaliere); metodo disponibile ma non ancora
-     * cablato in UI.
+     * Approvazione di una finalita` con richiesta di aumento delle chiamate giornaliere
+     * (versione in attesa). Va passato l'id della finalita`, non quello della versione.
      */
     public approvePurpose(environmentId: string, purposeId: string) {
         return this.post<Purpose>(`${environmentId}/purposes/${purposeId}/approve`);

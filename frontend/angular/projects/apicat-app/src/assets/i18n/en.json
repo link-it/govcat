@@ -2699,7 +2699,15 @@
 		},
 		"SUBSCRIBERS": {
 			"Approve": "Approve",
-			"ApproveConfirm": "Do you want to approve the agreement for subscriber {{name}}?"
+			"ApproveConfirm": "Do you want to approve the agreement for subscriber {{name}}?",
+			"Purposes": "Purposes",
+			"PurposesLoading": "Loading purposes…",
+			"PurposesError": "Unable to load the subscriber purposes.",
+			"NoPurposes": "No purposes activated by the subscriber.",
+			"PurposeThroughput": "Expected load: {{value}} calls/day",
+			"PurposeWaiting": "Increase to {{value}} calls/day awaiting approval",
+			"ApprovePurpose": "Unlock",
+			"ApprovePurposeConfirm": "Do you want to unlock the purpose «{{name}}» by approving the request for {{value}} calls/day?"
 		},
 		"SWAGGER": {
 			"ERROR": {

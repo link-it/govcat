@@ -160,11 +160,12 @@ const agreementAttributesListConfiguration = {
 const purposeListConfiguration = {
   "itemRow": {
     "primaryText": [
-      { "field": "id", "type": "text" },
+      { "field": "title", "type": "text" },
     ],
     "metadata": {
       "text": [
         { "field": "throughput", "type": "text" },
+        { "field": "waiting", "type": "text" },
       ],
       "label": []
     },
@@ -180,6 +181,10 @@ const purposeListConfiguration = {
       "values": {
         "ACTIVE": { "label": "ACTIVE", "background": "#c7f9cc", "border": "#c7f9cc", "color": "#1f1f1f" },
         "INACTIVE": { "label": "INACTIVE", "background": "#22577a", "border": "#22577a", "color": "#ffffff" },
+        "SUSPENDED": { "label": "SUSPENDED", "background": "#ffe8cc", "border": "#ffe8cc", "color": "#1f1f1f" },
+        "WAITING_FOR_APPROVAL": { "label": "WAITING_FOR_APPROVAL", "background": "#ffe8cc", "border": "#ffe8cc", "color": "#1f1f1f" },
+        "DRAFT": { "label": "DRAFT", "background": "#e9ecef", "border": "#e9ecef", "color": "#1f1f1f" },
+        "ARCHIVED": { "label": "ARCHIVED", "background": "#e9ecef", "border": "#e9ecef", "color": "#1f1f1f" },
       }
     }
   }
@@ -522,8 +527,12 @@ export class PdndComponent {
             purposesMap = purposesResponse.data.purposes.map((purpose: any) => {
               return {
                 id: purpose.id,
+                title: purpose.title || purpose.id,
                 state: purpose.state,
                 throughput: this.translate.instant('APP.LABEL.PDND.Throughput') + ': ' + purpose.throughput,
+                waiting: purpose.waitingForApproval
+                  ? this.translate.instant('APP.SUBSCRIBERS.PurposeWaiting', { value: purpose.waitingForApproval.throughput })
+                  : '',
               }
             });
           }

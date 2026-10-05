@@ -22,3 +22,64 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     padding-top: 48px;
   }
 }
+
+// Finalita` del fruitore (riga espansa)
+.subscriber-purposes-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-3, #57738a);
+  margin-bottom: 0.5rem;
+}
+
+.purpose-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid #dee2e6;
+
+  &.is-waiting {
+    border-left: 3px solid #ad6201;
+    padding-left: 0.75rem;
+  }
+}
+
+.purpose-title {
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.purpose-throughput {
+  font-size: 0.875rem;
+  color: #495057;
+}
+
+.purpose-waiting {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #8a4b00;
+  margin-top: 0.25rem;
+}
+
+.purpose-side {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.purpose-state {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 1rem;
+  background-color: #e9ecef;
+  color: #1f1f1f;
+
+  &[data-state="ACTIVE"] { background-color: #c7f9cc; }
+  &[data-state="SUSPENDED"],
+  &[data-state="WAITING_FOR_APPROVAL"] { background-color: #ffe8cc; }
+}

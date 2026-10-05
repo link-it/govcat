@@ -1,3 +1,10 @@
+2026-10-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 250 (Fase 3): espandendo un fruitore PDND si vedono le sue finalita' (titolo, stato,
+	  previsione di carico e richiesta di aumento in attesa); l'admin PDND (v3) puo' sbloccare la
+	  finalita' in attesa. Console PDND: titolo e richiesta in attesa delle finalita' dell'accordo.
+
 2026-10-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

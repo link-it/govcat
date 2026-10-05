@@ -120,7 +120,8 @@
           [hasAction]="_canApprove(subscriber.source)"
           [iconAction]="'check-lg'"
           [actionTooltip]="'APP.SUBSCRIBERS.Approve' | translate"
-          (actionClick)="_onApprove($event)">
+          (actionClick)="_onApprove($event)"
+          (opened)="_onSubscriberOpened(subscriber.source)">
           @if (subscriber.enableCollapse) {
             <div collapse-content class="p-4 my-1 bg-lightest">
               <div class="d-flex flex-row">
@@ -129,6 +130,48 @@
                   [config]="apisubscribersConfig">
                 </ui-data-view>
               </div>
+              @if (subscriber.source.agreementId) {
+                @let agreementId = subscriber.source.agreementId;
+                @let ps = _purposesByAgreement[agreementId];
+                <section class="subscriber-purposes mt-4" [attr.aria-busy]="ps?.loading ? 'true' : null">
+                  <h3 class="subscriber-purposes-title">{{ 'APP.SUBSCRIBERS.Purposes' | translate }}</h3>
+                  @if (!ps || (ps.loading && !ps.items.length)) {
+                    <div class="d-flex align-items-center gap-2 text-muted small">
+                      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                      <span>{{ 'APP.SUBSCRIBERS.PurposesLoading' | translate }}</span>
+                    </div>
+                  } @else if (ps.error) {
+                    <p class="text-muted small mb-0">{{ 'APP.SUBSCRIBERS.PurposesError' | translate }}</p>
+                  } @else if (!ps.items.length) {
+                    <p class="text-muted small mb-0">{{ 'APP.SUBSCRIBERS.NoPurposes' | translate }}</p>
+                  } @else {
+                    <ul class="subscriber-purposes-list list-unstyled mb-0">
+                      @for (purpose of ps.items; track purpose.id) {
+                        <li class="purpose-item" [class.is-waiting]="!!purpose.waitingForApproval">
+                          <div class="purpose-main">
+                            <div class="purpose-title">{{ purpose.title || purpose.id }}</div>
+                            <div class="purpose-throughput">{{ 'APP.SUBSCRIBERS.PurposeThroughput' | translate: { value: _formatNumber(purpose.throughput) } }}</div>
+                            @if (purpose.waitingForApproval) {
+                              <div class="purpose-waiting">
+                                <i class="bi bi-hourglass-split me-1" aria-hidden="true"></i>{{ 'APP.SUBSCRIBERS.PurposeWaiting' | translate: { value: _formatNumber(purpose.waitingForApproval.throughput) } }}
+                              </div>
+                            }
+                          </div>
+                          <div class="purpose-side">
+                            <span class="purpose-state" [attr.data-state]="purpose.state">{{ purpose.state }}</span>
+                            @if (_canApprovePurpose(purpose)) {
+                              <button type="button" class="btn btn-confirm btn-sm gl-button" [disabled]="ps.loading"
+                                (click)="_onApprovePurpose(agreementId, purpose)">
+                                <i class="bi bi-unlock me-1" aria-hidden="true"></i>{{ 'APP.SUBSCRIBERS.ApprovePurpose' | translate }}
+                              </button>
+                            }
+                          </div>
+                        </li>
+                      }
+                    </ul>
+                  }
+                </section>
+              }
             </div>
           }
         </ui-collapse-row>

@@ -20,7 +20,7 @@ import { AfterContentChecked, Component, HostListener, Input, OnInit, ViewChild 
 import { CommonModule } from '@angular/common';
 
 import { COMPONENTS_IMPORTS, Tools, ConfigService, SearchBarFormComponent, YesnoDialogBsComponent } from '@linkit/components';
-import { PdndService } from '@app/views/pdnd/pdnd.service';
+import { PdndService, Purpose } from '@app/views/pdnd/pdnd.service';
 import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.directive';
 import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -380,7 +380,7 @@ export class ServizioApiSubscribersComponent implements OnInit, AfterContentChec
     if (!this.eserviceId || !this.producerId) { return; }
     if (this.id) {
       this._spin = true;
-      if (!url) { this.servizioapisubscribers = []; this._links = null; }
+      if (!url) { this.servizioapisubscribers = []; this._links = null; this._purposesByAgreement = {}; }
       let aux: any;
       if (!url) {
         query = { ...query, eserviceId: this.eserviceId, producerId: this.producerId };
@@ -471,6 +471,73 @@ export class ServizioApiSubscribersComponent implements OnInit, AfterContentChec
         }
         // La response porta il nuovo state (ACTIVE): ricarico la lista.
         this._loadServizioApiSubscribers(this._filterData);
+      });
+    });
+  }
+
+  // -------------------------------------------------------------------------
+  // Finalita` del fruitore: caricate alla prima apertura della riga, con lo
+  // sblocco di quelle che hanno una richiesta di aumento in attesa.
+  // -------------------------------------------------------------------------
+
+  _purposesByAgreement: { [agreementId: string]: { loading: boolean; error: boolean; items: Purpose[] } } = {};
+
+  _onSubscriberOpened(source: any) {
+    const agreementId: string = source?.agreementId;
+    if (!agreementId || this._purposesByAgreement[agreementId]) { return; }
+    this._loadPurposes(agreementId);
+  }
+
+  private _loadPurposes(agreementId: string) {
+    const items = this._purposesByAgreement[agreementId]?.items || [];
+    this._purposesByAgreement[agreementId] = { loading: true, error: false, items };
+    this.pdndService.agreementPurposes(this.environmentId, agreementId).subscribe((res: any) => {
+      this._purposesByAgreement[agreementId] = {
+        loading: false,
+        error: !!res?.error,
+        items: res?.data?.purposes || []
+      };
+    });
+  }
+
+  /** Lo sblocco dipende solo dalla presenza della versione in attesa (anche con stato ACTIVE). */
+  _canApprovePurpose(purpose: Purpose): boolean {
+    return this.authenticationService.isPdndAdmin()
+      && this._pdndApprovalAvailable
+      && !!purpose?.waitingForApproval;
+  }
+
+  _formatNumber(value: number | null | undefined): string {
+    // Separatore delle migliaia anche sotto le 5 cifre (in italiano di default "5000" ma "20.000").
+    return new Intl.NumberFormat(this.translate.currentLang || 'it', { useGrouping: true }).format(value ?? 0);
+  }
+
+  _onApprovePurpose(agreementId: string, purpose: Purpose) {
+    if (!this._canApprovePurpose(purpose)) { return; }
+    const _modalRef: BsModalRef = this.modalService.show(YesnoDialogBsComponent, {
+      ignoreBackdropClick: true,
+      initialState: {
+        title: this.translate.instant('APP.TITLE.Attention'),
+        messages: [this.translate.instant('APP.SUBSCRIBERS.ApprovePurposeConfirm', {
+          name: purpose.title || purpose.id,
+          value: this._formatNumber(purpose.waitingForApproval?.throughput)
+        })],
+        cancelText: this.translate.instant('APP.BUTTON.Cancel'),
+        confirmText: this.translate.instant('APP.BUTTON.Confirm'),
+        confirmColor: 'primary'
+      }
+    });
+    _modalRef.content.onClose.subscribe((confirmed: boolean) => {
+      if (!confirmed) { return; }
+      const current = this._purposesByAgreement[agreementId];
+      if (current) { current.loading = true; }
+      this.pdndService.approvePurpose(this.environmentId, purpose.id).subscribe((res: any) => {
+        if (res?.error) {
+          if (current) { current.loading = false; }
+          Tools.OnError(res.error);
+          return;
+        }
+        this._loadPurposes(agreementId);
       });
     });
   }
