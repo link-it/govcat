@@ -1,6 +1,10 @@
 2026-10-06  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
+	Issue 376: aggiunto alla lista dei servizi il filtro api_erogate_aderente:
+	  true restituisce i servizi con almeno una API erogata dal soggetto aderente,
+	  false quelli senza API erogate dall'aderente (compresi i servizi senza API);
+	  se assente, nessun filtro.
 	Issue 377: il csv di export dei servizi riporta la nuova colonna `Ruolo API`,
 	  subito dopo `Tipologia API`, con le stesse etichette del frontend (`Erogata da
 	  soggetto dominio`/`Erogata dal soggetto aderente`).

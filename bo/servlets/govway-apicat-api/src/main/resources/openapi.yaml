@@ -2476,6 +2476,7 @@ paths:
       - $ref: "#/components/parameters/package_query_optional"
       - $ref: "#/components/parameters/tipo_servizio_query_optional"
       - $ref: "#/components/parameters/fruizione_query_optional"
+      - $ref: "#/components/parameters/api_erogate_aderente_query_optional"
       - $ref: "#/components/parameters/q_query_optional"
       - $ref: "#/components/parameters/page_query_optional"
       - $ref: "#/components/parameters/size_query_optional"
@@ -11316,6 +11317,13 @@ components:
       name: "fruizione"
       in: "query"
       description: "servizio in fruizione"
+      required: false
+      schema:
+        type: "boolean"
+    api_erogate_aderente_query_optional:
+      name: "api_erogate_aderente"
+      in: "query"
+      description: "true: servizi con almeno una API erogata dal soggetto aderente; false: servizi senza API erogate dal soggetto aderente"
       required: false
       schema:
         type: "boolean"

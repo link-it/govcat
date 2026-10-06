@@ -1222,7 +1222,7 @@ public class ServiziController implements ServiziApi {
 
 	@Override
 	public ResponseEntity<PagedModelItemServizio> listServizi(String referente, UUID idDominio, UUID idOrganizzazioneErogatore, UUID idGruppo, VisibilitaServizioEnum visibilita, UUID idApi,
-			List<String> stato, FiltroArchiviatiEnum archiviati, List<String> categoria, List<String> tag, List<String> profilo, Boolean inAttesa, Boolean mieiServizi, List<RuoloReferenteEnum> ruoloReferente, Boolean dashboard, Boolean adesioneConsentita, String nome, String versione, List<UUID> idServizi, Boolean _package, TipoServizio tipo, Boolean fruizione, String q, Integer page, Integer size, List<String> sort) {
+			List<String> stato, FiltroArchiviatiEnum archiviati, List<String> categoria, List<String> tag, List<String> profilo, Boolean inAttesa, Boolean mieiServizi, List<RuoloReferenteEnum> ruoloReferente, Boolean dashboard, Boolean adesioneConsentita, String nome, String versione, List<UUID> idServizi, Boolean _package, TipoServizio tipo, Boolean fruizione, Boolean apiErogateAderente, String q, Integer page, Integer size, List<String> sort) {
 		try {
 			this.logger.info("Invocazione in corso ...");
 			return this.service.runTransaction( () -> {
@@ -1262,6 +1262,7 @@ public class ServiziController implements ServiziApi {
 				}
 
 				specification.setFruizione(Optional.ofNullable(fruizione));
+				specification.setApiErogateAderente(Optional.ofNullable(apiErogateAderente));
 
 				specification.setQ(Optional.ofNullable(q));
 
