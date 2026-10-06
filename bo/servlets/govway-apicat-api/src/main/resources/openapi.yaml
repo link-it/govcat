@@ -6551,6 +6551,9 @@ components:
             type: "string"
         codice_token_policy:
           type: "string"
+        proprieta_token_policy:
+          description: "Proprietà custom dell'API, riservata al gestore, che contiene il nome della token policy GovWay da associare all'applicativo configurato dal batch per le adesioni con questo profilo. Non va confusa con codice_token_policy, che individua la token policy esposta all'aderente in token_policies. Se assente il batch non ricava alcuna token policy dall'API."
+          $ref: "#/components/schemas/ConfigurazioneRiferimentoProprietaCustom"
         proprieta_custom:
           type: array
           items:

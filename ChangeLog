@@ -1,3 +1,35 @@
+2026-10-06  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 354: i profili di servizio.api.profili possono essere limitati a un solo
+	  profilo di interoperabilità GovWay tramite profilo_govway (tipo gateway del
+	  soggetto): alla creazione/modifica dei profili di un'API erogata dal soggetto
+	  del dominio si verifica la compatibilità con il tipo gateway del soggetto
+	  (referente del dominio per le erogazioni, ente erogatore per le fruizioni,
+	  altrimenti soggetto.profilo_gateway_default); ModI è equivalente a ModIPA.
+	  Il gestore può ridefinire il profilo di interoperabilità della singola API con
+	  la proprietà custom indicata in servizio.api.proprieta_profilo_govway,
+	  modificabile solo dal gestore; la ridefinizione rivalida i profili dell'API
+	  ed è usata anche dal monitoraggio, non dalla configurazione di GovWay.
+	  Ripristinato il filtro tipo_dominio dei profili (interno = solo erogazioni,
+	  esterno = solo fruizioni), che dal rework delle fruizioni rifiutava sempre i
+	  profili esterni. Aggiunta proprieta_custom allo schema ConfigurazioneProfilo:
+	  la sua assenza impediva la lettura dei profili della configurazione distribuita.
+	  Il batch di configurazione automatica usa lo stesso profilo_govway come default
+	  del profilo di interoperabilità quando il soggetto non definisce il proprio tipo
+	  gateway, ricadendo poi su soggetto.profilo_gateway_default (la stessa chiave usata
+	  da govcat-api) e solo in ultimo su monitoraggio.profilo_govway_default. Nuovo
+	  scenario del configuratore oauthCCTokenPolicy: censisce l'applicativo con modalità
+	  di accesso token e la token policy letta dalla proprietà custom dell'API indicata
+	  dal nuovo proprieta_token_policy del profilo, poi lo associa all'erogazione dopo
+	  aver verificato che la gestione token configurata su GovWay usi la stessa policy e
+	  che l'autorizzazione sia per token richiedente; l'applicativo nasce sotto il
+	  soggetto aderente per le erogazioni e fruitore per le fruizioni. Le condizioni
+	  degli scenari accettano la nuova chiave profiloAutenticazione, che seleziona lo
+	  scenario dal codice interno del profilo invece che dal solo tipo di client: serve
+	  ai profili che condividono l'auth_type con altri (es. OAUTH_CC e PDND, entrambi
+	  con auth_type pdnd e quindi entrambi PdndClient).
+
 2026-10-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -56,24 +88,6 @@
 	  versioni patchate nella stessa major: fast-uri 3.1.6 -> 3.1.8 (GHSA-58mr, GHSA-qw65),
 	  ip-address 10.3.1 -> 10.7.2 (GHSA-rpw4, GHSA-2vr4), undici 6.28.0 -> 6.28.1 e
 	  7.29.0 -> 7.29.1 (GHSA-3wwx).
-
-2026-09-25  Giovanni De Luca <giovanni.deluca@link.it>
-
-	* [GovwayAPICatalogo]
-	Issue 354: i profili di servizio.api.profili possono essere limitati a un solo
-	  profilo di interoperabilità GovWay tramite profilo_govway (tipo gateway del
-	  soggetto): alla creazione/modifica dei profili di un'API erogata dal soggetto
-	  del dominio si verifica la compatibilità con il tipo gateway del soggetto
-	  (referente del dominio per le erogazioni, ente erogatore per le fruizioni,
-	  altrimenti soggetto.profilo_gateway_default); ModI è equivalente a ModIPA.
-	  Il gestore può ridefinire il profilo di interoperabilità della singola API con
-	  la proprietà custom indicata in servizio.api.proprieta_profilo_govway,
-	  modificabile solo dal gestore; la ridefinizione rivalida i profili dell'API
-	  ed è usata anche dal monitoraggio, non dalla configurazione di GovWay.
-	  Ripristinato il filtro tipo_dominio dei profili (interno = solo erogazioni,
-	  esterno = solo fruizioni), che dal rework delle fruizioni rifiutava sempre i
-	  profili esterni. Aggiunta proprieta_custom allo schema ConfigurazioneProfilo:
-	  la sua assenza impediva la lettura dei profili della configurazione distribuita.
 
 2026-09-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 

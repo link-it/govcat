@@ -25,12 +25,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-public class ScenarioCondition {	
+public class ScenarioCondition {
+	private static final String KEY_AND = "and";
+	private static final String KEY_OR = "or";
+	/** Nome della classe del client dell'adesione, es. PdndClient. */
+	private static final String KEY_PROFILO = "profilo";
+	/** Codice interno del profilo di autenticazione dell'API, es. OAUTH_CC. */
+	private static final String KEY_PROFILO_AUTENTICAZIONE = "profiloAutenticazione";
+
 	private List<ScenarioCondition> or;
 	private List<ScenarioCondition> and;
 	private Map<String, String> equalities;
+	private String tipoClient = null;
 	private String profiloAutenticazione = null;
-	
+
 	private ScenarioCondition() {
 		this.or = new ArrayList<>();
 		this.and = new ArrayList<>();
@@ -58,19 +66,21 @@ public class ScenarioCondition {
 			String key = prop.getKey();
 			String value = prop.getValue();
 			
-			if (key.equals("and") || key.equals("or")) {
-				List<ScenarioCondition> subList = new ArrayList<>(); 
+			if (key.equals(KEY_AND) || key.equals(KEY_OR)) {
+				List<ScenarioCondition> subList = new ArrayList<>();
 				String[] subConditions = value.split(",");
-				
+
 				for (String subCondition : subConditions)
 					subList.add(ScenarioCondition.parse(props, subCondition));
-				
-				if (key.equals("and")) {
+
+				if (key.equals(KEY_AND)) {
 					condition.and.addAll(subList);
 				} else {
 					condition.or.addAll(subList);
 				}
-			} else if(key.equals("profilo")) {
+			} else if(key.equals(KEY_PROFILO)) {
+				condition.tipoClient = value;
+			} else if(key.equals(KEY_PROFILO_AUTENTICAZIONE)) {
 				condition.profiloAutenticazione = value;
 			} else {
 				condition.equalities.put(key, value);
@@ -95,30 +105,41 @@ public class ScenarioCondition {
 		return parsedProperty;
 	}
 	
-	public boolean check(String profilo, Map<String, String> values) {
-		
-		if(this.profiloAutenticazione != null && !profilo.equals(this.profiloAutenticazione))
+	/**
+	 * Verifica la condizione.
+	 *
+	 * @param tipoClient nome della classe del client dell'adesione (chiave "profilo")
+	 * @param profiloAutenticazione codice interno del profilo di autenticazione dell'API
+	 *        (chiave "profiloAutenticazione"), può essere nullo
+	 * @param values estensioni dell'API su cui valutare le uguaglianze
+	 */
+	public boolean check(String tipoClient, String profiloAutenticazione, Map<String, String> values) {
+
+		if(this.tipoClient != null && !this.tipoClient.equals(tipoClient))
 			return false;
-		
+
+		if(this.profiloAutenticazione != null && !this.profiloAutenticazione.equals(profiloAutenticazione))
+			return false;
+
 		for (Map.Entry<String, String> equality : this.equalities.entrySet()) {
 			String value = values.get(equality.getKey());
 			if (value == null || !value.equals(equality.getValue()))
 				return false;
 		}
-		
+
 		for (ScenarioCondition condition : this.and) {
-			if (!condition.check(profilo, values))
+			if (!condition.check(tipoClient, profiloAutenticazione, values))
 				return false;
 		}
-		
+
 		if (!this.or.isEmpty()) {
 			for (ScenarioCondition condition : this.or) {
-				if (condition.check(profilo, values))
+				if (condition.check(tipoClient, profiloAutenticazione, values))
 					return true;
 			}
 			return false;
 		}
-		
+
 		return true;
 	}
 	
@@ -127,8 +148,11 @@ public class ScenarioCondition {
 		List<String> conditions = new ArrayList<>();
 		List<String> subCondition = new ArrayList<>();
 		
+		if (this.tipoClient != null) {
+			conditions.add(KEY_PROFILO + " == \"" + this.tipoClient + "\"");
+		}
 		if (this.profiloAutenticazione != null) {
-			conditions.add("profilo == \"" + this.profiloAutenticazione + "\"");
+			conditions.add(KEY_PROFILO_AUTENTICAZIONE + " == \"" + this.profiloAutenticazione + "\"");
 		}
 		for (Map.Entry<String, String> equality : this.equalities.entrySet())
 			conditions.add(equality.getKey() + " == \"" + equality.getValue() + "\"");

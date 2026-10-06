@@ -29,6 +29,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.govway.catalogo.core.business.utils.configurazione.ConfigurazioneReader;
+import org.govway.catalogo.core.business.utils.configurazione.ConfigurazioneReader.RiferimentoProprietaCustom;
 import org.govway.catalogo.core.dto.DTOAdesione;
 import org.govway.catalogo.core.dto.DTOAdesioneAPI;
 import org.govway.catalogo.core.dto.DTOApi;
@@ -52,6 +53,7 @@ import org.govway.catalogo.core.orm.entity.ClientAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.ClientEntity;
 import org.govway.catalogo.core.orm.entity.ClientEntity.AuthType;
 import org.govway.catalogo.core.orm.entity.EstensioneAdesioneEntity;
+import org.govway.catalogo.core.orm.entity.EstensioneApiEntity;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
 import org.govway.catalogo.core.orm.entity.SoggettoEntity;
 import org.slf4j.Logger;
@@ -70,7 +72,17 @@ public class AdesioneDTOConverter {
 	private List<DTOClient> clients;
 
 	private SoggettoDTOFactory soggettoDTOFactory;
-	
+
+	/** Reader condiviso: la configurazione viene letta e parsata una sola volta per adesione. */
+	private ConfigurazioneReader confReader;
+
+	/** profilo_govway dichiarato dai profili di autenticazione dell'adesione, nullo se non determinabile. */
+	private String profiloGovwayProfili;
+
+	// ModI e` il nome corrente del profilo ModIPA: i due valori sono equivalenti (cfr. ProfiloGovwayService)
+	private static final String PROFILO_MODI = "ModI";
+	private static final String PROFILO_MODIPA = "ModIPA";
+
 	private static final String AUTENTICAZIONE_CERTIFICATO = "autenticazione_CERTIFICATO";
 	private static final String FIRMA_CERTIFICATO = "firma_CERTIFICATO";
 	private static final String CLIENT_ID = "client_id";
@@ -98,6 +110,7 @@ public class AdesioneDTOConverter {
 		clients = new ArrayList<>();
 
 		getAmbiente();
+		this.profiloGovwayProfili = calcolaProfiloGovwayProfili();
 		setSoggetti();
 		setApiErogateAndSetClient();
 		Map<String, String>  estensioni = setEstensioniAdesione(null, 0);
@@ -111,20 +124,79 @@ public class AdesioneDTOConverter {
 
 	void setSoggetti() {
 		SoggettoEntity aderente = adesione.getSoggetto();
-		dto.setSoggettoAderente(new DTOSoggetto(this.soggettoDTOFactory.getNomeGateway(aderente), this.soggettoDTOFactory.getTipoGateway(aderente), this.soggettoDTOFactory.isOrganizzazioneReferente(aderente)));
+		dto.setSoggettoAderente(toDTOSoggetto(aderente));
 
 		if(adesione.getServizio().isFruizione()) {
 			// Fruizione: erogatore GovWay = ente erogatore (provider) indicato sul servizio;
 			// fruitore GovWay = soggetto interno = referente del dominio.
 			SoggettoEntity erogatore = adesione.getServizio().getSoggettoErogatore();
 			SoggettoEntity fruitore = adesione.getServizio().getDominio().getSoggettoReferente();
-			dto.setSoggettoErogatore(new DTOSoggetto(this.soggettoDTOFactory.getNomeGateway(erogatore), this.soggettoDTOFactory.getTipoGateway(erogatore), this.soggettoDTOFactory.isOrganizzazioneReferente(erogatore)));
-			dto.setSoggettoFruitore(new DTOSoggetto(this.soggettoDTOFactory.getNomeGateway(fruitore), this.soggettoDTOFactory.getTipoGateway(fruitore), this.soggettoDTOFactory.isOrganizzazioneReferente(fruitore)));
+			dto.setSoggettoErogatore(toDTOSoggetto(erogatore));
+			dto.setSoggettoFruitore(toDTOSoggetto(fruitore));
 		} else {
 			// Erogazione: erogatore = referente del dominio; nessun fruitore.
 			SoggettoEntity erogatore = adesione.getServizio().getDominio().getSoggettoReferente();
-			dto.setSoggettoErogatore(new DTOSoggetto(this.soggettoDTOFactory.getNomeGateway(erogatore), this.soggettoDTOFactory.getTipoGateway(erogatore), this.soggettoDTOFactory.isOrganizzazioneReferente(erogatore)));
+			dto.setSoggettoErogatore(toDTOSoggetto(erogatore));
 		}
+	}
+
+	private DTOSoggetto toDTOSoggetto(SoggettoEntity soggetto) {
+		return new DTOSoggetto(
+				this.soggettoDTOFactory.getNomeGateway(soggetto),
+				this.soggettoDTOFactory.getTipoGateway(soggetto, this.profiloGovwayProfili),
+				this.soggettoDTOFactory.isOrganizzazioneReferente(soggetto));
+	}
+
+	/**
+	 * Profilo di interoperabilità GovWay dichiarato dai profili di autenticazione delle API del
+	 * servizio (servizio.api.profili[].profilo_govway, Issue 354). Viene usato come default quando
+	 * il soggetto non definisce il proprio tipo gateway. Se i profili ne dichiarano più di uno non
+	 * equivalente il valore non è determinabile: si ritorna null e si ricade sui default della
+	 * configurazione.
+	 */
+	private String calcolaProfiloGovwayProfili() {
+		String scelto = null;
+
+		for(ApiEntity apiEntity: adesione.getServizio().getApi()) {
+			for(AuthTypeEntity authTypeEntity: apiEntity.getAuthType()) {
+				String profiloGovway;
+				try {
+					profiloGovway = getConfReader().getProfiloGovwayProfilo(authTypeEntity.getProfilo());
+				} catch (IOException e) {
+					logger.error("[AdesioneDTOConverter] errore nella lettura di profilo_govway del profilo {}", authTypeEntity.getProfilo(), e);
+					return null;
+				}
+
+				if(profiloGovway == null) {
+					continue;
+				}
+
+				if(scelto == null) {
+					scelto = profiloGovway;
+				} else if(!isProfiloEquivalente(scelto, profiloGovway)) {
+					logger.warn("[AdesioneDTOConverter] i profili dell'adesione {} dichiarano profili di interoperabilità diversi ({} e {}): il profilo del soggetto viene risolto dai default della configurazione",
+							adesione.getIdAdesione(), scelto, profiloGovway);
+					return null;
+				}
+			}
+		}
+
+		return scelto;
+	}
+
+	private static boolean isProfiloEquivalente(String profilo1, String profilo2) {
+		return normalizzaProfilo(profilo1).equals(normalizzaProfilo(profilo2));
+	}
+
+	private static String normalizzaProfilo(String profilo) {
+		return PROFILO_MODI.equals(profilo) ? PROFILO_MODIPA : profilo;
+	}
+
+	private ConfigurazioneReader getConfReader() {
+		if(this.confReader == null) {
+			this.confReader = new ConfigurazioneReader(configurazioneJsonPath);
+		}
+		return this.confReader;
 	}
 
 	void getAmbiente() throws ProcessingException {
@@ -223,7 +295,7 @@ public class AdesioneDTOConverter {
 			logger.error("[AdesioneDTOConverter] errore nella gestione del client della adesione");
 			throw e;
 		}
-		List<DTOAdesioneAPI> adesioneList = buildAdesioneList(client, profilo, authTypeEntity);
+		List<DTOAdesioneAPI> adesioneList = buildAdesioneList(client, profilo, authTypeEntity, apiEntity);
 
 		DTOApi apiDto = buildDTOApi(apiEntity, estensioniMap, adesioneList);
 		api.add(apiDto);
@@ -233,12 +305,38 @@ public class AdesioneDTOConverter {
 		.forEach(this::processClientAdesione);
 	}
 
-	private List<DTOAdesioneAPI> buildAdesioneList(ClientEntity client, String profilo, AuthTypeEntity authTypeEntity) {
+	private List<DTOAdesioneAPI> buildAdesioneList(ClientEntity client, String profilo, AuthTypeEntity authTypeEntity, ApiEntity apiEntity) {
 		List<DTOAdesioneAPI> list = new ArrayList<>();
 		if (client != null) {
-			list.add(new DTOAdesioneAPI(profilo, new String(authTypeEntity.getResources()), client.getNome()));
+			list.add(new DTOAdesioneAPI(profilo, new String(authTypeEntity.getResources()), client.getNome(), getTokenPolicy(apiEntity, profilo)));
 		}
 		return list;
+	}
+
+	/**
+	 * Token policy GovWay da associare all'applicativo per le adesioni a questa API con questo
+	 * profilo: valore della proprietà custom dell'API referenziata da proprieta_token_policy sul
+	 * profilo. Nulla se il profilo non la referenzia o se l'API non la valorizza.
+	 */
+	private String getTokenPolicy(ApiEntity apiEntity, String profilo) {
+		RiferimentoProprietaCustom riferimento;
+		try {
+			riferimento = getConfReader().getProprietaTokenPolicyProfilo(profilo);
+		} catch (IOException e) {
+			logger.error("[AdesioneDTOConverter] errore nella lettura di proprieta_token_policy del profilo {}", profilo, e);
+			return null;
+		}
+
+		if (riferimento == null || apiEntity.getEstensioni() == null) {
+			return null;
+		}
+
+		return apiEntity.getEstensioni().stream()
+				.filter(e -> riferimento.nomeGruppo().equals(e.getGruppo()) && riferimento.nomeProprieta().equals(e.getNome()))
+				.map(EstensioneApiEntity::getValore)
+				.filter(v -> v != null && !v.isBlank())
+				.findAny()
+				.orElse(null);
 	}
 
 	private DTOApi buildDTOApi(ApiEntity apiEntity, Map<String, String> map, List<DTOAdesioneAPI> list) {

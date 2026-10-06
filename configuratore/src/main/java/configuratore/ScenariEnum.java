@@ -31,7 +31,15 @@ public enum ScenariEnum {
 	MTLS_SIGN("mtlsSign"),
 	SIGN("sign"),
 	MTLS_PDND("mtlsPdnd"),
-	OAUTH_CLIENT_CREDENTIALS("oauthClientCredentials");
+	OAUTH_CLIENT_CREDENTIALS("oauthClientCredentials"),
+	/**
+	 * Applicativo con token policy letta da una proprietà custom dell'API.
+	 *
+	 * Dichiarato per ultimo di proposito: a parità di condizioni soddisfatte prevale l'ultimo
+	 * scenario dell'enumerazione, quindi una condizione che seleziona un singolo profilo di
+	 * autenticazione vince su quelle più generiche basate sul solo tipo di client.
+	 */
+	OAUTH_CC_TOKEN_POLICY("oauthCCTokenPolicy");
 	
 	private final String value;
 	private ScenariEnum(String value) {

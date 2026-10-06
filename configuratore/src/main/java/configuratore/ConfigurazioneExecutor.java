@@ -250,10 +250,11 @@ public class ConfigurazioneExecutor implements IConfigurazioneExecutor {
 	 *        ricevono al posto di quelli generali
 	 */
 	private ConfigurazioneScenario getConfigurazioneScenario(DTOClient client, List<GruppoServizio> gruppiServizio, Invokers invokersAdesione) {
+		GruppoServizio primoGruppo = gruppiServizio.get(0);
 		ScenariEnum possibleScenario = null;
 		for (ScenariEnum scenario : ScenariEnum.values()) {
 			ScenarioCondition condition = this.scenariConditions.get(scenario);
-			if (condition != null && condition.check(client.getClass().getSimpleName(), gruppiServizio.get(0).getEstensioni()))
+			if (condition != null && condition.check(client.getClass().getSimpleName(), primoGruppo.getProfiloAutenticazione(), primoGruppo.getEstensioni()))
 				possibleScenario = scenario;
 		}
 		if (possibleScenario == null)
@@ -274,6 +275,8 @@ public class ConfigurazioneExecutor implements IConfigurazioneExecutor {
 			return new ScenarioSign(invokersAdesione, properties);
 		case OAUTH_CLIENT_CREDENTIALS:
 			return new ScenarioClientCredentials(invokersAdesione, properties);
+		case OAUTH_CC_TOKEN_POLICY:
+			return new ScenarioOauthCCTokenPolicy(invokersAdesione, properties);
 		default: return null;
 		}
 	}

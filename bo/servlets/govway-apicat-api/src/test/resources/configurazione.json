@@ -417,7 +417,11 @@
           "codice_interno": "OAUTH_CC_FRUIZIONI",
           "etichetta": "OAuth Client Credentials - Fruizioni PDND",
           "auth_type": "oauth_client_credentials",
-          "tipo_dominio": "esterno"
+          "tipo_dominio": "esterno",
+          "proprieta_token_policy": {
+            "nome_gruppo": "TokenPolicyGovway",
+            "nome_proprieta": "token_policy"
+          }
         }
       ],
       "token_policies": [
@@ -704,6 +708,22 @@
             {
               "nome": "caratteristica",
               "etichetta": "Identificativo esterno",
+              "tipo": "text",
+              "required": false
+            }
+          ]
+        },
+        {
+          "nome_gruppo": "TokenPolicyGovway",
+          "label_gruppo": "Token policy GovWay",
+          "classe_dato": "generico",
+          "ruoli_abilitati": [
+            "gestore"
+          ],
+          "proprieta": [
+            {
+              "nome": "token_policy",
+              "etichetta": "Token policy",
               "tipo": "text",
               "required": false
             }
