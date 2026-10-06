@@ -1612,11 +1612,11 @@ public class ServiziTest {
             passaAUtenteSenzaRuoli();
 
             // Il gruppo compare tra quelli di primo livello...
-            List<UUID> primoLivello = idElementi(serviziController.listServiziGruppi(null, true, TipoServizio.API, null, 0, 10, null));
+            List<UUID> primoLivello = idElementi(serviziController.listServiziGruppi(null, true, TipoServizio.API, null, null, 0, 10, null));
             assertTrue(primoLivello.contains(idGruppo));
 
             // ...e, aperto, mostra il solo servizio pubblico (quello privato resta invisibile all'utente senza ruoli)
-            List<UUID> contenuto = idElementi(serviziController.listServiziGruppi(idGruppo, null, TipoServizio.API, null, 0, 10, null));
+            List<UUID> contenuto = idElementi(serviziController.listServiziGruppi(idGruppo, null, TipoServizio.API, null, null, 0, 10, null));
             assertEquals(List.of(idPubblico), contenuto);
         } finally {
             this.configurazione.getServizio().setStatiAdesioneConsentita(statiOriginali);
@@ -1644,11 +1644,11 @@ public class ServiziTest {
             creaUtenteSenzaRuoli();
             passaAUtenteSenzaRuoli();
 
-            List<UUID> primoLivello = idElementi(serviziController.listServiziGruppi(null, true, TipoServizio.API, null, 0, 10, null));
+            List<UUID> primoLivello = idElementi(serviziController.listServiziGruppi(null, true, TipoServizio.API, null, null, 0, 10, null));
             assertTrue(primoLivello.contains(idGruppo));
 
             // Solo lo stato configurato rende visibile il servizio
-            List<UUID> contenuto = idElementi(serviziController.listServiziGruppi(idGruppo, null, TipoServizio.API, null, 0, 10, null));
+            List<UUID> contenuto = idElementi(serviziController.listServiziGruppi(idGruppo, null, TipoServizio.API, null, null, 0, 10, null));
             assertEquals(List.of(idCollaudo), contenuto);
         } finally {
             this.configurazione.getServizio().setStatiAdesioneConsentita(statiOriginali);
@@ -1672,18 +1672,18 @@ public class ServiziTest {
         this.entityManager.clear();
 
         // Gestore (idsServiziVisibili null): anche qui il tipo deve essere rispettato
-        List<UUID> primoLivelloGestore = idElementi(serviziController.listServiziGruppi(null, true, TipoServizio.API, null, 0, 10, null));
+        List<UUID> primoLivelloGestore = idElementi(serviziController.listServiziGruppi(null, true, TipoServizio.API, null, null, 0, 10, null));
         assertFalse(primoLivelloGestore.contains(idGruppoApi));
 
         passaAUtenteSenzaRuoli();
 
-        List<UUID> primoLivello = idElementi(serviziController.listServiziGruppi(null, true, TipoServizio.API, null, 0, 10, null));
+        List<UUID> primoLivello = idElementi(serviziController.listServiziGruppi(null, true, TipoServizio.API, null, null, 0, 10, null));
         assertFalse(primoLivello.contains(idGruppoApi));
 
         // Senza filtro sul tipo il gruppo resta visibile e il sottogruppo e` raggiungibile
-        List<UUID> primoLivelloSenzaTipo = idElementi(serviziController.listServiziGruppi(null, true, null, null, 0, 10, null));
+        List<UUID> primoLivelloSenzaTipo = idElementi(serviziController.listServiziGruppi(null, true, null, null, null, 0, 10, null));
         assertTrue(primoLivelloSenzaTipo.contains(idGruppoApi));
-        List<UUID> contenuto = idElementi(serviziController.listServiziGruppi(idGruppoApi, null, null, null, 0, 10, null));
+        List<UUID> contenuto = idElementi(serviziController.listServiziGruppi(idGruppoApi, null, null, null, null, 0, 10, null));
         assertEquals(List.of(idSottogruppoGenerico), contenuto);
     }
 
@@ -1958,6 +1958,11 @@ public class ServiziTest {
         assertEquals("api_export_colonne", getColonnaCsv(csv, servizio, "API"));
         assertEquals(String.valueOf(api.getVersione()), getColonnaCsv(csv, servizio, "Versione API"));
         assertEquals(api.getIdApi().toString(), getColonnaCsv(csv, servizio, "UUID API"));
+
+        // Ruolo API: etichetta come nel frontend, subito dopo la tipologia
+        assertEquals("Erogata dal soggetto aderente", getColonnaCsv(csv, servizio, "Ruolo API"));
+        List<String> header = parseCsv(csv).get(0);
+        assertEquals(header.indexOf("Tipologia API") + 1, header.indexOf("Ruolo API"));
 
         // Referenti: email aziendali, separate per tipo e per entità
         assertEquals("m.rossi@acme.inc", getColonnaCsv(csv, servizio, "Referenti Servizio"));

@@ -100,6 +100,9 @@ public class ServizioBuilder {
 			s.setTipoApi(api.getCollaudo() != null && api.getCollaudo().getProtocollo() != null
 					&& api.getCollaudo().getProtocollo().toString().contains("WSDL") ? "soap" : "rest");
 
+			// Ruolo API
+			s.setRuoloApi(getRuoloApi(api.getRuolo()));
+
 			// Modalità Autenticazione - get profiles from API authTypes
 			String profili = api.getAuthType().stream()
 					.map(at -> this.eServiceBuilder.getProfiloString(at.getProfilo()))
@@ -146,6 +149,20 @@ public class ServizioBuilder {
 
 		SoggettoEntity fruitore = servizioEntity.getDominio().getSoggettoReferente();
 		return fruitore != null ? fruitore.getNome() : "";
+	}
+
+	/**
+	 * Etichette allineate a quelle mostrate dal frontend per il ruolo dell'API.
+	 */
+	private String getRuoloApi(ApiEntity.RUOLO ruolo) {
+		if(ruolo == null) {
+			return "";
+		}
+
+		return switch(ruolo) {
+		case EROGATO_SOGGETTO_DOMINIO -> "Erogata da soggetto dominio";
+		case EROGATO_SOGGETTO_ADERENTE -> "Erogata dal soggetto aderente";
+		};
 	}
 
 	private String getReferentiServizio(ServizioEntity servizioEntity, TIPO_REFERENTE tipo) {

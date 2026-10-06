@@ -32,6 +32,7 @@ public class Servizio {
 	private String versioneApi;
 	private String uuidApi;
 	private String tipoApi;
+	private String ruoloApi;
 	private String autenticazioneStato;
 	private String statoServizio;
 	private String referentiServizio;
@@ -108,6 +109,12 @@ public class Servizio {
 	}
 	public void setTipoApi(String tipoApi) {
 		this.tipoApi = tipoApi;
+	}
+	public String getRuoloApi() {
+		return ruoloApi;
+	}
+	public void setRuoloApi(String ruoloApi) {
+		this.ruoloApi = ruoloApi;
 	}
 	public String getAutenticazioneStato() {
 		return autenticazioneStato;

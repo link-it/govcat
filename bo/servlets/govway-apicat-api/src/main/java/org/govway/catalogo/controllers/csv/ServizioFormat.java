@@ -47,6 +47,8 @@ public abstract class ServizioFormat {
 	abstract String getUuidApi();
 	@JsonProperty("Tipologia API")
 	abstract String getTipoApi();
+	@JsonProperty("Ruolo API")
+	abstract String getRuoloApi();
 	@JsonProperty("Modalità Autenticazione")
 	abstract String getAutenticazioneStato();
 	@JsonProperty("Stato Servizio")
