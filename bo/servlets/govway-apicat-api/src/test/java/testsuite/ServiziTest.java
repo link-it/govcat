@@ -30,6 +30,7 @@ import org.govway.catalogo.controllers.ServiziController;
 import org.govway.catalogo.controllers.SoggettiController;
 import org.govway.catalogo.controllers.TassonomieController;
 import org.govway.catalogo.controllers.UtentiController;
+import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.services.ClasseUtenteService;
 import org.govway.catalogo.core.services.DominioService;
 import org.govway.catalogo.core.services.ServizioService;
@@ -67,6 +68,7 @@ import org.govway.catalogo.servlets.model.TargetComunicazioneServizioEnum;
 import org.govway.catalogo.servlets.model.Grant;
 import org.govway.catalogo.servlets.model.GrantType;
 import org.govway.catalogo.servlets.model.Gruppo;
+import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.GruppoCreate;
 import org.govway.catalogo.servlets.model.IdentificativoServizioUpdate;
 import org.govway.catalogo.servlets.model.ItemGruppo;
@@ -1527,6 +1529,162 @@ public class ServiziTest {
             assertNull(g.isFruizione());
             assertNull(g.getSoggettoErogatore());
         });
+    }
+
+    @Autowired
+    private Configurazione configurazione;
+
+    private static final String UTENTE_SENZA_RUOLI = "utente_senza_ruoli_gruppi";
+
+    // Utente abilitato senza ruolo applicativo, senza organizzazione e senza referenze: vede solo il ramo pubblico
+    private void creaUtenteSenzaRuoli() {
+        UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setPrincipal(UTENTE_SENZA_RUOLI);
+        utentiController.createUtente(utente);
+    }
+
+    private UUID creaServizio(String nome) {
+        ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+        servizioCreate.setNome(nome);
+        servizioCreate.setSkipCollaudo(true);
+        servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
+        servizioCreate.setIdDominio(this.idDominio);
+
+        ReferenteCreate referente = new ReferenteCreate();
+        referente.setTipo(TipoReferenteEnum.REFERENTE);
+        referente.setIdUtente(ID_UTENTE_GESTORE);
+        servizioCreate.setReferenti(Arrays.asList(referente));
+
+        return serviziController.createServizio(servizioCreate).getBody().getIdServizio();
+    }
+
+    // Imposta direttamente stato, visibilita` e tipo del servizio, senza percorrere il workflow
+    private void impostaServizio(UUID idServizio, String stato, org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA visibilita,
+            org.govway.catalogo.core.orm.entity.TipoServizio tipo) {
+        ServizioEntity entity = servizioService.find(idServizio).orElseThrow();
+        entity.setStato(stato);
+        entity.setVisibilita(visibilita);
+        entity.setTipo(tipo);
+        this.entityManager.flush();
+    }
+
+    private UUID creaGruppo(String nome, TipoServizio tipo, UUID padre) {
+        GruppoCreate gruppoCreate = CommonUtils.getGruppoCreate();
+        gruppoCreate.setNome(nome);
+        gruppoCreate.setTipo(tipo);
+        gruppoCreate.setPadre(padre);
+        return gruppiController.createGruppo(gruppoCreate).getBody().getIdGruppo();
+    }
+
+    private void passaAUtenteSenzaRuoli() {
+        // La vista SERVIZI_GRUPPI e` mappata con @Subselect: serve il flush per renderle visibili le modifiche
+        this.entityManager.flush();
+        this.entityManager.clear();
+        CommonUtils.getSessionUtente(UTENTE_SENZA_RUOLI, securityContext, authentication, utenteService);
+    }
+
+    private List<UUID> idElementi(ResponseEntity<PagedModelItemServizioGruppo> response) {
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        return response.getBody().getContent().stream().map(ItemServizioGruppo::getId).collect(Collectors.toList());
+    }
+
+    // Issue 373: un servizio pubblico in uno stato presente in servizio.stati_adesione_consentita ma non nella
+    // lista storica (es. pubblicato_produzione_senza_collaudo) rendeva il gruppo visibile in elenco ma vuoto all'interno.
+    @Test
+    void testListServiziGruppiStatiAdesioneConsentitaDaConfigurazione() {
+        List<String> statiOriginali = this.configurazione.getServizio().getStatiAdesioneConsentita();
+        try {
+            List<String> stati = new ArrayList<>(statiOriginali);
+            stati.add("pubblicato_produzione_senza_collaudo");
+            this.configurazione.getServizio().setStatiAdesioneConsentita(stati);
+
+            this.getDominio();
+            UUID idGruppo = responseGruppo.getBody().getIdGruppo();
+
+            UUID idPubblico = creaServizio("servizio pubblico senza collaudo");
+            UUID idPrivato = creaServizio("servizio privato");
+            serviziController.addGruppoServizio(idPubblico, idGruppo);
+            serviziController.addGruppoServizio(idPrivato, idGruppo);
+            impostaServizio(idPubblico, "pubblicato_produzione_senza_collaudo", org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.PUBBLICO, org.govway.catalogo.core.orm.entity.TipoServizio.API);
+            impostaServizio(idPrivato, "pubblicato_produzione", org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.PRIVATO, org.govway.catalogo.core.orm.entity.TipoServizio.API);
+
+            creaUtenteSenzaRuoli();
+            passaAUtenteSenzaRuoli();
+
+            // Il gruppo compare tra quelli di primo livello...
+            List<UUID> primoLivello = idElementi(serviziController.listServiziGruppi(null, true, TipoServizio.API, null, 0, 10, null));
+            assertTrue(primoLivello.contains(idGruppo));
+
+            // ...e, aperto, mostra il solo servizio pubblico (quello privato resta invisibile all'utente senza ruoli)
+            List<UUID> contenuto = idElementi(serviziController.listServiziGruppi(idGruppo, null, TipoServizio.API, null, 0, 10, null));
+            assertEquals(List.of(idPubblico), contenuto);
+        } finally {
+            this.configurazione.getServizio().setStatiAdesioneConsentita(statiOriginali);
+        }
+    }
+
+    // Le righe GRUPPO della vista hanno lo stato convenzionale 'pubblicato_produzione': non devono sparire se la
+    // configurazione non lo include tra gli stati consentiti.
+    @Test
+    void testListServiziGruppiGruppoVisibileConStatiConfigurazioneSenzaPubblicatoProduzione() {
+        List<String> statiOriginali = this.configurazione.getServizio().getStatiAdesioneConsentita();
+        try {
+            this.configurazione.getServizio().setStatiAdesioneConsentita(new ArrayList<>(List.of("pubblicato_collaudo")));
+
+            this.getDominio();
+            UUID idGruppo = responseGruppo.getBody().getIdGruppo();
+
+            UUID idCollaudo = creaServizio("servizio pubblicato in collaudo");
+            UUID idProduzione = creaServizio("servizio pubblicato in produzione");
+            serviziController.addGruppoServizio(idCollaudo, idGruppo);
+            serviziController.addGruppoServizio(idProduzione, idGruppo);
+            impostaServizio(idCollaudo, "pubblicato_collaudo", org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.PUBBLICO, org.govway.catalogo.core.orm.entity.TipoServizio.API);
+            impostaServizio(idProduzione, "pubblicato_produzione", org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.PUBBLICO, org.govway.catalogo.core.orm.entity.TipoServizio.API);
+
+            creaUtenteSenzaRuoli();
+            passaAUtenteSenzaRuoli();
+
+            List<UUID> primoLivello = idElementi(serviziController.listServiziGruppi(null, true, TipoServizio.API, null, 0, 10, null));
+            assertTrue(primoLivello.contains(idGruppo));
+
+            // Solo lo stato configurato rende visibile il servizio
+            List<UUID> contenuto = idElementi(serviziController.listServiziGruppi(idGruppo, null, TipoServizio.API, null, 0, 10, null));
+            assertEquals(List.of(idCollaudo), contenuto);
+        } finally {
+            this.configurazione.getServizio().setStatiAdesioneConsentita(statiOriginali);
+        }
+    }
+
+    // Un gruppo API il cui unico contenuto visibile e` in un sottogruppo di tipo diverso non va restituito nel
+    // catalogo API: aperto, risulterebbe vuoto perche` il sottogruppo e` escluso dal filtro sul tipo.
+    @Test
+    void testListServiziGruppiSottogruppoDiTipoDiversoNonRendeIlGruppoNonVuoto() {
+        this.getDominio();
+        UUID idGruppoApi = creaGruppo("gruppo api", TipoServizio.API, null);
+        UUID idSottogruppoGenerico = creaGruppo("sottogruppo generico", TipoServizio.GENERICO, idGruppoApi);
+
+        UUID idGenerico = creaServizio("servizio generico");
+        impostaServizio(idGenerico, "pubblicato_produzione", org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.PUBBLICO, org.govway.catalogo.core.orm.entity.TipoServizio.GENERICO);
+        serviziController.addGruppoServizio(idGenerico, idSottogruppoGenerico);
+
+        creaUtenteSenzaRuoli();
+        this.entityManager.flush();
+        this.entityManager.clear();
+
+        // Gestore (idsServiziVisibili null): anche qui il tipo deve essere rispettato
+        List<UUID> primoLivelloGestore = idElementi(serviziController.listServiziGruppi(null, true, TipoServizio.API, null, 0, 10, null));
+        assertFalse(primoLivelloGestore.contains(idGruppoApi));
+
+        passaAUtenteSenzaRuoli();
+
+        List<UUID> primoLivello = idElementi(serviziController.listServiziGruppi(null, true, TipoServizio.API, null, 0, 10, null));
+        assertFalse(primoLivello.contains(idGruppoApi));
+
+        // Senza filtro sul tipo il gruppo resta visibile e il sottogruppo e` raggiungibile
+        List<UUID> primoLivelloSenzaTipo = idElementi(serviziController.listServiziGruppi(null, true, null, null, 0, 10, null));
+        assertTrue(primoLivelloSenzaTipo.contains(idGruppoApi));
+        List<UUID> contenuto = idElementi(serviziController.listServiziGruppi(idGruppoApi, null, null, null, 0, 10, null));
+        assertEquals(List.of(idSottogruppoGenerico), contenuto);
     }
 
     //TODO: ordinamento per versione non funzionante

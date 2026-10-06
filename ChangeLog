@@ -315,6 +315,57 @@
 	  colonna è affiancata a `Soggetto Fruitore`, valorizzato solo per i servizi
 	  intermediati.
 
+2026-10-06  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 373: il catalogo dei servizi non restituisce più gruppi che, una volta aperti, risultano
+	  vuoti. Il contenuto del gruppo usa gli stati di visibilità pubblica della configurazione
+	  (servizio.stati_adesione_consentita) invece di una lista fissa, come l'elenco dei servizi; un
+	  gruppo filtrato per tipo (API/generico) è considerato non vuoto solo per servizi e sottogruppi
+	  di quel tipo.
+
+	Issue 369: il percorso dei gruppi (path_gruppo) restituito da /servizi_gruppi, /gruppi e
+	  /servizi/{id}/gruppi riporta l'intera gerarchia dalla radice; prima conteneva al più due
+	  livelli e, risalendo la gerarchia dalla scheda servizio, il breadcrumb perdeva i gruppi radice.
+
+2026-10-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Griglia gruppi dei servizi: l'icona cartella della card apre il gruppo; l'icona "Apri in nuova
+	  scheda" dei servizi funziona; titolo, immagine e cartella della card mostrano il focus da
+	  tastiera e si attivano con Invio.
+
+	Statistiche servizi: nel grafico a barre raggruppate (es. distribuzione per esiti) le colonne
+	  non si assottigliano piu' con molti intervalli: spaziatura tra i gruppi calcolata in base al
+	  loro numero (ngx-charts la ricava da un padding fisso in pixel).
+
+2026-09-30  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Caricamento immagine (app-photo-base64): l'area attiva e il cursore a mano sono limitati
+	  all'icona matita (prima il cursore a mano era sull'immagine, non cliccabile); focus da tastiera
+	  visibile sulla matita.
+
+2026-09-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 371: rimuovendo il token "Gruppo" dai filtri di ricerca dei servizi viene svuotato
+	  anche il campo Gruppo del pannello; la "x" che cancella tutte le scelte delle select
+	  multiple funziona (fix Issue 370).
+
+	Issue 370: menu a tendina dei filtri di ricerca uniformati: i select nativi diventano ng-select
+	  (stessa freccia apri/chiudi e stesso pannello); la freccia chiude di nuovo le select multiple
+	  (Profilo, Tags); i menu non vengono piu' tagliati dal pannello di ricerca.
+
+	Issue 369: lista servizi aperta su un gruppo (ritorno dalla scheda servizio, link diretto)
+	  mostra di nuovo l'intera gerarchia nel breadcrumb: riuso del percorso di navigazione
+	  salvato e, in mancanza, risalita dei gruppi padre livello per livello.
+
+	Vulnerabilita' dipendenze (dev, tooling di build): override di sicurezza aggiornati a
+	  versioni patchate nella stessa major: fast-uri 3.1.6 -> 3.1.8 (GHSA-58mr, GHSA-qw65),
+	  ip-address 10.3.1 -> 10.7.2 (GHSA-rpw4, GHSA-2vr4), undici 6.28.0 -> 6.28.1 e
+	  7.29.0 -> 7.29.1 (GHSA-3wwx).
+
 2026-09-25  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
