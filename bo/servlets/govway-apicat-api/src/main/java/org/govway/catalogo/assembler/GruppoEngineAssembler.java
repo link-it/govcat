@@ -113,13 +113,11 @@ public class GruppoEngineAssembler extends CoreEngineAssembler {
 	
 	public List<PathGruppo> getPathGruppo(GruppoEntity gruppo) {
 		List<PathGruppo> lst = new ArrayList<>();
-		
-		lst.add(getPath(gruppo));
-		
-		if(gruppo.getGruppoPadre()!=null) {
-			lst.add(0, getPath(gruppo.getGruppoPadre()));
+
+		for(GruppoEntity g = gruppo; g != null; g = g.getGruppoPadre()) {
+			lst.add(0, getPath(g));
 		}
-		
+
 		return lst;
 	}
 

@@ -7,6 +7,10 @@
 	  gruppo filtrato per tipo (API/generico) è considerato non vuoto solo per servizi e sottogruppi
 	  di quel tipo.
 
+	Issue 369: il percorso dei gruppi (path_gruppo) restituito da /servizi_gruppi, /gruppi e
+	  /servizi/{id}/gruppi riporta l'intera gerarchia dalla radice; prima conteneva al più due
+	  livelli e, risalendo la gerarchia dalla scheda servizio, il breadcrumb perdeva i gruppi radice.
+
 2026-10-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
