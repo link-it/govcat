@@ -800,7 +800,7 @@ public class AdesioniController implements AdesioniApi {
 
 	@Override
 	public ResponseEntity<PagedModelItemAdesione> listAdesioni(List<String> stato, UUID idSoggettoAderente, UUID idOrganizzazioneAderente, UUID idGruppo,
-			UUID idDominio, UUID idServizio, String idLogico, UUID idAdesione, UUID idClient, UUID richiedente, Boolean inAttesa, List<RuoloReferenteEnum> ruoloReferente, Boolean dashboard, StatoConfigurazioneAutomaticaEnum statoConfigurazioneAutomatica, String q,  Integer page,
+			UUID idDominio, UUID idServizio, String idLogico, UUID idAdesione, UUID idClient, UUID richiedente, Boolean inAttesa, List<RuoloReferenteEnum> ruoloReferente, Boolean dashboard, StatoConfigurazioneAutomaticaEnum statoConfigurazioneAutomatica, List<String> statoServizio, String q,  Integer page,
 			Integer size, List<String> sort) {
 
 		try {
@@ -849,6 +849,7 @@ public class AdesioniController implements AdesioniApi {
 				}
 
 				specification.setStati(stato);
+				specification.setStatiServizio(statoServizio);
 
 				Specification<AdesioneEntity> realSpecification = null;
 
@@ -1077,7 +1078,7 @@ public class AdesioniController implements AdesioniApi {
 	@Override
 	public ResponseEntity<Resource> exportAdesioni(List<String> stato, UUID idSoggettoAderente, UUID idOrganizzazioneAderente, UUID idGruppo,
 			UUID idDominio, UUID idServizio, String idLogico, UUID idClient, UUID richiedente, Boolean inAttesa,
-			StatoConfigurazioneAutomaticaEnum statoConfigurazioneAutomatica, List<UUID> idAdesioni, String q) {
+			StatoConfigurazioneAutomaticaEnum statoConfigurazioneAutomatica, List<UUID> idAdesioni, List<String> statoServizio, String q) {
 		try {
 			this.logger.info("Invocazione in corso ...");
 			this.authorization.authorizeList();
@@ -1122,6 +1123,7 @@ public class AdesioniController implements AdesioniApi {
 				}
 
 				specification.setStati(stato);
+				specification.setStatiServizio(statoServizio);
 
 				List<AdesioneEntity> findAll = this.service.findAll(
 						specification,
@@ -2128,7 +2130,7 @@ public class AdesioniController implements AdesioniApi {
 		List<String> stato, UUID idSoggetto, UUID idOrganizzazione, UUID idGruppoPadre,
 		UUID idDominio, UUID idServizio, String idLogico,
 		UUID idClient, UUID richiedente, Boolean inAttesa,
-		List<UUID> id, String q,
+		List<UUID> id, List<String> statoServizio, String q,
 		Integer page, Integer size, List<String> sort) {
 		try {
 
@@ -2166,6 +2168,7 @@ public class AdesioniController implements AdesioniApi {
 				}
 
 				specification.setStati(stato);
+				specification.setStatiServizio(statoServizio);
 
 				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("searchTerms"));
 

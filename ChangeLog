@@ -1,6 +1,10 @@
 2026-10-06  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
+	Issue 375: aggiunto alla lista, all'export e al cambio stato massivo delle
+	  adesioni il filtro stato_servizio, che restringe le adesioni in base allo stato
+	  del servizio a cui si riferiscono (più valori in OR; es. archiviato per le
+	  adesioni di servizi archiviati); se assente, nessun filtro.
 	Issue 376: aggiunto alla lista dei servizi il filtro api_erogate_aderente:
 	  true restituisce i servizi con almeno una API erogata dal soggetto aderente,
 	  false quelli senza API erogate dall'aderente (compresi i servizi senza API);

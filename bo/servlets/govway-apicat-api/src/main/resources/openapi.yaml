@@ -4431,6 +4431,7 @@ paths:
       - $ref: "#/components/parameters/in_attesa_query_optional"
       - $ref: "#/components/parameters/stato_configurazione_automatica_query_optional"
       - $ref: "#/components/parameters/id_adesione_query_optional_multi"
+      - $ref: "#/components/parameters/stato_servizio_query_optional"
       - $ref: "#/components/parameters/q_query_optional"
       responses:
         "200":
@@ -4473,6 +4474,7 @@ paths:
       - $ref: "#/components/parameters/ruolo_referente_adesione_query_optional"
       - $ref: "#/components/parameters/dashboard_query_optional"
       - $ref: "#/components/parameters/stato_configurazione_automatica_query_optional"
+      - $ref: "#/components/parameters/stato_servizio_query_optional"
       - $ref: "#/components/parameters/q_query_optional"
       - $ref: "#/components/parameters/page_query_optional"
       - $ref: "#/components/parameters/size_query_optional"
@@ -4546,6 +4548,7 @@ paths:
     - $ref: "#/components/parameters/richiedente_query_optional"
     - $ref: "#/components/parameters/in_attesa_query_optional"
     - $ref: "#/components/parameters/ids_adesione_query_optional"
+    - $ref: "#/components/parameters/stato_servizio_query_optional"
     - $ref: "#/components/parameters/q_query_optional"
     - $ref: "#/components/parameters/page_query_optional"
     - $ref: "#/components/parameters/size_query_optional"
@@ -11534,6 +11537,15 @@ components:
       name: "stato"
       in: "query"
       description: "Stato del servizio/adesione"
+      required: false
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/GenericSearchString"
+    stato_servizio_query_optional:
+      name: "stato_servizio"
+      in: "query"
+      description: "Stato del servizio a cui si riferisce l'adesione"
       required: false
       schema:
         type: array

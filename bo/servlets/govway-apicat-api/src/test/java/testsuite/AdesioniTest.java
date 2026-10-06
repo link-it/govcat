@@ -227,6 +227,7 @@ public class AdesioniTest {
     private static final String UTENTE_RICHIEDENTE_ADESIONE = "utente_richiedente_adesione";
     
     private static final String STATO_PUBBLICATO_IN_COLLAUDO = "pubblicato_collaudo";
+    private static final String STATO_ARCHIVIATO = "archiviato";
     
     private static UUID ID_UTENTE_GESTORE;
     private static UUID ID_UTENTE_RICHIEDENTE_ADESIONE;
@@ -531,7 +532,7 @@ public class AdesioniTest {
         entityManager.clear();
 
         ResponseEntity<Resource> response = adesioniController.exportAdesioni(
-            null, null, null, null, null, null, null, null, null, false, null, null, null
+            null, null, null, null, null, null, null, null, null, false, null, null, null, null
         );
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -561,7 +562,7 @@ public class AdesioniTest {
 
         ResponseEntity<Resource> response = adesioniController.exportAdesioni(
             null, null, null, null, null, null, null, null, null, false, null,
-            Arrays.asList(adesione.getIdAdesione()), null
+            Arrays.asList(adesione.getIdAdesione()), null, null
         );
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1984,7 +1985,7 @@ public class AdesioniTest {
         // Act
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
             null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-            null, null, null, null, false, null, null, null, null, 0, 10, null);
+            null, null, null, null, false, null, null, null, null, null, 0, 10, null);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1993,7 +1994,85 @@ public class AdesioniTest {
         
         assertFalse(listAdesione.isEmpty());
     }
- 
+
+    /**
+     * Issue 375: il filtro `stato_servizio` restringe le adesioni in base allo stato del servizio
+     * a cui si riferiscono (valori in OR), non allo stato dell'adesione.
+     */
+    @Test
+    void testListAdesioniFiltroStatoServizio() {
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA(STATO_PUBBLICATO_IN_COLLAUDO, serviziController, servizio.getIdServizio());
+
+        Adesione adesione = this.getAdesione();
+        assertEquals("bozza", adesione.getStato());
+
+        // Nessun filtro: l'adesione e` presente
+        assertTrue(this.contieneAdesione(this.listAdesioniStatoServizio(servizio, null), adesione));
+
+        // Stato del servizio corrispondente
+        assertTrue(this.contieneAdesione(this.listAdesioniStatoServizio(servizio, Arrays.asList(STATO_PUBBLICATO_IN_COLLAUDO)), adesione));
+
+        // Il filtro riguarda lo stato del servizio: lo stato dell'adesione (bozza) non viene considerato
+        assertFalse(this.contieneAdesione(this.listAdesioniStatoServizio(servizio, Arrays.asList("bozza")), adesione));
+        assertFalse(this.contieneAdesione(this.listAdesioniStatoServizio(servizio, Arrays.asList(STATO_ARCHIVIATO)), adesione));
+
+        StatoUpdate statoUpdate = new StatoUpdate();
+        statoUpdate.setStato(STATO_ARCHIVIATO);
+        serviziController.updateStatoServizio(servizio.getIdServizio(), statoUpdate, null);
+        entityManager.flush();
+        entityManager.clear();
+
+        // Servizio archiviato: l'adesione si recupera filtrando per lo stato archiviato
+        assertTrue(this.contieneAdesione(this.listAdesioniStatoServizio(servizio, Arrays.asList(STATO_ARCHIVIATO)), adesione));
+        assertFalse(this.contieneAdesione(this.listAdesioniStatoServizio(servizio, Arrays.asList(STATO_PUBBLICATO_IN_COLLAUDO)), adesione));
+
+        // Piu` valori in OR
+        assertTrue(this.contieneAdesione(this.listAdesioniStatoServizio(servizio, Arrays.asList(STATO_PUBBLICATO_IN_COLLAUDO, STATO_ARCHIVIATO)), adesione));
+    }
+
+    /**
+     * Issue 375: l'export applica il filtro `stato_servizio` come la lista.
+     */
+    @Test
+    void testExportAdesioniFiltroStatoServizio() throws Exception {
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA(STATO_PUBBLICATO_IN_COLLAUDO, serviziController, servizio.getIdServizio());
+
+        Adesione adesione = this.getAdesione();
+
+        entityManager.flush();
+        entityManager.clear();
+
+        assertTrue(this.exportAdesioniStatoServizio(Arrays.asList(STATO_PUBBLICATO_IN_COLLAUDO)).contains(adesione.getIdAdesione().toString()));
+        assertFalse(this.exportAdesioniStatoServizio(Arrays.asList(STATO_ARCHIVIATO)).contains(adesione.getIdAdesione().toString()));
+    }
+
+    private List<ItemAdesione> listAdesioniStatoServizio(Servizio servizio, List<String> statoServizio) {
+        ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
+                null, null, null, null, null, servizio.getIdServizio(),
+                null, null, null, null, false, null, null, null, statoServizio, null, 0, 100, null);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        return response.getBody().getContent();
+    }
+
+    private String exportAdesioniStatoServizio(List<String> statoServizio) throws Exception {
+        ResponseEntity<Resource> response = adesioniController.exportAdesioni(
+                null, null, null, null, null, null, null, null, null, false, null, null, statoServizio, null);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        return new String(response.getBody().getContentAsByteArray());
+    }
+
+    private boolean contieneAdesione(List<ItemAdesione> adesioni, Adesione adesione) {
+        return adesioni.stream().anyMatch(a -> a.getIdAdesione().equals(adesione.getIdAdesione()));
+    }
+
     @Test
     void testListAdesioneSortedNameDesc() {
     	// Setup
@@ -2031,7 +2110,7 @@ public class AdesioniTest {
         
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
                 null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-                null, null, null, null, false, null, null, null, null, 0, 10, sort);
+                null, null, null, null, false, null, null, null, null, null, 0, 10, sort);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -2080,7 +2159,7 @@ public class AdesioniTest {
 
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
                 null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-                null, null, null, null, false, null, null, null, null, 0, 10, sort);
+                null, null, null, null, false, null, null, null, null, null, 0, 10, sort);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -2130,7 +2209,7 @@ public class AdesioniTest {
 
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
                 null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-                null, null, null, null, false, null, null, null, null, 0, 10, sort);
+                null, null, null, null, false, null, null, null, null, null, 0, 10, sort);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -2178,7 +2257,7 @@ public class AdesioniTest {
         	
         	ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
                     null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-                    null, null, null, null, false, null, null, null, null, n, numeroElementiPerPagina, null);
+                    null, null, null, null, false, null, null, null, null, null, n, numeroElementiPerPagina, null);
 
             // Verifica del successo
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -2220,7 +2299,7 @@ public class AdesioniTest {
 
         assertThrows(NotAuthorizedException.class, () -> adesioniController.listAdesioni(
                 null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-                null, null, null, null, false, null, null, null, null, 0, 10, null));
+                null, null, null, null, false, null, null, null, null, null, 0, 10, null));
     }
 
     @Test
@@ -2240,7 +2319,7 @@ public class AdesioniTest {
         // Act - chiamata con dashboard=true come gestore
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
             null, null, null, null, null, null,
-            null, null, null, null, false, null, true, null, null, 0, 10, null);
+            null, null, null, null, false, null, true, null, null, null, 0, 10, null);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -2264,7 +2343,7 @@ public class AdesioniTest {
         // Act - chiamata con dashboard=true
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
             null, null, null, null, null, null,
-            null, null, null, null, false, null, true, null, null, 0, 10, null);
+            null, null, null, null, false, null, true, null, null, null, 0, 10, null);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -2318,7 +2397,7 @@ public class AdesioniTest {
         // Chiamo la dashboard
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
             null, null, null, null, null, null,
-            null, null, null, null, false, null, true, null, null, 0, 10, null);
+            null, null, null, null, false, null, true, null, null, null, 0, 10, null);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -2352,7 +2431,7 @@ public class AdesioniTest {
         CommonUtils.getSessionUtente(UTENTE_RICHIEDENTE_ADESIONE, securityContext, authentication, utenteService);
         ResponseEntity<PagedModelItemAdesione> responseOperatore = adesioniController.listAdesioni(
             null, null, null, null, null, null,
-            null, null, null, null, false, null, null, null, null, 0, 10, null);
+            null, null, null, null, false, null, null, null, null, null, 0, 10, null);
         assertEquals(HttpStatus.OK, responseOperatore.getStatusCode());
         assertNotNull(responseOperatore.getBody());
         boolean visibileOperatore = responseOperatore.getBody().getContent().stream()
@@ -2377,7 +2456,7 @@ public class AdesioniTest {
         CommonUtils.getSessionUtente(UTENTE_RICHIEDENTE_ADESIONE, securityContext, authentication, utenteService);
         ResponseEntity<PagedModelItemAdesione> responseAmministratore = adesioniController.listAdesioni(
             null, null, null, null, null, null,
-            null, null, null, null, false, null, null, null, null, 0, 10, null);
+            null, null, null, null, false, null, null, null, null, null, 0, 10, null);
         assertEquals(HttpStatus.OK, responseAmministratore.getStatusCode());
         assertNotNull(responseAmministratore.getBody());
         boolean visibileAmministratore = responseAmministratore.getBody().getContent().stream()
@@ -6856,7 +6935,7 @@ public class AdesioniTest {
     			null, null, null, null,
     			null, null, null,
     			null, null, null,
-    			ids, null,
+    			ids, null, null,
     			0, 10, null);
 
         // Assert
