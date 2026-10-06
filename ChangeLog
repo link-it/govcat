@@ -1,3 +1,12 @@
+2026-10-06  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 373: il catalogo dei servizi non restituisce più gruppi che, una volta aperti, risultano
+	  vuoti. Il contenuto del gruppo usa gli stati di visibilità pubblica della configurazione
+	  (servizio.stati_adesione_consentita) invece di una lista fissa, come l'elenco dei servizi; un
+	  gruppo filtrato per tipo (API/generico) è considerato non vuoto solo per servizi e sottogruppi
+	  di quel tipo.
+
 2026-10-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

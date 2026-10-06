@@ -2032,9 +2032,13 @@ public class ServiziController implements ServiziApi {
 				specification.setGruppoPadreNull(Optional.ofNullable(gruppoPadreNull));
 				specification.setQ(Optional.ofNullable(q));
 				specification.setUtenteAdmin(Optional.of(this.coreAuthorization.isAdmin()));
+				// Stessi stati del ramo pubblico usati per idsServiziVisibili (e da listServizi): se divergono,
+				// un gruppo puo` risultare non vuoto in elenco ma vuoto una volta aperto.
+				specification.setStatiAderibili(this.configurazione.getServizio().getStatiAdesioneConsentita());
 
-				if(tipo != null) {
-					specification.setTipoComponente(Optional.of(this.dettaglioAssembler.toTipo(tipo)));
+				final org.govway.catalogo.core.orm.entity.TipoServizio tipoComponente = tipo != null ? this.dettaglioAssembler.toTipo(tipo) : null;
+				if(tipoComponente != null) {
+					specification.setTipoComponente(Optional.of(tipoComponente));
 				}
 
 				this.logger.info("POST init Specification");
@@ -2094,7 +2098,7 @@ public class ServiziController implements ServiziApi {
 
 				List<ServizioGruppoEntity> filtered = findAll
 														.stream()
-														.filter(sg -> !isEmpty(sg, idsVisibili))
+														.filter(sg -> !isEmpty(sg, idsVisibili, tipoComponente))
 														.collect(Collectors.toList());
 
 				this.logger.info("POST filtered");
@@ -2163,7 +2167,7 @@ public class ServiziController implements ServiziApi {
 	}
 	 */
 	
-	private boolean isEmpty(ServizioGruppoEntity sg, Set<Long> idsServiziVisibili) {
+	private boolean isEmpty(ServizioGruppoEntity sg, Set<Long> idsServiziVisibili, org.govway.catalogo.core.orm.entity.TipoServizio tipoComponente) {
 	    if (sg.getTipo().equals(TipoServizioGruppoEnum.SERVIZIO)) {
 	        return false;
 	    }
@@ -2171,7 +2175,7 @@ public class ServiziController implements ServiziApi {
 	    Optional<GruppoEntity> gruppoEntity = this.gruppoService.find(UUID.fromString(sg.getIdEntita()));
 
 	    if (gruppoEntity.isPresent()) {
-	        return isEmpty(gruppoEntity.get(), idsServiziVisibili);
+	        return isEmpty(gruppoEntity.get(), idsServiziVisibili, tipoComponente);
 	    }
 
 	    return true;
@@ -2183,17 +2187,25 @@ public class ServiziController implements ServiziApi {
 	 * {@code idsServiziVisibili} contiene gli id dei servizi visibili, oppure e` {@code null} per
 	 * admin/coordinatore (ogni servizio e` visibile). Cosi` qui si naviga solo l'alberatura
 	 * gruppi/servizi (leggera), senza toccare referenti e adesioni di ogni servizio.
+	 * Se {@code tipoComponente} e` valorizzato, servizi e sottogruppi di tipo diverso non contano: il
+	 * contenuto del gruppo (filtrato per tipo componente) non li mostrerebbe.
 	 */
-	private boolean isEmpty(GruppoEntity gruppo, Set<Long> idsServiziVisibili) {
+	private boolean isEmpty(GruppoEntity gruppo, Set<Long> idsServiziVisibili, org.govway.catalogo.core.orm.entity.TipoServizio tipoComponente) {
 
 		for(ServizioEntity servizio: gruppo.getServizi()) {
+			if(tipoComponente != null && !tipoComponente.equals(servizio.getTipo())) {
+				continue;
+			}
 			if(idsServiziVisibili == null || idsServiziVisibili.contains(servizio.getId())) {
 				return false;
 			}
 		}
 
 		for(GruppoEntity figlio: gruppo.getFigli()) {
-			if(!isEmpty(figlio, idsServiziVisibili)) {
+			if(tipoComponente != null && !tipoComponente.equals(figlio.getTipo())) {
+				continue;
+			}
+			if(!isEmpty(figlio, idsServiziVisibili, tipoComponente)) {
 				return false;
 			}
 		}
