@@ -1,6 +1,9 @@
 2026-10-07  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Test: allineati gli spec unitari alle modifiche recenti (mock di AuthenticationService,
+	  route, parametri e campi rimossi); la suite apicat-app torna interamente verde.
+
 	Issue 375: aggiunto alla lista adesioni il filtro multiplo "Stato servizio" (incluso archiviato),
 	  propagato all'export e al cambio stato massivo su ricerca come parametri ripetuti.
 

@@ -65,6 +65,7 @@ describe('ServizioDetailsComponent', () => {
   } as any;
 
   const mockAuthenticationService = {
+    _getWorkflowCambiStato: vi.fn().mockReturnValue(null),
     isAnonymous: vi.fn().mockReturnValue(false),
     hasPermission: vi.fn().mockReturnValue(true),
     _getConfigModule: vi.fn().mockReturnValue({ api: { abilitato: true }, generico: { abilitato: false } }),
@@ -347,10 +348,7 @@ describe('ServizioDetailsComponent', () => {
       component.id = '10';
       component._loadService();
 
-      expect(mockRouter.navigate).toHaveBeenCalledWith(
-        ['servizi', '10', 'view'],
-        expect.anything()
-      );
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['servizi', '10', 'view']);
     });
 
     it('should call Tools.OnError on grant error', () => {
@@ -629,10 +627,7 @@ describe('ServizioDetailsComponent', () => {
       component._onCancelEdit();
 
       expect(component._isEdit).toBe(false);
-      expect(mockRouter.navigate).toHaveBeenCalledWith(
-        ['servizi'],
-        expect.objectContaining({ relativeTo: expect.anything() })
-      );
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['servizi']);
     });
 
     it('should navigate to model/id when _isNew and _useRoute and has id', () => {
@@ -1349,11 +1344,12 @@ describe('ServizioDetailsComponent', () => {
   // ---------------------------------------------------------------------------
   describe('onLinkClick', () => {
     it('should navigate to item route with service data', () => {
+      component.id = '10';
       component.data = { id_servizio: '10' };
       component._grant = { ruoli: ['gestore'] } as any;
       component.onLinkClick({ route: 'api' });
       expect(mockRouter.navigate).toHaveBeenCalledWith(
-        ['api'],
+        ['servizi', '10', 'api'],
         expect.objectContaining({ state: { service: component.data, grant: component._grant } })
       );
     });
@@ -1369,7 +1365,7 @@ describe('ServizioDetailsComponent', () => {
       component.getDomini('test').subscribe(result => {
         expect(result).toEqual([{ id_dominio: 1 }]);
       });
-      expect(mockApiService.getList).toHaveBeenCalledWith('domini', expect.objectContaining({ params: { q: 'test' } }));
+      expect(mockApiService.getList).toHaveBeenCalledWith('domini', expect.objectContaining({ params: { q: 'test', size: 1000 } }));
     });
 
     it('should add deprecato param for non-gestore', () => {
@@ -1610,7 +1606,7 @@ describe('ServizioDetailsComponent', () => {
       component.data = { id_servizio: '10' };
       (component as any).__deleteService();
       expect(mockApiService.deleteElement).toHaveBeenCalledWith('servizi', '10');
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['servizi'], expect.anything());
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['servizi']);
     });
 
     it('should set error on failure', () => {
@@ -1681,10 +1677,10 @@ describe('ServizioDetailsComponent', () => {
   // _onCloseNotificationBar
   // ---------------------------------------------------------------------------
   describe('_onCloseNotificationBar', () => {
-    it('should navigate to model/id', () => {
+    it('should navigate to the classic view of model/id', () => {
       component.id = '10';
       component._onCloseNotificationBar({});
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['servizi', '10'], expect.anything());
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['servizi', '10', 'classic']);
     });
   });
 
@@ -2130,7 +2126,7 @@ describe('ServizioDetailsComponent', () => {
     it('should call utils.getAnagrafiche with tables', async () => {
       mockUtilService.getAnagrafiche.mockResolvedValue({ 'classi-utente': [], gruppi: [], tags: [], tassonomie: [] });
       await component.loadAnagrafiche();
-      expect(mockUtilService.getAnagrafiche).toHaveBeenCalledWith(['classi-utente', 'gruppi', 'tags', 'tassonomie']);
+      expect(mockUtilService.getAnagrafiche).toHaveBeenCalledWith(['classi-utente', 'gruppi', { name: 'tags', param: { size: 1000 } }, 'tassonomie']);
       expect(component.anagrafiche).toBeDefined();
     });
   });

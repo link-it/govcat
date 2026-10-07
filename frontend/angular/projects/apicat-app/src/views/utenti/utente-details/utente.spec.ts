@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { Utente, Ruolo, Stato } from './utente';
+import { Utente, Ruolo, RuoloPdnd, Stato } from './utente';
 
 describe('Ruolo enum', () => {
   it('should have correct values', () => {
@@ -52,7 +52,8 @@ describe('Utente', () => {
     expect(model.organizzazione).toBeNull();
     expect(model.organizzazione_pending).toBeNull();
     expect(model.classi_utente).toBeNull();
-    expect(model.referente_tecnico).toBe(false);
+    expect(model.azienda_esterna).toBeNull();
+    expect(model.ruolo_pdnd).toBe(RuoloPdnd.NESSUNO);
   });
 
   it('should assign all properties from data', () => {
@@ -74,7 +75,8 @@ describe('Utente', () => {
       organizzazione: { id_organizzazione: 'org-1', nome: 'Org Test' },
       organizzazione_pending: { id_organizzazione: 'org-2', nome: 'Org Pending' },
       classi_utente: { id_classe_utente: 'cls-1', nome: 'Admin' },
-      referente_tecnico: true
+      azienda_esterna: 'Azienda Srl',
+      ruolo_pdnd: RuoloPdnd.ADMIN
     };
     const model = new Utente(data);
     expect(model.id).toBe(1);
@@ -94,7 +96,8 @@ describe('Utente', () => {
     expect(model.organizzazione).toEqual({ id_organizzazione: 'org-1', nome: 'Org Test' });
     expect(model.organizzazione_pending).toEqual({ id_organizzazione: 'org-2', nome: 'Org Pending' });
     expect(model.classi_utente).toEqual({ id_classe_utente: 'cls-1', nome: 'Admin' });
-    expect(model.referente_tecnico).toBe(true);
+    expect(model.azienda_esterna).toBe('Azienda Srl');
+    expect(model.ruolo_pdnd).toBe(RuoloPdnd.ADMIN);
   });
 
   it('should accept enum values as strings', () => {
@@ -128,15 +131,15 @@ describe('Utente', () => {
   it('should handle empty data object', () => {
     const model = new Utente({});
     expect(model.id).toBeNull();
-    expect(model.referente_tecnico).toBe(false);
+    expect(model.ruolo_pdnd).toBe(RuoloPdnd.NESSUNO);
   });
 
   it('should handle partial data and keep remaining defaults', () => {
-    const data = { id: 10, nome: 'Luca', referente_tecnico: true };
+    const data = { id: 10, nome: 'Luca', azienda_esterna: 'Azienda Srl' };
     const model = new Utente(data);
     expect(model.id).toBe(10);
     expect(model.nome).toBe('Luca');
-    expect(model.referente_tecnico).toBe(true);
+    expect(model.azienda_esterna).toBe('Azienda Srl');
     expect(model.cognome).toBeNull();
     expect(model.stato).toBeNull();
   });

@@ -99,10 +99,15 @@ describe('ModalAddReferentComponent', () => {
   });
 
   describe('onChangeTipoReferente', () => {
+    beforeEach(() => {
+      component.initEditForm();
+    });
+
     it('should set referentiTipo and filter for referente', () => {
       component.onChangeTipoReferente({ value: 'referente' });
       expect(component.referentiTipo).toBe('referente');
       expect(component.referentiFilter).toBe('utente_organizzazione,gestore,coordinatore');
+      expect(component.editFormGroup.controls.id_utente.enabled).toBe(true);
     });
 
     it('should set empty filter for referente_tecnico', () => {

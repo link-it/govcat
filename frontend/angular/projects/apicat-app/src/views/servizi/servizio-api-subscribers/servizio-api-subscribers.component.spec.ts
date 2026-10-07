@@ -54,6 +54,16 @@ describe('ServizioApiSubscribersComponent', () => {
     _getConfigModule: vi.fn().mockReturnValue({})
   } as any;
 
+  const mockModalService = {
+    show: vi.fn().mockReturnValue({ content: { onClose: new Subject<any>() }, hide: vi.fn() })
+  } as any;
+
+  const mockPdndService = {
+    approveAgreement: vi.fn().mockReturnValue(of({})),
+    agreementPurposes: vi.fn().mockReturnValue(of({})),
+    approvePurpose: vi.fn().mockReturnValue(of({}))
+  } as any;
+
   function createComponent() {
     return new ServizioApiSubscribersComponent(
       mockRoute,
@@ -63,7 +73,9 @@ describe('ServizioApiSubscribersComponent', () => {
       mockTools,
       mockApiService,
       mockUtils,
-      mockAuthenticationService
+      mockAuthenticationService,
+      mockModalService,
+      mockPdndService
     );
   }
 

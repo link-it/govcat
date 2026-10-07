@@ -27,6 +27,8 @@ describe('AdesioneReferentiComponent', () => {
     getUtenti: vi.fn().mockReturnValue(of([])),
   } as any;
   const mockAuthService = {
+    isTransitionAllowedForProfiles: vi.fn().mockReturnValue(true),
+    getRequiredProfiles: vi.fn().mockImplementation((e: any) => [...new Set((e?.client_richiesti || []).map((c: any) => c?.profilo).filter(Boolean))]),
     isAnonymous: vi.fn().mockReturnValue(false),
     hasPermission: vi.fn().mockReturnValue(true),
     _getConfigModule: vi.fn().mockReturnValue({}),
@@ -394,7 +396,7 @@ describe('AdesioneReferentiComponent', () => {
     mockAuthService.isGestore.mockReturnValue(false);
     mockAuthService.canChangeStatus.mockReturnValue(true);
     expect(component._hasActions()).toBe(true);
-    expect(mockAuthService.canChangeStatus).toHaveBeenCalledWith('adesione', 'bozza', 'stato_successivo', { ruoli: ['referente'] });
+    expect(mockAuthService.canChangeStatus).toHaveBeenCalledWith('adesione', 'bozza', 'stato_successivo', { ruoli: ['referente'] }, '', []);
   });
 
   it('_hasActions should return false when no adesione and not gestore', () => {

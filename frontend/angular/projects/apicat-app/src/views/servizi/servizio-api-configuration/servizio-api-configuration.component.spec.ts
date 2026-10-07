@@ -62,6 +62,7 @@ describe('ServizioApiConfigurationComponent', () => {
   } as any;
 
   const mockAuthenticationService = {
+    getCustomPropertyRequirement: vi.fn().mockImplementation((m: string, s: string, c: string, r: boolean) => ({ now: !!(r && s && c) && mockAuthenticationService._getClassesMandatory(m, m, s).includes(c), nextState: null, fromState: null })),
     isAnonymous: vi.fn().mockReturnValue(false),
     hasPermission: vi.fn().mockReturnValue(true),
     _getConfigModule: vi.fn().mockReturnValue({}),
@@ -2239,7 +2240,7 @@ describe('ServizioApiConfigurationComponent', () => {
           }
         }
       };
-      mockAuthenticationService._getFieldsMandatory.mockReturnValue(['collaudo']);
+      mockAuthenticationService._getClassesMandatory.mockReturnValue(['collaudo']);
       component.servizioApi = {
         gruppi_auth_type: [{ profilo: 'pdnd' }],
         proprieta_custom: []

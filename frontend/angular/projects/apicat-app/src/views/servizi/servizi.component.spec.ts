@@ -228,7 +228,13 @@ describe('ServiziComponent', () => {
     expect(component._message).toBe('APP.MESSAGE.NoResults');
   });
 
-  it('should navigate on _onNew', () => {
+  it('should navigate to the wizard on _onNew', () => {
+    component._onNew();
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['servizi', 'new', 'wizard']);
+  });
+
+  it('should navigate to the classic form on _onNew when wizardNewLayout is false', () => {
+    component.config = { AppConfig: { Services: { wizardNewLayout: false } } };
     component._onNew();
     expect(mockRouter.navigate).toHaveBeenCalledWith(['servizi', 'new']);
   });
@@ -2705,7 +2711,7 @@ describe('ServiziComponent', () => {
       expect(component._workflowStatiFiltered.some((s: any) => s.value === 'archiviato')).toBe(false);
     });
 
-    it('should include archiviato when gestore', () => {
+    it('should exclude archiviato even when gestore (dedicated control)', () => {
       const cfg = {
         servizio: {
           workflow: { stati: ['bozza', 'pubblicato', 'archiviato'] },
@@ -2717,7 +2723,7 @@ describe('ServiziComponent', () => {
 
       component._createWorkflowStati();
 
-      expect(component._workflowStatiFiltered.some((s: any) => s.value === 'archiviato')).toBe(true);
+      expect(component._workflowStatiFiltered.some((s: any) => s.value === 'archiviato')).toBe(false);
     });
 
     it('should update searchFields stato enum values', () => {
