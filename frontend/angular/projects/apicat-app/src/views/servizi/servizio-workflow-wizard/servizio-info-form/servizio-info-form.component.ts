@@ -434,6 +434,20 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
         );
     }
 
+    // Issue #299: i soggetti si filtrano sui referenti solo se l'organizzazione non e` intermediata
+    _soggettiSoloReferenti(): boolean {
+        return !this.selectedOrganizzazione?.intermediata;
+    }
+
+    // Il soggetto gia` salvato resta sempre selezionabile (e non viene sostituito)
+    _withSoggettoSalvato(soggetti: any[]): any[] {
+        const _salvato = this.data?.soggetto_erogatore;
+        if (!_salvato?.id_soggetto || soggetti.some((s: any) => s.id_soggetto === _salvato.id_soggetto)) {
+            return soggetti;
+        }
+        return [_salvato, ...soggetti];
+    }
+
     getSoggetti(term: string | null = null, referente: boolean = false): Observable<any> {
         let _options: any;
         if (this.selectedOrganizzazione?.id_organizzazione) {
@@ -473,8 +487,9 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
     private _loadCurrentSoggetti() {
         this.selectedOrganizzazione = this.data?.soggetto_erogatore?.organizzazione ?? null;
         if (!this._isFruizione) { return; }
-        this.getSoggetti(null, true).subscribe({
+        this.getSoggetti(null, this._soggettiSoloReferenti()).subscribe({
             next: (result) => {
+                result = this._withSoggettoSalvato(result);
                 if (result.length === 1) {
                     this._hideSoggettoDropdown = true;
                     this._hideSoggettoInfo = true;
@@ -494,8 +509,7 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
 
     _checkSoggetto(event: any) {
         if (event) {
-            const _referente = !this.selectedOrganizzazione?.intermediata;
-            this.getSoggetti(null, _referente).subscribe({
+            this.getSoggetti(null, this._soggettiSoloReferenti()).subscribe({
                 next: (result) => {
                     const controls = this._formGroup.controls;
                     if (result.length === 1) {
