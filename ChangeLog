@@ -1,6 +1,10 @@
 2026-10-07  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 374: il soggetto erogatore di un servizio intermediato e' mostrato anche se l'organizzazione
+	  ha piu' soggetti non referenti e non viene sostituito alla riapertura; il tooltip "Erogato da"
+	  indica il soggetto quando l'organizzazione ne ha piu' di uno.
+
 	Test: allineati gli spec unitari alle modifiche recenti (mock di AuthenticationService,
 	  parametri e campi rimossi); la suite apicat-app torna interamente verde.
 
