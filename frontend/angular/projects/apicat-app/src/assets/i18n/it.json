@@ -961,6 +961,7 @@
 			"From": "da",
 			"Fruitore": "Fruitore",
 			"fruizione": "Intermediato",
+			"api_erogate_aderente": "Ruolo API",
 			"FullName": "Nome e cognome",
 			"giornaliero": "Giornaliero",
 			"Giorno": "Giorno",
@@ -2385,6 +2386,10 @@
 			"View": "Vista"
 		},
 		"SERVICES": {
+			"API_EROGATE_ADERENTE": {
+				"true": "Con API erogate dall'aderente",
+				"false": "Senza API erogate dall'aderente"
+			},
 			"ARCHIVED": {
 				"escludi": "Escludi",
 				"includi": "Includi",

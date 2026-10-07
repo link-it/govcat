@@ -961,6 +961,7 @@
 			"From": "from",
 			"Fruitore": "User shall",
 			"fruizione": "Intermediated",
+			"api_erogate_aderente": "API role",
 			"FullName": "Fullname",
 			"giornaliero": "Daily",
 			"Giorno": "Day",
@@ -2385,6 +2386,10 @@
 			"View": "View"
 		},
 		"SERVICES": {
+			"API_EROGATE_ADERENTE": {
+				"true": "With APIs provided by the subscriber",
+				"false": "Without APIs provided by the subscriber"
+			},
 			"ARCHIVED": {
 				"escludi": "Exclude",
 				"includi": "Include",

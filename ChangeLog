@@ -1,6 +1,9 @@
 2026-10-07  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 376: aggiunto alla lista servizi il filtro "Ruolo API" (Tutti / Con / Senza API erogate
+	  dall'aderente), inviato come api_erogate_aderente, con chip e reset.
+
 	Test: allineati gli spec unitari alle modifiche recenti (mock di AuthenticationService,
 	  route, parametri e campi rimossi); la suite apicat-app torna interamente verde.
 

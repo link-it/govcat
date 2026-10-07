@@ -158,6 +158,8 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         { value: 'false', label: 'APP.BOOLEAN.No' }
     ];
     _fruizioneEnum: any = { 'true': 'APP.BOOLEAN.Yes', 'false': 'APP.BOOLEAN.No' };
+    _apiErogateAderenteEnum: any = { 'true': 'APP.SERVICES.API_EROGATE_ADERENTE.true', 'false': 'APP.SERVICES.API_EROGATE_ADERENTE.false' };
+    _apiErogateAderenteList: { value: string, label: string }[] = Object.entries(this._apiErogateAderenteEnum).map(([value, label]) => ({ value, label: label as string }));
 
     // Valori ammessi per il filtro `ruolo_referente` lato BE (vedi
     // `RuoloReferenteEnum`). `utente_organizzazione` NON e` un
@@ -184,6 +186,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         { field: 'id_dominio', label: 'APP.LABEL.id_dominio', type: 'text', condition: 'equal', params: { resource: 'domini', field: 'nome', urlParam: '?id_dominio=' } },
         { field: 'id_organizzazione_erogatore', label: 'APP.LABEL.OrganizzazioneErogatore', type: 'text', condition: 'equal', params: { resource: 'organizzazioni', field: 'nome', urlParam: '?id_organizzazione=' } },
         { field: 'id_api', label: 'APP.LABEL.id_api', type: 'text', condition: 'equal', params: { resource: 'api', field: '{nome} v.{versione} ({servizio.dominio.nome})' } },
+        { field: 'api_erogate_aderente', label: 'APP.LABEL.api_erogate_aderente', type: 'enum', condition: 'equal', enumValues: this._apiErogateAderenteEnum },
         // { field: 'id_servizio', label: 'APP.LABEL.id_servizio', type: 'text', condition: 'equal', params: { resource: 'servizi', field: 'nome' } },
         { field: 'profilo', label: 'APP.LABEL.Profilo', type: 'text', condition: 'contain', callBack: (value: any) => {
             if (Array.isArray(value)) {
@@ -617,6 +620,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
             id_gruppo: new FormControl(''),
             visibilita: new FormControl(null),
             fruizione: new FormControl(null),
+            api_erogate_aderente: new FormControl(null),
             categoria: new FormControl(''),
             categoriaLabel: new FormControl(''),
             profilo: new FormControl(''),
