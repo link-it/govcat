@@ -640,8 +640,8 @@
                   }
                 </div>
               </div>
-              @if (_isEdit && _error) {
-                <div class="gl-alert gl-alert-danger col-md-12 mt-3">
+              <ng-template #apiFormErrorTpl>
+                <div class="gl-alert gl-alert-danger col-md-12 mt-3" role="alert">
                   @if (!_errors.length) {
                     <span>{{ _errorMsg }}</span>
                   }
@@ -652,6 +652,9 @@
                     ></ui-error-view>
                   }
                 </div>
+              </ng-template>
+              @if (_isEdit && _error && !embedded) {
+                <ng-container *ngTemplateOutlet="apiFormErrorTpl"></ng-container>
               }
               @if (_isEdit) {
                 @if (embedded) {
@@ -667,6 +670,10 @@
                       }
                     </button>
                   </div>
+                  <!-- Nel wizard l'errore segue i pulsanti, sotto la form. -->
+                  @if (_error) {
+                    <ng-container *ngTemplateOutlet="apiFormErrorTpl"></ng-container>
+                  }
                 } @else {
                   <div class="row-content-block footer-block">
                     <button type="submit" class="gl-button btn btn-confirm gl-mr-2" [disabled]="_formGroup.invalid || _spin">

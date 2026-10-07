@@ -491,8 +491,8 @@
                         </div>
                       </div>
                     }
-                    @if (_isEdit && _error) {
-                      <div class="gl-alert gl-alert-danger col-md-12 mt-3">
+                    @if (_isEdit && _error && !embedded) {
+                      <div class="gl-alert gl-alert-danger col-md-12 mt-3" role="alert">
                         {{ _errorMsg }}
                       </div>
                     }
@@ -514,6 +514,12 @@
                             }
                           </button>
                         </div>
+                        <!-- Nel wizard l'errore segue i pulsanti, sotto la form. -->
+                        @if (_error) {
+                          <div class="gl-alert gl-alert-danger col-md-12 mt-3" role="alert">
+                            {{ _errorMsg }}
+                          </div>
+                        }
                       } @else {
                         <div class="row-content-block footer-block">
                           <div class="d-flex justify-content-between">

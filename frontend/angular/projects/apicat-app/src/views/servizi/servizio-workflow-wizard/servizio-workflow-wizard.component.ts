@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, ChangeDetectorRef, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 import { TranslateService } from '@ngx-translate/core';
@@ -130,6 +130,10 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     _error: boolean = false;
     _errorMsg: string = '';
     _errors: any[] = [];
+    /** Errore di cambio stato: mostrato sotto i pulsanti di cambio stato del sotto-step attivo. */
+    _errorFromStatus: boolean = false;
+
+    private readonly _cdr = inject(ChangeDetectorRef);
 
     stepWizard: StepWizardItem[] = [];
     stepWizardCollaudo: StepWizardItem[] = [];
@@ -1216,6 +1220,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
                 this._errors = Tools.filtraErroriComplessi(error.error?.errori);
                 Tools.showMessage(this.translate.instant('APP.WORKFLOW.MESSAGE.ChangeStatusError', { status: this.translate.instant('APP.WORKFLOW.STATUS.' + event.status.nome) }), 'danger', true);
                 this._updateData = new Date().getTime().toString();
+                this._showStatusError();
             }
         });
     }
@@ -1336,7 +1341,22 @@ export class ServizioWorkflowWizardComponent implements OnInit {
 
     __resetError() {
         this._error = false;
+        this._errorFromStatus = false;
         this._errorMsg = '';
         this._errors = [];
+    }
+
+    /** Porta l'utente sulla fase corrente e sull'errore sotto i pulsanti di cambio stato;
+     *  se i pulsanti non sono visibili l'errore resta in testa al wizard. */
+    private _showStatusError() {
+        this._errorFromStatus = true;
+        this._initSelectedFase();
+        this._cdr.detectChanges();
+        const el = document.getElementById('service-status-error');
+        if (!el) {
+            this._errorFromStatus = false;
+            return;
+        }
+        setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }));
     }
 }

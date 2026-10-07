@@ -107,16 +107,19 @@
         (stepClick)="selectFase($event)"
       ></app-wizard-fasi-bar>
 
-      @if (_error) {
+      @if (_error && !_errorFromStatus) {
         <div class="gl-alert gl-alert-danger col-12 mt-3">
-          @if (!_errors.length) {
-            <span>{{ _errorMsg }}</span>
-          }
-          @if (_errors.length) {
-            <ui-error-view [errTitle]="'Errori'" [errors]="_errors"></ui-error-view>
-          }
+          <ng-container *ngTemplateOutlet="wizardErrorTpl"></ng-container>
         </div>
       }
+      <ng-template #wizardErrorTpl>
+        @if (!_errors.length) {
+          <span>{{ _errorMsg }}</span>
+        }
+        @if (_errors.length) {
+          <ui-error-view [errTitle]="'Errori'" [errors]="_errors"></ui-error-view>
+        }
+      </ng-template>
 
       <!-- Contenuto della fase selezionata: shell `.env` (header icona +
            titolo + chip stato) allineata al wizard adesioni. -->
@@ -697,6 +700,11 @@
                 <div class="lnk-banner mt-3" role="status">
                   <div class="icon"><i class="bi bi-hourglass-split"></i></div>
                   <div class="body"><span>{{ 'APP.SERVICES.WIZARD.WaitingAction' | translate }}</span></div>
+                </div>
+              }
+              @if (_error && _errorFromStatus) {
+                <div id="service-status-error" class="gl-alert gl-alert-danger mt-3" role="alert">
+                  <ng-container *ngTemplateOutlet="wizardErrorTpl"></ng-container>
                 </div>
               }
             </ng-template>

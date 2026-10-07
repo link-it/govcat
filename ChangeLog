@@ -1,3 +1,10 @@
+2026-10-07  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Wizard servizi: gli errori del cambio di stato sono mostrati sotto i pulsanti di cambio stato
+	  del sotto-step attivo (con ritorno alla fase corrente) invece che in testa al wizard; gli
+	  errori delle form API del wizard sono mostrati sotto i pulsanti Salva/Annulla.
+
 2026-10-07  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
