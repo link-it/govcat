@@ -1,6 +1,10 @@
 2026-10-07  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 374: il soggetto erogatore di un servizio intermediato e' mostrato anche se l'organizzazione
+	  ha piu' soggetti non referenti e non viene sostituito alla riapertura; il tooltip "Erogato da"
+	  indica il soggetto quando l'organizzazione ne ha piu' di uno.
+
 	Issue 379: voce "Tutti" nei destinatari delle comunicazioni (servizi e adesioni), con stato
 	  parziale; menu destinatari accessibile da tastiera (Esc, Invio, focus) e pulsanti con nome.
 

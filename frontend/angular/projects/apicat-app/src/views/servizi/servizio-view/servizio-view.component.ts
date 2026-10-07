@@ -49,6 +49,7 @@ import { CommonModule } from '@angular/common';
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 import { ScrollComponent } from '@app/components/scroll/scroll.component';
 import { RelayIconComponent } from '@app/components/relay-icon/relay-icon.component';
+import { ErogatoreLabelPipe } from '@app/pipes/erogatore-label.pipe';
 import { SwaggerComponent } from '@app/components/swagger/swagger.component';
 import { WsdlComponent } from '@app/components/wsdl/wsdl.component';
 import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
@@ -129,6 +130,7 @@ export enum ApiMode {
         ...APP_COMPONENTS_IMPORTS,
         ScrollComponent,
         RelayIconComponent,
+        ErogatoreLabelPipe,
         SwaggerComponent,
         WsdlComponent,
         MonitorDropdwnComponent,

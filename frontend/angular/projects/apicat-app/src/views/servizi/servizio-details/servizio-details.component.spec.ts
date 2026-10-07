@@ -1501,6 +1501,57 @@ describe('ServizioDetailsComponent', () => {
     });
   });
 
+  describe('loadCurrentData (soggetto erogatore, Issue #374)', () => {
+    const _anac = { id_organizzazione: 'o-anac', nome: 'ANAC', intermediata: true };
+
+    beforeEach(() => {
+      component._formGroup = new FormGroup({
+        id_dominio: new FormControl(null),
+        id_organizzazione_interna: new FormControl(null),
+        id_soggetto_erogatore: new FormControl(null)
+      });
+      component._isFruizione = true;
+      vi.spyOn(component as any, '_initDominiSelect').mockImplementation(() => {});
+      vi.spyOn(component as any, '_initOrganizzazioniInterneSelect').mockImplementation(() => {});
+      mockAuthenticationService.isGestore.mockReturnValue(true);
+    });
+
+    it('should not filter on referente and show the saved soggetto of an intermediata org', () => {
+      component.data = { dominio: {}, soggetto_erogatore: { id_soggetto: 's-att', nome: 'ANAC-ATTESTAZIONE', organizzazione: _anac } };
+      mockApiService.getList.mockReturnValue(of({ content: [{ id_soggetto: 's-anac', nome: 'ANAC' }, { id_soggetto: 's-att', nome: 'ANAC-ATTESTAZIONE' }] }));
+
+      component.loadCurrentData();
+
+      expect(mockApiService.getList).toHaveBeenCalledWith('soggetti', { params: { id_organizzazione: 'o-anac' } });
+      expect(component._hideSoggettoInfo).toBe(false);
+      expect(component._hideSoggettoDropdown).toBe(false);
+      expect(component._formGroup.get('id_soggetto_erogatore')?.value).toBe('s-att');
+    });
+
+    it('should keep the saved soggetto when it is not among the proposed ones', () => {
+      component.data = { dominio: {}, soggetto_erogatore: { id_soggetto: 's-att', nome: 'ANAC-ATTESTAZIONE', organizzazione: _anac } };
+      mockApiService.getList.mockReturnValue(of({ content: [{ id_soggetto: 's-anac', nome: 'ANAC' }] }));
+
+      component.loadCurrentData();
+
+      expect(component._formGroup.get('id_soggetto_erogatore')?.value).toBe('s-att');
+      expect(component._hideSoggettoInfo).toBe(false);
+      expect(component._elencoSoggetti.map((s: any) => s.id_soggetto)).toEqual(['s-att', 's-anac']);
+    });
+
+    it('should still filter on referente for a non intermediata org', () => {
+      const _org = { id_organizzazione: 'o-rt', nome: 'Regione Toscana', intermediata: false };
+      component.data = { dominio: {}, soggetto_erogatore: { id_soggetto: 's-rt', nome: 'RegioneToscana', organizzazione: _org } };
+      mockApiService.getList.mockReturnValue(of({ content: [{ id_soggetto: 's-rt', nome: 'RegioneToscana' }] }));
+
+      component.loadCurrentData();
+
+      expect(mockApiService.getList).toHaveBeenCalledWith('soggetti', { params: { id_organizzazione: 'o-rt', referente: true } });
+      expect(component._hideSoggettoInfo).toBe(true);
+      expect(component._formGroup.get('id_soggetto_erogatore')?.value).toBe('s-rt');
+    });
+  });
+
   describe('_checkSoggetto', () => {
     beforeEach(() => {
       component._formGroup = new FormGroup({
