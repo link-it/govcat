@@ -1,3 +1,9 @@
+2026-10-07  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Test: allineati gli spec unitari alle modifiche recenti (mock di AuthenticationService,
+	  parametri e campi rimossi); la suite apicat-app torna interamente verde.
+
 2026-10-06  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

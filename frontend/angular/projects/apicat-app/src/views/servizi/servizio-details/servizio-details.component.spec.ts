@@ -65,6 +65,7 @@ describe('ServizioDetailsComponent', () => {
   } as any;
 
   const mockAuthenticationService = {
+    _getWorkflowCambiStato: vi.fn().mockReturnValue(null),
     isAnonymous: vi.fn().mockReturnValue(false),
     hasPermission: vi.fn().mockReturnValue(true),
     _getConfigModule: vi.fn().mockReturnValue({ api: { abilitato: true }, generico: { abilitato: false } }),
@@ -1369,7 +1370,7 @@ describe('ServizioDetailsComponent', () => {
       component.getDomini('test').subscribe(result => {
         expect(result).toEqual([{ id_dominio: 1 }]);
       });
-      expect(mockApiService.getList).toHaveBeenCalledWith('domini', expect.objectContaining({ params: { q: 'test' } }));
+      expect(mockApiService.getList).toHaveBeenCalledWith('domini', expect.objectContaining({ params: { q: 'test', size: 1000 } }));
     });
 
     it('should add deprecato param for non-gestore', () => {
@@ -2130,7 +2131,7 @@ describe('ServizioDetailsComponent', () => {
     it('should call utils.getAnagrafiche with tables', async () => {
       mockUtilService.getAnagrafiche.mockResolvedValue({ 'classi-utente': [], gruppi: [], tags: [], tassonomie: [] });
       await component.loadAnagrafiche();
-      expect(mockUtilService.getAnagrafiche).toHaveBeenCalledWith(['classi-utente', 'gruppi', 'tags', 'tassonomie']);
+      expect(mockUtilService.getAnagrafiche).toHaveBeenCalledWith(['classi-utente', 'gruppi', { name: 'tags', param: { size: 1000 } }, 'tassonomie']);
       expect(component.anagrafiche).toBeDefined();
     });
   });

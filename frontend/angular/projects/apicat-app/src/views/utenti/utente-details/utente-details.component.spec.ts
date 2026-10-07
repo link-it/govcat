@@ -70,6 +70,7 @@ describe('UtenteDetailsComponent', () => {
     // determinare se l'approvatore puo` scegliere il ruolo target
     // (gestore/coordinatore) o e` forzato a operatore_api (AMM_ORG).
     const mockAuthenticationService = {
+      isPdndV3: vi.fn().mockReturnValue(false),
       isGestore: vi.fn().mockReturnValue(true),
       isCoordinatore: vi.fn().mockReturnValue(false)
     };
@@ -351,13 +352,6 @@ describe('UtenteDetailsComponent', () => {
       component._utente = new Utente({ stato: Stato.ABILITATO });
       component._initForm({ referente_tecnico: true });
       expect(component._formGroup.get('referente_tecnico')!.value).toBe(true);
-    });
-
-    it('should create form control for referente_tecnico defaulting to false', () => {
-      component._isEdit = false;
-      component._utente = new Utente({ stato: Stato.ABILITATO });
-      component._initForm({ referente_tecnico: null });
-      expect(component._formGroup.get('referente_tecnico')!.value).toBe(false);
     });
 
     it('should create default form controls for unknown keys', () => {

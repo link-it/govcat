@@ -277,7 +277,7 @@ describe('AuthenticationService', () => {
       };
       (oauthService as any).revocationEndpoint = undefined;
       service.logout();
-      expect(oauthService.logOut).toHaveBeenCalledWith(true);
+      expect(oauthService.logOut).toHaveBeenCalledWith();
     });
 
     it('should fallback to logOut when revokeTokenAndLogout fails', async () => {
@@ -293,7 +293,7 @@ describe('AuthenticationService', () => {
       await rejectPromise.catch(() => {});
       // Flush microtasks
       await new Promise(resolve => setTimeout(resolve, 0));
-      expect(oauthService.logOut).toHaveBeenCalledWith(true);
+      expect(oauthService.logOut).toHaveBeenCalledWith();
     });
 
     it('should use discovery revocation endpoint when config endpoint is missing', () => {

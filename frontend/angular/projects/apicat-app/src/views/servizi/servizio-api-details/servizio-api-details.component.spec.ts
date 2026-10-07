@@ -99,6 +99,7 @@ describe('ServizioApiDetailsComponent', () => {
   } as any;
 
   const mockAuthenticationService = {
+    canManageApi: vi.fn().mockReturnValue(true),
     isAnonymous: vi.fn().mockReturnValue(false),
     hasPermission: vi.fn().mockReturnValue(true),
     _getConfigModule: vi.fn().mockReturnValue({}),
@@ -684,6 +685,7 @@ describe('ServizioApiDetailsComponent', () => {
           { profilo: 'p1', resources: ['/r1'], note: 'note1', customProperties: { cp1: 'v1' } }
         ]
       };
+      component._formGroup = new FormGroup({ ruolo: new FormControl('erogato_soggetto_dominio') });
       const result = component._prepareBodyUpdateApi(body);
       expect(result.dati_specifica).toBeDefined();
       expect(result.dati_specifica!.gruppi_auth_type).toHaveLength(1);

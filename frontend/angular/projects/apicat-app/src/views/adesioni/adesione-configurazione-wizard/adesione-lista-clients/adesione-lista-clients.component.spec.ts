@@ -27,6 +27,8 @@ describe('AdesioneListaClientsComponent', () => {
     download: vi.fn().mockReturnValue(of({ body: new Blob() })),
   } as any;
   const mockAuthService = {
+    isTransitionAllowedForProfiles: vi.fn().mockReturnValue(true),
+    getRequiredProfiles: vi.fn().mockImplementation((e: any) => [...new Set((e?.client_richiesti || []).map((c: any) => c?.profilo).filter(Boolean))]),
     isAnonymous: vi.fn().mockReturnValue(false),
     hasPermission: vi.fn().mockReturnValue(true),
     isGestore: vi.fn().mockReturnValue(false),
@@ -699,7 +701,7 @@ describe('AdesioneListaClientsComponent', () => {
       mockAuthService.canChangeStatus.mockReturnValue(true);
       expect(component._hasCambioStato()).toBe(true);
       expect(mockAuthService.canChangeStatus).toHaveBeenCalledWith(
-        'adesione', 'bozza', 'stato_successivo', ['referente']
+        'adesione', 'bozza', 'stato_successivo', ['referente'], '', []
       );
     });
 
@@ -1312,6 +1314,10 @@ describe('AdesioneListaClientsComponent', () => {
   // _initEditFormClients
   // ---------------------------------------------------------------------------
   describe('_initEditFormClients', () => {
+    beforeEach(() => {
+      component._editFormGroupClients = new FormGroup({});
+    });
+
     it('should create form group with all expected controls', () => {
       component._auth_type = 'https';
       component.adesione = { soggetto: { organizzazione: { id_organizzazione: 'org1' } } };

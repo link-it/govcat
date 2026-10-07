@@ -1558,6 +1558,7 @@ describe('ServizioViewComponent', () => {
         {
           id: 'open-api-info',
           ignoreBackdropClick: false,
+          ariaLabelledBy: 'open-api-info-title',
           class: 'modal-lg-custom modal-with-65 modal-fullscreen-sm-down'
         }
       );
