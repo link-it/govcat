@@ -1,6 +1,9 @@
 2026-10-07  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 379: voce "Tutti" nei destinatari delle comunicazioni (servizi e adesioni), con stato
+	  parziale; menu destinatari accessibile da tastiera (Esc, Invio, focus) e pulsanti con nome.
+
 	Issue 376: aggiunto alla lista servizi il filtro "Ruolo API" (Tutti / Con / Senza API erogate
 	  dall'aderente), inviato come api_erogate_aderente, con chip e reset.
 

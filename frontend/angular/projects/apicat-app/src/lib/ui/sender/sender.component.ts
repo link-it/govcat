@@ -73,6 +73,10 @@ export class SenderComponent implements AfterContentChecked {
   _includiTecniciCtrl: FormControl = new FormControl(true);
 
   @ViewChild('targetDropdown', { static: false, read: ElementRef }) _targetDropdown!: ElementRef;
+  @ViewChild('targetTrigger', { static: false, read: ElementRef }) _targetTrigger!: ElementRef;
+
+  private static _nextId: number = 0;
+  readonly _targetId: string = `sender-target-${SenderComponent._nextId++}`;
 
   constructor(private readonly translate: TranslateService) {
     this._formGroup = new FormGroup({
@@ -99,11 +103,60 @@ export class SenderComponent implements AfterContentChecked {
       const opt = this.targetOptions.find(o => o.value === selected[0]);
       return opt ? this.translate.instant(opt.label) : selected[0];
     }
+    if (this._allTargetsSelected) {
+      return this.translate.instant('APP.LABEL.All');
+    }
     return `${selected.length} ${this.translate.instant('APP.LABEL.Target').toLowerCase()}`;
   }
 
   _toggleDropdown() {
     this._dropdownOpen = !this._dropdownOpen;
+  }
+
+  _closeDropdown(focusTrigger: boolean = false) {
+    if (!this._dropdownOpen) { return; }
+    this._dropdownOpen = false;
+    if (focusTrigger) {
+      this._targetTrigger?.nativeElement.focus();
+    }
+  }
+
+  // Chiude il menu quando il focus da tastiera esce dal componente
+  _onDropdownFocusOut(event: FocusEvent) {
+    const next = event.relatedTarget as Node | null;
+    if (next && !this._targetDropdown?.nativeElement.contains(next)) {
+      this._closeDropdown();
+    }
+  }
+
+  // Il click sul testo non deve spostare il focus fuori dal menu (lo chiuderebbe prima del click)
+  _onMenuMouseDown(event: MouseEvent) {
+    if (!(event.target instanceof HTMLInputElement)) {
+      event.preventDefault();
+    }
+  }
+
+  // Invio su una voce equivale allo Spazio (e non invia il form)
+  _onMenuEnter(event: Event) {
+    const target = event.target;
+    if (target instanceof HTMLInputElement && target.type === 'checkbox') {
+      event.preventDefault();
+      target.click();
+    }
+  }
+
+  get _allTargetsSelected(): boolean {
+    const selected: string[] = this._targetCtrl.value || [];
+    return this.targetOptions.length > 0 && this.targetOptions.every(o => selected.includes(o.value));
+  }
+
+  get _someTargetsSelected(): boolean {
+    const selected: string[] = this._targetCtrl.value || [];
+    return selected.length > 0 && !this._allTargetsSelected;
+  }
+
+  toggleAllTargets(checked: boolean) {
+    this._targetCtrl.setValue(checked ? this.targetOptions.map(o => o.value) : []);
   }
 
   isTargetSelected(value: string): boolean {

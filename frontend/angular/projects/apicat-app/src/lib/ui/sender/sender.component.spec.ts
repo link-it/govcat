@@ -205,4 +205,100 @@ describe('SenderComponent', () => {
         expect(component._msgCtrl.validator).toBeDefined();
         expect(component._messaggio.nativeElement.innerText).toBe(component._placeholder);
     });
+
+    describe('target "Tutti"', () => {
+        beforeEach(() => {
+            component.showTarget = true;
+            component.targetOptions = [
+                { label: 'APP.LABEL.TargetGestore', value: 'GESTORE' },
+                { label: 'APP.LABEL.TargetReferentiServizio', value: 'REFERENTI_SERVIZIO', hasTecnici: true },
+                { label: 'APP.LABEL.TargetRichiedente', value: 'RICHIEDENTE' }
+            ];
+        });
+
+        it('should select all targets and deselect them', () => {
+            component.toggleAllTargets(true);
+            expect(component._targetCtrl.value).toEqual(['GESTORE', 'REFERENTI_SERVIZIO', 'RICHIEDENTE']);
+            expect(component._allTargetsSelected).toBe(true);
+            expect(component._someTargetsSelected).toBe(false);
+
+            component.toggleAllTargets(false);
+            expect(component._targetCtrl.value).toEqual([]);
+            expect(component._allTargetsSelected).toBe(false);
+            expect(component._someTargetsSelected).toBe(false);
+        });
+
+        it('should be indeterminate when only some targets are selected', () => {
+            component.toggleTarget('GESTORE', true);
+            expect(component._allTargetsSelected).toBe(false);
+            expect(component._someTargetsSelected).toBe(true);
+        });
+
+        it('should become all selected when every target is checked one by one', () => {
+            component.targetOptions.forEach(o => component.toggleTarget(o.value, true));
+            expect(component._allTargetsSelected).toBe(true);
+        });
+
+        it('should show the "All" label when every target is selected', () => {
+            component.toggleAllTargets(true);
+            expect(component.targetLabel).toBe('APP.LABEL.All');
+        });
+
+        it('should render the "Tutti" checkbox first in the open menu', () => {
+            component._dropdownOpen = true;
+            fixture.detectChanges();
+            const items = fixture.nativeElement.querySelectorAll('.target-dropdown-menu .target-dropdown-item');
+            expect(items.length).toBe(4);
+            expect(items[0].textContent.trim()).toBe('APP.LABEL.All');
+        });
+
+        it('should expose aria-expanded on the trigger', () => {
+            fixture.detectChanges();
+            const trigger: HTMLElement = fixture.nativeElement.querySelector('.target-dropdown-trigger');
+            expect(trigger.getAttribute('aria-expanded')).toBe('false');
+            trigger.click();
+            fixture.detectChanges();
+            expect(trigger.getAttribute('aria-expanded')).toBe('true');
+            expect(trigger.getAttribute('aria-controls')).toBe(component._targetId + '-menu');
+        });
+
+        it('should not move focus when pressing the mouse on an item text', () => {
+            component._dropdownOpen = true;
+            fixture.detectChanges();
+            const text: HTMLElement = fixture.nativeElement.querySelector('.target-dropdown-menu .target-dropdown-item span');
+            const event = new MouseEvent('mousedown', { bubbles: true, cancelable: true });
+            text.dispatchEvent(event);
+            expect(event.defaultPrevented).toBe(true);
+
+            const input: HTMLElement = fixture.nativeElement.querySelector('.target-dropdown-menu input');
+            const inputEvent = new MouseEvent('mousedown', { bubbles: true, cancelable: true });
+            input.dispatchEvent(inputEvent);
+            expect(inputEvent.defaultPrevented).toBe(false);
+        });
+
+        it('should toggle the focused checkbox with Enter without submitting', () => {
+            component._dropdownOpen = true;
+            fixture.detectChanges();
+            const inputs: HTMLInputElement[] = Array.from(fixture.nativeElement.querySelectorAll('.target-dropdown-menu input'));
+
+            const enterAll = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true });
+            inputs[0].dispatchEvent(enterAll);
+            expect(enterAll.defaultPrevented).toBe(true);
+            expect(component._allTargetsSelected).toBe(true);
+
+            fixture.detectChanges();
+            inputs[1].dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+            expect(component._targetCtrl.value).toEqual(['REFERENTI_SERVIZIO', 'RICHIEDENTE']);
+        });
+
+        it('should close the menu on Escape and focus the trigger', () => {
+            component._dropdownOpen = true;
+            fixture.detectChanges();
+            const trigger: HTMLElement = fixture.nativeElement.querySelector('.target-dropdown-trigger');
+            const focusSpy = vi.spyOn(trigger, 'focus');
+            fixture.nativeElement.querySelector('.target-dropdown').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+            expect(component._dropdownOpen).toBe(false);
+            expect(focusSpy).toHaveBeenCalled();
+        });
+    });
 });
