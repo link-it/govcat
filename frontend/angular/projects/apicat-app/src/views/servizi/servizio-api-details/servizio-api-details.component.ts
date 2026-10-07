@@ -106,6 +106,18 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     @Input() createMode: boolean = false;
     /** In embedded dettaglio: entra direttamente in modifica dopo il load. */
     @Input() startEdit: boolean = false;
+    /** Fase del wizard (collaudo | produzione): in creazione mostra solo la base url di quell'ambiente. */
+    @Input() fase: string | null = null;
+
+    /** Base url di collaudo in creazione: solo nella fase collaudo; senza fase se il collaudo non e` saltato. */
+    get _showUrlCollaudo(): boolean {
+        return this.fase ? this.fase === 'collaudo' : !this.service?.skip_collaudo;
+    }
+
+    /** Base url di produzione in creazione: solo nella fase produzione; senza fase sempre. */
+    get _showUrlProduzione(): boolean {
+        return this.fase ? this.fase === 'produzione' : true;
+    }
 
     @Output() close: EventEmitter<any> = new EventEmitter<any>();
     @Output() save: EventEmitter<any> = new EventEmitter<any>();
@@ -1175,6 +1187,20 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             }
             if (controls.url_produzione) {
                 controls.url_produzione.setValidators([Validators.required]);
+                controls.url_produzione.updateValueAndValidity();
+            }
+        }
+
+        // Base url non mostrata (fase del wizard): non obbligatoria e vuota, quindi non inviata.
+        if (this._isNew) {
+            if (!this._showUrlCollaudo && controls.url_collaudo) {
+                controls.url_collaudo.setValue(null);
+                controls.url_collaudo.clearValidators();
+                controls.url_collaudo.updateValueAndValidity();
+            }
+            if (!this._showUrlProduzione && controls.url_produzione) {
+                controls.url_produzione.setValue(null);
+                controls.url_produzione.clearValidators();
                 controls.url_produzione.updateValueAndValidity();
             }
         }

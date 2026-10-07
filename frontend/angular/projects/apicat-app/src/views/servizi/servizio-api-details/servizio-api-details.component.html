@@ -402,46 +402,50 @@
                   }
                   @if (_isNew && f['ruolo'].value === EROGATO_SOGGETTO_DOMINIO) {
                     <div class="row">
-                      <div class="col-12">
-                        <div class="form-group url_produzione">
-                          <label class="label-bold" for="url_produzione">{{ 'APP.LABEL.url_produzione' | translate }} @if (_isEdit) {
-                            <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'url_produzione'"></span>
-                          }</label>
-                          @if (_isEdit) {
-                            <div class="">
-                              <input aria-required="true" [attr.aria-invalid]="(_hasControlError('url_produzione')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('url_produzione')) ? 'url_produzione-error' : null" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_produzione')" type="text" name="url_produzione" id="url_produzione" formControlName="url_produzione" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
-                              @if (f['url_produzione'].invalid && (f['url_produzione'].dirty || f['url_produzione'].touched)) {
-                                <p class="form-text text-danger" id="url_produzione-error" aria-live="polite">
-                                  @if (f['url_produzione'].errors && f['url_produzione'].errors['required']) {
-                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                  }
-                                </p>
-                              }
-                              <ui-input-help field="url_produzione" context="API"></ui-input-help>
-                            </div>
-                          }
+                      @if (_showUrlCollaudo) {
+                        <div class="col-12">
+                          <div class="form-group url_collaudo">
+                            <label class="label-bold" for="url_collaudo">{{ 'APP.LABEL.url_collaudo' | translate }} @if (_isEdit) {
+                              <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'url_collaudo'"></span>
+                            }</label>
+                            @if (_isEdit) {
+                              <div class="">
+                                <input aria-required="true" [attr.aria-invalid]="(_hasControlError('url_collaudo')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('url_collaudo')) ? 'url_collaudo-error' : null" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_collaudo')" type="text" name="url_collaudo" id="url_collaudo" formControlName="url_collaudo" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                                @if (f['url_collaudo'].invalid && (f['url_collaudo'].dirty || f['url_collaudo'].touched)) {
+                                  <p class="form-text text-danger" id="url_collaudo-error" aria-live="polite">
+                                    @if (f['url_collaudo'].errors && f['url_collaudo'].errors['required']) {
+                                      <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                    }
+                                  </p>
+                                }
+                                <ui-input-help field="url_collaudo" context="API"></ui-input-help>
+                              </div>
+                            }
+                          </div>
                         </div>
-                      </div>
-                      <div class="col-12" [hidden]="service?.skip_collaudo">
-                        <div class="form-group url_collaudo">
-                          <label class="label-bold" for="url_collaudo">{{ 'APP.LABEL.url_collaudo' | translate }} @if (_isEdit) {
-                            <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'url_collaudo'"></span>
-                          }</label>
-                          @if (_isEdit) {
-                            <div class="">
-                              <input aria-required="true" [attr.aria-invalid]="(_hasControlError('url_collaudo')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('url_collaudo')) ? 'url_collaudo-error' : null" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_collaudo')" type="text" name="url_collaudo" id="url_collaudo" formControlName="url_collaudo" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
-                              @if (f['url_collaudo'].invalid && (f['url_collaudo'].dirty || f['url_collaudo'].touched)) {
-                                <p class="form-text text-danger" id="url_collaudo-error" aria-live="polite">
-                                  @if (f['url_collaudo'].errors && f['url_collaudo'].errors['required']) {
-                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                  }
-                                </p>
-                              }
-                              <ui-input-help field="url_collaudo" context="API"></ui-input-help>
-                            </div>
-                          }
+                      }
+                      @if (_showUrlProduzione) {
+                        <div class="col-12">
+                          <div class="form-group url_produzione">
+                            <label class="label-bold" for="url_produzione">{{ 'APP.LABEL.url_produzione' | translate }} @if (_isEdit) {
+                              <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'url_produzione'"></span>
+                            }</label>
+                            @if (_isEdit) {
+                              <div class="">
+                                <input aria-required="true" [attr.aria-invalid]="(_hasControlError('url_produzione')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('url_produzione')) ? 'url_produzione-error' : null" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_produzione')" type="text" name="url_produzione" id="url_produzione" formControlName="url_produzione" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                                @if (f['url_produzione'].invalid && (f['url_produzione'].dirty || f['url_produzione'].touched)) {
+                                  <p class="form-text text-danger" id="url_produzione-error" aria-live="polite">
+                                    @if (f['url_produzione'].errors && f['url_produzione'].errors['required']) {
+                                      <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                    }
+                                  </p>
+                                }
+                                <ui-input-help field="url_produzione" context="API"></ui-input-help>
+                              </div>
+                            }
+                          </div>
                         </div>
-                      </div>
+                      }
                     </div>
                   }
                   @if (f['ruolo'].value === EROGATO_SOGGETTO_DOMINIO && (_descrittoreCtrl.value || !_hasSpecifica)) {
