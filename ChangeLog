@@ -1,25 +1,6 @@
-2026-10-06  Giovanni De Luca <giovanni.deluca@link.it>
+2026-10-07  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
-	Issue 378: le richieste con body non valido restituiscono il formato Problem del
-	  progetto al posto del generico "Invalid request content." di Spring. Per le
-	  violazioni di validazione, detail riporta il codice di errore (VAL.400.REQUIRED,
-	  VAL.400.LENGTH, VAL.400.PATTERN, altrimenti VAL.400.FORMAT) ed errori contiene,
-	  per ogni campo non valido, il path JSON (es. gruppi_auth_type[0].resources) e i
-	  parametri del messaggio; per il body JSON non leggibile VAL.400.ENUM (valore enum
-	  non ammesso) o VAL.400.FORMAT. Rimosso l'handler generico delle eccezioni Spring,
-	  inattivo dalla migrazione a Spring 6 per il cambio di firma.
-	Issue 375: aggiunto alla lista, all'export e al cambio stato massivo delle
-	  adesioni il filtro stato_servizio, che restringe le adesioni in base allo stato
-	  del servizio a cui si riferiscono (più valori in OR; es. archiviato per le
-	  adesioni di servizi archiviati); se assente, nessun filtro.
-	Issue 376: aggiunto alla lista dei servizi il filtro api_erogate_aderente:
-	  true restituisce i servizi con almeno una API erogata dal soggetto aderente,
-	  false quelli senza API erogate dall'aderente (compresi i servizi senza API);
-	  se assente, nessun filtro.
-	Issue 377: il csv di export dei servizi riporta la nuova colonna `Ruolo API`,
-	  subito dopo `Tipologia API`, con le stesse etichette del frontend (`Erogata da
-	  soggetto dominio`/`Erogata dal soggetto aderente`).
 	Issue 354: i profili di servizio.api.profili possono essere limitati a un solo
 	  profilo di interoperabilità GovWay tramite profilo_govway (tipo gateway del
 	  soggetto): alla creazione/modifica dei profili di un'API erogata dal soggetto
@@ -48,6 +29,35 @@
 	  scenario dal codice interno del profilo invece che dal solo tipo di client: serve
 	  ai profili che condividono l'auth_type con altri (es. OAUTH_CC e PDND, entrambi
 	  con auth_type pdnd e quindi entrambi PdndClient).
+	  Nello scenario mtls l'associazione dell'applicativo agli applicativi autorizzati
+	  dichiara ora, per le sole erogazioni, il soggetto sotto cui l'applicativo è censito
+	  (l'aderente): il contratto di GovWay prevede quel campo solo per le erogazioni e,
+	  senza, l'applicativo veniva cercato sotto il soggetto dell'erogazione (il referente
+	  del dominio), dove non esiste. Le fruizioni restano invariate: il campo non è
+	  previsto e l'applicativo è già censito sotto il soggetto della fruizione.
+
+2026-10-06  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 378: le richieste con body non valido restituiscono il formato Problem del
+	  progetto al posto del generico "Invalid request content." di Spring. Per le
+	  violazioni di validazione, detail riporta il codice di errore (VAL.400.REQUIRED,
+	  VAL.400.LENGTH, VAL.400.PATTERN, altrimenti VAL.400.FORMAT) ed errori contiene,
+	  per ogni campo non valido, il path JSON (es. gruppi_auth_type[0].resources) e i
+	  parametri del messaggio; per il body JSON non leggibile VAL.400.ENUM (valore enum
+	  non ammesso) o VAL.400.FORMAT. Rimosso l'handler generico delle eccezioni Spring,
+	  inattivo dalla migrazione a Spring 6 per il cambio di firma.
+	Issue 375: aggiunto alla lista, all'export e al cambio stato massivo delle
+	  adesioni il filtro stato_servizio, che restringe le adesioni in base allo stato
+	  del servizio a cui si riferiscono (più valori in OR; es. archiviato per le
+	  adesioni di servizi archiviati); se assente, nessun filtro.
+	Issue 376: aggiunto alla lista dei servizi il filtro api_erogate_aderente:
+	  true restituisce i servizi con almeno una API erogata dal soggetto aderente,
+	  false quelli senza API erogate dall'aderente (compresi i servizi senza API);
+	  se assente, nessun filtro.
+	Issue 377: il csv di export dei servizi riporta la nuova colonna `Ruolo API`,
+	  subito dopo `Tipologia API`, con le stesse etichette del frontend (`Erogata da
+	  soggetto dominio`/`Erogata dal soggetto aderente`).
 
 2026-10-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
