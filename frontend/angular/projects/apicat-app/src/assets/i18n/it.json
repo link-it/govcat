@@ -66,6 +66,7 @@
 			},
 			"LABEL": {
 				"AutomaticConfigurationStatus": "Stato configurazione automatica",
+				"ServiceStatus": "Stato servizio",
 				"Client": "Client",
 				"Domain": "Dominio",
 				"DownloadScheda": "Scarica la scheda di adesione",

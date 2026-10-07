@@ -66,6 +66,7 @@
 			},
 			"LABEL": {
 				"AutomaticConfigurationStatus": "Automatic Configuration status",
+				"ServiceStatus": "Service status",
 				"Client": "Client",
 				"Domain": "Domain",
 				"DownloadScheda": "Download membership sheet",

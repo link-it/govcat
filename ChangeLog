@@ -1,6 +1,9 @@
 2026-10-07  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 375: aggiunto alla lista adesioni il filtro multiplo "Stato servizio" (incluso archiviato),
+	  propagato all'export e al cambio stato massivo su ricerca come parametri ripetuti.
+
 	Wizard servizi: nella creazione di un'API e' mostrata solo la base url dell'ambiente della
 	  fase (collaudo o produzione); fuori dal wizard i due campi restano, con collaudo per primo.
 
