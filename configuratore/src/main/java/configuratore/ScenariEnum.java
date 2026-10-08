@@ -24,6 +24,12 @@ package configuratore;
  * @author $Author$
  * @version $Rev$, $Date$
  */
+/*
+ * ORDINE SIGNIFICATIVO: a parità di condizioni soddisfatte prevale l'ultimo scenario
+ * dell'enumerazione. Gli scenari selezionati da un singolo profilo di autenticazione
+ * (chiave profiloAutenticazione) vanno quindi dichiarati dopo quelli più generici,
+ * basati sul solo tipo di client, che altrimenti li oscurerebbero.
+ */
 public enum ScenariEnum {
 	PDND("pdnd"),
 	PDND_VOUCHER("pdndVoucher"),
@@ -32,14 +38,13 @@ public enum ScenariEnum {
 	SIGN("sign"),
 	MTLS_PDND("mtlsPdnd"),
 	OAUTH_CLIENT_CREDENTIALS("oauthClientCredentials"),
+	/** Applicativo con token policy letta da una proprietà custom dell'API. */
+	OAUTH_CC_TOKEN_POLICY("oauthCCTokenPolicy"),
 	/**
-	 * Applicativo con token policy letta da una proprietà custom dell'API.
-	 *
-	 * Dichiarato per ultimo di proposito: a parità di condizioni soddisfatte prevale l'ultimo
-	 * scenario dell'enumerazione, quindi una condizione che seleziona un singolo profilo di
-	 * autenticazione vince su quelle più generiche basate sul solo tipo di client.
+	 * Fruizione di un e-service PDND con autenticazione mTLS: come mtls, più la quota del
+	 * singolo adesore e la finalità PDND della fruizione.
 	 */
-	OAUTH_CC_TOKEN_POLICY("oauthCCTokenPolicy");
+	MTLS_FRUIZIONI_PDND("mtlsFruizioniPdnd");
 	
 	private final String value;
 	private ScenariEnum(String value) {

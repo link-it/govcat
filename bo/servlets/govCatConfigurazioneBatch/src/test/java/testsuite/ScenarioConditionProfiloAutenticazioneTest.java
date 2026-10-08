@@ -19,10 +19,10 @@
  */
 package testsuite;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -98,12 +98,18 @@ class ScenarioConditionProfiloAutenticazioneTest {
 		assertFalse(cond.check("PdndClient", "PDND", Map.of("gruppo.proprieta", "valore")));
 	}
 
+	/**
+	 * A parità di condizioni soddisfatte prevale l'ultimo scenario dell'enumerazione, quindi
+	 * quelli selezionati da un singolo profilo di autenticazione devono stare dopo quelli
+	 * generici sul tipo di client, che altrimenti li oscurerebbero.
+	 */
 	@Test
-	void oauthCCTokenPolicyEUltimoScenario() {
-		ScenariEnum[] valori = ScenariEnum.values();
+	void scenariPerProfiloDichiaratiDopoQuelliGenerici() {
+		List<ScenariEnum> ordine = List.of(ScenariEnum.values());
 
-		assertEquals(ScenariEnum.OAUTH_CC_TOKEN_POLICY, valori[valori.length - 1],
-				"a parità di condizioni soddisfatte prevale l'ultimo scenario dell'enumerazione: "
-						+ "oauthCCTokenPolicy deve restare in coda per vincere su pdnd");
+		assertTrue(ordine.indexOf(ScenariEnum.OAUTH_CC_TOKEN_POLICY) > ordine.indexOf(ScenariEnum.PDND),
+				"oauthCCTokenPolicy deve vincere su pdnd, che matcha lo stesso PdndClient: " + ordine);
+		assertTrue(ordine.indexOf(ScenariEnum.MTLS_FRUIZIONI_PDND) > ordine.indexOf(ScenariEnum.MTLS),
+				"mtlsFruizioniPdnd deve vincere su mtls, che matcha lo stesso HttpsClient: " + ordine);
 	}
 }

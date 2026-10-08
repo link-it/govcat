@@ -83,6 +83,9 @@ public class AdesioneDTOConverter {
 	private static final String PROFILO_MODI = "ModI";
 	private static final String PROFILO_MODIPA = "ModIPA";
 
+	/** Suffisso delle classi dato specifiche dei profili di fruizione PDND (collaudo_pdnd, produzione_pdnd). */
+	private static final String SUFFISSO_CLASSE_DATO_PDND = "_pdnd";
+
 	private static final String AUTENTICAZIONE_CERTIFICATO = "autenticazione_CERTIFICATO";
 	private static final String FIRMA_CERTIFICATO = "firma_CERTIFICATO";
 	private static final String CLIENT_ID = "client_id";
@@ -212,6 +215,23 @@ public class AdesioneDTOConverter {
 	}
 
 
+	/**
+	 * Classi dato delle proprietà custom dell'adesione che vengono passate al configuratore:
+	 * quelle dell'ambiente in configurazione, comprese le "_pdnd" usate dai profili di fruizione
+	 * PDND per i dati del singolo adesore (finalità e quota), e quelle indipendenti dall'ambiente.
+	 * Le classi dato dell'altro ambiente restano escluse.
+	 */
+	boolean isClasseDatoConfigurabile(String classeDato) {
+		String ambiente = ambienteConfigurazione.toString().toLowerCase();
+
+		return classeDato.equals(ambiente)
+				|| classeDato.equals(ambiente + SUFFISSO_CLASSE_DATO_PDND)
+				|| classeDato.equals("identificativo")
+				|| classeDato.equals("specifica")
+				|| classeDato.equals("generico")
+				|| classeDato.equals("referenti");
+	}
+
 	public Map<String, String> setEstensioniAdesione(String api, int versione) throws IOException {
 		Map<String, String> map = new HashMap<>();
 		if (adesione.getEstensioni() == null) {
@@ -223,11 +243,7 @@ public class AdesioneDTOConverter {
 			ConfigurazioneReader confReader = new ConfigurazioneReader(configurazioneJsonPath);
 			String classeDato = null;
 			classeDato = confReader.getClasseDatoAdesione(gruppo);
-			if (classeDato.equals(ambienteConfigurazione.toString().toLowerCase()) ||
-					classeDato.equals("identificativo") ||
-					classeDato.equals("specifica") ||
-					classeDato.equals("generico") ||
-					classeDato.equals("referenti")) {
+			if (isClasseDatoConfigurabile(classeDato)) {
 
 				if (api == null) {
 					logger.info("nessuna api nella estensione {}",estensione.getNome());

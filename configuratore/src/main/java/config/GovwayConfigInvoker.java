@@ -83,6 +83,8 @@ public class GovwayConfigInvoker {
 	private static final String PATH_TEMPLATE_CREDENZIALI = "credenziali.ftlh";
 	private static final String PATH_TEMPLATE_SOGGETTO_AUTORIZZATO = "soggettoAutorizzato.ftlh";
 	private static final String PATH_TEMPLATE_CREATE_SOGGETTO = "createSoggetto.ftlh";
+	private static final String PATH_TEMPLATE_RATE_LIMITING = "rateLimitingPolicy.ftlh";
+	private static final String PATH_TEMPLATE_PROPRIETA = "proprietaConfigurazione.ftlh";
 
 	private Logger logger = LoggerFactory.getLogger(GovwayConfigInvoker.class);
 
@@ -572,6 +574,59 @@ public class GovwayConfigInvoker {
 		return this.client.newCall(req).execute();
 	}
 	
+	/**
+	 * Aggiunge una policy di rate limiting all'erogazione o alla fruizione.
+	 *
+	 * @param singleAPI servizio su cui configurare la policy
+	 * @param policy policy da aggiungere
+	 */
+	public Response postRateLimitingPolicy(GruppoServizio singleAPI, RateLimitingPolicy policy) throws TemplateException, IOException {
+		HttpUrl url = this.getUrlConfigurazioneServizio(singleAPI)
+				.addPathSegment("configurazioni")
+				.addPathSegment("rate-limiting")
+				.addQueryParameter(QUERY_GRUPPO, singleAPI.getGruppo())
+				.build();
+
+		logger.info("url:" + url);
+
+		Request request = new Request.Builder()
+				.url(url)
+				.addHeader(HEADER_AUTHORIZATION, getAuthorization())
+				.post(templateToRequestBody(JSON, this.template.getTemplate(PATH_TEMPLATE_RATE_LIMITING), policy))
+				.build();
+
+		return this.client.newCall(request).execute();
+	}
+
+	/**
+	 * Aggiunge una proprieta' di configurazione all'erogazione o alla fruizione.
+	 *
+	 * @param singleAPI servizio su cui configurare la proprieta'
+	 * @param nome nome della proprieta'
+	 * @param valore valore della proprieta'
+	 */
+	public Response postProprietaConfigurazione(GruppoServizio singleAPI, String nome, String valore) throws TemplateException, IOException {
+		HttpUrl url = this.getUrlConfigurazioneServizio(singleAPI)
+				.addPathSegment("configurazioni")
+				.addPathSegment("proprieta")
+				.addQueryParameter(QUERY_GRUPPO, singleAPI.getGruppo())
+				.build();
+
+		logger.info("url:" + url);
+
+		Map<String, String> root = new HashMap<>();
+		root.put("nome", nome);
+		root.put("valore", valore);
+
+		Request request = new Request.Builder()
+				.url(url)
+				.addHeader(HEADER_AUTHORIZATION, getAuthorization())
+				.post(templateToRequestBody(JSON, this.template.getTemplate(PATH_TEMPLATE_PROPRIETA), root))
+				.build();
+
+		return this.client.newCall(request).execute();
+	}
+
 	public Response postSoggettoAutorizzato(GruppoServizio gruppoServizio, String soggetto) throws TemplateException, IOException {
 		HttpUrl url = this.getUrlConfigurazioneServizio(gruppoServizio)
 				.addPathSegment("configurazioni")

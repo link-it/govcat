@@ -277,6 +277,8 @@ public class ConfigurazioneExecutor implements IConfigurazioneExecutor {
 			return new ScenarioClientCredentials(invokersAdesione, properties);
 		case OAUTH_CC_TOKEN_POLICY:
 			return new ScenarioOauthCCTokenPolicy(invokersAdesione, properties);
+		case MTLS_FRUIZIONI_PDND:
+			return new ScenarioMtlsFruizioniPdnd(invokersAdesione, properties);
 		default: return null;
 		}
 	}

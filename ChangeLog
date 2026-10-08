@@ -12,38 +12,6 @@
 	  (PDND o GovWay) rifiuta l'autenticazione con 401, invece di propagare il 401 che
 	  faceva scattare nel frontend il refresh del token e poi il logout dell'utente.
 
-2026-10-07  Alfonso Tatarelli <alfonso.tatarelli@link.it>
-
-	* [Frontend]
-	Issue 374: anche nel wizard servizi il soggetto erogatore di un servizio intermediato e' mostrato
-	  e non viene sostituito alla riapertura.
-
-	Issue 374: il soggetto erogatore di un servizio intermediato e' mostrato anche se l'organizzazione
-	  ha piu' soggetti non referenti e non viene sostituito alla riapertura; il tooltip "Erogato da"
-	  indica il soggetto quando l'organizzazione ne ha piu' di uno.
-
-	Issue 379: voce "Tutti" nei destinatari delle comunicazioni (servizi e adesioni), con stato
-	  parziale; menu destinatari accessibile da tastiera (Esc, Invio, focus) e pulsanti con nome.
-
-	Issue 376: aggiunto alla lista servizi il filtro "Ruolo API" (Tutti / Con / Senza API erogate
-	  dall'aderente), inviato come api_erogate_aderente, con chip e reset.
-
-	Test: allineati gli spec unitari alle modifiche recenti (mock di AuthenticationService,
-	  route, parametri e campi rimossi); la suite apicat-app torna interamente verde.
-
-	Issue 375: aggiunto alla lista adesioni il filtro multiplo "Stato servizio" (incluso archiviato),
-	  propagato all'export e al cambio stato massivo su ricerca come parametri ripetuti.
-
-	Wizard servizi: nella creazione di un'API e' mostrata solo la base url dell'ambiente della
-	  fase (collaudo o produzione); fuori dal wizard i due campi restano, con collaudo per primo.
-
-	Wizard servizi: gli errori del cambio di stato sono mostrati sotto i pulsanti di cambio stato
-	  del sotto-step attivo (con ritorno alla fase corrente) invece che in testa al wizard; gli
-	  errori delle form API del wizard sono mostrati sotto i pulsanti Salva/Annulla.
-
-2026-10-07  Giovanni De Luca <giovanni.deluca@link.it>
-
-	* [GovwayAPICatalogo]
 	Issue 354: i profili di servizio.api.profili possono essere limitati a un solo
 	  profilo di interoperabilità GovWay tramite profilo_govway (tipo gateway del
 	  soggetto): alla creazione/modifica dei profili di un'API erogata dal soggetto
@@ -78,6 +46,46 @@
 	  senza, l'applicativo veniva cercato sotto il soggetto dell'erogazione (il referente
 	  del dominio), dove non esiste. Le fruizioni restano invariate: il campo non è
 	  previsto e l'applicativo è già censito sotto il soggetto della fruizione.
+	  Nuovo scenario del configuratore mtlsFruizioniPdnd per le fruizioni di e-service PDND con
+	  autenticazione mTLS: fa quanto fa lo scenario mtls e in più configura, a partire dalle
+	  proprietà custom dell'adesione, la quota del singolo adesore come policy di rate limiting
+	  della fruizione filtrata sul suo applicativo (metrica numero-richieste, intervallo
+	  giornaliero) e la finalità PDND come proprietà .purposeId della fruizione. Le estensioni
+	  da cui leggere i due valori si dichiarano per ambiente nelle properties del configuratore
+	  (ScenarioMtlsFruizioniPdnd.<ambiente>.purposeId e .rateLimiting): senza di esse lo scenario
+	  si limita a quanto fa mtls. La finalità è una proprietà della fruizione e non
+	  dell'applicativo, quindi con più adesori sulla stessa fruizione vale quella configurata per
+	  prima. Le proprietà custom dell'adesione con classe dato collaudo_pdnd e produzione_pdnd,
+	  che contengono quei due valori, venivano scartate e non arrivavano al configuratore.
+
+2026-10-07  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 374: anche nel wizard servizi il soggetto erogatore di un servizio intermediato e' mostrato
+	  e non viene sostituito alla riapertura.
+
+	Issue 374: il soggetto erogatore di un servizio intermediato e' mostrato anche se l'organizzazione
+	  ha piu' soggetti non referenti e non viene sostituito alla riapertura; il tooltip "Erogato da"
+	  indica il soggetto quando l'organizzazione ne ha piu' di uno.
+
+	Issue 379: voce "Tutti" nei destinatari delle comunicazioni (servizi e adesioni), con stato
+	  parziale; menu destinatari accessibile da tastiera (Esc, Invio, focus) e pulsanti con nome.
+
+	Issue 376: aggiunto alla lista servizi il filtro "Ruolo API" (Tutti / Con / Senza API erogate
+	  dall'aderente), inviato come api_erogate_aderente, con chip e reset.
+
+	Test: allineati gli spec unitari alle modifiche recenti (mock di AuthenticationService,
+	  route, parametri e campi rimossi); la suite apicat-app torna interamente verde.
+
+	Issue 375: aggiunto alla lista adesioni il filtro multiplo "Stato servizio" (incluso archiviato),
+	  propagato all'export e al cambio stato massivo su ricerca come parametri ripetuti.
+
+	Wizard servizi: nella creazione di un'API e' mostrata solo la base url dell'ambiente della
+	  fase (collaudo o produzione); fuori dal wizard i due campi restano, con collaudo per primo.
+
+	Wizard servizi: gli errori del cambio di stato sono mostrati sotto i pulsanti di cambio stato
+	  del sotto-step attivo (con ritorno alla fase corrente) invece che in testa al wizard; gli
+	  errori delle form API del wizard sono mostrati sotto i pulsanti Salva/Annulla.
 
 2026-10-06  Giovanni De Luca <giovanni.deluca@link.it>
 
