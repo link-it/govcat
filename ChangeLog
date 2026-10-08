@@ -1,3 +1,10 @@
+2026-10-08  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 365: gli stub PDND restituiscono 502 (INT.502.AUTH) quando il servizio esterno
+	  (PDND o GovWay) rifiuta l'autenticazione con 401, invece di propagare il 401 che
+	  faceva scattare nel frontend il refresh del token e poi il logout dell'utente.
+
 2026-10-07  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

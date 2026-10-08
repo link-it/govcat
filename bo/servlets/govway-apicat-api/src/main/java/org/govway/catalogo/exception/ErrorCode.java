@@ -616,6 +616,9 @@ public enum ErrorCode {
     /** Risposta non valida con status code */
     INT_502_STATUS("Risposta non valida da servizio con status code imprevisto"),
 
+    /** Autenticazione di GovCat rifiutata dal servizio esterno */
+    INT_502_AUTH("Autenticazione rifiutata dal servizio esterno"),
+
     /** Errore comunicazione allarme */
     INT_500_ALARM("Errore comunicazione allarme"),
 

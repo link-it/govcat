@@ -340,6 +340,12 @@ public class ControllerAdvisor extends AbstractControllerAdvisor {
 		    problem.setDetail(ex.getMessage());
 		}
 
+		// Un 401 del servizio esterno riguarda le credenziali di GovCat, non la sessione dell'utente:
+		// propagarlo farebbe scattare al frontend il refresh del token e poi il logout
+		if(status == HttpStatus.UNAUTHORIZED) {
+			return toEntity(new ClientApiException(ErrorCode.INT_502_AUTH, Map.of("statusCode", String.valueOf(status.value()))),
+					HttpStatus.BAD_GATEWAY);
+		}
 
 		return new ResponseEntity<>(problem, status);
 	} 

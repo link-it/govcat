@@ -1626,6 +1626,7 @@
 					},
 					"502": {
 						"DEFAULT": "Invalid response from external service",
+						"AUTH": "Authentication rejected by external service, status code: [{{statusCode}}]",
 						"STATUS": "Invalid response from service for alarm [{{idAllarme}}], status code: [{{statusCode}}]"
 					},
 					"503": "External service temporarily unavailable",

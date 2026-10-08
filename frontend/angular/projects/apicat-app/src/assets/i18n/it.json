@@ -1626,6 +1626,7 @@
 					},
 					"502": {
 						"DEFAULT": "Risposta non valida dal servizio esterno",
+						"AUTH": "Autenticazione rifiutata dal servizio esterno, status code: [{{statusCode}}]",
 						"STATUS": "Risposta non valida dal servizio per allarme [{{idAllarme}}], status code: [{{statusCode}}]"
 					},
 					"503": "Servizio esterno temporaneamente non disponibile",

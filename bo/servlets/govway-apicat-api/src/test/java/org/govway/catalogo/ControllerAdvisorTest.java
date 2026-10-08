@@ -25,11 +25,13 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.util.List;
 import java.util.Map;
 
+import org.govway.catalogo.exception.ClientApiException;
 import org.govway.catalogo.servlets.model.APICreate;
 import org.govway.catalogo.servlets.model.ConfigurazionePeriodiDashboard;
 import org.govway.catalogo.servlets.model.EntitaComplessaError;
 import org.govway.catalogo.servlets.model.Problem;
 import org.govway.catalogo.servlets.model.ServizioCreate;
+import org.govway.catalogo.servlets.pdnd.client.api.impl.ApiException;
 import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -247,5 +249,42 @@ class ControllerAdvisorTest {
 
 		assertEquals("VAL.400.FORMAT", problem.getDetail());
 		assertNull(problem.getErrori());
+	}
+
+	private ResponseEntity<Object> handleClientApi(int code, String responseBody) {
+		return advisor.handleClientApiException(new ClientApiException(new ApiException("errore servizio esterno", code, null, responseBody)));
+	}
+
+	private static void assertAutenticazioneRifiutata(ResponseEntity<Object> response) {
+		assertEquals(HttpStatus.BAD_GATEWAY, response.getStatusCode());
+		Problem problem = (Problem) response.getBody();
+		assertEquals(502, problem.getStatus());
+		assertEquals("INT.502.AUTH", problem.getDetail());
+		assertEquals(Map.of("statusCode", "401"), problem.getErrori().get(0).getParams());
+	}
+
+	@Test
+	void testClientApi401ConProblemRestituito502() {
+		// Un 401 del servizio esterno non deve arrivare al frontend come 401 (refresh token e logout)
+		assertAutenticazioneRifiutata(handleClientApi(401,
+				"{\"type\":\"https://govway.org/handling-errors/401/AuthenticationRequired.html\",\"title\":\"AuthenticationRequired\",\"status\":401,\"detail\":\"Authentication required\"}"));
+	}
+
+	@Test
+	void testClientApi401SenzaProblemRestituito502() {
+		assertAutenticazioneRifiutata(handleClientApi(401, "Unauthorized"));
+	}
+
+	@Test
+	void testClientApiAltriStatusInvariati() {
+		ResponseEntity<Object> response = handleClientApi(404, "{\"status\":404,\"title\":\"Not Found\",\"detail\":\"eservice non trovato\"}");
+
+		assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+		assertEquals("eservice non trovato", ((Problem) response.getBody()).getDetail());
+
+		response = handleClientApi(403, "Forbidden");
+
+		assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+		assertEquals(403, ((Problem) response.getBody()).getStatus());
 	}
 }
