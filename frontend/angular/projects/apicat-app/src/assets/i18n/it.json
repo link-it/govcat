@@ -1559,7 +1559,8 @@
 				"DOC": {
 					"400": {
 						"FORMAT": "Formato documento non supportato",
-						"SIZE": "Dimensione documento [{{dimensione}}] eccede il limite di [{{limite}}]"
+						"SIZE": "Dimensione documento [{{dimensione}}] eccede il limite di [{{limite}}]",
+						"SWAGGER2": "Le specifiche Swagger 2.0 non sono supportate: convertire la specifica in OpenAPI 3"
 					},
 					"404": {
 						"DEFAULT": "Documento non trovato",

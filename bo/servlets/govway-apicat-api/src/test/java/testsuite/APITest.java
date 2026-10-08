@@ -58,8 +58,13 @@ import org.govway.catalogo.servlets.model.ApiUpdate;
 import org.govway.catalogo.servlets.model.DatiCustomUpdate;
 import org.govway.catalogo.servlets.model.DatiGenericiApiUpdate;
 import org.govway.catalogo.servlets.model.DocumentoCreate;
+import org.govway.catalogo.servlets.model.DocumentoUpdate;
 import org.govway.catalogo.servlets.model.DocumentoUpdate.TipoDocumentoEnum;
 import org.govway.catalogo.servlets.model.DocumentoUpdateNew;
+import org.govway.catalogo.servlets.model.DocumentoUpdateId;
+import org.govway.catalogo.servlets.model.APIDatiAmbienteUpdate;
+import org.govway.catalogo.servlets.model.ProtocolloDettaglioEnum;
+import org.govway.catalogo.assembler.ApiDettaglioAssembler;
 import org.govway.catalogo.servlets.model.Dominio;
 import org.govway.catalogo.servlets.model.DominioCreate;
 import org.govway.catalogo.servlets.model.DownloadSpecificaAPIModeEnum;
@@ -112,6 +117,8 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.util.AopTestUtils;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityManager;
@@ -170,6 +177,9 @@ public class APITest {
 
     @Autowired
     GruppiController gruppiController;
+
+    @Autowired
+    ApiDettaglioAssembler apiDettaglioAssembler;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -2188,6 +2198,130 @@ public class APITest {
     	} finally {
     		disabilitaOverrideProfiloGovway(gruppo);
     	}
+    }
+
+    // ==================== SPECIFICHE SWAGGER 2.0 ====================
+
+    private void setSupportoSwagger2(boolean abilitato) {
+    	// Il bean e` condiviso tra i test del contesto: va sempre ripristinato a false
+    	Object target = AopTestUtils.getUltimateTargetObject(this.apiDettaglioAssembler);
+    	ReflectionTestUtils.setField(target, "supportaSwagger2", abilitato);
+    }
+
+    private APIDatiErogazione getDatiErogazioneTest() {
+    	APIDatiErogazione apiDatiErogazione = new APIDatiErogazione();
+    	apiDatiErogazione.setNomeGateway("APIGateway");
+    	apiDatiErogazione.setVersioneGateway(1);
+    	apiDatiErogazione.setUrlPrefix("http://");
+    	apiDatiErogazione.setUrl("testurl.com/test");
+    	return apiDatiErogazione;
+    }
+
+    private APICreate getAPICreateConSpecifica(String specifica) {
+    	APICreate apiCreate = CommonUtils.getAPICreate();
+    	apiCreate.setIdServizio(this.getServizio().getIdServizio());
+
+    	DocumentoCreate documento = new DocumentoCreate();
+    	documento.setContentType("application/yaml");
+    	documento.setContent(Base64.encodeBase64String(specifica.getBytes()));
+    	documento.setFilename("specifica.yaml");
+
+    	APIDatiAmbienteCreate apiDatiAmbienteCreate = new APIDatiAmbienteCreate();
+    	apiDatiAmbienteCreate.setProtocollo(ProtocolloEnum.REST);
+    	apiDatiAmbienteCreate.setSpecifica(documento);
+    	apiDatiAmbienteCreate.setDatiErogazione(getDatiErogazioneTest());
+
+    	apiCreate.setConfigurazioneCollaudo(apiDatiAmbienteCreate);
+    	return apiCreate;
+    }
+
+    private ApiUpdate getApiUpdateCollaudo(DocumentoUpdate specifica) {
+    	APIDatiAmbienteUpdate collaudo = new APIDatiAmbienteUpdate();
+    	collaudo.setProtocollo(ProtocolloEnum.REST);
+    	collaudo.setSpecifica(specifica);
+    	collaudo.setDatiErogazione(getDatiErogazioneTest());
+
+    	ApiUpdate apiUpdate = new ApiUpdate();
+    	apiUpdate.setConfigurazioneCollaudo(collaudo);
+    	return apiUpdate;
+    }
+
+    private DocumentoUpdateNew getSpecificaNuova(String specifica) {
+    	DocumentoUpdateNew documento = new DocumentoUpdateNew();
+    	documento.setTipoDocumento(TipoDocumentoEnum.NUOVO);
+    	documento.setContentType("application/yaml");
+    	documento.setContent(Base64.encodeBase64String(specifica.getBytes()));
+    	documento.setFilename("specifica.yaml");
+    	return documento;
+    }
+
+    @Test
+    void testCreateApiSwagger2Disabilitato() {
+    	APICreate apiCreate = getAPICreateConSpecifica(CommonUtils.swagger2Spec);
+
+    	BadRequestException exception = assertThrows(BadRequestException.class, () -> apiController.createApi(apiCreate));
+    	assertEquals(ErrorCode.DOC_400_SWAGGER2, exception.getErrorCode());
+    }
+
+    @Test
+    void testCreateApiSwagger2Abilitato() {
+    	setSupportoSwagger2(true);
+    	try {
+    		ResponseEntity<API> api = apiController.createApi(getAPICreateConSpecifica(CommonUtils.swagger2Spec));
+
+    		assertEquals(HttpStatus.OK, api.getStatusCode());
+    		assertEquals(ProtocolloDettaglioEnum.SWAGGER_2, api.getBody().getConfigurazioneCollaudo().getProtocolloDettaglio());
+    	} finally {
+    		setSupportoSwagger2(false);
+    	}
+    }
+
+    @Test
+    void testCreateApiOpenapiSwagger2Disabilitato() {
+    	// OpenAPI 3 non e` influenzato dalla property
+    	ResponseEntity<API> api = apiController.createApi(getAPICreateConSpecifica(CommonUtils.openApiSpec));
+
+    	assertEquals(HttpStatus.OK, api.getStatusCode());
+    	assertEquals(ProtocolloDettaglioEnum.OPENAPI_3, api.getBody().getConfigurazioneCollaudo().getProtocolloDettaglio());
+    }
+
+    /**
+     * Un'API salvata con specifica Swagger 2.0 (es. prima della 2.3.1 o con la property abilitata) resta
+     * aggiornabile con la property disabilitata finche' il contenuto della specifica non cambia; un nuovo
+     * contenuto Swagger 2.0 viene rifiutato, mentre la conversione in OpenAPI 3 e` sempre consentita.
+     */
+    @Test
+    void testUpdateApiSwagger2PreesistenteDisabilitato() {
+    	ResponseEntity<API> api;
+    	setSupportoSwagger2(true);
+    	try {
+    		api = apiController.createApi(getAPICreateConSpecifica(CommonUtils.swagger2Spec));
+    	} finally {
+    		setSupportoSwagger2(false);
+    	}
+    	UUID idApiSwagger = api.getBody().getIdApi();
+
+    	// Specifica invariata (il frontend la reinvia come riferimento uuid): aggiornamento consentito
+    	DocumentoUpdateId specificaInvariata = new DocumentoUpdateId();
+    	specificaInvariata.setTipoDocumento(TipoDocumentoEnum.UUID);
+    	specificaInvariata.setUuid(api.getBody().getConfigurazioneCollaudo().getSpecifica().getUuid());
+
+    	ResponseEntity<API> aggiornata = apiController.updateApi(idApiSwagger, getApiUpdateCollaudo(specificaInvariata), null);
+    	assertEquals(HttpStatus.OK, aggiornata.getStatusCode());
+    	assertEquals(ProtocolloDettaglioEnum.SWAGGER_2, aggiornata.getBody().getConfigurazioneCollaudo().getProtocolloDettaglio());
+
+    	// Stesso contenuto ricaricato come nuovo documento: consentito
+    	aggiornata = apiController.updateApi(idApiSwagger, getApiUpdateCollaudo(getSpecificaNuova(CommonUtils.swagger2Spec)), null);
+    	assertEquals(ProtocolloDettaglioEnum.SWAGGER_2, aggiornata.getBody().getConfigurazioneCollaudo().getProtocolloDettaglio());
+
+    	// Conversione in OpenAPI 3: consentita
+    	aggiornata = apiController.updateApi(idApiSwagger, getApiUpdateCollaudo(getSpecificaNuova(CommonUtils.openApiSpec)), null);
+    	assertEquals(ProtocolloDettaglioEnum.OPENAPI_3, aggiornata.getBody().getConfigurazioneCollaudo().getProtocolloDettaglio());
+
+    	// Nuovo contenuto Swagger 2.0: rifiutato
+    	ApiUpdate nuovaSwagger = getApiUpdateCollaudo(getSpecificaNuova(CommonUtils.swagger2Spec.replace("/hello", "/saluto")));
+    	BadRequestException exception = assertThrows(BadRequestException.class, () -> apiController.updateApi(idApiSwagger, nuovaSwagger, null));
+    	assertEquals(ErrorCode.DOC_400_SWAGGER2, exception.getErrorCode());
     }
 
 }

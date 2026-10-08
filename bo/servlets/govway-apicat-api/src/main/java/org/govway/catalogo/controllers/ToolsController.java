@@ -79,6 +79,14 @@ public class ToolsController implements ToolsApi {
 	@Value("${org.govway.api.catalogo.wsdl.parsing.senza-binding.enabled:false}")
 	private boolean supportaWsdlSenzaBinding;
 
+	/**
+	 * Se abilitata, consente l'analisi delle specifiche REST in formato Swagger 2.0 (deprecato).
+	 * Default: false. Il controllo si applica solo ai documenti forniti inline: quelli gia` salvati
+	 * (riferimento per uuid) sono stati accettati in precedenza e restano analizzabili.
+	 */
+	@Value("${org.govway.api.catalogo.rest.parsing.swagger2.enabled:false}")
+	private boolean supportaSwagger2;
+
 	@Override
 	public ResponseEntity<List<String>> listaRisorseApi(ListaRisorseApiRichiesta listaRisorseApiRichiesta) {
 		
@@ -86,7 +94,8 @@ public class ToolsController implements ToolsApi {
 			this.logger.info("Invocazione in corso ...");     
 
 			byte[] body = null;
-			if(listaRisorseApiRichiesta.getDocument().getType().equals(TipoApiRisorsaEnum.INLINE)) {
+			boolean documentoInline = listaRisorseApiRichiesta.getDocument().getType().equals(TipoApiRisorsaEnum.INLINE);
+			if(documentoInline) {
 				body = Base64.getDecoder().decode(((DocumentoApiInline)listaRisorseApiRichiesta.getDocument()).getDocument());
 			} else {
 				String uuid = ((DocumentoApiRef)listaRisorseApiRichiesta.getDocument()).getUuid();
@@ -98,7 +107,7 @@ public class ToolsController implements ToolsApi {
 			}
 			List<String> lst = null;
 			switch(listaRisorseApiRichiesta.getApiType()) {
-			case REST: lst = getProtocolInfoFromRest(body);
+			case REST: lst = getProtocolInfoFromRest(body, documentoInline);
 				break;
 			case SOAP: lst = getProtocolInfoFromWsdl(body);
 				break;
@@ -118,7 +127,7 @@ public class ToolsController implements ToolsApi {
 		}
 	}
 
-	private List<String> getProtocolInfoFromRest(byte[] restBytes) {
+	private List<String> getProtocolInfoFromRest(byte[] restBytes, boolean documentoInline) {
 	    try {
 	    	if(OpenapiUtils.isOpenapi(restBytes)) {
 		    	List<String> collect = OpenapiUtils.getProtocolInfoFromOpenapi(restBytes).stream().map(i -> i.getOp() + " " + i.getPath()).collect(Collectors.toList());
@@ -127,12 +136,17 @@ public class ToolsController implements ToolsApi {
 				}
 		    	return collect;
 	    	} else if(SwaggerUtils.isSwagger(restBytes)) {
+	    		if(documentoInline && !this.supportaSwagger2) {
+	    			this.logger.warn("Specifica Swagger 2.0 rifiutata: il supporto e` disabilitato (property 'org.govway.api.catalogo.rest.parsing.swagger2.enabled')");
+	    			throw new BadRequestException(ErrorCode.DOC_400_SWAGGER2);
+	    		}
 		    	List<String> collect = SwaggerUtils.getProtocolInfoFromSwagger(restBytes).stream().map(i -> i.getOp() + " " + i.getPath()).collect(Collectors.toList());
 				if(collect.isEmpty()) {
 					throw new BadRequestException(ErrorCode.DOC_500, Map.of("errore", "Lista vuota"));
 				}
 				return collect;
 	    	} else {
+	    		this.logger.warn("Descrittore REST non riconosciuto come OpenAPI 3 ne' come Swagger 2.0");
 				throw new BadRequestException(ErrorCode.DOC_500, Map.of("errore", "Documento non riconosciuto"));
 	    	}
 

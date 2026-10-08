@@ -37,6 +37,7 @@ import org.govway.catalogo.core.orm.entity.DocumentoEntity;
 import org.govway.catalogo.core.services.DocumentoService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.DocumentoApiInline;
 import org.govway.catalogo.servlets.model.DocumentoApiRef;
 import org.govway.catalogo.servlets.model.ListaRisorseApiRichiesta;
@@ -64,6 +65,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.annotation.Propagation;
@@ -216,6 +218,59 @@ public class ToolsTest {
         assertEquals(200, response.getStatusCode().value());
     }
     
+    private ListaRisorseApiRichiesta getRichiestaRestInline(String documento) {
+        DocumentoApiInline documentoInline = new DocumentoApiInline();
+        documentoInline.setContentType("application/yaml");
+        documentoInline.setDocument(Base64.getEncoder().encodeToString(documento.getBytes()));
+        documentoInline.setType(TipoApiRisorsaEnum.INLINE);
+
+        ListaRisorseApiRichiesta richiesta = new ListaRisorseApiRichiesta();
+        richiesta.setDocument(documentoInline);
+        richiesta.setApiType(ProtocolloEnum.REST);
+        return richiesta;
+    }
+
+    @Test
+    public void testListaRisorseApi_Swagger2_Disabilitato_BadRequest() {
+        ListaRisorseApiRichiesta richiesta = getRichiestaRestInline(CommonUtils.swagger2Spec);
+
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> toolsController.listaRisorseApi(richiesta));
+        assertEquals(ErrorCode.DOC_400_SWAGGER2, exception.getErrorCode());
+    }
+
+    @Test
+    public void testListaRisorseApi_Swagger2_Abilitato_Success() {
+        ReflectionTestUtils.setField(toolsController, "supportaSwagger2", true);
+
+        ResponseEntity<List<String>> response = toolsController.listaRisorseApi(getRichiestaRestInline(CommonUtils.swagger2Spec));
+
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(List.of("GET /hello", "POST /hello"), response.getBody());
+    }
+
+    @Test
+    public void testListaRisorseApi_Swagger2_Abilitato_ListaVuota() {
+        ReflectionTestUtils.setField(toolsController, "supportaSwagger2", true);
+        String swagger = "swagger: '2.0'\ninfo:\n  title: t\n  version: 1\npaths: {}\n";
+
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> toolsController.listaRisorseApi(getRichiestaRestInline(swagger)));
+        assertEquals(ErrorCode.DOC_500, exception.getErrorCode());
+        assertEquals("Lista vuota", exception.getParameters().get("errore"));
+    }
+
+    @Test
+    public void testListaRisorseApi_REST_DocumentoNonRiconosciuto() {
+        // Il riconoscimento di OpenAPI 3 resta invariato anche con Swagger 2.0 abilitato
+        ReflectionTestUtils.setField(toolsController, "supportaSwagger2", true);
+
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> toolsController.listaRisorseApi(getRichiestaRestInline("titolo: documento qualsiasi\n")));
+        assertEquals(ErrorCode.DOC_500, exception.getErrorCode());
+        assertEquals("Documento non riconosciuto", exception.getParameters().get("errore"));
+
+        ResponseEntity<List<String>> response = toolsController.listaRisorseApi(getRichiestaRestInline(CommonUtils.openApiSpec));
+        assertEquals(List.of("GET /hello"), response.getBody());
+    }
+
     @Test
     public void testListaRisorseApiBadRequest() {
         DocumentoApiInline documento = new DocumentoApiInline();
@@ -285,6 +340,50 @@ public class ToolsTest {
         richiesta.setApiType(ProtocolloEnum.SOAP);
 
         assertThrows(BadRequestException.class, () -> toolsController.listaOperazioniWsdl(richiesta));
+    }
+
+    /**
+     * Un documento Swagger 2.0 gia` salvato a sistema (riferimento per uuid) resta analizzabile anche
+     * con il supporto Swagger 2.0 disabilitato: il controllo si applica solo ai documenti inline.
+     */
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void testListaRisorseApi_Swagger2_WithUUID_Disabilitato_Success() {
+        String documentUuid = UUID.randomUUID().toString();
+
+        TransactionTemplate txTemplate = new TransactionTemplate(transactionManager);
+        try {
+            txTemplate.execute(status -> {
+                DocumentoEntity documento = new DocumentoEntity();
+                documento.setUuid(documentUuid);
+                documento.setFilename("test-swagger.yaml");
+                documento.setTipo("application/yaml");
+                documento.setRawData(CommonUtils.swagger2Spec.getBytes());
+                documento.setVersione(1);
+                documento.setDataCreazione(new Date());
+                documento.setUtenteCreazione("test-user");
+                documentoServiceReal.save(documento);
+                return null;
+            });
+
+            DocumentoApiRef documentoRef = new DocumentoApiRef();
+            documentoRef.setUuid(documentUuid);
+            documentoRef.setType(TipoApiRisorsaEnum.UUID);
+
+            ListaRisorseApiRichiesta richiesta = new ListaRisorseApiRichiesta();
+            richiesta.setDocument(documentoRef);
+            richiesta.setApiType(ProtocolloEnum.REST);
+
+            ResponseEntity<List<String>> response = toolsControllerReal.listaRisorseApi(richiesta);
+
+            assertEquals(200, response.getStatusCode().value());
+            assertEquals(List.of("GET /hello", "POST /hello"), response.getBody());
+        } finally {
+            txTemplate.execute(status -> {
+                documentoServiceReal.find(documentUuid).ifPresent(doc -> documentoServiceReal.delete(doc));
+                return null;
+            });
+        }
     }
 
     /**

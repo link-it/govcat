@@ -1,6 +1,13 @@
 2026-10-08  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
+	Issue 367: il caricamento di specifiche Swagger 2.0 falliva sempre con errore DOC.500
+	  "Documento non riconosciuto" e senza alcuna traccia nei log (regressione dalla versione
+	  2.3.1). Swagger 2.0, deprecato, è ora riconosciuto e rifiutato di default con l'errore
+	  esplicito DOC.400.SWAGGER2; può essere abilitato con la property
+	  org.govway.api.catalogo.rest.parsing.swagger2.enabled. Le API già salvate con specifica
+	  Swagger 2.0 restano aggiornabili finché la specifica non viene sostituita.
+
 	Issue 365: gli stub PDND restituiscono 502 (INT.502.AUTH) quando il servizio esterno
 	  (PDND o GovWay) rifiuta l'autenticazione con 401, invece di propagare il 401 che
 	  faceva scattare nel frontend il refresh del token e poi il logout dell'utente.

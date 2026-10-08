@@ -143,6 +143,30 @@ public class CommonUtils {
 		    	    "                  message:\n" +
 		    	    "                    type: string\n" +
 		    	    "                    example: \"Ciao, mondo!\"\n";
+
+	public static final String swagger2Spec =
+		    "swagger: '2.0'\n" +
+		    "info:\n" +
+		    "  title: API di Test Swagger\n" +
+		    "  version: 1.0.0\n" +
+		    "basePath: /test\n" +
+		    "paths:\n" +
+		    "  /hello:\n" +
+		    "    get:\n" +
+		    "      responses:\n" +
+		    "        '200':\n" +
+		    "          description: Saluto\n" +
+		    "    post:\n" +
+		    "      consumes:\n" +
+		    "        - application/json\n" +
+		    "      parameters:\n" +
+		    "        - in: body\n" +
+		    "          name: body\n" +
+		    "          schema:\n" +
+		    "            type: object\n" +
+		    "      responses:\n" +
+		    "        '200':\n" +
+		    "          description: Saluto\n";
 	
 	public static OrganizzazioneCreate getOrganizzazioneCreate(){
 		// Creazione dell'istanza di OrganizzazioneCreate

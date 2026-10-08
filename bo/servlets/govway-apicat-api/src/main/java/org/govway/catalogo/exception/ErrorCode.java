@@ -396,6 +396,9 @@ public enum ErrorCode {
     /** Dimensione documento eccede il limite */
     DOC_400_SIZE("Dimensione documento eccede il limite"),
 
+    /** Specifica Swagger 2.0 non abilitata */
+    DOC_400_SWAGGER2("Specifica Swagger 2.0 non supportata"),
+
     /** Impossibile elaborare il documento */
     DOC_500("Impossibile elaborare documento"),
 

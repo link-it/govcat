@@ -78,6 +78,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 
 public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<ApiEntity, API> {
@@ -104,6 +105,14 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 
 	@Autowired
 	private ProfiloGovwayService profiloGovwayService;
+
+	/**
+	 * Se abilitata, consente le specifiche REST in formato Swagger 2.0 (deprecato). Default: false.
+	 * Il controllo si applica solo quando il contenuto della specifica cambia: le API gia` salvate
+	 * con specifica Swagger 2.0 restano aggiornabili.
+	 */
+	@Value("${org.govway.api.catalogo.rest.parsing.swagger2.enabled:false}")
+	private boolean supportaSwagger2;
 
 	public static final String SEPARATOR = ",";
 
@@ -250,11 +259,13 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 //			entity.setUrlPrefix(src.getDatiErogazione().getUrlPrefix());
 		}
 		
+		DocumentoEntity specificaPrecedente = entity.getSpecifica();
+
 		if(src.getSpecifica()!=null) {
 			entity.setSpecifica(this.allegatoAssembler.toEntity(src.getSpecifica(), entity.getSpecifica(), this.apiEngineAssembler.getUtenteSessione()));
 		}
 		
-		entity.setProtocollo(toProtocollo(src.getProtocollo(), entity.getSpecifica()));
+		entity.setProtocollo(toProtocollo(src.getProtocollo(), entity.getSpecifica(), isContenutoModificato(specificaPrecedente, entity.getSpecifica())));
 
 		this.servizioDettaglioAssembler.setUltimaModifica(api.getServizio());
 		this.servizioService.save(api.getServizio());
@@ -296,7 +307,18 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		return entity;
 	}
 	
-	private PROTOCOLLO toProtocollo(ProtocolloEnum pr, DocumentoEntity spec) {
+	/**
+	 * Indica se la specifica risultante ha un contenuto diverso da quella precedente
+	 * (il frontend reinvia la specifica anche quando non viene modificata).
+	 */
+	private boolean isContenutoModificato(DocumentoEntity precedente, DocumentoEntity attuale) {
+		if(attuale == null) {
+			return false;
+		}
+		return precedente == null || !Arrays.equals(precedente.getRawData(), attuale.getRawData());
+	}
+
+	private PROTOCOLLO toProtocollo(ProtocolloEnum pr, DocumentoEntity spec, boolean specificaModificata) {
 
 		if(spec!=null) {
 			
@@ -305,6 +327,10 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 				if (OpenapiUtils.isOpenapi(spec.getRawData())) {
 					return PROTOCOLLO.OPENAPI_3;
 				} else if (SwaggerUtils.isSwagger(spec.getRawData())) {
+					if(specificaModificata && !this.supportaSwagger2) {
+						this.logger.warn("Specifica Swagger 2.0 rifiutata: il supporto e` disabilitato (property 'org.govway.api.catalogo.rest.parsing.swagger2.enabled')");
+						throw new BadRequestException(ErrorCode.DOC_400_SWAGGER2);
+					}
 					return PROTOCOLLO.SWAGGER_2;
 				} else {
 					this.logger.error("Swagger / OpenAPI fornito non corretto");
@@ -338,7 +364,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 			entity.setSpecifica(this.allegatoAssembler.toEntity(src.getSpecifica(), this.apiEngineAssembler.getUtenteSessione()));
 		}
 		
-		entity.setProtocollo(toProtocollo(src.getProtocollo(), entity.getSpecifica()));
+		entity.setProtocollo(toProtocollo(src.getProtocollo(), entity.getSpecifica(), true));
 		
 		if(src.getDatiErogazione()!= null) {
 			entity.setNomeGateway(src.getDatiErogazione().getNomeGateway());
