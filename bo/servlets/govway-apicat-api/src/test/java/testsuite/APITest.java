@@ -3,6 +3,7 @@ package testsuite;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -71,6 +72,8 @@ import org.govway.catalogo.servlets.model.DownloadSpecificaAPIModeEnum;
 import org.govway.catalogo.servlets.model.Gruppo;
 import org.govway.catalogo.servlets.model.GruppoCreate;
 import org.govway.catalogo.servlets.model.IdentificativoApiUpdate;
+import org.govway.catalogo.servlets.model.UrlInvocazioneAPI;
+import org.govway.catalogo.servlets.model.UrlInvocazioneAggiuntiva;
 import org.govway.catalogo.servlets.model.IdentificativoServizioUpdate;
 import org.govway.catalogo.servlets.model.Organizzazione;
 import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
@@ -2324,4 +2327,174 @@ public class APITest {
     	assertEquals(ErrorCode.DOC_400_SWAGGER2, exception.getErrorCode());
     }
 
+    private UrlInvocazioneAggiuntiva urlAggiuntiva(String etichetta, String templateUrl, String prefixCollaudo, String prefixProduzione) {
+    	UrlInvocazioneAggiuntiva url = new UrlInvocazioneAggiuntiva();
+    	url.setEtichetta(etichetta);
+    	url.setTemplateUrl(templateUrl);
+    	url.setUrlPrefixCollaudo(prefixCollaudo);
+    	url.setUrlPrefixProduzione(prefixProduzione);
+    	return url;
+    }
+
+    private UUID creaApiConUrlAggiuntive(String nome, Servizio servizio, List<UrlInvocazioneAggiuntiva> urlAggiuntive) {
+    	APICreate apiCreate = CommonUtils.getAPICreate();
+    	apiCreate.setNome(nome);
+    	apiCreate.setVersione(1);
+    	apiCreate.setIdServizio(servizio.getIdServizio());
+    	apiCreate.setUrlInvocazioneAggiuntive(urlAggiuntive);
+    	return apiController.createApi(apiCreate).getBody().getIdApi();
+    }
+
+    @Test
+    void testUrlInvocazioneApiRestituisceAncheLeUrlAggiuntive() {
+    	// Issue 351: la URL principale resta quella risolta dalla gerarchia; le aggiuntive che
+    	// indicano il solo prefix ne ereditano il path.
+    	Dominio dominio = this.getDominio();
+    	Servizio servizio = creaServizio("servizio_url_aggiuntive", dominio.getIdDominio(), false, null);
+    	UUID idApi = creaApiConUrlAggiuntive("API_URL_AGG", servizio,
+    			List.of(urlAggiuntiva("Rete internet", null, "https://collaudo-esterno", "https://produzione-esterno")));
+
+    	ResponseEntity<UrlInvocazioneAPI> produzione = apiController.getUrlInvocazioneAPI(idApi, AmbienteEnum.PRODUZIONE);
+    	assertEquals(HttpStatus.OK, produzione.getStatusCode());
+
+    	String principale = produzione.getBody().getUrlInvocazione();
+    	assertTrue(principale.startsWith("https://api.comuneesempio.it/"));
+    	assertEquals(1, produzione.getBody().getUrlInvocazioneAggiuntive().size());
+    	assertEquals("Rete internet", produzione.getBody().getUrlInvocazioneAggiuntive().get(0).getEtichetta());
+    	assertEquals(principale.replace("https://api.comuneesempio.it", "https://produzione-esterno"),
+    			produzione.getBody().getUrlInvocazioneAggiuntive().get(0).getUrlInvocazione());
+
+    	ResponseEntity<UrlInvocazioneAPI> collaudo = apiController.getUrlInvocazioneAPI(idApi, AmbienteEnum.COLLAUDO);
+    	String principaleCollaudo = collaudo.getBody().getUrlInvocazione();
+    	assertTrue(principaleCollaudo.startsWith("https://apistage.comuneesempio.it/"));
+    	assertEquals(principaleCollaudo.replace("https://apistage.comuneesempio.it", "https://collaudo-esterno"),
+    			collaudo.getBody().getUrlInvocazioneAggiuntive().get(0).getUrlInvocazione());
+    }
+
+    @Test
+    void testUrlInvocazioneApiSenzaAggiuntiveNonEspoeLaLista() {
+    	Dominio dominio = this.getDominio();
+    	Servizio servizio = creaServizio("servizio_senza_url_aggiuntive", dominio.getIdDominio(), false, null);
+    	UUID idApi = creaApi("API_SENZA_URL_AGG", 1, servizio).getBody().getIdApi();
+
+    	ResponseEntity<UrlInvocazioneAPI> response = apiController.getUrlInvocazioneAPI(idApi, AmbienteEnum.PRODUZIONE);
+
+    	assertEquals(HttpStatus.OK, response.getStatusCode());
+    	assertNotNull(response.getBody().getUrlInvocazione());
+    	assertNull(response.getBody().getUrlInvocazioneAggiuntive());
+    	assertNull(apiController.getAPI(idApi).getBody().getUrlInvocazioneAggiuntive());
+    }
+
+    @Test
+    void testUpdateApiSenzaUrlAggiuntiveNonLeAzzera() {
+    	// Un client che non conosce il campo non deve cancellare la configurazione esistente
+    	Dominio dominio = this.getDominio();
+    	Servizio servizio = creaServizio("servizio_url_update", dominio.getIdDominio(), false, null);
+    	UUID idApi = creaApiConUrlAggiuntive("API_URL_UPDATE", servizio,
+    			List.of(urlAggiuntiva("Rete internet", null, null, "https://produzione-esterno")));
+
+    	ApiUpdate update = new ApiUpdate();
+    	DatiGenericiApiUpdate datiGenerici = new DatiGenericiApiUpdate();
+    	datiGenerici.setDescrizione("descrizione aggiornata");
+    	update.setDatiGenerici(datiGenerici);
+
+    	ResponseEntity<API> aggiornata = apiController.updateApi(idApi, update, null);
+
+    	assertEquals(HttpStatus.OK, aggiornata.getStatusCode());
+    	assertEquals(1, aggiornata.getBody().getUrlInvocazioneAggiuntive().size());
+    	assertEquals("Rete internet", aggiornata.getBody().getUrlInvocazioneAggiuntive().get(0).getEtichetta());
+    }
+
+    @Test
+    void testUpdateApiConListaVuotaAzzeraLeUrlAggiuntive() {
+    	Dominio dominio = this.getDominio();
+    	Servizio servizio = creaServizio("servizio_url_azzera", dominio.getIdDominio(), false, null);
+    	UUID idApi = creaApiConUrlAggiuntive("API_URL_AZZERA", servizio,
+    			List.of(urlAggiuntiva("Rete internet", null, null, "https://produzione-esterno")));
+
+    	ApiUpdate update = new ApiUpdate();
+    	DatiGenericiApiUpdate datiGenerici = new DatiGenericiApiUpdate();
+    	datiGenerici.setUrlInvocazioneAggiuntive(new ArrayList<>());
+    	update.setDatiGenerici(datiGenerici);
+
+    	ResponseEntity<API> aggiornata = apiController.updateApi(idApi, update, null);
+
+    	assertEquals(HttpStatus.OK, aggiornata.getStatusCode());
+    	assertNull(aggiornata.getBody().getUrlInvocazioneAggiuntive());
+    	assertNull(apiController.getUrlInvocazioneAPI(idApi, AmbienteEnum.PRODUZIONE).getBody().getUrlInvocazioneAggiuntive());
+    }
+
+    @Test
+    void testUpdateApiSostituisceIntegralmenteLeUrlAggiuntive() {
+    	Dominio dominio = this.getDominio();
+    	Servizio servizio = creaServizio("servizio_url_sostituzione", dominio.getIdDominio(), false, null);
+    	UUID idApi = creaApiConUrlAggiuntive("API_URL_SOSTITUZIONE", servizio,
+    			List.of(urlAggiuntiva("Prima", null, null, "https://gateway-1")));
+
+    	ApiUpdate update = new ApiUpdate();
+    	DatiGenericiApiUpdate datiGenerici = new DatiGenericiApiUpdate();
+    	datiGenerici.setUrlInvocazioneAggiuntive(List.of(
+    			urlAggiuntiva("Seconda", null, null, "https://gateway-2"),
+    			urlAggiuntiva("Terza", null, null, "https://gateway-3")));
+    	update.setDatiGenerici(datiGenerici);
+
+    	ResponseEntity<API> aggiornata = apiController.updateApi(idApi, update, null);
+
+    	assertEquals(2, aggiornata.getBody().getUrlInvocazioneAggiuntive().size());
+    	assertEquals("Seconda", aggiornata.getBody().getUrlInvocazioneAggiuntive().get(0).getEtichetta());
+    	assertEquals("Terza", aggiornata.getBody().getUrlInvocazioneAggiuntive().get(1).getEtichetta());
+    }
+
+    @Test
+    void testDeleteApiConUrlAggiuntive() {
+    	// La cancellazione dell'API deve rimuovere anche le URL aggiuntive (vincolo di integrita`)
+    	Dominio dominio = this.getDominio();
+    	Servizio servizio = creaServizio("servizio_url_delete", dominio.getIdDominio(), false, null);
+    	UUID idApi = creaApiConUrlAggiuntive("API_URL_DELETE", servizio,
+    			List.of(urlAggiuntiva("Rete internet", null, null, "https://produzione-esterno")));
+
+    	assertEquals(HttpStatus.OK, apiController.deleteAPI(idApi).getStatusCode());
+    	assertThrows(NotFoundException.class, () -> apiController.getAPI(idApi));
+    }
+
+    @Test
+    void testCreateApiUrlAggiuntiveEtichettaObbligatoria() {
+    	Dominio dominio = this.getDominio();
+    	Servizio servizio = creaServizio("servizio_url_etichetta", dominio.getIdDominio(), false, null);
+
+    	BadRequestException exception = assertThrows(BadRequestException.class,
+    			() -> creaApiConUrlAggiuntive("API_URL_ETICHETTA", servizio,
+    					List.of(urlAggiuntiva("   ", null, null, "https://gateway-1"))));
+
+    	assertEquals(ErrorCode.API_400_URL_LABEL, exception.getErrorCode());
+    }
+
+    @Test
+    void testCreateApiUrlAggiuntiveEtichettaDuplicata() {
+    	Dominio dominio = this.getDominio();
+    	Servizio servizio = creaServizio("servizio_url_duplicata", dominio.getIdDominio(), false, null);
+
+    	BadRequestException exception = assertThrows(BadRequestException.class,
+    			() -> creaApiConUrlAggiuntive("API_URL_DUPLICATA", servizio,
+    					List.of(urlAggiuntiva("Rete internet", null, null, "https://gateway-1"),
+    							urlAggiuntiva("rete internet", null, null, "https://gateway-2"))));
+
+    	assertEquals(ErrorCode.API_400_URL_DUPLICATE, exception.getErrorCode());
+    }
+
+    @Test
+    void testCreateApiOltreIlMassimoDiUrlAggiuntive() {
+    	Dominio dominio = this.getDominio();
+    	Servizio servizio = creaServizio("servizio_url_limite", dominio.getIdDominio(), false, null);
+
+    	List<UrlInvocazioneAggiuntiva> urls = new ArrayList<>();
+    	for(int i = 0; i < 11; i++) {
+    		urls.add(urlAggiuntiva("Gateway " + i, null, null, "https://gateway-" + i));
+    	}
+
+    	BadRequestException exception = assertThrows(BadRequestException.class,
+    			() -> creaApiConUrlAggiuntive("API_URL_LIMITE", servizio, urls));
+
+    	assertEquals(ErrorCode.API_400_URL_LIMIT, exception.getErrorCode());
+    }
 }

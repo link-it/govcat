@@ -1430,6 +1430,11 @@
 							"EROGATIONS": "API [{{nome}} v{{versione}}] ha [{{count}}] erogazioni attive, non eliminabile"
 						},
 						"SPEC": "Specifica non presente",
+						"URL": {
+							"DUPLICATE": "Etichetta [{{etichetta}}] duplicata tra le URL di invocazione aggiuntive",
+							"LABEL": "Etichetta obbligatoria per le URL di invocazione aggiuntive",
+							"LIMIT": "Numero massimo di URL di invocazione aggiuntive superato: indicate [{{numero}}], consentite al massimo [{{massimo}}]"
+						},
 						"VISIBILITY": "Visibilita [{{visibilita}}] non consentita"
 					},
 					"404": {

@@ -43,6 +43,8 @@ public class Servizio {
 	private String connettoreProduzione;
 	private String urlInvocazioneCollaudo;
 	private String connettoreCollaudo;
+	private String urlInvocazioneAggiuntiveProduzione;
+	private String urlInvocazioneAggiuntiveCollaudo;
 
 	public String getErogatore() {
 		return erogatore;
@@ -175,6 +177,18 @@ public class Servizio {
 	}
 	public void setConnettoreCollaudo(String connettoreCollaudo) {
 		this.connettoreCollaudo = connettoreCollaudo;
+	}
+	public String getUrlInvocazioneAggiuntiveProduzione() {
+		return urlInvocazioneAggiuntiveProduzione;
+	}
+	public void setUrlInvocazioneAggiuntiveProduzione(String urlInvocazioneAggiuntiveProduzione) {
+		this.urlInvocazioneAggiuntiveProduzione = urlInvocazioneAggiuntiveProduzione;
+	}
+	public String getUrlInvocazioneAggiuntiveCollaudo() {
+		return urlInvocazioneAggiuntiveCollaudo;
+	}
+	public void setUrlInvocazioneAggiuntiveCollaudo(String urlInvocazioneAggiuntiveCollaudo) {
+		this.urlInvocazioneAggiuntiveCollaudo = urlInvocazioneAggiuntiveCollaudo;
 	}
 
 }

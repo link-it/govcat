@@ -4,6 +4,7 @@ create sequence seq_allegati_servizi start with 1 increment by 1;
 create sequence seq_api start with 1 increment by 1;
 create sequence seq_api_auth_types start with 1 increment by 1;
 create sequence seq_api_config start with 1 increment by 1;
+create sequence seq_api_url_invocazione start with 1 increment by 1;
 create sequence seq_categorie start with 1 increment by 1;
 create sequence seq_classi start with 1 increment by 1;
 create sequence seq_client start with 1 increment by 1;
@@ -124,6 +125,17 @@ create sequence seq_aziende_esterne start with 1 increment by 1;
        id_servizio bigint not null,
         id_api bigint not null,
         primary key (id_api, id_servizio)
+    );
+
+    create table api_url_invocazione (
+       id bigint not null,
+        etichetta varchar(255),
+        posizione integer not null,
+        template_url varchar(255),
+        url_prefix_collaudo varchar(255),
+        url_prefix_produzione varchar(255),
+        id_api bigint not null,
+        primary key (id)
     );
 
     create table categorie (
@@ -688,6 +700,11 @@ create sequence seq_aziende_esterne start with 1 increment by 1;
        add constraint FK7f0mx0aeftworal1f1vn0m3as 
        foreign key (id_servizio) 
        references servizi;
+
+    alter table api_url_invocazione 
+       add constraint FK_api_url_invocazione_api 
+       foreign key (id_api) 
+       references api;
 
     alter table categorie 
        add constraint FKfuxidkrqi5a0aypyim5k6am0y 

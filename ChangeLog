@@ -1,3 +1,27 @@
+2026-10-09  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 351: una API può dichiarare più URL di invocazione (o di esposizione), per
+	  documentare l'esposizione dello stesso servizio su più gateway (ad esempio rete
+	  interna ed esposizione internet). La prima URL resta quella risolta dalla gerarchia
+	  api, servizio, dominio, soggetto referente e configurazione: struttura e logica
+	  esistenti non cambiano. Le URL dalla seconda in poi si configurano sulla singola API
+	  (nuova tabella api_url_invocazione) con un'etichetta e, opzionalmente, un template e
+	  i prefissi per collaudo e produzione; i campi non valorizzati sono ereditati dalla
+	  URL principale, così per esporre lo stesso path su un altro gateway è sufficiente
+	  indicarne il prefisso. Il campo url_invocazione_aggiuntive è additivo su APICreate,
+	  ApiUpdate (dati generici), sul dettaglio dell'API e sulla risposta di
+	  GET /api/{id_api}/{id_ambiente}/url-invocazione: se assente in aggiornamento la lista
+	  resta invariata, una lista vuota la azzera. Le specifiche OpenAPI 3 scaricate in
+	  visualizzazione o try-out dichiarano tutte le URL in servers, con l'etichetta come
+	  description (Swagger 2.0 non supporta più endpoint e mantiene la sola prima URL);
+	  gli host delle URL aggiuntive sono inclusi nella Content-Security-Policy, altrimenti
+	  il try-out su quei gateway verrebbe bloccato dal browser. L'export CSV dei servizi
+	  riporta le URL aggiuntive in due nuove colonne in coda, senza modificare quelle
+	  esistenti. Al massimo 10 URL aggiuntive per API, con etichetta obbligatoria e univoca.
+	  Le URL aggiuntive sono un dato documentale del catalogo: non configurano alcun
+	  gateway su GovWay.
+
 2026-10-08  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

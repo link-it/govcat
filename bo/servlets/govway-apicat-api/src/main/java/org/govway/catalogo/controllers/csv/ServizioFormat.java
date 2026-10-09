@@ -69,5 +69,10 @@ public abstract class ServizioFormat {
 	abstract String getUrlInvocazioneCollaudo();
 	@JsonProperty("Backend URL (Coll)")
 	abstract String getConnettoreCollaudo();
+	// Colonne in coda: l'ordine di quelle preesistenti non cambia
+	@JsonProperty("URL Invocazione Aggiuntive (Prod)")
+	abstract String getUrlInvocazioneAggiuntiveProduzione();
+	@JsonProperty("URL Invocazione Aggiuntive (Coll)")
+	abstract String getUrlInvocazioneAggiuntiveCollaudo();
 
 }

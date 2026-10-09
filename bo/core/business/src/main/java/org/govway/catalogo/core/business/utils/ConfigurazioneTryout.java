@@ -19,9 +19,15 @@
  */
 package org.govway.catalogo.core.business.utils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ConfigurazioneTryout {
 
 	private String serverUrl;
+
+	/** URL di invocazione aggiuntive dell'API, oltre a quella principale. */
+	private List<UrlInvocazioneRisolta> serverUrlAggiuntive = new ArrayList<>();
 
 	public String getServerUrl() {
 		return serverUrl;
@@ -29,5 +35,21 @@ public class ConfigurazioneTryout {
 
 	public void setServerUrl(String serverUrl) {
 		this.serverUrl = serverUrl;
+	}
+
+	public List<UrlInvocazioneRisolta> getServerUrlAggiuntive() {
+		return serverUrlAggiuntive;
+	}
+
+	public void setServerUrlAggiuntive(List<UrlInvocazioneRisolta> serverUrlAggiuntive) {
+		this.serverUrlAggiuntive = serverUrlAggiuntive != null ? serverUrlAggiuntive : new ArrayList<>();
+	}
+
+	/** URL da dichiarare nella specifica: la principale in prima posizione, poi le aggiuntive. */
+	public List<UrlInvocazioneRisolta> getServerUrls() {
+		List<UrlInvocazioneRisolta> urls = new ArrayList<>();
+		urls.add(new UrlInvocazioneRisolta(null, this.serverUrl));
+		urls.addAll(this.serverUrlAggiuntive);
+		return urls;
 	}
 }

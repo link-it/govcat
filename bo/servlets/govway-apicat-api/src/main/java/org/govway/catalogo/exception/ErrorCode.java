@@ -81,6 +81,15 @@ public enum ErrorCode {
     /** API non trovata o non accessibile */
     API_404_ACCESS("API non trovata o non accessibile"),
 
+    /** Numero massimo di URL di invocazione aggiuntive superato */
+    API_400_URL_LIMIT("Numero massimo di URL di invocazione aggiuntive superato"),
+
+    /** Etichetta mancante su una URL di invocazione aggiuntiva */
+    API_400_URL_LABEL("Etichetta obbligatoria per le URL di invocazione aggiuntive"),
+
+    /** Etichetta duplicata tra le URL di invocazione aggiuntive */
+    API_400_URL_DUPLICATE("Etichetta duplicata tra le URL di invocazione aggiuntive"),
+
     /** Allegato servizio duplicato */
     SRV_400_DUPLICATE("Allegato servizio duplicato"),
 

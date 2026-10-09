@@ -29,6 +29,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.govway.catalogo.core.business.utils.EServiceBuilder;
+import org.govway.catalogo.core.business.utils.UrlInvocazioneRisolta;
 import org.govway.catalogo.core.dao.repositories.ApiRepository;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.services.ApiService;
@@ -126,8 +127,10 @@ public class CspService {
 
     private void addResolvedUrl(ApiEntity api, boolean collaudo, Set<String> result) {
         try {
-            String resolved = this.eServiceBuilder.getUrlInvocazione(api, collaudo);
-            addNormalized(resolved, result);
+            // Anche le URL di invocazione aggiuntive devono essere raggiungibili dal try-out
+            for (UrlInvocazioneRisolta risolta : this.eServiceBuilder.getUrlInvocazioni(api, collaudo)) {
+                addNormalized(risolta.url(), result);
+            }
         } catch (Exception e) {
             logger.debug("Errore nella risoluzione URL per api id={} collaudo={}: {}",
                     api.getIdApi(), collaudo, e.getMessage());

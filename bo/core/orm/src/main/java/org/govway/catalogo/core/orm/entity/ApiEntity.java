@@ -27,6 +27,7 @@ import java.util.Set;
 import jakarta.persistence.*;
 
 import org.govway.catalogo.core.orm.converters.Utf8StringToBytesConverter;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -95,6 +96,21 @@ public class ApiEntity {
     @OneToMany(mappedBy = "api", orphanRemoval = true, fetch = FetchType.LAZY)
 	@Cascade(CascadeType.ALL)
     private List<EstensioneApiEntity> estensioni = new ArrayList<>(); 
+
+    /**
+     * URL di invocazione aggiuntive (dalla seconda in poi). La prima resta quella risolta
+     * dalla gerarchia api -> servizio -> dominio -> soggetto referente -> configurazione.
+     *
+     * Senza orphanRemoval: le righe non piu` presenti sono cancellate esplicitamente
+     * (ApiDettaglioAssembler), perche' la cascata degli orfani su collezione svuotata fallisce
+     * quando l'elemento arriva al delete come proxy non associato alla sessione.
+     * Il batch serve alle scansioni su molte API (host ammessi dalla CSP, export CSV), che
+     * inizializzano la collezione di ogni riga.
+     */
+    @OneToMany(mappedBy = "api", fetch = FetchType.LAZY, cascade = jakarta.persistence.CascadeType.ALL)
+	@OrderBy("posizione ASC, id ASC")
+	@BatchSize(size = 100)
+    private List<ApiUrlInvocazioneEntity> urlInvocazioniAggiuntive = new ArrayList<>();
 
     @OneToMany(mappedBy = "api", fetch = FetchType.LAZY)
 	@Cascade(CascadeType.ALL)

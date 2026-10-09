@@ -42,6 +42,7 @@ import org.govway.catalogo.assembler.ServizioDettaglioAssembler;
 import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.authorization.ServizioAuthorization;
 import org.govway.catalogo.core.business.utils.EServiceBuilder;
+import org.govway.catalogo.core.business.utils.UrlInvocazioneRisolta;
 import org.govway.catalogo.core.business.utils.YamltoJsonUtils;
 import org.govway.catalogo.core.dao.specifications.AllegatoApiSpecification;
 import org.govway.catalogo.core.dao.specifications.ApiSpecification;
@@ -513,12 +514,12 @@ public class APIController implements ApiApi {
 								// DOWNLOAD: la specifica viene restituita cosi` com'e`.
 								resource = new ByteArrayResource(rawData);
 							} else {
-								// VISUALIZZAZIONE: come il TRY_OUT riscrive il server URL con getUrlInvocazione
+								// VISUALIZZAZIONE: come il TRY_OUT riscrive i server URL con getUrlInvocazioni
 								// (senza pero` abilitare un vero try-out), con fallback sulla specifica originale.
 								try {
 									byte[] jsonOpenapi = YamltoJsonUtils.convertYamlToJson(rawData);
-									String serverUrl = this.serviceBuilder.getUrlInvocazione(entityA, ambiente.equals(AmbienteEnum.COLLAUDO));
-									resource = new ByteArrayResource(EServiceBuilder.applicaServerUrl(jsonOpenapi, serverUrl));
+									List<UrlInvocazioneRisolta> serverUrls = this.serviceBuilder.getUrlInvocazioni(entityA, ambiente.equals(AmbienteEnum.COLLAUDO));
+									resource = new ByteArrayResource(EServiceBuilder.applicaServerUrls(jsonOpenapi, serverUrls));
 								} catch (IOException e) {
 									this.logger.warn("Riscrittura del server URL per la visualizzazione fallita, fallback sulla specifica originale: " + e.getMessage(), e);
 									resource = new ByteArrayResource(rawData);
@@ -569,8 +570,18 @@ public class APIController implements ApiApi {
 
 				ApiEntity entity = findApi(idApi);
 
+				List<UrlInvocazioneRisolta> urls = this.serviceBuilder.getUrlInvocazioni(entity, idAmbiente.equals(AmbienteEnum.COLLAUDO));
+
 				UrlInvocazioneAPI urlInvocazione = new UrlInvocazioneAPI();
-				urlInvocazione.setUrlInvocazione(this.serviceBuilder.getUrlInvocazione(entity, idAmbiente.equals(AmbienteEnum.COLLAUDO)));
+				urlInvocazione.setUrlInvocazione(urls.get(0).url());
+
+				// Lista omessa quando non ci sono URL aggiuntive: la risposta resta invariata
+				for(UrlInvocazioneRisolta aggiuntiva: urls.subList(1, urls.size())) {
+					UrlInvocazioneAggiuntivaRisolta risolta = new UrlInvocazioneAggiuntivaRisolta();
+					risolta.setEtichetta(aggiuntiva.etichetta());
+					risolta.setUrlInvocazione(aggiuntiva.url());
+					urlInvocazione.addUrlInvocazioneAggiuntiveItem(risolta);
+				}
 
 				this.logger.info("Invocazione completata con successo");
 				return ResponseEntity.ok(urlInvocazione);

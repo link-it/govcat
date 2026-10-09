@@ -42,6 +42,7 @@ import org.govway.catalogo.core.orm.entity.ApiConfigEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity.PROTOCOLLO;
 import org.govway.catalogo.core.orm.entity.ApiEntity.RUOLO;
+import org.govway.catalogo.core.orm.entity.ApiUrlInvocazioneEntity;
 import org.govway.catalogo.core.orm.entity.AuthTypeEntity;
 import org.govway.catalogo.core.orm.entity.DocumentoEntity;
 import org.govway.catalogo.core.orm.entity.PackageServizioEntity;
@@ -210,8 +211,11 @@ public class EServiceBuilder {
 	}
 	
     public byte[] getTryOutOpenAPI(ApiEntity api, ApiConfigEntity entity, boolean isCollaudo) throws IOException {
+    	List<UrlInvocazioneRisolta> urls = this.getUrlInvocazioni(api, isCollaudo);
+
     	ConfigurazioneTryout conf = new ConfigurazioneTryout();
-    	conf.setServerUrl(this.getUrlInvocazione(api, isCollaudo));
+    	conf.setServerUrl(urls.get(0).url());
+    	conf.setServerUrlAggiuntive(urls.subList(1, urls.size()));
 		return getTryOutOpenAPI(entity.getSpecifica().getRawData(), conf);
 	}
 	
@@ -222,7 +226,7 @@ public class EServiceBuilder {
 	
 	
     public static byte[] getTryOutOpenAPIFromJson(byte[] originalOpenapi, ConfigurazioneTryout conf) throws IOException {
-    	return applicaServerUrl(originalOpenapi, conf.getServerUrl());
+    	return applicaServerUrls(originalOpenapi, conf.getServerUrls());
 	}
 
     /**
@@ -231,6 +235,21 @@ public class EServiceBuilder {
      * Non aggiunge alcuna funzionalita` di try-out: si limita a sovrascrivere l'endpoint dichiarato nel documento.
      */
     public static byte[] applicaServerUrl(byte[] openapiJson, String serverUrl) throws IOException {
+        return applicaServerUrls(openapiJson, List.of(new UrlInvocazioneRisolta(null, serverUrl)));
+    }
+
+    /**
+     * Variante di {@link #applicaServerUrl(byte[], String)} con piu` URL di invocazione.
+     *
+     * La prima URL della lista e` trattata esattamente come nel caso a URL singola; le successive
+     * sono aggiunte come ulteriori elementi di {@code servers} (OpenAPI 3.0), con l'etichetta come
+     * {@code description}, cosi` che il visualizzatore della specifica ne proponga la scelta.
+     * Swagger 2.0 non supporta piu` endpoint nello stesso documento ({@code host}/{@code basePath}
+     * sono singoli): in quel caso le URL aggiuntive vengono ignorate.
+     */
+    public static byte[] applicaServerUrls(byte[] openapiJson, List<UrlInvocazioneRisolta> serverUrls) throws IOException {
+
+        String serverUrl = serverUrls.isEmpty() ? null : serverUrls.get(0).url();
 
         ObjectMapper reader = new ObjectMapper();
         reader.setSerializationInclusion(JsonInclude.Include.NON_NULL);
@@ -254,6 +273,11 @@ public class EServiceBuilder {
         if (isSwagger2) {
             // Swagger 2.0: parse URL and set host, basePath, schemes
             logger.debug("Processing Swagger 2.0 format");
+
+            if (serverUrls.size() > 1) {
+                // host/basePath sono singoli: il formato non permette di dichiarare piu` endpoint
+                logger.debug("Swagger 2.0 does not support multiple servers: ignoring {} additional URLs", serverUrls.size() - 1);
+            }
 
             try {
                 java.net.URL url = new java.net.URL(serverUrl);
@@ -296,13 +320,14 @@ public class EServiceBuilder {
                     serversNode.isArray(),
                     serversNode.isArray() ? serversNode.size() : "N/A");
 
+            ArrayNode serversArray;
             if (serversNode.isArray() && serversNode.size() > 0) {
                 logger.debug("Modifying existing servers node with first server");
                 ObjectNode serverNode = ((ObjectNode) serversNode.get(0));
                 serverNode.put("url", serverUrl);
 
-                serversNode = reader.createArrayNode().add(serverNode);
-                ((ObjectNode) openApiJson).set("servers", serversNode);
+                serversArray = reader.createArrayNode().add(serverNode);
+                ((ObjectNode) openApiJson).set("servers", serversArray);
                 logger.debug("Updated servers node with URL: {}", serverUrl);
             } else {
                 logger.debug("Creating new servers node (servers was missing or empty)");
@@ -310,8 +335,8 @@ public class EServiceBuilder {
                 serverNode.put("url", serverUrl);
 
                 // If no servers node exists, create one
-                ArrayNode newServersArray = reader.createArrayNode().add(serverNode);
-                ((ObjectNode) openApiJson).set("servers", newServersArray);
+                serversArray = reader.createArrayNode().add(serverNode);
+                ((ObjectNode) openApiJson).set("servers", serversArray);
                 logger.debug("Created new servers array with URL: {}", serverUrl);
 
                 // Verify the node was actually set
@@ -320,6 +345,19 @@ public class EServiceBuilder {
                         !verifyServers.isMissingNode(),
                         verifyServers.isArray(),
                         verifyServers.isArray() ? verifyServers.size() : "N/A");
+            }
+
+            // URL di invocazione aggiuntive: un ulteriore elemento di servers per ciascuna,
+            // con l'etichetta come description.
+            for (int i = 1; i < serverUrls.size(); i++) {
+                UrlInvocazioneRisolta aggiuntiva = serverUrls.get(i);
+                ObjectNode serverNode = reader.createObjectNode();
+                serverNode.put("url", aggiuntiva.url());
+                if (hasValore(aggiuntiva.etichetta())) {
+                    serverNode.put("description", aggiuntiva.etichetta());
+                }
+                serversArray.add(serverNode);
+                logger.debug("Added additional server URL: {}", aggiuntiva.url());
             }
         } else {
             logger.warn("Unknown API specification format (not Swagger 2.0 or OpenAPI 3.0)");
@@ -641,9 +679,42 @@ public class EServiceBuilder {
 		return servizio.getDominio() != null ? servizio.getDominio().getSoggettoReferente() : null;
 	}
 
+	/**
+	 * URL di invocazione principale dell'API per l'ambiente indicato, risolta dalla gerarchia
+	 * api -> servizio -> dominio -> soggetto referente -> configurazione.
+	 */
 	public String getUrlInvocazione(ApiEntity api, boolean collaudo) {
-		
-		String prefix = getPrefix(api, collaudo);
+		return risolviUrlInvocazione(api, collaudo, null, null);
+	}
+
+	/**
+	 * Tutte le URL di invocazione dell'API per l'ambiente indicato: in prima posizione quella
+	 * principale (etichetta <code>null</code>), a seguire le eventuali URL aggiuntive
+	 * configurate sull'API, nell'ordine di posizione.
+	 */
+	public List<UrlInvocazioneRisolta> getUrlInvocazioni(ApiEntity api, boolean collaudo) {
+
+		List<UrlInvocazioneRisolta> urls = new ArrayList<>();
+		urls.add(new UrlInvocazioneRisolta(null, getUrlInvocazione(api, collaudo)));
+
+		for(ApiUrlInvocazioneEntity aggiuntiva: api.getUrlInvocazioniAggiuntive()) {
+			String prefixOverride = collaudo ? aggiuntiva.getUrlPrefixCollaudo() : aggiuntiva.getUrlPrefixProduzione();
+			urls.add(new UrlInvocazioneRisolta(
+					aggiuntiva.getEtichetta(),
+					risolviUrlInvocazione(api, collaudo, aggiuntiva.getTemplateUrl(), prefixOverride)));
+		}
+
+		return urls;
+	}
+
+	/**
+	 * Risolve i placeholder di una URL di invocazione. Quando templateOverride o prefixOverride
+	 * non sono valorizzati si ricade sulle catene di fallback della URL principale: e` cosi` che
+	 * una URL aggiuntiva puo` limitarsi a indicare il solo prefix (stesso path su un altro gateway).
+	 */
+	private String risolviUrlInvocazione(ApiEntity api, boolean collaudo, String templateOverride, String prefixOverride) {
+
+		String prefix = hasValore(prefixOverride) ? prefixOverride : getPrefix(api, collaudo);
 		// Swap coerente col nuovo modello: per le fruizioni il "referente" della URL è il provider
 		// (ente erogatore indicato sul servizio) e il "soggetto interno" è il referente del dominio.
 		String soggettoReferente;
@@ -656,7 +727,7 @@ public class EServiceBuilder {
 			soggettoInterno = "";                                                              // nessun soggetto interno
 		}
 		
-		String urlInvocazione = Optional.ofNullable(api.getUrlInvocazione())
+		String urlInvocazione = hasValore(templateOverride) ? templateOverride : Optional.ofNullable(api.getUrlInvocazione())
 		        .or(() -> Optional.ofNullable(api.getServizio().getUrlInvocazione()))
 		        .or(() -> Optional.ofNullable(api.getServizio().getDominio().getUrlInvocazione()))
 		        .or(() -> Optional.ofNullable(api.getServizio().getDominio().getSoggettoReferente().getUrlInvocazione()))
@@ -752,6 +823,11 @@ public class EServiceBuilder {
 							.orElse(a.getVersione());
 					}).orElse(api.getVersione());
 		}
+	}
+
+	/** Un override di template/prefix e` considerato impostato solo se non vuoto. */
+	private static boolean hasValore(String valore) {
+		return valore != null && !valore.isBlank();
 	}
 
 	private String getPrefix(ApiEntity api, boolean collaudo) {

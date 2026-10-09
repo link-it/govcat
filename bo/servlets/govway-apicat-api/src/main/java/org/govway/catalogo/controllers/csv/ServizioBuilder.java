@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.govway.catalogo.core.business.utils.EServiceBuilder;
+import org.govway.catalogo.core.business.utils.UrlInvocazioneRisolta;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.DominioEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteDominioEntity;
@@ -119,9 +120,15 @@ public class ServizioBuilder {
 			s.setReferentiDominio(referentiDominio);
 			s.setReferentiTecniciDominio(referentiTecniciDominio);
 
-			// URL Invocazione
-			s.setUrlInvocazioneCollaudo(this.eServiceBuilder.getUrlInvocazione(api, true));
-			s.setUrlInvocazioneProduzione(this.eServiceBuilder.getUrlInvocazione(api, false));
+			// URL Invocazione: la principale nelle colonne storiche, le aggiuntive in quelle in coda
+			List<UrlInvocazioneRisolta> urlCollaudo = this.eServiceBuilder.getUrlInvocazioni(api, true);
+			List<UrlInvocazioneRisolta> urlProduzione = this.eServiceBuilder.getUrlInvocazioni(api, false);
+
+			s.setUrlInvocazioneCollaudo(urlCollaudo.get(0).url());
+			s.setUrlInvocazioneProduzione(urlProduzione.get(0).url());
+
+			s.setUrlInvocazioneAggiuntiveCollaudo(formatUrlInvocazioneAggiuntive(urlCollaudo));
+			s.setUrlInvocazioneAggiuntiveProduzione(formatUrlInvocazioneAggiuntive(urlProduzione));
 
 			// Backend URL (Connettore)
 			if(api.getCollaudo() != null) {
@@ -215,6 +222,16 @@ public class ServizioBuilder {
 		}
 
 		return result;
+	}
+
+	/**
+	 * URL di invocazione aggiuntive (dalla seconda in poi) nel formato "etichetta: url",
+	 * separate da " | ". Stringa vuota se non ce ne sono.
+	 */
+	private String formatUrlInvocazioneAggiuntive(List<UrlInvocazioneRisolta> urls) {
+		return urls.subList(1, urls.size()).stream()
+				.map(url -> url.etichetta() + ": " + url.url())
+				.collect(Collectors.joining(" | "));
 	}
 
 	private String capitalizeFirst(String str) {

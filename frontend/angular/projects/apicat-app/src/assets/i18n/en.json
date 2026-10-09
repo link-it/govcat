@@ -1430,6 +1430,11 @@
 							"EROGATIONS": "API [{{nome}} v{{versione}}] has [{{count}}] active erogations, cannot delete"
 						},
 						"SPEC": "Specification not present",
+						"URL": {
+							"DUPLICATE": "Label [{{etichetta}}] duplicated among the additional invocation URLs",
+							"LABEL": "Label required for the additional invocation URLs",
+							"LIMIT": "Maximum number of additional invocation URLs exceeded: [{{numero}}] given, [{{massimo}}] allowed"
+						},
 						"VISIBILITY": "Visibility [{{visibilita}}] not allowed"
 					},
 					"404": {

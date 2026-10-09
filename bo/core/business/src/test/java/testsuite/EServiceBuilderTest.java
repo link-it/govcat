@@ -2,6 +2,7 @@ package testsuite;
 
 import org.govway.catalogo.core.business.utils.ConfigurazioneEService;
 import org.govway.catalogo.core.business.utils.EServiceBuilder;
+import org.govway.catalogo.core.business.utils.UrlInvocazioneRisolta;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.HashMap;
@@ -17,6 +18,7 @@ import org.govway.catalogo.core.orm.entity.AllegatoApiEntity.TIPOLOGIA;
 import org.govway.catalogo.core.orm.entity.AllegatoApiEntity.VISIBILITA;
 import org.govway.catalogo.core.orm.entity.ApiConfigEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
+import org.govway.catalogo.core.orm.entity.ApiUrlInvocazioneEntity;
 import org.govway.catalogo.core.orm.entity.DocumentoEntity;
 import org.govway.catalogo.core.orm.entity.DominioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
@@ -25,6 +27,8 @@ import org.govway.catalogo.core.orm.entity.TipoServizio;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.govway.catalogo.stampe.StampePdf;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,6 +40,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -233,6 +238,138 @@ class EServiceBuilderTest {
         apiConCanale.setCanale("canale-");
         String urlConCanale = builder.getUrlInvocazione(apiConCanale, false);
         assertEquals("https://host/canale-apitest/v2", urlConCanale);
+    }
+
+    /**
+     * Builder con il template e i prefix di default usati dai test sulle URL di invocazione.
+     */
+    private EServiceBuilder createBuilderPerUrl() throws Exception {
+        EServiceBuilder builder = new EServiceBuilder();
+
+        ConfigurazioneEService conf = new ConfigurazioneEService();
+        conf.setTemplateUrlInvocazione("#prefix#/#nome#/v#versione#");
+        conf.setDefaultUrlPrefixProduzione("https://host-prod");
+        conf.setDefaultUrlPrefixCollaudo("https://host-coll");
+
+        Field field = EServiceBuilder.class.getDeclaredField("configurazione");
+        field.setAccessible(true);
+        field.set(builder, conf);
+
+        return builder;
+    }
+
+    private ApiUrlInvocazioneEntity createUrlAggiuntiva(int posizione, String etichetta, String template, String prefixCollaudo, String prefixProduzione) {
+        ApiUrlInvocazioneEntity url = new ApiUrlInvocazioneEntity();
+        url.setPosizione(posizione);
+        url.setEtichetta(etichetta);
+        url.setTemplateUrl(template);
+        url.setUrlPrefixCollaudo(prefixCollaudo);
+        url.setUrlPrefixProduzione(prefixProduzione);
+        return url;
+    }
+
+    @Test
+    void testGetUrlInvocazioni_senzaAggiuntiveRestituisceSoloLaPrincipale() throws Exception {
+        EServiceBuilder builder = createBuilderPerUrl();
+        ApiEntity api = createApiPerUrl();
+
+        List<UrlInvocazioneRisolta> urls = builder.getUrlInvocazioni(api, false);
+
+        assertEquals(1, urls.size());
+        assertNull(urls.get(0).etichetta());
+        assertEquals(builder.getUrlInvocazione(api, false), urls.get(0).url());
+        assertEquals("https://host-prod/apitest/v2", urls.get(0).url());
+    }
+
+    @Test
+    void testGetUrlInvocazioni_soloPrefixEreditaIlTemplatePrincipale() throws Exception {
+        EServiceBuilder builder = createBuilderPerUrl();
+        ApiEntity api = createApiPerUrl();
+        api.getUrlInvocazioniAggiuntive().add(
+                createUrlAggiuntiva(1, "Rete internet", null, "https://gw-coll-esterno", "https://gw-prod-esterno"));
+
+        List<UrlInvocazioneRisolta> produzione = builder.getUrlInvocazioni(api, false);
+        assertEquals(2, produzione.size());
+        assertEquals("https://host-prod/apitest/v2", produzione.get(0).url());
+        assertEquals("Rete internet", produzione.get(1).etichetta());
+        assertEquals("https://gw-prod-esterno/apitest/v2", produzione.get(1).url());
+
+        // Stessa URL aggiuntiva, prefix dell'ambiente di collaudo
+        List<UrlInvocazioneRisolta> collaudo = builder.getUrlInvocazioni(api, true);
+        assertEquals("https://host-coll/apitest/v2", collaudo.get(0).url());
+        assertEquals("https://gw-coll-esterno/apitest/v2", collaudo.get(1).url());
+    }
+
+    @Test
+    void testGetUrlInvocazioni_templateAggiuntivoSovrascriveQuelloPrincipale() throws Exception {
+        EServiceBuilder builder = createBuilderPerUrl();
+        ApiEntity api = createApiPerUrl();
+        api.getUrlInvocazioniAggiuntive().add(
+                createUrlAggiuntiva(1, "Gateway interno", "#prefix#/interno/#nome#", null, null));
+
+        List<UrlInvocazioneRisolta> urls = builder.getUrlInvocazioni(api, false);
+
+        assertEquals(2, urls.size());
+        // Template sovrascritto, prefix ereditato da quello della URL principale
+        assertEquals("https://host-prod/interno/apitest", urls.get(1).url());
+    }
+
+    @Test
+    void testGetUrlInvocazioni_rispettaLOrdineDellaCollezione() throws Exception {
+        EServiceBuilder builder = createBuilderPerUrl();
+        ApiEntity api = createApiPerUrl();
+        api.getUrlInvocazioniAggiuntive().add(createUrlAggiuntiva(1, "Prima", null, null, "https://gw-1"));
+        api.getUrlInvocazioniAggiuntive().add(createUrlAggiuntiva(2, "Seconda", null, null, "https://gw-2"));
+
+        List<UrlInvocazioneRisolta> urls = builder.getUrlInvocazioni(api, false);
+
+        assertEquals(3, urls.size());
+        assertEquals("Prima", urls.get(1).etichetta());
+        assertEquals("https://gw-1/apitest/v2", urls.get(1).url());
+        assertEquals("Seconda", urls.get(2).etichetta());
+        assertEquals("https://gw-2/apitest/v2", urls.get(2).url());
+    }
+
+    @Test
+    void testGetUrlInvocazione_nonCambiaConLeUrlAggiuntive() throws Exception {
+        EServiceBuilder builder = createBuilderPerUrl();
+        ApiEntity api = createApiPerUrl();
+        String attesa = builder.getUrlInvocazione(api, false);
+
+        api.getUrlInvocazioniAggiuntive().add(createUrlAggiuntiva(1, "Altro gateway", "#prefix#/altro", null, "https://gw-altro"));
+
+        assertEquals(attesa, builder.getUrlInvocazione(api, false));
+    }
+
+    @Test
+    void testApplicaServerUrls_openapi3DichiaraTuttiIServer() throws Exception {
+        byte[] spec = ("{\"openapi\":\"3.0.0\",\"servers\":[{\"url\":\"https://originale\",\"description\":\"Originale\"}]}")
+                .getBytes(StandardCharsets.UTF_8);
+
+        byte[] risultato = EServiceBuilder.applicaServerUrls(spec, List.of(
+                new UrlInvocazioneRisolta(null, "https://principale/api"),
+                new UrlInvocazioneRisolta("Rete internet", "https://esterno/api")));
+
+        String json = new String(risultato, StandardCharsets.UTF_8);
+        assertTrue(json.contains("\"url\":\"https://principale/api\""));
+        assertTrue(json.contains("\"url\":\"https://esterno/api\""));
+        assertTrue(json.contains("\"description\":\"Rete internet\""));
+        // Il primo server conserva gli altri campi del documento originale
+        assertTrue(json.contains("\"description\":\"Originale\""));
+    }
+
+    @Test
+    void testApplicaServerUrls_swagger2IgnoraLeUrlAggiuntive() throws Exception {
+        byte[] spec = "{\"swagger\":\"2.0\"}".getBytes(StandardCharsets.UTF_8);
+
+        byte[] risultato = EServiceBuilder.applicaServerUrls(spec, List.of(
+                new UrlInvocazioneRisolta(null, "https://principale/api"),
+                new UrlInvocazioneRisolta("Rete internet", "https://esterno/api")));
+
+        String json = new String(risultato, StandardCharsets.UTF_8);
+        assertTrue(json.contains("\"host\":\"principale\""));
+        assertTrue(json.contains("\"basePath\":\"/api\""));
+        assertFalse(json.contains("esterno"));
     }
 
     @Test

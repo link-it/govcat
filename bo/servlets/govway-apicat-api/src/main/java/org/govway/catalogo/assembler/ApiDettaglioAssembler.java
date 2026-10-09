@@ -22,9 +22,11 @@ package org.govway.catalogo.assembler;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -32,10 +34,12 @@ import org.govway.catalogo.controllers.APIController;
 import org.govway.catalogo.core.business.utils.OpenapiUtils;
 import org.govway.catalogo.core.business.utils.SwaggerUtils;
 import org.govway.catalogo.core.business.utils.WsdlUtils;
+import org.govway.catalogo.core.dao.repositories.ApiUrlInvocazioneRepository;
 import org.govway.catalogo.core.orm.entity.ApiConfigEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity.PROTOCOLLO;
 import org.govway.catalogo.core.orm.entity.ApiEntity.RUOLO;
+import org.govway.catalogo.core.orm.entity.ApiUrlInvocazioneEntity;
 import org.govway.catalogo.core.orm.entity.AuthTypeEntity;
 import org.govway.catalogo.core.orm.entity.DocumentoEntity;
 import org.govway.catalogo.core.orm.entity.DominioEntity;
@@ -74,6 +78,7 @@ import org.govway.catalogo.servlets.model.DocumentoCreate;
 import org.govway.catalogo.servlets.model.IdentificativoApiUpdate;
 import org.govway.catalogo.servlets.model.ProprietaCustom;
 import org.govway.catalogo.servlets.model.ProtocolloEnum;
+import org.govway.catalogo.servlets.model.UrlInvocazioneAggiuntiva;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -84,6 +89,9 @@ import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSuppor
 public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<ApiEntity, API> {
 
 	private Logger logger = LoggerFactory.getLogger(ApiDettaglioAssembler.class);
+
+	/** Numero massimo di URL di invocazione aggiuntive configurabili su una API. */
+	private static final int MAX_URL_INVOCAZIONE_AGGIUNTIVE = 10;
 
 	@Autowired
 	private DocumentoAssembler allegatoAssembler;
@@ -99,6 +107,9 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 	
 	@Autowired
 	private ServizioService servizioService;
+
+	@Autowired
+	private ApiUrlInvocazioneRepository apiUrlInvocazioneRepository;
 
 	@Autowired
 	private Configurazione configurazione;
@@ -166,8 +177,24 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		dettaglio.setRuolo(this.apiEngineAssembler.toRuolo(entity.getRuolo()));
 
 		dettaglio.setProprietaCustom(this.apiEngineAssembler.getApiProprietaCustom(entity));
-		
+
+		// Lista omessa quando vuota: il payload delle API senza URL aggiuntive resta invariato
+		if(!entity.getUrlInvocazioniAggiuntive().isEmpty()) {
+			dettaglio.setUrlInvocazioneAggiuntive(entity.getUrlInvocazioniAggiuntive().stream()
+					.map(this::toUrlInvocazioneAggiuntiva)
+					.collect(Collectors.toList()));
+		}
+
 		return dettaglio;
+	}
+
+	private UrlInvocazioneAggiuntiva toUrlInvocazioneAggiuntiva(ApiUrlInvocazioneEntity entity) {
+		UrlInvocazioneAggiuntiva url = new UrlInvocazioneAggiuntiva();
+		url.setEtichetta(entity.getEtichetta());
+		url.setTemplateUrl(entity.getTemplateUrl());
+		url.setUrlPrefixCollaudo(entity.getUrlPrefixCollaudo());
+		url.setUrlPrefixProduzione(entity.getUrlPrefixProduzione());
+		return url;
 	}
 
 	public ApiEntity toEntity(IdentificativoApiUpdate src, ApiEntity entity) {
@@ -184,6 +211,12 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		BeanUtils.copyProperties(src, entity);
 
 		entity.setDescrizione(Optional.ofNullable(src.getDescrizione()).map(d -> d.getBytes()).orElse(null));
+
+		// Campo assente: la lista configurata resta invariata, cosi` un client che non lo conosce
+		// non la azzera. Una lista vuota la svuota, una lista valorizzata la sostituisce.
+		if(src.getUrlInvocazioneAggiuntive() != null) {
+			setUrlInvocazioneAggiuntive(src.getUrlInvocazioneAggiuntive(), entity);
+		}
 
 		this.servizioDettaglioAssembler.setUltimaModifica(entity.getServizio());
 		this.servizioService.save(entity.getServizio());
@@ -287,6 +320,8 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 
 		getProprietaCustom(src.getProprietaCustom(), entity);
 
+		setUrlInvocazioneAggiuntive(src.getUrlInvocazioneAggiuntive(), entity);
+
 		if(src.getConfigurazioneCollaudo()!=null) {
 			entity.setCollaudo(getApiConfig(src.getConfigurazioneCollaudo(), entity));
 		}
@@ -385,6 +420,63 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		if(this.configurazione.getServizio().getApi().isSpecificaObbligatorio()) {
 			if(specifica == null || specifica.getContent() == null) {
 				throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
+			}
+		}
+	}
+
+	/**
+	 * Sostituisce integralmente le URL di invocazione aggiuntive dell'API. La URL di invocazione
+	 * principale, risolta dalla gerarchia api -> servizio -> dominio -> soggetto referente ->
+	 * configurazione, non e` coinvolta.
+	 */
+	private void setUrlInvocazioneAggiuntive(List<UrlInvocazioneAggiuntiva> urls, ApiEntity entity) {
+
+		validaUrlInvocazioneAggiuntive(urls);
+
+		// Le righe non piu` presenti sono cancellate esplicitamente: la collezione non usa
+		// orphanRemoval (vedi ApiEntity).
+		List<ApiUrlInvocazioneEntity> precedenti = new ArrayList<>(entity.getUrlInvocazioniAggiuntive());
+		entity.getUrlInvocazioniAggiuntive().clear();
+		this.apiUrlInvocazioneRepository.deleteAll(precedenti);
+
+		if(urls == null) {
+			return;
+		}
+
+		int posizione = 1;
+		for(UrlInvocazioneAggiuntiva url: urls) {
+			ApiUrlInvocazioneEntity urlEntity = new ApiUrlInvocazioneEntity();
+			urlEntity.setApi(entity);
+			urlEntity.setPosizione(posizione++);
+			urlEntity.setEtichetta(url.getEtichetta().trim());
+			urlEntity.setTemplateUrl(url.getTemplateUrl());
+			urlEntity.setUrlPrefixCollaudo(url.getUrlPrefixCollaudo());
+			urlEntity.setUrlPrefixProduzione(url.getUrlPrefixProduzione());
+			entity.getUrlInvocazioniAggiuntive().add(urlEntity);
+		}
+	}
+
+	private void validaUrlInvocazioneAggiuntive(List<UrlInvocazioneAggiuntiva> urls) {
+
+		if(urls == null) {
+			return;
+		}
+
+		if(urls.size() > MAX_URL_INVOCAZIONE_AGGIUNTIVE) {
+			throw new BadRequestException(ErrorCode.API_400_URL_LIMIT,
+					Map.of("numero", String.valueOf(urls.size()), "massimo", String.valueOf(MAX_URL_INVOCAZIONE_AGGIUNTIVE)));
+		}
+
+		Set<String> etichette = new HashSet<>();
+		for(UrlInvocazioneAggiuntiva url: urls) {
+			String etichetta = Optional.ofNullable(url.getEtichetta()).map(String::trim).orElse("");
+
+			if(etichetta.isEmpty()) {
+				throw new BadRequestException(ErrorCode.API_400_URL_LABEL);
+			}
+
+			if(!etichette.add(etichetta.toLowerCase())) {
+				throw new BadRequestException(ErrorCode.API_400_URL_DUPLICATE, Map.of("etichetta", etichetta));
 			}
 		}
 	}
