@@ -211,7 +211,7 @@
 		"ALLEGATI": {
 			"TIPI": {
 				"generico": "Generico",
-				"specifica": "Specifica",
+				"specifica": "Scheda dati",
 				"specifica_collaudo": "Specifica collaudo",
 				"specifica_produzione": "Specifica produzione"
 			}
@@ -3144,7 +3144,7 @@
 			"riservato": "Riservato",
 			"riservato_dominio": "Riservato (Dominio)",
 			"servizio": "Servizio",
-			"specifica": "Specifica",
+			"specifica": "Scheda dati",
 			"specifica_collaudo": "Specifica collaudo",
 			"specifica_produzione": "Specifica produzione",
 			"subscription": "Subscription"

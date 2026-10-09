@@ -1,3 +1,11 @@
+2026-10-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 381: wizard servizi con valori proposti: allegati con ruolo Generico e visibilita' Pubblico
+	  (ordine pubblico, servizio, gestore), senza le specifiche di collaudo/produzione; "Specifica"
+	  rinominata "Scheda dati"; prima API con nome ricavato dal servizio, ruolo erogata dal dominio e
+	  interfaccia REST. Select native sostituite con ng-select nei form API e di configurazione.
+
 2026-10-09  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

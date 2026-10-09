@@ -221,16 +221,15 @@
                           @if (_isEdit) {
                             <div class="">
                               <div class="input-group">
-                                <select class="form-select" id="protocollo" formControlName="protocollo"
-                                  [class.gl-field-error-outline]="_hasControlError('protocollo')" disablePermission
-                                  [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato"
+                                <ng-select [class.gl-field-error-outline]="_hasControlError('protocollo')" [errorId]="'protocollo-error'"
+                                  [items]="_tipoInterfaccia" bindValue="value" bindLabel="label" labelForId="protocollo"
+                                  [searchable]="false" [clearable]="false" [placeholder]="'APP.MESSAGE.SelectInterface' | translate"
+                                  formControlName="protocollo"
+                                  disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato"
                                   [grant]="_grant">
-                                  <option value="">{{ 'APP.MESSAGE.SelectInterface' | translate }}</option>
-                                  @for (ti of _tipoInterfaccia; track ti) {
-                                    <option [value]="ti.value">{{ ti.label | translate }}
-                                    </option>
-                                  }
-                                </select>
+                                  <ng-template ng-label-tmp let-item="item">{{ item.label | translate }}</ng-template>
+                                  <ng-template ng-option-tmp let-item="item">{{ item.label | translate }}</ng-template>
+                                </ng-select>
                                 @if (showCopyFromTesting()) {
                                   <button class="btn btn-default btn-md gl-button" type="button"
                                     [disabled]="!getTestingValue('protocollo')"
@@ -242,7 +241,7 @@
                               </div>
                               @if (f['protocollo'].invalid && (f['protocollo'].dirty || f['protocollo'].touched)) {
                                 <p
-                                  class="form-text text-danger">
+                                  class="form-text text-danger" id="protocollo-error" aria-live="polite">
                                   @if (f['protocollo'].errors && f['protocollo'].errors['required']) {
                                     <span class="d-block">{{
                                     'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
@@ -421,16 +420,13 @@
                                                 [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
                                             }
                                             @if (cp.tipo === 'select') {
-                                              <select class="form-select" [id]="cp.nome" [formControlName]="cp.nome"
-                                                [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp[fieldToGroup], cp.nome)" [attr.aria-describedby]="cp._req?.nextState ? cp.nome + '-req-hint' : null"
+                                              <ng-select [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp[fieldToGroup], cp.nome)"
+                                                [items]="cp.valori" bindValue="nome" bindLabel="etichetta" [labelForId]="cp.nome"
+                                                [searchable]="false" [clearable]="false" [placeholder]="'APP.MESSAGE.Select' | translate"
+                                                [formControlName]="cp.nome" [errorId]="cp.nome + '-error'" [describedBy]="cp._req?.nextState ? cp.nome + '-req-hint' : null"
                                                 disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'"
                                                 [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
-                                                <option value="">{{ 'APP.MESSAGE.Select' | translate }}</option>
-                                                @for (cpv of cp.valori; track cpv) {
-                                                  <option [value]="cpv.nome">{{ cpv.etichetta }}
-                                                  </option>
-                                                }
-                                              </select>
+                                              </ng-select>
                                             }
                                             <!-- <ng-container *ngIf="cp.tipo === ProprietaType.File">
                                             <ui-allegato class=""
@@ -456,7 +452,7 @@
                                         }
                                         @if (acfgc(cp[fieldToGroup]).controls[cp.nome]?.invalid && (acfgc(cp[fieldToGroup]).controls[cp.nome]?.touched)) {
                                           <p
-                                            class="form-text text-danger">
+                                            class="form-text text-danger" [id]="cp.nome + '-error'" aria-live="polite">
                                             @if (acfgc(cp[fieldToGroup]).controls[cp.nome]?.errors && acfgc(cp[fieldToGroup]).controls[cp.nome]?.errors?.required) {
                                               <span
                                               class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>

@@ -211,7 +211,7 @@
 		"ALLEGATI": {
 			"TIPI": {
 				"generico": "Generic",
-				"specifica": "Specific",
+				"specifica": "Data sheet",
 				"specifica_collaudo": "Testing specification",
 				"specifica_produzione": "Production specification"
 			}
@@ -3144,7 +3144,7 @@
 			"riservato": "Reserved",
 			"riservato_dominio": "Reserved (Domain)",
 			"servizio": "Service",
-			"specifica": "Specific",
+			"specifica": "Data sheet",
 			"specifica_collaudo": "Testing specification",
 			"specifica_produzione": "Production specification",
 			"subscription": "Subscription"

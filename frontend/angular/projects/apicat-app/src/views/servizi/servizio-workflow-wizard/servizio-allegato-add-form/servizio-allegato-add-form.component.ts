@@ -73,7 +73,8 @@ export class ServizioAllegatoAddFormComponent implements OnInit {
     descrittoreCtrl: FormControl = new FormControl('', [Validators.required]);
     files: any[] = [];
 
-    tipiAllegati: any[] = Tools.TipiAllegati;
+    // Le specifiche di collaudo/produzione riguardano le API, non il servizio
+    tipiAllegati: any[] = Tools.TipiAllegati.filter((t: any) => t.value === Tools.Allegati.GENERICO.Code || t.value === Tools.Allegati.SPECIFICA.Code);
     tipiVisibilitaAllegato: any[] = [];
 
     saving: boolean = false;
@@ -86,8 +87,10 @@ export class ServizioAllegatoAddFormComponent implements OnInit {
     ) { }
 
     ngOnInit() {
-        this.tipiVisibilitaAllegato = Tools.Configurazione?.servizio?.visibilita_allegati_consentite
+        const _ordine = (item: string) => (item === 'pubblico') ? 0 : (item === 'servizio') ? 1 : (item === 'gestore') ? 3 : 2;
+        this.tipiVisibilitaAllegato = (Tools.Configurazione?.servizio?.visibilita_allegati_consentite || [])
             .filter((item: string) => !((item === 'gestore') && !this.authenticationService.isGestore(this.grant?.ruoli)))
+            .sort((a: string, b: string) => _ordine(a) - _ordine(b))
             .map((item: string) => ({ label: item, value: item }));
         this.initForm();
     }
@@ -98,13 +101,13 @@ export class ServizioAllegatoAddFormComponent implements OnInit {
 
     initForm() {
         this.files = [];
-        const _tipologia = this.showAllAttachments ? null : TipologiaAllegatoEnum.Generico;
+        const _visibilita = this.tipiVisibilitaAllegato.some((v: any) => v.value === 'pubblico') ? 'pubblico' : null;
         this.editFormGroup = new FormGroup({
             filename: new FormControl(null, this.multiple ? [] : [Validators.required]),
             estensione: new FormControl(null, this.multiple ? [] : [Validators.required]),
             descrizione: new FormControl(null, []),
-            visibilita: new FormControl(null, [Validators.required]),
-            tipologia: new FormControl(_tipologia, [Validators.required]),
+            visibilita: new FormControl(_visibilita, [Validators.required]),
+            tipologia: new FormControl(TipologiaAllegatoEnum.Generico, [Validators.required]),
             content: new FormControl(null, (!this.multiple) ? [Validators.required] : []),
             files: new FormControl(null, this.multiple ? [Validators.required] : [])
         });

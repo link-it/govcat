@@ -274,20 +274,33 @@
                   }
                   <div class="row">
                     <div class="col-12">
-                      <lnk-form-field
-                        [type]="'select'"
-                        name="ruolo"
-                        [label]="'APP.LABEL.ruolo' | translate"
-                        [selectOptions]="_ruoli"
-                        [clearable]="false"
-                        [placeholder]="'APP.MESSAGE.SelectRole' | translate"
-                        [formGroup]="_formGroup"
-                        [value]="(servizioApi?.ruolo === EROGATO_SOGGETTO_DOMINIO) ? _labelDominio : _labelAderente"
-                        [isEdit]="_isEdit"
-                        [plainText]="true"
-                        [helpContext]="'API.POPOVER'"
-                        (changeEvent)="__changeRuolo($event)"
-                      ></lnk-form-field>
+                      @if (_isEdit) {
+                        <div class="form-group ruolo mb-3">
+                          <label class="label-bold" for="ruolo">{{ 'APP.LABEL.ruolo' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'ruolo'"></span></label>
+                          <ng-select [class.gl-field-error-outline]="_hasControlError('ruolo')" [errorId]="'ruolo-error'"
+                            [items]="_ruoli" bindValue="value" bindLabel="label" labelForId="ruolo"
+                            [searchable]="false" [clearable]="false" [placeholder]="'APP.MESSAGE.SelectRole' | translate"
+                            formControlName="ruolo" (change)="__changeRuolo($event)">
+                          </ng-select>
+                          @if (f['ruolo'].invalid && (f['ruolo'].dirty || f['ruolo'].touched)) {
+                            <p class="form-text text-danger" id="ruolo-error" aria-live="polite">
+                              @if (f['ruolo'].errors?.['required']) { <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span> }
+                            </p>
+                          }
+                        </div>
+                      } @else {
+                        <lnk-form-field
+                          [type]="'select'"
+                          name="ruolo"
+                          [label]="'APP.LABEL.ruolo' | translate"
+                          [selectOptions]="_ruoli"
+                          [formGroup]="_formGroup"
+                          [value]="(servizioApi?.ruolo === EROGATO_SOGGETTO_DOMINIO) ? _labelDominio : _labelAderente"
+                          [isEdit]="false"
+                          [plainText]="true"
+                          [helpContext]="'API.POPOVER'"
+                        ></lnk-form-field>
+                      }
                     </div>
                   </div>
                   @if (_isNew) {
@@ -309,14 +322,16 @@
                           }</label>
                           @if (_isEdit) {
                             <div class="">
-                              <select class="form-select" id="protocollo" formControlName="protocollo" [class.gl-field-error-outline]="_hasControlError('protocollo')" (change)="__protocolloChange()" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
-                                <option value="">{{ 'APP.MESSAGE.SelectInterface' | translate }}</option>
-                                @for (ti of _tipoInterfaccia; track ti) {
-                                  <option [value]="ti.value">{{ ti.label | translate }}</option>
-                                }
-                              </select>
+                              <ng-select [class.gl-field-error-outline]="_hasControlError('protocollo')" [errorId]="'protocollo-error'"
+                                [items]="_tipoInterfaccia" bindValue="value" bindLabel="label" labelForId="protocollo"
+                                [searchable]="false" [clearable]="false" [placeholder]="'APP.MESSAGE.SelectInterface' | translate"
+                                formControlName="protocollo" (change)="__protocolloChange()"
+                                disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                                <ng-template ng-label-tmp let-item="item">{{ item.label | translate }}</ng-template>
+                                <ng-template ng-option-tmp let-item="item">{{ item.label | translate }}</ng-template>
+                              </ng-select>
                               @if (f['protocollo'].invalid && (f['protocollo'].dirty || f['protocollo'].touched)) {
-                                <p class="form-text text-danger">
+                                <p class="form-text text-danger" id="protocollo-error" aria-live="polite">
                                   @if (f['protocollo'].errors && f['protocollo'].errors['required']) {
                                     <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                   }
@@ -479,17 +494,16 @@
                                   <div class="row">
                                     <div class="col-6">
                                       <div class="form-group">
-                                        <label class="label-bold" [for]="'profilo-' + 1">{{ 'APP.LABEL.AuthPrevista' | translate }} @if (_isEdit) {
+                                        <label class="label-bold" [for]="'profilo-' + authIndex">{{ 'APP.LABEL.AuthPrevista' | translate }} @if (_isEdit) {
                                           <span appMarkAsterisk [formGroup]="afg(authIndex)" [controlName]="'profilo'"></span>
                                         }</label>
                                         @if (_isEdit) {
                                           <div class="">
-                                            <select class="form-select" [id]="'profilo-' + 1" formControlName="profilo" (change)="_onChangeProfilo($event, authIndex)" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
-                                              <option value="">{{ 'APP.MESSAGE.SelectAuthentication' | translate }}</option>
-                                              @for (ta of _profiliFiltered | authFilter:_authSelected; track ta) {
-                                                <option [value]="ta.codice_interno">{{ ta.etichetta }}</option>
-                                              }
-                                            </select>
+                                            <ng-select [items]="_profiliFiltered | authFilter:_authSelected" bindValue="codice_interno" bindLabel="etichetta" [labelForId]="'profilo-' + authIndex"
+                                              [searchable]="false" [clearable]="false" [placeholder]="'APP.MESSAGE.SelectAuthentication' | translate"
+                                              formControlName="profilo" (change)="_onChangeProfilo($event, authIndex)"
+                                              disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                                            </ng-select>
                                           </div>
                                         }
                                         @if (!_isEdit) {
@@ -602,18 +616,18 @@
                                         <input autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp.nome_gruppo, cp.nome)" [type]="cp.type" [name]="cp.nome" [id]="cp.nome" [formControlName]="cp.nome" disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant" [attr.aria-describedby]="cp._req?.nextState ? cp.nome + '-req-hint' : null">
                                       }
                                       @if (cp.tipo === 'select') {
-                                        <select class="form-select" [id]="cp.nome" [formControlName]="cp.nome" [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp.nome_gruppo, cp.nome)" [attr.aria-describedby]="cp._req?.nextState ? cp.nome + '-req-hint' : null" disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
-                                          <option value="">{{ 'APP.MESSAGE.Select' | translate }}</option>
-                                          @for (cpv of cp.valori; track cpv) {
-                                            <option [value]="cpv.nome">{{ cpv.etichetta }}</option>
-                                          }
-                                        </select>
+                                        <ng-select [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp.nome_gruppo, cp.nome)"
+                                          [items]="cp.valori" bindValue="nome" bindLabel="etichetta" [labelForId]="cp.nome"
+                                          [searchable]="false" [clearable]="false" [placeholder]="'APP.MESSAGE.Select' | translate"
+                                          [formControlName]="cp.nome" [errorId]="cp.nome + '-error'" [describedBy]="cp._req?.nextState ? cp.nome + '-req-hint' : null"
+                                          disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                                        </ng-select>
                                       }
                                       @if (cp._req?.nextState) {
                                         <p class="form-text text-muted mb-0" [id]="cp.nome + '-req-hint'">{{ 'APP.MESSAGE.VALIDATION.RequiredForNextState' | translate: { stato: ('APP.WORKFLOW.STATUS.' + cp._req.nextState | translate) } }}</p>
                                       }
                                       @if (acfgc(cp.nome_gruppo).controls[cp.nome]?.invalid && (acfgc(cp.nome_gruppo).controls[cp.nome]?.touched)) {
-                                        <p class="form-text text-danger">
+                                        <p class="form-text text-danger" [id]="cp.nome + '-error'" aria-live="polite">
                                           @if (acfgc(cp.nome_gruppo).controls[cp.nome]?.errors && acfgc(cp.nome_gruppo).controls[cp.nome]?.errors?.required) {
                                             <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                           }

@@ -70,7 +70,8 @@ import {
     STEP_WIZARD_SERVIZIO_FALLBACK,
     STEP_WIZARD_COLLAUDO_SERVIZIO,
     STEP_WIZARD_PRODUZIONE_SERVIZIO,
-    WORKFLOW_STATI_SERVIZIO
+    WORKFLOW_STATI_SERVIZIO,
+    nomeApiDaServizio
 } from './servizio-wizard.config';
 
 declare const saveAs: any;
@@ -986,6 +987,11 @@ export class ServizioWorkflowWizardComponent implements OnInit {
             },
             error: () => { this.servizioApiList = []; this._apiListLoaded = true; this._maybeAutoOpenCreateApi(); }
         });
+    }
+
+    /** Nome proposto solo per la prima API del servizio. */
+    get _nomeApiSuggerito(): string | null {
+        return (this.servizioApiList?.length || 0) === 0 ? (nomeApiDaServizio(this.data?.nome) || null) : null;
     }
 
     /** Nessuna API definita: nella fase in cui la creazione e` consentita

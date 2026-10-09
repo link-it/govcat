@@ -4188,4 +4188,47 @@ const routeWithBc = {
       expect(obj.nome).toBeNull();
     });
   });
+  // =========================================================================
+  // Valori proposti nella creazione dal wizard (Issue #381)
+  // =========================================================================
+  describe('wizard defaults', () => {
+    it('should propose name, role and REST interface when embedded', () => {
+      component.embedded = true;
+      component.nomeSuggerito = 'anagrafe-celiaci';
+      component._servizioApiCreate = new ServizioApiCreate({});
+      (component as any)._applyWizardDefaults();
+      expect(component._servizioApiCreate.nome).toBe('anagrafe-celiaci');
+      expect(component._servizioApiCreate.ruolo).toBe('erogato_soggetto_dominio');
+      expect(component._servizioApiCreate.protocollo).toBe('rest');
+    });
+
+    it('should leave the name empty without a suggestion', () => {
+      component.embedded = true;
+      component.nomeSuggerito = null;
+      component._servizioApiCreate = new ServizioApiCreate({});
+      (component as any)._applyWizardDefaults();
+      expect(component._servizioApiCreate.nome).toBeNull();
+      expect(component._servizioApiCreate.ruolo).toBe('erogato_soggetto_dominio');
+    });
+
+    it('should not propose anything outside the wizard', () => {
+      component.embedded = false;
+      component.nomeSuggerito = 'x';
+      component._servizioApiCreate = new ServizioApiCreate({});
+      (component as any)._applyWizardDefaults();
+      expect(component._servizioApiCreate.nome).toBeNull();
+      expect(component._servizioApiCreate.ruolo).toBeNull();
+      expect(component._servizioApiCreate.protocollo).toBeNull();
+    });
+
+    it('should initialize the proposed role as a user choice once the service is loaded', () => {
+      const spy = vi.spyOn(component as any, '__changeRuolo').mockImplementation(() => {});
+      component.embedded = true;
+      component.createMode = true;
+      component._isNew = true;
+      component._formGroup = new FormGroup({ ruolo: new FormControl('erogato_soggetto_dominio') });
+      (component as any)._initWizardRuolo();
+      expect(spy).toHaveBeenCalledWith(null, true);
+    });
+  });
 });

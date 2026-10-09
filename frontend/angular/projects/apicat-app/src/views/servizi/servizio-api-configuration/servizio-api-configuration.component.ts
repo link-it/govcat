@@ -54,7 +54,7 @@ interface ApiForm {
   nome_gateway: FormControl<string>;
   versione_gateway: FormControl<number | null>;
   url: FormControl<string>;
-  protocollo: FormControl<string>;
+  protocollo: FormControl<string | null>;
   proprieta_custom: UntypedFormGroup;
   descrittore: UntypedFormControl;
 }
@@ -143,7 +143,7 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
       Validators.pattern("^[1-9][0-9]*$")
     ]),
     url: new FormControl('', { nonNullable: true }),
-    protocollo: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    protocollo: new FormControl<string | null>(null, [Validators.required]),
     proprieta_custom: new UntypedFormGroup({}),
     descrittore: this._descrittoreCtrl
   });
@@ -271,7 +271,8 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
       return;
     }
 
-    control.setValue(this.getTestingValue(field));
+    const _value = this.getTestingValue(field);
+    control.setValue((field === 'protocollo') ? (_value || null) : _value);
     if (field === 'protocollo') {
       this.copySepcificationValue();
     }
@@ -494,7 +495,7 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
       nome_gateway: configuration?.dati_erogazione?.nome_gateway || '',
       versione_gateway: configuration?.dati_erogazione?.versione_gateway || null,
       url: configuration?.dati_erogazione?.url || '',
-      protocollo: configuration?.protocollo || '',
+      protocollo: configuration?.protocollo || null,
       proprieta_custom: [],
       descrittore: null
     });

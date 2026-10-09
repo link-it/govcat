@@ -108,6 +108,8 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     @Input() startEdit: boolean = false;
     /** Fase del wizard (collaudo | produzione): in creazione mostra solo la base url di quell'ambiente. */
     @Input() fase: string | null = null;
+    /** Nome proposto in creazione dal wizard (prima API del servizio). */
+    @Input() nomeSuggerito: string | null = null;
 
     /** Base url di collaudo in creazione: solo nella fase collaudo; senza fase se il collaudo non e` saltato. */
     get _showUrlCollaudo(): boolean {
@@ -379,6 +381,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                 this._isEdit = true;
                 if (!this.service) { this._loadServizio(); }
                 this._servizioApiCreate.id_servizio = this.sid;
+                this._applyWizardDefaults();
                 this._initForm({ ...this._servizioApiCreate });
             } else {
                 this._isDetails = true;
@@ -452,11 +455,11 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                         ]);
                         break;
                     case 'ruolo':
-                        value = data[key] ? data[key] : '';
+                        value = data[key] ? data[key] : null;
                         _group[key] = new FormControl(value, [Validators.required]);
                         break;
                     case 'protocollo':
-                        value = data[key] ? data[key] : '';
+                        value = data[key] ? data[key] : null;
                         _group[key] = new FormControl(value, this._isNew ? [Validators.required] : []);
                         break;
                     case 'descrizione':
@@ -842,6 +845,21 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         });
     }
 
+    /** Valori proposti nella creazione dal wizard: nome, ruolo "erogata dal dominio" e interfaccia REST. */
+    private _applyWizardDefaults() {
+        if (!this.embedded) { return; }
+        this._servizioApiCreate.nome = this.nomeSuggerito || null;
+        this._servizioApiCreate.ruolo = this.EROGATO_SOGGETTO_DOMINIO as any;
+        this._servizioApiCreate.protocollo = 'rest' as any;
+    }
+
+    /** Il ruolo proposto va inizializzato come una scelta dell'utente, a servizio caricato. */
+    private _initWizardRuolo() {
+        if (this.embedded && this.createMode && this._isNew && this._formGroup.get('ruolo')?.value) {
+            this.__changeRuolo(null, true);
+        }
+    }
+
     _initRuoli() {
         // Per i servizi intermediati (fruizione) la label del ruolo "dominio"
         // fa riferimento all'organizzazione erogatrice del servizio; per gli
@@ -903,6 +921,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                         this._initBreadcrumb();
                         this._initRuoli();
                         this._initOtherActionMenu();
+                        this._initWizardRuolo();
 
                         if (this.servizioApi) {
                             this.eventsManagerService.broadcast('INIT_DATA');
@@ -1505,7 +1524,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             // "Autenticazione prevista" obbligatoria solo quando è presente una
             // specifica di interfaccia. Senza specifica il profilo è facoltativo
             // (altrimenti bloccherebbe il salvataggio, cfr. Issue gitlab-162).
-            profilo: [data.profilo, this._hasSpecifica ? [Validators.required] : []],
+            profilo: [data.profilo || null, this._hasSpecifica ? [Validators.required] : []],
             resources: [data.resources, [Validators.required]],
             note: [data.note, [Validators.maxLength(255)]]
         };

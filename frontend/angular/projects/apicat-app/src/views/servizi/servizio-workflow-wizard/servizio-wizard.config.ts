@@ -107,3 +107,13 @@ export const WORKFLOW_STATI_SERVIZIO: string[] = [
     'pubblicato_produzione_senza_collaudo',
     'archiviato'
 ];
+
+/** Nome di API ricavato dal nome del servizio: senza accenti, minuscolo, separatori come '-'. */
+export function nomeApiDaServizio(nome: string | null | undefined): string {
+    return (nome || '')
+        .normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .substring(0, 255);
+}
