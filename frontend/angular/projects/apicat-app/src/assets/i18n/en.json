@@ -1580,6 +1580,14 @@
 					"500": "Cannot process document: {{errore}}"
 				},
 				"DOM": {
+					"400": {
+						"ADESIONE": {
+							"DISABILITATA": "Unable to disable subscriptions on domain [{{nome}}]: {{numeroServizi}} services of the domain have subscriptions enabled"
+						},
+						"MULTI": {
+							"ADESIONE": "Unable to enable multiple subscriptions on domain [{{nome}}]: {{numeroServizi}} services of the domain do not allow multiple subscriptions"
+						}
+					},
 					"404": "Domain [{{idDominio}}] not found",
 					"409": "Domain [{{nome}}] already exists"
 				},
@@ -1791,6 +1799,9 @@
 				},
 				"SRV": {
 					"400": {
+						"ADESIONE": {
+							"DISABILITATA": "The service must have subscriptions disabled because domain [{{dominio}}] has subscriptions disabled"
+						},
 						"CATEGORY": {
 							"NOT": {
 								"LEAF": ""
@@ -1798,6 +1809,9 @@
 						},
 						"DUPLICATE": "Duplicate attachment for service",
 						"INVALID": "Invalid operation on service",
+						"MULTI": {
+							"ADESIONE": "The service must allow multiple subscriptions because domain [{{dominio}}] allows multiple subscriptions"
+						},
 						"NOT": {
 							"DELETABLE": "",
 							"REGISTERED": ""

@@ -36,6 +36,7 @@ import org.govway.catalogo.core.services.DominioService;
 import org.govway.catalogo.core.services.ServizioService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
@@ -273,6 +274,10 @@ public class ServiziTest {
     }
     
     private Dominio getDominio() {
+    	return this.getDominio(null, null);
+    }
+
+    private Dominio getDominio(Boolean multiAdesione, Boolean adesioneDisabilitata) {
 
     	OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
     	organizzazione.setIntermediata(false);
@@ -299,6 +304,8 @@ public class ServiziTest {
 
     	DominioCreate dominio = CommonUtils.getDominioCreate();
     	dominio.setSkipCollaudo(true);
+    	dominio.setMultiAdesione(multiAdesione);
+    	dominio.setAdesioneDisabilitata(adesioneDisabilitata);
 
     	dominio.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
     	ResponseEntity<Dominio> createdDominio = dominiController.createDominio(dominio);
@@ -857,6 +864,110 @@ public class ServiziTest {
 
         List<Referente> referenti = response.getBody().getContent();
         assertEquals(1, referenti.size());
+    }
+
+    private ServizioCreate getServizioCreateOpzioniAdesione(Dominio dominio, Boolean multiAdesione, Boolean adesioneDisabilitata) {
+    	ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+    	servizioCreate.setSkipCollaudo(true);
+    	servizioCreate.setIdDominio(dominio.getIdDominio());
+    	servizioCreate.setMultiAdesione(multiAdesione);
+    	servizioCreate.setAdesioneDisabilitata(adesioneDisabilitata);
+
+    	ReferenteCreate referente = new ReferenteCreate();
+    	referente.setTipo(TipoReferenteEnum.REFERENTE);
+    	referente.setIdUtente(ID_UTENTE_GESTORE);
+    	servizioCreate.setReferenti(List.of(referente));
+    	return servizioCreate;
+    }
+
+    private IdentificativoServizioUpdate getIdentificativoOpzioniAdesione(Boolean multiAdesione, Boolean adesioneDisabilitata) {
+    	IdentificativoServizioUpdate identificativo = new IdentificativoServizioUpdate();
+    	identificativo.setNome(CommonUtils.NOME_SERVIZIO);
+    	identificativo.setVersione(CommonUtils.VERSIONE_SERVIZIO);
+    	identificativo.setIdDominio(idDominio);
+    	identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
+    	identificativo.setMultiAdesione(multiAdesione);
+    	identificativo.setAdesioneDisabilitata(adesioneDisabilitata);
+    	identificativo.setTipo(TipoServizio.API);
+    	identificativo.setPackage(false);
+    	return identificativo;
+    }
+
+    @Test
+    void testCreateServizioDominioMultiAdesioneServizioNonMultiAdesione() {
+    	Dominio dominio = this.getDominio(true, null);
+    	assertTrue(dominio.isMultiAdesione());
+
+    	ServizioCreate servizioCreate = this.getServizioCreateOpzioniAdesione(dominio, false, false);
+
+    	BadRequestException e = assertThrows(BadRequestException.class, () -> serviziController.createServizio(servizioCreate));
+    	assertEquals(ErrorCode.SRV_400_MULTI_ADESIONE, e.getErrorCode());
+    }
+
+    @Test
+    void testCreateServizioDominioMultiAdesioneServizioMultiAdesione() {
+    	Dominio dominio = this.getDominio(true, null);
+
+    	ResponseEntity<Servizio> response = serviziController.createServizio(this.getServizioCreateOpzioniAdesione(dominio, true, false));
+
+    	assertEquals(HttpStatus.OK, response.getStatusCode());
+    	assertTrue(response.getBody().isMultiAdesione());
+    }
+
+    @Test
+    void testCreateServizioDominioAdesioneDisabilitataServizioAdesioneAbilitata() {
+    	Dominio dominio = this.getDominio(null, true);
+    	assertTrue(dominio.isAdesioneDisabilitata());
+
+    	ServizioCreate servizioCreate = this.getServizioCreateOpzioniAdesione(dominio, false, false);
+
+    	BadRequestException e = assertThrows(BadRequestException.class, () -> serviziController.createServizio(servizioCreate));
+    	assertEquals(ErrorCode.SRV_400_ADESIONE_DISABILITATA, e.getErrorCode());
+    }
+
+    @Test
+    void testCreateServizioDominioAdesioneDisabilitataServizioAdesioneDisabilitata() {
+    	Dominio dominio = this.getDominio(null, true);
+
+    	ResponseEntity<Servizio> response = serviziController.createServizio(this.getServizioCreateOpzioniAdesione(dominio, false, true));
+
+    	assertEquals(HttpStatus.OK, response.getStatusCode());
+    	assertTrue(response.getBody().isAdesioneDisabilitata());
+    }
+
+    @Test
+    void testCreateServizioDominioSenzaOpzioniAdesioneServizioLibero() {
+    	Dominio dominio = this.getDominio(false, false);
+
+    	ResponseEntity<Servizio> response = serviziController.createServizio(this.getServizioCreateOpzioniAdesione(dominio, false, false));
+
+    	assertEquals(HttpStatus.OK, response.getStatusCode());
+    	assertFalse(response.getBody().isMultiAdesione());
+    	assertFalse(response.getBody().isAdesioneDisabilitata());
+    }
+
+    @Test
+    void testUpdateServizioDominioMultiAdesioneServizioNonMultiAdesione() {
+    	Dominio dominio = this.getDominio(true, true);
+    	Servizio servizio = serviziController.createServizio(this.getServizioCreateOpzioniAdesione(dominio, true, true)).getBody();
+
+    	ServizioUpdate servizioUpdate = new ServizioUpdate();
+    	servizioUpdate.setIdentificativo(this.getIdentificativoOpzioniAdesione(false, true));
+
+    	BadRequestException e = assertThrows(BadRequestException.class, () -> serviziController.updateServizio(servizio.getIdServizio(), null, servizioUpdate));
+    	assertEquals(ErrorCode.SRV_400_MULTI_ADESIONE, e.getErrorCode());
+    }
+
+    @Test
+    void testUpdateServizioDominioAdesioneDisabilitataServizioAdesioneAbilitata() {
+    	Dominio dominio = this.getDominio(true, true);
+    	Servizio servizio = serviziController.createServizio(this.getServizioCreateOpzioniAdesione(dominio, true, true)).getBody();
+
+    	ServizioUpdate servizioUpdate = new ServizioUpdate();
+    	servizioUpdate.setIdentificativo(this.getIdentificativoOpzioniAdesione(true, false));
+
+    	BadRequestException e = assertThrows(BadRequestException.class, () -> serviziController.updateServizio(servizio.getIdServizio(), null, servizioUpdate));
+    	assertEquals(ErrorCode.SRV_400_ADESIONE_DISABILITATA, e.getErrorCode());
     }
 
     @Test

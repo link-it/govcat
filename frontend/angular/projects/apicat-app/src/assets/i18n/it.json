@@ -1580,6 +1580,14 @@
 					"500": "Impossibile elaborare il documento: {{errore}}"
 				},
 				"DOM": {
+					"400": {
+						"ADESIONE": {
+							"DISABILITATA": "Impossibile disabilitare l'adesione sul dominio [{{nome}}]: {{numeroServizi}} servizi del dominio hanno l'adesione abilitata"
+						},
+						"MULTI": {
+							"ADESIONE": "Impossibile attivare la multi adesione sul dominio [{{nome}}]: {{numeroServizi}} servizi del dominio non sono multi adesione"
+						}
+					},
 					"404": "Dominio [{{idDominio}}] non trovato",
 					"409": "Dominio [{{nome}}] già esistente"
 				},
@@ -1791,6 +1799,9 @@
 				},
 				"SRV": {
 					"400": {
+						"ADESIONE": {
+							"DISABILITATA": "Il servizio deve avere l'adesione disabilitata perché il dominio [{{dominio}}] ha l'adesione disabilitata"
+						},
 						"CATEGORY": {
 							"NOT": {
 								"LEAF": "Impossibile associare la Categoria [{{categoria}}] al servizio [{{nome}}/{{versione}}]. categoria non foglia"
@@ -1798,6 +1809,9 @@
 						},
 						"DUPLICATE": "Allegato duplicato per il servizio",
 						"INVALID": "Operazione non valida sul servizio",
+						"MULTI": {
+							"ADESIONE": "Il servizio deve essere multi adesione perché il dominio [{{dominio}}] è multi adesione"
+						},
 						"NOT": {
 							"DELETABLE": "Il servizio non è eliminabile",
 							"REGISTERED": "Utente non registrato, impossibile recuperare servizi in attesa"

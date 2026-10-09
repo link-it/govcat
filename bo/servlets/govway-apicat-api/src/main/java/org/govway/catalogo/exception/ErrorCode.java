@@ -137,6 +137,12 @@ public enum ErrorCode {
     /** Operazione non valida sul servizio */
     SRV_400_INVALID("Operazione non valida sul servizio"),
 
+    /** Servizio non multi adesione in un dominio multi adesione */
+    SRV_400_MULTI_ADESIONE("Multi adesione obbligatoria per i servizi del dominio"),
+
+    /** Servizio con adesione abilitata in un dominio con adesione disabilitata */
+    SRV_400_ADESIONE_DISABILITATA("Adesione disabilitata obbligatoria per i servizi del dominio"),
+
     // ==================== ORGANIZZAZIONI ====================
 
     /** Organizzazione non trovata */
@@ -167,6 +173,12 @@ public enum ErrorCode {
 
     /** Dominio già esistente */
     DOM_409("Dominio già esistente"),
+
+    /** Multi adesione non attivabile sul dominio: servizi del dominio non multi adesione */
+    DOM_400_MULTI_ADESIONE("Multi adesione non attivabile sul dominio"),
+
+    /** Adesione disabilitata non attivabile sul dominio: servizi del dominio con adesione abilitata */
+    DOM_400_ADESIONE_DISABILITATA("Adesione disabilitata non attivabile sul dominio"),
 
     // ==================== SOGGETTI ====================
 

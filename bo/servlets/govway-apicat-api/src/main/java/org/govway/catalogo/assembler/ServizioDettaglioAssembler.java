@@ -263,8 +263,32 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 
 		entity.setMultiAdesione(src.isMultiAdesione());
 
+		checkOpzioniAdesioneDominio(entity);
+
 		setUltimaModifica(entity);
 		return entity;
+	}
+
+	/**
+	 * Le opzioni di adesione attive sul dominio (multi adesione, adesione disabilitata) devono
+	 * essere attive anche sul servizio; se disattive sul dominio il servizio e` libero.
+	 * L'adesione disabilitata del dominio vale solo se la configurazione consente servizi non
+	 * sottoscrivibili, come quella del servizio.
+	 */
+	private void checkOpzioniAdesioneDominio(ServizioEntity entity) {
+		DominioEntity dominio = entity.getDominio();
+		if(dominio == null) {
+			return;
+		}
+
+		if(dominio.isMultiAdesione() && !entity.isMultiAdesione()) {
+			throw new BadRequestException(ErrorCode.SRV_400_MULTI_ADESIONE, Map.of("dominio", dominio.getNome()));
+		}
+
+		if(Boolean.TRUE.equals(this.configurazione.getServizio().isConsentiNonSottoscrivibile()) &&
+				dominio.isAdesioneDisabilitata() && !entity.isAdesioneDisabilitata()) {
+			throw new BadRequestException(ErrorCode.SRV_400_ADESIONE_DISABILITATA, Map.of("dominio", dominio.getNome()));
+		}
 	}
 
 	private void saveDominioServizio(UUID idDominio, UUID idSoggetto, ServizioEntity entity) {
@@ -474,6 +498,8 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		}
 
 		entity.setMultiAdesione(src.isMultiAdesione() != null ? src.isMultiAdesione(): false);
+
+		checkOpzioniAdesioneDominio(entity);
 
 		entity.setDataCreazione(new Date());
 		entity.setRichiedente(utenteSessione);

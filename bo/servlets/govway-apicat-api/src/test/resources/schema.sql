@@ -220,6 +220,8 @@ create sequence seq_aziende_esterne start with 1 increment by 1;
         id_dominio varchar(255) not null,
         nome varchar(255) not null,
         skip_collaudo boolean not null,
+        multi_adesione boolean not null,
+        adesione_disabilitata boolean not null,
         tag varchar(255),
         url_invocazione varchar(255),
         canale varchar(255),

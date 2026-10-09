@@ -46,4 +46,12 @@ public interface ServizioRepository extends JpaRepositoryImplementation<Servizio
     @Query(value = "SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END FROM ServizioEntity s WHERE s.dominio.id = ?1 AND s.skipCollaudo = true")
     public boolean existsSkipCollaudoByDominioId(Long idDominio);
 
+    // Servizi del dominio che impediscono di attivare sul dominio le opzioni di adesione
+    // (multi adesione / adesione disabilitata), che i servizi devono ereditare.
+    @Query(value = "SELECT COUNT(s) FROM ServizioEntity s WHERE s.dominio.id = ?1 AND s.multiAdesione = false")
+    public long countNonMultiAdesioneByDominioId(Long idDominio);
+
+    @Query(value = "SELECT COUNT(s) FROM ServizioEntity s WHERE s.dominio.id = ?1 AND s.adesioneDisabilitata = false")
+    public long countAdesioneAbilitataByDominioId(Long idDominio);
+
 }

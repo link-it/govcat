@@ -34,6 +34,7 @@ import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.RichiestaNonValidaSemanticamenteException;
 import org.govway.catalogo.exception.ErrorCode;
+import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.Dominio;
 import org.govway.catalogo.servlets.model.DominioCreate;
 import org.govway.catalogo.servlets.model.DominioUpdate;
@@ -62,6 +63,9 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 	@Autowired
 	private ServizioRepository servizioRepository;
 
+	@Autowired
+	private Configurazione configurazione;
+
 	public DominioDettaglioAssembler() {
 		super(DominiController.class, Dominio.class);
 	}
@@ -76,6 +80,8 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 		dettaglio.setIdDominio(UUID.fromString(entity.getIdDominio()));
 		dettaglio.setDeprecato(entity.isDeprecato());
 		dettaglio.setVincolaSkipCollaudo(isVincolaSkipCollaudo(entity));
+		dettaglio.setMultiAdesione(entity.isMultiAdesione());
+		dettaglio.setAdesioneDisabilitata(entity.isAdesioneDisabilitata());
 
 		dettaglio.setSoggettoReferente(this.soggettoItemAssmbler.toModel(entity.getSoggettoReferente()));
 		dettaglio.setVisibilita(this.engine.toVisibilita(entity.getVisibilita()));
@@ -119,7 +125,38 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 		} else {
 			entity.getClassi().clear();
 		}
+
+		// Opzioni di adesione: se non indicate restano invariate. Attivarle richiede che tutti i
+		// servizi del dominio le abbiano gia` attive, perche` i servizi devono ereditarle.
+		if(src.isMultiAdesione() != null) {
+			if(src.isMultiAdesione() && !entity.isMultiAdesione()) {
+				long servizi = this.servizioRepository.countNonMultiAdesioneByDominioId(entity.getId());
+				if(servizi > 0) {
+					throw new BadRequestException(ErrorCode.DOM_400_MULTI_ADESIONE, Map.of("nome", entity.getNome(), "numeroServizi", String.valueOf(servizi)));
+				}
+			}
+			entity.setMultiAdesione(src.isMultiAdesione());
+		}
+
+		if(isConsentiNonSottoscrivibile()) {
+			if(src.isAdesioneDisabilitata() != null) {
+				if(src.isAdesioneDisabilitata() && !entity.isAdesioneDisabilitata()) {
+					long servizi = this.servizioRepository.countAdesioneAbilitataByDominioId(entity.getId());
+					if(servizi > 0) {
+						throw new BadRequestException(ErrorCode.DOM_400_ADESIONE_DISABILITATA, Map.of("nome", entity.getNome(), "numeroServizi", String.valueOf(servizi)));
+					}
+				}
+				entity.setAdesioneDisabilitata(src.isAdesioneDisabilitata());
+			}
+		} else {
+			entity.setAdesioneDisabilitata(false);
+		}
 		return entity;
+	}
+
+	private boolean isConsentiNonSottoscrivibile() {
+		return this.configurazione.getServizio() != null &&
+				Boolean.TRUE.equals(this.configurazione.getServizio().isConsentiNonSottoscrivibile());
 	}
 
 	private boolean isVincolaSkipCollaudo(DominioEntity entity) {
@@ -166,6 +203,9 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 		} else {
 			entity.getClassi().clear();
 		}
+
+		entity.setMultiAdesione(Boolean.TRUE.equals(src.isMultiAdesione()));
+		entity.setAdesioneDisabilitata(isConsentiNonSottoscrivibile() && Boolean.TRUE.equals(src.isAdesioneDisabilitata()));
 
 		return entity;
 	}

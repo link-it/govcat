@@ -9833,6 +9833,13 @@ components:
         skip_collaudo:
           type: "boolean"
           default: false
+        multi_adesione:
+          type: "boolean"
+          description: "Se true, tutti i servizi del dominio devono essere multi adesione"
+        adesione_disabilitata:
+          type: "boolean"
+          description: "Se true, tutti i servizi del dominio devono avere l'adesione disabilitata.\
+            \ Considerato solo se la configurazione consente servizi non sottoscrivibili"
         url_invocazione:
           $ref: "#/components/schemas/String255"
         url_prefix_collaudo:
@@ -9865,6 +9872,13 @@ components:
         skip_collaudo:
           type: "boolean"
           default: false
+        multi_adesione:
+          type: "boolean"
+          description: "Se true, tutti i servizi del dominio devono essere multi adesione"
+        adesione_disabilitata:
+          type: "boolean"
+          description: "Se true, tutti i servizi del dominio devono avere l'adesione disabilitata.\
+            \ Considerato solo se la configurazione consente servizi non sottoscrivibili"
         url_invocazione:
           $ref: "#/components/schemas/String255"
         url_prefix_collaudo:
@@ -9896,6 +9910,13 @@ components:
         skip_collaudo:
           type: "boolean"
           default: false
+        multi_adesione:
+          type: "boolean"
+          description: "Se true, tutti i servizi del dominio devono essere multi adesione"
+        adesione_disabilitata:
+          type: "boolean"
+          description: "Se true, tutti i servizi del dominio devono avere l'adesione disabilitata.\
+            \ Considerato solo se la configurazione consente servizi non sottoscrivibili"
         url_invocazione:
           $ref: "#/components/schemas/String255"
         url_prefix_collaudo:
@@ -9931,6 +9952,13 @@ components:
         skip_collaudo:
           type: "boolean"
           default: false
+        multi_adesione:
+          type: "boolean"
+          description: "Se true, tutti i servizi del dominio devono essere multi adesione"
+        adesione_disabilitata:
+          type: "boolean"
+          description: "Se true, tutti i servizi del dominio devono avere l'adesione disabilitata.\
+            \ Considerato solo se la configurazione consente servizi non sottoscrivibili"
         vincola_skip_collaudo:
           type: "boolean"
         url_invocazione:

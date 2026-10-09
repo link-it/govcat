@@ -1,6 +1,18 @@
 2026-10-09  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
+	Issue 382: le opzioni di adesione del servizio (multi adesione e adesione disabilitata)
+	  sono configurabili anche sul dominio (nuovi campi multi_adesione e
+	  adesione_disabilitata, nuove colonne su domini con default false). Un'opzione attiva
+	  sul dominio è obbligatoria per tutti i suoi servizi: creazione o modifica di un
+	  servizio che non la rispetta falliscono con errore SRV.400.MULTI.ADESIONE o
+	  SRV.400.ADESIONE.DISABILITATA. Attivare un'opzione su un dominio con servizi che non
+	  la hanno attiva fallisce con errore DOM.400.MULTI.ADESIONE o
+	  DOM.400.ADESIONE.DISABILITATA, che riporta il numero di servizi da adeguare;
+	  disattivarla è sempre consentito e lascia i servizi liberi. Se non indicate in
+	  aggiornamento le opzioni del dominio restano invariate. L'adesione disabilitata del
+	  dominio, come quella del servizio, vale solo se la configurazione consente servizi non
+	  sottoscrivibili.
 	Issue 351: una API può dichiarare più URL di invocazione (o di esposizione), per
 	  documentare l'esposizione dello stesso servizio su più gateway (ad esempio rete
 	  interna ed esposizione internet). La prima URL resta quella risolta dalla gerarchia
