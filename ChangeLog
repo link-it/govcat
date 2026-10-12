@@ -1,6 +1,9 @@
 2026-10-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard servizi: nella form API "Autenticazione prevista" torna selezionabile (le opzioni di
+	  ng-select venivano ricreate a ogni aggiornamento e la scelta si perdeva).
+
 	Issue 382: dominio con le opzioni multi adesione e adesione disabilitata (mutuamente esclusive),
 	  imposte ai servizi: nei form servizio i flag attivi sul dominio diventano veri e non modificabili.
 	  Dettaglio dominio rivisto a sezioni (foglio di stile condiviso app-sections.scss); in sola

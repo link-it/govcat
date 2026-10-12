@@ -499,7 +499,7 @@
                                         }</label>
                                         @if (_isEdit) {
                                           <div class="">
-                                            <ng-select [items]="_profiliFiltered | authFilter:_authSelected" bindValue="codice_interno" bindLabel="etichetta" [labelForId]="'profilo-' + authIndex"
+                                            <ng-select [items]="_profiliOptions" bindValue="codice_interno" bindLabel="etichetta" [labelForId]="'profilo-' + authIndex"
                                               [searchable]="false" [clearable]="false" [placeholder]="'APP.MESSAGE.SelectAuthentication' | translate"
                                               formControlName="profilo" (change)="_onChangeProfilo($event, authIndex)"
                                               disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">

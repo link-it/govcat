@@ -43,7 +43,6 @@ import { CommonModule } from '@angular/common';
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
 import { DisablePermissionDirective } from '@app/directives/disable-permission/disable-permission.directive';
-import { AuthFilterPipe } from '@app/pipes/service-filters';
 import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
 import { ErrorViewComponent } from '@app/components/error-view/error-view.component';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
@@ -82,7 +81,6 @@ export type GruppiCampi = Record<string, Campo[]>;
         ...APP_COMPONENTS_IMPORTS,
         MarkAsteriskDirective,
         DisablePermissionDirective,
-        AuthFilterPipe,
         MonitorDropdwnComponent,
         ErrorViewComponent,
         MarkdownModule,
@@ -215,6 +213,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     _risorse: string[] = [];
     _risorseSelected: string[] = [];
     _authSelected: any[] = [];
+    private _profiliOptionsCache: { key: string, items: any[] } = { key: '', items: [] };
     _authTypesSelected: any[] = [];
 
     _customProperties: any = [];
@@ -1841,6 +1840,17 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
     get proprietaCustom(): FormGroup {
         return this._formGroup.get('proprieta_custom') as FormGroup;
+    }
+
+    /** Profili selezionabili (esclusi quelli gia' usati): stesso array finche' l'elenco non cambia,
+     *  altrimenti ng-select ricarica le opzioni a ogni change detection e perde la selezione. */
+    get _profiliOptions(): any[] {
+        const _items = (this._profiliFiltered || []).filter((p: any) => !(this._authSelected || []).some((o: any) => o.code === p.codice_interno));
+        const _key = _items.map((p: any) => p.codice_interno).join('|');
+        if (_key !== this._profiliOptionsCache.key) {
+            this._profiliOptionsCache = { key: _key, items: _items };
+        }
+        return this._profiliOptionsCache.items;
     }
 
     _updateAuthTypesSelected() {
