@@ -25,20 +25,7 @@ import { BsModalService } from 'ngx-bootstrap/modal';
 import { ConfigService, MenuAction, Tools, COMPONENTS_IMPORTS } from '@linkit/components';
 import { MarkdownModule } from 'ngx-markdown';
 
-/**
- * Issue 352: disclaimer del servizio (GET /servizi/{id}/disclaimers). Stessa forma
- * di AdesioneDisclaimer; il campo `links` non e` prodotto dal BE e viene ignorato.
- * La lista puo` essere vuota: e` uno stato normale (nessun fallback lato servizio).
- */
-export type ServizioDisclaimerSeverity = 'INFO' | 'WARNING' | 'ERROR';
-export type ServizioDisclaimerContesto = 'generale' | 'collaudo' | 'produzione';
-export interface ServizioDisclaimer {
-    disclaimer: string;
-    contesto?: ServizioDisclaimerContesto;
-    severity?: ServizioDisclaimerSeverity;
-    profilo?: string;
-    nome_gruppo?: string;
-}
+import { ServizioDisclaimer, ServizioDisclaimerSeverity, normalizeServizioDisclaimers } from '../servizio-disclaimers';
 import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
 import { AllegatiDialogComponent } from '@app/components/allegati-dialog/allegati-dialog.component';
 import { ServizioAllegatoAddFormComponent } from './servizio-allegato-add-form/servizio-allegato-add-form.component';
@@ -286,22 +273,9 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         if (!this.id) { return; }
         const languageCode = this.translate.currentLang || this.translate.getDefaultLang() || 'it';
         this.apiService.getDetails('servizi', this.id, 'disclaimers', { params: { language_code: languageCode } }).subscribe({
-            next: (response: any) => { this._disclaimers = this._normalizeDisclaimers(response); },
+            next: (response: any) => { this._disclaimers = normalizeServizioDisclaimers(response); },
             error: () => { this._disclaimers = []; }
         });
-    }
-
-    private _normalizeDisclaimers(response: any): ServizioDisclaimer[] {
-        if (!Array.isArray(response)) { return []; }
-        return response
-            .filter((d: any) => d && typeof d.disclaimer === 'string' && d.disclaimer.length > 0)
-            .map((d: any) => ({
-                disclaimer: d.disclaimer,
-                contesto: d.contesto,
-                severity: d.severity,
-                profilo: d.profilo,
-                nome_gruppo: d.nome_gruppo
-            }));
     }
 
     /** Disclaimer ambientali di una fase (contesto = collaudo | produzione),

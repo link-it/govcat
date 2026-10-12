@@ -29,7 +29,9 @@ describe('ServizioApiConfigurationComponent', () => {
   } as any;
 
   const mockTranslate = {
-    instant: vi.fn().mockImplementation((key: string) => key)
+    instant: vi.fn().mockImplementation((key: string) => key),
+    onLangChange: new Subject<any>(),
+    currentLang: 'it'
   } as any;
 
   const mockConfigService = {

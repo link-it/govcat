@@ -24,6 +24,7 @@
           [id]="apiId"
           [sid]="sid"
           [startEdit]="startEdit"
+          [disclaimers]="disclaimers"
           (save)="onChildSaved($event)"
           (close)="onChildClosed($event)"
         ></app-servizio-api-details>
@@ -37,6 +38,7 @@
           [sidInput]="sid"
           [ambiente]="'collaudo'"
           [startEdit]="startEdit"
+          [disclaimers]="disclaimers"
           (saved)="onChildSaved($event)"
           (closed)="onChildClosed($event)"
         ></app-servizio-api-configuration>
@@ -50,6 +52,7 @@
           [sidInput]="sid"
           [ambiente]="'produzione'"
           [startEdit]="startEdit"
+          [disclaimers]="disclaimers"
           (saved)="onChildSaved($event)"
           (closed)="onChildClosed($event)"
         ></app-servizio-api-configuration>

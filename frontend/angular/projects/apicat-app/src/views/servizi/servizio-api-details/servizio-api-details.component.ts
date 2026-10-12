@@ -16,7 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -45,6 +46,8 @@ import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asteri
 import { DisablePermissionDirective } from '@app/directives/disable-permission/disable-permission.directive';
 import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
 import { ErrorViewComponent } from '@app/components/error-view/error-view.component';
+import { ServizioDisclaimer, disclaimersDelleProprieta, loadServizioDisclaimers } from '../servizio-disclaimers';
+import { ServizioDisclaimerBannerComponent } from '../components/servizio-disclaimer-banner/servizio-disclaimer-banner.component';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 import { PluralTranslatePipe } from '@app/lib/pipes/plural-translate.pipe';
 import { MarkdownModule } from 'ngx-markdown';
@@ -83,12 +86,13 @@ export type GruppiCampi = Record<string, Campo[]>;
         DisablePermissionDirective,
         MonitorDropdwnComponent,
         ErrorViewComponent,
+        ServizioDisclaimerBannerComponent,
         MarkdownModule,
         MapperPipe,
         PluralTranslatePipe
     ]
 })
-export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterContentChecked {
+export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy, AfterContentChecked {
     static readonly Name = 'ServizioApiDetailsComponent';
     readonly model: string = 'api';
 
@@ -108,6 +112,10 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     @Input() fase: string | null = null;
     /** Nome proposto in creazione dal wizard (prima API del servizio). */
     @Input() nomeSuggerito: string | null = null;
+    /** Disclaimer del servizio passati dal wizard; se assenti vengono caricati qui. */
+    @Input() disclaimers: ServizioDisclaimer[] | null = null;
+    _disclaimersCaricati: ServizioDisclaimer[] = [];
+    private _langSub: Subscription | null = null;
 
     /** Base url di collaudo in creazione: solo nella fase collaudo; senza fase se il collaudo non e` saltato. */
     get _showUrlCollaudo(): boolean {
@@ -302,6 +310,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         if (this.embedded) {
             this._useRoute = false;
             this._initEmbedded();
+            this._caricaDisclaimers();
         } else {
         this.route.params.subscribe(params => {
             let _id = params['id'];
@@ -351,6 +360,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                 }
             }
         );
+        this._caricaDisclaimers();
         }
 
         this.eventsManagerService.on(EventType.PROFILE_UPDATE, (event: any) => {
@@ -370,6 +380,29 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     /** Init in modalità embedded (nessuna route): creazione o dettaglio da @Input. */
+    ngOnDestroy() {
+        this._langSub?.unsubscribe();
+    }
+
+    get _disclaimersAttivi(): ServizioDisclaimer[] {
+        return this.disclaimers ?? this._disclaimersCaricati;
+    }
+
+    /** Fuori dal wizard i disclaimer si caricano qui e si ricaricano al cambio lingua. */
+    private _caricaDisclaimers() {
+        if (this.disclaimers || !this.sid) { return; }
+        const _sid = this.sid;
+        loadServizioDisclaimers(this.apiService, this.translate, _sid).subscribe((list) => { this._disclaimersCaricati = list; });
+        if (!this._langSub) {
+            this._langSub = this.translate.onLangChange.subscribe(() => this._caricaDisclaimers());
+        }
+    }
+
+    /** Disclaimer dei gruppi di proprieta` custom: l'ambiente e` la classe dato del gruppo. */
+    _disclaimersDelGruppoMapper = (proprieta: any[], disclaimers: ServizioDisclaimer[]): ServizioDisclaimer[] => {
+        return disclaimersDelleProprieta(disclaimers, proprieta);
+    }
+
     private _initEmbedded() {
         this.configService.getConfig('api').subscribe((config: any) => {
             this.config = config;

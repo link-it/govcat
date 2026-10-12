@@ -488,6 +488,7 @@
                               [createMode]="true"
                               [sid]="id"
                               [fase]="_selectedFase"
+                              [disclaimers]="_disclaimers"
                               [nomeSuggerito]="_nomeApiSuggerito"
                               (save)="onApiSaved($event)"
                               (close)="closeCreateApi()"
@@ -580,6 +581,7 @@
                                 [skipCollaudo]="!!data?.skip_collaudo"
                                 [singleTab]="_configApiTab"
                                 [startEdit]="isRowEdit"
+                                [disclaimers]="_disclaimers"
                                 (saved)="onApiSettingsSaved($event)"
                                 (closed)="closeApiSettings()"
                               ></app-servizio-api-edit>

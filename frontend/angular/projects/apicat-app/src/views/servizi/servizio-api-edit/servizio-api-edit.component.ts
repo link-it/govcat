@@ -1,3 +1,4 @@
+import { ServizioDisclaimer } from '../servizio-disclaimers';
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
@@ -49,6 +50,8 @@ export class ServizioApiEditComponent implements OnInit, OnChanges {
      *  (matita "Modifica informazioni generali") oppure l'ambiente
      *  (`collaudo`/`produzione`, pulsante "Configura"). */
     @Input() singleTab: string | null = null;
+    /** Disclaimer del servizio (gestiti dal wizard): mostrati sui gruppi di proprieta` custom. */
+    @Input() disclaimers: ServizioDisclaimer[] | null = null;
 
     @Output() saved: EventEmitter<any> = new EventEmitter<any>();
     @Output() closed: EventEmitter<any> = new EventEmitter<any>();

@@ -16,13 +16,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, EventEmitter, HostListener, Input, OnInit, Output } from '@angular/core';
+import { AfterContentChecked, Component, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 
 import { COMPONENTS_IMPORTS, Tools, ConfigService } from '@linkit/components';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
 import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
+import { ServizioDisclaimer, disclaimersDelleProprieta, loadServizioDisclaimers } from '../servizio-disclaimers';
+import { ServizioDisclaimerBannerComponent } from '../components/servizio-disclaimer-banner/servizio-disclaimer-banner.component';
 import { MarkdownModule } from 'ngx-markdown';
 import { DisablePermissionDirective } from '@app/directives/disable-permission/disable-permission.directive';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -77,9 +80,9 @@ type Raggruppamento = {
   templateUrl: 'servizio-api-configuration.component.html',
   styleUrls: ['servizio-api-configuration.component.scss'],
   standalone: true,
-  imports: [CommonModule, ...COMPONENTS_IMPORTS, MapperPipe, MarkAsteriskDirective, MonitorDropdwnComponent, MarkdownModule, DisablePermissionDirective]
+  imports: [CommonModule, ...COMPONENTS_IMPORTS, MapperPipe, MarkAsteriskDirective, MonitorDropdwnComponent, MarkdownModule, DisablePermissionDirective, ServizioDisclaimerBannerComponent]
 })
-export class ServizioApiConfigurationComponent implements OnInit, AfterContentChecked {
+export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, AfterContentChecked {
   static readonly Name = 'ServizioApiConfigurationComponent';
   readonly model: string = 'api';
 
@@ -98,6 +101,10 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
   @Input() ambiente: string | null = null;
   /** Entra direttamente in modifica dopo il load (embedded). */
   @Input() startEdit: boolean = false;
+  /** Disclaimer del servizio passati dal wizard; se assenti vengono caricati qui. */
+  @Input() disclaimers: ServizioDisclaimer[] | null = null;
+  _disclaimersCaricati: ServizioDisclaimer[] = [];
+  private _langSub: Subscription | null = null;
 
   @Output() saved: EventEmitter<any> = new EventEmitter<any>();
   @Output() closed: EventEmitter<any> = new EventEmitter<any>();
@@ -238,6 +245,7 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
       this.id = this.apiId as any;
       this.environmentId = (this.ambiente as any) || 'collaudo';
       this._loadServizio();
+      this._caricaDisclaimers();
       return;
     }
     this.route.params.subscribe(params => {
@@ -254,8 +262,31 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
         } else {
           this._loadServizio();
         }
+        this._caricaDisclaimers();
       }
     });
+  }
+
+  ngOnDestroy() {
+    this._langSub?.unsubscribe();
+  }
+
+  get _disclaimersAttivi(): ServizioDisclaimer[] {
+    return this.disclaimers ?? this._disclaimersCaricati;
+  }
+
+  /** Fuori dal wizard i disclaimer si caricano qui e si ricaricano al cambio lingua. */
+  private _caricaDisclaimers() {
+    if (this.disclaimers || !this.sid) { return; }
+    const _sid = this.sid;
+    loadServizioDisclaimers(this.apiService, this.translate, _sid).subscribe((list) => { this._disclaimersCaricati = list; });
+    if (!this._langSub) {
+      this._langSub = this.translate.onLangChange.subscribe(() => this._caricaDisclaimers());
+    }
+  }
+
+  _disclaimersDelGruppoMapper = (proprieta: any[], disclaimers: ServizioDisclaimer[]): ServizioDisclaimer[] => {
+    return disclaimersDelleProprieta(disclaimers, proprieta, this.environmentId);
   }
 
   /** Copia dei valori dal collaudo: ha senso solo in produzione e quando il

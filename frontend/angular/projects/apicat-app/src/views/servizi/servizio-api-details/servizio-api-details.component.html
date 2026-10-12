@@ -598,6 +598,9 @@
                         @for (apc of _apiProprietaCustomGrouped | keyvalue; track apc) {
                           @if (_apiProprietaCustomGrouped[$any(apc.key)].length) {
                             <h5 class="pb-2 mb-5 border-bottom">{{ apc.key | mapper:_getGroupLabelMapper }}</h5>
+                            @for (d of (_apiProprietaCustomGrouped[$any(apc.key)] | mapper:_disclaimersDelGruppoMapper:_disclaimersAttivi); track $index) {
+                              <app-servizio-disclaimer-banner class="mb-3" [disclaimer]="d"></app-servizio-disclaimer-banner>
+                            }
                             @for (cp of _apiProprietaCustomGrouped[$any(apc.key)]; track cp) {
                               <div formArrayName="proprieta_custom" class="row custom-properties-fields">
                                 <div [formArrayName]="cp.nome_gruppo" class="col-12 form-group">

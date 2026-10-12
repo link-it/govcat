@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { of, throwError, EMPTY } from 'rxjs';
+import { of, throwError, EMPTY, Subject } from 'rxjs';
 import { FormGroup, FormControl, FormArray, FormBuilder, Validators } from '@angular/forms';
 import { Tools } from '@linkit/components';
 import { ServizioApiDetailsComponent } from './servizio-api-details.component';
@@ -45,7 +45,9 @@ describe('ServizioApiDetailsComponent', () => {
   } as any;
 
   const mockTranslate = {
-    instant: vi.fn().mockImplementation((key: string) => key)
+    instant: vi.fn().mockImplementation((key: string) => key),
+    onLangChange: new Subject<any>(),
+    currentLang: 'it'
   } as any;
 
   const mockModalService = {

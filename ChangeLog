@@ -1,6 +1,10 @@
 2026-10-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 384: i disclaimer dei servizi con nome_gruppo sono mostrati sopra il relativo gruppo di
+	  proprieta' custom nella configurazione collaudo/produzione e nella form API, per l'ambiente
+	  indicato (o sempre, se generali); ricaricati al cambio di stato e di lingua.
+
 	Wizard servizi: nella form API "Autenticazione prevista" torna selezionabile (le opzioni di
 	  ng-select venivano ricreate a ogni aggiornamento e la scelta si perdeva).
 
