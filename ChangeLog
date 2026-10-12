@@ -1,6 +1,10 @@
 2026-10-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 383: le proprieta' custom dei servizi seguono ruoli_abilitati con un'unica regola in
+	  configurazione collaudo/produzione e nel dettaglio API (lista vuota = nascoste a tutti);
+	  i campi non visibili non restano nel form e i gruppi vuoti non sono mostrati.
+
 	Issue 384: i disclaimer dei servizi con nome_gruppo sono mostrati sopra il relativo gruppo di
 	  proprieta' custom nella configurazione collaudo/produzione e nella form API, per l'ambiente
 	  indicato (o sempre, se generali); ricaricati al cambio di stato e di lingua.

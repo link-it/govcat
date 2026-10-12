@@ -393,14 +393,14 @@ describe('ServizioApiDetailsComponent', () => {
     expect(result['Gruppo1'][1].nome).toBe('campo3');
   });
 
-  it('should include all fields when ruoli_abilitati is empty', () => {
+  it('should hide fields when ruoli_abilitati is empty (no role enabled, as in subscriptions)', () => {
     const data = {
       'Gruppo1': [
         { nome_gruppo: 'g1', nome: 'campo1', ruoli_abilitati: [] } as any
       ]
     };
     const result = component.filtraCampiPerRuoli(data, ['admin']);
-    expect(result['Gruppo1']).toHaveLength(1);
+    expect(result['Gruppo1']).toBeUndefined();
   });
 
   it('should exclude entire group when no fields match', () => {

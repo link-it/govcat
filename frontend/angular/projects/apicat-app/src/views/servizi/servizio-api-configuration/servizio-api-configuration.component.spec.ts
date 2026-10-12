@@ -2086,6 +2086,49 @@ describe('ServizioApiConfigurationComponent', () => {
   // ==================== _initProprietaCustom ====================
 
   describe('_initProprietaCustom', () => {
+    const _configRuoli = (ruoli: any) => ({
+      servizio: {
+        api: {
+          profili: [{ codice_interno: 'pdnd', auth_type: 'pdnd', etichetta: 'PDND' }],
+          proprieta_custom: [
+            { nome_gruppo: 'Libero', label_gruppo: 'Libero', classe_dato: 'collaudo', proprieta: [{ nome: 'libero1', tipo: 'text', required: false, index: 0 }] },
+            { nome_gruppo: 'Riservato', label_gruppo: 'Riservato', classe_dato: 'collaudo', ruoli_abilitati: ruoli, proprieta: [
+              { nome: 'ris1', tipo: 'text', required: false, index: 0 },
+              { nome: 'ris2', tipo: 'text', required: false, index: 1 }
+            ] }
+          ]
+        }
+      }
+    });
+
+    const _initRuoli = (ruoliAbilitati: any, ruoliUtente: string[]) => {
+      Tools.Configurazione = _configRuoli(ruoliAbilitati) as any;
+      component.servizioApi = { gruppi_auth_type: [{ profilo: 'pdnd' }], proprieta_custom: [] } as any;
+      component.environmentId = 'collaudo';
+      component.service = { stato: 'bozza' };
+      component._grant = { ruoli: ruoliUtente } as any;
+      component._initProprietaCustom();
+    };
+
+    it('should hide the whole group to users without the enabled roles (Issue #383)', () => {
+      _initRuoli(['gestore'], ['referente']);
+      expect(Object.keys(component._apiProprietaCustomGrouped)).toEqual(['Libero']);
+      expect(component._apiProprietaCustom.map((p: any) => p.nome)).toEqual(['libero1']);
+      expect(component.proprietaCustom.get('Riservato')).toBeNull();
+      expect(component.proprietaCustom.get('Libero')?.get('libero1')).toBeTruthy();
+    });
+
+    it('should show the group to users with an enabled role', () => {
+      _initRuoli(['gestore'], ['gestore']);
+      expect(component._apiProprietaCustomGrouped['Riservato'].map((p: any) => p.nome)).toEqual(['ris1', 'ris2']);
+      expect(component.proprietaCustom.get('Riservato')?.get('ris1')).toBeTruthy();
+    });
+
+    it('should hide the group to everybody when ruoli_abilitati is empty', () => {
+      _initRuoli([], ['gestore']);
+      expect(component._apiProprietaCustomGrouped['Riservato']).toBeUndefined();
+    });
+
     it('should populate _apiProprietaCustom based on environment and profiles', () => {
       Tools.Configurazione = {
         servizio: {

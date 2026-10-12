@@ -25,6 +25,7 @@ import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
 import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
 import { ServizioDisclaimer, disclaimersDelleProprieta, loadServizioDisclaimers } from '../servizio-disclaimers';
+import { filtraGruppiPerRuoli, proprietaVisibilePerRuoli } from '../servizio-proprieta-custom';
 import { ServizioDisclaimerBannerComponent } from '../components/servizio-disclaimer-banner/servizio-disclaimer-banner.component';
 import { MarkdownModule } from 'ngx-markdown';
 import { DisablePermissionDirective } from '@app/directives/disable-permission/disable-permission.directive';
@@ -722,7 +723,10 @@ export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, Aft
         });
       });
     });
-    this._apiProprietaCustomGrouped = _.groupBy(this._apiProprietaCustom, this.fieldToGroup);
+    // Solo i campi visibili per i ruoli dell'utente: anche "Copia valori collaudo" usa l'elenco piatto
+    const _ruoli = this._grant?.ruoli || [];
+    this._apiProprietaCustom = this._apiProprietaCustom.filter((item: any) => proprietaVisibilePerRuoli(item, _ruoli));
+    this._apiProprietaCustomGrouped = filtraGruppiPerRuoli(_.groupBy(this._apiProprietaCustom, this.fieldToGroup), _ruoli);
 
     if (this._apiProprietaCustom.length) {
       this._formGroup.addControl('proprieta_custom', this.formBuilder.group({}));
@@ -731,37 +735,26 @@ export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, Aft
         (this._apiProprietaCustomGrouped[key] || []).forEach((item: any) => {
           const _validators = [];
 
-          const _ruoli = this._grant?.ruoli || [];
-          const _hasRuolo = item.ruoli_abilitati ? _.intersection(_ruoli, item.ruoli_abilitati).length > 0 : true;
+          item._req = this.authenticationService.getCustomPropertyRequirement('servizio', this.service?.stato, item.classe_dato, item.required, !!this.service?.skip_collaudo);
+          if (item._req.now) { _validators.push(Validators.required); }
+          if (item.regular_expression) { _validators.push(Validators.pattern(item.regular_expression)); }
 
-          if (_hasRuolo) {
-            item._req = this.authenticationService.getCustomPropertyRequirement('servizio', this.service?.stato, item.classe_dato, item.required, !!this.service?.skip_collaudo);
-            if (item._req.now) { _validators.push(Validators.required); }
-            if (item.regular_expression) { _validators.push(Validators.pattern(item.regular_expression)); }
-  
-            if (!this.proprietaCustom.contains(item[this.fieldToGroup])) {
-              this.proprietaCustom.addControl(item[this.fieldToGroup], this.formBuilder.group({}));
-            }
-
-            const _gruppo = this.servizioApi?.proprieta_custom?.find((pc: any) => {
-              return (pc.gruppo === item.nome_gruppo);
-            });
-            const _value = _gruppo?.proprieta.find((p: any) => p.nome === item.nome);
-            let _val = _value ? _value.valore : null;
-            if (!this.servizioApi?.proprieta_custom?.length && (item.tipo === 'select')) {
-              const _defaultItem = item.valori.find((item: any) => item.default);
-              _val = _defaultItem?.nome || null;
-            }
-  
-            const group = this.proprietaCustom.get(item[this.fieldToGroup]) as FormGroup;
-            group.addControl(item.nome, new FormControl(_val, [..._validators]));
-          } else {
-            // remove item from list
-            const index = this._apiProprietaCustomGrouped[key]?.indexOf(item) || -1;
-            if (index !== -1) {
-              this._apiProprietaCustomGrouped = this._apiProprietaCustomGrouped[key].splice(index, 1);
-            }
+          if (!this.proprietaCustom.contains(item[this.fieldToGroup])) {
+            this.proprietaCustom.addControl(item[this.fieldToGroup], this.formBuilder.group({}));
           }
+
+          const _gruppo = this.servizioApi?.proprieta_custom?.find((pc: any) => {
+            return (pc.gruppo === item.nome_gruppo);
+          });
+          const _value = _gruppo?.proprieta.find((p: any) => p.nome === item.nome);
+          let _val = _value ? _value.valore : null;
+          if (!this.servizioApi?.proprieta_custom?.length && (item.tipo === 'select')) {
+            const _defaultItem = item.valori.find((item: any) => item.default);
+            _val = _defaultItem?.nome || null;
+          }
+
+          const group = this.proprietaCustom.get(item[this.fieldToGroup]) as FormGroup;
+          group.addControl(item.nome, new FormControl(_val, [..._validators]));
         });
       });
     }

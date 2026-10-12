@@ -47,6 +47,7 @@ import { DisablePermissionDirective } from '@app/directives/disable-permission/d
 import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
 import { ErrorViewComponent } from '@app/components/error-view/error-view.component';
 import { ServizioDisclaimer, disclaimersDelleProprieta, loadServizioDisclaimers } from '../servizio-disclaimers';
+import { filtraGruppiPerRuoli } from '../servizio-proprieta-custom';
 import { ServizioDisclaimerBannerComponent } from '../components/servizio-disclaimer-banner/servizio-disclaimer-banner.component';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 import { PluralTranslatePipe } from '@app/lib/pipes/plural-translate.pipe';
@@ -1852,23 +1853,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
     }
 
     filtraCampiPerRuoli(data: GruppiCampi, ruoliUtente: string[]): GruppiCampi {
-        const risultatoFiltrato: GruppiCampi = {};
-
-        for (const [nomeGruppo, campi] of Object.entries(data)) {
-            const campiFiltrati = campi.filter(campo => {
-                if (!campo.ruoli_abilitati || campo.ruoli_abilitati.length === 0) {
-                    return true; // campo visibile a tutti
-                }
-
-                return campo.ruoli_abilitati.some(ruolo => ruoliUtente.includes(ruolo));
-            });
-
-            if (campiFiltrati.length > 0) {
-                risultatoFiltrato[nomeGruppo] = campiFiltrati;
-            }
-        }
-
-        return risultatoFiltrato;
+        return filtraGruppiPerRuoli(data, ruoliUtente);
     }
 
     get proprietaCustom(): FormGroup {
