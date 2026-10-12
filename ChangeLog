@@ -1,3 +1,11 @@
+2026-10-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 382: dominio con le opzioni multi adesione e adesione disabilitata (mutuamente esclusive),
+	  imposte ai servizi: nei form servizio i flag attivi sul dominio diventano veri e non modificabili.
+	  Dettaglio dominio rivisto a sezioni (foglio di stile condiviso app-sections.scss); in sola
+	  lettura i flag sono checkbox disabilitate anche nei form servizio.
+
 2026-10-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

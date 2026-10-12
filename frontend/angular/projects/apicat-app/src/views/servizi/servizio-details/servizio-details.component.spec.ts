@@ -66,6 +66,7 @@ describe('ServizioDetailsComponent', () => {
 
   const mockAuthenticationService = {
     _getWorkflowCambiStato: vi.fn().mockReturnValue(null),
+    canEditField: vi.fn().mockReturnValue(true),
     isAnonymous: vi.fn().mockReturnValue(false),
     hasPermission: vi.fn().mockReturnValue(true),
     _getConfigModule: vi.fn().mockReturnValue({ api: { abilitato: true }, generico: { abilitato: false } }),
@@ -1498,6 +1499,39 @@ describe('ServizioDetailsComponent', () => {
       const event = { id_soggetto: 's1' };
       component.onChangeSelect(event, 'soggetto');
       expect(component.selectedSoggetto).toBe(event);
+    });
+  });
+
+  describe('opzioni di adesione imposte dal dominio (Issue #382)', () => {
+    beforeEach(() => {
+      component._formGroup = new FormGroup({
+        multi_adesione: new FormControl(false),
+        adesione_disabilitata: new FormControl(false)
+      });
+      component._isEdit = true;
+      component._hasFlagConsentiNonSottoscrivibile = true;
+    });
+
+    it('should force and lock the options set on the domain', () => {
+      component._setAdesioneDominio({ multi_adesione: true, adesione_disabilitata: true });
+      expect(component._formGroup.get('multi_adesione')?.value).toBe(true);
+      expect(component._formGroup.get('multi_adesione')?.disabled).toBe(true);
+      expect(component._formGroup.get('adesione_disabilitata')?.value).toBe(true);
+      expect(component._formGroup.get('adesione_disabilitata')?.disabled).toBe(true);
+      expect(component._formGroup.getRawValue().multi_adesione).toBe(true);
+    });
+
+    it('should free the options when the domain changes, keeping the current value', () => {
+      component._setAdesioneDominio({ multi_adesione: true });
+      component._setAdesioneDominio({ multi_adesione: false });
+      expect(component._formGroup.get('multi_adesione')?.enabled).toBe(true);
+      expect(component._formGroup.get('multi_adesione')?.value).toBe(true);
+    });
+
+    it('should ignore the domain disabled subscription when the configuration does not allow it', () => {
+      component._hasFlagConsentiNonSottoscrivibile = false;
+      component._setAdesioneDominio({ adesione_disabilitata: true });
+      expect(component._adesioneBloccata.disabilitata).toBe(false);
     });
   });
 

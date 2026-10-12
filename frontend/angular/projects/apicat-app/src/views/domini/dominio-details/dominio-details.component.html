@@ -21,12 +21,6 @@
     <ui-breadcrumb [breadcrumbs]="breadcrumbs" [classContainer]="'container-limited limit-container-width'" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
   </div>
   <div class="top-area container-fluid container-limited limit-container-width px-0">
-    @if (_isEdit && !_isNew) {
-      <h3 class="page-title">{{ 'APP.DOMINI.EditDomain' | translate }}</h3>
-    }
-    @if (_isEdit && _isNew) {
-      <h3 class="page-title">{{ 'APP.DOMINI.NewDomain' | translate }}</h3>
-    }
     <div class="d-flex flex-grow-1">&nbsp;</div>
     @if (_canEditDominio) {
       <div class="nav-controls">
@@ -95,444 +89,313 @@
     }
 
     @if ((dominio && !_spin) || _isNew) {
-      <div class="settings">
-        <div class="settings-content">
-          @if (!_isEdit && _error) {
-            <div class="gl-alert gl-alert-danger col-md-12 mb-5">
-              {{ _errorMsg }}
-            </div>
+      <div class="lnk-section-layout mt-4">
+        <div class="section-page-header">
+          <h2 class="section-page-title">{{ _isNew ? ('APP.DOMINI.NewDomain' | translate) : dominio?.nome }}</h2>
+          <p class="section-page-subtitle">{{ (_isEdit ? 'APP.DOMINI.SECTION.EditSubtitle' : 'APP.DOMINI.SECTION.ViewSubtitle') | translate }}</p>
+          @if (_isEdit) {
+            <p class="section-mandatory-hint"><i class="bi bi-info-circle me-1" aria-hidden="true"></i>{{ 'APP.SERVICES.CREATE.MandatoryHint' | translate }}</p>
           }
-          <div class="edit-form">
-            <form novalidate class="issue-form common-note-form mt-3 gl-show-field-errors gfm-form" [class.form-readonly]="!_isEdit" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.getRawValue())">
-              <div class="row gl-mt-3">
-                <div class="col-lg-4 mb-5">
-                  <h4 class="gl-mt-0 text-break">{{ 'APP.DOMINI.TITLE.GeneralInformations' | translate }}</h4>
-                  <div class="text-break" markdown>{{ 'APP.DOMINI.TITLE.GeneralInformations_sub' | translate }}</div>
-                </div>
-                <div class="col-lg-8">
-                  <div class="row nome">
-                    <!-- nome -->
-                    <div class="col-12">
-                      <div class="form-group">
-                        <label class="label-bold" for="nome">{{ 'APP.DOMINI.LABEL.Name' | translate }}
-                          @if (_isEdit) {
-                            <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'nome'"></span>
-                          }
-                        </label>
-                        @if (_isEdit) {
-                          <div class="position-relative">
-                            <input aria-required="true" [attr.aria-invalid]="(_hasControlError('nome')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('nome')) ? 'nome-error' : null" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome')" type="text" name="nomeg" id="nome" formControlName="nome" appTrimOnBlur>
-                            <!-- Issue #271 — spinner durante l'async validation
-                                 (`exists` check). -->
-                            @if (f['nome'].pending) {
-                              <span class="spinner-border spinner-border-sm position-absolute end-0 top-50 translate-middle-y me-2 text-muted"
-                                    role="status"
-                                    [attr.aria-label]="'APP.LABEL.Loading' | translate"></span>
-                            }
-                            @if (f['nome'].invalid && (f['nome'].dirty || f['nome'].touched)) {
-                              <p class="form-text text-danger" id="nome-error" aria-live="polite">
-                                @if (f['nome'].errors && f['nome'].errors['required']) {
-                                  <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                }
-                                @if (f['nome'].errors && f['nome'].errors['notOnlyWhitespace']) {
-                                  <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.NotOnlyWhitespace' | translate }}</span>
-                                }
-                                @if (f['nome'].errors && f['nome'].errors['maxlength']) {
-                                  <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['nome'].errors['maxlength'].requiredLength } }}</span>
-                                }
-                                @if (f['nome'].errors && f['nome'].errors['alreadyExists']) {
-                                  <span class="d-block">{{ 'APP.DOMINI.VALIDATION.NameAlreadyExists' | translate }}</span>
-                                }
-                              </p>
-                            }
-                            <ui-input-help field="nome" context="DOMINIO"></ui-input-help>
-                          </div>
-                        }
-                        @if (!_isEdit) {
-                          <div class="">
-                            <input type="text" readonly class="form-control-plaintext" id="nome" [value]="dominio.nome">
-                          </div>
-                        }
-                      </div>
-                    </div>
-                    <!--  -->
-                  </div>
-                  <div class="row visibilita">
-                    <!-- visibilita -->
-                    <div class="form-group col-md-6 mb-2">
-                      <label class="label-bold" for="visibilita">{{ 'APP.DOMINI.LABEL.Visibility' | translate }} @if (_isEdit) {
-                        <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'visibilita'"></span>
-                      }
-                    </label>
-                    @if (_isEdit) {
-                      <div class="">
-                        <select class="form-select" id="visibilita" formControlName="visibilita" [class.gl-field-error-outline]="_hasControlError('visibilita')">
-                          @for (visibilita of _visibilitaEnum; track visibilita) {
-                            <option [value]="visibilita">{{ visibilita }}</option>
-                          }
-                        </select>
-                        @if (f['visibilita'].invalid && (f['visibilita'].dirty || f['visibilita'].touched)) {
-                          <p class="form-text text-danger">
-                            @if (f['visibilita'].errors && f['visibilita'].errors['required']) {
-                              <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                            }
-                          </p>
-                        }
-                        <ui-input-help field="visibilita" context="DOMINIO"></ui-input-help>
-                      </div>
-                    }
-                    @if (!_isEdit) {
-                      <div class="">
-                        <input type="text" readonly class="form-control-plaintext" id="visibilita" [value]="dominio.visibilita">
-                      </div>
-                    }
-                  </div>
-                  <div class="col-md-6">
-                    @if (_isVisibilita('riservato')) {
-                      <div class="form-group classi">
-                        <label class="label-bold" for="classi">{{ 'APP.DOMINI.LABEL.Classi' | translate }} @if (_isEdit) {
-                          <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'classi'"></span>
-                        }</label>
-                        @if (_isEdit) {
-                          <div class="">
-                            <ng-select [class.gl-field-error-outline]="_hasControlError('classi')"
-                              [items]="anagrafiche['classi-utente']"
-                              [multiple]="true"
-                              bindValue="id_classe_utente"
-                              bindLabel="nome"
-                              labelForId="classi"
-                              [closeOnSelect]="false"
-                              [errorId]="'classi-error'"
-                              formControlName="classi">
-                              <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
-                                <input id="item-{{index}}" type="checkbox" [checked]="item$.selected"/> {{ item.nome }}
-                              </ng-template>
-                            </ng-select>
-                            @if (f['classi']?.invalid && (f['classi'].dirty || f['classi'].touched)) {
-                              <p class="form-text text-danger" id="classi-error" aria-live="polite">
-                                @if (f['classi'].errors && f['classi'].errors['required']) {
-                                  <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                }
-                              </p>
-                            }
-                            <ui-input-help field="classi" context="SERVICE"></ui-input-help>
-                          </div>
-                        }
-                        @if (!_isEdit) {
-                          <div class="mt-1">
-                            <!-- <input type="text" readonly class="form-control-plaintext" id="classi" [value]="data?.classi"> -->
-                            @for (classe of dominio?.classi; track classe) {
-                              <span class="badge rounded-pill badge-tag text-bg-tags me-1 mb-1">{{ classe.nome }}</span>
-                            }
-                          </div>
-                        }
-                      </div>
-                    }
-                  </div>
-                  <!--  -->
-                </div>
-                <div class="row soggetto_referente">
-                  <!-- soggetto_referente -->
-                  <div class="col-12">
-                    <div class="form-group">
-                      <label class="label-bold" for="soggetto_referente">{{ 'APP.DOMINI.LABEL.ReferentSubject' | translate }}@if (_isEdit) {
-                        <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'soggetto_referente'"></span>
-                      }
-                    </label>
-                    @if (_isEdit) {
-                      <div class="">
-                        <ng-select class="select-custom"
-                          [items]="(soggetti$ | async) || []"
-                          [typeahead]="soggettiInput$"
-                          [minTermLength]="minLengthTerm"
-                          [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
-                          [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
-                          bindValue="id_soggetto"
-                          bindLabel="soggetto_referente"
-                          labelForId="id_soggetto"
-                          [editableSearchTerm]="true"
-                          formControlName="soggetto_referente"
-                          (change)="onChangeSoggetto($event)">
-                          >
-                          <ng-template ng-label-tmp let-item="item">
-                            {{ item.nome }}
-                          </ng-template>
-                          <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
-                            <div class="fw-bold">{{ item.nome }}</div>
-                          </ng-template>
-                        </ng-select>
-                        @if (f['soggetto_referente'].invalid && (f['soggetto_referente'].dirty || f['soggetto_referente'].touched)) {
-                          <p class="form-text text-danger">
-                            @if (f['soggetto_referente'].errors && f['soggetto_referente'].errors['required']) {
-                              <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                            }
-                          </p>
-                        }
-                        <ui-input-help field="soggetto_referente" context="DOMINIO"></ui-input-help>
-                      </div>
-                    }
-                    @if (!_isEdit) {
-                      <div class="">
-                        <input type="text" readonly class="form-control-plaintext" id="soggetto_referente" [value]="dominio.soggetto_referente.nome">
-                      </div>
-                    }
-                  </div>
-                </div>
-                <!--  -->
+        </div>
+
+        @if (!_isEdit && _error) {
+          <div class="gl-alert gl-alert-danger col-md-12 mb-4">{{ _errorMsg }}</div>
+        }
+
+        <form novalidate class="gl-show-field-errors" [class.form-readonly]="!_isEdit" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.getRawValue())">
+
+          <!-- SEZIONE 1 — Informazioni generali -->
+          <section class="lnk-phase-section py-0">
+            <header class="lnk-phase-section-hd">
+              <div class="ps-meta">
+                <span class="ps-tag">{{ 'APP.DOMINI.SECTION.GeneraleTag' | translate }}</span>
+                <h3 class="ps-title">{{ 'APP.DOMINI.SECTION.GeneraleTitle' | translate }}</h3>
+                <p class="ps-desc">{{ 'APP.DOMINI.SECTION.GeneraleDesc' | translate }}</p>
               </div>
-              <div class="row descrzione">
-                <!-- descrizione -->
-                <div class="col-12">
-                  <div class="form-group">
-                    <label class="label-bold" for="descrizione">{{ 'APP.DOMINI.LABEL.Description' | translate }}@if (_isEdit) {
-                      <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'descrizione'"></span>
+            </header>
+            <div class="lnk-phase-section-body">
+              <div class="form-group nome">
+                <label class="label-bold" for="nome">{{ 'APP.DOMINI.LABEL.Name' | translate }}
+                  @if (_isEdit) { <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'nome'"></span> }
+                </label>
+                @if (_isEdit) {
+                  <div class="position-relative">
+                    <input aria-required="true" [attr.aria-invalid]="(_hasControlError('nome')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('nome')) ? 'nome-error' : null" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome')" type="text" name="nomeg" id="nome" formControlName="nome" appTrimOnBlur>
+                    @if (f['nome'].pending) {
+                      <span class="spinner-border spinner-border-sm position-absolute end-0 top-50 translate-middle-y me-2 text-muted" role="status" [attr.aria-label]="'APP.LABEL.Loading' | translate"></span>
                     }
-                  </label>
-                  @if (_isEdit) {
-                    <div class="">
-                      <input aria-required="true" [attr.aria-invalid]="(_hasControlError('descrizione')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('descrizione')) ? 'descrizione-error' : null" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" type="text" name="descrizioneg" id="descrizione" formControlName="descrizione" appTrimOnBlur>
-                      @if (f['descrizione'].invalid && (f['descrizione'].dirty || f['descrizione'].touched)) {
-                        <p class="form-text text-danger" id="descrizione-error" aria-live="polite">
-                          @if (f['descrizione'].errors && f['descrizione'].errors['required']) {
-                            <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                          }
-                          @if (f['descrizione'].errors && f['descrizione'].errors['maxlength']) {
-                            <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['descrizione'].errors['maxlength'].requiredLength } }}</span>
-                          }
-                        </p>
-                      }
-                      <ui-input-help field="descrizione" context="DOMINIO"></ui-input-help>
-                    </div>
-                  }
-                  @if (!_isEdit) {
-                    <div class="">
-                      <input type="text" readonly class="form-control-plaintext" id="descrizione" [value]="dominio.descrizione || '-'">
-                    </div>
-                  }
-                </div>
-              </div>
-              <!--  -->
-            </div>
-            <div class="row tag">
-              <div class="col-12">
-                <div class="form-group">
-                  <label class="label-bold" for="tag">{{ 'APP.DOMINI.LABEL.Tag' | translate }}
-                    @if (_isEdit) {
-                      <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'tag'"></span>
-                    }
-                  </label>
-                  @if (_isEdit) {
-                    <div class="">
-                      <input aria-required="true" [attr.aria-invalid]="(_hasControlError('tag')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('tag')) ? 'tag-error' : null" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('tag')" type="text" name="tagg" id="tag" formControlName="tag" appTrimOnBlur>
-                      @if (f['tag'].invalid && (f['tag'].dirty || f['tag'].touched)) {
-                        <p class="form-text text-danger" id="tag-error" aria-live="polite">
-                          @if (f['tag'].errors && f['tag'].errors['required']) {
-                            <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                          }
-                        </p>
-                      }
-                      <ui-input-help field="tag" context="DOMINIO"></ui-input-help>
-                    </div>
-                  }
-                  @if (!_isEdit) {
-                    <div class="">
-                      <input type="text" readonly class="form-control-plaintext" id="tag" [value]="dominio.tag || '-'">
-                    </div>
-                  }
-                </div>
-              </div>
-            </div>
-            <div class="row skip_collaudo">
-              <div class="form-group col-md-6 mb-2">
-                <label class="label-bold" for="skip_collaudo">{{ 'APP.LABEL.SkipCollaudo' | translate }} @if (_isEdit) {
-                  <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'skip_collaudo'"></span>
-                }
-              </label>
-              @if (_isEdit) {
-                <div class="">
-                  <div class="form-check form-switch ml-3">
-                    <input class="form-check-input" type="checkbox" role="switch" id="skip_collaudo" [checked]="dominio?.skip_collaudo" formControlName="skip_collaudo">
                   </div>
-                  @if (f['skip_collaudo'].invalid && (f['skip_collaudo'].dirty || f['skip_collaudo'].touched)) {
-                    <p class="form-text text-danger">
-                      @if (f['skip_collaudo'].errors && f['skip_collaudo'].errors['required']) {
-                        <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                      }
+                  @if (f['nome'].invalid && (f['nome'].dirty || f['nome'].touched)) {
+                    <p class="form-text text-danger" id="nome-error" aria-live="polite">
+                      @if (f['nome'].errors?.['required']) { <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span> }
+                      @if (f['nome'].errors?.['notOnlyWhitespace']) { <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.NotOnlyWhitespace' | translate }}</span> }
+                      @if (f['nome'].errors?.['maxlength']) { <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['nome'].errors?.['maxlength'].requiredLength } }}</span> }
+                      @if (f['nome'].errors?.['alreadyExists']) { <span class="d-block">{{ 'APP.DOMINI.VALIDATION.NameAlreadyExists' | translate }}</span> }
                     </p>
                   }
-                  <ui-input-help field="skip_collaudo" context="SOGGETTI"></ui-input-help>
-                </div>
-              }
-              @if (!_isEdit) {
-                <div class="">
-                  <div class="form-check form-switch ml-3">
-                    <input class="form-check-input" type="checkbox" role="switch" id="skip_collaudo" [checked]="dominio.skip_collaudo" disabled>
+                  <ui-input-help field="nome" context="DOMINIO"></ui-input-help>
+                } @else {
+                  <input type="text" readonly class="form-control-plaintext" id="nome" [value]="dominio.nome">
+                }
+              </div>
+
+              <div class="form-group descrizione">
+                <label class="label-bold" for="descrizione">{{ 'APP.DOMINI.LABEL.Description' | translate }}
+                  @if (_isEdit) { <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'descrizione'"></span> }
+                </label>
+                @if (_isEdit) {
+                  <input [attr.aria-invalid]="(_hasControlError('descrizione')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('descrizione')) ? 'descrizione-error' : null" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" type="text" name="descrizioneg" id="descrizione" formControlName="descrizione" appTrimOnBlur>
+                  @if (f['descrizione'].invalid && (f['descrizione'].dirty || f['descrizione'].touched)) {
+                    <p class="form-text text-danger" id="descrizione-error" aria-live="polite">
+                      @if (f['descrizione'].errors?.['required']) { <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span> }
+                      @if (f['descrizione'].errors?.['maxlength']) { <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['descrizione'].errors?.['maxlength'].requiredLength } }}</span> }
+                    </p>
+                  }
+                  <ui-input-help field="descrizione" context="DOMINIO"></ui-input-help>
+                } @else {
+                  <input type="text" readonly class="form-control-plaintext" id="descrizione" [value]="dominio.descrizione || '-'">
+                }
+              </div>
+
+              <div class="form-group tag">
+                <label class="label-bold" for="tag">{{ 'APP.DOMINI.LABEL.Tag' | translate }}
+                  @if (_isEdit) { <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'tag'"></span> }
+                </label>
+                @if (_isEdit) {
+                  <input [attr.aria-invalid]="(_hasControlError('tag')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('tag')) ? 'tag-error' : null" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('tag')" type="text" name="tagg" id="tag" formControlName="tag" appTrimOnBlur>
+                  @if (f['tag'].invalid && (f['tag'].dirty || f['tag'].touched)) {
+                    <p class="form-text text-danger" id="tag-error" aria-live="polite">
+                      @if (f['tag'].errors?.['required']) { <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span> }
+                    </p>
+                  }
+                  <ui-input-help field="tag" context="DOMINIO"></ui-input-help>
+                } @else {
+                  <input type="text" readonly class="form-control-plaintext" id="tag" [value]="dominio.tag || '-'">
+                }
+              </div>
+
+              <div class="form-group soggetto_referente">
+                <label class="label-bold" for="soggetto_referente">{{ 'APP.DOMINI.LABEL.ReferentSubject' | translate }}
+                  @if (_isEdit) { <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'soggetto_referente'"></span> }
+                </label>
+                @if (_isEdit) {
+                  <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('soggetto_referente')" [errorId]="'soggetto_referente-error'"
+                    [items]="(soggetti$ | async) || []"
+                    [typeahead]="soggettiInput$"
+                    [minTermLength]="minLengthTerm"
+                    [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                    [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                    bindValue="id_soggetto"
+                    bindLabel="nome"
+                    labelForId="soggetto_referente"
+                    [editableSearchTerm]="true"
+                    formControlName="soggetto_referente"
+                    (change)="onChangeSoggetto($event)">
+                    <ng-template ng-label-tmp let-item="item">{{ item.nome }}</ng-template>
+                    <ng-template ng-option-tmp let-item="item"><div class="fw-bold">{{ item.nome }}</div></ng-template>
+                  </ng-select>
+                  @if (f['soggetto_referente'].invalid && (f['soggetto_referente'].dirty || f['soggetto_referente'].touched)) {
+                    <p class="form-text text-danger" id="soggetto_referente-error" aria-live="polite">
+                      @if (f['soggetto_referente'].errors?.['required']) { <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span> }
+                    </p>
+                  }
+                  <ui-input-help field="soggetto_referente" context="DOMINIO"></ui-input-help>
+                } @else {
+                  <input type="text" readonly class="form-control-plaintext" id="soggetto_referente" [value]="dominio.soggetto_referente?.nome">
+                }
+              </div>
+
+              <div class="form-group deprecato mb-0">
+                <label class="label-bold" for="deprecato">{{ 'APP.DOMINI.LABEL.Deprecato' | translate }}</label>
+                @if (_isEdit) {
+                  <div class="gl-form-checkbox custom-control custom-checkbox">
+                    <input #chk_deprecato class="custom-control-input" type="checkbox" name="deprecato" id="deprecato" formControlName="deprecato">
+                    <label class="custom-control-label" aria-hidden="true" (click)="chk_deprecato.click()"></label>
                   </div>
+                } @else {
+                  <div class="gl-form-checkbox custom-control custom-checkbox">
+                    <input class="custom-control-input" type="checkbox" id="deprecato" [checked]="dominio.deprecato" disabled>
+                    <label class="custom-control-label" aria-hidden="true"></label>
+                  </div>
+                }
+                @if (_isEdit) { <ui-input-help field="deprecato" context="SOGGETTI"></ui-input-help> }
+              </div>
+            </div>
+          </section>
+
+          <!-- SEZIONE 2 — Visibilita' -->
+          <section class="lnk-phase-section py-0">
+            <header class="lnk-phase-section-hd">
+              <div class="ps-meta">
+                <span class="ps-tag">{{ 'APP.DOMINI.SECTION.VisibilitaTag' | translate }}</span>
+                <h3 class="ps-title">{{ 'APP.DOMINI.SECTION.VisibilitaTitle' | translate }}</h3>
+                <p class="ps-desc">{{ 'APP.DOMINI.SECTION.VisibilitaDesc' | translate }}</p>
+              </div>
+            </header>
+            <div class="lnk-phase-section-body">
+              <div class="form-group visibilita" [class.mb-0]="!_isVisibilita('riservato')">
+                <label class="label-bold" for="visibilita">{{ 'APP.DOMINI.LABEL.Visibility' | translate }}
+                  @if (_isEdit) { <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'visibilita'"></span> }
+                </label>
+                @if (_isEdit) {
+                  <ng-select [class.gl-field-error-outline]="_hasControlError('visibilita')" [errorId]="'visibilita-error'"
+                    [items]="_visibilitaEnum" labelForId="visibilita"
+                    [searchable]="false" [clearable]="false" [placeholder]="'APP.MESSAGE.SelectVisibilty' | translate"
+                    formControlName="visibilita">
+                    <ng-template ng-label-tmp let-item="item">{{ 'APP.VISIBILITY.' + item | translate }}</ng-template>
+                    <ng-template ng-option-tmp let-item="item">{{ 'APP.VISIBILITY.' + item | translate }}</ng-template>
+                  </ng-select>
+                  @if (f['visibilita'].invalid && (f['visibilita'].dirty || f['visibilita'].touched)) {
+                    <p class="form-text text-danger" id="visibilita-error" aria-live="polite">
+                      @if (f['visibilita'].errors?.['required']) { <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span> }
+                    </p>
+                  }
+                  <ui-input-help field="visibilita" context="DOMINIO"></ui-input-help>
+                } @else {
+                  <input type="text" readonly class="form-control-plaintext" id="visibilita" [value]="dominio.visibilita ? ('APP.VISIBILITY.' + dominio.visibilita | translate) : '-'">
+                }
+              </div>
+
+              @if (_isVisibilita('riservato')) {
+                <div class="form-group classi mb-0">
+                  <label class="label-bold" for="classi">{{ 'APP.DOMINI.LABEL.Classi' | translate }}
+                    @if (_isEdit) { <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'classi'"></span> }
+                  </label>
+                  @if (_isEdit) {
+                    <ng-select [class.gl-field-error-outline]="_hasControlError('classi')"
+                      [items]="anagrafiche['classi-utente']"
+                      [multiple]="true"
+                      bindValue="id_classe_utente"
+                      bindLabel="nome"
+                      labelForId="classi"
+                      [closeOnSelect]="false"
+                      [errorId]="'classi-error'"
+                      formControlName="classi">
+                      <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
+                        <input id="item-{{index}}" type="checkbox" [checked]="item$.selected"/> {{ item.nome }}
+                      </ng-template>
+                    </ng-select>
+                    @if (f['classi']?.invalid && (f['classi'].dirty || f['classi'].touched)) {
+                      <p class="form-text text-danger" id="classi-error" aria-live="polite">
+                        @if (f['classi'].errors?.['required']) { <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span> }
+                      </p>
+                    }
+                    <ui-input-help field="classi" context="SERVICE"></ui-input-help>
+                  } @else {
+                    <div class="mt-1">
+                      @for (classe of dominio?.classi; track classe) {
+                        <span class="badge rounded-pill badge-tag text-bg-tags me-1 mb-1">{{ classe.nome }}</span>
+                      }
+                    </div>
+                  }
                 </div>
               }
             </div>
-          </div>
-          <div class="row deprecato">
-            <div class="col-12">
-              <div class="form-group">
-                <label class="label-bold" for="deprecato">{{ 'APP.DOMINI.LABEL.Deprecato' | translate }} @if (_isEdit) {
-                  <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'deprecato'"></span>
-                }</label>
-                @if (_isEdit) {
-                  <div class="">
-                    <div class="form-check form-switch ml-3">
-                      <input class="form-check-input" type="checkbox" role="switch" id="deprecato" [checked]="dominio?.deprecato" formControlName="deprecato">
-                    </div>
-                    @if (f['deprecato'].invalid && (f['deprecato'].dirty || f['deprecato'].touched)) {
-                      <p class="form-text text-danger">
-                        @if (f['deprecato'].errors && f['deprecato'].errors['required']) {
-                          <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                        }
+          </section>
+
+          <!-- SEZIONE 3 — Erogazione -->
+          <section class="lnk-phase-section py-0">
+            <header class="lnk-phase-section-hd">
+              <div class="ps-meta">
+                <span class="ps-tag">{{ 'APP.DOMINI.SECTION.ErogazioneTag' | translate }}</span>
+                <h3 class="ps-title">{{ 'APP.DOMINI.SECTION.ErogazioneTitle' | translate }}</h3>
+                <p class="ps-desc">{{ 'APP.DOMINI.SECTION.ErogazioneDesc' | translate }}</p>
+              </div>
+            </header>
+            <div class="lnk-phase-section-body">
+              @for (field of _urlFields; track field.name; let last = $last) {
+                <div class="form-group" [class.mb-0]="last">
+                  <label class="label-bold" [for]="field.name">{{ field.label | translate }}
+                    @if (_isEdit) { <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="field.name"></span> }
+                  </label>
+                  @if (_isEdit) {
+                    <input [attr.aria-invalid]="(_hasControlError(field.name)) ? 'true' : null" [attr.aria-describedby]="(_hasControlError(field.name)) ? field.name + '-error' : null" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError(field.name)" type="text" [name]="field.name" [id]="field.name" [formControlName]="field.name" appTrimOnBlur>
+                    @if (f[field.name].invalid && (f[field.name].dirty || f[field.name].touched)) {
+                      <p class="form-text text-danger" [id]="field.name + '-error'" aria-live="polite">
+                        @if (f[field.name].errors?.['required']) { <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span> }
                       </p>
                     }
-                    <ui-input-help field="deprecato" context="SOGGETTI"></ui-input-help>
-                  </div>
-                }
-                <!-- <div class="gl-form-checkbox custom-control custom-checkbox" *ngIf="_isEdit">
-                <input class="custom-control-input" type="checkbox" name="deprecato" id="deprecato" formControlName="deprecato">
-                <label class="custom-control-label" for="deprecato"></label>
-              </div> -->
-              @if (!_isEdit) {
-                <div class="">
-                  <div class="form-check form-switch ml-3">
-                    <input class="form-check-input" type="checkbox" role="switch" id="skip_collaudo" [checked]="dominio.deprecato" disabled>
-                  </div>
-                  <!-- <div class="gl-form-checkbox custom-control custom-checkbox">
-                  <input class="custom-control-input" type="checkbox" name="deprecato" id="deprecato" [checked]="dominio.deprecato" disabled>
-                  <label class="custom-control-label text-dark" for="deprecato"></label>
-                </div> -->
-              </div>
-            }
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-sm-12">
-      <hr>
-    </div>
-  </div>
-  <div class="row gl-mt-3">
-    <div class="col-lg-4 mb-5">
-      <h4 class="gl-mt-0 text-break">{{ 'APP.DOMINI.TITLE.UrlInvocazione' | translate }}</h4>
-      <div class="text-break" markdown>{{ 'APP.DOMINI.TITLE.UrlInvocazione_sub' | translate }}</div>
-    </div>
-    <div class="col-lg-8">
-      <div class="row">
-        <div class="col-12">
-          <div class="form-group">
-            <label class="label-bold" for="url_invocazione">{{ 'APP.DOMINI.LABEL.UrlInvocazione' | translate }}
-              @if (_isEdit) {
-                <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'url_invocazione'"></span>
+                    <ui-input-help [field]="field.name" context="DOMINIO"></ui-input-help>
+                  } @else {
+                    <input type="text" readonly class="form-control-plaintext" [id]="field.name" [value]="dominio[field.name] || '-'">
+                  }
+                </div>
               }
-            </label>
-            @if (_isEdit) {
-              <div class="">
-                <input aria-required="true" [attr.aria-invalid]="(_hasControlError('url_invocazione')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('url_invocazione')) ? 'url_invocazione-error' : null" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_invocazione')" type="text" name="url_invocazione" id="url_invocazione" formControlName="url_invocazione" appTrimOnBlur>
-                @if (f['url_invocazione'].invalid && (f['url_invocazione'].dirty || f['url_invocazione'].touched)) {
-                  <p class="form-text text-danger" id="url_invocazione-error" aria-live="polite">
-                    @if (f['url_invocazione'].errors && f['url_invocazione'].errors['required']) {
-                      <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                    }
-                  </p>
-                }
-                <ui-input-help field="url_invocazione" context="DOMINIO"></ui-input-help>
-              </div>
-            }
-            @if (!_isEdit) {
-              <div class="">
-                <input type="text" readonly class="form-control-plaintext" id="url_invocazione" [value]="dominio.url_invocazione || '-'">
-              </div>
-            }
-          </div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-12">
-          <div class="form-group">
-            <label class="label-bold" for="url_prefix_collaudo">{{ 'APP.DOMINI.LABEL.UrlPrefixCollaudo' | translate }}
-              @if (_isEdit) {
-                <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'url_prefix_collaudo'"></span>
-              }
-            </label>
-            @if (_isEdit) {
-              <div class="">
-                <input aria-required="true" [attr.aria-invalid]="(_hasControlError('url_prefix_collaudo')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('url_prefix_collaudo')) ? 'url_prefix_collaudo-error' : null" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_prefix_collaudo')" type="text" name="url_prefix_collaudo" id="url_prefix_collaudo" formControlName="url_prefix_collaudo" appTrimOnBlur>
-                @if (f['url_prefix_collaudo'].invalid && (f['url_prefix_collaudo'].dirty || f['url_prefix_collaudo'].touched)) {
-                  <p class="form-text text-danger" id="url_prefix_collaudo-error" aria-live="polite">
-                    @if (f['url_prefix_collaudo'].errors && f['url_prefix_collaudo'].errors['required']) {
-                      <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                    }
-                  </p>
-                }
-                <ui-input-help field="url_prefix_collaudo" context="DOMINIO"></ui-input-help>
-              </div>
-            }
-            @if (!_isEdit) {
-              <div class="">
-                <input type="text" readonly class="form-control-plaintext" id="url_prefix_collaudo" [value]="dominio.url_prefix_collaudo || '-'">
-              </div>
-            }
-          </div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-12">
-          <div class="form-group">
-            <label class="label-bold" for="url_prefix_produzione">{{ 'APP.DOMINI.LABEL.UrlPrefixProduzione' | translate }}
-              @if (_isEdit) {
-                <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'url_prefix_collaudo'"></span>
-              }
-            </label>
-            @if (_isEdit) {
-              <div class="">
-                <input aria-required="true" [attr.aria-invalid]="(_hasControlError('url_prefix_produzione')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('url_prefix_produzione')) ? 'url_prefix_produzione-error' : null" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_prefix_produzione')" type="text" name="url_prefix_produzione" id="url_prefix_produzione" formControlName="url_prefix_produzione" appTrimOnBlur>
-                @if (f['url_prefix_produzione'].invalid && (f['url_prefix_produzione'].dirty || f['url_descrizione'].touched)) {
-                  <p class="form-text text-danger" id="url_prefix_produzione-error" aria-live="polite">
-                    @if (f['url_prefix_produzione'].errors && f['url_prefix_produzione'].errors['required']) {
-                      <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                    }
-                  </p>
-                }
-                <ui-input-help field="url_prefix_produzione" context="DOMINIO"></ui-input-help>
-              </div>
-            }
-            @if (!_isEdit) {
-              <div class="">
-                <input type="text" readonly class="form-control-plaintext" id="url_prefix_produzione" [value]="dominio.url_prefix_produzione || '-'">
-              </div>
-            }
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  @if (_isEdit && _error) {
-    <div class="gl-alert gl-alert-danger col-md-12 mt-3">
-      {{ _errorMsg }}
-    </div>
-  }
-  @if (_isEdit) {
-    <div class="row-content-block footer-block">
-      <button aria-label="Save" type="submit" class="gl-button btn btn-confirm gl-mr-2" [disabled]="_formGroup.invalid || _spin">
-        {{ 'APP.BUTTON.Save' | translate }}
-      </button>
-      <button aria-label="Cancel" type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">
-        {{ 'APP.BUTTON.Cancel' | translate }}
-      </button>
-    </div>
-  }
-</form>
-</div>
-</div>
-</div>
-}
+            </div>
+          </section>
 
-</section>
+          <!-- SEZIONE 4 — Opzioni dei servizi -->
+          <section class="lnk-phase-section py-0">
+            <header class="lnk-phase-section-hd">
+              <div class="ps-meta">
+                <span class="ps-tag">{{ 'APP.DOMINI.SECTION.OpzioniTag' | translate }}</span>
+                <h3 class="ps-title">{{ 'APP.DOMINI.SECTION.OpzioniTitle' | translate }}</h3>
+                <p class="ps-desc">{{ 'APP.DOMINI.SECTION.OpzioniDesc' | translate }}</p>
+              </div>
+            </header>
+            <div class="lnk-phase-section-body">
+              <div class="form-group skip_collaudo">
+                <label class="label-bold" for="skip_collaudo">{{ 'APP.LABEL.SkipCollaudo' | translate }}</label>
+                @if (_isEdit) {
+                  <div class="gl-form-checkbox custom-control custom-checkbox">
+                    <input #chk_skip_collaudo class="custom-control-input" type="checkbox" name="skip_collaudo" id="skip_collaudo" formControlName="skip_collaudo">
+                    <label class="custom-control-label" aria-hidden="true" (click)="chk_skip_collaudo.click()"></label>
+                  </div>
+                } @else {
+                  <div class="gl-form-checkbox custom-control custom-checkbox">
+                    <input class="custom-control-input" type="checkbox" id="skip_collaudo" [checked]="dominio.skip_collaudo" disabled>
+                    <label class="custom-control-label" aria-hidden="true"></label>
+                  </div>
+                }
+                @if (_isEdit) { <ui-input-help field="skip_collaudo" context="SOGGETTI"></ui-input-help> }
+              </div>
+
+              <div class="form-group multi_adesione" [class.mb-0]="!_consentiNonSottoscrivibile">
+                <label class="label-bold" for="multi_adesione">{{ 'APP.LABEL.multi_adesione' | translate }}</label>
+                @if (_isEdit) {
+                  <div class="gl-form-checkbox custom-control custom-checkbox">
+                    <input #chk_multi_adesione class="custom-control-input" type="checkbox" name="multi_adesione" id="multi_adesione" formControlName="multi_adesione">
+                    <label class="custom-control-label" aria-hidden="true" (click)="chk_multi_adesione.click()"></label>
+                  </div>
+                } @else {
+                  <div class="gl-form-checkbox custom-control custom-checkbox">
+                    <input class="custom-control-input" type="checkbox" id="multi_adesione" [checked]="dominio.multi_adesione" disabled>
+                    <label class="custom-control-label" aria-hidden="true"></label>
+                  </div>
+                }
+              </div>
+
+              @if (_consentiNonSottoscrivibile) {
+                <div class="form-group adesione_disabilitata mb-0">
+                  <label class="label-bold" for="adesione_disabilitata">{{ 'APP.LABEL.DisabilitaAdesione' | translate }}</label>
+                  @if (_isEdit) {
+                    <div class="gl-form-checkbox custom-control custom-checkbox">
+                      <input #chk_adesione_disabilitata class="custom-control-input" type="checkbox" name="adesione_disabilitata" id="adesione_disabilitata" formControlName="adesione_disabilitata">
+                      <label class="custom-control-label" aria-hidden="true" (click)="chk_adesione_disabilitata.click()"></label>
+                    </div>
+                  } @else {
+                    <div class="gl-form-checkbox custom-control custom-checkbox">
+                      <input class="custom-control-input" type="checkbox" id="adesione_disabilitata" [checked]="dominio.adesione_disabilitata" disabled>
+                      <label class="custom-control-label" aria-hidden="true"></label>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </section>
+
+          @if (_isEdit) {
+            @if (_error) {
+              <div class="gl-alert gl-alert-danger col-md-12 mb-3" role="alert">{{ _errorMsg }}</div>
+            }
+            <div class="section-footer">
+              <button type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">{{ 'APP.BUTTON.Cancel' | translate }}</button>
+              <button type="submit" class="gl-button btn btn-confirm" [disabled]="_formGroup.invalid || _formGroup.pending || _spin">{{ 'APP.BUTTON.Save' | translate }}</button>
+            </div>
+          }
+        </form>
+      </div>
+    }
+
+  </section>
 </div>

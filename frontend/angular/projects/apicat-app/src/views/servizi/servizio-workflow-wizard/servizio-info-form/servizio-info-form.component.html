@@ -87,7 +87,10 @@
                   </div>
                   <ui-input-help field="fruizione" context="SERVICE"></ui-input-help>
                 } @else {
-                  <div class="mt-1"><i class="bi" [class.bi-check-square]="data?.fruizione" [class.bi-square]="!data?.fruizione"></i></div>
+                  <div class="gl-form-checkbox custom-control custom-checkbox">
+                    <input class="custom-control-input" type="checkbox" id="fruizione" [checked]="data?.fruizione" disabled>
+                    <label class="custom-control-label" aria-hidden="true"></label>
+                  </div>
                 }
               </div>
             </div>
@@ -262,7 +265,10 @@
                   </div>
                   <ui-input-help field="package" context="SERVICE"></ui-input-help>
                 } @else {
-                  <div class="mt-1"><i class="bi" [class.bi-check-square]="data?.package" [class.bi-square]="!data?.package"></i></div>
+                  <div class="gl-form-checkbox custom-control custom-checkbox">
+                    <input class="custom-control-input" type="checkbox" id="package" [checked]="data?.package" disabled>
+                    <label class="custom-control-label" aria-hidden="true"></label>
+                  </div>
                 }
               </div>
               <div class="form-group skip_collaudo mt-2">
@@ -274,7 +280,10 @@
                   </div>
                   <ui-input-help field="skip_collaudo" context="SERVICE"></ui-input-help>
                 } @else {
-                  <div class="mt-1"><i class="bi" [class.bi-check-square]="data?.skip_collaudo" [class.bi-square]="!data?.skip_collaudo"></i></div>
+                  <div class="gl-form-checkbox custom-control custom-checkbox">
+                    <input class="custom-control-input" type="checkbox" id="skip_collaudo" [checked]="data?.skip_collaudo" disabled>
+                    <label class="custom-control-label" aria-hidden="true"></label>
+                  </div>
                 }
               </div>
             </div>
@@ -419,12 +428,18 @@
                   <label class="label-bold" for="adesione_disabilitata">{{ 'APP.LABEL.DisabilitaAdesione' | translate }}</label>
                   @if (isEdit) {
                     <div class="gl-form-checkbox custom-control custom-checkbox">
-                      <input #chkAd class="custom-control-input" type="checkbox" name="adesione_disabilitata" id="adesione_disabilitata" formControlName="adesione_disabilitata">
+                      <input #chkAd class="custom-control-input" type="checkbox" name="adesione_disabilitata" id="adesione_disabilitata" formControlName="adesione_disabilitata" [attr.aria-describedby]="_adesioneBloccata.disabilitata ? 'adesione_disabilitata-dominio' : null">
                       <label class="custom-control-label" aria-hidden="true" (click)="chkAd.click()"></label>
                     </div>
+                    @if (_adesioneBloccata.disabilitata) {
+                      <p class="form-text text-muted mb-0" id="adesione_disabilitata-dominio">{{ 'APP.LABEL.ImpostatoDalDominio' | translate }}</p>
+                    }
                     <ui-input-help field="adesione_disabilitata" context="SERVICE"></ui-input-help>
                   } @else {
-                    <div class="mt-1"><i class="bi" [class.bi-check-square]="data?.adesione_disabilitata" [class.bi-square]="!data?.adesione_disabilitata"></i></div>
+                    <div class="gl-form-checkbox custom-control custom-checkbox">
+                      <input class="custom-control-input" type="checkbox" id="adesione_disabilitata" [checked]="data?.adesione_disabilitata" disabled>
+                      <label class="custom-control-label" aria-hidden="true"></label>
+                    </div>
                   }
                 </div>
               </div>
@@ -435,13 +450,18 @@
                   <label class="label-bold" for="multi_adesione">{{ 'APP.LABEL.multi_adesione' | translate }}</label>
                   @if (isEdit) {
                     <div class="gl-form-checkbox custom-control custom-checkbox">
-                      <input class="custom-control-input" type="checkbox" name="multi_adesione" id="multi_adesione" formControlName="multi_adesione"
-                             disablePermission [isNew]="false" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="grant">
+                      <input class="custom-control-input" type="checkbox" name="multi_adesione" id="multi_adesione" formControlName="multi_adesione" [attr.aria-describedby]="_adesioneBloccata.multi ? 'multi_adesione-dominio' : null">
                       <label class="custom-control-label" aria-hidden="true"></label>
                     </div>
+                    @if (_adesioneBloccata.multi) {
+                      <p class="form-text text-muted mb-0" id="multi_adesione-dominio">{{ 'APP.LABEL.ImpostatoDalDominio' | translate }}</p>
+                    }
                     <ui-input-help field="multi_adesione" context="SERVICE"></ui-input-help>
                   } @else {
-                    <div class="mt-1"><i class="bi" [class.bi-check-square]="data?.multi_adesione" [class.bi-square]="!data?.multi_adesione"></i></div>
+                    <div class="gl-form-checkbox custom-control custom-checkbox">
+                      <input class="custom-control-input" type="checkbox" id="multi_adesione" [checked]="data?.multi_adesione" disabled>
+                      <label class="custom-control-label" aria-hidden="true"></label>
+                    </div>
                   }
                 </div>
               </div>

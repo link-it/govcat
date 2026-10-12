@@ -37,6 +37,7 @@ import { concat, forkJoin, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
 
 import { Grant } from '@app/model/grant';
+import { ADESIONE_DOMINIO_LIBERA, AdesioneDominio, adesioneBloccataDalDominio, adesioneImpostaDalDominio, applicaAdesioneDominio } from '../servizio-adesione-dominio';
 
 import { CommonModule } from '@angular/common';
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
@@ -284,6 +285,8 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     _hasMultiDominio: boolean = false;
     _multiDominioEmail: string | null = null;
     _hasFlagConsentiNonSottoscrivibile: boolean = false;
+    /** Opzioni di adesione imposte dal dominio del servizio. */
+    _adesioneDominio: AdesioneDominio = ADESIONE_DOMINIO_LIBERA;
     _hasAdesioniMultiple: boolean = false;
     
     _isFruizione: boolean = false;
@@ -954,6 +957,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                                     this._loadApis();
                                 }
                                 this._enableDisableSkipCollaudo(this.data.dominio);
+                                this._setAdesioneDominio(this.data.dominio);
                             } else {
                                 this.router.navigate(['servizi', this.data.id_servizio, 'view']);
                             }
@@ -1352,17 +1356,30 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             this.loadCurrentData();
             this._enableDisableSkipCollaudo(this.data.dominio);
             this.enableDisableControlPackage();
-            this.enableDisableControlAdesioneConsentita();
+            this._setAdesioneDominio(this.data.dominio);
         }
         this._changeEdit(this._isEdit);
     }
 
     _changeEdit(edit: boolean) {
-        if (edit) {
+        const _canEditMulti = this._isNew || this.authenticationService.canEditField('servizio', 'servizio', this.data?.stato, 'multi_adesione', this._grant?.ruoli);
+        if (edit && _canEditMulti) {
             this._formGroup.get('multi_adesione')?.enable();
         } else {
             this._formGroup.get('multi_adesione')?.disable();
         }
+        applicaAdesioneDominio(this._formGroup, this._adesioneDominio, false);
+    }
+
+    get _adesioneBloccata(): AdesioneDominio {
+        return adesioneBloccataDalDominio(this._adesioneDominio, false);
+    }
+
+    /** Ricalcola le opzioni imposte dal dominio: i blocchi precedenti vengono sciolti. */
+    _setAdesioneDominio(dominio: any) {
+        this._adesioneDominio = adesioneImpostaDalDominio(dominio, this._hasFlagConsentiNonSottoscrivibile);
+        this._changeEdit(this._isEdit);
+        this.enableDisableControlAdesioneConsentita();
     }
 
     _onEditComponent(event: any, component: any) {
@@ -1414,6 +1431,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         this.selectedDominio = event;
 
         this._enableDisableSkipCollaudo(this.selectedDominio);
+        this._setAdesioneDominio(this.selectedDominio);
 
         // Re-inizializza le dropdown dei referenti filtrate per la nuova organizzazione
         if (this._isNew) {
@@ -1674,6 +1692,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             this._formGroup.get('adesione_disabilitata')?.enable();
         }
         this._formGroup.get('adesione_disabilitata')?.updateValueAndValidity();
+        applicaAdesioneDominio(this._formGroup, this._adesioneDominio, false);
     }
 
     _getLogoMapper = (data: any): string => {

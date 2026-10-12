@@ -594,6 +594,22 @@
 			"violazioni": "Violazioni Policy di Rate Limiting"
 		},
 		"DOMINI": {
+			"SECTION": {
+				"EditSubtitle": "Compila le sezioni del dominio.",
+				"ViewSubtitle": "Dati del dominio e opzioni applicate ai suoi servizi.",
+				"GeneraleTag": "DOMINIO",
+				"GeneraleTitle": "Informazioni generali",
+				"GeneraleDesc": "Nome, descrizione, tag e soggetto referente del dominio.",
+				"VisibilitaTag": "ACCESSO",
+				"VisibilitaTitle": "Visibilità",
+				"VisibilitaDesc": "Chi può vedere i servizi del dominio.",
+				"ErogazioneTag": "EROGAZIONE",
+				"ErogazioneTitle": "URL di invocazione",
+				"ErogazioneDesc": "URL e prefissi usati per invocare le API dei servizi del dominio.",
+				"OpzioniTag": "SERVIZI",
+				"OpzioniTitle": "Opzioni dei servizi",
+				"OpzioniDesc": "Opzioni che il dominio applica ai propri servizi."
+			},
 			"DeleteDomain": "Elimina Dominio",
 			"EditDomain": "Modifica il dominio",
 			"BUTTON": {
@@ -823,6 +839,7 @@
 			"wsdl_12": "Wsdl 1.2"
 		},
 		"LABEL": {
+			"ImpostatoDalDominio": "Impostato dal dominio",
 			"SkipToContent": "Salta al contenuto",
 			"UrlEsposizione": "Url di esposizione",
 			"RemoveFilter": "Rimuovi filtro",

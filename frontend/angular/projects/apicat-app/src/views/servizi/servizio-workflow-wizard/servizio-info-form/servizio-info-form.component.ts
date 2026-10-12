@@ -27,6 +27,7 @@ import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 
 import { Grant } from '@app/model/grant';
+import { ADESIONE_DOMINIO_LIBERA, AdesioneDominio, adesioneBloccataDalDominio, adesioneImpostaDalDominio, applicaAdesioneDominio } from '../../servizio-adesione-dominio';
 import { CommonModule } from '@angular/common';
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
@@ -106,6 +107,8 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
     _hasMultiDominio: boolean = false;
     _multiDominioEmail: string | null = null;
     _hasFlagConsentiNonSottoscrivibile: boolean = false;
+    /** Opzioni di adesione imposte dal dominio del servizio. */
+    _adesioneDominio: AdesioneDominio = ADESIONE_DOMINIO_LIBERA;
     _hasAdesioniMultiple: boolean = false;
     _isFruizione: boolean = false;
     _isDominioDeprecato: boolean = false;
@@ -253,7 +256,7 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
 
         this._applyClassiValidator();
         this._applyFruizioneValidators(this._isFruizione);
-        this.enableDisableControlAdesioneConsentita();
+        this._setAdesioneDominio(this.data?.dominio);
         this._enableDisableSkipCollaudo(this.data?.dominio);
         // in view (o edit) il dominio non e` modificabile qui se deprecato/fruizione o non gestore
         if (!this._isGestore() && (this._isDominioDeprecato || this._isFruizione)) {
@@ -315,6 +318,7 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
     _onChangeDominio(event: any) {
         this.selectedDominio = event;
         this._enableDisableSkipCollaudo(this.selectedDominio);
+        this._setAdesioneDominio(this.selectedDominio);
     }
 
     _onChangeVisibilita(event: any) {
@@ -355,6 +359,20 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
             this._formGroup.get('adesione_disabilitata')?.enable();
         }
         this._formGroup.get('adesione_disabilitata')?.updateValueAndValidity();
+        applicaAdesioneDominio(this._formGroup, this._adesioneDominio, true);
+    }
+
+    get _adesioneBloccata(): AdesioneDominio {
+        return adesioneBloccataDalDominio(this._adesioneDominio, true);
+    }
+
+    /** Ricalcola le opzioni imposte dal dominio; "Multi adesione" segue i permessi per stato quando e' libero. */
+    _setAdesioneDominio(dominio: any) {
+        this._adesioneDominio = adesioneImpostaDalDominio(dominio, this._hasFlagConsentiNonSottoscrivibile);
+        const _canEditMulti = this.authenticationService.canEditField('servizio', 'servizio', this.data?.stato, 'multi_adesione', this.grant?.ruoli);
+        const _multi = this._formGroup.get('multi_adesione');
+        if (_canEditMulti) { _multi?.enable({ emitEvent: false }); } else { _multi?.disable({ emitEvent: false }); }
+        this.enableDisableControlAdesioneConsentita();
     }
 
     _enableDisableSkipCollaudo(dominio: any) {

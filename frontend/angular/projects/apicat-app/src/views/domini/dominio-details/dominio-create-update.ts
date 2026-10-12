@@ -30,6 +30,8 @@ export interface DominioCreateUpdateRequest {
     url_prefix_collaudo?: string;
     url_prefix_produzione?: string;
     skip_collaudo: boolean;
+    multi_adesione: boolean;
+    adesione_disabilitata: boolean;
 }
 
 export interface Classi {

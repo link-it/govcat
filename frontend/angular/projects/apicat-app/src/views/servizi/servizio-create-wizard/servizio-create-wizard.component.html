@@ -658,9 +658,12 @@
                     <label class="label-bold" for="adesione_disabilitata">{{ 'APP.LABEL.DisabilitaAdesione' | translate }}</label>
                   }
                   <div class="gl-form-checkbox custom-control custom-checkbox">
-                    <input #chkAdesioneDisabilitata class="custom-control-input" type="checkbox" name="adesione_disabilitata" id="adesione_disabilitata" formControlName="adesione_disabilitata">
+                    <input #chkAdesioneDisabilitata class="custom-control-input" type="checkbox" name="adesione_disabilitata" id="adesione_disabilitata" formControlName="adesione_disabilitata" [attr.aria-describedby]="_adesioneBloccata.disabilitata ? 'adesione_disabilitata-dominio' : null">
                     <label class="custom-control-label" aria-hidden="true" (click)="chkAdesioneDisabilitata.click()"></label>
                   </div>
+                  @if (_adesioneBloccata.disabilitata) {
+                    <p class="form-text text-muted mb-0" id="adesione_disabilitata-dominio">{{ 'APP.LABEL.ImpostatoDalDominio' | translate }}</p>
+                  }
                   <ui-input-help field="adesione_disabilitata" context="SERVICE"></ui-input-help>
                 </div>
               }
@@ -668,9 +671,12 @@
                 <div class="form-group multi_adesione">
                   <label class="label-bold" for="multi_adesione">{{ 'APP.LABEL.multi_adesione' | translate }}</label>
                   <div class="gl-form-checkbox custom-control custom-checkbox">
-                    <input #chkMultiAdesione class="custom-control-input" type="checkbox" name="multi_adesione" id="multi_adesione" formControlName="multi_adesione">
+                    <input #chkMultiAdesione class="custom-control-input" type="checkbox" name="multi_adesione" id="multi_adesione" formControlName="multi_adesione" [attr.aria-describedby]="_adesioneBloccata.multi ? 'multi_adesione-dominio' : null">
                     <label class="custom-control-label" aria-hidden="true" (click)="chkMultiAdesione.click()"></label>
                   </div>
+                  @if (_adesioneBloccata.multi) {
+                    <p class="form-text text-muted mb-0" id="multi_adesione-dominio">{{ 'APP.LABEL.ImpostatoDalDominio' | translate }}</p>
+                  }
                   <ui-input-help field="multi_adesione" context="SERVICE"></ui-input-help>
                 </div>
               }

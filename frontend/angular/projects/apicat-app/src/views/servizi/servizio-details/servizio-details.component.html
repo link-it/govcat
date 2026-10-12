@@ -317,14 +317,10 @@
                             }
                             @if (!_isEdit && !isComponente) {
                               <div class="">
-                                <span class="">
-                                  @if (!data.package) {
-                                    <i class="bi bi-square"></i>
-                                  }
-                                  @if (data.package) {
-                                    <i class="bi bi-check-square"></i>
-                                  }
-                                </span>
+                                <div class="gl-form-checkbox custom-control custom-checkbox">
+                                  <input class="custom-control-input" type="checkbox" id="package" [checked]="data.package" disabled>
+                                  <label class="custom-control-label" aria-hidden="true"></label>
+                                </div>
                               </div>
                             }
                           </div>
@@ -346,14 +342,10 @@
                             }
                             @if (!_isEdit) {
                               <div class="">
-                                <span class="">
-                                  @if (!data.fruizione) {
-                                    <i class="bi bi-square"></i>
-                                  }
-                                  @if (data.fruizione) {
-                                    <i class="bi bi-check-square"></i>
-                                  }
-                                </span>
+                                <div class="gl-form-checkbox custom-control custom-checkbox">
+                                  <input class="custom-control-input" type="checkbox" id="fruizione" [checked]="data.fruizione" disabled>
+                                  <label class="custom-control-label" aria-hidden="true"></label>
+                                </div>
                               </div>
                             }
                           </div>
@@ -983,23 +975,22 @@
                             }
                             @if (_isEdit) {
                               <div class="gl-form-checkbox custom-control custom-checkbox">
-                                <input #chkAdesioneDisabilitata class="custom-control-input" type="checkbox" name="adesione_disabilitata" id="adesione_disabilitata" formControlName="adesione_disabilitata">
+                                <input #chkAdesioneDisabilitata class="custom-control-input" type="checkbox" name="adesione_disabilitata" id="adesione_disabilitata" formControlName="adesione_disabilitata" [attr.aria-describedby]="_adesioneBloccata.disabilitata ? 'adesione_disabilitata-dominio' : null">
                                 <label class="custom-control-label" aria-hidden="true" (click)="chkAdesioneDisabilitata.click()"></label>
                                 @if (isComponente) {
                                   <span class="ms-1" [tooltip]="helpTooltipAdesioneConsentita | translate" container="body"><i class="bi bi-question-circle"></i></span>
                                 }
                               </div>
+                              @if (_adesioneBloccata.disabilitata) {
+                                <p class="form-text text-muted mb-0" id="adesione_disabilitata-dominio">{{ 'APP.LABEL.ImpostatoDalDominio' | translate }}</p>
+                              }
                             }
                             @if (!_isEdit && !isComponente) {
                               <div class="">
-                                <span class="">
-                                  @if (!data.adesione_disabilitata) {
-                                    <i class="bi bi-square"></i>
-                                  }
-                                  @if (data.adesione_disabilitata) {
-                                    <i class="bi bi-check-square"></i>
-                                  }
-                                </span>
+                                <div class="gl-form-checkbox custom-control custom-checkbox">
+                                  <input class="custom-control-input" type="checkbox" id="adesione_disabilitata" [checked]="data.adesione_disabilitata" disabled>
+                                  <label class="custom-control-label" aria-hidden="true"></label>
+                                </div>
                               </div>
                             }
                           </div>
@@ -1016,20 +1007,19 @@
                               }</label>
                               @if (_isEdit) {
                                 <div class="gl-form-checkbox custom-control custom-checkbox">
-                                  <input #chkMultiAdesione class="custom-control-input" type="checkbox" name="multi_adesione" id="multi_adesione" formControlName="multi_adesione" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant">
+                                  <input #chkMultiAdesione class="custom-control-input" type="checkbox" name="multi_adesione" id="multi_adesione" formControlName="multi_adesione" [attr.aria-describedby]="_adesioneBloccata.multi ? 'multi_adesione-dominio' : null">
                                   <label class="custom-control-label" aria-hidden="true" (click)="chkMultiAdesione.click()"></label>
                                 </div>
+                                @if (_adesioneBloccata.multi) {
+                                  <p class="form-text text-muted mb-0" id="multi_adesione-dominio">{{ 'APP.LABEL.ImpostatoDalDominio' | translate }}</p>
+                                }
                               }
                               @if (!_isEdit) {
                                 <div class="">
-                                  <span class="text-">
-                                    @if (!data.multi_adesione) {
-                                      <i class="bi bi-square"></i>
-                                    }
-                                    @if (data.multi_adesione) {
-                                      <i class="bi bi-check-square"></i>
-                                    }
-                                  </span>
+                                  <div class="gl-form-checkbox custom-control custom-checkbox">
+                                    <input class="custom-control-input" type="checkbox" id="multi_adesione" [checked]="data.multi_adesione" disabled>
+                                    <label class="custom-control-label" aria-hidden="true"></label>
+                                  </div>
                                 </div>
                               }
                             </div>
@@ -1052,14 +1042,10 @@
                         }
                         @if (!_isEdit) {
                           <div class="">
-                            <span class="">
-                              @if (!data.skip_collaudo) {
-                                <i class="bi bi-square"></i>
-                              }
-                              @if (data.skip_collaudo) {
-                                <i class="bi bi-check-square"></i>
-                              }
-                            </span>
+                            <div class="gl-form-checkbox custom-control custom-checkbox">
+                              <input class="custom-control-input" type="checkbox" id="skip_collaudo" [checked]="data.skip_collaudo" disabled>
+                              <label class="custom-control-label" aria-hidden="true"></label>
+                            </div>
                           </div>
                         }
                       </div>

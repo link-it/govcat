@@ -31,6 +31,7 @@ import { UtilService, RUOLI_ORG_REFERENTE } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 
 import { ServizioCreate, Soggetto } from '../servizio-details/servizioCreate';
+import { ADESIONE_DOMINIO_LIBERA, AdesioneDominio, adesioneBloccataDalDominio, adesioneImpostaDalDominio, applicaAdesioneDominio } from '../servizio-adesione-dominio';
 import { ServizioWizardDraft, emptyServizioWizardDraft, cascadeCreateServizio, cascadeHasErrors, CascadeResult, AllegatoDraft } from '../servizio-workflow-wizard/servizio-wizard-draft';
 import { WizardFasiBarComponent } from '@app/components/wizard/wizard-fasi-bar/wizard-fasi-bar.component';
 import { StepWizardItem } from '@app/components/wizard/wizard-step-bar/wizard-step-bar.component';
@@ -193,6 +194,8 @@ export class ServizioCreateWizardComponent implements OnInit {
     dominiInput$ = new Subject<string>();
     dominiLoading: boolean = false;
     selectedDominio: any;
+    /** Opzioni di adesione imposte dal dominio selezionato. */
+    _adesioneDominio: AdesioneDominio = ADESIONE_DOMINIO_LIBERA;
 
     referenti$!: Observable<any[]>;
     referentiInput$ = new Subject<string>();
@@ -574,6 +577,18 @@ export class ServizioCreateWizardComponent implements OnInit {
             this._formGroup.get('adesione_disabilitata')?.enable();
         }
         this._formGroup.get('adesione_disabilitata')?.updateValueAndValidity();
+        applicaAdesioneDominio(this._formGroup, this._adesioneDominio, true);
+    }
+
+    get _adesioneBloccata(): AdesioneDominio {
+        return adesioneBloccataDalDominio(this._adesioneDominio, true);
+    }
+
+    /** Ricalcola le opzioni di adesione imposte dal dominio: i blocchi precedenti vengono sciolti. */
+    _setAdesioneDominio(dominio: any) {
+        this._adesioneDominio = adesioneImpostaDalDominio(dominio, this._hasFlagConsentiNonSottoscrivibile);
+        this._formGroup.get('multi_adesione')?.enable({ emitEvent: false });
+        this.enableDisableControlAdesioneConsentita();
     }
 
     _enableDisableSkipCollaudo(dominio: any) {
@@ -598,6 +613,7 @@ export class ServizioCreateWizardComponent implements OnInit {
     _onChangeDominio(event: any) {
         this.selectedDominio = event;
         this._enableDisableSkipCollaudo(this.selectedDominio);
+        this._setAdesioneDominio(this.selectedDominio);
         this._formGroup.get('referente')?.setValue(null);
         this._formGroup.get('referente_tecnico')?.setValue(null);
         this.selectedReferente = null;

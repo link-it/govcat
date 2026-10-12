@@ -486,6 +486,39 @@ describe('DominioDetailsComponent', () => {
     });
   });
 
+  describe('opzioni di adesione del dominio (Issue #382)', () => {
+    const _data = { nome: 'D', visibilita: 'pubblico', descrizione: '', classi: [], soggetto_referente: null, deprecato: false, skip_collaudo: false, multi_adesione: false, adesione_disabilitata: false };
+
+    it('should create the two flags defaulting to false', () => {
+      Tools.Configurazione = { servizio: { consenti_non_sottoscrivibile: true } } as any;
+      component._initForm({ ..._data, multi_adesione: null, adesione_disabilitata: undefined });
+      expect(component._formGroup.get('multi_adesione')?.value).toBe(false);
+      expect(component._formGroup.get('adesione_disabilitata')?.value).toBe(false);
+    });
+
+    it('should make the two flags mutually exclusive', () => {
+      Tools.Configurazione = { servizio: { consenti_non_sottoscrivibile: true } } as any;
+      component._initForm({ ..._data });
+      component._formGroup.get('multi_adesione')?.setValue(true);
+      component._formGroup.get('adesione_disabilitata')?.setValue(true);
+      expect(component._formGroup.get('multi_adesione')?.value).toBe(false);
+    });
+
+    it('should always send the flags on update', () => {
+      Tools.Configurazione = { servizio: { consenti_non_sottoscrivibile: true } } as any;
+      mockApiService.putElement.mockReturnValue(of({ id_dominio: 42 }));
+      component.__onUpdate(42, { ..._data, soggetto_referente: 'ref1', multi_adesione: true });
+      expect(mockApiService.putElement).toHaveBeenCalledWith('domini', 42, expect.objectContaining({ multi_adesione: true, adesione_disabilitata: false }));
+    });
+
+    it('should send disabled subscription false when the configuration does not allow it', () => {
+      Tools.Configurazione = { servizio: { consenti_non_sottoscrivibile: false } } as any;
+      mockApiService.putElement.mockReturnValue(of({ id_dominio: 42 }));
+      component.__onUpdate(42, { ..._data, soggetto_referente: 'ref1', adesione_disabilitata: true });
+      expect(mockApiService.putElement).toHaveBeenCalledWith('domini', 42, expect.objectContaining({ adesione_disabilitata: false }));
+    });
+  });
+
   describe('__onUpdate', () => {
     it('should update element and emit save on success', () => {
       const response = {

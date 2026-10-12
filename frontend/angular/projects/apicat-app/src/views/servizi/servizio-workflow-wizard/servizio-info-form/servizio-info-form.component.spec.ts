@@ -30,7 +30,7 @@ describe('ServizioInfoFormComponent', () => {
   beforeEach(() => {
     mockApiService = { getList: vi.fn() };
     const mockConfigService = { getConfiguration: vi.fn().mockReturnValue({ AppConfig: { GOVAPI: { HOST: '' } } }) } as any;
-    const mockAuthenticationService = { _getConfigModule: vi.fn().mockReturnValue({}) } as any;
+    const mockAuthenticationService = { _getConfigModule: vi.fn().mockReturnValue({}), canEditField: vi.fn().mockReturnValue(true) } as any;
     component = new ServizioInfoFormComponent({} as any, mockConfigService, mockApiService, {} as any, mockAuthenticationService);
     component._formGroup = new FormGroup({ id_soggetto_erogatore: new FormControl(null) });
     component._isFruizione = true;
@@ -67,6 +67,28 @@ describe('ServizioInfoFormComponent', () => {
 
       expect(mockApiService.getList).toHaveBeenCalledWith('soggetti', { params: { id_organizzazione: 'o-rt', referente: true } });
       expect(component._hideSoggettoInfo).toBe(true);
+    });
+  });
+  describe('opzioni di adesione imposte dal dominio (Issue #382)', () => {
+    beforeEach(() => {
+      component._formGroup = new FormGroup({
+        multi_adesione: new FormControl(false),
+        adesione_disabilitata: new FormControl(false)
+      });
+      component._hasFlagConsentiNonSottoscrivibile = true;
+    });
+
+    it('should lock multi adesione and, being exclusive, disabled subscription', () => {
+      component._setAdesioneDominio({ multi_adesione: true });
+      expect(component._formGroup.getRawValue()).toEqual({ multi_adesione: true, adesione_disabilitata: false });
+      expect(component._formGroup.get('multi_adesione')?.disabled).toBe(true);
+      expect(component._formGroup.get('adesione_disabilitata')?.disabled).toBe(true);
+    });
+
+    it('should follow the state permissions when the domain does not impose the option', () => {
+      (component as any).authenticationService.canEditField.mockReturnValue(false);
+      component._setAdesioneDominio({ multi_adesione: false });
+      expect(component._formGroup.get('multi_adesione')?.disabled).toBe(true);
     });
   });
 });

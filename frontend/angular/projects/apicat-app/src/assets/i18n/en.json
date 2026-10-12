@@ -594,6 +594,22 @@
 			"violazioni": "Rate Limiting Policy Violations"
 		},
 		"DOMINI": {
+			"SECTION": {
+				"EditSubtitle": "Fill in the sections of the domain.",
+				"ViewSubtitle": "Domain data and options applied to its services.",
+				"GeneraleTag": "DOMAIN",
+				"GeneraleTitle": "General information",
+				"GeneraleDesc": "Name, description, tag and referent subject of the domain.",
+				"VisibilitaTag": "ACCESS",
+				"VisibilitaTitle": "Visibility",
+				"VisibilitaDesc": "Who can see the services of the domain.",
+				"ErogazioneTag": "PROVISION",
+				"ErogazioneTitle": "Invocation URL",
+				"ErogazioneDesc": "URL and prefixes used to invoke the APIs of the domain services.",
+				"OpzioniTag": "SERVICES",
+				"OpzioniTitle": "Service options",
+				"OpzioniDesc": "Options the domain applies to its services."
+			},
 			"DeleteDomain": "Delete Domain",
 			"EditDomain": "Edit domain",
 			"BUTTON": {
@@ -823,6 +839,7 @@
 			"wsdl_12": "Wsdl 1.2"
 		},
 		"LABEL": {
+			"ImpostatoDalDominio": "Set by the domain",
 			"SkipToContent": "Skip to content",
 			"UrlEsposizione": "Exposure URL",
 			"RemoveFilter": "Remove filter",

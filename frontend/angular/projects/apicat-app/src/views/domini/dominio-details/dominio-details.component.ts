@@ -113,6 +113,12 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
 
   _visibilitaEnum: any;
 
+  readonly _urlFields: { name: string, label: string }[] = [
+    { name: 'url_invocazione', label: 'APP.DOMINI.LABEL.UrlInvocazione' },
+    { name: 'url_prefix_collaudo', label: 'APP.DOMINI.LABEL.UrlPrefixCollaudo' },
+    { name: 'url_prefix_produzione', label: 'APP.DOMINI.LABEL.UrlPrefixProduzione' }
+  ];
+
   anagrafiche: any;
 
   constructor(
@@ -268,6 +274,8 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
             break;
           case 'deprecato':
           case 'skip_collaudo':
+          case 'multi_adesione':
+          case 'adesione_disabilitata':
             value = data[key] ? data[key] : false;
             _group[key] = new UntypedFormControl(value, []);
               break;
@@ -285,7 +293,23 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
 
       this._enableDisableSkipCollaudo(data.soggetto_referente);
       this.checkClassiState(data.visibilita);
+      this._bindAdesioneFlagsExclusion();
     }
+  }
+
+  /** "Adesione disabilitata" e' prevista solo se la configurazione consente servizi non sottoscrivibili. */
+  get _consentiNonSottoscrivibile(): boolean {
+    return !!Tools.Configurazione?.servizio?.consenti_non_sottoscrivibile;
+  }
+
+  /** "Adesione disabilitata" e "Multi adesione" si escludono a vicenda, come nei form servizio. */
+  private _bindAdesioneFlagsExclusion() {
+    const _disabilitata = this._formGroup.get('adesione_disabilitata');
+    const _multi = this._formGroup.get('multi_adesione');
+    if (!_disabilitata || !_multi) { return; }
+    if (!this._consentiNonSottoscrivibile) { _disabilitata.setValue(false); }
+    _disabilitata.valueChanges.subscribe((value: boolean) => { if (value && _multi.value) { _multi.setValue(false); } });
+    _multi.valueChanges.subscribe((value: boolean) => { if (value && _disabilitata.value) { _disabilitata.setValue(false); } });
   }
 
   private checkClassiState(value: string, resetValue: boolean = false){
@@ -312,6 +336,8 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
     this._spin = true;
     
     const _body = {...body};
+    _body.adesione_disabilitata = this._consentiNonSottoscrivibile ? !!body.adesione_disabilitata : false;
+    _body.multi_adesione = !!body.multi_adesione;
     _body.id_soggetto_referente = body.soggetto_referente;
     delete _body.soggetto_referente;
     this._removeNullProperties(_body);
@@ -361,6 +387,8 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
       url_prefix_collaudo: body.url_prefix_collaudo || null,
       url_prefix_produzione: body.url_prefix_produzione || null,
       skip_collaudo: body.skip_collaudo || false,
+      multi_adesione: !!body.multi_adesione,
+      adesione_disabilitata: this._consentiNonSottoscrivibile ? !!body.adesione_disabilitata : false,
     };
 
     this.apiService.putElement(this.model, id, _body).subscribe({

@@ -1,0 +1,115 @@
+// ----------------------------------------------------------------------
+// Layout a sezioni per le pagine di dettaglio/modifica (modello: creazione
+// servizio e adesione, senza step). Ogni sezione e' una card a griglia
+// [intestazione sx | campi dx] che su mobile collassa a colonna singola.
+// Uso: contenitore `.lnk-section-layout` con dentro `section.lnk-phase-section`.
+// ----------------------------------------------------------------------
+.lnk-section-layout {
+  --surface:      #ffffff;
+  --surface-2:    #fafcfd;
+  --surface-3:    #eef4f8;
+  --line:         #dee8ef;
+  --line-strong:  #c4d6e0;
+  --ink:          #212c49;
+  --ink-3:        #57738a;
+  --radius-lg:    14px;
+
+  .section-page-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .section-page-title {
+    font-size: 22px;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin: 0 0 .25rem;
+  }
+
+  .section-page-subtitle {
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--ink-3);
+    max-width: 70ch;
+    margin: 0;
+  }
+
+  .section-mandatory-hint {
+    font-size: 12.5px;
+    color: var(--ink-3);
+    display: inline-flex;
+    align-items: center;
+    margin: .5rem 0 0;
+  }
+
+  .lnk-phase-section {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 16px;
+  }
+
+  // Con un ng-select aperto la card non deve tagliare il pannello.
+  .lnk-phase-section:has(.ng-select-opened) {
+    overflow: visible;
+    z-index: 20;
+  }
+
+  .lnk-phase-section-hd {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 20px;
+    background: var(--surface-2);
+    border-right: 1px solid var(--line);
+  }
+
+  .ps-meta { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+
+  .ps-tag {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    color: var(--ink-3);
+  }
+
+  .ps-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0;
+  }
+
+  .ps-desc {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--ink-3);
+    margin: 0;
+  }
+
+  .lnk-phase-section-body {
+    padding: 20px;
+    margin: 20px;
+  }
+
+  .section-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: .5rem;
+    padding-top: 4px;
+    padding-bottom: 24px;
+  }
+
+  @media (max-width: 767.98px) {
+    .lnk-phase-section { grid-template-columns: 1fr; }
+    .lnk-phase-section-hd {
+      border-right: none;
+      border-bottom: 1px solid var(--line);
+    }
+  }
+}
