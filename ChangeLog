@@ -1,6 +1,10 @@
 2026-10-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 364: dopo il logout volontario l'app non riavvia l'accesso automatico (con CNS l'utente
+	  rientrava subito) e mostra lo stato "Sei uscito" con il pulsante di accesso; eliminata la
+	  concorrenza tra logout e avvio del login.
+
 	Issue 351: nel form API (creazione e modifica) si configurano fino a 10 URL di invocazione
 	  aggiuntive (etichetta, template e prefissi opzionali); la barra "URL di esposizione" della
 	  specifica mostra anche le URL aggiuntive, ciascuna con il pulsante Copia.

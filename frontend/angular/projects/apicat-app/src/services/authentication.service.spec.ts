@@ -5,7 +5,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { OAuthService } from 'angular-oauth2-oidc';
 import { ConfigService, EventsManagerService, Tools } from '@linkit/components';
 import { PermessiService } from './permessi.service';
-import { AuthenticationService, AUTH_CONST, CLASSES } from './authentication.service';
+import { AuthenticationService, AUTH_CONST, CLASSES, LOGOUT_VOLONTARIO_KEY } from './authentication.service';
 import { OrganizationContextService } from './organization-context.service';
 import { RuoloOrganizzazioneEnum } from '../model/ruoloOrganizzazioneEnum';
 
@@ -253,6 +253,29 @@ describe('AuthenticationService', () => {
   // --- Logout ---
 
   describe('logout', () => {
+    afterEach(() => sessionStorage.removeItem(LOGOUT_VOLONTARIO_KEY));
+
+    it('should mark only a voluntary logout', () => {
+      service.logout();
+      expect(service.isLogoutVolontario()).toBe(false);
+      service.logout(true);
+      expect(service.isLogoutVolontario()).toBe(true);
+      service.clearLogoutVolontario();
+      expect(service.isLogoutVolontario()).toBe(false);
+    });
+
+    it('should report the redirect to the IdP only with a token and a logout url', () => {
+      oauthService.getAccessToken.mockReturnValue(null);
+      (oauthService as any).logoutUrl = 'https://auth.test/logout';
+      expect(service.logout(true)).toBe(false);
+      oauthService.getAccessToken.mockReturnValue('some-token');
+      (service as any).appConfig = { ...mockConfig.AppConfig, AUTH_SETTINGS: { OAUTH: {} } };
+      (oauthService as any).revocationEndpoint = undefined;
+      expect(service.logout(true)).toBe(true);
+      (oauthService as any).logoutUrl = '';
+      expect(service.logout(true)).toBe(false);
+    });
+
     it('should remove session from localStorage', () => {
       service.setCurrentSession({ principal: 'u', roles: [] });
       service.logout();

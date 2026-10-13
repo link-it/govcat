@@ -2026,6 +2026,8 @@
 			},
 			"InsertNotice": "Inserisci il numero dell'avviso e premi il pulsante di ricerca …",
 			"LOGIN": {
+				"LoggedOutTitle": "Sei uscito",
+				"LoggedOutMessage": "La sessione è stata chiusa. Per accedere di nuovo usa il pulsante qui sotto.",
 				"login_400": "Username o password errati. Controlla la corretta scrittura dei dati.",
 				"login_401": "Username o password errati. Oppure non sei autorizzato ad accedere.",
 				"login_403": "Username o password errati. Oppure non sei autorizzato ad accedere.",

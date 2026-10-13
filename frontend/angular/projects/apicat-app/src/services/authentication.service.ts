@@ -41,6 +41,8 @@ export const AUTH_CONST: any = {
   storageSession: 'GWAC_SESSION'
 };
 
+export const LOGOUT_VOLONTARIO_KEY = 'GWAC_LOGOUT_VOLONTARIO';
+
 export const CLASSES: any = {
   servizio: {
     identificativo: {
@@ -282,12 +284,21 @@ export class AuthenticationService {
     this.oauthService.initCodeFlow();
   }
 
-  logout() {
+  /**
+   * Chiude la sessione. Con `volontario` (logout chiesto dall'utente) segna il logout in sessionStorage
+   * prima del redirect all'IdP: al ritorno la pagina di login non riavvia l'accesso automatico.
+   * Ritorna true se e` stato avviato il redirect all'end_session dell'IdP.
+   */
+  logout(volontario: boolean = false): boolean {
+    if (volontario) {
+      try { sessionStorage.setItem(LOGOUT_VOLONTARIO_KEY, '1'); } catch { /* storage non disponibile */ }
+    }
     localStorage.removeItem(AUTH_CONST.storageSession);
     this.organizationContextService.clear();
 
     // Check if there's an access token to revoke (even if expired)
     const hasAccessToken = !!this.oauthService.getAccessToken();
+    const redirectIdp = hasAccessToken && !!this.oauthService.logoutUrl;
 
     if (hasAccessToken) {
       // Check if revocation endpoint is configured in app config or loaded from discovery document
@@ -312,6 +323,15 @@ export class AuthenticationService {
         this.oauthService.logOut();
       }
     }
+    return redirectIdp;
+  }
+
+  isLogoutVolontario(): boolean {
+    try { return sessionStorage.getItem(LOGOUT_VOLONTARIO_KEY) === '1'; } catch { return false; }
+  }
+
+  clearLogoutVolontario() {
+    try { sessionStorage.removeItem(LOGOUT_VOLONTARIO_KEY); } catch { /* storage non disponibile */ }
   }
 
   setCurrentSession(data: any) {

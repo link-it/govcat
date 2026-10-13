@@ -2026,6 +2026,8 @@
 			},
 			"InsertNotice": "Enter the notice number and press the search button …",
 			"LOGIN": {
+				"LoggedOutTitle": "You have signed out",
+				"LoggedOutMessage": "Your session has been closed. To sign in again use the button below.",
 				"login_400": "Username o password errati. Controlla la corretta scrittura dei dati.",
 				"login_401": "Username o password errati. Controlla la corretta scrittura dei dati.",
 				"login_403": "Username o password errati. Controlla la corretta scrittura dei dati.",
