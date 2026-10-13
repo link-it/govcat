@@ -87,6 +87,13 @@ import org.govway.catalogo.servlets.model.CertificatoClientFornitoCreate;
 import org.govway.catalogo.servlets.model.Client;
 import org.govway.catalogo.servlets.model.ClientCreate;
 import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
+import org.govway.catalogo.servlets.model.CheckDati;
+import org.govway.catalogo.servlets.model.Configurazione;
+import org.govway.catalogo.servlets.model.ConfigurazioneCustomAdesioneProprietaList;
+import org.govway.catalogo.servlets.model.ConfigurazioneProfiloCustomProprietaText;
+import org.govway.catalogo.servlets.model.Ruolo;
+import org.govway.catalogo.servlets.model.SottotipoEnum;
+import org.govway.catalogo.servlets.model.TipoConfigurazioneCustomProprieta;
 import org.govway.catalogo.servlets.model.DatiCustomAdesioneUpdate;
 import org.govway.catalogo.servlets.model.DatiSpecificiClient;
 import org.govway.catalogo.servlets.model.DocumentoCreate;
@@ -7167,6 +7174,66 @@ public class AdesioniTest {
                 assertNotNull(d.getProfilo());
             }
         }
+    }
+
+    // ==================== proprieta' custom required e ruoli_abilitati ====================
+
+    private static final String GRUPPO_RUOLI_ABILITATI = "GruppoRuoliAbilitatiTest";
+
+    @Autowired
+    private Configurazione configurazione;
+
+    private ConfigurazioneCustomAdesioneProprietaList aggiungiGruppoRequired(List<Ruolo> ruoliAbilitati) {
+        ConfigurazioneProfiloCustomProprietaText proprieta = new ConfigurazioneProfiloCustomProprietaText();
+        proprieta.setNome("proprieta_obbligatoria");
+        proprieta.setEtichetta("Proprieta' obbligatoria");
+        proprieta.setTipo(TipoConfigurazioneCustomProprieta.TEXT);
+        proprieta.setRequired(true);
+
+        ConfigurazioneCustomAdesioneProprietaList gruppo = new ConfigurazioneCustomAdesioneProprietaList();
+        gruppo.setNomeGruppo(GRUPPO_RUOLI_ABILITATI);
+        gruppo.setLabelGruppo("Gruppo ruoli abilitati");
+        gruppo.setClasseDato(ConfigurazioneClasseDato.IDENTIFICATIVO);
+        gruppo.setRuoliAbilitati(ruoliAbilitati);
+        gruppo.setProprieta(List.of(proprieta));
+        this.configurazione.getAdesione().getProprietaCustom().add(gruppo);
+        return gruppo;
+    }
+
+    private boolean isGruppoRichiesto(UUID idAdesione, List<Ruolo> ruoliAbilitati) {
+        ConfigurazioneCustomAdesioneProprietaList gruppo = this.aggiungiGruppoRequired(ruoliAbilitati);
+        try {
+            CheckDati check = adesioniController.checkDatiAdesione(idAdesione, "bozza").getBody();
+            return check.getErrori() != null && check.getErrori().stream()
+                    .filter(e -> e.getSottotipo() != null)
+                    .anyMatch(e -> e.getSottotipo().stream()
+                            .anyMatch(st -> SottotipoEnum.CONFIGURAZIONE_GRUPPO.equals(st.getTipo()) && GRUPPO_RUOLI_ABILITATI.equals(st.getIdentificativo())));
+        } finally {
+            this.configurazione.getAdesione().getProprietaCustom().remove(gruppo);
+        }
+    }
+
+    /**
+     * Una proprieta' custom required di un gruppo non visibile all'utente per ruoli_abilitati non
+     * gli viene richiesta (non potrebbe compilarla); resta obbligatoria per chi ha un ruolo abilitato.
+     * Il gestore qui e' gestore, referente e richiedente dell'adesione, ma non referente tecnico.
+     */
+    @Test
+    void testCheckDatiAdesioneProprietaRequiredRuoliAbilitati() {
+        Dominio dominio = this.getDominio(null);
+        this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA(STATO_PUBBLICATO_IN_COLLAUDO, serviziController, idServizio);
+        UUID idAdesione = this.getAdesione().getIdAdesione();
+
+        // ruoli_abilitati assente: visibile a tutti, quindi richiesta
+        assertTrue(this.isGruppoRichiesto(idAdesione, null));
+        // ruolo dell'utente abilitato: richiesta
+        assertTrue(this.isGruppoRichiesto(idAdesione, List.of(Ruolo.GESTORE)));
+        // nessun ruolo dell'utente abilitato: non richiesta
+        assertFalse(this.isGruppoRichiesto(idAdesione, List.of(Ruolo.REFERENTE_TECNICO)));
+        // lista vuota: non visibile a nessuno, quindi non richiesta
+        assertFalse(this.isGruppoRichiesto(idAdesione, List.of()));
     }
 
 }

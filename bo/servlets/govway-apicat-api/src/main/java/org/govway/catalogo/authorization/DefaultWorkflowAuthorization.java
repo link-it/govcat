@@ -502,6 +502,30 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 				});
 	}
 
+	/**
+	 * Indica se un gruppo di proprieta' custom e' visibile all'utente in sessione in base ai
+	 * {@code ruoli_abilitati} del gruppo, con la stessa semantica applicata dal frontend: lista
+	 * assente -> visibile a tutti; lista vuota -> nessun ruolo abilitato; altrimenti serve almeno
+	 * un ruolo dell'utente sull'entita' in comune con la lista.
+	 *
+	 * Usato nel controllo dei campi obbligatori: le proprieta' required di un gruppo non visibile
+	 * non vengono richieste all'utente, che non potrebbe compilarle. Restano obbligatorie per
+	 * chiunque abbia un ruolo abilitato sul gruppo.
+	 *
+	 * @param ruoliAbilitati ruoli abilitati configurati sul gruppo
+	 * @param entity entita' su cui calcolare i ruoli dell'utente in sessione
+	 * @return true se il gruppo e' visibile all'utente
+	 */
+	protected boolean isGruppoProprietaCustomVisibile(List<Ruolo> ruoliAbilitati, ENTITY entity) {
+		if(ruoliAbilitati == null) {
+			return true;
+		}
+		if(ruoliAbilitati.isEmpty()) {
+			return false;
+		}
+		return this.getRuoli(entity).stream().anyMatch(ruoliAbilitati::contains);
+	}
+
 	protected abstract List<Ruolo> getRuoli(ENTITY entity);
 
 	protected abstract void checkCampiObbligatori(List<ConfigurazioneClasseDato> datiObbligatori, ENTITY entity, String stato);

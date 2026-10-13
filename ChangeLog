@@ -27,6 +27,10 @@
 	  valorizzata solo per i servizi intermediati) nei servizi, "Organizzazione
 	  Erogatore" e "Organizzazione Aderente" nelle adesioni.
 
+	Fix proprietà custom obbligatorie di servizi e adesioni: non sono più richieste
+	  all'utente che non le vede per ruoli_abilitati (prima il cambio stato falliva su
+	  campi non compilabili); restano obbligatorie per chi ha un ruolo abilitato sul gruppo.
+
 2026-10-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

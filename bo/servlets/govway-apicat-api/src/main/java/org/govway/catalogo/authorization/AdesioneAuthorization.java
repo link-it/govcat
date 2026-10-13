@@ -236,7 +236,13 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 		if(proprietaCustom != null) {
 			for(ConfigurazioneCustomAdesioneProprietaList p: proprietaCustom) {
 				 if(classeDatoLst.contains(p.getClasseDato()) && applies(p, cr)) {
-					filtered.add(p);
+					// gruppo non visibile all'utente per ruoli_abilitati: non puo' compilarlo, il controllo
+					// resta a carico di chi ha un ruolo abilitato
+					if(isGruppoProprietaCustomVisibile(p.getRuoliAbilitati(), adesione)) {
+						filtered.add(p);
+					} else {
+						this.logger.debug("Gruppo {} escluso dal controllo campi obbligatori: non visibile ai ruoli dell'utente", p.getNomeGruppo());
+					}
 				}
 			}
 		}

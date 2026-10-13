@@ -222,6 +222,9 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 		filtered
 			.stream()
 				.filter(c -> c.getClasseDato().equals(classeDato))
+				// gruppo non visibile all'utente per ruoli_abilitati: non puo' compilarlo, il controllo
+				// resta a carico di chi ha un ruolo abilitato
+				.filter(c -> isGruppoProprietaCustomVisibile(c.getRuoliAbilitati(), api.getServizio()))
 					.forEach(c -> {
 						c.getProprieta()
 							.stream()
