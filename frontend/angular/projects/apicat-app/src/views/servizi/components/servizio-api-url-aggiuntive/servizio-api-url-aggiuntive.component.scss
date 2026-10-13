@@ -1,14 +1,54 @@
-.url-aggiuntive.is-edit {
-  padding: 1rem 1.25rem 1.25rem;
+:host {
+  display: block;
+}
+
+.avanzate {
+  margin-top: 1.5rem;
   background: var(--surface-2, #f8fafc);
   border: 1px solid var(--line, #e2e8f0);
   border-radius: 12px;
 }
 
-.url-aggiuntive__hd {
+.avanzate__toggle {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  width: 100%;
+  padding: 0.875rem 1.25rem;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--accent, #2563eb);
+  }
+}
+
+.avanzate__chevron {
+  transition: transform .15s;
+}
+
+.avanzate.is-open .avanzate__chevron {
+  transform: rotate(90deg);
+}
+
+.avanzate__title {
+  font-weight: 600;
+}
+
+.avanzate__sub {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.875rem;
+  color: var(--ink-3, #64748b);
+}
+
+.avanzate__body {
+  padding: 0 1.25rem 1.25rem;
 }
 
 .url-aggiuntive__count {
@@ -22,7 +62,7 @@
 }
 
 .url-aggiuntive__sub {
-  margin: 0.25rem 0 1rem;
+  margin: 0 0 1rem;
   font-size: 0.875rem;
   color: var(--ink-3, #64748b);
 }

@@ -845,6 +845,7 @@
 			"ImpostatoDalDominio": "Impostato dal dominio",
 			"SkipToContent": "Salta al contenuto",
 			"UrlEsposizione": "Url di esposizione",
+			"ImpostazioniAvanzate": "Impostazioni avanzate",
 			"UrlInvocazioneAggiuntive": "URL di invocazione aggiuntive",
 			"UrlInvocazioneAggiuntive_sub": "Lo stesso servizio esposto su altri gateway. Il catalogo documenta le URL ma non configura il gateway su GovWay: se non è configurato, la URL non risponde.",
 			"UrlAggiuntivaEtichetta": "Etichetta",

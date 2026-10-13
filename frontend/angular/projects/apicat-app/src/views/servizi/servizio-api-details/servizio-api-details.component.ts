@@ -640,7 +640,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
             gruppi_auth_type: [],
         };
 
-        const _urlAggiuntive = urlAggiuntiveDaForm(body.url_invocazione_aggiuntive);
+        const _urlAggiuntive = this._urlAggiuntiveVisibili ? urlAggiuntiveDaForm(body.url_invocazione_aggiuntive) : [];
         if (_urlAggiuntive.length) {
             _newBody.url_invocazione_aggiuntive = _urlAggiuntive;
         }
@@ -753,8 +753,8 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
             },
         };
 
-        // Lista sempre completa se modificabile (vuota = azzerata); assente se disabilitata (invariata)
-        if (body.url_invocazione_aggiuntive !== undefined) {
+        // Lista sempre completa se modificabile (vuota = azzerata); assente se nascosta o disabilitata (invariata)
+        if (this._urlAggiuntiveVisibili && body.url_invocazione_aggiuntive !== undefined) {
             _newBody.dati_generici!.url_invocazione_aggiuntive = urlAggiuntiveDaForm(body.url_invocazione_aggiuntive);
         }
 
@@ -1693,6 +1693,11 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
 
     _canAddMapper = (): boolean => {
         return this._canAdd();
+    }
+
+    /** URL di invocazione aggiuntive: abilitate dalla configurazione remota e riservate al gestore. */
+    get _urlAggiuntiveVisibili(): boolean {
+        return !!Tools.Configurazione?.servizio?.api?.url_invocazione_aggiuntive_abilitate && this._isGestore();
     }
 
     get _urlAggiuntiveArray(): FormArray<any> | null {

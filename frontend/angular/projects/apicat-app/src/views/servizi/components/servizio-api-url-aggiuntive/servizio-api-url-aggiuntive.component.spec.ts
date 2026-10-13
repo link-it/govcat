@@ -59,6 +59,10 @@ describe('ServizioApiUrlAggiuntiveComponent', () => {
     expect(component._righe.length).toBe(component.MAX);
   });
 
+  it('should start closed as an advanced section', () => {
+    expect(component._aperto).toBe(false);
+  });
+
   it('should report duplicated labels per row', () => {
     component.urlArray = creaUrlAggiuntiveFormArray([{ etichetta: 'A' }, { etichetta: 'a' }]);
     expect(component._isDuplicata(0)).toBe(false);

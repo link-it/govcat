@@ -522,6 +522,8 @@ describe('ServizioApiDetailsComponent', () => {
   // =========================================================================
   describe('_prepareBodySaveApi', () => {
     it('should send the additional URLs only when present', () => {
+      Tools.Configurazione!.servizio.api.url_invocazione_aggiuntive_abilitate = true;
+      mockAuthenticationService.isGestore.mockReturnValue(true);
       component._hasSpecifica = false;
       component._apiProprietaCustomGrouped = null;
       const body: any = {
@@ -700,6 +702,8 @@ describe('ServizioApiDetailsComponent', () => {
     });
 
     it('should send the full list of additional URLs when the editor is enabled', () => {
+      Tools.Configurazione!.servizio.api.url_invocazione_aggiuntive_abilitate = true;
+      mockAuthenticationService.isGestore.mockReturnValue(true);
       const body = { nome: 'A', versione: '1', ruolo: 'erogato_soggetto_aderente', descrizione: null, codice_asset: null,
         url_invocazione_aggiuntive: [{ etichetta: ' Internet ', template_url: '', url_prefix_collaudo: null, url_prefix_produzione: 'https://ext' }] };
       const result = component._prepareBodyUpdateApi(body);
@@ -709,13 +713,32 @@ describe('ServizioApiDetailsComponent', () => {
     });
 
     it('should send an empty list to clear the additional URLs', () => {
+      Tools.Configurazione!.servizio.api.url_invocazione_aggiuntive_abilitate = true;
+      mockAuthenticationService.isGestore.mockReturnValue(true);
       const body = { nome: 'A', versione: '1', ruolo: 'erogato_soggetto_aderente', descrizione: null, codice_asset: null, url_invocazione_aggiuntive: [] };
       expect(component._prepareBodyUpdateApi(body).dati_generici!.url_invocazione_aggiuntive).toEqual([]);
     });
 
     it('should not send the additional URLs when the editor is disabled', () => {
+      Tools.Configurazione!.servizio.api.url_invocazione_aggiuntive_abilitate = true;
+      mockAuthenticationService.isGestore.mockReturnValue(true);
       const body = { nome: 'A', versione: '1', ruolo: 'erogato_soggetto_aderente', descrizione: null, codice_asset: null };
       expect(component._prepareBodyUpdateApi(body).dati_generici).not.toHaveProperty('url_invocazione_aggiuntive');
+    });
+
+    it('should hide and not send the additional URLs without the remote flag or for non gestori', () => {
+      const body = { nome: 'A', versione: '1', ruolo: 'erogato_soggetto_aderente', descrizione: null, codice_asset: null, url_invocazione_aggiuntive: [] };
+      mockAuthenticationService.isGestore.mockReturnValue(true);
+      expect(component._urlAggiuntiveVisibili).toBe(false);
+      expect(component._prepareBodyUpdateApi({ ...body }).dati_generici).not.toHaveProperty('url_invocazione_aggiuntive');
+
+      Tools.Configurazione!.servizio.api.url_invocazione_aggiuntive_abilitate = true;
+      mockAuthenticationService.isGestore.mockReturnValue(false);
+      expect(component._urlAggiuntiveVisibili).toBe(false);
+      expect(component._prepareBodyUpdateApi({ ...body }).dati_generici).not.toHaveProperty('url_invocazione_aggiuntive');
+
+      mockAuthenticationService.isGestore.mockReturnValue(true);
+      expect(component._urlAggiuntiveVisibili).toBe(true);
     });
 
     it('should set dati_specifica.gruppi_auth_type when ruolo is EROGATO_SOGGETTO_DOMINIO', () => {

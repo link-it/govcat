@@ -43,6 +43,9 @@ export class ServizioApiUrlAggiuntiveComponent implements OnChanges {
 
     readonly MAX = MAX_URL_AGGIUNTIVE;
 
+    // Sezione avanzata: chiusa finche' l'utente non la apre
+    _aperto: boolean = false;
+
     ngOnChanges(): void {
         if (!this.urlArray) { return; }
         // Disabilitato: escluso dal valore del form, quindi non inviato (lista invariata lato BE)

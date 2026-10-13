@@ -415,12 +415,6 @@
                       }
                     </div>
                   }
-                  <app-servizio-api-url-aggiuntive
-                    [urlArray]="_urlAggiuntiveArray"
-                    [isEdit]="_isEdit"
-                    [editable]="_isNew || ('url_invocazione_aggiuntive' | mapper:_canEditFieldMapper:service?.stato:_grant)"
-                    [items]="servizioApi?.url_invocazione_aggiuntive || null"
-                  ></app-servizio-api-url-aggiuntive>
                   @if (_isNew && f['ruolo'].value === EROGATO_SOGGETTO_DOMINIO) {
                     <div class="row">
                       @if (_showUrlCollaudo) {
@@ -667,6 +661,14 @@
                   }
                 </div>
               </div>
+              @if (_urlAggiuntiveVisibili) {
+                <app-servizio-api-url-aggiuntive
+                  [urlArray]="_urlAggiuntiveArray"
+                  [isEdit]="_isEdit"
+                  [editable]="_isNew || ('url_invocazione_aggiuntive' | mapper:_canEditFieldMapper:service?.stato:_grant)"
+                  [items]="servizioApi?.url_invocazione_aggiuntive || null"
+                ></app-servizio-api-url-aggiuntive>
+              }
               <ng-template #apiFormErrorTpl>
                 <div class="gl-alert gl-alert-danger col-md-12 mt-3" role="alert">
                   @if (!_errors.length) {

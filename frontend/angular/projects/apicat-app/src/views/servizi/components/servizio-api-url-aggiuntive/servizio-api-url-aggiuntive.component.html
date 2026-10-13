@@ -1,14 +1,19 @@
-<div class="form-group url-aggiuntive" [class.is-edit]="isEdit && urlArray">
+<div class="avanzate" [class.is-open]="_aperto">
+  <button type="button" class="avanzate__toggle" id="url-aggiuntive-toggle"
+          [attr.aria-expanded]="_aperto" aria-controls="url-aggiuntive-body" (click)="_aperto = !_aperto">
+    <i class="bi bi-chevron-right avanzate__chevron" aria-hidden="true"></i>
+    <span class="avanzate__title">{{ 'APP.LABEL.ImpostazioniAvanzate' | translate }}</span>
+    <span class="avanzate__sub">{{ 'APP.LABEL.UrlInvocazioneAggiuntive' | translate }}</span>
+    <span class="url-aggiuntive__count">{{ (isEdit && urlArray) ? (_righe.length + ' / ' + MAX) : (items?.length || 0) }}</span>
+  </button>
+  @if (_aperto) {
+<div class="url-aggiuntive avanzate__body" id="url-aggiuntive-body" role="region" aria-labelledby="url-aggiuntive-toggle">
   @if (isEdit && urlArray) {
-    <div class="url-aggiuntive__hd">
-      <span class="label-bold" id="url-aggiuntive-title">{{ 'APP.LABEL.UrlInvocazioneAggiuntive' | translate }}</span>
-      <span class="url-aggiuntive__count">{{ _righe.length }} / {{ MAX }}</span>
-    </div>
     <p class="url-aggiuntive__sub" id="url-aggiuntive-sub">{{ 'APP.LABEL.UrlInvocazioneAggiuntive_sub' | translate }}</p>
     @if (!_righe.length) {
       <p class="url-aggiuntive__empty">{{ 'APP.LABEL.UrlAggiuntiveNessuna' | translate }}</p>
     }
-    <ol class="url-aggiuntive__righe" aria-labelledby="url-aggiuntive-title">
+    <ol class="url-aggiuntive__righe" aria-labelledby="url-aggiuntive-toggle">
     @for (riga of _righe; track riga; let i = $index) {
       <li>
       <fieldset class="url-aggiuntiva" [formGroup]="riga">
@@ -95,9 +100,8 @@
       }
     }
   } @else {
-    <span class="label-bold d-block" id="url-aggiuntive-title">{{ 'APP.LABEL.UrlInvocazioneAggiuntive' | translate }}</span>
     @if (items?.length) {
-      <ul class="url-aggiuntive__list" aria-labelledby="url-aggiuntive-title">
+      <ul class="url-aggiuntive__list" aria-labelledby="url-aggiuntive-toggle">
         @for (item of items; track $index) {
           <li>
             <span class="fw-bold">{{ item.etichetta }}</span>
@@ -115,5 +119,7 @@
     } @else {
       <p class="mt-1">-</p>
     }
+  }
+</div>
   }
 </div>
