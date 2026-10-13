@@ -1,6 +1,9 @@
 2026-10-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard servizi: nella modifica del servizio senza immagine il payload invia immagine null
+	  (prima {} rifiutato con errore 400); la rimozione dell'immagine esistente ora e' salvata.
+
 	Wizard servizi: nella lista API la matita di modifica e' prima del cestino; con un pannello
 	  aperto (informazioni generali o configurazione) resta solo il pulsante "Chiudi".
 

@@ -93,6 +93,7 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
     apiUrl: string = '';
     _imagePlaceHolder: string = './assets/images/logo-placeholder.png';
     _maxImageSize: number = (Tools.Configurazione?.servizio?.max_image_size || 2) * 1024 * 1024;
+    _immagineRimossa: boolean = false;
     _showMarkdownPreview: boolean = false;
     minLengthTerm = 1;
 
@@ -230,6 +231,7 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
 
     private _initForm() {
         const data = this.data || {};
+        this._immagineRimossa = false;
         const _group: any = {
             tipo: new FormControl(data.tipo || null, []),
             nome: new FormControl(data.nome || null, [Validators.required, Validators.maxLength(255)]),
@@ -393,8 +395,10 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
             const _type = _split[0].split(';')[0].replace('data:', '');
             const _content = _split[1];
             this._formGroup.get('immagine')?.setValue({ content_type: _type, content: _content, tipo_documento: 'nuovo' });
+            this._immagineRimossa = false;
         } else {
             this._formGroup.get('immagine')?.setValue(null);
+            this._immagineRimossa = true;
         }
     }
 
@@ -603,9 +607,10 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
         const _tags: any[] = body.tags || [];
         const _tassonomie: any[] = this.data?.tassonomie || [];
         const _classi: any[] = (body.classi || []).map((item: any) => (typeof item === 'object' ? item.id_classe_utente : item));
-        let _immagine: any = body.immagine;
-        if (!_immagine) {
-            _immagine = this.data?.immagine?.uuid ? { tipo_documento: 'uuid', uuid: this.data.immagine.uuid } : (this.data?.immagine || {});
+        // Senza nuova immagine: riferimento a quella esistente, null se assente o rimossa
+        let _immagine: any = body.immagine || null;
+        if (!_immagine && !this._immagineRimossa && this.data?.immagine?.uuid) {
+            _immagine = { tipo_documento: 'uuid', uuid: this.data.immagine.uuid };
         }
 
         const _newBody: any = {

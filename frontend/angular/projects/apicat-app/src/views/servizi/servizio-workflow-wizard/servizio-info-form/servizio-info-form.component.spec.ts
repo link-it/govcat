@@ -91,4 +91,35 @@ describe('ServizioInfoFormComponent', () => {
       expect(component._formGroup.get('multi_adesione')?.disabled).toBe(true);
     });
   });
+
+  describe('immagine nel payload di modifica', () => {
+    const _immagineDelBody = () => (component as any)._prepareBodyUpdateServizio({ immagine: component._formGroup?.get('immagine')?.value }).dati_generici.immagine;
+
+    beforeEach(() => {
+      (component as any).authenticationService._removeDNM = vi.fn((_m: string, _s: string, body: any) => body);
+      component._formGroup = new FormGroup({ immagine: new FormControl(null) });
+    });
+
+    it('should send null when the service has no image', () => {
+      component.data = { id_servizio: 's1' };
+      expect(_immagineDelBody()).toBeNull();
+    });
+
+    it('should keep the existing image by uuid', () => {
+      component.data = { id_servizio: 's1', immagine: { uuid: 'u1' } };
+      expect(_immagineDelBody()).toEqual({ tipo_documento: 'uuid', uuid: 'u1' });
+    });
+
+    it('should send null when the existing image is removed', () => {
+      component.data = { id_servizio: 's1', immagine: { uuid: 'u1' } };
+      component._onImageLoaded(null);
+      expect(_immagineDelBody()).toBeNull();
+    });
+
+    it('should send the new image', () => {
+      component.data = { id_servizio: 's1', immagine: { uuid: 'u1' } };
+      component._onImageLoaded('data:image/png;base64,QUJD');
+      expect(_immagineDelBody()).toEqual({ content_type: 'image/png', content: 'QUJD', tipo_documento: 'nuovo' });
+    });
+  });
 });
