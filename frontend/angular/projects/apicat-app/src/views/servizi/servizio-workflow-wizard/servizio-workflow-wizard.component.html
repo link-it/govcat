@@ -501,8 +501,6 @@
                         @let isRowOpen = _configApiId === api.id_api;
                         @let isRowEdit = isRowOpen && _configApiStartEdit;
                         @let isRowView = isRowOpen && !_configApiStartEdit;
-                        @let isRowInfo = isRowOpen && _configApiTab === 'info_generali';
-                        @let isRowEnvEdit = isRowOpen && _configApiTab !== 'info_generali' && _configApiStartEdit;
                         <div class="api-row" [class.is-editing]="isRowEdit" [class.is-viewing]="isRowView">
                           <div class="approval-card">
                             <div class="av av-file"><i class="bi bi-code-slash"></i></div>
@@ -514,26 +512,12 @@
                               {{ (apiHasConfig(api) ? 'APP.SERVICES.WIZARD.ApiConfigured' : 'APP.SERVICES.WIZARD.ApiToConfigure') | translate }}
                             </span>
                             @if (canEditApi()) {
-                              <!-- Matita: modifica delle informazioni generali dell'API
-                                   (apre il pannello sul solo tab Informazioni generali).
-                                   Da aperta assume lo stesso stile del pulsante Configura
-                                   ("X Chiudi"). -->
-                              @if (isRowInfo) {
-                                <button type="button" class="lnk-btn lnk-btn-sm" (click)="closeApiSettings()">
-                                  <i class="bi bi-x-lg"></i><span>{{ 'APP.BUTTON.Close' | translate }}</span>
-                                </button>
-                              } @else {
-                                <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon"
-                                        [attr.aria-label]="'APP.SERVICES.WIZARD.EditApiGeneralInfo' | translate"
-                                        [tooltip]="'APP.SERVICES.WIZARD.EditApiGeneralInfo' | translate" container="body"
-                                        (click)="openApiInfo(api)">
-                                  <i class="bi bi-pencil"></i>
-                                </button>
-                              }
                               <!-- Configura: configurazione per l'ambiente corrente
-                                   (apre il pannello sul solo tab collaudo/produzione). -->
-                              <button type="button" class="lnk-btn lnk-btn-sm" (click)="isRowEnvEdit ? closeApiSettings() : openApiSettings(api)">
-                                @if (isRowEnvEdit) {
+                                   (apre il pannello sul solo tab collaudo/produzione).
+                                   Con il pannello aperto (configurazione o informazioni
+                                   generali) diventa "X Chiudi". -->
+                              <button type="button" class="lnk-btn lnk-btn-sm" (click)="isRowEdit ? closeApiSettings() : openApiSettings(api)">
+                                @if (isRowEdit) {
                                   <i class="bi bi-x-lg"></i><span>{{ 'APP.BUTTON.Close' | translate }}</span>
                                 } @else {
                                   <i class="bi bi-gear"></i><span>{{ 'APP.SERVICES.WIZARD.ConfigureApi' | translate }}</span>
@@ -558,6 +542,16 @@
                                 @if (_apiAllegatiCount[api.id_api]) {
                                   <span class="lnk-ref-count ms-1">{{ _apiAllegatiCount[api.id_api] }}</span>
                                 }
+                              </button>
+                            }
+                            <!-- Matita: modifica delle informazioni generali dell'API
+                                 (apre il pannello sul solo tab Informazioni generali). -->
+                            @if (canEditApi() && !isRowOpen) {
+                              <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon"
+                                      [attr.aria-label]="'APP.SERVICES.WIZARD.EditApiGeneralInfo' | translate"
+                                      [tooltip]="'APP.SERVICES.WIZARD.EditApiGeneralInfo' | translate" container="body"
+                                      (click)="openApiInfo(api)">
+                                <i class="bi bi-pencil"></i>
                               </button>
                             }
                             @if (canDeleteApi() && !isRowOpen) {

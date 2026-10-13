@@ -1,3 +1,9 @@
+2026-10-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Wizard servizi: nella lista API la matita di modifica e' prima del cestino; con un pannello
+	  aperto (informazioni generali o configurazione) resta solo il pulsante "Chiudi".
+
 2026-10-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
