@@ -22,11 +22,13 @@ package org.govway.catalogo.controllers.csv;
 public class AdesioneCsv {
 
 	private String erogatore;
+	private String organizzazioneErogatore;
 	private String servizio;
 	private String versioneServizio;
 	private String uuidServizio;
 	private String autenticazioneStato;
 	private String aderente;
+	private String organizzazioneAderente;
 	private String idLogicoAdesione;
 	private String uuidAdesione;
 	private String statoAdesione;
@@ -48,6 +50,12 @@ public class AdesioneCsv {
 	}
 	public void setErogatore(String erogatore) {
 		this.erogatore = erogatore;
+	}
+	public String getOrganizzazioneErogatore() {
+		return organizzazioneErogatore;
+	}
+	public void setOrganizzazioneErogatore(String organizzazioneErogatore) {
+		this.organizzazioneErogatore = organizzazioneErogatore;
 	}
 	public String getServizio() {
 		return servizio;
@@ -78,6 +86,12 @@ public class AdesioneCsv {
 	}
 	public void setAderente(String aderente) {
 		this.aderente = aderente;
+	}
+	public String getOrganizzazioneAderente() {
+		return organizzazioneAderente;
+	}
+	public void setOrganizzazioneAderente(String organizzazioneAderente) {
+		this.organizzazioneAderente = organizzazioneAderente;
 	}
 	public String getIdLogicoAdesione() {
 		return idLogicoAdesione;

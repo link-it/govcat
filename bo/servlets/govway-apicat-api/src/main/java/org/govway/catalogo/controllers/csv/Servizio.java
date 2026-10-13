@@ -22,7 +22,9 @@ package org.govway.catalogo.controllers.csv;
 public class Servizio {
 
 	private String erogatore;
+	private String organizzazioneErogatore;
 	private String fruitore;
+	private String organizzazioneFruitore;
 	private String intermediato;
 	private String dominio;
 	private String servizio;
@@ -52,11 +54,23 @@ public class Servizio {
 	public void setErogatore(String erogatore) {
 		this.erogatore = erogatore;
 	}
+	public String getOrganizzazioneErogatore() {
+		return organizzazioneErogatore;
+	}
+	public void setOrganizzazioneErogatore(String organizzazioneErogatore) {
+		this.organizzazioneErogatore = organizzazioneErogatore;
+	}
 	public String getFruitore() {
 		return fruitore;
 	}
 	public void setFruitore(String fruitore) {
 		this.fruitore = fruitore;
+	}
+	public String getOrganizzazioneFruitore() {
+		return organizzazioneFruitore;
+	}
+	public void setOrganizzazioneFruitore(String organizzazioneFruitore) {
+		this.organizzazioneFruitore = organizzazioneFruitore;
 	}
 	public String getIntermediato() {
 		return intermediato;

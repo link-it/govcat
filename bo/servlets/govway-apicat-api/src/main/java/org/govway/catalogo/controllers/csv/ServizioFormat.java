@@ -27,8 +27,12 @@ public abstract class ServizioFormat {
 
 	@JsonProperty("Soggetto Erogatore")
 	abstract String getErogatore();
+	@JsonProperty("Organizzazione Erogatore")
+	abstract String getOrganizzazioneErogatore();
 	@JsonProperty("Soggetto Fruitore")
 	abstract String getFruitore();
+	@JsonProperty("Organizzazione Fruitore")
+	abstract String getOrganizzazioneFruitore();
 	@JsonProperty("Intermediato")
 	abstract String getIntermediato();
 	@JsonProperty("Dominio")

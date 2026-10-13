@@ -64,7 +64,10 @@ public class ServizioBuilder {
 		// il referente del dominio è il fruitore interno.
 		SoggettoEntity erogatore = this.eServiceBuilder.getSoggettoErogatore(servizioEntity);
 		String nomeErogatore = erogatore != null ? erogatore.getNome() : "";
-		String nomeFruitore = getNomeFruitore(servizioEntity);
+		String organizzazioneErogatore = getNomeOrganizzazione(erogatore);
+		SoggettoEntity fruitore = getSoggettoFruitore(servizioEntity);
+		String nomeFruitore = fruitore != null ? fruitore.getNome() : "";
+		String organizzazioneFruitore = getNomeOrganizzazione(fruitore);
 		String intermediato = servizioEntity.isFruizione() ? "Sì" : "No";
 
 		DominioEntity dominioEntity = servizioEntity.getDominio();
@@ -83,7 +86,9 @@ public class ServizioBuilder {
 			Servizio s = new Servizio();
 
 			s.setErogatore(nomeErogatore);
+			s.setOrganizzazioneErogatore(organizzazioneErogatore);
 			s.setFruitore(nomeFruitore);
+			s.setOrganizzazioneFruitore(organizzazioneFruitore);
 			s.setIntermediato(intermediato);
 			s.setDominio(nomeDominio);
 
@@ -147,15 +152,22 @@ public class ServizioBuilder {
 	/**
 	 * Soggetto fruitore: valorizzato solo per i servizi intermediati, dove il soggetto referente
 	 * del dominio è il fruitore interno e non l'erogatore (vedi EServiceBuilder.getSoggettoErogatore).
-	 * Per le erogazioni la colonna resta vuota: non esiste un fruitore interno.
+	 * Per le erogazioni le colonne del fruitore restano vuote: non esiste un fruitore interno.
 	 */
-	private String getNomeFruitore(ServizioEntity servizioEntity) {
+	private SoggettoEntity getSoggettoFruitore(ServizioEntity servizioEntity) {
 		if(!servizioEntity.isFruizione() || servizioEntity.getDominio() == null) {
+			return null;
+		}
+
+		return servizioEntity.getDominio().getSoggettoReferente();
+	}
+
+	private String getNomeOrganizzazione(SoggettoEntity soggetto) {
+		if(soggetto == null || soggetto.getOrganizzazione() == null) {
 			return "";
 		}
 
-		SoggettoEntity fruitore = servizioEntity.getDominio().getSoggettoReferente();
-		return fruitore != null ? fruitore.getNome() : "";
+		return soggetto.getOrganizzazione().getNome();
 	}
 
 	/**

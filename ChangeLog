@@ -1,3 +1,12 @@
+2026-10-13  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 386: gli export CSV di servizi e adesioni riportano le organizzazioni dei
+	  soggetti coinvolti, ciascuna nella colonna subito dopo quella del proprio
+	  soggetto: "Organizzazione Erogatore" e "Organizzazione Fruitore" (quest'ultima
+	  valorizzata solo per i servizi intermediati) nei servizi, "Organizzazione
+	  Erogatore" e "Organizzazione Aderente" nelle adesioni.
+
 2026-10-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

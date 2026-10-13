@@ -495,10 +495,15 @@ public class AdesioniTest {
         Dominio dominio = this.getDominioFull(null);
         Servizio servizio = this.getServizioFull(dominio, VisibilitaServizioEnum.PUBBLICO);
 
-        // Ente erogatore distinto dal soggetto referente del dominio
+        // Ente erogatore distinto dal soggetto referente del dominio, in un'organizzazione propria
+        OrganizzazioneCreate organizzazioneErogatore = CommonUtils.getOrganizzazioneCreate();
+        organizzazioneErogatore.setNome("organizzazione_erogatore");
+        ResponseEntity<Organizzazione> organizzazioneErogatoreCreata = organizzazioniController.createOrganizzazione(organizzazioneErogatore);
+        assertEquals(HttpStatus.OK, organizzazioneErogatoreCreata.getStatusCode());
+
         SoggettoCreate erogatoreCreate = new SoggettoCreate();
         erogatoreCreate.setNome("nome_soggetto_erogatore");
-        erogatoreCreate.setIdOrganizzazione(this.idOrganizzazione);
+        erogatoreCreate.setIdOrganizzazione(organizzazioneErogatoreCreata.getBody().getIdOrganizzazione());
         erogatoreCreate.setReferente(true);
         erogatoreCreate.setAderente(true);
         ResponseEntity<Soggetto> erogatore = soggettiController.createSoggetto(erogatoreCreate);
@@ -545,6 +550,13 @@ public class AdesioniTest {
 
         // Aderente: il soggetto dell'adesione, non la sua organizzazione
         assertEquals("nome_soggetto", getColonnaCsv(csv, adesione, "Soggetto Aderente"));
+
+        // Organizzazioni dei soggetti, ciascuna subito dopo la colonna del proprio soggetto
+        assertEquals("organizzazione_erogatore", getColonnaCsv(csv, adesione, "Organizzazione Erogatore"));
+        assertEquals(CommonUtils.NOME_ORGANIZZAZIONE, getColonnaCsv(csv, adesione, "Organizzazione Aderente"));
+        List<String> header = parseCsv(csv).get(0);
+        assertEquals(header.indexOf("Soggetto Erogatore") + 1, header.indexOf("Organizzazione Erogatore"));
+        assertEquals(header.indexOf("Soggetto Aderente") + 1, header.indexOf("Organizzazione Aderente"));
     }
 
     @Test

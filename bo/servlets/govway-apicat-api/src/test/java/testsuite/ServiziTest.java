@@ -2092,9 +2092,15 @@ public class ServiziTest {
         Dominio dominio = this.getDominio();
         String nomeReferenteDominio = createdSoggetto.getBody().getNome();
 
+        // Ente erogatore in un'organizzazione distinta da quella del referente del dominio
+        OrganizzazioneCreate organizzazioneErogatore = CommonUtils.getOrganizzazioneCreate();
+        organizzazioneErogatore.setNome("organizzazione_erogatore");
+        ResponseEntity<Organizzazione> organizzazioneErogatoreCreata = organizzazioniController.createOrganizzazione(organizzazioneErogatore);
+        assertEquals(HttpStatus.OK, organizzazioneErogatoreCreata.getStatusCode());
+
         SoggettoCreate erogatoreCreate = new SoggettoCreate();
         erogatoreCreate.setNome("nome_soggetto_erogatore");
-        erogatoreCreate.setIdOrganizzazione(this.idOrganizzazione);
+        erogatoreCreate.setIdOrganizzazione(organizzazioneErogatoreCreata.getBody().getIdOrganizzazione());
         erogatoreCreate.setReferente(true);
         erogatoreCreate.setAderente(true);
         erogatoreCreate.setSkipCollaudo(true);
@@ -2137,6 +2143,13 @@ public class ServiziTest {
         assertEquals(nomeReferenteDominio, getColonnaCsv(csv, servizio, "Soggetto Fruitore"));
         assertEquals(CommonUtils.NOME_DOMINIO, getColonnaCsv(csv, servizio, "Dominio"));
 
+        // Organizzazioni dei soggetti, ciascuna subito dopo la colonna del proprio soggetto
+        assertEquals("organizzazione_erogatore", getColonnaCsv(csv, servizio, "Organizzazione Erogatore"));
+        assertEquals(CommonUtils.NOME_ORGANIZZAZIONE, getColonnaCsv(csv, servizio, "Organizzazione Fruitore"));
+        List<String> headerSoggetti = parseCsv(csv).get(0);
+        assertEquals(headerSoggetti.indexOf("Soggetto Erogatore") + 1, headerSoggetti.indexOf("Organizzazione Erogatore"));
+        assertEquals(headerSoggetti.indexOf("Soggetto Fruitore") + 1, headerSoggetti.indexOf("Organizzazione Fruitore"));
+
         // Nome, versione e uuid su colonne distinte: la versione non è più incorporata nel nome
         assertEquals("servizio_export_colonne", getColonnaCsv(csv, servizio, "Servizio"));
         assertEquals(servizio.getVersione(), getColonnaCsv(csv, servizio, "Versione Servizio"));
@@ -2177,7 +2190,9 @@ public class ServiziTest {
 
         // Per un servizio in erogazione non esiste un fruitore interno: la colonna resta vuota
         assertEquals("", getColonnaCsv(csv, servizio, "Soggetto Fruitore"));
+        assertEquals("", getColonnaCsv(csv, servizio, "Organizzazione Fruitore"));
         assertEquals(createdSoggetto.getBody().getNome(), getColonnaCsv(csv, servizio, "Soggetto Erogatore"));
+        assertEquals(CommonUtils.NOME_ORGANIZZAZIONE, getColonnaCsv(csv, servizio, "Organizzazione Erogatore"));
     }
 
     @Test
