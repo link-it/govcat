@@ -1,6 +1,9 @@
 2026-10-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Form API e configurazione: il caricamento della specifica non resta disabilitato per gli
+	  utenti non gestori quando il form viene aperto prima del caricamento di servizio e grant.
+
 	Wizard servizi: nella modifica del servizio senza immagine il payload invia immagine null
 	  (prima {} rifiutato con errore 400); la rimozione dell'immagine esistente ora e' salvata.
 

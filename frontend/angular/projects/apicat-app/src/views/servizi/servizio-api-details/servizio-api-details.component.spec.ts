@@ -256,6 +256,11 @@ describe('ServizioApiDetailsComponent', () => {
     expect(mockAuthenticationService.canEditField).toHaveBeenCalledWith('servizio', 'api', '', 'protocollo', undefined);
   });
 
+  it('should use stato and grant passed as pipe arguments on _canEditFieldMapper', () => {
+    component._canEditFieldMapper('allegati', 'bozza', { ruoli: ['referente_servizio'] } as any);
+    expect(mockAuthenticationService.canEditField).toHaveBeenCalledWith('servizio', 'api', 'bozza', 'allegati', ['referente_servizio']);
+  });
+
   it('should check _isGestore', () => {
     mockAuthenticationService.isGestore.mockReturnValue(true);
     expect(component._isGestore()).toBe(true);

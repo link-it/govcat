@@ -2081,6 +2081,11 @@ describe('ServizioApiConfigurationComponent', () => {
       component._canEditFieldMapper('url');
       expect(mockAuthenticationService.canEditField).toHaveBeenCalledWith('servizio', 'api', 'pubblicato', 'url', ['referente']);
     });
+
+    it('should use stato and grant passed as pipe arguments', () => {
+      component._canEditFieldMapper('allegati', 'bozza', { ruoli: ['referente_servizio'] } as any);
+      expect(mockAuthenticationService.canEditField).toHaveBeenCalledWith('servizio', 'api', 'bozza', 'allegati', ['referente_servizio']);
+    });
   });
 
   // ==================== _initProprietaCustom ====================

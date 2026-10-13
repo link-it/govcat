@@ -302,7 +302,7 @@
                               (resetControl)="_onDescrittoreChange(_descrittoreCtrl.value)"
                               (fileChanged)="_onDescrittoreChange(_descrittoreCtrl.value)"
                               [required]="_specificaObbligatorio || this._hasSpecifica"
-                              [disabled]="!f['protocollo'].value || !('allegati' | mapper:_canEditFieldMapper)"
+                              [disabled]="!f['protocollo'].value || !('allegati' | mapper:_canEditFieldMapper:service?.stato:_grant)"
                               [maxUpload]="null"
                             ></ui-allegato>
                             <ui-input-help field="filename" context="ALLEGATI"></ui-input-help>

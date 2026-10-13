@@ -403,8 +403,9 @@ export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, Aft
     this.desktop = (window.innerWidth >= 992);
   }
 
-  _canEditFieldMapper = (field: string): boolean => {
-    return this.authenticationService.canEditField('servizio', 'api', this.service?.stato || '', field, this._grant?.ruoli);
+  // Stato e grant come argomenti del pipe: il risultato si aggiorna quando arrivano i dati del servizio
+  _canEditFieldMapper = (field: string, stato: string = this.service?.stato, grant: Grant | null = this._grant): boolean => {
+    return this.authenticationService.canEditField('servizio', 'api', stato || '', field, grant?.ruoli);
   }
 
   _initBreadcrumb() {

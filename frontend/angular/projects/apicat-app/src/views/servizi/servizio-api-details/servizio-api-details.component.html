@@ -352,7 +352,7 @@
                               [accept]="'.json,.yml,.yaml,.wsdl'"
                               (resetControl)="_onDescrittoreChange(_descrittoreCtrl.value)"
                               (fileChanged)="_onDescrittoreChange(_descrittoreCtrl.value)"
-                              [disabled]="!f['protocollo'].value || !('allegati' | mapper:_canEditFieldMapper)"
+                              [disabled]="!f['protocollo'].value || !('allegati' | mapper:_canEditFieldMapper:service?.stato:_grant)"
                               [maxUpload]="null"
                             ></ui-allegato>
                             <ui-input-help field="filename" context="ALLEGATI"></ui-input-help>
@@ -517,7 +517,7 @@
                                       <div class="col-6">
                                         <label for="risorse" class="label-bold w-100">{{ 'APP.LABEL.Risorse' | translate }} @if (_isEdit) {
                                           <span appMarkAsterisk [formGroup]="afg(authIndex)" [controlName]="'resources'"></span>
-                                          } @if (_isEdit && ('resources' | mapper:_canEditFieldMapper)) {
+                                          } @if (_isEdit && ('resources' | mapper:_canEditFieldMapper:service?.stato:_grant)) {
                                           <span class="float-end" (click)="_changeResources(authIndex)"><i class="bi bi-pencil"></i></span>
                                         }</label>
                                         <select class="form-select" formControlName="resources" multiple size="5" readonly>
@@ -553,7 +553,7 @@
                                       </div>
                                     </div>
                                   </div>
-                                  @if ((authIndex > 0) && _isEdit && ('allegati' | mapper:_canEditFieldMapper)) {
+                                  @if ((authIndex > 0) && _isEdit && ('allegati' | mapper:_canEditFieldMapper:service?.stato:_grant)) {
                                     <div class="d-flex justify-content-end">
                                       <button type="button" class="btn gl-button btn-danger " (click)="_removeAuthGroup(authIndex)">
                                         <span>{{ 'APP.BUTTON.Remove' | translate }}</span>
@@ -563,7 +563,7 @@
                                 </div>
                               </div>
                             }
-                            @if (_isEdit && ('allegati' | mapper:_canEditFieldMapper) && _hasSpecifica) {
+                            @if (_isEdit && ('allegati' | mapper:_canEditFieldMapper:service?.stato:_grant) && _hasSpecifica) {
                               <div class="pt-3 border-top">
                                 @if (!_customAuth && !_customAuthOrig) {
                                   <button type="button" class="btn gl-button btn-default" (click)="_onToggleCustomAuth()">
