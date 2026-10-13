@@ -1020,6 +1020,19 @@ describe('ServizioApiConfigurationComponent', () => {
   // ==================== copyTestingValue ====================
 
   describe('copyTestingValue', () => {
+    it('should not copy into a field that is not editable and hide its copy button', () => {
+      component.environmentId = 'produzione';
+      component.service = { skip_collaudo: false } as any;
+      (component as any).testingValues = { nome_gateway: 'gw-test', versione_gateway: null, url: '', protocollo: '', protocollo_dettaglio: '' };
+      const _ctrl = component._formGroup.get('nome_gateway')!;
+      _ctrl.setValue('');
+      expect(component._canCopyFromTesting(_ctrl)).toBe(true);
+      _ctrl.disable();
+      expect(component._canCopyFromTesting(_ctrl)).toBe(false);
+      component.copyTestingValue('nome_gateway');
+      expect(_ctrl.value).toBe('');
+    });
+
     it('should set control value from testingValues', () => {
       (component as any).testingValues = {
         nome_gateway: 'gw-test', versione_gateway: 5, url: 'http://test', protocollo: 'rest', protocollo_dettaglio: ''
@@ -1192,6 +1205,16 @@ describe('ServizioApiConfigurationComponent', () => {
   // ==================== copyCustomPropertyTestingValue ====================
 
   describe('copyCustomPropertyTestingValue', () => {
+    it('should not copy into a field that is not editable', () => {
+      const _ctrl = new UntypedFormControl('');
+      _ctrl.disable();
+      (component._formGroup as UntypedFormGroup).removeControl('proprieta_custom');
+      component._formGroup.addControl('proprieta_custom', new UntypedFormGroup({ TestGroup: new UntypedFormGroup({ campo1: _ctrl }) }));
+      vi.spyOn(component, 'getCustomPropertyTestingValue').mockReturnValue('test_value');
+      component.copyCustomPropertyTestingValue('TestGroup', 'campo1');
+      expect(_ctrl.value).toBe('');
+    });
+
     it('should set control value from getCustomPropertyTestingValue', () => {
       // Set up form with proprieta_custom group
       const innerGroup = new UntypedFormGroup({ campo1: new UntypedFormControl('') });
@@ -1543,6 +1566,8 @@ describe('ServizioApiConfigurationComponent', () => {
       component._apiProprietaCustomGrouped = {
         'PDND': [{ nome_gruppo: 'PDNDProduzione', label_gruppo: 'PDND', classe_dato: 'produzione', nome: 'p1' }]
       };
+      (component._formGroup as UntypedFormGroup).removeControl('proprieta_custom');
+      component._formGroup.addControl('proprieta_custom', new UntypedFormGroup({ PDND: new UntypedFormGroup({ p1: new UntypedFormControl('') }) }));
       mockApiService.putElement.mockReturnValueOnce(of({}));
 
       vi.spyOn(component as any, '_loadServizioApi').mockImplementation(() => {});
@@ -1550,6 +1575,27 @@ describe('ServizioApiConfigurationComponent', () => {
 
       const callArg = mockApiService.putElement.mock.calls[0][2];
       expect(callArg.dati_custom.proprieta_custom).toEqual([{ gruppo: 'PDNDProduzione', proprieta: [] }]);
+    });
+
+    it('should not empty a saved group whose fields are not editable', () => {
+      component.environmentId = 'produzione';
+      component._hasSpecifica = false;
+      component._configuration = null;
+      component.servizioApi = { proprieta_custom: [{ gruppo: 'PDNDProduzione', proprieta: [{ nome: 'p1', valore: 'old' }] }] } as any;
+      component._apiProprietaCustomGrouped = {
+        'PDND': [{ nome_gruppo: 'PDNDProduzione', label_gruppo: 'PDND', classe_dato: 'produzione', nome: 'p1' }]
+      };
+      const _p1 = new UntypedFormControl('old');
+      _p1.disable();
+      (component._formGroup as UntypedFormGroup).removeControl('proprieta_custom');
+      component._formGroup.addControl('proprieta_custom', new UntypedFormGroup({ PDND: new UntypedFormGroup({ p1: _p1 }) }));
+      mockApiService.putElement.mockReturnValueOnce(of({}));
+
+      vi.spyOn(component as any, '_loadServizioApi').mockImplementation(() => {});
+      component._onSaveApi(component._formGroup.value);
+
+      const callArg = mockApiService.putElement.mock.calls[0][2];
+      expect(callArg.dati_custom).toBeUndefined();
     });
 
     it('should not send dati_custom when the environment has no groups', () => {

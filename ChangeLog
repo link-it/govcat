@@ -1,6 +1,10 @@
 2026-10-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Configurazione API per ambiente: campi custom, specifica e protocollo seguono i permessi della
+	  classe dell'ambiente (in produzione non restano bloccati per i non gestori); "Copia da collaudo"
+	  solo sui campi modificabili; i gruppi custom non modificabili non vengono piu' svuotati.
+
 	Issue 364: dopo il logout volontario l'app non riavvia l'accesso automatico (con CNS l'utente
 	  rientrava subito) e mostra lo stato "Sei uscito" con il pulsante di accesso; eliminata la
 	  concorrenza tra logout e avvio del login.

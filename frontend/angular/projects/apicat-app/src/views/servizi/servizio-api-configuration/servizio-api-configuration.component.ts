@@ -299,7 +299,7 @@ export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, Aft
 
   copyTestingValue(field: string, overwrite: boolean = true) {
     const control = this._formGroup.get(field);
-    if (!control || (!overwrite && control.value)) {
+    if (!control || control.disabled || (!overwrite && control.value)) {
       return;
     }
 
@@ -308,6 +308,11 @@ export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, Aft
     if (field === 'protocollo') {
       this.copySepcificationValue();
     }
+  }
+
+  /** Pulsante "Copia da collaudo" del singolo campo: solo se il campo e` modificabile. */
+  _canCopyFromTesting(control: AbstractControl | null | undefined): boolean {
+    return this.showCopyFromTesting() && !!control?.enabled;
   }
 
   getTestingValue(field: string) {
@@ -351,7 +356,7 @@ export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, Aft
 
   copyCustomPropertyTestingValue(nome_gruppo: string, nome: string, overwrite: boolean = true) {
     const control = this._formGroup.get('proprieta_custom')?.get(nome_gruppo)?.get(nome);
-    if (!control || (!overwrite && control.value)) {
+    if (!control || control.disabled || (!overwrite && control.value)) {
       return;
     }
     control.setValue(this.getCustomPropertyTestingValue(nome_gruppo, nome));
@@ -379,7 +384,7 @@ export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, Aft
   }
 
   private copySepcificationValue(overwrite: boolean = true) {
-    if (!overwrite && this._descrittoreCtrl?.value?.file) {
+    if (!this._canEditFieldMapper(this.environmentId) || (!overwrite && this._descrittoreCtrl?.value?.file)) {
       return;
     }
     const configuration = this.servizioApi?.configurazione_collaudo;
@@ -837,7 +842,9 @@ export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, Aft
       const _gruppiSalvati: any[] = this.servizioApi?.proprieta_custom || [];
       Object.values(this._apiProprietaCustomGrouped).flat().forEach((campo: any) => {
         const _gruppo = campo.nome_gruppo;
-        if (!result.some(r => r.gruppo === _gruppo) && _gruppiSalvati.some((g: any) => g.gruppo === _gruppo)) {
+        // Campi disabilitati (non modificabili) restano fuori dal valore del form: il gruppo non va svuotato
+        const _modificabile = !!this._formGroup.get('proprieta_custom')?.get(campo[this.fieldToGroup])?.get(campo.nome)?.enabled;
+        if (_modificabile && !result.some(r => r.gruppo === _gruppo) && _gruppiSalvati.some((g: any) => g.gruppo === _gruppo)) {
           result.push({ gruppo: _gruppo, proprieta: [] });
         }
       });

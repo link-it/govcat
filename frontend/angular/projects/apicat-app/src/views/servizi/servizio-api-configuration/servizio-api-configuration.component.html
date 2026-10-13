@@ -110,7 +110,7 @@
                                   name="nome_gateway" id="nome_gateway" formControlName="nome_gateway" disablePermission
                                   [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato"
                                   [grant]="_grant">
-                                @if (showCopyFromTesting()) {
+                                @if (_canCopyFromTesting(f['nome_gateway'])) {
                                   <button class="btn btn-default btn-md gl-button" type="button"
                                     [disabled]="!getTestingValue('nome_gateway')"
                                     (click)="copyTestingValue('nome_gateway')"
@@ -162,7 +162,7 @@
                                     name="versione_gateway" id="versione_gateway" formControlName="versione_gateway"
                                     disablePermission [module]="'servizio'" [submodule]="'api'" [state]="service?.stato"
                                     [grant]="_grant" min="1">
-                                  @if (showCopyFromTesting()) {
+                                  @if (_canCopyFromTesting(f['versione_gateway'])) {
                                     <button class="btn btn-default btn-md gl-button" type="button"
                                       [disabled]="!getTestingValue('versione_gateway')"
                                       (click)="copyTestingValue('versione_gateway')"
@@ -225,12 +225,12 @@
                                   [items]="_tipoInterfaccia" bindValue="value" bindLabel="label" labelForId="protocollo"
                                   [searchable]="false" [clearable]="false" [placeholder]="'APP.MESSAGE.SelectInterface' | translate"
                                   formControlName="protocollo"
-                                  disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato"
+                                  disablePermission [field]="environmentId" [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato"
                                   [grant]="_grant">
                                   <ng-template ng-label-tmp let-item="item">{{ item.label | translate }}</ng-template>
                                   <ng-template ng-option-tmp let-item="item">{{ item.label | translate }}</ng-template>
                                 </ng-select>
-                                @if (showCopyFromTesting()) {
+                                @if (_canCopyFromTesting(f['protocollo'])) {
                                   <button class="btn btn-default btn-md gl-button" type="button"
                                     [disabled]="!getTestingValue('protocollo')"
                                     (click)="copyTestingValue('protocollo')"
@@ -302,7 +302,7 @@
                               (resetControl)="_onDescrittoreChange(_descrittoreCtrl.value)"
                               (fileChanged)="_onDescrittoreChange(_descrittoreCtrl.value)"
                               [required]="_specificaObbligatorio || this._hasSpecifica"
-                              [disabled]="!f['protocollo'].value || !('allegati' | mapper:_canEditFieldMapper:service?.stato:_grant)"
+                              [disabled]="!f['protocollo'].value || !(environmentId | mapper:_canEditFieldMapper:service?.stato:_grant)"
                               [maxUpload]="null"
                             ></ui-allegato>
                             <ui-input-help field="filename" context="ALLEGATI"></ui-input-help>
@@ -358,7 +358,7 @@
                                       [attr.aria-describedby]="(_hasControlError('url')) ? 'url-error' : null" type="text" name="url" id="url"
                                       formControlName="url" disablePermission [isNew]="_isNew" [module]="'servizio'"
                                       [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
-                                    @if (showCopyFromTesting()) {
+                                    @if (_canCopyFromTesting(f['url'])) {
                                       <button class="btn btn-default btn-md gl-button" type="button"
                                         [disabled]="!getTestingValue('url')"
                                         (click)="copyTestingValue('url')" [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate">
@@ -419,7 +419,7 @@
                                               <input autocomplete="off" class="form-control"
                                                 [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp[fieldToGroup], cp.nome)"
                                                 [type]="cp.type" [name]="cp.nome" [id]="cp.nome" [formControlName]="cp.nome" [attr.aria-describedby]="cp._req?.nextState ? cp.nome + '-req-hint' : null"
-                                                disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'"
+                                                disablePermission [field]="environmentId" [isNew]="_isNew" [module]="'servizio'"
                                                 [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
                                             }
                                             @if (cp.tipo === 'select') {
@@ -427,7 +427,7 @@
                                                 [items]="cp.valori" bindValue="nome" bindLabel="etichetta" [labelForId]="cp.nome"
                                                 [searchable]="false" [clearable]="false" [placeholder]="'APP.MESSAGE.Select' | translate"
                                                 [formControlName]="cp.nome" [errorId]="cp.nome + '-error'" [describedBy]="cp._req?.nextState ? cp.nome + '-req-hint' : null"
-                                                disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'"
+                                                disablePermission [field]="environmentId" [isNew]="_isNew" [module]="'servizio'"
                                                 [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
                                               </ng-select>
                                             }
@@ -441,7 +441,7 @@
                                               [maxUpload]="null"
                                             ></ui-allegato>
                                           </ng-container> -->
-                                          @if (showCopyFromTesting()) {
+                                          @if (_canCopyFromTesting(acfgc(cp[fieldToGroup]).get(cp.nome))) {
                                             <button class="btn btn-default btn-md gl-button" type="button"
                                               [disabled]="!getCustomPropertyTestingValue(cp[fieldToGroup], cp.nome)"
                                               (click)="copyCustomPropertyTestingValue(cp[fieldToGroup], cp.nome)"
