@@ -27,12 +27,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 }
 
 // Issue #332 — Barra URL di esposizione nella dialog API (stile card moderno).
+.url-esposizione-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+}
 .url-esposizione {
     display: flex;
     align-items: center;
     gap: 12px;
     padding: 12px 14px;
-    margin-bottom: 20px;
     background: var(--surface-2, #f8fafc);
     border: 1px solid var(--line, #e2e8f0);
     border-radius: 12px;

@@ -352,6 +352,9 @@
 			"ShowSecret": "Mostra secret",
 			"HideSecret": "Nascondi secret",
 			"AddApi": "Aggiungi API",
+			"AddUrl": "Aggiungi URL",
+			"MoveUp": "Sposta su",
+			"MoveDown": "Sposta giù",
 			"AddAttachment": "Aggiungi allegato",
 			"AddAuthentication": "Aggiungi Autenticazione",
 			"AddCategory": "Aggiungi categoria",
@@ -842,6 +845,16 @@
 			"ImpostatoDalDominio": "Impostato dal dominio",
 			"SkipToContent": "Salta al contenuto",
 			"UrlEsposizione": "Url di esposizione",
+			"UrlInvocazioneAggiuntive": "URL di invocazione aggiuntive",
+			"UrlInvocazioneAggiuntive_sub": "Lo stesso servizio esposto su altri gateway. Il catalogo documenta le URL ma non configura il gateway su GovWay: se non è configurato, la URL non risponde.",
+			"UrlAggiuntivaEtichetta": "Etichetta",
+			"UrlAggiuntivaTemplate": "Template URL",
+			"UrlAggiuntivaTemplate_help": "Se vuoto si usa il path della URL principale",
+			"UrlAggiuntivaPrefissoCollaudo": "Prefisso collaudo",
+			"UrlAggiuntivaPrefissoProduzione": "Prefisso produzione",
+			"UrlAggiuntivaPrefisso_help": "Se vuoto si usa il prefisso della URL principale",
+			"UrlAggiuntivaRiga": "URL aggiuntiva {{n}}",
+			"UrlAggiuntiveNessuna": "Nessuna URL aggiuntiva: il servizio è esposto solo sulla URL principale.",
 			"RemoveFilter": "Rimuovi filtro",
 			"SelectRow": "Seleziona elemento",
 			"CreationDate": "Data creazione",
@@ -2099,7 +2112,9 @@
 				"Uuid": "Inserisci una UUID valida",
 				"MaxFileSize": "Dimensione massima consentita: {{size}} MB",
 				"OnlyImages": "Sono consentiti solo file di tipo: {{types}}",
-				"MaxDimensions": "Dimensioni massime consentite: {{width}}x{{height}} px"
+				"MaxDimensions": "Dimensioni massime consentite: {{width}}x{{height}} px",
+				"EtichettaDuplicata": "Etichetta già usata da un'altra URL",
+				"MaxUrlAggiuntive": "Al massimo {{max}} URL aggiuntive"
 			}
 		},
 		"NOTIFICATIONS": {

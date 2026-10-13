@@ -352,6 +352,9 @@
 			"ShowSecret": "Show secret",
 			"HideSecret": "Hide secret",
 			"AddApi": "Add APIs",
+			"AddUrl": "Add URL",
+			"MoveUp": "Move up",
+			"MoveDown": "Move down",
 			"AddAttachment": "Add Attachment",
 			"AddAuthentication": "Add Authentication",
 			"AddCategory": "Add Category",
@@ -842,6 +845,16 @@
 			"ImpostatoDalDominio": "Set by the domain",
 			"SkipToContent": "Skip to content",
 			"UrlEsposizione": "Exposure URL",
+			"UrlInvocazioneAggiuntive": "Additional invocation URLs",
+			"UrlInvocazioneAggiuntive_sub": "The same service exposed on other gateways. The catalogue documents the URLs but does not configure the gateway on GovWay: if it is not configured, the URL does not respond.",
+			"UrlAggiuntivaEtichetta": "Label",
+			"UrlAggiuntivaTemplate": "URL template",
+			"UrlAggiuntivaTemplate_help": "If empty, the path of the main URL is used",
+			"UrlAggiuntivaPrefissoCollaudo": "Testing prefix",
+			"UrlAggiuntivaPrefissoProduzione": "Production prefix",
+			"UrlAggiuntivaPrefisso_help": "If empty, the prefix of the main URL is used",
+			"UrlAggiuntivaRiga": "Additional URL {{n}}",
+			"UrlAggiuntiveNessuna": "No additional URL: the service is exposed only on the main URL.",
 			"RemoveFilter": "Remove filter",
 			"SelectRow": "Select item",
 			"CreationDate": "Creation Date",
@@ -2099,7 +2112,9 @@
 				"Uuid": "Insert valid UUID",
 				"MaxFileSize": "Maximum size allowed: {{size}} MB",
 				"OnlyImages": "Only files of type are allowed: {{types}}",
-				"MaxDimensions": "Maximum dimensions allowed: {{width}}x{{height}} px"
+				"MaxDimensions": "Maximum dimensions allowed: {{width}}x{{height}} px",
+				"EtichettaDuplicata": "Label already used by another URL",
+				"MaxUrlAggiuntive": "At most {{max}} additional URLs"
 			}
 		},
 		"NOTIFICATIONS": {

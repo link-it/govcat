@@ -75,6 +75,7 @@ export const EROGATO_SOGGETTO_ADERENTE: string = 'erogato_soggetto_aderente';
 declare const saveAs: any;
 import * as _ from 'lodash';
 import { ApiConfigurationRead, ApiReadDetails, CustomProperty, CustomPropertyDefinition } from '../servizio-api-details/servizio-api-interfaces';
+import { UrlInvocazioneAggiuntivaRisolta } from '../servizio-api-url-aggiuntive';
 
 export interface Organization {
     id_organizzazione: string;
@@ -256,6 +257,9 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     // dal backend. Mostrato nella dialog anche quando manca la specifica.
     _urlInvocazione: string | null = null;
     _urlInvocazioneLoading: boolean = false;
+    // Righe della barra: la principale (etichetta null) seguita dalle URL aggiuntive
+    _urlEsposizioneRighe: { etichetta: string | null; url: string }[] = [];
+    _urlCopiata: number | null = null;
 
     allowTryIt: boolean = false;
     showAuthorizeBtn: boolean = false;
@@ -936,14 +940,21 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
      */
     _loadUrlInvocazione(idApi: string) {
         this._urlInvocazione = null;
+        this._urlEsposizioneRighe = [];
         this._urlInvocazioneLoading = true;
         this.apiService.getDetails('api', idApi, `${this._environmentId}/url-invocazione`).subscribe({
             next: (response: any) => {
                 this._urlInvocazione = response?.url_invocazione || null;
+                const _aggiuntive: UrlInvocazioneAggiuntivaRisolta[] = response?.url_invocazione_aggiuntive || [];
+                this._urlEsposizioneRighe = this._urlInvocazione ? [
+                    { etichetta: null, url: this._urlInvocazione },
+                    ..._aggiuntive.filter((item) => !!item?.url_invocazione).map((item) => ({ etichetta: item.etichetta, url: item.url_invocazione }))
+                ] : [];
                 this._urlInvocazioneLoading = false;
             },
             error: () => {
                 this._urlInvocazione = null;
+                this._urlEsposizioneRighe = [];
                 this._urlInvocazioneLoading = false;
             }
         });
@@ -960,11 +971,12 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         return !!this._urlInvocazione;
     }
 
-    copyUrlInvocazione() {
-        if (!this._urlInvocazione) { return; }
-        this.clipboard.copy(this._urlInvocazione);
-        this._showMessageClipboard = true;
-        setTimeout(() => { this._showMessageClipboard = false; }, 3000);
+    copyUrlInvocazione(index: number = 0) {
+        const _riga = this._urlEsposizioneRighe[index];
+        if (!_riga) { return; }
+        this.clipboard.copy(_riga.url);
+        this._urlCopiata = index;
+        setTimeout(() => { if (this._urlCopiata === index) { this._urlCopiata = null; } }, 3000);
     }
 
     _openApiInfo() {

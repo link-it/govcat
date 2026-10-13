@@ -47,6 +47,8 @@ export class ServizioApiCreate {
     nome_gateway: string | null = null;
     versione_gateway: string | null = null;
 
+    url_invocazione_aggiuntive: any[] | null = null;
+
     constructor(_data?: any) {
         if (_data) {
             for (const key in _data) {

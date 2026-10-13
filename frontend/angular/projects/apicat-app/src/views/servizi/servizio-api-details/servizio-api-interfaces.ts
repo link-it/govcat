@@ -16,6 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+import { UrlInvocazioneAggiuntiva } from '../servizio-api-url-aggiuntive';
+
 export interface Profile {
     auth_type: string;
     codice_interno: string;
@@ -124,6 +126,7 @@ export interface ApiCreateRequest {
     configurazione_produzione?: ApiConfiguration;
     proprieta_custom: ApiCustomProperty[];
     gruppi_auth_type: ApiAuthTypeGroup[];
+    url_invocazione_aggiuntive?: UrlInvocazioneAggiuntiva[];
 }
 
 export interface ApiUpdateRequest {
@@ -136,6 +139,7 @@ export interface ApiUpdateRequest {
         descrizione: string;
         codice_asset: string;
         url_invocazione?: string;
+        url_invocazione_aggiuntive?: UrlInvocazioneAggiuntiva[];
     };
     dati_specifica?: {
         gruppi_auth_type: ApiAuthTypeGroup[];
@@ -173,4 +177,5 @@ export interface ApiReadDetails {
     proprieta_custom: ApiCustomProperty[];
     ruolo: string;
     versione: number;
+    url_invocazione_aggiuntive?: UrlInvocazioneAggiuntiva[];
 }

@@ -521,6 +521,21 @@ describe('ServizioApiDetailsComponent', () => {
   // _prepareBodySaveApi
   // =========================================================================
   describe('_prepareBodySaveApi', () => {
+    it('should send the additional URLs only when present', () => {
+      component._hasSpecifica = false;
+      component._apiProprietaCustomGrouped = null;
+      const body: any = {
+        nome: 'Api1', versione: '1', id_servizio: 's1', ruolo: 'erogato_soggetto_aderente',
+        protocollo: 'rest', descrizione: null, codice_asset: null, url_collaudo: '', url_produzione: '', authTypes: [],
+        url_invocazione_aggiuntive: []
+      };
+      expect(component._prepareBodySaveApi(body)).not.toHaveProperty('url_invocazione_aggiuntive');
+      body.url_invocazione_aggiuntive = [{ etichetta: 'Internet', url_prefix_collaudo: 'https://c' }];
+      expect(component._prepareBodySaveApi(body).url_invocazione_aggiuntive).toEqual([
+        { etichetta: 'Internet', template_url: null, url_prefix_collaudo: 'https://c', url_prefix_produzione: null }
+      ]);
+    });
+
     it('should build ApiCreateRequest with basic fields', () => {
       component._hasSpecifica = false;
       component._apiProprietaCustomGrouped = null;
@@ -682,6 +697,25 @@ describe('ServizioApiDetailsComponent', () => {
       expect(result.identificativo.ruolo).toBe('erogato_soggetto_aderente');
       expect(result.dati_generici.descrizione).toBe('desc');
       expect(result.dati_generici.codice_asset).toBe('CA');
+    });
+
+    it('should send the full list of additional URLs when the editor is enabled', () => {
+      const body = { nome: 'A', versione: '1', ruolo: 'erogato_soggetto_aderente', descrizione: null, codice_asset: null,
+        url_invocazione_aggiuntive: [{ etichetta: ' Internet ', template_url: '', url_prefix_collaudo: null, url_prefix_produzione: 'https://ext' }] };
+      const result = component._prepareBodyUpdateApi(body);
+      expect(result.dati_generici!.url_invocazione_aggiuntive).toEqual([
+        { etichetta: 'Internet', template_url: null, url_prefix_collaudo: null, url_prefix_produzione: 'https://ext' }
+      ]);
+    });
+
+    it('should send an empty list to clear the additional URLs', () => {
+      const body = { nome: 'A', versione: '1', ruolo: 'erogato_soggetto_aderente', descrizione: null, codice_asset: null, url_invocazione_aggiuntive: [] };
+      expect(component._prepareBodyUpdateApi(body).dati_generici!.url_invocazione_aggiuntive).toEqual([]);
+    });
+
+    it('should not send the additional URLs when the editor is disabled', () => {
+      const body = { nome: 'A', versione: '1', ruolo: 'erogato_soggetto_aderente', descrizione: null, codice_asset: null };
+      expect(component._prepareBodyUpdateApi(body).dati_generici).not.toHaveProperty('url_invocazione_aggiuntive');
     });
 
     it('should set dati_specifica.gruppi_auth_type when ruolo is EROGATO_SOGGETTO_DOMINIO', () => {

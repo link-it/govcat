@@ -49,6 +49,8 @@ import { ErrorViewComponent } from '@app/components/error-view/error-view.compon
 import { ServizioDisclaimer, disclaimersDelleProprieta, loadServizioDisclaimers } from '../servizio-disclaimers';
 import { filtraGruppiPerRuoli } from '../servizio-proprieta-custom';
 import { ServizioDisclaimerBannerComponent } from '../components/servizio-disclaimer-banner/servizio-disclaimer-banner.component';
+import { ServizioApiUrlAggiuntiveComponent } from '../components/servizio-api-url-aggiuntive/servizio-api-url-aggiuntive.component';
+import { creaUrlAggiuntiveFormArray, urlAggiuntiveDaForm } from '../servizio-api-url-aggiuntive';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 import { PluralTranslatePipe } from '@app/lib/pipes/plural-translate.pipe';
 import { MarkdownModule } from 'ngx-markdown';
@@ -88,6 +90,7 @@ export type GruppiCampi = Record<string, Campo[]>;
         MonitorDropdwnComponent,
         ErrorViewComponent,
         ServizioDisclaimerBannerComponent,
+        ServizioApiUrlAggiuntiveComponent,
         MarkdownModule,
         MapperPipe,
         PluralTranslatePipe
@@ -508,6 +511,8 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
                             Validators.pattern("^[1-9][0-9]*$")
                         ]);
                         break;
+                    case 'url_invocazione_aggiuntive':
+                        break;
                     case 'codice_asset':
                         value = data[key] ? data[key] : null;
                         _group[key] = new FormControl(value,
@@ -521,6 +526,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
                 }
             });
             _group.descrittore = this._descrittoreCtrl;
+            _group.url_invocazione_aggiuntive = creaUrlAggiuntiveFormArray(data.url_invocazione_aggiuntive);
 
             if (this._isNew && (this._specificaObbligatorio || this._hasSpecifica)) {
                 this._descrittoreCtrl.setValidators([Validators.required]);
@@ -634,6 +640,11 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
             gruppi_auth_type: [],
         };
 
+        const _urlAggiuntive = urlAggiuntiveDaForm(body.url_invocazione_aggiuntive);
+        if (_urlAggiuntive.length) {
+            _newBody.url_invocazione_aggiuntive = _urlAggiuntive;
+        }
+
         if (this._hasSpecifica) {
             if (body.content && body.filename) {
                 configurazioneCollaudo.specifica = {
@@ -741,6 +752,11 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
                 codice_asset: body.codice_asset || null,
             },
         };
+
+        // Lista sempre completa se modificabile (vuota = azzerata); assente se disabilitata (invariata)
+        if (body.url_invocazione_aggiuntive !== undefined) {
+            _newBody.dati_generici!.url_invocazione_aggiuntive = urlAggiuntiveDaForm(body.url_invocazione_aggiuntive);
+        }
 
         if (_ruolo === this.EROGATO_SOGGETTO_DOMINIO) {
             _newBody.dati_specifica = {
@@ -1677,6 +1693,10 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
 
     _canAddMapper = (): boolean => {
         return this._canAdd();
+    }
+
+    get _urlAggiuntiveArray(): FormArray<any> | null {
+        return (this._formGroup?.get('url_invocazione_aggiuntive') as FormArray) || null;
     }
 
     // Stato e grant come argomenti del pipe: il risultato si aggiorna quando arrivano i dati del servizio

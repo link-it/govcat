@@ -226,6 +226,32 @@ describe('ServizioViewComponent', () => {
     expect(component.isAnonymousMapper()).toBe(true);
   });
 
+  it('should show the main exposure URL followed by the additional ones', () => {
+    mockApiService.getDetails.mockReturnValueOnce(of({
+      url_invocazione: 'https://int/api/v1',
+      url_invocazione_aggiuntive: [{ etichetta: 'Internet', url_invocazione: 'https://ext/api/v1' }]
+    }));
+    component._loadUrlInvocazione('a1');
+    expect(component._urlEsposizioneRighe).toEqual([
+      { etichetta: null, url: 'https://int/api/v1' },
+      { etichetta: 'Internet', url: 'https://ext/api/v1' }
+    ]);
+    expect(component._showUrlInvocazioneBar).toBe(true);
+
+    component.copyUrlInvocazione(1);
+    expect(mockClipboard.copy).toHaveBeenCalledWith('https://ext/api/v1');
+    expect(component._urlCopiata).toBe(1);
+    vi.advanceTimersByTime(3000);
+    expect(component._urlCopiata).toBeNull();
+  });
+
+  it('should hide the exposure URL bar when the main URL is missing', () => {
+    mockApiService.getDetails.mockReturnValueOnce(of({ url_invocazione_aggiuntive: [{ etichetta: 'Internet', url_invocazione: 'https://ext' }] }));
+    component._loadUrlInvocazione('a1');
+    expect(component._urlEsposizioneRighe).toEqual([]);
+    expect(component._showUrlInvocazioneBar).toBe(false);
+  });
+
   it('should copy to clipboard on onResultCopyClipboard', () => {
     component.onResultCopyClipboard({ value: 'test-value' });
     expect(mockClipboard.copy).toHaveBeenCalledWith('test-value');
