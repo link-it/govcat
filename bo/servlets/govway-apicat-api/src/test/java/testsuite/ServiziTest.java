@@ -70,6 +70,13 @@ import org.govway.catalogo.servlets.model.Grant;
 import org.govway.catalogo.servlets.model.GrantType;
 import org.govway.catalogo.servlets.model.Gruppo;
 import org.govway.catalogo.servlets.model.Configurazione;
+import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
+import org.govway.catalogo.servlets.model.Campo;
+import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
+import org.govway.catalogo.servlets.model.ConfigurazioneCustomProprietaList;
+import org.govway.catalogo.servlets.model.ConfigurazioneProfiloCustomProprietaText;
+import org.govway.catalogo.servlets.model.Ruolo;
+import org.govway.catalogo.servlets.model.TipoConfigurazioneCustomProprieta;
 import org.govway.catalogo.servlets.model.GruppoCreate;
 import org.govway.catalogo.servlets.model.IdentificativoServizioUpdate;
 import org.govway.catalogo.servlets.model.ItemGruppo;
@@ -3468,5 +3475,70 @@ public class ServiziTest {
 
 		assertThrows(NotFoundException.class,
 				() -> serviziController.getDisclaimersServizio(randomId, "it"));
+	}
+
+	// ==================== proprieta' custom required e ruoli_abilitati ====================
+
+	private static final String GRUPPO_RUOLI_ABILITATI = "GruppoRuoliAbilitatiTest";
+	private static final String PROPRIETA_RUOLI_ABILITATI = "proprieta_obbligatoria";
+
+	private ConfigurazioneCustomProprietaList aggiungiGruppoRequired(List<Ruolo> ruoliAbilitati) {
+		ConfigurazioneProfiloCustomProprietaText proprieta = new ConfigurazioneProfiloCustomProprietaText();
+		proprieta.setNome(PROPRIETA_RUOLI_ABILITATI);
+		proprieta.setEtichetta("Proprieta' obbligatoria");
+		proprieta.setTipo(TipoConfigurazioneCustomProprieta.TEXT);
+		proprieta.setRequired(true);
+
+		ConfigurazioneCustomProprietaList gruppo = new ConfigurazioneCustomProprietaList();
+		gruppo.setNomeGruppo(GRUPPO_RUOLI_ABILITATI);
+		gruppo.setLabelGruppo("Gruppo ruoli abilitati");
+		gruppo.setClasseDato(ConfigurazioneClasseDato.IDENTIFICATIVO);
+		gruppo.setRuoliAbilitati(ruoliAbilitati);
+		gruppo.setProprieta(List.of(proprieta));
+		this.configurazione.getServizio().getApi().getProprietaCustom().add(gruppo);
+		return gruppo;
+	}
+
+	private boolean isGruppoRichiesto(UUID idServizio, List<Ruolo> ruoliAbilitati) {
+		ConfigurazioneCustomProprietaList gruppo = this.aggiungiGruppoRequired(ruoliAbilitati);
+		StatoUpdate statoUpdate = new StatoUpdate();
+		statoUpdate.setStato("richiesto_collaudo");
+		try {
+			serviziController.updateStatoServizio(idServizio, statoUpdate, true);
+			return false;
+		} catch (UpdateEntitaComplessaNonValidaSemanticamenteException e) {
+			return e.getErrori().stream()
+					.filter(err -> err.getCampi() != null)
+					.flatMap(err -> err.getCampi().stream())
+					.map(Campo::getNomeCampo)
+					.anyMatch((GRUPPO_RUOLI_ABILITATI + "." + PROPRIETA_RUOLI_ABILITATI)::equals);
+		} finally {
+			this.configurazione.getServizio().getApi().getProprietaCustom().remove(gruppo);
+		}
+	}
+
+	/**
+	 * Una proprieta' custom required di un gruppo non visibile all'utente per ruoli_abilitati non
+	 * gli viene richiesta al cambio stato (non potrebbe compilarla); resta obbligatoria per chi ha
+	 * un ruolo abilitato. Il gestore qui e' gestore, referente e richiedente del servizio, ma non
+	 * referente tecnico.
+	 */
+	@Test
+	void testCambioStatoServizioProprietaRequiredRuoliAbilitati() {
+		Servizio servizio = this.getServizio();
+		APICreate apiCreate = CommonUtils.getAPICreate();
+		apiCreate.setIdServizio(servizio.getIdServizio());
+		assertEquals(HttpStatus.OK, apiController.createApi(apiCreate).getStatusCode());
+		this.entityManager.flush();
+		this.entityManager.clear();
+
+		// ruoli_abilitati assente: visibile a tutti, quindi richiesta
+		assertTrue(this.isGruppoRichiesto(servizio.getIdServizio(), null));
+		// ruolo dell'utente abilitato: richiesta
+		assertTrue(this.isGruppoRichiesto(servizio.getIdServizio(), List.of(Ruolo.GESTORE)));
+		// nessun ruolo dell'utente abilitato: non richiesta
+		assertFalse(this.isGruppoRichiesto(servizio.getIdServizio(), List.of(Ruolo.REFERENTE_TECNICO)));
+		// lista vuota: non visibile a nessuno, quindi non richiesta
+		assertFalse(this.isGruppoRichiesto(servizio.getIdServizio(), List.of()));
 	}
 }
