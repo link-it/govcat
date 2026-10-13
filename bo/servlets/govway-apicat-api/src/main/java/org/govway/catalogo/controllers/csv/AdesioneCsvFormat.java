@@ -27,6 +27,8 @@ public abstract class AdesioneCsvFormat {
 
 	@JsonProperty("Soggetto Erogatore")
 	abstract String getErogatore();
+	@JsonProperty("Organizzazione Erogatore")
+	abstract String getOrganizzazioneErogatore();
 	@JsonProperty("Servizio")
 	abstract String getServizio();
 	@JsonProperty("Versione Servizio")
@@ -37,6 +39,8 @@ public abstract class AdesioneCsvFormat {
 	abstract String getAutenticazioneStato();
 	@JsonProperty("Soggetto Aderente")
 	abstract String getAderente();
+	@JsonProperty("Organizzazione Aderente")
+	abstract String getOrganizzazioneAderente();
 	@JsonProperty("Identificativo Adesione")
 	abstract String getIdLogicoAdesione();
 	@JsonProperty("UUID Adesione")
