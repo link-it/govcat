@@ -766,67 +766,45 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
             }
         }
 
-        const hasCurrentCustomProps = this._apiProprietaCustomGrouped && Object.keys(this._apiProprietaCustomGrouped).length;
-        const hasOriginalCustomProps = this._servizioApi?.proprieta_custom?.length;
-        if (hasCurrentCustomProps || hasOriginalCustomProps) {
+        // Il BE sovrascrive solo i gruppi inviati: si inviano i soli gruppi presenti nel form
+        // (quelli di altri ambienti o nascosti per ruolo restano invariati).
+        // Un gruppo svuotato viene inviato vuoto per cancellarne i valori salvati.
+        if (this._apiProprietaCustomGrouped && Object.keys(this._apiProprietaCustomGrouped).length) {
             const risultato: Record<string, { nome: string; valore: string }[]> = {};
+            const _gruppiSalvati: any[] = this._servizioApi?.proprieta_custom || [];
+            // Valori letti dai FormControl: quelli disabilitati da disablePermission non sono in _formGroup.value
+            const proprietaCustomGroup = this._formGroup.controls['proprieta_custom'] as FormGroup | undefined;
+            Object.keys(this._apiProprietaCustomGrouped).forEach(labelGruppo => {
+                this._apiProprietaCustomGrouped[labelGruppo].forEach((campo: any) => {
+                    const gruppoControl = proprietaCustomGroup?.get(campo.nome_gruppo) as FormGroup | null;
+                    const control = gruppoControl?.get(campo.nome);
+                    if (!control) return;
 
-            if (hasCurrentCustomProps) {
-                // Leggiamo dai FormControl direttamente (non da body) perché i controlli disabilitati
-                // tramite disablePermission non sono inclusi in _formGroup.value.
-                const proprietaCustomGroup = this._formGroup.controls['proprieta_custom'] as FormGroup | undefined;
-                Object.keys(this._apiProprietaCustomGrouped).forEach(labelGruppo => {
-                    this._apiProprietaCustomGrouped[labelGruppo].forEach((campo: any) => {
-                        if (!risultato[campo.nome_gruppo]) {
-                            risultato[campo.nome_gruppo] = [];
-                        }
+                    const nome = campo.nome;
+                    const valore = control.value;
 
-                        const gruppoControl = proprietaCustomGroup?.get(campo.nome_gruppo) as FormGroup | null;
-                        const control = gruppoControl?.get(campo.nome);
-                        if (!control) return;
+                    const valoreNonValido =
+                        valore === undefined ||
+                        valore === null ||
+                        (typeof valore === 'string' && valore.trim() === '') ||
+                        (typeof valore === 'number' && Number.isNaN(valore));
 
-                        const nome = campo.nome;
-                        const valore = control.value;
-
-                        const valoreNonValido =
-                            valore === undefined ||
-                            valore === null ||
-                            (typeof valore === 'string' && valore.trim() === '') ||
-                            (typeof valore === 'number' && Number.isNaN(valore));
-
-                        if (!valoreNonValido) {
-                            risultato[campo.nome_gruppo].push({ nome, valore });
-                        }
-                    });
-                });
-            }
-
-            if (hasOriginalCustomProps) {
-                // I gruppi di classe collaudo/produzione sono gestiti dal
-                // componente di configurazione per-ambiente: dal dettaglio NON
-                // vanno reinviati (altrimenti verrebbero spediti vuoti e
-                // potenzialmente azzerati lato BE). Li escludiamo dai gruppi
-                // originali riportati nel payload.
-                const _cfgGroups: any[] = Tools.Configurazione?.servizio?.api?.proprieta_custom || [];
-                const _envGroupNames = new Set(
-                    _cfgGroups
-                        .filter((p: any) => p.classe_dato === 'collaudo' || p.classe_dato === 'produzione')
-                        .map((p: any) => p.nome_gruppo)
-                );
-                this._servizioApi?.proprieta_custom?.forEach((originalGroup: any) => {
-                    if (_envGroupNames.has(originalGroup.gruppo)) { return; }
-                    if (!risultato[originalGroup.gruppo]) {
-                        risultato[originalGroup.gruppo] = [];
+                    if (!valoreNonValido) {
+                        (risultato[campo.nome_gruppo] ??= []).push({ nome, valore });
+                    } else if (!risultato[campo.nome_gruppo] && _gruppiSalvati.some((g: any) => g.gruppo === campo.nome_gruppo)) {
+                        risultato[campo.nome_gruppo] = [];
                     }
                 });
-            }
+            });
 
-            _newBody.dati_custom = {
-                proprieta_custom: Object.entries(risultato).map(([gruppo, proprieta]) => ({
-                    gruppo,
-                    proprieta
-                }))
-            };
+            if (Object.keys(risultato).length) {
+                _newBody.dati_custom = {
+                    proprieta_custom: Object.entries(risultato).map(([gruppo, proprieta]) => ({
+                        gruppo,
+                        proprieta
+                    }))
+                };
+            }
         }
 
         const _body: any = this.authenticationService._removeDNM('servizio', this.service.stato, _newBody, this._grant?.ruoli);

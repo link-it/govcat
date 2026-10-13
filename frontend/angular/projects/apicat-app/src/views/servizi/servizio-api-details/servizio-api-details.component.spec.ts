@@ -750,21 +750,26 @@ describe('ServizioApiDetailsComponent', () => {
       expect(result.dati_custom).toBeUndefined();
     });
 
-    it('should NOT re-send collaudo/produzione custom groups (managed by configuration)', () => {
-      // I gruppi di classe collaudo/produzione sono gestiti dal componente
-      // di configurazione per-ambiente: dal dettaglio NON vanno reinviati,
-      // anche se presenti nei dati caricati con la GET.
-      Tools.Configurazione!.servizio.api.proprieta_custom = [
-        { nome_gruppo: 'GEN1', classe_dato: 'generico' },
-        { nome_gruppo: 'PDNDCollaudo', classe_dato: 'collaudo' },
-        { nome_gruppo: 'PDNDProduzione', classe_dato: 'produzione' }
-      ] as any;
-      component._apiProprietaCustomGrouped = null;
+    it('should send only the groups shown in the form', () => {
+      // Il BE sovrascrive solo i gruppi inviati: i gruppi salvati non presenti nel form
+      // (altri ambienti, profili non attivi, nascosti per ruolo) non vanno reinviati.
+      component._apiProprietaCustomGrouped = {
+        'Generale': [
+          { nome_gruppo: 'GEN1', nome: 'g' },
+          { nome_gruppo: 'RISERVATO', nome: 'r' }
+        ]
+      };
+      component._formGroup = new FormGroup({
+        proprieta_custom: new FormGroup({
+          GEN1: new FormGroup({ g: new FormControl('nuovo') })
+        })
+      }) as any;
       component._servizioApi = {
         proprieta_custom: [
           { gruppo: 'GEN1', proprieta: [{ nome: 'g', valore: 'v' }] },
-          { gruppo: 'PDNDCollaudo', proprieta: [{ nome: 'c', valore: 'vc' }] },
-          { gruppo: 'PDNDProduzione', proprieta: [{ nome: 'p', valore: 'vp' }] }
+          { gruppo: 'RISERVATO', proprieta: [{ nome: 'r', valore: 'vr' }] },
+          { gruppo: 'ALTRO', proprieta: [{ nome: 'a', valore: 'va' }] },
+          { gruppo: 'PDNDCollaudo', proprieta: [{ nome: 'c', valore: 'vc' }] }
         ]
       } as any;
       const body = {
@@ -772,10 +777,39 @@ describe('ServizioApiDetailsComponent', () => {
         descrizione: null, codice_asset: null
       };
       const result = component._prepareBodyUpdateApi(body);
-      const gruppiInviati = (result.dati_custom?.proprieta_custom || []).map((g: any) => g.gruppo);
-      expect(gruppiInviati).toContain('GEN1');
-      expect(gruppiInviati).not.toContain('PDNDCollaudo');
-      expect(gruppiInviati).not.toContain('PDNDProduzione');
+      expect(result.dati_custom!.proprieta_custom).toEqual([{ gruppo: 'GEN1', proprieta: [{ nome: 'g', valore: 'nuovo' }] }]);
+    });
+
+    it('should send an emptied saved group without values', () => {
+      component._apiProprietaCustomGrouped = { 'Generale': [{ nome_gruppo: 'GEN1', nome: 'g' }] };
+      component._formGroup = new FormGroup({
+        proprieta_custom: new FormGroup({
+          GEN1: new FormGroup({ g: new FormControl('') })
+        })
+      }) as any;
+      component._servizioApi = { proprieta_custom: [{ gruppo: 'GEN1', proprieta: [{ nome: 'g', valore: 'v' }] }] } as any;
+      const body = {
+        nome: 'A', versione: '1', ruolo: 'erogato_soggetto_aderente',
+        descrizione: null, codice_asset: null
+      };
+      const result = component._prepareBodyUpdateApi(body);
+      expect(result.dati_custom!.proprieta_custom).toEqual([{ gruppo: 'GEN1', proprieta: [] }]);
+    });
+
+    it('should not send an empty group that was never saved', () => {
+      component._apiProprietaCustomGrouped = { 'Generale': [{ nome_gruppo: 'GEN1', nome: 'g' }] };
+      component._formGroup = new FormGroup({
+        proprieta_custom: new FormGroup({
+          GEN1: new FormGroup({ g: new FormControl(null) })
+        })
+      }) as any;
+      component._servizioApi = { proprieta_custom: [] } as any;
+      const body = {
+        nome: 'A', versione: '1', ruolo: 'erogato_soggetto_aderente',
+        descrizione: null, codice_asset: null
+      };
+      const result = component._prepareBodyUpdateApi(body);
+      expect(result.dati_custom).toBeUndefined();
     });
 
     it('should call _removeDNM on the result', () => {

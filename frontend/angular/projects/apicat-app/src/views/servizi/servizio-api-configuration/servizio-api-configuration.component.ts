@@ -829,25 +829,22 @@ export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, Aft
       request.configurazione_produzione = configuration;
     }
 
-    const hasCurrentCustomProps = this._apiProprietaCustomGrouped && Object.keys(this._apiProprietaCustomGrouped).length;
-    const hasOriginalCustomProps = this.servizioApi?.proprieta_custom?.length;
-    if (hasCurrentCustomProps || hasOriginalCustomProps) {
-      const result: ApiCustomProperty[] = hasCurrentCustomProps
-        ? this.generaApiCustomPropertiesDaFlatMap(this._apiProprietaCustomGrouped, { proprieta_custom: formValues.proprieta_custom })
-        : [];
+    // Il BE sovrascrive solo i gruppi inviati: si inviano i soli gruppi dell'ambiente in modifica
+    // (gli altri restano invariati e non ricadono nei controlli sui dati non modificabili).
+    // Un gruppo svuotato viene inviato vuoto per cancellarne i valori salvati.
+    if (this._apiProprietaCustomGrouped && Object.keys(this._apiProprietaCustomGrouped).length) {
+      const result: ApiCustomProperty[] = this.generaApiCustomPropertiesDaFlatMap(this._apiProprietaCustomGrouped, { proprieta_custom: formValues.proprieta_custom });
+      const _gruppiSalvati: any[] = this.servizioApi?.proprieta_custom || [];
+      Object.values(this._apiProprietaCustomGrouped).flat().forEach((campo: any) => {
+        const _gruppo = campo.nome_gruppo;
+        if (!result.some(r => r.gruppo === _gruppo) && _gruppiSalvati.some((g: any) => g.gruppo === _gruppo)) {
+          result.push({ gruppo: _gruppo, proprieta: [] });
+        }
+      });
 
-      if (hasOriginalCustomProps) {
-        this.servizioApi!.proprieta_custom!.forEach((originalGroup: any) => {
-          if (!result.some(r => r.gruppo === originalGroup.gruppo)) {
-            result.push({
-              gruppo: originalGroup.gruppo,
-              proprieta: originalGroup.proprieta || []
-            });
-          }
-        });
+      if (result.length) {
+        request.dati_custom = { proprieta_custom: result };
       }
-
-      request.dati_custom = { proprieta_custom: result };
     }
 
     this.apiService.putElement(this.model, this.id, request).subscribe({

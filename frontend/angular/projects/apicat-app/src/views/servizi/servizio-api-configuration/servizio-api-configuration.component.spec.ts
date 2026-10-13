@@ -1506,6 +1506,67 @@ describe('ServizioApiConfigurationComponent', () => {
       ]);
     });
 
+    it('should send only the groups of the current environment', () => {
+      component.environmentId = 'produzione';
+      component._hasSpecifica = false;
+      component._configuration = null;
+      component.servizioApi = {
+        proprieta_custom: [
+          { gruppo: 'PDNDCollaudo', proprieta: [{ nome: 'c1', valore: 'x' }] },
+          { gruppo: 'PDNDProduzione', proprieta: [{ nome: 'p1', valore: 'old' }] }
+        ]
+      } as any;
+      component._apiProprietaCustomGrouped = {
+        'PDND': [{ nome_gruppo: 'PDNDProduzione', label_gruppo: 'PDND', classe_dato: 'produzione', nome: 'p1' }]
+      };
+      mockApiService.putElement.mockReturnValueOnce(of({}));
+
+      vi.spyOn(component as any, '_loadServizioApi').mockImplementation(() => {});
+      component._onSaveApi({ proprieta_custom: { 'PDND': { p1: 'new' } } });
+
+      const callArg = mockApiService.putElement.mock.calls[0][2];
+      expect(callArg.dati_custom.proprieta_custom).toEqual([
+        { gruppo: 'PDNDProduzione', proprieta: [{ nome: 'p1', valore: 'new' }] }
+      ]);
+    });
+
+    it('should send an emptied group of the current environment without values', () => {
+      component.environmentId = 'produzione';
+      component._hasSpecifica = false;
+      component._configuration = null;
+      component.servizioApi = {
+        proprieta_custom: [
+          { gruppo: 'PDNDCollaudo', proprieta: [{ nome: 'c1', valore: 'x' }] },
+          { gruppo: 'PDNDProduzione', proprieta: [{ nome: 'p1', valore: 'old' }] }
+        ]
+      } as any;
+      component._apiProprietaCustomGrouped = {
+        'PDND': [{ nome_gruppo: 'PDNDProduzione', label_gruppo: 'PDND', classe_dato: 'produzione', nome: 'p1' }]
+      };
+      mockApiService.putElement.mockReturnValueOnce(of({}));
+
+      vi.spyOn(component as any, '_loadServizioApi').mockImplementation(() => {});
+      component._onSaveApi({ proprieta_custom: { 'PDND': { p1: '' } } });
+
+      const callArg = mockApiService.putElement.mock.calls[0][2];
+      expect(callArg.dati_custom.proprieta_custom).toEqual([{ gruppo: 'PDNDProduzione', proprieta: [] }]);
+    });
+
+    it('should not send dati_custom when the environment has no groups', () => {
+      component.environmentId = 'produzione';
+      component._hasSpecifica = false;
+      component._configuration = null;
+      component.servizioApi = { proprieta_custom: [{ gruppo: 'PDNDCollaudo', proprieta: [{ nome: 'c1', valore: 'x' }] }] } as any;
+      component._apiProprietaCustomGrouped = {};
+      mockApiService.putElement.mockReturnValueOnce(of({}));
+
+      vi.spyOn(component as any, '_loadServizioApi').mockImplementation(() => {});
+      component._onSaveApi({});
+
+      const callArg = mockApiService.putElement.mock.calls[0][2];
+      expect(callArg.dati_custom).toBeUndefined();
+    });
+
     it('should set _isEdit false and call _loadServizioApi on success', () => {
       component._isEdit = true;
       component.environmentId = 'collaudo';

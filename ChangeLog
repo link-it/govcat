@@ -1,6 +1,10 @@
 2026-10-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Proprieta' custom delle API: configurazione e form API inviano solo i gruppi presenti nel form
+	  (prima i gruppi dell'altro ambiente causavano l'errore sui dati non modificabili, quelli
+	  nascosti per ruolo venivano svuotati); un gruppo svuotato e' inviato vuoto per cancellarlo.
+
 	Form API e configurazione: il caricamento della specifica non resta disabilitato per gli
 	  utenti non gestori quando il form viene aperto prima del caricamento di servizio e grant.
 
