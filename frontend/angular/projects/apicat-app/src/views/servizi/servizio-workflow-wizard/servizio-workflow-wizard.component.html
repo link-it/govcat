@@ -133,7 +133,11 @@
             <div class="env-title">
               {{ ('APP.SERVICES.WIZARD.PHASE.' + activeFase?.code) | translate }}
               @if (stFase === 'active') {
-                <span class="chip chip-accent"><span class="pulse"></span>{{ 'APP.SERVICES.WIZARD.AzioneRichiesta' | translate }}</span>
+                @if (hasServiceWorkflowActions()) {
+                  <span class="chip chip-accent"><span class="pulse"></span>{{ 'APP.SERVICES.WIZARD.AzioneRichiesta' | translate }}</span>
+                } @else {
+                  <span class="chip chip-muted"><i class="bi bi-hourglass-split" aria-hidden="true"></i> {{ 'APP.SERVICES.WIZARD.InAttesaDi' | translate: { ruoli: ruoliInAttesaLabel } }}</span>
+                }
               } @else if (stFase === 'completed') {
                 <span class="chip chip-ok"><i class="bi bi-check-lg"></i> {{ 'APP.SERVICES.WIZARD.FaseConclusa' | translate }}</span>
               } @else if (stFase === 'pending') {
@@ -183,7 +187,11 @@
                       (keydown.enter)="togglePhaseSection('info_generali')"
                       (keydown.space)="togglePhaseSection('info_generali'); $event.preventDefault()">
                 <div class="lnk-phase-section-icon"><i class="bi bi-card-text"></i></div>
-                <div class="lnk-phase-section-title">{{ 'APP.SERVICES.TITLE.GeneralInformations' | translate }}</div>
+                <div class="lnk-phase-section-title">{{ 'APP.SERVICES.TITLE.GeneralInformations' | translate }}
+                  @if (sezioneDaCompletare('info_generali')) {
+                    <span class="chip chip-accent ms-2"><span class="pulse"></span>{{ 'APP.SERVICES.WIZARD.AzioneRichiesta' | translate }}</span>
+                  }
+                </div>
                 <i class="bi bi-chevron-down lnk-phase-section-chev" [class.is-open]="openInfo" aria-hidden="true"></i>
               </header>
               @if (openInfo) {
@@ -222,7 +230,11 @@
                       (keydown.enter)="togglePhaseSection('referenti')"
                       (keydown.space)="togglePhaseSection('referenti'); $event.preventDefault()">
                 <div class="lnk-phase-section-icon"><i class="bi bi-people"></i></div>
-                <div class="lnk-phase-section-title">{{ 'APP.SERVICES.TITLE.ShowReferents' | translate }}</div>
+                <div class="lnk-phase-section-title">{{ 'APP.SERVICES.TITLE.ShowReferents' | translate }}
+                  @if (sezioneDaCompletare('referenti')) {
+                    <span class="chip chip-accent ms-2"><span class="pulse"></span>{{ 'APP.SERVICES.WIZARD.AzioneRichiesta' | translate }}</span>
+                  }
+                </div>
                 <i class="bi bi-chevron-down lnk-phase-section-chev" [class.is-open]="openRef" aria-hidden="true"></i>
               </header>
               @if (openRef) {
@@ -466,6 +478,9 @@
                       <div class="lnk-phase-section-icon"><i class="bi bi-code-slash"></i></div>
                       <div class="lnk-phase-section-title">{{ 'APP.SERVICES.TITLE.ApiInformations' | translate }}
                         <span class="lnk-ref-count">{{ servizioApiList.length }}</span>
+                        @if (apiSezioneDaCompletare()) {
+                          <span class="chip chip-accent ms-2"><span class="pulse"></span>{{ 'APP.SERVICES.WIZARD.AzioneRichiesta' | translate }}</span>
+                        }
                       </div>
                     </header>
                     <div class="lnk-phase-section-body">
@@ -508,9 +523,13 @@
                               <div class="who text-break">{{ api.nome }} <span class="text-muted">v. {{ api.versione }}</span></div>
                               @if (apiProfilo(api)) { <div class="when">{{ apiProfilo(api) }}</div> }
                             </div>
-                            <span class="chip" [class.chip-ok]="apiHasConfig(api)" [class.chip-muted]="!apiHasConfig(api)">
-                              {{ (apiHasConfig(api) ? 'APP.SERVICES.WIZARD.ApiConfigured' : 'APP.SERVICES.WIZARD.ApiToConfigure') | translate }}
-                            </span>
+                            @if (apiDaCompletare(api)) {
+                              <span class="chip chip-accent"><span class="pulse"></span>{{ 'APP.SERVICES.WIZARD.AzioneRichiesta' | translate }}</span>
+                            } @else {
+                              <span class="chip" [class.chip-ok]="apiHasConfig(api)" [class.chip-muted]="!apiHasConfig(api)">
+                                {{ (apiHasConfig(api) ? 'APP.SERVICES.WIZARD.ApiConfigured' : 'APP.SERVICES.WIZARD.ApiToConfigure') | translate }}
+                              </span>
+                            }
                             @if (canEditApi()) {
                               <!-- Configura: configurazione per l'ambiente corrente
                                    (apre il pannello sul solo tab collaudo/produzione).
@@ -645,11 +664,22 @@
                        sub-step attivo (es. "Richiesta configurazione"). Senza
                        almeno un'API i pulsanti di cambio stato non si mostrano:
                        prima va definita l'API. -->
+                  @if (sub.state === 'active' && erroriVerifica.length) {
+                    <div class="lnk-banner is-warn mt-3" role="status">
+                      <div class="icon"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i></div>
+                      <div class="body">
+                        <span class="d-block mb-1">{{ 'APP.SERVICES.WIZARD.DatiDaCompletare' | translate }}</span>
+                        <ui-error-view [errTitle]="''" [errors]="erroriVerifica"></ui-error-view>
+                      </div>
+                    </div>
+                  }
                   @if (sub.state === 'active' && servizioApiList.length) {
                     <ng-container *ngTemplateOutlet="serviceWorkflowCtaTpl"></ng-container>
                   }
                 } @else if (sub.state === 'active') {
-                  <span class="chip chip-accent"><span class="pulse"></span>{{ 'APP.SERVICES.WIZARD.AzioneRichiesta' | translate }}</span>
+                  @if (hasServiceWorkflowActions()) {
+                    <span class="chip chip-accent"><span class="pulse"></span>{{ 'APP.SERVICES.WIZARD.AzioneRichiesta' | translate }}</span>
+                  }
                   <!-- Come nel wizard adesioni: testo in base alla possibilita` di cambiare stato
                        (chi non puo` agire vede il messaggio di attesa nel template dei pulsanti). -->
                   @if (hasServiceWorkflowActions()) {

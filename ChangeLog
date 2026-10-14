@@ -1,6 +1,10 @@
 2026-10-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue 387: il wizard servizi verifica i dati con check-dati per la transizione che l'utente puo'
+	  fare e segnala "Azione richiesta" su fase, informazioni generali, referenti e API, con il riepilogo
+	  dei dati mancanti; chi non puo' agire vede la fase "In attesa" con i ruoli abilitati.
+
 	Wizard servizi: nei sub-step attivi (es. "In approvazione") il messaggio fisso di attesa del gestore
 	  e' sostituito da un testo in base alla possibilita' dell'utente di cambiare stato, come nelle adesioni.
 

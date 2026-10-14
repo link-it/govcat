@@ -925,6 +925,7 @@
 			"ClientId": "ID Cliente",
 			"ClientID": "Client ID",
 			"ClientIp": "Client IP",
+			"collaudo": "Configurazione di collaudo",
 			"codice_asset": "Codice applicazione",
 			"CodiceRisposta": "Codice risposta",
 			"CodiceRispostaClient": "Codice Risposta Client",
@@ -2496,6 +2497,14 @@
 				"FaseConclusa": "Fase conclusa",
 					"InAttesa": "In attesa",
 					"PhaseHint": "Configura l'erogazione di ogni API per questo ambiente. Tutte le API devono essere configurate prima di inviare la richiesta.",
+					"InAttesaDi": "In attesa: {{ruoli}}",
+					"DatiDaCompletare": "Prima di procedere completa i dati segnalati:",
+					"RUOLI": {
+						"richiedente": "richiedente",
+						"referente": "referente",
+						"referente_superiore": "referente superiore",
+						"gestore": "gestore"
+					},
 					"SubstepFallbackCanChange": "Il servizio è pronto per il prossimo passaggio: usa i pulsanti qui sotto per procedere con il cambio di stato.",
 					"SubstepFallbackCannotChange": "Non sono richieste ulteriori azioni da parte tua in questa fase. Il servizio è in attesa di un'azione da parte di un utente abilitato.",
 					"SubstepLocked": "In attesa del completamento delle fasi precedenti.",

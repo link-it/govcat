@@ -16,7 +16,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, OnInit, ViewChild, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, ChangeDetectorRef, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { HttpContext } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 import { TranslateService } from '@ngx-translate/core';
@@ -26,6 +28,9 @@ import { ConfigService, MenuAction, Tools, COMPONENTS_IMPORTS } from '@linkit/co
 import { MarkdownModule } from 'ngx-markdown';
 
 import { ServizioDisclaimer, ServizioDisclaimerSeverity, normalizeServizioDisclaimers } from '../servizio-disclaimers';
+import { EsitoVerificaServizio, apiDaCompletare, apiSezioneDaCompletare, sezioneDaCompletare, transizioneDaVerificare } from '../servizio-verifica-stato';
+import { DISABLE_GLOBAL_EXCEPTION_HANDLING } from '@app/lib/interceptors/error.interceptor';
+
 import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
 import { AllegatiDialogComponent } from '@app/components/allegati-dialog/allegati-dialog.component';
 import { ServizioAllegatoAddFormComponent } from './servizio-allegato-add-form/servizio-allegato-add-form.component';
@@ -39,8 +44,8 @@ import { AuthenticationService } from '@app/services/authentication.service';
 import { Grant } from '@app/model/grant';
 import { CommonModule } from '@angular/common';
 
-import { forkJoin, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { Subject, forkJoin, of } from 'rxjs';
+import { catchError, debounceTime, map, switchMap } from 'rxjs/operators';
 
 import { WorkflowComponent } from '@app/components/workflow/workflow.component';
 import { ErrorViewComponent } from '@app/components/error-view/error-view.component';
@@ -122,6 +127,11 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     _errorFromStatus: boolean = false;
 
     private readonly _cdr = inject(ChangeDetectorRef);
+    private readonly _destroyRef = inject(DestroyRef);
+
+    // Verifica dei dati (check-dati) per la transizione che l'utente puo` fare
+    _verifica: EsitoVerificaServizio | null = null;
+    private readonly _verificaTrigger$ = new Subject<void>();
 
     stepWizard: StepWizardItem[] = [];
     stepWizardCollaudo: StepWizardItem[] = [];
@@ -232,6 +242,12 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     }
 
     ngOnInit() {
+        // Una sola verifica per raffica di ricaricamenti (referenti, API, cambio stato)
+        this._verificaTrigger$.pipe(
+            debounceTime(300),
+            switchMap(() => this._verificaCambioStato()),
+            takeUntilDestroyed(this._destroyRef)
+        ).subscribe((esito: EsitoVerificaServizio | null) => { this._verifica = esito; });
         // Issue 352: ricarica i disclaimer al cambio lingua (testi it/en).
         this.translate.onLangChange.subscribe(() => this._loadServizioDisclaimers());
         this.route.queryParams.subscribe((qp) => {
@@ -518,6 +534,52 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         return this.canServiceChangeStatus('stato_successivo') || this.canServiceChangeStatus('stati_ulteriori');
     }
 
+    /** Transizione principale del servizio, coerente con `skip_collaudo`. */
+    private _transizionePrincipale() {
+        return transizioneDaVerificare(this.serviceCambioStato(), !!this.data?.skip_collaudo);
+    }
+
+    /** Ruoli che devono agire quando l'utente non ha azioni disponibili (es. il gestore). */
+    get ruoliInAttesa(): string[] {
+        return this._transizionePrincipale()?.ruoli || [];
+    }
+
+    get ruoliInAttesaLabel(): string {
+        return this.ruoliInAttesa.map((r: string) => this.translate.instant('APP.SERVICES.WIZARD.RUOLI.' + r)).join(', ');
+    }
+
+    /**
+     * Dati da completare per la transizione principale che l'utente puo` fare (stesso contratto del
+     * check-dati delle adesioni). Senza permesso sulla transizione non si verifica nulla.
+     */
+    private _verificaCambioStato() {
+        const _transizione = this._transizionePrincipale();
+        const _puo = !!_transizione && this.canServiceChangeStatus(_transizione.tipo, _transizione.tipo === 'stati_ulteriori' ? _transizione.nome : '');
+        if (!this.id || !_transizione || !_puo) { return of(null); }
+        const _options = { context: new HttpContext().set(DISABLE_GLOBAL_EXCEPTION_HANDLING, true) };
+        return this.apiService.getDetails(this.model, this.id, `check-dati/${_transizione.nome}`, _options).pipe(
+            map((response: any): EsitoVerificaServizio | null => response?.esito ? { esito: response.esito, errori: response.errori || [] } : null),
+            catchError(() => of(null))
+        );
+    }
+
+    sezioneDaCompletare(sezione: 'info_generali' | 'referenti'): boolean {
+        return sezioneDaCompletare(this._verifica, sezione);
+    }
+
+    apiSezioneDaCompletare(): boolean {
+        return apiSezioneDaCompletare(this._verifica);
+    }
+
+    apiDaCompletare(api: any): boolean {
+        return apiDaCompletare(this._verifica, api?.id_api);
+    }
+
+    /** Errori della verifica nel formato del riepilogo errori. */
+    get erroriVerifica(): any[] {
+        return this._verifica?.esito === 'ko' ? Tools.filtraErroriComplessi(this._verifica.errori) : [];
+    }
+
     /** True se lo stato corrente coincide col sub-step "In compilazione"
      *  della fase attiva (disclaimer di configurazione ancora pertinente). */
     isCompilazioneStep(): boolean {
@@ -629,7 +691,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     loadReferenti() {
         if (!this.id) { return; }
         this.apiService.getDetails(this.model, this.id, 'referenti').subscribe({
-            next: (resp: any) => { this.servizioReferenti = resp?.content || []; },
+            next: (resp: any) => { this.servizioReferenti = resp?.content || []; this._verificaTrigger$.next(); },
             error: () => { this.servizioReferenti = []; }
         });
         const idDominio = this.data?.dominio?.id_dominio;
@@ -958,6 +1020,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
                 this._apiListLoaded = true;
                 this._maybeAutoOpenCreateApi();
                 this._loadApiAllegatiCounts();
+                this._verificaTrigger$.next();
             },
             error: () => { this.servizioApiList = []; this._apiListLoaded = true; this._maybeAutoOpenCreateApi(); }
         });
@@ -1184,6 +1247,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
                 this.data = { ...response };
                 this._changingStatus = false;
                 this._initSelectedFase();
+                this._verificaTrigger$.next();
                 // I disclaimer dipendono dallo stato del servizio: dopo un cambio
                 // di stato vanno ricaricati, altrimenti restano quelli dello stato
                 // precedente (es. resta "Bozza" fino al reload della pagina).

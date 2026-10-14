@@ -925,6 +925,7 @@
 			"ClientId": "Client ID",
 			"ClientID": "Client ID",
 			"ClientIp": "IP Client",
+			"collaudo": "Testing configuration",
 			"codice_asset": "Application code",
 			"CodiceRisposta": "Response Code",
 			"CodiceRispostaClient": "Client Response Code",
@@ -2496,6 +2497,14 @@
 				"FaseConclusa": "Phase completed",
 					"InAttesa": "Pending",
 					"PhaseHint": "Configure the provisioning of each API for this environment. All APIs must be configured before sending the request.",
+					"InAttesaDi": "Waiting: {{ruoli}}",
+					"DatiDaCompletare": "Before proceeding complete the reported data:",
+					"RUOLI": {
+						"richiedente": "requester",
+						"referente": "referent",
+						"referente_superiore": "senior referent",
+						"gestore": "manager"
+					},
 					"SubstepFallbackCanChange": "The service is ready for the next step: use the buttons below to change the state.",
 					"SubstepFallbackCannotChange": "No further action is required from you at this stage. The service is pending action from an authorized user.",
 					"SubstepLocked": "Waiting for the previous steps to be completed.",
