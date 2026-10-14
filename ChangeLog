@@ -1,3 +1,9 @@
+2026-10-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Wizard servizi: nei sub-step attivi (es. "In approvazione") il messaggio fisso di attesa del gestore
+	  e' sostituito da un testo in base alla possibilita' dell'utente di cambiare stato, come nelle adesioni.
+
 2026-10-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

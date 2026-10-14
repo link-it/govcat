@@ -650,7 +650,11 @@
                   }
                 } @else if (sub.state === 'active') {
                   <span class="chip chip-accent"><span class="pulse"></span>{{ 'APP.SERVICES.WIZARD.AzioneRichiesta' | translate }}</span>
-                  <p class="mb-0 mt-2 text-muted">{{ ('APP.SERVICES.WIZARD.SUBSTEP.' + sub.code + '_body') | translate }}</p>
+                  <!-- Come nel wizard adesioni: testo in base alla possibilita` di cambiare stato
+                       (chi non puo` agire vede il messaggio di attesa nel template dei pulsanti). -->
+                  @if (hasServiceWorkflowActions()) {
+                    <p class="mb-0 mt-2 text-muted">{{ 'APP.SERVICES.WIZARD.SubstepFallbackCanChange' | translate }}</p>
+                  }
                   <!-- CTA cambio stato per i sub-step successivi (In
                        approvazione / In configurazione) quando attivi. -->
                   <ng-container *ngTemplateOutlet="serviceWorkflowCtaTpl"></ng-container>
@@ -697,7 +701,7 @@
               } @else {
                 <div class="lnk-banner mt-3" role="status">
                   <div class="icon"><i class="bi bi-hourglass-split"></i></div>
-                  <div class="body"><span>{{ 'APP.SERVICES.WIZARD.WaitingAction' | translate }}</span></div>
+                  <div class="body"><span>{{ 'APP.SERVICES.WIZARD.SubstepFallbackCannotChange' | translate }}</span></div>
                 </div>
               }
               @if (_error && _errorFromStatus) {
