@@ -1,6 +1,9 @@
 2026-10-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard servizi: l'errore di un cambio stato non riuscito viene tolto anche dopo una modifica salvata
+	  alle altre sezioni (informazioni, referenti, allegati, gruppi, API e proprieta' custom).
+
 	Allegati dei servizi: il pulsante di aggiunta (wizard e vista classica) e le tipologie proposte
 	  seguono il grant del servizio per le classi generico/specifica, come il BE; prima per i non gestori
 	  il pulsante spariva in qualsiasi stato con dati non modificabili.

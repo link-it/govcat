@@ -125,6 +125,8 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     _errors: any[] = [];
     /** Errore di cambio stato: mostrato sotto i pulsanti di cambio stato del sotto-step attivo. */
     _errorFromStatus: boolean = false;
+    // L'errore mostrato viene da un tentativo di cambio stato: una modifica ai dati lo rende superato
+    private _erroreCambioStato: boolean = false;
 
     private readonly _cdr = inject(ChangeDetectorRef);
     private readonly _destroyRef = inject(DestroyRef);
@@ -676,6 +678,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
 
     /** Dopo il salvataggio del form info, aggiorna i dati del servizio. */
     onInfoSaved(event: any) {
+        this._ripulisciErroreCambioStato();
         if (event?.data) {
             this.data = { ...event.data };
             this._idDominioEsterno = this.data?.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
@@ -729,6 +732,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     }
 
     onReferentAdded() {
+        this._ripulisciErroreCambioStato();
         this._addReferentOpen = false;
         this.loadReferenti();
     }
@@ -741,7 +745,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         const idUtente = ref?.utente?.id_utente;
         const tipo = ref?.tipo;
         this.apiService.deleteElementRelated(this.model, this.id, `referenti/${idUtente}?tipo_referente=${tipo}`).subscribe({
-            next: () => { this.loadReferenti(); },
+            next: () => { this._ripulisciErroreCambioStato(); this.loadReferenti(); },
             error: () => {
                 Tools.showMessage(this.translate.instant('APP.MESSAGE.ERROR.NoDeleteReferent'), 'danger', true);
             }
@@ -799,6 +803,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     }
 
     onAllegatoAdded() {
+        this._ripulisciErroreCambioStato();
         this._addAllegatoOpen = false;
         this.loadAllegati();
     }
@@ -816,7 +821,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         };
         const ref = this.modalService.show(AllegatiDialogComponent, { ignoreBackdropClick: true, initialState });
         ref.content?.onClose?.subscribe((result: boolean) => {
-            if (result) { this.loadAllegati(); }
+            if (result) { this._ripulisciErroreCambioStato(); this.loadAllegati(); }
         });
     }
 
@@ -826,7 +831,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
 
     private _deleteAllegato(allegato: any) {
         this.apiService.deleteElementRelated(this.model, this.id, `allegati/${allegato.uuid}`).subscribe({
-            next: () => { this.loadAllegati(); },
+            next: () => { this._ripulisciErroreCambioStato(); this.loadAllegati(); },
             error: (error: any) => { Tools.showMessage(this.utils.GetErrorMsg(error), 'danger', true); }
         });
     }
@@ -906,7 +911,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
 
     openAddApiAllegato() { this._apiAllegatiAddOpen = true; }
     closeAddApiAllegato() { this._apiAllegatiAddOpen = false; }
-    onApiAllegatoAdded(api: any) { this._apiAllegatiAddOpen = false; this.loadApiAllegati(api.id_api); }
+    onApiAllegatoAdded(api: any) { this._ripulisciErroreCambioStato(); this._apiAllegatiAddOpen = false; this.loadApiAllegati(api.id_api); }
 
     confirmDeleteApiAllegato(api: any, allegato: any) {
         this.utils._confirmDelection(allegato, () => this._deleteApiAllegato(api, allegato));
@@ -914,7 +919,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
 
     private _deleteApiAllegato(api: any, allegato: any) {
         this.apiService.deleteElementRelated('api', api.id_api, `allegati/${allegato.uuid}`).subscribe({
-            next: () => { this.loadApiAllegati(api.id_api); },
+            next: () => { this._ripulisciErroreCambioStato(); this.loadApiAllegati(api.id_api); },
             error: (error: any) => { Tools.showMessage(this.utils.GetErrorMsg(error), 'danger', true); }
         });
     }
@@ -962,7 +967,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
             const idGruppo = result?.[0]?.id_gruppo;
             if (!idGruppo) { return; }
             this.apiService.postElementRelated(this.model, this.id, `gruppi/${idGruppo}`, {}).subscribe({
-                next: () => { this.loadGruppi(); },
+                next: () => { this._ripulisciErroreCambioStato(); this.loadGruppi(); },
                 error: (error: any) => { Tools.showMessage(this.utils.GetErrorMsg(error), 'danger', true); }
             });
         });
@@ -974,7 +979,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
 
     private _deleteGruppo(g: any) {
         this.apiService.deleteElementRelated(this.model, this.id, `gruppi/${g.id_gruppo}`).subscribe({
-            next: () => { this.loadGruppi(); },
+            next: () => { this._ripulisciErroreCambioStato(); this.loadGruppi(); },
             error: (error: any) => { Tools.showMessage(this.utils.GetErrorMsg(error), 'danger', true); }
         });
     }
@@ -1108,6 +1113,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     }
 
     onApiSettingsSaved(_event: any) {
+        this._ripulisciErroreCambioStato();
         this._configApiId = null;
         this._configApiStartEdit = false;
         this._configApiTab = null;
@@ -1149,6 +1155,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
             next: () => {
                 if (this._editApiId === api.id_api) { this.closeEditApi(); }
                 if (this._apiAllegatiOpenId === api.id_api) { this._closeApiAllegati(); }
+                this._ripulisciErroreCambioStato();
                 this.loadServizioApi();
             },
             error: (error: any) => {
@@ -1200,6 +1207,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     }
 
     onApiSaved(_event: any) {
+        this._ripulisciErroreCambioStato();
         this._createApiOpen = false;
         this._editApiId = null;
         this._editApiStartEdit = false;
@@ -1264,6 +1272,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
                 this._error = true;
                 this._errorMsg = Tools.WorkflowErrorMsg(error);
                 this._errors = Tools.filtraErroriComplessi(error.error?.errori);
+                this._erroreCambioStato = true;
                 Tools.showMessage(this.translate.instant('APP.WORKFLOW.MESSAGE.ChangeStatusError', { status: this.translate.instant('APP.WORKFLOW.STATUS.' + event.status.nome) }), 'danger', true);
                 this._updateData = new Date().getTime().toString();
                 this._showStatusError();
@@ -1388,8 +1397,13 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     __resetError() {
         this._error = false;
         this._errorFromStatus = false;
+        this._erroreCambioStato = false;
         this._errorMsg = '';
         this._errors = [];
+    }
+
+    private _ripulisciErroreCambioStato() {
+        if (this._erroreCambioStato) { this.__resetError(); }
     }
 
     /** Porta l'utente sulla fase corrente e sull'errore sotto i pulsanti di cambio stato;
