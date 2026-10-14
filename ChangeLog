@@ -1,3 +1,11 @@
+2026-10-14  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 387: nuova API GET /servizi/{id_servizio}/check-dati/{stato} che verifica la
+	  completezza dei dati obbligatori di un servizio per lo stato indicato, senza cambiarne
+	  lo stato né modificarne i dati (analoga a quella già disponibile per le adesioni):
+	  restituisce esito ok/ko con l'elenco degli errori.
+
 2026-10-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

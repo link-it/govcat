@@ -103,6 +103,7 @@ import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.RichiestaNonValidaSemanticamenteException;
+import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
 import org.govway.catalogo.services.DisclaimerService;
 import org.govway.catalogo.servlets.api.ServiziApi;
 import org.govway.catalogo.servlets.model.Allegato;
@@ -111,6 +112,7 @@ import org.govway.catalogo.servlets.model.AllegatoMessaggio;
 import org.govway.catalogo.servlets.model.AllegatoMessaggioCreate;
 import org.govway.catalogo.servlets.model.AllegatoUpdate;
 import org.govway.catalogo.servlets.model.CategorieCreate;
+import org.govway.catalogo.servlets.model.CheckDati;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneCambioStato;
 import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
@@ -131,6 +133,7 @@ import org.govway.catalogo.servlets.model.ListItemCategoria;
 import org.govway.catalogo.servlets.model.ListItemGruppo;
 import org.govway.catalogo.servlets.model.MessaggioCreate;
 import org.govway.catalogo.servlets.model.MessaggioUpdate;
+import org.govway.catalogo.servlets.model.OkKoEnum;
 import org.govway.catalogo.servlets.model.PageMetadata;
 import org.govway.catalogo.servlets.model.PagedModelAllegato;
 import org.govway.catalogo.servlets.model.PagedModelComponente;
@@ -1164,6 +1167,39 @@ public class ServiziController implements ServiziApi {
 				this.logger.info("Invocazione completata con successo");
 				return ResponseEntity.ok(model);
 
+			});
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	@Override
+	public ResponseEntity<CheckDati> checkDatiServizio(UUID idServizio, String statoFinale) {
+		try {
+
+			return this.service.runTransaction( () -> {
+
+				this.logger.info("Invocazione in corso ...");
+				ServizioEntity entity = this.findOne(idServizio);
+				this.logger.debug("Autorizzazione completata con successo");
+
+				CheckDati checkDatiGenerale = new CheckDati();
+				try {
+					this.getServizioAuthorization(entity).checkCampiObbligatori(entity, statoFinale);
+					checkDatiGenerale.setEsito(OkKoEnum.OK);
+				} catch(UpdateEntitaComplessaNonValidaSemanticamenteException e) {
+					checkDatiGenerale.setEsito(OkKoEnum.KO);
+					checkDatiGenerale.setErrori(e.getErrori());
+				}
+
+				this.logger.info("Invocazione completata con successo");
+				return ResponseEntity.ok(checkDatiGenerale);
 			});
 		}
 		catch(RuntimeException e) {

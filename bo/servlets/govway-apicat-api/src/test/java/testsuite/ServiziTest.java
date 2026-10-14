@@ -72,6 +72,7 @@ import org.govway.catalogo.servlets.model.Gruppo;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
 import org.govway.catalogo.servlets.model.Campo;
+import org.govway.catalogo.servlets.model.CheckDati;
 import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
 import org.govway.catalogo.servlets.model.ConfigurazioneCustomProprietaList;
 import org.govway.catalogo.servlets.model.ConfigurazioneProfiloCustomProprietaText;
@@ -87,6 +88,7 @@ import org.govway.catalogo.servlets.model.ListItemCategoria;
 import org.govway.catalogo.servlets.model.ListItemGruppo;
 import org.govway.catalogo.servlets.model.MessaggioCreate;
 import org.govway.catalogo.servlets.model.MessaggioUpdate;
+import org.govway.catalogo.servlets.model.OkKoEnum;
 import org.govway.catalogo.servlets.model.Organizzazione;
 import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.PagedModelAllegato;
@@ -3540,5 +3542,73 @@ public class ServiziTest {
 		assertFalse(this.isGruppoRichiesto(servizio.getIdServizio(), List.of(Ruolo.REFERENTE_TECNICO)));
 		// lista vuota: non visibile a nessuno, quindi non richiesta
 		assertFalse(this.isGruppoRichiesto(servizio.getIdServizio(), List.of()));
+	}
+
+	// ==================== check dati ====================
+
+	private Servizio getServizioConApi() {
+		Servizio servizio = this.getServizio();
+		APICreate apiCreate = CommonUtils.getAPICreate();
+		apiCreate.setIdServizio(servizio.getIdServizio());
+		assertEquals(HttpStatus.OK, apiController.createApi(apiCreate).getStatusCode());
+		this.entityManager.flush();
+		this.entityManager.clear();
+		return servizio;
+	}
+
+	/**
+	 * Il check dati verso uno stato i cui dati obbligatori sono presenti da' esito OK.
+	 */
+	@Test
+	void testCheckDatiServizioOk() {
+		Servizio servizio = this.getServizioConApi();
+
+		ResponseEntity<CheckDati> response = serviziController.checkDatiServizio(servizio.getIdServizio(), STATO_INIZIALE);
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(OkKoEnum.OK, response.getBody().getEsito());
+		assertNull(response.getBody().getErrori());
+
+		this.entityManager.flush();
+		this.entityManager.clear();
+		assertEquals(STATO_INIZIALE, serviziController.getServizio(servizio.getIdServizio()).getBody().getStato());
+	}
+
+	/**
+	 * Con dati obbligatori mancanti il check dati restituisce esito KO con gli errori
+	 * (invece del 422 del cambio stato), senza modificare lo stato del servizio.
+	 * Lo stato di arrivo richiede anche i dati di collaudo dell'API, qui assenti.
+	 */
+	@Test
+	void testCheckDatiServizioKo() {
+		Servizio servizio = this.getServizioConApi();
+
+		ConfigurazioneCustomProprietaList gruppo = this.aggiungiGruppoRequired(null);
+		ResponseEntity<CheckDati> response;
+		try {
+			response = serviziController.checkDatiServizio(servizio.getIdServizio(), "richiesto_collaudo");
+		} finally {
+			this.configurazione.getServizio().getApi().getProprietaCustom().remove(gruppo);
+		}
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(OkKoEnum.KO, response.getBody().getEsito());
+		assertTrue(response.getBody().getErrori().stream()
+				.filter(err -> err.getCampi() != null)
+				.flatMap(err -> err.getCampi().stream())
+				.map(Campo::getNomeCampo)
+				.anyMatch((GRUPPO_RUOLI_ABILITATI + "." + PROPRIETA_RUOLI_ABILITATI)::equals));
+
+		this.entityManager.flush();
+		this.entityManager.clear();
+		assertEquals(STATO_INIZIALE, serviziController.getServizio(servizio.getIdServizio()).getBody().getStato());
+	}
+
+	@Test
+	void testCheckDatiServizioNotFound() {
+		UUID randomId = UUID.randomUUID();
+
+		assertThrows(NotFoundException.class,
+				() -> serviziController.checkDatiServizio(randomId, "richiesto_collaudo"));
 	}
 }
