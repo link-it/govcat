@@ -945,6 +945,18 @@ describe('AuthenticationService', () => {
 
   // --- canTypeAttachment ---
 
+  describe('tipologieAllegatoScrivibili', () => {
+    it('should return the attachment types in write mode in the grant', () => {
+      expect(service.tipologieAllegatoScrivibili({ ruoli: ['referente'], generico: 'scrittura', specifica: 'lettura' } as any)).toEqual(['generico']);
+      expect(service.tipologieAllegatoScrivibili({ ruoli: ['referente'], generico: 'lettura', specifica: 'lettura' } as any)).toEqual([]);
+      expect(service.tipologieAllegatoScrivibili(null)).toEqual([]);
+    });
+
+    it('should allow every type to the manager', () => {
+      expect(service.tipologieAllegatoScrivibili({ ruoli: ['gestore'], generico: 'lettura', specifica: 'lettura' } as any)).toEqual(['generico', 'specifica']);
+    });
+  });
+
   describe('canTypeAttachment', () => {
     beforeEach(() => {
       Tools.Configurazione = {

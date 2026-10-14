@@ -1,6 +1,10 @@
 2026-10-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Allegati dei servizi: il pulsante di aggiunta (wizard e vista classica) e le tipologie proposte
+	  seguono il grant del servizio per le classi generico/specifica, come il BE; prima per i non gestori
+	  il pulsante spariva in qualsiasi stato con dati non modificabili.
+
 	Wizard adesioni: ripristinati dimensione e allineamento dei titoli dei gruppi referenti, cambiati
 	  da h4 a h3 nelle correzioni di accessibilita'.
 

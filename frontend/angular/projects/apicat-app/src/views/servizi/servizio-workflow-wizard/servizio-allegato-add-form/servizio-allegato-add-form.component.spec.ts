@@ -65,4 +65,26 @@ describe('ServizioAllegatoAddFormComponent', () => {
     createComponent(['gestore', 'servizio'], true);
     expect(component.f['visibilita'].value).toBeNull();
   });
+
+  describe('tipologie in base al grant', () => {
+    const _crea = (scrivibili: string[]) => {
+      Tools.Configurazione = { servizio: { visibilita_allegati_consentite: ['pubblico'] } } as any;
+      mockAuthenticationService = { isGestore: vi.fn().mockReturnValue(false), tipologieAllegatoScrivibili: vi.fn().mockReturnValue(scrivibili) };
+      component = new ServizioAllegatoAddFormComponent({} as any, mockAuthenticationService);
+      component.grant = { ruoli: ['referente'] } as any;
+      component.ngOnInit();
+    };
+
+    it('should offer only the attachment types the user can write', () => {
+      _crea(['specifica']);
+      expect(component.tipiAllegati.map((t: any) => t.value)).toEqual(['specifica']);
+      expect(component.f['tipologia'].value).toBe('specifica');
+    });
+
+    it('should default to the generic type when allowed', () => {
+      _crea(['generico', 'specifica']);
+      expect(component.tipiAllegati.map((t: any) => t.value)).toEqual(['generico', 'specifica']);
+      expect(component.f['tipologia'].value).toBe('generico');
+    });
+  });
 });

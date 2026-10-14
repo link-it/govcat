@@ -780,7 +780,9 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     }
 
     canAddAllegato(): boolean {
-        return this.authenticationService.canAdd('servizio', this.data?.stato, this._grant?.ruoli);
+        const _tipologie = this.authenticationService.tipologieAllegatoScrivibili(this._grant);
+        // Senza selettore di tipologia l'allegato e` sempre generico
+        return this._showAllAttachments ? _tipologie.length > 0 : _tipologie.includes('generico');
     }
 
     canEditAllegato(): boolean {

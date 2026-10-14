@@ -92,6 +92,10 @@ export class ServizioAllegatoAddFormComponent implements OnInit {
             .filter((item: string) => !((item === 'gestore') && !this.authenticationService.isGestore(this.grant?.ruoli)))
             .sort((a: string, b: string) => _ordine(a) - _ordine(b))
             .map((item: string) => ({ label: item, value: item }));
+        if (this.grant) {
+            const _scrivibili = this.authenticationService.tipologieAllegatoScrivibili(this.grant);
+            this.tipiAllegati = this.tipiAllegati.filter((t: any) => _scrivibili.includes(t.value));
+        }
         this.initForm();
     }
 
@@ -102,12 +106,15 @@ export class ServizioAllegatoAddFormComponent implements OnInit {
     initForm() {
         this.files = [];
         const _visibilita = this.tipiVisibilitaAllegato.some((v: any) => v.value === 'pubblico') ? 'pubblico' : null;
+        const _tipologia = this.tipiAllegati.some((t: any) => t.value === TipologiaAllegatoEnum.Generico)
+            ? TipologiaAllegatoEnum.Generico
+            : (this.tipiAllegati[0]?.value ?? TipologiaAllegatoEnum.Generico);
         this.editFormGroup = new FormGroup({
             filename: new FormControl(null, this.multiple ? [] : [Validators.required]),
             estensione: new FormControl(null, this.multiple ? [] : [Validators.required]),
             descrizione: new FormControl(null, []),
             visibilita: new FormControl(_visibilita, [Validators.required]),
-            tipologia: new FormControl(TipologiaAllegatoEnum.Generico, [Validators.required]),
+            tipologia: new FormControl(_tipologia, [Validators.required]),
             content: new FormControl(null, (!this.multiple) ? [Validators.required] : []),
             files: new FormControl(null, this.multiple ? [Validators.required] : [])
         });

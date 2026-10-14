@@ -818,6 +818,16 @@ export class AuthenticationService {
     return (_.indexOf(_sac, state) !== -1);
   }
 
+  /**
+   * Tipologie di allegato (`generico`, `specifica`) che l'utente puo` aggiungere al servizio o alle sue API:
+   * il grant del BE indica per ciascuna classe se e` in scrittura (stato, ruoli e dati sempre modificabili).
+   */
+  tipologieAllegatoScrivibili(grant: Grant | null | undefined): string[] {
+    const _tipologie: string[] = ['generico', 'specifica'];
+    if (this.isGestore(grant?.ruoli || [])) { return _tipologie; }
+    return _tipologie.filter((t: string) => (grant as any)?.[t] === RightsEnum.Scrittura);
+  }
+
   canTypeAttachment(module: string, state: string, type: string, grant: string[] = []) {
     if (this.isGestore(grant)) { return true; }
     if (state && type) {
