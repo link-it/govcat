@@ -511,6 +511,9 @@
                                             <input type="text" readonly class="form-control-plaintext" id="profilo" [value]="afgc(authIndex)['profilo'].value | mapper:_getProfiloLabelMapper">
                                           </div>
                                         }
+                                        @for (d of (afgc(authIndex)['profilo'].value | mapper:_disclaimersProfiloMapper:_disclaimersAttivi); track $index) {
+                                          <app-servizio-disclaimer-banner class="d-block mt-2" [disclaimer]="d"></app-servizio-disclaimer-banner>
+                                        }
                                       </div>
                                     </div>
                                     @if (f['authTypes'].value.length > 1 || (_customAuth || _customAuthOrig)) {

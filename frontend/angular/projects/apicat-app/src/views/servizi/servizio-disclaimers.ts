@@ -78,10 +78,33 @@ export function disclaimersDelleProprieta(disclaimers: ServizioDisclaimer[] | nu
     return _result;
 }
 
-/** Carica i disclaimer del servizio nella lingua corrente; errore o lista vuota -> []. */
-export function loadServizioDisclaimers(apiService: OpenAPIService, translate: TranslateService, sid: string): Observable<ServizioDisclaimer[]> {
+/**
+ * Disclaimer di un profilo non legati a un gruppo di proprieta` custom. Contesto `generale`, uguale
+ * all'ambiente indicato o, senza ambiente, qualsiasi.
+ */
+export function disclaimersDelProfilo(disclaimers: ServizioDisclaimer[] | null | undefined, profilo: string | null | undefined, ambiente?: string | null): ServizioDisclaimer[] {
+    if (!profilo) { return []; }
+    return (disclaimers || []).filter((d: ServizioDisclaimer) => {
+        if (d.profilo !== profilo || d.nome_gruppo) { return false; }
+        const _contesto = d.contesto || 'generale';
+        return !ambiente || _contesto === 'generale' || _contesto === ambiente;
+    });
+}
+
+/** Disclaimer da mostrare nel form API: senza profilo o con un profilo selezionato nel form. */
+export function disclaimersDeiProfili(disclaimers: ServizioDisclaimer[] | null | undefined, profili: string[]): ServizioDisclaimer[] {
+    return (disclaimers || []).filter((d: ServizioDisclaimer) => !d.profilo || profili.includes(d.profilo));
+}
+
+/**
+ * Carica i disclaimer del servizio nella lingua corrente; errore o lista vuota -> [].
+ * Con `profili` il BE aggiunge quelli dei profili indicati (es. scelti in un'API non ancora salvata).
+ */
+export function loadServizioDisclaimers(apiService: OpenAPIService, translate: TranslateService, sid: string, profili: string[] = []): Observable<ServizioDisclaimer[]> {
     const languageCode = translate.currentLang || translate.getDefaultLang() || 'it';
-    return apiService.getDetails('servizi', sid, 'disclaimers', { params: { language_code: languageCode } }).pipe(
+    const _params: { [param: string]: string | string[] } = { language_code: languageCode };
+    if (profili.length) { _params['profilo'] = profili; }
+    return apiService.getDetails('servizi', sid, 'disclaimers', { params: _params }).pipe(
         map((response: any) => normalizeServizioDisclaimers(response)),
         catchError(() => of([]))
     );

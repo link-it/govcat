@@ -520,6 +520,46 @@ describe('ServizioApiDetailsComponent', () => {
   // =========================================================================
   // _prepareBodySaveApi
   // =========================================================================
+  describe('disclaimer dei profili nel form API', () => {
+    const _form = (profili: string[]) => new FormGroup({
+      authTypes: new FormArray(profili.map((p: string) => new FormGroup({ profilo: new FormControl(p) })))
+    }) as any;
+
+    it('should reload the disclaimers with the selected profiles only when they change', () => {
+      vi.useFakeTimers();
+      (component as any)._initDisclaimerProfili();
+      component.sid = 's1';
+      component._isEdit = true;
+      component._formGroup = _form(['P1', 'P2', 'P1']);
+      mockApiService.getDetails.mockClear();
+      mockApiService.getDetails.mockReturnValue(of([{ disclaimer: 'a', profilo: 'P1' }, { disclaimer: 'z', profilo: 'ALTRO' }, { disclaimer: 's' }]));
+
+      (component as any)._aggiornaDisclaimerProfili();
+      vi.advanceTimersByTime(300);
+      expect(mockApiService.getDetails).toHaveBeenCalledWith('servizi', 's1', 'disclaimers', { params: expect.objectContaining({ profilo: ['P1', 'P2'] }) });
+      expect(component._disclaimersAttivi.map((d: any) => d.disclaimer)).toEqual(['a', 's']);
+
+      mockApiService.getDetails.mockClear();
+      (component as any)._aggiornaDisclaimerProfili();
+      vi.advanceTimersByTime(300);
+      expect(mockApiService.getDetails).not.toHaveBeenCalled();
+      vi.useRealTimers();
+    });
+
+    it('should not reload outside the edit mode', () => {
+      vi.useFakeTimers();
+      (component as any)._initDisclaimerProfili();
+      component.sid = 's1';
+      component._isEdit = false;
+      component._formGroup = _form(['P1']);
+      mockApiService.getDetails.mockClear();
+      (component as any)._aggiornaDisclaimerProfili();
+      vi.advanceTimersByTime(300);
+      expect(mockApiService.getDetails).not.toHaveBeenCalledWith('servizi', 's1', 'disclaimers', expect.anything());
+      vi.useRealTimers();
+    });
+  });
+
   describe('_prepareBodySaveApi', () => {
     it('should send the additional URLs only when present', () => {
       Tools.Configurazione!.servizio.api.url_invocazione_aggiuntive_abilitate = true;

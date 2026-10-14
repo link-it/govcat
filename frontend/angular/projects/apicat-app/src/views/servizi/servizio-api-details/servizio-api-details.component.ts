@@ -17,7 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, map, switchMap } from 'rxjs/operators';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -46,7 +47,7 @@ import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asteri
 import { DisablePermissionDirective } from '@app/directives/disable-permission/disable-permission.directive';
 import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
 import { ErrorViewComponent } from '@app/components/error-view/error-view.component';
-import { ServizioDisclaimer, disclaimersDelleProprieta, loadServizioDisclaimers } from '../servizio-disclaimers';
+import { ServizioDisclaimer, disclaimersDeiProfili, disclaimersDelProfilo, disclaimersDelleProprieta, loadServizioDisclaimers } from '../servizio-disclaimers';
 import { filtraGruppiPerRuoli } from '../servizio-proprieta-custom';
 import { ServizioDisclaimerBannerComponent } from '../components/servizio-disclaimer-banner/servizio-disclaimer-banner.component';
 import { ServizioApiUrlAggiuntiveComponent } from '../components/servizio-api-url-aggiuntive/servizio-api-url-aggiuntive.component';
@@ -120,6 +121,12 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
     @Input() disclaimers: ServizioDisclaimer[] | null = null;
     _disclaimersCaricati: ServizioDisclaimer[] = [];
     private _langSub: Subscription | null = null;
+
+    // Disclaimer del form API caricati con i profili selezionati (anche non ancora salvati)
+    _disclaimersForm: ServizioDisclaimer[] | null = null;
+    private _profiliDisclaimerKey: string | null = null;
+    private readonly _profiliDisclaimer$ = new Subject<string[]>();
+    private _formDisclaimerSubs: Subscription[] = [];
 
     /** Base url di collaudo in creazione: solo nella fase collaudo; senza fase se il collaudo non e` saltato. */
     get _showUrlCollaudo(): boolean {
@@ -307,6 +314,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
     }
 
     ngOnInit() {
+        this._initDisclaimerProfili();
         this.eventsManagerService.on('INIT_DATA', (event: any) => {
             this._initData(true);
         });
@@ -386,10 +394,42 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
     /** Init in modalità embedded (nessuna route): creazione o dettaglio da @Input. */
     ngOnDestroy() {
         this._langSub?.unsubscribe();
+        this._formDisclaimerSubs.forEach((sub: Subscription) => sub.unsubscribe());
     }
 
     get _disclaimersAttivi(): ServizioDisclaimer[] {
+        if (this._isEdit && this._disclaimersForm) { return this._disclaimersForm; }
         return this.disclaimers ?? this._disclaimersCaricati;
+    }
+
+    private _initDisclaimerProfili() {
+        this._formDisclaimerSubs.push(
+            this._profiliDisclaimer$.pipe(
+                debounceTime(250),
+                switchMap((profili: string[]) => loadServizioDisclaimers(this.apiService, this.translate, this.sid as string, profili).pipe(
+                    map((list: ServizioDisclaimer[]) => disclaimersDeiProfili(list, profili))
+                ))
+            ).subscribe((list: ServizioDisclaimer[]) => { this._disclaimersForm = list; }),
+            this.translate.onLangChange.subscribe(() => {
+                this._profiliDisclaimerKey = null;
+                this._aggiornaDisclaimerProfili();
+            })
+        );
+    }
+
+    /** Nel form API ricarica i disclaimer quando cambiano i profili selezionati. */
+    private _aggiornaDisclaimerProfili() {
+        if (!this._isEdit || !this.sid || !this._formGroup?.get('authTypes')) { return; }
+        const _profili: string[] = Array.from(new Set(this._getAllProfileValues().filter((p: string) => !!p)));
+        const _key = [..._profili].sort().join('|');
+        if (_key === this._profiliDisclaimerKey) { return; }
+        this._profiliDisclaimerKey = _key;
+        this._profiliDisclaimer$.next(_profili);
+    }
+
+    /** Disclaimer di profilo senza gruppo, sotto la scelta del profilo. */
+    _disclaimersProfiloMapper = (profilo: string, disclaimers: ServizioDisclaimer[]): ServizioDisclaimer[] => {
+        return disclaimersDelProfilo(disclaimers, profilo, this.fase);
     }
 
     /** Fuori dal wizard i disclaimer si caricano qui e si ricaricano al cambio lingua. */
@@ -1082,6 +1122,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
         this._initData();
         setTimeout(() => {
             this._isEdit = true;
+            this._aggiornaDisclaimerProfili();
             this._error = false;
             this.showHistory = false;
             const controls: any = this._formGroup.controls;
@@ -1583,6 +1624,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
             this.authTypesArray().removeAt(index);
             this._updateResources = new Date().getTime().toString();
         }
+        this._aggiornaDisclaimerProfili();
     }
 
     _setAuthsArray(auths: any[]) {
@@ -1854,6 +1896,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
         }
 
         this._updateMapper = new Date().getTime().toString();
+        this._aggiornaDisclaimerProfili();
     }
 
     filtraCampiPerRuoli(data: GruppiCampi, ruoliUtente: string[]): GruppiCampi {

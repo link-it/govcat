@@ -18,7 +18,7 @@
  */
 import { describe, it, expect, vi } from 'vitest';
 import { of, throwError } from 'rxjs';
-import { disclaimersDelGruppo, disclaimersDelleProprieta, loadServizioDisclaimers, normalizeServizioDisclaimers } from './servizio-disclaimers';
+import { disclaimersDeiProfili, disclaimersDelGruppo, disclaimersDelProfilo, disclaimersDelleProprieta, loadServizioDisclaimers, normalizeServizioDisclaimers } from './servizio-disclaimers';
 
 describe('servizio-disclaimers', () => {
   const list: any[] = [
@@ -63,5 +63,30 @@ describe('servizio-disclaimers', () => {
     api.getDetails.mockReturnValue(throwError(() => new Error('ko')));
     const empty = await new Promise(resolve => loadServizioDisclaimers(api, translate, 's1').subscribe(resolve));
     expect(empty).toEqual([]);
+  });
+
+  it('should pass the selected profiles as a repeated query parameter', async () => {
+    const api: any = { getDetails: vi.fn().mockReturnValue(of([])) };
+    const translate: any = { currentLang: 'it', getDefaultLang: () => 'it' };
+    await new Promise(resolve => loadServizioDisclaimers(api, translate, 's1', ['A', 'B']).subscribe(resolve));
+    expect(api.getDetails).toHaveBeenCalledWith('servizi', 's1', 'disclaimers', { params: { language_code: 'it', profilo: ['A', 'B'] } });
+  });
+
+  it('should keep only the disclaimers without profile or of a selected profile', () => {
+    const list: any[] = [{ disclaimer: 'stato' }, { disclaimer: 'a', profilo: 'A' }, { disclaimer: 'b', profilo: 'B' }];
+    expect(disclaimersDeiProfili(list, ['A']).map(d => d.disclaimer)).toEqual(['stato', 'a']);
+  });
+
+  it('should select the profile disclaimers not tied to a group', () => {
+    const list: any[] = [
+      { disclaimer: 'gen', profilo: 'A' },
+      { disclaimer: 'col', profilo: 'A', contesto: 'collaudo' },
+      { disclaimer: 'prod', profilo: 'A', contesto: 'produzione' },
+      { disclaimer: 'gruppo', profilo: 'A', nome_gruppo: 'G' },
+      { disclaimer: 'altro', profilo: 'B' }
+    ];
+    expect(disclaimersDelProfilo(list, 'A').map(d => d.disclaimer)).toEqual(['gen', 'col', 'prod']);
+    expect(disclaimersDelProfilo(list, 'A', 'collaudo').map(d => d.disclaimer)).toEqual(['gen', 'col']);
+    expect(disclaimersDelProfilo(list, null)).toEqual([]);
   });
 });
