@@ -6,6 +6,11 @@
 	  lo stato né modificarne i dati (analoga a quella già disponibile per le adesioni):
 	  restituisce esito ok/ko con l'elenco degli errori.
 
+	Issue 388: l'API GET /servizi/{id_servizio}/disclaimers accetta il parametro opzionale
+	  multi-valore profilo, per ottenere anche i disclaimer dei profili (e dei relativi gruppi di
+	  proprietà custom) di un'API non ancora associata al servizio, come nel wizard in fase di
+	  creazione; i profili non presenti in configurazione sono ignorati.
+
 2026-10-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

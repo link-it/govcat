@@ -2291,7 +2291,7 @@ public class ServiziController implements ServiziApi {
 	}
 
 	@Override
-	public ResponseEntity<List<ServizioDisclaimer>> getDisclaimersServizio(UUID idServizio, String languageCode) {
+	public ResponseEntity<List<ServizioDisclaimer>> getDisclaimersServizio(UUID idServizio, String languageCode, List<String> profilo) {
 		try {
 			return this.service.runTransaction( () -> {
 
@@ -2300,7 +2300,19 @@ public class ServiziController implements ServiziApi {
 
 				this.logger.debug("Autorizzazione completata con successo");
 
-				List<ServizioDisclaimer> disclaimers = this.disclaimerService.resolveDisclaimersServizio(entity, languageCode);
+				// profili aggiuntivi (es. API in creazione non ancora associata al servizio):
+				// quelli non presenti in configurazione sono ignorati
+				List<String> profiliAggiuntivi = List.of();
+				if(profilo != null && !profilo.isEmpty()) {
+					List<String> profiliValidi = this.configurazione.getServizio().getApi().getProfili().stream()
+							.map(p -> p.getCodiceInterno())
+							.toList();
+					profiliAggiuntivi = profilo.stream()
+							.filter(profiliValidi::contains)
+							.toList();
+				}
+
+				List<ServizioDisclaimer> disclaimers = this.disclaimerService.resolveDisclaimersServizio(entity, languageCode, profiliAggiuntivi);
 
 				this.logger.info("Invocazione completata con successo");
 

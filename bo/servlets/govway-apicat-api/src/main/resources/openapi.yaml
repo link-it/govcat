@@ -2646,7 +2646,7 @@ paths:
     get:
       tags:
       - "Servizi"
-      description: "Lista dei disclaimer applicabili al servizio, risolti gerarchicamente in base a stato, profilo client e dominio del servizio"
+      description: "Lista dei disclaimer applicabili al servizio, risolti gerarchicamente in base a stato, profilo client e dominio del servizio. I profili considerati sono quelli delle API del servizio piu' gli eventuali profili indicati nel parametro profilo (es. profili selezionati per un'API in fase di creazione o modifica); i profili non presenti in configurazione sono ignorati"
       operationId: "getDisclaimersServizio"
       parameters:
       - name: "language_code"
@@ -2659,6 +2659,7 @@ paths:
           enum:
             - "it"
             - "en"
+      - $ref: "#/components/parameters/profilo_query_optional"
       responses:
         "200":
           description: "Operazione completata con successo"

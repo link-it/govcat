@@ -124,7 +124,7 @@ public class DisclaimerService {
 			}
 
 			List<ResolvedDisclaimer> resolved = resolveGerarchia(disclaimers, "",
-					normalize(adesione.getStato()), adesione.getServizio());
+					normalize(adesione.getStato()), adesione.getServizio(), List.of());
 
 			// Se nessun disclaimer specifico trovato, usa il default (profilo=null)
 			if (resolved.isEmpty()) {
@@ -156,6 +156,19 @@ public class DisclaimerService {
 	 * "servizio.*" corrisponde, la lista restituita e' vuota. Non lancia mai eccezioni.
 	 */
 	public List<ServizioDisclaimer> resolveDisclaimersServizio(ServizioEntity servizio, String languageCode) {
+		return resolveDisclaimersServizio(servizio, languageCode, List.of());
+	}
+
+	/**
+	 * Come {@link #resolveDisclaimersServizio(ServizioEntity, String)}, considerando oltre ai
+	 * profili delle API del servizio anche i profili aggiuntivi indicati (es. i profili
+	 * selezionati per un'API non ancora associata al servizio, in fase di creazione).
+	 *
+	 * @param profiliAggiuntivi codici interni dei profili da considerare in aggiunta a quelli
+	 *                          del servizio; null o vuota equivale a nessun profilo aggiuntivo
+	 */
+	public List<ServizioDisclaimer> resolveDisclaimersServizio(ServizioEntity servizio, String languageCode,
+			List<String> profiliAggiuntivi) {
 		try {
 			String lang = normalizeLang(languageCode);
 			Map<String, List<DisclaimerEntry>> disclaimers = cache.getOrDefault(lang, cache.get("it"));
@@ -164,7 +177,7 @@ public class DisclaimerService {
 			}
 
 			List<ResolvedDisclaimer> resolved = resolveGerarchia(disclaimers, PREFIX_SERVIZIO,
-					normalize(servizio.getStato()), servizio);
+					normalize(servizio.getStato()), servizio, profiliAggiuntivi);
 
 			List<ServizioDisclaimer> result = new ArrayList<>();
 			for (ResolvedDisclaimer entry : resolved) {
@@ -185,14 +198,15 @@ public class DisclaimerService {
 	 *
 	 * @param servizio servizio di riferimento, da cui sono derivati dominio e profili
 	 *                 dei client richiesti (per le adesioni e' il servizio aderito)
+	 * @param profiliAggiuntivi profili da considerare dopo quelli del servizio (null ammesso)
 	 */
 	private List<ResolvedDisclaimer> resolveGerarchia(Map<String, List<DisclaimerEntry>> disclaimers,
-			String prefix, String stato, ServizioEntity servizio) {
+			String prefix, String stato, ServizioEntity servizio, List<String> profiliAggiuntivi) {
 
 		String dominio = extractDominio(servizio);
 		// I profili sono restituiti con il case originale (coerente con quanto
 		// presente in ClientAdesioneEntity.profilo restituito da listClient*Adesione)
-		List<String> profili = extractProfili(servizio);
+		List<String> profili = mergeProfili(extractProfili(servizio), profiliAggiuntivi);
 
 		// LinkedHashSet di chiavi gia' consumate per evitare duplicati
 		Set<String> matchedKeys = new LinkedHashSet<>();
@@ -316,6 +330,21 @@ public class DisclaimerService {
 					(servizio != null) ? servizio.getIdServizio() : null, e.getMessage());
 			return List.of();
 		}
+	}
+
+	/**
+	 * Accoda ai profili del servizio i profili aggiuntivi non blank e non gia' presenti,
+	 * preservando l'ordine (prima quelli del servizio).
+	 */
+	private List<String> mergeProfili(List<String> profili, List<String> profiliAggiuntivi) {
+		if (profiliAggiuntivi == null || profiliAggiuntivi.isEmpty()) {
+			return profili;
+		}
+		Set<String> merged = new LinkedHashSet<>(profili);
+		profiliAggiuntivi.stream()
+				.filter(p -> p != null && !p.isBlank())
+				.forEach(merged::add);
+		return new ArrayList<>(merged);
 	}
 
 	private String extractDominio(ServizioEntity servizio) {

@@ -9,6 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -34,6 +36,7 @@ import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.services.ClasseUtenteService;
 import org.govway.catalogo.core.services.DominioService;
 import org.govway.catalogo.core.services.ServizioService;
+import org.govway.catalogo.services.DisclaimerService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ErrorCode;
@@ -134,6 +137,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -153,6 +157,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityManager;
@@ -221,6 +226,9 @@ public class ServiziTest {
 	
 	@Autowired
 	private DominiController dominiController;
+
+	@Autowired
+	private DisclaimerService disclaimerService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -3433,7 +3441,7 @@ public class ServiziTest {
 	void testGetDisclaimersServizioSuccessIt() {
 		Servizio servizio = this.getServizio();
 
-		ResponseEntity<List<ServizioDisclaimer>> response = serviziController.getDisclaimersServizio(servizio.getIdServizio(), "it");
+		ResponseEntity<List<ServizioDisclaimer>> response = serviziController.getDisclaimersServizio(servizio.getIdServizio(), "it", null);
 
 		// L'endpoint non fallisce mai: senza chiavi "servizio.*" configurate la lista e' vuota
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -3451,7 +3459,7 @@ public class ServiziTest {
 	void testGetDisclaimersServizioSuccessEn() {
 		Servizio servizio = this.getServizio();
 
-		ResponseEntity<List<ServizioDisclaimer>> response = serviziController.getDisclaimersServizio(servizio.getIdServizio(), "en");
+		ResponseEntity<List<ServizioDisclaimer>> response = serviziController.getDisclaimersServizio(servizio.getIdServizio(), "en", null);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertNotNull(response.getBody());
@@ -3462,13 +3470,58 @@ public class ServiziTest {
 		Servizio servizio = this.getServizio();
 
 		// language_code null e lingua non supportata -> fallback a "it", nessun errore
-		ResponseEntity<List<ServizioDisclaimer>> responseNull = serviziController.getDisclaimersServizio(servizio.getIdServizio(), null);
+		ResponseEntity<List<ServizioDisclaimer>> responseNull = serviziController.getDisclaimersServizio(servizio.getIdServizio(), null, null);
 		assertEquals(HttpStatus.OK, responseNull.getStatusCode());
 		assertNotNull(responseNull.getBody());
 
-		ResponseEntity<List<ServizioDisclaimer>> responseFr = serviziController.getDisclaimersServizio(servizio.getIdServizio(), "fr");
+		ResponseEntity<List<ServizioDisclaimer>> responseFr = serviziController.getDisclaimersServizio(servizio.getIdServizio(), "fr", null);
 		assertEquals(HttpStatus.OK, responseFr.getStatusCode());
 		assertNotNull(responseFr.getBody());
+	}
+
+	@Test
+	void testGetDisclaimersServizioProfiliAggiuntivi(@TempDir Path tempDir) throws Exception {
+		Servizio servizio = this.getServizio();
+		String stato = servizio.getStato();
+
+		// yaml esterno con chiavi per un profilo configurato e per uno inesistente
+		Files.writeString(tempDir.resolve("disclaimers_it.yml"), String.join("\n",
+				"servizio." + stato + ".interno_https:",
+				"  testo: DISCLAIMER_HTTPS",
+				"  nome_gruppo: GruppoHttps",
+				"servizio." + stato + ".profilo_inesistente: DISCLAIMER_INESISTENTE"));
+
+		Object externalPathOriginale = ReflectionTestUtils.getField(disclaimerService, "externalPath");
+		try {
+			ReflectionTestUtils.setField(disclaimerService, "externalPath", tempDir.toString());
+			disclaimerService.reload();
+
+			// senza profili aggiuntivi il servizio (privo di API) non produce disclaimer di profilo
+			List<ServizioDisclaimer> senzaProfili = serviziController
+					.getDisclaimersServizio(servizio.getIdServizio(), "it", null).getBody();
+			assertNotNull(senzaProfili);
+			assertTrue(senzaProfili.stream().noneMatch(d -> d.getProfilo() != null));
+
+			// il profilo non presente in configurazione viene ignorato
+			ResponseEntity<List<ServizioDisclaimer>> response = serviziController.getDisclaimersServizio(
+					servizio.getIdServizio(), "it", List.of("INTERNO_HTTPS", "PROFILO_INESISTENTE"));
+			assertEquals(HttpStatus.OK, response.getStatusCode());
+			List<ServizioDisclaimer> conProfili = response.getBody();
+			assertNotNull(conProfili);
+
+			List<ServizioDisclaimer> diProfilo = conProfili.stream().filter(d -> d.getProfilo() != null).toList();
+			assertEquals(1, diProfilo.size());
+			assertEquals("DISCLAIMER_HTTPS", diProfilo.get(0).getDisclaimer());
+			assertEquals("INTERNO_HTTPS", diProfilo.get(0).getProfilo());
+			assertEquals("GruppoHttps", diProfilo.get(0).getNomeGruppo());
+			assertTrue(conProfili.stream().noneMatch(d -> "DISCLAIMER_INESISTENTE".equals(d.getDisclaimer())));
+
+			// i disclaimer non di profilo restano invariati
+			assertEquals(senzaProfili.size() + 1, conProfili.size());
+		} finally {
+			ReflectionTestUtils.setField(disclaimerService, "externalPath", externalPathOriginale);
+			disclaimerService.reload();
+		}
 	}
 
 	@Test
@@ -3476,7 +3529,7 @@ public class ServiziTest {
 		UUID randomId = UUID.randomUUID();
 
 		assertThrows(NotFoundException.class,
-				() -> serviziController.getDisclaimersServizio(randomId, "it"));
+				() -> serviziController.getDisclaimersServizio(randomId, "it", null));
 	}
 
 	// ==================== proprieta' custom required e ruoli_abilitati ====================
