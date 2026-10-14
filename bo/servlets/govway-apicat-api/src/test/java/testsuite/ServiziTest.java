@@ -9,6 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -34,6 +36,7 @@ import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.services.ClasseUtenteService;
 import org.govway.catalogo.core.services.DominioService;
 import org.govway.catalogo.core.services.ServizioService;
+import org.govway.catalogo.services.DisclaimerService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ErrorCode;
@@ -72,6 +75,7 @@ import org.govway.catalogo.servlets.model.Gruppo;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
 import org.govway.catalogo.servlets.model.Campo;
+import org.govway.catalogo.servlets.model.CheckDati;
 import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
 import org.govway.catalogo.servlets.model.ConfigurazioneCustomProprietaList;
 import org.govway.catalogo.servlets.model.ConfigurazioneProfiloCustomProprietaText;
@@ -87,6 +91,7 @@ import org.govway.catalogo.servlets.model.ListItemCategoria;
 import org.govway.catalogo.servlets.model.ListItemGruppo;
 import org.govway.catalogo.servlets.model.MessaggioCreate;
 import org.govway.catalogo.servlets.model.MessaggioUpdate;
+import org.govway.catalogo.servlets.model.OkKoEnum;
 import org.govway.catalogo.servlets.model.Organizzazione;
 import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.PagedModelAllegato;
@@ -132,6 +137,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -151,6 +157,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityManager;
@@ -219,6 +226,9 @@ public class ServiziTest {
 	
 	@Autowired
 	private DominiController dominiController;
+
+	@Autowired
+	private DisclaimerService disclaimerService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -3431,7 +3441,7 @@ public class ServiziTest {
 	void testGetDisclaimersServizioSuccessIt() {
 		Servizio servizio = this.getServizio();
 
-		ResponseEntity<List<ServizioDisclaimer>> response = serviziController.getDisclaimersServizio(servizio.getIdServizio(), "it");
+		ResponseEntity<List<ServizioDisclaimer>> response = serviziController.getDisclaimersServizio(servizio.getIdServizio(), "it", null);
 
 		// L'endpoint non fallisce mai: senza chiavi "servizio.*" configurate la lista e' vuota
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -3449,7 +3459,7 @@ public class ServiziTest {
 	void testGetDisclaimersServizioSuccessEn() {
 		Servizio servizio = this.getServizio();
 
-		ResponseEntity<List<ServizioDisclaimer>> response = serviziController.getDisclaimersServizio(servizio.getIdServizio(), "en");
+		ResponseEntity<List<ServizioDisclaimer>> response = serviziController.getDisclaimersServizio(servizio.getIdServizio(), "en", null);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertNotNull(response.getBody());
@@ -3460,13 +3470,58 @@ public class ServiziTest {
 		Servizio servizio = this.getServizio();
 
 		// language_code null e lingua non supportata -> fallback a "it", nessun errore
-		ResponseEntity<List<ServizioDisclaimer>> responseNull = serviziController.getDisclaimersServizio(servizio.getIdServizio(), null);
+		ResponseEntity<List<ServizioDisclaimer>> responseNull = serviziController.getDisclaimersServizio(servizio.getIdServizio(), null, null);
 		assertEquals(HttpStatus.OK, responseNull.getStatusCode());
 		assertNotNull(responseNull.getBody());
 
-		ResponseEntity<List<ServizioDisclaimer>> responseFr = serviziController.getDisclaimersServizio(servizio.getIdServizio(), "fr");
+		ResponseEntity<List<ServizioDisclaimer>> responseFr = serviziController.getDisclaimersServizio(servizio.getIdServizio(), "fr", null);
 		assertEquals(HttpStatus.OK, responseFr.getStatusCode());
 		assertNotNull(responseFr.getBody());
+	}
+
+	@Test
+	void testGetDisclaimersServizioProfiliAggiuntivi(@TempDir Path tempDir) throws Exception {
+		Servizio servizio = this.getServizio();
+		String stato = servizio.getStato();
+
+		// yaml esterno con chiavi per un profilo configurato e per uno inesistente
+		Files.writeString(tempDir.resolve("disclaimers_it.yml"), String.join("\n",
+				"servizio." + stato + ".interno_https:",
+				"  testo: DISCLAIMER_HTTPS",
+				"  nome_gruppo: GruppoHttps",
+				"servizio." + stato + ".profilo_inesistente: DISCLAIMER_INESISTENTE"));
+
+		Object externalPathOriginale = ReflectionTestUtils.getField(disclaimerService, "externalPath");
+		try {
+			ReflectionTestUtils.setField(disclaimerService, "externalPath", tempDir.toString());
+			disclaimerService.reload();
+
+			// senza profili aggiuntivi il servizio (privo di API) non produce disclaimer di profilo
+			List<ServizioDisclaimer> senzaProfili = serviziController
+					.getDisclaimersServizio(servizio.getIdServizio(), "it", null).getBody();
+			assertNotNull(senzaProfili);
+			assertTrue(senzaProfili.stream().noneMatch(d -> d.getProfilo() != null));
+
+			// il profilo non presente in configurazione viene ignorato
+			ResponseEntity<List<ServizioDisclaimer>> response = serviziController.getDisclaimersServizio(
+					servizio.getIdServizio(), "it", List.of("INTERNO_HTTPS", "PROFILO_INESISTENTE"));
+			assertEquals(HttpStatus.OK, response.getStatusCode());
+			List<ServizioDisclaimer> conProfili = response.getBody();
+			assertNotNull(conProfili);
+
+			List<ServizioDisclaimer> diProfilo = conProfili.stream().filter(d -> d.getProfilo() != null).toList();
+			assertEquals(1, diProfilo.size());
+			assertEquals("DISCLAIMER_HTTPS", diProfilo.get(0).getDisclaimer());
+			assertEquals("INTERNO_HTTPS", diProfilo.get(0).getProfilo());
+			assertEquals("GruppoHttps", diProfilo.get(0).getNomeGruppo());
+			assertTrue(conProfili.stream().noneMatch(d -> "DISCLAIMER_INESISTENTE".equals(d.getDisclaimer())));
+
+			// i disclaimer non di profilo restano invariati
+			assertEquals(senzaProfili.size() + 1, conProfili.size());
+		} finally {
+			ReflectionTestUtils.setField(disclaimerService, "externalPath", externalPathOriginale);
+			disclaimerService.reload();
+		}
 	}
 
 	@Test
@@ -3474,7 +3529,7 @@ public class ServiziTest {
 		UUID randomId = UUID.randomUUID();
 
 		assertThrows(NotFoundException.class,
-				() -> serviziController.getDisclaimersServizio(randomId, "it"));
+				() -> serviziController.getDisclaimersServizio(randomId, "it", null));
 	}
 
 	// ==================== proprieta' custom required e ruoli_abilitati ====================
@@ -3540,5 +3595,73 @@ public class ServiziTest {
 		assertFalse(this.isGruppoRichiesto(servizio.getIdServizio(), List.of(Ruolo.REFERENTE_TECNICO)));
 		// lista vuota: non visibile a nessuno, quindi non richiesta
 		assertFalse(this.isGruppoRichiesto(servizio.getIdServizio(), List.of()));
+	}
+
+	// ==================== check dati ====================
+
+	private Servizio getServizioConApi() {
+		Servizio servizio = this.getServizio();
+		APICreate apiCreate = CommonUtils.getAPICreate();
+		apiCreate.setIdServizio(servizio.getIdServizio());
+		assertEquals(HttpStatus.OK, apiController.createApi(apiCreate).getStatusCode());
+		this.entityManager.flush();
+		this.entityManager.clear();
+		return servizio;
+	}
+
+	/**
+	 * Il check dati verso uno stato i cui dati obbligatori sono presenti da' esito OK.
+	 */
+	@Test
+	void testCheckDatiServizioOk() {
+		Servizio servizio = this.getServizioConApi();
+
+		ResponseEntity<CheckDati> response = serviziController.checkDatiServizio(servizio.getIdServizio(), STATO_INIZIALE);
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(OkKoEnum.OK, response.getBody().getEsito());
+		assertNull(response.getBody().getErrori());
+
+		this.entityManager.flush();
+		this.entityManager.clear();
+		assertEquals(STATO_INIZIALE, serviziController.getServizio(servizio.getIdServizio()).getBody().getStato());
+	}
+
+	/**
+	 * Con dati obbligatori mancanti il check dati restituisce esito KO con gli errori
+	 * (invece del 422 del cambio stato), senza modificare lo stato del servizio.
+	 * Lo stato di arrivo richiede anche i dati di collaudo dell'API, qui assenti.
+	 */
+	@Test
+	void testCheckDatiServizioKo() {
+		Servizio servizio = this.getServizioConApi();
+
+		ConfigurazioneCustomProprietaList gruppo = this.aggiungiGruppoRequired(null);
+		ResponseEntity<CheckDati> response;
+		try {
+			response = serviziController.checkDatiServizio(servizio.getIdServizio(), "richiesto_collaudo");
+		} finally {
+			this.configurazione.getServizio().getApi().getProprietaCustom().remove(gruppo);
+		}
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(OkKoEnum.KO, response.getBody().getEsito());
+		assertTrue(response.getBody().getErrori().stream()
+				.filter(err -> err.getCampi() != null)
+				.flatMap(err -> err.getCampi().stream())
+				.map(Campo::getNomeCampo)
+				.anyMatch((GRUPPO_RUOLI_ABILITATI + "." + PROPRIETA_RUOLI_ABILITATI)::equals));
+
+		this.entityManager.flush();
+		this.entityManager.clear();
+		assertEquals(STATO_INIZIALE, serviziController.getServizio(servizio.getIdServizio()).getBody().getStato());
+	}
+
+	@Test
+	void testCheckDatiServizioNotFound() {
+		UUID randomId = UUID.randomUUID();
+
+		assertThrows(NotFoundException.class,
+				() -> serviziController.checkDatiServizio(randomId, "richiesto_collaudo"));
 	}
 }

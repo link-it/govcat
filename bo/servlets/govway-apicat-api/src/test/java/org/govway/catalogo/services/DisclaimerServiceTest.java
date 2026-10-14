@@ -901,6 +901,70 @@ class DisclaimerServiceTest {
 	}
 
 	@Test
+	@DisplayName("Servizio: profili aggiuntivi risolti anche se non associati alle API del servizio")
+	void servizioProfiliAggiuntivi() {
+		Map<String, List<DisclaimerService.DisclaimerEntry>> map = new HashMap<>();
+		map.put("servizio.bozza", List.of(entryInfo("LIV_STATO")));
+		map.put("servizio.bozza.pdnd", List.of(new DisclaimerService.DisclaimerEntry("GRUPPO_PDND",
+				DisclaimerSeverityEnum.WARNING, "TrattamentoDati")));
+		map.put("servizio.bozza.pdnd.sanita.collaudo", List.of(entryInfo("PDND_SANITA_COLL")));
+		seedCache("it", map);
+		// nessuna API associata al servizio
+		mockProfili();
+		ServizioEntity servizio = buildServizio("bozza", "Sanita");
+
+		List<ServizioDisclaimer> senzaProfili = service.resolveDisclaimersServizio(servizio, "it");
+		assertEquals(1, senzaProfili.size());
+		assertEquals("LIV_STATO", senzaProfili.get(0).getDisclaimer());
+
+		List<ServizioDisclaimer> result = service.resolveDisclaimersServizio(servizio, "it", List.of("PDND"));
+
+		assertEquals(3, result.size());
+		assertEquals("PDND_SANITA_COLL", result.get(0).getDisclaimer());
+		assertEquals(DisclaimerContestoEnum.COLLAUDO, result.get(0).getContesto());
+		assertEquals("PDND", result.get(0).getProfilo());
+		assertEquals("GRUPPO_PDND", result.get(1).getDisclaimer());
+		assertEquals("PDND", result.get(1).getProfilo());
+		assertEquals("TrattamentoDati", result.get(1).getNomeGruppo());
+		assertEquals("LIV_STATO", result.get(2).getDisclaimer());
+		assertNull(result.get(2).getProfilo());
+	}
+
+	@Test
+	@DisplayName("Servizio: profili aggiuntivi gia' presenti nel servizio non duplicano i disclaimer")
+	void servizioProfiliAggiuntiviSenzaDuplicati() {
+		Map<String, List<DisclaimerService.DisclaimerEntry>> map = new HashMap<>();
+		map.put("servizio.bozza.pdnd", List.of(entryInfo("PROF_PDND")));
+		map.put("servizio.bozza.mtls", List.of(entryInfo("PROF_MTLS")));
+		seedCache("it", map);
+		mockProfili("PDND");
+		ServizioEntity servizio = buildServizio("bozza", null);
+
+		List<String> aggiuntivi = new ArrayList<>(List.of("PDND", "MTLS", " "));
+		aggiuntivi.add(null);
+		List<ServizioDisclaimer> result = service.resolveDisclaimersServizio(servizio, "it", aggiuntivi);
+
+		assertEquals(2, result.size());
+		assertEquals("PROF_PDND", result.get(0).getDisclaimer());
+		assertEquals("PDND", result.get(0).getProfilo());
+		assertEquals("PROF_MTLS", result.get(1).getDisclaimer());
+		assertEquals("MTLS", result.get(1).getProfilo());
+	}
+
+	@Test
+	@DisplayName("Servizio: profili aggiuntivi null equivale a nessun profilo aggiuntivo")
+	void servizioProfiliAggiuntiviNull() {
+		seedCache("it", entries("servizio.bozza.pdnd", entryInfo("PROF_PDND")));
+		mockProfili("PDND");
+		ServizioEntity servizio = buildServizio("bozza", null);
+
+		List<ServizioDisclaimer> result = service.resolveDisclaimersServizio(servizio, "it", null);
+
+		assertEquals(1, result.size());
+		assertEquals("PROF_PDND", result.get(0).getDisclaimer());
+	}
+
+	@Test
 	@DisplayName("Servizio: cache vuota -> lista vuota")
 	void servizioCacheVuotaListaVuota() {
 		ServizioEntity servizio = buildServizio("bozza", null);

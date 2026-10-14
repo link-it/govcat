@@ -2646,7 +2646,7 @@ paths:
     get:
       tags:
       - "Servizi"
-      description: "Lista dei disclaimer applicabili al servizio, risolti gerarchicamente in base a stato, profilo client e dominio del servizio"
+      description: "Lista dei disclaimer applicabili al servizio, risolti gerarchicamente in base a stato, profilo client e dominio del servizio. I profili considerati sono quelli delle API del servizio piu' gli eventuali profili indicati nel parametro profilo (es. profili selezionati per un'API in fase di creazione o modifica); i profili non presenti in configurazione sono ignorati"
       operationId: "getDisclaimersServizio"
       parameters:
       - name: "language_code"
@@ -2659,6 +2659,7 @@ paths:
           enum:
             - "it"
             - "en"
+      - $ref: "#/components/parameters/profilo_query_optional"
       responses:
         "200":
           description: "Operazione completata con successo"
@@ -2835,6 +2836,34 @@ paths:
           $ref: "#/components/responses/403Forbidden"
         "422":
           $ref: "#/components/responses/422UpdateEntitaComplessaSemanticamenteNonValida"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /servizi/{id_servizio}/check-dati/{stato}:
+    parameters:
+      - $ref: "#/components/parameters/id_servizio"
+      - $ref: "#/components/parameters/stato"
+    get:
+      tags:
+      - "Servizi"
+      description: "Check completezza dati per un determinato Servizio in un determinato stato"
+      operationId: "checkDatiServizio"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                  $ref: "#/components/schemas/CheckDati"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
         "429":
           $ref: "#/components/responses/429TooManyRequests"
         "503":
