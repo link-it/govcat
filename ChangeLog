@@ -1,6 +1,9 @@
 2026-10-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard adesioni: ripristinati dimensione e allineamento dei titoli dei gruppi referenti, cambiati
+	  da h4 a h3 nelle correzioni di accessibilita'.
+
 	Wizard servizi e adesioni: nel form di aggiunta referente il tipo "Referente" e' preselezionato
 	  e l'elenco degli utenti selezionabili e' caricato subito.
 
