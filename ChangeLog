@@ -1,6 +1,9 @@
 2026-10-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard servizi e adesioni: nel form di aggiunta referente il tipo "Referente" e' preselezionato
+	  e l'elenco degli utenti selezionabili e' caricato subito.
+
 	Issue 388: nel form API i disclaimer dei servizi sono ricaricati con i profili selezionati, cosi'
 	  compaiono anche in creazione o per un profilo non ancora salvato; i disclaimer di profilo senza
 	  gruppo sono mostrati sotto la scelta dell'autenticazione.

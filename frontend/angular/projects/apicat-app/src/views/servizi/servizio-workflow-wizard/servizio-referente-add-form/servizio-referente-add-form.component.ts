@@ -77,11 +77,12 @@ export class ServizioReferenteAddFormComponent implements OnInit {
     ) {}
 
     ngOnInit() {
+        // Tipo "Referente" proposto di default, con gli utenti gia` caricati
         this._formGroup = new FormGroup({
-            tipo: new FormControl(null, [Validators.required]),
-            id_utente: new FormControl({ value: null, disabled: true }, [Validators.required])
+            tipo: new FormControl('referente', [Validators.required]),
+            id_utente: new FormControl(null, [Validators.required])
         });
-        this._initReferentiSelect([]);
+        this._caricaUtenti();
     }
 
     get f(): { [key: string]: AbstractControl } {
@@ -100,7 +101,23 @@ export class ServizioReferenteAddFormComponent implements OnInit {
             this._formGroup.get('id_utente')?.disable();
         }
         this._formGroup.get('id_utente')?.patchValue(null);
+        if (tipo) {
+            this._caricaUtenti();
+        } else {
+            this._initReferentiSelect([]);
+        }
+    }
+
+    /** Elenco iniziale degli utenti selezionabili, prima di qualsiasi ricerca. */
+    private _caricaUtenti() {
         this._initReferentiSelect([]);
+        this.referentiLoading = true;
+        this.utils.getUtenti('', null, 'abilitato', this.idOrganizzazione, RUOLI_ORG_REFERENTE).pipe(
+            catchError(() => of([]))
+        ).subscribe((utenti: any[]) => {
+            this.referentiLoading = false;
+            this._initReferentiSelect(utenti || []);
+        });
     }
 
     _initReferentiSelect(defaultValue: any[] = []) {
