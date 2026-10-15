@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { describe, it, expect } from 'vitest';
-import { apiDaCompletare, apiSezioneDaCompletare, sezioneDaCompletare, transizioneDaVerificare } from './servizio-verifica-stato';
+import { apiDaCompletare, apiSezioneDaCompletare, esitoDellAmbiente, sezioneDaCompletare, transizioneDaVerificare } from './servizio-verifica-stato';
 
 describe('servizio-verifica-stato', () => {
   const _cambio = {
@@ -51,6 +51,20 @@ describe('servizio-verifica-stato', () => {
     const _nessunaApi: any = { esito: 'ko', errori: [{ dato: 'specifica', campi: [{ nome_campo: 'api' }] }] };
     expect(apiSezioneDaCompletare(_nessunaApi)).toBe(true);
     expect(sezioneDaCompletare(_nessunaApi, 'info_generali')).toBe(false);
+  });
+
+  it('should keep only the errors of the given environment', () => {
+    const _misto: any = { esito: 'ko', errori: [
+      { dato: 'produzione', sottotipo: [{ tipo: 'api', identificativo: 'a1' }] },
+      { dato: 'collaudo_pdnd', sottotipo: [{ tipo: 'api', identificativo: 'a2' }] },
+      { dato: 'specifica', campi: [{ nome_campo: 'api' }] }
+    ] };
+    const _collaudo = esitoDellAmbiente(_misto, 'collaudo');
+    expect(_collaudo?.errori.map((e: any) => e.dato)).toEqual(['collaudo_pdnd', 'specifica']);
+    expect(apiDaCompletare(_collaudo, 'a1')).toBe(false);
+    expect(esitoDellAmbiente({ esito: 'ko', errori: [{ dato: 'produzione' }] } as any, 'collaudo')).toEqual({ esito: 'ok', errori: [] });
+    expect(esitoDellAmbiente(null, 'collaudo')).toBeNull();
+    expect(esitoDellAmbiente(_misto, 'collaudo', false)?.errori.map((e: any) => e.dato)).toEqual(['collaudo_pdnd']);
   });
 
   it('should report nothing when the check is ok or missing', () => {

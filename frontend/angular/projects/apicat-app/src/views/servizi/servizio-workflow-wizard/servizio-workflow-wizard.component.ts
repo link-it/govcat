@@ -28,8 +28,12 @@ import { ConfigService, MenuAction, Tools, COMPONENTS_IMPORTS } from '@linkit/co
 import { MarkdownModule } from 'ngx-markdown';
 
 import { ServizioDisclaimer, ServizioDisclaimerSeverity, normalizeServizioDisclaimers } from '../servizio-disclaimers';
-import { EsitoVerificaServizio, apiDaCompletare, apiSezioneDaCompletare, sezioneDaCompletare, transizioneDaVerificare } from '../servizio-verifica-stato';
+import { EsitoVerificaServizio, apiDaCompletare, apiSezioneDaCompletare, esitoDellAmbiente, sezioneDaCompletare, transizioneDaVerificare } from '../servizio-verifica-stato';
 import { DISABLE_GLOBAL_EXCEPTION_HANDLING } from '@app/lib/interceptors/error.interceptor';
+
+// Riferimenti stabili per l'input del substepper (evita ricalcoli a ogni change detection)
+const SUBSTEP_COMPILAZIONE: string[] = ['in_compilazione'];
+const NESSUN_SUBSTEP: string[] = [];
 
 import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
 import { AllegatiDialogComponent } from '@app/components/allegati-dialog/allegati-dialog.component';
@@ -569,17 +573,44 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         return sezioneDaCompletare(this._verifica, sezione);
     }
 
+    /** Fase in cui ricade lo stato di arrivo della transizione verificata (es. richiesto_produzione -> produzione). */
+    private _faseDellaTransizione(): string | null {
+        const _nome = this._transizionePrincipale()?.nome;
+        if (!_nome) { return null; }
+        if ((this.stepWizardCollaudo || []).some((s: StepWizardItem) => (s.stati || []).includes(_nome))) { return 'collaudo'; }
+        if ((this.stepWizardProduzione || []).some((s: StepWizardItem) => (s.stati || []).includes(_nome))) { return 'produzione'; }
+        return null;
+    }
+
+    /**
+     * Verifica riferita alla fase visualizzata: gli errori sui dati del suo ambiente (anche a fase conclusa,
+     * li` si correggono) e quelli comuni solo nella fase della transizione; mai quelli dell'altro ambiente.
+     */
+    private get _verificaFase(): EsitoVerificaServizio | null {
+        const _fase = this._selectedFase;
+        if (_fase !== 'collaudo' && _fase !== 'produzione') { return null; }
+        const _inCorso = _fase === this._faseDellaTransizione();
+        if (!_inCorso && this.getFaseStatus(_fase) === 'pending') { return null; }
+        return esitoDellAmbiente(this._verifica, _fase, _inCorso);
+    }
+
     apiSezioneDaCompletare(): boolean {
-        return apiSezioneDaCompletare(this._verifica);
+        return apiSezioneDaCompletare(this._verificaFase);
     }
 
     apiDaCompletare(api: any): boolean {
-        return apiDaCompletare(this._verifica, api?.id_api);
+        return apiDaCompletare(this._verificaFase, api?.id_api);
     }
 
-    /** Errori della verifica nel formato del riepilogo errori. */
+    /** Sub-step da riaprire come attivi: "In compilazione" quando le API richiedono un'azione. */
+    get substepDaRiaprire(): string[] {
+        return this.apiSezioneDaCompletare() ? SUBSTEP_COMPILAZIONE : NESSUN_SUBSTEP;
+    }
+
+    /** Errori della verifica (della fase visualizzata) nel formato del riepilogo errori. */
     get erroriVerifica(): any[] {
-        return this._verifica?.esito === 'ko' ? Tools.filtraErroriComplessi(this._verifica.errori) : [];
+        const _verifica = this._verificaFase;
+        return _verifica?.esito === 'ko' ? Tools.filtraErroriComplessi(_verifica.errori) : [];
     }
 
     /** True se lo stato corrente coincide col sub-step "In compilazione"

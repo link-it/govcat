@@ -466,6 +466,7 @@
               [currentState]="data?.stato || null"
               [workflowStati]="workflowStati"
               [i18nPrefix]="'APP.SERVICES.WIZARD.SUBSTEP'"
+              [forceActiveCodes]="substepDaRiaprire"
               [title]="procedureTitle">
               <ng-template let-sub>
                 @if (sub.code === 'in_compilazione') {
@@ -673,7 +674,9 @@
                       </div>
                     </div>
                   }
-                  @if (sub.state === 'active' && servizioApiList.length) {
+                  <!-- Pulsanti di cambio stato solo se "In compilazione" e` lo step corrente
+                       (non quando e` riaperto per dati da completare: li mostra lo step corrente). -->
+                  @if (sub.state === 'active' && isCompilazioneStep() && servizioApiList.length) {
                     <ng-container *ngTemplateOutlet="serviceWorkflowCtaTpl"></ng-container>
                   }
                 } @else if (sub.state === 'active') {

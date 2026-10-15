@@ -49,6 +49,26 @@ function _isErroreApi(errore: any): boolean {
     return (errore?.sottotipo || []).some((s: any) => s?.tipo === 'api') || DATI_API.includes(errore?.dato);
 }
 
+const DATI_AMBIENTE: Record<string, string[]> = {
+    collaudo: ['collaudo', 'collaudo_configurato', 'collaudo_pdnd'],
+    produzione: ['produzione', 'produzione_configurato', 'produzione_pdnd']
+};
+
+/**
+ * Esito ristretto a un ambiente: gli errori sui suoi dati e, con `includiComuni`, quelli non legati a
+ * un ambiente (es. specifica); esclusi sempre quelli dell'altro ambiente.
+ */
+export function esitoDellAmbiente(esito: EsitoVerificaServizio | null, ambiente: string, includiComuni: boolean = true): EsitoVerificaServizio | null {
+    if (esito?.esito !== 'ko') { return esito; }
+    const _propri = DATI_AMBIENTE[ambiente] || [];
+    const _altri = Object.keys(DATI_AMBIENTE).filter((a: string) => a !== ambiente).flatMap((a: string) => DATI_AMBIENTE[a]);
+    const _errori = (esito.errori || []).filter((e: any) => {
+        if (_altri.includes(e?.dato)) { return false; }
+        return includiComuni || _propri.includes(e?.dato);
+    });
+    return _errori.length ? { esito: 'ko', errori: _errori } : { esito: 'ok', errori: [] };
+}
+
 /** Sezione della fase Informazioni generali con dati da completare. */
 export function sezioneDaCompletare(esito: EsitoVerificaServizio | null, sezione: 'info_generali' | 'referenti'): boolean {
     const _dati = (sezione === 'referenti') ? ['referenti'] : ['identificativo', 'generico'];

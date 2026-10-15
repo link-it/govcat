@@ -1,3 +1,10 @@
+2026-10-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Wizard servizi: gli errori del check-dati sono mostrati nel pannello dell'ambiente a cui si riferiscono
+	  (quelli comuni solo nella fase della transizione); se le API richiedono un'azione lo step
+	  "In compilazione" torna attivo e aperto, come nel wizard adesioni.
+
 2026-10-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
