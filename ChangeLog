@@ -1,6 +1,9 @@
 2026-10-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard servizi: i pulsanti di navigazione delle sezioni della Fase 1 usano il blu notte per la
+	  sezione attiva invece del rosso, riservato a "Azione richiesta".
+
 	Wizard servizi: gli errori del check-dati sono mostrati nel pannello dell'ambiente a cui si riferiscono
 	  (quelli comuni solo nella fase della transizione); se le API richiedono un'azione lo step
 	  "In compilazione" torna attivo e aperto, come nel wizard adesioni.

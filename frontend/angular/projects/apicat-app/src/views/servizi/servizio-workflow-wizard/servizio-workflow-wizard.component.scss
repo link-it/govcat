@@ -184,16 +184,17 @@
     transition: background-color .15s, border-color .15s, color .15s;
   }
   .lnk-section-nav-chip:hover { background: var(--surface-3); }
-  .lnk-section-nav-chip:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--accent, #ff4050); }
+  .lnk-section-nav-chip:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--ink); }
+  // Sezione attiva in blu notte: il rosso resta riservato a "Azione richiesta"
   .lnk-section-nav-chip.is-active {
-    background: var(--accent-soft); border-color: #ffc4c9; color: var(--accent-ink);
+    background: var(--ink); border-color: var(--ink); color: #fff;
   }
   .lnk-section-nav-chip .lnk-ref-count {
     display: inline-grid; place-items: center; min-width: 18px; height: 18px;
     padding: 0 5px; border-radius: 999px; font-size: 11px; font-weight: 600;
     background: var(--surface-3); color: var(--ink-3);
   }
-  .lnk-section-nav-chip.is-active .lnk-ref-count { background: var(--accent-soft-2); color: var(--accent-ink); }
+  .lnk-section-nav-chip.is-active .lnk-ref-count { background: rgba(255, 255, 255, .2); color: #fff; }
 
   // ─── PhaseSection (sezioni collassabili FASE 1) ───────────────────
   .lnk-phase-section {
