@@ -1,6 +1,9 @@
 2026-10-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Modifica API: il cambio di "Autenticazione Prevista" non arrivava sempre nel payload (la tendina
+	  poteva restare collegata a un campo non piu' nel form).
+
 	Wizard servizi: i pulsanti di navigazione delle sezioni della Fase 1 usano il blu notte per la
 	  sezione attiva invece del rosso, riservato a "Azione richiesta".
 

@@ -483,7 +483,7 @@
                       @if (!_loadingRisorse) {
                         <div class="col-12">
                           <div class="" formArrayName="authTypes">
-                            @for (at of authTypesArray().controls; track $index; let authIndex = $index) {
+                            @for (at of authTypesArray().controls; track at; let authIndex = $index) {
                               <div [ngClass]="{ 'text-bg-light p-3': (_customAuth || _customAuthOrig), 'border-top- border-bottom-': (_customAuth || _customAuthOrig), 'mt-3': authIndex > 0 }" >
                                 <div [formGroupName]="authIndex">
                                   @if (authTypesArray().controls.length > 1) {
