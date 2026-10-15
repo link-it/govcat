@@ -26,6 +26,7 @@ import { BsModalService } from 'ngx-bootstrap/modal';
 
 import { ConfigService, MenuAction, Tools, COMPONENTS_IMPORTS } from '@linkit/components';
 import { MarkdownModule } from 'ngx-markdown';
+import { LnkCollapsibleTextComponent } from '@app/components/lnk-ui/collapsible-text/collapsible-text.component';
 
 import { ServizioDisclaimer, ServizioDisclaimerSeverity, normalizeServizioDisclaimers } from '../servizio-disclaimers';
 import { EsitoVerificaServizio, apiDaCompletare, apiSezioneDaCompletare, esitoDellAmbiente, sezioneDaCompletare, transizioneDaVerificare } from '../servizio-verifica-stato';
@@ -103,6 +104,7 @@ declare const saveAs: any;
         ServizioApiDetailsComponent,
         ServizioApiEditComponent,
         MarkdownModule,
+        LnkCollapsibleTextComponent,
         MonitorDropdwnComponent,
         HttpImgSrcPipe
     ]

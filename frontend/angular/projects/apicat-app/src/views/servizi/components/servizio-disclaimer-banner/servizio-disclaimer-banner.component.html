@@ -19,6 +19,6 @@
 @if (disclaimer) {
   <div class="lnk-banner" [ngClass]="_variant" role="note">
     <div class="icon"><i class="bi" [ngClass]="_icon" aria-hidden="true"></i></div>
-    <div class="body"><markdown [data]="disclaimer.disclaimer"></markdown></div>
+    <div class="body"><lnk-collapsible-text><markdown [data]="disclaimer.disclaimer"></markdown></lnk-collapsible-text></div>
   </div>
 }

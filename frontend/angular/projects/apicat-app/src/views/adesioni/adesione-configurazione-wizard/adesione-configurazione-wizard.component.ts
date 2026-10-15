@@ -24,6 +24,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { MarkdownModule } from 'ngx-markdown';
+import { LnkCollapsibleTextComponent } from '@app/components/lnk-ui/collapsible-text/collapsible-text.component';
 
 import { ConfigService, COMPONENTS_IMPORTS, EventsManagerService, Tools, EventType, FieldClass, MenuAction, YesnoDialogBsComponent } from '@linkit/components';
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
@@ -111,6 +112,7 @@ export interface AdesioneDisclaimer {
         MapperPipe,
         TooltipModule,
         MarkdownModule,
+        LnkCollapsibleTextComponent,
         MonitorDropdwnComponent,
         ApiCustomPropertiesComponent,
         ErrorViewComponent,

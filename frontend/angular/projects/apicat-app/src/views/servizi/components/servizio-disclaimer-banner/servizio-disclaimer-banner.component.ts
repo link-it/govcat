@@ -19,6 +19,7 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MarkdownModule } from 'ngx-markdown';
+import { LnkCollapsibleTextComponent } from '@app/components/lnk-ui/collapsible-text/collapsible-text.component';
 import { ServizioDisclaimer } from '../../servizio-disclaimers';
 
 /** Banner di un disclaimer del servizio: testo markdown con stile in base alla severity. */
@@ -27,7 +28,7 @@ import { ServizioDisclaimer } from '../../servizio-disclaimers';
     templateUrl: 'servizio-disclaimer-banner.component.html',
     styleUrls: ['servizio-disclaimer-banner.component.scss'],
     standalone: true,
-    imports: [CommonModule, MarkdownModule]
+    imports: [CommonModule, MarkdownModule, LnkCollapsibleTextComponent]
 })
 export class ServizioDisclaimerBannerComponent {
     @Input() disclaimer: ServizioDisclaimer | null = null;

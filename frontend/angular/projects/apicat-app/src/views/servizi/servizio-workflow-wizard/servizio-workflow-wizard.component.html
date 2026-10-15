@@ -153,7 +153,7 @@
           @for (d of _disclaimersGenerali; track $index) {
             <div class="lnk-banner mb-3" [ngClass]="_disclaimerVariant(d.severity)" role="alert">
               <div class="icon"><i class="bi" [ngClass]="_disclaimerIcon(d.severity)"></i></div>
-              <div class="body"><markdown [data]="d.disclaimer"></markdown></div>
+              <div class="body"><lnk-collapsible-text><markdown [data]="d.disclaimer"></markdown></lnk-collapsible-text></div>
             </div>
           }
 
@@ -450,7 +450,7 @@
               @for (d of _disclaimersForContesto(activeFase?.code); track $index) {
                 <div class="lnk-banner mb-3" [ngClass]="_disclaimerVariant(d.severity)" role="alert">
                   <div class="icon"><i class="bi" [ngClass]="_disclaimerIcon(d.severity)"></i></div>
-                  <div class="body"><markdown [data]="d.disclaimer"></markdown></div>
+                  <div class="body"><lnk-collapsible-text><markdown [data]="d.disclaimer"></markdown></lnk-collapsible-text></div>
                 </div>
               }
               @if (isCompilazioneStep()) {

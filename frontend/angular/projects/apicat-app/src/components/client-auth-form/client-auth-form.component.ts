@@ -50,6 +50,7 @@ import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { MarkdownModule } from 'ngx-markdown';
+import { LnkCollapsibleTextComponent } from '@app/components/lnk-ui/collapsible-text/collapsible-text.component';
 import { Observable } from 'rxjs';
 
 import { COMPONENTS_IMPORTS } from '@linkit/components';
@@ -172,6 +173,7 @@ export type ClientAuthFormLayout = 'vertical' | 'horizontal';
         NgSelectModule,
         MarkAsteriskDirective,
         MarkdownModule,
+        LnkCollapsibleTextComponent,
         LnkFormLiveSearchComponent,
     ],
 })
