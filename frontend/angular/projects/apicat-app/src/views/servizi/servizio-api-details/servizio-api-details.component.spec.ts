@@ -835,6 +835,16 @@ describe('ServizioApiDetailsComponent', () => {
       expect(result.dati_specifica!.gruppi_auth_type![0].proprieta_custom).toEqual([{ nome: 'cp1', valore: 'v1' }]);
     });
 
+    it('should keep the description when dati_generici is not modifiable, reading codice_asset from its control', () => {
+      mockAuthenticationService._removeDNM.mockImplementationOnce((_a: any, _b: any, b: any) => { delete b.dati_generici; return b; });
+      const codiceAsset = new FormControl('CA-1');
+      codiceAsset.disable();
+      component._formGroup = new FormGroup<any>({ ruolo: new FormControl('erogato_soggetto_aderente'), codice_asset: codiceAsset });
+      const body = { nome: 'A', versione: '1', ruolo: 'erogato_soggetto_aderente', descrizione: 'nuova descrizione' };
+      const result = component._prepareBodyUpdateApi(body);
+      expect(result.dati_generici).toEqual({ descrizione: 'nuova descrizione', codice_asset: 'CA-1' });
+    });
+
     it('should keep dati_specifica for the notes when the fields are locked and the specifica is not modifiable', () => {
       component._isNew = false;
       component.service = { stato: 'pubblicato_produzione' };

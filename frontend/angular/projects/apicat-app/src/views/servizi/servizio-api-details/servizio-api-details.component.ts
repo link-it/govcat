@@ -865,6 +865,14 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
 
         const _specifica = _newBody.dati_specifica;
         const _body: any = this.authenticationService._removeDNM('servizio', this.service.stato, _newBody, this._grant?.ruoli);
+        // La descrizione resta modificabile anche quando i dati generici non lo sono; il codice asset
+        // si legge dal controllo perche' da disabilitato manca nel valore del form
+        if (!_body.dati_generici) {
+            _body.dati_generici = {
+                descrizione: body.descrizione || null,
+                codice_asset: this._formGroup.get('codice_asset')?.value || null
+            };
+        }
         // Le note delle autenticazioni restano modificabili anche quando la specifica non lo e'
         if (this._campiBloccati && _specifica) {
             _body.dati_specifica = _specifica;

@@ -1,6 +1,9 @@
 2026-10-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Modifica API: la descrizione viene inviata anche quando i dati generici non sono modificabili
+	  (prima veniva tolta dal payload per i non gestori).
+
 	Configurazione API: "Copia da collaudo" dei campi custom cerca il gruppo di collaudo dal nome tecnico
 	  del gruppo del campo (prima dall'etichetta, condivisa da piu' gruppi).
 
