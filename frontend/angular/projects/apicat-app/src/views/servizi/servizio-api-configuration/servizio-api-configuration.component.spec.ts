@@ -1132,6 +1132,29 @@ describe('ServizioApiConfigurationComponent', () => {
       expect(result).toBe('valore_collaudo');
     });
 
+    it('should use the technical group when several groups share the same label', () => {
+      Tools.Configurazione = {
+        servizio: {
+          api: {
+            profili: [],
+            proprieta_custom: [
+              { nome_gruppo: 'ACCollaudo', label_gruppo: 'Autorizzazione', classe_dato: 'collaudo', id_correlazione: 'AC' },
+              { nome_gruppo: 'ACProduzione', label_gruppo: 'Autorizzazione', classe_dato: 'produzione', id_correlazione: 'AC' },
+              { nome_gruppo: 'CCCollaudo', label_gruppo: 'Autorizzazione', classe_dato: 'collaudo_configurato', id_correlazione: 'CC' },
+              { nome_gruppo: 'CCProduzione', label_gruppo: 'Autorizzazione', classe_dato: 'produzione_configurato', id_correlazione: 'CC' }
+            ]
+          }
+        }
+      };
+      component.servizioApi = {
+        proprieta_custom: [
+          { gruppo: 'CCCollaudo', proprieta: [{ nome: 'campo1', valore: 'valore_cc' }] }
+        ]
+      } as any;
+      expect(component.getCustomPropertyTestingValue('Autorizzazione', 'campo1')).toBeUndefined();
+      expect(component.getCustomPropertyTestingValue('Autorizzazione', 'campo1', 'CCProduzione')).toBe('valore_cc');
+    });
+
     it('should return undefined when group not found', () => {
       Tools.Configurazione = {
         servizio: {
@@ -1278,8 +1301,8 @@ describe('ServizioApiConfigurationComponent', () => {
         { nome_gruppo: 'G2', label_gruppo: 'LabelG2', nome: 'campo2' }
       ];
       component.copyAllTestingValues();
-      expect(customSpy).toHaveBeenCalledWith('LabelG1', 'campo1', false);
-      expect(customSpy).toHaveBeenCalledWith('LabelG2', 'campo2', false);
+      expect(customSpy).toHaveBeenCalledWith('LabelG1', 'campo1', false, 'G1');
+      expect(customSpy).toHaveBeenCalledWith('LabelG2', 'campo2', false, 'G2');
     });
   });
 

@@ -1,6 +1,9 @@
 2026-10-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Configurazione API: "Copia da collaudo" dei campi custom cerca il gruppo di collaudo dal nome tecnico
+	  del gruppo del campo (prima dall'etichetta, condivisa da piu' gruppi).
+
 	Wizard servizi: la graffetta degli allegati delle API, quando il pannello e' aperto, e' in blu notte
 	  come le sezioni attive (prima rossa).
 

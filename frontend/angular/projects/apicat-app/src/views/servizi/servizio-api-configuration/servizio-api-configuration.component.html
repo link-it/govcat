@@ -443,8 +443,8 @@
                                           </ng-container> -->
                                           @if (_canCopyFromTesting(acfgc(cp[fieldToGroup]).get(cp.nome))) {
                                             <button class="btn btn-default btn-md gl-button" type="button"
-                                              [disabled]="!getCustomPropertyTestingValue(cp[fieldToGroup], cp.nome)"
-                                              (click)="copyCustomPropertyTestingValue(cp[fieldToGroup], cp.nome)"
+                                              [disabled]="!getCustomPropertyTestingValue(cp[fieldToGroup], cp.nome, cp.nome_gruppo)"
+                                              (click)="copyCustomPropertyTestingValue(cp[fieldToGroup], cp.nome, true, cp.nome_gruppo)"
                                               [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate">
                                               <span><i class="bi bi-copy"></i></span>
                                             </button>
