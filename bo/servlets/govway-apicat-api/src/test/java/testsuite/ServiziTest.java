@@ -3538,6 +3538,10 @@ public class ServiziTest {
 	private static final String PROPRIETA_RUOLI_ABILITATI = "proprieta_obbligatoria";
 
 	private ConfigurazioneCustomProprietaList aggiungiGruppoRequired(List<Ruolo> ruoliAbilitati) {
+		return this.aggiungiGruppoRequired(ruoliAbilitati, ConfigurazioneClasseDato.IDENTIFICATIVO);
+	}
+
+	private ConfigurazioneCustomProprietaList aggiungiGruppoRequired(List<Ruolo> ruoliAbilitati, ConfigurazioneClasseDato classeDato) {
 		ConfigurazioneProfiloCustomProprietaText proprieta = new ConfigurazioneProfiloCustomProprietaText();
 		proprieta.setNome(PROPRIETA_RUOLI_ABILITATI);
 		proprieta.setEtichetta("Proprieta' obbligatoria");
@@ -3547,7 +3551,7 @@ public class ServiziTest {
 		ConfigurazioneCustomProprietaList gruppo = new ConfigurazioneCustomProprietaList();
 		gruppo.setNomeGruppo(GRUPPO_RUOLI_ABILITATI);
 		gruppo.setLabelGruppo("Gruppo ruoli abilitati");
-		gruppo.setClasseDato(ConfigurazioneClasseDato.IDENTIFICATIVO);
+		gruppo.setClasseDato(classeDato);
 		gruppo.setRuoliAbilitati(ruoliAbilitati);
 		gruppo.setProprieta(List.of(proprieta));
 		this.configurazione.getServizio().getApi().getProprietaCustom().add(gruppo);
@@ -3663,5 +3667,44 @@ public class ServiziTest {
 
 		assertThrows(NotFoundException.class,
 				() -> serviziController.checkDatiServizio(randomId, "richiesto_collaudo"));
+	}
+
+	private boolean isProprietaRichiestaCheckDati(UUID idServizio, String stato) {
+		CheckDati checkDati = serviziController.checkDatiServizio(idServizio, stato).getBody();
+		return checkDati.getErrori() != null && checkDati.getErrori().stream()
+				.filter(err -> err.getCampi() != null)
+				.flatMap(err -> err.getCampi().stream())
+				.map(Campo::getNomeCampo)
+				.anyMatch((GRUPPO_RUOLI_ABILITATI + "." + PROPRIETA_RUOLI_ABILITATI)::equals);
+	}
+
+	private void verificaGruppoClasseConfigurato(UUID idServizio, ConfigurazioneClasseDato classeDato, String stato) {
+		ConfigurazioneCustomProprietaList gruppo = this.aggiungiGruppoRequired(null, classeDato);
+		List<ConfigurazioneClasseDato> datiObbligatori = this.configurazione.getServizio().getWorkflow().getCambiStato().stream()
+				.filter(cs -> cs.getStatoAttuale().equals(stato))
+				.findAny().orElseThrow()
+				.getDatiObbligatori();
+		try {
+			// lo stato non prevede la classe *_configurato: la proprieta' non e' richiesta
+			assertFalse(this.isProprietaRichiestaCheckDati(idServizio, stato));
+
+			datiObbligatori.add(classeDato);
+			assertTrue(this.isProprietaRichiestaCheckDati(idServizio, stato));
+		} finally {
+			datiObbligatori.remove(classeDato);
+			this.configurazione.getServizio().getApi().getProprietaCustom().remove(gruppo);
+		}
+	}
+
+	/**
+	 * Le proprieta' custom required dei gruppi con classe dato collaudo_configurato/produzione_configurato
+	 * sono richieste solo negli stati che prevedono quella classe tra i dati obbligatori.
+	 */
+	@Test
+	void testCheckDatiServizioProprietaClasseConfigurato() {
+		Servizio servizio = this.getServizioConApi();
+
+		this.verificaGruppoClasseConfigurato(servizio.getIdServizio(), ConfigurazioneClasseDato.COLLAUDO_CONFIGURATO, "richiesto_collaudo");
+		this.verificaGruppoClasseConfigurato(servizio.getIdServizio(), ConfigurazioneClasseDato.PRODUZIONE_CONFIGURATO, "richiesto_produzione");
 	}
 }

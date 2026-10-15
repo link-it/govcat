@@ -14,6 +14,16 @@
 	  (quelli comuni solo nella fase della transizione); se le API richiedono un'azione lo step
 	  "In compilazione" torna attivo e aperto, come nel wizard adesioni.
 
+2026-10-15  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Fix proprietà custom delle API con classe dato collaudo_configurato o produzione_configurato:
+	  non venivano mai verificate come obbligatorie (le classi dato *_configurato dei servizi
+	  controllavano solo le proprietà con classe collaudo o produzione). Ora sono richieste negli
+	  stati che prevedono la classe tra i dati obbligatori, come già avviene per le adesioni:
+	  consente, ad esempio, di rendere obbligatori i gruppi a carico del gestore solo per la
+	  pubblicazione, lasciando quelli del referente obbligatori dalla richiesta.
+
 2026-10-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
