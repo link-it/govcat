@@ -57,6 +57,7 @@ import org.govway.catalogo.servlets.model.AllegatoUpdate;
 import org.govway.catalogo.servlets.model.AmbienteEnum;
 import org.govway.catalogo.servlets.model.ApiUpdate;
 import org.govway.catalogo.servlets.model.DatiCustomUpdate;
+import org.govway.catalogo.servlets.model.DatiSpecificaApiUpdate;
 import org.govway.catalogo.servlets.model.DatiGenericiApiUpdate;
 import org.govway.catalogo.servlets.model.DocumentoCreate;
 import org.govway.catalogo.servlets.model.DocumentoUpdate;
@@ -2198,6 +2199,104 @@ public class APITest {
     				() -> apiController.updateApi(idApi, getApiUpdateOverrideProfiloGovway("APIGateway"), null));
     		assertEquals(ErrorCode.AUT_403_GRUPPO_RISERVATO_GESTORE, e.getErrorCode());
     		assertEquals(GRUPPO_PROFILO_GOVWAY, e.getParameters().get("gruppo"));
+    	} finally {
+    		disabilitaOverrideProfiloGovway(gruppo);
+    	}
+    }
+
+    // ==================== Proprieta` custom al cambio dei profili di autenticazione ====================
+
+    private static final String GRUPPO_CUSTOM = "esempioAltreProprietaUtente2";
+
+    private List<ProprietaCustom> getProprietaCustom(String valore) {
+    	AuthTypeApiResourceProprietaCustom proprieta = new AuthTypeApiResourceProprietaCustom();
+    	proprieta.setNome("altraInfo2");
+    	proprieta.setValore(valore);
+    	ProprietaCustom gruppo = new ProprietaCustom();
+    	gruppo.setGruppo(GRUPPO_CUSTOM);
+    	gruppo.setProprieta(List.of(proprieta));
+    	return List.of(gruppo);
+    }
+
+    private ApiUpdate getApiUpdateProfilo(String profilo, String risorsa) {
+    	AuthTypeApiResource authType = new AuthTypeApiResource();
+    	authType.setProfilo(profilo);
+    	authType.setResources(List.of(risorsa));
+    	DatiSpecificaApiUpdate datiSpecifica = new DatiSpecificaApiUpdate();
+    	datiSpecifica.setGruppiAuthType(List.of(authType));
+    	ApiUpdate apiUpdate = new ApiUpdate();
+    	apiUpdate.setDatiSpecifica(datiSpecifica);
+    	return apiUpdate;
+    }
+
+    private UUID creaApiConProprietaCustom(List<ProprietaCustom> proprietaCustom) {
+    	Dominio dominio = this.getDominio();
+    	Servizio servizio = creaServizio("servizio_erogazione", dominio.getIdDominio(), false, null);
+    	APICreate apiCreate = getApiCreateDominio("API_X", servizio, "MODI_P1");
+    	apiCreate.setProprietaCustom(proprietaCustom);
+    	ResponseEntity<API> response = apiController.createApi(apiCreate);
+    	assertEquals(HttpStatus.OK, response.getStatusCode());
+
+    	// la modifica avviene in una richiesta successiva: estensioni ricaricate dal DB
+    	this.entityManager.flush();
+    	this.entityManager.clear();
+    	return response.getBody().getIdApi();
+    }
+
+    private List<String> getGruppiProprietaCustom(UUID idApi) {
+    	this.entityManager.flush();
+    	this.entityManager.clear();
+    	List<ProprietaCustom> proprietaCustom = apiController.getAPI(idApi).getBody().getProprietaCustom();
+    	return proprietaCustom == null ? List.of() : proprietaCustom.stream().map(ProprietaCustom::getGruppo).toList();
+    }
+
+    @Test
+    void testUpdateApiCambioProfiloRimuoveProprietaCustom() {
+    	UUID idApi = creaApiConProprietaCustom(getProprietaCustom("valore"));
+
+    	assertEquals(HttpStatus.OK, apiController.updateApi(idApi, getApiUpdateProfilo("MODI_P2", "risorsa1"), null).getStatusCode());
+
+    	assertTrue(getGruppiProprietaCustom(idApi).isEmpty());
+    }
+
+    @Test
+    void testUpdateApiStessiProfiliMantieneProprietaCustom() {
+    	UUID idApi = creaApiConProprietaCustom(getProprietaCustom("valore"));
+
+    	// cambiano solo le risorse: i profili restano gli stessi
+    	assertEquals(HttpStatus.OK, apiController.updateApi(idApi, getApiUpdateProfilo("MODI_P1", "risorsa2"), null).getStatusCode());
+
+    	assertEquals(List.of(GRUPPO_CUSTOM), getGruppiProprietaCustom(idApi));
+    }
+
+    @Test
+    void testUpdateApiCambioProfiloMantieneDatiCustomDellaRichiesta() {
+    	UUID idApi = creaApiConProprietaCustom(getProprietaCustom("valore"));
+
+    	ApiUpdate apiUpdate = getApiUpdateProfilo("MODI_P2", "risorsa1");
+    	DatiCustomUpdate datiCustom = new DatiCustomUpdate();
+    	datiCustom.setProprietaCustom(getProprietaCustom("nuovo valore"));
+    	apiUpdate.setDatiCustom(datiCustom);
+    	assertEquals(HttpStatus.OK, apiController.updateApi(idApi, apiUpdate, null).getStatusCode());
+
+    	this.entityManager.flush();
+    	this.entityManager.clear();
+    	List<ProprietaCustom> proprietaCustom = apiController.getAPI(idApi).getBody().getProprietaCustom();
+    	assertEquals(1, proprietaCustom.size());
+    	assertEquals("nuovo valore", proprietaCustom.get(0).getProprieta().get(0).getValore());
+    }
+
+    @Test
+    void testUpdateApiCambioProfiloMantieneOverrideProfiloGovway() {
+    	ConfigurazioneCustomProprietaList gruppo = abilitaOverrideProfiloGovway();
+    	try {
+    		List<ProprietaCustom> proprietaCustom = new ArrayList<>(getProprietaCustom("valore"));
+    		proprietaCustom.addAll(getOverrideProfiloGovway("ModIPA"));
+    		UUID idApi = creaApiConProprietaCustom(proprietaCustom);
+
+    		assertEquals(HttpStatus.OK, apiController.updateApi(idApi, getApiUpdateProfilo("MODI_P2", "risorsa1"), null).getStatusCode());
+
+    		assertEquals(List.of(GRUPPO_PROFILO_GOVWAY), getGruppiProprietaCustom(idApi));
     	} finally {
     		disabilitaOverrideProfiloGovway(gruppo);
     	}

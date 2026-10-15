@@ -37,6 +37,12 @@
 	  consente, ad esempio, di rendere obbligatori i gruppi a carico del gestore solo per la
 	  pubblicazione, lasciando quelli del referente obbligatori dalla richiesta.
 
+	Fix modifica API: al cambio dei profili di autenticazione le proprietà custom già presenti
+	  restavano associate all'API anche se riferite ai profili precedenti. Ora vengono rimosse,
+	  tranne la ridefinizione del profilo GovWay riservata al gestore; quelle inviate nella stessa
+	  richiesta vengono mantenute. Se cambiano solo risorse o note, con gli stessi profili, non
+	  viene rimosso nulla.
+
 2026-10-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

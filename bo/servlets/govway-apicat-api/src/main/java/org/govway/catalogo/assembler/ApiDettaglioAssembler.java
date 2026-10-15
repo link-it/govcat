@@ -245,12 +245,20 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		
 		
 		if(entity.getRuolo().equals(RUOLO.EROGATO_SOGGETTO_DOMINIO)) {
+			Set<String> profiliPrima = getProfiliAuthType(entity);
 			entity.getAuthType().clear();
 			if(src.getGruppiAuthType()!=null) {
 				entity.getAuthType().addAll(getAuthType(src.getGruppiAuthType(), entity));
 			}
+
+			// Le proprieta` custom dipendono dai profili di autenticazione: al cambio dei profili vengono
+			// rimosse, tranne la ridefinizione del profilo GovWay (riservata al gestore). Eventuali dati_custom
+			// della stessa richiesta vengono applicati dopo e quindi restano.
+			if(!profiliPrima.equals(getProfiliAuthType(entity))) {
+				entity.getEstensioni().removeIf(e -> !this.profiloGovwayService.isGruppoOverride(e.getGruppo()));
+			}
 		}
-		
+
 		this.servizioDettaglioAssembler.setUltimaModifica(entity.getServizio());
 		this.servizioService.save(entity.getServizio());
 
@@ -536,6 +544,10 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		} else {
 			throw new BadRequestException(ErrorCode.SYS_500);
 		}
+	}
+
+	private Set<String> getProfiliAuthType(ApiEntity entity) {
+		return entity.getAuthType().stream().map(AuthTypeEntity::getProfilo).collect(Collectors.toSet());
 	}
 
 	private List<AuthTypeEntity> getAuthType(List<AuthTypeApiResource> authTypeLst, ApiEntity entity) {
