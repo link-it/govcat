@@ -96,13 +96,13 @@
   .lnk-btn i.bi { font-size: 14px; }
   .lnk-btn-ghost { background: transparent; border-color: transparent; box-shadow: none; }
   .lnk-btn-ghost:hover { background: var(--surface-3); }
-  // Stato selezionato (es. graffetta allegati con pannello aperto).
+  // Stato selezionato (es. graffetta allegati con pannello aperto), in blu notte come la sezione attiva
   .lnk-btn-ghost.is-active {
-    background: var(--accent-soft, #ffe9eb);
-    color: var(--accent-ink, #b81e2b);
-    border-color: #ffc4c9;
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
   }
-  .lnk-btn-ghost.is-active:hover { background: var(--accent-soft-2, #ffd4d8); }
+  .lnk-btn-ghost.is-active .lnk-ref-count { background: rgba(255, 255, 255, .2); border-color: transparent; color: #fff; }
   .lnk-btn-sm { height: 28px; font-size: 12.5px; padding: 0 10px; }
 
   // ─── Banner/disclaimer (allineato al wizard adesioni) ─────────────

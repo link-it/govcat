@@ -1,6 +1,9 @@
 2026-10-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Wizard servizi: la graffetta degli allegati delle API, quando il pannello e' aperto, e' in blu notte
+	  come le sezioni attive (prima rossa).
+
 	Modifica API: dopo la bozza sono modificabili solo descrizione e note (per tutti i ruoli); gli altri
 	  campi sono in sola lettura e le note vengono sempre inviate con le autenticazioni.
 
