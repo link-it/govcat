@@ -1398,7 +1398,7 @@
 			"WorkflowSendRequest": "Invia richiesta"
 		},
 		"MESSAGE": {
-			"AuthNonModificabileAdesioni": "Non modificabile: il servizio è in uno stato che consente le adesioni.",
+			"ApiModificabiliSoloDescrizioneNote": "Il servizio non è più in bozza: sono modificabili solo la descrizione e le note.",
 			"NoElements": "Nessun elemento",
 			"AdesioneDisabilitata": "L'adesione è disabilitata per questo servizio",
 			"AdesioneGiaEsistente": "La tua organizzazione ha già un'adesione attiva. Questo servizio non consente adesioni multiple",

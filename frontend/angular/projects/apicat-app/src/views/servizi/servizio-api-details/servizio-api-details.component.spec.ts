@@ -246,14 +246,42 @@ describe('ServizioApiDetailsComponent', () => {
     expect(mockAuthenticationService.canJoin).toHaveBeenCalled();
   });
 
-  it('should lock the authentications of an existing API when the service allows subscriptions', () => {
+  it('should lock the fields of an existing API once the service is no longer a draft', () => {
     component._isNew = false;
-    mockAuthenticationService.canJoin.mockReturnValueOnce(true);
-    expect(component._authBloccataDaAdesioni).toBe(true);
-    mockAuthenticationService.canJoin.mockReturnValueOnce(false);
-    expect(component._authBloccataDaAdesioni).toBe(false);
+    component.service = { stato: 'bozza' };
+    expect(component._campiBloccati).toBe(false);
+    component.service = { stato: 'richiesto_collaudo' };
+    expect(component._campiBloccati).toBe(true);
+    component.service = { stato: 'pubblicato_produzione' };
+    expect(component._campiBloccati).toBe(true);
     component._isNew = true;
-    expect(component._authBloccataDaAdesioni).toBe(false);
+    expect(component._campiBloccati).toBe(false);
+    component._isNew = false;
+    component.service = null;
+    expect(component._campiBloccati).toBe(false);
+  });
+
+  it('should validate only description and notes when the fields are locked', () => {
+    component._isNew = false;
+    component._formGroup = new FormGroup<any>({
+      nome: new FormControl('', Validators.required),
+      descrizione: new FormControl('', Validators.maxLength(5)),
+      authTypes: new FormArray([new FormGroup({
+        profilo: new FormControl('', Validators.required),
+        note: new FormControl('', Validators.maxLength(5))
+      })])
+    });
+    component.service = { stato: 'bozza' };
+    expect(component._formValido).toBe(false);
+
+    component.service = { stato: 'pubblicato_collaudo' };
+    expect(component._formValido).toBe(true);
+
+    component._formGroup.get('descrizione')!.setValue('troppo lunga');
+    expect(component._formValido).toBe(false);
+    component._formGroup.get('descrizione')!.setValue('ok');
+    component._formGroup.get('authTypes.0.note')!.setValue('troppo lunga');
+    expect(component._formValido).toBe(false);
   });
 
   it('should call authenticationService.canManageApi on _canAddMapper', () => {
@@ -805,6 +833,19 @@ describe('ServizioApiDetailsComponent', () => {
       expect(result.dati_specifica!.gruppi_auth_type).toHaveLength(1);
       expect(result.dati_specifica!.gruppi_auth_type![0].profilo).toBe('p1');
       expect(result.dati_specifica!.gruppi_auth_type![0].proprieta_custom).toEqual([{ nome: 'cp1', valore: 'v1' }]);
+    });
+
+    it('should keep dati_specifica for the notes when the fields are locked and the specifica is not modifiable', () => {
+      component._isNew = false;
+      component.service = { stato: 'pubblicato_produzione' };
+      mockAuthenticationService._removeDNM.mockImplementationOnce((_a: any, _b: any, b: any) => { delete b.dati_specifica; return b; });
+      const body = {
+        nome: 'A', versione: '1', ruolo: 'erogato_soggetto_dominio', descrizione: null, codice_asset: null,
+        authTypes: [{ profilo: 'p1', resources: ['/r1'], note: 'nuova nota' }]
+      };
+      component._formGroup = new FormGroup({ ruolo: new FormControl('erogato_soggetto_dominio') });
+      const result = component._prepareBodyUpdateApi(body);
+      expect(result.dati_specifica!.gruppi_auth_type![0]).toMatchObject({ profilo: 'p1', resources: ['/r1'], note: 'nuova nota' });
     });
 
     it('should not set dati_specifica when ruolo is not EROGATO_SOGGETTO_DOMINIO', () => {

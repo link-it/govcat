@@ -863,7 +863,12 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
             }
         }
 
+        const _specifica = _newBody.dati_specifica;
         const _body: any = this.authenticationService._removeDNM('servizio', this.service.stato, _newBody, this._grant?.ruoli);
+        // Le note delle autenticazioni restano modificabili anche quando la specifica non lo e'
+        if (this._campiBloccati && _specifica) {
+            _body.dati_specifica = _specifica;
+        }
         // Il BE autorizza il blocco `identificativo` anche sulla classe `api`, pure a valori invariati.
         if (!this._canAdd()) {
             delete _body.identificativo;
@@ -880,9 +885,17 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
         });
     }
 
-    /** Negli stati che consentono l'adesione le autenticazioni dell'API non sono modificabili, nemmeno dal gestore. */
-    get _authBloccataDaAdesioni(): boolean {
-        return !this._isNew && this._canJoin();
+    /** Dopo la bozza dell'API restano modificabili solo descrizione e note, per tutti i ruoli. */
+    get _campiBloccati(): boolean {
+        return !this._isNew && !!this.service && this.service.stato !== 'bozza';
+    }
+
+    /** Con i campi bloccati contano solo descrizione e note: i valori gia' salvati non impediscono il salvataggio. */
+    get _formValido(): boolean {
+        if (!this._campiBloccati) { return this._formGroup.valid; }
+        const _authTypes = this._formGroup.get('authTypes') as FormArray | null;
+        const _modificabili = [this._formGroup.get('descrizione'), ...(_authTypes?.controls || []).map((g: AbstractControl) => g.get('note'))];
+        return _modificabili.every((c: AbstractControl | null) => !c || c.valid || c.disabled);
     }
 
     _getGroupNameByLabel(group: any) {
@@ -891,7 +904,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
     }
 
     _onSubmit(form: any, close: boolean = true) {
-        if (this._isEdit && this._formGroup.valid) {
+        if (this._isEdit && this._formValido) {
             this._closeEdit = close;
             if (this._isNew) {
                 this.__onSave(form);

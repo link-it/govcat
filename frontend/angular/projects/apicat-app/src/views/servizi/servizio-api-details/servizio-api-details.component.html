@@ -188,6 +188,9 @@
           }
           <div class="edit-form">
             <form novalidate class="issue-form common-note-form mt-3 gl-show-field-errors gfm-form" [class.form-readonly]="!_isEdit" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
+              @if (_isEdit && _campiBloccati) {
+                <p class="form-text text-muted mb-0"><i class="bi bi-info-circle me-1" aria-hidden="true"></i>{{ 'APP.MESSAGE.ApiModificabiliSoloDescrizioneNote' | translate }}</p>
+              }
               <div class="row gl-mt-3" [class.justify-content-center]="_isNew || _singleColumn">
                 @if (!_isNew && !embedded) {
                   <div class="" [class.col-lg-4]="!_singleColumn" [class.col-lg-9]="_singleColumn" [class.mb-5]="_singleColumn">
@@ -203,7 +206,7 @@
                         [label]="'APP.LABEL.nome' | translate"
                         [formGroup]="_formGroup"
                         [value]="servizioApi?.nome"
-                        [isEdit]="_isEdit"
+                        [isEdit]="_isEdit && !_campiBloccati"
                         [plainText]="true"
                         [helpContext]="'API.POPOVER'"
                       ></lnk-form-field>
@@ -215,7 +218,7 @@
                           [label]="'APP.LABEL.versione' | translate"
                           [formGroup]="_formGroup"
                           [value]="servizioApi?.versione"
-                          [isEdit]="_isEdit"
+                          [isEdit]="_isEdit && !_campiBloccati"
                           [plainText]="true"
                           [helpContext]="'API.POPOVER'"
                         ></lnk-form-field>
@@ -274,7 +277,7 @@
                   }
                   <div class="row">
                     <div class="col-12">
-                      @if (_isEdit) {
+                      @if (_isEdit && !_campiBloccati) {
                         <div class="form-group ruolo mb-3">
                           <label class="label-bold" for="ruolo">{{ 'APP.LABEL.ruolo' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'ruolo'"></span></label>
                           <ng-select [class.gl-field-error-outline]="_hasControlError('ruolo')" [errorId]="'ruolo-error'"
@@ -367,7 +370,7 @@
                     }</label>
                     @if (_isEdit) {
                       <div class="">
-                        <textarea aria-required="true" [attr.aria-invalid]="(_hasControlError('descrizione')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('descrizione')) ? 'descrizione-error' : null" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" name="descrizione" id="descrizione" formControlName="descrizione" rows="4" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant"></textarea>
+                        <textarea aria-required="true" [attr.aria-invalid]="(_hasControlError('descrizione')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('descrizione')) ? 'descrizione-error' : null" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" name="descrizione" id="descrizione" formControlName="descrizione" rows="4"></textarea>
                         @if (f['descrizione'].invalid && (f['descrizione'].dirty || f['descrizione'].touched)) {
                           <p class="form-text text-danger" id="descrizione-error" aria-live="polite">
                             @if (f['descrizione'].errors && f['descrizione'].errors['required']) {
@@ -389,10 +392,10 @@
                   </div>
                   @if (_codiceAssetObbligatorio) {
                     <div class="form-group codice_asset">
-                      <label class="label-bold" for="codice_asset">{{ 'APP.LABEL.codice_asset' | translate }} @if (_isEdit) {
+                      <label class="label-bold" for="codice_asset">{{ 'APP.LABEL.codice_asset' | translate }} @if (_isEdit && !_campiBloccati) {
                         <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'codice_asset'"></span>
                       }</label>
-                      @if (_isEdit) {
+                      @if (_isEdit && !_campiBloccati) {
                         <div class="">
                           <input aria-required="true" [attr.aria-invalid]="(_hasControlError('codice_asset')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('codice_asset')) ? 'codice_asset-error' : null" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('codice_asset')" type="text" name="codice_asset" id="codice_asset" formControlName="codice_asset" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
                           @if (f['codice_asset'].invalid && (f['codice_asset'].dirty || f['codice_asset'].touched)) {
@@ -408,7 +411,7 @@
                           <ui-input-help field="codice_asset" context="API"></ui-input-help>
                         </div>
                       }
-                      @if (!_isEdit) {
+                      @if (!_isEdit || _campiBloccati) {
                         <div class="">
                           <input type="text" readonly class="form-control-plaintext" id="protocollo" [value]="servizioApi?.codice_asset || '-'">
                         </div>
@@ -494,10 +497,10 @@
                                   <div class="row">
                                     <div class="col-6">
                                       <div class="form-group">
-                                        <label class="label-bold" [for]="'profilo-' + authIndex">{{ 'APP.LABEL.AuthPrevista' | translate }} @if (_isEdit && !_authBloccataDaAdesioni) {
+                                        <label class="label-bold" [for]="'profilo-' + authIndex">{{ 'APP.LABEL.AuthPrevista' | translate }} @if (_isEdit && !_campiBloccati) {
                                           <span appMarkAsterisk [formGroup]="afg(authIndex)" [controlName]="'profilo'"></span>
                                         }</label>
-                                        @if (_isEdit && !_authBloccataDaAdesioni) {
+                                        @if (_isEdit && !_campiBloccati) {
                                           <div class="">
                                             <ng-select [items]="_profiliOptions" bindValue="codice_interno" bindLabel="etichetta" [labelForId]="'profilo-' + authIndex"
                                               [searchable]="false" [clearable]="false" [placeholder]="'APP.MESSAGE.SelectAuthentication' | translate"
@@ -506,13 +509,10 @@
                                             </ng-select>
                                           </div>
                                         }
-                                        @if (!_isEdit || _authBloccataDaAdesioni) {
+                                        @if (!_isEdit || _campiBloccati) {
                                           <div class="">
                                             <input type="text" readonly class="form-control-plaintext" [id]="'profilo-' + authIndex" [value]="afgc(authIndex)['profilo'].value | mapper:_getProfiloLabelMapper">
                                           </div>
-                                          @if (_isEdit) {
-                                            <p class="form-text text-muted mb-0">{{ 'APP.MESSAGE.AuthNonModificabileAdesioni' | translate }}</p>
-                                          }
                                         }
                                         @for (d of (afgc(authIndex)['profilo'].value | mapper:_disclaimersProfiloMapper:_disclaimersAttivi); track $index) {
                                           <app-servizio-disclaimer-banner class="d-block mt-2" [disclaimer]="d"></app-servizio-disclaimer-banner>
@@ -523,7 +523,7 @@
                                       <div class="col-6">
                                         <label for="risorse" class="label-bold w-100">{{ 'APP.LABEL.Risorse' | translate }} @if (_isEdit) {
                                           <span appMarkAsterisk [formGroup]="afg(authIndex)" [controlName]="'resources'"></span>
-                                          } @if (_isEdit && !_authBloccataDaAdesioni && ('resources' | mapper:_canEditFieldMapper:service?.stato:_grant)) {
+                                          } @if (_isEdit && !_campiBloccati && ('resources' | mapper:_canEditFieldMapper:service?.stato:_grant)) {
                                           <span class="float-end" (click)="_changeResources(authIndex)"><i class="bi bi-pencil"></i></span>
                                         }</label>
                                         <select class="form-select" formControlName="resources" multiple size="5" readonly>
@@ -541,7 +541,7 @@
                                         <label for="note" class="label-bold">{{ 'APP.LABEL.note' | translate }}</label>
                                         @if (_isEdit) {
                                           <div class="">
-                                            <textarea class="form-control" formControlName="note" rows="2" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant"></textarea>
+                                            <textarea class="form-control" formControlName="note" rows="2"></textarea>
                                           </div>
                                         }
                                         @if (!_isEdit) {
@@ -559,7 +559,7 @@
                                       </div>
                                     </div>
                                   </div>
-                                  @if ((authIndex > 0) && _isEdit && !_authBloccataDaAdesioni && ('allegati' | mapper:_canEditFieldMapper:service?.stato:_grant)) {
+                                  @if ((authIndex > 0) && _isEdit && !_campiBloccati && ('allegati' | mapper:_canEditFieldMapper:service?.stato:_grant)) {
                                     <div class="d-flex justify-content-end">
                                       <button type="button" class="btn gl-button btn-danger " (click)="_removeAuthGroup(authIndex)">
                                         <span>{{ 'APP.BUTTON.Remove' | translate }}</span>
@@ -569,7 +569,7 @@
                                 </div>
                               </div>
                             }
-                            @if (_isEdit && !_authBloccataDaAdesioni && ('allegati' | mapper:_canEditFieldMapper:service?.stato:_grant) && _hasSpecifica) {
+                            @if (_isEdit && !_campiBloccati && ('allegati' | mapper:_canEditFieldMapper:service?.stato:_grant) && _hasSpecifica) {
                               <div class="pt-3 border-top">
                                 @if (!_customAuth && !_customAuthOrig) {
                                   <button type="button" class="btn gl-button btn-default" (click)="_onToggleCustomAuth()">
@@ -610,7 +610,7 @@
                             @for (cp of _apiProprietaCustomGrouped[$any(apc.key)]; track cp) {
                               <div formArrayName="proprieta_custom" class="row custom-properties-fields">
                                 <div [formArrayName]="cp.nome_gruppo" class="col-12 form-group">
-                                  <label class="label-bold" [for]="cp.nome">{{ cp.etichetta }} @if (_markAsteriskUpdated && _isEdit) {
+                                  <label class="label-bold" [for]="cp.nome">{{ cp.etichetta }} @if (_markAsteriskUpdated && _isEdit && !_campiBloccati) {
                                     <span appMarkAsterisk [formGroup]="acfgc(cp.nome_gruppo)" [controlName]="cp.nome"></span>
                                     @if (cp._req?.nextState) {
                                       <span aria-hidden="true">*</span>
@@ -619,7 +619,7 @@
                                       <i class="bi bi-info-circle ms-1 text-muted" tabindex="0" role="img" [attr.aria-label]="'APP.MESSAGE.VALIDATION.RequiredFromState' | translate: { stato: ('APP.WORKFLOW.STATUS.' + cp._req.fromState | translate) }" [tooltip]="'APP.MESSAGE.VALIDATION.RequiredFromState' | translate: { stato: ('APP.WORKFLOW.STATUS.' + cp._req.fromState | translate) }" container="body"></i>
                                     }
                                   }</label>
-                                  @if (_isEdit) {
+                                  @if (_isEdit && !_campiBloccati) {
                                     <div class="">
                                       @if (cp.tipo === 'text') {
                                         <input autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp.nome_gruppo, cp.nome)" [type]="cp.type" [name]="cp.nome" [id]="cp.nome" [formControlName]="cp.nome" disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant" [attr.aria-describedby]="cp._req?.nextState ? cp.nome + '-req-hint' : null">
@@ -647,7 +647,7 @@
                                       }
                                     </div>
                                   }
-                                  @if (!_isEdit) {
+                                  @if (!_isEdit || _campiBloccati) {
                                     <div class="">
                                       @if (cp.tipo !== 'select') {
                                         <input type="text" readonly class="form-control-plaintext" [id]="cp.nome" [name]="cp.nome" [value]="acfgc(cp.nome_gruppo).controls[cp.nome].value || '-'">
@@ -671,7 +671,7 @@
                 <app-servizio-api-url-aggiuntive
                   [urlArray]="_urlAggiuntiveArray"
                   [isEdit]="_isEdit"
-                  [editable]="_isNew || ('url_invocazione_aggiuntive' | mapper:_canEditFieldMapper:service?.stato:_grant)"
+                  [editable]="_isNew || (!_campiBloccati && ('url_invocazione_aggiuntive' | mapper:_canEditFieldMapper:service?.stato:_grant))"
                   [items]="servizioApi?.url_invocazione_aggiuntive || null"
                 ></app-servizio-api-url-aggiuntive>
               }
@@ -699,7 +699,7 @@
                     <button type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">
                       {{ 'APP.BUTTON.Cancel' | translate }}
                     </button>
-                    <button type="submit" class="gl-button btn btn-confirm" [disabled]="_formGroup.invalid || _spin">
+                    <button type="submit" class="gl-button btn btn-confirm" [disabled]="!_formValido || _spin">
                       {{ 'APP.BUTTON.Save' | translate }} @if (_spin) {
                         <span class="spinner-border spinner-border-sm ms-2"></span>
                       }
@@ -711,7 +711,7 @@
                   }
                 } @else {
                   <div class="row-content-block footer-block">
-                    <button type="submit" class="gl-button btn btn-confirm gl-mr-2" [disabled]="_formGroup.invalid || _spin">
+                    <button type="submit" class="gl-button btn btn-confirm gl-mr-2" [disabled]="!_formValido || _spin">
                       {{ 'APP.BUTTON.Save' | translate }} @if (_spin) {
                       <span class="spinner-border spinner-border-sm ms-2"></span>
                     }
