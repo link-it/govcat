@@ -81,9 +81,9 @@
     @if (!_spin && data) {
       <div class="mt-5 mb-5">
         <div class="wizard-title-block">
-          <h2 class="wizard-header-title text-break mb-1">
+          <h1 class="wizard-header-title text-break mb-1">
             {{ data?.nome }}@if (data?.versione && !hideVersions) {<span class="wizard-header-version"> v. {{ data?.versione }}</span>}
-          </h2>
+          </h1>
           <div class="wizard-header-meta d-flex flex-wrap gap-2 align-items-center">
             @if (data?.dominio?.nome) { <span>{{ data.dominio.nome }}</span> }
             @if (data?.tipo) { <span aria-hidden="true">·</span><span>{{ ('APP.TIPO.' + data.tipo) | translate }}</span> }
@@ -182,7 +182,7 @@
             <!-- Informazioni generali (view + edit) -->
             @let openInfo = isPhaseSectionOpen('info_generali');
             <section id="phase-section-info_generali" class="lnk-phase-section" [class.is-open]="openInfo">
-              <header class="lnk-phase-section-hd" role="button" tabindex="0" [attr.aria-expanded]="openInfo"
+              <div class="lnk-phase-section-hd" role="button" tabindex="0" [attr.aria-expanded]="openInfo"
                       (click)="togglePhaseSection('info_generali')"
                       (keydown.enter)="togglePhaseSection('info_generali')"
                       (keydown.space)="togglePhaseSection('info_generali'); $event.preventDefault()">
@@ -193,7 +193,7 @@
                   }
                 </div>
                 <i class="bi bi-chevron-down lnk-phase-section-chev" [class.is-open]="openInfo" aria-hidden="true"></i>
-              </header>
+              </div>
               @if (openInfo) {
                 <div class="lnk-phase-section-body tl-panel">
                   @if (canEditInfo() && !isInfoFormEditing) {
@@ -225,7 +225,7 @@
             <!-- Referenti (gestione inline) -->
             @let openRef = isPhaseSectionOpen('referenti');
             <section id="phase-section-referenti" class="lnk-phase-section" [class.is-open]="openRef">
-              <header class="lnk-phase-section-hd" role="button" tabindex="0" [attr.aria-expanded]="openRef"
+              <div class="lnk-phase-section-hd" role="button" tabindex="0" [attr.aria-expanded]="openRef"
                       (click)="togglePhaseSection('referenti')"
                       (keydown.enter)="togglePhaseSection('referenti')"
                       (keydown.space)="togglePhaseSection('referenti'); $event.preventDefault()">
@@ -236,7 +236,7 @@
                   }
                 </div>
                 <i class="bi bi-chevron-down lnk-phase-section-chev" [class.is-open]="openRef" aria-hidden="true"></i>
-              </header>
+              </div>
               @if (openRef) {
                 <div class="lnk-phase-section-body">
 
@@ -244,9 +244,9 @@
                   @let openS = isReferentGroupOpen('servizio');
                   <div class="lnk-ref-group" [class.is-open]="openS">
                     <div class="lnk-ref-group-hd" (click)="toggleReferentGroup('servizio')">
-                      <h4 class="mb-0">{{ 'APP.SERVICES.WIZARD.ReferentiServizio' | translate }}
+                      <h2 class="mb-0">{{ 'APP.SERVICES.WIZARD.ReferentiServizio' | translate }}
                         <span class="lnk-ref-count">{{ servizioReferenti.length }}</span>
-                      </h4>
+                      </h2>
                       @if (openS && canAddReferente() && !_addReferentOpen) {
                         <button type="button" class="lnk-btn lnk-btn-sm" (click)="$event.stopPropagation(); openAddReferente()">
                           <i class="bi bi-plus-lg"></i><span>{{ 'APP.BUTTON.AddReferent' | translate }}</span>
@@ -292,9 +292,9 @@
                   @let openD = isReferentGroupOpen('dominio');
                   <div class="lnk-ref-group" [class.is-open]="openD">
                     <div class="lnk-ref-group-hd" (click)="toggleReferentGroup('dominio')">
-                      <h4 class="mb-0">{{ 'APP.SERVICES.WIZARD.ReferentiDominio' | translate }}
+                      <h2 class="mb-0">{{ 'APP.SERVICES.WIZARD.ReferentiDominio' | translate }}
                         <span class="lnk-ref-count">{{ dominioReferenti.length }}</span>
-                      </h4>
+                      </h2>
                       <i class="bi bi-chevron-down lnk-ref-group-chev" [class.is-open]="openD" aria-hidden="true"></i>
                     </div>
                     @if (openD) {
@@ -325,7 +325,7 @@
             <!-- Allegati (gestione inline) -->
             @let openAll = isPhaseSectionOpen('allegati');
             <section id="phase-section-allegati" class="lnk-phase-section" [class.is-open]="openAll">
-              <header class="lnk-phase-section-hd" role="button" tabindex="0" [attr.aria-expanded]="openAll"
+              <div class="lnk-phase-section-hd" role="button" tabindex="0" [attr.aria-expanded]="openAll"
                       (click)="togglePhaseSection('allegati')"
                       (keydown.enter)="togglePhaseSection('allegati')"
                       (keydown.space)="togglePhaseSection('allegati'); $event.preventDefault()">
@@ -334,7 +334,7 @@
                   <span class="lnk-ref-count">{{ serviceAllegati.length }}</span>
                 </div>
                 <i class="bi bi-chevron-down lnk-phase-section-chev" [class.is-open]="openAll" aria-hidden="true"></i>
-              </header>
+              </div>
               @if (openAll) {
                 <div class="lnk-phase-section-body">
                   @if (canAddAllegato() && !_addAllegatoOpen) {
@@ -390,7 +390,7 @@
             <!-- Gruppi (gestione inline) -->
             @let openGrp = isPhaseSectionOpen('gruppi');
             <section id="phase-section-gruppi" class="lnk-phase-section" [class.is-open]="openGrp">
-              <header class="lnk-phase-section-hd" role="button" tabindex="0" [attr.aria-expanded]="openGrp"
+              <div class="lnk-phase-section-hd" role="button" tabindex="0" [attr.aria-expanded]="openGrp"
                       (click)="togglePhaseSection('gruppi')"
                       (keydown.enter)="togglePhaseSection('gruppi')"
                       (keydown.space)="togglePhaseSection('gruppi'); $event.preventDefault()">
@@ -399,7 +399,7 @@
                   <span class="lnk-ref-count">{{ servizioGruppi.length }}</span>
                 </div>
                 <i class="bi bi-chevron-down lnk-phase-section-chev" [class.is-open]="openGrp" aria-hidden="true"></i>
-              </header>
+              </div>
               @if (openGrp) {
                 <div class="lnk-phase-section-body">
                   @if (canManageGruppi()) {

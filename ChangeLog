@@ -1,6 +1,10 @@
 2026-10-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Accessibilita' wizard servizi: etichetta delle note API, nome accessibile ai pulsanti "Copia da collaudo"
+	  e del caricamento file, link dei banner leggibili e sottolineati, intestazioni di sezione senza
+	  ruolo non ammesso e gerarchia dei titoli corretta (scansione gov-a11y senza violazioni).
+
 	Modifica API: la descrizione viene inviata anche quando i dati generici non sono modificabili
 	  (prima veniva tolta dal payload per i non gestori).
 

@@ -197,11 +197,11 @@
           padding: 6px;
         }
 
+        // Colore del testo del banner e sottolineati: contrasto AA e link riconoscibili senza il colore
         a {
-          color: #1f75cb !important;
-          &:hover {
-            text-decoration: underline !important;
-          }
+          color: inherit !important;
+          text-decoration: underline;
+          text-underline-offset: 2px;
         }
       }
       ul {

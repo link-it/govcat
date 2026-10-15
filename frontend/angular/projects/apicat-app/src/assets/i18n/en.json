@@ -340,6 +340,8 @@
 			"Yes": "Yes"
 		},
 		"BUTTON": {
+			"ChooseFile": "Choose file",
+			"RemoveFile": "Remove file",
 			"Reset": "Reset",
 			"Add": "Add",
 			"RetryAutoConfig": "Retry automatic configuration",

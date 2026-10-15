@@ -22,6 +22,7 @@
 .lnk-banner .icon i { font-size: 15px; }
 .lnk-banner .body { flex: 1; min-width: 0; font-size: 13px; line-height: 1.55; color: var(--brand-ink, #21324a); }
 .lnk-banner .body ::ng-deep p:last-child { margin-bottom: 0; }
+.lnk-banner .body ::ng-deep a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
 
 .lnk-banner.is-warn { background: var(--warn-soft, #fbf1e2); border-color: #ecd6b0; }
 .lnk-banner.is-warn::before { background: var(--warn, #c97a1a); }

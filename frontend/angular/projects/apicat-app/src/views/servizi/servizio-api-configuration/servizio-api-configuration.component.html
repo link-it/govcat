@@ -114,8 +114,8 @@
                                   <button class="btn btn-default btn-md gl-button" type="button"
                                     [disabled]="!getTestingValue('nome_gateway')"
                                     (click)="copyTestingValue('nome_gateway')"
-                                    [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate">
-                                    <span><i class="bi bi-copy"></i></span>
+                                    [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate" [attr.aria-label]="'APP.TOOLTIP.CopyTestingValue' | translate">
+                                    <span><i class="bi bi-copy" aria-hidden="true"></i></span>
                                   </button>
                                 }
                               </div>
@@ -166,8 +166,8 @@
                                     <button class="btn btn-default btn-md gl-button" type="button"
                                       [disabled]="!getTestingValue('versione_gateway')"
                                       (click)="copyTestingValue('versione_gateway')"
-                                      [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate">
-                                      <span><i class="bi bi-copy"></i></span>
+                                      [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate" [attr.aria-label]="'APP.TOOLTIP.CopyTestingValue' | translate">
+                                      <span><i class="bi bi-copy" aria-hidden="true"></i></span>
                                     </button>
                                   }
                                 </div>
@@ -234,8 +234,8 @@
                                   <button class="btn btn-default btn-md gl-button" type="button"
                                     [disabled]="!getTestingValue('protocollo')"
                                     (click)="copyTestingValue('protocollo')"
-                                    [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate">
-                                    <span><i class="bi bi-copy"></i></span>
+                                    [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate" [attr.aria-label]="'APP.TOOLTIP.CopyTestingValue' | translate">
+                                    <span><i class="bi bi-copy" aria-hidden="true"></i></span>
                                   </button>
                                 }
                               </div>
@@ -361,8 +361,8 @@
                                     @if (_canCopyFromTesting(f['url'])) {
                                       <button class="btn btn-default btn-md gl-button" type="button"
                                         [disabled]="!getTestingValue('url')"
-                                        (click)="copyTestingValue('url')" [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate">
-                                        <span><i class="bi bi-copy"></i></span>
+                                        (click)="copyTestingValue('url')" [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate" [attr.aria-label]="'APP.TOOLTIP.CopyTestingValue' | translate">
+                                        <span><i class="bi bi-copy" aria-hidden="true"></i></span>
                                       </button>
                                     }
                                   </div>
@@ -394,7 +394,7 @@
                           <div class="col-12">
                             @for (apc of _apiProprietaCustomGrouped | keyvalue; track apc) {
                               @if (_apiProprietaCustomGrouped[$any(apc.key)].length) {
-                                <h5 class="pb-2 mb-5 border-bottom" [title]="$any(apc.key) + ' - ' + fieldToGroup">{{ apc.key | mapper:_getGroupLabelMapper }}</h5>
+                                <h3 class="h5 pb-2 mb-5 border-bottom" [title]="$any(apc.key) + ' - ' + fieldToGroup">{{ apc.key | mapper:_getGroupLabelMapper }}</h3>
                                 @for (d of (_apiProprietaCustomGrouped[$any(apc.key)] | mapper:_disclaimersDelGruppoMapper:_disclaimersAttivi); track $index) {
                                   <app-servizio-disclaimer-banner class="mb-3" [disclaimer]="d"></app-servizio-disclaimer-banner>
                                 }
@@ -445,8 +445,8 @@
                                             <button class="btn btn-default btn-md gl-button" type="button"
                                               [disabled]="!getCustomPropertyTestingValue(cp[fieldToGroup], cp.nome, cp.nome_gruppo)"
                                               (click)="copyCustomPropertyTestingValue(cp[fieldToGroup], cp.nome, true, cp.nome_gruppo)"
-                                              [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate">
-                                              <span><i class="bi bi-copy"></i></span>
+                                              [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate" [attr.aria-label]="'APP.TOOLTIP.CopyTestingValue' | translate">
+                                              <span><i class="bi bi-copy" aria-hidden="true"></i></span>
                                             </button>
                                           }
                                         </div>
