@@ -163,6 +163,15 @@ public class ServizioAuthorization extends AbstractServizioAuthorization {
 		}
 	}
 
+	/**
+	 * Descrizione e note delle API sono modificabili in ogni stato da chi ha un ruolo sul servizio,
+	 * senza i controlli sui dati obbligatori e sui dati non modificabili dello stato.
+	 */
+	public boolean isDescrizioneNoteApiModificabili(ServizioEntity entity) {
+		this.authorizeAnything();
+		return entity.getComponenti().isEmpty() && !this.getRuoli(entity).isEmpty();
+	}
+
 	@Override
 	public void authorizeList() {
 		this.authorizeAnything();

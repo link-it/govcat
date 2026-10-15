@@ -30,6 +30,12 @@
 2026-10-15  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
+	Fix modifica API: descrizione e note delle autenticazioni non erano modificabili negli stati
+	  successivi alla bozza o in presenza di dati obbligatori mancanti. Ora sono modificabili in ogni
+	  stato da chi ha un ruolo sul servizio, senza i controlli sui dati obbligatori e non modificabili,
+	  purché gli altri dati eventualmente inviati restino invariati; ogni altra modifica segue i
+	  controlli dello stato come prima.
+
 	Fix proprietà custom delle API con classe dato collaudo_configurato o produzione_configurato:
 	  non venivano mai verificate come obbligatorie (le classi dato *_configurato dei servizi
 	  controllavano solo le proprietà con classe collaudo o produzione). Ora sono richieste negli

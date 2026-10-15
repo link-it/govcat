@@ -678,6 +678,21 @@ public class APIController implements ApiApi {
 
 				ServizioEntity servizio = entity.getServizio();
 
+				// Descrizione e note sono modificabili in ogni stato, anche con dati obbligatori mancanti:
+				// gli altri dati, se presenti, devono essere invariati
+				if(this.dettaglioAssembler.isSoloDescrizioneNote(apiUpdate, entity)
+						&& this.servizioAuthorization.isDescrizioneNoteApiModificabili(servizio)) {
+					isForce(force, this.servizioDettaglioAssembler.toGrant(servizio).getRuoli());
+					this.logger.debug("Autorizzazione completata con successo");
+
+					this.dettaglioAssembler.toEntityDescrizioneNote(apiUpdate, entity);
+					this.service.save(entity);
+					API api = this.dettaglioAssembler.toModel(entity);
+					this.logger.info("Invocazione completata con successo");
+
+					return ResponseEntity.ok(api);
+				}
+
 				String profiloGovwayOverridePrima = this.profiloGovwayService.getOverride(entity);
 
 				List<ConfigurazioneClasseDato> lstClassiDato = new ArrayList<>();

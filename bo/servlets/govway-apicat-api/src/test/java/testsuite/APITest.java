@@ -26,13 +26,16 @@ import org.govway.catalogo.controllers.OrganizzazioniController;
 import org.govway.catalogo.controllers.ServiziController;
 import org.govway.catalogo.controllers.SoggettiController;
 import org.govway.catalogo.controllers.UtentiController;
+import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.services.ClasseUtenteService;
+import org.govway.catalogo.core.services.ServizioService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.ErrorCode;
+import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
 import org.govway.catalogo.monitoraggioutils.FiltriUtils;
 import org.govway.catalogo.servlets.model.API;
 import org.govway.catalogo.servlets.model.AuthTypeApiResource;
@@ -178,6 +181,9 @@ public class APITest {
 
     @Autowired
     ClasseUtenteService classeUtenteService;
+
+    @Autowired
+    ServizioService servizioService;
 
     @Autowired
     GruppiController gruppiController;
@@ -2300,6 +2306,96 @@ public class APITest {
     	} finally {
     		disabilitaOverrideProfiloGovway(gruppo);
     	}
+    }
+
+    // ==================== Descrizione e note modificabili in ogni stato ====================
+
+    private static final String STATO_PUBBLICATO_PRODUZIONE = "pubblicato_produzione";
+
+    /**
+     * API con proprieta` custom in un servizio pubblicato in produzione senza la configurazione di
+     * produzione (dato obbligatorio dello stato), con sessione di un coordinatore: senza ruolo
+     * abilitato allo stato successivo per lui tutti i dati sono in sola lettura.
+     */
+    private UUID creaApiPubblicataConDatiMancanti(String principalCoordinatore) {
+    	UUID idApi = creaApiConProprietaCustom(getProprietaCustom("valore"));
+
+    	ServizioEntity servizio = this.servizioService.find(apiController.getAPI(idApi).getBody().getServizio().getIdServizio()).get();
+    	servizio.setStato(STATO_PUBBLICATO_PRODUZIONE);
+    	this.servizioService.save(servizio);
+    	this.entityManager.flush();
+    	this.entityManager.clear();
+
+    	UtenteCreate coordinatore = CommonUtils.getUtenteCreate();
+    	coordinatore.setPrincipal(principalCoordinatore);
+    	coordinatore.setRuolo(RuoloUtenteEnum.COORDINATORE);
+    	CommonUtils.setOrganizzazione(coordinatore, idOrganizzazione);
+    	coordinatore.setStato(StatoUtenteEnum.ABILITATO);
+    	utentiController.createUtente(coordinatore);
+    	CommonUtils.getSessionUtente(principalCoordinatore, securityContext, authentication, utenteService);
+
+    	return idApi;
+    }
+
+    /** Richiesta come la invia la console con i campi bloccati: gli altri dati reinviati invariati. */
+    private ApiUpdate getApiUpdateDescrizioneNote(API api, String descrizione, String note) {
+    	ApiUpdate apiUpdate = getApiUpdateProfilo(api.getGruppiAuthType().get(0).getProfilo(), api.getGruppiAuthType().get(0).getResources().get(0));
+    	apiUpdate.getDatiSpecifica().getGruppiAuthType().get(0).setNote(note);
+
+    	IdentificativoApiUpdate identificativo = new IdentificativoApiUpdate();
+    	identificativo.setNome(api.getNome());
+    	identificativo.setVersione(api.getVersione());
+    	identificativo.setRuolo(api.getRuolo());
+    	apiUpdate.setIdentificativo(identificativo);
+
+    	DatiGenericiApiUpdate datiGenerici = new DatiGenericiApiUpdate();
+    	datiGenerici.setDescrizione(descrizione);
+    	datiGenerici.setCodiceAsset(api.getCodiceAsset());
+    	apiUpdate.setDatiGenerici(datiGenerici);
+
+    	DatiCustomUpdate datiCustom = new DatiCustomUpdate();
+    	datiCustom.setProprietaCustom(api.getProprietaCustom());
+    	apiUpdate.setDatiCustom(datiCustom);
+    	return apiUpdate;
+    }
+
+    @Test
+    void testUpdateApiDescrizioneNoteInStatoPubblicatoConDatiMancanti() {
+    	UUID idApi = creaApiPubblicataConDatiMancanti("utente_coordinatore_descrizione_note");
+    	API api = apiController.getAPI(idApi).getBody();
+
+    	ResponseEntity<API> response = apiController.updateApi(idApi, getApiUpdateDescrizioneNote(api, "nuova descrizione", "nuove note"), null);
+    	assertEquals(HttpStatus.OK, response.getStatusCode());
+
+    	this.entityManager.flush();
+    	this.entityManager.clear();
+    	API aggiornata = apiController.getAPI(idApi).getBody();
+    	assertEquals("nuova descrizione", aggiornata.getDescrizione());
+    	assertEquals("nuove note", aggiornata.getGruppiAuthType().get(0).getNote());
+    	assertEquals(api.getGruppiAuthType().get(0).getResources(), aggiornata.getGruppiAuthType().get(0).getResources());
+    	assertEquals(List.of(GRUPPO_CUSTOM), aggiornata.getProprietaCustom().stream().map(ProprietaCustom::getGruppo).toList());
+    }
+
+    @Test
+    void testUpdateApiDescrizioneNoteConAltreModificheValidaLoStato() {
+    	UUID idApi = creaApiPubblicataConDatiMancanti("utente_coordinatore_descrizione_note_risorse");
+    	API api = apiController.getAPI(idApi).getBody();
+
+    	// insieme alle note cambiano le risorse: restano i controlli dello stato
+    	ApiUpdate apiUpdate = getApiUpdateDescrizioneNote(api, "nuova descrizione", "nuove note");
+    	apiUpdate.getDatiSpecifica().getGruppiAuthType().get(0).setResources(List.of("risorsa2"));
+    	assertThrows(UpdateEntitaComplessaNonValidaSemanticamenteException.class, () -> apiController.updateApi(idApi, apiUpdate, null));
+    }
+
+    @Test
+    void testUpdateApiDescrizioneConCodiceAssetValidaLoStato() {
+    	UUID idApi = creaApiPubblicataConDatiMancanti("utente_coordinatore_descrizione_codice_asset");
+    	API api = apiController.getAPI(idApi).getBody();
+
+    	// insieme alla descrizione cambia il codice asset: restano i controlli dello stato
+    	ApiUpdate apiUpdate = getApiUpdateDescrizioneNote(api, "nuova descrizione", null);
+    	apiUpdate.getDatiGenerici().setCodiceAsset("nuovo codice asset");
+    	assertThrows(UpdateEntitaComplessaNonValidaSemanticamenteException.class, () -> apiController.updateApi(idApi, apiUpdate, null));
     }
 
     // ==================== SPECIFICHE SWAGGER 2.0 ====================

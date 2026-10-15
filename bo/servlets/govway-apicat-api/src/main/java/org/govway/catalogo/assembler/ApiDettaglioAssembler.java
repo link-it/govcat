@@ -19,12 +19,14 @@
  */
 package org.govway.catalogo.assembler;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -55,6 +57,7 @@ import org.govway.catalogo.servlets.model.API;
 import org.govway.catalogo.servlets.model.APICreate;
 import org.govway.catalogo.servlets.model.APIDatiAmbienteCreate;
 import org.govway.catalogo.servlets.model.APIDatiAmbienteUpdate;
+import org.govway.catalogo.servlets.model.ApiUpdate;
 import org.govway.catalogo.servlets.model.AuthTypeApiResource;
 import org.govway.catalogo.servlets.model.AuthTypeApiResourceProprietaCustom;
 import org.govway.catalogo.servlets.model.Configurazione;
@@ -263,6 +266,120 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		this.servizioService.save(entity.getServizio());
 
 		return entity;
+	}
+
+	/**
+	 * Indica se la richiesta modifica al piu` la descrizione e le note delle autenticazioni: gli altri
+	 * blocchi devono essere assenti o riportare i valori gia` salvati (la console li reinvia invariati).
+	 */
+	public boolean isSoloDescrizioneNote(ApiUpdate src, ApiEntity entity) {
+		return src.getConfigurazioneCollaudo() == null
+				&& src.getConfigurazioneProduzione() == null
+				&& isInvariato(src.getIdentificativo(), entity)
+				&& isInvariato(src.getDatiGenerici(), entity)
+				&& isInvariato(src.getDatiSpecifica(), entity)
+				&& isInvariato(src.getDatiCustom(), entity);
+	}
+
+	/**
+	 * Applica la descrizione e le note delle autenticazioni di una richiesta verificata con
+	 * {@link #isSoloDescrizioneNote(ApiUpdate, ApiEntity)}: le note sono aggiornate sui gruppi
+	 * esistenti, senza ricostruirli.
+	 */
+	public ApiEntity toEntityDescrizioneNote(ApiUpdate src, ApiEntity entity) {
+		if(src.getDatiGenerici() != null) {
+			entity.setDescrizione(Optional.ofNullable(src.getDatiGenerici().getDescrizione()).map(d -> d.getBytes()).orElse(null));
+		}
+
+		if(src.getDatiSpecifica() != null && entity.getRuolo().equals(RUOLO.EROGATO_SOGGETTO_DOMINIO)) {
+			List<AuthTypeEntity> salvati = getAuthTypeOrdinati(entity);
+			for(int i = 0; i < salvati.size(); i++) {
+				salvati.get(i).setNote(src.getDatiSpecifica().getGruppiAuthType().get(i).getNote());
+			}
+		}
+
+		this.servizioDettaglioAssembler.setUltimaModifica(entity.getServizio());
+		this.servizioService.save(entity.getServizio());
+
+		return entity;
+	}
+
+	private boolean isInvariato(IdentificativoApiUpdate src, ApiEntity entity) {
+		return src == null
+				|| (Objects.equals(src.getNome(), entity.getNome())
+						&& Objects.equals(src.getVersione(), entity.getVersione())
+						&& src.getRuolo() != null
+						&& this.apiEngineAssembler.toRuolo(src.getRuolo()).equals(entity.getRuolo()));
+	}
+
+	private boolean isInvariato(DatiGenericiApiUpdate src, ApiEntity entity) {
+		// url_invocazione e url_invocazione_aggiuntive assenti: la console non le invia sempre
+		return src == null
+				|| (Objects.equals(src.getCodiceAsset(), entity.getCodiceAsset())
+						&& (src.getUrlInvocazione() == null || src.getUrlInvocazione().equals(entity.getUrlInvocazione()))
+						&& (src.getUrlInvocazioneAggiuntive() == null || src.getUrlInvocazioneAggiuntive().equals(
+								entity.getUrlInvocazioniAggiuntive().stream().map(this::toUrlInvocazioneAggiuntiva).collect(Collectors.toList()))));
+	}
+
+	private boolean isInvariato(DatiSpecificaApiUpdate src, ApiEntity entity) {
+		// i gruppi di autenticazione sono gestiti solo per le API erogate dal soggetto di dominio
+		if(src == null || !entity.getRuolo().equals(RUOLO.EROGATO_SOGGETTO_DOMINIO)) {
+			return true;
+		}
+
+		// confronto posizionale, nell'ordine restituito da toModel
+		List<AuthTypeApiResource> gruppi = Optional.ofNullable(src.getGruppiAuthType()).orElse(List.of());
+		List<AuthTypeEntity> salvati = getAuthTypeOrdinati(entity);
+		if(gruppi.size() != salvati.size()) {
+			return false;
+		}
+
+		for(int i = 0; i < salvati.size(); i++) {
+			AuthTypeApiResource gruppo = gruppi.get(i);
+			AuthTypeEntity salvato = salvati.get(i);
+			if(!salvato.getProfilo().equals(gruppo.getProfilo()) || gruppo.getResources() == null
+					|| !String.join(SEPARATOR, gruppo.getResources()).equals(new String(salvato.getResources()))) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private boolean isInvariato(DatiCustomUpdate src, ApiEntity entity) {
+		if(src == null) {
+			return true;
+		}
+		if(src.getProprietaCustom() == null) {
+			return false;
+		}
+
+		for(ProprietaCustom gruppo: src.getProprietaCustom()) {
+			// un gruppo non configurato resta respinto dal percorso ordinario
+			boolean configurato = this.configurazione.getServizio().getApi().getProprietaCustom()
+					.stream()
+					.anyMatch(c -> c.getNomeGruppo().equals(gruppo.getGruppo()));
+			if(!configurato || gruppo.getProprieta() == null) {
+				return false;
+			}
+
+			List<Map.Entry<String, String>> richieste = gruppo.getProprieta().stream()
+					.map(p -> new AbstractMap.SimpleEntry<>(p.getNome(), p.getValore()))
+					.collect(Collectors.toList());
+			List<Map.Entry<String, String>> salvate = entity.getEstensioni().stream()
+					.filter(e -> e.getGruppo().equals(gruppo.getGruppo()))
+					.map(e -> new AbstractMap.SimpleEntry<>(e.getNome(), e.getValore()))
+					.collect(Collectors.toList());
+			if(richieste.size() != salvate.size() || !new HashSet<>(richieste).equals(new HashSet<>(salvate))) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private List<AuthTypeEntity> getAuthTypeOrdinati(ApiEntity entity) {
+		return entity.getAuthType().stream()
+				.sorted(Comparator.comparing(AuthTypeEntity::getId))
+				.collect(Collectors.toList());
 	}
 	
 	public ApiEntity toEntityCollaudo(APIDatiAmbienteUpdate src, ApiEntity entity) {
