@@ -880,6 +880,11 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
         });
     }
 
+    /** Negli stati che consentono l'adesione le autenticazioni dell'API non sono modificabili, nemmeno dal gestore. */
+    get _authBloccataDaAdesioni(): boolean {
+        return !this._isNew && this._canJoin();
+    }
+
     _getGroupNameByLabel(group: any) {
         const _proprietaCustom = this._gruppiProprietaCustomDelForm();
         return _proprietaCustom.find((item: any) => item.label_gruppo === group)?.nome_gruppo || group;

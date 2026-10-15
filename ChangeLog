@@ -1,6 +1,9 @@
 2026-10-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Modifica API: negli stati che consentono l'adesione "Autenticazione Prevista" e la personalizzazione
+	  delle autenticazioni non sono modificabili (anche per il gestore).
+
 	Servizi: le proprieta' custom delle API con classe dato collaudo_configurato/produzione_configurato
 	  sono trattate come quelle del rispettivo ambiente (configurazione, copia dal collaudo, form API,
 	  disclaimer e vetrina).

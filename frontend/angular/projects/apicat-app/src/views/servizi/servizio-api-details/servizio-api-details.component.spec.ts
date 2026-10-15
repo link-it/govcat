@@ -246,6 +246,16 @@ describe('ServizioApiDetailsComponent', () => {
     expect(mockAuthenticationService.canJoin).toHaveBeenCalled();
   });
 
+  it('should lock the authentications of an existing API when the service allows subscriptions', () => {
+    component._isNew = false;
+    mockAuthenticationService.canJoin.mockReturnValueOnce(true);
+    expect(component._authBloccataDaAdesioni).toBe(true);
+    mockAuthenticationService.canJoin.mockReturnValueOnce(false);
+    expect(component._authBloccataDaAdesioni).toBe(false);
+    component._isNew = true;
+    expect(component._authBloccataDaAdesioni).toBe(false);
+  });
+
   it('should call authenticationService.canManageApi on _canAddMapper', () => {
     component._canAddMapper();
     expect(mockAuthenticationService.canManageApi).toHaveBeenCalled();

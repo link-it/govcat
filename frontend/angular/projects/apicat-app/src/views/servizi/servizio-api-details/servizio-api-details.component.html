@@ -494,10 +494,10 @@
                                   <div class="row">
                                     <div class="col-6">
                                       <div class="form-group">
-                                        <label class="label-bold" [for]="'profilo-' + authIndex">{{ 'APP.LABEL.AuthPrevista' | translate }} @if (_isEdit) {
+                                        <label class="label-bold" [for]="'profilo-' + authIndex">{{ 'APP.LABEL.AuthPrevista' | translate }} @if (_isEdit && !_authBloccataDaAdesioni) {
                                           <span appMarkAsterisk [formGroup]="afg(authIndex)" [controlName]="'profilo'"></span>
                                         }</label>
-                                        @if (_isEdit) {
+                                        @if (_isEdit && !_authBloccataDaAdesioni) {
                                           <div class="">
                                             <ng-select [items]="_profiliOptions" bindValue="codice_interno" bindLabel="etichetta" [labelForId]="'profilo-' + authIndex"
                                               [searchable]="false" [clearable]="false" [placeholder]="'APP.MESSAGE.SelectAuthentication' | translate"
@@ -506,10 +506,13 @@
                                             </ng-select>
                                           </div>
                                         }
-                                        @if (!_isEdit) {
+                                        @if (!_isEdit || _authBloccataDaAdesioni) {
                                           <div class="">
-                                            <input type="text" readonly class="form-control-plaintext" id="profilo" [value]="afgc(authIndex)['profilo'].value | mapper:_getProfiloLabelMapper">
+                                            <input type="text" readonly class="form-control-plaintext" [id]="'profilo-' + authIndex" [value]="afgc(authIndex)['profilo'].value | mapper:_getProfiloLabelMapper">
                                           </div>
+                                          @if (_isEdit) {
+                                            <p class="form-text text-muted mb-0">{{ 'APP.MESSAGE.AuthNonModificabileAdesioni' | translate }}</p>
+                                          }
                                         }
                                         @for (d of (afgc(authIndex)['profilo'].value | mapper:_disclaimersProfiloMapper:_disclaimersAttivi); track $index) {
                                           <app-servizio-disclaimer-banner class="d-block mt-2" [disclaimer]="d"></app-servizio-disclaimer-banner>
@@ -520,7 +523,7 @@
                                       <div class="col-6">
                                         <label for="risorse" class="label-bold w-100">{{ 'APP.LABEL.Risorse' | translate }} @if (_isEdit) {
                                           <span appMarkAsterisk [formGroup]="afg(authIndex)" [controlName]="'resources'"></span>
-                                          } @if (_isEdit && ('resources' | mapper:_canEditFieldMapper:service?.stato:_grant)) {
+                                          } @if (_isEdit && !_authBloccataDaAdesioni && ('resources' | mapper:_canEditFieldMapper:service?.stato:_grant)) {
                                           <span class="float-end" (click)="_changeResources(authIndex)"><i class="bi bi-pencil"></i></span>
                                         }</label>
                                         <select class="form-select" formControlName="resources" multiple size="5" readonly>
@@ -556,7 +559,7 @@
                                       </div>
                                     </div>
                                   </div>
-                                  @if ((authIndex > 0) && _isEdit && ('allegati' | mapper:_canEditFieldMapper:service?.stato:_grant)) {
+                                  @if ((authIndex > 0) && _isEdit && !_authBloccataDaAdesioni && ('allegati' | mapper:_canEditFieldMapper:service?.stato:_grant)) {
                                     <div class="d-flex justify-content-end">
                                       <button type="button" class="btn gl-button btn-danger " (click)="_removeAuthGroup(authIndex)">
                                         <span>{{ 'APP.BUTTON.Remove' | translate }}</span>
@@ -566,7 +569,7 @@
                                 </div>
                               </div>
                             }
-                            @if (_isEdit && ('allegati' | mapper:_canEditFieldMapper:service?.stato:_grant) && _hasSpecifica) {
+                            @if (_isEdit && !_authBloccataDaAdesioni && ('allegati' | mapper:_canEditFieldMapper:service?.stato:_grant) && _hasSpecifica) {
                               <div class="pt-3 border-top">
                                 @if (!_customAuth && !_customAuthOrig) {
                                   <button type="button" class="btn gl-button btn-default" (click)="_onToggleCustomAuth()">

@@ -1398,6 +1398,7 @@
 			"WorkflowSendRequest": "Send request"
 		},
 		"MESSAGE": {
+			"AuthNonModificabileAdesioni": "Not editable: the service is in a state that allows subscriptions.",
 			"NoElements": "No elements",
 			"AdesioneDisabilitata": "Subscription is disabled for this service",
 			"AdesioneGiaEsistente": "Your organization already has an active subscription. This service does not allow multiple subscriptions",
