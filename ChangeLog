@@ -1,6 +1,10 @@
 2026-10-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Servizi: le proprieta' custom delle API con classe dato collaudo_configurato/produzione_configurato
+	  sono trattate come quelle del rispettivo ambiente (configurazione, copia dal collaudo, form API,
+	  disclaimer e vetrina).
+
 	Disclaimer: i testi lunghi sono limitati in altezza con il pulsante "Mostra tutto/Mostra meno"
 	  (nuovo componente lnk-collapsible-text, usato nei wizard servizi e adesioni e nei client).
 

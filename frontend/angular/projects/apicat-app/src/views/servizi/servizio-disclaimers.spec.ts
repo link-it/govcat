@@ -53,6 +53,11 @@ describe('servizio-disclaimers', () => {
     expect(disclaimersDelleProprieta(list, proprieta, 'produzione').map(d => d.disclaimer)).toEqual(['gen', 'prod']);
   });
 
+  it('should derive the environment of *_configurato groups from their classe dato', () => {
+    const proprieta = [{ nome_gruppo: 'PDNDCollaudo', classe_dato: 'collaudo_configurato' }];
+    expect(disclaimersDelleProprieta(list, proprieta).map(d => d.disclaimer)).toEqual(['gen', 'col']);
+  });
+
   it('should load the disclaimers in the current language and swallow errors', async () => {
     const api: any = { getDetails: vi.fn().mockReturnValue(of([{ disclaimer: 'x' }])) };
     const translate: any = { currentLang: 'en', getDefaultLang: () => 'it' };

@@ -48,7 +48,7 @@ import { DisablePermissionDirective } from '@app/directives/disable-permission/d
 import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
 import { ErrorViewComponent } from '@app/components/error-view/error-view.component';
 import { ServizioDisclaimer, disclaimersDeiProfili, disclaimersDelProfilo, disclaimersDelleProprieta, loadServizioDisclaimers } from '../servizio-disclaimers';
-import { filtraGruppiPerRuoli } from '../servizio-proprieta-custom';
+import { ambienteClasseDato, filtraGruppiPerRuoli } from '../servizio-proprieta-custom';
 import { ServizioDisclaimerBannerComponent } from '../components/servizio-disclaimer-banner/servizio-disclaimer-banner.component';
 import { ServizioApiUrlAggiuntiveComponent } from '../components/servizio-api-url-aggiuntive/servizio-api-url-aggiuntive.component';
 import { creaUrlAggiuntiveFormArray, urlAggiuntiveDaForm } from '../servizio-api-url-aggiuntive';
@@ -871,12 +871,17 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
         return _body;
     }
 
-    _getGroupNameByLabel(group: any) {
+    /** Gruppi di proprieta` custom del form: in creazione anche quelli di collaudo, in modifica solo quelli non ambientali. */
+    _gruppiProprietaCustomDelForm(): any[] {
         const _srv: any = Tools.Configurazione?.servizio;
-        let _proprietaCustom = (_srv?.api) ? _srv.api.proprieta_custom.filter((p: any) => p.classe_dato !== 'produzione') : [];
-        if (!this._isNew){
-            _proprietaCustom = _proprietaCustom.filter((p: any) => p.classe_dato !== 'collaudo');
-        }
+        return (_srv?.api?.proprieta_custom || []).filter((p: any) => {
+            const _ambiente = ambienteClasseDato(p.classe_dato);
+            return this._isNew ? (_ambiente !== 'produzione') : (_ambiente === null);
+        });
+    }
+
+    _getGroupNameByLabel(group: any) {
+        const _proprietaCustom = this._gruppiProprietaCustomDelForm();
         return _proprietaCustom.find((item: any) => item.label_gruppo === group)?.nome_gruppo || group;
     }
 
@@ -1811,11 +1816,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
     }
 
     _getGroupLabelMapper = (group: any): string => {
-        const _srv: any = Tools.Configurazione?.servizio;
-        let _proprietaCustom = (_srv?.api) ? _srv.api.proprieta_custom.filter((p: any) => p.classe_dato !== 'produzione') : [];
-        if (!this._isNew){
-            _proprietaCustom = _proprietaCustom.filter((p: any) => p.classe_dato !== 'collaudo');
-        }
+        const _proprietaCustom = this._gruppiProprietaCustomDelForm();
         let labelGroup = _proprietaCustom.find((item: any) => item.nome_gruppo === group)?.label_gruppo;
         if (!labelGroup) {
             labelGroup = _proprietaCustom.find((item: any) => item.label_gruppo === group)?.label_gruppo;
@@ -1833,11 +1834,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
         const _srv: any = Tools.Configurazione?.servizio;
         const profili: Profile[] = _srv.api?.profili.filter((p: any) => profiles.includes(p.codice_interno));
 
-        let _proprietaCustom = (_srv?.api) ? _srv.api.proprieta_custom.filter((p: any) => p.classe_dato !== 'produzione') : [];
-
-        if (!this._isNew){
-            _proprietaCustom = _proprietaCustom.filter((p: any) => p.classe_dato !== 'collaudo');
-        }
+        const _proprietaCustom = this._gruppiProprietaCustomDelForm();
 
         _proprietaCustom.forEach((item: any) => {
             if (item.profili && !item.profili.some((p: string) => profili.some((pr: Profile) => pr.codice_interno === p))) {

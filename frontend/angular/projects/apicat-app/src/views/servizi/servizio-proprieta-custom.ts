@@ -36,3 +36,10 @@ export function filtraGruppiPerRuoli<T extends { ruoli_abilitati?: string[] | nu
     });
     return _risultato;
 }
+
+/** Ambiente di una classe dato (`collaudo`, `collaudo_configurato`, ... -> `collaudo`); null per le classi non ambientali. */
+export function ambienteClasseDato(classe: string | null | undefined): 'collaudo' | 'produzione' | null {
+    if (classe?.startsWith('collaudo')) { return 'collaudo'; }
+    if (classe?.startsWith('produzione')) { return 'produzione'; }
+    return null;
+}

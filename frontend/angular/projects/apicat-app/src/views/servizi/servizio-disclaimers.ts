@@ -21,6 +21,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { OpenAPIService } from '@app/services/openAPI.service';
+import { ambienteClasseDato } from './servizio-proprieta-custom';
 
 /**
  * Disclaimer del servizio (GET /servizi/{id}/disclaimers). Stessa forma di AdesioneDisclaimer;
@@ -71,7 +72,7 @@ export function disclaimersDelGruppo(disclaimers: ServizioDisclaimer[] | null | 
 export function disclaimersDelleProprieta(disclaimers: ServizioDisclaimer[] | null | undefined, proprieta: any[] | null | undefined, ambiente?: string | null): ServizioDisclaimer[] {
     const _result: ServizioDisclaimer[] = [];
     (proprieta || []).forEach((p: any) => {
-        disclaimersDelGruppo(disclaimers, p?.nome_gruppo, ambiente || p?.classe_dato).forEach((d: ServizioDisclaimer) => {
+        disclaimersDelGruppo(disclaimers, p?.nome_gruppo, ambiente || ambienteClasseDato(p?.classe_dato)).forEach((d: ServizioDisclaimer) => {
             if (!_result.includes(d)) { _result.push(d); }
         });
     });

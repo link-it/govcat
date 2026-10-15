@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { describe, it, expect } from 'vitest';
-import { filtraGruppiPerRuoli, proprietaVisibilePerRuoli } from './servizio-proprieta-custom';
+import { ambienteClasseDato, filtraGruppiPerRuoli, proprietaVisibilePerRuoli } from './servizio-proprieta-custom';
 
 describe('servizio-proprieta-custom', () => {
   it('should apply the ruoli_abilitati rule', () => {
@@ -37,5 +37,17 @@ describe('servizio-proprieta-custom', () => {
     expect(Object.keys(result)).toEqual(['A']);
     expect(result['A'].map((c: any) => c.nome)).toEqual(['a1']);
     expect(gruppi['B'].length).toBe(1);
+  });
+
+  it('should map the classe dato to its environment', () => {
+    expect(ambienteClasseDato('collaudo')).toBe('collaudo');
+    expect(ambienteClasseDato('collaudo_configurato')).toBe('collaudo');
+    expect(ambienteClasseDato('collaudo_pdnd')).toBe('collaudo');
+    expect(ambienteClasseDato('produzione')).toBe('produzione');
+    expect(ambienteClasseDato('produzione_configurato')).toBe('produzione');
+    expect(ambienteClasseDato('generico')).toBeNull();
+    expect(ambienteClasseDato('identificativo')).toBeNull();
+    expect(ambienteClasseDato(null)).toBeNull();
+    expect(ambienteClasseDato(undefined)).toBeNull();
   });
 });

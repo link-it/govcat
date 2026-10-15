@@ -76,6 +76,7 @@ declare const saveAs: any;
 import * as _ from 'lodash';
 import { ApiConfigurationRead, ApiReadDetails, CustomProperty, CustomPropertyDefinition } from '../servizio-api-details/servizio-api-interfaces';
 import { UrlInvocazioneAggiuntivaRisolta } from '../servizio-api-url-aggiuntive';
+import { ambienteClasseDato } from '../servizio-proprieta-custom';
 
 export interface Organization {
     id_organizzazione: string;
@@ -714,7 +715,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                     let vetrina_properties: Vetrina[] = [];
 
                     vetrina_properties = this._proprieta_custom.reduce((acc, item) => {
-                        const properties = item.proprieta.filter((prop) => prop.vetrina && item.classe_dato === this._environmentId).map(prop => {
+                        const properties = item.proprieta.filter((prop) => prop.vetrina && ambienteClasseDato(item.classe_dato) === this._environmentId).map(prop => {
                             return { ...prop, gruppo: item.nome_gruppo };
                         });
                         acc.push(...properties);

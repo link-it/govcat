@@ -25,7 +25,7 @@ import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
 import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
 import { ServizioDisclaimer, disclaimersDelleProprieta, loadServizioDisclaimers } from '../servizio-disclaimers';
-import { filtraGruppiPerRuoli, proprietaVisibilePerRuoli } from '../servizio-proprieta-custom';
+import { ambienteClasseDato, filtraGruppiPerRuoli, proprietaVisibilePerRuoli } from '../servizio-proprieta-custom';
 import { ServizioDisclaimerBannerComponent } from '../components/servizio-disclaimer-banner/servizio-disclaimer-banner.component';
 import { MarkdownModule } from 'ngx-markdown';
 import { DisablePermissionDirective } from '@app/directives/disable-permission/disable-permission.directive';
@@ -334,7 +334,7 @@ export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, Aft
       return;
     }
 
-    const collaudoGroup = _srv.api.proprieta_custom.find((item: any) => item.id_correlazione === group.id_correlazione && item.classe_dato === 'collaudo');
+    const collaudoGroup = _srv.api.proprieta_custom.find((item: any) => item.id_correlazione === group.id_correlazione && ambienteClasseDato(item.classe_dato) === 'collaudo');
     if (!collaudoGroup) {
       return;
     }
@@ -714,7 +714,7 @@ export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, Aft
         return;
       }
 
-      if (item.classe_dato !== this.environmentId) {
+      if (ambienteClasseDato(item.classe_dato) !== this.environmentId) {
         return;
       }
 
