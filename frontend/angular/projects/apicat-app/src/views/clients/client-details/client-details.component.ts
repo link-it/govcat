@@ -1873,14 +1873,13 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     this.soggetti$ = concat(
       of(defaultValue),
       this.soggettiInput$.pipe(
-        filter(res => {
-          return res !== null && res.length >= this.minLengthTerm
-        }),
+        filter(res => res !== null),
         distinctUntilChanged(),
         debounceTime(500),
         tap(() => this.soggettiLoading = true),
         switchMap((term: any) => {
-          return this.getSoggetti(term).pipe(
+          // Termine vuoto: torna alla prima pagina dei soggetti dell'organizzazione.
+          return this.getSoggetti(term || null).pipe(
             catchError(() => of([])), // empty list on error
             tap(() => this.soggettiLoading = false)
           )
@@ -1971,6 +1970,13 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
           } else {
             const currentValue = controls.id_soggetto.value;
             this._elencoSoggetti = [...result];
+            // La prima pagina potrebbe non contenere il soggetto corrente: lo si aggiunge
+            // per mostrarne il nome; gli altri soggetti si trovano con la ricerca.
+            const corrente = this._client?.soggetto;
+            const iniziali = (currentValue && corrente?.id_soggetto === currentValue && !result.some((item: any) => item.id_soggetto === currentValue))
+              ? [corrente, ...result]
+              : result;
+            this._initSoggettiSelect(iniziali);
             if (this._isClientUsedInSomeAdesioni) {
               // Client con adesioni collegate: il soggetto NON e` modificabile
               // a prescindere dal numero di soggetti dell'organizzazione (il BE

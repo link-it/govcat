@@ -32,6 +32,15 @@
 			"OperatoreApi": "API operator",
 			"UtenteOrganizzazione": "Organization user"
 		},
+		"USER_CLASSES": {
+			"SECTION": {
+				"EditSubtitle": "Fill in the user class data.",
+				"ViewSubtitle": "User class data.",
+				"GeneraleTag": "USER CLASS",
+				"GeneraleTitle": "General information",
+				"GeneraleDesc": "Name and description of the user class."
+			}
+		},
 		"UTENTI_ORG": {
 			"TITLE": {
 				"List": "Organization users",
@@ -517,6 +526,19 @@
 			"MESSAGES": {
 				"DeassociateClient": "Are you sure to remove the association from Client to Association ?",
 				"SecretUnavailable": "The secret is not available or could not be retrieved. Please try again later."
+			},
+			"SECTION": {
+				"EditSubtitle": "Fill in the sections of the client.",
+				"ViewSubtitle": "Client data, environment and authentication setup.",
+				"GeneraleTag": "CLIENT",
+				"GeneraleTitle": "Organization and subject",
+				"GeneraleDesc": "Organization and subject the client belongs to.",
+				"ConfigTag": "CONFIGURATION",
+				"ConfigTitle": "Environment and status",
+				"ConfigDesc": "Environment and configuration status of the client.",
+				"AuthTag": "AUTHENTICATION",
+				"AuthTitle": "Authentication",
+				"AuthDesc": "Authentication type, credentials, certificates and limits of the client."
 			},
 			"STATUS": {
 				"ConfigInProgress": "Configuration to be perfected",
@@ -2725,6 +2747,22 @@
 				"UrlPrefixCollaudo": "Url prefix test",
 				"UrlPrefixProduzione": "Url prefix production"
 			},
+			"SECTION": {
+				"EditSubtitle": "Fill in the sections of the subject.",
+				"ViewSubtitle": "Subject data, role and invocation URLs.",
+				"GeneraleTag": "SUBJECT",
+				"GeneraleTitle": "General information",
+				"GeneraleDesc": "Name, description and organization of the subject.",
+				"RuoloTag": "ROLE",
+				"RuoloTitle": "Role and options",
+				"RuoloDesc": "Role of the subject and options applied to its services.",
+				"GatewayTag": "GATEWAY",
+				"GatewayTitle": "Gateway profile",
+				"GatewayDesc": "Name and type of the subject on the gateway.",
+				"ErogazioneTag": "PROVISION",
+				"ErogazioneTitle": "Invocation URL",
+				"ErogazioneDesc": "URL and prefixes used to invoke the APIs of the subject."
+			},
 			"TITLE": {
 				"EditSubject": "Edit Subject",
 				"GeneralInformations": "General informations",
@@ -3151,6 +3189,22 @@
 				"nessuno": "None",
 				"admin": "PDND administrator",
 				"AdminWarning": "Warning: you are granting administration powers on PDND."
+			},
+			"SECTION": {
+				"EditSubtitle": "Fill in the sections of the user.",
+				"ViewSubtitle": "User data, role and organizations.",
+				"AnagraficaTag": "USER",
+				"AnagraficaTitle": "Personal data",
+				"AnagraficaDesc": "Principal, first and last name of the user.",
+				"ContattiTag": "CONTACTS",
+				"ContattiTitle": "Contacts",
+				"ContattiDesc": "Phone and e-mail of the user.",
+				"RuoloTag": "ROLE",
+				"RuoloTitle": "Role and organizations",
+				"RuoloDesc": "Role in the catalogue, organizations and external company.",
+				"StatoTag": "STATUS",
+				"StatoTitle": "Status and classes",
+				"StatoDesc": "User status, user classes and notes."
 			},
 			"STATUS": {
 				"abilitato": "Enabled",

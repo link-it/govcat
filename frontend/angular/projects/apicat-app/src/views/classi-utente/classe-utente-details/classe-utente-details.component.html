@@ -21,12 +21,6 @@
     <ui-breadcrumb [breadcrumbs]="breadcrumbs" [classContainer]="'container-limited limit-container-width'" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
   </div>
   <div class="top-area container-fluid container-limited limit-container-width px-0">
-    @if (_isEdit && !_isNew) {
-      <h3 class="page-title">{{ 'APP.TITLE.EditUserClass' | translate }}</h3>
-    }
-    @if (_isEdit && _isNew) {
-      <h3 class="page-title">{{ 'APP.TITLE.NewUserClass' | translate }}</h3>
-    }
     <div class="d-flex flex-grow-1">&nbsp;</div>
     <ng-template [appHasPermission]="'classi-utente'" [action]="'edit'">
       <div class="nav-controls">
@@ -87,119 +81,80 @@
     }
 
     @if ((classeUtente && !_spin) || _isNew) {
-      <div class="settings">
-        <div class="settings-header d-none">
-          <h4 class="settings-title">{{ 'APP.ORGANIZATIONS.TITLE.GeneralInformations' | translate }}</h4>
-          <ng-template [appHasPermission]="'SETTINGS'" [action]="'edit'">
-            @if (!_isEdit && !_spin) {
-              <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.EditOrganization' | translate" (click)="_editClasseUtente()">
-                <i class="bi bi-pencil"></i>
-              </button>
-            }
-            @if (_isEdit && !_spin) {
-              <div role="group" class="gl-w-full btn-group- position-relative">
-                <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-default-tertiary ms-2 btn-icon" [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" (click)="_onCancelEdit()">
-                  <i class="bi bi-x-lg"></i>
-                </button>
-              </div>
-            }
-          </ng-template>
+      <div class="lnk-section-layout mt-4">
+        <div class="section-page-header">
+          <h2 class="section-page-title">{{ _isNew ? ('APP.TITLE.NewUserClass' | translate) : classeUtente?.nome }}</h2>
+          <p class="section-page-subtitle">{{ (_isEdit ? 'APP.USER_CLASSES.SECTION.EditSubtitle' : 'APP.USER_CLASSES.SECTION.ViewSubtitle') | translate }}</p>
+          @if (_isEdit) {
+            <p class="section-mandatory-hint"><i class="bi bi-info-circle me-1" aria-hidden="true"></i>{{ 'APP.SERVICES.CREATE.MandatoryHint' | translate }}</p>
+          }
         </div>
-        <div class="settings-content">
-          @if (!_isEdit && _error) {
-            <div class="gl-alert gl-alert-danger col-md-12 mb-5">
-              {{ _errorMsg }}
+
+        @if (!_isEdit && _error) {
+          <div class="gl-alert gl-alert-danger col-md-12 mb-4">{{ _errorMsg }}</div>
+        }
+
+        <form novalidate class="gl-show-field-errors" [class.form-readonly]="!_isEdit" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
+
+          <section class="lnk-phase-section py-0">
+            <header class="lnk-phase-section-hd">
+              <div class="ps-meta">
+                <span class="ps-tag">{{ 'APP.USER_CLASSES.SECTION.GeneraleTag' | translate }}</span>
+                <h3 class="ps-title">{{ 'APP.USER_CLASSES.SECTION.GeneraleTitle' | translate }}</h3>
+                <p class="ps-desc">{{ 'APP.USER_CLASSES.SECTION.GeneraleDesc' | translate }}</p>
+              </div>
+            </header>
+            <div class="lnk-phase-section-body">
+              <div class="form-group nome">
+                <label class="label-bold" for="nome">{{ 'APP.LABEL.nome' | translate }}
+                  @if (_isEdit) { <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'nome'"></span> }
+                </label>
+                @if (_isEdit) {
+                  <input aria-required="true" [attr.aria-invalid]="(_hasControlError('nome')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('nome')) ? 'nome-error' : null" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome')" type="text" name="nome" id="nome" formControlName="nome" appTrimOnBlur>
+                  @if (f['nome'].invalid && (f['nome'].dirty || f['nome'].touched)) {
+                    <p class="form-text text-danger" id="nome-error" aria-live="polite">
+                      @if (f['nome'].errors?.['required']) { <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span> }
+                      @if (f['nome'].errors?.['notOnlyWhitespace']) { <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.NotOnlyWhitespace' | translate }}</span> }
+                      @if (f['nome'].errors?.['maxlength']) { <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['nome'].errors?.['maxlength'].requiredLength } }}</span> }
+                    </p>
+                  }
+                  <ui-input-help field="nome" context="USERCLASS"></ui-input-help>
+                } @else {
+                  <input type="text" readonly class="form-control-plaintext" id="nome" [value]="classeUtente.nome">
+                }
+              </div>
+
+              <div class="form-group descrizione mb-0">
+                <label class="label-bold" for="descrizione">{{ 'APP.ORGANIZATIONS.TITLE.Description' | translate }}
+                  @if (_isEdit) { <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'descrizione'"></span> }
+                </label>
+                @if (_isEdit) {
+                  <input [attr.aria-invalid]="(_hasControlError('descrizione')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('descrizione')) ? 'descrizione-error' : null" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" type="text" name="descrizione" id="descrizione" formControlName="descrizione" appTrimOnBlur>
+                  @if (f['descrizione'].invalid && (f['descrizione'].dirty || f['descrizione'].touched)) {
+                    <p class="form-text text-danger" id="descrizione-error" aria-live="polite">
+                      @if (f['descrizione'].errors?.['required']) { <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span> }
+                      @if (f['descrizione'].errors?.['maxlength']) { <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['descrizione'].errors?.['maxlength'].requiredLength } }}</span> }
+                    </p>
+                  }
+                  <ui-input-help field="descrizione" context="USERCLASS"></ui-input-help>
+                } @else {
+                  <input type="text" readonly class="form-control-plaintext" id="descrizione" [value]="classeUtente.descrizione || '-'">
+                }
+              </div>
+            </div>
+          </section>
+
+          @if (_isEdit) {
+            @if (_error) {
+              <div class="gl-alert gl-alert-danger col-md-12 mb-3" role="alert">{{ _errorMsg }}</div>
+            }
+            <div class="section-footer">
+              <button type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">{{ 'APP.BUTTON.Cancel' | translate }}</button>
+              <button type="submit" class="gl-button btn btn-confirm" [disabled]="_formGroup.invalid || _spin">{{ 'APP.BUTTON.Save' | translate }}</button>
             </div>
           }
-          <div class="edit-form">
-            <form novalidate class="issue-form common-note-form mt-3 gl-show-field-errors gfm-form" [class.form-readonly]="!_isEdit" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
-              <div class="row gl-mt-3">
-                <div class="col-lg-4">
-                  <h4 class="gl-mt-0 text-break">{{ 'APP.ORGANIZATIONS.TITLE.GeneralInformations' | translate }}</h4>
-                  <div class="text-break" markdown>{{ 'APP.ORGANIZATIONS.TITLE.GeneralInformations_sub' | translate }}</div>
-                </div>
-                <div class="col-lg-8">
-                  <!-- <div class="row">
-                  <div class="col-lg-6"> -->
-                    <div class="form-group nome">
-                      <label class="label-bold" for="nome">{{ 'APP.LABEL.nome' | translate }}</label>
-                      @if (_isEdit) {
-                        <div class="">
-                          <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome')" [attr.aria-invalid]="(_hasControlError('nome')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('nome')) ? 'nome-error' : null" type="text" name="nome" id="nome" formControlName="nome" appTrimOnBlur>
-                          @if (f['nome'].invalid && (f['nome'].dirty || f['nome'].touched)) {
-                            <p class="form-text text-danger" id="nome-error" aria-live="polite">
-                              @if (f['nome'].errors && f['nome'].errors['required']) {
-                                <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                              }
-                              @if (f['nome'].errors && f['nome'].errors['notOnlyWhitespace']) {
-                                <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.NotOnlyWhitespace' | translate }}</span>
-                              }
-                              @if (f['nome'].errors && f['nome'].errors['maxlength']) {
-                                <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['nome'].errors['maxlength'].requiredLength } }}</span>
-                              }
-                            </p>
-                          }
-                          <ui-input-help field="nome" context="USERCLASS"></ui-input-help>
-                        </div>
-                      }
-                      @if (!_isEdit) {
-                        <div class="">
-                          <input type="text" readonly class="form-control-plaintext" id="nome" [value]="classeUtente.nome">
-                        </div>
-                      }
-                    </div>
-                  <!-- </div>
-                  <div class="col-lg-6"> -->
-                    <div class="form-group descrizione">
-                      <label class="label-bold" for="descrizione">{{ 'APP.ORGANIZATIONS.TITLE.Description' | translate }}</label>
-                      @if (_isEdit) {
-                        <div class="">
-                          <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" [attr.aria-invalid]="(_hasControlError('descrizione')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('descrizione')) ? 'descrizione-error' : null" type="text" name="descrizione" id="descrizione" formControlName="descrizione" appTrimOnBlur>
-                          @if (f['descrizione'].invalid && (f['descrizione'].dirty || f['descrizione'].touched)) {
-                            <p class="form-text text-danger" id="descrizione-error" aria-live="polite">
-                              @if (f['descrizione'].errors && f['descrizione'].errors['required']) {
-                                <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                              }
-                              @if (f['descrizione'].errors && f['descrizione'].errors['pattern']) {
-                                <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.Organizationdescrizione' | translate }}</span>
-                              }
-                              @if (f['nome'].errors && f['nome'].errors['maxlength']) {
-                                <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['nome'].errors['maxlength'].requiredLength } }}</span>
-                              }
-                            </p>
-                          }
-                          <ui-input-help field="descrizione" context="USERCLASS"></ui-input-help>
-                        </div>
-                      }
-                      @if (!_isEdit) {
-                        <div class="">
-                          <input type="text" readonly class="form-control-plaintext" id="descrizione" [value]="classeUtente.descrizione || '--'">
-                        </div>
-                      }
-                    </div>
-                  <!-- </div>
-                </div> -->
-              </div>
-            </div>
-            @if (_isEdit && _error) {
-              <div class="gl-alert gl-alert-danger col-md-12 mt-3">
-                {{ _errorMsg }}
-              </div>
-            }
-            @if (_isEdit) {
-              <div class="row-content-block footer-block">
-                <button aria-label="Save" type="submit" class="gl-button btn btn-confirm gl-mr-2" [disabled]="_formGroup.invalid || _spin">
-                  {{ 'APP.BUTTON.Save' | translate }}
-                </button>
-                <button aria-label="Cancel" type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">
-                  {{ 'APP.BUTTON.Cancel' | translate }}
-                </button>
-              </div>
-            }
-          </form>
-        </div>
+        </form>
       </div>
-    </div>
-  }
-</section>
+    }
+  </section>
 </div>

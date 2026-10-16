@@ -11,6 +11,11 @@
 	Organizzazioni: lista utenti e dialog aggiungi/modifica utente allineati allo stile delle sezioni e
 	  del wizard; select native della dialog sostituite da ng-select, nomi accessibili alle select.
 
+	Gestione: dettagli di utenti, client, classi utente e soggetti ridisegnati a sezioni come domini e
+	  organizzazioni; select native sostituite da ng-select, anche nel form di autenticazione client.
+	  Client: soggetto selezionabile con ricerca lato server (prima solo la prima pagina). Ricerche di
+	  selezione senza testo che si accoda al valore selezionato.
+
 2026-10-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

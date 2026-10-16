@@ -32,6 +32,15 @@
 			"OperatoreApi": "Operatore API",
 			"UtenteOrganizzazione": "Utente organizzazione"
 		},
+		"USER_CLASSES": {
+			"SECTION": {
+				"EditSubtitle": "Compila i dati della classe utente.",
+				"ViewSubtitle": "Dati della classe utente.",
+				"GeneraleTag": "CLASSE UTENTE",
+				"GeneraleTitle": "Informazioni generali",
+				"GeneraleDesc": "Nome e descrizione della classe utente."
+			}
+		},
 		"UTENTI_ORG": {
 			"TITLE": {
 				"List": "Utenti dell'organizzazione",
@@ -517,6 +526,19 @@
 			"MESSAGES": {
 				"DeassociateClient": "Confermi di voler rimuovere l'associazione tra questo Client e l'Adesione ?",
 				"SecretUnavailable": "Il secret non è disponibile o non è stato possibile recuperarlo. Riprova più tardi."
+			},
+			"SECTION": {
+				"EditSubtitle": "Compila le sezioni del client.",
+				"ViewSubtitle": "Dati del client, ambiente e configurazione di autenticazione.",
+				"GeneraleTag": "CLIENT",
+				"GeneraleTitle": "Organizzazione e soggetto",
+				"GeneraleDesc": "Organizzazione e soggetto a cui appartiene il client.",
+				"ConfigTag": "CONFIGURAZIONE",
+				"ConfigTitle": "Ambiente e stato",
+				"ConfigDesc": "Ambiente di utilizzo e stato di configurazione del client.",
+				"AuthTag": "AUTENTICAZIONE",
+				"AuthTitle": "Autenticazione",
+				"AuthDesc": "Tipo di autenticazione, credenziali, certificati e limiti del client."
 			},
 			"STATUS": {
 				"ConfigInProgress": "Configurazione da perfezionare",
@@ -2725,6 +2747,22 @@
 				"UrlPrefixCollaudo": "Url prefix collaudo",
 				"UrlPrefixProduzione": "Url prefix produzione"
 			},
+			"SECTION": {
+				"EditSubtitle": "Compila le sezioni del soggetto.",
+				"ViewSubtitle": "Dati del soggetto, ruolo e URL di invocazione.",
+				"GeneraleTag": "SOGGETTO",
+				"GeneraleTitle": "Informazioni generali",
+				"GeneraleDesc": "Nome, descrizione e organizzazione del soggetto.",
+				"RuoloTag": "RUOLO",
+				"RuoloTitle": "Ruolo e opzioni",
+				"RuoloDesc": "Ruolo del soggetto e opzioni applicate ai suoi servizi.",
+				"GatewayTag": "GATEWAY",
+				"GatewayTitle": "Profilo gateway",
+				"GatewayDesc": "Nome e tipo del soggetto sul gateway.",
+				"ErogazioneTag": "EROGAZIONE",
+				"ErogazioneTitle": "URL di invocazione",
+				"ErogazioneDesc": "URL e prefissi usati per invocare le API del soggetto."
+			},
 			"TITLE": {
 				"EditSubject": "Modifica il Soggetto",
 				"GeneralInformations": "Informazioni generali",
@@ -3151,6 +3189,22 @@
 				"nessuno": "Nessuno",
 				"admin": "Amministratore PDND",
 				"AdminWarning": "Attenzione: stai assegnando poteri di amministrazione sulla PDND."
+			},
+			"SECTION": {
+				"EditSubtitle": "Compila le sezioni dell'utente.",
+				"ViewSubtitle": "Dati dell'utente, ruolo e organizzazioni.",
+				"AnagraficaTag": "UTENTE",
+				"AnagraficaTitle": "Anagrafica",
+				"AnagraficaDesc": "Principal, nome e cognome dell'utente.",
+				"ContattiTag": "CONTATTI",
+				"ContattiTitle": "Contatti",
+				"ContattiDesc": "Telefono ed e-mail dell'utente.",
+				"RuoloTag": "RUOLO",
+				"RuoloTitle": "Ruolo e organizzazioni",
+				"RuoloDesc": "Ruolo nel catalogo, organizzazioni di appartenenza e azienda esterna.",
+				"StatoTag": "STATO",
+				"StatoTitle": "Stato e classi",
+				"StatoDesc": "Stato dell'utente, classi utente e note."
 			},
 			"STATUS": {
 				"abilitato": "Abilitato",
