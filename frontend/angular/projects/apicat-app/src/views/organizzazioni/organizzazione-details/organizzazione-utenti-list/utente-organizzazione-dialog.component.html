@@ -17,7 +17,7 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <div class="modal-header ud-hd">
-  <h5 class="modal-title ud-title">{{ title | translate }}</h5>
+  <h5 class="modal-title ud-title" id="utente-org-dialog-title">{{ title | translate }}</h5>
   <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon"
           [attr.aria-label]="'APP.BUTTON.Close' | translate"
           (click)="cancel()">
@@ -29,8 +29,8 @@
   <!-- Modalita' edit: utente readonly --------------------------------- -->
   @if (mode === 'edit') {
     <div class="form-group mb-3">
-      <label class="label-bold">{{ 'APP.UTENTI_ORG.LABEL.User' | translate }}</label>
-      <input type="text" readonly class="form-control-plaintext"
+      <label class="label-bold" for="utente-org-utente">{{ 'APP.UTENTI_ORG.LABEL.User' | translate }}</label>
+      <input type="text" readonly class="form-control-plaintext" id="utente-org-utente"
              [value]="(utente?.nome || '') + ' ' + (utente?.cognome || '') + ' (' + (utente?.email_aziendale || '') + ')'">
     </div>
   }

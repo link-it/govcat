@@ -268,7 +268,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     this._statoEnum = fake_stato;
     this._ambienteEnum = fake_ambiente;
     if (Tools.Configurazione) {
-      Tools.Configurazione.servizio.api.auth_type.map((item: any) => this._authTypeEnum.push(item.type));
+      this._loadAuthTypes();
     }
 
     this.route.params.subscribe(params => {
@@ -309,7 +309,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     });
 
     this.eventsManagerService.on(EventType.PROFILE_UPDATE, (action: any) => {
-      Tools.Configurazione.servizio.api.auth_type.map((item: any) => this._authTypeEnum.push(item.type));
+      this._loadAuthTypes();
       this.initTipiCertificato();
     });
   }
@@ -1867,6 +1867,12 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     apply('url_esposizione', f.url_esposizione.required);
     apply('help_desk', f.help_desk.required);
     apply('nome_applicazione_portale', f.nome_applicazione_portale.required);
+  }
+
+  // Nuovo array (non push): ng-select non rileva le modifiche sul posto di [items]
+  // e un secondo PROFILE_UPDATE duplicherebbe i tipi.
+  _loadAuthTypes() {
+    this._authTypeEnum = (Tools.Configurazione?.servizio?.api?.auth_type || []).map((item: any) => item.type);
   }
 
   _initSoggettiSelect(defaultValue: any[] = []) {

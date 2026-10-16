@@ -257,6 +257,7 @@ export class OrganizzazioneUtentiListComponent implements OnInit, OnChanges, OnD
         };
         this._modalRef = this.modalService.show(UtenteOrganizzazioneDialogComponent, {
             ignoreBackdropClick: true,
+            ariaLabelledBy: 'utente-org-dialog-title',
             initialState
         });
         this._modalRef.content.onClose.subscribe((payload: { id_utente: string; ruolo_organizzazione: RuoloOrganizzazioneEnum | null; alreadyAssociated?: boolean } | null) => {

@@ -92,7 +92,7 @@
     @if ((soggetto && !_spin) || _isNew) {
       <div class="lnk-section-layout mt-4">
         <div class="section-page-header">
-          <h2 class="section-page-title">{{ _isNew ? ('APP.SOGGETTI.TITLE.NewSubject' | translate) : soggetto?.nome }}</h2>
+          <h1 class="section-page-title">{{ _isNew ? ('APP.SOGGETTI.TITLE.NewSubject' | translate) : soggetto?.nome }}</h1>
           <p class="section-page-subtitle">{{ (_isEdit ? 'APP.SOGGETTI.SECTION.EditSubtitle' : 'APP.SOGGETTI.SECTION.ViewSubtitle') | translate }}</p>
           @if (_isEdit) {
             <p class="section-mandatory-hint"><i class="bi bi-info-circle me-1" aria-hidden="true"></i>{{ 'APP.SERVICES.CREATE.MandatoryHint' | translate }}</p>
@@ -109,7 +109,7 @@
             <header class="lnk-phase-section-hd">
               <div class="ps-meta">
                 <span class="ps-tag">{{ 'APP.SOGGETTI.SECTION.GeneraleTag' | translate }}</span>
-                <h3 class="ps-title">{{ 'APP.SOGGETTI.SECTION.GeneraleTitle' | translate }}</h3>
+                <h2 class="ps-title">{{ 'APP.SOGGETTI.SECTION.GeneraleTitle' | translate }}</h2>
                 <p class="ps-desc">{{ 'APP.SOGGETTI.SECTION.GeneraleDesc' | translate }}</p>
               </div>
             </header>
@@ -187,7 +187,7 @@
             <header class="lnk-phase-section-hd">
               <div class="ps-meta">
                 <span class="ps-tag">{{ 'APP.SOGGETTI.SECTION.RuoloTag' | translate }}</span>
-                <h3 class="ps-title">{{ 'APP.SOGGETTI.SECTION.RuoloTitle' | translate }}</h3>
+                <h2 class="ps-title">{{ 'APP.SOGGETTI.SECTION.RuoloTitle' | translate }}</h2>
                 <p class="ps-desc">{{ 'APP.SOGGETTI.SECTION.RuoloDesc' | translate }}</p>
               </div>
             </header>
@@ -246,7 +246,7 @@
             <header class="lnk-phase-section-hd">
               <div class="ps-meta">
                 <span class="ps-tag">{{ 'APP.SOGGETTI.SECTION.GatewayTag' | translate }}</span>
-                <h3 class="ps-title">{{ 'APP.SOGGETTI.SECTION.GatewayTitle' | translate }}</h3>
+                <h2 class="ps-title">{{ 'APP.SOGGETTI.SECTION.GatewayTitle' | translate }}</h2>
                 <p class="ps-desc">{{ 'APP.SOGGETTI.SECTION.GatewayDesc' | translate }}</p>
               </div>
             </header>
@@ -298,7 +298,7 @@
             <header class="lnk-phase-section-hd">
               <div class="ps-meta">
                 <span class="ps-tag">{{ 'APP.SOGGETTI.SECTION.ErogazioneTag' | translate }}</span>
-                <h3 class="ps-title">{{ 'APP.SOGGETTI.SECTION.ErogazioneTitle' | translate }}</h3>
+                <h2 class="ps-title">{{ 'APP.SOGGETTI.SECTION.ErogazioneTitle' | translate }}</h2>
                 <p class="ps-desc">{{ 'APP.SOGGETTI.SECTION.ErogazioneDesc' | translate }}</p>
               </div>
             </header>

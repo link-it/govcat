@@ -1959,4 +1959,24 @@ describe('ClientDetailsComponent', () => {
       expect(mockApiService.getList).toHaveBeenLastCalledWith('soggetti', { params: { id_organizzazione: 'org1', aderente: true } });
     });
   });
+
+  describe('_loadAuthTypes', () => {
+    it('should replace the list with a new array without duplicates', () => {
+      const before = component._authTypeEnum;
+      component._loadAuthTypes();
+      const first = component._authTypeEnum;
+      expect(first).not.toBe(before);
+      expect(first).toEqual(['https']);
+
+      component._loadAuthTypes();
+      expect(component._authTypeEnum).toEqual(['https']);
+      expect(component._authTypeEnum).not.toBe(first);
+    });
+
+    it('should return an empty list when the configuration is missing', () => {
+      Tools.Configurazione = null as any;
+      component._loadAuthTypes();
+      expect(component._authTypeEnum).toEqual([]);
+    });
+  });
 });

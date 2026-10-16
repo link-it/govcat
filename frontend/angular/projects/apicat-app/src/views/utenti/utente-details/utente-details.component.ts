@@ -298,6 +298,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
     const idOrg = this._fromOrgManageIdOrg;
     const ref = this.modalService.show(UtenteOrganizzazioneDialogComponent, {
       ignoreBackdropClick: true,
+      ariaLabelledBy: 'utente-org-dialog-title',
       initialState: {
         mode: 'edit' as UtenteOrganizzazioneDialogMode,
         title: 'APP.UTENTI_ORG.TITLE.Edit',

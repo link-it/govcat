@@ -17,6 +17,7 @@
     (drop)="__onDrop($event)">
 
     <input #browse type="file" class="visually-hidden"
+      [attr.aria-label]="label || ('APP.LABEL.TrascinaFileOClicca' | translate)"
       [accept]="acceptAttribute"
       [disabled]="disabled"
       (change)="__onChange($event)">

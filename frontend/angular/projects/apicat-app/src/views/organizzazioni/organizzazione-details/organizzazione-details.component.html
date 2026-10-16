@@ -83,7 +83,7 @@
     @if ((organizzazione && !_spin) || _isNew) {
       <div class="lnk-section-layout mt-4">
         <div class="section-page-header">
-          <h2 class="section-page-title">{{ _isNew ? ('APP.TITLE.NewOrganization' | translate) : organizzazione?.nome }}</h2>
+          <h1 class="section-page-title">{{ _isNew ? ('APP.TITLE.NewOrganization' | translate) : organizzazione?.nome }}</h1>
           <p class="section-page-subtitle">{{ (_isEdit ? 'APP.ORGANIZATIONS.SECTION.EditSubtitle' : 'APP.ORGANIZATIONS.SECTION.ViewSubtitle') | translate }}</p>
           @if (_isEdit) {
             <p class="section-mandatory-hint"><i class="bi bi-info-circle me-1" aria-hidden="true"></i>{{ 'APP.SERVICES.CREATE.MandatoryHint' | translate }}</p>
@@ -100,7 +100,7 @@
             <header class="lnk-phase-section-hd">
               <div class="ps-meta">
                 <span class="ps-tag">{{ 'APP.ORGANIZATIONS.SECTION.GeneraleTag' | translate }}</span>
-                <h3 class="ps-title">{{ 'APP.ORGANIZATIONS.SECTION.GeneraleTitle' | translate }}</h3>
+                <h2 class="ps-title">{{ 'APP.ORGANIZATIONS.SECTION.GeneraleTitle' | translate }}</h2>
                 <p class="ps-desc">{{ 'APP.ORGANIZATIONS.SECTION.GeneraleDesc' | translate }}</p>
               </div>
             </header>
@@ -208,7 +208,7 @@
             <header class="lnk-phase-section-hd">
               <div class="ps-meta">
                 <span class="ps-tag">{{ 'APP.ORGANIZATIONS.SECTION.RuoloTag' | translate }}</span>
-                <h3 class="ps-title">{{ 'APP.ORGANIZATIONS.SECTION.RuoloTitle' | translate }}</h3>
+                <h2 class="ps-title">{{ 'APP.ORGANIZATIONS.SECTION.RuoloTitle' | translate }}</h2>
                 <p class="ps-desc">{{ 'APP.ORGANIZATIONS.SECTION.RuoloDesc' | translate }}</p>
               </div>
             </header>
