@@ -658,6 +658,7 @@
 				"Public": "Public",
 				"ReferentSubject": "Referent subject",
 				"Reserved": "reserved",
+				"SkipCollaudo": "Allow skipping testing",
 				"Tag": "Tags",
 				"UrlInvocazione": "Url invocation",
 				"UrlPrefixCollaudo": "Url prefix test",
@@ -2743,7 +2744,7 @@
 				"Organization": "Organization",
 				"OrganizationName": "Organization name",
 				"Referente": "Referent",
-				"SkipCollaudo": "Skip testing",
+				"SkipCollaudo": "Allow skipping testing",
 				"UrlInvocazione": "Url invocation",
 				"UrlPrefixCollaudo": "Url prefix test",
 				"UrlPrefixProduzione": "Url prefix production"

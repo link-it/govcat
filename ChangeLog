@@ -20,6 +20,9 @@
 	  dialog utenti, campo utente e input file, contrasto e area di click delle ng-select, intestazione
 	  colonna azioni). Client: tipi di autenticazione caricati anche a configurazione tardiva, senza duplicati.
 
+	Issue #393 - Etichetta "Salta collaudo" di domini e soggetti cambiata in "Consenti di saltare il
+	  collaudo"; servizi e adesioni restano "Salta collaudo".
+
 2026-10-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
