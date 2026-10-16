@@ -23,6 +23,9 @@
 	Issue #393 - Etichetta "Salta collaudo" di domini e soggetti cambiata in "Consenti di saltare il
 	  collaudo"; servizi e adesioni restano "Salta collaudo".
 
+	Issue #394 - Servizi: campi visibilita' e "Salta collaudo" non piu' riservati al gestore; in creazione
+	  sempre visibili, in modifica (wizard e form classica) visibili a chi puo' creare servizi.
+
 2026-10-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

@@ -1624,6 +1624,11 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         return this.authenticationService.isGestore(this._grant?.ruoli);
     }
 
+    /** Visibilita` e "Salta collaudo": visibili a chi puo` creare un servizio, non solo al gestore. */
+    _canCreateServizioMapper = (): boolean => {
+        return this.authenticationService.canCreateServizio();
+    }
+
     /**
      * Visibilita` del flag "Intermediato" (fruizione). A differenza di
      * `package` (solo gestore), e` visibile anche agli utenti che possono

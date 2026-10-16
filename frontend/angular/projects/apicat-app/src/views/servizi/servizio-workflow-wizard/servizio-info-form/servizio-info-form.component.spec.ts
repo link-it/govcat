@@ -146,4 +146,14 @@ describe('ServizioInfoFormComponent', () => {
       expect(_immagineDelBody()).toEqual({ content_type: 'image/png', content: 'QUJD', tipo_documento: 'nuovo' });
     });
   });
+
+  describe('_canCreateServizioMapper', () => {
+    it('should delegate to canCreateServizio', () => {
+      const auth: any = (component as any).authenticationService;
+      auth.canCreateServizio = vi.fn().mockReturnValue(true);
+      expect(component._canCreateServizioMapper()).toBe(true);
+      auth.canCreateServizio.mockReturnValue(false);
+      expect(component._canCreateServizioMapper()).toBe(false);
+    });
+  });
 });

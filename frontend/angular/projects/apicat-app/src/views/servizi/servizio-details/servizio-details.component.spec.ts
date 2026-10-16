@@ -1200,6 +1200,13 @@ describe('ServizioDetailsComponent', () => {
       expect(component._isGestoreMapper()).toBe(true);
     });
 
+    it('_canCreateServizioMapper should delegate to canCreateServizio', () => {
+      (mockAuthenticationService as any).canCreateServizio = vi.fn().mockReturnValue(true);
+      expect(component._canCreateServizioMapper()).toBe(true);
+      (mockAuthenticationService as any).canCreateServizio.mockReturnValue(false);
+      expect(component._canCreateServizioMapper()).toBe(false);
+    });
+
     describe('_canSetFruizioneMapper', () => {
       it('should be true for gestore', () => {
         mockAuthenticationService.isGestore.mockReturnValue(true);

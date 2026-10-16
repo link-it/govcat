@@ -298,88 +298,84 @@
           </header>
           <div class="lnk-phase-section-body">
 
-            @if ((_updateData | mapper:_isGestoreMapper)) {
-              <div class="row visibilita">
-                <div class="col-6">
-                  <div class="form-group visibilita">
-                    <label class="label-bold" for="visibilita">{{ 'APP.LABEL.VisibilitaServizio' | translate }}
-                      <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'visibilita'"></span>
+            <div class="row visibilita">
+              <div class="col-6">
+                <div class="form-group visibilita">
+                  <label class="label-bold" for="visibilita">{{ 'APP.LABEL.VisibilitaServizio' | translate }}
+                    <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'visibilita'"></span>
+                  </label>
+                  <ng-select class="select-custom" id="visibilita" [class.gl-field-error-outline]="_hasControlError('visibilita')"
+                    [items]="_tipiVisibilitaServizio"
+                    bindValue="value"
+                    bindLabel="label"
+                    labelForId="visibilita"
+                    [clearable]="false"
+                    [searchable]="false"
+                    [placeholder]="'APP.MESSAGE.SelectVisibilty' | translate"
+                    formControlName="visibilita">
+                  </ng-select>
+                  <ui-input-help field="visibilita_servizio" context="SERVICE"></ui-input-help>
+                </div>
+              </div>
+              <div class="col-6">
+                @if (_isVisibilita('riservato')) {
+                  <div class="form-group classi">
+                    <label class="label-bold" for="classi">{{ 'APP.LABEL.classi' | translate }}
+                      <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'classi'"></span>
                     </label>
-                    <ng-select class="select-custom" id="visibilita" [class.gl-field-error-outline]="_hasControlError('visibilita')"
-                      [items]="_tipiVisibilitaServizio"
-                      bindValue="value"
-                      bindLabel="label"
-                      labelForId="visibilita"
-                      [clearable]="false"
-                      [searchable]="false"
-                      [placeholder]="'APP.MESSAGE.SelectVisibilty' | translate"
-                      formControlName="visibilita">
+                    <ng-select [class.gl-field-error-outline]="_hasControlError('classi')" [errorId]="'classi-error'"
+                      [items]="anagrafiche['classi-utente'] || []"
+                      [multiple]="true"
+                      [compareWith]="_compareClassiFn"
+                      bindValue="id_classe_utente"
+                      bindLabel="nome"
+                      labelForId="classi"
+                      [closeOnSelect]="false"
+                      formControlName="classi">
+                      <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
+                        <input id="item-{{index}}" type="checkbox" [checked]="item$.selected"/> {{ item.nome }}
+                      </ng-template>
                     </ng-select>
-                    <ui-input-help field="visibilita_servizio" context="SERVICE"></ui-input-help>
+                    @if (f['classi'].invalid && (f['classi'].dirty || f['classi'].touched)) {
+                      <p class="form-text text-danger" id="classi-error" aria-live="polite">
+                        @if (f['classi'].errors?.['required']) {
+                          <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                        }
+                      </p>
+                    }
+                    <ui-input-help field="classi" context="SERVICE"></ui-input-help>
                   </div>
-                </div>
-                <div class="col-6">
-                  @if (_isVisibilita('riservato')) {
-                    <div class="form-group classi">
-                      <label class="label-bold" for="classi">{{ 'APP.LABEL.classi' | translate }}
-                        <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'classi'"></span>
-                      </label>
-                      <ng-select [class.gl-field-error-outline]="_hasControlError('classi')" [errorId]="'classi-error'"
-                        [items]="anagrafiche['classi-utente'] || []"
-                        [multiple]="true"
-                        [compareWith]="_compareClassiFn"
-                        bindValue="id_classe_utente"
-                        bindLabel="nome"
-                        labelForId="classi"
-                        [closeOnSelect]="false"
-                        formControlName="classi">
-                        <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
-                          <input id="item-{{index}}" type="checkbox" [checked]="item$.selected"/> {{ item.nome }}
-                        </ng-template>
-                      </ng-select>
-                      @if (f['classi'].invalid && (f['classi'].dirty || f['classi'].touched)) {
-                        <p class="form-text text-danger" id="classi-error" aria-live="polite">
-                          @if (f['classi'].errors?.['required']) {
-                            <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                          }
-                        </p>
-                      }
-                      <ui-input-help field="classi" context="SERVICE"></ui-input-help>
-                    </div>
-                  }
-                </div>
+                }
               </div>
-            }
+            </div>
 
-            <!-- Package / Salta collaudo (gestore) — impilati in colonna -->
-            @if ((_updateData | mapper:_isGestoreMapper)) {
-              <div class="row">
-                <div class="col-12">
-                  @if (_showPackage) {
-                    <div class="form-group package">
-                      @if (!isComponente) {
-                        <label class="label-bold" for="package">{{ 'APP.LABEL.package' | translate }}
-                          <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'package'"></span>
-                        </label>
-                      }
-                      <div class="gl-form-checkbox custom-control custom-checkbox">
-                        <input #chkPackage class="custom-control-input" type="checkbox" name="package" id="package" formControlName="package" (change)="_onChangePackage($event)">
-                        <label class="custom-control-label" aria-hidden="true" (click)="chkPackage.click()"></label>
-                      </div>
-                      <ui-input-help field="package" context="SERVICE"></ui-input-help>
-                    </div>
-                  }
-                  <div class="form-group skip_collaudo mt-2">
-                    <label class="label-bold" for="skip_collaudo">{{ 'APP.LABEL.SkipCollaudo' | translate }}</label>
+            <!-- Package (gestore) / Salta collaudo — impilati in colonna -->
+            <div class="row">
+              <div class="col-12">
+                @if (_showPackage && (_updateData | mapper:_isGestoreMapper)) {
+                  <div class="form-group package">
+                    @if (!isComponente) {
+                      <label class="label-bold" for="package">{{ 'APP.LABEL.package' | translate }}
+                        <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'package'"></span>
+                      </label>
+                    }
                     <div class="gl-form-checkbox custom-control custom-checkbox">
-                      <input #chkSkipCollaudo class="custom-control-input" type="checkbox" name="skip_collaudo" id="skip_collaudo" formControlName="skip_collaudo">
-                      <label class="custom-control-label" aria-hidden="true" (click)="chkSkipCollaudo.click()"></label>
+                      <input #chkPackage class="custom-control-input" type="checkbox" name="package" id="package" formControlName="package" (change)="_onChangePackage($event)">
+                      <label class="custom-control-label" aria-hidden="true" (click)="chkPackage.click()"></label>
                     </div>
-                    <ui-input-help field="skip_collaudo" context="SERVICE"></ui-input-help>
+                    <ui-input-help field="package" context="SERVICE"></ui-input-help>
                   </div>
+                }
+                <div class="form-group skip_collaudo mt-2">
+                  <label class="label-bold" for="skip_collaudo">{{ 'APP.LABEL.SkipCollaudo' | translate }}</label>
+                  <div class="gl-form-checkbox custom-control custom-checkbox">
+                    <input #chkSkipCollaudo class="custom-control-input" type="checkbox" name="skip_collaudo" id="skip_collaudo" formControlName="skip_collaudo">
+                    <label class="custom-control-label" aria-hidden="true" (click)="chkSkipCollaudo.click()"></label>
+                  </div>
+                  <ui-input-help field="skip_collaudo" context="SERVICE"></ui-input-help>
                 </div>
               </div>
-            }
+            </div>
 
           </div>
         </section>
