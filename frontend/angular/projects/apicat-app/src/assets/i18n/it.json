@@ -1466,9 +1466,10 @@
 						},
 						"SPEC": "Specifica non presente",
 						"URL": {
-							"DUPLICATE": "Etichetta [{{etichetta}}] duplicata tra le URL di invocazione aggiuntive",
-							"LABEL": "Etichetta obbligatoria per le URL di invocazione aggiuntive",
-							"LIMIT": "Numero massimo di URL di invocazione aggiuntive superato: indicate [{{numero}}], consentite al massimo [{{massimo}}]"
+							"DUPLICATE": "URL di invocazione [{{identificativo}}] indicata più volte sulla stessa specifica",
+							"NOT": {
+								"FOUND": "URL di invocazione [{{identificativo}}] non prevista dalla configurazione per l'ambiente di {{ambiente}}"
+							}
 						},
 						"VISIBILITY": "Visibilita [{{visibilita}}] non consentita"
 					},

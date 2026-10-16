@@ -24,32 +24,20 @@ import java.util.List;
 
 public class ConfigurazioneTryout {
 
-	private String serverUrl;
+	/** URL da dichiarare nella specifica, nell'ordine: la prima e` quella mostrata per prima. */
+	private List<UrlInvocazioneRisolta> serverUrls = new ArrayList<>();
 
-	/** URL di invocazione aggiuntive dell'API, oltre a quella principale. */
-	private List<UrlInvocazioneRisolta> serverUrlAggiuntive = new ArrayList<>();
-
-	public String getServerUrl() {
-		return serverUrl;
-	}
-
-	public void setServerUrl(String serverUrl) {
-		this.serverUrl = serverUrl;
-	}
-
-	public List<UrlInvocazioneRisolta> getServerUrlAggiuntive() {
-		return serverUrlAggiuntive;
-	}
-
-	public void setServerUrlAggiuntive(List<UrlInvocazioneRisolta> serverUrlAggiuntive) {
-		this.serverUrlAggiuntive = serverUrlAggiuntive != null ? serverUrlAggiuntive : new ArrayList<>();
-	}
-
-	/** URL da dichiarare nella specifica: la principale in prima posizione, poi le aggiuntive. */
 	public List<UrlInvocazioneRisolta> getServerUrls() {
-		List<UrlInvocazioneRisolta> urls = new ArrayList<>();
-		urls.add(new UrlInvocazioneRisolta(null, this.serverUrl));
-		urls.addAll(this.serverUrlAggiuntive);
-		return urls;
+		return serverUrls;
+	}
+
+	public void setServerUrls(List<UrlInvocazioneRisolta> serverUrls) {
+		this.serverUrls = serverUrls != null ? serverUrls : new ArrayList<>();
+	}
+
+	/** Imposta una sola URL, quella predefinita e senza etichetta. */
+	public void setServerUrl(String serverUrl) {
+		this.serverUrls = new ArrayList<>(List.of(
+				new UrlInvocazioneRisolta(EServiceBuilder.ID_URL_INVOCAZIONE_DEFAULT, null, serverUrl)));
 	}
 }

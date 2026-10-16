@@ -729,7 +729,30 @@
             }
           ]
         }
-      ]
+      ],
+      "url_invocazione": {
+        "etichetta_default": "Gateway predefinito",
+        "collaudo": [
+          {
+            "identificativo": "gw_esterno",
+            "etichetta": "Rete internet",
+            "url_prefix": "https://apistage-ext.comuneesempio.it"
+          },
+          {
+            "identificativo": "gw_dedicato",
+            "etichetta": "Gateway dedicato",
+            "url_prefix": "https://apistage-ded.comuneesempio.it",
+            "template_url": "#prefix#/dedicato/#nome#"
+          }
+        ],
+        "produzione": [
+          {
+            "identificativo": "gw_esterno",
+            "etichetta": "Rete internet",
+            "url_prefix": "https://api-ext.comuneesempio.it"
+          }
+        ]
+      }
     },
     "workflow": {
       "stati": [

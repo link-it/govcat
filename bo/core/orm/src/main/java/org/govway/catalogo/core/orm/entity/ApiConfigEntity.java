@@ -29,10 +29,16 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.govway.catalogo.core.orm.entity.ApiEntity.PROTOCOLLO;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 
@@ -71,5 +77,19 @@ public class ApiConfigEntity {
 	
     @Column(name="versione_gateway", nullable = true)
 	private Integer versioneGateway;
-	
+
+    /**
+     * URL di invocazione associate alla specifica di questo ambiente, nell'ordine di selezione.
+     * Collezione vuota: vale la sola URL predefinita.
+     *
+     * Senza orphanRemoval: le righe non piu` selezionate sono cancellate esplicitamente
+     * (ApiDettaglioAssembler), perche' la cascata degli orfani fallisce quando la collezione
+     * viene svuotata del tutto. Il batch serve alle scansioni su molte API (host ammessi dalla
+     * CSP, export CSV), che inizializzano la collezione di ogni riga.
+     */
+    @OneToMany(mappedBy = "apiConfig", fetch = FetchType.LAZY, cascade = jakarta.persistence.CascadeType.ALL)
+    @OrderBy("posizione ASC, id ASC")
+    @BatchSize(size = 100)
+    private List<ApiConfigUrlInvocazioneEntity> urlInvocazione = new ArrayList<>();
+
 }

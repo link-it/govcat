@@ -34,44 +34,33 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * URL di invocazione aggiuntiva di una API (dalla seconda in poi).
+ * Associazione fra la specifica di un ambiente (api_config) e una delle URL di invocazione
+ * censite in configurazione per quell'ambiente.
  *
- * La prima URL resta gestita dai campi url_invocazione / url_prefix_* della gerarchia
- * api -> servizio -> dominio -> soggetto referente -> configurazione: questa entita` non
- * la sostituisce ne` la modifica.
- *
- * I campi templateUrl e urlPrefix* sono opzionali: quando non valorizzati si ricade sul
- * valore risolto per la URL principale. Il caso d'uso tipico (stesso path esposto su un
- * secondo gateway) si configura quindi con il solo prefix.
+ * Qui si salva il solo identificativo della URL: etichetta, prefisso e template restano nella
+ * configurazione, che resta la sola anagrafica. L'identificativo riservato "default" indica la
+ * URL predefinita, quella risolta dalla gerarchia api -> servizio -> dominio -> soggetto
+ * referente -> configurazione.
  */
 @Getter
 @Setter
 @Entity
-@Table(name = "api_url_invocazione")
-public class ApiUrlInvocazioneEntity {
+@Table(name = "api_config_url_invocazione")
+public class ApiConfigUrlInvocazioneEntity {
 
 	@Id
 	@Column(name = "id")
-	@GeneratedValue(generator = "seq_api_url_invocazione", strategy = GenerationType.SEQUENCE)
-	@SequenceGenerator(name = "seq_api_url_invocazione", sequenceName = "seq_api_url_invocazione", allocationSize = 1)
+	@GeneratedValue(generator = "seq_api_config_url_invocazione", strategy = GenerationType.SEQUENCE)
+	@SequenceGenerator(name = "seq_api_config_url_invocazione", sequenceName = "seq_api_config_url_invocazione", allocationSize = 1)
 	private Long id;
+
+	@Column(name = "identificativo", nullable = false)
+	private String identificativo;
 
 	@Column(name = "posizione", nullable = false)
 	private Integer posizione;
 
-	@Column(name = "etichetta")
-	private String etichetta;
-
-	@Column(name = "template_url")
-	private String templateUrl;
-
-	@Column(name = "url_prefix_collaudo")
-	private String urlPrefixCollaudo;
-
-	@Column(name = "url_prefix_produzione")
-	private String urlPrefixProduzione;
-
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "id_api", referencedColumnName = "id", nullable = false)
-	private ApiEntity api;
+	@JoinColumn(name = "id_api_config", referencedColumnName = "id", nullable = false)
+	private ApiConfigEntity apiConfig;
 }

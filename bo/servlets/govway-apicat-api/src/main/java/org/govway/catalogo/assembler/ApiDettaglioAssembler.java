@@ -33,15 +33,16 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.govway.catalogo.controllers.APIController;
+import org.govway.catalogo.core.business.utils.EServiceBuilder;
 import org.govway.catalogo.core.business.utils.OpenapiUtils;
 import org.govway.catalogo.core.business.utils.SwaggerUtils;
 import org.govway.catalogo.core.business.utils.WsdlUtils;
-import org.govway.catalogo.core.dao.repositories.ApiUrlInvocazioneRepository;
+import org.govway.catalogo.core.dao.repositories.ApiConfigUrlInvocazioneRepository;
 import org.govway.catalogo.core.orm.entity.ApiConfigEntity;
+import org.govway.catalogo.core.orm.entity.ApiConfigUrlInvocazioneEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity.PROTOCOLLO;
 import org.govway.catalogo.core.orm.entity.ApiEntity.RUOLO;
-import org.govway.catalogo.core.orm.entity.ApiUrlInvocazioneEntity;
 import org.govway.catalogo.core.orm.entity.AuthTypeEntity;
 import org.govway.catalogo.core.orm.entity.DocumentoEntity;
 import org.govway.catalogo.core.orm.entity.DominioEntity;
@@ -55,6 +56,7 @@ import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.services.ProfiloGovwayService;
 import org.govway.catalogo.servlets.model.API;
 import org.govway.catalogo.servlets.model.APICreate;
+import org.govway.catalogo.servlets.model.APIDatiAmbiente;
 import org.govway.catalogo.servlets.model.APIDatiAmbienteCreate;
 import org.govway.catalogo.servlets.model.APIDatiAmbienteUpdate;
 import org.govway.catalogo.servlets.model.ApiUpdate;
@@ -74,6 +76,7 @@ import org.govway.catalogo.servlets.model.ConfigurazioneTokenPolicyPdnd;
 import org.govway.catalogo.servlets.model.ConfigurazioneTokenPolicyPdndAudit;
 import org.govway.catalogo.servlets.model.ConfigurazioneTokenPolicyPdndAuditIntegrity;
 import org.govway.catalogo.servlets.model.ConfigurazioneTokenPolicyPdndIntegrity;
+import org.govway.catalogo.servlets.model.ConfigurazioneUrlInvocazioneAmbiente;
 import org.govway.catalogo.servlets.model.DatiCustomUpdate;
 import org.govway.catalogo.servlets.model.DatiGenericiApiUpdate;
 import org.govway.catalogo.servlets.model.DatiSpecificaApiUpdate;
@@ -81,7 +84,6 @@ import org.govway.catalogo.servlets.model.DocumentoCreate;
 import org.govway.catalogo.servlets.model.IdentificativoApiUpdate;
 import org.govway.catalogo.servlets.model.ProprietaCustom;
 import org.govway.catalogo.servlets.model.ProtocolloEnum;
-import org.govway.catalogo.servlets.model.UrlInvocazioneAggiuntiva;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -92,9 +94,6 @@ import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSuppor
 public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<ApiEntity, API> {
 
 	private Logger logger = LoggerFactory.getLogger(ApiDettaglioAssembler.class);
-
-	/** Numero massimo di URL di invocazione aggiuntive configurabili su una API. */
-	private static final int MAX_URL_INVOCAZIONE_AGGIUNTIVE = 10;
 
 	@Autowired
 	private DocumentoAssembler allegatoAssembler;
@@ -112,7 +111,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 	private ServizioService servizioService;
 
 	@Autowired
-	private ApiUrlInvocazioneRepository apiUrlInvocazioneRepository;
+	private ApiConfigUrlInvocazioneRepository apiConfigUrlInvocazioneRepository;
 
 	@Autowired
 	private Configurazione configurazione;
@@ -145,11 +144,11 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		dettaglio.setDescrizione(Optional.ofNullable(entity.getDescrizione()).map(d -> new String(d)).orElse(null));
 
 		if(entity.getCollaudo()!= null) {
-			dettaglio.setConfigurazioneCollaudo(this.apiEngineAssembler.toConfigurazione(entity.getCollaudo()));
+			dettaglio.setConfigurazioneCollaudo(toConfigurazione(entity.getCollaudo(), true));
 		}
 		
 		if(entity.getProduzione()!= null) {
-			dettaglio.setConfigurazioneProduzione(this.apiEngineAssembler.toConfigurazione(entity.getProduzione()));
+			dettaglio.setConfigurazioneProduzione(toConfigurazione(entity.getProduzione(), false));
 		}
 		
 		Comparator<? super AuthTypeEntity> c = (o1, o2) -> {
@@ -180,24 +179,24 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		dettaglio.setRuolo(this.apiEngineAssembler.toRuolo(entity.getRuolo()));
 
 		dettaglio.setProprietaCustom(this.apiEngineAssembler.getApiProprietaCustom(entity));
-
-		// Lista omessa quando vuota: il payload delle API senza URL aggiuntive resta invariato
-		if(!entity.getUrlInvocazioniAggiuntive().isEmpty()) {
-			dettaglio.setUrlInvocazioneAggiuntive(entity.getUrlInvocazioniAggiuntive().stream()
-					.map(this::toUrlInvocazioneAggiuntiva)
-					.collect(Collectors.toList()));
-		}
-
+		
 		return dettaglio;
 	}
 
-	private UrlInvocazioneAggiuntiva toUrlInvocazioneAggiuntiva(ApiUrlInvocazioneEntity entity) {
-		UrlInvocazioneAggiuntiva url = new UrlInvocazioneAggiuntiva();
-		url.setEtichetta(entity.getEtichetta());
-		url.setTemplateUrl(entity.getTemplateUrl());
-		url.setUrlPrefixCollaudo(entity.getUrlPrefixCollaudo());
-		url.setUrlPrefixProduzione(entity.getUrlPrefixProduzione());
-		return url;
+	/**
+	 * Dati della specifica di un ambiente, con le URL di invocazione associate. La selezione e`
+	 * esposta solo nel dettaglio e non negli elenchi, per non inizializzare la collezione su
+	 * ogni riga: lista omessa quando vuota, cioe` quando vale la sola URL predefinita.
+	 */
+	private APIDatiAmbiente toConfigurazione(ApiConfigEntity config, boolean collaudo) {
+		APIDatiAmbiente datiAmbiente = this.apiEngineAssembler.toConfigurazione(config);
+
+		List<String> urlInvocazione = getUrlInvocazione(config, collaudo);
+		if(!urlInvocazione.isEmpty()) {
+			datiAmbiente.setUrlInvocazione(urlInvocazione);
+		}
+
+		return datiAmbiente;
 	}
 
 	public ApiEntity toEntity(IdentificativoApiUpdate src, ApiEntity entity) {
@@ -214,12 +213,6 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		BeanUtils.copyProperties(src, entity);
 
 		entity.setDescrizione(Optional.ofNullable(src.getDescrizione()).map(d -> d.getBytes()).orElse(null));
-
-		// Campo assente: la lista configurata resta invariata, cosi` un client che non lo conosce
-		// non la azzera. Una lista vuota la svuota, una lista valorizzata la sostituisce.
-		if(src.getUrlInvocazioneAggiuntive() != null) {
-			setUrlInvocazioneAggiuntive(src.getUrlInvocazioneAggiuntive(), entity);
-		}
 
 		this.servizioDettaglioAssembler.setUltimaModifica(entity.getServizio());
 		this.servizioService.save(entity.getServizio());
@@ -313,12 +306,10 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 	}
 
 	private boolean isInvariato(DatiGenericiApiUpdate src, ApiEntity entity) {
-		// url_invocazione e url_invocazione_aggiuntive assenti: la console non le invia sempre
+		// url_invocazione assente: la console non la invia sempre
 		return src == null
 				|| (Objects.equals(src.getCodiceAsset(), entity.getCodiceAsset())
-						&& (src.getUrlInvocazione() == null || src.getUrlInvocazione().equals(entity.getUrlInvocazione()))
-						&& (src.getUrlInvocazioneAggiuntive() == null || src.getUrlInvocazioneAggiuntive().equals(
-								entity.getUrlInvocazioniAggiuntive().stream().map(this::toUrlInvocazioneAggiuntiva).collect(Collectors.toList()))));
+						&& (src.getUrlInvocazione() == null || src.getUrlInvocazione().equals(entity.getUrlInvocazione())));
 	}
 
 	private boolean isInvariato(DatiSpecificaApiUpdate src, ApiEntity entity) {
@@ -384,7 +375,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 	
 	public ApiEntity toEntityCollaudo(APIDatiAmbienteUpdate src, ApiEntity entity) {
 		BeanUtils.copyProperties(src, entity);
-		entity.setCollaudo(toEntityAmbiente(src, entity.getCollaudo() != null ? entity.getCollaudo() : new ApiConfigEntity(), entity));
+		entity.setCollaudo(toEntityAmbiente(src, entity.getCollaudo() != null ? entity.getCollaudo() : new ApiConfigEntity(), entity, true));
 
 		this.servizioDettaglioAssembler.setUltimaModifica(entity.getServizio());
 		this.servizioService.save(entity.getServizio());
@@ -394,7 +385,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 	
 	public ApiEntity toEntityProduzione(APIDatiAmbienteUpdate src, ApiEntity entity) {
 		BeanUtils.copyProperties(src, entity);
-		entity.setProduzione(toEntityAmbiente(src, entity.getProduzione() != null ? entity.getProduzione() : new ApiConfigEntity(), entity));
+		entity.setProduzione(toEntityAmbiente(src, entity.getProduzione() != null ? entity.getProduzione() : new ApiConfigEntity(), entity, false));
 
 		this.servizioDettaglioAssembler.setUltimaModifica(entity.getServizio());
 		this.servizioService.save(entity.getServizio());
@@ -402,7 +393,14 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		return entity;
 	}
 	
-	public ApiConfigEntity toEntityAmbiente(APIDatiAmbienteUpdate src, ApiConfigEntity entity, ApiEntity api) {
+	public ApiConfigEntity toEntityAmbiente(APIDatiAmbienteUpdate src, ApiConfigEntity entity, ApiEntity api, boolean collaudo) {
+
+		// Selezione assente: resta invariata, cosi` un client che non la invia non la azzera.
+		// Lista vuota: si torna alla sola URL predefinita.
+		if(src.getUrlInvocazione() != null) {
+			setUrlInvocazione(src.getUrlInvocazione(), entity, collaudo);
+		}
+
 		if(src.getDatiErogazione()!=null) {
 			entity.setNomeGateway(src.getDatiErogazione().getNomeGateway());
 			entity.setVersioneGateway(src.getDatiErogazione().getVersioneGateway());
@@ -445,14 +443,12 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 
 		getProprietaCustom(src.getProprietaCustom(), entity);
 
-		setUrlInvocazioneAggiuntive(src.getUrlInvocazioneAggiuntive(), entity);
-
 		if(src.getConfigurazioneCollaudo()!=null) {
-			entity.setCollaudo(getApiConfig(src.getConfigurazioneCollaudo(), entity));
+			entity.setCollaudo(getApiConfig(src.getConfigurazioneCollaudo(), entity, true));
 		}
 
 		if(src.getConfigurazioneProduzione()!=null) {
-			entity.setProduzione(getApiConfig(src.getConfigurazioneProduzione(), entity));
+			entity.setProduzione(getApiConfig(src.getConfigurazioneProduzione(), entity, false));
 		}
 
 		if(entity.getRuolo().equals(RUOLO.EROGATO_SOGGETTO_DOMINIO) && src.getGruppiAuthType()!=null) {
@@ -515,10 +511,12 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		throw new BadRequestException(ErrorCode.SYS_500);
 	}
 
-	private ApiConfigEntity getApiConfig(APIDatiAmbienteCreate src, ApiEntity api) {
+	private ApiConfigEntity getApiConfig(APIDatiAmbienteCreate src, ApiEntity api, boolean collaudo) {
 		ApiConfigEntity entity = new ApiConfigEntity();
 
 		checkSpecifica(src.getSpecifica());
+
+		setUrlInvocazione(src.getUrlInvocazione(), entity, collaudo);
 
 		if(src.getSpecifica()!=null) {
 			entity.setSpecifica(this.allegatoAssembler.toEntity(src.getSpecifica(), this.apiEngineAssembler.getUtenteSessione()));
@@ -550,60 +548,85 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 	}
 
 	/**
-	 * Sostituisce integralmente le URL di invocazione aggiuntive dell'API. La URL di invocazione
-	 * principale, risolta dalla gerarchia api -> servizio -> dominio -> soggetto referente ->
-	 * configurazione, non e` coinvolta.
+	 * Sostituisce integralmente le URL di invocazione associate alla specifica dell'ambiente.
+	 * Le URL disponibili sono quelle censite in configurazione per quell'ambiente, piu`
+	 * l'identificativo riservato della URL predefinita.
 	 */
-	private void setUrlInvocazioneAggiuntive(List<UrlInvocazioneAggiuntiva> urls, ApiEntity entity) {
+	private void setUrlInvocazione(List<String> identificativi, ApiConfigEntity entity, boolean collaudo) {
 
-		validaUrlInvocazioneAggiuntive(urls);
+		validaUrlInvocazione(identificativi, collaudo);
 
-		// Le righe non piu` presenti sono cancellate esplicitamente: la collezione non usa
-		// orphanRemoval (vedi ApiEntity).
-		List<ApiUrlInvocazioneEntity> precedenti = new ArrayList<>(entity.getUrlInvocazioniAggiuntive());
-		entity.getUrlInvocazioniAggiuntive().clear();
-		this.apiUrlInvocazioneRepository.deleteAll(precedenti);
+		// Le righe non piu` selezionate sono cancellate esplicitamente: la collezione non usa
+		// orphanRemoval (vedi ApiConfigEntity).
+		List<ApiConfigUrlInvocazioneEntity> precedenti = new ArrayList<>(entity.getUrlInvocazione());
+		entity.getUrlInvocazione().clear();
+		this.apiConfigUrlInvocazioneRepository.deleteAll(precedenti);
 
-		if(urls == null) {
+		if(identificativi == null) {
 			return;
 		}
 
 		int posizione = 1;
-		for(UrlInvocazioneAggiuntiva url: urls) {
-			ApiUrlInvocazioneEntity urlEntity = new ApiUrlInvocazioneEntity();
-			urlEntity.setApi(entity);
+		for(String identificativo: identificativi) {
+			ApiConfigUrlInvocazioneEntity urlEntity = new ApiConfigUrlInvocazioneEntity();
+			urlEntity.setApiConfig(entity);
 			urlEntity.setPosizione(posizione++);
-			urlEntity.setEtichetta(url.getEtichetta().trim());
-			urlEntity.setTemplateUrl(url.getTemplateUrl());
-			urlEntity.setUrlPrefixCollaudo(url.getUrlPrefixCollaudo());
-			urlEntity.setUrlPrefixProduzione(url.getUrlPrefixProduzione());
-			entity.getUrlInvocazioniAggiuntive().add(urlEntity);
+			urlEntity.setIdentificativo(identificativo);
+			entity.getUrlInvocazione().add(urlEntity);
 		}
 	}
 
-	private void validaUrlInvocazioneAggiuntive(List<UrlInvocazioneAggiuntiva> urls) {
+	private void validaUrlInvocazione(List<String> identificativi, boolean collaudo) {
 
-		if(urls == null) {
+		if(identificativi == null) {
 			return;
 		}
 
-		if(urls.size() > MAX_URL_INVOCAZIONE_AGGIUNTIVE) {
-			throw new BadRequestException(ErrorCode.API_400_URL_LIMIT,
-					Map.of("numero", String.valueOf(urls.size()), "massimo", String.valueOf(MAX_URL_INVOCAZIONE_AGGIUNTIVE)));
-		}
+		Set<String> disponibili = new HashSet<>();
+		disponibili.add(EServiceBuilder.ID_URL_INVOCAZIONE_DEFAULT);
+		getUrlInvocazioneConfigurate(collaudo).forEach(u -> disponibili.add(u.getIdentificativo()));
 
-		Set<String> etichette = new HashSet<>();
-		for(UrlInvocazioneAggiuntiva url: urls) {
-			String etichetta = Optional.ofNullable(url.getEtichetta()).map(String::trim).orElse("");
+		Set<String> gia = new HashSet<>();
+		for(String identificativo: identificativi) {
 
-			if(etichetta.isEmpty()) {
-				throw new BadRequestException(ErrorCode.API_400_URL_LABEL);
+			if(identificativo == null || !disponibili.contains(identificativo)) {
+				throw new BadRequestException(ErrorCode.API_400_URL_NOT_FOUND,
+						Map.of("identificativo", String.valueOf(identificativo),
+								"ambiente", collaudo ? "collaudo" : "produzione"));
 			}
 
-			if(!etichette.add(etichetta.toLowerCase())) {
-				throw new BadRequestException(ErrorCode.API_400_URL_DUPLICATE, Map.of("etichetta", etichetta));
+			if(!gia.add(identificativo)) {
+				throw new BadRequestException(ErrorCode.API_400_URL_DUPLICATE, Map.of("identificativo", identificativo));
 			}
 		}
+	}
+
+	/** URL censite in configurazione per l'ambiente indicato, lista vuota se la sezione manca. */
+	private List<ConfigurazioneUrlInvocazioneAmbiente> getUrlInvocazioneConfigurate(boolean collaudo) {
+		return Optional.ofNullable(this.configurazione.getServizio().getApi().getUrlInvocazione())
+				.map(u -> collaudo ? u.getCollaudo() : u.getProduzione())
+				.orElse(List.of());
+	}
+
+	/**
+	 * Identificativi associati alla specifica, filtrati su quanto ancora censito in
+	 * configurazione: una voce rimossa dalla configurazione non viene piu` proposta e, se il
+	 * client rimanda la selezione cosi` com'e`, non fa fallire il salvataggio.
+	 */
+	public List<String> getUrlInvocazione(ApiConfigEntity config, boolean collaudo) {
+
+		if(config == null) {
+			return List.of();
+		}
+
+		Set<String> disponibili = new HashSet<>();
+		disponibili.add(EServiceBuilder.ID_URL_INVOCAZIONE_DEFAULT);
+		getUrlInvocazioneConfigurate(collaudo).forEach(u -> disponibili.add(u.getIdentificativo()));
+
+		return config.getUrlInvocazione().stream()
+				.map(ApiConfigUrlInvocazioneEntity::getIdentificativo)
+				.filter(disponibili::contains)
+				.collect(Collectors.toList());
 	}
 
 	private void getProprietaCustom(List<ProprietaCustom> proprietaCustom, ApiEntity entity) {

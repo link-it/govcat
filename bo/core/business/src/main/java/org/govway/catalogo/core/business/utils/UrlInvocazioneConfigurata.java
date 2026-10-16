@@ -17,11 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package org.govway.catalogo.core.dao.repositories;
+package org.govway.catalogo.core.business.utils;
 
-import org.govway.catalogo.core.orm.entity.ApiUrlInvocazioneEntity;
-import org.springframework.data.jpa.repository.support.JpaRepositoryImplementation;
-
-public interface ApiUrlInvocazioneRepository extends JpaRepositoryImplementation<ApiUrlInvocazioneEntity, Long> {
-
+/**
+ * URL di invocazione censita in configurazione per un ambiente.
+ *
+ * Prefisso e template sono opzionali: quando non valorizzati si ricade su quelli della URL
+ * predefinita, cosi` per esporre lo stesso path su un altro gateway basta indicarne il prefisso.
+ */
+public record UrlInvocazioneConfigurata(String identificativo, String etichetta, String urlPrefix, String templateUrl) {
 }

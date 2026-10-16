@@ -5939,11 +5939,6 @@ components:
             $ref: "#/components/schemas/ProprietaCustom"
         url_invocazione:
           $ref: "#/components/schemas/String255"
-        url_invocazione_aggiuntive:
-          description: "URL di invocazione aggiuntive, dalla seconda in poi."
-          type: array
-          items:
-            $ref: "#/components/schemas/UrlInvocazioneAggiuntiva"
     APIDatiAmbiente:
       type: "object"
       required:
@@ -5957,6 +5952,11 @@ components:
           $ref: "#/components/schemas/Documento"
         dati_erogazione:
           $ref: "#/components/schemas/APIDatiErogazione"
+        url_invocazione:
+          description: "Identificativi delle URL di invocazione associate alla specifica, fra quelle censite in configurazione per l'ambiente, piu` 'default' per quella predefinita. Lista assente o vuota: vale la sola URL predefinita."
+          type: array
+          items:
+            $ref: "#/components/schemas/String255"
     APIDatiAmbienteCreate:
       type: "object"
       required:
@@ -5968,6 +5968,11 @@ components:
           $ref: "#/components/schemas/DocumentoCreate"
         dati_erogazione:
           $ref: "#/components/schemas/APIDatiErogazione"
+        url_invocazione:
+          description: "Identificativi delle URL di invocazione associate alla specifica, fra quelle censite in configurazione per l'ambiente, piu` 'default' per quella predefinita. Lista assente o vuota: vale la sola URL predefinita."
+          type: array
+          items:
+            $ref: "#/components/schemas/String255"
     APIDatiAmbienteUpdate:
       type: "object"
       properties:
@@ -5977,6 +5982,11 @@ components:
           $ref: "#/components/schemas/DocumentoUpdate"
         dati_erogazione:
           $ref: "#/components/schemas/APIDatiErogazione"
+        url_invocazione:
+          description: "Identificativi delle URL di invocazione associate alla specifica, fra quelle censite in configurazione per l'ambiente, piu` 'default' per quella predefinita. Lista assente: selezione invariata; lista vuota: si torna alla sola URL predefinita."
+          type: array
+          items:
+            $ref: "#/components/schemas/String255"
     APIDatiErogazione:
       type: "object"
       required:
@@ -6166,6 +6176,11 @@ components:
           $ref: "#/components/schemas/String255"
         url_invocazione:
           type: string
+        url_invocazione_aggiuntive:
+          description: "Ulteriori URL di invocazione associate alla specifica, oltre a quella in url_invocazione."
+          type: array
+          items:
+            $ref: "#/components/schemas/UrlInvocazioneAggiuntivaRisolta"
         operations:
           type: array
           items:
@@ -6222,11 +6237,6 @@ components:
           $ref: "#/components/schemas/String255"
         url_invocazione:
           $ref: "#/components/schemas/String255"
-        url_invocazione_aggiuntive:
-          description: "URL di invocazione aggiuntive, dalla seconda in poi. Se assente la lista configurata resta invariata; una lista vuota la azzera."
-          type: array
-          items:
-            $ref: "#/components/schemas/UrlInvocazioneAggiuntiva"
     DatiCustomUpdate:
       type: "object"
       properties:
@@ -6323,35 +6333,49 @@ components:
             $ref: "#/components/schemas/ProprietaCustom"
         url_invocazione:
           $ref: "#/components/schemas/String255"
-        url_invocazione_aggiuntive:
-          description: "URL di invocazione aggiuntive, dalla seconda in poi. Quando assente la lista configurata resta invariata; una lista vuota la azzera."
+    ConfigurazioneUrlInvocazione:
+      description: "URL di invocazione (o di esposizione) disponibili per le API, censite per ambiente. Alla singola specifica di collaudo o di produzione si associano le URL scelte fra queste, oltre a quella predefinita."
+      type: "object"
+      properties:
+        etichetta_default:
+          description: "Etichetta con cui presentare la URL di invocazione predefinita, quella risolta dalla gerarchia api, servizio, dominio, soggetto referente e configurazione."
+          $ref: "#/components/schemas/String255"
+        collaudo:
           type: array
           items:
-            $ref: "#/components/schemas/UrlInvocazioneAggiuntiva"
-    UrlInvocazioneAggiuntiva:
-      description: "Configurazione di una URL di invocazione aggiuntiva dell'API. I campi non valorizzati sono ereditati dalla URL di invocazione principale: per esporre lo stesso path su un altro gateway e' sufficiente indicarne i prefix."
+            $ref: "#/components/schemas/ConfigurazioneUrlInvocazioneAmbiente"
+        produzione:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigurazioneUrlInvocazioneAmbiente"
+    ConfigurazioneUrlInvocazioneAmbiente:
+      description: "URL di invocazione disponibile in un ambiente. I campi non valorizzati sono ereditati dalla URL predefinita: per esporre lo stesso path su un altro gateway e` sufficiente indicarne il prefisso."
       type: "object"
       required:
+        - identificativo
         - etichetta
       properties:
+        identificativo:
+          description: "Identificativo della URL, univoco nell'ambito dell'ambiente. E` il valore associato alla specifica dell'API; 'default' e` riservato alla URL predefinita."
+          $ref: "#/components/schemas/String255"
         etichetta:
-          description: "Nome con cui la URL viene presentata (ad esempio il gateway o la rete di esposizione). Obbligatorio e univoco nell'ambito della stessa API."
+          description: "Nome con cui la URL viene presentata (ad esempio il gateway o la rete di esposizione)."
+          $ref: "#/components/schemas/String255"
+        url_prefix:
+          description: "Prefisso della URL. Se assente si usa quello della URL predefinita per l'ambiente."
           $ref: "#/components/schemas/String255"
         template_url:
-          description: "Template della URL, con gli stessi placeholder della URL di invocazione principale. Se assente si usa quello della URL principale."
-          $ref: "#/components/schemas/String255"
-        url_prefix_collaudo:
-          description: "Prefisso della URL per l'ambiente di collaudo. Se assente si usa quello della URL principale."
-          $ref: "#/components/schemas/String255"
-        url_prefix_produzione:
-          description: "Prefisso della URL per l'ambiente di produzione. Se assente si usa quello della URL principale."
+          description: "Template della URL, con gli stessi placeholder della URL predefinita. Se assente si usa quello della URL predefinita."
           $ref: "#/components/schemas/String255"
     UrlInvocazioneAggiuntivaRisolta:
+      description: "URL di invocazione dell'API gia` risolta, con identificativo ed etichetta della voce di configurazione da cui deriva."
       type: "object"
       required:
-        - etichetta
+        - identificativo
         - url_invocazione
       properties:
+        identificativo:
+          $ref: "#/components/schemas/String255"
         etichetta:
           $ref: "#/components/schemas/String255"
         url_invocazione:
@@ -6364,7 +6388,7 @@ components:
         url_invocazione:
           $ref: "#/components/schemas/URL"
         url_invocazione_aggiuntive:
-          description: "URL di invocazione aggiuntive dell'API, dalla seconda in poi, nell'ordine configurato."
+          description: "Ulteriori URL di invocazione associate alla specifica, oltre a quella in url_invocazione, nell'ordine di selezione."
           type: array
           items:
             $ref: "#/components/schemas/UrlInvocazioneAggiuntivaRisolta"
@@ -7023,6 +7047,8 @@ components:
           type: "array"
           items:
             $ref: "#/components/schemas/ConfigurazioneTokenPolicy"
+        url_invocazione:
+          $ref: "#/components/schemas/ConfigurazioneUrlInvocazione"
         proprieta_custom:
           type: array
           items:

@@ -560,6 +560,15 @@ public class APIController implements ApiApi {
 		}
 	}
 
+	/** Converte una URL gia` risolta nel modello esposto dalle API. */
+	public static UrlInvocazioneAggiuntivaRisolta toUrlInvocazioneRisolta(UrlInvocazioneRisolta risolta) {
+		UrlInvocazioneAggiuntivaRisolta model = new UrlInvocazioneAggiuntivaRisolta();
+		model.setIdentificativo(risolta.identificativo());
+		model.setEtichetta(risolta.etichetta());
+		model.setUrlInvocazione(risolta.url());
+		return model;
+	}
+
 	@Override
 	public ResponseEntity<UrlInvocazioneAPI> getUrlInvocazioneAPI(UUID idApi, AmbienteEnum idAmbiente) {
 		try {
@@ -573,14 +582,12 @@ public class APIController implements ApiApi {
 				List<UrlInvocazioneRisolta> urls = this.serviceBuilder.getUrlInvocazioni(entity, idAmbiente.equals(AmbienteEnum.COLLAUDO));
 
 				UrlInvocazioneAPI urlInvocazione = new UrlInvocazioneAPI();
+				// La prima URL associata alla specifica resta nel campo storico: con la sola URL
+				// predefinita la risposta e` identica a prima.
 				urlInvocazione.setUrlInvocazione(urls.get(0).url());
 
-				// Lista omessa quando non ci sono URL aggiuntive: la risposta resta invariata
 				for(UrlInvocazioneRisolta aggiuntiva: urls.subList(1, urls.size())) {
-					UrlInvocazioneAggiuntivaRisolta risolta = new UrlInvocazioneAggiuntivaRisolta();
-					risolta.setEtichetta(aggiuntiva.etichetta());
-					risolta.setUrlInvocazione(aggiuntiva.url());
-					urlInvocazione.addUrlInvocazioneAggiuntiveItem(risolta);
+					urlInvocazione.addUrlInvocazioneAggiuntiveItem(toUrlInvocazioneRisolta(aggiuntiva));
 				}
 
 				this.logger.info("Invocazione completata con successo");

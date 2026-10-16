@@ -22,6 +22,7 @@ package org.govway.catalogo.core.business.utils;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -39,10 +40,10 @@ import org.govway.catalogo.core.orm.entity.AllegatoApiEntity;
 import org.govway.catalogo.core.orm.entity.AllegatoServizioEntity;
 import org.govway.catalogo.core.orm.entity.AllegatoServizioEntity.VISIBILITA;
 import org.govway.catalogo.core.orm.entity.ApiConfigEntity;
+import org.govway.catalogo.core.orm.entity.ApiConfigUrlInvocazioneEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity.PROTOCOLLO;
 import org.govway.catalogo.core.orm.entity.ApiEntity.RUOLO;
-import org.govway.catalogo.core.orm.entity.ApiUrlInvocazioneEntity;
 import org.govway.catalogo.core.orm.entity.AuthTypeEntity;
 import org.govway.catalogo.core.orm.entity.DocumentoEntity;
 import org.govway.catalogo.core.orm.entity.PackageServizioEntity;
@@ -77,6 +78,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class EServiceBuilder {
 
 	private Logger logger = LoggerFactory.getLogger(EServiceBuilder.class);
+
+	/** Identificativo riservato alla URL di invocazione predefinita. */
+	public static final String ID_URL_INVOCAZIONE_DEFAULT = "default";
 
 	private static char SPLIT_RESOURCES = ',';
 
@@ -211,11 +215,8 @@ public class EServiceBuilder {
 	}
 	
     public byte[] getTryOutOpenAPI(ApiEntity api, ApiConfigEntity entity, boolean isCollaudo) throws IOException {
-    	List<UrlInvocazioneRisolta> urls = this.getUrlInvocazioni(api, isCollaudo);
-
     	ConfigurazioneTryout conf = new ConfigurazioneTryout();
-    	conf.setServerUrl(urls.get(0).url());
-    	conf.setServerUrlAggiuntive(urls.subList(1, urls.size()));
+    	conf.setServerUrls(this.getUrlInvocazioni(api, isCollaudo));
 		return getTryOutOpenAPI(entity.getSpecifica().getRawData(), conf);
 	}
 	
@@ -235,7 +236,7 @@ public class EServiceBuilder {
      * Non aggiunge alcuna funzionalita` di try-out: si limita a sovrascrivere l'endpoint dichiarato nel documento.
      */
     public static byte[] applicaServerUrl(byte[] openapiJson, String serverUrl) throws IOException {
-        return applicaServerUrls(openapiJson, List.of(new UrlInvocazioneRisolta(null, serverUrl)));
+        return applicaServerUrls(openapiJson, List.of(new UrlInvocazioneRisolta(ID_URL_INVOCAZIONE_DEFAULT, null, serverUrl)));
     }
 
     /**
@@ -320,11 +321,17 @@ public class EServiceBuilder {
                     serversNode.isArray(),
                     serversNode.isArray() ? serversNode.size() : "N/A");
 
+            String etichettaPrimo = serverUrls.isEmpty() ? null : serverUrls.get(0).etichetta();
+
             ArrayNode serversArray;
             if (serversNode.isArray() && serversNode.size() > 0) {
                 logger.debug("Modifying existing servers node with first server");
                 ObjectNode serverNode = ((ObjectNode) serversNode.get(0));
                 serverNode.put("url", serverUrl);
+                // La description del documento originale viene sostituita solo da un'etichetta configurata
+                if (hasValore(etichettaPrimo)) {
+                    serverNode.put("description", etichettaPrimo);
+                }
 
                 serversArray = reader.createArrayNode().add(serverNode);
                 ((ObjectNode) openApiJson).set("servers", serversArray);
@@ -333,6 +340,9 @@ public class EServiceBuilder {
                 logger.debug("Creating new servers node (servers was missing or empty)");
                 ObjectNode serverNode = reader.createObjectNode();
                 serverNode.put("url", serverUrl);
+                if (hasValore(etichettaPrimo)) {
+                    serverNode.put("description", etichettaPrimo);
+                }
 
                 // If no servers node exists, create one
                 serversArray = reader.createArrayNode().add(serverNode);
@@ -688,23 +698,70 @@ public class EServiceBuilder {
 	}
 
 	/**
-	 * Tutte le URL di invocazione dell'API per l'ambiente indicato: in prima posizione quella
-	 * principale (etichetta <code>null</code>), a seguire le eventuali URL aggiuntive
-	 * configurate sull'API, nell'ordine di posizione.
+	 * URL di invocazione associate alla specifica dell'ambiente indicato, nell'ordine di
+	 * selezione. Una selezione assente, vuota o che non trova piu` riscontro in configurazione
+	 * (voce rimossa) ricade sulla sola URL predefinita, cosi` l'API resta sempre invocabile.
 	 */
 	public List<UrlInvocazioneRisolta> getUrlInvocazioni(ApiEntity api, boolean collaudo) {
 
 		List<UrlInvocazioneRisolta> urls = new ArrayList<>();
-		urls.add(new UrlInvocazioneRisolta(null, getUrlInvocazione(api, collaudo)));
 
-		for(ApiUrlInvocazioneEntity aggiuntiva: api.getUrlInvocazioniAggiuntive()) {
-			String prefixOverride = collaudo ? aggiuntiva.getUrlPrefixCollaudo() : aggiuntiva.getUrlPrefixProduzione();
-			urls.add(new UrlInvocazioneRisolta(
-					aggiuntiva.getEtichetta(),
-					risolviUrlInvocazione(api, collaudo, aggiuntiva.getTemplateUrl(), prefixOverride)));
+		for(String identificativo: getIdentificativiUrlInvocazione(api, collaudo)) {
+			risolviUrlInvocazioneSelezionata(api, collaudo, identificativo).ifPresent(urls::add);
+		}
+
+		if(urls.isEmpty()) {
+			urls.add(getUrlInvocazioneDefault(api, collaudo));
 		}
 
 		return urls;
+	}
+
+	/** Identificativi associati alla specifica dell'ambiente, nell'ordine di selezione. */
+	private List<String> getIdentificativiUrlInvocazione(ApiEntity api, boolean collaudo) {
+		ApiConfigEntity config = collaudo ? api.getCollaudo() : api.getProduzione();
+
+		if(config == null) {
+			return Collections.emptyList();
+		}
+
+		return config.getUrlInvocazione().stream()
+				.map(ApiConfigUrlInvocazioneEntity::getIdentificativo)
+				.toList();
+	}
+
+	/**
+	 * Risolve una URL selezionata. Restituisce un valore vuoto se l'identificativo non e` piu`
+	 * censito in configurazione per quell'ambiente: la selezione salvata resta valida per le
+	 * altre voci e la URL sparita viene semplicemente ignorata.
+	 */
+	private Optional<UrlInvocazioneRisolta> risolviUrlInvocazioneSelezionata(ApiEntity api, boolean collaudo, String identificativo) {
+
+		if(ID_URL_INVOCAZIONE_DEFAULT.equals(identificativo)) {
+			return Optional.of(getUrlInvocazioneDefault(api, collaudo));
+		}
+
+		Optional<UrlInvocazioneConfigurata> configurata = this.configurazione.getUrlInvocazione(collaudo).stream()
+				.filter(u -> identificativo.equals(u.identificativo()))
+				.findFirst();
+
+		if(configurata.isEmpty()) {
+			this.logger.debug("URL di invocazione [{}] non censita in configurazione per l'ambiente [{}]: ignorata",
+					identificativo, collaudo ? "collaudo" : "produzione");
+			return Optional.empty();
+		}
+
+		return configurata.map(u -> new UrlInvocazioneRisolta(
+				u.identificativo(),
+				u.etichetta(),
+				risolviUrlInvocazione(api, collaudo, u.templateUrl(), u.urlPrefix())));
+	}
+
+	private UrlInvocazioneRisolta getUrlInvocazioneDefault(ApiEntity api, boolean collaudo) {
+		return new UrlInvocazioneRisolta(
+				ID_URL_INVOCAZIONE_DEFAULT,
+				this.configurazione.getEtichettaUrlInvocazioneDefault(),
+				getUrlInvocazione(api, collaudo));
 	}
 
 	/**

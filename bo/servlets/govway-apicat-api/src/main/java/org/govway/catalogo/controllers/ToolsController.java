@@ -31,6 +31,7 @@ import org.govway.catalogo.core.business.utils.OpenapiUtils;
 import org.govway.catalogo.core.business.utils.OperationInfo;
 import org.govway.catalogo.core.business.utils.SOAPAction;
 import org.govway.catalogo.core.business.utils.SwaggerUtils;
+import org.govway.catalogo.core.business.utils.UrlInvocazioneRisolta;
 import org.govway.catalogo.core.business.utils.WsdlUtils;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.services.ApiService;
@@ -41,6 +42,7 @@ import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.services.CspService;
 import org.govway.catalogo.servlets.model.AmbienteEnum;
+import org.govway.catalogo.servlets.model.UrlInvocazioneAggiuntivaRisolta;
 import org.govway.catalogo.servlets.api.ToolsApi;
 import org.govway.catalogo.servlets.model.DocumentoApiInline;
 import org.govway.catalogo.servlets.model.DocumentoApiRef;
@@ -191,18 +193,25 @@ public class ToolsController implements ToolsApi {
 				});
 			}
 
-			// Calcola l'URL di invocazione se id_api e ambiente sono specificati
-			String urlInvocazione = null;
+			// Calcola le URL di invocazione associate alla specifica se id_api e ambiente sono specificati
+			List<UrlInvocazioneRisolta> urlInvocazioni = List.of();
 			if(listaRisorseApiRichiesta.getIdApi() != null && listaRisorseApiRichiesta.getAmbiente() != null) {
-				urlInvocazione = this.apiService.runTransaction(() -> {
+				urlInvocazioni = this.apiService.runTransaction(() -> {
 					ApiEntity apiEntity = this.apiService.find(listaRisorseApiRichiesta.getIdApi())
 							.orElseThrow(() -> new NotFoundException(ErrorCode.API_404, Map.of("idApi", listaRisorseApiRichiesta.getIdApi().toString())));
 					boolean isCollaudo = listaRisorseApiRichiesta.getAmbiente().equals(AmbienteEnum.COLLAUDO);
-					return this.eServiceBuilder.getUrlInvocazione(apiEntity, isCollaudo);
+					return this.eServiceBuilder.getUrlInvocazioni(apiEntity, isCollaudo);
 				});
 			}
 
-			final String urlInvocazioneFinale = urlInvocazione;
+			// La prima resta nel campo storico, le altre nella lista: senza URL associate il
+			// comportamento e` quello di prima.
+			final String urlInvocazioneFinale = urlInvocazioni.isEmpty() ? null : urlInvocazioni.get(0).url();
+			final List<UrlInvocazioneAggiuntivaRisolta> urlInvocazioniAggiuntive = urlInvocazioni.isEmpty()
+					? List.of()
+					: urlInvocazioni.subList(1, urlInvocazioni.size()).stream()
+							.map(APIController::toUrlInvocazioneRisolta)
+							.collect(Collectors.toList());
 
 			List<ServizioWsdl> lst = null;
 			switch(listaRisorseApiRichiesta.getApiType()) {
@@ -213,6 +222,9 @@ public class ToolsController implements ToolsApi {
 
 						servizioW.setPortType(serv.getNome());
 						servizioW.setUrlInvocazione(urlInvocazioneFinale);
+						if(!urlInvocazioniAggiuntive.isEmpty()) {
+							servizioW.setUrlInvocazioneAggiuntive(urlInvocazioniAggiuntive);
+						}
 
 						List<OperazioneWsdl> operazioni = new ArrayList<>();
 

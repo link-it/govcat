@@ -20,11 +20,12 @@
 package org.govway.catalogo.core.business.utils;
 
 /**
- * URL di invocazione di una API gia` risolta (placeholder sostituiti) per un ambiente.
+ * URL di invocazione di una API gia` risolta (placeholder sostituiti) per un ambiente, con
+ * l'identificativo e l'etichetta della voce di configurazione da cui deriva.
  *
- * L'etichetta e` valorizzata solo per le URL aggiuntive (dalla seconda in poi): la URL
- * principale, risolta dalla gerarchia api -> servizio -> dominio -> soggetto referente ->
- * configurazione, non ha etichetta.
+ * L'identificativo {@value EServiceBuilder#ID_URL_INVOCAZIONE_DEFAULT} indica la URL
+ * predefinita, risolta dalla gerarchia api -> servizio -> dominio -> soggetto referente ->
+ * configurazione; la sua etichetta e` quella configurata in etichetta_default, se presente.
  */
-public record UrlInvocazioneRisolta(String etichetta, String url) {
+public record UrlInvocazioneRisolta(String identificativo, String etichetta, String url) {
 }

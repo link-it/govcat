@@ -22,7 +22,9 @@ package org.govway.catalogo;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -120,6 +122,7 @@ import org.govway.catalogo.core.business.utils.EServiceBuilder;
 import org.govway.catalogo.core.business.utils.NotificheUtils;
 import org.govway.catalogo.core.business.utils.SchedaAdesioneBuilder;
 import org.govway.catalogo.core.business.utils.StampeLabels;
+import org.govway.catalogo.core.business.utils.UrlInvocazioneConfigurata;
 import org.govway.catalogo.core.business.utils.YamltoJsonUtils;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.monitoraggioutils.FiltriUtils;
@@ -132,6 +135,7 @@ import org.govway.catalogo.pdnd.controllers.PDNDClientFactory;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneProfilo;
 import org.govway.catalogo.servlets.model.ConfigurazioneStepWizard;
+import org.govway.catalogo.servlets.model.ConfigurazioneUrlInvocazioneAmbiente;
 import org.govway.catalogo.servlets.model.ConfigurazioneStepWizardSezione;
 import org.govway.catalogo.servlets.pdnd.client.api.impl.ApiClient;
 import org.openapitools.jackson.nullable.JsonNullableModule;
@@ -778,6 +782,12 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
     @Value("${baseurl.produzione}")
 	String baseUrlProduzione;
 
+    private static List<UrlInvocazioneConfigurata> toUrlInvocazioneConfigurate(List<ConfigurazioneUrlInvocazioneAmbiente> configurate) {
+        return Optional.ofNullable(configurate).orElse(Collections.emptyList()).stream()
+                .map(u -> new UrlInvocazioneConfigurata(u.getIdentificativo(), u.getEtichetta(), u.getUrlPrefix(), u.getTemplateUrl()))
+                .collect(Collectors.toList());
+    }
+
     @Bean
     public ConfigurazioneEService configurazioneEService(Configurazione configurazione) {
         ConfigurazioneEService configurazioneEService = new ConfigurazioneEService();
@@ -792,6 +802,14 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
 		configurazioneEService.setTemplateUrlInvocazione(this.templateUrlInvocazione);
 		configurazioneEService.setDefaultUrlPrefixCollaudo(this.baseUrlCollaudo);
 		configurazioneEService.setDefaultUrlPrefixProduzione(this.baseUrlProduzione);
+
+		// URL di invocazione censite per ambiente: l'anagrafica sta nella configurazione,
+		// alle specifiche delle API si associano i soli identificativi.
+		Optional.ofNullable(configurazione.getServizio().getApi().getUrlInvocazione()).ifPresent(urlInvocazione -> {
+			configurazioneEService.setEtichettaUrlInvocazioneDefault(urlInvocazione.getEtichettaDefault());
+			configurazioneEService.setUrlInvocazioneCollaudo(toUrlInvocazioneConfigurate(urlInvocazione.getCollaudo()));
+			configurazioneEService.setUrlInvocazioneProduzione(toUrlInvocazioneConfigurate(urlInvocazione.getProduzione()));
+		});
 		Optional.ofNullable(configurazione.getAdesione().getStatiSchedaAdesione()).ifPresent(list -> {
 			configurazioneEService.setStatiSchedaAdesione(list.stream().collect(Collectors.toSet()));
 		});
