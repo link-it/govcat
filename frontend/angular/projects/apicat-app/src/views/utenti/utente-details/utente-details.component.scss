@@ -90,3 +90,46 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     justify-content: flex-end;
   }
 }
+
+// Tabella organizzazioni dell'utente con lo stile delle sezioni.
+.organizzazioni-utente-table {
+  width: 100%;
+  border: 1px solid #dee8ef;
+  border-radius: 10px;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+
+  th {
+    padding: 8px 12px;
+    background: #fafcfd;
+    border-bottom: 1px solid #dee8ef;
+    font-size: 11.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: #57738a;
+  }
+
+  td {
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #212c49;
+    vertical-align: middle;
+  }
+
+  tbody tr + tr td { border-top: 1px solid #dee8ef; }
+
+  .org-role-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 500;
+    background: #eef4f8;
+    color: #2e445a;
+    border: 1px solid #dee8ef;
+    white-space: nowrap;
+  }
+}

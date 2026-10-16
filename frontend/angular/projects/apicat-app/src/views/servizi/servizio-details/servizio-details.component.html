@@ -297,7 +297,7 @@
                         </div>
                       </div>
                     </div>
-                    @if ((_updateData | mapper:_isGestoreMapper)) {
+                    @if ((_updateData | mapper:_isGestoreMapper) && _showPackage) {
                       <div class="col-4">
                         <div class="form-group package mt-2-">
                           <div class="form-group">

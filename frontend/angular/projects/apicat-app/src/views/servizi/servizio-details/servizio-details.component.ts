@@ -316,6 +316,9 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     hideVersions: boolean = false;
 
+    /** Checkbox "Package" e visibilita' "componente" nascoste di default (`AppConfig.Services.showPackage`) finche' la gestione dei package non e' completa. */
+    _showPackage: boolean = false;
+
     constructor(
         public route: ActivatedRoute,
         private readonly router: Router,
@@ -348,13 +351,14 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         this._hasFlagConsentiNonSottoscrivibile = Tools.Configurazione?.servizio.consenti_non_sottoscrivibile || false;
         this._hasAdesioniMultiple = Tools.Configurazione?.servizio?.adesioni_multiple || false;
         this.hideVersions = this.appConfig?.AppConfig?.Services?.hideVersions || false;
+        this._showPackage = this.appConfig?.AppConfig?.Services?.showPackage === true;
     }
 
     ngOnInit() {
         localStorage.setItem('SERVIZI_VIEW', 'FALSE');
         this.loadAnagrafiche();
 
-        if (this._isGestore()) {
+        if (this._isGestore() && this._componenteSelezionabile) {
             this._tipiVisibilitaServizio = [ ...this._tipiVisibilitaServizio, { value: 'componente', label: 'componente'} ];
         }
 
@@ -684,7 +688,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         if (_isPackage) {
             this._tipiVisibilitaServizio = [ ..._origTipiVisibilitaServizio ];
         } else {
-            if (this._isGestore()) {
+            if (this._isGestore() && this._componenteSelezionabile) {
                 this._tipiVisibilitaServizio = [ ..._origTipiVisibilitaServizio, { value: 'componente', label: 'componente'} ];
             }
         }
@@ -1665,6 +1669,11 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     _isGestore() {
         return this.authenticationService.isGestore();
+    }
+
+    /** Opzione di visibilita' "componente": solo con i package abilitati, o se il servizio e' gia' un componente. */
+    get _componenteSelezionabile(): boolean {
+        return this._showPackage || this.data?.visibilita === 'componente';
     }
 
     get isComponente() {

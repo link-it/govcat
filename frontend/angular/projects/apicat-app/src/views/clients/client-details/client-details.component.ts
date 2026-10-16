@@ -268,7 +268,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     this._statoEnum = fake_stato;
     this._ambienteEnum = fake_ambiente;
     if (Tools.Configurazione) {
-      Tools.Configurazione.servizio.api.auth_type.map((item: any) => this._authTypeEnum.push(item.type));
+      this._loadAuthTypes();
     }
 
     this.route.params.subscribe(params => {
@@ -309,7 +309,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     });
 
     this.eventsManagerService.on(EventType.PROFILE_UPDATE, (action: any) => {
-      Tools.Configurazione.servizio.api.auth_type.map((item: any) => this._authTypeEnum.push(item.type));
+      this._loadAuthTypes();
       this.initTipiCertificato();
     });
   }
@@ -1869,18 +1869,23 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     apply('nome_applicazione_portale', f.nome_applicazione_portale.required);
   }
 
+  // Nuovo array (non push): ng-select non rileva le modifiche sul posto di [items]
+  // e un secondo PROFILE_UPDATE duplicherebbe i tipi.
+  _loadAuthTypes() {
+    this._authTypeEnum = (Tools.Configurazione?.servizio?.api?.auth_type || []).map((item: any) => item.type);
+  }
+
   _initSoggettiSelect(defaultValue: any[] = []) {
     this.soggetti$ = concat(
       of(defaultValue),
       this.soggettiInput$.pipe(
-        filter(res => {
-          return res !== null && res.length >= this.minLengthTerm
-        }),
+        filter(res => res !== null),
         distinctUntilChanged(),
         debounceTime(500),
         tap(() => this.soggettiLoading = true),
         switchMap((term: any) => {
-          return this.getSoggetti(term).pipe(
+          // Termine vuoto: torna alla prima pagina dei soggetti dell'organizzazione.
+          return this.getSoggetti(term || null).pipe(
             catchError(() => of([])), // empty list on error
             tap(() => this.soggettiLoading = false)
           )
@@ -1971,6 +1976,13 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
           } else {
             const currentValue = controls.id_soggetto.value;
             this._elencoSoggetti = [...result];
+            // La prima pagina potrebbe non contenere il soggetto corrente: lo si aggiunge
+            // per mostrarne il nome; gli altri soggetti si trovano con la ricerca.
+            const corrente = this._client?.soggetto;
+            const iniziali = (currentValue && corrente?.id_soggetto === currentValue && !result.some((item: any) => item.id_soggetto === currentValue))
+              ? [corrente, ...result]
+              : result;
+            this._initSoggettiSelect(iniziali);
             if (this._isClientUsedInSomeAdesioni) {
               // Client con adesioni collegate: il soggetto NON e` modificabile
               // a prescindere dal numero di soggetti dell'organizzazione (il BE

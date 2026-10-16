@@ -175,6 +175,35 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
    */
   _approvingRole: RuoloOrganizzazione | '' = '';
 
+  // Opzioni a riferimento stabile per le ng-select con voce "nessun ruolo":
+  // il valore vuoto non e' gestibile direttamente con bindValue.
+  readonly _approvingRoleOptions: { value: RuoloOrganizzazione | ''; labelKey: string }[] = [
+    { value: '', labelKey: 'APP.RUOLI.NessunRuolo' },
+    { value: RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE, labelKey: 'APP.RUOLI.AmministratoreOrganizzazione' },
+    { value: RuoloOrganizzazione.OPERATORE_API, labelKey: 'APP.RUOLI.OperatoreApi' }
+  ];
+
+  get _approvingRoleOption(): { value: RuoloOrganizzazione | ''; labelKey: string } | null {
+    return this._approvingRoleOptions.find(o => o.value === this._approvingRole) ?? null;
+  }
+  set _approvingRoleOption(opt: { value: RuoloOrganizzazione | ''; labelKey: string } | null) {
+    this._approvingRole = opt?.value ?? '';
+  }
+
+  readonly _ruoloOrgOptions: { value: RuoloOrganizzazione | null; labelKey: string }[] = [
+    { value: null, labelKey: 'APP.ORGANIZATION_SWITCHER.NoRole' },
+    { value: RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE, labelKey: 'APP.RUOLI.AmministratoreOrganizzazione' },
+    { value: RuoloOrganizzazione.OPERATORE_API, labelKey: 'APP.RUOLI.OperatoreApi' }
+  ];
+
+  get _ruoloOrgOption(): { value: RuoloOrganizzazione | null; labelKey: string } | null {
+    const value = this._formGroup?.get('ruolo_organizzazione')?.value ?? null;
+    return this._ruoloOrgOptions.find(o => o.value === value) ?? null;
+  }
+  set _ruoloOrgOption(opt: { value: RuoloOrganizzazione | null; labelKey: string } | null) {
+    this._formGroup?.get('ruolo_organizzazione')?.setValue(opt?.value ?? null);
+  }
+
   /** True se l'utente loggato puo` scegliere fra entrambi i ruoli
    *  organizzazione (gestore o coordinatore). Falso per AMM_ORG ->
    *  selettore bloccato su `operatore_api`. */
@@ -269,6 +298,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
     const idOrg = this._fromOrgManageIdOrg;
     const ref = this.modalService.show(UtenteOrganizzazioneDialogComponent, {
       ignoreBackdropClick: true,
+      ariaLabelledBy: 'utente-org-dialog-title',
       initialState: {
         mode: 'edit' as UtenteOrganizzazioneDialogMode,
         title: 'APP.UTENTI_ORG.TITLE.Edit',

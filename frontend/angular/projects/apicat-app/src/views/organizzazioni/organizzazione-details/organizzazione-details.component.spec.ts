@@ -229,7 +229,9 @@ describe('OrganizzazioneDetailsComponent', () => {
   });
 
   it('should have empty soggetti by default', () => {
-    expect(component.soggetti).toEqual([]);
+    let items: any[] | undefined;
+    component.soggetti$.subscribe(v => items = v);
+    expect(items).toEqual([]);
   });
 
   // ======== NEW TESTS FOR COVERAGE ========
@@ -343,15 +345,14 @@ describe('OrganizzazioneDetailsComponent', () => {
   });
 
   describe('_loadAll', () => {
-    it('should call both _loadOrganization and _loadSoggetti', () => {
+    it('should load the organization without loading soggetti', () => {
       component.id = 5;
       mockApiService.getDetails.mockReturnValue(of({ id_organizzazione: 5, nome: 'Org' }));
-      mockApiService.getList.mockReturnValue(of({ content: [] }));
 
       component._loadAll();
 
       expect(mockApiService.getDetails).toHaveBeenCalledWith('organizzazioni', 5);
-      expect(mockApiService.getList).toHaveBeenCalledWith('soggetti', expect.anything());
+      expect(mockApiService.getList).not.toHaveBeenCalled();
     });
   });
 
@@ -638,7 +639,7 @@ describe('OrganizzazioneDetailsComponent', () => {
       component.save.subscribe(saveSpy);
       component._closeEdit = true;
 
-      const updateResponse = { id: 10, nome: 'UpdatedOrg', id_organizzazione: 10 };
+      const updateResponse = { nome: 'UpdatedOrg', id_organizzazione: 10 };
       mockApiService.putElement.mockReturnValue(of(updateResponse));
 
       component.__onUpdate(10, { nome: 'UpdatedOrg' });
@@ -646,6 +647,7 @@ describe('OrganizzazioneDetailsComponent', () => {
       expect(mockApiService.putElement).toHaveBeenCalledWith('organizzazioni', 10, expect.anything());
       expect(component._isEdit).toBe(false); // _closeEdit is true, so !true = false
       expect(component.organizzazione).toEqual(updateResponse);
+      expect(component.id).toBe(10);
       expect(component._spin).toBe(false);
       expect(saveSpy).toHaveBeenCalledWith(expect.objectContaining({ update: true }));
     });
@@ -856,38 +858,65 @@ describe('OrganizzazioneDetailsComponent', () => {
     });
   });
 
-  describe('_loadSoggetti', () => {
-    it('should load soggetti list for the organization', () => {
+  describe('_initSoggettiSelect', () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('should load the first page of soggetti for the organization', () => {
       component.id = 5;
       const soggettiContent = [{ id_soggetto: 1, nome: 'Sogg1' }, { id_soggetto: 2, nome: 'Sogg2' }];
       mockApiService.getList.mockReturnValue(of({ content: soggettiContent }));
 
-      component._loadSoggetti();
+      component._initSoggettiSelect();
+      let items: any[] = [];
+      component.soggetti$.subscribe(v => items = v);
 
       expect(mockApiService.getList).toHaveBeenCalledWith('soggetti', expect.anything());
       expect(mockUtils._queryToHttpParams).toHaveBeenCalledWith({ id_organizzazione: 5 });
-      expect(component.soggetti).toEqual(soggettiContent);
+      expect(items).toEqual(soggettiContent);
     });
 
-    it('should call Tools.OnError on failure', () => {
+    it('should include the current default soggetto when not in the first page', () => {
+      component.id = 5;
+      component.organizzazione = { soggetto_default: { id_soggetto: 99, nome: 'Default' } };
+      mockApiService.getList.mockReturnValue(of({ content: [{ id_soggetto: 1, nome: 'Sogg1' }] }));
+
+      component._initSoggettiSelect();
+      let items: any[] = [];
+      component.soggetti$.subscribe(v => items = v);
+
+      expect(items.map(i => i.id_soggetto)).toEqual([99, 1]);
+    });
+
+    it('should search soggetti by term', () => {
+      vi.useFakeTimers();
+      component.id = 5;
+      mockApiService.getList.mockReturnValue(of({ content: [] }));
+
+      component._initSoggettiSelect();
+      let items: any[] = [];
+      component.soggetti$.subscribe(v => items = v);
+
+      const found = [{ id_soggetto: 30, nome: 'Sogg30' }];
+      mockApiService.getList.mockReturnValue(of({ content: found }));
+      component.soggettiInput$.next('Sogg3');
+      vi.advanceTimersByTime(500);
+
+      expect(mockUtils._queryToHttpParams).toHaveBeenLastCalledWith({ id_organizzazione: 5, q: 'Sogg3' });
+      expect(items).toEqual(found);
+      expect(component.soggettiLoading).toBe(false);
+    });
+
+    it('should return an empty list on error', () => {
       component.id = 5;
       mockApiService.getList.mockReturnValue(throwError(() => new Error('Soggetti error')));
 
-      component._loadSoggetti();
+      component._initSoggettiSelect();
+      let items: any[] | undefined;
+      component.soggetti$.subscribe(v => items = v);
 
-      expect(Tools.OnError).toHaveBeenCalled();
-    });
-
-    it('should not load when id is null', () => {
-      component.id = null;
-      component._loadSoggetti();
-      expect(mockApiService.getList).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('_onChangeSoggetto', () => {
-    it('should be callable without error', () => {
-      expect(() => component._onChangeSoggetto({ value: 1 })).not.toThrow();
+      expect(items).toEqual([]);
     });
   });
 
@@ -921,6 +950,12 @@ describe('OrganizzazioneDetailsComponent', () => {
       expect(component._isEdit).toBe(true);
       expect(component._error).toBe(false);
       expect(component._formGroup.get('nome')?.value).toBe('EditOrg');
+    });
+
+    it('should initialize the soggetti select', () => {
+      const spy = vi.spyOn(component, '_initSoggettiSelect');
+      component._editOrganization();
+      expect(spy).toHaveBeenCalled();
     });
   });
 

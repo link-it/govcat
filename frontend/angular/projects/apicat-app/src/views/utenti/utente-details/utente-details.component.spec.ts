@@ -1376,4 +1376,29 @@ describe('UtenteDetailsComponent', () => {
       expect(mockApiService.deleteElementRelated).not.toHaveBeenCalled();
     });
   });
+
+  describe('opzioni ng-select con voce "nessun ruolo"', () => {
+    it('should map _approvingRole to and from the option objects', () => {
+      component._approvingRole = '';
+      expect(component._approvingRoleOption?.labelKey).toBe('APP.RUOLI.NessunRuolo');
+
+      component._approvingRoleOption = component._approvingRoleOptions[1];
+      expect(component._approvingRole).toBe(RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+      expect(component._approvingRoleOption).toBe(component._approvingRoleOptions[1]);
+
+      component._approvingRoleOption = null;
+      expect(component._approvingRole).toBe('');
+    });
+
+    it('should map ruolo_organizzazione to and from the option objects', () => {
+      component._initForm({ ruolo_organizzazione: null });
+      expect(component._ruoloOrgOption).toBe(component._ruoloOrgOptions[0]);
+
+      component._ruoloOrgOption = component._ruoloOrgOptions[2];
+      expect(component._formGroup.get('ruolo_organizzazione')?.value).toBe(RuoloOrganizzazione.OPERATORE_API);
+
+      component._ruoloOrgOption = component._ruoloOrgOptions[0];
+      expect(component._formGroup.get('ruolo_organizzazione')?.value).toBeNull();
+    });
+  });
 });

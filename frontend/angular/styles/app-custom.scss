@@ -615,6 +615,11 @@ mat-list-item.mat-list-item:hover {
 
 // ng-select
 
+// Opzioni disabilitate (es. "nessun risultato") leggibili: il tema usa #ccc (1,6:1).
+.ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-disabled {
+  color: #6c757d;
+}
+
 $tagColor: #f2f2f2; // #b8dbff;
 $tagColorHover: #dbdbdb;
 
@@ -632,9 +637,22 @@ $tagColorHover: #dbdbdb;
     }
   }
 
+  // Area cliccabile di almeno 24x24 px e icona con contrasto sufficiente (WCAG 2.5.8, 1.4.11).
   .ng-clear-wrapper {
     right: 18px;
     z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    min-width: 24px;
+    height: 24px;
+    color: #6c757d;
+  }
+
+  // Contrasto del placeholder: il tema usa #999 (2,8:1).
+  .ng-select-container .ng-value-container .ng-placeholder {
+    color: #6c757d;
   }
 
   // Placeholder che rappresenta un valore (es. "Tutti"): stesso colore del valore selezionato.

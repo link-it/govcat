@@ -21,12 +21,6 @@
     <ui-breadcrumb [breadcrumbs]="breadcrumbs" [classContainer]="'container-limited limit-container-width'" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
   </div>
   <div class="top-area container-fluid container-limited limit-container-width px-0">
-    @if (_isEdit && !_isNew) {
-      <h3 class="page-title">{{ 'APP.TITLE.EditClient' | translate }}</h3>
-    }
-    @if (_isEdit && _isNew) {
-      <h3 class="page-title">{{ 'APP.TITLE.NewClient' | translate }}</h3>
-    }
     <div class="d-flex flex-grow-1">&nbsp;</div>
     <div class="nav-controls">
       @if (!_isEdit && !_spin) {
@@ -123,245 +117,212 @@
     }
 
     @if ((client && !_spin) || _isNew) {
-      <div class="settings">
-        <div class="settings-content">
-          @if (_error) {
-            <div class="gl-alert gl-alert-danger col-md-12 mb-5">
-              @if (!_errors.length) {
-                <span>{{ _errorMsg }}</span>
-              }
-              @if (_errors.length > 0) {
-                <ui-error-view
-                  [errTitle]="'APP.WORKFLOW.ERROR.CambioStato' | translate:{from: _fromStatus, to: _toStatus}"
-                  [errors]="_errors">
-                </ui-error-view>
-              }
+      <div class="lnk-section-layout mt-4">
+        <div class="section-page-header">
+          <h1 class="section-page-title">{{ _isNew ? ('APP.TITLE.NewClient' | translate) : client?.nome }}</h1>
+          <p class="section-page-subtitle">{{ (_isEdit ? 'APP.CLIENT.SECTION.EditSubtitle' : 'APP.CLIENT.SECTION.ViewSubtitle') | translate }}</p>
+          @if (_isEdit) {
+            <p class="section-mandatory-hint"><i class="bi bi-info-circle me-1" aria-hidden="true"></i>{{ 'APP.SERVICES.CREATE.MandatoryHint' | translate }}</p>
+          }
+        </div>
+
+            @if (_error) {
+              <div class="gl-alert gl-alert-danger col-md-12 mb-4">
+                @if (!_errors.length) {
+                  <span>{{ _errorMsg }}</span>
+                }
+                @if (_errors.length > 0) {
+                  <ui-error-view
+                    [errTitle]="'APP.WORKFLOW.ERROR.CambioStato' | translate:{from: _fromStatus, to: _toStatus}"
+                    [errors]="_errors">
+                  </ui-error-view>
+                }
+              </div>
+            }
+
+        <form novalidate class="gl-show-field-errors" [class.form-readonly]="!_isEdit" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.getRawValue())">
+
+          <section class="lnk-phase-section py-0">
+            <header class="lnk-phase-section-hd">
+              <div class="ps-meta">
+                <span class="ps-tag">{{ 'APP.CLIENT.SECTION.GeneraleTag' | translate }}</span>
+                <h2 class="ps-title">{{ 'APP.CLIENT.SECTION.GeneraleTitle' | translate }}</h2>
+                <p class="ps-desc">{{ 'APP.CLIENT.SECTION.GeneraleDesc' | translate }}</p>
+              </div>
+            </header>
+            <div class="lnk-phase-section-body">
+              <div class="form-group id_organizzazione">
+                <label class="label-bold" for="id_organizzazione">{{ 'APP.LABEL.id_organizzazione' | translate }}
+                  @if (_isEdit) { <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_organizzazione'"></span> }
+                </label>
+                @if (_isEdit) {
+                  <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_organizzazione')"
+                    [errorId]="'id_organizzazione-error'"
+                    [items]="(organizzazioni$ | async) || []"
+                    [typeahead]="organizzazioniInput$"
+                    [minTermLength]="minLengthTerm"
+                    [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                    [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                    bindValue="id_organizzazione"
+                    bindLabel="nome"
+                    labelForId="id_organizzazione"
+                    formControlName="id_organizzazione"
+                    (change)="_checkSoggetto($event)">
+                    <ng-template ng-label-tmp let-item="item">
+                      {{ item.nome }}
+                    </ng-template>
+                    <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                      <div class="fw-bold">{{ item.nome }}</div>
+                      <div class="">
+                        <span class="small text-muted">{{ item.descrizione }}</span>
+                      </div>
+                    </ng-template>
+                  </ng-select>
+                  @if (f['id_organizzazione'].invalid && (f['id_organizzazione'].dirty || f['id_organizzazione'].touched)) {
+                    <p class="form-text text-danger" id="id_organizzazione-error" aria-live="polite">
+                      @if (f['id_organizzazione'].errors?.['required']) { <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span> }
+                    </p>
+                  }
+                  <ui-input-help field="id_organizzazione" context="CLIENT"></ui-input-help>
+                } @else {
+                  <input type="text" readonly class="form-control-plaintext" id="id_organizzazione" [value]="client.soggetto?.organizzazione?.nome">
+                }
+              </div>
+
+              <div class="form-group id_soggetto mb-0" [hidden]="_hideSoggettoDropdown">
+                <label class="label-bold" for="id_soggetto">{{ 'APP.LABEL.id_soggetto' | translate }}
+                  @if (_isEdit) { <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_soggetto'"></span> }
+                </label>
+                @if (_isEdit) {
+                  <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_soggetto')" [errorId]="'id_soggetto-error'"
+                    [items]="(soggetti$ | async) || []"
+                    [typeahead]="soggettiInput$"
+                    [loading]="soggettiLoading"
+                    bindValue="id_soggetto"
+                    bindLabel="nome"
+                    [clearable]="false"
+                    [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                    labelForId="id_soggetto"
+                    formControlName="id_soggetto"
+                    (change)="_onChangeSoggetto($event)">
+                  </ng-select>
+                  @if (f['id_soggetto'].invalid && (f['id_soggetto'].dirty || f['id_soggetto'].touched)) {
+                    <p class="form-text text-danger" id="id_soggetto-error" aria-live="polite">
+                      @if (f['id_soggetto'].errors?.['required']) { <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span> }
+                    </p>
+                  }
+                  <ui-input-help field="id_soggetto" context="CLIENT"></ui-input-help>
+                } @else {
+                  <input type="text" readonly class="form-control-plaintext" id="id_soggetto" [value]="client.soggetto?.nome">
+                }
+              </div>
+            </div>
+          </section>
+
+          <section class="lnk-phase-section py-0">
+            <header class="lnk-phase-section-hd">
+              <div class="ps-meta">
+                <span class="ps-tag">{{ 'APP.CLIENT.SECTION.ConfigTag' | translate }}</span>
+                <h2 class="ps-title">{{ 'APP.CLIENT.SECTION.ConfigTitle' | translate }}</h2>
+                <p class="ps-desc">{{ 'APP.CLIENT.SECTION.ConfigDesc' | translate }}</p>
+              </div>
+            </header>
+            <div class="lnk-phase-section-body">
+              <div class="form-group ambiente">
+                <label class="label-bold" for="ambiente">{{ 'APP.CLIENT.LABEL.Environment' | translate }}
+                  @if (_isEdit) { <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'ambiente'"></span> }
+                </label>
+                @if (_isEdit) {
+                  <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('ambiente')" [errorId]="'ambiente-error'"
+                    [items]="_ambienteEnum"
+                    [searchable]="false"
+                    [clearable]="false"
+                    labelForId="ambiente"
+                    formControlName="ambiente"
+                    (change)="_changeAmbiente($event)">
+                  </ng-select>
+                  @if (f['ambiente'].invalid && (f['ambiente'].dirty || f['ambiente'].touched)) {
+                    <p class="form-text text-danger" id="ambiente-error" aria-live="polite">
+                      @if (f['ambiente'].errors?.['required']) { <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span> }
+                    </p>
+                  }
+                  <ui-input-help field="ambiente" context="CLIENT"></ui-input-help>
+                } @else {
+                  <input type="text" readonly class="form-control-plaintext" id="ambiente" [value]="client.ambiente">
+                }
+              </div>
+
+              <div class="form-group stato mb-0">
+                <label class="label-bold" for="stato">{{ 'APP.CLIENT.LABEL.Status' | translate }}
+                  @if (_isEdit) { <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'stato'"></span> }
+                </label>
+                @if (_isEdit) {
+                  <!-- In creazione la label e' quella del workflow ("Nuovo"), in modifica quella del cambio stato. -->
+                  <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('stato')" [errorId]="'stato-error'"
+                    [items]="_statoEnum"
+                    [searchable]="false"
+                    [clearable]="false"
+                    labelForId="stato"
+                    formControlName="stato"
+                    (change)="_onChangeStato($event)">
+                    <ng-template ng-label-tmp let-item="item">{{ (_isNew ? ('APP.WORKFLOW.STATUS.' + item) : (item === _statoEnum[0] ? 'APP.CLIENT.LABEL.NotConfigured' : 'APP.CLIENT.LABEL.Configured')) | translate }}</ng-template>
+                    <ng-template ng-option-tmp let-item="item">{{ (_isNew ? ('APP.WORKFLOW.STATUS.' + item) : (item === _statoEnum[0] ? 'APP.CLIENT.LABEL.NotConfigured' : 'APP.CLIENT.LABEL.Configured')) | translate }}</ng-template>
+                  </ng-select>
+                  @if (f['stato'].invalid && (f['stato'].dirty || f['stato'].touched)) {
+                    <p class="form-text text-danger" id="stato-error" aria-live="polite">
+                      @if (f['stato'].errors?.['required']) { <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span> }
+                    </p>
+                  }
+                  <ui-input-help field="stato" context="CLIENT"></ui-input-help>
+                } @else {
+                  <div>
+                    @if (client) {
+                      <ui-data-type
+                        [data]="client"
+                        [elem]="{ field: 'stato', type: 'tag', options: 'status' }"
+                        [config]="config">
+                      </ui-data-type>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          </section>
+
+          <section class="lnk-phase-section py-0">
+            <header class="lnk-phase-section-hd">
+              <div class="ps-meta">
+                <span class="ps-tag">{{ 'APP.CLIENT.SECTION.AuthTag' | translate }}</span>
+                <h2 class="ps-title">{{ 'APP.CLIENT.SECTION.AuthTitle' | translate }}</h2>
+                <p class="ps-desc">{{ 'APP.CLIENT.SECTION.AuthDesc' | translate }}</p>
+              </div>
+            </header>
+            <div class="lnk-phase-section-body">
+              <app-client-auth-form
+                [input]="clientAuthInput"
+                [layout]="'vertical'"
+                [secretLoading]="_secretLoading"
+                [clientStato]="client?.stato"
+                (changeAuthType)="_onAuthTypeChangeFromForm($event)"
+                (changeTipoCertificato)="_onAuthTipoCertificatoChange($event)"
+                (changeTipoCertificatoFirma)="_onAuthTipoCertificatoFirmaChange($event)"
+                (descriptorChange)="_onAuthDescriptorChange($event)"
+                (descriptorChangeFirma)="_onAuthDescriptorChangeFirma($event)"
+                (downloadAllegato)="_downloadAllegato($event)"
+                (requestSecret)="_fetchSecret()"
+              ></app-client-auth-form>
+            </div>
+          </section>
+
+          @if (_isEdit) {
+            <div class="section-footer">
+              <button type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">{{ 'APP.BUTTON.Cancel' | translate }}</button>
+              <button type="submit" class="gl-button btn btn-confirm" [disabled]="_formGroup.invalid || _spin">{{ 'APP.BUTTON.Save' | translate }}</button>
             </div>
           }
-          <div class="edit-form">
-            <form novalidate class="issue-form common-note-form mt-3 gl-show-field-errors gfm-form" [class.form-readonly]="!_isEdit" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.getRawValue())">
-              <div class="row gl-mt-3">
-                <div class="col-lg-4">
-                  <h4 class="gl-mt-0 text-break">{{ 'APP.USERS.TITLE.GeneralInformations' | translate }}</h4>
-                  <div class="text-break" markdown>{{ 'APP.USERS.TITLE.GeneralInformations_sub' | translate }}</div>
-                </div>
-                <div class="col-lg-8">
-                  <!-- ============================================================== -->
-                  <!-- ==========     ORGANIZZAZIONI + SOGGETTI   [start] =========== -->
-                  <!-- ============================================================== -->
-                  <div class="row mt-5 organizzazioni soggetti">
-                    <div class="col-6 form-group id_organizzazione">
-                      <label class="label-bold" for="id_organizzazione">{{ 'APP.LABEL.id_organizzazione' | translate }}
-                        @if (_isNew || _isEdit) {
-                          <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_organizzazione'"></span>
-                        }
-                      </label>
-                      @if (_isNew || _isEdit) {
-                        <div class="">
-                          <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_organizzazione')"
-                            [errorId]="'id_organizzazione-error'"
-                            [items]="(organizzazioni$ | async) || []"
-                            [typeahead]="organizzazioniInput$"
-                            [minTermLength]="minLengthTerm"
-                            [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
-                            [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
-                            bindValue="id_organizzazione"
-                            bindLabel="nome"
-                            labelForId="id_organizzazione"
-                            [editableSearchTerm]="true"
-                            formControlName="id_organizzazione"
-                            (change)="_checkSoggetto($event)">
-                            <ng-template ng-label-tmp let-item="item">
-                              {{ item.nome }}
-                            </ng-template>
-                            <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
-                              <div class="fw-bold">{{ item.nome }}</div>
-                              <div class="">
-                                <span class="small text-muted">{{ item.descrizione }}</span>
-                              </div>
-                            </ng-template>
-                          </ng-select>
-                          @if (f['id_organizzazione'].invalid && (f['id_organizzazione'].dirty || f['id_organizzazione'].touched)) {
-                            <p class="form-text text-danger" id="id_organizzazione-error" aria-live="polite">
-                              @if (f['id_organizzazione'].errors && f['id_organizzazione'].errors['required']) {
-                                <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                              }
-                            </p>
-                          }
-                          <ui-input-help field="id_organizzazione" context="CLIENT"></ui-input-help>
-                        </div>
-                      }
-                      @if (!_isNew && !_isEdit) {
-                        <div class="">
-                          <input type="text" readonly class="form-control-plaintext" id="id_organizzazione" [value]="client.soggetto.organizzazione.nome">
-                        </div>
-                      }
-                    </div>
-                    <div class="col-6 form-group id_soggetto" [hidden]="_hideSoggettoDropdown">
-                      <label class="label-bold" for="id_soggetto">{{ 'APP.LABEL.id_soggetto' | translate }}
-                        @if (_isEdit) {
-                          <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_soggetto'"></span>
-                        }
-                      </label>
-                      @if (_isNew || _isEdit) {
-                        <div class="">
-                          <select class="form-select" id="id_soggetto" formControlName="id_soggetto" [class.gl-field-error-outline]="_hasControlError('id_soggetto')" (change)="_onChangeSoggetto($event)">
-                            @for (el of _elencoSoggetti; track el.id_soggetto) {
-                              <option [value]="el.id_soggetto">
-                                {{el.nome}}
-                              </option>
-                            }
-                          </select>
-                          @if (f['id_soggetto'].invalid && (f['id_soggetto'].dirty || f['id_soggetto'].touched)) {
-                            <p class="form-text text-danger">
-                              @if (f['id_soggetto'].errors && f['id_soggetto'].errors['required']) {
-                                <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                              }
-                            </p>
-                          }
-                          <ui-input-help field="id_soggetto" context="CLIENT"></ui-input-help>
-                        </div>
-                      }
-                      @if (!_isNew && !_isEdit) {
-                        <div class="">
-                          <input type="text" readonly class="form-control-plaintext" id="id_soggetto" [value]="client.soggetto.nome">
-                        </div>
-                      }
-                    </div>
-                  </div>
-                  <!-- ============================================================== -->
-                  <!-- ==========     ORGANIZZAZIONI + SOGGETTI     [end] =========== -->
-                  <!-- ============================================================== -->
-                  <!-- ============================================================== -->
-                  <!-- ==========     AMBIENTE + STATO (page-specific) ============== -->
-                  <!-- ============================================================== -->
-                  <div class="row ambiente stato">
-                    <div class="col-6">
-                      <!-- ambiente -->
-                      <div class="form-group">
-                        <label class="label-bold" for="ambiente">{{ 'APP.CLIENT.LABEL.Environment' | translate }}
-                          @if (_isNew || _isEdit) {
-                            <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'ambiente'"></span>
-                          }
-                        </label>
-                        @if (_isEdit) {
-                          <div class="">
-                            <select class="form-select" id="ambiente" formControlName="ambiente" [class.gl-field-error-outline]="_hasControlError('ambiente')" (change)="_changeAmbiente($event)">
-                              @for (ambiente of _ambienteEnum; track $index) {
-                                <option [value]="ambiente">{{ ambiente }}</option>
-                              }
-                            </select>
-                            @if (f['ambiente'].invalid && (f['ambiente'].dirty || f['ambiente'].touched)) {
-                              <p class="form-text text-danger">
-                                @if (f['ambiente'].errors && f['ambiente'].errors['required']) {
-                                  <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                }
-                              </p>
-                            }
-                            <ui-input-help field="ambiente" context="CLIENT"></ui-input-help>
-                          </div>
-                        }
-                        @if (!_isEdit) {
-                          <div class="">
-                            <input type="text" readonly class="form-control-plaintext" id="ambiente" [value]="client.ambiente">
-                          </div>
-                        }
-                      </div>
-                    </div>
-                    <div class="col-6">
-                      <!-- stato -->
-                      <div class="form-group">
-                        <label class="label-bold" for="stato">{{ 'APP.CLIENT.LABEL.Status' | translate }}
-                          @if (_isNew || _isEdit) {
-                            <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'stato'"></span>
-                          }
-                        </label>
-                        @if (_isEdit) {
-                          <div class="">
-                            <select class="form-select" id="stato" formControlName="stato" [class.gl-field-error-outline]="_hasControlError('stato')" (change)="_onChangeStato($event)">
-                              @for (stato of _statoEnum; track $index) {
-                                <!-- Label i18n. In `new` usa
-                                     `APP.WORKFLOW.STATUS.<enum>`
-                                     (es. "Nuovo"); in `edit` la label
-                                     semantica `APP.CLIENT.LABEL.*`
-                                     ("Non configurato"/"Configurato"),
-                                     coerente col dropdown "Cambia
-                                     stato" della topbar. -->
-                                <option [value]="stato">
-                                  @if (_isNew) {
-                                    {{ ('APP.WORKFLOW.STATUS.' + stato) | translate }}
-                                  } @else {
-                                    {{ (stato === _statoEnum[0] ? 'APP.CLIENT.LABEL.NotConfigured' : 'APP.CLIENT.LABEL.Configured') | translate }}
-                                  }
-                                </option>
-                              }
-                            </select>
-                            @if (f['stato'].invalid && (f['stato'].dirty || f['stato'].touched)) {
-                              <p class="form-text text-danger">
-                                @if (f['stato'].errors && f['stato'].errors['required']) {
-                                  <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                }
-                              </p>
-                            }
-                            <ui-input-help field="stato" context="CLIENT"></ui-input-help>
-                          </div>
-                        }
-                        @if (!_isEdit) {
-                          <div class="">
-                            @if (client) {
-                              <ui-data-type
-                                [data]="client"
-                                [elem]="{ field: 'stato', type: 'tag', options: 'status' }"
-                                [config]="config">
-                              </ui-data-type>
-                            }
-                          </div>
-                        }
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- ============================================================== -->
-                  <!-- ==========     CONFIGURAZIONE AUTH (shared component) ======== -->
-                  <!-- ============================================================== -->
-                  <!-- Issue #237 Fase 2.4: il form auth (nome, auth_type, credenziali,
-                       certificati, URL oauth, client_id, username, rate limiting,
-                       finalita, ip_fruizione, descrizione) e' delegato al componente
-                       condiviso `<app-client-auth-form>` (src/components/
-                       client-auth-form/). Le sezioni page-specific (organizzazione,
-                       soggetto, ambiente, stato) restano sopra. -->
-                  <app-client-auth-form
-                    [input]="clientAuthInput"
-                    [layout]="'vertical'"
-                    [secretLoading]="_secretLoading"
-                    [clientStato]="client?.stato"
-                    (changeAuthType)="_onAuthTypeChangeFromForm($event)"
-                    (changeTipoCertificato)="_onAuthTipoCertificatoChange($event)"
-                    (changeTipoCertificatoFirma)="_onAuthTipoCertificatoFirmaChange($event)"
-                    (descriptorChange)="_onAuthDescriptorChange($event)"
-                    (descriptorChangeFirma)="_onAuthDescriptorChangeFirma($event)"
-                    (downloadAllegato)="_downloadAllegato($event)"
-                    (requestSecret)="_fetchSecret()"
-                  ></app-client-auth-form>
-                </div>
-              </div>
-              @if (_isEdit) {
-                <div class="row-content-block footer-block">
-                  <button type="submit" class="gl-button btn btn-confirm gl-mr-2" [disabled]="_formGroup.invalid || _spin">
-                    {{ 'APP.BUTTON.Save' | translate }}
-                  </button>
-                  <button type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">
-                    {{ 'APP.BUTTON.Cancel' | translate }}
-                  </button>
-                </div>
-              }
-            </form>
-          </div>
-        </div>
+        </form>
       </div>
     }
 
   </section>
 </div>
-
-

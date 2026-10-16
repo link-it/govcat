@@ -34,6 +34,9 @@ import { HasPermissionDirective } from '@app/directives/has-permission/has-permi
 import { TrimOnBlurDirective } from '@app/directives/trim-on-blur/trim-on-blur.directive';
 import { OrganizzazioneUtentiListComponent } from './organizzazione-utenti-list/organizzazione-utenti-list.component';
 
+import { concat, Observable, of, Subject } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, map, switchMap, tap } from 'rxjs/operators';
+
 @Component({
   selector: 'app-organizzazione-details',
   templateUrl: 'organizzazione-details.component.html',
@@ -94,7 +97,9 @@ export class OrganizzazioneDetailsComponent implements OnInit, OnChanges, AfterC
 
   _imagePlaceHolder: string = './assets/images/logo-placeholder.png';
 
-  soggetti: any[] = [];
+  soggetti$: Observable<any[]> = of([]);
+  soggettiInput$ = new Subject<string>();
+  soggettiLoading: boolean = false;
   _hideSoggettoDropdown: boolean = true;
   _hideSoggettoInfo: boolean = true;
 
@@ -167,7 +172,6 @@ export class OrganizzazioneDetailsComponent implements OnInit, OnChanges, AfterC
 
   _loadAll() {
     this._loadOrganization();
-    this._loadSoggetti();
   }
 
   _hasControlError(name: string) {
@@ -323,7 +327,7 @@ export class OrganizzazioneDetailsComponent implements OnInit, OnChanges, AfterC
         this._isEdit = !this._closeEdit;
         this.organizzazione = response; // new Organizzazione({ ...response });
         this._organizzazione = new Organizzazione({ ...response });
-        this.id = this.organizzazione.id;
+        this.id = this.organizzazione.id_organizzazione;
         this.save.emit({ id: this.id, payment: response, update: true });
         this._spin = false;
       },
@@ -416,30 +420,32 @@ export class OrganizzazioneDetailsComponent implements OnInit, OnChanges, AfterC
     }
   }
 
-  _loadSoggetti() {
-    if (this.id) {
-      let aux: any = { params: this.utils._queryToHttpParams({ id_organizzazione: this.id }) };
-      this.apiService.getList('soggetti', aux).subscribe({
-        next: (response: any) => {
-          this.soggetti = response.content;
-
-          // const controls = this._formGroup.controls;
-          // if (this.soggetti.length == 1) {
-          //   this._hideSoggettoDropdown = true;
-          //   this._hideSoggettoInfo = true;
-          // } else {
-          //   this._hideSoggettoDropdown = false;
-          //   this._hideSoggettoInfo = false;
-          // }
-        },
-        error: (error: any) => {
-          Tools.OnError(error);
-        }
-      });
-    }
+  _initSoggettiSelect() {
+    const corrente = this.organizzazione?.soggetto_default;
+    this.soggetti$ = concat(
+      this._cercaSoggetti().pipe(
+        map((items: any[]) => (corrente && !items.some((item: any) => item.id_soggetto === corrente.id_soggetto)) ? [corrente, ...items] : items)
+      ),
+      this.soggettiInput$.pipe(
+        distinctUntilChanged(),
+        debounceTime(500),
+        tap(() => this.soggettiLoading = true),
+        switchMap((term: string) => this._cercaSoggetti(term).pipe(
+          tap(() => this.soggettiLoading = false)
+        ))
+      )
+    );
   }
 
-  _onChangeSoggetto(event: any) {
+  _cercaSoggetti(term: string | null = null): Observable<any[]> {
+    const params: any = { id_organizzazione: this.id };
+    if (term) {
+      params.q = term;
+    }
+    return this.apiService.getList('soggetti', { params: this.utils._queryToHttpParams(params) }).pipe(
+      map((response: any) => response?.content || []),
+      catchError(() => of([]))
+    );
   }
 
   _initBreadcrumb() {
@@ -457,6 +463,7 @@ export class OrganizzazioneDetailsComponent implements OnInit, OnChanges, AfterC
 
   _editOrganization() {
     this._initForm({ ...this._organizzazione });
+    this._initSoggettiSelect();
     this._isEdit = true;
     this._error = false;
   }

@@ -26,6 +26,28 @@
 	  browser, e l'export CSV dei servizi le riporta in due colonne in coda. Le URL sono un
 	  dato documentale del catalogo: non configurano alcun gateway su GovWay.
 
+2026-10-16  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Servizi: checkbox "Package" e visibilita' "componente" nascoste di default (nuovo flag
+	  AppConfig.Services.showPackage) finche' la gestione dei package non e' completa; un servizio gia'
+	  componente mantiene l'opzione.
+
+	Issue #389 - Organizzazioni: soggetto di default selezionabile con ng-select e ricerca lato server
+	  (prima solo la prima pagina di soggetti); dettaglio ridisegnato a sezioni come i domini.
+
+	Organizzazioni: lista utenti e dialog aggiungi/modifica utente allineati allo stile delle sezioni e
+	  del wizard; select native della dialog sostituite da ng-select, nomi accessibili alle select.
+
+	Gestione: dettagli di utenti, client, classi utente e soggetti ridisegnati a sezioni come domini e
+	  organizzazioni; select native sostituite da ng-select, anche nel form di autenticazione client.
+	  Client: soggetto selezionabile con ricerca lato server (prima solo la prima pagina). Ricerche di
+	  selezione senza testo che si accoda al valore selezionato.
+
+	Gestione: correzioni dalla scansione gov-a11y dei nuovi dettagli (titoli h1/h2, nome accessibile a
+	  dialog utenti, campo utente e input file, contrasto e area di click delle ng-select, intestazione
+	  colonna azioni). Client: tipi di autenticazione caricati anche a configurazione tardiva, senza duplicati.
+
 2026-10-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

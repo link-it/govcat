@@ -54,7 +54,8 @@
       "showReferents": true,
       "hideVersions": false,
       "wizardNewLayout": true,
-      "wizardWorkflowLayout": true
+      "wizardWorkflowLayout": true,
+      "showPackage": false
     },
 
     "Adesioni": {

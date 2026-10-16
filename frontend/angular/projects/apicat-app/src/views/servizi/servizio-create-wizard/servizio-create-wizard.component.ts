@@ -236,6 +236,9 @@ export class ServizioCreateWizardComponent implements OnInit {
     ];
     _currentStepCode: string = 'identita';
 
+    /** Checkbox "Package" e visibilita' "componente" nascoste di default (`AppConfig.Services.showPackage`) finche' la gestione dei package non e' completa. */
+    _showPackage: boolean = false;
+
     constructor(
         public route: ActivatedRoute,
         private readonly router: Router,
@@ -247,6 +250,7 @@ export class ServizioCreateWizardComponent implements OnInit {
         private readonly modalService: BsModalService
     ) {
         this.appConfig = this.configService.getConfiguration();
+        this._showPackage = this.appConfig?.AppConfig?.Services?.showPackage === true;
         this.apiUrl = this.appConfig.AppConfig.GOVAPI.HOST;
 
         const servizio = this.authenticationService._getConfigModule('servizio');
@@ -265,7 +269,7 @@ export class ServizioCreateWizardComponent implements OnInit {
     ngOnInit() {
         this.loadAnagrafiche();
 
-        if (this._isGestore()) {
+        if (this._isGestore() && this._showPackage) {
             this._tipiVisibilitaServizio = [...this._tipiVisibilitaServizio, { value: 'componente', label: 'componente' }];
         }
 
@@ -544,7 +548,7 @@ export class ServizioCreateWizardComponent implements OnInit {
         const _isPackage = this._formGroup.get('package')?.value || false;
         if (_isPackage) {
             this._tipiVisibilitaServizio = [..._origTipiVisibilitaServizio];
-        } else if (this._isGestore()) {
+        } else if (this._isGestore() && this._showPackage) {
             this._tipiVisibilitaServizio = [..._origTipiVisibilitaServizio, { value: 'componente', label: 'componente' }];
         }
     }

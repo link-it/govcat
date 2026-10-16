@@ -30,8 +30,6 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 import { YesnoDialogBsComponent } from '@linkit/components';
 
-import { LnkButtonComponent } from '@app/components/lnk-ui/button/button.component';
-
 import { AuthenticationService } from '@services/authentication.service';
 import { OpenAPIService } from '@services/openAPI.service';
 import { UtilService } from '@services/utils.service';
@@ -46,7 +44,7 @@ const UTENTI_SUB_PATH = 'utenti';
     templateUrl: './organizzazione-utenti-list.component.html',
     styleUrls: ['./organizzazione-utenti-list.component.scss'],
     standalone: true,
-    imports: [CommonModule, FormsModule, TranslateModule, TooltipModule, InfiniteScrollDirective, LnkButtonComponent]
+    imports: [CommonModule, FormsModule, TranslateModule, TooltipModule, InfiniteScrollDirective]
 })
 export class OrganizzazioneUtentiListComponent implements OnInit, OnChanges, OnDestroy {
 
@@ -259,6 +257,7 @@ export class OrganizzazioneUtentiListComponent implements OnInit, OnChanges, OnD
         };
         this._modalRef = this.modalService.show(UtenteOrganizzazioneDialogComponent, {
             ignoreBackdropClick: true,
+            ariaLabelledBy: 'utente-org-dialog-title',
             initialState
         });
         this._modalRef.content.onClose.subscribe((payload: { id_utente: string; ruolo_organizzazione: RuoloOrganizzazioneEnum | null; alreadyAssociated?: boolean } | null) => {
