@@ -92,6 +92,30 @@ describe('ServizioInfoFormComponent', () => {
     });
   });
 
+  describe('opzione di visibilita componente', () => {
+    const hasComponente = () => component._tipiVisibilitaServizio.some((t: any) => t.value === 'componente');
+
+    beforeEach(() => {
+      (component as any).authenticationService.isGestore = vi.fn().mockReturnValue(true);
+    });
+
+    it('should follow the package flag, keeping it for a service that already is a component', () => {
+      component._showPackage = false;
+      component.data = { visibilita: 'pubblico' };
+      (component as any)._buildVisibilitaOptions();
+      expect(hasComponente()).toBe(false);
+
+      component.data = { visibilita: 'componente' };
+      (component as any)._buildVisibilitaOptions();
+      expect(hasComponente()).toBe(true);
+
+      component._showPackage = true;
+      component.data = { visibilita: 'pubblico' };
+      (component as any)._buildVisibilitaOptions();
+      expect(hasComponente()).toBe(true);
+    });
+  });
+
   describe('immagine nel payload di modifica', () => {
     const _immagineDelBody = () => (component as any)._prepareBodyUpdateServizio({ immagine: component._formGroup?.get('immagine')?.value }).dati_generici.immagine;
 

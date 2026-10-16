@@ -137,6 +137,9 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
     richiedente: any = null;
     utenteUltimaModifica: any = null;
 
+    /** Checkbox "Package" e visibilita' "componente" nascoste di default (`AppConfig.Services.showPackage`) finche' la gestione dei package non e' completa. */
+    _showPackage: boolean = false;
+
     constructor(
         private readonly translate: TranslateService,
         private readonly configService: ConfigService,
@@ -145,6 +148,7 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
         private readonly authenticationService: AuthenticationService
     ) {
         this.apiUrl = this.configService.getConfiguration()?.AppConfig?.GOVAPI?.HOST || '';
+        this._showPackage = this.configService.getConfiguration()?.AppConfig?.Services?.showPackage === true;
         const servizio = this.authenticationService._getConfigModule('servizio');
         this.hasServiziApi = servizio?.api?.abilitato || false;
         this.hasGenerico = servizio?.generico?.abilitato || false;
@@ -182,6 +186,11 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
         return this.f['visibilita']?.value === type;
     }
 
+    /** Opzione di visibilita' "componente": solo con i package abilitati, o se il servizio e' gia' un componente. */
+    get _componenteSelezionabile(): boolean {
+        return this._showPackage || this.data?.visibilita === 'componente';
+    }
+
     get isComponente() {
         return this._formGroup.get('visibilita')?.value === 'componente' || false;
     }
@@ -210,7 +219,7 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
             { label: 'EreditataDominio', value: null },
             ...Tools.TipiVisibilitaServizio
         ];
-        if (this._isGestore()) {
+        if (this._isGestore() && this._componenteSelezionabile) {
             this._tipiVisibilitaServizio = [...this._tipiVisibilitaServizio, { value: 'componente', label: 'componente' }];
         }
     }

@@ -1910,11 +1910,23 @@ describe('ServizioDetailsComponent', () => {
       component._formGroup = new FormGroup({ package: new FormControl(false) });
     });
 
-    it('should add componente option when not package and isGestore', () => {
+    it('should add componente option when not package and isGestore, with packages enabled', () => {
       mockAuthenticationService.isGestore.mockReturnValue(true);
+      component._showPackage = true;
       component.updateTipiVisibilitaServizio();
       const hasComponente = component._tipiVisibilitaServizio.some((t: any) => t.value === 'componente');
       expect(hasComponente).toBe(true);
+    });
+
+    it('should hide componente with packages disabled, unless the service already is a component', () => {
+      mockAuthenticationService.isGestore.mockReturnValue(true);
+      component._showPackage = false;
+      component.data = { visibilita: 'pubblico' };
+      component.updateTipiVisibilitaServizio();
+      expect(component._tipiVisibilitaServizio.some((t: any) => t.value === 'componente')).toBe(false);
+      component.data = { visibilita: 'componente' };
+      component.updateTipiVisibilitaServizio();
+      expect(component._tipiVisibilitaServizio.some((t: any) => t.value === 'componente')).toBe(true);
     });
 
     it('should not add componente when package is true', () => {

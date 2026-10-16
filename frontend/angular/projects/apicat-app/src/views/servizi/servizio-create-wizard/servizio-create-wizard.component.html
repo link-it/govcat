@@ -355,18 +355,20 @@
             @if ((_updateData | mapper:_isGestoreMapper)) {
               <div class="row">
                 <div class="col-12">
-                  <div class="form-group package">
-                    @if (!isComponente) {
-                      <label class="label-bold" for="package">{{ 'APP.LABEL.package' | translate }}
-                        <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'package'"></span>
-                      </label>
-                    }
-                    <div class="gl-form-checkbox custom-control custom-checkbox">
-                      <input #chkPackage class="custom-control-input" type="checkbox" name="package" id="package" formControlName="package" (change)="_onChangePackage($event)">
-                      <label class="custom-control-label" aria-hidden="true" (click)="chkPackage.click()"></label>
+                  @if (_showPackage) {
+                    <div class="form-group package">
+                      @if (!isComponente) {
+                        <label class="label-bold" for="package">{{ 'APP.LABEL.package' | translate }}
+                          <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'package'"></span>
+                        </label>
+                      }
+                      <div class="gl-form-checkbox custom-control custom-checkbox">
+                        <input #chkPackage class="custom-control-input" type="checkbox" name="package" id="package" formControlName="package" (change)="_onChangePackage($event)">
+                        <label class="custom-control-label" aria-hidden="true" (click)="chkPackage.click()"></label>
+                      </div>
+                      <ui-input-help field="package" context="SERVICE"></ui-input-help>
                     </div>
-                    <ui-input-help field="package" context="SERVICE"></ui-input-help>
-                  </div>
+                  }
                   <div class="form-group skip_collaudo mt-2">
                     <label class="label-bold" for="skip_collaudo">{{ 'APP.LABEL.SkipCollaudo' | translate }}</label>
                     <div class="gl-form-checkbox custom-control custom-checkbox">
