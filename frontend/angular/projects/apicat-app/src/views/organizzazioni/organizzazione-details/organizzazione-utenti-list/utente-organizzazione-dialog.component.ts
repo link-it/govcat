@@ -24,8 +24,6 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BsModalRef } from 'ngx-bootstrap/modal';
 import { NgSelectModule } from '@ng-select/ng-select';
 
-import { LnkButtonComponent } from '@app/components/lnk-ui/button/button.component';
-
 import { Observable, Subject, concat, of } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, switchMap, tap } from 'rxjs/operators';
 
@@ -42,8 +40,9 @@ export type UtenteOrganizzazioneDialogSubMode = 'search' | 'new';
 @Component({
     selector: 'app-utente-organizzazione-dialog',
     templateUrl: './utente-organizzazione-dialog.component.html',
+    styleUrls: ['./utente-organizzazione-dialog.component.scss'],
     standalone: true,
-    imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule, NgSelectModule, LnkButtonComponent]
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule, NgSelectModule]
 })
 export class UtenteOrganizzazioneDialogComponent implements OnInit {
 

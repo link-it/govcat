@@ -8,6 +8,9 @@
 	Issue #389 - Organizzazioni: soggetto di default selezionabile con ng-select e ricerca lato server
 	  (prima solo la prima pagina di soggetti); dettaglio ridisegnato a sezioni come i domini.
 
+	Organizzazioni: lista utenti e dialog aggiungi/modifica utente allineati allo stile delle sezioni e
+	  del wizard; select native della dialog sostituite da ng-select, nomi accessibili alle select.
+
 2026-10-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
