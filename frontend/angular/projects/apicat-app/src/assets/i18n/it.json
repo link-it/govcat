@@ -2195,6 +2195,16 @@
 				"Referente": "Organizzazione referente",
 				"SoggettoDefault": "Soggetto di default"
 			},
+			"SECTION": {
+				"EditSubtitle": "Compila le sezioni dell'organizzazione.",
+				"ViewSubtitle": "Dati dell'organizzazione e ruolo nel catalogo.",
+				"GeneraleTag": "ORGANIZZAZIONE",
+				"GeneraleTitle": "Informazioni generali",
+				"GeneraleDesc": "Nome, descrizione e codici identificativi dell'organizzazione.",
+				"RuoloTag": "RUOLO",
+				"RuoloTitle": "Ruolo e soggetto di default",
+				"RuoloDesc": "Ruolo dell'organizzazione nel catalogo e soggetto usato di default nelle adesioni."
+			},
 			"TITLE": {
 				"Description": "Descrizione",
 				"GeneralInformations": "Informazioni generali",

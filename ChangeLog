@@ -5,6 +5,9 @@
 	  AppConfig.Services.showPackage) finche' la gestione dei package non e' completa; un servizio gia'
 	  componente mantiene l'opzione.
 
+	Issue #389 - Organizzazioni: soggetto di default selezionabile con ng-select e ricerca lato server
+	  (prima solo la prima pagina di soggetti); dettaglio ridisegnato a sezioni come i domini.
+
 2026-10-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

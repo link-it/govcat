@@ -2195,6 +2195,16 @@
 				"Referente": "Referent Organization",
 				"SoggettoDefault": "Default subject"
 			},
+			"SECTION": {
+				"EditSubtitle": "Fill in the sections of the organization.",
+				"ViewSubtitle": "Organization data and role in the catalogue.",
+				"GeneraleTag": "ORGANIZATION",
+				"GeneraleTitle": "General information",
+				"GeneraleDesc": "Name, description and identification codes of the organization.",
+				"RuoloTag": "ROLE",
+				"RuoloTitle": "Role and default subject",
+				"RuoloDesc": "Role of the organization in the catalogue and subject used by default in subscriptions."
+			},
 			"TITLE": {
 				"Description": "Description",
 				"GeneralInformations": "General informations",
