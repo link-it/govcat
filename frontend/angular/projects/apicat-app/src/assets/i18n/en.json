@@ -2480,6 +2480,19 @@
 			"View": "View"
 		},
 		"SERVICES": {
+			"ATTACHMENTS": {
+				"Title": "Attachments",
+				"ApiMenu": "API attachments",
+				"ShowAll": "Show all ({{count}})",
+				"ShowLess": "Show less",
+				"Download": "Download {{filename}}",
+				"VISIBILITY": {
+					"pubblico": "Public",
+					"adesione": "Subscribers only",
+					"servizio": "Service referents only",
+					"gestore": "Managers only"
+				}
+			},
 			"API_EROGATE_ADERENTE": {
 				"true": "With APIs provided by the subscriber",
 				"false": "Without APIs provided by the subscriber"

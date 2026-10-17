@@ -24,6 +24,9 @@
     "groupsExpanded": false,
     "groupsShowChildren": false,
     "groupsRequireMultiple": false,
+    "showAttachments": true,
+    "attachmentsPublicOnly": false,
+    "attachmentsMaxVisible": 5,
     "relayIconPosition": "title",
 
     "swagger" : {

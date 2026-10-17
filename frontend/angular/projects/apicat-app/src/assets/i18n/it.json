@@ -2480,6 +2480,19 @@
 			"View": "Vista"
 		},
 		"SERVICES": {
+			"ATTACHMENTS": {
+				"Title": "Allegati",
+				"ApiMenu": "Allegati dell'API",
+				"ShowAll": "Mostra tutti ({{count}})",
+				"ShowLess": "Mostra meno",
+				"Download": "Scarica {{filename}}",
+				"VISIBILITY": {
+					"pubblico": "Pubblico",
+					"adesione": "Solo aderenti",
+					"servizio": "Solo referenti del servizio",
+					"gestore": "Solo gestori"
+				}
+			},
 			"API_EROGATE_ADERENTE": {
 				"true": "Con API erogate dall'aderente",
 				"false": "Senza API erogate dall'aderente"

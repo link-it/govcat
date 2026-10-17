@@ -2236,4 +2236,102 @@ describe('ServizioViewComponent', () => {
       expect(initialState.hideCancel).toBe(true);
     });
   });
+
+  describe('Allegati in vetrina', () => {
+    const allegati = [
+      { uuid: 'a1', filename: 'Doc.pdf', data: '2026-09-12', visibilita: 'pubblico', url: '' },
+      { uuid: 'a2', filename: 'Manuale.odt', data: '2026-10-03', visibilita: 'adesione', url: '' }
+    ] as any[];
+
+    beforeEach(() => {
+      component.id = 10;
+      component._showAttachments = true;
+      component._showReferents = false;
+    });
+
+    it('should not load attachments when the option is disabled', () => {
+      component._showAttachments = false;
+      component._loadAllegati();
+      expect(mockApiService.getDetails).not.toHaveBeenCalled();
+      expect(component._showAllegatiBox).toBe(false);
+    });
+
+    it('should load the service attachments and show the sidebar box', () => {
+      mockApiService.getDetails.mockReturnValueOnce(of({ content: allegati }));
+      component._loadAllegati();
+      expect(mockUtilService._queryToHttpParams).toHaveBeenCalledWith({ size: 100 });
+      expect(mockApiService.getDetails).toHaveBeenCalledWith('servizi', 10, 'allegati', expect.anything());
+      expect(component._allegati.length).toBe(2);
+      expect(component._showAllegatiBox).toBe(true);
+      expect(component._showAside).toBe(true);
+    });
+
+    it('should request only public attachments when attachmentsPublicOnly is set', () => {
+      component._attachmentsPublicOnly = true;
+      mockApiService.getDetails.mockReturnValueOnce(of({ content: [] }));
+      component._loadAllegati();
+      expect(mockUtilService._queryToHttpParams).toHaveBeenCalledWith({ size: 100, visibilita_allegato: 'pubblico' });
+    });
+
+    it('should hide the box when loading fails', () => {
+      mockApiService.getDetails.mockReturnValueOnce(throwError(() => ({ status: 500 })));
+      component._loadAllegati();
+      expect(component._allegati).toEqual([]);
+      expect(component._showAllegatiBox).toBe(false);
+    });
+
+    it('should limit the visible attachments until expanded', () => {
+      component._attachmentsMaxVisible = 1;
+      component._allegati = allegati;
+      expect(component._allegatiVisibili.map((a) => a.uuid)).toEqual(['a1']);
+      component._allegatiExpanded = true;
+      expect(component._allegatiVisibili.length).toBe(2);
+    });
+
+    it('should load the API attachments only when the option is enabled', () => {
+      mockApiService.getDetails.mockReturnValueOnce(of({ content: allegati }));
+      component._loadApiAllegati('api1');
+      expect(mockApiService.getDetails).toHaveBeenCalledWith('api', 'api1', 'allegati', expect.anything());
+      expect(component._apiAllegati.length).toBe(2);
+
+      mockApiService.getDetails.mockClear();
+      component._showAttachments = false;
+      component._loadApiAllegati('api1');
+      expect(mockApiService.getDetails).not.toHaveBeenCalled();
+      expect(component._apiAllegati).toEqual([]);
+    });
+
+    it('should download a service or API attachment with its filename', () => {
+      const body = new Blob(['x']);
+      (globalThis as any).saveAs = vi.fn();
+      mockApiService.download.mockReturnValueOnce(of({ body }));
+      component._downloadAllegato(allegati[0]);
+      expect(mockApiService.download).toHaveBeenCalledWith('servizi', 10, 'allegati/a1/download');
+      expect((globalThis as any).saveAs).toHaveBeenCalledWith(body, 'Doc.pdf');
+      expect(component._allegatoDownloading).toBeNull();
+
+      mockApiService.download.mockReturnValueOnce(of({ body }));
+      component._downloadAllegato(allegati[1], 'api1');
+      expect(mockApiService.download).toHaveBeenCalledWith('api', 'api1', 'allegati/a2/download');
+      delete (globalThis as any).saveAs;
+    });
+
+    it('should reset the download state on error', () => {
+      const onError = vi.spyOn(Tools, 'OnError').mockImplementation(() => {});
+      mockApiService.download.mockReturnValueOnce(throwError(() => ({ status: 404 })));
+      component._downloadAllegato(allegati[0]);
+      expect(onError).toHaveBeenCalled();
+      expect(component._allegatoDownloading).toBeNull();
+    });
+
+    it('should map extension and restricted visibility', () => {
+      expect(component._allegatoEstensioneMapper({ filename: 'schema.xsd' } as any)).toBe('XSD');
+      expect(component._allegatoEstensioneMapper({ filename: 'x', estensione: '.pdf' } as any)).toBe('PDF');
+      expect(component._allegatoVisibilitaMapper(allegati[0])).toBe('APP.SERVICES.ATTACHMENTS.VISIBILITY.pubblico');
+      expect(component._allegatoVisibilitaMapper(allegati[1])).toBe('APP.SERVICES.ATTACHMENTS.VISIBILITY.adesione');
+      expect(component._allegatoVisibilitaMapper({ filename: 'x' } as any)).toBe('APP.SERVICES.ATTACHMENTS.VISIBILITY.pubblico');
+      expect(component._allegatoRiservatoMapper(allegati[0])).toBe(false);
+      expect(component._allegatoRiservatoMapper(allegati[1])).toBe(true);
+    });
+  });
 });

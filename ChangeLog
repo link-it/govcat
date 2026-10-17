@@ -5,6 +5,10 @@
 	  non piu' usato dai builder (sostituito da @angular/build), Angular 21.2.25, CLI 21.2.27,
 	  vitest 4.1.12, moment 2.31.0 e override aggiornati a versioni patchate.
 
+	Issue #385 - Allegati in vetrina: card nella sidebar con visibilita' e download, menu Allegati
+	  nella dialog dell'API; opzioni showAttachments, attachmentsPublicOnly e attachmentsMaxVisible
+	  in servizi-config.json. Su mobile la sidebar scende sotto documentazione e API.
+
 2026-10-16  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
