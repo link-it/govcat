@@ -1,3 +1,10 @@
+2026-10-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Fix vulnerabilita' dipendenze FE (npm audit da 31 a 0): rimosso @angular-devkit/build-angular
+	  non piu' usato dai builder (sostituito da @angular/build), Angular 21.2.25, CLI 21.2.27,
+	  vitest 4.1.12, moment 2.31.0 e override aggiornati a versioni patchate.
+
 2026-10-16  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
