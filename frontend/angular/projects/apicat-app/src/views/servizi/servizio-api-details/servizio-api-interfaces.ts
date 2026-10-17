@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { UrlInvocazioneAggiuntiva } from '../servizio-api-url-aggiuntive';
 
 export interface Profile {
     auth_type: string;
@@ -113,6 +112,23 @@ export interface ApiConfiguration {
     protocollo?: string;
     dati_erogazione: ApiErogationData;
     specifica?: ApiDefintionCreate | ApiDefinitionUpdateWithReference | ApiDefinitionUpdateWithFile | null;
+    /** Identificativi delle URL di invocazione associate, fra quelle censite in configurazione ('default' = predefinita). */
+    url_invocazione?: string[];
+}
+
+/** Voce di configurazione `servizio.api.url_invocazione.<ambiente>`. */
+export interface UrlInvocazioneConfigurata {
+    identificativo: string;
+    etichetta: string;
+    url_prefix?: string;
+    template_url?: string;
+}
+
+/** URL di invocazione gia` risolta per un ambiente. */
+export interface UrlInvocazioneAggiuntivaRisolta {
+    identificativo: string;
+    etichetta?: string;
+    url_invocazione: string;
 }
 
 export interface ApiCreateRequest {
@@ -126,7 +142,6 @@ export interface ApiCreateRequest {
     configurazione_produzione?: ApiConfiguration;
     proprieta_custom: ApiCustomProperty[];
     gruppi_auth_type: ApiAuthTypeGroup[];
-    url_invocazione_aggiuntive?: UrlInvocazioneAggiuntiva[];
 }
 
 export interface ApiUpdateRequest {
@@ -139,8 +154,7 @@ export interface ApiUpdateRequest {
         descrizione: string;
         codice_asset: string;
         url_invocazione?: string;
-        url_invocazione_aggiuntive?: UrlInvocazioneAggiuntiva[];
-    };
+        };
     dati_specifica?: {
         gruppi_auth_type: ApiAuthTypeGroup[];
     };
@@ -164,6 +178,7 @@ export interface ApiConfigurationRead {
     protocollo: string;
     dati_erogazione: ApiErogationData;
     specifica?: ApiDefintionRead;
+    url_invocazione?: string[];
 }
 
 export interface ApiReadDetails {
@@ -177,5 +192,4 @@ export interface ApiReadDetails {
     proprieta_custom: ApiCustomProperty[];
     ruolo: string;
     versione: number;
-    url_invocazione_aggiuntive?: UrlInvocazioneAggiuntiva[];
 }

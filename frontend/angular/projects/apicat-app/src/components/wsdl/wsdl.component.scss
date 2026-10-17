@@ -51,6 +51,35 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
       }
   }
 
+  .wsdl-url-title {
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .wsdl-url-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .wsdl-url {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .wsdl-url__content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .wsdl-url__copy {
+    flex-shrink: 0;
+  }
+
 
   .opblock-tag {
     color: #3b4151;

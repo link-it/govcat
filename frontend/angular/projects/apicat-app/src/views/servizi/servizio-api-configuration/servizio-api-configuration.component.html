@@ -389,6 +389,40 @@
                           </div>
                         </div>
                       }
+                      @if (_urlInvocazioneVisibile) {
+                        <div class="row">
+                          <div class="col-12">
+                            <div class="form-group url_invocazione">
+                              <label class="label-bold" for="url_invocazione">{{ 'APP.LABEL.UrlInvocazioneSelezione' | translate }}</label>
+                              @if (_isEdit) {
+                                <div class="input-group flex-nowrap">
+                                  <ng-select class="select-custom flex-grow-1"
+                                    [items]="_urlInvocazioneOpzioni"
+                                    bindValue="identificativo"
+                                    bindLabel="etichetta"
+                                    [multiple]="true"
+                                    [closeOnSelect]="false"
+                                    [searchable]="false"
+                                    [placeholder]="_urlInvocazioneOpzioni[0]?.etichetta || ''"
+                                    labelForId="url_invocazione"
+                                    formControlName="url_invocazione">
+                                  </ng-select>
+                                  @if (_canCopyFromTesting(f['url_invocazione'])) {
+                                    <button class="btn btn-default btn-md gl-button" type="button"
+                                      (click)="copyTestingValue('url_invocazione')" [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate" [attr.aria-label]="'APP.TOOLTIP.CopyTestingValue' | translate">
+                                      <span><i class="bi bi-copy" aria-hidden="true"></i></span>
+                                    </button>
+                                  }
+                                </div>
+                                <ui-input-help field="url_invocazione" context="API"></ui-input-help>
+                              } @else {
+                                <input type="text" readonly class="form-control-plaintext" id="url_invocazione"
+                                  [value]="_formGroup.get('url_invocazione')?.value | mapper:_etichetteUrlInvocazioneMapper">
+                              }
+                            </div>
+                          </div>
+                        </div>
+                      }
                       @if (servizioApi.ruolo === EROGATO_SOGGETTO_DOMINIO) {
                         <div class="row mt-5 api-custom-properties">
                           <div class="col-12">

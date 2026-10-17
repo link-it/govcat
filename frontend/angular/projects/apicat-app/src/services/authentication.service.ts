@@ -119,7 +119,6 @@ export const CLASSES: any = {
         { field: 'descrizione', view: true, edit: true, create: true, delete: true },
         { field: 'codice_asset', view: true, edit: true, create: true, delete: true },
         { field: 'allegati', view: true, edit: true, create: true, delete: true },
-        { field: 'url_invocazione_aggiuntive', view: true, edit: true, create: true, delete: true },
       ]
     },
     dati_erogazione: {

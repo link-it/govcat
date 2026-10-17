@@ -75,7 +75,8 @@ export const EROGATO_SOGGETTO_ADERENTE: string = 'erogato_soggetto_aderente';
 declare const saveAs: any;
 import * as _ from 'lodash';
 import { ApiConfigurationRead, ApiReadDetails, CustomProperty, CustomPropertyDefinition } from '../servizio-api-details/servizio-api-interfaces';
-import { UrlInvocazioneAggiuntivaRisolta } from '../servizio-api-url-aggiuntive';
+import { UrlInvocazioneAggiuntivaRisolta } from '../servizio-api-details/servizio-api-interfaces';
+import { etichettaUrlInvocazione, URL_INVOCAZIONE_DEFAULT } from '../servizio-api-url-invocazione';
 import { ambienteClasseDato } from '../servizio-proprieta-custom';
 
 export interface Organization {
@@ -259,7 +260,8 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     _urlInvocazione: string | null = null;
     _urlInvocazioneLoading: boolean = false;
     // Righe della barra: la principale (etichetta null) seguita dalle URL aggiuntive
-    _urlEsposizioneRighe: { etichetta: string | null; url: string }[] = [];
+    /** Righe della barra URL: `etichetta` configurata oppure `etichettaKey` i18n di ripiego. */
+    _urlEsposizioneRighe: { etichetta: string | null; etichettaKey?: string; url: string }[] = [];
     _urlCopiata: number | null = null;
 
     allowTryIt: boolean = false;
@@ -943,13 +945,22 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         this._urlInvocazione = null;
         this._urlEsposizioneRighe = [];
         this._urlInvocazioneLoading = true;
-        this.apiService.getDetails('api', idApi, `${this._environmentId}/url-invocazione`).subscribe({
-            next: (response: any) => {
-                this._urlInvocazione = response?.url_invocazione || null;
-                const _aggiuntive: UrlInvocazioneAggiuntivaRisolta[] = response?.url_invocazione_aggiuntive || [];
+        const _ambiente = this._environmentId;
+        // Il dettaglio serve solo all'etichetta della prima URL (la risposta non la riporta):
+        // se non e` disponibile resta l'etichetta generica.
+        forkJoin({
+            urls: this.apiService.getDetails('api', idApi, `${_ambiente}/url-invocazione`),
+            api: this.apiService.getDetails('api', idApi).pipe(catchError(() => of(null)))
+        }).subscribe({
+            next: ({ urls, api }: { urls: any; api: any }) => {
+                this._urlInvocazione = urls?.url_invocazione || null;
+                const _aggiuntive: UrlInvocazioneAggiuntivaRisolta[] = urls?.url_invocazione_aggiuntive || [];
                 this._urlEsposizioneRighe = this._urlInvocazione ? [
-                    { etichetta: null, url: this._urlInvocazione },
-                    ..._aggiuntive.filter((item) => !!item?.url_invocazione).map((item) => ({ etichetta: item.etichetta, url: item.url_invocazione }))
+                    { ...this._etichettaPrimaUrl(api, _ambiente), url: this._urlInvocazione },
+                    ..._aggiuntive.filter((item) => !!item?.url_invocazione).map((item) => ({
+                        etichetta: item.etichetta || etichettaUrlInvocazione(item.identificativo, _ambiente),
+                        url: item.url_invocazione
+                    }))
                 ] : [];
                 this._urlInvocazioneLoading = false;
             },
@@ -959,6 +970,22 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                 this._urlInvocazioneLoading = false;
             }
         });
+    }
+
+    /**
+     * Etichetta della prima URL: e` la prima associata all'ambiente, che puo` non essere la
+     * predefinita se questa e` stata deselezionata.
+     */
+    private _etichettaPrimaUrl(api: any, ambiente: 'collaudo' | 'produzione'): { etichetta: string | null; etichettaKey: string } {
+        if (!api) {
+            return { etichetta: null, etichettaKey: 'APP.LABEL.UrlEsposizione' };
+        }
+        const _configurazione = ambiente === 'collaudo' ? api.configurazione_collaudo : api.configurazione_produzione;
+        const _primo: string = _configurazione?.url_invocazione?.[0] || URL_INVOCAZIONE_DEFAULT;
+        return {
+            etichetta: etichettaUrlInvocazione(_primo, ambiente),
+            etichettaKey: _primo === URL_INVOCAZIONE_DEFAULT ? 'APP.LABEL.UrlPredefinita' : 'APP.LABEL.UrlEsposizione'
+        };
     }
 
     /**

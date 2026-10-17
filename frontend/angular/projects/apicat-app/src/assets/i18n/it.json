@@ -363,9 +363,6 @@
 			"ShowSecret": "Mostra secret",
 			"HideSecret": "Nascondi secret",
 			"AddApi": "Aggiungi API",
-			"AddUrl": "Aggiungi URL",
-			"MoveUp": "Sposta su",
-			"MoveDown": "Sposta giù",
 			"AddAttachment": "Aggiungi allegato",
 			"AddAuthentication": "Aggiungi Autenticazione",
 			"AddCategory": "Aggiungi categoria",
@@ -869,17 +866,6 @@
 			"ImpostatoDalDominio": "Impostato dal dominio",
 			"SkipToContent": "Salta al contenuto",
 			"UrlEsposizione": "Url di esposizione",
-			"ImpostazioniAvanzate": "Impostazioni avanzate",
-			"UrlInvocazioneAggiuntive": "URL di invocazione aggiuntive",
-			"UrlInvocazioneAggiuntive_sub": "Lo stesso servizio esposto su altri gateway. Il catalogo documenta le URL ma non configura il gateway su GovWay: se non è configurato, la URL non risponde.",
-			"UrlAggiuntivaEtichetta": "Etichetta",
-			"UrlAggiuntivaTemplate": "Template URL",
-			"UrlAggiuntivaTemplate_help": "Se vuoto si usa il path della URL principale",
-			"UrlAggiuntivaPrefissoCollaudo": "Prefisso collaudo",
-			"UrlAggiuntivaPrefissoProduzione": "Prefisso produzione",
-			"UrlAggiuntivaPrefisso_help": "Se vuoto si usa il prefisso della URL principale",
-			"UrlAggiuntivaRiga": "URL aggiuntiva {{n}}",
-			"UrlAggiuntiveNessuna": "Nessuna URL aggiuntiva: il servizio è esposto solo sulla URL principale.",
 			"RemoveFilter": "Rimuovi filtro",
 			"SelectRow": "Seleziona elemento",
 			"CreationDate": "Data creazione",
@@ -892,6 +878,9 @@
 			"Tipo": "Tipo",
 			"TipoProfilo": "Tipo profilo",
 			"Traccia": "Traccia",
+			"UrlEsposizioneElenco": "URL di esposizione",
+			"UrlInvocazioneSelezione": "URL di esposizione",
+			"UrlPredefinita": "URL predefinita",
 			"Visibility": "Visibilità",
 			"eMail": "E-mail",
 			"metodo_http": "Metodo HTTP",
@@ -1315,7 +1304,8 @@
 				"baseUrlCollaudo": "URL di erogazione per ambiente di collaudo",
 				"POPOVER": {
 					"nome": ""
-				}
+				},
+				"url_invocazione": "URL su cui l'API è esposta in questo ambiente, scelte fra quelle censite in configurazione. Il catalogo documenta le URL ma non configura il gateway su GovWay: se il gateway non è configurato, la URL non risponde."
 			},
 			"SERVICE": {
 				"descrizione": "È possibile inserire testo `markdown`.",
@@ -2143,9 +2133,7 @@
 				"Uuid": "Inserisci una UUID valida",
 				"MaxFileSize": "Dimensione massima consentita: {{size}} MB",
 				"OnlyImages": "Sono consentiti solo file di tipo: {{types}}",
-				"MaxDimensions": "Dimensioni massime consentite: {{width}}x{{height}} px",
-				"EtichettaDuplicata": "Etichetta già usata da un'altra URL",
-				"MaxUrlAggiuntive": "Al massimo {{max}} URL aggiuntive"
+				"MaxDimensions": "Dimensioni massime consentite: {{width}}x{{height}} px"
 			}
 		},
 		"NOTIFICATIONS": {
@@ -3425,6 +3413,7 @@
 				"Operation": "Operation",
 				"Pattern": "Pattern",
 				"SOAPAction": "SOAPAction",
+				"UrlInvocazioneElenco": "URL di esposizione",
 				"Version": "Versione",
 				"UrlInvocazione": "URL di esposizione"
 			}

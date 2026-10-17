@@ -2758,4 +2758,81 @@ describe('ServizioApiConfigurationComponent', () => {
       expect(component._hasPDNDConfigureddMapper('collaudo')).toBe(false);
     });
   });
+
+  describe('URL di invocazione per ambiente', () => {
+    const buildApi = (collaudo: any = {}, produzione: any = {}) => ({
+      nome: 'API1', versione: 1, ruolo: EROGATO_SOGGETTO_DOMINIO,
+      configurazione_collaudo: { protocollo: 'rest', dati_erogazione: { url: 'http://c' }, ...collaudo },
+      configurazione_produzione: { protocollo: 'rest', dati_erogazione: { url: 'http://p' }, ...produzione },
+      proprieta_custom: [], gruppi_auth_type: []
+    });
+
+    const load = (environmentId: 'collaudo' | 'produzione', api: any) => {
+      component.rawData = JSON.stringify(api);
+      component.environmentId = environmentId;
+      component.service = { stato: 'bozza' };
+      (component as any).mapApiDetailsToFormValues();
+    };
+
+    beforeEach(() => {
+      (Tools.Configurazione as any).servizio.api.url_invocazione = {
+        etichetta_default: 'Rete interna',
+        collaudo: [{ identificativo: 'gw_test', etichetta: 'Gateway di test' }, { identificativo: 'gw_esterno', etichetta: 'Rete internet' }],
+        produzione: [{ identificativo: 'gw_esterno', etichetta: 'Rete internet' }]
+      };
+    });
+
+    it('should hide the selector when the environment has no configured URLs', () => {
+      delete (Tools.Configurazione as any).servizio.api.url_invocazione;
+      load('produzione', buildApi());
+      expect(component._urlInvocazioneVisibile).toBe(false);
+      expect(component._urlInvocazioneOpzioni).toEqual([]);
+    });
+
+    it('should offer the default URL first and start from the saved selection', () => {
+      load('produzione', buildApi({}, { url_invocazione: ['gw_esterno'] }));
+      expect(component._urlInvocazioneVisibile).toBe(true);
+      expect(component._urlInvocazioneOpzioni).toEqual([
+        { identificativo: 'default', etichetta: 'Rete interna' },
+        { identificativo: 'gw_esterno', etichetta: 'Rete internet' }
+      ]);
+      expect(component._formGroup.get('url_invocazione')?.value).toEqual(['gw_esterno']);
+    });
+
+    it('should start from the default URL when nothing is selected', () => {
+      load('collaudo', buildApi());
+      expect(component._formGroup.get('url_invocazione')?.value).toEqual(['default']);
+      expect(component._etichetteUrlInvocazioneMapper(['default', 'gw_test'])).toBe('Rete interna, Gateway di test');
+    });
+
+    it('should disable the selector when the environment section is not editable', () => {
+      mockAuthenticationService.canEditField.mockReturnValue(false);
+      load('produzione', buildApi());
+      expect(component._formGroup.get('url_invocazione')?.disabled).toBe(true);
+      mockAuthenticationService.canEditField.mockReturnValue(true);
+    });
+
+    it('should send the full selection only when editable', () => {
+      load('produzione', buildApi());
+      component.id = 10 as any;
+      component._hasSpecifica = false;
+      component._apiProprietaCustomGrouped = null;
+      vi.spyOn(component as any, '_loadServizioApi').mockImplementation(() => {});
+      mockApiService.putElement.mockReturnValue(of({}));
+
+      component._formGroup.get('url_invocazione')?.setValue(['gw_esterno', 'default']);
+      component._onSaveApi({});
+      expect(mockApiService.putElement.mock.calls[0][2].configurazione_produzione.url_invocazione).toEqual(['gw_esterno', 'default']);
+
+      component._formGroup.get('url_invocazione')?.disable();
+      component._onSaveApi({});
+      expect(mockApiService.putElement.mock.calls[1][2].configurazione_produzione).not.toHaveProperty('url_invocazione');
+    });
+
+    it('should copy from testing only the identifiers configured for production', () => {
+      load('produzione', buildApi({ url_invocazione: ['gw_test', 'gw_esterno', 'default'] }));
+      component.copyTestingValue('url_invocazione');
+      expect(component._formGroup.get('url_invocazione')?.value).toEqual(['gw_esterno', 'default']);
+    });
+  });
 });

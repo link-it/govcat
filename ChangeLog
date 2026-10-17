@@ -1,3 +1,11 @@
+2026-10-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 351: URL di esposizione multiple prese da configurazione. Nel pannello Configura di
+	  collaudo e produzione si selezionano le URL censite per l'ambiente (più la predefinita);
+	  la barra della scheda servizio e il viewer WSDL elencano tutte le URL associate con Copia.
+	  Rimosso l'editor delle URL per-API.
+
 2026-10-16  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

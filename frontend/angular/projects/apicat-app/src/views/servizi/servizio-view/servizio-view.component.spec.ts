@@ -226,30 +226,61 @@ describe('ServizioViewComponent', () => {
     expect(component.isAnonymousMapper()).toBe(true);
   });
 
-  it('should show the main exposure URL followed by the additional ones', () => {
-    mockApiService.getDetails.mockReturnValueOnce(of({
+  describe('_loadUrlInvocazione', () => {
+    const _urls = {
       url_invocazione: 'https://int/api/v1',
-      url_invocazione_aggiuntive: [{ etichetta: 'Internet', url_invocazione: 'https://ext/api/v1' }]
-    }));
-    component._loadUrlInvocazione('a1');
-    expect(component._urlEsposizioneRighe).toEqual([
-      { etichetta: null, url: 'https://int/api/v1' },
-      { etichetta: 'Internet', url: 'https://ext/api/v1' }
-    ]);
-    expect(component._showUrlInvocazioneBar).toBe(true);
+      url_invocazione_aggiuntive: [{ identificativo: 'gw_esterno', etichetta: 'Rete internet', url_invocazione: 'https://ext/api/v1' }]
+    };
+    const _mockDetails = (api: any) => {
+      mockApiService.getDetails.mockImplementation((model: string, id: string, path?: string) =>
+        path ? of(_urls) : (api instanceof Error ? throwError(() => api) : of(api)));
+    };
 
-    component.copyUrlInvocazione(1);
-    expect(mockClipboard.copy).toHaveBeenCalledWith('https://ext/api/v1');
-    expect(component._urlCopiata).toBe(1);
-    vi.advanceTimersByTime(3000);
-    expect(component._urlCopiata).toBeNull();
-  });
+    beforeEach(() => {
+      Tools.Configurazione = {
+        servizio: { api: { url_invocazione: {
+          etichetta_default: 'Rete interna',
+          collaudo: [{ identificativo: 'gw_esterno', etichetta: 'Rete internet' }]
+        } } }
+      } as any;
+    });
 
-  it('should hide the exposure URL bar when the main URL is missing', () => {
-    mockApiService.getDetails.mockReturnValueOnce(of({ url_invocazione_aggiuntive: [{ etichetta: 'Internet', url_invocazione: 'https://ext' }] }));
-    component._loadUrlInvocazione('a1');
-    expect(component._urlEsposizioneRighe).toEqual([]);
-    expect(component._showUrlInvocazioneBar).toBe(false);
+    it('should label the default URL first, followed by the additional ones', () => {
+      _mockDetails({ id_api: 'a1', configurazione_collaudo: {} });
+      component._loadUrlInvocazione('a1');
+      expect(component._urlEsposizioneRighe).toEqual([
+        { etichetta: 'Rete interna', etichettaKey: 'APP.LABEL.UrlPredefinita', url: 'https://int/api/v1' },
+        { etichetta: 'Rete internet', url: 'https://ext/api/v1' }
+      ]);
+      expect(component._showUrlInvocazioneBar).toBe(true);
+
+      component.copyUrlInvocazione(1);
+      expect(mockClipboard.copy).toHaveBeenCalledWith('https://ext/api/v1');
+      expect(component._urlCopiata).toBe(1);
+      vi.advanceTimersByTime(3000);
+      expect(component._urlCopiata).toBeNull();
+    });
+
+    it('should label the first URL with its gateway when the default one is not first', () => {
+      _mockDetails({ id_api: 'a1', configurazione_collaudo: { url_invocazione: ['gw_esterno', 'default'] } });
+      component._loadUrlInvocazione('a1');
+      expect(component._urlEsposizioneRighe[0]).toEqual({ etichetta: 'Rete internet', etichettaKey: 'APP.LABEL.UrlEsposizione', url: 'https://int/api/v1' });
+    });
+
+    it('should keep a generic label for the first URL when the API detail is not available', () => {
+      _mockDetails(new Error('forbidden'));
+      component._loadUrlInvocazione('a1');
+      expect(component._urlEsposizioneRighe[0]).toEqual({ etichetta: null, etichettaKey: 'APP.LABEL.UrlEsposizione', url: 'https://int/api/v1' });
+      expect(component._urlEsposizioneRighe.length).toBe(2);
+    });
+
+    it('should hide the exposure URL bar when the main URL is missing', () => {
+      mockApiService.getDetails.mockImplementation((model: string, id: string, path?: string) =>
+        of(path ? { url_invocazione_aggiuntive: [{ identificativo: 'gw_esterno', etichetta: 'Internet', url_invocazione: 'https://ext' }] } : {}));
+      component._loadUrlInvocazione('a1');
+      expect(component._urlEsposizioneRighe).toEqual([]);
+      expect(component._showUrlInvocazioneBar).toBe(false);
+    });
   });
 
   it('should copy to clipboard on onResultCopyClipboard', () => {

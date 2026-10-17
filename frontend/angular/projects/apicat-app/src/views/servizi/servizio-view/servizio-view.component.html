@@ -581,8 +581,11 @@
            Per SOAP il viewer wsdl nasconde il proprio blocco URL (hideUrlInvocazione). -->
       @if (_showUrlInvocazioneBar) {
         <div class="url-esposizione-list">
+          @if (_urlEsposizioneRighe.length > 1) {
+            <div class="url-esposizione-list__title">{{ 'APP.LABEL.UrlEsposizioneElenco' | translate }}</div>
+          }
           @for (riga of _urlEsposizioneRighe; track $index; let i = $index) {
-            @let _etichetta = riga.etichetta || ('APP.LABEL.UrlEsposizione' | translate);
+            @let _etichetta = riga.etichetta || ((riga.etichettaKey || 'APP.LABEL.UrlEsposizione') | translate);
             <div class="url-esposizione">
               <span class="url-esposizione__icon" aria-hidden="true"><i class="bi bi-link-45deg"></i></span>
               <div class="url-esposizione__content">

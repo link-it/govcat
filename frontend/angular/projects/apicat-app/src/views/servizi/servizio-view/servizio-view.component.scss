@@ -33,6 +33,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     gap: 8px;
     margin-bottom: 20px;
 }
+.url-esposizione-list__title {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-3, #57738a);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
 .url-esposizione {
     display: flex;
     align-items: center;

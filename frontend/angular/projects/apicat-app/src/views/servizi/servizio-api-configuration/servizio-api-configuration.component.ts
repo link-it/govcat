@@ -26,6 +26,7 @@ import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asteri
 import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
 import { ServizioDisclaimer, disclaimersDelleProprieta, loadServizioDisclaimers } from '../servizio-disclaimers';
 import { ambienteClasseDato, filtraGruppiPerRuoli, proprietaVisibilePerRuoli } from '../servizio-proprieta-custom';
+import { etichettaUrlPredefinita, urlInvocazioneConfigurate, URL_INVOCAZIONE_DEFAULT } from '../servizio-api-url-invocazione';
 import { ServizioDisclaimerBannerComponent } from '../components/servizio-disclaimer-banner/servizio-disclaimer-banner.component';
 import { MarkdownModule } from 'ngx-markdown';
 import { DisablePermissionDirective } from '@app/directives/disable-permission/disable-permission.directive';
@@ -59,6 +60,7 @@ interface ApiForm {
   versione_gateway: FormControl<number | null>;
   url: FormControl<string>;
   protocollo: FormControl<string | null>;
+  url_invocazione: FormControl<string[]>;
   proprieta_custom: UntypedFormGroup;
   descrittore: UntypedFormControl;
 }
@@ -152,9 +154,15 @@ export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, Aft
     ]),
     url: new FormControl('', { nonNullable: true }),
     protocollo: new FormControl<string | null>(null, [Validators.required]),
+    url_invocazione: new FormControl<string[]>([], { nonNullable: true }),
     proprieta_custom: new UntypedFormGroup({}),
     descrittore: this._descrittoreCtrl
   });
+
+  /** URL di invocazione selezionabili per l'ambiente: la predefinita in testa, poi quelle censite in configurazione. */
+  _urlInvocazioneOpzioni: { identificativo: string; etichetta: string }[] = [];
+  /** Selezione della specifica di collaudo, per "Copia da collaudo". */
+  private _urlInvocazioneCollaudo: string[] = [];
 
   viewValues: ApiFormValues = {
     nome_gateway: '',
@@ -303,6 +311,13 @@ export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, Aft
       return;
     }
 
+    if (field === 'url_invocazione') {
+      // Solo gli identificativi censiti anche per l'ambiente di destinazione
+      const _disponibili = this._urlInvocazioneOpzioni.map((o) => o.identificativo);
+      control.setValue(this._urlInvocazioneCollaudo.filter((id) => _disponibili.includes(id)));
+      return;
+    }
+
     const _value = this.getTestingValue(field);
     control.setValue((field === 'protocollo') ? (_value || null) : _value);
     if (field === 'protocollo') {
@@ -366,6 +381,10 @@ export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, Aft
     this.copyTestingValue('versione_gateway', false);
     this.copyTestingValue('url', false);
     this.copyTestingValue('protocollo', false);
+    // La sola URL predefinita equivale a nessuna scelta: si copia la selezione del collaudo
+    if (this._urlInvocazioneVisibile && this._isSoloUrlPredefinita(this._formGroup.get('url_invocazione')?.value)) {
+      this.copyTestingValue('url_invocazione');
+    }
 
     this.copySepcificationValue(false);
 
@@ -403,6 +422,38 @@ export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, Aft
   }
 
   // Stato e grant come argomenti del pipe: il risultato si aggiorna quando arrivano i dati del servizio
+  /** Selettore visibile solo se la configurazione censisce URL per l'ambiente. */
+  get _urlInvocazioneVisibile(): boolean {
+    return this._urlInvocazioneOpzioni.length > 1;
+  }
+
+  private _initUrlInvocazioneOpzioni() {
+    const _ambiente = this.environmentId === 'produzione' ? 'produzione' : 'collaudo';
+    const _configurate = urlInvocazioneConfigurate(_ambiente);
+    this._urlInvocazioneOpzioni = _configurate.length ? [
+      { identificativo: URL_INVOCAZIONE_DEFAULT, etichetta: etichettaUrlPredefinita() || this.translate.instant('APP.LABEL.UrlPredefinita') },
+      ..._configurate.map((item) => ({ identificativo: item.identificativo, etichetta: item.etichetta || item.identificativo }))
+    ] : [];
+  }
+
+  /** Selezione salvata (assente = sola URL predefinita), limitata alle voci censite. */
+  private _selezioneUrlInvocazione(configuration: any): string[] {
+    const _salvata: string[] = configuration?.url_invocazione?.length ? configuration.url_invocazione : [URL_INVOCAZIONE_DEFAULT];
+    if (!this._urlInvocazioneOpzioni.length) { return _salvata; }
+    const _disponibili = this._urlInvocazioneOpzioni.map((o) => o.identificativo);
+    return _salvata.filter((id) => _disponibili.includes(id));
+  }
+
+  private _isSoloUrlPredefinita(valore: string[] | null | undefined): boolean {
+    return !valore?.length || (valore.length === 1 && valore[0] === URL_INVOCAZIONE_DEFAULT);
+  }
+
+  /** Etichette della selezione corrente, per la sola lettura. */
+  _etichetteUrlInvocazioneMapper = (selezione: string[] | null | undefined): string => {
+    const _ids = selezione?.length ? selezione : [URL_INVOCAZIONE_DEFAULT];
+    return _ids.map((id) => this._urlInvocazioneOpzioni.find((o) => o.identificativo === id)?.etichetta || id).join(', ');
+  }
+
   _canEditFieldMapper = (field: string, stato: string = this.service?.stato, grant: Grant | null = this._grant): boolean => {
     return this.authenticationService.canEditField('servizio', 'api', stato || '', field, grant?.ruoli);
   }
@@ -523,14 +574,24 @@ export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, Aft
       protocollo: configuration?.protocollo || '',
       protocollo_dettaglio: configuration?.protocollo_dettaglio || ''
     };
+    this._initUrlInvocazioneOpzioni();
+    this._urlInvocazioneCollaudo = this._selezioneUrlInvocazione(testingConfiguration);
     this._formGroup.setValue({
       nome_gateway: configuration?.dati_erogazione?.nome_gateway || '',
       versione_gateway: configuration?.dati_erogazione?.versione_gateway || null,
       url: configuration?.dati_erogazione?.url || '',
       protocollo: configuration?.protocollo || null,
+      url_invocazione: this._selezioneUrlInvocazione(configuration),
       proprieta_custom: [],
       descrittore: null
     });
+    // Modificabile secondo i permessi della sezione dell'ambiente (non riservato al gestore)
+    const _urlInvocazioneCtrl = this._formGroup.get('url_invocazione');
+    if (this._canEditFieldMapper(this.environmentId)) {
+      _urlInvocazioneCtrl?.enable({ emitEvent: false });
+    } else {
+      _urlInvocazioneCtrl?.disable({ emitEvent: false });
+    }
 
     if (this.environmentId === 'collaudo') {
       this._hasSpecifica = configuration?.specifica || !configuration?.protocollo ? true : false;
@@ -820,6 +881,12 @@ export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, Aft
       configuration.specifica = specificaReference;
     } else {
       configuration.specifica = null;
+    }
+
+    // Lista completa se modificabile (vuota = sola URL predefinita); omessa altrimenti (selezione invariata)
+    const _urlInvocazioneCtrl = this._formGroup.get('url_invocazione');
+    if (this._urlInvocazioneVisibile && _urlInvocazioneCtrl?.enabled) {
+      configuration.url_invocazione = [...(_urlInvocazioneCtrl.value || [])];
     }
 
     if (this.environmentId === 'collaudo') {
