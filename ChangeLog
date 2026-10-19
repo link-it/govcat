@@ -14,6 +14,9 @@
 	  soggetto o dominio che non lo consentono, servizio fuori bozza, adesioni che saltano il collaudo),
 	  in creazione, nel wizard e nella form classica; con dominio unico vale quello di default.
 
+	Wizard servizi con salta collaudo: dopo la creazione il servizio si apre sulla fase Produzione
+	  invece che su Collaudo; una fase saltata richiesta nell'URL viene ignorata.
+
 2026-10-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

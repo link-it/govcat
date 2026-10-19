@@ -378,24 +378,24 @@ export class ServizioWorkflowWizardComponent implements OnInit {
 
     /** Imposta la fase visualizzata su quella corrente del workflow. */
     private _initSelectedFase() {
-        // `?fase=api` (dopo la creazione): la gestione API e` stata spostata nel
-        // sub-step "In compilazione" del Collaudo, quindi seleziono la fase collaudo.
+        const _saltate = this.getSkippedFasiCodes();
+        // `?fase=api` (dopo la creazione): la gestione API e` nel sub-step "In compilazione"
+        // del Collaudo, o della Produzione se il collaudo e` saltato.
         if (this._requestedFase === 'api') {
             this._requestedFase = null;
-            this._selectedFase = 'collaudo';
+            this._selectedFase = _saltate.includes('collaudo') ? 'produzione' : 'collaudo';
             return;
         }
-        // Fase richiesta esplicitamente (es. da un link diretto).
-        if (this._requestedFase && this.stepWizard.some((s) => s.code === this._requestedFase)) {
+        // Fase richiesta esplicitamente (es. da un link diretto), se non saltata.
+        if (this._requestedFase && !_saltate.includes(this._requestedFase) && this.stepWizard.some((s) => s.code === this._requestedFase)) {
             this._selectedFase = this._requestedFase;
             this._requestedFase = null;
             return;
         }
         const stato = this.data?.stato;
-        const skipped = this.getSkippedFasiCodes();
-        let fase = this.stepWizard.find((s) => s.stati?.includes(stato) && !skipped.includes(s.code));
+        let fase = this.stepWizard.find((s) => s.stati?.includes(stato) && !_saltate.includes(s.code));
         // Collaudo saltato: la compilazione (bozza) avviene nella fase Produzione.
-        if (!fase && skipped.includes('collaudo') && stato === 'bozza') {
+        if (!fase && _saltate.includes('collaudo') && stato === 'bozza') {
             fase = this.stepWizard.find((s) => s.code === 'produzione');
         }
         this._selectedFase = fase ? fase.code : (this.stepWizard[0]?.code || null);
