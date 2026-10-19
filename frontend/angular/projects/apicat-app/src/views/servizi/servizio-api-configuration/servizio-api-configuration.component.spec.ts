@@ -2829,6 +2829,34 @@ describe('ServizioApiConfigurationComponent', () => {
       expect(mockApiService.putElement.mock.calls[1][2].configurazione_produzione).not.toHaveProperty('url_invocazione');
     });
 
+    it('should fall back to the default URL when the selection becomes empty', () => {
+      load('produzione', buildApi({}, { url_invocazione: ['gw_esterno'] }));
+      const ctrl = component._formGroup.get('url_invocazione');
+      ctrl?.setValue([]);
+      expect(ctrl?.value).toEqual(['default']);
+
+      ctrl?.setValue(['default', 'gw_esterno']);
+      ctrl?.setValue(['gw_esterno']);
+      expect(ctrl?.value).toEqual(['gw_esterno']);
+    });
+
+    it('should start from the default URL when the saved URLs are no longer configured', () => {
+      load('produzione', buildApi({}, { url_invocazione: ['gw_dismesso'] }));
+      expect(component._formGroup.get('url_invocazione')?.value).toEqual(['default']);
+    });
+
+    it('should allow removing the default URL only when another URL is selected', () => {
+      expect(component._urlInvocazioneRimovibileMapper('default', ['default'])).toBe(false);
+      expect(component._urlInvocazioneRimovibileMapper('default', ['default', 'gw_esterno'])).toBe(true);
+      expect(component._urlInvocazioneRimovibileMapper('gw_esterno', ['gw_esterno'])).toBe(true);
+    });
+
+    it('should fall back to the default URL when copying a testing selection not configured for production', () => {
+      load('produzione', buildApi({ url_invocazione: ['gw_test'] }));
+      component.copyTestingValue('url_invocazione');
+      expect(component._formGroup.get('url_invocazione')?.value).toEqual(['default']);
+    });
+
     it('should copy from testing only the identifiers configured for production', () => {
       load('produzione', buildApi({ url_invocazione: ['gw_test', 'gw_esterno', 'default'] }));
       component.copyTestingValue('url_invocazione');

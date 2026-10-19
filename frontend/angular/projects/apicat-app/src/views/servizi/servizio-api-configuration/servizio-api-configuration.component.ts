@@ -242,6 +242,8 @@ export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, Aft
         this._initBreadcrumb();
       }
     });
+
+    this._mantieniUrlInvocazioneNonVuota();
   }
 
   @HostListener('window:resize') _onResize() {
@@ -314,7 +316,7 @@ export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, Aft
     if (field === 'url_invocazione') {
       // Solo gli identificativi censiti anche per l'ambiente di destinazione
       const _disponibili = this._urlInvocazioneOpzioni.map((o) => o.identificativo);
-      control.setValue(this._urlInvocazioneCollaudo.filter((id) => _disponibili.includes(id)));
+      control.setValue(this._selezioneNonVuota(this._urlInvocazioneCollaudo.filter((id) => _disponibili.includes(id))));
       return;
     }
 
@@ -441,7 +443,24 @@ export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, Aft
     const _salvata: string[] = configuration?.url_invocazione?.length ? configuration.url_invocazione : [URL_INVOCAZIONE_DEFAULT];
     if (!this._urlInvocazioneOpzioni.length) { return _salvata; }
     const _disponibili = this._urlInvocazioneOpzioni.map((o) => o.identificativo);
-    return _salvata.filter((id) => _disponibili.includes(id));
+    return this._selezioneNonVuota(_salvata.filter((id) => _disponibili.includes(id)));
+  }
+
+  /** La selezione non resta mai vuota: senza altre URL vale la predefinita. */
+  private _selezioneNonVuota(ids: string[] | null | undefined): string[] {
+    return ids?.length ? ids : [URL_INVOCAZIONE_DEFAULT];
+  }
+
+  private _mantieniUrlInvocazioneNonVuota() {
+    const _ctrl = this._formGroup.get('url_invocazione');
+    _ctrl?.valueChanges.subscribe((valore: string[] | null) => {
+      if (!valore?.length) { _ctrl.setValue([URL_INVOCAZIONE_DEFAULT], { emitEvent: false }); }
+    });
+  }
+
+  /** La predefinita non si rimuove quando e` l'unica selezionata. */
+  _urlInvocazioneRimovibileMapper = (identificativo: string, selezione: string[] | null | undefined): boolean => {
+    return !(identificativo === URL_INVOCAZIONE_DEFAULT && this._isSoloUrlPredefinita(selezione));
   }
 
   private _isSoloUrlPredefinita(valore: string[] | null | undefined): boolean {

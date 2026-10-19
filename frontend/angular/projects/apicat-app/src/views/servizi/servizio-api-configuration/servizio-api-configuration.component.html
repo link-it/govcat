@@ -403,9 +403,16 @@
                                     [multiple]="true"
                                     [closeOnSelect]="false"
                                     [searchable]="false"
+                                    [clearable]="false"
                                     [placeholder]="_urlInvocazioneOpzioni[0]?.etichetta || ''"
                                     labelForId="url_invocazione"
                                     formControlName="url_invocazione">
+                                    <ng-template ng-label-tmp let-item="item" let-clear="clear">
+                                      @if (item.identificativo | mapper:_urlInvocazioneRimovibileMapper:_formGroup.get('url_invocazione')?.value) {
+                                        <span class="ng-value-icon left" (click)="clear(item)" aria-hidden="true">×</span>
+                                      }
+                                      <span class="ng-value-label">{{ item.etichetta }}</span>
+                                    </ng-template>
                                   </ng-select>
                                   @if (_canCopyFromTesting(f['url_invocazione'])) {
                                     <button class="btn btn-default btn-md gl-button" type="button"
