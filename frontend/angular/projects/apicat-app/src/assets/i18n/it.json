@@ -655,6 +655,7 @@
 				"Public": "pubblico",
 				"ReferentSubject": "Soggetto referente",
 				"Reserved": "riservato",
+				"SkipCollaudo": "Consenti di saltare il collaudo",
 				"Tag": "Tag",
 				"UrlInvocazione": "Url invocazione",
 				"UrlPrefixCollaudo": "Url prefix collaudo",
@@ -2468,6 +2469,19 @@
 			"View": "Vista"
 		},
 		"SERVICES": {
+			"ATTACHMENTS": {
+				"Title": "Allegati",
+				"ApiMenu": "Allegati dell'API",
+				"ShowAll": "Mostra tutti ({{count}})",
+				"ShowLess": "Mostra meno",
+				"Download": "Scarica {{filename}}",
+				"VISIBILITY": {
+					"pubblico": "Pubblico",
+					"adesione": "Solo aderenti",
+					"servizio": "Solo referenti del servizio",
+					"gestore": "Solo gestori"
+				}
+			},
 			"API_EROGATE_ADERENTE": {
 				"true": "Con API erogate dall'aderente",
 				"false": "Senza API erogate dall'aderente"
@@ -2732,7 +2746,7 @@
 				"Organization": "Organizzazione",
 				"OrganizationName": "Nome dell'Organizzazione",
 				"Referente": "Referente",
-				"SkipCollaudo": "Salta collaudo",
+				"SkipCollaudo": "Consenti di saltare il collaudo",
 				"UrlInvocazione": "Url invocazione",
 				"UrlPrefixCollaudo": "Url prefix collaudo",
 				"UrlPrefixProduzione": "Url prefix produzione"

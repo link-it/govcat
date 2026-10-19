@@ -205,7 +205,7 @@
       <div class="lnk-phase-section-body">
 
         <!-- Visibilità / Classi -->
-        @if ((_updateData | mapper:_isGestoreMapper)) {
+        @if ((_updateData | mapper:_canCreateServizioMapper)) {
           <div class="row visibilita">
             <div class="col-6">
               <div class="form-group">
@@ -252,11 +252,11 @@
           </div>
         }
 
-        <!-- Package / Salta collaudo (gestore) — impilati in colonna -->
-        @if ((_updateData | mapper:_isGestoreMapper)) {
+        <!-- Package (gestore) / Salta collaudo — impilati in colonna -->
+        @if ((_updateData | mapper:_canCreateServizioMapper)) {
           <div class="row">
             <div class="col-12">
-              @if (_showPackage) {
+              @if (_showPackage && (_updateData | mapper:_isGestoreMapper)) {
                 <div class="form-group package">
                   <label class="label-bold" for="package">{{ 'APP.LABEL.package' | translate }}</label>
                   @if (isEdit) {

@@ -35,6 +35,7 @@ import { AuthenticationService } from '@app/services/authentication.service';
 import { NavigationService } from '@app/services/navigation.service';
 
 import { Grant } from '@app/model/grant';
+import { Allegato } from '@app/model/allegato';
 
 import { AgidJwtDialogComponent } from '@app/components/authentications-dialogs/agid-jwt-dialog/agid-jwt-dialog.component';
 import { ClientCredentialsDialogComponent } from '@app/components/authentications-dialogs/client-credentials-dialog/client-credentials-dialog.component';
@@ -237,6 +238,27 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         return this._showGroups && this._gruppiLeaves.length >= (this._gruppiRequireMultiple ? 2 : 1);
     }
 
+    // Allegati in vetrina (servizi-config.json: showAttachments, attachmentsPublicOnly, attachmentsMaxVisible)
+    _showAttachments: boolean = false;
+    _attachmentsPublicOnly: boolean = false;
+    _attachmentsMaxVisible: number = 5;
+    _allegati: Allegato[] = [];
+    _allegatiExpanded: boolean = false;
+    _apiAllegati: Allegato[] = [];
+    _allegatoDownloading: string | null = null;
+
+    get _showAllegatiBox(): boolean {
+        return this._showAttachments && this._allegati.length > 0;
+    }
+
+    get _allegatiVisibili(): Allegato[] {
+        return this._allegatiExpanded ? this._allegati : this._allegati.slice(0, this._attachmentsMaxVisible);
+    }
+
+    get _showAside(): boolean {
+        return this._showReferents || this._showGruppiBox || this._showAllegatiBox;
+    }
+
     _maxReferenti: number = 3;
     _showReferents: boolean = true;
 
@@ -396,6 +418,9 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                         this._gruppiAlwaysExpanded = !!config?.groupsExpanded;
                         this._gruppiShowChildren = !!config?.groupsShowChildren;
                         this._gruppiRequireMultiple = config?.groupsRequireMultiple !== false;
+                        this._showAttachments = !!config?.showAttachments;
+                        this._attachmentsPublicOnly = !!config?.attachmentsPublicOnly;
+                        this._attachmentsMaxVisible = config?.attachmentsMaxVisible || 5;
                         this._singleColumn = config.editSingleColumn || false;
                         this.allowTryIt = config.swagger?.allowTryIt || false;
                         this.showAuthorizeBtn = config.swagger?.showAuthorizeBtn || false;
@@ -505,7 +530,73 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         this._showReferents = Tools.Configurazione?.servizio?.mostra_referenti === 'enabled';
         this.loadReferenti();
         this._loadGruppi();
+        this._loadAllegati();
         this._loadServiceApi();
+    }
+
+    _allegatiQuery(): any {
+        const query: any = { size: 100 };
+        if (this._attachmentsPublicOnly) {
+            query.visibilita_allegato = 'pubblico';
+        }
+        return { params: this.utils._queryToHttpParams(query) };
+    }
+
+    _loadAllegati() {
+        this._allegati = [];
+        this._allegatiExpanded = false;
+        if (!this._showAttachments || !this.id) { return; }
+        this.apiService.getDetails(this.model, this.id, 'allegati', this._allegatiQuery()).subscribe({
+            next: (response: any) => {
+                this._allegati = response?.content || [];
+            },
+            error: () => {
+                this._allegati = [];
+            }
+        });
+    }
+
+    _loadApiAllegati(idApi: string) {
+        this._apiAllegati = [];
+        if (!this._showAttachments) { return; }
+        this.apiService.getDetails('api', idApi, 'allegati', this._allegatiQuery()).subscribe({
+            next: (response: any) => {
+                this._apiAllegati = response?.content || [];
+            },
+            error: () => {
+                this._apiAllegati = [];
+            }
+        });
+    }
+
+    _downloadAllegato(allegato: Allegato, idApi: string | null = null) {
+        if (this._allegatoDownloading) { return; }
+        this._allegatoDownloading = allegato.uuid;
+        const model = idApi ? 'api' : this.model;
+        const id = idApi || this.id;
+        this.apiService.download(model, id, `allegati/${allegato.uuid}/download`).subscribe({
+            next: (response: any) => {
+                saveAs(response.body, allegato.filename);
+                this._allegatoDownloading = null;
+            },
+            error: (error: any) => {
+                Tools.OnError(error);
+                this._allegatoDownloading = null;
+            }
+        });
+    }
+
+    _allegatoEstensioneMapper = (allegato: Allegato): string => {
+        const ext = allegato?.estensione || (allegato?.filename?.includes('.') ? allegato.filename.split('.').pop() : '');
+        return (ext || '').replace(/^\./, '').slice(0, 4).toUpperCase();
+    }
+
+    _allegatoVisibilitaMapper = (allegato: Allegato): string => {
+        return `APP.SERVICES.ATTACHMENTS.VISIBILITY.${allegato?.visibilita || 'pubblico'}`;
+    }
+
+    _allegatoRiservatoMapper = (allegato: Allegato): boolean => {
+        return !!allegato?.visibilita && allegato.visibilita !== 'pubblico';
     }
 
     // Issue 331 — carica i gruppi di appartenenza del servizio (stessa
@@ -933,6 +1024,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         this.tokenPolicy = _srv.api?.token_policies?.find((item: any) => item.tipo_policy === this.tipoTokenPolicy);
         this.showJwtGenerator = this.allowTryIt && this._environmentId !== 'produzione';
         this._loadUrlInvocazione(data.id_api);
+        this._loadApiAllegati(data.id_api);
         this._openApiInfo();
     }
 

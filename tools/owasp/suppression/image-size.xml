@@ -10,7 +10,7 @@
       (2.0.2 e' l'ultima release disponibile).
 
       NON APPLICABILE a GovCat: image-size e' una dipendenza transitiva di build-time, tirata
-      da less -> @angular-devkit/build-angular. Il compilatore Less invoca image-size solo per
+      da less -> @angular/build. Il compilatore Less invoca image-size solo per
       le funzioni image-size()/image-width() durante la build; la libreria non finisce nel bundle
       runtime servito agli utenti e non elabora mai immagini non fidate. La superficie d'attacco
       (DoS su immagini malevole) e' quindi inesistente nel nostro contesto.

@@ -201,6 +201,9 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
 
     _isGestoreMapper = (): boolean => this._isGestore();
 
+    /** Visibilita` e "Salta collaudo": visibili a chi puo` creare un servizio, non solo al gestore. */
+    _canCreateServizioMapper = (): boolean => this.authenticationService.canCreateServizio();
+
     _canEditMapper = (): boolean => {
         return this.authenticationService.canEdit('servizio', 'servizio', this.data?.stato, this.grant?.ruoli);
     }

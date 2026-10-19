@@ -34,6 +34,17 @@
 	  browser, e l'export CSV dei servizi le riporta in due colonne in coda. Le URL sono un
 	  dato documentale del catalogo: non configurano alcun gateway su GovWay.
 
+2026-10-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Fix vulnerabilita' dipendenze FE (npm audit da 31 a 0): rimosso @angular-devkit/build-angular
+	  non piu' usato dai builder (sostituito da @angular/build), Angular 21.2.25, CLI 21.2.27,
+	  vitest 4.1.12, moment 2.31.0 e override aggiornati a versioni patchate.
+
+	Issue #385 - Allegati in vetrina: card nella sidebar con visibilita' e download, menu Allegati
+	  nella dialog dell'API; opzioni showAttachments, attachmentsPublicOnly e attachmentsMaxVisible
+	  in servizi-config.json. Su mobile la sidebar scende sotto documentazione e API.
+
 2026-10-16  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -55,6 +66,12 @@
 	Gestione: correzioni dalla scansione gov-a11y dei nuovi dettagli (titoli h1/h2, nome accessibile a
 	  dialog utenti, campo utente e input file, contrasto e area di click delle ng-select, intestazione
 	  colonna azioni). Client: tipi di autenticazione caricati anche a configurazione tardiva, senza duplicati.
+
+	Issue #393 - Etichetta "Salta collaudo" di domini e soggetti cambiata in "Consenti di saltare il
+	  collaudo"; servizi e adesioni restano "Salta collaudo".
+
+	Issue #394 - Servizi: campi visibilita' e "Salta collaudo" non piu' riservati al gestore; in creazione
+	  sempre visibili, in modifica (wizard e form classica) visibili a chi puo' creare servizi.
 
 2026-10-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
