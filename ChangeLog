@@ -1,12 +1,26 @@
 2026-10-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue #395 - Wizard servizi con salta collaudo: alla creazione dell'API le proprieta' custom
+	  sono proposte e salvate nei gruppi di produzione invece che in quelli di collaudo.
+
+	Issue #396 - Salta collaudo modificabile solo con il servizio in bozza (wizard e form classica),
+	  per non cambiare percorso a collaudo o produzione gia' avviati.
+
 	Issue 351: la selezione delle URL di esposizione non resta mai vuota. La URL predefinita si
 	  rimuove solo se e' selezionata un'altra URL; rimossa l'ultima URL torna la predefinita.
 
 2026-10-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Fix vulnerabilita' dipendenze FE (npm audit da 31 a 0): rimosso @angular-devkit/build-angular
+	  non piu' usato dai builder (sostituito da @angular/build), Angular 21.2.25, CLI 21.2.27,
+	  vitest 4.1.12, moment 2.31.0 e override aggiornati a versioni patchate.
+
+	Issue #385 - Allegati in vetrina: card nella sidebar con visibilita' e download, menu Allegati
+	  nella dialog dell'API; opzioni showAttachments, attachmentsPublicOnly e attachmentsMaxVisible
+	  in servizi-config.json. Su mobile la sidebar scende sotto documentazione e API.
+
 	Issue 351: URL di esposizione multiple prese da configurazione. Nel pannello Configura di
 	  collaudo e produzione si selezionano le URL censite per l'ambiente (più la predefinita);
 	  la barra della scheda servizio e il viewer WSDL elencano tutte le URL associate con Copia.
@@ -39,17 +53,6 @@
 	  Content-Security-Policy, altrimenti il try-out su quei gateway verrebbe bloccato dal
 	  browser, e l'export CSV dei servizi le riporta in due colonne in coda. Le URL sono un
 	  dato documentale del catalogo: non configurano alcun gateway su GovWay.
-
-2026-10-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
-
-	* [Frontend]
-	Fix vulnerabilita' dipendenze FE (npm audit da 31 a 0): rimosso @angular-devkit/build-angular
-	  non piu' usato dai builder (sostituito da @angular/build), Angular 21.2.25, CLI 21.2.27,
-	  vitest 4.1.12, moment 2.31.0 e override aggiornati a versioni patchate.
-
-	Issue #385 - Allegati in vetrina: card nella sidebar con visibilita' e download, menu Allegati
-	  nella dialog dell'API; opzioni showAttachments, attachmentsPublicOnly e attachmentsMaxVisible
-	  in servizi-config.json. Su mobile la sidebar scende sotto documentazione e API.
 
 2026-10-16  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 

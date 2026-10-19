@@ -85,3 +85,8 @@ export function apiDaCompletare(esito: EsitoVerificaServizio | null, idApi: stri
     if (!idApi) { return false; }
     return _errori(esito).some((e: any) => (e?.sottotipo || []).some((s: any) => s?.tipo === 'api' && s?.identificativo === idApi));
 }
+
+/** `skip_collaudo` modificabile solo in bozza: fuori dalla bozza il percorso (con o senza collaudo) e` gia` avviato. */
+export function skipCollaudoBloccato(servizio: any): boolean {
+    return !!servizio?.stato && servizio.stato !== 'bozza';
+}

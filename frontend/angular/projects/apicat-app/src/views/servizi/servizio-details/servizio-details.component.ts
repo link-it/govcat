@@ -49,6 +49,7 @@ import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-
 import { NotificationBarComponent } from '../../notifications/notification-bar/notification-bar.component';
 import { MarkdownModule } from 'ngx-markdown';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
+import { skipCollaudoBloccato } from '../servizio-verifica-stato';
 import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
 
 declare const saveAs: any;
@@ -1416,7 +1417,15 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         console.log('_onChangeType', this._formGroup.get('tipo')?.value);
     }
 
+    get _skipCollaudoBloccato(): boolean {
+        return !this._isNew && skipCollaudoBloccato(this.data);
+    }
+
     _enableDisableSkipCollaudo(dominio: any) {
+        if (this._skipCollaudoBloccato) {
+            this._formGroup.get('skip_collaudo')?.disable();
+            return;
+        }
         if (dominio?.skip_collaudo) {
             if (this.data.vincola_skip_collaudo) {
                 this._formGroup.get('skip_collaudo')?.disable();

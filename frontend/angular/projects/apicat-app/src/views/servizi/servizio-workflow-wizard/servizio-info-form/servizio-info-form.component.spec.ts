@@ -156,4 +156,33 @@ describe('ServizioInfoFormComponent', () => {
       expect(component._canCreateServizioMapper()).toBe(false);
     });
   });
+
+  describe('_enableDisableSkipCollaudo', () => {
+    const _dominio = { skip_collaudo: true };
+
+    beforeEach(() => {
+      component._formGroup = new FormGroup({ skip_collaudo: new FormControl(true) });
+    });
+
+    it('should keep skip_collaudo editable in draft when the domain allows it', () => {
+      component.data = { skip_collaudo: true, stato: 'bozza' };
+      component._enableDisableSkipCollaudo(_dominio);
+      expect(component._formGroup.get('skip_collaudo')?.enabled).toBe(true);
+    });
+
+    it('should lock skip_collaudo outside draft, on both paths', () => {
+      component.data = { skip_collaudo: true, stato: 'in_configurazione_produzione_senza_collaudo' };
+      component._enableDisableSkipCollaudo(_dominio);
+      expect(component._skipCollaudoBloccato).toBe(true);
+      expect(component._formGroup.get('skip_collaudo')?.disabled).toBe(true);
+      expect(component._formGroup.getRawValue().skip_collaudo).toBe(true);
+
+      component._formGroup.get('skip_collaudo')?.enable();
+      component._formGroup.get('skip_collaudo')?.setValue(false);
+      component.data = { skip_collaudo: false, stato: 'pubblicato_collaudo' };
+      component._enableDisableSkipCollaudo(_dominio);
+      expect(component._formGroup.get('skip_collaudo')?.disabled).toBe(true);
+      expect(component._formGroup.getRawValue().skip_collaudo).toBe(false);
+    });
+  });
 });

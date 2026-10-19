@@ -1039,6 +1039,9 @@
                             <input #chkSkipCollaudo class="custom-control-input" type="checkbox" name="skip_collaudo" id="skip_collaudo" formControlName="skip_collaudo">
                             <label class="custom-control-label" aria-hidden="true" (click)="chkSkipCollaudo.click()"></label>
                           </div>
+                          @if (_skipCollaudoBloccato && data?.dominio?.skip_collaudo) {
+                            <p class="form-text text-muted mb-0">{{ 'APP.MESSAGE.SkipCollaudoNonModificabile' | translate }}</p>
+                          }
                         }
                         @if (!_isEdit) {
                           <div class="">

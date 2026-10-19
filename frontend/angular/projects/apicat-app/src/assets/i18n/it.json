@@ -2057,6 +2057,7 @@
 				"valid_email": "Inserisci una mail valida",
 				"wrong_username_password": "Username o password errati. Controlla la corretta scrittura dei dati."
 			},
+			"SkipCollaudoNonModificabile": "Modificabile solo con il servizio in bozza.",
 			"NoApi": "Nessuna API presente",
 			"NoApiHelp": "",
 			"NoData": "Le informazioni richieste non sono state trovate",
