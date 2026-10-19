@@ -23,6 +23,13 @@
 	Issue #399 - Utenti: salvando un utente esistente si rimandano tutte le sue organizzazioni con il
 	  loro ruolo, non solo la prima; prima le altre associazioni venivano cancellate dal BE.
 
+2026-10-19  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 397: la lettura del profilo utente falliva con LazyInitializationException per gli
+	  utenti associati a un'azienda esterna: l'azienda esterna non veniva caricata in fase di
+	  autenticazione insieme agli altri dati dell'utente.
+
 2026-10-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
