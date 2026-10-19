@@ -20,6 +20,9 @@
 	Creazione servizio: aprendo direttamente la pagina il selettore del dominio non compariva, perche'
 	  la configurazione arrivava dopo il form; ora le opzioni si rileggono al caricamento del profilo.
 
+	Issue #399 - Utenti: salvando un utente esistente si rimandano tutte le sue organizzazioni con il
+	  loro ruolo, non solo la prima; prima le altre associazioni venivano cancellate dal BE.
+
 2026-10-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

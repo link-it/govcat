@@ -687,6 +687,35 @@ describe('UtenteDetailsComponent', () => {
       const result = component._prapareData(body);
       expect(result.classi_utente).toBeNull();
     });
+
+    it('should send back every organization of an existing user, not only the first one', () => {
+      component._isNew = false;
+      component.utente = {
+        organizzazioni: [
+          { organizzazione: { id_organizzazione: 'o-rt', nome: 'RegioneToscana' }, ruolo_organizzazione: 'operatore_api' },
+          { organizzazione: { id_organizzazione: 'o-estar', nome: 'ESTAR' }, ruolo_organizzazione: 'amministratore_organizzazione' }
+        ]
+      } as any;
+      const body = { nome: 'Davide', ruolo: Ruolo.UTENTE_ORGANIZZAZIONE, classi_utente: null, id_organizzazione: 'o-rt', ruolo_organizzazione: 'operatore_api' };
+
+      const result = component._prapareData(body);
+
+      expect(result.organizzazioni).toEqual([
+        { id_organizzazione: 'o-rt', ruolo_organizzazione: 'operatore_api' },
+        { id_organizzazione: 'o-estar', ruolo_organizzazione: 'amministratore_organizzazione' }
+      ]);
+      expect(result.id_organizzazione).toBeUndefined();
+      expect(result.ruolo_organizzazione).toBeUndefined();
+    });
+
+    it('should use the selected organization when creating a user', () => {
+      component._isNew = true;
+      const body = { nome: 'Nuovo', ruolo: Ruolo.UTENTE_ORGANIZZAZIONE, classi_utente: null, id_organizzazione: 'o-rt', ruolo_organizzazione: 'operatore_api' };
+
+      const result = component._prapareData(body);
+
+      expect(result.organizzazioni).toEqual([{ id_organizzazione: 'o-rt', ruolo_organizzazione: 'operatore_api' }]);
+    });
   });
 
   describe('_deleteUser', () => {
