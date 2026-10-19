@@ -10,6 +10,10 @@
 	Servizi e adesioni con salta collaudo: nella vetrina del servizio e nella vista dell'adesione il
 	  toggle Collaudo e' disabilitato, con tooltip che spiega che il collaudo non e' disponibile.
 
+	Servizi: sotto "Salta collaudo" disabilitato un avviso spiega il motivo (dominio da scegliere,
+	  soggetto o dominio che non lo consentono, servizio fuori bozza, adesioni che saltano il collaudo),
+	  in creazione, nel wizard e nella form classica; con dominio unico vale quello di default.
+
 2026-10-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

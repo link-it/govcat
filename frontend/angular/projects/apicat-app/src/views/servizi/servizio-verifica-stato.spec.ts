@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { describe, it, expect } from 'vitest';
-import { apiDaCompletare, apiSezioneDaCompletare, esitoDellAmbiente, sezioneDaCompletare, skipCollaudoBloccato, transizioneDaVerificare } from './servizio-verifica-stato';
+import { apiDaCompletare, apiSezioneDaCompletare, esitoDellAmbiente, motivoSkipCollaudoBloccato, sezioneDaCompletare, skipCollaudoBloccato, transizioneDaVerificare } from './servizio-verifica-stato';
 
 describe('servizio-verifica-stato', () => {
   const _cambio = {
@@ -80,5 +80,16 @@ describe('servizio-verifica-stato', () => {
     expect(skipCollaudoBloccato({ skip_collaudo: false, stato: 'pubblicato_collaudo' })).toBe(true);
     expect(skipCollaudoBloccato({})).toBe(false);
     expect(skipCollaudoBloccato(null)).toBe(false);
+  });
+
+  it('should explain why skip_collaudo cannot be changed', () => {
+    const consente = { skip_collaudo: true, soggetto_referente: { skip_collaudo: true } };
+    expect(motivoSkipCollaudoBloccato({ stato: 'bozza' }, null)).toBe('APP.MESSAGE.SkipCollaudoDominioDaSelezionare');
+    expect(motivoSkipCollaudoBloccato({ stato: 'bozza' }, { skip_collaudo: false, soggetto_referente: { skip_collaudo: false } })).toBe('APP.MESSAGE.SkipCollaudoSoggettoNonConsente');
+    expect(motivoSkipCollaudoBloccato({ stato: 'bozza' }, { skip_collaudo: false, soggetto_referente: { skip_collaudo: true } })).toBe('APP.MESSAGE.SkipCollaudoDominioNonConsente');
+    expect(motivoSkipCollaudoBloccato({ stato: 'pubblicato_collaudo' }, consente)).toBe('APP.MESSAGE.SkipCollaudoNonModificabile');
+    expect(motivoSkipCollaudoBloccato({ stato: 'bozza', skip_collaudo: true, vincola_skip_collaudo: true }, consente)).toBe('APP.MESSAGE.SkipCollaudoVincolato');
+    expect(motivoSkipCollaudoBloccato({ stato: 'bozza' }, consente)).toBeNull();
+    expect(motivoSkipCollaudoBloccato(null, consente)).toBeNull();
   });
 });

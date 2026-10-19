@@ -158,31 +158,43 @@ describe('ServizioInfoFormComponent', () => {
   });
 
   describe('_enableDisableSkipCollaudo', () => {
-    const _dominio = { skip_collaudo: true };
+    const _dominio = { skip_collaudo: true, soggetto_referente: { skip_collaudo: true } };
 
     beforeEach(() => {
       component._formGroup = new FormGroup({ skip_collaudo: new FormControl(true) });
     });
 
     it('should keep skip_collaudo editable in draft when the domain allows it', () => {
-      component.data = { skip_collaudo: true, stato: 'bozza' };
+      component.data = { skip_collaudo: true, stato: 'bozza', dominio: _dominio };
       component._enableDisableSkipCollaudo(_dominio);
       expect(component._formGroup.get('skip_collaudo')?.enabled).toBe(true);
+      expect(component._motivoSkipCollaudo).toBeNull();
     });
 
     it('should lock skip_collaudo outside draft, on both paths', () => {
-      component.data = { skip_collaudo: true, stato: 'in_configurazione_produzione_senza_collaudo' };
+      component.data = { skip_collaudo: true, stato: 'in_configurazione_produzione_senza_collaudo', dominio: _dominio };
       component._enableDisableSkipCollaudo(_dominio);
-      expect(component._skipCollaudoBloccato).toBe(true);
+      expect(component._motivoSkipCollaudo).toBe('APP.MESSAGE.SkipCollaudoNonModificabile');
       expect(component._formGroup.get('skip_collaudo')?.disabled).toBe(true);
       expect(component._formGroup.getRawValue().skip_collaudo).toBe(true);
 
       component._formGroup.get('skip_collaudo')?.enable();
       component._formGroup.get('skip_collaudo')?.setValue(false);
-      component.data = { skip_collaudo: false, stato: 'pubblicato_collaudo' };
+      component.data = { skip_collaudo: false, stato: 'pubblicato_collaudo', dominio: _dominio };
       component._enableDisableSkipCollaudo(_dominio);
       expect(component._formGroup.get('skip_collaudo')?.disabled).toBe(true);
       expect(component._formGroup.getRawValue().skip_collaudo).toBe(false);
+    });
+
+    it('should explain why the domain selected in the form does not allow skipping', () => {
+      component.data = { skip_collaudo: false, stato: 'bozza', dominio: _dominio };
+      component.selectedDominio = { skip_collaudo: false, soggetto_referente: { skip_collaudo: false } };
+      component._enableDisableSkipCollaudo(component.selectedDominio);
+      expect(component._formGroup.get('skip_collaudo')?.disabled).toBe(true);
+      expect(component._motivoSkipCollaudo).toBe('APP.MESSAGE.SkipCollaudoSoggettoNonConsente');
+
+      component.selectedDominio = null;
+      expect(component._motivoSkipCollaudo).toBe('APP.MESSAGE.SkipCollaudoDominioDaSelezionare');
     });
   });
 });

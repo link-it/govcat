@@ -90,3 +90,19 @@ export function apiDaCompletare(esito: EsitoVerificaServizio | null, idApi: stri
 export function skipCollaudoBloccato(servizio: any): boolean {
     return !!servizio?.stato && servizio.stato !== 'bozza';
 }
+
+/**
+ * Motivo (chiave i18n) per cui `skip_collaudo` non e` modificabile, o null se lo e`.
+ * Lo skip richiede che lo consentano il soggetto referente del dominio e il dominio stesso.
+ */
+export function motivoSkipCollaudoBloccato(servizio: any, dominio: any): string | null {
+    if (!dominio) { return 'APP.MESSAGE.SkipCollaudoDominioDaSelezionare'; }
+    if (!dominio.skip_collaudo) {
+        return dominio.soggetto_referente?.skip_collaudo === false
+            ? 'APP.MESSAGE.SkipCollaudoSoggettoNonConsente'
+            : 'APP.MESSAGE.SkipCollaudoDominioNonConsente';
+    }
+    if (skipCollaudoBloccato(servizio)) { return 'APP.MESSAGE.SkipCollaudoNonModificabile'; }
+    if (servizio?.vincola_skip_collaudo) { return 'APP.MESSAGE.SkipCollaudoVincolato'; }
+    return null;
+}

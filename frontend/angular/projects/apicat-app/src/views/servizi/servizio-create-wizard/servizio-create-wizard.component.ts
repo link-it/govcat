@@ -45,6 +45,7 @@ import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asteri
 import { ErrorViewComponent } from '@app/components/error-view/error-view.component';
 import { MarkdownModule } from 'ngx-markdown';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
+import { motivoSkipCollaudoBloccato } from '../servizio-verifica-stato';
 import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
 
 /**
@@ -194,6 +195,8 @@ export class ServizioCreateWizardComponent implements OnInit {
     dominiInput$ = new Subject<string>();
     dominiLoading: boolean = false;
     selectedDominio: any;
+    /** Dominio di default (dominio unico, senza selezione nel form). */
+    _dominioDefault: any = null;
     /** Opzioni di adesione imposte dal dominio selezionato. */
     _adesioneDominio: AdesioneDominio = ADESIONE_DOMINIO_LIBERA;
 
@@ -538,6 +541,27 @@ export class ServizioCreateWizardComponent implements OnInit {
         // skip_collaudo abilitato solo con dominio compatibile: in creazione,
         // finche` non si seleziona un dominio, resta disabilitato.
         this._formGroup.get('skip_collaudo')?.disable();
+        this._caricaDominioDefault();
+    }
+
+    /** Con il dominio unico il form non lo fa scegliere: vale quello di default, anche per lo skip del collaudo. */
+    private _caricaDominioDefault() {
+        const _id = this.generalConfig?.dominio?.dominio_default;
+        if (this._hasMultiDominio || !_id) { return; }
+        this.apiService.getDetails('domini', _id).subscribe({
+            next: (dominio: any) => {
+                this._dominioDefault = dominio;
+                if (!this.selectedDominio) { this._enableDisableSkipCollaudo(dominio); }
+            },
+            error: () => { this._dominioDefault = null; }
+        });
+    }
+
+    /** Motivo per cui "Salta collaudo" non e` modificabile, rispetto al dominio del form. */
+    get _motivoSkipCollaudo(): string | null {
+        const _dominio = this.selectedDominio || (this._hasMultiDominio ? null : this._dominioDefault);
+        if (!_dominio && !this._hasMultiDominio) { return null; }
+        return motivoSkipCollaudoBloccato(this.data, _dominio);
     }
 
     updateTipiVisibilitaServizio() {
@@ -596,16 +620,11 @@ export class ServizioCreateWizardComponent implements OnInit {
     }
 
     _enableDisableSkipCollaudo(dominio: any) {
-        if (dominio?.skip_collaudo) {
-            if (this.data?.vincola_skip_collaudo) {
-                this._formGroup.get('skip_collaudo')?.disable();
-            } else {
-                this._formGroup.get('skip_collaudo')?.enable();
-            }
-        } else {
-            this._formGroup.get('skip_collaudo')?.setValue(false);
-            this._formGroup.get('skip_collaudo')?.disable();
+        const _ctrl = this._formGroup.get('skip_collaudo');
+        if (!dominio?.skip_collaudo) {
+            _ctrl?.setValue(false);
         }
+        if (motivoSkipCollaudoBloccato(this.data, dominio)) { _ctrl?.disable(); } else { _ctrl?.enable(); }
     }
 
     // -------------------------------------------------------------------------
