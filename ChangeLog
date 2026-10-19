@@ -17,6 +17,9 @@
 	Wizard servizi con salta collaudo: dopo la creazione il servizio si apre sulla fase Produzione
 	  invece che su Collaudo; una fase saltata richiesta nell'URL viene ignorata.
 
+	Creazione servizio: aprendo direttamente la pagina il selettore del dominio non compariva, perche'
+	  la configurazione arrivava dopo il form; ora le opzioni si rileggono al caricamento del profilo.
+
 2026-10-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
