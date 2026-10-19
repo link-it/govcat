@@ -3820,6 +3820,26 @@ describe('ServizioApiDetailsComponent', () => {
       expect(component._getGroupLabelMapper('G2')).toBe('Label2');
     });
 
+    it('should use the produzione groups instead of collaudo in creation when collaudo is skipped', () => {
+      component._isNew = true;
+      component.service = { skip_collaudo: true } as any;
+      Tools.Configurazione = {
+        servizio: {
+          api: {
+            proprieta_custom: [
+              { nome_gruppo: 'GC', label_gruppo: 'Collaudo', classe_dato: 'collaudo' },
+              { nome_gruppo: 'GP', label_gruppo: 'Produzione', classe_dato: 'produzione' },
+              { nome_gruppo: 'G2', label_gruppo: 'Label2', classe_dato: 'generico' }
+            ]
+          }
+        }
+      } as any;
+
+      expect(component._gruppiProprietaCustomDelForm().map((g: any) => g.nome_gruppo)).toEqual(['GP', 'G2']);
+      expect(component._getGroupLabelMapper('GC')).toBeUndefined();
+      expect(component._getGroupLabelMapper('GP')).toBe('Produzione');
+    });
+
     it('should filter out collaudo when not _isNew', () => {
       component._isNew = false;
       Tools.Configurazione = {

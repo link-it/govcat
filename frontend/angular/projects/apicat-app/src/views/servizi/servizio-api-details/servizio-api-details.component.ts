@@ -884,12 +884,16 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
         return _body;
     }
 
-    /** Gruppi di proprieta` custom del form: in creazione anche quelli di collaudo, in modifica solo quelli non ambientali. */
+    /**
+     * Gruppi di proprieta` custom del form: in creazione anche quelli dell'ambiente iniziale
+     * (collaudo, o produzione se il collaudo e` saltato), in modifica solo quelli non ambientali.
+     */
     _gruppiProprietaCustomDelForm(): any[] {
         const _srv: any = Tools.Configurazione?.servizio;
+        const _ambienteEscluso = this.service?.skip_collaudo ? 'collaudo' : 'produzione';
         return (_srv?.api?.proprieta_custom || []).filter((p: any) => {
             const _ambiente = ambienteClasseDato(p.classe_dato);
-            return this._isNew ? (_ambiente !== 'produzione') : (_ambiente === null);
+            return this._isNew ? (_ambiente !== _ambienteEscluso) : (_ambiente === null);
         });
     }
 

@@ -1,3 +1,9 @@
+2026-10-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #395 - Wizard servizi con salta collaudo: alla creazione dell'API le proprieta' custom
+	  sono proposte e salvate nei gruppi di produzione invece che in quelli di collaudo.
+
 2026-10-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
