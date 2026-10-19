@@ -232,6 +232,21 @@ describe('AdesioneViewComponent', () => {
     expect(component.environment).toBe('produzione');
   });
 
+  it('loadAdesione should open on produzione and lock collaudo when skip_collaudo is set', () => {
+    const mockAdesione = createMockAdesione({ stato: 'bozza', skip_collaudo: true });
+    mockApiService.getDetails
+      .mockReturnValueOnce(of({ ruoli: [] }))
+      .mockReturnValueOnce(of(mockAdesione))
+      .mockReturnValue(of({ content: [] }));
+
+    (component as any).loadAdesione(false);
+
+    expect(component.environment).toBe('produzione');
+    expect(component._collaudoSaltato).toBe(true);
+    component.onEnvToggle('collaudo');
+    expect(component.environment).toBe('produzione');
+  });
+
   // --- loadReferents ---
 
   it('loadReferents should set referentiLoading false when _showReferents is false', () => {

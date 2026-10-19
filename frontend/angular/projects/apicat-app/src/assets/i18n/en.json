@@ -2057,7 +2057,13 @@
 				"valid_email": "Insert valid email",
 				"wrong_username_password": "Username e/o Password errati."
 			},
+			"SkipCollaudoDominioDaSelezionare": "Select the domain: skipping testing depends on the domain.",
+			"SkipCollaudoSoggettoNonConsente": "Not available: the domain's reference subject does not allow skipping testing.",
+			"SkipCollaudoDominioNonConsente": "Not available: the service domain does not allow skipping testing.",
+			"SkipCollaudoVincolato": "Cannot be disabled: some subscriptions to the service skip testing.",
 			"SkipCollaudoNonModificabile": "Editable only while the service is a draft.",
+			"CollaudoNonDisponibileServizio": "Testing not available: the service is published directly in production.",
+			"CollaudoNonDisponibileAdesione": "Testing not available: the subscription is requested directly in production.",
 			"NoApi": "No API present",
 			"NoApiHelp": "",
 			"NoData": "Sorry, the requested information was not found",

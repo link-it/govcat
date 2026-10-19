@@ -440,6 +440,8 @@ small, .small {
   .env-toggle button.is-on.coll { background: var(--accent); color: #fff; }
   .env-toggle button.is-on.prod { background: var(--accent); color: #fff; }
   .env-toggle .ind { display: none; }
+  .env-toggle button.is-disabled,
+  .env-toggle button.is-disabled:hover { opacity: .5; cursor: not-allowed; color: var(--ink-3); }
 
   /* ─── layout grid ──────────────────────────────────────────────── */
   .layout {

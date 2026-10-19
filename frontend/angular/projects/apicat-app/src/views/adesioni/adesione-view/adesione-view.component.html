@@ -158,6 +158,8 @@
               <h2>{{ 'APP.TITLE.Configuration' | translate }}</h2>
               <span class="grow"></span>
               <lnk-env-toggle [env]="environment === 'produzione' ? 'produzione' : 'collaudo'"
+                              [collaudoDisabled]="_collaudoSaltato"
+                              collaudoDisabledTooltip="APP.MESSAGE.CollaudoNonDisponibileAdesione"
                               (change)="onEnvToggle($event)"></lnk-env-toggle>
             </div>
 

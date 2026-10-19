@@ -29,3 +29,19 @@ ui-item-row,
     }
   }
 }
+
+// Avviso sul campo (es. motivo per cui un'opzione non e` modificabile), distinto dall'help
+.field-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 6px 0 0;
+  padding: 6px 10px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--warn-ink, #8a5310);
+  background: var(--warn-soft, #fbf1e2);
+  border: 1px solid var(--warn-border, #ecd6b0);
+  border-radius: 6px;
+}
+.field-notice .bi { flex-shrink: 0; margin-top: 1px; }

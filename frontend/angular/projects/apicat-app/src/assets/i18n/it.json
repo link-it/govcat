@@ -2057,7 +2057,13 @@
 				"valid_email": "Inserisci una mail valida",
 				"wrong_username_password": "Username o password errati. Controlla la corretta scrittura dei dati."
 			},
+			"SkipCollaudoDominioDaSelezionare": "Seleziona il dominio: la possibilità di saltare il collaudo dipende dal dominio.",
+			"SkipCollaudoSoggettoNonConsente": "Non disponibile: il soggetto referente del dominio non consente di saltare il collaudo.",
+			"SkipCollaudoDominioNonConsente": "Non disponibile: il dominio del servizio non consente di saltare il collaudo.",
+			"SkipCollaudoVincolato": "Non disattivabile: esistono adesioni al servizio che saltano il collaudo.",
 			"SkipCollaudoNonModificabile": "Modificabile solo con il servizio in bozza.",
+			"CollaudoNonDisponibileServizio": "Collaudo non disponibile: il servizio è pubblicato direttamente in produzione.",
+			"CollaudoNonDisponibileAdesione": "Collaudo non disponibile: l'adesione è richiesta direttamente in produzione.",
 			"NoApi": "Nessuna API presente",
 			"NoApiHelp": "",
 			"NoData": "Le informazioni richieste non sono state trovate",

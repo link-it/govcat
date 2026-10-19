@@ -477,6 +477,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                 this.apiService.getDetails(this.model, this.id).subscribe({
                     next: (response: any) => {
                         this.data = response;
+                        if (this._collaudoSaltato) { this._environmentId = 'produzione'; }
                         this._spin = false;
                         this._initBreadcrumb();
                         this.loadCurrentData();
@@ -1425,7 +1426,13 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
 
     /** Handler del nuovo `<lnk-env-toggle>`: setta `_environmentId` e
      *  ricarica le API. Mantiene la stessa logica dei vecchi 2 bottoni. */
+    /** Collaudo saltato: in vetrina e` disponibile solo la produzione. */
+    get _collaudoSaltato(): boolean {
+        return !!this.data?.skip_collaudo;
+    }
+
     public onEnvToggle(env: EnvValue): void {
+        if (env === 'collaudo' && this._collaudoSaltato) { return; }
         this._environmentId = env;
         this._loadApis();
     }

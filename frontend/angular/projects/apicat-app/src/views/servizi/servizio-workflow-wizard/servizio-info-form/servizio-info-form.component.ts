@@ -35,7 +35,7 @@ import { DisablePermissionDirective } from '@app/directives/disable-permission/d
 import { MarkdownModule } from 'ngx-markdown';
 import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
-import { skipCollaudoBloccato } from '../../servizio-verifica-stato';
+import { motivoSkipCollaudoBloccato } from '../../servizio-verifica-stato';
 
 import { concat, forkJoin, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
@@ -390,24 +390,14 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
         this.enableDisableControlAdesioneConsentita();
     }
 
-    get _skipCollaudoBloccato(): boolean {
-        return skipCollaudoBloccato(this.data);
+    /** Motivo per cui "Salta collaudo" non e` modificabile (dominio corrente del form). */
+    get _motivoSkipCollaudo(): string | null {
+        return motivoSkipCollaudoBloccato(this.data, this.selectedDominio !== undefined ? this.selectedDominio : this.data?.dominio);
     }
 
     _enableDisableSkipCollaudo(dominio: any) {
-        if (this._skipCollaudoBloccato) {
-            this._formGroup.get('skip_collaudo')?.disable();
-            return;
-        }
-        if (dominio?.skip_collaudo) {
-            if (this.data?.vincola_skip_collaudo) {
-                this._formGroup.get('skip_collaudo')?.disable();
-            } else {
-                this._formGroup.get('skip_collaudo')?.enable();
-            }
-        } else {
-            this._formGroup.get('skip_collaudo')?.disable();
-        }
+        const _ctrl = this._formGroup.get('skip_collaudo');
+        if (motivoSkipCollaudoBloccato(this.data, dominio)) { _ctrl?.disable(); } else { _ctrl?.enable(); }
     }
 
     _onImageLoaded(event: any) {

@@ -16,14 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService } from 'ngx-bootstrap/modal';
 
-import { ConfigService, Tools, COMPONENTS_IMPORTS } from '@linkit/components';
+import { ConfigService, EventsManagerService, EventType, Tools, COMPONENTS_IMPORTS } from '@linkit/components';
 import { ModalGroupChoiceComponent } from '@app/components/modal-group-choice/modal-group-choice.component';
 import { ServizioAllegatoAddFormComponent } from '../servizio-workflow-wizard/servizio-allegato-add-form/servizio-allegato-add-form.component';
 import { OpenAPIService } from '@app/services/openAPI.service';
@@ -45,6 +45,7 @@ import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asteri
 import { ErrorViewComponent } from '@app/components/error-view/error-view.component';
 import { MarkdownModule } from 'ngx-markdown';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
+import { motivoSkipCollaudoBloccato } from '../servizio-verifica-stato';
 import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
 
 /**
@@ -83,7 +84,7 @@ interface WizardStep {
         ServizioAllegatoAddFormComponent
     ]
 })
-export class ServizioCreateWizardComponent implements OnInit {
+export class ServizioCreateWizardComponent implements OnInit, OnDestroy {
     static readonly Name = 'ServizioCreateWizardComponent';
     readonly model: string = 'servizi';
 
@@ -194,6 +195,8 @@ export class ServizioCreateWizardComponent implements OnInit {
     dominiInput$ = new Subject<string>();
     dominiLoading: boolean = false;
     selectedDominio: any;
+    /** Dominio di default (dominio unico, senza selezione nel form). */
+    _dominioDefault: any = null;
     /** Opzioni di adesione imposte dal dominio selezionato. */
     _adesioneDominio: AdesioneDominio = ADESIONE_DOMINIO_LIBERA;
 
@@ -247,11 +250,25 @@ export class ServizioCreateWizardComponent implements OnInit {
         private readonly apiService: OpenAPIService,
         private readonly utils: UtilService,
         private readonly authenticationService: AuthenticationService,
-        private readonly modalService: BsModalService
+        private readonly modalService: BsModalService,
+        private readonly eventsManagerService: EventsManagerService
     ) {
         this.appConfig = this.configService.getConfiguration();
         this._showPackage = this.appConfig?.AppConfig?.Services?.showPackage === true;
         this.apiUrl = this.appConfig.AppConfig.GOVAPI.HOST;
+
+        this._leggiConfigurazione();
+        this.eventsManagerService.on(EventType.PROFILE_UPDATE, this._onProfileUpdate);
+    }
+
+    ngOnDestroy() {
+        this.eventsManagerService.off(EventType.PROFILE_UPDATE, this._onProfileUpdate);
+    }
+
+    /** Opzioni dalla configurazione remota, che con l'apertura diretta della pagina arriva dopo il costruttore. */
+    private _leggiConfigurazione() {
+        this.generalConfig = Tools.Configurazione || null;
+        this._maxImageSize = (Tools.Configurazione?.servizio?.max_image_size || 2) * 1024 * 1024;
 
         const servizio = this.authenticationService._getConfigModule('servizio');
         this.hasServiziApi = servizio?.api?.abilitato || false;
@@ -264,6 +281,25 @@ export class ServizioCreateWizardComponent implements OnInit {
         this._multiDominioEmail = Tools.Configurazione?.dominio?.multi_dominio?.email || null;
         this._hasFlagConsentiNonSottoscrivibile = Tools.Configurazione?.servizio?.consenti_non_sottoscrivibile || false;
         this._hasAdesioniMultiple = Tools.Configurazione?.servizio?.adesioni_multiple || false;
+    }
+
+    /** Configurazione caricata dopo il form: riallinea dominio, referenti e skip del collaudo. */
+    private readonly _onProfileUpdate = () => {
+        this._leggiConfigurazione();
+        // Form non ancora inizializzato: lo costruira` `_initForm` con la configurazione aggiornata.
+        if (!this._formGroup.get('id_dominio')) { return; }
+        if (this._hasMultiDominio) {
+            if (!this.selectedDominio) {
+                this._formGroup.get('referente')?.disable();
+                this._formGroup.get('referente_tecnico')?.disable();
+            }
+            return;
+        }
+        const _dominioCtrl = this._formGroup.get('id_dominio');
+        if (!_dominioCtrl?.value && this.generalConfig?.dominio?.dominio_default) {
+            _dominioCtrl?.setValue(this.generalConfig.dominio.dominio_default);
+        }
+        if (!this._dominioDefault) { this._caricaDominioDefault(); }
     }
 
     ngOnInit() {
@@ -538,6 +574,27 @@ export class ServizioCreateWizardComponent implements OnInit {
         // skip_collaudo abilitato solo con dominio compatibile: in creazione,
         // finche` non si seleziona un dominio, resta disabilitato.
         this._formGroup.get('skip_collaudo')?.disable();
+        this._caricaDominioDefault();
+    }
+
+    /** Con il dominio unico il form non lo fa scegliere: vale quello di default, anche per lo skip del collaudo. */
+    private _caricaDominioDefault() {
+        const _id = this.generalConfig?.dominio?.dominio_default;
+        if (this._hasMultiDominio || !_id) { return; }
+        this.apiService.getDetails('domini', _id).subscribe({
+            next: (dominio: any) => {
+                this._dominioDefault = dominio;
+                if (!this.selectedDominio) { this._enableDisableSkipCollaudo(dominio); }
+            },
+            error: () => { this._dominioDefault = null; }
+        });
+    }
+
+    /** Motivo per cui "Salta collaudo" non e` modificabile, rispetto al dominio del form. */
+    get _motivoSkipCollaudo(): string | null {
+        const _dominio = this.selectedDominio || (this._hasMultiDominio ? null : this._dominioDefault);
+        if (!_dominio && !this._hasMultiDominio) { return null; }
+        return motivoSkipCollaudoBloccato(this.data, _dominio);
     }
 
     updateTipiVisibilitaServizio() {
@@ -596,16 +653,11 @@ export class ServizioCreateWizardComponent implements OnInit {
     }
 
     _enableDisableSkipCollaudo(dominio: any) {
-        if (dominio?.skip_collaudo) {
-            if (this.data?.vincola_skip_collaudo) {
-                this._formGroup.get('skip_collaudo')?.disable();
-            } else {
-                this._formGroup.get('skip_collaudo')?.enable();
-            }
-        } else {
-            this._formGroup.get('skip_collaudo')?.setValue(false);
-            this._formGroup.get('skip_collaudo')?.disable();
+        const _ctrl = this._formGroup.get('skip_collaudo');
+        if (!dominio?.skip_collaudo) {
+            _ctrl?.setValue(false);
         }
+        if (motivoSkipCollaudoBloccato(this.data, dominio)) { _ctrl?.disable(); } else { _ctrl?.enable(); }
     }
 
     // -------------------------------------------------------------------------

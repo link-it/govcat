@@ -277,11 +277,11 @@
                 <label class="label-bold" for="skip_collaudo">{{ 'APP.LABEL.SkipCollaudo' | translate }}</label>
                 @if (isEdit) {
                   <div class="gl-form-checkbox custom-control custom-checkbox">
-                    <input #chkSc class="custom-control-input" type="checkbox" name="skip_collaudo" id="skip_collaudo" formControlName="skip_collaudo">
+                    <input #chkSc class="custom-control-input" type="checkbox" name="skip_collaudo" id="skip_collaudo" formControlName="skip_collaudo" [attr.aria-describedby]="_motivoSkipCollaudo ? 'skip_collaudo-motivo' : null">
                     <label class="custom-control-label" aria-hidden="true" (click)="chkSc.click()"></label>
                   </div>
-                  @if (_skipCollaudoBloccato && data?.dominio?.skip_collaudo) {
-                    <p class="form-text text-muted mb-0">{{ 'APP.MESSAGE.SkipCollaudoNonModificabile' | translate }}</p>
+                  @if (_motivoSkipCollaudo; as motivo) {
+                    <p class="field-notice mb-0" id="skip_collaudo-motivo"><i class="bi bi-info-circle" aria-hidden="true"></i><span>{{ motivo | translate }}</span></p>
                   }
                   <ui-input-help field="skip_collaudo" context="SERVICE"></ui-input-help>
                 } @else {
