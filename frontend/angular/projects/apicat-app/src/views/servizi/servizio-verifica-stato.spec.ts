@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { describe, it, expect } from 'vitest';
-import { apiDaCompletare, apiSezioneDaCompletare, esitoDellAmbiente, sezioneDaCompletare, transizioneDaVerificare } from './servizio-verifica-stato';
+import { apiDaCompletare, apiSezioneDaCompletare, esitoDellAmbiente, sezioneDaCompletare, skipCollaudoBloccato, transizioneDaVerificare } from './servizio-verifica-stato';
 
 describe('servizio-verifica-stato', () => {
   const _cambio = {
@@ -70,5 +70,15 @@ describe('servizio-verifica-stato', () => {
   it('should report nothing when the check is ok or missing', () => {
     expect(sezioneDaCompletare({ esito: 'ok', errori: [] }, 'referenti')).toBe(false);
     expect(apiSezioneDaCompletare(null)).toBe(false);
+  });
+
+  it('should allow changing skip_collaudo only in draft', () => {
+    expect(skipCollaudoBloccato({ skip_collaudo: true, stato: 'bozza' })).toBe(false);
+    expect(skipCollaudoBloccato({ skip_collaudo: false, stato: 'bozza' })).toBe(false);
+    expect(skipCollaudoBloccato({ skip_collaudo: true, stato: 'richiesto_produzione_senza_collaudo' })).toBe(true);
+    expect(skipCollaudoBloccato({ skip_collaudo: false, stato: 'richiesto_collaudo' })).toBe(true);
+    expect(skipCollaudoBloccato({ skip_collaudo: false, stato: 'pubblicato_collaudo' })).toBe(true);
+    expect(skipCollaudoBloccato({})).toBe(false);
+    expect(skipCollaudoBloccato(null)).toBe(false);
   });
 });

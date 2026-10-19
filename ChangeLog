@@ -4,6 +4,9 @@
 	Issue #395 - Wizard servizi con salta collaudo: alla creazione dell'API le proprieta' custom
 	  sono proposte e salvate nei gruppi di produzione invece che in quelli di collaudo.
 
+	Issue #396 - Salta collaudo modificabile solo con il servizio in bozza (wizard e form classica),
+	  per non cambiare percorso a collaudo o produzione gia' avviati.
+
 2026-10-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

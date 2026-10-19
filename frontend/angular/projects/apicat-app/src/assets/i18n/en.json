@@ -2066,6 +2066,7 @@
 				"valid_email": "Insert valid email",
 				"wrong_username_password": "Username e/o Password errati."
 			},
+			"SkipCollaudoNonModificabile": "Editable only while the service is a draft.",
 			"NoApi": "No API present",
 			"NoApiHelp": "",
 			"NoData": "Sorry, the requested information was not found",
