@@ -2334,4 +2334,26 @@ describe('ServizioViewComponent', () => {
       expect(component._allegatoRiservatoMapper(allegati[1])).toBe(true);
     });
   });
+
+  describe('collaudo saltato', () => {
+    it('should open on produzione and ignore the collaudo toggle', () => {
+      component.id = 10;
+      vi.spyOn(component, 'loadCurrentData').mockImplementation(() => {});
+      vi.spyOn(component as any, '_initBreadcrumb').mockImplementation(() => {});
+      mockAuthenticationService.isAnonymous.mockReturnValue(true);
+      mockApiService.getDetails
+        .mockReturnValueOnce(of({ ruoli: [] }))
+        .mockReturnValueOnce(of({ id_servizio: 10, skip_collaudo: true }));
+
+      component._loadService();
+
+      expect(component._environmentId).toBe('produzione');
+      expect(component._collaudoSaltato).toBe(true);
+      const loadApis = vi.spyOn(component as any, '_loadApis').mockImplementation(() => {});
+      component.onEnvToggle('collaudo');
+      expect(component._environmentId).toBe('produzione');
+      expect(loadApis).not.toHaveBeenCalled();
+      mockAuthenticationService.isAnonymous.mockReturnValue(false);
+    });
+  });
 });

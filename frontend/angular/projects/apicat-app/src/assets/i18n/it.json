@@ -2067,6 +2067,8 @@
 				"wrong_username_password": "Username o password errati. Controlla la corretta scrittura dei dati."
 			},
 			"SkipCollaudoNonModificabile": "Modificabile solo con il servizio in bozza.",
+			"CollaudoNonDisponibileServizio": "Collaudo non disponibile: il servizio è pubblicato direttamente in produzione.",
+			"CollaudoNonDisponibileAdesione": "Collaudo non disponibile: l'adesione è richiesta direttamente in produzione.",
 			"NoApi": "Nessuna API presente",
 			"NoApiHelp": "",
 			"NoData": "Le informazioni richieste non sono state trovate",

@@ -2067,6 +2067,8 @@
 				"wrong_username_password": "Username e/o Password errati."
 			},
 			"SkipCollaudoNonModificabile": "Editable only while the service is a draft.",
+			"CollaudoNonDisponibileServizio": "Testing not available: the service is published directly in production.",
+			"CollaudoNonDisponibileAdesione": "Testing not available: the subscription is requested directly in production.",
 			"NoApi": "No API present",
 			"NoApiHelp": "",
 			"NoData": "Sorry, the requested information was not found",

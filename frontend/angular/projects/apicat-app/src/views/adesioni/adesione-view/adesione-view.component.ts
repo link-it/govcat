@@ -128,6 +128,7 @@ export interface RichiestaErogazione {
 export interface Adesione {
   id_adesione: string;
   id_logico: string | null;
+  skip_collaudo?: boolean;
   soggetto: {
     id_soggetto: string;
     nome: string;
@@ -524,7 +525,7 @@ export class AdesioneViewComponent implements OnInit {
             this._spin = false;
             this._initBreadcrumb();
 
-            if (this.adesione?.stato.includes('produzione')){
+            if (this.adesione?.stato.includes('produzione') || this._collaudoSaltato){
               this.environment = 'produzione';
             }
 
@@ -799,7 +800,13 @@ export class AdesioneViewComponent implements OnInit {
 
   /** Handler del nuovo `<lnk-env-toggle>` (sostituisce i 2 bottoni
    *  legacy con `onTestClick()` / `onProductionClick()`). */
+  /** Collaudo saltato: nella vista adesione e` disponibile solo la produzione. */
+  get _collaudoSaltato(): boolean {
+    return !!this.adesione?.skip_collaudo;
+  }
+
   public onEnvToggle(env: EnvValue): void {
+    if (env === 'collaudo' && this._collaudoSaltato) { return; }
     this.environment = env;
     this.onEnvironmentChange();
   }

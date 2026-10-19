@@ -7,6 +7,9 @@
 	Issue #396 - Salta collaudo modificabile solo con il servizio in bozza (wizard e form classica),
 	  per non cambiare percorso a collaudo o produzione gia' avviati.
 
+	Servizi e adesioni con salta collaudo: nella vetrina del servizio e nella vista dell'adesione il
+	  toggle Collaudo e' disabilitato, con tooltip che spiega che il collaudo non e' disponibile.
+
 2026-10-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

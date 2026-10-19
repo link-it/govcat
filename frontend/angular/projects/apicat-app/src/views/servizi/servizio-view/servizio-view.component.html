@@ -484,6 +484,8 @@
               }
               <span class="grow"></span>
               <lnk-env-toggle [env]="_environmentId === 'produzione' ? 'produzione' : 'collaudo'"
+                              [collaudoDisabled]="_collaudoSaltato"
+                              collaudoDisabledTooltip="APP.MESSAGE.CollaudoNonDisponibileServizio"
                               (change)="onEnvToggle($event)"></lnk-env-toggle>
             </div>
 
