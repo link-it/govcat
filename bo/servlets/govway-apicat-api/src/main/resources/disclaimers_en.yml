@@ -30,6 +30,10 @@
 # "servizio.*" key matches, no disclaimer is returned (the "default" key only
 # applies to subscriptions).
 #
+# PACKAGE DISCLAIMERS: as for services, with the "package." prefix
+# (e.g. "package.bozza"), where {state} is the package state. No fallback,
+# not even on the "servizio.*" keys.
+#
 # To override these disclaimers externally, copy this file to:
 #   /var/govcat/conf/disclaimers_en.yml
 # =============================================================================
@@ -868,3 +872,104 @@ servizio.bozza.collaudo: *disclaimer_ambiente_servizio
 servizio.bozza.produzione: *disclaimer_ambiente_servizio
 servizio.pubblicato_collaudo.collaudo: *disclaimer_ambiente_servizio
 servizio.pubblicato_collaudo.produzione: *disclaimer_ambiente_servizio
+
+# =============================================================================
+# PACKAGE DISCLAIMERS ("package." prefix)
+#
+# Displayed in the package wizard. The same rules as services apply, but
+# {state} is the PACKAGE state and every key is prefixed with "package.":
+#   1. package.{state}.{codice_interno}.{domain}[.{ambiente}]
+#   2. package.{state}.{codice_interno}[.{ambiente}]
+#   3. package.{state}[.{ambiente}]
+# Profiles are those of the APIs of the package component services.
+# No fallback exists, not even on the "servizio.*" keys: if no "package.*" key
+# matches, no disclaimer is returned.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# PACKAGE STATE-LEVEL DISCLAIMERS (generic, profile-independent)
+# -----------------------------------------------------------------------------
+
+package.bozza:
+  severity: WARNING
+  testo: |
+    ## Package in draft
+    The package has been created but has not been submitted for publication yet. To proceed:
+    - Complete the **General Information** of the package
+    - Add the **component services**: at least one must already be published in the environment where the package is going to be published
+    - The publication request is submitted by the **platform manager**
+
+    While the package stays in draft it is not published and no subscription can be requested.
+
+package.richiesto_collaudo: |
+  ## Waiting for authorisation
+  The **test** publication request of the package has been submitted and is waiting for authorisation by the **platform manager**.
+
+package.autorizzato_collaudo: |
+  ## Authorised — waiting for configuration
+  The **test** publication request of the package has been authorised. The platform manager is carrying out the configuration.
+
+package.in_configurazione_collaudo: |
+  ## Configuration in progress (test)
+  The platform manager is configuring the package in the **test** environment. Identifier, specifications and test data can no longer be modified.
+
+package.pubblicato_collaudo: |
+  ## Package published in test
+  The package is **published in the test environment** and is available for test subscriptions. To publish it in production at least one component service must be published in production.
+
+package.richiesto_produzione: |
+  ## Waiting for authorisation (production)
+  The **production** publication request of the package has been submitted and is waiting for authorisation by the **platform manager**.
+
+package.autorizzato_produzione: |
+  ## Authorised — waiting for configuration (production)
+  The **production** publication request of the package has been authorised. The platform manager is carrying out the configuration.
+
+package.in_configurazione_produzione: |
+  ## Configuration in progress (production)
+  The platform manager is configuring the package in the **production** environment. Identifier, specifications and production data can no longer be modified.
+
+package.pubblicato_produzione: |
+  ## Package published in production ✓
+  The package is **published in production** and is available in the catalogue for subscriptions. To request changes contact the platform manager.
+
+# Path without test environment: the package is published straight to production
+package.richiesto_produzione_senza_collaudo: |
+  ## Waiting for authorisation (production)
+  The **production** publication request of the package has been submitted **skipping the test environment** and is waiting for authorisation by the **platform manager**.
+
+package.autorizzato_produzione_senza_collaudo: |
+  ## Authorised — waiting for configuration (production)
+  The request to publish the package straight to **production** has been authorised. The platform manager is carrying out the configuration.
+
+package.in_configurazione_produzione_senza_collaudo: |
+  ## Configuration in progress (production)
+  The platform manager is configuring the package in the **production** environment. Identifier, specifications and production data can no longer be modified.
+
+package.pubblicato_produzione_senza_collaudo: |
+  ## Package published in production ✓
+  The package is **published in production** without going through the test environment and is available in the catalogue for subscriptions. To request changes contact the platform manager.
+
+package.archiviato:
+  severity: WARNING
+  testo: |
+    ## Package archived
+    This package has been **archived**: it is no longer published in the catalogue and no new subscription can be requested. To make it available again contact the platform manager.
+
+# -----------------------------------------------------------------------------
+# ENVIRONMENT-LEVEL DISCLAIMERS (test / production), profile-independent
+#
+# As for services, displayed only in the states where the request for the
+# environment is prepared: "bozza" (test and, for the path without test
+# environment, production) and "pubblicato_collaudo" (production).
+# -----------------------------------------------------------------------------
+
+package.bozza.collaudo: |
+  To request the test publication the package must contain at least one component service already published in test.
+
+__anchor_produzione_package: &disclaimer_produzione_package |
+  To request the production publication the package must contain at least one component service already published in production.
+
+package.bozza.produzione: *disclaimer_produzione_package
+
+package.pubblicato_collaudo.produzione: *disclaimer_produzione_package
