@@ -67,6 +67,9 @@ import jakarta.annotation.PostConstruct;
  * distinte da quelle delle adesioni tramite il prefisso "servizio." (es.
  * "servizio.{stato}.{codice_interno}"). Per i servizi non e' previsto alcun
  * fallback: se nessuna chiave corrisponde, la lista restituita e' vuota.
+ * I package hanno chiavi proprie con prefisso "package." (es.
+ * "package.{stato}.{codice_interno}"), senza fallback sulle chiavi "servizio.":
+ * workflow e contenuti di un package sono diversi da quelli di un servizio.
  *
  * Il contesto del disclaimer e' derivato dal suffisso della chiave matched:
  * ".collaudo" -> COLLAUDO, ".produzione" -> PRODUZIONE, altrimenti GENERALE.
@@ -81,6 +84,7 @@ public class DisclaimerService {
 
 	private static final String DEFAULT_KEY = "default";
 	private static final String PREFIX_SERVIZIO = "servizio.";
+	private static final String PREFIX_PACKAGE = "package.";
 	private static final String SUFFIX_COLLAUDO = ".collaudo";
 	private static final String SUFFIX_PRODUZIONE = ".produzione";
 	private static final String HARDCODED_FALLBACK_IT = "Procedendo con l'adesione, l'ente accetta i termini e le condizioni del servizio.";
@@ -150,10 +154,11 @@ public class DisclaimerService {
 
 	/**
 	 * Risolve i disclaimer per un dato servizio e lingua. Usa lo stesso file di
-	 * configurazione delle adesioni, limitatamente alle chiavi con prefisso "servizio.".
+	 * configurazione delle adesioni, limitatamente alle chiavi con prefisso "servizio."
+	 * o, se il servizio e' un package, "package.".
 	 *
 	 * A differenza delle adesioni non e' previsto alcun fallback: se nessuna chiave
-	 * "servizio.*" corrisponde, la lista restituita e' vuota. Non lancia mai eccezioni.
+	 * con il prefisso corrisponde, la lista restituita e' vuota. Non lancia mai eccezioni.
 	 */
 	public List<ServizioDisclaimer> resolveDisclaimersServizio(ServizioEntity servizio, String languageCode) {
 		return resolveDisclaimersServizio(servizio, languageCode, List.of());
@@ -176,7 +181,9 @@ public class DisclaimerService {
 				return List.of();
 			}
 
-			List<ResolvedDisclaimer> resolved = resolveGerarchia(disclaimers, PREFIX_SERVIZIO,
+			// per un package i profili sono quelli delle API dei servizi componenti
+			String prefix = servizio.is_package() ? PREFIX_PACKAGE : PREFIX_SERVIZIO;
+			List<ResolvedDisclaimer> resolved = resolveGerarchia(disclaimers, prefix,
 					normalize(servizio.getStato()), servizio, profiliAggiuntivi);
 
 			List<ServizioDisclaimer> result = new ArrayList<>();
@@ -194,7 +201,8 @@ public class DisclaimerService {
 
 	/**
 	 * Risoluzione gerarchica delle chiavi, dal livello piu' specifico al piu' generico,
-	 * a partire dal prefisso indicato ("" per le adesioni, "servizio." per i servizi).
+	 * a partire dal prefisso indicato ("" per le adesioni, "servizio." per i servizi,
+	 * "package." per i package).
 	 *
 	 * @param servizio servizio di riferimento, da cui sono derivati dominio e profili
 	 *                 dei client richiesti (per le adesioni e' il servizio aderito)

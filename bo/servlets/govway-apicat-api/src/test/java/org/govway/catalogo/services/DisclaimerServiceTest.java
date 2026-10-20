@@ -973,4 +973,105 @@ class DisclaimerServiceTest {
 
 		assertTrue(result.isEmpty());
 	}
+
+	// ----------------------------------------------------------------------
+	// Disclaimer dei package (chiavi con prefisso "package.")
+	// ----------------------------------------------------------------------
+
+	private ServizioEntity buildPackage(String stato, String nomeDominio) {
+		ServizioEntity servizio = buildServizio(stato, nomeDominio);
+		servizio.set_package(true);
+		return servizio;
+	}
+
+	@Test
+	@DisplayName("Package: usa le chiavi package.* e non quelle servizio.*")
+	void packageUsaChiaviPackage() {
+		Map<String, List<DisclaimerService.DisclaimerEntry>> map = new HashMap<>();
+		map.put("servizio.bozza", List.of(entryInfo("SERVIZIO_BOZZA")));
+		map.put("package.bozza", List.of(entryInfo("PACKAGE_BOZZA")));
+		map.put("package.bozza.collaudo", List.of(entryInfo("PACKAGE_COLL")));
+		seedCache("it", map);
+		mockProfili();
+
+		List<ServizioDisclaimer> result = service.resolveDisclaimersServizio(buildPackage("bozza", null), "it");
+
+		assertEquals(2, result.size());
+		assertEquals("PACKAGE_BOZZA", result.get(0).getDisclaimer());
+		assertEquals(DisclaimerContestoEnum.GENERALE, result.get(0).getContesto());
+		assertEquals("PACKAGE_COLL", result.get(1).getDisclaimer());
+		assertEquals(DisclaimerContestoEnum.COLLAUDO, result.get(1).getContesto());
+
+		// per un servizio le chiavi package.* restano ignorate
+		List<ServizioDisclaimer> servizio = service.resolveDisclaimersServizio(buildServizio("bozza", null), "it");
+		assertEquals(1, servizio.size());
+		assertEquals("SERVIZIO_BOZZA", servizio.get(0).getDisclaimer());
+	}
+
+	@Test
+	@DisplayName("Package: nessuna chiave package.* -> lista vuota (nessun fallback su servizio.*)")
+	void packageNessunMatchListaVuota() {
+		Map<String, List<DisclaimerService.DisclaimerEntry>> map = new HashMap<>();
+		map.put("servizio.bozza", List.of(entryInfo("SERVIZIO_BOZZA")));
+		map.put("bozza", List.of(entryInfo("ADESIONE_BOZZA")));
+		map.put("default", List.of(entryInfo("ADESIONE_DEFAULT")));
+		seedCache("it", map);
+		mockProfili();
+
+		List<ServizioDisclaimer> result = service.resolveDisclaimersServizio(buildPackage("bozza", null), "it");
+
+		assertTrue(result.isEmpty(), "Per un package non devono essere restituiti i disclaimer dei servizi o delle adesioni");
+	}
+
+	@Test
+	@DisplayName("Package: gerarchia stato/profilo/dominio con i profili dei componenti")
+	void packageMatchTuttiLivelli() {
+		Map<String, List<DisclaimerService.DisclaimerEntry>> map = new HashMap<>();
+		map.put("package.bozza", List.of(entryInfo("LIV_STATO")));
+		map.put("package.bozza.pdnd", List.of(entryInfo("LIV_PROFILO")));
+		map.put("package.bozza.pdnd.sanita.produzione", List.of(entryInfo("LIV_DOMINIO_PROD")));
+		seedCache("it", map);
+		// i profili del package sono quelli delle API dei servizi componenti (getClientRichiesti)
+		mockProfili("PDND");
+
+		List<ServizioDisclaimer> result = service.resolveDisclaimersServizio(buildPackage("bozza", "Sanita"), "it");
+
+		assertEquals(3, result.size());
+		assertEquals("LIV_DOMINIO_PROD", result.get(0).getDisclaimer());
+		assertEquals(DisclaimerContestoEnum.PRODUZIONE, result.get(0).getContesto());
+		assertEquals("PDND", result.get(0).getProfilo());
+		assertEquals("LIV_PROFILO", result.get(1).getDisclaimer());
+		assertEquals("PDND", result.get(1).getProfilo());
+		assertEquals("LIV_STATO", result.get(2).getDisclaimer());
+		assertNull(result.get(2).getProfilo());
+	}
+
+	@Test
+	@DisplayName("Package: i disclaimer di default del classpath coprono gli stati del package")
+	void packageDisclaimerDalClasspath(@TempDir Path tempDir) {
+		ReflectionTestUtils.setField(service, "externalPath", tempDir.resolve("inesistente").toString());
+		service.reload();
+
+		mockProfili();
+
+		for (String lang : List.of("it", "en")) {
+			List<ServizioDisclaimer> result = service.resolveDisclaimersServizio(buildPackage("bozza", null), lang);
+
+			assertTrue(result.stream().anyMatch(d -> d.getDisclaimer().startsWith("## Package")
+							&& DisclaimerSeverityEnum.WARNING.equals(d.getSeverity())),
+					"Deve essere presente il disclaimer di stato 'package.bozza' con severity WARNING (" + lang + ")");
+			assertTrue(result.stream().anyMatch(d -> DisclaimerContestoEnum.COLLAUDO.equals(d.getContesto())),
+					"Deve essere presente il disclaimer d'ambiente 'package.bozza.collaudo' (" + lang + ")");
+			assertTrue(result.stream().anyMatch(d -> DisclaimerContestoEnum.PRODUZIONE.equals(d.getContesto())),
+					"Deve essere presente il disclaimer d'ambiente 'package.bozza.produzione' (" + lang + ")");
+			assertTrue(result.stream().noneMatch(d -> d.getDisclaimer().startsWith("## Serv")),
+					"I disclaimer dei servizi non devono comparire per un package (" + lang + ")");
+		}
+
+		for (String stato : List.of("richiesto_collaudo", "pubblicato_collaudo", "pubblicato_produzione",
+				"richiesto_produzione_senza_collaudo", "pubblicato_produzione_senza_collaudo", "archiviato")) {
+			assertFalse(service.resolveDisclaimersServizio(buildPackage(stato, null), "it").isEmpty(),
+					"Lo yaml distribuito deve contenere il disclaimer 'package." + stato + "'");
+		}
+	}
 }

@@ -2646,7 +2646,7 @@ paths:
     get:
       tags:
       - "Servizi"
-      description: "Lista dei disclaimer applicabili al servizio, risolti gerarchicamente in base a stato, profilo client e dominio del servizio. I profili considerati sono quelli delle API del servizio piu' gli eventuali profili indicati nel parametro profilo (es. profili selezionati per un'API in fase di creazione o modifica); i profili non presenti in configurazione sono ignorati"
+      description: "Lista dei disclaimer applicabili al servizio, risolti gerarchicamente in base a stato, profilo client e dominio del servizio. I profili considerati sono quelli delle API del servizio piu' gli eventuali profili indicati nel parametro profilo (es. profili selezionati per un'API in fase di creazione o modifica); i profili non presenti in configurazione sono ignorati. Per un package i profili sono quelli delle API dei servizi componenti e i disclaimer sono quelli con chiave 'package.*' anziche' 'servizio.*'"
       operationId: "getDisclaimersServizio"
       parameters:
       - name: "language_code"
@@ -6559,7 +6559,7 @@ components:
             $ref: "#/components/schemas/ConfigurazioneStepWizardSezione"
     ConfigurazioneStepWizard:
       type: "object"
-      description: "Fase del wizard. Lo schema è condiviso fra i wizard delle diverse entità (adesione, servizio): gli stati elencati sono quelli del workflow dell'entità a cui appartiene il blocco."
+      description: "Fase del wizard. Lo schema è condiviso fra i wizard delle diverse entità (adesione, servizio, package): gli stati elencati sono quelli del workflow dell'entità a cui appartiene il blocco."
       required:
         - code
         - descrizione
@@ -7148,6 +7148,18 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ConfigurazioneNomeStato'
+        step_wizard:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigurazioneStepWizard"
+        step_wizard_collaudo:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigurazioneStepWizardSezione"
+        step_wizard_produzione:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigurazioneStepWizardSezione"
     ConfigurazioneGenerico:
       type: "object"
       required:

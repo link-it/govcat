@@ -3525,6 +3525,39 @@ public class ServiziTest {
 	}
 
 	@Test
+	void testGetDisclaimersPackage(@TempDir Path tempDir) throws Exception {
+		ServizioCreate packageCreate = CommonUtils.getServizioCreate();
+		packageCreate.setNome("Package disclaimer");
+		packageCreate.setPackage(true);
+		packageCreate.setIdDominio(this.getDominio().getIdDominio());
+		packageCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
+		Servizio _package = serviziController.createServizio(packageCreate).getBody();
+		String stato = _package.getStato();
+
+		// un package usa le chiavi "package.*", senza fallback su quelle dei servizi
+		Files.writeString(tempDir.resolve("disclaimers_it.yml"), String.join("\n",
+				"package." + stato + ": DISCLAIMER_PACKAGE",
+				"servizio." + stato + ": DISCLAIMER_SERVIZIO"));
+
+		Object externalPathOriginale = ReflectionTestUtils.getField(disclaimerService, "externalPath");
+		try {
+			ReflectionTestUtils.setField(disclaimerService, "externalPath", tempDir.toString());
+			disclaimerService.reload();
+
+			ResponseEntity<List<ServizioDisclaimer>> response = serviziController.getDisclaimersServizio(_package.getIdServizio(), "it", null);
+
+			assertEquals(HttpStatus.OK, response.getStatusCode());
+			List<ServizioDisclaimer> disclaimers = response.getBody();
+			assertNotNull(disclaimers);
+			assertTrue(disclaimers.stream().anyMatch(d -> "DISCLAIMER_PACKAGE".equals(d.getDisclaimer())));
+			assertTrue(disclaimers.stream().noneMatch(d -> "DISCLAIMER_SERVIZIO".equals(d.getDisclaimer())));
+		} finally {
+			ReflectionTestUtils.setField(disclaimerService, "externalPath", externalPathOriginale);
+			disclaimerService.reload();
+		}
+	}
+
+	@Test
 	void testGetDisclaimersServizioNotFound() {
 		UUID randomId = UUID.randomUUID();
 

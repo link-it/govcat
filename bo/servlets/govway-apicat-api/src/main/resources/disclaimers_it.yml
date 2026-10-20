@@ -33,6 +33,10 @@
 # fallback: se nessuna chiave "servizio.*" corrisponde, non viene mostrato
 # alcun disclaimer (la chiave "default" vale solo per le adesioni).
 #
+# DISCLAIMER DEI PACKAGE: come per i servizi, con il prefisso "package."
+# (es. "package.bozza"), dove {stato} e' lo stato del package. Nessun fallback,
+# nemmeno sulle chiavi "servizio.*".
+#
 # Per sovrascrivere questi disclaimer dall'esterno, copiare questo file in:
 #   /var/govcat/conf/disclaimers_it.yml
 # =============================================================================
@@ -872,3 +876,104 @@ servizio.bozza.collaudo: *disclaimer_ambiente_servizio
 servizio.bozza.produzione: *disclaimer_ambiente_servizio
 servizio.pubblicato_collaudo.collaudo: *disclaimer_ambiente_servizio
 servizio.pubblicato_collaudo.produzione: *disclaimer_ambiente_servizio
+
+# =============================================================================
+# DISCLAIMER DEI PACKAGE (prefisso "package.")
+#
+# Mostrati nel wizard dei package. Valgono le stesse regole dei servizi, ma
+# {stato} e' lo stato del PACKAGE e ogni chiave e' prefissata con "package.":
+#   1. package.{stato}.{codice_interno}.{dominio}[.{ambiente}]
+#   2. package.{stato}.{codice_interno}[.{ambiente}]
+#   3. package.{stato}[.{ambiente}]
+# I profili sono quelli delle API dei servizi componenti del package.
+# Non esiste fallback, nemmeno sulle chiavi "servizio.*": se nessuna chiave
+# "package.*" corrisponde, non viene mostrato alcun disclaimer.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# DISCLAIMER PER STATO DEL PACKAGE (generale, indipendente dal profilo)
+# -----------------------------------------------------------------------------
+
+package.bozza:
+  severity: WARNING
+  testo: |
+    ## Package in bozza
+    Il package è stato creato ma non è ancora stato inviato per la pubblicazione. Per procedere:
+    - Completa le **Informazioni Generali** del package
+    - Aggiungi i **servizi componenti**: almeno uno deve essere già pubblicato nell'ambiente in cui chiedi di pubblicare il package
+    - La richiesta di pubblicazione è a cura del **gestore della piattaforma**
+
+    Finché il package rimane in bozza non è pubblicato e non è possibile aderirvi.
+
+package.richiesto_collaudo: |
+  ## In attesa di autorizzazione
+  La richiesta di pubblicazione del package in **collaudo** è stata inviata ed è in attesa di autorizzazione da parte del **gestore della piattaforma**.
+
+package.autorizzato_collaudo: |
+  ## Autorizzato — in attesa di configurazione
+  La richiesta di pubblicazione del package in **collaudo** è stata autorizzata. Il gestore della piattaforma sta procedendo con la configurazione.
+
+package.in_configurazione_collaudo: |
+  ## Configurazione in corso (collaudo)
+  Il gestore della piattaforma sta configurando il package nell'ambiente di **collaudo**. Identificativo, specifiche e dati di collaudo non sono più modificabili.
+
+package.pubblicato_collaudo: |
+  ## Package pubblicato in collaudo
+  Il package è **pubblicato nell'ambiente di collaudo** ed è disponibile per le adesioni di test. Per la pubblicazione in produzione almeno un servizio componente deve essere pubblicato in produzione.
+
+package.richiesto_produzione: |
+  ## In attesa di autorizzazione (produzione)
+  La richiesta di pubblicazione del package in **produzione** è stata inviata ed è in attesa di autorizzazione da parte del **gestore della piattaforma**.
+
+package.autorizzato_produzione: |
+  ## Autorizzato — in attesa di configurazione (produzione)
+  La richiesta di pubblicazione del package in **produzione** è stata autorizzata. Il gestore della piattaforma sta procedendo con la configurazione.
+
+package.in_configurazione_produzione: |
+  ## Configurazione in corso (produzione)
+  Il gestore della piattaforma sta configurando il package nell'ambiente di **produzione**. Identificativo, specifiche e dati di produzione non sono più modificabili.
+
+package.pubblicato_produzione: |
+  ## Package pubblicato in produzione ✓
+  Il package è **pubblicato in produzione** ed è disponibile nel catalogo per le adesioni. Per modifiche contatta il gestore della piattaforma.
+
+# Percorso senza collaudo: il package viene pubblicato direttamente in produzione
+package.richiesto_produzione_senza_collaudo: |
+  ## In attesa di autorizzazione (produzione)
+  La richiesta di pubblicazione del package in **produzione** è stata inviata **senza passare dall'ambiente di collaudo** ed è in attesa di autorizzazione da parte del **gestore della piattaforma**.
+
+package.autorizzato_produzione_senza_collaudo: |
+  ## Autorizzato — in attesa di configurazione (produzione)
+  La richiesta di pubblicazione diretta del package in **produzione** è stata autorizzata. Il gestore della piattaforma sta procedendo con la configurazione.
+
+package.in_configurazione_produzione_senza_collaudo: |
+  ## Configurazione in corso (produzione)
+  Il gestore della piattaforma sta configurando il package nell'ambiente di **produzione**. Identificativo, specifiche e dati di produzione non sono più modificabili.
+
+package.pubblicato_produzione_senza_collaudo: |
+  ## Package pubblicato in produzione ✓
+  Il package è **pubblicato in produzione** senza essere passato dall'ambiente di collaudo ed è disponibile nel catalogo per le adesioni. Per modifiche contatta il gestore della piattaforma.
+
+package.archiviato:
+  severity: WARNING
+  testo: |
+    ## Package archiviato
+    Questo package è stato **archiviato**: non è più pubblicato nel catalogo e non è possibile presentare nuove adesioni. Per renderlo nuovamente disponibile contatta il gestore della piattaforma.
+
+# -----------------------------------------------------------------------------
+# DISCLAIMER PER AMBIENTE (collaudo / produzione), indipendente dal profilo
+#
+# Mostrati, come per i servizi, solo negli stati in cui si prepara la richiesta
+# per l'ambiente: "bozza" (collaudo e, per il percorso senza collaudo,
+# produzione) e "pubblicato_collaudo" (produzione).
+# -----------------------------------------------------------------------------
+
+package.bozza.collaudo: |
+  Per richiedere la pubblicazione in collaudo il package deve contenere almeno un servizio componente già pubblicato in collaudo.
+
+__anchor_produzione_package: &disclaimer_produzione_package |
+  Per richiedere la pubblicazione in produzione il package deve contenere almeno un servizio componente già pubblicato in produzione.
+
+package.bozza.produzione: *disclaimer_produzione_package
+
+package.pubblicato_collaudo.produzione: *disclaimer_produzione_package

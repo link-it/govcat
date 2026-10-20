@@ -1,3 +1,22 @@
+2026-10-20  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 352: configurazione del wizard estesa ai package. Il blocco `package` del
+	  configurazione.json accetta le chiavi `step_wizard`, `step_wizard_collaudo` e
+	  `step_wizard_produzione`, con lo stesso schema dei servizi (nella fase Informazioni
+	  Generali la sezione `componenti` sostituisce `api`).
+	  Il workflow del package di default prevede il percorso senza collaudo (stati
+	  `*_produzione_senza_collaudo`, transizioni riservate al gestore come il resto del
+	  workflow): finora un package con "Salta collaudo" restava bloccato in bozza. Il
+	  controllo sui componenti pubblicati in produzione accetta anche quelli arrivati in
+	  produzione senza collaudo.
+	  `GET /servizi/{id_servizio}/disclaimers` su un package risolve le chiavi con prefisso
+	  `package.` invece di `servizio.`, senza fallback, con nuovi disclaimer di default
+	  (it/en) per gli stati del package.
+	  Corretto inoltre il configurazione.json di default: un servizio pubblicato in
+	  produzione senza collaudo non era aderibile né visibile nel catalogo, perché
+	  mancava `pubblicato_produzione_senza_collaudo` in `stati_adesione_consentita`.
+
 2026-10-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
