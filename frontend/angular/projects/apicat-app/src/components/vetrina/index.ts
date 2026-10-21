@@ -17,6 +17,8 @@ export {
   LnkRefItem,
   gradientFor,
   initialsOf,
+  tagForRuolo,
+  humanizeRuolo,
 } from './refs.component';
 export { EnvToggleComponent, EnvValue } from './env-toggle.component';
 export { ApiRowComponent, LnkApiTag } from './api-row.component';

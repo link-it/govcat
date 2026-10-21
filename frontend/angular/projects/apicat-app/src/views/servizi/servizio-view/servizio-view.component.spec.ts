@@ -676,6 +676,27 @@ describe('ServizioViewComponent', () => {
       expect(u1!.types.length).toBe(2); // referente_dominio + referente_servizio (or ruolo)
     });
 
+    it('should put the service role first and show the domain role in the +N', () => {
+      component._showReferents = true;
+      component.data = { dominio: { id_dominio: 'dom1', nome: 'Arti' } };
+      component.id = 10;
+      component.config = { showDomainReferent: true, showTechnicalReferent: true };
+      const _utente = { id_utente: 'u1', nome: 'Mario', cognome: 'Rossi', email_aziendale: 'm@r.it' };
+
+      mockApiService.getDetails.mockImplementation((model: string, id: any, sub?: string) => {
+        if (model === 'servizi' && sub === 'referenti') return of({ content: [{ utente: _utente, tipo: 'referente' }] });
+        if (model === 'domini' && sub === 'referenti') return of({ content: [{ utente: _utente, tipo: 'referente' }] });
+        return of({});
+      });
+
+      component.loadReferenti();
+
+      const _ref = component.referentiAsLnkRefs[0];
+      expect(_ref.ruolo).toBe('Referente Servizio');
+      expect(_ref.tag).toBe('serv');
+      expect(_ref.ruoliAggiuntivi).toEqual(['Referente Dominio (Arti)']);
+    });
+
     it('should filter out domain referents when showDomainReferent is false', () => {
       component._showReferents = true;
       component.data = { dominio: { id_dominio: 'dom1' } };

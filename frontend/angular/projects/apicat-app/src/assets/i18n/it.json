@@ -864,6 +864,8 @@
 			"wsdl_12": "Wsdl 1.2"
 		},
 		"LABEL": {
+			"AltriRuoli": "altri ruoli",
+			"AncheRuolo": "Anche {{ruolo}}",
 			"ImpostatoDalDominio": "Impostato dal dominio",
 			"SkipToContent": "Salta al contenuto",
 			"UrlEsposizione": "Url di esposizione",

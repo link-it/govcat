@@ -68,6 +68,8 @@ import {
     LnkApiTag,
     EnvValue,
     LnkRefItem,
+    tagForRuolo,
+    humanizeRuolo,
 } from '@app/components/vetrina';
 
 export const EROGATO_SOGGETTO_DOMINIO: string = 'erogato_soggetto_dominio';
@@ -736,9 +738,10 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                     return acc;
                 };
 
+                // Ruolo principale: prima quello sul servizio, poi il dominio.
                 const allReferents = [
-                    ...domainReferents.filter((ref: any) => { return ((ref.tipo === 'referente_dominio') && this.config.showDomainReferent);}),
-                    ...referents.filter((ref: any) => { return ((ref.tipo !== 'referente_tecnico_servizio') || this.config.showTechnicalReferent);})
+                    ...referents.filter((ref: any) => { return ((ref.tipo !== 'referente_tecnico_servizio') || this.config.showTechnicalReferent);}),
+                    ...domainReferents.filter((ref: any) => { return ((ref.tipo === 'referente_dominio') && this.config.showDomainReferent);})
                 ];
                 this.referenti = allReferents.reduce(reduceReferents, []);
 
@@ -1390,9 +1393,8 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
 
     /**
      * Mappa `referenti: ReferentView[]` nello shape `LnkRefItem[]`
-     * consumato da `<lnk-refs>`. Mantiene il primo tipo come ruolo
-     * "umano" e mappa il tag CSS per il colore della pill
-     * (`r-dom`/`r-serv`/`r-tec`/`r-ades`).
+     * consumato da `<lnk-refs>`: il primo tipo e` il ruolo principale,
+     * gli altri finiscono nel tooltip del `+N`.
      */
     public get referentiAsLnkRefs(): LnkRefItem[] {
         return (this.referenti || []).map((r: ReferentView) => {
@@ -1401,27 +1403,20 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                 id: r.id,
                 nome: r.name,
                 email: r.email,
-                ruolo: this._humanizeRuolo(primary),
-                tag: this._tagForRuolo(primary),
+                ruolo: this._ruoloLabel(primary),
+                tag: tagForRuolo(primary),
+                ruoliAggiuntivi: (r.types || []).slice(1).map((t: string) => this._ruoloLabel(t, true)),
             };
         });
     }
 
-    private _humanizeRuolo(t: string): string {
-        if (!t) return '';
-        return t
-            .split('_')
-            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-            .join(' ');
-    }
-
-    private _tagForRuolo(t: string): string {
-        const s = (t || '').toLowerCase();
-        if (s.includes('dominio')) return 'dom';
-        if (s.includes('tecnico')) return 'tec';
-        if (s.includes('servizio')) return 'serv';
-        if (s.includes('adesione')) return 'ades';
-        return '';
+    /** Ruolo tradotto; con `contesto` il ruolo di dominio riporta il nome del dominio. */
+    private _ruoloLabel(t: string, contesto: boolean = false): string {
+        const _key = 'APP.ROLE.' + t;
+        const _tradotto = this.translate.instant(_key);
+        const _label = (_tradotto && _tradotto !== _key) ? _tradotto : humanizeRuolo(t);
+        const _dominio = this.data?.dominio?.nome;
+        return (contesto && _dominio && t.endsWith('_dominio')) ? `${_label} (${_dominio})` : _label;
     }
 
     /** Handler del nuovo `<lnk-env-toggle>`: setta `_environmentId` e

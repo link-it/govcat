@@ -1,3 +1,11 @@
+2026-10-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #400 - Vetrine di servizi e adesioni: per un referente con piu' ruoli accanto al ruolo
+	  principale compare un "+N" con tooltip dei ruoli aggiuntivi (con il nome del dominio per il
+	  referente di dominio); il ruolo principale e' quello piu' vicino alla pagina (adesione, poi
+	  servizio, poi dominio) e i ruoli sono tradotti.
+
 2026-10-20  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

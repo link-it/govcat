@@ -18,6 +18,8 @@
  */
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
 
 /**
  * Item generico di un referente per il rendering nella pagina
@@ -32,6 +34,27 @@ export interface LnkRefItem {
   /** Categoria — usata come modificatore CSS (`r-<tag>`). Es. dom/serv/ades/tec. */
   tag?: string;
   email?: string;
+  /** Altri ruoli dello stesso utente, gia` tradotti: mostrati nel tooltip del `+N`. */
+  ruoliAggiuntivi?: string[];
+}
+
+/** Modificatore CSS (`r-<tag>`) del ruolo: dom/tec/serv/ades. */
+export function tagForRuolo(t: string): string {
+  const s = (t || '').toLowerCase();
+  if (s.includes('dominio')) return 'dom';
+  if (s.includes('tecnico')) return 'tec';
+  if (s.includes('servizio')) return 'serv';
+  if (s.includes('adesione')) return 'ades';
+  return '';
+}
+
+/** Ruolo leggibile ricavato dal tipo (es. `referente_servizio` -> "Referente Servizio"). */
+export function humanizeRuolo(t: string): string {
+  if (!t) return '';
+  return t
+    .split('_')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
 }
 
 const PALETTES: [string, string][] = [
@@ -66,7 +89,7 @@ export function initialsOf(name: string): string {
 @Component({
   selector: 'lnk-refs',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslateModule, TooltipModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (variant === 'overlap') {
@@ -93,12 +116,34 @@ export function initialsOf(name: string): string {
       </div>
     } @else {
       <div class="refs">
-        @for (r of list; track r.nome) {
+        @for (r of list; track r.nome; let i = $index) {
           <div class="ref">
             <div class="ref-av" [style.background]="gradient(r.nome)">{{ initials(r.nome) }}</div>
             <div class="ref-body">
               <div class="ref-name">{{ r.nome }}</div>
-              <div class="ref-tag" [ngClass]="r.tag ? 'r-' + r.tag : ''">{{ r.ruolo }}</div>
+              <div class="ref-tags">
+                <div class="ref-tag" [ngClass]="r.tag ? 'r-' + r.tag : ''">{{ r.ruolo }}</div>
+                @if (r.ruoliAggiuntivi?.length) {
+                  <button type="button" class="ref-more"
+                          [tooltip]="altriRuoliTpl"
+                          placement="bottom"
+                          container="body"
+                          [attr.aria-label]="'+' + r.ruoliAggiuntivi!.length + ' ' + ('APP.LABEL.AltriRuoli' | translate)"
+                          [attr.aria-describedby]="_idBase + '-' + i">
+                    +{{ r.ruoliAggiuntivi!.length }}
+                  </button>
+                  <span class="visually-hidden" [id]="_idBase + '-' + i">
+                    @for (ruolo of r.ruoliAggiuntivi; track $index) {
+                      {{ 'APP.LABEL.AncheRuolo' | translate: { ruolo: lowerFirst(ruolo) } }}.
+                    }
+                  </span>
+                  <ng-template #altriRuoliTpl>
+                    @for (ruolo of r.ruoliAggiuntivi; track $index) {
+                      <div>{{ 'APP.LABEL.AncheRuolo' | translate: { ruolo: lowerFirst(ruolo) } }}</div>
+                    }
+                  </ng-template>
+                }
+              </div>
             </div>
           </div>
         }
@@ -107,9 +152,12 @@ export function initialsOf(name: string): string {
   `,
 })
 export class RefsComponent {
+  private static _seq = 0;
   @Input() list: LnkRefItem[] = [];
+  readonly _idBase = `lnk-refs-${++RefsComponent._seq}`;
   @Input() variant: 'cards' | 'overlap' = 'cards';
   gradient = gradientFor;
   initials = initialsOf;
   lastWord(s: string): string { return s.split(' ').pop() ?? ''; }
+  lowerFirst(s: string): string { return s ? s.charAt(0).toLowerCase() + s.slice(1) : ''; }
 }

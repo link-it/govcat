@@ -33,6 +33,8 @@ import {
   ActionBannerComponent,
   EnvValue,
   LnkRefItem,
+  tagForRuolo,
+  humanizeRuolo,
 } from '@app/components/vetrina';
 
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -578,13 +580,14 @@ export class AdesioneViewComponent implements OnInit {
           return acc;
         };
 
+        // Ruolo principale: prima quello sull'adesione, poi servizio e dominio.
         const allReferents = [
+          ...referents,
           // `referente_servizio` deprecato in favore di `utente_organizzazione`:
           // accettiamo entrambi i tipi per non perdere i referenti dei servizi
           // su dati legacy non ancora aggiornati.
           ...serviceReferents.filter(ref => ref.tipo === 'referente_servizio' || ref.tipo === 'utente_organizzazione'),
-          ...domainReferents.filter(ref => ref.tipo === 'referente_dominio'),
-          ...referents
+          ...domainReferents.filter(ref => ref.tipo === 'referente_dominio')
         ];
         this.referents = allReferents.reduce(reduceReferents, []);
 
@@ -733,10 +736,8 @@ export class AdesioneViewComponent implements OnInit {
 
   /**
    * Mappa `ReferentView[]` (struttura legacy con `name`/`types`) nello
-   * shape `LnkRefItem[]` consumato da `<lnk-refs>`. Il `ruolo` viene
-   * derivato dal primo tipo (es. `referente_servizio` -> "Referente
-   * Servizio"); il `tag` e` un'abbreviazione lessicale per il
-   * modificatore CSS (`r-dom`, `r-serv`, `r-ades`, `r-tec`).
+   * shape `LnkRefItem[]` consumato da `<lnk-refs>`: il primo tipo e` il
+   * ruolo principale, gli altri finiscono nel tooltip del `+N`.
    */
   public get referentsAsLnkRefs(): LnkRefItem[] {
     return (this.referents || []).map((r: ReferentView) => {
@@ -745,27 +746,20 @@ export class AdesioneViewComponent implements OnInit {
         id: r.id,
         nome: r.name,
         email: r.email,
-        ruolo: this._humanizeRuolo(primary),
-        tag: this._tagForRuolo(primary),
+        ruolo: this._ruoloLabel(primary),
+        tag: tagForRuolo(primary),
+        ruoliAggiuntivi: (r.types || []).slice(1).map((t: string) => this._ruoloLabel(t, true)),
       };
     });
   }
 
-  private _humanizeRuolo(t: string): string {
-    if (!t) return '';
-    return t
-      .split('_')
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(' ');
-  }
-
-  private _tagForRuolo(t: string): string {
-    const s = (t || '').toLowerCase();
-    if (s.includes('dominio')) return 'dom';
-    if (s.includes('tecnico')) return 'tec';
-    if (s.includes('servizio')) return 'serv';
-    if (s.includes('adesione')) return 'ades';
-    return '';
+  /** Ruolo tradotto; con `contesto` il ruolo di dominio riporta il nome del dominio. */
+  private _ruoloLabel(t: string, contesto: boolean = false): string {
+    const _key = 'APP.ROLE.' + t;
+    const _tradotto = this.translate.instant(_key);
+    const _label = (_tradotto && _tradotto !== _key) ? _tradotto : humanizeRuolo(t);
+    const _dominio = this.adesione?.servizio?.dominio?.nome;
+    return (contesto && _dominio && t.endsWith('_dominio')) ? `${_label} (${_dominio})` : _label;
   }
 
   /** Toggle del pannello auth: chiude se gia` aperto. */

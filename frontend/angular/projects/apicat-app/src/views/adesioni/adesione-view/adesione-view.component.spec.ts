@@ -281,6 +281,25 @@ describe('AdesioneViewComponent', () => {
     expect(component.referents.length).toBeGreaterThan(0);
   });
 
+  it('loadReferents should put the adhesion role first and show the other roles in the +N', () => {
+    (Tools as any).Configurazione = { adesione: { mostra_referenti: 'enabled' } };
+    component.adesione = { ...createMockAdesione(), servizio: { ...createMockAdesione().servizio, dominio: { id_dominio: 'd1', nome: 'Arti' } } } as any;
+    const _utente = { id_utente: 'u1', nome: 'Chiara', cognome: 'Cartagenova', email_aziendale: 'c@test.it' };
+
+    mockApiService.getDetails
+      .mockReturnValueOnce(of({ content: [{ utente: _utente, tipo: 'referente' }] }))
+      .mockReturnValueOnce(of({ content: [{ utente: _utente, tipo: 'referente' }] }))
+      .mockReturnValueOnce(of({ content: [{ utente: _utente, tipo: 'referente' }] }));
+
+    (component as any).loadReferents();
+
+    expect(component.referents[0].types).toEqual(['referente_adesione', 'referente_servizio', 'referente_dominio']);
+    const _ref = component.referentsAsLnkRefs[0];
+    expect(_ref.ruolo).toBe('Referente Adesione');
+    expect(_ref.tag).toBe('ades');
+    expect(_ref.ruoliAggiuntivi).toEqual(['Referente Servizio', 'Referente Dominio (Arti)']);
+  });
+
   it('loadReferents should handle error and set referentiLoading false', () => {
     (Tools as any).Configurazione = { adesione: { mostra_referenti: 'enabled' } };
     component.adesione = createMockAdesione();
