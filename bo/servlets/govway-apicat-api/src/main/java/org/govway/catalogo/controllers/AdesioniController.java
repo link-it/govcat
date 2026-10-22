@@ -335,13 +335,14 @@ public class AdesioniController implements AdesioniApi {
 
 				this.logger.info("Invocazione in corso ...");     
 
-				findOne(idAdesione);
+				AdesioneEntity adesione = findOne(idAdesione);
 				
 				MessaggioAdesioneEntity entity = this.service.findMessaggioAdesione(idAdesione.toString(), idMessaggio.toString())
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
 						.orElseThrow(() -> new NotFoundException(ErrorCode.NTF_404, Map.of("idNotifica", idMessaggio.toString())));
 
+				this.authorization.authorizeModifica(adesione, Arrays.asList(ConfigurazioneClasseDato.COMUNICAZIONI));
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				DocumentoEntity allegato = documentoAllegatoAssembler.toEntity(allegatoMessaggioCreate, coreAuthorization.getUtenteSessione());
@@ -395,6 +396,8 @@ public class AdesioniController implements AdesioniApi {
 	 */
 	private MessaggioAdesioneEntity creaMessaggioAdesione(UUID idAdesione, MessaggioAdesioneCreate messaggioCreate) {
 		AdesioneEntity entity = findOne(idAdesione);
+
+		this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.COMUNICAZIONI));
 
 		MessaggioAdesioneEntity messaggio = this.itemMessaggioAssembler.toEntity(messaggioCreate, entity);
 

@@ -102,6 +102,7 @@ import org.govway.catalogo.servlets.model.Dominio;
 import org.govway.catalogo.servlets.model.DominioCreate;
 import org.govway.catalogo.servlets.model.EntitaComplessaError;
 import org.govway.catalogo.servlets.model.Grant;
+import org.govway.catalogo.servlets.model.GrantType;
 import org.govway.catalogo.servlets.model.Gruppo;
 import org.govway.catalogo.servlets.model.GruppoCreate;
 import org.govway.catalogo.servlets.model.ItemAdesione;
@@ -979,6 +980,35 @@ public class AdesioniTest {
     	assertThrows(NotAuthorizedException.class, () -> {
     		adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggio);
         });
+    }
+
+    /**
+     * Classe di dato `comunicazioni`: nello stato `richiesto_collaudo` la transizione successiva
+     * spetta al referente superiore, quindi il referente dell'adesione non modifica i dati
+     * generici, ma deve poter comunicare.
+     */
+    @Test
+    void testCreateMessaggioAdesioneReferenteStatoRichiestoCollaudo() {
+        Dominio dominio = this.getDominioFull(null);
+        Servizio servizio = this.getServizioFull(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPIFull();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+        Adesione adesione = this.getAdesioneFull();
+        this.cambioStatoAdesioneFinoA(adesione.getIdAdesione(), "richiesto_collaudo");
+
+        CommonUtils.getSessionUtente(UTENTE_REFERENTE_ADESIONE, securityContext, authentication, utenteService);
+
+        Grant grant = adesioniController.getGrantAdesione(adesione.getIdAdesione()).getBody();
+        assertEquals(GrantType.LETTURA, grant.getGenerico());
+        assertEquals(GrantType.SCRITTURA, grant.getComunicazioni());
+
+        MessaggioAdesioneCreate messaggio = new MessaggioAdesioneCreate();
+        messaggio.setOggetto("Oggetto di prova");
+        messaggio.setTesto("Testo di prova");
+        messaggio.setTarget(Arrays.asList(TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE));
+
+        ResponseEntity<ItemMessaggio> response = adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggio);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test

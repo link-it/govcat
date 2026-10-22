@@ -337,6 +337,8 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 		break;
 		case API:  gt = grant.getApi();
 		break;
+		case COMUNICAZIONI:  gt = grant.getComunicazioni();
+		break;
 		}
 
 		if(gt==null) {
@@ -362,6 +364,14 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 		}
 
 		ConfigurazioneCambioStato stato = this.getStato(entity, this.getStatoEquivalente(classe, entity));
+
+		if(classe.equals(ConfigurazioneClasseDato.COMUNICAZIONI)) {
+			// Le comunicazioni non seguono l'avanzamento del workflow: chi ha un ruolo sull'entita' puo'
+			// comunicare in ogni stato, compresi quelli senza stato successivo. Restano bloccabili per
+			// stato tramite i dati non modificabili.
+			return stato.getDatiNonModificabili() != null && stato.getDatiNonModificabili().contains(classe) ?
+					GrantType.LETTURA : GrantType.SCRITTURA;
+		}
 
 		boolean isRuoloAbilitato = false;
 
@@ -468,6 +478,7 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 		grant.setCollaudo(this.getGrantType(ConfigurazioneClasseDato.COLLAUDO, lst, entity));
 		grant.setProduzione(this.getGrantType(ConfigurazioneClasseDato.PRODUZIONE, lst, entity));
 		grant.setApi(this.getGrantType(ConfigurazioneClasseDato.API, lst, entity));
+		grant.setComunicazioni(this.getGrantType(ConfigurazioneClasseDato.COMUNICAZIONI, lst, entity));
 
 		return grant;
 	}

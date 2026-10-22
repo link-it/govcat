@@ -1,3 +1,16 @@
+2026-10-23  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 380: introdotta la classe dato `comunicazioni`, che governa l'invio di comunicazioni
+	  e dei relativi allegati su servizi e adesioni al posto della classe `generico`.
+	  Chi ha un ruolo sull'entità può comunicare in ogni stato del workflow, compresi quelli
+	  finali, indipendentemente da chi debba eseguire la transizione successiva; la classe può
+	  essere indicata nei `dati_non_modificabili` di uno stato per bloccare le comunicazioni.
+	  Finora sui servizi il referente non poteva comunicare negli stati in cui la transizione
+	  successiva spettava ad altri e, negli stati pubblicati in produzione, solo il gestore
+	  poteva farlo. Sulle adesioni, finora prive di controllo, l'invio richiede ora un ruolo
+	  sull'adesione. Il grant di servizi e adesioni espone il nuovo campo `comunicazioni`.
+
 2026-10-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

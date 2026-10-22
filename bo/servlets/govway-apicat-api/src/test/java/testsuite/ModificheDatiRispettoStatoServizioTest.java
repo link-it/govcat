@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -53,6 +54,13 @@ import org.govway.catalogo.servlets.model.DocumentoUpdate.TipoDocumentoEnum;
 import org.govway.catalogo.servlets.model.DocumentoUpdateNew;
 import org.govway.catalogo.servlets.model.Dominio;
 import org.govway.catalogo.servlets.model.DominioCreate;
+import org.govway.catalogo.servlets.model.AllegatoMessaggio;
+import org.govway.catalogo.servlets.model.AllegatoMessaggioCreate;
+import org.govway.catalogo.servlets.model.Grant;
+import org.govway.catalogo.servlets.model.GrantType;
+import org.govway.catalogo.servlets.model.ItemMessaggio;
+import org.govway.catalogo.servlets.model.MessaggioCreate;
+import org.govway.catalogo.servlets.model.TargetComunicazioneServizioEnum;
 import org.govway.catalogo.servlets.model.Gruppo;
 import org.govway.catalogo.servlets.model.GruppoCreate;
 import org.govway.catalogo.servlets.model.IdentificativoApiUpdate;
@@ -1476,5 +1484,104 @@ public class ModificheDatiRispettoStatoServizioTest {
     	CommonUtils.getSessionUtente(UTENTE_REFERENTE_SERVIZIO, securityContext, authentication, utenteService);
 
     	assertNotNull(this.aggiornaProduzione(api.getIdApi()));
+    }
+
+    // ========================================================================
+    // Classe di dato `comunicazioni`: governa l'invio di comunicazioni (e dei
+    // relativi allegati). A differenza delle altre classi non segue l'attore
+    // dello stato successivo: chi ha un ruolo sul servizio puo' comunicare in
+    // ogni stato, compresi quelli finali, salvo che la classe sia indicata tra
+    // i dati non modificabili dello stato.
+    // ========================================================================
+
+    private ItemMessaggio inviaComunicazione() {
+    	MessaggioCreate messaggio = new MessaggioCreate();
+    	messaggio.setOggetto("Oggetto di prova");
+    	messaggio.setTesto("Testo di prova");
+    	messaggio.setTarget(Arrays.asList(TargetComunicazioneServizioEnum.REFERENTI_SERVIZIO));
+    	ResponseEntity<ItemMessaggio> response = serviziController.createMessaggioServizio(idServizio, messaggio);
+    	assertEquals(HttpStatus.OK, response.getStatusCode());
+    	return response.getBody();
+    }
+
+    /**
+     * Nello stato `richiesto_collaudo` la transizione successiva spetta al referente superiore:
+     * il referente del servizio non modifica i dati generici, ma deve poter comunicare.
+     */
+    @Test
+    public void comunicazioneInviabileDaStatoRichiestoInCollaudoPerReferenteServizio() {
+    	Dominio dominio = this.getDominio(null);
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	this.getAPI();
+
+    	CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+    	CommonUtils.cambioStatoFinoA(STATO_RICHIESTO_IN_COLLAUDO, serviziController, idServizio);
+
+    	CommonUtils.getSessionUtente(UTENTE_REFERENTE_SERVIZIO, securityContext, authentication, utenteService);
+
+    	Grant grant = serviziController.getGrantServizio(idServizio).getBody();
+    	assertEquals(GrantType.LETTURA, grant.getGenerico());
+    	assertEquals(GrantType.SCRITTURA, grant.getComunicazioni());
+
+    	assertNotNull(this.inviaComunicazione().getIdMessaggio());
+    }
+
+    /**
+     * Lo stato `pubblicato_produzione` non ha uno stato successivo: prima della classe
+     * `comunicazioni` solo il gestore poteva comunicare.
+     */
+    @Test
+    public void comunicazioneEAllegatoInviabiliDaStatoPubblicatoInProduzionePerReferenteDominio() {
+    	Dominio dominio = this.getDominio(null);
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	this.getAPI();
+
+    	CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+    	CommonUtils.cambioStatoFinoA(STATO_PUBBLICATO_IN_PRODUZIONE, serviziController, idServizio);
+
+    	CommonUtils.getSessionUtente(UTENTE_REFERENTE_DOMINIO, securityContext, authentication, utenteService);
+
+    	Grant grant = serviziController.getGrantServizio(idServizio).getBody();
+    	assertEquals(GrantType.LETTURA, grant.getGenerico());
+    	assertEquals(GrantType.SCRITTURA, grant.getComunicazioni());
+
+    	ItemMessaggio messaggio = this.inviaComunicazione();
+
+    	AllegatoMessaggioCreate allegato = new AllegatoMessaggioCreate();
+    	allegato.setContent(Base64.encodeBase64String("contenuto di test".getBytes()));
+    	allegato.setFilename("allegato.pdf");
+    	allegato.setContentType("application/pdf");
+    	ResponseEntity<AllegatoMessaggio> response = serviziController.createAllegatoMessaggioServizio(idServizio, messaggio.getIdMessaggio(), allegato);
+    	assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void comunicazioneNonInviabilePerUtenteSenzaRuoloSulServizio() {
+    	Dominio dominio = this.getDominio(null);
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	this.getAPI();
+
+    	CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+    	CommonUtils.cambioStatoFinoA(STATO_PUBBLICATO_IN_PRODUZIONE, serviziController, idServizio);
+
+    	// utente abilitato che vede il servizio pubblico, ma senza alcun ruolo su di esso
+    	UtenteUpdate upUtente = new UtenteUpdate();
+    	upUtente.setPrincipal(UTENTE_QUALSIASI);
+    	CommonUtils.setOrganizzazione(upUtente, idOrganizzazione);
+    	upUtente.setStato(StatoUtenteEnum.ABILITATO);
+    	upUtente.setEmailAziendale("mail@aziendale.it");
+    	upUtente.setTelefonoAziendale("+39 0000000");
+    	upUtente.setNome("utente");
+    	upUtente.setCognome("qualsiasi");
+    	upUtente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+    	utentiController.updateUtente(ID_UTENTE_QUALSIASI, upUtente);
+
+    	CommonUtils.getSessionUtente(UTENTE_QUALSIASI, securityContext, authentication, utenteService);
+
+    	assertEquals(GrantType.NESSUNO, serviziController.getGrantServizio(idServizio).getBody().getComunicazioni());
+
+    	assertThrows(NotAuthorizedException.class, ()->{
+    		this.inviaComunicazione();
+	    });
     }
 }

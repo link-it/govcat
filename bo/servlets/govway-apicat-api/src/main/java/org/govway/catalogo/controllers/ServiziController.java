@@ -495,7 +495,7 @@ public class ServiziController implements ServiziApi {
 						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404_MESSAGGIO, Map.of("idMessaggio", idMessaggio.toString())));
 				
 
-				this.servizioAuthorization.authorizeModifica(entity.getServizio(), Arrays.asList(ConfigurazioneClasseDato.GENERICO));
+				this.servizioAuthorization.authorizeModifica(entity.getServizio(), Arrays.asList(ConfigurazioneClasseDato.COMUNICAZIONI));
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				DocumentoEntity allegato = documentoAllegatoAssembler.toEntity(allegatoCreate, coreAuthorization.getUtenteSessione());
@@ -552,7 +552,7 @@ public class ServiziController implements ServiziApi {
 				.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_404, Map.of("idServizio", idServizio.toString())));
 
 
-		this.servizioAuthorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.GENERICO));
+		this.servizioAuthorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.COMUNICAZIONI));
 
 		this.logger.debug("Autorizzazione completata con successo");
 
@@ -2651,6 +2651,7 @@ public class ServiziController implements ServiziApi {
 					grant.setGenerico(GrantType.NESSUNO);
 					grant.setCollaudo(GrantType.NESSUNO);
 					grant.setProduzione(GrantType.NESSUNO);
+					grant.setComunicazioni(GrantType.NESSUNO);
 
 					return ResponseEntity.ok(grant);
 				}
