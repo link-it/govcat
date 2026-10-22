@@ -16,6 +16,17 @@
 	  delle API `/stato` e `/messaggi`, con il messaggio autorizzato sullo stato finale;
 	  il parametro `check_only` non è previsto.
 
+	* [CI/CD]
+	Issue 307: aggiunti alla pipeline GitHub i job `sbom` e `dependency-track-upload`.
+	  Il primo genera gli SBOM CycloneDX del backend (aggregato dei moduli Maven, json
+	  e xml) e del frontend (dipendenze npm di runtime), pubblicati nell'artifact
+	  `sbom-report` e inclusi nei report della release. Il secondo li carica su
+	  Dependency-Track come progetti `govcat-backend` e `govcat-frontend` sotto il
+	  progetto padre `GovCat` (secret `GOVCAT_DTRACK_API_KEY`), con versione pari al
+	  tag (marcata latest) o al branch. Eseguiti su tag, `main` e branch `vX.Y.x`.
+	  Le scansioni OSV (`osv_scan_BE`, `osv_scan_FE`) ora girano anche sui tag:
+	  finora venivano saltate e con esse il job `release`.
+
 2026-10-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
