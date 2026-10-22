@@ -3387,6 +3387,16 @@
 				"ChangeStatusError": "Error changing state [{{status}}]",
 				"ChangeStatusSuccess": "Status change successful [{{status}}]"
 			},
+			"RIFIUTO": {
+				"Rifiuta": "Reject",
+				"Titolo": "Reject the request",
+				"Descrizione": "The state goes back to \"{{stato}}\" and the referents receive a communication with the reason.",
+				"Oggetto": "Subject",
+				"Motivo": "Reason for rejection",
+				"Conferma": "Confirm rejection",
+				"OggettoDefault": "{{nome}}: request rejected ({{stato}})",
+				"Successo": "Request rejected: the state went back to \"{{stato}}\" and the communication was sent to the referents."
+			},
 			"STATUS": {
 				"PROCESSING": "Processing",
 				"DENIED": "Denied",

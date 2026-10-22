@@ -3387,6 +3387,16 @@
 				"ChangeStatusError": "Errore nel cambio di stato [{{status}}]",
 				"ChangeStatusSuccess": "Cambio di stato effettuato con successo [{{status}}]"
 			},
+			"RIFIUTO": {
+				"Rifiuta": "Rifiuta",
+				"Titolo": "Rifiuta la richiesta",
+				"Descrizione": "Lo stato torna a \"{{stato}}\" e i referenti ricevono una comunicazione con il motivo.",
+				"Oggetto": "Oggetto",
+				"Motivo": "Motivo del rifiuto",
+				"Conferma": "Conferma rifiuto",
+				"OggettoDefault": "{{nome}}: richiesta rifiutata ({{stato}})",
+				"Successo": "Richiesta rifiutata: lo stato è tornato a \"{{stato}}\" e la comunicazione è stata inviata ai referenti."
+			},
 			"STATUS": {
 				"PROCESSING": "In elaborazione",
 				"DENIED": "Negato",

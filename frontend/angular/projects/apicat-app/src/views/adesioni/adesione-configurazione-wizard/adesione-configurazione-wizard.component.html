@@ -1489,7 +1489,16 @@
                        Ogni pulsante e` gated dal mapper
                        `_isWorkflowActionEnabled` (combina grant
                        per-adesione + ruoli_referente del profilo). -->
-                  @if (_hasAnyWorkflowAction()) {
+                  @if (_hasAnyWorkflowAction() && _rifiutoOpen) {
+                    <app-wizard-rifiuto-form class="d-block mt-3"
+                      [oggetto]="_oggettoRifiuto"
+                      [statoPrecedente]="_statoPrecedenteLabel"
+                      [saving]="changingStatus"
+                      [errorMsg]="_rifiutoErrore"
+                      (conferma)="onConfermaRifiuto($event)"
+                      (annulla)="closeRifiuto()"
+                    ></app-wizard-rifiuto-form>
+                  } @else if (_hasAnyWorkflowAction()) {
                     @let _entry = getCambioStatoEntry();
 
                     <div class="mt-3">
@@ -1498,6 +1507,15 @@
 
                     <div class="d-flex flex-wrap gap-2 justify-content-end mt-3 pt-3"
                          [style.border-top]="_subStepDisclaimers?.length ? '1px solid var(--line)' : null">
+                      @if (canRifiutare(section)) {
+                        <lnk-button
+                          [label]="'APP.WORKFLOW.RIFIUTO.Rifiuta' | translate"
+                          [secondary]="true"
+                          [ariaLabel]="'APP.WORKFLOW.RIFIUTO.Rifiuta' | translate"
+                          (onAction)="openRifiuto()"
+                          [disabled]="changingStatus || _pollingAutoConfig">
+                        </lnk-button>
+                      }
                       @if (_entry?.stati_ulteriori?.length) {
                         @for (status of _entry.stati_ulteriori; track status.nome) {
                           @if (_isWorkflowActionEnabled('stati_ulteriori', status.nome)) {

@@ -1,3 +1,11 @@
+2026-10-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #401 - Wizard di servizi e adesioni: nel sotto-step "In approvazione", accanto ad Autorizza,
+	  il pulsante Rifiuta riporta la richiesta allo stato precedente del workflow e invia ai referenti
+	  del servizio o dell'adesione una comunicazione con oggetto pre-compilato e motivo
+	  (API `stato-messaggio`).
+
 2026-10-22  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

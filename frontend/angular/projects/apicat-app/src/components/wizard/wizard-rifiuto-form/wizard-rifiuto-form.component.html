@@ -1,0 +1,57 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<form class="wizard-rifiuto-form p-3" novalidate [formGroup]="_formGroup" (submit)="onSubmit()" [attr.aria-labelledby]="_idBase + '-title'">
+  <h4 class="wizard-rifiuto-title" [id]="_idBase + '-title'">{{ 'APP.WORKFLOW.RIFIUTO.Titolo' | translate }}</h4>
+  <p class="text-muted small mb-3">{{ 'APP.WORKFLOW.RIFIUTO.Descrizione' | translate: { stato: statoPrecedente } }}</p>
+
+  <div class="mb-3">
+    <label class="label-bold" [for]="_idBase + '-oggetto'">{{ 'APP.WORKFLOW.RIFIUTO.Oggetto' | translate }} <span class="text-danger" aria-hidden="true">*</span></label>
+    <input type="text" class="form-control" [id]="_idBase + '-oggetto'" formControlName="oggetto"
+           [attr.maxlength]="maxOggetto" required
+           [class.is-invalid]="_hasError('oggetto', 'required') || _hasError('oggetto', 'maxlength')"
+           [attr.aria-invalid]="_hasError('oggetto', 'required') || _hasError('oggetto', 'maxlength')"
+           [attr.aria-describedby]="_idBase + '-oggetto-error'">
+    <p class="form-text text-danger mb-0" [id]="_idBase + '-oggetto-error'" aria-live="polite">
+      @if (_hasError('oggetto', 'required')) { <span>{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span> }
+      @if (_hasError('oggetto', 'maxlength')) { <span>{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: maxOggetto } }}</span> }
+    </p>
+  </div>
+
+  <div class="mb-2">
+    <label class="label-bold" [for]="_idBase + '-testo'">{{ 'APP.WORKFLOW.RIFIUTO.Motivo' | translate }} <span class="text-danger" aria-hidden="true">*</span></label>
+    <textarea class="form-control" rows="4" [id]="_idBase + '-testo'" formControlName="testo"
+              [attr.maxlength]="maxTesto" required
+              [class.is-invalid]="_hasError('testo', 'required') || _hasError('testo', 'maxlength')"
+              [attr.aria-invalid]="_hasError('testo', 'required') || _hasError('testo', 'maxlength')"
+              [attr.aria-describedby]="_idBase + '-testo-error'"></textarea>
+    <p class="form-text text-danger mb-0" [id]="_idBase + '-testo-error'" aria-live="polite">
+      @if (_hasError('testo', 'required')) { <span>{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span> }
+      @if (_hasError('testo', 'maxlength')) { <span>{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: maxTesto } }}</span> }
+    </p>
+  </div>
+
+  @if (errorMsg) {
+    <div class="gl-alert gl-alert-danger mt-2" role="alert"><span>{{ errorMsg }}</span></div>
+  }
+
+  <div class="d-flex justify-content-end gap-2 mt-3">
+    <lnk-button [label]="'APP.BUTTON.Cancel' | translate" [disabled]="saving" (onAction)="onCancel()"></lnk-button>
+    <lnk-button type="submit" [label]="'APP.WORKFLOW.RIFIUTO.Conferma' | translate" [danger]="true" [spinner]="saving"></lnk-button>
+  </div>
+</form>

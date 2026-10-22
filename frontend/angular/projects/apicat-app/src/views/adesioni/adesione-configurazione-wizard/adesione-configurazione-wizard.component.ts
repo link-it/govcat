@@ -48,6 +48,7 @@ import { AdesioneFormComponent } from './adesione-form/adesione-form.component';
 import { WizardStepBarComponent, StepBarVariant, StepWizardItem } from '@app/components/wizard/wizard-step-bar/wizard-step-bar.component';
 import { WizardFasiBarComponent } from '@app/components/wizard/wizard-fasi-bar/wizard-fasi-bar.component';
 import { WizardSubstepperComponent } from '@app/components/wizard/wizard-substepper/wizard-substepper.component';
+import { WizardRifiuto, WizardRifiutoFormComponent } from '@app/components/wizard/wizard-rifiuto-form/wizard-rifiuto-form.component';
 import { StatoChipComponent } from '@app/components/vetrina';
 
 import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/service-breadcrumbs.resolver';
@@ -124,6 +125,7 @@ export interface AdesioneDisclaimer {
         WizardStepBarComponent,
         WizardFasiBarComponent,
         WizardSubstepperComponent,
+        WizardRifiutoFormComponent,
         StatoChipComponent,
         ReferenteAddFormComponent,
         NotificationBarComponent,
@@ -210,6 +212,9 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     _messageHelp: string = 'APP.MESSAGE.NoReferentHelp';
 
     changingStatus: boolean = false;
+    /** Form di rifiuto della richiesta aperta nel sotto-step "In approvazione". */
+    _rifiutoOpen: boolean = false;
+    _rifiutoErrore: string = '';
     _error: boolean = false;
     _errorMsg: string = '';
     _errors: any[] = [];
@@ -436,6 +441,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
      * cosa contiene.
      */
     selectFase(faseCode: string): void {
+        if (this._selectedFase !== faseCode) { this.closeRifiuto(); }
         this._selectedFase = faseCode;
         // Allinea la selezione delle sezioni attive alla fase scelta (stessa
         // logica di `onStepBarClick` della step-bar legacy): senza questo, il
@@ -1119,6 +1125,66 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
             this.adesione.stato,
             this._combinedRuoli()
         );
+    }
+
+    /**
+     * Rifiuto della richiesta: nel sotto-step "In approvazione", per chi puo` sia autorizzare
+     * sia riportare l'adesione allo stato precedente del workflow.
+     */
+    canRifiutare(section: 'collaudo' | 'produzione'): boolean {
+        const _precedente = this.getCambioStatoEntry()?.stato_precedente?.nome;
+        return this._isSubstepNaturallyActive(section, 'in_approvazione') && !!_precedente
+            && this._isWorkflowActionEnabled('stato_successivo') && this._isWorkflowActionEnabled('stato_precedente', _precedente);
+    }
+
+    get _statoPrecedenteLabel(): string {
+        const _nome = this.getCambioStatoEntry()?.stato_precedente?.nome;
+        return _nome ? this.translate.instant('APP.WORKFLOW.STATUS.' + _nome) : '';
+    }
+
+    get _oggettoRifiuto(): string {
+        const _servizio = this.adesione?.servizio;
+        const _nome = [_servizio?.nome, _servizio?.versione ? `v. ${_servizio.versione}` : ''].filter(Boolean).join(' ');
+        const _soggetto = this.adesione?.soggetto?.nome;
+        const _stato = this.translate.instant('APP.WORKFLOW.STATUS.' + this.adesione?.stato);
+        return this.translate.instant('APP.WORKFLOW.RIFIUTO.OggettoDefault', { nome: _soggetto ? `${_nome} (${_soggetto})` : _nome, stato: _stato });
+    }
+
+    openRifiuto() {
+        this.resetError();
+        this._rifiutoErrore = '';
+        this._rifiutoOpen = true;
+    }
+
+    closeRifiuto() {
+        this._rifiutoOpen = false;
+        this._rifiutoErrore = '';
+    }
+
+    /** Cambio di stato verso lo stato precedente e comunicazione ai referenti dell'adesione, in un'unica operazione. */
+    onConfermaRifiuto(rifiuto: WizardRifiuto) {
+        const _precedente = this.getCambioStatoEntry()?.stato_precedente?.nome;
+        if (!this.id || !_precedente) { return; }
+        const _body = {
+            stato: { stato: _precedente },
+            messaggio: { oggetto: rifiuto.oggetto, testo: rifiuto.testo, target: ['REFERENTI_ADESIONE'], includi_tecnici: true }
+        };
+        this.changingStatus = true;
+        this._rifiutoErrore = '';
+        this.apiService.postElementRelated(this.model, this.id, 'stato-messaggio', _body).subscribe({
+            next: (response: any) => {
+                this._rifiutoOpen = false;
+                this.adesione = response;
+                this.changingStatus = false;
+                const _status: string = this.translate.instant('APP.WORKFLOW.STATUS.' + response?.stato);
+                Tools.showMessage(this.translate.instant('APP.WORKFLOW.RIFIUTO.Successo', { stato: _status }), 'success', true);
+                this.loadAdesione(true);
+            },
+            error: (error: any) => {
+                this.changingStatus = false;
+                this._rifiutoErrore = Tools.WorkflowErrorMsg(error) || this.utils.GetErrorMsg(error);
+            }
+        });
     }
 
     /** Vero se almeno una azione di cambio stato e` abilitata per

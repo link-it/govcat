@@ -57,6 +57,7 @@ import { ErrorViewComponent } from '@app/components/error-view/error-view.compon
 import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
 import { WizardFasiBarComponent } from '@app/components/wizard/wizard-fasi-bar/wizard-fasi-bar.component';
 import { WizardSubstepperComponent } from '@app/components/wizard/wizard-substepper/wizard-substepper.component';
+import { WizardRifiuto, WizardRifiutoFormComponent } from '@app/components/wizard/wizard-rifiuto-form/wizard-rifiuto-form.component';
 import { StepWizardItem } from '@app/components/wizard/wizard-step-bar/wizard-step-bar.component';
 import { ServizioInfoFormComponent } from './servizio-info-form/servizio-info-form.component';
 import { ServizioReferenteAddFormComponent } from './servizio-referente-add-form/servizio-referente-add-form.component';
@@ -97,6 +98,7 @@ declare const saveAs: any;
         ErrorViewComponent,
         WizardFasiBarComponent,
         WizardSubstepperComponent,
+        WizardRifiutoFormComponent,
         ServizioInfoFormComponent,
         ServizioReferenteAddFormComponent,
         ServizioAllegatoAddFormComponent,
@@ -124,6 +126,9 @@ export class ServizioWorkflowWizardComponent implements OnInit {
 
     _spin: boolean = true;
     _changingStatus: boolean = false;
+    /** Form di rifiuto della richiesta aperta nel sotto-step "In approvazione". */
+    _rifiutoOpen: boolean = false;
+    _rifiutoErrore: string = '';
     _updateData: string = '';
 
     _error: boolean = false;
@@ -483,6 +488,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         // un pannello (config/vista/modifica) mostrerebbe l'ambiente precedente
         // (componente non ricreato) → collaudo e produzione con la stessa form.
         if (this._selectedFase !== code) {
+            this.closeRifiuto();
             this._configApiId = null;
             this._configApiStartEdit = false;
             this._editApiId = null;
@@ -620,6 +626,68 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     isCompilazioneStep(): boolean {
         const sub = this.subStepsForActiveFase.find((s) => s.code === 'in_compilazione');
         return !!sub && (sub.stati || []).includes(this.data?.stato);
+    }
+
+    /** True se lo stato corrente coincide col sub-step "In approvazione" della fase attiva. */
+    isApprovazioneStep(): boolean {
+        const sub = this.subStepsForActiveFase.find((s) => s.code === 'in_approvazione');
+        return !!sub && (sub.stati || []).includes(this.data?.stato);
+    }
+
+    /**
+     * Rifiuto della richiesta: nel sotto-step "In approvazione", per chi puo` sia autorizzare
+     * sia riportare la richiesta allo stato precedente del workflow.
+     */
+    canRifiutare(): boolean {
+        const _entry = this.serviceCambioStato();
+        return this.isApprovazioneStep() && !!_entry?.stato_precedente?.nome
+            && this.canServiceChangeStatus('stato_successivo') && this.canServiceChangeStatus('stato_precedente');
+    }
+
+    get _statoPrecedenteLabel(): string {
+        const _nome = this.serviceCambioStato()?.stato_precedente?.nome;
+        return _nome ? this.translate.instant('APP.WORKFLOW.STATUS.' + _nome) : '';
+    }
+
+    get _oggettoRifiuto(): string {
+        const _nome = [this.data?.nome, this.data?.versione ? `v. ${this.data.versione}` : ''].filter(Boolean).join(' ');
+        const _stato = this.translate.instant('APP.WORKFLOW.STATUS.' + this.data?.stato);
+        return this.translate.instant('APP.WORKFLOW.RIFIUTO.OggettoDefault', { nome: _nome, stato: _stato });
+    }
+
+    openRifiuto() {
+        this.__resetError();
+        this._rifiutoErrore = '';
+        this._rifiutoOpen = true;
+    }
+
+    closeRifiuto() {
+        this._rifiutoOpen = false;
+        this._rifiutoErrore = '';
+    }
+
+    /** Cambio di stato verso lo stato precedente e comunicazione ai referenti del servizio, in un'unica operazione. */
+    onConfermaRifiuto(rifiuto: WizardRifiuto) {
+        const _precedente = this.serviceCambioStato()?.stato_precedente?.nome;
+        if (!this.id || !_precedente) { return; }
+        const _body = {
+            stato: { stato: _precedente },
+            messaggio: { oggetto: rifiuto.oggetto, testo: rifiuto.testo, target: ['REFERENTI_SERVIZIO'], includi_tecnici: true }
+        };
+        this._changingStatus = true;
+        this._rifiutoErrore = '';
+        this.apiService.postElementRelated(this.model, this.id, 'stato-messaggio', _body).subscribe({
+            next: (response: any) => {
+                this._rifiutoOpen = false;
+                this._applicaCambioStato(response);
+                const _status: string = this.translate.instant('APP.WORKFLOW.STATUS.' + this.data.stato);
+                Tools.showMessage(this.translate.instant('APP.WORKFLOW.RIFIUTO.Successo', { stato: _status }), 'success', true);
+            },
+            error: (error: any) => {
+                this._changingStatus = false;
+                this._rifiutoErrore = Tools.WorkflowErrorMsg(error) || this.utils.GetErrorMsg(error);
+            }
+        });
     }
 
     /** Titolo della procedura sopra la timeline della fase attiva. */
@@ -1287,18 +1355,10 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         const _body: any = { stato: event.status.nome };
         this.apiService.saveElement(_url, _body).subscribe({
             next: (response: any) => {
-                this.data = { ...response };
-                this._changingStatus = false;
-                this._initSelectedFase();
-                this._verificaTrigger$.next();
-                // I disclaimer dipendono dallo stato del servizio: dopo un cambio
-                // di stato vanno ricaricati, altrimenti restano quelli dello stato
-                // precedente (es. resta "Bozza" fino al reload della pagina).
-                this._loadServizioDisclaimers();
+                this._applicaCambioStato(response);
                 const _status: string = this.translate.instant('APP.WORKFLOW.STATUS.' + this.data.stato);
                 const _msg: string = this.translate.instant('APP.WORKFLOW.MESSAGE.ChangeStatusSuccess', { status: _status });
                 Tools.showMessage(_msg, 'success', true);
-                this._updateData = new Date().getTime().toString();
             },
             error: (error: any) => {
                 this._changingStatus = false;
@@ -1311,6 +1371,19 @@ export class ServizioWorkflowWizardComponent implements OnInit {
                 this._showStatusError();
             }
         });
+    }
+
+    /** Aggiorna il wizard con il servizio restituito da un cambio di stato. */
+    private _applicaCambioStato(response: any) {
+        this.data = { ...response };
+        this._changingStatus = false;
+        this._initSelectedFase();
+        this._verificaTrigger$.next();
+        // I disclaimer dipendono dallo stato del servizio: dopo un cambio
+        // di stato vanno ricaricati, altrimenti restano quelli dello stato
+        // precedente (es. resta "Bozza" fino al reload della pagina).
+        this._loadServizioDisclaimers();
+        this._updateData = new Date().getTime().toString();
     }
 
     private _initBreadcrumb() {

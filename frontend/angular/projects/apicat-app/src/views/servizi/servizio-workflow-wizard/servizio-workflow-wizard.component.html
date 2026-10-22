@@ -703,9 +703,27 @@
                  logica di `<ui-workflow>` header). Se l'utente non ha
                  permessi, disclaimer di attesa. -->
             <ng-template #serviceWorkflowCtaTpl>
-              @if (hasServiceWorkflowActions()) {
+              @if (hasServiceWorkflowActions() && _rifiutoOpen) {
+                <app-wizard-rifiuto-form class="d-block mt-3"
+                  [oggetto]="_oggettoRifiuto"
+                  [statoPrecedente]="_statoPrecedenteLabel"
+                  [saving]="_changingStatus"
+                  [errorMsg]="_rifiutoErrore"
+                  (conferma)="onConfermaRifiuto($event)"
+                  (annulla)="closeRifiuto()"
+                ></app-wizard-rifiuto-form>
+              } @else if (hasServiceWorkflowActions()) {
                 @let entry = serviceCambioStato();
                 <div class="d-flex flex-wrap gap-2 justify-content-end mt-3 pt-3" style="border-top: 1px solid var(--line);">
+                  @if (canRifiutare()) {
+                    <lnk-button
+                      [label]="'APP.WORKFLOW.RIFIUTO.Rifiuta' | translate"
+                      [secondary]="true"
+                      [ariaLabel]="'APP.WORKFLOW.RIFIUTO.Rifiuta' | translate"
+                      (onAction)="openRifiuto()"
+                      [disabled]="_changingStatus">
+                    </lnk-button>
+                  }
                   @let successivoVisible = isServiceTransitionVisible(entry?.stato_successivo?.nome);
                   @if (entry?.stati_ulteriori?.length) {
                     @for (status of entry.stati_ulteriori; track status.nome) {
