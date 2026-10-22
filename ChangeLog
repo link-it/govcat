@@ -1,3 +1,13 @@
+2026-10-22  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 401: nuove API `POST /servizi/{id_servizio}/stato-messaggio` e
+	  `POST /adesioni/{id_adesione}/stato-messaggio`, che eseguono in un'unica transazione
+	  il cambio stato e la creazione di una comunicazione: se una delle due operazioni
+	  fallisce non viene applicata nessuna delle due. Controlli e notifiche sono gli stessi
+	  delle API `/stato` e `/messaggi`, con il messaggio autorizzato sullo stato finale;
+	  il parametro `check_only` non è previsto.
+
 2026-10-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

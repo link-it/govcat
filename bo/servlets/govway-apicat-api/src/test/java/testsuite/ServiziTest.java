@@ -113,6 +113,7 @@ import org.govway.catalogo.servlets.model.ServizioDisclaimer;
 import org.govway.catalogo.servlets.model.ServizioUpdate;
 import org.govway.catalogo.servlets.model.Soggetto;
 import org.govway.catalogo.servlets.model.SoggettoCreate;
+import org.govway.catalogo.servlets.model.StatoMessaggioServizioUpdate;
 import org.govway.catalogo.servlets.model.StatoUpdate;
 import org.govway.catalogo.servlets.model.StatoUtenteEnum;
 import org.govway.catalogo.servlets.model.Tassonomia;
@@ -1377,6 +1378,63 @@ public class ServiziTest {
             serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
         });
 
+    }
+
+    @Test
+    void testUpdateStatoMessaggioServizioSuccess() {
+        Servizio servizio = this.getServizio();
+        UUID idServizio = servizio.getIdServizio();
+        // archiviazione con comunicazione: transizione che non richiede dati obbligatori sul servizio
+        StatoMessaggioServizioUpdate statoMessaggio = this.getStatoMessaggioServizioUpdate(STATO_ARCHIVIATO);
+
+        ResponseEntity<Servizio> response = serviziController.updateStatoMessaggioServizio(idServizio, statoMessaggio);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(STATO_ARCHIVIATO, response.getBody().getStato());
+
+        List<ItemMessaggio> messaggi = serviziController.listMessaggiServizio(idServizio, null, 0, 10, null).getBody().getContent();
+        assertTrue(messaggi.stream().anyMatch(m -> statoMessaggio.getMessaggio().getOggetto().equals(m.getOggetto())
+                && statoMessaggio.getMessaggio().getTesto().equals(m.getTesto())));
+    }
+
+    @Test
+    void testUpdateStatoMessaggioServizioNotFound() {
+        StatoMessaggioServizioUpdate statoMessaggio = this.getStatoMessaggioServizioUpdate("richiesto_collaudo");
+
+        assertThrows(NotFoundException.class, () -> {
+            serviziController.updateStatoMessaggioServizio(UUID.randomUUID(), statoMessaggio);
+        });
+    }
+
+    @Test
+    void testUpdateStatoMessaggioServizioAuthorizationFailed() {
+        Servizio servizio = this.getServizio();
+        UUID idServizio = servizio.getIdServizio();
+
+        StatoMessaggioServizioUpdate statoMessaggio = this.getStatoMessaggioServizioUpdate("richiesto_collaudo");
+
+        CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
+
+        assertThrows(NotAuthorizedException.class, () -> {
+            serviziController.updateStatoMessaggioServizio(idServizio, statoMessaggio);
+        });
+    }
+
+    private StatoMessaggioServizioUpdate getStatoMessaggioServizioUpdate(String stato) {
+        StatoUpdate statoUpdate = new StatoUpdate();
+        statoUpdate.setStato(stato);
+        statoUpdate.setCommento("commento cambio stato");
+
+        MessaggioCreate messaggio = new MessaggioCreate();
+        messaggio.setOggetto("Oggetto Test");
+        messaggio.setTesto("Testo del messaggio");
+        messaggio.setTarget(Arrays.asList(TargetComunicazioneServizioEnum.REFERENTI_SERVIZIO));
+
+        StatoMessaggioServizioUpdate statoMessaggio = new StatoMessaggioServizioUpdate();
+        statoMessaggio.setStato(statoUpdate);
+        statoMessaggio.setMessaggio(messaggio);
+        return statoMessaggio;
     }
 
     @Test

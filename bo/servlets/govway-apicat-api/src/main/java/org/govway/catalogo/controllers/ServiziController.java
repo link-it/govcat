@@ -150,6 +150,7 @@ import org.govway.catalogo.servlets.model.Servizio;
 import org.govway.catalogo.servlets.model.ServizioCreate;
 import org.govway.catalogo.servlets.model.ServizioDisclaimer;
 import org.govway.catalogo.servlets.model.ServizioUpdate;
+import org.govway.catalogo.servlets.model.StatoMessaggioServizioUpdate;
 import org.govway.catalogo.servlets.model.StatoUpdate;
 import org.govway.catalogo.servlets.model.TipoComunicazione;
 import org.govway.catalogo.servlets.model.TipoReferenteEnum;
@@ -524,33 +525,7 @@ public class ServiziController implements ServiziApi {
 
 				this.logger.info("Invocazione in corso ...");
 
-				ServizioEntity entity = this.service.find(idServizio)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_404, Map.of("idServizio", idServizio.toString())));
-
-
-				this.servizioAuthorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.GENERICO));
-
-				this.logger.debug("Autorizzazione completata con successo");
-
-				MessaggioServizioEntity messaggio = this.itemMessaggioAssembler.toEntity(messaggioCreate, entity);
-
-				this.service.save(messaggio);
-
-				// Determina i target della comunicazione (multi-selezione)
-				Set<TargetComunicazioneServizioEnum> target = messaggioCreate.getTarget().stream()
-					.map(t -> TargetComunicazioneServizioEnum.valueOf(t.name()))
-					.collect(Collectors.toSet());
-
-				// Verifica che il target COORDINATORE sia usabile solo se abilitato
-				if (target.contains(TargetComunicazioneServizioEnum.COORDINATORE) && !isCoordinatoreAbilitato()) {
-					throw new BadRequestException(ErrorCode.UT_400_COORDINATORE_DISABLED);
-				}
-
-				boolean includiTecnici = messaggioCreate.isIncludiTecnici() != null ? messaggioCreate.isIncludiTecnici() : true;
-
-				List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheMessaggioServizio(messaggio, target, includiTecnici);
-				lstNotifiche.stream().forEach(n -> this.notificaService.save(n));
-
+				MessaggioServizioEntity messaggio = this.creaMessaggioServizio(idServizio, messaggioCreate);
 
 				ItemMessaggio model = this.itemMessaggioAssembler.toModel(messaggio);
 				this.logger.info("Invocazione completata con successo");
@@ -566,6 +541,41 @@ public class ServiziController implements ServiziApi {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
 			throw new InternalException(ErrorCode.SYS_500);
 		}
+	}
+
+	/**
+	 * Crea il messaggio e le relative notifiche. Va invocato all'interno di una transazione,
+	 * condiviso tra createMessaggioServizio e updateStatoMessaggioServizio.
+	 */
+	private MessaggioServizioEntity creaMessaggioServizio(UUID idServizio, MessaggioCreate messaggioCreate) {
+		ServizioEntity entity = this.service.find(idServizio)
+				.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_404, Map.of("idServizio", idServizio.toString())));
+
+
+		this.servizioAuthorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.GENERICO));
+
+		this.logger.debug("Autorizzazione completata con successo");
+
+		MessaggioServizioEntity messaggio = this.itemMessaggioAssembler.toEntity(messaggioCreate, entity);
+
+		this.service.save(messaggio);
+
+		// Determina i target della comunicazione (multi-selezione)
+		Set<TargetComunicazioneServizioEnum> target = messaggioCreate.getTarget().stream()
+			.map(t -> TargetComunicazioneServizioEnum.valueOf(t.name()))
+			.collect(Collectors.toSet());
+
+		// Verifica che il target COORDINATORE sia usabile solo se abilitato
+		if (target.contains(TargetComunicazioneServizioEnum.COORDINATORE) && !isCoordinatoreAbilitato()) {
+			throw new BadRequestException(ErrorCode.UT_400_COORDINATORE_DISABLED);
+		}
+
+		boolean includiTecnici = messaggioCreate.isIncludiTecnici() != null ? messaggioCreate.isIncludiTecnici() : true;
+
+		List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheMessaggioServizio(messaggio, target, includiTecnici);
+		lstNotifiche.stream().forEach(n -> this.notificaService.save(n));
+
+		return messaggio;
 	}
 
 	@Override
@@ -1126,38 +1136,10 @@ public class ServiziController implements ServiziApi {
 	public ResponseEntity<Servizio> updateStatoServizio(UUID idServizio, StatoUpdate statoServizioUpdate, Boolean checkOnly) {
 		try {
 			return this.service.runTransaction(() -> {
-				this.logger.info("Invocazione in corso ...");     
-				
-				ServizioEntity entity = this.findOne(idServizio);
-				
-				boolean wasArchiviato = entity.getStato().equals(configurazione.getServizio().getWorkflow().getStatoArchiviato());
-				boolean isArchiviato = statoServizioUpdate.getStato().equals(configurazione.getServizio().getWorkflow().getStatoArchiviato());
-				if(wasArchiviato && !isArchiviato) {
-					UUID idDominio = getIdDominio(entity);
-					Optional<ServizioEntity> conflitto = this.service.findConflittoNomeVersioneNonArchiviato(
-							entity.getNome(), entity.getVersione(), idDominio, configurazione.getServizio().getWorkflow().getStatoArchiviato());
-					if(conflitto.isPresent()) {
-						throw toConflittoServizio(entity.getNome(), entity.getVersione(), idDominio, conflitto.get());
-					}
-				}
+				this.logger.info("Invocazione in corso ...");
 
-				String statoIniziale = entity.getStato();
-				String statoFinale = statoServizioUpdate.getStato();
+				ServizioEntity entity = this.cambiaStatoServizio(idServizio, statoServizioUpdate, checkOnly);
 
-				this.getServizioAuthorization(entity).authorizeCambioStato(entity, statoServizioUpdate.getStato());
-				this.getServizioAuthorization(entity).authorizeUtenteCambioStato(entity, statoIniziale, statoFinale);
-                this.dettaglioAssembler.toEntity(statoServizioUpdate, entity);
-
-
-
-				this.logger.debug("Autorizzazione completata con successo");     
-				
-				if(!isCheckOnly(checkOnly)) {
-					this.service.save(entity);
-					
-					List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheCambioStatoServizio(entity);
-					lstNotifiche.stream().forEach(n -> this.notificaService.save(n));
-				}
 				Servizio model = this.dettaglioAssembler.toModel(entity);
 
 				if(isCheckOnly(checkOnly)) {
@@ -1177,6 +1159,70 @@ public class ServiziController implements ServiziApi {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
 			throw new InternalException(ErrorCode.SYS_500);
 		}
+	}
+
+	@Override
+	public ResponseEntity<Servizio> updateStatoMessaggioServizio(UUID idServizio, StatoMessaggioServizioUpdate statoMessaggioServizioUpdate) {
+		try {
+			return this.service.runTransaction(() -> {
+				this.logger.info("Invocazione in corso ...");
+
+				// Cambio stato e messaggio nella stessa transazione: un errore su uno dei due annulla entrambi.
+				// Il messaggio e` autorizzato sullo stato finale, come invocando le due API in sequenza.
+				ServizioEntity entity = this.cambiaStatoServizio(idServizio, statoMessaggioServizioUpdate.getStato(), false);
+				this.creaMessaggioServizio(idServizio, statoMessaggioServizioUpdate.getMessaggio());
+
+				Servizio model = this.dettaglioAssembler.toModel(entity);
+
+				this.logger.info("Invocazione completata con successo");
+				return ResponseEntity.ok(model);
+			});
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	/**
+	 * Applica il cambio stato e, se non in checkOnly, salva il servizio e le notifiche di cambio stato.
+	 * Va invocato all'interno di una transazione, condiviso tra updateStatoServizio e updateStatoMessaggioServizio.
+	 */
+	private ServizioEntity cambiaStatoServizio(UUID idServizio, StatoUpdate statoServizioUpdate, Boolean checkOnly) {
+		ServizioEntity entity = this.findOne(idServizio);
+
+		boolean wasArchiviato = entity.getStato().equals(configurazione.getServizio().getWorkflow().getStatoArchiviato());
+		boolean isArchiviato = statoServizioUpdate.getStato().equals(configurazione.getServizio().getWorkflow().getStatoArchiviato());
+		if(wasArchiviato && !isArchiviato) {
+			UUID idDominio = getIdDominio(entity);
+			Optional<ServizioEntity> conflitto = this.service.findConflittoNomeVersioneNonArchiviato(
+					entity.getNome(), entity.getVersione(), idDominio, configurazione.getServizio().getWorkflow().getStatoArchiviato());
+			if(conflitto.isPresent()) {
+				throw toConflittoServizio(entity.getNome(), entity.getVersione(), idDominio, conflitto.get());
+			}
+		}
+
+		String statoIniziale = entity.getStato();
+		String statoFinale = statoServizioUpdate.getStato();
+
+		this.getServizioAuthorization(entity).authorizeCambioStato(entity, statoServizioUpdate.getStato());
+		this.getServizioAuthorization(entity).authorizeUtenteCambioStato(entity, statoIniziale, statoFinale);
+		this.dettaglioAssembler.toEntity(statoServizioUpdate, entity);
+
+		this.logger.debug("Autorizzazione completata con successo");
+
+		if(!isCheckOnly(checkOnly)) {
+			this.service.save(entity);
+
+			List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheCambioStatoServizio(entity);
+			lstNotifiche.stream().forEach(n -> this.notificaService.save(n));
+		}
+
+		return entity;
 	}
 
 	@Override

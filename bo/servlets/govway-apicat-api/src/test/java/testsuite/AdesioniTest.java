@@ -134,6 +134,7 @@ import org.govway.catalogo.servlets.model.TipoServizio;
 import org.govway.catalogo.servlets.model.Soggetto;
 import org.govway.catalogo.servlets.model.SoggettoCreate;
 import org.govway.catalogo.servlets.model.StatoClientEnum;
+import org.govway.catalogo.servlets.model.StatoMessaggioAdesioneUpdate;
 import org.govway.catalogo.servlets.model.StatoUpdate;
 import org.govway.catalogo.servlets.model.StatoUtenteEnum;
 import org.govway.catalogo.servlets.model.TipoAdesioneClientUpdateEnum;
@@ -5288,9 +5289,10 @@ public class AdesioniTest {
         assertThrows(NotAuthorizedException.class, () -> adesioniController.saveErogazioneProduzioneAdesione(adesione.getIdAdesione(), idErogazione, adesioneErogazioneUpdate, null));
     }
     
-    @Test
-    void testUpdateStatoAdesioneSuccess() {
-        // Setup
+    /**
+     * Adesione in bozza con i dati obbligatori per la transizione verso richiesto_collaudo.
+     */
+    private UUID creaAdesioneProntaPerRichiestaCollaudo() {
         Dominio dominio = this.getDominio(null);
         Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
         this.getAPI();
@@ -5356,6 +5358,14 @@ public class AdesioniTest {
         
         adesioniController.saveClientCollaudoAdesione(idAdesione, PROFILO, adesioneIdClient, null);
 
+        return idAdesione;
+    }
+
+    @Test
+    void testUpdateStatoAdesioneSuccess() {
+        // Setup
+        UUID idAdesione = this.creaAdesioneProntaPerRichiestaCollaudo();
+
         StatoUpdate stato = new StatoUpdate();
     	stato.setStato("richiesto_collaudo");
     	stato.setCommento("richiesta di collaudo");
@@ -5388,6 +5398,61 @@ public class AdesioniTest {
         assertThrows(NotAuthorizedException.class, () -> adesioniController.updateStatoAdesione(adesione.getIdAdesione(), statoUpdate, null));
     }
     
+    @Test
+    void testUpdateStatoMessaggioAdesioneSuccess() {
+        // Setup
+        UUID idAdesione = this.creaAdesioneProntaPerRichiestaCollaudo();
+
+        StatoMessaggioAdesioneUpdate statoMessaggio = this.getStatoMessaggioAdesioneUpdate("richiesto_collaudo");
+
+        // Act
+        ResponseEntity<Adesione> response = adesioniController.updateStatoMessaggioAdesione(idAdesione, statoMessaggio);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("richiesto_collaudo", response.getBody().getStato());
+
+        // oltre al messaggio automatico di creazione dell'adesione deve essere presente quello inviato
+        List<ItemMessaggio> messaggi = adesioniController.listMessaggiAdesione(idAdesione, null, 0, 10, null).getBody().getContent();
+        assertTrue(messaggi.stream().anyMatch(m -> statoMessaggio.getMessaggio().getOggetto().equals(m.getOggetto())
+                && statoMessaggio.getMessaggio().getTesto().equals(m.getTesto())));
+    }
+
+    @Test
+    void testUpdateStatoMessaggioAdesioneUnauthorized() {
+        // Setup
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+        Adesione adesione = this.getAdesione();
+
+        StatoMessaggioAdesioneUpdate statoMessaggio = this.getStatoMessaggioAdesioneUpdate("richiesto_collaudo");
+
+        // Cambio utente per testare unauthorized
+        CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
+
+        // Act & Assert
+        assertThrows(NotAuthorizedException.class, () -> adesioniController.updateStatoMessaggioAdesione(adesione.getIdAdesione(), statoMessaggio));
+    }
+
+    private StatoMessaggioAdesioneUpdate getStatoMessaggioAdesioneUpdate(String stato) {
+        StatoUpdate statoUpdate = new StatoUpdate();
+        statoUpdate.setStato(stato);
+        statoUpdate.setCommento("commento cambio stato");
+
+        MessaggioAdesioneCreate messaggio = new MessaggioAdesioneCreate();
+        messaggio.setOggetto("Oggetto Test");
+        messaggio.setTesto("Testo del messaggio");
+        messaggio.setTarget(Arrays.asList(TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE));
+
+        StatoMessaggioAdesioneUpdate statoMessaggio = new StatoMessaggioAdesioneUpdate();
+        statoMessaggio.setStato(statoUpdate);
+        statoMessaggio.setMessaggio(messaggio);
+        return statoMessaggio;
+    }
+
     @Test
     void testDeleteMessaggioAdesioneSuccess() {
         // Setup

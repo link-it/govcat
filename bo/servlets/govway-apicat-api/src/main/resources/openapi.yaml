@@ -2842,6 +2842,46 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /servizi/{id_servizio}/stato-messaggio:
+    parameters:
+    - $ref: "#/components/parameters/id_servizio"
+    post:
+      tags:
+      - "Servizi"
+      description: "Aggiornamento dello stato del Servizio e aggiunta di un messaggio all'iter di lavorazione in un'unica operazione atomica"
+      operationId: "updateStatoMessaggioServizio"
+      requestBody:
+        required: true
+        description: "Dati per l'aggiornamento dello stato e del messaggio da aggiungere"
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatoMessaggioServizioUpdate'
+      responses:
+        "201":
+          description: "Operazione completata con successo"
+          content: 
+            application/json:
+                schema:
+                  $ref: "#/components/schemas/Servizio"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "409":
+          $ref: "#/components/responses/409Conflict"
+        "422":
+          $ref: "#/components/responses/422UpdateEntitaComplessaSemanticamenteNonValida"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /servizi/{id_servizio}/check-dati/{stato}:
     parameters:
       - $ref: "#/components/parameters/id_servizio"
@@ -5201,6 +5241,46 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/StatoUpdate"
+      responses:
+        "201":
+          description: "Operazione completata con successo"
+          content: 
+            application/json:
+                schema:
+                  $ref: "#/components/schemas/Adesione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "409":
+          $ref: "#/components/responses/409Conflict"
+        "422":
+          $ref: "#/components/responses/422UpdateEntitaComplessaSemanticamenteNonValida"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /adesioni/{id_adesione}/stato-messaggio:
+    parameters:
+    - $ref: "#/components/parameters/id_adesione"
+    post:
+      tags:
+      - "Adesioni"
+      description: "Aggiunta di uno stato e di un messaggio all'iter di lavorazione dell'adesione in un'unica operazione atomica"
+      operationId: "updateStatoMessaggioAdesione"
+      requestBody:
+        required: true
+        description: "Dati per l'aggiornamento dello stato e del messaggio da aggiungere"
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatoMessaggioAdesioneUpdate'
       responses:
         "201":
           description: "Operazione completata con successo"
@@ -10281,6 +10361,26 @@ components:
           $ref: "#/components/schemas/String255"
         commento:
           $ref: "#/components/schemas/String255"
+    StatoMessaggioServizioUpdate:
+      type: "object"
+      required:
+        - "stato"
+        - "messaggio"
+      properties:
+        stato:
+          $ref: "#/components/schemas/StatoUpdate"
+        messaggio:
+          $ref: "#/components/schemas/MessaggioCreate"
+    StatoMessaggioAdesioneUpdate:
+      type: "object"
+      required:
+        - "stato"
+        - "messaggio"
+      properties:
+        stato:
+          $ref: "#/components/schemas/StatoUpdate"
+        messaggio:
+          $ref: "#/components/schemas/MessaggioAdesioneCreate"
     Servizio:
       type: "object"
       required:

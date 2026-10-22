@@ -124,6 +124,7 @@ import org.govway.catalogo.servlets.model.Referente;
 import org.govway.catalogo.servlets.model.ReferenteCreate;
 import org.govway.catalogo.servlets.model.Ruolo;
 import org.govway.catalogo.servlets.model.StatoConfigurazioneAutomaticaEnum;
+import org.govway.catalogo.servlets.model.StatoMessaggioAdesioneUpdate;
 import org.govway.catalogo.servlets.model.StatoUpdate;
 import org.govway.catalogo.servlets.model.TipoComunicazione;
 import org.govway.catalogo.servlets.model.TipoReferenteEnum;
@@ -370,28 +371,7 @@ public class AdesioniController implements AdesioniApi {
 
 				this.logger.info("Invocazione in corso ...");
 
-				AdesioneEntity entity = findOne(idAdesione);
-
-				MessaggioAdesioneEntity messaggio = this.itemMessaggioAssembler.toEntity(messaggioCreate, entity);
-
-				this.logger.debug("Autorizzazione completata con successo");
-
-				this.service.save(messaggio);
-
-				// Determina i target della comunicazione (multi-selezione)
-				Set<TargetComunicazioneAdesioneEnum> target = messaggioCreate.getTarget().stream()
-					.map(t -> TargetComunicazioneAdesioneEnum.valueOf(t.name()))
-					.collect(Collectors.toSet());
-
-				// Verifica che il target COORDINATORE sia usabile solo se abilitato
-				if (target.contains(TargetComunicazioneAdesioneEnum.COORDINATORE) && !isCoordinatoreAbilitato()) {
-					throw new BadRequestException(ErrorCode.UT_400_COORDINATORE_DISABLED);
-				}
-
-				boolean includiTecnici = messaggioCreate.isIncludiTecnici() != null ? messaggioCreate.isIncludiTecnici() : true;
-
-				List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheMessaggioAdesione(messaggio, target, includiTecnici);
-				lstNotifiche.stream().forEach(n -> this.notificaService.save(n));
+				MessaggioAdesioneEntity messaggio = this.creaMessaggioAdesione(idAdesione, messaggioCreate);
 
 				ItemMessaggio model = this.itemMessaggioAssembler.toModel(messaggio);
 				this.logger.info("Invocazione completata con successo");
@@ -407,6 +387,37 @@ public class AdesioniController implements AdesioniApi {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
 			throw new InternalException(ErrorCode.SYS_500);
 		}
+	}
+
+	/**
+	 * Crea il messaggio e le relative notifiche. Va invocato all'interno di una transazione,
+	 * condiviso tra createMessaggioAdesione e updateStatoMessaggioAdesione.
+	 */
+	private MessaggioAdesioneEntity creaMessaggioAdesione(UUID idAdesione, MessaggioAdesioneCreate messaggioCreate) {
+		AdesioneEntity entity = findOne(idAdesione);
+
+		MessaggioAdesioneEntity messaggio = this.itemMessaggioAssembler.toEntity(messaggioCreate, entity);
+
+		this.logger.debug("Autorizzazione completata con successo");
+
+		this.service.save(messaggio);
+
+		// Determina i target della comunicazione (multi-selezione)
+		Set<TargetComunicazioneAdesioneEnum> target = messaggioCreate.getTarget().stream()
+			.map(t -> TargetComunicazioneAdesioneEnum.valueOf(t.name()))
+			.collect(Collectors.toSet());
+
+		// Verifica che il target COORDINATORE sia usabile solo se abilitato
+		if (target.contains(TargetComunicazioneAdesioneEnum.COORDINATORE) && !isCoordinatoreAbilitato()) {
+			throw new BadRequestException(ErrorCode.UT_400_COORDINATORE_DISABLED);
+		}
+
+		boolean includiTecnici = messaggioCreate.isIncludiTecnici() != null ? messaggioCreate.isIncludiTecnici() : true;
+
+		List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheMessaggioAdesione(messaggio, target, includiTecnici);
+		lstNotifiche.stream().forEach(n -> this.notificaService.save(n));
+
+		return messaggio;
 	}
 
 	@Override
@@ -1516,32 +1527,15 @@ public class AdesioniController implements AdesioniApi {
 	public ResponseEntity<Adesione> updateStatoAdesione(UUID idAdesione, StatoUpdate statoUpdate, Boolean checkOnly) {
 		try {
 			return this.service.runTransaction(() -> {
-				this.logger.info("Invocazione in corso ...");    
-				AdesioneEntity entity = findOne(idAdesione);
-
-				this.logger.debug("Autorizzazione completata con successo");     
-
-				String statoIniziale = entity.getStato();
-				String statoFinale = statoUpdate.getStato();
-				
-				this.authorization.authorizeCambioStato(entity, statoUpdate.getStato());
-				this.authorization.authorizeUtenteCambioStato(entity, statoIniziale, statoFinale);
-                this.dettaglioAssembler.toEntity(statoUpdate, entity);
-
-
-				if(!isCheckOnly(checkOnly)) {
-					this.service.save(entity);
-					List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheCambioStatoAdesione(entity);
-					lstNotifiche.stream().forEach(n -> this.notificaService.save(n));
-				}
-
+				this.logger.info("Invocazione in corso ...");
+				AdesioneEntity entity = this.cambiaStatoAdesione(idAdesione, statoUpdate, checkOnly);
 
 				Adesione model = this.dettaglioAssembler.toModel(entity);
 
 				if(isCheckOnly(checkOnly)) {
 					this.entityManager.detach(entity);
 				}
-				
+
 				this.logger.info("Invocazione completata con successo");
 				return ResponseEntity.ok(model);
 
@@ -1555,6 +1549,58 @@ public class AdesioniController implements AdesioniApi {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
 			throw new InternalException(ErrorCode.SYS_500);
 		}
+	}
+
+	@Override
+	public ResponseEntity<Adesione> updateStatoMessaggioAdesione(UUID idAdesione, StatoMessaggioAdesioneUpdate statoMessaggioAdesioneUpdate) {
+		try {
+			return this.service.runTransaction(() -> {
+				this.logger.info("Invocazione in corso ...");
+
+				// Cambio stato e messaggio nella stessa transazione: un errore su uno dei due annulla entrambi.
+				// Il messaggio e` creato dopo il cambio stato, come invocando le due API in sequenza.
+				AdesioneEntity entity = this.cambiaStatoAdesione(idAdesione, statoMessaggioAdesioneUpdate.getStato(), false);
+				this.creaMessaggioAdesione(idAdesione, statoMessaggioAdesioneUpdate.getMessaggio());
+
+				Adesione model = this.dettaglioAssembler.toModel(entity);
+
+				this.logger.info("Invocazione completata con successo");
+				return ResponseEntity.ok(model);
+			});
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	/**
+	 * Applica il cambio stato e, se non in checkOnly, salva l'adesione e le notifiche di cambio stato.
+	 * Va invocato all'interno di una transazione, condiviso tra updateStatoAdesione e updateStatoMessaggioAdesione.
+	 */
+	private AdesioneEntity cambiaStatoAdesione(UUID idAdesione, StatoUpdate statoUpdate, Boolean checkOnly) {
+		AdesioneEntity entity = findOne(idAdesione);
+
+		this.logger.debug("Autorizzazione completata con successo");
+
+		String statoIniziale = entity.getStato();
+		String statoFinale = statoUpdate.getStato();
+
+		this.authorization.authorizeCambioStato(entity, statoUpdate.getStato());
+		this.authorization.authorizeUtenteCambioStato(entity, statoIniziale, statoFinale);
+		this.dettaglioAssembler.toEntity(statoUpdate, entity);
+
+		if(!isCheckOnly(checkOnly)) {
+			this.service.save(entity);
+			List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheCambioStatoAdesione(entity);
+			lstNotifiche.stream().forEach(n -> this.notificaService.save(n));
+		}
+
+		return entity;
 	}
 
 	@Override
