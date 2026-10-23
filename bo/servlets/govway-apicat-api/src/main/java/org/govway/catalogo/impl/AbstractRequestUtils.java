@@ -219,6 +219,10 @@ public abstract class AbstractRequestUtils implements RequestUtils {
             if (utente.getRuolo() == Ruolo.RUOLO_ORGANIZZAZIONE) {
                 assoc.setRuoloOrganizzazione(
                         org.govway.catalogo.core.orm.entity.RuoloOrganizzazione.OPERATORE_API);
+            } else if (utente.getRuolo() == null) {
+                // L'associazione ad un'organizzazione richiede un ruolo globale: l'utente senza
+                // ruolo viene promosso a RUOLO_ORGANIZZAZIONE (associazione in sola lettura)
+                utente.setRuolo(Ruolo.RUOLO_ORGANIZZAZIONE);
             }
             utente.getUtenteOrganizzazioni().add(assoc);
         }

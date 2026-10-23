@@ -22,6 +22,7 @@ package org.govway.catalogo.authorization;
 import java.util.Map;
 import java.util.UUID;
 
+import org.govway.catalogo.assembler.UtenteEngineAssembler;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
@@ -33,8 +34,12 @@ import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.UtenteCreate;
 import org.govway.catalogo.servlets.model.UtenteOrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.UtenteUpdate;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class UtenteAuthorization extends DefaultAuthorization<UtenteCreate,UtenteUpdate,UtenteEntity> {
+
+	@Autowired
+	private UtenteEngineAssembler utenteEngineAssembler;
 
 	public UtenteAuthorization() {
 		super(EntitaEnum.UTENTE);
@@ -59,7 +64,9 @@ public class UtenteAuthorization extends DefaultAuthorization<UtenteCreate,Utent
 	/**
 	 * Verifica che l'utente in sessione sia AMMINISTRATORE_ORGANIZZAZIONE sull'organizzazione
 	 * di sessione e che il payload UtenteCreate rispetti i vincoli applicabili in tal caso:
-	 * - ruolo globale, se presente, deve essere utente_organizzazione (no gestore/coordinatore)
+	 * - ruolo globale, se presente, deve essere utente_organizzazione (no gestore/coordinatore);
+	 *   se assente viene impostato a utente_organizzazione, poiché il nuovo utente viene
+	 *   associato all'organizzazione di sessione
 	 * - ruolo PDND, se presente, deve essere nessuno
 	 * - organizzazioni deve contenere esattamente l'organizzazione di sessione (singola)
 	 */
@@ -77,6 +84,9 @@ public class UtenteAuthorization extends DefaultAuthorization<UtenteCreate,Utent
 				&& utenteCreate.getRuolo() != RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE) {
 			throw new NotAuthorizedException(ErrorCode.AUT_403_AMM_ORG_INVALID_ROLE,
 					Map.of("ruolo", utenteCreate.getRuolo().getValue()));
+		}
+		if (utenteCreate.getRuolo() == null) {
+			utenteCreate.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
 		}
 
 		// Vincolo: il ruolo PDND è assegnabile solo da chi è autorizzato alla scrittura degli utenti
@@ -138,7 +148,26 @@ public class UtenteAuthorization extends DefaultAuthorization<UtenteCreate,Utent
 			if (isRuoloPdndModificato(update, entity)) {
 				throw new NotAuthorizedException(ErrorCode.AUT_403_AMM_ORG_RUOLO_PDND);
 			}
+
+			// Vincolo: il ruolo globale non è modificabile in questo path, salvo l'assegnazione
+			// di utente_organizzazione ad un utente che ne è privo (es. appena registrato).
+			if (isRuoloGlobaleModificato(update, entity)) {
+				throw new NotAuthorizedException(ErrorCode.AUT_403_AMM_ORG_INVALID_ROLE,
+						Map.of("ruolo", String.valueOf(update.getRuolo())));
+			}
 		}
+	}
+
+	/**
+	 * Confronta il ruolo globale richiesto con quello attuale dell'utente. Per un utente
+	 * senza ruolo globale è ammessa, oltre all'assenza di modifica, solo l'assegnazione
+	 * di utente_organizzazione.
+	 */
+	private boolean isRuoloGlobaleModificato(UtenteUpdate update, UtenteEntity entity) {
+		if (entity.getRuolo() == null) {
+			return update.getRuolo() != null && update.getRuolo() != RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE;
+		}
+		return update.getRuolo() != this.utenteEngineAssembler.toRuolo(entity.getRuolo());
 	}
 
 	/**

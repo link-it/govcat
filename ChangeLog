@@ -1,6 +1,15 @@
 2026-10-23  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
+	Fix: un utente senza ruolo globale non può più risultare associato ad organizzazioni.
+	  L'approvazione della richiesta di cambio organizzazione di un utente appena registrato
+	  lo lasciava senza ruolo globale pur associandolo all'organizzazione: ora gli viene
+	  assegnato il ruolo `utente_organizzazione`, come anche nella creazione da parte
+	  dell'amministratore organizzazione e nell'auto-registrazione con organizzazione da IDM.
+	  Creazione e modifica di un utente senza ruolo globale ma con organizzazioni associate
+	  rispondono ora 400 (`UT.400.RUOLO.NULL`). Nell'approvazione, inoltre, l'amministratore
+	  organizzazione non può più modificare il ruolo globale dell'utente (403
+	  `AUT.403.AMM.ORG.INVALID.ROLE`): finora via API poteva assegnargli anche il ruolo gestore.
 	Issue 380: introdotta la classe dato `comunicazioni`, che governa l'invio di comunicazioni
 	  e dei relativi allegati su servizi e adesioni al posto della classe `generico`.
 	  Chi ha un ruolo sull'entità può comunicare in ogni stato del workflow, compresi quelli

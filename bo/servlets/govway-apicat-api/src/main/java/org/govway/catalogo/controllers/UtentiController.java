@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -153,6 +154,10 @@ public class UtentiController implements UtentiApi {
 
 			// Verifica che il ruolo PDND sia assegnabile con la versione API PDND configurata
 			checkRuoloPdndAssegnabile(utenteCreate.getRuoloPdnd());
+
+			// Verifica che un utente senza ruolo globale non venga associato ad organizzazioni
+			checkRuoloPerAssociazioniOrganizzazione(utenteCreate.getRuolo(), utenteCreate.getOrganizzazioni(),
+					utenteCreate.getNome(), utenteCreate.getCognome());
 
 			return this.service.runTransaction( () -> {
 
@@ -376,6 +381,13 @@ public class UtentiController implements UtentiApi {
 				UtenteEntity entity = this.service.find(idUtente)
 						.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404, Map.of("idUtente", idUtente.toString())));
 
+				// Approvazione richiesta cambio organizzazione: l'utente viene associato all'organizzazione
+				// pending, quindi non può restare senza ruolo globale (es. utente appena registrato).
+				// La promozione avviene prima dell'autorizzazione, che valuta così il ruolo effettivo.
+				if (entity.getStato().equals(Stato.PENDING_UPDATE) && utenteUpdate.getRuolo() == null) {
+					utenteUpdate.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+				}
+
 				this.authorization.authorizeUpdate(utenteUpdate, entity);
 				this.logger.debug("Autorizzazione completata con successo");
 
@@ -423,6 +435,10 @@ public class UtentiController implements UtentiApi {
 
 					utenteUpdate.setOrganizzazioni(ricostruite);
 				}
+
+				// Verifica che un utente senza ruolo globale non resti associato ad organizzazioni
+				checkRuoloPerAssociazioniOrganizzazione(utenteUpdate.getRuolo(), utenteUpdate.getOrganizzazioni(),
+						utenteUpdate.getNome(), utenteUpdate.getCognome());
 
 				this.dettaglioAssembler.toEntity(utenteUpdate, entity);
 
@@ -1113,6 +1129,27 @@ public class UtentiController implements UtentiApi {
 	private void checkRuoloCoordinatoreAbilitato(RuoloUtenteEnum ruolo) {
 		if (RuoloUtenteEnum.COORDINATORE.equals(ruolo) && !isCoordinatoreAbilitato()) {
 			throw new BadRequestException(ErrorCode.UT_400_COORDINATORE_DISABLED);
+		}
+	}
+
+	/**
+	 * Verifica che un utente senza ruolo globale (nessun ruolo) non sia associato ad organizzazioni:
+	 * l'appartenenza ad un'organizzazione richiede un ruolo globale valorizzato.
+	 * Sono considerate solo le associazioni con id_organizzazione valorizzato, coerentemente
+	 * con la sincronizzazione effettuata dall'assembler.
+	 *
+	 * @param ruolo il ruolo globale richiesto
+	 * @param organizzazioni le associazioni utente-organizzazione richieste
+	 * @param nome nome dell'utente, per il messaggio di errore
+	 * @param cognome cognome dell'utente, per il messaggio di errore
+	 */
+	private void checkRuoloPerAssociazioniOrganizzazione(RuoloUtenteEnum ruolo,
+			List<UtenteOrganizzazioneCreate> organizzazioni, String nome, String cognome) {
+		if (ruolo == null && organizzazioni != null
+				&& organizzazioni.stream().anyMatch(o -> o != null && o.getIdOrganizzazione() != null)) {
+			throw new BadRequestException(ErrorCode.UT_400_RUOLO_NULL,
+					Map.of("nomeUtente", Objects.toString(nome, ""),
+							"cognomeUtente", Objects.toString(cognome, "")));
 		}
 	}
 

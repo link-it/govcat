@@ -52,6 +52,7 @@ import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.ProtocolloEnum;
 import org.govway.catalogo.servlets.model.RuoloAPIEnum;
 import org.govway.catalogo.servlets.model.RuoloOrganizzazioneEnum;
+import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.UtenteOrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.ServizioCreate;
 import org.govway.catalogo.servlets.model.SoggettoCreate;
@@ -233,6 +234,10 @@ public class CommonUtils {
 		assoc.setIdOrganizzazione(idOrganizzazione);
 		assoc.setRuoloOrganizzazione(ruolo);
 		utente.setOrganizzazioni(List.of(assoc));
+		// L'associazione ad un'organizzazione richiede un ruolo globale
+		if (utente.getRuolo() == null) {
+			utente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+		}
 	}
 
 	public static void setOrganizzazione(UtenteUpdate utente, UUID idOrganizzazione) {
@@ -244,6 +249,10 @@ public class CommonUtils {
 		assoc.setIdOrganizzazione(idOrganizzazione);
 		assoc.setRuoloOrganizzazione(ruolo);
 		utente.setOrganizzazioni(List.of(assoc));
+		// L'associazione ad un'organizzazione richiede un ruolo globale
+		if (utente.getRuolo() == null) {
+			utente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+		}
 	}
 	
 	public static DominioCreate getDominioCreate() {
