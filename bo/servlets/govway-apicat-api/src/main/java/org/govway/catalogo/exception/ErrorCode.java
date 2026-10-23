@@ -523,6 +523,9 @@ public enum ErrorCode {
     /** Gruppo di proprietà custom riservato al gestore */
     AUT_403_GRUPPO_RISERVATO_GESTORE("Gruppo di proprietà custom modificabile solo dal gestore"),
 
+    /** Gruppo di proprietà custom non modificabile: nessun ruolo dell'utente è tra i ruoli abilitati del gruppo */
+    AUT_403_GRUPPO_RUOLI_ABILITATI("Gruppo di proprietà custom non modificabile con i ruoli dell'utente"),
+
     /** Token di autenticazione non valido */
     AUT_401_TOKEN("Token non valido"),
 

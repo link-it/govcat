@@ -238,6 +238,7 @@ public class APIController implements ApiApi {
 				this.logger.info("Invocazione in corso ...");     
 				ApiEntity entity = this.dettaglioAssembler.toEntity(apiCreate);
 				ServizioEntity servizio = entity.getServizio();
+				this.servizioAuthorization.authorizeModificaProprietaCustomApi(apiCreate.getProprietaCustom(), servizio);
 				// La classe dato API governa la composizione della lista delle API del servizio:
 				// e' richiesta in AND con IDENTIFICATIVO, cosi' le configurazioni che non la
 				// dichiarano mantengono i vincoli gia' in vigore.
@@ -768,6 +769,9 @@ public class APIController implements ApiApi {
 				Grant grant = this.servizioDettaglioAssembler.toGrant(entity.getServizio());
 
 				if(!isForce(force, grant.getRuoli())) {
+					if(apiUpdate.getDatiCustom()!=null) {
+						this.servizioAuthorization.authorizeModificaProprietaCustomApi(apiUpdate.getDatiCustom().getProprietaCustom(), servizio);
+					}
 					this.servizioAuthorization.authorizeModifica(servizio, lstClassiDato);
 				}
 				

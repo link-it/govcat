@@ -2076,6 +2076,7 @@ public class AdesioniController implements AdesioniApi {
 				Grant grant = this.dettaglioAssembler.toGrant(entity);
 
 				if(!isForce(force, grant.getRuoli())) {
+					this.authorization.authorizeModificaProprietaCustom(datiCustomUpdate, entity);
 					this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.COLLAUDO));
 				}
 				this.logger.debug("Autorizzazione completata con successo");
@@ -2109,6 +2110,7 @@ public class AdesioniController implements AdesioniApi {
 				Grant grant = this.dettaglioAssembler.toGrant(entity);
 
 				if(!isForce(force, grant.getRuoli())) {
+					this.authorization.authorizeModificaProprietaCustom(datiCustomUpdate, entity);
 					this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.PRODUZIONE));
 				}
 				this.logger.debug("Autorizzazione completata con successo");

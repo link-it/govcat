@@ -54,6 +54,7 @@ import org.govway.catalogo.servlets.model.ConfigurazioneCustomProprietaList;
 import org.govway.catalogo.servlets.model.ConfigurazioneDatoSempreModificabile;
 import org.govway.catalogo.servlets.model.EntitaComplessaError;
 import org.govway.catalogo.servlets.model.Grant;
+import org.govway.catalogo.servlets.model.ProprietaCustom;
 import org.govway.catalogo.servlets.model.Ruolo;
 import org.govway.catalogo.servlets.model.ServizioCreate;
 import org.govway.catalogo.servlets.model.ServizioUpdate;
@@ -239,6 +240,22 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 								}
 							});
 					});
+	}
+
+	/**
+	 * Verifica che i gruppi di proprieta' custom dell'API che si vogliono scrivere siano abilitati
+	 * ai ruoli dell'utente sul servizio ({@code ruoli_abilitati}).
+	 */
+	public void authorizeModificaProprietaCustomApi(List<ProprietaCustom> proprietaCustom, ServizioEntity servizio) {
+		if(proprietaCustom == null) {
+			return;
+		}
+		for(ProprietaCustom pc: proprietaCustom) {
+			this.configurazione.getServizio().getApi().getProprietaCustom().stream()
+				.filter(c -> c.getNomeGruppo().equals(pc.getGruppo()))
+				.findAny()
+				.ifPresent(c -> authorizeModificaGruppoProprietaCustom(c.getNomeGruppo(), c.getRuoliAbilitati(), servizio));
+		}
 	}
 
 	/**

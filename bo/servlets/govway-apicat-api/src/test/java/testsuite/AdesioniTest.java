@@ -53,6 +53,7 @@ import org.govway.catalogo.core.services.ClasseUtenteService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.RichiestaNonValidaSemanticamenteException;
@@ -95,6 +96,8 @@ import org.govway.catalogo.servlets.model.Ruolo;
 import org.govway.catalogo.servlets.model.SottotipoEnum;
 import org.govway.catalogo.servlets.model.TipoConfigurazioneCustomProprieta;
 import org.govway.catalogo.servlets.model.DatiCustomAdesioneUpdate;
+import org.govway.catalogo.servlets.model.ProprietaCustom;
+import org.govway.catalogo.servlets.model.ProprietaCustomAdesione;
 import org.govway.catalogo.servlets.model.DatiSpecificiClient;
 import org.govway.catalogo.servlets.model.DocumentoCreate;
 import org.govway.catalogo.servlets.model.DocumentoUpdateNew;
@@ -7329,6 +7332,50 @@ public class AdesioniTest {
         assertFalse(this.isGruppoRichiesto(idAdesione, List.of(Ruolo.REFERENTE_TECNICO)));
         // lista vuota: non visibile a nessuno, quindi non richiesta
         assertFalse(this.isGruppoRichiesto(idAdesione, List.of()));
+    }
+
+    private DatiCustomAdesioneUpdate getDatiCustomRuoliAbilitati(String valore) {
+        AuthTypeApiResourceProprietaCustom proprieta = new AuthTypeApiResourceProprietaCustom();
+        proprieta.setNome("proprieta_obbligatoria");
+        proprieta.setValore(valore);
+        ProprietaCustom gruppo = new ProprietaCustom();
+        gruppo.setGruppo(GRUPPO_RUOLI_ABILITATI);
+        gruppo.setProprieta(List.of(proprieta));
+        ProprietaCustomAdesione proprietaCustom = new ProprietaCustomAdesione();
+        proprietaCustom.setGruppi(List.of(gruppo));
+        DatiCustomAdesioneUpdate datiCustom = new DatiCustomAdesioneUpdate();
+        datiCustom.setProprietaCustom(List.of(proprietaCustom));
+        return datiCustom;
+    }
+
+    /**
+     * Un gruppo di proprieta' custom non e' scrivibile da chi non ha uno dei ruoli abilitati del gruppo;
+     * la force del gestore salta il controllo.
+     * Il gestore qui e' gestore, referente e richiedente dell'adesione, ma non referente tecnico.
+     */
+    @Test
+    void testSaveConfigurazioneCustomAdesioneRuoliAbilitati() {
+        Dominio dominio = this.getDominio(null);
+        this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA(STATO_PUBBLICATO_IN_COLLAUDO, serviziController, idServizio);
+        UUID idAdesione = this.getAdesione().getIdAdesione();
+
+        ConfigurazioneCustomAdesioneProprietaList gruppo = this.aggiungiGruppoRequired(List.of(Ruolo.REFERENTE_TECNICO));
+        gruppo.setClasseDato(ConfigurazioneClasseDato.COLLAUDO);
+        try {
+            NotAuthorizedException e = assertThrows(NotAuthorizedException.class,
+                    () -> adesioniController.saveConfigurazioneCustomCollaudoAdesione(idAdesione, getDatiCustomRuoliAbilitati("valore"), null));
+            assertEquals(ErrorCode.AUT_403_GRUPPO_RUOLI_ABILITATI, e.getErrorCode());
+            assertEquals(GRUPPO_RUOLI_ABILITATI, e.getParameters().get("gruppo"));
+
+            assertEquals(HttpStatus.OK, adesioniController.saveConfigurazioneCustomCollaudoAdesione(idAdesione, getDatiCustomRuoliAbilitati("forzato"), true).getStatusCode());
+
+            gruppo.setRuoliAbilitati(List.of(Ruolo.GESTORE));
+            assertEquals(HttpStatus.OK, adesioniController.saveConfigurazioneCustomCollaudoAdesione(idAdesione, getDatiCustomRuoliAbilitati("valore"), null).getStatusCode());
+        } finally {
+            this.configurazione.getAdesione().getProprietaCustom().remove(gruppo);
+        }
     }
 
 }

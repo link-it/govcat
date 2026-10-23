@@ -537,6 +537,20 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 		return this.getRuoli(entity).stream().anyMatch(ruoliAbilitati::contains);
 	}
 
+	/**
+	 * Un gruppo di proprieta' custom e' scrivibile solo da chi lo vede in base ai
+	 * {@code ruoli_abilitati} (vedi {@link #isGruppoProprietaCustomVisibile(List, Object)}).
+	 *
+	 * @param nomeGruppo nome del gruppo che si vuole scrivere
+	 * @param ruoliAbilitati ruoli abilitati configurati sul gruppo
+	 * @param entity entita' su cui calcolare i ruoli dell'utente in sessione
+	 */
+	protected void authorizeModificaGruppoProprietaCustom(String nomeGruppo, List<Ruolo> ruoliAbilitati, ENTITY entity) {
+		if(!isGruppoProprietaCustomVisibile(ruoliAbilitati, entity)) {
+			throw new NotAuthorizedException(ErrorCode.AUT_403_GRUPPO_RUOLI_ABILITATI, Map.of("gruppo", nomeGruppo));
+		}
+	}
+
 	protected abstract List<Ruolo> getRuoli(ENTITY entity);
 
 	protected abstract void checkCampiObbligatori(List<ConfigurazioneClasseDato> datiObbligatori, ENTITY entity, String stato);

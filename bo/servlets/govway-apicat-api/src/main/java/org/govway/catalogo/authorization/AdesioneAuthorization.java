@@ -59,8 +59,11 @@ import org.govway.catalogo.servlets.model.ConfigurazioneCustomProprieta;
 import org.govway.catalogo.servlets.model.ConfigurazioneStato;
 import org.govway.catalogo.servlets.model.ConfigurazioneWorkflow;
 import org.govway.catalogo.servlets.model.ConfigurazioneDatoSempreModificabile;
+import org.govway.catalogo.servlets.model.DatiCustomAdesioneUpdate;
 import org.govway.catalogo.servlets.model.EntitaComplessaError;
 import org.govway.catalogo.servlets.model.ErogazioneRichiesta;
+import org.govway.catalogo.servlets.model.ProprietaCustom;
+import org.govway.catalogo.servlets.model.ProprietaCustomAdesione;
 import org.govway.catalogo.servlets.model.Ruolo;
 import org.govway.catalogo.servlets.model.Sottotipo;
 import org.govway.catalogo.servlets.model.SottotipoEnum;
@@ -315,6 +318,25 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 			return AmbienteEnum.PRODUZIONE;
 		} else {
 			return null;
+		}
+	}
+
+	/**
+	 * Verifica che i gruppi di proprieta' custom dell'adesione che si vogliono scrivere siano abilitati
+	 * ai ruoli dell'utente sull'adesione ({@code ruoli_abilitati}).
+	 */
+	public void authorizeModificaProprietaCustom(DatiCustomAdesioneUpdate src, AdesioneEntity adesione) {
+		if(src.getProprietaCustom() == null) {
+			return;
+		}
+		List<ClientRichiesto> cr = this.getClientRichiesti(adesione.getServizio());
+		for(ProprietaCustomAdesione pca: src.getProprietaCustom()) {
+			for(ProprietaCustom g: pca.getGruppi()) {
+				this.configurazione.getAdesione().getProprietaCustom().stream()
+					.filter(c -> c.getNomeGruppo().equals(g.getGruppo()) && applies(c, cr))
+					.findAny()
+					.ifPresent(c -> authorizeModificaGruppoProprietaCustom(c.getNomeGruppo(), c.getRuoliAbilitati(), adesione));
+			}
 		}
 	}
 

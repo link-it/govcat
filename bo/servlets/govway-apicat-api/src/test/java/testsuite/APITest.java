@@ -2220,6 +2220,106 @@ public class APITest {
     	}
     }
 
+    // ==================== Proprieta` custom e ruoli_abilitati ====================
+
+    private static final String GRUPPO_RUOLI_ABILITATI = "GruppoRuoliAbilitatiTest";
+    private static final String PROPRIETA_RUOLI_ABILITATI = "proprieta_ruoli_abilitati";
+
+    private ConfigurazioneCustomProprietaList aggiungiGruppoRuoliAbilitati(List<Ruolo> ruoliAbilitati) {
+    	ConfigurazioneProfiloCustomProprietaText proprieta = new ConfigurazioneProfiloCustomProprietaText();
+    	proprieta.setNome(PROPRIETA_RUOLI_ABILITATI);
+    	proprieta.setEtichetta("Proprieta` ruoli abilitati");
+    	proprieta.setTipo(TipoConfigurazioneCustomProprieta.TEXT);
+    	proprieta.setRequired(false);
+
+    	ConfigurazioneCustomProprietaList gruppo = new ConfigurazioneCustomProprietaList();
+    	gruppo.setNomeGruppo(GRUPPO_RUOLI_ABILITATI);
+    	gruppo.setLabelGruppo("Gruppo ruoli abilitati");
+    	gruppo.setClasseDato(ConfigurazioneClasseDato.GENERICO);
+    	gruppo.setRuoliAbilitati(ruoliAbilitati);
+    	gruppo.setProprieta(List.of(proprieta));
+    	this.configurazione.getServizio().getApi().getProprietaCustom().add(gruppo);
+    	return gruppo;
+    }
+
+    private List<ProprietaCustom> getProprietaCustomRuoliAbilitati(String valore) {
+    	AuthTypeApiResourceProprietaCustom proprieta = new AuthTypeApiResourceProprietaCustom();
+    	proprieta.setNome(PROPRIETA_RUOLI_ABILITATI);
+    	proprieta.setValore(valore);
+    	ProprietaCustom gruppo = new ProprietaCustom();
+    	gruppo.setGruppo(GRUPPO_RUOLI_ABILITATI);
+    	gruppo.setProprieta(List.of(proprieta));
+    	return List.of(gruppo);
+    }
+
+    private ApiUpdate getApiUpdateRuoliAbilitati(String valore) {
+    	DatiCustomUpdate datiCustom = new DatiCustomUpdate();
+    	datiCustom.setProprietaCustom(getProprietaCustomRuoliAbilitati(valore));
+    	ApiUpdate apiUpdate = new ApiUpdate();
+    	apiUpdate.setDatiCustom(datiCustom);
+    	return apiUpdate;
+    }
+
+    /**
+     * Un gruppo di proprieta` custom non e` scrivibile da chi non ha uno dei ruoli abilitati del gruppo,
+     * ne' in creazione ne' in modifica dell'API; la force del gestore salta il controllo.
+     * L'utente in sessione e` gestore, referente e richiedente del servizio, ma non referente tecnico.
+     */
+    @Test
+    void testProprietaCustomRuoliAbilitatiNonScrivibile() {
+    	ConfigurazioneCustomProprietaList gruppo = aggiungiGruppoRuoliAbilitati(List.of(Ruolo.REFERENTE_TECNICO));
+    	try {
+    		Dominio dominio = this.getDominio();
+    		Servizio servizio = creaServizio("servizio_erogazione", dominio.getIdDominio(), false, null);
+
+    		APICreate apiCreate = getApiCreateDominio("API_X", servizio, "MODI_P1");
+    		apiCreate.setProprietaCustom(getProprietaCustomRuoliAbilitati("valore"));
+    		NotAuthorizedException eCreate = assertThrows(NotAuthorizedException.class, () -> apiController.createApi(apiCreate));
+    		assertEquals(ErrorCode.AUT_403_GRUPPO_RUOLI_ABILITATI, eCreate.getErrorCode());
+    		assertEquals(GRUPPO_RUOLI_ABILITATI, eCreate.getParameters().get("gruppo"));
+
+    		apiCreate.setProprietaCustom(null);
+    		UUID idApi = apiController.createApi(apiCreate).getBody().getIdApi();
+
+    		NotAuthorizedException eUpdate = assertThrows(NotAuthorizedException.class,
+    				() -> apiController.updateApi(idApi, getApiUpdateRuoliAbilitati("valore"), null));
+    		assertEquals(ErrorCode.AUT_403_GRUPPO_RUOLI_ABILITATI, eUpdate.getErrorCode());
+    		assertEquals(GRUPPO_RUOLI_ABILITATI, eUpdate.getParameters().get("gruppo"));
+
+    		ResponseEntity<API> forzata = apiController.updateApi(idApi, getApiUpdateRuoliAbilitati("forzato"), true);
+    		assertEquals(HttpStatus.OK, forzata.getStatusCode());
+    		assertTrue(forzata.getBody().getProprietaCustom().stream()
+    				.anyMatch(pc -> pc.getGruppo().equals(GRUPPO_RUOLI_ABILITATI)
+    						&& pc.getProprieta().stream().anyMatch(p -> p.getValore().equals("forzato"))));
+    	} finally {
+    		this.configurazione.getServizio().getApi().getProprietaCustom().remove(gruppo);
+    	}
+    }
+
+    /**
+     * Un gruppo di proprieta` custom e` scrivibile da chi ha uno dei ruoli abilitati del gruppo.
+     */
+    @Test
+    void testProprietaCustomRuoliAbilitatiScrivibile() {
+    	ConfigurazioneCustomProprietaList gruppo = aggiungiGruppoRuoliAbilitati(List.of(Ruolo.REFERENTE));
+    	try {
+    		Dominio dominio = this.getDominio();
+    		Servizio servizio = creaServizio("servizio_erogazione", dominio.getIdDominio(), false, null);
+
+    		APICreate apiCreate = getApiCreateDominio("API_X", servizio, "MODI_P1");
+    		apiCreate.setProprietaCustom(getProprietaCustomRuoliAbilitati("valore"));
+    		UUID idApi = apiController.createApi(apiCreate).getBody().getIdApi();
+
+    		ResponseEntity<API> api = apiController.updateApi(idApi, getApiUpdateRuoliAbilitati("modificato"), null);
+    		assertEquals(HttpStatus.OK, api.getStatusCode());
+    		assertTrue(api.getBody().getProprietaCustom().stream()
+    				.anyMatch(pc -> pc.getGruppo().equals(GRUPPO_RUOLI_ABILITATI)
+    						&& pc.getProprieta().stream().anyMatch(p -> p.getValore().equals("modificato"))));
+    	} finally {
+    		this.configurazione.getServizio().getApi().getProprietaCustom().remove(gruppo);
+    	}
+    }
+
     // ==================== Proprieta` custom al cambio dei profili di autenticazione ====================
 
     private static final String GRUPPO_CUSTOM = "esempioAltreProprietaUtente2";

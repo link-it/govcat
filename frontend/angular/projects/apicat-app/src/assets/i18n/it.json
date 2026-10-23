@@ -1534,6 +1534,14 @@
 						},
 						"RESOURCE": "Accesso negato alla risorsa [{{resource}}]",
 						"ROLE": "L'utente deve avere uno dei ruoli [{{ruoli}}] per eseguire la force",
+						"GRUPPO": {
+							"RISERVATO": {
+								"GESTORE": "Il gruppo di proprietà [{{gruppo}}] è modificabile solo dal gestore"
+							},
+							"RUOLI": {
+								"ABILITATI": "Non hai un ruolo abilitato alla modifica del gruppo di proprietà [{{gruppo}}]"
+							}
+						},
 						"RUOLO": {
 							"PDND": "Non hai il ruolo di amministratore PDND richiesto per questa operazione"
 						},

@@ -10,6 +10,12 @@
 	  successiva spettava ad altri e, negli stati pubblicati in produzione, solo il gestore
 	  poteva farlo. Sulle adesioni, finora prive di controllo, l'invio richiede ora un ruolo
 	  sull'adesione. Il grant di servizi e adesioni espone il nuovo campo `comunicazioni`.
+	Fix: i `ruoli_abilitati` dei gruppi di proprietà custom di API e adesioni sono ora
+	  verificati anche in scrittura. Finora limitavano solo la visualizzazione in console,
+	  mentre via API chiunque potesse modificare la classe dato del gruppo poteva scriverlo.
+	  La creazione e la modifica dell'API e il salvataggio delle proprietà custom
+	  dell'adesione rispondono ora 403 (`AUT.403.GRUPPO.RUOLI.ABILITATI`) se nessun ruolo
+	  dell'utente è tra quelli abilitati del gruppo; la `force` del gestore salta il controllo.
 
 2026-10-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
