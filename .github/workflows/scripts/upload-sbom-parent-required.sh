@@ -8,7 +8,7 @@
 # Struttura attesa in Dependency-Track:
 #   <PARENT_PROJECT>              (es. "GovCat", senza versione - deve gia' esistere)
 #   |--- <PROJECT_NAME> <PROJECT_VERSION>
-#        (es. "govcat-backend 2.5.0", "govcat-frontend main")
+#        (es. "GovCat-Backend 2.5.0", "GovCat-Frontend main")
 #
 # Uso:
 #   ./upload-sbom-parent-required.sh <API_KEY> <FILE_SBOM> <PARENT_PROJECT>

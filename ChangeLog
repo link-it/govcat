@@ -49,7 +49,7 @@
 	  Il primo genera gli SBOM CycloneDX del backend (aggregato dei moduli Maven, json
 	  e xml) e del frontend (dipendenze npm di runtime), pubblicati nell'artifact
 	  `sbom-report` e inclusi nei report della release. Il secondo li carica su
-	  Dependency-Track come progetti `govcat-backend` e `govcat-frontend` sotto il
+	  Dependency-Track come progetti `GovCat-Backend` e `GovCat-Frontend` sotto il
 	  progetto padre `GovCat` (secret `GOVCAT_DTRACK_API_KEY`), con versione pari al
 	  tag (marcata latest) o al branch. Eseguiti su tag, `main` e branch `vX.Y.x`.
 	  Le scansioni OSV (`osv_scan_BE`, `osv_scan_FE`) ora girano anche sui tag:

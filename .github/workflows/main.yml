@@ -385,7 +385,7 @@ jobs:
       - name: Upload BE SBOM su Dependency-Track
         env:
           DTRACK_API_KEY: ${{ secrets.GOVCAT_DTRACK_API_KEY }}
-          DTRACK_PROJECT_NAME: govcat-backend
+          DTRACK_PROJECT_NAME: GovCat-Backend
           DTRACK_VERSION: ${{ steps.dtrack.outputs.version }}
           DTRACK_LATEST: ${{ steps.dtrack.outputs.latest }}
         run: |
@@ -398,7 +398,7 @@ jobs:
       - name: Upload FE SBOM su Dependency-Track
         env:
           DTRACK_API_KEY: ${{ secrets.GOVCAT_DTRACK_API_KEY }}
-          DTRACK_PROJECT_NAME: govcat-frontend
+          DTRACK_PROJECT_NAME: GovCat-Frontend
           DTRACK_VERSION: ${{ steps.dtrack.outputs.version }}
           DTRACK_LATEST: ${{ steps.dtrack.outputs.latest }}
         run: |
