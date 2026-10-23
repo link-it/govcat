@@ -7,7 +7,7 @@
 	  assegnato il ruolo `utente_organizzazione`, come anche nella creazione da parte
 	  dell'amministratore organizzazione e nell'auto-registrazione con organizzazione da IDM.
 	  Creazione e modifica di un utente senza ruolo globale ma con organizzazioni associate
-	  rispondono ora 400 (`UT.400.RUOLO.NULL`). Nell'approvazione, inoltre, l'amministratore
+	  rispondono adesso 400 (`UT.400.RUOLO.NULL`). Nell'approvazione, inoltre, l'amministratore
 	  organizzazione non può più modificare il ruolo globale dell'utente (403
 	  `AUT.403.AMM.ORG.INVALID.ROLE`): finora via API poteva assegnargli anche il ruolo gestore.
 	Issue 380: introdotta la classe dato `comunicazioni`, che governa l'invio di comunicazioni
