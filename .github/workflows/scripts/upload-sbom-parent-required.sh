@@ -6,9 +6,9 @@
 # foglia. Nessun altro livello viene creato.
 #
 # Struttura attesa in Dependency-Track:
-#   <PARENT_PROJECT>              (es. "GovCat", senza versione - deve gia' esistere)
+#   <PARENT_PROJECT>              (es. "GovCat-Backend", senza versione - deve gia' esistere)
 #   |--- <PROJECT_NAME> <PROJECT_VERSION>
-#        (es. "GovCat-Backend 2.5.0", "GovCat-Frontend main")
+#        (es. "govcat 2.5.0", "govcat main")
 #
 # Uso:
 #   ./upload-sbom-parent-required.sh <API_KEY> <FILE_SBOM> <PARENT_PROJECT>
@@ -41,7 +41,7 @@ if [ $# -lt 3 ]; then
     echo "Uso: $0 <API_KEY> <FILE_SBOM> <PARENT_PROJECT>"
     echo ""
     echo "Esempio:"
-    echo "  $0 odt_xxxxx sbom/cyclonedx/bom.cdx.json GovCat"
+    echo "  $0 odt_xxxxx sbom/cyclonedx/bom.cdx.json GovCat-Backend"
     echo ""
     echo "Nome e versione del progetto foglia sono ricavati dai metadati dell'SBOM."
     echo "Per forzarli: DTRACK_PROJECT_NAME=... DTRACK_VERSION=... $0 ..."

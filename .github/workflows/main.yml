@@ -316,8 +316,10 @@ jobs:
           retention-days: 30
 
   # ── Upload SBOM su Dependency-Track ──────────────────────────────────
-  # Carica BE e FE come due progetti figli del progetto padre (che deve gia'
-  # esistere in Dependency-Track, vedi upload-sbom-parent-required.sh).
+  # Carica BE e FE sotto i progetti padre GovCat-Backend e GovCat-Frontend
+  # (devono gia' esistere in Dependency-Track, vedi upload-sbom-parent-required.sh).
+  # Il nome del progetto figlio e' preso dai metadati dell'SBOM, la versione
+  # dal tag o dal branch.
   # Esecuzione: su tag, su main e sui branch vX.Y.x; forzabile con
   # FORCE_DTRACK_UPLOAD_JOB; DISABLE_DTRACK_UPLOAD_JOB ha la precedenza su tutto.
   dependency-track-upload:
@@ -334,8 +336,6 @@ jobs:
     # Il fallimento blocca solo tag, main e branch di rilascio; le esecuzioni
     # forzate su altri branch sono tolleranti.
     continue-on-error: ${{ github.ref_type != 'tag' && github.ref_name != 'main' && !(startsWith(github.ref_name, 'v') && endsWith(github.ref_name, '.x')) }}
-    env:
-      DTRACK_PARENT_PROJECT: ${{ vars.DTRACK_PARENT_PROJECT || 'GovCat' }}
 
     steps:
       - uses: actions/checkout@v5
@@ -385,7 +385,6 @@ jobs:
       - name: Upload BE SBOM su Dependency-Track
         env:
           DTRACK_API_KEY: ${{ secrets.GOVCAT_DTRACK_API_KEY }}
-          DTRACK_PROJECT_NAME: GovCat-Backend
           DTRACK_VERSION: ${{ steps.dtrack.outputs.version }}
           DTRACK_LATEST: ${{ steps.dtrack.outputs.latest }}
         run: |
@@ -393,12 +392,11 @@ jobs:
           ./.github/workflows/scripts/upload-sbom-parent-required.sh \
             "${DTRACK_API_KEY}" \
             "${{ github.workspace }}/sbom/cyclonedx/bom.cdx.json" \
-            "${DTRACK_PARENT_PROJECT}"
+            "GovCat-Backend"
 
       - name: Upload FE SBOM su Dependency-Track
         env:
           DTRACK_API_KEY: ${{ secrets.GOVCAT_DTRACK_API_KEY }}
-          DTRACK_PROJECT_NAME: GovCat-Frontend
           DTRACK_VERSION: ${{ steps.dtrack.outputs.version }}
           DTRACK_LATEST: ${{ steps.dtrack.outputs.latest }}
         run: |
@@ -406,7 +404,7 @@ jobs:
           ./.github/workflows/scripts/upload-sbom-parent-required.sh \
             "${DTRACK_API_KEY}" \
             "${{ github.workspace }}/sbom/cyclonedx/bom-fe.cdx.json" \
-            "${DTRACK_PARENT_PROJECT}"
+            "GovCat-Frontend"
 
   release:
     runs-on: ubuntu-latest
