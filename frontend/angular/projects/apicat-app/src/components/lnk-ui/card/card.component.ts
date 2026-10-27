@@ -28,6 +28,10 @@ import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
 import { DataTypeComponent } from '@app/lib/ui/data-type/data-type.component';
 import { RelayIconComponent } from '@app/components/relay-icon/relay-icon.component';
 
+
+/** Proporzione dell'immagine della card nel catalogo (`.card-image`, padding-top 56.25%). */
+export const CARD_IMAGE_ASPECT_RATIO: number = 16 / 9;
+
 @Component({
   selector: 'lnk-card',
   templateUrl: './card.component.html',

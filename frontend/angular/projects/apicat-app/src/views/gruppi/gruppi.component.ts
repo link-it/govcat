@@ -45,6 +45,7 @@ import { TreeViewComponent } from '@app/components/tree-view/tree-view.component
 
 import { Page } from '../../models/page';
 import { CardType } from '@app/lib/ui/card/card.component';
+import { CARD_IMAGE_ASPECT_RATIO } from '@app/components/lnk-ui/card/card.component';
 
 export interface Gruppo {
     id_gruppo: string;
@@ -152,7 +153,9 @@ export class GruppiComponent implements OnInit, AfterViewInit, AfterContentCheck
     CardType = CardType;
 
     apiUrl: string = '';
-    _imagePlaceHolder: string = './assets/images/logo-placeholder.png';
+    _imagePlaceHolder: string = './assets/images/logo-placeholder-16x9.svg';
+    /** Proporzione del logo come nella card del catalogo. */
+    readonly _logoRatio: number = CARD_IMAGE_ASPECT_RATIO;
     _maxImageSize: number = (Tools.Configurazione?.gruppo?.max_image_size || 2) * 1024 * 1024;
 
     _modalEditRef!: BsModalRef;

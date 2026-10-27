@@ -174,4 +174,19 @@ describe('PhotoBase64Component', () => {
         expect(component.imageError).toBeNull();
         expect(component.imageLoaded.emit).toHaveBeenCalledWith(null);
     });
+
+    it('should show the crop preview only for a saved image with a crop ratio', () => {
+        fixture.componentRef.setInput('cropRatio', 16 / 9);
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('lnk-crop-preview')).toBeNull();
+
+        fixture.componentRef.setInput('isImageSaved', true);
+        fixture.componentRef.setInput('imageSaved', 'data:image/png;base64,x');
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('lnk-crop-preview')).toBeTruthy();
+
+        fixture.componentRef.setInput('cropRatio', null);
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('lnk-crop-preview')).toBeNull();
+    });
 });

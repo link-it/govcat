@@ -128,7 +128,7 @@
                 <div class="form-group logo">
                   <app-photo-base64
                     [boxWidth]="'250px'"
-                    [boxHeight]="'auto'"
+                    [boxHeight]="'auto'" [cropRatio]="_logoRatio"
                     [maxSize]="_maxImageSize"
                     [placeHolder]="_imagePlaceHolder"
                     [imageSaved]="_immagineDataUrl"
@@ -136,6 +136,7 @@
                     [removeLabel]="'APP.BUTTON.Remove' | translate"
                     (imageLoaded)="_onImageLoaded($event)"
                   ></app-photo-base64>
+                  <p class="form-text text-muted mb-0">{{ 'APP.LABEL.LogoFormatHintServizio' | translate }}</p>
                 </div>
               </div>
             </div>

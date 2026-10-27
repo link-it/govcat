@@ -24,7 +24,9 @@
       }
       <div class="custom-file fileInputProfileWrap">
         <div class="img-space" [ngStyle]="{'width': boxWidth, 'height': boxHeight}">
-          @if (isImageSaved) {
+          @if (isImageSaved && cropRatio) {
+            <lnk-crop-preview [src]="cardImageBase64" alt="Immagine" [ratio]="cropRatio"></lnk-crop-preview>
+          } @else if (isImageSaved) {
             <img [src]="cardImageBase64" alt="Immagine" />
           } @else {
             <img [src]="placeHolder" alt="Immagine" class="img-responsive">
@@ -39,6 +41,6 @@
     </fieldset>
   </div>
   @if (isImageSaved) {
-    <button class="btn btn-sm btn-danger" (click)="removeImage()">{{ removeLabel }}</button>
+    <button class="btn btn-sm btn-danger mt-2" (click)="removeImage()">{{ removeLabel }}</button>
   }
 </form>

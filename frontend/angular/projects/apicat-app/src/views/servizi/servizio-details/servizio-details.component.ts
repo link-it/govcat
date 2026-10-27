@@ -55,6 +55,8 @@ import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
 declare const saveAs: any;
 import moment from 'moment';
 import { PagedTypeahead, PaginaTypeahead, paginaDaRisposta } from '@app/lib/utils/paged-typeahead';
+import { CARD_IMAGE_ASPECT_RATIO } from '@app/components/lnk-ui/card/card.component';
+import { CropPreviewComponent } from '@app/lib/ui/crop-preview/crop-preview.component';
 
 @Component({
     selector: 'app-servizio-details',
@@ -63,6 +65,7 @@ import { PagedTypeahead, PaginaTypeahead, paginaDaRisposta } from '@app/lib/util
     standalone: true,
     imports: [
         CommonModule,
+        CropPreviewComponent,
         FormsModule,
         ReactiveFormsModule,
         RouterModule,
@@ -127,7 +130,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     _toStatus: string = '';
 
     apiUrl: string = '';
-    _imagePlaceHolder: string = './assets/images/logo-placeholder.png';
+    _imagePlaceHolder: string = './assets/images/logo-placeholder-16x9.svg';
     _maxImageSize: number = (Tools.Configurazione?.servizio?.max_image_size || 2) * 1024 * 1024;
 
     /** Domini per la select: ricerca paginata con caricamento allo scroll. */
@@ -319,6 +322,8 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     /** Checkbox "Package" e visibilita' "componente" nascoste di default (`AppConfig.Services.showPackage`) finche' la gestione dei package non e' completa. */
     _showPackage: boolean = false;
+    /** Proporzione del logo come nella card del catalogo. */
+    readonly _logoRatio: number = CARD_IMAGE_ASPECT_RATIO;
 
     constructor(
         public route: ActivatedRoute,

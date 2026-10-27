@@ -40,6 +40,8 @@ import { motivoSkipCollaudoBloccato } from '../../servizio-verifica-stato';
 import { concat, forkJoin, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
 import { PagedTypeahead, PaginaTypeahead, paginaDaRisposta } from '@app/lib/utils/paged-typeahead';
+import { CARD_IMAGE_ASPECT_RATIO } from '@app/components/lnk-ui/card/card.component';
+import { CropPreviewComponent } from '@app/lib/ui/crop-preview/crop-preview.component';
 
 /**
  * Form Informazioni Generali del servizio (view + edit) per la FASE 1 del
@@ -56,6 +58,7 @@ import { PagedTypeahead, PaginaTypeahead, paginaDaRisposta } from '@app/lib/util
     standalone: true,
     imports: [
         CommonModule,
+        CropPreviewComponent,
         FormsModule,
         ReactiveFormsModule,
         ...COMPONENTS_IMPORTS,
@@ -93,7 +96,7 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
     anagrafiche: any = {};
     generalConfig: any = Tools.Configurazione || null;
     apiUrl: string = '';
-    _imagePlaceHolder: string = './assets/images/logo-placeholder.png';
+    _imagePlaceHolder: string = './assets/images/logo-placeholder-16x9.svg';
     _maxImageSize: number = (Tools.Configurazione?.servizio?.max_image_size || 2) * 1024 * 1024;
     _immagineRimossa: boolean = false;
     _showMarkdownPreview: boolean = false;
@@ -140,6 +143,8 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
 
     /** Checkbox "Package" e visibilita' "componente" nascoste di default (`AppConfig.Services.showPackage`) finche' la gestione dei package non e' completa. */
     _showPackage: boolean = false;
+    /** Proporzione del logo come nella card del catalogo. */
+    readonly _logoRatio: number = CARD_IMAGE_ASPECT_RATIO;
 
     constructor(
         private readonly translate: TranslateService,
