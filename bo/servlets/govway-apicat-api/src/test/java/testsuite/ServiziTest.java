@@ -43,6 +43,7 @@ import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
+import org.govway.catalogo.servlets.model.AmbienteEnum;
 import org.govway.catalogo.servlets.model.API;
 import org.govway.catalogo.servlets.model.APICreate;
 import org.govway.catalogo.servlets.model.APIDatiAmbienteCreate;
@@ -68,6 +69,15 @@ import org.govway.catalogo.servlets.model.DocumentoUpdateNew;
 import org.govway.catalogo.servlets.model.Dominio;
 import org.govway.catalogo.servlets.model.FiltroArchiviatiEnum;
 import org.govway.catalogo.servlets.model.DominioCreate;
+import org.govway.catalogo.servlets.model.ItemRateLimitingFruitore;
+import org.govway.catalogo.servlets.model.PagedModelItemRateLimitingFruitore;
+import org.govway.catalogo.servlets.model.RateLimiting;
+import org.govway.catalogo.servlets.model.RateLimitingAdesione;
+import org.govway.catalogo.servlets.model.RateLimitingAdesioneApi;
+import org.govway.catalogo.servlets.model.RateLimitingPeriodoEnum;
+import org.govway.catalogo.servlets.model.RateLimitingRiepilogo;
+import org.govway.catalogo.servlets.model.RateLimitingServizio;
+import org.govway.catalogo.servlets.model.RateLimitingServizioApi;
 import org.govway.catalogo.servlets.model.TargetComunicazioneServizioEnum;
 import org.govway.catalogo.servlets.model.Grant;
 import org.govway.catalogo.servlets.model.GrantType;
@@ -230,6 +240,9 @@ public class ServiziTest {
 
 	@Autowired
 	private DisclaimerService disclaimerService;
+
+	@Autowired
+	private AdesioniController adesioniController;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -3798,4 +3811,153 @@ public class ServiziTest {
 		this.verificaGruppoClasseConfigurato(servizio.getIdServizio(), ConfigurazioneClasseDato.COLLAUDO_CONFIGURATO, "richiesto_collaudo");
 		this.verificaGruppoClasseConfigurato(servizio.getIdServizio(), ConfigurazioneClasseDato.PRODUZIONE_CONFIGURATO, "richiesto_produzione");
 	}
+
+    // ==================== Rate limiting (Issue 402) ====================
+
+    private record ServizioRateLimiting(UUID idServizio, UUID idApi) {}
+
+    private static RateLimiting rateLimiting(int quota, RateLimitingPeriodoEnum periodo) {
+        RateLimiting rl = new RateLimiting();
+        rl.setQuota(quota);
+        rl.setPeriodo(periodo);
+        return rl;
+    }
+
+    private static RateLimitingAdesione quoteFruitore(UUID idApi, int quotaGiorno, Integer quotaOra) {
+        List<RateLimitingAdesioneApi> quote = new ArrayList<>();
+        RateLimitingAdesioneApi giorno = new RateLimitingAdesioneApi();
+        giorno.setIdApi(idApi);
+        giorno.setPeriodo(RateLimitingPeriodoEnum.GIORNO);
+        giorno.setQuota(quotaGiorno);
+        quote.add(giorno);
+        if(quotaOra != null) {
+            RateLimitingAdesioneApi ora = new RateLimitingAdesioneApi();
+            ora.setIdApi(idApi);
+            ora.setPeriodo(RateLimitingPeriodoEnum.ORA);
+            ora.setQuota(quotaOra);
+            quote.add(ora);
+        }
+        RateLimitingAdesione rl = new RateLimitingAdesione();
+        rl.setRateLimiting(quote);
+        return rl;
+    }
+
+    private APIDatiAmbienteCreate getDatiAmbienteRateLimiting(List<RateLimiting> rateLimiting) {
+        APIDatiAmbienteCreate datiAmbiente = new APIDatiAmbienteCreate();
+        datiAmbiente.setProtocollo(ProtocolloEnum.REST);
+        datiAmbiente.setRateLimiting(rateLimiting);
+        return datiAmbiente;
+    }
+
+    /**
+     * Servizio pubblicato in produzione con un'API erogata dal soggetto del dominio che dichiara
+     * 100 richieste al giorno in collaudo, 300 al giorno e 20 all'ora in produzione, e un'API
+     * erogata dall'aderente, che nel riepilogo non compare.
+     */
+    private ServizioRateLimiting creaServizioConRateLimiting() {
+        this.getDominio();
+        UUID idServizio = creaServizio("servizio_rate_limiting");
+
+        APICreate apiCreate = CommonUtils.getAPICreate();
+        apiCreate.setNome("API_RL");
+        apiCreate.setIdServizio(idServizio);
+        apiCreate.setRuolo(RuoloAPIEnum.DOMINIO);
+        apiCreate.setConfigurazioneCollaudo(getDatiAmbienteRateLimiting(List.of(rateLimiting(100, RateLimitingPeriodoEnum.GIORNO))));
+        apiCreate.setConfigurazioneProduzione(getDatiAmbienteRateLimiting(List.of(rateLimiting(300, RateLimitingPeriodoEnum.GIORNO), rateLimiting(20, RateLimitingPeriodoEnum.ORA))));
+        AuthTypeApiResource authType = new AuthTypeApiResource();
+        authType.setProfilo("MODI_P1");
+        authType.setResources(List.of("risorsa1"));
+        apiCreate.setGruppiAuthType(List.of(authType));
+        UUID idApi = apiController.createApi(apiCreate).getBody().getIdApi();
+
+        creaApi(idServizio, "API_ADERENTE", RuoloAPIEnum.ADERENTE);
+
+        impostaServizio(idServizio, "pubblicato_produzione", org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.PUBBLICO, org.govway.catalogo.core.orm.entity.TipoServizio.API);
+        // Come in una nuova richiesta: il servizio ricaricato vede le API appena create
+        this.entityManager.clear();
+        return new ServizioRateLimiting(idServizio, idApi);
+    }
+
+    private UUID creaAdesione(UUID idServizio, String nomeSoggetto) {
+        SoggettoCreate soggetto = new SoggettoCreate();
+        soggetto.setNome(nomeSoggetto);
+        soggetto.setIdOrganizzazione(this.idOrganizzazione);
+        soggetto.setAderente(true);
+        soggetto.setReferente(false);
+        UUID idSoggettoAderente = soggettiController.createSoggetto(soggetto).getBody().getIdSoggetto();
+
+        AdesioneCreate adesione = new AdesioneCreate();
+        adesione.setIdServizio(idServizio);
+        adesione.setIdSoggetto(idSoggettoAderente);
+        return adesioniController.createAdesione(adesione).getBody().getIdAdesione();
+    }
+
+    @Test
+    void testRateLimitingRiepilogoServizio() {
+        ServizioRateLimiting ctx = creaServizioConRateLimiting();
+        UUID idAdesione1 = creaAdesione(ctx.idServizio(), "aderente_1");
+        UUID idAdesione2 = creaAdesione(ctx.idServizio(), "aderente_2");
+
+        adesioniController.updateRateLimitingProduzioneAdesione(idAdesione1, quoteFruitore(ctx.idApi(), 200, 10));
+        adesioniController.updateRateLimitingProduzioneAdesione(idAdesione2, quoteFruitore(ctx.idApi(), 150, null));
+        adesioniController.updateRateLimitingCollaudoAdesione(idAdesione1, quoteFruitore(ctx.idApi(), 50, null));
+        this.entityManager.flush();
+        this.entityManager.clear();
+
+        RateLimitingServizio riepilogo = serviziController.getRateLimitingServizio(ctx.idServizio()).getBody();
+        assertEquals(1, riepilogo.getApi().size());
+        RateLimitingServizioApi api = riepilogo.getApi().get(0);
+        assertEquals(ctx.idApi(), api.getIdApi());
+
+        assertEquals(1, api.getCollaudo().size());
+        assertRiepilogo(api.getCollaudo().get(0), RateLimitingPeriodoEnum.GIORNO, 100, 50, 1);
+
+        // La somma delle quote giornaliere supera la quota complessiva: solo segnalata
+        assertEquals(2, api.getProduzione().size());
+        assertRiepilogo(api.getProduzione().get(0), RateLimitingPeriodoEnum.ORA, 20, 10, 1);
+        assertRiepilogo(api.getProduzione().get(1), RateLimitingPeriodoEnum.GIORNO, 300, 350, 2);
+        assertTrue(api.getProduzione().get(1).isSuperata());
+        assertFalse(api.getProduzione().get(0).isSuperata());
+
+        // Fruitori di produzione, paginati
+        PagedModelItemRateLimitingFruitore fruitori = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, 0, 10).getBody();
+        assertEquals(2, fruitori.getPage().getTotalElements());
+        ItemRateLimitingFruitore fruitore1 = fruitori.getContent().stream().filter(f -> f.getIdAdesione().equals(idAdesione1)).findAny().orElseThrow();
+        assertEquals("aderente_1", fruitore1.getSoggetto().getNome());
+        assertEquals(2, fruitore1.getRateLimiting().size());
+
+        fruitori = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, 0, 1).getBody();
+        assertEquals(1, fruitori.getContent().size());
+        assertEquals(2, fruitori.getPage().getTotalPages());
+
+        // Le adesioni archiviate non contano
+        this.entityManager.createQuery("UPDATE AdesioneEntity a SET a.stato = 'archiviato' WHERE a.idAdesione = :id")
+            .setParameter("id", idAdesione2.toString())
+            .executeUpdate();
+        this.entityManager.clear();
+
+        api = serviziController.getRateLimitingServizio(ctx.idServizio()).getBody().getApi().get(0);
+        assertRiepilogo(api.getProduzione().get(1), RateLimitingPeriodoEnum.GIORNO, 300, 200, 1);
+        assertFalse(api.getProduzione().get(1).isSuperata());
+        assertEquals(1, serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, 0, 10).getBody().getPage().getTotalElements());
+    }
+
+    private void assertRiepilogo(RateLimitingRiepilogo riepilogo, RateLimitingPeriodoEnum periodo, int quota, long assegnata, int fruitori) {
+        assertEquals(periodo, riepilogo.getPeriodo());
+        assertEquals(quota, riepilogo.getQuota());
+        assertEquals(assegnata, riepilogo.getQuotaAssegnata());
+        assertEquals(quota - assegnata, riepilogo.getQuotaResidua());
+        assertEquals(fruitori, riepilogo.getNumeroFruitori());
+    }
+
+    @Test
+    void testRateLimitingRiepilogoServizioNonAutorizzato() {
+        ServizioRateLimiting ctx = creaServizioConRateLimiting();
+
+        creaUtenteSenzaRuoli();
+        passaAUtenteSenzaRuoli();
+
+        assertThrows(NotAuthorizedException.class, () -> serviziController.getRateLimitingServizio(ctx.idServizio()));
+        assertThrows(NotAuthorizedException.class, () -> serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, 0, 10));
+    }
 }

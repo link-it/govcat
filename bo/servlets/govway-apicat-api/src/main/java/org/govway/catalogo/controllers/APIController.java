@@ -66,6 +66,7 @@ import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.services.ApiUnivocitaService;
 import org.govway.catalogo.services.ProfiloGovwayService;
+import org.govway.catalogo.services.RateLimitingService;
 import org.govway.catalogo.servlets.api.ApiApi;
 import org.govway.catalogo.servlets.model.*;
 import org.slf4j.Logger;
@@ -111,6 +112,9 @@ public class APIController implements ApiApi {
 
 	@Autowired
 	private ProfiloGovwayService profiloGovwayService;
+
+	@Autowired
+	private RateLimitingService rateLimitingService;
 
 	@Autowired
 	private ServizioDettaglioAssembler servizioDettaglioAssembler;
@@ -765,6 +769,9 @@ public class APIController implements ApiApi {
 				if(apiUpdate.getDatiSpecifica()!=null || !Objects.equals(profiloGovwayOverridePrima, this.profiloGovwayService.getOverride(entity))) {
 					this.profiloGovwayService.checkProfili(entity);
 				}
+
+				// Il rate limiting dipende da ruolo e profili: si verifica sullo stato finale dell'API
+				this.rateLimitingService.checkRateLimiting(entity);
 
 				Grant grant = this.servizioDettaglioAssembler.toGrant(entity.getServizio());
 

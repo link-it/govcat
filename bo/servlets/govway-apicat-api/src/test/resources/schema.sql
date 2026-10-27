@@ -1,9 +1,11 @@
 create sequence seq_adesioni start with 1 increment by 1;
+create sequence seq_adesioni_rate_limiting start with 1 increment by 1;
 create sequence seq_allegati_api start with 1 increment by 1;
 create sequence seq_allegati_servizi start with 1 increment by 1;
 create sequence seq_api start with 1 increment by 1;
 create sequence seq_api_auth_types start with 1 increment by 1;
 create sequence seq_api_config start with 1 increment by 1;
+create sequence seq_api_config_rate_limiting start with 1 increment by 1;
 create sequence seq_api_config_url_invocazione start with 1 increment by 1;
 create sequence seq_categorie start with 1 increment by 1;
 create sequence seq_classi start with 1 increment by 1;
@@ -125,6 +127,26 @@ create sequence seq_aziende_esterne start with 1 increment by 1;
        id_servizio bigint not null,
         id_api bigint not null,
         primary key (id_api, id_servizio)
+    );
+
+    create table api_config_rate_limiting (
+       id bigint not null,
+        periodo varchar(255) not null,
+        quota integer not null,
+        id_api_config bigint not null,
+        primary key (id),
+        constraint uk_api_config_rate_limiting unique (id_api_config, periodo)
+    );
+
+    create table adesioni_rate_limiting (
+       id bigint not null,
+        ambiente varchar(255) not null,
+        periodo varchar(255) not null,
+        quota integer not null,
+        id_adesione bigint not null,
+        id_api bigint not null,
+        primary key (id),
+        constraint uk_adesioni_rate_limiting unique (id_adesione, id_api, ambiente, periodo)
     );
 
     create table api_config_url_invocazione (
@@ -699,6 +721,24 @@ create sequence seq_aziende_esterne start with 1 increment by 1;
        add constraint FK7f0mx0aeftworal1f1vn0m3as 
        foreign key (id_servizio) 
        references servizi;
+
+    alter table api_config_rate_limiting 
+       add constraint FK_api_config_rate_limiting_config 
+       foreign key (id_api_config) 
+       references api_config 
+       on delete cascade;
+
+    alter table adesioni_rate_limiting 
+       add constraint FK_adesioni_rate_limiting_adesione 
+       foreign key (id_adesione) 
+       references adesioni 
+       on delete cascade;
+
+    alter table adesioni_rate_limiting 
+       add constraint FK_adesioni_rate_limiting_api 
+       foreign key (id_api) 
+       references api 
+       on delete cascade;
 
     alter table api_config_url_invocazione 
        add constraint FK_api_config_url_invocazione_config 

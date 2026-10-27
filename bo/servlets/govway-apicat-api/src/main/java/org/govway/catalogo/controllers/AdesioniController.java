@@ -42,6 +42,7 @@ import org.govway.catalogo.assembler.ClientAdesioneItemAssembler;
 import org.govway.catalogo.assembler.DocumentoAllegatoAssembler;
 import org.govway.catalogo.assembler.ErogazioneItemAssembler;
 import org.govway.catalogo.assembler.ItemMessaggioAdesioneAssembler;
+import org.govway.catalogo.assembler.RateLimitingAssembler;
 import org.govway.catalogo.assembler.ReferenteAdesioneAssembler;
 import org.govway.catalogo.assembler.UtenteItemAssembler;
 import org.govway.catalogo.authorization.AdesioneAuthorization;
@@ -82,9 +83,11 @@ import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.services.DisclaimerService;
+import org.govway.catalogo.services.RateLimitingService;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
 import org.govway.catalogo.servlets.api.AdesioniApi;
 import org.govway.catalogo.servlets.model.Adesione;
+import org.govway.catalogo.servlets.model.RateLimitingAdesione;
 import org.govway.catalogo.servlets.model.AdesioneClientUpdate;
 import org.govway.catalogo.servlets.model.AdesioneDisclaimer;
 import org.govway.catalogo.servlets.model.AdesioneCreate;
@@ -216,6 +219,12 @@ public class AdesioniController implements AdesioniApi {
 
 	@Autowired
 	private DisclaimerService disclaimerService;
+
+	@Autowired
+	private RateLimitingService rateLimitingService;
+
+	@Autowired
+	private RateLimitingAssembler rateLimitingAssembler;
 
 	@Override
 	public ResponseEntity<Adesione> createAdesione(AdesioneCreate adesioneCreate) {
@@ -2121,6 +2130,81 @@ public class AdesioniController implements AdesioniApi {
 
 				return ResponseEntity.ok(model);
 
+			});
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	@Override
+	public ResponseEntity<RateLimitingAdesione> getRateLimitingCollaudoAdesione(UUID idAdesione) {
+		return getRateLimitingAdesione(idAdesione, AmbienteEnum.COLLAUDO);
+	}
+
+	@Override
+	public ResponseEntity<RateLimitingAdesione> getRateLimitingProduzioneAdesione(UUID idAdesione) {
+		return getRateLimitingAdesione(idAdesione, AmbienteEnum.PRODUZIONE);
+	}
+
+	@Override
+	public ResponseEntity<RateLimitingAdesione> updateRateLimitingCollaudoAdesione(UUID idAdesione, RateLimitingAdesione rateLimitingAdesione) {
+		return updateRateLimitingAdesione(idAdesione, rateLimitingAdesione, AmbienteEnum.COLLAUDO);
+	}
+
+	@Override
+	public ResponseEntity<RateLimitingAdesione> updateRateLimitingProduzioneAdesione(UUID idAdesione, RateLimitingAdesione rateLimitingAdesione) {
+		return updateRateLimitingAdesione(idAdesione, rateLimitingAdesione, AmbienteEnum.PRODUZIONE);
+	}
+
+	private ResponseEntity<RateLimitingAdesione> getRateLimitingAdesione(UUID idAdesione, AmbienteEnum ambiente) {
+		try {
+			return this.service.runTransaction( () -> {
+
+				this.logger.info("Invocazione in corso ...");
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
+
+				this.logger.debug("Autorizzazione completata con successo");
+
+				RateLimitingAdesione model = this.rateLimitingAssembler.toModel(this.rateLimitingService.getRateLimiting(entity, ambiente));
+
+				this.logger.info("Invocazione completata con successo");
+				return ResponseEntity.ok(model);
+			});
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	private ResponseEntity<RateLimitingAdesione> updateRateLimitingAdesione(UUID idAdesione, RateLimitingAdesione rateLimitingAdesione, AmbienteEnum ambiente) {
+		try {
+			return this.service.runTransaction( () -> {
+
+				this.logger.info("Invocazione in corso ...");
+				AdesioneEntity entity = findOne(idAdesione);
+
+				this.rateLimitingService.authorizeModifica(entity, ambiente);
+				this.logger.debug("Autorizzazione completata con successo");
+
+				this.rateLimitingService.setRateLimiting(rateLimitingAdesione.getRateLimiting(), entity, ambiente);
+				this.dettaglioAssembler.setUltimaModifica(entity);
+
+				this.service.save(entity);
+				RateLimitingAdesione model = this.rateLimitingAssembler.toModel(this.rateLimitingService.getRateLimiting(entity, ambiente));
+
+				this.logger.info("Invocazione completata con successo");
+				return ResponseEntity.ok(model);
 			});
 		}
 		catch(RuntimeException e) {

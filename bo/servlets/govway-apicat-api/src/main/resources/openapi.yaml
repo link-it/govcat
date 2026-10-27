@@ -2804,6 +2804,68 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /servizi/{id_servizio}/rate-limiting:
+    parameters:
+    - $ref: "#/components/parameters/id_servizio"
+    get:
+      tags:
+      - "Servizi"
+      description: "Riepilogo del rate limiting del servizio: per ogni API erogata dal soggetto del dominio e per ogni ambiente, le quote complessive dichiarate e la somma delle quote assegnate ai fruitori delle adesioni non archiviate. Riservato a chi gestisce il servizio."
+      operationId: "getRateLimitingServizio"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RateLimitingServizio"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /servizi/{id_servizio}/rate-limiting/fruitori:
+    parameters:
+    - $ref: "#/components/parameters/id_servizio"
+    get:
+      tags:
+      - "Servizi"
+      description: "Adesioni non archiviate del servizio con le quote di rate limiting assegnate ai fruitori nell'ambiente indicato. Riservato a chi gestisce il servizio, che modifica le quote con l'API di rate limiting dell'adesione."
+      operationId: "listRateLimitingFruitoriServizio"
+      parameters:
+        - $ref: "#/components/parameters/ambiente_query"
+        - $ref: "#/components/parameters/page_query_optional"
+        - $ref: "#/components/parameters/size_query_optional"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedModelItemRateLimitingFruitore"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /servizi/{id_servizio}/stato:
     parameters:
     - $ref: "#/components/parameters/id_servizio"
@@ -5570,6 +5632,128 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /adesioni/{id_adesione}/collaudo/rate-limiting:
+    parameters:
+    - $ref: "#/components/parameters/id_adesione"
+    get:
+      tags:
+      - "Adesioni"
+      description: "Quote di rate limiting assegnate al fruitore in collaudo"
+      operationId: "getRateLimitingCollaudoAdesione"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RateLimitingAdesione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+    put:
+      tags:
+      - "Adesioni"
+      description: "Sostituisce integralmente le quote di rate limiting assegnate al fruitore in collaudo. Ogni quota si riferisce a un'API del servizio erogata dal soggetto del dominio e a uno dei periodi per cui il servizio dichiara un rate limiting in collaudo. Modificabile dall'aderente secondo il workflow dei dati di collaudo e da chi gestisce il servizio in ogni stato tranne archiviato."
+      operationId: "updateRateLimitingCollaudoAdesione"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RateLimitingAdesione'
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RateLimitingAdesione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /adesioni/{id_adesione}/produzione/rate-limiting:
+    parameters:
+    - $ref: "#/components/parameters/id_adesione"
+    get:
+      tags:
+      - "Adesioni"
+      description: "Quote di rate limiting assegnate al fruitore in produzione"
+      operationId: "getRateLimitingProduzioneAdesione"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RateLimitingAdesione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+    put:
+      tags:
+      - "Adesioni"
+      description: "Sostituisce integralmente le quote di rate limiting assegnate al fruitore in produzione. Ogni quota si riferisce a un'API del servizio erogata dal soggetto del dominio e a uno dei periodi per cui il servizio dichiara un rate limiting in produzione. Modificabile dall'aderente secondo il workflow dei dati di produzione e da chi gestisce il servizio in ogni stato tranne archiviato."
+      operationId: "updateRateLimitingProduzioneAdesione"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RateLimitingAdesione'
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RateLimitingAdesione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /adesioni/{id_adesione}/collaudo/client:
     parameters:
     - $ref: "#/components/parameters/id_adesione"
@@ -5985,6 +6169,129 @@ components:
       enum:
         - "collaudo"
         - "produzione"
+    RateLimitingAdesioneApi:
+      description: "Quota di rate limiting assegnata al fruitore per un'API e un periodo"
+      type: "object"
+      required:
+        - id_api
+        - quota
+        - periodo
+      properties:
+        id_api:
+          $ref: "#/components/schemas/IdApi"
+        quota:
+          description: "Numero massimo di richieste nel periodo"
+          type: "integer"
+          format: "int32"
+          minimum: 1
+        periodo:
+          $ref: "#/components/schemas/RateLimitingPeriodoEnum"
+    RateLimitingAdesione:
+      description: "Quote di rate limiting assegnate al fruitore in un ambiente"
+      type: "object"
+      required:
+        - rate_limiting
+      properties:
+        rate_limiting:
+          type: array
+          items:
+            $ref: "#/components/schemas/RateLimitingAdesioneApi"
+    RateLimitingRiepilogo:
+      description: "Quota complessiva dichiarata dal servizio per un periodo, confrontata con la somma delle quote assegnate ai fruitori delle adesioni non archiviate"
+      type: "object"
+      required:
+        - periodo
+        - quota
+        - quota_assegnata
+        - quota_residua
+        - numero_fruitori
+        - superata
+      properties:
+        periodo:
+          $ref: "#/components/schemas/RateLimitingPeriodoEnum"
+        quota:
+          description: "Quota complessiva dichiarata dal servizio"
+          type: "integer"
+          format: "int32"
+        quota_assegnata:
+          description: "Somma delle quote assegnate ai fruitori"
+          type: "integer"
+          format: "int64"
+        quota_residua:
+          description: "Quota complessiva meno quota assegnata: negativa quando le quote assegnate superano la quota complessiva"
+          type: "integer"
+          format: "int64"
+        numero_fruitori:
+          description: "Numero di adesioni con una quota assegnata per il periodo"
+          type: "integer"
+          format: "int32"
+        superata:
+          description: "Le quote assegnate ai fruitori superano la quota complessiva. E` solo un avviso: nessun salvataggio viene bloccato."
+          type: "boolean"
+    RateLimitingServizioApi:
+      type: "object"
+      required:
+        - id_api
+        - nome
+        - versione
+        - collaudo
+        - produzione
+      properties:
+        id_api:
+          $ref: "#/components/schemas/IdApi"
+        nome:
+          $ref: "#/components/schemas/String255"
+        versione:
+          type: "integer"
+          format: "int32"
+        collaudo:
+          type: array
+          items:
+            $ref: "#/components/schemas/RateLimitingRiepilogo"
+        produzione:
+          type: array
+          items:
+            $ref: "#/components/schemas/RateLimitingRiepilogo"
+    RateLimitingServizio:
+      description: "Riepilogo del rate limiting delle API del servizio erogate dal soggetto del dominio"
+      type: "object"
+      required:
+        - api
+      properties:
+        api:
+          type: array
+          items:
+            $ref: "#/components/schemas/RateLimitingServizioApi"
+    ItemRateLimitingFruitore:
+      description: "Adesione al servizio con le quote di rate limiting assegnate al fruitore in un ambiente"
+      type: "object"
+      required:
+        - id_adesione
+        - soggetto
+        - stato
+        - rate_limiting
+      properties:
+        id_adesione:
+          $ref: "#/components/schemas/IdAdesione"
+        id_logico:
+          $ref: "#/components/schemas/String255"
+        soggetto:
+          $ref: "#/components/schemas/ItemSoggetto"
+        stato:
+          $ref: "#/components/schemas/String255"
+        rate_limiting:
+          type: array
+          items:
+            $ref: "#/components/schemas/RateLimitingAdesioneApi"
+    PagedModelItemRateLimitingFruitore:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemRateLimitingFruitore'
+        page:
+          $ref: '#/components/schemas/PageMetadata'
     APICreate:
       type: "object"
       required:
@@ -6037,6 +6344,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/String255"
+        rate_limiting:
+          description: "Quote di rate limiting complessive dichiarate dal servizio per l'ambiente, al piu` una per periodo. Previste solo per le API erogate dal soggetto del dominio; per le API con un profilo PDND e` ammesso solo il periodo giorno. Esposte solo nel dettaglio dell'API."
+          type: array
+          items:
+            $ref: "#/components/schemas/RateLimiting"
     APIDatiAmbienteCreate:
       type: "object"
       required:
@@ -6053,6 +6365,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/String255"
+        rate_limiting:
+          description: "Quote di rate limiting complessive dichiarate dal servizio per l'ambiente, al piu` una per periodo. Previste solo per le API erogate dal soggetto del dominio; per le API con un profilo PDND e` ammesso solo il periodo giorno."
+          type: array
+          items:
+            $ref: "#/components/schemas/RateLimiting"
     APIDatiAmbienteUpdate:
       type: "object"
       properties:
@@ -6067,6 +6384,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/String255"
+        rate_limiting:
+          description: "Quote di rate limiting complessive dichiarate dal servizio per l'ambiente, al piu` una per periodo. Lista assente: quote invariate; lista vuota: nessun rate limiting. Non si puo` rimuovere il periodo di una quota finche' ci sono adesioni non archiviate con una quota assegnata per quel periodo. Previste solo per le API erogate dal soggetto del dominio; per le API con un profilo PDND e` ammesso solo il periodo giorno."
+          type: array
+          items:
+            $ref: "#/components/schemas/RateLimiting"
     APIDatiErogazione:
       type: "object"
       required:
@@ -12058,6 +12380,13 @@ components:
       required: false
       schema:
         $ref: "#/components/schemas/IdOrganizzazione"
+    ambiente_query:
+      name: "ambiente"
+      in: "query"
+      description: "Ambiente"
+      required: true
+      schema:
+        $ref: "#/components/schemas/AmbienteEnum"
     ambiente_query_optional:
       name: "ambiente"
       in: "query"

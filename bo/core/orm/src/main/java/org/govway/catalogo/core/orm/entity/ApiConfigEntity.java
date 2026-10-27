@@ -92,4 +92,15 @@ public class ApiConfigEntity {
     @BatchSize(size = 100)
     private List<ApiConfigUrlInvocazioneEntity> urlInvocazione = new ArrayList<>();
 
+    /**
+     * Quote di rate limiting complessive del servizio per questo ambiente, al piu` una per periodo.
+     *
+     * Senza orphanRemoval per lo stesso motivo di urlInvocazione: le righe rimosse sono cancellate
+     * esplicitamente (RateLimitingService).
+     */
+    @OneToMany(mappedBy = "apiConfig", fetch = FetchType.LAZY, cascade = jakarta.persistence.CascadeType.ALL)
+    @OrderBy("id ASC")
+    @BatchSize(size = 100)
+    private List<ApiConfigRateLimitingEntity> rateLimiting = new ArrayList<>();
+
 }

@@ -87,6 +87,18 @@ public enum ErrorCode {
     /** URL di invocazione indicata piu` volte sulla stessa specifica */
     API_400_URL_DUPLICATE("URL di invocazione duplicata"),
 
+    /** Periodo indicato piu` volte nel rate limiting della specifica di un ambiente */
+    API_400_RATE_LIMITING_DUPLICATE("Periodo di rate limiting duplicato"),
+
+    /** Rate limiting dichiarato su un'API non erogata dal soggetto del dominio */
+    API_400_RATE_LIMITING_RUOLO("Rate limiting non previsto per il ruolo dell'API"),
+
+    /** Rate limiting non giornaliero su un'API con un profilo PDND */
+    API_400_RATE_LIMITING_PDND("Rate limiting solo giornaliero per le API con profilo PDND"),
+
+    /** Rimozione di un periodo di rate limiting su cui ci sono quote di adesioni non archiviate */
+    API_400_RATE_LIMITING_FRUITORI("Periodo di rate limiting con quote assegnate ai fruitori"),
+
     /** Allegato servizio duplicato */
     SRV_400_DUPLICATE("Allegato servizio duplicato"),
 
@@ -333,6 +345,15 @@ public enum ErrorCode {
 
     /** Stato servizio non consente adesione */
     ADE_400_STATE_SERVICE("Stato servizio non consente adesione"),
+
+    /** Quota di rate limiting per un'API non del servizio o non erogata dal soggetto del dominio */
+    ADE_400_RATE_LIMITING_API("API non prevista per il rate limiting dell'adesione"),
+
+    /** Quota di rate limiting per un periodo non dichiarato dal servizio */
+    ADE_400_RATE_LIMITING_PERIODO("Periodo di rate limiting non previsto dal servizio"),
+
+    /** Quota di rate limiting indicata piu` volte per la stessa API e periodo */
+    ADE_400_RATE_LIMITING_DUPLICATE("Quota di rate limiting duplicata"),
 
     /** Referente adesione duplicato */
     ADE_409_REFERENT("Referente adesione duplicato"),
@@ -587,6 +608,9 @@ public enum ErrorCode {
 
     /** Ambiente URL e body non corrispondenti */
     VAL_400_ENVIRONMENT_MISMATCH("Ambiente URL e body non corrispondenti"),
+
+    /** Quota di rate limiting non positiva */
+    VAL_400_RATE_LIMITING_QUOTA("Quota di rate limiting non valida"),
 
     /** Richiesta non valida semanticamente */
     VAL_422("Richiesta non valida semanticamente"),

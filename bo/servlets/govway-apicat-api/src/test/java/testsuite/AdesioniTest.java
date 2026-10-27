@@ -22,6 +22,7 @@ package testsuite;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -92,6 +93,10 @@ import org.govway.catalogo.servlets.model.CheckDati;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneCustomAdesioneProprietaList;
 import org.govway.catalogo.servlets.model.ConfigurazioneProfiloCustomProprietaText;
+import org.govway.catalogo.servlets.model.RateLimiting;
+import org.govway.catalogo.servlets.model.RateLimitingAdesione;
+import org.govway.catalogo.servlets.model.RateLimitingAdesioneApi;
+import org.govway.catalogo.servlets.model.RateLimitingPeriodoEnum;
 import org.govway.catalogo.servlets.model.Ruolo;
 import org.govway.catalogo.servlets.model.SottotipoEnum;
 import org.govway.catalogo.servlets.model.TipoConfigurazioneCustomProprieta;
@@ -177,6 +182,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.validation.ConstraintViolationException;
 
 @ExtendWith(SpringExtension.class)  // JUnit 5 extension
 @SpringBootTest(classes = OpenAPI2SpringBoot.class)
@@ -7376,6 +7382,204 @@ public class AdesioniTest {
         } finally {
             this.configurazione.getAdesione().getProprietaCustom().remove(gruppo);
         }
+    }
+
+    // ==================== Rate limiting (Issue 402) ====================
+
+    private record AdesioneConApi(Adesione adesione, UUID idApi) {}
+
+    private static RateLimiting rateLimiting(int quota, RateLimitingPeriodoEnum periodo) {
+        RateLimiting rl = new RateLimiting();
+        rl.setQuota(quota);
+        rl.setPeriodo(periodo);
+        return rl;
+    }
+
+    private static RateLimitingAdesioneApi quotaFruitore(UUID idApi, int quota, RateLimitingPeriodoEnum periodo) {
+        RateLimitingAdesioneApi rl = new RateLimitingAdesioneApi();
+        rl.setIdApi(idApi);
+        rl.setQuota(quota);
+        rl.setPeriodo(periodo);
+        return rl;
+    }
+
+    private static RateLimitingAdesione quoteFruitore(RateLimitingAdesioneApi... quote) {
+        RateLimitingAdesione rl = new RateLimitingAdesione();
+        rl.setRateLimiting(new ArrayList<>(List.of(quote)));
+        return rl;
+    }
+
+    private APIDatiAmbienteUpdate getDatiAmbienteRateLimiting(List<RateLimiting> rateLimiting) {
+        APIDatiErogazione apiDatiErogazione = new APIDatiErogazione();
+        apiDatiErogazione.setNomeGateway("APIGateway");
+        apiDatiErogazione.setVersioneGateway(1);
+        apiDatiErogazione.setUrlPrefix("http://");
+        apiDatiErogazione.setUrl("testurl.com/test");
+
+        APIDatiAmbienteUpdate datiAmbiente = new APIDatiAmbienteUpdate();
+        datiAmbiente.setProtocollo(ProtocolloEnum.REST);
+        datiAmbiente.setDatiErogazione(apiDatiErogazione);
+        datiAmbiente.setRateLimiting(rateLimiting);
+        return datiAmbiente;
+    }
+
+    /** Imposta le quote complessive dell'API (lista null: ambiente non inviato). */
+    private void impostaRateLimitingApi(UUID idApi, List<RateLimiting> collaudo, List<RateLimiting> produzione) {
+        ApiUpdate apiUpdate = new ApiUpdate();
+        if(collaudo != null) {
+            apiUpdate.setConfigurazioneCollaudo(getDatiAmbienteRateLimiting(collaudo));
+        }
+        if(produzione != null) {
+            apiUpdate.setConfigurazioneProduzione(getDatiAmbienteRateLimiting(produzione));
+        }
+        apiController.updateApi(idApi, apiUpdate, true);
+        entityManager.flush();
+        entityManager.clear();
+    }
+
+    /**
+     * Servizio pubblicato in collaudo con un'API erogata dal soggetto del dominio che in collaudo
+     * dichiara 300 richieste al giorno e 20 all'ora, e un'adesione in bozza creata dal gestore.
+     */
+    private AdesioneConApi creaAdesioneConRateLimiting() {
+        Dominio dominio = this.getDominio(null);
+        this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        UUID idApi = this.getAPI().getIdApi();
+        impostaRateLimitingApi(idApi, List.of(rateLimiting(300, RateLimitingPeriodoEnum.GIORNO), rateLimiting(20, RateLimitingPeriodoEnum.ORA)), null);
+
+        CommonUtils.cambioStatoFinoA(STATO_PUBBLICATO_IN_COLLAUDO, serviziController, idServizio);
+        Adesione adesione = this.getAdesione();
+        entityManager.flush();
+        entityManager.clear();
+        return new AdesioneConApi(adesione, idApi);
+    }
+
+    @Test
+    void testRateLimitingAdesioneSalvataggioERilettura() {
+        AdesioneConApi ctx = creaAdesioneConRateLimiting();
+        UUID idAdesione = ctx.adesione().getIdAdesione();
+
+        ResponseEntity<RateLimitingAdesione> salvate = adesioniController.updateRateLimitingCollaudoAdesione(idAdesione,
+                quoteFruitore(quotaFruitore(ctx.idApi(), 100, RateLimitingPeriodoEnum.GIORNO), quotaFruitore(ctx.idApi(), 5, RateLimitingPeriodoEnum.ORA)));
+        assertEquals(HttpStatus.OK, salvate.getStatusCode());
+        assertEquals(2, salvate.getBody().getRateLimiting().size());
+        entityManager.flush();
+        entityManager.clear();
+
+        List<RateLimitingAdesioneApi> collaudo = adesioniController.getRateLimitingCollaudoAdesione(idAdesione).getBody().getRateLimiting();
+        assertEquals(2, collaudo.size());
+        assertEquals(ctx.idApi(), collaudo.get(0).getIdApi());
+        assertEquals(RateLimitingPeriodoEnum.GIORNO, collaudo.get(0).getPeriodo());
+        assertEquals(100, collaudo.get(0).getQuota());
+        assertEquals(RateLimitingPeriodoEnum.ORA, collaudo.get(1).getPeriodo());
+        assertEquals(5, collaudo.get(1).getQuota());
+        assertTrue(adesioniController.getRateLimitingProduzioneAdesione(idAdesione).getBody().getRateLimiting().isEmpty());
+
+        // Sostituzione integrale: la quota giornaliera e` aggiornata, quella oraria rimossa
+        adesioniController.updateRateLimitingCollaudoAdesione(idAdesione, quoteFruitore(quotaFruitore(ctx.idApi(), 150, RateLimitingPeriodoEnum.GIORNO)));
+        entityManager.flush();
+        entityManager.clear();
+        collaudo = adesioniController.getRateLimitingCollaudoAdesione(idAdesione).getBody().getRateLimiting();
+        assertEquals(1, collaudo.size());
+        assertEquals(150, collaudo.get(0).getQuota());
+
+        // Lista vuota: nessuna quota
+        adesioniController.updateRateLimitingCollaudoAdesione(idAdesione, quoteFruitore());
+        entityManager.flush();
+        entityManager.clear();
+        assertTrue(adesioniController.getRateLimitingCollaudoAdesione(idAdesione).getBody().getRateLimiting().isEmpty());
+    }
+
+    @Test
+    void testRateLimitingAdesioneValidazione() {
+        AdesioneConApi ctx = creaAdesioneConRateLimiting();
+        UUID idAdesione = ctx.adesione().getIdAdesione();
+
+        // Periodo per cui il servizio non dichiara un rate limiting
+        BadRequestException e = assertThrows(BadRequestException.class, () -> adesioniController.updateRateLimitingCollaudoAdesione(idAdesione,
+                quoteFruitore(quotaFruitore(ctx.idApi(), 1, RateLimitingPeriodoEnum.MINUTO))));
+        assertEquals(ErrorCode.ADE_400_RATE_LIMITING_PERIODO, e.getErrorCode());
+
+        // In produzione il servizio non dichiara alcun rate limiting
+        e = assertThrows(BadRequestException.class, () -> adesioniController.updateRateLimitingProduzioneAdesione(idAdesione,
+                quoteFruitore(quotaFruitore(ctx.idApi(), 1, RateLimitingPeriodoEnum.GIORNO))));
+        assertEquals(ErrorCode.ADE_400_RATE_LIMITING_PERIODO, e.getErrorCode());
+
+        // API che non appartiene al servizio
+        e = assertThrows(BadRequestException.class, () -> adesioniController.updateRateLimitingCollaudoAdesione(idAdesione,
+                quoteFruitore(quotaFruitore(UUID.randomUUID(), 1, RateLimitingPeriodoEnum.GIORNO))));
+        assertEquals(ErrorCode.ADE_400_RATE_LIMITING_API, e.getErrorCode());
+
+        // Stessa API e periodo indicati due volte
+        e = assertThrows(BadRequestException.class, () -> adesioniController.updateRateLimitingCollaudoAdesione(idAdesione,
+                quoteFruitore(quotaFruitore(ctx.idApi(), 1, RateLimitingPeriodoEnum.GIORNO), quotaFruitore(ctx.idApi(), 2, RateLimitingPeriodoEnum.GIORNO))));
+        assertEquals(ErrorCode.ADE_400_RATE_LIMITING_DUPLICATE, e.getErrorCode());
+
+        // Quota non positiva: rifiutata dalla validazione del modello (minimum 1)
+        assertThrows(ConstraintViolationException.class, () -> adesioniController.updateRateLimitingCollaudoAdesione(idAdesione,
+                quoteFruitore(quotaFruitore(ctx.idApi(), 0, RateLimitingPeriodoEnum.GIORNO))));
+    }
+
+    @Test
+    void testRateLimitingApiRimozionePeriodoConQuoteFruitori() {
+        AdesioneConApi ctx = creaAdesioneConRateLimiting();
+        UUID idAdesione = ctx.adesione().getIdAdesione();
+
+        adesioniController.updateRateLimitingCollaudoAdesione(idAdesione, quoteFruitore(quotaFruitore(ctx.idApi(), 100, RateLimitingPeriodoEnum.GIORNO)));
+        entityManager.flush();
+        entityManager.clear();
+
+        // Il periodo giornaliero ha una quota assegnata: non si puo` rimuovere
+        BadRequestException e = assertThrows(BadRequestException.class,
+                () -> impostaRateLimitingApi(ctx.idApi(), List.of(rateLimiting(20, RateLimitingPeriodoEnum.ORA)), null));
+        assertEquals(ErrorCode.API_400_RATE_LIMITING_FRUITORI, e.getErrorCode());
+        assertEquals("1", e.getParameters().get("numeroAdesioni"));
+        entityManager.clear();
+
+        // La quota complessiva si puo` cambiare, anche sotto la somma delle quote assegnate, e si
+        // puo` rimuovere il periodo orario che non ha quote assegnate
+        impostaRateLimitingApi(ctx.idApi(), List.of(rateLimiting(50, RateLimitingPeriodoEnum.GIORNO)), null);
+
+        // Rimossa la quota del fruitore, anche il periodo giornaliero si puo` rimuovere
+        adesioniController.updateRateLimitingCollaudoAdesione(idAdesione, quoteFruitore());
+        entityManager.flush();
+        entityManager.clear();
+        impostaRateLimitingApi(ctx.idApi(), List.of(), null);
+        assertNull(apiController.getAPI(ctx.idApi()).getBody().getConfigurazioneCollaudo().getRateLimiting());
+    }
+
+    @Test
+    void testRateLimitingAdesioneAutorizzazione() {
+        Dominio dominio = this.getDominioFull(null);
+        this.getServizioFull(dominio, VisibilitaServizioEnum.PUBBLICO);
+        UUID idApi = this.getAPIFull().getIdApi();
+        impostaRateLimitingApi(idApi, List.of(rateLimiting(300, RateLimitingPeriodoEnum.GIORNO)), null);
+        CommonUtils.cambioStatoFinoA(STATO_PUBBLICATO_IN_COLLAUDO, serviziController, idServizio);
+        Adesione adesione = this.getAdesioneFull();
+        UUID idAdesione = adesione.getIdAdesione();
+
+        // In bozza l'aderente modifica i dati di collaudo, quindi anche la propria quota
+        CommonUtils.getSessionUtente(UTENTE_REFERENTE_ADESIONE, securityContext, authentication, utenteService);
+        assertEquals(HttpStatus.OK, adesioniController.updateRateLimitingCollaudoAdesione(idAdesione,
+                quoteFruitore(quotaFruitore(idApi, 100, RateLimitingPeriodoEnum.GIORNO))).getStatusCode());
+
+        CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+        this.cambioStatoAdesioneFinoA(idAdesione, STATO_PUBBLICATO_IN_COLLAUDO);
+        entityManager.flush();
+        entityManager.clear();
+
+        // Pubblicata in collaudo: l'aderente non puo` piu` modificarla, chi gestisce il servizio si`
+        CommonUtils.getSessionUtente(UTENTE_REFERENTE_ADESIONE, securityContext, authentication, utenteService);
+        assertThrows(NotAuthorizedException.class, () -> adesioniController.updateRateLimitingCollaudoAdesione(idAdesione,
+                quoteFruitore(quotaFruitore(idApi, 200, RateLimitingPeriodoEnum.GIORNO))));
+        assertEquals(100, adesioniController.getRateLimitingCollaudoAdesione(idAdesione).getBody().getRateLimiting().get(0).getQuota());
+
+        CommonUtils.getSessionUtente(UTENTE_REFERENTE_SERVIZIO, securityContext, authentication, utenteService);
+        assertEquals(HttpStatus.OK, adesioniController.updateRateLimitingCollaudoAdesione(idAdesione,
+                quoteFruitore(quotaFruitore(idApi, 50, RateLimitingPeriodoEnum.GIORNO))).getStatusCode());
+        entityManager.flush();
+        entityManager.clear();
+        assertEquals(50, adesioniController.getRateLimitingCollaudoAdesione(idAdesione).getBody().getRateLimiting().get(0).getQuota());
     }
 
 }

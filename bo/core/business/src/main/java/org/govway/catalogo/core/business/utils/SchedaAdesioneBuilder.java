@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 import org.govway.catalogo.core.orm.entity.ClientEntity.AuthType;
 
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
+import org.govway.catalogo.core.orm.entity.AdesioneRateLimitingEntity;
 import org.govway.catalogo.core.orm.entity.AmbienteEnum;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
@@ -418,6 +419,22 @@ public class SchedaAdesioneBuilder {
 
 	private ApiType getRateLimitingApi(AdesioneEntity adesione, AmbienteEnum ambiente, List<ApiEntity> listApi, boolean mostraVersione) {
 		ApiType rateLimitingApi = new ApiType();
+
+		// Quote del fruitore censite con i campi dedicati: se presenti prevalgono sulle proprieta' custom
+		for(AdesioneRateLimitingEntity rl: adesione.getRateLimiting()) {
+			if(rl.getAmbiente().equals(ambiente)) {
+				RowType row = new RowType();
+				row.setLabel(mostraVersione ?
+						rl.getApi().getNome() + " v" + rl.getApi().getVersione() :
+						rl.getApi().getNome());
+				row.setValore(rl.getQuota() + " / " + rl.getPeriodo().name().toLowerCase());
+				rateLimitingApi.getRow().add(row);
+			}
+		}
+
+		if(!rateLimitingApi.getRow().isEmpty()) {
+			return rateLimitingApi;
+		}
 
 		// Filtra le estensioni per rate limiting
 		List<EstensioneAdesioneEntity> estensioniRateLimiting = adesione.getEstensioni().stream()

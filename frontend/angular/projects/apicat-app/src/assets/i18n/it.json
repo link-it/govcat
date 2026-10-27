@@ -1446,6 +1446,13 @@
 							"DEFAULT": "Stato adesione [{{stato}}] non valido per questa operazione",
 							"MONITORING": "Stato adesione [{{idAdesione}}] non valido [{{stato}}] per il monitoraggio",
 							"SERVICE": "Lo stato del servizio [{{servizio}}] non consente adesioni"
+						},
+						"RATE": {
+							"LIMITING": {
+								"API": "API [{{idApi}}] non prevista per il rate limiting: deve essere un'API del servizio erogata dal soggetto del dominio",
+								"PERIODO": "Il servizio non prevede un rate limiting per periodo [{{periodo}}] sull'API [{{nome}} v{{versione}}] in {{ambiente}}",
+								"DUPLICATE": "Quota per l'API [{{nome}} v{{versione}}] e periodo [{{periodo}}] indicata più volte"
+							}
 						}
 					},
 					"403": {
@@ -1481,6 +1488,14 @@
 							"EROGATIONS": "API [{{nome}} v{{versione}}] ha [{{count}}] erogazioni attive, non eliminabile"
 						},
 						"SPEC": "Specifica non presente",
+						"RATE": {
+							"LIMITING": {
+								"DUPLICATE": "Periodo [{{periodo}}] indicato più volte nel rate limiting di {{ambiente}}",
+								"RUOLO": "Il rate limiting è previsto solo per le API erogate dal soggetto del dominio: API [{{nome}} v{{versione}}]",
+								"PDND": "L'API [{{nome}} v{{versione}}] ha un profilo PDND: il rate limiting può essere solo giornaliero (periodo [{{periodo}}] non ammesso)",
+								"FRUITORI": "Impossibile rimuovere il rate limiting per periodo [{{periodo}}] di {{ambiente}}: [{{numeroAdesioni}}] adesioni hanno una quota assegnata per quel periodo"
+							}
+						},
 						"URL": {
 							"DUPLICATE": "URL di invocazione [{{identificativo}}] indicata più volte sulla stessa specifica",
 							"NOT": {
@@ -2009,6 +2024,11 @@
 						"PIVA": "Partita IVA [{{partitaIva}}] non valida",
 						"PROFILE": "Profilo [{{profilo}}] non presente nella configurazione",
 						"RANGE": "Valore [{{valore}}] fuori dal range consentito [{{min}} - {{max}}]",
+						"RATE": {
+							"LIMITING": {
+								"QUOTA": "Quota di rate limiting [{{quota}}] non valida: deve essere un numero intero maggiore di zero"
+							}
+						},
 						"REQUIRED": "Campo obbligatorio [{{campo}}] mancante",
 						"URL": "URL [{{url}}] non valido"
 					},

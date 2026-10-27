@@ -60,4 +60,11 @@ public interface AdesioneRepository extends JpaRepositoryImplementation<Adesione
     @Query(value = "SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END FROM AdesioneEntity a WHERE a.servizio.id = ?1")
     public boolean existsByServizioId(Long idServizio);
 
+    // Adesioni non archiviate del servizio, con soggetto e organizzazione aderente (riepilogo delle
+    // quote di rate limiting assegnate ai fruitori)
+    @Query(value = "SELECT a FROM AdesioneEntity a JOIN FETCH a.soggetto s LEFT JOIN FETCH s.organizzazione "
+            + "WHERE a.servizio.id = ?1 AND a.stato <> ?2",
+            countQuery = "SELECT COUNT(a) FROM AdesioneEntity a WHERE a.servizio.id = ?1 AND a.stato <> ?2")
+    Page<AdesioneEntity> findByServizioNonArchiviate(Long idServizio, String statoArchiviato, Pageable pageable);
+
 }

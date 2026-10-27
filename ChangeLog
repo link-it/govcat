@@ -1,3 +1,25 @@
+2026-10-27  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 402: il rate limiting di servizi e adesioni si gestisce con campi dedicati, non più
+	  con proprietà custom. Per ogni API erogata dal soggetto del dominio e per ogni ambiente
+	  il servizio dichiara le quote complessive (`rate_limiting` della configurazione di
+	  collaudo e di produzione dell'API), al più una per periodo (`minuto`, `ora`, `giorno`);
+	  per le API con un profilo PDND è ammesso solo il periodo `giorno`. Il fruitore indica
+	  la propria quota per API e per uno dei periodi dichiarati dal servizio, con le nuove API
+	  `GET` e `PUT /adesioni/{id_adesione}/collaudo/rate-limiting` e
+	  `/adesioni/{id_adesione}/produzione/rate-limiting`. L'aderente modifica la quota secondo
+	  il workflow dei dati di collaudo e di produzione, chi gestisce il servizio in ogni stato
+	  tranne archiviato. Chi gestisce il servizio consulta il riepilogo con
+	  `GET /servizi/{id_servizio}/rate-limiting`, che confronta le quote complessive con la
+	  somma di quelle assegnate ai fruitori delle adesioni non archiviate (lo sforamento è
+	  solo segnalato), e l'elenco paginato delle quote dei fruitori con
+	  `GET /servizi/{id_servizio}/rate-limiting/fruitori`. Non si può rimuovere il periodo di
+	  una quota complessiva su cui ci sono quote di adesioni non archiviate. La scheda
+	  adesione mostra le quote dedicate, se presenti, al posto delle proprietà custom.
+	  Script di upgrade del database `V2.5.1__rate_limiting.sql`. Le proprietà custom di
+	  rate limiting esistenti non vengono migrate e il configuratore continua a leggerle.
+
 2026-10-23  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

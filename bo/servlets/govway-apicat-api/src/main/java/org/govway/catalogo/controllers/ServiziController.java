@@ -44,6 +44,7 @@ import org.govway.catalogo.assembler.DocumentoAllegatoAssembler;
 import org.govway.catalogo.assembler.GruppoItemAssembler;
 import org.govway.catalogo.assembler.ItemMessaggioServizioAssembler;
 import org.govway.catalogo.assembler.OrganizzazioneItemAssembler;
+import org.govway.catalogo.assembler.RateLimitingAssembler;
 import org.govway.catalogo.assembler.ReferenteServizioAssembler;
 import org.govway.catalogo.assembler.ServizioDettaglioAssembler;
 import org.govway.catalogo.assembler.ServizioGruppoItemAssembler;
@@ -68,6 +69,7 @@ import org.govway.catalogo.core.dao.specifications.ServizioSpecification;
 import org.govway.catalogo.core.dao.specifications.ServizioSpecification.TipoMieiServizi;
 import org.govway.catalogo.core.dao.specifications.ServizioSpecificationUtils;
 import org.govway.catalogo.core.dao.specifications.TagSpecification;
+import org.govway.catalogo.core.orm.entity.AdesioneEntity;
 import org.govway.catalogo.core.orm.entity.AllegatoServizioEntity;
 import org.govway.catalogo.core.orm.entity.AllegatoServizioEntity.VISIBILITA;
 import org.govway.catalogo.core.orm.entity.CategoriaEntity;
@@ -105,6 +107,7 @@ import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.RichiestaNonValidaSemanticamenteException;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
 import org.govway.catalogo.services.DisclaimerService;
+import org.govway.catalogo.services.RateLimitingService;
 import org.govway.catalogo.servlets.api.ServiziApi;
 import org.govway.catalogo.servlets.model.Allegato;
 import org.govway.catalogo.servlets.model.AllegatoItemCreate;
@@ -135,6 +138,8 @@ import org.govway.catalogo.servlets.model.MessaggioCreate;
 import org.govway.catalogo.servlets.model.MessaggioUpdate;
 import org.govway.catalogo.servlets.model.OkKoEnum;
 import org.govway.catalogo.servlets.model.PageMetadata;
+import org.govway.catalogo.servlets.model.PagedModelItemRateLimitingFruitore;
+import org.govway.catalogo.servlets.model.RateLimitingServizio;
 import org.govway.catalogo.servlets.model.PagedModelAllegato;
 import org.govway.catalogo.servlets.model.PagedModelComponente;
 import org.govway.catalogo.servlets.model.PagedModelItemComunicazione;
@@ -286,6 +291,12 @@ public class ServiziController implements ServiziApi {
 
 	@Autowired
 	private DisclaimerService disclaimerService;
+
+	@Autowired
+	private RateLimitingService rateLimitingService;
+
+	@Autowired
+	private RateLimitingAssembler rateLimitingAssembler;
 
 	private AbstractServizioAuthorization getServizioAuthorization(ServizioEntity entity) {
 		if(entity.is_package()) {
@@ -825,6 +836,68 @@ public class ServiziController implements ServiziApi {
 				return ResponseEntity.ok(model);
 			});
 
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	@Override
+	public ResponseEntity<RateLimitingServizio> getRateLimitingServizio(UUID idServizio) {
+		try {
+			return this.service.runTransaction( () -> {
+
+				this.logger.info("Invocazione in corso ...");
+				ServizioEntity entity = this.findOne(idServizio);
+				this.rateLimitingService.authorizeGestioneServizio(entity);
+
+				this.logger.debug("Autorizzazione completata con successo");
+
+				RateLimitingServizio model = this.rateLimitingAssembler.toRiepilogo(entity, this.rateLimitingService.getQuoteAssegnate(entity));
+
+				this.logger.info("Invocazione completata con successo");
+				return ResponseEntity.ok(model);
+			});
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	@Override
+	public ResponseEntity<PagedModelItemRateLimitingFruitore> listRateLimitingFruitoriServizio(UUID idServizio,
+			org.govway.catalogo.servlets.model.AmbienteEnum ambiente, Integer page, Integer size) {
+		try {
+			return this.service.runTransaction( () -> {
+
+				this.logger.info("Invocazione in corso ...");
+				ServizioEntity entity = this.findOne(idServizio);
+				this.rateLimitingService.authorizeGestioneServizio(entity);
+
+				this.logger.debug("Autorizzazione completata con successo");
+
+				org.govway.catalogo.core.orm.entity.AmbienteEnum ambienteEntity = org.govway.catalogo.core.orm.entity.AmbienteEnum.valueOf(ambiente.name());
+				Page<AdesioneEntity> adesioni = this.rateLimitingService.getAdesioniNonArchiviate(entity, page, size);
+
+				PagedModelItemRateLimitingFruitore list = new PagedModelItemRateLimitingFruitore();
+				list.setContent(adesioni.getContent().stream()
+						.map(a -> this.rateLimitingAssembler.toFruitore(a, this.rateLimitingService.getRateLimiting(a, ambienteEntity)))
+						.toList());
+				list.setPage(new PageMetadata().size((long)adesioni.getSize()).number((long)adesioni.getNumber()).totalElements(adesioni.getTotalElements()).totalPages((long)adesioni.getTotalPages()));
+
+				this.logger.info("Invocazione completata con successo");
+				return ResponseEntity.ok(list);
+			});
 		}
 		catch(RuntimeException e) {
 			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);

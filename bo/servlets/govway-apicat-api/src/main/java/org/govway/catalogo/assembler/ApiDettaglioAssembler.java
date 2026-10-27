@@ -38,6 +38,7 @@ import org.govway.catalogo.core.business.utils.OpenapiUtils;
 import org.govway.catalogo.core.business.utils.SwaggerUtils;
 import org.govway.catalogo.core.business.utils.WsdlUtils;
 import org.govway.catalogo.core.dao.repositories.ApiConfigUrlInvocazioneRepository;
+import org.govway.catalogo.core.orm.entity.AmbienteEnum;
 import org.govway.catalogo.core.orm.entity.ApiConfigEntity;
 import org.govway.catalogo.core.orm.entity.ApiConfigUrlInvocazioneEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
@@ -54,6 +55,7 @@ import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.services.ProfiloGovwayService;
+import org.govway.catalogo.services.RateLimitingService;
 import org.govway.catalogo.servlets.model.API;
 import org.govway.catalogo.servlets.model.APICreate;
 import org.govway.catalogo.servlets.model.APIDatiAmbiente;
@@ -84,6 +86,7 @@ import org.govway.catalogo.servlets.model.DocumentoCreate;
 import org.govway.catalogo.servlets.model.IdentificativoApiUpdate;
 import org.govway.catalogo.servlets.model.ProprietaCustom;
 import org.govway.catalogo.servlets.model.ProtocolloEnum;
+import org.govway.catalogo.servlets.model.RateLimiting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -118,6 +121,12 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 
 	@Autowired
 	private ProfiloGovwayService profiloGovwayService;
+
+	@Autowired
+	private RateLimitingService rateLimitingService;
+
+	@Autowired
+	private RateLimitingAssembler rateLimitingAssembler;
 
 	/**
 	 * Se abilitata, consente le specifiche REST in formato Swagger 2.0 (deprecato). Default: false.
@@ -184,9 +193,9 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 	}
 
 	/**
-	 * Dati della specifica di un ambiente, con le URL di invocazione associate. La selezione e`
-	 * esposta solo nel dettaglio e non negli elenchi, per non inizializzare la collezione su
-	 * ogni riga: lista omessa quando vuota, cioe` quando vale la sola URL predefinita.
+	 * Dati della specifica di un ambiente, con le URL di invocazione associate e le quote di rate
+	 * limiting. Sono esposte solo nel dettaglio e non negli elenchi, per non inizializzare le
+	 * collezioni su ogni riga: liste omesse quando vuote (sola URL predefinita, nessun rate limiting).
 	 */
 	private APIDatiAmbiente toConfigurazione(ApiConfigEntity config, boolean collaudo) {
 		APIDatiAmbiente datiAmbiente = this.apiEngineAssembler.toConfigurazione(config);
@@ -194,6 +203,11 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		List<String> urlInvocazione = getUrlInvocazione(config, collaudo);
 		if(!urlInvocazione.isEmpty()) {
 			datiAmbiente.setUrlInvocazione(urlInvocazione);
+		}
+
+		List<RateLimiting> rateLimiting = this.rateLimitingAssembler.toModel(config);
+		if(!rateLimiting.isEmpty()) {
+			datiAmbiente.setRateLimiting(rateLimiting);
 		}
 
 		return datiAmbiente;
@@ -401,6 +415,9 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 			setUrlInvocazione(src.getUrlInvocazione(), entity, collaudo);
 		}
 
+		// Quote assenti: restano invariate; lista vuota: nessun rate limiting
+		this.rateLimitingService.setRateLimiting(src.getRateLimiting(), entity, api, toAmbiente(collaudo));
+
 		if(src.getDatiErogazione()!=null) {
 			entity.setNomeGateway(src.getDatiErogazione().getNomeGateway());
 			entity.setVersioneGateway(src.getDatiErogazione().getVersioneGateway());
@@ -456,6 +473,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		}
 
 		this.profiloGovwayService.checkProfili(entity);
+		this.rateLimitingService.checkRateLimiting(entity);
 
 		this.servizioDettaglioAssembler.setUltimaModifica(entity.getServizio());
 		this.servizioService.save(entity.getServizio());
@@ -517,6 +535,8 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		checkSpecifica(src.getSpecifica());
 
 		setUrlInvocazione(src.getUrlInvocazione(), entity, collaudo);
+
+		this.rateLimitingService.setRateLimiting(src.getRateLimiting(), entity, api, toAmbiente(collaudo));
 
 		if(src.getSpecifica()!=null) {
 			entity.setSpecifica(this.allegatoAssembler.toEntity(src.getSpecifica(), this.apiEngineAssembler.getUtenteSessione()));
@@ -599,6 +619,10 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 				throw new BadRequestException(ErrorCode.API_400_URL_DUPLICATE, Map.of("identificativo", identificativo));
 			}
 		}
+	}
+
+	private AmbienteEnum toAmbiente(boolean collaudo) {
+		return collaudo ? AmbienteEnum.COLLAUDO : AmbienteEnum.PRODUZIONE;
 	}
 
 	/** URL censite in configurazione per l'ambiente indicato, lista vuota se la sezione manca. */
