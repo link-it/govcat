@@ -2999,22 +2999,40 @@ public class APITest {
 
     @Test
     void testRateLimitingApiPdndSoloGiornaliero() {
+    	// Un profilo e` PDND se ha pdnd_type in configurazione, come per il menu` PDND della console
+    	ConfigurazioneProfilo profiloPdnd = getProfiloConfigurazione("PDND");
+    	try {
+    		profiloPdnd.setPdndType("eservice");
+
+    		Dominio dominio = this.getDominio();
+    		Servizio servizio = creaServizio("servizio_rate_limiting", dominio.getIdDominio(), false, null);
+
+    		BadRequestException e = assertThrows(BadRequestException.class, () -> apiController.createApi(getApiCreateRateLimiting("API_PDND", servizio, "PDND",
+    				List.of(rateLimiting(20, RateLimitingPeriodoEnum.ORA)))));
+    		assertEquals(ErrorCode.API_400_RATE_LIMITING_PDND, e.getErrorCode());
+
+    		assertEquals(HttpStatus.OK, apiController.createApi(getApiCreateRateLimiting("API_PDND", servizio, "PDND",
+    				List.of(rateLimiting(300, RateLimitingPeriodoEnum.GIORNO)))).getStatusCode());
+
+    		// La verifica e` sullo stato finale: passare a un profilo PDND con quote non giornaliere e` rifiutato
+    		UUID idApi = apiController.createApi(getApiCreateRateLimiting("API_MODI", servizio, "MODI_P1",
+    				List.of(rateLimiting(20, RateLimitingPeriodoEnum.ORA)))).getBody().getIdApi();
+    		entityManager.flush();
+    		entityManager.clear();
+    		e = assertThrows(BadRequestException.class, () -> apiController.updateApi(idApi, getApiUpdateProfilo("PDND", "risorsa1"), null));
+    		assertEquals(ErrorCode.API_400_RATE_LIMITING_PDND, e.getErrorCode());
+    	} finally {
+    		profiloPdnd.setPdndType(null);
+    	}
+    }
+
+    @Test
+    void testRateLimitingApiProfiloSenzaPdndTypeNonVincolato() {
+    	// Senza pdnd_type il profilo non e` PDND, anche se l'auth_type e` pdnd: periodo libero
     	Dominio dominio = this.getDominio();
     	Servizio servizio = creaServizio("servizio_rate_limiting", dominio.getIdDominio(), false, null);
 
-    	BadRequestException e = assertThrows(BadRequestException.class, () -> apiController.createApi(getApiCreateRateLimiting("API_PDND", servizio, "PDND",
-    			List.of(rateLimiting(20, RateLimitingPeriodoEnum.ORA)))));
-    	assertEquals(ErrorCode.API_400_RATE_LIMITING_PDND, e.getErrorCode());
-
     	assertEquals(HttpStatus.OK, apiController.createApi(getApiCreateRateLimiting("API_PDND", servizio, "PDND",
-    			List.of(rateLimiting(300, RateLimitingPeriodoEnum.GIORNO)))).getStatusCode());
-
-    	// La verifica e` sullo stato finale: passare a un profilo PDND con quote non giornaliere e` rifiutato
-    	UUID idApi = apiController.createApi(getApiCreateRateLimiting("API_MODI", servizio, "MODI_P1",
-    			List.of(rateLimiting(20, RateLimitingPeriodoEnum.ORA)))).getBody().getIdApi();
-    	entityManager.flush();
-    	entityManager.clear();
-    	e = assertThrows(BadRequestException.class, () -> apiController.updateApi(idApi, getApiUpdateProfilo("PDND", "risorsa1"), null));
-    	assertEquals(ErrorCode.API_400_RATE_LIMITING_PDND, e.getErrorCode());
+    			List.of(rateLimiting(20, RateLimitingPeriodoEnum.ORA)))).getStatusCode());
     }
 }

@@ -5,7 +5,8 @@
 	  con proprietà custom. Per ogni API erogata dal soggetto del dominio e per ogni ambiente
 	  il servizio dichiara le quote complessive (`rate_limiting` della configurazione di
 	  collaudo e di produzione dell'API), al più una per periodo (`minuto`, `ora`, `giorno`);
-	  per le API con un profilo PDND è ammesso solo il periodo `giorno`. Il fruitore indica
+	  per le API con un profilo PDND (profilo con `pdnd_type` in configurazione, lo stesso
+	  criterio del menù PDND della console) è ammesso solo il periodo `giorno`. Il fruitore indica
 	  la propria quota per API e per uno dei periodi dichiarati dal servizio, con le nuove API
 	  `GET` e `PUT /adesioni/{id_adesione}/collaudo/rate-limiting` e
 	  `/adesioni/{id_adesione}/produzione/rate-limiting`. L'aderente modifica la quota secondo

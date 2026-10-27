@@ -6345,7 +6345,7 @@ components:
           items:
             $ref: "#/components/schemas/String255"
         rate_limiting:
-          description: "Quote di rate limiting complessive dichiarate dal servizio per l'ambiente, al piu` una per periodo. Previste solo per le API erogate dal soggetto del dominio; per le API con un profilo PDND e` ammesso solo il periodo giorno. Esposte solo nel dettaglio dell'API."
+          description: "Quote di rate limiting complessive dichiarate dal servizio per l'ambiente, al piu` una per periodo. Previste solo per le API erogate dal soggetto del dominio; per le API con un profilo PDND (profilo con pdnd_type in configurazione) e` ammesso solo il periodo giorno. Esposte solo nel dettaglio dell'API."
           type: array
           items:
             $ref: "#/components/schemas/RateLimiting"
@@ -6366,7 +6366,7 @@ components:
           items:
             $ref: "#/components/schemas/String255"
         rate_limiting:
-          description: "Quote di rate limiting complessive dichiarate dal servizio per l'ambiente, al piu` una per periodo. Previste solo per le API erogate dal soggetto del dominio; per le API con un profilo PDND e` ammesso solo il periodo giorno."
+          description: "Quote di rate limiting complessive dichiarate dal servizio per l'ambiente, al piu` una per periodo. Previste solo per le API erogate dal soggetto del dominio; per le API con un profilo PDND (profilo con pdnd_type in configurazione) e` ammesso solo il periodo giorno."
           type: array
           items:
             $ref: "#/components/schemas/RateLimiting"
@@ -6385,7 +6385,7 @@ components:
           items:
             $ref: "#/components/schemas/String255"
         rate_limiting:
-          description: "Quote di rate limiting complessive dichiarate dal servizio per l'ambiente, al piu` una per periodo. Lista assente: quote invariate; lista vuota: nessun rate limiting. Non si puo` rimuovere il periodo di una quota finche' ci sono adesioni non archiviate con una quota assegnata per quel periodo. Previste solo per le API erogate dal soggetto del dominio; per le API con un profilo PDND e` ammesso solo il periodo giorno."
+          description: "Quote di rate limiting complessive dichiarate dal servizio per l'ambiente, al piu` una per periodo. Lista assente: quote invariate; lista vuota: nessun rate limiting. Non si puo` rimuovere il periodo di una quota finche' ci sono adesioni non archiviate con una quota assegnata per quel periodo. Previste solo per le API erogate dal soggetto del dominio; per le API con un profilo PDND (profilo con pdnd_type in configurazione) e` ammesso solo il periodo giorno."
           type: array
           items:
             $ref: "#/components/schemas/RateLimiting"

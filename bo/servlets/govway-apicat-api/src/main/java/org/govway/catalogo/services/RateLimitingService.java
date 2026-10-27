@@ -47,7 +47,6 @@ import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotAuthorizedException;
-import org.govway.catalogo.servlets.model.AuthTypeEnum;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
 import org.govway.catalogo.servlets.model.ConfigurazioneProfilo;
@@ -64,7 +63,8 @@ import org.springframework.stereotype.Service;
  * Rate limiting di API e adesioni.
  *
  * Il servizio dichiara, per ogni API erogata dal soggetto del dominio e per ogni ambiente, le quote
- * complessive, al piu` una per periodo; per le API con un profilo PDND il periodo e` solo giorno.
+ * complessive, al piu` una per periodo; per le API con un profilo PDND (pdnd_type valorizzato) il
+ * periodo e` solo giorno.
  * Il fruitore di un'adesione ha una quota per API, ambiente e uno dei periodi dichiarati dal
  * servizio. Che la somma delle quote dei fruitori superi la quota complessiva e` solo segnalato
  * nel riepilogo, mai bloccato; e` invece bloccata la rimozione di un periodo su cui ci sono quote
@@ -77,9 +77,6 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class RateLimitingService {
-
-	private static final Set<AuthTypeEnum> AUTH_TYPE_PDND = EnumSet.of(AuthTypeEnum.PDND, AuthTypeEnum.HTTPS_PDND,
-			AuthTypeEnum.SIGN_PDND, AuthTypeEnum.HTTPS_PDND_SIGN);
 
 	private static final Set<Ruolo> RUOLI_GESTIONE_SERVIZIO = EnumSet.of(Ruolo.GESTORE, Ruolo.REFERENTE_SUPERIORE,
 			Ruolo.REFERENTE, Ruolo.REFERENTE_TECNICO_SUPERIORE, Ruolo.REFERENTE_TECNICO);
@@ -195,7 +192,11 @@ public class RateLimitingService {
 		}
 	}
 
-	/** L'API ha almeno un profilo con autenticazione PDND: il suo rate limiting e` solo giornaliero. */
+	/**
+	 * L'API ha almeno un profilo PDND, cioe` con pdnd_type valorizzato in configurazione: il suo
+	 * rate limiting e` solo giornaliero. E` lo stesso criterio con cui la console abilita il menu`
+	 * PDND dell'API.
+	 */
 	public boolean isPdnd(ApiEntity api) {
 		Set<String> profili = new HashSet<>();
 		for(AuthTypeEntity at: api.getAuthType()) {
@@ -203,8 +204,8 @@ public class RateLimitingService {
 		}
 		return this.configurazione.getServizio().getApi().getProfili().stream()
 				.filter(p -> profili.contains(p.getCodiceInterno()))
-				.map(ConfigurazioneProfilo::getAuthType)
-				.anyMatch(AUTH_TYPE_PDND::contains);
+				.map(ConfigurazioneProfilo::getPdndType)
+				.anyMatch(t -> t != null && !t.isBlank());
 	}
 
 	// ==================== ADESIONI ====================
