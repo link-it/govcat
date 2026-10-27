@@ -113,6 +113,11 @@ export interface ClientDialogInput {
    */
   authTypeEditable?: boolean;
   /**
+   * Solo per il contesto pagina `client-details`: `auth_type` e` sempre
+   * visibile, anche in sola lettura o quando non e` modificabile.
+   */
+  authTypeVisible?: boolean;
+  /**
    * Solo per il contesto pagina `client-details`: quando `true` il client
    * e' in `stato === 'nuovo'` (ha inviato CN/CSR ma il gestore non ha
    * ancora emesso/caricato il certificato generato). In questo caso
@@ -286,6 +291,7 @@ export function computeFormConfig(input: ClientDialogInput): FormConfig {
   const isNew = scenario.kind === 'new';
   const isEdit = scenario.kind === 'edit';
   const authTypeEditable = !!input.authTypeEditable;
+  const authTypeVisible = !!input.authTypeVisible || authTypeEditable;
   const statoNuovo = !!input.statoNuovo;
 
   const editableScenario = !isReadonly && (isNew || isEdit);
@@ -309,13 +315,13 @@ export function computeFormConfig(input: ClientDialogInput): FormConfig {
   const fields: FieldsConfig = {
     // il selettore credenziali (toggle "Nuovo / Esistente") e' un
     // concetto della dialog del wizard: si nasconde in `edit`, in
-    // `readonly` e in contesto pagina (`authTypeEditable` = true).
-    credenziali: field(!isEdit && !isReadonly && !authTypeEditable, true, false),
+    // `readonly` e in contesto pagina (`authTypeVisible` = true).
+    credenziali: field(!isEdit && !isReadonly && !authTypeVisible, true, false),
 
-    // auth_type: visibile/editable solo nel contesto pagina client-details
-    // (dialog adesione lo riceve fissato dal parent). Obbligatorio se
-    // editable, a prescindere dallo scenario.
-    auth_type: field(authTypeEditable, editableScenario, authTypeEditable),
+    // auth_type: visibile solo nel contesto pagina client-details (dialog
+    // adesione lo riceve fissato dal parent), modificabile solo se
+    // `authTypeEditable`. Obbligatorio se modificabile.
+    auth_type: field(authTypeVisible, editableScenario && authTypeEditable, authTypeEditable),
 
     // nome: editabile sia in `new` sia in `edit`; obbligatorio solo
     // in `new` (in `edit` arriva gia` valorizzato dal client esistente).

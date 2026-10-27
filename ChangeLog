@@ -9,6 +9,10 @@
 	  che il formato 16:9 del catalogo ritaglia (nuovo `lnk-crop-preview`), con placeholder 16:9 e
 	  un'indicazione sul formato; nella vetrina del servizio il logo passa da quadrato a 16:9.
 
+	Issue #96 - Client: il tipo di autenticazione torna visibile nel dettaglio (in sola lettura e in
+	  modifica) ed e' modificabile finche' il client e' in stato "nuovo"; da "configurato" resta
+	  bloccato. In modifica viene inviato il tipo scelto nel form.
+
 2026-10-23  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

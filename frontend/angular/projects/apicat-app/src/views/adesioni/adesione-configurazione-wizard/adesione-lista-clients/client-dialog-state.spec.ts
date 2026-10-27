@@ -410,6 +410,20 @@ describe('client-dialog-state: authTypeEditable (contesto pagina)', () => {
     expect(cfgEdit.fields.credenziali.visible).toBe(false);
   });
 
+  it('con authTypeVisible=true e authTypeEditable=false il campo e\' visibile ma non modificabile in edit', () => {
+    const cfg = computeFormConfig(makeInput({ scenario: { kind: 'edit' }, authTypeVisible: true, authTypeEditable: false }));
+    expect(cfg.fields.auth_type.visible).toBe(true);
+    expect(cfg.fields.auth_type.enabled).toBe(false);
+    expect(cfg.fields.auth_type.required).toBe(false);
+    expect(cfg.fields.credenziali.visible).toBe(false);
+  });
+
+  it('con authTypeVisible=true e authTypeEditable=true il campo e\' modificabile anche in edit', () => {
+    const cfg = computeFormConfig(makeInput({ scenario: { kind: 'edit' }, authTypeVisible: true, authTypeEditable: true }));
+    expect(cfg.fields.auth_type.enabled).toBe(true);
+    expect(cfg.fields.auth_type.required).toBe(true);
+  });
+
   it('con authTypeEditable=false (default dialog) il toggle credenziali e\' visibile in new', () => {
     const cfg = computeFormConfig(makeInput({ scenario: { kind: 'new' } }));
     expect(cfg.fields.credenziali.visible).toBe(true);

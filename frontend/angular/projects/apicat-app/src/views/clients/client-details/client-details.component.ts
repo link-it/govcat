@@ -563,6 +563,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
         controls.stato.setValidators(Validators.required);
         controls.stato.updateValueAndValidity();
       } else {
+        controls.auth_type.setValidators(Validators.required);
         controls.auth_type.disable();
         controls.auth_type.updateValueAndValidity();
         controls.stato.disable();
@@ -703,7 +704,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
     if (!this._isNew) {
       _payload.id_soggetto = _body.id_soggetto;
-      auth_type = this._auth_type
+      auth_type = this._formGroup.getRawValue().auth_type || this._auth_type;
     } else {
       auth_type = this._formGroup.controls.auth_type.value;
       _payload.id_soggetto = this._formGroup.getRawValue().id_soggetto;
@@ -1577,7 +1578,9 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
         showIpFruizione: !!configAuthType?.indirizzi_ip,
         showRateLimiting: !!configAuthType?.rate_limiting,
         showFinalita: !!configAuthType?.finalita,
-        authTypeEditable: this._isNew,
+        // Tipo sempre visibile; modificabile in creazione o finche' il client e` "nuovo".
+        authTypeVisible: true,
+        authTypeEditable: this._isNew || (this._isEdit && this.client?.stato === 'nuovo'),
         statoNuovo: stato === 'nuovo',
     };
   }
@@ -1632,6 +1635,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
       if (enabled && ctrl.disabled) ctrl.enable({ emitEvent: false });
       else if (!enabled && ctrl.enabled) ctrl.disable({ emitEvent: false });
     };
+    apply('auth_type', f.auth_type.enabled);
     apply('tipo_certificato', f.tipo_certificato.enabled);
     apply('tipo_certificato_firma', f.tipo_certificato_firma.enabled);
     apply('nome', f.nome.enabled);
