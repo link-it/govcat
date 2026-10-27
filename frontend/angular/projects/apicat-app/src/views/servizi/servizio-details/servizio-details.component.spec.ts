@@ -1367,13 +1367,29 @@ describe('ServizioDetailsComponent', () => {
   // getDomini
   // ---------------------------------------------------------------------------
   describe('getDomini', () => {
-    it('should call getList with q param when term provided', () => {
-      mockApiService.getList.mockReturnValue(of({ content: [{ id_dominio: 1 }] }));
+    it('should call getList with q and page params when term provided', () => {
+      mockApiService.getList.mockReturnValue(of({ content: [{ id_dominio: 1 }], page: { totalPages: 3 } }));
       mockAuthenticationService.isGestore.mockReturnValue(true);
-      component.getDomini('test').subscribe(result => {
-        expect(result).toEqual([{ id_dominio: 1 }]);
+      component.getDomini('test', 2).subscribe(result => {
+        expect(result).toEqual({ items: [{ id_dominio: 1 }], totalPages: 3 });
       });
-      expect(mockApiService.getList).toHaveBeenCalledWith('domini', expect.objectContaining({ params: { q: 'test', size: 1000 } }));
+      expect(mockApiService.getList).toHaveBeenCalledWith('domini', expect.objectContaining({ params: { q: 'test', page: 2 } }));
+    });
+
+    it('should load the next page of domains on scroll to end', async () => {
+      vi.useFakeTimers();
+      mockAuthenticationService.isGestore.mockReturnValue(true);
+      mockApiService.getList.mockImplementation((_m: string, opts: any) => of({
+        content: [{ id_dominio: `d${opts.params.page}` }], page: { totalPages: 2 }
+      }));
+      component._initDominiSelect([]);
+      let _items: any[] = [];
+      component.dominiTypeahead.items$.subscribe((items: any[]) => _items = items);
+      vi.advanceTimersByTime(300);
+      component.dominiTypeahead.loadMore();
+      expect(_items.map((d: any) => d.id_dominio)).toEqual(['d0', 'd1']);
+      expect(component.dominiTypeahead.hasMore).toBe(false);
+      vi.useRealTimers();
     });
 
     it('should add deprecato param for non-gestore', () => {

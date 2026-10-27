@@ -1,3 +1,10 @@
+2026-10-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #145 - Select dei domini paginate: nella creazione e modifica del servizio (wizard e
+	  form classica) e nei filtri di servizi, adesioni e dashboard, scorrendo in fondo si caricano
+	  le pagine successive (helper `PagedTypeahead`); prima si vedevano solo i primi 20 domini.
+
 2026-10-23  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

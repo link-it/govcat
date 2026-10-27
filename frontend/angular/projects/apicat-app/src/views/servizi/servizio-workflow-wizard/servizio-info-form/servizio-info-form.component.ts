@@ -39,6 +39,7 @@ import { motivoSkipCollaudoBloccato } from '../../servizio-verifica-stato';
 
 import { concat, forkJoin, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
+import { PagedTypeahead, PaginaTypeahead, paginaDaRisposta } from '@app/lib/utils/paged-typeahead';
 
 /**
  * Form Informazioni Generali del servizio (view + edit) per la FASE 1 del
@@ -119,9 +120,8 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
     hasApi: boolean = false;
     hasComponenti: boolean = false;
 
-    domini$!: Observable<any[]>;
-    dominiInput$ = new Subject<string>();
-    dominiLoading: boolean = false;
+    /** Domini per la select: ricerca paginata con caricamento allo scroll. */
+    dominiTypeahead: PagedTypeahead<any> = this._nuoviDomini([]);
     selectedDominio: any;
 
     organizzazioniInterne$!: Observable<any[]>;
@@ -441,12 +441,13 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
     // Select data-loading (domini / organizzazioni / soggetti)
     // -------------------------------------------------------------------------
 
-    getDomini(term: string | null = null): Observable<any> {
-        const _options: any = term ? { params: { q: term } } : { params: {} };
-        if (!this.authenticationService.isGestore()) { _options.params.deprecato = false; }
-        return this.apiService.getList('domini', _options).pipe(
-            map((resp) => resp.Error ? [] : resp.content.map((item: any) => item))
-        );
+    getDomini(term: string | null = null, page: number = 0): Observable<PaginaTypeahead<any>> {
+        const _options: any = { params: { page } };
+        if (term) { _options.params.q = term; }
+        if (!this.authenticationService.isGestore()) {
+            _options.params.deprecato = false;
+        }
+        return this.apiService.getList('domini', _options).pipe(map((resp: any) => paginaDaRisposta(resp)));
     }
 
     getOrganizzazioni(term: string | null): Observable<any> {
@@ -495,13 +496,13 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
     }
 
     _initDominiSelect(defaultValue: any[] = []) {
-        this.domini$ = concat(
-            of(defaultValue),
-            this.dominiInput$.pipe(
-                startWith(''), distinctUntilChanged(), debounceTime(300),
-                tap(() => this.dominiLoading = true),
-                switchMap((term: any) => this.getDomini(term).pipe(catchError(() => of([])), tap(() => this.dominiLoading = false)))
-            )
+        this.dominiTypeahead = this._nuoviDomini(defaultValue);
+    }
+
+    private _nuoviDomini(iniziali: any[]): PagedTypeahead<any> {
+        return new PagedTypeahead<any>(
+            (term: string, page: number) => this.getDomini(term, page),
+            { iniziali: iniziali.filter(Boolean), chiave: (d: any) => d?.id_dominio }
         );
     }
 

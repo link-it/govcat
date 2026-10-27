@@ -390,8 +390,8 @@
                       @if (_isEdit) {
                         <div class="">
                           <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_dominio')" [errorId]="'id_dominio-error'"
-                            [items]="(domini$ | async) || []"
-                            [typeahead]="dominiInput$"
+                            [items]="(dominiTypeahead.items$ | async) || []"
+                            [typeahead]="dominiTypeahead.input$" [loading]="dominiTypeahead.loading" (scrollToEnd)="dominiTypeahead.loadMore()"
                             [minTermLength]="minLengthTerm"
                             [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
                             [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"

@@ -47,6 +47,7 @@ import { MarkdownModule } from 'ngx-markdown';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 import { motivoSkipCollaudoBloccato } from '../servizio-verifica-stato';
 import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
+import { PagedTypeahead, PaginaTypeahead, paginaDaRisposta } from '@app/lib/utils/paged-typeahead';
 
 /**
  * Step del wizard di creazione (compilazione client-side). A differenza
@@ -191,9 +192,8 @@ export class ServizioCreateWizardComponent implements OnInit, OnDestroy {
     ];
 
     // Select con typeahead (stessa logica del form classico)
-    domini$!: Observable<any[]>;
-    dominiInput$ = new Subject<string>();
-    dominiLoading: boolean = false;
+    /** Domini per la select: ricerca paginata con caricamento allo scroll. */
+    dominiTypeahead: PagedTypeahead<any> = this._nuoviDomini([]);
     selectedDominio: any;
     /** Dominio di default (dominio unico, senza selezione nel form). */
     _dominioDefault: any = null;
@@ -821,17 +821,13 @@ export class ServizioCreateWizardComponent implements OnInit, OnDestroy {
     // Select data-loading (identico al form classico)
     // -------------------------------------------------------------------------
 
-    getDomini(term: string | null = null): Observable<any> {
-        const _options: any = term ? { params: { q: term } } : { params: {} };
+    getDomini(term: string | null = null, page: number = 0): Observable<PaginaTypeahead<any>> {
+        const _options: any = { params: { page } };
+        if (term) { _options.params.q = term; }
         if (!this.authenticationService.isGestore()) {
             _options.params.deprecato = false;
         }
-        return this.apiService.getList('domini', _options).pipe(
-            map((resp) => {
-                if (resp.Error) { throwError(() => resp.Error); return []; }
-                return resp.content.map((item: any) => item);
-            })
-        );
+        return this.apiService.getList('domini', _options).pipe(map((resp: any) => paginaDaRisposta(resp)));
     }
 
     getUtenti(term: string | null = null, role: string | null = null, stato: string = 'abilitato', ruoliOrganizzazione: string[] = []): Observable<any> {
@@ -896,18 +892,13 @@ export class ServizioCreateWizardComponent implements OnInit, OnDestroy {
     }
 
     _initDominiSelect(defaultValue: any[] = []) {
-        this.domini$ = concat(
-            of(defaultValue),
-            this.dominiInput$.pipe(
-                startWith(''),
-                distinctUntilChanged(),
-                debounceTime(300),
-                tap(() => this.dominiLoading = true),
-                switchMap((term: any) => this.getDomini(term).pipe(
-                    catchError(() => of([])),
-                    tap(() => this.dominiLoading = false)
-                ))
-            )
+        this.dominiTypeahead = this._nuoviDomini(defaultValue);
+    }
+
+    private _nuoviDomini(iniziali: any[]): PagedTypeahead<any> {
+        return new PagedTypeahead<any>(
+            (term: string, page: number) => this.getDomini(term, page),
+            { iniziali: iniziali.filter(Boolean), chiave: (d: any) => d?.id_dominio }
         );
     }
 

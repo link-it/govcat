@@ -2635,9 +2635,29 @@ describe('ServiziComponent', () => {
   // ===== _initDominiSelect =====
 
   describe('_initDominiSelect', () => {
-    it('should initialize domini$ observable', () => {
+    it('should search the domains of the filter only from the minimum length and load the next pages', () => {
+      vi.useFakeTimers();
+      mockApiService.getList.mockImplementation((_m: string, opts: any) => of({
+        content: [{ id_dominio: `d${opts.params.page}` }], page: { totalPages: 2 }
+      }));
       component._initDominiSelect([]);
-      expect(component.domini$).toBeDefined();
+      let _items: any[] = [];
+      const _sub = component.dominiTypeahead.items$.subscribe((items: any[]) => _items = items);
+      vi.advanceTimersByTime(500);
+      expect(mockApiService.getList).not.toHaveBeenCalledWith('domini', expect.anything());
+      component.dominiTypeahead.input$.next('regione');
+      vi.advanceTimersByTime(500);
+      component.dominiTypeahead.loadMore();
+      expect(mockApiService.getList).toHaveBeenCalledWith('domini', { params: { q: 'regione', page: '1' } });
+      expect(_items.map((d: any) => d.id_dominio)).toEqual(['d0', 'd1']);
+      _sub.unsubscribe();
+      mockApiService.getList.mockReturnValue(of({ content: [], page: { totalElements: 0 }, _links: {} }));
+      vi.useRealTimers();
+    });
+
+    it('should initialize the paged domains typeahead', () => {
+      component._initDominiSelect([]);
+      expect(component.dominiTypeahead.items$).toBeDefined();
     });
   });
 
