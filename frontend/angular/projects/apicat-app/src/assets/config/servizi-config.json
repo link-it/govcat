@@ -9,7 +9,7 @@
     "fillBox": true,
     "showMasonry": false,
 
-    "heroImageObjectFit": "contain",
+    "heroImageObjectFit": "cover",
     "heroImageObjectPosition": "center",
 
     "apiMaxTags": 3,

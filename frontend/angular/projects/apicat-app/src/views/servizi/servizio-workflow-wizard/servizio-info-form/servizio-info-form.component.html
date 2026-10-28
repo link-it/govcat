@@ -64,11 +64,12 @@
           <div class="col-12">
             <div class="form-group logo">
               @if (isEdit) {
-                <app-photo-base64 [boxWidth]="'200px'" [boxHeight]="'auto'" [maxSize]="_maxImageSize" [placeHolder]="_imagePlaceHolder"
+                <app-photo-base64 [boxWidth]="'200px'" [boxHeight]="'auto'" [cropRatio]="_logoRatio" [maxSize]="_maxImageSize" [placeHolder]="_imagePlaceHolder"
                   [imageSaved]="{ path: data | mapper:_getLogoMapper } | httpImgSrc" [isImageSaved]="data?.immagine"
                   [removeLabel]="'APP.BUTTON.Remove' | translate" (imageLoaded)="_onImageLoaded($event)"></app-photo-base64>
+                <p class="form-text text-muted mb-0">{{ 'APP.LABEL.LogoFormatHintServizio' | translate }}</p>
               } @else {
-                <img class="img-space" alt="Logo servizio" style="width: 200px; height: auto;" [src]="{ path: data | mapper:_getLogoMapper } | httpImgSrc" />
+                <lnk-crop-preview class="img-space" style="width: 200px;" alt="Logo servizio" [ratio]="_logoRatio" [showCrop]="!!data?.immagine" [src]="{ path: data | mapper:_getLogoMapper } | httpImgSrc"></lnk-crop-preview>
               }
             </div>
           </div>
@@ -132,7 +133,7 @@
             </label>
             @if (isEdit) {
               <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_dominio')"
-                [items]="(domini$ | async) || []" [typeahead]="dominiInput$" [minTermLength]="minLengthTerm"
+                [items]="(dominiTypeahead.items$ | async) || []" [typeahead]="dominiTypeahead.input$" [loading]="dominiTypeahead.loading" (scrollToEnd)="dominiTypeahead.loadMore()" [minTermLength]="minLengthTerm"
                 [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate" [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
                 bindValue="id_dominio" labelForId="id_dominio" [editableSearchTerm]="true" formControlName="id_dominio"
                 disablePermission [isNew]="false" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="grant"

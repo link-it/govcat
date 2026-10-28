@@ -226,7 +226,7 @@
                           <div class="">
                             <app-photo-base64
                               [boxWidth]="'250px'"
-                              [boxHeight]="'auto'"
+                              [boxHeight]="'auto'" [cropRatio]="_logoRatio"
                               [maxSize]="_maxImageSize"
                               [placeHolder]="_imagePlaceHolder"
                               [imageSaved]="{ path: data | mapper:_getLogoMapper } | httpImgSrc"
@@ -234,11 +234,12 @@
                               [removeLabel]="'APP.BUTTON.Remove' | translate"
                               (imageLoaded)="_onImageLoaded($event)"
                             ></app-photo-base64>
+                            <p class="form-text text-muted mb-0">{{ 'APP.LABEL.LogoFormatHintServizio' | translate }}</p>
                           </div>
                         }
                         @if (!_isEdit) {
                           <div class="mt-2">
-                            <img class="img-space" alt="Logo servizio" style="width: 250px;height: auto;" [src]="{ path: data | mapper:_getLogoMapper } | httpImgSrc" />
+                            <lnk-crop-preview class="img-space" style="width: 250px;" alt="Logo servizio" [ratio]="_logoRatio" [showCrop]="!!data?.immagine" [src]="{ path: data | mapper:_getLogoMapper } | httpImgSrc"></lnk-crop-preview>
                           </div>
                         }
                       </div>
@@ -390,8 +391,8 @@
                       @if (_isEdit) {
                         <div class="">
                           <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_dominio')" [errorId]="'id_dominio-error'"
-                            [items]="(domini$ | async) || []"
-                            [typeahead]="dominiInput$"
+                            [items]="(dominiTypeahead.items$ | async) || []"
+                            [typeahead]="dominiTypeahead.input$" [loading]="dominiTypeahead.loading" (scrollToEnd)="dominiTypeahead.loadMore()"
                             [minTermLength]="minLengthTerm"
                             [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
                             [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"

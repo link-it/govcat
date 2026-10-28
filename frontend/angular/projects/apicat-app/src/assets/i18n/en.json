@@ -866,6 +866,8 @@
 		"LABEL": {
 			"AltriRuoli": "other roles",
 			"AncheRuolo": "Also {{ruolo}}",
+			"LogoFormatHintServizio": "In the catalogue and in the showcase the logo is shown in 16:9 format: the darkened parts of the preview are left out. Use a landscape image, for example 1280×720.",
+			"LogoFormatHint": "In the catalogue the logo is shown in 16:9 format: the darkened parts of the preview are left out. Use a landscape image, for example 1280×720.",
 			"ImpostatoDalDominio": "Set by the domain",
 			"SkipToContent": "Skip to content",
 			"UrlEsposizione": "Exposure URL",

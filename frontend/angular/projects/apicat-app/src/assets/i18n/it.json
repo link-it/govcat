@@ -866,6 +866,8 @@
 		"LABEL": {
 			"AltriRuoli": "altri ruoli",
 			"AncheRuolo": "Anche {{ruolo}}",
+			"LogoFormatHintServizio": "Nel catalogo e nella vetrina il logo è mostrato in formato 16:9: le parti scurite nell'anteprima restano fuori. Usa un'immagine orizzontale, ad esempio 1280×720.",
+			"LogoFormatHint": "Nel catalogo il logo è mostrato in formato 16:9: le parti scurite nell'anteprima restano fuori. Usa un'immagine orizzontale, ad esempio 1280×720.",
 			"ImpostatoDalDominio": "Impostato dal dominio",
 			"SkipToContent": "Salta al contenuto",
 			"UrlEsposizione": "Url di esposizione",

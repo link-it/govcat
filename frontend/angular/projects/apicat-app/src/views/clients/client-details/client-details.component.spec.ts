@@ -1660,17 +1660,41 @@ describe('ClientDetailsComponent', () => {
       expect(result.id_organizzazione).toBe('o1');
     });
 
-    it('should use _auth_type for existing client', () => {
+    it('should use the auth type of the form for an existing client', () => {
       component._isNew = false;
       component._auth_type = 'https';
+      component._formGroup.controls['auth_type'].setValue('oauth_authorization_code');
       component._formGroup.controls['ambiente'].setValue('produzione');
       const result = component._prepareDataToSend({
         nome: 'Test',
         stato: 'nuovo',
         id_soggetto: 's1'
       });
-      expect(result.dati_specifici.auth_type).toBe('https');
+      expect(result.dati_specifici.auth_type).toBe('oauth_authorization_code');
       expect(result.id_soggetto).toBe('s1');
+    });
+
+    it('should let the auth type be changed only while the client is new', () => {
+      component._isNew = false;
+      component._isEdit = true;
+      component.client = { stato: 'nuovo' } as any;
+      expect((component as any)._computeDialogInput().authTypeEditable).toBe(true);
+      expect((component as any)._computeDialogInput().authTypeVisible).toBe(true);
+      component.client = { stato: 'configurato' } as any;
+      expect((component as any)._computeDialogInput().authTypeEditable).toBe(false);
+      component._isEdit = false;
+      component.client = { stato: 'nuovo' } as any;
+      expect((component as any)._computeDialogInput().authTypeEditable).toBe(false);
+      expect((component as any)._computeDialogInput().authTypeVisible).toBe(true);
+    });
+
+    it('should fall back to the saved auth type when the form has none', () => {
+      component._isNew = false;
+      component._auth_type = 'https';
+      component._formGroup.controls['auth_type'].setValue(null);
+      component._formGroup.controls['ambiente'].setValue('produzione');
+      const result = component._prepareDataToSend({ nome: 'Test', stato: 'nuovo', id_soggetto: 's1' });
+      expect(result.dati_specifici.auth_type).toBe('https');
     });
 
     it('should include rate_limiting when _show_erogazione_rate_limiting and quota present', () => {

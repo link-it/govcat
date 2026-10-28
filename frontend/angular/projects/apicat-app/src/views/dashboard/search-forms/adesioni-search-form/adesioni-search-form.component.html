@@ -73,9 +73,11 @@
                 </div>
                 <div class="col-sm-10">
                   <ng-select class="" (click)="onSelectedSearchDropdwon($event)"
-                    [items]="(domini$ | async) || []"
+                    [items]="(dominiTypeahead.items$ | async) || []"
 
-                    [typeahead]="dominiInput$"
+                    [typeahead]="dominiTypeahead.input$"
+                    [loading]="dominiTypeahead.loading"
+                    (scrollToEnd)="dominiTypeahead.loadMore()"
                     [minTermLength]="minLengthTerm"
                     [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
                     [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"

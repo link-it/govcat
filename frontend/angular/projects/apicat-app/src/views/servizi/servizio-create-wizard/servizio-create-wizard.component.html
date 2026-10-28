@@ -128,7 +128,7 @@
                 <div class="form-group logo">
                   <app-photo-base64
                     [boxWidth]="'250px'"
-                    [boxHeight]="'auto'"
+                    [boxHeight]="'auto'" [cropRatio]="_logoRatio"
                     [maxSize]="_maxImageSize"
                     [placeHolder]="_imagePlaceHolder"
                     [imageSaved]="_immagineDataUrl"
@@ -136,6 +136,7 @@
                     [removeLabel]="'APP.BUTTON.Remove' | translate"
                     (imageLoaded)="_onImageLoaded($event)"
                   ></app-photo-base64>
+                  <p class="form-text text-muted mb-0">{{ 'APP.LABEL.LogoFormatHintServizio' | translate }}</p>
                 </div>
               </div>
             </div>
@@ -186,8 +187,8 @@
                   <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_dominio'"></span>
                 </label>
                 <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_dominio')" [errorId]="'id_dominio-error'"
-                  [items]="(domini$ | async) || []"
-                  [typeahead]="dominiInput$"
+                  [items]="(dominiTypeahead.items$ | async) || []"
+                  [typeahead]="dominiTypeahead.input$" [loading]="dominiTypeahead.loading" (scrollToEnd)="dominiTypeahead.loadMore()"
                   [minTermLength]="minLengthTerm"
                   [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
                   [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"

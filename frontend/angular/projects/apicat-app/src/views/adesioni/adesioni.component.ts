@@ -48,6 +48,7 @@ import { Page } from '../../models/page';
 
 import { Servizio } from '../servizi/servizio-details/servizio';
 import { ServiceBreadcrumbsData } from '../servizi/route-resolver/service-breadcrumbs.resolver';
+import { PagedTypeahead, PaginaTypeahead, paginaDaRisposta } from '@app/lib/utils/paged-typeahead';
 
 declare const saveAs: any;
 
@@ -214,9 +215,8 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   clientsInput$ = new Subject<string>();
   clientsLoading: boolean = false;
   
-  domini$!: Observable<any[]>;
-  dominiInput$ = new Subject<string>();
-  dominiLoading: boolean = false;
+  /** Domini per il filtro: ricerca paginata con caricamento allo scroll. */
+  dominiTypeahead: PagedTypeahead<any> = this._nuoviDomini([]);
   selectedDominio: any;
 
   generalConfig: any = Tools.Configurazione || null;
@@ -537,24 +537,18 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   _organizzazioneSelected: any = null;
 
   _initDominiSelect(defaultValue: any[] = []) {
-    this.domini$ = concat(
-      of(defaultValue),
-      this.dominiInput$.pipe(
-        filter(res => {
-          return res !== null && res.length >= this.minLengthTerm
-        }),
-        // startWith(''),
-        distinctUntilChanged(),
-        debounceTime(500),
-        tap(() => this.dominiLoading = true),
-        switchMap((term: any) => {
-          return this.getData('domini', term).pipe(
-            catchError(() => of([])), // empty list on error
-            tap(() => this.dominiLoading = false)
-          )
-        })
-      )
+    this.dominiTypeahead = this._nuoviDomini(defaultValue);
+  }
+
+  private _nuoviDomini(iniziali: any[]): PagedTypeahead<any> {
+    return new PagedTypeahead<any>(
+      (term: string, page: number) => this._cercaDomini(term, page),
+      { iniziali: iniziali.filter(Boolean), chiave: (d: any) => d?.id_dominio, debounce: 500, minTermLength: this.minLengthTerm ?? 1 }
     );
+  }
+
+  private _cercaDomini(term: string, page: number): Observable<PaginaTypeahead<any>> {
+    return this.apiService.getList('domini', { params: { q: term, page: `${page}` } }).pipe(map((resp: any) => paginaDaRisposta(resp)));
   }
 
   getData(model: string, term: any = null, params: any = {}, sort: string = 'id', sort_direction: string = 'desc'): Observable<any> {

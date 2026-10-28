@@ -54,6 +54,7 @@ import { ServiziGroupListCardComponent } from './components/servizi-group-list-c
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.directive';
 import * as _ from 'lodash';
+import { PagedTypeahead, PaginaTypeahead, paginaDaRisposta } from '@app/lib/utils/paged-typeahead';
 declare const saveAs: any;
 
 @Component({
@@ -278,9 +279,8 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
     profili: any[] = [];
 
-    domini$!: Observable<any[]>;
-    dominiInput$ = new Subject<string>();
-    dominiLoading: boolean = false;
+    /** Domini per il filtro: ricerca paginata con caricamento allo scroll. */
+    dominiTypeahead: PagedTypeahead<any> = this._nuoviDomini([]);
     selectedDominio: any;
 
     organizzazioniErogatore$!: Observable<any[]>;
@@ -1293,24 +1293,18 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     }
 
     _initDominiSelect(defaultValue: any[] = []) {
-        this.domini$ = concat(
-            of(defaultValue),
-            this.dominiInput$.pipe(
-                filter(res => {
-                    return res !== null && res.length >= this.minLengthTerm
-                }),
-                // startWith(''),
-                distinctUntilChanged(),
-                debounceTime(500),
-                tap(() => this.dominiLoading = true),
-                switchMap((term: any) => {
-                    return this.getData('domini', term).pipe(
-                        catchError(() => of([])), // empty list on error
-                        tap(() => this.dominiLoading = false)
-                    )
-                })
-            )
+        this.dominiTypeahead = this._nuoviDomini(defaultValue);
+    }
+
+    private _nuoviDomini(iniziali: any[]): PagedTypeahead<any> {
+        return new PagedTypeahead<any>(
+            (term: string, page: number) => this._cercaDomini(term, page),
+            { iniziali: iniziali.filter(Boolean), chiave: (d: any) => d?.id_dominio, debounce: 500, minTermLength: this.minLengthTerm ?? 1 }
         );
+    }
+
+    private _cercaDomini(term: string, page: number): Observable<PaginaTypeahead<any>> {
+        return this.apiService.getList('domini', { params: { q: term, page: `${page}` } }).pipe(map((resp: any) => paginaDaRisposta(resp)));
     }
 
     _initOrganizzazioniErogatoreSelect(defaultValue: any[] = []) {

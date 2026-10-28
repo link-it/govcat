@@ -197,4 +197,22 @@ describe('ServizioInfoFormComponent', () => {
       expect(component._motivoSkipCollaudo).toBe('APP.MESSAGE.SkipCollaudoDominioDaSelezionare');
     });
   });
+
+  describe('select dei domini paginata (Issue #145)', () => {
+    it('should keep the current domain on top and load the next pages on scroll to end', () => {
+      vi.useFakeTimers();
+      (component as any).authenticationService.isGestore = vi.fn().mockReturnValue(false);
+      mockApiService.getList.mockImplementation((_m: string, opts: any) => of({
+        content: [{ id_dominio: `d${opts.params.page}` }], page: { totalPages: 2 }
+      }));
+      component._initDominiSelect([{ id_dominio: 'corrente' }]);
+      let _items: any[] = [];
+      component.dominiTypeahead.items$.subscribe((items: any[]) => _items = items);
+      vi.advanceTimersByTime(300);
+      expect(mockApiService.getList).toHaveBeenCalledWith('domini', { params: { page: 0, deprecato: false } });
+      component.dominiTypeahead.loadMore();
+      expect(_items.map((d: any) => d.id_dominio)).toEqual(['corrente', 'd0', 'd1']);
+      vi.useRealTimers();
+    });
+  });
 });

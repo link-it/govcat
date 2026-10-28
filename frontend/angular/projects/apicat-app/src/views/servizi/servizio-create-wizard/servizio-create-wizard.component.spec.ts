@@ -73,4 +73,23 @@ describe('ServizioCreateWizardComponent - configurazione caricata dopo il costru
     component.ngOnDestroy();
     expect(mockEvents.off).toHaveBeenCalledWith(EventType.PROFILE_UPDATE, listeners[EventType.PROFILE_UPDATE]);
   });
+
+  it('should page the domains and load the next page on scroll to end', () => {
+    vi.useFakeTimers();
+    mockApiService.getList = vi.fn((_m: string, opts: any) => of({
+      content: [{ id_dominio: `d${opts.params.page}` }], page: { totalPages: 2 }
+    }));
+    const component = build();
+    component._initDominiSelect([]);
+    let _items: any[] = [];
+    component.dominiTypeahead.items$.subscribe((items: any[]) => _items = items);
+    vi.advanceTimersByTime(300);
+    expect(mockApiService.getList).toHaveBeenCalledWith('domini', { params: { page: 0 } });
+    component.dominiTypeahead.loadMore();
+    expect(_items.map((d: any) => d.id_dominio)).toEqual(['d0', 'd1']);
+    component.dominiTypeahead.input$.next('regione');
+    vi.advanceTimersByTime(300);
+    expect(mockApiService.getList).toHaveBeenLastCalledWith('domini', { params: { page: 0, q: 'regione' } });
+    vi.useRealTimers();
+  });
 });

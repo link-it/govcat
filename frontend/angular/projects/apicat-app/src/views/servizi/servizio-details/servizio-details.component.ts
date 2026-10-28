@@ -54,6 +54,9 @@ import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
 
 declare const saveAs: any;
 import moment from 'moment';
+import { PagedTypeahead, PaginaTypeahead, paginaDaRisposta } from '@app/lib/utils/paged-typeahead';
+import { CARD_IMAGE_ASPECT_RATIO } from '@app/components/lnk-ui/card/card.component';
+import { CropPreviewComponent } from '@app/lib/ui/crop-preview/crop-preview.component';
 
 @Component({
     selector: 'app-servizio-details',
@@ -62,6 +65,7 @@ import moment from 'moment';
     standalone: true,
     imports: [
         CommonModule,
+        CropPreviewComponent,
         FormsModule,
         ReactiveFormsModule,
         RouterModule,
@@ -126,12 +130,11 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     _toStatus: string = '';
 
     apiUrl: string = '';
-    _imagePlaceHolder: string = './assets/images/logo-placeholder.png';
+    _imagePlaceHolder: string = './assets/images/logo-placeholder-16x9.svg';
     _maxImageSize: number = (Tools.Configurazione?.servizio?.max_image_size || 2) * 1024 * 1024;
 
-    domini$!: Observable<any[]>;
-    dominiInput$ = new Subject<string>();
-    dominiLoading: boolean = false;
+    /** Domini per la select: ricerca paginata con caricamento allo scroll. */
+    dominiTypeahead: PagedTypeahead<any> = this._nuoviDomini([]);
     selectedDominio: any;
 
     utenti$!: Observable<any[]>;
@@ -319,6 +322,8 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     /** Checkbox "Package" e visibilita' "componente" nascoste di default (`AppConfig.Services.showPackage`) finche' la gestione dei package non e' completa. */
     _showPackage: boolean = false;
+    /** Proporzione del logo come nella card del catalogo. */
+    readonly _logoRatio: number = CARD_IMAGE_ASPECT_RATIO;
 
     constructor(
         public route: ActivatedRoute,
@@ -873,26 +878,13 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         });
     }
 
-    getDomini(term: string | null = null): Observable<any> {
-        // Issue 340: GET /domini e` paginato (size default 20). Senza `size`
-        // la ricerca mostrerebbe solo i primi 20 domini (es. >20 domini per la
-        // stessa organizzazione), quindi richiediamo una pagina capiente.
-        const _options: any = term ? { params: { q: term, size: 1000 } } : { params: { size: 1000 } };
+    getDomini(term: string | null = null, page: number = 0): Observable<PaginaTypeahead<any>> {
+        const _options: any = { params: { page } };
+        if (term) { _options.params.q = term; }
         if (!this.authenticationService.isGestore()) {
             _options.params.deprecato = false;
         }
-        return this.apiService.getList('domini', _options)
-            .pipe(map(resp => {
-                if (resp.Error) {
-                    throwError(() => resp.Error);
-                } else {
-                    const _items = resp.content.map((item: any) => {
-                        return item;
-                    });
-                    return _items;
-                }
-            })
-        );
+        return this.apiService.getList('domini', _options).pipe(map((resp: any) => paginaDaRisposta(resp)));
     }
 
     getUtenti(term: string | null = null, role: string | null = null, stato: string = 'abilitato', ruoliOrganizzazione: string[] = []): Observable<any> {
@@ -983,23 +975,13 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     }
 
     _initDominiSelect(defaultValue: any[] = []) {
-        this.domini$ = concat(
-            of(defaultValue),
-            this.dominiInput$.pipe(
-                // filter(res => {
-                //   return res !== null && res.length >= this.minLengthTerm
-                // }),
-                startWith(''),
-                distinctUntilChanged(),
-                debounceTime(300),
-                tap(() => this.dominiLoading = true),
-                switchMap((term: any) => {
-                    return this.getDomini(term).pipe(
-                        catchError(() => of([])), // empty list on error
-                        tap(() => this.dominiLoading = false)
-                    )
-                })
-            )
+        this.dominiTypeahead = this._nuoviDomini(defaultValue);
+    }
+
+    private _nuoviDomini(iniziali: any[]): PagedTypeahead<any> {
+        return new PagedTypeahead<any>(
+            (term: string, page: number) => this.getDomini(term, page),
+            { iniziali: iniziali.filter(Boolean), chiave: (d: any) => d?.id_dominio }
         );
     }
 

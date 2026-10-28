@@ -29,6 +29,7 @@ import { AuthenticationService } from '@app/services/authentication.service';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
+import { PagedTypeahead, PaginaTypeahead, paginaDaRisposta } from '@app/lib/utils/paged-typeahead';
 
 export enum StatoConfigurazione {
   FALLITA = 'fallita',
@@ -100,9 +101,8 @@ export class AdesioniSearchFormComponent implements OnInit {
   clientsInput$ = new Subject<string>();
   clientsLoading: boolean = false;
 
-  domini$!: Observable<any[]>;
-  dominiInput$ = new Subject<string>();
-  dominiLoading: boolean = false;
+  /** Domini per il filtro: ricerca paginata con caricamento allo scroll. */
+  dominiTypeahead: PagedTypeahead<any> = this._nuoviDomini([]);
 
   _organizzazioneSelected: any = null;
   showSoggetto: boolean = false;
@@ -255,23 +255,18 @@ export class AdesioniSearchFormComponent implements OnInit {
   }
 
   _initDominiSelect(defaultValue: any[] = []) {
-    this.domini$ = concat(
-      of(defaultValue),
-      this.dominiInput$.pipe(
-        filter(res => {
-          return res !== null && res.length >= this.minLengthTerm
-        }),
-        distinctUntilChanged(),
-        debounceTime(500),
-        tap(() => this.dominiLoading = true),
-        switchMap((term: any) => {
-          return this.getData('domini', term).pipe(
-            catchError(() => of([])),
-            tap(() => this.dominiLoading = false)
-          )
-        })
-      )
+    this.dominiTypeahead = this._nuoviDomini(defaultValue);
+  }
+
+  private _nuoviDomini(iniziali: any[]): PagedTypeahead<any> {
+    return new PagedTypeahead<any>(
+      (term: string, page: number) => this._cercaDomini(term, page),
+      { iniziali: iniziali.filter(Boolean), chiave: (d: any) => d?.id_dominio, debounce: 500, minTermLength: this.minLengthTerm ?? 1 }
     );
+  }
+
+  private _cercaDomini(term: string, page: number): Observable<PaginaTypeahead<any>> {
+    return this.apiService.getList('domini', { params: { q: term, page: `${page}` } }).pipe(map((resp: any) => paginaDaRisposta(resp)));
   }
 
   onSelectedSearchDropdwon($event: Event) {
