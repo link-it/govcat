@@ -37,6 +37,7 @@ describe('AdesioneComunicazioniComponent', () => {
     hasPermission: vi.fn().mockReturnValue(true),
     _getConfigModule: vi.fn().mockReturnValue({}),
     getUser: vi.fn().mockReturnValue({ id_utente: 'u1' }),
+    canSendComunicazioni: vi.fn((grant: any, fallback: boolean) => (grant?.ruoli || []).includes('gestore') || (grant?.comunicazioni ? grant.comunicazioni === 'scrittura' : fallback)),
   } as any;
 
   beforeEach(() => {
@@ -57,6 +58,27 @@ describe('AdesioneComunicazioniComponent', () => {
 
   it('should be created', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('_loadGrant (Issue #380)', () => {
+    it('should show the sender only when the grant allows to communicate', () => {
+      component.id = 'a1' as any;
+      mockApiService.getDetails.mockReturnValueOnce(of({ ruoli: ['referente'], comunicazioni: 'lettura' }));
+      component._loadGrant();
+      expect(mockApiService.getDetails).toHaveBeenCalledWith('adesioni', 'a1', 'grant');
+      expect(component.showSender).toBe(false);
+
+      mockApiService.getDetails.mockReturnValueOnce(of({ ruoli: ['referente'], comunicazioni: 'scrittura' }));
+      component._loadGrant();
+      expect(component.showSender).toBe(true);
+    });
+
+    it('should keep the sender visible when the grant has no comunicazioni field', () => {
+      component.id = 'a1' as any;
+      mockApiService.getDetails.mockReturnValueOnce(of({ ruoli: [] }));
+      component._loadGrant();
+      expect(component.showSender).toBe(true);
+    });
   });
 
   it('should have static Name', () => {

@@ -1,3 +1,10 @@
+2026-10-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #380 - Comunicazioni di servizi e adesioni: il form di invio segue il nuovo permesso
+	  `comunicazioni` del grant (sulle adesioni prima era sempre visibile); senza il campo resta il
+	  comportamento precedente. La classe `comunicazioni` non blocca le altre aggiunte (`canAdd`).
+
 2026-10-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

@@ -594,6 +594,35 @@ describe('AuthenticationService', () => {
       };
       expect(service.canAdd('servizio', 'draft', ['referente'])).toBe(true);
     });
+
+    it('should ignore the classes with their own rights (api, comunicazioni)', () => {
+      Tools.Configurazione = {
+        servizio: {
+          workflow: {
+            cambi_stato: [{ stato_attuale: 'bozza', dati_non_modificabili: ['api', 'comunicazioni'], stato_successivo: { ruoli_abilitati: ['referente'] } }]
+          }
+        }
+      };
+      expect(service.canAdd('servizio', 'bozza', ['referente'])).toBe(true);
+    });
+  });
+
+  describe('canSendComunicazioni', () => {
+    it('should follow the comunicazioni grant', () => {
+      expect(service.canSendComunicazioni({ ruoli: ['referente'], comunicazioni: 'scrittura' } as any, false)).toBe(true);
+      expect(service.canSendComunicazioni({ ruoli: ['referente'], comunicazioni: 'lettura' } as any, true)).toBe(false);
+      expect(service.canSendComunicazioni({ ruoli: [], comunicazioni: 'nessuno' } as any, true)).toBe(false);
+    });
+
+    it('should always allow the gestore', () => {
+      expect(service.canSendComunicazioni({ ruoli: ['gestore'], comunicazioni: 'lettura' } as any, false)).toBe(true);
+    });
+
+    it('should use the fallback when the grant has no comunicazioni field', () => {
+      expect(service.canSendComunicazioni({ ruoli: ['referente'] } as any, true)).toBe(true);
+      expect(service.canSendComunicazioni({ ruoli: ['referente'] } as any, false)).toBe(false);
+      expect(service.canSendComunicazioni(null, true)).toBe(true);
+    });
   });
 
   // --- canEdit ---

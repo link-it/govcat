@@ -192,7 +192,7 @@ export class ServizioComunicazioniComponent implements OnInit, AfterContentCheck
             } else {
               this._initBreadcrumb();
               this._updateMapper = new Date().getTime().toString();
-              this.showSender = this._grant ? (this._grant.ruoli.length > 0) : false;// this.authenticationService.canAdd('servizio', this.service.stato, this._grant);
+              this.showSender = this._canSendComunicazioni();
               this._loadServizioComunicazioni();    
             }
           }
@@ -299,7 +299,7 @@ export class ServizioComunicazioniComponent implements OnInit, AfterContentCheck
               this.service = response;
               this._initBreadcrumb();
               this._updateMapper = new Date().getTime().toString();
-              this.showSender = this._grant ? (this._grant.ruoli.length > 0) : false;// this.authenticationService.canAdd('servizio', this.service.stato, this._grant);
+              this.showSender = this._canSendComunicazioni();
               this._spin = false;
               this._loadServizioComunicazioni();    
             },
@@ -479,6 +479,11 @@ export class ServizioComunicazioniComponent implements OnInit, AfterContentCheck
         Tools.OnError(error);
       }
     });
+  }
+
+  /** Form di invio visibile a chi puo` comunicare; senza il campo nel grant basta avere un ruolo. */
+  private _canSendComunicazioni(): boolean {
+    return this.authenticationService.canSendComunicazioni(this._grant, (this._grant?.ruoli?.length || 0) > 0);
   }
 
   _toggleSender() {
