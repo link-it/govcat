@@ -16,9 +16,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-export type RightsEnum = 'lettura' | 'scrittura';
+export type RightsEnum = 'nessuno' | 'lettura' | 'scrittura';
 
 export const RightsEnum = {
+    Nessuno: 'nessuno' as RightsEnum,
     Lettura: 'lettura' as RightsEnum,
     Scrittura: 'scrittura' as RightsEnum
 };
@@ -31,5 +32,6 @@ export interface Grant {
   referenti: RightsEnum,
   collaudo: RightsEnum,
   produzione: RightsEnum,
-  api?: RightsEnum
+  api?: RightsEnum,
+  comunicazioni?: RightsEnum
 }

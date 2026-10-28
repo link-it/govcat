@@ -604,12 +604,22 @@ export class AuthenticationService {
     if (this.isGestore(grant)) { return true; }
     if (state) {
       const _wfcs = this._getWorkflowCambiStato(module, state);
-      // La classe `api` governa solo la lista delle API: vedi `canManageApi`.
-      const _dnm = (_wfcs?.dati_non_modificabili || []).filter((c: string) => c !== 'api');
+      // Le classi `api` e `comunicazioni` hanno permessi propri: vedi `canManageApi` e `canSendComunicazioni`.
+      const _dnm = (_wfcs?.dati_non_modificabili || []).filter((c: string) => c !== 'api' && c !== 'comunicazioni');
 
       return (_dnm.length === 0);
     }
     return false;
+  }
+
+  /**
+   * Invio di comunicazioni (e relativi allegati) su servizi e adesioni. Senza il campo
+   * `comunicazioni` nel grant (backend non aggiornato) vale `fallback`.
+   */
+  canSendComunicazioni(grant: Grant | null, fallback: boolean): boolean {
+    if (this.isGestore(grant?.ruoli || [])) { return true; }
+    if (!grant?.comunicazioni) { return fallback; }
+    return grant.comunicazioni === RightsEnum.Scrittura;
   }
 
   /** Creazione, eliminazione e modifica dell'identificativo delle API del servizio. */

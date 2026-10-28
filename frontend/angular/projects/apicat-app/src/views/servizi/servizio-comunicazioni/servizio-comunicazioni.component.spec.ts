@@ -47,6 +47,7 @@ describe('ServizioComunicazioniComponent', () => {
     hasPermission: vi.fn().mockReturnValue(true),
     _getConfigModule: vi.fn().mockReturnValue({}),
     canAdd: vi.fn().mockReturnValue(true),
+    canSendComunicazioni: vi.fn((grant: any, fallback: boolean) => (grant?.ruoli || []).includes('gestore') || (grant?.comunicazioni ? grant.comunicazioni === 'scrittura' : fallback)),
     getUser: vi.fn().mockReturnValue({ id_utente: 'user-1' }),
   } as any;
 
@@ -366,6 +367,24 @@ describe('ServizioComunicazioniComponent', () => {
       );
       comp.ngOnInit();
       expect(comp.showSender).toBe(true);
+    });
+
+    it('should hide the sender when the grant allows only reading (Issue #380)', () => {
+      const routeWithId = {
+        ...mockRoute,
+        params: of({ id: '5' }),
+      };
+      mockRouter.getCurrentNavigation.mockReturnValue({
+        extras: { state: { service: { nome: 'Svc', versione: '1' }, grant: { ruoli: ['referente'], comunicazioni: 'lettura' } } }
+      });
+      mockApiService.getDetails.mockReturnValue(of({ content: [] }));
+      const comp = new ServizioComunicazioniComponent(
+        routeWithId, mockRouter, mockRenderer, mockTranslate,
+        mockConfigService, mockTools, mockEventsManager, mockApiService,
+        mockAuthService
+      );
+      comp.ngOnInit();
+      expect(comp.showSender).toBe(false);
     });
 
     it('should set showSender false when grant has empty ruoli', () => {
