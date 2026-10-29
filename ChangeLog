@@ -7,6 +7,32 @@
 	  motivazione del rifiuto e soggetti della sospensione; requisiti di accesso in elenco.
 	  Tooltip sopra le dialog, accenti nei testi italiani, rimosso il file BabelEdit inutilizzato.
 
+2026-10-29  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 250: l'API PDND esposta da GovCat consente ora di governare l'intero ciclo di vita
+	  di fruizioni e finalita' consentito dalla PDND, non piu' la sola approvazione: rifiuto
+	  dell'accordo (`POST /{ambiente}/agreements/{agreementId}/reject`, con motivazione
+	  obbligatoria da 20 a 1000 caratteri), sospensione e riattivazione dell'accordo e della
+	  finalita' (`/suspend` e `/unsuspend`). Come le approvazioni, sono riservate agli utenti
+	  con `ruolo_pdnd = admin` (403 `AUT.403.RUOLO.PDND`) e rispondono 501 (`SYS.501`) con
+	  `generale.pdnd_version = v1`, che non le prevede. Il rifiuto di una finalita' non e'
+	  disponibile: la PDND non lo espone sul gateway m2m, come documentato in
+	  `docs/pdnd-v3-operazioni-non-supportate.md`.
+	Issue 250: `Agreement`, `Subscriber` e `Purpose` riportano ora chi ha disposto la
+	  sospensione (`suspendedByProducer`, `suspendedByConsumer` e, per l'accordo,
+	  `suspendedByPlatform`) e `Agreement` e `Subscriber` anche la motivazione del rifiuto
+	  (`rejectionReason`). Servono a interpretare l'esito della riattivazione, che lascia
+	  l'accordo o la finalita' in stato `SUSPENDED` quando li ha sospesi anche il fruitore o
+	  la piattaforma. Con l'integrazione v1 i campi non sono valorizzati.
+	Issue 250: il mock dell'API PDND v3 copre ora tutti gli stati del ciclo di vita, cosi' da
+	  poter provare le nuove azioni senza un ambiente PDND reale: dieci accordi (uno per stato,
+	  con le sospensioni di erogatore, fruitore, piattaforma e la combinazione di erogatore e
+	  fruitore) e dieci finalita' (tutti gli stati della versione, le tre combinazioni di
+	  sospensione, la prima attivazione in attesa e la richiesta di aumento rifiutata), ciascun
+	  fruitore con la propria organizzazione. Le nuove operazioni sono simulate con le
+	  transizioni di stato della PDND: la riattivazione non sblocca la sospensione altrui.
+
 2026-10-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

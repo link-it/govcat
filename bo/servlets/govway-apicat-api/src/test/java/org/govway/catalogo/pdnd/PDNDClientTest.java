@@ -27,13 +27,14 @@ import java.util.UUID;
 
 import org.govway.catalogo.exception.NotImplementedException;
 import org.govway.catalogo.pdnd.controllers.PDNDClient;
+import org.govway.catalogo.servlets.pdnd.model.AgreementRejection;
 import org.govway.catalogo.servlets.pdnd.client.api.GatewayApi;
 import org.govway.catalogo.servlets.pdnd.client.api.HealthApi;
 import org.junit.jupiter.api.Test;
 
 /**
  * Verifica il comportamento dell'implementazione basata sull'API PDND v1 per le operazioni
- * di approvazione, che la v1 non prevede.
+ * sul ciclo di vita di accordi e finalita', che la v1 non prevede.
  */
 class PDNDClientTest {
 
@@ -50,5 +51,24 @@ class PDNDClientTest {
 		NotImplementedException purpose = assertThrows(NotImplementedException.class,
 				() -> client.approvePurpose(ID));
 		assertEquals("SYS.501", purpose.getMessage());
+	}
+
+	@Test
+	void ilRifiutoELeSospensioniNonSonoSupportatiDallaV1() {
+		PDNDClient client = new PDNDClient(mock(GatewayApi.class), mock(HealthApi.class));
+
+		AgreementRejection rifiuto = new AgreementRejection();
+		rifiuto.setReason("La richiesta non riporta la finalita' del trattamento dei dati");
+
+		assertEquals("SYS.501", assertThrows(NotImplementedException.class,
+				() -> client.rejectAgreement(ID, rifiuto)).getMessage());
+		assertEquals("SYS.501", assertThrows(NotImplementedException.class,
+				() -> client.suspendAgreement(ID)).getMessage());
+		assertEquals("SYS.501", assertThrows(NotImplementedException.class,
+				() -> client.unsuspendAgreement(ID)).getMessage());
+		assertEquals("SYS.501", assertThrows(NotImplementedException.class,
+				() -> client.suspendPurpose(ID)).getMessage());
+		assertEquals("SYS.501", assertThrows(NotImplementedException.class,
+				() -> client.unsuspendPurpose(ID)).getMessage());
 	}
 }

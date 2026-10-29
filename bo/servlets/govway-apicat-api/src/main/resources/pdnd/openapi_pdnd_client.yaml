@@ -2370,10 +2370,11 @@ components:
         - WAITING_FOR_APPROVAL
         - ARCHIVED
     Purpose:
-      # NOTA: title e waitingForApproval non fanno parte della specifica PDND v1 e non sono
-      # quindi mai valorizzati da questa API. Sono dichiarati qui perche' il modello Purpose
-      # e' condiviso con l'API PDND esposta da GovCat, dove riportano la finalita' e la
-      # versione in attesa di approvazione lette dall'API PDND v3.
+      # NOTA: title, waitingForApproval, suspendedByProducer e suspendedByConsumer non fanno parte
+      # della specifica PDND v1 e non sono quindi mai valorizzati da questa API. Sono dichiarati
+      # qui perche' il modello Purpose e' condiviso con l'API PDND esposta da GovCat, dove
+      # riportano la finalita', la versione in attesa di approvazione e chi ha sospeso la
+      # finalita' lette dall'API PDND v3.
       type: object
       additionalProperties: true
       properties:
@@ -2389,6 +2390,10 @@ components:
           $ref: '#/components/schemas/PurposeState'
         waitingForApproval:
           $ref: '#/components/schemas/PurposeWaitingForApproval'
+        suspendedByProducer:
+          type: boolean
+        suspendedByConsumer:
+          type: boolean
       required:
         - id
         - throughput
@@ -2526,6 +2531,10 @@ components:
         - MISSING_CERTIFIED_ATTRIBUTES
         - REJECTED
     Agreement:
+      # NOTA: suspendedByProducer, suspendedByConsumer, suspendedByPlatform e rejectionReason non
+      # fanno parte della specifica PDND v1 e non sono quindi mai valorizzati da questa API. Sono
+      # dichiarati qui perche' il modello Agreement e' condiviso con l'API PDND esposta da GovCat,
+      # dove riportano chi ha sospeso l'accordo e la motivazione del rifiuto lette dall'API PDND v3.
       type: object
       additionalProperties: true
       properties:
@@ -2546,6 +2555,14 @@ components:
           format: uuid
         state:
           $ref: '#/components/schemas/AgreementState'
+        suspendedByProducer:
+          type: boolean
+        suspendedByConsumer:
+          type: boolean
+        suspendedByPlatform:
+          type: boolean
+        rejectionReason:
+          type: string
       required:
         - id
         - eserviceId

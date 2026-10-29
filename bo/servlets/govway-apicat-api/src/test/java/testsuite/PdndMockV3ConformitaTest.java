@@ -29,6 +29,7 @@ import java.util.UUID;
 
 import org.govway.catalogo.OpenAPI2SpringBoot;
 import org.govway.catalogo.pdnd.controllers.PDNDMockServerV3;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.AgreementRejection;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -99,6 +100,11 @@ public class PdndMockV3ConformitaTest {
         risposte.add(server.getVerifiedAttribute(ID));
         risposte.add(server.approveAgreement(ID));
         risposte.add(server.approvePurpose(ID));
+        risposte.add(server.rejectAgreement(ID, rifiuto()));
+        risposte.add(server.suspendAgreement(ID));
+        risposte.add(server.unsuspendAgreement(ID));
+        risposte.add(server.suspendPurpose(ID));
+        risposte.add(server.unsuspendPurpose(ID));
 
         // attributi assegnati al fruitore e registro degli attributi certificati
         risposte.add(server.getTenantCertifiedAttributes(ID, 0, 50));
@@ -120,6 +126,13 @@ public class PdndMockV3ConformitaTest {
             assertNotNull(body, "risposta simulata senza corpo");
             validaConIlClientV3(mapper, body);
         }
+    }
+
+    /** Motivazione del rifiuto conforme al contratto: almeno venti caratteri. */
+    private AgreementRejection rifiuto() {
+        AgreementRejection rifiuto = new AgreementRejection();
+        rifiuto.setReason("La richiesta non riporta la finalita' del trattamento dei dati");
+        return rifiuto;
     }
 
     /**

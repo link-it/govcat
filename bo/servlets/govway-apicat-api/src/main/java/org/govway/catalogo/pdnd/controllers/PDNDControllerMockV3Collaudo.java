@@ -45,6 +45,7 @@ import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.TenantEvents;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.TenantVerifiedAttributeVerifiers;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.TenantVerifiedAttributes;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Agreement;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.AgreementRejection;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.AgreementState;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Agreements;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.CertifiedAttribute;
@@ -101,8 +102,33 @@ public class PDNDControllerMockV3Collaudo implements GatewayApi {
 	}
 
 	@Override
+	public ResponseEntity<Agreement> rejectAgreement(UUID agreementId, AgreementRejection agreementRejection) {
+		return this.server.rejectAgreement(agreementId, agreementRejection);
+	}
+
+	@Override
+	public ResponseEntity<Agreement> suspendAgreement(UUID agreementId) {
+		return this.server.suspendAgreement(agreementId);
+	}
+
+	@Override
+	public ResponseEntity<Agreement> unsuspendAgreement(UUID agreementId) {
+		return this.server.unsuspendAgreement(agreementId);
+	}
+
+	@Override
 	public ResponseEntity<Purpose> approvePurpose(UUID purposeId) {
 		return this.server.approvePurpose(purposeId);
+	}
+
+	@Override
+	public ResponseEntity<Purpose> suspendPurpose(UUID purposeId) {
+		return this.server.suspendPurpose(purposeId);
+	}
+
+	@Override
+	public ResponseEntity<Purpose> unsuspendPurpose(UUID purposeId) {
+		return this.server.unsuspendPurpose(purposeId);
 	}
 
 	@Override

@@ -41,6 +41,7 @@ import org.govway.catalogo.servlets.model.Organizzazione;
 import org.govway.catalogo.servlets.model.RuoloPdndEnum;
 import org.govway.catalogo.servlets.model.UtenteCreate;
 import org.govway.catalogo.servlets.pdnd.model.Agreement;
+import org.govway.catalogo.servlets.pdnd.model.AgreementRejection;
 import org.govway.catalogo.servlets.pdnd.model.AgreementState;
 import org.govway.catalogo.servlets.pdnd.model.AmbienteEnum;
 import org.govway.catalogo.servlets.pdnd.model.Purpose;
@@ -173,6 +174,136 @@ public class PdndApprovazioniTest {
 
         assertEquals(PurposeState.ACTIVE, response.getBody().getState());
         verify(this.client).approvePurpose(PURPOSE_ID);
+    }
+
+    @Test
+    public void rejectAgreementSenzaRuoloPdndNonConsentito() {
+        AgreementRejection rifiuto = rifiuto();
+
+        NotAuthorizedException ex = assertThrows(NotAuthorizedException.class,
+                () -> this.controller.rejectAgreement(AmbienteEnum.COLLAUDO, AGREEMENT_ID, rifiuto));
+
+        assertEquals("AUT.403.RUOLO.PDND", ex.getMessage());
+        verify(this.client, never()).rejectAgreement(AGREEMENT_ID, rifiuto);
+    }
+
+    @Test
+    public void rejectAgreementConRuoloPdndAdmin() {
+        autenticaUtenteConRuoloPdndAdmin("pdnd.admin.reject");
+
+        AgreementRejection rifiuto = rifiuto();
+
+        Agreement rifiutato = new Agreement();
+        rifiutato.setId(AGREEMENT_ID);
+        rifiutato.setState(AgreementState.REJECTED);
+        rifiutato.setRejectionReason(rifiuto.getReason());
+        when(this.client.rejectAgreement(AGREEMENT_ID, rifiuto)).thenReturn(ResponseEntity.ok(rifiutato));
+
+        ResponseEntity<Agreement> response = this.controller.rejectAgreement(AmbienteEnum.COLLAUDO, AGREEMENT_ID, rifiuto);
+
+        assertEquals(AgreementState.REJECTED, response.getBody().getState());
+        assertEquals(rifiuto.getReason(), response.getBody().getRejectionReason());
+        verify(this.client).rejectAgreement(AGREEMENT_ID, rifiuto);
+    }
+
+    @Test
+    public void sospensioniSenzaRuoloPdndNonConsentite() {
+        assertEquals("AUT.403.RUOLO.PDND", assertThrows(NotAuthorizedException.class,
+                () -> this.controller.suspendAgreement(AmbienteEnum.COLLAUDO, AGREEMENT_ID)).getMessage());
+        assertEquals("AUT.403.RUOLO.PDND", assertThrows(NotAuthorizedException.class,
+                () -> this.controller.unsuspendAgreement(AmbienteEnum.COLLAUDO, AGREEMENT_ID)).getMessage());
+        assertEquals("AUT.403.RUOLO.PDND", assertThrows(NotAuthorizedException.class,
+                () -> this.controller.suspendPurpose(AmbienteEnum.COLLAUDO, PURPOSE_ID)).getMessage());
+        assertEquals("AUT.403.RUOLO.PDND", assertThrows(NotAuthorizedException.class,
+                () -> this.controller.unsuspendPurpose(AmbienteEnum.COLLAUDO, PURPOSE_ID)).getMessage());
+
+        verify(this.client, never()).suspendAgreement(AGREEMENT_ID);
+        verify(this.client, never()).unsuspendAgreement(AGREEMENT_ID);
+        verify(this.client, never()).suspendPurpose(PURPOSE_ID);
+        verify(this.client, never()).unsuspendPurpose(PURPOSE_ID);
+    }
+
+    @Test
+    public void sospensioneDellAccordoConRuoloPdndAdmin() {
+        autenticaUtenteConRuoloPdndAdmin("pdnd.admin.suspend.agreement");
+
+        Agreement sospeso = new Agreement();
+        sospeso.setId(AGREEMENT_ID);
+        sospeso.setState(AgreementState.SUSPENDED);
+        sospeso.setSuspendedByProducer(true);
+        when(this.client.suspendAgreement(AGREEMENT_ID)).thenReturn(ResponseEntity.ok(sospeso));
+
+        Agreement riattivato = new Agreement();
+        riattivato.setId(AGREEMENT_ID);
+        riattivato.setState(AgreementState.ACTIVE);
+        riattivato.setSuspendedByProducer(false);
+        when(this.client.unsuspendAgreement(AGREEMENT_ID)).thenReturn(ResponseEntity.ok(riattivato));
+
+        assertEquals(AgreementState.SUSPENDED,
+                this.controller.suspendAgreement(AmbienteEnum.COLLAUDO, AGREEMENT_ID).getBody().getState());
+        assertEquals(AgreementState.ACTIVE,
+                this.controller.unsuspendAgreement(AmbienteEnum.PRODUZIONE, AGREEMENT_ID).getBody().getState());
+
+        verify(this.client).suspendAgreement(AGREEMENT_ID);
+        verify(this.client).unsuspendAgreement(AGREEMENT_ID);
+    }
+
+    @Test
+    public void sospensioneDellaFinalitaConRuoloPdndAdmin() {
+        autenticaUtenteConRuoloPdndAdmin("pdnd.admin.suspend.purpose");
+
+        Purpose sospesa = new Purpose();
+        sospesa.setId(PURPOSE_ID);
+        sospesa.setState(PurposeState.SUSPENDED);
+        sospesa.setSuspendedByProducer(true);
+        when(this.client.suspendPurpose(PURPOSE_ID)).thenReturn(ResponseEntity.ok(sospesa));
+
+        Purpose riattivata = new Purpose();
+        riattivata.setId(PURPOSE_ID);
+        riattivata.setState(PurposeState.ACTIVE);
+        riattivata.setSuspendedByProducer(false);
+        when(this.client.unsuspendPurpose(PURPOSE_ID)).thenReturn(ResponseEntity.ok(riattivata));
+
+        assertEquals(PurposeState.SUSPENDED,
+                this.controller.suspendPurpose(AmbienteEnum.COLLAUDO, PURPOSE_ID).getBody().getState());
+        assertEquals(PurposeState.ACTIVE,
+                this.controller.unsuspendPurpose(AmbienteEnum.PRODUZIONE, PURPOSE_ID).getBody().getState());
+
+        verify(this.client).suspendPurpose(PURPOSE_ID);
+        verify(this.client).unsuspendPurpose(PURPOSE_ID);
+    }
+
+    @Test
+    public void rifiutoESospensioniNonDisponibiliConApiPdndV1() {
+        autenticaUtenteConRuoloPdndAdmin("pdnd.admin.ciclo.v1");
+
+        when(this.clientFactory.isVersioneV1()).thenReturn(true);
+
+        AgreementRejection rifiuto = rifiuto();
+
+        assertEquals("SYS.501", assertThrows(NotImplementedException.class,
+                () -> this.controller.rejectAgreement(AmbienteEnum.COLLAUDO, AGREEMENT_ID, rifiuto)).getMessage());
+        assertEquals("SYS.501", assertThrows(NotImplementedException.class,
+                () -> this.controller.suspendAgreement(AmbienteEnum.COLLAUDO, AGREEMENT_ID)).getMessage());
+        assertEquals("SYS.501", assertThrows(NotImplementedException.class,
+                () -> this.controller.unsuspendAgreement(AmbienteEnum.COLLAUDO, AGREEMENT_ID)).getMessage());
+        assertEquals("SYS.501", assertThrows(NotImplementedException.class,
+                () -> this.controller.suspendPurpose(AmbienteEnum.COLLAUDO, PURPOSE_ID)).getMessage());
+        assertEquals("SYS.501", assertThrows(NotImplementedException.class,
+                () -> this.controller.unsuspendPurpose(AmbienteEnum.COLLAUDO, PURPOSE_ID)).getMessage());
+
+        verify(this.client, never()).rejectAgreement(AGREEMENT_ID, rifiuto);
+        verify(this.client, never()).suspendAgreement(AGREEMENT_ID);
+        verify(this.client, never()).unsuspendAgreement(AGREEMENT_ID);
+        verify(this.client, never()).suspendPurpose(PURPOSE_ID);
+        verify(this.client, never()).unsuspendPurpose(PURPOSE_ID);
+    }
+
+    /** Motivazione del rifiuto conforme al contratto: almeno venti caratteri. */
+    private AgreementRejection rifiuto() {
+        AgreementRejection rifiuto = new AgreementRejection();
+        rifiuto.setReason("La richiesta non riporta la finalita' del trattamento dei dati");
+        return rifiuto;
     }
 
     @Test
