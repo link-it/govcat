@@ -23,6 +23,15 @@
 	  sospensione, la prima attivazione in attesa e la richiesta di aumento rifiutata), ciascun
 	  fruitore con la propria organizzazione. Le nuove operazioni sono simulate con le
 	  transizioni di stato della PDND: la riattivazione non sblocca la sospensione altrui.
+	Issue 413: i timeout delle chiamate del configuratore verso l'API di configurazione di
+	  GovWay sono ora configurabili per ambiente, in secondi
+	  (`configuratore.ConfigurazioneExecutor.govwayConfig.<ambiente>.timeout.connect`,
+	  `.timeout.read` e `.timeout.write`), e i default di lettura e scrittura passano dai 10
+	  secondi di okhttp a 60. La prima chiamata dopo un periodo di inattività può impiegare
+	  decine di secondi, mentre le successive rispondono in pochi millisecondi: con i valori
+	  precedenti la configurazione automatica terminava con `SocketTimeoutException` e
+	  l'adesione restava in errore definitivo, da sbloccare a mano con il retry. Un valore
+	  assente, non numerico o non positivo mantiene il default.
 
 2026-10-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
