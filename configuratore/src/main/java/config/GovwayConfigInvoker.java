@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.govway.catalogo.core.dto.DTOApi.PROTOCOLLO;
@@ -70,6 +71,17 @@ public class GovwayConfigInvoker {
 	
 	private static final String HEADER_AUTHORIZATION = "Authorization";
 	private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+
+	/**
+	 * Timeout di default delle chiamate verso l'API di configurazione di govway, in secondi.
+	 *
+	 * La lettura e la scrittura sono piu' larghe dei 10 secondi di default di okhttp perche' la
+	 * prima chiamata dopo un periodo di inattivita' puo' richiedere decine di secondi, mentre le
+	 * successive rispondono in pochi millisecondi.
+	 */
+	public static final int CONNECT_TIMEOUT_SECONDI_DEFAULT = 10;
+	public static final int READ_TIMEOUT_SECONDI_DEFAULT = 60;
+	public static final int WRITE_TIMEOUT_SECONDI_DEFAULT = 60;
 
 	private final HttpUrl baseUrl;
 	private String credentials;	
@@ -124,8 +136,21 @@ public class GovwayConfigInvoker {
 	}
 	
 	public GovwayConfigInvoker(HttpUrl url, Configuration cfg) {
+		this(url, cfg, CONNECT_TIMEOUT_SECONDI_DEFAULT, READ_TIMEOUT_SECONDI_DEFAULT, WRITE_TIMEOUT_SECONDI_DEFAULT);
+	}
+	
+	/**
+	 * @param connectTimeoutSecondi tempo massimo per stabilire la connessione
+	 * @param readTimeoutSecondi tempo massimo di attesa della risposta
+	 * @param writeTimeoutSecondi tempo massimo per inviare la richiesta
+	 */
+	public GovwayConfigInvoker(HttpUrl url, Configuration cfg, int connectTimeoutSecondi, int readTimeoutSecondi, int writeTimeoutSecondi) {
 		this.baseUrl = url;
-		this.client = new OkHttpClient();
+		this.client = new OkHttpClient.Builder()
+				.connectTimeout(connectTimeoutSecondi, TimeUnit.SECONDS)
+				.readTimeout(readTimeoutSecondi, TimeUnit.SECONDS)
+				.writeTimeout(writeTimeoutSecondi, TimeUnit.SECONDS)
+				.build();
 		
 		this.gson = new GsonBuilder()
 				.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
