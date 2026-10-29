@@ -974,7 +974,7 @@ describe('ServizioApiPdndInformationsComponent', () => {
       expect((component as any)._loadServizioApi).toHaveBeenCalled();
     });
 
-    it('should set _spin to false after successful service load', () => {
+    it('should keep _spin until the environment is selected after a successful service load', () => {
       component.sid = 'svc-1';
       mockApiService.getDetails.mockImplementation((model: string, id: string, sub?: string) => {
         if (sub === 'grant') return of({});
@@ -986,7 +986,7 @@ describe('ServizioApiPdndInformationsComponent', () => {
 
       component._loadServizio();
 
-      expect(component._spin).toBe(false);
+      expect(component._spin).toBe(true);
     });
 
     it('should call Tools.OnError and set _spin to false when service details call fails', () => {

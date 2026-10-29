@@ -303,7 +303,7 @@
 				"ERROR": {
 					"CheckPrivateKey": "Verificare la chiave privata"
 				},
-				"NetworkOrCspError": "Impossibile contattare il token endpoint. Verifica la connettivita` di rete o la Content Security Policy del browser.",
+				"NetworkOrCspError": "Impossibile contattare il token endpoint. Verifica la connettività di rete o la Content Security Policy del browser.",
 				"NoTokenGenerator": "Nessun Generatore di Token",
 				"SendingData": "Invio dati…",
 				"TokenGenerationError": "Errore generazione token"
@@ -1099,6 +1099,24 @@
 			"Padre": "Padre",
 			"Password": "Password",
 			"PDND": {
+				"Requirement": "Requisito",
+				"GroupAlternatives": "Gruppo {{n}}: almeno uno tra {{count}}",
+				"Code": "Codice",
+				"Origin": "Origine",
+				"OrganizationId": "ID organizzazione",
+				"CallsPerConsumer": "Chiamate/giorno per fruitore",
+				"CallsTotal": "Chiamate/giorno totali",
+				"VoucherLifespan": "Validità del voucher",
+				"NoDescriptors": "Nessun descrittore pubblicato.",
+				"STATE": {
+					"DRAFT": "Bozza",
+					"PUBLISHED": "Pubblicato",
+					"DEPRECATED": "Deprecato",
+					"SUSPENDED": "Sospeso",
+					"ARCHIVED": "Archiviato",
+					"WAITING_FOR_APPROVAL": "In attesa di approvazione",
+					"ACTIVE": "Attivo"
+				},
 				"Agreement": "Richiesta di fruizione",
 				"Attribute": "Attributo",
 				"Attributes": "Attributi",
@@ -1271,7 +1289,7 @@
 			"utente_ultimo_aggiornamento": "Ultimo aggiornamento da",
 			"Uuid": "uuid",
 			"Valid": "Valido",
-			"Validity": "Validita",
+			"Validity": "Validità",
 			"Version": "Versione",
 			"versione": "Versione",
 			"versione_gateway": "Versione gateway",
@@ -1316,7 +1334,7 @@
 				"descrizione": "È possibile inserire testo `markdown`.",
 				"id_dominio": "Se non si riesce ad individuare un dominio adeguato per il servizio, è possibile richiedere la creazione di un nuovo dominio via email a {{email}}",
 				"id_dominio_deprecato": "Dominio deprecato",
-				"visibilita": "Viene ereditata la visiblità **{{visibilita}}** impostata nel dominio.",
+				"visibilita": "Viene ereditata la visibilità **{{visibilita}}** impostata nel dominio.",
 				"visibilita_servizio": "Determina chi può vedere il servizio nel catalogo. Con «riservato» l'accesso è limitato alle classi utente selezionate.",
 				"tipo": "Tipologia del servizio: «API» per servizi esposti tramite API, «Generico» per servizi non basati su API.",
 				"id_organizzazione_interna": "Ente della tua organizzazione che eroga il servizio in intermediazione. Disponibile per i servizi di fruizione.",
@@ -1489,7 +1507,7 @@
 								"FOUND": "URL di invocazione [{{identificativo}}] non prevista dalla configurazione per l'ambiente di {{ambiente}}"
 							}
 						},
-						"VISIBILITY": "Visibilita [{{visibilita}}] non consentita"
+						"VISIBILITY": "Visibilità [{{visibilita}}] non consentita"
 					},
 					"404": {
 						"DEFAULT": "API [{{idApi}}] non trovata",
@@ -1504,8 +1522,8 @@
 						}
 					},
 					"409": {
-						"DEFAULT": "API [{{nome}}/{{versione}}/{{soggetto}}] esiste gia",
-						"INTERMEDIATO": "API [{{nome}}/{{versione}}/{{soggetto}}] esiste gia per l'ente erogatore [{{erogatore}}]"
+						"DEFAULT": "API [{{nome}}/{{versione}}/{{soggetto}}] esiste già",
+						"INTERMEDIATO": "API [{{nome}}/{{versione}}/{{soggetto}}] esiste già per l'ente erogatore [{{erogatore}}]"
 					}
 				},
 				"ApiNoDelete": "L'API non può essere eliminata allo stato corrente.",
@@ -1894,10 +1912,10 @@
 						"PACKAGE": "Package [{{idPackage}}] non trovato"
 					},
 					"409": {
-						"DEFAULT": "Servizio [{{nome}} v{{versione}}] esiste gia",
-						"CATEGORY": "Categoria [{{categoria}}] gia associato al servizio [{{nome}}/{{versione}}]",
-						"CONFLICT": "Servizio [{{nome}} v{{versione}}] gia esistente nel dominio [{{dominio}}]",
-						"GROUP": "Gruppo [{{gruppo}}] gia associato al servizio [{{nome}}/{{versione}}]",
+						"DEFAULT": "Servizio [{{nome}} v{{versione}}] esiste già",
+						"CATEGORY": "Categoria [{{categoria}}] già associato al servizio [{{nome}}/{{versione}}]",
+						"CONFLICT": "Servizio [{{nome}} v{{versione}}] già esistente nel dominio [{{dominio}}]",
+						"GROUP": "Gruppo [{{gruppo}}] già associato al servizio [{{nome}}/{{versione}}]",
 						"REFERENT": "L'utente [{{nomeUtente}} {{cognomeUtente}}] è già {{tipoReferente}} del servizio [{{nomeServizio}} v{{versioneServizio}}]",
 						"STATE": ""
 					}
@@ -2711,7 +2729,7 @@
 				"Card": "Card",
 				"Email": "E-mail",
 				"EmailAziendale": "E-mail aziendale",
-				"EmettiPerEntita": "Emetti per entita",
+				"EmettiPerEntita": "Emetti per entità",
 				"EmettiPerRuoli": "Emetti per ruoli",
 				"EmettiPerTag": "Emetti per tag",
 				"EmettiPerTipi": "Emetti per tipi",
@@ -2844,16 +2862,127 @@
 			"YES": "Si"
 		},
 		"SUBSCRIBERS": {
-			"Approve": "Approva",
-			"ApproveConfirm": "Vuoi approvare l'accordo del fruitore {{name}}?",
+			"AgreementPending": "L'accordo è in attesa di approvazione: il fruitore potrà usare l'e-service dopo l'approvazione.",
+			"PurposesCount": "{{count}} finalità",
+			"WaitingCount": "Da approvare: {{count}}",
+			"CurrentLoad": "Previsione di carico",
+			"CallsPerDay": "chiamate/giorno",
+			"IncreaseRequest": "Richiesta di aumento in attesa",
+			"To": "a",
 			"Purposes": "Finalità",
 			"PurposesLoading": "Caricamento delle finalità…",
 			"PurposesError": "Impossibile caricare le finalità del fruitore.",
 			"NoPurposes": "Nessuna finalità attivata dal fruitore.",
-			"PurposeThroughput": "Previsione di carico: {{value}} chiamate/giorno",
 			"PurposeWaiting": "Richiesta di aumento a {{value}} chiamate/giorno in attesa di approvazione",
-			"ApprovePurpose": "Sblocca",
-			"ApprovePurposeConfirm": "Vuoi sbloccare la finalità «{{name}}» approvando la richiesta di {{value}} chiamate/giorno?"
+			"ACTIONS": {
+				"Approve": "Approva",
+				"Reject": "Rifiuta",
+				"Suspend": "Sospendi",
+				"Unsuspend": "Riattiva",
+				"AgreementMenu": "Azioni sull'accordo di {{name}}",
+				"PurposeMenu": "Azioni sulla finalità {{name}}"
+			},
+			"AGREEMENT_STATE": {
+				"DRAFT": "Bozza",
+				"ACTIVE": "Attivo",
+				"ARCHIVED": "Archiviato",
+				"PENDING": "In attesa di approvazione",
+				"SUSPENDED": "Sospeso",
+				"MISSING_CERTIFIED_ATTRIBUTES": "Attributi certificati mancanti",
+				"REJECTED": "Rifiutato"
+			},
+			"PURPOSE_STATE": {
+				"DRAFT": "Bozza",
+				"ACTIVE": "Attiva",
+				"ARCHIVED": "Archiviata",
+				"PENDING": "In attesa di approvazione",
+				"SUSPENDED": "Sospesa",
+				"MISSING_CERTIFIED_ATTRIBUTES": "Attributi certificati mancanti",
+				"REJECTED": "Rifiutata",
+				"WAITING_FOR_APPROVAL": "In attesa di approvazione"
+			},
+			"DIALOG": {
+				"Subscriber": "Fruitore",
+				"Purpose": "Finalità",
+				"Reason": "Motivazione del rifiuto",
+				"ReasonHint": "Da {{min}} a {{max}} caratteri; la motivazione viene comunicata al fruitore.",
+				"ReasonRequired": "Inserisci almeno {{min}} caratteri.",
+				"RequestedRejected": "richiesta di {{value}} rifiutata",
+				"AGREEMENT": {
+					"unsuspendPartial": "Viene revocata solo la sospensione dell'erogatore.",
+					"approve": {
+						"Title": "Approva accordo",
+						"Description": "Il fruitore potrà usare l'e-service e attivare le proprie finalità.",
+						"Confirm": "Approva"
+					},
+					"reject": {
+						"Title": "Rifiuta accordo",
+						"Description": "La richiesta di fruizione viene rifiutata: per usare l'e-service il fruitore dovrà presentarne una nuova.",
+						"Confirm": "Rifiuta"
+					},
+					"suspend": {
+						"Title": "Sospendi accordo",
+						"Description": "Il fruitore non potrà usare l'e-service finché l'accordo non viene riattivato.",
+						"Confirm": "Sospendi"
+					},
+					"unsuspend": {
+						"Title": "Riattiva accordo",
+						"Description": "Il fruitore potrà di nuovo usare l'e-service.",
+						"Confirm": "Riattiva"
+					},
+					"StaysSuspended": "Resta la sospensione di: {{who}}. Dopo la riattivazione l'accordo sarà ancora sospeso."
+				},
+				"PURPOSE": {
+					"unsuspendPartial": "Viene revocata solo la sospensione dell'erogatore.",
+					"approve": {
+						"Title": "Approva aumento",
+						"Description": "La previsione di carico della finalità passa al valore richiesto dal fruitore.",
+						"Confirm": "Approva"
+					},
+					"suspend": {
+						"Title": "Sospendi finalità",
+						"Description": "Il fruitore non potrà usare l'e-service per questa finalità finché non viene riattivata.",
+						"Confirm": "Sospendi"
+					},
+					"unsuspend": {
+						"Title": "Riattiva finalità",
+						"Description": "Il fruitore potrà di nuovo usare l'e-service per questa finalità.",
+						"Confirm": "Riattiva"
+					},
+					"StaysSuspended": "Resta la sospensione di: {{who}}. Dopo la riattivazione la finalità sarà ancora sospesa.",
+					"approveFirst": {
+						"Title": "Approva finalità",
+						"Description": "La finalità viene attivata con la previsione di carico richiesta dal fruitore.",
+						"Confirm": "Approva"
+					}
+				}
+			},
+			"And": "e",
+			"SuspendedBy": "Sospensione di",
+			"RejectionReason": "Motivazione del rifiuto",
+			"NotReactivatable": "La sospensione non è dell'erogatore: non si può revocare da qui.",
+			"SUSPENDED_BY": {
+				"PRODUCER": "erogatore",
+				"CONSUMER": "fruitore",
+				"PLATFORM": "piattaforma PDND"
+			},
+			"RESULT": {
+				"AGREEMENT": {
+					"approve": "Accordo di {{name}} approvato.",
+					"reject": "Accordo di {{name}} rifiutato.",
+					"suspend": "Accordo di {{name}} sospeso.",
+					"unsuspend": "Accordo di {{name}} riattivato.",
+					"StillSuspended": "La sospensione dell'erogatore è stata revocata, ma l'accordo resta sospeso (sospensione di: {{who}})."
+				},
+				"PURPOSE": {
+					"approve": "Aumento della finalità «{{name}}» approvato.",
+					"suspend": "Finalità «{{name}}» sospesa.",
+					"unsuspend": "Finalità «{{name}}» riattivata.",
+					"StillSuspended": "La sospensione dell'erogatore è stata revocata, ma la finalità resta sospesa (sospensione di: {{who}}).",
+					"approveFirst": "Finalità «{{name}}» approvata."
+				}
+			},
+			"FirstApprovalRequest": "Prima approvazione in attesa"
 		},
 		"SWAGGER": {
 			"ERROR": {

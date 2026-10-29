@@ -1600,4 +1600,122 @@ describe('ServizioApiSubscribersComponent', () => {
       expect(component.breadcrumbs[4].label).toBe('APP.TITLE.PDNDSubscribers');
     });
   });
+
+  describe('card dei fruitori', () => {
+    const purposes = [
+      { id: 'p1', title: 'Esempio', throughput: 1000, state: 'ACTIVE' },
+      { id: 'p2', title: 'Aumento', throughput: 1000, state: 'ACTIVE', waitingForApproval: { id: 'v2', throughput: 20000 } }
+    ];
+
+    beforeEach(() => {
+      component.environmentId = 'collaudo';
+      mockPdndService.agreementPurposes.mockReturnValue(of({ data: { purposes } }));
+    });
+
+    it('should load the purposes on first opening, with the pending increases first', () => {
+      const subscriber = { id: 'c1', source: { consumerId: 'c1', agreementId: 'ag1' } };
+      component._toggleSubscriber(subscriber);
+      expect(component._expanded['c1']).toBe(true);
+      expect(mockPdndService.agreementPurposes).toHaveBeenCalledWith('collaudo', 'ag1');
+      expect(component._purposesByAgreement['ag1'].items.map((p: any) => p.id)).toEqual(['p2', 'p1']);
+      expect(component._purposesWaiting('ag1')).toBe(1);
+      component._toggleSubscriber(subscriber);
+      expect(component._expanded['c1']).toBe(false);
+    });
+
+    it('should count no pending increases before the purposes are loaded', () => {
+      expect(component._purposesWaiting('ag-x')).toBe(0);
+      expect(component._purposesWaiting(null)).toBe(0);
+    });
+
+    it('should build the initials from the first two words', () => {
+      expect(component._initials('Ente fruitore 2222')).toBe('EF');
+      expect(component._initials('Comune di Roma')).toBe('CD');
+      expect(component._initials('')).toBe('');
+    });
+  });
+
+  describe('azioni su accordi e finalita`', () => {
+    beforeEach(() => {
+      component.environmentId = 'collaudo';
+      mockAuthenticationService.isPdndAdmin = vi.fn().mockReturnValue(true);
+      mockAuthenticationService.isPdndV3 = vi.fn().mockReturnValue(true);
+      mockPdndService.rejectAgreement = vi.fn().mockReturnValue(of({ data: {} }));
+      mockPdndService.suspendPurpose = vi.fn().mockReturnValue(of({ data: {} }));
+    });
+
+    const codici = (azioni: any[]) => azioni.map((a) => a.code);
+
+    it('should offer approve/reject when pending, suspend when active, reactivate only the producer suspension', () => {
+      expect(codici(component._azioniAccordo({ agreementId: 'ag', state: 'PENDING' }))).toEqual(['approve', 'reject']);
+      expect(codici(component._azioniAccordo({ agreementId: 'ag', state: 'ACTIVE' }))).toEqual(['suspend']);
+      expect(codici(component._azioniAccordo({ agreementId: 'ag', state: 'SUSPENDED', suspendedByProducer: true }))).toEqual(['unsuspend']);
+      expect(codici(component._azioniAccordo({ agreementId: 'ag', state: 'SUSPENDED', suspendedByConsumer: true }))).toEqual([]);
+      expect(codici(component._azioniAccordo({ agreementId: 'ag', state: 'MISSING_CERTIFIED_ATTRIBUTES' }))).toEqual([]);
+      expect(codici(component._azioniAccordo({ agreementId: 'ag', state: 'REJECTED' }))).toEqual([]);
+      expect(codici(component._azioniAccordo({ state: 'PENDING' }))).toEqual([]);
+    });
+
+    it('should approve a purpose only with a waiting version, never reject it', () => {
+      const attesa = { id: 'v', throughput: 20000 };
+      expect(codici(component._azioniFinalita({ id: 'p', throughput: 1, state: 'ACTIVE', waitingForApproval: attesa }))).toEqual(['approve', 'suspend']);
+      expect(codici(component._azioniFinalita({ id: 'p', throughput: 1, state: 'WAITING_FOR_APPROVAL', waitingForApproval: attesa }))).toEqual(['approve']);
+      expect(codici(component._azioniFinalita({ id: 'p', throughput: 1, state: 'ACTIVE' }))).toEqual(['suspend']);
+      expect(codici(component._azioniFinalita({ id: 'p', throughput: 1, state: 'SUSPENDED', suspendedByProducer: true }))).toEqual(['unsuspend']);
+      expect(codici(component._azioniFinalita({ id: 'p', throughput: 1, state: 'SUSPENDED', suspendedByConsumer: true }))).toEqual([]);
+      expect(codici(component._azioniFinalita({ id: 'p', throughput: 1, state: 'DRAFT' }))).toEqual([]);
+    });
+
+    it('should warn when the reactivation leaves the agreement suspended by others', () => {
+      const showMessage = vi.spyOn(Tools, 'showMessage').mockImplementation(() => {});
+      mockPdndService.unsuspendAgreement = vi.fn().mockReturnValue(of({ data: { state: 'SUSPENDED', suspendedByConsumer: true } }));
+      const onClose = new Subject<any>();
+      mockModalService.show.mockReturnValueOnce({ content: { onClose }, hide: vi.fn() });
+      const source = { agreementId: 'ag', state: 'SUSPENDED', name: 'Epsilon', suspendedByProducer: true, suspendedByConsumer: true };
+      component._eseguiAzione('unsuspend', source, null, null);
+      expect(mockModalService.show.mock.calls.at(-1)[1].initialState.altreSospensioni).toBe('APP.SUBSCRIBERS.SUSPENDED_BY.CONSUMER');
+      onClose.next({ reason: '' });
+      expect(showMessage).toHaveBeenCalledWith('APP.SUBSCRIBERS.RESULT.AGREEMENT.StillSuspended', 'warning', true, true);
+    });
+
+    it('should offer no actions without PDND admin role', () => {
+      mockAuthenticationService.isPdndAdmin.mockReturnValue(false);
+      expect(component._azioniAccordo({ agreementId: 'ag', state: 'PENDING' })).toEqual([]);
+      expect(component._azioniFinalita({ id: 'p', throughput: 1, state: 'ACTIVE' })).toEqual([]);
+    });
+
+    it('should reject the agreement with the reason given in the confirmation', () => {
+      const onClose = new Subject<any>();
+      mockModalService.show.mockReturnValueOnce({ content: { onClose }, hide: vi.fn() });
+      component._eseguiAzione('reject', { agreementId: 'ag', state: 'PENDING', name: 'Ente' }, null, null);
+      expect(mockModalService.show.mock.calls.at(-1)[1].initialState).toMatchObject({ azione: 'reject', oggetto: 'agreement', fruitore: 'Ente', statoAttuale: 'PENDING' });
+      onClose.next({ reason: 'Dati mancanti' });
+      expect(mockPdndService.rejectAgreement).toHaveBeenCalledWith('collaudo', 'ag', 'Dati mancanti');
+    });
+
+    it('should not call the backend when the confirmation is cancelled', () => {
+      const onClose = new Subject<any>();
+      mockModalService.show.mockReturnValueOnce({ content: { onClose }, hide: vi.fn() });
+      component._eseguiAzione('suspend', null, 'ag', { id: 'p', throughput: 1, state: 'ACTIVE' });
+      onClose.next(null);
+      expect(mockPdndService.suspendPurpose).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('stato di caricamento iniziale', () => {
+    it('should stay loading until the tabs are initialized, even if a load is attempted earlier', () => {
+      expect(component._caricamento).toBe(true);
+      component._spin = false;
+      component._loadServizioApiSubscribers();
+      expect(component._caricamento).toBe(true);
+    });
+
+    it('should stop loading when no environment is configured', () => {
+      component._spin = false;
+      component.servizioApi = { proprieta_custom: [] };
+      component._autoSelectTab();
+      expect(component._loaded).toBe(true);
+      expect(component._caricamento).toBe(false);
+    });
+  });
 });

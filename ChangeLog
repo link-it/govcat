@@ -1,3 +1,12 @@
+2026-10-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #250 - PDND, fruitori e informazioni generali: nuove dialog con finalità in primo piano e
+	  azioni per stato da menu (approva/rifiuta accordo con motivazione, sospendi/riattiva accordi e
+	  finalità, avviso se la riattivazione lascia la sospensione del fruitore), conferma dedicata,
+	  motivazione del rifiuto e soggetti della sospensione; requisiti di accesso in elenco.
+	  Tooltip sopra le dialog, accenti nei testi italiani, rimosso il file BabelEdit inutilizzato.
+
 2026-10-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
