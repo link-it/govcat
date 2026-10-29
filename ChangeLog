@@ -10,6 +10,12 @@
 2026-10-29  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
+	Issue 412: corretti i rifiuti casuali (400 `DOC.400.FORMAT`) nella creazione concorrente
+	  di API SOAP: il parsing del WSDL non condivide più parser e XPath tra le richieste.
+	Issue 412: la creazione o modifica di un'API con gruppi di autenticazione e la sola
+	  configurazione di produzione non risponde più 500: la compatibilità del profilo è
+	  verificata sul protocollo di produzione; senza alcuna configurazione si risponde 400
+	  `VAL.400.REQUIRED`.
 	Issue 250: l'API PDND esposta da GovCat consente ora di governare l'intero ciclo di vita
 	  di fruizioni e finalita' consentito dalla PDND, non piu' la sola approvazione: rifiuto
 	  dell'accordo (`POST /{ambiente}/agreements/{agreementId}/reject`, con motivazione

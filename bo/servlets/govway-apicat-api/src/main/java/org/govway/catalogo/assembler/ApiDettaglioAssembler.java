@@ -497,7 +497,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 					return WsdlUtils.getProtocolloApi(spec.getRawData());
 				} catch (Exception e) {
 					this.logger.error("WSDL fornito non corretto: " + e.getMessage(), e);
-					throw new BadRequestException(ErrorCode.DOC_400_FORMAT);
+					throw new BadRequestException(ErrorCode.DOC_400_FORMAT, e);
 				}
 			}
 
@@ -726,8 +726,14 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 				}
 					
 				ConfigurazioneCompatibilitaApiEnum comp = null;
-				
-				switch(entity.getCollaudo().getProtocollo()) { //TODO
+
+				// Il collaudo puo` mancare (es. API in bozza con la sola produzione): si usa la configurazione disponibile (Issue 412)
+				ApiConfigEntity config = entity.getCollaudo() != null ? entity.getCollaudo() : entity.getProduzione();
+				if(config == null) {
+					throw new BadRequestException(ErrorCode.VAL_400_REQUIRED, Map.of("campo", "configurazione_collaudo"));
+				}
+
+				switch(config.getProtocollo()) { //TODO
 				case OPENAPI_3:
 				case SWAGGER_2: comp = ConfigurazioneCompatibilitaApiEnum.REST;
 					break;
