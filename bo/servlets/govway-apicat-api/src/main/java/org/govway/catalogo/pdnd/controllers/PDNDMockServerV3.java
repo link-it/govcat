@@ -58,6 +58,7 @@ import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.TenantEvents;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.TenantVerifiedAttributeVerifiers;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.TenantVerifiedAttributes;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Agreement;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.AgreementRejection;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.AgreementState;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Agreements;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.CertifiedAttribute;
@@ -223,6 +224,43 @@ public class PDNDMockServerV3 {
 		return ResponseEntity.ok(approvato);
 	}
 
+	public ResponseEntity<Agreement> rejectAgreement(UUID agreementId, AgreementRejection agreementRejection) {
+		checkInput(agreementId);
+
+		Agreement rifiutato = copia(readMockResponseAgreement(agreementId), Agreement.class);
+		rifiutato.setState(AgreementState.REJECTED);
+		rifiutato.setRejectionReason(agreementRejection != null ? agreementRejection.getReason() : null);
+
+		return ResponseEntity.ok(rifiutato);
+	}
+
+	public ResponseEntity<Agreement> suspendAgreement(UUID agreementId) {
+		checkInput(agreementId);
+
+		Agreement sospeso = copia(readMockResponseAgreement(agreementId), Agreement.class);
+		sospeso.setState(AgreementState.SUSPENDED);
+		sospeso.setSuspendedByProducer(true);
+
+		return ResponseEntity.ok(sospeso);
+	}
+
+	/**
+	 * Revoca la sola sospensione dell'erogatore: l'accordo torna attivo unicamente se non e'
+	 * sospeso anche dal fruitore o dalla piattaforma, come avviene nella PDND.
+	 */
+	public ResponseEntity<Agreement> unsuspendAgreement(UUID agreementId) {
+		checkInput(agreementId);
+
+		Agreement riattivato = copia(readMockResponseAgreement(agreementId), Agreement.class);
+		riattivato.setSuspendedByProducer(false);
+
+		if(!isVero(riattivato.isSuspendedByConsumer()) && !isVero(riattivato.isSuspendedByPlatform())) {
+			riattivato.setState(AgreementState.ACTIVE);
+		}
+
+		return ResponseEntity.ok(riattivato);
+	}
+
 	public ResponseEntity<Purpose> approvePurpose(UUID purposeId) {
 		checkInput(purposeId);
 
@@ -237,6 +275,40 @@ public class PDNDMockServerV3 {
 		}
 
 		return ResponseEntity.ok(approvata);
+	}
+
+	public ResponseEntity<Purpose> suspendPurpose(UUID purposeId) {
+		checkInput(purposeId);
+
+		Purpose sospesa = copia(readMockResponsePurpose(purposeId), Purpose.class);
+		sospesa.setSuspendedByProducer(true);
+
+		if(sospesa.getCurrentVersion() != null) {
+			sospesa.getCurrentVersion().setState(PurposeVersionState.SUSPENDED);
+		}
+
+		return ResponseEntity.ok(sospesa);
+	}
+
+	/**
+	 * Revoca la sola sospensione dell'erogatore: la finalita' torna attiva unicamente se non e'
+	 * sospesa anche dal fruitore, come avviene nella PDND.
+	 */
+	public ResponseEntity<Purpose> unsuspendPurpose(UUID purposeId) {
+		checkInput(purposeId);
+
+		Purpose riattivata = copia(readMockResponsePurpose(purposeId), Purpose.class);
+		riattivata.setSuspendedByProducer(false);
+
+		if(riattivata.getCurrentVersion() != null && !isVero(riattivata.isSuspendedByConsumer())) {
+			riattivata.getCurrentVersion().setState(PurposeVersionState.ACTIVE);
+		}
+
+		return ResponseEntity.ok(riattivata);
+	}
+
+	private boolean isVero(Boolean valore) {
+		return Boolean.TRUE.equals(valore);
 	}
 
 	public ResponseEntity<Purposes> getAgreementPurposes(UUID agreementId, Integer limit, Integer offset) {

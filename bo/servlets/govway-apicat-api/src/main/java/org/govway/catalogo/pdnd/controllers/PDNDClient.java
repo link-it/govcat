@@ -29,6 +29,7 @@ import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotImplementedException;
 import org.govway.catalogo.servlets.pdnd.client.api.impl.ApiException;
 import org.govway.catalogo.servlets.pdnd.model.Agreement;
+import org.govway.catalogo.servlets.pdnd.model.AgreementRejection;
 import org.govway.catalogo.servlets.pdnd.model.AgreementState;
 import org.govway.catalogo.servlets.pdnd.model.Agreements;
 import org.govway.catalogo.servlets.pdnd.model.Attribute;
@@ -149,10 +150,45 @@ public class PDNDClient implements IPDNDClient {
 	}
 
 	/**
+	 * L'API PDND v1 non prevede il rifiuto di un accordo di fruizione.
+	 */
+	public ResponseEntity<Agreement> rejectAgreement(UUID agreementId, AgreementRejection agreementRejection) {
+		throw notImplemented("rejectAgreement");
+	}
+
+	/**
+	 * L'API PDND v1 non prevede la sospensione di un accordo di fruizione.
+	 */
+	public ResponseEntity<Agreement> suspendAgreement(UUID agreementId) {
+		throw notImplemented("suspendAgreement");
+	}
+
+	/**
+	 * L'API PDND v1 non prevede la revoca della sospensione di un accordo di fruizione.
+	 */
+	public ResponseEntity<Agreement> unsuspendAgreement(UUID agreementId) {
+		throw notImplemented("unsuspendAgreement");
+	}
+
+	/**
 	 * L'API PDND v1 non prevede l'approvazione di una finalita'.
 	 */
 	public ResponseEntity<Purpose> approvePurpose(UUID purposeId) {
 		throw notImplemented("approvePurpose");
+	}
+
+	/**
+	 * L'API PDND v1 non prevede la sospensione di una finalita'.
+	 */
+	public ResponseEntity<Purpose> suspendPurpose(UUID purposeId) {
+		throw notImplemented("suspendPurpose");
+	}
+
+	/**
+	 * L'API PDND v1 non prevede la revoca della sospensione di una finalita'.
+	 */
+	public ResponseEntity<Purpose> unsuspendPurpose(UUID purposeId) {
+		throw notImplemented("unsuspendPurpose");
 	}
 
 	private NotImplementedException notImplemented(String operazione) {

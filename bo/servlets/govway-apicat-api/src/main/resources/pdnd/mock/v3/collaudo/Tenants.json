@@ -9,11 +9,111 @@
       "name": "Comune di Collaudo",
       "kind": "PA",
       "createdAt": "2026-01-15T09:30:00Z"
+    },
+    {
+      "id": "22222222-2222-2222-2222-222222222222",
+      "externalId": {
+        "origin": "IPA",
+        "value": "c_a001"
+      },
+      "name": "Comune di Alfa",
+      "kind": "PA",
+      "createdAt": "2026-01-15T09:30:00Z"
+    },
+    {
+      "id": "d2222222-2222-2222-2222-222222222222",
+      "externalId": {
+        "origin": "IPA",
+        "value": "c_b002"
+      },
+      "name": "Comune di Beta",
+      "kind": "PA",
+      "createdAt": "2026-01-15T09:30:00Z"
+    },
+    {
+      "id": "a2222222-2222-2222-2222-222222222222",
+      "externalId": {
+        "origin": "IPA",
+        "value": "c_c003"
+      },
+      "name": "Comune di Gamma",
+      "kind": "PA",
+      "createdAt": "2026-01-15T09:30:00Z"
+    },
+    {
+      "id": "b2222222-2222-2222-2222-222222222222",
+      "externalId": {
+        "origin": "IPA",
+        "value": "c_d004"
+      },
+      "name": "Comune di Delta",
+      "kind": "PA",
+      "createdAt": "2026-01-15T09:30:00Z"
+    },
+    {
+      "id": "e2222222-2222-2222-2222-222222222222",
+      "externalId": {
+        "origin": "IPA",
+        "value": "c_e005"
+      },
+      "name": "Comune di Epsilon",
+      "kind": "PA",
+      "createdAt": "2026-01-15T09:30:00Z"
+    },
+    {
+      "id": "f2222222-2222-2222-2222-222222222222",
+      "externalId": {
+        "origin": "IPA",
+        "value": "c_z006"
+      },
+      "name": "Comune di Zeta",
+      "kind": "PA",
+      "createdAt": "2026-01-15T09:30:00Z"
+    },
+    {
+      "id": "12222222-2222-2222-2222-222222222222",
+      "externalId": {
+        "origin": "IPA",
+        "value": "c_t007"
+      },
+      "name": "Comune di Theta",
+      "kind": "PA",
+      "createdAt": "2026-01-15T09:30:00Z"
+    },
+    {
+      "id": "22222222-2222-2222-2222-2222222222aa",
+      "externalId": {
+        "origin": "IPA",
+        "value": "c_i008"
+      },
+      "name": "Comune di Iota",
+      "kind": "PA",
+      "createdAt": "2026-01-15T09:30:00Z"
+    },
+    {
+      "id": "32222222-2222-2222-2222-222222222222",
+      "externalId": {
+        "origin": "IPA",
+        "value": "c_k009"
+      },
+      "name": "Comune di Kappa",
+      "kind": "PA",
+      "createdAt": "2026-01-15T09:30:00Z"
+    },
+    {
+      "id": "42222222-2222-2222-2222-222222222222",
+      "externalId": {
+        "origin": "IPA",
+        "value": "c_l010"
+      },
+      "name": "Comune di Lambda",
+      "kind": "PA",
+      "createdAt": "2026-01-15T09:30:00Z"
     }
   ],
   "pagination": {
     "offset": 0,
     "limit": 50,
-    "totalCount": 1
+    "totalCount": 11
   }
 }

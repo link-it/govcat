@@ -366,6 +366,124 @@ class PDNDClientV3Test {
 	}
 
 	@Test
+	void ilRifiutoDellAccordoInoltraLaMotivazione() throws Exception {
+		GatewayApi api = mock(GatewayApi.class);
+
+		Agreement rifiutato =
+				agreement(AGREEMENT_ID, org.govway.catalogo.servlets.pdnd.v3.model.AgreementState.REJECTED);
+		rifiutato.setRejectionReason("La richiesta non riporta la finalita' del trattamento dei dati");
+
+		ArgumentCaptor<org.govway.catalogo.servlets.pdnd.v3.model.AgreementRejection> inviato =
+				ArgumentCaptor.forClass(org.govway.catalogo.servlets.pdnd.v3.model.AgreementRejection.class);
+		when(api.rejectAgreement(eq(AGREEMENT_ID), inviato.capture())).thenReturn(rifiutato);
+
+		org.govway.catalogo.servlets.pdnd.model.AgreementRejection rifiuto =
+				new org.govway.catalogo.servlets.pdnd.model.AgreementRejection();
+		rifiuto.setReason("La richiesta non riporta la finalita' del trattamento dei dati");
+
+		org.govway.catalogo.servlets.pdnd.model.Agreement response =
+				new PDNDClientV3(api).rejectAgreement(AGREEMENT_ID, rifiuto).getBody();
+
+		assertEquals(rifiuto.getReason(), inviato.getValue().getReason());
+		assertEquals(AgreementState.REJECTED, response.getState());
+		assertEquals(rifiuto.getReason(), response.getRejectionReason());
+	}
+
+	@Test
+	void laSospensioneDellAccordoRiportaChiLHaDisposta() throws Exception {
+		GatewayApi api = mock(GatewayApi.class);
+
+		Agreement sospeso =
+				agreement(AGREEMENT_ID, org.govway.catalogo.servlets.pdnd.v3.model.AgreementState.SUSPENDED);
+		sospeso.setSuspendedByProducer(true);
+		sospeso.setSuspendedByConsumer(true);
+		sospeso.setSuspendedByPlatform(false);
+		when(api.suspendAgreement(AGREEMENT_ID)).thenReturn(sospeso);
+
+		org.govway.catalogo.servlets.pdnd.model.Agreement response =
+				new PDNDClientV3(api).suspendAgreement(AGREEMENT_ID).getBody();
+
+		assertEquals(AgreementState.SUSPENDED, response.getState());
+		assertEquals(true, response.isSuspendedByProducer());
+		assertEquals(true, response.isSuspendedByConsumer());
+		assertEquals(false, response.isSuspendedByPlatform());
+	}
+
+	@Test
+	void laRiattivazioneDellAccordoRiportaLoStatoRestituitoDallaPdnd() throws Exception {
+		GatewayApi api = mock(GatewayApi.class);
+
+		// sospeso anche dal fruitore: la PDND lo lascia sospeso
+		Agreement riattivato =
+				agreement(AGREEMENT_ID, org.govway.catalogo.servlets.pdnd.v3.model.AgreementState.SUSPENDED);
+		riattivato.setSuspendedByProducer(false);
+		riattivato.setSuspendedByConsumer(true);
+		when(api.unsuspendAgreement(AGREEMENT_ID)).thenReturn(riattivato);
+
+		org.govway.catalogo.servlets.pdnd.model.Agreement response =
+				new PDNDClientV3(api).unsuspendAgreement(AGREEMENT_ID).getBody();
+
+		assertEquals(AgreementState.SUSPENDED, response.getState());
+		assertEquals(false, response.isSuspendedByProducer());
+		assertEquals(true, response.isSuspendedByConsumer());
+	}
+
+	@Test
+	void laSospensioneDellaFinalitaRiportaChiLHaDisposta() throws Exception {
+		GatewayApi api = mock(GatewayApi.class);
+
+		Purpose sospesa = purpose(PurposeVersionState.SUSPENDED, 1000);
+		sospesa.setSuspendedByProducer(true);
+		when(api.suspendPurpose(PURPOSE_ID)).thenReturn(sospesa);
+
+		org.govway.catalogo.servlets.pdnd.model.Purpose response =
+				new PDNDClientV3(api).suspendPurpose(PURPOSE_ID).getBody();
+
+		assertEquals(PurposeState.SUSPENDED, response.getState());
+		assertEquals(true, response.isSuspendedByProducer());
+	}
+
+	@Test
+	void laRiattivazioneDellaFinalitaRiportaLoStatoRestituitoDallaPdnd() throws Exception {
+		GatewayApi api = mock(GatewayApi.class);
+
+		// sospesa anche dal fruitore: la PDND la lascia sospesa
+		Purpose riattivata = purpose(PurposeVersionState.SUSPENDED, 1000);
+		riattivata.setSuspendedByProducer(false);
+		riattivata.setSuspendedByConsumer(true);
+		when(api.unsuspendPurpose(PURPOSE_ID)).thenReturn(riattivata);
+
+		org.govway.catalogo.servlets.pdnd.model.Purpose response =
+				new PDNDClientV3(api).unsuspendPurpose(PURPOSE_ID).getBody();
+
+		assertEquals(PurposeState.SUSPENDED, response.getState());
+		assertEquals(false, response.isSuspendedByProducer());
+		assertEquals(true, response.isSuspendedByConsumer());
+	}
+
+	@Test
+	void iSottoscrittoriRiportanoChiHaSospesoLAccordo() throws Exception {
+		GatewayApi api = mock(GatewayApi.class);
+
+		Agreement sospeso =
+				agreement(AGREEMENT_ID, org.govway.catalogo.servlets.pdnd.v3.model.AgreementState.SUSPENDED);
+		sospeso.setSuspendedByProducer(true);
+		sospeso.setSuspendedByConsumer(false);
+
+		Agreements agreements = new Agreements();
+		agreements.setResults(List.of(sospeso));
+
+		when(api.getAgreements(eq(0), any(), isNull(), any(), any(), any(), any())).thenReturn(agreements);
+		when(api.getTenant(CONSUMER_ID)).thenReturn(tenant());
+
+		Subscribers response = new PDNDClientV3(api).getSubscribers(PRODUCER_ID, ESERVICE_ID).getBody();
+
+		assertEquals(AgreementState.SUSPENDED, response.getSubscribers().get(0).getState());
+		assertEquals(true, response.getSubscribers().get(0).isSuspendedByProducer());
+		assertEquals(false, response.getSubscribers().get(0).isSuspendedByConsumer());
+	}
+
+	@Test
 	void iSottoscrittoriRiportanoIDatiDellOrganizzazione() throws Exception {
 		GatewayApi api = mock(GatewayApi.class);
 
