@@ -5,7 +5,13 @@ import org.govway.catalogo.core.orm.entity.ApiEntity.PROTOCOLLO;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -87,5 +93,40 @@ public class WsdlUtilsTest {
         assertEquals("SimpleOperation", operation.getNome());
         assertEquals(1, operation.getSoapActions().size());
         assertEquals("urn:simpleAction", operation.getSoapActions().get(0).getValue());
+    }
+
+    // Issue 412: parsing concorrente di WSDL diversi (binding SOAP 1.1 e 1.2) da piu` thread.
+    // Con DocumentBuilder/XPathExpression statici condivisi alcune invocazioni fallivano o
+    // restituivano il protocollo di un altro WSDL.
+    @Test
+    void testGetProtocolloApi_concorrente() throws Exception {
+        byte[] wsdl11 = getWsdlBytes();
+        byte[] wsdl12 = SIMPLE_WSDL.replace("http://schemas.xmlsoap.org/wsdl/soap/", "http://schemas.xmlsoap.org/wsdl/soap12/")
+                .getBytes(StandardCharsets.UTF_8);
+
+        int threads = 16;
+        int iterazioni = 50;
+        ExecutorService executor = Executors.newFixedThreadPool(threads);
+        try {
+            CountDownLatch start = new CountDownLatch(1);
+            List<Future<Void>> esiti = new ArrayList<>();
+            for (int t = 0; t < threads; t++) {
+                boolean soap12 = t % 2 == 0;
+                esiti.add(executor.submit(() -> {
+                    start.await();
+                    for (int i = 0; i < iterazioni; i++) {
+                        PROTOCOLLO protocollo = WsdlUtils.getProtocolloApi(soap12 ? wsdl12 : wsdl11);
+                        assertEquals(soap12 ? PROTOCOLLO.WSDL12 : PROTOCOLLO.WSDL11, protocollo);
+                    }
+                    return null;
+                }));
+            }
+            start.countDown();
+            for (Future<Void> esito : esiti) {
+                esito.get(60, TimeUnit.SECONDS);
+            }
+        } finally {
+            executor.shutdownNow();
+        }
     }
 }

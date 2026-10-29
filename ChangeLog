@@ -21,9 +21,24 @@
 	  Script di upgrade del database `V2.5.1__rate_limiting.sql`. Le proprietà custom di
 	  rate limiting esistenti non vengono migrate e il configuratore continua a leggerle.
 
+2026-10-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #250 - PDND, fruitori e informazioni generali: nuove dialog con finalità in primo piano e
+	  azioni per stato da menu (approva/rifiuta accordo con motivazione, sospendi/riattiva accordi e
+	  finalità, avviso se la riattivazione lascia la sospensione del fruitore), conferma dedicata,
+	  motivazione del rifiuto e soggetti della sospensione; requisiti di accesso in elenco.
+	  Tooltip sopra le dialog, accenti nei testi italiani, rimosso il file BabelEdit inutilizzato.
+
 2026-10-29  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
+	Issue 412: corretti i rifiuti casuali (400 `DOC.400.FORMAT`) nella creazione concorrente
+	  di API SOAP: il parsing del WSDL non condivide più parser e XPath tra le richieste.
+	Issue 412: la creazione o modifica di un'API con gruppi di autenticazione e la sola
+	  configurazione di produzione non risponde più 500: la compatibilità del profilo è
+	  verificata sul protocollo di produzione; senza alcuna configurazione si risponde 400
+	  `VAL.400.REQUIRED`.
 	Issue 250: l'API PDND esposta da GovCat consente ora di governare l'intero ciclo di vita
 	  di fruizioni e finalita' consentito dalla PDND, non piu' la sola approvazione: rifiuto
 	  dell'accordo (`POST /{ambiente}/agreements/{agreementId}/reject`, con motivazione
@@ -46,6 +61,15 @@
 	  sospensione, la prima attivazione in attesa e la richiesta di aumento rifiutata), ciascun
 	  fruitore con la propria organizzazione. Le nuove operazioni sono simulate con le
 	  transizioni di stato della PDND: la riattivazione non sblocca la sospensione altrui.
+	Issue 413: i timeout delle chiamate del configuratore verso l'API di configurazione di
+	  GovWay sono ora configurabili per ambiente, in secondi
+	  (`configuratore.ConfigurazioneExecutor.govwayConfig.<ambiente>.timeout.connect`,
+	  `.timeout.read` e `.timeout.write`), e i default di lettura e scrittura passano dai 10
+	  secondi di okhttp a 60. La prima chiamata dopo un periodo di inattività può impiegare
+	  decine di secondi, mentre le successive rispondono in pochi millisecondi: con i valori
+	  precedenti la configurazione automatica terminava con `SocketTimeoutException` e
+	  l'adesione restava in errore definitivo, da sbloccare a mano con il retry. Un valore
+	  assente, non numerico o non positivo mantiene il default.
 
 2026-10-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 

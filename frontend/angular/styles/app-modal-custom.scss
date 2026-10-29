@@ -7,6 +7,11 @@
   z-index: 1640 !important;
 }
 
+// Tooltip agganciati al body sopra le dialog (specificita` maggiore del bootstrap importato dopo)
+body .tooltip {
+  z-index: 1800;
+}
+
 .modal-open {
   .modal {
     overflow-x: hidden;
@@ -272,4 +277,10 @@
       white-space: nowrap;
     }
   }
+}
+
+// Dialog aperta sopra un'altra dialog: ngx-bootstrap crea un solo backdrop,
+// quindi il contenitore oscura la dialog sottostante.
+modal-container.modal:has(> .modal-dialog.modal-stacked) {
+  background-color: rgba(16, 38, 58, .45);
 }

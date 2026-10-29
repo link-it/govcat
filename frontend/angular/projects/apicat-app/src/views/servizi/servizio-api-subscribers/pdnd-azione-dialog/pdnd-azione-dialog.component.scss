@@ -1,0 +1,158 @@
+.pa-hd {
+  align-items: flex-start;
+  gap: 14px;
+  padding: 20px 20px 12px;
+  border-bottom: 0;
+}
+
+.pa-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  font-size: 22px;
+  background: var(--ok-soft, #e7f6ec);
+  color: var(--ok-ink, #1b6b3a);
+
+  &[data-azione="reject"] { background: var(--err-soft, #fdecec); color: var(--err-ink, #b42318); }
+  &[data-azione="suspend"] { background: var(--warn-soft, #fff4e5); color: var(--warn-ink, #8a4b00); }
+}
+
+.pa-hd-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.pa-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.pa-subtitle {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--ink-3, #57738a);
+  word-break: break-word;
+}
+
+.pa-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 20px 20px;
+}
+
+.pa-desc {
+  margin: 0;
+  color: var(--ink-2, #33495c);
+}
+
+.pa-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: var(--surface-2, #f5f8fa);
+  border: 1px solid var(--line, #dee8ef);
+}
+
+.pa-row {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  font-size: 14px;
+
+  dt { font-weight: 400; color: var(--ink-3, #57738a); }
+  dd { margin: 0; color: var(--ink, #10263a); word-break: break-word; }
+}
+
+.pa-change {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  .bi-arrow-right { color: var(--ink-3, #57738a); }
+}
+
+.pa-old {
+  color: var(--ink-3, #57738a);
+  text-decoration: line-through;
+}
+
+.pa-note {
+  font-size: 12.5px;
+  color: var(--ink-3, #57738a);
+}
+
+.pa-state {
+  display: inline-flex;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line, #dee8ef);
+  background: var(--surface, #fff);
+  font-size: 12px;
+  font-weight: 600;
+
+  &[data-state="ACTIVE"] { background: var(--ok-soft, #e7f6ec); border-color: var(--ok-border, #a6dcb7); color: var(--ok-ink, #1b6b3a); }
+  &[data-state="PENDING"],
+  &[data-state="SUSPENDED"],
+  &[data-state="WAITING_FOR_APPROVAL"] { background: var(--warn-soft, #fff4e5); border-color: var(--warn-border, #f5c98a); color: var(--warn-ink, #8a4b00); }
+  &[data-state="REJECTED"] { background: var(--err-soft, #fdecec); border-color: var(--err-border, #f4b4ae); color: var(--err-ink, #b42318); }
+}
+
+.pa-note-warn {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--warn-soft, #fff4e5);
+  color: var(--warn-ink, #8a4b00);
+  font-size: 13.5px;
+
+  i { margin-top: 2px; }
+}
+
+.pa-reason-hint {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+  font-size: 12.5px;
+  color: var(--ink-3, #57738a);
+}
+
+textarea.is-invalid + .pa-reason-hint span:first-child {
+  color: var(--err-ink, #b42318);
+}
+
+.pa-counter {
+  flex-shrink: 0;
+}
+
+.pa-footer {
+  gap: 8px;
+  padding: 12px 20px 16px;
+}
+
+// Etichette dei campi come nella vetrina
+.pa-row dt,
+.pa-reason .form-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--ink-3, #57738a);
+}
+
+@media (max-width: 575.98px) {
+  .pa-row { grid-template-columns: 1fr; gap: 2px; }
+}

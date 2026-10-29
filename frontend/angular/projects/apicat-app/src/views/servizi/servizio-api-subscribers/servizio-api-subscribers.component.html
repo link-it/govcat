@@ -90,7 +90,7 @@
     </div>
   </section>
 }
-<section id="container-scroller" class="container-fluid container-scroller px-0" [class.container-scroller-no-search]="!_hasFilter"
+<section id="container-scroller" class="container-fluid container-scroller px-0" [class.container-scroller-no-search]="!_hasFilter" [class.is-embedded]="embedded"
   infiniteScroll
   [infiniteScrollDistance]="2"
   [infiniteScrollThrottle]="50"
@@ -99,7 +99,7 @@
   [autoFillScroll]="true"
   (autoFillNeeded)="__loadMoreData()">
 
-  @if ((servizioapisubscribers.length == 0 || !environmentId) && !_spin) {
+  @if ((servizioapisubscribers.length == 0 || !environmentId) && !_caricamento) {
     <ui-box-message
       [size]="64"
       [icon]="'report_problem'"
@@ -109,76 +109,195 @@
     </ui-box-message>
   }
 
-  <div class="row">
-    <div class="col-12">
-      @for (subscriber of servizioapisubscribers; track subscriber) {
-        <ui-collapse-row class="border-bottom"
-          [data]="subscriber.source"
-          [config]="apisubscribersConfig"
-          [enableCollapse]="subscriber.enableCollapse"
-          [hasLink]="true"
-          [hasAction]="_canApprove(subscriber.source)"
-          [iconAction]="'check-lg'"
-          [actionTooltip]="'APP.SUBSCRIBERS.Approve' | translate"
-          (actionClick)="_onApprove($event)"
-          (opened)="_onSubscriberOpened(subscriber.source)">
-          @if (subscriber.enableCollapse) {
-            <div collapse-content class="p-4 my-1 bg-lightest">
-              <div class="d-flex flex-row">
-                <ui-data-view
-                  [data]="subscriber.source"
-                  [config]="apisubscribersConfig">
-                </ui-data-view>
-              </div>
-              @if (subscriber.source.agreementId) {
-                @let agreementId = subscriber.source.agreementId;
-                @let ps = _purposesByAgreement[agreementId];
-                <section class="subscriber-purposes mt-4" [attr.aria-busy]="ps?.loading ? 'true' : null">
-                  <h3 class="subscriber-purposes-title">{{ 'APP.SUBSCRIBERS.Purposes' | translate }}</h3>
-                  @if (!ps || (ps.loading && !ps.items.length)) {
-                    <div class="d-flex align-items-center gap-2 text-muted small">
-                      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
-                      <span>{{ 'APP.SUBSCRIBERS.PurposesLoading' | translate }}</span>
+  <ng-template #menuAzioniTpl let-azioni="azioni" let-label="label" let-source="source" let-agreementId="agreementId" let-purpose="purpose">
+    @if (azioni.length) {
+      <div class="dropdown b-dropdown gl-new-dropdown btn-group">
+        <button type="button" class="btn btn-default btn-sm gl-button btn-icon sub-menu-btn" data-bs-toggle="dropdown" aria-expanded="false"
+          data-bs-popper-config='{"strategy":"fixed"}' [attr.aria-label]="label">
+          <i class="bi bi-three-dots-vertical" aria-hidden="true"></i>
+        </button>
+        <div class="dropdown-menu dropdown-menu-end sub-menu">
+          <div class="gl-new-dropdown-inner">
+            <ul class="gl-new-dropdown-contents list-unstyled mb-0">
+              @for (a of azioni; track a.code) {
+                <li class="gl-new-dropdown-item">
+                  <button type="button" role="menuitem" class="dropdown-item" [class.is-danger]="a.danger" (click)="_eseguiAzione(a.code, source, agreementId, purpose)">
+                    <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
+                      <i class="bi" [ngClass]="a.icon" aria-hidden="true"></i>
                     </div>
-                  } @else if (ps.error) {
-                    <p class="text-muted small mb-0">{{ 'APP.SUBSCRIBERS.PurposesError' | translate }}</p>
-                  } @else if (!ps.items.length) {
-                    <p class="text-muted small mb-0">{{ 'APP.SUBSCRIBERS.NoPurposes' | translate }}</p>
-                  } @else {
-                    <ul class="subscriber-purposes-list list-unstyled mb-0">
-                      @for (purpose of ps.items; track purpose.id) {
-                        <li class="purpose-item" [class.is-waiting]="!!purpose.waitingForApproval">
-                          <div class="purpose-main">
-                            <div class="purpose-title">{{ purpose.title || purpose.id }}</div>
-                            <div class="purpose-throughput">{{ 'APP.SUBSCRIBERS.PurposeThroughput' | translate: { value: _formatNumber(purpose.throughput) } }}</div>
-                            @if (purpose.waitingForApproval) {
-                              <div class="purpose-waiting">
-                                <i class="bi bi-hourglass-split me-1" aria-hidden="true"></i>{{ 'APP.SUBSCRIBERS.PurposeWaiting' | translate: { value: _formatNumber(purpose.waitingForApproval.throughput) } }}
-                              </div>
-                            }
-                          </div>
-                          <div class="purpose-side">
-                            <span class="purpose-state" [attr.data-state]="purpose.state">{{ purpose.state }}</span>
-                            @if (_canApprovePurpose(purpose)) {
-                              <button type="button" class="btn btn-confirm btn-sm gl-button" [disabled]="ps.loading"
-                                (click)="_onApprovePurpose(agreementId, purpose)">
-                                <i class="bi bi-unlock me-1" aria-hidden="true"></i>{{ 'APP.SUBSCRIBERS.ApprovePurpose' | translate }}
-                              </button>
-                            }
-                          </div>
-                        </li>
-                      }
-                    </ul>
-                  }
-                </section>
+                    <div class="gl-new-dropdown-item-text-wrapper">
+                      <p class="gl-new-dropdown-item-text-primary">{{ a.label | translate }}</p>
+                    </div>
+                  </button>
+                </li>
               }
-            </div>
-          }
-        </ui-collapse-row>
-      }
-    </div>
+            </ul>
+          </div>
+        </div>
+      </div>
+    } @else {
+      <span class="sub-menu-placeholder" aria-hidden="true"></span>
+    }
+  </ng-template>
+
+  <div class="sub-list">
+    @for (subscriber of servizioapisubscribers; track subscriber.id) {
+      @let src = subscriber.source;
+      @let agreementId = src.agreementId;
+      @let ps = agreementId ? _purposesByAgreement[agreementId] : null;
+      @let open = !!_expanded[subscriber.id];
+      @let waiting = _purposesWaiting(agreementId);
+      @let azioniAccordo = _azioniAccordo(src);
+      <article class="sub-card" [class.is-open]="open" [class.is-pending]="src.state === 'PENDING'">
+        <div class="sub-hd">
+          <button type="button" class="sub-toggle" [attr.aria-expanded]="open" [attr.aria-controls]="'sub-body-' + subscriber.id"
+            (click)="_toggleSubscriber(subscriber)">
+            <span class="sub-av" aria-hidden="true">{{ _initials(src.name) }}</span>
+            <span class="sub-id">
+              <span class="sub-name">{{ src.name }}</span>
+              <span class="sub-meta">
+                @if (src.category) {
+                  <span class="sub-meta-item" [tooltip]="'APP.LABEL.Category' | translate" container="body"><span class="visually-hidden">{{ 'APP.LABEL.Category' | translate }}: </span>{{ src.category }}</span>
+                }
+                @if (src.category && src.origin_external) { <span aria-hidden="true"> · </span> }
+                @if (src.origin_external) {
+                  <span class="sub-meta-item" [tooltip]="'APP.LABEL.ExternalId' | translate" container="body"><span class="visually-hidden">{{ 'APP.LABEL.ExternalId' | translate }}: </span>{{ src.origin_external }}</span>
+                }
+              </span>
+            </span>
+          </button>
+          <div class="sub-side">
+            @if (ps && !ps.loading && !ps.error) {
+              <span class="sub-chip">{{ 'APP.SUBSCRIBERS.PurposesCount' | translate: { count: ps.items.length } }}</span>
+            }
+            @if (waiting) {
+              <span class="sub-chip is-warn"><i class="bi bi-hourglass-split" aria-hidden="true"></i>{{ 'APP.SUBSCRIBERS.WaitingCount' | translate: { count: waiting } }}</span>
+            }
+            @let notaStato = _notaStatoAccordo(src);
+            <span class="sub-state" [attr.data-state]="src.state" [tooltip]="notaStato" container="body" [isDisabled]="!notaStato">{{ _statoLabel('AGREEMENT_STATE', src.state) | translate }}</span>
+            <ng-container *ngTemplateOutlet="menuAzioniTpl; context: {
+              azioni: azioniAccordo,
+              label: ('APP.SUBSCRIBERS.ACTIONS.AgreementMenu' | translate: { name: src.name }),
+              source: src,
+              agreementId: null,
+              purpose: null
+            }"></ng-container>
+            <!-- Doppione del pulsante dell'intestazione per il solo mouse: da tastiera si usa quello -->
+            <span class="sub-chevron" aria-hidden="true" (click)="_toggleSubscriber(subscriber)">
+              <i class="bi" [class.bi-chevron-down]="!open" [class.bi-chevron-up]="open"></i>
+            </span>
+          </div>
+        </div>
+
+        @if (open) {
+          <div class="sub-body" [id]="'sub-body-' + subscriber.id">
+            <dl class="sub-details">
+              <div><dt>{{ 'APP.LABEL.ConsumerId' | translate }}</dt><dd class="font-monospace">{{ src.consumerId }}</dd></div>
+              @if (src.origin_external) { <div><dt>{{ 'APP.LABEL.ExternalId' | translate }}</dt><dd>{{ src.origin_external }}</dd></div> }
+              @if (src.category) { <div><dt>{{ 'APP.LABEL.Category' | translate }}</dt><dd>{{ src.category }}</dd></div> }
+            </dl>
+
+            @if (src.state === 'PENDING') {
+              <div class="sub-notice" role="note">
+                <i class="bi bi-info-circle" aria-hidden="true"></i>
+                <span>{{ 'APP.SUBSCRIBERS.AgreementPending' | translate }}</span>
+              </div>
+            }
+            @if (src.state === 'SUSPENDED') {
+              @let sospesoDa = _sospensioni(src, true);
+              <div class="sub-notice" role="note">
+                <i class="bi bi-pause-circle" aria-hidden="true"></i>
+                <span>
+                  @if (sospesoDa.length) {
+                    <strong>{{ 'APP.SUBSCRIBERS.SuspendedBy' | translate }}:</strong>
+                    @for (k of sospesoDa; track k) { {{ k | translate }}@if (!$last) {, } }.
+                  }
+                  @if (!src.suspendedByProducer) { {{ 'APP.SUBSCRIBERS.NotReactivatable' | translate }} }
+                </span>
+              </div>
+            }
+            @if (src.state === 'REJECTED' && src.rejectionReason) {
+              <div class="sub-notice is-rejected" role="note">
+                <i class="bi bi-x-circle" aria-hidden="true"></i>
+                <span><strong>{{ 'APP.SUBSCRIBERS.RejectionReason' | translate }}:</strong> {{ src.rejectionReason }}</span>
+              </div>
+            }
+
+            @if (agreementId) {
+              <section class="sub-purposes" [attr.aria-busy]="ps?.loading ? 'true' : null" [attr.aria-labelledby]="'sub-purposes-' + subscriber.id">
+                <h3 class="sub-section-title" [id]="'sub-purposes-' + subscriber.id">
+                  {{ 'APP.SUBSCRIBERS.Purposes' | translate }}
+                  @if (ps?.items?.length) { <span class="sub-count">{{ ps!.items.length }}</span> }
+                </h3>
+                @if (!ps || (ps.loading && !ps.items.length)) {
+                  <div class="d-flex align-items-center gap-2 text-muted small">
+                    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                    <span>{{ 'APP.SUBSCRIBERS.PurposesLoading' | translate }}</span>
+                  </div>
+                } @else if (ps.error) {
+                  <p class="text-muted small mb-0">{{ 'APP.SUBSCRIBERS.PurposesError' | translate }}</p>
+                } @else if (!ps.items.length) {
+                  <p class="text-muted small mb-0">{{ 'APP.SUBSCRIBERS.NoPurposes' | translate }}</p>
+                } @else {
+                  <ul class="purpose-list list-unstyled mb-0">
+                    @for (purpose of ps.items; track purpose.id) {
+                      <li class="purpose-card" [class.is-waiting]="!!purpose.waitingForApproval">
+                        <div class="purpose-main">
+                          <span class="purpose-title">{{ purpose.title || purpose.id }}</span>
+                          <span class="purpose-state" [attr.data-state]="purpose.state">{{ _statoLabel('PURPOSE_STATE', purpose.state) | translate }}</span>
+                          @if (purpose.state === 'SUSPENDED') {
+                            @let sospesaDa = _sospensioni(purpose, false);
+                            @if (sospesaDa.length) {
+                              <span class="purpose-suspended-by">{{ 'APP.SUBSCRIBERS.SuspendedBy' | translate }}: @for (k of sospesaDa; track k) { {{ k | translate }}@if (!$last) {, } }</span>
+                            }
+                          }
+                        </div>
+                        <div class="purpose-load">
+                          <span class="purpose-load-label">{{ 'APP.SUBSCRIBERS.CurrentLoad' | translate }}</span>
+                          <span><span class="purpose-load-value">{{ _formatNumber(purpose.throughput) }}</span><span class="purpose-load-unit">{{ 'APP.SUBSCRIBERS.CallsPerDay' | translate }}</span></span>
+                        </div>
+                        <div class="purpose-request-slot">
+                          @if (purpose.waitingForApproval) {
+                            <div class="purpose-request">
+                              @if (_primaApprovazione(purpose)) {
+                                <span class="purpose-request-label"><i class="bi bi-hourglass-split" aria-hidden="true"></i>{{ 'APP.SUBSCRIBERS.FirstApprovalRequest' | translate }}</span>
+                                <span class="purpose-request-values">
+                                  <strong>{{ _formatNumber(purpose.waitingForApproval.throughput) }}</strong>
+                                  {{ 'APP.SUBSCRIBERS.CallsPerDay' | translate }}
+                                </span>
+                              } @else {
+                                <span class="purpose-request-label"><i class="bi bi-hourglass-split" aria-hidden="true"></i>{{ 'APP.SUBSCRIBERS.IncreaseRequest' | translate }}</span>
+                                <span class="purpose-request-values">
+                                  {{ _formatNumber(purpose.throughput) }}
+                                  <i class="bi bi-arrow-right" aria-hidden="true"></i><span class="visually-hidden">{{ 'APP.SUBSCRIBERS.To' | translate }}</span>
+                                  <strong>{{ _formatNumber(purpose.waitingForApproval.throughput) }}</strong>
+                                  {{ 'APP.SUBSCRIBERS.CallsPerDay' | translate }}
+                                </span>
+                              }
+                            </div>
+                          }
+                        </div>
+                        <div class="purpose-actions">
+                          <ng-container *ngTemplateOutlet="menuAzioniTpl; context: {
+                            azioni: _azioniFinalita(purpose),
+                            label: ('APP.SUBSCRIBERS.ACTIONS.PurposeMenu' | translate: { name: purpose.title || purpose.id }),
+                            source: src,
+                            agreementId: agreementId,
+                            purpose: purpose
+                          }"></ng-container>
+                        </div>
+                      </li>
+                    }
+                  </ul>
+                }
+              </section>
+            }
+          </div>
+        }
+      </article>
+    }
   </div>
-  @if (_spin) {
+  @if (_caricamento) {
     <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3"></ui-box-spinner>
   }
 </section>

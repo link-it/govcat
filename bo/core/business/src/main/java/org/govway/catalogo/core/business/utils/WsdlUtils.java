@@ -61,28 +61,20 @@ public class WsdlUtils {
 	private static final String SOAP_12_NS = "http://schemas.xmlsoap.org/wsdl/soap12/";
 	
 	private final static Logger logger = LoggerFactory.getLogger(WsdlUtils.class);
-	private static DocumentBuilder instance = null;
+
+	// DocumentBuilder e XPathExpression non sono thread-safe: vengono creati a ogni invocazione
+	// per non condividerli tra richieste concorrenti (Issue 412).
 	private static DocumentBuilder getDocumentBuilder() throws ParserConfigurationException {
-		if(instance == null) {
-			DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
-			builderFactory.setNamespaceAware(true);
-			instance = builderFactory.newDocumentBuilder();
-		}
-		
-		return instance;
+		DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+		builderFactory.setNamespaceAware(true);
+		return builderFactory.newDocumentBuilder();
 	}
-	
-	private static XPathExpression expression;
 
 	private static final String BINDING_EXPRESSION = "/*[local-name()='definitions']/*[local-name()='binding']/*[local-name()='binding']";
 
 	private static XPathExpression getBindingExpression() throws XPathExpressionException {
-		if(expression == null) {
-			XPath xPath = XPathFactory.newInstance().newXPath();
-			expression = xPath.compile(BINDING_EXPRESSION);
-		}
-		
-		return expression;
+		XPath xPath = XPathFactory.newInstance().newXPath();
+		return xPath.compile(BINDING_EXPRESSION);
 	}
 	
 	public static PROTOCOLLO getProtocolloApi(byte[] wsdlBytes) throws Exception {

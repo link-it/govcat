@@ -45,6 +45,7 @@ import org.govway.catalogo.servlets.model.AuthTypeApiResource;
 import org.govway.catalogo.servlets.model.AuthTypeApiResourceProprietaCustom;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
+import org.govway.catalogo.servlets.model.ConfigurazioneCompatibilitaApiEnum;
 import org.govway.catalogo.servlets.model.ConfigurazioneCustomProprietaList;
 import org.govway.catalogo.servlets.model.ConfigurazioneProfilo;
 import org.govway.catalogo.servlets.model.ConfigurazioneProfiloCustomProprietaText;
@@ -2048,6 +2049,58 @@ public class APITest {
     	} finally {
     		profilo.setTipoDominio(null);
     	}
+    }
+
+    private APICreate getApiCreateDominioSoloProduzione(String nome, Servizio servizio, String profilo) {
+    	APICreate apiCreate = getApiCreateDominio(nome, servizio, profilo);
+    	apiCreate.setConfigurazioneProduzione(apiCreate.getConfigurazioneCollaudo());
+    	apiCreate.setConfigurazioneCollaudo(null);
+    	return apiCreate;
+    }
+
+    // Issue 412: API in bozza con la sola configurazione di produzione e gruppi di autenticazione
+    @Test
+    void testCreateApiSoloProduzioneConGruppiAuthType() {
+    	Dominio dominio = this.getDominio();
+    	Servizio servizio = creaServizio("servizio_erogazione", dominio.getIdDominio(), false, null);
+
+    	ResponseEntity<API> response = apiController.createApi(getApiCreateDominioSoloProduzione("API_X", servizio, "INTERNO_HTTPS"));
+    	assertEquals(HttpStatus.OK, response.getStatusCode());
+    	assertNull(response.getBody().getConfigurazioneCollaudo());
+    	assertNotNull(response.getBody().getConfigurazioneProduzione());
+    }
+
+    // Issue 412: senza collaudo la compatibilita` del profilo e` verificata sul protocollo di produzione
+    @Test
+    void testCreateApiSoloProduzioneProfiloIncompatibileRifiutato() {
+    	ConfigurazioneProfilo profilo = getProfiloConfigurazione("INTERNO_HTTPS");
+    	ConfigurazioneCompatibilitaApiEnum compatibilitaOriginale = profilo.getCompatibilita();
+    	try {
+    		profilo.setCompatibilita(ConfigurazioneCompatibilitaApiEnum.SOAP);
+
+    		Dominio dominio = this.getDominio();
+    		Servizio servizio = creaServizio("servizio_erogazione", dominio.getIdDominio(), false, null);
+
+    		BadRequestException e = assertThrows(BadRequestException.class,
+    				() -> apiController.createApi(getApiCreateDominioSoloProduzione("API_X", servizio, "INTERNO_HTTPS")));
+    		assertEquals(ErrorCode.VAL_422, e.getErrorCode());
+    	} finally {
+    		profilo.setCompatibilita(compatibilitaOriginale);
+    	}
+    }
+
+    // Issue 412: gruppi di autenticazione senza alcuna configurazione: 400 esplicito invece di 500
+    @Test
+    void testCreateApiSenzaConfigurazioniConGruppiAuthTypeRifiutato() {
+    	Dominio dominio = this.getDominio();
+    	Servizio servizio = creaServizio("servizio_erogazione", dominio.getIdDominio(), false, null);
+
+    	APICreate apiCreate = getApiCreateDominio("API_X", servizio, "INTERNO_HTTPS");
+    	apiCreate.setConfigurazioneCollaudo(null);
+
+    	BadRequestException e = assertThrows(BadRequestException.class, () -> apiController.createApi(apiCreate));
+    	assertEquals(ErrorCode.VAL_400_REQUIRED, e.getErrorCode());
+    	assertEquals("configurazione_collaudo", e.getParameters().get("campo"));
     }
 
     @Test

@@ -1,0 +1,99 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div class="modal-header pa-hd">
+  <div class="pa-icon" [attr.data-azione]="azione" aria-hidden="true"><i class="bi" [ngClass]="_icona"></i></div>
+  <div class="pa-hd-text">
+    <h2 class="modal-title pa-title" id="pa-title">{{ (_chiave + '.Title') | translate }}</h2>
+    <div class="pa-subtitle">{{ oggetto === 'purpose' ? finalita : fruitore }}</div>
+  </div>
+  <button type="button" class="btn-close" [attr.aria-label]="'APP.BUTTON.Close' | translate" (click)="annulla()"></button>
+</div>
+
+<div class="modal-body pa-body">
+  <p class="pa-desc">{{ (_restaSospeso ? _chiave + 'Partial' : _chiave + '.Description') | translate }}</p>
+
+  <dl class="pa-summary">
+    <div class="pa-row">
+      <dt>{{ 'APP.SUBSCRIBERS.DIALOG.Subscriber' | translate }}</dt>
+      <dd>{{ fruitore }}</dd>
+    </div>
+    @if (oggetto === 'purpose') {
+      <div class="pa-row">
+        <dt>{{ 'APP.SUBSCRIBERS.DIALOG.Purpose' | translate }}</dt>
+        <dd>{{ finalita }}</dd>
+      </div>
+    }
+    @if (_mostraCarico) {
+      <div class="pa-row">
+        <dt>{{ 'APP.SUBSCRIBERS.CurrentLoad' | translate }}</dt>
+        <dd class="pa-change">
+          @if (azione === 'approve' && primaApprovazione) {
+            <strong>{{ caricoRichiesto }}</strong> {{ 'APP.SUBSCRIBERS.CallsPerDay' | translate }}
+          } @else if (azione === 'approve') {
+            <span class="pa-old">{{ caricoAttuale }}</span>
+            <i class="bi bi-arrow-right" aria-hidden="true"></i><span class="visually-hidden">{{ 'APP.SUBSCRIBERS.To' | translate }}</span>
+            <strong>{{ caricoRichiesto }}</strong> {{ 'APP.SUBSCRIBERS.CallsPerDay' | translate }}
+          } @else {
+            <strong>{{ caricoAttuale }}</strong> {{ 'APP.SUBSCRIBERS.CallsPerDay' | translate }}
+            <span class="pa-note">({{ 'APP.SUBSCRIBERS.DIALOG.RequestedRejected' | translate: { value: caricoRichiesto } }})</span>
+          }
+        </dd>
+      </div>
+    } @else {
+      <div class="pa-row">
+        <dt>{{ 'APP.LABEL.Status' | translate }}</dt>
+        <dd class="pa-change">
+          <span class="pa-state" [attr.data-state]="statoAttuale">{{ ('APP.SUBSCRIBERS.' + _tipoStato + '.' + statoAttuale) | translate }}</span>
+          <i class="bi bi-arrow-right" aria-hidden="true"></i><span class="visually-hidden">{{ 'APP.SUBSCRIBERS.To' | translate }}</span>
+          <span class="pa-state" [attr.data-state]="_statoRisultante">{{ ('APP.SUBSCRIBERS.' + _tipoStato + '.' + _statoRisultante) | translate }}</span>
+        </dd>
+      </div>
+    }
+  </dl>
+
+  @if (_restaSospeso) {
+    <div class="pa-note-warn" role="note">
+      <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+      <span>{{ ('APP.SUBSCRIBERS.DIALOG.' + (oggetto === 'purpose' ? 'PURPOSE' : 'AGREEMENT') + '.StaysSuspended') | translate: { who: altreSospensioni } }}</span>
+    </div>
+  }
+
+  @if (_conMotivazione) {
+    <div class="pa-reason">
+      <label for="pa-reason" class="form-label">{{ 'APP.SUBSCRIBERS.DIALOG.Reason' | translate }} <span class="text-danger" aria-hidden="true">*</span></label>
+      <textarea id="pa-reason" class="form-control" rows="4" [attr.minlength]="motivazioneMin" [attr.maxlength]="motivazioneMax"
+        aria-required="true" aria-describedby="pa-reason-hint"
+        [class.is-invalid]="_toccato && _motivazioneMancante" [attr.aria-invalid]="_toccato && _motivazioneMancante"
+        (input)="_onMotivazione($any($event.target).value)"></textarea>
+      <div id="pa-reason-hint" class="pa-reason-hint">
+        <span>{{ (_toccato && _motivazioneMancante ? 'APP.SUBSCRIBERS.DIALOG.ReasonRequired' : 'APP.SUBSCRIBERS.DIALOG.ReasonHint') | translate: { min: motivazioneMin, max: motivazioneMax } }}</span>
+        <span class="pa-counter">{{ reason.length }}/{{ motivazioneMax }}</span>
+      </div>
+    </div>
+  }
+</div>
+
+<div class="modal-footer pa-footer">
+  <button type="button" class="btn btn-default gl-button" (click)="annulla()">{{ 'APP.BUTTON.Cancel' | translate }}</button>
+  <button type="button" class="btn gl-button pa-confirm" [attr.data-azione]="azione"
+    [class.btn-danger]="azione === 'reject'" [class.btn-confirm]="azione !== 'reject'"
+    [disabled]="_motivazioneMancante" (click)="conferma()">
+    <i class="bi me-1" [ngClass]="_icona" aria-hidden="true"></i>{{ (_chiave + '.Confirm') | translate }}
+  </button>
+</div>

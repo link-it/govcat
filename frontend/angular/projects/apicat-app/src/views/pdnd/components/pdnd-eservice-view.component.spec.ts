@@ -111,4 +111,35 @@ describe('PdndEServiceViewComponent', () => {
     expect(component.data).toBeTruthy();
     expect(component.data.length).toBe(3);
   });
+
+  it('should open only the latest descriptor until the user toggles it', () => {
+    expect(component._descrittoreAperto('d2', true)).toBe(true);
+    expect(component._descrittoreAperto('d1', false)).toBe(false);
+    component._toggleDescrittore('d2', true);
+    component._toggleDescrittore('d1', false);
+    expect(component._descrittoreAperto('d2', true)).toBe(false);
+    expect(component._descrittoreAperto('d1', false)).toBe(true);
+  });
+
+  it('should format numbers and show a dash when missing', () => {
+    expect(component._numero(null)).toBe('-');
+    expect(component._numero('abc')).toBe('abc');
+    expect(component._initials('Comune di Collaudo')).toBe('CD');
+  });
+
+  it('should flatten the access requirements with type, group and explicit verification', () => {
+    component.attributeData = [
+      [{ data: { name: 'SINGLE' }, list: [{ id: 'a1', name: 'Comuni', code: 'L5', origin: 'IPA', explicitAttributeVerification: 'false' }] }],
+      [{ data: { name: 'GROUP' }, list: [
+        { id: 'a2', name: 'Uno', code: '', origin: '', explicitAttributeVerification: 'true' },
+        { id: 'a3', name: 'Due', code: '', origin: '', explicitAttributeVerification: 'false' }
+      ] }],
+      []
+    ];
+    expect(component._requisiti.map((r) => [r.id, r.tipo, r.gruppo, r.alternative, r.verificaEsplicita])).toEqual([
+      ['a1', 'CERTIFIED', null, 1, false],
+      ['a2', 'DECLARED', 1, 2, true],
+      ['a3', 'DECLARED', 1, 2, false]
+    ]);
+  });
 });

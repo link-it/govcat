@@ -69,6 +69,11 @@ public class ConfigurazioneExecutor implements IConfigurazioneExecutor {
 	/** Prefisso, relativo al nome della classe, sotto cui sono dichiarati i profili. */
 	private static final String PREFISSO_PROFILI = ".outbound.auth.";
 	
+	/** Suffissi delle property con cui si configurano i timeout, in secondi, di una integrazione. */
+	private static final String SUFFISSO_TIMEOUT_CONNECT = "timeout.connect";
+	private static final String SUFFISSO_TIMEOUT_READ = "timeout.read";
+	private static final String SUFFISSO_TIMEOUT_WRITE = "timeout.write";
+	
 	private Invokers invokers;	
 	private Properties properties;
 	
@@ -145,7 +150,18 @@ public class ConfigurazioneExecutor implements IConfigurazioneExecutor {
 		String username = properties.getProperty(prefix + "username");
 		String password = properties.getProperty(prefix + "password");
 		
-		GovwayConfigInvoker invoker = new GovwayConfigInvoker(HttpUrl.get(url), cfg);
+		int connectTimeout = getTimeoutSecondi(properties, prefix + SUFFISSO_TIMEOUT_CONNECT,
+				GovwayConfigInvoker.CONNECT_TIMEOUT_SECONDI_DEFAULT);
+		int readTimeout = getTimeoutSecondi(properties, prefix + SUFFISSO_TIMEOUT_READ,
+				GovwayConfigInvoker.READ_TIMEOUT_SECONDI_DEFAULT);
+		int writeTimeout = getTimeoutSecondi(properties, prefix + SUFFISSO_TIMEOUT_WRITE,
+				GovwayConfigInvoker.WRITE_TIMEOUT_SECONDI_DEFAULT);
+		
+		this.logger.debug("govway {}: timeout in secondi connect={} read={} write={}",
+				ambiente, connectTimeout, readTimeout, writeTimeout);
+		
+		GovwayConfigInvoker invoker = new GovwayConfigInvoker(HttpUrl.get(url), cfg,
+				connectTimeout, readTimeout, writeTimeout);
 		
 		// le credenziali basic restano opzionali: con un profilo di autenticazione non servono
 		if (username != null && !username.isEmpty() && password != null && !password.isEmpty())
@@ -153,6 +169,26 @@ public class ConfigurazioneExecutor implements IConfigurazioneExecutor {
 		
 		return invoker.authentication(authRegistry.resolve(
 				properties.getProperty(prefix + SUFFISSO_AUTHN_REF), username, password));
+	}
+	
+	/**
+	 * Timeout in secondi dichiarato nelle properties.
+	 *
+	 * Un valore assente, non numerico o non positivo mantiene il default: una property scritta
+	 * male non deve impedire al batch di configurare le adesioni.
+	 */
+	static int getTimeoutSecondi(Properties properties, String chiave, int defaultSecondi) {
+		String valore = properties.getProperty(chiave);
+		
+		if (valore == null || valore.isBlank())
+			return defaultSecondi;
+		
+		try {
+			int secondi = Integer.parseInt(valore.trim());
+			return secondi > 0 ? secondi : defaultSecondi;
+		} catch (NumberFormatException e) {
+			return defaultSecondi;
+		}
 	}
 	
 	/**

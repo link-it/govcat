@@ -1099,6 +1099,24 @@
 			"Padre": "Father",
 			"Password": "Password",
 			"PDND": {
+				"Requirement": "Requirement",
+				"GroupAlternatives": "Group {{n}}: at least one of {{count}}",
+				"Code": "Code",
+				"Origin": "Origin",
+				"OrganizationId": "Organization ID",
+				"CallsPerConsumer": "Calls/day per subscriber",
+				"CallsTotal": "Total calls/day",
+				"VoucherLifespan": "Voucher validity",
+				"NoDescriptors": "No published descriptors.",
+				"STATE": {
+					"DRAFT": "Draft",
+					"PUBLISHED": "Published",
+					"DEPRECATED": "Deprecated",
+					"SUSPENDED": "Suspended",
+					"ARCHIVED": "Archived",
+					"WAITING_FOR_APPROVAL": "Awaiting approval",
+					"ACTIVE": "Active"
+				},
 				"Agreement": "Agreement",
 				"Attribute": "Attribute",
 				"Attributes": "Attributes",
@@ -2864,16 +2882,127 @@
 			"YES": "Yes"
 		},
 		"SUBSCRIBERS": {
-			"Approve": "Approve",
-			"ApproveConfirm": "Do you want to approve the agreement for subscriber {{name}}?",
+			"AgreementPending": "The agreement is awaiting approval: the subscriber can use the e-service once it is approved.",
+			"PurposesCount": "Purposes: {{count}}",
+			"WaitingCount": "To approve: {{count}}",
+			"CurrentLoad": "Expected load",
+			"CallsPerDay": "calls/day",
+			"IncreaseRequest": "Increase request pending",
+			"To": "to",
 			"Purposes": "Purposes",
 			"PurposesLoading": "Loading purposes…",
 			"PurposesError": "Unable to load the subscriber purposes.",
 			"NoPurposes": "No purposes activated by the subscriber.",
-			"PurposeThroughput": "Expected load: {{value}} calls/day",
 			"PurposeWaiting": "Increase to {{value}} calls/day awaiting approval",
-			"ApprovePurpose": "Unlock",
-			"ApprovePurposeConfirm": "Do you want to unlock the purpose «{{name}}» by approving the request for {{value}} calls/day?"
+			"ACTIONS": {
+				"Approve": "Approve",
+				"Reject": "Reject",
+				"Suspend": "Suspend",
+				"Unsuspend": "Reactivate",
+				"AgreementMenu": "Actions on the agreement of {{name}}",
+				"PurposeMenu": "Actions on the purpose {{name}}"
+			},
+			"AGREEMENT_STATE": {
+				"DRAFT": "Draft",
+				"ACTIVE": "Active",
+				"ARCHIVED": "Archived",
+				"PENDING": "Awaiting approval",
+				"SUSPENDED": "Suspended",
+				"MISSING_CERTIFIED_ATTRIBUTES": "Missing certified attributes",
+				"REJECTED": "Rejected"
+			},
+			"PURPOSE_STATE": {
+				"DRAFT": "Draft",
+				"ACTIVE": "Active",
+				"ARCHIVED": "Archived",
+				"PENDING": "Awaiting approval",
+				"SUSPENDED": "Suspended",
+				"MISSING_CERTIFIED_ATTRIBUTES": "Missing certified attributes",
+				"REJECTED": "Rejected",
+				"WAITING_FOR_APPROVAL": "Awaiting approval"
+			},
+			"DIALOG": {
+				"Subscriber": "Subscriber",
+				"Purpose": "Purpose",
+				"Reason": "Rejection reason",
+				"ReasonHint": "From {{min}} to {{max}} characters; the reason is shared with the subscriber.",
+				"ReasonRequired": "Enter at least {{min}} characters.",
+				"RequestedRejected": "request for {{value}} rejected",
+				"AGREEMENT": {
+					"unsuspendPartial": "Only the producer suspension is revoked.",
+					"approve": {
+						"Title": "Approve agreement",
+						"Description": "The subscriber will be able to use the e-service and activate its purposes.",
+						"Confirm": "Approve"
+					},
+					"reject": {
+						"Title": "Reject agreement",
+						"Description": "The subscription request is rejected: the subscriber will have to submit a new one to use the e-service.",
+						"Confirm": "Reject"
+					},
+					"suspend": {
+						"Title": "Suspend agreement",
+						"Description": "The subscriber will not be able to use the e-service until the agreement is reactivated.",
+						"Confirm": "Suspend"
+					},
+					"unsuspend": {
+						"Title": "Reactivate agreement",
+						"Description": "The subscriber will be able to use the e-service again.",
+						"Confirm": "Reactivate"
+					},
+					"StaysSuspended": "Still suspended by: {{who}}. After reactivation the agreement will remain suspended."
+				},
+				"PURPOSE": {
+					"unsuspendPartial": "Only the producer suspension is revoked.",
+					"approve": {
+						"Title": "Approve increase",
+						"Description": "The expected load of the purpose is raised to the value requested by the subscriber.",
+						"Confirm": "Approve"
+					},
+					"suspend": {
+						"Title": "Suspend purpose",
+						"Description": "The subscriber will not be able to use the e-service for this purpose until it is reactivated.",
+						"Confirm": "Suspend"
+					},
+					"unsuspend": {
+						"Title": "Reactivate purpose",
+						"Description": "The subscriber will be able to use the e-service for this purpose again.",
+						"Confirm": "Reactivate"
+					},
+					"StaysSuspended": "Still suspended by: {{who}}. After reactivation the purpose will remain suspended.",
+					"approveFirst": {
+						"Title": "Approve purpose",
+						"Description": "The purpose is activated with the expected load requested by the subscriber.",
+						"Confirm": "Approve"
+					}
+				}
+			},
+			"And": "and",
+			"SuspendedBy": "Suspended by",
+			"RejectionReason": "Rejection reason",
+			"NotReactivatable": "The suspension is not the producer's: it cannot be revoked from here.",
+			"SUSPENDED_BY": {
+				"PRODUCER": "producer",
+				"CONSUMER": "subscriber",
+				"PLATFORM": "PDND platform"
+			},
+			"RESULT": {
+				"AGREEMENT": {
+					"approve": "Agreement of {{name}} approved.",
+					"reject": "Agreement of {{name}} rejected.",
+					"suspend": "Agreement of {{name}} suspended.",
+					"unsuspend": "Agreement of {{name}} reactivated.",
+					"StillSuspended": "The producer suspension was revoked, but the agreement is still suspended (suspended by: {{who}})."
+				},
+				"PURPOSE": {
+					"approve": "Increase of purpose «{{name}}» approved.",
+					"suspend": "Purpose «{{name}}» suspended.",
+					"unsuspend": "Purpose «{{name}}» reactivated.",
+					"StillSuspended": "The producer suspension was revoked, but the purpose is still suspended (suspended by: {{who}}).",
+					"approveFirst": "Purpose «{{name}}» approved."
+				}
+			},
+			"FirstApprovalRequest": "First approval pending"
 		},
 		"SWAGGER": {
 			"ERROR": {
