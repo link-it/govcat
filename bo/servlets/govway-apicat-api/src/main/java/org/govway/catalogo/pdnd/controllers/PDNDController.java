@@ -36,6 +36,7 @@ import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotImplementedException;
 import org.govway.catalogo.servlets.pdnd.model.Agreement;
+import org.govway.catalogo.servlets.pdnd.model.AgreementRejection;
 import org.govway.catalogo.servlets.pdnd.model.AgreementState;
 import org.govway.catalogo.servlets.pdnd.model.Agreements;
 import org.govway.catalogo.servlets.pdnd.model.AmbienteEnum;
@@ -180,6 +181,43 @@ public class PDNDController implements CatalogApi, ConfigurazioneApi, org.govway
 	 * consentita ai soli utenti con ruolo PDND amministratore.
 	 */
 	@Override
+	public ResponseEntity<Agreement> rejectAgreement(AmbienteEnum ambiente, UUID agreementId,
+			AgreementRejection agreementRejection) {
+		checkVersionePdnd("rejectAgreement");
+		this.coreAuthorization.requireRuoloPdndAdmin();
+
+		return this.getClient(ambiente).rejectAgreement(agreementId, agreementRejection);
+	}
+
+	/**
+	 * Operazione di scrittura verso la PDND: supportata unicamente dall'API PDND v3 e
+	 * consentita ai soli utenti con ruolo PDND amministratore.
+	 */
+	@Override
+	public ResponseEntity<Agreement> suspendAgreement(AmbienteEnum ambiente, UUID agreementId) {
+		checkVersionePdnd("suspendAgreement");
+		this.coreAuthorization.requireRuoloPdndAdmin();
+
+		return this.getClient(ambiente).suspendAgreement(agreementId);
+	}
+
+	/**
+	 * Operazione di scrittura verso la PDND: supportata unicamente dall'API PDND v3 e
+	 * consentita ai soli utenti con ruolo PDND amministratore.
+	 */
+	@Override
+	public ResponseEntity<Agreement> unsuspendAgreement(AmbienteEnum ambiente, UUID agreementId) {
+		checkVersionePdnd("unsuspendAgreement");
+		this.coreAuthorization.requireRuoloPdndAdmin();
+
+		return this.getClient(ambiente).unsuspendAgreement(agreementId);
+	}
+
+	/**
+	 * Operazione di scrittura verso la PDND: supportata unicamente dall'API PDND v3 e
+	 * consentita ai soli utenti con ruolo PDND amministratore.
+	 */
+	@Override
 	public ResponseEntity<Purpose> approvePurpose(AmbienteEnum ambiente, UUID purposeId) {
 		checkVersionePdnd("approvePurpose");
 		this.coreAuthorization.requireRuoloPdndAdmin();
@@ -188,8 +226,33 @@ public class PDNDController implements CatalogApi, ConfigurazioneApi, org.govway
 	}
 
 	/**
-	 * Con l'API PDND v1 le approvazioni non sono disponibili: la segnalazione precede la verifica
-	 * del ruolo PDND, che con quella configurazione non e' nemmeno assegnabile.
+	 * Operazione di scrittura verso la PDND: supportata unicamente dall'API PDND v3 e
+	 * consentita ai soli utenti con ruolo PDND amministratore.
+	 */
+	@Override
+	public ResponseEntity<Purpose> suspendPurpose(AmbienteEnum ambiente, UUID purposeId) {
+		checkVersionePdnd("suspendPurpose");
+		this.coreAuthorization.requireRuoloPdndAdmin();
+
+		return this.getClient(ambiente).suspendPurpose(purposeId);
+	}
+
+	/**
+	 * Operazione di scrittura verso la PDND: supportata unicamente dall'API PDND v3 e
+	 * consentita ai soli utenti con ruolo PDND amministratore.
+	 */
+	@Override
+	public ResponseEntity<Purpose> unsuspendPurpose(AmbienteEnum ambiente, UUID purposeId) {
+		checkVersionePdnd("unsuspendPurpose");
+		this.coreAuthorization.requireRuoloPdndAdmin();
+
+		return this.getClient(ambiente).unsuspendPurpose(purposeId);
+	}
+
+	/**
+	 * Con l'API PDND v1 le operazioni di scrittura sul ciclo di vita non sono disponibili: la
+	 * segnalazione precede la verifica del ruolo PDND, che con quella configurazione non e'
+	 * nemmeno assegnabile.
 	 */
 	private void checkVersionePdnd(String operazione) {
 		if(this.clientFactory.isVersioneV1()) {

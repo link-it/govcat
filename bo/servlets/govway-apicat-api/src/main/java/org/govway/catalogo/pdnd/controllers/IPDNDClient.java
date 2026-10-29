@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.govway.catalogo.servlets.pdnd.model.Agreement;
+import org.govway.catalogo.servlets.pdnd.model.AgreementRejection;
 import org.govway.catalogo.servlets.pdnd.model.AgreementState;
 import org.govway.catalogo.servlets.pdnd.model.Agreements;
 import org.govway.catalogo.servlets.pdnd.model.Attribute;
@@ -67,9 +68,38 @@ public interface IPDNDClient {
 	ResponseEntity<Agreement> approveAgreement(UUID agreementId);
 
 	/**
+	 * Operazione di scrittura: rifiuta l'accordo di fruizione in stato PENDING,
+	 * indicando al fruitore la motivazione del rifiuto.
+	 */
+	ResponseEntity<Agreement> rejectAgreement(UUID agreementId, AgreementRejection agreementRejection);
+
+	/**
+	 * Operazione di scrittura: sospende l'accordo di fruizione.
+	 */
+	ResponseEntity<Agreement> suspendAgreement(UUID agreementId);
+
+	/**
+	 * Operazione di scrittura: revoca la sospensione dell'accordo di fruizione disposta
+	 * dall'erogatore. L'accordo resta sospeso se lo hanno sospeso anche il fruitore o la
+	 * piattaforma.
+	 */
+	ResponseEntity<Agreement> unsuspendAgreement(UUID agreementId);
+
+	/**
 	 * Operazione di scrittura: approva la finalita' in stato WAITING_FOR_APPROVAL.
 	 */
 	ResponseEntity<Purpose> approvePurpose(UUID purposeId);
+
+	/**
+	 * Operazione di scrittura: sospende la finalita'.
+	 */
+	ResponseEntity<Purpose> suspendPurpose(UUID purposeId);
+
+	/**
+	 * Operazione di scrittura: revoca la sospensione della finalita' disposta dall'erogatore.
+	 * La finalita' resta sospesa se l'ha sospesa anche il fruitore.
+	 */
+	ResponseEntity<Purpose> unsuspendPurpose(UUID purposeId);
 
 	ResponseEntity<Attributes> getAgreementAttributes(UUID agreementId);
 

@@ -255,6 +255,142 @@ paths:
         required: true
         schema:
           $ref: '#/components/schemas/AgreementId'
+  /agreements/{agreementId}/reject:
+    post:
+      description: Reject an Agreement that is in Pending state, transitioning it to Rejected state
+      operationId: rejectAgreement
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgreementRejection'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agreement'
+          description: Agreement rejected
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Reject an Agreement in Pending state
+      tags:
+      - gateway
+      parameters:
+      - description: The ID of the Agreement to reject
+        in: path
+        name: agreementId
+        required: true
+        schema:
+          $ref: '#/components/schemas/AgreementId'
+  /agreements/{agreementId}/suspend:
+    post:
+      description: 'Suspend an Agreement that is in Active or Suspended state, transitioning it to Suspended
+        state. An Agreement may already be in Suspended state when previously suspended by the consumer
+        or the producer'
+      operationId: suspendAgreement
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agreement'
+          description: Active agreement suspended
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Suspend an Agreement in Active or Suspended state
+      tags:
+      - gateway
+      parameters:
+      - description: The ID of the Agreement to suspend
+        in: path
+        name: agreementId
+        required: true
+        schema:
+          $ref: '#/components/schemas/AgreementId'
+  /agreements/{agreementId}/unsuspend:
+    post:
+      description: 'Unsuspend an Agreement that is in Suspended state, transitioning it to Active or Suspended
+        state. An Agreement may remain in Suspended state when suspended also by the consumer or the
+        producer'
+      operationId: unsuspendAgreement
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agreement'
+          description: Agreement unsuspended
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Unsuspend an Agreement in Suspended state
+      tags:
+      - gateway
+      parameters:
+      - description: The ID of the Agreement to unsuspend
+        in: path
+        name: agreementId
+        required: true
+        schema:
+          $ref: '#/components/schemas/AgreementId'
   /purposes/{purposeId}:
     get:
       description: Retrieve a Purpose
@@ -379,6 +515,97 @@ paths:
       - gateway
       parameters:
       - description: The ID of the Purpose to approve
+        in: path
+        name: purposeId
+        required: true
+        schema:
+          $ref: '#/components/schemas/PurposeId'
+  /purposes/{purposeId}/suspend:
+    post:
+      description: 'Suspend a Purpose that is in Active or Suspended state, transitioning it to Suspended
+        state. A Purpose may already be in Suspended state when previously suspended by the consumer
+        or the producer'
+      operationId: suspendPurpose
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Purpose'
+          description: Purpose suspended
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Suspend a Purpose in Active or Suspended state
+      tags:
+      - gateway
+      parameters:
+      - description: The ID of the Purpose to suspend
+        in: path
+        name: purposeId
+        required: true
+        schema:
+          $ref: '#/components/schemas/PurposeId'
+  /purposes/{purposeId}/unsuspend:
+    post:
+      description: 'Unsuspend a Purpose that is in Suspended state, transitioning it to Active or Suspended
+        state. A Purpose may remain in Suspended state when suspended also by the consumer or the producer'
+      operationId: unsuspendPurpose
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Purpose'
+          description: Purpose unsuspended
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Unsuspend a Purpose in Suspended state
+      tags:
+      - gateway
+      parameters:
+      - description: The ID of the Purpose to unsuspend
         in: path
         name: purposeId
         required: true
@@ -2299,6 +2526,17 @@ components:
       description: The unique identifier of the Agreement
       format: uuid
       type: string
+    AgreementRejection:
+      additionalProperties: false
+      description: contains the information for agreement rejection
+      properties:
+        reason:
+          maxLength: 1000
+          minLength: 20
+          type: string
+      required:
+      - reason
+      type: object
     AgreementState:
       description: Agreement State
       enum:

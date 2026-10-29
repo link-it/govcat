@@ -38,6 +38,7 @@ import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.pdnd.model.Agreement;
+import org.govway.catalogo.servlets.pdnd.model.AgreementRejection;
 import org.govway.catalogo.servlets.pdnd.model.AgreementState;
 import org.govway.catalogo.servlets.pdnd.model.Agreements;
 import org.govway.catalogo.servlets.pdnd.model.Attribute;
@@ -139,6 +140,10 @@ public class PDNDClientV3 implements IPDNDClient {
 				subscriber.setState(toAgreementState(agreement.getState()));
 				subscriber.setConsumerId(agreement.getConsumerId());
 				subscriber.setAgreementId(agreement.getId());
+				subscriber.setSuspendedByProducer(agreement.isSuspendedByProducer());
+				subscriber.setSuspendedByConsumer(agreement.isSuspendedByConsumer());
+				subscriber.setSuspendedByPlatform(agreement.isSuspendedByPlatform());
+				subscriber.setRejectionReason(agreement.getRejectionReason());
 
 				org.govway.catalogo.servlets.pdnd.v3.model.Tenant tenant =
 						tenants.get(agreement.getConsumerId());
@@ -216,14 +221,13 @@ public class PDNDClientV3 implements IPDNDClient {
 	}
 
 	@Override
-	public ResponseEntity<Purpose> approvePurpose(UUID purposeId) {
+	public ResponseEntity<Agreement> rejectAgreement(UUID agreementId, AgreementRejection agreementRejection) {
 		try {
-			org.govway.catalogo.servlets.pdnd.v3.model.Purpose purpose =
-					this.gatewayApiClient.approvePurpose(purposeId);
+			org.govway.catalogo.servlets.pdnd.v3.model.AgreementRejection rifiuto =
+					new org.govway.catalogo.servlets.pdnd.v3.model.AgreementRejection();
+			rifiuto.setReason(agreementRejection != null ? agreementRejection.getReason() : null);
 
-			return ResponseEntity.ok(toPurpose(purpose).orElseThrow(() ->
-					new InternalException(ErrorCode.INT_500_PDND, Map.of("dettagli",
-							"stato della finalita' ["+purposeId+"] non rappresentabile nel modello dati esposto"))));
+			return ResponseEntity.ok(toAgreement(this.gatewayApiClient.rejectAgreement(agreementId, rifiuto)));
 		} catch(RuntimeException e) {
 			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
 			throw e;
@@ -231,6 +235,91 @@ public class PDNDClientV3 implements IPDNDClient {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
 			throw toClientApiException(e);
 		}
+	}
+
+	@Override
+	public ResponseEntity<Agreement> suspendAgreement(UUID agreementId) {
+		try {
+			return ResponseEntity.ok(toAgreement(this.gatewayApiClient.suspendAgreement(agreementId)));
+		} catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		} catch(ApiException e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw toClientApiException(e);
+		}
+	}
+
+	@Override
+	public ResponseEntity<Agreement> unsuspendAgreement(UUID agreementId) {
+		try {
+			return ResponseEntity.ok(toAgreement(this.gatewayApiClient.unsuspendAgreement(agreementId)));
+		} catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		} catch(ApiException e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw toClientApiException(e);
+		}
+	}
+
+	@Override
+	public ResponseEntity<Purpose> approvePurpose(UUID purposeId) {
+		try {
+			org.govway.catalogo.servlets.pdnd.v3.model.Purpose purpose =
+					this.gatewayApiClient.approvePurpose(purposeId);
+
+			return ResponseEntity.ok(toPurposeEsposta(purposeId, purpose));
+		} catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		} catch(ApiException e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw toClientApiException(e);
+		}
+	}
+
+	@Override
+	public ResponseEntity<Purpose> suspendPurpose(UUID purposeId) {
+		try {
+			org.govway.catalogo.servlets.pdnd.v3.model.Purpose purpose =
+					this.gatewayApiClient.suspendPurpose(purposeId);
+
+			return ResponseEntity.ok(toPurposeEsposta(purposeId, purpose));
+		} catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		} catch(ApiException e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw toClientApiException(e);
+		}
+	}
+
+	@Override
+	public ResponseEntity<Purpose> unsuspendPurpose(UUID purposeId) {
+		try {
+			org.govway.catalogo.servlets.pdnd.v3.model.Purpose purpose =
+					this.gatewayApiClient.unsuspendPurpose(purposeId);
+
+			return ResponseEntity.ok(toPurposeEsposta(purposeId, purpose));
+		} catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		} catch(ApiException e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw toClientApiException(e);
+		}
+	}
+
+	/**
+	 * Converte la finalita' restituita da un'operazione di scrittura, il cui stato deve essere
+	 * rappresentabile nel modello dati esposto: diversamente dalla lettura di un elenco, qui la
+	 * finalita' non puo' essere semplicemente omessa.
+	 */
+	private Purpose toPurposeEsposta(UUID purposeId, org.govway.catalogo.servlets.pdnd.v3.model.Purpose purpose) {
+		return toPurpose(purpose).orElseThrow(() ->
+				new InternalException(ErrorCode.INT_500_PDND, Map.of("dettagli",
+						"stato della finalita' ["+purposeId+"] non rappresentabile nel modello dati esposto")));
 	}
 
 	/**
@@ -863,6 +952,10 @@ public class PDNDClientV3 implements IPDNDClient {
 		response.setProducerId(agreement.getProducerId());
 		response.setConsumerId(agreement.getConsumerId());
 		response.setState(toAgreementState(agreement.getState()));
+		response.setSuspendedByProducer(agreement.isSuspendedByProducer());
+		response.setSuspendedByConsumer(agreement.isSuspendedByConsumer());
+		response.setSuspendedByPlatform(agreement.isSuspendedByPlatform());
+		response.setRejectionReason(agreement.getRejectionReason());
 		return response;
 	}
 
@@ -906,6 +999,8 @@ public class PDNDClientV3 implements IPDNDClient {
 		response.setThroughput(version != null ? version.getDailyCalls() : null);
 		response.setState(state.get());
 		response.setWaitingForApproval(toWaitingForApproval(purpose));
+		response.setSuspendedByProducer(purpose.isSuspendedByProducer());
+		response.setSuspendedByConsumer(purpose.isSuspendedByConsumer());
 
 		return Optional.of(response);
 	}

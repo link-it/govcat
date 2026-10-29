@@ -33,6 +33,7 @@ import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.pdnd.controllers.PDNDMockServerV3;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Agreement;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.AgreementRejection;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.AgreementState;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.EServiceEvent;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Purpose;
@@ -54,6 +55,10 @@ class PDNDMockServerV3Test {
 	private static final UUID AGREEMENT_IN_ATTESA = UUID.fromString("d5555555-5555-5555-5555-555555555555");
 	private static final UUID PURPOSE_ATTIVA = UUID.fromString("66666666-6666-6666-6666-666666666666");
 	private static final UUID PURPOSE_IN_ATTESA = UUID.fromString("e6666666-6666-6666-6666-666666666666");
+	private static final UUID AGREEMENT_SOSPESO_DA_EROGATORE = UUID.fromString("a5555555-5555-5555-5555-555555555555");
+	private static final UUID AGREEMENT_SOSPESO_DA_ENTRAMBI = UUID.fromString("e5555555-5555-5555-5555-555555555555");
+	private static final UUID PURPOSE_SOSPESA_DA_EROGATORE = UUID.fromString("a6666666-6666-6666-6666-666666666666");
+	private static final UUID PURPOSE_SOSPESA_DA_ENTRAMBI = UUID.fromString("c6666666-6666-6666-6666-666666666666");
 
 	@ParameterizedTest
 	@ValueSource(strings = {"collaudo", "produzione"})
@@ -99,9 +104,146 @@ class PDNDMockServerV3Test {
 	void leCollezioniSimulateContengonoUnaSolaPagina() {
 		PDNDMockServerV3 server = new PDNDMockServerV3("collaudo");
 
-		// due accordi simulati: uno attivo e uno in attesa di approvazione
-		assertEquals(2, server.getAgreements(0, 50, null, null, null, null, null).getBody().getResults().size());
+		assertFalse(server.getAgreements(0, 50, null, null, null, null, null).getBody().getResults().isEmpty());
 		assertEquals(null, server.getAgreements(50, 50, null, null, null, null, null).getBody().getResults());
+	}
+
+	/**
+	 * I dati simulati coprono l'intero ciclo di vita, cosi' da consentire la prova di tutte
+	 * le azioni disponibili sui fruitori senza dipendere da un ambiente PDND reale.
+	 */
+	@ParameterizedTest
+	@ValueSource(strings = {"collaudo", "produzione"})
+	void gliAccordiSimulatiCopronoTuttiGliStati(String ambiente) {
+		PDNDMockServerV3 server = new PDNDMockServerV3(ambiente);
+
+		List<Agreement> accordi = server.getAgreements(0, 50, null, null, null, null, null).getBody().getResults();
+
+		for(AgreementState stato: AgreementState.values()) {
+			assertTrue(accordi.stream().anyMatch(a -> stato.equals(a.getState())),
+					"manca un accordo simulato in stato " + stato);
+		}
+
+		// le tre sospensioni sono distinte: la riattivazione dell'erogatore non sempre riattiva l'accordo
+		assertTrue(accordi.stream().anyMatch(a -> Boolean.TRUE.equals(a.isSuspendedByProducer())
+				&& !Boolean.TRUE.equals(a.isSuspendedByConsumer())));
+		assertTrue(accordi.stream().anyMatch(a -> Boolean.TRUE.equals(a.isSuspendedByConsumer())
+				&& !Boolean.TRUE.equals(a.isSuspendedByProducer())));
+		assertTrue(accordi.stream().anyMatch(a -> Boolean.TRUE.equals(a.isSuspendedByProducer())
+				&& Boolean.TRUE.equals(a.isSuspendedByConsumer())));
+		assertTrue(accordi.stream().anyMatch(a -> Boolean.TRUE.equals(a.isSuspendedByPlatform())));
+
+		// l'accordo rifiutato riporta la motivazione, come nella PDND
+		assertTrue(accordi.stream().anyMatch(a -> AgreementState.REJECTED.equals(a.getState())
+				&& a.getRejectionReason() != null));
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {"collaudo", "produzione"})
+	void leFinalitaSimulateCopronoTuttiGliStati(String ambiente) {
+		PDNDMockServerV3 server = new PDNDMockServerV3(ambiente);
+
+		List<Purpose> finalita = server.getAgreementPurposes(ID, 50, 0).getBody().getResults();
+
+		for(PurposeVersionState stato: PurposeVersionState.values()) {
+			assertTrue(finalita.stream().anyMatch(p -> stato.equals(statoVersione(p))),
+					"manca una finalita' simulata in stato " + stato);
+		}
+
+		assertTrue(finalita.stream().anyMatch(p -> Boolean.TRUE.equals(p.isSuspendedByProducer())
+				&& !Boolean.TRUE.equals(p.isSuspendedByConsumer())));
+		assertTrue(finalita.stream().anyMatch(p -> Boolean.TRUE.equals(p.isSuspendedByConsumer())
+				&& !Boolean.TRUE.equals(p.isSuspendedByProducer())));
+		assertTrue(finalita.stream().anyMatch(p -> Boolean.TRUE.equals(p.isSuspendedByProducer())
+				&& Boolean.TRUE.equals(p.isSuspendedByConsumer())));
+
+		// finalita' in attesa della prima approvazione: non ha una versione corrente
+		assertTrue(finalita.stream().anyMatch(p -> p.getCurrentVersion() == null
+				&& p.getWaitingForApprovalVersion() != null));
+	}
+
+	/**
+	 * Stato della finalita' con la stessa precedenza applicata dal client: versione corrente,
+	 * altrimenti quella in attesa di approvazione, altrimenti quella rifiutata.
+	 */
+	private PurposeVersionState statoVersione(Purpose purpose) {
+		if(purpose.getCurrentVersion() != null) {
+			return purpose.getCurrentVersion().getState();
+		}
+		if(purpose.getWaitingForApprovalVersion() != null) {
+			return purpose.getWaitingForApprovalVersion().getState();
+		}
+		return purpose.getRejectedVersion() != null ? purpose.getRejectedVersion().getState() : null;
+	}
+
+	@Test
+	void ilRifiutoRestituisceLAccordoRifiutatoConLaMotivazione() {
+		PDNDMockServerV3 server = new PDNDMockServerV3("collaudo");
+
+		AgreementRejection rifiuto = new AgreementRejection();
+		rifiuto.setReason("La richiesta non riporta la finalita' del trattamento dei dati");
+
+		Agreement rifiutato = server.rejectAgreement(AGREEMENT_IN_ATTESA, rifiuto).getBody();
+
+		assertEquals(AgreementState.REJECTED, rifiutato.getState());
+		assertEquals(rifiuto.getReason(), rifiutato.getRejectionReason());
+
+		// i dati simulati non cambiano: l'accordo resta in attesa
+		assertEquals(AgreementState.PENDING, server.getAgreement(AGREEMENT_IN_ATTESA).getBody().getState());
+	}
+
+	@Test
+	void laSospensioneDellAccordoEQuellaDellErogatore() {
+		PDNDMockServerV3 server = new PDNDMockServerV3("collaudo");
+
+		Agreement sospeso = server.suspendAgreement(AGREEMENT_ATTIVO).getBody();
+
+		assertEquals(AgreementState.SUSPENDED, sospeso.getState());
+		assertEquals(true, sospeso.isSuspendedByProducer());
+
+		assertEquals(AgreementState.ACTIVE, server.getAgreement(AGREEMENT_ATTIVO).getBody().getState());
+	}
+
+	@Test
+	void laRiattivazioneDellAccordoNonSbloccaLaSospensioneDelFruitore() {
+		PDNDMockServerV3 server = new PDNDMockServerV3("collaudo");
+
+		Agreement soloErogatore = server.unsuspendAgreement(AGREEMENT_SOSPESO_DA_EROGATORE).getBody();
+		assertEquals(AgreementState.ACTIVE, soloErogatore.getState());
+		assertEquals(false, soloErogatore.isSuspendedByProducer());
+
+		// sospeso anche dal fruitore: la revoca dell'erogatore non basta a riattivarlo
+		Agreement entrambi = server.unsuspendAgreement(AGREEMENT_SOSPESO_DA_ENTRAMBI).getBody();
+		assertEquals(AgreementState.SUSPENDED, entrambi.getState());
+		assertEquals(false, entrambi.isSuspendedByProducer());
+		assertEquals(true, entrambi.isSuspendedByConsumer());
+	}
+
+	@Test
+	void laSospensioneDellaFinalitaAgisceSullaVersioneCorrente() {
+		PDNDMockServerV3 server = new PDNDMockServerV3("collaudo");
+
+		Purpose sospesa = server.suspendPurpose(PURPOSE_ATTIVA).getBody();
+
+		assertEquals(true, sospesa.isSuspendedByProducer());
+		assertEquals(PurposeVersionState.SUSPENDED, sospesa.getCurrentVersion().getState());
+
+		assertEquals(PurposeVersionState.ACTIVE,
+				server.getPurpose(PURPOSE_ATTIVA).getBody().getCurrentVersion().getState());
+	}
+
+	@Test
+	void laRiattivazioneDellaFinalitaNonSbloccaLaSospensioneDelFruitore() {
+		PDNDMockServerV3 server = new PDNDMockServerV3("collaudo");
+
+		Purpose soloErogatore = server.unsuspendPurpose(PURPOSE_SOSPESA_DA_EROGATORE).getBody();
+		assertEquals(false, soloErogatore.isSuspendedByProducer());
+		assertEquals(PurposeVersionState.ACTIVE, soloErogatore.getCurrentVersion().getState());
+
+		Purpose entrambi = server.unsuspendPurpose(PURPOSE_SOSPESA_DA_ENTRAMBI).getBody();
+		assertEquals(false, entrambi.isSuspendedByProducer());
+		assertEquals(true, entrambi.isSuspendedByConsumer());
+		assertEquals(PurposeVersionState.SUSPENDED, entrambi.getCurrentVersion().getState());
 	}
 
 	@Test
