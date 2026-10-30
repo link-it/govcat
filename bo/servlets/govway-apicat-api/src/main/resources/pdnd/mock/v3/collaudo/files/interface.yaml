@@ -1,0 +1,34 @@
+openapi: 3.0.3
+info:
+  title: Anagrafe Comunale
+  description: Interfaccia simulata dell'e-service esposto dal mock PDND v3
+  version: '1'
+servers:
+  - url: https://collaudo.example.gov.it/anagrafe/v1
+paths:
+  /residenti/{codiceFiscale}:
+    get:
+      summary: Restituisce i dati anagrafici di un residente
+      operationId: getResidente
+      parameters:
+        - name: codiceFiscale
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Residente trovato
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  codiceFiscale:
+                    type: string
+                  nome:
+                    type: string
+                  cognome:
+                    type: string
+        '404':
+          description: Residente non trovato

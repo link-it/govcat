@@ -32,6 +32,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -102,6 +104,15 @@ import org.govway.catalogo.servlets.pdnd.v3.model.TenantKind;
 import org.govway.catalogo.servlets.pdnd.v3.model.Tenants;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+
+import okhttp3.Call;
+import okhttp3.Protocol;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 /**
  * Verifica l'adattamento delle risposte dell'API PDND v3 verso il modello dati dell'API
@@ -119,7 +130,11 @@ class PDNDClientV3Test {
 	private static final UUID ATTRIBUTO_DICHIARATO = UUID.fromString("99999999-9999-9999-9999-999999999999");
 	private static final UUID ATTRIBUTO_VERIFICATO = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
 	private static final UUID ATTRIBUTO_CERCATO = UUID.fromString("88888888-8888-8888-8888-888888888555");
+	private static final UUID DOCUMENT_ID = UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
 	private static final OffsetDateTime IERI = OffsetDateTime.now().minusDays(1);
+
+	/** Delimitatore del multipart con cui la PDND restituisce i file di un descrittore. */
+	private static final String BOUNDARY = "confine";
 
 
 	// ==================== operazioni ricostruite sulla v3 ====================
@@ -713,6 +728,83 @@ class PDNDClientV3Test {
 	}
 
 
+	@Test
+	void ilDocumentoScaricatoRiportaContenutoNomeEContentType() throws Exception {
+		GatewayApi api = mock(GatewayApi.class);
+
+		String corpo = multipart("openapi.yaml", "application/yaml", "openapi: 3.0.3");
+		Call chiamata = chiamata(risposta(200, "multipart/form-data; boundary=" + BOUNDARY, corpo));
+		when(api.downloadEServiceDescriptorDocumentCall(eq(ESERVICE_ID), eq(DESCRIPTOR_ID), eq(DOCUMENT_ID), isNull()))
+			.thenReturn(chiamata);
+
+		ResponseEntity<Resource> response =
+				new PDNDClientV3(api).downloadEServiceDescriptorDocument(ESERVICE_ID, DESCRIPTOR_ID, DOCUMENT_ID);
+
+		assertEquals("openapi: 3.0.3", contenuto(response));
+		assertEquals(MediaType.parseMediaType("application/yaml"), response.getHeaders().getContentType());
+		assertEquals("openapi.yaml", response.getHeaders().getContentDisposition().getFilename());
+	}
+
+	@Test
+	void lInterfacciaScaricataSenzaNomePrendeQuelloPredefinito() throws Exception {
+		GatewayApi api = mock(GatewayApi.class);
+
+		// multipart con la sola parte obbligatoria: la PDND non espone i metadati dell'interfaccia
+		String corpo = "--" + BOUNDARY + "\r\n"
+				+ "Content-Disposition: form-data; name=\"file\"\r\n\r\n"
+				+ "openapi: 3.0.3\r\n"
+				+ "--" + BOUNDARY + "--\r\n";
+
+		Call chiamata = chiamata(risposta(200, "multipart/form-data; boundary=" + BOUNDARY, corpo));
+		when(api.downloadEServiceDescriptorInterfaceCall(eq(ESERVICE_ID), eq(DESCRIPTOR_ID), isNull()))
+			.thenReturn(chiamata);
+
+		ResponseEntity<Resource> response =
+				new PDNDClientV3(api).downloadEServiceDescriptorInterface(ESERVICE_ID, DESCRIPTOR_ID);
+
+		assertEquals("openapi: 3.0.3", contenuto(response));
+		assertEquals("interface", response.getHeaders().getContentDisposition().getFilename());
+		// senza la parte contentType il file viene restituito come binario
+		assertEquals(MediaType.APPLICATION_OCTET_STREAM, response.getHeaders().getContentType());
+	}
+
+	/**
+	 * La specifica PDND prevede una risposta multipart: se il gateway restituisce il file da solo,
+	 * il download continua a funzionare.
+	 */
+	@Test
+	void ilDocumentoRestituitoSenzaMultipartVieneScaricatoUgualmente() throws Exception {
+		GatewayApi api = mock(GatewayApi.class);
+
+		Call chiamata = chiamata(risposta(200, "application/yaml", "openapi: 3.0.3"));
+		when(api.downloadEServiceDescriptorDocumentCall(eq(ESERVICE_ID), eq(DESCRIPTOR_ID), eq(DOCUMENT_ID), isNull()))
+			.thenReturn(chiamata);
+
+		ResponseEntity<Resource> response =
+				new PDNDClientV3(api).downloadEServiceDescriptorDocument(ESERVICE_ID, DESCRIPTOR_ID, DOCUMENT_ID);
+
+		assertEquals("openapi: 3.0.3", contenuto(response));
+		assertEquals(MediaType.parseMediaType("application/yaml"), response.getHeaders().getContentType());
+		assertEquals(DOCUMENT_ID.toString(), response.getHeaders().getContentDisposition().getFilename());
+	}
+
+	@Test
+	void unDocumentoInesistenteRiportaLErroreDellaPdnd() throws Exception {
+		GatewayApi api = mock(GatewayApi.class);
+
+		Call chiamata = chiamata(risposta(404, "application/problem+json", "{\"status\":404}"));
+		when(api.downloadEServiceDescriptorDocumentCall(eq(ESERVICE_ID), eq(DESCRIPTOR_ID), eq(DOCUMENT_ID), isNull()))
+			.thenReturn(chiamata);
+
+		PDNDClientV3 client = new PDNDClientV3(api);
+
+		ClientApiException e = assertThrows(ClientApiException.class,
+				() -> client.downloadEServiceDescriptorDocument(ESERVICE_ID, DESCRIPTOR_ID, DOCUMENT_ID));
+
+		assertEquals(404, e.getE().getCode());
+	}
+
+
 	// ==================== paginazione ====================
 
 	@Test
@@ -889,5 +981,41 @@ class PDNDClientV3Test {
 		descriptorAttribute.setAttribute(attribute);
 
 		return descriptorAttribute;
+	}
+
+	/** Multipart nella forma restituita dalla PDND per il download di un file. */
+	private String multipart(String nome, String contentType, String contenuto) {
+		return "--" + BOUNDARY + "\r\n"
+				+ "Content-Disposition: form-data; name=\"file\"; filename=\"" + nome + "\"\r\n"
+				+ "Content-Type: " + contentType + "\r\n\r\n"
+				+ contenuto + "\r\n"
+				+ "--" + BOUNDARY + "\r\n"
+				+ "Content-Disposition: form-data; name=\"filename\"\r\n\r\n"
+				+ nome + "\r\n"
+				+ "--" + BOUNDARY + "\r\n"
+				+ "Content-Disposition: form-data; name=\"contentType\"\r\n\r\n"
+				+ contentType + "\r\n"
+				+ "--" + BOUNDARY + "--\r\n";
+	}
+
+	private Call chiamata(Response response) throws IOException {
+		Call call = mock(Call.class);
+		when(call.execute()).thenReturn(response);
+		return call;
+	}
+
+	private Response risposta(int codice, String contentType, String corpo) {
+		return new Response.Builder()
+				.request(new Request.Builder().url("https://pdnd.example.gov.it/v3/download").build())
+				.protocol(Protocol.HTTP_1_1)
+				.code(codice)
+				.message(codice == 200 ? "OK" : "Not Found")
+				// il corpo e' passato come byte: da stringa okhttp aggiungerebbe il charset al content type
+				.body(ResponseBody.create(corpo.getBytes(StandardCharsets.UTF_8), okhttp3.MediaType.parse(contentType)))
+				.build();
+	}
+
+	private String contenuto(ResponseEntity<Resource> response) throws IOException {
+		return new String(response.getBody().getInputStream().readAllBytes(), StandardCharsets.UTF_8);
 	}
 }

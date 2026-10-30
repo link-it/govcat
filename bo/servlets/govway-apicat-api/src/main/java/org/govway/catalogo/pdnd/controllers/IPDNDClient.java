@@ -41,6 +41,7 @@ import org.govway.catalogo.servlets.pdnd.model.Problem;
 import org.govway.catalogo.servlets.pdnd.model.Purpose;
 import org.govway.catalogo.servlets.pdnd.model.Purposes;
 import org.govway.catalogo.servlets.pdnd.model.Subscribers;
+import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 
 /**
@@ -119,6 +120,17 @@ public interface IPDNDClient {
 	ResponseEntity<EServiceDescriptor> getEServiceDescriptor(UUID eserviceId, UUID descriptorId);
 
 	ResponseEntity<EServiceDescriptors> getEServiceDescriptors(UUID eserviceId);
+
+	/**
+	 * Scarica il contenuto di un documento allegato al descrittore: la risposta riporta il file
+	 * con il nome e il content type indicati dalla PDND.
+	 */
+	ResponseEntity<Resource> downloadEServiceDescriptorDocument(UUID eserviceId, UUID descriptorId, UUID documentId);
+
+	/**
+	 * Scarica l'interfaccia del descrittore, ossia la specifica dell'API erogata.
+	 */
+	ResponseEntity<Resource> downloadEServiceDescriptorInterface(UUID eserviceId, UUID descriptorId);
 
 	ResponseEntity<Events> getEservicesEventsFromId(Long lastEventId, Integer limit);
 
