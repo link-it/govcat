@@ -561,12 +561,42 @@
                                         @if (view.listView.title) {
                                           <h5 class="mb-3">{{ view.listView.title }}</h5>
                                         }
+                                        @let descrittore = jwk[i][j].data ? jwk[i][j].data : jwk[i][j];
+                                        @if (view.listView.scaricabile && _downloadDisponibile) {
+                                          <div class="pdnd-doc-row border-bottom">
+                                            <span class="pdnd-doc-name"><i class="bi bi-file-earmark-code me-2" aria-hidden="true"></i>{{ 'APP.LABEL.PDND.Interface' | translate }}</span>
+                                            <button type="button" class="btn btn-default btn-sm gl-button btn-icon" [disabled]="!!_scaricando"
+                                              [attr.aria-label]="'APP.LABEL.PDND.DownloadInterface' | translate"
+                                              [tooltip]="'APP.BUTTON.Download' | translate" container="body"
+                                              (click)="_scaricaInterfaccia(descrittore)">
+                                              @if (_scaricando === 'interface-' + descrittore.id) {
+                                                <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                                              } @else {
+                                                <i class="bi bi-download" aria-hidden="true"></i>
+                                              }
+                                            </button>
+                                          </div>
+                                        }
                                         @for (item of jwk[i][j]?.list; track item; let last = $last) {
-                                          <ui-item-row [class.border-bottom]="jwk[i][j]?.list.length > 1 && !last"
-                                            [data]="item"
-                                            [config]="view.listView.configuration"
-                                            [hasLink]="false">
-                                          </ui-item-row>
+                                          <div class="pdnd-doc-row" [class.border-bottom]="jwk[i][j]?.list.length > 1 && !last">
+                                            <ui-item-row class="flex-grow-1"
+                                              [data]="item"
+                                              [config]="view.listView.configuration"
+                                              [hasLink]="false">
+                                            </ui-item-row>
+                                            @if (view.listView.scaricabile && _downloadDisponibile && item?.id) {
+                                              <button type="button" class="btn btn-default btn-sm gl-button btn-icon" [disabled]="!!_scaricando"
+                                                [attr.aria-label]="('APP.BUTTON.Download' | translate) + ' ' + (item.prettyName || item.name)"
+                                                [tooltip]="'APP.BUTTON.Download' | translate" container="body"
+                                                (click)="_scaricaDocumento(descrittore, item)">
+                                                @if (_scaricando === 'doc-' + item.id) {
+                                                  <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                                                } @else {
+                                                  <i class="bi bi-download" aria-hidden="true"></i>
+                                                }
+                                              </button>
+                                            }
+                                          </div>
                                         }
                                       </div>
                                     }

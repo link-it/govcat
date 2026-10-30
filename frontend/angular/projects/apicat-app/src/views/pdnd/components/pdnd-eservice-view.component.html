@@ -124,15 +124,45 @@
                       @if (d.data.audience_url) { <div><dt>{{ 'APP.LABEL.AudienceURL' | translate }}</dt><dd class="font-monospace esv-copy-row">{{ d.data.audience_url }}<ng-container *ngTemplateOutlet="copiaTpl; context: { $implicit: d.data.audience_url, chiave: 'audience-' + d.data.id, etichetta: ('APP.LABEL.AudienceURL' | translate) }"></ng-container></dd></div> }
                       <div><dt>{{ 'APP.LABEL.DescriptorID' | translate }}</dt><dd class="font-monospace esv-copy-row">{{ d.data.id }}<ng-container *ngTemplateOutlet="copiaTpl; context: { $implicit: d.data.id, chiave: 'descrittore-' + d.data.id, etichetta: ('APP.LABEL.DescriptorID' | translate) }"></ng-container></dd></div>
                     </dl>
-                    @if (d.list?.length) {
+                    @if (d.list?.length || _downloadDisponibile) {
                       <div class="esv-docs">
                         <span class="esv-docs-title">{{ 'APP.LABEL.Documents' | translate }}</span>
                         <ul class="list-unstyled mb-0">
-                          @for (doc of d.list; track doc?.id ?? $index) {
+                          @if (_downloadDisponibile) {
+                            @let chiaveInterfaccia = 'interface-' + d.data.id;
                             <li class="esv-doc">
-                              <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
+                              <i class="bi bi-file-earmark-code" aria-hidden="true"></i>
+                              <span class="esv-doc-name">{{ 'APP.LABEL.PDND.Interface' | translate }}</span>
+                              <button type="button" class="esv-copy esv-doc-icon" [disabled]="!!_scaricando"
+                                [attr.aria-label]="'APP.LABEL.PDND.DownloadInterface' | translate"
+                                [tooltip]="'APP.BUTTON.Download' | translate" container="body"
+                                (click)="_scaricaInterfaccia(d.data.id)">
+                                @if (_scaricando === chiaveInterfaccia) {
+                                  <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                                } @else {
+                                  <i class="bi bi-download" aria-hidden="true"></i>
+                                }
+                              </button>
+                            </li>
+                          }
+                          @for (doc of d.list; track doc?.id ?? $index) {
+                            @let chiaveDoc = 'doc-' + doc.id;
+                            <li class="esv-doc">
+                              <i class="bi" [ngClass]="_iconaFile(doc.contentType, doc.name)" aria-hidden="true"></i>
                               <span class="esv-doc-name">{{ doc.prettyName || doc.name }}</span>
                               @if (doc.contentType) { <span class="esv-doc-type">{{ doc.contentType }}</span> }
+                              @if (_downloadDisponibile && doc.id) {
+                                <button type="button" class="esv-copy esv-doc-icon" [disabled]="!!_scaricando"
+                                  [attr.aria-label]="('APP.BUTTON.Download' | translate) + ' ' + (doc.prettyName || doc.name)"
+                                  [tooltip]="'APP.BUTTON.Download' | translate" container="body"
+                                  (click)="_scaricaDocumento(d.data.id, doc)">
+                                  @if (_scaricando === chiaveDoc) {
+                                    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                                  } @else {
+                                    <i class="bi bi-download" aria-hidden="true"></i>
+                                  }
+                                </button>
+                              }
                             </li>
                           }
                         </ul>

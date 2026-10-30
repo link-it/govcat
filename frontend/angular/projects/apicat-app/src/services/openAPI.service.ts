@@ -231,6 +231,11 @@ export class OpenAPIService {
     return this.http.getMonitorContentRaw(url, params, headers);
   }
 
+  downloadPDND(name: string, params?: HttpParams, headers?: HttpHeaders) {
+    const url = `${this.proxyPath}/${name}`;
+    return this.http.getContentRawPDND(url, params, headers);
+  }
+
   // Utilities
 
   queryToHttpParams(query: any): HttpParams {

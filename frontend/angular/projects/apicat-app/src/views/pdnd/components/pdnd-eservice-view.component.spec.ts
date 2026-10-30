@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import '@angular/compiler';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
+import { Tools } from '@linkit/components';
 import { SimpleChange } from '@angular/core';
 import { PdndEServiceViewComponent } from './pdnd-eservice-view.component';
 
@@ -155,5 +156,41 @@ describe('PdndEServiceViewComponent', () => {
     comp._copia('', 'vuoto');
     expect(clipboard.copy).toHaveBeenCalledTimes(1);
     vi.useRealTimers();
+  });
+
+  describe('download di documenti e interfaccia (Issue #415)', () => {
+    const avvia = (v3: boolean) => {
+      (globalThis as any).saveAs = vi.fn();
+      const auth = { isPdndV3: vi.fn().mockReturnValue(v3) };
+      const comp = new PdndEServiceViewComponent(mockTranslate, mockPdndService, undefined, auth as any);
+      (comp as any)._environmentId = 'collaudo';
+      (comp as any)._eServiceId = 'es';
+      return comp;
+    };
+    const risposta = (nome: string) => ({ body: new Blob(['x']), headers: { get: () => `attachment; filename="${nome}"` } });
+
+    it('should offer downloads only with the v3 integration', () => {
+      expect(avvia(true)._downloadDisponibile).toBe(true);
+      expect(avvia(false)._downloadDisponibile).toBe(false);
+    });
+
+    it('should save the document with the name from the response', () => {
+      const comp = avvia(true);
+      mockPdndService.downloadEserviceDescriptorDocument = vi.fn().mockReturnValue(of(risposta('openapi.yaml')));
+      comp._scaricaDocumento('ds', { id: 'doc', name: 'Specifica' });
+      expect(mockPdndService.downloadEserviceDescriptorDocument).toHaveBeenCalledWith('collaudo', 'es', 'ds', 'doc');
+      expect((globalThis as any).saveAs).toHaveBeenCalledWith(expect.any(Blob), 'openapi.yaml');
+      expect(comp._scaricando).toBeNull();
+    });
+
+    it('should download the interface and report a missing file', () => {
+      const comp = avvia(true);
+      const showMessage = vi.spyOn(Tools, 'showMessage').mockImplementation(() => {});
+      mockPdndService.downloadEserviceDescriptorInterface = vi.fn().mockReturnValue(throwError(() => ({ status: 404 })));
+      comp._scaricaInterfaccia('ds');
+      expect(mockPdndService.downloadEserviceDescriptorInterface).toHaveBeenCalledWith('collaudo', 'es', 'ds');
+      expect(showMessage).toHaveBeenCalledWith('APP.LABEL.PDND.DownloadNotFound', 'danger', true);
+      expect(comp._scaricando).toBeNull();
+    });
   });
 });

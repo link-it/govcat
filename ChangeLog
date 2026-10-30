@@ -31,6 +31,10 @@
 	  riportano il numero di azioni in attesa (accordi da approvare e finalità con versione da
 	  approvare), per l'amministratore PDND con integrazione v3.
 
+	Issue #415 - PDND: download dei documenti e dell'interfaccia del descrittore (integrazione v3)
+	  nelle informazioni generali e nella console PDND, con icona coerente con il tipo MIME; la
+	  console non si interrompe più con la v3, che non espone i metadati dell'interfaccia.
+
 2026-10-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

@@ -230,4 +230,9 @@ export class ApiClient {
   public getMonitorContentRaw(endPoint: string, params?: HttpParams, headers?: HttpHeaders): Observable<HttpResponse<Blob>> {
     return this.http.get(this.api_url_monitor + endPoint, { observe: 'response', responseType: 'blob', headers: headers, params: params});
   }
+
+  /** Download di un file dall'API PDND del catalogo (blob con le intestazioni, per il nome del file). */
+  public getContentRawPDND(endPoint: string, params?: HttpParams, headers?: HttpHeaders): Observable<HttpResponse<Blob>> {
+    return this.http.get(this.api_url_pdnd + endPoint, { observe: 'response', responseType: 'blob', headers: headers, params: params});
+  }
 }

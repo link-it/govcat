@@ -1099,6 +1099,10 @@
 			"Padre": "Padre",
 			"Password": "Password",
 			"PDND": {
+				"Interface": "Interfaccia (specifica dell'API)",
+				"DownloadInterface": "Scarica interfaccia",
+				"DownloadError": "Impossibile scaricare il file: riprova più tardi.",
+				"DownloadNotFound": "Il file richiesto non è disponibile.",
 				"Requirement": "Requisito",
 				"GroupAlternatives": "Gruppo {{n}}: almeno uno tra {{count}}",
 				"Code": "Codice",

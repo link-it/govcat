@@ -432,3 +432,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   &:focus-visible { outline: 2px solid var(--brand, #0d6efd); outline-offset: 1px; }
   &.is-copied { color: var(--ok-ink, #1b6b3a); }
 }
+
+// Download di documenti e interfaccia del descrittore
+.esv-doc-type + .esv-doc-icon { margin-left: 4px; }
+.esv-doc-name + .esv-doc-icon { margin-left: auto; }

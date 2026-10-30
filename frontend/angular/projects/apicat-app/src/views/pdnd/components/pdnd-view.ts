@@ -22,5 +22,5 @@ export interface PdndView {
     hideContent?: boolean,
     configuration: any,
     collapseView?: { configuration: any, collapsed: boolean }
-    listView?: { title?: string, configuration: any }
+    listView?: { title?: string, configuration: any, scaricabile?: boolean }
 }
