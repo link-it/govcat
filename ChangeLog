@@ -1,3 +1,20 @@
+2026-10-30  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 415: i file di un descrittore e-service sono ora scaricabili dall'API PDND esposta da
+	  GovCat: `GET /{ambiente}/eservices/{eserviceId}/descriptors/{descriptorId}/documents/{documentId}`
+	  per i documenti allegati, di cui si esponevano i soli metadati in `EServiceDescriptor.docs`,
+	  e `.../interface` per la specifica dell'API erogata, che la v3 non elenca affatto. Sono
+	  letture e non richiedono il ruolo `ruolo_pdnd = admin`; rispondono 501 (`SYS.501`) con
+	  `generale.pdnd_version = v1`, che non espone il contenuto dei documenti.
+	Issue 415: la PDND restituisce i file in un multipart (`FileDownloadMultipart`) che il client
+	  generato non sa deserializzare: la risposta e' analizzata da `PDNDDocumentiV3`, che riusa la
+	  chiamata costruita dal client - e quindi la configurazione dell'ambiente - e ne legge le
+	  parti. L'API di GovCat restituisce invece il file da solo, con nome e content type nelle
+	  intestazioni `Content-Disposition` e `Content-Type`, come gli altri download del catalogo.
+	Issue 415: il mock dell'API PDND v3 serve anche i download, con una specifica OpenAPI di
+	  esempio per ambiente sia come documento allegato sia come interfaccia del descrittore.
+
 2026-10-30  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

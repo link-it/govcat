@@ -1,0 +1,25 @@
+# Documento allegato simulato: copia della specifica dell'e-service "Anagrafe Comunale"
+# pubblicata nell'ambiente di produzione, utilizzata per provare il download dei documenti.
+openapi: 3.0.3
+info:
+  title: Anagrafe Comunale
+  description: Specifica allegata al descrittore dal mock PDND v3
+  version: '1'
+servers:
+  - url: https://example.gov.it/anagrafe/v1
+paths:
+  /residenti/{codiceFiscale}:
+    get:
+      summary: Restituisce i dati anagrafici di un residente
+      operationId: getResidente
+      parameters:
+        - name: codiceFiscale
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Residente trovato
+        '404':
+          description: Residente non trovato

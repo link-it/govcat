@@ -70,6 +70,7 @@ import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Purposes;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Tenant;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Tenants;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.VerifiedAttribute;
+import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 
 @PdndMockV3ControllerCollaudo
@@ -200,6 +201,17 @@ public class PDNDControllerMockV3Collaudo implements GatewayApi {
 	public ResponseEntity<Documents> getEServiceDescriptorDocuments(UUID eserviceId, UUID descriptorId, Integer offset,
 			Integer limit) {
 		return this.server.getEServiceDescriptorDocuments(eserviceId, descriptorId, offset, limit);
+	}
+
+	@Override
+	public ResponseEntity<Resource> downloadEServiceDescriptorDocument(UUID eserviceId, UUID descriptorId,
+			UUID documentId) {
+		return this.server.downloadEServiceDescriptorDocument(eserviceId, descriptorId, documentId);
+	}
+
+	@Override
+	public ResponseEntity<Resource> downloadEServiceDescriptorInterface(UUID eserviceId, UUID descriptorId) {
+		return this.server.downloadEServiceDescriptorInterface(eserviceId, descriptorId);
 	}
 
 	@Override

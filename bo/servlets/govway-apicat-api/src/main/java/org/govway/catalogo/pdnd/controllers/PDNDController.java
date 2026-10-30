@@ -59,6 +59,7 @@ import org.govway.catalogo.servlets.pdnd.model.Subscribers;
 import org.govway.catalogo.servlets.pdnd.server.api.CatalogApi;
 import org.govway.catalogo.servlets.pdnd.server.api.ConfigurazioneApi;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -333,6 +334,28 @@ public class PDNDController implements CatalogApi, ConfigurazioneApi, org.govway
 			return this.getClientCollaudo().getEServiceDescriptor(eserviceId, descriptorId);
 		else
 			return this.getClientProduzione().getEServiceDescriptor(eserviceId, descriptorId);
+	}
+
+	/**
+	 * Download supportato unicamente dall'API PDND v3: la v1 riporta i soli metadati dei documenti.
+	 */
+	@Override
+	public ResponseEntity<Resource> downloadEServiceDescriptorDocument(AmbienteEnum ambiente, UUID eserviceId,
+			UUID descriptorId, UUID documentId) {
+		checkVersionePdnd("downloadEServiceDescriptorDocument");
+
+		return this.getClient(ambiente).downloadEServiceDescriptorDocument(eserviceId, descriptorId, documentId);
+	}
+
+	/**
+	 * Download supportato unicamente dall'API PDND v3.
+	 */
+	@Override
+	public ResponseEntity<Resource> downloadEServiceDescriptorInterface(AmbienteEnum ambiente, UUID eserviceId,
+			UUID descriptorId) {
+		checkVersionePdnd("downloadEServiceDescriptorInterface");
+
+		return this.getClient(ambiente).downloadEServiceDescriptorInterface(eserviceId, descriptorId);
 	}
 
 	@Override
