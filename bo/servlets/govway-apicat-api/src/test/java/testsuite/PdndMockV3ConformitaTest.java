@@ -19,17 +19,26 @@
  */
 package testsuite;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import org.govway.catalogo.OpenAPI2SpringBoot;
+import org.govway.catalogo.pdnd.controllers.PDNDClientV3;
 import org.govway.catalogo.pdnd.controllers.PDNDMockServerV3;
+import org.govway.catalogo.servlets.pdnd.v3.client.api.GatewayApi;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.AgreementRejection;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Document;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -38,6 +47,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -48,6 +58,12 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonParser;
+
+import okhttp3.Call;
+import okhttp3.Protocol;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 /**
  * Verifica che le risposte del mock PDND v3, serializzate come lo sono in risposta HTTP,
@@ -126,6 +142,45 @@ public class PdndMockV3ConformitaTest {
             assertNotNull(body, "risposta simulata senza corpo");
             validaConIlClientV3(mapper, body);
         }
+    }
+
+    /**
+     * Il download non restituisce un modello json ma un multipart: la conformita' si verifica
+     * sottoponendo la risposta simulata al client, che e' quanto accade in esecuzione.
+     */
+    @ParameterizedTest
+    @ValueSource(strings = {"collaudo", "produzione"})
+    public void ilDocumentoSimulatoELeggibileDalClientV3(String ambiente) throws Exception {
+        PDNDMockServerV3 server = new PDNDMockServerV3(ambiente);
+
+        Document documento = server.getEServiceDescriptorDocuments(ID, ID, 0, 50).getBody().getResults().get(0);
+        ResponseEntity<Resource> simulata = server.downloadEServiceDescriptorDocument(ID, ID, documento.getId());
+
+        GatewayApi api = mock(GatewayApi.class);
+        Call chiamata = mock(Call.class);
+        when(chiamata.execute()).thenReturn(toResponse(simulata));
+        when(api.downloadEServiceDescriptorDocumentCall(ID, ID, documento.getId(), null)).thenReturn(chiamata);
+
+        ResponseEntity<Resource> scaricato =
+                new PDNDClientV3(api).downloadEServiceDescriptorDocument(ID, ID, documento.getId());
+
+        assertEquals(documento.getName(), scaricato.getHeaders().getContentDisposition().getFilename());
+        assertEquals(MediaType.parseMediaType(documento.getContentType()),
+                scaricato.getHeaders().getContentType());
+        assertTrue(new String(scaricato.getBody().getInputStream().readAllBytes(), StandardCharsets.UTF_8)
+                .contains("openapi: 3.0.3"));
+    }
+
+    /** Traduce la risposta simulata nella risposta http che il client riceverebbe dalla PDND. */
+    private Response toResponse(ResponseEntity<Resource> simulata) throws IOException {
+        return new Response.Builder()
+                .request(new Request.Builder().url("https://pdnd.example.gov.it/v3/download").build())
+                .protocol(Protocol.HTTP_1_1)
+                .code(simulata.getStatusCode().value())
+                .message("OK")
+                .body(ResponseBody.create(simulata.getBody().getInputStream().readAllBytes(),
+                        okhttp3.MediaType.parse(simulata.getHeaders().getContentType().toString())))
+                .build();
     }
 
     /** Motivazione del rifiuto conforme al contratto: almeno venti caratteri. */

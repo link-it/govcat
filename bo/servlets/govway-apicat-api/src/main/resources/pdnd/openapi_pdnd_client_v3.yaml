@@ -909,6 +909,112 @@ paths:
       summary: List E-Service Descriptor Documents
       tags:
       - gateway
+  # NOTA: la PDND restituisce il documento in un multipart (schema FileDownloadMultipart della
+  # specifica ufficiale) che il client generato non sa deserializzare: la risposta e' qui dichiarata
+  # binaria e il multipart viene analizzato da PDNDDocumentiV3, che ne ricava file, nome e content type.
+  /eservices/{eserviceId}/descriptors/{descriptorId}/documents/{documentId}:
+    get:
+      description: Download a specific Document for the specified E-Service Descriptor
+      operationId: downloadEServiceDescriptorDocument
+      parameters:
+      - description: The E-Service ID of the Descriptor
+        in: path
+        name: eserviceId
+        required: true
+        schema:
+          $ref: '#/components/schemas/EServiceId'
+      - description: The ID of the Descriptor
+        in: path
+        name: descriptorId
+        required: true
+        schema:
+          $ref: '#/components/schemas/DescriptorId'
+      - description: The ID of the Document to retrieve
+        in: path
+        name: documentId
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '200':
+          content:
+            multipart/form-data:
+              schema:
+                format: binary
+                type: string
+          description: E-Service Descriptor Document retrieved, a multipart containing the file and
+            its metadata
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Download an E-Service Descriptor Document
+      tags:
+      - gateway
+  /eservices/{eserviceId}/descriptors/{descriptorId}/interface:
+    get:
+      description: Download the interface document of an E-Service Descriptor
+      operationId: downloadEServiceDescriptorInterface
+      parameters:
+      - description: The E-Service ID of the Descriptor
+        in: path
+        name: eserviceId
+        required: true
+        schema:
+          $ref: '#/components/schemas/EServiceId'
+      - description: The ID of the Descriptor for which to download the interface
+        in: path
+        name: descriptorId
+        required: true
+        schema:
+          $ref: '#/components/schemas/DescriptorId'
+      responses:
+        '200':
+          content:
+            multipart/form-data:
+              schema:
+                format: binary
+                type: string
+          description: E-Service Descriptor interface retrieved, a multipart containing the file and
+            its metadata
+          headers:
+            Agid-JWT-Signature:
+              $ref: '#/components/headers/IntegrityRest02AgidJwtSignatureHeader'
+            Digest:
+              $ref: '#/components/headers/IntegrityRest02DigestHeader'
+            X-Rate-Limit-Interval:
+              $ref: '#/components/headers/RateLimitIntervalHeader'
+            X-Rate-Limit-Limit:
+              $ref: '#/components/headers/RateLimitLimitHeader'
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/RateLimitRemainingHeader'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+      summary: Download an E-Service Descriptor interface
+      tags:
+      - gateway
   /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedAttributes:
     get:
       description: Retrieve a list of E-Service Descriptor Certified Attributes
