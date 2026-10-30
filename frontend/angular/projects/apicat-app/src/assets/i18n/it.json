@@ -1328,7 +1328,7 @@
 				"POPOVER": {
 					"nome": ""
 				},
-				"url_invocazione": "URL su cui l'API è esposta in questo ambiente, scelte fra quelle censite in configurazione. Il catalogo documenta le URL ma non configura il gateway su GovWay: se il gateway non è configurato, la URL non risponde."
+				"url_invocazione": "URL su cui l'API è esposta in questo ambiente, scelte fra quelle censite in configurazione."
 			},
 			"SERVICE": {
 				"descrizione": "È possibile inserire testo `markdown`.",

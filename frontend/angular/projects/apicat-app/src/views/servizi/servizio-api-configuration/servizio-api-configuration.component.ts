@@ -332,6 +332,11 @@ export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, Aft
     return this.showCopyFromTesting() && !!control?.enabled;
   }
 
+  /** Le URL di esposizione si copiano solo se anche il collaudo ne censisce in configurazione. */
+  _canCopyUrlInvocazioneFromTesting(control: AbstractControl | null | undefined): boolean {
+    return this._canCopyFromTesting(control) && urlInvocazioneConfigurate('collaudo').length > 0;
+  }
+
   getTestingValue(field: string) {
     const values: any = this.testingValues
     return values[field];
@@ -384,7 +389,7 @@ export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, Aft
     this.copyTestingValue('url', false);
     this.copyTestingValue('protocollo', false);
     // La sola URL predefinita equivale a nessuna scelta: si copia la selezione del collaudo
-    if (this._urlInvocazioneVisibile && this._isSoloUrlPredefinita(this._formGroup.get('url_invocazione')?.value)) {
+    if (this._urlInvocazioneVisibile && urlInvocazioneConfigurate('collaudo').length > 0 && this._isSoloUrlPredefinita(this._formGroup.get('url_invocazione')?.value)) {
       this.copyTestingValue('url_invocazione');
     }
 

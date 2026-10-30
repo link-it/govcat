@@ -5,6 +5,10 @@
 	  Angular CLI/build 21.2.29, vite 7.3.7; override aggiornati per undici, body-parser, fast-uri,
 	  qs, ip-address e @hono/node-server.
 
+	Issue #414 - URL di esposizione: la nota sotto il campo riporta solo la prima frase; senza URL
+	  di collaudo in configurazione la produzione non propone più la copia da collaudo, che
+	  avrebbe sostituito la selezione con la sola URL predefinita.
+
 2026-10-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

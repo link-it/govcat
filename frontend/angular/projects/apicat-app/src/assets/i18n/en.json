@@ -1328,7 +1328,7 @@
 				"POPOVER": {
 					"nome": ""
 				},
-				"url_invocazione": "URLs the API is exposed on in this environment, chosen among those defined in the configuration. The catalogue documents the URLs but does not configure the gateway on GovWay: if the gateway is not configured, the URL does not respond."
+				"url_invocazione": "URLs the API is exposed on in this environment, chosen among those defined in the configuration."
 			},
 			"SERVICE": {
 				"descrizione": "You can enter `markdown` text.",

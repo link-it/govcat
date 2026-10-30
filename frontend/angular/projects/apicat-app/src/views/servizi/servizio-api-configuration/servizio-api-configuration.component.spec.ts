@@ -1306,6 +1306,45 @@ describe('ServizioApiConfigurationComponent', () => {
     });
   });
 
+  describe('URL di esposizione censite in un solo ambiente (Issue #414)', () => {
+    const conUrl = (collaudo: any[], produzione: any[]) => {
+      Tools.Configurazione = { ...Tools.Configurazione, servizio: { ...(Tools.Configurazione?.servizio || {}), api: { url_invocazione: { collaudo, produzione } } } } as any;
+    };
+    const interna = [{ identificativo: 'interna', etichetta: 'Rete interna' }];
+
+    beforeEach(() => {
+      component.environmentId = 'produzione';
+      component.service = { skip_collaudo: false };
+      component._formGroup.get('url_invocazione')?.enable({ emitEvent: false });
+    });
+
+    it('should not offer the copy from testing when testing has no exposure URLs', () => {
+      conUrl([], interna);
+      expect(component._canCopyUrlInvocazioneFromTesting(component._formGroup.get('url_invocazione'))).toBe(false);
+      conUrl(interna, interna);
+      expect(component._canCopyUrlInvocazioneFromTesting(component._formGroup.get('url_invocazione'))).toBe(true);
+    });
+
+    it('should not copy the exposure URLs with copy all when testing has none', () => {
+      conUrl([], interna);
+      (component as any)._initUrlInvocazioneOpzioni();
+      const copySpy = vi.spyOn(component, 'copyTestingValue').mockImplementation(() => {});
+      vi.spyOn(component as any, 'copySepcificationValue').mockImplementation(() => {});
+      component._apiProprietaCustom = [];
+      component.copyAllTestingValues();
+      expect(copySpy).not.toHaveBeenCalledWith('url_invocazione');
+    });
+
+    it('should hide the selector in the environment without exposure URLs', () => {
+      conUrl(interna, []);
+      (component as any)._initUrlInvocazioneOpzioni();
+      expect(component._urlInvocazioneVisibile).toBe(false);
+      component.environmentId = 'collaudo';
+      (component as any)._initUrlInvocazioneOpzioni();
+      expect(component._urlInvocazioneVisibile).toBe(true);
+    });
+  });
+
   // ==================== _downloadSpecifica ====================
 
   describe('_downloadSpecifica', () => {
@@ -2827,6 +2866,20 @@ describe('ServizioApiConfigurationComponent', () => {
       component._formGroup.get('url_invocazione')?.disable();
       component._onSaveApi({});
       expect(mockApiService.putElement.mock.calls[1][2].configurazione_produzione).not.toHaveProperty('url_invocazione');
+    });
+
+    it('should keep the saved selection when the environment has no configured URLs (Issue #414)', () => {
+      (Tools.Configurazione as any).servizio.api.url_invocazione.produzione = [];
+      load('produzione', buildApi({}, { url_invocazione: ['gw_esterno'] }));
+      component.id = 10 as any;
+      component._hasSpecifica = false;
+      component._apiProprietaCustomGrouped = null;
+      vi.spyOn(component as any, '_loadServizioApi').mockImplementation(() => {});
+      mockApiService.putElement.mockReturnValue(of({}));
+
+      expect(component._urlInvocazioneVisibile).toBe(false);
+      component._onSaveApi({});
+      expect(mockApiService.putElement.mock.calls[0][2].configurazione_produzione).not.toHaveProperty('url_invocazione');
     });
 
     it('should fall back to the default URL when the selection becomes empty', () => {
