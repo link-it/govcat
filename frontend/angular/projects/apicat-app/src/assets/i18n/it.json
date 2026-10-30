@@ -2506,6 +2506,7 @@
 			"View": "Vista"
 		},
 		"SERVICES": {
+			"PDND_PENDING": "Azioni PDND in attesa: {{count}}",
 			"ATTACHMENTS": {
 				"Title": "Allegati",
 				"ApiMenu": "Allegati dell'API",

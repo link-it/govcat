@@ -686,3 +686,22 @@ word-break: break-word;
         width: auto;
     }
 }
+
+// Azioni PDND in attesa sul pulsante del menu PDND
+.pdnd-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  margin-left: 8px;
+  padding: 0 6px;
+  vertical-align: middle;
+  border-radius: 999px;
+  border: 1px solid var(--warn-border, #f5c98a);
+  background: var(--warn-soft, #fff4e5);
+  color: var(--warn-ink, #8a4b00);
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1;
+}

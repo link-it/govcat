@@ -29,6 +29,8 @@ import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { ConfigService, EventsManagerService, MenuAction, EventType, Tools, COMPONENTS_IMPORTS, YesnoDialogBsComponent } from '@linkit/components';
 import { apiHasPdndProfile, isApiPdndConfigured, isSoggettoInPdndConfig, getPdndProducerIds } from '../pdnd-menu.util';
 import { PdndMenuDialogComponent } from '../pdnd-menu-dialog/pdnd-menu-dialog.component';
+import { contaAzioniPdndInAttesa } from '../pdnd-pending';
+import { PdndService } from '@app/views/pdnd/pdnd.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -396,7 +398,8 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         private readonly apiService: OpenAPIService,
         private readonly utils: UtilService,
         private readonly authenticationService: AuthenticationService,
-        private readonly navigationService: NavigationService
+        private readonly navigationService: NavigationService,
+        private readonly pdndService?: PdndService
     ) {
         this.appConfig = this.configService.getConfiguration();
         this.api_url = this.appConfig.AppConfig.GOVAPI.HOST;
@@ -879,6 +882,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                 })
                 this.serviceApiLoading = false;
                 this._singleApi = (this.serviceApiDominio.length === 1) && (this.serviceApiAderente.length === 0);
+                this._aggiornaPdndInAttesa();
             },
             error: (error: any) => {
                 console.log('_loadApis forkJoin error', error);
@@ -1176,6 +1180,22 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
             && isSoggettoInPdndConfig(this._soggettoReferenteNome(), this._pdnd);
     }
 
+    /** Azioni PDND in attesa (accordi da approvare e finalita` con versione da approvare), per il badge del menu. */
+    _pdndInAttesa: number = 0;
+
+    /** Il conteggio ha senso solo per chi puo` eseguire le azioni (PDND admin, integrazione v3). */
+    _aggiornaPdndInAttesa() {
+        const _apis = this._canShowPdndHeroMenu() ? this._enabledPdndApis() : [];
+        if (!this.pdndService || !_apis.length || !this.authenticationService.isPdndAdmin() || !this.authenticationService.isPdndV3()) {
+            this._pdndInAttesa = 0;
+            return;
+        }
+        const _producerIds = getPdndProducerIds(this._soggettoReferenteNome()!, this._pdnd);
+        contaAzioniPdndInAttesa(this.apiService, this.pdndService, _apis, _producerIds).subscribe((n: number) => {
+            this._pdndInAttesa = n;
+        });
+    }
+
     _openPdndDialog(mode: 'informations' | 'subscribers') {
         const _apis = this._enabledPdndApis();
         if (!_apis.length) {
@@ -1183,7 +1203,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
             return;
         }
         const _producerIds = getPdndProducerIds(this._soggettoReferenteNome()!, this._pdnd);
-        this.modalService.show(PdndMenuDialogComponent, {
+        const _modalRef = this.modalService.show(PdndMenuDialogComponent, {
             class: 'modal-lg-custom modal-with-65 modal-fullscreen-sm-down',
             ignoreBackdropClick: false,
             initialState: {
@@ -1195,6 +1215,10 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                 selectedApiId: _apis[0].id_api
             }
         });
+        // Le azioni eseguite nella dialog cambiano il conteggio
+        if (mode === 'subscribers') {
+            _modalRef?.onHidden?.subscribe(() => this._aggiornaPdndInAttesa());
+        }
     }
 
     _alertPdndNotAvailable() {

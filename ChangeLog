@@ -9,6 +9,11 @@
 	  di collaudo in configurazione la produzione non propone più la copia da collaudo, che
 	  avrebbe sostituito la selezione con la sola URL predefinita.
 
+	Issue #416 - PDND: copia negli appunti dei dati tecnici nelle informazioni generali (ID, URL,
+	  identificativi di descrittore e attributi); in vetrina il pulsante PDND e la voce "Fruitori"
+	  riportano il numero di azioni in attesa (accordi da approvare e finalità con versione da
+	  approvare), per l'amministratore PDND con integrazione v3.
+
 2026-10-29  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

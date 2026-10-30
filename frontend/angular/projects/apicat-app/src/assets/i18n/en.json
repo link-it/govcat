@@ -2506,6 +2506,7 @@
 			"View": "View"
 		},
 		"SERVICES": {
+			"PDND_PENDING": "Pending PDND actions: {{count}}",
 			"ATTACHMENTS": {
 				"Title": "Attachments",
 				"ApiMenu": "API attachments",

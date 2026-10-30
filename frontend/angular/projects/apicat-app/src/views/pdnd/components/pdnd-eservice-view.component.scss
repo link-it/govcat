@@ -406,3 +406,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 @media (max-width: 575.98px) {
   .esv-descriptor-body .esv-fields > div { grid-template-columns: 1fr; gap: 0; }
 }
+
+// Copia negli appunti dei dati tecnici
+.esv-copy-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.esv-copy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink-3, #57738a);
+  font-size: 13px;
+
+  &:hover { background: var(--surface-3, #e9eef2); color: var(--ink, #10263a); }
+  &:focus-visible { outline: 2px solid var(--brand, #0d6efd); outline-offset: 1px; }
+  &.is-copied { color: var(--ok-ink, #1b6b3a); }
+}

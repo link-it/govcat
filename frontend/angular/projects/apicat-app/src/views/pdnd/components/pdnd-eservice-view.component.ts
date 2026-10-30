@@ -18,6 +18,7 @@
  */
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from "@angular/core";
 import { CommonModule } from "@angular/common";
+import { Clipboard } from "@angular/cdk/clipboard";
 
 import { TranslateModule } from "@ngx-translate/core";
 import { TranslateService } from "@ngx-translate/core";
@@ -226,7 +227,17 @@ export class PdndEServiceViewComponent implements OnChanges {
   private _eServiceId: string|null = null;
   private _environmentId: string|null = null;
 
-  constructor(private readonly translate: TranslateService, private readonly pdndService: PdndService) { }
+  constructor(private readonly translate: TranslateService, private readonly pdndService: PdndService, private readonly clipboard?: Clipboard) { }
+
+  /** Chiave dell'ultimo valore copiato negli appunti (icona di conferma per qualche secondo). */
+  _copiato: string | null = null;
+
+  _copia(valore: string | null | undefined, chiave: string) {
+    if (!valore) { return; }
+    this.clipboard?.copy(valore);
+    this._copiato = chiave;
+    setTimeout(() => { if (this._copiato === chiave) { this._copiato = null; } }, 3000);
+  }
 
   // Descrittori aperti/chiusi dall'utente; senza scelta e` aperto solo il piu` recente
   private _descrittoriAperti: { [id: string]: boolean } = {};

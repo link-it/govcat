@@ -23,6 +23,7 @@ import { COMPONENTS_IMPORTS, Tools, ConfigService, SearchBarFormComponent } from
 import { PdndService, Purpose } from '@app/views/pdnd/pdnd.service';
 import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.directive';
 import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
+import { getPdndEserviceId } from '../pdnd-menu.util';
 import { AzionePdnd, EsitoAzionePdnd, OggettoAzionePdnd, PdndAzioneDialogComponent } from './pdnd-azione-dialog/pdnd-azione-dialog.component';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormGroup, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
@@ -388,27 +389,7 @@ export class ServizioApiSubscribersComponent implements OnInit, AfterContentChec
   }
 
   _getEService(environment: string) {
-    const _environmentNew: string = (environment === 'collaudo') ? 'PDNDCollaudo_identificativo' : 'PDNDProduzione_identificativo';
-    const _environmentOld: string = (environment === 'collaudo') ? 'PDNDCollaudo' : 'PDNDProduzione';
-    let _eservice: string = '';
-    let _index: number = -1;
-    if (this.servizioApi?.proprieta_custom?.length) {
-      // Cerca prima nei gruppi con suffisso _identificativo (nuova convenzione)
-      _index = this.servizioApi.proprieta_custom?.findIndex((item: any) => item.gruppo === _environmentNew);
-      if (_index !== -1) {
-        const _property = this.servizioApi.proprieta_custom[_index].proprieta.find((item: any) => item.nome === 'identificativo_eservice_pdnd');
-        _eservice = _property?.valore || '';
-      }
-      // Fallback: cerca nei gruppi senza suffisso (vecchia convenzione per retrocompatibilità)
-      if (!_eservice) {
-        _index = this.servizioApi.proprieta_custom?.findIndex((item: any) => item.gruppo === _environmentOld);
-        if (_index !== -1) {
-          const _property = this.servizioApi.proprieta_custom[_index].proprieta.find((item: any) => item.nome === 'identificativo_eservice_pdnd');
-          _eservice = _property?.valore || '';
-        }
-      }
-    }
-    return _eservice;
+    return getPdndEserviceId(this.servizioApi, environment);
   }
 
   _hasPDNDConfiguredMapper = (environment: string): boolean => {

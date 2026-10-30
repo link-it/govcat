@@ -142,4 +142,18 @@ describe('PdndEServiceViewComponent', () => {
       ['a3', 'DECLARED', 1, 2, false]
     ]);
   });
+
+  it('should copy a technical value and show the confirmation for a few seconds (Issue #416)', () => {
+    vi.useFakeTimers();
+    const clipboard = { copy: vi.fn() };
+    const comp = new PdndEServiceViewComponent(mockTranslate, mockPdndService, clipboard as any);
+    comp._copia('33333333', 'servizio');
+    expect(clipboard.copy).toHaveBeenCalledWith('33333333');
+    expect(comp._copiato).toBe('servizio');
+    vi.advanceTimersByTime(3000);
+    expect(comp._copiato).toBeNull();
+    comp._copia('', 'vuoto');
+    expect(clipboard.copy).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
 });

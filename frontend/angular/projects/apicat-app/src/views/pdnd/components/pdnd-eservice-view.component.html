@@ -16,6 +16,16 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
+<ng-template #copiaTpl let-valore let-chiave="chiave" let-etichetta="etichetta">
+  <button type="button" class="esv-copy" [class.is-copied]="_copiato === chiave"
+    [attr.aria-label]="('APP.BUTTON.Copy' | translate) + ' ' + etichetta" [tooltip]="(_copiato === chiave ? 'APP.BUTTON.Copied' : 'APP.BUTTON.Copy') | translate" container="body"
+    (click)="_copia(valore, chiave)">
+    <i class="bi" [ngClass]="_copiato === chiave ? 'bi-check2' : 'bi-clipboard'" aria-hidden="true"></i>
+  </button>
+</ng-template>
+
+<span class="visually-hidden" aria-live="polite">{{ _copiato ? ('APP.BUTTON.Copied' | translate) : '' }}</span>
+
 @if (data) {
   @let servizio = data[0];
   @let organizzazione = data[1];
@@ -37,7 +47,7 @@
         </div>
         @if (servizio.description) { <p class="esv-desc">{{ servizio.description }}</p> }
         <dl class="esv-meta">
-          <div><dt>{{ 'APP.LABEL.ServiceID' | translate }}</dt><dd class="font-monospace">{{ servizio.id }}</dd></div>
+          <div><dt>{{ 'APP.LABEL.ServiceID' | translate }}</dt><dd class="font-monospace esv-copy-row">{{ servizio.id }}<ng-container *ngTemplateOutlet="copiaTpl; context: { $implicit: servizio.id, chiave: 'servizio', etichetta: ('APP.LABEL.ServiceID' | translate) }"></ng-container></dd></div>
         </dl>
       }
     </section>
@@ -65,7 +75,7 @@
             </div>
           </div>
           <dl class="esv-meta">
-            <div><dt>{{ 'APP.LABEL.PDND.OrganizationId' | translate }}</dt><dd class="font-monospace">{{ organizzazione.consumer_id }}</dd></div>
+            <div><dt>{{ 'APP.LABEL.PDND.OrganizationId' | translate }}</dt><dd class="font-monospace esv-copy-row">{{ organizzazione.consumer_id }}<ng-container *ngTemplateOutlet="copiaTpl; context: { $implicit: organizzazione.consumer_id, chiave: 'organizzazione', etichetta: ('APP.LABEL.PDND.OrganizationId' | translate) }"></ng-container></dd></div>
           </dl>
         }
       </section>
@@ -110,9 +120,9 @@
                     </div>
                     <dl class="esv-fields">
                       @if (d.data.interface_name) { <div><dt>{{ 'APP.LABEL.Interface' | translate }}</dt><dd>{{ d.data.interface_name }}</dd></div> }
-                      @if (d.data.server_url) { <div><dt>{{ 'APP.LABEL.ServerURL' | translate }}</dt><dd class="font-monospace">{{ d.data.server_url }}</dd></div> }
-                      @if (d.data.audience_url) { <div><dt>{{ 'APP.LABEL.AudienceURL' | translate }}</dt><dd class="font-monospace">{{ d.data.audience_url }}</dd></div> }
-                      <div><dt>{{ 'APP.LABEL.DescriptorID' | translate }}</dt><dd class="font-monospace">{{ d.data.id }}</dd></div>
+                      @if (d.data.server_url) { <div><dt>{{ 'APP.LABEL.ServerURL' | translate }}</dt><dd class="font-monospace esv-copy-row">{{ d.data.server_url }}<ng-container *ngTemplateOutlet="copiaTpl; context: { $implicit: d.data.server_url, chiave: 'server-' + d.data.id, etichetta: ('APP.LABEL.ServerURL' | translate) }"></ng-container></dd></div> }
+                      @if (d.data.audience_url) { <div><dt>{{ 'APP.LABEL.AudienceURL' | translate }}</dt><dd class="font-monospace esv-copy-row">{{ d.data.audience_url }}<ng-container *ngTemplateOutlet="copiaTpl; context: { $implicit: d.data.audience_url, chiave: 'audience-' + d.data.id, etichetta: ('APP.LABEL.AudienceURL' | translate) }"></ng-container></dd></div> }
+                      <div><dt>{{ 'APP.LABEL.DescriptorID' | translate }}</dt><dd class="font-monospace esv-copy-row">{{ d.data.id }}<ng-container *ngTemplateOutlet="copiaTpl; context: { $implicit: d.data.id, chiave: 'descrittore-' + d.data.id, etichetta: ('APP.LABEL.DescriptorID' | translate) }"></ng-container></dd></div>
                     </dl>
                     @if (d.list?.length) {
                       <div class="esv-docs">
@@ -162,7 +172,7 @@
               <li class="esv-req-row">
                 <div class="esv-req-main">
                   <span class="esv-attr-name">{{ r.name || r.code || r.id }}</span>
-                  <span class="esv-attr-id font-monospace">{{ r.id }}</span>
+                  <span class="esv-attr-id font-monospace esv-copy-row">{{ r.id }}<ng-container *ngTemplateOutlet="copiaTpl; context: { $implicit: r.id, chiave: 'attributo-' + r.tipo + r.id, etichetta: (r.name || r.id) }"></ng-container></span>
                 </div>
                 <dl class="esv-req-fields">
                   <div>
