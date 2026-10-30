@@ -22,7 +22,9 @@ package org.govway.catalogo;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -120,6 +122,7 @@ import org.govway.catalogo.core.business.utils.EServiceBuilder;
 import org.govway.catalogo.core.business.utils.NotificheUtils;
 import org.govway.catalogo.core.business.utils.SchedaAdesioneBuilder;
 import org.govway.catalogo.core.business.utils.StampeLabels;
+import org.govway.catalogo.core.business.utils.UrlInvocazioneConfigurata;
 import org.govway.catalogo.core.business.utils.YamltoJsonUtils;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.monitoraggioutils.FiltriUtils;
@@ -128,8 +131,12 @@ import org.govway.catalogo.monitoraggioutils.IStatisticheClient;
 import org.govway.catalogo.oidc.TokenApiDelegate;
 import org.govway.catalogo.monitoraggioutils.allarmi.AllarmiClient;
 import org.govway.catalogo.monitoraggioutils.transazioni.TransazioneBuilder;
+import org.govway.catalogo.pdnd.controllers.PDNDClientFactory;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneProfilo;
+import org.govway.catalogo.servlets.model.ConfigurazioneStepWizard;
+import org.govway.catalogo.servlets.model.ConfigurazioneUrlInvocazioneAmbiente;
+import org.govway.catalogo.servlets.model.ConfigurazioneStepWizardSezione;
 import org.govway.catalogo.servlets.pdnd.client.api.impl.ApiClient;
 import org.openapitools.jackson.nullable.JsonNullableModule;
 import org.springframework.beans.factory.annotation.Value;
@@ -142,6 +149,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -170,7 +179,12 @@ basePackages = {"org.govway.catalogo.core.dao.repositories"})
     @PropertySource(value = "file:${org.govway.api.catalogo.stampe.path:/var/govcat/conf/govcat-stampe.properties}", ignoreResourceNotFound = true, encoding = "UTF-8")
 })
 public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
- 
+
+	private static final Logger logger = LoggerFactory.getLogger(OpenAPI2SpringBoot.class);
+
+	/** Vecchio nome della chiave degli stati negli step del wizard, oggi {@code stati}. */
+	private static final String CHIAVE_STATI_WIZARD_DEPRECATA = "\"stati_adesione\"";
+
     @Value("${spring.datasource.jndi-name}")
 	String jndiName;
 	
@@ -254,8 +268,23 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
 		String outputString = new String(fileData);
 		ObjectMapper om = new ObjectMapper();
 		om.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+		om.registerModule(stepWizardStatiAliasModule());
+
+		if(outputString.contains(CHIAVE_STATI_WIZARD_DEPRECATA)) {
+			logger.warn("Il file di configurazione [{}] usa la chiave deprecata 'stati_adesione' negli step del wizard: "
+					+ "rinominarla in 'stati'. La chiave e' ancora accettata in lettura ma il supporto verra' rimosso.",
+					this.configurazioneJsonPath);
+		}
 
 		Configurazione configurazione = om.readValue(outputString, Configurazione.class);
+
+		// La versione delle API PDND e' letta anche dalla console, attraverso l'API di configurazione,
+		// per decidere quali funzionalita' mostrare: se il file non la indica si espone comunque il
+		// default effettivo, altrimenti l'integrazione userebbe la v3 mentre la console, che considera
+		// il campo assente equivalente alla v1, continuerebbe a nascondere le funzionalita' disponibili.
+		if(configurazione.getGenerale() != null && configurazione.getGenerale().getPdndVersion() == null) {
+			configurazione.getGenerale().setPdndVersion(PDNDClientFactory.VERSIONE_DEFAULT);
+		}
 
 		configurazione.getMonitoraggio().setLimitata(monitoraggioClient.isLimitata());
 		if (configurazione.getMonitoraggio() != null) {
@@ -753,6 +782,12 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
     @Value("${baseurl.produzione}")
 	String baseUrlProduzione;
 
+    private static List<UrlInvocazioneConfigurata> toUrlInvocazioneConfigurate(List<ConfigurazioneUrlInvocazioneAmbiente> configurate) {
+        return Optional.ofNullable(configurate).orElse(Collections.emptyList()).stream()
+                .map(u -> new UrlInvocazioneConfigurata(u.getIdentificativo(), u.getEtichetta(), u.getUrlPrefix(), u.getTemplateUrl()))
+                .collect(Collectors.toList());
+    }
+
     @Bean
     public ConfigurazioneEService configurazioneEService(Configurazione configurazione) {
         ConfigurazioneEService configurazioneEService = new ConfigurazioneEService();
@@ -767,6 +802,14 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
 		configurazioneEService.setTemplateUrlInvocazione(this.templateUrlInvocazione);
 		configurazioneEService.setDefaultUrlPrefixCollaudo(this.baseUrlCollaudo);
 		configurazioneEService.setDefaultUrlPrefixProduzione(this.baseUrlProduzione);
+
+		// URL di invocazione censite per ambiente: l'anagrafica sta nella configurazione,
+		// alle specifiche delle API si associano i soli identificativi.
+		Optional.ofNullable(configurazione.getServizio().getApi().getUrlInvocazione()).ifPresent(urlInvocazione -> {
+			configurazioneEService.setEtichettaUrlInvocazioneDefault(urlInvocazione.getEtichettaDefault());
+			configurazioneEService.setUrlInvocazioneCollaudo(toUrlInvocazioneConfigurate(urlInvocazione.getCollaudo()));
+			configurazioneEService.setUrlInvocazioneProduzione(toUrlInvocazioneConfigurate(urlInvocazione.getProduzione()));
+		});
 		Optional.ofNullable(configurazione.getAdesione().getStatiSchedaAdesione()).ifPresent(list -> {
 			configurazioneEService.setStatiSchedaAdesione(list.stream().collect(Collectors.toSet()));
 		});
@@ -792,6 +835,21 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
      * mixin che applica @JsonInclude(NON_EMPTY) alla sola proprieta' {@code links} di
      * RepresentationModel, evitando che ogni response contenga "links": [].
      */
+    /**
+     * Accetta in lettura la vecchia chiave {@code stati_adesione} negli step del wizard, rinominata
+     * in {@code stati} da quando lo schema e' condiviso con il wizard dei servizi. Registrato solo
+     * sull'ObjectMapper che legge il {@code configurazione.json}: serve alla retrocompatibilita' dei
+     * file di configurazione esistenti, compresi quelli dei plugin custom, non alle response.
+     * Vedi {@link StepWizardStatiAliasMixin}.
+     */
+    public static Module stepWizardStatiAliasModule() {
+        com.fasterxml.jackson.databind.module.SimpleModule module =
+                new com.fasterxml.jackson.databind.module.SimpleModule("govcat-step-wizard-stati-alias");
+        module.setMixInAnnotation(ConfigurazioneStepWizard.class, StepWizardStatiAliasMixin.class);
+        module.setMixInAnnotation(ConfigurazioneStepWizardSezione.class, StepWizardStatiAliasMixin.class);
+        return module;
+    }
+
     @Bean
     public Module representationModelLinksModule() {
         com.fasterxml.jackson.databind.module.SimpleModule module =

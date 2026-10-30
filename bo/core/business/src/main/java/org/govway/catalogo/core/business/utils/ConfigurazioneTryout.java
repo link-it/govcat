@@ -19,15 +19,25 @@
  */
 package org.govway.catalogo.core.business.utils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ConfigurazioneTryout {
 
-	private String serverUrl;
+	/** URL da dichiarare nella specifica, nell'ordine: la prima e` quella mostrata per prima. */
+	private List<UrlInvocazioneRisolta> serverUrls = new ArrayList<>();
 
-	public String getServerUrl() {
-		return serverUrl;
+	public List<UrlInvocazioneRisolta> getServerUrls() {
+		return serverUrls;
 	}
 
+	public void setServerUrls(List<UrlInvocazioneRisolta> serverUrls) {
+		this.serverUrls = serverUrls != null ? serverUrls : new ArrayList<>();
+	}
+
+	/** Imposta una sola URL, quella predefinita e senza etichetta. */
 	public void setServerUrl(String serverUrl) {
-		this.serverUrl = serverUrl;
+		this.serverUrls = new ArrayList<>(List.of(
+				new UrlInvocazioneRisolta(EServiceBuilder.ID_URL_INVOCAZIONE_DEFAULT, null, serverUrl)));
 	}
 }

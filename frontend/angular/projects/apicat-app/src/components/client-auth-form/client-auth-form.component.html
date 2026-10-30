@@ -29,17 +29,17 @@
             {{ 'APP.CLIENT.LABEL.Auth_type' | translate }}
             <span appMarkAsterisk [formGroup]="input.formGroup" [controlName]="'auth_type'"></span>
           </label>
-          <select #authTypeSel class="form-select" id="auth_type"
+          <ng-select class="select-custom" [class.gl-field-error-outline-select]="_hasControlError('auth_type')"
+            [items]="authTypeItems"
+            [searchable]="false"
+            [clearable]="false"
+            [placeholder]="'APP.CLIENT.LABEL.SelezionaAuthType' | translate"
+            labelForId="auth_type"
             formControlName="auth_type"
-            [class.gl-field-error-outline]="_hasControlError('auth_type')"
-            (change)="changeAuthType.emit(authTypeSel.value)">
-            <option [ngValue]="null" disabled>
-              {{ 'APP.CLIENT.LABEL.SelezionaAuthType' | translate }}
-            </option>
-            @for (t of (input.authTypes || []); track t) {
-              <option [value]="t">{{ 'APP.CLIENT.AUTH_TYPE.' + t | translate }}</option>
-            }
-          </select>
+            (change)="changeAuthType.emit($event)">
+            <ng-template ng-label-tmp let-item="item">{{ 'APP.CLIENT.AUTH_TYPE.' + item | translate }}</ng-template>
+            <ng-template ng-option-tmp let-item="item">{{ 'APP.CLIENT.AUTH_TYPE.' + item | translate }}</ng-template>
+          </ng-select>
           @if (f['auth_type'].invalid && (f['auth_type'].dirty || f['auth_type'].touched)) {
             <p class="form-text text-danger">
               @if (f['auth_type'].errors && f['auth_type'].errors['required']) {
@@ -110,17 +110,18 @@
               }
             } @else if (managedClients.length > 0) {
               <div class="mt-2">
-                <select #credenzialiSel class="form-select" id="credenziali"
-                  formControlName="credenziali"
-                  [class.gl-field-error-outline]="_hasControlError('credenziali')"
-                  (change)="changeCredenziali.emit(credenzialiSel.value)">
-                  <option [value]="SelectedClientEnum.UsaClientEsistente" disabled>
-                    {{ 'APP.ADESIONI.LABEL.SelezionaClient' | translate }}
-                  </option>
-                  @for (c of managedClients; track c.id_client) {
-                    <option [value]="c.id_client">{{ c.nome }}</option>
-                  }
-                </select>
+                <ng-select class="select-custom" [class.gl-field-error-outline-select]="_hasControlError('credenziali')"
+                  [items]="managedClients"
+                  bindValue="id_client"
+                  bindLabel="nome"
+                  [clearable]="false"
+                  [placeholder]="'APP.ADESIONI.LABEL.SelezionaClient' | translate"
+                  [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                  [disabled]="f['credenziali'].disabled"
+                  labelForId="credenziali"
+                  [(ngModel)]="credenzialiClientId"
+                  [ngModelOptions]="{ standalone: true }">
+                </ng-select>
               </div>
             } @else {
               <div class="alert alert-warning small mt-2 mb-0" role="alert">
@@ -149,7 +150,7 @@
             @for (d of disclaimers; track $index) {
               <small class="d-flex align-items-start gap-2 px-3 py-2 alert mb-0 mt-3 " [ngClass]="_getDisclaimerAlertClass(d.severity)">
                 <i class="me-2" [ngClass]="_getDisclaimerIconClass(d.severity)"></i>
-                <markdown class="disclaimer-inline flex-grow-1" [data]="d.disclaimer"></markdown>
+                <lnk-collapsible-text class="flex-grow-1"><markdown class="disclaimer-inline" [data]="d.disclaimer"></markdown></lnk-collapsible-text>
                 @if (d.links?.length) {
                   <span class="ms-1">
                     @for (link of d.links; track $index) {
@@ -260,14 +261,16 @@
           </div>
           <div class="form-group col-6 mb-2">
             <label class="label-bold" for="periodo">{{ 'APP.ADESIONI.LABEL.Periodo' | translate }}</label>
-            <select class="form-select" id="periodo" formControlName="periodo" [class.gl-field-error-outline]="_hasControlError('rate_limiting.periodo')">
-              <option [ngValue]="null" disabled selected hidden>
-                {{ 'APP.ADESIONI.LABEL.SelezionaPeriodo' | translate }}
-              </option>
-              @for (periodo of input.ratePeriods; track periodo) {
-                <option [value]="periodo.value">{{ periodo.label | translate }}</option>
-              }
-            </select>
+            <ng-select class="select-custom" [class.gl-field-error-outline-select]="_hasControlError('rate_limiting.periodo')"
+              [items]="input.ratePeriods"
+              bindValue="value"
+              [searchable]="false"
+              [placeholder]="'APP.ADESIONI.LABEL.SelezionaPeriodo' | translate"
+              labelForId="periodo"
+              formControlName="periodo">
+              <ng-template ng-label-tmp let-item="item">{{ item.label | translate }}</ng-template>
+              <ng-template ng-option-tmp let-item="item">{{ item.label | translate }}</ng-template>
+            </ng-select>
             @if (fRate['periodo'].invalid && (fRate['periodo'].dirty || fRate['periodo'].touched)) {
               <p class="form-text text-danger">
                 @if (fRate['periodo'].errors && fRate['periodo'].errors['required']) {

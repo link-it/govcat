@@ -35,8 +35,9 @@
     </div>
     <div class="nav-controls align-self-center d-flex">
       @if (_spin) {
-        <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary me-4">
-          <span class="spinner-border spinner-border-sm text-primary"></span>
+        <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary me-4"
+                disabled [attr.aria-busy]="true" [attr.aria-label]="'APP.LABEL.Loading' | translate">
+          <span class="spinner-border spinner-border-sm text-primary" aria-hidden="true"></span>
         </button>
       }
       <ng-template [appHasPermission]="'gruppi'" [action]="'create'">
@@ -194,8 +195,9 @@
             <label class="label-bold" for="logo">{{ 'APP.LABEL.logo' | translate }}</label>
             <div class="">
               <app-photo-base64
-                [boxWidth]="'160px'"
+                [boxWidth]="'250px'"
                 [boxHeight]="'auto'"
+                [cropRatio]="_logoRatio"
                 [maxSize]="_maxImageSize"
                 [placeHolder]="_imagePlaceHolder"
                 [imageSaved]="{ path: _data | mapper:_getLogoMapper } | httpImgSrc"
@@ -203,6 +205,7 @@
                 [removeLabel]="'APP.BUTTON.Remove' | translate"
                 (imageLoaded)="_onImageLoaded($event)"
               ></app-photo-base64>
+              <p class="form-text text-muted mb-0">{{ 'APP.LABEL.LogoFormatHint' | translate }}</p>
             </div>
           </div>
         </div>

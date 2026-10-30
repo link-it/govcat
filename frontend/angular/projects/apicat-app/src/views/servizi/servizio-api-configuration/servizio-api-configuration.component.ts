@@ -16,13 +16,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnInit } from '@angular/core';
+import { AfterContentChecked, Component, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 
 import { COMPONENTS_IMPORTS, Tools, ConfigService } from '@linkit/components';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
 import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
+import { ServizioDisclaimer, disclaimersDelleProprieta, loadServizioDisclaimers } from '../servizio-disclaimers';
+import { ambienteClasseDato, filtraGruppiPerRuoli, proprietaVisibilePerRuoli } from '../servizio-proprieta-custom';
+import { etichettaUrlPredefinita, urlInvocazioneConfigurate, URL_INVOCAZIONE_DEFAULT } from '../servizio-api-url-invocazione';
+import { ServizioDisclaimerBannerComponent } from '../components/servizio-disclaimer-banner/servizio-disclaimer-banner.component';
 import { MarkdownModule } from 'ngx-markdown';
 import { DisablePermissionDirective } from '@app/directives/disable-permission/disable-permission.directive';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -54,7 +59,8 @@ interface ApiForm {
   nome_gateway: FormControl<string>;
   versione_gateway: FormControl<number | null>;
   url: FormControl<string>;
-  protocollo: FormControl<string>;
+  protocollo: FormControl<string | null>;
+  url_invocazione: FormControl<string[]>;
   proprieta_custom: UntypedFormGroup;
   descrittore: UntypedFormControl;
 }
@@ -77,9 +83,9 @@ type Raggruppamento = {
   templateUrl: 'servizio-api-configuration.component.html',
   styleUrls: ['servizio-api-configuration.component.scss'],
   standalone: true,
-  imports: [CommonModule, ...COMPONENTS_IMPORTS, MapperPipe, MarkAsteriskDirective, MonitorDropdwnComponent, MarkdownModule, DisablePermissionDirective]
+  imports: [CommonModule, ...COMPONENTS_IMPORTS, MapperPipe, MarkAsteriskDirective, MonitorDropdwnComponent, MarkdownModule, DisablePermissionDirective, ServizioDisclaimerBannerComponent]
 })
-export class ServizioApiConfigurationComponent implements OnInit, AfterContentChecked {
+export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, AfterContentChecked {
   static readonly Name = 'ServizioApiConfigurationComponent';
   readonly model: string = 'api';
 
@@ -90,6 +96,21 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
   sid: string | null = null;
 
   environmentId: 'collaudo' | 'produzione' = 'collaudo'; // collaudo / produzione
+
+  /** Modalità embedded: nessuna route/chrome; init da @Input, save via @Output. */
+  @Input() embedded: boolean = false;
+  @Input() apiId: string | null = null;
+  @Input() sidInput: string | null = null;
+  @Input() ambiente: string | null = null;
+  /** Entra direttamente in modifica dopo il load (embedded). */
+  @Input() startEdit: boolean = false;
+  /** Disclaimer del servizio passati dal wizard; se assenti vengono caricati qui. */
+  @Input() disclaimers: ServizioDisclaimer[] | null = null;
+  _disclaimersCaricati: ServizioDisclaimer[] = [];
+  private _langSub: Subscription | null = null;
+
+  @Output() saved: EventEmitter<any> = new EventEmitter<any>();
+  @Output() closed: EventEmitter<any> = new EventEmitter<any>();
 
   Tools = Tools;
 
@@ -132,10 +153,16 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
       Validators.pattern("^[1-9][0-9]*$")
     ]),
     url: new FormControl('', { nonNullable: true }),
-    protocollo: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+    protocollo: new FormControl<string | null>(null, [Validators.required]),
+    url_invocazione: new FormControl<string[]>([], { nonNullable: true }),
     proprieta_custom: new UntypedFormGroup({}),
     descrittore: this._descrittoreCtrl
   });
+
+  /** URL di invocazione selezionabili per l'ambiente: la predefinita in testa, poi quelle censite in configurazione. */
+  _urlInvocazioneOpzioni: { identificativo: string; etichetta: string }[] = [];
+  /** Selezione della specifica di collaudo, per "Copia da collaudo". */
+  private _urlInvocazioneCollaudo: string[] = [];
 
   viewValues: ApiFormValues = {
     nome_gateway: '',
@@ -215,6 +242,8 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
         this._initBreadcrumb();
       }
     });
+
+    this._mantieniUrlInvocazioneNonVuota();
   }
 
   @HostListener('window:resize') _onResize() {
@@ -222,6 +251,14 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
   }
 
   ngOnInit() {
+    if (this.embedded) {
+      this.sid = this.sidInput ?? this.sid;
+      this.id = this.apiId as any;
+      this.environmentId = (this.ambiente as any) || 'collaudo';
+      this._loadServizio();
+      this._caricaDisclaimers();
+      return;
+    }
     this.route.params.subscribe(params => {
       let _id = params['id'];
       const _cid = params['cid'];
@@ -236,20 +273,63 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
         } else {
           this._loadServizio();
         }
+        this._caricaDisclaimers();
       }
     });
   }
 
+  ngOnDestroy() {
+    this._langSub?.unsubscribe();
+  }
+
+  get _disclaimersAttivi(): ServizioDisclaimer[] {
+    return this.disclaimers ?? this._disclaimersCaricati;
+  }
+
+  /** Fuori dal wizard i disclaimer si caricano qui e si ricaricano al cambio lingua. */
+  private _caricaDisclaimers() {
+    if (this.disclaimers || !this.sid) { return; }
+    const _sid = this.sid;
+    loadServizioDisclaimers(this.apiService, this.translate, _sid).subscribe((list) => { this._disclaimersCaricati = list; });
+    if (!this._langSub) {
+      this._langSub = this.translate.onLangChange.subscribe(() => this._caricaDisclaimers());
+    }
+  }
+
+  _disclaimersDelGruppoMapper = (proprieta: any[], disclaimers: ServizioDisclaimer[]): ServizioDisclaimer[] => {
+    return disclaimersDelleProprieta(disclaimers, proprieta, this.environmentId);
+  }
+
+  /** Copia dei valori dal collaudo: ha senso solo in produzione e quando il
+   *  collaudo NON e` stato saltato (con `skip_collaudo` non esiste alcuna
+   *  configurazione di collaudo da cui copiare). */
+  showCopyFromTesting(): boolean {
+    return this.environmentId === 'produzione' && !this.service?.skip_collaudo;
+  }
+
   copyTestingValue(field: string, overwrite: boolean = true) {
     const control = this._formGroup.get(field);
-    if (!control || (!overwrite && control.value)) {
+    if (!control || control.disabled || (!overwrite && control.value)) {
       return;
     }
 
-    control.setValue(this.getTestingValue(field));
+    if (field === 'url_invocazione') {
+      // Solo gli identificativi censiti anche per l'ambiente di destinazione
+      const _disponibili = this._urlInvocazioneOpzioni.map((o) => o.identificativo);
+      control.setValue(this._selezioneNonVuota(this._urlInvocazioneCollaudo.filter((id) => _disponibili.includes(id))));
+      return;
+    }
+
+    const _value = this.getTestingValue(field);
+    control.setValue((field === 'protocollo') ? (_value || null) : _value);
     if (field === 'protocollo') {
       this.copySepcificationValue();
     }
+  }
+
+  /** Pulsante "Copia da collaudo" del singolo campo: solo se il campo e` modificabile. */
+  _canCopyFromTesting(control: AbstractControl | null | undefined): boolean {
+    return this.showCopyFromTesting() && !!control?.enabled;
   }
 
   getTestingValue(field: string) {
@@ -257,21 +337,20 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
     return values[field];
   }
 
-  getCustomPropertyTestingValue(nome_gruppo: string, nome: string) {
+  getCustomPropertyTestingValue(nome_gruppo: string, nome: string, nomeGruppoTecnico?: string) {
     const _srv: any = Tools.Configurazione.servizio;
     const proprieta_custom = this.servizioApi?.proprieta_custom || [];
 
-    // Issue #272: il parametro `nome_gruppo` rappresenta la CHIAVE
-    // usata nel form (`fieldToGroup`, di default 'label_gruppo'), non
-    // necessariamente il `nome_gruppo` tecnico. Cerchiamo coerentemente
-    // tramite `this.fieldToGroup` per supportare anche le configurazioni
-    // dove `nome_gruppo` e `label_gruppo` differiscono.
-    const group = _srv.api.proprieta_custom.find((item: any) => item[this.fieldToGroup] === nome_gruppo);
+    // `nome_gruppo` e' la chiave del form (`fieldToGroup`, di default 'label_gruppo'), condivisa da piu'
+    // gruppi: quando disponibile si parte dal nome tecnico del gruppo del campo.
+    const group = nomeGruppoTecnico
+      ? _srv.api.proprieta_custom.find((item: any) => item.nome_gruppo === nomeGruppoTecnico)
+      : _srv.api.proprieta_custom.find((item: any) => item[this.fieldToGroup] === nome_gruppo);
     if (!group) {
       return;
     }
 
-    const collaudoGroup = _srv.api.proprieta_custom.find((item: any) => item.id_correlazione === group.id_correlazione && item.classe_dato === 'collaudo');
+    const collaudoGroup = _srv.api.proprieta_custom.find((item: any) => item.id_correlazione === group.id_correlazione && ambienteClasseDato(item.classe_dato) === 'collaudo');
     if (!collaudoGroup) {
       return;
     }
@@ -291,12 +370,12 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
     return proprieta.valore;
   }
 
-  copyCustomPropertyTestingValue(nome_gruppo: string, nome: string, overwrite: boolean = true) {
+  copyCustomPropertyTestingValue(nome_gruppo: string, nome: string, overwrite: boolean = true, nomeGruppoTecnico?: string) {
     const control = this._formGroup.get('proprieta_custom')?.get(nome_gruppo)?.get(nome);
-    if (!control || (!overwrite && control.value)) {
+    if (!control || control.disabled || (!overwrite && control.value)) {
       return;
     }
-    control.setValue(this.getCustomPropertyTestingValue(nome_gruppo, nome));
+    control.setValue(this.getCustomPropertyTestingValue(nome_gruppo, nome, nomeGruppoTecnico));
   }
 
   copyAllTestingValues() {
@@ -304,24 +383,23 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
     this.copyTestingValue('versione_gateway', false);
     this.copyTestingValue('url', false);
     this.copyTestingValue('protocollo', false);
+    // La sola URL predefinita equivale a nessuna scelta: si copia la selezione del collaudo
+    if (this._urlInvocazioneVisibile && this._isSoloUrlPredefinita(this._formGroup.get('url_invocazione')?.value)) {
+      this.copyTestingValue('url_invocazione');
+    }
 
     this.copySepcificationValue(false);
 
     const proprieta_custom = this._apiProprietaCustom || [];
 
     proprieta_custom.forEach((group: any) => {
-      // Issue #272: il form `proprieta_custom` ha come chiave dei
-      // sotto-FormGroup `item[fieldToGroup]` (di default `label_gruppo`,
-      // vedi `_initProprietaCustom`). Passando qui `group.nome_gruppo`
-      // si finiva sempre su un `formGroup.get(...)` null quando
-      // `nome_gruppo !== label_gruppo`, e la copia falliva
-      // silenziosamente. Allineato a `this.fieldToGroup`.
-      this.copyCustomPropertyTestingValue(group[this.fieldToGroup], group.nome, false);
+      // Il controllo e' sotto la chiave del form (`fieldToGroup`); il nome tecnico individua il gruppo di collaudo
+      this.copyCustomPropertyTestingValue(group[this.fieldToGroup], group.nome, false, group.nome_gruppo);
     });
   }
 
   private copySepcificationValue(overwrite: boolean = true) {
-    if (!overwrite && this._descrittoreCtrl?.value?.file) {
+    if (!this._canEditFieldMapper(this.environmentId) || (!overwrite && this._descrittoreCtrl?.value?.file)) {
       return;
     }
     const configuration = this.servizioApi?.configurazione_collaudo;
@@ -345,8 +423,58 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
     this.desktop = (window.innerWidth >= 992);
   }
 
-  _canEditFieldMapper = (field: string): boolean => {
-    return this.authenticationService.canEditField('servizio', 'api', this.service?.stato || '', field, this._grant?.ruoli);
+  // Stato e grant come argomenti del pipe: il risultato si aggiorna quando arrivano i dati del servizio
+  /** Selettore visibile solo se la configurazione censisce URL per l'ambiente. */
+  get _urlInvocazioneVisibile(): boolean {
+    return this._urlInvocazioneOpzioni.length > 1;
+  }
+
+  private _initUrlInvocazioneOpzioni() {
+    const _ambiente = this.environmentId === 'produzione' ? 'produzione' : 'collaudo';
+    const _configurate = urlInvocazioneConfigurate(_ambiente);
+    this._urlInvocazioneOpzioni = _configurate.length ? [
+      { identificativo: URL_INVOCAZIONE_DEFAULT, etichetta: etichettaUrlPredefinita() || this.translate.instant('APP.LABEL.UrlPredefinita') },
+      ..._configurate.map((item) => ({ identificativo: item.identificativo, etichetta: item.etichetta || item.identificativo }))
+    ] : [];
+  }
+
+  /** Selezione salvata (assente = sola URL predefinita), limitata alle voci censite. */
+  private _selezioneUrlInvocazione(configuration: any): string[] {
+    const _salvata: string[] = configuration?.url_invocazione?.length ? configuration.url_invocazione : [URL_INVOCAZIONE_DEFAULT];
+    if (!this._urlInvocazioneOpzioni.length) { return _salvata; }
+    const _disponibili = this._urlInvocazioneOpzioni.map((o) => o.identificativo);
+    return this._selezioneNonVuota(_salvata.filter((id) => _disponibili.includes(id)));
+  }
+
+  /** La selezione non resta mai vuota: senza altre URL vale la predefinita. */
+  private _selezioneNonVuota(ids: string[] | null | undefined): string[] {
+    return ids?.length ? ids : [URL_INVOCAZIONE_DEFAULT];
+  }
+
+  private _mantieniUrlInvocazioneNonVuota() {
+    const _ctrl = this._formGroup.get('url_invocazione');
+    _ctrl?.valueChanges.subscribe((valore: string[] | null) => {
+      if (!valore?.length) { _ctrl.setValue([URL_INVOCAZIONE_DEFAULT], { emitEvent: false }); }
+    });
+  }
+
+  /** La predefinita non si rimuove quando e` l'unica selezionata. */
+  _urlInvocazioneRimovibileMapper = (identificativo: string, selezione: string[] | null | undefined): boolean => {
+    return !(identificativo === URL_INVOCAZIONE_DEFAULT && this._isSoloUrlPredefinita(selezione));
+  }
+
+  private _isSoloUrlPredefinita(valore: string[] | null | undefined): boolean {
+    return !valore?.length || (valore.length === 1 && valore[0] === URL_INVOCAZIONE_DEFAULT);
+  }
+
+  /** Etichette della selezione corrente, per la sola lettura. */
+  _etichetteUrlInvocazioneMapper = (selezione: string[] | null | undefined): string => {
+    const _ids = selezione?.length ? selezione : [URL_INVOCAZIONE_DEFAULT];
+    return _ids.map((id) => this._urlInvocazioneOpzioni.find((o) => o.identificativo === id)?.etichetta || id).join(', ');
+  }
+
+  _canEditFieldMapper = (field: string, stato: string = this.service?.stato, grant: Grant | null = this._grant): boolean => {
+    return this.authenticationService.canEditField('servizio', 'api', stato || '', field, grant?.ruoli);
   }
 
   _initBreadcrumb() {
@@ -465,14 +593,24 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
       protocollo: configuration?.protocollo || '',
       protocollo_dettaglio: configuration?.protocollo_dettaglio || ''
     };
+    this._initUrlInvocazioneOpzioni();
+    this._urlInvocazioneCollaudo = this._selezioneUrlInvocazione(testingConfiguration);
     this._formGroup.setValue({
       nome_gateway: configuration?.dati_erogazione?.nome_gateway || '',
       versione_gateway: configuration?.dati_erogazione?.versione_gateway || null,
       url: configuration?.dati_erogazione?.url || '',
-      protocollo: configuration?.protocollo || '',
+      protocollo: configuration?.protocollo || null,
+      url_invocazione: this._selezioneUrlInvocazione(configuration),
       proprieta_custom: [],
       descrittore: null
     });
+    // Modificabile secondo i permessi della sezione dell'ambiente (non riservato al gestore)
+    const _urlInvocazioneCtrl = this._formGroup.get('url_invocazione');
+    if (this._canEditFieldMapper(this.environmentId)) {
+      _urlInvocazioneCtrl?.enable({ emitEvent: false });
+    } else {
+      _urlInvocazioneCtrl?.disable({ emitEvent: false });
+    }
 
     if (this.environmentId === 'collaudo') {
       this._hasSpecifica = configuration?.specifica || !configuration?.protocollo ? true : false;
@@ -503,6 +641,10 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
     this._initProprietaCustom();
 
     this.__checkAutenticazione(this.servizioApi.ruolo);
+
+    if (this.embedded && this.startEdit) {
+      this._isEdit = true;
+    }
   }
 
   _downloadSpecifica(versione: number = 0) {
@@ -555,6 +697,10 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
     this._isEdit = false;
     this._error = false;
     this._errorMsg = '';
+    if (this.embedded) {
+      this.closed.emit();
+      return;
+    }
     this.mapApiDetailsToFormValues();
   }
 
@@ -642,7 +788,7 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
         return;
       }
 
-      if (item.classe_dato !== this.environmentId) {
+      if (ambienteClasseDato(item.classe_dato) !== this.environmentId) {
         return;
       }
 
@@ -657,12 +803,10 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
         });
       });
     });
-    this._apiProprietaCustomGrouped = _.groupBy(this._apiProprietaCustom, this.fieldToGroup);
-
-    const mandatoryFields = this.authenticationService._getFieldsMandatory('servizio', 'api', this.service.stato);
-    const genericoCustomPropertiesAreMandatory = mandatoryFields.some((item: string) => item === 'generico');
-    const collaudoCustomPropertiesAreMandatory = mandatoryFields.some((item: string) => item === 'collaudo');
-    const produzioneCustomPropertiesAreMandatory = mandatoryFields.some((item: string) => item === 'produzione');
+    // Solo i campi visibili per i ruoli dell'utente: anche "Copia valori collaudo" usa l'elenco piatto
+    const _ruoli = this._grant?.ruoli || [];
+    this._apiProprietaCustom = this._apiProprietaCustom.filter((item: any) => proprietaVisibilePerRuoli(item, _ruoli));
+    this._apiProprietaCustomGrouped = filtraGruppiPerRuoli(_.groupBy(this._apiProprietaCustom, this.fieldToGroup), _ruoli);
 
     if (this._apiProprietaCustom.length) {
       this._formGroup.addControl('proprieta_custom', this.formBuilder.group({}));
@@ -671,50 +815,26 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
         (this._apiProprietaCustomGrouped[key] || []).forEach((item: any) => {
           const _validators = [];
 
-          const _ruoli = this._grant?.ruoli || [];
-          const _hasRuolo = item.ruoli_abilitati ? _.intersection(_ruoli, item.ruoli_abilitati).length > 0 : true;
+          item._req = this.authenticationService.getCustomPropertyRequirement('servizio', this.service?.stato, item.classe_dato, item.required, !!this.service?.skip_collaudo);
+          if (item._req.now) { _validators.push(Validators.required); }
+          if (item.regular_expression) { _validators.push(Validators.pattern(item.regular_expression)); }
 
-          if (_hasRuolo) {
-            let required = false;
-  
-            if (item.classe_dato === 'generico' && genericoCustomPropertiesAreMandatory) {
-                required = item.required;
-            }
-  
-            if (item.classe_dato === 'collaudo' && collaudoCustomPropertiesAreMandatory) {
-                required = item.required;
-            }
-  
-            if (item.classe_dato === 'produzione' && produzioneCustomPropertiesAreMandatory) {
-                required = item.required;
-            }
-  
-            if (required) { _validators.push(Validators.required); }
-            if (item.regular_expression) { _validators.push(Validators.pattern(item.regular_expression)); }
-  
-            if (!this.proprietaCustom.contains(item[this.fieldToGroup])) {
-              this.proprietaCustom.addControl(item[this.fieldToGroup], this.formBuilder.group({}));
-            }
-
-            const _gruppo = this.servizioApi?.proprieta_custom?.find((pc: any) => {
-              return (pc.gruppo === item.nome_gruppo);
-            });
-            const _value = _gruppo?.proprieta.find((p: any) => p.nome === item.nome);
-            let _val = _value ? _value.valore : null;
-            if (!this.servizioApi?.proprieta_custom?.length && (item.tipo === 'select')) {
-              const _defaultItem = item.valori.find((item: any) => item.default);
-              _val = _defaultItem?.nome || null;
-            }
-  
-            const group = this.proprietaCustom.get(item[this.fieldToGroup]) as FormGroup;
-            group.addControl(item.nome, new FormControl(_val, [..._validators]));
-          } else {
-            // remove item from list
-            const index = this._apiProprietaCustomGrouped[key]?.indexOf(item) || -1;
-            if (index !== -1) {
-              this._apiProprietaCustomGrouped = this._apiProprietaCustomGrouped[key].splice(index, 1);
-            }
+          if (!this.proprietaCustom.contains(item[this.fieldToGroup])) {
+            this.proprietaCustom.addControl(item[this.fieldToGroup], this.formBuilder.group({}));
           }
+
+          const _gruppo = this.servizioApi?.proprieta_custom?.find((pc: any) => {
+            return (pc.gruppo === item.nome_gruppo);
+          });
+          const _value = _gruppo?.proprieta.find((p: any) => p.nome === item.nome);
+          let _val = _value ? _value.valore : null;
+          if (!this.servizioApi?.proprieta_custom?.length && (item.tipo === 'select')) {
+            const _defaultItem = item.valori.find((item: any) => item.default);
+            _val = _defaultItem?.nome || null;
+          }
+
+          const group = this.proprietaCustom.get(item[this.fieldToGroup]) as FormGroup;
+          group.addControl(item.nome, new FormControl(_val, [..._validators]));
         });
       });
     }
@@ -782,37 +902,43 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
       configuration.specifica = null;
     }
 
+    // Lista completa se modificabile (vuota = sola URL predefinita); omessa altrimenti (selezione invariata)
+    const _urlInvocazioneCtrl = this._formGroup.get('url_invocazione');
+    if (this._urlInvocazioneVisibile && _urlInvocazioneCtrl?.enabled) {
+      configuration.url_invocazione = [...(_urlInvocazioneCtrl.value || [])];
+    }
+
     if (this.environmentId === 'collaudo') {
       request.configurazione_collaudo = configuration;
     } else {
       request.configurazione_produzione = configuration;
     }
 
-    const hasCurrentCustomProps = this._apiProprietaCustomGrouped && Object.keys(this._apiProprietaCustomGrouped).length;
-    const hasOriginalCustomProps = this.servizioApi?.proprieta_custom?.length;
-    if (hasCurrentCustomProps || hasOriginalCustomProps) {
-      const result: ApiCustomProperty[] = hasCurrentCustomProps
-        ? this.generaApiCustomPropertiesDaFlatMap(this._apiProprietaCustomGrouped, { proprieta_custom: formValues.proprieta_custom })
-        : [];
+    // Il BE sovrascrive solo i gruppi inviati: si inviano i soli gruppi dell'ambiente in modifica
+    // (gli altri restano invariati e non ricadono nei controlli sui dati non modificabili).
+    // Un gruppo svuotato viene inviato vuoto per cancellarne i valori salvati.
+    if (this._apiProprietaCustomGrouped && Object.keys(this._apiProprietaCustomGrouped).length) {
+      const result: ApiCustomProperty[] = this.generaApiCustomPropertiesDaFlatMap(this._apiProprietaCustomGrouped, { proprieta_custom: formValues.proprieta_custom });
+      const _gruppiSalvati: any[] = this.servizioApi?.proprieta_custom || [];
+      Object.values(this._apiProprietaCustomGrouped).flat().forEach((campo: any) => {
+        const _gruppo = campo.nome_gruppo;
+        // Campi disabilitati (non modificabili) restano fuori dal valore del form: il gruppo non va svuotato
+        const _modificabile = !!this._formGroup.get('proprieta_custom')?.get(campo[this.fieldToGroup])?.get(campo.nome)?.enabled;
+        if (_modificabile && !result.some(r => r.gruppo === _gruppo) && _gruppiSalvati.some((g: any) => g.gruppo === _gruppo)) {
+          result.push({ gruppo: _gruppo, proprieta: [] });
+        }
+      });
 
-      if (hasOriginalCustomProps) {
-        this.servizioApi!.proprieta_custom!.forEach((originalGroup: any) => {
-          if (!result.some(r => r.gruppo === originalGroup.gruppo)) {
-            result.push({
-              gruppo: originalGroup.gruppo,
-              proprieta: originalGroup.proprieta || []
-            });
-          }
-        });
+      if (result.length) {
+        request.dati_custom = { proprieta_custom: result };
       }
-
-      request.dati_custom = { proprieta_custom: result };
     }
 
     this.apiService.putElement(this.model, this.id, request).subscribe({
       next: (response: any) => {
         this._isEdit = false;
         this._loadServizioApi();
+        if (this.embedded) { this.saved.emit(response); }
       },
       error: (error: any) => {
         this._error = true;

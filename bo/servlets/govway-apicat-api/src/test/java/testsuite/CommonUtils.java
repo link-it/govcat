@@ -52,6 +52,7 @@ import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.ProtocolloEnum;
 import org.govway.catalogo.servlets.model.RuoloAPIEnum;
 import org.govway.catalogo.servlets.model.RuoloOrganizzazioneEnum;
+import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.UtenteOrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.ServizioCreate;
 import org.govway.catalogo.servlets.model.SoggettoCreate;
@@ -143,6 +144,30 @@ public class CommonUtils {
 		    	    "                  message:\n" +
 		    	    "                    type: string\n" +
 		    	    "                    example: \"Ciao, mondo!\"\n";
+
+	public static final String swagger2Spec =
+		    "swagger: '2.0'\n" +
+		    "info:\n" +
+		    "  title: API di Test Swagger\n" +
+		    "  version: 1.0.0\n" +
+		    "basePath: /test\n" +
+		    "paths:\n" +
+		    "  /hello:\n" +
+		    "    get:\n" +
+		    "      responses:\n" +
+		    "        '200':\n" +
+		    "          description: Saluto\n" +
+		    "    post:\n" +
+		    "      consumes:\n" +
+		    "        - application/json\n" +
+		    "      parameters:\n" +
+		    "        - in: body\n" +
+		    "          name: body\n" +
+		    "          schema:\n" +
+		    "            type: object\n" +
+		    "      responses:\n" +
+		    "        '200':\n" +
+		    "          description: Saluto\n";
 	
 	public static OrganizzazioneCreate getOrganizzazioneCreate(){
 		// Creazione dell'istanza di OrganizzazioneCreate
@@ -209,6 +234,10 @@ public class CommonUtils {
 		assoc.setIdOrganizzazione(idOrganizzazione);
 		assoc.setRuoloOrganizzazione(ruolo);
 		utente.setOrganizzazioni(List.of(assoc));
+		// L'associazione ad un'organizzazione richiede un ruolo globale
+		if (utente.getRuolo() == null) {
+			utente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+		}
 	}
 
 	public static void setOrganizzazione(UtenteUpdate utente, UUID idOrganizzazione) {
@@ -220,6 +249,10 @@ public class CommonUtils {
 		assoc.setIdOrganizzazione(idOrganizzazione);
 		assoc.setRuoloOrganizzazione(ruolo);
 		utente.setOrganizzazioni(List.of(assoc));
+		// L'associazione ad un'organizzazione richiede un ruolo globale
+		if (utente.getRuolo() == null) {
+			utente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+		}
 	}
 	
 	public static DominioCreate getDominioCreate() {
@@ -258,6 +291,60 @@ public class CommonUtils {
 	}
 	
 	
+	/** WSDL di esempio con un solo port type e una sola operazione. */
+	public static final String wsdlSpec = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+            "<definitions name = \"HelloService\"\n"
+            + "   targetNamespace = \"http://www.examples.com/wsdl/HelloService.wsdl\"\n"
+            + "   xmlns = \"http://schemas.xmlsoap.org/wsdl/\"\n"
+            + "   xmlns:soap = \"http://schemas.xmlsoap.org/wsdl/soap/\"\n"
+            + "   xmlns:tns = \"http://www.examples.com/wsdl/HelloService.wsdl\"\n"
+            + "   xmlns:xsd = \"http://www.w3.org/2001/XMLSchema\">\n"
+            + " \n"
+            + "   <message name = \"SayHelloRequest\">\n"
+            + "      <part name = \"firstName\" type = \"xsd:string\"/>\n"
+            + "   </message>\n"
+            + "	\n"
+            + "   <message name = \"SayHelloResponse\">\n"
+            + "      <part name = \"greeting\" type = \"xsd:string\"/>\n"
+            + "   </message>\n"
+            + "\n"
+            + "   <portType name = \"Hello_PortType\">\n"
+            + "      <operation name = \"sayHello\">\n"
+            + "         <input message = \"tns:SayHelloRequest\"/>\n"
+            + "         <output message = \"tns:SayHelloResponse\"/>\n"
+            + "      </operation>\n"
+            + "   </portType>\n"
+            + "\n"
+            + "   <binding name = \"Hello_Binding\" type = \"tns:Hello_PortType\">\n"
+            + "      <soap:binding style = \"rpc\"\n"
+            + "         transport = \"http://schemas.xmlsoap.org/soap/http\"/>\n"
+            + "      <operation name = \"sayHello\">\n"
+            + "         <soap:operation soapAction = \"sayHello\"/>\n"
+            + "         <input>\n"
+            + "            <soap:body\n"
+            + "               encodingStyle = \"http://schemas.xmlsoap.org/soap/encoding/\"\n"
+            + "               namespace = \"urn:examples:helloservice\"\n"
+            + "               use = \"encoded\"/>\n"
+            + "         </input>\n"
+            + "		\n"
+            + "         <output>\n"
+            + "            <soap:body\n"
+            + "               encodingStyle = \"http://schemas.xmlsoap.org/soap/encoding/\"\n"
+            + "               namespace = \"urn:examples:helloservice\"\n"
+            + "               use = \"encoded\"/>\n"
+            + "         </output>\n"
+            + "      </operation>\n"
+            + "   </binding>\n"
+            + "\n"
+            + "   <service name = \"Hello_Service\">\n"
+            + "      <documentation>WSDL File for HelloService</documentation>\n"
+            + "      <port binding = \"tns:Hello_Binding\" name = \"Hello_Port\">\n"
+            + "         <soap:address\n"
+            + "            location = \"http://www.examples.com/SayHello/\" />\n"
+            + "      </port>\n"
+            + "   </service>\n"
+            + "</definitions>";
+
 	public static APICreate getAPICreate() {
 		APICreate apiCreate = new APICreate();
 		apiCreate.setNome(NOME_API);

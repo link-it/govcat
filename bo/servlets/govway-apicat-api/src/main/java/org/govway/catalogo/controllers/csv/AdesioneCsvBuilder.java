@@ -108,14 +108,16 @@ public class AdesioneCsvBuilder {
 		// il referente del dominio è il fruitore interno.
 		SoggettoEntity erogatore = this.eServiceBuilder.getSoggettoErogatore(servizioEntity);
 		a.setErogatore(erogatore != null ? erogatore.getNome() : "");
+		a.setOrganizzazioneErogatore(getNomeOrganizzazione(erogatore));
 
 		// Servizio: nome, versione e uuid su colonne distinte
 		a.setServizio(servizioEntity.getNome());
 		a.setVersioneServizio(servizioEntity.getVersione());
 		a.setUuidServizio(servizioEntity.getIdServizio());
 
-		// Soggetto Aderente: il soggetto dell'adesione, non la sua organizzazione
+		// Soggetto Aderente: il soggetto dell'adesione; la sua organizzazione ha una colonna propria
 		a.setAderente(adesione.getSoggetto().getNome());
+		a.setOrganizzazioneAderente(getNomeOrganizzazione(adesione.getSoggetto()));
 
 		// Adesione: identificativo logico (opzionale, indicato in fase di creazione) e uuid
 		a.setIdLogicoAdesione(adesione.getIdLogico());
@@ -156,6 +158,14 @@ public class AdesioneCsvBuilder {
 		}
 
 		return a;
+	}
+
+	private String getNomeOrganizzazione(SoggettoEntity soggetto) {
+		if(soggetto == null || soggetto.getOrganizzazione() == null) {
+			return "";
+		}
+
+		return soggetto.getOrganizzazione().getNome();
 	}
 
 	private String processStato(String stato) {

@@ -17,6 +17,9 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <div id="route-section">
+  <!-- a11y (WCAG 2.4.6): titolo di pagina per la gerarchia heading; la dashboard
+       non ha un titolo visibile, quindi reso solo per screen reader. -->
+  <h1 class="sr-only">{{ 'APP.TITLE.Dashboard' | translate }}</h1>
   <div class="breadcrumbs-area container-fluid px-0">
     <ui-breadcrumb [breadcrumbs]="breadcrumbs"></ui-breadcrumb>
   </div>

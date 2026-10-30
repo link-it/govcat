@@ -75,7 +75,7 @@ export class ReferenteAddFormComponent implements OnInit {
 
     /** Tipo correntemente selezionato (`referente` | `referente_tecnico`).
      *  Pilota il filtro della search utenti. */
-    referentiTipo: string | null = null;
+    referentiTipo: string | null = 'referente';
 
     /** Errore lato server post-save. */
     error: boolean = false;
@@ -96,9 +96,10 @@ export class ReferenteAddFormComponent implements OnInit {
     ) {}
 
     ngOnInit(): void {
+        // Tipo "Referente" proposto di default, con gli utenti gia` caricati
         this.formGroup = new FormGroup({
-            tipo: new FormControl(null, [Validators.required]),
-            id_utente: new FormControl({ value: null, disabled: true }, [Validators.required]),
+            tipo: new FormControl('referente', [Validators.required]),
+            id_utente: new FormControl(null, [Validators.required]),
         });
     }
 
@@ -124,11 +125,11 @@ export class ReferenteAddFormComponent implements OnInit {
 
     /** Search service per il dropdown "Utente". Issue #284: filtra sempre per
      *  l'organizzazione del soggetto (anche per i ref tecnici) e per
-     *  `ruolo_organizzazione` (amm.org/operatore API). */
+     *  `ruolo_organizzazione` (amm.org/operatore API). Senza termine restituisce
+     *  l'elenco iniziale degli utenti selezionabili. */
     getSearchUtente() {
         return (term: string): Observable<any[]> => {
-            if (!term) { return of([]); }
-            const opts: any = { params: { q: term, stato: 'abilitato' } };
+            const opts: any = { params: { q: term || '', stato: 'abilitato' } };
             opts.params.id_organizzazione = this.adesione?.soggetto?.organizzazione?.id_organizzazione;
             opts.params.ruolo_organizzazione = RUOLI_ORG_REFERENTE;
             return this.apiService.getList('utenti', opts).pipe(

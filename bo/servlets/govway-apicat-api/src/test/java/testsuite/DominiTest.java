@@ -39,12 +39,15 @@ import org.govway.catalogo.OrganizationContext;
 import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.authorization.DominioAuthorization;
 import org.govway.catalogo.controllers.DominiController;
+import org.govway.catalogo.controllers.ServiziController;
 import org.govway.catalogo.controllers.OrganizzazioniController;
 import org.govway.catalogo.controllers.SoggettiController;
 import org.govway.catalogo.controllers.UtentiController;
 import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.exception.NotFoundException;
+import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.NotAuthorizedException;
@@ -60,6 +63,7 @@ import org.govway.catalogo.servlets.model.PagedModelItemDominio;
 import org.govway.catalogo.servlets.model.PagedModelReferente;
 import org.govway.catalogo.servlets.model.Referente;
 import org.govway.catalogo.servlets.model.ReferenteCreate;
+import org.govway.catalogo.servlets.model.ServizioCreate;
 import org.govway.catalogo.servlets.model.RuoloOrganizzazioneEnum;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.Soggetto;
@@ -129,6 +133,9 @@ public class DominiTest {
 
     @Autowired
     private SoggettiController soggettiController;
+
+    @Autowired
+    private ServiziController serviziController;
 
     @Autowired
     private OrganizationContext organizationContext;
@@ -498,6 +505,126 @@ public class DominiTest {
         assertEquals("UpdatedDomainName", responseUpdate.getBody().getNome());
         assertEquals("Descrizione aggiornata", responseUpdate.getBody().getDescrizione());
         assertEquals(HttpStatus.OK, responseUpdate.getStatusCode());
+    }
+
+    private Dominio createDominioOpzioniAdesione(Boolean multiAdesione, Boolean adesioneDisabilitata) {
+        ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
+        soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
+
+        DominioCreate dominioCreate = this.getDominioCreate();
+        dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
+        dominioCreate.setMultiAdesione(multiAdesione);
+        dominioCreate.setAdesioneDisabilitata(adesioneDisabilitata);
+        return controller.createDominio(dominioCreate).getBody();
+    }
+
+    private void createServizioOpzioniAdesione(Dominio dominio, String nome, boolean multiAdesione, boolean adesioneDisabilitata) {
+        InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_GESTORE, utenteService);
+
+        ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+        servizioCreate.setNome(nome);
+        servizioCreate.setSkipCollaudo(true);
+        servizioCreate.setIdDominio(dominio.getIdDominio());
+        servizioCreate.setMultiAdesione(multiAdesione);
+        servizioCreate.setAdesioneDisabilitata(adesioneDisabilitata);
+
+        ReferenteCreate referente = new ReferenteCreate();
+        referente.setTipo(TipoReferenteEnum.REFERENTE);
+        referente.setIdUtente(UUID.fromString(info.utente.getIdUtente()));
+        servizioCreate.setReferenti(List.of(referente));
+
+        assertEquals(HttpStatus.OK, serviziController.createServizio(servizioCreate).getStatusCode());
+    }
+
+    private DominioUpdate getDominioUpdateOpzioniAdesione(Dominio dominio, Boolean multiAdesione, Boolean adesioneDisabilitata) {
+        DominioUpdate dominioUpdate = new DominioUpdate();
+        dominioUpdate.setNome(dominio.getNome());
+        dominioUpdate.setVisibilita(dominio.getVisibilita());
+        dominioUpdate.setIdSoggettoReferente(dominio.getSoggettoReferente().getIdSoggetto());
+        dominioUpdate.setDeprecato(false);
+        dominioUpdate.setSkipCollaudo(true);
+        dominioUpdate.setMultiAdesione(multiAdesione);
+        dominioUpdate.setAdesioneDisabilitata(adesioneDisabilitata);
+        return dominioUpdate;
+    }
+
+    @Test
+    public void testCreateDominioOpzioniAdesione() {
+        Dominio dominio = this.createDominioOpzioniAdesione(true, true);
+        assertTrue(dominio.isMultiAdesione());
+        assertTrue(dominio.isAdesioneDisabilitata());
+
+        Dominio letto = controller.getDominio(dominio.getIdDominio()).getBody();
+        assertTrue(letto.isMultiAdesione());
+        assertTrue(letto.isAdesioneDisabilitata());
+    }
+
+    @Test
+    public void testCreateDominioOpzioniAdesioneDefault() {
+        Dominio dominio = this.createDominioOpzioniAdesione(null, null);
+        assertFalse(dominio.isMultiAdesione());
+        assertFalse(dominio.isAdesioneDisabilitata());
+    }
+
+    @Test
+    public void testUpdateDominioMultiAdesioneConServiziNonMultiAdesione() {
+        Dominio dominio = this.createDominioOpzioniAdesione(false, false);
+        this.createServizioOpzioniAdesione(dominio, "servizio_multi", true, false);
+        this.createServizioOpzioniAdesione(dominio, "servizio_non_multi", false, false);
+
+        DominioUpdate dominioUpdate = this.getDominioUpdateOpzioniAdesione(dominio, true, null);
+
+        BadRequestException e = assertThrows(BadRequestException.class, () -> controller.updateDominio(dominio.getIdDominio(), dominioUpdate));
+        assertEquals(ErrorCode.DOM_400_MULTI_ADESIONE, e.getErrorCode());
+        assertEquals("1", e.getParameters().get("numeroServizi"));
+        assertEquals(dominio.getNome(), e.getParameters().get("nome"));
+    }
+
+    @Test
+    public void testUpdateDominioAdesioneDisabilitataConServiziAdesioneAbilitata() {
+        Dominio dominio = this.createDominioOpzioniAdesione(false, false);
+        this.createServizioOpzioniAdesione(dominio, "servizio_abilitato", false, false);
+
+        DominioUpdate dominioUpdate = this.getDominioUpdateOpzioniAdesione(dominio, null, true);
+
+        BadRequestException e = assertThrows(BadRequestException.class, () -> controller.updateDominio(dominio.getIdDominio(), dominioUpdate));
+        assertEquals(ErrorCode.DOM_400_ADESIONE_DISABILITATA, e.getErrorCode());
+        assertEquals("1", e.getParameters().get("numeroServizi"));
+    }
+
+    @Test
+    public void testUpdateDominioOpzioniAdesioneConServiziConformi() {
+        Dominio dominio = this.createDominioOpzioniAdesione(false, false);
+        this.createServizioOpzioniAdesione(dominio, "servizio_conforme", true, true);
+
+        Dominio aggiornato = controller.updateDominio(dominio.getIdDominio(), this.getDominioUpdateOpzioniAdesione(dominio, true, true)).getBody();
+
+        assertTrue(aggiornato.isMultiAdesione());
+        assertTrue(aggiornato.isAdesioneDisabilitata());
+    }
+
+    @Test
+    public void testUpdateDominioDisattivaOpzioniAdesione() {
+        Dominio dominio = this.createDominioOpzioniAdesione(true, true);
+        this.createServizioOpzioniAdesione(dominio, "servizio_ereditato", true, true);
+
+        Dominio aggiornato = controller.updateDominio(dominio.getIdDominio(), this.getDominioUpdateOpzioniAdesione(dominio, false, false)).getBody();
+
+        assertFalse(aggiornato.isMultiAdesione());
+        assertFalse(aggiornato.isAdesioneDisabilitata());
+    }
+
+    @Test
+    public void testUpdateDominioOpzioniAdesioneNonIndicateInvariate() {
+        Dominio dominio = this.createDominioOpzioniAdesione(true, true);
+
+        Dominio aggiornato = controller.updateDominio(dominio.getIdDominio(), this.getDominioUpdateOpzioniAdesione(dominio, null, null)).getBody();
+
+        assertTrue(aggiornato.isMultiAdesione());
+        assertTrue(aggiornato.isAdesioneDisabilitata());
     }
 
     @Test

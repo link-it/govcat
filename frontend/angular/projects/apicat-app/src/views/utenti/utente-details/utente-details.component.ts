@@ -175,6 +175,35 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
    */
   _approvingRole: RuoloOrganizzazione | '' = '';
 
+  // Opzioni a riferimento stabile per le ng-select con voce "nessun ruolo":
+  // il valore vuoto non e' gestibile direttamente con bindValue.
+  readonly _approvingRoleOptions: { value: RuoloOrganizzazione | ''; labelKey: string }[] = [
+    { value: '', labelKey: 'APP.RUOLI.NessunRuolo' },
+    { value: RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE, labelKey: 'APP.RUOLI.AmministratoreOrganizzazione' },
+    { value: RuoloOrganizzazione.OPERATORE_API, labelKey: 'APP.RUOLI.OperatoreApi' }
+  ];
+
+  get _approvingRoleOption(): { value: RuoloOrganizzazione | ''; labelKey: string } | null {
+    return this._approvingRoleOptions.find(o => o.value === this._approvingRole) ?? null;
+  }
+  set _approvingRoleOption(opt: { value: RuoloOrganizzazione | ''; labelKey: string } | null) {
+    this._approvingRole = opt?.value ?? '';
+  }
+
+  readonly _ruoloOrgOptions: { value: RuoloOrganizzazione | null; labelKey: string }[] = [
+    { value: null, labelKey: 'APP.ORGANIZATION_SWITCHER.NoRole' },
+    { value: RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE, labelKey: 'APP.RUOLI.AmministratoreOrganizzazione' },
+    { value: RuoloOrganizzazione.OPERATORE_API, labelKey: 'APP.RUOLI.OperatoreApi' }
+  ];
+
+  get _ruoloOrgOption(): { value: RuoloOrganizzazione | null; labelKey: string } | null {
+    const value = this._formGroup?.get('ruolo_organizzazione')?.value ?? null;
+    return this._ruoloOrgOptions.find(o => o.value === value) ?? null;
+  }
+  set _ruoloOrgOption(opt: { value: RuoloOrganizzazione | null; labelKey: string } | null) {
+    this._formGroup?.get('ruolo_organizzazione')?.setValue(opt?.value ?? null);
+  }
+
   /** True se l'utente loggato puo` scegliere fra entrambi i ruoli
    *  organizzazione (gestore o coordinatore). Falso per AMM_ORG ->
    *  selettore bloccato su `operatore_api`. */
@@ -269,6 +298,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
     const idOrg = this._fromOrgManageIdOrg;
     const ref = this.modalService.show(UtenteOrganizzazioneDialogComponent, {
       ignoreBackdropClick: true,
+      ariaLabelledBy: 'utente-org-dialog-title',
       initialState: {
         mode: 'edit' as UtenteOrganizzazioneDialogMode,
         title: 'APP.UTENTI_ORG.TITLE.Edit',
@@ -593,15 +623,20 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
       ruolo_pdnd: this._pdndV3 ? (body.ruolo_pdnd || RuoloPdnd.NESSUNO) : RuoloPdnd.NESSUNO,
     };
 
-    // Multi-org: trasforma `id_organizzazione` + `ruolo_organizzazione`
-    // del form in `organizzazioni: [{...}]`. Il BE ignora il campo
-    // legacy `id_organizzazione` se `organizzazioni` e' presente.
-    const idOrg = body.id_organizzazione;
-    const ruoloOrg = body.ruolo_organizzazione || null;
-    if (idOrg) {
+    // Multi-org: la PUT sincronizza le associazioni sull'elenco inviato (assente = tutte rimosse).
+    // In modifica il form non le gestisce (tabella in sola lettura): si rimandano tutte, col loro ruolo.
+    // In creazione l'unica associazione viene da `id_organizzazione` + `ruolo_organizzazione`.
+    if (!this._isNew) {
+      _newBody.organizzazioni = (this.utente?.organizzazioni || [])
+        .filter((uo: any) => !!uo?.organizzazione?.id_organizzazione)
+        .map((uo: any) => ({
+          id_organizzazione: uo.organizzazione.id_organizzazione,
+          ruolo_organizzazione: uo.ruolo_organizzazione ?? null
+        }));
+    } else if (body.id_organizzazione) {
       _newBody.organizzazioni = [{
-        id_organizzazione: idOrg,
-        ruolo_organizzazione: ruoloOrg
+        id_organizzazione: body.id_organizzazione,
+        ruolo_organizzazione: body.ruolo_organizzazione || null
       }];
     } else {
       _newBody.organizzazioni = [];

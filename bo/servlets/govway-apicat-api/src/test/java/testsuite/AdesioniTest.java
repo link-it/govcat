@@ -53,6 +53,7 @@ import org.govway.catalogo.core.services.ClasseUtenteService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.RichiestaNonValidaSemanticamenteException;
@@ -87,7 +88,16 @@ import org.govway.catalogo.servlets.model.CertificatoClientFornitoCreate;
 import org.govway.catalogo.servlets.model.Client;
 import org.govway.catalogo.servlets.model.ClientCreate;
 import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
+import org.govway.catalogo.servlets.model.CheckDati;
+import org.govway.catalogo.servlets.model.Configurazione;
+import org.govway.catalogo.servlets.model.ConfigurazioneCustomAdesioneProprietaList;
+import org.govway.catalogo.servlets.model.ConfigurazioneProfiloCustomProprietaText;
+import org.govway.catalogo.servlets.model.Ruolo;
+import org.govway.catalogo.servlets.model.SottotipoEnum;
+import org.govway.catalogo.servlets.model.TipoConfigurazioneCustomProprieta;
 import org.govway.catalogo.servlets.model.DatiCustomAdesioneUpdate;
+import org.govway.catalogo.servlets.model.ProprietaCustom;
+import org.govway.catalogo.servlets.model.ProprietaCustomAdesione;
 import org.govway.catalogo.servlets.model.DatiSpecificiClient;
 import org.govway.catalogo.servlets.model.DocumentoCreate;
 import org.govway.catalogo.servlets.model.DocumentoUpdateNew;
@@ -95,6 +105,7 @@ import org.govway.catalogo.servlets.model.Dominio;
 import org.govway.catalogo.servlets.model.DominioCreate;
 import org.govway.catalogo.servlets.model.EntitaComplessaError;
 import org.govway.catalogo.servlets.model.Grant;
+import org.govway.catalogo.servlets.model.GrantType;
 import org.govway.catalogo.servlets.model.Gruppo;
 import org.govway.catalogo.servlets.model.GruppoCreate;
 import org.govway.catalogo.servlets.model.ItemAdesione;
@@ -127,6 +138,7 @@ import org.govway.catalogo.servlets.model.TipoServizio;
 import org.govway.catalogo.servlets.model.Soggetto;
 import org.govway.catalogo.servlets.model.SoggettoCreate;
 import org.govway.catalogo.servlets.model.StatoClientEnum;
+import org.govway.catalogo.servlets.model.StatoMessaggioAdesioneUpdate;
 import org.govway.catalogo.servlets.model.StatoUpdate;
 import org.govway.catalogo.servlets.model.StatoUtenteEnum;
 import org.govway.catalogo.servlets.model.TipoAdesioneClientUpdateEnum;
@@ -227,6 +239,7 @@ public class AdesioniTest {
     private static final String UTENTE_RICHIEDENTE_ADESIONE = "utente_richiedente_adesione";
     
     private static final String STATO_PUBBLICATO_IN_COLLAUDO = "pubblicato_collaudo";
+    private static final String STATO_ARCHIVIATO = "archiviato";
     
     private static UUID ID_UTENTE_GESTORE;
     private static UUID ID_UTENTE_RICHIEDENTE_ADESIONE;
@@ -494,10 +507,15 @@ public class AdesioniTest {
         Dominio dominio = this.getDominioFull(null);
         Servizio servizio = this.getServizioFull(dominio, VisibilitaServizioEnum.PUBBLICO);
 
-        // Ente erogatore distinto dal soggetto referente del dominio
+        // Ente erogatore distinto dal soggetto referente del dominio, in un'organizzazione propria
+        OrganizzazioneCreate organizzazioneErogatore = CommonUtils.getOrganizzazioneCreate();
+        organizzazioneErogatore.setNome("organizzazione_erogatore");
+        ResponseEntity<Organizzazione> organizzazioneErogatoreCreata = organizzazioniController.createOrganizzazione(organizzazioneErogatore);
+        assertEquals(HttpStatus.OK, organizzazioneErogatoreCreata.getStatusCode());
+
         SoggettoCreate erogatoreCreate = new SoggettoCreate();
         erogatoreCreate.setNome("nome_soggetto_erogatore");
-        erogatoreCreate.setIdOrganizzazione(this.idOrganizzazione);
+        erogatoreCreate.setIdOrganizzazione(organizzazioneErogatoreCreata.getBody().getIdOrganizzazione());
         erogatoreCreate.setReferente(true);
         erogatoreCreate.setAderente(true);
         ResponseEntity<Soggetto> erogatore = soggettiController.createSoggetto(erogatoreCreate);
@@ -531,7 +549,7 @@ public class AdesioniTest {
         entityManager.clear();
 
         ResponseEntity<Resource> response = adesioniController.exportAdesioni(
-            null, null, null, null, null, null, null, null, null, false, null, null, null
+            null, null, null, null, null, null, null, null, null, false, null, null, null, null
         );
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -544,6 +562,13 @@ public class AdesioniTest {
 
         // Aderente: il soggetto dell'adesione, non la sua organizzazione
         assertEquals("nome_soggetto", getColonnaCsv(csv, adesione, "Soggetto Aderente"));
+
+        // Organizzazioni dei soggetti, ciascuna subito dopo la colonna del proprio soggetto
+        assertEquals("organizzazione_erogatore", getColonnaCsv(csv, adesione, "Organizzazione Erogatore"));
+        assertEquals(CommonUtils.NOME_ORGANIZZAZIONE, getColonnaCsv(csv, adesione, "Organizzazione Aderente"));
+        List<String> header = parseCsv(csv).get(0);
+        assertEquals(header.indexOf("Soggetto Erogatore") + 1, header.indexOf("Organizzazione Erogatore"));
+        assertEquals(header.indexOf("Soggetto Aderente") + 1, header.indexOf("Organizzazione Aderente"));
     }
 
     @Test
@@ -561,7 +586,7 @@ public class AdesioniTest {
 
         ResponseEntity<Resource> response = adesioniController.exportAdesioni(
             null, null, null, null, null, null, null, null, null, false, null,
-            Arrays.asList(adesione.getIdAdesione()), null
+            Arrays.asList(adesione.getIdAdesione()), null, null
         );
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -958,6 +983,35 @@ public class AdesioniTest {
     	assertThrows(NotAuthorizedException.class, () -> {
     		adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggio);
         });
+    }
+
+    /**
+     * Classe di dato `comunicazioni`: nello stato `richiesto_collaudo` la transizione successiva
+     * spetta al referente superiore, quindi il referente dell'adesione non modifica i dati
+     * generici, ma deve poter comunicare.
+     */
+    @Test
+    void testCreateMessaggioAdesioneReferenteStatoRichiestoCollaudo() {
+        Dominio dominio = this.getDominioFull(null);
+        Servizio servizio = this.getServizioFull(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPIFull();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+        Adesione adesione = this.getAdesioneFull();
+        this.cambioStatoAdesioneFinoA(adesione.getIdAdesione(), "richiesto_collaudo");
+
+        CommonUtils.getSessionUtente(UTENTE_REFERENTE_ADESIONE, securityContext, authentication, utenteService);
+
+        Grant grant = adesioniController.getGrantAdesione(adesione.getIdAdesione()).getBody();
+        assertEquals(GrantType.LETTURA, grant.getGenerico());
+        assertEquals(GrantType.SCRITTURA, grant.getComunicazioni());
+
+        MessaggioAdesioneCreate messaggio = new MessaggioAdesioneCreate();
+        messaggio.setOggetto("Oggetto di prova");
+        messaggio.setTesto("Testo di prova");
+        messaggio.setTarget(Arrays.asList(TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE));
+
+        ResponseEntity<ItemMessaggio> response = adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggio);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
@@ -1984,7 +2038,7 @@ public class AdesioniTest {
         // Act
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
             null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-            null, null, null, null, false, null, null, null, null, 0, 10, null);
+            null, null, null, null, false, null, null, null, null, null, 0, 10, null);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1993,7 +2047,85 @@ public class AdesioniTest {
         
         assertFalse(listAdesione.isEmpty());
     }
- 
+
+    /**
+     * Issue 375: il filtro `stato_servizio` restringe le adesioni in base allo stato del servizio
+     * a cui si riferiscono (valori in OR), non allo stato dell'adesione.
+     */
+    @Test
+    void testListAdesioniFiltroStatoServizio() {
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA(STATO_PUBBLICATO_IN_COLLAUDO, serviziController, servizio.getIdServizio());
+
+        Adesione adesione = this.getAdesione();
+        assertEquals("bozza", adesione.getStato());
+
+        // Nessun filtro: l'adesione e` presente
+        assertTrue(this.contieneAdesione(this.listAdesioniStatoServizio(servizio, null), adesione));
+
+        // Stato del servizio corrispondente
+        assertTrue(this.contieneAdesione(this.listAdesioniStatoServizio(servizio, Arrays.asList(STATO_PUBBLICATO_IN_COLLAUDO)), adesione));
+
+        // Il filtro riguarda lo stato del servizio: lo stato dell'adesione (bozza) non viene considerato
+        assertFalse(this.contieneAdesione(this.listAdesioniStatoServizio(servizio, Arrays.asList("bozza")), adesione));
+        assertFalse(this.contieneAdesione(this.listAdesioniStatoServizio(servizio, Arrays.asList(STATO_ARCHIVIATO)), adesione));
+
+        StatoUpdate statoUpdate = new StatoUpdate();
+        statoUpdate.setStato(STATO_ARCHIVIATO);
+        serviziController.updateStatoServizio(servizio.getIdServizio(), statoUpdate, null);
+        entityManager.flush();
+        entityManager.clear();
+
+        // Servizio archiviato: l'adesione si recupera filtrando per lo stato archiviato
+        assertTrue(this.contieneAdesione(this.listAdesioniStatoServizio(servizio, Arrays.asList(STATO_ARCHIVIATO)), adesione));
+        assertFalse(this.contieneAdesione(this.listAdesioniStatoServizio(servizio, Arrays.asList(STATO_PUBBLICATO_IN_COLLAUDO)), adesione));
+
+        // Piu` valori in OR
+        assertTrue(this.contieneAdesione(this.listAdesioniStatoServizio(servizio, Arrays.asList(STATO_PUBBLICATO_IN_COLLAUDO, STATO_ARCHIVIATO)), adesione));
+    }
+
+    /**
+     * Issue 375: l'export applica il filtro `stato_servizio` come la lista.
+     */
+    @Test
+    void testExportAdesioniFiltroStatoServizio() throws Exception {
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA(STATO_PUBBLICATO_IN_COLLAUDO, serviziController, servizio.getIdServizio());
+
+        Adesione adesione = this.getAdesione();
+
+        entityManager.flush();
+        entityManager.clear();
+
+        assertTrue(this.exportAdesioniStatoServizio(Arrays.asList(STATO_PUBBLICATO_IN_COLLAUDO)).contains(adesione.getIdAdesione().toString()));
+        assertFalse(this.exportAdesioniStatoServizio(Arrays.asList(STATO_ARCHIVIATO)).contains(adesione.getIdAdesione().toString()));
+    }
+
+    private List<ItemAdesione> listAdesioniStatoServizio(Servizio servizio, List<String> statoServizio) {
+        ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
+                null, null, null, null, null, servizio.getIdServizio(),
+                null, null, null, null, false, null, null, null, statoServizio, null, 0, 100, null);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        return response.getBody().getContent();
+    }
+
+    private String exportAdesioniStatoServizio(List<String> statoServizio) throws Exception {
+        ResponseEntity<Resource> response = adesioniController.exportAdesioni(
+                null, null, null, null, null, null, null, null, null, false, null, null, statoServizio, null);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        return new String(response.getBody().getContentAsByteArray());
+    }
+
+    private boolean contieneAdesione(List<ItemAdesione> adesioni, Adesione adesione) {
+        return adesioni.stream().anyMatch(a -> a.getIdAdesione().equals(adesione.getIdAdesione()));
+    }
+
     @Test
     void testListAdesioneSortedNameDesc() {
     	// Setup
@@ -2031,7 +2163,7 @@ public class AdesioniTest {
         
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
                 null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-                null, null, null, null, false, null, null, null, null, 0, 10, sort);
+                null, null, null, null, false, null, null, null, null, null, 0, 10, sort);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -2080,7 +2212,7 @@ public class AdesioniTest {
 
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
                 null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-                null, null, null, null, false, null, null, null, null, 0, 10, sort);
+                null, null, null, null, false, null, null, null, null, null, 0, 10, sort);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -2130,7 +2262,7 @@ public class AdesioniTest {
 
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
                 null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-                null, null, null, null, false, null, null, null, null, 0, 10, sort);
+                null, null, null, null, false, null, null, null, null, null, 0, 10, sort);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -2178,7 +2310,7 @@ public class AdesioniTest {
         	
         	ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
                     null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-                    null, null, null, null, false, null, null, null, null, n, numeroElementiPerPagina, null);
+                    null, null, null, null, false, null, null, null, null, null, n, numeroElementiPerPagina, null);
 
             // Verifica del successo
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -2220,7 +2352,7 @@ public class AdesioniTest {
 
         assertThrows(NotAuthorizedException.class, () -> adesioniController.listAdesioni(
                 null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-                null, null, null, null, false, null, null, null, null, 0, 10, null));
+                null, null, null, null, false, null, null, null, null, null, 0, 10, null));
     }
 
     @Test
@@ -2240,7 +2372,7 @@ public class AdesioniTest {
         // Act - chiamata con dashboard=true come gestore
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
             null, null, null, null, null, null,
-            null, null, null, null, false, null, true, null, null, 0, 10, null);
+            null, null, null, null, false, null, true, null, null, null, 0, 10, null);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -2264,7 +2396,7 @@ public class AdesioniTest {
         // Act - chiamata con dashboard=true
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
             null, null, null, null, null, null,
-            null, null, null, null, false, null, true, null, null, 0, 10, null);
+            null, null, null, null, false, null, true, null, null, null, 0, 10, null);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -2318,7 +2450,7 @@ public class AdesioniTest {
         // Chiamo la dashboard
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
             null, null, null, null, null, null,
-            null, null, null, null, false, null, true, null, null, 0, 10, null);
+            null, null, null, null, false, null, true, null, null, null, 0, 10, null);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -2352,7 +2484,7 @@ public class AdesioniTest {
         CommonUtils.getSessionUtente(UTENTE_RICHIEDENTE_ADESIONE, securityContext, authentication, utenteService);
         ResponseEntity<PagedModelItemAdesione> responseOperatore = adesioniController.listAdesioni(
             null, null, null, null, null, null,
-            null, null, null, null, false, null, null, null, null, 0, 10, null);
+            null, null, null, null, false, null, null, null, null, null, 0, 10, null);
         assertEquals(HttpStatus.OK, responseOperatore.getStatusCode());
         assertNotNull(responseOperatore.getBody());
         boolean visibileOperatore = responseOperatore.getBody().getContent().stream()
@@ -2377,7 +2509,7 @@ public class AdesioniTest {
         CommonUtils.getSessionUtente(UTENTE_RICHIEDENTE_ADESIONE, securityContext, authentication, utenteService);
         ResponseEntity<PagedModelItemAdesione> responseAmministratore = adesioniController.listAdesioni(
             null, null, null, null, null, null,
-            null, null, null, null, false, null, null, null, null, 0, 10, null);
+            null, null, null, null, false, null, null, null, null, null, 0, 10, null);
         assertEquals(HttpStatus.OK, responseAmministratore.getStatusCode());
         assertNotNull(responseAmministratore.getBody());
         boolean visibileAmministratore = responseAmministratore.getBody().getContent().stream()
@@ -2431,6 +2563,46 @@ public class AdesioniTest {
         assertEquals(HttpStatus.OK, adesioneResponse.getStatusCode());
         assertNotNull(adesioneResponse.getBody());
         assertEquals(idAdesione, adesioneResponse.getBody().getIdAdesione());
+    }
+
+    @Test
+    void testGetAdesioneECoordinatoreVedeQualsiasiAdesione() {
+        // RIPRODUZIONE: il coordinatore riceve le comunicazioni indirizzate al suo ruolo
+        // (target COORDINATORE) su qualsiasi adesione, ma non ne e` referente/richiedente.
+        // Deve quindi poter aprire la scheda e le comunicazioni dell'adesione, come il gestore.
+
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+
+        // Adesione creata dal gestore: il coordinatore non e` referente ne` richiedente,
+        // e non e` referente del servizio o del dominio.
+        AdesioneCreate adesioneCreate = new AdesioneCreate();
+        adesioneCreate.setIdServizio(idServizio);
+        adesioneCreate.setIdSoggetto(idSoggetto);
+        Adesione adesione = adesioniController.createAdesione(adesioneCreate).getBody();
+        UUID idAdesione = adesione.getIdAdesione();
+
+        // Creo un utente con ruolo COORDINATORE, senza alcun legame con l'adesione.
+        String utenteCoordinatore = "utente_coordinatore_adesione";
+        UtenteCreate coordinatore = CommonUtils.getUtenteCreate();
+        coordinatore.setPrincipal(utenteCoordinatore);
+        coordinatore.setRuolo(RuoloUtenteEnum.COORDINATORE);
+        CommonUtils.setOrganizzazione(coordinatore, idOrganizzazione);
+        coordinatore.setStato(StatoUtenteEnum.ABILITATO);
+        utentiController.createUtente(coordinatore);
+
+        CommonUtils.getSessionUtente(utenteCoordinatore, securityContext, authentication, utenteService);
+
+        ResponseEntity<Adesione> adesioneResponse = adesioniController.getAdesione(idAdesione);
+        assertEquals(HttpStatus.OK, adesioneResponse.getStatusCode());
+        assertNotNull(adesioneResponse.getBody());
+        assertEquals(idAdesione, adesioneResponse.getBody().getIdAdesione());
+
+        ResponseEntity<PagedModelItemComunicazione> comunicazioniResponse = adesioniController.listComunicazioniAdesione(idAdesione, 0, 10, null);
+        assertEquals(HttpStatus.OK, comunicazioniResponse.getStatusCode());
+        assertNotNull(comunicazioniResponse.getBody());
     }
 
     @Test
@@ -5150,9 +5322,10 @@ public class AdesioniTest {
         assertThrows(NotAuthorizedException.class, () -> adesioniController.saveErogazioneProduzioneAdesione(adesione.getIdAdesione(), idErogazione, adesioneErogazioneUpdate, null));
     }
     
-    @Test
-    void testUpdateStatoAdesioneSuccess() {
-        // Setup
+    /**
+     * Adesione in bozza con i dati obbligatori per la transizione verso richiesto_collaudo.
+     */
+    private UUID creaAdesioneProntaPerRichiestaCollaudo() {
         Dominio dominio = this.getDominio(null);
         Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
         this.getAPI();
@@ -5218,6 +5391,14 @@ public class AdesioniTest {
         
         adesioniController.saveClientCollaudoAdesione(idAdesione, PROFILO, adesioneIdClient, null);
 
+        return idAdesione;
+    }
+
+    @Test
+    void testUpdateStatoAdesioneSuccess() {
+        // Setup
+        UUID idAdesione = this.creaAdesioneProntaPerRichiestaCollaudo();
+
         StatoUpdate stato = new StatoUpdate();
     	stato.setStato("richiesto_collaudo");
     	stato.setCommento("richiesta di collaudo");
@@ -5250,6 +5431,61 @@ public class AdesioniTest {
         assertThrows(NotAuthorizedException.class, () -> adesioniController.updateStatoAdesione(adesione.getIdAdesione(), statoUpdate, null));
     }
     
+    @Test
+    void testUpdateStatoMessaggioAdesioneSuccess() {
+        // Setup
+        UUID idAdesione = this.creaAdesioneProntaPerRichiestaCollaudo();
+
+        StatoMessaggioAdesioneUpdate statoMessaggio = this.getStatoMessaggioAdesioneUpdate("richiesto_collaudo");
+
+        // Act
+        ResponseEntity<Adesione> response = adesioniController.updateStatoMessaggioAdesione(idAdesione, statoMessaggio);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("richiesto_collaudo", response.getBody().getStato());
+
+        // oltre al messaggio automatico di creazione dell'adesione deve essere presente quello inviato
+        List<ItemMessaggio> messaggi = adesioniController.listMessaggiAdesione(idAdesione, null, 0, 10, null).getBody().getContent();
+        assertTrue(messaggi.stream().anyMatch(m -> statoMessaggio.getMessaggio().getOggetto().equals(m.getOggetto())
+                && statoMessaggio.getMessaggio().getTesto().equals(m.getTesto())));
+    }
+
+    @Test
+    void testUpdateStatoMessaggioAdesioneUnauthorized() {
+        // Setup
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+        Adesione adesione = this.getAdesione();
+
+        StatoMessaggioAdesioneUpdate statoMessaggio = this.getStatoMessaggioAdesioneUpdate("richiesto_collaudo");
+
+        // Cambio utente per testare unauthorized
+        CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
+
+        // Act & Assert
+        assertThrows(NotAuthorizedException.class, () -> adesioniController.updateStatoMessaggioAdesione(adesione.getIdAdesione(), statoMessaggio));
+    }
+
+    private StatoMessaggioAdesioneUpdate getStatoMessaggioAdesioneUpdate(String stato) {
+        StatoUpdate statoUpdate = new StatoUpdate();
+        statoUpdate.setStato(stato);
+        statoUpdate.setCommento("commento cambio stato");
+
+        MessaggioAdesioneCreate messaggio = new MessaggioAdesioneCreate();
+        messaggio.setOggetto("Oggetto Test");
+        messaggio.setTesto("Testo del messaggio");
+        messaggio.setTarget(Arrays.asList(TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE));
+
+        StatoMessaggioAdesioneUpdate statoMessaggio = new StatoMessaggioAdesioneUpdate();
+        statoMessaggio.setStato(statoUpdate);
+        statoMessaggio.setMessaggio(messaggio);
+        return statoMessaggio;
+    }
+
     @Test
     void testDeleteMessaggioAdesioneSuccess() {
         // Setup
@@ -6816,7 +7052,7 @@ public class AdesioniTest {
     			null, null, null, null,
     			null, null, null,
     			null, null, null,
-    			ids, null,
+    			ids, null, null,
     			0, 10, null);
 
         // Assert
@@ -7035,6 +7271,110 @@ public class AdesioniTest {
                 // una chiave tipo "bozza.PROFILO" nella cache: deve essere un profilo previsto.
                 assertNotNull(d.getProfilo());
             }
+        }
+    }
+
+    // ==================== proprieta' custom required e ruoli_abilitati ====================
+
+    private static final String GRUPPO_RUOLI_ABILITATI = "GruppoRuoliAbilitatiTest";
+
+    @Autowired
+    private Configurazione configurazione;
+
+    private ConfigurazioneCustomAdesioneProprietaList aggiungiGruppoRequired(List<Ruolo> ruoliAbilitati) {
+        ConfigurazioneProfiloCustomProprietaText proprieta = new ConfigurazioneProfiloCustomProprietaText();
+        proprieta.setNome("proprieta_obbligatoria");
+        proprieta.setEtichetta("Proprieta' obbligatoria");
+        proprieta.setTipo(TipoConfigurazioneCustomProprieta.TEXT);
+        proprieta.setRequired(true);
+
+        ConfigurazioneCustomAdesioneProprietaList gruppo = new ConfigurazioneCustomAdesioneProprietaList();
+        gruppo.setNomeGruppo(GRUPPO_RUOLI_ABILITATI);
+        gruppo.setLabelGruppo("Gruppo ruoli abilitati");
+        gruppo.setClasseDato(ConfigurazioneClasseDato.IDENTIFICATIVO);
+        gruppo.setRuoliAbilitati(ruoliAbilitati);
+        gruppo.setProprieta(List.of(proprieta));
+        this.configurazione.getAdesione().getProprietaCustom().add(gruppo);
+        return gruppo;
+    }
+
+    private boolean isGruppoRichiesto(UUID idAdesione, List<Ruolo> ruoliAbilitati) {
+        ConfigurazioneCustomAdesioneProprietaList gruppo = this.aggiungiGruppoRequired(ruoliAbilitati);
+        try {
+            CheckDati check = adesioniController.checkDatiAdesione(idAdesione, "bozza").getBody();
+            return check.getErrori() != null && check.getErrori().stream()
+                    .filter(e -> e.getSottotipo() != null)
+                    .anyMatch(e -> e.getSottotipo().stream()
+                            .anyMatch(st -> SottotipoEnum.CONFIGURAZIONE_GRUPPO.equals(st.getTipo()) && GRUPPO_RUOLI_ABILITATI.equals(st.getIdentificativo())));
+        } finally {
+            this.configurazione.getAdesione().getProprietaCustom().remove(gruppo);
+        }
+    }
+
+    /**
+     * Una proprieta' custom required di un gruppo non visibile all'utente per ruoli_abilitati non
+     * gli viene richiesta (non potrebbe compilarla); resta obbligatoria per chi ha un ruolo abilitato.
+     * Il gestore qui e' gestore, referente e richiedente dell'adesione, ma non referente tecnico.
+     */
+    @Test
+    void testCheckDatiAdesioneProprietaRequiredRuoliAbilitati() {
+        Dominio dominio = this.getDominio(null);
+        this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA(STATO_PUBBLICATO_IN_COLLAUDO, serviziController, idServizio);
+        UUID idAdesione = this.getAdesione().getIdAdesione();
+
+        // ruoli_abilitati assente: visibile a tutti, quindi richiesta
+        assertTrue(this.isGruppoRichiesto(idAdesione, null));
+        // ruolo dell'utente abilitato: richiesta
+        assertTrue(this.isGruppoRichiesto(idAdesione, List.of(Ruolo.GESTORE)));
+        // nessun ruolo dell'utente abilitato: non richiesta
+        assertFalse(this.isGruppoRichiesto(idAdesione, List.of(Ruolo.REFERENTE_TECNICO)));
+        // lista vuota: non visibile a nessuno, quindi non richiesta
+        assertFalse(this.isGruppoRichiesto(idAdesione, List.of()));
+    }
+
+    private DatiCustomAdesioneUpdate getDatiCustomRuoliAbilitati(String valore) {
+        AuthTypeApiResourceProprietaCustom proprieta = new AuthTypeApiResourceProprietaCustom();
+        proprieta.setNome("proprieta_obbligatoria");
+        proprieta.setValore(valore);
+        ProprietaCustom gruppo = new ProprietaCustom();
+        gruppo.setGruppo(GRUPPO_RUOLI_ABILITATI);
+        gruppo.setProprieta(List.of(proprieta));
+        ProprietaCustomAdesione proprietaCustom = new ProprietaCustomAdesione();
+        proprietaCustom.setGruppi(List.of(gruppo));
+        DatiCustomAdesioneUpdate datiCustom = new DatiCustomAdesioneUpdate();
+        datiCustom.setProprietaCustom(List.of(proprietaCustom));
+        return datiCustom;
+    }
+
+    /**
+     * Un gruppo di proprieta' custom non e' scrivibile da chi non ha uno dei ruoli abilitati del gruppo;
+     * la force del gestore salta il controllo.
+     * Il gestore qui e' gestore, referente e richiedente dell'adesione, ma non referente tecnico.
+     */
+    @Test
+    void testSaveConfigurazioneCustomAdesioneRuoliAbilitati() {
+        Dominio dominio = this.getDominio(null);
+        this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA(STATO_PUBBLICATO_IN_COLLAUDO, serviziController, idServizio);
+        UUID idAdesione = this.getAdesione().getIdAdesione();
+
+        ConfigurazioneCustomAdesioneProprietaList gruppo = this.aggiungiGruppoRequired(List.of(Ruolo.REFERENTE_TECNICO));
+        gruppo.setClasseDato(ConfigurazioneClasseDato.COLLAUDO);
+        try {
+            NotAuthorizedException e = assertThrows(NotAuthorizedException.class,
+                    () -> adesioniController.saveConfigurazioneCustomCollaudoAdesione(idAdesione, getDatiCustomRuoliAbilitati("valore"), null));
+            assertEquals(ErrorCode.AUT_403_GRUPPO_RUOLI_ABILITATI, e.getErrorCode());
+            assertEquals(GRUPPO_RUOLI_ABILITATI, e.getParameters().get("gruppo"));
+
+            assertEquals(HttpStatus.OK, adesioniController.saveConfigurazioneCustomCollaudoAdesione(idAdesione, getDatiCustomRuoliAbilitati("forzato"), true).getStatusCode());
+
+            gruppo.setRuoliAbilitati(List.of(Ruolo.GESTORE));
+            assertEquals(HttpStatus.OK, adesioniController.saveConfigurazioneCustomCollaudoAdesione(idAdesione, getDatiCustomRuoliAbilitati("valore"), null).getStatusCode());
+        } finally {
+            this.configurazione.getAdesione().getProprietaCustom().remove(gruppo);
         }
     }
 

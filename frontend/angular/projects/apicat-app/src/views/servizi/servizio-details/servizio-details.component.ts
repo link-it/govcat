@@ -37,6 +37,7 @@ import { concat, forkJoin, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
 
 import { Grant } from '@app/model/grant';
+import { ADESIONE_DOMINIO_LIBERA, AdesioneDominio, adesioneBloccataDalDominio, adesioneImpostaDalDominio, applicaAdesioneDominio } from '../servizio-adesione-dominio';
 
 import { CommonModule } from '@angular/common';
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
@@ -48,10 +49,14 @@ import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-
 import { NotificationBarComponent } from '../../notifications/notification-bar/notification-bar.component';
 import { MarkdownModule } from 'ngx-markdown';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
+import { motivoSkipCollaudoBloccato } from '../servizio-verifica-stato';
 import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
 
 declare const saveAs: any;
 import moment from 'moment';
+import { PagedTypeahead, PaginaTypeahead, paginaDaRisposta } from '@app/lib/utils/paged-typeahead';
+import { CARD_IMAGE_ASPECT_RATIO } from '@app/components/lnk-ui/card/card.component';
+import { CropPreviewComponent } from '@app/lib/ui/crop-preview/crop-preview.component';
 
 @Component({
     selector: 'app-servizio-details',
@@ -60,6 +65,7 @@ import moment from 'moment';
     standalone: true,
     imports: [
         CommonModule,
+        CropPreviewComponent,
         FormsModule,
         ReactiveFormsModule,
         RouterModule,
@@ -124,12 +130,11 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     _toStatus: string = '';
 
     apiUrl: string = '';
-    _imagePlaceHolder: string = './assets/images/logo-placeholder.png';
+    _imagePlaceHolder: string = './assets/images/logo-placeholder-16x9.svg';
     _maxImageSize: number = (Tools.Configurazione?.servizio?.max_image_size || 2) * 1024 * 1024;
 
-    domini$!: Observable<any[]>;
-    dominiInput$ = new Subject<string>();
-    dominiLoading: boolean = false;
+    /** Domini per la select: ricerca paginata con caricamento allo scroll. */
+    dominiTypeahead: PagedTypeahead<any> = this._nuoviDomini([]);
     selectedDominio: any;
 
     utenti$!: Observable<any[]>;
@@ -284,6 +289,8 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     _hasMultiDominio: boolean = false;
     _multiDominioEmail: string | null = null;
     _hasFlagConsentiNonSottoscrivibile: boolean = false;
+    /** Opzioni di adesione imposte dal dominio del servizio. */
+    _adesioneDominio: AdesioneDominio = ADESIONE_DOMINIO_LIBERA;
     _hasAdesioniMultiple: boolean = false;
     
     _isFruizione: boolean = false;
@@ -312,6 +319,11 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     _dashboardSection: string = '';
 
     hideVersions: boolean = false;
+
+    /** Checkbox "Package" e visibilita' "componente" nascoste di default (`AppConfig.Services.showPackage`) finche' la gestione dei package non e' completa. */
+    _showPackage: boolean = false;
+    /** Proporzione del logo come nella card del catalogo. */
+    readonly _logoRatio: number = CARD_IMAGE_ASPECT_RATIO;
 
     constructor(
         public route: ActivatedRoute,
@@ -345,13 +357,14 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         this._hasFlagConsentiNonSottoscrivibile = Tools.Configurazione?.servizio.consenti_non_sottoscrivibile || false;
         this._hasAdesioniMultiple = Tools.Configurazione?.servizio?.adesioni_multiple || false;
         this.hideVersions = this.appConfig?.AppConfig?.Services?.hideVersions || false;
+        this._showPackage = this.appConfig?.AppConfig?.Services?.showPackage === true;
     }
 
     ngOnInit() {
         localStorage.setItem('SERVIZI_VIEW', 'FALSE');
         this.loadAnagrafiche();
 
-        if (this._isGestore()) {
+        if (this._isGestore() && this._componenteSelezionabile) {
             this._tipiVisibilitaServizio = [ ...this._tipiVisibilitaServizio, { value: 'componente', label: 'componente'} ];
         }
 
@@ -528,9 +541,22 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         });
     }
 
+    /**
+     * Path assoluto verso una sotto-sezione del dettaglio, valido in entrambi i
+     * contesti d'uso di questo componente:
+     *  - dettaglio servizio (rotta `servizi/:id/classic`) -> `servizi/:id/<route>`
+     *  - dettaglio componente (rotta `servizi/:id/componenti/:cid`) -> `servizi/:id/componenti/:cid/<route>`
+     * Nel contesto componente la sezione classica vive sotto `:id`, non sotto `/classic`.
+     */
+    _sectionRoute(route: string): any[] {
+        if (this._componentBreadcrumbs) {
+            return [this.model, this._componentBreadcrumbs.service.id_servizio, 'componenti', this.id, route];
+        }
+        return [this.model, this.id, route];
+    }
+
     onLinkClick(item: any) {
-        // [routerLink]="[link.route]" [state]="{ service: data, grant: _grant }" [relativeTo]="route"
-        this.router.navigate([item.route], { state: { service: this.data, grant: this._grant }, relativeTo: this.route, queryParamsHandling: 'preserve' });
+        this.router.navigate(this._sectionRoute(item.route), { state: { service: this.data, grant: this._grant }, queryParamsHandling: 'preserve' });
     }
 
     get f(): { [key: string]: AbstractControl } {
@@ -668,7 +694,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         if (_isPackage) {
             this._tipiVisibilitaServizio = [ ..._origTipiVisibilitaServizio ];
         } else {
-            if (this._isGestore()) {
+            if (this._isGestore() && this._componenteSelezionabile) {
                 this._tipiVisibilitaServizio = [ ..._origTipiVisibilitaServizio, { value: 'componente', label: 'componente'} ];
             }
         }
@@ -843,7 +869,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     __deleteService() {
         this.apiService.deleteElement(this.model, this.data.id_servizio).subscribe({
             next: (response) => {
-                this.router.navigate([this.model], { relativeTo: this.route });
+                this.router.navigate([this.model]);
             },
             error: (error) => {
                 this._error = true;
@@ -852,26 +878,13 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         });
     }
 
-    getDomini(term: string | null = null): Observable<any> {
-        // Issue 340: GET /domini e` paginato (size default 20). Senza `size`
-        // la ricerca mostrerebbe solo i primi 20 domini (es. >20 domini per la
-        // stessa organizzazione), quindi richiediamo una pagina capiente.
-        const _options: any = term ? { params: { q: term, size: 1000 } } : { params: { size: 1000 } };
+    getDomini(term: string | null = null, page: number = 0): Observable<PaginaTypeahead<any>> {
+        const _options: any = { params: { page } };
+        if (term) { _options.params.q = term; }
         if (!this.authenticationService.isGestore()) {
             _options.params.deprecato = false;
         }
-        return this.apiService.getList('domini', _options)
-            .pipe(map(resp => {
-                if (resp.Error) {
-                    throwError(() => resp.Error);
-                } else {
-                    const _items = resp.content.map((item: any) => {
-                        return item;
-                    });
-                    return _items;
-                }
-            })
-        );
+        return this.apiService.getList('domini', _options).pipe(map((resp: any) => paginaDaRisposta(resp)));
     }
 
     getUtenti(term: string | null = null, role: string | null = null, stato: string = 'abilitato', ruoliOrganizzazione: string[] = []): Observable<any> {
@@ -941,8 +954,9 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                                     this._loadApis();
                                 }
                                 this._enableDisableSkipCollaudo(this.data.dominio);
+                                this._setAdesioneDominio(this.data.dominio);
                             } else {
-                                this.router.navigate(['servizi', this.data.id_servizio, 'view'], { relativeTo: this.route });
+                                this.router.navigate(['servizi', this.data.id_servizio, 'view']);
                             }
                             this._showDeleteActions = this.data.eliminabile || false;
                         },
@@ -961,23 +975,13 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     }
 
     _initDominiSelect(defaultValue: any[] = []) {
-        this.domini$ = concat(
-            of(defaultValue),
-            this.dominiInput$.pipe(
-                // filter(res => {
-                //   return res !== null && res.length >= this.minLengthTerm
-                // }),
-                startWith(''),
-                distinctUntilChanged(),
-                debounceTime(300),
-                tap(() => this.dominiLoading = true),
-                switchMap((term: any) => {
-                    return this.getDomini(term).pipe(
-                        catchError(() => of([])), // empty list on error
-                        tap(() => this.dominiLoading = false)
-                    )
-                })
-            )
+        this.dominiTypeahead = this._nuoviDomini(defaultValue);
+    }
+
+    private _nuoviDomini(iniziali: any[]): PagedTypeahead<any> {
+        return new PagedTypeahead<any>(
+            (term: string, page: number) => this.getDomini(term, page),
+            { iniziali: iniziali.filter(Boolean), chiave: (d: any) => d?.id_dominio }
         );
     }
 
@@ -1092,8 +1096,9 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         this.richiedente = this.data.utente_richiedente;
         this.utenteUltimaModifica = this.data.utente_ultima_modifica;
 
-        this.getSoggetti(null, true).subscribe({
+        this.getSoggetti(null, this._soggettiSoloReferenti()).subscribe({
             next: (result) => {
+                result = this._withSoggettoSalvato(result);
                 if (result.length === 1) {
                     this._hideSoggettoDropdown = true;
                     this._hideSoggettoInfo = true;
@@ -1142,6 +1147,20 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         );
     }
 
+    // Issue #299: i soggetti si filtrano sui referenti solo se l'organizzazione non e` intermediata
+    _soggettiSoloReferenti(): boolean {
+        return !this.selectedOrganizzazione?.intermediata;
+    }
+
+    // Il soggetto gia` salvato resta sempre selezionabile (e non viene sostituito)
+    _withSoggettoSalvato(soggetti: any[]): any[] {
+        const _salvato = this.data?.soggetto_erogatore;
+        if (!_salvato?.id_soggetto || soggetti.some((s: any) => s.id_soggetto === _salvato.id_soggetto)) {
+            return soggetti;
+        }
+        return [_salvato, ...soggetti];
+    }
+
     getSoggetti(term: string | null = null, referente: boolean = false): Observable<any> {
         let _options: any = null;
         if (this.selectedOrganizzazione?.id_organizzazione) {
@@ -1176,10 +1195,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     _checkSoggetto(event: any) {
         if(event) {
-            // Issue #299: filtro `referente=true` solo se l'organizzazione
-            // selezionata NON e` intermediata.
-            const _referente = !this.selectedOrganizzazione?.intermediata;
-            this.getSoggetti(null, _referente).subscribe({
+            this.getSoggetti(null, this._soggettiSoloReferenti()).subscribe({
                 next: (result) => {
                     const controls = this._formGroup.controls;
                     if (result.length == 1) {
@@ -1285,6 +1301,16 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         if (this.debugMandatoryFields) { this.utils._showMandatoryFields(this._formGroup); }
     }
 
+    /** Convivenza wizard/form classico: true se il wizard a fasi è abilitato. */
+    get _wizardWorkflowEnabled(): boolean {
+        return this.appConfig?.AppConfig?.Services?.wizardWorkflowLayout !== false;
+    }
+
+    /** Apre la vista guidata (wizard a fasi) del servizio, affiancata a questa. */
+    _openWizard() {
+        this.router.navigate([this.model, this.id]);
+    }
+
     _onClose() {
         this.close.emit({ id: this.id, service: this._data });
     }
@@ -1301,9 +1327,9 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         if (this._isNew) {
             if (this._useRoute) {
                 if (this.id) {
-                    this.router.navigate([this.model, this.id], { replaceUrl: true , relativeTo: this.route });
+                    this.router.navigate([this.model, this.id], { replaceUrl: true });
                 } else {
-                    this.router.navigate([this.model], { relativeTo: this.route });
+                    this.router.navigate([this.model]);
                 }
             } else {
                 this.close.emit({ id: this.id, service: null });
@@ -1317,17 +1343,30 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             this.loadCurrentData();
             this._enableDisableSkipCollaudo(this.data.dominio);
             this.enableDisableControlPackage();
-            this.enableDisableControlAdesioneConsentita();
+            this._setAdesioneDominio(this.data.dominio);
         }
         this._changeEdit(this._isEdit);
     }
 
     _changeEdit(edit: boolean) {
-        if (edit) {
+        const _canEditMulti = this._isNew || this.authenticationService.canEditField('servizio', 'servizio', this.data?.stato, 'multi_adesione', this._grant?.ruoli);
+        if (edit && _canEditMulti) {
             this._formGroup.get('multi_adesione')?.enable();
         } else {
             this._formGroup.get('multi_adesione')?.disable();
         }
+        applicaAdesioneDominio(this._formGroup, this._adesioneDominio, false);
+    }
+
+    get _adesioneBloccata(): AdesioneDominio {
+        return adesioneBloccataDalDominio(this._adesioneDominio, false);
+    }
+
+    /** Ricalcola le opzioni imposte dal dominio: i blocchi precedenti vengono sciolti. */
+    _setAdesioneDominio(dominio: any) {
+        this._adesioneDominio = adesioneImpostaDalDominio(dominio, this._hasFlagConsentiNonSottoscrivibile);
+        this._changeEdit(this._isEdit);
+        this.enableDisableControlAdesioneConsentita();
     }
 
     _onEditComponent(event: any, component: any) {
@@ -1339,7 +1378,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             if (event.params) {
                 this.router.navigate([event.url], { queryParams: event.params });
             } else {
-                this.router.navigate([event.url], { relativeTo: this.route, queryParamsHandling: 'preserve' });
+                this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
             }
         } else {
             this._onClose();
@@ -1360,25 +1399,24 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         console.log('_onChangeType', this._formGroup.get('tipo')?.value);
     }
 
+    /** Motivo per cui "Salta collaudo" non e` modificabile (dominio corrente del form). */
+    get _motivoSkipCollaudo(): string | null {
+        return motivoSkipCollaudoBloccato(this.data, this.selectedDominio !== undefined ? this.selectedDominio : this.data?.dominio);
+    }
+
     _enableDisableSkipCollaudo(dominio: any) {
-        if (dominio?.skip_collaudo) {
-            if (this.data.vincola_skip_collaudo) {
-                this._formGroup.get('skip_collaudo')?.disable();
-            } else {
-                this._formGroup.get('skip_collaudo')?.enable();
-            }
-        } else {
-            if (this._isNew) {
-                this._formGroup.get('skip_collaudo')?.setValue(false);
-            }
-            this._formGroup.get('skip_collaudo')?.disable();
+        const _ctrl = this._formGroup.get('skip_collaudo');
+        if (this._isNew && !dominio?.skip_collaudo) {
+            _ctrl?.setValue(false);
         }
+        if (motivoSkipCollaudoBloccato(this.data, dominio)) { _ctrl?.disable(); } else { _ctrl?.enable(); }
     }
 
     _onChangeDominio(event: any) {
         this.selectedDominio = event;
 
         this._enableDisableSkipCollaudo(this.selectedDominio);
+        this._setAdesioneDominio(this.selectedDominio);
 
         // Re-inizializza le dropdown dei referenti filtrate per la nuova organizzazione
         if (this._isNew) {
@@ -1567,6 +1605,11 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         return this.authenticationService.isGestore(this._grant?.ruoli);
     }
 
+    /** Visibilita` e "Salta collaudo": visibili a chi puo` creare un servizio, non solo al gestore. */
+    _canCreateServizioMapper = (): boolean => {
+        return this.authenticationService.canCreateServizio();
+    }
+
     /**
      * Visibilita` del flag "Intermediato" (fruizione). A differenza di
      * `package` (solo gestore), e` visibile anche agli utenti che possono
@@ -1607,11 +1650,16 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     }
 
     _onCloseNotificationBar(event: any) {
-        this.router.navigate([this.model, this.id], { relativeTo: this.route });
+        this.router.navigate([this.model, this.id, 'classic']);
     }
 
     _isGestore() {
         return this.authenticationService.isGestore();
+    }
+
+    /** Opzione di visibilita' "componente": solo con i package abilitati, o se il servizio e' gia' un componente. */
+    get _componenteSelezionabile(): boolean {
+        return this._showPackage || this.data?.visibilita === 'componente';
     }
 
     get isComponente() {
@@ -1639,6 +1687,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             this._formGroup.get('adesione_disabilitata')?.enable();
         }
         this._formGroup.get('adesione_disabilitata')?.updateValueAndValidity();
+        applicaAdesioneDominio(this._formGroup, this._adesioneDominio, false);
     }
 
     _getLogoMapper = (data: any): string => {

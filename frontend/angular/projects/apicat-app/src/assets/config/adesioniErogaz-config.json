@@ -46,7 +46,7 @@
       "label": "APP.LABEL.Status",
       "small": true,
       "values": {
-        "Non configurato": { "label": "APP.CLIENT.LABEL.NotConfigured", "background": "#A4ABB6", "border": "#A4ABB6", "color": "#ffffff" },
+        "Non configurato": { "label": "APP.CLIENT.LABEL.NotConfigured", "background": "#6c717a", "border": "#6c717a", "color": "#ffffff" },
         "configurato": { "label": "APP.CLIENT.LABEL.Configured", "background": "#c7f9cc", "border": "#c7f9cc", "color": "#1f1f1f" }
       }
     }

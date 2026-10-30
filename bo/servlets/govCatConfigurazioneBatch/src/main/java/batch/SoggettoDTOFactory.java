@@ -39,6 +39,9 @@ public class SoggettoDTOFactory {
 	private String tipoGatewayConfigurazione;
 	private boolean tipoGatewayConfigurazioneLetto = false;
 
+	private String profiloGatewayDefault;
+	private boolean profiloGatewayDefaultLetto = false;
+
 	private static final Logger logger = LoggerFactory.getLogger(SoggettoDTOFactory.class);
 
 	private String getTipoGatewayConfigurazione() {
@@ -74,19 +77,61 @@ public class SoggettoDTOFactory {
 			return soggetto.getNomeGateway();
 	}
 
+	/**
+	 * Profilo di interoperabilità di default dei soggetti (soggetto.profilo_gateway_default), la
+	 * stessa chiave con cui govcat-api risolve il profilo di interoperabilità di un'API.
+	 */
+	private String getProfiloGatewayDefault() {
+		if(!this.profiloGatewayDefaultLetto) {
+			try {
+				ConfigurazioneReader confReader = new ConfigurazioneReader(configurazioneJsonPath);
+				this.profiloGatewayDefault = confReader.getProfiloGatewayDefaultSoggetto();
+				logger.debug("profiloGatewayDefault: {}", this.profiloGatewayDefault);
+			} catch(IOException e) {
+				logger.error("Errore nella lettura del profilo gateway di default dalla configurazione: " + e.getMessage(), e);
+			}
+
+			this.profiloGatewayDefaultLetto = true;
+		}
+
+		return this.profiloGatewayDefault;
+	}
+
 	public String getTipoGateway(SoggettoEntity soggetto) {
+		return this.getTipoGateway(soggetto, null);
+	}
+
+	/**
+	 * Profilo di interoperabilità GovWay da usare per il soggetto, nell'ordine: tipo gateway del
+	 * soggetto, profilo_govway dichiarato dai profili di autenticazione dell'adesione (Issue 354),
+	 * soggetto.profilo_gateway_default, monitoraggio.profilo_govway_default, infine ModI.
+	 *
+	 * @param soggetto soggetto di cui ricavare il profilo
+	 * @param profiloGovwayProfili profilo dichiarato dai profili di autenticazione, nullo se assente
+	 *        o se i profili dell'adesione non concordano
+	 */
+	public String getTipoGateway(SoggettoEntity soggetto, String profiloGovwayProfili) {
 		if (soggetto == null) return null;
 
-		if (soggetto.getTipoGateway() == null) {
-			String tipoGatewayConf = this.getTipoGatewayConfigurazione();
-			if(tipoGatewayConf != null) {
-				return tipoGatewayConf;
-			} else {
-				return this.tipoGatewayDefault;
-			}
-		} else {
-			return  soggetto.getTipoGateway();			
+		if (soggetto.getTipoGateway() != null) {
+			return soggetto.getTipoGateway();
 		}
+
+		if (profiloGovwayProfili != null) {
+			return profiloGovwayProfili;
+		}
+
+		String profiloGatewayDefaultConf = this.getProfiloGatewayDefault();
+		if (profiloGatewayDefaultConf != null) {
+			return profiloGatewayDefaultConf;
+		}
+
+		String tipoGatewayConf = this.getTipoGatewayConfigurazione();
+		if (tipoGatewayConf != null) {
+			return tipoGatewayConf;
+		}
+
+		return this.tipoGatewayDefault;
 	}
 
 }

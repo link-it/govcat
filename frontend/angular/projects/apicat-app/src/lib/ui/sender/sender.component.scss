@@ -58,6 +58,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   cursor: pointer;
 }
 
+// Il chip ha overflow hidden: anello di focus interno
+.message-bar .chip .btn:focus-visible {
+  box-shadow: inset 0 0 0 2px #428fdc;
+}
+
 .message-bar .chip .chip-name {
   max-width: 135px;
   text-overflow: ellipsis;
@@ -147,6 +152,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   &:hover {
     background-color: #f8f9fa;
     border-color: #6c757d;
+  }
+
+  &:focus-visible {
+    box-shadow: 0 0 0 1px #fff, 0 0 0 3px #428fdc;
   }
 
   i {

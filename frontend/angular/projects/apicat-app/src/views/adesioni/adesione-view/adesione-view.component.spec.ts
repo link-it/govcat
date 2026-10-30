@@ -232,6 +232,21 @@ describe('AdesioneViewComponent', () => {
     expect(component.environment).toBe('produzione');
   });
 
+  it('loadAdesione should open on produzione and lock collaudo when skip_collaudo is set', () => {
+    const mockAdesione = createMockAdesione({ stato: 'bozza', skip_collaudo: true });
+    mockApiService.getDetails
+      .mockReturnValueOnce(of({ ruoli: [] }))
+      .mockReturnValueOnce(of(mockAdesione))
+      .mockReturnValue(of({ content: [] }));
+
+    (component as any).loadAdesione(false);
+
+    expect(component.environment).toBe('produzione');
+    expect(component._collaudoSaltato).toBe(true);
+    component.onEnvToggle('collaudo');
+    expect(component.environment).toBe('produzione');
+  });
+
   // --- loadReferents ---
 
   it('loadReferents should set referentiLoading false when _showReferents is false', () => {
@@ -264,6 +279,25 @@ describe('AdesioneViewComponent', () => {
 
     expect(component.referentiLoading).toBe(false);
     expect(component.referents.length).toBeGreaterThan(0);
+  });
+
+  it('loadReferents should put the adhesion role first and show the other roles in the +N', () => {
+    (Tools as any).Configurazione = { adesione: { mostra_referenti: 'enabled' } };
+    component.adesione = { ...createMockAdesione(), servizio: { ...createMockAdesione().servizio, dominio: { id_dominio: 'd1', nome: 'Arti' } } } as any;
+    const _utente = { id_utente: 'u1', nome: 'Chiara', cognome: 'Cartagenova', email_aziendale: 'c@test.it' };
+
+    mockApiService.getDetails
+      .mockReturnValueOnce(of({ content: [{ utente: _utente, tipo: 'referente' }] }))
+      .mockReturnValueOnce(of({ content: [{ utente: _utente, tipo: 'referente' }] }))
+      .mockReturnValueOnce(of({ content: [{ utente: _utente, tipo: 'referente' }] }));
+
+    (component as any).loadReferents();
+
+    expect(component.referents[0].types).toEqual(['referente_adesione', 'referente_servizio', 'referente_dominio']);
+    const _ref = component.referentsAsLnkRefs[0];
+    expect(_ref.ruolo).toBe('Referente Adesione');
+    expect(_ref.tag).toBe('ades');
+    expect(_ref.ruoliAggiuntivi).toEqual(['Referente Servizio', 'Referente Dominio (Arti)']);
   });
 
   it('loadReferents should handle error and set referentiLoading false', () => {

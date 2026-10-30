@@ -28,12 +28,14 @@ public class DTOAdesioneAPI {
     private String profilo;
     private String risorse;
     private String client;
+    private String tokenPolicy;
 	private static final Logger logger = LoggerFactory.getLogger(DTOAdesioneAPI.class);
 
-    public DTOAdesioneAPI(String profilo, String risorse, String client) {
+    public DTOAdesioneAPI(String profilo, String risorse, String client, String tokenPolicy) {
         this.profilo = profilo;
         this.risorse = risorse;
         this.client = client;
+        this.tokenPolicy = tokenPolicy;
     }
 
     public String getProfilo() {
@@ -46,5 +48,14 @@ public class DTOAdesioneAPI {
 
     public String getClient() {
         return client;
+    }
+
+    /**
+     * Token policy GovWay da associare all'applicativo, letta dalla proprietà custom dell'API
+     * indicata da proprieta_token_policy sul profilo. Nulla se il profilo non la referenzia o
+     * se l'API non la valorizza.
+     */
+    public String getTokenPolicy() {
+        return tokenPolicy;
     }
 }

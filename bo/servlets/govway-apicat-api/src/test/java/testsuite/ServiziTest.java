@@ -9,6 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -30,11 +32,14 @@ import org.govway.catalogo.controllers.ServiziController;
 import org.govway.catalogo.controllers.SoggettiController;
 import org.govway.catalogo.controllers.TassonomieController;
 import org.govway.catalogo.controllers.UtentiController;
+import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.services.ClasseUtenteService;
 import org.govway.catalogo.core.services.DominioService;
 import org.govway.catalogo.core.services.ServizioService;
+import org.govway.catalogo.services.DisclaimerService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
@@ -61,11 +66,21 @@ import org.govway.catalogo.servlets.model.DocumentoUpdate.TipoDocumentoEnum;
 import org.govway.catalogo.servlets.model.DocumentoUpdateId;
 import org.govway.catalogo.servlets.model.DocumentoUpdateNew;
 import org.govway.catalogo.servlets.model.Dominio;
+import org.govway.catalogo.servlets.model.FiltroArchiviatiEnum;
 import org.govway.catalogo.servlets.model.DominioCreate;
 import org.govway.catalogo.servlets.model.TargetComunicazioneServizioEnum;
 import org.govway.catalogo.servlets.model.Grant;
 import org.govway.catalogo.servlets.model.GrantType;
 import org.govway.catalogo.servlets.model.Gruppo;
+import org.govway.catalogo.servlets.model.Configurazione;
+import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
+import org.govway.catalogo.servlets.model.Campo;
+import org.govway.catalogo.servlets.model.CheckDati;
+import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
+import org.govway.catalogo.servlets.model.ConfigurazioneCustomProprietaList;
+import org.govway.catalogo.servlets.model.ConfigurazioneProfiloCustomProprietaText;
+import org.govway.catalogo.servlets.model.Ruolo;
+import org.govway.catalogo.servlets.model.TipoConfigurazioneCustomProprieta;
 import org.govway.catalogo.servlets.model.GruppoCreate;
 import org.govway.catalogo.servlets.model.IdentificativoServizioUpdate;
 import org.govway.catalogo.servlets.model.ItemGruppo;
@@ -76,6 +91,7 @@ import org.govway.catalogo.servlets.model.ListItemCategoria;
 import org.govway.catalogo.servlets.model.ListItemGruppo;
 import org.govway.catalogo.servlets.model.MessaggioCreate;
 import org.govway.catalogo.servlets.model.MessaggioUpdate;
+import org.govway.catalogo.servlets.model.OkKoEnum;
 import org.govway.catalogo.servlets.model.Organizzazione;
 import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.PagedModelAllegato;
@@ -93,9 +109,11 @@ import org.govway.catalogo.servlets.model.RuoloAPIEnum;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.Servizio;
 import org.govway.catalogo.servlets.model.ServizioCreate;
+import org.govway.catalogo.servlets.model.ServizioDisclaimer;
 import org.govway.catalogo.servlets.model.ServizioUpdate;
 import org.govway.catalogo.servlets.model.Soggetto;
 import org.govway.catalogo.servlets.model.SoggettoCreate;
+import org.govway.catalogo.servlets.model.StatoMessaggioServizioUpdate;
 import org.govway.catalogo.servlets.model.StatoUpdate;
 import org.govway.catalogo.servlets.model.StatoUtenteEnum;
 import org.govway.catalogo.servlets.model.Tassonomia;
@@ -120,6 +138,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -139,6 +158,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.EntityManager;
@@ -208,6 +228,9 @@ public class ServiziTest {
 	@Autowired
 	private DominiController dominiController;
 
+	@Autowired
+	private DisclaimerService disclaimerService;
+
     @PersistenceContext
     private EntityManager entityManager;
 	
@@ -215,6 +238,12 @@ public class ServiziTest {
 	
 	private static UUID ID_UTENTE_GESTORE;
 	
+	private static final String UTENTE_NON_GESTORE = "utente_non_gestore";
+
+	private static final String STATO_ARCHIVIATO = "archiviato";
+	private static final String STATO_INIZIALE = "bozza";
+	private static final String NOME_DOMINIO_SECONDARIO = "dominio_secondario";
+
 	private static final String NOME_SERVIZIO_1 = "primo servizio - versione 3";
 	private static final String NOME_SERVIZIO_2 = "secondo servizio - versione 11";
 	private static final String NOME_SERVIZIO_3 = "terzo servizio - versione 2";
@@ -263,6 +292,10 @@ public class ServiziTest {
     }
     
     private Dominio getDominio() {
+    	return this.getDominio(null, null);
+    }
+
+    private Dominio getDominio(Boolean multiAdesione, Boolean adesioneDisabilitata) {
 
     	OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
     	organizzazione.setIntermediata(false);
@@ -289,6 +322,8 @@ public class ServiziTest {
 
     	DominioCreate dominio = CommonUtils.getDominioCreate();
     	dominio.setSkipCollaudo(true);
+    	dominio.setMultiAdesione(multiAdesione);
+    	dominio.setAdesioneDisabilitata(adesioneDisabilitata);
 
     	dominio.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
     	ResponseEntity<Dominio> createdDominio = dominiController.createDominio(dominio);
@@ -849,6 +884,110 @@ public class ServiziTest {
         assertEquals(1, referenti.size());
     }
 
+    private ServizioCreate getServizioCreateOpzioniAdesione(Dominio dominio, Boolean multiAdesione, Boolean adesioneDisabilitata) {
+    	ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+    	servizioCreate.setSkipCollaudo(true);
+    	servizioCreate.setIdDominio(dominio.getIdDominio());
+    	servizioCreate.setMultiAdesione(multiAdesione);
+    	servizioCreate.setAdesioneDisabilitata(adesioneDisabilitata);
+
+    	ReferenteCreate referente = new ReferenteCreate();
+    	referente.setTipo(TipoReferenteEnum.REFERENTE);
+    	referente.setIdUtente(ID_UTENTE_GESTORE);
+    	servizioCreate.setReferenti(List.of(referente));
+    	return servizioCreate;
+    }
+
+    private IdentificativoServizioUpdate getIdentificativoOpzioniAdesione(Boolean multiAdesione, Boolean adesioneDisabilitata) {
+    	IdentificativoServizioUpdate identificativo = new IdentificativoServizioUpdate();
+    	identificativo.setNome(CommonUtils.NOME_SERVIZIO);
+    	identificativo.setVersione(CommonUtils.VERSIONE_SERVIZIO);
+    	identificativo.setIdDominio(idDominio);
+    	identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
+    	identificativo.setMultiAdesione(multiAdesione);
+    	identificativo.setAdesioneDisabilitata(adesioneDisabilitata);
+    	identificativo.setTipo(TipoServizio.API);
+    	identificativo.setPackage(false);
+    	return identificativo;
+    }
+
+    @Test
+    void testCreateServizioDominioMultiAdesioneServizioNonMultiAdesione() {
+    	Dominio dominio = this.getDominio(true, null);
+    	assertTrue(dominio.isMultiAdesione());
+
+    	ServizioCreate servizioCreate = this.getServizioCreateOpzioniAdesione(dominio, false, false);
+
+    	BadRequestException e = assertThrows(BadRequestException.class, () -> serviziController.createServizio(servizioCreate));
+    	assertEquals(ErrorCode.SRV_400_MULTI_ADESIONE, e.getErrorCode());
+    }
+
+    @Test
+    void testCreateServizioDominioMultiAdesioneServizioMultiAdesione() {
+    	Dominio dominio = this.getDominio(true, null);
+
+    	ResponseEntity<Servizio> response = serviziController.createServizio(this.getServizioCreateOpzioniAdesione(dominio, true, false));
+
+    	assertEquals(HttpStatus.OK, response.getStatusCode());
+    	assertTrue(response.getBody().isMultiAdesione());
+    }
+
+    @Test
+    void testCreateServizioDominioAdesioneDisabilitataServizioAdesioneAbilitata() {
+    	Dominio dominio = this.getDominio(null, true);
+    	assertTrue(dominio.isAdesioneDisabilitata());
+
+    	ServizioCreate servizioCreate = this.getServizioCreateOpzioniAdesione(dominio, false, false);
+
+    	BadRequestException e = assertThrows(BadRequestException.class, () -> serviziController.createServizio(servizioCreate));
+    	assertEquals(ErrorCode.SRV_400_ADESIONE_DISABILITATA, e.getErrorCode());
+    }
+
+    @Test
+    void testCreateServizioDominioAdesioneDisabilitataServizioAdesioneDisabilitata() {
+    	Dominio dominio = this.getDominio(null, true);
+
+    	ResponseEntity<Servizio> response = serviziController.createServizio(this.getServizioCreateOpzioniAdesione(dominio, false, true));
+
+    	assertEquals(HttpStatus.OK, response.getStatusCode());
+    	assertTrue(response.getBody().isAdesioneDisabilitata());
+    }
+
+    @Test
+    void testCreateServizioDominioSenzaOpzioniAdesioneServizioLibero() {
+    	Dominio dominio = this.getDominio(false, false);
+
+    	ResponseEntity<Servizio> response = serviziController.createServizio(this.getServizioCreateOpzioniAdesione(dominio, false, false));
+
+    	assertEquals(HttpStatus.OK, response.getStatusCode());
+    	assertFalse(response.getBody().isMultiAdesione());
+    	assertFalse(response.getBody().isAdesioneDisabilitata());
+    }
+
+    @Test
+    void testUpdateServizioDominioMultiAdesioneServizioNonMultiAdesione() {
+    	Dominio dominio = this.getDominio(true, true);
+    	Servizio servizio = serviziController.createServizio(this.getServizioCreateOpzioniAdesione(dominio, true, true)).getBody();
+
+    	ServizioUpdate servizioUpdate = new ServizioUpdate();
+    	servizioUpdate.setIdentificativo(this.getIdentificativoOpzioniAdesione(false, true));
+
+    	BadRequestException e = assertThrows(BadRequestException.class, () -> serviziController.updateServizio(servizio.getIdServizio(), null, servizioUpdate));
+    	assertEquals(ErrorCode.SRV_400_MULTI_ADESIONE, e.getErrorCode());
+    }
+
+    @Test
+    void testUpdateServizioDominioAdesioneDisabilitataServizioAdesioneAbilitata() {
+    	Dominio dominio = this.getDominio(true, true);
+    	Servizio servizio = serviziController.createServizio(this.getServizioCreateOpzioniAdesione(dominio, true, true)).getBody();
+
+    	ServizioUpdate servizioUpdate = new ServizioUpdate();
+    	servizioUpdate.setIdentificativo(this.getIdentificativoOpzioniAdesione(true, false));
+
+    	BadRequestException e = assertThrows(BadRequestException.class, () -> serviziController.updateServizio(servizio.getIdServizio(), null, servizioUpdate));
+    	assertEquals(ErrorCode.SRV_400_ADESIONE_DISABILITATA, e.getErrorCode());
+    }
+
     @Test
     void testUpdateServizioSuccess() {
         Servizio servizio = this.getServizio();
@@ -1026,6 +1165,150 @@ public class ServiziTest {
 		assertEquals(servizio.getNome().toUpperCase(), response.getBody().getNome());
 	}
 
+	/**
+	 * Issue 325: il criterio di univocita` del servizio comprende il dominio, quindi lo stesso
+	 * nome e versione possono essere riusati su un dominio diverso.
+	 */
+	@Test
+	public void testCreateServizioStessoNomeVersioneDominioDiverso() {
+		Servizio servizio = this.getServizio();
+		UUID idDominioSecondario = this.creaDominio(NOME_DOMINIO_SECONDARIO);
+
+		Servizio omonimo = this.creaServizio(servizio.getNome(), servizio.getVersione(), idDominioSecondario);
+
+		assertNotNull(omonimo);
+		assertEquals(servizio.getNome(), omonimo.getNome());
+		assertEquals(servizio.getVersione(), omonimo.getVersione());
+		assertEquals(idDominioSecondario, omonimo.getDominio().getIdDominio());
+	}
+
+	/**
+	 * Issue 325: sullo stesso dominio nome e versione restano in conflitto.
+	 */
+	@Test
+	public void testCreateServizioStessoNomeVersioneStessoDominio() {
+		Servizio servizio = this.getServizio();
+
+		assertThrows(ConflictException.class, () -> {
+			this.creaServizio(servizio.getNome(), servizio.getVersione(), this.idDominio);
+		});
+	}
+
+	/**
+	 * Issue 325: il solo spostamento su un altro dominio, a nome e versione invariati, puo`
+	 * creare un omonimo e deve essere intercettato anche se l'identificativo non cambia.
+	 */
+	@Test
+	public void testUpdateServizioSpostamentoSuDominioConOmonimo() {
+		Servizio primo = this.getServizio();
+		UUID idDominioSecondario = this.creaDominio(NOME_DOMINIO_SECONDARIO);
+		Servizio secondo = this.creaServizio(primo.getNome(), primo.getVersione(), idDominioSecondario);
+
+		ServizioUpdate servizioUpdate = new ServizioUpdate();
+		servizioUpdate.setIdentificativo(this.identificativoServizioUpdate(secondo, this.idDominio));
+
+		assertThrows(ConflictException.class, () -> {
+			serviziController.updateServizio(secondo.getIdServizio(), null, servizioUpdate);
+		});
+	}
+
+	/**
+	 * Issue 325: lo spostamento su un dominio dove non esistono omonimi resta consentito.
+	 */
+	@Test
+	public void testUpdateServizioSpostamentoSuDominioLibero() {
+		Servizio servizio = this.getServizio();
+		UUID idDominioSecondario = this.creaDominio(NOME_DOMINIO_SECONDARIO);
+
+		ServizioUpdate servizioUpdate = new ServizioUpdate();
+		servizioUpdate.setIdentificativo(this.identificativoServizioUpdate(servizio, idDominioSecondario));
+
+		ResponseEntity<Servizio> response = serviziController.updateServizio(servizio.getIdServizio(), null, servizioUpdate);
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(idDominioSecondario, response.getBody().getDominio().getIdDominio());
+	}
+
+	/**
+	 * Issue 325: la dis-archiviazione torna possibile quando l'omonimo attivo sta su un altro
+	 * dominio, mentre resta bloccata se sta sullo stesso.
+	 */
+	@Test
+	public void testUpdateStatoServizioDisarchiviazioneOmonimoAltroDominio() {
+		Servizio servizio = this.getServizio();
+		this.archivia(servizio.getIdServizio());
+
+		UUID idDominioSecondario = this.creaDominio(NOME_DOMINIO_SECONDARIO);
+		this.creaServizio(servizio.getNome(), servizio.getVersione(), idDominioSecondario);
+
+		StatoUpdate statoUpdate = new StatoUpdate();
+		statoUpdate.setStato(STATO_INIZIALE);
+		ResponseEntity<Servizio> response = serviziController.updateStatoServizio(servizio.getIdServizio(), statoUpdate, null);
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(STATO_INIZIALE, response.getBody().getStato());
+	}
+
+	@Test
+	public void testUpdateStatoServizioDisarchiviazioneOmonimoStessoDominio() {
+		Servizio servizio = this.getServizio();
+		this.archivia(servizio.getIdServizio());
+
+		this.creaServizio(servizio.getNome(), servizio.getVersione(), this.idDominio);
+
+		StatoUpdate statoUpdate = new StatoUpdate();
+		statoUpdate.setStato(STATO_INIZIALE);
+
+		assertThrows(ConflictException.class, () -> {
+			serviziController.updateStatoServizio(servizio.getIdServizio(), statoUpdate, null);
+		});
+	}
+
+	/**
+	 * Dominio aggiuntivo sullo stesso soggetto referente, per verificare l'univocita` per dominio.
+	 */
+	private UUID creaDominio(String nome) {
+		DominioCreate dominio = CommonUtils.getDominioCreate();
+		dominio.setNome(nome);
+		dominio.setSkipCollaudo(true);
+		dominio.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
+
+		ResponseEntity<Dominio> createdDominio = dominiController.createDominio(dominio);
+		assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
+
+		return createdDominio.getBody().getIdDominio();
+	}
+
+	private Servizio creaServizio(String nome, String versione, UUID idDominio) {
+		ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+		servizioCreate.setNome(nome);
+		servizioCreate.setVersione(versione);
+		servizioCreate.setSkipCollaudo(true);
+		servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
+		servizioCreate.setIdDominio(idDominio);
+
+		ReferenteCreate referente = new ReferenteCreate();
+		referente.setTipo(TipoReferenteEnum.REFERENTE);
+		referente.setIdUtente(ID_UTENTE_GESTORE);
+		servizioCreate.setReferenti(Arrays.asList(referente));
+
+		return serviziController.createServizio(servizioCreate).getBody();
+	}
+
+	private IdentificativoServizioUpdate identificativoServizioUpdate(Servizio servizio, UUID idDominio) {
+		IdentificativoServizioUpdate identificativo = new IdentificativoServizioUpdate();
+		identificativo.setNome(servizio.getNome());
+		identificativo.setVersione(servizio.getVersione());
+		identificativo.setIdDominio(idDominio);
+		identificativo.setIdSoggettoErogatore(idSoggetto);
+		identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
+		identificativo.setAdesioneDisabilitata(false);
+		identificativo.setMultiAdesione(true);
+		identificativo.setTipo(TipoServizio.API);
+		identificativo.setPackage(false);
+		return identificativo;
+	}
+
     @Test
     void testUpdateStatoServizioSuccess() {
         Servizio servizio = this.getServizio();
@@ -1098,11 +1381,68 @@ public class ServiziTest {
     }
 
     @Test
+    void testUpdateStatoMessaggioServizioSuccess() {
+        Servizio servizio = this.getServizio();
+        UUID idServizio = servizio.getIdServizio();
+        // archiviazione con comunicazione: transizione che non richiede dati obbligatori sul servizio
+        StatoMessaggioServizioUpdate statoMessaggio = this.getStatoMessaggioServizioUpdate(STATO_ARCHIVIATO);
+
+        ResponseEntity<Servizio> response = serviziController.updateStatoMessaggioServizio(idServizio, statoMessaggio);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(STATO_ARCHIVIATO, response.getBody().getStato());
+
+        List<ItemMessaggio> messaggi = serviziController.listMessaggiServizio(idServizio, null, 0, 10, null).getBody().getContent();
+        assertTrue(messaggi.stream().anyMatch(m -> statoMessaggio.getMessaggio().getOggetto().equals(m.getOggetto())
+                && statoMessaggio.getMessaggio().getTesto().equals(m.getTesto())));
+    }
+
+    @Test
+    void testUpdateStatoMessaggioServizioNotFound() {
+        StatoMessaggioServizioUpdate statoMessaggio = this.getStatoMessaggioServizioUpdate("richiesto_collaudo");
+
+        assertThrows(NotFoundException.class, () -> {
+            serviziController.updateStatoMessaggioServizio(UUID.randomUUID(), statoMessaggio);
+        });
+    }
+
+    @Test
+    void testUpdateStatoMessaggioServizioAuthorizationFailed() {
+        Servizio servizio = this.getServizio();
+        UUID idServizio = servizio.getIdServizio();
+
+        StatoMessaggioServizioUpdate statoMessaggio = this.getStatoMessaggioServizioUpdate("richiesto_collaudo");
+
+        CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
+
+        assertThrows(NotAuthorizedException.class, () -> {
+            serviziController.updateStatoMessaggioServizio(idServizio, statoMessaggio);
+        });
+    }
+
+    private StatoMessaggioServizioUpdate getStatoMessaggioServizioUpdate(String stato) {
+        StatoUpdate statoUpdate = new StatoUpdate();
+        statoUpdate.setStato(stato);
+        statoUpdate.setCommento("commento cambio stato");
+
+        MessaggioCreate messaggio = new MessaggioCreate();
+        messaggio.setOggetto("Oggetto Test");
+        messaggio.setTesto("Testo del messaggio");
+        messaggio.setTarget(Arrays.asList(TargetComunicazioneServizioEnum.REFERENTI_SERVIZIO));
+
+        StatoMessaggioServizioUpdate statoMessaggio = new StatoMessaggioServizioUpdate();
+        statoMessaggio.setStato(statoUpdate);
+        statoMessaggio.setMessaggio(messaggio);
+        return statoMessaggio;
+    }
+
+    @Test
     void testListServiziSuccess() {
         Servizio servizio = this.getServizio();
 
         // Invocazione del metodo listServizi senza filtri
-        ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+        ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
 
         // Verifica del successo
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1136,7 +1476,7 @@ public class ServiziTest {
         Servizio servizioFruizione = serviziController.createServizio(servizioCreate).getBody();
 
         // fruizione = true: solo il servizio in fruizione
-        ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, true, null, 0, 10, null);
+        ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, 0, 10, null);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -1145,7 +1485,7 @@ public class ServiziTest {
         assertFalse(servizi.stream().anyMatch(s -> s.getIdServizio().equals(servizioErogazione.getIdServizio())));
 
         // fruizione = false: solo il servizio in erogazione
-        response = serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, false, null, 0, 10, null);
+        response = serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, false, null, null, 0, 10, null);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -1154,13 +1494,250 @@ public class ServiziTest {
         assertFalse(servizi.stream().anyMatch(s -> s.getIdServizio().equals(servizioFruizione.getIdServizio())));
 
         // filtro non valorizzato: entrambi i servizi
-        response = serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+        response = serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         servizi = response.getBody().getContent();
         assertTrue(servizi.stream().anyMatch(s -> s.getIdServizio().equals(servizioErogazione.getIdServizio())));
         assertTrue(servizi.stream().anyMatch(s -> s.getIdServizio().equals(servizioFruizione.getIdServizio())));
+    }
+
+    /**
+     * Issue 376: filtro `api_erogate_aderente` di listServizi. true = servizi con almeno una API
+     * erogata dal soggetto aderente; false = servizi senza alcuna API erogata dall'aderente
+     * (inclusi quelli senza API); assente = nessun filtro.
+     */
+    @Test
+    void testListServiziFiltroApiErogateAderente() {
+        this.getDominio();
+
+        // Due API erogate dall'aderente: il servizio non deve risultare duplicato
+        UUID idSoloAderente = creaServizioSenzaApi(NOME_SERVIZIO_1);
+        creaApi(idSoloAderente, "api_aderente_1", RuoloAPIEnum.ADERENTE);
+        creaApi(idSoloAderente, "api_aderente_2", RuoloAPIEnum.ADERENTE);
+
+        UUID idMisto = creaServizioSenzaApi(NOME_SERVIZIO_2);
+        creaApi(idMisto, "api_aderente_3", RuoloAPIEnum.ADERENTE);
+        creaApi(idMisto, "api_dominio_1", RuoloAPIEnum.DOMINIO);
+
+        UUID idSoloDominio = creaServizioSenzaApi(NOME_SERVIZIO_3);
+        creaApi(idSoloDominio, "api_dominio_2", RuoloAPIEnum.DOMINIO);
+
+        UUID idSenzaApi = creaServizioSenzaApi("quarto servizio - versione 1");
+
+        // true: servizi con almeno una API erogata dall'aderente
+        List<UUID> conAderente = idServiziListati(true);
+        assertEquals(1, conAderente.stream().filter(idSoloAderente::equals).count());
+        assertTrue(conAderente.contains(idMisto));
+        assertFalse(conAderente.contains(idSoloDominio));
+        assertFalse(conAderente.contains(idSenzaApi));
+
+        // false: servizi senza API erogate dall'aderente, compresi quelli senza API
+        List<UUID> senzaAderente = idServiziListati(false);
+        assertFalse(senzaAderente.contains(idSoloAderente));
+        assertFalse(senzaAderente.contains(idMisto));
+        assertTrue(senzaAderente.contains(idSoloDominio));
+        assertTrue(senzaAderente.contains(idSenzaApi));
+
+        // non valorizzato: tutti i servizi
+        List<UUID> tutti = idServiziListati(null);
+        assertTrue(tutti.containsAll(List.of(idSoloAderente, idMisto, idSoloDominio, idSenzaApi)));
+        assertEquals(1, tutti.stream().filter(idSoloAderente::equals).count());
+    }
+
+    private UUID creaServizioSenzaApi(String nome) {
+        ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+        servizioCreate.setNome(nome);
+        servizioCreate.setSkipCollaudo(true);
+        servizioCreate.setIdDominio(this.idDominio);
+        servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
+
+        ReferenteCreate referente = new ReferenteCreate();
+        referente.setTipo(TipoReferenteEnum.REFERENTE);
+        referente.setIdUtente(ID_UTENTE_GESTORE);
+        servizioCreate.setReferenti(Arrays.asList(referente));
+
+        ResponseEntity<Servizio> created = serviziController.createServizio(servizioCreate);
+        assertEquals(HttpStatus.OK, created.getStatusCode());
+        return created.getBody().getIdServizio();
+    }
+
+    private void creaApi(UUID idServizio, String nomeApi, RuoloAPIEnum ruolo) {
+        APICreate apiCreate = CommonUtils.getAPICreate();
+        apiCreate.setNome(nomeApi);
+        apiCreate.setRuolo(ruolo);
+        apiCreate.setIdServizio(idServizio);
+        assertEquals(HttpStatus.OK, apiController.createApi(apiCreate).getStatusCode());
+    }
+
+    private List<UUID> idServiziListati(Boolean apiErogateAderente) {
+        ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, apiErogateAderente, null, 0, 10, null);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        return response.getBody().getContent().stream().map(ItemServizio::getIdServizio).toList();
+    }
+
+    /**
+     * Issue 346: i servizi archiviati sono esclusi di default da listServizi; il parametro
+     * `archiviati` permette al gestore di includerli o di vedere solo quelli, e un filtro
+     * `stato` che chiede esplicitamente lo stato archiviato prevale sull'esclusione implicita.
+     */
+    @Test
+    void testListServiziFiltroArchiviati() {
+        Servizio servizioAttivo = this.getServizio();
+        Servizio servizioArchiviato = this.creaServizioArchiviato(NOME_SERVIZIO_1);
+
+        // Nessun parametro: gli archiviati sono esclusi
+        List<ItemServizio> servizi = this.listServiziArchiviati(null, null);
+        assertTrue(this.contieneServizio(servizi, servizioAttivo));
+        assertFalse(this.contieneServizio(servizi, servizioArchiviato));
+
+        // archiviati=escludi: esplicita il default
+        servizi = this.listServiziArchiviati(FiltroArchiviatiEnum.ESCLUDI, null);
+        assertTrue(this.contieneServizio(servizi, servizioAttivo));
+        assertFalse(this.contieneServizio(servizi, servizioArchiviato));
+
+        // archiviati=includi: archiviati insieme agli altri
+        servizi = this.listServiziArchiviati(FiltroArchiviatiEnum.INCLUDI, null);
+        assertTrue(this.contieneServizio(servizi, servizioAttivo));
+        assertTrue(this.contieneServizio(servizi, servizioArchiviato));
+
+        // archiviati=solo: soltanto gli archiviati
+        servizi = this.listServiziArchiviati(FiltroArchiviatiEnum.SOLO, null);
+        assertFalse(this.contieneServizio(servizi, servizioAttivo));
+        assertTrue(this.contieneServizio(servizi, servizioArchiviato));
+
+        // stato=archiviato senza parametro: la richiesta esplicita prevale sull'esclusione di default
+        servizi = this.listServiziArchiviati(null, Arrays.asList(STATO_ARCHIVIATO));
+        assertFalse(this.contieneServizio(servizi, servizioAttivo));
+        assertTrue(this.contieneServizio(servizi, servizioArchiviato));
+
+        // stato=archiviato + archiviati=escludi: i due filtri esplicitamente in conflitto non lasciano nulla
+        servizi = this.listServiziArchiviati(FiltroArchiviatiEnum.ESCLUDI, Arrays.asList(STATO_ARCHIVIATO));
+        assertFalse(this.contieneServizio(servizi, servizioAttivo));
+        assertFalse(this.contieneServizio(servizi, servizioArchiviato));
+    }
+
+    /**
+     * Issue 346: il parametro `archiviati` e` riservato al gestore. Un referente del servizio,
+     * che prima dell'archiviazione lo vede, non lo recupera nemmeno chiedendolo esplicitamente.
+     */
+    @Test
+    void testListServiziFiltroArchiviatiNonGestore() {
+        Servizio servizio = this.getServizio();
+
+        UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
+        utenteCreate.setPrincipal(UTENTE_NON_GESTORE);
+        utenteCreate.setNome("Utente");
+        utenteCreate.setCognome("Non gestore");
+        CommonUtils.setOrganizzazione(utenteCreate, this.idOrganizzazione);
+        UUID idUtenteNonGestore = utentiController.createUtente(utenteCreate).getBody().getIdUtente();
+
+        ReferenteCreate referente = new ReferenteCreate();
+        referente.setTipo(TipoReferenteEnum.REFERENTE);
+        referente.setIdUtente(idUtenteNonGestore);
+        serviziController.createReferenteServizio(servizio.getIdServizio(), null, referente);
+
+        // Da referente il servizio non archiviato e` visibile
+        CommonUtils.getSessionUtente(UTENTE_NON_GESTORE, securityContext, authentication, utenteService);
+        assertTrue(this.contieneServizio(this.listServiziArchiviati(null, null), servizio));
+
+        CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+        this.archivia(servizio.getIdServizio());
+
+        // Archiviato resta invisibile qualunque valore assuma il parametro
+        CommonUtils.getSessionUtente(UTENTE_NON_GESTORE, securityContext, authentication, utenteService);
+        assertFalse(this.contieneServizio(this.listServiziArchiviati(null, null), servizio));
+        assertFalse(this.contieneServizio(this.listServiziArchiviati(FiltroArchiviatiEnum.INCLUDI, null), servizio));
+        assertFalse(this.contieneServizio(this.listServiziArchiviati(FiltroArchiviatiEnum.SOLO, null), servizio));
+        assertFalse(this.contieneServizio(this.listServiziArchiviati(null, Arrays.asList(STATO_ARCHIVIATO)), servizio));
+    }
+
+    /**
+     * Issue 346: lo stesso filtro vale su servizi_gruppi, dove l'esclusione deve portarsi dietro
+     * anche i gruppi rimasti senza servizi visibili.
+     */
+    @Test
+    void testListServiziGruppiFiltroArchiviati() {
+        Servizio servizio = this.getServizio();
+        UUID idGruppo = responseGruppo.getBody().getIdGruppo();
+        serviziController.addGruppoServizio(servizio.getIdServizio(), idGruppo);
+
+        // La vista SERVIZI_GRUPPI e` mappata con @Subselect: senza flush esplicito le entita`
+        // create in questo test non sono ancora visibili alla query sulla vista.
+        this.entityManager.flush();
+        this.entityManager.clear();
+
+        List<ItemServizioGruppo> content = this.listServiziGruppiArchiviati(null);
+        assertTrue(this.contieneServizioGruppo(content, servizio.getIdServizio()));
+        assertTrue(this.contieneGruppo(content, idGruppo));
+
+        this.archivia(servizio.getIdServizio());
+        this.entityManager.flush();
+        this.entityManager.clear();
+
+        // Default: sparisce il servizio archiviato e con esso il gruppo, rimasto senza servizi visibili
+        content = this.listServiziGruppiArchiviati(null);
+        assertFalse(this.contieneServizioGruppo(content, servizio.getIdServizio()));
+        assertFalse(this.contieneGruppo(content, idGruppo));
+
+        content = this.listServiziGruppiArchiviati(FiltroArchiviatiEnum.INCLUDI);
+        assertTrue(this.contieneServizioGruppo(content, servizio.getIdServizio()));
+        assertTrue(this.contieneGruppo(content, idGruppo));
+
+        content = this.listServiziGruppiArchiviati(FiltroArchiviatiEnum.SOLO);
+        assertTrue(this.contieneServizioGruppo(content, servizio.getIdServizio()));
+        assertTrue(this.contieneGruppo(content, idGruppo));
+    }
+
+    private Servizio creaServizioArchiviato(String nome) {
+        ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+        servizioCreate.setNome(nome);
+        servizioCreate.setSkipCollaudo(true);
+        servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
+        servizioCreate.setIdDominio(this.idDominio);
+
+        ReferenteCreate referente = new ReferenteCreate();
+        referente.setTipo(TipoReferenteEnum.REFERENTE);
+        referente.setIdUtente(ID_UTENTE_GESTORE);
+        servizioCreate.setReferenti(Arrays.asList(referente));
+
+        Servizio servizio = serviziController.createServizio(servizioCreate).getBody();
+        this.archivia(servizio.getIdServizio());
+        return servizio;
+    }
+
+    private void archivia(UUID idServizio) {
+        StatoUpdate statoUpdate = new StatoUpdate();
+        statoUpdate.setStato(STATO_ARCHIVIATO);
+        serviziController.updateStatoServizio(idServizio, statoUpdate, null);
+    }
+
+    private List<ItemServizio> listServiziArchiviati(FiltroArchiviatiEnum archiviati, List<String> stato) {
+        ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(null, null, null, null, null, null, stato, archiviati, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 100, null);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        return response.getBody().getContent();
+    }
+
+    private List<ItemServizioGruppo> listServiziGruppiArchiviati(FiltroArchiviatiEnum archiviati) {
+        ResponseEntity<PagedModelItemServizioGruppo> response = serviziController.listServiziGruppi(null, null, null, archiviati, null, 0, 100, null);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        return response.getBody().getContent();
+    }
+
+    private boolean contieneServizio(List<ItemServizio> servizi, Servizio servizio) {
+        return servizi.stream().anyMatch(s -> s.getIdServizio().equals(servizio.getIdServizio()));
+    }
+
+    private boolean contieneServizioGruppo(List<ItemServizioGruppo> content, UUID idServizio) {
+        return content.stream().anyMatch(i -> TipoServizioGruppo.SERVIZIO.equals(i.getTipo()) && i.getId().equals(idServizio));
+    }
+
+    private boolean contieneGruppo(List<ItemServizioGruppo> content, UUID idGruppo) {
+        return content.stream().anyMatch(i -> TipoServizioGruppo.GRUPPO.equals(i.getTipo()) && i.getId().equals(idGruppo));
     }
 
     @Test
@@ -1188,7 +1765,7 @@ public class ServiziTest {
         this.entityManager.flush();
         this.entityManager.clear();
 
-        ResponseEntity<PagedModelItemServizioGruppo> response = serviziController.listServiziGruppi(null, null, null, null, 0, 10, null);
+        ResponseEntity<PagedModelItemServizioGruppo> response = serviziController.listServiziGruppi(null, null, null, null, null, 0, 10, null);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -1215,6 +1792,162 @@ public class ServiziTest {
         });
     }
 
+    @Autowired
+    private Configurazione configurazione;
+
+    private static final String UTENTE_SENZA_RUOLI = "utente_senza_ruoli_gruppi";
+
+    // Utente abilitato senza ruolo applicativo, senza organizzazione e senza referenze: vede solo il ramo pubblico
+    private void creaUtenteSenzaRuoli() {
+        UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setPrincipal(UTENTE_SENZA_RUOLI);
+        utentiController.createUtente(utente);
+    }
+
+    private UUID creaServizio(String nome) {
+        ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+        servizioCreate.setNome(nome);
+        servizioCreate.setSkipCollaudo(true);
+        servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
+        servizioCreate.setIdDominio(this.idDominio);
+
+        ReferenteCreate referente = new ReferenteCreate();
+        referente.setTipo(TipoReferenteEnum.REFERENTE);
+        referente.setIdUtente(ID_UTENTE_GESTORE);
+        servizioCreate.setReferenti(Arrays.asList(referente));
+
+        return serviziController.createServizio(servizioCreate).getBody().getIdServizio();
+    }
+
+    // Imposta direttamente stato, visibilita` e tipo del servizio, senza percorrere il workflow
+    private void impostaServizio(UUID idServizio, String stato, org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA visibilita,
+            org.govway.catalogo.core.orm.entity.TipoServizio tipo) {
+        ServizioEntity entity = servizioService.find(idServizio).orElseThrow();
+        entity.setStato(stato);
+        entity.setVisibilita(visibilita);
+        entity.setTipo(tipo);
+        this.entityManager.flush();
+    }
+
+    private UUID creaGruppo(String nome, TipoServizio tipo, UUID padre) {
+        GruppoCreate gruppoCreate = CommonUtils.getGruppoCreate();
+        gruppoCreate.setNome(nome);
+        gruppoCreate.setTipo(tipo);
+        gruppoCreate.setPadre(padre);
+        return gruppiController.createGruppo(gruppoCreate).getBody().getIdGruppo();
+    }
+
+    private void passaAUtenteSenzaRuoli() {
+        // La vista SERVIZI_GRUPPI e` mappata con @Subselect: serve il flush per renderle visibili le modifiche
+        this.entityManager.flush();
+        this.entityManager.clear();
+        CommonUtils.getSessionUtente(UTENTE_SENZA_RUOLI, securityContext, authentication, utenteService);
+    }
+
+    private List<UUID> idElementi(ResponseEntity<PagedModelItemServizioGruppo> response) {
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        return response.getBody().getContent().stream().map(ItemServizioGruppo::getId).collect(Collectors.toList());
+    }
+
+    // Issue 373: un servizio pubblico in uno stato presente in servizio.stati_adesione_consentita ma non nella
+    // lista storica (es. pubblicato_produzione_senza_collaudo) rendeva il gruppo visibile in elenco ma vuoto all'interno.
+    @Test
+    void testListServiziGruppiStatiAdesioneConsentitaDaConfigurazione() {
+        List<String> statiOriginali = this.configurazione.getServizio().getStatiAdesioneConsentita();
+        try {
+            List<String> stati = new ArrayList<>(statiOriginali);
+            stati.add("pubblicato_produzione_senza_collaudo");
+            this.configurazione.getServizio().setStatiAdesioneConsentita(stati);
+
+            this.getDominio();
+            UUID idGruppo = responseGruppo.getBody().getIdGruppo();
+
+            UUID idPubblico = creaServizio("servizio pubblico senza collaudo");
+            UUID idPrivato = creaServizio("servizio privato");
+            serviziController.addGruppoServizio(idPubblico, idGruppo);
+            serviziController.addGruppoServizio(idPrivato, idGruppo);
+            impostaServizio(idPubblico, "pubblicato_produzione_senza_collaudo", org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.PUBBLICO, org.govway.catalogo.core.orm.entity.TipoServizio.API);
+            impostaServizio(idPrivato, "pubblicato_produzione", org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.PRIVATO, org.govway.catalogo.core.orm.entity.TipoServizio.API);
+
+            creaUtenteSenzaRuoli();
+            passaAUtenteSenzaRuoli();
+
+            // Il gruppo compare tra quelli di primo livello...
+            List<UUID> primoLivello = idElementi(serviziController.listServiziGruppi(null, true, TipoServizio.API, null, null, 0, 10, null));
+            assertTrue(primoLivello.contains(idGruppo));
+
+            // ...e, aperto, mostra il solo servizio pubblico (quello privato resta invisibile all'utente senza ruoli)
+            List<UUID> contenuto = idElementi(serviziController.listServiziGruppi(idGruppo, null, TipoServizio.API, null, null, 0, 10, null));
+            assertEquals(List.of(idPubblico), contenuto);
+        } finally {
+            this.configurazione.getServizio().setStatiAdesioneConsentita(statiOriginali);
+        }
+    }
+
+    // Le righe GRUPPO della vista hanno lo stato convenzionale 'pubblicato_produzione': non devono sparire se la
+    // configurazione non lo include tra gli stati consentiti.
+    @Test
+    void testListServiziGruppiGruppoVisibileConStatiConfigurazioneSenzaPubblicatoProduzione() {
+        List<String> statiOriginali = this.configurazione.getServizio().getStatiAdesioneConsentita();
+        try {
+            this.configurazione.getServizio().setStatiAdesioneConsentita(new ArrayList<>(List.of("pubblicato_collaudo")));
+
+            this.getDominio();
+            UUID idGruppo = responseGruppo.getBody().getIdGruppo();
+
+            UUID idCollaudo = creaServizio("servizio pubblicato in collaudo");
+            UUID idProduzione = creaServizio("servizio pubblicato in produzione");
+            serviziController.addGruppoServizio(idCollaudo, idGruppo);
+            serviziController.addGruppoServizio(idProduzione, idGruppo);
+            impostaServizio(idCollaudo, "pubblicato_collaudo", org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.PUBBLICO, org.govway.catalogo.core.orm.entity.TipoServizio.API);
+            impostaServizio(idProduzione, "pubblicato_produzione", org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.PUBBLICO, org.govway.catalogo.core.orm.entity.TipoServizio.API);
+
+            creaUtenteSenzaRuoli();
+            passaAUtenteSenzaRuoli();
+
+            List<UUID> primoLivello = idElementi(serviziController.listServiziGruppi(null, true, TipoServizio.API, null, null, 0, 10, null));
+            assertTrue(primoLivello.contains(idGruppo));
+
+            // Solo lo stato configurato rende visibile il servizio
+            List<UUID> contenuto = idElementi(serviziController.listServiziGruppi(idGruppo, null, TipoServizio.API, null, null, 0, 10, null));
+            assertEquals(List.of(idCollaudo), contenuto);
+        } finally {
+            this.configurazione.getServizio().setStatiAdesioneConsentita(statiOriginali);
+        }
+    }
+
+    // Un gruppo API il cui unico contenuto visibile e` in un sottogruppo di tipo diverso non va restituito nel
+    // catalogo API: aperto, risulterebbe vuoto perche` il sottogruppo e` escluso dal filtro sul tipo.
+    @Test
+    void testListServiziGruppiSottogruppoDiTipoDiversoNonRendeIlGruppoNonVuoto() {
+        this.getDominio();
+        UUID idGruppoApi = creaGruppo("gruppo api", TipoServizio.API, null);
+        UUID idSottogruppoGenerico = creaGruppo("sottogruppo generico", TipoServizio.GENERICO, idGruppoApi);
+
+        UUID idGenerico = creaServizio("servizio generico");
+        impostaServizio(idGenerico, "pubblicato_produzione", org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.PUBBLICO, org.govway.catalogo.core.orm.entity.TipoServizio.GENERICO);
+        serviziController.addGruppoServizio(idGenerico, idSottogruppoGenerico);
+
+        creaUtenteSenzaRuoli();
+        this.entityManager.flush();
+        this.entityManager.clear();
+
+        // Gestore (idsServiziVisibili null): anche qui il tipo deve essere rispettato
+        List<UUID> primoLivelloGestore = idElementi(serviziController.listServiziGruppi(null, true, TipoServizio.API, null, null, 0, 10, null));
+        assertFalse(primoLivelloGestore.contains(idGruppoApi));
+
+        passaAUtenteSenzaRuoli();
+
+        List<UUID> primoLivello = idElementi(serviziController.listServiziGruppi(null, true, TipoServizio.API, null, null, 0, 10, null));
+        assertFalse(primoLivello.contains(idGruppoApi));
+
+        // Senza filtro sul tipo il gruppo resta visibile e il sottogruppo e` raggiungibile
+        List<UUID> primoLivelloSenzaTipo = idElementi(serviziController.listServiziGruppi(null, true, null, null, null, 0, 10, null));
+        assertTrue(primoLivelloSenzaTipo.contains(idGruppoApi));
+        List<UUID> contenuto = idElementi(serviziController.listServiziGruppi(idGruppoApi, null, null, null, null, 0, 10, null));
+        assertEquals(List.of(idSottogruppoGenerico), contenuto);
+    }
+
     //TODO: ordinamento per versione non funzionante
     /*
     @Test
@@ -1226,7 +1959,7 @@ public class ServiziTest {
         
         // Invocazione del metodo listServizi con filtri
         ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-            null, idDominio, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, null, null, 0, 10, sort
+            null, idDominio, null, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, null, null, null, 0, 10, sort
         );
 
         // Verifica del successo
@@ -1253,7 +1986,7 @@ public class ServiziTest {
         
         // Invocazione del metodo listServizi con filtri
         ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-            null, idDominio, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, null, null, 0, 10, sort
+            null, idDominio, null, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, null, null, null, 0, 10, sort
         );
 
         // Verifica del successo
@@ -1277,7 +2010,7 @@ public class ServiziTest {
         
         // Invocazione del metodo listServizi con filtri
         ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-            null, idDominio, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, null, null, 0, 10, sort
+            null, idDominio, null, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, null, null, null, 0, 10, sort
         );
 
         // Verifica del successo
@@ -1304,7 +2037,7 @@ public class ServiziTest {
         
         // Invocazione del metodo listServizi con filtri
         ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-            null, idDominio, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, null, null, 0, 10, sort
+            null, idDominio, null, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, null, null, null, 0, 10, sort
         );
 
         // Verifica del successo
@@ -1327,7 +2060,7 @@ public class ServiziTest {
         for(int n = 0; n < (numeroTotaleDiElementi/numeroElementiPerPagina); n++) {
         	// Invocazione del metodo listServizi con filtri
             ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-                null, idDominio, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, null, null, n, numeroElementiPerPagina, null
+                null, idDominio, null, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, null, null, null, n, numeroElementiPerPagina, null
             );
 
             // Verifica del successo
@@ -1345,7 +2078,7 @@ public class ServiziTest {
 
         // Invocazione del metodo listServizi con filtri
         ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-            null, idDominio, null, null, null, null, null, null, null, null, false, false, null, null, null, nomeServizio, null, null, null, null, null, null, 0, 10, null
+            null, idDominio, null, null, null, null, null, null, null, null, null, false, false, null, null, null, nomeServizio, null, null, null, null, null, null, null, 0, 10, null
         );
 
         // Verifica del successo
@@ -1365,7 +2098,7 @@ public class ServiziTest {
          //TODO: controllare
         // Test per utente anonimo che richiede servizi in attesa
         Exception exception = assertThrows(BadRequestException.class, () -> {
-            serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, true, false, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+            serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, true, false, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
         });
 
         String expectedMessage = "Utente non registrato, impossibile recuperare servizi in attesa";
@@ -1379,7 +2112,7 @@ public class ServiziTest {
 
         // Invocazione del metodo exportServizi senza filtri
         ResponseEntity<Resource> response = serviziController.exportServizi(
-            null, null, null, null, null, null, null, null, false, false, null, null, null, null, null
+            null, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null
         );
 
         // Verifica del successo
@@ -1414,7 +2147,7 @@ public class ServiziTest {
         entityManager.clear();
 
         ResponseEntity<Resource> response = serviziController.exportServizi(
-            null, null, null, null, null, null, null, null, false, false, null, null, null, null, null
+            null, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null
         );
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1434,9 +2167,15 @@ public class ServiziTest {
         Dominio dominio = this.getDominio();
         String nomeReferenteDominio = createdSoggetto.getBody().getNome();
 
+        // Ente erogatore in un'organizzazione distinta da quella del referente del dominio
+        OrganizzazioneCreate organizzazioneErogatore = CommonUtils.getOrganizzazioneCreate();
+        organizzazioneErogatore.setNome("organizzazione_erogatore");
+        ResponseEntity<Organizzazione> organizzazioneErogatoreCreata = organizzazioniController.createOrganizzazione(organizzazioneErogatore);
+        assertEquals(HttpStatus.OK, organizzazioneErogatoreCreata.getStatusCode());
+
         SoggettoCreate erogatoreCreate = new SoggettoCreate();
         erogatoreCreate.setNome("nome_soggetto_erogatore");
-        erogatoreCreate.setIdOrganizzazione(this.idOrganizzazione);
+        erogatoreCreate.setIdOrganizzazione(organizzazioneErogatoreCreata.getBody().getIdOrganizzazione());
         erogatoreCreate.setReferente(true);
         erogatoreCreate.setAderente(true);
         erogatoreCreate.setSkipCollaudo(true);
@@ -1466,7 +2205,7 @@ public class ServiziTest {
         entityManager.clear();
 
         ResponseEntity<Resource> response = serviziController.exportServizi(
-            null, null, null, null, null, null, null, null, false, false, null, null, null, null, null
+            null, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null
         );
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1479,6 +2218,13 @@ public class ServiziTest {
         assertEquals(nomeReferenteDominio, getColonnaCsv(csv, servizio, "Soggetto Fruitore"));
         assertEquals(CommonUtils.NOME_DOMINIO, getColonnaCsv(csv, servizio, "Dominio"));
 
+        // Organizzazioni dei soggetti, ciascuna subito dopo la colonna del proprio soggetto
+        assertEquals("organizzazione_erogatore", getColonnaCsv(csv, servizio, "Organizzazione Erogatore"));
+        assertEquals(CommonUtils.NOME_ORGANIZZAZIONE, getColonnaCsv(csv, servizio, "Organizzazione Fruitore"));
+        List<String> headerSoggetti = parseCsv(csv).get(0);
+        assertEquals(headerSoggetti.indexOf("Soggetto Erogatore") + 1, headerSoggetti.indexOf("Organizzazione Erogatore"));
+        assertEquals(headerSoggetti.indexOf("Soggetto Fruitore") + 1, headerSoggetti.indexOf("Organizzazione Fruitore"));
+
         // Nome, versione e uuid su colonne distinte: la versione non è più incorporata nel nome
         assertEquals("servizio_export_colonne", getColonnaCsv(csv, servizio, "Servizio"));
         assertEquals(servizio.getVersione(), getColonnaCsv(csv, servizio, "Versione Servizio"));
@@ -1486,6 +2232,11 @@ public class ServiziTest {
         assertEquals("api_export_colonne", getColonnaCsv(csv, servizio, "API"));
         assertEquals(String.valueOf(api.getVersione()), getColonnaCsv(csv, servizio, "Versione API"));
         assertEquals(api.getIdApi().toString(), getColonnaCsv(csv, servizio, "UUID API"));
+
+        // Ruolo API: etichetta come nel frontend, subito dopo la tipologia
+        assertEquals("Erogata dal soggetto aderente", getColonnaCsv(csv, servizio, "Ruolo API"));
+        List<String> header = parseCsv(csv).get(0);
+        assertEquals(header.indexOf("Tipologia API") + 1, header.indexOf("Ruolo API"));
 
         // Referenti: email aziendali, separate per tipo e per entità
         assertEquals("m.rossi@acme.inc", getColonnaCsv(csv, servizio, "Referenti Servizio"));
@@ -1505,7 +2256,7 @@ public class ServiziTest {
         entityManager.clear();
 
         ResponseEntity<Resource> response = serviziController.exportServizi(
-            null, null, null, null, null, null, null, null, false, false, null, null, null, null, null
+            null, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null
         );
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1514,7 +2265,43 @@ public class ServiziTest {
 
         // Per un servizio in erogazione non esiste un fruitore interno: la colonna resta vuota
         assertEquals("", getColonnaCsv(csv, servizio, "Soggetto Fruitore"));
+        assertEquals("", getColonnaCsv(csv, servizio, "Organizzazione Fruitore"));
         assertEquals(createdSoggetto.getBody().getNome(), getColonnaCsv(csv, servizio, "Soggetto Erogatore"));
+        assertEquals(CommonUtils.NOME_ORGANIZZAZIONE, getColonnaCsv(csv, servizio, "Organizzazione Erogatore"));
+    }
+
+    @Test
+    void testExportServiziColonnaIntermediato() throws Exception {
+        Dominio dominio = this.getDominio();
+
+        SoggettoCreate erogatoreCreate = new SoggettoCreate();
+        erogatoreCreate.setNome("nome_soggetto_erogatore");
+        erogatoreCreate.setIdOrganizzazione(this.idOrganizzazione);
+        erogatoreCreate.setReferente(true);
+        erogatoreCreate.setAderente(true);
+        erogatoreCreate.setSkipCollaudo(true);
+        ResponseEntity<Soggetto> erogatore = soggettiController.createSoggetto(erogatoreCreate);
+        assertEquals(HttpStatus.OK, erogatore.getStatusCode());
+
+        Servizio servizioErogazione = creaServizioConApi("servizio_export_erogazione", dominio.getIdDominio(),
+                false, null, "api_export_erogazione").servizio();
+        Servizio servizioFruizione = creaServizioConApi("servizio_export_fruizione", dominio.getIdDominio(),
+                true, erogatore.getBody().getIdSoggetto(), "api_export_fruizione").servizio();
+
+        entityManager.flush();
+        entityManager.clear();
+
+        ResponseEntity<Resource> response = serviziController.exportServizi(
+            null, null, null, null, null, null, null, null, null, false, false, null, null, null, null, null
+        );
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        String csv = new String(response.getBody().getContentAsByteArray());
+
+        // Intermediato riflette il flag fruizione del servizio
+        assertEquals("No", getColonnaCsv(csv, servizioErogazione, "Intermediato"));
+        assertEquals("Sì", getColonnaCsv(csv, servizioFruizione, "Intermediato"));
     }
 
     private record ServizioConApi(Servizio servizio, API api) {}
@@ -2531,7 +3318,7 @@ public class ServiziTest {
 		List<String> profiloNonValido = Arrays.asList("PROFILO_INESISTENTE");
 
 		assertThrows(BadRequestException.class, () -> {
-			serviziController.listServizi(null, null, null, null, null, null, null, null, null, profiloNonValido, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+			serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, profiloNonValido, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
 		});
 	}
 
@@ -2542,7 +3329,7 @@ public class ServiziTest {
 		List<String> profiloValido = Arrays.asList("MODI_P1");
 
 		ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-			null, null, null, null, null, null, null, null, null, profiloValido, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null
+			null, null, null, null, null, null, null, null, null, null, profiloValido, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null
 		);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -2556,7 +3343,7 @@ public class ServiziTest {
 		List<String> profiliValidi = Arrays.asList("MODI_P1", "INTERNO_HTTPS");
 
 		ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-			null, null, null, null, null, null, null, null, null, profiliValidi, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null
+			null, null, null, null, null, null, null, null, null, null, profiliValidi, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null
 		);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -2569,7 +3356,7 @@ public class ServiziTest {
 		List<String> profiloMisto = Arrays.asList("MODI_P1", "PROFILO_INESISTENTE");
 
 		assertThrows(BadRequestException.class, () -> {
-			serviziController.listServizi(null, null, null, null, null, null, null, null, null, profiloMisto, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+			serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, profiloMisto, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
 		});
 	}
 
@@ -2580,7 +3367,7 @@ public class ServiziTest {
 		/*
 		 //TODO: controllare - il mock coreAuthorization non è iniettato nel controller
 		assertThrows(BadRequestException.class, () -> {
-			serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null, null, 0, 10, null);
+			serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null, null, null, 0, 10, null);
 		});
 		 */
 	}
@@ -2593,7 +3380,7 @@ public class ServiziTest {
 
 		// Dovrebbe ritornare OK anche se non ci sono servizi negli stati configurati
 		ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-			null, null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null, null, 0, 10, null
+			null, null, null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null, null, null, 0, 10, null
 		);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -2609,7 +3396,7 @@ public class ServiziTest {
 
 		// Dovrebbe ritornare OK anche se non ci sono servizi negli stati configurati
 		ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-			null, null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null, null, 0, 10, null
+			null, null, null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null, null, null, 0, 10, null
 		);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -2620,7 +3407,7 @@ public class ServiziTest {
 	void testListServiziDashboardFilterFalse() {
 		// Test con dashboard=false, dovrebbe comportarsi come la ricerca normale
 		ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-			null, null, null, null, null, null, null, null, null, null, null, null, null, false, null, null, null, null, null, null, null, null, 0, 10, null
+			null, null, null, null, null, null, null, null, null, null, null, null, null, null, false, null, null, null, null, null, null, null, null, null, 0, 10, null
 		);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -2668,7 +3455,7 @@ public class ServiziTest {
 
 		// 3) Chiamo la dashboard
 		ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-			null, null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null, null, 0, 10, null
+			null, null, null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null, null, null, 0, 10, null
 		);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -2693,7 +3480,7 @@ public class ServiziTest {
 		assertEquals("bozza", servizio.getStato());
 
 		ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-			null, null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null, null, 0, 10, null
+			null, null, null, null, null, null, null, null, null, null, null, null, null, null, true, null, null, null, null, null, null, null, null, null, 0, 10, null
 		);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -2703,5 +3490,312 @@ public class ServiziTest {
 			.anyMatch(s -> s.getIdServizio().equals(servizio.getIdServizio()));
 		assertTrue(trovato, "Il gestore che è anche referente dovrebbe vedere in dashboard il proprio servizio in bozza");
 	}
-}
 
+	// =========================================================================
+	// TEST getDisclaimersServizio
+	// =========================================================================
+
+	@Test
+	void testGetDisclaimersServizioSuccessIt() {
+		Servizio servizio = this.getServizio();
+
+		ResponseEntity<List<ServizioDisclaimer>> response = serviziController.getDisclaimersServizio(servizio.getIdServizio(), "it", null);
+
+		// L'endpoint non fallisce mai: senza chiavi "servizio.*" configurate la lista e' vuota
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertNotNull(response.getBody());
+
+		for (ServizioDisclaimer d : response.getBody()) {
+			assertNotNull(d.getDisclaimer(), "Il campo 'disclaimer' non deve essere null");
+			assertFalse(d.getDisclaimer().isBlank(), "Il testo del disclaimer non deve essere vuoto");
+			assertNotNull(d.getContesto(), "Il campo 'contesto' non deve essere null");
+			assertNotNull(d.getSeverity(), "Il campo 'severity' non deve essere null");
+		}
+	}
+
+	@Test
+	void testGetDisclaimersServizioSuccessEn() {
+		Servizio servizio = this.getServizio();
+
+		ResponseEntity<List<ServizioDisclaimer>> response = serviziController.getDisclaimersServizio(servizio.getIdServizio(), "en", null);
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertNotNull(response.getBody());
+	}
+
+	@Test
+	void testGetDisclaimersServizioFallbackLinguaNullOSconosciuta() {
+		Servizio servizio = this.getServizio();
+
+		// language_code null e lingua non supportata -> fallback a "it", nessun errore
+		ResponseEntity<List<ServizioDisclaimer>> responseNull = serviziController.getDisclaimersServizio(servizio.getIdServizio(), null, null);
+		assertEquals(HttpStatus.OK, responseNull.getStatusCode());
+		assertNotNull(responseNull.getBody());
+
+		ResponseEntity<List<ServizioDisclaimer>> responseFr = serviziController.getDisclaimersServizio(servizio.getIdServizio(), "fr", null);
+		assertEquals(HttpStatus.OK, responseFr.getStatusCode());
+		assertNotNull(responseFr.getBody());
+	}
+
+	@Test
+	void testGetDisclaimersServizioProfiliAggiuntivi(@TempDir Path tempDir) throws Exception {
+		Servizio servizio = this.getServizio();
+		String stato = servizio.getStato();
+
+		// yaml esterno con chiavi per un profilo configurato e per uno inesistente
+		Files.writeString(tempDir.resolve("disclaimers_it.yml"), String.join("\n",
+				"servizio." + stato + ".interno_https:",
+				"  testo: DISCLAIMER_HTTPS",
+				"  nome_gruppo: GruppoHttps",
+				"servizio." + stato + ".profilo_inesistente: DISCLAIMER_INESISTENTE"));
+
+		Object externalPathOriginale = ReflectionTestUtils.getField(disclaimerService, "externalPath");
+		try {
+			ReflectionTestUtils.setField(disclaimerService, "externalPath", tempDir.toString());
+			disclaimerService.reload();
+
+			// senza profili aggiuntivi il servizio (privo di API) non produce disclaimer di profilo
+			List<ServizioDisclaimer> senzaProfili = serviziController
+					.getDisclaimersServizio(servizio.getIdServizio(), "it", null).getBody();
+			assertNotNull(senzaProfili);
+			assertTrue(senzaProfili.stream().noneMatch(d -> d.getProfilo() != null));
+
+			// il profilo non presente in configurazione viene ignorato
+			ResponseEntity<List<ServizioDisclaimer>> response = serviziController.getDisclaimersServizio(
+					servizio.getIdServizio(), "it", List.of("INTERNO_HTTPS", "PROFILO_INESISTENTE"));
+			assertEquals(HttpStatus.OK, response.getStatusCode());
+			List<ServizioDisclaimer> conProfili = response.getBody();
+			assertNotNull(conProfili);
+
+			List<ServizioDisclaimer> diProfilo = conProfili.stream().filter(d -> d.getProfilo() != null).toList();
+			assertEquals(1, diProfilo.size());
+			assertEquals("DISCLAIMER_HTTPS", diProfilo.get(0).getDisclaimer());
+			assertEquals("INTERNO_HTTPS", diProfilo.get(0).getProfilo());
+			assertEquals("GruppoHttps", diProfilo.get(0).getNomeGruppo());
+			assertTrue(conProfili.stream().noneMatch(d -> "DISCLAIMER_INESISTENTE".equals(d.getDisclaimer())));
+
+			// i disclaimer non di profilo restano invariati
+			assertEquals(senzaProfili.size() + 1, conProfili.size());
+		} finally {
+			ReflectionTestUtils.setField(disclaimerService, "externalPath", externalPathOriginale);
+			disclaimerService.reload();
+		}
+	}
+
+	@Test
+	void testGetDisclaimersPackage(@TempDir Path tempDir) throws Exception {
+		ServizioCreate packageCreate = CommonUtils.getServizioCreate();
+		packageCreate.setNome("Package disclaimer");
+		packageCreate.setPackage(true);
+		packageCreate.setIdDominio(this.getDominio().getIdDominio());
+		packageCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
+		Servizio _package = serviziController.createServizio(packageCreate).getBody();
+		String stato = _package.getStato();
+
+		// un package usa le chiavi "package.*", senza fallback su quelle dei servizi
+		Files.writeString(tempDir.resolve("disclaimers_it.yml"), String.join("\n",
+				"package." + stato + ": DISCLAIMER_PACKAGE",
+				"servizio." + stato + ": DISCLAIMER_SERVIZIO"));
+
+		Object externalPathOriginale = ReflectionTestUtils.getField(disclaimerService, "externalPath");
+		try {
+			ReflectionTestUtils.setField(disclaimerService, "externalPath", tempDir.toString());
+			disclaimerService.reload();
+
+			ResponseEntity<List<ServizioDisclaimer>> response = serviziController.getDisclaimersServizio(_package.getIdServizio(), "it", null);
+
+			assertEquals(HttpStatus.OK, response.getStatusCode());
+			List<ServizioDisclaimer> disclaimers = response.getBody();
+			assertNotNull(disclaimers);
+			assertTrue(disclaimers.stream().anyMatch(d -> "DISCLAIMER_PACKAGE".equals(d.getDisclaimer())));
+			assertTrue(disclaimers.stream().noneMatch(d -> "DISCLAIMER_SERVIZIO".equals(d.getDisclaimer())));
+		} finally {
+			ReflectionTestUtils.setField(disclaimerService, "externalPath", externalPathOriginale);
+			disclaimerService.reload();
+		}
+	}
+
+	@Test
+	void testGetDisclaimersServizioNotFound() {
+		UUID randomId = UUID.randomUUID();
+
+		assertThrows(NotFoundException.class,
+				() -> serviziController.getDisclaimersServizio(randomId, "it", null));
+	}
+
+	// ==================== proprieta' custom required e ruoli_abilitati ====================
+
+	private static final String GRUPPO_RUOLI_ABILITATI = "GruppoRuoliAbilitatiTest";
+	private static final String PROPRIETA_RUOLI_ABILITATI = "proprieta_obbligatoria";
+
+	private ConfigurazioneCustomProprietaList aggiungiGruppoRequired(List<Ruolo> ruoliAbilitati) {
+		return this.aggiungiGruppoRequired(ruoliAbilitati, ConfigurazioneClasseDato.IDENTIFICATIVO);
+	}
+
+	private ConfigurazioneCustomProprietaList aggiungiGruppoRequired(List<Ruolo> ruoliAbilitati, ConfigurazioneClasseDato classeDato) {
+		ConfigurazioneProfiloCustomProprietaText proprieta = new ConfigurazioneProfiloCustomProprietaText();
+		proprieta.setNome(PROPRIETA_RUOLI_ABILITATI);
+		proprieta.setEtichetta("Proprieta' obbligatoria");
+		proprieta.setTipo(TipoConfigurazioneCustomProprieta.TEXT);
+		proprieta.setRequired(true);
+
+		ConfigurazioneCustomProprietaList gruppo = new ConfigurazioneCustomProprietaList();
+		gruppo.setNomeGruppo(GRUPPO_RUOLI_ABILITATI);
+		gruppo.setLabelGruppo("Gruppo ruoli abilitati");
+		gruppo.setClasseDato(classeDato);
+		gruppo.setRuoliAbilitati(ruoliAbilitati);
+		gruppo.setProprieta(List.of(proprieta));
+		this.configurazione.getServizio().getApi().getProprietaCustom().add(gruppo);
+		return gruppo;
+	}
+
+	private boolean isGruppoRichiesto(UUID idServizio, List<Ruolo> ruoliAbilitati) {
+		ConfigurazioneCustomProprietaList gruppo = this.aggiungiGruppoRequired(ruoliAbilitati);
+		StatoUpdate statoUpdate = new StatoUpdate();
+		statoUpdate.setStato("richiesto_collaudo");
+		try {
+			serviziController.updateStatoServizio(idServizio, statoUpdate, true);
+			return false;
+		} catch (UpdateEntitaComplessaNonValidaSemanticamenteException e) {
+			return e.getErrori().stream()
+					.filter(err -> err.getCampi() != null)
+					.flatMap(err -> err.getCampi().stream())
+					.map(Campo::getNomeCampo)
+					.anyMatch((GRUPPO_RUOLI_ABILITATI + "." + PROPRIETA_RUOLI_ABILITATI)::equals);
+		} finally {
+			this.configurazione.getServizio().getApi().getProprietaCustom().remove(gruppo);
+		}
+	}
+
+	/**
+	 * Una proprieta' custom required di un gruppo non visibile all'utente per ruoli_abilitati non
+	 * gli viene richiesta al cambio stato (non potrebbe compilarla); resta obbligatoria per chi ha
+	 * un ruolo abilitato. Il gestore qui e' gestore, referente e richiedente del servizio, ma non
+	 * referente tecnico.
+	 */
+	@Test
+	void testCambioStatoServizioProprietaRequiredRuoliAbilitati() {
+		Servizio servizio = this.getServizio();
+		APICreate apiCreate = CommonUtils.getAPICreate();
+		apiCreate.setIdServizio(servizio.getIdServizio());
+		assertEquals(HttpStatus.OK, apiController.createApi(apiCreate).getStatusCode());
+		this.entityManager.flush();
+		this.entityManager.clear();
+
+		// ruoli_abilitati assente: visibile a tutti, quindi richiesta
+		assertTrue(this.isGruppoRichiesto(servizio.getIdServizio(), null));
+		// ruolo dell'utente abilitato: richiesta
+		assertTrue(this.isGruppoRichiesto(servizio.getIdServizio(), List.of(Ruolo.GESTORE)));
+		// nessun ruolo dell'utente abilitato: non richiesta
+		assertFalse(this.isGruppoRichiesto(servizio.getIdServizio(), List.of(Ruolo.REFERENTE_TECNICO)));
+		// lista vuota: non visibile a nessuno, quindi non richiesta
+		assertFalse(this.isGruppoRichiesto(servizio.getIdServizio(), List.of()));
+	}
+
+	// ==================== check dati ====================
+
+	private Servizio getServizioConApi() {
+		Servizio servizio = this.getServizio();
+		APICreate apiCreate = CommonUtils.getAPICreate();
+		apiCreate.setIdServizio(servizio.getIdServizio());
+		assertEquals(HttpStatus.OK, apiController.createApi(apiCreate).getStatusCode());
+		this.entityManager.flush();
+		this.entityManager.clear();
+		return servizio;
+	}
+
+	/**
+	 * Il check dati verso uno stato i cui dati obbligatori sono presenti da' esito OK.
+	 */
+	@Test
+	void testCheckDatiServizioOk() {
+		Servizio servizio = this.getServizioConApi();
+
+		ResponseEntity<CheckDati> response = serviziController.checkDatiServizio(servizio.getIdServizio(), STATO_INIZIALE);
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(OkKoEnum.OK, response.getBody().getEsito());
+		assertNull(response.getBody().getErrori());
+
+		this.entityManager.flush();
+		this.entityManager.clear();
+		assertEquals(STATO_INIZIALE, serviziController.getServizio(servizio.getIdServizio()).getBody().getStato());
+	}
+
+	/**
+	 * Con dati obbligatori mancanti il check dati restituisce esito KO con gli errori
+	 * (invece del 422 del cambio stato), senza modificare lo stato del servizio.
+	 * Lo stato di arrivo richiede anche i dati di collaudo dell'API, qui assenti.
+	 */
+	@Test
+	void testCheckDatiServizioKo() {
+		Servizio servizio = this.getServizioConApi();
+
+		ConfigurazioneCustomProprietaList gruppo = this.aggiungiGruppoRequired(null);
+		ResponseEntity<CheckDati> response;
+		try {
+			response = serviziController.checkDatiServizio(servizio.getIdServizio(), "richiesto_collaudo");
+		} finally {
+			this.configurazione.getServizio().getApi().getProprietaCustom().remove(gruppo);
+		}
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals(OkKoEnum.KO, response.getBody().getEsito());
+		assertTrue(response.getBody().getErrori().stream()
+				.filter(err -> err.getCampi() != null)
+				.flatMap(err -> err.getCampi().stream())
+				.map(Campo::getNomeCampo)
+				.anyMatch((GRUPPO_RUOLI_ABILITATI + "." + PROPRIETA_RUOLI_ABILITATI)::equals));
+
+		this.entityManager.flush();
+		this.entityManager.clear();
+		assertEquals(STATO_INIZIALE, serviziController.getServizio(servizio.getIdServizio()).getBody().getStato());
+	}
+
+	@Test
+	void testCheckDatiServizioNotFound() {
+		UUID randomId = UUID.randomUUID();
+
+		assertThrows(NotFoundException.class,
+				() -> serviziController.checkDatiServizio(randomId, "richiesto_collaudo"));
+	}
+
+	private boolean isProprietaRichiestaCheckDati(UUID idServizio, String stato) {
+		CheckDati checkDati = serviziController.checkDatiServizio(idServizio, stato).getBody();
+		return checkDati.getErrori() != null && checkDati.getErrori().stream()
+				.filter(err -> err.getCampi() != null)
+				.flatMap(err -> err.getCampi().stream())
+				.map(Campo::getNomeCampo)
+				.anyMatch((GRUPPO_RUOLI_ABILITATI + "." + PROPRIETA_RUOLI_ABILITATI)::equals);
+	}
+
+	private void verificaGruppoClasseConfigurato(UUID idServizio, ConfigurazioneClasseDato classeDato, String stato) {
+		ConfigurazioneCustomProprietaList gruppo = this.aggiungiGruppoRequired(null, classeDato);
+		List<ConfigurazioneClasseDato> datiObbligatori = this.configurazione.getServizio().getWorkflow().getCambiStato().stream()
+				.filter(cs -> cs.getStatoAttuale().equals(stato))
+				.findAny().orElseThrow()
+				.getDatiObbligatori();
+		try {
+			// lo stato non prevede la classe *_configurato: la proprieta' non e' richiesta
+			assertFalse(this.isProprietaRichiestaCheckDati(idServizio, stato));
+
+			datiObbligatori.add(classeDato);
+			assertTrue(this.isProprietaRichiestaCheckDati(idServizio, stato));
+		} finally {
+			datiObbligatori.remove(classeDato);
+			this.configurazione.getServizio().getApi().getProprietaCustom().remove(gruppo);
+		}
+	}
+
+	/**
+	 * Le proprieta' custom required dei gruppi con classe dato collaudo_configurato/produzione_configurato
+	 * sono richieste solo negli stati che prevedono quella classe tra i dati obbligatori.
+	 */
+	@Test
+	void testCheckDatiServizioProprietaClasseConfigurato() {
+		Servizio servizio = this.getServizioConApi();
+
+		this.verificaGruppoClasseConfigurato(servizio.getIdServizio(), ConfigurazioneClasseDato.COLLAUDO_CONFIGURATO, "richiesto_collaudo");
+		this.verificaGruppoClasseConfigurato(servizio.getIdServizio(), ConfigurazioneClasseDato.PRODUZIONE_CONFIGURATO, "richiesto_produzione");
+	}
+}

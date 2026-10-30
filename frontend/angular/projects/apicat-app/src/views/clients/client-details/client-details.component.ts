@@ -268,7 +268,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     this._statoEnum = fake_stato;
     this._ambienteEnum = fake_ambiente;
     if (Tools.Configurazione) {
-      Tools.Configurazione.servizio.api.auth_type.map((item: any) => this._authTypeEnum.push(item.type));
+      this._loadAuthTypes();
     }
 
     this.route.params.subscribe(params => {
@@ -309,7 +309,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     });
 
     this.eventsManagerService.on(EventType.PROFILE_UPDATE, (action: any) => {
-      Tools.Configurazione.servizio.api.auth_type.map((item: any) => this._authTypeEnum.push(item.type));
+      this._loadAuthTypes();
       this.initTipiCertificato();
     });
   }
@@ -563,6 +563,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
         controls.stato.setValidators(Validators.required);
         controls.stato.updateValueAndValidity();
       } else {
+        controls.auth_type.setValidators(Validators.required);
         controls.auth_type.disable();
         controls.auth_type.updateValueAndValidity();
         controls.stato.disable();
@@ -703,7 +704,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
     if (!this._isNew) {
       _payload.id_soggetto = _body.id_soggetto;
-      auth_type = this._auth_type
+      auth_type = this._formGroup.getRawValue().auth_type || this._auth_type;
     } else {
       auth_type = this._formGroup.controls.auth_type.value;
       _payload.id_soggetto = this._formGroup.getRawValue().id_soggetto;
@@ -1577,7 +1578,9 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
         showIpFruizione: !!configAuthType?.indirizzi_ip,
         showRateLimiting: !!configAuthType?.rate_limiting,
         showFinalita: !!configAuthType?.finalita,
-        authTypeEditable: this._isNew,
+        // Tipo sempre visibile; modificabile in creazione o finche' il client e` "nuovo".
+        authTypeVisible: true,
+        authTypeEditable: this._isNew || (this._isEdit && this.client?.stato === 'nuovo'),
         statoNuovo: stato === 'nuovo',
     };
   }
@@ -1632,6 +1635,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
       if (enabled && ctrl.disabled) ctrl.enable({ emitEvent: false });
       else if (!enabled && ctrl.enabled) ctrl.disable({ emitEvent: false });
     };
+    apply('auth_type', f.auth_type.enabled);
     apply('tipo_certificato', f.tipo_certificato.enabled);
     apply('tipo_certificato_firma', f.tipo_certificato_firma.enabled);
     apply('nome', f.nome.enabled);
@@ -1869,18 +1873,23 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     apply('nome_applicazione_portale', f.nome_applicazione_portale.required);
   }
 
+  // Nuovo array (non push): ng-select non rileva le modifiche sul posto di [items]
+  // e un secondo PROFILE_UPDATE duplicherebbe i tipi.
+  _loadAuthTypes() {
+    this._authTypeEnum = (Tools.Configurazione?.servizio?.api?.auth_type || []).map((item: any) => item.type);
+  }
+
   _initSoggettiSelect(defaultValue: any[] = []) {
     this.soggetti$ = concat(
       of(defaultValue),
       this.soggettiInput$.pipe(
-        filter(res => {
-          return res !== null && res.length >= this.minLengthTerm
-        }),
+        filter(res => res !== null),
         distinctUntilChanged(),
         debounceTime(500),
         tap(() => this.soggettiLoading = true),
         switchMap((term: any) => {
-          return this.getSoggetti(term).pipe(
+          // Termine vuoto: torna alla prima pagina dei soggetti dell'organizzazione.
+          return this.getSoggetti(term || null).pipe(
             catchError(() => of([])), // empty list on error
             tap(() => this.soggettiLoading = false)
           )
@@ -1971,6 +1980,13 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
           } else {
             const currentValue = controls.id_soggetto.value;
             this._elencoSoggetti = [...result];
+            // La prima pagina potrebbe non contenere il soggetto corrente: lo si aggiunge
+            // per mostrarne il nome; gli altri soggetti si trovano con la ricerca.
+            const corrente = this._client?.soggetto;
+            const iniziali = (currentValue && corrente?.id_soggetto === currentValue && !result.some((item: any) => item.id_soggetto === currentValue))
+              ? [corrente, ...result]
+              : result;
+            this._initSoggettiSelect(iniziali);
             if (this._isClientUsedInSomeAdesioni) {
               // Client con adesioni collegate: il soggetto NON e` modificabile
               // a prescindere dal numero di soggetti dell'organizzazione (il BE

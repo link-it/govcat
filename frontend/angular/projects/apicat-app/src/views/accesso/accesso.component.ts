@@ -74,6 +74,12 @@ export class AccessoComponent implements OnInit {
   }
 
   ngOnInit() {
+    // Ritorno dal logout sull'IdP: direttamente alla login, che mostra lo stato "Sei uscito"
+    if (this.authenticationService.isLogoutVolontario()) {
+      this.router.navigate(['/auth/login']);
+      return;
+    }
+
     this._title = this.config.AppConfig.Layout.Login.title;
     this._logo = './assets/images/' + this.config.AppConfig.Layout.Login.logo;
     this._header = './assets/images/' + this.config.AppConfig.Layout.Login.header;

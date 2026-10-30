@@ -18,7 +18,7 @@
  */
 import { AfterContentChecked, AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormControl, FormGroup } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { HttpHeaders, HttpParams } from '@angular/common/http';
 
@@ -48,6 +48,7 @@ import { Page } from '../../models/page';
 
 import { Servizio } from '../servizi/servizio-details/servizio';
 import { ServiceBreadcrumbsData } from '../servizi/route-resolver/service-breadcrumbs.resolver';
+import { PagedTypeahead, PaginaTypeahead, paginaDaRisposta } from '@app/lib/utils/paged-typeahead';
 
 declare const saveAs: any;
 
@@ -102,7 +103,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   _editCurrent: any = null;
 
   _hasFilter: boolean = true;
-  _formGroup: UntypedFormGroup = new UntypedFormGroup({});
+  _formGroup: FormGroup = new FormGroup({});
   _filterData: any = {};
 
   _preventMultiCall: boolean = false;
@@ -183,6 +184,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   searchFields: any[] = [
     { field: 'q', label: 'APP.ADESIONI.LABEL.Name', type: 'string', condition: 'like' },
     { field: 'stato', label: 'APP.LABEL.Status', type: 'enum', condition: 'equal', enumValues: Tools.StatiAdesioneEnum },
+    { field: 'stato_servizio', label: 'APP.ADESIONI.LABEL.ServiceStatus', type: 'enum', condition: 'equal', enumValues: {} },
     { field: 'id_dominio', label: 'APP.LABEL.id_dominio', type: 'text', condition: 'equal', params: { resource: 'domini', field: 'nome' } },
     { field: 'id_servizio', label: 'APP.ADESIONI.LABEL.Service', type: 'text', condition: 'equal', params: { resource: 'servizi', field: '{nome} v.{versione}' }  },
     { field: 'id_organizzazione', label: 'APP.ADESIONI.LABEL.Organization', type: 'text', condition: 'equal', params: { resource: 'organizzazioni', field: 'nome' }  },
@@ -213,13 +215,13 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   clientsInput$ = new Subject<string>();
   clientsLoading: boolean = false;
   
-  domini$!: Observable<any[]>;
-  dominiInput$ = new Subject<string>();
-  dominiLoading: boolean = false;
+  /** Domini per il filtro: ricerca paginata con caricamento allo scroll. */
+  dominiTypeahead: PagedTypeahead<any> = this._nuoviDomini([]);
   selectedDominio: any;
 
   generalConfig: any = Tools.Configurazione || null;
   _workflowStati: any[] = Tools.Configurazione?.adesione.workflow.stati || [];
+  _workflowStatiServizio: { value: string, label: string }[] = [];
   _adesioni_multiple: any[] = Tools.Configurazione?.servizio.adesioni_multiple || [];
 
   minLengthTerm = 1;
@@ -272,6 +274,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     this._useNewSearchUI = true;
 
     this._initSearchForm();
+    this._initStatiServizio();
   }
 
   @HostListener('window:resize') _onResize() {
@@ -307,6 +310,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
       this.generalConfig = Tools.Configurazione || null;
       this._workflowStati = Tools.Configurazione?.adesione.workflow.stati || [];
       this._adesioni_multiple = Tools.Configurazione?.servizio.adesioni_multiple || [];
+      this._initStatiServizio();
       this._updateMapper = Date.now().toString();
       this.updateMultiSelectionMapper();
     });
@@ -353,17 +357,37 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   }
 
   _initSearchForm() {
-    this._formGroup = new UntypedFormGroup({
-      q: new UntypedFormControl(''),
-      stato: new UntypedFormControl(''),
-      id_dominio: new UntypedFormControl(null),
-      id_servizio: new UntypedFormControl(null),
-      id_organizzazione: new UntypedFormControl(null),
-      id_soggetto: new UntypedFormControl(null),
-      id_client: new UntypedFormControl(null),
-      stato_configurazione_automatica: new UntypedFormControl(''),
-      ruolo_referente: new UntypedFormControl([]),
+    this._formGroup = new FormGroup({
+      q: new FormControl<string | null>(''),
+      stato: new FormControl<string | null>(''),
+      stato_servizio: new FormControl<string[] | null>([]),
+      id_dominio: new FormControl<string | null>(null),
+      id_servizio: new FormControl<string | null>(null),
+      id_organizzazione: new FormControl<string | null>(null),
+      id_soggetto: new FormControl<string | null>(null),
+      id_client: new FormControl<string | null>(null),
+      stato_configurazione_automatica: new FormControl<string | null>(''),
+      ruolo_referente: new FormControl<string[] | null>([]),
     });
+  }
+
+  _initStatiServizio() {
+    const stati: string[] = Tools.Configurazione?.servizio?.workflow?.stati || [];
+    this._workflowStatiServizio = stati.map((s: string) => ({ value: s, label: `APP.WORKFLOW.STATUS.${s}` }));
+    const searchField = this.searchFields.find((f: any) => f.field === 'stato_servizio');
+    if (searchField) {
+      searchField.enumValues = Object.fromEntries(this._workflowStatiServizio.map(s => [s.value, s.label]));
+    }
+  }
+
+  // I filtri multi-valore vanno inviati come parametri ripetuti
+  _queryToParams(query: any): HttpParams {
+    const { ruolo_referente, stato_servizio, ...rest } = query || {};
+    let params = this.utils._queryToHttpParams(rest);
+    if (!this.service) {
+      (stato_servizio || []).forEach((s: string) => { params = params.append('stato_servizio', s); });
+    }
+    return params;
   }
 
   _loadAdesioni(query: any = null, url: string = '') {
@@ -371,11 +395,9 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
 
     if (!url) { this.adesioni = []; this._links = null; }
     
-    // Estrai ruolo_referente (array) prima di _queryToHttpParams
     const ruoloReferenteFilter: string[] = query?.ruolo_referente || [];
-    if (query) { delete query.ruolo_referente; }
 
-    let params = query ? this.utils._queryToHttpParams(query) : new HttpParams();
+    let params = query ? this._queryToParams(query) : new HttpParams();
 
     // Inietta ruolo_referente: dal filtro avanzato se presente, altrimenti dal tab attivo
     if (ruoloReferenteFilter.length > 0) {
@@ -515,24 +537,18 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   _organizzazioneSelected: any = null;
 
   _initDominiSelect(defaultValue: any[] = []) {
-    this.domini$ = concat(
-      of(defaultValue),
-      this.dominiInput$.pipe(
-        filter(res => {
-          return res !== null && res.length >= this.minLengthTerm
-        }),
-        // startWith(''),
-        distinctUntilChanged(),
-        debounceTime(500),
-        tap(() => this.dominiLoading = true),
-        switchMap((term: any) => {
-          return this.getData('domini', term).pipe(
-            catchError(() => of([])), // empty list on error
-            tap(() => this.dominiLoading = false)
-          )
-        })
-      )
+    this.dominiTypeahead = this._nuoviDomini(defaultValue);
+  }
+
+  private _nuoviDomini(iniziali: any[]): PagedTypeahead<any> {
+    return new PagedTypeahead<any>(
+      (term: string, page: number) => this._cercaDomini(term, page),
+      { iniziali: iniziali.filter(Boolean), chiave: (d: any) => d?.id_dominio, debounce: 500, minTermLength: this.minLengthTerm ?? 1 }
     );
+  }
+
+  private _cercaDomini(term: string, page: number): Observable<PaginaTypeahead<any>> {
+    return this.apiService.getList('domini', { params: { q: term, page: `${page}` } }).pipe(map((resp: any) => paginaDaRisposta(resp)));
   }
 
   getData(model: string, term: any = null, params: any = {}, sort: string = 'id', sort_direction: string = 'desc'): Observable<any> {
@@ -727,6 +743,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
 
     this._organizzazioneSelected = null;
     this._formGroup.get('stato')?.setValue(null);
+    this._formGroup.get('stato_servizio')?.setValue([]);
     this._formGroup.get('id_adesione')?.setValue(null);
     this._formGroup.get('id_api')?.setValue(null);
     this._formGroup.get('id_organizzazione')?.setValue(null);
@@ -876,7 +893,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
         query = { id: [...this.elementsSelected ] };
     }
 
-    if (query)  aux = { params: this.utils._queryToHttpParams(query) };
+    if (query)  aux = { params: this._queryToParams(query) };
 
     const body = {
       stato: data.stato
@@ -942,7 +959,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
       query.id_servizio = this.service.id_servizio;
     }
 
-    aux = this.utils._queryToHttpParams(query);
+    aux = this._queryToParams(query);
 
     const headers = new HttpHeaders().set('timeout', '300000');
 

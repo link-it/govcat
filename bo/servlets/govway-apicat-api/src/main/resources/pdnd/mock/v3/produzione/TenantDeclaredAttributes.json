@@ -1,0 +1,14 @@
+{
+  "results": [
+    {
+      "id": "c9999999-9999-9999-9999-999999999999",
+      "assignedAt": "2026-01-15T09:30:00Z",
+      "revokedAt": "2026-02-01T10:00:00Z"
+    }
+  ],
+  "pagination": {
+    "offset": 0,
+    "limit": 50,
+    "totalCount": 1
+  }
+}

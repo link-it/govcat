@@ -49,14 +49,19 @@
                   <label class="col-form-label col-form-label-fix" for="stato">{{ 'APP.LABEL.Status' | translate }}</label>
                 </div>
                 <div class="col-sm-10">
-                  <select class="form-select form-control-sm" id="stato" formControlName="stato">
-                    <option value="">{{ 'APP.LABEL.All' | translate }}</option>
+                  <ng-select class="ng-select-default-value"
+                    [searchable]="false"
+                    [clearable]="false"
+                    [placeholder]="'APP.LABEL.All' | translate"
+                    labelForId="stato"
+                    formControlName="stato">
+                    <ng-option value="">{{ 'APP.LABEL.All' | translate }}</ng-option>
                     @for (stato of _statiClient; track stato) {
-                      <option [value]="stato.value">
+                      <ng-option [value]="stato.value">
                         {{ 'APP.CLIENT.STATUS.' + stato.label | translate }}
-                      </option>
+                      </ng-option>
                     }
-                  </select>
+                  </ng-select>
                 </div>
               </div>
 
@@ -67,14 +72,19 @@
                       <label class="col-form-label col-form-label-fix" for="auth_type">{{ 'APP.CLIENT.LABEL.Auth_type' | translate }}</label>
                     </div>
                     <div class="col-sm-8">
-                      <select class="form-select form-control-sm" id="auth_type" formControlName="auth_type">
-                        <option value="">{{ 'APP.LABEL.All' | translate }}</option>
+                      <ng-select class="ng-select-default-value"
+                        [searchable]="false"
+                        [clearable]="false"
+                        [placeholder]="'APP.LABEL.All' | translate"
+                        labelForId="auth_type"
+                        formControlName="auth_type">
+                        <ng-option value="">{{ 'APP.LABEL.All' | translate }}</ng-option>
                         @for (at of _authTypeEnum; track at) {
-                          <option [value]="at">
+                          <ng-option [value]="at">
                             {{ 'APP.CLIENT.AUTH_TYPE.' + at | translate }}
-                          </option>
+                          </ng-option>
                         }
-                      </select>
+                      </ng-select>
                     </div>
                   </div>
                 </div>
@@ -84,14 +94,19 @@
                       <label class="col-form-label col-form-label-fix" for="ambiente">{{ 'APP.CLIENT.LABEL.Ambient' | translate }}</label>
                     </div>
                     <div class="col-sm-8">
-                      <select class="form-select form-control-sm" id="ambiente" formControlName="ambiente">
-                        <option value="">{{ 'APP.LABEL.All' | translate }}</option>
+                      <ng-select class="ng-select-default-value"
+                        [searchable]="false"
+                        [clearable]="false"
+                        [placeholder]="'APP.LABEL.All' | translate"
+                        labelForId="ambiente"
+                        formControlName="ambiente">
+                        <ng-option value="">{{ 'APP.LABEL.All' | translate }}</ng-option>
                         @for (el of _ambienteEnum; track el) {
-                          <option [value]="el">
+                          <ng-option [value]="el">
                             {{ 'APP.CLIENT.LABEL.' + el | translate }}
-                          </option>
+                          </ng-option>
                         }
-                      </select>
+                      </ng-select>
                     </div>
                   </div>
                 </div>

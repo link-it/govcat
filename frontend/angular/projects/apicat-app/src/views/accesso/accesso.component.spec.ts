@@ -14,7 +14,7 @@ describe('AccessoComponent', () => {
     getAccessToken: vi.fn().mockReturnValue('access-token'),
     refreshToken: vi.fn(),
   } as any;
-  const mockAuthService = {} as any;
+  const mockAuthService = { isLogoutVolontario: vi.fn().mockReturnValue(false) } as any;
   const mockApiService = {} as any;
   const mockConfigService = {
     getConfiguration: vi.fn().mockReturnValue({
@@ -46,6 +46,13 @@ describe('AccessoComponent', () => {
     expect(component.loading).toBe(false);
     expect(component.error).toBeNull();
     expect(component._ms).toBe(1500);
+  });
+
+  it('should go straight to the login page when coming back from a voluntary logout', () => {
+    mockAuthService.isLogoutVolontario.mockReturnValueOnce(true);
+    component.ngOnInit();
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/auth/login']);
+    expect(component.loading).toBe(false);
   });
 
   it('should return userName from claims', () => {

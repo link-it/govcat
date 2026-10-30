@@ -35,6 +35,7 @@ import { AuthenticationService } from '@app/services/authentication.service';
 import { NavigationService } from '@app/services/navigation.service';
 
 import { Grant } from '@app/model/grant';
+import { Allegato } from '@app/model/allegato';
 
 import { AgidJwtDialogComponent } from '@app/components/authentications-dialogs/agid-jwt-dialog/agid-jwt-dialog.component';
 import { ClientCredentialsDialogComponent } from '@app/components/authentications-dialogs/client-credentials-dialog/client-credentials-dialog.component';
@@ -49,6 +50,7 @@ import { CommonModule } from '@angular/common';
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 import { ScrollComponent } from '@app/components/scroll/scroll.component';
 import { RelayIconComponent } from '@app/components/relay-icon/relay-icon.component';
+import { ErogatoreLabelPipe } from '@app/pipes/erogatore-label.pipe';
 import { SwaggerComponent } from '@app/components/swagger/swagger.component';
 import { WsdlComponent } from '@app/components/wsdl/wsdl.component';
 import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
@@ -66,6 +68,8 @@ import {
     LnkApiTag,
     EnvValue,
     LnkRefItem,
+    tagForRuolo,
+    humanizeRuolo,
 } from '@app/components/vetrina';
 
 export const EROGATO_SOGGETTO_DOMINIO: string = 'erogato_soggetto_dominio';
@@ -74,6 +78,9 @@ export const EROGATO_SOGGETTO_ADERENTE: string = 'erogato_soggetto_aderente';
 declare const saveAs: any;
 import * as _ from 'lodash';
 import { ApiConfigurationRead, ApiReadDetails, CustomProperty, CustomPropertyDefinition } from '../servizio-api-details/servizio-api-interfaces';
+import { UrlInvocazioneAggiuntivaRisolta } from '../servizio-api-details/servizio-api-interfaces';
+import { etichettaUrlInvocazione, URL_INVOCAZIONE_DEFAULT } from '../servizio-api-url-invocazione';
+import { ambienteClasseDato } from '../servizio-proprieta-custom';
 
 export interface Organization {
     id_organizzazione: string;
@@ -129,6 +136,7 @@ export enum ApiMode {
         ...APP_COMPONENTS_IMPORTS,
         ScrollComponent,
         RelayIconComponent,
+        ErogatoreLabelPipe,
         SwaggerComponent,
         WsdlComponent,
         MonitorDropdwnComponent,
@@ -232,6 +240,27 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         return this._showGroups && this._gruppiLeaves.length >= (this._gruppiRequireMultiple ? 2 : 1);
     }
 
+    // Allegati in vetrina (servizi-config.json: showAttachments, attachmentsPublicOnly, attachmentsMaxVisible)
+    _showAttachments: boolean = false;
+    _attachmentsPublicOnly: boolean = false;
+    _attachmentsMaxVisible: number = 5;
+    _allegati: Allegato[] = [];
+    _allegatiExpanded: boolean = false;
+    _apiAllegati: Allegato[] = [];
+    _allegatoDownloading: string | null = null;
+
+    get _showAllegatiBox(): boolean {
+        return this._showAttachments && this._allegati.length > 0;
+    }
+
+    get _allegatiVisibili(): Allegato[] {
+        return this._allegatiExpanded ? this._allegati : this._allegati.slice(0, this._attachmentsMaxVisible);
+    }
+
+    get _showAside(): boolean {
+        return this._showReferents || this._showGruppiBox || this._showAllegatiBox;
+    }
+
     _maxReferenti: number = 3;
     _showReferents: boolean = true;
 
@@ -254,6 +283,10 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     // dal backend. Mostrato nella dialog anche quando manca la specifica.
     _urlInvocazione: string | null = null;
     _urlInvocazioneLoading: boolean = false;
+    // Righe della barra: la principale (etichetta null) seguita dalle URL aggiuntive
+    /** Righe della barra URL: `etichetta` configurata oppure `etichettaKey` i18n di ripiego. */
+    _urlEsposizioneRighe: { etichetta: string | null; etichettaKey?: string; url: string }[] = [];
+    _urlCopiata: number | null = null;
 
     allowTryIt: boolean = false;
     showAuthorizeBtn: boolean = false;
@@ -387,6 +420,9 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                         this._gruppiAlwaysExpanded = !!config?.groupsExpanded;
                         this._gruppiShowChildren = !!config?.groupsShowChildren;
                         this._gruppiRequireMultiple = config?.groupsRequireMultiple !== false;
+                        this._showAttachments = !!config?.showAttachments;
+                        this._attachmentsPublicOnly = !!config?.attachmentsPublicOnly;
+                        this._attachmentsMaxVisible = config?.attachmentsMaxVisible || 5;
                         this._singleColumn = config.editSingleColumn || false;
                         this.allowTryIt = config.swagger?.allowTryIt || false;
                         this.showAuthorizeBtn = config.swagger?.showAuthorizeBtn || false;
@@ -443,6 +479,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                 this.apiService.getDetails(this.model, this.id).subscribe({
                     next: (response: any) => {
                         this.data = response;
+                        if (this._collaudoSaltato) { this._environmentId = 'produzione'; }
                         this._spin = false;
                         this._initBreadcrumb();
                         this.loadCurrentData();
@@ -496,7 +533,73 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         this._showReferents = Tools.Configurazione?.servizio?.mostra_referenti === 'enabled';
         this.loadReferenti();
         this._loadGruppi();
+        this._loadAllegati();
         this._loadServiceApi();
+    }
+
+    _allegatiQuery(): any {
+        const query: any = { size: 100 };
+        if (this._attachmentsPublicOnly) {
+            query.visibilita_allegato = 'pubblico';
+        }
+        return { params: this.utils._queryToHttpParams(query) };
+    }
+
+    _loadAllegati() {
+        this._allegati = [];
+        this._allegatiExpanded = false;
+        if (!this._showAttachments || !this.id) { return; }
+        this.apiService.getDetails(this.model, this.id, 'allegati', this._allegatiQuery()).subscribe({
+            next: (response: any) => {
+                this._allegati = response?.content || [];
+            },
+            error: () => {
+                this._allegati = [];
+            }
+        });
+    }
+
+    _loadApiAllegati(idApi: string) {
+        this._apiAllegati = [];
+        if (!this._showAttachments) { return; }
+        this.apiService.getDetails('api', idApi, 'allegati', this._allegatiQuery()).subscribe({
+            next: (response: any) => {
+                this._apiAllegati = response?.content || [];
+            },
+            error: () => {
+                this._apiAllegati = [];
+            }
+        });
+    }
+
+    _downloadAllegato(allegato: Allegato, idApi: string | null = null) {
+        if (this._allegatoDownloading) { return; }
+        this._allegatoDownloading = allegato.uuid;
+        const model = idApi ? 'api' : this.model;
+        const id = idApi || this.id;
+        this.apiService.download(model, id, `allegati/${allegato.uuid}/download`).subscribe({
+            next: (response: any) => {
+                saveAs(response.body, allegato.filename);
+                this._allegatoDownloading = null;
+            },
+            error: (error: any) => {
+                Tools.OnError(error);
+                this._allegatoDownloading = null;
+            }
+        });
+    }
+
+    _allegatoEstensioneMapper = (allegato: Allegato): string => {
+        const ext = allegato?.estensione || (allegato?.filename?.includes('.') ? allegato.filename.split('.').pop() : '');
+        return (ext || '').replace(/^\./, '').slice(0, 4).toUpperCase();
+    }
+
+    _allegatoVisibilitaMapper = (allegato: Allegato): string => {
+        return `APP.SERVICES.ATTACHMENTS.VISIBILITY.${allegato?.visibilita || 'pubblico'}`;
+    }
+
+    _allegatoRiservatoMapper = (allegato: Allegato): boolean => {
+        return !!allegato?.visibilita && allegato.visibilita !== 'pubblico';
     }
 
     // Issue 331 — carica i gruppi di appartenenza del servizio (stessa
@@ -635,9 +738,10 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                     return acc;
                 };
 
+                // Ruolo principale: prima quello sul servizio, poi il dominio.
                 const allReferents = [
-                    ...domainReferents.filter((ref: any) => { return ((ref.tipo === 'referente_dominio') && this.config.showDomainReferent);}),
-                    ...referents.filter((ref: any) => { return ((ref.tipo !== 'referente_tecnico_servizio') || this.config.showTechnicalReferent);})
+                    ...referents.filter((ref: any) => { return ((ref.tipo !== 'referente_tecnico_servizio') || this.config.showTechnicalReferent);}),
+                    ...domainReferents.filter((ref: any) => { return ((ref.tipo === 'referente_dominio') && this.config.showDomainReferent);})
                 ];
                 this.referenti = allReferents.reduce(reduceReferents, []);
 
@@ -708,7 +812,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                     let vetrina_properties: Vetrina[] = [];
 
                     vetrina_properties = this._proprieta_custom.reduce((acc, item) => {
-                        const properties = item.proprieta.filter((prop) => prop.vetrina && item.classe_dato === this._environmentId).map(prop => {
+                        const properties = item.proprieta.filter((prop) => prop.vetrina && ambienteClasseDato(item.classe_dato) === this._environmentId).map(prop => {
                             return { ...prop, gruppo: item.nome_gruppo };
                         });
                         acc.push(...properties);
@@ -924,6 +1028,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         this.tokenPolicy = _srv.api?.token_policies?.find((item: any) => item.tipo_policy === this.tipoTokenPolicy);
         this.showJwtGenerator = this.allowTryIt && this._environmentId !== 'produzione';
         this._loadUrlInvocazione(data.id_api);
+        this._loadApiAllegati(data.id_api);
         this._openApiInfo();
     }
 
@@ -934,17 +1039,49 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
      */
     _loadUrlInvocazione(idApi: string) {
         this._urlInvocazione = null;
+        this._urlEsposizioneRighe = [];
         this._urlInvocazioneLoading = true;
-        this.apiService.getDetails('api', idApi, `${this._environmentId}/url-invocazione`).subscribe({
-            next: (response: any) => {
-                this._urlInvocazione = response?.url_invocazione || null;
+        const _ambiente = this._environmentId;
+        // Il dettaglio serve solo all'etichetta della prima URL (la risposta non la riporta):
+        // se non e` disponibile resta l'etichetta generica.
+        forkJoin({
+            urls: this.apiService.getDetails('api', idApi, `${_ambiente}/url-invocazione`),
+            api: this.apiService.getDetails('api', idApi).pipe(catchError(() => of(null)))
+        }).subscribe({
+            next: ({ urls, api }: { urls: any; api: any }) => {
+                this._urlInvocazione = urls?.url_invocazione || null;
+                const _aggiuntive: UrlInvocazioneAggiuntivaRisolta[] = urls?.url_invocazione_aggiuntive || [];
+                this._urlEsposizioneRighe = this._urlInvocazione ? [
+                    { ...this._etichettaPrimaUrl(api, _ambiente), url: this._urlInvocazione },
+                    ..._aggiuntive.filter((item) => !!item?.url_invocazione).map((item) => ({
+                        etichetta: item.etichetta || etichettaUrlInvocazione(item.identificativo, _ambiente),
+                        url: item.url_invocazione
+                    }))
+                ] : [];
                 this._urlInvocazioneLoading = false;
             },
             error: () => {
                 this._urlInvocazione = null;
+                this._urlEsposizioneRighe = [];
                 this._urlInvocazioneLoading = false;
             }
         });
+    }
+
+    /**
+     * Etichetta della prima URL: e` la prima associata all'ambiente, che puo` non essere la
+     * predefinita se questa e` stata deselezionata.
+     */
+    private _etichettaPrimaUrl(api: any, ambiente: 'collaudo' | 'produzione'): { etichetta: string | null; etichettaKey: string } {
+        if (!api) {
+            return { etichetta: null, etichettaKey: 'APP.LABEL.UrlEsposizione' };
+        }
+        const _configurazione = ambiente === 'collaudo' ? api.configurazione_collaudo : api.configurazione_produzione;
+        const _primo: string = _configurazione?.url_invocazione?.[0] || URL_INVOCAZIONE_DEFAULT;
+        return {
+            etichetta: etichettaUrlInvocazione(_primo, ambiente),
+            etichettaKey: _primo === URL_INVOCAZIONE_DEFAULT ? 'APP.LABEL.UrlPredefinita' : 'APP.LABEL.UrlEsposizione'
+        };
     }
 
     /**
@@ -958,11 +1095,12 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         return !!this._urlInvocazione;
     }
 
-    copyUrlInvocazione() {
-        if (!this._urlInvocazione) { return; }
-        this.clipboard.copy(this._urlInvocazione);
-        this._showMessageClipboard = true;
-        setTimeout(() => { this._showMessageClipboard = false; }, 3000);
+    copyUrlInvocazione(index: number = 0) {
+        const _riga = this._urlEsposizioneRighe[index];
+        if (!_riga) { return; }
+        this.clipboard.copy(_riga.url);
+        this._urlCopiata = index;
+        setTimeout(() => { if (this._urlCopiata === index) { this._urlCopiata = null; } }, 3000);
     }
 
     _openApiInfo() {
@@ -1255,9 +1393,8 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
 
     /**
      * Mappa `referenti: ReferentView[]` nello shape `LnkRefItem[]`
-     * consumato da `<lnk-refs>`. Mantiene il primo tipo come ruolo
-     * "umano" e mappa il tag CSS per il colore della pill
-     * (`r-dom`/`r-serv`/`r-tec`/`r-ades`).
+     * consumato da `<lnk-refs>`: il primo tipo e` il ruolo principale,
+     * gli altri finiscono nel tooltip del `+N`.
      */
     public get referentiAsLnkRefs(): LnkRefItem[] {
         return (this.referenti || []).map((r: ReferentView) => {
@@ -1266,32 +1403,31 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                 id: r.id,
                 nome: r.name,
                 email: r.email,
-                ruolo: this._humanizeRuolo(primary),
-                tag: this._tagForRuolo(primary),
+                ruolo: this._ruoloLabel(primary),
+                tag: tagForRuolo(primary),
+                ruoliAggiuntivi: (r.types || []).slice(1).map((t: string) => this._ruoloLabel(t, true)),
             };
         });
     }
 
-    private _humanizeRuolo(t: string): string {
-        if (!t) return '';
-        return t
-            .split('_')
-            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-            .join(' ');
-    }
-
-    private _tagForRuolo(t: string): string {
-        const s = (t || '').toLowerCase();
-        if (s.includes('dominio')) return 'dom';
-        if (s.includes('tecnico')) return 'tec';
-        if (s.includes('servizio')) return 'serv';
-        if (s.includes('adesione')) return 'ades';
-        return '';
+    /** Ruolo tradotto; con `contesto` il ruolo di dominio riporta il nome del dominio. */
+    private _ruoloLabel(t: string, contesto: boolean = false): string {
+        const _key = 'APP.ROLE.' + t;
+        const _tradotto = this.translate.instant(_key);
+        const _label = (_tradotto && _tradotto !== _key) ? _tradotto : humanizeRuolo(t);
+        const _dominio = this.data?.dominio?.nome;
+        return (contesto && _dominio && t.endsWith('_dominio')) ? `${_label} (${_dominio})` : _label;
     }
 
     /** Handler del nuovo `<lnk-env-toggle>`: setta `_environmentId` e
      *  ricarica le API. Mantiene la stessa logica dei vecchi 2 bottoni. */
+    /** Collaudo saltato: in vetrina e` disponibile solo la produzione. */
+    get _collaudoSaltato(): boolean {
+        return !!this.data?.skip_collaudo;
+    }
+
     public onEnvToggle(env: EnvValue): void {
+        if (env === 'collaudo' && this._collaudoSaltato) { return; }
         this._environmentId = env;
         this._loadApis();
     }

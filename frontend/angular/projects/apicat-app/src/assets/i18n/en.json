@@ -32,6 +32,15 @@
 			"OperatoreApi": "API operator",
 			"UtenteOrganizzazione": "Organization user"
 		},
+		"USER_CLASSES": {
+			"SECTION": {
+				"EditSubtitle": "Fill in the user class data.",
+				"ViewSubtitle": "User class data.",
+				"GeneraleTag": "USER CLASS",
+				"GeneraleTitle": "General information",
+				"GeneraleDesc": "Name and description of the user class."
+			}
+		},
 		"UTENTI_ORG": {
 			"TITLE": {
 				"List": "Organization users",
@@ -66,6 +75,7 @@
 			},
 			"LABEL": {
 				"AutomaticConfigurationStatus": "Automatic Configuration status",
+				"ServiceStatus": "Service status",
 				"Client": "Client",
 				"Domain": "Domain",
 				"DownloadScheda": "Download membership sheet",
@@ -210,7 +220,7 @@
 		"ALLEGATI": {
 			"TIPI": {
 				"generico": "Generic",
-				"specifica": "Specific",
+				"specifica": "Data sheet",
 				"specifica_collaudo": "Testing specification",
 				"specifica_produzione": "Production specification"
 			}
@@ -339,6 +349,8 @@
 			"Yes": "Yes"
 		},
 		"BUTTON": {
+			"ChooseFile": "Choose file",
+			"RemoveFile": "Remove file",
 			"Reset": "Reset",
 			"Add": "Add",
 			"RetryAutoConfig": "Retry automatic configuration",
@@ -512,6 +524,19 @@
 				"DeassociateClient": "Are you sure to remove the association from Client to Association ?",
 				"SecretUnavailable": "The secret is not available or could not be retrieved. Please try again later."
 			},
+			"SECTION": {
+				"EditSubtitle": "Fill in the sections of the client.",
+				"ViewSubtitle": "Client data, environment and authentication setup.",
+				"GeneraleTag": "CLIENT",
+				"GeneraleTitle": "Organization and subject",
+				"GeneraleDesc": "Organization and subject the client belongs to.",
+				"ConfigTag": "CONFIGURATION",
+				"ConfigTitle": "Environment and status",
+				"ConfigDesc": "Environment and configuration status of the client.",
+				"AuthTag": "AUTHENTICATION",
+				"AuthTitle": "Authentication",
+				"AuthDesc": "Authentication type, credentials, certificates and limits of the client."
+			},
 			"STATUS": {
 				"ConfigInProgress": "Configuration to be perfected",
 				"Configured": "Configured",
@@ -593,6 +618,22 @@
 			"violazioni": "Rate Limiting Policy Violations"
 		},
 		"DOMINI": {
+			"SECTION": {
+				"EditSubtitle": "Fill in the sections of the domain.",
+				"ViewSubtitle": "Domain data and options applied to its services.",
+				"GeneraleTag": "DOMAIN",
+				"GeneraleTitle": "General information",
+				"GeneraleDesc": "Name, description, tag and referent subject of the domain.",
+				"VisibilitaTag": "ACCESS",
+				"VisibilitaTitle": "Visibility",
+				"VisibilitaDesc": "Who can see the services of the domain.",
+				"ErogazioneTag": "PROVISION",
+				"ErogazioneTitle": "Invocation URL",
+				"ErogazioneDesc": "URL and prefixes used to invoke the APIs of the domain services.",
+				"OpzioniTag": "SERVICES",
+				"OpzioniTitle": "Service options",
+				"OpzioniDesc": "Options the domain applies to its services."
+			},
 			"DeleteDomain": "Delete Domain",
 			"EditDomain": "Edit domain",
 			"BUTTON": {
@@ -614,6 +655,7 @@
 				"Public": "Public",
 				"ReferentSubject": "Referent subject",
 				"Reserved": "reserved",
+				"SkipCollaudo": "Allow skipping testing",
 				"Tag": "Tags",
 				"UrlInvocazione": "Url invocation",
 				"UrlPrefixCollaudo": "Url prefix test",
@@ -822,6 +864,11 @@
 			"wsdl_12": "Wsdl 1.2"
 		},
 		"LABEL": {
+			"AltriRuoli": "other roles",
+			"AncheRuolo": "Also {{ruolo}}",
+			"LogoFormatHintServizio": "In the catalogue and in the showcase the logo is shown in 16:9 format: the darkened parts of the preview are left out. Use a landscape image, for example 1280×720.",
+			"LogoFormatHint": "In the catalogue the logo is shown in 16:9 format: the darkened parts of the preview are left out. Use a landscape image, for example 1280×720.",
+			"ImpostatoDalDominio": "Set by the domain",
 			"SkipToContent": "Skip to content",
 			"UrlEsposizione": "Exposure URL",
 			"RemoveFilter": "Remove filter",
@@ -836,6 +883,9 @@
 			"Tipo": "Type",
 			"TipoProfilo": "Profile type",
 			"Traccia": "Trace",
+			"UrlEsposizioneElenco": "Exposure URLs",
+			"UrlInvocazioneSelezione": "Exposure URLs",
+			"UrlPredefinita": "Default URL",
 			"Visibility": "Visibility",
 			"eMail": "E-mail",
 			"metodo_http": "HTTP Method",
@@ -874,6 +924,7 @@
 			"AuthType": "Auth",
 			"AvailabilityDate": "Availability date",
 			"Azione": "Action",
+			"Azioni": "Actions",
 			"base_url": "Base Url",
 			"categoria": "Category",
 			"Category": "Category",
@@ -893,6 +944,7 @@
 			"ClientId": "Client ID",
 			"ClientID": "Client ID",
 			"ClientIp": "IP Client",
+			"collaudo": "Testing configuration",
 			"codice_asset": "Application code",
 			"CodiceRisposta": "Response Code",
 			"CodiceRispostaClient": "Client Response Code",
@@ -956,9 +1008,11 @@
 			"Finalita": "Purpose",
 			"FormatiAccettati": "Accepted formats",
 			"FreeSearch": "Free search",
+			"archiviati": "Archived services",
 			"From": "from",
 			"Fruitore": "User shall",
 			"fruizione": "Intermediated",
+			"api_erogate_aderente": "API role",
 			"FullName": "Fullname",
 			"giornaliero": "Daily",
 			"Giorno": "Day",
@@ -1045,6 +1099,24 @@
 			"Padre": "Father",
 			"Password": "Password",
 			"PDND": {
+				"Requirement": "Requirement",
+				"GroupAlternatives": "Group {{n}}: at least one of {{count}}",
+				"Code": "Code",
+				"Origin": "Origin",
+				"OrganizationId": "Organization ID",
+				"CallsPerConsumer": "Calls/day per subscriber",
+				"CallsTotal": "Total calls/day",
+				"VoucherLifespan": "Voucher validity",
+				"NoDescriptors": "No published descriptors.",
+				"STATE": {
+					"DRAFT": "Draft",
+					"PUBLISHED": "Published",
+					"DEPRECATED": "Deprecated",
+					"SUSPENDED": "Suspended",
+					"ARCHIVED": "Archived",
+					"WAITING_FOR_APPROVAL": "Awaiting approval",
+					"ACTIVE": "Active"
+				},
 				"Agreement": "Agreement",
 				"Attribute": "Attribute",
 				"Attributes": "Attributes",
@@ -1255,13 +1327,30 @@
 				"baseUrlCollaudo": "Delivery URL for test environment",
 				"POPOVER": {
 					"nome": ""
-				}
+				},
+				"url_invocazione": "URLs the API is exposed on in this environment, chosen among those defined in the configuration. The catalogue documents the URLs but does not configure the gateway on GovWay: if the gateway is not configured, the URL does not respond."
 			},
 			"SERVICE": {
 				"descrizione": "You can enter `markdown` text.",
 				"id_dominio": "If you are unable to identify a suitable domain for the service, you can request the creation of a new domain by email to {{email}}",
 				"id_dominio_deprecato": "Deprecated domain",
-				"visibilita": "The visibility **{{visibilita}}** set in the domain is inherited."
+				"visibilita": "The visibility **{{visibilita}}** set in the domain is inherited.",
+				"visibilita_servizio": "Determines who can see the service in the catalog. With «restricted» access is limited to the selected user classes.",
+				"tipo": "Service type: «API» for services exposed through APIs, «Generic» for services not based on APIs.",
+				"id_organizzazione_interna": "Entity of your organization that provides the service as an intermediary. Available for consumption (fruizione) services.",
+				"id_soggetto_erogatore": "Subject that actually provides the service for the selected entity.",
+				"classi": "User classes allowed to see the service when visibility is «restricted»: only users belonging to the selected classes can access it.",
+				"referente": "Organizational owner of the service: receives institutional communications and approves subscriptions.",
+				"referente_tecnico": "Technical owner of the service: handles integration aspects and receives technical communications.",
+				"descrizione_sintetica": "Short description of the service (one or two sentences) shown in the catalog list.",
+				"tags": "Keywords to categorize the service and make it easier to find. Press Enter to add each tag.",
+				"termini_ricerca": "Additional terms (synonyms, acronyms) separated by commas, e.g. «registry, ANPR»: they improve service search and do not appear on the service page.",
+				"fruizione": "The service is provided as an intermediary by an entity of your organization: the entity and the providing subject must be specified.",
+				"package": "Groups several services (components) into a single service to subscribe to; a package has no APIs of its own.",
+				"skip_collaudo": "The service goes straight to production: the testing phase is skipped.",
+				"adesione_disabilitata": "The service remains visible in the catalog but subscriptions cannot be requested.",
+				"multi_adesione": "Allows the same subscribing subject to have more than one subscription to the service.",
+				"note": "Internal notes about the service, visible to the referents; they do not appear on the public catalog page."
 			},
 			"SETTINGS": {
 				"servizi_view": "Choose the default display mode of the list of services."
@@ -1347,6 +1436,7 @@
 			"WorkflowSendRequest": "Send request"
 		},
 		"MESSAGE": {
+			"ApiModificabiliSoloDescrizioneNote": "The service is no longer a draft: only the description and the notes can be edited.",
 			"NoElements": "No elements",
 			"AdesioneDisabilitata": "Subscription is disabled for this service",
 			"AdesioneGiaEsistente": "Your organization already has an active subscription. This service does not allow multiple subscriptions",
@@ -1411,6 +1501,12 @@
 							"EROGATIONS": "API [{{nome}} v{{versione}}] has [{{count}}] active erogations, cannot delete"
 						},
 						"SPEC": "Specification not present",
+						"URL": {
+							"DUPLICATE": "Invocation URL [{{identificativo}}] given more than once for the same specification",
+							"NOT": {
+								"FOUND": "Invocation URL [{{identificativo}}] not available in the configuration for the {{ambiente}} environment"
+							}
+						},
 						"VISIBILITY": "Visibility [{{visibilita}}] not allowed"
 					},
 					"404": {
@@ -1458,6 +1554,14 @@
 						},
 						"RESOURCE": "Access denied to resource [{{resource}}]",
 						"ROLE": "User must have one of the roles [{{ruoli}}] to execute the force",
+						"GRUPPO": {
+							"RISERVATO": {
+								"GESTORE": "The property group [{{gruppo}}] can only be modified by the manager"
+							},
+							"RUOLI": {
+								"ABILITATI": "You do not have a role enabled to modify the property group [{{gruppo}}]"
+							}
+						},
 						"RUOLO": {
 							"PDND": "You do not have the required PDND administrator role for this operation"
 						},
@@ -1540,7 +1644,8 @@
 				"DOC": {
 					"400": {
 						"FORMAT": "Document format not supported",
-						"SIZE": "Document size [{{dimensione}}] exceeds limit of [{{limite}}]"
+						"SIZE": "Document size [{{dimensione}}] exceeds limit of [{{limite}}]",
+						"SWAGGER2": "Swagger 2.0 specifications are not supported: please convert the specification to OpenAPI 3"
 					},
 					"404": {
 						"DEFAULT": "Document not found",
@@ -1555,6 +1660,14 @@
 					"500": "Cannot process document: {{errore}}"
 				},
 				"DOM": {
+					"400": {
+						"ADESIONE": {
+							"DISABILITATA": "Unable to disable subscriptions on domain [{{nome}}]: {{numeroServizi}} services of the domain have subscriptions enabled"
+						},
+						"MULTI": {
+							"ADESIONE": "Unable to enable multiple subscriptions on domain [{{nome}}]: {{numeroServizi}} services of the domain do not allow multiple subscriptions"
+						}
+					},
 					"404": "Domain [{{idDominio}}] not found",
 					"409": "Domain [{{nome}}] already exists"
 				},
@@ -1607,6 +1720,7 @@
 					},
 					"502": {
 						"DEFAULT": "Invalid response from external service",
+						"AUTH": "Authentication rejected by external service, status code: [{{statusCode}}]",
 						"STATUS": "Invalid response from service for alarm [{{idAllarme}}], status code: [{{statusCode}}]"
 					},
 					"503": "External service temporarily unavailable",
@@ -1765,6 +1879,9 @@
 				},
 				"SRV": {
 					"400": {
+						"ADESIONE": {
+							"DISABILITATA": "The service must have subscriptions disabled because domain [{{dominio}}] has subscriptions disabled"
+						},
 						"CATEGORY": {
 							"NOT": {
 								"LEAF": ""
@@ -1772,6 +1889,9 @@
 						},
 						"DUPLICATE": "Duplicate attachment for service",
 						"INVALID": "Invalid operation on service",
+						"MULTI": {
+							"ADESIONE": "The service must allow multiple subscriptions because domain [{{dominio}}] allows multiple subscriptions"
+						},
 						"NOT": {
 							"DELETABLE": "",
 							"REGISTERED": ""
@@ -1794,7 +1914,7 @@
 					"409": {
 						"DEFAULT": "Service [{{nome}} v{{versione}}] already exists",
 						"CATEGORY": "Category [{{categoria}}] already associated to service [{{nome}}/{{versione}}]",
-						"CONFLICT": "Service with same name and version already exists",
+						"CONFLICT": "Service [{{nome}} v{{versione}}] already exists in domain [{{dominio}}]",
 						"GROUP": "Group [{{gruppo}}] already associated to service [{{nome}}/{{versione}}]",
 						"REFERENT": "User [{{nomeUtente}} {{cognomeUtente}}] is already {{tipoReferente}} of service [{{nomeServizio}} v{{versioneServizio}}]",
 						"STATE": "Cannot modify service in current state"
@@ -1956,6 +2076,8 @@
 			},
 			"InsertNotice": "Enter the notice number and press the search button …",
 			"LOGIN": {
+				"LoggedOutTitle": "You have signed out",
+				"LoggedOutMessage": "Your session has been closed. To sign in again use the button below.",
 				"login_400": "Username o password errati. Controlla la corretta scrittura dei dati.",
 				"login_401": "Username o password errati. Controlla la corretta scrittura dei dati.",
 				"login_403": "Username o password errati. Controlla la corretta scrittura dei dati.",
@@ -1965,6 +2087,13 @@
 				"valid_email": "Insert valid email",
 				"wrong_username_password": "Username e/o Password errati."
 			},
+			"SkipCollaudoDominioDaSelezionare": "Select the domain: skipping testing depends on the domain.",
+			"SkipCollaudoSoggettoNonConsente": "Not available: the domain's reference subject does not allow skipping testing.",
+			"SkipCollaudoDominioNonConsente": "Not available: the service domain does not allow skipping testing.",
+			"SkipCollaudoVincolato": "Cannot be disabled: some subscriptions to the service skip testing.",
+			"SkipCollaudoNonModificabile": "Editable only while the service is a draft.",
+			"CollaudoNonDisponibileServizio": "Testing not available: the service is published directly in production.",
+			"CollaudoNonDisponibileAdesione": "Testing not available: the subscription is requested directly in production.",
 			"NoApi": "No API present",
 			"NoApiHelp": "",
 			"NoData": "Sorry, the requested information was not found",
@@ -2019,6 +2148,9 @@
 				"PrincipalPattern": "Invalid principal format",
 				"Email": "Insert valid email",
 				"FieldRequired": "Field required",
+				"RequiredForNextState": "Required to move to «{{stato}}»",
+				"RequiredFromState": "Required from «{{stato}}»",
+				"FormInvalid": "Some required fields are not filled in correctly",
 				"GreaterThanEqual": "The field must have a value greater than or equal to {{value}}",
 				"GreaterThanZero": "The field must have a value greater than zero",
 				"IntegerGreaterThanZero": "The field must have an integer value greater than zero",
@@ -2112,6 +2244,16 @@
 				"IdTipoUtente": "Subject type",
 				"Referente": "Referent Organization",
 				"SoggettoDefault": "Default subject"
+			},
+			"SECTION": {
+				"EditSubtitle": "Fill in the sections of the organization.",
+				"ViewSubtitle": "Organization data and role in the catalogue.",
+				"GeneraleTag": "ORGANIZATION",
+				"GeneraleTitle": "General information",
+				"GeneraleDesc": "Name, description and identification codes of the organization.",
+				"RuoloTag": "ROLE",
+				"RuoloTitle": "Role and default subject",
+				"RuoloDesc": "Role of the organization in the catalogue and subject used by default in subscriptions."
 			},
 			"TITLE": {
 				"Description": "Description",
@@ -2364,6 +2506,140 @@
 			"View": "View"
 		},
 		"SERVICES": {
+			"ATTACHMENTS": {
+				"Title": "Attachments",
+				"ApiMenu": "API attachments",
+				"ShowAll": "Show all ({{count}})",
+				"ShowLess": "Show less",
+				"Download": "Download {{filename}}",
+				"VISIBILITY": {
+					"pubblico": "Public",
+					"adesione": "Subscribers only",
+					"servizio": "Service referents only",
+					"gestore": "Managers only"
+				}
+			},
+			"API_EROGATE_ADERENTE": {
+				"true": "With APIs provided by the subscriber",
+				"false": "Without APIs provided by the subscriber"
+			},
+			"ARCHIVED": {
+				"escludi": "Exclude",
+				"includi": "Include",
+				"solo": "Only archived"
+			},
+			"CREATE": {
+				"Subtitle": "Fill in the sections to create a new service in the catalogue.",
+				"SectionGeneraleTag": "SERVICE",
+				"SectionGeneraleTitle": "General information",
+				"SectionGeneraleDesc": "Define the service type, name, version and domain.",
+				"SectionClassificazioneTag": "CLASSIFICATION",
+				"SectionClassificazioneTitle": "Classification and visibility",
+				"SectionClassificazioneDesc": "Set visibility, user classes and provision mode.",
+				"SectionReferentiTag": "CONTACTS",
+				"SectionReferentiTitle": "Contacts",
+				"SectionReferentiDesc": "Indicate the service contact and the technical contact.",
+				"SectionDescrizioneTag": "CONTENT",
+				"SectionDescrizioneTitle": "Description and metadata",
+				"SectionDescrizioneDesc": "Add descriptions, documentation, tags and notes for the service.",
+					"SectionAllegatiTag": "DOCUMENTS",
+					"SectionAllegatiTitle": "Attachments",
+					"SectionAllegatiDesc": "Upload the documents to attach to the service.",
+					"CascadeWarningTitle": "Service created with warnings",
+					"CascadeWarningIntro": "The service was created, but some items were not saved. You can complete them by editing the service:",
+					"CascadeProceed": "Continue to the service",
+					"CascadeStep": {
+						"api": "API not saved",
+						"gruppo": "Groups not associated",
+						"allegati": "Attachments not uploaded",
+						"referente": "Referents not saved"
+					},
+				"SectionGruppiTag": "ORGANIZATION",
+				"SectionGruppiTitle": "Groups",
+				"SectionGruppiDesc": "Associate the service with one or more catalogue groups.",
+				"SectionAdesioneTag": "SUBSCRIPTIONS",
+				"SectionAdesioneTitle": "Subscription options",
+				"SectionAdesioneDesc": "Settings that govern subscriptions to the service.",
+				"MandatoryHint": "Fields marked with * are mandatory",
+				"ApiRequiredAfterSave": "After saving you will need to add at least one API to be able to proceed to testing.",
+					"Submit": "Create service"
+			},
+			"WIZARD": {
+				"Title": "New service",
+				"StepOf": "Step {{current}} of {{total}}",
+				"Logo": "Logo",
+				"PhasePlaceholder": "Phase content coming soon.",
+				"AzioneRichiesta": "Action required",
+				"FaseConclusa": "Phase completed",
+					"InAttesa": "Pending",
+					"PhaseHint": "Configure the provisioning of each API for this environment. All APIs must be configured before sending the request.",
+					"InAttesaDi": "Waiting: {{ruoli}}",
+					"DatiDaCompletare": "Before proceeding complete the reported data:",
+					"RUOLI": {
+						"richiedente": "requester",
+						"referente": "referent",
+						"referente_superiore": "senior referent",
+						"gestore": "manager"
+					},
+					"SubstepFallbackCanChange": "The service is ready for the next step: use the buttons below to change the state.",
+					"SubstepFallbackCannotChange": "No further action is required from you at this stage. The service is pending action from an authorized user.",
+					"SubstepLocked": "Waiting for the previous steps to be completed.",
+				"ApiHint": "Define the service APIs: general information, interface and provisioning configuration for this environment.",
+				"ApiRequiredHint": "To proceed to testing you must add at least one API. Fill in the form below to create one.",
+				"ApiConfigured": "Configured",
+				"ApiToConfigure": "To configure",
+				"ConfigureApi": "Configure",
+				"EditApiGeneralInfo": "Edit general information",
+				"AddApi": "Create API",
+				"Sections": "Service sections",
+				"NoItems": "There are no items",
+				"InlineComingSoon": "Inline management coming soon.",
+				"OpenSection": "Open section",
+				"OpenWizard": "Guided view",
+				"OpenClassic": "Classic view",
+				"ReferentiServizio": "Service contacts",
+				"ReferentiDominio": "Domain contacts",
+				"ProcedureCollaudo": "Test procedure",
+				"ProcedureProduzione": "Production procedure",
+				"PHASE": {
+					"info_generali": "General Information",
+					"api": "API",
+					"collaudo": "Test",
+					"produzione": "Production"
+				},
+				"SUBSTEP": {
+					"in_compilazione": "Drafting",
+					"in_approvazione": "Under approval",
+					"in_configurazione": "Configuring",
+					"configurato": "Configured",
+					"in_compilazione_body": "Fill in the service data and start the request to proceed.",
+					"in_approvazione_body": "Request sent: awaiting approval from the manager.",
+					"in_configurazione_body": "Configuration in progress on the API Gateway.",
+					"configurato_body": "Phase completed: the service is published in this environment."
+				},
+				"BUTTON": {
+					"Next": "Next",
+					"Back": "Back",
+					"Create": "Create service",
+					"Cancel": "Cancel"
+				},
+				"STEP": {
+					"identita": "Identity",
+					"identita_sub": "Service type, name, version and domain",
+					"classificazione": "Classification and visibility",
+					"classificazione_sub": "Visibility, package and provisioning",
+					"referenti": "Contacts",
+					"referenti_sub": "Contact and technical contact",
+					"descrizione": "Description and metadata",
+					"descrizione_sub": "Descriptions, tags and notes",
+					"adesione": "Subscription options",
+					"adesione_sub": "Subscription-related settings",
+					"gruppi": "Groups",
+					"gruppi_sub": "Groups to associate the service with",
+					"riepilogo": "Summary",
+					"riepilogo_sub": "Review the data and create the service"
+				}
+			},
 			"BUTTON": {
 				"AddAttachment": "Add Attachment",
 				"AddAttachment-generico": "Add generic attachment",
@@ -2507,10 +2783,26 @@
 				"Organization": "Organization",
 				"OrganizationName": "Organization name",
 				"Referente": "Referent",
-				"SkipCollaudo": "Skip testing",
+				"SkipCollaudo": "Allow skipping testing",
 				"UrlInvocazione": "Url invocation",
 				"UrlPrefixCollaudo": "Url prefix test",
 				"UrlPrefixProduzione": "Url prefix production"
+			},
+			"SECTION": {
+				"EditSubtitle": "Fill in the sections of the subject.",
+				"ViewSubtitle": "Subject data, role and invocation URLs.",
+				"GeneraleTag": "SUBJECT",
+				"GeneraleTitle": "General information",
+				"GeneraleDesc": "Name, description and organization of the subject.",
+				"RuoloTag": "ROLE",
+				"RuoloTitle": "Role and options",
+				"RuoloDesc": "Role of the subject and options applied to its services.",
+				"GatewayTag": "GATEWAY",
+				"GatewayTitle": "Gateway profile",
+				"GatewayDesc": "Name and type of the subject on the gateway.",
+				"ErogazioneTag": "PROVISION",
+				"ErogazioneTitle": "Invocation URL",
+				"ErogazioneDesc": "URL and prefixes used to invoke the APIs of the subject."
 			},
 			"TITLE": {
 				"EditSubject": "Edit Subject",
@@ -2570,8 +2862,127 @@
 			"YES": "Yes"
 		},
 		"SUBSCRIBERS": {
-			"Approve": "Approve",
-			"ApproveConfirm": "Do you want to approve the agreement for subscriber {{name}}?"
+			"AgreementPending": "The agreement is awaiting approval: the subscriber can use the e-service once it is approved.",
+			"PurposesCount": "Purposes: {{count}}",
+			"WaitingCount": "To approve: {{count}}",
+			"CurrentLoad": "Expected load",
+			"CallsPerDay": "calls/day",
+			"IncreaseRequest": "Increase request pending",
+			"To": "to",
+			"Purposes": "Purposes",
+			"PurposesLoading": "Loading purposes…",
+			"PurposesError": "Unable to load the subscriber purposes.",
+			"NoPurposes": "No purposes activated by the subscriber.",
+			"PurposeWaiting": "Increase to {{value}} calls/day awaiting approval",
+			"ACTIONS": {
+				"Approve": "Approve",
+				"Reject": "Reject",
+				"Suspend": "Suspend",
+				"Unsuspend": "Reactivate",
+				"AgreementMenu": "Actions on the agreement of {{name}}",
+				"PurposeMenu": "Actions on the purpose {{name}}"
+			},
+			"AGREEMENT_STATE": {
+				"DRAFT": "Draft",
+				"ACTIVE": "Active",
+				"ARCHIVED": "Archived",
+				"PENDING": "Awaiting approval",
+				"SUSPENDED": "Suspended",
+				"MISSING_CERTIFIED_ATTRIBUTES": "Missing certified attributes",
+				"REJECTED": "Rejected"
+			},
+			"PURPOSE_STATE": {
+				"DRAFT": "Draft",
+				"ACTIVE": "Active",
+				"ARCHIVED": "Archived",
+				"PENDING": "Awaiting approval",
+				"SUSPENDED": "Suspended",
+				"MISSING_CERTIFIED_ATTRIBUTES": "Missing certified attributes",
+				"REJECTED": "Rejected",
+				"WAITING_FOR_APPROVAL": "Awaiting approval"
+			},
+			"DIALOG": {
+				"Subscriber": "Subscriber",
+				"Purpose": "Purpose",
+				"Reason": "Rejection reason",
+				"ReasonHint": "From {{min}} to {{max}} characters; the reason is shared with the subscriber.",
+				"ReasonRequired": "Enter at least {{min}} characters.",
+				"RequestedRejected": "request for {{value}} rejected",
+				"AGREEMENT": {
+					"unsuspendPartial": "Only the producer suspension is revoked.",
+					"approve": {
+						"Title": "Approve agreement",
+						"Description": "The subscriber will be able to use the e-service and activate its purposes.",
+						"Confirm": "Approve"
+					},
+					"reject": {
+						"Title": "Reject agreement",
+						"Description": "The subscription request is rejected: the subscriber will have to submit a new one to use the e-service.",
+						"Confirm": "Reject"
+					},
+					"suspend": {
+						"Title": "Suspend agreement",
+						"Description": "The subscriber will not be able to use the e-service until the agreement is reactivated.",
+						"Confirm": "Suspend"
+					},
+					"unsuspend": {
+						"Title": "Reactivate agreement",
+						"Description": "The subscriber will be able to use the e-service again.",
+						"Confirm": "Reactivate"
+					},
+					"StaysSuspended": "Still suspended by: {{who}}. After reactivation the agreement will remain suspended."
+				},
+				"PURPOSE": {
+					"unsuspendPartial": "Only the producer suspension is revoked.",
+					"approve": {
+						"Title": "Approve increase",
+						"Description": "The expected load of the purpose is raised to the value requested by the subscriber.",
+						"Confirm": "Approve"
+					},
+					"suspend": {
+						"Title": "Suspend purpose",
+						"Description": "The subscriber will not be able to use the e-service for this purpose until it is reactivated.",
+						"Confirm": "Suspend"
+					},
+					"unsuspend": {
+						"Title": "Reactivate purpose",
+						"Description": "The subscriber will be able to use the e-service for this purpose again.",
+						"Confirm": "Reactivate"
+					},
+					"StaysSuspended": "Still suspended by: {{who}}. After reactivation the purpose will remain suspended.",
+					"approveFirst": {
+						"Title": "Approve purpose",
+						"Description": "The purpose is activated with the expected load requested by the subscriber.",
+						"Confirm": "Approve"
+					}
+				}
+			},
+			"And": "and",
+			"SuspendedBy": "Suspended by",
+			"RejectionReason": "Rejection reason",
+			"NotReactivatable": "The suspension is not the producer's: it cannot be revoked from here.",
+			"SUSPENDED_BY": {
+				"PRODUCER": "producer",
+				"CONSUMER": "subscriber",
+				"PLATFORM": "PDND platform"
+			},
+			"RESULT": {
+				"AGREEMENT": {
+					"approve": "Agreement of {{name}} approved.",
+					"reject": "Agreement of {{name}} rejected.",
+					"suspend": "Agreement of {{name}} suspended.",
+					"unsuspend": "Agreement of {{name}} reactivated.",
+					"StillSuspended": "The producer suspension was revoked, but the agreement is still suspended (suspended by: {{who}})."
+				},
+				"PURPOSE": {
+					"approve": "Increase of purpose «{{name}}» approved.",
+					"suspend": "Purpose «{{name}}» suspended.",
+					"unsuspend": "Purpose «{{name}}» reactivated.",
+					"StillSuspended": "The producer suspension was revoked, but the purpose is still suspended (suspended by: {{who}}).",
+					"approveFirst": "Purpose «{{name}}» approved."
+				}
+			},
+			"FirstApprovalRequest": "First approval pending"
 		},
 		"SWAGGER": {
 			"ERROR": {
@@ -2931,6 +3342,22 @@
 				"admin": "PDND administrator",
 				"AdminWarning": "Warning: you are granting administration powers on PDND."
 			},
+			"SECTION": {
+				"EditSubtitle": "Fill in the sections of the user.",
+				"ViewSubtitle": "User data, role and organizations.",
+				"AnagraficaTag": "USER",
+				"AnagraficaTitle": "Personal data",
+				"AnagraficaDesc": "Principal, first and last name of the user.",
+				"ContattiTag": "CONTACTS",
+				"ContattiTitle": "Contacts",
+				"ContattiDesc": "Phone and e-mail of the user.",
+				"RuoloTag": "ROLE",
+				"RuoloTitle": "Role and organizations",
+				"RuoloDesc": "Role in the catalogue, organizations and external company.",
+				"StatoTag": "STATUS",
+				"StatoTitle": "Status and classes",
+				"StatoDesc": "User status, user classes and notes."
+			},
 			"STATUS": {
 				"abilitato": "Enabled",
 				"disabilitato": "Not enabled",
@@ -2981,13 +3408,14 @@
 			"riservato": "Reserved",
 			"riservato_dominio": "Reserved (Domain)",
 			"servizio": "Service",
-			"specifica": "Specific",
+			"specifica": "Data sheet",
 			"specifica_collaudo": "Testing specification",
 			"specifica_produzione": "Production specification",
 			"subscription": "Subscription"
 		},
 		"WORKFLOW": {
 			"DATATYPE": {
+				"api": "API",
 				"collaudo": "Testing",
 				"collaudo_configurato": "Testing",
 				"collaudo_pdnd": "PDND",
@@ -3098,6 +3526,16 @@
 				"ChangeStatusError": "Error changing state [{{status}}]",
 				"ChangeStatusSuccess": "Status change successful [{{status}}]"
 			},
+			"RIFIUTO": {
+				"Rifiuta": "Reject",
+				"Titolo": "Reject the request",
+				"Descrizione": "The state goes back to \"{{stato}}\" and the referents receive a communication with the reason.",
+				"Oggetto": "Subject",
+				"Motivo": "Reason for rejection",
+				"Conferma": "Confirm rejection",
+				"OggettoDefault": "{{nome}}: request rejected ({{stato}})",
+				"Successo": "Request rejected: the state went back to \"{{stato}}\" and the communication was sent to the referents."
+			},
 			"STATUS": {
 				"PROCESSING": "Processing",
 				"DENIED": "Denied",
@@ -3147,6 +3585,7 @@
 				"Operation": "Operation",
 				"Pattern": "Pattern",
 				"SOAPAction": "SOAPAction",
+				"UrlInvocazioneElenco": "Exposure URLs",
 				"Version": "Version",
 				"UrlInvocazione": "Display URL"
 			}

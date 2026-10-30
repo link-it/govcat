@@ -524,14 +524,14 @@ public class MatricePermessiMultiOrgTest {
 	}
 
 	private PagedModelItemServizio listServizi(Boolean mieiServizi, Boolean dashboard) {
-		return serviziController.listServizi(null, null, null, null, null, null, null, null, null, null,
-				null, mieiServizi, null, dashboard, null, null, null, null, null, null, null, null,
+		return serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null,
+				null, mieiServizi, null, dashboard, null, null, null, null, null, null, null, null, null,
 				0, 100, null).getBody();
 	}
 
 	private PagedModelItemAdesione listAdesioni() {
 		return adesioniController.listAdesioni(null, null, null, null, null, null, null, null, null,
-				null, null, null, null, null, null, 0, 100, null).getBody();
+				null, null, null, null, null, null, null, 0, 100, null).getBody();
 	}
 
 	private boolean contieneServizio(PagedModelItemServizio lista, String nome) {

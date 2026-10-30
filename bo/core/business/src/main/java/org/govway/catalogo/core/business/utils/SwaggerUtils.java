@@ -19,98 +19,111 @@
  */
 package org.govway.catalogo.core.business.utils;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.Operation;
-import io.swagger.v3.oas.models.PathItem;
-import io.swagger.v3.parser.OpenAPIV3Parser;
-import io.swagger.v3.parser.core.models.SwaggerParseResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+/**
+ * Riconoscimento e analisi delle specifiche REST in formato Swagger 2.0.
+ * <p>
+ * L'analisi e` strutturale (Jackson) e non risolve i {@code $ref}: e` sufficiente a riconoscere
+ * il formato e a estrarre l'elenco delle operazioni, senza dipendere dallo stack Swagger 1.x.
+ */
 public class SwaggerUtils {
 
-    public static boolean isSwagger(byte[] swaggerBytes) {
-        try {
-            byte[] jsonBytes = YamltoJsonUtils.convertYamlToJson(swaggerBytes);
-            SwaggerParseResult result = new OpenAPIV3Parser().readContents(new String(jsonBytes));
-            return result.getOpenAPI() != null;
-        } catch(RuntimeException e) {
-            return false;
-        } catch(Throwable e) {
-            return false;
-        }
-    }
+	private static final Logger logger = LoggerFactory.getLogger(SwaggerUtils.class);
+
+	// Stessi metodi estratti da OpenapiUtils, per avere risultati coerenti tra i due formati
+	private static final String[] METODI = {"get", "post", "put", "head", "delete", "patch"};
+
+	public static boolean isSwagger(byte[] swaggerBytes) {
+		try {
+			return isSwagger(readTree(swaggerBytes));
+		} catch(Exception e) {
+			logger.debug("Documento non riconosciuto come Swagger 2.0: {}", e.getMessage());
+			return false;
+		}
+	}
+
+	private static boolean isSwagger(JsonNode root) {
+		if(root == null || !root.isObject()) {
+			return false;
+		}
+		JsonNode version = root.get("swagger");
+		return version != null && (version.isTextual() || version.isNumber()) && version.asText().startsWith("2.")
+				&& root.path("info").isObject()
+				&& root.path("paths").isObject();
+	}
 
 	public static List<ResourceInfo> getProtocolInfoFromSwagger(byte[] swaggerBytes) throws Exception {
-		
+
 		try {
-			Set<ResourceInfo> resources = new HashSet<>();
+			JsonNode root = readTree(swaggerBytes);
+			if(!isSwagger(root)) {
+				throw new IllegalArgumentException("Il documento non e` una specifica Swagger 2.0");
+			}
 
-            byte[] jsonBytes = YamltoJsonUtils.convertYamlToJson(swaggerBytes);
-            OpenAPIV3Parser parser = new OpenAPIV3Parser();
-            SwaggerParseResult result = parser.readContents(new String(jsonBytes));
-            OpenAPI openAPI = result.getOpenAPI();
+			List<ResourceInfo> resources = new ArrayList<>();
 
-            if(openAPI.getPaths() != null) {
-                for (Entry<String, PathItem> entry : openAPI.getPaths().entrySet()) {
-                    String path = entry.getKey();
-                    PathItem pathV = entry.getValue();
+			Iterator<Entry<String, JsonNode>> paths = root.get("paths").fields();
+			while(paths.hasNext()) {
+				Entry<String, JsonNode> entry = paths.next();
+				String path = entry.getKey();
+				JsonNode pathV = entry.getValue();
 
-                    if (pathV.getGet() != null) {
-                        List<String> lst = getContentTypes(pathV.getGet());
-                        resources.add(newResourceInfo("GET", path, lst));
-                    }
-                    if (pathV.getPost() != null) {
-                        List<String> lst = getContentTypes(pathV.getPost());
-                        resources.add(newResourceInfo("POST", path, lst));
-                    }
-                    if (pathV.getPut() != null) {
-                        List<String> lst = getContentTypes(pathV.getPut());
-                        resources.add(newResourceInfo("PUT", path, lst));
-                    }
-                    if (pathV.getHead() != null) {
-                        List<String> lst = getContentTypes(pathV.getHead());
-                        resources.add(newResourceInfo("HEAD", path, lst));
-                    }
-                    if (pathV.getDelete() != null) {
-                        List<String> lst = getContentTypes(pathV.getDelete());
-                        resources.add(newResourceInfo("DELETE", path, lst));
-                    }
-                    if (pathV.getPatch() != null) {
-                        List<String> lst = getContentTypes(pathV.getPatch());
-                        resources.add(newResourceInfo("PATCH", path, lst));
-                    }
-                }
-            }
+				// Le estensioni (x-*) non sono path; le chiavi non operative (parameters, $ref, x-*) vengono ignorate
+				if(path.startsWith("x-") || !pathV.isObject()) {
+					continue;
+				}
 
-			return resources.stream().collect(Collectors.toList());
-		} catch(RuntimeException e) {
-			throw new Exception("Impossibile recuperare le informazioni sulle azioni/risorse dal descrittore fornito");
-		} catch(Throwable e) {
+				for(String metodo: METODI) {
+					JsonNode oper = pathV.get(metodo);
+					if(oper != null && oper.isObject()) {
+						resources.add(newResourceInfo(metodo.toUpperCase(), path, getContentTypes(oper)));
+					}
+				}
+			}
+
+			return resources;
+		} catch(Exception e) {
+			logger.debug("Impossibile recuperare le operazioni dal descrittore Swagger 2.0: {}", e.getMessage());
 			throw new Exception("Impossibile recuperare le informazioni sulle azioni/risorse dal descrittore fornito");
 		}
 	}
 
-        private static List<String> getContentTypes(Operation oper) {
-            // In OpenAPI v3, content types are in requestBody
-            if (oper.getRequestBody() != null && oper.getRequestBody().getContent() != null) {
-                return new ArrayList<>(oper.getRequestBody().getContent().keySet());
-            }
-            return new ArrayList<>(); // or return default content types
-        }
+	private static JsonNode readTree(byte[] swaggerBytes) throws IOException {
+		byte[] jsonBytes = YamltoJsonUtils.convertYamlToJson(swaggerBytes);
+		return new ObjectMapper().readTree(jsonBytes);
+	}
+
+	private static List<String> getContentTypes(JsonNode oper) {
+		List<String> contentTypes = new ArrayList<>();
+		JsonNode consumes = oper.get("consumes");
+		if(consumes != null && consumes.isArray()) {
+			consumes.forEach(c -> {
+				if(c.isTextual()) {
+					contentTypes.add(c.asText());
+				}
+			});
+		}
+		return contentTypes;
+	}
 
 	private static ResourceInfo newResourceInfo(String op, String path, List<String> contentTypes) {
 		ResourceInfo operationInfo = new ResourceInfo();
-		
+
 		operationInfo.setOp(op);
 		operationInfo.setPath(path);
 		operationInfo.setContentTypes(contentTypes);
-		
+
 		return operationInfo;
 	}
 

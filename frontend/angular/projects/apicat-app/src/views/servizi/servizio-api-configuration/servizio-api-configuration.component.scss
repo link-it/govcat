@@ -22,3 +22,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     padding-top: 48px;
   }
 }
+
+// ng-select affiancato al pulsante "copia da collaudo" nell'input-group
+.input-group > ng-select {
+  flex: 1 1 auto;
+  width: 1%;
+  min-width: 0;
+
+  &:not(:last-child) ::ng-deep .ng-select-container {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "events": [
+    {
+      "id": "1e000000-0000-0000-0000-000000000001",
+      "eventType": "CLIENT_KEY_ADDED",
+      "eventTimestamp": "2026-01-15T09:31:00Z",
+      "kid": "kid-collaudo",
+      "clientId": "77777777-7777-7777-7777-777777777777"
+    }
+  ]
+}

@@ -65,6 +65,8 @@ describe('ServizioDetailsComponent', () => {
   } as any;
 
   const mockAuthenticationService = {
+    _getWorkflowCambiStato: vi.fn().mockReturnValue(null),
+    canEditField: vi.fn().mockReturnValue(true),
     isAnonymous: vi.fn().mockReturnValue(false),
     hasPermission: vi.fn().mockReturnValue(true),
     _getConfigModule: vi.fn().mockReturnValue({ api: { abilitato: true }, generico: { abilitato: false } }),
@@ -347,10 +349,7 @@ describe('ServizioDetailsComponent', () => {
       component.id = '10';
       component._loadService();
 
-      expect(mockRouter.navigate).toHaveBeenCalledWith(
-        ['servizi', '10', 'view'],
-        expect.anything()
-      );
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['servizi', '10', 'view']);
     });
 
     it('should call Tools.OnError on grant error', () => {
@@ -629,10 +628,7 @@ describe('ServizioDetailsComponent', () => {
       component._onCancelEdit();
 
       expect(component._isEdit).toBe(false);
-      expect(mockRouter.navigate).toHaveBeenCalledWith(
-        ['servizi'],
-        expect.objectContaining({ relativeTo: expect.anything() })
-      );
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['servizi']);
     });
 
     it('should navigate to model/id when _isNew and _useRoute and has id', () => {
@@ -1204,6 +1200,13 @@ describe('ServizioDetailsComponent', () => {
       expect(component._isGestoreMapper()).toBe(true);
     });
 
+    it('_canCreateServizioMapper should delegate to canCreateServizio', () => {
+      (mockAuthenticationService as any).canCreateServizio = vi.fn().mockReturnValue(true);
+      expect(component._canCreateServizioMapper()).toBe(true);
+      (mockAuthenticationService as any).canCreateServizio.mockReturnValue(false);
+      expect(component._canCreateServizioMapper()).toBe(false);
+    });
+
     describe('_canSetFruizioneMapper', () => {
       it('should be true for gestore', () => {
         mockAuthenticationService.isGestore.mockReturnValue(true);
@@ -1349,11 +1352,12 @@ describe('ServizioDetailsComponent', () => {
   // ---------------------------------------------------------------------------
   describe('onLinkClick', () => {
     it('should navigate to item route with service data', () => {
+      component.id = '10';
       component.data = { id_servizio: '10' };
       component._grant = { ruoli: ['gestore'] } as any;
       component.onLinkClick({ route: 'api' });
       expect(mockRouter.navigate).toHaveBeenCalledWith(
-        ['api'],
+        ['servizi', '10', 'api'],
         expect.objectContaining({ state: { service: component.data, grant: component._grant } })
       );
     });
@@ -1363,13 +1367,29 @@ describe('ServizioDetailsComponent', () => {
   // getDomini
   // ---------------------------------------------------------------------------
   describe('getDomini', () => {
-    it('should call getList with q param when term provided', () => {
-      mockApiService.getList.mockReturnValue(of({ content: [{ id_dominio: 1 }] }));
+    it('should call getList with q and page params when term provided', () => {
+      mockApiService.getList.mockReturnValue(of({ content: [{ id_dominio: 1 }], page: { totalPages: 3 } }));
       mockAuthenticationService.isGestore.mockReturnValue(true);
-      component.getDomini('test').subscribe(result => {
-        expect(result).toEqual([{ id_dominio: 1 }]);
+      component.getDomini('test', 2).subscribe(result => {
+        expect(result).toEqual({ items: [{ id_dominio: 1 }], totalPages: 3 });
       });
-      expect(mockApiService.getList).toHaveBeenCalledWith('domini', expect.objectContaining({ params: { q: 'test' } }));
+      expect(mockApiService.getList).toHaveBeenCalledWith('domini', expect.objectContaining({ params: { q: 'test', page: 2 } }));
+    });
+
+    it('should load the next page of domains on scroll to end', async () => {
+      vi.useFakeTimers();
+      mockAuthenticationService.isGestore.mockReturnValue(true);
+      mockApiService.getList.mockImplementation((_m: string, opts: any) => of({
+        content: [{ id_dominio: `d${opts.params.page}` }], page: { totalPages: 2 }
+      }));
+      component._initDominiSelect([]);
+      let _items: any[] = [];
+      component.dominiTypeahead.items$.subscribe((items: any[]) => _items = items);
+      vi.advanceTimersByTime(300);
+      component.dominiTypeahead.loadMore();
+      expect(_items.map((d: any) => d.id_dominio)).toEqual(['d0', 'd1']);
+      expect(component.dominiTypeahead.hasMore).toBe(false);
+      vi.useRealTimers();
     });
 
     it('should add deprecato param for non-gestore', () => {
@@ -1505,6 +1525,90 @@ describe('ServizioDetailsComponent', () => {
     });
   });
 
+  describe('opzioni di adesione imposte dal dominio (Issue #382)', () => {
+    beforeEach(() => {
+      component._formGroup = new FormGroup({
+        multi_adesione: new FormControl(false),
+        adesione_disabilitata: new FormControl(false)
+      });
+      component._isEdit = true;
+      component._hasFlagConsentiNonSottoscrivibile = true;
+    });
+
+    it('should force and lock the options set on the domain', () => {
+      component._setAdesioneDominio({ multi_adesione: true, adesione_disabilitata: true });
+      expect(component._formGroup.get('multi_adesione')?.value).toBe(true);
+      expect(component._formGroup.get('multi_adesione')?.disabled).toBe(true);
+      expect(component._formGroup.get('adesione_disabilitata')?.value).toBe(true);
+      expect(component._formGroup.get('adesione_disabilitata')?.disabled).toBe(true);
+      expect(component._formGroup.getRawValue().multi_adesione).toBe(true);
+    });
+
+    it('should free the options when the domain changes, keeping the current value', () => {
+      component._setAdesioneDominio({ multi_adesione: true });
+      component._setAdesioneDominio({ multi_adesione: false });
+      expect(component._formGroup.get('multi_adesione')?.enabled).toBe(true);
+      expect(component._formGroup.get('multi_adesione')?.value).toBe(true);
+    });
+
+    it('should ignore the domain disabled subscription when the configuration does not allow it', () => {
+      component._hasFlagConsentiNonSottoscrivibile = false;
+      component._setAdesioneDominio({ adesione_disabilitata: true });
+      expect(component._adesioneBloccata.disabilitata).toBe(false);
+    });
+  });
+
+  describe('loadCurrentData (soggetto erogatore, Issue #374)', () => {
+    const _anac = { id_organizzazione: 'o-anac', nome: 'ANAC', intermediata: true };
+
+    beforeEach(() => {
+      component._formGroup = new FormGroup({
+        id_dominio: new FormControl(null),
+        id_organizzazione_interna: new FormControl(null),
+        id_soggetto_erogatore: new FormControl(null)
+      });
+      component._isFruizione = true;
+      vi.spyOn(component as any, '_initDominiSelect').mockImplementation(() => {});
+      vi.spyOn(component as any, '_initOrganizzazioniInterneSelect').mockImplementation(() => {});
+      mockAuthenticationService.isGestore.mockReturnValue(true);
+    });
+
+    it('should not filter on referente and show the saved soggetto of an intermediata org', () => {
+      component.data = { dominio: {}, soggetto_erogatore: { id_soggetto: 's-att', nome: 'ANAC-ATTESTAZIONE', organizzazione: _anac } };
+      mockApiService.getList.mockReturnValue(of({ content: [{ id_soggetto: 's-anac', nome: 'ANAC' }, { id_soggetto: 's-att', nome: 'ANAC-ATTESTAZIONE' }] }));
+
+      component.loadCurrentData();
+
+      expect(mockApiService.getList).toHaveBeenCalledWith('soggetti', { params: { id_organizzazione: 'o-anac' } });
+      expect(component._hideSoggettoInfo).toBe(false);
+      expect(component._hideSoggettoDropdown).toBe(false);
+      expect(component._formGroup.get('id_soggetto_erogatore')?.value).toBe('s-att');
+    });
+
+    it('should keep the saved soggetto when it is not among the proposed ones', () => {
+      component.data = { dominio: {}, soggetto_erogatore: { id_soggetto: 's-att', nome: 'ANAC-ATTESTAZIONE', organizzazione: _anac } };
+      mockApiService.getList.mockReturnValue(of({ content: [{ id_soggetto: 's-anac', nome: 'ANAC' }] }));
+
+      component.loadCurrentData();
+
+      expect(component._formGroup.get('id_soggetto_erogatore')?.value).toBe('s-att');
+      expect(component._hideSoggettoInfo).toBe(false);
+      expect(component._elencoSoggetti.map((s: any) => s.id_soggetto)).toEqual(['s-att', 's-anac']);
+    });
+
+    it('should still filter on referente for a non intermediata org', () => {
+      const _org = { id_organizzazione: 'o-rt', nome: 'Regione Toscana', intermediata: false };
+      component.data = { dominio: {}, soggetto_erogatore: { id_soggetto: 's-rt', nome: 'RegioneToscana', organizzazione: _org } };
+      mockApiService.getList.mockReturnValue(of({ content: [{ id_soggetto: 's-rt', nome: 'RegioneToscana' }] }));
+
+      component.loadCurrentData();
+
+      expect(mockApiService.getList).toHaveBeenCalledWith('soggetti', { params: { id_organizzazione: 'o-rt', referente: true } });
+      expect(component._hideSoggettoInfo).toBe(true);
+      expect(component._formGroup.get('id_soggetto_erogatore')?.value).toBe('s-rt');
+    });
+  });
+
   describe('_checkSoggetto', () => {
     beforeEach(() => {
       component._formGroup = new FormGroup({
@@ -1610,7 +1714,7 @@ describe('ServizioDetailsComponent', () => {
       component.data = { id_servizio: '10' };
       (component as any).__deleteService();
       expect(mockApiService.deleteElement).toHaveBeenCalledWith('servizi', '10');
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['servizi'], expect.anything());
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['servizi']);
     });
 
     it('should set error on failure', () => {
@@ -1681,10 +1785,10 @@ describe('ServizioDetailsComponent', () => {
   // _onCloseNotificationBar
   // ---------------------------------------------------------------------------
   describe('_onCloseNotificationBar', () => {
-    it('should navigate to model/id', () => {
+    it('should navigate to the classic view of model/id', () => {
       component.id = '10';
       component._onCloseNotificationBar({});
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['servizi', '10'], expect.anything());
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['servizi', '10', 'classic']);
     });
   });
 
@@ -1829,11 +1933,23 @@ describe('ServizioDetailsComponent', () => {
       component._formGroup = new FormGroup({ package: new FormControl(false) });
     });
 
-    it('should add componente option when not package and isGestore', () => {
+    it('should add componente option when not package and isGestore, with packages enabled', () => {
       mockAuthenticationService.isGestore.mockReturnValue(true);
+      component._showPackage = true;
       component.updateTipiVisibilitaServizio();
       const hasComponente = component._tipiVisibilitaServizio.some((t: any) => t.value === 'componente');
       expect(hasComponente).toBe(true);
+    });
+
+    it('should hide componente with packages disabled, unless the service already is a component', () => {
+      mockAuthenticationService.isGestore.mockReturnValue(true);
+      component._showPackage = false;
+      component.data = { visibilita: 'pubblico' };
+      component.updateTipiVisibilitaServizio();
+      expect(component._tipiVisibilitaServizio.some((t: any) => t.value === 'componente')).toBe(false);
+      component.data = { visibilita: 'componente' };
+      component.updateTipiVisibilitaServizio();
+      expect(component._tipiVisibilitaServizio.some((t: any) => t.value === 'componente')).toBe(true);
     });
 
     it('should not add componente when package is true', () => {
@@ -2130,7 +2246,7 @@ describe('ServizioDetailsComponent', () => {
     it('should call utils.getAnagrafiche with tables', async () => {
       mockUtilService.getAnagrafiche.mockResolvedValue({ 'classi-utente': [], gruppi: [], tags: [], tassonomie: [] });
       await component.loadAnagrafiche();
-      expect(mockUtilService.getAnagrafiche).toHaveBeenCalledWith(['classi-utente', 'gruppi', 'tags', 'tassonomie']);
+      expect(mockUtilService.getAnagrafiche).toHaveBeenCalledWith(['classi-utente', 'gruppi', { name: 'tags', param: { size: 1000 } }, 'tassonomie']);
       expect(component.anagrafiche).toBeDefined();
     });
   });

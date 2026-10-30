@@ -73,6 +73,13 @@ public class DominioEntity {
     
     @Column(name = "skip_collaudo", nullable = false)
     private boolean skipCollaudo;
+
+    // Opzioni di adesione: se attive sul dominio sono obbligatoriamente attive anche sui suoi servizi
+    @Column(name = "multi_adesione", nullable = false)
+    private boolean multiAdesione;
+
+    @Column(name = "adesione_disabilitata", nullable = false)
+    private boolean adesioneDisabilitata;
     
 	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_soggetto_referente", referencedColumnName = "id")

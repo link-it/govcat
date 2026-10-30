@@ -27,8 +27,14 @@ public abstract class ServizioFormat {
 
 	@JsonProperty("Soggetto Erogatore")
 	abstract String getErogatore();
+	@JsonProperty("Organizzazione Erogatore")
+	abstract String getOrganizzazioneErogatore();
 	@JsonProperty("Soggetto Fruitore")
 	abstract String getFruitore();
+	@JsonProperty("Organizzazione Fruitore")
+	abstract String getOrganizzazioneFruitore();
+	@JsonProperty("Intermediato")
+	abstract String getIntermediato();
 	@JsonProperty("Dominio")
 	abstract String getDominio();
 	@JsonProperty("Servizio")
@@ -45,6 +51,8 @@ public abstract class ServizioFormat {
 	abstract String getUuidApi();
 	@JsonProperty("Tipologia API")
 	abstract String getTipoApi();
+	@JsonProperty("Ruolo API")
+	abstract String getRuoloApi();
 	@JsonProperty("Modalità Autenticazione")
 	abstract String getAutenticazioneStato();
 	@JsonProperty("Stato Servizio")
@@ -65,5 +73,10 @@ public abstract class ServizioFormat {
 	abstract String getUrlInvocazioneCollaudo();
 	@JsonProperty("Backend URL (Coll)")
 	abstract String getConnettoreCollaudo();
+	// Colonne in coda: l'ordine di quelle preesistenti non cambia
+	@JsonProperty("URL Invocazione Aggiuntive (Prod)")
+	abstract String getUrlInvocazioneAggiuntiveProduzione();
+	@JsonProperty("URL Invocazione Aggiuntive (Coll)")
+	abstract String getUrlInvocazioneAggiuntiveCollaudo();
 
 }

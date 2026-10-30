@@ -54,6 +54,7 @@ import org.govway.catalogo.servlets.model.ConfigurazioneCustomProprietaList;
 import org.govway.catalogo.servlets.model.ConfigurazioneDatoSempreModificabile;
 import org.govway.catalogo.servlets.model.EntitaComplessaError;
 import org.govway.catalogo.servlets.model.Grant;
+import org.govway.catalogo.servlets.model.ProprietaCustom;
 import org.govway.catalogo.servlets.model.Ruolo;
 import org.govway.catalogo.servlets.model.ServizioCreate;
 import org.govway.catalogo.servlets.model.ServizioUpdate;
@@ -222,6 +223,9 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 		filtered
 			.stream()
 				.filter(c -> c.getClasseDato().equals(classeDato))
+				// gruppo non visibile all'utente per ruoli_abilitati: non puo' compilarlo, il controllo
+				// resta a carico di chi ha un ruolo abilitato
+				.filter(c -> isGruppoProprietaCustomVisibile(c.getRuoliAbilitati(), api.getServizio()))
 					.forEach(c -> {
 						c.getProprieta()
 							.stream()
@@ -236,6 +240,22 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 								}
 							});
 					});
+	}
+
+	/**
+	 * Verifica che i gruppi di proprieta' custom dell'API che si vogliono scrivere siano abilitati
+	 * ai ruoli dell'utente sul servizio ({@code ruoli_abilitati}).
+	 */
+	public void authorizeModificaProprietaCustomApi(List<ProprietaCustom> proprietaCustom, ServizioEntity servizio) {
+		if(proprietaCustom == null) {
+			return;
+		}
+		for(ProprietaCustom pc: proprietaCustom) {
+			this.configurazione.getServizio().getApi().getProprietaCustom().stream()
+				.filter(c -> c.getNomeGruppo().equals(pc.getGruppo()))
+				.findAny()
+				.ifPresent(c -> authorizeModificaGruppoProprietaCustom(c.getNomeGruppo(), c.getRuoliAbilitati(), servizio));
+		}
 	}
 
 	/**

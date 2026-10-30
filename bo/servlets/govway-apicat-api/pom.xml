@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.govway.catalogo</groupId>
 		<artifactId>servlets</artifactId>
-		<version>2.4.5</version>
+		<version>2.5.0-SNAPSHOT.rc1</version>
 		<relativePath>../</relativePath>
 	</parent>
 
@@ -207,11 +207,6 @@
 		</dependency>
 
 		<!-- Spring Boot Mail Starter per invio email verifica -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-mail</artifactId>
-		</dependency>
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-mail</artifactId>

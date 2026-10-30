@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.govway.catalogo.core.dto.DTOApi.PROTOCOLLO;
@@ -71,6 +72,17 @@ public class GovwayConfigInvoker {
 	private static final String HEADER_AUTHORIZATION = "Authorization";
 	private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
+	/**
+	 * Timeout di default delle chiamate verso l'API di configurazione di govway, in secondi.
+	 *
+	 * La lettura e la scrittura sono piu' larghe dei 10 secondi di default di okhttp perche' la
+	 * prima chiamata dopo un periodo di inattivita' puo' richiedere decine di secondi, mentre le
+	 * successive rispondono in pochi millisecondi.
+	 */
+	public static final int CONNECT_TIMEOUT_SECONDI_DEFAULT = 10;
+	public static final int READ_TIMEOUT_SECONDI_DEFAULT = 60;
+	public static final int WRITE_TIMEOUT_SECONDI_DEFAULT = 60;
+
 	private final HttpUrl baseUrl;
 	private String credentials;	
 	private OutboundAuthentication authentication = OutboundAuthentication.none();
@@ -83,6 +95,8 @@ public class GovwayConfigInvoker {
 	private static final String PATH_TEMPLATE_CREDENZIALI = "credenziali.ftlh";
 	private static final String PATH_TEMPLATE_SOGGETTO_AUTORIZZATO = "soggettoAutorizzato.ftlh";
 	private static final String PATH_TEMPLATE_CREATE_SOGGETTO = "createSoggetto.ftlh";
+	private static final String PATH_TEMPLATE_RATE_LIMITING = "rateLimitingPolicy.ftlh";
+	private static final String PATH_TEMPLATE_PROPRIETA = "proprietaConfigurazione.ftlh";
 
 	private Logger logger = LoggerFactory.getLogger(GovwayConfigInvoker.class);
 
@@ -122,8 +136,21 @@ public class GovwayConfigInvoker {
 	}
 	
 	public GovwayConfigInvoker(HttpUrl url, Configuration cfg) {
+		this(url, cfg, CONNECT_TIMEOUT_SECONDI_DEFAULT, READ_TIMEOUT_SECONDI_DEFAULT, WRITE_TIMEOUT_SECONDI_DEFAULT);
+	}
+	
+	/**
+	 * @param connectTimeoutSecondi tempo massimo per stabilire la connessione
+	 * @param readTimeoutSecondi tempo massimo di attesa della risposta
+	 * @param writeTimeoutSecondi tempo massimo per inviare la richiesta
+	 */
+	public GovwayConfigInvoker(HttpUrl url, Configuration cfg, int connectTimeoutSecondi, int readTimeoutSecondi, int writeTimeoutSecondi) {
 		this.baseUrl = url;
-		this.client = new OkHttpClient();
+		this.client = new OkHttpClient.Builder()
+				.connectTimeout(connectTimeoutSecondi, TimeUnit.SECONDS)
+				.readTimeout(readTimeoutSecondi, TimeUnit.SECONDS)
+				.writeTimeout(writeTimeoutSecondi, TimeUnit.SECONDS)
+				.build();
 		
 		this.gson = new GsonBuilder()
 				.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
@@ -572,6 +599,59 @@ public class GovwayConfigInvoker {
 		return this.client.newCall(req).execute();
 	}
 	
+	/**
+	 * Aggiunge una policy di rate limiting all'erogazione o alla fruizione.
+	 *
+	 * @param singleAPI servizio su cui configurare la policy
+	 * @param policy policy da aggiungere
+	 */
+	public Response postRateLimitingPolicy(GruppoServizio singleAPI, RateLimitingPolicy policy) throws TemplateException, IOException {
+		HttpUrl url = this.getUrlConfigurazioneServizio(singleAPI)
+				.addPathSegment("configurazioni")
+				.addPathSegment("rate-limiting")
+				.addQueryParameter(QUERY_GRUPPO, singleAPI.getGruppo())
+				.build();
+
+		logger.info("url:" + url);
+
+		Request request = new Request.Builder()
+				.url(url)
+				.addHeader(HEADER_AUTHORIZATION, getAuthorization())
+				.post(templateToRequestBody(JSON, this.template.getTemplate(PATH_TEMPLATE_RATE_LIMITING), policy))
+				.build();
+
+		return this.client.newCall(request).execute();
+	}
+
+	/**
+	 * Aggiunge una proprieta' di configurazione all'erogazione o alla fruizione.
+	 *
+	 * @param singleAPI servizio su cui configurare la proprieta'
+	 * @param nome nome della proprieta'
+	 * @param valore valore della proprieta'
+	 */
+	public Response postProprietaConfigurazione(GruppoServizio singleAPI, String nome, String valore) throws TemplateException, IOException {
+		HttpUrl url = this.getUrlConfigurazioneServizio(singleAPI)
+				.addPathSegment("configurazioni")
+				.addPathSegment("proprieta")
+				.addQueryParameter(QUERY_GRUPPO, singleAPI.getGruppo())
+				.build();
+
+		logger.info("url:" + url);
+
+		Map<String, String> root = new HashMap<>();
+		root.put("nome", nome);
+		root.put("valore", valore);
+
+		Request request = new Request.Builder()
+				.url(url)
+				.addHeader(HEADER_AUTHORIZATION, getAuthorization())
+				.post(templateToRequestBody(JSON, this.template.getTemplate(PATH_TEMPLATE_PROPRIETA), root))
+				.build();
+
+		return this.client.newCall(request).execute();
+	}
+
 	public Response postSoggettoAutorizzato(GruppoServizio gruppoServizio, String soggetto) throws TemplateException, IOException {
 		HttpUrl url = this.getUrlConfigurazioneServizio(gruppoServizio)
 				.addPathSegment("configurazioni")

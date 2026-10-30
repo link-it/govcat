@@ -20,37 +20,48 @@
   <form class="" [formGroup]="_formGroup" (submit)="__send(_formGroup.value)">
     <!-- Message input row -->
     <div class="d-flex align-items-center position-relative">
-      <button class="btn btn-default btn-md btn-icon gl-button btn-default-tertiary" (click)="__browse($event)" type="button" [tooltip]="'APP.TOOLTIP.AttachFiles' | translate" container="body" placement="right">
-        <em class="bi bi-paperclip fs-5"></em>
+      <button class="btn btn-default btn-md btn-icon gl-button btn-default-tertiary" (click)="__browse($event)" type="button" [tooltip]="'APP.TOOLTIP.AttachFiles' | translate" container="body" placement="right" [attr.aria-label]="'APP.TOOLTIP.AttachFiles' | translate">
+        <em class="bi bi-paperclip fs-5" aria-hidden="true"></em>
         <input #browse type="file" hidden (change)="__onChange($event)">
       </button>
       <div class="flex-grow-1 ">
         <input class="form-control form-control-sm" formControlName="messaggio" [placeholder]="'APP.PLACEHOLDER.TypeMessage' | translate">
       </div>
-      <button class="btn btn-default btn-md btn-icon gl-button btn-default-tertiary" type="submit" [disabled]="!_formGroup.valid">
-        <em class="bi bi-send fs-5"></em>
+      <button class="btn btn-default btn-md btn-icon gl-button btn-default-tertiary" type="submit" [disabled]="!_formGroup.valid" [attr.aria-label]="'APP.BUTTON.Send' | translate">
+        <em class="bi bi-send fs-5" aria-hidden="true"></em>
       </button>
     </div>
     <div class="chips-list d-flex flex-wrap align-items-center">
       @for (_allegato of _allegati; track _allegato; let i = $index) {
         <div class="chip d-flex align-items-center">
-          <em class="bi bi-file-earmark"></em>
+          <em class="bi bi-file-earmark" aria-hidden="true"></em>
           <div class="chip-name">{{ _allegato.file }}</div>
-          <span class="btn btn-default btn-sm btn-icon" (click)="__chipClick(i)"><em class="bi bi-x-lg"></em></span>
+          <button type="button" class="btn btn-default btn-sm btn-icon" (click)="__chipClick(i)" [attr.aria-label]="('APP.BUTTON.Remove' | translate) + ': ' + _allegato.file"><em class="bi bi-x-lg" aria-hidden="true"></em></button>
         </div>
       }
     </div>
     <!-- Target selection row -->
     @if (showTarget) {
       <div class="d-flex align-items-center mt-2 mx-2 gap-2">
-        <span class="small text-muted">{{ 'APP.LABEL.Target' | translate }}:</span>
-        <div class="target-dropdown" #targetDropdown>
-          <button type="button" class="target-dropdown-trigger" (click)="_toggleDropdown()">
-            <span>{{ targetLabel }}</span>
-            <i class="bi" [class.bi-chevron-down]="!_dropdownOpen" [class.bi-chevron-up]="_dropdownOpen"></i>
+        <span class="small text-muted" [id]="_targetId + '-label'">{{ 'APP.LABEL.Target' | translate }}:</span>
+        <div class="target-dropdown" #targetDropdown (keydown.escape)="_closeDropdown(true)" (focusout)="_onDropdownFocusOut($event)">
+          <button #targetTrigger type="button" class="target-dropdown-trigger" (click)="_toggleDropdown()"
+            [attr.aria-expanded]="_dropdownOpen"
+            [attr.aria-controls]="_dropdownOpen ? _targetId + '-menu' : null"
+            [attr.aria-labelledby]="_targetId + '-label ' + _targetId + '-value'">
+            <span [id]="_targetId + '-value'">{{ targetLabel }}</span>
+            <i class="bi" aria-hidden="true" [class.bi-chevron-down]="!_dropdownOpen" [class.bi-chevron-up]="_dropdownOpen"></i>
           </button>
           @if (_dropdownOpen) {
-            <div class="target-dropdown-menu">
+            <div class="target-dropdown-menu" role="group" [id]="_targetId + '-menu'" [attr.aria-labelledby]="_targetId + '-label'" (mousedown)="_onMenuMouseDown($event)" (keydown.enter)="_onMenuEnter($event)">
+              <label class="target-dropdown-item m-0">
+                <input class="form-check-input" type="checkbox"
+                  [checked]="_allTargetsSelected"
+                  [indeterminate]="_someTargetsSelected"
+                  (change)="toggleAllTargets($any($event.target).checked)">
+                <span>{{ 'APP.LABEL.All' | translate }}</span>
+              </label>
+              <div class="target-dropdown-divider" aria-hidden="true"></div>
               @for (option of targetOptions; track option.value) {
                 <label class="target-dropdown-item m-0">
                   <input class="form-check-input" type="checkbox"

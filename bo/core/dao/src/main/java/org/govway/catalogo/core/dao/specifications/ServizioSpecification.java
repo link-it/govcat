@@ -35,6 +35,7 @@ import jakarta.persistence.criteria.Subquery;
 
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity_;
+import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity_;
 import org.govway.catalogo.core.orm.entity.AuthTypeEntity_;
 import org.govway.catalogo.core.orm.entity.CategoriaEntity_;
@@ -77,6 +78,7 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 	private Optional<VISIBILITA> visibilita = Optional.empty();
 	private Optional<TipoServizio> tipo = Optional.empty();
 	private Optional<Boolean> fruizione = Optional.empty();
+	private Optional<Boolean> apiErogateAderente = Optional.empty();
 	private Optional<UUID> idApi = Optional.empty();
 	private Optional<UtenteEntity> utente = Optional.empty();
 	private Optional<Boolean> utenteAdmin = Optional.empty();
@@ -91,6 +93,9 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 	
 	public enum TipoMieiServizi {TUTTI,MIEI_SERVIZI}
 	private TipoMieiServizi tipoMieiServizi = TipoMieiServizi.TUTTI;
+
+	private FiltroArchiviati filtroArchiviati = FiltroArchiviati.INCLUDI;
+	private String statoArchiviato = null;
 
 	@Override
 	public Predicate toPredicate(Root<ServizioEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
@@ -163,6 +168,17 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 
 		if (fruizione.isPresent()) {
 			predLst.add(cb.equal(root.get(ServizioEntity_.fruizione), fruizione.get()));
+		}
+
+		if (apiErogateAderente.isPresent()) {
+			// Servizi con almeno una API erogata dal soggetto aderente (true) o senza alcuna (false):
+			// EXISTS per non duplicare le righe e includere nel ramo false anche i servizi senza API
+			Subquery<Integer> subApi = query.subquery(Integer.class);
+			Root<ApiEntity> api = subApi.from(ApiEntity.class);
+			subApi.select(cb.literal(1)).where(
+					cb.equal(api.join(ApiEntity_.servizi), root),
+					cb.equal(api.get(ApiEntity_.ruolo), ApiEntity.RUOLO.EROGATO_SOGGETTO_ADERENTE));
+			predLst.add(apiErogateAderente.get() ? cb.exists(subApi) : cb.not(cb.exists(subApi)));
 		}
 
 		if (idApi.isPresent()) {
@@ -354,7 +370,21 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 		if(this.utenteAdmin.isPresent() && !this.utenteAdmin.get()) {
 			predLst.add(cb.notEqual(root.get(ServizioEntity_.stato), "archiviato"));
 		}
-		
+
+		if(this.statoArchiviato != null) {
+			switch(this.filtroArchiviati) {
+			case ESCLUDI:
+				predLst.add(cb.notEqual(root.get(ServizioEntity_.stato), this.statoArchiviato));
+				break;
+			case SOLO:
+				predLst.add(cb.equal(root.get(ServizioEntity_.stato), this.statoArchiviato));
+				break;
+			case INCLUDI:
+			default:
+				break;
+			}
+		}
+
 		return predLst;
 	}
 
@@ -611,6 +641,14 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 		this.fruizione = fruizione;
 	}
 
+	public Optional<Boolean> getApiErogateAderente() {
+		return apiErogateAderente;
+	}
+
+	public void setApiErogateAderente(Optional<Boolean> apiErogateAderente) {
+		this.apiErogateAderente = apiErogateAderente;
+	}
+
 	public Optional<Boolean> getUtenteAdmin() {
 		return utenteAdmin;
 	}
@@ -625,6 +663,22 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 
 	public void setIdGruppo(Optional<Long> idGruppo) {
 		this.idGruppo = idGruppo;
+	}
+
+	public FiltroArchiviati getFiltroArchiviati() {
+		return filtroArchiviati;
+	}
+
+	public void setFiltroArchiviati(FiltroArchiviati filtroArchiviati) {
+		this.filtroArchiviati = filtroArchiviati;
+	}
+
+	public String getStatoArchiviato() {
+		return statoArchiviato;
+	}
+
+	public void setStatoArchiviato(String statoArchiviato) {
+		this.statoArchiviato = statoArchiviato;
 	}
 
 }

@@ -2370,6 +2370,38 @@ components:
         - WAITING_FOR_APPROVAL
         - ARCHIVED
     Purpose:
+      # NOTA: title, waitingForApproval, suspendedByProducer e suspendedByConsumer non fanno parte
+      # della specifica PDND v1 e non sono quindi mai valorizzati da questa API. Sono dichiarati
+      # qui perche' il modello Purpose e' condiviso con l'API PDND esposta da GovCat, dove
+      # riportano la finalita', la versione in attesa di approvazione e chi ha sospeso la
+      # finalita' lette dall'API PDND v3.
+      type: object
+      additionalProperties: true
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        throughput:
+          type: integer
+          format: int32
+        state:
+          $ref: '#/components/schemas/PurposeState'
+        waitingForApproval:
+          $ref: '#/components/schemas/PurposeWaitingForApproval'
+        suspendedByProducer:
+          type: boolean
+        suspendedByConsumer:
+          type: boolean
+      required:
+        - id
+        - throughput
+        - state
+    PurposeWaitingForApproval:
+      description: |
+        Purpose version waiting for the producer approval. Not part of the PDND v1 API: declared
+        here because the Purpose model is shared with the PDND API exposed by GovCat.
       type: object
       additionalProperties: true
       properties:
@@ -2379,12 +2411,9 @@ components:
         throughput:
           type: integer
           format: int32
-        state:
-          $ref: '#/components/schemas/PurposeState'
       required:
         - id
         - throughput
-        - state
     Purposes:
       type: object
       additionalProperties: true
@@ -2502,6 +2531,10 @@ components:
         - MISSING_CERTIFIED_ATTRIBUTES
         - REJECTED
     Agreement:
+      # NOTA: suspendedByProducer, suspendedByConsumer, suspendedByPlatform e rejectionReason non
+      # fanno parte della specifica PDND v1 e non sono quindi mai valorizzati da questa API. Sono
+      # dichiarati qui perche' il modello Agreement e' condiviso con l'API PDND esposta da GovCat,
+      # dove riportano chi ha sospeso l'accordo e la motivazione del rifiuto lette dall'API PDND v3.
       type: object
       additionalProperties: true
       properties:
@@ -2522,6 +2555,14 @@ components:
           format: uuid
         state:
           $ref: '#/components/schemas/AgreementState'
+        suspendedByProducer:
+          type: boolean
+        suspendedByConsumer:
+          type: boolean
+        suspendedByPlatform:
+          type: boolean
+        rejectionReason:
+          type: string
       required:
         - id
         - eserviceId

@@ -20,6 +20,8 @@ import { Routes } from '@angular/router';
 
 import { ServiziComponent } from './servizi.component';
 import { ServizioDetailsComponent } from './servizio-details/servizio-details.component';
+import { ServizioCreateWizardComponent } from './servizio-create-wizard/servizio-create-wizard.component';
+import { ServizioWorkflowWizardComponent } from './servizio-workflow-wizard/servizio-workflow-wizard.component';
 import { ServizioViewComponent } from './servizio-view/servizio-view.component';
 import { ServiceBreadcrumbsResolver } from './route-resolver/service-breadcrumbs.resolver';
 
@@ -37,10 +39,38 @@ export const SERVIZI_ROUTES: Routes = [
         component: ServiziComponent
       },
       {
+        path: 'new/wizard',
+        canActivate: [ForbidAnonymousGuard],
+        data: { breadcrumb: 'Nuovo servizio' },
+        component: ServizioCreateWizardComponent
+      },
+      {
+        // Creazione classica: rotta esplicita PRIMA di `:id` (che ora e' il
+        // wizard), altrimenti `servizi/new` verrebbe intercettata dal wizard.
+        path: 'new',
+        canActivate: [ForbidAnonymousGuard],
+        data: { breadcrumb: 'Nuovo servizio' },
+        component: ServizioDetailsComponent
+      },
+      {
+        // Default: il dettaglio del servizio e' ora il wizard a fasi.
         path: ':id',
         canActivate: [ForbidAnonymousGuard],
         data: { breadcrumb: 'Dettaglio servizio' },
+        component: ServizioWorkflowWizardComponent
+      },
+      {
+        // Vista/modifica classica, accessibile su rotta dedicata.
+        path: ':id/classic',
+        canActivate: [ForbidAnonymousGuard],
+        data: { breadcrumb: 'Dettaglio servizio' },
         component: ServizioDetailsComponent
+      },
+      {
+        // Backward-compat: la vecchia rotta wizard reindirizza al default.
+        path: ':id/wizard',
+        redirectTo: ':id',
+        pathMatch: 'full'
       },
       {
         path: ':sid/view',

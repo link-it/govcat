@@ -48,6 +48,7 @@ export class ApiCustomPropertiesComponent implements OnInit, OnChanges {
     @Input() ambiente: string = '';
     @Input() id_adesione: string | null = null;
     @Input() stato_adesione: string = '';
+    @Input() skip_collaudo: boolean = false;
     @Input() id_servizio: string | null = null;
     @Input() data: any[] | null = null;
     @Input() group: any = null;

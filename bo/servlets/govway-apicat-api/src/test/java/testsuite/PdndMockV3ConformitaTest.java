@@ -29,6 +29,7 @@ import java.util.UUID;
 
 import org.govway.catalogo.OpenAPI2SpringBoot;
 import org.govway.catalogo.pdnd.controllers.PDNDMockServerV3;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.AgreementRejection;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -99,12 +100,39 @@ public class PdndMockV3ConformitaTest {
         risposte.add(server.getVerifiedAttribute(ID));
         risposte.add(server.approveAgreement(ID));
         risposte.add(server.approvePurpose(ID));
+        risposte.add(server.rejectAgreement(ID, rifiuto()));
+        risposte.add(server.suspendAgreement(ID));
+        risposte.add(server.unsuspendAgreement(ID));
+        risposte.add(server.suspendPurpose(ID));
+        risposte.add(server.unsuspendPurpose(ID));
+
+        // attributi assegnati al fruitore e registro degli attributi certificati
+        risposte.add(server.getTenantCertifiedAttributes(ID, 0, 50));
+        risposte.add(server.getTenantDeclaredAttributes(ID, 0, 50, null));
+        risposte.add(server.getTenantVerifiedAttributes(ID, 0, 50));
+        risposte.add(server.getTenantVerifiedAttributeVerifiers(ID, ID, 0, 50));
+        risposte.add(server.getCertifiedAttributes(0, 50));
+        risposte.add(server.assignTenantCertifiedAttribute(ID, null));
+        risposte.add(server.revokeTenantCertifiedAttribute(ID, ID));
+
+        // flussi di eventi
+        risposte.add(server.getEServicesEvents(50, null, null));
+        risposte.add(server.getKeyEvents(50, null));
+        risposte.add(server.getAgreementsEvents(50, null, null));
+        risposte.add(server.getPurposeEvents(50, null, null));
 
         for (ResponseEntity<?> risposta : risposte) {
             Object body = risposta.getBody();
             assertNotNull(body, "risposta simulata senza corpo");
             validaConIlClientV3(mapper, body);
         }
+    }
+
+    /** Motivazione del rifiuto conforme al contratto: almeno venti caratteri. */
+    private AgreementRejection rifiuto() {
+        AgreementRejection rifiuto = new AgreementRejection();
+        rifiuto.setReason("La richiesta non riporta la finalita' del trattamento dei dati");
+        return rifiuto;
     }
 
     /**

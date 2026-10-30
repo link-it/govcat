@@ -17,6 +17,7 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <div id="route-section" class="">
+  @if (!embedded) {
   <div class="top-area container-fluid container-limited limit-container-width px-0">
     <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
     <div class="d-flex flex-grow-1">&nbsp;</div>
@@ -57,9 +58,10 @@
       }
     </div>
   </div>
+  }
 
   <section
-    class="container-fluid container-limited limit-container-width container-scroller container-scroller-no-search">
+    class="container-fluid container-limited limit-container-width" [class.container-scroller]="!embedded" [class.container-scroller-no-search]="!embedded">
 
     @if (_spin) {
       <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3"></ui-box-spinner>
@@ -79,7 +81,7 @@
             <form novalidate class="issue-form common-note-form mt-3 gl-show-field-errors gfm-form"
               [class.form-readonly]="!_isEdit" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
               <div class="row gl-mt-3" [class.justify-content-center]="_isNew || _singleColumn">
-                @if (!_isNew) {
+                @if (!_isNew && !embedded) {
                   <div class="" [class.col-lg-4]="!_singleColumn" [class.col-lg-9]="_singleColumn"
                     [class.mb-5]="_singleColumn">
                     <h4 class="gl-mt-0 text-break">{{ (environmentId === 'collaudo' ? 'APP.API.TITLE.TestingInformations' :
@@ -88,7 +90,7 @@
                     }}</div>
                   </div>
                 }
-                <div class="" [class.col-lg-8]="!_singleColumn" [class.col-lg-9]="_singleColumn">
+                <div class="" [class.col-lg-8]="!_singleColumn && !embedded" [class.col-lg-9]="_singleColumn && !embedded" [class.col-lg-12]="embedded">
                   @if (_isGestore()) {
                     <div class="row">
                       <div class="col-6">
@@ -108,12 +110,12 @@
                                   name="nome_gateway" id="nome_gateway" formControlName="nome_gateway" disablePermission
                                   [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato"
                                   [grant]="_grant">
-                                @if (environmentId === 'produzione') {
+                                @if (_canCopyFromTesting(f['nome_gateway'])) {
                                   <button class="btn btn-default btn-md gl-button" type="button"
                                     [disabled]="!getTestingValue('nome_gateway')"
                                     (click)="copyTestingValue('nome_gateway')"
-                                    [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate">
-                                    <span><i class="bi bi-copy"></i></span>
+                                    [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate" [attr.aria-label]="'APP.TOOLTIP.CopyTestingValue' | translate">
+                                    <span><i class="bi bi-copy" aria-hidden="true"></i></span>
                                   </button>
                                 }
                               </div>
@@ -160,12 +162,12 @@
                                     name="versione_gateway" id="versione_gateway" formControlName="versione_gateway"
                                     disablePermission [module]="'servizio'" [submodule]="'api'" [state]="service?.stato"
                                     [grant]="_grant" min="1">
-                                  @if (environmentId === 'produzione') {
+                                  @if (_canCopyFromTesting(f['versione_gateway'])) {
                                     <button class="btn btn-default btn-md gl-button" type="button"
                                       [disabled]="!getTestingValue('versione_gateway')"
                                       (click)="copyTestingValue('versione_gateway')"
-                                      [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate">
-                                      <span><i class="bi bi-copy"></i></span>
+                                      [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate" [attr.aria-label]="'APP.TOOLTIP.CopyTestingValue' | translate">
+                                      <span><i class="bi bi-copy" aria-hidden="true"></i></span>
                                     </button>
                                   }
                                 </div>
@@ -219,28 +221,27 @@
                           @if (_isEdit) {
                             <div class="">
                               <div class="input-group">
-                                <select class="form-select" id="protocollo" formControlName="protocollo"
-                                  [class.gl-field-error-outline]="_hasControlError('protocollo')" disablePermission
-                                  [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato"
+                                <ng-select [class.gl-field-error-outline]="_hasControlError('protocollo')" [errorId]="'protocollo-error'"
+                                  [items]="_tipoInterfaccia" bindValue="value" bindLabel="label" labelForId="protocollo"
+                                  [searchable]="false" [clearable]="false" [placeholder]="'APP.MESSAGE.SelectInterface' | translate"
+                                  formControlName="protocollo"
+                                  disablePermission [field]="environmentId" [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato"
                                   [grant]="_grant">
-                                  <option value="">{{ 'APP.MESSAGE.SelectInterface' | translate }}</option>
-                                  @for (ti of _tipoInterfaccia; track ti) {
-                                    <option [value]="ti.value">{{ ti.label | translate }}
-                                    </option>
-                                  }
-                                </select>
-                                @if (environmentId === 'produzione') {
+                                  <ng-template ng-label-tmp let-item="item">{{ item.label | translate }}</ng-template>
+                                  <ng-template ng-option-tmp let-item="item">{{ item.label | translate }}</ng-template>
+                                </ng-select>
+                                @if (_canCopyFromTesting(f['protocollo'])) {
                                   <button class="btn btn-default btn-md gl-button" type="button"
                                     [disabled]="!getTestingValue('protocollo')"
                                     (click)="copyTestingValue('protocollo')"
-                                    [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate">
-                                    <span><i class="bi bi-copy"></i></span>
+                                    [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate" [attr.aria-label]="'APP.TOOLTIP.CopyTestingValue' | translate">
+                                    <span><i class="bi bi-copy" aria-hidden="true"></i></span>
                                   </button>
                                 }
                               </div>
                               @if (f['protocollo'].invalid && (f['protocollo'].dirty || f['protocollo'].touched)) {
                                 <p
-                                  class="form-text text-danger">
+                                  class="form-text text-danger" id="protocollo-error" aria-live="polite">
                                   @if (f['protocollo'].errors && f['protocollo'].errors['required']) {
                                     <span class="d-block">{{
                                     'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
@@ -297,10 +298,11 @@
                           @if (_isEdit && _hasSpecifica) {
                             <ui-allegato #des class="miw-50" [control]="_descrittoreCtrl"
                               [label]="'APP.LABEL.specifica' | translate"
+                              [accept]="'.json,.yml,.yaml,.wsdl'"
                               (resetControl)="_onDescrittoreChange(_descrittoreCtrl.value)"
                               (fileChanged)="_onDescrittoreChange(_descrittoreCtrl.value)"
                               [required]="_specificaObbligatorio || this._hasSpecifica"
-                              [disabled]="!f['protocollo'].value || !('allegati' | mapper:_canEditFieldMapper)"
+                              [disabled]="!f['protocollo'].value || !(environmentId | mapper:_canEditFieldMapper:service?.stato:_grant)"
                               [maxUpload]="null"
                             ></ui-allegato>
                             <ui-input-help field="filename" context="ALLEGATI"></ui-input-help>
@@ -356,11 +358,11 @@
                                       [attr.aria-describedby]="(_hasControlError('url')) ? 'url-error' : null" type="text" name="url" id="url"
                                       formControlName="url" disablePermission [isNew]="_isNew" [module]="'servizio'"
                                       [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
-                                    @if (environmentId === 'produzione') {
+                                    @if (_canCopyFromTesting(f['url'])) {
                                       <button class="btn btn-default btn-md gl-button" type="button"
                                         [disabled]="!getTestingValue('url')"
-                                        (click)="copyTestingValue('url')" [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate">
-                                        <span><i class="bi bi-copy"></i></span>
+                                        (click)="copyTestingValue('url')" [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate" [attr.aria-label]="'APP.TOOLTIP.CopyTestingValue' | translate">
+                                        <span><i class="bi bi-copy" aria-hidden="true"></i></span>
                                       </button>
                                     }
                                   </div>
@@ -387,12 +389,56 @@
                           </div>
                         </div>
                       }
+                      @if (_urlInvocazioneVisibile) {
+                        <div class="row">
+                          <div class="col-12">
+                            <div class="form-group url_invocazione">
+                              <label class="label-bold" for="url_invocazione">{{ 'APP.LABEL.UrlInvocazioneSelezione' | translate }}</label>
+                              @if (_isEdit) {
+                                <div class="input-group flex-nowrap">
+                                  <ng-select class="select-custom flex-grow-1"
+                                    [items]="_urlInvocazioneOpzioni"
+                                    bindValue="identificativo"
+                                    bindLabel="etichetta"
+                                    [multiple]="true"
+                                    [closeOnSelect]="false"
+                                    [searchable]="false"
+                                    [clearable]="false"
+                                    [placeholder]="_urlInvocazioneOpzioni[0]?.etichetta || ''"
+                                    labelForId="url_invocazione"
+                                    formControlName="url_invocazione">
+                                    <ng-template ng-label-tmp let-item="item" let-clear="clear">
+                                      @if (item.identificativo | mapper:_urlInvocazioneRimovibileMapper:_formGroup.get('url_invocazione')?.value) {
+                                        <span class="ng-value-icon left" (click)="clear(item)" aria-hidden="true">×</span>
+                                      }
+                                      <span class="ng-value-label">{{ item.etichetta }}</span>
+                                    </ng-template>
+                                  </ng-select>
+                                  @if (_canCopyFromTesting(f['url_invocazione'])) {
+                                    <button class="btn btn-default btn-md gl-button" type="button"
+                                      (click)="copyTestingValue('url_invocazione')" [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate" [attr.aria-label]="'APP.TOOLTIP.CopyTestingValue' | translate">
+                                      <span><i class="bi bi-copy" aria-hidden="true"></i></span>
+                                    </button>
+                                  }
+                                </div>
+                                <ui-input-help field="url_invocazione" context="API"></ui-input-help>
+                              } @else {
+                                <input type="text" readonly class="form-control-plaintext" id="url_invocazione"
+                                  [value]="_formGroup.get('url_invocazione')?.value | mapper:_etichetteUrlInvocazioneMapper">
+                              }
+                            </div>
+                          </div>
+                        </div>
+                      }
                       @if (servizioApi.ruolo === EROGATO_SOGGETTO_DOMINIO) {
                         <div class="row mt-5 api-custom-properties">
                           <div class="col-12">
                             @for (apc of _apiProprietaCustomGrouped | keyvalue; track apc) {
                               @if (_apiProprietaCustomGrouped[$any(apc.key)].length) {
-                                <h5 class="pb-2 mb-5 border-bottom" [title]="$any(apc.key) + ' - ' + fieldToGroup">{{ apc.key | mapper:_getGroupLabelMapper }}</h5>
+                                <h3 class="h5 pb-2 mb-5 border-bottom" [title]="$any(apc.key) + ' - ' + fieldToGroup">{{ apc.key | mapper:_getGroupLabelMapper }}</h3>
+                                @for (d of (_apiProprietaCustomGrouped[$any(apc.key)] | mapper:_disclaimersDelGruppoMapper:_disclaimersAttivi); track $index) {
+                                  <app-servizio-disclaimer-banner class="mb-3" [disclaimer]="d"></app-servizio-disclaimer-banner>
+                                }
                                 @for (cp of _apiProprietaCustomGrouped[$any(apc.key)] | mapper:sortByFieldPreservingOthersMapper:'index'; track cp) {
                                   <div formArrayName="proprieta_custom" class="row custom-properties-fields">
                                     <div [formArrayName]="cp[fieldToGroup]" class="col-12 form-group">
@@ -400,6 +446,12 @@
                                         <span appMarkAsterisk
                                           [formGroup]="acfgc(cp[fieldToGroup])" [controlName]="cp.nome"
                                         ></span>
+                                        @if (cp._req?.nextState) {
+                                          <span aria-hidden="true">*</span>
+                                        }
+                                        @if (cp._req?.fromState) {
+                                          <i class="bi bi-info-circle ms-1 text-muted" tabindex="0" role="img" [attr.aria-label]="'APP.MESSAGE.VALIDATION.RequiredFromState' | translate: { stato: ('APP.WORKFLOW.STATUS.' + cp._req.fromState | translate) }" [tooltip]="'APP.MESSAGE.VALIDATION.RequiredFromState' | translate: { stato: ('APP.WORKFLOW.STATUS.' + cp._req.fromState | translate) }" container="body"></i>
+                                        }
                                       }</label>
                                       @if (_isEdit) {
                                         <div class="">
@@ -407,21 +459,18 @@
                                             @if (cp.tipo === 'text') {
                                               <input autocomplete="off" class="form-control"
                                                 [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp[fieldToGroup], cp.nome)"
-                                                [type]="cp.type" [name]="cp.nome" [id]="cp.nome" [formControlName]="cp.nome"
-                                                disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'"
+                                                [type]="cp.type" [name]="cp.nome" [id]="cp.nome" [formControlName]="cp.nome" [attr.aria-describedby]="cp._req?.nextState ? cp.nome + '-req-hint' : null"
+                                                disablePermission [field]="environmentId" [isNew]="_isNew" [module]="'servizio'"
                                                 [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
                                             }
                                             @if (cp.tipo === 'select') {
-                                              <select class="form-select" [id]="cp.nome" [formControlName]="cp.nome"
-                                                [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp[fieldToGroup], cp.nome)"
-                                                disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'"
+                                              <ng-select [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp[fieldToGroup], cp.nome)"
+                                                [items]="cp.valori" bindValue="nome" bindLabel="etichetta" [labelForId]="cp.nome"
+                                                [searchable]="false" [clearable]="false" [placeholder]="'APP.MESSAGE.Select' | translate"
+                                                [formControlName]="cp.nome" [errorId]="cp.nome + '-error'" [describedBy]="cp._req?.nextState ? cp.nome + '-req-hint' : null"
+                                                disablePermission [field]="environmentId" [isNew]="_isNew" [module]="'servizio'"
                                                 [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
-                                                <option value="">{{ 'APP.MESSAGE.Select' | translate }}</option>
-                                                @for (cpv of cp.valori; track cpv) {
-                                                  <option [value]="cpv.nome">{{ cpv.etichetta }}
-                                                  </option>
-                                                }
-                                              </select>
+                                              </ng-select>
                                             }
                                             <!-- <ng-container *ngIf="cp.tipo === ProprietaType.File">
                                             <ui-allegato class=""
@@ -433,18 +482,21 @@
                                               [maxUpload]="null"
                                             ></ui-allegato>
                                           </ng-container> -->
-                                          @if (environmentId === 'produzione') {
+                                          @if (_canCopyFromTesting(acfgc(cp[fieldToGroup]).get(cp.nome))) {
                                             <button class="btn btn-default btn-md gl-button" type="button"
-                                              [disabled]="!getCustomPropertyTestingValue(cp[fieldToGroup], cp.nome)"
-                                              (click)="copyCustomPropertyTestingValue(cp[fieldToGroup], cp.nome)"
-                                              [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate">
-                                              <span><i class="bi bi-copy"></i></span>
+                                              [disabled]="!getCustomPropertyTestingValue(cp[fieldToGroup], cp.nome, cp.nome_gruppo)"
+                                              (click)="copyCustomPropertyTestingValue(cp[fieldToGroup], cp.nome, true, cp.nome_gruppo)"
+                                              [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate" [attr.aria-label]="'APP.TOOLTIP.CopyTestingValue' | translate">
+                                              <span><i class="bi bi-copy" aria-hidden="true"></i></span>
                                             </button>
                                           }
                                         </div>
+                                        @if (cp._req?.nextState) {
+                                          <p class="form-text text-muted mb-0" [id]="cp.nome + '-req-hint'">{{ 'APP.MESSAGE.VALIDATION.RequiredForNextState' | translate: { stato: ('APP.WORKFLOW.STATUS.' + cp._req.nextState | translate) } }}</p>
+                                        }
                                         @if (acfgc(cp[fieldToGroup]).controls[cp.nome]?.invalid && (acfgc(cp[fieldToGroup]).controls[cp.nome]?.touched)) {
                                           <p
-                                            class="form-text text-danger">
+                                            class="form-text text-danger" [id]="cp.nome + '-error'" aria-live="polite">
                                             @if (acfgc(cp[fieldToGroup]).controls[cp.nome]?.errors && acfgc(cp[fieldToGroup]).controls[cp.nome]?.errors?.required) {
                                               <span
                                               class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
@@ -479,33 +531,58 @@
                         </div>
                       </div>
                     }
-                    @if (_isEdit && _error) {
-                      <div class="gl-alert gl-alert-danger col-md-12 mt-3">
+                    @if (_isEdit && _error && !embedded) {
+                      <div class="gl-alert gl-alert-danger col-md-12 mt-3" role="alert">
                         {{ _errorMsg }}
                       </div>
                     }
                     @if (_isEdit) {
-                      <div class="row-content-block footer-block">
-                        <div class="d-flex justify-content-between">
-                          <div class="d-flex gap-md-1">
-                            <button type="submit" class="gl-button btn btn-confirm gl-mr-2"
-                              [disabled]="_formGroup.invalid || _spin">
-                              {{ 'APP.BUTTON.Save' | translate }} @if (_spin) {
-                              <span class="spinner-border spinner-border-sm ms-2"
-                              ></span>
-                            }
-                          </button>
-                          <button type="button" class="btn gl-button btn-default gl-mr-2" (click)="_onCancelEdit()">
+                      @if (embedded) {
+                        <!-- Form inline: footer a destra, Annulla poi Salva, senza sfondo/padding. -->
+                        <div class="d-flex justify-content-end gap-2 mt-3">
+                          @if (showCopyFromTesting()) {
+                            <button type="button" class="gl-button btn btn-confirm" (click)="copyAllTestingValues()">
+                              {{ 'APP.BUTTON.CopyTestingValues' | translate }}
+                            </button>
+                          }
+                          <button type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">
                             {{ 'APP.BUTTON.Cancel' | translate }}
                           </button>
-                        </div>
-                        @if (environmentId === 'produzione') {
-                          <button type="button" class="gl-button btn btn-confirm" (click)="copyAllTestingValues()">
-                            {{ 'APP.BUTTON.CopyTestingValues' | translate }}
+                          <button type="submit" class="gl-button btn btn-confirm" [disabled]="_formGroup.invalid || _spin">
+                            {{ 'APP.BUTTON.Save' | translate }} @if (_spin) {
+                              <span class="spinner-border spinner-border-sm ms-2"></span>
+                            }
                           </button>
+                        </div>
+                        <!-- Nel wizard l'errore segue i pulsanti, sotto la form. -->
+                        @if (_error) {
+                          <div class="gl-alert gl-alert-danger col-md-12 mt-3" role="alert">
+                            {{ _errorMsg }}
+                          </div>
                         }
-                      </div>
-                    </div>
+                      } @else {
+                        <div class="row-content-block footer-block">
+                          <div class="d-flex justify-content-between">
+                            <div class="d-flex gap-md-1">
+                              <button type="submit" class="gl-button btn btn-confirm gl-mr-2"
+                                [disabled]="_formGroup.invalid || _spin">
+                                {{ 'APP.BUTTON.Save' | translate }} @if (_spin) {
+                                <span class="spinner-border spinner-border-sm ms-2"
+                                ></span>
+                              }
+                            </button>
+                            <button type="button" class="btn gl-button btn-default gl-mr-2" (click)="_onCancelEdit()">
+                              {{ 'APP.BUTTON.Cancel' | translate }}
+                            </button>
+                          </div>
+                          @if (showCopyFromTesting()) {
+                            <button type="button" class="gl-button btn btn-confirm" (click)="copyAllTestingValues()">
+                              {{ 'APP.BUTTON.CopyTestingValues' | translate }}
+                            </button>
+                          }
+                          </div>
+                        </div>
+                      }
                   }
                 </div>
               </div>

@@ -16,7 +16,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, map, switchMap } from 'rxjs/operators';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -43,9 +45,11 @@ import { CommonModule } from '@angular/common';
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
 import { DisablePermissionDirective } from '@app/directives/disable-permission/disable-permission.directive';
-import { AuthFilterPipe } from '@app/pipes/service-filters';
 import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
 import { ErrorViewComponent } from '@app/components/error-view/error-view.component';
+import { ServizioDisclaimer, disclaimersDeiProfili, disclaimersDelProfilo, disclaimersDelleProprieta, loadServizioDisclaimers } from '../servizio-disclaimers';
+import { ambienteClasseDato, filtraGruppiPerRuoli } from '../servizio-proprieta-custom';
+import { ServizioDisclaimerBannerComponent } from '../components/servizio-disclaimer-banner/servizio-disclaimer-banner.component';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 import { PluralTranslatePipe } from '@app/lib/pipes/plural-translate.pipe';
 import { MarkdownModule } from 'ngx-markdown';
@@ -82,15 +86,15 @@ export type GruppiCampi = Record<string, Campo[]>;
         ...APP_COMPONENTS_IMPORTS,
         MarkAsteriskDirective,
         DisablePermissionDirective,
-        AuthFilterPipe,
         MonitorDropdwnComponent,
         ErrorViewComponent,
+        ServizioDisclaimerBannerComponent,
         MarkdownModule,
         MapperPipe,
         PluralTranslatePipe
     ]
 })
-export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterContentChecked {
+export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy, AfterContentChecked {
     static readonly Name = 'ServizioApiDetailsComponent';
     readonly model: string = 'api';
 
@@ -98,6 +102,38 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     @Input() sid: string | null = null;
     @Input() servizioApi: ApiReadDetails | null = null;
     @Input() config: any = null;
+
+    /** Modalità embedded: nessuna route, nessun chrome di pagina; init da
+     *  @Input, salvataggio/annulla via @Output (usato dal wizard workflow). */
+    @Input() embedded: boolean = false;
+    /** In embedded: apre direttamente in creazione (nuova API). */
+    @Input() createMode: boolean = false;
+    /** In embedded dettaglio: entra direttamente in modifica dopo il load. */
+    @Input() startEdit: boolean = false;
+    /** Fase del wizard (collaudo | produzione): in creazione mostra solo la base url di quell'ambiente. */
+    @Input() fase: string | null = null;
+    /** Nome proposto in creazione dal wizard (prima API del servizio). */
+    @Input() nomeSuggerito: string | null = null;
+    /** Disclaimer del servizio passati dal wizard; se assenti vengono caricati qui. */
+    @Input() disclaimers: ServizioDisclaimer[] | null = null;
+    _disclaimersCaricati: ServizioDisclaimer[] = [];
+    private _langSub: Subscription | null = null;
+
+    // Disclaimer del form API caricati con i profili selezionati (anche non ancora salvati)
+    _disclaimersForm: ServizioDisclaimer[] | null = null;
+    private _profiliDisclaimerKey: string | null = null;
+    private readonly _profiliDisclaimer$ = new Subject<string[]>();
+    private _formDisclaimerSubs: Subscription[] = [];
+
+    /** Base url di collaudo in creazione: solo nella fase collaudo; senza fase se il collaudo non e` saltato. */
+    get _showUrlCollaudo(): boolean {
+        return this.fase ? this.fase === 'collaudo' : !this.service?.skip_collaudo;
+    }
+
+    /** Base url di produzione in creazione: solo nella fase produzione; senza fase sempre. */
+    get _showUrlProduzione(): boolean {
+        return this.fase ? this.fase === 'produzione' : true;
+    }
 
     @Output() close: EventEmitter<any> = new EventEmitter<any>();
     @Output() save: EventEmitter<any> = new EventEmitter<any>();
@@ -193,6 +229,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     _risorse: string[] = [];
     _risorseSelected: string[] = [];
     _authSelected: any[] = [];
+    private _profiliOptionsCache: { key: string, items: any[] } = { key: '', items: [] };
     _authTypesSelected: any[] = [];
 
     _customProperties: any = [];
@@ -274,10 +311,16 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     ngOnInit() {
+        this._initDisclaimerProfili();
         this.eventsManagerService.on('INIT_DATA', (event: any) => {
             this._initData(true);
         });
 
+        if (this.embedded) {
+            this._useRoute = false;
+            this._initEmbedded();
+            this._caricaDisclaimers();
+        } else {
         this.route.params.subscribe(params => {
             let _id = params['id'];
             const _cid = params['cid'];
@@ -326,6 +369,8 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                 }
             }
         );
+        this._caricaDisclaimers();
+        }
 
         this.eventsManagerService.on(EventType.PROFILE_UPDATE, (event: any) => {
             const _srv: any = Tools.Configurazione?.servizio;
@@ -340,6 +385,87 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             this._pdndTypes = (_srv?.api) ? _srv.api.pdnd_types || [] : [];
             this._info_gateway_visualizzate = (_srv?.api) ? _srv.api.info_gateway_visualizzate : false;
             this._pdnd = Tools.Configurazione?.pdnd || null;
+        });
+    }
+
+    /** Init in modalità embedded (nessuna route): creazione o dettaglio da @Input. */
+    ngOnDestroy() {
+        this._langSub?.unsubscribe();
+        this._formDisclaimerSubs.forEach((sub: Subscription) => sub.unsubscribe());
+    }
+
+    get _disclaimersAttivi(): ServizioDisclaimer[] {
+        if (this._isEdit && this._disclaimersForm) { return this._disclaimersForm; }
+        return this.disclaimers ?? this._disclaimersCaricati;
+    }
+
+    private _initDisclaimerProfili() {
+        this._formDisclaimerSubs.push(
+            this._profiliDisclaimer$.pipe(
+                debounceTime(250),
+                switchMap((profili: string[]) => loadServizioDisclaimers(this.apiService, this.translate, this.sid as string, profili).pipe(
+                    map((list: ServizioDisclaimer[]) => disclaimersDeiProfili(list, profili))
+                ))
+            ).subscribe((list: ServizioDisclaimer[]) => { this._disclaimersForm = list; }),
+            this.translate.onLangChange.subscribe(() => {
+                this._profiliDisclaimerKey = null;
+                this._aggiornaDisclaimerProfili();
+            })
+        );
+    }
+
+    /** Nel form API ricarica i disclaimer quando cambiano i profili selezionati. */
+    private _aggiornaDisclaimerProfili() {
+        if (!this._isEdit || !this.sid || !this._formGroup?.get('authTypes')) { return; }
+        const _profili: string[] = Array.from(new Set(this._getAllProfileValues().filter((p: string) => !!p)));
+        const _key = [..._profili].sort().join('|');
+        if (_key === this._profiliDisclaimerKey) { return; }
+        this._profiliDisclaimerKey = _key;
+        this._profiliDisclaimer$.next(_profili);
+    }
+
+    /** Disclaimer di profilo senza gruppo, sotto la scelta del profilo. */
+    _disclaimersProfiloMapper = (profilo: string, disclaimers: ServizioDisclaimer[]): ServizioDisclaimer[] => {
+        return disclaimersDelProfilo(disclaimers, profilo, this.fase);
+    }
+
+    /** Fuori dal wizard i disclaimer si caricano qui e si ricaricano al cambio lingua. */
+    private _caricaDisclaimers() {
+        if (this.disclaimers || !this.sid) { return; }
+        const _sid = this.sid;
+        loadServizioDisclaimers(this.apiService, this.translate, _sid).subscribe((list) => { this._disclaimersCaricati = list; });
+        if (!this._langSub) {
+            this._langSub = this.translate.onLangChange.subscribe(() => this._caricaDisclaimers());
+        }
+    }
+
+    /** Disclaimer dei gruppi di proprieta` custom: l'ambiente e` la classe dato del gruppo. */
+    _disclaimersDelGruppoMapper = (proprieta: any[], disclaimers: ServizioDisclaimer[]): ServizioDisclaimer[] => {
+        return disclaimersDelleProprieta(disclaimers, proprieta);
+    }
+
+    private _initEmbedded() {
+        this.configService.getConfig('api').subscribe((config: any) => {
+            this.config = config;
+            this._singleColumn = config.editSingleColumn || false;
+            this._showAllAttachments = config.showAllAttachments || false;
+            if (this.createMode) {
+                this._isNew = true;
+                this._isEdit = true;
+                if (!this.service) { this._loadServizio(); }
+                this._servizioApiCreate.id_servizio = this.sid;
+                this._applyWizardDefaults();
+                this._initForm({ ...this._servizioApiCreate });
+            } else {
+                this._isDetails = true;
+                if (!this.service) {
+                    this._loadAll();
+                } else {
+                    this._initRuoli();
+                    this._initOtherActionMenu();
+                    this._loadServiceApi();
+                }
+            }
         });
     }
 
@@ -402,11 +528,11 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                         ]);
                         break;
                     case 'ruolo':
-                        value = data[key] ? data[key] : '';
+                        value = data[key] ? data[key] : null;
                         _group[key] = new FormControl(value, [Validators.required]);
                         break;
                     case 'protocollo':
-                        value = data[key] ? data[key] : '';
+                        value = data[key] ? data[key] : null;
                         _group[key] = new FormControl(value, this._isNew ? [Validators.required] : []);
                         break;
                     case 'descrizione':
@@ -447,6 +573,10 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
             if (this.servizioApi?.configurazione_collaudo?.protocollo) {
                 this._formGroup.get('protocollo')?.setValue(this.servizioApi.configurazione_collaudo.protocollo);
+            }
+
+            if (!this._isNew && !this._canAdd()) {
+                ['nome', 'versione', 'ruolo'].forEach((key: string) => this._formGroup.get(key)?.disable());
             }
         }
     }
@@ -490,7 +620,9 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                     this._isNew = false;
                     this._spin--;
                     this.save.emit({ id: this.id, api: response, update: false });
-                    this.router.navigate(['servizi', this.sid, this.model, this.id], { replaceUrl: true, queryParamsHandling: 'preserve' });
+                    if (this._useRoute) {
+                        this.router.navigate(['servizi', this.sid, this.model, this.id], { replaceUrl: true, queryParamsHandling: 'preserve' });
+                    }
                 },
                 error: (error: any) => {
                     this._spin--;
@@ -502,22 +634,29 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
     _prepareBodySaveApi(body: any) {
         console.log('_prepareBodySaveApi', body);
+        // skip_collaudo: in creazione la sezione collaudo e` sostituita dalla
+        // produzione. Non esiste un collaudo reale, quindi i valori di base
+        // provengono dal campo produzione e vengono duplicati nelle due
+        // configurazioni (il tipo richiede comunque configurazione_collaudo).
+        const _skipCollaudo = !!this.service?.skip_collaudo;
+        const _baseUrl = _skipCollaudo ? body.url_produzione : body.url_collaudo;
+
         const configurazioneCollaudo: ApiConfiguration = {
             protocollo: body.protocollo,
             dati_erogazione: {
-                url: body.url_collaudo || null,
+                url: _baseUrl || null,
                 nome_gateway: body.nome_gateway || null,
                 versione_gateway: body.versione_gateway || null,
             }
         };
-        
+
         let configurazioneProduzione: ApiConfiguration | undefined = undefined;
 
-        if (body.url_produzione) {
+        if (_skipCollaudo || body.url_produzione) {
             configurazioneProduzione = {
                 protocollo: body.protocollo,
                 dati_erogazione: {
-                    url: body.url_produzione
+                    url: body.url_produzione || null
                 }
             };
         }
@@ -630,6 +769,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     _prepareBodyUpdateApi(body: any) {
+        const _ruolo = this._formGroup.get('ruolo')?.value;
         let _newBody: ApiUpdateRequest = {
             identificativo: {
                 nome: body.nome,
@@ -642,7 +782,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             },
         };
 
-        if (body.ruolo === this.EROGATO_SOGGETTO_DOMINIO) {
+        if (_ruolo === this.EROGATO_SOGGETTO_DOMINIO) {
             _newBody.dati_specifica = {
                 ..._newBody.dati_specifica,
                 gruppi_auth_type: body.authTypes?.map((item: any) => {
@@ -666,83 +806,101 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             }
         }
 
-        const hasCurrentCustomProps = this._apiProprietaCustomGrouped && Object.keys(this._apiProprietaCustomGrouped).length;
-        const hasOriginalCustomProps = this._servizioApi?.proprieta_custom?.length;
-        if (hasCurrentCustomProps || hasOriginalCustomProps) {
+        // Il BE sovrascrive solo i gruppi inviati: si inviano i soli gruppi presenti nel form
+        // (quelli di altri ambienti o nascosti per ruolo restano invariati).
+        // Un gruppo svuotato viene inviato vuoto per cancellarne i valori salvati.
+        if (this._apiProprietaCustomGrouped && Object.keys(this._apiProprietaCustomGrouped).length) {
             const risultato: Record<string, { nome: string; valore: string }[]> = {};
+            const _gruppiSalvati: any[] = this._servizioApi?.proprieta_custom || [];
+            // Valori letti dai FormControl: quelli disabilitati da disablePermission non sono in _formGroup.value
+            const proprietaCustomGroup = this._formGroup.controls['proprieta_custom'] as FormGroup | undefined;
+            Object.keys(this._apiProprietaCustomGrouped).forEach(labelGruppo => {
+                this._apiProprietaCustomGrouped[labelGruppo].forEach((campo: any) => {
+                    const gruppoControl = proprietaCustomGroup?.get(campo.nome_gruppo) as FormGroup | null;
+                    const control = gruppoControl?.get(campo.nome);
+                    if (!control) return;
 
-            if (hasCurrentCustomProps) {
-                // Leggiamo dai FormControl direttamente (non da body) perché i controlli disabilitati
-                // tramite disablePermission non sono inclusi in _formGroup.value.
-                const proprietaCustomGroup = this._formGroup.controls['proprieta_custom'] as FormGroup | undefined;
-                Object.keys(this._apiProprietaCustomGrouped).forEach(labelGruppo => {
-                    this._apiProprietaCustomGrouped[labelGruppo].forEach((campo: any) => {
-                        if (!risultato[campo.nome_gruppo]) {
-                            risultato[campo.nome_gruppo] = [];
-                        }
+                    const nome = campo.nome;
+                    const valore = control.value;
 
-                        const gruppoControl = proprietaCustomGroup?.get(campo.nome_gruppo) as FormGroup | null;
-                        const control = gruppoControl?.get(campo.nome);
-                        if (!control) return;
+                    const valoreNonValido =
+                        valore === undefined ||
+                        valore === null ||
+                        (typeof valore === 'string' && valore.trim() === '') ||
+                        (typeof valore === 'number' && Number.isNaN(valore));
 
-                        const nome = campo.nome;
-                        const valore = control.value;
-
-                        const valoreNonValido =
-                            valore === undefined ||
-                            valore === null ||
-                            (typeof valore === 'string' && valore.trim() === '') ||
-                            (typeof valore === 'number' && Number.isNaN(valore));
-
-                        if (!valoreNonValido) {
-                            risultato[campo.nome_gruppo].push({ nome, valore });
-                        }
-                    });
-                });
-            }
-
-            if (hasOriginalCustomProps) {
-                // I gruppi di classe collaudo/produzione sono gestiti dal
-                // componente di configurazione per-ambiente: dal dettaglio NON
-                // vanno reinviati (altrimenti verrebbero spediti vuoti e
-                // potenzialmente azzerati lato BE). Li escludiamo dai gruppi
-                // originali riportati nel payload.
-                const _cfgGroups: any[] = Tools.Configurazione?.servizio?.api?.proprieta_custom || [];
-                const _envGroupNames = new Set(
-                    _cfgGroups
-                        .filter((p: any) => p.classe_dato === 'collaudo' || p.classe_dato === 'produzione')
-                        .map((p: any) => p.nome_gruppo)
-                );
-                this._servizioApi?.proprieta_custom?.forEach((originalGroup: any) => {
-                    if (_envGroupNames.has(originalGroup.gruppo)) { return; }
-                    if (!risultato[originalGroup.gruppo]) {
-                        risultato[originalGroup.gruppo] = [];
+                    if (!valoreNonValido) {
+                        (risultato[campo.nome_gruppo] ??= []).push({ nome, valore });
+                    } else if (!risultato[campo.nome_gruppo] && _gruppiSalvati.some((g: any) => g.gruppo === campo.nome_gruppo)) {
+                        risultato[campo.nome_gruppo] = [];
                     }
                 });
-            }
+            });
 
-            _newBody.dati_custom = {
-                proprieta_custom: Object.entries(risultato).map(([gruppo, proprieta]) => ({
-                    gruppo,
-                    proprieta
-                }))
-            };
+            if (Object.keys(risultato).length) {
+                _newBody.dati_custom = {
+                    proprieta_custom: Object.entries(risultato).map(([gruppo, proprieta]) => ({
+                        gruppo,
+                        proprieta
+                    }))
+                };
+            }
         }
 
-        return this.authenticationService._removeDNM('servizio', this.service.stato, _newBody, this._grant?.ruoli);
+        const _specifica = _newBody.dati_specifica;
+        const _body: any = this.authenticationService._removeDNM('servizio', this.service.stato, _newBody, this._grant?.ruoli);
+        // La descrizione resta modificabile anche quando i dati generici non lo sono; il codice asset
+        // si legge dal controllo perche' da disabilitato manca nel valore del form
+        if (!_body.dati_generici) {
+            _body.dati_generici = {
+                descrizione: body.descrizione || null,
+                codice_asset: this._formGroup.get('codice_asset')?.value || null
+            };
+        }
+        // Le note delle autenticazioni restano modificabili anche quando la specifica non lo e'
+        if (this._campiBloccati && _specifica) {
+            _body.dati_specifica = _specifica;
+        }
+        // Il BE autorizza il blocco `identificativo` anche sulla classe `api`, pure a valori invariati.
+        if (!this._canAdd()) {
+            delete _body.identificativo;
+        }
+        return _body;
+    }
+
+    /**
+     * Gruppi di proprieta` custom del form: in creazione anche quelli dell'ambiente iniziale
+     * (collaudo, o produzione se il collaudo e` saltato), in modifica solo quelli non ambientali.
+     */
+    _gruppiProprietaCustomDelForm(): any[] {
+        const _srv: any = Tools.Configurazione?.servizio;
+        const _ambienteEscluso = this.service?.skip_collaudo ? 'collaudo' : 'produzione';
+        return (_srv?.api?.proprieta_custom || []).filter((p: any) => {
+            const _ambiente = ambienteClasseDato(p.classe_dato);
+            return this._isNew ? (_ambiente !== _ambienteEscluso) : (_ambiente === null);
+        });
+    }
+
+    /** Dopo la bozza dell'API restano modificabili solo descrizione e note, per tutti i ruoli. */
+    get _campiBloccati(): boolean {
+        return !this._isNew && !!this.service && this.service.stato !== 'bozza';
+    }
+
+    /** Con i campi bloccati contano solo descrizione e note: i valori gia' salvati non impediscono il salvataggio. */
+    get _formValido(): boolean {
+        if (!this._campiBloccati) { return this._formGroup.valid; }
+        const _authTypes = this._formGroup.get('authTypes') as FormArray | null;
+        const _modificabili = [this._formGroup.get('descrizione'), ...(_authTypes?.controls || []).map((g: AbstractControl) => g.get('note'))];
+        return _modificabili.every((c: AbstractControl | null) => !c || c.valid || c.disabled);
     }
 
     _getGroupNameByLabel(group: any) {
-        const _srv: any = Tools.Configurazione?.servizio;
-        let _proprietaCustom = (_srv?.api) ? _srv.api.proprieta_custom.filter((p: any) => p.classe_dato !== 'produzione') : [];
-        if (!this._isNew){
-            _proprietaCustom = _proprietaCustom.filter((p: any) => p.classe_dato !== 'collaudo');
-        }
+        const _proprietaCustom = this._gruppiProprietaCustomDelForm();
         return _proprietaCustom.find((item: any) => item.label_gruppo === group)?.nome_gruppo || group;
     }
 
     _onSubmit(form: any, close: boolean = true) {
-        if (this._isEdit && this._formGroup.valid) {
+        if (this._isEdit && this._formValido) {
             this._closeEdit = close;
             if (this._isNew) {
                 this.__onSave(form);
@@ -771,6 +929,21 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                 this._errors = Tools.filtraErroriComplessi(error.error?.errori);
             }
         });
+    }
+
+    /** Valori proposti nella creazione dal wizard: nome, ruolo "erogata dal dominio" e interfaccia REST. */
+    private _applyWizardDefaults() {
+        if (!this.embedded) { return; }
+        this._servizioApiCreate.nome = this.nomeSuggerito || null;
+        this._servizioApiCreate.ruolo = this.EROGATO_SOGGETTO_DOMINIO as any;
+        this._servizioApiCreate.protocollo = 'rest' as any;
+    }
+
+    /** Il ruolo proposto va inizializzato come una scelta dell'utente, a servizio caricato. */
+    private _initWizardRuolo() {
+        if (this.embedded && this.createMode && this._isNew && this._formGroup.get('ruolo')?.value) {
+            this.__changeRuolo(null, true);
+        }
     }
 
     _initRuoli() {
@@ -834,6 +1007,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                         this._initBreadcrumb();
                         this._initRuoli();
                         this._initOtherActionMenu();
+                        this._initWizardRuolo();
 
                         if (this.servizioApi) {
                             this.eventsManagerService.broadcast('INIT_DATA');
@@ -875,6 +1049,10 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                     this._spin--;
 
                     this.__disableUrlFields(this._formGroup.controls);
+
+                    if (this.embedded && this.startEdit) {
+                        this._editServizioApi();
+                    }
                 },
                 error: (error: any) => {
                     this._spin--;
@@ -963,6 +1141,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         this._initData();
         setTimeout(() => {
             this._isEdit = true;
+            this._aggiornaDisclaimerProfili();
             this._error = false;
             this.showHistory = false;
             const controls: any = this._formGroup.controls;
@@ -985,6 +1164,10 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         this._errorMsg = '';
         this._errors = [];
         this._customAuth = this._customAuthOrig;
+        if (this.embedded) {
+            this.close.emit({ id: this.id, servizioApi: this._isNew ? null : this._servizioApi });
+            return;
+        }
         if (this._isNew) {
             if (this._useRoute) {
                 if (this._componentBreadcrumbs) {
@@ -1099,6 +1282,34 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                 controls[field].updateValueAndValidity();
             }
         });
+
+        // skip_collaudo: la sezione collaudo e` nascosta e sostituita dalla
+        // produzione; sposto l'obbligatorieta` dalla url di collaudo a quella di
+        // produzione per non bloccare il salvataggio con un campo nascosto.
+        if (this._isNew && this.service?.skip_collaudo) {
+            if (controls.url_collaudo) {
+                controls.url_collaudo.clearValidators();
+                controls.url_collaudo.updateValueAndValidity();
+            }
+            if (controls.url_produzione) {
+                controls.url_produzione.setValidators([Validators.required]);
+                controls.url_produzione.updateValueAndValidity();
+            }
+        }
+
+        // Base url non mostrata (fase del wizard): non obbligatoria e vuota, quindi non inviata.
+        if (this._isNew) {
+            if (!this._showUrlCollaudo && controls.url_collaudo) {
+                controls.url_collaudo.setValue(null);
+                controls.url_collaudo.clearValidators();
+                controls.url_collaudo.updateValueAndValidity();
+            }
+            if (!this._showUrlProduzione && controls.url_produzione) {
+                controls.url_produzione.setValue(null);
+                controls.url_produzione.clearValidators();
+                controls.url_produzione.updateValueAndValidity();
+            }
+        }
 
         if (!this._isNew) {
             _notModifiableFields.forEach((field: string) => {
@@ -1397,7 +1608,10 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
     _createAuthGroup(data: any) {
         const _auth: any = {
-            profilo: [data.profilo, [Validators.required]],
+            // "Autenticazione prevista" obbligatoria solo quando è presente una
+            // specifica di interfaccia. Senza specifica il profilo è facoltativo
+            // (altrimenti bloccherebbe il salvataggio, cfr. Issue gitlab-162).
+            profilo: [data.profilo || null, this._hasSpecifica ? [Validators.required] : []],
             resources: [data.resources, [Validators.required]],
             note: [data.note, [Validators.maxLength(255)]]
         };
@@ -1429,6 +1643,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             this.authTypesArray().removeAt(index);
             this._updateResources = new Date().getTime().toString();
         }
+        this._aggiornaDisclaimerProfili();
     }
 
     _setAuthsArray(auths: any[]) {
@@ -1534,15 +1749,16 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     _canAdd() {
-        return this.authenticationService.canAdd('servizio', this.service?.stato, this._grant?.ruoli);
+        return this.authenticationService.canManageApi(this._grant);
     }
 
     _canAddMapper = (): boolean => {
         return this._canAdd();
     }
 
-    _canEditFieldMapper = (field: string): boolean => {
-        return this.authenticationService.canEditField('servizio', 'api', this.service?.stato || '', field, this._grant?.ruoli);
+    // Stato e grant come argomenti del pipe: il risultato si aggiorna quando arrivano i dati del servizio
+    _canEditFieldMapper = (field: string, stato: string = this.service?.stato, grant: Grant | null = this._grant): boolean => {
+        return this.authenticationService.canEditField('servizio', 'api', stato || '', field, grant?.ruoli);
     }
 
     _hasPDNDConfiguredMapper = (): boolean => {
@@ -1605,11 +1821,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     _getGroupLabelMapper = (group: any): string => {
-        const _srv: any = Tools.Configurazione?.servizio;
-        let _proprietaCustom = (_srv?.api) ? _srv.api.proprieta_custom.filter((p: any) => p.classe_dato !== 'produzione') : [];
-        if (!this._isNew){
-            _proprietaCustom = _proprietaCustom.filter((p: any) => p.classe_dato !== 'collaudo');
-        }
+        const _proprietaCustom = this._gruppiProprietaCustomDelForm();
         let labelGroup = _proprietaCustom.find((item: any) => item.nome_gruppo === group)?.label_gruppo;
         if (!labelGroup) {
             labelGroup = _proprietaCustom.find((item: any) => item.label_gruppo === group)?.label_gruppo;
@@ -1627,11 +1839,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         const _srv: any = Tools.Configurazione?.servizio;
         const profili: Profile[] = _srv.api?.profili.filter((p: any) => profiles.includes(p.codice_interno));
 
-        let _proprietaCustom = (_srv?.api) ? _srv.api.proprieta_custom.filter((p: any) => p.classe_dato !== 'produzione') : [];
-
-        if (!this._isNew){
-            _proprietaCustom = _proprietaCustom.filter((p: any) => p.classe_dato !== 'collaudo');
-        }
+        const _proprietaCustom = this._gruppiProprietaCustomDelForm();
 
         _proprietaCustom.forEach((item: any) => {
             if (item.profili && !item.profili.some((p: string) => profili.some((pr: Profile) => pr.codice_interno === p))) {
@@ -1657,10 +1865,6 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
         const filtered = this.filtraCampiPerRuoli(this._apiProprietaCustomGrouped, this._grant?.ruoli || []);
 
-        const mandatoryFields = this.authenticationService._getFieldsMandatory('servizio', 'api', this.service.stato);
-        const genericoCustomPropertiesAreMandatory = mandatoryFields.some((item: string) => item === 'generico');
-        const collaudoCustomPropertiesAreMandatory = mandatoryFields.some((item: string) => item === 'collaudo');
-
         if (this._apiProprietaCustom.length) {
             this._formGroup.addControl('proprieta_custom', this.formBuilder.group({}));
 
@@ -1668,17 +1872,8 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                 (filtered[key] || []).forEach((item: any) => {
                     const _validators = [];
 
-                    let required = false;
-
-                    if (item.classe_dato === 'generico' && genericoCustomPropertiesAreMandatory) {
-                        required = item.required;
-                    }
-
-                    if (item.classe_dato === 'collaudo' && collaudoCustomPropertiesAreMandatory) {
-                        required = item.required;
-                    }
-
-                    if (required) { _validators.push(Validators.required); }
+                    item._req = this.authenticationService.getCustomPropertyRequirement('servizio', this.service?.stato, item.classe_dato, item.required, !!this.service?.skip_collaudo);
+                    if (item._req.now) { _validators.push(Validators.required); }
                     if (item.regular_expression) { _validators.push(Validators.pattern(item.regular_expression)); }
 
                     if (!this.proprietaCustom.contains(item.nome_gruppo)) {
@@ -1703,30 +1898,26 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         }
 
         this._updateMapper = new Date().getTime().toString();
+        this._aggiornaDisclaimerProfili();
     }
 
     filtraCampiPerRuoli(data: GruppiCampi, ruoliUtente: string[]): GruppiCampi {
-        const risultatoFiltrato: GruppiCampi = {};
-
-        for (const [nomeGruppo, campi] of Object.entries(data)) {
-            const campiFiltrati = campi.filter(campo => {
-                if (!campo.ruoli_abilitati || campo.ruoli_abilitati.length === 0) {
-                    return true; // campo visibile a tutti
-                }
-
-                return campo.ruoli_abilitati.some(ruolo => ruoliUtente.includes(ruolo));
-            });
-
-            if (campiFiltrati.length > 0) {
-                risultatoFiltrato[nomeGruppo] = campiFiltrati;
-            }
-        }
-
-        return risultatoFiltrato;
+        return filtraGruppiPerRuoli(data, ruoliUtente);
     }
 
     get proprietaCustom(): FormGroup {
         return this._formGroup.get('proprieta_custom') as FormGroup;
+    }
+
+    /** Profili selezionabili (esclusi quelli gia' usati): stesso array finche' l'elenco non cambia,
+     *  altrimenti ng-select ricarica le opzioni a ogni change detection e perde la selezione. */
+    get _profiliOptions(): any[] {
+        const _items = (this._profiliFiltered || []).filter((p: any) => !(this._authSelected || []).some((o: any) => o.code === p.codice_interno));
+        const _key = _items.map((p: any) => p.codice_interno).join('|');
+        if (_key !== this._profiliOptionsCache.key) {
+            this._profiliOptionsCache = { key: _key, items: _items };
+        }
+        return this._profiliOptionsCache.items;
     }
 
     _updateAuthTypesSelected() {

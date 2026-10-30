@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams, HttpResponse, HttpEvent } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpErrorResponse, HttpHeaders, HttpParams, HttpResponse, HttpEvent } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -24,6 +24,7 @@ import { ConfigService } from '@linkit/components';
 
 export interface IRequestOptions {
   headers?: HttpHeaders;
+  context?: HttpContext;
   observe?: 'body';
   params?: HttpParams | { [param: string]: string | string[]; };
   reportProgress?: boolean;

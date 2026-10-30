@@ -29,7 +29,9 @@ describe('ServizioApiConfigurationComponent', () => {
   } as any;
 
   const mockTranslate = {
-    instant: vi.fn().mockImplementation((key: string) => key)
+    instant: vi.fn().mockImplementation((key: string) => key),
+    onLangChange: new Subject<any>(),
+    currentLang: 'it'
   } as any;
 
   const mockConfigService = {
@@ -62,6 +64,7 @@ describe('ServizioApiConfigurationComponent', () => {
   } as any;
 
   const mockAuthenticationService = {
+    getCustomPropertyRequirement: vi.fn().mockImplementation((m: string, s: string, c: string, r: boolean) => ({ now: !!(r && s && c) && mockAuthenticationService._getClassesMandatory(m, m, s).includes(c), nextState: null, fromState: null })),
     isAnonymous: vi.fn().mockReturnValue(false),
     hasPermission: vi.fn().mockReturnValue(true),
     _getConfigModule: vi.fn().mockReturnValue({}),
@@ -1017,6 +1020,19 @@ describe('ServizioApiConfigurationComponent', () => {
   // ==================== copyTestingValue ====================
 
   describe('copyTestingValue', () => {
+    it('should not copy into a field that is not editable and hide its copy button', () => {
+      component.environmentId = 'produzione';
+      component.service = { skip_collaudo: false } as any;
+      (component as any).testingValues = { nome_gateway: 'gw-test', versione_gateway: null, url: '', protocollo: '', protocollo_dettaglio: '' };
+      const _ctrl = component._formGroup.get('nome_gateway')!;
+      _ctrl.setValue('');
+      expect(component._canCopyFromTesting(_ctrl)).toBe(true);
+      _ctrl.disable();
+      expect(component._canCopyFromTesting(_ctrl)).toBe(false);
+      component.copyTestingValue('nome_gateway');
+      expect(_ctrl.value).toBe('');
+    });
+
     it('should set control value from testingValues', () => {
       (component as any).testingValues = {
         nome_gateway: 'gw-test', versione_gateway: 5, url: 'http://test', protocollo: 'rest', protocollo_dettaglio: ''
@@ -1116,6 +1132,29 @@ describe('ServizioApiConfigurationComponent', () => {
       expect(result).toBe('valore_collaudo');
     });
 
+    it('should use the technical group when several groups share the same label', () => {
+      Tools.Configurazione = {
+        servizio: {
+          api: {
+            profili: [],
+            proprieta_custom: [
+              { nome_gruppo: 'ACCollaudo', label_gruppo: 'Autorizzazione', classe_dato: 'collaudo', id_correlazione: 'AC' },
+              { nome_gruppo: 'ACProduzione', label_gruppo: 'Autorizzazione', classe_dato: 'produzione', id_correlazione: 'AC' },
+              { nome_gruppo: 'CCCollaudo', label_gruppo: 'Autorizzazione', classe_dato: 'collaudo_configurato', id_correlazione: 'CC' },
+              { nome_gruppo: 'CCProduzione', label_gruppo: 'Autorizzazione', classe_dato: 'produzione_configurato', id_correlazione: 'CC' }
+            ]
+          }
+        }
+      };
+      component.servizioApi = {
+        proprieta_custom: [
+          { gruppo: 'CCCollaudo', proprieta: [{ nome: 'campo1', valore: 'valore_cc' }] }
+        ]
+      } as any;
+      expect(component.getCustomPropertyTestingValue('Autorizzazione', 'campo1')).toBeUndefined();
+      expect(component.getCustomPropertyTestingValue('Autorizzazione', 'campo1', 'CCProduzione')).toBe('valore_cc');
+    });
+
     it('should return undefined when group not found', () => {
       Tools.Configurazione = {
         servizio: {
@@ -1189,6 +1228,16 @@ describe('ServizioApiConfigurationComponent', () => {
   // ==================== copyCustomPropertyTestingValue ====================
 
   describe('copyCustomPropertyTestingValue', () => {
+    it('should not copy into a field that is not editable', () => {
+      const _ctrl = new UntypedFormControl('');
+      _ctrl.disable();
+      (component._formGroup as UntypedFormGroup).removeControl('proprieta_custom');
+      component._formGroup.addControl('proprieta_custom', new UntypedFormGroup({ TestGroup: new UntypedFormGroup({ campo1: _ctrl }) }));
+      vi.spyOn(component, 'getCustomPropertyTestingValue').mockReturnValue('test_value');
+      component.copyCustomPropertyTestingValue('TestGroup', 'campo1');
+      expect(_ctrl.value).toBe('');
+    });
+
     it('should set control value from getCustomPropertyTestingValue', () => {
       // Set up form with proprieta_custom group
       const innerGroup = new UntypedFormGroup({ campo1: new UntypedFormControl('') });
@@ -1252,8 +1301,8 @@ describe('ServizioApiConfigurationComponent', () => {
         { nome_gruppo: 'G2', label_gruppo: 'LabelG2', nome: 'campo2' }
       ];
       component.copyAllTestingValues();
-      expect(customSpy).toHaveBeenCalledWith('LabelG1', 'campo1', false);
-      expect(customSpy).toHaveBeenCalledWith('LabelG2', 'campo2', false);
+      expect(customSpy).toHaveBeenCalledWith('LabelG1', 'campo1', false, 'G1');
+      expect(customSpy).toHaveBeenCalledWith('LabelG2', 'campo2', false, 'G2');
     });
   });
 
@@ -1501,6 +1550,90 @@ describe('ServizioApiConfigurationComponent', () => {
       expect(callArg.dati_custom.proprieta_custom).toEqual([
         { gruppo: 'TestGroup', proprieta: [{ nome: 'campo1', valore: 'val1' }] }
       ]);
+    });
+
+    it('should send only the groups of the current environment', () => {
+      component.environmentId = 'produzione';
+      component._hasSpecifica = false;
+      component._configuration = null;
+      component.servizioApi = {
+        proprieta_custom: [
+          { gruppo: 'PDNDCollaudo', proprieta: [{ nome: 'c1', valore: 'x' }] },
+          { gruppo: 'PDNDProduzione', proprieta: [{ nome: 'p1', valore: 'old' }] }
+        ]
+      } as any;
+      component._apiProprietaCustomGrouped = {
+        'PDND': [{ nome_gruppo: 'PDNDProduzione', label_gruppo: 'PDND', classe_dato: 'produzione', nome: 'p1' }]
+      };
+      mockApiService.putElement.mockReturnValueOnce(of({}));
+
+      vi.spyOn(component as any, '_loadServizioApi').mockImplementation(() => {});
+      component._onSaveApi({ proprieta_custom: { 'PDND': { p1: 'new' } } });
+
+      const callArg = mockApiService.putElement.mock.calls[0][2];
+      expect(callArg.dati_custom.proprieta_custom).toEqual([
+        { gruppo: 'PDNDProduzione', proprieta: [{ nome: 'p1', valore: 'new' }] }
+      ]);
+    });
+
+    it('should send an emptied group of the current environment without values', () => {
+      component.environmentId = 'produzione';
+      component._hasSpecifica = false;
+      component._configuration = null;
+      component.servizioApi = {
+        proprieta_custom: [
+          { gruppo: 'PDNDCollaudo', proprieta: [{ nome: 'c1', valore: 'x' }] },
+          { gruppo: 'PDNDProduzione', proprieta: [{ nome: 'p1', valore: 'old' }] }
+        ]
+      } as any;
+      component._apiProprietaCustomGrouped = {
+        'PDND': [{ nome_gruppo: 'PDNDProduzione', label_gruppo: 'PDND', classe_dato: 'produzione', nome: 'p1' }]
+      };
+      (component._formGroup as UntypedFormGroup).removeControl('proprieta_custom');
+      component._formGroup.addControl('proprieta_custom', new UntypedFormGroup({ PDND: new UntypedFormGroup({ p1: new UntypedFormControl('') }) }));
+      mockApiService.putElement.mockReturnValueOnce(of({}));
+
+      vi.spyOn(component as any, '_loadServizioApi').mockImplementation(() => {});
+      component._onSaveApi({ proprieta_custom: { 'PDND': { p1: '' } } });
+
+      const callArg = mockApiService.putElement.mock.calls[0][2];
+      expect(callArg.dati_custom.proprieta_custom).toEqual([{ gruppo: 'PDNDProduzione', proprieta: [] }]);
+    });
+
+    it('should not empty a saved group whose fields are not editable', () => {
+      component.environmentId = 'produzione';
+      component._hasSpecifica = false;
+      component._configuration = null;
+      component.servizioApi = { proprieta_custom: [{ gruppo: 'PDNDProduzione', proprieta: [{ nome: 'p1', valore: 'old' }] }] } as any;
+      component._apiProprietaCustomGrouped = {
+        'PDND': [{ nome_gruppo: 'PDNDProduzione', label_gruppo: 'PDND', classe_dato: 'produzione', nome: 'p1' }]
+      };
+      const _p1 = new UntypedFormControl('old');
+      _p1.disable();
+      (component._formGroup as UntypedFormGroup).removeControl('proprieta_custom');
+      component._formGroup.addControl('proprieta_custom', new UntypedFormGroup({ PDND: new UntypedFormGroup({ p1: _p1 }) }));
+      mockApiService.putElement.mockReturnValueOnce(of({}));
+
+      vi.spyOn(component as any, '_loadServizioApi').mockImplementation(() => {});
+      component._onSaveApi(component._formGroup.value);
+
+      const callArg = mockApiService.putElement.mock.calls[0][2];
+      expect(callArg.dati_custom).toBeUndefined();
+    });
+
+    it('should not send dati_custom when the environment has no groups', () => {
+      component.environmentId = 'produzione';
+      component._hasSpecifica = false;
+      component._configuration = null;
+      component.servizioApi = { proprieta_custom: [{ gruppo: 'PDNDCollaudo', proprieta: [{ nome: 'c1', valore: 'x' }] }] } as any;
+      component._apiProprietaCustomGrouped = {};
+      mockApiService.putElement.mockReturnValueOnce(of({}));
+
+      vi.spyOn(component as any, '_loadServizioApi').mockImplementation(() => {});
+      component._onSaveApi({});
+
+      const callArg = mockApiService.putElement.mock.calls[0][2];
+      expect(callArg.dati_custom).toBeUndefined();
     });
 
     it('should set _isEdit false and call _loadServizioApi on success', () => {
@@ -2078,11 +2211,59 @@ describe('ServizioApiConfigurationComponent', () => {
       component._canEditFieldMapper('url');
       expect(mockAuthenticationService.canEditField).toHaveBeenCalledWith('servizio', 'api', 'pubblicato', 'url', ['referente']);
     });
+
+    it('should use stato and grant passed as pipe arguments', () => {
+      component._canEditFieldMapper('allegati', 'bozza', { ruoli: ['referente_servizio'] } as any);
+      expect(mockAuthenticationService.canEditField).toHaveBeenCalledWith('servizio', 'api', 'bozza', 'allegati', ['referente_servizio']);
+    });
   });
 
   // ==================== _initProprietaCustom ====================
 
   describe('_initProprietaCustom', () => {
+    const _configRuoli = (ruoli: any) => ({
+      servizio: {
+        api: {
+          profili: [{ codice_interno: 'pdnd', auth_type: 'pdnd', etichetta: 'PDND' }],
+          proprieta_custom: [
+            { nome_gruppo: 'Libero', label_gruppo: 'Libero', classe_dato: 'collaudo', proprieta: [{ nome: 'libero1', tipo: 'text', required: false, index: 0 }] },
+            { nome_gruppo: 'Riservato', label_gruppo: 'Riservato', classe_dato: 'collaudo', ruoli_abilitati: ruoli, proprieta: [
+              { nome: 'ris1', tipo: 'text', required: false, index: 0 },
+              { nome: 'ris2', tipo: 'text', required: false, index: 1 }
+            ] }
+          ]
+        }
+      }
+    });
+
+    const _initRuoli = (ruoliAbilitati: any, ruoliUtente: string[]) => {
+      Tools.Configurazione = _configRuoli(ruoliAbilitati) as any;
+      component.servizioApi = { gruppi_auth_type: [{ profilo: 'pdnd' }], proprieta_custom: [] } as any;
+      component.environmentId = 'collaudo';
+      component.service = { stato: 'bozza' };
+      component._grant = { ruoli: ruoliUtente } as any;
+      component._initProprietaCustom();
+    };
+
+    it('should hide the whole group to users without the enabled roles (Issue #383)', () => {
+      _initRuoli(['gestore'], ['referente']);
+      expect(Object.keys(component._apiProprietaCustomGrouped)).toEqual(['Libero']);
+      expect(component._apiProprietaCustom.map((p: any) => p.nome)).toEqual(['libero1']);
+      expect(component.proprietaCustom.get('Riservato')).toBeNull();
+      expect(component.proprietaCustom.get('Libero')?.get('libero1')).toBeTruthy();
+    });
+
+    it('should show the group to users with an enabled role', () => {
+      _initRuoli(['gestore'], ['gestore']);
+      expect(component._apiProprietaCustomGrouped['Riservato'].map((p: any) => p.nome)).toEqual(['ris1', 'ris2']);
+      expect(component.proprietaCustom.get('Riservato')?.get('ris1')).toBeTruthy();
+    });
+
+    it('should hide the group to everybody when ruoli_abilitati is empty', () => {
+      _initRuoli([], ['gestore']);
+      expect(component._apiProprietaCustomGrouped['Riservato']).toBeUndefined();
+    });
+
     it('should populate _apiProprietaCustom based on environment and profiles', () => {
       Tools.Configurazione = {
         servizio: {
@@ -2239,7 +2420,7 @@ describe('ServizioApiConfigurationComponent', () => {
           }
         }
       };
-      mockAuthenticationService._getFieldsMandatory.mockReturnValue(['collaudo']);
+      mockAuthenticationService._getClassesMandatory.mockReturnValue(['collaudo']);
       component.servizioApi = {
         gruppi_auth_type: [{ profilo: 'pdnd' }],
         proprieta_custom: []
@@ -2575,6 +2756,111 @@ describe('ServizioApiConfigurationComponent', () => {
     it('should return false when _getEService returns empty string', () => {
       component.servizioApi = { proprieta_custom: [] } as any;
       expect(component._hasPDNDConfigureddMapper('collaudo')).toBe(false);
+    });
+  });
+
+  describe('URL di invocazione per ambiente', () => {
+    const buildApi = (collaudo: any = {}, produzione: any = {}) => ({
+      nome: 'API1', versione: 1, ruolo: EROGATO_SOGGETTO_DOMINIO,
+      configurazione_collaudo: { protocollo: 'rest', dati_erogazione: { url: 'http://c' }, ...collaudo },
+      configurazione_produzione: { protocollo: 'rest', dati_erogazione: { url: 'http://p' }, ...produzione },
+      proprieta_custom: [], gruppi_auth_type: []
+    });
+
+    const load = (environmentId: 'collaudo' | 'produzione', api: any) => {
+      component.rawData = JSON.stringify(api);
+      component.environmentId = environmentId;
+      component.service = { stato: 'bozza' };
+      (component as any).mapApiDetailsToFormValues();
+    };
+
+    beforeEach(() => {
+      (Tools.Configurazione as any).servizio.api.url_invocazione = {
+        etichetta_default: 'Rete interna',
+        collaudo: [{ identificativo: 'gw_test', etichetta: 'Gateway di test' }, { identificativo: 'gw_esterno', etichetta: 'Rete internet' }],
+        produzione: [{ identificativo: 'gw_esterno', etichetta: 'Rete internet' }]
+      };
+    });
+
+    it('should hide the selector when the environment has no configured URLs', () => {
+      delete (Tools.Configurazione as any).servizio.api.url_invocazione;
+      load('produzione', buildApi());
+      expect(component._urlInvocazioneVisibile).toBe(false);
+      expect(component._urlInvocazioneOpzioni).toEqual([]);
+    });
+
+    it('should offer the default URL first and start from the saved selection', () => {
+      load('produzione', buildApi({}, { url_invocazione: ['gw_esterno'] }));
+      expect(component._urlInvocazioneVisibile).toBe(true);
+      expect(component._urlInvocazioneOpzioni).toEqual([
+        { identificativo: 'default', etichetta: 'Rete interna' },
+        { identificativo: 'gw_esterno', etichetta: 'Rete internet' }
+      ]);
+      expect(component._formGroup.get('url_invocazione')?.value).toEqual(['gw_esterno']);
+    });
+
+    it('should start from the default URL when nothing is selected', () => {
+      load('collaudo', buildApi());
+      expect(component._formGroup.get('url_invocazione')?.value).toEqual(['default']);
+      expect(component._etichetteUrlInvocazioneMapper(['default', 'gw_test'])).toBe('Rete interna, Gateway di test');
+    });
+
+    it('should disable the selector when the environment section is not editable', () => {
+      mockAuthenticationService.canEditField.mockReturnValue(false);
+      load('produzione', buildApi());
+      expect(component._formGroup.get('url_invocazione')?.disabled).toBe(true);
+      mockAuthenticationService.canEditField.mockReturnValue(true);
+    });
+
+    it('should send the full selection only when editable', () => {
+      load('produzione', buildApi());
+      component.id = 10 as any;
+      component._hasSpecifica = false;
+      component._apiProprietaCustomGrouped = null;
+      vi.spyOn(component as any, '_loadServizioApi').mockImplementation(() => {});
+      mockApiService.putElement.mockReturnValue(of({}));
+
+      component._formGroup.get('url_invocazione')?.setValue(['gw_esterno', 'default']);
+      component._onSaveApi({});
+      expect(mockApiService.putElement.mock.calls[0][2].configurazione_produzione.url_invocazione).toEqual(['gw_esterno', 'default']);
+
+      component._formGroup.get('url_invocazione')?.disable();
+      component._onSaveApi({});
+      expect(mockApiService.putElement.mock.calls[1][2].configurazione_produzione).not.toHaveProperty('url_invocazione');
+    });
+
+    it('should fall back to the default URL when the selection becomes empty', () => {
+      load('produzione', buildApi({}, { url_invocazione: ['gw_esterno'] }));
+      const ctrl = component._formGroup.get('url_invocazione');
+      ctrl?.setValue([]);
+      expect(ctrl?.value).toEqual(['default']);
+
+      ctrl?.setValue(['default', 'gw_esterno']);
+      ctrl?.setValue(['gw_esterno']);
+      expect(ctrl?.value).toEqual(['gw_esterno']);
+    });
+
+    it('should start from the default URL when the saved URLs are no longer configured', () => {
+      load('produzione', buildApi({}, { url_invocazione: ['gw_dismesso'] }));
+      expect(component._formGroup.get('url_invocazione')?.value).toEqual(['default']);
+    });
+
+    it('should allow removing the default URL only when another URL is selected', () => {
+      expect(component._urlInvocazioneRimovibileMapper('default', ['default'])).toBe(false);
+      expect(component._urlInvocazioneRimovibileMapper('default', ['default', 'gw_esterno'])).toBe(true);
+      expect(component._urlInvocazioneRimovibileMapper('gw_esterno', ['gw_esterno'])).toBe(true);
+    });
+
+    it('should fall back to the default URL when copying a testing selection not configured for production', () => {
+      load('produzione', buildApi({ url_invocazione: ['gw_test'] }));
+      component.copyTestingValue('url_invocazione');
+      expect(component._formGroup.get('url_invocazione')?.value).toEqual(['default']);
+    });
+
+    it('should copy from testing only the identifiers configured for production', () => {
+      load('produzione', buildApi({ url_invocazione: ['gw_test', 'gw_esterno', 'default'] }));
+      component.copyTestingValue('url_invocazione');
+      expect(component._formGroup.get('url_invocazione')?.value).toEqual(['gw_esterno', 'default']);
     });
   });
 });

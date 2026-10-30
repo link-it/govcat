@@ -40,6 +40,7 @@ import org.govway.catalogo.core.orm.entity.ReferenteDominioEntity_;
 import org.govway.catalogo.core.orm.entity.ReferenteServizioEntity_;
 import org.govway.catalogo.core.orm.entity.ServizioEntity_;
 import org.govway.catalogo.core.orm.entity.ServizioGruppoEntity;
+import org.govway.catalogo.core.orm.entity.ServizioGruppoEntity.TipoServizioGruppoEnum;
 import org.govway.catalogo.core.orm.entity.ServizioGruppoEntity_;
 import org.govway.catalogo.core.orm.entity.TipoServizio;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
@@ -57,6 +58,12 @@ public class ServizioGruppoSpecification implements Specification<ServizioGruppo
 	private Optional<VISIBILITA> visibilita = Optional.empty();
 	private Optional<TipoServizio> tipoComponente = Optional.empty();
 	private Optional<Boolean> utenteAdmin = Optional.empty();
+	// Stati in cui un servizio pubblico e` visibile a tutti: il chiamante li legge dalla configurazione
+	// (servizio.stati_adesione_consentita), come per ServizioSpecification. Il default e` la lista storica.
+	private List<String> statiAderibili = getStatiAderibiliDefault();
+
+	private FiltroArchiviati filtroArchiviati = FiltroArchiviati.INCLUDI;
+	private String statoArchiviato = null;
 
 
 	@Override
@@ -120,8 +127,12 @@ public class ServizioGruppoSpecification implements Specification<ServizioGruppo
 			}
 
 			ArrayList<Predicate> predsStati = new ArrayList<>();
-			
-			for(String stato: getStatiAderibili()) {
+
+			// Le righe di tipo GRUPPO della vista espongono uno stato convenzionale ('pubblicato_produzione',
+			// vedi bo/views/servizi_gruppi.sql) che non descrive un workflow: non devono dipendere dagli stati
+			// configurati. I gruppi privi di servizi visibili vengono comunque esclusi dal chiamante.
+			predsStati.add(cb.equal(root.get(ServizioGruppoEntity_.tipo), TipoServizioGruppoEnum.GRUPPO));
+			for(String stato: this.statiAderibili) {
 				predsStati.add(cb.equal(root.get(ServizioGruppoEntity_.stato), stato));
 			}
 			
@@ -149,7 +160,25 @@ public class ServizioGruppoSpecification implements Specification<ServizioGruppo
 		if(this.utenteAdmin.isPresent() && !this.utenteAdmin.get()) {
 			predLst.add(cb.notEqual(root.get(ServizioGruppoEntity_.stato), "archiviato"));
 		}
-		
+
+		if(this.statoArchiviato != null) {
+			// Il filtro riguarda i soli servizi: le righe di tipo GRUPPO della vista espongono
+			// uno stato convenzionale ('pubblicato_produzione', vedi bo/views/servizi_gruppi.sql)
+			// che non descrive un workflow e che con SOLO le eliminerebbe tutte dal risultato.
+			Predicate isGruppo = cb.equal(root.get(ServizioGruppoEntity_.tipo), TipoServizioGruppoEnum.GRUPPO);
+			switch(this.filtroArchiviati) {
+			case ESCLUDI:
+				predLst.add(cb.or(isGruppo, cb.notEqual(root.get(ServizioGruppoEntity_.stato), this.statoArchiviato)));
+				break;
+			case SOLO:
+				predLst.add(cb.or(isGruppo, cb.equal(root.get(ServizioGruppoEntity_.stato), this.statoArchiviato)));
+				break;
+			case INCLUDI:
+			default:
+				break;
+			}
+		}
+
 
 		if (visibilita.isPresent()) {
 			predLst.add(getVisibilitaFilter(visibilita.get(), root, cb));
@@ -166,7 +195,7 @@ public class ServizioGruppoSpecification implements Specification<ServizioGruppo
 	}
 	
 	
-	private List<String> getStatiAderibili() {
+	private static List<String> getStatiAderibiliDefault() {
 		List<String> lst = new ArrayList<>();
 		
 		lst.add("pubblicato_collaudo");
@@ -176,6 +205,14 @@ public class ServizioGruppoSpecification implements Specification<ServizioGruppo
 		lst.add("pubblicato_produzione");
 		
 		return lst;
+	}
+
+	public List<String> getStatiAderibili() {
+		return statiAderibili;
+	}
+
+	public void setStatiAderibili(List<String> statiAderibili) {
+		this.statiAderibili = statiAderibili;
 	}
 
 	public Optional<String> getQ() {
@@ -232,5 +269,21 @@ public class ServizioGruppoSpecification implements Specification<ServizioGruppo
 
 	public void setUtenteAdmin(Optional<Boolean> utenteAdmin) {
 		this.utenteAdmin = utenteAdmin;
+	}
+
+	public FiltroArchiviati getFiltroArchiviati() {
+		return filtroArchiviati;
+	}
+
+	public void setFiltroArchiviati(FiltroArchiviati filtroArchiviati) {
+		this.filtroArchiviati = filtroArchiviati;
+	}
+
+	public String getStatoArchiviato() {
+		return statoArchiviato;
+	}
+
+	public void setStatoArchiviato(String statoArchiviato) {
+		this.statoArchiviato = statoArchiviato;
 	}
 }

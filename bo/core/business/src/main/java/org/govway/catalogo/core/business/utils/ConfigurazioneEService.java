@@ -19,6 +19,8 @@
  */
 package org.govway.catalogo.core.business.utils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,6 +32,13 @@ public class ConfigurazioneEService {
 	private String templateUrlInvocazione;
 	private Map<String,String> profili;
 	private Set<String> statiSchedaAdesione;
+
+	/** URL di invocazione censite per l'ambiente di collaudo, oltre a quella predefinita. */
+	private List<UrlInvocazioneConfigurata> urlInvocazioneCollaudo = new ArrayList<>();
+	/** URL di invocazione censite per l'ambiente di produzione, oltre a quella predefinita. */
+	private List<UrlInvocazioneConfigurata> urlInvocazioneProduzione = new ArrayList<>();
+	/** Etichetta della URL di invocazione predefinita, se configurata. */
+	private String etichettaUrlInvocazioneDefault;
 	
 	public String getDefaultUrlPrefixCollaudo() {
 		return defaultUrlPrefixCollaudo;
@@ -60,6 +69,28 @@ public class ConfigurazioneEService {
 	}
 	public void setProfili(Map<String,String> profili) {
 		this.profili = profili;
+	}
+	public List<UrlInvocazioneConfigurata> getUrlInvocazioneCollaudo() {
+		return urlInvocazioneCollaudo;
+	}
+	public void setUrlInvocazioneCollaudo(List<UrlInvocazioneConfigurata> urlInvocazioneCollaudo) {
+		this.urlInvocazioneCollaudo = urlInvocazioneCollaudo != null ? urlInvocazioneCollaudo : new ArrayList<>();
+	}
+	public List<UrlInvocazioneConfigurata> getUrlInvocazioneProduzione() {
+		return urlInvocazioneProduzione;
+	}
+	public void setUrlInvocazioneProduzione(List<UrlInvocazioneConfigurata> urlInvocazioneProduzione) {
+		this.urlInvocazioneProduzione = urlInvocazioneProduzione != null ? urlInvocazioneProduzione : new ArrayList<>();
+	}
+	/** URL censite per l'ambiente indicato. */
+	public List<UrlInvocazioneConfigurata> getUrlInvocazione(boolean collaudo) {
+		return collaudo ? this.urlInvocazioneCollaudo : this.urlInvocazioneProduzione;
+	}
+	public String getEtichettaUrlInvocazioneDefault() {
+		return etichettaUrlInvocazioneDefault;
+	}
+	public void setEtichettaUrlInvocazioneDefault(String etichettaUrlInvocazioneDefault) {
+		this.etichettaUrlInvocazioneDefault = etichettaUrlInvocazioneDefault;
 	}
 	public Set<String> getStatiSchedaAdesione() {
 		return statiSchedaAdesione;

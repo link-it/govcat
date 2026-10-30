@@ -31,7 +31,7 @@ class AdesioneDTOConverterSoggettiTest {
         SoggettoDTOFactory factory = mock(SoggettoDTOFactory.class);
         when(factory.getNomeGateway(ArgumentMatchers.any(SoggettoEntity.class)))
                 .thenAnswer(inv -> ((SoggettoEntity) inv.getArgument(0)).getNome());
-        when(factory.getTipoGateway(ArgumentMatchers.any(SoggettoEntity.class))).thenReturn("tipo");
+        when(factory.getTipoGateway(ArgumentMatchers.any(SoggettoEntity.class), ArgumentMatchers.any())).thenReturn("tipo");
 
         Field f = AdesioneDTOConverter.class.getDeclaredField("soggettoDTOFactory");
         f.setAccessible(true);

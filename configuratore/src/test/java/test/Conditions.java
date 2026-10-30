@@ -77,13 +77,13 @@ public class Conditions {
 		Map<String, String> validate4 = Map.of("prop1Cond4", "value1Cond4", "prop2Cond4", "value2Cond4");
 		Map<String, String> validate5 = Map.of("prop1Cond5", "value1Cond5", "prop2Cond5", "value2Cond5");
 		
-		assertFalse(cond1.check("profilo", validate1));
-		assertTrue(cond5.check("profilo", validate5));
-		assertTrue(cond1.check("profilo", merge(validate1, validate3)));
-		assertTrue(cond1.check("profilo", merge(validate1, validate2, validate4, validate5)));
-		assertTrue(cond1.check("profilo", merge(validate1, validate2, validate4, validate5)));
-		assertFalse(cond1.check("profil", merge(validate1, validate2, validate3, validate5)));
-		assertFalse(cond2.check("null", merge(validate1, validate4, validate5)));
+		assertFalse(cond1.check("profilo", null, validate1));
+		assertTrue(cond5.check("profilo", null, validate5));
+		assertTrue(cond1.check("profilo", null, merge(validate1, validate3)));
+		assertTrue(cond1.check("profilo", null, merge(validate1, validate2, validate4, validate5)));
+		assertTrue(cond1.check("profilo", null, merge(validate1, validate2, validate4, validate5)));
+		assertFalse(cond1.check("profil", null, merge(validate1, validate2, validate3, validate5)));
+		assertFalse(cond2.check("null", null, merge(validate1, validate4, validate5)));
 		
 	}
 }

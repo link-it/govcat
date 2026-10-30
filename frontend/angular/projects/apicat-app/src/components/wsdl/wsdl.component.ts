@@ -18,6 +18,7 @@
  */
 import { Component, inject, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Clipboard } from '@angular/cdk/clipboard';
 
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
@@ -25,6 +26,14 @@ import { TranslateModule } from '@ngx-translate/core';
 import { Tools } from '@linkit/components';
 
 import { OpenAPIService } from '@app/services/openAPI.service';
+import { etichettaUrlInvocazione, URL_INVOCAZIONE_DEFAULT } from '@app/views/servizi/servizio-api-url-invocazione';
+
+/** Riga dell'elenco URL di un port type: etichetta configurata oppure chiave i18n di ripiego. */
+export interface WsdlUrlRiga {
+  etichetta: string | null;
+  etichettaKey: string;
+  url: string;
+}
 
 @Component({
   selector: 'ui-wsdl',
@@ -57,7 +66,11 @@ export class WsdlComponent implements OnChanges {
   _error: boolean = false;
   _errorMsg: string = '';
 
+  /** Riga copiata di recente, come `<indice port type>-<indice riga>`. */
+  _urlCopiata: string | null = null;
+
   apiService = inject(OpenAPIService);
+  private readonly clipboard = inject(Clipboard);
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.api) {
@@ -88,7 +101,9 @@ export class WsdlComponent implements OnChanges {
         this._loading = true;
         this.apiService.saveElement('tools/lista-operazioni-wsdl', _body).subscribe({
             next: (response: any) => {
-              this._risorse = response;
+              this._risorse = Array.isArray(response)
+                ? response.map((item: any) => ({ ...item, _urlRighe: this._urlRighe(item) }))
+                : response;
               this._loading = false;
             },
             error: (error: any) => {
@@ -100,5 +115,36 @@ export class WsdlComponent implements OnChanges {
           });
       }
     }
+  }
+
+  /**
+   * URL di invocazione del port type: la prima (che puo` non essere la predefinita) e le
+   * aggiuntive con la propria etichetta. L'etichetta della prima si ricava dalla selezione
+   * dell'API quando disponibile (dettaglio), altrimenti resta generica.
+   */
+  _urlRighe(item: any): WsdlUrlRiga[] {
+    if (!item?.url_invocazione) { return []; }
+    const ambiente = this.environment === 'produzione' ? 'produzione' : 'collaudo';
+    const configurazione = ambiente === 'collaudo' ? this.api?.configurazione_collaudo : this.api?.configurazione_produzione;
+    const primo: string | null = configurazione?.url_invocazione?.[0] || null;
+    const righe: WsdlUrlRiga[] = [{
+      etichetta: primo ? etichettaUrlInvocazione(primo, ambiente) : null,
+      etichettaKey: primo === URL_INVOCAZIONE_DEFAULT ? 'APP.LABEL.UrlPredefinita' : 'APP.WSDL.LABEL.UrlInvocazione',
+      url: item.url_invocazione
+    }];
+    (item.url_invocazione_aggiuntive || []).filter((u: any) => !!u?.url_invocazione).forEach((u: any) => {
+      righe.push({
+        etichetta: u.etichetta || etichettaUrlInvocazione(u.identificativo, ambiente),
+        etichettaKey: 'APP.WSDL.LABEL.UrlInvocazione',
+        url: u.url_invocazione
+      });
+    });
+    return righe;
+  }
+
+  copyUrl(url: string, chiave: string) {
+    this.clipboard.copy(url);
+    this._urlCopiata = chiave;
+    setTimeout(() => { if (this._urlCopiata === chiave) { this._urlCopiata = null; } }, 3000);
   }
 }

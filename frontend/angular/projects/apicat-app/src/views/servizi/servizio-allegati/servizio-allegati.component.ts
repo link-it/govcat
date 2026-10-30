@@ -529,7 +529,8 @@ export class ServizioAllegatiComponent implements OnInit, AfterContentChecked, O
   }
 
   _canAddMapper = (): boolean => {
-    return this.authenticationService.canAdd('servizio', this.service?.stato, this._grant?.ruoli);
+    const _tipologie = this.authenticationService.tipologieAllegatoScrivibili(this._grant);
+    return this._showAllAttachments ? _tipologie.length > 0 : _tipologie.includes('generico');
   }
 
   _canEditMapper = (): boolean => {

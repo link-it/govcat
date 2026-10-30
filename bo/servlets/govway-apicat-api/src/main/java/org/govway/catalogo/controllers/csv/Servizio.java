@@ -22,7 +22,10 @@ package org.govway.catalogo.controllers.csv;
 public class Servizio {
 
 	private String erogatore;
+	private String organizzazioneErogatore;
 	private String fruitore;
+	private String organizzazioneFruitore;
+	private String intermediato;
 	private String dominio;
 	private String servizio;
 	private String versioneServizio;
@@ -31,6 +34,7 @@ public class Servizio {
 	private String versioneApi;
 	private String uuidApi;
 	private String tipoApi;
+	private String ruoloApi;
 	private String autenticazioneStato;
 	private String statoServizio;
 	private String referentiServizio;
@@ -41,6 +45,8 @@ public class Servizio {
 	private String connettoreProduzione;
 	private String urlInvocazioneCollaudo;
 	private String connettoreCollaudo;
+	private String urlInvocazioneAggiuntiveProduzione;
+	private String urlInvocazioneAggiuntiveCollaudo;
 
 	public String getErogatore() {
 		return erogatore;
@@ -48,11 +54,29 @@ public class Servizio {
 	public void setErogatore(String erogatore) {
 		this.erogatore = erogatore;
 	}
+	public String getOrganizzazioneErogatore() {
+		return organizzazioneErogatore;
+	}
+	public void setOrganizzazioneErogatore(String organizzazioneErogatore) {
+		this.organizzazioneErogatore = organizzazioneErogatore;
+	}
 	public String getFruitore() {
 		return fruitore;
 	}
 	public void setFruitore(String fruitore) {
 		this.fruitore = fruitore;
+	}
+	public String getOrganizzazioneFruitore() {
+		return organizzazioneFruitore;
+	}
+	public void setOrganizzazioneFruitore(String organizzazioneFruitore) {
+		this.organizzazioneFruitore = organizzazioneFruitore;
+	}
+	public String getIntermediato() {
+		return intermediato;
+	}
+	public void setIntermediato(String intermediato) {
+		this.intermediato = intermediato;
 	}
 	public String getDominio() {
 		return dominio;
@@ -101,6 +125,12 @@ public class Servizio {
 	}
 	public void setTipoApi(String tipoApi) {
 		this.tipoApi = tipoApi;
+	}
+	public String getRuoloApi() {
+		return ruoloApi;
+	}
+	public void setRuoloApi(String ruoloApi) {
+		this.ruoloApi = ruoloApi;
 	}
 	public String getAutenticazioneStato() {
 		return autenticazioneStato;
@@ -161,6 +191,18 @@ public class Servizio {
 	}
 	public void setConnettoreCollaudo(String connettoreCollaudo) {
 		this.connettoreCollaudo = connettoreCollaudo;
+	}
+	public String getUrlInvocazioneAggiuntiveProduzione() {
+		return urlInvocazioneAggiuntiveProduzione;
+	}
+	public void setUrlInvocazioneAggiuntiveProduzione(String urlInvocazioneAggiuntiveProduzione) {
+		this.urlInvocazioneAggiuntiveProduzione = urlInvocazioneAggiuntiveProduzione;
+	}
+	public String getUrlInvocazioneAggiuntiveCollaudo() {
+		return urlInvocazioneAggiuntiveCollaudo;
+	}
+	public void setUrlInvocazioneAggiuntiveCollaudo(String urlInvocazioneAggiuntiveCollaudo) {
+		this.urlInvocazioneAggiuntiveCollaudo = urlInvocazioneAggiuntiveCollaudo;
 	}
 
 }

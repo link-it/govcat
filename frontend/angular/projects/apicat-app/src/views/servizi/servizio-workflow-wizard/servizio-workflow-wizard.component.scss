@@ -1,0 +1,517 @@
+// ----------------------------------------------------------------------
+// ServizioWorkflowWizardComponent — wizard a fasi del workflow servizio.
+// Design token + stili sezione (env / chip / lnk-btn / lnk-phase-section /
+// tl-panel) replicati 1:1 dal wizard adesioni per parità visiva. `--accent`,
+// `--accent-hover` e i token `--ok-*` sono ereditati da `:root` (tema/globali).
+// ----------------------------------------------------------------------
+
+:host, .lnk-wizard {
+  --surface:      #ffffff;
+  --surface-2:    #fafcfd;
+  --surface-3:    #eef4f8;
+  --line:         #dee8ef;
+  --line-strong:  #c4d6e0;
+
+  --ink:          #212c49;
+  --ink-2:        #2e445a;
+  --ink-3:        #57738a;
+  --ink-4:        #8aa4b8;
+
+  --accent-soft:   #ffe9eb;
+  --accent-soft-2: #ffd4d8;
+  --accent-ink:    #b81e2b;
+
+  --warn:      #c97a1a;
+  --warn-soft: #fbf1e2;
+  --warn-ink:  #8a5310;
+
+  --err:       #d81f2c;
+  --err-soft:  #ffe9eb;
+  --err-ink:   #b81e2b;
+
+  --radius:    10px;
+  --radius-lg: 14px;
+
+  // Altezza barra "vai a" e padding-top dello scroller globale
+  // (.container-scroller ha padding-top: .75rem): serve compensarlo
+  // negli offset sticky, altrimenti resta una striscia in cima dove
+  // il contenuto scorre sotto/sopra la barra.
+  --section-nav-h:    48px;
+  --scroller-pad-top: .75rem;
+
+  --shadow-sm: 0 1px 0 rgba(33, 44, 73, .04), 0 1px 2px rgba(33, 44, 73, .04);
+  --shadow:    0 1px 0 rgba(33, 44, 73, .04), 0 8px 24px -8px rgba(33, 44, 73, .08);
+}
+
+.lnk-wizard {
+
+  // ─── banner sunto (titolo + meta + stato) sopra la barra fasi ─────
+  .wizard-header-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--ink, #212c49);
+  }
+  .wizard-header-version {
+    font-weight: 500;
+    color: var(--ink-3, #57738a);
+  }
+  .wizard-header-meta {
+    font-size: 12.5px;
+    color: var(--ink-3, #57738a);
+  }
+
+  // ─── chips & badges ───────────────────────────────────────────────
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 9px; border-radius: 999px;
+    font-size: 12px; font-weight: 500;
+    background: var(--surface-3); color: var(--ink-2);
+    border: 1px solid var(--line);
+  }
+  .chip-ok    { background: var(--ok-soft); color: var(--ok-ink); border-color: var(--ok-border); }
+  .chip-muted { background: var(--surface-3); color: var(--ink-3); }
+  .chip-accent { background: var(--accent-soft); color: var(--accent-ink); border-color: #ffc4c9; }
+  .chip .pulse { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .chip-accent .pulse {
+    position: relative;
+    background: var(--accent, #ff4050);
+    box-shadow: 0 0 0 0 rgba(255, 64, 80, .5);
+    animation: lnk-pulse 1.6s ease-out infinite;
+  }
+
+  // ─── buttons ──────────────────────────────────────────────────────
+  .lnk-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    height: 32px; padding: 0 13px;
+    background: var(--surface); color: var(--ink);
+    border: 1px solid var(--line-strong); border-radius: 8px;
+    font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all .12s;
+    box-shadow: var(--shadow-sm);
+    text-decoration: none;
+  }
+  .lnk-btn:hover { background: var(--surface-3); border-color: var(--ink-4); }
+  .lnk-btn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--accent, #ff4050); }
+  .lnk-btn i.bi { font-size: 14px; }
+  .lnk-btn-ghost { background: transparent; border-color: transparent; box-shadow: none; }
+  .lnk-btn-ghost:hover { background: var(--surface-3); }
+  // Stato selezionato (es. graffetta allegati con pannello aperto), in blu notte come la sezione attiva
+  .lnk-btn-ghost.is-active {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+  .lnk-btn-ghost.is-active .lnk-ref-count { background: rgba(255, 255, 255, .2); border-color: transparent; color: #fff; }
+  .lnk-btn-sm { height: 28px; font-size: 12.5px; padding: 0 10px; }
+
+  // ─── Banner/disclaimer (allineato al wizard adesioni) ─────────────
+  .lnk-banner {
+    display: flex; gap: 14px;
+    padding: 16px 18px;
+    background: var(--brand-soft, #cce3ed);
+    border: 1px solid #b3d4e2;
+    border-radius: var(--radius-lg, 14px);
+    position: relative; overflow: hidden;
+  }
+  .lnk-banner::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--brand, #2e445a);
+  }
+  .lnk-banner .icon {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: var(--surface, #ffffff); color: var(--brand, #2e445a);
+    display: grid; place-items: center; flex-shrink: 0;
+    box-shadow: var(--shadow-sm, 0 1px 2px rgba(33, 44, 73, .06));
+  }
+  .lnk-banner .icon i { font-size: 15px; }
+  .lnk-banner .body { flex: 1; min-width: 0; }
+  .lnk-banner .body p, .lnk-banner .body span {
+    margin: 0; font-size: 13px; color: var(--brand-ink, #21324a);
+    line-height: 1.55; display: block;
+  }
+  .lnk-banner.is-warn { background: var(--warn-soft, #fbf1e2); border-color: #ecd6b0; }
+  .lnk-banner.is-warn::before { background: var(--warn, #c97a1a); }
+  .lnk-banner.is-warn .icon { color: var(--warn, #c97a1a); }
+  .lnk-banner.is-warn .body p, .lnk-banner.is-warn .body span { color: var(--warn-ink, #8a5310); }
+  .lnk-banner.is-err { background: var(--err-soft, #ffe9eb); border-color: #ffc4c9; }
+  .lnk-banner.is-err::before { background: var(--err, #d81f2c); }
+  .lnk-banner.is-err .icon { color: var(--err, #d81f2c); }
+  .lnk-banner.is-err .body p, .lnk-banner.is-err .body span { color: var(--err-ink, #b81e2b); }
+
+  // ─── env card (contenitore fase) ──────────────────────────────────
+  .env {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    padding: 0;
+  }
+  .env.is-open { border-color: var(--line-strong); box-shadow: var(--shadow); }
+  .env.is-locked { background: var(--surface-2); }
+  .env-hd { display: flex; align-items: center; gap: 14px; padding: 16px 20px; user-select: none; }
+  .env-icon {
+    width: 32px; height: 32px; border-radius: 9px;
+    display: grid; place-items: center; flex-shrink: 0;
+    background: var(--accent-soft); color: var(--accent, #ff4050);
+  }
+  .env.is-locked .env-icon { background: var(--surface-3); color: var(--ink-4); }
+  .env.is-done   .env-icon { background: var(--ok-soft); color: var(--ok-ink); }
+  .env-icon i { font-size: 16px; }
+  .env-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .env-title { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); }
+  .env-body-pad { padding: 20px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 16px; }
+
+  // ─── Barra "vai a" sezioni FASE 1 (sticky) ───────────────────────
+  .lnk-section-nav {
+    position: sticky;
+    // -.75rem compensa il padding-top dello scroller: la barra pinnata
+    // copre la striscia in cima invece di lasciarla scoperta.
+    top: calc(-1 * var(--scroller-pad-top)); z-index: 20;
+    display: flex; gap: 8px; flex-wrap: nowrap;
+    overflow-x: auto;
+    box-sizing: border-box; height: var(--section-nav-h);
+    align-items: center;
+    padding: 0 2px; margin: 0 0 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+  }
+  .lnk-section-nav-chip {
+    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+    padding: 6px 12px; border-radius: 999px;
+    background: var(--surface-2); border: 1px solid var(--line-strong);
+    color: var(--ink-2); font-size: 12.5px; font-weight: 500; cursor: pointer;
+    transition: background-color .15s, border-color .15s, color .15s;
+  }
+  .lnk-section-nav-chip:hover { background: var(--surface-3); }
+  .lnk-section-nav-chip:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--ink); }
+  // Sezione attiva in blu notte: il rosso resta riservato a "Azione richiesta"
+  .lnk-section-nav-chip.is-active {
+    background: var(--ink); border-color: var(--ink); color: #fff;
+  }
+  .lnk-section-nav-chip .lnk-ref-count {
+    display: inline-grid; place-items: center; min-width: 18px; height: 18px;
+    padding: 0 5px; border-radius: 999px; font-size: 11px; font-weight: 600;
+    background: var(--surface-3); color: var(--ink-3);
+  }
+  .lnk-section-nav-chip.is-active .lnk-ref-count { background: rgba(255, 255, 255, .2); color: #fff; }
+
+  // ─── PhaseSection (sezioni collassabili FASE 1) ───────────────────
+  .lnk-phase-section {
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    padding: 0;
+  }
+  .lnk-phase-section + .lnk-phase-section { margin-top: 16px; }
+
+  // Sezioni raggiungibili dalla barra "vai a": header appiccicato sotto la
+  // barra mentre si scorre una form lunga. Serve overflow non-hidden perché
+  // lo sticky sia relativo allo scroller, non alla sezione.
+  .lnk-phase-section[id^="phase-section-"] {
+    overflow: visible;
+    scroll-margin-top: calc(var(--section-nav-h) + 12px);
+  }
+  .lnk-phase-section[id^="phase-section-"] > .lnk-phase-section-hd { border-radius: var(--radius-lg); }
+  .lnk-phase-section[id^="phase-section-"].is-open > .lnk-phase-section-hd {
+    // Stessa compensazione del padding scroller: l'header si aggancia
+    // esattamente sotto la barra "vai a".
+    position: sticky; top: calc(var(--section-nav-h) - var(--scroller-pad-top)); z-index: 10;
+    border-bottom-left-radius: 0; border-bottom-right-radius: 0;
+  }
+
+  .lnk-phase-section-hd {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 20px; cursor: pointer; user-select: none;
+    background: var(--surface);
+    transition: background-color .15s;
+  }
+  .lnk-phase-section-hd:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--accent, #ff4050); }
+  .lnk-phase-section.is-open .lnk-phase-section-hd { border-bottom: 1px solid var(--line); }
+  .lnk-phase-section-icon {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--ok-soft); border: 1px solid var(--ok-border);
+    display: grid; place-items: center; flex-shrink: 0; color: var(--ok-ink);
+  }
+  .lnk-phase-section-icon i { font-size: 12px; }
+  .lnk-phase-section-title {
+    flex: 1; font-size: 14px; font-weight: 600;
+    letter-spacing: -0.005em; color: var(--ink);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .lnk-phase-section-chev {
+    font-size: 13px; color: var(--ink-3);
+    width: 28px; height: 28px; border-radius: 7px;
+    display: inline-grid; place-items: center;
+    transition: transform .25s, background-color .15s, color .15s;
+    flex-shrink: 0;
+  }
+  .lnk-phase-section-hd:hover .lnk-phase-section-chev { background: var(--surface-3); color: var(--ink); }
+  .lnk-phase-section-chev.is-open { transform: rotate(180deg); }
+  .lnk-phase-section-body {
+    margin: 16px; padding: 16px 18px;
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+  .lnk-phase-section-body.tl-panel { position: relative; }
+  .phase-section-edit-toggle { position: absolute; top: 10px; right: 12px; z-index: 1; }
+
+  // Sezione "Informazioni generali": l'info-form usa già le card a sezioni (come
+  // in creazione). Il pannello dell'accordion non deve aggiungere una seconda
+  // cornice: rimuovo bordo, padding e sfondo mantenendo il contenitore.
+  #phase-section-info_generali > .lnk-phase-section-body {
+    margin: 20px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+  }
+
+  .lnk-btn-icon { width: 30px; padding: 0; justify-content: center; }
+  // Con il badge conteggio (graffetta allegati) la larghezza si adatta.
+  .lnk-btn-icon:has(.lnk-ref-count) { width: auto; padding: 0 8px; }
+
+  // Segmento compatto modifica+vista (azioni "apri dettaglio" accorpate).
+  .api-actions-seg {
+    display: inline-flex; align-items: center;
+    border: 1px solid var(--line); border-radius: 8px;
+    background: var(--surface); overflow: hidden;
+  }
+  .api-actions-seg .lnk-btn-icon { border-radius: 0; }
+  .api-actions-seg .lnk-btn-icon + .lnk-btn-icon { border-left: 1px solid var(--line); }
+
+  // ─── empty-state sezioni (nessun elemento) ────────────────────────
+  .lnk-empty {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; padding: 22px 16px; text-align: center;
+    color: var(--ink-3);
+    background: var(--surface); border: 1px dashed var(--line-strong);
+    border-radius: 10px;
+  }
+  .lnk-empty i { font-size: 22px; color: var(--ink-4); line-height: 1; }
+  .lnk-empty span { font-size: 13px; }
+
+  // ─── gruppi referenti + righe (approval-card) ─────────────────────
+  .lnk-ref-group {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+  }
+  .lnk-ref-group.is-open { padding-bottom: 14px; }
+  .lnk-ref-group-hd {
+    display: flex; align-items: center; gap: 8px;
+    cursor: pointer; user-select: none;
+    border-radius: 6px; margin: -4px -6px; padding: 4px 6px;
+  }
+  .lnk-ref-group-hd h2 {
+    margin: 0; flex: 1;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13.5px; font-weight: 600;
+  }
+  .lnk-ref-group-chev {
+    font-size: 12px;
+    color: var(--ink-3, #57738a);
+    width: 24px; height: 24px; border-radius: 6px;
+    display: inline-grid; place-items: center;
+    transition: transform .18s, background-color .15s, color .15s;
+    transform: rotate(-90deg);
+    flex-shrink: 0;
+  }
+  .lnk-ref-group-hd:hover .lnk-ref-group-chev {
+    background: var(--surface-3, #eef4f8);
+    color: var(--ink, #212c49);
+  }
+  .lnk-ref-group-chev.is-open { transform: rotate(0deg); }
+  .lnk-ref-group-body { margin-top: 8px; }
+  .lnk-ref-count {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--surface-3); border: 1px solid var(--line);
+    font-size: 11.5px; font-weight: 600; color: var(--ink-3);
+  }
+
+  .approval-card {
+    display: flex; align-items: center; gap: 12px; padding: 14px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    margin-top: 4px;
+  }
+  .approval-card .av {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, #ff8a93, var(--accent, #ff4050));
+    display: grid; place-items: center; color: white;
+    font-size: 12px; font-weight: 600; flex-shrink: 0;
+  }
+  .approval-card .av.av-file {
+    background: var(--surface-3);
+    color: var(--ink-3);
+    font-size: 15px;
+  }
+  .approval-card .av.av-logo {
+    object-fit: cover;
+    background: var(--surface-3);
+  }
+  .approval-card .body { flex: 1; min-width: 0; }
+  .approval-card .who { font-size: 13px; font-weight: 600; }
+  .approval-card .when { font-size: 12px; color: var(--ink-3); }
+
+  // ─── righe API con espansione inline (pattern wizard adesioni) ────
+  .api-row {
+    border: 1px solid transparent;
+    border-radius: 10px;
+    margin-top: 4px;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  .api-row > .approval-card { margin-top: 0; }
+  .api-row.is-editing,
+  .api-row.is-viewing {
+    background: var(--surface);
+  }
+  .api-row.is-editing {
+    border-color: var(--accent, #ff4050);
+    box-shadow: 0 0 0 3px var(--accent-soft, #ffe9eb);
+  }
+  .api-row.is-viewing {
+    border-color: var(--ok-border, #b6dcc7);
+    box-shadow: 0 0 0 3px var(--ok-soft, #e3f3ec);
+  }
+  .api-row.is-editing > .approval-card,
+  .api-row.is-viewing > .approval-card {
+    border-color: transparent;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+  .api-inline-edit-panel {
+    background: var(--surface-2, #fafcfd);
+    border-top: 1px solid var(--line, #dee8ef);
+    border-bottom-left-radius: 9px;
+    border-bottom-right-radius: 9px;
+    padding: 14px;
+  }
+  .api-inline-edit-panel:first-child {
+    border-top: none;
+    border-radius: 9px;
+  }
+
+  // Area allegati dell'API: caratterizzata con bordo e sfondo diversi dal
+  // pannello di modifica/vista, per distinguerla visivamente.
+  .api-allegati-panel {
+    background: var(--surface-3, #eef4f8);
+    border: 1px solid var(--line-strong, #c4d6e0);
+    border-radius: 9px;
+    margin-top: 6px;
+  }
+  .api-allegati-hd {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line, #dee8ef);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink, #212c49);
+  }
+  .api-allegati-hd > .bi { color: var(--ink-3, #57738a); }
+
+  .referent-role-tag {
+    align-self: center; flex-shrink: 0;
+    display: inline-flex; align-items: center;
+    padding: 3px 10px; border-radius: 999px;
+    font-size: 11.5px; font-weight: 500;
+    background: var(--surface-3); color: var(--ink-2);
+    border: 1px solid var(--line); white-space: nowrap;
+  }
+}
+
+@keyframes lnk-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(255, 64, 80, .5); }
+  70%  { box-shadow: 0 0 0 6px rgba(255, 64, 80, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 64, 80, 0); }
+}
+
+// ----------------------------------------------------------------------
+// Stile boxato dei form API embedded (solo dentro il wizard). Usa
+// `:host ::ng-deep` per raggiungere gli elementi interni dei componenti
+// classici `app-servizio-api-details` / `app-servizio-api-configuration`
+// senza toccare le loro pagine routed. I token CSS sono ereditati dal
+// `.lnk-wizard` del wizard.
+// ----------------------------------------------------------------------
+:host ::ng-deep app-servizio-api-details,
+:host ::ng-deep app-servizio-api-configuration {
+
+  .label-bold,
+  label.label-bold {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-2, #2e445a);
+    margin-bottom: 4px;
+  }
+
+  .form-control,
+  .form-select {
+    min-height: 36px;
+    padding: 6px 14px;
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--line-strong, #c4d6e0);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--ink, #212c49);
+
+    &:focus {
+      border-color: var(--accent, #ff4050);
+      box-shadow: 0 0 0 3px var(--accent-soft, #ffe9eb);
+      outline: none;
+    }
+    &:disabled,
+    &[readonly] {
+      background: var(--surface-2, #fafcfd);
+      color: var(--ink, #212c49);
+    }
+  }
+  textarea.form-control {
+    min-height: 80px;
+    padding: 10px 14px;
+    line-height: 1.5;
+  }
+
+  .form-control-plaintext {
+    min-height: 36px;
+    padding: 6px 14px;
+    display: flex;
+    align-items: center;
+    background: var(--surface-2, #fafcfd);
+    border: 1px solid var(--line, #dee8ef);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--ink, #212c49);
+    line-height: 1.4;
+    margin: 0;
+    width: 100%;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .ng-select .ng-select-container {
+    min-height: 36px;
+    border-radius: 8px;
+    border-color: var(--line-strong, #c4d6e0);
+  }
+
+  ui-data-type {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 6px 14px;
+    background: var(--surface-2, #fafcfd);
+    border: 1px solid var(--line, #dee8ef);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--ink, #212c49);
+  }
+}

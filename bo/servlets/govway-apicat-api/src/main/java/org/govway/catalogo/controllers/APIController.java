@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -41,6 +42,7 @@ import org.govway.catalogo.assembler.ServizioDettaglioAssembler;
 import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.authorization.ServizioAuthorization;
 import org.govway.catalogo.core.business.utils.EServiceBuilder;
+import org.govway.catalogo.core.business.utils.UrlInvocazioneRisolta;
 import org.govway.catalogo.core.business.utils.YamltoJsonUtils;
 import org.govway.catalogo.core.dao.specifications.AllegatoApiSpecification;
 import org.govway.catalogo.core.dao.specifications.ApiSpecification;
@@ -63,6 +65,7 @@ import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.services.ApiUnivocitaService;
+import org.govway.catalogo.services.ProfiloGovwayService;
 import org.govway.catalogo.servlets.api.ApiApi;
 import org.govway.catalogo.servlets.model.*;
 import org.slf4j.Logger;
@@ -105,6 +108,9 @@ public class APIController implements ApiApi {
 
 	@Autowired
 	private ApiUnivocitaService apiUnivocitaService;
+
+	@Autowired
+	private ProfiloGovwayService profiloGovwayService;
 
 	@Autowired
 	private ServizioDettaglioAssembler servizioDettaglioAssembler;
@@ -192,7 +198,11 @@ public class APIController implements ApiApi {
 		ServizioSpecification aspec = new ServizioSpecification();
 		aspec.setStatiAderibili(this.configurazione.getServizio().getStatiAdesioneConsentita());
 
-		if(!this.coreAuthorization.isAdmin()) {
+		// Il coordinatore ha visibilita' su tutti i servizi al pari dell'amministratore:
+		// stesso criterio applicato da ServiziController.findOne
+		boolean admin = this.coreAuthorization.isAdmin() || this.coreAuthorization.isCoordinatore();
+
+		if(!admin) {
 			if(this.coreAuthorization.isAnounymous()) {
 				aspec.setUtente(Optional.of(new UtenteEntity()));
 			} else {
@@ -228,7 +238,11 @@ public class APIController implements ApiApi {
 				this.logger.info("Invocazione in corso ...");     
 				ApiEntity entity = this.dettaglioAssembler.toEntity(apiCreate);
 				ServizioEntity servizio = entity.getServizio();
-				this.servizioAuthorization.authorizeModifica(servizio, Arrays.asList(ConfigurazioneClasseDato.IDENTIFICATIVO));
+				this.servizioAuthorization.authorizeModificaProprietaCustomApi(apiCreate.getProprietaCustom(), servizio);
+				// La classe dato API governa la composizione della lista delle API del servizio:
+				// e' richiesta in AND con IDENTIFICATIVO, cosi' le configurazioni che non la
+				// dichiarano mantengono i vincoli gia' in vigore.
+				this.servizioAuthorization.authorizeModifica(servizio, Arrays.asList(ConfigurazioneClasseDato.IDENTIFICATIVO, ConfigurazioneClasseDato.API));
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				this.apiUnivocitaService.checkUnivocita(apiCreate.getNome(), apiCreate.getVersione(), servizio);
@@ -270,7 +284,7 @@ public class APIController implements ApiApi {
 				}
 
 				this.service.delete(entity);
-				this.servizioAuthorization.authorizeModifica(entity.getServizio(), Arrays.asList(ConfigurazioneClasseDato.IDENTIFICATIVO));
+				this.servizioAuthorization.authorizeModifica(entity.getServizio(), Arrays.asList(ConfigurazioneClasseDato.IDENTIFICATIVO, ConfigurazioneClasseDato.API));
 
 				this.servizioDettaglioAssembler.setUltimaModifica(entity.getServizio());
 				this.servizioService.save(entity.getServizio());
@@ -501,12 +515,12 @@ public class APIController implements ApiApi {
 								// DOWNLOAD: la specifica viene restituita cosi` com'e`.
 								resource = new ByteArrayResource(rawData);
 							} else {
-								// VISUALIZZAZIONE: come il TRY_OUT riscrive il server URL con getUrlInvocazione
+								// VISUALIZZAZIONE: come il TRY_OUT riscrive i server URL con getUrlInvocazioni
 								// (senza pero` abilitare un vero try-out), con fallback sulla specifica originale.
 								try {
 									byte[] jsonOpenapi = YamltoJsonUtils.convertYamlToJson(rawData);
-									String serverUrl = this.serviceBuilder.getUrlInvocazione(entityA, ambiente.equals(AmbienteEnum.COLLAUDO));
-									resource = new ByteArrayResource(EServiceBuilder.applicaServerUrl(jsonOpenapi, serverUrl));
+									List<UrlInvocazioneRisolta> serverUrls = this.serviceBuilder.getUrlInvocazioni(entityA, ambiente.equals(AmbienteEnum.COLLAUDO));
+									resource = new ByteArrayResource(EServiceBuilder.applicaServerUrls(jsonOpenapi, serverUrls));
 								} catch (IOException e) {
 									this.logger.warn("Riscrittura del server URL per la visualizzazione fallita, fallback sulla specifica originale: " + e.getMessage(), e);
 									resource = new ByteArrayResource(rawData);
@@ -547,6 +561,15 @@ public class APIController implements ApiApi {
 		}
 	}
 
+	/** Converte una URL gia` risolta nel modello esposto dalle API. */
+	public static UrlInvocazioneAggiuntivaRisolta toUrlInvocazioneRisolta(UrlInvocazioneRisolta risolta) {
+		UrlInvocazioneAggiuntivaRisolta model = new UrlInvocazioneAggiuntivaRisolta();
+		model.setIdentificativo(risolta.identificativo());
+		model.setEtichetta(risolta.etichetta());
+		model.setUrlInvocazione(risolta.url());
+		return model;
+	}
+
 	@Override
 	public ResponseEntity<UrlInvocazioneAPI> getUrlInvocazioneAPI(UUID idApi, AmbienteEnum idAmbiente) {
 		try {
@@ -557,8 +580,16 @@ public class APIController implements ApiApi {
 
 				ApiEntity entity = findApi(idApi);
 
+				List<UrlInvocazioneRisolta> urls = this.serviceBuilder.getUrlInvocazioni(entity, idAmbiente.equals(AmbienteEnum.COLLAUDO));
+
 				UrlInvocazioneAPI urlInvocazione = new UrlInvocazioneAPI();
-				urlInvocazione.setUrlInvocazione(this.serviceBuilder.getUrlInvocazione(entity, idAmbiente.equals(AmbienteEnum.COLLAUDO)));
+				// La prima URL associata alla specifica resta nel campo storico: con la sola URL
+				// predefinita la risposta e` identica a prima.
+				urlInvocazione.setUrlInvocazione(urls.get(0).url());
+
+				for(UrlInvocazioneRisolta aggiuntiva: urls.subList(1, urls.size())) {
+					urlInvocazione.addUrlInvocazioneAggiuntiveItem(toUrlInvocazioneRisolta(aggiuntiva));
+				}
 
 				this.logger.info("Invocazione completata con successo");
 				return ResponseEntity.ok(urlInvocazione);
@@ -655,10 +686,30 @@ public class APIController implements ApiApi {
 
 				ServizioEntity servizio = entity.getServizio();
 
+				// Descrizione e note sono modificabili in ogni stato, anche con dati obbligatori mancanti:
+				// gli altri dati, se presenti, devono essere invariati
+				if(this.dettaglioAssembler.isSoloDescrizioneNote(apiUpdate, entity)
+						&& this.servizioAuthorization.isDescrizioneNoteApiModificabili(servizio)) {
+					isForce(force, this.servizioDettaglioAssembler.toGrant(servizio).getRuoli());
+					this.logger.debug("Autorizzazione completata con successo");
+
+					this.dettaglioAssembler.toEntityDescrizioneNote(apiUpdate, entity);
+					this.service.save(entity);
+					API api = this.dettaglioAssembler.toModel(entity);
+					this.logger.info("Invocazione completata con successo");
+
+					return ResponseEntity.ok(api);
+				}
+
+				String profiloGovwayOverridePrima = this.profiloGovwayService.getOverride(entity);
+
 				List<ConfigurazioneClasseDato> lstClassiDato = new ArrayList<>();
 
 				if(apiUpdate.getIdentificativo()!=null) {
 					lstClassiDato.add(ConfigurazioneClasseDato.IDENTIFICATIVO);
+					// Cambiare nome, versione o ruolo re-identifica l'API: vale come modifica
+					// della composizione della lista delle API del servizio.
+					lstClassiDato.add(ConfigurazioneClasseDato.API);
 					boolean nomeCambiato = !entity.getNome().equals(apiUpdate.getIdentificativo().getNome());
 					boolean versioneCambiata = !entity.getVersione().equals(apiUpdate.getIdentificativo().getVersione());
 
@@ -709,9 +760,18 @@ public class APIController implements ApiApi {
 					this.dettaglioAssembler.toEntityProduzione(apiUpdate.getConfigurazioneProduzione(), entity);
 				}
 
+				// La compatibilita` dei profili con il profilo di interoperabilita` GovWay si verifica sullo stato
+				// finale dell'API: quando cambiano i profili o la ridefinizione del profilo di interoperabilita`
+				if(apiUpdate.getDatiSpecifica()!=null || !Objects.equals(profiloGovwayOverridePrima, this.profiloGovwayService.getOverride(entity))) {
+					this.profiloGovwayService.checkProfili(entity);
+				}
+
 				Grant grant = this.servizioDettaglioAssembler.toGrant(entity.getServizio());
 
 				if(!isForce(force, grant.getRuoli())) {
+					if(apiUpdate.getDatiCustom()!=null) {
+						this.servizioAuthorization.authorizeModificaProprietaCustomApi(apiUpdate.getDatiCustom().getProprietaCustom(), servizio);
+					}
 					this.servizioAuthorization.authorizeModifica(servizio, lstClassiDato);
 				}
 				

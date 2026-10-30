@@ -228,7 +228,13 @@ describe('ServiziComponent', () => {
     expect(component._message).toBe('APP.MESSAGE.NoResults');
   });
 
-  it('should navigate on _onNew', () => {
+  it('should navigate to the wizard on _onNew', () => {
+    component._onNew();
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['servizi', 'new', 'wizard']);
+  });
+
+  it('should navigate to the classic form on _onNew when wizardNewLayout is false', () => {
+    component.config = { AppConfig: { Services: { wizardNewLayout: false } } };
     component._onNew();
     expect(mockRouter.navigate).toHaveBeenCalledWith(['servizi', 'new']);
   });
@@ -2629,9 +2635,29 @@ describe('ServiziComponent', () => {
   // ===== _initDominiSelect =====
 
   describe('_initDominiSelect', () => {
-    it('should initialize domini$ observable', () => {
+    it('should search the domains of the filter only from the minimum length and load the next pages', () => {
+      vi.useFakeTimers();
+      mockApiService.getList.mockImplementation((_m: string, opts: any) => of({
+        content: [{ id_dominio: `d${opts.params.page}` }], page: { totalPages: 2 }
+      }));
       component._initDominiSelect([]);
-      expect(component.domini$).toBeDefined();
+      let _items: any[] = [];
+      const _sub = component.dominiTypeahead.items$.subscribe((items: any[]) => _items = items);
+      vi.advanceTimersByTime(500);
+      expect(mockApiService.getList).not.toHaveBeenCalledWith('domini', expect.anything());
+      component.dominiTypeahead.input$.next('regione');
+      vi.advanceTimersByTime(500);
+      component.dominiTypeahead.loadMore();
+      expect(mockApiService.getList).toHaveBeenCalledWith('domini', { params: { q: 'regione', page: '1' } });
+      expect(_items.map((d: any) => d.id_dominio)).toEqual(['d0', 'd1']);
+      _sub.unsubscribe();
+      mockApiService.getList.mockReturnValue(of({ content: [], page: { totalElements: 0 }, _links: {} }));
+      vi.useRealTimers();
+    });
+
+    it('should initialize the paged domains typeahead', () => {
+      component._initDominiSelect([]);
+      expect(component.dominiTypeahead.items$).toBeDefined();
     });
   });
 
@@ -2705,7 +2731,7 @@ describe('ServiziComponent', () => {
       expect(component._workflowStatiFiltered.some((s: any) => s.value === 'archiviato')).toBe(false);
     });
 
-    it('should include archiviato when gestore', () => {
+    it('should exclude archiviato even when gestore (dedicated control)', () => {
       const cfg = {
         servizio: {
           workflow: { stati: ['bozza', 'pubblicato', 'archiviato'] },
@@ -2717,7 +2743,7 @@ describe('ServiziComponent', () => {
 
       component._createWorkflowStati();
 
-      expect(component._workflowStatiFiltered.some((s: any) => s.value === 'archiviato')).toBe(true);
+      expect(component._workflowStatiFiltered.some((s: any) => s.value === 'archiviato')).toBe(false);
     });
 
     it('should update searchFields stato enum values', () => {

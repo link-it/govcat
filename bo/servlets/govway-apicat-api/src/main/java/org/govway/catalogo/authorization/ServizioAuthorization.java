@@ -68,13 +68,17 @@ public class ServizioAuthorization extends AbstractServizioAuthorization {
 					this.checkCampiObbligatoriSpecifica(servizio, errori);
 					this.checkCampiObbligatoriSpecificaApi(servizio, errori);
 					break;
+				// oltre ai controlli dell'ambiente, le estensioni dei gruppi con classe dato *_configurato
+				// (come per le adesioni): consente di richiederle solo negli stati che le prevedono
 				case COLLAUDO_CONFIGURATO:
 					this.checkCampiObbligatoriCollaudo(servizio, errori);
 					this.checkCampiObbligatoriCollaudoApi(servizio, errori);
+					this.checkEstensioniGruppoApi(servizio, ConfigurazioneClasseDato.COLLAUDO_CONFIGURATO, errori);
 					break;
 				case PRODUZIONE_CONFIGURATO:
 					this.checkCampiObbligatoriProduzione(servizio, errori);
 					this.checkCampiObbligatoriProduzioneApi(servizio, errori);
+					this.checkEstensioniGruppoApi(servizio, ConfigurazioneClasseDato.PRODUZIONE_CONFIGURATO, errori);
 					break;
 				case COLLAUDO_PDND:
 					this.checkEstensioniGruppoApi(servizio, ConfigurazioneClasseDato.COLLAUDO_PDND, errori);
@@ -157,6 +161,15 @@ public class ServizioAuthorization extends AbstractServizioAuthorization {
 		if(!entity.getComponenti().isEmpty()) {
 			throw new NotAuthorizedException(ErrorCode.AUT_403);
 		}
+	}
+
+	/**
+	 * Descrizione e note delle API sono modificabili in ogni stato da chi ha un ruolo sul servizio,
+	 * senza i controlli sui dati obbligatori e sui dati non modificabili dello stato.
+	 */
+	public boolean isDescrizioneNoteApiModificabili(ServizioEntity entity) {
+		this.authorizeAnything();
+		return entity.getComponenti().isEmpty() && !this.getRuoli(entity).isEmpty();
 	}
 
 	@Override

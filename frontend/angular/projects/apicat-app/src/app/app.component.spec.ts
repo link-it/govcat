@@ -16,12 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+import { importProvidersFrom } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { BsLocaleService } from 'ngx-bootstrap/datepicker';
+import { ModalModule } from 'ngx-bootstrap/modal';
 
 import { AppComponent } from './app.component';
 import { ConfigService } from '@linkit/components';
@@ -38,6 +40,7 @@ describe('AppComponent', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         BsLocaleService,
+        importProvidersFrom(ModalModule.forRoot()),
         { provide: ConfigService, useValue: { getConfiguration: () => ({ AppConfig: { GOVAPI: { HOST: '', HOST_PDND: '', HOST_MONITOR: '' } } }) } }
       ]
     }).compileComponents();

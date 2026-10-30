@@ -118,6 +118,17 @@
           </h1>
         </div>
       </div>
+      @if (_loggedOut) {
+        <div class="gl-w-half gl-xs-w-full gl-ml-auto gl-mr-auto mb-3">
+          <div class="logged-out-notice" role="status">
+            <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+            <div>
+              <strong class="d-block">{{ 'APP.MESSAGE.LOGIN.LoggedOutTitle' | translate }}</strong>
+              <span>{{ 'APP.MESSAGE.LOGIN.LoggedOutMessage' | translate }}</span>
+            </div>
+          </div>
+        </div>
+      }
       @if (AUTH_USER) {
         <div class="mb-3">
           <div class="gl-w-half gl-xs-w-full gl-ml-auto gl-mr-auto bar">
@@ -190,7 +201,7 @@
         <ng-container class="gl-px-5">
           @if (auth.enabled) {
             <div class="gl-px-5">
-              <button type="button" class="gl-button btn btn-block btn-default" (click)="logidWithUrlAction(auth)">
+              <button type="button" class="gl-button btn btn-block" [class.btn-default]="!_loggedOut" [class.btn-confirm]="_loggedOut" (click)="logidWithUrlAction(auth)">
                 @if (auth.icon) {
                   <i class="bi bi-{{ auth.icon }} me-2"></i>
                 }

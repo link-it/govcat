@@ -122,17 +122,17 @@
       "label": "APP.LABEL.Type",
       "small": true,
       "values": {
-        "referente": { "label": "APP.ROLE.referente", "chipVariant": "warn", "background": "#E87823", "border": "#E87823", "color": "#ffffff" },
-        "referente_tecnico_adesione": { "label": "APP.ROLE.referente_tecnico_adesione", "chipVariant": "warn", "background": "#E87823", "border": "#E87823", "color": "#ffffff" },
+        "referente": { "label": "APP.ROLE.referente", "chipVariant": "warn", "background": "#ae5a1c", "border": "#ae5a1c", "color": "#ffffff" },
+        "referente_tecnico_adesione": { "label": "APP.ROLE.referente_tecnico_adesione", "chipVariant": "warn", "background": "#ae5a1c", "border": "#ae5a1c", "color": "#ffffff" },
         "referente_tecnico": { "label": "APP.ROLE.referente_tecnico", "chipVariant": "warn", "background": "#efc96c", "border": "#efc96c", "color": "#1f1f1f" },
-        "referente_servizio": { "label": "APP.ROLE.referente_servizio", "chipVariant": "info", "background": "#3492eb", "border": "#3492eb", "color": "#ffffff" },
-        "referente_tecnico_servizio": { "label": "APP.ROLE.referente_tecnico_servizio", "chipVariant": "info", "background": "#3492eb", "border": "#3492eb", "color": "#ffffff" },
-        "referente_adesione": { "label": "APP.ROLE.referente_adesione", "chipVariant": "warn", "background": "#E87823", "border": "#E87823", "color": "#ffffff" },
+        "referente_servizio": { "label": "APP.ROLE.referente_servizio", "chipVariant": "info", "background": "#2a77c0", "border": "#2a77c0", "color": "#ffffff" },
+        "referente_tecnico_servizio": { "label": "APP.ROLE.referente_tecnico_servizio", "chipVariant": "info", "background": "#2a77c0", "border": "#2a77c0", "color": "#ffffff" },
+        "referente_adesione": { "label": "APP.ROLE.referente_adesione", "chipVariant": "warn", "background": "#ae5a1c", "border": "#ae5a1c", "color": "#ffffff" },
         "referente_dominio": { "label": "APP.ROLE.referente_dominio", "chipVariant": "ok", "background": "#57cc99", "border": "#57cc99", "color": "#1f1f1f" },
         "referente_tecnico_dominio": { "label": "APP.ROLE.referente_tecnico_dominio", "chipVariant": "ok", "background": "#57cc99", "border": "#57cc99", "color": "#1f1f1f" },
-        "utente_organizzazione": { "label": "APP.ROLE.utente_organizzazione", "chipVariant": "info", "background": "#60a5fa", "border": "#60a5fa", "color": "#ffffff" },
+        "utente_organizzazione": { "label": "APP.ROLE.utente_organizzazione", "chipVariant": "info", "background": "#4577b4", "border": "#4577b4", "color": "#ffffff" },
         "amministratore_organizzazione": { "label": "APP.ROLE.amministratore_organizzazione", "chipVariant": "brand", "background": "#c4b5fd", "border": "#c4b5fd", "color": "#1f1f1f" },
-        "operatore_api": { "label": "APP.ROLE.operatore_api", "chipVariant": "info", "background": "#0891b2", "border": "#0891b2", "color": "#ffffff" }
+        "operatore_api": { "label": "APP.ROLE.operatore_api", "chipVariant": "info", "background": "#087b97", "border": "#087b97", "color": "#ffffff" }
       }
     },
     "roles": {
@@ -141,15 +141,15 @@
       "values": {
         "referente_dominio": { "label": "APP.ROLE.referente_dominio", "chipVariant": "ok", "background": "#57cc99", "border": "#57cc99", "color": "#1f1f1f" },
         "referente_tecnico_dominio": { "label": "APP.ROLE.referente_tecnico_dominio", "chipVariant": "ok", "background": "#57cc99", "border": "#57cc99", "color": "#1f1f1f" },
-        "referente_servizio": { "label": "APP.ROLE.referente_servizio", "chipVariant": "info", "background": "#3492eb", "border": "#3492eb", "color": "#ffffff" },
-        "referente_tecnico_servizio": { "label": "APP.ROLE.referente_tecnico_servizio", "chipVariant": "info", "background": "#3492eb", "border": "#3492eb", "color": "#ffffff" },
-        "referente_adesione": { "label": "APP.ROLE.referente_adesione", "chipVariant": "warn", "background": "#E87823", "border": "#E87823", "color": "#ffffff" },
-        "referente_tecnico_adesione": { "label": "APP.ROLE.referente_tecnico_adesione", "chipVariant": "warn", "background": "#E87823", "border": "#E87823", "color": "#ffffff" },
+        "referente_servizio": { "label": "APP.ROLE.referente_servizio", "chipVariant": "info", "background": "#2a77c0", "border": "#2a77c0", "color": "#ffffff" },
+        "referente_tecnico_servizio": { "label": "APP.ROLE.referente_tecnico_servizio", "chipVariant": "info", "background": "#2a77c0", "border": "#2a77c0", "color": "#ffffff" },
+        "referente_adesione": { "label": "APP.ROLE.referente_adesione", "chipVariant": "warn", "background": "#ae5a1c", "border": "#ae5a1c", "color": "#ffffff" },
+        "referente_tecnico_adesione": { "label": "APP.ROLE.referente_tecnico_adesione", "chipVariant": "warn", "background": "#ae5a1c", "border": "#ae5a1c", "color": "#ffffff" },
         "richiedente_servizio": { "label": "APP.ROLE.richiedente_servizio", "chipVariant": "muted", "background": "#e7f9cc", "border": "#e7f9cc", "color": "#1f1f1f" },
         "richiedente_adesione": { "label": "APP.ROLE.richiedente_adesione", "chipVariant": "muted", "background": "#e7f9cc", "border": "#e7f9cc", "color": "#1f1f1f" },
-        "utente_organizzazione": { "label": "APP.ROLE.utente_organizzazione", "chipVariant": "info", "background": "#60a5fa", "border": "#60a5fa", "color": "#ffffff" },
+        "utente_organizzazione": { "label": "APP.ROLE.utente_organizzazione", "chipVariant": "info", "background": "#4577b4", "border": "#4577b4", "color": "#ffffff" },
         "amministratore_organizzazione": { "label": "APP.ROLE.amministratore_organizzazione", "chipVariant": "brand", "background": "#c4b5fd", "border": "#c4b5fd", "color": "#1f1f1f" },
-        "operatore_api": { "label": "APP.ROLE.operatore_api", "chipVariant": "info", "background": "#0891b2", "border": "#0891b2", "color": "#ffffff" }
+        "operatore_api": { "label": "APP.ROLE.operatore_api", "chipVariant": "info", "background": "#087b97", "border": "#087b97", "color": "#ffffff" }
       }
     },
     "configuration_status": {

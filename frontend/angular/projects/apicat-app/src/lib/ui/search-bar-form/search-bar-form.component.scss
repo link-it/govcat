@@ -18,8 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 .form-search-container {
 
-    max-height: calc(100vh - 48px - 48px - 66px - 170px) !important;
-    overflow: auto !important;
+    // Niente scroll interno: taglierebbe i menu delle ng-select; se serve scorre la pagina.
 
     .form-control {
         height: 1.5rem !important;

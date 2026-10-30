@@ -40,8 +40,9 @@
         </div>
       </div>
       <div class="nav-controls align-self-center d-flex">
-        <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary me-4" *ngIf="_spinSend">
-          <span class="spinner-border spinner-border-sm text-primary"></span>
+        <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary me-4" *ngIf="_spinSend"
+                disabled [attr.aria-busy]="true" [attr.aria-label]="'APP.LABEL.Loading' | translate">
+          <span class="spinner-border spinner-border-sm text-primary" aria-hidden="true"></span>
         </button>
         <!-- <div role="group" class="gl-w-full btn-group me-3">
           <button type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="_toggleSender()">

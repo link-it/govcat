@@ -27,6 +27,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
@@ -34,6 +37,8 @@ import io.swagger.v3.parser.OpenAPIV3Parser;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 
 public class OpenapiUtils {
+
+	private static final Logger logger = LoggerFactory.getLogger(OpenapiUtils.class);
 
 	public static boolean isOpenapi(byte[] openapiBytes) {
 		try {
@@ -51,6 +56,11 @@ public class OpenapiUtils {
 		byte[] minimalOpenApi = YamltoJsonUtils.convertYamlToJson(openapi);
 
 		SwaggerParseResult pr = new OpenAPIV3Parser().readContents(new String(minimalOpenApi));
+
+		if(pr.getOpenAPI() == null) {
+			// DEBUG e non WARN: i documenti Swagger 2.0 passano sempre da qui prima di essere riconosciuti
+			logger.debug("Documento non riconosciuto come OpenAPI 3: {}", pr.getMessages());
+		}
 
 		return pr.getOpenAPI();
 	}

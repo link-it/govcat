@@ -1,0 +1,18 @@
+{
+  "events": [
+    {
+      "id": "1e000000-0000-0000-0000-000000000001",
+      "eventType": "PURPOSE_ADDED",
+      "eventTimestamp": "2026-01-15T09:31:00Z",
+      "purposeId": "66666666-6666-6666-6666-666666666666",
+      "purposeVersionId": "66666666-6666-6666-6666-6666666666aa"
+    },
+    {
+      "id": "2e000000-0000-0000-0000-000000000002",
+      "eventType": "NEW_PURPOSE_VERSION_WAITING_FOR_APPROVAL",
+      "eventTimestamp": "2026-01-15T09:32:00Z",
+      "purposeId": "66666666-6666-6666-6666-666666666666",
+      "purposeVersionId": "66666666-6666-6666-6666-6666666666aa"
+    }
+  ]
+}

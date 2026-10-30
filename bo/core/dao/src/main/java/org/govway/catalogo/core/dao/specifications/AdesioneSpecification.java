@@ -68,6 +68,7 @@ public class AdesioneSpecification implements Specification<AdesioneEntity> {
 	private Optional<UUID> client = Optional.empty();
 	private Optional<STATO_CONFIGURAZIONE> statoConfigurazione = Optional.empty();
 	private List<String> stati = null;
+	private List<String> statiServizio = null;
 	private List<String> tag = null;
 
 	@Override
@@ -189,6 +190,20 @@ public class AdesioneSpecification implements Specification<AdesioneEntity> {
 			}
 		}
 
+		if(statiServizio != null) {
+			if(!statiServizio.isEmpty()) {
+				ArrayList<Predicate> preds2 = new ArrayList<>();
+				
+				for(String statoServizio: statiServizio) {
+					preds2.add(cb.equal(root.get(AdesioneEntity_.servizio).get(ServizioEntity_.stato), statoServizio));
+				}
+				
+				predLst.add(cb.or(preds2.toArray(new Predicate[]{})));
+			} else {
+				predLst.add(cb.disjunction());
+			}
+		}
+
 		if(this.idOrganizzazioneVisibilita.isPresent()) {
 			predLst.add(getOrganizzazioneVisibilitaFilter(this.idOrganizzazioneVisibilita.get(), root, cb));
 		}
@@ -287,6 +302,14 @@ public class AdesioneSpecification implements Specification<AdesioneEntity> {
 
 	public void setStati(List<String> stati) {
 		this.stati = stati;
+	}
+
+	public List<String> getStatiServizio() {
+		return statiServizio;
+	}
+
+	public void setStatiServizio(List<String> statiServizio) {
+		this.statiServizio = statiServizio;
 	}
 
 	public List<String> getTag() {

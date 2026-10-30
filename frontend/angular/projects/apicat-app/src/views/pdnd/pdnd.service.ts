@@ -109,13 +109,19 @@ interface EserviceDescriptorsResponse {
     descriptors: EserviceDescriptor[];
 }
 
-interface Agreement {
+export interface Agreement {
     id: string;
     eserviceId: string;
     descriptorId: string;
     producerId: string;
     consumerId: string;
     state: string;
+    /** Sospensioni distinte per soggetto (solo integrazione v3). */
+    suspendedByProducer?: boolean;
+    suspendedByConsumer?: boolean;
+    suspendedByPlatform?: boolean;
+    /** Motivazione notificata al fruitore, presente con stato REJECTED. */
+    rejectionReason?: string;
 }
 
 export interface Attribute { id: string, validity: string }
@@ -126,10 +132,21 @@ interface AgreementAttributesResponse {
     declared: Attribute[];
 }
 
-interface Purpose {
+export interface Purpose {
     id: string;
+    title?: string;
+    /** Previsione di carico attiva (chiamate/giorno). */
     throughput: number;
+    /** ACTIVE | DRAFT | SUSPENDED | WAITING_FOR_APPROVAL | ARCHIVED */
     state: string;
+    /** Presente solo se esiste una versione in attesa di approvazione. */
+    waitingForApproval?: {
+        id: string;
+        throughput: number;
+    };
+    /** Sospensioni distinte per soggetto (solo integrazione v3). */
+    suspendedByProducer?: boolean;
+    suspendedByConsumer?: boolean;
 }
 
 interface AgreementPurposesResponse {
@@ -240,12 +257,36 @@ export class PdndService {
     }
 
     /**
-     * Issue 250 (Fase 2): approvazione di una finalita`. Flusso distinto
-     * (aumento chiamate giornaliere); metodo disponibile ma non ancora
-     * cablato in UI.
+     * Approvazione di una finalita` con richiesta di aumento delle chiamate giornaliere
+     * (versione in attesa). Va passato l'id della finalita`, non quello della versione.
      */
     public approvePurpose(environmentId: string, purposeId: string) {
         return this.post<Purpose>(`${environmentId}/purposes/${purposeId}/approve`);
+    }
+
+    /**
+     * Rifiuto, sospensione e riattivazione di accordi e finalita` (PDND v3, ruolo PDND admin).
+     * La riattivazione revoca solo la sospensione dell'erogatore: l'oggetto restituito puo` restare sospeso.
+     * Il rifiuto di una finalita` non e` esposto dalla PDND.
+     */
+    public rejectAgreement(environmentId: string, agreementId: string, reason: string) {
+        return this.post<Agreement>(`${environmentId}/agreements/${agreementId}/reject`, undefined, { reason });
+    }
+
+    public suspendAgreement(environmentId: string, agreementId: string) {
+        return this.post<Agreement>(`${environmentId}/agreements/${agreementId}/suspend`);
+    }
+
+    public unsuspendAgreement(environmentId: string, agreementId: string) {
+        return this.post<Agreement>(`${environmentId}/agreements/${agreementId}/unsuspend`);
+    }
+
+    public suspendPurpose(environmentId: string, purposeId: string) {
+        return this.post<Purpose>(`${environmentId}/purposes/${purposeId}/suspend`);
+    }
+
+    public unsuspendPurpose(environmentId: string, purposeId: string) {
+        return this.post<Purpose>(`${environmentId}/purposes/${purposeId}/unsuspend`);
     }
 
     public serviceList(environmentId: string, organizationOrigin: string, organizationExternalId: string, attributeOrigin: string, attributeCode: string) {
@@ -289,8 +330,8 @@ export class PdndService {
         );
     }
 
-    private post<T>(url: string, params?: HttpParams): Observable<PdndResponse<T>> {
-        return this.apiService.postPDND(url, {}, { params }).pipe(
+    private post<T>(url: string, params?: HttpParams, body: any = {}): Observable<PdndResponse<T>> {
+        return this.apiService.postPDND(url, body, { params }).pipe(
             map((response) => {
                 return { data: response };
             }),

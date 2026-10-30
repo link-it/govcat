@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { of, Subject, throwError } from 'rxjs';
+import { FormControl, FormGroup } from '@angular/forms';
 import { ClientDetailsComponent } from './client-details.component';
 import { Tools } from '@linkit/components';
 
@@ -1659,17 +1660,41 @@ describe('ClientDetailsComponent', () => {
       expect(result.id_organizzazione).toBe('o1');
     });
 
-    it('should use _auth_type for existing client', () => {
+    it('should use the auth type of the form for an existing client', () => {
       component._isNew = false;
       component._auth_type = 'https';
+      component._formGroup.controls['auth_type'].setValue('oauth_authorization_code');
       component._formGroup.controls['ambiente'].setValue('produzione');
       const result = component._prepareDataToSend({
         nome: 'Test',
         stato: 'nuovo',
         id_soggetto: 's1'
       });
-      expect(result.dati_specifici.auth_type).toBe('https');
+      expect(result.dati_specifici.auth_type).toBe('oauth_authorization_code');
       expect(result.id_soggetto).toBe('s1');
+    });
+
+    it('should let the auth type be changed only while the client is new', () => {
+      component._isNew = false;
+      component._isEdit = true;
+      component.client = { stato: 'nuovo' } as any;
+      expect((component as any)._computeDialogInput().authTypeEditable).toBe(true);
+      expect((component as any)._computeDialogInput().authTypeVisible).toBe(true);
+      component.client = { stato: 'configurato' } as any;
+      expect((component as any)._computeDialogInput().authTypeEditable).toBe(false);
+      component._isEdit = false;
+      component.client = { stato: 'nuovo' } as any;
+      expect((component as any)._computeDialogInput().authTypeEditable).toBe(false);
+      expect((component as any)._computeDialogInput().authTypeVisible).toBe(true);
+    });
+
+    it('should fall back to the saved auth type when the form has none', () => {
+      component._isNew = false;
+      component._auth_type = 'https';
+      component._formGroup.controls['auth_type'].setValue(null);
+      component._formGroup.controls['ambiente'].setValue('produzione');
+      const result = component._prepareDataToSend({ nome: 'Test', stato: 'nuovo', id_soggetto: 's1' });
+      expect(result.dati_specifici.auth_type).toBe('https');
     });
 
     it('should include rate_limiting when _show_erogazione_rate_limiting and quota present', () => {
@@ -1897,6 +1922,85 @@ describe('ClientDetailsComponent', () => {
       const spy = vi.spyOn(component, '_loadClient').mockImplementation(() => {});
       component._loadAll();
       expect(spy).toHaveBeenCalled();
+    });
+  });
+
+  describe('select del soggetto (ricerca lato server)', () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('should add the current soggetto when it is not in the first page', () => {
+      vi.useFakeTimers();
+      component._formGroup = new FormGroup({
+        id_organizzazione: new FormControl('org1'),
+        id_soggetto: new FormControl('s99')
+      });
+      component._client = { soggetto: { id_soggetto: 's99', nome: 'Corrente' } } as any;
+      mockApiService.getList.mockReturnValue(of({ content: [{ id_soggetto: 's1', nome: 'S1' }, { id_soggetto: 's2', nome: 'S2' }] }));
+
+      component._checkSoggetto('org1');
+      let items: any[] = [];
+      component.soggetti$.subscribe(v => items = v);
+
+      expect(items.map(i => i.id_soggetto)).toEqual(['s99', 's1', 's2']);
+      expect(component._hideSoggettoDropdown).toBe(false);
+    });
+
+    it('should not duplicate the current soggetto when already in the first page', () => {
+      vi.useFakeTimers();
+      component._formGroup = new FormGroup({
+        id_organizzazione: new FormControl('org1'),
+        id_soggetto: new FormControl('s1')
+      });
+      component._client = { soggetto: { id_soggetto: 's1', nome: 'S1' } } as any;
+      mockApiService.getList.mockReturnValue(of({ content: [{ id_soggetto: 's1', nome: 'S1' }, { id_soggetto: 's2', nome: 'S2' }] }));
+
+      component._checkSoggetto('org1');
+      let items: any[] = [];
+      component.soggetti$.subscribe(v => items = v);
+
+      expect(items.map(i => i.id_soggetto)).toEqual(['s1', 's2']);
+    });
+
+    it('should search by term and reload the first page when the term is cleared', () => {
+      vi.useFakeTimers();
+      component._formGroup = new FormGroup({
+        id_organizzazione: new FormControl('org1'),
+        id_soggetto: new FormControl(null)
+      });
+      mockApiService.getList.mockReturnValue(of({ content: [] }));
+
+      component._initSoggettiSelect([]);
+      component.soggetti$.subscribe();
+
+      component.soggettiInput$.next('abc');
+      vi.advanceTimersByTime(500);
+      expect(mockApiService.getList).toHaveBeenLastCalledWith('soggetti', { params: { q: 'abc', id_organizzazione: 'org1', aderente: true } });
+
+      component.soggettiInput$.next('');
+      vi.advanceTimersByTime(500);
+      expect(mockApiService.getList).toHaveBeenLastCalledWith('soggetti', { params: { id_organizzazione: 'org1', aderente: true } });
+    });
+  });
+
+  describe('_loadAuthTypes', () => {
+    it('should replace the list with a new array without duplicates', () => {
+      const before = component._authTypeEnum;
+      component._loadAuthTypes();
+      const first = component._authTypeEnum;
+      expect(first).not.toBe(before);
+      expect(first).toEqual(['https']);
+
+      component._loadAuthTypes();
+      expect(component._authTypeEnum).toEqual(['https']);
+      expect(component._authTypeEnum).not.toBe(first);
+    });
+
+    it('should return an empty list when the configuration is missing', () => {
+      Tools.Configurazione = null as any;
+      component._loadAuthTypes();
+      expect(component._authTypeEnum).toEqual([]);
     });
   });
 });

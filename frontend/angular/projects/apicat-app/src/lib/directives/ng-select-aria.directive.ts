@@ -33,6 +33,8 @@ export class NgSelectAriaDirective implements AfterViewInit, OnDestroy {
 
   /** id opzionale dell'elemento che contiene il messaggio d'errore (per aria-describedby). */
   @Input() errorId: string | null = null;
+  /** id opzionale di un testo descrittivo sempre associato (es. hint), unito all'errore. */
+  @Input() describedBy: string | null = null;
 
   private destroy$ = new Subject<void>();
 
@@ -78,7 +80,8 @@ export class NgSelectAriaDirective implements AfterViewInit, OnDestroy {
 
     const invalid = control.invalid && control.touched;
     this.toggle(input, 'aria-invalid', invalid ? 'true' : null);
-    this.toggle(input, 'aria-describedby', invalid && this.errorId ? this.errorId : null);
+    const describedBy = [this.describedBy, (invalid && this.errorId) ? this.errorId : null].filter(Boolean).join(' ');
+    this.toggle(input, 'aria-describedby', describedBy || null);
   }
 
   private toggle(el: HTMLElement, attr: string, value: string | null): void {

@@ -23,21 +23,24 @@
         <div class="alert alert-danger mb-1">{{imageError}}</div>
       }
       <div class="custom-file fileInputProfileWrap">
-        <input type="file" [accept]="fileTypes.join(',')" (change)="fileChangeEvent($event)" class="fileInputProfile" [attr.aria-label]="uploadLabel">
         <div class="img-space" [ngStyle]="{'width': boxWidth, 'height': boxHeight}">
-          @if (isImageSaved) {
+          @if (isImageSaved && cropRatio) {
+            <lnk-crop-preview [src]="cardImageBase64" alt="Immagine" [ratio]="cropRatio"></lnk-crop-preview>
+          } @else if (isImageSaved) {
             <img [src]="cardImageBase64" alt="Immagine" />
           } @else {
             <img [src]="placeHolder" alt="Immagine" class="img-responsive">
           }
         </div>
-        <div class="position-absolute top-0 end-0">
+        <!-- Solo la matita e` attiva: l'input file la ricopre esattamente. -->
+        <div class="position-absolute top-0 end-0 photo-edit">
           <div class="btn btn-default btn-md gl-button btn-icon"><i class="bi bi-pencil" aria-hidden="true"></i></div>
+          <input type="file" [accept]="fileTypes.join(',')" (change)="fileChangeEvent($event)" class="fileInputProfile" [attr.aria-label]="uploadLabel">
         </div>
       </div>
     </fieldset>
   </div>
   @if (isImageSaved) {
-    <button class="btn btn-sm btn-danger" (click)="removeImage()">{{ removeLabel }}</button>
+    <button class="btn btn-sm btn-danger mt-2" (click)="removeImage()">{{ removeLabel }}</button>
   }
 </form>

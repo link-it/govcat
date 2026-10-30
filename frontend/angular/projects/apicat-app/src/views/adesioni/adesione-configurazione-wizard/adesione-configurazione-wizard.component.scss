@@ -362,7 +362,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   .lnk-btn-icon { width: 30px; padding: 0; justify-content: center; }
 
   // NOTE: le rules `.gstepper` / `.gstep` (step-bar 3-fasi) sono state
-  // migrate dentro `<app-adesione-fasi-bar>` (rev. 4.8) per coerenza con
+  // migrate dentro `<app-wizard-fasi-bar>` (rev. 4.8) per coerenza con
   // la view encapsulation Angular. Vedi `adesione-fasi-bar.component.scss`.
 
   // ─── status banner (azzurro, con barra rossa a sinistra) ────────────
@@ -495,7 +495,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
   // NOTE: le rules `.timeline` / `.tl-step` / `.tl-bullet` /
   // `.tl-panel` / ecc. (sub-stepper verticale) sono state migrate
-  // dentro `<app-adesione-substepper>` (rev. 4.10) per coerenza con
+  // dentro `<app-wizard-substepper>` (rev. 4.10) per coerenza con
   // la view encapsulation Angular. Vedi
   // `adesione-substepper.component.scss`.
 
@@ -807,20 +807,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     outline: none;
     box-shadow: inset 0 0 0 2px var(--accent);
   }
-  .lnk-ref-group-hd h4 {
+  // Titolo h3 (ordine dei titoli) con la resa compatta del gruppo
+  .lnk-ref-group-hd :is(h3, h4) {
     margin: 0; flex: 1;
     display: flex; align-items: center; gap: 8px;
-    font-size: 13.5px; font-weight: 600;
-  }
-  // Il titolo del gruppo "adesione" e' il toggle focusabile (contiene un
-  // bottone azione fratello, quindi il role="button" sta sull'h4, non sull'header).
-  .lnk-ref-group-hd h4[role="button"] {
-    cursor: pointer;
-  }
-  .lnk-ref-group-hd h4[role="button"]:focus-visible {
-    outline: none;
-    box-shadow: inset 0 0 0 2px var(--accent);
-    border-radius: 6px;
+    font-size: 13.5px; font-weight: 600; line-height: 1.5;
   }
   .lnk-ref-group-chev {
     font-size: 12px;

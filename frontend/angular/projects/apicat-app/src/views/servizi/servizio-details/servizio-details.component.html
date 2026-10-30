@@ -33,10 +33,15 @@
   </div>
   <div class="top-area container-fluid container-limited limit-container-width px-0">
     @if (_isEdit && !_isNew) {
-      <h3 class="page-title">{{ 'APP.TITLE.EditService' | translate }}</h3>
+      <h1 class="page-title">{{ 'APP.TITLE.EditService' | translate }}</h1>
     }
     @if (_isEdit && _isNew) {
-      <h3 class="page-title">{{ 'APP.TITLE.NewService' | translate }}</h3>
+      <h1 class="page-title">{{ 'APP.TITLE.NewService' | translate }}</h1>
+    }
+    <!-- a11y (WCAG 2.4.6): in vista (non-edit) manca il page-title; h1 sr-only
+         (condizione sincrona, sempre presente subito) per la gerarchia heading. -->
+    @if (!_isEdit) {
+      <h1 class="sr-only">{{ 'APP.TITLE.Service' | translate }}</h1>
     }
     <div class="d-flex flex-grow-1">&nbsp;</div>
     @if (_data.id_servizio) {
@@ -59,8 +64,7 @@
                                 @if (menu.show) {
                                   <li class="gl-new-dropdown-item">
                                     <button role="menuitem" type="button" class="dropdown-item"
-                                      [routerLink]="[menu.route]"
-                                      [relativeTo]="route">
+                                      [routerLink]="_sectionRoute(menu.route)">
                                       <div class="gl-new-dropdown-item-text-wrapper">
                                         <p class="gl-new-dropdown-item-text-primary">{{ menu.title | translate }}</p>
                                       </div>
@@ -111,6 +115,18 @@
                   (action)="onWorkflowAction($event)"
                 ></ui-workflow>
               }
+            </div>
+          }
+          @if (!_isEdit && !_spin && !_isNew && _wizardWorkflowEnabled) {
+            <div class="position-relative me-2 d-inline-block">
+              <lnk-button
+                [type]="'button'"
+                [label]="'APP.SERVICES.WIZARD.OpenWizard'"
+                [icon]="'bi bi-list-check'"
+                [ariaLabel]="'APP.SERVICES.WIZARD.OpenWizard' | translate"
+                [btnTooltip]="'APP.SERVICES.WIZARD.OpenWizard'"
+                (onAction)="_openWizard()"
+              ></lnk-button>
             </div>
           }
           @if (!_isEdit && !_spin && _editable) {
@@ -201,7 +217,7 @@
             <form novalidate class="issue-form common-note-form mt-3 gl-show-field-errors gfm-form" [class.form-readonly]="!_isEdit" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.getRawValue())">
               <div class="row gl-mt-3" [class.justify-content-center]="_isNew || _singleColumn">
                 <div class="" [class.col-lg-4]="!_singleColumn" [class.col-lg-9]="_singleColumn" [class.mb-5]="_singleColumn">
-                  <h4 class="gl-mt-0 text-break">{{ 'APP.SERVICES.TITLE.GeneralInformations' | translate }}</h4>
+                  <h2 class="h4 gl-mt-0 text-break">{{ 'APP.SERVICES.TITLE.GeneralInformations' | translate }}</h2>
                   <div class="text-break mb-sm-4 mb-lg-1" markdown>{{ 'APP.SERVICES.TITLE.GeneralInformations_sub' | translate }}</div>
                   <div class="row logo mt-4">
                     <div class="col-12">
@@ -210,7 +226,7 @@
                           <div class="">
                             <app-photo-base64
                               [boxWidth]="'250px'"
-                              [boxHeight]="'auto'"
+                              [boxHeight]="'auto'" [cropRatio]="_logoRatio"
                               [maxSize]="_maxImageSize"
                               [placeHolder]="_imagePlaceHolder"
                               [imageSaved]="{ path: data | mapper:_getLogoMapper } | httpImgSrc"
@@ -218,11 +234,12 @@
                               [removeLabel]="'APP.BUTTON.Remove' | translate"
                               (imageLoaded)="_onImageLoaded($event)"
                             ></app-photo-base64>
+                            <p class="form-text text-muted mb-0">{{ 'APP.LABEL.LogoFormatHintServizio' | translate }}</p>
                           </div>
                         }
                         @if (!_isEdit) {
                           <div class="mt-2">
-                            <img class="img-space" alt="Logo servizio" style="width: 250px;height: auto;" [src]="{ path: data | mapper:_getLogoMapper } | httpImgSrc" />
+                            <lnk-crop-preview class="img-space" style="width: 250px;" alt="Logo servizio" [ratio]="_logoRatio" [showCrop]="!!data?.immagine" [src]="{ path: data | mapper:_getLogoMapper } | httpImgSrc"></lnk-crop-preview>
                           </div>
                         }
                       </div>
@@ -256,7 +273,7 @@
                           }
                           @if (!_isEdit) {
                             <div class="">
-                              <input type="text" readonly class="form-control-plaintext" [value]="data?.tipo">
+                              <input type="text" readonly id="tipo" class="form-control-plaintext" [value]="data?.tipo">
                             </div>
                           }
                         </div>
@@ -281,7 +298,7 @@
                         </div>
                       </div>
                     </div>
-                    @if ((_updateData | mapper:_isGestoreMapper)) {
+                    @if ((_updateData | mapper:_isGestoreMapper) && _showPackage) {
                       <div class="col-4">
                         <div class="form-group package mt-2-">
                           <div class="form-group">
@@ -301,14 +318,10 @@
                             }
                             @if (!_isEdit && !isComponente) {
                               <div class="">
-                                <span class="">
-                                  @if (!data.package) {
-                                    <i class="bi bi-square"></i>
-                                  }
-                                  @if (data.package) {
-                                    <i class="bi bi-check-square"></i>
-                                  }
-                                </span>
+                                <div class="gl-form-checkbox custom-control custom-checkbox">
+                                  <input class="custom-control-input" type="checkbox" id="package" [checked]="data.package" disabled>
+                                  <label class="custom-control-label" aria-hidden="true"></label>
+                                </div>
                               </div>
                             }
                           </div>
@@ -330,14 +343,10 @@
                             }
                             @if (!_isEdit) {
                               <div class="">
-                                <span class="">
-                                  @if (!data.fruizione) {
-                                    <i class="bi bi-square"></i>
-                                  }
-                                  @if (data.fruizione) {
-                                    <i class="bi bi-check-square"></i>
-                                  }
-                                </span>
+                                <div class="gl-form-checkbox custom-control custom-checkbox">
+                                  <input class="custom-control-input" type="checkbox" id="fruizione" [checked]="data.fruizione" disabled>
+                                  <label class="custom-control-label" aria-hidden="true"></label>
+                                </div>
                               </div>
                             }
                           </div>
@@ -382,8 +391,8 @@
                       @if (_isEdit) {
                         <div class="">
                           <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_dominio')" [errorId]="'id_dominio-error'"
-                            [items]="(domini$ | async) || []"
-                            [typeahead]="dominiInput$"
+                            [items]="(dominiTypeahead.items$ | async) || []"
+                            [typeahead]="dominiTypeahead.input$" [loading]="dominiTypeahead.loading" (scrollToEnd)="dominiTypeahead.loadMore()"
                             [minTermLength]="minLengthTerm"
                             [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
                             [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
@@ -431,7 +440,7 @@
                       }
                     </div>
                   }
-                  @if ((_updateData | mapper:_isGestoreMapper)) {
+                  @if ((_updateData | mapper:_canCreateServizioMapper)) {
                     <div class="row visibilita">
                       <div class="col-6">
                         @if (_isEdit) {
@@ -592,7 +601,7 @@
                         @if (!_isEdit && !_hideSoggettoInfo) {
                           <div class="">
                             <label class="label-bold" for="id_soggetto_erogatore">{{ 'APP.LABEL.SoggettoErogatore' | translate }}</label>
-                            <input type="text" readonly class="form-control-plaintext" [value]="data.soggetto_erogatore?.nome || '-'">
+                            <input type="text" readonly id="id_soggetto_erogatore" class="form-control-plaintext" [value]="data.soggetto_erogatore?.nome || '-'">
                           </div>
                         }
                       </div>
@@ -797,7 +806,7 @@
                     }
                     @if (!_isEdit) {
                       <div class="">
-                        <input type="text" readonly class="form-control-plaintext" [value]="data?.termini_ricerca || '-'">
+                        <input type="text" readonly id="termini_ricerca" class="form-control-plaintext" [value]="data?.termini_ricerca || '-'">
                       </div>
                     }
                   </div>
@@ -949,15 +958,15 @@
                   }
                 </div>
               </div>
-              @if ((_updateData | mapper:_isGestoreMapper)) {
+              @if ((_updateData | mapper:_canCreateServizioMapper)) {
                 <div class="row mt-4" [class.justify-content-center]="(_isNew || _singleColumn)">
                   <div class="" [class.col-lg-4]="!_singleColumn" [class.col-lg-9]="_singleColumn" [class.mb-5]="_singleColumn">
-                    <h4 class="gl-mt-0 text-break">{{ 'APP.SERVICES.TITLE.AdhesionInformations' | translate }}</h4>
+                    <h2 class="h4 gl-mt-0 text-break">{{ 'APP.SERVICES.TITLE.AdhesionInformations' | translate }}</h2>
                     <div class="text-break mb-sm-4 mb-lg-1" markdown>{{ 'APP.SERVICES.TITLE.AdhesionInformations_sub' | translate }}</div>
                   </div>
                   <div class="" [class.col-lg-8]="!_singleColumn" [class.col-lg-9]="_singleColumn">
                     <div class="row adesione_disabilitata">
-                      @if (_hasFlagConsentiNonSottoscrivibile) {
+                      @if (_hasFlagConsentiNonSottoscrivibile && (_updateData | mapper:_isGestoreMapper)) {
                         <div class="col-6">
                           <div class="form-group">
                             @if (_isEdit || !isComponente) {
@@ -967,30 +976,29 @@
                             }
                             @if (_isEdit) {
                               <div class="gl-form-checkbox custom-control custom-checkbox">
-                                <input #chkAdesioneDisabilitata class="custom-control-input" type="checkbox" name="adesione_disabilitata" id="adesione_disabilitata" formControlName="adesione_disabilitata">
+                                <input #chkAdesioneDisabilitata class="custom-control-input" type="checkbox" name="adesione_disabilitata" id="adesione_disabilitata" formControlName="adesione_disabilitata" [attr.aria-describedby]="_adesioneBloccata.disabilitata ? 'adesione_disabilitata-dominio' : null">
                                 <label class="custom-control-label" aria-hidden="true" (click)="chkAdesioneDisabilitata.click()"></label>
                                 @if (isComponente) {
                                   <span class="ms-1" [tooltip]="helpTooltipAdesioneConsentita | translate" container="body"><i class="bi bi-question-circle"></i></span>
                                 }
                               </div>
+                              @if (_adesioneBloccata.disabilitata) {
+                                <p class="form-text text-muted mb-0" id="adesione_disabilitata-dominio">{{ 'APP.LABEL.ImpostatoDalDominio' | translate }}</p>
+                              }
                             }
                             @if (!_isEdit && !isComponente) {
                               <div class="">
-                                <span class="">
-                                  @if (!data.adesione_disabilitata) {
-                                    <i class="bi bi-square"></i>
-                                  }
-                                  @if (data.adesione_disabilitata) {
-                                    <i class="bi bi-check-square"></i>
-                                  }
-                                </span>
+                                <div class="gl-form-checkbox custom-control custom-checkbox">
+                                  <input class="custom-control-input" type="checkbox" id="adesione_disabilitata" [checked]="data.adesione_disabilitata" disabled>
+                                  <label class="custom-control-label" aria-hidden="true"></label>
+                                </div>
                               </div>
                             }
                           </div>
                         </div>
                       }
                     </div>
-                    @if (_hasAdesioniMultiple) {
+                    @if (_hasAdesioniMultiple && (_updateData | mapper:_isGestoreMapper)) {
                       <div class="row multi_adesione">
                         <div class="col-6">
                           <div class="form-group">
@@ -1000,20 +1008,19 @@
                               }</label>
                               @if (_isEdit) {
                                 <div class="gl-form-checkbox custom-control custom-checkbox">
-                                  <input #chkMultiAdesione class="custom-control-input" type="checkbox" name="multi_adesione" id="multi_adesione" formControlName="multi_adesione" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant">
+                                  <input #chkMultiAdesione class="custom-control-input" type="checkbox" name="multi_adesione" id="multi_adesione" formControlName="multi_adesione" [attr.aria-describedby]="_adesioneBloccata.multi ? 'multi_adesione-dominio' : null">
                                   <label class="custom-control-label" aria-hidden="true" (click)="chkMultiAdesione.click()"></label>
                                 </div>
+                                @if (_adesioneBloccata.multi) {
+                                  <p class="form-text text-muted mb-0" id="multi_adesione-dominio">{{ 'APP.LABEL.ImpostatoDalDominio' | translate }}</p>
+                                }
                               }
                               @if (!_isEdit) {
                                 <div class="">
-                                  <span class="text-">
-                                    @if (!data.multi_adesione) {
-                                      <i class="bi bi-square"></i>
-                                    }
-                                    @if (data.multi_adesione) {
-                                      <i class="bi bi-check-square"></i>
-                                    }
-                                  </span>
+                                  <div class="gl-form-checkbox custom-control custom-checkbox">
+                                    <input class="custom-control-input" type="checkbox" id="multi_adesione" [checked]="data.multi_adesione" disabled>
+                                    <label class="custom-control-label" aria-hidden="true"></label>
+                                  </div>
                                 </div>
                               }
                             </div>
@@ -1030,20 +1037,19 @@
                         </label>
                         @if (_isEdit) {
                           <div class="gl-form-checkbox custom-control custom-checkbox">
-                            <input #chkSkipCollaudo class="custom-control-input" type="checkbox" name="skip_collaudo" id="skip_collaudo" formControlName="skip_collaudo">
+                            <input #chkSkipCollaudo class="custom-control-input" type="checkbox" name="skip_collaudo" id="skip_collaudo" formControlName="skip_collaudo" [attr.aria-describedby]="_motivoSkipCollaudo ? 'skip_collaudo-motivo' : null">
                             <label class="custom-control-label" aria-hidden="true" (click)="chkSkipCollaudo.click()"></label>
                           </div>
+                          @if (_motivoSkipCollaudo; as motivo) {
+                            <p class="field-notice mb-0" id="skip_collaudo-motivo"><i class="bi bi-info-circle" aria-hidden="true"></i><span>{{ motivo | translate }}</span></p>
+                          }
                         }
                         @if (!_isEdit) {
                           <div class="">
-                            <span class="">
-                              @if (!data.skip_collaudo) {
-                                <i class="bi bi-square"></i>
-                              }
-                              @if (data.skip_collaudo) {
-                                <i class="bi bi-check-square"></i>
-                              }
-                            </span>
+                            <div class="gl-form-checkbox custom-control custom-checkbox">
+                              <input class="custom-control-input" type="checkbox" id="skip_collaudo" [checked]="data.skip_collaudo" disabled>
+                              <label class="custom-control-label" aria-hidden="true"></label>
+                            </div>
                           </div>
                         }
                       </div>

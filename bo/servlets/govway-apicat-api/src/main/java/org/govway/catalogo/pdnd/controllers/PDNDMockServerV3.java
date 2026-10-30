@@ -21,17 +21,44 @@ package org.govway.catalogo.pdnd.controllers;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
 
 import org.apache.commons.io.IOUtils;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotFoundException;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.AgreementEvent;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.AgreementEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.AttributeEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.CertifiedAttributes;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.ClientEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.ConsumerDelegationEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.EServiceEvent;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.EServiceEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.EServiceTemplateEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.KeyEvent;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.KeyEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.ProducerDelegationEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.ProducerKeyEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.ProducerKeychainEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.PurposeEvent;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.PurposeEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.PurposeTemplateEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.TenantCertifiedAttribute;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.TenantCertifiedAttributeSeed;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.TenantCertifiedAttributes;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.TenantDeclaredAttributes;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.TenantEvents;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.TenantVerifiedAttributeVerifiers;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.TenantVerifiedAttributes;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Agreement;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.AgreementRejection;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.AgreementState;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Agreements;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.CertifiedAttribute;
@@ -54,6 +81,8 @@ import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Key;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Problem;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Purpose;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Purposes;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.PurposeVersionState;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.PurposeVersion;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Tenant;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Tenants;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.VerifiedAttribute;
@@ -172,7 +201,7 @@ public class PDNDMockServerV3 {
 
 	public ResponseEntity<Agreement> getAgreement(UUID agreementId) {
 		checkInput(agreementId);
-		return ResponseEntity.ok(readMockResponse(Agreement.class));
+		return ResponseEntity.ok(readMockResponseAgreement(agreementId));
 	}
 
 	public ResponseEntity<Agreements> getAgreements(Integer offset, Integer limit, List<AgreementState> states,
@@ -186,12 +215,100 @@ public class PDNDMockServerV3 {
 
 	public ResponseEntity<Agreement> approveAgreement(UUID agreementId) {
 		checkInput(agreementId);
-		return ResponseEntity.ok(readMockResponse(Agreement.class));
+
+		// le risposte simulate sono condivise tra le richieste: l'accordo approvato e' una copia,
+		// cosi' l'approvazione non altera i dati restituiti dalle chiamate successive
+		Agreement approvato = copia(readMockResponseAgreement(agreementId), Agreement.class);
+		approvato.setState(AgreementState.ACTIVE);
+
+		return ResponseEntity.ok(approvato);
+	}
+
+	public ResponseEntity<Agreement> rejectAgreement(UUID agreementId, AgreementRejection agreementRejection) {
+		checkInput(agreementId);
+
+		Agreement rifiutato = copia(readMockResponseAgreement(agreementId), Agreement.class);
+		rifiutato.setState(AgreementState.REJECTED);
+		rifiutato.setRejectionReason(agreementRejection != null ? agreementRejection.getReason() : null);
+
+		return ResponseEntity.ok(rifiutato);
+	}
+
+	public ResponseEntity<Agreement> suspendAgreement(UUID agreementId) {
+		checkInput(agreementId);
+
+		Agreement sospeso = copia(readMockResponseAgreement(agreementId), Agreement.class);
+		sospeso.setState(AgreementState.SUSPENDED);
+		sospeso.setSuspendedByProducer(true);
+
+		return ResponseEntity.ok(sospeso);
+	}
+
+	/**
+	 * Revoca la sola sospensione dell'erogatore: l'accordo torna attivo unicamente se non e'
+	 * sospeso anche dal fruitore o dalla piattaforma, come avviene nella PDND.
+	 */
+	public ResponseEntity<Agreement> unsuspendAgreement(UUID agreementId) {
+		checkInput(agreementId);
+
+		Agreement riattivato = copia(readMockResponseAgreement(agreementId), Agreement.class);
+		riattivato.setSuspendedByProducer(false);
+
+		if(!isVero(riattivato.isSuspendedByConsumer()) && !isVero(riattivato.isSuspendedByPlatform())) {
+			riattivato.setState(AgreementState.ACTIVE);
+		}
+
+		return ResponseEntity.ok(riattivato);
 	}
 
 	public ResponseEntity<Purpose> approvePurpose(UUID purposeId) {
 		checkInput(purposeId);
-		return ResponseEntity.ok(readMockResponse(Purpose.class));
+
+		Purpose approvata = copia(readMockResponsePurpose(purposeId), Purpose.class);
+
+		// approvare significa attivare la versione in attesa, che prende il posto di quella corrente
+		PurposeVersion inAttesa = approvata.getWaitingForApprovalVersion();
+		if(inAttesa != null) {
+			inAttesa.setState(PurposeVersionState.ACTIVE);
+			approvata.setCurrentVersion(inAttesa);
+			approvata.setWaitingForApprovalVersion(null);
+		}
+
+		return ResponseEntity.ok(approvata);
+	}
+
+	public ResponseEntity<Purpose> suspendPurpose(UUID purposeId) {
+		checkInput(purposeId);
+
+		Purpose sospesa = copia(readMockResponsePurpose(purposeId), Purpose.class);
+		sospesa.setSuspendedByProducer(true);
+
+		if(sospesa.getCurrentVersion() != null) {
+			sospesa.getCurrentVersion().setState(PurposeVersionState.SUSPENDED);
+		}
+
+		return ResponseEntity.ok(sospesa);
+	}
+
+	/**
+	 * Revoca la sola sospensione dell'erogatore: la finalita' torna attiva unicamente se non e'
+	 * sospesa anche dal fruitore, come avviene nella PDND.
+	 */
+	public ResponseEntity<Purpose> unsuspendPurpose(UUID purposeId) {
+		checkInput(purposeId);
+
+		Purpose riattivata = copia(readMockResponsePurpose(purposeId), Purpose.class);
+		riattivata.setSuspendedByProducer(false);
+
+		if(riattivata.getCurrentVersion() != null && !isVero(riattivata.isSuspendedByConsumer())) {
+			riattivata.getCurrentVersion().setState(PurposeVersionState.ACTIVE);
+		}
+
+		return ResponseEntity.ok(riattivata);
+	}
+
+	private boolean isVero(Boolean valore) {
+		return Boolean.TRUE.equals(valore);
 	}
 
 	public ResponseEntity<Purposes> getAgreementPurposes(UUID agreementId, Integer limit, Integer offset) {
@@ -205,11 +322,25 @@ public class PDNDMockServerV3 {
 
 	public ResponseEntity<Purpose> getPurpose(UUID purposeId) {
 		checkInput(purposeId);
-		return ResponseEntity.ok(readMockResponse(Purpose.class));
+		return ResponseEntity.ok(readMockResponsePurpose(purposeId));
 	}
 
 	public ResponseEntity<Agreement> getPurposeAgreement(UUID purposeId) {
 		checkInput(purposeId);
+
+		Purpose purpose = readMockResponsePurpose(purposeId);
+
+		// l'accordo di una finalita' e' quello che lega il suo fruitore all'e-service
+		Agreements agreements = readMockResponse(Agreements.class);
+		if(agreements.getResults() != null) {
+			for(Agreement agreement: agreements.getResults()) {
+				if(agreement.getConsumerId() != null && agreement.getConsumerId().equals(purpose.getConsumerId())
+						&& agreement.getEserviceId() != null && agreement.getEserviceId().equals(purpose.getEserviceId())) {
+					return ResponseEntity.ok(agreement);
+				}
+			}
+		}
+
 		return ResponseEntity.ok(readMockResponse(Agreement.class));
 	}
 
@@ -324,6 +455,53 @@ public class PDNDMockServerV3 {
 	 * restituiti nome e codice IPA derivati dall'identificativo richiesto, in modo che le
 	 * organizzazioni risultino distinguibili.
 	 */
+	/**
+	 * Restituisce l'accordo con l'identificativo richiesto, se presente tra quelli simulati.
+	 * Un identificativo sconosciuto ottiene comunque l'accordo di default, come per gli altri
+	 * oggetti del mock.
+	 */
+	private Agreement readMockResponseAgreement(UUID agreementId) {
+		if(agreementId != null) {
+			Agreements agreements = readMockResponse(Agreements.class);
+			if(agreements.getResults() != null) {
+				for(Agreement agreement: agreements.getResults()) {
+					if(agreementId.equals(agreement.getId())) {
+						return agreement;
+					}
+				}
+			}
+		}
+
+		return readMockResponse(Agreement.class);
+	}
+
+	/**
+	 * Restituisce la finalita' con l'identificativo richiesto, se presente tra quelle simulate,
+	 * altrimenti quella di default.
+	 */
+	private Purpose readMockResponsePurpose(UUID purposeId) {
+		if(purposeId != null) {
+			Purposes purposes = readMockResponse(Purposes.class);
+			if(purposes.getResults() != null) {
+				for(Purpose purpose: purposes.getResults()) {
+					if(purposeId.equals(purpose.getId())) {
+						return purpose;
+					}
+				}
+			}
+		}
+
+		return readMockResponse(Purpose.class);
+	}
+
+	/**
+	 * Copia una risposta simulata prima di modificarla: le risposte lette dai file sono
+	 * conservate e riutilizzate, quindi non vanno alterate.
+	 */
+	private <T> T copia(T risposta, Class<T> valueType) {
+		return new ObjectMapper().registerModule(new JavaTimeModule()).convertValue(risposta, valueType);
+	}
+
 	private Tenant readMockResponseTenant(UUID tenantId) {
 		Tenant tenant = readMockResponse(Tenant.class);
 
@@ -355,5 +533,164 @@ public class PDNDMockServerV3 {
 		}
 
 		return ResponseEntity.ok(readMockResponse(Tenants.class));
+	}
+
+	// ==================== attributi assegnati al tenant ====================
+
+	public ResponseEntity<TenantCertifiedAttributes> getTenantCertifiedAttributes(UUID tenantId, Integer offset,
+			Integer limit) {
+		checkInput(tenantId);
+		if(!isPrimaPagina(offset)) {
+			return ResponseEntity.ok(new TenantCertifiedAttributes());
+		}
+
+		return ResponseEntity.ok(readMockResponse(TenantCertifiedAttributes.class));
+	}
+
+	public ResponseEntity<TenantDeclaredAttributes> getTenantDeclaredAttributes(UUID tenantId, Integer offset,
+			Integer limit, UUID delegationId) {
+		checkInput(tenantId);
+		if(!isPrimaPagina(offset)) {
+			return ResponseEntity.ok(new TenantDeclaredAttributes());
+		}
+
+		return ResponseEntity.ok(readMockResponse(TenantDeclaredAttributes.class));
+	}
+
+	public ResponseEntity<TenantVerifiedAttributes> getTenantVerifiedAttributes(UUID tenantId, Integer offset,
+			Integer limit) {
+		checkInput(tenantId);
+		if(!isPrimaPagina(offset)) {
+			return ResponseEntity.ok(new TenantVerifiedAttributes());
+		}
+
+		return ResponseEntity.ok(readMockResponse(TenantVerifiedAttributes.class));
+	}
+
+	public ResponseEntity<TenantVerifiedAttributeVerifiers> getTenantVerifiedAttributeVerifiers(UUID tenantId,
+			UUID attributeId, Integer offset, Integer limit) {
+		checkInput(tenantId);
+		checkInput(attributeId);
+		if(!isPrimaPagina(offset)) {
+			return ResponseEntity.ok(new TenantVerifiedAttributeVerifiers());
+		}
+
+		return ResponseEntity.ok(readMockResponse(TenantVerifiedAttributeVerifiers.class));
+	}
+
+	public ResponseEntity<TenantCertifiedAttribute> assignTenantCertifiedAttribute(UUID tenantId,
+			TenantCertifiedAttributeSeed tenantCertifiedAttributeSeed) {
+		checkInput(tenantId);
+		return ResponseEntity.ok(readMockResponse(TenantCertifiedAttribute.class));
+	}
+
+	public ResponseEntity<TenantCertifiedAttribute> revokeTenantCertifiedAttribute(UUID tenantId, UUID attributeId) {
+		checkInput(tenantId);
+		checkInput(attributeId);
+		return ResponseEntity.ok(readMockResponse(TenantCertifiedAttribute.class));
+	}
+
+	public ResponseEntity<CertifiedAttributes> getCertifiedAttributes(Integer offset, Integer limit) {
+		if(!isPrimaPagina(offset)) {
+			return ResponseEntity.ok(new CertifiedAttributes());
+		}
+
+		return ResponseEntity.ok(readMockResponse(CertifiedAttributes.class));
+	}
+
+	// ==================== eventi ====================
+
+	/**
+	 * Restituisce gli eventi successivi a quello indicato, come fa l'API PDND: consente di
+	 * verificare la ripresa incrementale della lettura.
+	 */
+	private <T> List<T> daUltimoEvento(List<T> eventi, Function<T, UUID> idEvento, UUID lastEventId,
+			Integer limit) {
+		if(eventi == null || eventi.isEmpty()) {
+			return List.of();
+		}
+
+		int inizio = 0;
+		if(lastEventId != null) {
+			for(int i = 0; i < eventi.size(); i++) {
+				if(lastEventId.equals(idEvento.apply(eventi.get(i)))) {
+					inizio = i + 1;
+					break;
+				}
+			}
+		}
+
+		int fine = limit != null && limit > 0 ? Math.min(eventi.size(), inizio + limit) : eventi.size();
+
+		return inizio >= eventi.size() ? List.of() : new ArrayList<>(eventi.subList(inizio, fine));
+	}
+
+	public ResponseEntity<EServiceEvents> getEServicesEvents(Integer limit, UUID delegationId, UUID lastEventId) {
+		EServiceEvents response = new EServiceEvents();
+		response.setEvents(daUltimoEvento(readMockResponse(EServiceEvents.class).getEvents(),
+				EServiceEvent::getId, lastEventId, limit));
+		return ResponseEntity.ok(response);
+	}
+
+	public ResponseEntity<KeyEvents> getKeyEvents(Integer limit, UUID lastEventId) {
+		KeyEvents response = new KeyEvents();
+		response.setEvents(daUltimoEvento(readMockResponse(KeyEvents.class).getEvents(),
+				KeyEvent::getId, lastEventId, limit));
+		return ResponseEntity.ok(response);
+	}
+
+	public ResponseEntity<AgreementEvents> getAgreementsEvents(Integer limit, UUID lastEventId, UUID delegationId) {
+		AgreementEvents response = new AgreementEvents();
+		response.setEvents(daUltimoEvento(readMockResponse(AgreementEvents.class).getEvents(),
+				AgreementEvent::getId, lastEventId, limit));
+		return ResponseEntity.ok(response);
+	}
+
+	public ResponseEntity<PurposeEvents> getPurposeEvents(Integer limit, UUID lastEventId, UUID delegationId) {
+		PurposeEvents response = new PurposeEvents();
+		response.setEvents(daUltimoEvento(readMockResponse(PurposeEvents.class).getEvents(),
+				PurposeEvent::getId, lastEventId, limit));
+		return ResponseEntity.ok(response);
+	}
+
+	/*
+	 * Per i flussi rimanenti il mock non simula alcun evento: le risposte vuote sono
+	 * sufficienti a verificare l'aggregazione del flusso unico.
+	 */
+
+	public ResponseEntity<TenantEvents> getTenantEvents(Integer limit, UUID lastEventId) {
+		return ResponseEntity.ok(new TenantEvents().events(List.of()));
+	}
+
+	public ResponseEntity<AttributeEvents> getAttributesEvents(Integer limit, UUID lastEventId) {
+		return ResponseEntity.ok(new AttributeEvents().events(List.of()));
+	}
+
+	public ResponseEntity<ClientEvents> getClientEvents(Integer limit, UUID lastEventId) {
+		return ResponseEntity.ok(new ClientEvents().events(List.of()));
+	}
+
+	public ResponseEntity<ProducerKeyEvents> getProducerKeyEvents(Integer limit, UUID lastEventId) {
+		return ResponseEntity.ok(new ProducerKeyEvents().events(List.of()));
+	}
+
+	public ResponseEntity<ProducerKeychainEvents> getProducerKeychainEvents(Integer limit, UUID lastEventId) {
+		return ResponseEntity.ok(new ProducerKeychainEvents().events(List.of()));
+	}
+
+	public ResponseEntity<ConsumerDelegationEvents> getConsumerDelegationEvents(Integer limit, UUID lastEventId) {
+		return ResponseEntity.ok(new ConsumerDelegationEvents().events(List.of()));
+	}
+
+	public ResponseEntity<ProducerDelegationEvents> getProducerDelegationEvents(Integer limit, UUID lastEventId) {
+		return ResponseEntity.ok(new ProducerDelegationEvents().events(List.of()));
+	}
+
+	public ResponseEntity<EServiceTemplateEvents> getEServiceTemplateEvents(Integer limit, UUID lastEventId) {
+		return ResponseEntity.ok(new EServiceTemplateEvents().events(List.of()));
+	}
+
+	public ResponseEntity<PurposeTemplateEvents> getPurposeTemplateEvents(Integer limit, UUID lastEventId) {
+		return ResponseEntity.ok(new PurposeTemplateEvents().events(List.of()));
 	}
 }

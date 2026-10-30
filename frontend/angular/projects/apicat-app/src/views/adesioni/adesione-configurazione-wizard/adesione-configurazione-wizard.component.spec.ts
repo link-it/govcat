@@ -34,6 +34,8 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
     download: vi.fn().mockReturnValue(of({ body: new Blob() })),
   } as any;
   const mockAuthService = {
+    isTransitionAllowedForProfiles: vi.fn().mockReturnValue(true),
+    getRequiredProfiles: vi.fn().mockImplementation((e: any) => [...new Set((e?.client_richiesti || []).map((c: any) => c?.profilo).filter(Boolean))]),
     isAnonymous: vi.fn().mockReturnValue(false),
     hasPermission: vi.fn().mockReturnValue(true),
     _getConfigModule: vi.fn().mockReturnValue({ proprieta_custom: [] }),
@@ -546,7 +548,7 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
     mockAuthService.isGestore.mockReturnValue(false);
     mockAuthService.canChangeStatus.mockReturnValue(true);
     expect(component._hasCambioStato()).toBe(true);
-    expect(mockAuthService.canChangeStatus).toHaveBeenCalledWith('adesione', 'bozza', 'stato_successivo', ['referente']);
+    expect(mockAuthService.canChangeStatus).toHaveBeenCalledWith('adesione', 'bozza', 'stato_successivo', ['referente'], '', []);
   });
 
   // -------- canAddMapper --------
@@ -837,6 +839,61 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
   });
 
   // -------- Fase Produzione: sblocco per servizio pubblicato in produzione --------
+  describe('rifiuto della richiesta (Issue 401)', () => {
+    const _setup = (canChange: (type: string) => boolean) => {
+      Tools.Configurazione = { adesione: { workflow: { cambi_stato: [{
+        stato_attuale: 'richiesto_collaudo',
+        stato_successivo: { nome: 'autorizzato_collaudo', ruoli_abilitati: ['gestore'] },
+        stato_precedente: { nome: 'bozza', ruoli_abilitati: ['richiedente', 'gestore'] }
+      }] } } };
+      (component as any).stepWizardSezione = { collaudo: [
+        { code: 'in_compilazione', descrizione: '', stati: ['bozza'] },
+        { code: 'in_approvazione', descrizione: '', stati: ['richiesto_collaudo'] }
+      ] };
+      component.adesione = { id_adesione: '1', stato: 'richiesto_collaudo', servizio: { nome: 'PetStore', versione: 1, stato: 'pubblicato_collaudo' }, soggetto: { nome: 'Ente' } };
+      component.id = '1' as any;
+      mockAuthService.canChangeStatus.mockImplementation((_m: string, _s: string, type: string) => canChange(type));
+      vi.spyOn(Tools, 'showMessage').mockImplementation(() => {});
+    };
+
+    it('should offer the rejection only to who can also authorize', () => {
+      _setup(() => true);
+      expect(component.canRifiutare('collaudo')).toBe(true);
+      _setup((type: string) => type === 'stato_precedente');
+      expect(component.canRifiutare('collaudo')).toBe(false);
+    });
+
+    it('should not offer the rejection outside the approval step', () => {
+      _setup(() => true);
+      component.adesione.stato = 'bozza';
+      expect(component.canRifiutare('collaudo')).toBe(false);
+    });
+
+    it('should go back to the previous state and message the adhesion referents', () => {
+      _setup(() => true);
+      const _load = vi.spyOn(component as any, 'loadAdesione').mockImplementation(() => {});
+      mockApiService.postElementRelated.mockReturnValueOnce(of({ id_adesione: '1', stato: 'bozza' }));
+      component._rifiutoOpen = true;
+      component.onConfermaRifiuto({ oggetto: 'Oggetto', testo: 'Motivo' });
+      expect(mockApiService.postElementRelated).toHaveBeenCalledWith('adesioni', '1', 'stato-messaggio', {
+        stato: { stato: 'bozza' },
+        messaggio: { oggetto: 'Oggetto', testo: 'Motivo', target: ['REFERENTI_ADESIONE'], includi_tecnici: true }
+      });
+      expect(component._rifiutoOpen).toBe(false);
+      expect(_load).toHaveBeenCalledWith(true);
+    });
+
+    it('should keep the form open with the error when the rejection fails', () => {
+      _setup(() => true);
+      mockApiService.postElementRelated.mockReturnValueOnce(throwError(() => ({ status: 400 })));
+      component._rifiutoOpen = true;
+      component.onConfermaRifiuto({ oggetto: 'Oggetto', testo: 'Motivo' });
+      expect(component._rifiutoOpen).toBe(true);
+      expect(component._rifiutoErrore).toBeTruthy();
+      expect(component.changingStatus).toBe(false);
+    });
+  });
+
   describe('_isProduzioneBloccata / getDisabledFasiCodes', () => {
     it('sblocca la produzione con servizio pubblicato_produzione', () => {
       component.adesione = { servizio: { stato: 'pubblicato_produzione' } };
@@ -865,10 +922,10 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
 
   describe('stato terminale sezione produzione (Issue 317 follow-up)', () => {
     const PRODUZIONE_STEPS = [
-      { code: 'in_compilazione',   descrizione: 'In Compilazione',   stati_adesione: ['pubblicato_collaudo'] },
-      { code: 'in_approvazione',   descrizione: 'In Approvazione',   stati_adesione: ['richiesto_produzione', 'richiesto_produzione_senza_collaudo'] },
-      { code: 'in_configurazione', descrizione: 'In Configurazione', stati_adesione: ['autorizzato_produzione', 'in_configurazione_produzione'] },
-      { code: 'configurato',       descrizione: 'Configurato',       stati_adesione: ['pubblicato_produzione', 'pubblicato_produzione_senza_collaudo'] }
+      { code: 'in_compilazione',   descrizione: 'In Compilazione',   stati: ['pubblicato_collaudo'] },
+      { code: 'in_approvazione',   descrizione: 'In Approvazione',   stati: ['richiesto_produzione', 'richiesto_produzione_senza_collaudo'] },
+      { code: 'in_configurazione', descrizione: 'In Configurazione', stati: ['autorizzato_produzione', 'in_configurazione_produzione'] },
+      { code: 'configurato',       descrizione: 'Configurato',       stati: ['pubblicato_produzione', 'pubblicato_produzione_senza_collaudo'] }
     ];
 
     beforeEach(() => {

@@ -34,7 +34,9 @@
     </div>
   }
   <div class="top-area">
-    <h3 class="page-title">{{ 'APP.TITLE.Empty' | translate }}</h3>
+    <!-- a11y: era un heading vuoto (empty-heading); qui e` solo uno slot di
+         layout, il titolo di pagina e` l'h1 wizard-header-title piu` sotto. -->
+    <div class="page-title">{{ 'APP.TITLE.Empty' | translate }}</div>
     <div class="d-flex flex-grow-1">&nbsp;</div>
     <div class="nav-controls align-self-center d-flex gap-1">
       @if (!spin && adesione && (updateMapper | mapper:canChangeStatoMapper)) {
@@ -85,7 +87,7 @@
           <div class="d-flex justify-content-between mb-5 wizard-title-block">
             <div class="flex-grow-1">
               @if (wizardNewLayout) {
-                <h2 class="wizard-header-title mb-1">{{ headerTitle }}</h2>
+                <h1 class="wizard-header-title mb-1">{{ headerTitle }}</h1>
                 <div class="wizard-header-meta text-muted small d-flex flex-wrap gap-2 align-items-center">
                   @if (headerVersion) { <span>{{ headerVersion }}</span> }
                   @if (headerVersion && headerUpdatedAt) { <span aria-hidden="true">·</span> }
@@ -280,7 +282,7 @@
               </div>
             }
             @if (!wizardNewLayout) {
-              <app-adesione-step-bar
+              <app-wizard-step-bar
                 class="mb-4"
                 [steps]="stepWizard"
                 [currentState]="adesione.stato"
@@ -291,16 +293,16 @@
                 [workflowStati]="workflowStati"
                 [ngStyle]="stepBarDarkMode ? stepBarDarkVars : null"
                 (stepClick)="onStepBarClick($event)"
-              ></app-adesione-step-bar>
+              ></app-wizard-step-bar>
             } @else {
               <!-- Issue 254 NEW LAYOUT (rev. 4.8) — step-bar 3-fasi
-                   cliccabile (component dedicato `<app-adesione-fasi-bar>`).
+                   cliccabile (component dedicato `<app-wizard-fasi-bar>`).
                    La logica di derivazione stati (completed/current/
                    pending/final) e` pilotata dalla stessa source data
                    della step-bar principale: `stepWizard` config +
                    `adesione.stato` + `workflowStati`. Click su una
                    fase emette `stepClick` -> `selectFase($event)`. -->
-              <app-adesione-fasi-bar
+              <app-wizard-fasi-bar
                 [steps]="stepWizard"
                 [currentState]="adesione?.stato || null"
                 [selectedCode]="_selectedFase"
@@ -308,7 +310,7 @@
                 [disabledCodes]="getDisabledFasiCodes()"
                 [skippedCodes]="getSkippedFasiCodes()"
                 (stepClick)="selectFase($event)"
-              ></app-adesione-fasi-bar>
+              ></app-wizard-fasi-bar>
             }
           }
           @if (!wizardNewLayout) {
@@ -587,7 +589,7 @@
                       <ng-container *ngTemplateOutlet="substepListTpl; context: { section: 'collaudo', titleKey: 'APP.ADESIONI.LABEL.ProceduraAttivazione', body: collaudoBodyTpl }"></ng-container>
                     } @else {
                       @if (getStepWizardSezione('collaudo').length > 0) {
-                        <app-adesione-step-bar
+                        <app-wizard-step-bar
                           class="mb-4 adesione-step-bar-interna"
                           [steps]="getStepWizardSezione('collaudo')"
                           [currentState]="adesione.stato"
@@ -598,7 +600,7 @@
                           [i18nPrefix]="'APP.ADESIONI.STEP_WIZARD_SEZIONE'"
                           [workflowStati]="workflowStati"
                           [ngStyle]="stepBarDarkMode ? stepBarDarkVars : null"
-                        ></app-adesione-step-bar>
+                        ></app-wizard-step-bar>
                       }
                       <ng-container *ngTemplateOutlet="collaudoBodyTpl"></ng-container>
                     }
@@ -644,7 +646,7 @@
                       <ng-container *ngTemplateOutlet="substepListTpl; context: { section: 'produzione', titleKey: 'APP.ADESIONI.LABEL.ProceduraConfigurazione', body: produzioneBodyTpl }"></ng-container>
                     } @else {
                       @if (getStepWizardSezione('produzione').length > 0) {
-                        <app-adesione-step-bar
+                        <app-wizard-step-bar
                           class="mb-4 adesione-step-bar-interna"
                           [steps]="getStepWizardSezione('produzione')"
                           [currentState]="adesione.stato"
@@ -655,7 +657,7 @@
                           [i18nPrefix]="'APP.ADESIONI.STEP_WIZARD_SEZIONE'"
                           [workflowStati]="workflowStati"
                           [ngStyle]="stepBarDarkMode ? stepBarDarkVars : null"
-                        ></app-adesione-step-bar>
+                        ></app-wizard-step-bar>
                       }
                       <ng-container *ngTemplateOutlet="produzioneBodyTpl"></ng-container>
                     }
@@ -725,7 +727,7 @@
     <div class="d-flex align-items-start gap-2">
       <i class="disclaimer-icon" [ngClass]="getDisclaimerIconClass(severity)"></i>
       <div class="flex-grow-1">
-        <markdown class="disclaimer-body" [data]="disclaimer"></markdown>
+        <lnk-collapsible-text><markdown class="disclaimer-body" [data]="disclaimer"></markdown></lnk-collapsible-text>
       </div>
     </div>
   </div>
@@ -736,7 +738,7 @@
     <div class="d-flex align-items-start gap-2">
       <i class="disclaimer-icon" [ngClass]="getDisclaimerIconClass(item.severity)"></i>
       <div class="flex-grow-1">
-        <markdown class="disclaimer-body" [data]="item.disclaimer"></markdown>
+        <lnk-collapsible-text><markdown class="disclaimer-body" [data]="item.disclaimer"></markdown></lnk-collapsible-text>
         @if (item.links?.length) {
           <ul class="disclaimer-links mt-2 mb-0">
             @for (link of item.links; track $index) {
@@ -809,7 +811,7 @@
       <i [ngClass]="getDisclaimerIconClass(item.severity)"></i>
     </div>
     <div class="body">
-      <markdown [data]="item.disclaimer"></markdown>
+      <lnk-collapsible-text><markdown [data]="item.disclaimer"></markdown></lnk-collapsible-text>
     </div>
     <!-- CTA allineata a destra: i link del disclaimer (item.links)
          vengono resi come bottoni `lnk-btn`. Sostituiscono la vecchia
@@ -904,6 +906,7 @@
                 [ambiente]="AmbienteEnum.Collaudo"
                 [id_adesione]="adesione.id_adesione"
                 [stato_adesione]="adesione.stato"
+                [skip_collaudo]="!!adesione.skip_collaudo"
                 [id_servizio]="adesione.servizio.id_servizio"
                 [data]="configurazioni[AmbienteEnum.Collaudo]"
                 [group]="item"
@@ -980,6 +983,7 @@
                 [ambiente]="AmbienteEnum.Produzione"
                 [id_adesione]="adesione.id_adesione"
                 [stato_adesione]="adesione.stato"
+                [skip_collaudo]="!!adesione.skip_collaudo"
                 [id_servizio]="adesione.servizio.id_servizio"
                 [data]="configurazioni[AmbienteEnum.Produzione]"
                 [group]="item"
@@ -1111,7 +1115,7 @@
        contiene il bottone "Modifica" e la form. -->
   @let openInfo = isPhaseSectionOpen('info_generali');
   <section class="lnk-phase-section" [class.is-open]="openInfo">
-    <header class="lnk-phase-section-hd" role="button" tabindex="0"
+    <div class="lnk-phase-section-hd" role="button" tabindex="0"
             [attr.aria-expanded]="openInfo"
             (click)="togglePhaseSection('info_generali')"
             (keydown.enter)="togglePhaseSection('info_generali')"
@@ -1131,7 +1135,7 @@
       <i class="bi bi-chevron-down lnk-phase-section-chev"
          [class.is-open]="openInfo"
          aria-hidden="true"></i>
-    </header>
+    </div>
     @if (openInfo) {
       <!-- Pannello grigio (`.tl-panel` style) che avvolge bottone +
            form. Allineato al design-code app.jsx (PhaseSection child
@@ -1174,7 +1178,7 @@
   <!-- Card "Referenti" — collassabile come Informazioni generali. -->
   @let openRef = isPhaseSectionOpen('referenti');
   <section class="lnk-phase-section" [class.is-open]="openRef">
-    <header class="lnk-phase-section-hd" role="button" tabindex="0"
+    <div class="lnk-phase-section-hd" role="button" tabindex="0"
             [attr.aria-expanded]="openRef"
             (click)="togglePhaseSection('referenti')"
             (keydown.enter)="togglePhaseSection('referenti')"
@@ -1194,21 +1198,21 @@
       <i class="bi bi-chevron-down lnk-phase-section-chev"
          [class.is-open]="openRef"
          aria-hidden="true"></i>
-    </header>
+    </div>
     @if (openRef) {
     <div class="lnk-phase-section-body tl-panel">
       <!-- Referenti adesione -->
       @let openA = isReferentGroupOpen('adesione');
       <div class="lnk-ref-group" [class.is-open]="openA">
-        <div class="lnk-ref-group-hd"
-             (click)="toggleReferentGroup('adesione')">
-          <h4 role="button" tabindex="0"
-              [attr.aria-expanded]="openA"
-              (keydown.enter)="toggleReferentGroup('adesione')"
-              (keydown.space)="toggleReferentGroup('adesione'); $event.preventDefault()">
+        <div class="lnk-ref-group-hd" role="button" tabindex="0"
+             [attr.aria-expanded]="openA"
+             (click)="toggleReferentGroup('adesione')"
+             (keydown.enter)="toggleReferentGroup('adesione')"
+             (keydown.space)="toggleReferentGroup('adesione'); $event.preventDefault()">
+          <h3 class="h4">
             {{ 'APP.ADESIONI.TITLE.Referents' | translate }}
             <span class="lnk-ref-count">{{ referents.length }}</span>
-          </h4>
+          </h3>
           @if (openA && (isEdit || (updateMapper | mapper:canAddMapper)) && !_addReferentOpen) {
             <button type="button" class="lnk-btn lnk-btn-sm"
                     (click)="$event.stopPropagation(); addReferenteModal($event)">
@@ -1256,10 +1260,10 @@
              (click)="toggleReferentGroup('servizio')"
              (keydown.enter)="toggleReferentGroup('servizio')"
              (keydown.space)="toggleReferentGroup('servizio'); $event.preventDefault()">
-          <h4>
+          <h3 class="h4">
             {{ 'APP.ADESIONI.TITLE.ServiceReferents' | translate }}
             <span class="lnk-ref-count">{{ serviceReferents.length }}</span>
-          </h4>
+          </h3>
           <i class="bi bi-chevron-down lnk-ref-group-chev"
              [class.is-open]="openS"
              aria-hidden="true"></i>
@@ -1281,10 +1285,10 @@
              (click)="toggleReferentGroup('dominio')"
              (keydown.enter)="toggleReferentGroup('dominio')"
              (keydown.space)="toggleReferentGroup('dominio'); $event.preventDefault()">
-          <h4>
+          <h3 class="h4">
             {{ 'APP.ADESIONI.TITLE.DomainReferents' | translate }}
             <span class="lnk-ref-count">{{ domainReferents.length }}</span>
-          </h4>
+          </h3>
           <i class="bi bi-chevron-down lnk-ref-group-chev"
              [class.is-open]="openD"
              aria-hidden="true"></i>
@@ -1399,7 +1403,7 @@
             <div class="subbanner d-flex align-items-start gap-2 mt-0 mb-4">
               <i class="bi" [ngClass]="getDisclaimerIconClass(item.severity)"></i>
               <div class="grow">
-                <markdown class="disclaimer-inline markdown-inline" [data]="item.disclaimer"></markdown>
+                <lnk-collapsible-text><markdown class="disclaimer-inline markdown-inline" [data]="item.disclaimer"></markdown></lnk-collapsible-text>
               </div>
             </div>
           }
@@ -1407,7 +1411,7 @@
 
         <!-- Substepper verticale config-driven (rev. 4.10).
              Pilotato dalla stessa source data del legacy
-             `<app-adesione-step-bar>` per le step-bar interne:
+             `<app-wizard-step-bar>` per le step-bar interne:
              `getStepWizardSezione('collaudo')` /
              `getStepWizardSezione('produzione')` (StepWizardItem[] dal
              config `adesione.step_wizard_collaudo` / `_produzione`).
@@ -1416,7 +1420,7 @@
              Content projection: il body si dispatcha sul `sub.code`
              (in_compilazione -> lista clients/endpoint + CTA workflow;
              altri -> messaggio "in attesa gestore"). -->
-        <app-adesione-substepper
+        <app-wizard-substepper
           [steps]="getStepWizardSezione(section)"
           [currentState]="adesione?.stato || null"
           [workflowStati]="workflowStati"
@@ -1466,7 +1470,7 @@
                        icona ne` severity (il sub-step e` gia` visivo). -->
                   @let _subStepDisclaimers = section === 'collaudo' ? disclaimersCollaudo : disclaimersProduzione;
                   @for (item of _subStepDisclaimers; track $index) {
-                    <markdown class="markdown-inline markdown-small d-block pt-3" [data]="item.disclaimer"></markdown>
+                    <lnk-collapsible-text class="pt-3"><markdown class="markdown-inline markdown-small d-block" [data]="item.disclaimer"></markdown></lnk-collapsible-text>
                   }
                   <!-- Fallback locale: quando il BE non fornisce
                        disclaimer per lo stato corrente, mostriamo un
@@ -1485,7 +1489,16 @@
                        Ogni pulsante e` gated dal mapper
                        `_isWorkflowActionEnabled` (combina grant
                        per-adesione + ruoli_referente del profilo). -->
-                  @if (_hasAnyWorkflowAction()) {
+                  @if (_hasAnyWorkflowAction() && _rifiutoOpen) {
+                    <app-wizard-rifiuto-form class="d-block mt-3"
+                      [oggetto]="_oggettoRifiuto"
+                      [statoPrecedente]="_statoPrecedenteLabel"
+                      [saving]="changingStatus"
+                      [errorMsg]="_rifiutoErrore"
+                      (conferma)="onConfermaRifiuto($event)"
+                      (annulla)="closeRifiuto()"
+                    ></app-wizard-rifiuto-form>
+                  } @else if (_hasAnyWorkflowAction()) {
                     @let _entry = getCambioStatoEntry();
 
                     <div class="mt-3">
@@ -1494,6 +1507,15 @@
 
                     <div class="d-flex flex-wrap gap-2 justify-content-end mt-3 pt-3"
                          [style.border-top]="_subStepDisclaimers?.length ? '1px solid var(--line)' : null">
+                      @if (canRifiutare(section)) {
+                        <lnk-button
+                          [label]="'APP.WORKFLOW.RIFIUTO.Rifiuta' | translate"
+                          [secondary]="true"
+                          [ariaLabel]="'APP.WORKFLOW.RIFIUTO.Rifiuta' | translate"
+                          (onAction)="openRifiuto()"
+                          [disabled]="changingStatus || _pollingAutoConfig">
+                        </lnk-button>
+                      }
                       @if (_entry?.stati_ulteriori?.length) {
                         @for (status of _entry.stati_ulteriori; track status.nome) {
                           @if (_isWorkflowActionEnabled('stati_ulteriori', status.nome)) {
@@ -1522,7 +1544,7 @@
               }
             }
           </ng-template>
-        </app-adesione-substepper>
+        </app-wizard-substepper>
       </div>
     }
   </section>

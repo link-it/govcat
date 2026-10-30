@@ -158,8 +158,14 @@ public class ScenarioTLS implements ConfigurazioneScenario{
 			if (!authorization.getAutorizzazione().getRichiedente().booleanValue())
 				throw new IOException("autorizzazione non impostata in modalita richiedente");
 	
-			// infine associo il servizio applicativo ai richiedenti
-			try (Response response = configInvoker.postApplicativoToServizio(api, client.getNome(), null)) {
+			// Infine associo il servizio applicativo ai richiedenti. Per le erogazioni l'applicativo
+			// risiede sotto il soggetto aderente, che differisce dal soggetto dell'erogazione
+			// (referente del dominio): va indicato esplicitamente per essere risolto. Le fruizioni
+			// non prevedono il campo nel contratto di govway e non ne hanno bisogno, perche'
+			// l'applicativo e' gia' censito sotto il soggetto fruitore.
+			String soggettoApplicativo = api.isFruizione() ? null : api.getSoggettoAderente().getNomeGateway();
+
+			try (Response response = configInvoker.postApplicativoToServizio(api, client.getNome(), soggettoApplicativo)) {
 				this.invokers.getConfigInvoker().checkResponse(response, this.ignoreConflict);
 			}
 		} catch (IOException | TemplateException e) {

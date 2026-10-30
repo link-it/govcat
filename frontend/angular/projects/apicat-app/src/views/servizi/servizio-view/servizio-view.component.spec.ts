@@ -226,6 +226,63 @@ describe('ServizioViewComponent', () => {
     expect(component.isAnonymousMapper()).toBe(true);
   });
 
+  describe('_loadUrlInvocazione', () => {
+    const _urls = {
+      url_invocazione: 'https://int/api/v1',
+      url_invocazione_aggiuntive: [{ identificativo: 'gw_esterno', etichetta: 'Rete internet', url_invocazione: 'https://ext/api/v1' }]
+    };
+    const _mockDetails = (api: any) => {
+      mockApiService.getDetails.mockImplementation((model: string, id: string, path?: string) =>
+        path ? of(_urls) : (api instanceof Error ? throwError(() => api) : of(api)));
+    };
+
+    beforeEach(() => {
+      Tools.Configurazione = {
+        servizio: { api: { url_invocazione: {
+          etichetta_default: 'Rete interna',
+          collaudo: [{ identificativo: 'gw_esterno', etichetta: 'Rete internet' }]
+        } } }
+      } as any;
+    });
+
+    it('should label the default URL first, followed by the additional ones', () => {
+      _mockDetails({ id_api: 'a1', configurazione_collaudo: {} });
+      component._loadUrlInvocazione('a1');
+      expect(component._urlEsposizioneRighe).toEqual([
+        { etichetta: 'Rete interna', etichettaKey: 'APP.LABEL.UrlPredefinita', url: 'https://int/api/v1' },
+        { etichetta: 'Rete internet', url: 'https://ext/api/v1' }
+      ]);
+      expect(component._showUrlInvocazioneBar).toBe(true);
+
+      component.copyUrlInvocazione(1);
+      expect(mockClipboard.copy).toHaveBeenCalledWith('https://ext/api/v1');
+      expect(component._urlCopiata).toBe(1);
+      vi.advanceTimersByTime(3000);
+      expect(component._urlCopiata).toBeNull();
+    });
+
+    it('should label the first URL with its gateway when the default one is not first', () => {
+      _mockDetails({ id_api: 'a1', configurazione_collaudo: { url_invocazione: ['gw_esterno', 'default'] } });
+      component._loadUrlInvocazione('a1');
+      expect(component._urlEsposizioneRighe[0]).toEqual({ etichetta: 'Rete internet', etichettaKey: 'APP.LABEL.UrlEsposizione', url: 'https://int/api/v1' });
+    });
+
+    it('should keep a generic label for the first URL when the API detail is not available', () => {
+      _mockDetails(new Error('forbidden'));
+      component._loadUrlInvocazione('a1');
+      expect(component._urlEsposizioneRighe[0]).toEqual({ etichetta: null, etichettaKey: 'APP.LABEL.UrlEsposizione', url: 'https://int/api/v1' });
+      expect(component._urlEsposizioneRighe.length).toBe(2);
+    });
+
+    it('should hide the exposure URL bar when the main URL is missing', () => {
+      mockApiService.getDetails.mockImplementation((model: string, id: string, path?: string) =>
+        of(path ? { url_invocazione_aggiuntive: [{ identificativo: 'gw_esterno', etichetta: 'Internet', url_invocazione: 'https://ext' }] } : {}));
+      component._loadUrlInvocazione('a1');
+      expect(component._urlEsposizioneRighe).toEqual([]);
+      expect(component._showUrlInvocazioneBar).toBe(false);
+    });
+  });
+
   it('should copy to clipboard on onResultCopyClipboard', () => {
     component.onResultCopyClipboard({ value: 'test-value' });
     expect(mockClipboard.copy).toHaveBeenCalledWith('test-value');
@@ -617,6 +674,27 @@ describe('ServizioViewComponent', () => {
       const u1 = component.referenti.find(r => r.id === 'u1');
       expect(u1).toBeTruthy();
       expect(u1!.types.length).toBe(2); // referente_dominio + referente_servizio (or ruolo)
+    });
+
+    it('should put the service role first and show the domain role in the +N', () => {
+      component._showReferents = true;
+      component.data = { dominio: { id_dominio: 'dom1', nome: 'Arti' } };
+      component.id = 10;
+      component.config = { showDomainReferent: true, showTechnicalReferent: true };
+      const _utente = { id_utente: 'u1', nome: 'Mario', cognome: 'Rossi', email_aziendale: 'm@r.it' };
+
+      mockApiService.getDetails.mockImplementation((model: string, id: any, sub?: string) => {
+        if (model === 'servizi' && sub === 'referenti') return of({ content: [{ utente: _utente, tipo: 'referente' }] });
+        if (model === 'domini' && sub === 'referenti') return of({ content: [{ utente: _utente, tipo: 'referente' }] });
+        return of({});
+      });
+
+      component.loadReferenti();
+
+      const _ref = component.referentiAsLnkRefs[0];
+      expect(_ref.ruolo).toBe('Referente Servizio');
+      expect(_ref.tag).toBe('serv');
+      expect(_ref.ruoliAggiuntivi).toEqual(['Referente Dominio (Arti)']);
     });
 
     it('should filter out domain referents when showDomainReferent is false', () => {
@@ -1558,6 +1636,7 @@ describe('ServizioViewComponent', () => {
         {
           id: 'open-api-info',
           ignoreBackdropClick: false,
+          ariaLabelledBy: 'open-api-info-title',
           class: 'modal-lg-custom modal-with-65 modal-fullscreen-sm-down'
         }
       );
@@ -2207,6 +2286,126 @@ describe('ServizioViewComponent', () => {
       expect(mockModalService.show).toHaveBeenCalled();
       const initialState = mockModalService.show.mock.calls[0][1].initialState;
       expect(initialState.hideCancel).toBe(true);
+    });
+  });
+
+  describe('Allegati in vetrina', () => {
+    const allegati = [
+      { uuid: 'a1', filename: 'Doc.pdf', data: '2026-09-12', visibilita: 'pubblico', url: '' },
+      { uuid: 'a2', filename: 'Manuale.odt', data: '2026-10-03', visibilita: 'adesione', url: '' }
+    ] as any[];
+
+    beforeEach(() => {
+      component.id = 10;
+      component._showAttachments = true;
+      component._showReferents = false;
+    });
+
+    it('should not load attachments when the option is disabled', () => {
+      component._showAttachments = false;
+      component._loadAllegati();
+      expect(mockApiService.getDetails).not.toHaveBeenCalled();
+      expect(component._showAllegatiBox).toBe(false);
+    });
+
+    it('should load the service attachments and show the sidebar box', () => {
+      mockApiService.getDetails.mockReturnValueOnce(of({ content: allegati }));
+      component._loadAllegati();
+      expect(mockUtilService._queryToHttpParams).toHaveBeenCalledWith({ size: 100 });
+      expect(mockApiService.getDetails).toHaveBeenCalledWith('servizi', 10, 'allegati', expect.anything());
+      expect(component._allegati.length).toBe(2);
+      expect(component._showAllegatiBox).toBe(true);
+      expect(component._showAside).toBe(true);
+    });
+
+    it('should request only public attachments when attachmentsPublicOnly is set', () => {
+      component._attachmentsPublicOnly = true;
+      mockApiService.getDetails.mockReturnValueOnce(of({ content: [] }));
+      component._loadAllegati();
+      expect(mockUtilService._queryToHttpParams).toHaveBeenCalledWith({ size: 100, visibilita_allegato: 'pubblico' });
+    });
+
+    it('should hide the box when loading fails', () => {
+      mockApiService.getDetails.mockReturnValueOnce(throwError(() => ({ status: 500 })));
+      component._loadAllegati();
+      expect(component._allegati).toEqual([]);
+      expect(component._showAllegatiBox).toBe(false);
+    });
+
+    it('should limit the visible attachments until expanded', () => {
+      component._attachmentsMaxVisible = 1;
+      component._allegati = allegati;
+      expect(component._allegatiVisibili.map((a) => a.uuid)).toEqual(['a1']);
+      component._allegatiExpanded = true;
+      expect(component._allegatiVisibili.length).toBe(2);
+    });
+
+    it('should load the API attachments only when the option is enabled', () => {
+      mockApiService.getDetails.mockReturnValueOnce(of({ content: allegati }));
+      component._loadApiAllegati('api1');
+      expect(mockApiService.getDetails).toHaveBeenCalledWith('api', 'api1', 'allegati', expect.anything());
+      expect(component._apiAllegati.length).toBe(2);
+
+      mockApiService.getDetails.mockClear();
+      component._showAttachments = false;
+      component._loadApiAllegati('api1');
+      expect(mockApiService.getDetails).not.toHaveBeenCalled();
+      expect(component._apiAllegati).toEqual([]);
+    });
+
+    it('should download a service or API attachment with its filename', () => {
+      const body = new Blob(['x']);
+      (globalThis as any).saveAs = vi.fn();
+      mockApiService.download.mockReturnValueOnce(of({ body }));
+      component._downloadAllegato(allegati[0]);
+      expect(mockApiService.download).toHaveBeenCalledWith('servizi', 10, 'allegati/a1/download');
+      expect((globalThis as any).saveAs).toHaveBeenCalledWith(body, 'Doc.pdf');
+      expect(component._allegatoDownloading).toBeNull();
+
+      mockApiService.download.mockReturnValueOnce(of({ body }));
+      component._downloadAllegato(allegati[1], 'api1');
+      expect(mockApiService.download).toHaveBeenCalledWith('api', 'api1', 'allegati/a2/download');
+      delete (globalThis as any).saveAs;
+    });
+
+    it('should reset the download state on error', () => {
+      const onError = vi.spyOn(Tools, 'OnError').mockImplementation(() => {});
+      mockApiService.download.mockReturnValueOnce(throwError(() => ({ status: 404 })));
+      component._downloadAllegato(allegati[0]);
+      expect(onError).toHaveBeenCalled();
+      expect(component._allegatoDownloading).toBeNull();
+    });
+
+    it('should map extension and restricted visibility', () => {
+      expect(component._allegatoEstensioneMapper({ filename: 'schema.xsd' } as any)).toBe('XSD');
+      expect(component._allegatoEstensioneMapper({ filename: 'x', estensione: '.pdf' } as any)).toBe('PDF');
+      expect(component._allegatoVisibilitaMapper(allegati[0])).toBe('APP.SERVICES.ATTACHMENTS.VISIBILITY.pubblico');
+      expect(component._allegatoVisibilitaMapper(allegati[1])).toBe('APP.SERVICES.ATTACHMENTS.VISIBILITY.adesione');
+      expect(component._allegatoVisibilitaMapper({ filename: 'x' } as any)).toBe('APP.SERVICES.ATTACHMENTS.VISIBILITY.pubblico');
+      expect(component._allegatoRiservatoMapper(allegati[0])).toBe(false);
+      expect(component._allegatoRiservatoMapper(allegati[1])).toBe(true);
+    });
+  });
+
+  describe('collaudo saltato', () => {
+    it('should open on produzione and ignore the collaudo toggle', () => {
+      component.id = 10;
+      vi.spyOn(component, 'loadCurrentData').mockImplementation(() => {});
+      vi.spyOn(component as any, '_initBreadcrumb').mockImplementation(() => {});
+      mockAuthenticationService.isAnonymous.mockReturnValue(true);
+      mockApiService.getDetails
+        .mockReturnValueOnce(of({ ruoli: [] }))
+        .mockReturnValueOnce(of({ id_servizio: 10, skip_collaudo: true }));
+
+      component._loadService();
+
+      expect(component._environmentId).toBe('produzione');
+      expect(component._collaudoSaltato).toBe(true);
+      const loadApis = vi.spyOn(component as any, '_loadApis').mockImplementation(() => {});
+      component.onEnvToggle('collaudo');
+      expect(component._environmentId).toBe('produzione');
+      expect(loadApis).not.toHaveBeenCalled();
+      mockAuthenticationService.isAnonymous.mockReturnValue(false);
     });
   });
 });

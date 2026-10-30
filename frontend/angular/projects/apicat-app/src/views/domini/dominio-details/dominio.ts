@@ -53,6 +53,9 @@ export class Dominio {
   skip_collaudo: boolean = false;
   vincola_skip_collaudo: boolean = false;
 
+  multi_adesione: boolean = false;
+  adesione_disabilitata: boolean = false;
+
   constructor(_data?: any) {
     if (_data) {
       for (const key in _data) {

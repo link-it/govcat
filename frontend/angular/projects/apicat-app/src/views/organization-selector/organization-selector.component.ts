@@ -126,8 +126,9 @@ export class OrganizationSelectorComponent implements OnInit {
 
   /** Esce dalla sessione e torna alla pagina di login. */
   logout(): void {
-    this.authenticationService.logout();
-    this.router.navigate(['/auth/login']);
+    if (!this.authenticationService.logout(true)) {
+      this.router.navigate(['/auth/login']);
+    }
   }
 
   /** Label i18n del ruolo per il chip nella card. */

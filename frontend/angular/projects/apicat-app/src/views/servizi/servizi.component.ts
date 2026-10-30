@@ -54,6 +54,7 @@ import { ServiziGroupListCardComponent } from './components/servizi-group-list-c
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.directive';
 import * as _ from 'lodash';
+import { PagedTypeahead, PaginaTypeahead, paginaDaRisposta } from '@app/lib/utils/paged-typeahead';
 declare const saveAs: any;
 
 @Component({
@@ -158,6 +159,8 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         { value: 'false', label: 'APP.BOOLEAN.No' }
     ];
     _fruizioneEnum: any = { 'true': 'APP.BOOLEAN.Yes', 'false': 'APP.BOOLEAN.No' };
+    _apiErogateAderenteEnum: any = { 'true': 'APP.SERVICES.API_EROGATE_ADERENTE.true', 'false': 'APP.SERVICES.API_EROGATE_ADERENTE.false' };
+    _apiErogateAderenteList: { value: string, label: string }[] = Object.entries(this._apiErogateAderenteEnum).map(([value, label]) => ({ value, label: label as string }));
 
     // Valori ammessi per il filtro `ruolo_referente` lato BE (vedi
     // `RuoloReferenteEnum`). `utente_organizzazione` NON e` un
@@ -178,11 +181,13 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         // { field: 'creationDateTo', label: 'APP.LABEL.Date', type: 'date', condition: 'lt', format: 'DD/MM/YYYY' },
         { field: 'q', label: 'APP.LABEL.FreeSearch', type: 'text', condition: 'like' },
         { field: 'stato', label: 'APP.LABEL.stato', type: 'enum', condition: 'equal', enumValues: this._statiServizioEnum },
+        { field: 'archiviati', label: 'APP.LABEL.archiviati', type: 'enum', condition: 'equal', enumValues: { includi: 'APP.SERVICES.ARCHIVED.includi', solo: 'APP.SERVICES.ARCHIVED.solo' } },
         { field: 'visibilita', label: 'APP.LABEL.visibilita', type: 'enum', condition: 'equal', enumValues: this._tipiVisibilitaServizioEnum },
         { field: 'fruizione', label: 'APP.LABEL.fruizione', type: 'enum', condition: 'equal', enumValues: this._fruizioneEnum },
         { field: 'id_dominio', label: 'APP.LABEL.id_dominio', type: 'text', condition: 'equal', params: { resource: 'domini', field: 'nome', urlParam: '?id_dominio=' } },
         { field: 'id_organizzazione_erogatore', label: 'APP.LABEL.OrganizzazioneErogatore', type: 'text', condition: 'equal', params: { resource: 'organizzazioni', field: 'nome', urlParam: '?id_organizzazione=' } },
         { field: 'id_api', label: 'APP.LABEL.id_api', type: 'text', condition: 'equal', params: { resource: 'api', field: '{nome} v.{versione} ({servizio.dominio.nome})' } },
+        { field: 'api_erogate_aderente', label: 'APP.LABEL.api_erogate_aderente', type: 'enum', condition: 'equal', enumValues: this._apiErogateAderenteEnum },
         // { field: 'id_servizio', label: 'APP.LABEL.id_servizio', type: 'text', condition: 'equal', params: { resource: 'servizi', field: 'nome' } },
         { field: 'profilo', label: 'APP.LABEL.Profilo', type: 'text', condition: 'contain', callBack: (value: any) => {
             if (Array.isArray(value)) {
@@ -197,7 +202,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         { field: 'tag', label: 'APP.LABEL.tags', type: 'text', condition: 'contain' },
         { field: 'categoria', label: 'APP.LABEL.categoria', type: 'multiple', condition: 'equal', related: 'categoriaLabel' },
         { field: 'categoriaLabel', label: 'APP.LABEL.categoria', type: 'related', condition: 'equal', params: { resource: 'tassonomie', path: 'categorie', field: 'nome' }, options: { hide: true } },
-        { field: 'id_gruppo_padre', label: 'APP.LABEL.gruppo', type: 'text', condition: 'equal', params: { resource: 'gruppi', path: '', field: 'nome' } },
+        { field: 'id_gruppo_padre', label: 'APP.LABEL.gruppo', type: 'text', condition: 'equal', params: { resource: 'gruppi', path: '', field: 'nome' }, related: 'id_gruppo_padre_label' },
         { field: 'id_gruppo_padre_label', label: 'APP.LABEL.gruppo', type: 'related', condition: 'equal', options: { hide: true } },
         { field: 'ruolo_referente', label: 'APP.LABEL.ruolo_referente', type: 'enum', condition: 'equal', enumValues: this._ruoloReferenteEnumValues },
         // { field: 'taxonomiesGroup', label: 'APP.LABEL.tassonomie', type: 'group', condition: 'equal', options: { hide: true } }
@@ -274,9 +279,8 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
     profili: any[] = [];
 
-    domini$!: Observable<any[]>;
-    dominiInput$ = new Subject<string>();
-    dominiLoading: boolean = false;
+    /** Domini per il filtro: ricerca paginata con caricamento allo scroll. */
+    dominiTypeahead: PagedTypeahead<any> = this._nuoviDomini([]);
     selectedDominio: any;
 
     organizzazioniErogatore$!: Observable<any[]>;
@@ -509,13 +513,21 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         );
     }
 
+    /** Stato considerato "archiviato" dalla configurazione remota
+     *  (`servizio.workflow.stato_archiviato`), con fallback al letterale. */
+    get _statoArchiviato(): string {
+        return Tools.Configurazione?.servizio?.workflow?.stato_archiviato || 'archiviato';
+    }
+
     _createWorkflowStati() {
         const _configServizio = Tools.Configurazione?.servizio;
         if (_configServizio) {
             this._workflowStati = this._isAnonymous() ? _configServizio.stati_adesione_consentita : _configServizio.workflow.stati;
             this._workflowStatiFiltered = [];
             this._workflowStati.forEach((element: string, index: number) => {
-                if (element === 'archiviato' && !this._isGestore()) { return; }
+                // Issue 346: lo stato archiviato non e` piu` una voce del filtro
+                // "stato" (gestito dal controllo dedicato "Servizi archiviati").
+                if (element === this._statoArchiviato) { return; }
                 this._workflowStatiFiltered.push({ value: element, label: element });
             });
 
@@ -597,6 +609,9 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         this._formGroup = new FormGroup({
             q: new FormControl(''),
             stato: new FormControl(null),
+            // Issue 346: filtro servizi archiviati (solo gestore). null = default
+            // (BE esclude gli archiviati); 'includi' / 'solo' inviano il param.
+            archiviati: new FormControl(null),
             type: new FormControl(''),
             referente: new FormControl(''),
             ruolo_referente: new FormControl([]),
@@ -605,6 +620,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
             id_gruppo: new FormControl(''),
             visibilita: new FormControl(null),
             fruizione: new FormControl(null),
+            api_erogate_aderente: new FormControl(null),
             categoria: new FormControl(''),
             categoriaLabel: new FormControl(''),
             profilo: new FormControl(''),
@@ -661,6 +677,9 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
             query = { ...query, miei_servizi: this._isMyServices, tipo_servizio: this.tipo_servizio };
             if (this._currIdGruppoPadre) { query = { ...query, id_gruppo_padre: this._currIdGruppoPadre }; }
             if (this._gruppoPadreNull) { query = { ...query, gruppo_padre_null: this._gruppoPadreNull }; }
+            // Issue 346: propaga il filtro "archiviati" anche alla vista a gruppi.
+            const _archiviati = this._archiviatiParam();
+            if (_archiviati) { query = { ...query, archiviati: _archiviati }; }
             if (query) aux = { params: this.utils._queryToHttpParams(query) };
         }
         this._spin = !this._hideLoader;
@@ -823,7 +842,27 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     }
 
     _onNew() {
-        this.router.navigate([this.model, 'new']);
+        // Convivenza wizard/form classico: il flag AppConfig.Services.wizardNewLayout
+        // instrada al nuovo wizard di creazione a step. Il form classico resta
+        // raggiungibile a `servizi/new` (default: wizard attivo).
+        const _useWizard = this.config?.AppConfig?.Services?.wizardNewLayout !== false;
+        if (_useWizard) {
+            this.router.navigate([this.model, 'new', 'wizard']);
+        } else {
+            this.router.navigate([this.model, 'new']);
+        }
+    }
+
+    /** Rotta di dettaglio/edit di un servizio. In presentazione -> vista
+     *  read-only. Altrimenti, di default, il wizard a fasi (`:id/wizard`),
+     *  salvo disattivazione via flag `Services.wizardWorkflowLayout=false`
+     *  (che riporta al dettaglio classico `:id`). */
+    private _serviceDetailRoute(id: any): any[] {
+        if (this.showPresentation) { return [this.model, id, 'view']; }
+        // Default: il dettaglio `:id` e' il wizard. Con il flag disattivato si
+        // apre la vista classica sulla rotta dedicata `:id/classic`.
+        const useWizard = this.config?.AppConfig?.Services?.wizardWorkflowLayout !== false;
+        return useWizard ? [this.model, id] : [this.model, id, 'classic'];
     }
 
     _onEdit(event: any, param: any) {
@@ -833,28 +872,19 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         // Supporto per apertura in nuova scheda (Ctrl+Click, Cmd+Click, middle-click)
         const mouseEvent = this.navigationService.extractEvent(event);
         const data = this.navigationService.extractData(param) || param;
-        const route = this.showPresentation
-            ? [this.model, data.idServizio, 'view']
-            : [this.model, data.idServizio];
-        this.navigationService.navigateWithEvent(mouseEvent, route);
+        this.navigationService.navigateWithEvent(mouseEvent, this._serviceDetailRoute(data.idServizio));
     }
 
     _onOpenInNewTab(event: any) {
         const data = this.navigationService.extractData(event);
-        const route = this.showPresentation
-            ? [this.model, data.idServizio, 'view']
-            : [this.model, data.idServizio];
-        this.navigationService.openInNewTab(route);
+        this.navigationService.openInNewTab(this._serviceDetailRoute(data.idServizio));
     }
 
     _onOpenInNewTabGroup(event: any) {
         const data = this.navigationService.extractData(event);
-        // Solo per i servizi, non per i gruppi
-        if (data.type === 'servizio') {
-            const route = this.showPresentation
-                ? [this.model, data.id, 'view']
-                : [this.model, data.id];
-            this.navigationService.openInNewTab(route);
+        // Solo per i servizi, non per i gruppi. La card emette l'item del BE (`tipo`), non l'elemento della lista (`type`).
+        if ((data?.type ?? data?.tipo) === 'servizio') {
+            this.navigationService.openInNewTab(this._serviceDetailRoute(data.id));
         }
     }
 
@@ -944,6 +974,9 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         const _tempFilter = { ...values };
         // delete _tempFilter.taxonomiesGroup;
         delete _tempFilter.categoriaLabel;
+        // Issue 346: "archiviati" e` un modificatore trasversale (lista + vista a
+        // gruppi), non conta come filtro per decidere lista vs vista a gruppi.
+        delete _tempFilter.archiviati;
 
         this.resetElements();
         this._groupsView = false;
@@ -978,13 +1011,14 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
     async _resolveGroupHierarchy(idGruppo: string) {
         try {
+            const storedPath = this._getStoredGroupsPath(idGruppo);
             const query = { id_gruppo_padre: idGruppo, tipo_servizio: this.tipo_servizio };
-            const params = this.utils._queryToHttpParams(query);
-            const response: any = await firstValueFrom(this.apiService.getList('servizi_gruppi', { params }));
-            const firstItem = response?.content?.[0];
-            const pathGruppo: { id_gruppo: string; nome: string }[] = firstItem?.path_gruppo || [];
-            if (pathGruppo.length > 0) {
-                this.groupsBreadcrumbs = pathGruppo.map((g) => ({
+            const pathGruppo = storedPath ? [] : await this._getPathGruppo(query);
+            if (storedPath) {
+                this.groupsBreadcrumbs = storedPath;
+            } else if (pathGruppo.length > 0) {
+                const fullPath = await this._completePathGruppo(pathGruppo);
+                this.groupsBreadcrumbs = fullPath.map((g) => ({
                     label: g.nome, url: g.id_gruppo, type: 'link', icon: '', group: true, tooltip: 'APP.TOOLTIP.Group'
                 }));
             } else {
@@ -1004,6 +1038,34 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
             this._gruppoPadreNull = true;
             this.groupsBreadcrumbs = [];
         }
+    }
+
+    /** Percorso gia` noto dalla navigazione (breadcrumb salvato), troncato al gruppo richiesto. */
+    private _getStoredGroupsPath(idGruppo: string): any[] | null {
+        const stored: any[] = this.breadCrumbService.getBreadcrumbs()?.groupsBreadcrumbs || [];
+        const index = stored.findIndex((item: any) => item.url === idGruppo);
+        return (index !== -1) ? stored.slice(0, index + 1) : null;
+    }
+
+    private async _getPathGruppo(query: any): Promise<{ id_gruppo: string; nome: string }[]> {
+        const params = this.utils._queryToHttpParams({ ...query, size: 1 });
+        const response: any = await firstValueFrom(this.apiService.getList('servizi_gruppi', { params }));
+        return response?.content?.[0]?.path_gruppo || [];
+    }
+
+    /** `path_gruppo` puo` riportare solo gli ultimi livelli: risale dal primo
+     *  elemento finche` non si raggiunge un gruppo radice. */
+    private async _completePathGruppo(path: { id_gruppo: string; nome: string }[]) {
+        let fullPath = [...path];
+        const seen = new Set(fullPath.map((g) => g.id_gruppo));
+        while (fullPath.length > 1) {
+            const upper = await this._getPathGruppo({ id_gruppo_padre: fullPath[0].id_gruppo });
+            const ancestors = upper.slice(0, -1).filter((g) => !seen.has(g.id_gruppo));
+            if (!ancestors.length) { break; }
+            ancestors.forEach((g) => seen.add(g.id_gruppo));
+            fullPath = [...ancestors, ...fullPath];
+        }
+        return fullPath;
     }
 
     _resetForm() {
@@ -1129,6 +1191,15 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         return this.authenticationService.isGestore();
     }
 
+    /** Issue 346: valore del param `archiviati` da inviare al BE. Efficace solo
+     *  per il gestore; `null` (default) → il BE esclude gli archiviati, quindi si
+     *  invia il param solo per `includi`/`solo`. */
+    _archiviatiParam(): string | null {
+        if (!this._isGestore()) { return null; }
+        const v = this._filterData?.archiviati ?? this._formGroup.get('archiviati')?.value;
+        return (v === 'includi' || v === 'solo') ? v : null;
+    }
+
     _isAnonymous() {
         return this.authenticationService.isAnonymous();
     }
@@ -1222,24 +1293,18 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     }
 
     _initDominiSelect(defaultValue: any[] = []) {
-        this.domini$ = concat(
-            of(defaultValue),
-            this.dominiInput$.pipe(
-                filter(res => {
-                    return res !== null && res.length >= this.minLengthTerm
-                }),
-                // startWith(''),
-                distinctUntilChanged(),
-                debounceTime(500),
-                tap(() => this.dominiLoading = true),
-                switchMap((term: any) => {
-                    return this.getData('domini', term).pipe(
-                        catchError(() => of([])), // empty list on error
-                        tap(() => this.dominiLoading = false)
-                    )
-                })
-            )
+        this.dominiTypeahead = this._nuoviDomini(defaultValue);
+    }
+
+    private _nuoviDomini(iniziali: any[]): PagedTypeahead<any> {
+        return new PagedTypeahead<any>(
+            (term: string, page: number) => this._cercaDomini(term, page),
+            { iniziali: iniziali.filter(Boolean), chiave: (d: any) => d?.id_dominio, debounce: 500, minTermLength: this.minLengthTerm ?? 1 }
         );
+    }
+
+    private _cercaDomini(term: string, page: number): Observable<PaginaTypeahead<any>> {
+        return this.apiService.getList('domini', { params: { q: term, page: `${page}` } }).pipe(map((resp: any) => paginaDaRisposta(resp)));
     }
 
     _initOrganizzazioniErogatoreSelect(defaultValue: any[] = []) {

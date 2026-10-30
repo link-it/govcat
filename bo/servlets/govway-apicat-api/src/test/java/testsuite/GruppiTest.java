@@ -46,6 +46,7 @@ import org.govway.catalogo.servlets.model.Gruppo;
 import org.govway.catalogo.servlets.model.GruppoCreate;
 import org.govway.catalogo.servlets.model.GruppoUpdate;
 import org.govway.catalogo.servlets.model.ListItemGruppo;
+import org.govway.catalogo.servlets.model.PathGruppo;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.TipoServizio;
 import org.govway.catalogo.servlets.model.Utente;
@@ -423,6 +424,32 @@ public class GruppiTest {
         assertNotNull(responseList.getBody());
         assertEquals(1, responseList.getBody().getContent().size());
         assertEquals("Second Group", responseList.getBody().getContent().get(0).getNome());
+    }
+
+    @Test
+    public void testListGruppiPathGruppoCompleto() {
+        // gerarchia a 4 livelli: il path_gruppo deve contenere tutti gli antenati, dalla radice al padre
+        String[] nomi = {"Livello 1", "Livello 2", "Livello 3", "Livello 4"};
+        UUID[] ids = new UUID[nomi.length];
+        for (int i = 0; i < nomi.length; i++) {
+            GruppoCreate gruppoCreate = CommonUtils.getGruppoCreate();
+            gruppoCreate.setNome(nomi[i]);
+            gruppoCreate.setPadre(i > 0 ? ids[i - 1] : null);
+            ResponseEntity<Gruppo> createdGruppo = controller.createGruppo(gruppoCreate);
+            assertEquals(HttpStatus.OK, createdGruppo.getStatusCode());
+            ids[i] = createdGruppo.getBody().getIdGruppo();
+        }
+
+        ResponseEntity<ListItemGruppo> responseList = controller.listGruppi(null, null, ids[3], null, null, null);
+
+        assertEquals(HttpStatus.OK, responseList.getStatusCode());
+        assertEquals(1, responseList.getBody().getContent().size());
+        List<PathGruppo> path = responseList.getBody().getContent().get(0).getPathGruppo();
+        assertEquals(3, path.size());
+        for (int i = 0; i < path.size(); i++) {
+            assertEquals(ids[i], path.get(i).getIdGruppo());
+            assertEquals(nomi[i], path.get(i).getNome());
+        }
     }
 
     @Test

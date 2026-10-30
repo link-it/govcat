@@ -26,6 +26,7 @@ import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { MarkdownModule } from 'ngx-markdown';
+import { LnkCollapsibleTextComponent } from '@app/components/lnk-ui/collapsible-text/collapsible-text.component';
 
 import { COMPONENTS_IMPORTS, ConfigService, EventsManagerService, Tools, EventType } from '@linkit/components';
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
@@ -81,6 +82,7 @@ import { CkeckProvider, ClassiEnum, DataStructure } from '@app/provider/check.pr
         TooltipModule,
         NgSelectModule,
         MarkdownModule,
+        LnkCollapsibleTextComponent,
         ModalEditClientComponent,
         ClientAuthFormComponent
     ]

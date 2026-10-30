@@ -460,7 +460,7 @@ export class ServizioApiComponent implements OnInit, AfterContentChecked, OnDest
   }
 
   _canAddMapper = (): boolean => {
-    return this.authenticationService.canAdd('servizio', this.service?.stato, this._grant?.ruoli);
+    return this.authenticationService.canManageApi(this._grant);
   }
 
   _canEditMapper = (): boolean => {

@@ -880,7 +880,10 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
                 this.router.navigate(['/settings']);
                 break
             case 'logout':
-                this.router.navigate(['/auth/login']);
+                // Con redirect all'IdP la pagina viene lasciata: la login si apre solo senza IdP
+                if (!this.authenticationService.logout(true)) {
+                    this.router.navigate(['/auth/login']);
+                }
                 break
             default:
                 break;

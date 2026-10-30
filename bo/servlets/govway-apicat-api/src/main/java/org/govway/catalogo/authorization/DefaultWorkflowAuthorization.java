@@ -335,6 +335,10 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 		break;
 		case SPECIFICA:  gt = grant.getSpecifica();
 		break;
+		case API:  gt = grant.getApi();
+		break;
+		case COMUNICAZIONI:  gt = grant.getComunicazioni();
+		break;
 		}
 
 		if(gt==null) {
@@ -360,6 +364,14 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 		}
 
 		ConfigurazioneCambioStato stato = this.getStato(entity, this.getStatoEquivalente(classe, entity));
+
+		if(classe.equals(ConfigurazioneClasseDato.COMUNICAZIONI)) {
+			// Le comunicazioni non seguono l'avanzamento del workflow: chi ha un ruolo sull'entita' puo'
+			// comunicare in ogni stato, compresi quelli senza stato successivo. Restano bloccabili per
+			// stato tramite i dati non modificabili.
+			return stato.getDatiNonModificabili() != null && stato.getDatiNonModificabili().contains(classe) ?
+					GrantType.LETTURA : GrantType.SCRITTURA;
+		}
 
 		boolean isRuoloAbilitato = false;
 
@@ -465,6 +477,8 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 		grant.setGenerico(this.getGrantType(ConfigurazioneClasseDato.GENERICO, lst, entity));
 		grant.setCollaudo(this.getGrantType(ConfigurazioneClasseDato.COLLAUDO, lst, entity));
 		grant.setProduzione(this.getGrantType(ConfigurazioneClasseDato.PRODUZIONE, lst, entity));
+		grant.setApi(this.getGrantType(ConfigurazioneClasseDato.API, lst, entity));
+		grant.setComunicazioni(this.getGrantType(ConfigurazioneClasseDato.COMUNICAZIONI, lst, entity));
 
 		return grant;
 	}
@@ -497,6 +511,44 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 					errori.put(kParams, e);
 					return e;
 				});
+	}
+
+	/**
+	 * Indica se un gruppo di proprieta' custom e' visibile all'utente in sessione in base ai
+	 * {@code ruoli_abilitati} del gruppo, con la stessa semantica applicata dal frontend: lista
+	 * assente -> visibile a tutti; lista vuota -> nessun ruolo abilitato; altrimenti serve almeno
+	 * un ruolo dell'utente sull'entita' in comune con la lista.
+	 *
+	 * Usato nel controllo dei campi obbligatori: le proprieta' required di un gruppo non visibile
+	 * non vengono richieste all'utente, che non potrebbe compilarle. Restano obbligatorie per
+	 * chiunque abbia un ruolo abilitato sul gruppo.
+	 *
+	 * @param ruoliAbilitati ruoli abilitati configurati sul gruppo
+	 * @param entity entita' su cui calcolare i ruoli dell'utente in sessione
+	 * @return true se il gruppo e' visibile all'utente
+	 */
+	protected boolean isGruppoProprietaCustomVisibile(List<Ruolo> ruoliAbilitati, ENTITY entity) {
+		if(ruoliAbilitati == null) {
+			return true;
+		}
+		if(ruoliAbilitati.isEmpty()) {
+			return false;
+		}
+		return this.getRuoli(entity).stream().anyMatch(ruoliAbilitati::contains);
+	}
+
+	/**
+	 * Un gruppo di proprieta' custom e' scrivibile solo da chi lo vede in base ai
+	 * {@code ruoli_abilitati} (vedi {@link #isGruppoProprietaCustomVisibile(List, Object)}).
+	 *
+	 * @param nomeGruppo nome del gruppo che si vuole scrivere
+	 * @param ruoliAbilitati ruoli abilitati configurati sul gruppo
+	 * @param entity entita' su cui calcolare i ruoli dell'utente in sessione
+	 */
+	protected void authorizeModificaGruppoProprietaCustom(String nomeGruppo, List<Ruolo> ruoliAbilitati, ENTITY entity) {
+		if(!isGruppoProprietaCustomVisibile(ruoliAbilitati, entity)) {
+			throw new NotAuthorizedException(ErrorCode.AUT_403_GRUPPO_RUOLI_ABILITATI, Map.of("gruppo", nomeGruppo));
+		}
 	}
 
 	protected abstract List<Ruolo> getRuoli(ENTITY entity);

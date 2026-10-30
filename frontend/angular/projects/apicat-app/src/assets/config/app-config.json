@@ -52,7 +52,10 @@
 
     "Services": {
       "showReferents": true,
-      "hideVersions": false
+      "hideVersions": false,
+      "wizardNewLayout": true,
+      "wizardWorkflowLayout": true,
+      "showPackage": false
     },
 
     "Adesioni": {
@@ -464,7 +467,7 @@
           "--navbar-border-color": "#dfe8ec",
           "--version-button-hover-color": "#dfe8ec",
           "--link-color": "#212121",
-          "--link-hover-color": "#0078ac",
+          "--link-hover-color": "#006692",
           "--fly-out-back-item": "#000000",
           "--fly-out-color-item": "#FFFFFF",
           "--fly-out-back-top": "#f0f0f0",
@@ -542,7 +545,7 @@
           "--navbar-border-color": "#dfe8ec",
           "--version-button-hover-color": "#dfe8ec",
           "--link-color": "#212121",
-          "--link-hover-color": "#0078ac",
+          "--link-hover-color": "#006692",
           "--fly-out-back-item": "#000000",
           "--fly-out-color-item": "#FFFFFF",
           "--fly-out-back-top": "#f0f0f0",

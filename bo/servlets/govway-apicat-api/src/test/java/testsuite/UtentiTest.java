@@ -3179,6 +3179,140 @@ public class UtentiTest {
                 resp.getBody().getOrganizzazioni().get(0).getOrganizzazione().getIdOrganizzazione());
         assertEquals(RuoloOrganizzazioneEnum.OPERATORE_API,
                 resp.getBody().getOrganizzazioni().get(0).getRuoloOrganizzazione());
+        // L'utente registrato era privo di ruolo globale: l'approvazione lo promuove
+        assertEquals(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE, resp.getBody().getRuolo());
+    }
+
+    // ============================================================
+    // coerenza ruolo globale / associazioni organizzazione
+    // ============================================================
+
+    /**
+     * Simula il risultato della registrazione con org scelta: utente senza ruolo globale,
+     * in PENDING_UPDATE con organizzazione_pending valorizzata e nessuna associazione.
+     */
+    private Utente creaUtenteRegistratoPending(String principal, UUID idOrgPending) {
+        org.govway.catalogo.core.orm.entity.UtenteEntity nuovo =
+                new org.govway.catalogo.core.orm.entity.UtenteEntity();
+        nuovo.setIdUtente(UUID.randomUUID().toString());
+        nuovo.setPrincipal(principal);
+        nuovo.setNome("Nuovo");
+        nuovo.setCognome("Registrato");
+        nuovo.setEmailAziendale("nuovo.registrato@example.com");
+        nuovo.setTelefonoAziendale("00-000000");
+        nuovo.setStato(org.govway.catalogo.core.orm.entity.UtenteEntity.Stato.PENDING_UPDATE);
+        nuovo.setOrganizzazionePending(organizzazioneService.find(idOrgPending).get());
+        nuovo.setOrganizzazionePartenza(null);
+        utenteService.save(nuovo);
+
+        Utente attuale = new Utente();
+        attuale.setIdUtente(UUID.fromString(nuovo.getIdUtente()));
+        attuale.setPrincipal(nuovo.getPrincipal());
+        attuale.setNome(nuovo.getNome());
+        attuale.setCognome(nuovo.getCognome());
+        attuale.setEmailAziendale(nuovo.getEmailAziendale());
+        attuale.setTelefonoAziendale(nuovo.getTelefonoAziendale());
+        return attuale;
+    }
+
+    @Test
+    public void testApprovazione_NuovoUtenteDaRegistrazione_DaAmmOrg_PromuoveRuolo() {
+        Organizzazione orgY = creaOrgConNomeMultiOrg("reg-ammorg-y");
+        Utente attuale = creaUtenteRegistratoPending("reg.ammorg.user." + System.nanoTime(),
+                orgY.getIdOrganizzazione());
+
+        creaUtenteAssociatoA("reg.ammorg.amm",
+                List.of(orgY.getIdOrganizzazione()),
+                RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+        autenticaPrincipal("reg.ammorg.amm");
+        setOrgContextSu(orgY.getIdOrganizzazione(), RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+
+        // Payload come quello del FE: ruolo globale "nessun ruolo" (null), operatore_api sull'org
+        UtenteUpdate uu = buildApprovazioneUpdate(attuale, orgY.getIdOrganizzazione(),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+        assertNull(uu.getRuolo());
+
+        ResponseEntity<Utente> resp = controller.updateUtente(attuale.getIdUtente(), uu);
+
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        assertEquals(StatoUtenteEnum.ABILITATO, resp.getBody().getStato());
+        assertEquals(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE, resp.getBody().getRuolo());
+        assertEquals(1, resp.getBody().getOrganizzazioni().size());
+        assertEquals(RuoloOrganizzazioneEnum.OPERATORE_API,
+                resp.getBody().getOrganizzazioni().get(0).getRuoloOrganizzazione());
+    }
+
+    @Test
+    public void testApprovazione_DaAmmOrg_RuoloGlobaleGestore_Forbidden() {
+        Organizzazione orgY = creaOrgConNomeMultiOrg("reg-escal-y");
+        Utente attuale = creaUtenteRegistratoPending("reg.escal.user." + System.nanoTime(),
+                orgY.getIdOrganizzazione());
+
+        creaUtenteAssociatoA("reg.escal.amm",
+                List.of(orgY.getIdOrganizzazione()),
+                RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+        autenticaPrincipal("reg.escal.amm");
+        setOrgContextSu(orgY.getIdOrganizzazione(), RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+
+        // L'AMM_ORG non può assegnare un ruolo globale diverso da utente_organizzazione
+        UtenteUpdate uu = buildApprovazioneUpdate(attuale, orgY.getIdOrganizzazione(),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+        uu.setRuolo(RuoloUtenteEnum.GESTORE);
+
+        var ex = assertThrows(NotAuthorizedException.class,
+                () -> controller.updateUtente(attuale.getIdUtente(), uu));
+        assertEquals("AUT.403.AMM.ORG.INVALID.ROLE", ex.getMessage());
+    }
+
+    @Test
+    public void testCreateUtente_RuoloNullConOrganizzazioni_BadRequest() {
+        Organizzazione org = creaOrgConNomeMultiOrg("ruolo-null-create");
+
+        UtenteCreate uc = CommonUtils.getUtenteCreate();
+        uc.setPrincipal("ruolo.null.create");
+        UtenteOrganizzazioneCreate assoc = new UtenteOrganizzazioneCreate();
+        assoc.setIdOrganizzazione(org.getIdOrganizzazione());
+        assoc.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.OPERATORE_API);
+        uc.setOrganizzazioni(List.of(assoc));
+
+        var ex = assertThrows(BadRequestException.class, () -> controller.createUtente(uc));
+        assertEquals("UT.400.RUOLO.NULL", ex.getMessage());
+    }
+
+    @Test
+    public void testUpdateUtente_RuoloNullConOrganizzazioni_BadRequest() {
+        Organizzazione org = creaOrgConNomeMultiOrg("ruolo-null-update");
+        Utente utente = creaUtenteAssociatoA("ruolo.null.update",
+                List.of(org.getIdOrganizzazione()),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+
+        // Rimozione del ruolo globale mantenendo l'associazione all'organizzazione
+        UtenteUpdate uu = buildApprovazioneUpdate(utente, org.getIdOrganizzazione(),
+                RuoloOrganizzazioneEnum.OPERATORE_API);
+        uu.setRuolo(null);
+
+        var ex = assertThrows(BadRequestException.class,
+                () -> controller.updateUtente(utente.getIdUtente(), uu));
+        assertEquals("UT.400.RUOLO.NULL", ex.getMessage());
+    }
+
+    @Test
+    public void testCreateUtente_AmmOrg_RuoloAssente_PromossoUtenteOrganizzazione() {
+        Organizzazione org = organizzazioniController.createOrganizzazione(
+                CommonUtils.getOrganizzazioneCreate()).getBody();
+        creaAmmOrgEAutentica("amm.org.create.noruolo", org);
+
+        UtenteCreate nuovo = CommonUtils.getUtenteCreate();
+        nuovo.setPrincipal("amm.org.create.noruolo.target");
+        UtenteOrganizzazioneCreate ass = new UtenteOrganizzazioneCreate();
+        ass.setIdOrganizzazione(org.getIdOrganizzazione());
+        ass.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.OPERATORE_API);
+        nuovo.setOrganizzazioni(List.of(ass));
+
+        ResponseEntity<Utente> response = controller.createUtente(nuovo);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE, response.getBody().getRuolo());
+        assertEquals(1, response.getBody().getOrganizzazioni().size());
     }
 
     // ============================================================

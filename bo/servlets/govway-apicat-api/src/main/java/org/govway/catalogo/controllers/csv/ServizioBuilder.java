@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.govway.catalogo.core.business.utils.EServiceBuilder;
+import org.govway.catalogo.core.business.utils.UrlInvocazioneRisolta;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.DominioEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteDominioEntity;
@@ -63,7 +64,11 @@ public class ServizioBuilder {
 		// il referente del dominio è il fruitore interno.
 		SoggettoEntity erogatore = this.eServiceBuilder.getSoggettoErogatore(servizioEntity);
 		String nomeErogatore = erogatore != null ? erogatore.getNome() : "";
-		String nomeFruitore = getNomeFruitore(servizioEntity);
+		String organizzazioneErogatore = getNomeOrganizzazione(erogatore);
+		SoggettoEntity fruitore = getSoggettoFruitore(servizioEntity);
+		String nomeFruitore = fruitore != null ? fruitore.getNome() : "";
+		String organizzazioneFruitore = getNomeOrganizzazione(fruitore);
+		String intermediato = servizioEntity.isFruizione() ? "Sì" : "No";
 
 		DominioEntity dominioEntity = servizioEntity.getDominio();
 		String nomeDominio = dominioEntity != null ? dominioEntity.getNome() : "";
@@ -81,7 +86,10 @@ public class ServizioBuilder {
 			Servizio s = new Servizio();
 
 			s.setErogatore(nomeErogatore);
+			s.setOrganizzazioneErogatore(organizzazioneErogatore);
 			s.setFruitore(nomeFruitore);
+			s.setOrganizzazioneFruitore(organizzazioneFruitore);
+			s.setIntermediato(intermediato);
 			s.setDominio(nomeDominio);
 
 			// Servizio
@@ -97,6 +105,9 @@ public class ServizioBuilder {
 			// Tipologia API (soap/rest)
 			s.setTipoApi(api.getCollaudo() != null && api.getCollaudo().getProtocollo() != null
 					&& api.getCollaudo().getProtocollo().toString().contains("WSDL") ? "soap" : "rest");
+
+			// Ruolo API
+			s.setRuoloApi(getRuoloApi(api.getRuolo()));
 
 			// Modalità Autenticazione - get profiles from API authTypes
 			String profili = api.getAuthType().stream()
@@ -114,9 +125,15 @@ public class ServizioBuilder {
 			s.setReferentiDominio(referentiDominio);
 			s.setReferentiTecniciDominio(referentiTecniciDominio);
 
-			// URL Invocazione
-			s.setUrlInvocazioneCollaudo(this.eServiceBuilder.getUrlInvocazione(api, true));
-			s.setUrlInvocazioneProduzione(this.eServiceBuilder.getUrlInvocazione(api, false));
+			// URL Invocazione: la principale nelle colonne storiche, le aggiuntive in quelle in coda
+			List<UrlInvocazioneRisolta> urlCollaudo = this.eServiceBuilder.getUrlInvocazioni(api, true);
+			List<UrlInvocazioneRisolta> urlProduzione = this.eServiceBuilder.getUrlInvocazioni(api, false);
+
+			s.setUrlInvocazioneCollaudo(urlCollaudo.get(0).url());
+			s.setUrlInvocazioneProduzione(urlProduzione.get(0).url());
+
+			s.setUrlInvocazioneAggiuntiveCollaudo(formatUrlInvocazioneAggiuntive(urlCollaudo));
+			s.setUrlInvocazioneAggiuntiveProduzione(formatUrlInvocazioneAggiuntive(urlProduzione));
 
 			// Backend URL (Connettore)
 			if(api.getCollaudo() != null) {
@@ -135,15 +152,36 @@ public class ServizioBuilder {
 	/**
 	 * Soggetto fruitore: valorizzato solo per i servizi intermediati, dove il soggetto referente
 	 * del dominio è il fruitore interno e non l'erogatore (vedi EServiceBuilder.getSoggettoErogatore).
-	 * Per le erogazioni la colonna resta vuota: non esiste un fruitore interno.
+	 * Per le erogazioni le colonne del fruitore restano vuote: non esiste un fruitore interno.
 	 */
-	private String getNomeFruitore(ServizioEntity servizioEntity) {
+	private SoggettoEntity getSoggettoFruitore(ServizioEntity servizioEntity) {
 		if(!servizioEntity.isFruizione() || servizioEntity.getDominio() == null) {
+			return null;
+		}
+
+		return servizioEntity.getDominio().getSoggettoReferente();
+	}
+
+	private String getNomeOrganizzazione(SoggettoEntity soggetto) {
+		if(soggetto == null || soggetto.getOrganizzazione() == null) {
 			return "";
 		}
 
-		SoggettoEntity fruitore = servizioEntity.getDominio().getSoggettoReferente();
-		return fruitore != null ? fruitore.getNome() : "";
+		return soggetto.getOrganizzazione().getNome();
+	}
+
+	/**
+	 * Etichette allineate a quelle mostrate dal frontend per il ruolo dell'API.
+	 */
+	private String getRuoloApi(ApiEntity.RUOLO ruolo) {
+		if(ruolo == null) {
+			return "";
+		}
+
+		return switch(ruolo) {
+		case EROGATO_SOGGETTO_DOMINIO -> "Erogata da soggetto dominio";
+		case EROGATO_SOGGETTO_ADERENTE -> "Erogata dal soggetto aderente";
+		};
 	}
 
 	private String getReferentiServizio(ServizioEntity servizioEntity, TIPO_REFERENTE tipo) {
@@ -196,6 +234,16 @@ public class ServizioBuilder {
 		}
 
 		return result;
+	}
+
+	/**
+	 * URL di invocazione aggiuntive (dalla seconda in poi) nel formato "etichetta: url",
+	 * separate da " | ". Stringa vuota se non ce ne sono.
+	 */
+	private String formatUrlInvocazioneAggiuntive(List<UrlInvocazioneRisolta> urls) {
+		return urls.subList(1, urls.size()).stream()
+				.map(url -> url.etichetta() + ": " + url.url())
+				.collect(Collectors.joining(" | "));
 	}
 
 	private String capitalizeFirst(String str) {

@@ -1,0 +1,25 @@
+{
+  "events": [
+    {
+      "id": "1ec00000-0000-0000-0000-000000000001",
+      "eventType": "ESERVICE_ADDED",
+      "eventTimestamp": "2026-01-15T09:31:00Z",
+      "eserviceId": "c3333333-3333-3333-3333-333333333333",
+      "descriptorId": "c4444444-4444-4444-4444-444444444444"
+    },
+    {
+      "id": "2ec00000-0000-0000-0000-000000000002",
+      "eventType": "ESERVICE_DESCRIPTOR_PUBLISHED",
+      "eventTimestamp": "2026-01-15T09:32:00Z",
+      "eserviceId": "c3333333-3333-3333-3333-333333333333",
+      "descriptorId": "c4444444-4444-4444-4444-444444444444"
+    },
+    {
+      "id": "3ec00000-0000-0000-0000-000000000003",
+      "eventType": "ESERVICE_DESCRIPTOR_SUSPENDED",
+      "eventTimestamp": "2026-01-15T09:33:00Z",
+      "eserviceId": "c3333333-3333-3333-3333-333333333333",
+      "descriptorId": "c4444444-4444-4444-4444-444444444444"
+    }
+  ]
+}

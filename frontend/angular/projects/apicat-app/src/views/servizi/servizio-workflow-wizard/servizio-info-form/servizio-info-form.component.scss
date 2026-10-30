@@ -1,0 +1,226 @@
+// ----------------------------------------------------------------------
+// ServizioInfoFormComponent — revisione UI (form del wizard).
+// Layout compatto, campi raggruppati in sotto-sezioni con intestazione,
+// tipografia/spaziatura allineate ai design token del wizard (ereditati
+// dal `:host(.lnk-wizard)` del wizard).
+// ----------------------------------------------------------------------
+
+:host {
+  display: block;
+}
+
+.servizio-info-form {
+
+  // UI a sezioni-card (allineata al wizard di creazione): ogni sezione ha una
+  // colonna sinistra meta (numero/tag/titolo/descrizione) e il corpo a destra.
+  .lnk-phase-section {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 0;
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--line, #dee8ef);
+    border-radius: var(--radius-lg, 14px);
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 16px;
+  }
+  // Quando un ng-select è aperto, sblocca l'overflow ed eleva la card.
+  .lnk-phase-section:has(.ng-select-opened) {
+    overflow: visible;
+    z-index: 20;
+  }
+  .lnk-phase-section-hd {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 20px;
+    background: var(--surface-2, #fafcfd);
+    border-right: 1px solid var(--line, #dee8ef);
+  }
+  .ps-num {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: none; // grid
+    place-items: center;
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--surface-3, #eef4f8);
+    color: var(--ink-3, #57738a);
+    border: 1px solid var(--line-strong, #c4d6e0);
+  }
+  .ps-meta { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .ps-tag {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    color: var(--ink-3, #57738a);
+  }
+  .ps-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink, #212c49);
+    margin: 0;
+  }
+  .ps-desc {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--ink-3, #57738a);
+    margin: 0;
+  }
+  .lnk-phase-section-body {
+    padding: 20px;
+    margin: 20px;
+  }
+
+  @media (max-width: 767.98px) {
+    .lnk-phase-section { grid-template-columns: 1fr; }
+    .lnk-phase-section-hd {
+      border-right: none;
+      border-bottom: 1px solid var(--line, #dee8ef);
+    }
+  }
+
+  // Label più discrete e compatte
+  .label-bold {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-2, #2e445a);
+    margin-bottom: 4px;
+  }
+
+  .form-group {
+    margin-bottom: 14px;
+  }
+
+  // Campi boxati (allineati al form del wizard adesioni): sia i campi
+  // read-only (`.form-control-plaintext`, anche dentro `lnk-form-field`) sia
+  // gli input in edit hanno sfondo soft/bianco, bordo arrotondato, altezza
+  // uniforme. `::ng-deep` per attraversare i child component (lnk-form-field).
+  ::ng-deep {
+    .form-control-plaintext {
+      min-height: 36px;
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      background: var(--surface-2, #fafcfd);
+      border: 1px solid var(--line, #dee8ef);
+      border-radius: 8px;
+      font-size: 14px;
+      color: var(--ink, #212c49);
+      line-height: 1.4;
+      margin: 0;
+      width: 100%;
+      white-space: normal;
+      word-break: break-word;
+    }
+
+    .form-control {
+      min-height: 36px;
+      padding: 6px 14px;
+      background: var(--surface, #ffffff);
+      border: 1px solid var(--line-strong, #c4d6e0);
+      border-radius: 8px;
+      font-size: 14px;
+      color: var(--ink, #212c49);
+
+      &:focus {
+        border-color: var(--accent, #ff4050);
+        box-shadow: 0 0 0 3px var(--accent-soft, #ffe9eb);
+        outline: none;
+      }
+      &:disabled,
+      &[readonly] {
+        background: var(--surface-2, #fafcfd);
+        color: var(--ink, #212c49);
+      }
+    }
+    textarea.form-control {
+      min-height: 80px;
+      padding: 10px 14px;
+      line-height: 1.5;
+      align-items: initial;
+    }
+
+    // Valori read-only "custom" (span/badge/date) resi come box come sopra.
+    .readonly-box {
+      min-height: 36px;
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 4px;
+      background: var(--surface-2, #fafcfd);
+      border: 1px solid var(--line, #dee8ef);
+      border-radius: 8px;
+      font-size: 14px;
+      color: var(--ink, #212c49);
+      white-space: normal;
+      word-break: break-word;
+    }
+    .readonly-box.readonly-box--multiline {
+      min-height: 60px;
+      align-items: flex-start;
+    }
+
+    ui-data-type {
+      display: flex;
+      align-items: center;
+      min-height: 36px;
+      padding: 6px 14px;
+      background: var(--surface-2, #fafcfd);
+      border: 1px solid var(--line, #dee8ef);
+      border-radius: 8px;
+      font-size: 14px;
+      color: var(--ink, #212c49);
+    }
+
+    .ng-select .ng-select-container {
+      min-height: 36px;
+      border-radius: 8px;
+      border-color: var(--line-strong, #c4d6e0);
+    }
+  }
+
+  // In view mode i valori sono testo semplice, non input pieni
+  &.form-readonly .form-group .mt-1 > span,
+  .form-group .mt-1 > span {
+    color: var(--ink, #212c49);
+  }
+
+  // Righe checkbox più allineate
+  .gl-form-checkbox {
+    margin-top: 2px;
+  }
+
+  // Logo più contenuto e con cornice leggera
+  .form-group.logo img,
+  .form-group.logo app-photo-base64 {
+    border-radius: 10px;
+  }
+  // Bordo del logo solo in visualizzazione (readonly), non in modifica.
+  .form-readonly .form-group.logo img {
+    border: 1px solid var(--line, #dee8ef);
+  }
+
+  // Footer submit: spazio sopra
+  lnk-form-submit {
+    display: block;
+    margin-top: 8px;
+  }
+
+  // Riepilogo metadati (read-only) attenuato
+  .meta-row .label-bold {
+    color: var(--ink-3, #57738a);
+    font-weight: 600;
+  }
+}
+
+.info-form-mandatory-hint {
+  font-size: 12.5px;
+  color: var(--ink-3, #57738a);
+  display: flex;
+  align-items: center;
+}

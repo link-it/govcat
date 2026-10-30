@@ -26,6 +26,8 @@ describe('AdesioneConfigurazioniComponent', () => {
     download: vi.fn().mockReturnValue(of({ body: new Blob() })),
   } as any;
   const mockAuthService = {
+    isTransitionAllowedForProfiles: vi.fn().mockReturnValue(true),
+    getRequiredProfiles: vi.fn().mockImplementation((e: any) => [...new Set((e?.client_richiesti || []).map((c: any) => c?.profilo).filter(Boolean))]),
     isAnonymous: vi.fn().mockReturnValue(false),
     hasPermission: vi.fn().mockReturnValue(true),
     isGestore: vi.fn().mockReturnValue(false),

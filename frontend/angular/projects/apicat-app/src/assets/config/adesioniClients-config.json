@@ -45,9 +45,9 @@
       "label": "APP.LABEL.Status",
       "small": true,
       "values": {
-        "Non configurato": { "label": "APP.CLIENT.LABEL.NotConfigured", "background": "#A4ABB6", "border": "#A4ABB6", "color": "#ffffff" },
+        "Non configurato": { "label": "APP.CLIENT.LABEL.NotConfigured", "background": "#6c717a", "border": "#6c717a", "color": "#ffffff" },
         "configurato": { "label": "APP.CLIENT.LABEL.Configured", "background": "#c7f9cc", "border": "#c7f9cc", "color": "#1f1f1f" },
-        "config_in_progress": { "label": "APP.CLIENT.STATUS.ConfigInProgress", "background": "#f18701", "border": "#f18701", "color": "#ffffff" }
+        "config_in_progress": { "label": "APP.CLIENT.STATUS.ConfigInProgress", "background": "#ad6201", "border": "#ad6201", "color": "#ffffff" }
       }
     }
   }

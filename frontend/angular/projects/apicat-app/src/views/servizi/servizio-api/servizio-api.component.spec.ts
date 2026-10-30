@@ -69,6 +69,7 @@ describe('ServizioApiComponent', () => {
     } as any;
 
     mockAuthenticationService = {
+      canManageApi: vi.fn().mockReturnValue(true),
       isAnonymous: vi.fn().mockReturnValue(false),
       hasPermission: vi.fn().mockReturnValue(true),
       _getConfigModule: vi.fn().mockReturnValue({}),
@@ -309,16 +310,16 @@ describe('ServizioApiComponent', () => {
   });
 
   describe('_canAddMapper', () => {
-    it('should call authenticationService.canAdd on _canAddMapper', () => {
+    it('should call authenticationService.canManageApi on _canAddMapper', () => {
       component._canAddMapper();
-      expect(mockAuthenticationService.canAdd).toHaveBeenCalled();
+      expect(mockAuthenticationService.canManageApi).toHaveBeenCalled();
     });
 
-    it('should pass service stato and grant ruoli', () => {
-      component.service = { stato: 'BOZZA' };
-      component._grant = { ruoli: ['gestore'] } as any;
+    it('should pass the grant', () => {
+      const grant = { ruoli: ['gestore'] } as any;
+      component._grant = grant;
       component._canAddMapper();
-      expect(mockAuthenticationService.canAdd).toHaveBeenCalledWith('servizio', 'BOZZA', ['gestore']);
+      expect(mockAuthenticationService.canManageApi).toHaveBeenCalledWith(grant);
     });
   });
 

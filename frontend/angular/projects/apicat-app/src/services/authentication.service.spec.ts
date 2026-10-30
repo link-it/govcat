@@ -5,7 +5,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { OAuthService } from 'angular-oauth2-oidc';
 import { ConfigService, EventsManagerService, Tools } from '@linkit/components';
 import { PermessiService } from './permessi.service';
-import { AuthenticationService, AUTH_CONST, CLASSES } from './authentication.service';
+import { AuthenticationService, AUTH_CONST, CLASSES, LOGOUT_VOLONTARIO_KEY } from './authentication.service';
 import { OrganizationContextService } from './organization-context.service';
 import { RuoloOrganizzazioneEnum } from '../model/ruoloOrganizzazioneEnum';
 
@@ -253,6 +253,29 @@ describe('AuthenticationService', () => {
   // --- Logout ---
 
   describe('logout', () => {
+    afterEach(() => sessionStorage.removeItem(LOGOUT_VOLONTARIO_KEY));
+
+    it('should mark only a voluntary logout', () => {
+      service.logout();
+      expect(service.isLogoutVolontario()).toBe(false);
+      service.logout(true);
+      expect(service.isLogoutVolontario()).toBe(true);
+      service.clearLogoutVolontario();
+      expect(service.isLogoutVolontario()).toBe(false);
+    });
+
+    it('should report the redirect to the IdP only with a token and a logout url', () => {
+      oauthService.getAccessToken.mockReturnValue(null);
+      (oauthService as any).logoutUrl = 'https://auth.test/logout';
+      expect(service.logout(true)).toBe(false);
+      oauthService.getAccessToken.mockReturnValue('some-token');
+      (service as any).appConfig = { ...mockConfig.AppConfig, AUTH_SETTINGS: { OAUTH: {} } };
+      (oauthService as any).revocationEndpoint = undefined;
+      expect(service.logout(true)).toBe(true);
+      (oauthService as any).logoutUrl = '';
+      expect(service.logout(true)).toBe(false);
+    });
+
     it('should remove session from localStorage', () => {
       service.setCurrentSession({ principal: 'u', roles: [] });
       service.logout();
@@ -277,7 +300,7 @@ describe('AuthenticationService', () => {
       };
       (oauthService as any).revocationEndpoint = undefined;
       service.logout();
-      expect(oauthService.logOut).toHaveBeenCalledWith(true);
+      expect(oauthService.logOut).toHaveBeenCalledWith();
     });
 
     it('should fallback to logOut when revokeTokenAndLogout fails', async () => {
@@ -293,7 +316,7 @@ describe('AuthenticationService', () => {
       await rejectPromise.catch(() => {});
       // Flush microtasks
       await new Promise(resolve => setTimeout(resolve, 0));
-      expect(oauthService.logOut).toHaveBeenCalledWith(true);
+      expect(oauthService.logOut).toHaveBeenCalledWith();
     });
 
     it('should use discovery revocation endpoint when config endpoint is missing', () => {
@@ -570,6 +593,35 @@ describe('AuthenticationService', () => {
         }
       };
       expect(service.canAdd('servizio', 'draft', ['referente'])).toBe(true);
+    });
+
+    it('should ignore the classes with their own rights (api, comunicazioni)', () => {
+      Tools.Configurazione = {
+        servizio: {
+          workflow: {
+            cambi_stato: [{ stato_attuale: 'bozza', dati_non_modificabili: ['api', 'comunicazioni'], stato_successivo: { ruoli_abilitati: ['referente'] } }]
+          }
+        }
+      };
+      expect(service.canAdd('servizio', 'bozza', ['referente'])).toBe(true);
+    });
+  });
+
+  describe('canSendComunicazioni', () => {
+    it('should follow the comunicazioni grant', () => {
+      expect(service.canSendComunicazioni({ ruoli: ['referente'], comunicazioni: 'scrittura' } as any, false)).toBe(true);
+      expect(service.canSendComunicazioni({ ruoli: ['referente'], comunicazioni: 'lettura' } as any, true)).toBe(false);
+      expect(service.canSendComunicazioni({ ruoli: [], comunicazioni: 'nessuno' } as any, true)).toBe(false);
+    });
+
+    it('should always allow the gestore', () => {
+      expect(service.canSendComunicazioni({ ruoli: ['gestore'], comunicazioni: 'lettura' } as any, false)).toBe(true);
+    });
+
+    it('should use the fallback when the grant has no comunicazioni field', () => {
+      expect(service.canSendComunicazioni({ ruoli: ['referente'] } as any, true)).toBe(true);
+      expect(service.canSendComunicazioni({ ruoli: ['referente'] } as any, false)).toBe(false);
+      expect(service.canSendComunicazioni(null, true)).toBe(true);
     });
   });
 
@@ -921,6 +973,18 @@ describe('AuthenticationService', () => {
   });
 
   // --- canTypeAttachment ---
+
+  describe('tipologieAllegatoScrivibili', () => {
+    it('should return the attachment types in write mode in the grant', () => {
+      expect(service.tipologieAllegatoScrivibili({ ruoli: ['referente'], generico: 'scrittura', specifica: 'lettura' } as any)).toEqual(['generico']);
+      expect(service.tipologieAllegatoScrivibili({ ruoli: ['referente'], generico: 'lettura', specifica: 'lettura' } as any)).toEqual([]);
+      expect(service.tipologieAllegatoScrivibili(null)).toEqual([]);
+    });
+
+    it('should allow every type to the manager', () => {
+      expect(service.tipologieAllegatoScrivibili({ ruoli: ['gestore'], generico: 'lettura', specifica: 'lettura' } as any)).toEqual(['generico', 'specifica']);
+    });
+  });
 
   describe('canTypeAttachment', () => {
     beforeEach(() => {

@@ -135,6 +135,20 @@ const attributeListConfiguration = {
   }
 }
 
+export interface RequisitoAccesso {
+  id: string;
+  name: string;
+  code: string;
+  origin: string;
+  tipo: 'CERTIFIED' | 'DECLARED' | 'VERIFIED';
+  /** Numero del gruppo nel tipo (da 1) se l'attributo e` un'alternativa di un gruppo, altrimenti null. */
+  gruppo: number | null;
+  alternative: number;
+  verificaEsplicita: boolean;
+}
+
+const TIPI_REQUISITO: RequisitoAccesso['tipo'][] = ['CERTIFIED', 'DECLARED', 'VERIFIED'];
+
 @Component({
   selector: 'pdnd-service-view',
   templateUrl: 'pdnd-eservice-view.component.html',
@@ -187,7 +201,19 @@ export class PdndEServiceViewComponent implements OnChanges {
     },
   ];
 
-  public attributeData: any[] = [];
+  private _attributeData: any[] = [];
+
+  public get attributeData(): any[] {
+    return this._attributeData;
+  }
+
+  public set attributeData(value: any[]) {
+    this._attributeData = value;
+    this._requisiti = this._appiattisciRequisiti(value);
+  }
+
+  /** Requisiti di accesso in un unico elenco: un elemento per attributo, con tipo e gruppo di appartenenza. */
+  public _requisiti: RequisitoAccesso[] = [];
   public hasAnyAttributes = false;
 
   public data: any = null;
@@ -201,6 +227,56 @@ export class PdndEServiceViewComponent implements OnChanges {
   private _environmentId: string|null = null;
 
   constructor(private readonly translate: TranslateService, private readonly pdndService: PdndService) { }
+
+  // Descrittori aperti/chiusi dall'utente; senza scelta e` aperto solo il piu` recente
+  private _descrittoriAperti: { [id: string]: boolean } = {};
+
+  _descrittoreAperto(id: string, primo: boolean): boolean {
+    return this._descrittoriAperti[id] ?? primo;
+  }
+
+  _toggleDescrittore(id: string, primo: boolean) {
+    this._descrittoriAperti[id] = !this._descrittoreAperto(id, primo);
+  }
+
+  _stato(state: string): string {
+    return `APP.LABEL.PDND.STATE.${state}`;
+  }
+
+  _numero(value: number | string | null | undefined): string {
+    if (value === null || value === undefined || value === '') { return '-'; }
+    const _n = Number(value);
+    return Number.isFinite(_n) ? new Intl.NumberFormat(this.translate.currentLang || 'it', { useGrouping: true }).format(_n) : String(value);
+  }
+
+  private _appiattisciRequisiti(dati: any[]): RequisitoAccesso[] {
+    const _requisiti: RequisitoAccesso[] = [];
+    TIPI_REQUISITO.forEach((tipo, i) => {
+      const _gruppi = Array.isArray(dati?.[i]) ? dati[i] : [];
+      let _numeroGruppo = 0;
+      _gruppi.forEach((g: any) => {
+        const _lista: any[] = g?.list || [];
+        const _isGruppo = g?.data?.name === 'GROUP';
+        if (_isGruppo) { _numeroGruppo++; }
+        _lista.forEach((attr: any) => _requisiti.push({
+          id: attr.id,
+          name: attr.name || '',
+          code: attr.code || '',
+          origin: attr.origin || '',
+          tipo,
+          gruppo: _isGruppo ? _numeroGruppo : null,
+          alternative: _lista.length,
+          verificaEsplicita: attr.explicitAttributeVerification === 'true'
+        }));
+      });
+    });
+    return _requisiti;
+  }
+
+  _initials(name: string | null | undefined): string {
+    const _parole = (name || '').trim().split(/\s+/).filter((p) => /^[\p{L}\p{N}]/u.test(p));
+    return ((_parole[0]?.[0] || '') + (_parole[1]?.[0] || '')).toUpperCase();
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.eServiceId) {
@@ -294,7 +370,7 @@ export class PdndEServiceViewComponent implements OnChanges {
                       return {
                         id: item.id,
                         name: attrName,
-                        codeOrigin: `${item.code} - ${item.origin}`,
+                        codeOrigin: [item.code, item.origin].filter(Boolean).join(' - '),
                         code: item.code,
                         origin: item.origin,
                         explicitAttributeVerification: item.explicitAttributeVerification ? 'true' : 'false'
@@ -376,7 +452,7 @@ export class PdndEServiceViewComponent implements OnChanges {
           return {
             id: item.id,
             name: '',
-            codeOrigin: `${item.code} - ${item.origin}`,
+            codeOrigin: [item.code, item.origin].filter(Boolean).join(' - '),
             code: item.code,
             origin: item.origin,
             explicitAttributeVerification: item.explicitAttributeVerification ? 'true' : 'false'

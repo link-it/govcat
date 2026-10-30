@@ -24,15 +24,24 @@ import { OAuthService } from 'angular-oauth2-oidc';
 import { PermessiService } from '@services/permessi.service';
 import { OrganizationContextService } from '@services/organization-context.service';
 import { ItemOrganizzazione } from '../model/itemOrganizzazione';
+import { Grant, RightsEnum } from '../model/grant';
 import { RuoloOrganizzazioneEnum } from '../model/ruoloOrganizzazioneEnum';
 import { GrantRole, expandTecnicoGrants, expandContextualGrants } from './grant-roles.const';
 
 import { firstValueFrom } from 'rxjs';
 import * as _ from 'lodash';
 
+export interface CustomPropertyRequirement {
+  now: boolean;
+  nextState: string | null;
+  fromState: string | null;
+}
+
 export const AUTH_CONST: any = {
   storageSession: 'GWAC_SESSION'
 };
+
+export const LOGOUT_VOLONTARIO_KEY = 'GWAC_LOGOUT_VOLONTARIO';
 
 export const CLASSES: any = {
   servizio: {
@@ -78,6 +87,14 @@ export const CLASSES: any = {
     }
   },
   api: {
+    api: {
+      type: 'external',
+      fields: [
+        { field: 'nome', view: true, edit: false, create: false, delete: false },
+        { field: 'versione', view: true, edit: false, create: false, delete: false },
+        { field: 'ruolo', view: true, edit: false, create: false, delete: false },
+      ]
+    },
     identificativo: {
       type: 'external',
       fields: [
@@ -266,12 +283,21 @@ export class AuthenticationService {
     this.oauthService.initCodeFlow();
   }
 
-  logout() {
+  /**
+   * Chiude la sessione. Con `volontario` (logout chiesto dall'utente) segna il logout in sessionStorage
+   * prima del redirect all'IdP: al ritorno la pagina di login non riavvia l'accesso automatico.
+   * Ritorna true se e` stato avviato il redirect all'end_session dell'IdP.
+   */
+  logout(volontario: boolean = false): boolean {
+    if (volontario) {
+      try { sessionStorage.setItem(LOGOUT_VOLONTARIO_KEY, '1'); } catch { /* storage non disponibile */ }
+    }
     localStorage.removeItem(AUTH_CONST.storageSession);
     this.organizationContextService.clear();
 
     // Check if there's an access token to revoke (even if expired)
     const hasAccessToken = !!this.oauthService.getAccessToken();
+    const redirectIdp = hasAccessToken && !!this.oauthService.logoutUrl;
 
     if (hasAccessToken) {
       // Check if revocation endpoint is configured in app config or loaded from discovery document
@@ -296,6 +322,15 @@ export class AuthenticationService {
         this.oauthService.logOut();
       }
     }
+    return redirectIdp;
+  }
+
+  isLogoutVolontario(): boolean {
+    try { return sessionStorage.getItem(LOGOUT_VOLONTARIO_KEY) === '1'; } catch { return false; }
+  }
+
+  clearLogoutVolontario() {
+    try { sessionStorage.removeItem(LOGOUT_VOLONTARIO_KEY); } catch { /* storage non disponibile */ }
   }
 
   setCurrentSession(data: any) {
@@ -569,11 +604,28 @@ export class AuthenticationService {
     if (this.isGestore(grant)) { return true; }
     if (state) {
       const _wfcs = this._getWorkflowCambiStato(module, state);
-      const _dnm = (_wfcs?.dati_non_modificabili) ? _wfcs.dati_non_modificabili : [];
+      // Le classi `api` e `comunicazioni` hanno permessi propri: vedi `canManageApi` e `canSendComunicazioni`.
+      const _dnm = (_wfcs?.dati_non_modificabili || []).filter((c: string) => c !== 'api' && c !== 'comunicazioni');
 
       return (_dnm.length === 0);
     }
     return false;
+  }
+
+  /**
+   * Invio di comunicazioni (e relativi allegati) su servizi e adesioni. Senza il campo
+   * `comunicazioni` nel grant (backend non aggiornato) vale `fallback`.
+   */
+  canSendComunicazioni(grant: Grant | null, fallback: boolean): boolean {
+    if (this.isGestore(grant?.ruoli || [])) { return true; }
+    if (!grant?.comunicazioni) { return fallback; }
+    return grant.comunicazioni === RightsEnum.Scrittura;
+  }
+
+  /** Creazione, eliminazione e modifica dell'identificativo delle API del servizio. */
+  canManageApi(grant: Grant | null) {
+    if (this.isGestore(grant?.ruoli || [])) { return true; }
+    return grant?.api === RightsEnum.Scrittura;
   }
 
   canEdit(module: string, submodule: string, state: string, grant: string[] = []) {
@@ -775,6 +827,16 @@ export class AuthenticationService {
     return (_.indexOf(_sac, state) !== -1);
   }
 
+  /**
+   * Tipologie di allegato (`generico`, `specifica`) che l'utente puo` aggiungere al servizio o alle sue API:
+   * il grant del BE indica per ciascuna classe se e` in scrittura (stato, ruoli e dati sempre modificabili).
+   */
+  tipologieAllegatoScrivibili(grant: Grant | null | undefined): string[] {
+    const _tipologie: string[] = ['generico', 'specifica'];
+    if (this.isGestore(grant?.ruoli || [])) { return _tipologie; }
+    return _tipologie.filter((t: string) => (grant as any)?.[t] === RightsEnum.Scrittura);
+  }
+
   canTypeAttachment(module: string, state: string, type: string, grant: string[] = []) {
     if (this.isGestore(grant)) { return true; }
     if (state && type) {
@@ -814,6 +876,63 @@ export class AuthenticationService {
   _getClassesMandatory(module: string, submodule: string, state: string) {
     const _wfcs = this._getWorkflowCambiStato(module, state);
     return (_wfcs?.dati_obbligatori) ? _wfcs.dati_obbligatori : [];
+  }
+
+  /** Classi delle proprieta' custom verificate dal BE per le classi obbligatorie di uno stato. */
+  _getCustomPropertyMandatoryClasses(module: string, state: string): string[] {
+    const _classi = new Set<string>(this._getClassesMandatory(module, module, state));
+    if (_classi.has('collaudo_configurato')) { _classi.add('collaudo'); }
+    if (_classi.has('produzione_configurato')) { _classi.add('produzione'); }
+    return [..._classi];
+  }
+
+  /**
+   * Transizioni coerenti con `skip_collaudo`: se attivo si nascondono quelle verso il collaudo
+   * (solo quando esiste l'alternativa `*_senza_collaudo`), altrimenti quelle `*_senza_collaudo`.
+   */
+  isTransitionVisibleForSkipCollaudo(cambioStato: any, nome: string, skipCollaudo: boolean): boolean {
+    if (!nome) { return true; }
+    const _isSenzaCollaudo = nome.includes('senza_collaudo');
+    if (!skipCollaudo) { return !_isSenzaCollaudo; }
+    if (_isSenzaCollaudo || !nome.includes('collaudo')) { return true; }
+    const _nomi: string[] = [cambioStato?.stato_successivo?.nome, ...(cambioStato?.stati_ulteriori || []).map((s: any) => s?.nome)];
+    return !_nomi.some((n: string) => n?.includes('senza_collaudo'));
+  }
+
+  /** Stato raggiunto dalla transizione principale, coerente con `skip_collaudo`. */
+  _getNextWorkflowState(module: string, state: string, skipCollaudo: boolean = false): string | null {
+    const _wfcs = this._getWorkflowCambiStato(module, state);
+    const _next: string | null = _wfcs?.stato_successivo?.nome || null;
+    if (!skipCollaudo || _next?.includes('senza_collaudo')) { return _next; }
+    const _senzaCollaudo = (_wfcs?.stati_ulteriori || []).find((s: any) => s?.nome?.includes('senza_collaudo'));
+    return _senzaCollaudo?.nome || _next;
+  }
+
+  /**
+   * Obbligatorieta' di una proprieta' custom rispetto al workflow: `now` se la sua classe dato e'
+   * obbligatoria nello stato attuale, altrimenti il primo stato successivo in cui lo diventa
+   * (`nextState` se e' il prossimo passaggio, `fromState` se e' piu' avanti).
+   */
+  getCustomPropertyRequirement(module: string, state: string, classeDato: string, required: boolean, skipCollaudo: boolean = false): CustomPropertyRequirement {
+    const _req: CustomPropertyRequirement = { now: false, nextState: null, fromState: null };
+    if (!required || !state || !classeDato) { return _req; }
+    if (this._getCustomPropertyMandatoryClasses(module, state).includes(classeDato)) {
+      _req.now = true;
+      return _req;
+    }
+    const _visited = new Set<string>([state]);
+    let _state = this._getNextWorkflowState(module, state, skipCollaudo);
+    let _isNext = true;
+    while (_state && !_visited.has(_state)) {
+      if (this._getCustomPropertyMandatoryClasses(module, _state).includes(classeDato)) {
+        if (_isNext) { _req.nextState = _state; } else { _req.fromState = _state; }
+        break;
+      }
+      _visited.add(_state);
+      _isNext = false;
+      _state = this._getNextWorkflowState(module, _state, skipCollaudo);
+    }
+    return _req;
   }
 
   _getClassesNotModifiable(module: string, submodule: string, state: string) {

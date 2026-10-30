@@ -37,6 +37,7 @@ import { Messaggio } from './messaggio';
 declare const saveAs: any;
 import moment from 'moment';
 import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/service-breadcrumbs.resolver';
+import { Grant } from '@app/model/grant';
 
 @Component({
   selector: 'app-adesione-comunicazioni',
@@ -97,7 +98,8 @@ export class AdesioneComunicazioniComponent implements OnInit, AfterContentCheck
   showHistory: boolean = true;
   showSearch: boolean = true;
   showSorting: boolean = true;
-  showSender: boolean = true;
+  showSender: boolean = false;
+  _grant: Grant | null = null;
 
   sortField: string = 'date';
   sortDirection: string = 'asc';
@@ -173,6 +175,7 @@ export class AdesioneComunicazioniComponent implements OnInit, AfterContentCheck
           (config: any) => {
             this.communicationsConfig = config;
             this._loadAdesione();
+            this._loadGrant();
             this._loadAdesioneComunicazioni();
           }
         );
@@ -266,6 +269,21 @@ export class AdesioneComunicazioniComponent implements OnInit, AfterContentCheck
         }
       });
     }
+  }
+
+  /** Form di invio solo per chi puo` comunicare; senza il campo nel grant resta visibile. */
+  _loadGrant() {
+    if (!this.id) { return; }
+    this.apiService.getDetails(this.model, this.id, 'grant').subscribe({
+      next: (grant: any) => {
+        this._grant = grant;
+        this.showSender = this.authenticationService.canSendComunicazioni(grant, true);
+      },
+      error: () => {
+        this._grant = null;
+        this.showSender = true;
+      }
+    });
   }
 
   _loadAdesioneComunicazioni(query: any = null, url: string = '') {

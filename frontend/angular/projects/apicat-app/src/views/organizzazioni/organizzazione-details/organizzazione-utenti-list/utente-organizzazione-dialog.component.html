@@ -16,23 +16,21 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
-<div class="modal-header">
-  <h5 class="modal-title">{{ title | translate }}</h5>
-  <lnk-button
-    [icon]="'bi bi-x-lg'"
-    [onlyIcon]="true"
-    [ariaLabel]="'APP.BUTTON.Close'"
-    [tertiary]="true"
-    (onAction)="cancel()">
-  </lnk-button>
+<div class="modal-header ud-hd">
+  <h5 class="modal-title ud-title" id="utente-org-dialog-title">{{ title | translate }}</h5>
+  <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon"
+          [attr.aria-label]="'APP.BUTTON.Close' | translate"
+          (click)="cancel()">
+    <i class="bi bi-x-lg" aria-hidden="true"></i>
+  </button>
 </div>
-<div class="modal-body">
+<div class="modal-body ud-body">
 
   <!-- Modalita' edit: utente readonly --------------------------------- -->
   @if (mode === 'edit') {
     <div class="form-group mb-3">
-      <label class="label-bold">{{ 'APP.UTENTI_ORG.LABEL.User' | translate }}</label>
-      <input type="text" readonly class="form-control-plaintext"
+      <label class="label-bold" for="utente-org-utente">{{ 'APP.UTENTI_ORG.LABEL.User' | translate }}</label>
+      <input type="text" readonly class="form-control-plaintext" id="utente-org-utente"
              [value]="(utente?.nome || '') + ' ' + (utente?.cognome || '') + ' (' + (utente?.email_aziendale || '') + ')'">
     </div>
   }
@@ -43,7 +41,7 @@
       <label class="label-bold mb-1" for="utente-org-principal-search">
         {{ 'APP.LABEL.CodiceFiscale' | translate }}
       </label>
-      <ng-select id="utente-org-principal-search"
+      <ng-select labelForId="utente-org-principal-search"
                  class="select-custom"
                  appendTo="body"
                  [items]="(utenti$ | async) || []"
@@ -77,16 +75,16 @@
           </button>
         </ng-template>
       </ng-select>
-      <small class="text-muted d-block mt-1">{{ 'APP.UTENTI_ORG.MESSAGE.SearchHint' | translate }}</small>
+      <p class="ud-hint">{{ 'APP.UTENTI_ORG.MESSAGE.SearchHint' | translate }}</p>
     </div>
   }
 
   <!-- Modalita' add - new user ---------------------------------------- -->
   @if (mode === 'add' && subMode === 'new') {
-    <div class="d-flex align-items-center mb-2">
-      <span class="label-bold flex-grow-1">{{ 'APP.UTENTI_ORG.TITLE.NewUser' | translate }}</span>
-      <button type="button" class="btn btn-link btn-sm p-0" (click)="switchToSearch()">
-        <i class="bi bi-arrow-left me-1"></i>{{ 'APP.UTENTI_ORG.BUTTON.BackToSearch' | translate }}
+    <div class="ud-subhd">
+      <span class="ud-tag">{{ 'APP.UTENTI_ORG.TITLE.NewUser' | translate }}</span>
+      <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm" (click)="switchToSearch()">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i><span>{{ 'APP.UTENTI_ORG.BUTTON.BackToSearch' | translate }}</span>
       </button>
     </div>
     <form [formGroup]="newUserForm" novalidate>
@@ -164,7 +162,7 @@
                    class="form-control-plaintext"
                    [value]="presetNomeOrganizzazione || presetIdOrganizzazione">
           } @else {
-            <ng-select id="new-utente-id-organizzazione"
+            <ng-select labelForId="new-utente-id-organizzazione"
                        class="select-custom"
                        appendTo="body"
                        [items]="(organizzazioni$ | async) || []"
@@ -181,7 +179,7 @@
         </div>
         <div class="col-md-6">
           <label class="label-bold" for="new-utente-ruolo-org">{{ 'APP.UTENTI_ORG.LABEL.Role' | translate }}</label>
-          <ng-select id="new-utente-ruolo-org"
+          <ng-select labelForId="new-utente-ruolo-org"
                      class="select-custom"
                      appendTo="body"
                      [items]="RUOLO_ORG_OPTIONS"
@@ -198,7 +196,7 @@
              consente di inserire un nome nuovo (findOrCreate lato BE). Issue 350. -->
         <div class="col-12">
           <label class="label-bold" for="new-utente-org-esterna">{{ 'APP.USERS.LABEL.OrganizzazioneEsterna' | translate }}</label>
-          <ng-select id="new-utente-org-esterna"
+          <ng-select labelForId="new-utente-org-esterna"
                      class="select-custom"
                      appendTo="body"
                      [items]="(aziendeEsterne$ | async) || []"
@@ -216,11 +214,17 @@
         <!-- 8. Stato (col-6) -->
         <div class="col-md-6">
           <label class="label-bold" for="new-utente-stato">{{ 'APP.USERS.LABEL.Status' | translate }} *</label>
-          <select id="new-utente-stato" class="form-select" formControlName="stato">
-            @for (opt of STATO_OPTIONS; track opt.value) {
-              <option [ngValue]="opt.value">{{ opt.labelKey | translate }}</option>
-            }
-          </select>
+          <ng-select class="select-custom"
+                     appendTo="body"
+                     labelForId="new-utente-stato"
+                     [items]="STATO_OPTIONS"
+                     bindValue="value"
+                     [searchable]="false"
+                     [clearable]="false"
+                     formControlName="stato">
+            <ng-template ng-label-tmp let-item="item">{{ item.labelKey | translate }}</ng-template>
+            <ng-template ng-option-tmp let-item="item">{{ item.labelKey | translate }}</ng-template>
+          </ng-select>
         </div>
         <div class="col-md-6"></div>
 
@@ -239,11 +243,16 @@
   @if (mode === 'edit' || (mode === 'add' && subMode === 'search' && selectedUtenteId)) {
     <div class="form-group mt-3">
       <label class="label-bold" for="utente-org-ruolo">{{ 'APP.UTENTI_ORG.LABEL.Role' | translate }}</label>
-      <select id="utente-org-ruolo" class="form-select" [(ngModel)]="ruolo">
-        @for (opt of RUOLO_ORG_OPTIONS; track opt.value) {
-          <option [ngValue]="opt.value">{{ opt.labelKey | translate }}</option>
-        }
-      </select>
+      <ng-select class="select-custom"
+                 appendTo="body"
+                 labelForId="utente-org-ruolo"
+                 [items]="RUOLO_ORG_OPTIONS"
+                 [searchable]="false"
+                 [clearable]="false"
+                 [(ngModel)]="selectedRuoloOption">
+        <ng-template ng-label-tmp let-item="item">{{ item.labelKey | translate }}</ng-template>
+        <ng-template ng-option-tmp let-item="item">{{ item.labelKey | translate }}</ng-template>
+      </ng-select>
     </div>
   }
 
@@ -251,18 +260,12 @@
     <div class="gl-alert gl-alert-danger mt-3">{{ errorMessage }}</div>
   }
 </div>
-<div class="modal-footer">
-  <lnk-button
-    [label]="'APP.BUTTON.Cancel'"
-    [ariaLabel]="'APP.BUTTON.Cancel'"
-    (onAction)="cancel()">
-  </lnk-button>
-  <lnk-button
-    [label]="'APP.BUTTON.Confirm'"
-    [ariaLabel]="'APP.BUTTON.Confirm'"
-    [primary]="true"
-    [disabled]="!canConfirm() || submitting"
-    [spinner]="submitting"
-    (onAction)="confirm()">
-  </lnk-button>
+<div class="modal-footer ud-ft">
+  <button type="button" class="lnk-btn" (click)="cancel()">{{ 'APP.BUTTON.Cancel' | translate }}</button>
+  <button type="button" class="lnk-btn lnk-btn-accent" [disabled]="!canConfirm() || submitting" (click)="confirm()">
+    @if (submitting) {
+      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+    }
+    <span>{{ 'APP.BUTTON.Confirm' | translate }}</span>
+  </button>
 </div>

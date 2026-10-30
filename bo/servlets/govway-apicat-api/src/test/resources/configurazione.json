@@ -417,7 +417,11 @@
           "codice_interno": "OAUTH_CC_FRUIZIONI",
           "etichetta": "OAuth Client Credentials - Fruizioni PDND",
           "auth_type": "oauth_client_credentials",
-          "tipo_dominio": "esterno"
+          "tipo_dominio": "esterno",
+          "proprieta_token_policy": {
+            "nome_gruppo": "TokenPolicyGovway",
+            "nome_proprieta": "token_policy"
+          }
         }
       ],
       "token_policies": [
@@ -708,8 +712,47 @@
               "required": false
             }
           ]
+        },
+        {
+          "nome_gruppo": "TokenPolicyGovway",
+          "label_gruppo": "Token policy GovWay",
+          "classe_dato": "generico",
+          "ruoli_abilitati": [
+            "gestore"
+          ],
+          "proprieta": [
+            {
+              "nome": "token_policy",
+              "etichetta": "Token policy",
+              "tipo": "text",
+              "required": false
+            }
+          ]
         }
-      ]
+      ],
+      "url_invocazione": {
+        "etichetta_default": "Gateway predefinito",
+        "collaudo": [
+          {
+            "identificativo": "gw_esterno",
+            "etichetta": "Rete internet",
+            "url_prefix": "https://apistage-ext.comuneesempio.it"
+          },
+          {
+            "identificativo": "gw_dedicato",
+            "etichetta": "Gateway dedicato",
+            "url_prefix": "https://apistage-ded.comuneesempio.it",
+            "template_url": "#prefix#/dedicato/#nome#"
+          }
+        ],
+        "produzione": [
+          {
+            "identificativo": "gw_esterno",
+            "etichetta": "Rete internet",
+            "url_prefix": "https://api-ext.comuneesempio.it"
+          }
+        ]
+      }
     },
     "workflow": {
       "stati": [
@@ -752,6 +795,9 @@
             "specifica",
             "collaudo"
           ],
+          "dati_non_modificabili": [
+            "api"
+          ],
           "stato_successivo": {
             "nome": "autorizzato_collaudo",
             "ruoli_abilitati": [
@@ -777,6 +823,9 @@
             "referenti",
             "specifica",
             "collaudo"
+          ],
+          "dati_non_modificabili": [
+            "api"
           ],
           "stato_successivo": {
             "nome": "in_configurazione_collaudo",
@@ -804,7 +853,8 @@
           "dati_non_modificabili": [
             "identificativo",
             "specifica",
-            "collaudo"
+            "collaudo",
+            "api"
           ],
           "stato_successivo": {
             "nome": "pubblicato_collaudo",
@@ -831,7 +881,8 @@
           "dati_non_modificabili": [
             "identificativo",
             "specifica",
-            "collaudo"
+            "collaudo",
+            "api"
           ],
           "stato_successivo": {
             "nome": "richiesto_produzione",
@@ -862,7 +913,8 @@
           "dati_non_modificabili": [
             "identificativo",
             "specifica",
-            "collaudo"
+            "collaudo",
+            "api"
           ],
           "stato_successivo": {
             "nome": "autorizzato_produzione",
@@ -890,6 +942,9 @@
             "specifica",
             "collaudo",
             "produzione"
+          ],
+          "dati_non_modificabili": [
+            "api"
           ],
           "stato_successivo": {
             "nome": "in_configurazione_produzione",
@@ -919,7 +974,8 @@
             "identificativo",
             "specifica",
             "collaudo",
-            "produzione"
+            "produzione",
+            "api"
           ],
           "stato_successivo": {
             "nome": "pubblicato_produzione",
@@ -948,7 +1004,8 @@
             "identificativo",
             "specifica",
             "collaudo",
-            "produzione"
+            "produzione",
+            "api"
           ],
           "stato_precedente": {
             "nome": "in_configurazione_produzione",
@@ -1610,7 +1667,7 @@
       {
         "code": "info_generali",
         "descrizione": "Informazioni Generali e Referenti",
-        "stati_adesione": [],
+        "stati": [],
         "sezioni_attive": [
           "info_generali",
           "referenti"
@@ -1619,7 +1676,7 @@
       {
         "code": "collaudo",
         "descrizione": "Collaudo",
-        "stati_adesione": [
+        "stati": [
           "bozza",
           "richiesto_collaudo",
           "autorizzato_collaudo",
@@ -1633,7 +1690,7 @@
       {
         "code": "produzione",
         "descrizione": "Produzione",
-        "stati_adesione": [
+        "stati": [
           "pubblicato_collaudo",
           "richiesto_produzione",
           "autorizzato_produzione",
@@ -1650,21 +1707,21 @@
       {
         "code": "in_compilazione",
         "descrizione": "In Compilazione",
-        "stati_adesione": [
+        "stati": [
           "bozza"
         ]
       },
       {
         "code": "in_approvazione",
         "descrizione": "In Approvazione",
-        "stati_adesione": [
+        "stati": [
           "richiesto_collaudo"
         ]
       },
       {
         "code": "in_configurazione",
         "descrizione": "In Configurazione",
-        "stati_adesione": [
+        "stati": [
           "autorizzato_collaudo",
           "in_configurazione_manuale_collaudo",
           "in_configurazione_automatica_collaudo"
@@ -1673,7 +1730,7 @@
       {
         "code": "configurato",
         "descrizione": "Configurato",
-        "stati_adesione": [
+        "stati": [
           "pubblicato_collaudo"
         ]
       }
@@ -1682,21 +1739,21 @@
       {
         "code": "in_compilazione",
         "descrizione": "In Compilazione",
-        "stati_adesione": [
+        "stati": [
           "pubblicato_collaudo"
         ]
       },
       {
         "code": "in_approvazione",
         "descrizione": "In Approvazione",
-        "stati_adesione": [
+        "stati": [
           "richiesto_produzione"
         ]
       },
       {
         "code": "in_configurazione",
         "descrizione": "In Configurazione",
-        "stati_adesione": [
+        "stati": [
           "autorizzato_produzione",
           "in_configurazione_manuale_produzione",
           "in_configurazione_automatica_produzione"
@@ -1705,7 +1762,7 @@
       {
         "code": "configurato",
         "descrizione": "Configurato",
-        "stati_adesione": [
+        "stati": [
           "pubblicato_produzione"
         ]
       }

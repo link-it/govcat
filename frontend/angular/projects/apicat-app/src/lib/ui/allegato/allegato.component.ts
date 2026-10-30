@@ -40,6 +40,9 @@ export class AllegatoComponent implements OnInit {
   @Input() hint: string = '';
   @Input() maxUpload: number | null = null;
   @Input() control!: FormControl;
+  /** Estensioni ammesse per l'input file (attributo `accept`), es.
+   *  ".json,.yml,.yaml,.wsdl". Vuoto = nessun pre-filtro. */
+  @Input() accept: string = '';
 
   @Output() fileChanged: EventEmitter<any> = new EventEmitter();
   @Output() resetControl: EventEmitter<any> = new EventEmitter();
@@ -58,7 +61,11 @@ export class AllegatoComponent implements OnInit {
       this._selected = !!this.control.value;
     }
 
-    (this.label == 'Logo') ? this._file_extension = '.jpg' : this._file_extension = '';
+    if (this.accept) {
+      this._file_extension = this.accept;
+    } else {
+      (this.label == 'Logo') ? this._file_extension = '.jpg' : this._file_extension = '';
+    }
   }
 
   hasControlError() {

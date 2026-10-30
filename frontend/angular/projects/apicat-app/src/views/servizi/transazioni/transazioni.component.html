@@ -88,13 +88,18 @@
                     </label>
                   </div>
                   <div class="col-sm-10">
-                    <select class="form-select form-control-sm" id="search_type" formControlName="search_type" [class.gl-field-error-outline]="_hasControlError('search_type')">
+                    <ng-select
+                      [searchable]="false"
+                      [clearable]="false"
+                      labelForId="search_type"
+                      formControlName="search_type"
+                      [class.gl-field-error-outline]="_hasControlError('search_type')">
                       @for (type of _searchTypes; track type) {
-                        <option [value]="type.value">
+                        <ng-option [value]="type.value">
                           {{ type.label }}
-                        </option>
+                        </ng-option>
                       }
-                    </select>
+                    </ng-select>
                     @if (_formGroup.get('search_type')?.dirty || _formGroup.get('search_type')?.touched) {
                       <p class="form-text text-danger">
                         @if (_formGroup.get('search_type')?.hasError('required')) {

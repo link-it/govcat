@@ -33,6 +33,7 @@ describe('CustomPropertiesComponent', () => {
     };
     mockEventsManager = { broadcast: vi.fn() };
     mockAuthService = {
+      getCustomPropertyRequirement: vi.fn().mockImplementation((m: string, s: string, c: string, r: boolean) => ({ now: !!(r && s && c) && mockAuthService._getClassesMandatory(m, m, s).includes(c), nextState: null, fromState: null })),
       _getClassesMandatory: vi.fn().mockReturnValue([])
     };
     mockApiService = {
@@ -257,6 +258,7 @@ describe('CustomPropertiesComponent', () => {
         proprieta: proprietaList
       };
       component._item = { ...component.item };
+      component.stato_adesione = 'bozza';
     }
 
     it('should init with text proprieta and no validators', () => {
@@ -273,6 +275,7 @@ describe('CustomPropertiesComponent', () => {
       setupItem([{ nome: 'txt1', tipo: 'text', required: true }], 'generico');
       component._initProprietaCustom(null);
 
+      expect(mockAuthService.getCustomPropertyRequirement).toHaveBeenCalledWith('adesione', 'bozza', 'generico', true, component.skip_collaudo);
       const ctrl = component.cfgc('txt1');
       expect(ctrl.hasValidator(Validators.required)).toBe(true);
     });

@@ -4,6 +4,7 @@ import { WorkflowComponent } from './workflow.component';
 describe('WorkflowComponent', () => {
   let component: WorkflowComponent;
   const mockAuthService = {
+    getRequiredProfiles: vi.fn().mockImplementation((e: any) => [...new Set((e?.client_richiesti || []).map((c: any) => c?.profilo).filter(Boolean))]),
     canChangeStatus: vi.fn().mockReturnValue(false),
     isGestore: vi.fn().mockReturnValue(false),
     canArchiviare: vi.fn().mockReturnValue(false),
@@ -52,7 +53,7 @@ describe('WorkflowComponent', () => {
     component.data = { stato: 'bozza' };
     component.grant = { ruoli: ['referente_servizio'] } as any;
     component.isActionEnabled('stato_successivo');
-    expect(mockAuthService.canChangeStatus).toHaveBeenCalledWith('servizi', 'bozza', 'stato_successivo', ['referente_servizio']);
+    expect(mockAuthService.canChangeStatus).toHaveBeenCalledWith('servizi', 'bozza', 'stato_successivo', ['referente_servizio'], '', []);
   });
 
   it('should delegate isGestore to authService', () => {

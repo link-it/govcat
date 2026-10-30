@@ -129,10 +129,30 @@ public class GruppoServizio {
 		return api.getVersioneApi();
 	}
 
+	/**
+	 * Profilo di interoperabilità GovWay (tipo gateway del soggetto), da non confondere con il
+	 * profilo di autenticazione dell'API restituito da {@link #getProfiloAutenticazione()}.
+	 */
 	public String getProfilo() {
 		return getSoggettoAderente().getTipoGateway();
 	}
-	
+
+	/**
+	 * Codice interno del profilo di autenticazione dell'API a cui si sta aderendo
+	 * (servizio.api.profili[].codice_interno), es. OAUTH_CC.
+	 */
+	public String getProfiloAutenticazione() {
+		return adesioneAPI != null ? adesioneAPI.getProfilo() : null;
+	}
+
+	/**
+	 * Token policy GovWay dichiarata sull'API per questo profilo di autenticazione, nulla se il
+	 * profilo non referenzia una proprietà custom o se l'API non la valorizza.
+	 */
+	public String getTokenPolicy() {
+		return adesioneAPI != null ? adesioneAPI.getTokenPolicy() : null;
+	}
+
 	public String getGruppo() {
 		return gruppo;
 	}

@@ -22,12 +22,15 @@ package org.govway.catalogo.core.business.utils;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -37,6 +40,7 @@ import org.govway.catalogo.core.orm.entity.AllegatoApiEntity;
 import org.govway.catalogo.core.orm.entity.AllegatoServizioEntity;
 import org.govway.catalogo.core.orm.entity.AllegatoServizioEntity.VISIBILITA;
 import org.govway.catalogo.core.orm.entity.ApiConfigEntity;
+import org.govway.catalogo.core.orm.entity.ApiConfigUrlInvocazioneEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity.PROTOCOLLO;
 import org.govway.catalogo.core.orm.entity.ApiEntity.RUOLO;
@@ -74,6 +78,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class EServiceBuilder {
 
 	private Logger logger = LoggerFactory.getLogger(EServiceBuilder.class);
+
+	/** Identificativo riservato alla URL di invocazione predefinita. */
+	public static final String ID_URL_INVOCAZIONE_DEFAULT = "default";
 
 	private static char SPLIT_RESOURCES = ',';
 
@@ -139,15 +146,77 @@ public class EServiceBuilder {
 
 		this.addDocumentFilesServizio(servizio.getAllegati(), servizio.getNome()+"_v"+servizio.getVersione() + "/", map);
 
+		Map<String, String> prefissi = getPrefissiComponenti(servizio.getComponenti());
+
 		for(PackageServizioEntity componente: servizio.getComponenti()) {
-			populateEServiceServizio(componente.getServizio(), map, componente.getServizio().getNome() + "_" + componente.getServizio().getVersione(), mostraRichiedente, mostraReferenti, mostraVersione);
+			populateEServiceServizio(componente.getServizio(), map, prefissi.get(componente.getServizio().getIdServizio()), mostraRichiedente, mostraReferenti, mostraVersione);
 		}
 		return this.mapToZip(map);
+	}
+
+	/**
+	 * Prefisso nello zip di ciascun componente del package, indicizzato per id del servizio.
+	 *
+	 * Nome e versione non identificano piu` da soli un servizio, potendo esistere gli stessi su
+	 * domini diversi: due componenti omonimi produrrebbero lo stesso prefisso e si
+	 * sovrascriverebbero le voci nello zip. Il dominio entra nel prefisso dei soli omonimi, cosi`
+	 * il layout dell'export resta invariato quando l'ambiguita` non si presenta; se nemmeno il
+	 * dominio li distingue (componenti senza dominio) si ricade sull'id del servizio.
+	 */
+	private Map<String, String> getPrefissiComponenti(Set<PackageServizioEntity> componenti) {
+		// Lo stesso servizio puo` comparire piu` volte fra i componenti: va contato una sola volta,
+		// altrimenti risulterebbe omonimo di se stesso.
+		Map<String, ServizioEntity> serviziPerId = new LinkedHashMap<>();
+		for(PackageServizioEntity componente: componenti) {
+			serviziPerId.putIfAbsent(componente.getServizio().getIdServizio(), componente.getServizio());
+		}
+
+		Map<String, Long> occorrenzeNomeVersione = serviziPerId.values().stream()
+				.collect(Collectors.groupingBy(EServiceBuilder::getNomeVersione, Collectors.counting()));
+
+		Map<String, String> candidati = new HashMap<>();
+		for(ServizioEntity componente: serviziPerId.values()) {
+			String nomeVersione = getNomeVersione(componente);
+			candidati.put(componente.getIdServizio(), occorrenzeNomeVersione.get(nomeVersione) > 1
+					? nomeVersione + getSegmentoDominio(componente)
+					: nomeVersione);
+		}
+
+		Map<String, Long> occorrenzeCandidati = candidati.values().stream()
+				.collect(Collectors.groupingBy(prefisso -> prefisso, Collectors.counting()));
+
+		Map<String, String> prefissi = new HashMap<>();
+		for(Entry<String, String> candidato: candidati.entrySet()) {
+			String prefisso = candidato.getValue();
+			prefissi.put(candidato.getKey(), occorrenzeCandidati.get(prefisso) > 1
+					? prefisso + "_" + candidato.getKey()
+					: prefisso);
+		}
+
+		return prefissi;
+	}
+
+	private static String getNomeVersione(ServizioEntity servizio) {
+		return servizio.getNome() + "_" + servizio.getVersione();
+	}
+
+	/**
+	 * Segmento di prefisso che identifica il dominio del servizio, ridotto ai caratteri ammessi in
+	 * un path per non introdurre separatori nel nome delle voci dello zip. Vuoto se il servizio
+	 * non ha dominio, cosi` il prefisso non resta con un separatore finale a vuoto.
+	 */
+	private static String getSegmentoDominio(ServizioEntity servizio) {
+		if(servizio.getDominio() == null) {
+			return "";
+		}
+
+		String nome = servizio.getDominio().getNome().replaceAll("[^A-Za-z0-9._-]", "_");
+		return "_" + (nome.length() > 50 ? nome.substring(0, 50) : nome);
 	}
 	
     public byte[] getTryOutOpenAPI(ApiEntity api, ApiConfigEntity entity, boolean isCollaudo) throws IOException {
     	ConfigurazioneTryout conf = new ConfigurazioneTryout();
-    	conf.setServerUrl(this.getUrlInvocazione(api, isCollaudo));
+    	conf.setServerUrls(this.getUrlInvocazioni(api, isCollaudo));
 		return getTryOutOpenAPI(entity.getSpecifica().getRawData(), conf);
 	}
 	
@@ -158,7 +227,7 @@ public class EServiceBuilder {
 	
 	
     public static byte[] getTryOutOpenAPIFromJson(byte[] originalOpenapi, ConfigurazioneTryout conf) throws IOException {
-    	return applicaServerUrl(originalOpenapi, conf.getServerUrl());
+    	return applicaServerUrls(originalOpenapi, conf.getServerUrls());
 	}
 
     /**
@@ -167,6 +236,21 @@ public class EServiceBuilder {
      * Non aggiunge alcuna funzionalita` di try-out: si limita a sovrascrivere l'endpoint dichiarato nel documento.
      */
     public static byte[] applicaServerUrl(byte[] openapiJson, String serverUrl) throws IOException {
+        return applicaServerUrls(openapiJson, List.of(new UrlInvocazioneRisolta(ID_URL_INVOCAZIONE_DEFAULT, null, serverUrl)));
+    }
+
+    /**
+     * Variante di {@link #applicaServerUrl(byte[], String)} con piu` URL di invocazione.
+     *
+     * La prima URL della lista e` trattata esattamente come nel caso a URL singola; le successive
+     * sono aggiunte come ulteriori elementi di {@code servers} (OpenAPI 3.0), con l'etichetta come
+     * {@code description}, cosi` che il visualizzatore della specifica ne proponga la scelta.
+     * Swagger 2.0 non supporta piu` endpoint nello stesso documento ({@code host}/{@code basePath}
+     * sono singoli): in quel caso le URL aggiuntive vengono ignorate.
+     */
+    public static byte[] applicaServerUrls(byte[] openapiJson, List<UrlInvocazioneRisolta> serverUrls) throws IOException {
+
+        String serverUrl = serverUrls.isEmpty() ? null : serverUrls.get(0).url();
 
         ObjectMapper reader = new ObjectMapper();
         reader.setSerializationInclusion(JsonInclude.Include.NON_NULL);
@@ -190,6 +274,11 @@ public class EServiceBuilder {
         if (isSwagger2) {
             // Swagger 2.0: parse URL and set host, basePath, schemes
             logger.debug("Processing Swagger 2.0 format");
+
+            if (serverUrls.size() > 1) {
+                // host/basePath sono singoli: il formato non permette di dichiarare piu` endpoint
+                logger.debug("Swagger 2.0 does not support multiple servers: ignoring {} additional URLs", serverUrls.size() - 1);
+            }
 
             try {
                 java.net.URL url = new java.net.URL(serverUrl);
@@ -232,22 +321,32 @@ public class EServiceBuilder {
                     serversNode.isArray(),
                     serversNode.isArray() ? serversNode.size() : "N/A");
 
+            String etichettaPrimo = serverUrls.isEmpty() ? null : serverUrls.get(0).etichetta();
+
+            ArrayNode serversArray;
             if (serversNode.isArray() && serversNode.size() > 0) {
                 logger.debug("Modifying existing servers node with first server");
                 ObjectNode serverNode = ((ObjectNode) serversNode.get(0));
                 serverNode.put("url", serverUrl);
+                // La description del documento originale viene sostituita solo da un'etichetta configurata
+                if (hasValore(etichettaPrimo)) {
+                    serverNode.put("description", etichettaPrimo);
+                }
 
-                serversNode = reader.createArrayNode().add(serverNode);
-                ((ObjectNode) openApiJson).set("servers", serversNode);
+                serversArray = reader.createArrayNode().add(serverNode);
+                ((ObjectNode) openApiJson).set("servers", serversArray);
                 logger.debug("Updated servers node with URL: {}", serverUrl);
             } else {
                 logger.debug("Creating new servers node (servers was missing or empty)");
                 ObjectNode serverNode = reader.createObjectNode();
                 serverNode.put("url", serverUrl);
+                if (hasValore(etichettaPrimo)) {
+                    serverNode.put("description", etichettaPrimo);
+                }
 
                 // If no servers node exists, create one
-                ArrayNode newServersArray = reader.createArrayNode().add(serverNode);
-                ((ObjectNode) openApiJson).set("servers", newServersArray);
+                serversArray = reader.createArrayNode().add(serverNode);
+                ((ObjectNode) openApiJson).set("servers", serversArray);
                 logger.debug("Created new servers array with URL: {}", serverUrl);
 
                 // Verify the node was actually set
@@ -256,6 +355,19 @@ public class EServiceBuilder {
                         !verifyServers.isMissingNode(),
                         verifyServers.isArray(),
                         verifyServers.isArray() ? verifyServers.size() : "N/A");
+            }
+
+            // URL di invocazione aggiuntive: un ulteriore elemento di servers per ciascuna,
+            // con l'etichetta come description.
+            for (int i = 1; i < serverUrls.size(); i++) {
+                UrlInvocazioneRisolta aggiuntiva = serverUrls.get(i);
+                ObjectNode serverNode = reader.createObjectNode();
+                serverNode.put("url", aggiuntiva.url());
+                if (hasValore(aggiuntiva.etichetta())) {
+                    serverNode.put("description", aggiuntiva.etichetta());
+                }
+                serversArray.add(serverNode);
+                logger.debug("Added additional server URL: {}", aggiuntiva.url());
             }
         } else {
             logger.warn("Unknown API specification format (not Swagger 2.0 or OpenAPI 3.0)");
@@ -577,9 +689,89 @@ public class EServiceBuilder {
 		return servizio.getDominio() != null ? servizio.getDominio().getSoggettoReferente() : null;
 	}
 
+	/**
+	 * URL di invocazione principale dell'API per l'ambiente indicato, risolta dalla gerarchia
+	 * api -> servizio -> dominio -> soggetto referente -> configurazione.
+	 */
 	public String getUrlInvocazione(ApiEntity api, boolean collaudo) {
-		
-		String prefix = getPrefix(api, collaudo);
+		return risolviUrlInvocazione(api, collaudo, null, null);
+	}
+
+	/**
+	 * URL di invocazione associate alla specifica dell'ambiente indicato, nell'ordine di
+	 * selezione. Una selezione assente, vuota o che non trova piu` riscontro in configurazione
+	 * (voce rimossa) ricade sulla sola URL predefinita, cosi` l'API resta sempre invocabile.
+	 */
+	public List<UrlInvocazioneRisolta> getUrlInvocazioni(ApiEntity api, boolean collaudo) {
+
+		List<UrlInvocazioneRisolta> urls = new ArrayList<>();
+
+		for(String identificativo: getIdentificativiUrlInvocazione(api, collaudo)) {
+			risolviUrlInvocazioneSelezionata(api, collaudo, identificativo).ifPresent(urls::add);
+		}
+
+		if(urls.isEmpty()) {
+			urls.add(getUrlInvocazioneDefault(api, collaudo));
+		}
+
+		return urls;
+	}
+
+	/** Identificativi associati alla specifica dell'ambiente, nell'ordine di selezione. */
+	private List<String> getIdentificativiUrlInvocazione(ApiEntity api, boolean collaudo) {
+		ApiConfigEntity config = collaudo ? api.getCollaudo() : api.getProduzione();
+
+		if(config == null) {
+			return Collections.emptyList();
+		}
+
+		return config.getUrlInvocazione().stream()
+				.map(ApiConfigUrlInvocazioneEntity::getIdentificativo)
+				.toList();
+	}
+
+	/**
+	 * Risolve una URL selezionata. Restituisce un valore vuoto se l'identificativo non e` piu`
+	 * censito in configurazione per quell'ambiente: la selezione salvata resta valida per le
+	 * altre voci e la URL sparita viene semplicemente ignorata.
+	 */
+	private Optional<UrlInvocazioneRisolta> risolviUrlInvocazioneSelezionata(ApiEntity api, boolean collaudo, String identificativo) {
+
+		if(ID_URL_INVOCAZIONE_DEFAULT.equals(identificativo)) {
+			return Optional.of(getUrlInvocazioneDefault(api, collaudo));
+		}
+
+		Optional<UrlInvocazioneConfigurata> configurata = this.configurazione.getUrlInvocazione(collaudo).stream()
+				.filter(u -> identificativo.equals(u.identificativo()))
+				.findFirst();
+
+		if(configurata.isEmpty()) {
+			this.logger.debug("URL di invocazione [{}] non censita in configurazione per l'ambiente [{}]: ignorata",
+					identificativo, collaudo ? "collaudo" : "produzione");
+			return Optional.empty();
+		}
+
+		return configurata.map(u -> new UrlInvocazioneRisolta(
+				u.identificativo(),
+				u.etichetta(),
+				risolviUrlInvocazione(api, collaudo, u.templateUrl(), u.urlPrefix())));
+	}
+
+	private UrlInvocazioneRisolta getUrlInvocazioneDefault(ApiEntity api, boolean collaudo) {
+		return new UrlInvocazioneRisolta(
+				ID_URL_INVOCAZIONE_DEFAULT,
+				this.configurazione.getEtichettaUrlInvocazioneDefault(),
+				getUrlInvocazione(api, collaudo));
+	}
+
+	/**
+	 * Risolve i placeholder di una URL di invocazione. Quando templateOverride o prefixOverride
+	 * non sono valorizzati si ricade sulle catene di fallback della URL principale: e` cosi` che
+	 * una URL aggiuntiva puo` limitarsi a indicare il solo prefix (stesso path su un altro gateway).
+	 */
+	private String risolviUrlInvocazione(ApiEntity api, boolean collaudo, String templateOverride, String prefixOverride) {
+
+		String prefix = hasValore(prefixOverride) ? prefixOverride : getPrefix(api, collaudo);
 		// Swap coerente col nuovo modello: per le fruizioni il "referente" della URL è il provider
 		// (ente erogatore indicato sul servizio) e il "soggetto interno" è il referente del dominio.
 		String soggettoReferente;
@@ -592,7 +784,7 @@ public class EServiceBuilder {
 			soggettoInterno = "";                                                              // nessun soggetto interno
 		}
 		
-		String urlInvocazione = Optional.ofNullable(api.getUrlInvocazione())
+		String urlInvocazione = hasValore(templateOverride) ? templateOverride : Optional.ofNullable(api.getUrlInvocazione())
 		        .or(() -> Optional.ofNullable(api.getServizio().getUrlInvocazione()))
 		        .or(() -> Optional.ofNullable(api.getServizio().getDominio().getUrlInvocazione()))
 		        .or(() -> Optional.ofNullable(api.getServizio().getDominio().getSoggettoReferente().getUrlInvocazione()))
@@ -688,6 +880,11 @@ public class EServiceBuilder {
 							.orElse(a.getVersione());
 					}).orElse(api.getVersione());
 		}
+	}
+
+	/** Un override di template/prefix e` considerato impostato solo se non vuoto. */
+	private static boolean hasValore(String valore) {
+		return valore != null && !valore.isBlank();
 	}
 
 	private String getPrefix(ApiEntity api, boolean collaudo) {

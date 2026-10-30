@@ -92,12 +92,13 @@ describe('UtentiComponent', () => {
     expect(component.breadcrumbs[1].label).toBe('APP.TITLE.Users');
   });
 
-  it('should have searchFields with 8 entries', () => {
-    expect(component.searchFields.length).toBe(8);
+  it('should have searchFields with 9 entries', () => {
+    expect(component.searchFields.length).toBe(9);
     const fieldNames = component.searchFields.map((f: any) => f.field);
     expect(fieldNames).toContain('q');
     expect(fieldNames).toContain('email');
     expect(fieldNames).toContain('ruolo');
+    expect(fieldNames).toContain('ruolo_pdnd');
     expect(fieldNames).toContain('stato');
     expect(fieldNames).toContain('principal');
     expect(fieldNames).toContain('id_organizzazione');

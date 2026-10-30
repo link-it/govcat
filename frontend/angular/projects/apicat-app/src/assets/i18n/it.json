@@ -32,6 +32,15 @@
 			"OperatoreApi": "Operatore API",
 			"UtenteOrganizzazione": "Utente organizzazione"
 		},
+		"USER_CLASSES": {
+			"SECTION": {
+				"EditSubtitle": "Compila i dati della classe utente.",
+				"ViewSubtitle": "Dati della classe utente.",
+				"GeneraleTag": "CLASSE UTENTE",
+				"GeneraleTitle": "Informazioni generali",
+				"GeneraleDesc": "Nome e descrizione della classe utente."
+			}
+		},
 		"UTENTI_ORG": {
 			"TITLE": {
 				"List": "Utenti dell'organizzazione",
@@ -66,6 +75,7 @@
 			},
 			"LABEL": {
 				"AutomaticConfigurationStatus": "Stato configurazione automatica",
+				"ServiceStatus": "Stato servizio",
 				"Client": "Client",
 				"Domain": "Dominio",
 				"DownloadScheda": "Scarica la scheda di adesione",
@@ -210,7 +220,7 @@
 		"ALLEGATI": {
 			"TIPI": {
 				"generico": "Generico",
-				"specifica": "Specifica",
+				"specifica": "Scheda dati",
 				"specifica_collaudo": "Specifica collaudo",
 				"specifica_produzione": "Specifica produzione"
 			}
@@ -293,7 +303,7 @@
 				"ERROR": {
 					"CheckPrivateKey": "Verificare la chiave privata"
 				},
-				"NetworkOrCspError": "Impossibile contattare il token endpoint. Verifica la connettivita` di rete o la Content Security Policy del browser.",
+				"NetworkOrCspError": "Impossibile contattare il token endpoint. Verifica la connettività di rete o la Content Security Policy del browser.",
 				"NoTokenGenerator": "Nessun Generatore di Token",
 				"SendingData": "Invio dati…",
 				"TokenGenerationError": "Errore generazione token"
@@ -339,6 +349,8 @@
 			"Yes": "Sì"
 		},
 		"BUTTON": {
+			"ChooseFile": "Scegli file",
+			"RemoveFile": "Rimuovi file",
 			"Reset": "Reimposta",
 			"Add": "Aggiungi",
 			"RetryAutoConfig": "Riprova configurazione automatica",
@@ -512,6 +524,19 @@
 				"DeassociateClient": "Confermi di voler rimuovere l'associazione tra questo Client e l'Adesione ?",
 				"SecretUnavailable": "Il secret non è disponibile o non è stato possibile recuperarlo. Riprova più tardi."
 			},
+			"SECTION": {
+				"EditSubtitle": "Compila le sezioni del client.",
+				"ViewSubtitle": "Dati del client, ambiente e configurazione di autenticazione.",
+				"GeneraleTag": "CLIENT",
+				"GeneraleTitle": "Organizzazione e soggetto",
+				"GeneraleDesc": "Organizzazione e soggetto a cui appartiene il client.",
+				"ConfigTag": "CONFIGURAZIONE",
+				"ConfigTitle": "Ambiente e stato",
+				"ConfigDesc": "Ambiente di utilizzo e stato di configurazione del client.",
+				"AuthTag": "AUTENTICAZIONE",
+				"AuthTitle": "Autenticazione",
+				"AuthDesc": "Tipo di autenticazione, credenziali, certificati e limiti del client."
+			},
 			"STATUS": {
 				"ConfigInProgress": "Configurazione da perfezionare",
 				"Configured": "Configurato",
@@ -593,6 +618,22 @@
 			"violazioni": "Violazioni Policy di Rate Limiting"
 		},
 		"DOMINI": {
+			"SECTION": {
+				"EditSubtitle": "Compila le sezioni del dominio.",
+				"ViewSubtitle": "Dati del dominio e opzioni applicate ai suoi servizi.",
+				"GeneraleTag": "DOMINIO",
+				"GeneraleTitle": "Informazioni generali",
+				"GeneraleDesc": "Nome, descrizione, tag e soggetto referente del dominio.",
+				"VisibilitaTag": "ACCESSO",
+				"VisibilitaTitle": "Visibilità",
+				"VisibilitaDesc": "Chi può vedere i servizi del dominio.",
+				"ErogazioneTag": "EROGAZIONE",
+				"ErogazioneTitle": "URL di invocazione",
+				"ErogazioneDesc": "URL e prefissi usati per invocare le API dei servizi del dominio.",
+				"OpzioniTag": "SERVIZI",
+				"OpzioniTitle": "Opzioni dei servizi",
+				"OpzioniDesc": "Opzioni che il dominio applica ai propri servizi."
+			},
 			"DeleteDomain": "Elimina Dominio",
 			"EditDomain": "Modifica il dominio",
 			"BUTTON": {
@@ -614,6 +655,7 @@
 				"Public": "pubblico",
 				"ReferentSubject": "Soggetto referente",
 				"Reserved": "riservato",
+				"SkipCollaudo": "Consenti di saltare il collaudo",
 				"Tag": "Tag",
 				"UrlInvocazione": "Url invocazione",
 				"UrlPrefixCollaudo": "Url prefix collaudo",
@@ -822,6 +864,11 @@
 			"wsdl_12": "Wsdl 1.2"
 		},
 		"LABEL": {
+			"AltriRuoli": "altri ruoli",
+			"AncheRuolo": "Anche {{ruolo}}",
+			"LogoFormatHintServizio": "Nel catalogo e nella vetrina il logo è mostrato in formato 16:9: le parti scurite nell'anteprima restano fuori. Usa un'immagine orizzontale, ad esempio 1280×720.",
+			"LogoFormatHint": "Nel catalogo il logo è mostrato in formato 16:9: le parti scurite nell'anteprima restano fuori. Usa un'immagine orizzontale, ad esempio 1280×720.",
+			"ImpostatoDalDominio": "Impostato dal dominio",
 			"SkipToContent": "Salta al contenuto",
 			"UrlEsposizione": "Url di esposizione",
 			"RemoveFilter": "Rimuovi filtro",
@@ -836,6 +883,9 @@
 			"Tipo": "Tipo",
 			"TipoProfilo": "Tipo profilo",
 			"Traccia": "Traccia",
+			"UrlEsposizioneElenco": "URL di esposizione",
+			"UrlInvocazioneSelezione": "URL di esposizione",
+			"UrlPredefinita": "URL predefinita",
 			"Visibility": "Visibilità",
 			"eMail": "E-mail",
 			"metodo_http": "Metodo HTTP",
@@ -874,6 +924,7 @@
 			"AuthType": "Auth",
 			"AvailabilityDate": "Data di disponibilità",
 			"Azione": "Azione",
+			"Azioni": "Azioni",
 			"base_url": "Base Url",
 			"categoria": "Categoria",
 			"Category": "Categoria",
@@ -893,6 +944,7 @@
 			"ClientId": "ID Cliente",
 			"ClientID": "Client ID",
 			"ClientIp": "Client IP",
+			"collaudo": "Configurazione di collaudo",
 			"codice_asset": "Codice applicazione",
 			"CodiceRisposta": "Codice risposta",
 			"CodiceRispostaClient": "Codice Risposta Client",
@@ -956,9 +1008,11 @@
 			"Finalita": "Finalità",
 			"FormatiAccettati": "Formati accettati",
 			"FreeSearch": "Ricerca libera",
+			"archiviati": "Servizi archiviati",
 			"From": "da",
 			"Fruitore": "Fruitore",
 			"fruizione": "Intermediato",
+			"api_erogate_aderente": "Ruolo API",
 			"FullName": "Nome e cognome",
 			"giornaliero": "Giornaliero",
 			"Giorno": "Giorno",
@@ -1045,6 +1099,24 @@
 			"Padre": "Padre",
 			"Password": "Password",
 			"PDND": {
+				"Requirement": "Requisito",
+				"GroupAlternatives": "Gruppo {{n}}: almeno uno tra {{count}}",
+				"Code": "Codice",
+				"Origin": "Origine",
+				"OrganizationId": "ID organizzazione",
+				"CallsPerConsumer": "Chiamate/giorno per fruitore",
+				"CallsTotal": "Chiamate/giorno totali",
+				"VoucherLifespan": "Validità del voucher",
+				"NoDescriptors": "Nessun descrittore pubblicato.",
+				"STATE": {
+					"DRAFT": "Bozza",
+					"PUBLISHED": "Pubblicato",
+					"DEPRECATED": "Deprecato",
+					"SUSPENDED": "Sospeso",
+					"ARCHIVED": "Archiviato",
+					"WAITING_FOR_APPROVAL": "In attesa di approvazione",
+					"ACTIVE": "Attivo"
+				},
 				"Agreement": "Richiesta di fruizione",
 				"Attribute": "Attributo",
 				"Attributes": "Attributi",
@@ -1217,7 +1289,7 @@
 			"utente_ultimo_aggiornamento": "Ultimo aggiornamento da",
 			"Uuid": "uuid",
 			"Valid": "Valido",
-			"Validity": "Validita",
+			"Validity": "Validità",
 			"Version": "Versione",
 			"versione": "Versione",
 			"versione_gateway": "Versione gateway",
@@ -1255,13 +1327,30 @@
 				"baseUrlCollaudo": "URL di erogazione per ambiente di collaudo",
 				"POPOVER": {
 					"nome": ""
-				}
+				},
+				"url_invocazione": "URL su cui l'API è esposta in questo ambiente, scelte fra quelle censite in configurazione. Il catalogo documenta le URL ma non configura il gateway su GovWay: se il gateway non è configurato, la URL non risponde."
 			},
 			"SERVICE": {
 				"descrizione": "È possibile inserire testo `markdown`.",
 				"id_dominio": "Se non si riesce ad individuare un dominio adeguato per il servizio, è possibile richiedere la creazione di un nuovo dominio via email a {{email}}",
 				"id_dominio_deprecato": "Dominio deprecato",
-				"visibilita": "Viene ereditata la visiblità **{{visibilita}}** impostata nel dominio."
+				"visibilita": "Viene ereditata la visibilità **{{visibilita}}** impostata nel dominio.",
+				"visibilita_servizio": "Determina chi può vedere il servizio nel catalogo. Con «riservato» l'accesso è limitato alle classi utente selezionate.",
+				"tipo": "Tipologia del servizio: «API» per servizi esposti tramite API, «Generico» per servizi non basati su API.",
+				"id_organizzazione_interna": "Ente della tua organizzazione che eroga il servizio in intermediazione. Disponibile per i servizi di fruizione.",
+				"id_soggetto_erogatore": "Soggetto che eroga effettivamente il servizio per l'ente selezionato.",
+				"classi": "Classi utente abilitate a vedere il servizio quando la visibilità è «riservato»: solo gli utenti appartenenti alle classi indicate potranno accedervi.",
+				"referente": "Responsabile organizzativo del servizio: riceverà le comunicazioni istituzionali e approverà le adesioni.",
+				"referente_tecnico": "Responsabile tecnico del servizio: gestisce gli aspetti di integrazione e riceve le comunicazioni tecniche.",
+				"descrizione_sintetica": "Breve descrizione del servizio (una o due frasi) mostrata nella lista del catalogo.",
+				"tags": "Parole chiave per categorizzare il servizio e agevolarne la ricerca. Premi Invio per aggiungere ogni tag.",
+				"termini_ricerca": "Termini aggiuntivi (sinonimi, acronimi) separati da virgola, es. «anagrafe, ANPR»: migliorano la ricerca del servizio e non compaiono nella scheda.",
+				"fruizione": "Il servizio è erogato in intermediazione da un ente della tua organizzazione: andranno indicati l'ente e il soggetto erogatore.",
+				"package": "Raggruppa più servizi (componenti) in un unico servizio a cui aderire; un package non ha API proprie.",
+				"skip_collaudo": "Il servizio passa direttamente in produzione: la fase di collaudo viene saltata.",
+				"adesione_disabilitata": "Il servizio resta consultabile nel catalogo ma non è possibile richiederne l'adesione.",
+				"multi_adesione": "Consente allo stesso soggetto aderente di avere più adesioni al servizio.",
+				"note": "Note interne sul servizio, visibili ai referenti; non compaiono nella scheda pubblica del catalogo."
 			},
 			"SETTINGS": {
 				"servizi_view": "Scegli la modalità di visualizzazione di default della lista dei servizi."
@@ -1347,6 +1436,7 @@
 			"WorkflowSendRequest": "Invia richiesta"
 		},
 		"MESSAGE": {
+			"ApiModificabiliSoloDescrizioneNote": "Il servizio non è più in bozza: sono modificabili solo la descrizione e le note.",
 			"NoElements": "Nessun elemento",
 			"AdesioneDisabilitata": "L'adesione è disabilitata per questo servizio",
 			"AdesioneGiaEsistente": "La tua organizzazione ha già un'adesione attiva. Questo servizio non consente adesioni multiple",
@@ -1411,7 +1501,13 @@
 							"EROGATIONS": "API [{{nome}} v{{versione}}] ha [{{count}}] erogazioni attive, non eliminabile"
 						},
 						"SPEC": "Specifica non presente",
-						"VISIBILITY": "Visibilita [{{visibilita}}] non consentita"
+						"URL": {
+							"DUPLICATE": "URL di invocazione [{{identificativo}}] indicata più volte sulla stessa specifica",
+							"NOT": {
+								"FOUND": "URL di invocazione [{{identificativo}}] non prevista dalla configurazione per l'ambiente di {{ambiente}}"
+							}
+						},
+						"VISIBILITY": "Visibilità [{{visibilita}}] non consentita"
 					},
 					"404": {
 						"DEFAULT": "API [{{idApi}}] non trovata",
@@ -1426,8 +1522,8 @@
 						}
 					},
 					"409": {
-						"DEFAULT": "API [{{nome}}/{{versione}}/{{soggetto}}] esiste gia",
-						"INTERMEDIATO": "API [{{nome}}/{{versione}}/{{soggetto}}] esiste gia per l'ente erogatore [{{erogatore}}]"
+						"DEFAULT": "API [{{nome}}/{{versione}}/{{soggetto}}] esiste già",
+						"INTERMEDIATO": "API [{{nome}}/{{versione}}/{{soggetto}}] esiste già per l'ente erogatore [{{erogatore}}]"
 					}
 				},
 				"ApiNoDelete": "L'API non può essere eliminata allo stato corrente.",
@@ -1458,6 +1554,14 @@
 						},
 						"RESOURCE": "Accesso negato alla risorsa [{{resource}}]",
 						"ROLE": "L'utente deve avere uno dei ruoli [{{ruoli}}] per eseguire la force",
+						"GRUPPO": {
+							"RISERVATO": {
+								"GESTORE": "Il gruppo di proprietà [{{gruppo}}] è modificabile solo dal gestore"
+							},
+							"RUOLI": {
+								"ABILITATI": "Non hai un ruolo abilitato alla modifica del gruppo di proprietà [{{gruppo}}]"
+							}
+						},
 						"RUOLO": {
 							"PDND": "Non hai il ruolo di amministratore PDND richiesto per questa operazione"
 						},
@@ -1540,7 +1644,8 @@
 				"DOC": {
 					"400": {
 						"FORMAT": "Formato documento non supportato",
-						"SIZE": "Dimensione documento [{{dimensione}}] eccede il limite di [{{limite}}]"
+						"SIZE": "Dimensione documento [{{dimensione}}] eccede il limite di [{{limite}}]",
+						"SWAGGER2": "Le specifiche Swagger 2.0 non sono supportate: convertire la specifica in OpenAPI 3"
 					},
 					"404": {
 						"DEFAULT": "Documento non trovato",
@@ -1555,6 +1660,14 @@
 					"500": "Impossibile elaborare il documento: {{errore}}"
 				},
 				"DOM": {
+					"400": {
+						"ADESIONE": {
+							"DISABILITATA": "Impossibile disabilitare l'adesione sul dominio [{{nome}}]: {{numeroServizi}} servizi del dominio hanno l'adesione abilitata"
+						},
+						"MULTI": {
+							"ADESIONE": "Impossibile attivare la multi adesione sul dominio [{{nome}}]: {{numeroServizi}} servizi del dominio non sono multi adesione"
+						}
+					},
 					"404": "Dominio [{{idDominio}}] non trovato",
 					"409": "Dominio [{{nome}}] già esistente"
 				},
@@ -1607,6 +1720,7 @@
 					},
 					"502": {
 						"DEFAULT": "Risposta non valida dal servizio esterno",
+						"AUTH": "Autenticazione rifiutata dal servizio esterno, status code: [{{statusCode}}]",
 						"STATUS": "Risposta non valida dal servizio per allarme [{{idAllarme}}], status code: [{{statusCode}}]"
 					},
 					"503": "Servizio esterno temporaneamente non disponibile",
@@ -1765,6 +1879,9 @@
 				},
 				"SRV": {
 					"400": {
+						"ADESIONE": {
+							"DISABILITATA": "Il servizio deve avere l'adesione disabilitata perché il dominio [{{dominio}}] ha l'adesione disabilitata"
+						},
 						"CATEGORY": {
 							"NOT": {
 								"LEAF": "Impossibile associare la Categoria [{{categoria}}] al servizio [{{nome}}/{{versione}}]. categoria non foglia"
@@ -1772,6 +1889,9 @@
 						},
 						"DUPLICATE": "Allegato duplicato per il servizio",
 						"INVALID": "Operazione non valida sul servizio",
+						"MULTI": {
+							"ADESIONE": "Il servizio deve essere multi adesione perché il dominio [{{dominio}}] è multi adesione"
+						},
 						"NOT": {
 							"DELETABLE": "Il servizio non è eliminabile",
 							"REGISTERED": "Utente non registrato, impossibile recuperare servizi in attesa"
@@ -1792,10 +1912,10 @@
 						"PACKAGE": "Package [{{idPackage}}] non trovato"
 					},
 					"409": {
-						"DEFAULT": "Servizio [{{nome}} v{{versione}}] esiste gia",
-						"CATEGORY": "Categoria [{{categoria}}] gia associato al servizio [{{nome}}/{{versione}}]",
-						"CONFLICT": "Servizio con stesso nome e versione gia esistente",
-						"GROUP": "Gruppo [{{gruppo}}] gia associato al servizio [{{nome}}/{{versione}}]",
+						"DEFAULT": "Servizio [{{nome}} v{{versione}}] esiste già",
+						"CATEGORY": "Categoria [{{categoria}}] già associato al servizio [{{nome}}/{{versione}}]",
+						"CONFLICT": "Servizio [{{nome}} v{{versione}}] già esistente nel dominio [{{dominio}}]",
+						"GROUP": "Gruppo [{{gruppo}}] già associato al servizio [{{nome}}/{{versione}}]",
 						"REFERENT": "L'utente [{{nomeUtente}} {{cognomeUtente}}] è già {{tipoReferente}} del servizio [{{nomeServizio}} v{{versioneServizio}}]",
 						"STATE": ""
 					}
@@ -1956,6 +2076,8 @@
 			},
 			"InsertNotice": "Inserisci il numero dell'avviso e premi il pulsante di ricerca …",
 			"LOGIN": {
+				"LoggedOutTitle": "Sei uscito",
+				"LoggedOutMessage": "La sessione è stata chiusa. Per accedere di nuovo usa il pulsante qui sotto.",
 				"login_400": "Username o password errati. Controlla la corretta scrittura dei dati.",
 				"login_401": "Username o password errati. Oppure non sei autorizzato ad accedere.",
 				"login_403": "Username o password errati. Oppure non sei autorizzato ad accedere.",
@@ -1965,6 +2087,13 @@
 				"valid_email": "Inserisci una mail valida",
 				"wrong_username_password": "Username o password errati. Controlla la corretta scrittura dei dati."
 			},
+			"SkipCollaudoDominioDaSelezionare": "Seleziona il dominio: la possibilità di saltare il collaudo dipende dal dominio.",
+			"SkipCollaudoSoggettoNonConsente": "Non disponibile: il soggetto referente del dominio non consente di saltare il collaudo.",
+			"SkipCollaudoDominioNonConsente": "Non disponibile: il dominio del servizio non consente di saltare il collaudo.",
+			"SkipCollaudoVincolato": "Non disattivabile: esistono adesioni al servizio che saltano il collaudo.",
+			"SkipCollaudoNonModificabile": "Modificabile solo con il servizio in bozza.",
+			"CollaudoNonDisponibileServizio": "Collaudo non disponibile: il servizio è pubblicato direttamente in produzione.",
+			"CollaudoNonDisponibileAdesione": "Collaudo non disponibile: l'adesione è richiesta direttamente in produzione.",
 			"NoApi": "Nessuna API presente",
 			"NoApiHelp": "",
 			"NoData": "Le informazioni richieste non sono state trovate",
@@ -2019,6 +2148,9 @@
 				"PrincipalPattern": "Formato del principal non valido",
 				"Email": "Inserisci una e-mail valida",
 				"FieldRequired": "Campo richiesto",
+				"RequiredForNextState": "Obbligatorio per il passaggio a «{{stato}}»",
+				"RequiredFromState": "Obbligatorio a partire da «{{stato}}»",
+				"FormInvalid": "Alcuni campi obbligatori non sono compilati correttamente",
 				"GreaterThanEqual": "Il campo deve avere un valore maggiore o uguale a {{value}}",
 				"GreaterThanZero": "Il campo deve avere un valore maggiore di zero",
 				"IntegerGreaterThanZero": "Il campo deve avere un valore intero maggiore di zero",
@@ -2112,6 +2244,16 @@
 				"IdTipoUtente": "Tipologia soggetto",
 				"Referente": "Organizzazione referente",
 				"SoggettoDefault": "Soggetto di default"
+			},
+			"SECTION": {
+				"EditSubtitle": "Compila le sezioni dell'organizzazione.",
+				"ViewSubtitle": "Dati dell'organizzazione e ruolo nel catalogo.",
+				"GeneraleTag": "ORGANIZZAZIONE",
+				"GeneraleTitle": "Informazioni generali",
+				"GeneraleDesc": "Nome, descrizione e codici identificativi dell'organizzazione.",
+				"RuoloTag": "RUOLO",
+				"RuoloTitle": "Ruolo e soggetto di default",
+				"RuoloDesc": "Ruolo dell'organizzazione nel catalogo e soggetto usato di default nelle adesioni."
 			},
 			"TITLE": {
 				"Description": "Descrizione",
@@ -2364,6 +2506,140 @@
 			"View": "Vista"
 		},
 		"SERVICES": {
+			"ATTACHMENTS": {
+				"Title": "Allegati",
+				"ApiMenu": "Allegati dell'API",
+				"ShowAll": "Mostra tutti ({{count}})",
+				"ShowLess": "Mostra meno",
+				"Download": "Scarica {{filename}}",
+				"VISIBILITY": {
+					"pubblico": "Pubblico",
+					"adesione": "Solo aderenti",
+					"servizio": "Solo referenti del servizio",
+					"gestore": "Solo gestori"
+				}
+			},
+			"API_EROGATE_ADERENTE": {
+				"true": "Con API erogate dall'aderente",
+				"false": "Senza API erogate dall'aderente"
+			},
+			"ARCHIVED": {
+				"escludi": "Escludi",
+				"includi": "Includi",
+				"solo": "Solo archiviati"
+			},
+			"CREATE": {
+				"Subtitle": "Compila le sezioni per creare un nuovo servizio nel catalogo.",
+				"SectionGeneraleTag": "SERVIZIO",
+				"SectionGeneraleTitle": "Informazioni generali",
+				"SectionGeneraleDesc": "Definisci tipo, nome, versione e dominio del servizio.",
+				"SectionClassificazioneTag": "CLASSIFICAZIONE",
+				"SectionClassificazioneTitle": "Classificazione e visibilità",
+				"SectionClassificazioneDesc": "Imposta la visibilità, le classi utente e la modalità di erogazione.",
+				"SectionReferentiTag": "CONTATTI",
+				"SectionReferentiTitle": "Referenti",
+				"SectionReferentiDesc": "Indica il referente del servizio e il referente tecnico.",
+				"SectionDescrizioneTag": "CONTENUTI",
+				"SectionDescrizioneTitle": "Descrizione e metadati",
+				"SectionDescrizioneDesc": "Aggiungi descrizioni, documentazione, tag e note del servizio.",
+					"SectionAllegatiTag": "DOCUMENTI",
+					"SectionAllegatiTitle": "Allegati",
+					"SectionAllegatiDesc": "Carica i documenti da allegare al servizio.",
+					"CascadeWarningTitle": "Servizio creato con avvisi",
+					"CascadeWarningIntro": "Il servizio è stato creato, ma alcuni elementi non sono stati salvati. Potrai completarli dalla modifica del servizio:",
+					"CascadeProceed": "Prosegui al servizio",
+					"CascadeStep": {
+						"api": "API non salvate",
+						"gruppo": "Gruppi non associati",
+						"allegati": "Allegati non caricati",
+						"referente": "Referenti non salvati"
+					},
+				"SectionGruppiTag": "ORGANIZZAZIONE",
+				"SectionGruppiTitle": "Gruppi",
+				"SectionGruppiDesc": "Associa il servizio a uno o più gruppi del catalogo.",
+				"SectionAdesioneTag": "ADESIONI",
+				"SectionAdesioneTitle": "Opzioni di adesione",
+				"SectionAdesioneDesc": "Impostazioni che regolano le adesioni al servizio.",
+				"MandatoryHint": "I campi con * sono obbligatori",
+				"ApiRequiredAfterSave": "Dopo il salvataggio dovrai aggiungere almeno una API per poter procedere al collaudo.",
+					"Submit": "Crea servizio"
+			},
+			"WIZARD": {
+				"Title": "Nuovo servizio",
+				"StepOf": "Passo {{current}} di {{total}}",
+				"Logo": "Logo",
+				"PhasePlaceholder": "Contenuto della fase in arrivo.",
+				"AzioneRichiesta": "Azione richiesta",
+				"FaseConclusa": "Fase conclusa",
+					"InAttesa": "In attesa",
+					"PhaseHint": "Configura l'erogazione di ogni API per questo ambiente. Tutte le API devono essere configurate prima di inviare la richiesta.",
+					"InAttesaDi": "In attesa: {{ruoli}}",
+					"DatiDaCompletare": "Prima di procedere completa i dati segnalati:",
+					"RUOLI": {
+						"richiedente": "richiedente",
+						"referente": "referente",
+						"referente_superiore": "referente superiore",
+						"gestore": "gestore"
+					},
+					"SubstepFallbackCanChange": "Il servizio è pronto per il prossimo passaggio: usa i pulsanti qui sotto per procedere con il cambio di stato.",
+					"SubstepFallbackCannotChange": "Non sono richieste ulteriori azioni da parte tua in questa fase. Il servizio è in attesa di un'azione da parte di un utente abilitato.",
+					"SubstepLocked": "In attesa del completamento delle fasi precedenti.",
+				"ApiHint": "Definisci le API del servizio: informazioni generali, interfaccia e configurazione dell'erogazione per questo ambiente.",
+				"ApiRequiredHint": "Per procedere al collaudo è necessario inserire almeno una API. Compila la form qui sotto per crearne una.",
+				"ApiConfigured": "Configurata",
+				"ApiToConfigure": "Da configurare",
+				"ConfigureApi": "Configura",
+				"EditApiGeneralInfo": "Modifica informazioni generali",
+				"AddApi": "Crea API",
+				"Sections": "Sezioni del servizio",
+				"NoItems": "Non sono presenti elementi",
+				"InlineComingSoon": "Gestione inline in arrivo.",
+				"OpenSection": "Apri sezione",
+				"OpenWizard": "Vista guidata",
+				"OpenClassic": "Vista classica",
+				"ReferentiServizio": "Referenti servizio",
+				"ReferentiDominio": "Referenti dominio",
+				"ProcedureCollaudo": "Procedura di collaudo",
+				"ProcedureProduzione": "Procedura di produzione",
+				"PHASE": {
+					"info_generali": "Informazioni Generali",
+					"api": "API",
+					"collaudo": "Collaudo",
+					"produzione": "Produzione"
+				},
+				"SUBSTEP": {
+					"in_compilazione": "In compilazione",
+					"in_approvazione": "In approvazione",
+					"in_configurazione": "In configurazione",
+					"configurato": "Configurato",
+					"in_compilazione_body": "Compila i dati del servizio e avvia la richiesta per procedere.",
+					"in_approvazione_body": "Richiesta inviata: in attesa di approvazione da parte del gestore.",
+					"in_configurazione_body": "Configurazione in corso sull'API Gateway.",
+					"configurato_body": "Fase completata: il servizio è pubblicato in questo ambiente."
+				},
+				"BUTTON": {
+					"Next": "Avanti",
+					"Back": "Indietro",
+					"Create": "Crea servizio",
+					"Cancel": "Annulla"
+				},
+				"STEP": {
+					"identita": "Identità",
+					"identita_sub": "Tipo, nome, versione e dominio del servizio",
+					"classificazione": "Classificazione e visibilità",
+					"classificazione_sub": "Visibilità, package ed erogazione",
+					"referenti": "Referenti",
+					"referenti_sub": "Referente e referente tecnico",
+					"descrizione": "Descrizione e metadati",
+					"descrizione_sub": "Descrizioni, tag e note",
+					"adesione": "Opzioni di adesione",
+					"adesione_sub": "Impostazioni relative alle adesioni",
+					"gruppi": "Gruppi",
+					"gruppi_sub": "Gruppi a cui associare il servizio",
+					"riepilogo": "Riepilogo",
+					"riepilogo_sub": "Verifica i dati e crea il servizio"
+				}
+			},
 			"BUTTON": {
 				"AddAttachment": "Aggiungi allegato",
 				"AddAttachment-generico": "Aggiungi allegato generico",
@@ -2453,7 +2729,7 @@
 				"Card": "Card",
 				"Email": "E-mail",
 				"EmailAziendale": "E-mail aziendale",
-				"EmettiPerEntita": "Emetti per entita",
+				"EmettiPerEntita": "Emetti per entità",
 				"EmettiPerRuoli": "Emetti per ruoli",
 				"EmettiPerTag": "Emetti per tag",
 				"EmettiPerTipi": "Emetti per tipi",
@@ -2507,10 +2783,26 @@
 				"Organization": "Organizzazione",
 				"OrganizationName": "Nome dell'Organizzazione",
 				"Referente": "Referente",
-				"SkipCollaudo": "Salta collaudo",
+				"SkipCollaudo": "Consenti di saltare il collaudo",
 				"UrlInvocazione": "Url invocazione",
 				"UrlPrefixCollaudo": "Url prefix collaudo",
 				"UrlPrefixProduzione": "Url prefix produzione"
+			},
+			"SECTION": {
+				"EditSubtitle": "Compila le sezioni del soggetto.",
+				"ViewSubtitle": "Dati del soggetto, ruolo e URL di invocazione.",
+				"GeneraleTag": "SOGGETTO",
+				"GeneraleTitle": "Informazioni generali",
+				"GeneraleDesc": "Nome, descrizione e organizzazione del soggetto.",
+				"RuoloTag": "RUOLO",
+				"RuoloTitle": "Ruolo e opzioni",
+				"RuoloDesc": "Ruolo del soggetto e opzioni applicate ai suoi servizi.",
+				"GatewayTag": "GATEWAY",
+				"GatewayTitle": "Profilo gateway",
+				"GatewayDesc": "Nome e tipo del soggetto sul gateway.",
+				"ErogazioneTag": "EROGAZIONE",
+				"ErogazioneTitle": "URL di invocazione",
+				"ErogazioneDesc": "URL e prefissi usati per invocare le API del soggetto."
 			},
 			"TITLE": {
 				"EditSubject": "Modifica il Soggetto",
@@ -2570,8 +2862,127 @@
 			"YES": "Si"
 		},
 		"SUBSCRIBERS": {
-			"Approve": "Approva",
-			"ApproveConfirm": "Vuoi approvare l'accordo del fruitore {{name}}?"
+			"AgreementPending": "L'accordo è in attesa di approvazione: il fruitore potrà usare l'e-service dopo l'approvazione.",
+			"PurposesCount": "{{count}} finalità",
+			"WaitingCount": "Da approvare: {{count}}",
+			"CurrentLoad": "Previsione di carico",
+			"CallsPerDay": "chiamate/giorno",
+			"IncreaseRequest": "Richiesta di aumento in attesa",
+			"To": "a",
+			"Purposes": "Finalità",
+			"PurposesLoading": "Caricamento delle finalità…",
+			"PurposesError": "Impossibile caricare le finalità del fruitore.",
+			"NoPurposes": "Nessuna finalità attivata dal fruitore.",
+			"PurposeWaiting": "Richiesta di aumento a {{value}} chiamate/giorno in attesa di approvazione",
+			"ACTIONS": {
+				"Approve": "Approva",
+				"Reject": "Rifiuta",
+				"Suspend": "Sospendi",
+				"Unsuspend": "Riattiva",
+				"AgreementMenu": "Azioni sull'accordo di {{name}}",
+				"PurposeMenu": "Azioni sulla finalità {{name}}"
+			},
+			"AGREEMENT_STATE": {
+				"DRAFT": "Bozza",
+				"ACTIVE": "Attivo",
+				"ARCHIVED": "Archiviato",
+				"PENDING": "In attesa di approvazione",
+				"SUSPENDED": "Sospeso",
+				"MISSING_CERTIFIED_ATTRIBUTES": "Attributi certificati mancanti",
+				"REJECTED": "Rifiutato"
+			},
+			"PURPOSE_STATE": {
+				"DRAFT": "Bozza",
+				"ACTIVE": "Attiva",
+				"ARCHIVED": "Archiviata",
+				"PENDING": "In attesa di approvazione",
+				"SUSPENDED": "Sospesa",
+				"MISSING_CERTIFIED_ATTRIBUTES": "Attributi certificati mancanti",
+				"REJECTED": "Rifiutata",
+				"WAITING_FOR_APPROVAL": "In attesa di approvazione"
+			},
+			"DIALOG": {
+				"Subscriber": "Fruitore",
+				"Purpose": "Finalità",
+				"Reason": "Motivazione del rifiuto",
+				"ReasonHint": "Da {{min}} a {{max}} caratteri; la motivazione viene comunicata al fruitore.",
+				"ReasonRequired": "Inserisci almeno {{min}} caratteri.",
+				"RequestedRejected": "richiesta di {{value}} rifiutata",
+				"AGREEMENT": {
+					"unsuspendPartial": "Viene revocata solo la sospensione dell'erogatore.",
+					"approve": {
+						"Title": "Approva accordo",
+						"Description": "Il fruitore potrà usare l'e-service e attivare le proprie finalità.",
+						"Confirm": "Approva"
+					},
+					"reject": {
+						"Title": "Rifiuta accordo",
+						"Description": "La richiesta di fruizione viene rifiutata: per usare l'e-service il fruitore dovrà presentarne una nuova.",
+						"Confirm": "Rifiuta"
+					},
+					"suspend": {
+						"Title": "Sospendi accordo",
+						"Description": "Il fruitore non potrà usare l'e-service finché l'accordo non viene riattivato.",
+						"Confirm": "Sospendi"
+					},
+					"unsuspend": {
+						"Title": "Riattiva accordo",
+						"Description": "Il fruitore potrà di nuovo usare l'e-service.",
+						"Confirm": "Riattiva"
+					},
+					"StaysSuspended": "Resta la sospensione di: {{who}}. Dopo la riattivazione l'accordo sarà ancora sospeso."
+				},
+				"PURPOSE": {
+					"unsuspendPartial": "Viene revocata solo la sospensione dell'erogatore.",
+					"approve": {
+						"Title": "Approva aumento",
+						"Description": "La previsione di carico della finalità passa al valore richiesto dal fruitore.",
+						"Confirm": "Approva"
+					},
+					"suspend": {
+						"Title": "Sospendi finalità",
+						"Description": "Il fruitore non potrà usare l'e-service per questa finalità finché non viene riattivata.",
+						"Confirm": "Sospendi"
+					},
+					"unsuspend": {
+						"Title": "Riattiva finalità",
+						"Description": "Il fruitore potrà di nuovo usare l'e-service per questa finalità.",
+						"Confirm": "Riattiva"
+					},
+					"StaysSuspended": "Resta la sospensione di: {{who}}. Dopo la riattivazione la finalità sarà ancora sospesa.",
+					"approveFirst": {
+						"Title": "Approva finalità",
+						"Description": "La finalità viene attivata con la previsione di carico richiesta dal fruitore.",
+						"Confirm": "Approva"
+					}
+				}
+			},
+			"And": "e",
+			"SuspendedBy": "Sospensione di",
+			"RejectionReason": "Motivazione del rifiuto",
+			"NotReactivatable": "La sospensione non è dell'erogatore: non si può revocare da qui.",
+			"SUSPENDED_BY": {
+				"PRODUCER": "erogatore",
+				"CONSUMER": "fruitore",
+				"PLATFORM": "piattaforma PDND"
+			},
+			"RESULT": {
+				"AGREEMENT": {
+					"approve": "Accordo di {{name}} approvato.",
+					"reject": "Accordo di {{name}} rifiutato.",
+					"suspend": "Accordo di {{name}} sospeso.",
+					"unsuspend": "Accordo di {{name}} riattivato.",
+					"StillSuspended": "La sospensione dell'erogatore è stata revocata, ma l'accordo resta sospeso (sospensione di: {{who}})."
+				},
+				"PURPOSE": {
+					"approve": "Aumento della finalità «{{name}}» approvato.",
+					"suspend": "Finalità «{{name}}» sospesa.",
+					"unsuspend": "Finalità «{{name}}» riattivata.",
+					"StillSuspended": "La sospensione dell'erogatore è stata revocata, ma la finalità resta sospesa (sospensione di: {{who}}).",
+					"approveFirst": "Finalità «{{name}}» approvata."
+				}
+			},
+			"FirstApprovalRequest": "Prima approvazione in attesa"
 		},
 		"SWAGGER": {
 			"ERROR": {
@@ -2931,6 +3342,22 @@
 				"admin": "Amministratore PDND",
 				"AdminWarning": "Attenzione: stai assegnando poteri di amministrazione sulla PDND."
 			},
+			"SECTION": {
+				"EditSubtitle": "Compila le sezioni dell'utente.",
+				"ViewSubtitle": "Dati dell'utente, ruolo e organizzazioni.",
+				"AnagraficaTag": "UTENTE",
+				"AnagraficaTitle": "Anagrafica",
+				"AnagraficaDesc": "Principal, nome e cognome dell'utente.",
+				"ContattiTag": "CONTATTI",
+				"ContattiTitle": "Contatti",
+				"ContattiDesc": "Telefono ed e-mail dell'utente.",
+				"RuoloTag": "RUOLO",
+				"RuoloTitle": "Ruolo e organizzazioni",
+				"RuoloDesc": "Ruolo nel catalogo, organizzazioni di appartenenza e azienda esterna.",
+				"StatoTag": "STATO",
+				"StatoTitle": "Stato e classi",
+				"StatoDesc": "Stato dell'utente, classi utente e note."
+			},
 			"STATUS": {
 				"abilitato": "Abilitato",
 				"disabilitato": "Disabilitato",
@@ -2981,13 +3408,14 @@
 			"riservato": "Riservato",
 			"riservato_dominio": "Riservato (Dominio)",
 			"servizio": "Servizio",
-			"specifica": "Specifica",
+			"specifica": "Scheda dati",
 			"specifica_collaudo": "Specifica collaudo",
 			"specifica_produzione": "Specifica produzione",
 			"subscription": "Subscription"
 		},
 		"WORKFLOW": {
 			"DATATYPE": {
+				"api": "API",
 				"collaudo": "Collaudo",
 				"collaudo_configurato": "Collaudo",
 				"collaudo_pdnd": "PDND",
@@ -3098,6 +3526,16 @@
 				"ChangeStatusError": "Errore nel cambio di stato [{{status}}]",
 				"ChangeStatusSuccess": "Cambio di stato effettuato con successo [{{status}}]"
 			},
+			"RIFIUTO": {
+				"Rifiuta": "Rifiuta",
+				"Titolo": "Rifiuta la richiesta",
+				"Descrizione": "Lo stato torna a \"{{stato}}\" e i referenti ricevono una comunicazione con il motivo.",
+				"Oggetto": "Oggetto",
+				"Motivo": "Motivo del rifiuto",
+				"Conferma": "Conferma rifiuto",
+				"OggettoDefault": "{{nome}}: richiesta rifiutata ({{stato}})",
+				"Successo": "Richiesta rifiutata: lo stato è tornato a \"{{stato}}\" e la comunicazione è stata inviata ai referenti."
+			},
 			"STATUS": {
 				"PROCESSING": "In elaborazione",
 				"DENIED": "Negato",
@@ -3147,6 +3585,7 @@
 				"Operation": "Operation",
 				"Pattern": "Pattern",
 				"SOAPAction": "SOAPAction",
+				"UrlInvocazioneElenco": "URL di esposizione",
 				"Version": "Versione",
 				"UrlInvocazione": "URL di esposizione"
 			}

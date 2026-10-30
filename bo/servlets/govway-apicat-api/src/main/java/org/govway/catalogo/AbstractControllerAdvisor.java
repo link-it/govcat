@@ -32,28 +32,29 @@ import org.hibernate.service.spi.ServiceException;
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.Nullable;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-import org.springframework.web.util.WebUtils;
 
 import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;
 import com.fasterxml.jackson.databind.exc.ValueInstantiationException;
 
 public abstract class AbstractControllerAdvisor extends ResponseEntityExceptionHandler {
 
-	protected ResponseEntity<Object> handleExceptionInternal(
-			Exception ex, @Nullable Object body, HttpHeaders headers, HttpStatus status, WebRequest request) {
+	@Override
+	protected ResponseEntity<Object> handleMethodArgumentNotValid(
+			MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+		return toEntity(ex);
+	}
 
-
-		if (HttpStatus.INTERNAL_SERVER_ERROR.equals(status)) {
-			request.setAttribute(WebUtils.ERROR_EXCEPTION_ATTRIBUTE, ex, WebRequest.SCOPE_REQUEST);
-		}
-
-		return toEntity(ex, status);
-
+	@Override
+	protected ResponseEntity<Object> handleHttpMessageNotReadable(
+			HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+		return toEntity(ex);
 	}
 
 	@ExceptionHandler({ConflictException.class})
@@ -113,6 +114,8 @@ public abstract class AbstractControllerAdvisor extends ResponseEntityExceptionH
 
 	protected abstract ResponseEntity<Object> toEntity(Exception ex, HttpStatus status);
 	protected abstract ResponseEntity<Object> toEntity(ClientApiException ex);
+	protected abstract ResponseEntity<Object> toEntity(MethodArgumentNotValidException ex);
+	protected abstract ResponseEntity<Object> toEntity(HttpMessageNotReadableException ex);
 
 
 }

@@ -14,11 +14,167 @@
         "dailyCalls": 1000,
         "createdAt": "2026-01-15T09:30:00Z"
       }
+    },
+    {
+      "id": "e6666666-6666-6666-6666-6666666666cc",
+      "eserviceId": "c3333333-3333-3333-3333-333333333333",
+      "consumerId": "c2222222-2222-2222-2222-222222222222",
+      "title": "Finalita' con richiesta di aumento delle chiamate",
+      "description": "Finalita' di esempio esposta dal mock PDND v3",
+      "isFreeOfCharge": true,
+      "createdAt": "2026-01-15T09:30:00Z",
+      "currentVersion": {
+        "id": "e6666666-6666-6666-6666-6666666666cc",
+        "state": "ACTIVE",
+        "dailyCalls": 1000,
+        "createdAt": "2026-01-15T09:30:00Z"
+      },
+      "waitingForApprovalVersion": {
+        "id": "ea666666-6666-6666-6666-6666666666cc",
+        "state": "WAITING_FOR_APPROVAL",
+        "dailyCalls": 20000,
+        "createdAt": "2026-02-01T10:00:00Z"
+      }
+    },
+    {
+      "id": "a6666666-6666-6666-6666-6666666666cc",
+      "eserviceId": "c3333333-3333-3333-3333-333333333333",
+      "consumerId": "c2222222-2222-2222-2222-222222222222",
+      "title": "Finalita' sospesa dall'erogatore",
+      "description": "Finalita' di esempio esposta dal mock PDND v3",
+      "isFreeOfCharge": true,
+      "createdAt": "2026-01-15T09:30:00Z",
+      "suspendedByProducer": true,
+      "currentVersion": {
+        "id": "a6666666-6666-6666-6666-6666666666cc",
+        "state": "SUSPENDED",
+        "dailyCalls": 1000,
+        "suspendedAt": "2026-03-01T11:00:00Z",
+        "createdAt": "2026-01-15T09:30:00Z"
+      }
+    },
+    {
+      "id": "b6666666-6666-6666-6666-6666666666cc",
+      "eserviceId": "c3333333-3333-3333-3333-333333333333",
+      "consumerId": "c2222222-2222-2222-2222-222222222222",
+      "title": "Finalita' sospesa dal fruitore",
+      "description": "Finalita' di esempio esposta dal mock PDND v3",
+      "isFreeOfCharge": true,
+      "createdAt": "2026-01-15T09:30:00Z",
+      "suspendedByConsumer": true,
+      "currentVersion": {
+        "id": "b6666666-6666-6666-6666-6666666666cc",
+        "state": "SUSPENDED",
+        "dailyCalls": 1000,
+        "suspendedAt": "2026-03-02T11:00:00Z",
+        "createdAt": "2026-01-15T09:30:00Z"
+      }
+    },
+    {
+      "id": "c6666666-6666-6666-6666-6666666666cc",
+      "eserviceId": "c3333333-3333-3333-3333-333333333333",
+      "consumerId": "c2222222-2222-2222-2222-222222222222",
+      "title": "Finalita' sospesa da erogatore e fruitore",
+      "description": "Finalita' di esempio esposta dal mock PDND v3",
+      "isFreeOfCharge": true,
+      "createdAt": "2026-01-15T09:30:00Z",
+      "suspendedByProducer": true,
+      "suspendedByConsumer": true,
+      "currentVersion": {
+        "id": "c6666666-6666-6666-6666-6666666666cc",
+        "state": "SUSPENDED",
+        "dailyCalls": 1000,
+        "suspendedAt": "2026-03-03T11:00:00Z",
+        "createdAt": "2026-01-15T09:30:00Z"
+      }
+    },
+    {
+      "id": "d6666666-6666-6666-6666-6666666666cc",
+      "eserviceId": "c3333333-3333-3333-3333-333333333333",
+      "consumerId": "c2222222-2222-2222-2222-222222222222",
+      "title": "Finalita' in attesa della prima approvazione",
+      "description": "Finalita' di esempio esposta dal mock PDND v3",
+      "isFreeOfCharge": true,
+      "createdAt": "2026-02-10T09:30:00Z",
+      "waitingForApprovalVersion": {
+        "id": "d6666666-6666-6666-6666-6666666666cc",
+        "state": "WAITING_FOR_APPROVAL",
+        "dailyCalls": 5000,
+        "createdAt": "2026-02-10T09:30:00Z"
+      }
+    },
+    {
+      "id": "f6666666-6666-6666-6666-6666666666cc",
+      "eserviceId": "c3333333-3333-3333-3333-333333333333",
+      "consumerId": "c2222222-2222-2222-2222-222222222222",
+      "title": "Finalita' archiviata",
+      "description": "Finalita' di esempio esposta dal mock PDND v3",
+      "isFreeOfCharge": true,
+      "createdAt": "2026-01-15T09:30:00Z",
+      "currentVersion": {
+        "id": "f6666666-6666-6666-6666-6666666666cc",
+        "state": "ARCHIVED",
+        "dailyCalls": 1000,
+        "createdAt": "2026-01-15T09:30:00Z"
+      }
+    },
+    {
+      "id": "16666666-6666-6666-6666-6666666666cc",
+      "eserviceId": "c3333333-3333-3333-3333-333333333333",
+      "consumerId": "c2222222-2222-2222-2222-222222222222",
+      "title": "Finalita' in bozza",
+      "description": "Finalita' di esempio esposta dal mock PDND v3",
+      "isFreeOfCharge": true,
+      "createdAt": "2026-02-20T09:30:00Z",
+      "currentVersion": {
+        "id": "16666666-6666-6666-6666-6666666666cc",
+        "state": "DRAFT",
+        "dailyCalls": 100,
+        "createdAt": "2026-02-20T09:30:00Z"
+      }
+    },
+    {
+      "id": "26666666-6666-6666-6666-6666666666cc",
+      "eserviceId": "c3333333-3333-3333-3333-333333333333",
+      "consumerId": "c2222222-2222-2222-2222-222222222222",
+      "title": "Finalita' con richiesta di aumento rifiutata",
+      "description": "Finalita' di esempio esposta dal mock PDND v3",
+      "isFreeOfCharge": true,
+      "createdAt": "2026-01-15T09:30:00Z",
+      "currentVersion": {
+        "id": "26666666-6666-6666-6666-6666666666cc",
+        "state": "ACTIVE",
+        "dailyCalls": 1000,
+        "createdAt": "2026-01-15T09:30:00Z"
+      },
+      "rejectedVersion": {
+        "id": "2a666666-6666-6666-6666-6666666666cc",
+        "state": "REJECTED",
+        "dailyCalls": 50000,
+        "rejectionReason": "Il carico richiesto non e' compatibile con la capacita' dichiarata nel descrittore",
+        "createdAt": "2026-02-05T10:00:00Z"
+      }
+    },
+    {
+      "id": "36666666-6666-6666-6666-6666666666cc",
+      "eserviceId": "c3333333-3333-3333-3333-333333333333",
+      "consumerId": "c2222222-2222-2222-2222-222222222222",
+      "title": "Finalita' rifiutata",
+      "description": "Finalita' la cui unica versione e' stata rifiutata: non e' rappresentabile nel modello dati esposto da GovCat, che la esclude dai risultati",
+      "isFreeOfCharge": true,
+      "createdAt": "2026-02-15T09:30:00Z",
+      "rejectedVersion": {
+        "id": "36666666-6666-6666-6666-6666666666cc",
+        "state": "REJECTED",
+        "dailyCalls": 2000,
+        "rejectionReason": "La finalita' dichiarata non rientra tra quelle ammesse dal disciplinare del servizio",
+        "createdAt": "2026-02-15T09:30:00Z"
+      }
     }
   ],
   "pagination": {
     "offset": 0,
     "limit": 50,
-    "totalCount": 1
+    "totalCount": 10
   }
 }

@@ -50,6 +50,8 @@ public class DominioItemAssembler extends RepresentationModelAssemblerSupport<Do
 
 		dettaglio.setIdDominio(UUID.fromString(entity.getIdDominio()));
 		dettaglio.setDeprecato(entity.isDeprecato());
+		dettaglio.setMultiAdesione(entity.isMultiAdesione());
+		dettaglio.setAdesioneDisabilitata(entity.isAdesioneDisabilitata());
 
 		dettaglio.setSoggettoReferente(this.soggettoItemAssmbler.toModel(entity.getSoggettoReferente()));
 		dettaglio.setVisibilita(this.dominioEngineAssmbler.toVisibilita(entity.getVisibilita()));

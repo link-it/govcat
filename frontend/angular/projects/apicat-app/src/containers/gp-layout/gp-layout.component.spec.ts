@@ -292,9 +292,18 @@ describe('GpLayoutComponent', () => {
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/settings']);
     });
 
-    it('should navigate to login on logout action', () => {
+    it('should logout and navigate to login when there is no IdP redirect', () => {
+      mockAuthenticationService.logout = vi.fn().mockReturnValue(false);
       component._onMenuHeaderAction({ menu: { action: 'logout' } });
+      expect(mockAuthenticationService.logout).toHaveBeenCalledWith(true);
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/auth/login']);
+    });
+
+    it('should not navigate on logout while redirecting to the IdP', () => {
+      mockAuthenticationService.logout = vi.fn().mockReturnValue(true);
+      mockRouter.navigate.mockClear();
+      component._onMenuHeaderAction({ menu: { action: 'logout' } });
+      expect(mockRouter.navigate).not.toHaveBeenCalledWith(['/auth/login']);
     });
   });
 

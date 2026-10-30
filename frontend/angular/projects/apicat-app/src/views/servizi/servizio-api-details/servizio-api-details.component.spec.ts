@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { of, throwError, EMPTY } from 'rxjs';
+import { of, throwError, EMPTY, Subject } from 'rxjs';
 import { FormGroup, FormControl, FormArray, FormBuilder, Validators } from '@angular/forms';
 import { Tools } from '@linkit/components';
 import { ServizioApiDetailsComponent } from './servizio-api-details.component';
@@ -45,7 +45,9 @@ describe('ServizioApiDetailsComponent', () => {
   } as any;
 
   const mockTranslate = {
-    instant: vi.fn().mockImplementation((key: string) => key)
+    instant: vi.fn().mockImplementation((key: string) => key),
+    onLangChange: new Subject<any>(),
+    currentLang: 'it'
   } as any;
 
   const mockModalService = {
@@ -99,6 +101,7 @@ describe('ServizioApiDetailsComponent', () => {
   } as any;
 
   const mockAuthenticationService = {
+    canManageApi: vi.fn().mockReturnValue(true),
     isAnonymous: vi.fn().mockReturnValue(false),
     hasPermission: vi.fn().mockReturnValue(true),
     _getConfigModule: vi.fn().mockReturnValue({}),
@@ -243,14 +246,57 @@ describe('ServizioApiDetailsComponent', () => {
     expect(mockAuthenticationService.canJoin).toHaveBeenCalled();
   });
 
-  it('should call authenticationService.canAdd on _canAddMapper', () => {
+  it('should lock the fields of an existing API once the service is no longer a draft', () => {
+    component._isNew = false;
+    component.service = { stato: 'bozza' };
+    expect(component._campiBloccati).toBe(false);
+    component.service = { stato: 'richiesto_collaudo' };
+    expect(component._campiBloccati).toBe(true);
+    component.service = { stato: 'pubblicato_produzione' };
+    expect(component._campiBloccati).toBe(true);
+    component._isNew = true;
+    expect(component._campiBloccati).toBe(false);
+    component._isNew = false;
+    component.service = null;
+    expect(component._campiBloccati).toBe(false);
+  });
+
+  it('should validate only description and notes when the fields are locked', () => {
+    component._isNew = false;
+    component._formGroup = new FormGroup<any>({
+      nome: new FormControl('', Validators.required),
+      descrizione: new FormControl('', Validators.maxLength(5)),
+      authTypes: new FormArray([new FormGroup({
+        profilo: new FormControl('', Validators.required),
+        note: new FormControl('', Validators.maxLength(5))
+      })])
+    });
+    component.service = { stato: 'bozza' };
+    expect(component._formValido).toBe(false);
+
+    component.service = { stato: 'pubblicato_collaudo' };
+    expect(component._formValido).toBe(true);
+
+    component._formGroup.get('descrizione')!.setValue('troppo lunga');
+    expect(component._formValido).toBe(false);
+    component._formGroup.get('descrizione')!.setValue('ok');
+    component._formGroup.get('authTypes.0.note')!.setValue('troppo lunga');
+    expect(component._formValido).toBe(false);
+  });
+
+  it('should call authenticationService.canManageApi on _canAddMapper', () => {
     component._canAddMapper();
-    expect(mockAuthenticationService.canAdd).toHaveBeenCalled();
+    expect(mockAuthenticationService.canManageApi).toHaveBeenCalled();
   });
 
   it('should call authenticationService.canEditField on _canEditFieldMapper', () => {
     component._canEditFieldMapper('protocollo');
     expect(mockAuthenticationService.canEditField).toHaveBeenCalledWith('servizio', 'api', '', 'protocollo', undefined);
+  });
+
+  it('should use stato and grant passed as pipe arguments on _canEditFieldMapper', () => {
+    component._canEditFieldMapper('allegati', 'bozza', { ruoli: ['referente_servizio'] } as any);
+    expect(mockAuthenticationService.canEditField).toHaveBeenCalledWith('servizio', 'api', 'bozza', 'allegati', ['referente_servizio']);
   });
 
   it('should check _isGestore', () => {
@@ -390,14 +436,14 @@ describe('ServizioApiDetailsComponent', () => {
     expect(result['Gruppo1'][1].nome).toBe('campo3');
   });
 
-  it('should include all fields when ruoli_abilitati is empty', () => {
+  it('should hide fields when ruoli_abilitati is empty (no role enabled, as in subscriptions)', () => {
     const data = {
       'Gruppo1': [
         { nome_gruppo: 'g1', nome: 'campo1', ruoli_abilitati: [] } as any
       ]
     };
     const result = component.filtraCampiPerRuoli(data, ['admin']);
-    expect(result['Gruppo1']).toHaveLength(1);
+    expect(result['Gruppo1']).toBeUndefined();
   });
 
   it('should exclude entire group when no fields match', () => {
@@ -512,7 +558,60 @@ describe('ServizioApiDetailsComponent', () => {
   // =========================================================================
   // _prepareBodySaveApi
   // =========================================================================
+  describe('disclaimer dei profili nel form API', () => {
+    const _form = (profili: string[]) => new FormGroup({
+      authTypes: new FormArray(profili.map((p: string) => new FormGroup({ profilo: new FormControl(p) })))
+    }) as any;
+
+    it('should reload the disclaimers with the selected profiles only when they change', () => {
+      vi.useFakeTimers();
+      (component as any)._initDisclaimerProfili();
+      component.sid = 's1';
+      component._isEdit = true;
+      component._formGroup = _form(['P1', 'P2', 'P1']);
+      mockApiService.getDetails.mockClear();
+      mockApiService.getDetails.mockReturnValue(of([{ disclaimer: 'a', profilo: 'P1' }, { disclaimer: 'z', profilo: 'ALTRO' }, { disclaimer: 's' }]));
+
+      (component as any)._aggiornaDisclaimerProfili();
+      vi.advanceTimersByTime(300);
+      expect(mockApiService.getDetails).toHaveBeenCalledWith('servizi', 's1', 'disclaimers', { params: expect.objectContaining({ profilo: ['P1', 'P2'] }) });
+      expect(component._disclaimersAttivi.map((d: any) => d.disclaimer)).toEqual(['a', 's']);
+
+      mockApiService.getDetails.mockClear();
+      (component as any)._aggiornaDisclaimerProfili();
+      vi.advanceTimersByTime(300);
+      expect(mockApiService.getDetails).not.toHaveBeenCalled();
+      vi.useRealTimers();
+    });
+
+    it('should not reload outside the edit mode', () => {
+      vi.useFakeTimers();
+      (component as any)._initDisclaimerProfili();
+      component.sid = 's1';
+      component._isEdit = false;
+      component._formGroup = _form(['P1']);
+      mockApiService.getDetails.mockClear();
+      (component as any)._aggiornaDisclaimerProfili();
+      vi.advanceTimersByTime(300);
+      expect(mockApiService.getDetails).not.toHaveBeenCalledWith('servizi', 's1', 'disclaimers', expect.anything());
+      vi.useRealTimers();
+    });
+  });
+
   describe('_prepareBodySaveApi', () => {
+    it('should not send the invocation URL selection in creation', () => {
+      component._hasSpecifica = false;
+      component._apiProprietaCustomGrouped = null;
+      const body: any = {
+        nome: 'Api1', versione: '1', id_servizio: 's1', ruolo: 'erogato_soggetto_aderente',
+        protocollo: 'rest', descrizione: null, codice_asset: null, url_collaudo: 'http://c', url_produzione: 'http://p', authTypes: []
+      };
+      const result: any = component._prepareBodySaveApi(body);
+      expect(result.configurazione_collaudo).not.toHaveProperty('url_invocazione');
+      expect(result.configurazione_produzione).not.toHaveProperty('url_invocazione');
+      expect(result).not.toHaveProperty('url_invocazione_aggiuntive');
+    });
+
     it('should build ApiCreateRequest with basic fields', () => {
       component._hasSpecifica = false;
       component._apiProprietaCustomGrouped = null;
@@ -684,11 +783,35 @@ describe('ServizioApiDetailsComponent', () => {
           { profilo: 'p1', resources: ['/r1'], note: 'note1', customProperties: { cp1: 'v1' } }
         ]
       };
+      component._formGroup = new FormGroup({ ruolo: new FormControl('erogato_soggetto_dominio') });
       const result = component._prepareBodyUpdateApi(body);
       expect(result.dati_specifica).toBeDefined();
       expect(result.dati_specifica!.gruppi_auth_type).toHaveLength(1);
       expect(result.dati_specifica!.gruppi_auth_type![0].profilo).toBe('p1');
       expect(result.dati_specifica!.gruppi_auth_type![0].proprieta_custom).toEqual([{ nome: 'cp1', valore: 'v1' }]);
+    });
+
+    it('should keep the description when dati_generici is not modifiable, reading codice_asset from its control', () => {
+      mockAuthenticationService._removeDNM.mockImplementationOnce((_a: any, _b: any, b: any) => { delete b.dati_generici; return b; });
+      const codiceAsset = new FormControl('CA-1');
+      codiceAsset.disable();
+      component._formGroup = new FormGroup<any>({ ruolo: new FormControl('erogato_soggetto_aderente'), codice_asset: codiceAsset });
+      const body = { nome: 'A', versione: '1', ruolo: 'erogato_soggetto_aderente', descrizione: 'nuova descrizione' };
+      const result = component._prepareBodyUpdateApi(body);
+      expect(result.dati_generici).toEqual({ descrizione: 'nuova descrizione', codice_asset: 'CA-1' });
+    });
+
+    it('should keep dati_specifica for the notes when the fields are locked and the specifica is not modifiable', () => {
+      component._isNew = false;
+      component.service = { stato: 'pubblicato_produzione' };
+      mockAuthenticationService._removeDNM.mockImplementationOnce((_a: any, _b: any, b: any) => { delete b.dati_specifica; return b; });
+      const body = {
+        nome: 'A', versione: '1', ruolo: 'erogato_soggetto_dominio', descrizione: null, codice_asset: null,
+        authTypes: [{ profilo: 'p1', resources: ['/r1'], note: 'nuova nota' }]
+      };
+      component._formGroup = new FormGroup({ ruolo: new FormControl('erogato_soggetto_dominio') });
+      const result = component._prepareBodyUpdateApi(body);
+      expect(result.dati_specifica!.gruppi_auth_type![0]).toMatchObject({ profilo: 'p1', resources: ['/r1'], note: 'nuova nota' });
     });
 
     it('should not set dati_specifica when ruolo is not EROGATO_SOGGETTO_DOMINIO', () => {
@@ -741,21 +864,26 @@ describe('ServizioApiDetailsComponent', () => {
       expect(result.dati_custom).toBeUndefined();
     });
 
-    it('should NOT re-send collaudo/produzione custom groups (managed by configuration)', () => {
-      // I gruppi di classe collaudo/produzione sono gestiti dal componente
-      // di configurazione per-ambiente: dal dettaglio NON vanno reinviati,
-      // anche se presenti nei dati caricati con la GET.
-      Tools.Configurazione!.servizio.api.proprieta_custom = [
-        { nome_gruppo: 'GEN1', classe_dato: 'generico' },
-        { nome_gruppo: 'PDNDCollaudo', classe_dato: 'collaudo' },
-        { nome_gruppo: 'PDNDProduzione', classe_dato: 'produzione' }
-      ] as any;
-      component._apiProprietaCustomGrouped = null;
+    it('should send only the groups shown in the form', () => {
+      // Il BE sovrascrive solo i gruppi inviati: i gruppi salvati non presenti nel form
+      // (altri ambienti, profili non attivi, nascosti per ruolo) non vanno reinviati.
+      component._apiProprietaCustomGrouped = {
+        'Generale': [
+          { nome_gruppo: 'GEN1', nome: 'g' },
+          { nome_gruppo: 'RISERVATO', nome: 'r' }
+        ]
+      };
+      component._formGroup = new FormGroup({
+        proprieta_custom: new FormGroup({
+          GEN1: new FormGroup({ g: new FormControl('nuovo') })
+        })
+      }) as any;
       component._servizioApi = {
         proprieta_custom: [
           { gruppo: 'GEN1', proprieta: [{ nome: 'g', valore: 'v' }] },
-          { gruppo: 'PDNDCollaudo', proprieta: [{ nome: 'c', valore: 'vc' }] },
-          { gruppo: 'PDNDProduzione', proprieta: [{ nome: 'p', valore: 'vp' }] }
+          { gruppo: 'RISERVATO', proprieta: [{ nome: 'r', valore: 'vr' }] },
+          { gruppo: 'ALTRO', proprieta: [{ nome: 'a', valore: 'va' }] },
+          { gruppo: 'PDNDCollaudo', proprieta: [{ nome: 'c', valore: 'vc' }] }
         ]
       } as any;
       const body = {
@@ -763,10 +891,39 @@ describe('ServizioApiDetailsComponent', () => {
         descrizione: null, codice_asset: null
       };
       const result = component._prepareBodyUpdateApi(body);
-      const gruppiInviati = (result.dati_custom?.proprieta_custom || []).map((g: any) => g.gruppo);
-      expect(gruppiInviati).toContain('GEN1');
-      expect(gruppiInviati).not.toContain('PDNDCollaudo');
-      expect(gruppiInviati).not.toContain('PDNDProduzione');
+      expect(result.dati_custom!.proprieta_custom).toEqual([{ gruppo: 'GEN1', proprieta: [{ nome: 'g', valore: 'nuovo' }] }]);
+    });
+
+    it('should send an emptied saved group without values', () => {
+      component._apiProprietaCustomGrouped = { 'Generale': [{ nome_gruppo: 'GEN1', nome: 'g' }] };
+      component._formGroup = new FormGroup({
+        proprieta_custom: new FormGroup({
+          GEN1: new FormGroup({ g: new FormControl('') })
+        })
+      }) as any;
+      component._servizioApi = { proprieta_custom: [{ gruppo: 'GEN1', proprieta: [{ nome: 'g', valore: 'v' }] }] } as any;
+      const body = {
+        nome: 'A', versione: '1', ruolo: 'erogato_soggetto_aderente',
+        descrizione: null, codice_asset: null
+      };
+      const result = component._prepareBodyUpdateApi(body);
+      expect(result.dati_custom!.proprieta_custom).toEqual([{ gruppo: 'GEN1', proprieta: [] }]);
+    });
+
+    it('should not send an empty group that was never saved', () => {
+      component._apiProprietaCustomGrouped = { 'Generale': [{ nome_gruppo: 'GEN1', nome: 'g' }] };
+      component._formGroup = new FormGroup({
+        proprieta_custom: new FormGroup({
+          GEN1: new FormGroup({ g: new FormControl(null) })
+        })
+      }) as any;
+      component._servizioApi = { proprieta_custom: [] } as any;
+      const body = {
+        nome: 'A', versione: '1', ruolo: 'erogato_soggetto_aderente',
+        descrizione: null, codice_asset: null
+      };
+      const result = component._prepareBodyUpdateApi(body);
+      expect(result.dati_custom).toBeUndefined();
     });
 
     it('should call _removeDNM on the result', () => {
@@ -3619,6 +3776,26 @@ describe('ServizioApiDetailsComponent', () => {
       expect(component._getGroupLabelMapper('G2')).toBe('Label2');
     });
 
+    it('should use the produzione groups instead of collaudo in creation when collaudo is skipped', () => {
+      component._isNew = true;
+      component.service = { skip_collaudo: true } as any;
+      Tools.Configurazione = {
+        servizio: {
+          api: {
+            proprieta_custom: [
+              { nome_gruppo: 'GC', label_gruppo: 'Collaudo', classe_dato: 'collaudo' },
+              { nome_gruppo: 'GP', label_gruppo: 'Produzione', classe_dato: 'produzione' },
+              { nome_gruppo: 'G2', label_gruppo: 'Label2', classe_dato: 'generico' }
+            ]
+          }
+        }
+      } as any;
+
+      expect(component._gruppiProprietaCustomDelForm().map((g: any) => g.nome_gruppo)).toEqual(['GP', 'G2']);
+      expect(component._getGroupLabelMapper('GC')).toBeUndefined();
+      expect(component._getGroupLabelMapper('GP')).toBe('Produzione');
+    });
+
     it('should filter out collaudo when not _isNew', () => {
       component._isNew = false;
       Tools.Configurazione = {
@@ -4184,6 +4361,49 @@ const routeWithBc = {
     it('should handle construction without data', () => {
       const obj = new ServizioApiCreate();
       expect(obj.nome).toBeNull();
+    });
+  });
+  // =========================================================================
+  // Valori proposti nella creazione dal wizard (Issue #381)
+  // =========================================================================
+  describe('wizard defaults', () => {
+    it('should propose name, role and REST interface when embedded', () => {
+      component.embedded = true;
+      component.nomeSuggerito = 'anagrafe-celiaci';
+      component._servizioApiCreate = new ServizioApiCreate({});
+      (component as any)._applyWizardDefaults();
+      expect(component._servizioApiCreate.nome).toBe('anagrafe-celiaci');
+      expect(component._servizioApiCreate.ruolo).toBe('erogato_soggetto_dominio');
+      expect(component._servizioApiCreate.protocollo).toBe('rest');
+    });
+
+    it('should leave the name empty without a suggestion', () => {
+      component.embedded = true;
+      component.nomeSuggerito = null;
+      component._servizioApiCreate = new ServizioApiCreate({});
+      (component as any)._applyWizardDefaults();
+      expect(component._servizioApiCreate.nome).toBeNull();
+      expect(component._servizioApiCreate.ruolo).toBe('erogato_soggetto_dominio');
+    });
+
+    it('should not propose anything outside the wizard', () => {
+      component.embedded = false;
+      component.nomeSuggerito = 'x';
+      component._servizioApiCreate = new ServizioApiCreate({});
+      (component as any)._applyWizardDefaults();
+      expect(component._servizioApiCreate.nome).toBeNull();
+      expect(component._servizioApiCreate.ruolo).toBeNull();
+      expect(component._servizioApiCreate.protocollo).toBeNull();
+    });
+
+    it('should initialize the proposed role as a user choice once the service is loaded', () => {
+      const spy = vi.spyOn(component as any, '__changeRuolo').mockImplementation(() => {});
+      component.embedded = true;
+      component.createMode = true;
+      component._isNew = true;
+      component._formGroup = new FormGroup({ ruolo: new FormControl('erogato_soggetto_dominio') });
+      (component as any)._initWizardRuolo();
+      expect(spy).toHaveBeenCalledWith(null, true);
     });
   });
 });

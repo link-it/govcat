@@ -19,10 +19,11 @@
 import { AfterContentChecked, Component, HostListener, Input, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import { COMPONENTS_IMPORTS, Tools, ConfigService, SearchBarFormComponent, YesnoDialogBsComponent } from '@linkit/components';
-import { PdndService } from '@app/views/pdnd/pdnd.service';
+import { COMPONENTS_IMPORTS, Tools, ConfigService, SearchBarFormComponent } from '@linkit/components';
+import { PdndService, Purpose } from '@app/views/pdnd/pdnd.service';
 import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.directive';
 import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
+import { AzionePdnd, EsitoAzionePdnd, OggettoAzionePdnd, PdndAzioneDialogComponent } from './pdnd-azione-dialog/pdnd-azione-dialog.component';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormGroup, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 
@@ -42,6 +43,32 @@ import { Grant } from '@app/model/grant';
 import { Observable, Subject } from 'rxjs';
 
 import * as _ from 'lodash';
+
+export interface AzioneMenuPdnd {
+  code: AzionePdnd;
+  label: string;
+  icon: string;
+  danger?: boolean;
+}
+
+const AZIONE_APPROVA: AzioneMenuPdnd = { code: 'approve', label: 'APP.SUBSCRIBERS.ACTIONS.Approve', icon: 'bi-check-lg' };
+const AZIONE_RIFIUTA: AzioneMenuPdnd = { code: 'reject', label: 'APP.SUBSCRIBERS.ACTIONS.Reject', icon: 'bi-x-lg', danger: true };
+const AZIONE_SOSPENDI: AzioneMenuPdnd = { code: 'suspend', label: 'APP.SUBSCRIBERS.ACTIONS.Suspend', icon: 'bi-pause-circle' };
+const AZIONE_RIATTIVA: AzioneMenuPdnd = { code: 'unsuspend', label: 'APP.SUBSCRIBERS.ACTIONS.Unsuspend', icon: 'bi-play-circle' };
+
+// Elenchi costanti: riferimenti stabili per il template
+const AZIONI_APPROVA_RIFIUTA: AzioneMenuPdnd[] = [AZIONE_APPROVA, AZIONE_RIFIUTA];
+const AZIONI_APPROVA: AzioneMenuPdnd[] = [AZIONE_APPROVA];
+const AZIONI_SOSPENDI: AzioneMenuPdnd[] = [AZIONE_SOSPENDI];
+const AZIONI_APPROVA_SOSPENDI: AzioneMenuPdnd[] = [AZIONE_APPROVA, AZIONE_SOSPENDI];
+const AZIONI_RIATTIVA: AzioneMenuPdnd[] = [AZIONE_RIATTIVA];
+const AZIONI_APPROVA_RIATTIVA: AzioneMenuPdnd[] = [AZIONE_APPROVA, AZIONE_RIATTIVA];
+const NESSUNA_AZIONE: AzioneMenuPdnd[] = [];
+const NESSUNA_SOSPENSIONE: string[] = [];
+
+const SOSPESO_DA_EROGATORE = 'APP.SUBSCRIBERS.SUSPENDED_BY.PRODUCER';
+const SOSPESO_DA_FRUITORE = 'APP.SUBSCRIBERS.SUSPENDED_BY.CONSUMER';
+const SOSPESO_DA_PIATTAFORMA = 'APP.SUBSCRIBERS.SUSPENDED_BY.PLATFORM';
 
 @Component({
   selector: 'app-servizio-api-subscribers',
@@ -101,6 +128,13 @@ export class ServizioApiSubscribersComponent implements OnInit, AfterContentChec
   _preventMultiCall: boolean = false;
 
   _spin: boolean = true;
+  // Vero quando la lista e` stata caricata o non c'e` nulla da caricare: evita il messaggio di lista vuota durante l'avvio
+  _loaded: boolean = false;
+  private _tabInizializzate: boolean = false;
+
+  get _caricamento(): boolean {
+    return this._spin || !this._loaded;
+  }
   desktop: boolean = false;
 
   _useRoute : boolean = false;
@@ -321,11 +355,14 @@ export class ServizioApiSubscribersComponent implements OnInit, AfterContentChec
             error: (error: any) => {
               Tools.OnError(error);
               this._spin = false;
+              this._loaded = true;
             }
           });
         },
         error: (error: any) => {
           Tools.OnError(error);
+          this._spin = false;
+          this._loaded = true;
         }
       });
     }
@@ -342,8 +379,11 @@ export class ServizioApiSubscribersComponent implements OnInit, AfterContentChec
         },
         error: (error: any) => {
           Tools.OnError(error);
+          this._loaded = true;
         }
       });
+    } else {
+      this._loaded = true;
     }
   }
 
@@ -377,10 +417,13 @@ export class ServizioApiSubscribersComponent implements OnInit, AfterContentChec
 
   _loadServizioApiSubscribers(query: any = null, url: string = '') {
     this._setErrorMessages(false);
-    if (!this.eserviceId || !this.producerId) { return; }
+    if (!this.eserviceId || !this.producerId) {
+      if (this._tabInizializzate) { this._loaded = true; }
+      return;
+    }
     if (this.id) {
       this._spin = true;
-      if (!url) { this.servizioapisubscribers = []; this._links = null; }
+      if (!url) { this.servizioapisubscribers = []; this._links = null; this._purposesByAgreement = {}; this._expanded = {}; }
       let aux: any;
       if (!url) {
         query = { ...query, eserviceId: this.eserviceId, producerId: this.producerId };
@@ -411,13 +454,17 @@ export class ServizioApiSubscribersComponent implements OnInit, AfterContentChec
             this._preventMultiCall = false;
           }
           this._spin = false;
+          this._loaded = true;
         },
         error: (error: any) => {
           this._setErrorMessages(true);
           this._preventMultiCall = false;
           this._spin = false;
+          this._loaded = true;
         }
       });
+    } else if (this._tabInizializzate) {
+      this._loaded = true;
     }
   }
 
@@ -450,29 +497,240 @@ export class ServizioApiSubscribersComponent implements OnInit, AfterContentChec
   /** Conferma e approva l'accordo del fruitore, poi ricarica la lista. */
   _onApprove(source: any) {
     if (!this._canApprove(source)) { return; }
-    const _modalRef: BsModalRef = this.modalService.show(YesnoDialogBsComponent, {
+    this._confermaAccordo(source, 'approve', () => this.pdndService.approveAgreement(this.environmentId, source.agreementId));
+  }
+
+  // -------------------------------------------------------------------------
+  // Finalita` del fruitore: caricate alla prima apertura della riga, con lo
+  // sblocco di quelle che hanno una richiesta di aumento in attesa.
+  // -------------------------------------------------------------------------
+
+  _purposesByAgreement: { [agreementId: string]: { loading: boolean; error: boolean; items: Purpose[] } } = {};
+
+  _expanded: { [consumerId: string]: boolean } = {};
+
+  _toggleSubscriber(subscriber: any) {
+    this._expanded[subscriber.id] = !this._expanded[subscriber.id];
+    if (this._expanded[subscriber.id]) { this._onSubscriberOpened(subscriber.source); }
+  }
+
+  _initials(name: string | null | undefined): string {
+    const _parole = (name || '').trim().split(/\s+/).filter((p) => /^[\p{L}\p{N}]/u.test(p));
+    return ((_parole[0]?.[0] || '') + (_parole[1]?.[0] || '')).toUpperCase();
+  }
+
+  /** Finalita` con richiesta di aumento in attesa (0 finche' non sono caricate). */
+  _purposesWaiting(agreementId: string | null | undefined): number {
+    const _ps = agreementId ? this._purposesByAgreement[agreementId] : null;
+    return (_ps?.items || []).filter((p: Purpose) => !!p.waitingForApproval).length;
+  }
+
+  _statoLabel(tipo: 'AGREEMENT_STATE' | 'PURPOSE_STATE', state: string): string {
+    return `APP.SUBSCRIBERS.${tipo}.${state}`;
+  }
+
+  private get _azioniAbilitate(): boolean {
+    return this.authenticationService.isPdndAdmin() && this._pdndApprovalAvailable;
+  }
+
+  /**
+   * Azioni sull'accordo: in attesa approva/rifiuta, attivo sospendi, sospeso riattiva solo se la
+   * sospensione e` dell'erogatore (quelle di fruitore e piattaforma non si revocano da qui).
+   */
+  _azioniAccordo(source: any): AzioneMenuPdnd[] {
+    if (!this._azioniAbilitate || !source?.agreementId) { return NESSUNA_AZIONE; }
+    switch (source.state) {
+      case 'PENDING': return AZIONI_APPROVA_RIFIUTA;
+      case 'ACTIVE': return AZIONI_SOSPENDI;
+      case 'SUSPENDED': return source.suspendedByProducer === true ? AZIONI_RIATTIVA : NESSUNA_AZIONE;
+      default: return NESSUNA_AZIONE;
+    }
+  }
+
+  /**
+   * Azioni sulla finalita`: approvazione se c'e` una versione in attesa (indipendente dallo stato),
+   * sospensione e riattivazione come per l'accordo. Il rifiuto non e` esposto dalla PDND.
+   */
+  _azioniFinalita(purpose: Purpose): AzioneMenuPdnd[] {
+    if (!this._azioniAbilitate || !purpose) { return NESSUNA_AZIONE; }
+    const _inAttesa = !!purpose.waitingForApproval;
+    if (purpose.state === 'ACTIVE') { return _inAttesa ? AZIONI_APPROVA_SOSPENDI : AZIONI_SOSPENDI; }
+    if (purpose.state === 'SUSPENDED' && purpose.suspendedByProducer === true) { return _inAttesa ? AZIONI_APPROVA_RIATTIVA : AZIONI_RIATTIVA; }
+    return _inAttesa ? AZIONI_APPROVA : NESSUNA_AZIONE;
+  }
+
+  /** Finalita` mai attivata: la versione in attesa e` la prima, non un aumento. */
+  _primaApprovazione(purpose: Purpose): boolean {
+    return purpose?.state === 'WAITING_FOR_APPROVAL';
+  }
+
+  /** Soggetti che hanno sospeso l'accordo o la finalita` (chiavi i18n); la piattaforma solo per gli accordi. */
+  _sospensioni(oggetto: any, conPiattaforma: boolean): string[] {
+    if (oggetto?.state !== 'SUSPENDED') { return NESSUNA_SOSPENSIONE; }
+    const _chiavi: string[] = [];
+    if (oggetto.suspendedByProducer) { _chiavi.push(SOSPESO_DA_EROGATORE); }
+    if (oggetto.suspendedByConsumer) { _chiavi.push(SOSPESO_DA_FRUITORE); }
+    if (conPiattaforma && oggetto.suspendedByPlatform) { _chiavi.push(SOSPESO_DA_PIATTAFORMA); }
+    return _chiavi;
+  }
+
+  /** Spiegazione dello stato dell'accordo per il tooltip: motivazione del rifiuto o soggetti della sospensione. */
+  _notaStatoAccordo(source: any): string {
+    if (source?.state === 'REJECTED' && source.rejectionReason) {
+      return `${this.translate.instant('APP.SUBSCRIBERS.RejectionReason')}: ${source.rejectionReason}`;
+    }
+    const _sospensioni = this._sospensioni(source, true);
+    return _sospensioni.length ? `${this.translate.instant('APP.SUBSCRIBERS.SuspendedBy')}: ${this._elenco(_sospensioni)}` : '';
+  }
+
+  private _elenco(chiavi: string[]): string {
+    const _voci = chiavi.map((k) => this.translate.instant(k));
+    if (_voci.length < 2) { return _voci[0] || ''; }
+    return `${_voci.slice(0, -1).join(', ')} ${this.translate.instant('APP.SUBSCRIBERS.And')} ${_voci.at(-1)}`;
+  }
+
+  /** Messaggio di esito; la riattivazione puo` lasciare l'oggetto sospeso per le sospensioni altrui. */
+  private _notificaEsito(oggetto: OggettoAzionePdnd, azione: AzionePdnd, nome: string, risultato: any, primaApprovazione: boolean = false) {
+    const _tipo = oggetto === 'purpose' ? 'PURPOSE' : 'AGREEMENT';
+    if (azione === 'unsuspend' && risultato?.state === 'SUSPENDED') {
+      const _altri = this._sospensioni(risultato, oggetto === 'agreement').filter((k) => k !== SOSPESO_DA_EROGATORE);
+      const _chi = _altri.length ? this._elenco(_altri) : this.translate.instant(SOSPESO_DA_FRUITORE);
+      Tools.showMessage(this.translate.instant(`APP.SUBSCRIBERS.RESULT.${_tipo}.StillSuspended`, { who: _chi }), 'warning', true, true);
+      return;
+    }
+    const _chiave = primaApprovazione && azione === 'approve' ? 'approveFirst' : azione;
+    Tools.showMessage(this.translate.instant(`APP.SUBSCRIBERS.RESULT.${_tipo}.${_chiave}`, { name: nome }), 'success', true);
+  }
+
+  private _conferma(azione: AzionePdnd, oggetto: OggettoAzionePdnd, dati: Partial<PdndAzioneDialogComponent>, onConferma: (motivazione: string) => void) {
+    const _modalRef: BsModalRef = this.modalService.show(PdndAzioneDialogComponent, {
       ignoreBackdropClick: true,
-      initialState: {
-        title: this.translate.instant('APP.TITLE.Attention'),
-        messages: [this.translate.instant('APP.SUBSCRIBERS.ApproveConfirm', { name: source?.name || '' })],
-        cancelText: this.translate.instant('APP.BUTTON.Cancel'),
-        confirmText: this.translate.instant('APP.BUTTON.Confirm'),
-        confirmColor: 'primary'
-      }
+      class: 'modal-dialog-centered modal-stacked',
+      ariaLabelledBy: 'pa-title',
+      initialState: { azione, oggetto, ...dati }
     });
-    _modalRef.content.onClose.subscribe((confirmed: boolean) => {
-      if (!confirmed) { return; }
+    _modalRef.content.onClose.subscribe((esito: EsitoAzionePdnd | null) => {
+      if (esito) { onConferma(esito.reason || ''); }
+    });
+  }
+
+  private _confermaAccordo(source: any, azione: AzionePdnd, chiamata: (motivazione: string) => Observable<any>) {
+    const _dati: Partial<PdndAzioneDialogComponent> = {
+      fruitore: source?.name || '',
+      statoAttuale: source?.state || '',
+      altreSospensioni: this._altreSospensioni(source, true)
+    };
+    this._conferma(azione, 'agreement', _dati, (motivazione) => {
       this._spin = true;
-      this.pdndService.approveAgreement(this.environmentId, source.agreementId).subscribe((res: any) => {
+      chiamata(motivazione).subscribe((res: any) => {
         if (res?.error) {
           this._spin = false;
           Tools.OnError(res.error);
           return;
         }
-        // La response porta il nuovo state (ACTIVE): ricarico la lista.
+        this._notificaEsito('agreement', azione, source?.name || '', res?.data);
         this._loadServizioApiSubscribers(this._filterData);
       });
     });
+  }
+
+  /** Sospensioni che la riattivazione dell'erogatore non revoca (testo per la conferma). */
+  private _altreSospensioni(oggetto: any, conPiattaforma: boolean): string {
+    return this._elenco(this._sospensioni(oggetto, conPiattaforma).filter((k) => k !== SOSPESO_DA_EROGATORE));
+  }
+
+  private _confermaFinalita(agreementId: string, purpose: Purpose, azione: AzionePdnd, chiamata: (motivazione: string) => Observable<any>) {
+    const _fruitore = this.servizioapisubscribers.find((s: any) => s.source?.agreementId === agreementId)?.source?.name || '';
+    const _dati: Partial<PdndAzioneDialogComponent> = {
+      fruitore: _fruitore,
+      finalita: purpose.title || purpose.id,
+      statoAttuale: purpose.state,
+      caricoAttuale: this._formatNumber(purpose.throughput),
+      caricoRichiesto: purpose.waitingForApproval ? this._formatNumber(purpose.waitingForApproval.throughput) : '',
+      altreSospensioni: this._altreSospensioni(purpose, false),
+      primaApprovazione: this._primaApprovazione(purpose)
+    };
+    this._conferma(azione, 'purpose', _dati, (motivazione) => {
+      const current = this._purposesByAgreement[agreementId];
+      if (current) { current.loading = true; }
+      chiamata(motivazione).subscribe((res: any) => {
+        if (res?.error) {
+          if (current) { current.loading = false; }
+          Tools.OnError(res.error);
+          return;
+        }
+        this._notificaEsito('purpose', azione, purpose.title || purpose.id, res?.data, this._primaApprovazione(purpose));
+        this._loadPurposes(agreementId);
+      });
+    });
+  }
+
+  /** Voce del menu: finalita` se c'e` la finalita`, altrimenti accordo del fruitore. */
+  _eseguiAzione(azione: AzionePdnd, source: any, agreementId: string | null, purpose: Purpose | null) {
+    if (purpose && agreementId) {
+      this._onAzioneFinalita(agreementId, purpose, azione);
+    } else {
+      this._onAzioneAccordo(source, azione);
+    }
+  }
+
+  _onAzioneAccordo(source: any, azione: AzionePdnd) {
+    if (!this._azioniAccordo(source).some((a) => a.code === azione)) { return; }
+    if (azione === 'approve') { this._onApprove(source); return; }
+    const _env = this.environmentId;
+    const _id = source.agreementId;
+    this._confermaAccordo(source, azione, (motivazione) => {
+      switch (azione) {
+        case 'reject': return this.pdndService.rejectAgreement(_env, _id, motivazione);
+        case 'suspend': return this.pdndService.suspendAgreement(_env, _id);
+        default: return this.pdndService.unsuspendAgreement(_env, _id);
+      }
+    });
+  }
+
+  _onAzioneFinalita(agreementId: string, purpose: Purpose, azione: AzionePdnd) {
+    if (!this._azioniFinalita(purpose).some((a) => a.code === azione)) { return; }
+    if (azione === 'approve') { this._onApprovePurpose(agreementId, purpose); return; }
+    const _env = this.environmentId;
+    this._confermaFinalita(agreementId, purpose, azione, () => {
+      return azione === 'suspend' ? this.pdndService.suspendPurpose(_env, purpose.id) : this.pdndService.unsuspendPurpose(_env, purpose.id);
+    });
+  }
+
+  _onSubscriberOpened(source: any) {
+    const agreementId: string = source?.agreementId;
+    if (!agreementId || this._purposesByAgreement[agreementId]) { return; }
+    this._loadPurposes(agreementId);
+  }
+
+  private _loadPurposes(agreementId: string) {
+    const items = this._purposesByAgreement[agreementId]?.items || [];
+    this._purposesByAgreement[agreementId] = { loading: true, error: false, items };
+    this.pdndService.agreementPurposes(this.environmentId, agreementId).subscribe((res: any) => {
+      this._purposesByAgreement[agreementId] = {
+        loading: false,
+        error: !!res?.error,
+        // Prima quelle con una richiesta di aumento in attesa
+        items: [...(res?.data?.purposes || [])].sort((a: Purpose, b: Purpose) => Number(!!b.waitingForApproval) - Number(!!a.waitingForApproval))
+      };
+    });
+  }
+
+  /** Lo sblocco dipende solo dalla presenza della versione in attesa (anche con stato ACTIVE). */
+  _canApprovePurpose(purpose: Purpose): boolean {
+    return this.authenticationService.isPdndAdmin()
+      && this._pdndApprovalAvailable
+      && !!purpose?.waitingForApproval;
+  }
+
+  _formatNumber(value: number | null | undefined): string {
+    // Separatore delle migliaia anche sotto le 5 cifre (in italiano di default "5000" ma "20.000").
+    return new Intl.NumberFormat(this.translate.currentLang || 'it', { useGrouping: true }).format(value ?? 0);
+  }
+
+  _onApprovePurpose(agreementId: string, purpose: Purpose) {
+    if (!this._canApprovePurpose(purpose)) { return; }
+    this._confermaFinalita(agreementId, purpose, 'approve', () => this.pdndService.approvePurpose(this.environmentId, purpose.id));
   }
 
   _onSubmit(form: any) {
@@ -536,8 +794,11 @@ export class ServizioApiSubscribersComponent implements OnInit, AfterContentChec
   _autoSelectTab() {
     this._hasTabCollaudo = this._hasPDNDConfiguredMapper('collaudo');
     this._hasTabProduzione = this._hasPDNDConfiguredMapper('produzione');
+    this._tabInizializzate = true;
     if (!(this._hasTabCollaudo && this._hasTabProduzione)) {
       this._hasTabCollaudo ? this._showCollaudo() : this._showProduzione();
+    } else {
+      this._loaded = true;
     }
   }
 

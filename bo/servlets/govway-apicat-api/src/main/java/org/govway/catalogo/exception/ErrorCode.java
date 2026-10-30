@@ -81,6 +81,12 @@ public enum ErrorCode {
     /** API non trovata o non accessibile */
     API_404_ACCESS("API non trovata o non accessibile"),
 
+    /** URL di invocazione non censita in configurazione per l'ambiente */
+    API_400_URL_NOT_FOUND("URL di invocazione non prevista dalla configurazione"),
+
+    /** URL di invocazione indicata piu` volte sulla stessa specifica */
+    API_400_URL_DUPLICATE("URL di invocazione duplicata"),
+
     /** Allegato servizio duplicato */
     SRV_400_DUPLICATE("Allegato servizio duplicato"),
 
@@ -128,6 +134,12 @@ public enum ErrorCode {
     /** Operazione non valida sul servizio */
     SRV_400_INVALID("Operazione non valida sul servizio"),
 
+    /** Servizio non multi adesione in un dominio multi adesione */
+    SRV_400_MULTI_ADESIONE("Multi adesione obbligatoria per i servizi del dominio"),
+
+    /** Servizio con adesione abilitata in un dominio con adesione disabilitata */
+    SRV_400_ADESIONE_DISABILITATA("Adesione disabilitata obbligatoria per i servizi del dominio"),
+
     // ==================== ORGANIZZAZIONI ====================
 
     /** Organizzazione non trovata */
@@ -158,6 +170,12 @@ public enum ErrorCode {
 
     /** Dominio già esistente */
     DOM_409("Dominio già esistente"),
+
+    /** Multi adesione non attivabile sul dominio: servizi del dominio non multi adesione */
+    DOM_400_MULTI_ADESIONE("Multi adesione non attivabile sul dominio"),
+
+    /** Adesione disabilitata non attivabile sul dominio: servizi del dominio con adesione abilitata */
+    DOM_400_ADESIONE_DISABILITATA("Adesione disabilitata non attivabile sul dominio"),
 
     // ==================== SOGGETTI ====================
 
@@ -396,6 +414,9 @@ public enum ErrorCode {
     /** Dimensione documento eccede il limite */
     DOC_400_SIZE("Dimensione documento eccede il limite"),
 
+    /** Specifica Swagger 2.0 non abilitata */
+    DOC_400_SWAGGER2("Specifica Swagger 2.0 non supportata"),
+
     /** Impossibile elaborare il documento */
     DOC_500("Impossibile elaborare documento"),
 
@@ -499,6 +520,12 @@ public enum ErrorCode {
     /** Un amministratore organizzazione può approvare la richiesta cambio organizzazione solo quando è amministratore dell'organizzazione target */
     AUT_403_AMM_ORG_NOT_TARGET("L'amministratore non è target della richiesta di cambio organizzazione"),
 
+    /** Gruppo di proprietà custom riservato al gestore */
+    AUT_403_GRUPPO_RISERVATO_GESTORE("Gruppo di proprietà custom modificabile solo dal gestore"),
+
+    /** Gruppo di proprietà custom non modificabile: nessun ruolo dell'utente è tra i ruoli abilitati del gruppo */
+    AUT_403_GRUPPO_RUOLI_ABILITATI("Gruppo di proprietà custom non modificabile con i ruoli dell'utente"),
+
     /** Token di autenticazione non valido */
     AUT_401_TOKEN("Token non valido"),
 
@@ -518,6 +545,9 @@ public enum ErrorCode {
 
     /** Profilo non presente nella configurazione */
     VAL_400_PROFILE("Profilo non presente nella configurazione"),
+
+    /** Valore non ammesso per il profilo di interoperabilità GovWay */
+    VAL_400_PROFILO_GOVWAY("Profilo di interoperabilità GovWay non valido"),
 
     /** Valore fuori dal range consentito */
     VAL_400_RANGE("Valore fuori range"),
@@ -573,6 +603,9 @@ public enum ErrorCode {
     /** Skip collaudo non consentito */
     VAL_422_SKIP_COLLAUDO("Skip collaudo non consentito"),
 
+    /** Profilo non compatibile con il profilo di interoperabilità GovWay dell'API */
+    VAL_422_PROFILO_GOVWAY("Profilo non compatibile con il profilo di interoperabilità GovWay dell'API"),
+
     // ==================== WORKFLOW ====================
 
     /** Transizione di stato non consentita */
@@ -606,6 +639,9 @@ public enum ErrorCode {
 
     /** Risposta non valida con status code */
     INT_502_STATUS("Risposta non valida da servizio con status code imprevisto"),
+
+    /** Autenticazione di GovCat rifiutata dal servizio esterno */
+    INT_502_AUTH("Autenticazione rifiutata dal servizio esterno"),
 
     /** Errore comunicazione allarme */
     INT_500_ALARM("Errore comunicazione allarme"),

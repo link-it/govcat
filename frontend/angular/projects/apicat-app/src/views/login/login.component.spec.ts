@@ -16,8 +16,11 @@ describe('LoginComponent', () => {
   const mockOAuth = {} as any;
   const mockAuthService = {
     isLogged: vi.fn().mockReturnValue(false),
-    logout: vi.fn(),
+    isAuthLogged: vi.fn().mockReturnValue(false),
+    logout: vi.fn().mockReturnValue(false),
     oauthLogin: vi.fn(),
+    isLogoutVolontario: vi.fn().mockReturnValue(false),
+    clearLogoutVolontario: vi.fn(),
   } as any;
   const mockConfigService = {
     getConfiguration: vi.fn().mockReturnValue({
@@ -154,6 +157,59 @@ describe('LoginComponent', () => {
     component.ngOnInit();
     expect(component.returnUrl).toBe('/custom-page');
     mockRoute.snapshot.queryParams = {};
+  });
+
+  describe('logout volontario e accesso automatico', () => {
+    const _ssoConfig = {
+      getConfiguration: vi.fn().mockReturnValue({
+        AppConfig: {
+          ANONYMOUS_ACCESS: false,
+          AUTH_SETTINGS: { AUTH_USER: false, OTHER_AUTHS: [{ enabled: true, signin_action: 'oauth' }] },
+          Layout: { Login: { title: 'Title', logo: 'logo.png', header: 'header.png' } }
+        }
+      })
+    } as any;
+    let _comp: LoginComponent;
+
+    beforeEach(() => {
+      mockAuthService.isLogged.mockReturnValue(false);
+      mockAuthService.isAuthLogged.mockReturnValue(false);
+      mockAuthService.logout.mockReturnValue(false);
+      mockAuthService.isLogoutVolontario.mockReturnValue(false);
+      mockRouter.getCurrentNavigation.mockReturnValue(null);
+      _comp = new LoginComponent(mockRoute, mockRouter, mockTranslate, mockOAuth, mockAuthService, _ssoConfig);
+    });
+
+    it('should start the single sign-on when not coming from a logout', () => {
+      _comp.ngOnInit();
+      expect(_comp._loggedOut).toBe(false);
+      expect(mockAuthService.oauthLogin).toHaveBeenCalled();
+    });
+
+    it('should not start the single sign-on after a voluntary logout', () => {
+      mockAuthService.isLogoutVolontario.mockReturnValue(true);
+      _comp.ngOnInit();
+      expect(_comp._loggedOut).toBe(true);
+      expect(mockAuthService.oauthLogin).not.toHaveBeenCalled();
+    });
+
+    it('should not start the single sign-on while the logout redirect is in progress', () => {
+      mockAuthService.isLogged.mockReturnValue(true);
+      mockAuthService.isAuthLogged.mockReturnValue(true);
+      mockAuthService.logout.mockReturnValue(true);
+      _comp.ngOnInit();
+      expect(mockAuthService.logout).toHaveBeenCalledWith(true);
+      expect(mockAuthService.oauthLogin).not.toHaveBeenCalled();
+    });
+
+    it('should clear the logout mark when the user signs in again', () => {
+      mockAuthService.isLogoutVolontario.mockReturnValue(true);
+      _comp.ngOnInit();
+      _comp.logidWithUrlAction({ signin_action: 'oauth' });
+      expect(mockAuthService.clearLogoutVolontario).toHaveBeenCalled();
+      expect(_comp._loggedOut).toBe(false);
+      expect(mockAuthService.oauthLogin).toHaveBeenCalled();
+    });
   });
 
   it('should not logout if not logged on ngOnInit', () => {

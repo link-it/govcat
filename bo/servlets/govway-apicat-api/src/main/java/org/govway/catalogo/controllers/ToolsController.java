@@ -31,6 +31,7 @@ import org.govway.catalogo.core.business.utils.OpenapiUtils;
 import org.govway.catalogo.core.business.utils.OperationInfo;
 import org.govway.catalogo.core.business.utils.SOAPAction;
 import org.govway.catalogo.core.business.utils.SwaggerUtils;
+import org.govway.catalogo.core.business.utils.UrlInvocazioneRisolta;
 import org.govway.catalogo.core.business.utils.WsdlUtils;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.services.ApiService;
@@ -41,6 +42,7 @@ import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.services.CspService;
 import org.govway.catalogo.servlets.model.AmbienteEnum;
+import org.govway.catalogo.servlets.model.UrlInvocazioneAggiuntivaRisolta;
 import org.govway.catalogo.servlets.api.ToolsApi;
 import org.govway.catalogo.servlets.model.DocumentoApiInline;
 import org.govway.catalogo.servlets.model.DocumentoApiRef;
@@ -79,6 +81,14 @@ public class ToolsController implements ToolsApi {
 	@Value("${org.govway.api.catalogo.wsdl.parsing.senza-binding.enabled:false}")
 	private boolean supportaWsdlSenzaBinding;
 
+	/**
+	 * Se abilitata, consente l'analisi delle specifiche REST in formato Swagger 2.0 (deprecato).
+	 * Default: false. Il controllo si applica solo ai documenti forniti inline: quelli gia` salvati
+	 * (riferimento per uuid) sono stati accettati in precedenza e restano analizzabili.
+	 */
+	@Value("${org.govway.api.catalogo.rest.parsing.swagger2.enabled:false}")
+	private boolean supportaSwagger2;
+
 	@Override
 	public ResponseEntity<List<String>> listaRisorseApi(ListaRisorseApiRichiesta listaRisorseApiRichiesta) {
 		
@@ -86,7 +96,8 @@ public class ToolsController implements ToolsApi {
 			this.logger.info("Invocazione in corso ...");     
 
 			byte[] body = null;
-			if(listaRisorseApiRichiesta.getDocument().getType().equals(TipoApiRisorsaEnum.INLINE)) {
+			boolean documentoInline = listaRisorseApiRichiesta.getDocument().getType().equals(TipoApiRisorsaEnum.INLINE);
+			if(documentoInline) {
 				body = Base64.getDecoder().decode(((DocumentoApiInline)listaRisorseApiRichiesta.getDocument()).getDocument());
 			} else {
 				String uuid = ((DocumentoApiRef)listaRisorseApiRichiesta.getDocument()).getUuid();
@@ -98,7 +109,7 @@ public class ToolsController implements ToolsApi {
 			}
 			List<String> lst = null;
 			switch(listaRisorseApiRichiesta.getApiType()) {
-			case REST: lst = getProtocolInfoFromRest(body);
+			case REST: lst = getProtocolInfoFromRest(body, documentoInline);
 				break;
 			case SOAP: lst = getProtocolInfoFromWsdl(body);
 				break;
@@ -118,7 +129,7 @@ public class ToolsController implements ToolsApi {
 		}
 	}
 
-	private List<String> getProtocolInfoFromRest(byte[] restBytes) {
+	private List<String> getProtocolInfoFromRest(byte[] restBytes, boolean documentoInline) {
 	    try {
 	    	if(OpenapiUtils.isOpenapi(restBytes)) {
 		    	List<String> collect = OpenapiUtils.getProtocolInfoFromOpenapi(restBytes).stream().map(i -> i.getOp() + " " + i.getPath()).collect(Collectors.toList());
@@ -127,12 +138,17 @@ public class ToolsController implements ToolsApi {
 				}
 		    	return collect;
 	    	} else if(SwaggerUtils.isSwagger(restBytes)) {
+	    		if(documentoInline && !this.supportaSwagger2) {
+	    			this.logger.warn("Specifica Swagger 2.0 rifiutata: il supporto e` disabilitato (property 'org.govway.api.catalogo.rest.parsing.swagger2.enabled')");
+	    			throw new BadRequestException(ErrorCode.DOC_400_SWAGGER2);
+	    		}
 		    	List<String> collect = SwaggerUtils.getProtocolInfoFromSwagger(restBytes).stream().map(i -> i.getOp() + " " + i.getPath()).collect(Collectors.toList());
 				if(collect.isEmpty()) {
 					throw new BadRequestException(ErrorCode.DOC_500, Map.of("errore", "Lista vuota"));
 				}
 				return collect;
 	    	} else {
+	    		this.logger.warn("Descrittore REST non riconosciuto come OpenAPI 3 ne' come Swagger 2.0");
 				throw new BadRequestException(ErrorCode.DOC_500, Map.of("errore", "Documento non riconosciuto"));
 	    	}
 
@@ -177,18 +193,25 @@ public class ToolsController implements ToolsApi {
 				});
 			}
 
-			// Calcola l'URL di invocazione se id_api e ambiente sono specificati
-			String urlInvocazione = null;
+			// Calcola le URL di invocazione associate alla specifica se id_api e ambiente sono specificati
+			List<UrlInvocazioneRisolta> urlInvocazioni = List.of();
 			if(listaRisorseApiRichiesta.getIdApi() != null && listaRisorseApiRichiesta.getAmbiente() != null) {
-				urlInvocazione = this.apiService.runTransaction(() -> {
+				urlInvocazioni = this.apiService.runTransaction(() -> {
 					ApiEntity apiEntity = this.apiService.find(listaRisorseApiRichiesta.getIdApi())
 							.orElseThrow(() -> new NotFoundException(ErrorCode.API_404, Map.of("idApi", listaRisorseApiRichiesta.getIdApi().toString())));
 					boolean isCollaudo = listaRisorseApiRichiesta.getAmbiente().equals(AmbienteEnum.COLLAUDO);
-					return this.eServiceBuilder.getUrlInvocazione(apiEntity, isCollaudo);
+					return this.eServiceBuilder.getUrlInvocazioni(apiEntity, isCollaudo);
 				});
 			}
 
-			final String urlInvocazioneFinale = urlInvocazione;
+			// La prima resta nel campo storico, le altre nella lista: senza URL associate il
+			// comportamento e` quello di prima.
+			final String urlInvocazioneFinale = urlInvocazioni.isEmpty() ? null : urlInvocazioni.get(0).url();
+			final List<UrlInvocazioneAggiuntivaRisolta> urlInvocazioniAggiuntive = urlInvocazioni.isEmpty()
+					? List.of()
+					: urlInvocazioni.subList(1, urlInvocazioni.size()).stream()
+							.map(APIController::toUrlInvocazioneRisolta)
+							.collect(Collectors.toList());
 
 			List<ServizioWsdl> lst = null;
 			switch(listaRisorseApiRichiesta.getApiType()) {
@@ -199,6 +222,9 @@ public class ToolsController implements ToolsApi {
 
 						servizioW.setPortType(serv.getNome());
 						servizioW.setUrlInvocazione(urlInvocazioneFinale);
+						if(!urlInvocazioniAggiuntive.isEmpty()) {
+							servizioW.setUrlInvocazioneAggiuntive(urlInvocazioniAggiuntive);
+						}
 
 						List<OperazioneWsdl> operazioni = new ArrayList<>();
 

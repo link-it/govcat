@@ -44,6 +44,7 @@ import org.govway.catalogo.core.services.SoggettoService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotFoundException;
+import org.govway.catalogo.services.ProfiloGovwayService;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneProfilo;
 import org.govway.catalogo.servlets.monitor.model.AmbienteEnum;
@@ -69,6 +70,9 @@ public class FiltriUtils {
 	@Autowired
 	private Configurazione configurazione;   
 
+	@Autowired
+	private ProfiloGovwayService profiloGovwayService;
+
 	public String getProfilo(UUID idServizio, UUID idApi) {
 		return this.servizioService.runTransaction(() -> {
 			ServizioEntity servizio = this.servizioService.find(idServizio)
@@ -84,6 +88,10 @@ public class FiltriUtils {
 			
 			for(ApiEntity c: servizio.getApi()) {
 				if(api == null || api.getId().equals(c.getId())) {
+					// La ridefinizione del gestore sull'API prevale sul profilo_govway dei profili
+					if(ridefinito == null) {
+						ridefinito = this.profiloGovwayService.getOverride(c);
+					}
 					List<AuthTypeEntity> authTypeList = c.getAuthType();
 					for(AuthTypeEntity at: authTypeList) {
 						if(ridefinito == null) {

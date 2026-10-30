@@ -62,6 +62,9 @@ export class LoginComponent implements OnInit {
   AUTH_USER: boolean = false;
   OTHER_AUTHS: any[] = [];
 
+  // Arrivo da un logout chiesto dall'utente: niente accesso automatico finche` non preme "Accedi"
+  _loggedOut: boolean = false;
+
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
@@ -87,9 +90,10 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit() {
-    // reset login status
+    // reset login status: con redirect all'IdP in corso non si avvia nessun altro flusso
+    let _redirectIdp = false;
     if (this.authenticationService.isLogged()) {
-      this.authenticationService.logout();
+      _redirectIdp = this.authenticationService.logout(this.authenticationService.isAuthLogged());
     }
 
     // get return url from route parameters or default to '/'
@@ -104,9 +108,13 @@ export class LoginComponent implements OnInit {
     // Clear MultiSnackbar
     Tools.MultiSnackbarDestroyAll();
 
+    this._loggedOut = this.authenticationService.isLogoutVolontario();
+
     // SSO Auto-redirect: se non c'è login classico e c'è un solo provider OAuth,
     // avvia automaticamente il flusso SSO senza mostrare la pagina di login
-    this._tryAutoSSORedirect();
+    if (!_redirectIdp && !this._loggedOut) {
+      this._tryAutoSSORedirect();
+    }
   }
 
   get f(): { [key: string]: AbstractControl } {
@@ -129,6 +137,7 @@ export class LoginComponent implements OnInit {
             this.returnUrl = '/dashboard';
           }
 
+          this.authenticationService.clearLogoutVolontario();
           this.authenticationService.setCurrentSession(response);
           this.authenticationService.reloadSession();
 
@@ -163,6 +172,8 @@ export class LoginComponent implements OnInit {
   }
 
   logidWithUrlAction(item: any) {
+    this.authenticationService.clearLogoutVolontario();
+    this._loggedOut = false;
     // Salva il returnUrl in sessionStorage per ripristinarlo dopo il redirect OAuth
     if (this.returnUrl && this.returnUrl !== '/') {
       sessionStorage.setItem('sso_return_url', this.returnUrl);

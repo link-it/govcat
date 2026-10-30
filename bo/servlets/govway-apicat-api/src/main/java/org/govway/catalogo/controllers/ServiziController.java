@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -57,6 +58,7 @@ import org.govway.catalogo.core.business.utils.EServiceBuilder;
 import org.govway.catalogo.core.business.utils.NotificheUtils;
 import org.govway.catalogo.core.business.utils.TargetComunicazioneServizioEnum;
 import org.govway.catalogo.core.dao.specifications.AllegatoServizioSpecification;
+import org.govway.catalogo.core.dao.specifications.FiltroArchiviati;
 import org.govway.catalogo.core.dao.specifications.MessaggioServizioSpecification;
 import org.govway.catalogo.core.dao.specifications.OrganizzazioneSpecification;
 import org.govway.catalogo.core.dao.specifications.PackageServizioSpecification;
@@ -70,6 +72,7 @@ import org.govway.catalogo.core.orm.entity.AllegatoServizioEntity;
 import org.govway.catalogo.core.orm.entity.AllegatoServizioEntity.VISIBILITA;
 import org.govway.catalogo.core.orm.entity.CategoriaEntity;
 import org.govway.catalogo.core.orm.entity.DocumentoEntity;
+import org.govway.catalogo.core.orm.entity.DominioEntity;
 import org.govway.catalogo.core.orm.entity.GruppoEntity;
 import org.govway.catalogo.core.orm.entity.MessaggioServizioEntity;
 import org.govway.catalogo.core.orm.entity.NotificaEntity;
@@ -100,6 +103,8 @@ import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.RichiestaNonValidaSemanticamenteException;
+import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
+import org.govway.catalogo.services.DisclaimerService;
 import org.govway.catalogo.servlets.api.ServiziApi;
 import org.govway.catalogo.servlets.model.Allegato;
 import org.govway.catalogo.servlets.model.AllegatoItemCreate;
@@ -107,12 +112,14 @@ import org.govway.catalogo.servlets.model.AllegatoMessaggio;
 import org.govway.catalogo.servlets.model.AllegatoMessaggioCreate;
 import org.govway.catalogo.servlets.model.AllegatoUpdate;
 import org.govway.catalogo.servlets.model.CategorieCreate;
+import org.govway.catalogo.servlets.model.CheckDati;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneCambioStato;
 import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
 import org.govway.catalogo.servlets.model.ConfigurazioneRuolo;
 import org.govway.catalogo.servlets.model.ConfigurazioneStatoDashboard;
 import org.govway.catalogo.servlets.model.RuoloReferenteEnum;
+import org.govway.catalogo.servlets.model.FiltroArchiviatiEnum;
 import org.govway.catalogo.servlets.model.Grant;
 import org.govway.catalogo.servlets.model.GrantType;
 import org.govway.catalogo.servlets.model.ItemCategoriaServizio;
@@ -126,6 +133,7 @@ import org.govway.catalogo.servlets.model.ListItemCategoria;
 import org.govway.catalogo.servlets.model.ListItemGruppo;
 import org.govway.catalogo.servlets.model.MessaggioCreate;
 import org.govway.catalogo.servlets.model.MessaggioUpdate;
+import org.govway.catalogo.servlets.model.OkKoEnum;
 import org.govway.catalogo.servlets.model.PageMetadata;
 import org.govway.catalogo.servlets.model.PagedModelAllegato;
 import org.govway.catalogo.servlets.model.PagedModelComponente;
@@ -140,7 +148,9 @@ import org.govway.catalogo.servlets.model.ReferenteCreate;
 import org.govway.catalogo.servlets.model.Ruolo;
 import org.govway.catalogo.servlets.model.Servizio;
 import org.govway.catalogo.servlets.model.ServizioCreate;
+import org.govway.catalogo.servlets.model.ServizioDisclaimer;
 import org.govway.catalogo.servlets.model.ServizioUpdate;
+import org.govway.catalogo.servlets.model.StatoMessaggioServizioUpdate;
 import org.govway.catalogo.servlets.model.StatoUpdate;
 import org.govway.catalogo.servlets.model.TipoComunicazione;
 import org.govway.catalogo.servlets.model.TipoReferenteEnum;
@@ -172,6 +182,12 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @ApiV1Controller
 public class ServiziController implements ServiziApi {
+
+	/**
+	 * Stato archiviato assunto quando il workflow non lo dichiara: e` il valore che le
+	 * Specification usavano cablato prima che diventasse un parametro.
+	 */
+	private static final String STATO_ARCHIVIATO_DEFAULT = "archiviato";
 
 	private Logger logger = LoggerFactory.getLogger(ServiziController.class);
 	
@@ -267,6 +283,9 @@ public class ServiziController implements ServiziApi {
 
 	@Autowired
 	private EntityManager entityManager;   
+
+	@Autowired
+	private DisclaimerService disclaimerService;
 
 	private AbstractServizioAuthorization getServizioAuthorization(ServizioEntity entity) {
 		if(entity.is_package()) {
@@ -476,7 +495,7 @@ public class ServiziController implements ServiziApi {
 						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404_MESSAGGIO, Map.of("idMessaggio", idMessaggio.toString())));
 				
 
-				this.servizioAuthorization.authorizeModifica(entity.getServizio(), Arrays.asList(ConfigurazioneClasseDato.GENERICO));
+				this.servizioAuthorization.authorizeModifica(entity.getServizio(), Arrays.asList(ConfigurazioneClasseDato.COMUNICAZIONI));
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				DocumentoEntity allegato = documentoAllegatoAssembler.toEntity(allegatoCreate, coreAuthorization.getUtenteSessione());
@@ -506,33 +525,7 @@ public class ServiziController implements ServiziApi {
 
 				this.logger.info("Invocazione in corso ...");
 
-				ServizioEntity entity = this.service.find(idServizio)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_404, Map.of("idServizio", idServizio.toString())));
-
-
-				this.servizioAuthorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.GENERICO));
-
-				this.logger.debug("Autorizzazione completata con successo");
-
-				MessaggioServizioEntity messaggio = this.itemMessaggioAssembler.toEntity(messaggioCreate, entity);
-
-				this.service.save(messaggio);
-
-				// Determina i target della comunicazione (multi-selezione)
-				Set<TargetComunicazioneServizioEnum> target = messaggioCreate.getTarget().stream()
-					.map(t -> TargetComunicazioneServizioEnum.valueOf(t.name()))
-					.collect(Collectors.toSet());
-
-				// Verifica che il target COORDINATORE sia usabile solo se abilitato
-				if (target.contains(TargetComunicazioneServizioEnum.COORDINATORE) && !isCoordinatoreAbilitato()) {
-					throw new BadRequestException(ErrorCode.UT_400_COORDINATORE_DISABLED);
-				}
-
-				boolean includiTecnici = messaggioCreate.isIncludiTecnici() != null ? messaggioCreate.isIncludiTecnici() : true;
-
-				List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheMessaggioServizio(messaggio, target, includiTecnici);
-				lstNotifiche.stream().forEach(n -> this.notificaService.save(n));
-
+				MessaggioServizioEntity messaggio = this.creaMessaggioServizio(idServizio, messaggioCreate);
 
 				ItemMessaggio model = this.itemMessaggioAssembler.toModel(messaggio);
 				this.logger.info("Invocazione completata con successo");
@@ -548,6 +541,41 @@ public class ServiziController implements ServiziApi {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
 			throw new InternalException(ErrorCode.SYS_500);
 		}
+	}
+
+	/**
+	 * Crea il messaggio e le relative notifiche. Va invocato all'interno di una transazione,
+	 * condiviso tra createMessaggioServizio e updateStatoMessaggioServizio.
+	 */
+	private MessaggioServizioEntity creaMessaggioServizio(UUID idServizio, MessaggioCreate messaggioCreate) {
+		ServizioEntity entity = this.service.find(idServizio)
+				.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_404, Map.of("idServizio", idServizio.toString())));
+
+
+		this.servizioAuthorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.COMUNICAZIONI));
+
+		this.logger.debug("Autorizzazione completata con successo");
+
+		MessaggioServizioEntity messaggio = this.itemMessaggioAssembler.toEntity(messaggioCreate, entity);
+
+		this.service.save(messaggio);
+
+		// Determina i target della comunicazione (multi-selezione)
+		Set<TargetComunicazioneServizioEnum> target = messaggioCreate.getTarget().stream()
+			.map(t -> TargetComunicazioneServizioEnum.valueOf(t.name()))
+			.collect(Collectors.toSet());
+
+		// Verifica che il target COORDINATORE sia usabile solo se abilitato
+		if (target.contains(TargetComunicazioneServizioEnum.COORDINATORE) && !isCoordinatoreAbilitato()) {
+			throw new BadRequestException(ErrorCode.UT_400_COORDINATORE_DISABLED);
+		}
+
+		boolean includiTecnici = messaggioCreate.isIncludiTecnici() != null ? messaggioCreate.isIncludiTecnici() : true;
+
+		List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheMessaggioServizio(messaggio, target, includiTecnici);
+		lstNotifiche.stream().forEach(n -> this.notificaService.save(n));
+
+		return messaggio;
 	}
 
 	@Override
@@ -570,8 +598,11 @@ public class ServiziController implements ServiziApi {
 				this.checkReferenti(entity);
 				this.logger.debug("Autorizzazione completata con successo");
 
-				if(this.service.existsByNomeVersioneNonArchiviato(entity, configurazione.getServizio().getWorkflow().getStatoArchiviato())) {
-					throw new ConflictException(ErrorCode.SRV_409_CONFLICT);
+				UUID idDominio = getIdDominio(entity);
+				Optional<ServizioEntity> conflitto = this.service.findConflittoNomeVersioneNonArchiviato(
+						entity.getNome(), entity.getVersione(), idDominio, configurazione.getServizio().getWorkflow().getStatoArchiviato());
+				if(conflitto.isPresent()) {
+					throw toConflittoServizio(entity.getNome(), entity.getVersione(), idDominio, conflitto.get());
 				}
 
 				this.service.save(entity);
@@ -1013,12 +1044,21 @@ public class ServiziController implements ServiziApi {
 				this.logger.debug("Autorizzazione completata con successo");
 
 				if(servizioUpdate.getIdentificativo()!= null) {
-					boolean nomeCambiato = !entity.getNome().equalsIgnoreCase(servizioUpdate.getIdentificativo().getNome());
-					boolean versioneCambiata = !entity.getVersione().equals(servizioUpdate.getIdentificativo().getVersione());
+					String nome = servizioUpdate.getIdentificativo().getNome();
+					String versione = servizioUpdate.getIdentificativo().getVersione();
+					// Il dominio fa parte del criterio di univocita`: anche il solo spostamento del
+					// servizio su un altro dominio puo` creare un omonimo e va quindi verificato.
+					UUID idDominioRichiesto = servizioUpdate.getIdentificativo().getIdDominio();
 
-					if(nomeCambiato || versioneCambiata) {
-						if(this.service.existsByNomeVersioneNonArchiviato(servizioUpdate.getIdentificativo().getNome(), servizioUpdate.getIdentificativo().getVersione(), configurazione.getServizio().getWorkflow().getStatoArchiviato())) {
-							throw new ConflictException(ErrorCode.SRV_409_CONFLICT);
+					boolean nomeCambiato = !entity.getNome().equalsIgnoreCase(nome);
+					boolean versioneCambiata = !entity.getVersione().equals(versione);
+					boolean dominioCambiato = !Objects.equals(getIdDominio(entity), idDominioRichiesto);
+
+					if(nomeCambiato || versioneCambiata || dominioCambiato) {
+						Optional<ServizioEntity> conflitto = this.service.findConflittoNomeVersioneNonArchiviato(
+								nome, versione, idDominioRichiesto, configurazione.getServizio().getWorkflow().getStatoArchiviato());
+						if(conflitto.isPresent()) {
+							throw toConflittoServizio(nome, versione, idDominioRichiesto, conflitto.get());
 						}
 
 					}
@@ -1065,39 +1105,41 @@ public class ServiziController implements ServiziApi {
 		return checkOnly != null && checkOnly;
 	}
 
+	private static UUID getIdDominio(ServizioEntity entity) {
+		return entity.getDominio() != null ? UUID.fromString(entity.getDominio().getIdDominio()) : null;
+	}
+
+	/**
+	 * Conflitto sul criterio di univocita` del servizio, che comprende il dominio: il messaggio
+	 * lo riporta, perche` lo stesso nome e versione restano disponibili sugli altri domini.
+	 *
+	 * Quando il dominio di destinazione non e` determinato (richiesta senza dominio) il confronto
+	 * e` rimasto globale su nome e versione, e si usa il messaggio generico: indicare il dominio
+	 * del servizio in conflitto sarebbe fuorviante, non essendo quello del servizio in modifica.
+	 */
+	private ConflictException toConflittoServizio(String nome, String versione, UUID idDominio, ServizioEntity conflitto) {
+		DominioEntity dominio = idDominio != null ? conflitto.getDominio() : null;
+
+		if(dominio != null) {
+			return new ConflictException(ErrorCode.SRV_409_CONFLICT, Map.of(
+					"nome", nome,
+					"versione", versione,
+					"dominio", dominio.getNome()));
+		}
+
+		return new ConflictException(ErrorCode.SRV_409, Map.of(
+				"nome", nome,
+				"versione", versione));
+	}
+
 	@Override
 	public ResponseEntity<Servizio> updateStatoServizio(UUID idServizio, StatoUpdate statoServizioUpdate, Boolean checkOnly) {
 		try {
 			return this.service.runTransaction(() -> {
-				this.logger.info("Invocazione in corso ...");     
-				
-				ServizioEntity entity = this.findOne(idServizio);
-				
-				boolean wasArchiviato = entity.getStato().equals(configurazione.getServizio().getWorkflow().getStatoArchiviato());
-				boolean isArchiviato = statoServizioUpdate.getStato().equals(configurazione.getServizio().getWorkflow().getStatoArchiviato());
-				if(wasArchiviato && !isArchiviato) {
-					if(this.service.existsByNomeVersioneNonArchiviato(entity, configurazione.getServizio().getWorkflow().getStatoArchiviato())) {
-						throw new ConflictException(ErrorCode.SRV_409_CONFLICT);
-					}
-				}
+				this.logger.info("Invocazione in corso ...");
 
-				String statoIniziale = entity.getStato();
-				String statoFinale = statoServizioUpdate.getStato();
+				ServizioEntity entity = this.cambiaStatoServizio(idServizio, statoServizioUpdate, checkOnly);
 
-				this.getServizioAuthorization(entity).authorizeCambioStato(entity, statoServizioUpdate.getStato());
-				this.getServizioAuthorization(entity).authorizeUtenteCambioStato(entity, statoIniziale, statoFinale);
-                this.dettaglioAssembler.toEntity(statoServizioUpdate, entity);
-
-
-
-				this.logger.debug("Autorizzazione completata con successo");     
-				
-				if(!isCheckOnly(checkOnly)) {
-					this.service.save(entity);
-					
-					List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheCambioStatoServizio(entity);
-					lstNotifiche.stream().forEach(n -> this.notificaService.save(n));
-				}
 				Servizio model = this.dettaglioAssembler.toModel(entity);
 
 				if(isCheckOnly(checkOnly)) {
@@ -1107,6 +1149,103 @@ public class ServiziController implements ServiziApi {
 				this.logger.info("Invocazione completata con successo");
 				return ResponseEntity.ok(model);
 
+			});
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	@Override
+	public ResponseEntity<Servizio> updateStatoMessaggioServizio(UUID idServizio, StatoMessaggioServizioUpdate statoMessaggioServizioUpdate) {
+		try {
+			return this.service.runTransaction(() -> {
+				this.logger.info("Invocazione in corso ...");
+
+				// Cambio stato e messaggio nella stessa transazione: un errore su uno dei due annulla entrambi.
+				// Il messaggio e` autorizzato sullo stato finale, come invocando le due API in sequenza.
+				ServizioEntity entity = this.cambiaStatoServizio(idServizio, statoMessaggioServizioUpdate.getStato(), false);
+				this.creaMessaggioServizio(idServizio, statoMessaggioServizioUpdate.getMessaggio());
+
+				Servizio model = this.dettaglioAssembler.toModel(entity);
+
+				this.logger.info("Invocazione completata con successo");
+				return ResponseEntity.ok(model);
+			});
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	/**
+	 * Applica il cambio stato e, se non in checkOnly, salva il servizio e le notifiche di cambio stato.
+	 * Va invocato all'interno di una transazione, condiviso tra updateStatoServizio e updateStatoMessaggioServizio.
+	 */
+	private ServizioEntity cambiaStatoServizio(UUID idServizio, StatoUpdate statoServizioUpdate, Boolean checkOnly) {
+		ServizioEntity entity = this.findOne(idServizio);
+
+		boolean wasArchiviato = entity.getStato().equals(configurazione.getServizio().getWorkflow().getStatoArchiviato());
+		boolean isArchiviato = statoServizioUpdate.getStato().equals(configurazione.getServizio().getWorkflow().getStatoArchiviato());
+		if(wasArchiviato && !isArchiviato) {
+			UUID idDominio = getIdDominio(entity);
+			Optional<ServizioEntity> conflitto = this.service.findConflittoNomeVersioneNonArchiviato(
+					entity.getNome(), entity.getVersione(), idDominio, configurazione.getServizio().getWorkflow().getStatoArchiviato());
+			if(conflitto.isPresent()) {
+				throw toConflittoServizio(entity.getNome(), entity.getVersione(), idDominio, conflitto.get());
+			}
+		}
+
+		String statoIniziale = entity.getStato();
+		String statoFinale = statoServizioUpdate.getStato();
+
+		this.getServizioAuthorization(entity).authorizeCambioStato(entity, statoServizioUpdate.getStato());
+		this.getServizioAuthorization(entity).authorizeUtenteCambioStato(entity, statoIniziale, statoFinale);
+		this.dettaglioAssembler.toEntity(statoServizioUpdate, entity);
+
+		this.logger.debug("Autorizzazione completata con successo");
+
+		if(!isCheckOnly(checkOnly)) {
+			this.service.save(entity);
+
+			List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheCambioStatoServizio(entity);
+			lstNotifiche.stream().forEach(n -> this.notificaService.save(n));
+		}
+
+		return entity;
+	}
+
+	@Override
+	public ResponseEntity<CheckDati> checkDatiServizio(UUID idServizio, String statoFinale) {
+		try {
+
+			return this.service.runTransaction( () -> {
+
+				this.logger.info("Invocazione in corso ...");
+				ServizioEntity entity = this.findOne(idServizio);
+				this.logger.debug("Autorizzazione completata con successo");
+
+				CheckDati checkDatiGenerale = new CheckDati();
+				try {
+					this.getServizioAuthorization(entity).checkCampiObbligatori(entity, statoFinale);
+					checkDatiGenerale.setEsito(OkKoEnum.OK);
+				} catch(UpdateEntitaComplessaNonValidaSemanticamenteException e) {
+					checkDatiGenerale.setEsito(OkKoEnum.KO);
+					checkDatiGenerale.setErrori(e.getErrori());
+				}
+
+				this.logger.info("Invocazione completata con successo");
+				return ResponseEntity.ok(checkDatiGenerale);
 			});
 		}
 		catch(RuntimeException e) {
@@ -1165,7 +1304,7 @@ public class ServiziController implements ServiziApi {
 
 	@Override
 	public ResponseEntity<PagedModelItemServizio> listServizi(String referente, UUID idDominio, UUID idOrganizzazioneErogatore, UUID idGruppo, VisibilitaServizioEnum visibilita, UUID idApi,
-			List<String> stato, List<String> categoria, List<String> tag, List<String> profilo, Boolean inAttesa, Boolean mieiServizi, List<RuoloReferenteEnum> ruoloReferente, Boolean dashboard, Boolean adesioneConsentita, String nome, String versione, List<UUID> idServizi, Boolean _package, TipoServizio tipo, Boolean fruizione, String q, Integer page, Integer size, List<String> sort) {
+			List<String> stato, FiltroArchiviatiEnum archiviati, List<String> categoria, List<String> tag, List<String> profilo, Boolean inAttesa, Boolean mieiServizi, List<RuoloReferenteEnum> ruoloReferente, Boolean dashboard, Boolean adesioneConsentita, String nome, String versione, List<UUID> idServizi, Boolean _package, TipoServizio tipo, Boolean fruizione, Boolean apiErogateAderente, String q, Integer page, Integer size, List<String> sort) {
 		try {
 			this.logger.info("Invocazione in corso ...");
 			return this.service.runTransaction( () -> {
@@ -1205,6 +1344,7 @@ public class ServiziController implements ServiziApi {
 				}
 
 				specification.setFruizione(Optional.ofNullable(fruizione));
+				specification.setApiErogateAderente(Optional.ofNullable(apiErogateAderente));
 
 				specification.setQ(Optional.ofNullable(q));
 
@@ -1223,6 +1363,10 @@ public class ServiziController implements ServiziApi {
 				}
 
 				specification.setStati(stato);
+
+				String statoArchiviato = getStatoArchiviatoServizio();
+				specification.setStatoArchiviato(statoArchiviato);
+				specification.setFiltroArchiviati(getFiltroArchiviati(archiviati, stato, statoArchiviato));
 
 				specification.setAderibili(Optional.ofNullable(adesioneConsentita));
 				specification.setUtenteAdmin(Optional.of(this.coreAuthorization.isAdmin()));
@@ -1480,6 +1624,7 @@ public class ServiziController implements ServiziApi {
 	public ResponseEntity<Resource> exportServizi(
 			String referente, UUID idDominio,
 			UUID idGruppo, VisibilitaServizioEnum visibilita, UUID idApi, List<String> stato,
+			FiltroArchiviatiEnum archiviati,
 			List<String> categoria, List<String> tag, Boolean inAttesa, Boolean mieiServizi,
 			Boolean adesioneConsentita, String nome,
 			String versione, List<UUID> idServizi,
@@ -1517,6 +1662,10 @@ public class ServiziController implements ServiziApi {
 				specification.setTag(tag);
 
 				specification.setStati(stato);
+
+				String statoArchiviato = getStatoArchiviatoServizio();
+				specification.setStatoArchiviato(statoArchiviato);
+				specification.setFiltroArchiviati(getFiltroArchiviati(archiviati, stato, statoArchiviato));
 
 				specification.setAderibili(Optional.ofNullable(adesioneConsentita));
 				specification.setUtenteAdmin(Optional.of(this.coreAuthorization.isAdmin()));
@@ -1595,6 +1744,51 @@ public class ServiziController implements ServiziApi {
 		}
 	}
 
+
+	/**
+	 * Nome dello stato "archiviato" nel workflow dei servizi. In configurazione il dato e`
+	 * opzionale: in sua assenza si ricade sul valore storicamente cablato nelle Specification,
+	 * cosi` il filtro resta attivo anche sulle installazioni che non lo dichiarano.
+	 */
+	private String getStatoArchiviatoServizio() {
+		String statoArchiviato = this.configurazione.getServizio().getWorkflow().getStatoArchiviato();
+		return statoArchiviato != null ? statoArchiviato : STATO_ARCHIVIATO_DEFAULT;
+	}
+
+	/**
+	 * Risolve il trattamento dei servizi archiviati nelle liste.
+	 *
+	 * I servizi archiviati sono esclusi di default. Le eccezioni, in ordine di precedenza:
+	 * <ol>
+	 * <li>per chi non e` gestore restano sempre esclusi, come avveniva prima
+	 *     dell'introduzione del parametro;</li>
+	 * <li>il parametro esplicito, quando presente, decide;</li>
+	 * <li>in sua assenza, un filtro `stato` che chiede esplicitamente lo stato archiviato
+	 *     e` gia` di per se` una richiesta esplicita e non va contraddetto dal default.</li>
+	 * </ol>
+	 *
+	 * @param stato filtro per stato della richiesta, {@code null} dove l'endpoint non lo prevede
+	 */
+	private FiltroArchiviati getFiltroArchiviati(FiltroArchiviatiEnum archiviati, List<String> stato, String statoArchiviato) {
+		if(!this.coreAuthorization.isAdmin()) {
+			return FiltroArchiviati.ESCLUDI;
+		}
+
+		if(archiviati != null) {
+			switch(archiviati) {
+			case INCLUDI: return FiltroArchiviati.INCLUDI;
+			case SOLO: return FiltroArchiviati.SOLO;
+			case ESCLUDI:
+			default: return FiltroArchiviati.ESCLUDI;
+			}
+		}
+
+		if(stato != null && stato.contains(statoArchiviato)) {
+			return FiltroArchiviati.INCLUDI;
+		}
+
+		return FiltroArchiviati.ESCLUDI;
+	}
 
 	/**
 	 * Le viste "operative" della lista servizi sono quelle che mostrano gli elementi su cui
@@ -2016,7 +2210,7 @@ public class ServiziController implements ServiziApi {
 	}
 
 	@Override
-	public ResponseEntity<PagedModelItemServizioGruppo> listServiziGruppi(UUID idGruppoPadre, Boolean gruppoPadreNull, TipoServizio tipo, String q, 
+	public ResponseEntity<PagedModelItemServizioGruppo> listServiziGruppi(UUID idGruppoPadre, Boolean gruppoPadreNull, TipoServizio tipo, FiltroArchiviatiEnum archiviati, String q, 
 			Integer page, Integer size, List<String> sort) {
 		try {
 			
@@ -2032,10 +2226,19 @@ public class ServiziController implements ServiziApi {
 				specification.setGruppoPadreNull(Optional.ofNullable(gruppoPadreNull));
 				specification.setQ(Optional.ofNullable(q));
 				specification.setUtenteAdmin(Optional.of(this.coreAuthorization.isAdmin()));
+				// Stessi stati del ramo pubblico usati per idsServiziVisibili (e da listServizi): se divergono,
+				// un gruppo puo` risultare non vuoto in elenco ma vuoto una volta aperto.
+				specification.setStatiAderibili(this.configurazione.getServizio().getStatiAdesioneConsentita());
 
-				if(tipo != null) {
-					specification.setTipoComponente(Optional.of(this.dettaglioAssembler.toTipo(tipo)));
+				final org.govway.catalogo.core.orm.entity.TipoServizio tipoComponente = tipo != null ? this.dettaglioAssembler.toTipo(tipo) : null;
+				if(tipoComponente != null) {
+					specification.setTipoComponente(Optional.of(tipoComponente));
 				}
+
+				String statoArchiviato = getStatoArchiviatoServizio();
+				FiltroArchiviati filtroArchiviati = getFiltroArchiviati(archiviati, null, statoArchiviato);
+				specification.setStatoArchiviato(statoArchiviato);
+				specification.setFiltroArchiviati(filtroArchiviati);
 
 				this.logger.info("POST init Specification");
 
@@ -2078,23 +2281,31 @@ public class ServiziController implements ServiziApi {
 				// riusando la stessa ServizioSpecification che listServizi applica (referente servizio/dominio,
 				// classi, richiedente, referente/richiedente adesione, ramo PUBBLICO+stati). Sostituisce la
 				// navigazione in memoria di referenti e di TUTTE le adesioni per ogni servizio di ogni gruppo.
-				// Per admin/coordinatore ogni servizio e` visibile (set null), come gia` faceva isVisibile.
+				// Per admin/coordinatore ogni servizio e` visibile: il set resta null (come gia` faceva
+				// isVisibile) a meno che il filtro sugli archiviati non richieda comunque una selezione.
 				Set<Long> idsServiziVisibili = null;
-				if(!(this.coreAuthorization.isAdmin(utenteSessione) || this.coreAuthorization.isCoordinatore(utenteSessione))) {
+				boolean vedeTuttiIServizi = this.coreAuthorization.isAdmin(utenteSessione) || this.coreAuthorization.isCoordinatore(utenteSessione);
+				// Il calcolo serve anche ad admin/coordinatore quando gli archiviati sono filtrati: senza,
+				// un gruppo i cui servizi sono tutti esclusi resterebbe in elenco pur risultando vuoto.
+				if(!vedeTuttiIServizi || filtroArchiviati != FiltroArchiviati.INCLUDI) {
 					ServizioSpecification specVisibilita = new ServizioSpecification();
-					// Accesso anonimo: getUtenteSessione() puo` restituire null (consentiAccessoAnonimo=true).
-					// Usa un UtenteEntity "vuoto" come gia` fa il filtro principale (vedi ramo `anounymous` sopra),
-					// evitando l'NPE di Optional.of(null).
-					specVisibilita.setUtente(Optional.of(utenteSessione != null ? utenteSessione : new UtenteEntity()));
-					specVisibilita.setStatiAderibili(this.configurazione.getServizio().getStatiAdesioneConsentita());
-					specVisibilita.setUtenteAdmin(Optional.of(false));
+					if(!vedeTuttiIServizi) {
+						// Accesso anonimo: getUtenteSessione() puo` restituire null (consentiAccessoAnonimo=true).
+						// Usa un UtenteEntity "vuoto" come gia` fa il filtro principale (vedi ramo `anounymous` sopra),
+						// evitando l'NPE di Optional.of(null).
+						specVisibilita.setUtente(Optional.of(utenteSessione != null ? utenteSessione : new UtenteEntity()));
+						specVisibilita.setStatiAderibili(this.configurazione.getServizio().getStatiAdesioneConsentita());
+						specVisibilita.setUtenteAdmin(Optional.of(false));
+					}
+					specVisibilita.setStatoArchiviato(statoArchiviato);
+					specVisibilita.setFiltroArchiviati(filtroArchiviati);
 					idsServiziVisibili = this.service.findIds(specVisibilita);
 				}
 				final Set<Long> idsVisibili = idsServiziVisibili;
 
 				List<ServizioGruppoEntity> filtered = findAll
 														.stream()
-														.filter(sg -> !isEmpty(sg, idsVisibili))
+														.filter(sg -> !isEmpty(sg, idsVisibili, tipoComponente))
 														.collect(Collectors.toList());
 
 				this.logger.info("POST filtered");
@@ -2123,6 +2334,45 @@ public class ServiziController implements ServiziApi {
 			throw new InternalException(ErrorCode.SYS_500);
 		}
 
+	}
+
+	@Override
+	public ResponseEntity<List<ServizioDisclaimer>> getDisclaimersServizio(UUID idServizio, String languageCode, List<String> profilo) {
+		try {
+			return this.service.runTransaction( () -> {
+
+				this.logger.info("Invocazione in corso ...");
+				ServizioEntity entity = this.findOne(idServizio);
+
+				this.logger.debug("Autorizzazione completata con successo");
+
+				// profili aggiuntivi (es. API in creazione non ancora associata al servizio):
+				// quelli non presenti in configurazione sono ignorati
+				List<String> profiliAggiuntivi = List.of();
+				if(profilo != null && !profilo.isEmpty()) {
+					List<String> profiliValidi = this.configurazione.getServizio().getApi().getProfili().stream()
+							.map(p -> p.getCodiceInterno())
+							.toList();
+					profiliAggiuntivi = profilo.stream()
+							.filter(profiliValidi::contains)
+							.toList();
+				}
+
+				List<ServizioDisclaimer> disclaimers = this.disclaimerService.resolveDisclaimersServizio(entity, languageCode, profiliAggiuntivi);
+
+				this.logger.info("Invocazione completata con successo");
+
+				return ResponseEntity.ok(disclaimers);
+			});
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
 	}
 
 	private ServizioEntity findOne(UUID idServizio) {
@@ -2163,7 +2413,7 @@ public class ServiziController implements ServiziApi {
 	}
 	 */
 	
-	private boolean isEmpty(ServizioGruppoEntity sg, Set<Long> idsServiziVisibili) {
+	private boolean isEmpty(ServizioGruppoEntity sg, Set<Long> idsServiziVisibili, org.govway.catalogo.core.orm.entity.TipoServizio tipoComponente) {
 	    if (sg.getTipo().equals(TipoServizioGruppoEnum.SERVIZIO)) {
 	        return false;
 	    }
@@ -2171,7 +2421,7 @@ public class ServiziController implements ServiziApi {
 	    Optional<GruppoEntity> gruppoEntity = this.gruppoService.find(UUID.fromString(sg.getIdEntita()));
 
 	    if (gruppoEntity.isPresent()) {
-	        return isEmpty(gruppoEntity.get(), idsServiziVisibili);
+	        return isEmpty(gruppoEntity.get(), idsServiziVisibili, tipoComponente);
 	    }
 
 	    return true;
@@ -2183,17 +2433,25 @@ public class ServiziController implements ServiziApi {
 	 * {@code idsServiziVisibili} contiene gli id dei servizi visibili, oppure e` {@code null} per
 	 * admin/coordinatore (ogni servizio e` visibile). Cosi` qui si naviga solo l'alberatura
 	 * gruppi/servizi (leggera), senza toccare referenti e adesioni di ogni servizio.
+	 * Se {@code tipoComponente} e` valorizzato, servizi e sottogruppi di tipo diverso non contano: il
+	 * contenuto del gruppo (filtrato per tipo componente) non li mostrerebbe.
 	 */
-	private boolean isEmpty(GruppoEntity gruppo, Set<Long> idsServiziVisibili) {
+	private boolean isEmpty(GruppoEntity gruppo, Set<Long> idsServiziVisibili, org.govway.catalogo.core.orm.entity.TipoServizio tipoComponente) {
 
 		for(ServizioEntity servizio: gruppo.getServizi()) {
+			if(tipoComponente != null && !tipoComponente.equals(servizio.getTipo())) {
+				continue;
+			}
 			if(idsServiziVisibili == null || idsServiziVisibili.contains(servizio.getId())) {
 				return false;
 			}
 		}
 
 		for(GruppoEntity figlio: gruppo.getFigli()) {
-			if(!isEmpty(figlio, idsServiziVisibili)) {
+			if(tipoComponente != null && !tipoComponente.equals(figlio.getTipo())) {
+				continue;
+			}
+			if(!isEmpty(figlio, idsServiziVisibili, tipoComponente)) {
 				return false;
 			}
 		}
@@ -2393,6 +2651,7 @@ public class ServiziController implements ServiziApi {
 					grant.setGenerico(GrantType.NESSUNO);
 					grant.setCollaudo(GrantType.NESSUNO);
 					grant.setProduzione(GrantType.NESSUNO);
+					grant.setComunicazioni(GrantType.NESSUNO);
 
 					return ResponseEntity.ok(grant);
 				}

@@ -51,7 +51,7 @@
       "label": "APP.DOMINI.LABEL.Deprecato",
       "small": true,
       "values": {
-        "true": { "label": "APP.DOMINI.LABEL.Deprecato", "chipVariant": "muted", "background": "#A4ABB6", "border": "#A4ABB6", "color": "#ffffff" },
+        "true": { "label": "APP.DOMINI.LABEL.Deprecato", "chipVariant": "muted", "background": "#6c717a", "border": "#6c717a", "color": "#ffffff" },
         "false": { "label": "", "chipVariant": "muted", "background": "#ffffff", "border": "#ffffff", "color": "#ffffff" }
       }
     }

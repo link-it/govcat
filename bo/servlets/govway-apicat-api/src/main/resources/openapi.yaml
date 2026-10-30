@@ -2380,6 +2380,7 @@ paths:
       - $ref: "#/components/parameters/id_gruppo_padre_query_optional"
       - $ref: "#/components/parameters/gruppo_padre_null_query_optional"
       - $ref: "#/components/parameters/tipo_servizio_query_optional"
+      - $ref: "#/components/parameters/archiviati_query_optional"
       - $ref: "#/components/parameters/q_query_optional"
       - $ref: "#/components/parameters/page_query_optional"
       - $ref: "#/components/parameters/size_query_optional"
@@ -2416,6 +2417,7 @@ paths:
       - $ref: "#/components/parameters/visibilita_servizio_query_optional"
       - $ref: "#/components/parameters/id_api_query_optional"
       - $ref: "#/components/parameters/stato_query_optional"
+      - $ref: "#/components/parameters/archiviati_query_optional"
       - $ref: "#/components/parameters/categoria_query_optional"
       - $ref: "#/components/parameters/tag_query_optional"
       - $ref: "#/components/parameters/in_attesa_query_optional"
@@ -2459,6 +2461,7 @@ paths:
       - $ref: "#/components/parameters/visibilita_servizio_query_optional"
       - $ref: "#/components/parameters/id_api_query_optional"
       - $ref: "#/components/parameters/stato_query_optional"
+      - $ref: "#/components/parameters/archiviati_query_optional"
       - $ref: "#/components/parameters/categoria_query_optional"
       - $ref: "#/components/parameters/tag_query_optional"
       - $ref: "#/components/parameters/profilo_query_optional"
@@ -2473,6 +2476,7 @@ paths:
       - $ref: "#/components/parameters/package_query_optional"
       - $ref: "#/components/parameters/tipo_servizio_query_optional"
       - $ref: "#/components/parameters/fruizione_query_optional"
+      - $ref: "#/components/parameters/api_erogate_aderente_query_optional"
       - $ref: "#/components/parameters/q_query_optional"
       - $ref: "#/components/parameters/page_query_optional"
       - $ref: "#/components/parameters/size_query_optional"
@@ -2636,6 +2640,47 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /servizi/{id_servizio}/disclaimers:
+    parameters:
+      - $ref: "#/components/parameters/id_servizio"
+    get:
+      tags:
+      - "Servizi"
+      description: "Lista dei disclaimer applicabili al servizio, risolti gerarchicamente in base a stato, profilo client e dominio del servizio. I profili considerati sono quelli delle API del servizio piu' gli eventuali profili indicati nel parametro profilo (es. profili selezionati per un'API in fase di creazione o modifica); i profili non presenti in configurazione sono ignorati. Per un package i profili sono quelli delle API dei servizi componenti e i disclaimer sono quelli con chiave 'package.*' anziche' 'servizio.*'"
+      operationId: "getDisclaimersServizio"
+      parameters:
+      - name: "language_code"
+        in: "query"
+        description: "Codice lingua dei disclaimer (it, en). Default: it"
+        required: false
+        schema:
+          type: "string"
+          default: "it"
+          enum:
+            - "it"
+            - "en"
+      - $ref: "#/components/parameters/profilo_query_optional"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/ServizioDisclaimer"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /servizi/{id_servizio}/ammissibili:
     parameters:
       - $ref: "#/components/parameters/id_servizio"
@@ -2791,6 +2836,74 @@ paths:
           $ref: "#/components/responses/403Forbidden"
         "422":
           $ref: "#/components/responses/422UpdateEntitaComplessaSemanticamenteNonValida"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /servizi/{id_servizio}/stato-messaggio:
+    parameters:
+    - $ref: "#/components/parameters/id_servizio"
+    post:
+      tags:
+      - "Servizi"
+      description: "Aggiornamento dello stato del Servizio e aggiunta di un messaggio all'iter di lavorazione in un'unica operazione atomica"
+      operationId: "updateStatoMessaggioServizio"
+      requestBody:
+        required: true
+        description: "Dati per l'aggiornamento dello stato e del messaggio da aggiungere"
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatoMessaggioServizioUpdate'
+      responses:
+        "201":
+          description: "Operazione completata con successo"
+          content: 
+            application/json:
+                schema:
+                  $ref: "#/components/schemas/Servizio"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "409":
+          $ref: "#/components/responses/409Conflict"
+        "422":
+          $ref: "#/components/responses/422UpdateEntitaComplessaSemanticamenteNonValida"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /servizi/{id_servizio}/check-dati/{stato}:
+    parameters:
+      - $ref: "#/components/parameters/id_servizio"
+      - $ref: "#/components/parameters/stato"
+    get:
+      tags:
+      - "Servizi"
+      description: "Check completezza dati per un determinato Servizio in un determinato stato"
+      operationId: "checkDatiServizio"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                  $ref: "#/components/schemas/CheckDati"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
         "429":
           $ref: "#/components/responses/429TooManyRequests"
         "503":
@@ -4387,6 +4500,7 @@ paths:
       - $ref: "#/components/parameters/in_attesa_query_optional"
       - $ref: "#/components/parameters/stato_configurazione_automatica_query_optional"
       - $ref: "#/components/parameters/id_adesione_query_optional_multi"
+      - $ref: "#/components/parameters/stato_servizio_query_optional"
       - $ref: "#/components/parameters/q_query_optional"
       responses:
         "200":
@@ -4429,6 +4543,7 @@ paths:
       - $ref: "#/components/parameters/ruolo_referente_adesione_query_optional"
       - $ref: "#/components/parameters/dashboard_query_optional"
       - $ref: "#/components/parameters/stato_configurazione_automatica_query_optional"
+      - $ref: "#/components/parameters/stato_servizio_query_optional"
       - $ref: "#/components/parameters/q_query_optional"
       - $ref: "#/components/parameters/page_query_optional"
       - $ref: "#/components/parameters/size_query_optional"
@@ -4502,6 +4617,7 @@ paths:
     - $ref: "#/components/parameters/richiedente_query_optional"
     - $ref: "#/components/parameters/in_attesa_query_optional"
     - $ref: "#/components/parameters/ids_adesione_query_optional"
+    - $ref: "#/components/parameters/stato_servizio_query_optional"
     - $ref: "#/components/parameters/q_query_optional"
     - $ref: "#/components/parameters/page_query_optional"
     - $ref: "#/components/parameters/size_query_optional"
@@ -5125,6 +5241,46 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/StatoUpdate"
+      responses:
+        "201":
+          description: "Operazione completata con successo"
+          content: 
+            application/json:
+                schema:
+                  $ref: "#/components/schemas/Adesione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "409":
+          $ref: "#/components/responses/409Conflict"
+        "422":
+          $ref: "#/components/responses/422UpdateEntitaComplessaSemanticamenteNonValida"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /adesioni/{id_adesione}/stato-messaggio:
+    parameters:
+    - $ref: "#/components/parameters/id_adesione"
+    post:
+      tags:
+      - "Adesioni"
+      description: "Aggiunta di uno stato e di un messaggio all'iter di lavorazione dell'adesione in un'unica operazione atomica"
+      operationId: "updateStatoMessaggioAdesione"
+      requestBody:
+        required: true
+        description: "Dati per l'aggiornamento dello stato e del messaggio da aggiungere"
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatoMessaggioAdesioneUpdate'
       responses:
         "201":
           description: "Operazione completata con successo"
@@ -5876,6 +6032,11 @@ components:
           $ref: "#/components/schemas/Documento"
         dati_erogazione:
           $ref: "#/components/schemas/APIDatiErogazione"
+        url_invocazione:
+          description: "Identificativi delle URL di invocazione associate alla specifica, fra quelle censite in configurazione per l'ambiente, piu` 'default' per quella predefinita. Lista assente o vuota: vale la sola URL predefinita."
+          type: array
+          items:
+            $ref: "#/components/schemas/String255"
     APIDatiAmbienteCreate:
       type: "object"
       required:
@@ -5887,6 +6048,11 @@ components:
           $ref: "#/components/schemas/DocumentoCreate"
         dati_erogazione:
           $ref: "#/components/schemas/APIDatiErogazione"
+        url_invocazione:
+          description: "Identificativi delle URL di invocazione associate alla specifica, fra quelle censite in configurazione per l'ambiente, piu` 'default' per quella predefinita. Lista assente o vuota: vale la sola URL predefinita."
+          type: array
+          items:
+            $ref: "#/components/schemas/String255"
     APIDatiAmbienteUpdate:
       type: "object"
       properties:
@@ -5896,6 +6062,11 @@ components:
           $ref: "#/components/schemas/DocumentoUpdate"
         dati_erogazione:
           $ref: "#/components/schemas/APIDatiErogazione"
+        url_invocazione:
+          description: "Identificativi delle URL di invocazione associate alla specifica, fra quelle censite in configurazione per l'ambiente, piu` 'default' per quella predefinita. Lista assente: selezione invariata; lista vuota: si torna alla sola URL predefinita."
+          type: array
+          items:
+            $ref: "#/components/schemas/String255"
     APIDatiErogazione:
       type: "object"
       required:
@@ -6085,6 +6256,11 @@ components:
           $ref: "#/components/schemas/String255"
         url_invocazione:
           type: string
+        url_invocazione_aggiuntive:
+          description: "Ulteriori URL di invocazione associate alla specifica, oltre a quella in url_invocazione."
+          type: array
+          items:
+            $ref: "#/components/schemas/UrlInvocazioneAggiuntivaRisolta"
         operations:
           type: array
           items:
@@ -6237,6 +6413,53 @@ components:
             $ref: "#/components/schemas/ProprietaCustom"
         url_invocazione:
           $ref: "#/components/schemas/String255"
+    ConfigurazioneUrlInvocazione:
+      description: "URL di invocazione (o di esposizione) disponibili per le API, censite per ambiente. Alla singola specifica di collaudo o di produzione si associano le URL scelte fra queste, oltre a quella predefinita."
+      type: "object"
+      properties:
+        etichetta_default:
+          description: "Etichetta con cui presentare la URL di invocazione predefinita, quella risolta dalla gerarchia api, servizio, dominio, soggetto referente e configurazione."
+          $ref: "#/components/schemas/String255"
+        collaudo:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigurazioneUrlInvocazioneAmbiente"
+        produzione:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigurazioneUrlInvocazioneAmbiente"
+    ConfigurazioneUrlInvocazioneAmbiente:
+      description: "URL di invocazione disponibile in un ambiente. I campi non valorizzati sono ereditati dalla URL predefinita: per esporre lo stesso path su un altro gateway e` sufficiente indicarne il prefisso."
+      type: "object"
+      required:
+        - identificativo
+        - etichetta
+      properties:
+        identificativo:
+          description: "Identificativo della URL, univoco nell'ambito dell'ambiente. E` il valore associato alla specifica dell'API; 'default' e` riservato alla URL predefinita."
+          $ref: "#/components/schemas/String255"
+        etichetta:
+          description: "Nome con cui la URL viene presentata (ad esempio il gateway o la rete di esposizione)."
+          $ref: "#/components/schemas/String255"
+        url_prefix:
+          description: "Prefisso della URL. Se assente si usa quello della URL predefinita per l'ambiente."
+          $ref: "#/components/schemas/String255"
+        template_url:
+          description: "Template della URL, con gli stessi placeholder della URL predefinita. Se assente si usa quello della URL predefinita."
+          $ref: "#/components/schemas/String255"
+    UrlInvocazioneAggiuntivaRisolta:
+      description: "URL di invocazione dell'API gia` risolta, con identificativo ed etichetta della voce di configurazione da cui deriva."
+      type: "object"
+      required:
+        - identificativo
+        - url_invocazione
+      properties:
+        identificativo:
+          $ref: "#/components/schemas/String255"
+        etichetta:
+          $ref: "#/components/schemas/String255"
+        url_invocazione:
+          $ref: "#/components/schemas/URL"
     UrlInvocazioneAPI:
       type: "object"
       required:
@@ -6244,6 +6467,11 @@ components:
       properties:
         url_invocazione:
           $ref: "#/components/schemas/URL"
+        url_invocazione_aggiuntive:
+          description: "Ulteriori URL di invocazione associate alla specifica, oltre a quella in url_invocazione, nell'ordine di selezione."
+          type: array
+          items:
+            $ref: "#/components/schemas/UrlInvocazioneAggiuntivaRisolta"
     Configurazione:
       type: "object"
       required:
@@ -6435,17 +6663,19 @@ components:
             $ref: "#/components/schemas/ConfigurazioneStepWizardSezione"
     ConfigurazioneStepWizard:
       type: "object"
+      description: "Fase del wizard. Lo schema è condiviso fra i wizard delle diverse entità (adesione, servizio, package): gli stati elencati sono quelli del workflow dell'entità a cui appartiene il blocco."
       required:
         - code
         - descrizione
-        - stati_adesione
+        - stati
         - sezioni_attive
       properties:
         code:
           $ref: "#/components/schemas/String255"
         descrizione:
           $ref: "#/components/schemas/String255"
-        stati_adesione:
+        stati:
+          description: "Stati del workflow dell'entità che ricadono in questa fase. In precedenza denominato 'stati_adesione', ancora accettato in lettura ma deprecato."
           type: array
           items:
             $ref: "#/components/schemas/ConfigurazioneNomeStato"
@@ -6455,16 +6685,18 @@ components:
             $ref: "#/components/schemas/String255"
     ConfigurazioneStepWizardSezione:
       type: "object"
+      description: "Sotto-fase (sub-step) di una fase del wizard. Schema condiviso fra le entità, come ConfigurazioneStepWizard."
       required:
         - code
         - descrizione
-        - stati_adesione
+        - stati
       properties:
         code:
           $ref: "#/components/schemas/String255"
         descrizione:
           $ref: "#/components/schemas/String255"
-        stati_adesione:
+        stati:
+          description: "Stati del workflow dell'entità che ricadono in questa sotto-fase. In precedenza denominato 'stati_adesione', ancora accettato in lettura ma deprecato."
           type: array
           items:
             $ref: "#/components/schemas/ConfigurazioneNomeStato"
@@ -6489,8 +6721,10 @@ components:
         canale_default:
           $ref: "#/components/schemas/String255"
         profilo_govway:
+          description: "Profilo di interoperabilità GovWay (tipo gateway del soggetto, es. APIGateway, ModIPA) a cui il profilo è limitato. Se assente il profilo è compatibile con qualsiasi profilo di interoperabilità. Usato anche per le interrogazioni al monitoraggio."
           type: "string"
         tipo_dominio:
+          description: "Limita il profilo ai servizi di erogazione (interno) o di fruizione (esterno). Se assente il profilo è utilizzabile in entrambi i casi."
           $ref: "#/components/schemas/ConfigurazioneTipoDominioEnum"
         domini:
           type: array
@@ -6502,6 +6736,23 @@ components:
             type: "string"
         codice_token_policy:
           type: "string"
+        proprieta_token_policy:
+          description: "Proprietà custom dell'API, riservata al gestore, che contiene il nome della token policy GovWay da associare all'applicativo configurato dal batch per le adesioni con questo profilo. Non va confusa con codice_token_policy, che individua la token policy esposta all'aderente in token_policies. Se assente il batch non ricava alcuna token policy dall'API."
+          $ref: "#/components/schemas/ConfigurazioneRiferimentoProprietaCustom"
+        proprieta_custom:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigurazioneCustomProprieta"
+    ConfigurazioneRiferimentoProprietaCustom:
+      type: "object"
+      required:
+        - nome_gruppo
+        - nome_proprieta
+      properties:
+        nome_gruppo:
+          $ref: "#/components/schemas/String255"
+        nome_proprieta:
+          $ref: "#/components/schemas/String255"
     ConfigurazionePdndType:
       type: "object"
       required:
@@ -6876,10 +7127,15 @@ components:
           type: "array"
           items:
             $ref: "#/components/schemas/ConfigurazioneTokenPolicy"
+        url_invocazione:
+          $ref: "#/components/schemas/ConfigurazioneUrlInvocazione"
         proprieta_custom:
           type: array
           items:
             $ref: "#/components/schemas/ConfigurazioneCustomProprietaList"
+        proprieta_profilo_govway:
+          description: "Proprietà custom dell'API, riservata al gestore, che ridefinisce il profilo di interoperabilità GovWay dell'API (valori di TipoSoggettoGateway) al posto di quello del soggetto. Se assente la ridefinizione non è abilitata."
+          $ref: "#/components/schemas/ConfigurazioneRiferimentoProprietaCustom"
         vetrina:
           type: array
           items:
@@ -6998,6 +7254,18 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ConfigurazioneNomeStato'
+        step_wizard:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigurazioneStepWizard"
+        step_wizard_collaudo:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigurazioneStepWizardSezione"
+        step_wizard_produzione:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigurazioneStepWizardSezione"
     ConfigurazioneGenerico:
       type: "object"
       required:
@@ -7068,6 +7336,18 @@ components:
           type: "array"
           items:
             $ref: "#/components/schemas/ConfigurazioneDatoSempreModificabile"
+        step_wizard:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigurazioneStepWizard"
+        step_wizard_collaudo:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigurazioneStepWizardSezione"
+        step_wizard_produzione:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigurazioneStepWizardSezione"
     ConfigurazioneNomeStato:
       $ref: "#/components/schemas/String255"
     ConfigurazioneClasseDato:
@@ -7083,6 +7363,8 @@ components:
         - produzione_configurato
         - collaudo_pdnd
         - produzione_pdnd
+        - api
+        - comunicazioni
     VisibilitaRichiedenteReferentiEnum:
       type: "string"
       enum:
@@ -7249,7 +7531,7 @@ components:
           $ref: "#/components/schemas/PdndVersionEnum"
     PdndVersionEnum:
       type: "string"
-      description: "Versione delle API PDND utilizzate dall'integrazione. Se non indicata vale v1."
+      description: "Versione delle API PDND utilizzate dall'integrazione. Se non indicata vale v3."
       enum:
         - v1
         - v3
@@ -7611,6 +7893,10 @@ components:
         collaudo:
           $ref: '#/components/schemas/GrantType'
         produzione:
+          $ref: '#/components/schemas/GrantType'
+        api:
+          $ref: '#/components/schemas/GrantType'
+        comunicazioni:
           $ref: '#/components/schemas/GrantType'
     GrantType:
       type: "string"
@@ -9697,6 +9983,13 @@ components:
         skip_collaudo:
           type: "boolean"
           default: false
+        multi_adesione:
+          type: "boolean"
+          description: "Se true, tutti i servizi del dominio devono essere multi adesione"
+        adesione_disabilitata:
+          type: "boolean"
+          description: "Se true, tutti i servizi del dominio devono avere l'adesione disabilitata.\
+            \ Considerato solo se la configurazione consente servizi non sottoscrivibili"
         url_invocazione:
           $ref: "#/components/schemas/String255"
         url_prefix_collaudo:
@@ -9729,6 +10022,13 @@ components:
         skip_collaudo:
           type: "boolean"
           default: false
+        multi_adesione:
+          type: "boolean"
+          description: "Se true, tutti i servizi del dominio devono essere multi adesione"
+        adesione_disabilitata:
+          type: "boolean"
+          description: "Se true, tutti i servizi del dominio devono avere l'adesione disabilitata.\
+            \ Considerato solo se la configurazione consente servizi non sottoscrivibili"
         url_invocazione:
           $ref: "#/components/schemas/String255"
         url_prefix_collaudo:
@@ -9760,6 +10060,13 @@ components:
         skip_collaudo:
           type: "boolean"
           default: false
+        multi_adesione:
+          type: "boolean"
+          description: "Se true, tutti i servizi del dominio devono essere multi adesione"
+        adesione_disabilitata:
+          type: "boolean"
+          description: "Se true, tutti i servizi del dominio devono avere l'adesione disabilitata.\
+            \ Considerato solo se la configurazione consente servizi non sottoscrivibili"
         url_invocazione:
           $ref: "#/components/schemas/String255"
         url_prefix_collaudo:
@@ -9795,6 +10102,13 @@ components:
         skip_collaudo:
           type: "boolean"
           default: false
+        multi_adesione:
+          type: "boolean"
+          description: "Se true, tutti i servizi del dominio devono essere multi adesione"
+        adesione_disabilitata:
+          type: "boolean"
+          description: "Se true, tutti i servizi del dominio devono avere l'adesione disabilitata.\
+            \ Considerato solo se la configurazione consente servizi non sottoscrivibili"
         vincola_skip_collaudo:
           type: "boolean"
         url_invocazione:
@@ -9907,6 +10221,15 @@ components:
       enum:
         - API
         - Generico
+    FiltroArchiviatiEnum:
+      type: "string"
+      description: "Trattamento dei servizi in stato archiviato: 'escludi' li omette\
+        \ dai risultati, 'includi' li aggiunge a quelli negli altri stati, 'solo'\
+        \ restituisce esclusivamente gli archiviati"
+      enum:
+        - escludi
+        - includi
+        - solo
     ItemServizio:
       type: "object"
       required:
@@ -10041,6 +10364,26 @@ components:
           $ref: "#/components/schemas/String255"
         commento:
           $ref: "#/components/schemas/String255"
+    StatoMessaggioServizioUpdate:
+      type: "object"
+      required:
+        - "stato"
+        - "messaggio"
+      properties:
+        stato:
+          $ref: "#/components/schemas/StatoUpdate"
+        messaggio:
+          $ref: "#/components/schemas/MessaggioCreate"
+    StatoMessaggioAdesioneUpdate:
+      type: "object"
+      required:
+        - "stato"
+        - "messaggio"
+      properties:
+        stato:
+          $ref: "#/components/schemas/StatoUpdate"
+        messaggio:
+          $ref: "#/components/schemas/MessaggioAdesioneCreate"
     Servizio:
       type: "object"
       required:
@@ -10737,6 +11080,26 @@ components:
         nome_gruppo:
           type: "string"
           description: "Nome del gruppo eventualmente associato al disclaimer nello yaml di configurazione; null se non specificato"
+    ServizioDisclaimer:
+      type: "object"
+      required:
+        - "disclaimer"
+        - "contesto"
+        - "severity"
+      properties:
+        disclaimer:
+          type: "string"
+          description: "Testo del disclaimer in formato Markdown"
+        contesto:
+          $ref: "#/components/schemas/DisclaimerContestoEnum"
+        severity:
+          $ref: "#/components/schemas/DisclaimerSeverityEnum"
+        profilo:
+          type: "string"
+          description: "Codice interno del profilo associato al disclaimer, se il disclaimer e' specifico per un profilo; null altrimenti"
+        nome_gruppo:
+          type: "string"
+          description: "Nome del gruppo eventualmente associato al disclaimer nello yaml di configurazione; null se non specificato"
     AdesioneCreate:
       type: object
       required:
@@ -11206,6 +11569,13 @@ components:
       required: false
       schema:
         type: "boolean"
+    api_erogate_aderente_query_optional:
+      name: "api_erogate_aderente"
+      in: "query"
+      description: "true: servizi con almeno una API erogata dal soggetto aderente; false: servizi senza API erogate dal soggetto aderente"
+      required: false
+      schema:
+        type: "boolean"
     tipo_gruppo_query_optional:
       name: "tipo_gruppo"
       in: "query"
@@ -11418,6 +11788,25 @@ components:
         type: array
         items:
           $ref: "#/components/schemas/GenericSearchString"
+    stato_servizio_query_optional:
+      name: "stato_servizio"
+      in: "query"
+      description: "Stato del servizio a cui si riferisce l'adesione"
+      required: false
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/GenericSearchString"
+    archiviati_query_optional:
+      name: "archiviati"
+      in: "query"
+      description: "Trattamento dei servizi in stato archiviato. In assenza del parametro\
+        \ gli archiviati sono esclusi, a meno che il filtro 'stato' non li richieda\
+        \ esplicitamente. Utilizzabile solo dal gestore: per gli altri ruoli i servizi\
+        \ archiviati restano comunque esclusi"
+      required: false
+      schema:
+        $ref: "#/components/schemas/FiltroArchiviatiEnum"
     stato_client_query_optional:
       name: "stato"
       in: "query"

@@ -23,12 +23,14 @@ import { SafeUrl } from '@angular/platform-browser';
 import { TranslateService } from '@ngx-translate/core';
 import * as _ from 'lodash';
 
+import { CropPreviewComponent } from '../crop-preview/crop-preview.component';
+
 @Component({
   selector: 'app-photo-base64',
   templateUrl: './photo-base64.component.html',
   styleUrls: ['./photo-base64.component.scss'],
   standalone: true,
-  imports: [CommonModule]
+  imports: [CommonModule, CropPreviewComponent]
 })
 export class PhotoBase64Component implements OnChanges {
 
@@ -41,6 +43,8 @@ export class PhotoBase64Component implements OnChanges {
   @Input() removeLabel: string = 'Remove';
   @Input() uploadLabel: string = 'Carica immagine';
   @Input() fileTypes: string[] = ['image/png', 'image/jpeg'];
+  /** Proporzione (larghezza/altezza) in cui l'immagine viene mostrata altrove: evidenzia la parte che resta visibile. */
+  @Input() cropRatio: number | null = null;
 
   @Output() imageLoaded: EventEmitter<any> = new EventEmitter();
 

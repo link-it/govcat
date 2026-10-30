@@ -50,6 +50,7 @@ import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { MarkdownModule } from 'ngx-markdown';
+import { LnkCollapsibleTextComponent } from '@app/components/lnk-ui/collapsible-text/collapsible-text.component';
 import { Observable } from 'rxjs';
 
 import { COMPONENTS_IMPORTS } from '@linkit/components';
@@ -172,6 +173,7 @@ export type ClientAuthFormLayout = 'vertical' | 'horizontal';
         NgSelectModule,
         MarkAsteriskDirective,
         MarkdownModule,
+        LnkCollapsibleTextComponent,
         LnkFormLiveSearchComponent,
     ],
 })
@@ -349,14 +351,46 @@ export class ClientAuthFormComponent implements OnChanges {
         return this.input?.currentServiceClient === this.f['credenziali']?.value;
     }
 
-    /** Lista client reali (esclude meta-voci del toggle). */
+    private _managedClientsCache: Array<{ id_client: any; nome: string }> = [];
+    private static readonly NO_AUTH_TYPES: string[] = [];
+
+    /**
+     * Lista client reali (esclude meta-voci del toggle). Il riferimento resta
+     * stabile finche' il contenuto non cambia: ng-select perde la selezione se
+     * `[items]` cambia a ogni change detection.
+     */
     get managedClients(): Array<{ id_client: any; nome: string }> {
-        return (this.input?.clientsRiuso ?? []).filter((c) =>
+        const next = (this.input?.clientsRiuso ?? []).filter((c) =>
             c.id_client !== SelectedClientEnum.NuovoCliente
             && c.id_client !== SelectedClientEnum.UsaClientEsistente
             && c.id_client !== null
             && c.id_client !== undefined
         );
+        const cache = this._managedClientsCache;
+        if (next.length !== cache.length || next.some((c, i) => c !== cache[i])) {
+            this._managedClientsCache = next;
+        }
+        return this._managedClientsCache;
+    }
+
+    /** Tipi di autenticazione con riferimento stabile per ng-select. */
+    get authTypeItems(): string[] {
+        return this.input?.authTypes ?? ClientAuthFormComponent.NO_AUTH_TYPES;
+    }
+
+    /**
+     * Client selezionato nel dropdown dei client esistenti. Il valore sentinella
+     * "client gia' censito" non e' un client: viene mostrato come nessuna selezione.
+     */
+    get credenzialiClientId(): any {
+        const value = this.f['credenziali']?.value;
+        return this.managedClients.some((c) => c.id_client === value) ? value : null;
+    }
+    set credenzialiClientId(id: any) {
+        const ctrl = this.f['credenziali'];
+        ctrl?.setValue(id);
+        ctrl?.markAsDirty();
+        this.changeCredenziali.emit(id);
     }
 
     /** True quando il toggle "Client gia' censito" e' selezionato. */

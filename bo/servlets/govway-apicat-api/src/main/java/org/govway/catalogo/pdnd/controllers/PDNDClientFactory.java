@@ -34,11 +34,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
  * dell'API PDND indicata da {@code generale.pdnd_version} nella configurazione.
  *
  * Valori ammessi: {@code v1} (API Interoperability API Gateway v1) e {@code v3}
- * (API PDND core v3). In mancanza dell'indicazione si utilizza la v1.
+ * (API PDND core v3). In mancanza dell'indicazione si utilizza la v3.
  */
 public class PDNDClientFactory {
 
-	private static final PdndVersionEnum VERSIONE_DEFAULT = PdndVersionEnum.V1;
+	/** Versione utilizzata quando {@code generale.pdnd_version} non e' indicata nella configurazione. */
+	public static final PdndVersionEnum VERSIONE_DEFAULT = PdndVersionEnum.V3;
 
 	private Logger logger = LoggerFactory.getLogger(PDNDClientFactory.class);
 

@@ -115,7 +115,7 @@ public class ConfigurazioneItemProcessorTest {
         // Mock soggettoDTOFactory
         when(soggettoDTOFactory.getNomeGateway(any(SoggettoEntity.class)))
             .thenReturn("TestGateway");
-        when(soggettoDTOFactory.getTipoGateway(any(SoggettoEntity.class)))
+        when(soggettoDTOFactory.getTipoGateway(any(SoggettoEntity.class), any()))
             .thenReturn("ModI");
         
         // Mock the configurazioneExecutor method to return our mock
@@ -235,7 +235,7 @@ public class ConfigurazioneItemProcessorTest {
         // Mock soggettoDTOFactory
         when(soggettoDTOFactory.getNomeGateway(any(SoggettoEntity.class)))
             .thenReturn("TestGateway");
-        when(soggettoDTOFactory.getTipoGateway(any(SoggettoEntity.class)))
+        when(soggettoDTOFactory.getTipoGateway(any(SoggettoEntity.class), any()))
             .thenReturn("ModI");
         
         // Mock the configurazioneExecutor method to return our mock
@@ -274,7 +274,7 @@ public class ConfigurazioneItemProcessorTest {
         // Mock soggettoDTOFactory
         when(soggettoDTOFactory.getNomeGateway(any(SoggettoEntity.class)))
             .thenReturn("TestGateway");
-        when(soggettoDTOFactory.getTipoGateway(any(SoggettoEntity.class)))
+        when(soggettoDTOFactory.getTipoGateway(any(SoggettoEntity.class), any()))
             .thenReturn("ModI");
         
         // Mock the configurazioneExecutor method to return our mock

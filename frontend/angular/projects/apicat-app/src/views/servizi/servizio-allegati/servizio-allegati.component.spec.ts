@@ -1093,13 +1093,14 @@ describe('ServizioAllegatiComponent', () => {
       expect(result).toBe(false);
     });
 
-    it('_canAddMapper should delegate to authenticationService.canAdd', () => {
-      component.service = { stato: 'pubblicato' };
+    it('_canAddMapper should depend on the writable attachment types of the grant', () => {
       component._grant = { ruoli: ['referente'] } as any;
-      mockAuthService.canAdd.mockReturnValue(true);
-      const result = component._canAddMapper();
-      expect(mockAuthService.canAdd).toHaveBeenCalledWith('servizio', 'pubblicato', ['referente']);
-      expect(result).toBe(true);
+      mockAuthService.tipologieAllegatoScrivibili = vi.fn().mockReturnValue(['specifica']);
+      component._showAllAttachments = true;
+      expect(component._canAddMapper()).toBe(true);
+      component._showAllAttachments = false;
+      expect(component._canAddMapper()).toBe(false);
+      expect(mockAuthService.tipologieAllegatoScrivibili).toHaveBeenCalledWith(component._grant);
     });
 
     it('_canEditMapper should delegate to authenticationService.canEdit', () => {

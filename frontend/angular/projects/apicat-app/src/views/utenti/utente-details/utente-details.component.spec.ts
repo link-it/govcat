@@ -70,6 +70,7 @@ describe('UtenteDetailsComponent', () => {
     // determinare se l'approvatore puo` scegliere il ruolo target
     // (gestore/coordinatore) o e` forzato a operatore_api (AMM_ORG).
     const mockAuthenticationService = {
+      isPdndV3: vi.fn().mockReturnValue(false),
       isGestore: vi.fn().mockReturnValue(true),
       isCoordinatore: vi.fn().mockReturnValue(false)
     };
@@ -351,13 +352,6 @@ describe('UtenteDetailsComponent', () => {
       component._utente = new Utente({ stato: Stato.ABILITATO });
       component._initForm({ referente_tecnico: true });
       expect(component._formGroup.get('referente_tecnico')!.value).toBe(true);
-    });
-
-    it('should create form control for referente_tecnico defaulting to false', () => {
-      component._isEdit = false;
-      component._utente = new Utente({ stato: Stato.ABILITATO });
-      component._initForm({ referente_tecnico: null });
-      expect(component._formGroup.get('referente_tecnico')!.value).toBe(false);
     });
 
     it('should create default form controls for unknown keys', () => {
@@ -692,6 +686,35 @@ describe('UtenteDetailsComponent', () => {
       };
       const result = component._prapareData(body);
       expect(result.classi_utente).toBeNull();
+    });
+
+    it('should send back every organization of an existing user, not only the first one', () => {
+      component._isNew = false;
+      component.utente = {
+        organizzazioni: [
+          { organizzazione: { id_organizzazione: 'o-rt', nome: 'RegioneToscana' }, ruolo_organizzazione: 'operatore_api' },
+          { organizzazione: { id_organizzazione: 'o-estar', nome: 'ESTAR' }, ruolo_organizzazione: 'amministratore_organizzazione' }
+        ]
+      } as any;
+      const body = { nome: 'Davide', ruolo: Ruolo.UTENTE_ORGANIZZAZIONE, classi_utente: null, id_organizzazione: 'o-rt', ruolo_organizzazione: 'operatore_api' };
+
+      const result = component._prapareData(body);
+
+      expect(result.organizzazioni).toEqual([
+        { id_organizzazione: 'o-rt', ruolo_organizzazione: 'operatore_api' },
+        { id_organizzazione: 'o-estar', ruolo_organizzazione: 'amministratore_organizzazione' }
+      ]);
+      expect(result.id_organizzazione).toBeUndefined();
+      expect(result.ruolo_organizzazione).toBeUndefined();
+    });
+
+    it('should use the selected organization when creating a user', () => {
+      component._isNew = true;
+      const body = { nome: 'Nuovo', ruolo: Ruolo.UTENTE_ORGANIZZAZIONE, classi_utente: null, id_organizzazione: 'o-rt', ruolo_organizzazione: 'operatore_api' };
+
+      const result = component._prapareData(body);
+
+      expect(result.organizzazioni).toEqual([{ id_organizzazione: 'o-rt', ruolo_organizzazione: 'operatore_api' }]);
     });
   });
 
@@ -1380,6 +1403,31 @@ describe('UtenteDetailsComponent', () => {
       onCloseSub.next(false);
 
       expect(mockApiService.deleteElementRelated).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('opzioni ng-select con voce "nessun ruolo"', () => {
+    it('should map _approvingRole to and from the option objects', () => {
+      component._approvingRole = '';
+      expect(component._approvingRoleOption?.labelKey).toBe('APP.RUOLI.NessunRuolo');
+
+      component._approvingRoleOption = component._approvingRoleOptions[1];
+      expect(component._approvingRole).toBe(RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+      expect(component._approvingRoleOption).toBe(component._approvingRoleOptions[1]);
+
+      component._approvingRoleOption = null;
+      expect(component._approvingRole).toBe('');
+    });
+
+    it('should map ruolo_organizzazione to and from the option objects', () => {
+      component._initForm({ ruolo_organizzazione: null });
+      expect(component._ruoloOrgOption).toBe(component._ruoloOrgOptions[0]);
+
+      component._ruoloOrgOption = component._ruoloOrgOptions[2];
+      expect(component._formGroup.get('ruolo_organizzazione')?.value).toBe(RuoloOrganizzazione.OPERATORE_API);
+
+      component._ruoloOrgOption = component._ruoloOrgOptions[0];
+      expect(component._formGroup.get('ruolo_organizzazione')?.value).toBeNull();
     });
   });
 });

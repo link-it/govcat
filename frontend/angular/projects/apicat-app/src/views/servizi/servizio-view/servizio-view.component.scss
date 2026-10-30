@@ -27,12 +27,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 }
 
 // Issue #332 — Barra URL di esposizione nella dialog API (stile card moderno).
+.url-esposizione-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+.url-esposizione-list__title {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-3, #57738a);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
 .url-esposizione {
     display: flex;
     align-items: center;
     gap: 12px;
     padding: 12px 14px;
-    margin-bottom: 20px;
     background: var(--surface-2, #f8fafc);
     border: 1px solid var(--line, #e2e8f0);
     border-radius: 12px;
@@ -465,6 +477,9 @@ word-break: break-word;
     font-size: 12px;
     white-space: nowrap;
     text-decoration: none;
+    // a11y (WCAG 1.4.3): il blu link Bootstrap #007bff su bianco e` 3.97:1
+    // (insufficiente a 12px); #0056b3 ~5.6:1.
+    color: #0056b3;
 }
 .lnk-vetrina .gruppi-toggle .bi { margin-right: 4px; }
 
@@ -532,3 +547,142 @@ word-break: break-word;
 /* Distinzione gruppi di appartenenza vs sottogruppi (figli)/antenati. */
 .lnk-vetrina .gruppo-node--membership { font-weight: 600; color: var(--ink-1, inherit); }
 .lnk-vetrina .gruppo-node--other { color: var(--ink-2); font-weight: 400; }
+
+// Allegati del servizio (sidebar) e dell'API (menu nella dialog)
+@media (max-width: 1080px) {
+    .lnk-vetrina .layout > aside { order: 2; padding-bottom: 48px; }
+    .lnk-vetrina .layout > section { padding-bottom: 0; }
+}
+.allegati-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.allegato {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    padding: 8px 8px 8px 10px;
+    border-radius: 10px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+}
+.allegato__ext {
+    flex: 0 0 34px;
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    background: var(--brand-soft-2);
+    color: var(--brand);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+.allegato__body {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.allegato__name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.allegato__meta {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11.5px;
+    color: var(--ink-3);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.allegato__meta .bi-lock { color: var(--warn-ink); }
+.allegato__download {
+    flex: 0 0 36px;
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--ink-2);
+    cursor: pointer;
+}
+.allegato__download:hover:not(:disabled) { background: var(--surface-3); }
+.allegato__download:focus-visible,
+.allegati-toggle:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--brand);
+}
+.allegato__download:disabled { opacity: .6; cursor: default; }
+.allegati-toggle {
+    margin-top: 10px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--brand);
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.api-allegati-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.api-allegati-count {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--ink-3);
+    background: var(--surface-3);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 1px 7px;
+}
+.api-allegati-menu {
+    width: 380px;
+    max-width: calc(100vw - 32px);
+}
+.api-allegati-menu .api-allegati-menu__title {
+    padding: 6px 16px 4px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+.api-allegati-menu .api-allegato {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    white-space: normal;
+}
+.api-allegato .bi-download { color: var(--ink-2); }
+@media (max-width: 575.98px) {
+    #api-allegati-menu { position: static; }
+    .api-allegati-menu.dropdown-menu {
+        left: 16px !important;
+        right: 16px !important;
+        top: 100% !important;
+        width: auto;
+    }
+}

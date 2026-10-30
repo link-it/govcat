@@ -220,7 +220,7 @@ export class ServizioApiPdndInformationsComponent implements OnInit, AfterConten
             next: (response: any) => {
               this.service = response;
               this._initBreadcrumb();
-              this._spin = false;
+              // Lo spinner resta attivo fino alla scelta dell'ambiente (evita il messaggio vuoto intermedio)
               this._loadServizioApi();
             },
             error: (error: any) => {
@@ -231,6 +231,7 @@ export class ServizioApiPdndInformationsComponent implements OnInit, AfterConten
         },
         error: (error: any) => {
           Tools.OnError(error);
+          this._spin = false;
         }
       });
     }
@@ -247,8 +248,11 @@ export class ServizioApiPdndInformationsComponent implements OnInit, AfterConten
         },
         error: (error: any) => {
           Tools.OnError(error);
+          this._spin = false;
         }
       });
+    } else {
+      this._spin = false;
     }
   }
 
@@ -318,6 +322,8 @@ export class ServizioApiPdndInformationsComponent implements OnInit, AfterConten
     if (!(this._hasTabCollaudo && this._hasTabProduzione)) {
       this._hasTabCollaudo ? this._showCollaudo() : this._showProduzione();
     }
+    // Con un e-service da mostrare lo spinner lo spegne la vista al termine del caricamento
+    if (!this.eserviceId || !this.environmentId) { this._spin = false; }
   }
 
   onActionMonitor(event: any) {

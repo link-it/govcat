@@ -17,6 +17,7 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <div id="route-section" class="">
+  @if (!embedded) {
   <div class="top-area container-fluid container-limited limit-container-width px-0">
     <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" [classContainer]="'limit-container-width'" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
     <div class="d-flex flex-grow-1">&nbsp;</div>
@@ -155,7 +156,8 @@
     </div>
 
   </div>
-  <section class="container-fluid container-limited limit-container-width container-scroller container-scroller-no-search">
+  }
+  <section class="container-fluid container-limited limit-container-width" [class.container-scroller]="!embedded" [class.container-scroller-no-search]="!embedded">
     @if (_spin && !_isNew) {
       <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3"></ui-box-spinner>
     }
@@ -171,6 +173,9 @@
     @if (servizioApi || _isNew) {
       <div class="settings">
         <div class="settings-content">
+          @if (embedded && _isNew) {
+            <h4 class="gl-mt-0 text-break">{{ 'APP.TITLE.NewApi' | translate }}</h4>
+          }
           @if (!_isEdit && _error) {
             <div class="gl-alert gl-alert-danger col-md-12 mb-5">
               @if (!_errors.length) {
@@ -183,14 +188,17 @@
           }
           <div class="edit-form">
             <form novalidate class="issue-form common-note-form mt-3 gl-show-field-errors gfm-form" [class.form-readonly]="!_isEdit" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
+              @if (_isEdit && _campiBloccati) {
+                <p class="form-text text-muted mb-0"><i class="bi bi-info-circle me-1" aria-hidden="true"></i>{{ 'APP.MESSAGE.ApiModificabiliSoloDescrizioneNote' | translate }}</p>
+              }
               <div class="row gl-mt-3" [class.justify-content-center]="_isNew || _singleColumn">
-                @if (!_isNew) {
+                @if (!_isNew && !embedded) {
                   <div class="" [class.col-lg-4]="!_singleColumn" [class.col-lg-9]="_singleColumn" [class.mb-5]="_singleColumn">
                     <h4 class="gl-mt-0 text-break">{{ 'APP.API.TITLE.GeneralInformations' | translate }}</h4>
                     <div class="text-break mb-sm-4 mb-lg-1" markdown>{{ 'APP.API.TITLE.GeneralInformations_sub' | translate }}</div>
                   </div>
                 }
-                <div class="" [class.col-lg-8]="!_singleColumn" [class.col-lg-9]="_singleColumn">
+                <div class="" [class.col-lg-8]="!_singleColumn && !embedded" [class.col-lg-9]="_singleColumn && !embedded" [class.col-lg-12]="embedded">
                   <div class="row">
                     <div [class.col-9]="!hideVersions || _isEdit" [class.col-12]="hideVersions && !_isEdit">
                       <lnk-form-field
@@ -198,7 +206,7 @@
                         [label]="'APP.LABEL.nome' | translate"
                         [formGroup]="_formGroup"
                         [value]="servizioApi?.nome"
-                        [isEdit]="_isEdit"
+                        [isEdit]="_isEdit && !_campiBloccati"
                         [plainText]="true"
                         [helpContext]="'API.POPOVER'"
                       ></lnk-form-field>
@@ -210,7 +218,7 @@
                           [label]="'APP.LABEL.versione' | translate"
                           [formGroup]="_formGroup"
                           [value]="servizioApi?.versione"
-                          [isEdit]="_isEdit"
+                          [isEdit]="_isEdit && !_campiBloccati"
                           [plainText]="true"
                           [helpContext]="'API.POPOVER'"
                         ></lnk-form-field>
@@ -269,20 +277,33 @@
                   }
                   <div class="row">
                     <div class="col-12">
-                      <lnk-form-field
-                        [type]="'select'"
-                        name="ruolo"
-                        [label]="'APP.LABEL.ruolo' | translate"
-                        [selectOptions]="_ruoli"
-                        [clearable]="false"
-                        [placeholder]="'APP.MESSAGE.SelectRole' | translate"
-                        [formGroup]="_formGroup"
-                        [value]="(servizioApi?.ruolo === EROGATO_SOGGETTO_DOMINIO) ? _labelDominio : _labelAderente"
-                        [isEdit]="_isEdit"
-                        [plainText]="true"
-                        [helpContext]="'API.POPOVER'"
-                        (changeEvent)="__changeRuolo($event)"
-                      ></lnk-form-field>
+                      @if (_isEdit && !_campiBloccati) {
+                        <div class="form-group ruolo mb-3">
+                          <label class="label-bold" for="ruolo">{{ 'APP.LABEL.ruolo' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'ruolo'"></span></label>
+                          <ng-select [class.gl-field-error-outline]="_hasControlError('ruolo')" [errorId]="'ruolo-error'"
+                            [items]="_ruoli" bindValue="value" bindLabel="label" labelForId="ruolo"
+                            [searchable]="false" [clearable]="false" [placeholder]="'APP.MESSAGE.SelectRole' | translate"
+                            formControlName="ruolo" (change)="__changeRuolo($event)">
+                          </ng-select>
+                          @if (f['ruolo'].invalid && (f['ruolo'].dirty || f['ruolo'].touched)) {
+                            <p class="form-text text-danger" id="ruolo-error" aria-live="polite">
+                              @if (f['ruolo'].errors?.['required']) { <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span> }
+                            </p>
+                          }
+                        </div>
+                      } @else {
+                        <lnk-form-field
+                          [type]="'select'"
+                          name="ruolo"
+                          [label]="'APP.LABEL.ruolo' | translate"
+                          [selectOptions]="_ruoli"
+                          [formGroup]="_formGroup"
+                          [value]="(servizioApi?.ruolo === EROGATO_SOGGETTO_DOMINIO) ? _labelDominio : _labelAderente"
+                          [isEdit]="false"
+                          [plainText]="true"
+                          [helpContext]="'API.POPOVER'"
+                        ></lnk-form-field>
+                      }
                     </div>
                   </div>
                   @if (_isNew) {
@@ -304,14 +325,16 @@
                           }</label>
                           @if (_isEdit) {
                             <div class="">
-                              <select class="form-select" id="protocollo" formControlName="protocollo" [class.gl-field-error-outline]="_hasControlError('protocollo')" (change)="__protocolloChange()" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
-                                <option value="">{{ 'APP.MESSAGE.SelectInterface' | translate }}</option>
-                                @for (ti of _tipoInterfaccia; track ti) {
-                                  <option [value]="ti.value">{{ ti.label | translate }}</option>
-                                }
-                              </select>
+                              <ng-select [class.gl-field-error-outline]="_hasControlError('protocollo')" [errorId]="'protocollo-error'"
+                                [items]="_tipoInterfaccia" bindValue="value" bindLabel="label" labelForId="protocollo"
+                                [searchable]="false" [clearable]="false" [placeholder]="'APP.MESSAGE.SelectInterface' | translate"
+                                formControlName="protocollo" (change)="__protocolloChange()"
+                                disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                                <ng-template ng-label-tmp let-item="item">{{ item.label | translate }}</ng-template>
+                                <ng-template ng-option-tmp let-item="item">{{ item.label | translate }}</ng-template>
+                              </ng-select>
                               @if (f['protocollo'].invalid && (f['protocollo'].dirty || f['protocollo'].touched)) {
-                                <p class="form-text text-danger">
+                                <p class="form-text text-danger" id="protocollo-error" aria-live="polite">
                                   @if (f['protocollo'].errors && f['protocollo'].errors['required']) {
                                     <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                   }
@@ -329,9 +352,10 @@
                               [control]="_descrittoreCtrl"
                               [label]="'APP.LABEL.specifica' | translate"
                               [required]="_specificaObbligatorio || _hasSpecifica"
+                              [accept]="'.json,.yml,.yaml,.wsdl'"
                               (resetControl)="_onDescrittoreChange(_descrittoreCtrl.value)"
                               (fileChanged)="_onDescrittoreChange(_descrittoreCtrl.value)"
-                              [disabled]="!f['protocollo'].value || !('allegati' | mapper:_canEditFieldMapper)"
+                              [disabled]="!f['protocollo'].value || !('allegati' | mapper:_canEditFieldMapper:service?.stato:_grant)"
                               [maxUpload]="null"
                             ></ui-allegato>
                             <ui-input-help field="filename" context="ALLEGATI"></ui-input-help>
@@ -346,7 +370,7 @@
                     }</label>
                     @if (_isEdit) {
                       <div class="">
-                        <textarea aria-required="true" [attr.aria-invalid]="(_hasControlError('descrizione')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('descrizione')) ? 'descrizione-error' : null" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" name="descrizione" id="descrizione" formControlName="descrizione" rows="4" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant"></textarea>
+                        <textarea aria-required="true" [attr.aria-invalid]="(_hasControlError('descrizione')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('descrizione')) ? 'descrizione-error' : null" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" name="descrizione" id="descrizione" formControlName="descrizione" rows="4"></textarea>
                         @if (f['descrizione'].invalid && (f['descrizione'].dirty || f['descrizione'].touched)) {
                           <p class="form-text text-danger" id="descrizione-error" aria-live="polite">
                             @if (f['descrizione'].errors && f['descrizione'].errors['required']) {
@@ -368,10 +392,10 @@
                   </div>
                   @if (_codiceAssetObbligatorio) {
                     <div class="form-group codice_asset">
-                      <label class="label-bold" for="codice_asset">{{ 'APP.LABEL.codice_asset' | translate }} @if (_isEdit) {
+                      <label class="label-bold" for="codice_asset">{{ 'APP.LABEL.codice_asset' | translate }} @if (_isEdit && !_campiBloccati) {
                         <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'codice_asset'"></span>
                       }</label>
-                      @if (_isEdit) {
+                      @if (_isEdit && !_campiBloccati) {
                         <div class="">
                           <input aria-required="true" [attr.aria-invalid]="(_hasControlError('codice_asset')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('codice_asset')) ? 'codice_asset-error' : null" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('codice_asset')" type="text" name="codice_asset" id="codice_asset" formControlName="codice_asset" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
                           @if (f['codice_asset'].invalid && (f['codice_asset'].dirty || f['codice_asset'].touched)) {
@@ -387,7 +411,7 @@
                           <ui-input-help field="codice_asset" context="API"></ui-input-help>
                         </div>
                       }
-                      @if (!_isEdit) {
+                      @if (!_isEdit || _campiBloccati) {
                         <div class="">
                           <input type="text" readonly class="form-control-plaintext" id="protocollo" [value]="servizioApi?.codice_asset || '-'">
                         </div>
@@ -396,46 +420,50 @@
                   }
                   @if (_isNew && f['ruolo'].value === EROGATO_SOGGETTO_DOMINIO) {
                     <div class="row">
-                      <div class="col-12">
-                        <div class="form-group url_produzione">
-                          <label class="label-bold" for="url_produzione">{{ 'APP.LABEL.url_produzione' | translate }} @if (_isEdit) {
-                            <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'url_produzione'"></span>
-                          }</label>
-                          @if (_isEdit) {
-                            <div class="">
-                              <input aria-required="true" [attr.aria-invalid]="(_hasControlError('url_produzione')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('url_produzione')) ? 'url_produzione-error' : null" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_produzione')" type="text" name="url_produzione" id="url_produzione" formControlName="url_produzione" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
-                              @if (f['url_produzione'].invalid && (f['url_produzione'].dirty || f['url_produzione'].touched)) {
-                                <p class="form-text text-danger" id="url_produzione-error" aria-live="polite">
-                                  @if (f['url_produzione'].errors && f['url_produzione'].errors['required']) {
-                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                  }
-                                </p>
-                              }
-                              <ui-input-help field="url_produzione" context="API"></ui-input-help>
-                            </div>
-                          }
+                      @if (_showUrlCollaudo) {
+                        <div class="col-12">
+                          <div class="form-group url_collaudo">
+                            <label class="label-bold" for="url_collaudo">{{ 'APP.LABEL.url_collaudo' | translate }} @if (_isEdit) {
+                              <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'url_collaudo'"></span>
+                            }</label>
+                            @if (_isEdit) {
+                              <div class="">
+                                <input aria-required="true" [attr.aria-invalid]="(_hasControlError('url_collaudo')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('url_collaudo')) ? 'url_collaudo-error' : null" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_collaudo')" type="text" name="url_collaudo" id="url_collaudo" formControlName="url_collaudo" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                                @if (f['url_collaudo'].invalid && (f['url_collaudo'].dirty || f['url_collaudo'].touched)) {
+                                  <p class="form-text text-danger" id="url_collaudo-error" aria-live="polite">
+                                    @if (f['url_collaudo'].errors && f['url_collaudo'].errors['required']) {
+                                      <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                    }
+                                  </p>
+                                }
+                                <ui-input-help field="url_collaudo" context="API"></ui-input-help>
+                              </div>
+                            }
+                          </div>
                         </div>
-                      </div>
-                      <div class="col-12">
-                        <div class="form-group url_collaudo">
-                          <label class="label-bold" for="url_collaudo">{{ 'APP.LABEL.url_collaudo' | translate }} @if (_isEdit) {
-                            <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'url_collaudo'"></span>
-                          }</label>
-                          @if (_isEdit) {
-                            <div class="">
-                              <input aria-required="true" [attr.aria-invalid]="(_hasControlError('url_collaudo')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('url_collaudo')) ? 'url_collaudo-error' : null" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_collaudo')" type="text" name="url_collaudo" id="url_collaudo" formControlName="url_collaudo" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
-                              @if (f['url_collaudo'].invalid && (f['url_collaudo'].dirty || f['url_collaudo'].touched)) {
-                                <p class="form-text text-danger" id="url_collaudo-error" aria-live="polite">
-                                  @if (f['url_collaudo'].errors && f['url_collaudo'].errors['required']) {
-                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                  }
-                                </p>
-                              }
-                              <ui-input-help field="url_collaudo" context="API"></ui-input-help>
-                            </div>
-                          }
+                      }
+                      @if (_showUrlProduzione) {
+                        <div class="col-12">
+                          <div class="form-group url_produzione">
+                            <label class="label-bold" for="url_produzione">{{ 'APP.LABEL.url_produzione' | translate }} @if (_isEdit) {
+                              <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'url_produzione'"></span>
+                            }</label>
+                            @if (_isEdit) {
+                              <div class="">
+                                <input aria-required="true" [attr.aria-invalid]="(_hasControlError('url_produzione')) ? 'true' : null" [attr.aria-describedby]="(_hasControlError('url_produzione')) ? 'url_produzione-error' : null" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_produzione')" type="text" name="url_produzione" id="url_produzione" formControlName="url_produzione" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                                @if (f['url_produzione'].invalid && (f['url_produzione'].dirty || f['url_produzione'].touched)) {
+                                  <p class="form-text text-danger" id="url_produzione-error" aria-live="polite">
+                                    @if (f['url_produzione'].errors && f['url_produzione'].errors['required']) {
+                                      <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                    }
+                                  </p>
+                                }
+                                <ui-input-help field="url_produzione" context="API"></ui-input-help>
+                              </div>
+                            }
+                          </div>
                         </div>
-                      </div>
+                      }
                     </div>
                   }
                   @if (f['ruolo'].value === EROGATO_SOGGETTO_DOMINIO && (_descrittoreCtrl.value || !_hasSpecifica)) {
@@ -469,23 +497,25 @@
                                   <div class="row">
                                     <div class="col-6">
                                       <div class="form-group">
-                                        <label class="label-bold" [for]="'profilo-' + 1">{{ 'APP.LABEL.AuthPrevista' | translate }} @if (_isEdit) {
+                                        <label class="label-bold" [for]="'profilo-' + authIndex">{{ 'APP.LABEL.AuthPrevista' | translate }} @if (_isEdit && !_campiBloccati) {
                                           <span appMarkAsterisk [formGroup]="afg(authIndex)" [controlName]="'profilo'"></span>
                                         }</label>
-                                        @if (_isEdit) {
+                                        @if (_isEdit && !_campiBloccati) {
                                           <div class="">
-                                            <select class="form-select" [id]="'profilo-' + 1" formControlName="profilo" (change)="_onChangeProfilo($event, authIndex)" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
-                                              <option value="">{{ 'APP.MESSAGE.SelectAuthentication' | translate }}</option>
-                                              @for (ta of _profiliFiltered | authFilter:_authSelected; track ta) {
-                                                <option [value]="ta.codice_interno">{{ ta.etichetta }}</option>
-                                              }
-                                            </select>
+                                            <ng-select [items]="_profiliOptions" bindValue="codice_interno" bindLabel="etichetta" [labelForId]="'profilo-' + authIndex"
+                                              [searchable]="false" [clearable]="false" [placeholder]="'APP.MESSAGE.SelectAuthentication' | translate"
+                                              formControlName="profilo" (change)="_onChangeProfilo($event, authIndex)"
+                                              disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                                            </ng-select>
                                           </div>
                                         }
-                                        @if (!_isEdit) {
+                                        @if (!_isEdit || _campiBloccati) {
                                           <div class="">
-                                            <input type="text" readonly class="form-control-plaintext" id="profilo" [value]="afgc(authIndex)['profilo'].value | mapper:_getProfiloLabelMapper">
+                                            <input type="text" readonly class="form-control-plaintext" [id]="'profilo-' + authIndex" [value]="afgc(authIndex)['profilo'].value | mapper:_getProfiloLabelMapper">
                                           </div>
+                                        }
+                                        @for (d of (afgc(authIndex)['profilo'].value | mapper:_disclaimersProfiloMapper:_disclaimersAttivi); track $index) {
+                                          <app-servizio-disclaimer-banner class="d-block mt-2" [disclaimer]="d"></app-servizio-disclaimer-banner>
                                         }
                                       </div>
                                     </div>
@@ -493,7 +523,7 @@
                                       <div class="col-6">
                                         <label for="risorse" class="label-bold w-100">{{ 'APP.LABEL.Risorse' | translate }} @if (_isEdit) {
                                           <span appMarkAsterisk [formGroup]="afg(authIndex)" [controlName]="'resources'"></span>
-                                          } @if (_isEdit && ('resources' | mapper:_canEditFieldMapper)) {
+                                          } @if (_isEdit && !_campiBloccati && ('resources' | mapper:_canEditFieldMapper:service?.stato:_grant)) {
                                           <span class="float-end" (click)="_changeResources(authIndex)"><i class="bi bi-pencil"></i></span>
                                         }</label>
                                         <select class="form-select" formControlName="resources" multiple size="5" readonly>
@@ -508,15 +538,15 @@
                                   <div class="row">
                                     <div class="col-12">
                                       <div class="form-group">
-                                        <label for="note" class="label-bold">{{ 'APP.LABEL.note' | translate }}</label>
+                                        <label [for]="'note-' + authIndex" class="label-bold">{{ 'APP.LABEL.note' | translate }}</label>
                                         @if (_isEdit) {
                                           <div class="">
-                                            <textarea class="form-control" formControlName="note" rows="2" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant"></textarea>
+                                            <textarea class="form-control" [id]="'note-' + authIndex" formControlName="note" rows="2"></textarea>
                                           </div>
                                         }
                                         @if (!_isEdit) {
                                           <div class="">
-                                            <textarea class="form-control-plaintext" id="note" rows="3"  [placeholder]="'-'" formControlName="note" readonly></textarea>
+                                            <textarea class="form-control-plaintext" [id]="'note-' + authIndex" rows="3"  [placeholder]="'-'" formControlName="note" readonly></textarea>
                                           </div>
                                         }
                                         @if (authTypesArray().at(authIndex).get('note')?.invalid && (authTypesArray().at(authIndex).get('note')?.dirty || authTypesArray().at(authIndex).get('note')?.touched)) {
@@ -529,7 +559,7 @@
                                       </div>
                                     </div>
                                   </div>
-                                  @if ((authIndex > 0) && _isEdit && ('allegati' | mapper:_canEditFieldMapper)) {
+                                  @if ((authIndex > 0) && _isEdit && !_campiBloccati && ('allegati' | mapper:_canEditFieldMapper:service?.stato:_grant)) {
                                     <div class="d-flex justify-content-end">
                                       <button type="button" class="btn gl-button btn-danger " (click)="_removeAuthGroup(authIndex)">
                                         <span>{{ 'APP.BUTTON.Remove' | translate }}</span>
@@ -539,7 +569,7 @@
                                 </div>
                               </div>
                             }
-                            @if (_isEdit && ('allegati' | mapper:_canEditFieldMapper) && _hasSpecifica) {
+                            @if (_isEdit && !_campiBloccati && ('allegati' | mapper:_canEditFieldMapper:service?.stato:_grant) && _hasSpecifica) {
                               <div class="pt-3 border-top">
                                 @if (!_customAuth && !_customAuthOrig) {
                                   <button type="button" class="btn gl-button btn-default" (click)="_onToggleCustomAuth()">
@@ -573,28 +603,40 @@
                       <div class="col-12">
                         @for (apc of _apiProprietaCustomGrouped | keyvalue; track apc) {
                           @if (_apiProprietaCustomGrouped[$any(apc.key)].length) {
-                            <h5 class="pb-2 mb-5 border-bottom">{{ apc.key | mapper:_getGroupLabelMapper }}</h5>
+                            <h3 class="h5 pb-2 mb-5 border-bottom">{{ apc.key | mapper:_getGroupLabelMapper }}</h3>
+                            @for (d of (_apiProprietaCustomGrouped[$any(apc.key)] | mapper:_disclaimersDelGruppoMapper:_disclaimersAttivi); track $index) {
+                              <app-servizio-disclaimer-banner class="mb-3" [disclaimer]="d"></app-servizio-disclaimer-banner>
+                            }
                             @for (cp of _apiProprietaCustomGrouped[$any(apc.key)]; track cp) {
                               <div formArrayName="proprieta_custom" class="row custom-properties-fields">
                                 <div [formArrayName]="cp.nome_gruppo" class="col-12 form-group">
-                                  <label class="label-bold" [for]="cp.nome">{{ cp.etichetta }} @if (_markAsteriskUpdated && _isEdit) {
+                                  <label class="label-bold" [for]="cp.nome">{{ cp.etichetta }} @if (_markAsteriskUpdated && _isEdit && !_campiBloccati) {
                                     <span appMarkAsterisk [formGroup]="acfgc(cp.nome_gruppo)" [controlName]="cp.nome"></span>
+                                    @if (cp._req?.nextState) {
+                                      <span aria-hidden="true">*</span>
+                                    }
+                                    @if (cp._req?.fromState) {
+                                      <i class="bi bi-info-circle ms-1 text-muted" tabindex="0" role="img" [attr.aria-label]="'APP.MESSAGE.VALIDATION.RequiredFromState' | translate: { stato: ('APP.WORKFLOW.STATUS.' + cp._req.fromState | translate) }" [tooltip]="'APP.MESSAGE.VALIDATION.RequiredFromState' | translate: { stato: ('APP.WORKFLOW.STATUS.' + cp._req.fromState | translate) }" container="body"></i>
+                                    }
                                   }</label>
-                                  @if (_isEdit) {
+                                  @if (_isEdit && !_campiBloccati) {
                                     <div class="">
                                       @if (cp.tipo === 'text') {
-                                        <input autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp.nome_gruppo, cp.nome)" [type]="cp.type" [name]="cp.nome" [id]="cp.nome" [formControlName]="cp.nome" disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                                        <input autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp.nome_gruppo, cp.nome)" [type]="cp.type" [name]="cp.nome" [id]="cp.nome" [formControlName]="cp.nome" disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant" [attr.aria-describedby]="cp._req?.nextState ? cp.nome + '-req-hint' : null">
                                       }
                                       @if (cp.tipo === 'select') {
-                                        <select class="form-select" [id]="cp.nome" [formControlName]="cp.nome" [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp.nome_gruppo, cp.nome)" disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
-                                          <option value="">{{ 'APP.MESSAGE.Select' | translate }}</option>
-                                          @for (cpv of cp.valori; track cpv) {
-                                            <option [value]="cpv.nome">{{ cpv.etichetta }}</option>
-                                          }
-                                        </select>
+                                        <ng-select [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp.nome_gruppo, cp.nome)"
+                                          [items]="cp.valori" bindValue="nome" bindLabel="etichetta" [labelForId]="cp.nome"
+                                          [searchable]="false" [clearable]="false" [placeholder]="'APP.MESSAGE.Select' | translate"
+                                          [formControlName]="cp.nome" [errorId]="cp.nome + '-error'" [describedBy]="cp._req?.nextState ? cp.nome + '-req-hint' : null"
+                                          disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                                        </ng-select>
+                                      }
+                                      @if (cp._req?.nextState) {
+                                        <p class="form-text text-muted mb-0" [id]="cp.nome + '-req-hint'">{{ 'APP.MESSAGE.VALIDATION.RequiredForNextState' | translate: { stato: ('APP.WORKFLOW.STATUS.' + cp._req.nextState | translate) } }}</p>
                                       }
                                       @if (acfgc(cp.nome_gruppo).controls[cp.nome]?.invalid && (acfgc(cp.nome_gruppo).controls[cp.nome]?.touched)) {
-                                        <p class="form-text text-danger">
+                                        <p class="form-text text-danger" [id]="cp.nome + '-error'" aria-live="polite">
                                           @if (acfgc(cp.nome_gruppo).controls[cp.nome]?.errors && acfgc(cp.nome_gruppo).controls[cp.nome]?.errors?.required) {
                                             <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                           }
@@ -605,7 +647,7 @@
                                       }
                                     </div>
                                   }
-                                  @if (!_isEdit) {
+                                  @if (!_isEdit || _campiBloccati) {
                                     <div class="">
                                       @if (cp.tipo !== 'select') {
                                         <input type="text" readonly class="form-control-plaintext" [id]="cp.nome" [name]="cp.nome" [value]="acfgc(cp.nome_gruppo).controls[cp.nome].value || '-'">
@@ -625,8 +667,8 @@
                   }
                 </div>
               </div>
-              @if (_isEdit && _error) {
-                <div class="gl-alert gl-alert-danger col-md-12 mt-3">
+              <ng-template #apiFormErrorTpl>
+                <div class="gl-alert gl-alert-danger col-md-12 mt-3" role="alert">
                   @if (!_errors.length) {
                     <span>{{ _errorMsg }}</span>
                   }
@@ -637,19 +679,41 @@
                     ></ui-error-view>
                   }
                 </div>
+              </ng-template>
+              @if (_isEdit && _error && !embedded) {
+                <ng-container *ngTemplateOutlet="apiFormErrorTpl"></ng-container>
               }
               @if (_isEdit) {
-                <div class="row-content-block footer-block">
-                  <button type="submit" class="gl-button btn btn-confirm gl-mr-2" [disabled]="_formGroup.invalid || _spin">
-                    {{ 'APP.BUTTON.Save' | translate }} @if (_spin) {
-                    <span class="spinner-border spinner-border-sm ms-2"></span>
+                @if (embedded) {
+                  <!-- Form inline: footer allineato alle altre form (a destra,
+                       Annulla poi Salva, senza sfondo/padding del blocco). -->
+                  <div class="d-flex justify-content-end gap-2 mt-3">
+                    <button type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">
+                      {{ 'APP.BUTTON.Cancel' | translate }}
+                    </button>
+                    <button type="submit" class="gl-button btn btn-confirm" [disabled]="!_formValido || _spin">
+                      {{ 'APP.BUTTON.Save' | translate }} @if (_spin) {
+                        <span class="spinner-border spinner-border-sm ms-2"></span>
+                      }
+                    </button>
+                  </div>
+                  <!-- Nel wizard l'errore segue i pulsanti, sotto la form. -->
+                  @if (_error) {
+                    <ng-container *ngTemplateOutlet="apiFormErrorTpl"></ng-container>
                   }
-                </button>
-                <button type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">
-                  {{ 'APP.BUTTON.Cancel' | translate }}
-                </button>
-              </div>
-            }
+                } @else {
+                  <div class="row-content-block footer-block">
+                    <button type="submit" class="gl-button btn btn-confirm gl-mr-2" [disabled]="!_formValido || _spin">
+                      {{ 'APP.BUTTON.Save' | translate }} @if (_spin) {
+                      <span class="spinner-border spinner-border-sm ms-2"></span>
+                    }
+                  </button>
+                  <button type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">
+                    {{ 'APP.BUTTON.Cancel' | translate }}
+                  </button>
+                </div>
+                }
+              }
           </form>
         </div>
       </div>

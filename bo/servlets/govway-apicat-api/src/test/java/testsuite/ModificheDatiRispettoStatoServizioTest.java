@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -53,13 +54,22 @@ import org.govway.catalogo.servlets.model.DocumentoUpdate.TipoDocumentoEnum;
 import org.govway.catalogo.servlets.model.DocumentoUpdateNew;
 import org.govway.catalogo.servlets.model.Dominio;
 import org.govway.catalogo.servlets.model.DominioCreate;
+import org.govway.catalogo.servlets.model.AllegatoMessaggio;
+import org.govway.catalogo.servlets.model.AllegatoMessaggioCreate;
+import org.govway.catalogo.servlets.model.Grant;
+import org.govway.catalogo.servlets.model.GrantType;
+import org.govway.catalogo.servlets.model.ItemMessaggio;
+import org.govway.catalogo.servlets.model.MessaggioCreate;
+import org.govway.catalogo.servlets.model.TargetComunicazioneServizioEnum;
 import org.govway.catalogo.servlets.model.Gruppo;
 import org.govway.catalogo.servlets.model.GruppoCreate;
+import org.govway.catalogo.servlets.model.IdentificativoApiUpdate;
 import org.govway.catalogo.servlets.model.IdentificativoServizioUpdate;
 import org.govway.catalogo.servlets.model.Organizzazione;
 import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.ProtocolloEnum;
 import org.govway.catalogo.servlets.model.ReferenteCreate;
+import org.govway.catalogo.servlets.model.RuoloAPIEnum;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.Servizio;
 import org.govway.catalogo.servlets.model.ServizioCreate;
@@ -1248,5 +1258,330 @@ public class ModificheDatiRispettoStatoServizioTest {
         apiUpdate.setConfigurazioneProduzione(apiDatiAmbienteUpdate);
     	ResponseEntity<API> api = apiController.updateApi(idAPI, apiUpdate, null);
     	return api.getBody();
+    }
+
+    // ========================================================================
+    // Classe di dato `api`: governa la composizione della lista delle API del
+    // servizio, ovvero creazione, eliminazione e modifica dell'identificativo
+    // di un'API. Nella configurazione di default e' non modificabile in tutti
+    // gli stati tranne `bozza`, quindi dalla richiesta di configurazione in
+    // collaudo in poi le API sono gestibili al solo gestore.
+    // ========================================================================
+
+    /**
+     * Costruisce una APICreate completa, identica a quella usata da {@link #getAPI()}
+     * ma con nome e versione parametrici, cosi' da poter aggiungere una seconda API
+     * a un servizio che ne ha gia' una.
+     */
+    private APICreate getAPICreate(String nome, Integer versione) {
+    	APICreate apiCreate = CommonUtils.getAPICreate();
+    	apiCreate.setNome(nome);
+    	apiCreate.setVersione(versione);
+    	apiCreate.setIdServizio(idServizio);
+
+    	APIDatiAmbienteCreate apiDatiAmbienteCreate = new APIDatiAmbienteCreate();
+    	apiDatiAmbienteCreate.setProtocollo(ProtocolloEnum.REST);
+
+    	DocumentoCreate documento = new DocumentoCreate();
+    	documento.setContentType("application/yaml");
+    	documento.setContent(Base64.encodeBase64String(CommonUtils.openApiSpec.getBytes()));
+    	documento.setFilename("openapi.yaml");
+    	apiDatiAmbienteCreate.setSpecifica(documento);
+
+    	APIDatiErogazione apiDatiErogazione = new APIDatiErogazione();
+    	apiDatiErogazione.setNomeGateway("APIGateway");
+    	apiDatiErogazione.setVersioneGateway(1);
+    	apiDatiErogazione.setUrlPrefix("http://");
+    	apiDatiErogazione.setUrl("testurl.com/test");
+    	apiDatiAmbienteCreate.setDatiErogazione(apiDatiErogazione);
+
+    	apiCreate.setConfigurazioneCollaudo(apiDatiAmbienteCreate);
+    	apiCreate.setConfigurazioneProduzione(apiDatiAmbienteCreate);
+
+    	return apiCreate;
+    }
+
+    /**
+     * Crea un'ulteriore API sul servizio corrente e allinea il persistence context, cosi' che
+     * la nuova API risulti nella collection del servizio anche ai controlli successivi.
+     */
+    private API creaApi(String nome, Integer versione) {
+    	ResponseEntity<API> response = apiController.createApi(this.getAPICreate(nome, versione));
+    	assertEquals(HttpStatus.OK, response.getStatusCode());
+    	entityManager.flush();
+    	entityManager.clear();
+    	return response.getBody();
+    }
+
+    private API aggiornaIdentificativoApi(UUID idAPI, String nome) {
+    	ApiUpdate apiUpdate = new ApiUpdate();
+    	IdentificativoApiUpdate identificativo = new IdentificativoApiUpdate();
+    	identificativo.setNome(nome);
+    	identificativo.setVersione(CommonUtils.VERSIONE_API);
+    	identificativo.setRuolo(RuoloAPIEnum.ADERENTE);
+    	apiUpdate.setIdentificativo(identificativo);
+    	ResponseEntity<API> api = apiController.updateApi(idAPI, apiUpdate, null);
+    	return api.getBody();
+    }
+
+    @Test
+    public void apiCreabileDaStatoBozzaPerReferenteServizio() {
+    	Dominio dominio = this.getDominio(null);
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	this.getAPI();
+
+    	CommonUtils.getSessionUtente(UTENTE_REFERENTE_SERVIZIO, securityContext, authentication, utenteService);
+
+    	ResponseEntity<API> response = apiController.createApi(this.getAPICreate("altra api", 1));
+    	assertEquals(HttpStatus.OK, response.getStatusCode());
+    	assertNotNull(response.getBody().getIdApi());
+    }
+
+    @Test
+    public void apiNonCreabileDaStatoRichiestoInCollaudoPerReferenteServizio() {
+    	Dominio dominio = this.getDominio(null);
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	this.getAPI();
+
+    	CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+    	CommonUtils.cambioStatoFinoA(STATO_RICHIESTO_IN_COLLAUDO, serviziController, idServizio);
+
+    	CommonUtils.getSessionUtente(UTENTE_REFERENTE_SERVIZIO, securityContext, authentication, utenteService);
+
+    	assertThrows(NotAuthorizedException.class, ()->{
+    		apiController.createApi(this.getAPICreate("altra api", 1));
+	    }, "Tipo di dato [api] non modificabile nello stato ["+STATO_RICHIESTO_IN_COLLAUDO+"]");
+    }
+
+    /**
+     * Il referente di dominio e' `referente_superiore` e nello stato `richiesto_collaudo`
+     * conserva la scrittura sull'identificativo del servizio: deve comunque essere bloccato
+     * sulla creazione di una nuova API, perche' la classe `api` e' non modificabile.
+     */
+    @Test
+    public void apiNonCreabileDaStatoRichiestoInCollaudoPerReferenteDominio() {
+    	Dominio dominio = this.getDominio(null);
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	this.getAPI();
+
+    	CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+    	CommonUtils.cambioStatoFinoA(STATO_RICHIESTO_IN_COLLAUDO, serviziController, idServizio);
+
+    	CommonUtils.getSessionUtente(UTENTE_REFERENTE_DOMINIO, securityContext, authentication, utenteService);
+
+    	assertThrows(NotAuthorizedException.class, ()->{
+    		apiController.createApi(this.getAPICreate("altra api", 1));
+	    }, "Tipo di dato [api] non modificabile nello stato ["+STATO_RICHIESTO_IN_COLLAUDO+"]");
+    }
+
+    @Test
+    public void apiCreabileDaStatoRichiestoInCollaudoPerGestore() {
+    	Dominio dominio = this.getDominio(null);
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	this.getAPI();
+
+    	CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+    	CommonUtils.cambioStatoFinoA(STATO_RICHIESTO_IN_COLLAUDO, serviziController, idServizio);
+
+    	ResponseEntity<API> response = apiController.createApi(this.getAPICreate("altra api", 1));
+    	assertEquals(HttpStatus.OK, response.getStatusCode());
+    	assertNotNull(response.getBody().getIdApi());
+    }
+
+    /**
+     * Il servizio ha due API: la cancellazione di una delle due lascia comunque soddisfatti
+     * i campi obbligatori dello stato, cosi' l'esito dipende dalla sola classe di dato `api`.
+     * {@code deleteAPI} rimuove l'entita' prima di autorizzare, quindi cancellando l'unica API
+     * del servizio scatterebbe la validazione dei campi obbligatori invece del diniego.
+     */
+    @Test
+    public void apiNonEliminabileDaStatoRichiestoInCollaudoPerReferenteDominio() {
+    	Dominio dominio = this.getDominio(null);
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	API api = this.getAPI();
+
+    	CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+    	this.creaApi("altra api", 1);
+
+    	CommonUtils.cambioStatoFinoA(STATO_RICHIESTO_IN_COLLAUDO, serviziController, idServizio);
+
+    	CommonUtils.getSessionUtente(UTENTE_REFERENTE_DOMINIO, securityContext, authentication, utenteService);
+
+    	assertThrows(NotAuthorizedException.class, ()->{
+    		apiController.deleteAPI(api.getIdApi());
+	    }, "Tipo di dato [api] non modificabile nello stato ["+STATO_RICHIESTO_IN_COLLAUDO+"]");
+    }
+
+    @Test
+    public void apiEliminabileDaStatoRichiestoInCollaudoPerGestore() {
+    	Dominio dominio = this.getDominio(null);
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	API api = this.getAPI();
+
+    	CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+    	this.creaApi("altra api", 1);
+
+    	CommonUtils.cambioStatoFinoA(STATO_RICHIESTO_IN_COLLAUDO, serviziController, idServizio);
+
+    	ResponseEntity<Void> response = apiController.deleteAPI(api.getIdApi());
+    	assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void apiEliminabileDaStatoBozzaPerReferenteServizio() {
+    	Dominio dominio = this.getDominio(null);
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	API api = this.getAPI();
+
+    	CommonUtils.getSessionUtente(UTENTE_REFERENTE_SERVIZIO, securityContext, authentication, utenteService);
+
+    	ResponseEntity<Void> response = apiController.deleteAPI(api.getIdApi());
+    	assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void identificativoApiNonModificabileDaStatoRichiestoInCollaudoPerReferenteDominio() {
+    	Dominio dominio = this.getDominio(null);
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	API api = this.getAPI();
+
+    	CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+    	CommonUtils.cambioStatoFinoA(STATO_RICHIESTO_IN_COLLAUDO, serviziController, idServizio);
+
+    	CommonUtils.getSessionUtente(UTENTE_REFERENTE_DOMINIO, securityContext, authentication, utenteService);
+
+    	assertThrows(NotAuthorizedException.class, ()->{
+    		this.aggiornaIdentificativoApi(api.getIdApi(), "nuovo nome api");
+	    }, "Tipo di dato [api] non modificabile nello stato ["+STATO_RICHIESTO_IN_COLLAUDO+"]");
+    }
+
+    @Test
+    public void identificativoApiModificabileDaStatoBozzaPerReferenteServizio() {
+    	Dominio dominio = this.getDominio(null);
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	API api = this.getAPI();
+
+    	CommonUtils.getSessionUtente(UTENTE_REFERENTE_SERVIZIO, securityContext, authentication, utenteService);
+
+    	API aggiornata = this.aggiornaIdentificativoApi(api.getIdApi(), "nuovo nome api");
+    	assertEquals("nuovo nome api", aggiornata.getNome());
+    }
+
+    /**
+     * Non regressione: la classe `api` non governa i dati delle singole API. Il referente
+     * deve poter continuare a compilare la configurazione di produzione di un'API a servizio
+     * pubblicato in collaudo, perche' e' un dato obbligatorio per la richiesta di produzione.
+     */
+    @Test
+    public void produzioneApiModificabileDaStatoPubblicatoInCollaudoPerReferenteServizio() {
+    	Dominio dominio = this.getDominio(null);
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	API api = this.getAPI();
+
+    	CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+    	CommonUtils.cambioStatoFinoA(STATO_PUBBLICATO_IN_COLLAUDO, serviziController, idServizio);
+
+    	CommonUtils.getSessionUtente(UTENTE_REFERENTE_SERVIZIO, securityContext, authentication, utenteService);
+
+    	assertNotNull(this.aggiornaProduzione(api.getIdApi()));
+    }
+
+    // ========================================================================
+    // Classe di dato `comunicazioni`: governa l'invio di comunicazioni (e dei
+    // relativi allegati). A differenza delle altre classi non segue l'attore
+    // dello stato successivo: chi ha un ruolo sul servizio puo' comunicare in
+    // ogni stato, compresi quelli finali, salvo che la classe sia indicata tra
+    // i dati non modificabili dello stato.
+    // ========================================================================
+
+    private ItemMessaggio inviaComunicazione() {
+    	MessaggioCreate messaggio = new MessaggioCreate();
+    	messaggio.setOggetto("Oggetto di prova");
+    	messaggio.setTesto("Testo di prova");
+    	messaggio.setTarget(Arrays.asList(TargetComunicazioneServizioEnum.REFERENTI_SERVIZIO));
+    	ResponseEntity<ItemMessaggio> response = serviziController.createMessaggioServizio(idServizio, messaggio);
+    	assertEquals(HttpStatus.OK, response.getStatusCode());
+    	return response.getBody();
+    }
+
+    /**
+     * Nello stato `richiesto_collaudo` la transizione successiva spetta al referente superiore:
+     * il referente del servizio non modifica i dati generici, ma deve poter comunicare.
+     */
+    @Test
+    public void comunicazioneInviabileDaStatoRichiestoInCollaudoPerReferenteServizio() {
+    	Dominio dominio = this.getDominio(null);
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	this.getAPI();
+
+    	CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+    	CommonUtils.cambioStatoFinoA(STATO_RICHIESTO_IN_COLLAUDO, serviziController, idServizio);
+
+    	CommonUtils.getSessionUtente(UTENTE_REFERENTE_SERVIZIO, securityContext, authentication, utenteService);
+
+    	Grant grant = serviziController.getGrantServizio(idServizio).getBody();
+    	assertEquals(GrantType.LETTURA, grant.getGenerico());
+    	assertEquals(GrantType.SCRITTURA, grant.getComunicazioni());
+
+    	assertNotNull(this.inviaComunicazione().getIdMessaggio());
+    }
+
+    /**
+     * Lo stato `pubblicato_produzione` non ha uno stato successivo: prima della classe
+     * `comunicazioni` solo il gestore poteva comunicare.
+     */
+    @Test
+    public void comunicazioneEAllegatoInviabiliDaStatoPubblicatoInProduzionePerReferenteDominio() {
+    	Dominio dominio = this.getDominio(null);
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	this.getAPI();
+
+    	CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+    	CommonUtils.cambioStatoFinoA(STATO_PUBBLICATO_IN_PRODUZIONE, serviziController, idServizio);
+
+    	CommonUtils.getSessionUtente(UTENTE_REFERENTE_DOMINIO, securityContext, authentication, utenteService);
+
+    	Grant grant = serviziController.getGrantServizio(idServizio).getBody();
+    	assertEquals(GrantType.LETTURA, grant.getGenerico());
+    	assertEquals(GrantType.SCRITTURA, grant.getComunicazioni());
+
+    	ItemMessaggio messaggio = this.inviaComunicazione();
+
+    	AllegatoMessaggioCreate allegato = new AllegatoMessaggioCreate();
+    	allegato.setContent(Base64.encodeBase64String("contenuto di test".getBytes()));
+    	allegato.setFilename("allegato.pdf");
+    	allegato.setContentType("application/pdf");
+    	ResponseEntity<AllegatoMessaggio> response = serviziController.createAllegatoMessaggioServizio(idServizio, messaggio.getIdMessaggio(), allegato);
+    	assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void comunicazioneNonInviabilePerUtenteSenzaRuoloSulServizio() {
+    	Dominio dominio = this.getDominio(null);
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	this.getAPI();
+
+    	CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+    	CommonUtils.cambioStatoFinoA(STATO_PUBBLICATO_IN_PRODUZIONE, serviziController, idServizio);
+
+    	// utente abilitato che vede il servizio pubblico, ma senza alcun ruolo su di esso
+    	UtenteUpdate upUtente = new UtenteUpdate();
+    	upUtente.setPrincipal(UTENTE_QUALSIASI);
+    	CommonUtils.setOrganizzazione(upUtente, idOrganizzazione);
+    	upUtente.setStato(StatoUtenteEnum.ABILITATO);
+    	upUtente.setEmailAziendale("mail@aziendale.it");
+    	upUtente.setTelefonoAziendale("+39 0000000");
+    	upUtente.setNome("utente");
+    	upUtente.setCognome("qualsiasi");
+    	upUtente.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+    	utentiController.updateUtente(ID_UTENTE_QUALSIASI, upUtente);
+
+    	CommonUtils.getSessionUtente(UTENTE_QUALSIASI, securityContext, authentication, utenteService);
+
+    	assertEquals(GrantType.NESSUNO, serviziController.getGrantServizio(idServizio).getBody().getComunicazioni());
+
+    	assertThrows(NotAuthorizedException.class, ()->{
+    		this.inviaComunicazione();
+	    });
     }
 }

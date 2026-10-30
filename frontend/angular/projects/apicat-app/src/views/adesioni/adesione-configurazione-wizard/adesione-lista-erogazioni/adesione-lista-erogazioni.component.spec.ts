@@ -13,6 +13,8 @@ describe('AdesioneListaErogazioniComponent', () => {
     putElementRelated: vi.fn().mockReturnValue(of({})),
   } as any;
   const mockAuthService = {
+    isTransitionAllowedForProfiles: vi.fn().mockReturnValue(true),
+    getRequiredProfiles: vi.fn().mockImplementation((e: any) => [...new Set((e?.client_richiesti || []).map((c: any) => c?.profilo).filter(Boolean))]),
     isAnonymous: vi.fn().mockReturnValue(false),
     hasPermission: vi.fn().mockReturnValue(true),
     _getConfigModule: vi.fn().mockReturnValue({}),
@@ -318,7 +320,7 @@ describe('AdesioneListaErogazioniComponent', () => {
       component.grant = { ruoli: ['referente'] } as any;
       expect(component._hasCambioStato()).toBe(true);
       expect(mockAuthService.canChangeStatus).toHaveBeenCalledWith(
-        'adesione', 'bozza', 'stato_successivo', ['referente']
+        'adesione', 'bozza', 'stato_successivo', ['referente'], '', []
       );
     });
   });
