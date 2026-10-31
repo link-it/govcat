@@ -2511,6 +2511,7 @@
 		},
 		"SERVICES": {
 			"PDND_PENDING": "Azioni PDND in attesa: {{count}}",
+			"PDND_PENDING_LOADING": "Conteggio delle azioni PDND in attesa in corso",
 			"ATTACHMENTS": {
 				"Title": "Allegati",
 				"ApiMenu": "Allegati dell'API",

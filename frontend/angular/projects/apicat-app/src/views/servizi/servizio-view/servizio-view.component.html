@@ -171,7 +171,12 @@
               <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="pdnd-hero-actions">
                 <button aria-haspopup="true" aria-expanded="false" type="button" class="btnc btnc-default dropdown-toggle dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static">
                   <span>{{ 'APP.SERVICES.TITLE.PDND' | translate }}</span>
-                  @if (_pdndInAttesa) {
+                  @if (_pdndInAttesaLoading) {
+                    <span class="pdnd-badge is-loading" role="status">
+                      <span class="spinner-border" aria-hidden="true"></span>
+                      <span class="visually-hidden">{{ 'APP.SERVICES.PDND_PENDING_LOADING' | translate }}</span>
+                    </span>
+                  } @else if (_pdndInAttesa) {
                     <span class="pdnd-badge" [tooltip]="'APP.SERVICES.PDND_PENDING' | translate: { count: _pdndInAttesa }" container="body">
                       <span aria-hidden="true">{{ _pdndInAttesa }}</span>
                       <span class="visually-hidden">{{ 'APP.SERVICES.PDND_PENDING' | translate: { count: _pdndInAttesa } }}</span>

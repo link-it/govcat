@@ -2511,6 +2511,7 @@
 		},
 		"SERVICES": {
 			"PDND_PENDING": "Pending PDND actions: {{count}}",
+			"PDND_PENDING_LOADING": "Counting pending PDND actions",
 			"ATTACHMENTS": {
 				"Title": "Attachments",
 				"ApiMenu": "API attachments",

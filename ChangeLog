@@ -1,3 +1,10 @@
+2026-10-31  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #416 - Vetrina, badge PDND: indicatore di caricamento finché il numero di azioni in
+	  attesa non è disponibile; il conteggio parte una sola volta per le stesse API (non al cambio
+	  di ambiente) e alla chiusura della dialog dei fruitori si aggiorna mantenendo il numero.
+
 2026-10-30  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

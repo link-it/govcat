@@ -705,3 +705,14 @@ word-break: break-word;
   font-weight: 700;
   line-height: 1;
 }
+
+.pdnd-badge.is-loading {
+  padding: 0;
+  min-width: 20px;
+
+  .spinner-border {
+    width: 11px;
+    height: 11px;
+    border-width: 2px;
+  }
+}
