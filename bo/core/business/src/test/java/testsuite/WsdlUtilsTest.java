@@ -129,4 +129,28 @@ public class WsdlUtilsTest {
             executor.shutdownNow();
         }
     }
+
+    /**
+     * Un WSDL che dichiara un'entita' esterna (XXE) deve essere rifiutato senza leggere la
+     * risorsa referenziata, sia dal parser usato per i binding sia da quello di wsdl4j.
+     */
+    @Test
+    void testWsdlConEntitaEsterna_vieneRifiutato() throws Exception {
+        java.nio.file.Path segreto = java.nio.file.Files.createTempFile("xxe", ".txt");
+        try {
+            java.nio.file.Files.writeString(segreto, "CONTENUTO_SEGRETO");
+            String wsdl = SIMPLE_WSDL
+                    .replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n",
+                            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                            + "<!DOCTYPE definitions [<!ENTITY xxe SYSTEM \"" + segreto.toUri() + "\">]>\n")
+                    .replace("<types/>", "<documentation>&xxe;</documentation>\n    <types/>");
+            byte[] wsdlBytes = wsdl.getBytes(StandardCharsets.UTF_8);
+
+            assertThrows(javax.wsdl.WSDLException.class, () -> WsdlUtils.getOperationFromWsdl(wsdlBytes));
+            assertThrows(javax.wsdl.WSDLException.class, () -> WsdlUtils.getInfoFromWsdl(wsdlBytes));
+            assertThrows(Exception.class, () -> WsdlUtils.getBindingApi(wsdlBytes));
+        } finally {
+            java.nio.file.Files.deleteIfExists(segreto);
+        }
+    }
 }
