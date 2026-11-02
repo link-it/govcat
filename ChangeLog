@@ -1,3 +1,10 @@
+2026-11-02  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Fix vulnerabilità dipendenze (OSV): Jackson 2.21.7 (jackson-core e jackson-databind:
+	  CVE-2026-89425, CVE-2026-89407, CVE-2026-91777, CVE-2026-83557, CVE-2026-68497,
+	  CVE-2026-19032, CVE-2026-91776) e BouncyCastle 1.85 (CVE-2026-8763, CVE-2026-13506).
+
 2026-11-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

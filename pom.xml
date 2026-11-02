@@ -278,15 +278,19 @@
 		<jetty.version>12.0.37</jetty.version>
 
 		<dynamicreports-core.version>6.20.1</dynamicreports-core.version>
-		<!-- Fix CVE-2026-0636 (bcprov LDAP injection) e CVE-2026-5588 (bcpkix PKIX CompositeVerifier) -->
-		<bouncycastle.version>1.84</bouncycastle.version>
+		<!-- Fix CVE-2026-0636 (bcprov LDAP injection) e CVE-2026-5588 (bcpkix PKIX CompositeVerifier);
+		     1.85: fix CVE-2026-8763 (Name Constraints bypass) e CVE-2026-13506 (ASN.1 nesting-depth guard) -->
+		<bouncycastle.version>1.85</bouncycastle.version>
 		<jasperreports.version>7.0.1</jasperreports.version>
 		<xalan.version>2.7.3</xalan.version>
 
 		<!-- Jackson 2 (resta v2): allineato alla versione gestita da Spring Boot 4.0.x.
 		     jackson-annotations 2.21 e' richiesto anche da Jackson 3.1.x (tools.jackson)
-		     che il framework HATEOAS/springdoc tiene sul classpath. -->
-		<jackson.version>2.21.5</jackson.version>
+		     che il framework HATEOAS/springdoc tiene sul classpath.
+		     2.21.7 (override del BOM Spring Boot su jackson-core/jackson-databind):
+		     fix CVE-2026-89425, CVE-2026-89407 (core), CVE-2026-91777, CVE-2026-83557,
+		     CVE-2026-68497, CVE-2026-19032, CVE-2026-91776 (databind) -->
+		<jackson.version>2.21.7</jackson.version>
 		<jackson.annotations.version>2.21</jackson.annotations.version>
 
 		<!-- jackson-databind-nullable -->
