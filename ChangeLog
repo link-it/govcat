@@ -1,3 +1,10 @@
+2026-11-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Fix vulnerabilità DOMPurify (OWASP/OSV) nei bundle di swagger-ui: swagger-ui-dist 5.34.1, che
+	  incorpora DOMPurify 3.4.17 al posto della 3.4.13 (l'override di dompurify non si applica al
+	  codice già compilato nel bundle).
+
 2026-10-31  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
