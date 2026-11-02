@@ -449,14 +449,22 @@ public class PDNDMockServerV3 {
 	 * che trasporta il contenuto insieme ai suoi metadati.
 	 */
 	private ResponseEntity<Resource> toMultipart(UUID id, String nome, String prettyName, String contentType) {
+		if(nome == null) {
+			throw new NotFoundException(ErrorCode.GEN_404);
+		}
 		byte[] contenuto = leggiFile(nome);
+
+		// i dati simulati potrebbero non riportare il content type: si ricade su quello generico
+		String tipo = contentType != null ? contentType : MediaType.APPLICATION_OCTET_STREAM_VALUE;
 
 		ByteArrayOutputStream multipart = new ByteArrayOutputStream();
 		try {
-			scriviParte(multipart, "file", nome, contentType, contenuto);
+			scriviParte(multipart, "file", nome, tipo, contenuto);
 			scriviParte(multipart, "filename", null, null, nome.getBytes(StandardCharsets.UTF_8));
-			scriviParte(multipart, "contentType", null, null, contentType.getBytes(StandardCharsets.UTF_8));
-			scriviParte(multipart, "id", null, null, id.toString().getBytes(StandardCharsets.UTF_8));
+			scriviParte(multipart, "contentType", null, null, tipo.getBytes(StandardCharsets.UTF_8));
+			if(id != null) {
+				scriviParte(multipart, "id", null, null, id.toString().getBytes(StandardCharsets.UTF_8));
+			}
 			if(prettyName != null) {
 				scriviParte(multipart, "prettyName", null, null, prettyName.getBytes(StandardCharsets.UTF_8));
 			}
