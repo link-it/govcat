@@ -1099,6 +1099,10 @@
 			"Padre": "Padre",
 			"Password": "Password",
 			"PDND": {
+				"Interface": "Interfaccia (specifica dell'API)",
+				"DownloadInterface": "Scarica interfaccia",
+				"DownloadError": "Impossibile scaricare il file: riprova più tardi.",
+				"DownloadNotFound": "Il file richiesto non è disponibile.",
 				"Requirement": "Requisito",
 				"GroupAlternatives": "Gruppo {{n}}: almeno uno tra {{count}}",
 				"Code": "Codice",
@@ -1328,7 +1332,7 @@
 				"POPOVER": {
 					"nome": ""
 				},
-				"url_invocazione": "URL su cui l'API è esposta in questo ambiente, scelte fra quelle censite in configurazione. Il catalogo documenta le URL ma non configura il gateway su GovWay: se il gateway non è configurato, la URL non risponde."
+				"url_invocazione": "URL su cui l'API è esposta in questo ambiente, scelte fra quelle censite in configurazione."
 			},
 			"SERVICE": {
 				"descrizione": "È possibile inserire testo `markdown`.",
@@ -2526,6 +2530,8 @@
 			"View": "Vista"
 		},
 		"SERVICES": {
+			"PDND_PENDING": "Azioni PDND in attesa: {{count}}",
+			"PDND_PENDING_LOADING": "Conteggio delle azioni PDND in attesa in corso",
 			"ATTACHMENTS": {
 				"Title": "Allegati",
 				"ApiMenu": "Allegati dell'API",

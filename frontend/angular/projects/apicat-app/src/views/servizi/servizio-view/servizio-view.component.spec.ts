@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { of, throwError, EMPTY } from 'rxjs';
+import { of, throwError, EMPTY, Subject } from 'rxjs';
 import { ServizioViewComponent } from './servizio-view.component';
 import { Tools } from '@linkit/components';
 
@@ -2406,6 +2406,47 @@ describe('ServizioViewComponent', () => {
       expect(component._environmentId).toBe('produzione');
       expect(loadApis).not.toHaveBeenCalled();
       mockAuthenticationService.isAnonymous.mockReturnValue(false);
+    });
+  });
+
+  describe('conteggio delle azioni PDND in attesa (Issue #416)', () => {
+    let lenti: Subject<any>[];
+
+    const prepara = () => {
+      lenti = [];
+      (mockAuthenticationService as any).isPdndAdmin = vi.fn().mockReturnValue(true);
+      (mockAuthenticationService as any).isPdndV3 = vi.fn().mockReturnValue(true);
+      (component as any).pdndService = { agreementPurposes: vi.fn() };
+      (mockApiService as any).getListPDND = vi.fn(() => { const s$ = new Subject<any>(); lenti.push(s$); return s$; });
+      vi.spyOn(component, '_canShowPdndHeroMenu').mockReturnValue(true);
+      vi.spyOn(component, '_enabledPdndApis').mockReturnValue([{ id_api: 'a1', proprieta_custom: [
+        { gruppo: 'PDNDCollaudo', proprieta: [{ nome: 'identificativo_eservice_pdnd', valore: 'es' }] }
+      ] }]);
+      vi.spyOn(component as any, '_soggettoReferenteNome').mockReturnValue('Ente');
+      (component as any)._pdnd = [{ nome_soggetto: 'Ente', collaudo: { id_producer: 'pc' } }];
+    };
+    const rispondi = (subscribers: any[]) => lenti.splice(0).forEach((s$) => { s$.next({ subscribers }); s$.complete(); });
+
+    it('should show the loading until the count is known and count once for the same APIs', () => {
+      prepara();
+      expect(component._pdndInAttesaLoading).toBe(true);
+      component._aggiornaPdndInAttesa();
+      component._aggiornaPdndInAttesa();
+      expect((mockApiService as any).getListPDND).toHaveBeenCalledTimes(1);
+      rispondi([{ state: 'PENDING' }]);
+      expect(component._pdndInAttesa).toBe(1);
+      expect(component._pdndInAttesaLoading).toBe(false);
+    });
+
+    it('should keep the previous count while a forced update is running', () => {
+      prepara();
+      component._aggiornaPdndInAttesa();
+      rispondi([{ state: 'PENDING' }]);
+      component._aggiornaPdndInAttesa(true);
+      expect(component._pdndInAttesa).toBe(1);
+      expect(component._pdndInAttesaLoading).toBe(false);
+      rispondi([]);
+      expect(component._pdndInAttesa).toBe(0);
     });
   });
 });

@@ -414,7 +414,7 @@
                                       <span class="ng-value-label">{{ item.etichetta }}</span>
                                     </ng-template>
                                   </ng-select>
-                                  @if (_canCopyFromTesting(f['url_invocazione'])) {
+                                  @if (_canCopyUrlInvocazioneFromTesting(f['url_invocazione'])) {
                                     <button class="btn btn-default btn-md gl-button" type="button"
                                       (click)="copyTestingValue('url_invocazione')" [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate" [attr.aria-label]="'APP.TOOLTIP.CopyTestingValue' | translate">
                                       <span><i class="bi bi-copy" aria-hidden="true"></i></span>

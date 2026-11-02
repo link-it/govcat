@@ -26,7 +26,8 @@ import { Attribute, EserviceDescriptor, EserviceResponse, OrganizationResponse, 
 import { forkJoin, of } from 'rxjs';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
 
-import { COMPONENTS_IMPORTS } from '@linkit/components';
+import { COMPONENTS_IMPORTS, Tools } from '@linkit/components';
+import { AuthenticationService } from '@app/services/authentication.service';
 import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
 import { PdndEServiceViewComponent } from './components/pdnd-eservice-view.component';
 
@@ -243,6 +244,8 @@ const eventListConfiguration = {
   }
 }
 
+declare const saveAs: any;
+
 @Component({
   selector: 'app-pdnd',
   templateUrl: 'pdnd.component.html',
@@ -334,7 +337,7 @@ export class PdndComponent {
           type: 'list-ui-collapse-row',
           configuration: descriptorDetailsConfiguration,
           collapseView: { configuration: descriptorColapseConfiguration, collapsed: true },
-          listView: { title: this.translate.instant('APP.LABEL.Documents'), configuration: descriptorDownloadsListConfiguration }
+          listView: { title: this.translate.instant('APP.LABEL.Documents'), configuration: descriptorDownloadsListConfiguration, scaricabile: true }
         },
         { title: this.translate.instant('APP.LABEL.PDND.Producer'), type: 'ui-data-view', configuration: organizationDetailsConfiguration },
         { title: this.translate.instant('APP.LABEL.PDND.Consumer'), type: 'ui-data-view', configuration: organizationDetailsConfiguration },
@@ -362,7 +365,7 @@ export class PdndComponent {
           type: 'list-ui-collapse-row',
           configuration: descriptorDetailsConfiguration,
           collapseView: { configuration: descriptorColapseConfiguration, collapsed: true },
-          listView: { title: this.translate.instant('APP.LABEL.Documents'), configuration: descriptorDownloadsListConfiguration }
+          listView: { title: this.translate.instant('APP.LABEL.Documents'), configuration: descriptorDownloadsListConfiguration, scaricabile: true }
         },
         { title: this.translate.instant('APP.LABEL.PDND.Producer'), type: 'ui-data-view', configuration: organizationDetailsConfiguration },
         { title: this.translate.instant('APP.LABEL.PDND.Consumer'), type: 'ui-data-view', configuration: organizationDetailsConfiguration },
@@ -403,8 +406,44 @@ export class PdndComponent {
     private router: Router,
     private translate: TranslateService,
     private pdndService: PdndService,
+    private readonly authenticationService?: AuthenticationService
   ) {
     this._initForm();
+  }
+
+  /** Download di documenti e interfaccia del descrittore: solo con integrazione v3. */
+  get _downloadDisponibile(): boolean {
+    return !!this.authenticationService?.isPdndV3();
+  }
+
+  _scaricando: string | null = null;
+
+  _scaricaDocumento(descrittore: any, documento: any) {
+    if (!descrittore?.eservice_id || !descrittore?.id || !documento?.id) { return; }
+    this._scarica(`doc-${documento.id}`, documento.prettyName || documento.name,
+      this.pdndService.downloadEserviceDescriptorDocument(this.environmentId, descrittore.eservice_id, descrittore.id, documento.id));
+  }
+
+  _scaricaInterfaccia(descrittore: any) {
+    if (!descrittore?.eservice_id || !descrittore?.id) { return; }
+    this._scarica(`interface-${descrittore.id}`, '',
+      this.pdndService.downloadEserviceDescriptorInterface(this.environmentId, descrittore.eservice_id, descrittore.id));
+  }
+
+  private _scarica(chiave: string, nomeRiserva: string, richiesta: any) {
+    if (this._scaricando) { return; }
+    this._scaricando = chiave;
+    richiesta.subscribe({
+      next: (response: any) => {
+        saveAs(response.body, Tools.GetFilenameFromHeader(response) || nomeRiserva || 'download');
+        this._scaricando = null;
+      },
+      error: (error: any) => {
+        this._scaricando = null;
+        const _chiave = error?.status === 404 ? 'APP.LABEL.PDND.DownloadNotFound' : 'APP.LABEL.PDND.DownloadError';
+        Tools.showMessage(this.translate.instant(_chiave), 'danger', true);
+      }
+    });
   }
 
   _setErrorMessages(error: boolean) {
@@ -602,6 +641,7 @@ export class PdndComponent {
               descriptorsMap = [{
                 data: {
                   id: descriptor.id,
+                  eservice_id: agreementResponse.data?.eserviceId,
                   version: descriptor.version,
                   state: descriptor.state,
                   audience_url: descriptor.audience.pop(),
@@ -609,7 +649,7 @@ export class PdndComponent {
                   voucher_lifespan: descriptor.voucherLifespan,
                   daily_calls_per_consumer: descriptor.dailyCallsPerConsumer,
                   daily_calls_total: descriptor.dailyCallsTotal,
-                  interface_name: descriptor.interface.name,
+                  interface_name: descriptor.interface?.name ?? '',
                 }, list: descriptor.docs
               }];
             }
@@ -695,6 +735,7 @@ export class PdndComponent {
               descriptorsMap = [{
                 data: {
                   id: descriptor.id,
+                  eservice_id: purposeAgreementResponse.data?.eserviceId,
                   version: descriptor.version,
                   state: descriptor.state,
                   audience_url: descriptor.audience.pop(),
@@ -702,7 +743,7 @@ export class PdndComponent {
                   voucher_lifespan: descriptor.voucherLifespan,
                   daily_calls_per_consumer: descriptor.dailyCallsPerConsumer,
                   daily_calls_total: descriptor.dailyCallsTotal,
-                  interface_name: descriptor.interface.name,
+                  interface_name: descriptor.interface?.name ?? '',
                 }, list: descriptor.docs
               }];
             }

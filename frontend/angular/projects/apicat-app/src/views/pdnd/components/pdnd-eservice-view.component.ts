@@ -18,12 +18,15 @@
  */
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from "@angular/core";
 import { CommonModule } from "@angular/common";
+import { Clipboard } from "@angular/cdk/clipboard";
 
 import { TranslateModule } from "@ngx-translate/core";
 import { TranslateService } from "@ngx-translate/core";
 import { forkJoin } from "rxjs";
 
-import { COMPONENTS_IMPORTS } from '@linkit/components';
+import { COMPONENTS_IMPORTS, Tools } from '@linkit/components';
+import { AuthenticationService } from '@app/services/authentication.service';
+import { iconaPerFile } from '@app/lib/utils/file-icon';
 import { GroupOrSingleAttribute, PdndService } from "../pdnd.service";
 
 import { PdndView } from "./pdnd-view";
@@ -149,6 +152,8 @@ export interface RequisitoAccesso {
 
 const TIPI_REQUISITO: RequisitoAccesso['tipo'][] = ['CERTIFIED', 'DECLARED', 'VERIFIED'];
 
+declare const saveAs: any;
+
 @Component({
   selector: 'pdnd-service-view',
   templateUrl: 'pdnd-eservice-view.component.html',
@@ -226,7 +231,67 @@ export class PdndEServiceViewComponent implements OnChanges {
   private _eServiceId: string|null = null;
   private _environmentId: string|null = null;
 
-  constructor(private readonly translate: TranslateService, private readonly pdndService: PdndService) { }
+  constructor(
+    private readonly translate: TranslateService,
+    private readonly pdndService: PdndService,
+    private readonly clipboard?: Clipboard,
+    private readonly authenticationService?: AuthenticationService
+  ) { }
+
+  /** Download di documenti e interfaccia: solo con integrazione v3 (con v1 il backend risponde 501). */
+  get _downloadDisponibile(): boolean {
+    return !!this.authenticationService?.isPdndV3();
+  }
+
+  readonly _iconaFile = iconaPerFile;
+
+  /** Chiave del download in corso (per lo spinner del pulsante). */
+  _scaricando: string | null = null;
+
+  /** Identificativo dell'e-service restituito dalla PDND (quello configurato se il dettaglio non e` disponibile). */
+  private get _eserviceIdPdnd(): string | null {
+    return this.data?.[0]?.id || this._eServiceId;
+  }
+
+  _scaricaDocumento(descriptorId: string, documento: any) {
+    const _eserviceId = this._eserviceIdPdnd;
+    if (!documento?.id || !_eserviceId || !this._environmentId) { return; }
+    this._scarica(`doc-${documento.id}`, documento.prettyName || documento.name,
+      this.pdndService.downloadEserviceDescriptorDocument(this._environmentId, _eserviceId, descriptorId, documento.id));
+  }
+
+  _scaricaInterfaccia(descriptorId: string) {
+    const _eserviceId = this._eserviceIdPdnd;
+    if (!_eserviceId || !this._environmentId) { return; }
+    this._scarica(`interface-${descriptorId}`, '',
+      this.pdndService.downloadEserviceDescriptorInterface(this._environmentId, _eserviceId, descriptorId));
+  }
+
+  private _scarica(chiave: string, nomeRiserva: string, richiesta: any) {
+    if (this._scaricando) { return; }
+    this._scaricando = chiave;
+    richiesta.subscribe({
+      next: (response: any) => {
+        saveAs(response.body, Tools.GetFilenameFromHeader(response) || nomeRiserva || 'download');
+        this._scaricando = null;
+      },
+      error: (error: any) => {
+        this._scaricando = null;
+        const _chiave = error?.status === 404 ? 'APP.LABEL.PDND.DownloadNotFound' : 'APP.LABEL.PDND.DownloadError';
+        Tools.showMessage(this.translate.instant(_chiave), 'danger', true);
+      }
+    });
+  }
+
+  /** Chiave dell'ultimo valore copiato negli appunti (icona di conferma per qualche secondo). */
+  _copiato: string | null = null;
+
+  _copia(valore: string | null | undefined, chiave: string) {
+    if (!valore) { return; }
+    this.clipboard?.copy(valore);
+    this._copiato = chiave;
+    setTimeout(() => { if (this._copiato === chiave) { this._copiato = null; } }, 3000);
+  }
 
   // Descrittori aperti/chiusi dall'utente; senza scelta e` aperto solo il piu` recente
   private _descrittoriAperti: { [id: string]: boolean } = {};
