@@ -5,6 +5,10 @@
 	  incorpora DOMPurify 3.4.17 al posto della 3.4.13 (l'override di dompurify non si applica al
 	  codice già compilato nel bundle).
 
+	Fix vulnerabilità dipendenze FE (OSV, tooling di build): override di glob 14.0.3
+	  (GHSA-3g3m-2fjr-6pw4) e minimatch 11.0.4 (GHSA-g3hv-75wg-m249), usati dalla CLI di Angular
+	  e da replace-in-file.
+
 2026-10-31  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
