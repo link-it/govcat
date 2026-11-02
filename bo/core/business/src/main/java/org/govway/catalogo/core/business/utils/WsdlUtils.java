@@ -35,6 +35,7 @@ import javax.wsdl.extensions.soap.SOAPOperation;
 import javax.wsdl.extensions.soap12.SOAP12Operation;
 import javax.wsdl.factory.WSDLFactory;
 import javax.wsdl.xml.WSDLReader;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -52,7 +53,7 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 
 public class WsdlUtils {
@@ -67,6 +68,11 @@ public class WsdlUtils {
 	private static DocumentBuilder getDocumentBuilder() throws ParserConfigurationException {
 		DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
 		builderFactory.setNamespaceAware(true);
+		// il WSDL e' caricato dagli utenti: nessuna risoluzione di DTD, schemi o entita' esterne (XXE)
+		builderFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+		builderFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+		builderFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+		builderFactory.setXIncludeAware(false);
 		return builderFactory.newDocumentBuilder();
 	}
 
@@ -277,8 +283,12 @@ public class WsdlUtils {
 	    reader.setExtensionRegistry(new NoXSDExtensionRegistry());
 
 	    try(ByteArrayInputStream bais = new ByteArrayInputStream(wsdlBytes)) {
-		    Definition wsdl = reader.readWSDL(null, new InputSource(bais));
-			return wsdl;
+		    // il documento e' letto con il parser protetto da XXE: il parser interno di wsdl4j non lo e'
+		    Document document = getDocumentBuilder().parse(bais);
+		    return reader.readWSDL((String) null, document);
+	    } catch(SAXException | ParserConfigurationException e) {
+	    	// stessa eccezione che wsdl4j solleva per un documento non leggibile
+	    	throw new WSDLException(WSDLException.PARSER_ERROR, "Problem parsing the WSDL document: " + e.getMessage(), e);
 	    }
 	}
 }

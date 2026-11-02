@@ -33,7 +33,10 @@ public class CoreEngineAssembler {
 	
 	public UtenteEntity getUtenteSessione() {
 		InfoProfilo principal = this.requestUtils.getPrincipal();
-//		UtenteEntity u = principal.utente;
+		// getPrincipal restituisce null quando la richiesta non e' autenticata
+		if(principal == null) {
+			throw new NotAuthorizedException(ErrorCode.AUT_401);
+		}
 		if(principal.utente == null) {
 			throw new NotAuthorizedException(ErrorCode.UT_404, java.util.Map.of("idUtente", principal.idUtente.toString()));
 		}

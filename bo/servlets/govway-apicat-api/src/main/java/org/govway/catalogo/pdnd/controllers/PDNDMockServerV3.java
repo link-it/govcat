@@ -459,14 +459,14 @@ public class PDNDMockServerV3 {
 
 		ByteArrayOutputStream multipart = new ByteArrayOutputStream();
 		try {
-			scriviParte(multipart, "file", nome, tipo, contenuto);
-			scriviParte(multipart, "filename", null, null, nome.getBytes(StandardCharsets.UTF_8));
-			scriviParte(multipart, "contentType", null, null, tipo.getBytes(StandardCharsets.UTF_8));
+			scriviFile(multipart, nome, tipo, contenuto);
+			scriviCampo(multipart, "filename", nome);
+			scriviCampo(multipart, "contentType", tipo);
 			if(id != null) {
-				scriviParte(multipart, "id", null, null, id.toString().getBytes(StandardCharsets.UTF_8));
+				scriviCampo(multipart, "id", id.toString());
 			}
 			if(prettyName != null) {
-				scriviParte(multipart, "prettyName", null, null, prettyName.getBytes(StandardCharsets.UTF_8));
+				scriviCampo(multipart, "prettyName", prettyName);
 			}
 			multipart.write(("--" + BOUNDARY + "--\r\n").getBytes(StandardCharsets.UTF_8));
 		} catch(IOException e) {
@@ -480,22 +480,22 @@ public class PDNDMockServerV3 {
 				.body(new ByteArrayResource(multipart.toByteArray()));
 	}
 
-	private void scriviParte(ByteArrayOutputStream multipart, String nomeParte, String nomeFile, String contentType,
-			byte[] contenuto) throws IOException {
+	/** Parte che trasporta il contenuto del file, con nome e tipo. */
+	private void scriviFile(ByteArrayOutputStream multipart, String nomeFile, String contentType, byte[] contenuto)
+			throws IOException {
+		String intestazione = "Content-Disposition: form-data; name=\"file\"; filename=\"" + nomeFile + "\"\r\n"
+				+ "Content-Type: " + contentType + "\r\n";
+		scriviParte(multipart, intestazione, contenuto);
+	}
 
-		StringBuilder intestazione = new StringBuilder();
-		intestazione.append("--").append(BOUNDARY).append("\r\n");
-		intestazione.append("Content-Disposition: form-data; name=\"").append(nomeParte).append("\"");
-		if(nomeFile != null) {
-			intestazione.append("; filename=\"").append(nomeFile).append("\"");
-		}
-		intestazione.append("\r\n");
-		if(contentType != null) {
-			intestazione.append("Content-Type: ").append(contentType).append("\r\n");
-		}
-		intestazione.append("\r\n");
+	/** Parte testuale che trasporta uno dei metadati del file. */
+	private void scriviCampo(ByteArrayOutputStream multipart, String nomeParte, String valore) throws IOException {
+		String intestazione = "Content-Disposition: form-data; name=\"" + nomeParte + "\"\r\n";
+		scriviParte(multipart, intestazione, valore.getBytes(StandardCharsets.UTF_8));
+	}
 
-		multipart.write(intestazione.toString().getBytes(StandardCharsets.UTF_8));
+	private void scriviParte(ByteArrayOutputStream multipart, String intestazione, byte[] contenuto) throws IOException {
+		multipart.write(("--" + BOUNDARY + "\r\n" + intestazione + "\r\n").getBytes(StandardCharsets.UTF_8));
 		multipart.write(contenuto);
 		multipart.write("\r\n".getBytes(StandardCharsets.UTF_8));
 	}
