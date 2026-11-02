@@ -228,6 +228,16 @@ export class PdndService {
         return this.get<EserviceDescriptor>(`${environmentId}/eservices/${eserviceId}/descriptors/${descriptorId}`);
     }
 
+    /** Documento allegato a un descrittore (solo integrazione v3, lettura): risposta con il file e le intestazioni. */
+    public downloadEserviceDescriptorDocument(environmentId: string, eserviceId: string, descriptorId: string, documentId: string) {
+        return this.apiService.downloadPDND(`${environmentId}/eservices/${eserviceId}/descriptors/${descriptorId}/documents/${documentId}`);
+    }
+
+    /** Interfaccia (specifica dell'API erogata) di un descrittore: la v3 non ne espone i metadati, il nome arriva nella risposta. */
+    public downloadEserviceDescriptorInterface(environmentId: string, eserviceId: string, descriptorId: string) {
+        return this.apiService.downloadPDND(`${environmentId}/eservices/${eserviceId}/descriptors/${descriptorId}/interface`);
+    }
+
     public agreement(environmentId: string, agreementId: string) {
         return this.get<Agreement>(`${environmentId}/agreements/${agreementId}`);
     }

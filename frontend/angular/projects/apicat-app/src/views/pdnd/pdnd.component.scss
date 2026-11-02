@@ -258,3 +258,11 @@ $offset: 144px;
 .attribute-id-name {
   cursor: pointer;
 }
+// Documenti del descrittore con download (integrazione v3)
+.pdnd-doc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+}

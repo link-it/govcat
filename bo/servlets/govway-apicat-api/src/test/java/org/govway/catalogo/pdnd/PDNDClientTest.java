@@ -33,8 +33,9 @@ import org.govway.catalogo.servlets.pdnd.client.api.HealthApi;
 import org.junit.jupiter.api.Test;
 
 /**
- * Verifica il comportamento dell'implementazione basata sull'API PDND v1 per le operazioni
- * sul ciclo di vita di accordi e finalita', che la v1 non prevede.
+ * Verifica il comportamento dell'implementazione basata sull'API PDND v1 per le operazioni che
+ * la v1 non prevede: il ciclo di vita di accordi e finalita' e il download dei file di un
+ * descrittore.
  */
 class PDNDClientTest {
 
@@ -70,5 +71,15 @@ class PDNDClientTest {
 				() -> client.suspendPurpose(ID)).getMessage());
 		assertEquals("SYS.501", assertThrows(NotImplementedException.class,
 				() -> client.unsuspendPurpose(ID)).getMessage());
+	}
+
+	@Test
+	void ilDownloadDeiFileDelDescrittoreNonESupportatoDallaV1() {
+		PDNDClient client = new PDNDClient(mock(GatewayApi.class), mock(HealthApi.class));
+
+		assertEquals("SYS.501", assertThrows(NotImplementedException.class,
+				() -> client.downloadEServiceDescriptorDocument(ID, ID, ID)).getMessage());
+		assertEquals("SYS.501", assertThrows(NotImplementedException.class,
+				() -> client.downloadEServiceDescriptorInterface(ID, ID)).getMessage());
 	}
 }

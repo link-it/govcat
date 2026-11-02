@@ -19,8 +19,10 @@
  */
 package org.govway.catalogo.pdnd.controllers;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -65,6 +67,7 @@ import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.CertifiedAttribute;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.CertifiedAttributeSeed;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Client;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.DeclaredAttribute;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Document;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Documents;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.EService;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.EServiceDescriptor;
@@ -88,6 +91,9 @@ import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Tenants;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.VerifiedAttribute;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -106,6 +112,16 @@ public class PDNDMockServerV3 {
 
 	private String prefix = "/pdnd/mock/v3";
 	private String environment;
+
+	/** Cartella delle risorse scaricabili, nominate come il file che rappresentano. */
+	private static final String CARTELLA_FILE = "files/";
+
+	/** Delimitatore del multipart con cui la PDND restituisce i file di un descrittore. */
+	private static final String BOUNDARY = "GovCatMockPdndV3";
+
+	/** Interfaccia simulata del descrittore, che la PDND restituisce senza metadati propri. */
+	private static final String NOME_INTERFACCIA = "interface.yaml";
+	private static final String CONTENT_TYPE_INTERFACCIA = "application/yaml";
 
 	private Map<String, Object> files = new HashMap<>();
 
@@ -404,6 +420,95 @@ public class PDNDMockServerV3 {
 		}
 
 		return ResponseEntity.ok(readMockResponse(Documents.class));
+	}
+
+	public ResponseEntity<Resource> downloadEServiceDescriptorDocument(UUID eserviceId, UUID descriptorId,
+			UUID documentId) {
+		checkInput(eserviceId);
+		checkInput(descriptorId);
+		checkInput(documentId);
+
+		Document documento = readMockResponse(Documents.class).getResults().stream()
+				.filter(d -> documentId.equals(d.getId()))
+				.findFirst()
+				.orElseThrow(() -> new NotFoundException(ErrorCode.GEN_404));
+
+		return toMultipart(documento.getId(), documento.getName(), documento.getPrettyName(),
+				documento.getContentType());
+	}
+
+	public ResponseEntity<Resource> downloadEServiceDescriptorInterface(UUID eserviceId, UUID descriptorId) {
+		checkInput(eserviceId);
+		checkInput(descriptorId);
+
+		return toMultipart(descriptorId, NOME_INTERFACCIA, null, CONTENT_TYPE_INTERFACCIA);
+	}
+
+	/**
+	 * Compone la risposta prevista dalla specifica PDND per il download di un file: un multipart
+	 * che trasporta il contenuto insieme ai suoi metadati.
+	 */
+	private ResponseEntity<Resource> toMultipart(UUID id, String nome, String prettyName, String contentType) {
+		byte[] contenuto = leggiFile(nome);
+
+		ByteArrayOutputStream multipart = new ByteArrayOutputStream();
+		try {
+			scriviParte(multipart, "file", nome, contentType, contenuto);
+			scriviParte(multipart, "filename", null, null, nome.getBytes(StandardCharsets.UTF_8));
+			scriviParte(multipart, "contentType", null, null, contentType.getBytes(StandardCharsets.UTF_8));
+			scriviParte(multipart, "id", null, null, id.toString().getBytes(StandardCharsets.UTF_8));
+			if(prettyName != null) {
+				scriviParte(multipart, "prettyName", null, null, prettyName.getBytes(StandardCharsets.UTF_8));
+			}
+			multipart.write(("--" + BOUNDARY + "--\r\n").getBytes(StandardCharsets.UTF_8));
+		} catch(IOException e) {
+			this.logger.error("Errore durante la composizione del multipart: " + e.getMessage(), e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+
+		return ResponseEntity.ok()
+				.contentType(MediaType.parseMediaType(
+						MediaType.MULTIPART_FORM_DATA_VALUE + "; boundary=" + BOUNDARY))
+				.body(new ByteArrayResource(multipart.toByteArray()));
+	}
+
+	private void scriviParte(ByteArrayOutputStream multipart, String nomeParte, String nomeFile, String contentType,
+			byte[] contenuto) throws IOException {
+
+		StringBuilder intestazione = new StringBuilder();
+		intestazione.append("--").append(BOUNDARY).append("\r\n");
+		intestazione.append("Content-Disposition: form-data; name=\"").append(nomeParte).append("\"");
+		if(nomeFile != null) {
+			intestazione.append("; filename=\"").append(nomeFile).append("\"");
+		}
+		intestazione.append("\r\n");
+		if(contentType != null) {
+			intestazione.append("Content-Type: ").append(contentType).append("\r\n");
+		}
+		intestazione.append("\r\n");
+
+		multipart.write(intestazione.toString().getBytes(StandardCharsets.UTF_8));
+		multipart.write(contenuto);
+		multipart.write("\r\n".getBytes(StandardCharsets.UTF_8));
+	}
+
+	/** Il contenuto dei file simulati e' una risorsa nominata come il file stesso. */
+	private byte[] leggiFile(String nome) {
+		if(nome == null || nome.contains("/") || nome.contains("\\")) {
+			throw new NotFoundException(ErrorCode.GEN_404);
+		}
+
+		try(InputStream is = PDNDMockServerV3.class.getResourceAsStream(getPrefix() + CARTELLA_FILE + nome)) {
+			if(is == null) {
+				this.logger.debug("Risorsa " + getPrefix() + CARTELLA_FILE + nome + " non trovata");
+				throw new NotFoundException(ErrorCode.GEN_404);
+			}
+
+			return IOUtils.toByteArray(is);
+		} catch(IOException e) {
+			this.logger.error("Errore durante la lettura del file simulato [" + nome + "]: " + e.getMessage(), e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
 	}
 
 	public ResponseEntity<EServiceDescriptorCertifiedAttributes> getEServiceDescriptorCertifiedAttributes(

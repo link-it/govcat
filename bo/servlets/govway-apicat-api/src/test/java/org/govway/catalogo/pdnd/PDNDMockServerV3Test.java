@@ -26,6 +26,8 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,6 +37,7 @@ import org.govway.catalogo.pdnd.controllers.PDNDMockServerV3;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Agreement;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.AgreementRejection;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.AgreementState;
+import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Document;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.EServiceEvent;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Purpose;
 import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.PurposeVersionState;
@@ -42,6 +45,8 @@ import org.govway.catalogo.servlets.pdnd.v3.mockserver.model.Tenant;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ResponseEntity;
 
 /**
  * Verifica che le risposte simulate dell'API PDND v3 siano leggibili nei modelli generati:
@@ -355,6 +360,53 @@ class PDNDMockServerV3Test {
 
 		assertEquals(finalita.getConsumerId(), accordo.getConsumerId());
 		assertEquals(finalita.getEserviceId(), accordo.getEserviceId());
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {"collaudo", "produzione"})
+	void iDocumentiElencatiSonoScaricabili(String ambiente) throws IOException {
+		PDNDMockServerV3 server = new PDNDMockServerV3(ambiente);
+
+		Document documento = server.getEServiceDescriptorDocuments(ID, ID, 0, 50).getBody().getResults().get(0);
+
+		ResponseEntity<Resource> response =
+				server.downloadEServiceDescriptorDocument(ID, ID, documento.getId());
+
+		String corpo = contenuto(response);
+		assertTrue(corpo.contains("name=\"file\"; filename=\"" + documento.getName() + "\""),
+				"il multipart non riporta il file: " + corpo);
+		assertTrue(corpo.contains(documento.getContentType()));
+		assertTrue(corpo.contains("openapi: 3.0.3"), "il documento simulato non e' stato allegato");
+
+		// il delimitatore dichiarato e' quello utilizzato nel corpo
+		String boundary = response.getHeaders().getContentType().getParameter("boundary");
+		assertNotNull(boundary);
+		assertTrue(corpo.startsWith("--" + boundary));
+		assertTrue(corpo.endsWith("--" + boundary + "--\r\n"));
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {"collaudo", "produzione"})
+	void lInterfacciaDelDescrittoreEScaricabile(String ambiente) throws IOException {
+		PDNDMockServerV3 server = new PDNDMockServerV3(ambiente);
+
+		ResponseEntity<Resource> response = server.downloadEServiceDescriptorInterface(ID, ID);
+
+		String corpo = contenuto(response);
+		assertTrue(corpo.contains("filename=\"interface.yaml\""), "il multipart non riporta l'interfaccia: " + corpo);
+		assertTrue(corpo.contains("openapi: 3.0.3"));
+	}
+
+	@Test
+	void unDocumentoNonElencatoNonEScaricabile() {
+		PDNDMockServerV3 server = new PDNDMockServerV3("collaudo");
+
+		assertThrows(NotFoundException.class,
+				() -> server.downloadEServiceDescriptorDocument(ID, ID, UUID.randomUUID()));
+	}
+
+	private String contenuto(ResponseEntity<Resource> response) throws IOException {
+		return new String(response.getBody().getInputStream().readAllBytes(), StandardCharsets.UTF_8);
 	}
 
 	@Test

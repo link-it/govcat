@@ -75,6 +75,7 @@ import org.govway.catalogo.servlets.pdnd.v3.client.api.GatewayApi;
 import org.govway.catalogo.servlets.pdnd.v3.client.api.impl.ApiException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 
 /**
@@ -108,9 +109,13 @@ public class PDNDClientV3 implements IPDNDClient {
 	/** Lettura dei flussi di eventi, che richiede l'adattamento dei progressivi. */
 	private PDNDEventiV3 eventi;
 
+	/** Download dei file di un descrittore, restituiti dalla PDND in un multipart. */
+	private PDNDDocumentiV3 documenti;
+
 	public PDNDClientV3(GatewayApi gatewayApiClient) {
 		this.gatewayApiClient = gatewayApiClient;
 		this.eventi = new PDNDEventiV3(gatewayApiClient);
+		this.documenti = new PDNDDocumentiV3(gatewayApiClient);
 	}
 
 	@Override
@@ -600,6 +605,33 @@ public class PDNDClientV3 implements IPDNDClient {
 					this.gatewayApiClient.getEServiceDescriptor(eserviceId, descriptorId);
 
 			return ResponseEntity.ok(toEServiceDescriptor(eserviceId, descriptor));
+		} catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		} catch(ApiException e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw toClientApiException(e);
+		}
+	}
+
+	@Override
+	public ResponseEntity<Resource> downloadEServiceDescriptorDocument(UUID eserviceId, UUID descriptorId,
+			UUID documentId) {
+		try {
+			return this.documenti.scaricaDocumento(eserviceId, descriptorId, documentId);
+		} catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		} catch(ApiException e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw toClientApiException(e);
+		}
+	}
+
+	@Override
+	public ResponseEntity<Resource> downloadEServiceDescriptorInterface(UUID eserviceId, UUID descriptorId) {
+		try {
+			return this.documenti.scaricaInterfaccia(eserviceId, descriptorId);
 		} catch(RuntimeException e) {
 			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
 			throw e;

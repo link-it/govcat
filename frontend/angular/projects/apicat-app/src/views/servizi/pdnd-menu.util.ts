@@ -98,3 +98,18 @@ export function getPdndProducerIds(soggettoNome: string, pdndList: any[]): { pro
     producerIdProduzione: _pdnd.produzione?.id_producer
   };
 }
+
+/**
+ * Identificativo dell'e-service PDND dell'API per l'ambiente, dalle proprieta` custom: prima i gruppi
+ * con suffisso `_identificativo`, poi quelli senza (convenzione precedente). Stringa vuota se assente.
+ */
+export function getPdndEserviceId(api: any, ambiente: string): string {
+  const _gruppi: any[] = api?.proprieta_custom || [];
+  const _base = ambiente === 'collaudo' ? 'PDNDCollaudo' : 'PDNDProduzione';
+  for (const _nome of [`${_base}_identificativo`, _base]) {
+    const _gruppo = _gruppi.find((item: any) => item.gruppo === _nome);
+    const _valore = _gruppo?.proprieta?.find((item: any) => item.nome === 'identificativo_eservice_pdnd')?.valore;
+    if (_valore) { return _valore; }
+  }
+  return '';
+}

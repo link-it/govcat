@@ -50,6 +50,7 @@ import org.govway.catalogo.servlets.pdnd.model.Subscriber;
 import org.govway.catalogo.servlets.pdnd.model.Subscribers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 
 /**
@@ -313,6 +314,22 @@ public class PDNDClient implements IPDNDClient {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
 			throw new ClientApiException(e);
 		}
+	}
+
+	/**
+	 * L'API PDND v1 non prevede il download dei documenti di un descrittore: il contratto ne
+	 * riporta i soli metadati.
+	 */
+	public ResponseEntity<Resource> downloadEServiceDescriptorDocument(UUID eserviceId, UUID descriptorId,
+			UUID documentId) {
+		throw notImplemented("downloadEServiceDescriptorDocument");
+	}
+
+	/**
+	 * L'API PDND v1 non prevede il download dell'interfaccia di un descrittore.
+	 */
+	public ResponseEntity<Resource> downloadEServiceDescriptorInterface(UUID eserviceId, UUID descriptorId) {
+		throw notImplemented("downloadEServiceDescriptorInterface");
 	}
 
 	public ResponseEntity<Events> getEservicesEventsFromId(Long lastEventId,

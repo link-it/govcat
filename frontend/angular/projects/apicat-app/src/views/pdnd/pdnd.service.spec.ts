@@ -219,4 +219,14 @@ describe('PdndService', () => {
       expect(result.error.status).toBe(500);
     });
   });
+
+  describe('download dei file del descrittore (Issue #415)', () => {
+    it('should download a descriptor document and the interface from the PDND API', () => {
+      mockApiService.downloadPDND = vi.fn().mockReturnValue(of({}));
+      service.downloadEserviceDescriptorDocument('collaudo', 'es', 'ds', 'doc');
+      expect(mockApiService.downloadPDND).toHaveBeenCalledWith('collaudo/eservices/es/descriptors/ds/documents/doc');
+      service.downloadEserviceDescriptorInterface('produzione', 'es', 'ds');
+      expect(mockApiService.downloadPDND).toHaveBeenCalledWith('produzione/eservices/es/descriptors/ds/interface');
+    });
+  });
 });
