@@ -1,3 +1,19 @@
+2026-11-03  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* Rilasciata versione 2.5.0
+
+2026-11-03  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #418: il referente di servizio non vedeva menu e rotte di monitoraggio nonostante
+	  ruoli_abilitati. Menu e MonitoraggioGuard verificano ora i ruoli_abilitati sul grant del
+	  servizio (non sul ruolo generale); la guardia carica la configurazione remota se non ancora
+	  disponibile (accesso diretto alle pagine di transazioni e statistiche).
+
+	Adesioni, salta collaudo: alla creazione l'adesione nasce con skip_collaudo=true se il servizio
+	  ha salta collaudo o è in uno stato *_senza_collaudo; nel wizard il pulsante "Salta collaudo"
+	  è disabilitato (con tooltip) per i servizi pubblicati senza collaudo.
+
 2026-11-02  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

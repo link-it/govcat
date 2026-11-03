@@ -368,6 +368,10 @@ export class AdesioneCreateComponent implements OnInit {
       id_logico: body.id_logico || null,
     };
 
+    if (this._isServizioSenzaCollaudo(this._servizio)) {
+      _newBody.skip_collaudo = true;
+    }
+
     _newBody.referenti = [];
 
     if (this._isSelfReferente) {
@@ -390,6 +394,11 @@ export class AdesioneCreateComponent implements OnInit {
     this._removeNullProperties(_newBody);
 
     return _newBody;
+  }
+
+  /** Servizio con salta collaudo o in uno stato `*_senza_collaudo`: l'adesione nasce senza collaudo */
+  _isServizioSenzaCollaudo(servizio: any): boolean {
+    return !!servizio?.skip_collaudo || !!servizio?.stato?.endsWith('_senza_collaudo');
   }
 
   __onSave(body: any) {

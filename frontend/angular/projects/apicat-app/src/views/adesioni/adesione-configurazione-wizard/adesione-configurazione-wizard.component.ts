@@ -2406,7 +2406,13 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         return this.isBozza && this.adesione.servizio.skip_collaudo;
     };
 
+    /** Servizio pubblicato senza collaudo: l'adesione non puo` prevedere il collaudo */
+    get skipCollaudoVincolato(): boolean {
+        return !!this.adesione?.servizio?.stato?.endsWith('_senza_collaudo');
+    }
+
     toggleSkipCollaudo() {
+        if (this.skipCollaudoVincolato) { return; }
         this.saveSkipCollaudo = true;
 
         const body: any = {
