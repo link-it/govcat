@@ -90,7 +90,6 @@ describe('MonitorDropdwnComponent', () => {
     expect(component._showTransazioni).toBe(true);
     expect(component._showStatistiche).toBe(true);
     expect(component._showVerifiche).toBe(true);
-    expect(component._hasRole).toBe(false);
   });
 
   it('should emit action on onAction', () => {
@@ -110,5 +109,28 @@ describe('MonitorDropdwnComponent', () => {
   it('should build menu actions on initMenu', () => {
     component.ngOnInit();
     expect(component._menuActions.length).toBeGreaterThan(0);
+  });
+
+  describe('voci di monitoraggio (Issue #418)', () => {
+    const voci = () => component._menuActions.filter((m: any) => ['transazioni', 'statistiche', 'verifiche'].includes(m.action) && m.enabled).map((m: any) => m.action);
+
+    it('should follow showMonitoring (grant of the service) and not the general role', () => {
+      mockAuthenticationService._getConfigModule.mockReturnValue({
+        abilitato: true, ruoli_abilitati: ['referente'],
+        transazioni_abilitate: true, statistiche_abilitate: true, verifiche_abilitate: false
+      });
+      mockAuthenticationService.hasRole.mockReturnValue(false);
+      component.showMonitoring = true;
+      component.ngOnInit();
+      expect(voci()).toEqual(['transazioni', 'statistiche']);
+      component.showMonitoring = false;
+      component.initMenu();
+      expect(voci()).toEqual([]);
+    });
+
+    it('should not fail when ruoli_abilitati is missing', () => {
+      mockAuthenticationService._getConfigModule.mockReturnValue({ abilitato: true, transazioni_abilitate: true });
+      expect(() => component.ngOnInit()).not.toThrow();
+    });
   });
 });

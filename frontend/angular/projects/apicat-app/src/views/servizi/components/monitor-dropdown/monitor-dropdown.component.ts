@@ -56,7 +56,6 @@ export class MonitorDropdwnComponent implements OnInit, OnChanges {
   _showTransazioni: boolean = true;
   _showStatistiche: boolean = true;
   _showVerifiche: boolean = true;
-  _hasRole: boolean = false;
   _showCommunicationsMenuConfig: boolean = true;
 
   appConfig: any;
@@ -75,9 +74,8 @@ export class MonitorDropdwnComponent implements OnInit, OnChanges {
     this._showTransazioni = monitoraggio?.transazioni_abilitate || false;
     this._showStatistiche = monitoraggio?.statistiche_abilitate || false;
     this._showVerifiche = monitoraggio?.verifiche_abilitate || false;
+    // I ruoli abilitati si verificano sul grant del servizio nel componente che valorizza `showMonitoring`
     this._showMonitoraggio = monitoraggio?.abilitato && (this._showStatistiche || this._showTransazioni || this._showVerifiche);
-    const _ruoli = monitoraggio?.ruoli_abilitati;
-    this._hasRole = _ruoli.length > 0 ? this.authenticationService.hasRole(_ruoli) : false;
 
     this.initMenu();
   }
@@ -108,7 +106,7 @@ export class MonitorDropdwnComponent implements OnInit, OnChanges {
       new MenuAction({
         type: 'label',
         title: 'APP.MENU.Monitoring',
-        enabled: this.showMonitoring && this._showMonitoraggio && this._hasRole
+        enabled: this.showMonitoring && this._showMonitoraggio
       }),
       new MenuAction({
         type: 'menu',
@@ -116,7 +114,7 @@ export class MonitorDropdwnComponent implements OnInit, OnChanges {
         icon: 'arrow-left-right',
         subTitle: '',
         action: 'transazioni',
-        enabled: this.showMonitoring && this._showMonitoraggio && this._showTransazioni && this._hasRole
+        enabled: this.showMonitoring && this._showMonitoraggio && this._showTransazioni
       }),
       new MenuAction({
         type: 'menu',
@@ -124,7 +122,7 @@ export class MonitorDropdwnComponent implements OnInit, OnChanges {
         icon: 'graph-up',
         subTitle: '',
         action: 'statistiche',
-        enabled: this.showMonitoring && this._showMonitoraggio && this._showStatistiche && this._hasRole
+        enabled: this.showMonitoring && this._showMonitoraggio && this._showStatistiche
       }),
       new MenuAction({
         type: 'menu',
@@ -132,11 +130,11 @@ export class MonitorDropdwnComponent implements OnInit, OnChanges {
         icon: 'shield-check',
         subTitle: '',
         action: 'verifiche',
-        enabled: this.showMonitoring && this._showMonitoraggio && this._showVerifiche && this._hasRole
+        enabled: this.showMonitoring && this._showMonitoraggio && this._showVerifiche
       }),
       new MenuAction({
         type: 'divider',
-        enabled: this.showMonitoring && this._showMonitoraggio && this._hasRole
+        enabled: this.showMonitoring && this._showMonitoraggio
       }),
       new MenuAction({
         type: 'menu',
