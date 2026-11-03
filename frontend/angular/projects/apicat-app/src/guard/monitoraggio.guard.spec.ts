@@ -1,51 +1,60 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { firstValueFrom, of, throwError } from 'rxjs';
 import { MonitoraggioGuard } from './monitoraggio.guard';
 
-describe('MonitoraggioGuard', () => {
+describe('MonitoraggioGuard (Issue #418)', () => {
   let guard: MonitoraggioGuard;
   let router: any;
   let authService: any;
-  let configService: any;
+  let apiService: any;
+  const negato = { url: '/servizi' };
+  const rotta = (id: string | null) => ({ paramMap: { get: (k: string) => (k === 'id' ? id : null) } }) as any;
 
   beforeEach(() => {
-    router = { navigate: vi.fn() };
+    router = { createUrlTree: vi.fn().mockReturnValue(negato) };
     authService = {
       _getConfigModule: vi.fn().mockReturnValue({ abilitato: true, ruoli_abilitati: ['gestore', 'referente'] }),
-      hasRole: vi.fn().mockReturnValue(true)
+      canMonitoraggio: vi.fn().mockReturnValue(true)
     };
-    configService = { getAppConfig: vi.fn().mockReturnValue({}) };
-    guard = new MonitoraggioGuard(router, authService, configService);
+    apiService = {
+      getDetails: vi.fn().mockReturnValue(of({ ruoli: ['referente'] })),
+      getList: vi.fn().mockReturnValue(of({ monitoraggio: { abilitato: true } }))
+    };
+    guard = new MonitoraggioGuard(router, authService, apiService);
   });
 
-  it('should allow access when monitoraggio enabled and user has required role', () => {
-    const result = guard.canActivate({} as any, {} as any);
-    expect(result).toBe(true);
-    expect(authService.hasRole).toHaveBeenCalledWith(['gestore', 'referente']);
+  it('should check the enabled roles against the grant of the service in the route', async () => {
+    expect(await firstValueFrom(guard.canActivate(rotta('s1'), {} as any))).toBe(true);
+    expect(apiService.getDetails).toHaveBeenCalledWith('servizi', 's1', 'grant');
+    expect(authService.canMonitoraggio).toHaveBeenCalledWith(['referente'], expect.objectContaining({ abilitato: true }));
   });
 
-  it('should redirect when monitoraggio is disabled', () => {
+  it('should redirect to the services when the user has no enabled role on the service', async () => {
+    authService.canMonitoraggio.mockReturnValue(false);
+    expect(await firstValueFrom(guard.canActivate(rotta('s1'), {} as any))).toBe(negato);
+    expect(router.createUrlTree).toHaveBeenCalledWith(['/servizi']);
+  });
+
+  it('should redirect when monitoring is disabled or not configured, without loading the grant', async () => {
     authService._getConfigModule.mockReturnValue({ abilitato: false });
-    const result = guard.canActivate({} as any, {} as any);
-    expect(result).toBe(false);
-    expect(router.navigate).toHaveBeenCalledWith(['/servizi']);
-  });
-
-  it('should deny access when user does not have required role', () => {
-    authService.hasRole.mockReturnValue(false);
-    const result = guard.canActivate({} as any, {} as any);
-    expect(result).toBe(false);
-  });
-
-  it('should allow access when enabled with empty ruoli_abilitati (open to all)', () => {
-    authService._getConfigModule.mockReturnValue({ abilitato: true, ruoli_abilitati: [] });
-    const result = guard.canActivate({} as any, {} as any);
-    expect(result).toBe(true);
-  });
-
-  it('should handle null config gracefully', () => {
+    expect(await firstValueFrom(guard.canActivate(rotta('s1'), {} as any))).toBe(negato);
     authService._getConfigModule.mockReturnValue(null);
-    const result = guard.canActivate({} as any, {} as any);
-    expect(result).toBe(false);
-    expect(router.navigate).toHaveBeenCalledWith(['/servizi']);
+    apiService.getList.mockReturnValue(of({}));
+    expect(await firstValueFrom(guard.canActivate(rotta('s1'), {} as any))).toBe(negato);
+    expect(apiService.getDetails).not.toHaveBeenCalled();
+  });
+
+  it('should load the remote configuration when it is not available yet', async () => {
+    authService._getConfigModule.mockReturnValue(null);
+    expect(await firstValueFrom(guard.canActivate(rotta('s1'), {} as any))).toBe(true);
+    expect(apiService.getList).toHaveBeenCalledWith('configurazione');
+    expect(apiService.getDetails).toHaveBeenCalledWith('servizi', 's1', 'grant');
+    expect(authService.canMonitoraggio).toHaveBeenCalledWith(['referente'], { abilitato: true });
+  });
+
+  it('should redirect when the grant cannot be loaded or the service id is missing', async () => {
+    apiService.getDetails.mockReturnValue(throwError(() => ({ status: 403 })));
+    expect(await firstValueFrom(guard.canActivate(rotta('s1'), {} as any))).toBe(negato);
+    expect(await firstValueFrom(guard.canActivate(rotta(null), {} as any))).toBe(negato);
   });
 });

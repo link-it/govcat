@@ -177,12 +177,13 @@
               }
               @if (showSkipCollaudo) {
                 <div class=""
-                    [tooltip]="'APP.ADESIONI.LABEL.SkipCollaudoTooltip' | translate"
+                    [tooltip]="(skipCollaudoVincolato ? 'APP.ADESIONI.LABEL.SkipCollaudoVincolatoTooltip' : 'APP.ADESIONI.LABEL.SkipCollaudoTooltip') | translate"
                     placement="left"
                     container="body">
                   <lnk-button
                     [label]="'APP.LABEL.SkipCollaudo' | translate"
                     [icon]="adesione.skip_collaudo ? 'bi bi-check-square-fill text-primary' : 'bi bi-square'"
+                    [disabled]="skipCollaudoVincolato"
                     [spinner]="saveSkipCollaudo"
                     (onAction)="toggleSkipCollaudo()"
                   ></lnk-button>

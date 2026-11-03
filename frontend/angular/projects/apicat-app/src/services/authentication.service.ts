@@ -993,15 +993,14 @@ export class AuthenticationService {
     return (_.indexOf(_sac, state) !== -1);
   }
 
-  canMonitoraggio(grant: string[] = []) {
-    const _monitoraggio = this._getConfigModule('monitoraggio');
-    if (!_monitoraggio) {
+  canMonitoraggio(grant: string[] = [], monitoraggio: any = this._getConfigModule('monitoraggio')) {
+    if (!monitoraggio) {
       return false;
     }
-    const _ruoliAbilitati = _monitoraggio.ruoli_abilitati;
+    const _ruoliAbilitati = monitoraggio.ruoli_abilitati;
     const _grant = expandTecnicoGrants(grant);
     const _intersection = _.intersection(_grant, _ruoliAbilitati);
-    return _monitoraggio.abilitato && !!_intersection.length;
+    return monitoraggio.abilitato && !!_intersection.length;
   }
 
   // Verifica permessi menu amministrazione

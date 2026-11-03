@@ -21,6 +21,40 @@
 	  Script di upgrade del database `V2.5.1__rate_limiting.sql`. Le proprietà custom di
 	  rate limiting esistenti non vengono migrate e il configuratore continua a leggerle.
 
+2026-11-03  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* Rilasciata versione 2.5.0
+
+2026-11-03  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #418: il referente di servizio non vedeva menu e rotte di monitoraggio nonostante
+	  ruoli_abilitati. Menu e MonitoraggioGuard verificano ora i ruoli_abilitati sul grant del
+	  servizio (non sul ruolo generale); la guardia carica la configurazione remota se non ancora
+	  disponibile (accesso diretto alle pagine di transazioni e statistiche).
+
+	Adesioni, salta collaudo: alla creazione l'adesione nasce con skip_collaudo=true se il servizio
+	  ha salta collaudo o è in uno stato *_senza_collaudo; nel wizard il pulsante "Salta collaudo"
+	  è disabilitato (con tooltip) per i servizi pubblicati senza collaudo.
+
+2026-11-02  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Fix vulnerabilità dipendenze (OSV): Jackson 2.21.7 (jackson-core e jackson-databind:
+	  CVE-2026-89425, CVE-2026-89407, CVE-2026-91777, CVE-2026-83557, CVE-2026-68497,
+	  CVE-2026-19032, CVE-2026-91776) e BouncyCastle 1.85 (CVE-2026-8763, CVE-2026-13506).
+
+2026-11-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Fix vulnerabilità DOMPurify (OWASP/OSV) nei bundle di swagger-ui: swagger-ui-dist 5.34.1, che
+	  incorpora DOMPurify 3.4.17 al posto della 3.4.13 (l'override di dompurify non si applica al
+	  codice già compilato nel bundle).
+
+	Fix vulnerabilità dipendenze FE (OSV, tooling di build): override di glob 14.0.3
+	  (GHSA-3g3m-2fjr-6pw4) e minimatch 11.0.4 (GHSA-g3hv-75wg-m249), usati dalla CLI di Angular
+	  e da replace-in-file.
+
 2026-10-31  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

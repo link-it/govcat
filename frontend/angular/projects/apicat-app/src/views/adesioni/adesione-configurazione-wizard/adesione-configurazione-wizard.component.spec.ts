@@ -712,6 +712,22 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
     expect(component.saveSkipCollaudo).toBe(false);
   });
 
+  it('toggleSkipCollaudo should not change the flag when the service is published without testing', () => {
+    component.id = 5;
+    component.adesione = {
+      id_adesione: 'A1',
+      soggetto: { id_soggetto: 'S1' },
+      servizio: { id_servizio: 'SV1', skip_collaudo: true, stato: 'pubblicato_produzione_senza_collaudo' },
+      skip_collaudo: true,
+      stato: 'bozza'
+    };
+    expect(component.skipCollaudoVincolato).toBe(true);
+    component.toggleSkipCollaudo();
+    expect(mockApiService.putElement).not.toHaveBeenCalled();
+    component.adesione.servizio.stato = 'pubblicato_produzione';
+    expect(component.skipCollaudoVincolato).toBe(false);
+  });
+
   // -------- confirmDeleteReferente --------
 
   it('confirmDeleteReferente should call utils._confirmDialog', () => {

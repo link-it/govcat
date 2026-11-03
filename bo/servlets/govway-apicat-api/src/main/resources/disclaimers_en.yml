@@ -47,8 +47,8 @@ bozza:
   testo: |
     ## Subscription draft
     The subscription has been created but has not yet been submitted for configuration. To proceed:
-    - Complete the configuration in the **Test** and/or **Production** sections
-    - Submit the request through the **"Request test configuration"** button
+    - Complete the configuration in the **Test** and/or **Production** sections. If the subscription skips the test environment, the **Production** section is enough
+    - Submit the request through the **"Request test configuration"** button or, if the subscription skips the test environment, the **"Request configuration in production without testing"** button
 
     As long as the subscription remains a draft, it will not be visible to the service contacts.
 
@@ -795,8 +795,8 @@ servizio.bozza:
     ## Service in draft
     The service has been created but has not been submitted for publication yet. To proceed:
     - Complete the **General Information** (identifier, contacts) and the APIs with their interface specifications
-    - Fill in the provisioning details in the **Test** and/or **Production** sections
-    - Submit the request with the **"Request test configuration"** button
+    - Fill in the provisioning details in the **Test** and/or **Production** sections. If the service skips the test environment, the **Production** section is enough
+    - Submit the request with the **"Request test configuration"** button or, if the service skips the test environment, the **"Request configuration in production without testing"** button
 
     While the service stays in draft it is not published and no subscription can be requested.
 

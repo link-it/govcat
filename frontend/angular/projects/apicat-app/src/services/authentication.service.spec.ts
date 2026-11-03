@@ -1396,6 +1396,22 @@ describe('AuthenticationService', () => {
       expect(service.canMonitoraggio(['referente_tecnico_superiore'])).toBe(true);
     });
 
+    it('should use the monitoring configuration passed in place of the remote one not loaded yet', () => {
+      Tools.Configurazione = null;
+      expect(service.canMonitoraggio(['referente'], { abilitato: true, ruoli_abilitati: ['referente'] })).toBe(true);
+      expect(service.canMonitoraggio(['referente'], { abilitato: true, ruoli_abilitati: ['gestore'] })).toBe(false);
+    });
+
+    it('should deny without errors when ruoli_abilitati is missing or the user has no roles on the service (Issue #418)', () => {
+      Tools.Configurazione = { monitoraggio: { abilitato: true } } as any;
+      expect(service.canMonitoraggio(['referente'])).toBe(false);
+      Tools.Configurazione = { monitoraggio: { abilitato: true, ruoli_abilitati: ['gestore', 'referente_superiore', 'referente'] } } as any;
+      expect(service.canMonitoraggio([])).toBe(false);
+      expect(service.canMonitoraggio(undefined)).toBe(false);
+      expect(service.canMonitoraggio(['gestore'])).toBe(true);
+      expect(service.canMonitoraggio(['referente_superiore'])).toBe(true);
+    });
+
     it('should not push referente when referente is already in grant', () => {
       Tools.Configurazione = {
         monitoraggio: { abilitato: true, ruoli_abilitati: ['referente'] }

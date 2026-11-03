@@ -116,6 +116,7 @@
 				"ScegliCredenziali": "Scegli le credenziali…",
 				"Service": "Servizio",
 				"SkipCollaudoTooltip": "Abilitando questa opzione l'adesione salta la fase di collaudo e passa direttamente alla configurazione in produzione. La configurazione in produzione non potrà più essere modificata una volta pubblicata.",
+				"SkipCollaudoVincolatoTooltip": "Il servizio è pubblicato senza collaudo: l'adesione passa direttamente alla configurazione in produzione e l'opzione non può essere modificata.",
 				"Subject": "Soggetto",
 				"UsaClientEsistente": "Usa client esistente",
 				"WizardShowAllSections": "Mostra tutte le sezioni (debug)",
