@@ -135,6 +135,16 @@ describe('AdesioneCreateComponent', () => {
       expect(body.referenti).toContainEqual({ id_utente: 'R9', tipo: 'referente' });
       expect(body.referenti).not.toContainEqual({ id_utente: 'U1', tipo: 'referente' });
     });
+
+    it('should set skip_collaudo for a service with skip collaudo or in a *_senza_collaudo state', () => {
+      const _body = { id_soggetto: 'S1', id_servizio: 'SRV1' };
+      component._servizio = { id_servizio: 'SRV1', skip_collaudo: true, stato: 'pubblicato_produzione' };
+      expect(component._prepareBodySaveAdesione({ ..._body }).skip_collaudo).toBe(true);
+      component._servizio = { id_servizio: 'SRV1', skip_collaudo: false, stato: 'pubblicato_produzione_senza_collaudo' };
+      expect(component._prepareBodySaveAdesione({ ..._body }).skip_collaudo).toBe(true);
+      component._servizio = { id_servizio: 'SRV1', skip_collaudo: false, stato: 'pubblicato_produzione' };
+      expect(component._prepareBodySaveAdesione({ ..._body }).skip_collaudo).toBeUndefined();
+    });
   });
 
   describe('__onSave', () => {

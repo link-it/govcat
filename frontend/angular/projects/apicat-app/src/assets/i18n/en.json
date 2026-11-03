@@ -116,6 +116,7 @@
 				"ScegliCredenziali": "Choose your credentials…",
 				"Service": "Service",
 				"SkipCollaudoTooltip": "Enabling this option makes the subscription skip the testing phase and move directly to production configuration. Production configuration cannot be modified once published.",
+				"SkipCollaudoVincolatoTooltip": "The service is published without testing: the subscription moves directly to production configuration and this option cannot be changed.",
 				"Subject": "Subject",
 				"UsaClientEsistente": "Use existing client",
 				"WizardShowAllSections": "Show all sections (debug)",
