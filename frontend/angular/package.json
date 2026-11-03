@@ -1,6 +1,6 @@
 {
   "name": "apicat-workspace",
-  "version": "2.5.0-SNAPSHOT.rc1",
+  "version": "2.5.0",
   "scripts": {
     "ng": "ng",
     "start-apicat": "ng serve apicat-app --port 6200",
