@@ -50,8 +50,8 @@ bozza:
   testo: |
     ## Adesione in bozza
     L'adesione è stata creata ma non è ancora stata inviata per la configurazione. Per procedere:
-    - Completa la configurazione nelle sezioni **Collaudo** e/o **Produzione**
-    - Invia la richiesta tramite il pulsante **"Richiesta configurazione in collaudo"**
+    - Completa la configurazione nelle sezioni **Collaudo** e/o **Produzione**. Se l'adesione è senza collaudo, è sufficiente la sezione **Produzione**
+    - Invia la richiesta tramite il pulsante **"Richiesta configurazione in collaudo"** oppure, se l'adesione è senza collaudo, **"Richiesta configurazione in produzione senza collaudo"**
 
     Finché l'adesione rimane in bozza non sarà visibile ai referenti del servizio.
 
@@ -799,8 +799,8 @@ servizio.bozza:
     ## Servizio in bozza
     Il servizio è stato creato ma non è ancora stato inviato per la pubblicazione. Per procedere:
     - Completa le **Informazioni Generali** (identificativo, referenti) e le API con le relative specifiche
-    - Compila i dati di erogazione nelle sezioni **Collaudo** e/o **Produzione**
-    - Invia la richiesta tramite il pulsante **"Richiesta configurazione in collaudo"**
+    - Compila i dati di erogazione nelle sezioni **Collaudo** e/o **Produzione**. Se il servizio è senza collaudo, è sufficiente la sezione **Produzione**
+    - Invia la richiesta tramite il pulsante **"Richiesta configurazione in collaudo"** oppure, se il servizio è senza collaudo, **"Richiesta configurazione in produzione senza collaudo"**
 
     Finché il servizio rimane in bozza non è pubblicato e non è possibile aderirvi.
 
