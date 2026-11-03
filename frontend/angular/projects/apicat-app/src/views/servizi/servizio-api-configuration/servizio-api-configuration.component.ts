@@ -31,7 +31,7 @@ import { ServizioDisclaimerBannerComponent } from '../components/servizio-discla
 import { MarkdownModule } from 'ngx-markdown';
 import { DisablePermissionDirective } from '@app/directives/disable-permission/disable-permission.directive';
 import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, FormBuilder, FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormControl, FormGroup, UntypedFormArray, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 
@@ -45,6 +45,8 @@ import * as _ from 'lodash';
 import { ApiConfiguration, ApiConfigurationRead, ApiCustomProperty, ApiDefinitionUpdateWithFile, ApiDefinitionUpdateWithReference, ApiReadDetails, ApiUpdateRequest, IHistory, Profile, CustomProperty } from '../servizio-api-details/servizio-api-interfaces';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
+import { quoteDaRighe, rateLimitingApplicabile, rateLimitingSoloGiornaliero } from '../rate-limiting';
+import { RateLimitingQuoteComponent } from '../rate-limiting-quote/rate-limiting-quote.component';
 declare const saveAs: any;
 
 interface ApiFormValues {
@@ -61,6 +63,7 @@ interface ApiForm {
   url: FormControl<string>;
   protocollo: FormControl<string | null>;
   url_invocazione: FormControl<string[]>;
+  rate_limiting: UntypedFormArray;
   proprieta_custom: UntypedFormGroup;
   descrittore: UntypedFormControl;
 }
@@ -83,7 +86,7 @@ type Raggruppamento = {
   templateUrl: 'servizio-api-configuration.component.html',
   styleUrls: ['servizio-api-configuration.component.scss'],
   standalone: true,
-  imports: [CommonModule, ...COMPONENTS_IMPORTS, MapperPipe, MarkAsteriskDirective, MonitorDropdwnComponent, MarkdownModule, DisablePermissionDirective, ServizioDisclaimerBannerComponent]
+  imports: [CommonModule, ...COMPONENTS_IMPORTS, MapperPipe, MarkAsteriskDirective, MonitorDropdwnComponent, MarkdownModule, DisablePermissionDirective, ServizioDisclaimerBannerComponent, RateLimitingQuoteComponent]
 })
 export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, AfterContentChecked {
   static readonly Name = 'ServizioApiConfigurationComponent';
@@ -155,9 +158,31 @@ export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, Aft
     url: new FormControl('', { nonNullable: true }),
     protocollo: new FormControl<string | null>(null, [Validators.required]),
     url_invocazione: new FormControl<string[]>([], { nonNullable: true }),
+    rate_limiting: new UntypedFormArray([]),
     proprieta_custom: new UntypedFormGroup({}),
     descrittore: this._descrittoreCtrl
   });
+
+  /** Rate limiting complessivo dell'API per l'ambiente (solo API erogate dal soggetto del dominio). */
+  _rateLimitingSoloGiornaliero: boolean = false;
+
+  get _rateLimitingCtrl(): UntypedFormArray {
+    return this._formGroup.get('rate_limiting') as UntypedFormArray;
+  }
+
+  get _rateLimitingVisibile(): boolean {
+    return rateLimitingApplicabile(this.servizioApi);
+  }
+
+  private _initRateLimiting(configuration: any) {
+    this._rateLimitingSoloGiornaliero = rateLimitingSoloGiornaliero(this.servizioApi, Tools.Configurazione?.servizio?.api?.profili || []);
+    RateLimitingQuoteComponent.carica(this._rateLimitingCtrl, configuration?.rate_limiting);
+    if (this._rateLimitingVisibile && this._canEditFieldMapper(this.environmentId)) {
+      this._rateLimitingCtrl.enable({ emitEvent: false });
+    } else {
+      this._rateLimitingCtrl.disable({ emitEvent: false });
+    }
+  }
 
   /** URL di invocazione selezionabili per l'ambiente: la predefinita in testa, poi quelle censite in configurazione. */
   _urlInvocazioneOpzioni: { identificativo: string; etichetta: string }[] = [];
@@ -600,15 +625,18 @@ export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, Aft
     };
     this._initUrlInvocazioneOpzioni();
     this._urlInvocazioneCollaudo = this._selezioneUrlInvocazione(testingConfiguration);
+    this._rateLimitingCtrl.clear({ emitEvent: false });
     this._formGroup.setValue({
       nome_gateway: configuration?.dati_erogazione?.nome_gateway || '',
       versione_gateway: configuration?.dati_erogazione?.versione_gateway || null,
       url: configuration?.dati_erogazione?.url || '',
       protocollo: configuration?.protocollo || null,
       url_invocazione: this._selezioneUrlInvocazione(configuration),
+      rate_limiting: [],
       proprieta_custom: [],
       descrittore: null
     });
+    this._initRateLimiting(configuration);
     // Modificabile secondo i permessi della sezione dell'ambiente (non riservato al gestore)
     const _urlInvocazioneCtrl = this._formGroup.get('url_invocazione');
     if (this._canEditFieldMapper(this.environmentId)) {
@@ -911,6 +939,11 @@ export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, Aft
     const _urlInvocazioneCtrl = this._formGroup.get('url_invocazione');
     if (this._urlInvocazioneVisibile && _urlInvocazioneCtrl?.enabled) {
       configuration.url_invocazione = [...(_urlInvocazioneCtrl.value || [])];
+    }
+
+    // Elenco completo delle quote se modificabile (vuoto = nessun rate limiting); omesso altrimenti (invariate)
+    if (this._rateLimitingVisibile && this._rateLimitingCtrl.enabled) {
+      configuration.rate_limiting = quoteDaRighe(this._rateLimitingCtrl.getRawValue(), this._rateLimitingSoloGiornaliero);
     }
 
     if (this.environmentId === 'collaudo') {

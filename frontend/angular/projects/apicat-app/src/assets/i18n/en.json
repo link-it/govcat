@@ -67,6 +67,13 @@
 			}
 		},
 		"ADESIONI": {
+			"RATE_LIMITING": {
+				"Titolo": "Requested rate limiting",
+				"Descrizione": "Maximum number of requests the consumer expects to send, for each API and period for which the service declares a rate limiting.",
+				"QuotaPer": "Quota ({{periodo}})",
+				"TotaleServizio": "Overall service quota: {{quota}} / {{periodo}}",
+				"NonRichiesta": "not requested"
+			},
 			"FILTER": {
 				"All": "All",
 				"Closed": "Closed",
@@ -232,6 +239,17 @@
 				"Closed": "Closed",
 				"Found": "Found",
 				"Open": "Open"
+			},
+			"RATE_LIMITING": {
+				"Titolo": "Rate limiting",
+				"Descrizione": "Maximum number of requests to the API in this environment, at most one quota per period.",
+				"Quota": "Quota (requests)",
+				"Periodo": "Period",
+				"AggiungiQuota": "Add quota",
+				"RimuoviQuota": "Remove quota",
+				"Nessuno": "No rate limiting",
+				"QuotaNonValida": "Enter a whole number greater than zero",
+				"SoloGiornalieroPdnd": "fixed for PDND APIs"
 			},
 			"TITLE": {
 				"ApiList": "API",
@@ -2560,6 +2578,19 @@
 		"SERVICES": {
 			"PDND_PENDING": "Pending PDND actions: {{count}}",
 			"PDND_PENDING_LOADING": "Counting pending PDND actions",
+			"RATE_LIMITING": {
+				"Titolo": "Rate limiting",
+				"Descrizione": "Overall API quotas in this environment and quotas requested by consumers. Exceeding the quota is reported but not blocked.",
+				"Assegnata": "Assigned",
+				"Residua": "Remaining",
+				"Fruitori": "Consumers",
+				"Superata": "The sum of the consumer quotas exceeds the overall quota",
+				"QuoteFruitori": "Consumer quotas",
+				"Fruitore": "Consumer",
+				"NessunFruitore": "No consumers in this environment.",
+				"ModificaQuote": "Edit quotas of",
+				"CaricaAltri": "Load more consumers"
+			},
 			"ATTACHMENTS": {
 				"Title": "Attachments",
 				"ApiMenu": "API attachments",

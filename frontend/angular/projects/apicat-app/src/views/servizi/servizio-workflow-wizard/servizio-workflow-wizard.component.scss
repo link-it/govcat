@@ -359,6 +359,7 @@
   .approval-card .body { flex: 1; min-width: 0; }
   .approval-card .who { font-size: 13px; font-weight: 600; }
   .approval-card .when { font-size: 12px; color: var(--ink-3); }
+  .approval-card .api-rate-limiting i { margin-right: 4px; }
 
   // ─── righe API con espansione inline (pattern wizard adesioni) ────
   .api-row {

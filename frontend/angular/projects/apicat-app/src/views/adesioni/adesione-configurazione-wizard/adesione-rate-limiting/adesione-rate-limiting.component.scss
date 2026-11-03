@@ -1,0 +1,23 @@
+:host { display: block; }
+
+.adesione-rate-limiting {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line, #dee8ef);
+}
+
+.adesione-rate-limiting-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.adesione-rate-limiting-api + .adesione-rate-limiting-api {
+  margin-top: 16px;
+}
+
+.adesione-rate-limiting-riga {
+  max-width: 420px;
+  margin-bottom: 12px;
+}

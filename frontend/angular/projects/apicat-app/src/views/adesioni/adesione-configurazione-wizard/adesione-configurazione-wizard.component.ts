@@ -66,6 +66,7 @@ declare const saveAs: any;
 
 import { CkeckProvider, ClassiEnum, DataStructure } from '@app/provider/check.provider';
 import { NotificationBarComponent } from '@app/views/notifications/notification-bar/notification-bar.component';
+import { AdesioneRateLimitingComponent } from './adesione-rate-limiting/adesione-rate-limiting.component';
 
 export enum AccordionType {
     GENERAL_INFO = 'accordion-general-info',
@@ -126,6 +127,7 @@ export interface AdesioneDisclaimer {
         WizardFasiBarComponent,
         WizardSubstepperComponent,
         WizardRifiutoFormComponent,
+        AdesioneRateLimitingComponent,
         StatoChipComponent,
         ReferenteAddFormComponent,
         NotificationBarComponent,

@@ -67,6 +67,13 @@
 			}
 		},
 		"ADESIONI": {
+			"RATE_LIMITING": {
+				"Titolo": "Rate limiting richiesto",
+				"Descrizione": "Numero massimo di richieste che il fruitore prevede di inviare, per ogni API e periodo per cui il servizio dichiara un rate limiting.",
+				"QuotaPer": "Quota ({{periodo}})",
+				"TotaleServizio": "Quota complessiva del servizio: {{quota}} / {{periodo}}",
+				"NonRichiesta": "non richiesta"
+			},
 			"FILTER": {
 				"All": "Tutti",
 				"Closed": "Chiusi",
@@ -232,6 +239,17 @@
 				"Closed": "Chiusi",
 				"Found": "Trovati",
 				"Open": "Aperti"
+			},
+			"RATE_LIMITING": {
+				"Titolo": "Rate limiting",
+				"Descrizione": "Numero massimo di richieste all'API in questo ambiente, al più una quota per periodo.",
+				"Quota": "Quota (richieste)",
+				"Periodo": "Periodo",
+				"AggiungiQuota": "Aggiungi quota",
+				"RimuoviQuota": "Rimuovi quota",
+				"Nessuno": "Nessun rate limiting",
+				"QuotaNonValida": "Inserisci un numero intero maggiore di zero",
+				"SoloGiornalieroPdnd": "fisso per le API PDND"
 			},
 			"TITLE": {
 				"ApiList": "API",
@@ -2560,6 +2578,19 @@
 		"SERVICES": {
 			"PDND_PENDING": "Azioni PDND in attesa: {{count}}",
 			"PDND_PENDING_LOADING": "Conteggio delle azioni PDND in attesa in corso",
+			"RATE_LIMITING": {
+				"Titolo": "Rate limiting",
+				"Descrizione": "Quote complessive delle API in questo ambiente e quote richieste dai fruitori. Il superamento della quota è segnalato ma non bloccato.",
+				"Assegnata": "Assegnata",
+				"Residua": "Residua",
+				"Fruitori": "Fruitori",
+				"Superata": "La somma delle quote dei fruitori supera la quota complessiva",
+				"QuoteFruitori": "Quote dei fruitori",
+				"Fruitore": "Fruitore",
+				"NessunFruitore": "Nessun fruitore in questo ambiente.",
+				"ModificaQuote": "Modifica le quote di",
+				"CaricaAltri": "Carica altri fruitori"
+			},
 			"ATTACHMENTS": {
 				"Title": "Allegati",
 				"ApiMenu": "Allegati dell'API",

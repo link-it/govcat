@@ -430,6 +430,15 @@
                           </div>
                         </div>
                       }
+                      @if (_rateLimitingVisibile) {
+                        <div class="row mt-5 api-rate-limiting">
+                          <div class="col-12">
+                            <h3 class="h5 pb-2 mb-2 border-bottom">{{ 'APP.API.RATE_LIMITING.Titolo' | translate }}</h3>
+                            <p class="text-muted small mb-3">{{ 'APP.API.RATE_LIMITING.Descrizione' | translate }}</p>
+                            <app-rate-limiting-quote [righe]="_rateLimitingCtrl" [soloGiornaliero]="_rateLimitingSoloGiornaliero" [isEdit]="_isEdit"></app-rate-limiting-quote>
+                          </div>
+                        </div>
+                      }
                       @if (servizioApi.ruolo === EROGATO_SOGGETTO_DOMINIO) {
                         <div class="row mt-5 api-custom-properties">
                           <div class="col-12">

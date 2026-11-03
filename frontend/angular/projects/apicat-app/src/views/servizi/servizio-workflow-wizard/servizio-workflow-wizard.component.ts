@@ -61,6 +61,8 @@ import { WizardRifiuto, WizardRifiutoFormComponent } from '@app/components/wizar
 import { StepWizardItem } from '@app/components/wizard/wizard-step-bar/wizard-step-bar.component';
 import { ServizioInfoFormComponent } from './servizio-info-form/servizio-info-form.component';
 import { ServizioReferenteAddFormComponent } from './servizio-referente-add-form/servizio-referente-add-form.component';
+import { ServizioRateLimitingRiepilogoComponent } from './servizio-rate-limiting-riepilogo/servizio-rate-limiting-riepilogo.component';
+import { RATE_LIMITING_PERIODI, RATE_LIMITING_PERIODO_LABEL, RateLimiting, RateLimitingPeriodo, rateLimitingApplicabile } from '../rate-limiting';
 import { ServizioApiDetailsComponent } from '@app/views/servizi/servizio-api-details/servizio-api-details.component';
 import { ServizioApiEditComponent } from '@app/views/servizi/servizio-api-edit/servizio-api-edit.component';
 
@@ -101,6 +103,7 @@ declare const saveAs: any;
         WizardRifiutoFormComponent,
         ServizioInfoFormComponent,
         ServizioReferenteAddFormComponent,
+        ServizioRateLimitingRiepilogoComponent,
         ServizioAllegatoAddFormComponent,
         LnkButtonComponent,
         ServizioApiDetailsComponent,
@@ -179,6 +182,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     _configApiTab: string | null = null;
 
     @ViewChild('infoFormRef') infoFormRef?: ServizioInfoFormComponent;
+    @ViewChild(ServizioRateLimitingRiepilogoComponent) riepilogoRateLimiting?: ServizioRateLimitingRiepilogoComponent;
 
     apiUrl: string = '';
     hideVersions: boolean = false;
@@ -1128,10 +1132,40 @@ export class ServizioWorkflowWizardComponent implements OnInit {
                 this._apiListLoaded = true;
                 this._maybeAutoOpenCreateApi();
                 this._loadApiAllegatiCounts();
+                this._loadApiRateLimiting();
+                this.riepilogoRateLimiting?.carica();
                 this._verificaTrigger$.next();
             },
             error: () => { this.servizioApiList = []; this._apiListLoaded = true; this._maybeAutoOpenCreateApi(); }
         });
+    }
+
+    /** Quote di rate limiting per API e ambiente: presenti solo nel dettaglio dell'API. */
+    _apiRateLimiting: { [idApi: string]: { collaudo: RateLimiting[]; produzione: RateLimiting[] } } = {};
+
+    private _loadApiRateLimiting() {
+        const _ordina = (quote: RateLimiting[] | undefined) => [...(quote || [])]
+            .sort((a, b) => RATE_LIMITING_PERIODI.indexOf(a.periodo) - RATE_LIMITING_PERIODI.indexOf(b.periodo));
+        (this.servizioApiList || []).filter((api: any) => rateLimitingApplicabile(api)).forEach((api: any) => {
+            this.apiService.getDetails('api', api.id_api).subscribe({
+                next: (resp: any) => {
+                    this._apiRateLimiting[api.id_api] = {
+                        collaudo: _ordina(resp?.configurazione_collaudo?.rate_limiting),
+                        produzione: _ordina(resp?.configurazione_produzione?.rate_limiting)
+                    };
+                },
+                error: () => { delete this._apiRateLimiting[api.id_api]; }
+            });
+        });
+    }
+
+    apiRateLimiting(api: any): RateLimiting[] {
+        const _amb = this.currentAmbiente as 'collaudo' | 'produzione' | null;
+        return (_amb && this._apiRateLimiting[api?.id_api]?.[_amb]) || [];
+    }
+
+    _rateLimitingLabel(periodo: RateLimitingPeriodo): string {
+        return RATE_LIMITING_PERIODO_LABEL[periodo] || periodo;
     }
 
     /** Nome proposto solo per la prima API del servizio. */

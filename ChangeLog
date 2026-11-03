@@ -17,6 +17,15 @@
 	  ha l'audit in un ambiente se almeno una di queste proprietà è valorizzata. Nelle liste con
 	  `includi_audit` l'API va sempre indicata. Senza il parametro il comportamento non cambia.
 
+2026-10-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #402: rate limiting di servizi e adesioni con i campi dedicati. Quote complessive
+	  per API e ambiente (una per periodo, solo giorno per le API PDND) nella configurazione e
+	  nella creazione dell'API e nella riga API del wizard; quota del fruitore nel wizard
+	  adesioni; riepilogo per chi gestisce il servizio con quote dei fruitori modificabili e
+	  avviso di sforamento.
+
 2026-10-27  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

@@ -20,7 +20,7 @@ import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestr
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, map, switchMap } from 'rxjs/operators';
 import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, UntypedFormArray, Validators } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
@@ -55,6 +55,8 @@ import { PluralTranslatePipe } from '@app/lib/pipes/plural-translate.pipe';
 import { MarkdownModule } from 'ngx-markdown';
 
 import * as _ from 'lodash';
+import { quoteDaRighe, rateLimitingSoloGiornaliero } from '../rate-limiting';
+import { RateLimitingQuoteComponent } from '../rate-limiting-quote/rate-limiting-quote.component';
 declare const saveAs: any;
 
 export const EROGATO_SOGGETTO_DOMINIO: string = 'erogato_soggetto_dominio';
@@ -83,6 +85,7 @@ export type GruppiCampi = Record<string, Campo[]>;
         CommonModule,
         ReactiveFormsModule,
         ...COMPONENTS_IMPORTS,
+        RateLimitingQuoteComponent,
         ...APP_COMPONENTS_IMPORTS,
         MarkAsteriskDirective,
         DisablePermissionDirective,
@@ -124,6 +127,22 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
     private _profiliDisclaimerKey: string | null = null;
     private readonly _profiliDisclaimer$ = new Subject<string[]>();
     private _formDisclaimerSubs: Subscription[] = [];
+
+    /** Ambiente delle quote di rate limiting indicate in creazione: quello della fase. */
+    get _ambienteRateLimiting(): 'collaudo' | 'produzione' {
+        if (this.fase) { return this.fase === 'produzione' ? 'produzione' : 'collaudo'; }
+        return this.service?.skip_collaudo ? 'produzione' : 'collaudo';
+    }
+
+    get _rateLimitingCtrl(): UntypedFormArray | null {
+        return (this._formGroup?.get('rate_limiting') as UntypedFormArray) || null;
+    }
+
+    /** Periodo solo giornaliero se fra i profili scelti nel form ce n'e` uno PDND. */
+    get _rateLimitingSoloGiornaliero(): boolean {
+        const _gruppi = (this._formGroup?.get('authTypes')?.value || []).map((a: any) => ({ profilo: a?.profilo }));
+        return rateLimitingSoloGiornaliero({ gruppi_auth_type: _gruppi }, Tools.Configurazione?.servizio?.api?.profili || []);
+    }
 
     /** Base url di collaudo in creazione: solo nella fase collaudo; senza fase se il collaudo non e` saltato. */
     get _showUrlCollaudo(): boolean {
@@ -568,6 +587,9 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
 
             const _authTypes = this.formBuilder.array([]);
             _group.authTypes = _authTypes;
+            if (this._isNew) {
+                _group.rate_limiting = new UntypedFormArray([]);
+            }
 
             this._formGroup = new FormGroup(_group);
 
@@ -689,6 +711,17 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
                     };
                 }
             };
+        }
+
+        const _quote = (body.ruolo === this.EROGATO_SOGGETTO_DOMINIO)
+            ? quoteDaRighe(this._rateLimitingCtrl?.getRawValue() || [], this._rateLimitingSoloGiornaliero)
+            : [];
+        if (_quote.length) {
+            if (this._ambienteRateLimiting === 'produzione' && configurazioneProduzione) {
+                configurazioneProduzione.rate_limiting = _quote;
+            } else if (this._ambienteRateLimiting === 'collaudo') {
+                configurazioneCollaudo.rate_limiting = _quote;
+            }
         }
 
         if (body.ruolo === this.EROGATO_SOGGETTO_DOMINIO) {;

@@ -2798,6 +2798,59 @@ describe('ServizioApiConfigurationComponent', () => {
     });
   });
 
+  describe('rate limiting complessivo (Issue #402)', () => {
+    const buildApi = (produzione: any = {}, extra: any = {}) => ({
+      nome: 'API1', versione: 1, ruolo: EROGATO_SOGGETTO_DOMINIO,
+      configurazione_collaudo: { protocollo: 'rest', dati_erogazione: { url: 'http://c' } },
+      configurazione_produzione: { protocollo: 'rest', dati_erogazione: { url: 'http://p' }, ...produzione },
+      proprieta_custom: [], gruppi_auth_type: [], ...extra
+    });
+    const load = (api: any) => {
+      component.rawData = JSON.stringify(api);
+      component.environmentId = 'produzione';
+      component.service = { stato: 'bozza' };
+      (component as any).mapApiDetailsToFormValues();
+    };
+    const save = () => {
+      component.id = 10 as any;
+      component._hasSpecifica = false;
+      component._apiProprietaCustomGrouped = null;
+      vi.spyOn(component as any, '_loadServizioApi').mockImplementation(() => {});
+      mockApiService.putElement.mockReturnValue(of({}));
+      component._onSaveApi({});
+      return mockApiService.putElement.mock.calls.at(-1)[2].configurazione_produzione;
+    };
+
+    it('should load the saved quotas and send the full list', () => {
+      load(buildApi({ rate_limiting: [{ quota: 300, periodo: 'giorno' }, { quota: 20, periodo: 'ora' }] }));
+      expect(component._rateLimitingVisibile).toBe(true);
+      expect(component._rateLimitingCtrl.length).toBe(2);
+      component._rateLimitingCtrl.removeAt(1);
+      expect(save().rate_limiting).toEqual([{ quota: 300, periodo: 'giorno' }]);
+      component._rateLimitingCtrl.clear();
+      expect(save().rate_limiting).toEqual([]);
+    });
+
+    it('should not send the quotas when the environment is not editable or the API is provided by the subscriber', () => {
+      mockAuthenticationService.canEditField.mockReturnValue(false);
+      load(buildApi({ rate_limiting: [{ quota: 300, periodo: 'giorno' }] }));
+      expect(component._rateLimitingCtrl.disabled).toBe(true);
+      expect(save()).not.toHaveProperty('rate_limiting');
+      mockAuthenticationService.canEditField.mockReturnValue(true);
+
+      load(buildApi({}, { ruolo: 'erogato_soggetto_aderente' }));
+      expect(component._rateLimitingVisibile).toBe(false);
+      expect(save()).not.toHaveProperty('rate_limiting');
+    });
+
+    it('should send a daily quota for a PDND API', () => {
+      (Tools.Configurazione as any).servizio.api.profili = [{ codice_interno: 'PDND', auth_type: 'pdnd', pdnd_type: 'erogazione_pdnd' }];
+      load(buildApi({ rate_limiting: [{ quota: 1000, periodo: 'giorno' }] }, { gruppi_auth_type: [{ profilo: 'PDND' }] }));
+      expect(component._rateLimitingSoloGiornaliero).toBe(true);
+      expect(save().rate_limiting).toEqual([{ quota: 1000, periodo: 'giorno' }]);
+    });
+  });
+
   describe('URL di invocazione per ambiente', () => {
     const buildApi = (collaudo: any = {}, produzione: any = {}) => ({
       nome: 'API1', versione: 1, ruolo: EROGATO_SOGGETTO_DOMINIO,

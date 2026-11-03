@@ -599,6 +599,35 @@ describe('ServizioApiDetailsComponent', () => {
   });
 
   describe('_prepareBodySaveApi', () => {
+    it('should send the quotas of the phase environment in creation (Issue #402)', () => {
+      component._hasSpecifica = false;
+      component._apiProprietaCustomGrouped = null;
+      component.service = { stato: 'bozza', skip_collaudo: false } as any;
+      component.fase = 'collaudo';
+      component._formGroup = new FormGroup({
+        authTypes: new FormArray([]),
+        rate_limiting: new FormArray([
+          new FormGroup({ quota: new FormControl(20), periodo: new FormControl('ora') }),
+          new FormGroup({ quota: new FormControl(300), periodo: new FormControl('giorno') })
+        ])
+      }) as any;
+      const body: any = {
+        nome: 'Api1', versione: '1', id_servizio: 's1', ruolo: 'erogato_soggetto_dominio',
+        protocollo: 'rest', url_collaudo: 'http://c', url_produzione: '', authTypes: []
+      };
+      const result: any = component._prepareBodySaveApi(body);
+      expect(result.configurazione_collaudo.rate_limiting).toEqual([{ quota: 300, periodo: 'giorno' }, { quota: 20, periodo: 'ora' }]);
+
+      component.fase = 'produzione';
+      component.service = { stato: 'bozza', skip_collaudo: true } as any;
+      const resultSkip: any = component._prepareBodySaveApi({ ...body, url_produzione: 'http://p' });
+      expect(resultSkip.configurazione_collaudo).not.toHaveProperty('rate_limiting');
+      expect(resultSkip.configurazione_produzione.rate_limiting).toEqual([{ quota: 300, periodo: 'giorno' }, { quota: 20, periodo: 'ora' }]);
+
+      const resultAderente: any = component._prepareBodySaveApi({ ...body, ruolo: 'erogato_soggetto_aderente' });
+      expect(resultAderente.configurazione_collaudo).not.toHaveProperty('rate_limiting');
+    });
+
     it('should not send the invocation URL selection in creation', () => {
       component._hasSpecifica = false;
       component._apiProprietaCustomGrouped = null;

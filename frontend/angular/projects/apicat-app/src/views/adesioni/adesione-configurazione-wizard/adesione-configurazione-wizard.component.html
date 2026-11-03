@@ -879,6 +879,11 @@
     [nextState]="getNextStateWorkflow()"
     [inlineEdit]="wizardNewLayout"
   ></app-adesione-lista-erogazioni>
+  <app-adesione-rate-limiting
+    [adesione]="adesione"
+    [environment]="AmbienteEnum.Collaudo"
+    [grant]="grant"
+  ></app-adesione-rate-limiting>
   @for (item of proprietaCustomFiltered[AmbienteEnum.Collaudo]; track item; let last = $last; let even = $even) {
     <div class="settings-">
       <div class="settings-content-">
@@ -956,6 +961,11 @@
     [nextState]="getNextStateWorkflow()"
     [inlineEdit]="wizardNewLayout"
   ></app-adesione-lista-erogazioni>
+  <app-adesione-rate-limiting
+    [adesione]="adesione"
+    [environment]="AmbienteEnum.Produzione"
+    [grant]="grant"
+  ></app-adesione-rate-limiting>
   @for (item of proprietaCustomFiltered[AmbienteEnum.Produzione]; track item; let last = $last; let even = $even) {
     <div class="settings-" [class.border-bottom-]="last">
       <div class="settings-content-">

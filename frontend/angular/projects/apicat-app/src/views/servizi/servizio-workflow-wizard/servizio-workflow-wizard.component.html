@@ -523,6 +523,16 @@
                             <div class="body">
                               <div class="who text-break">{{ api.nome }} <span class="text-muted">v. {{ api.versione }}</span></div>
                               @if (apiProfilo(api)) { <div class="when">{{ apiProfilo(api) }}</div> }
+                              @let quoteApi = apiRateLimiting(api);
+                              @if (quoteApi.length) {
+                                <div class="when api-rate-limiting">
+                                  <i class="bi bi-speedometer2" aria-hidden="true"></i>
+                                  <span class="visually-hidden">{{ 'APP.API.RATE_LIMITING.Titolo' | translate }}:</span>
+                                  @for (q of quoteApi; track q.periodo) {
+                                    {{ q.quota | number }} / {{ _rateLimitingLabel(q.periodo) | translate | lowercase }}@if (!$last) { · }
+                                  }
+                                </div>
+                              }
                             </div>
                             @if (apiDaCompletare(api)) {
                               <span class="chip chip-accent"><span class="pulse"></span>{{ 'APP.SERVICES.WIZARD.AzioneRichiesta' | translate }}</span>
@@ -698,6 +708,12 @@
                 }
               </ng-template>
             </app-wizard-substepper>
+
+            <app-servizio-rate-limiting-riepilogo
+              [idServizio]="id"
+              [ambiente]="activeFase?.code === 'produzione' ? 'produzione' : 'collaudo'"
+              [ruoli]="_grant?.ruoli || null">
+            </app-servizio-rate-limiting-riepilogo>
 
             <!-- Template riutilizzabile: pulsanti di cambio stato (stessa
                  logica di `<ui-workflow>` header). Se l'utente non ha

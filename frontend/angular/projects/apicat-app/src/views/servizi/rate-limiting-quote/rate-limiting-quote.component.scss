@@ -1,0 +1,27 @@
+:host { display: block; }
+
+.rate-limiting-riga {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  margin-bottom: 12px;
+}
+
+.rate-limiting-rimuovi {
+  margin-top: 28px;
+}
+
+.rate-limiting-lettura {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+
+@media (max-width: 576px) {
+  .rate-limiting-riga { grid-template-columns: 1fr; }
+  .rate-limiting-rimuovi { margin-top: 0; justify-self: start; }
+}
