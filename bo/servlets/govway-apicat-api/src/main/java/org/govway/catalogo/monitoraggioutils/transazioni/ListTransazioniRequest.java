@@ -42,6 +42,7 @@ public class ListTransazioniRequest {
 	private UUID idClient;
 	private UUID idTransazione;
 	private Pageable pageable;
+	private boolean includiAudit;
 	
 	public OffsetDateTime getDataDa() {
 		return dataDa;
@@ -114,5 +115,11 @@ public class ListTransazioniRequest {
 	}
 	public void setSoggettoReferente(String soggettoReferente) {
 		this.soggettoReferente = soggettoReferente;
+	}
+	public boolean isIncludiAudit() {
+		return includiAudit;
+	}
+	public void setIncludiAudit(boolean includiAudit) {
+		this.includiAudit = includiAudit;
 	}
 }

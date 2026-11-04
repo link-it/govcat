@@ -1369,6 +1369,7 @@ paths:
       - $ref: "#/components/parameters/page_query_optional"
       - $ref: "#/components/parameters/size_query_optional"
       - $ref: "#/components/parameters/sort_query_optional"
+      - $ref: "#/components/parameters/includi_audit_query_optional"
       requestBody:
         content:
           application/json:
@@ -1403,6 +1404,7 @@ paths:
       summary: Lista delle transazioni relative a erogazioni
       parameters:
       - $ref: '#/components/parameters/Ambiente'
+      - $ref: "#/components/parameters/includi_audit_query_optional"
       requestBody:
         content:
           application/json:
@@ -1451,6 +1453,7 @@ paths:
       - $ref: "#/components/parameters/page_query_optional"
       - $ref: "#/components/parameters/size_query_optional"
       - $ref: "#/components/parameters/sort_query_optional"
+      - $ref: "#/components/parameters/includi_audit_query_optional"
       requestBody:
         content:
           application/json:
@@ -1468,6 +1471,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Ambiente'
         - $ref: '#/components/parameters/IdTransazione'
+        - $ref: "#/components/parameters/includi_audit_query_optional"
       tags:
         - Transazioni
       summary: Dettaglio della transazione
@@ -2386,6 +2390,8 @@ components:
           $ref: "#/components/schemas/String255"
         id_applicativo:
           $ref: "#/components/schemas/String255"
+        audit:
+          $ref: "#/components/schemas/ItemTransazioneAudit"
     RuoloAPIEnum:
       type: "string"
       example: "erogato_soggetto_dominio"
@@ -2453,6 +2459,64 @@ components:
           format: int64
         token:
           $ref: "#/components/schemas/TransazioneToken"
+        audit:
+          $ref: "#/components/schemas/TransazioneAudit"
+    ItemTransazioneAudit:
+      description: "Informazioni di audit della transazione presenti nella lista (pattern è il pattern di audit, es. AUDIT_REST_02). Assente se la transazione non contiene dati di audit o se non è stato possibile recuperarli."
+      type: "object"
+      properties:
+        pattern:
+          $ref: "#/components/schemas/String255"
+        user_id:
+          $ref: "#/components/schemas/String255"
+        user_location:
+          $ref: "#/components/schemas/String255"
+        loa:
+          $ref: "#/components/schemas/String255"
+    TransazioneAudit:
+      description: "Informazioni di audit della transazione. Le date sono nell'ora locale di GovWay, senza fuso orario."
+      type: "object"
+      properties:
+        pattern:
+          $ref: "#/components/schemas/String255"
+        schema_dati:
+          $ref: "#/components/schemas/String255"
+        user_id:
+          $ref: "#/components/schemas/String255"
+        user_location:
+          $ref: "#/components/schemas/String255"
+        loa:
+          $ref: "#/components/schemas/String255"
+        purpose_id:
+          $ref: "#/components/schemas/String255"
+        issuer:
+          $ref: "#/components/schemas/String255"
+        audience:
+          $ref: "#/components/schemas/String4000"
+        message_id:
+          $ref: "#/components/schemas/String255"
+        kid:
+          $ref: "#/components/schemas/String255"
+        issued_at:
+          $ref: "#/components/schemas/String255"
+        not_before:
+          $ref: "#/components/schemas/String255"
+        expiration:
+          $ref: "#/components/schemas/String255"
+        altre_proprieta:
+          description: "Ulteriori informazioni di audit presenti nella traccia (es. claim di schemi di audit personalizzati)"
+          type: "array"
+          items:
+            $ref: "#/components/schemas/TransazioneAuditProprieta"
+    TransazioneAuditProprieta:
+      required:
+      - "nome"
+      type: "object"
+      properties:
+        nome:
+          $ref: "#/components/schemas/String255"
+        valore:
+          $ref: "#/components/schemas/String4000"
     TransazioneRichiesta:
       required:
       - "data_ricezione"
@@ -2797,6 +2861,14 @@ components:
         items:
           type: integer
           format: int32
+    includi_audit_query_optional:
+      name: "includi_audit"
+      in: "query"
+      description: "Se true aggiunge alla response le informazioni di audit lette dalla traccia della transazione su GovWay. Richiede il monitoraggio di audit abilitato e un'API con le proprietà di audit valorizzate nell'ambiente. Nelle liste richiede id_api."
+      required: false
+      schema:
+        type: boolean
+        default: false
     id_client_query_optional:
       name: "id_client"
       in: "query"

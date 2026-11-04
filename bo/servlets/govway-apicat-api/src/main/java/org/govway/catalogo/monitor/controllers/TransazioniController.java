@@ -31,6 +31,7 @@ import org.govway.catalogo.controllers.CustomPageRequest;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.SoggettoEntity;
 import org.govway.catalogo.core.services.SoggettoService;
+import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotFoundException;
@@ -56,6 +57,7 @@ import org.govway.catalogo.servlets.monitor.model.ListaTransazioniQuery;
 import org.govway.catalogo.servlets.monitor.model.PagedModelItemTransazione;
 import org.govway.catalogo.servlets.monitor.model.RuoloAPIEnum;
 import org.govway.catalogo.servlets.monitor.model.Transazione;
+import org.govway.catalogo.servlets.monitor.model.TransazioneApi;
 import org.govway.catalogo.servlets.monitor.server.api.TransazioniApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -225,6 +227,36 @@ public class TransazioniController implements TransazioniApi {
 		//TODO check ruoli
 	}
 
+	private void authorizeAudit() {
+		if(!Boolean.TRUE.equals(this.configurazione.getMonitoraggio().isAuditAbilitato())) {
+			throw new NotFoundException(ErrorCode.MON_404_AUDIT, Map.of());
+		}
+	}
+
+	/**
+	 * Nelle liste le informazioni di audit si richiedono per una sola API, che deve avere l'audit nell'ambiente.
+	 */
+	private void authorizeAudit(AmbienteEnum ambiente, ListaTransazioniQuery query) {
+		authorizeAudit();
+		UUID idApi = query.getApi() != null ? query.getApi().getIdApi() : null;
+		if(idApi == null) {
+			throw new BadRequestException(ErrorCode.MON_400_AUDIT_ID_API, Map.of());
+		}
+		this.filtriUtils.checkApiAudit(idApi, ambiente);
+	}
+
+	/**
+	 * Le informazioni di audit di una transazione si restituiscono solo se la sua API ha l'audit nell'ambiente.
+	 * Senza API (es. richiesta rifiutata prima dell'individuazione del servizio) non ci sono informazioni da restituire.
+	 */
+	private boolean isAuditApiTransazione(AmbienteEnum ambiente, TransazioneApi api) {
+		if(api == null || api.getErogatore() == null) {
+			return false;
+		}
+		this.filtriUtils.checkApiAudit(api.getNome(), api.getVersione(), api.getErogatore().getNome(), ambiente);
+		return true;
+	}
+
 	private ResponseEntity<PagedModelItemTransazione> getResponse(ListTransazioniResponse response) {
 		if(response.getPagedModel().getContent()!=null) {
 			for(ItemTransazione t: response.getPagedModel().getContent()) {
@@ -279,11 +311,15 @@ public class TransazioniController implements TransazioniApi {
 	}
 	
 	@Override
-	public ResponseEntity<Transazione> ambienteDiagnosticaIdTransazioneGet(AmbienteEnum ambiente, UUID idTransazione) {
+	public ResponseEntity<Transazione> ambienteDiagnosticaIdTransazioneGet(AmbienteEnum ambiente, UUID idTransazione, Boolean includiAudit) {
 		try {
 			this.logger.info("Invocazione in corso ..."); 
 			
 			this.authorize();
+			boolean audit = Boolean.TRUE.equals(includiAudit);
+			if(audit) {
+				this.authorizeAudit();
+			}
 			
 			this.logger.debug("Autorizzazione completata con successo");     
 
@@ -291,8 +327,13 @@ public class TransazioniController implements TransazioniApi {
 
 			request.setConfigurazioneConnessione(getConfigurazioneConnessione(ambiente));
 			request.setIdTransazione(idTransazione);
+			request.setIncludiAudit(audit);
 			
 			Transazione transazione = this.client.getTransazione(request).getTransazione();
+
+			if(audit && !isAuditApiTransazione(ambiente, transazione.getApi())) {
+				transazione.setAudit(null);
+			}
 
 			fill(transazione);
 			this.logger.debug("Invocazione completata con successo");
@@ -338,15 +379,28 @@ public class TransazioniController implements TransazioniApi {
 
 	@Override
 	public ResponseEntity<PagedModelItemTransazione> ambienteDiagnosticaListaTransazioniIdPost(AmbienteEnum ambiente,
-			ListaTransazioniIdQuery listaTransazioniIdQuery) {
+			Boolean includiAudit, ListaTransazioniIdQuery listaTransazioniIdQuery) {
 		try {
 			this.logger.info("Invocazione in corso ..."); 
 			
 			this.authorize();
+			boolean audit = Boolean.TRUE.equals(includiAudit);
+			if(audit) {
+				this.authorizeAudit();
+			}
 			this.logger.debug("Autorizzazione completata con successo");     
 
 			ListTransazioniRequest request = fillListaTransazioniRequest(ambiente, listaTransazioniIdQuery.getIdTransazione(), listaTransazioniIdQuery.getIdServizio());
+			request.setIncludiAudit(audit);
 			ListTransazioniResponse response = this.client.listTransazioni(request);
+
+			if(audit && response.getPagedModel().getContent() != null) {
+				for(ItemTransazione t: response.getPagedModel().getContent()) {
+					if(!isAuditApiTransazione(ambiente, t.getApi())) {
+						t.setAudit(null);
+					}
+				}
+			}
 
 			this.logger.debug("Invocazione completata con successo");
 			
@@ -396,17 +450,22 @@ public class TransazioniController implements TransazioniApi {
 	@Override
 	public ResponseEntity<PagedModelItemTransazione> ambienteErogazioniSoggettoDiagnosticaListaTransazioniPost(
 			AmbienteEnum ambiente, String soggetto,
-			Integer page, Integer size, List<String> sort,
+			Integer page, Integer size, List<String> sort, Boolean includiAudit,
 			ListaTransazioniQuery listaTransazioniQuery) {
 	try {
 		this.logger.info("Invocazione in corso ...");
 
 		this.authorize();
+		boolean audit = Boolean.TRUE.equals(includiAudit);
+		if(audit) {
+			this.authorizeAudit(ambiente, listaTransazioniQuery);
+		}
 		this.logger.debug("Autorizzazione completata con successo");
 
 		CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("id"));
 		ListTransazioniRequest request = fillListaTransazioniRequest(ambiente, listaTransazioniQuery, pageable,
 				ErogazioneFruizioneEnum.EROGAZIONE, soggetto);
+		request.setIncludiAudit(audit);
 		ListTransazioniResponse response = this.client.listTransazioni(request);
 
 		this.logger.debug("Invocazione completata con successo");
@@ -457,17 +516,22 @@ public class TransazioniController implements TransazioniApi {
 	@Override
 	public ResponseEntity<PagedModelItemTransazione> ambienteFruizioniSoggettoDiagnosticaListaTransazioniPost(
 			AmbienteEnum ambiente, String soggetto,
-			Integer page, Integer size, List<String> sort,
+			Integer page, Integer size, List<String> sort, Boolean includiAudit,
 			ListaTransazioniQuery listaTransazioniQuery) {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
 			this.authorize();
+			boolean audit = Boolean.TRUE.equals(includiAudit);
+			if(audit) {
+				this.authorizeAudit(ambiente, listaTransazioniQuery);
+			}
 			this.logger.debug("Autorizzazione completata con successo");
 
 			CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("id"));
 			ListTransazioniRequest request = fillListaTransazioniRequest(ambiente, listaTransazioniQuery, pageable,
 					ErogazioneFruizioneEnum.FRUIZIONE, soggetto);
+			request.setIncludiAudit(audit);
 			ListTransazioniResponse response = this.client.listTransazioni(request);
 
 			this.logger.debug("Invocazione completata con successo");

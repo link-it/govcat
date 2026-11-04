@@ -1771,11 +1771,18 @@
 						"ALARM": {
 							"CONFIG": "Invalid alarm configuration: {{dettagli}}"
 						},
+						"AUDIT": {
+							"API": "API [{{nomeApi}} v{{versioneApi}}] is not enabled for audit monitoring in environment [{{ambiente}}]",
+							"ID": {
+								"API": "An API must be specified to view audit information"
+							}
+						},
 						"INTERVAL": "Time interval [{{inizio}} - {{fine}}] not valid"
 					},
 					"404": {
 						"DEFAULT": "Monitoring data not available for service [{{servizio}}]",
 						"ALARM": "Alarm [{{idAllarme}}] not found",
+						"AUDIT": "Audit monitoring is not enabled",
 						"METRIC": "Metric [{{metrica}}] not found",
 						"STATS": "Statistics not available for period [{{periodo}}]"
 					}

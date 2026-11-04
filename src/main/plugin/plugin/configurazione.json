@@ -2354,6 +2354,19 @@
     "transazioni_abilitate": true,
     "statistiche_abilitate": true,
     "verifiche_abilitate": true,
+    "audit_abilitato": true,
+    "proprieta_audit": [
+      {
+        "nome_gruppo": "PDNDCollaudo",
+        "nome_proprieta": "audit",
+        "ambiente": "collaudo"
+      },
+      {
+        "nome_gruppo": "PDNDProduzione",
+        "nome_proprieta": "audit",
+        "ambiente": "produzione"
+      }
+    ],
     "ruoli_abilitati": [],
     "profilo_govway_default": "ModI",
     "soggetto_modi": {

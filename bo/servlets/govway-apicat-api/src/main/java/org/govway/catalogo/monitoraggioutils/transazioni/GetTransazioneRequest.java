@@ -27,6 +27,7 @@ public class GetTransazioneRequest {
 
 	private UUID idTransazione;
 	private ConfigurazioneConnessione configurazioneConnessione;
+	private boolean includiAudit;
 	
 	public UUID getIdTransazione() {
 		return idTransazione;
@@ -39,5 +40,11 @@ public class GetTransazioneRequest {
 	}
 	public void setConfigurazioneConnessione(ConfigurazioneConnessione configurazioneConnessione) {
 		this.configurazioneConnessione = configurazioneConnessione;
+	}
+	public boolean isIncludiAudit() {
+		return includiAudit;
+	}
+	public void setIncludiAudit(boolean includiAudit) {
+		this.includiAudit = includiAudit;
 	}
 }

@@ -1773,6 +1773,19 @@
     "transazioni_abilitate": true,
     "statistiche_abilitate": true,
     "verifiche_abilitate": true,
+    "audit_abilitato": true,
+    "proprieta_audit": [
+      {
+        "nome_gruppo": "PDNDCollaudo",
+        "nome_proprieta": "audit",
+        "ambiente": "collaudo"
+      },
+      {
+        "nome_gruppo": "PDNDProduzione",
+        "nome_proprieta": "audit",
+        "ambiente": "produzione"
+      }
+    ],
     "ruoli_abilitati": [
       "gestore",
       "referente_superiore",

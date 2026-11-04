@@ -19,11 +19,18 @@
  */
 package org.govway.catalogo.monitoraggioutils;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import org.govway.catalogo.core.orm.entity.ApiEntity;
@@ -52,6 +59,7 @@ import org.govway.catalogo.monitoraggioutils.transazioni.GetTransazioneResponse;
 import org.govway.catalogo.monitoraggioutils.transazioni.ListTransazioniRawResponse;
 import org.govway.catalogo.monitoraggioutils.transazioni.ListTransazioniRequest;
 import org.govway.catalogo.monitoraggioutils.transazioni.ListTransazioniResponse;
+import org.govway.catalogo.monitoraggioutils.transazioni.TracciaAudit;
 import org.govway.catalogo.monitoraggioutils.transazioni.TransazioneBuilder;
 import org.govway.catalogo.servlets.monitor.model.ItemSoggetto;
 import org.govway.catalogo.servlets.monitor.model.ItemTransazione;
@@ -67,12 +75,20 @@ import org.govway.catalogo.servlets.monitor.model.TransazioneToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+
+import jakarta.annotation.PreDestroy;
 public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient implements IMonitoraggioClient{
 
 	private Logger logger = LoggerFactory.getLogger(GovwayMonitorMonitoraggioClient.class);
 
 	@Autowired
 	private TransazioneBuilder transazioneBuilder;
+
+	@Value("${monitor.audit.pool_size:10}")
+	private int auditPoolSize;
+
+	private volatile ExecutorService auditExecutor;
 	
 	@Override
 	public GetTransazioneResponse getTransazione(GetTransazioneRequest request) {
@@ -87,6 +103,10 @@ public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient
 			GetTransazioneResponse response = new GetTransazioneResponse();
 
 			Transazione itemTransazione = toTransazione(transazione);
+			if(request.isIncludiAudit()) {
+				TracciaAudit audit = getTracciaAuditOrNull(transazione);
+				itemTransazione.setAudit(audit != null ? audit.toTransazioneAudit() : null);
+			}
 			response.setTransazione(itemTransazione);
 			return response;
 		} catch(Exception e) {
@@ -469,6 +489,10 @@ public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient
 					
 					checkTransazioneServizio(transazione, request.getLstIdApi());
 					ls.setPagedModel(toTransactionList(transazione));
+					if(request.isIncludiAudit()) {
+						TracciaAudit audit = getTracciaAuditOrNull(transazione);
+						ls.getPagedModel().getContent().get(0).setAudit(audit != null ? audit.toItemTransazioneAudit() : null);
+					}
 				} catch(ApiException e) {
 					if (e.getCode() != 404) {
 						throw e;
@@ -481,6 +505,9 @@ public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient
 				
 				ListTransazioniResponse ls = new ListTransazioniResponse();
 				ls.setPagedModel(toTransactionList(l));
+				if(request.isIncludiAudit()) {
+					aggiungiAudit(ls.getPagedModel().getContent(), l.getItems(), request.getConfigurazioneConnessione());
+				}
 				return ls;
 			}
 		} catch (RuntimeException e) {
@@ -488,6 +515,74 @@ public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient
 		} catch(Exception e) {
 			this.logger.error("Errore nell'invocazione del monitoraggio: " +e.getMessage(),e);
 			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
+		}
+	}
+
+	/**
+	 * La lista di GovWay non contiene la traccia: le informazioni di audit si leggono dal dettaglio
+	 * di ogni transazione, recuperato in parallelo. Se il dettaglio di una transazione non e` disponibile
+	 * la riga resta senza audit e la pagina viene comunque restituita.
+	 */
+	private void aggiungiAudit(List<ItemTransazione> items,
+			List<org.govway.catalogo.gest.clients.govwaymonitor.model.ItemTransazione> transazioniDB,
+			ConfigurazioneConnessione configurazioneConnessione) {
+
+		MonitoraggioApi mon = new MonitoraggioApi(getClient(configurazioneConnessione));
+		ExecutorService executor = getAuditExecutor();
+
+		List<Future<TracciaAudit>> futures = new ArrayList<>();
+		for(org.govway.catalogo.gest.clients.govwaymonitor.model.ItemTransazione t: transazioniDB) {
+			UUID idTransazione = t.getIdTraccia();
+			futures.add(executor.submit(() -> getTracciaAudit(mon.getTransazione(idTransazione))));
+		}
+
+		for(int i = 0; i < items.size(); i++) {
+			try {
+				TracciaAudit audit = futures.get(i).get();
+				items.get(i).setAudit(audit != null ? audit.toItemTransazioneAudit() : null);
+			} catch(InterruptedException e) {
+				futures.forEach(f -> f.cancel(true));
+				Thread.currentThread().interrupt();
+				throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
+			} catch(ExecutionException e) {
+				this.logger.warn("Informazioni di audit non disponibili per la transazione [" + transazioniDB.get(i).getIdTraccia() + "]: " + e.getCause().getMessage(), e.getCause());
+			}
+		}
+	}
+
+	private TracciaAudit getTracciaAudit(DetailTransazione transazione) throws IOException {
+		return transazione.getRichiesta() != null ? TracciaAudit.parse(transazione.getRichiesta().getTraccia()) : null;
+	}
+
+	private TracciaAudit getTracciaAuditOrNull(DetailTransazione transazione) {
+		try {
+			return getTracciaAudit(transazione);
+		} catch(IOException e) {
+			this.logger.warn("Informazioni di audit non disponibili per la transazione [" + transazione.getIdTraccia() + "]: " + e.getMessage(), e);
+			return null;
+		}
+	}
+
+	private ExecutorService getAuditExecutor() {
+		if(this.auditExecutor == null) {
+			synchronized(this) {
+				if(this.auditExecutor == null) {
+					AtomicInteger contatore = new AtomicInteger();
+					this.auditExecutor = Executors.newFixedThreadPool(Math.max(1, this.auditPoolSize), r -> {
+						Thread t = new Thread(r, "govcat-monitor-audit-" + contatore.incrementAndGet());
+						t.setDaemon(true);
+						return t;
+					});
+				}
+			}
+		}
+		return this.auditExecutor;
+	}
+
+	@PreDestroy
+	public void shutdownAuditExecutor() {
+		if(this.auditExecutor != null) {
+			this.auditExecutor.shutdownNow();
 		}
 	}
 

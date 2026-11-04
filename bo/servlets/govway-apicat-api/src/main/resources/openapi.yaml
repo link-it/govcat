@@ -6926,6 +6926,14 @@ components:
           type: "boolean"
         transazioni_abilitate:
           type: "boolean"
+        audit_abilitato:
+          description: "Abilita il monitoraggio di audit. La voce è disponibile solo per i servizi con almeno un'API che ha valorizzata una delle proprietà indicate in proprieta_audit."
+          type: "boolean"
+        proprieta_audit:
+          description: "Proprietà custom delle API che indicano il pattern di audit: un'API ha l'audit in un ambiente se almeno una delle proprietà configurate per quell'ambiente è valorizzata."
+          type: "array"
+          items:
+            $ref: '#/components/schemas/ConfigurazioneProprietaAudit'
         ruoli_abilitati:
           type: "array"
           items:
@@ -7117,6 +7125,19 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Ruolo"
+    ConfigurazioneProprietaAudit:
+      type: "object"
+      required:
+        - nome_gruppo
+        - nome_proprieta
+        - ambiente
+      properties:
+        nome_gruppo:
+          $ref: "#/components/schemas/String255"
+        nome_proprieta:
+          $ref: "#/components/schemas/String255"
+        ambiente:
+          $ref: "#/components/schemas/AmbienteEnum"
     ConfigurazioneRiferimentoProprietaCustom:
       type: "object"
       required:

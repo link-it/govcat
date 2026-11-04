@@ -1,3 +1,22 @@
+2026-11-04  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 404: monitoraggio di audit. Le API di lista delle transazioni (`POST` di
+	  `/{ambiente}/erogazioni/{soggetto}/diagnostica/lista-transazioni`,
+	  `/{ambiente}/fruizioni/{soggetto}/diagnostica/lista-transazioni` e
+	  `/{ambiente}/diagnostica/lista-transazioni-id`) e di dettaglio
+	  (`GET /{ambiente}/diagnostica/{id_transazione}`) accettano il nuovo parametro
+	  `includi_audit` (default `false`): se `true` aggiungono le informazioni di audit lette
+	  dalla traccia della transazione su GovWay, nella lista pattern di audit, `user_id`,
+	  `user_location` e `loa`, nel dettaglio tutti i claim del token di audit. Per la lista
+	  GovCat recupera in parallelo il dettaglio di ogni transazione della pagina (thread
+	  configurabili con `monitor.audit.pool_size`, default 10); se il dettaglio di una
+	  transazione non è disponibile la riga resta senza audit. Il monitoraggio di audit si
+	  abilita in configurazione con `monitoraggio.audit_abilitato` e `monitoraggio.proprieta_audit`,
+	  le proprietà custom delle API che indicano il pattern di audit in ciascun ambiente: un'API
+	  ha l'audit in un ambiente se almeno una di queste proprietà è valorizzata. Nelle liste con
+	  `includi_audit` l'API va sempre indicata. Senza il parametro il comportamento non cambia.
+
 2026-10-27  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

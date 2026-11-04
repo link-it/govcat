@@ -1771,11 +1771,18 @@
 						"ALARM": {
 							"CONFIG": "Configurazione allarme non valida: {{dettagli}}"
 						},
+						"AUDIT": {
+							"API": "L'API [{{nomeApi}} v{{versioneApi}}] non è abilitata al monitoraggio di audit nell'ambiente [{{ambiente}}]",
+							"ID": {
+								"API": "Per consultare le informazioni di audit è necessario indicare l'API"
+							}
+						},
 						"INTERVAL": "Intervallo temporale [{{inizio}} - {{fine}}] non valido"
 					},
 					"404": {
 						"DEFAULT": "Dati di monitoraggio non disponibili per il servizio [{{servizio}}]",
 						"ALARM": "Allarme [{{idAllarme}}] non trovato",
+						"AUDIT": "Il monitoraggio di audit non è abilitato",
 						"METRIC": "Metrica [{{metrica}}] non trovata",
 						"STATS": "Statistiche non disponibili per il periodo [{{periodo}}]"
 					}

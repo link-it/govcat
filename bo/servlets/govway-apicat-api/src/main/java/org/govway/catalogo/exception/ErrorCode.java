@@ -498,6 +498,15 @@ public enum ErrorCode {
     /** Statistiche non disponibili */
     MON_404_STATS("Statistiche non disponibili"),
 
+    /** Monitoraggio di audit non abilitato */
+    MON_404_AUDIT("Monitoraggio di audit non abilitato"),
+
+    /** API senza proprietà di audit valorizzate nell'ambiente */
+    MON_400_AUDIT_API("API non abilitata al monitoraggio di audit"),
+
+    /** API non indicata nella ricerca delle transazioni con informazioni di audit */
+    MON_400_AUDIT_ID_API("API obbligatoria per il monitoraggio di audit"),
+
     // ==================== TRANSAZIONI ====================
 
     /** Transazione non trovata */

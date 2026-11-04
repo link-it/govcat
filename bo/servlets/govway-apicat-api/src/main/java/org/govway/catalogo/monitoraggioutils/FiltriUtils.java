@@ -20,6 +20,7 @@
 package org.govway.catalogo.monitoraggioutils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,7 @@ import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity.RUOLO;
 import org.govway.catalogo.core.orm.entity.AuthTypeEntity;
 import org.govway.catalogo.core.orm.entity.ErogazioneEntity;
+import org.govway.catalogo.core.orm.entity.EstensioneApiEntity;
 import org.govway.catalogo.core.orm.entity.PackageServizioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.SoggettoEntity;
@@ -47,6 +49,7 @@ import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.services.ProfiloGovwayService;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneProfilo;
+import org.govway.catalogo.servlets.model.ConfigurazioneProprietaAudit;
 import org.govway.catalogo.servlets.monitor.model.AmbienteEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -145,6 +148,55 @@ public class FiltriUtils {
 		return api;
 	}
 	
+	/**
+	 * Un'API ha l'audit in un ambiente se almeno una delle proprietà custom indicate per quell'ambiente
+	 * in monitoraggio.proprieta_audit è valorizzata.
+	 */
+	public static boolean isAuditAbilitato(List<ConfigurazioneProprietaAudit> proprietaAudit, Collection<EstensioneApiEntity> estensioni, AmbienteEnum ambiente) {
+		if(proprietaAudit == null || estensioni == null) {
+			return false;
+		}
+		return proprietaAudit.stream()
+				.filter(p -> p.getAmbiente() != null && p.getAmbiente().getValue().equals(ambiente.getValue()))
+				.anyMatch(p -> estensioni.stream()
+						.anyMatch(e -> p.getNomeGruppo().equals(e.getGruppo())
+								&& p.getNomeProprieta().equals(e.getNome())
+								&& e.getValore() != null && !e.getValore().isBlank()));
+	}
+
+	/**
+	 * Verifica che l'API abbia l'audit nell'ambiente indicato.
+	 */
+	public void checkApiAudit(UUID idApi, AmbienteEnum ambiente) {
+		this.apiService.runTransaction(() -> {
+			ApiEntity api = this.apiService.find(idApi)
+					.orElseThrow(() -> new NotFoundException(ErrorCode.API_404, Map.of("idApi", idApi.toString())));
+			checkApiAudit(api, ambiente);
+		});
+	}
+
+	/**
+	 * Verifica che l'API di una transazione, individuata come in fase di visualizzazione della transazione, abbia l'audit
+	 * nell'ambiente indicato.
+	 */
+	public void checkApiAudit(String nome, Integer versione, String erogatore, AmbienteEnum ambiente) {
+		this.apiService.runTransaction(() -> {
+			SoggettoEntity soggetto = this.soggettoService.findByNome(erogatore)
+					.orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404_BY_NAME, Map.of("nomeSoggetto", erogatore)));
+			ApiEntity api = findAPI(nome, versione, soggetto);
+			if(api == null) {
+				throw new BadRequestException(ErrorCode.MON_400_AUDIT_API, Map.of("nomeApi", nome, "versioneApi", String.valueOf(versione), "ambiente", ambiente.getValue()));
+			}
+			checkApiAudit(api, ambiente);
+		});
+	}
+
+	private void checkApiAudit(ApiEntity api, AmbienteEnum ambiente) {
+		if(!isAuditAbilitato(this.configurazione.getMonitoraggio().getProprietaAudit(), api.getEstensioni(), ambiente)) {
+			throw new BadRequestException(ErrorCode.MON_400_AUDIT_API, Map.of("nomeApi", api.getNome(), "versioneApi", String.valueOf(api.getVersione()), "ambiente", ambiente.getValue()));
+		}
+	}
+
 	public String getSoggettoNome(String nome) {
 
 		SoggettoEntity soggetto = this.soggettoService.findByNome(nome)
