@@ -46,6 +46,11 @@ import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.model.AmbienteEnum;
 import org.govway.catalogo.servlets.model.API;
 import org.govway.catalogo.servlets.model.APICreate;
+import org.govway.catalogo.servlets.model.ApiUpdate;
+import org.govway.catalogo.servlets.model.APIDatiAmbienteUpdate;
+import org.govway.catalogo.servlets.model.ConfigurazioneRateLimitingQuota;
+import org.govway.catalogo.servlets.model.ConfigurazioneProfiloRateLimiting;
+import org.govway.catalogo.servlets.model.ConfigurazioneProfilo;
 import org.govway.catalogo.servlets.model.APIDatiAmbienteCreate;
 import org.govway.catalogo.servlets.model.APIDatiErogazione;
 import org.govway.catalogo.servlets.model.Adesione;
@@ -71,9 +76,9 @@ import org.govway.catalogo.servlets.model.FiltroArchiviatiEnum;
 import org.govway.catalogo.servlets.model.DominioCreate;
 import org.govway.catalogo.servlets.model.ItemRateLimitingFruitore;
 import org.govway.catalogo.servlets.model.PagedModelItemRateLimitingFruitore;
-import org.govway.catalogo.servlets.model.RateLimiting;
 import org.govway.catalogo.servlets.model.RateLimitingAdesione;
 import org.govway.catalogo.servlets.model.RateLimitingAdesioneApi;
+import org.govway.catalogo.servlets.model.RateLimitingApi;
 import org.govway.catalogo.servlets.model.RateLimitingPeriodoEnum;
 import org.govway.catalogo.servlets.model.RateLimitingRiepilogo;
 import org.govway.catalogo.servlets.model.RateLimitingServizio;
@@ -3816,8 +3821,8 @@ public class ServiziTest {
 
     private record ServizioRateLimiting(UUID idServizio, UUID idApi) {}
 
-    private static RateLimiting rateLimiting(int quota, RateLimitingPeriodoEnum periodo) {
-        RateLimiting rl = new RateLimiting();
+    private static RateLimitingApi rateLimiting(int quota, RateLimitingPeriodoEnum periodo) {
+        RateLimitingApi rl = new RateLimitingApi();
         rl.setQuota(quota);
         rl.setPeriodo(periodo);
         return rl;
@@ -3842,7 +3847,7 @@ public class ServiziTest {
         return rl;
     }
 
-    private APIDatiAmbienteCreate getDatiAmbienteRateLimiting(List<RateLimiting> rateLimiting) {
+    private APIDatiAmbienteCreate getDatiAmbienteRateLimiting(List<RateLimitingApi> rateLimiting) {
         APIDatiAmbienteCreate datiAmbiente = new APIDatiAmbienteCreate();
         datiAmbiente.setProtocollo(ProtocolloEnum.REST);
         datiAmbiente.setRateLimiting(rateLimiting);
@@ -3959,5 +3964,107 @@ public class ServiziTest {
 
         assertThrows(NotAuthorizedException.class, () -> serviziController.getRateLimitingServizio(ctx.idServizio()));
         assertThrows(NotAuthorizedException.class, () -> serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, 0, 10));
+    }
+
+    @Test
+    void testRateLimitingRiepilogoConQuotaFruitore() {
+        ConfigurazioneProfilo profilo = this.configurazione.getServizio().getApi().getProfili().stream()
+                .filter(p -> p.getCodiceInterno().equals("MODI_P1")).findAny().orElseThrow();
+        ConfigurazioneProfiloRateLimiting originale = profilo.getRateLimiting();
+        ConfigurazioneProfiloRateLimiting regola = new ConfigurazioneProfiloRateLimiting();
+        regola.setPeriodi(List.of(RateLimitingPeriodoEnum.ORA, RateLimitingPeriodoEnum.GIORNO));
+        regola.setQuotaTotale(new ConfigurazioneRateLimitingQuota().required(false));
+        regola.setQuotaFruitore(new ConfigurazioneRateLimitingQuota().required(false));
+        profilo.setRateLimiting(regola);
+        try {
+            this.getDominio();
+            UUID idServizio = creaServizio("servizio_rate_limiting");
+            APICreate apiCreate = CommonUtils.getAPICreate();
+            apiCreate.setNome("API_RL");
+            apiCreate.setIdServizio(idServizio);
+            apiCreate.setRuolo(RuoloAPIEnum.DOMINIO);
+            // In produzione la sola quota fruitore
+            RateLimitingApi soloFruitore = new RateLimitingApi();
+            soloFruitore.setPeriodo(RateLimitingPeriodoEnum.GIORNO);
+            soloFruitore.setQuotaFruitore(100);
+            apiCreate.setConfigurazioneCollaudo(getDatiAmbienteRateLimiting(List.of(rateLimiting(100, RateLimitingPeriodoEnum.GIORNO))));
+            apiCreate.setConfigurazioneProduzione(getDatiAmbienteRateLimiting(List.of(soloFruitore)));
+            AuthTypeApiResource authType = new AuthTypeApiResource();
+            authType.setProfilo("MODI_P1");
+            authType.setResources(List.of("risorsa1"));
+            apiCreate.setGruppiAuthType(List.of(authType));
+            UUID idApi = apiController.createApi(apiCreate).getBody().getIdApi();
+            impostaServizio(idServizio, "pubblicato_produzione", org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.PUBBLICO, org.govway.catalogo.core.orm.entity.TipoServizio.API);
+            this.entityManager.clear();
+
+            UUID idAdesione = creaAdesione(idServizio, "aderente_1");
+            adesioniController.updateRateLimitingProduzioneAdesione(idAdesione, quoteFruitore(idApi, 70, null));
+            this.entityManager.flush();
+            this.entityManager.clear();
+
+            RateLimitingRiepilogo produzione = serviziController.getRateLimitingServizio(idServizio).getBody().getApi().get(0).getProduzione().get(0);
+            assertNull(produzione.getQuota());
+            assertEquals(100, produzione.getQuotaFruitore());
+            assertEquals(70, produzione.getQuotaAssegnata());
+            assertNull(produzione.getQuotaResidua());
+            assertFalse(produzione.isSuperata());
+        } finally {
+            profilo.setRateLimiting(originale);
+        }
+    }
+
+    @Test
+    void testRateLimitingQuotaRequiredNeiDatiObbligatori() {
+        ConfigurazioneProfilo profilo = this.configurazione.getServizio().getApi().getProfili().stream()
+                .filter(p -> p.getCodiceInterno().equals("MODI_P1")).findAny().orElseThrow();
+        ConfigurazioneProfiloRateLimiting originale = profilo.getRateLimiting();
+        ConfigurazioneProfiloRateLimiting regola = new ConfigurazioneProfiloRateLimiting();
+        regola.setPeriodi(List.of(RateLimitingPeriodoEnum.GIORNO));
+        regola.setQuotaTotale(new ConfigurazioneRateLimitingQuota().required(true));
+        profilo.setRateLimiting(regola);
+        try {
+            this.getDominio();
+            UUID idServizio = creaServizio("servizio_rate_limiting");
+            APICreate apiCreate = CommonUtils.getAPICreate();
+            apiCreate.setNome("API_RL");
+            apiCreate.setIdServizio(idServizio);
+            apiCreate.setRuolo(RuoloAPIEnum.DOMINIO);
+            apiCreate.setConfigurazioneCollaudo(getDatiAmbienteRateLimiting(null));
+            AuthTypeApiResource authType = new AuthTypeApiResource();
+            authType.setProfilo("MODI_P1");
+            authType.setResources(List.of("risorsa1"));
+            apiCreate.setGruppiAuthType(List.of(authType));
+            UUID idApi = apiController.createApi(apiCreate).getBody().getIdApi();
+            this.entityManager.flush();
+            this.entityManager.clear();
+
+            // Senza quota totale in collaudo il passaggio a richiesto_collaudo la segnala come mancante
+            assertTrue(campiMancanti(idServizio).contains("rate_limiting.quota_totale"));
+
+            APIDatiAmbienteUpdate collaudo = new APIDatiAmbienteUpdate();
+            collaudo.setProtocollo(ProtocolloEnum.REST);
+            collaudo.setRateLimiting(List.of(rateLimiting(300, RateLimitingPeriodoEnum.GIORNO)));
+            ApiUpdate apiUpdate = new ApiUpdate();
+            apiUpdate.setConfigurazioneCollaudo(collaudo);
+            apiController.updateApi(idApi, apiUpdate, null);
+            this.entityManager.flush();
+            this.entityManager.clear();
+
+            assertFalse(campiMancanti(idServizio).contains("rate_limiting.quota_totale"));
+        } finally {
+            profilo.setRateLimiting(originale);
+        }
+    }
+
+    private List<String> campiMancanti(UUID idServizio) {
+        CheckDati check = serviziController.checkDatiServizio(idServizio, "richiesto_collaudo").getBody();
+        if(check.getErrori() == null) {
+            return List.of();
+        }
+        return check.getErrori().stream()
+                .filter(err -> err.getCampi() != null)
+                .flatMap(err -> err.getCampi().stream())
+                .map(Campo::getNomeCampo)
+                .toList();
     }
 }

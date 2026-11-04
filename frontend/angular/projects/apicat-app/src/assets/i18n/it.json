@@ -1476,7 +1476,10 @@
 							"LIMITING": {
 								"API": "API [{{idApi}}] non prevista per il rate limiting: deve essere un'API del servizio erogata dal soggetto del dominio",
 								"PERIODO": "Il servizio non prevede un rate limiting per periodo [{{periodo}}] sull'API [{{nome}} v{{versione}}] in {{ambiente}}",
-								"DUPLICATE": "Quota per l'API [{{nome}} v{{versione}}] e periodo [{{periodo}}] indicata più volte"
+								"DUPLICATE": "Quota per l'API [{{nome}} v{{versione}}] e periodo [{{periodo}}] indicata più volte",
+								"QUOTA": {
+									"FRUITORE": "La quota [{{quota}}] supera la quota fruitore [{{quotaFruitore}}] prevista dal servizio per l'API [{{nome}} v{{versione}}] e periodo [{{periodo}}]"
+								}
 							}
 						}
 					},
@@ -1517,7 +1520,17 @@
 							"LIMITING": {
 								"DUPLICATE": "Periodo [{{periodo}}] indicato più volte nel rate limiting di {{ambiente}}",
 								"RUOLO": "Il rate limiting è previsto solo per le API erogate dal soggetto del dominio: API [{{nome}} v{{versione}}]",
-								"PDND": "L'API [{{nome}} v{{versione}}] ha un profilo PDND: il rate limiting può essere solo giornaliero (periodo [{{periodo}}] non ammesso)",
+								"PERIODO": "Periodo [{{periodo}}] non ammesso dai profili dell'API [{{nome}} v{{versione}}]",
+								"QUOTA": {
+									"NON": {
+										"PREVISTA": "La quota [{{quota}}] non è prevista dai profili dell'API [{{nome}} v{{versione}}]"
+									},
+									"ASSENTE": "Per il periodo [{{periodo}}] di {{ambiente}} va indicata almeno una fra quota totale e quota fruitore",
+									"FRUITORE": {
+										"SUPERIORE": "La quota fruitore del periodo [{{periodo}}] di {{ambiente}} non può superare la quota totale",
+										"ASSEGNATE": "Impossibile portare la quota fruitore del periodo [{{periodo}}] di {{ambiente}} a {{quotaFruitore}}: [{{numeroAdesioni}}] adesioni hanno una quota assegnata superiore"
+									}
+								},
 								"FRUITORI": "Impossibile rimuovere il rate limiting per periodo [{{periodo}}] di {{ambiente}}: [{{numeroAdesioni}}] adesioni hanno una quota assegnata per quel periodo"
 							}
 						},
@@ -1570,6 +1583,13 @@
 							},
 							"NO": {
 								"ROLE": "Utente [{{userIdUtente}}] senza un ruolo sufficiente nell'organizzazione [{{orgNome}}]: è richiesto almeno il ruolo Operatore API"
+							}
+						},
+						"RATE": {
+							"LIMITING": {
+								"RUOLI": {
+									"ABILITATI": "Non hai un ruolo abilitato alla modifica della [{{quota}}] del rate limiting"
+								}
 							}
 						},
 						"RESOURCE": "Accesso negato alla risorsa [{{resource}}]",

@@ -3,21 +3,26 @@
 	* [GovwayAPICatalogo]
 	Issue 402: il rate limiting di servizi e adesioni si gestisce con campi dedicati, non più
 	  con proprietà custom. Per ogni API erogata dal soggetto del dominio e per ogni ambiente
-	  il servizio dichiara le quote complessive (`rate_limiting` della configurazione di
-	  collaudo e di produzione dell'API), al più una per periodo (`minuto`, `ora`, `giorno`);
-	  per le API con un profilo PDND (profilo con `pdnd_type` in configurazione, lo stesso
-	  criterio del menù PDND della console) è ammesso solo il periodo `giorno`. Il fruitore indica
-	  la propria quota per API e per uno dei periodi dichiarati dal servizio, con le nuove API
-	  `GET` e `PUT /adesioni/{id_adesione}/collaudo/rate-limiting` e
+	  il servizio dichiara le quote (`rate_limiting` della configurazione di collaudo e di
+	  produzione dell'API), al più una voce per periodo (`minuto`, `ora`, `giorno`): quota
+	  totale, massimo per la somma dei fruitori, e quota fruitore, massimo per ciascun
+	  fruitore. Periodi ammessi e quote previste dipendono dal nuovo blocco `rate_limiting`
+	  dei profili in configurazione (`periodi`, `quota_totale`, `quota_fruitore`, ciascuna
+	  quota con `required` e `ruoli_abilitati`); se assente vale il default, esposto dall'API
+	  di configurazione: sola quota totale con tutti i periodi, oppure, per i profili con
+	  `pdnd_type`, quota totale e quota fruitore con il solo periodo `giorno`. Un'API con più
+	  profili segue la regola più restrittiva. Il fruitore indica la propria quota per API e
+	  per uno dei periodi dichiarati dal servizio, senza superare la quota fruitore, con le
+	  nuove API `GET` e `PUT /adesioni/{id_adesione}/collaudo/rate-limiting` e
 	  `/adesioni/{id_adesione}/produzione/rate-limiting`. L'aderente modifica la quota secondo
 	  il workflow dei dati di collaudo e di produzione, chi gestisce il servizio in ogni stato
 	  tranne archiviato. Chi gestisce il servizio consulta il riepilogo con
-	  `GET /servizi/{id_servizio}/rate-limiting`, che confronta le quote complessive con la
-	  somma di quelle assegnate ai fruitori delle adesioni non archiviate (lo sforamento è
-	  solo segnalato), e l'elenco paginato delle quote dei fruitori con
-	  `GET /servizi/{id_servizio}/rate-limiting/fruitori`. Non si può rimuovere il periodo di
-	  una quota complessiva su cui ci sono quote di adesioni non archiviate. La scheda
-	  adesione mostra le quote dedicate, se presenti, al posto delle proprietà custom.
+	  `GET /servizi/{id_servizio}/rate-limiting`, che confronta le quote dichiarate con la
+	  somma di quelle assegnate ai fruitori delle adesioni non archiviate (lo sforamento della
+	  quota totale è solo segnalato), e l'elenco paginato delle quote dei fruitori con
+	  `GET /servizi/{id_servizio}/rate-limiting/fruitori`. Non si può rimuovere un periodo né
+	  portare la quota fruitore sotto quote già assegnate ad adesioni non archiviate. La
+	  scheda adesione mostra le quote dedicate, se presenti, al posto delle proprietà custom.
 	  Script di upgrade del database `V2.5.1__rate_limiting.sql`. Le proprietà custom di
 	  rate limiting esistenti non vengono migrate e il configuratore continua a leggerle.
 

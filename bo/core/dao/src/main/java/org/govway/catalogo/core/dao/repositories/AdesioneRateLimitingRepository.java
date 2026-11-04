@@ -47,4 +47,8 @@ public interface AdesioneRateLimitingRepository extends JpaRepositoryImplementat
 			+ "WHERE r.api.id = ?1 AND r.ambiente = ?2 AND r.periodo = ?3 AND r.adesione.stato <> ?4")
 	long countFruitori(Long idApi, AmbienteEnum ambiente, RateLimitingPeriodo periodo, String statoArchiviato);
 
+	@Query(value = "SELECT COUNT(r) FROM AdesioneRateLimitingEntity r "
+			+ "WHERE r.api.id = ?1 AND r.ambiente = ?2 AND r.periodo = ?3 AND r.quota > ?4 AND r.adesione.stato <> ?5")
+	long countFruitoriOltreQuota(Long idApi, AmbienteEnum ambiente, RateLimitingPeriodo periodo, Integer quota, String statoArchiviato);
+
 }

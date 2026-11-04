@@ -6169,6 +6169,24 @@ components:
       enum:
         - "collaudo"
         - "produzione"
+    RateLimitingApi:
+      description: "Quote di rate limiting dichiarate dal servizio per un periodo: almeno una fra la quota totale e la quota fruitore, secondo quelle previste dalla regola dei profili dell'API. Se ci sono entrambe, la quota fruitore non supera la quota totale."
+      type: "object"
+      required:
+        - periodo
+      properties:
+        periodo:
+          $ref: "#/components/schemas/RateLimitingPeriodoEnum"
+        quota:
+          description: "Quota totale: numero massimo di richieste nel periodo per la somma dei fruitori"
+          type: "integer"
+          format: "int32"
+          minimum: 1
+        quota_fruitore:
+          description: "Quota fruitore: numero massimo di richieste nel periodo per ciascun fruitore. La quota assegnata a un'adesione non puo` superarla."
+          type: "integer"
+          format: "int32"
+          minimum: 1
     RateLimitingAdesioneApi:
       description: "Quota di rate limiting assegnata al fruitore per un'API e un periodo"
       type: "object"
@@ -6197,20 +6215,22 @@ components:
           items:
             $ref: "#/components/schemas/RateLimitingAdesioneApi"
     RateLimitingRiepilogo:
-      description: "Quota complessiva dichiarata dal servizio per un periodo, confrontata con la somma delle quote assegnate ai fruitori delle adesioni non archiviate"
+      description: "Quote dichiarate dal servizio per un periodo, confrontate con la somma delle quote assegnate ai fruitori delle adesioni non archiviate"
       type: "object"
       required:
         - periodo
-        - quota
         - quota_assegnata
-        - quota_residua
         - numero_fruitori
         - superata
       properties:
         periodo:
           $ref: "#/components/schemas/RateLimitingPeriodoEnum"
         quota:
-          description: "Quota complessiva dichiarata dal servizio"
+          description: "Quota totale dichiarata dal servizio, assente se non prevista"
+          type: "integer"
+          format: "int32"
+        quota_fruitore:
+          description: "Quota fruitore dichiarata dal servizio, assente se non prevista"
           type: "integer"
           format: "int32"
         quota_assegnata:
@@ -6218,7 +6238,7 @@ components:
           type: "integer"
           format: "int64"
         quota_residua:
-          description: "Quota complessiva meno quota assegnata: negativa quando le quote assegnate superano la quota complessiva"
+          description: "Quota totale meno quota assegnata, assente se la quota totale non e` prevista: negativa quando le quote assegnate superano la quota totale"
           type: "integer"
           format: "int64"
         numero_fruitori:
@@ -6226,7 +6246,7 @@ components:
           type: "integer"
           format: "int32"
         superata:
-          description: "Le quote assegnate ai fruitori superano la quota complessiva. E` solo un avviso: nessun salvataggio viene bloccato."
+          description: "Le quote assegnate ai fruitori superano la quota totale (sempre false se la quota totale non e` prevista). E` solo un avviso: nessun salvataggio viene bloccato."
           type: "boolean"
     RateLimitingServizioApi:
       type: "object"
@@ -6345,10 +6365,10 @@ components:
           items:
             $ref: "#/components/schemas/String255"
         rate_limiting:
-          description: "Quote di rate limiting complessive dichiarate dal servizio per l'ambiente, al piu` una per periodo. Previste solo per le API erogate dal soggetto del dominio; per le API con un profilo PDND (profilo con pdnd_type in configurazione) e` ammesso solo il periodo giorno. Esposte solo nel dettaglio dell'API."
+          description: "Quote di rate limiting dichiarate dal servizio per l'ambiente, al piu` una voce per periodo. Previste solo per le API erogate dal soggetto del dominio, secondo la regola ricavata dai profili dell'API (rate_limiting dei profili in configurazione). Esposte solo nel dettaglio dell'API."
           type: array
           items:
-            $ref: "#/components/schemas/RateLimiting"
+            $ref: "#/components/schemas/RateLimitingApi"
     APIDatiAmbienteCreate:
       type: "object"
       required:
@@ -6366,10 +6386,10 @@ components:
           items:
             $ref: "#/components/schemas/String255"
         rate_limiting:
-          description: "Quote di rate limiting complessive dichiarate dal servizio per l'ambiente, al piu` una per periodo. Previste solo per le API erogate dal soggetto del dominio; per le API con un profilo PDND (profilo con pdnd_type in configurazione) e` ammesso solo il periodo giorno."
+          description: "Quote di rate limiting dichiarate dal servizio per l'ambiente, al piu` una voce per periodo. Previste solo per le API erogate dal soggetto del dominio, secondo la regola ricavata dai profili dell'API (rate_limiting dei profili in configurazione)."
           type: array
           items:
-            $ref: "#/components/schemas/RateLimiting"
+            $ref: "#/components/schemas/RateLimitingApi"
     APIDatiAmbienteUpdate:
       type: "object"
       properties:
@@ -6385,10 +6405,10 @@ components:
           items:
             $ref: "#/components/schemas/String255"
         rate_limiting:
-          description: "Quote di rate limiting complessive dichiarate dal servizio per l'ambiente, al piu` una per periodo. Lista assente: quote invariate; lista vuota: nessun rate limiting. Non si puo` rimuovere il periodo di una quota finche' ci sono adesioni non archiviate con una quota assegnata per quel periodo. Previste solo per le API erogate dal soggetto del dominio; per le API con un profilo PDND (profilo con pdnd_type in configurazione) e` ammesso solo il periodo giorno."
+          description: "Quote di rate limiting dichiarate dal servizio per l'ambiente, al piu` una voce per periodo. Lista assente: quote invariate; lista vuota: nessun rate limiting. Non si puo` rimuovere un periodo, ne' portare la quota fruitore sotto quelle gia` assegnate, finche' ci sono adesioni non archiviate con una quota assegnata per quel periodo. Previste solo per le API erogate dal soggetto del dominio, secondo la regola ricavata dai profili dell'API (rate_limiting dei profili in configurazione)."
           type: array
           items:
-            $ref: "#/components/schemas/RateLimiting"
+            $ref: "#/components/schemas/RateLimitingApi"
     APIDatiErogazione:
       type: "object"
       required:
@@ -7065,6 +7085,38 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ConfigurazioneCustomProprieta"
+        rate_limiting:
+          $ref: "#/components/schemas/ConfigurazioneProfiloRateLimiting"
+    ConfigurazioneProfiloRateLimiting:
+      description: "Regola del rate limiting delle API con questo profilo. Se assente nel file di configurazione, all'avvio viene impostato il default: per i profili con pdnd_type quota totale e quota fruitore con il solo periodo giorno, per gli altri la sola quota totale con tutti i periodi. Un'API con piu` profili segue la regola piu` restrittiva: periodi in comune a tutti i profili, quote previste da almeno un profilo, required se lo e` in almeno un profilo, ruoli_abilitati comuni a tutti i profili che li indicano."
+      type: "object"
+      required:
+        - periodi
+      properties:
+        periodi:
+          description: "Periodi ammessi: con un solo periodo il periodo e` fisso, con piu` periodi si possono dichiarare piu` intervalli, al piu` una voce per periodo"
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/RateLimitingPeriodoEnum"
+        quota_totale:
+          description: "Quota totale, massimo per la somma dei fruitori. Se assente non e` prevista."
+          $ref: "#/components/schemas/ConfigurazioneRateLimitingQuota"
+        quota_fruitore:
+          description: "Quota fruitore, massimo per ciascun fruitore. Se assente non e` prevista."
+          $ref: "#/components/schemas/ConfigurazioneRateLimitingQuota"
+    ConfigurazioneRateLimitingQuota:
+      type: "object"
+      properties:
+        required:
+          description: "La quota va indicata per almeno un periodo dell'ambiente quando il servizio passa a uno stato che richiede i dati di collaudo o di produzione"
+          type: boolean
+          default: false
+        ruoli_abilitati:
+          description: "Ruoli sul servizio abilitati a modificare la quota, con la stessa semantica dei gruppi di proprieta` custom: assente, tutti; lista vuota, nessuno. La force del gestore salta il controllo."
+          type: array
+          items:
+            $ref: "#/components/schemas/Ruolo"
     ConfigurazioneRiferimentoProprietaCustom:
       type: "object"
       required:

@@ -47,6 +47,7 @@ import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.services.TassonomiaService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ErrorCode;
+import org.govway.catalogo.services.RateLimitingRegole;
 import org.govway.catalogo.servlets.model.AuthTypeEnum;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
@@ -75,6 +76,9 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 	
 	@Autowired
 	private TassonomiaService tassonomiaService;
+
+	@Autowired
+	private RateLimitingRegole rateLimitingRegole;
 
 	public void authorizeExport() {
 		this.coreAuthorization.requireAdmin();
@@ -149,11 +153,35 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 	protected void checkCampiObbligatoriProduzioneApi(ApiEntity entity,  Map<String, EntitaComplessaError> errore) {
 		checkCampiObbligatoriAmbienteApi(entity.getProduzione(), entity, errore, "produzione");
 		checkEstensioniGruppo(entity, ConfigurazioneClasseDato.PRODUZIONE, errore);
+		checkRateLimitingApi(entity.getProduzione(), entity, errore);
 	}
 
 	protected void checkCampiObbligatoriCollaudoApi(ApiEntity entity,  Map<String, EntitaComplessaError> errore) {
 		checkCampiObbligatoriAmbienteApi(entity.getCollaudo(), entity, errore, "collaudo");
 		checkEstensioniGruppo(entity, ConfigurazioneClasseDato.COLLAUDO, errore);
+		checkRateLimitingApi(entity.getCollaudo(), entity, errore);
+	}
+
+	/**
+	 * Quote di rate limiting required dalla regola dei profili dell'API: almeno un periodo
+	 * dell'ambiente deve valorizzarle. Come per i gruppi di proprieta` custom, una quota non
+	 * modificabile dall'utente per ruoli_abilitati resta a carico di chi ha un ruolo abilitato.
+	 */
+	private void checkRateLimitingApi(ApiConfigEntity config, ApiEntity entity, Map<String, EntitaComplessaError> errore) {
+		if(config == null || !RUOLO.EROGATO_SOGGETTO_DOMINIO.equals(entity.getRuolo())) {
+			return;
+		}
+		RateLimitingRegole.Regola regola = this.rateLimitingRegole.getRegola(entity);
+		checkQuotaRateLimiting(regola.quotaTotale(), config.getRateLimiting().stream().anyMatch(q -> q.getQuota() != null),
+				"rate_limiting.quota_totale", entity, errore);
+		checkQuotaRateLimiting(regola.quotaFruitore(), config.getRateLimiting().stream().anyMatch(q -> q.getQuotaFruitore() != null),
+				"rate_limiting.quota_fruitore", entity, errore);
+	}
+
+	private void checkQuotaRateLimiting(RateLimitingRegole.Quota quota, boolean valorizzata, String nomeCampo, ApiEntity entity, Map<String, EntitaComplessaError> errore) {
+		if(quota != null && quota.required() && !valorizzata && isGruppoProprietaCustomVisibile(quota.ruoliAbilitati(), entity.getServizio())) {
+			requireNotNull(null, nomeCampo, entity, errore);
+		}
 	}
 
 	protected void checkCampiObbligatoriAmbienteApi(ApiConfigEntity config, ApiEntity entity,  Map<String, EntitaComplessaError> errore, String ambiente) {

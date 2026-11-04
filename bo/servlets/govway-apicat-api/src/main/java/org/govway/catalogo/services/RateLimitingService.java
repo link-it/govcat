@@ -22,7 +22,6 @@ package org.govway.catalogo.services;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -41,7 +40,6 @@ import org.govway.catalogo.core.orm.entity.ApiConfigEntity;
 import org.govway.catalogo.core.orm.entity.ApiConfigRateLimitingEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity.RUOLO;
-import org.govway.catalogo.core.orm.entity.AuthTypeEntity;
 import org.govway.catalogo.core.orm.entity.RateLimitingPeriodo;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.exception.BadRequestException;
@@ -49,8 +47,7 @@ import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
-import org.govway.catalogo.servlets.model.ConfigurazioneProfilo;
-import org.govway.catalogo.servlets.model.RateLimiting;
+import org.govway.catalogo.servlets.model.RateLimitingApi;
 import org.govway.catalogo.servlets.model.RateLimitingAdesioneApi;
 import org.govway.catalogo.servlets.model.Ruolo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,12 +60,14 @@ import org.springframework.stereotype.Service;
  * Rate limiting di API e adesioni.
  *
  * Il servizio dichiara, per ogni API erogata dal soggetto del dominio e per ogni ambiente, le quote
- * complessive, al piu` una per periodo; per le API con un profilo PDND (pdnd_type valorizzato) il
- * periodo e` solo giorno.
+ * per periodo, al piu` una voce per periodo: quota totale, massimo per la somma dei fruitori, e
+ * quota fruitore, massimo per ciascun fruitore. Periodi ammessi e quote previste dipendono dai
+ * profili dell'API (vedi {@link RateLimitingRegole}).
  * Il fruitore di un'adesione ha una quota per API, ambiente e uno dei periodi dichiarati dal
- * servizio. Che la somma delle quote dei fruitori superi la quota complessiva e` solo segnalato
- * nel riepilogo, mai bloccato; e` invece bloccata la rimozione di un periodo su cui ci sono quote
- * di adesioni non archiviate.
+ * servizio, che non supera la quota fruitore. Che la somma delle quote dei fruitori superi la quota
+ * totale e` solo segnalato nel riepilogo, mai bloccato; sono invece bloccate la rimozione di un
+ * periodo su cui ci sono quote di adesioni non archiviate e la riduzione della quota fruitore sotto
+ * quelle gia` assegnate.
  *
  * Le collezioni figlie non usano orphanRemoval (vedi ApiConfigEntity): le righe dei periodi
  * mantenuti sono aggiornate sul posto, cosi` non si incorre nel vincolo di unicita` per una
@@ -83,8 +82,19 @@ public class RateLimitingService {
 
 	private static final String STATO_ARCHIVIATO_DEFAULT = "archiviato";
 
+	private static final String QUOTA_TOTALE = "quota_totale";
+	private static final String QUOTA_FRUITORE = "quota_fruitore";
+
+	/** Quote dichiarate per un'API, per ambiente e periodo: totale e fruitore. */
+	public record QuoteApi(Map<String, Integer> totale, Map<String, Integer> fruitore) {
+		public static final QuoteApi VUOTE = new QuoteApi(Map.of(), Map.of());
+	}
+
 	@Autowired
 	private Configurazione configurazione;
+
+	@Autowired
+	private RateLimitingRegole rateLimitingRegole;
 
 	@Autowired
 	private ServizioAuthorization servizioAuthorization;
@@ -104,30 +114,42 @@ public class RateLimitingService {
 	// ==================== API ====================
 
 	/**
-	 * Sostituisce integralmente le quote complessive della specifica di un ambiente dell'API.
-	 * Lista null: quote invariate.
+	 * Sostituisce integralmente le quote della specifica di un ambiente dell'API. Lista null: quote
+	 * invariate. Periodi e quote ammessi dai profili si verificano sullo stato finale dell'API
+	 * ({@link #checkRateLimiting(ApiEntity)}).
 	 */
-	public void setRateLimiting(List<RateLimiting> src, ApiConfigEntity config, ApiEntity api, AmbienteEnum ambiente) {
+	public void setRateLimiting(List<RateLimitingApi> src, ApiConfigEntity config, ApiEntity api, AmbienteEnum ambiente) {
 
 		if(src == null) {
 			return;
 		}
 
-		Map<RateLimitingPeriodo, Integer> quote = new HashMap<>();
-		for(RateLimiting rl: src) {
+		Map<RateLimitingPeriodo, RateLimitingApi> quote = new HashMap<>();
+		for(RateLimitingApi rl: src) {
 			RateLimitingPeriodo periodo = toPeriodo(rl.getPeriodo());
-			checkQuota(rl.getQuota());
-			if(quote.put(periodo, rl.getQuota()) != null) {
-				throw new BadRequestException(ErrorCode.API_400_RATE_LIMITING_DUPLICATE,
-						Map.of("periodo", toString(periodo), "ambiente", toString(ambiente)));
+			Map<String, String> params = Map.of("periodo", toString(periodo), "ambiente", toString(ambiente));
+			if(rl.getQuota() == null && rl.getQuotaFruitore() == null) {
+				throw new BadRequestException(ErrorCode.API_400_RATE_LIMITING_QUOTA_ASSENTE, params);
+			}
+			checkQuotaOpzionale(rl.getQuota());
+			checkQuotaOpzionale(rl.getQuotaFruitore());
+			if(rl.getQuota() != null && rl.getQuotaFruitore() != null && rl.getQuotaFruitore() > rl.getQuota()) {
+				throw new BadRequestException(ErrorCode.API_400_RATE_LIMITING_QUOTA_FRUITORE_SUPERIORE, params);
+			}
+			if(quote.put(periodo, rl) != null) {
+				throw new BadRequestException(ErrorCode.API_400_RATE_LIMITING_DUPLICATE, params);
 			}
 		}
 
 		List<ApiConfigRateLimitingEntity> rimosse = new ArrayList<>();
 		for(ApiConfigRateLimitingEntity e: config.getRateLimiting()) {
-			Integer quota = quote.remove(e.getPeriodo());
-			if(quota != null) {
-				e.setQuota(quota);
+			RateLimitingApi rl = quote.remove(e.getPeriodo());
+			if(rl != null) {
+				if(rl.getQuotaFruitore() != null && !rl.getQuotaFruitore().equals(e.getQuotaFruitore())) {
+					checkFruitoriOltreQuota(api, ambiente, e.getPeriodo(), rl.getQuotaFruitore());
+				}
+				e.setQuota(rl.getQuota());
+				e.setQuotaFruitore(rl.getQuotaFruitore());
 			} else {
 				checkFruitori(api, ambiente, e.getPeriodo());
 				rimosse.add(e);
@@ -139,12 +161,13 @@ public class RateLimitingService {
 
 		// Ordine dei periodi stabile, indipendente da quello della richiesta
 		for(RateLimitingPeriodo periodo: RateLimitingPeriodo.values()) {
-			Integer quota = quote.get(periodo);
-			if(quota != null) {
+			RateLimitingApi rl = quote.get(periodo);
+			if(rl != null) {
 				ApiConfigRateLimitingEntity e = new ApiConfigRateLimitingEntity();
 				e.setApiConfig(config);
 				e.setPeriodo(periodo);
-				e.setQuota(quota);
+				e.setQuota(rl.getQuota());
+				e.setQuotaFruitore(rl.getQuotaFruitore());
 				config.getRateLimiting().add(e);
 			}
 		}
@@ -161,16 +184,26 @@ public class RateLimitingService {
 		}
 	}
 
+	private void checkFruitoriOltreQuota(ApiEntity api, AmbienteEnum ambiente, RateLimitingPeriodo periodo, Integer quotaFruitore) {
+		if(api.getId() == null) {
+			return;
+		}
+		long fruitori = this.adesioneRateLimitingRepository.countFruitoriOltreQuota(api.getId(), ambiente, periodo, quotaFruitore, getStatoArchiviatoAdesione());
+		if(fruitori > 0) {
+			throw new BadRequestException(ErrorCode.API_400_RATE_LIMITING_QUOTA_FRUITORE_ASSEGNATE,
+					Map.of("periodo", toString(periodo), "ambiente", toString(ambiente), "quotaFruitore", String.valueOf(quotaFruitore),
+							"numeroAdesioni", String.valueOf(fruitori)));
+		}
+	}
+
 	/**
-	 * Verifica le quote complessive sullo stato finale dell'API, dopo che sono stati applicati
-	 * ruolo e profili: previste solo per le API erogate dal soggetto del dominio, solo giornaliere
-	 * per le API con un profilo PDND.
+	 * Verifica le quote sullo stato finale dell'API, dopo che sono stati applicati ruolo e profili:
+	 * previste solo per le API erogate dal soggetto del dominio, con i soli periodi e le sole quote
+	 * ammessi dalla regola dei profili.
 	 */
 	public void checkRateLimiting(ApiEntity api) {
 
-		List<ApiConfigRateLimitingEntity> quote = new ArrayList<>();
-		Optional.ofNullable(api.getCollaudo()).ifPresent(c -> quote.addAll(c.getRateLimiting()));
-		Optional.ofNullable(api.getProduzione()).ifPresent(c -> quote.addAll(c.getRateLimiting()));
+		List<ApiConfigRateLimitingEntity> quote = getQuote(api);
 
 		if(quote.isEmpty()) {
 			return;
@@ -181,31 +214,76 @@ public class RateLimitingService {
 					Map.of("nome", api.getNome(), "versione", String.valueOf(api.getVersione())));
 		}
 
-		if(isPdnd(api)) {
-			quote.stream()
-				.filter(q -> !RateLimitingPeriodo.GIORNO.equals(q.getPeriodo()))
-				.findAny()
-				.ifPresent(q -> {
-					throw new BadRequestException(ErrorCode.API_400_RATE_LIMITING_PDND,
-							Map.of("nome", api.getNome(), "versione", String.valueOf(api.getVersione()), "periodo", toString(q.getPeriodo())));
-				});
+		RateLimitingRegole.Regola regola = this.rateLimitingRegole.getRegola(api);
+		for(ApiConfigRateLimitingEntity q: quote) {
+			if(!regola.periodi().contains(q.getPeriodo())) {
+				throw new BadRequestException(ErrorCode.API_400_RATE_LIMITING_PERIODO,
+						Map.of("nome", api.getNome(), "versione", String.valueOf(api.getVersione()), "periodo", toString(q.getPeriodo())));
+			}
+			if(q.getQuota() != null && regola.quotaTotale() == null) {
+				throw new BadRequestException(ErrorCode.API_400_RATE_LIMITING_QUOTA_NON_PREVISTA,
+						Map.of("nome", api.getNome(), "versione", String.valueOf(api.getVersione()), "quota", QUOTA_TOTALE));
+			}
+			if(q.getQuotaFruitore() != null && regola.quotaFruitore() == null) {
+				throw new BadRequestException(ErrorCode.API_400_RATE_LIMITING_QUOTA_NON_PREVISTA,
+						Map.of("nome", api.getNome(), "versione", String.valueOf(api.getVersione()), "quota", QUOTA_FRUITORE));
+			}
+		}
+	}
+
+	/** Quote dichiarate dall'API, da confrontare prima e dopo una modifica. */
+	public QuoteApi getQuoteApi(ApiEntity api) {
+		Map<String, Integer> totale = new HashMap<>();
+		Map<String, Integer> fruitore = new HashMap<>();
+		Optional.ofNullable(api.getCollaudo()).ifPresent(c -> addQuote(c, AmbienteEnum.COLLAUDO, totale, fruitore));
+		Optional.ofNullable(api.getProduzione()).ifPresent(c -> addQuote(c, AmbienteEnum.PRODUZIONE, totale, fruitore));
+		return new QuoteApi(totale, fruitore);
+	}
+
+	private void addQuote(ApiConfigEntity config, AmbienteEnum ambiente, Map<String, Integer> totale, Map<String, Integer> fruitore) {
+		for(ApiConfigRateLimitingEntity e: config.getRateLimiting()) {
+			String chiave = ambiente + "/" + e.getPeriodo();
+			if(e.getQuota() != null) {
+				totale.put(chiave, e.getQuota());
+			}
+			if(e.getQuotaFruitore() != null) {
+				fruitore.put(chiave, e.getQuotaFruitore());
+			}
 		}
 	}
 
 	/**
-	 * L'API ha almeno un profilo PDND, cioe` con pdnd_type valorizzato in configurazione: il suo
-	 * rate limiting e` solo giornaliero. E` lo stesso criterio con cui la console abilita il menu`
-	 * PDND dell'API.
+	 * Una quota modificata rispetto a prima deve essere abilitata ai ruoli dell'utente sul servizio
+	 * (ruoli_abilitati della regola). La verifica riguarda le sole quote cambiate: la console reinvia
+	 * la configurazione completa dell'API anche quando si modifica altro.
 	 */
-	public boolean isPdnd(ApiEntity api) {
-		Set<String> profili = new HashSet<>();
-		for(AuthTypeEntity at: api.getAuthType()) {
-			profili.add(at.getProfilo());
+	public void authorizeModifica(ApiEntity api, QuoteApi prima) {
+		QuoteApi dopo = getQuoteApi(api);
+		RateLimitingRegole.Regola regola = this.rateLimitingRegole.getRegola(api);
+		if(!prima.totale().equals(dopo.totale()) && regola.quotaTotale() != null) {
+			checkRuoliAbilitati(regola.quotaTotale().ruoliAbilitati(), api.getServizio(), QUOTA_TOTALE);
 		}
-		return this.configurazione.getServizio().getApi().getProfili().stream()
-				.filter(p -> profili.contains(p.getCodiceInterno()))
-				.map(ConfigurazioneProfilo::getPdndType)
-				.anyMatch(t -> t != null && !t.isBlank());
+		if(!prima.fruitore().equals(dopo.fruitore()) && regola.quotaFruitore() != null) {
+			checkRuoliAbilitati(regola.quotaFruitore().ruoliAbilitati(), api.getServizio(), QUOTA_FRUITORE);
+		}
+	}
+
+	/** Stessa semantica dei ruoli_abilitati dei gruppi di proprieta` custom: null tutti, vuota nessuno. */
+	private void checkRuoliAbilitati(List<Ruolo> ruoliAbilitati, ServizioEntity servizio, String quota) {
+		if(ruoliAbilitati == null) {
+			return;
+		}
+		boolean abilitato = this.servizioAuthorization.getGrant(servizio).getRuoli().stream().anyMatch(ruoliAbilitati::contains);
+		if(!abilitato) {
+			throw new NotAuthorizedException(ErrorCode.AUT_403_RATE_LIMITING_RUOLI_ABILITATI, Map.of("quota", quota));
+		}
+	}
+
+	private List<ApiConfigRateLimitingEntity> getQuote(ApiEntity api) {
+		List<ApiConfigRateLimitingEntity> quote = new ArrayList<>();
+		Optional.ofNullable(api.getCollaudo()).ifPresent(c -> quote.addAll(c.getRateLimiting()));
+		Optional.ofNullable(api.getProduzione()).ifPresent(c -> quote.addAll(c.getRateLimiting()));
+		return quote;
 	}
 
 	// ==================== ADESIONI ====================
@@ -248,10 +326,17 @@ public class RateLimitingService {
 			checkQuota(rl.getQuota());
 
 			ApiConfigEntity config = AmbienteEnum.COLLAUDO.equals(ambiente) ? api.getCollaudo() : api.getProduzione();
-			boolean previsto = config != null && config.getRateLimiting().stream().anyMatch(q -> q.getPeriodo().equals(periodo));
-			if(!previsto) {
-				throw new BadRequestException(ErrorCode.ADE_400_RATE_LIMITING_PERIODO,
-						Map.of("periodo", toString(periodo), "nome", api.getNome(), "versione", String.valueOf(api.getVersione()), "ambiente", toString(ambiente)));
+			ApiConfigRateLimitingEntity quotaServizio = Optional.ofNullable(config).stream()
+					.flatMap(c -> c.getRateLimiting().stream())
+					.filter(q -> q.getPeriodo().equals(periodo))
+					.findAny()
+					.orElseThrow(() -> new BadRequestException(ErrorCode.ADE_400_RATE_LIMITING_PERIODO,
+						Map.of("periodo", toString(periodo), "nome", api.getNome(), "versione", String.valueOf(api.getVersione()), "ambiente", toString(ambiente))));
+
+			if(quotaServizio.getQuotaFruitore() != null && rl.getQuota() > quotaServizio.getQuotaFruitore()) {
+				throw new BadRequestException(ErrorCode.ADE_400_RATE_LIMITING_QUOTA_FRUITORE,
+						Map.of("quota", String.valueOf(rl.getQuota()), "quotaFruitore", String.valueOf(quotaServizio.getQuotaFruitore()),
+								"periodo", toString(periodo), "nome", api.getNome(), "versione", String.valueOf(api.getVersione())));
 			}
 
 			AdesioneRateLimitingEntity e = new AdesioneRateLimitingEntity();
@@ -334,6 +419,12 @@ public class RateLimitingService {
 	private void checkQuota(Integer quota) {
 		if(quota == null || quota < 1) {
 			throw new BadRequestException(ErrorCode.VAL_400_RATE_LIMITING_QUOTA, Map.of("quota", String.valueOf(quota)));
+		}
+	}
+
+	private void checkQuotaOpzionale(Integer quota) {
+		if(quota != null) {
+			checkQuota(quota);
 		}
 	}
 

@@ -67,6 +67,7 @@ import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.services.ApiUnivocitaService;
 import org.govway.catalogo.services.ProfiloGovwayService;
 import org.govway.catalogo.services.RateLimitingService;
+import org.govway.catalogo.services.RateLimitingService.QuoteApi;
 import org.govway.catalogo.servlets.api.ApiApi;
 import org.govway.catalogo.servlets.model.*;
 import org.slf4j.Logger;
@@ -243,6 +244,7 @@ public class APIController implements ApiApi {
 				ApiEntity entity = this.dettaglioAssembler.toEntity(apiCreate);
 				ServizioEntity servizio = entity.getServizio();
 				this.servizioAuthorization.authorizeModificaProprietaCustomApi(apiCreate.getProprietaCustom(), servizio);
+				this.rateLimitingService.authorizeModifica(entity, QuoteApi.VUOTE);
 				// La classe dato API governa la composizione della lista delle API del servizio:
 				// e' richiesta in AND con IDENTIFICATIVO, cosi' le configurazioni che non la
 				// dichiarano mantengono i vincoli gia' in vigore.
@@ -706,6 +708,7 @@ public class APIController implements ApiApi {
 				}
 
 				String profiloGovwayOverridePrima = this.profiloGovwayService.getOverride(entity);
+				QuoteApi quoteRateLimitingPrima = this.rateLimitingService.getQuoteApi(entity);
 
 				List<ConfigurazioneClasseDato> lstClassiDato = new ArrayList<>();
 
@@ -779,6 +782,7 @@ public class APIController implements ApiApi {
 					if(apiUpdate.getDatiCustom()!=null) {
 						this.servizioAuthorization.authorizeModificaProprietaCustomApi(apiUpdate.getDatiCustom().getProprietaCustom(), servizio);
 					}
+					this.rateLimitingService.authorizeModifica(entity, quoteRateLimitingPrima);
 					this.servizioAuthorization.authorizeModifica(servizio, lstClassiDato);
 				}
 				

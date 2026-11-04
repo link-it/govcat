@@ -37,8 +37,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Quota di rate limiting complessiva dichiarata dal servizio per la specifica di un ambiente di
- * un'API, al piu` una per periodo.
+ * Quote di rate limiting dichiarate dal servizio per la specifica di un ambiente di un'API, al piu`
+ * una riga per periodo: quota totale, massimo per la somma dei fruitori, e quota fruitore, massimo
+ * per ciascun fruitore. Almeno una delle due e` valorizzata.
  */
 @Getter
 @Setter
@@ -56,8 +57,11 @@ public class ApiConfigRateLimitingEntity {
 	@Enumerated(EnumType.STRING)
 	private RateLimitingPeriodo periodo;
 
-	@Column(name = "quota", nullable = false)
+	@Column(name = "quota", nullable = true)
 	private Integer quota;
+
+	@Column(name = "quota_fruitore", nullable = true)
+	private Integer quotaFruitore;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "id_api_config", referencedColumnName = "id", nullable = false)

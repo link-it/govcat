@@ -36,9 +36,9 @@ import org.govway.catalogo.core.orm.entity.ApiEntity.RUOLO;
 import org.govway.catalogo.core.orm.entity.RateLimitingPeriodo;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.servlets.model.ItemRateLimitingFruitore;
-import org.govway.catalogo.servlets.model.RateLimiting;
 import org.govway.catalogo.servlets.model.RateLimitingAdesione;
 import org.govway.catalogo.servlets.model.RateLimitingAdesioneApi;
+import org.govway.catalogo.servlets.model.RateLimitingApi;
 import org.govway.catalogo.servlets.model.RateLimitingPeriodoEnum;
 import org.govway.catalogo.servlets.model.RateLimitingRiepilogo;
 import org.govway.catalogo.servlets.model.RateLimitingServizio;
@@ -52,10 +52,10 @@ public class RateLimitingAssembler {
 	@Autowired
 	private SoggettoItemAssembler soggettoItemAssembler;
 
-	public List<RateLimiting> toModel(ApiConfigEntity config) {
+	public List<RateLimitingApi> toModel(ApiConfigEntity config) {
 		return config.getRateLimiting().stream()
 				.sorted(Comparator.comparing(ApiConfigRateLimitingEntity::getPeriodo))
-				.map(e -> new RateLimiting().quota(e.getQuota()).periodo(toModel(e.getPeriodo())))
+				.map(e -> new RateLimitingApi().periodo(toModel(e.getPeriodo())).quota(e.getQuota()).quotaFruitore(e.getQuotaFruitore()))
 				.toList();
 	}
 
@@ -81,7 +81,7 @@ public class RateLimitingAssembler {
 
 	/**
 	 * Riepilogo delle API del servizio erogate dal soggetto del dominio, ordinate per nome e
-	 * versione, con le quote complessive confrontate con quelle assegnate ai fruitori.
+	 * versione, con le quote dichiarate confrontate con quelle assegnate ai fruitori.
 	 */
 	public RateLimitingServizio toRiepilogo(ServizioEntity servizio, List<QuotaAssegnata> quoteAssegnate) {
 
@@ -115,14 +115,15 @@ public class RateLimitingAssembler {
 				.map(e -> {
 					QuotaAssegnata q = assegnate.get(getChiave(api.getId(), ambiente, e.getPeriodo()));
 					long quotaAssegnata = q != null ? q.getQuota() : 0;
-					long residua = e.getQuota() - quotaAssegnata;
+					Long residua = e.getQuota() != null ? e.getQuota() - quotaAssegnata : null;
 					return new RateLimitingRiepilogo()
 							.periodo(toModel(e.getPeriodo()))
 							.quota(e.getQuota())
+							.quotaFruitore(e.getQuotaFruitore())
 							.quotaAssegnata(quotaAssegnata)
 							.quotaResidua(residua)
 							.numeroFruitori(q != null ? q.getNumeroFruitori().intValue() : 0)
-							.superata(residua < 0);
+							.superata(residua != null && residua < 0);
 				})
 				.toList();
 	}

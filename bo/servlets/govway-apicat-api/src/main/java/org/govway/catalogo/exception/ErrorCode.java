@@ -93,8 +93,20 @@ public enum ErrorCode {
     /** Rate limiting dichiarato su un'API non erogata dal soggetto del dominio */
     API_400_RATE_LIMITING_RUOLO("Rate limiting non previsto per il ruolo dell'API"),
 
-    /** Rate limiting non giornaliero su un'API con un profilo PDND */
-    API_400_RATE_LIMITING_PDND("Rate limiting solo giornaliero per le API con profilo PDND"),
+    /** Periodo di rate limiting non ammesso dai profili dell'API */
+    API_400_RATE_LIMITING_PERIODO("Periodo di rate limiting non ammesso dai profili dell'API"),
+
+    /** Quota (totale o fruitore) non prevista dai profili dell'API */
+    API_400_RATE_LIMITING_QUOTA_NON_PREVISTA("Quota di rate limiting non prevista dai profili dell'API"),
+
+    /** Periodo di rate limiting senza quota totale ne' quota fruitore */
+    API_400_RATE_LIMITING_QUOTA_ASSENTE("Periodo di rate limiting senza quote"),
+
+    /** Quota fruitore superiore alla quota totale dello stesso periodo */
+    API_400_RATE_LIMITING_QUOTA_FRUITORE_SUPERIORE("Quota fruitore superiore alla quota totale"),
+
+    /** Quota fruitore inferiore a quote gia` assegnate ad adesioni non archiviate */
+    API_400_RATE_LIMITING_QUOTA_FRUITORE_ASSEGNATE("Quota fruitore inferiore a quote gia` assegnate ai fruitori"),
 
     /** Rimozione di un periodo di rate limiting su cui ci sono quote di adesioni non archiviate */
     API_400_RATE_LIMITING_FRUITORI("Periodo di rate limiting con quote assegnate ai fruitori"),
@@ -355,6 +367,9 @@ public enum ErrorCode {
     /** Quota di rate limiting indicata piu` volte per la stessa API e periodo */
     ADE_400_RATE_LIMITING_DUPLICATE("Quota di rate limiting duplicata"),
 
+    /** Quota di rate limiting superiore alla quota fruitore dichiarata dal servizio */
+    ADE_400_RATE_LIMITING_QUOTA_FRUITORE("Quota di rate limiting superiore alla quota fruitore del servizio"),
+
     /** Referente adesione duplicato */
     ADE_409_REFERENT("Referente adesione duplicato"),
 
@@ -546,6 +561,9 @@ public enum ErrorCode {
 
     /** Gruppo di proprietà custom non modificabile: nessun ruolo dell'utente è tra i ruoli abilitati del gruppo */
     AUT_403_GRUPPO_RUOLI_ABILITATI("Gruppo di proprietà custom non modificabile con i ruoli dell'utente"),
+
+    /** Quota di rate limiting dell'API non modificabile con i ruoli dell'utente sul servizio */
+    AUT_403_RATE_LIMITING_RUOLI_ABILITATI("Quota di rate limiting non modificabile con i ruoli dell'utente"),
 
     /** Token di autenticazione non valido */
     AUT_401_TOKEN("Token non valido"),

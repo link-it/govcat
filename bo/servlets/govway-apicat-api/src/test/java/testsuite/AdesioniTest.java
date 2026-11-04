@@ -78,6 +78,9 @@ import org.govway.catalogo.servlets.model.AllegatoMessaggio;
 import org.govway.catalogo.servlets.model.AllegatoMessaggioCreate;
 import org.govway.catalogo.servlets.model.AmbienteEnum;
 import org.govway.catalogo.servlets.model.ApiUpdate;
+import org.govway.catalogo.servlets.model.ConfigurazioneRateLimitingQuota;
+import org.govway.catalogo.servlets.model.ConfigurazioneProfiloRateLimiting;
+import org.govway.catalogo.servlets.model.ConfigurazioneProfilo;
 import org.govway.catalogo.servlets.model.AuthTypeApiResource;
 import org.govway.catalogo.servlets.model.AuthTypeApiResourceProprietaCustom;
 import org.govway.catalogo.servlets.model.AuthTypeEnum;
@@ -93,9 +96,9 @@ import org.govway.catalogo.servlets.model.CheckDati;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneCustomAdesioneProprietaList;
 import org.govway.catalogo.servlets.model.ConfigurazioneProfiloCustomProprietaText;
-import org.govway.catalogo.servlets.model.RateLimiting;
 import org.govway.catalogo.servlets.model.RateLimitingAdesione;
 import org.govway.catalogo.servlets.model.RateLimitingAdesioneApi;
+import org.govway.catalogo.servlets.model.RateLimitingApi;
 import org.govway.catalogo.servlets.model.RateLimitingPeriodoEnum;
 import org.govway.catalogo.servlets.model.Ruolo;
 import org.govway.catalogo.servlets.model.SottotipoEnum;
@@ -7388,8 +7391,8 @@ public class AdesioniTest {
 
     private record AdesioneConApi(Adesione adesione, UUID idApi) {}
 
-    private static RateLimiting rateLimiting(int quota, RateLimitingPeriodoEnum periodo) {
-        RateLimiting rl = new RateLimiting();
+    private static RateLimitingApi rateLimiting(int quota, RateLimitingPeriodoEnum periodo) {
+        RateLimitingApi rl = new RateLimitingApi();
         rl.setQuota(quota);
         rl.setPeriodo(periodo);
         return rl;
@@ -7409,7 +7412,7 @@ public class AdesioniTest {
         return rl;
     }
 
-    private APIDatiAmbienteUpdate getDatiAmbienteRateLimiting(List<RateLimiting> rateLimiting) {
+    private APIDatiAmbienteUpdate getDatiAmbienteRateLimiting(List<RateLimitingApi> rateLimiting) {
         APIDatiErogazione apiDatiErogazione = new APIDatiErogazione();
         apiDatiErogazione.setNomeGateway("APIGateway");
         apiDatiErogazione.setVersioneGateway(1);
@@ -7424,7 +7427,7 @@ public class AdesioniTest {
     }
 
     /** Imposta le quote complessive dell'API (lista null: ambiente non inviato). */
-    private void impostaRateLimitingApi(UUID idApi, List<RateLimiting> collaudo, List<RateLimiting> produzione) {
+    private void impostaRateLimitingApi(UUID idApi, List<RateLimitingApi> collaudo, List<RateLimitingApi> produzione) {
         ApiUpdate apiUpdate = new ApiUpdate();
         if(collaudo != null) {
             apiUpdate.setConfigurazioneCollaudo(getDatiAmbienteRateLimiting(collaudo));
@@ -7580,6 +7583,53 @@ public class AdesioniTest {
         entityManager.flush();
         entityManager.clear();
         assertEquals(50, adesioniController.getRateLimitingCollaudoAdesione(idAdesione).getBody().getRateLimiting().get(0).getQuota());
+    }
+
+    @Test
+    void testRateLimitingAdesioneQuotaFruitore() {
+        // Regola del profilo con quota totale e quota fruitore
+        ConfigurazioneProfilo profilo = this.configurazione.getServizio().getApi().getProfili().stream()
+                .filter(p -> p.getCodiceInterno().equals(PROFILO)).findAny().orElseThrow();
+        ConfigurazioneProfiloRateLimiting originale = profilo.getRateLimiting();
+        ConfigurazioneProfiloRateLimiting regola = new ConfigurazioneProfiloRateLimiting();
+        regola.setPeriodi(List.of(RateLimitingPeriodoEnum.ORA, RateLimitingPeriodoEnum.GIORNO));
+        regola.setQuotaTotale(new ConfigurazioneRateLimitingQuota().required(false));
+        regola.setQuotaFruitore(new ConfigurazioneRateLimitingQuota().required(false));
+        profilo.setRateLimiting(regola);
+        try {
+            AdesioneConApi ctx = creaAdesioneConRateLimiting();
+            UUID idAdesione = ctx.adesione().getIdAdesione();
+            RateLimitingApi giorno = rateLimiting(300, RateLimitingPeriodoEnum.GIORNO);
+            giorno.setQuotaFruitore(100);
+            impostaRateLimitingApi(ctx.idApi(), List.of(giorno, rateLimiting(20, RateLimitingPeriodoEnum.ORA)), null);
+
+            // La quota dell'adesione non supera la quota fruitore, ne' per l'aderente ne' per il gestore
+            BadRequestException e = assertThrows(BadRequestException.class, () -> adesioniController.updateRateLimitingCollaudoAdesione(idAdesione,
+                    quoteFruitore(quotaFruitore(ctx.idApi(), 150, RateLimitingPeriodoEnum.GIORNO))));
+            assertEquals(ErrorCode.ADE_400_RATE_LIMITING_QUOTA_FRUITORE, e.getErrorCode());
+            assertEquals("100", e.getParameters().get("quotaFruitore"));
+
+            adesioniController.updateRateLimitingCollaudoAdesione(idAdesione, quoteFruitore(quotaFruitore(ctx.idApi(), 100, RateLimitingPeriodoEnum.GIORNO)));
+            entityManager.flush();
+            entityManager.clear();
+
+            // La quota fruitore non scende sotto quelle gia` assegnate
+            RateLimitingApi giornoRidotta = rateLimiting(300, RateLimitingPeriodoEnum.GIORNO);
+            giornoRidotta.setQuotaFruitore(80);
+            e = assertThrows(BadRequestException.class, () -> impostaRateLimitingApi(ctx.idApi(), List.of(giornoRidotta, rateLimiting(20, RateLimitingPeriodoEnum.ORA)), null));
+            assertEquals(ErrorCode.API_400_RATE_LIMITING_QUOTA_FRUITORE_ASSEGNATE, e.getErrorCode());
+            assertEquals("1", e.getParameters().get("numeroAdesioni"));
+            entityManager.clear();
+
+            // Ridotta prima la quota del fruitore, la quota fruitore si puo` abbassare
+            adesioniController.updateRateLimitingCollaudoAdesione(idAdesione, quoteFruitore(quotaFruitore(ctx.idApi(), 50, RateLimitingPeriodoEnum.GIORNO)));
+            entityManager.flush();
+            entityManager.clear();
+            impostaRateLimitingApi(ctx.idApi(), List.of(giornoRidotta, rateLimiting(20, RateLimitingPeriodoEnum.ORA)), null);
+            assertEquals(80, apiController.getAPI(ctx.idApi()).getBody().getConfigurazioneCollaudo().getRateLimiting().get(1).getQuotaFruitore());
+        } finally {
+            profilo.setRateLimiting(originale);
+        }
     }
 
 }

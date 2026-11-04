@@ -132,7 +132,8 @@ create sequence seq_aziende_esterne start with 1 increment by 1;
     create table api_config_rate_limiting (
        id bigint not null,
         periodo varchar(255) not null,
-        quota integer not null,
+        quota integer,
+        quota_fruitore integer,
         id_api_config bigint not null,
         primary key (id),
         constraint uk_api_config_rate_limiting unique (id_api_config, periodo)

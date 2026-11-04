@@ -86,7 +86,7 @@ import org.govway.catalogo.servlets.model.DocumentoCreate;
 import org.govway.catalogo.servlets.model.IdentificativoApiUpdate;
 import org.govway.catalogo.servlets.model.ProprietaCustom;
 import org.govway.catalogo.servlets.model.ProtocolloEnum;
-import org.govway.catalogo.servlets.model.RateLimiting;
+import org.govway.catalogo.servlets.model.RateLimitingApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -205,7 +205,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 			datiAmbiente.setUrlInvocazione(urlInvocazione);
 		}
 
-		List<RateLimiting> rateLimiting = this.rateLimitingAssembler.toModel(config);
+		List<RateLimitingApi> rateLimiting = this.rateLimitingAssembler.toModel(config);
 		if(!rateLimiting.isEmpty()) {
 			datiAmbiente.setRateLimiting(rateLimiting);
 		}
