@@ -2843,11 +2843,33 @@ describe('ServizioApiConfigurationComponent', () => {
       expect(save()).not.toHaveProperty('rate_limiting');
     });
 
-    it('should send a daily quota for a PDND API', () => {
-      (Tools.Configurazione as any).servizio.api.profili = [{ codice_interno: 'PDND', auth_type: 'pdnd', pdnd_type: 'erogazione_pdnd' }];
-      load(buildApi({ rate_limiting: [{ quota: 1000, periodo: 'giorno' }] }, { gruppi_auth_type: [{ profilo: 'PDND' }] }));
-      expect(component._rateLimitingSoloGiornaliero).toBe(true);
-      expect(save().rate_limiting).toEqual([{ quota: 1000, periodo: 'giorno' }]);
+    it('should follow the rule of the API profiles, adapting the saved quotas', () => {
+      (Tools.Configurazione as any).servizio.api.profili = [
+        { codice_interno: 'PDND', rate_limiting: { periodi: ['giorno'], quota_totale: { required: false }, quota_fruitore: { required: false } } }
+      ];
+      load(buildApi({ rate_limiting: [{ quota: 1000, quota_fruitore: 100, periodo: 'giorno' }, { quota: 20, periodo: 'ora' }] }, { gruppi_auth_type: [{ profilo: 'PDND' }] }));
+      expect(component._regolaRateLimiting.periodi).toEqual(['giorno']);
+      expect(component._rateLimitingAdeguato).toBe(true);
+      expect(component._rateLimitingCtrl.length).toBe(1);
+      expect(component._rateLimitingCtrl.at(0).get('periodo')?.disabled).toBe(true);
+      expect(save().rate_limiting).toEqual([{ quota: 1000, quota_fruitore: 100, periodo: 'giorno' }]);
+    });
+
+    it('should keep read-only the quotas not enabled for the user roles', () => {
+      (Tools.Configurazione as any).servizio.api.profili = [
+        { codice_interno: 'P', rate_limiting: { periodi: ['giorno'], quota_totale: { ruoli_abilitati: ['gestore'] }, quota_fruitore: {} } }
+      ];
+      component._grant = { ruoli: ['referente'] } as any;
+      load(buildApi({ rate_limiting: [{ quota: 1000, quota_fruitore: 100, periodo: 'giorno' }] }, { gruppi_auth_type: [{ profilo: 'P' }] }));
+      const riga = component._rateLimitingCtrl.at(0);
+      expect(riga.get('quota')?.disabled).toBe(true);
+      expect(riga.get('quota_fruitore')?.disabled).toBe(false);
+      riga.get('quota_fruitore')?.setValue(50);
+      expect(save().rate_limiting).toEqual([{ quota: 1000, quota_fruitore: 50, periodo: 'giorno' }]);
+
+      (Tools.Configurazione as any).servizio.api.profili[0].rate_limiting.quota_fruitore = { ruoli_abilitati: ['gestore'] };
+      load(buildApi({ rate_limiting: [{ quota: 1000, quota_fruitore: 100, periodo: 'giorno' }] }, { gruppi_auth_type: [{ profilo: 'P' }] }));
+      expect(save()).not.toHaveProperty('rate_limiting');
     });
   });
 

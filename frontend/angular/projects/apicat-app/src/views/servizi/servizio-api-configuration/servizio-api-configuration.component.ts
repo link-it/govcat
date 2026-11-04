@@ -45,7 +45,7 @@ import * as _ from 'lodash';
 import { ApiConfiguration, ApiConfigurationRead, ApiCustomProperty, ApiDefinitionUpdateWithFile, ApiDefinitionUpdateWithReference, ApiReadDetails, ApiUpdateRequest, IHistory, Profile, CustomProperty } from '../servizio-api-details/servizio-api-interfaces';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
-import { quoteDaRighe, rateLimitingApplicabile, rateLimitingSoloGiornaliero } from '../rate-limiting';
+import { RegolaRateLimiting, adeguaQuote, quotaModificabile, quoteDaRighe, rateLimitingApplicabile, regolaRateLimiting } from '../rate-limiting';
 import { RateLimitingQuoteComponent } from '../rate-limiting-quote/rate-limiting-quote.component';
 declare const saveAs: any;
 
@@ -163,22 +163,34 @@ export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, Aft
     descrittore: this._descrittoreCtrl
   });
 
-  /** Rate limiting complessivo dell'API per l'ambiente (solo API erogate dal soggetto del dominio). */
-  _rateLimitingSoloGiornaliero: boolean = false;
+  /** Rate limiting dell'API per l'ambiente (solo API erogate dal soggetto del dominio), secondo la regola dei profili. */
+  _regolaRateLimiting: RegolaRateLimiting = regolaRateLimiting([], []);
+  /** Quote salvate non piu` ammesse dai profili dell'API, rimosse dal form. */
+  _rateLimitingAdeguato: boolean = false;
 
   get _rateLimitingCtrl(): UntypedFormArray {
     return this._formGroup.get('rate_limiting') as UntypedFormArray;
   }
 
   get _rateLimitingVisibile(): boolean {
-    return rateLimitingApplicabile(this.servizioApi);
+    const _regola = this._regolaRateLimiting;
+    return rateLimitingApplicabile(this.servizioApi) && _regola.periodi.length > 0 && !!(_regola.quotaTotale || _regola.quotaFruitore);
+  }
+
+  /** Almeno una quota modificabile con i ruoli dell'utente: altrimenti le quote non si inviano (restano invariate). */
+  private get _rateLimitingModificabile(): boolean {
+    const _ruoli = this._grant?.ruoli || [];
+    return quotaModificabile(this._regolaRateLimiting.quotaTotale, _ruoli) || quotaModificabile(this._regolaRateLimiting.quotaFruitore, _ruoli);
   }
 
   private _initRateLimiting(configuration: any) {
-    this._rateLimitingSoloGiornaliero = rateLimitingSoloGiornaliero(this.servizioApi, Tools.Configurazione?.servizio?.api?.profili || []);
-    RateLimitingQuoteComponent.carica(this._rateLimitingCtrl, configuration?.rate_limiting);
+    this._regolaRateLimiting = regolaRateLimiting(this.servizioApi?.gruppi_auth_type, Tools.Configurazione?.servizio?.api?.profili || []);
+    const _adeguate = adeguaQuote(configuration?.rate_limiting || [], this._regolaRateLimiting);
+    this._rateLimitingAdeguato = _adeguate.modificate;
+    RateLimitingQuoteComponent.carica(this._rateLimitingCtrl, _adeguate.quote);
     if (this._rateLimitingVisibile && this._canEditFieldMapper(this.environmentId)) {
       this._rateLimitingCtrl.enable({ emitEvent: false });
+      RateLimitingQuoteComponent.applicaRegola(this._rateLimitingCtrl, this._regolaRateLimiting, this._grant?.ruoli);
     } else {
       this._rateLimitingCtrl.disable({ emitEvent: false });
     }
@@ -942,8 +954,8 @@ export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, Aft
     }
 
     // Elenco completo delle quote se modificabile (vuoto = nessun rate limiting); omesso altrimenti (invariate)
-    if (this._rateLimitingVisibile && this._rateLimitingCtrl.enabled) {
-      configuration.rate_limiting = quoteDaRighe(this._rateLimitingCtrl.getRawValue(), this._rateLimitingSoloGiornaliero);
+    if (this._rateLimitingVisibile && this._rateLimitingCtrl.enabled && this._rateLimitingModificabile) {
+      configuration.rate_limiting = quoteDaRighe(this._rateLimitingCtrl.getRawValue(), this._regolaRateLimiting);
     }
 
     if (this.environmentId === 'collaudo') {

@@ -529,7 +529,11 @@
                                   <i class="bi bi-speedometer2" aria-hidden="true"></i>
                                   <span class="visually-hidden">{{ 'APP.API.RATE_LIMITING.Titolo' | translate }}:</span>
                                   @for (q of quoteApi; track q.periodo) {
-                                    {{ q.quota | number }} / {{ _rateLimitingLabel(q.periodo) | translate | lowercase }}@if (!$last) { · }
+                                    @if (q.quota) {
+                                      {{ q.quota | localeNumber }} / {{ _rateLimitingLabel(q.periodo) | translate | lowercase }}@if (q.quota_fruitore) { ({{ 'APP.API.RATE_LIMITING.MaxPerFruitore' | translate: { quota: (q.quota_fruitore | localeNumber) } }}) }
+                                    } @else {
+                                      {{ 'APP.API.RATE_LIMITING.MaxPerFruitorePeriodo' | translate: { quota: (q.quota_fruitore | localeNumber), periodo: (_rateLimitingLabel(q.periodo) | translate | lowercase) } }}
+                                    }@if (!$last) { · }
                                   }
                                 </div>
                               }
@@ -708,12 +712,6 @@
                 }
               </ng-template>
             </app-wizard-substepper>
-
-            <app-servizio-rate-limiting-riepilogo
-              [idServizio]="id"
-              [ambiente]="activeFase?.code === 'produzione' ? 'produzione' : 'collaudo'"
-              [ruoli]="_grant?.ruoli || null">
-            </app-servizio-rate-limiting-riepilogo>
 
             <!-- Template riutilizzabile: pulsanti di cambio stato (stessa
                  logica di `<ui-workflow>` header). Se l'utente non ha

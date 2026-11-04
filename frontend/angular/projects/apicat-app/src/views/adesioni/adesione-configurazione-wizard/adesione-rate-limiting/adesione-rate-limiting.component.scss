@@ -1,23 +1,151 @@
 :host { display: block; }
 
-.adesione-rate-limiting {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid var(--line, #dee8ef);
+// Stesso layout della lista "Modalita` di autenticazione" (adesione-lista-clients)
+section.adesione-config-list {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
 }
 
-.adesione-rate-limiting-hd {
+.adesione-config-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.adesione-config-list-hd {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
-.adesione-rate-limiting-api + .adesione-rate-limiting-api {
-  margin-top: 16px;
+.adesione-rate-limiting-icon {
+  font-size: 1rem;
+  color: var(--ink-3, #57738a);
 }
 
-.adesione-rate-limiting-riga {
-  max-width: 420px;
-  margin-bottom: 12px;
+.adesione-config-list-title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink, #212c49);
+}
+
+.adesione-rate-limiting-desc {
+  margin: 0 0 0.25rem;
+  font-size: 0.8125rem;
+  color: var(--ink-3, #57738a);
+}
+
+.adesione-config-list-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.adesione-config-list-item {
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--line, #dee8ef);
+  border-radius: 10px;
+  transition: border-color .15s, box-shadow .15s;
+
+  &.is-editing {
+    border-color: var(--accent, #ff4050);
+    box-shadow: 0 0 0 3px var(--accent-soft, #ffe9eb);
+  }
+}
+
+.adesione-rate-limiting-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 0.625rem 0.75rem;
+}
+
+.adesione-config-list-item-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink, #212c49);
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+
+  .version {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--ink-3, #57738a);
+    background: var(--surface-3, #eef4f8);
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+}
+
+.adesione-rate-limiting-periodi {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 340px));
+  gap: 0.75rem 1.5rem;
+}
+
+.adesione-rate-limiting-periodo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.adesione-rate-limiting-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--ink-3, #57738a);
+}
+
+.adesione-rate-limiting-valore {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--ink, #212c49);
+
+  &.is-vuota {
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: var(--ink-3, #57738a);
+  }
+}
+
+.adesione-config-list-item-meta {
+  font-size: 0.75rem;
+  color: var(--ink-3, #57738a);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+
+  .sep { opacity: 0.5; }
+}
+
+// Pulsanti icona come nella lista "Modalita` di autenticazione"
+.lnk-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  width: 28px;
+  padding: 0;
+  background: transparent;
+  color: var(--ink, #212c49);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all .12s;
+
+  &:hover { background: var(--surface-3, #eef4f8); }
+  &:focus-visible { outline: 2px solid var(--brand, #0d6efd); outline-offset: 1px; }
+
+  i.bi { font-size: 14px; }
 }

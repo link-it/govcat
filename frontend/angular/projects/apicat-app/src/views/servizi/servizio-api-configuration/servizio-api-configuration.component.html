@@ -435,7 +435,12 @@
                           <div class="col-12">
                             <h3 class="h5 pb-2 mb-2 border-bottom">{{ 'APP.API.RATE_LIMITING.Titolo' | translate }}</h3>
                             <p class="text-muted small mb-3">{{ 'APP.API.RATE_LIMITING.Descrizione' | translate }}</p>
-                            <app-rate-limiting-quote [righe]="_rateLimitingCtrl" [soloGiornaliero]="_rateLimitingSoloGiornaliero" [isEdit]="_isEdit"></app-rate-limiting-quote>
+                            @if (_isEdit && _rateLimitingAdeguato) {
+                              <div class="alert alert-warning small py-2" role="status">
+                                <i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>{{ 'APP.API.RATE_LIMITING.QuoteAdeguate' | translate }}
+                              </div>
+                            }
+                            <app-rate-limiting-quote [righe]="_rateLimitingCtrl" [regola]="_regolaRateLimiting" [ruoli]="_grant?.ruoli || null" [isEdit]="_isEdit"></app-rate-limiting-quote>
                           </div>
                         </div>
                       }

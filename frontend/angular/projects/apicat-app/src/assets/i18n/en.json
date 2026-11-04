@@ -70,8 +70,9 @@
 			"RATE_LIMITING": {
 				"Titolo": "Requested rate limiting",
 				"Descrizione": "Maximum number of requests the consumer expects to send, for each API and period for which the service declares a rate limiting.",
-				"QuotaPer": "Quota ({{periodo}})",
-				"TotaleServizio": "Overall service quota: {{quota}} / {{periodo}}",
+				"OltreMassimo": "The quota cannot exceed the maximum per consumer ({{massimo}})",
+				"Massimo": "max {{quota}} per consumer",
+				"Totale": "service total {{quota}}",
 				"NonRichiesta": "not requested"
 			},
 			"FILTER": {
@@ -242,14 +243,23 @@
 			},
 			"RATE_LIMITING": {
 				"Titolo": "Rate limiting",
-				"Descrizione": "Maximum number of requests to the API in this environment, at most one quota per period.",
-				"Quota": "Quota (requests)",
+				"Descrizione": "Maximum number of requests to the API in this environment, at most one entry per period.",
+				"QuotaTotale": "Overall quota (requests)",
+				"QuotaFruitore": "Maximum quota per consumer",
 				"Periodo": "Period",
 				"AggiungiQuota": "Add quota",
 				"RimuoviQuota": "Remove quota",
 				"Nessuno": "No rate limiting",
 				"QuotaNonValida": "Enter a whole number greater than zero",
-				"SoloGiornalieroPdnd": "fixed for PDND APIs"
+				"QuotaAssente": "Enter at least one of overall quota and maximum quota per consumer",
+				"QuotaTotaleAssente": "Enter the overall quota",
+				"QuotaFruitoreAssente": "Enter the maximum quota per consumer",
+				"FruitoreSuperiore": "The maximum quota per consumer cannot exceed the overall quota",
+				"MaxPerFruitore": "max {{quota}} per consumer",
+				"MaxPerFruitorePeriodo": "max {{quota}} / {{periodo}} per consumer",
+				"QuoteAdeguate": "Some saved quotas are not allowed by the API profiles and have been removed: save to confirm.",
+				"QuoteRimosseProfili": "Some quotas are not allowed by the selected profiles and have been removed.",
+				"QuoteDaAdeguareProfili": "With the selected profiles some saved rate limiting quotas are no longer allowed: they will be removed when saving."
 			},
 			"TITLE": {
 				"ApiList": "API",
@@ -1298,6 +1308,10 @@
 			"Type": "Type",
 			"Url": "Url",
 			"url_collaudo": "Internal Url Base (Testing)",
+			"rate_limiting": {
+				"quota_totale": "Rate limiting: overall quota",
+				"quota_fruitore": "Rate limiting: maximum quota per consumer"
+			},
 			"url_esposizione": "Exposure URL",
 			"url_produzione": "Internal Url Base (Production)",
 			"url_redirezione": "URL Redirect",
@@ -2589,7 +2603,13 @@
 				"Fruitore": "Consumer",
 				"NessunFruitore": "No consumers in this environment.",
 				"ModificaQuote": "Edit quotas of",
-				"CaricaAltri": "Load more consumers"
+				"CaricaAltri": "Load more consumers",
+				"NessunaApi": "No API with rate limiting in this environment.",
+				"Api": "Service APIs",
+				"FiltraFruitori": "Filter by consumer or logical id",
+				"NessunRisultato": "No consumer matches the filter.",
+				"CaricamentoFruitori": "Loading all consumers…",
+				"MassimoFruitore": "Max per consumer"
 			},
 			"ATTACHMENTS": {
 				"Title": "Attachments",

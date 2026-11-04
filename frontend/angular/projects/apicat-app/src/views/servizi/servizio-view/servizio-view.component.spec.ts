@@ -226,6 +226,31 @@ describe('ServizioViewComponent', () => {
     expect(component.isAnonymousMapper()).toBe(true);
   });
 
+  describe('rate limiting (Issue #402)', () => {
+    it('should show the rate limiting only to the service managers with APIs provided by the domain', () => {
+      component._grant = { ruoli: ['referente'] } as any;
+      component.serviceApiDominio = [{ id_api: 'a1' }];
+      expect(component._canShowRateLimiting()).toBe(true);
+      component.serviceApiDominio = [];
+      expect(component._canShowRateLimiting()).toBe(false);
+      component.serviceApiDominio = [{ id_api: 'a1' }];
+      component._grant = { ruoli: ['richiedente'] } as any;
+      expect(component._canShowRateLimiting()).toBe(false);
+    });
+
+    it('should open the dialog on the environment shown in the showcase', () => {
+      component.id = 's1' as any;
+      component.data = { nome: 'Servizio', versione: 2 } as any;
+      component._grant = { ruoli: ['gestore'] } as any;
+      component._environmentId = 'produzione';
+      mockModalService.show.mockClear();
+      component._openRateLimitingDialog();
+      expect(mockModalService.show).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+        initialState: expect.objectContaining({ idServizio: 's1', nomeServizio: 'Servizio v. 2', ambiente: 'produzione', ruoli: ['gestore'], mock: false })
+      }));
+    });
+  });
+
   describe('_loadUrlInvocazione', () => {
     const _urls = {
       url_invocazione: 'https://int/api/v1',

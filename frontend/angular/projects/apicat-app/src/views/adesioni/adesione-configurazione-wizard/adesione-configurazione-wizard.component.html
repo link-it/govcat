@@ -883,6 +883,7 @@
     [adesione]="adesione"
     [environment]="AmbienteEnum.Collaudo"
     [grant]="grant"
+    [mock]="rateLimitingMock"
   ></app-adesione-rate-limiting>
   @for (item of proprietaCustomFiltered[AmbienteEnum.Collaudo]; track item; let last = $last; let even = $even) {
     <div class="settings-">
@@ -965,6 +966,7 @@
     [adesione]="adesione"
     [environment]="AmbienteEnum.Produzione"
     [grant]="grant"
+    [mock]="rateLimitingMock"
   ></app-adesione-rate-limiting>
   @for (item of proprietaCustomFiltered[AmbienteEnum.Produzione]; track item; let last = $last; let even = $even) {
     <div class="settings-" [class.border-bottom-]="last">

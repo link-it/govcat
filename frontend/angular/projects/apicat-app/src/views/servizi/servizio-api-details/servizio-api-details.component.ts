@@ -55,7 +55,7 @@ import { PluralTranslatePipe } from '@app/lib/pipes/plural-translate.pipe';
 import { MarkdownModule } from 'ngx-markdown';
 
 import * as _ from 'lodash';
-import { quoteDaRighe, rateLimitingSoloGiornaliero } from '../rate-limiting';
+import { RateLimiting, RegolaRateLimiting, adeguaQuote, quoteDaRighe, regolaRateLimiting } from '../rate-limiting';
 import { RateLimitingQuoteComponent } from '../rate-limiting-quote/rate-limiting-quote.component';
 declare const saveAs: any;
 
@@ -138,10 +138,75 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
         return (this._formGroup?.get('rate_limiting') as UntypedFormArray) || null;
     }
 
-    /** Periodo solo giornaliero se fra i profili scelti nel form ce n'e` uno PDND. */
-    get _rateLimitingSoloGiornaliero(): boolean {
+    /** Regola del rate limiting dai profili scelti nel form. */
+    _regolaRateLimiting: RegolaRateLimiting = regolaRateLimiting([], []);
+    /** In creazione: quote tolte dal form perche' non piu` ammesse dai profili scelti. */
+    _rateLimitingAdeguato: boolean = false;
+    /** In modifica: quote salvate per ambiente da adeguare ai profili scelti (inviate al salvataggio). */
+    _quoteSalvateDaAdeguare: { collaudo?: RateLimiting[]; produzione?: RateLimiting[] } = {};
+
+    get _rateLimitingPrevisto(): boolean {
+        const _regola = this._regolaRateLimiting;
+        return _regola.periodi.length > 0 && !!(_regola.quotaTotale || _regola.quotaFruitore);
+    }
+
+    get _quoteSalvateAdeguate(): boolean {
+        return Object.keys(this._quoteSalvateDaAdeguare).length > 0;
+    }
+
+    /** Ricalcola la regola al cambio dei profili e adegua le quote non piu` ammesse. */
+    private _aggiornaRegolaRateLimiting() {
         const _gruppi = (this._formGroup?.get('authTypes')?.value || []).map((a: any) => ({ profilo: a?.profilo }));
-        return rateLimitingSoloGiornaliero({ gruppi_auth_type: _gruppi }, Tools.Configurazione?.servizio?.api?.profili || []);
+        const _regola = regolaRateLimiting(_gruppi, Tools.Configurazione?.servizio?.api?.profili || []);
+        this._regolaRateLimiting = _regola;
+
+        const _ctrl = this._rateLimitingCtrl;
+        if (this._isNew && _ctrl) {
+            const _pieno = (v: any) => v !== null && v !== undefined && v !== '';
+            for (let i = _ctrl.length - 1; i >= 0; i--) {
+                const _riga = _ctrl.at(i);
+                const _valore = _riga.getRawValue();
+                if (_valore.periodo && !_regola.periodi.includes(_valore.periodo)) {
+                    _ctrl.removeAt(i);
+                    this._rateLimitingAdeguato = this._rateLimitingAdeguato || _pieno(_valore.quota) || _pieno(_valore.quota_fruitore);
+                    continue;
+                }
+                if (!_regola.quotaTotale && _pieno(_valore.quota)) { _riga.get('quota')?.setValue(null); this._rateLimitingAdeguato = true; }
+                if (!_regola.quotaFruitore && _pieno(_valore.quota_fruitore)) { _riga.get('quota_fruitore')?.setValue(null); this._rateLimitingAdeguato = true; }
+            }
+            _ctrl.enable({ emitEvent: false });
+            RateLimitingQuoteComponent.applicaRegola(_ctrl, _regola, this._grant?.ruoli);
+        }
+
+        this._quoteSalvateDaAdeguare = {};
+        if (!this._isNew && this.servizioApi && this._formGroup?.get('ruolo')?.value === this.EROGATO_SOGGETTO_DOMINIO) {
+            (['collaudo', 'produzione'] as const).forEach((ambiente) => {
+                const _config: any = ambiente === 'collaudo' ? this.servizioApi?.configurazione_collaudo : this.servizioApi?.configurazione_produzione;
+                const _adeguate = adeguaQuote(_config?.rate_limiting || [], _regola);
+                if (_adeguate.modificate) { this._quoteSalvateDaAdeguare[ambiente] = _adeguate.quote; }
+            });
+        }
+    }
+
+    /** Blocchi di configurazione con le quote salvate adeguate ai profili: gli altri dati dell'ambiente restano invariati. */
+    private _configurazioniQuoteAdeguate(): any {
+        const _blocchi: any = {};
+        (['collaudo', 'produzione'] as const).forEach((ambiente) => {
+            const _quote = this._quoteSalvateDaAdeguare[ambiente];
+            const _config: any = ambiente === 'collaudo' ? this.servizioApi?.configurazione_collaudo : this.servizioApi?.configurazione_produzione;
+            if (!_quote || !_config) { return; }
+            if (!this.authenticationService.canEditField('servizio', 'api', this.service?.stato || '', ambiente, this._grant?.ruoli)) { return; }
+            _blocchi[`configurazione_${ambiente}`] = {
+                protocollo: _config.protocollo || undefined,
+                dati_erogazione: {
+                    nome_gateway: _config.dati_erogazione?.nome_gateway || undefined,
+                    versione_gateway: _config.dati_erogazione?.versione_gateway || undefined,
+                    url: _config.dati_erogazione?.url || undefined
+                },
+                rate_limiting: _quote
+            };
+        });
+        return _blocchi;
     }
 
     /** Base url di collaudo in creazione: solo nella fase collaudo; senza fase se il collaudo non e` saltato. */
@@ -714,7 +779,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
         }
 
         const _quote = (body.ruolo === this.EROGATO_SOGGETTO_DOMINIO)
-            ? quoteDaRighe(this._rateLimitingCtrl?.getRawValue() || [], this._rateLimitingSoloGiornaliero)
+            ? quoteDaRighe(this._rateLimitingCtrl?.getRawValue() || [], this._regolaRateLimiting)
             : [];
         if (_quote.length) {
             if (this._ambienteRateLimiting === 'produzione' && configurazioneProduzione) {
@@ -894,6 +959,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
         if (this._campiBloccati && _specifica) {
             _body.dati_specifica = _specifica;
         }
+        Object.assign(_body, this._configurazioniQuoteAdeguate());
         // Il BE autorizza il blocco `identificativo` anche sulla classe `api`, pure a valori invariati.
         if (!this._canAdd()) {
             delete _body.identificativo;
@@ -1121,6 +1187,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
                 this._updateAuthTypesSelected();
                 this._initProprietaCustom();
             }
+            this._aggiornaRegolaRateLimiting();
             this._formGroup.updateValueAndValidity();
 
             this._initProfiliFilterred();
@@ -1629,6 +1696,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
 
         this._updateAuthTypesSelected();
         this._initProprietaCustom();
+        this._aggiornaRegolaRateLimiting();
     }
 
     _removeCustomControls(index: number = -1) {
@@ -1677,6 +1745,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
             this._updateResources = new Date().getTime().toString();
         }
         this._aggiornaDisclaimerProfili();
+        this._aggiornaRegolaRateLimiting();
     }
 
     _setAuthsArray(auths: any[]) {

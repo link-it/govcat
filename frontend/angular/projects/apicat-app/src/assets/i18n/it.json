@@ -70,8 +70,9 @@
 			"RATE_LIMITING": {
 				"Titolo": "Rate limiting richiesto",
 				"Descrizione": "Numero massimo di richieste che il fruitore prevede di inviare, per ogni API e periodo per cui il servizio dichiara un rate limiting.",
-				"QuotaPer": "Quota ({{periodo}})",
-				"TotaleServizio": "Quota complessiva del servizio: {{quota}} / {{periodo}}",
+				"OltreMassimo": "La quota non può superare il massimo per fruitore ({{massimo}})",
+				"Massimo": "max {{quota}} per fruitore",
+				"Totale": "totale servizio {{quota}}",
 				"NonRichiesta": "non richiesta"
 			},
 			"FILTER": {
@@ -242,14 +243,23 @@
 			},
 			"RATE_LIMITING": {
 				"Titolo": "Rate limiting",
-				"Descrizione": "Numero massimo di richieste all'API in questo ambiente, al più una quota per periodo.",
-				"Quota": "Quota (richieste)",
+				"Descrizione": "Numero massimo di richieste all'API in questo ambiente, al più una voce per periodo.",
+				"QuotaTotale": "Quota totale (richieste)",
+				"QuotaFruitore": "Quota massima per fruitore",
 				"Periodo": "Periodo",
 				"AggiungiQuota": "Aggiungi quota",
 				"RimuoviQuota": "Rimuovi quota",
 				"Nessuno": "Nessun rate limiting",
 				"QuotaNonValida": "Inserisci un numero intero maggiore di zero",
-				"SoloGiornalieroPdnd": "fisso per le API PDND"
+				"QuotaAssente": "Indica almeno una fra quota totale e quota massima per fruitore",
+				"QuotaTotaleAssente": "Indica la quota totale",
+				"QuotaFruitoreAssente": "Indica la quota massima per fruitore",
+				"FruitoreSuperiore": "La quota massima per fruitore non può superare la quota totale",
+				"MaxPerFruitore": "max {{quota}} per fruitore",
+				"MaxPerFruitorePeriodo": "max {{quota}} / {{periodo}} per fruitore",
+				"QuoteAdeguate": "Alcune quote salvate non sono ammesse dai profili dell'API e sono state rimosse: salva per confermare.",
+				"QuoteRimosseProfili": "Alcune quote non sono ammesse dai profili scelti e sono state rimosse.",
+				"QuoteDaAdeguareProfili": "Con i profili scelti alcune quote di rate limiting già salvate non sono più ammesse: verranno rimosse al salvataggio."
 			},
 			"TITLE": {
 				"ApiList": "API",
@@ -1298,6 +1308,10 @@
 			"Type": "Tipo",
 			"Url": "Url",
 			"url_collaudo": "Base Url interna (Collaudo)",
+			"rate_limiting": {
+				"quota_totale": "Rate limiting: quota totale",
+				"quota_fruitore": "Rate limiting: quota massima per fruitore"
+			},
 			"url_esposizione": "Url esposizione",
 			"url_produzione": "Base Url interna (Produzione)",
 			"url_redirezione": "Url redirezione",
@@ -2589,7 +2603,13 @@
 				"Fruitore": "Fruitore",
 				"NessunFruitore": "Nessun fruitore in questo ambiente.",
 				"ModificaQuote": "Modifica le quote di",
-				"CaricaAltri": "Carica altri fruitori"
+				"CaricaAltri": "Carica altri fruitori",
+				"NessunaApi": "Nessuna API con rate limiting in questo ambiente.",
+				"Api": "API del servizio",
+				"FiltraFruitori": "Filtra per fruitore o id logico",
+				"NessunRisultato": "Nessun fruitore corrisponde al filtro.",
+				"CaricamentoFruitori": "Caricamento di tutti i fruitori…",
+				"MassimoFruitore": "Max per fruitore"
 			},
 			"ATTACHMENTS": {
 				"Title": "Allegati",

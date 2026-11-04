@@ -67,6 +67,7 @@ declare const saveAs: any;
 import { CkeckProvider, ClassiEnum, DataStructure } from '@app/provider/check.provider';
 import { NotificationBarComponent } from '@app/views/notifications/notification-bar/notification-bar.component';
 import { AdesioneRateLimitingComponent } from './adesione-rate-limiting/adesione-rate-limiting.component';
+import { rateLimitingMockAttivo } from '@app/views/servizi/rate-limiting.mock';
 
 export enum AccordionType {
     GENERAL_INFO = 'accordion-general-info',
@@ -638,6 +639,8 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
 
     // Abilitare solo per test locali dei disclaimer con contesti/severity diverse
     disclaimersUseMock: boolean = false;
+    /** Dati di esempio del rate limiting (`AppConfig.Services.rateLimitingMock`). */
+    rateLimitingMock: boolean = false;
     private readonly DISCLAIMERS_MOCK: AdesioneDisclaimer[] = [
         {
             contesto: 'generale',
@@ -712,6 +715,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         });
 
         this.appConfig = this.configService.getConfiguration();
+        this.rateLimitingMock = rateLimitingMockAttivo(this.appConfig);
 
         this.configService.getConfig(this.model).subscribe(
             (config: any) => {

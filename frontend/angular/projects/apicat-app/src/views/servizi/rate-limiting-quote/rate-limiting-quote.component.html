@@ -19,21 +19,13 @@
 <div class="rate-limiting-quote">
   @if (isEdit) {
     @for (riga of righe.controls; track riga; let i = $index) {
-      <div class="rate-limiting-riga" [formGroup]="$any(riga)">
-        <div class="rate-limiting-quota">
-          <label class="label-bold" [for]="_idBase + '-quota-' + i">{{ 'APP.API.RATE_LIMITING.Quota' | translate }}</label>
-          <input type="number" min="1" step="1" class="form-control" [id]="_idBase + '-quota-' + i" formControlName="quota"
-                 [class.is-invalid]="_errore(i, 'quota')" [attr.aria-invalid]="_errore(i, 'quota')"
-                 [attr.aria-describedby]="_idBase + '-quota-err-' + i">
-          <p class="form-text text-danger mb-0" [id]="_idBase + '-quota-err-' + i" aria-live="polite">
-            @if (_errore(i, 'quota')) { <span>{{ 'APP.API.RATE_LIMITING.QuotaNonValida' | translate }}</span> }
-          </p>
-        </div>
+      @let erroreRiga = _erroreRiga(i);
+      <div class="rate-limiting-riga" [class.due-quote]="!!regola.quotaTotale && !!regola.quotaFruitore" [formGroup]="$any(riga)">
         <div class="rate-limiting-periodo">
           <label class="label-bold" [for]="_idBase + '-periodo-' + i">{{ 'APP.API.RATE_LIMITING.Periodo' | translate }}</label>
-          @if (soloGiornaliero) {
+          @if (riga.get('periodo')?.disabled) {
             <input type="text" readonly class="form-control-plaintext" [id]="_idBase + '-periodo-' + i"
-                   [value]="('APP.LABEL.Giorno' | translate) + ' (' + ('APP.API.RATE_LIMITING.SoloGiornalieroPdnd' | translate) + ')'">
+                   [value]="_label(riga.get('periodo')?.value) | translate">
           } @else {
             <ng-select class="select-custom" [labelForId]="_idBase + '-periodo-' + i" formControlName="periodo"
                        [items]="_periodiRighe[i] || []" [searchable]="false" [clearable]="false"
@@ -43,13 +35,42 @@
             </ng-select>
           }
         </div>
-        @if (righe.enabled) {
+        @if (regola.quotaTotale) {
+          <div class="rate-limiting-quota">
+            <label class="label-bold" [for]="_idBase + '-quota-' + i">
+              {{ 'APP.API.RATE_LIMITING.QuotaTotale' | translate }}@if (regola.quotaTotale.required) {<span class="text-danger" aria-hidden="true"> *</span>}
+            </label>
+            <input type="number" min="1" step="1" class="form-control" [id]="_idBase + '-quota-' + i" formControlName="quota"
+                   [class.is-invalid]="_errore(i, 'quota') || !!erroreRiga" [attr.aria-invalid]="_errore(i, 'quota') || !!erroreRiga"
+                   [attr.aria-describedby]="_idBase + '-quota-err-' + i + ' ' + _idBase + '-riga-err-' + i">
+            <p class="form-text text-danger mb-0" [id]="_idBase + '-quota-err-' + i" aria-live="polite">
+              @if (_errore(i, 'quota')) { <span>{{ 'APP.API.RATE_LIMITING.QuotaNonValida' | translate }}</span> }
+            </p>
+          </div>
+        }
+        @if (regola.quotaFruitore) {
+          <div class="rate-limiting-quota">
+            <label class="label-bold" [for]="_idBase + '-fruitore-' + i">
+              {{ 'APP.API.RATE_LIMITING.QuotaFruitore' | translate }}@if (regola.quotaFruitore.required) {<span class="text-danger" aria-hidden="true"> *</span>}
+            </label>
+            <input type="number" min="1" step="1" class="form-control" [id]="_idBase + '-fruitore-' + i" formControlName="quota_fruitore"
+                   [class.is-invalid]="_errore(i, 'quota_fruitore') || !!erroreRiga" [attr.aria-invalid]="_errore(i, 'quota_fruitore') || !!erroreRiga"
+                   [attr.aria-describedby]="_idBase + '-fruitore-err-' + i + ' ' + _idBase + '-riga-err-' + i">
+            <p class="form-text text-danger mb-0" [id]="_idBase + '-fruitore-err-' + i" aria-live="polite">
+              @if (_errore(i, 'quota_fruitore')) { <span>{{ 'APP.API.RATE_LIMITING.QuotaNonValida' | translate }}</span> }
+            </p>
+          </div>
+        }
+        @if (_puoRimuovere) {
           <button type="button" class="btn btn-default btn-md gl-button btn-icon rate-limiting-rimuovi"
                   [attr.aria-label]="'APP.API.RATE_LIMITING.RimuoviQuota' | translate" [tooltip]="'APP.API.RATE_LIMITING.RimuoviQuota' | translate" container="body"
                   (click)="rimuovi(i)">
             <i class="bi bi-trash text-danger" aria-hidden="true"></i>
           </button>
         }
+        <p class="form-text text-danger mb-0 rate-limiting-riga-errore" [id]="_idBase + '-riga-err-' + i" aria-live="polite">
+          @if (erroreRiga) { <span>{{ erroreRiga | translate }}</span> }
+        </p>
       </div>
     }
     @if (!righe.length) {
@@ -64,7 +85,13 @@
     @if (_quoteLette.length) {
       <ul class="rate-limiting-lettura">
         @for (q of _quoteLette; track q.periodo) {
-          <li>{{ q.quota | number }} / {{ _label(q.periodo) | translate | lowercase }}</li>
+          <li>
+            @if (q.quota) {
+              {{ q.quota | localeNumber }} / {{ _label(q.periodo) | translate | lowercase }}@if (q.quota_fruitore) { ({{ 'APP.API.RATE_LIMITING.MaxPerFruitore' | translate: { quota: (q.quota_fruitore | localeNumber) } }}) }
+            } @else {
+              {{ 'APP.API.RATE_LIMITING.MaxPerFruitorePeriodo' | translate: { quota: (q.quota_fruitore | localeNumber), periodo: (_label(q.periodo) | translate | lowercase) } }}
+            }
+          </li>
         }
       </ul>
     } @else {

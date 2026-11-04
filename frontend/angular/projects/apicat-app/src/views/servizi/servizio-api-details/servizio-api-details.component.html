@@ -598,13 +598,23 @@
                       }
                     </div>
                   }
-                  @if (_isNew && f['ruolo'].value === EROGATO_SOGGETTO_DOMINIO && _rateLimitingCtrl) {
+                  @if (_isNew && f['ruolo'].value === EROGATO_SOGGETTO_DOMINIO && _rateLimitingCtrl && _rateLimitingPrevisto) {
                     <div class="row mt-5 api-rate-limiting">
                       <div class="col-12">
                         <h4 class="pb-2 mb-2 border-bottom">{{ 'APP.API.RATE_LIMITING.Titolo' | translate }}</h4>
                         <p class="text-muted small mb-3">{{ 'APP.API.RATE_LIMITING.Descrizione' | translate }}</p>
-                        <app-rate-limiting-quote [righe]="_rateLimitingCtrl" [soloGiornaliero]="_rateLimitingSoloGiornaliero" [isEdit]="true"></app-rate-limiting-quote>
+                        @if (_rateLimitingAdeguato) {
+                          <div class="alert alert-warning small py-2" role="status">
+                            <i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>{{ 'APP.API.RATE_LIMITING.QuoteRimosseProfili' | translate }}
+                          </div>
+                        }
+                        <app-rate-limiting-quote [righe]="_rateLimitingCtrl" [regola]="_regolaRateLimiting" [ruoli]="_grant?.ruoli || null" [isEdit]="true"></app-rate-limiting-quote>
                       </div>
+                    </div>
+                  }
+                  @if (_isEdit && !_isNew && _quoteSalvateAdeguate) {
+                    <div class="alert alert-warning small py-2 mt-4" role="status">
+                      <i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>{{ 'APP.API.RATE_LIMITING.QuoteDaAdeguareProfili' | translate }}
                     </div>
                   }
                   @if (f['ruolo'].value === EROGATO_SOGGETTO_DOMINIO && !_loadingRisorse) {

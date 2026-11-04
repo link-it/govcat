@@ -29,6 +29,9 @@ import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { ConfigService, EventsManagerService, MenuAction, EventType, Tools, COMPONENTS_IMPORTS, YesnoDialogBsComponent } from '@linkit/components';
 import { apiHasPdndProfile, isApiPdndConfigured, isSoggettoInPdndConfig, getPdndProducerIds } from '../pdnd-menu.util';
 import { PdndMenuDialogComponent } from '../pdnd-menu-dialog/pdnd-menu-dialog.component';
+import { ServizioRateLimitingDialogComponent } from '../servizio-rate-limiting/servizio-rate-limiting-dialog.component';
+import { puoGestireRateLimiting } from '../rate-limiting';
+import { rateLimitingMockAttivo } from '../rate-limiting.mock';
 import { contaAzioniPdndInAttesa } from '../pdnd-pending';
 import { PdndService } from '@app/views/pdnd/pdnd.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
@@ -1214,6 +1217,26 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         this._pdndConteggioSub = contaAzioniPdndInAttesa(this.apiService, this.pdndService, _apis, _producerIds).subscribe({
             next: (n: number) => { this._pdndInAttesa = n; },
             error: () => { this._pdndInAttesa = 0; }
+        });
+    }
+
+    /** Rate limiting del servizio: solo per chi lo gestisce e con API erogate dal soggetto del dominio. */
+    _canShowRateLimiting(): boolean {
+        return puoGestireRateLimiting(this._grant?.ruoli) && (this.serviceApiDominio || []).length > 0;
+    }
+
+    _openRateLimitingDialog() {
+        this.modalService.show(ServizioRateLimitingDialogComponent, {
+            class: 'modal-lg-custom modal-with-65 modal-fullscreen-sm-down',
+            ignoreBackdropClick: false,
+            initialState: {
+                idServizio: this.id != null ? `${this.id}` : null,
+                nomeServizio: this.data ? `${this.data.nome} v. ${this.data.versione}` : '',
+                ambiente: this._environmentId,
+                collaudoDisabled: this._collaudoSaltato,
+                ruoli: this._grant?.ruoli || null,
+                mock: rateLimitingMockAttivo(this.appConfig)
+            }
         });
     }
 

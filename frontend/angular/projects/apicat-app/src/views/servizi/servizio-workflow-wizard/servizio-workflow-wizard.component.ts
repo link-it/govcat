@@ -61,8 +61,8 @@ import { WizardRifiuto, WizardRifiutoFormComponent } from '@app/components/wizar
 import { StepWizardItem } from '@app/components/wizard/wizard-step-bar/wizard-step-bar.component';
 import { ServizioInfoFormComponent } from './servizio-info-form/servizio-info-form.component';
 import { ServizioReferenteAddFormComponent } from './servizio-referente-add-form/servizio-referente-add-form.component';
-import { ServizioRateLimitingRiepilogoComponent } from './servizio-rate-limiting-riepilogo/servizio-rate-limiting-riepilogo.component';
 import { RATE_LIMITING_PERIODI, RATE_LIMITING_PERIODO_LABEL, RateLimiting, RateLimitingPeriodo, rateLimitingApplicabile } from '../rate-limiting';
+import { RATE_LIMITING_MOCK_API, quoteMock, rateLimitingMockAttivo } from '../rate-limiting.mock';
 import { ServizioApiDetailsComponent } from '@app/views/servizi/servizio-api-details/servizio-api-details.component';
 import { ServizioApiEditComponent } from '@app/views/servizi/servizio-api-edit/servizio-api-edit.component';
 
@@ -73,6 +73,7 @@ import {
     WORKFLOW_STATI_SERVIZIO,
     nomeApiDaServizio
 } from './servizio-wizard.config';
+import { LocaleNumberPipe } from '@app/pipes/locale-number.pipe';
 
 declare const saveAs: any;
 
@@ -92,7 +93,7 @@ declare const saveAs: any;
     templateUrl: 'servizio-workflow-wizard.component.html',
     styleUrls: ['servizio-workflow-wizard.component.scss'],
     standalone: true,
-    imports: [
+    imports: [LocaleNumberPipe, 
         CommonModule,
         RouterModule,
         ...COMPONENTS_IMPORTS,
@@ -103,7 +104,6 @@ declare const saveAs: any;
         WizardRifiutoFormComponent,
         ServizioInfoFormComponent,
         ServizioReferenteAddFormComponent,
-        ServizioRateLimitingRiepilogoComponent,
         ServizioAllegatoAddFormComponent,
         LnkButtonComponent,
         ServizioApiDetailsComponent,
@@ -182,7 +182,6 @@ export class ServizioWorkflowWizardComponent implements OnInit {
     _configApiTab: string | null = null;
 
     @ViewChild('infoFormRef') infoFormRef?: ServizioInfoFormComponent;
-    @ViewChild(ServizioRateLimitingRiepilogoComponent) riepilogoRateLimiting?: ServizioRateLimitingRiepilogoComponent;
 
     apiUrl: string = '';
     hideVersions: boolean = false;
@@ -256,6 +255,7 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         this.apiUrl = this.configService.getConfiguration()?.AppConfig?.GOVAPI?.HOST || '';
         this.hideVersions = this.configService.getConfiguration()?.AppConfig?.Services?.hideVersions || false;
         this._showOpenClassic = this.configService.getConfiguration()?.AppConfig?.Services?.showOpenClassic === true;
+        this._rateLimitingMock = rateLimitingMockAttivo(this.configService.getConfiguration());
     }
 
     ngOnInit() {
@@ -1133,7 +1133,6 @@ export class ServizioWorkflowWizardComponent implements OnInit {
                 this._maybeAutoOpenCreateApi();
                 this._loadApiAllegatiCounts();
                 this._loadApiRateLimiting();
-                this.riepilogoRateLimiting?.carica();
                 this._verificaTrigger$.next();
             },
             error: () => { this.servizioApiList = []; this._apiListLoaded = true; this._maybeAutoOpenCreateApi(); }
@@ -1142,16 +1141,20 @@ export class ServizioWorkflowWizardComponent implements OnInit {
 
     /** Quote di rate limiting per API e ambiente: presenti solo nel dettaglio dell'API. */
     _apiRateLimiting: { [idApi: string]: { collaudo: RateLimiting[]; produzione: RateLimiting[] } } = {};
+    /** Dati di esempio del rate limiting (`AppConfig.Services.rateLimitingMock`). */
+    _rateLimitingMock: boolean = false;
 
     private _loadApiRateLimiting() {
         const _ordina = (quote: RateLimiting[] | undefined) => [...(quote || [])]
             .sort((a, b) => RATE_LIMITING_PERIODI.indexOf(a.periodo) - RATE_LIMITING_PERIODI.indexOf(b.periodo));
-        (this.servizioApiList || []).filter((api: any) => rateLimitingApplicabile(api)).forEach((api: any) => {
+        (this.servizioApiList || []).filter((api: any) => rateLimitingApplicabile(api)).forEach((api: any, indice: number) => {
+            // Con i dati di esempio le prime API mostrano le stesse quote del riepilogo
+            const _quote = (quote: RateLimiting[] | undefined) => _ordina((this._rateLimitingMock && indice < RATE_LIMITING_MOCK_API) ? quoteMock(quote, indice) : quote);
             this.apiService.getDetails('api', api.id_api).subscribe({
                 next: (resp: any) => {
                     this._apiRateLimiting[api.id_api] = {
-                        collaudo: _ordina(resp?.configurazione_collaudo?.rate_limiting),
-                        produzione: _ordina(resp?.configurazione_produzione?.rate_limiting)
+                        collaudo: _quote(resp?.configurazione_collaudo?.rate_limiting),
+                        produzione: _quote(resp?.configurazione_produzione?.rate_limiting)
                     };
                 },
                 error: () => { delete this._apiRateLimiting[api.id_api]; }

@@ -17,52 +17,75 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 @if (_api.length) {
-  <section class="adesione-rate-limiting" [attr.aria-labelledby]="_idBase + '-title'">
-    <div class="adesione-rate-limiting-hd">
-      <h5 class="gl-mt-0 mb-1" [id]="_idBase + '-title'">{{ 'APP.ADESIONI.RATE_LIMITING.Titolo' | translate }}</h5>
+  <section class="adesione-config-list adesione-rate-limiting" [attr.aria-labelledby]="_idBase + '-title'">
+    <header class="adesione-config-list-hd">
+      <i class="bi bi-speedometer2 adesione-rate-limiting-icon" aria-hidden="true"></i>
+      <h4 class="adesione-config-list-title" [id]="_idBase + '-title'">{{ 'APP.ADESIONI.RATE_LIMITING.Titolo' | translate }}</h4>
       @if (_canEdit && !_editing) {
-        <button type="button" class="btn btn-default btn-sm gl-button" (click)="modifica()">
-          <i class="bi bi-pencil" aria-hidden="true"></i><span class="ms-1">{{ 'APP.BUTTON.Modify' | translate }}</span>
+        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-sm lnk-btn-icon ms-auto"
+                [attr.aria-label]="'APP.BUTTON.Modify' | translate" [tooltip]="'APP.BUTTON.Modify' | translate" container="body"
+                (click)="modifica()">
+          <i class="bi bi-pencil" aria-hidden="true"></i>
         </button>
       }
-    </div>
-    <p class="text-muted small mb-3">{{ 'APP.ADESIONI.RATE_LIMITING.Descrizione' | translate }}</p>
+    </header>
+    <p class="adesione-rate-limiting-desc">{{ 'APP.ADESIONI.RATE_LIMITING.Descrizione' | translate }}</p>
 
     <form [formGroup]="_formGroup" (submit)="salva()" novalidate>
-      @for (api of _api; track api.id_api) {
-        <div class="adesione-rate-limiting-api">
-          <div class="fw-bold mb-2">{{ api.nome }} <span class="text-muted fw-normal">v. {{ api.versione }}</span></div>
-          @for (q of api.quote; track q.chiave) {
-            <div class="adesione-rate-limiting-riga">
-              @if (_editing) {
-                <label class="label-bold" [for]="_idBase + '-' + q.chiave">{{ 'APP.ADESIONI.RATE_LIMITING.QuotaPer' | translate: { periodo: (_label(q.periodo) | translate | lowercase) } }}</label>
-                <input type="number" min="1" step="1" class="form-control" [id]="_idBase + '-' + q.chiave" [formControlName]="q.chiave"
-                       [class.is-invalid]="_errore(q.chiave)" [attr.aria-invalid]="_errore(q.chiave)"
-                       [attr.aria-describedby]="_idBase + '-' + q.chiave + '-tot'">
-                @if (_errore(q.chiave)) {
-                  <p class="form-text text-danger mb-0" aria-live="polite">{{ 'APP.API.RATE_LIMITING.QuotaNonValida' | translate }}</p>
+      <ul class="adesione-config-list-items">
+        @for (api of _api; track api.id_api) {
+          <li class="adesione-config-list-item" [class.is-editing]="_editing">
+            <div class="adesione-rate-limiting-card">
+              <div class="adesione-config-list-item-title">
+                {{ api.nome }} <span class="version">v{{ api.versione }}</span>
+              </div>
+              <div class="adesione-rate-limiting-periodi">
+                @for (q of api.quote; track q.chiave) {
+                  <div class="adesione-rate-limiting-periodo">
+                    @if (_editing) {
+                      <label class="adesione-rate-limiting-label" [for]="_idBase + '-' + q.chiave">{{ _label(q.periodo) | translate }}</label>
+                      <input type="number" min="1" step="1" class="form-control form-control-sm" [id]="_idBase + '-' + q.chiave" [formControlName]="q.chiave"
+                             [attr.max]="q.massimo" [class.is-invalid]="_errore(q.chiave)" [attr.aria-invalid]="_errore(q.chiave)"
+                             [attr.aria-describedby]="_idBase + '-' + q.chiave + '-tot'">
+                      @if (_errore(q.chiave)) {
+                        <p class="form-text text-danger mb-0" aria-live="polite">
+                          @if (_oltreMassimo(q.chiave)) {
+                            {{ 'APP.ADESIONI.RATE_LIMITING.OltreMassimo' | translate: { massimo: (q.massimo | localeNumber) } }}
+                          } @else {
+                            {{ 'APP.API.RATE_LIMITING.QuotaNonValida' | translate }}
+                          }
+                        </p>
+                      }
+                    } @else {
+                      <span class="adesione-rate-limiting-label">{{ _label(q.periodo) | translate }}</span>
+                      @let salvata = _quotaSalvata(api.id_api, q.periodo);
+                      <span class="adesione-rate-limiting-valore" [class.is-vuota]="!salvata">
+                        {{ salvata ? (salvata | localeNumber) : ('APP.ADESIONI.RATE_LIMITING.NonRichiesta' | translate) }}
+                      </span>
+                    }
+                    <span class="adesione-config-list-item-meta" [id]="_idBase + '-' + q.chiave + '-tot'">
+                      @if (q.massimo) {
+                        <span>{{ 'APP.ADESIONI.RATE_LIMITING.Massimo' | translate: { quota: (q.massimo | localeNumber) } }}</span>
+                      }
+                      @if (q.massimo && q.totale) { <span class="sep">·</span> }
+                      @if (q.totale) {
+                        <span>{{ 'APP.ADESIONI.RATE_LIMITING.Totale' | translate: { quota: (q.totale | localeNumber) } }}</span>
+                      }
+                    </span>
+                  </div>
                 }
-              } @else {
-                <div>
-                  <span class="label-bold">{{ 'APP.ADESIONI.RATE_LIMITING.QuotaPer' | translate: { periodo: (_label(q.periodo) | translate | lowercase) } }}:</span>
-                  @let salvata = _quotaSalvata(api.id_api, q.periodo);
-                  <span class="ms-1">{{ salvata ? (salvata | number) : ('APP.ADESIONI.RATE_LIMITING.NonRichiesta' | translate) }}</span>
-                </div>
-              }
-              <p class="form-text text-muted mb-0" [id]="_idBase + '-' + q.chiave + '-tot'">
-                {{ 'APP.ADESIONI.RATE_LIMITING.TotaleServizio' | translate: { quota: (q.totale | number), periodo: (_label(q.periodo) | translate | lowercase) } }}
-              </p>
+              </div>
             </div>
-          }
-        </div>
-      }
+          </li>
+        }
+      </ul>
 
       @if (_errorMsg) {
         <div class="gl-alert gl-alert-danger mt-2" role="alert"><span>{{ _errorMsg }}</span></div>
       }
 
       @if (_editing) {
-        <div class="d-flex justify-content-end gap-2 mt-3">
+        <div class="d-flex justify-content-end gap-2 mt-2">
           <button type="button" class="btn btn-default btn-md gl-button" [disabled]="_saving" (click)="annulla()">{{ 'APP.BUTTON.Cancel' | translate }}</button>
           <button type="submit" class="btn btn-confirm btn-md gl-button" [disabled]="_saving || _formGroup.invalid">
             @if (_saving) { <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span> }

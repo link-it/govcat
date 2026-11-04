@@ -1,3 +1,12 @@
+2026-11-04  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #402 (evolutiva): rate limiting secondo la regola dei profili (periodi, quota totale e
+	  quota per fruitore, required e ruoli abilitati) con adeguamento al cambio di profilo; massimo
+	  per fruitore nell'adesione; riepilogo spostato in vetrina in una dialog con tab per API e
+	  fruitori paginati allo scorrimento; numeri nel formato della lingua; dati di esempio
+	  attivabili con AppConfig.Services.rateLimitingMock.
+
 2026-11-04  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

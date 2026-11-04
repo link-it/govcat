@@ -20,6 +20,7 @@ import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 
@@ -32,12 +33,17 @@ import {
     RATE_LIMITING_PERIODI, RATE_LIMITING_PERIODO_LABEL, RUOLO_EROGATO_SOGGETTO_DOMINIO,
     RateLimiting, RateLimitingAdesione, RateLimitingAdesioneApi, RateLimitingPeriodo
 } from '@app/views/servizi/rate-limiting';
+import { apiMock, quoteMock } from '@app/views/servizi/rate-limiting.mock';
+import { LocaleNumberPipe } from '@app/pipes/locale-number.pipe';
 
 /** Quota richiesta dal fruitore per un'API e un periodo dichiarato dal servizio. */
 export interface QuotaFruitore {
     chiave: string;
     periodo: RateLimitingPeriodo;
-    totale: number;
+    /** Quota totale del servizio, se dichiarata. */
+    totale: number | null;
+    /** Quota massima per ciascun fruitore, se dichiarata. */
+    massimo: number | null;
 }
 
 export interface ApiQuoteFruitore {
@@ -59,7 +65,7 @@ const RUOLI_GESTIONE_SERVIZIO = ['gestore', 'referente_superiore', 'referente_te
     templateUrl: 'adesione-rate-limiting.component.html',
     styleUrls: ['adesione-rate-limiting.component.scss'],
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, TranslateModule]
+    imports: [LocaleNumberPipe, CommonModule, ReactiveFormsModule, TranslateModule, TooltipModule]
 })
 export class AdesioneRateLimitingComponent implements OnChanges {
     private static _seq = 0;
@@ -67,6 +73,8 @@ export class AdesioneRateLimitingComponent implements OnChanges {
     @Input() adesione: any = null;
     @Input() environment: AmbienteEnum | 'collaudo' | 'produzione' = 'collaudo';
     @Input() grant: Grant | null = null;
+    /** Dati di esempio al posto delle quote reali; il salvataggio resta locale. */
+    @Input() mock: boolean = false;
 
     readonly _idBase = `adesione-rate-limiting-${++AdesioneRateLimitingComponent._seq}`;
 
@@ -117,10 +125,17 @@ export class AdesioneRateLimitingComponent implements OnChanges {
         );
         forkJoin({ api: _api$, quote: _quote$ }).subscribe(({ api, quote }) => {
             this._salvate = quote;
-            this._api = this._componi(api as any[]);
+            this._api = this._componi(this.mock ? this._conQuoteMock(api as any[]) : api as any[]);
             this._initForm();
             this._loading = false;
         });
+    }
+
+    /** Dati di esempio: piu` API (completate con API fittizie), con quote del servizio per quelle che non ne dichiarano. */
+    private _conQuoteMock(dettagli: any[]): any[] {
+        const _configurazione = this.environment === 'produzione' ? 'configurazione_produzione' : 'configurazione_collaudo';
+        return apiMock((dettagli || []).filter(Boolean)).map((a: any, i: number) =>
+            ({ ...a, [_configurazione]: { ...(a[_configurazione] || {}), rate_limiting: quoteMock(a[_configurazione]?.rate_limiting, i) } }));
     }
 
     private _componi(dettagli: any[]): ApiQuoteFruitore[] {
@@ -133,7 +148,7 @@ export class AdesioneRateLimitingComponent implements OnChanges {
                 versione: a.versione,
                 quote: [...a[_configurazione].rate_limiting]
                     .sort((x: RateLimiting, y: RateLimiting) => RATE_LIMITING_PERIODI.indexOf(x.periodo) - RATE_LIMITING_PERIODI.indexOf(y.periodo))
-                    .map((q: RateLimiting) => ({ chiave: `${a.id_api}|${q.periodo}`, periodo: q.periodo, totale: q.quota }))
+                    .map((q: RateLimiting) => ({ chiave: `${a.id_api}|${q.periodo}`, periodo: q.periodo, totale: q.quota ?? null, massimo: q.quota_fruitore ?? null }))
             }));
     }
 
@@ -141,7 +156,9 @@ export class AdesioneRateLimitingComponent implements OnChanges {
         const _controlli: { [k: string]: FormControl } = {};
         this._api.forEach((a: ApiQuoteFruitore) => a.quote.forEach((q: QuotaFruitore) => {
             const _salvata = this._salvate.find((s: RateLimitingAdesioneApi) => s.id_api === a.id_api && s.periodo === q.periodo);
-            _controlli[q.chiave] = new FormControl<number | null>(_salvata?.quota ?? null, [Validators.min(1), Validators.pattern('^[0-9]+$')]);
+            const _validators = [Validators.min(1), Validators.pattern('^[0-9]+$')];
+            if (q.massimo) { _validators.push(Validators.max(q.massimo)); }
+            _controlli[q.chiave] = new FormControl<number | null>(_salvata?.quota ?? null, _validators);
         }));
         this._formGroup = new FormGroup(_controlli);
     }
@@ -157,6 +174,10 @@ export class AdesioneRateLimitingComponent implements OnChanges {
     _errore(chiave: string): boolean {
         const _ctrl = this._formGroup.get(chiave);
         return !!(_ctrl?.invalid && (_ctrl.dirty || _ctrl.touched));
+    }
+
+    _oltreMassimo(chiave: string): boolean {
+        return !!this._formGroup.get(chiave)?.hasError('max');
     }
 
     modifica() {
@@ -190,6 +211,13 @@ export class AdesioneRateLimitingComponent implements OnChanges {
         this._saving = true;
         this._errorMsg = '';
         const _body: RateLimitingAdesione = { rate_limiting: this._quoteDaInviare() };
+        if (this.mock) {
+            this._saving = false;
+            this._salvate = _body.rate_limiting;
+            this._editing = false;
+            this._initForm();
+            return;
+        }
         this.apiService.putElementRelated('adesioni', this.adesione.id_adesione, `${this.environment}/rate-limiting`, _body).subscribe({
             next: (resp: any) => {
                 this._saving = false;

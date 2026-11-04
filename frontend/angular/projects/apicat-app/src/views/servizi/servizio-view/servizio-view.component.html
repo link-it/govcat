@@ -167,6 +167,11 @@
                 }
               </button>
             }
+            @if (_canShowRateLimiting()) {
+              <button type="button" class="btnc btnc-default" (click)="_openRateLimitingDialog()">
+                <i class="bi bi-speedometer2 me-2" aria-hidden="true"></i>{{ 'APP.SERVICES.RATE_LIMITING.Titolo' | translate }}
+              </button>
+            }
             @if (_canShowPdndHeroMenu()) {
               <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="pdnd-hero-actions">
                 <button aria-haspopup="true" aria-expanded="false" type="button" class="btnc btnc-default dropdown-toggle dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static">

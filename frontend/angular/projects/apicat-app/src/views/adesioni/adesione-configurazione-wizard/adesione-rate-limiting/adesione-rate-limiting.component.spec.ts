@@ -17,7 +17,7 @@ describe('AdesioneRateLimitingComponent', () => {
     mockApi = {
       getList: vi.fn().mockReturnValue(of({ content: [{ id_api: 'a1' }, { id_api: 'a2' }] })),
       getDetails: vi.fn((model: string, id: string, sub?: string) => {
-        if (model === 'api') { return of(id === 'a1' ? apiDettaglio('a1', [{ quota: 20, periodo: 'ora' }, { quota: 300, periodo: 'giorno' }]) : apiDettaglio('a2', undefined)); }
+        if (model === 'api') { return of(id === 'a1' ? apiDettaglio('a1', [{ quota: 20, periodo: 'ora' }, { quota: 300, quota_fruitore: 150, periodo: 'giorno' }]) : apiDettaglio('a2', undefined)); }
         return of({ rate_limiting: [{ id_api: 'a1', quota: 100, periodo: 'giorno' }] });
       }),
       putElementRelated: vi.fn((_m: string, _id: string, _p: string, body: any) => of(body))
@@ -46,6 +46,34 @@ describe('AdesioneRateLimitingComponent', () => {
     });
     expect(component._editing).toBe(false);
     expect(component._quotaSalvata('a1', 'ora')).toBe(5);
+  });
+
+  it('should limit the quota to the maximum per consumer declared by the service (Issue #402)', () => {
+    expect(component._api[0].quote).toEqual([
+      { chiave: 'a1|giorno', periodo: 'giorno', totale: 300, massimo: 150 },
+      { chiave: 'a1|ora', periodo: 'ora', totale: 20, massimo: null }
+    ]);
+    component.modifica();
+    component._formGroup.get('a1|giorno')?.setValue(200);
+    expect(component._oltreMassimo('a1|giorno')).toBe(true);
+    component.salva();
+    expect(mockApi.putElementRelated).not.toHaveBeenCalled();
+    component._formGroup.get('a1|giorno')?.setValue(150);
+    component._formGroup.get('a1|ora')?.setValue(1000);
+    expect(component._formGroup.valid).toBe(true);
+  });
+
+  it('should show sample quotas for more APIs, saving locally', () => {
+    component.mock = true;
+    component.carica();
+    expect(component._api.map((a) => a.id_api)).toEqual(['a1', 'a2', 'mock-api-3']);
+    expect(component._api[1].quote.map((q) => [q.periodo, q.totale, q.massimo])).toEqual([['giorno', 5000, null]]);
+    expect(component._api[2].quote.map((q) => [q.periodo, q.totale, q.massimo])).toEqual([['giorno', 20000, 4000], ['minuto', null, 20]]);
+    component.modifica();
+    component._formGroup.get('a2|giorno')?.setValue(2000);
+    component.salva();
+    expect(mockApi.putElementRelated).not.toHaveBeenCalled();
+    expect(component._quotaSalvata('a2', 'giorno')).toBe(2000);
   });
 
   it('should keep editing and show the error when saving fails', () => {

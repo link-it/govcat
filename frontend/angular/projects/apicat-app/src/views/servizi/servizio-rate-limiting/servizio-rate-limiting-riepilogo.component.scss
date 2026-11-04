@@ -1,0 +1,233 @@
+:host { display: block; }
+
+// Da tablet in su il riepilogo riempie la dialog e si allunga solo la tabella dei fruitori;
+// su mobile il contenuto scorre nella dialog
+@media (min-width: 768px) {
+  :host {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .rl,
+  .rl-api {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+
+    > * { flex-shrink: 0; }
+  }
+
+  .rl > .rl-api { flex-shrink: 1; }
+
+  .rl > .rl-api > .rl-fruitori-wrap {
+    flex: 1 1 auto;
+    min-height: 240px;
+  }
+}
+
+.rl-stato,
+.rl-vuoto {
+  padding: 1rem 0;
+  font-size: 0.875rem;
+  color: var(--ink-3, #57738a);
+}
+
+.rl-desc {
+  margin: 0 0 12px;
+  font-size: 0.8125rem;
+  color: var(--ink-3, #57738a);
+}
+
+.rl-tabs {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.rl-api {
+  padding: 16px 18px;
+  background: var(--surface-2, #f7f9fb);
+  border: 1px solid var(--line, #dee8ef);
+  border-radius: 12px;
+}
+
+.rl-api-title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin: 0 0 12px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink, #212c49);
+
+  .version {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--ink-3, #57738a);
+    background: var(--surface-3, #eef4f8);
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+}
+
+.rl-quote {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.rl-quota {
+  border: 1px solid var(--line, #dee8ef);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: var(--surface, #fff);
+
+  &.is-superata { border-color: var(--err, #d92d20); }
+}
+
+.rl-quota-periodo {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--ink-3, #57738a);
+}
+
+.rl-quota-totale {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 2px 0 8px;
+}
+
+.rl-quota-dati {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px 16px;
+  margin: 0;
+  font-size: 12.5px;
+
+  > div { min-width: 0; overflow-wrap: anywhere; }
+
+  dt { font-weight: 400; color: var(--ink-3, #5b6b7a); }
+  dd { margin: 0; font-weight: 600; }
+}
+
+.rl-avviso {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: var(--err-ink, #b81e2b);
+}
+
+.rl-fruitori-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-bottom: 8px;
+}
+
+.rl-fruitori-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink, #212c49);
+}
+
+.rl-count {
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--surface-3, #eef4f8);
+  color: var(--ink-2, #2e445a);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.rl-filtro {
+  position: relative;
+  width: 260px;
+  max-width: 100%;
+
+  i {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: var(--ink-3, #57738a);
+  }
+
+  input { padding-left: 28px; }
+}
+
+// Molti fruitori: la tabella scorre con l'intestazione fissa. Senza scroll anchoring, caricata una
+// pagina la vista resta dov'era (altrimenti resterebbe in fondo e caricherebbe a catena tutte le pagine)
+.rl-fruitori-wrap {
+  overflow-anchor: none;
+  overflow: auto;
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #dee8ef);
+  border-radius: 10px;
+}
+
+.rl-fruitori {
+  margin: 0;
+
+  thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--surface, #fff);
+    vertical-align: bottom;
+  }
+
+  th[scope="row"] { font-weight: 500; }
+  tbody th,
+  tbody td { vertical-align: middle; }
+  th, td { padding: 8px 12px; }
+  input { max-width: 120px; }
+  tr:last-child > * { border-bottom: 0; }
+  tr.is-editing { background: var(--surface-2, #f7f9fb); }
+
+  th.rl-periodo {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--ink-3, #57738a);
+  }
+}
+
+.rl-caricamento {
+  padding: 8px 12px;
+  font-size: 12.5px;
+  color: var(--ink-3, #57738a);
+}
+
+.rl-sentinella { height: 1px; }
+
+.rl-btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  color: var(--ink, #212c49);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+
+  &:hover { background: var(--surface-3, #eef4f8); }
+  &:focus-visible { outline: 2px solid var(--brand, #0d6efd); outline-offset: 1px; }
+
+  i { font-size: 14px; }
+}

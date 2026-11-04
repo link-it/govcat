@@ -820,6 +820,34 @@ describe('ServizioApiDetailsComponent', () => {
       expect(result.dati_specifica!.gruppi_auth_type![0].proprieta_custom).toEqual([{ nome: 'cp1', valore: 'v1' }]);
     });
 
+    it('should adapt the saved quotas to the selected profiles, keeping the other environment data (Issue #402)', () => {
+      (Tools.Configurazione as any).servizio.api.profili = [{ codice_interno: 'PDND', rate_limiting: { periodi: ['giorno'], quota_totale: {} } }];
+      component._isNew = false;
+      component.service = { stato: 'bozza' };
+      component.servizioApi = {
+        configurazione_collaudo: { protocollo: 'rest', dati_erogazione: { url: 'http://c' }, rate_limiting: [{ periodo: 'ora', quota: 20 }, { periodo: 'giorno', quota: 300, quota_fruitore: 30 }] },
+        configurazione_produzione: { protocollo: 'rest', dati_erogazione: { url: 'http://p' }, rate_limiting: [{ periodo: 'giorno', quota: 500 }] }
+      } as any;
+      component._formGroup = new FormGroup<any>({
+        ruolo: new FormControl('erogato_soggetto_dominio'),
+        authTypes: new FormArray([new FormGroup({ profilo: new FormControl('PDND') })])
+      });
+      (component as any)._aggiornaRegolaRateLimiting();
+      expect(component._quoteSalvateDaAdeguare).toEqual({ collaudo: [{ periodo: 'giorno', quota: 300 }] });
+      expect(component._quoteSalvateAdeguate).toBe(true);
+
+      const body = { nome: 'A', versione: '1', ruolo: 'erogato_soggetto_dominio', authTypes: [{ profilo: 'PDND', resources: [], note: null }] };
+      const result: any = component._prepareBodyUpdateApi(body);
+      expect(result.configurazione_collaudo).toEqual({
+        protocollo: 'rest', dati_erogazione: { nome_gateway: undefined, versione_gateway: undefined, url: 'http://c' },
+        rate_limiting: [{ periodo: 'giorno', quota: 300 }]
+      });
+      expect(result).not.toHaveProperty('configurazione_produzione');
+
+      mockAuthenticationService.canEditField.mockReturnValueOnce(false);
+      expect(component._prepareBodyUpdateApi(body)).not.toHaveProperty('configurazione_collaudo');
+    });
+
     it('should keep the description when dati_generici is not modifiable, reading codice_asset from its control', () => {
       mockAuthenticationService._removeDNM.mockImplementationOnce((_a: any, _b: any, b: any) => { delete b.dati_generici; return b; });
       const codiceAsset = new FormControl('CA-1');

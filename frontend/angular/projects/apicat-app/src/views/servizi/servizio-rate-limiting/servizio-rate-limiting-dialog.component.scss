@@ -1,0 +1,49 @@
+/* L'host non deve generare un box, altrimenti spezza la catena delle altezze del modal
+   (`.modal-content > .modal-body`): come nella dialog PDND. */
+:host {
+  display: contents;
+}
+
+.min-w-0 { min-width: 0; }
+
+// Da tablet in su il riepilogo occupa l'altezza della dialog: la tabella dei fruitori si estende fino in fondo
+@media (min-width: 768px) {
+  :host .modal-body {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+}
+
+// Su mobile scorre il body: senza scroll anchoring, caricata una pagina di fruitori la vista resta dov'era
+:host .modal-body { overflow-anchor: none; }
+
+// Su mobile il padding globale del body delle dialog e` 0: il contenuto toccherebbe i bordi
+@media (max-width: 767.98px) {
+  :host .modal-body { padding: 12px; }
+}
+
+// Selettore dell'ambiente come in vetrina (le regole globali valgono solo dentro la vetrina)
+:host ::ng-deep .env-toggle {
+  display: inline-flex;
+  padding: 4px;
+  gap: 2px;
+  background: var(--surface-2, #f7f9fb);
+  border: 1px solid var(--line, #dee8ef);
+  border-radius: 999px;
+
+  button {
+    padding: 6px 14px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink-3, #57738a);
+    font-size: 12.5px;
+    font-weight: 550;
+    cursor: pointer;
+
+    &.is-on { background: var(--accent, #ff4050); color: #fff; }
+    &.is-disabled { opacity: .5; cursor: not-allowed; }
+    &:focus-visible { outline: 2px solid var(--brand, #0d6efd); outline-offset: 1px; }
+  }
+}

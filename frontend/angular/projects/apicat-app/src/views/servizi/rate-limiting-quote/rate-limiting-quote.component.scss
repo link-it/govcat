@@ -8,6 +8,17 @@
   margin-bottom: 12px;
 }
 
+.rate-limiting-riga.due-quote {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+}
+
+.rate-limiting-riga-errore {
+  grid-column: 1 / -1;
+  margin-top: -8px;
+
+  &:empty { display: none; }
+}
+
 .rate-limiting-rimuovi {
   margin-top: 28px;
 }
@@ -22,6 +33,7 @@
 }
 
 @media (max-width: 576px) {
-  .rate-limiting-riga { grid-template-columns: 1fr; }
+  .rate-limiting-riga,
+  .rate-limiting-riga.due-quote { grid-template-columns: 1fr; }
   .rate-limiting-rimuovi { margin-top: 0; justify-self: start; }
 }

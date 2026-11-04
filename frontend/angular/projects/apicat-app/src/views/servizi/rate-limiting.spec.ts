@@ -1,11 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { periodiDisponibili, puoGestireRateLimiting, quoteDaRighe, rateLimitingApplicabile, rateLimitingSoloGiornaliero } from './rate-limiting';
+import {
+  adeguaQuote, periodiDisponibili, puoGestireRateLimiting, quotaModificabile, quoteDaRighe, rateLimitingApplicabile, regolaRateLimiting
+} from './rate-limiting';
 
 describe('rate-limiting', () => {
   const profili = [
-    { codice_interno: 'PDND', auth_type: 'pdnd', pdnd_type: 'erogazione_pdnd' },
-    { codice_interno: 'PDND-AUDIT', auth_type: 'pdnd' },
-    { codice_interno: 'MODI_P1', auth_type: 'https' }
+    { codice_interno: 'PDND', rate_limiting: { periodi: ['giorno'], quota_totale: { required: false }, quota_fruitore: { required: true, ruoli_abilitati: ['gestore', 'referente'] } } },
+    { codice_interno: 'MODI_P1', rate_limiting: { periodi: ['minuto', 'ora', 'giorno'], quota_totale: { required: false } } },
+    { codice_interno: 'MODI_P2', rate_limiting: { periodi: ['ora', 'giorno'], quota_fruitore: { ruoli_abilitati: ['gestore'] } } },
+    { codice_interno: 'SENZA_REGOLA' }
   ];
 
   it('should apply only to the APIs provided by the domain subject', () => {
@@ -14,10 +17,35 @@ describe('rate-limiting', () => {
     expect(rateLimitingApplicabile(null)).toBe(false);
   });
 
-  it('should be daily only for the APIs with a profile having a pdnd_type', () => {
-    expect(rateLimitingSoloGiornaliero({ gruppi_auth_type: [{ profilo: 'PDND' }] }, profili)).toBe(true);
-    expect(rateLimitingSoloGiornaliero({ gruppi_auth_type: [{ profilo: 'PDND-AUDIT' }] }, profili)).toBe(false);
-    expect(rateLimitingSoloGiornaliero({ gruppi_auth_type: [{ profilo: 'MODI_P1' }] }, profili)).toBe(false);
+  it('should read the rule of a single profile', () => {
+    const regola = regolaRateLimiting([{ profilo: 'PDND' }], profili);
+    expect(regola.periodi).toEqual(['giorno']);
+    expect(regola.quotaTotale).toEqual({ required: false, ruoliAbilitati: null });
+    expect(regola.quotaFruitore).toEqual({ required: true, ruoliAbilitati: ['gestore', 'referente'] });
+  });
+
+  it('should combine the rules of more profiles as the backend', () => {
+    const regola = regolaRateLimiting([{ profilo: 'PDND' }, { profilo: 'MODI_P2' }], profili);
+    expect(regola.periodi).toEqual(['giorno']);
+    expect(regola.quotaTotale).toEqual({ required: false, ruoliAbilitati: null });
+    expect(regola.quotaFruitore).toEqual({ required: true, ruoliAbilitati: ['gestore'] });
+    expect(regolaRateLimiting([{ profilo: 'MODI_P1' }, { profilo: 'MODI_P2' }], profili).periodi).toEqual(['giorno', 'ora']);
+  });
+
+  it('should use the default rule without known profiles', () => {
+    const regola = regolaRateLimiting([], profili);
+    expect(regola.periodi).toEqual(['giorno', 'ora', 'minuto']);
+    expect(regola.quotaTotale).toEqual({ required: false, ruoliAbilitati: null });
+    expect(regola.quotaFruitore).toBeNull();
+    expect(regolaRateLimiting([{ profilo: 'SENZA_REGOLA' }], profili).quotaFruitore).toBeNull();
+  });
+
+  it('should let edit a quota only to the enabled roles', () => {
+    expect(quotaModificabile({ required: false, ruoliAbilitati: null }, [])).toBe(true);
+    expect(quotaModificabile({ required: false, ruoliAbilitati: ['gestore'] }, ['referente'])).toBe(false);
+    expect(quotaModificabile({ required: false, ruoliAbilitati: ['gestore'] }, ['gestore'])).toBe(true);
+    expect(quotaModificabile({ required: false, ruoliAbilitati: [] }, ['gestore'])).toBe(false);
+    expect(quotaModificabile(null, ['gestore'])).toBe(false);
   });
 
   it('should let the service managers see the summary', () => {
@@ -32,11 +60,20 @@ describe('rate-limiting', () => {
     expect(periodiDisponibili(righe, 0)).toEqual(['giorno', 'minuto']);
   });
 
-  it('should keep only valid quotas, sorted by period, daily for PDND', () => {
-    const righe = [{ quota: '20', periodo: 'ora' }, { quota: 300, periodo: 'giorno' }, { quota: 0, periodo: 'minuto' }, { quota: 1.5, periodo: 'minuto' }, { quota: null, periodo: 'minuto' }];
-    expect(quoteDaRighe(righe, false)).toEqual([{ quota: 300, periodo: 'giorno' }, { quota: 20, periodo: 'ora' }]);
-    expect(quoteDaRighe([{ quota: 100, periodo: null }], true)).toEqual([{ quota: 100, periodo: 'giorno' }]);
-    expect(quoteDaRighe([{ quota: 300, periodo: 'giorno' }, { quota: 20, periodo: 'ora' }], true)).toEqual([{ quota: 300, periodo: 'giorno' }]);
-    expect(quoteDaRighe([], false)).toEqual([]);
+  it('should send only the allowed periods and quotas, sorted by period', () => {
+    const regola = regolaRateLimiting([{ profilo: 'PDND' }], profili);
+    const righe = [{ periodo: 'giorno', quota: '300', quota_fruitore: 50 }, { periodo: 'ora', quota: 20, quota_fruitore: null }];
+    expect(quoteDaRighe(righe, regola)).toEqual([{ periodo: 'giorno', quota: 300, quota_fruitore: 50 }]);
+    const soloTotale = regolaRateLimiting([{ profilo: 'MODI_P1' }], profili);
+    expect(quoteDaRighe([{ periodo: 'ora', quota: 20, quota_fruitore: 5 }, { periodo: 'giorno', quota: 300 }, { periodo: 'minuto', quota: 0 }], soloTotale))
+      .toEqual([{ periodo: 'giorno', quota: 300 }, { periodo: 'ora', quota: 20 }]);
+    expect(quoteDaRighe([], soloTotale)).toEqual([]);
+  });
+
+  it('should adapt the saved quotas to a new rule', () => {
+    const regola = regolaRateLimiting([{ profilo: 'MODI_P2' }], profili);
+    expect(adeguaQuote([{ periodo: 'ora', quota_fruitore: 10 }], regola)).toEqual({ quote: [{ periodo: 'ora', quota_fruitore: 10 }], modificate: false });
+    expect(adeguaQuote([{ periodo: 'minuto', quota_fruitore: 10 }, { periodo: 'giorno', quota: 300, quota_fruitore: 30 }, { periodo: 'ora', quota: 20 }], regola))
+      .toEqual({ quote: [{ periodo: 'giorno', quota_fruitore: 30 }], modificate: true });
   });
 });

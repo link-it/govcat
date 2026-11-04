@@ -1,0 +1,164 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+@if (_visibile) {
+  <div class="rl">
+    @if (_loading && !_api.length) {
+      <div class="rl-stato"><span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>{{ 'APP.LABEL.Loading' | translate }}</div>
+    } @else if (!_api.length) {
+      <div class="rl-stato">{{ 'APP.SERVICES.RATE_LIMITING.NessunaApi' | translate }}</div>
+    } @else {
+      <p class="rl-desc">{{ 'APP.SERVICES.RATE_LIMITING.Descrizione' | translate }}</p>
+
+      @if (_api.length > 1) {
+        <lnk-pill-tabs class="rl-tabs" [items]="_tabs" [active]="_apiSelezionata?.id_api || ''" ariaLabel="APP.SERVICES.RATE_LIMITING.Api"
+                       (activeChange)="seleziona($event)"></lnk-pill-tabs>
+      }
+
+      @if (_apiSelezionata; as api) {
+        <section class="rl-api" [attr.aria-labelledby]="_idBase + '-api'">
+          <h3 class="rl-api-title" [id]="_idBase + '-api'">{{ api.nome }} <span class="version">v{{ api.versione }}</span></h3>
+
+          <div class="rl-quote">
+            @for (c of _colonne; track c.chiave) {
+              <div class="rl-quota" [class.is-superata]="_superata(c)">
+                <div class="rl-quota-periodo">{{ _label(c.periodo) | translate }}</div>
+                @if (c.quota) {
+                  <div class="rl-quota-totale">{{ c.quota | localeNumber }} / {{ _label(c.periodo) | translate | lowercase }}</div>
+                } @else {
+                  <div class="rl-quota-totale">{{ 'APP.API.RATE_LIMITING.MaxPerFruitorePeriodo' | translate: { quota: (c.quota_fruitore | localeNumber), periodo: (_label(c.periodo) | translate | lowercase) } }}</div>
+                }
+                <dl class="rl-quota-dati">
+                  <div><dt>{{ 'APP.SERVICES.RATE_LIMITING.Assegnata' | translate }}</dt><dd>{{ _assegnata(c) | localeNumber }}</dd></div>
+                  @if (c.quota) {
+                    <div><dt>{{ 'APP.SERVICES.RATE_LIMITING.Residua' | translate }}</dt><dd [class.text-danger]="(_residua(c) ?? 0) < 0">{{ _residua(c) | localeNumber }}</dd></div>
+                    @if (c.quota_fruitore) {
+                      <div><dt>{{ 'APP.SERVICES.RATE_LIMITING.MassimoFruitore' | translate }}</dt><dd>{{ c.quota_fruitore | localeNumber }}</dd></div>
+                    }
+                  }
+                  <div><dt>{{ 'APP.SERVICES.RATE_LIMITING.Fruitori' | translate }}</dt><dd>{{ c.numero_fruitori }}</dd></div>
+                </dl>
+                @if (_superata(c)) {
+                  <p class="rl-avviso" role="status"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i> {{ 'APP.SERVICES.RATE_LIMITING.Superata' | translate }}</p>
+                }
+              </div>
+            }
+          </div>
+
+          <div class="rl-fruitori-hd">
+            <h4 class="rl-fruitori-title">
+              {{ 'APP.SERVICES.RATE_LIMITING.QuoteFruitori' | translate }}
+              <span class="rl-count">{{ _totaleFruitori }}</span>
+            </h4>
+            @if (_fruitori.length) {
+              <div class="rl-filtro">
+                <i class="bi bi-search" aria-hidden="true"></i>
+                <input type="search" class="form-control form-control-sm" [(ngModel)]="_filtro" (ngModelChange)="_onFiltro()"
+                       [placeholder]="'APP.SERVICES.RATE_LIMITING.FiltraFruitori' | translate"
+                       [attr.aria-label]="'APP.SERVICES.RATE_LIMITING.FiltraFruitori' | translate">
+              </div>
+            }
+          </div>
+
+          @if (!_fruitori.length && !_loadingFruitori) {
+            <p class="rl-vuoto">{{ 'APP.SERVICES.RATE_LIMITING.NessunFruitore' | translate }}</p>
+          } @else {
+            <div class="table-responsive rl-fruitori-wrap">
+              <table class="table table-sm align-middle rl-fruitori">
+                <caption class="visually-hidden">{{ 'APP.SERVICES.RATE_LIMITING.QuoteFruitori' | translate }} - {{ api.nome }}</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">{{ 'APP.SERVICES.RATE_LIMITING.Fruitore' | translate }}</th>
+                    @for (c of _colonne; track c.chiave) {
+                      <th scope="col" class="rl-periodo">{{ _label(c.periodo) | translate }}</th>
+                    }
+                    <th scope="col"><span class="visually-hidden">{{ 'APP.LABEL.Actions' | translate }}</span></th>
+                  </tr>
+                </thead>
+                <tbody [formGroup]="_formGroup">
+                  @for (f of _fruitoriVisibili; track f.id_adesione) {
+                    @let editing = _inModifica === f.id_adesione;
+                    <tr [class.is-editing]="editing">
+                      <th scope="row">
+                        <div>{{ f.soggetto?.nome }}</div>
+                        <div class="text-muted small">{{ f.id_logico || '' }} {{ ('APP.WORKFLOW.STATUS.' + f.stato) | translate }}</div>
+                      </th>
+                      @for (c of _colonne; track c.chiave) {
+                        <td>
+                          @if (editing) {
+                            <input type="number" min="1" step="1" class="form-control form-control-sm" [formControlName]="c.chiave"
+                                   [attr.max]="c.quota_fruitore || null"
+                                   [title]="c.quota_fruitore ? ('APP.ADESIONI.RATE_LIMITING.OltreMassimo' | translate: { massimo: (c.quota_fruitore | localeNumber) }) : ''"
+                                   [attr.aria-label]="api.nome + ' ' + (_label(c.periodo) | translate)"
+                                   [class.is-invalid]="_errore(c.chiave)" [attr.aria-invalid]="_errore(c.chiave)">
+                          } @else {
+                            @let q = _quota(f, c);
+                            {{ q ? (q | localeNumber) : '-' }}
+                          }
+                        </td>
+                      }
+                      <td class="text-end text-nowrap">
+                        @if (editing) {
+                          <button type="button" class="btn btn-default btn-sm gl-button me-1" [disabled]="_saving" (click)="annulla()">{{ 'APP.BUTTON.Cancel' | translate }}</button>
+                          <button type="button" class="btn btn-confirm btn-sm gl-button" [disabled]="_saving || _formGroup.invalid" (click)="salva(f)">{{ 'APP.BUTTON.Save' | translate }}</button>
+                        } @else if (!_inModifica) {
+                          <button type="button" class="rl-btn-icon" [attr.aria-label]="('APP.SERVICES.RATE_LIMITING.ModificaQuote' | translate) + ' ' + f.soggetto?.nome"
+                                  [tooltip]="'APP.BUTTON.Modify' | translate" container="body" (click)="modifica(f)">
+                            <i class="bi bi-pencil" aria-hidden="true"></i>
+                          </button>
+                        }
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td [attr.colspan]="_colonne.length + 2" class="text-muted small">
+                        @if (_loadingTutti) {
+                          <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>{{ 'APP.SERVICES.RATE_LIMITING.CaricamentoFruitori' | translate }}
+                        } @else {
+                          {{ 'APP.SERVICES.RATE_LIMITING.NessunRisultato' | translate }}
+                        }
+                      </td>
+                    </tr>
+                  }
+                  @if (_loadingTutti && _fruitoriVisibili.length) {
+                    <tr>
+                      <td [attr.colspan]="_colonne.length + 2" class="text-muted small">
+                        <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>{{ 'APP.SERVICES.RATE_LIMITING.CaricamentoFruitori' | translate }}
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+              @if (_loadingFruitori && _fruitori.length) {
+                <div class="rl-caricamento" role="status">
+                  <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>{{ 'APP.LABEL.Loading' | translate }}
+                </div>
+              }
+              @if (_altriFruitori && !_loadingTutti) {
+                <div class="rl-sentinella" #sentinella aria-hidden="true"></div>
+              }
+            </div>
+            @if (_errorMsg) {
+              <div class="gl-alert gl-alert-danger mt-2" role="alert"><span>{{ _errorMsg }}</span></div>
+            }
+          }
+        </section>
+      }
+    }
+  </div>
+}
