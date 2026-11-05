@@ -100,6 +100,8 @@ import org.govway.catalogo.servlets.model.RateLimitingAdesione;
 import org.govway.catalogo.servlets.model.RateLimitingAdesioneApi;
 import org.govway.catalogo.servlets.model.RateLimitingApi;
 import org.govway.catalogo.servlets.model.RateLimitingPeriodoEnum;
+import org.govway.catalogo.servlets.model.RateLimitingVerifica;
+import org.govway.catalogo.servlets.model.RateLimitingVerificaPeriodo;
 import org.govway.catalogo.servlets.model.Ruolo;
 import org.govway.catalogo.servlets.model.SottotipoEnum;
 import org.govway.catalogo.servlets.model.TipoConfigurazioneCustomProprieta;
@@ -7630,6 +7632,104 @@ public class AdesioniTest {
         } finally {
             profilo.setRateLimiting(originale);
         }
+    }
+
+
+    private UUID creaAltraAdesione(String idLogico, UUID idApi, int quotaGiorno, Integer quotaOra, String stato) {
+        ReferenteCreate referente = new ReferenteCreate();
+        referente.setIdUtente(ID_UTENTE_GESTORE);
+        referente.setTipo(TipoReferenteEnum.REFERENTE);
+        AdesioneCreate nuovaAdesione = new AdesioneCreate();
+        nuovaAdesione.setIdServizio(idServizio);
+        nuovaAdesione.setIdSoggetto(idSoggetto);
+        nuovaAdesione.setIdLogico(idLogico);
+        nuovaAdesione.setReferenti(List.of(referente));
+        UUID idAdesione = adesioniController.createAdesione(nuovaAdesione).getBody().getIdAdesione();
+
+        List<RateLimitingAdesioneApi> quote = new ArrayList<>(List.of(quotaFruitore(idApi, quotaGiorno, RateLimitingPeriodoEnum.GIORNO)));
+        if(quotaOra != null) {
+            quote.add(quotaFruitore(idApi, quotaOra, RateLimitingPeriodoEnum.ORA));
+        }
+        adesioniController.updateRateLimitingCollaudoAdesione(idAdesione, quoteFruitore(quote.toArray(RateLimitingAdesioneApi[]::new)));
+        entityManager.flush();
+        entityManager.createQuery("UPDATE AdesioneEntity a SET a.stato = :stato WHERE a.idAdesione = :id")
+            .setParameter("stato", stato)
+            .setParameter("id", idAdesione.toString())
+            .executeUpdate();
+        return idAdesione;
+    }
+
+    @Test
+    void testRateLimitingVerificaAdesione() {
+        Dominio dominio = this.getDominioFull(null);
+        this.getServizioFull(dominio, VisibilitaServizioEnum.PUBBLICO);
+        UUID idApi = this.getAPIFull().getIdApi();
+        impostaRateLimitingApi(idApi, List.of(rateLimiting(300, RateLimitingPeriodoEnum.GIORNO), rateLimiting(20, RateLimitingPeriodoEnum.ORA)), null);
+        CommonUtils.cambioStatoFinoA(STATO_PUBBLICATO_IN_COLLAUDO, serviziController, idServizio);
+
+        // Adesione da autorizzare, con la sola quota giornaliera
+        UUID idAdesione = this.getAdesioneFull().getIdAdesione();
+        adesioniController.updateRateLimitingCollaudoAdesione(idAdesione, quoteFruitore(quotaFruitore(idApi, 80, RateLimitingPeriodoEnum.GIORNO)));
+        entityManager.flush();
+        entityManager.createQuery("UPDATE AdesioneEntity a SET a.stato = 'richiesto_collaudo' WHERE a.idAdesione = :id")
+            .setParameter("id", idAdesione.toString())
+            .executeUpdate();
+
+        // Servizio multi-adesione, per le altre adesioni dello stesso soggetto
+        entityManager.createQuery("UPDATE ServizioEntity s SET s.multiAdesione = true WHERE s.idServizio = :id")
+            .setParameter("id", idServizio.toString())
+            .executeUpdate();
+        entityManager.clear();
+
+        // Altre adesioni: una autorizzata, una in attesa, una archiviata che non conta
+        creaAltraAdesione("autorizzata", idApi, 200, 10, STATO_PUBBLICATO_IN_COLLAUDO);
+        creaAltraAdesione("in_attesa", idApi, 50, null, "richiesto_collaudo");
+        creaAltraAdesione("archiviata", idApi, 1000, null, "archiviato");
+        entityManager.clear();
+
+        RateLimitingVerifica verifica = adesioniController.verificaRateLimitingCollaudoAdesione(idAdesione).getBody();
+        assertTrue(verifica.isRientra());
+        assertEquals(1, verifica.getApi().size());
+        assertEquals(idApi, verifica.getApi().get(0).getIdApi());
+        List<RateLimitingVerificaPeriodo> periodi = verifica.getApi().get(0).getRateLimiting();
+        assertEquals(2, periodi.size());
+
+        RateLimitingVerificaPeriodo ora = periodi.get(0);
+        assertEquals(RateLimitingPeriodoEnum.ORA, ora.getPeriodo());
+        assertNull(ora.getQuotaRichiesta());
+        assertEquals(10, ora.getQuotaAutorizzata());
+        assertEquals(10, ora.getQuotaResidua());
+        assertFalse(ora.isSfora());
+
+        RateLimitingVerificaPeriodo giorno = periodi.get(1);
+        assertEquals(RateLimitingPeriodoEnum.GIORNO, giorno.getPeriodo());
+        assertEquals(300, giorno.getQuota());
+        assertEquals(80, giorno.getQuotaRichiesta());
+        assertEquals(200, giorno.getQuotaAutorizzata());
+        assertEquals(1, giorno.getNumeroFruitoriAutorizzati());
+        assertEquals(50, giorno.getQuotaInAttesa());
+        assertEquals(1, giorno.getNumeroFruitoriInAttesa());
+        assertEquals(100, giorno.getQuotaResidua());
+        assertFalse(giorno.isSfora());
+
+        // Oltre la quota residua: segnalato, l'autorizzazione resta possibile
+        adesioniController.updateRateLimitingCollaudoAdesione(idAdesione, quoteFruitore(quotaFruitore(idApi, 150, RateLimitingPeriodoEnum.GIORNO)));
+        entityManager.flush();
+        entityManager.clear();
+        verifica = adesioniController.verificaRateLimitingCollaudoAdesione(idAdesione).getBody();
+        assertFalse(verifica.isRientra());
+        assertTrue(verifica.getApi().get(0).getRateLimiting().get(1).isSfora());
+
+        // In produzione il servizio non dichiara rate limiting
+        verifica = adesioniController.verificaRateLimitingProduzioneAdesione(idAdesione).getBody();
+        assertTrue(verifica.isRientra());
+        assertTrue(verifica.getApi().isEmpty());
+
+        // Riservata a chi gestisce il servizio: non all'aderente
+        CommonUtils.getSessionUtente(UTENTE_REFERENTE_ADESIONE, securityContext, authentication, utenteService);
+        assertThrows(NotAuthorizedException.class, () -> adesioniController.verificaRateLimitingCollaudoAdesione(idAdesione));
+        CommonUtils.getSessionUtente(UTENTE_REFERENTE_SERVIZIO, securityContext, authentication, utenteService);
+        assertFalse(adesioniController.verificaRateLimitingCollaudoAdesione(idAdesione).getBody().isRientra());
     }
 
 }

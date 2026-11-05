@@ -5760,6 +5760,64 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /adesioni/{id_adesione}/collaudo/rate-limiting/verifica:
+    parameters:
+    - $ref: "#/components/parameters/id_adesione"
+    get:
+      tags:
+      - "Adesioni"
+      description: "Verifica se le quote di rate limiting assegnate al fruitore in collaudo rientrano nella quota totale residua del servizio, al netto delle quote delle altre adesioni gia` autorizzate per l'ambiente. Solo informativa: non blocca l'autorizzazione dell'adesione. Riservata a chi gestisce il servizio."
+      operationId: "verificaRateLimitingCollaudoAdesione"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RateLimitingVerifica"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /adesioni/{id_adesione}/produzione/rate-limiting/verifica:
+    parameters:
+    - $ref: "#/components/parameters/id_adesione"
+    get:
+      tags:
+      - "Adesioni"
+      description: "Verifica se le quote di rate limiting assegnate al fruitore in produzione rientrano nella quota totale residua del servizio, al netto delle quote delle altre adesioni gia` autorizzate per l'ambiente. Solo informativa: non blocca l'autorizzazione dell'adesione. Riservata a chi gestisce il servizio."
+      operationId: "verificaRateLimitingProduzioneAdesione"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RateLimitingVerifica"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /adesioni/{id_adesione}/collaudo/client:
     parameters:
     - $ref: "#/components/parameters/id_adesione"
@@ -6327,6 +6385,88 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RateLimitingAdesioneApi"
+    RateLimitingVerifica:
+      description: "Esito della verifica delle quote di rate limiting di un'adesione rispetto alla quota totale residua del servizio in un ambiente"
+      type: "object"
+      required:
+        - rientra
+        - api
+      properties:
+        rientra:
+          description: "Nessuna quota dell'adesione sfora la quota totale residua"
+          type: "boolean"
+        api:
+          description: "API del servizio erogate dal soggetto del dominio con rate limiting dichiarato nell'ambiente, ordinate per nome e versione"
+          type: array
+          items:
+            $ref: "#/components/schemas/RateLimitingVerificaApi"
+    RateLimitingVerificaApi:
+      type: "object"
+      required:
+        - id_api
+        - nome
+        - versione
+        - rate_limiting
+      properties:
+        id_api:
+          $ref: "#/components/schemas/IdApi"
+        nome:
+          $ref: "#/components/schemas/String255"
+        versione:
+          type: "integer"
+          format: "int32"
+        rate_limiting:
+          type: array
+          items:
+            $ref: "#/components/schemas/RateLimitingVerificaPeriodo"
+    RateLimitingVerificaPeriodo:
+      description: "Verifica della quota dell'adesione per un periodo dichiarato dal servizio. Le quote delle altre adesioni non comprendono quella verificata."
+      type: "object"
+      required:
+        - periodo
+        - quota_autorizzata
+        - numero_fruitori_autorizzati
+        - quota_in_attesa
+        - numero_fruitori_in_attesa
+        - sfora
+      properties:
+        periodo:
+          $ref: "#/components/schemas/RateLimitingPeriodoEnum"
+        quota:
+          description: "Quota totale dichiarata dal servizio, assente se non prevista"
+          type: "integer"
+          format: "int32"
+        quota_fruitore:
+          description: "Quota fruitore dichiarata dal servizio, assente se non prevista"
+          type: "integer"
+          format: "int32"
+        quota_richiesta:
+          description: "Quota assegnata al fruitore dell'adesione, assente se non indicata"
+          type: "integer"
+          format: "int32"
+        quota_autorizzata:
+          description: "Somma delle quote delle altre adesioni autorizzate per l'ambiente"
+          type: "integer"
+          format: "int64"
+        numero_fruitori_autorizzati:
+          description: "Numero delle altre adesioni autorizzate per l'ambiente con una quota per il periodo"
+          type: "integer"
+          format: "int32"
+        quota_in_attesa:
+          description: "Somma delle quote delle altre adesioni non archiviate non ancora autorizzate per l'ambiente; solo informativa, non incide sull'esito"
+          type: "integer"
+          format: "int64"
+        numero_fruitori_in_attesa:
+          description: "Numero delle altre adesioni non archiviate non ancora autorizzate per l'ambiente con una quota per il periodo"
+          type: "integer"
+          format: "int32"
+        quota_residua:
+          description: "Quota totale meno quota autorizzata, assente se la quota totale non e` prevista: negativa quando le altre adesioni autorizzate superano gia` la quota totale"
+          type: "integer"
+          format: "int64"
+        sfora:
+          description: "La quota richiesta supera la quota residua (sempre false senza quota totale o senza quota richiesta)"
+          type: "boolean"
     PagedModelItemRateLimitingFruitore:
       type: object
       properties:

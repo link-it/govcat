@@ -88,6 +88,7 @@ import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticament
 import org.govway.catalogo.servlets.api.AdesioniApi;
 import org.govway.catalogo.servlets.model.Adesione;
 import org.govway.catalogo.servlets.model.RateLimitingAdesione;
+import org.govway.catalogo.servlets.model.RateLimitingVerifica;
 import org.govway.catalogo.servlets.model.AdesioneClientUpdate;
 import org.govway.catalogo.servlets.model.AdesioneDisclaimer;
 import org.govway.catalogo.servlets.model.AdesioneCreate;
@@ -2160,6 +2161,48 @@ public class AdesioniController implements AdesioniApi {
 	@Override
 	public ResponseEntity<RateLimitingAdesione> updateRateLimitingProduzioneAdesione(UUID idAdesione, RateLimitingAdesione rateLimitingAdesione) {
 		return updateRateLimitingAdesione(idAdesione, rateLimitingAdesione, AmbienteEnum.PRODUZIONE);
+	}
+
+	@Override
+	public ResponseEntity<RateLimitingVerifica> verificaRateLimitingCollaudoAdesione(UUID idAdesione) {
+		return verificaRateLimitingAdesione(idAdesione, AmbienteEnum.COLLAUDO);
+	}
+
+	@Override
+	public ResponseEntity<RateLimitingVerifica> verificaRateLimitingProduzioneAdesione(UUID idAdesione) {
+		return verificaRateLimitingAdesione(idAdesione, AmbienteEnum.PRODUZIONE);
+	}
+
+	/**
+	 * Verifica, per chi gestisce il servizio, se le quote dell'adesione rientrano nella quota totale
+	 * residua: espone le quote impegnate dagli altri fruitori, quindi non e` aperta all'aderente.
+	 */
+	private ResponseEntity<RateLimitingVerifica> verificaRateLimitingAdesione(UUID idAdesione, AmbienteEnum ambiente) {
+		try {
+			return this.service.runTransaction( () -> {
+
+				this.logger.info("Invocazione in corso ...");
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
+				this.rateLimitingService.authorizeGestioneServizio(entity.getServizio());
+
+				this.logger.debug("Autorizzazione completata con successo");
+
+				RateLimitingVerifica model = this.rateLimitingAssembler.toVerifica(entity, ambiente,
+						this.rateLimitingService.getRateLimiting(entity, ambiente),
+						this.rateLimitingService.getQuoteAssegnateAltreAdesioni(entity, ambiente));
+
+				this.logger.info("Invocazione completata con successo");
+				return ResponseEntity.ok(model);
+			});
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
 	}
 
 	private ResponseEntity<RateLimitingAdesione> getRateLimitingAdesione(UUID idAdesione, AmbienteEnum ambiente) {

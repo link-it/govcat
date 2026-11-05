@@ -49,6 +49,14 @@ public interface AdesioneRateLimitingRepository extends JpaRepositoryImplementat
 			+ "GROUP BY r.api.id, r.ambiente, r.periodo, r.adesione.stato")
 	List<QuotaAssegnata> getQuoteAssegnate(Long idServizio, String statoArchiviato);
 
+	/** Come {@link #getQuoteAssegnate(Long, String)}, per un ambiente e senza le quote dell'adesione indicata. */
+	@Query(value = "SELECT r.api.id AS idApi, r.ambiente AS ambiente, r.periodo AS periodo, r.adesione.stato AS stato, "
+			+ "SUM(r.quota) AS quota, COUNT(r) AS numeroFruitori "
+			+ "FROM AdesioneRateLimitingEntity r WHERE r.adesione.servizio.id = ?1 AND r.adesione.stato <> ?2 "
+			+ "AND r.ambiente = ?3 AND r.adesione.id <> ?4 "
+			+ "GROUP BY r.api.id, r.ambiente, r.periodo, r.adesione.stato")
+	List<QuotaAssegnata> getQuoteAssegnateAltreAdesioni(Long idServizio, String statoArchiviato, AmbienteEnum ambiente, Long idAdesione);
+
 	@Query(value = "SELECT COUNT(r) FROM AdesioneRateLimitingEntity r "
 			+ "WHERE r.api.id = ?1 AND r.ambiente = ?2 AND r.periodo = ?3 AND r.adesione.stato <> ?4")
 	long countFruitori(Long idApi, AmbienteEnum ambiente, RateLimitingPeriodo periodo, String statoArchiviato);

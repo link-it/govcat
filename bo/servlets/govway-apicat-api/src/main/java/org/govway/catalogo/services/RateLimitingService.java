@@ -404,8 +404,22 @@ public class RateLimitingService {
 			long quotaAutorizzata, int numeroFruitoriAutorizzati) {}
 
 	public List<QuoteAssegnate> getQuoteAssegnate(ServizioEntity servizio) {
+		return aggrega(this.adesioneRateLimitingRepository.getQuoteAssegnate(servizio.getId(), getStatoArchiviatoAdesione()));
+	}
+
+	/**
+	 * Quote assegnate ai fruitori delle altre adesioni non archiviate del servizio in un ambiente,
+	 * per la verifica delle quote dell'adesione indicata.
+	 */
+	public List<QuoteAssegnate> getQuoteAssegnateAltreAdesioni(AdesioneEntity adesione, AmbienteEnum ambiente) {
+		return aggrega(this.adesioneRateLimitingRepository.getQuoteAssegnateAltreAdesioni(adesione.getServizio().getId(),
+				getStatoArchiviatoAdesione(), ambiente, adesione.getId()));
+	}
+
+	/** Somma per API, ambiente e periodo le quote raggruppate per stato, distinguendo le autorizzate. */
+	private List<QuoteAssegnate> aggrega(List<QuotaAssegnata> quoteAssegnate) {
 		Map<String, QuoteAssegnate> quote = new LinkedHashMap<>();
-		for(QuotaAssegnata q: this.adesioneRateLimitingRepository.getQuoteAssegnate(servizio.getId(), getStatoArchiviatoAdesione())) {
+		for(QuotaAssegnata q: quoteAssegnate) {
 			boolean autorizzata = this.rateLimitingRegole.getStatiAutorizzati(q.getAmbiente()).contains(q.getStato());
 			long quota = q.getQuota();
 			int numeroFruitori = q.getNumeroFruitori().intValue();

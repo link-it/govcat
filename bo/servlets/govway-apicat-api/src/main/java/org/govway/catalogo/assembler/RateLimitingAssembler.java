@@ -43,6 +43,9 @@ import org.govway.catalogo.servlets.model.RateLimitingPeriodoEnum;
 import org.govway.catalogo.servlets.model.RateLimitingRiepilogo;
 import org.govway.catalogo.servlets.model.RateLimitingServizio;
 import org.govway.catalogo.servlets.model.RateLimitingServizioApi;
+import org.govway.catalogo.servlets.model.RateLimitingVerifica;
+import org.govway.catalogo.servlets.model.RateLimitingVerificaApi;
+import org.govway.catalogo.servlets.model.RateLimitingVerificaPeriodo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -130,6 +133,69 @@ public class RateLimitingAssembler {
 							.numeroFruitoriAutorizzati(q != null ? q.numeroFruitoriAutorizzati() : 0)
 							.quotaResiduaAutorizzata(e.getQuota() != null ? e.getQuota() - quotaAutorizzata : null)
 							.superata(residua != null && residua < 0);
+				})
+				.toList();
+	}
+
+	/**
+	 * Verifica delle quote dell'adesione in un ambiente rispetto alla quota totale residua, al netto
+	 * delle quote delle altre adesioni autorizzate, per le API del servizio erogate dal soggetto del
+	 * dominio che dichiarano un rate limiting nell'ambiente.
+	 */
+	public RateLimitingVerifica toVerifica(AdesioneEntity adesione, AmbienteEnum ambiente, List<AdesioneRateLimitingEntity> quoteAdesione,
+			List<QuoteAssegnate> quoteAltreAdesioni) {
+
+		Map<String, Integer> richieste = new HashMap<>();
+		for(AdesioneRateLimitingEntity e: quoteAdesione) {
+			richieste.put(getChiave(e.getApi().getId(), ambiente, e.getPeriodo()), e.getQuota());
+		}
+		Map<String, QuoteAssegnate> altre = new HashMap<>();
+		for(QuoteAssegnate q: quoteAltreAdesioni) {
+			altre.put(getChiave(q.idApi(), q.ambiente(), q.periodo()), q);
+		}
+
+		List<RateLimitingVerificaApi> api = adesione.getServizio().getApi().stream()
+				.filter(a -> RUOLO.EROGATO_SOGGETTO_DOMINIO.equals(a.getRuolo()))
+				.filter(a -> {
+					ApiConfigEntity config = AmbienteEnum.PRODUZIONE.equals(ambiente) ? a.getProduzione() : a.getCollaudo();
+					return config != null && !config.getRateLimiting().isEmpty();
+				})
+				.sorted(Comparator.comparing(ApiEntity::getNome).thenComparing(ApiEntity::getVersione))
+				.map(a -> new RateLimitingVerificaApi()
+						.idApi(UUID.fromString(a.getIdApi()))
+						.nome(a.getNome())
+						.versione(a.getVersione())
+						.rateLimiting(toVerifica(a, AmbienteEnum.PRODUZIONE.equals(ambiente) ? a.getProduzione() : a.getCollaudo(),
+								ambiente, richieste, altre)))
+				.toList();
+
+		return new RateLimitingVerifica()
+				.rientra(api.stream().flatMap(a -> a.getRateLimiting().stream()).noneMatch(RateLimitingVerificaPeriodo::isSfora))
+				.api(api);
+	}
+
+	private List<RateLimitingVerificaPeriodo> toVerifica(ApiEntity api, ApiConfigEntity config, AmbienteEnum ambiente,
+			Map<String, Integer> richieste, Map<String, QuoteAssegnate> altre) {
+
+		return config.getRateLimiting().stream()
+				.sorted(Comparator.comparing(ApiConfigRateLimitingEntity::getPeriodo))
+				.map(e -> {
+					String chiave = getChiave(api.getId(), ambiente, e.getPeriodo());
+					Integer richiesta = richieste.get(chiave);
+					QuoteAssegnate q = altre.get(chiave);
+					long autorizzata = q != null ? q.quotaAutorizzata() : 0;
+					Long residua = e.getQuota() != null ? e.getQuota() - autorizzata : null;
+					return new RateLimitingVerificaPeriodo()
+							.periodo(toModel(e.getPeriodo()))
+							.quota(e.getQuota())
+							.quotaFruitore(e.getQuotaFruitore())
+							.quotaRichiesta(richiesta)
+							.quotaAutorizzata(autorizzata)
+							.numeroFruitoriAutorizzati(q != null ? q.numeroFruitoriAutorizzati() : 0)
+							.quotaInAttesa(q != null ? q.quota() - q.quotaAutorizzata() : 0)
+							.numeroFruitoriInAttesa(q != null ? q.numeroFruitori() - q.numeroFruitoriAutorizzati() : 0)
+							.quotaResidua(residua)
+							.sfora(residua != null && richiesta != null && richiesta > residua);
 				})
 				.toList();
 	}

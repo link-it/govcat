@@ -46,7 +46,12 @@
 	  (`adesione.rate_limiting.stati_autorizzati.collaudo` e `.produzione`); per default sono
 	  ricavati dai nomi degli stati del workflow: per il collaudo da `autorizzato_collaudo`
 	  in poi, compresi gli stati di produzione con collaudo, per la produzione da
-	  `autorizzato_produzione` in poi, anche senza collaudo. Non si può rimuovere un periodo né
+	  `autorizzato_produzione` in poi, anche senza collaudo. Le nuove API
+	  `GET /adesioni/{id_adesione}/collaudo/rate-limiting/verifica` e
+	  `/adesioni/{id_adesione}/produzione/rate-limiting/verifica`, riservate a chi gestisce il
+	  servizio, indicano se le quote dell'adesione rientrano nella quota totale residua al netto
+	  delle altre adesioni autorizzate (le richieste in attesa sono solo informative); l'esito
+	  non blocca l'autorizzazione. Non si può rimuovere un periodo né
 	  portare la quota fruitore sotto quote già assegnate ad adesioni non archiviate. La
 	  scheda adesione mostra le quote dedicate, se presenti, al posto delle proprietà custom.
 	  Script di upgrade del database `V2.5.1__rate_limiting.sql`. Le proprietà custom di
