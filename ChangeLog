@@ -6,6 +6,9 @@
 	  fruitori riusabile, in sola lettura nella verifica, con ricerca lato server (q) e filtro
 	  per stato di autorizzazione; quota autorizzata nel riepilogo in vetrina.
 
+	Issue #420: etichette della dialog informazioni PDND (ID e-service, ID erogatore, ID versione,
+	  versioni al posto di descrittori) e titolo delle versioni nella forma "v. x".
+
 2026-11-04  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

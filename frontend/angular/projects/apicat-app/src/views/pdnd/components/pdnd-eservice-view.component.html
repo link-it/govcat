@@ -98,7 +98,7 @@
               <li class="esv-descriptor" [class.is-open]="aperto">
                 <button type="button" class="esv-descriptor-hd" [attr.aria-expanded]="aperto" [attr.aria-controls]="'esv-d-' + d.data.id"
                   (click)="_toggleDescrittore(d.data.id, first)">
-                  <span class="esv-descriptor-version">{{ 'APP.LABEL.Version' | translate }} {{ d.data.version }}</span>
+                  <span class="esv-descriptor-version">v. {{ d.data.version }}</span>
                   <span class="esv-state" [attr.data-state]="d.data.state">{{ _stato(d.data.state) | translate }}</span>
                   <i class="bi esv-chevron" [class.bi-chevron-down]="!aperto" [class.bi-chevron-up]="aperto" aria-hidden="true"></i>
                 </button>
