@@ -9,6 +9,31 @@
   :host .modal-body { padding: 12px; }
 }
 
+// Da tablet in su la tabella dei fruitori occupa lo spazio rimasto nella dialog e scorre al suo interno
+@media (min-width: 768px) {
+  :host .modal-body {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+
+    > * { flex-shrink: 0; }
+  }
+
+  :host .modal-body > section.vr-api {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+
+    > * { flex-shrink: 0; }
+
+    > .vr-fruitori {
+      flex: 1 1 auto;
+      min-height: 260px;
+    }
+  }
+}
+
 .vr-esito {
   display: flex;
   align-items: flex-start;
@@ -159,5 +184,7 @@ section.vr-api {
 
 .vr-fruitori { margin-top: 20px; }
 
-// Con molti fruitori la tabella scorre al suo interno
-:host ::ng-deep .vr-fruitori .rl-fruitori-wrap { max-height: 50vh; }
+// Su mobile scorre il body: con molti fruitori la tabella scorre al suo interno
+@media (max-width: 767.98px) {
+  :host ::ng-deep .vr-fruitori .rl-fruitori-wrap { max-height: 50vh; }
+}

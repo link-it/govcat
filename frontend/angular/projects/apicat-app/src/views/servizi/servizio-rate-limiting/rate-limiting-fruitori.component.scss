@@ -185,3 +185,45 @@
 
   i { font-size: 14px; }
 }
+
+// Adesione mostrata a parte, sopra l'elenco dei fruitori
+.rl-corrente {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  background: var(--warn-soft, #fff4e5);
+  border: 1px solid var(--warn-border, #f5c98a);
+  border-radius: 10px;
+}
+
+.rl-corrente-hd {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.rl-corrente-nome { font-weight: 600; }
+
+.rl-corrente-quote {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 24px;
+  margin: 0;
+
+  dt {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--ink-3, #57738a);
+  }
+
+  dd {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ink, #212c49);
+  }
+}

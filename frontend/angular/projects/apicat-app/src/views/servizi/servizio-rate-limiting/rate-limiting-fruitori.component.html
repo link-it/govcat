@@ -16,10 +16,31 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
+@if (corrente) {
+  <section class="rl-corrente" [attr.aria-label]="'APP.SERVICES.RATE_LIMITING.QuestaAdesione' | translate">
+    <div class="rl-corrente-hd">
+      <div class="rl-fruitore-nome">
+        <span class="rl-corrente-nome">{{ corrente.soggetto?.nome }}</span>
+        <span class="rl-chip rl-chip-corrente">{{ 'APP.SERVICES.RATE_LIMITING.QuestaAdesione' | translate }}</span>
+      </div>
+      <div class="text-muted small">{{ corrente.id_logico || '' }} {{ ('APP.WORKFLOW.STATUS.' + corrente.stato) | translate }}</div>
+    </div>
+    <dl class="rl-corrente-quote">
+      @for (c of colonne; track c.chiave) {
+        @let q = _quota(corrente, c);
+        <div>
+          <dt>{{ _label(c.periodo) | translate }}</dt>
+          <dd>{{ q ? (q | localeNumber) : '-' }}</dd>
+        </div>
+      }
+    </dl>
+  </section>
+}
+
 <div class="rl-fruitori-hd">
   <h4 class="rl-fruitori-title">
-    {{ 'APP.SERVICES.RATE_LIMITING.QuoteFruitori' | translate }}
-    <span class="rl-count">{{ _totaleFruitori }}</span>
+    {{ (corrente ? 'APP.SERVICES.RATE_LIMITING.AltriFruitori' : 'APP.SERVICES.RATE_LIMITING.QuoteFruitori') | translate }}
+    <span class="rl-count">{{ _numeroFruitori }}</span>
   </h4>
   @if (_caricato && (_fruitori.length || _filtriAttivi)) {
     <div class="rl-filtri">
@@ -41,7 +62,7 @@
 </div>
 
 @if (!_fruitori.length && !_loadingFruitori && _caricato && !_filtriAttivi) {
-  <p class="rl-vuoto">{{ 'APP.SERVICES.RATE_LIMITING.NessunFruitore' | translate }}</p>
+  <p class="rl-vuoto">{{ (corrente ? 'APP.SERVICES.RATE_LIMITING.NessunAltroFruitore' : 'APP.SERVICES.RATE_LIMITING.NessunFruitore') | translate }}</p>
 } @else {
   <div class="table-responsive rl-fruitori-wrap">
     <table class="table table-sm align-middle rl-fruitori">

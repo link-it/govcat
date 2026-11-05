@@ -65,6 +65,9 @@ export class PillTabsComponent {
   /** Chiave i18n per aria-label del <nav> wrapper. */
   @Input() ariaLabel?: string;
 
+  /** Etichette lunghe troncate con i puntini; il testo completo resta nel title. */
+  @Input() truncate: boolean = false;
+
   @Output() activeChange = new EventEmitter<string>();
 
   select(key: string): void {

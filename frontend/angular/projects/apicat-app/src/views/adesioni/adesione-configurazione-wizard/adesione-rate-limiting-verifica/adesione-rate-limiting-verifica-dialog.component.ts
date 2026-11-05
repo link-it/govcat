@@ -44,6 +44,7 @@ export class AdesioneRateLimitingVerificaDialogComponent implements OnInit {
     sottotitolo: string = '';
     idServizio: string | null = null;
     idAdesione: string | null = null;
+    adesione: any = null;
     mock: boolean = false;
     fruitoriMock: ItemRateLimitingFruitore[] | null = null;
 
@@ -51,17 +52,34 @@ export class AdesioneRateLimitingVerificaDialogComponent implements OnInit {
     _tabs: PillTab[] = [];
     /** Colonne dei fruitori per l'API selezionata (riferimento stabile). */
     _colonne: ColonnaFruitori[] = [];
+    /** Adesione in verifica, mostrata fuori dall'elenco dei fruitori con le quote richieste. */
+    _corrente: ItemRateLimitingFruitore | null = null;
 
     constructor(public readonly bsModalRef: BsModalRef) {}
 
     ngOnInit(): void {
         const _api = this.verifica?.api || [];
+        this._corrente = this._fruitoreCorrente(_api);
         this.seleziona((_api.find((a) => this._apiCritica(a)) || _api[0])?.id_api || '');
         this._tabs = _api.map((a) => ({
             key: a.id_api,
             label: `${a.nome} v${a.versione}`,
             badge: this._apiCritica(a) ? { icon: 'bi-exclamation-triangle-fill', ariaLabel: 'APP.ADESIONI.RATE_LIMITING_VERIFICA.ChipSfora', tone: 'warning' } : undefined
         }));
+    }
+
+    private _fruitoreCorrente(api: RateLimitingVerificaApi[]): ItemRateLimitingFruitore | null {
+        const _idAdesione = this.adesione?.id_adesione || this.idAdesione;
+        if (!_idAdesione) { return null; }
+        return {
+            id_adesione: _idAdesione,
+            id_logico: this.adesione?.id_logico,
+            soggetto: this.adesione?.soggetto,
+            stato: this.adesione?.stato,
+            rate_limiting: api.flatMap((a) => a.rate_limiting
+                .filter((v) => !!v.quota_richiesta)
+                .map((v) => ({ id_api: a.id_api, periodo: v.periodo, quota: v.quota_richiesta! })))
+        };
     }
 
     /** API con almeno un periodo in cui la richiesta sfora la quota residua. */

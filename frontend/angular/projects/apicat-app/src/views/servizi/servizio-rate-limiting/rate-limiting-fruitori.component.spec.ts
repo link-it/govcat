@@ -176,4 +176,17 @@ describe('RateLimitingFruitoriComponent (Issue #402)', () => {
     expect(valoreQuota(1.5)).toBeNull();
     expect(valoreQuota('')).toBeNull();
   });
+
+  it('should show the current subscription apart, excluding it from the list', () => {
+    component.corrente = { id_adesione: 'ad1', soggetto: { nome: 'Ente 1' }, stato: 'richiesto_collaudo', rate_limiting: [{ id_api: 'a1', quota: 40, periodo: 'giorno' }] } as any;
+    avvia();
+    expect(component._fruitori.map((f) => f.id_adesione)).toEqual(['ad2']);
+    expect(component._numeroFruitori).toBe(2);
+    expect(component._altriFruitori).toBe(true);
+    expect(component._quota(component.corrente!, colonne[0])).toBe(40);
+    mockApi.getDetails.mockReturnValue(of({ content: [{ id_adesione: 'ad3', soggetto: { nome: 'Ente 3' }, stato: 'bozza', rate_limiting: [] }], page: { totalElements: 3 } }));
+    component.caricaAltri();
+    expect(component._fruitori.map((f) => f.id_adesione)).toEqual(['ad2', 'ad3']);
+    expect(component._altriFruitori).toBe(false);
+  });
 });

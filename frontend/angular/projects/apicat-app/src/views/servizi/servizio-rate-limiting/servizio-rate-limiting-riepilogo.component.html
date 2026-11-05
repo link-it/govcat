@@ -27,12 +27,15 @@
 
       @if (_api.length > 1) {
         <lnk-pill-tabs class="rl-tabs" [items]="_tabs" [active]="_apiSelezionata?.id_api || ''" ariaLabel="APP.SERVICES.RATE_LIMITING.Api"
-                       (activeChange)="seleziona($event)"></lnk-pill-tabs>
+                       [truncate]="true" (activeChange)="seleziona($event)"></lnk-pill-tabs>
       }
 
       @if (_apiSelezionata; as api) {
-        <section class="rl-api" [attr.aria-labelledby]="_idBase + '-api'">
-          <h3 class="rl-api-title" [id]="_idBase + '-api'">{{ api.nome }} <span class="version">v{{ api.versione }}</span></h3>
+        <section class="rl-api" [attr.aria-label]="api.nome + ' v' + api.versione">
+          <!-- Con più API il nome è nella tab selezionata -->
+          @if (_api.length <= 1) {
+            <h3 class="rl-api-title">{{ api.nome }} <span class="version">v{{ api.versione }}</span></h3>
+          }
 
           <div class="rl-quote">
             @for (c of _colonne; track c.chiave) {

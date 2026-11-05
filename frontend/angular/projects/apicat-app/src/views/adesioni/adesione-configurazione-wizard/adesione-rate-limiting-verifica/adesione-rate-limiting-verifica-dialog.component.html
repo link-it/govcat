@@ -37,12 +37,15 @@
 
   @if ((verifica?.api?.length || 0) > 1) {
     <lnk-pill-tabs class="vr-tabs" [items]="_tabs" [active]="_apiSelezionata?.id_api || ''" ariaLabel="APP.SERVICES.RATE_LIMITING.Api"
-                   (activeChange)="seleziona($event)"></lnk-pill-tabs>
+                   [truncate]="true" (activeChange)="seleziona($event)"></lnk-pill-tabs>
   }
 
   @if (_apiSelezionata; as api) {
     <section class="vr-api" [attr.aria-label]="api.nome">
-      <h3 class="vr-api-title">{{ api.nome }} <span class="version">v{{ api.versione }}</span></h3>
+      <!-- Con più API il nome è nella tab selezionata -->
+      @if (_tabs.length <= 1) {
+        <h3 class="vr-api-title">{{ api.nome }} <span class="version">v{{ api.versione }}</span></h3>
+      }
       <div class="vr-voci">
         @for (v of api.rate_limiting; track v.periodo) {
           @let residuaDopo = _residuaDopo(v);
@@ -106,7 +109,7 @@
           [ambiente]="ambiente"
           [colonne]="_colonne"
           [nomeApi]="api.nome"
-          [evidenzia]="idAdesione"
+          [corrente]="_corrente"
           [mock]="mock"
           [fruitoriMock]="fruitoriMock">
         </app-rate-limiting-fruitori>

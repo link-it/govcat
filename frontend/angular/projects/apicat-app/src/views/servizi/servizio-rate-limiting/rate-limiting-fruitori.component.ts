@@ -81,6 +81,8 @@ export class RateLimitingFruitoriComponent implements OnChanges, OnDestroy {
     @Input() modificabile: boolean = false;
     /** Adesione da evidenziare nell'elenco (es. quella in verifica). */
     @Input() evidenzia: string | null = null;
+    /** Adesione mostrata a parte, sopra l'elenco, ed esclusa dall'elenco (es. quella in verifica). */
+    @Input() corrente: ItemRateLimitingFruitore | null = null;
     /** Dati di esempio al posto dei fruitori reali; le modifiche restano locali. */
     @Input() mock: boolean = false;
     @Input() fruitoriMock: ItemRateLimitingFruitore[] | null = null;
@@ -97,6 +99,8 @@ export class RateLimitingFruitoriComponent implements OnChanges, OnDestroy {
     _stato: StatoFruitori = 'tutte';
     readonly _stati: StatoFruitori[] = ['tutte', 'autorizzate', 'attesa'];
     _totaleFruitori: number = 0;
+    /** Adesioni delle pagine caricate escluse dall'elenco perche` mostrate a parte. */
+    private _esclusi: number = 0;
     private _pagina: number = 0;
     /** Scarta le pagine superate da un nuovo caricamento. */
     private _versione: number = 0;
@@ -138,7 +142,7 @@ export class RateLimitingFruitoriComponent implements OnChanges, OnDestroy {
     }
 
     ngOnChanges(changes: SimpleChanges): void {
-        if (changes['idServizio'] || changes['ambiente'] || changes['mock'] || changes['fruitoriMock']) {
+        if (changes['idServizio'] || changes['ambiente'] || changes['mock'] || changes['fruitoriMock'] || changes['corrente']) {
             this.ricarica();
         } else if (changes['colonne']) {
             this.annulla();
@@ -156,6 +160,7 @@ export class RateLimitingFruitoriComponent implements OnChanges, OnDestroy {
         this._fruitori = [];
         this._pagina = 0;
         this._totaleFruitori = 0;
+        this._esclusi = 0;
         this._caricato = false;
         this.annulla();
         if (this.idServizio && (!this.mock || this.fruitoriMock)) { this._caricaFruitori(); }
@@ -189,8 +194,11 @@ export class RateLimitingFruitoriComponent implements OnChanges, OnDestroy {
         this._loadingFruitori = true;
         this._richiesta(this._pagina, PAGE_SIZE).subscribe((resp: any) => {
             if (_versione !== this._versione) { return; }
-            this._fruitori = [...this._fruitori, ...(resp?.content || [])];
-            this._totaleFruitori = resp?.page?.totalElements ?? this._fruitori.length;
+            const _contenuto: ItemRateLimitingFruitore[] = resp?.content || [];
+            const _visibili = this.corrente ? _contenuto.filter((f) => f.id_adesione !== this.corrente!.id_adesione) : _contenuto;
+            this._esclusi += _contenuto.length - _visibili.length;
+            this._fruitori = [...this._fruitori, ..._visibili];
+            this._totaleFruitori = resp?.page?.totalElements ?? (this._fruitori.length + this._esclusi);
             this._loadingFruitori = false;
             this._caricato = true;
             setTimeout(() => this._ricontrollaSentinella());
@@ -198,7 +206,12 @@ export class RateLimitingFruitoriComponent implements OnChanges, OnDestroy {
     }
 
     get _altriFruitori(): boolean {
-        return this._fruitori.length < this._totaleFruitori;
+        return this._fruitori.length + this._esclusi < this._totaleFruitori;
+    }
+
+    /** Fruitori dell'elenco, senza l'adesione mostrata a parte. */
+    get _numeroFruitori(): number {
+        return Math.max(this._totaleFruitori - this._esclusi, 0);
     }
 
     caricaAltri() {

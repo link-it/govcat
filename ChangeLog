@@ -13,6 +13,10 @@
 	  utente dell'audit nella lista accanto al richiedente e tab "Informazioni audit" nel dettaglio
 	  al posto del dettaglio messaggio; voce e pagina Audit separate predisposte ma nascoste.
 
+	Issue #402: dialog del rate limiting senza il titolo dell'API quando ci sono le tab, tab con
+	  nome troncato e completo nel title; nella verifica l'adesione in esame fuori dall'elenco fruitori
+	  e tabella dei fruitori adattata all'altezza della dialog.
+
 2026-11-04  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

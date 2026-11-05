@@ -68,6 +68,14 @@
   display: inline-block;
 }
 
+.lnk-pill-tabs--truncate .lnk-pill-tabs__label {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
 .lnk-pill-tabs__count {
   display: inline-flex;
   align-items: center;

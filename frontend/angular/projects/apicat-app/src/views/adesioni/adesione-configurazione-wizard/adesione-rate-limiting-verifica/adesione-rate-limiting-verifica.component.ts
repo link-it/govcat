@@ -127,6 +127,7 @@ export class AdesioneRateLimitingVerificaComponent implements OnChanges {
                 ambiente: this.ambiente,
                 idServizio: _servizio?.id_servizio || null,
                 idAdesione: this.adesione?.id_adesione || null,
+                adesione: this.adesione,
                 mock: this.mock,
                 fruitoriMock: this.mock ? this._fruitoriMock : null,
                 sottotitolo: [this.adesione?.soggetto?.nome, _servizio ? `${_servizio.nome} v. ${_servizio.versione}` : ''].filter(Boolean).join(' · ')

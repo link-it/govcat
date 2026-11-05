@@ -60,7 +60,6 @@ export interface ApiRateLimiting {
     imports: [LocaleNumberPipe, CommonModule, TranslateModule, PillTabsComponent, RateLimitingFruitoriComponent]
 })
 export class ServizioRateLimitingRiepilogoComponent implements OnChanges {
-    private static _seq = 0;
 
     @Input() idServizio: string | null = null;
     @Input() ambiente: 'collaudo' | 'produzione' = 'collaudo';
@@ -69,8 +68,6 @@ export class ServizioRateLimitingRiepilogoComponent implements OnChanges {
     @Input() mock: boolean = false;
 
     _fruitoriMock: ItemRateLimitingFruitore[] | null = null;
-
-    readonly _idBase = `rate-limiting-riepilogo-${++ServizioRateLimitingRiepilogoComponent._seq}`;
 
     _api: ApiRateLimiting[] = [];
     _apiSelezionata: ApiRateLimiting | null = null;

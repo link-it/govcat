@@ -39,4 +39,22 @@ describe('AdesioneRateLimitingVerificaDialogComponent (Issue #402)', () => {
     expect(component._residuaDopo(periodo({ quota_richiesta: undefined }) as any)).toBeNull();
     expect(component._residuaDopo(periodo({ quota_residua: undefined }) as any)).toBeNull();
   });
+
+  it('should build the current subscription with the requested quotas of every API', () => {
+    const component = new AdesioneRateLimitingVerificaDialogComponent({ hide: vi.fn() } as any);
+    component.adesione = { id_adesione: 'ad1', id_logico: 'L1', soggetto: { nome: 'Ente 1' }, stato: 'richiesto_collaudo' };
+    component.verifica = {
+      rientra: true,
+      api: [
+        { id_api: 'a1', nome: 'API 1', versione: 1, rate_limiting: [periodo({}), periodo({ periodo: 'ora', quota_richiesta: undefined })] },
+        { id_api: 'a2', nome: 'API 2', versione: 2, rate_limiting: [periodo({ quota_richiesta: 60 })] }
+      ]
+    } as any;
+    component.ngOnInit();
+    expect(component._corrente).toEqual({
+      id_adesione: 'ad1', id_logico: 'L1', soggetto: { nome: 'Ente 1' }, stato: 'richiesto_collaudo',
+      rate_limiting: [{ id_api: 'a1', periodo: 'giorno', quota: 10 }, { id_api: 'a2', periodo: 'giorno', quota: 60 }]
+    });
+    expect(crea()._corrente).toBeNull();
+  });
 });

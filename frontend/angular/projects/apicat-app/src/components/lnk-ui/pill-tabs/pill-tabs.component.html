@@ -17,6 +17,7 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <nav class="lnk-pill-tabs"
+     [class.lnk-pill-tabs--truncate]="truncate"
      role="tablist"
      [attr.aria-label]="ariaLabel ? (ariaLabel | translate) : null">
   <div class="lnk-pill-tabs__track">
@@ -26,6 +27,7 @@
               class="lnk-pill-tabs__tab"
               [class.active]="active === tab.key"
               [attr.aria-selected]="active === tab.key"
+              [attr.title]="truncate ? (tab.label | translate) : null"
               (click)="select(tab.key)">
         @if (tab.icon) {
           <i class="bi" [ngClass]="tab.icon"></i>
