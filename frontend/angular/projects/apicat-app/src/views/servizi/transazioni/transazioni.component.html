@@ -47,16 +47,18 @@
   </ul>
 </div>
 </div>
-<div class="nav-control align-self-center d-flex">
-  <div class="btn-group-">
-    <button type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="_onExportTransazioni()" [disabled]="!_formGroup.valid || _spinExport || (elements.length === 0)">
-      <i class="bi bi-download"></i> <span class="ms-2">{{ 'APP.MENU.Export' | translate }}</span>
-      @if (_spinExport) {
-        <span class="ms-3 spinner-border spinner-border-sm"></span>
-      }
-    </button>
+@if (!_audit) {
+  <div class="nav-control align-self-center d-flex">
+    <div class="btn-group-">
+      <button type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="_onExportTransazioni()" [disabled]="!_formGroup.valid || _spinExport || (elements.length === 0)">
+        <i class="bi bi-download"></i> <span class="ms-2">{{ 'APP.MENU.Export' | translate }}</span>
+        @if (_spinExport) {
+          <span class="ms-3 spinner-border spinner-border-sm"></span>
+        }
+      </button>
+    </div>
   </div>
-</div>
+}
 </div>
 @if (_hasFilter) {
   <section class="search-bar container-fluid px-0">
@@ -66,7 +68,7 @@
           [classBlock]="''"
           [placeholder]="'APP.PLACEHOLDER.Search' | translate"
           [showHistory]="showHistory"
-          [historyStore]="model"
+          [historyStore]="_historyStore"
           [showSearch]="showSearch"
           [searchFields]="searchFields"
           [showSorting]="showSorting"
@@ -161,7 +163,7 @@
                     <input type="text" class="form-control form-control-sm" id="soggetto" formControlName="soggetto">
                   </div>
                 </div> -->
-                @if (_monitoraggioLimitata) {
+                @if (_monitoraggioLimitata || _audit) {
                   <div>
                     <div class="row mb-1">
                       <div class="col-sm-2">
@@ -346,9 +348,10 @@
   <div class="row">
     <div class="col-12">
       @for (element of elements; track element) {
-        <ui-item-row class="{{ transazioniConfig.itemRow.class }}" [style.background-color]="transazioniConfig.itemRow.background"
+        <ui-item-row class="{{ transazioniConfig[_configRow].class }}" [style.background-color]="transazioniConfig[_configRow].background"
           [data]="element"
           [config]="transazioniConfig"
+          [configRow]="_configRow"
           [hasLink]="true"
           (itemClick)="_onEdit($event, element)">
         </ui-item-row>

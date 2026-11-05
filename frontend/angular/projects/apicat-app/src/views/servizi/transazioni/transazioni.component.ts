@@ -37,6 +37,8 @@ import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchM
 
 import { Page } from '@app/models/page';
 
+import { apiConAudit, auditAbilitato, erroreAudit, pathConAudit, ProprietaAudit, richiedenteConAudit } from './audit';
+
 import moment from 'moment';
 import * as _ from 'lodash';
 import { uuid } from '@app/validators/uuid/validator';
@@ -70,6 +72,11 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
 
   id: number | null = null;
   environmentId: string = 'collaudo'; // collaudo / produzione
+
+  /** Pagina Audit: stesse ricerche delle transazioni, con le informazioni di audit. */
+  _audit: boolean = false;
+  _historyStore: string = this.model;
+  _configRow: string = 'itemRow';
 
   service: any = null;
 
@@ -216,6 +223,9 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
     private utils: UtilService
   ) {
     this.config = this.configService.getConfiguration();
+    this._audit = !!this.route.snapshot?.data?.['audit'];
+    this._historyStore = this._audit ? 'audit' : this.model;
+    this._configRow = this._audit ? 'itemRowAudit' : 'itemRow';
     this._useNewSearchUI = true; // this.config.AppConfig.Search.newLayout || false;
     this._monitoraggioLimitata = this.generalConfig?.monitoraggio.limitata || false;
 
@@ -286,6 +296,10 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
     this.desktop = (window.innerWidth >= 992);
   }
 
+  get _titolo(): string {
+    return this._audit ? 'APP.TITLE.Audit' : 'APP.TITLE.Transactions';
+  }
+
   _initBreadcrumb() {
     const _title = this.service ? this.service.nome + ' v. ' + this.service.versione : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
     const _toolTipServizio = this.service ? this.translate.instant('APP.WORKFLOW.STATUS.' + this.service.stato) : '';
@@ -295,13 +309,13 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
       this.breadcrumbs = [
         { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2', params: _dashboardParams },
         { label: `${_title}`, url: `/servizi/${this.id}${_view}`, type: 'link', tooltip: _toolTipServizio },
-        { label: 'APP.TITLE.Transactions', url: ``, type: 'link' }
+        { label: this._titolo, url: ``, type: 'link' }
       ];
     } else {
       this.breadcrumbs = [
         { label: 'APP.TITLE.Services', url: '/servizi', type: 'link', iconBs: 'grid-3x3-gap' },
         { label: `${_title}`, url: `/servizi/${this.id}${_view}`, type: 'link', tooltip: _toolTipServizio },
-        { label: 'APP.TITLE.Transactions', url: ``, type: 'link' }
+        { label: this._titolo, url: ``, type: 'link' }
       ];
     }
   }
@@ -313,6 +327,9 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
         this._message = 'APP.MESSAGE.ERROR.Unauthorized';
         // this._messageHelp = error.error.detail;
         this._messageHelp = this.translate.instant('APP.MESSAGE.NoTransactionForService', { id: this.service.id_servizio });
+      } else if (this._audit && [400, 404].includes(error?.status)) {
+        this._message = 'APP.MESSAGE.ERROR.Default';
+        this._messageHelp = Tools.GetErrorMsg(error);
       } else {
         this._message = 'APP.MESSAGE.ERROR.Default';
         this._messageHelp = 'APP.MESSAGE.ERROR.DefaultHelp';
@@ -514,11 +531,16 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
       _data = { id_transazione: query.id_transazione, id_servizio: this.service.id_servizio };
       _path = `${this.environmentId}/diagnostica/lista-transazioni-id`;
     }
+    const _conAudit = this._conAudit();
+    const _lista$ = this.apiService.postMonitor(_conAudit ? pathConAudit(_path) : _path, _data).pipe(
+      // Se il backend non fornisce l'audit per la transazione, la lista resta quella delle transazioni
+      catchError((error: any) => (_conAudit && !this._audit && erroreAudit(error)) ? this.apiService.postMonitor(_path, _data) : throwError(() => error))
+    );
 
     this._allElements = 0;
     this._spin = true;
-    
-    this.apiService.postMonitor(`${_path}`, _data).subscribe({
+
+    _lista$.subscribe({
       next: (response: any) => {
 
         response ? this._page = new Page(response.page) : null;
@@ -558,7 +580,7 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
                 ...transaction,
                 nome_erogatore: _nomeErogatore,
                 // richiedente_custom: _richiedenteCustom,
-                richiedente_anonimo: transaction.richiedente ? null : '?',
+                ...richiedenteConAudit(transaction),
                 return_code_http_custom: _returnCodeHttp
               },
             };
@@ -576,6 +598,18 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
         console.log('error', error);
       }
     });
+  }
+
+  /** Informazioni di audit richieste solo se abilitate e, nella ricerca generica, se l'API ha l'audit nell'ambiente. */
+  _conAudit(): boolean {
+    if (this._audit) {
+      return true;
+    }
+    const _monitoraggio = this.authenticationService._getConfigModule('monitoraggio');
+    if (!auditAbilitato(_monitoraggio)) {
+      return false;
+    }
+    return (this.currentSearchType !== SearchTypeEnum.Generic) || apiConAudit(this._apiSelected, this.environmentId, _monitoraggio.proprieta_audit);
   }
 
   __loadMoreData() {
@@ -641,7 +675,7 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
     const _state: any = {
       environment: this.environmentId
     };
-    this.router.navigate([`/servizi/${this.id}/transazioni`, param.id], { state: _state, queryParamsHandling: 'preserve' });
+    this.router.navigate([`/servizi/${this.id}/${this._audit ? 'audit' : 'transazioni'}`, param.id], { state: _state, queryParamsHandling: 'preserve' });
   }
 
   _onCloseEdit() {
@@ -753,12 +787,29 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
   }
 
   _showCollaudo() {
-    this.environmentId = 'collaudo';
-    this._loadTransazioni(this._filterData);
+    this._cambiaAmbiente('collaudo');
   }
 
   _showProduzione() {
-    this.environmentId = 'produzione';
+    this._cambiaAmbiente('produzione');
+  }
+
+  _cambiaAmbiente(ambiente: string) {
+    if (this._audit && ambiente !== this.environmentId) {
+      // Le API con audit dipendono dall'ambiente: si ricalcola la selezione
+      this.environmentId = ambiente;
+      this._setErrorMessages(false);
+      this.elements = [];
+      this._allElements = 0;
+      this._apiSelected = null;
+      this._isFirst = true;
+      this._formGroup.get('id_api')?.enable();
+      this._formGroup.get('id_api')?.setValue(null);
+      this._formGroup.get('id_adesione')?.setValue(null);
+      this._initServizioApiSelect([]);
+      return;
+    }
+    this.environmentId = ambiente;
     this._loadTransazioni(this._filterData);
   }
 
@@ -778,10 +829,17 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
         debounceTime(300),
         tap(() => this.servizioApisLoading = true),
         switchMap((term: any) => {
-          return this.getData('api', term).pipe(
-            catchError(() => of([])), // empty list on error
+          const _apis$ = this.getData('api', term).pipe(catchError(() => of([]))); // empty list on error
+          return (this._audit ? this._apiConAudit$(_apis$) : _apis$).pipe(
             map((resp: any) => {
+              const _primo = this._isFirst;
               if (this._isFirst) { this._apiCount = resp.length; this._isFirst = false; }
+              if (this._audit && _primo && resp.length === 0) {
+                this._message = 'APP.AUDIT.MESSAGE.NoApi';
+                this._messageHelp = 'APP.AUDIT.MESSAGE.NoApiHelp';
+                this._spin = false;
+                return resp;
+              }
               if (resp.length === 1) {
                 // autoselect element
                 this._apiSelected = resp[0];
@@ -796,8 +854,9 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
               if (this._formGroup.valid) {
                 this._onSubmit(this._formGroup.getRawValue());
               } else {
-                if (this._filterData.id_api) {
-                  this._apiSelected = resp.find((item: any) => item.id_api === this._filterData.id_api );
+                const _apiFiltro = this._filterData.id_api ? resp.find((item: any) => item.id_api === this._filterData.id_api) : null;
+                if (_apiFiltro) {
+                  this._apiSelected = _apiFiltro;
                   this._formGroup.get('id_api')?.setValue(this._apiSelected.id_api);
                   this._onSubmit(this._formGroup.getRawValue());
                 } else {
@@ -810,6 +869,22 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
           )
         })
       )
+    );
+  }
+
+  /** API con audit nell'ambiente corrente; al primo caricamento la configurazione remota può non essere ancora disponibile. */
+  _apiConAudit$(apis$: Observable<any[]>): Observable<any[]> {
+    const _monitoraggio = this.authenticationService._getConfigModule('monitoraggio');
+    const _proprieta$: Observable<ProprietaAudit[]> = _monitoraggio
+      ? of(_monitoraggio.proprieta_audit || [])
+      : this.apiService.getList('configurazione').pipe(
+        map((config: any) => config?.monitoraggio?.proprieta_audit || []),
+        catchError(() => of([]))
+      );
+    return _proprieta$.pipe(
+      switchMap((proprieta: ProprietaAudit[]) => apis$.pipe(
+        map((resp: any[]) => resp.filter((api: any) => apiConAudit(api, this.environmentId, proprieta)))
+      ))
     );
   }
 

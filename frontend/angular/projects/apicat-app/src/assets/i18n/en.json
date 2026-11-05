@@ -286,6 +286,37 @@
 				"TestingInformations": "Testing information"
 			}
 		},
+		"AUDIT": {
+			"LABEL": {
+				"Audience": "Audience",
+				"Expiration": "Expiration",
+				"IssuedAt": "Issued at",
+				"Issuer": "Issuer",
+				"Kid": "Kid",
+				"Loa": "LoA",
+				"LoaEstesa": "Level of assurance (LoA)",
+				"MessageId": "Audit token id",
+				"NotBefore": "Not before",
+				"Pattern": "Pattern",
+				"PatternAudit": "Audit pattern",
+				"PurposeId": "Purpose (PurposeID)",
+				"SchemaDati": "Data schema",
+				"UserId": "User id",
+				"UserLocation": "User location"
+			},
+			"MESSAGE": {
+				"NoApi": "No API with audit",
+				"NoApiHelp": "No API of the service has audit enabled in the selected environment",
+				"NoAudit": "No audit information for the transaction"
+			},
+			"TABS": {
+				"Audit": "Audit"
+			},
+			"TITLE": {
+				"AltreProprieta": "Other properties",
+				"Audit": "Audit"
+			}
+		},
 		"AUTHENTICATION": {
 			"BUTTON": {
 				"Copy-digest": "Copy Digest",
@@ -1425,6 +1456,7 @@
 		"MENU": {
 			"AddService": "Add service",
 			"ApiDescriptor": "API Descriptor",
+			"Audit": "Audit",
 			"BackView": "Exit management",
 			"BackViewWizard": "Exit setup",
 			"ChangeStatus": "Change status to \"{{status}}\"",
@@ -3143,6 +3175,7 @@
 		"TITLE": {
 			"AddGroup": "Add group",
 			"About": "About",
+			"Audit": "Audit",
 			"AddApi": "Add APIs",
 			"AddAttachment": "Add attachment",
 			"AddAttachments": "Add attachments",
@@ -3372,6 +3405,7 @@
 			"RemoveReferent": "Remove referent",
 			"ReturnCodeHttp": "Return Code Http",
 			"richiedente_anonimo": "Anonymous applicant",
+			"UtenteAudit": "Audit user",
 			"RichiestaAnonima": "Anonymous request",
 			"ScheduledExpeditionDate": "Scheduled expedition date",
 			"Select": "Select",
@@ -3409,6 +3443,7 @@
 			},
 			"TABS": {
 				"DettaglioMessaggio": "Message Detail",
+				"InformazioniAudit": "Audit information",
 				"InformazioniGenerali": "General informations",
 				"InformazioniMittente": "Sender Information"
 			},

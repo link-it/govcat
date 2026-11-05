@@ -79,6 +79,8 @@ describe('TransazioneDetailsComponent', () => {
     });
     mockConfigService.getConfig.mockReturnValue(of({}));
     mockTranslate.instant.mockImplementation((key: string) => key);
+    mockApiService.getList.mockReturnValue(of({ content: [] }));
+    mockApiService.getMonitorDetails.mockReturnValue(of({}));
     mockRoute = createMockRoute();
     component = new TransazioneDetailsComponent(
       mockRoute,
@@ -163,10 +165,11 @@ describe('TransazioneDetailsComponent', () => {
   });
 
   it('should have default tabs', () => {
-    expect(component.tabs.length).toBe(3);
+    expect(component.tabs.length).toBe(4);
     expect(component.tabs[0].link).toBe('InformazioniGenerali');
     expect(component.tabs[1].link).toBe('InformazioniMittente');
     expect(component.tabs[2].link).toBe('DettaglioMessaggio');
+    expect(component.tabs[3].link).toBe('InformazioniAudit');
   });
 
   it('should have default _currentTab', () => {
@@ -1025,6 +1028,100 @@ describe('TransazioneDetailsComponent', () => {
         mockTools, mockApiService, mockUtilService
       );
       expect(comp.service).toBeNull();
+    });
+  });
+
+  describe('dettaglio Audit (Issue #404)', () => {
+    const createAudit = () => new TransazioneDetailsComponent(
+      { params: of({}), queryParams: of({}), snapshot: { data: { audit: true } } } as any,
+      mockRouter, mockTranslate, mockConfigService, mockTools, mockApiService, mockUtilService
+    );
+
+    it('should keep the transaction detail without the separate audit tab', () => {
+      expect(component._audit).toBe(false);
+      expect(component.tabs.map((t: any) => t.link)).not.toContain('Audit');
+      expect(component._tabAudit).toBe('InformazioniAudit');
+    });
+
+    describe('transazioni con audit', () => {
+      const audit = { pattern: 'AUDIT_REST_01', user_id: 'U1', issued_at: '2026-11-05T16:08:59.000' };
+      const tab = (link: string) => component.tabs.find((t: any) => t.link === link)?.enabled;
+
+      beforeEach(() => {
+        component.environment = 'collaudo';
+        component.id = 42;
+        Tools.Configurazione = { monitoraggio: { abilitato: true, audit_abilitato: true } } as any;
+      });
+
+      it('should load the audit and show it instead of the message detail', () => {
+        mockApiService.getMonitorDetails.mockReturnValue(of(createDefaultTransactionResponse({ audit })));
+        component._loadtransaction();
+        expect(mockApiService.getMonitorDetails).toHaveBeenCalledWith('collaudo/diagnostica', 42, undefined, { params: { includi_audit: 'true' } });
+        expect(component.data.audit.issued_at).toBe('05-11-2026 16:08:59');
+        expect(tab('InformazioniAudit')).toBe(true);
+        expect(tab('DettaglioMessaggio')).toBe(false);
+      });
+
+      it('should fall back to the detail without audit for an API without audit', () => {
+        mockApiService.getMonitorDetails.mockImplementation((path: string, id: any, type: any, options: any) => options
+          ? throwError(() => ({ status: 400, error: { detail: 'MON.400.AUDIT.API' } }))
+          : of(createDefaultTransactionResponse()));
+        component._loadtransaction();
+        expect(mockApiService.getMonitorDetails).toHaveBeenCalledTimes(2);
+        expect(mockApiService.getMonitorDetails).toHaveBeenLastCalledWith('collaudo/diagnostica', 42);
+        expect(component.data.audit).toBeNull();
+        expect(tab('InformazioniAudit')).toBe(false);
+        expect(tab('DettaglioMessaggio')).toBe(true);
+      });
+
+      it('should not ask for the audit when it is disabled', () => {
+        Tools.Configurazione = { monitoraggio: { abilitato: true } } as any;
+        mockApiService.getMonitorDetails.mockReturnValue(of(createDefaultTransactionResponse()));
+        component._loadtransaction();
+        expect(mockApiService.getMonitorDetails).toHaveBeenCalledWith('collaudo/diagnostica', 42);
+      });
+
+      it('should load the remote configuration when it is not available yet', () => {
+        Tools.Configurazione = null;
+        mockApiService.getList.mockReturnValue(of({ monitoraggio: { abilitato: true, audit_abilitato: true } }));
+        mockApiService.getMonitorDetails.mockReturnValue(of(createDefaultTransactionResponse({ audit })));
+        component._loadtransaction();
+        expect(mockApiService.getList).toHaveBeenCalledWith('configurazione');
+        expect(mockApiService.getMonitorDetails).toHaveBeenCalledWith('collaudo/diagnostica', 42, undefined, { params: { includi_audit: 'true' } });
+      });
+    });
+
+    it('should open on the audit tab and load the detail with the audit parameter', () => {
+      const comp = createAudit();
+      expect(comp.tabs[0].link).toBe('Audit');
+      expect(comp._currentTab).toBe('Audit');
+      comp.environment = 'produzione';
+      comp.id = 42;
+      comp.sid = 7;
+      mockApiService.getMonitorDetails.mockReturnValue(of(createDefaultTransactionResponse({
+        audit: { pattern: 'AUDIT_REST_02', expiration: '2026-10-26T09:13:19.000', altre_proprieta: [{ nome: 'custom', valore: 'v' }] }
+      })));
+      comp._loadtransaction();
+      expect(mockApiService.getMonitorDetails).toHaveBeenCalledWith('produzione/diagnostica', 42, undefined, { params: { includi_audit: 'true' } });
+      expect(comp.data.audit.expiration).toBe('26-10-2026 09:13:19');
+      expect(comp.data.audit.altre_proprieta).toEqual([{ nome: 'custom', valore: 'v' }]);
+      expect(comp.breadcrumbs.find((b: any) => b.label === 'APP.TITLE.Audit')?.url).toBe('/servizi/7/audit');
+    });
+
+    it('should read the name/value list of a section from its field', () => {
+      const comp = createAudit();
+      comp.data = { audit: { altre_proprieta: [{ nome: 'n', valore: 'v' }] } };
+      expect(comp._elencoSezione({ field: 'audit.altre_proprieta' })).toEqual([{ nome: 'n', valore: 'v' }]);
+      expect(comp._elencoSezione({ field: 'audit.mancante' })).toEqual([]);
+      expect(comp._elencoSezione({})).toEqual([]);
+    });
+
+    it('should not fail without audit information', () => {
+      const comp = createAudit();
+      comp.id = 42;
+      mockApiService.getMonitorDetails.mockReturnValue(of(createDefaultTransactionResponse()));
+      comp._loadtransaction();
+      expect(comp.data.audit).toBeNull();
     });
   });
 });

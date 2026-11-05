@@ -9,6 +9,10 @@
 	Issue #420: etichette della dialog informazioni PDND (ID e-service, ID erogatore, ID versione,
 	  versioni al posto di descrittori) e titolo delle versioni nella forma "v. x".
 
+	Issue #404: informazioni di audit nelle transazioni (includi_audit per le API con audit):
+	  utente dell'audit nella lista accanto al richiedente e tab "Informazioni audit" nel dettaglio
+	  al posto del dettaglio messaggio; voce e pagina Audit separate predisposte ma nascoste.
+
 2026-11-04  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

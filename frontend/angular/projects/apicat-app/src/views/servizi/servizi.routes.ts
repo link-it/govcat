@@ -144,6 +144,12 @@ export const SERVIZI_ROUTES: Routes = [
         loadChildren: () => import('./statistiche/statistiche.routes').then(m => m.STATISTICHE_ROUTES)
       },
       {
+        path: ':id/audit',
+        canActivate: [ForbidAnonymousGuard, MonitoraggioGuard],
+        data: { breadcrumb: 'Audit', audit: true },
+        loadChildren: () => import('./transazioni/transazioni.routes').then(m => m.AUDIT_ROUTES)
+      },
+      {
         path: ':id/verifiche',
         canActivate: [ForbidAnonymousGuard, MonitoraggioGuard],
         data: { breadcrumb: 'Verifiche' },

@@ -2069,4 +2069,201 @@ describe('TransazioniComponent', () => {
       expect((component as any)._hasPDNDAuthType(api)).toBe(true);
     });
   });
+
+  // ==================== Audit ====================
+
+  describe('transazioni con audit (Issue #404)', () => {
+    const monitoraggio = { abilitato: true, audit_abilitato: true, proprieta_audit: [{ nome_gruppo: 'PDNDCollaudo', nome_proprieta: 'audit', ambiente: 'collaudo' }], stati_scheda_adesione: [] };
+    const apiAudit = { id_api: 'a1', ruolo: 'erogato_soggetto_dominio', proprieta_custom: [{ gruppo: 'PDNDCollaudo', proprieta: [{ nome: 'audit', valore: 'audit01' }] }] };
+    const riga = (i: number, extra: any = {}) => ({ id_traccia: 't' + i, api: { nome: 'A' }, esito: { codice: 0 }, ...extra });
+    const path = 'collaudo/fruizioni/Sog/diagnostica/lista-transazioni';
+
+    beforeEach(() => {
+      mockAuthenticationService._getConfigModule.mockReturnValue(monitoraggio);
+      component.id = 42 as any;
+      component.service = { soggetto_erogatore: { nome: 'Sog' }, id_servizio: 'svc' };
+      component._formGroup.get('id_api')?.setValue('a1');
+    });
+
+    it('should ask for the audit only for an API with audit in the environment', () => {
+      (component as any)._apiSelected = apiAudit;
+      mockApiService.postMonitor.mockReturnValue(of({ content: [], page: {} }));
+      component._loadTransazioni({ id_api: 'a1' });
+      expect(mockApiService.postMonitor.mock.calls[0][0]).toBe(path + '?includi_audit=true');
+      component.environmentId = 'produzione';
+      component._loadTransazioni({ id_api: 'a1' });
+      expect(mockApiService.postMonitor.mock.calls[1][0]).toBe('produzione/fruizioni/Sog/diagnostica/lista-transazioni');
+      component.environmentId = 'collaudo';
+      (component as any)._apiSelected = { ...apiAudit, proprieta_custom: [] };
+      component._loadTransazioni({ id_api: 'a1' });
+      expect(mockApiService.postMonitor.mock.calls[2][0]).toBe(path);
+      mockAuthenticationService._getConfigModule.mockReturnValue({ ...monitoraggio, audit_abilitato: false });
+      (component as any)._apiSelected = apiAudit;
+      component._loadTransazioni({ id_api: 'a1' });
+      expect(mockApiService.postMonitor.mock.calls[3][0]).toBe(path);
+    });
+
+    it('should show the audit user with the requester', () => {
+      (component as any)._apiSelected = apiAudit;
+      mockApiService.postMonitor.mockReturnValue(of({
+        content: [riga(1, { audit: { user_id: 'U1' } }), riga(2, { richiedente: 'Ente', audit: { user_id: 'U2' } }), riga(3)],
+        page: {}
+      }));
+      component._loadTransazioni({ id_api: 'a1' });
+      const campi = (i: number) => {
+        const { richiedente_anonimo, utente_audit, richiedente_utente_audit } = component.elements[i].source;
+        return { richiedente_anonimo, utente_audit, richiedente_utente_audit };
+      };
+      expect(campi(0)).toEqual({ richiedente_anonimo: null, utente_audit: 'U1', richiedente_utente_audit: null });
+      expect(campi(1)).toEqual({ richiedente_anonimo: null, utente_audit: null, richiedente_utente_audit: '(U2)' });
+      expect(campi(2)).toEqual({ richiedente_anonimo: '?', utente_audit: null, richiedente_utente_audit: null });
+    });
+
+    it('should search a transaction id with the audit, falling back without it for an API without audit', () => {
+      component.currentSearchType = 'transaction';
+      component._formGroup.get('search_type')?.setValue('transaction');
+      component._formGroup.get('id_transazione')?.setValue('550e8400-e29b-41d4-a716-446655440000');
+      mockApiService.postMonitor.mockImplementation((p: string) => p.includes('includi_audit')
+        ? throwError(() => ({ status: 400, error: { detail: 'MON.400.AUDIT.API' } }))
+        : of({ content: [riga(1)], page: {} }));
+      component._loadTransazioni({ id_transazione: 'x' });
+      expect(mockApiService.postMonitor.mock.calls.map((c: any[]) => c[0])).toEqual([
+        'collaudo/diagnostica/lista-transazioni-id?includi_audit=true',
+        'collaudo/diagnostica/lista-transazioni-id'
+      ]);
+      expect(component.elements.length).toBe(1);
+      expect(component._error).toBe(false);
+    });
+  });
+
+  describe('pagina Audit (Issue #404)', () => {
+    const proprieta_audit = [
+      { nome_gruppo: 'PDNDCollaudo', nome_proprieta: 'audit', ambiente: 'collaudo' },
+      { nome_gruppo: 'PDNDProduzione', nome_proprieta: 'audit', ambiente: 'produzione' }
+    ];
+    const api = (id_api: string, gruppo: string) => ({ id_api, nome: id_api, ruolo: 'erogato_soggetto_dominio', proprieta_custom: [{ gruppo, proprieta: [{ nome: 'audit', valore: 'AUDIT_REST_02' }] }] });
+
+    const createAudit = () => {
+      mockAuthenticationService._getConfigModule.mockReturnValue({ abilitato: true, audit_abilitato: true, proprieta_audit, stati_scheda_adesione: [] });
+      const route = { params: of({}), queryParams: of({}), snapshot: { data: { audit: true } } } as any;
+      const comp = new TransazioniComponent(
+        route, mockRouter, mockTranslate, mockConfigService,
+        mockEventsManagerService, mockTools, mockApiService,
+        mockAuthenticationService, mockUtilService
+      );
+      mockSearchBarForm(comp);
+      return comp;
+    };
+
+    it('should not change the transactions page', () => {
+      expect(component._audit).toBe(false);
+      expect(component._historyStore).toBe('transazioni');
+      expect(component._configRow).toBe('itemRow');
+      expect(component._titolo).toBe('APP.TITLE.Transactions');
+    });
+
+    it('should use the audit row configuration', () => {
+      const comp = createAudit();
+      expect(comp._configRow).toBe('itemRowAudit');
+      expect(comp._historyStore).toBe('audit');
+      expect(comp._titolo).toBe('APP.TITLE.Audit');
+    });
+
+    it('should call the list with the audit parameter, also on the next pages, keeping the audit fields', () => {
+      const comp = createAudit();
+      comp.id = 42 as any;
+      comp.service = { soggetto_erogatore: { nome: 'Sog' }, id_servizio: 'svc' };
+      (comp as any)._apiSelected = { ruolo: 'erogato_soggetto_dominio' };
+      comp._formGroup.get('id_api')?.setValue('api-1');
+      mockApiService.postMonitor.mockReturnValue(of({
+        content: [{ id_traccia: 't1', api: { nome: 'A' }, esito: { codice: 0 }, audit: { pattern: 'AUDIT_REST_02', user_id: 'U1' } }, { id_traccia: 't2', api: { nome: 'A' }, esito: { codice: 0 } }],
+        page: {}
+      }));
+      comp._loadTransazioni({ id_api: 'api-1' });
+      expect(mockApiService.postMonitor.mock.calls[0][0]).toBe('collaudo/fruizioni/Sog/diagnostica/lista-transazioni?includi_audit=true');
+      expect(comp.elements[0].source.audit).toEqual({ pattern: 'AUDIT_REST_02', user_id: 'U1' });
+      expect(comp.elements[1].source.audit).toBeUndefined();
+      comp._loadTransazioni(null, 'http://host/monitor/v1/collaudo/x?page=1&size=20');
+      expect(mockApiService.postMonitor.mock.calls[1][0]).toBe('collaudo/fruizioni/Sog/diagnostica/lista-transazioni?page=1&size=20&includi_audit=true');
+    });
+
+    it('should show the backend error of the audit search', () => {
+      const comp = createAudit();
+      comp._setErrorMessages(true, { status: 400, error: { detail: 'Errore audit' } });
+      expect(comp._messageHelp).toContain('Errore audit');
+    });
+
+    it('should open the audit detail', () => {
+      const comp = createAudit();
+      comp.id = 42 as any;
+      comp._onEdit({}, { id: 't1' });
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/servizi/42/audit', 't1'], { state: { environment: 'collaudo' }, queryParamsHandling: 'preserve' });
+    });
+
+    it('should propose only the APIs with audit in the environment, recalculated on change', async () => {
+      vi.useFakeTimers();
+      try {
+        const comp = createAudit();
+        comp.id = 42 as any;
+        mockApiService.getList.mockReturnValue(of({ content: [api('a1', 'PDNDCollaudo'), api('a2', 'PDNDProduzione'), api('a3', 'PDNDProduzione'), { id_api: 'a4' }] }));
+        let lista: any[] = [];
+        comp._initServizioApiSelect([]);
+        comp.servizioApis$.subscribe((l: any[]) => lista = l);
+        await vi.advanceTimersByTimeAsync(300);
+        expect(lista.map((a: any) => a.id_api)).toEqual(['a1']);
+        expect(comp._formGroup.get('id_api')?.value).toBe('a1');
+        expect(comp._formGroup.get('id_api')?.disabled).toBe(true);
+
+        comp._showProduzione();
+        expect(comp.environmentId).toBe('produzione');
+        expect(comp._formGroup.get('id_api')?.enabled).toBe(true);
+        comp.servizioApis$.subscribe((l: any[]) => lista = l);
+        await vi.advanceTimersByTimeAsync(300);
+        expect(lista.map((a: any) => a.id_api)).toEqual(['a2', 'a3']);
+        expect(comp._apiCount).toBe(2);
+        expect(comp._formGroup.get('id_api')?.value).toBeNull();
+        expect((comp as any).searchBarForm._openSearch).toHaveBeenCalled();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('should load the remote configuration when it is not available yet', async () => {
+      vi.useFakeTimers();
+      try {
+        const comp = createAudit();
+        comp.id = 42 as any;
+        mockAuthenticationService._getConfigModule.mockReturnValue(null);
+        mockApiService.getList.mockImplementation((model: string) => of(model === 'configurazione'
+          ? { monitoraggio: { proprieta_audit } }
+          : { content: [api('a1', 'PDNDCollaudo'), api('a2', 'PDNDCollaudo'), api('a3', 'PDNDProduzione')] }));
+        let lista: any[] = [];
+        comp._initServizioApiSelect([]);
+        comp.servizioApis$.subscribe((l: any[]) => lista = l);
+        await vi.advanceTimersByTimeAsync(300);
+        expect(mockApiService.getList).toHaveBeenCalledWith('configurazione');
+        expect(lista.map((a: any) => a.id_api)).toEqual(['a1', 'a2']);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('should warn when no API has audit in the environment', async () => {
+      vi.useFakeTimers();
+      try {
+        const comp = createAudit();
+        comp.id = 42 as any;
+        mockApiService.getList.mockReturnValue(of({ content: [api('a1', 'PDNDCollaudo')] }));
+        comp.environmentId = 'produzione';
+        comp._initServizioApiSelect([]);
+        comp.servizioApis$.subscribe();
+        await vi.advanceTimersByTimeAsync(300);
+        expect(comp._message).toBe('APP.AUDIT.MESSAGE.NoApi');
+        expect(comp._spin).toBe(false);
+        expect((comp as any).searchBarForm._openSearch).not.toHaveBeenCalled();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+  });
 });

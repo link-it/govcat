@@ -286,6 +286,37 @@
 				"TestingInformations": "Informazioni collaudo"
 			}
 		},
+		"AUDIT": {
+			"LABEL": {
+				"Audience": "Audience",
+				"Expiration": "Scadenza",
+				"IssuedAt": "Emesso il",
+				"Issuer": "Emittente",
+				"Kid": "Kid",
+				"Loa": "LoA",
+				"LoaEstesa": "Livello di garanzia (LoA)",
+				"MessageId": "Id token di audit",
+				"NotBefore": "Valido dal",
+				"Pattern": "Pattern",
+				"PatternAudit": "Pattern di audit",
+				"PurposeId": "Finalità (PurposeID)",
+				"SchemaDati": "Schema dati",
+				"UserId": "Id utente",
+				"UserLocation": "Sede utente"
+			},
+			"MESSAGE": {
+				"NoApi": "Nessuna API con audit",
+				"NoApiHelp": "Nessuna API del servizio ha l'audit abilitato nell'ambiente selezionato",
+				"NoAudit": "Nessuna informazione di audit per la transazione"
+			},
+			"TABS": {
+				"Audit": "Audit"
+			},
+			"TITLE": {
+				"AltreProprieta": "Altre proprietà",
+				"Audit": "Audit"
+			}
+		},
 		"AUTHENTICATION": {
 			"BUTTON": {
 				"Copy-digest": "Copia Digest",
@@ -1425,6 +1456,7 @@
 		"MENU": {
 			"AddService": "Aggiungi servizio",
 			"ApiDescriptor": "Descrittore API",
+			"Audit": "Audit",
 			"BackView": "Esci da gestione",
 			"BackViewWizard": "Esci da configura",
 			"ChangeStatus": "Cambia stato in \"{{status}}\"",
@@ -3143,6 +3175,7 @@
 		"TITLE": {
 			"AddGroup": "Aggiungi gruppo",
 			"About": "Informazioni",
+			"Audit": "Audit",
 			"AddApi": "Aggiungi API",
 			"AddAttachment": "Aggiungi allegato",
 			"AddAttachments": "Aggiungi allegati",
@@ -3372,6 +3405,7 @@
 			"RemoveReferent": "Rimuovi referente",
 			"ReturnCodeHttp": "Return Code Http",
 			"richiedente_anonimo": "Richiedente anonimo",
+			"UtenteAudit": "Utente dell'audit",
 			"RichiestaAnonima": "Richiesta anonima",
 			"ScheduledExpeditionDate": "Data di spedizione pianificata",
 			"Select": "Seleziona",
@@ -3409,6 +3443,7 @@
 			},
 			"TABS": {
 				"DettaglioMessaggio": "Dettaglio messaggio",
+				"InformazioniAudit": "Informazioni audit",
 				"InformazioniGenerali": "Informazioni generali",
 				"InformazioniMittente": "Informazioni mittente"
 			},

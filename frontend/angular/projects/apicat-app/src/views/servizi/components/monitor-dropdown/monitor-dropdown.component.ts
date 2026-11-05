@@ -22,6 +22,8 @@ import { Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { AuthenticationService } from '@app/services/authentication.service';
+import { OpenAPIService } from '@app/services/openAPI.service';
+import { apiConAuditInAmbienti, auditAbilitato, MENU_AUDIT_ATTIVO } from '@app/views/servizi/transazioni/audit';
 
 import { ConfigService, MenuAction } from '@linkit/components';
 
@@ -56,14 +58,21 @@ export class MonitorDropdwnComponent implements OnInit, OnChanges {
   _showTransazioni: boolean = true;
   _showStatistiche: boolean = true;
   _showVerifiche: boolean = true;
+  _showAudit: boolean = false;
+  _hasApiAudit: boolean = false;
+  _menuAuditAttivo: boolean = MENU_AUDIT_ATTIVO;
   _showCommunicationsMenuConfig: boolean = true;
 
   appConfig: any;
 
+  private _monitoraggio: any = null;
+  private _servizioApiAudit: string | null = null;
+
   constructor(
     private router: Router,
     private authenticationService: AuthenticationService,
-    private configService: ConfigService
+    private configService: ConfigService,
+    private apiService: OpenAPIService
   ) {
     this.appConfig = this.configService.getConfiguration();
     this._showCommunicationsMenuConfig = this.appConfig?.AppConfig?.Layout?.showCommunicationsMenu !== false;
@@ -71,17 +80,42 @@ export class MonitorDropdwnComponent implements OnInit, OnChanges {
 
   ngOnInit() {
     const monitoraggio = this.authenticationService._getConfigModule('monitoraggio');
+    this._monitoraggio = monitoraggio;
     this._showTransazioni = monitoraggio?.transazioni_abilitate || false;
     this._showStatistiche = monitoraggio?.statistiche_abilitate || false;
     this._showVerifiche = monitoraggio?.verifiche_abilitate || false;
+    this._showAudit = this._menuAuditAttivo && auditAbilitato(monitoraggio);
     // I ruoli abilitati si verificano sul grant del servizio nel componente che valorizza `showMonitoring`
-    this._showMonitoraggio = monitoraggio?.abilitato && (this._showStatistiche || this._showTransazioni || this._showVerifiche);
+    this._showMonitoraggio = monitoraggio?.abilitato && (this._showStatistiche || this._showTransazioni || this._showVerifiche || this._showAudit);
 
+    this._loadApiAudit();
     this.initMenu();
   }
 
   ngOnChanges(changes: SimpleChanges) {
+    this._loadApiAudit();
     this.initMenu();
+  }
+
+  /** La voce Audit richiede almeno un'API del servizio con l'audit in un ambiente. */
+  private _loadApiAudit() {
+    if (!this._showAudit || !this.showMonitoring || !this.service_id || this._servizioApiAudit === this.service_id) {
+      return;
+    }
+    const _servizio = this.service_id;
+    this._servizioApiAudit = _servizio;
+    this._hasApiAudit = false;
+    this.apiService.getList('api', { params: { id_servizio: _servizio, size: '100' } }).subscribe({
+      next: (response: any) => {
+        if (this.service_id !== _servizio) { return; }
+        const _proprieta = this._monitoraggio?.proprieta_audit || [];
+        this._hasApiAudit = (response?.content || []).some((api: any) => apiConAuditInAmbienti(api, _proprieta));
+        this.initMenu();
+      },
+      error: () => {
+        this._servizioApiAudit = null;
+      }
+    });
   }
 
   initMenu() {
@@ -123,6 +157,14 @@ export class MonitorDropdwnComponent implements OnInit, OnChanges {
         subTitle: '',
         action: 'statistiche',
         enabled: this.showMonitoring && this._showMonitoraggio && this._showStatistiche
+      }),
+      new MenuAction({
+        type: 'menu',
+        title: 'APP.MENU.Audit',
+        icon: 'journal-text',
+        subTitle: '',
+        action: 'audit',
+        enabled: this.showMonitoring && this._showMonitoraggio && this._showAudit && this._hasApiAudit
       }),
       new MenuAction({
         type: 'menu',

@@ -23,10 +23,12 @@ import { catchError, map, switchMap } from 'rxjs/operators';
 
 import { AuthenticationService } from '../services/authentication.service';
 import { OpenAPIService } from '../services/openAPI.service';
+import { auditAbilitato } from '../views/servizi/transazioni/audit';
 
 /**
  * Accesso alle pagine di monitoraggio di un servizio: monitoraggio abilitato e almeno un ruolo
  * dell'utente sul servizio (grant) incluso in `monitoraggio.ruoli_abilitati`, come per il menu.
+ * Le rotte con `data.audit` richiedono anche il monitoraggio di audit abilitato.
  */
 @Injectable()
 export class MonitoraggioGuard implements CanActivate {
@@ -50,7 +52,7 @@ export class MonitoraggioGuard implements CanActivate {
       : this.apiService.getList('configurazione').pipe(map((config: any) => config?.monitoraggio));
     return _monitoraggio$.pipe(
       switchMap((monitoraggio: any) => {
-        if (!monitoraggio?.abilitato) {
+        if (!monitoraggio?.abilitato || (route.data?.['audit'] && !auditAbilitato(monitoraggio))) {
           return of(_negato);
         }
         return this.apiService.getDetails('servizi', _idServizio, 'grant').pipe(

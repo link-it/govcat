@@ -8,7 +8,7 @@ describe('MonitoraggioGuard (Issue #418)', () => {
   let authService: any;
   let apiService: any;
   const negato = { url: '/servizi' };
-  const rotta = (id: string | null) => ({ paramMap: { get: (k: string) => (k === 'id' ? id : null) } }) as any;
+  const rotta = (id: string | null, data: any = {}) => ({ paramMap: { get: (k: string) => (k === 'id' ? id : null) }, data }) as any;
 
   beforeEach(() => {
     router = { createUrlTree: vi.fn().mockReturnValue(negato) };
@@ -56,5 +56,12 @@ describe('MonitoraggioGuard (Issue #418)', () => {
     apiService.getDetails.mockReturnValue(throwError(() => ({ status: 403 })));
     expect(await firstValueFrom(guard.canActivate(rotta('s1'), {} as any))).toBe(negato);
     expect(await firstValueFrom(guard.canActivate(rotta(null), {} as any))).toBe(negato);
+  });
+
+  it('should require the audit monitoring on the audit route (Issue #404)', async () => {
+    expect(await firstValueFrom(guard.canActivate(rotta('s1', { audit: true }), {} as any))).toBe(negato);
+    expect(apiService.getDetails).not.toHaveBeenCalled();
+    authService._getConfigModule.mockReturnValue({ abilitato: true, audit_abilitato: true });
+    expect(await firstValueFrom(guard.canActivate(rotta('s1', { audit: true }), {} as any))).toBe(true);
   });
 });

@@ -13,7 +13,9 @@
       { "field": "ruolo_component", "label": "APP.LABEL.ruolo_component", "type": "icon", "emptySpace": true, "blockSpace": true, "options": "erogazioneIcon", "tooltip": "APP.TOOLTIP.ruolo_component" },
       { "field": "richiedente_custom", "type": "html", "hideEmpty": true },
       { "field": "richiedente", "type": "text", "hideEmpty": true, "emptySpace": true, "blockSpace": true },
-      { "field": "richiedente_anonimo", "type": "icontext", "icon": "person-fill", "tooltip": "APP.TOOLTIP.richiedente_anonimo", "hideEmpty": true }
+      { "field": "richiedente_utente_audit", "type": "text", "tooltip": "APP.TOOLTIP.UtenteAudit", "hideEmpty": true, "emptySpace": true, "blockSpace": true },
+      { "field": "richiedente_anonimo", "type": "icontext", "icon": "person-fill", "tooltip": "APP.TOOLTIP.richiedente_anonimo", "hideEmpty": true },
+      { "field": "utente_audit", "type": "icontext", "icon": "person-fill", "tooltip": "APP.TOOLTIP.UtenteAudit", "hideEmpty": true }
     ],
     "secondaryText": [
       { "field": "api.tags", "type": "tags", "hideEmpty": true }
@@ -29,6 +31,74 @@
       ]
     },
     "secondaryMetadata": [
+    ],
+    "boxStatus1": {
+      "color": "#333333",
+      "background": "#ececec",
+      "primaryText": [
+        { "field": "", "type": "iconBs", "icon": "clock", "tooltip_": "APP.TOOLTIP.TempoRispostaServizio" }
+      ],
+      "metadata": [
+        { "field": "tempo_elaborazione", "type": "mstime", "emptySpace": true, "tooltip_": "tempo_risposta_servizio" }
+      ],
+      "tooltip": {
+        "label": "APP.TOOLTIP.TempoRispostaServizio",
+        "field": "tempo_risposta_servizio",
+        "type": "mstime",
+        "placement": "left"
+      }
+    },
+    "boxStatus2": {
+      "color_": "#333333",
+      "color": { "field": "esito.codice", "options": "esitoIcon" },
+      "background_": "#ffe082",
+      "background": { "field": "esito.codice", "options": "esitoIcon" },
+      "primaryText": [
+        { "field": "esito.codice", "type": "icon", "icon": "check-lg", "options": "esitoIcon", "hideTooltip": true }
+      ],
+      "metadata": [
+        { "field": "esito.codice", "type": "labelI18n", "options": "esito", "emptySpace": true, "tooltip_": "", "appendValue": "return_code_http" }
+      ],
+      "tooltip": {
+        "label": "APP.TOOLTIP.ReturnCodeHttp",
+        "field": "esito.codice",
+        "type": "text",
+        "placement": "left",
+        "options": "esitoIcon"
+      }
+    }
+  },
+
+  "itemRowAudit": {
+    "background_": "#f8f9fa",
+    "class": "mb-1 border-bottom border-white-",
+    "primaryText": [
+      { "field": "nome_erogatore", "type": "text", "emptySpace": true },
+      { "field": "v.", "type": "message", "tooltip_": "APP.TOOLTIP.Version", "class": "", "emptySpace": true },
+      { "field": "api.versione", "type": "text", "emptySpace": true, "blockSpace": true },
+      { "field": "ruolo_component", "label": "APP.LABEL.ruolo_component", "type": "icon", "emptySpace": true, "blockSpace": true, "options": "erogazioneIcon", "tooltip": "APP.TOOLTIP.ruolo_component" },
+      { "field": "richiedente_custom", "type": "html", "hideEmpty": true },
+      { "field": "richiedente", "type": "text", "hideEmpty": true, "emptySpace": true, "blockSpace": true },
+      { "field": "richiedente_utente_audit", "type": "text", "tooltip": "APP.TOOLTIP.UtenteAudit", "hideEmpty": true, "emptySpace": true, "blockSpace": true },
+      { "field": "richiedente_anonimo", "type": "icontext", "icon": "person-fill", "tooltip": "APP.TOOLTIP.richiedente_anonimo", "hideEmpty": true },
+      { "field": "utente_audit", "type": "icontext", "icon": "person-fill", "tooltip": "APP.TOOLTIP.UtenteAudit", "hideEmpty": true }
+    ],
+    "secondaryText": [
+      { "field": "api.tags", "type": "tags", "hideEmpty": true }
+    ],
+    "metadata": {
+      "text": [
+        { "field": "data", "label": "APP.LABEL.Date", "type": "date", "format": "DD-MM-YYYY HH:mm:ss", "showLabel": true, "hideEmpty": true },
+        { "field": "audit.user_id", "label": "APP.AUDIT.LABEL.UserId", "type": "text", "showLabel": true, "default": "—" },
+        { "field": "api.operazione", "label": "APP.LABEL.Operazione", "type": "text", "showLabel": true, "hideEmpty": true },
+        { "field": "id_applicativo", "label": "APP.LABEL.IdApplicativo", "type": "text", "showLabel": true, "hideEmpty": true }
+      ],
+      "label": [
+      ]
+    },
+    "secondaryMetadata": [
+      { "field": "audit.pattern", "type": "label", "options": "pattern", "emptySpace": true },
+      { "field": "audit.loa", "type": "label", "options": "loa", "emptySpace": true }
     ],
     "boxStatus1": {
       "color": "#333333",
@@ -157,38 +227,51 @@
         ]
       }
     ],
-    "DettaglioMessaggio": [
+    "Audit": [
       {
-        "code": "DettagliRichiesta",
-        "title": "APP.TRANSACTIONS.TITLE.DettagliRichiesta",
+        "code": "Audit",
+        "title": "APP.AUDIT.TITLE.Audit",
         "title_sub": "",
         "details": [
-          { "label": "APP.LABEL.IdMessaggio", "field": "richiesta.id_messaggio", "type": "text", "hideEmpty": true },
-          { "label": "APP.LABEL.IdApplicativo", "field": "richiesta.id_correlazione", "type": "text", "class": "", "columns": "12", "hideEmpty": true },
-          { "label": "APP.LABEL.InRicezione", "field": "richiesta.data_ricezione", "type": "date", "format": "DD-MM-YYYY HH:mm:ss", "hideEmpty": true },
-          { "label": "APP.LABEL.Dimensione", "field": "richiesta.dimensione_ricezione", "type": "number", "hideEmpty": true },
-          { "label": "APP.LABEL.Consegnata", "field": "richiesta.data_consegna", "type": "date", "format": "DD-MM-YYYY HH:mm:ss", "hideEmpty": true },
-          { "label": "APP.LABEL.Dimensione", "field": "richiesta.dimensione_ricezione", "type": "number", "hideEmpty": true }
+          { "label": "APP.AUDIT.LABEL.PatternAudit", "field": "audit.pattern", "type": "text", "columns": 6, "hideEmpty": true },
+          { "label": "APP.AUDIT.LABEL.SchemaDati", "field": "audit.schema_dati", "type": "text", "columns": 6, "hideEmpty": true },
+          { "label": "APP.AUDIT.LABEL.UserId", "field": "audit.user_id", "type": "text", "columns": 6, "hideEmpty": true },
+          { "label": "APP.AUDIT.LABEL.UserLocation", "field": "audit.user_location", "type": "text", "columns": 6, "hideEmpty": true },
+          { "label": "APP.AUDIT.LABEL.LoaEstesa", "field": "audit.loa", "type": "text", "columns": 6, "hideEmpty": true },
+          { "label": "APP.AUDIT.LABEL.PurposeId", "field": "audit.purpose_id", "type": "text", "class": "text-break", "columns": 6, "hideEmpty": true },
+          { "label": "APP.AUDIT.LABEL.Issuer", "field": "audit.issuer", "type": "text", "class": "text-break", "columns": 6, "hideEmpty": true },
+          { "label": "APP.AUDIT.LABEL.Audience", "field": "audit.audience", "type": "text", "class": "text-break", "columns": 6, "hideEmpty": true },
+          { "label": "APP.AUDIT.LABEL.MessageId", "field": "audit.message_id", "type": "text", "class": "text-break", "columns": 6, "hideEmpty": true },
+          { "label": "APP.AUDIT.LABEL.Kid", "field": "audit.kid", "type": "text", "class": "text-break", "columns": 6, "hideEmpty": true },
+          { "label": "APP.AUDIT.LABEL.IssuedAt", "field": "audit.issued_at", "type": "text", "columns": 4, "hideEmpty": true },
+          { "label": "APP.AUDIT.LABEL.NotBefore", "field": "audit.not_before", "type": "text", "columns": 4, "hideEmpty": true },
+          { "label": "APP.AUDIT.LABEL.Expiration", "field": "audit.expiration", "type": "text", "columns": 4, "hideEmpty": true }
         ]
       },
       {
-        "code": "DettagliRisposta",
-        "title": "APP.TRANSACTIONS.TITLE.DettagliRisposta",
+        "code": "AltreProprieta",
+        "title": "APP.AUDIT.TITLE.AltreProprieta",
         "title_sub": "",
-        "details": [
-          { "label": "APP.LABEL.IdApplicativo", "field": "risposta.id_correlazione", "type": "text", "class": "", "columns": "12", "hideEmpty": true },
-          { "label": "APP.LABEL.InRicezione", "field": "risposta.data_ricezione", "type": "date", "class": "", "format": "DD-MM-YYYY HH:mm:ss", "hideEmpty": true },
-          { "label": "APP.LABEL.Dimensione", "field": "risposta.dimensione_ricezione", "type": "number", "hideEmpty": true },
-          { "label": "APP.LABEL.FaultRicezione", "field": "risposta.fault_ricezione", "type": "text", "class": "text-break ws-pre-wrap border p-2 content-scroller text-bg-gl", "columns": 12, "accordion": { "label": "APP.BUTTON.Visualizza", "iconOpen": "chevron-down", "labelClose": "APP.BUTTON.Nascondi", "iconClose": "chevron-up", "opened": false }, "decode": true, "height": "300px", "hideEmpty": true },
-          { "label": "APP.LABEL.Consegnata", "field": "richiesta.data_consegna", "type": "date", "class": "", "format": "DD-MM-YYYY HH:mm:ss", "hideEmpty": true },
-          { "label": "APP.LABEL.Dimensione", "field": "risposta.dimensione_consegna", "type": "number", "hideEmpty": true },
-          { "label": "APP.LABEL.FaultConsegna", "field": "risposta.fault_consegna", "type": "text", "class": "text-break ws-pre-wrap border p-2 content-scroller text-bg-gl", "columns": 12, "accordion": { "label": "APP.BUTTON.Visualizza", "iconOpen": "chevron-down", "labelClose": "APP.BUTTON.Nascondi", "iconClose": "chevron-up", "opened": false }, "decode": true, "height": "300px", "hideEmpty": true }
-        ]
+        "field": "audit.altre_proprieta"
       }
     ]
   },
 
   "options": {
+    "pattern": {
+      "label": "APP.LABEL.Pattern",
+      "small": true,
+      "values": {
+        "default": { "label": "APP.LABEL.Pattern", "chipVariant": "muted", "background": "#6c717a", "border": "#6c717a", "color": "#ffffff" }
+      }
+    },
+    "loa": {
+      "label": "APP.LABEL.Loa",
+      "small": true,
+      "values": {
+        "default": { "label": "APP.LABEL.Loa", "chipVariant": "muted", "background": "#6c717a", "border": "#6c717a", "color": "#ffffff" }
+      }
+    },
     "status": {
       "label": "APP.LABEL.Status",
       "small": true,

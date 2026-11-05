@@ -42,6 +42,7 @@
       <div class="nav-controls">
         @if (_updateData | mapper:_canManagementComunicazioniMapper) {
           <app-monitor-dropdown
+            [service_id]="data?.id_servizio"
             [showComunications]="_updateData | mapper:_canManagementComunicazioniMapper"
             [showMonitoring]="(_updateData | mapper:_canManagementMapper) && (_updateData | mapper:_canJoinMapper) && (_updateData | mapper:_canMonitoraggioMapper)"
             [showManagement]="_updateData | mapper:_canManagementMapper"
