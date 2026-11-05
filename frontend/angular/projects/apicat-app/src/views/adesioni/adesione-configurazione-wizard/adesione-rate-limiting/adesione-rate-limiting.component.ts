@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
@@ -75,6 +75,8 @@ export class AdesioneRateLimitingComponent implements OnChanges {
     @Input() grant: Grant | null = null;
     /** Dati di esempio al posto delle quote reali; il salvataggio resta locale. */
     @Input() mock: boolean = false;
+    /** Quote dell'adesione salvate (per rifare la verifica del rate limiting). */
+    @Output() salvato = new EventEmitter<void>();
 
     readonly _idBase = `adesione-rate-limiting-${++AdesioneRateLimitingComponent._seq}`;
 
@@ -216,6 +218,7 @@ export class AdesioneRateLimitingComponent implements OnChanges {
             this._salvate = _body.rate_limiting;
             this._editing = false;
             this._initForm();
+            this.salvato.emit();
             return;
         }
         this.apiService.putElementRelated('adesioni', this.adesione.id_adesione, `${this.environment}/rate-limiting`, _body).subscribe({
@@ -224,6 +227,7 @@ export class AdesioneRateLimitingComponent implements OnChanges {
                 this._salvate = (resp as RateLimitingAdesione)?.rate_limiting || _body.rate_limiting;
                 this._editing = false;
                 this._initForm();
+                this.salvato.emit();
             },
             error: (error: any) => {
                 this._saving = false;

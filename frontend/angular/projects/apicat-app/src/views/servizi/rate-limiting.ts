@@ -49,6 +49,10 @@ export interface RateLimitingAdesione {
 export interface RateLimitingRiepilogo extends RateLimiting {
     quota_assegnata: number;
     quota_residua?: number;
+    /** Solo adesioni gia` autorizzate per l'ambiente (comprese nei valori complessivi). */
+    quota_autorizzata?: number;
+    numero_fruitori_autorizzati?: number;
+    quota_residua_autorizzata?: number;
     numero_fruitori: number;
     superata: boolean;
 }
@@ -70,7 +74,41 @@ export interface ItemRateLimitingFruitore {
     id_logico?: string;
     soggetto: any;
     stato: string;
+    /** Adesione gia` autorizzata per l'ambiente. */
+    autorizzata?: boolean;
     rate_limiting: RateLimitingAdesioneApi[];
+}
+
+/**
+ * Verifica del rate limiting di un'adesione da autorizzare, per periodo di un'API
+ * (`GET /adesioni/{id}/{ambiente}/rate-limiting/verifica`).
+ */
+export interface RateLimitingVerificaPeriodo extends RateLimiting {
+    /** Quota dell'adesione (assente se non indicata per il periodo). */
+    quota_richiesta?: number;
+    /** Altre adesioni gia` autorizzate per l'ambiente. */
+    quota_autorizzata: number;
+    numero_fruitori_autorizzati: number;
+    /** Altre richieste non ancora autorizzate (solo informative). */
+    quota_in_attesa: number;
+    numero_fruitori_in_attesa: number;
+    /** Quota totale meno quota autorizzata (assente senza quota totale; negativa se le autorizzate sforano gia`). */
+    quota_residua?: number;
+    /** La quota richiesta supera la quota residua. */
+    sfora: boolean;
+}
+
+export interface RateLimitingVerificaApi {
+    id_api: string;
+    nome: string;
+    versione: number;
+    rate_limiting: RateLimitingVerificaPeriodo[];
+}
+
+export interface RateLimitingVerifica {
+    /** Nessuna quota dell'adesione sfora la quota residua. */
+    rientra: boolean;
+    api: RateLimitingVerificaApi[];
 }
 
 export const RUOLO_EROGATO_SOGGETTO_DOMINIO = 'erogato_soggetto_dominio';

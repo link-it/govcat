@@ -884,6 +884,7 @@
     [environment]="AmbienteEnum.Collaudo"
     [grant]="grant"
     [mock]="rateLimitingMock"
+    (salvato)="rateLimitingAggiornato = rateLimitingAggiornato + 1"
   ></app-adesione-rate-limiting>
   @for (item of proprietaCustomFiltered[AmbienteEnum.Collaudo]; track item; let last = $last; let even = $even) {
     <div class="settings-">
@@ -967,6 +968,7 @@
     [environment]="AmbienteEnum.Produzione"
     [grant]="grant"
     [mock]="rateLimitingMock"
+    (salvato)="rateLimitingAggiornato = rateLimitingAggiornato + 1"
   ></app-adesione-rate-limiting>
   @for (item of proprietaCustomFiltered[AmbienteEnum.Produzione]; track item; let last = $last; let even = $even) {
     <div class="settings-" [class.border-bottom-]="last">
@@ -1520,6 +1522,14 @@
 
                     <div class="d-flex flex-wrap gap-2 justify-content-end mt-3 pt-3"
                          [style.border-top]="_subStepDisclaimers?.length ? '1px solid var(--line)' : null">
+                      @if (canApprovare(section)) {
+                        <app-adesione-rate-limiting-verifica class="me-auto"
+                          [adesione]="adesione"
+                          [ambiente]="section"
+                          [mock]="rateLimitingMock"
+                          [aggiorna]="rateLimitingAggiornato">
+                        </app-adesione-rate-limiting-verifica>
+                      }
                       @if (canRifiutare(section)) {
                         <lnk-button
                           [label]="'APP.WORKFLOW.RIFIUTO.Rifiuta' | translate"

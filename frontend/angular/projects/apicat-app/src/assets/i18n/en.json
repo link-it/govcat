@@ -75,6 +75,23 @@
 				"Totale": "service total {{quota}}",
 				"NonRichiesta": "not requested"
 			},
+			"RATE_LIMITING_VERIFICA": {
+				"Pulsante": "Check rate limiting",
+				"Titolo": "Rate limiting check",
+				"Descrizione": "For each API and period: service quota, quota already authorized to other consumers, remaining quota and quota requested by this subscription. Pending requests are not counted.",
+				"QuotaServizio": "Service quota",
+				"Richiesta": "Requested by the subscription",
+				"EsitoRientra": "Within the remaining service quota",
+				"EsitoSfora": "Exceeds the service quota",
+				"SoloAvviso": "This is only a warning: the subscription can still be authorized. To stay within limits, reduce the requested quota, the other consumers' quotas from the service summary, or raise the API overall quota.",
+				"ChipRientra": "Within",
+				"ChipSfora": "Exceeds",
+				"Autorizzata": "Already authorized",
+				"SuFruitori": "to {{numero}} consumers",
+				"Residua": "Remaining",
+				"ResiduaDopo": "{{quota}} after authorization",
+				"InAttesa": "Other pending requests: {{quota}} from {{numero}} consumers (not counted)"
+			},
 			"FILTER": {
 				"All": "All",
 				"Closed": "Closed",
@@ -2608,7 +2625,15 @@
 				"Api": "Service APIs",
 				"FiltraFruitori": "Filter by consumer or logical id",
 				"NessunRisultato": "No consumer matches the filter.",
-				"CaricamentoFruitori": "Loading all consumers…",
+				"QuestaAdesione": "This subscription",
+				"StatoFruitori": "Authorization status",
+				"Autorizzata": "Authorized",
+				"InAttesa": "Pending",
+				"STATO": {
+					"tutte": "All",
+					"autorizzate": "Authorized",
+					"attesa": "Pending"
+				},
 				"MassimoFruitore": "Max per consumer"
 			},
 			"ATTACHMENTS": {

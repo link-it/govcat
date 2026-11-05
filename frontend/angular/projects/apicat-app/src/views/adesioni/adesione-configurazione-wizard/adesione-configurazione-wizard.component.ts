@@ -67,6 +67,7 @@ declare const saveAs: any;
 import { CkeckProvider, ClassiEnum, DataStructure } from '@app/provider/check.provider';
 import { NotificationBarComponent } from '@app/views/notifications/notification-bar/notification-bar.component';
 import { AdesioneRateLimitingComponent } from './adesione-rate-limiting/adesione-rate-limiting.component';
+import { AdesioneRateLimitingVerificaComponent } from './adesione-rate-limiting-verifica/adesione-rate-limiting-verifica.component';
 import { rateLimitingMockAttivo } from '@app/views/servizi/rate-limiting.mock';
 
 export enum AccordionType {
@@ -129,6 +130,7 @@ export interface AdesioneDisclaimer {
         WizardSubstepperComponent,
         WizardRifiutoFormComponent,
         AdesioneRateLimitingComponent,
+        AdesioneRateLimitingVerificaComponent,
         StatoChipComponent,
         ReferenteAddFormComponent,
         NotificationBarComponent,
@@ -641,6 +643,8 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     disclaimersUseMock: boolean = false;
     /** Dati di esempio del rate limiting (`AppConfig.Services.rateLimitingMock`). */
     rateLimitingMock: boolean = false;
+    /** Incrementato a ogni salvataggio delle quote dell'adesione, per rifare la verifica del rate limiting. */
+    rateLimitingAggiornato: number = 0;
     private readonly DISCLAIMERS_MOCK: AdesioneDisclaimer[] = [
         {
             contesto: 'generale',
@@ -1137,6 +1141,11 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
      * Rifiuto della richiesta: nel sotto-step "In approvazione", per chi puo` sia autorizzare
      * sia riportare l'adesione allo stato precedente del workflow.
      */
+    /** Chi puo` approvare l'adesione nel sotto-step "In approvazione" (verifica del rate limiting). */
+    canApprovare(section: 'collaudo' | 'produzione'): boolean {
+        return this._isSubstepNaturallyActive(section, 'in_approvazione') && this._isWorkflowActionEnabled('stato_successivo');
+    }
+
     canRifiutare(section: 'collaudo' | 'produzione'): boolean {
         const _precedente = this.getCambioStatoEntry()?.stato_precedente?.nome;
         return this._isSubstepNaturallyActive(section, 'in_approvazione') && !!_precedente

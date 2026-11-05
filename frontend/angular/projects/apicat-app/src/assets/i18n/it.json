@@ -75,6 +75,23 @@
 				"Totale": "totale servizio {{quota}}",
 				"NonRichiesta": "non richiesta"
 			},
+			"RATE_LIMITING_VERIFICA": {
+				"Pulsante": "Verifica rate limiting",
+				"Titolo": "Verifica del rate limiting",
+				"Descrizione": "Per ogni API e periodo: quota del servizio, quota già autorizzata ad altri fruitori, residua e quota richiesta da questa adesione. Le richieste in attesa non sono conteggiate.",
+				"QuotaServizio": "Quota del servizio",
+				"Richiesta": "Richiesta dell'adesione",
+				"EsitoRientra": "Rientra nella quota residua del servizio",
+				"EsitoSfora": "Sfora la quota del servizio",
+				"SoloAvviso": "È solo un avviso: l'adesione può comunque essere autorizzata. Per rientrare si può ridurre la quota richiesta, quelle degli altri fruitori dal riepilogo del servizio o alzare la quota totale dell'API.",
+				"ChipRientra": "Rientra",
+				"ChipSfora": "Sfora",
+				"Autorizzata": "Già autorizzata",
+				"SuFruitori": "a {{numero}} fruitori",
+				"Residua": "Residua",
+				"ResiduaDopo": "{{quota}} dopo l'autorizzazione",
+				"InAttesa": "Altre richieste in attesa: {{quota}} da {{numero}} fruitori (non conteggiate)"
+			},
 			"FILTER": {
 				"All": "Tutti",
 				"Closed": "Chiusi",
@@ -2608,7 +2625,15 @@
 				"Api": "API del servizio",
 				"FiltraFruitori": "Filtra per fruitore o id logico",
 				"NessunRisultato": "Nessun fruitore corrisponde al filtro.",
-				"CaricamentoFruitori": "Caricamento di tutti i fruitori…",
+				"QuestaAdesione": "Questa adesione",
+				"StatoFruitori": "Stato di autorizzazione",
+				"Autorizzata": "Autorizzata",
+				"InAttesa": "In attesa",
+				"STATO": {
+					"tutte": "Tutte",
+					"autorizzate": "Autorizzate",
+					"attesa": "In attesa"
+				},
 				"MassimoFruitore": "Max per fruitore"
 			},
 			"ATTACHMENTS": {

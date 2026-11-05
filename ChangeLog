@@ -1,3 +1,11 @@
+2026-11-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #402: verifica del rate limiting dell'adesione da autorizzare (pulsante con esito e
+	  dialog per API e periodo con quote autorizzate, residue, richieste e in attesa); elenco
+	  fruitori riusabile, in sola lettura nella verifica, con ricerca lato server (q) e filtro
+	  per stato di autorizzazione; quota autorizzata nel riepilogo in vetrina.
+
 2026-11-04  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

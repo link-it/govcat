@@ -1,0 +1,116 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div class="modal-header align-items-center gap-3">
+  <div class="flex-grow-1 min-w-0">
+    <h5 class="modal-title mb-0">{{ 'APP.ADESIONI.RATE_LIMITING_VERIFICA.Titolo' | translate }}</h5>
+    <div class="text-muted small text-truncate">
+      {{ sottotitolo }}@if (sottotitolo) { · }{{ (ambiente === 'produzione' ? 'APP.BUTTON.Production' : 'APP.BUTTON.Testing') | translate }}
+    </div>
+  </div>
+  <button type="button" class="btn-close" [attr.aria-label]="'APP.BUTTON.Close' | translate" (click)="chiudi()"></button>
+</div>
+<div class="modal-body">
+  <div class="vr-esito" [class.is-critica]="_sfora" role="status">
+    <i class="bi" [class.bi-exclamation-triangle-fill]="_sfora" [class.bi-check-circle-fill]="!_sfora" aria-hidden="true"></i>
+    <div>
+      <div class="vr-esito-titolo">{{ esito | translate }}</div>
+      @if (_sfora) { <div class="vr-esito-nota">{{ 'APP.ADESIONI.RATE_LIMITING_VERIFICA.SoloAvviso' | translate }}</div> }
+    </div>
+  </div>
+  <p class="vr-desc">{{ 'APP.ADESIONI.RATE_LIMITING_VERIFICA.Descrizione' | translate }}</p>
+
+  @if ((verifica?.api?.length || 0) > 1) {
+    <lnk-pill-tabs class="vr-tabs" [items]="_tabs" [active]="_apiSelezionata?.id_api || ''" ariaLabel="APP.SERVICES.RATE_LIMITING.Api"
+                   (activeChange)="seleziona($event)"></lnk-pill-tabs>
+  }
+
+  @if (_apiSelezionata; as api) {
+    <section class="vr-api" [attr.aria-label]="api.nome">
+      <h3 class="vr-api-title">{{ api.nome }} <span class="version">v{{ api.versione }}</span></h3>
+      <div class="vr-voci">
+        @for (v of api.rate_limiting; track v.periodo) {
+          @let residuaDopo = _residuaDopo(v);
+          <div class="vr-voce" [class.is-sfora]="v.sfora">
+            <div class="vr-voce-hd">
+              <span class="vr-periodo">{{ _label(v.periodo) | translate }}</span>
+              <span class="vr-chip" [class.is-sfora]="v.sfora">
+                {{ (v.sfora ? 'APP.ADESIONI.RATE_LIMITING_VERIFICA.ChipSfora' : 'APP.ADESIONI.RATE_LIMITING_VERIFICA.ChipRientra') | translate }}
+              </span>
+            </div>
+
+            <dl class="vr-quote">
+              <div>
+                <dt>{{ 'APP.ADESIONI.RATE_LIMITING_VERIFICA.QuotaServizio' | translate }}</dt>
+                <dd>
+                  @if (v.quota) { {{ v.quota | localeNumber }} / {{ _label(v.periodo) | translate | lowercase }} } @else { - }
+                  @if (v.quota_fruitore) {
+                    <span class="vr-meta">{{ 'APP.API.RATE_LIMITING.MaxPerFruitore' | translate: { quota: (v.quota_fruitore | localeNumber) } }}</span>
+                  }
+                </dd>
+              </div>
+              <div>
+                <dt>{{ 'APP.ADESIONI.RATE_LIMITING_VERIFICA.Richiesta' | translate }}</dt>
+                <dd [class.vr-sfora]="v.sfora">
+                  {{ v.quota_richiesta ? (v.quota_richiesta | localeNumber) : ('APP.ADESIONI.RATE_LIMITING.NonRichiesta' | translate) }}
+                </dd>
+              </div>
+              <div>
+                <dt>{{ 'APP.ADESIONI.RATE_LIMITING_VERIFICA.Autorizzata' | translate }}</dt>
+                <dd>
+                  {{ v.quota_autorizzata | localeNumber }}
+                  <span class="vr-meta">{{ 'APP.ADESIONI.RATE_LIMITING_VERIFICA.SuFruitori' | translate: { numero: v.numero_fruitori_autorizzati } }}</span>
+                </dd>
+              </div>
+              @if (v.quota_residua !== undefined && v.quota_residua !== null) {
+                <div>
+                  <dt>{{ 'APP.ADESIONI.RATE_LIMITING_VERIFICA.Residua' | translate }}</dt>
+                  <dd [class.text-danger]="v.quota_residua < 0">
+                    {{ v.quota_residua | localeNumber }}
+                    @if (residuaDopo !== null) {
+                      <span class="vr-meta" [class.text-danger]="residuaDopo < 0">{{ 'APP.ADESIONI.RATE_LIMITING_VERIFICA.ResiduaDopo' | translate: { quota: (residuaDopo | localeNumber) } }}</span>
+                    }
+                  </dd>
+                </div>
+              }
+            </dl>
+
+            @if (v.numero_fruitori_in_attesa) {
+              <p class="vr-attesa">
+                <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+                {{ 'APP.ADESIONI.RATE_LIMITING_VERIFICA.InAttesa' | translate: { quota: (v.quota_in_attesa | localeNumber), numero: v.numero_fruitori_in_attesa } }}
+              </p>
+            }
+          </div>
+        }
+      </div>
+
+      @if (idServizio) {
+        <app-rate-limiting-fruitori class="vr-fruitori"
+          [idServizio]="idServizio"
+          [ambiente]="ambiente"
+          [colonne]="_colonne"
+          [nomeApi]="api.nome"
+          [evidenzia]="idAdesione"
+          [mock]="mock"
+          [fruitoriMock]="fruitoriMock">
+        </app-rate-limiting-fruitori>
+      }
+    </section>
+  }
+</div>

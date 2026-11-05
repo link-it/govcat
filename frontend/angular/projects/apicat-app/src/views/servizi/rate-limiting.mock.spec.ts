@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { RATE_LIMITING_MOCK_QUOTE, apiMock, apiRiepilogoMock, fruitoriMock, quoteMock, rateLimitingMockAttivo, riepilogoMock } from './rate-limiting.mock';
+import { RATE_LIMITING_MOCK_QUOTE, apiMock, apiRiepilogoMock, fruitoriMock, quoteMock, rateLimitingMockAttivo, riepilogoMock, verificaMock } from './rate-limiting.mock';
 
 describe('rate-limiting.mock', () => {
   it('should be enabled only by the app-config flag', () => {
@@ -38,5 +38,26 @@ describe('rate-limiting.mock', () => {
     expect(minuto).toMatchObject({ quota_fruitore: 20, quota_assegnata: 78, superata: false });
     expect(minuto).not.toHaveProperty('quota_residua');
     expect(riepilogo.api[0].produzione).toEqual([]);
+  });
+
+  it('should check the subscription against the quotas already authorized', () => {
+    const verifica = verificaMock([{ id_api: 'a1', nome: 'API 1', versione: 1 }], [{ id_api: 'a1', periodo: 'ora', quota: 10 }]);
+    expect(verifica.api.map((a) => a.id_api)).toEqual(['a1', 'mock-api-2', 'mock-api-3']);
+    const [giorno, ora] = verifica.api[0].rate_limiting;
+    expect(giorno).toMatchObject({
+      quota_richiesta: 2700, quota_autorizzata: 8400, numero_fruitori_autorizzati: 3, quota_in_attesa: 3300, numero_fruitori_in_attesa: 2,
+      quota_residua: 1600, sfora: true
+    });
+    expect(ora).toMatchObject({ quota_richiesta: 10, quota_autorizzata: 420, quota_residua: 180, sfora: false });
+    const minuto = verifica.api[2].rate_limiting.find((v) => v.periodo === 'minuto');
+    expect(minuto).toMatchObject({ quota_richiesta: 18, quota_autorizzata: 56, sfora: false });
+    expect(minuto).not.toHaveProperty('quota_residua');
+    expect(verifica.rientra).toBe(false);
+  });
+
+  it('should add to the summary the quotas already authorized', () => {
+    const base = { api: [{ id_api: 'a1', nome: 'API 1', versione: 1, collaudo: [], produzione: [] }] };
+    const riepilogo = riepilogoMock(base, fruitoriMock(apiRiepilogoMock(base, 'collaudo')), 'collaudo');
+    expect(riepilogo.api[0].collaudo[0]).toMatchObject({ quota_autorizzata: 8400, numero_fruitori_autorizzati: 3, quota_residua_autorizzata: 1600 });
   });
 });

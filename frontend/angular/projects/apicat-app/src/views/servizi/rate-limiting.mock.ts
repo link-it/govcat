@@ -17,7 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import {
-    ItemRateLimitingFruitore, RATE_LIMITING_PERIODI, RateLimiting, RateLimitingAdesioneApi, RateLimitingRiepilogo, RateLimitingServizio
+    ItemRateLimitingFruitore, RATE_LIMITING_PERIODI, RateLimiting, RateLimitingAdesioneApi, RateLimitingRiepilogo, RateLimitingServizio,
+    RateLimitingVerifica, RateLimitingVerificaPeriodo
 } from './rate-limiting';
 
 /**
@@ -37,12 +38,12 @@ export const RATE_LIMITING_MOCK_QUOTE: RateLimiting[][] = [
 
 /** Quota di ciascun fruitore rispetto al massimo per fruitore (o a un quarto della quota totale); 0 = nessuna quota. */
 const MOCK_FRUITORI = [
-    { soggetto: 'Comune di Vallefiorita', id_logico: 'VF-01', stato: 'pubblicato_collaudo', fattore: 1 },
-    { soggetto: 'Unione dei Comuni del Monte Alto', id_logico: null, stato: 'autorizzato_collaudo', fattore: 0.8 },
-    { soggetto: 'Azienda Sanitaria Locale Est', id_logico: 'ASL-EST', stato: 'richiesto_collaudo', fattore: 0.6 },
-    { soggetto: 'Provincia di Montebello', id_logico: null, stato: 'pubblicato_collaudo', fattore: 1 },
-    { soggetto: 'Consorzio Servizi Digitali', id_logico: 'CSD', stato: 'bozza', fattore: 0.5 },
-    { soggetto: 'Comune di Pratoverde', id_logico: null, stato: 'bozza', fattore: 0 }
+    { soggetto: 'Comune di Vallefiorita', id_logico: 'VF-01', stato: 'pubblicato_collaudo', autorizzata: true, fattore: 1 },
+    { soggetto: 'Unione dei Comuni del Monte Alto', id_logico: null, stato: 'autorizzato_collaudo', autorizzata: true, fattore: 0.8 },
+    { soggetto: 'Azienda Sanitaria Locale Est', id_logico: 'ASL-EST', stato: 'richiesto_collaudo', autorizzata: false, fattore: 0.6 },
+    { soggetto: 'Provincia di Montebello', id_logico: null, stato: 'pubblicato_collaudo', autorizzata: true, fattore: 1 },
+    { soggetto: 'Consorzio Servizi Digitali', id_logico: 'CSD', stato: 'bozza', autorizzata: false, fattore: 0.5 },
+    { soggetto: 'Comune di Pratoverde', id_logico: null, stato: 'bozza', autorizzata: false, fattore: 0 }
 ];
 
 /** Fruitori di esempio in tutto: oltre ai precedenti, adesioni senza quote (per mostrare la paginazione). */
@@ -76,13 +77,14 @@ function _quotaFruitore(voce: RateLimiting, fattore: number): number {
 export function fruitoriMock(api: Array<{ id_api: string; quote: RateLimiting[] }>): ItemRateLimitingFruitore[] {
     const _fruitori = [...MOCK_FRUITORI];
     for (let i = _fruitori.length; i < RATE_LIMITING_MOCK_FRUITORI; i++) {
-        _fruitori.push({ soggetto: `Comune di Esempio ${i + 1}`, id_logico: `CE-${i + 1}`, stato: 'bozza', fattore: 0 });
+        _fruitori.push({ soggetto: `Comune di Esempio ${i + 1}`, id_logico: `CE-${i + 1}`, stato: 'bozza', autorizzata: false, fattore: 0 });
     }
     return _fruitori.map((f, i) => ({
         id_adesione: `mock-adesione-${i + 1}`,
         id_logico: f.id_logico || undefined,
         soggetto: { nome: f.soggetto },
         stato: f.stato,
+        autorizzata: f.autorizzata,
         rate_limiting: f.fattore ? api.flatMap((a) => a.quote.map((q: RateLimiting) => ({
             id_api: a.id_api, periodo: q.periodo, quota: _quotaFruitore(q, f.fattore)
         } as RateLimitingAdesioneApi))) : []
@@ -105,9 +107,18 @@ export function riepilogoMock(riepilogo: RateLimitingServizio | null, fruitori: 
                     .map((f) => f.rate_limiting.find((r) => r.id_api === a.id_api && r.periodo === q.periodo)?.quota || 0)
                     .filter((v: number) => v > 0);
                 const _assegnata = _assegnate.reduce((t: number, v: number) => t + v, 0);
-                const _voce: RateLimitingRiepilogo = { ...q, quota_assegnata: _assegnata, numero_fruitori: _assegnate.length, superata: false };
+                const _autorizzate = fruitori
+                    .filter((f) => f.autorizzata)
+                    .map((f) => f.rate_limiting.find((r) => r.id_api === a.id_api && r.periodo === q.periodo)?.quota || 0)
+                    .filter((v: number) => v > 0);
+                const _autorizzata = _autorizzate.reduce((t: number, v: number) => t + v, 0);
+                const _voce: RateLimitingRiepilogo = {
+                    ...q, quota_assegnata: _assegnata, numero_fruitori: _assegnate.length, superata: false,
+                    quota_autorizzata: _autorizzata, numero_fruitori_autorizzati: _autorizzate.length
+                };
                 if (q.quota) {
                     _voce.quota_residua = q.quota - _assegnata;
+                    _voce.quota_residua_autorizzata = q.quota - _autorizzata;
                     _voce.superata = _voce.quota_residua < 0;
                 }
                 return _voce;
@@ -115,4 +126,55 @@ export function riepilogoMock(riepilogo: RateLimitingServizio | null, fruitori: 
             return { id_api: a.id_api, nome: a.nome, versione: a.versione, collaudo: ambiente === 'collaudo' ? _voci : [], produzione: ambiente === 'produzione' ? _voci : [] };
         })
     };
+}
+
+/** Fruitori di esempio coerenti con la verifica di esempio (stesse API e quote). */
+export function fruitoriVerificaMock(api: Array<{ id_api: string; nome: string; versione: number }>): ItemRateLimitingFruitore[] {
+    return fruitoriMock(apiMock(api || []).map((a, i) => ({ id_api: a.id_api, quote: quoteMock(null, i) })));
+}
+
+/**
+ * Verifica di esempio di un'adesione da autorizzare: autorizzate e in attesa sono i fruitori di esempio,
+ * la richiesta dell'adesione e` la quota salvata o, se assente, una quota di esempio.
+ */
+export function verificaMock(api: Array<{ id_api: string; nome: string; versione: number }>, richieste: RateLimitingAdesioneApi[] = []): RateLimitingVerifica {
+    const _api = apiMock(api || []);
+    const _fruitori = fruitoriVerificaMock(api);
+    const _somma = (idApi: string, periodo: string, autorizzate: boolean) => {
+        const _quote = _fruitori
+            .filter((f) => !!f.autorizzata === autorizzate)
+            .map((f) => f.rate_limiting.find((r) => r.id_api === idApi && r.periodo === periodo)?.quota || 0)
+            .filter((v: number) => v > 0);
+        return { quota: _quote.reduce((t: number, v: number) => t + v, 0), numero: _quote.length };
+    };
+    const _verifica: RateLimitingVerifica = {
+        rientra: true,
+        api: _api.map((a, i) => ({
+            id_api: a.id_api,
+            nome: a.nome,
+            versione: a.versione,
+            rate_limiting: quoteMock(null, i).map((q: RateLimiting) => {
+                const _autorizzate = _somma(a.id_api, q.periodo, true);
+                const _attesa = _somma(a.id_api, q.periodo, false);
+                const _richiesta = richieste.find((r) => r.id_api === a.id_api && r.periodo === q.periodo)?.quota
+                    ?? _quotaFruitore(q, 0.9);
+                const _voce: RateLimitingVerificaPeriodo = {
+                    ...q,
+                    quota_richiesta: _richiesta || undefined,
+                    quota_autorizzata: _autorizzate.quota,
+                    numero_fruitori_autorizzati: _autorizzate.numero,
+                    quota_in_attesa: _attesa.quota,
+                    numero_fruitori_in_attesa: _attesa.numero,
+                    sfora: false
+                };
+                if (q.quota) {
+                    _voce.quota_residua = q.quota - _autorizzate.quota;
+                    _voce.sfora = !!_richiesta && _richiesta > _voce.quota_residua;
+                }
+                return _voce;
+            }).sort((x, y) => RATE_LIMITING_PERIODI.indexOf(x.periodo) - RATE_LIMITING_PERIODI.indexOf(y.periodo))
+        }))
+    };
+    _verifica.rientra = !_verifica.api.some((a) => a.rate_limiting.some((v) => v.sfora));
+    return _verifica;
 }

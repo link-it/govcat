@@ -1,0 +1,187 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+
+  > * { flex-shrink: 0; }
+}
+
+.rl-vuoto {
+  padding: 1rem 0;
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--ink-3, #57738a);
+}
+
+.rl-fruitori-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-bottom: 8px;
+}
+
+.rl-fruitori-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink, #212c49);
+}
+
+.rl-count {
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--surface-3, #eef4f8);
+  color: var(--ink-2, #2e445a);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.rl-filtri {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+// Selettore dello stato come il selettore dell'ambiente della vetrina
+.rl-stati {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  background: var(--surface-2, #f7f9fb);
+  border: 1px solid var(--line, #dee8ef);
+  border-radius: 999px;
+}
+
+.rl-stato {
+  padding: 4px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-3, #57738a);
+  font-size: 12px;
+  font-weight: 550;
+  cursor: pointer;
+
+  &.is-on { background: var(--ink, #212c49); color: #fff; }
+  &:focus-visible { outline: 2px solid var(--brand, #0d6efd); outline-offset: 1px; }
+}
+
+.rl-filtro {
+  position: relative;
+  width: 240px;
+  max-width: 100%;
+
+  i {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: var(--ink-3, #57738a);
+  }
+
+  input { padding-left: 28px; }
+}
+
+// Molti fruitori: la tabella scorre con l'intestazione fissa. Senza scroll anchoring, caricata una
+// pagina la vista resta dov'era (altrimenti resterebbe in fondo e caricherebbe a catena tutte le pagine)
+.rl-fruitori-wrap {
+  flex: 1 1 auto;
+  overflow: auto;
+  overflow-anchor: none;
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #dee8ef);
+  border-radius: 10px;
+}
+
+.rl-fruitori {
+  margin: 0;
+
+  thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--surface, #fff);
+    vertical-align: bottom;
+  }
+
+  th[scope="row"] { font-weight: 500; }
+  tbody th,
+  tbody td { vertical-align: middle; }
+  th, td { padding: 8px 12px; }
+  input { max-width: 120px; }
+  tr:last-child > * { border-bottom: 0; }
+  tr.is-editing { background: var(--surface-2, #f7f9fb); }
+  tr.is-evidenziato > * { background: var(--warn-soft, #fff4e5); }
+
+  th.rl-periodo {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--ink-3, #57738a);
+  }
+}
+
+.rl-fruitore-nome {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+}
+
+.rl-chip {
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line, #dee8ef);
+  background: var(--surface-2, #f7f9fb);
+  color: var(--ink-3, #57738a);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+
+  &.is-autorizzata {
+    border-color: var(--ok-border, #a6dcb7);
+    background: var(--ok-soft, #e7f6ec);
+    color: var(--ok-ink, #1b6b3a);
+  }
+}
+
+.rl-chip-corrente {
+  border-color: var(--warn-border, #f5c98a);
+  background: var(--surface, #fff);
+  color: var(--warn-ink, #8a4b00);
+}
+
+.rl-caricamento {
+  padding: 8px 12px;
+  font-size: 12.5px;
+  color: var(--ink-3, #57738a);
+}
+
+.rl-sentinella { height: 1px; }
+
+.rl-btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  color: var(--ink, #212c49);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+
+  &:hover { background: var(--surface-3, #eef4f8); }
+  &:focus-visible { outline: 2px solid var(--brand, #0d6efd); outline-offset: 1px; }
+
+  i { font-size: 14px; }
+}

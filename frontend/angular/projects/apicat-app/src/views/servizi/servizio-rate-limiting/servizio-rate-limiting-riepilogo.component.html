@@ -45,6 +45,9 @@
                 }
                 <dl class="rl-quota-dati">
                   <div><dt>{{ 'APP.SERVICES.RATE_LIMITING.Assegnata' | translate }}</dt><dd>{{ _assegnata(c) | localeNumber }}</dd></div>
+                  @if (c.quota_autorizzata !== undefined && c.quota_autorizzata !== null) {
+                    <div><dt>{{ 'APP.SERVICES.RATE_LIMITING.Autorizzata' | translate }}</dt><dd>{{ c.quota_autorizzata | localeNumber }}</dd></div>
+                  }
                   @if (c.quota) {
                     <div><dt>{{ 'APP.SERVICES.RATE_LIMITING.Residua' | translate }}</dt><dd [class.text-danger]="(_residua(c) ?? 0) < 0">{{ _residua(c) | localeNumber }}</dd></div>
                     @if (c.quota_fruitore) {
@@ -60,103 +63,17 @@
             }
           </div>
 
-          <div class="rl-fruitori-hd">
-            <h4 class="rl-fruitori-title">
-              {{ 'APP.SERVICES.RATE_LIMITING.QuoteFruitori' | translate }}
-              <span class="rl-count">{{ _totaleFruitori }}</span>
-            </h4>
-            @if (_fruitori.length) {
-              <div class="rl-filtro">
-                <i class="bi bi-search" aria-hidden="true"></i>
-                <input type="search" class="form-control form-control-sm" [(ngModel)]="_filtro" (ngModelChange)="_onFiltro()"
-                       [placeholder]="'APP.SERVICES.RATE_LIMITING.FiltraFruitori' | translate"
-                       [attr.aria-label]="'APP.SERVICES.RATE_LIMITING.FiltraFruitori' | translate">
-              </div>
-            }
-          </div>
-
-          @if (!_fruitori.length && !_loadingFruitori) {
-            <p class="rl-vuoto">{{ 'APP.SERVICES.RATE_LIMITING.NessunFruitore' | translate }}</p>
-          } @else {
-            <div class="table-responsive rl-fruitori-wrap">
-              <table class="table table-sm align-middle rl-fruitori">
-                <caption class="visually-hidden">{{ 'APP.SERVICES.RATE_LIMITING.QuoteFruitori' | translate }} - {{ api.nome }}</caption>
-                <thead>
-                  <tr>
-                    <th scope="col">{{ 'APP.SERVICES.RATE_LIMITING.Fruitore' | translate }}</th>
-                    @for (c of _colonne; track c.chiave) {
-                      <th scope="col" class="rl-periodo">{{ _label(c.periodo) | translate }}</th>
-                    }
-                    <th scope="col"><span class="visually-hidden">{{ 'APP.LABEL.Actions' | translate }}</span></th>
-                  </tr>
-                </thead>
-                <tbody [formGroup]="_formGroup">
-                  @for (f of _fruitoriVisibili; track f.id_adesione) {
-                    @let editing = _inModifica === f.id_adesione;
-                    <tr [class.is-editing]="editing">
-                      <th scope="row">
-                        <div>{{ f.soggetto?.nome }}</div>
-                        <div class="text-muted small">{{ f.id_logico || '' }} {{ ('APP.WORKFLOW.STATUS.' + f.stato) | translate }}</div>
-                      </th>
-                      @for (c of _colonne; track c.chiave) {
-                        <td>
-                          @if (editing) {
-                            <input type="number" min="1" step="1" class="form-control form-control-sm" [formControlName]="c.chiave"
-                                   [attr.max]="c.quota_fruitore || null"
-                                   [title]="c.quota_fruitore ? ('APP.ADESIONI.RATE_LIMITING.OltreMassimo' | translate: { massimo: (c.quota_fruitore | localeNumber) }) : ''"
-                                   [attr.aria-label]="api.nome + ' ' + (_label(c.periodo) | translate)"
-                                   [class.is-invalid]="_errore(c.chiave)" [attr.aria-invalid]="_errore(c.chiave)">
-                          } @else {
-                            @let q = _quota(f, c);
-                            {{ q ? (q | localeNumber) : '-' }}
-                          }
-                        </td>
-                      }
-                      <td class="text-end text-nowrap">
-                        @if (editing) {
-                          <button type="button" class="btn btn-default btn-sm gl-button me-1" [disabled]="_saving" (click)="annulla()">{{ 'APP.BUTTON.Cancel' | translate }}</button>
-                          <button type="button" class="btn btn-confirm btn-sm gl-button" [disabled]="_saving || _formGroup.invalid" (click)="salva(f)">{{ 'APP.BUTTON.Save' | translate }}</button>
-                        } @else if (!_inModifica) {
-                          <button type="button" class="rl-btn-icon" [attr.aria-label]="('APP.SERVICES.RATE_LIMITING.ModificaQuote' | translate) + ' ' + f.soggetto?.nome"
-                                  [tooltip]="'APP.BUTTON.Modify' | translate" container="body" (click)="modifica(f)">
-                            <i class="bi bi-pencil" aria-hidden="true"></i>
-                          </button>
-                        }
-                      </td>
-                    </tr>
-                  } @empty {
-                    <tr>
-                      <td [attr.colspan]="_colonne.length + 2" class="text-muted small">
-                        @if (_loadingTutti) {
-                          <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>{{ 'APP.SERVICES.RATE_LIMITING.CaricamentoFruitori' | translate }}
-                        } @else {
-                          {{ 'APP.SERVICES.RATE_LIMITING.NessunRisultato' | translate }}
-                        }
-                      </td>
-                    </tr>
-                  }
-                  @if (_loadingTutti && _fruitoriVisibili.length) {
-                    <tr>
-                      <td [attr.colspan]="_colonne.length + 2" class="text-muted small">
-                        <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>{{ 'APP.SERVICES.RATE_LIMITING.CaricamentoFruitori' | translate }}
-                      </td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-              @if (_loadingFruitori && _fruitori.length) {
-                <div class="rl-caricamento" role="status">
-                  <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>{{ 'APP.LABEL.Loading' | translate }}
-                </div>
-              }
-              @if (_altriFruitori && !_loadingTutti) {
-                <div class="rl-sentinella" #sentinella aria-hidden="true"></div>
-              }
-            </div>
-            @if (_errorMsg) {
-              <div class="gl-alert gl-alert-danger mt-2" role="alert"><span>{{ _errorMsg }}</span></div>
-            }
-          }
+          <app-rate-limiting-fruitori class="rl-fruitori-elenco"
+            [idServizio]="idServizio"
+            [ambiente]="ambiente"
+            [colonne]="_colonne"
+            [nomeApi]="api.nome"
+            [modificabile]="true"
+            [mock]="mock"
+            [fruitoriMock]="_fruitoriMock"
+            (modificaChange)="_onModifica($event)"
+            (salvato)="carica()">
+          </app-rate-limiting-fruitori>
         </section>
       }
     }
