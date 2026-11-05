@@ -1800,7 +1800,7 @@ public class ServiziController implements ServiziApi {
 						Pageable.unpaged()
 						).toList();
 
-				byte[] csv = this.servizioBuilder.getCSVEsteso(findAll);
+				byte[] csv = this.servizioBuilder.getCSVEsteso(findAll, getStatoArchiviatoServizio());
 
 				Resource resource = new ByteArrayResource(csv);
 				this.logger.info("Invocazione completata con successo");

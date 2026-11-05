@@ -2329,6 +2329,49 @@ public class ServiziTest {
         assertEquals("Sì", getColonnaCsv(csv, servizioFruizione, "Intermediato"));
     }
 
+    @Test
+    void testExportServiziUrlInvocazionePerStato() throws Exception {
+        Dominio dominio = this.getDominio();
+
+        Servizio servizio = creaServizioConApi("servizio_export_url", dominio.getIdDominio(),
+                false, null, "api_export_url").servizio();
+
+        // stato -> {URL di collaudo attesa, URL di produzione attesa}
+        java.util.Map<String, boolean[]> attese = new java.util.LinkedHashMap<>();
+        attese.put("bozza", new boolean[] {true, false});
+        attese.put("richiesto_collaudo", new boolean[] {true, false});
+        attese.put("pubblicato_collaudo", new boolean[] {true, false});
+        attese.put("richiesto_produzione", new boolean[] {true, true});
+        attese.put("pubblicato_produzione", new boolean[] {true, true});
+        attese.put("richiesto_produzione_senza_collaudo", new boolean[] {false, true});
+        attese.put("pubblicato_produzione_senza_collaudo", new boolean[] {false, true});
+        // L'archiviazione non indica l'ambiente di provenienza: entrambe le URL restano esposte
+        attese.put("archiviato", new boolean[] {true, true});
+
+        for(java.util.Map.Entry<String, boolean[]> attesa: attese.entrySet()) {
+            String stato = attesa.getKey();
+            this.entityManager.createQuery("UPDATE ServizioEntity s SET s.stato = :stato WHERE s.idServizio = :id")
+                .setParameter("stato", stato)
+                .setParameter("id", servizio.getIdServizio().toString())
+                .executeUpdate();
+
+            entityManager.flush();
+            entityManager.clear();
+
+            ResponseEntity<Resource> response = serviziController.exportServizi(
+                null, null, null, null, null, null, FiltroArchiviatiEnum.INCLUDI, null, null, false, false, null, null, null, null, null
+            );
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+
+            String csv = new String(response.getBody().getContentAsByteArray());
+
+            String urlCollaudo = getColonnaCsv(csv, servizio, "URL Invocazione (Coll)");
+            String urlProduzione = getColonnaCsv(csv, servizio, "URL Invocazione (Prod)");
+            assertEquals(attesa.getValue()[0], !urlCollaudo.isEmpty(), "URL di collaudo nello stato " + stato + ": " + urlCollaudo);
+            assertEquals(attesa.getValue()[1], !urlProduzione.isEmpty(), "URL di produzione nello stato " + stato + ": " + urlProduzione);
+        }
+    }
+
     private record ServizioConApi(Servizio servizio, API api) {}
 
     private ServizioConApi creaServizioConApi(String nome, UUID idDominio, boolean fruizione,
