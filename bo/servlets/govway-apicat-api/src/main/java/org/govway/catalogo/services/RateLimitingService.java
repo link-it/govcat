@@ -434,21 +434,23 @@ public class RateLimitingService {
 
 	/**
 	 * Adesioni non archiviate del servizio; autorizzate valorizzato: solo quelle autorizzate per
-	 * l'ambiente, o solo quelle non ancora autorizzate.
+	 * l'ambiente, o solo quelle non ancora autorizzate. q valorizzato: solo quelle il cui soggetto,
+	 * organizzazione o id logico contiene il testo, senza distinzione fra maiuscole e minuscole.
 	 */
-	public Page<AdesioneEntity> getAdesioniNonArchiviate(ServizioEntity servizio, AmbienteEnum ambiente, Boolean autorizzate, int page, int size) {
+	public Page<AdesioneEntity> getAdesioniNonArchiviate(ServizioEntity servizio, AmbienteEnum ambiente, Boolean autorizzate, String q, int page, int size) {
 		PageRequest pageRequest = PageRequest.of(page, size, Sort.by("id"));
 		List<String> statiAutorizzati = this.rateLimitingRegole.getStatiAutorizzati(ambiente);
+		String pattern = q != null && !q.isBlank() ? "%" + q.trim().toUpperCase() + "%" : "%";
 
 		if(autorizzate == null || (!autorizzate && statiAutorizzati.isEmpty())) {
-			return this.adesioneRepository.findByServizioNonArchiviate(servizio.getId(), getStatoArchiviatoAdesione(), pageRequest);
+			return this.adesioneRepository.findByServizioNonArchiviate(servizio.getId(), getStatoArchiviatoAdesione(), pattern, pageRequest);
 		}
 		if(statiAutorizzati.isEmpty()) {
 			return Page.empty(pageRequest);
 		}
 		return autorizzate
-				? this.adesioneRepository.findByServizioNonArchiviateInStati(servizio.getId(), getStatoArchiviatoAdesione(), statiAutorizzati, pageRequest)
-				: this.adesioneRepository.findByServizioNonArchiviateNotInStati(servizio.getId(), getStatoArchiviatoAdesione(), statiAutorizzati, pageRequest);
+				? this.adesioneRepository.findByServizioNonArchiviateInStati(servizio.getId(), getStatoArchiviatoAdesione(), pattern, statiAutorizzati, pageRequest)
+				: this.adesioneRepository.findByServizioNonArchiviateNotInStati(servizio.getId(), getStatoArchiviatoAdesione(), pattern, statiAutorizzati, pageRequest);
 	}
 
 	/** L'adesione e` in uno degli stati in cui le quote dell'ambiente sono autorizzate. */

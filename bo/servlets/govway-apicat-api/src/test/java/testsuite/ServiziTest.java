@@ -3932,13 +3932,13 @@ public class ServiziTest {
         assertFalse(api.getProduzione().get(0).isSuperata());
 
         // Fruitori di produzione, paginati
-        PagedModelItemRateLimitingFruitore fruitori = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, null, 0, 10).getBody();
+        PagedModelItemRateLimitingFruitore fruitori = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, null, null, 0, 10).getBody();
         assertEquals(2, fruitori.getPage().getTotalElements());
         ItemRateLimitingFruitore fruitore1 = fruitori.getContent().stream().filter(f -> f.getIdAdesione().equals(idAdesione1)).findAny().orElseThrow();
         assertEquals("aderente_1", fruitore1.getSoggetto().getNome());
         assertEquals(2, fruitore1.getRateLimiting().size());
 
-        fruitori = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, null, 0, 1).getBody();
+        fruitori = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, null, null, 0, 1).getBody();
         assertEquals(1, fruitori.getContent().size());
         assertEquals(2, fruitori.getPage().getTotalPages());
 
@@ -3951,7 +3951,7 @@ public class ServiziTest {
         api = serviziController.getRateLimitingServizio(ctx.idServizio()).getBody().getApi().get(0);
         assertRiepilogo(api.getProduzione().get(1), RateLimitingPeriodoEnum.GIORNO, 300, 200, 1);
         assertFalse(api.getProduzione().get(1).isSuperata());
-        assertEquals(1, serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, null, 0, 10).getBody().getPage().getTotalElements());
+        assertEquals(1, serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, null, null, 0, 10).getBody().getPage().getTotalElements());
     }
 
     private void assertRiepilogo(RateLimitingRiepilogo riepilogo, RateLimitingPeriodoEnum periodo, int quota, long assegnata, int fruitori) {
@@ -3970,7 +3970,7 @@ public class ServiziTest {
         passaAUtenteSenzaRuoli();
 
         assertThrows(NotAuthorizedException.class, () -> serviziController.getRateLimitingServizio(ctx.idServizio()));
-        assertThrows(NotAuthorizedException.class, () -> serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, null, 0, 10));
+        assertThrows(NotAuthorizedException.class, () -> serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, null, null, 0, 10));
     }
 
     @Test
@@ -4070,22 +4070,36 @@ public class ServiziTest {
         assertEquals(20, ora.getQuotaResiduaAutorizzata());
 
         // Lista dei fruitori: flag e filtro per l'ambiente richiesto
-        PagedModelItemRateLimitingFruitore tutte = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, null, 0, 10).getBody();
+        PagedModelItemRateLimitingFruitore tutte = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, null, null, 0, 10).getBody();
         assertEquals(3, tutte.getPage().getTotalElements());
         assertEquals(java.util.Set.of(inProduzione), tutte.getContent().stream().filter(ItemRateLimitingFruitore::isAutorizzata)
                 .map(ItemRateLimitingFruitore::getIdAdesione).collect(java.util.stream.Collectors.toSet()));
 
-        PagedModelItemRateLimitingFruitore autorizzate = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, true, 0, 10).getBody();
+        PagedModelItemRateLimitingFruitore autorizzate = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, true, null, 0, 10).getBody();
         assertEquals(1, autorizzate.getPage().getTotalElements());
         assertEquals(inProduzione, autorizzate.getContent().get(0).getIdAdesione());
 
-        PagedModelItemRateLimitingFruitore nonAutorizzate = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, false, 0, 10).getBody();
+        PagedModelItemRateLimitingFruitore nonAutorizzate = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, false, null, 0, 10).getBody();
         assertEquals(java.util.Set.of(inCollaudo, richiesta), nonAutorizzate.getContent().stream()
                 .map(ItemRateLimitingFruitore::getIdAdesione).collect(java.util.stream.Collectors.toSet()));
         assertTrue(nonAutorizzate.getContent().stream().noneMatch(ItemRateLimitingFruitore::isAutorizzata));
 
-        PagedModelItemRateLimitingFruitore autorizzateCollaudo = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.COLLAUDO, true, 0, 10).getBody();
+        PagedModelItemRateLimitingFruitore autorizzateCollaudo = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.COLLAUDO, true, null, 0, 10).getBody();
         assertEquals(2, autorizzateCollaudo.getPage().getTotalElements());
+
+        // Filtro libero sul fruitore: soggetto, organizzazione, id logico; senza distinzione di
+        // maiuscole, combinabile con il filtro sulle autorizzate
+        PagedModelItemRateLimitingFruitore filtrate = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, null, " ADERENTE_2 ", 0, 10).getBody();
+        assertEquals(1, filtrate.getPage().getTotalElements());
+        assertEquals(inProduzione, filtrate.getContent().get(0).getIdAdesione());
+        assertEquals(3, serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, null, "aderente", 0, 10).getBody().getPage().getTotalElements());
+        assertEquals(3, serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, null, CommonUtils.NOME_ORGANIZZAZIONE.toLowerCase(), 0, 10).getBody().getPage().getTotalElements());
+        assertEquals(0, serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, null, "inesistente", 0, 10).getBody().getPage().getTotalElements());
+        assertEquals(1, serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, true, "aderente", 0, 10).getBody().getPage().getTotalElements());
+        assertEquals(0, serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, true, "aderente_3", 0, 10).getBody().getPage().getTotalElements());
+        filtrate = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, false, "aderente_3", 0, 10).getBody();
+        assertEquals(1, filtrate.getPage().getTotalElements());
+        assertEquals(richiesta, filtrate.getContent().get(0).getIdAdesione());
 
         // Override in configurazione: nessuno stato autorizzato per la produzione
         ConfigurazioneRateLimitingStatiAutorizzati statiAutorizzati = this.configurazione.getAdesione().getRateLimiting().getStatiAutorizzati();
@@ -4095,8 +4109,8 @@ public class ServiziTest {
             produzione = serviziController.getRateLimitingServizio(ctx.idServizio()).getBody().getApi().get(0).getProduzione().get(1);
             assertEquals(0, produzione.getQuotaAutorizzata());
             assertEquals(180, produzione.getQuotaAssegnata());
-            assertEquals(0, serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, true, 0, 10).getBody().getPage().getTotalElements());
-            assertEquals(3, serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, false, 0, 10).getBody().getPage().getTotalElements());
+            assertEquals(0, serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, true, null, 0, 10).getBody().getPage().getTotalElements());
+            assertEquals(3, serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, false, null, 0, 10).getBody().getPage().getTotalElements());
         } finally {
             statiAutorizzati.setProduzione(originale);
         }

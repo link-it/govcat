@@ -41,7 +41,8 @@
 	  quota totale è solo segnalato), e l'elenco paginato delle quote dei fruitori con
 	  `GET /servizi/{id_servizio}/rate-limiting/fruitori`. Entrambi distinguono le adesioni
 	  già autorizzate per l'ambiente (quota, numero di fruitori e quota residua autorizzati,
-	  flag `autorizzata` e filtro `autorizzate` sull'elenco), così chi autorizza un'adesione
+	  flag `autorizzata` e filtro `autorizzate` sull'elenco, che accetta anche il filtro
+	  libero `q` su soggetto, organizzazione e id logico), così chi autorizza un'adesione
 	  vede la quota già impegnata. Gli stati autorizzati sono configurabili
 	  (`adesione.rate_limiting.stati_autorizzati.collaudo` e `.produzione`); per default sono
 	  ricavati dai nomi degli stati del workflow: per il collaudo da `autorizzato_collaudo`

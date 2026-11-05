@@ -2849,6 +2849,12 @@ paths:
           required: false
           schema:
             type: "boolean"
+        - name: "q"
+          in: "query"
+          description: "Testo libero per filtrare i fruitori: adesioni il cui soggetto, organizzazione o id logico lo contiene, senza distinzione fra maiuscole e minuscole"
+          required: false
+          schema:
+            $ref: "#/components/schemas/GenericSearchString"
         - $ref: "#/components/parameters/page_query_optional"
         - $ref: "#/components/parameters/size_query_optional"
       responses:

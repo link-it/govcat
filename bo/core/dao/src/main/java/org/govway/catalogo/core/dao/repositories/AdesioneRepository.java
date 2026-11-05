@@ -62,20 +62,22 @@ public interface AdesioneRepository extends JpaRepositoryImplementation<Adesione
     public boolean existsByServizioId(Long idServizio);
 
     // Adesioni non archiviate del servizio, con soggetto e organizzazione aderente (riepilogo delle
-    // quote di rate limiting assegnate ai fruitori)
-    @Query(value = "SELECT a FROM AdesioneEntity a JOIN FETCH a.soggetto s LEFT JOIN FETCH s.organizzazione "
-            + "WHERE a.servizio.id = ?1 AND a.stato <> ?2",
-            countQuery = "SELECT COUNT(a) FROM AdesioneEntity a WHERE a.servizio.id = ?1 AND a.stato <> ?2")
-    Page<AdesioneEntity> findByServizioNonArchiviate(Long idServizio, String statoArchiviato, Pageable pageable);
+    // quote di rate limiting assegnate ai fruitori). Il pattern (gia` in maiuscolo, "%" per nessun
+    // filtro) si confronta con nome del soggetto, nome dell'organizzazione e id logico.
+    String SELECT_FRUITORI = "SELECT a FROM AdesioneEntity a JOIN FETCH a.soggetto s LEFT JOIN FETCH s.organizzazione o ";
+    String COUNT_FRUITORI = "SELECT COUNT(a) FROM AdesioneEntity a JOIN a.soggetto s LEFT JOIN s.organizzazione o ";
+    String WHERE_FRUITORI = "WHERE a.servizio.id = ?1 AND a.stato <> ?2 "
+            + "AND (UPPER(s.nome) LIKE ?3 OR UPPER(o.nome) LIKE ?3 OR UPPER(a.idLogico) LIKE ?3) ";
 
-    @Query(value = "SELECT a FROM AdesioneEntity a JOIN FETCH a.soggetto s LEFT JOIN FETCH s.organizzazione "
-            + "WHERE a.servizio.id = ?1 AND a.stato <> ?2 AND a.stato IN ?3",
-            countQuery = "SELECT COUNT(a) FROM AdesioneEntity a WHERE a.servizio.id = ?1 AND a.stato <> ?2 AND a.stato IN ?3")
-    Page<AdesioneEntity> findByServizioNonArchiviateInStati(Long idServizio, String statoArchiviato, Collection<String> stati, Pageable pageable);
+    @Query(value = SELECT_FRUITORI + WHERE_FRUITORI, countQuery = COUNT_FRUITORI + WHERE_FRUITORI)
+    Page<AdesioneEntity> findByServizioNonArchiviate(Long idServizio, String statoArchiviato, String pattern, Pageable pageable);
 
-    @Query(value = "SELECT a FROM AdesioneEntity a JOIN FETCH a.soggetto s LEFT JOIN FETCH s.organizzazione "
-            + "WHERE a.servizio.id = ?1 AND a.stato <> ?2 AND a.stato NOT IN ?3",
-            countQuery = "SELECT COUNT(a) FROM AdesioneEntity a WHERE a.servizio.id = ?1 AND a.stato <> ?2 AND a.stato NOT IN ?3")
-    Page<AdesioneEntity> findByServizioNonArchiviateNotInStati(Long idServizio, String statoArchiviato, Collection<String> stati, Pageable pageable);
+    @Query(value = SELECT_FRUITORI + WHERE_FRUITORI + "AND a.stato IN ?4",
+            countQuery = COUNT_FRUITORI + WHERE_FRUITORI + "AND a.stato IN ?4")
+    Page<AdesioneEntity> findByServizioNonArchiviateInStati(Long idServizio, String statoArchiviato, String pattern, Collection<String> stati, Pageable pageable);
+
+    @Query(value = SELECT_FRUITORI + WHERE_FRUITORI + "AND a.stato NOT IN ?4",
+            countQuery = COUNT_FRUITORI + WHERE_FRUITORI + "AND a.stato NOT IN ?4")
+    Page<AdesioneEntity> findByServizioNonArchiviateNotInStati(Long idServizio, String statoArchiviato, String pattern, Collection<String> stati, Pageable pageable);
 
 }

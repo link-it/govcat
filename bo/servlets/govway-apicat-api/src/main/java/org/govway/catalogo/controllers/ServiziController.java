@@ -876,7 +876,7 @@ public class ServiziController implements ServiziApi {
 
 	@Override
 	public ResponseEntity<PagedModelItemRateLimitingFruitore> listRateLimitingFruitoriServizio(UUID idServizio,
-			org.govway.catalogo.servlets.model.AmbienteEnum ambiente, Boolean autorizzate, Integer page, Integer size) {
+			org.govway.catalogo.servlets.model.AmbienteEnum ambiente, Boolean autorizzate, String q, Integer page, Integer size) {
 		try {
 			return this.service.runTransaction( () -> {
 
@@ -887,7 +887,7 @@ public class ServiziController implements ServiziApi {
 				this.logger.debug("Autorizzazione completata con successo");
 
 				org.govway.catalogo.core.orm.entity.AmbienteEnum ambienteEntity = org.govway.catalogo.core.orm.entity.AmbienteEnum.valueOf(ambiente.name());
-				Page<AdesioneEntity> adesioni = this.rateLimitingService.getAdesioniNonArchiviate(entity, ambienteEntity, autorizzate, page, size);
+				Page<AdesioneEntity> adesioni = this.rateLimitingService.getAdesioniNonArchiviate(entity, ambienteEntity, autorizzate, q, page, size);
 
 				PagedModelItemRateLimitingFruitore list = new PagedModelItemRateLimitingFruitore();
 				list.setContent(adesioni.getContent().stream()
