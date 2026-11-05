@@ -26,6 +26,17 @@
 	  fruitori paginati allo scorrimento; numeri nel formato della lingua; dati di esempio
 	  attivabili con AppConfig.Services.rateLimitingMock.
 
+2026-11-05  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 419: nell'export CSV dei servizi le URL di invocazione (principale e aggiuntive) di
+	  un ambiente sono riportate solo se lo stato del servizio lo prevede, con la stessa regola
+	  già usata dal CSV delle adesioni: collaudo per tutti gli stati tranne quelli del percorso
+	  senza collaudo, produzione per gli stati del percorso di produzione. Un servizio pubblicato
+	  in collaudo riporta quindi solo la URL di collaudo e uno pubblicato in produzione senza
+	  collaudo solo quella di produzione; prima la URL di produzione era sempre valorizzata. Per
+	  i servizi archiviati restano entrambe. Le colonne Backend URL non cambiano.
+
 2026-11-04  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
