@@ -19,7 +19,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 
-import { Tools, EventType, ConfigService, EventsManagerService } from '@linkit/components';
+import { Tools, EventType, ConfigService, EventsManagerService, LocalStorageService } from '@linkit/components';
 import { OAuthService } from 'angular-oauth2-oidc';
 import { PermessiService } from '@services/permessi.service';
 import { OrganizationContextService } from '@services/organization-context.service';
@@ -249,6 +249,7 @@ export class AuthenticationService {
   private readonly oauthService = inject(OAuthService);
   private readonly permessiService = inject(PermessiService);
   private readonly organizationContextService = inject(OrganizationContextService);
+  private readonly localStorageService = inject(LocalStorageService);
 
   constructor() {
     this.config = this.configService.getConfiguration();
@@ -293,6 +294,8 @@ export class AuthenticationService {
       try { sessionStorage.setItem(LOGOUT_VOLONTARIO_KEY, '1'); } catch { /* storage non disponibile */ }
     }
     localStorage.removeItem(AUTH_CONST.storageSession);
+    // Preferenze della lista servizi legate all'utente (es. "I miei servizi")
+    this.localStorageService.remove('SERVIZI');
     this.organizationContextService.clear();
 
     // Check if there's an access token to revoke (even if expired)

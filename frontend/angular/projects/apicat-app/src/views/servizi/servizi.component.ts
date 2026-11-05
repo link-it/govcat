@@ -371,11 +371,12 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
         const _isAnonymous = this._isAnonymous();
         this._settings = this.localStorageService.getItem('SERVIZI', null);
-        if (!this._settings || _isAnonymous) {
+        if (!this._settings) {
             this._saveSettings();
         } else {
-            this._groupsView = this._settings.groupsView;
-            this._isMyServices = this._settings.isMyServices;
+            // Con il profilo non ancora caricato le impostazioni non vengono sovrascritte
+            this._groupsView = _isAnonymous ? true : this._settings.groupsView;
+            this._isMyServices = this._mieiServizi(this._settings);
             if (this._isMyServices) {
                 this._groupsView = false;
             }
@@ -396,6 +397,10 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
             // setTimeout(() => {
                 this._updateMapper = new Date().getTime().toString();
                 this.hasMultiSelection = this.authenticationService.isGestore();
+                this._isMyServices = this._mieiServizi(this.localStorageService.getItem('SERVIZI', null));
+                if (this._isMyServices) {
+                    this._groupsView = false;
+                }
                 this._getUserSettings();
                 this._initProfili();
                 this._saveSettings();
@@ -409,13 +414,20 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         });
     }
 
+    /** "I miei servizi" vale solo per l'utente che l'ha scelto e se l'opzione e` disponibile. */
+    _mieiServizi(settings: any): boolean {
+        const _utente = this.authenticationService.getUser()?.id_utente;
+        return !!settings?.isMyServices && !!_utente && settings.utente === _utente && this._hasMyServiceMapper();
+    }
+
     _saveSettings() {
         const _isAnonymous = this._isAnonymous();
         this._groupsView = _isAnonymous ? true : this._groupsView;
         this._isMyServices = _isAnonymous ? false : this._isMyServices;
         const _settings = {
             groupsView: this._groupsView,
-            isMyServices: this._isMyServices
+            isMyServices: this._isMyServices,
+            utente: this.authenticationService.getUser()?.id_utente || null
         };
         this._settings = this.localStorageService.setItem('SERVIZI', _settings);
     }

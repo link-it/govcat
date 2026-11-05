@@ -82,7 +82,8 @@ describe('ServiziComponent', () => {
     _getConfigModule: vi.fn().mockReturnValue({ api: { abilitato: true }, generico: { abilitato: false }, tassonomie_abilitate: false }),
     isGestore: vi.fn().mockReturnValue(false),
     getRole: vi.fn().mockReturnValue('referente_servizio'),
-    getCurrentSession: vi.fn().mockReturnValue(null)
+    getCurrentSession: vi.fn().mockReturnValue(null),
+    getUser: vi.fn().mockReturnValue({ id_utente: 'u1' })
   } as any;
 
   const mockBreadcrumbService = {
@@ -142,6 +143,7 @@ describe('ServiziComponent', () => {
     mockAuthenticationService.isGestore.mockReturnValue(false);
     mockAuthenticationService._getConfigModule.mockReturnValue({ api: { abilitato: true }, generico: { abilitato: false }, tassonomie_abilitate: false });
     mockAuthenticationService.getCurrentSession.mockReturnValue(null);
+    mockAuthenticationService.getUser.mockReturnValue({ id_utente: 'u1' });
     mockBreadcrumbService.getBreadcrumbs.mockReturnValue(null);
     mockUtilService._queryToHttpParams.mockReturnValue({});
     mockUtilService.GetErrorMsg.mockReturnValue('Error');
@@ -761,7 +763,8 @@ describe('ServiziComponent', () => {
 
       expect(mockLocalStorageService.setItem).toHaveBeenLastCalledWith('SERVIZI', {
         groupsView: false,
-        isMyServices: true
+        isMyServices: true,
+        utente: 'u1'
       });
     });
 
@@ -774,7 +777,8 @@ describe('ServiziComponent', () => {
 
       expect(mockLocalStorageService.setItem).toHaveBeenLastCalledWith('SERVIZI', {
         groupsView: true,
-        isMyServices: false
+        isMyServices: false,
+        utente: 'u1'
       });
     });
   });
@@ -1198,7 +1202,7 @@ describe('ServiziComponent', () => {
     });
 
     it('should restore settings from localStorage when settings exist', () => {
-      mockLocalStorageService.getItem.mockReturnValue({ groupsView: false, isMyServices: true });
+      mockLocalStorageService.getItem.mockReturnValue({ groupsView: false, isMyServices: true, utente: 'u1' });
       const comp = new ServiziComponent(
         mockRoute, mockRouter, mockLocation, mockModalService, mockTranslate, mockConfigService, mockTools,
         mockEventsManagerService, mockLocalStorageService, mockUtilsLib, mockUtilService,
@@ -1207,6 +1211,45 @@ describe('ServiziComponent', () => {
       // when _isMyServices is true, _groupsView is forced to false
       expect(comp._groupsView).toBe(false);
       expect(comp._isMyServices).toBe(true);
+    });
+
+    describe('"I miei servizi" legato all\'utente', () => {
+      const crea = () => new ServiziComponent(
+        mockRoute, mockRouter, mockLocation, mockModalService, mockTranslate, mockConfigService, mockTools,
+        mockEventsManagerService, mockLocalStorageService, mockUtilsLib, mockUtilService,
+        mockApiService, mockAuthenticationService, mockBreadcrumbService, mockNavigationService
+      );
+
+      it('should not apply the choice of another user or of an old session without user', () => {
+        mockLocalStorageService.getItem.mockReturnValue({ groupsView: false, isMyServices: true, utente: 'altro' });
+        expect(crea()._isMyServices).toBe(false);
+        mockLocalStorageService.getItem.mockReturnValue({ groupsView: false, isMyServices: true });
+        expect(crea()._isMyServices).toBe(false);
+      });
+
+      it('should not apply it to a manager, who cannot change it', () => {
+        mockAuthenticationService.isGestore.mockReturnValue(true);
+        mockLocalStorageService.getItem.mockReturnValue({ groupsView: false, isMyServices: true, utente: 'u1' });
+        expect(crea()._isMyServices).toBe(false);
+      });
+
+      it('should not overwrite the settings before the profile is loaded, applying them after', () => {
+        let profileCallback: any;
+        mockEventsManagerService.on.mockImplementation((eventType: string, cb: any) => {
+          if (eventType === 'PROFILE:UPDATE') { profileCallback = cb; }
+        });
+        mockAuthenticationService.isAnonymous.mockReturnValue(true);
+        mockLocalStorageService.getItem.mockReturnValue({ groupsView: false, isMyServices: true, utente: 'u1' });
+        mockLocalStorageService.setItem.mockClear();
+        const comp = crea();
+        comp.searchBarForm = { _clearSearch: vi.fn(), _pinLastSearch: vi.fn(), _isPinned: vi.fn(), _onSearch: vi.fn() } as any;
+        expect(comp._isMyServices).toBe(false);
+        expect(mockLocalStorageService.setItem).not.toHaveBeenCalled();
+        mockAuthenticationService.isAnonymous.mockReturnValue(false);
+        profileCallback({});
+        expect(comp._isMyServices).toBe(true);
+        expect(mockLocalStorageService.setItem).toHaveBeenLastCalledWith('SERVIZI', { groupsView: false, isMyServices: true, utente: 'u1' });
+      });
     });
 
     it('should restore _groupsView from settings when _isMyServices is false', () => {

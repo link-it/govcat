@@ -40,7 +40,8 @@ describe('AuthenticationService', () => {
     };
     configService = {
       getConfiguration: vi.fn().mockReturnValue(mockConfig),
-      getAppConfig: vi.fn().mockReturnValue(mockConfig.AppConfig)
+      getAppConfig: vi.fn().mockReturnValue(mockConfig.AppConfig),
+      getSessionPrefix: vi.fn().mockReturnValue('GWAC')
     };
     eventsManagerService = { broadcast: vi.fn() };
     permessiService = {
@@ -274,6 +275,12 @@ describe('AuthenticationService', () => {
       expect(service.logout(true)).toBe(true);
       (oauthService as any).logoutUrl = '';
       expect(service.logout(true)).toBe(false);
+    });
+
+    it('should remove the user preferences of the services list', () => {
+      localStorage.setItem('GWAC_SERVIZI', 'x');
+      service.logout();
+      expect(localStorage.getItem('GWAC_SERVIZI')).toBeNull();
     });
 
     it('should remove session from localStorage', () => {

@@ -17,6 +17,9 @@
 	  nome troncato e completo nel title; nella verifica l'adesione in esame fuori dall'elenco fruitori
 	  e tabella dei fruitori adattata all'altezza della dialog.
 
+	Fix: nella lista dei servizi l'opzione "I miei servizi" vale solo per l'utente che l'ha scelta,
+	  non si applica ai gestori ed è azzerata al logout.
+
 2026-11-04  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
