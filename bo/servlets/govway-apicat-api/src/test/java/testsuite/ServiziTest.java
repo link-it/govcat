@@ -49,6 +49,13 @@ import org.govway.catalogo.servlets.model.APICreate;
 import org.govway.catalogo.servlets.model.ApiUpdate;
 import org.govway.catalogo.servlets.model.APIDatiAmbienteUpdate;
 import org.govway.catalogo.servlets.model.ConfigurazioneRateLimitingQuota;
+import org.govway.catalogo.servlets.model.ConfigurazioneRateLimitingStatiAutorizzati;
+import org.govway.catalogo.servlets.model.ConfigurazioneAdesione;
+import org.govway.catalogo.servlets.model.ConfigurazioneAdesioneRateLimiting;
+import org.govway.catalogo.servlets.model.ConfigurazioneApi;
+import org.govway.catalogo.servlets.model.ConfigurazioneServizio;
+import org.govway.catalogo.servlets.model.ConfigurazioneWorkflow;
+import org.govway.catalogo.services.RateLimitingRegole;
 import org.govway.catalogo.servlets.model.ConfigurazioneProfiloRateLimiting;
 import org.govway.catalogo.servlets.model.ConfigurazioneProfilo;
 import org.govway.catalogo.servlets.model.APIDatiAmbienteCreate;
@@ -3925,13 +3932,13 @@ public class ServiziTest {
         assertFalse(api.getProduzione().get(0).isSuperata());
 
         // Fruitori di produzione, paginati
-        PagedModelItemRateLimitingFruitore fruitori = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, 0, 10).getBody();
+        PagedModelItemRateLimitingFruitore fruitori = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, null, 0, 10).getBody();
         assertEquals(2, fruitori.getPage().getTotalElements());
         ItemRateLimitingFruitore fruitore1 = fruitori.getContent().stream().filter(f -> f.getIdAdesione().equals(idAdesione1)).findAny().orElseThrow();
         assertEquals("aderente_1", fruitore1.getSoggetto().getNome());
         assertEquals(2, fruitore1.getRateLimiting().size());
 
-        fruitori = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, 0, 1).getBody();
+        fruitori = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, null, 0, 1).getBody();
         assertEquals(1, fruitori.getContent().size());
         assertEquals(2, fruitori.getPage().getTotalPages());
 
@@ -3944,7 +3951,7 @@ public class ServiziTest {
         api = serviziController.getRateLimitingServizio(ctx.idServizio()).getBody().getApi().get(0);
         assertRiepilogo(api.getProduzione().get(1), RateLimitingPeriodoEnum.GIORNO, 300, 200, 1);
         assertFalse(api.getProduzione().get(1).isSuperata());
-        assertEquals(1, serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, 0, 10).getBody().getPage().getTotalElements());
+        assertEquals(1, serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, null, 0, 10).getBody().getPage().getTotalElements());
     }
 
     private void assertRiepilogo(RateLimitingRiepilogo riepilogo, RateLimitingPeriodoEnum periodo, int quota, long assegnata, int fruitori) {
@@ -3963,7 +3970,7 @@ public class ServiziTest {
         passaAUtenteSenzaRuoli();
 
         assertThrows(NotAuthorizedException.class, () -> serviziController.getRateLimitingServizio(ctx.idServizio()));
-        assertThrows(NotAuthorizedException.class, () -> serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, 0, 10));
+        assertThrows(NotAuthorizedException.class, () -> serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, null, 0, 10));
     }
 
     @Test
@@ -4011,6 +4018,135 @@ public class ServiziTest {
         } finally {
             profilo.setRateLimiting(originale);
         }
+    }
+
+    private void impostaStatoAdesione(UUID idAdesione, String stato) {
+        this.entityManager.createQuery("UPDATE AdesioneEntity a SET a.stato = :stato WHERE a.idAdesione = :id")
+            .setParameter("stato", stato)
+            .setParameter("id", idAdesione.toString())
+            .executeUpdate();
+    }
+
+    @Test
+    void testRateLimitingRiepilogoAdesioniAutorizzate() {
+        ServizioRateLimiting ctx = creaServizioConRateLimiting();
+        UUID inCollaudo = creaAdesione(ctx.idServizio(), "aderente_1");
+        UUID inProduzione = creaAdesione(ctx.idServizio(), "aderente_2");
+        UUID richiesta = creaAdesione(ctx.idServizio(), "aderente_3");
+
+        adesioniController.updateRateLimitingCollaudoAdesione(inCollaudo, quoteFruitore(ctx.idApi(), 40, null));
+        adesioniController.updateRateLimitingCollaudoAdesione(inProduzione, quoteFruitore(ctx.idApi(), 20, null));
+        adesioniController.updateRateLimitingCollaudoAdesione(richiesta, quoteFruitore(ctx.idApi(), 10, null));
+        adesioniController.updateRateLimitingProduzioneAdesione(inCollaudo, quoteFruitore(ctx.idApi(), 100, null));
+        adesioniController.updateRateLimitingProduzioneAdesione(inProduzione, quoteFruitore(ctx.idApi(), 50, null));
+        adesioniController.updateRateLimitingProduzioneAdesione(richiesta, quoteFruitore(ctx.idApi(), 30, null));
+        this.entityManager.flush();
+
+        // Collaudo pubblicato: autorizzate le sole quote di collaudo. Produzione richiesta: il
+        // collaudo e` gia` autorizzato, la produzione no. Collaudo richiesto: nessuna quota autorizzata.
+        impostaStatoAdesione(inCollaudo, "pubblicato_collaudo");
+        impostaStatoAdesione(inProduzione, "autorizzato_produzione");
+        impostaStatoAdesione(richiesta, "richiesto_collaudo");
+        this.entityManager.clear();
+
+        RateLimitingServizioApi api = serviziController.getRateLimitingServizio(ctx.idServizio()).getBody().getApi().get(0);
+
+        RateLimitingRiepilogo collaudo = api.getCollaudo().get(0);
+        assertRiepilogo(collaudo, RateLimitingPeriodoEnum.GIORNO, 100, 70, 3);
+        assertEquals(60, collaudo.getQuotaAutorizzata());
+        assertEquals(2, collaudo.getNumeroFruitoriAutorizzati());
+        assertEquals(40, collaudo.getQuotaResiduaAutorizzata());
+
+        RateLimitingRiepilogo produzione = api.getProduzione().get(1);
+        assertRiepilogo(produzione, RateLimitingPeriodoEnum.GIORNO, 300, 180, 3);
+        assertEquals(50, produzione.getQuotaAutorizzata());
+        assertEquals(1, produzione.getNumeroFruitoriAutorizzati());
+        assertEquals(250, produzione.getQuotaResiduaAutorizzata());
+
+        // Periodo senza quote assegnate
+        RateLimitingRiepilogo ora = api.getProduzione().get(0);
+        assertEquals(0, ora.getQuotaAutorizzata());
+        assertEquals(0, ora.getNumeroFruitoriAutorizzati());
+        assertEquals(20, ora.getQuotaResiduaAutorizzata());
+
+        // Lista dei fruitori: flag e filtro per l'ambiente richiesto
+        PagedModelItemRateLimitingFruitore tutte = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, null, 0, 10).getBody();
+        assertEquals(3, tutte.getPage().getTotalElements());
+        assertEquals(java.util.Set.of(inProduzione), tutte.getContent().stream().filter(ItemRateLimitingFruitore::isAutorizzata)
+                .map(ItemRateLimitingFruitore::getIdAdesione).collect(java.util.stream.Collectors.toSet()));
+
+        PagedModelItemRateLimitingFruitore autorizzate = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, true, 0, 10).getBody();
+        assertEquals(1, autorizzate.getPage().getTotalElements());
+        assertEquals(inProduzione, autorizzate.getContent().get(0).getIdAdesione());
+
+        PagedModelItemRateLimitingFruitore nonAutorizzate = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, false, 0, 10).getBody();
+        assertEquals(java.util.Set.of(inCollaudo, richiesta), nonAutorizzate.getContent().stream()
+                .map(ItemRateLimitingFruitore::getIdAdesione).collect(java.util.stream.Collectors.toSet()));
+        assertTrue(nonAutorizzate.getContent().stream().noneMatch(ItemRateLimitingFruitore::isAutorizzata));
+
+        PagedModelItemRateLimitingFruitore autorizzateCollaudo = serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.COLLAUDO, true, 0, 10).getBody();
+        assertEquals(2, autorizzateCollaudo.getPage().getTotalElements());
+
+        // Override in configurazione: nessuno stato autorizzato per la produzione
+        ConfigurazioneRateLimitingStatiAutorizzati statiAutorizzati = this.configurazione.getAdesione().getRateLimiting().getStatiAutorizzati();
+        List<String> originale = statiAutorizzati.getProduzione();
+        statiAutorizzati.setProduzione(List.of());
+        try {
+            produzione = serviziController.getRateLimitingServizio(ctx.idServizio()).getBody().getApi().get(0).getProduzione().get(1);
+            assertEquals(0, produzione.getQuotaAutorizzata());
+            assertEquals(180, produzione.getQuotaAssegnata());
+            assertEquals(0, serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, true, 0, 10).getBody().getPage().getTotalElements());
+            assertEquals(3, serviziController.listRateLimitingFruitoriServizio(ctx.idServizio(), AmbienteEnum.PRODUZIONE, false, 0, 10).getBody().getPage().getTotalElements());
+        } finally {
+            statiAutorizzati.setProduzione(originale);
+        }
+    }
+
+    @Test
+    void testRateLimitingStatiAutorizzatiDefault() {
+        // Workflow con il ramo senza collaudo, che nella lista segue quello di produzione
+        ConfigurazioneWorkflow workflow = new ConfigurazioneWorkflow();
+        workflow.setStati(List.of("bozza", "richiesto_collaudo", "autorizzato_collaudo", "in_configurazione_manuale_collaudo",
+                "pubblicato_collaudo", "richiesto_produzione", "autorizzato_produzione", "in_configurazione_automatica_produzione",
+                "pubblicato_produzione", "richiesto_produzione_senza_collaudo", "autorizzato_produzione_senza_collaudo",
+                "pubblicato_produzione_senza_collaudo", "archiviato"));
+        workflow.setStatoIniziale("bozza");
+        workflow.setStatoArchiviato("archiviato");
+        Configurazione conf = getConfigurazioneStatiAutorizzati(workflow, null);
+
+        RateLimitingRegole.applicaDefault(conf);
+
+        ConfigurazioneRateLimitingStatiAutorizzati sa = conf.getAdesione().getRateLimiting().getStatiAutorizzati();
+        assertEquals(List.of("autorizzato_collaudo", "in_configurazione_manuale_collaudo", "pubblicato_collaudo",
+                "richiesto_produzione", "autorizzato_produzione", "in_configurazione_automatica_produzione", "pubblicato_produzione"), sa.getCollaudo());
+        assertEquals(List.of("autorizzato_produzione", "in_configurazione_automatica_produzione", "pubblicato_produzione",
+                "autorizzato_produzione_senza_collaudo", "pubblicato_produzione_senza_collaudo"), sa.getProduzione());
+
+        // Lista configurata: mantenuta, purche' composta da stati del workflow
+        ConfigurazioneRateLimitingStatiAutorizzati override = new ConfigurazioneRateLimitingStatiAutorizzati();
+        override.setProduzione(List.of("pubblicato_produzione"));
+        conf = getConfigurazioneStatiAutorizzati(workflow, override);
+        RateLimitingRegole.applicaDefault(conf);
+        assertEquals(List.of("pubblicato_produzione"), conf.getAdesione().getRateLimiting().getStatiAutorizzati().getProduzione());
+        assertEquals(7, conf.getAdesione().getRateLimiting().getStatiAutorizzati().getCollaudo().size());
+
+        ConfigurazioneRateLimitingStatiAutorizzati nonValido = new ConfigurazioneRateLimitingStatiAutorizzati();
+        nonValido.setCollaudo(List.of("inesistente"));
+        Configurazione confNonValida = getConfigurazioneStatiAutorizzati(workflow, nonValido);
+        assertThrows(IllegalStateException.class, () -> RateLimitingRegole.applicaDefault(confNonValida));
+    }
+
+    private static Configurazione getConfigurazioneStatiAutorizzati(ConfigurazioneWorkflow workflow, ConfigurazioneRateLimitingStatiAutorizzati statiAutorizzati) {
+        Configurazione conf = new Configurazione();
+        conf.setServizio(new ConfigurazioneServizio());
+        conf.getServizio().setApi(new ConfigurazioneApi());
+        conf.getServizio().getApi().setProfili(new ArrayList<>());
+        conf.setAdesione(new ConfigurazioneAdesione());
+        conf.getAdesione().setWorkflow(workflow);
+        if(statiAutorizzati != null) {
+            conf.getAdesione().setRateLimiting(new ConfigurazioneAdesioneRateLimiting().statiAutorizzati(statiAutorizzati));
+        }
+        return conf;
     }
 
     @Test

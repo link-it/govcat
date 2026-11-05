@@ -19,6 +19,7 @@
  */
 package org.govway.catalogo.core.dao.repositories;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
@@ -66,5 +67,15 @@ public interface AdesioneRepository extends JpaRepositoryImplementation<Adesione
             + "WHERE a.servizio.id = ?1 AND a.stato <> ?2",
             countQuery = "SELECT COUNT(a) FROM AdesioneEntity a WHERE a.servizio.id = ?1 AND a.stato <> ?2")
     Page<AdesioneEntity> findByServizioNonArchiviate(Long idServizio, String statoArchiviato, Pageable pageable);
+
+    @Query(value = "SELECT a FROM AdesioneEntity a JOIN FETCH a.soggetto s LEFT JOIN FETCH s.organizzazione "
+            + "WHERE a.servizio.id = ?1 AND a.stato <> ?2 AND a.stato IN ?3",
+            countQuery = "SELECT COUNT(a) FROM AdesioneEntity a WHERE a.servizio.id = ?1 AND a.stato <> ?2 AND a.stato IN ?3")
+    Page<AdesioneEntity> findByServizioNonArchiviateInStati(Long idServizio, String statoArchiviato, Collection<String> stati, Pageable pageable);
+
+    @Query(value = "SELECT a FROM AdesioneEntity a JOIN FETCH a.soggetto s LEFT JOIN FETCH s.organizzazione "
+            + "WHERE a.servizio.id = ?1 AND a.stato <> ?2 AND a.stato NOT IN ?3",
+            countQuery = "SELECT COUNT(a) FROM AdesioneEntity a WHERE a.servizio.id = ?1 AND a.stato <> ?2 AND a.stato NOT IN ?3")
+    Page<AdesioneEntity> findByServizioNonArchiviateNotInStati(Long idServizio, String statoArchiviato, Collection<String> stati, Pageable pageable);
 
 }

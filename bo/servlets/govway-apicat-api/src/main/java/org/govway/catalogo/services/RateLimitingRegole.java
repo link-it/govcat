@@ -25,13 +25,18 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import org.govway.catalogo.core.orm.entity.AmbienteEnum;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.AuthTypeEntity;
 import org.govway.catalogo.core.orm.entity.RateLimitingPeriodo;
 import org.govway.catalogo.servlets.model.Configurazione;
+import org.govway.catalogo.servlets.model.ConfigurazioneAdesione;
+import org.govway.catalogo.servlets.model.ConfigurazioneAdesioneRateLimiting;
 import org.govway.catalogo.servlets.model.ConfigurazioneProfilo;
 import org.govway.catalogo.servlets.model.ConfigurazioneProfiloRateLimiting;
 import org.govway.catalogo.servlets.model.ConfigurazioneRateLimitingQuota;
+import org.govway.catalogo.servlets.model.ConfigurazioneRateLimitingStatiAutorizzati;
+import org.govway.catalogo.servlets.model.ConfigurazioneWorkflow;
 import org.govway.catalogo.servlets.model.RateLimitingPeriodoEnum;
 import org.govway.catalogo.servlets.model.Ruolo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +57,13 @@ import org.springframework.stereotype.Component;
  * quote previste da almeno un profilo, required se lo e` in almeno un profilo, ruoli_abilitati
  * comuni a tutti i profili che li indicano. Senza profili vale il default dei profili non PDND.
  *
+ * Per le adesioni definisce gli stati in cui le quote assegnate al fruitore in un ambiente sono
+ * autorizzate (adesione.rate_limiting.stati_autorizzati), distinte nel riepilogo del servizio.
+ * Una lista non configurata e` ricavata dai nomi degli stati del workflow, con la stessa
+ * convenzione <fase>_<ambiente>[_senza_collaudo] su cui si basa il resto dell'applicazione:
+ * l'ordine della lista degli stati non e` utilizzabile, perche' il ramo senza collaudo segue quello
+ * di produzione.
+ *
  * Non dipende dalle autorizzazioni, che la usano per la verifica dei dati obbligatori.
  */
 @Component
@@ -68,9 +80,14 @@ public class RateLimitingRegole {
 
 	/**
 	 * Imposta il default sui profili che non dichiarano il blocco rate_limiting e verifica quelli
-	 * che lo dichiarano.
+	 * che lo dichiarano; lo stesso per gli stati autorizzati delle adesioni.
 	 */
 	public static void applicaDefault(Configurazione configurazione) {
+		applicaDefaultProfili(configurazione);
+		applicaDefaultAdesioni(configurazione.getAdesione());
+	}
+
+	private static void applicaDefaultProfili(Configurazione configurazione) {
 		for(ConfigurazioneProfilo profilo: configurazione.getServizio().getApi().getProfili()) {
 			ConfigurazioneProfiloRateLimiting rl = profilo.getRateLimiting();
 			if(rl == null) {
@@ -94,9 +111,68 @@ public class RateLimitingRegole {
 		return rl;
 	}
 
+	private static void applicaDefaultAdesioni(ConfigurazioneAdesione adesione) {
+		ConfigurazioneWorkflow workflow = adesione.getWorkflow();
+		List<String> stati = workflow != null && workflow.getStati() != null ? workflow.getStati() : List.of();
+
+		if(adesione.getRateLimiting() == null) {
+			adesione.setRateLimiting(new ConfigurazioneAdesioneRateLimiting());
+		}
+		if(adesione.getRateLimiting().getStatiAutorizzati() == null) {
+			adesione.getRateLimiting().setStatiAutorizzati(new ConfigurazioneRateLimitingStatiAutorizzati());
+		}
+
+		ConfigurazioneRateLimitingStatiAutorizzati sa = adesione.getRateLimiting().getStatiAutorizzati();
+		if(sa.getCollaudo() == null) {
+			sa.setCollaudo(getStatiAutorizzatiDefault(workflow, stati, AmbienteEnum.COLLAUDO));
+		} else {
+			checkStati(sa.getCollaudo(), stati, "collaudo");
+		}
+		if(sa.getProduzione() == null) {
+			sa.setProduzione(getStatiAutorizzatiDefault(workflow, stati, AmbienteEnum.PRODUZIONE));
+		} else {
+			checkStati(sa.getProduzione(), stati, "produzione");
+		}
+	}
+
+	/**
+	 * Collaudo: stati di collaudo da autorizzato in poi e stati di produzione con collaudo, in cui
+	 * il collaudo e` gia` stato autorizzato. Produzione: stati di produzione da autorizzato in poi,
+	 * con o senza collaudo. Esclusi sempre lo stato iniziale e quello archiviato.
+	 */
+	private static List<String> getStatiAutorizzatiDefault(ConfigurazioneWorkflow workflow, List<String> stati, AmbienteEnum ambiente) {
+		List<String> esclusi = new ArrayList<>();
+		if(workflow != null) {
+			esclusi.add(workflow.getStatoIniziale());
+			esclusi.add(workflow.getStatoArchiviato());
+		}
+
+		return new ArrayList<>(stati.stream()
+				.filter(s -> !esclusi.contains(s))
+				.filter(s -> AmbienteEnum.PRODUZIONE.equals(ambiente)
+						? s.contains("produzione") && !s.startsWith("richiesto")
+						: !s.contains("senza_collaudo") && (s.contains("produzione") || (s.contains("collaudo") && !s.startsWith("richiesto"))))
+				.toList());
+	}
+
+	private static void checkStati(List<String> statiAutorizzati, List<String> stati, String ambiente) {
+		for(String s: statiAutorizzati) {
+			if(!stati.contains(s)) {
+				throw new IllegalStateException("Configurazione non valida: lo stato '" + s + "' di adesione.rate_limiting.stati_autorizzati."
+						+ ambiente + " non e` fra gli stati del workflow delle adesioni");
+			}
+		}
+	}
+
 	/** Profilo PDND: pdnd_type valorizzato, lo stesso criterio del menu` PDND della console. */
 	private static boolean isPdnd(ConfigurazioneProfilo profilo) {
 		return profilo.getPdndType() != null && !profilo.getPdndType().isBlank();
+	}
+
+	/** Stati delle adesioni in cui le quote dell'ambiente sono autorizzate, impostati all'avvio. */
+	public List<String> getStatiAutorizzati(AmbienteEnum ambiente) {
+		ConfigurazioneRateLimitingStatiAutorizzati sa = this.configurazione.getAdesione().getRateLimiting().getStatiAutorizzati();
+		return AmbienteEnum.PRODUZIONE.equals(ambiente) ? sa.getProduzione() : sa.getCollaudo();
 	}
 
 	public Regola getRegola(ApiEntity api) {

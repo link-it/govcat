@@ -29,18 +29,24 @@ import org.springframework.data.jpa.repository.support.JpaRepositoryImplementati
 
 public interface AdesioneRateLimitingRepository extends JpaRepositoryImplementation<AdesioneRateLimitingEntity, Long> {
 
-	/** Quote assegnate, per API, ambiente e periodo, ai fruitori delle adesioni non archiviate del servizio. */
+	/**
+	 * Quote assegnate, per API, ambiente, periodo e stato dell'adesione, ai fruitori delle adesioni
+	 * non archiviate del servizio. Lo stato consente di distinguere le quote delle adesioni
+	 * autorizzate, i cui stati dipendono dalla configurazione.
+	 */
 	interface QuotaAssegnata {
 		Long getIdApi();
 		AmbienteEnum getAmbiente();
 		RateLimitingPeriodo getPeriodo();
+		String getStato();
 		Long getQuota();
 		Long getNumeroFruitori();
 	}
 
-	@Query(value = "SELECT r.api.id AS idApi, r.ambiente AS ambiente, r.periodo AS periodo, SUM(r.quota) AS quota, COUNT(r) AS numeroFruitori "
+	@Query(value = "SELECT r.api.id AS idApi, r.ambiente AS ambiente, r.periodo AS periodo, r.adesione.stato AS stato, "
+			+ "SUM(r.quota) AS quota, COUNT(r) AS numeroFruitori "
 			+ "FROM AdesioneRateLimitingEntity r WHERE r.adesione.servizio.id = ?1 AND r.adesione.stato <> ?2 "
-			+ "GROUP BY r.api.id, r.ambiente, r.periodo")
+			+ "GROUP BY r.api.id, r.ambiente, r.periodo, r.adesione.stato")
 	List<QuotaAssegnata> getQuoteAssegnate(Long idServizio, String statoArchiviato);
 
 	@Query(value = "SELECT COUNT(r) FROM AdesioneRateLimitingEntity r "

@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.govway.catalogo.core.dao.repositories.AdesioneRateLimitingRepository.QuotaAssegnata;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
 import org.govway.catalogo.core.orm.entity.AdesioneRateLimitingEntity;
 import org.govway.catalogo.core.orm.entity.AmbienteEnum;
@@ -35,6 +34,7 @@ import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity.RUOLO;
 import org.govway.catalogo.core.orm.entity.RateLimitingPeriodo;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
+import org.govway.catalogo.services.RateLimitingService.QuoteAssegnate;
 import org.govway.catalogo.servlets.model.ItemRateLimitingFruitore;
 import org.govway.catalogo.servlets.model.RateLimitingAdesione;
 import org.govway.catalogo.servlets.model.RateLimitingAdesioneApi;
@@ -70,24 +70,26 @@ public class RateLimitingAssembler {
 				.periodo(toModel(e.getPeriodo()));
 	}
 
-	public ItemRateLimitingFruitore toFruitore(AdesioneEntity adesione, List<AdesioneRateLimitingEntity> rateLimiting) {
+	public ItemRateLimitingFruitore toFruitore(AdesioneEntity adesione, boolean autorizzata, List<AdesioneRateLimitingEntity> rateLimiting) {
 		return new ItemRateLimitingFruitore()
 				.idAdesione(UUID.fromString(adesione.getIdAdesione()))
 				.idLogico(adesione.getIdLogico())
 				.soggetto(this.soggettoItemAssembler.toModel(adesione.getSoggetto()))
 				.stato(adesione.getStato())
+				.autorizzata(autorizzata)
 				.rateLimiting(rateLimiting.stream().map(this::toModel).toList());
 	}
 
 	/**
 	 * Riepilogo delle API del servizio erogate dal soggetto del dominio, ordinate per nome e
-	 * versione, con le quote dichiarate confrontate con quelle assegnate ai fruitori.
+	 * versione, con le quote dichiarate confrontate con quelle assegnate ai fruitori, nel complesso e
+	 * per le sole adesioni autorizzate.
 	 */
-	public RateLimitingServizio toRiepilogo(ServizioEntity servizio, List<QuotaAssegnata> quoteAssegnate) {
+	public RateLimitingServizio toRiepilogo(ServizioEntity servizio, List<QuoteAssegnate> quoteAssegnate) {
 
-		Map<String, QuotaAssegnata> assegnate = new HashMap<>();
-		for(QuotaAssegnata q: quoteAssegnate) {
-			assegnate.put(getChiave(q.getIdApi(), q.getAmbiente(), q.getPeriodo()), q);
+		Map<String, QuoteAssegnate> assegnate = new HashMap<>();
+		for(QuoteAssegnate q: quoteAssegnate) {
+			assegnate.put(getChiave(q.idApi(), q.ambiente(), q.periodo()), q);
 		}
 
 		List<RateLimitingServizioApi> api = servizio.getApi().stream()
@@ -104,7 +106,7 @@ public class RateLimitingAssembler {
 		return new RateLimitingServizio().api(api);
 	}
 
-	private List<RateLimitingRiepilogo> toRiepilogo(ApiEntity api, ApiConfigEntity config, AmbienteEnum ambiente, Map<String, QuotaAssegnata> assegnate) {
+	private List<RateLimitingRiepilogo> toRiepilogo(ApiEntity api, ApiConfigEntity config, AmbienteEnum ambiente, Map<String, QuoteAssegnate> assegnate) {
 
 		if(config == null) {
 			return List.of();
@@ -113,8 +115,9 @@ public class RateLimitingAssembler {
 		return config.getRateLimiting().stream()
 				.sorted(Comparator.comparing(ApiConfigRateLimitingEntity::getPeriodo))
 				.map(e -> {
-					QuotaAssegnata q = assegnate.get(getChiave(api.getId(), ambiente, e.getPeriodo()));
-					long quotaAssegnata = q != null ? q.getQuota() : 0;
+					QuoteAssegnate q = assegnate.get(getChiave(api.getId(), ambiente, e.getPeriodo()));
+					long quotaAssegnata = q != null ? q.quota() : 0;
+					long quotaAutorizzata = q != null ? q.quotaAutorizzata() : 0;
 					Long residua = e.getQuota() != null ? e.getQuota() - quotaAssegnata : null;
 					return new RateLimitingRiepilogo()
 							.periodo(toModel(e.getPeriodo()))
@@ -122,7 +125,10 @@ public class RateLimitingAssembler {
 							.quotaFruitore(e.getQuotaFruitore())
 							.quotaAssegnata(quotaAssegnata)
 							.quotaResidua(residua)
-							.numeroFruitori(q != null ? q.getNumeroFruitori().intValue() : 0)
+							.numeroFruitori(q != null ? q.numeroFruitori() : 0)
+							.quotaAutorizzata(quotaAutorizzata)
+							.numeroFruitoriAutorizzati(q != null ? q.numeroFruitoriAutorizzati() : 0)
+							.quotaResiduaAutorizzata(e.getQuota() != null ? e.getQuota() - quotaAutorizzata : null)
 							.superata(residua != null && residua < 0);
 				})
 				.toList();

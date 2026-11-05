@@ -22,6 +22,7 @@ package org.govway.catalogo.services;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -395,14 +396,50 @@ public class RateLimitingService {
 		return this.servizioAuthorization.getGrant(servizio).getRuoli().stream().anyMatch(RUOLI_GESTIONE_SERVIZIO::contains);
 	}
 
-	/** Quote assegnate ai fruitori delle adesioni non archiviate del servizio, per API, ambiente e periodo. */
-	public List<QuotaAssegnata> getQuoteAssegnate(ServizioEntity servizio) {
-		return this.adesioneRateLimitingRepository.getQuoteAssegnate(servizio.getId(), getStatoArchiviatoAdesione());
+	/**
+	 * Quote assegnate ai fruitori delle adesioni non archiviate del servizio, per API, ambiente e
+	 * periodo, con la parte delle adesioni autorizzate per l'ambiente.
+	 */
+	public record QuoteAssegnate(Long idApi, AmbienteEnum ambiente, RateLimitingPeriodo periodo, long quota, int numeroFruitori,
+			long quotaAutorizzata, int numeroFruitoriAutorizzati) {}
+
+	public List<QuoteAssegnate> getQuoteAssegnate(ServizioEntity servizio) {
+		Map<String, QuoteAssegnate> quote = new LinkedHashMap<>();
+		for(QuotaAssegnata q: this.adesioneRateLimitingRepository.getQuoteAssegnate(servizio.getId(), getStatoArchiviatoAdesione())) {
+			boolean autorizzata = this.rateLimitingRegole.getStatiAutorizzati(q.getAmbiente()).contains(q.getStato());
+			long quota = q.getQuota();
+			int numeroFruitori = q.getNumeroFruitori().intValue();
+			quote.merge(q.getIdApi() + "/" + q.getAmbiente() + "/" + q.getPeriodo(),
+					new QuoteAssegnate(q.getIdApi(), q.getAmbiente(), q.getPeriodo(), quota, numeroFruitori,
+							autorizzata ? quota : 0, autorizzata ? numeroFruitori : 0),
+					(a, b) -> new QuoteAssegnate(a.idApi(), a.ambiente(), a.periodo(), a.quota() + b.quota(), a.numeroFruitori() + b.numeroFruitori(),
+							a.quotaAutorizzata() + b.quotaAutorizzata(), a.numeroFruitoriAutorizzati() + b.numeroFruitoriAutorizzati()));
+		}
+		return new ArrayList<>(quote.values());
 	}
 
-	public Page<AdesioneEntity> getAdesioniNonArchiviate(ServizioEntity servizio, int page, int size) {
-		return this.adesioneRepository.findByServizioNonArchiviate(servizio.getId(), getStatoArchiviatoAdesione(),
-				PageRequest.of(page, size, Sort.by("id")));
+	/**
+	 * Adesioni non archiviate del servizio; autorizzate valorizzato: solo quelle autorizzate per
+	 * l'ambiente, o solo quelle non ancora autorizzate.
+	 */
+	public Page<AdesioneEntity> getAdesioniNonArchiviate(ServizioEntity servizio, AmbienteEnum ambiente, Boolean autorizzate, int page, int size) {
+		PageRequest pageRequest = PageRequest.of(page, size, Sort.by("id"));
+		List<String> statiAutorizzati = this.rateLimitingRegole.getStatiAutorizzati(ambiente);
+
+		if(autorizzate == null || (!autorizzate && statiAutorizzati.isEmpty())) {
+			return this.adesioneRepository.findByServizioNonArchiviate(servizio.getId(), getStatoArchiviatoAdesione(), pageRequest);
+		}
+		if(statiAutorizzati.isEmpty()) {
+			return Page.empty(pageRequest);
+		}
+		return autorizzate
+				? this.adesioneRepository.findByServizioNonArchiviateInStati(servizio.getId(), getStatoArchiviatoAdesione(), statiAutorizzati, pageRequest)
+				: this.adesioneRepository.findByServizioNonArchiviateNotInStati(servizio.getId(), getStatoArchiviatoAdesione(), statiAutorizzati, pageRequest);
+	}
+
+	/** L'adesione e` in uno degli stati in cui le quote dell'ambiente sono autorizzate. */
+	public boolean isAutorizzata(AdesioneEntity adesione, AmbienteEnum ambiente) {
+		return this.rateLimitingRegole.getStatiAutorizzati(ambiente).contains(adesione.getStato());
 	}
 
 	// ==================== UTILITA` ====================

@@ -2810,7 +2810,7 @@ paths:
     get:
       tags:
       - "Servizi"
-      description: "Riepilogo del rate limiting del servizio: per ogni API erogata dal soggetto del dominio e per ogni ambiente, le quote complessive dichiarate e la somma delle quote assegnate ai fruitori delle adesioni non archiviate. Riservato a chi gestisce il servizio."
+      description: "Riepilogo del rate limiting del servizio: per ogni API erogata dal soggetto del dominio e per ogni ambiente, le quote complessive dichiarate e la somma delle quote assegnate ai fruitori delle adesioni non archiviate, con la parte delle adesioni gia` autorizzate per l'ambiente. Riservato a chi gestisce il servizio."
       operationId: "getRateLimitingServizio"
       responses:
         "200":
@@ -2843,6 +2843,12 @@ paths:
       operationId: "listRateLimitingFruitoriServizio"
       parameters:
         - $ref: "#/components/parameters/ambiente_query"
+        - name: "autorizzate"
+          in: "query"
+          description: "true: solo le adesioni autorizzate per l'ambiente; false: solo quelle non ancora autorizzate; assente: tutte le adesioni non archiviate"
+          required: false
+          schema:
+            type: "boolean"
         - $ref: "#/components/parameters/page_query_optional"
         - $ref: "#/components/parameters/size_query_optional"
       responses:
@@ -6221,6 +6227,8 @@ components:
         - periodo
         - quota_assegnata
         - numero_fruitori
+        - quota_autorizzata
+        - numero_fruitori_autorizzati
         - superata
       properties:
         periodo:
@@ -6245,6 +6253,18 @@ components:
           description: "Numero di adesioni con una quota assegnata per il periodo"
           type: "integer"
           format: "int32"
+        quota_autorizzata:
+          description: "Somma delle quote assegnate ai fruitori delle adesioni autorizzate per l'ambiente (vedi stati_autorizzati nella configurazione delle adesioni); compresa in quota_assegnata"
+          type: "integer"
+          format: "int64"
+        numero_fruitori_autorizzati:
+          description: "Numero di adesioni autorizzate per l'ambiente con una quota assegnata per il periodo; compreso in numero_fruitori"
+          type: "integer"
+          format: "int32"
+        quota_residua_autorizzata:
+          description: "Quota totale meno quota autorizzata, assente se la quota totale non e` prevista: negativa quando le quote autorizzate superano la quota totale"
+          type: "integer"
+          format: "int64"
         superata:
           description: "Le quote assegnate ai fruitori superano la quota totale (sempre false se la quota totale non e` prevista). E` solo un avviso: nessun salvataggio viene bloccato."
           type: "boolean"
@@ -6289,6 +6309,7 @@ components:
         - id_adesione
         - soggetto
         - stato
+        - autorizzata
         - rate_limiting
       properties:
         id_adesione:
@@ -6299,6 +6320,9 @@ components:
           $ref: "#/components/schemas/ItemSoggetto"
         stato:
           $ref: "#/components/schemas/String255"
+        autorizzata:
+          description: "L'adesione e` in uno degli stati in cui le quote dell'ambiente sono autorizzate (vedi stati_autorizzati nella configurazione delle adesioni)"
+          type: "boolean"
         rate_limiting:
           type: array
           items:
@@ -6999,6 +7023,8 @@ components:
           type: "array"
           items:
             $ref: "#/components/schemas/ConfigurazioneDatoSempreModificabile"
+        rate_limiting:
+          $ref: "#/components/schemas/ConfigurazioneAdesioneRateLimiting"
         step_wizard:
           type: array
           items:
@@ -7125,6 +7151,24 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Ruolo"
+    ConfigurazioneAdesioneRateLimiting:
+      description: "Rate limiting delle adesioni"
+      type: "object"
+      properties:
+        stati_autorizzati:
+          $ref: "#/components/schemas/ConfigurazioneRateLimitingStatiAutorizzati"
+    ConfigurazioneRateLimitingStatiAutorizzati:
+      description: "Stati del workflow delle adesioni in cui le quote assegnate al fruitore in un ambiente sono autorizzate, distinte nel riepilogo del rate limiting del servizio. Una lista assente nel file di configurazione e` impostata all'avvio dai nomi degli stati del workflow: per il collaudo gli stati di collaudo da autorizzato in poi e gli stati di produzione con collaudo; per la produzione gli stati di produzione da autorizzato in poi, anche senza collaudo. Lista vuota: nessuno stato."
+      type: "object"
+      properties:
+        collaudo:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigurazioneNomeStato"
+        produzione:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigurazioneNomeStato"
     ConfigurazioneProprietaAudit:
       type: "object"
       required:
