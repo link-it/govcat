@@ -30,6 +30,7 @@ import { Observable, forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 import { ViewType } from '../verifiche.component';
+import { soggettoMonitoraggio } from '../../monitoraggio-soggetti';
 
 @Component({
   selector: 'ui-verifica-api',
@@ -406,12 +407,8 @@ export class VerificaApiComponent {
     return this._isValidOk(data);
   }
 
-  _getSoggettoId(verifica: string) {
-    return (verifica === 'erogazioni') ? this.service?.dominio?.soggetto_referente?.nome : this.service?.soggetto_erogatore?.nome;
-  }
-
   _getSoggettoNome(verifica: string) {
-    return this.service?.soggetto_erogatore?.nome || this.service?.dominio?.soggetto_referente?.nome
+    return soggettoMonitoraggio(this.service);
   }
 
   scrollToBottom() {

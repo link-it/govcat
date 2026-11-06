@@ -31,6 +31,7 @@ import { UtilService } from '@app/services/utils.service';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 
 import { VerificaApiComponent } from './verifica-api/verifica-api.component';
+import { erogatoreFruizione, tipoMonitoraggio } from '../monitoraggio-soggetti';
 
 import { Page } from '@app/models/page';
 
@@ -414,15 +415,12 @@ export class VerificheComponent implements OnInit, AfterContentChecked, OnChange
   }
 
   _tipoVerificaMapper = (api: any): string => {
-    if (api.ruolo === 'erogato_soggetto_dominio') {
-      if (this.service?.soggetto_erogatore) {
-        return 'fruizioni';
-      } else {
-        return 'erogazioni';
-      }
-    } else {
-      return 'fruizioni';
-    }
+    return tipoMonitoraggio(api, this.service);
+  }
+
+  /** Provider delle verifiche delle API del soggetto di dominio: l'ente erogatore, per le fruizioni. */
+  _providerMapper = (servizio: any): string => {
+    return erogatoreFruizione(servizio);
   }
 
   _isViewTypeAll = (): boolean => {

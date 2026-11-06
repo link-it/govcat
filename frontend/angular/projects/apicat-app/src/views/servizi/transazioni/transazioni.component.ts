@@ -38,6 +38,7 @@ import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchM
 import { Page } from '@app/models/page';
 
 import { apiConAudit, auditAbilitato, erroreAudit, pathConAudit, ProprietaAudit, richiedenteConAudit } from './audit';
+import { soggettoMonitoraggio, tipoMonitoraggio } from '../monitoraggio-soggetti';
 
 import moment from 'moment';
 import * as _ from 'lodash';
@@ -1001,23 +1002,11 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
     return (_index !== -1);
   }
 
-  _getSoggettoId(verifica: string) {
-    return (verifica === 'erogazioni') ? this.service?.dominio?.soggetto_referente?.nome : this.service?.dominio?.soggetto_erogatore?.nome;
-  }
-
   _getSoggettoNome() {
-    return this.service?.soggetto_erogatore?.nome || this.service?.dominio?.soggetto_referente?.nome;
+    return soggettoMonitoraggio(this.service);
   }
 
   _tipoVerifica(api: any) {
-    if (api.ruolo === 'erogato_soggetto_dominio') {
-      if (this.service?.soggetto_erogatore) {
-        return 'fruizioni';
-      } else {
-        return 'erogazioni';
-      }
-    } else {
-      return 'fruizioni';
-    }
+    return tipoMonitoraggio(api, this.service);
   }
 }

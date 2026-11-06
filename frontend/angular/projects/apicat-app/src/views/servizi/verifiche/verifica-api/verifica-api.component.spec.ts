@@ -18,8 +18,8 @@ describe('VerificaApiComponent', () => {
 
   const mockApi = { nome: 'TestApi', versione: 1 };
   const mockService = {
-    soggetto_erogatore: { nome: 'SoggettoInterno' },
-    dominio: { soggetto_referente: { nome: 'SoggettoRef' } }
+    soggetto_erogatore: { nome: 'EnteRemoto' },
+    dominio: { soggetto_referente: { nome: 'SoggettoInterno' } }
   };
 
   function makeChanges(map: Record<string, any>): SimpleChanges {
@@ -161,12 +161,12 @@ describe('VerificaApiComponent', () => {
 
   // ========== _getSoggettoNome ==========
 
-  it('should return soggetto nome from service for erogazioni', () => {
-    component.service = { soggetto_erogatore: { nome: 'SoggettoInterno' }, dominio: { soggetto_referente: { nome: 'SoggettoRef' } } };
-    expect(component._getSoggettoNome('erogazioni')).toBe('SoggettoInterno');
+  it('should return the referent of the domain, the internal subject, also for a fruition (Issue #424)', () => {
+    component.service = { fruizione: true, soggetto_erogatore: { nome: 'EnteRemoto' }, dominio: { soggetto_referente: { nome: 'SoggettoRef' } } };
+    expect(component._getSoggettoNome('fruizioni')).toBe('SoggettoRef');
   });
 
-  it('should return soggetto referente when soggetto_erogatore is missing', () => {
+  it('should return soggetto referente for erogazioni', () => {
     component.service = { dominio: { soggetto_referente: { nome: 'SoggettoRef' } } };
     expect(component._getSoggettoNome('erogazioni')).toBe('SoggettoRef');
   });
@@ -828,30 +828,6 @@ describe('VerificaApiComponent', () => {
 
     it('should return #111111 for unknown esito', () => {
       expect(component._getColorLabelHex({ esito: 'something_else' })).toBe('#111111');
-    });
-  });
-
-  // ========== _getSoggettoId ==========
-
-  describe('_getSoggettoId', () => {
-    it('should return dominio.soggetto_referente.nome for erogazioni', () => {
-      component.service = { dominio: { soggetto_referente: { nome: 'SoggettoRef' } }, soggetto_erogatore: { nome: 'SoggettoInt' } };
-      expect(component._getSoggettoId('erogazioni')).toBe('SoggettoRef');
-    });
-
-    it('should return soggetto_erogatore.nome for fruizioni', () => {
-      component.service = { dominio: { soggetto_referente: { nome: 'SoggettoRef' } }, soggetto_erogatore: { nome: 'SoggettoInt' } };
-      expect(component._getSoggettoId('fruizioni')).toBe('SoggettoInt');
-    });
-
-    it('should return soggetto_erogatore.nome for any non-erogazioni verifica', () => {
-      component.service = { soggetto_erogatore: { nome: 'SoggettoInt' } };
-      expect(component._getSoggettoId('applicativi')).toBe('SoggettoInt');
-    });
-
-    it('should return undefined when service has no matching property', () => {
-      component.service = {};
-      expect(component._getSoggettoId('erogazioni')).toBeUndefined();
     });
   });
 

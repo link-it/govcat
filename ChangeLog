@@ -4,6 +4,9 @@
 	Issue #421: nella scelta del gruppo la freccia di un ramo lo apre e chiude senza selezionare il
 	  gruppo e chiudere la dialog.
 
+	Issue #424: monitoraggio delle fruizioni (transazioni, export, statistiche e verifiche) con il
+	  soggetto interno fruitore nel path e, nelle verifiche, l'ente erogatore come provider.
+
 2026-11-06  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

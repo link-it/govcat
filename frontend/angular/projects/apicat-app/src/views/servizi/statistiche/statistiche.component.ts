@@ -29,6 +29,7 @@ import { Tools, ConfigService, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { MarkAsteriskDirective } from '@app/directives/mark-asterisk';
+import { soggettoMonitoraggio, tipoMonitoraggio } from '../monitoraggio-soggetti';
 
 import moment from 'moment';
 
@@ -766,15 +767,7 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
   }
 
   _tipoVerifica(api: any) {
-    if (api.ruolo === 'erogato_soggetto_dominio') {
-      if (this.service?.soggetto_erogatore) {
-        return 'fruizioni';
-      } else {
-        return 'erogazioni';
-      }
-    } else {
-      return 'fruizioni';
-    }
+    return tipoMonitoraggio(api, this.service);
   }
 
   _hasPDNDAuthType(api: any) {
@@ -793,7 +786,7 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
   }
 
   _getSoggettoNome() {
-      return this.service?.soggetto_erogatore?.nome || this.service?.dominio?.soggetto_referente?.nome
+    return soggettoMonitoraggio(this.service);
   }
 
   _isSoggettoPDND() {
