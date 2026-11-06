@@ -48,7 +48,7 @@ import { AdesioneFormComponent } from './adesione-form/adesione-form.component';
 import { WizardStepBarComponent, StepBarVariant, StepWizardItem } from '@app/components/wizard/wizard-step-bar/wizard-step-bar.component';
 import { WizardFasiBarComponent } from '@app/components/wizard/wizard-fasi-bar/wizard-fasi-bar.component';
 import { WizardSubstepperComponent } from '@app/components/wizard/wizard-substepper/wizard-substepper.component';
-import { WizardRifiuto, WizardRifiutoFormComponent } from '@app/components/wizard/wizard-rifiuto-form/wizard-rifiuto-form.component';
+import { chiavePrefissoRifiuto, WizardRifiuto, WizardRifiutoFormComponent } from '@app/components/wizard/wizard-rifiuto-form/wizard-rifiuto-form.component';
 import { StatoChipComponent } from '@app/components/vetrina';
 
 import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/service-breadcrumbs.resolver';
@@ -1163,6 +1163,11 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         const _soggetto = this.adesione?.soggetto?.nome;
         const _stato = this.translate.instant('APP.WORKFLOW.STATUS.' + this.adesione?.stato);
         return this.translate.instant('APP.WORKFLOW.RIFIUTO.OggettoDefault', { nome: _soggetto ? `${_nome} (${_soggetto})` : _nome, stato: _stato });
+    }
+
+    /** Motivo proposto: il prefisso con l'ambiente dell'autorizzazione rifiutata. */
+    get _testoRifiuto(): string {
+        return this.translate.instant(chiavePrefissoRifiuto(this.adesione?.stato));
     }
 
     openRifiuto() {

@@ -18,7 +18,7 @@
  */
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { LnkButtonComponent } from '@app/components/lnk-ui/button/button.component';
@@ -27,6 +27,11 @@ import { LnkButtonComponent } from '@app/components/lnk-ui/button/button.compone
 export interface WizardRifiuto {
     oggetto: string;
     testo: string;
+}
+
+/** Prefisso del motivo del rifiuto di un'autorizzazione, per l'ambiente dello stato richiesto. */
+export function chiavePrefissoRifiuto(stato: string | null | undefined): string {
+    return (stato || '').includes('produzione') ? 'APP.WORKFLOW.RIFIUTO.PrefissoProduzione' : 'APP.WORKFLOW.RIFIUTO.PrefissoCollaudo';
 }
 
 /**
@@ -51,6 +56,8 @@ export class WizardRifiutoFormComponent implements OnInit {
 
     /** Oggetto proposto. */
     @Input() oggetto: string = '';
+    /** Inizio del motivo proposto (es. il prefisso con l'ambiente): da completare. */
+    @Input() testo: string = '';
     /** Stato a cui torna la richiesta (gia` tradotto), per la descrizione. */
     @Input() statoPrecedente: string = '';
     @Input() saving: boolean = false;
@@ -64,8 +71,16 @@ export class WizardRifiutoFormComponent implements OnInit {
     ngOnInit() {
         this._formGroup = new FormGroup({
             oggetto: new FormControl(this.oggetto, [Validators.required, Validators.maxLength(this.maxOggetto)]),
-            testo: new FormControl('', [Validators.required, Validators.maxLength(this.maxTesto)])
+            testo: new FormControl(this.testo, [Validators.required, Validators.maxLength(this.maxTesto), this._oltreIlTestoProposto()])
         });
+    }
+
+    /** Il motivo va completato: il solo testo proposto non basta. */
+    private _oltreIlTestoProposto(): ValidatorFn {
+        return (control: AbstractControl): ValidationErrors | null => {
+            const _proposto = (this.testo || '').trim();
+            return (_proposto && `${control.value ?? ''}`.trim() === _proposto) ? { required: true } : null;
+        };
     }
 
     _hasError(name: string, error: string): boolean {

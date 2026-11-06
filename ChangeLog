@@ -18,6 +18,9 @@
 	Issue #426: nell'adesione a un servizio intermediato organizzazione e soggetto aderente sono quelli
 	  del referente del dominio, bloccati, e i referenti si cercano in quell'organizzazione.
 
+	Issue #427: nel rifiuto di un'autorizzazione il motivo è precompilato con il prefisso
+	  "Autorizzazione in collaudo/produzione rifiutata per il seguente motivo: ", da completare.
+
 2026-11-06  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

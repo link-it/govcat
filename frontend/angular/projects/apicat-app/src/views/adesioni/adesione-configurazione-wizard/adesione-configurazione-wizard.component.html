@@ -1507,6 +1507,7 @@
                   @if (_hasAnyWorkflowAction() && _rifiutoOpen) {
                     <app-wizard-rifiuto-form class="d-block mt-3"
                       [oggetto]="_oggettoRifiuto"
+                      [testo]="_testoRifiuto"
                       [statoPrecedente]="_statoPrecedenteLabel"
                       [saving]="changingStatus"
                       [errorMsg]="_rifiutoErrore"

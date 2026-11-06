@@ -3699,6 +3699,8 @@
 				"Descrizione": "Lo stato torna a \"{{stato}}\" e i referenti ricevono una comunicazione con il motivo.",
 				"Oggetto": "Oggetto",
 				"Motivo": "Motivo del rifiuto",
+				"PrefissoCollaudo": "Autorizzazione in collaudo rifiutata per il seguente motivo: ",
+				"PrefissoProduzione": "Autorizzazione in produzione rifiutata per il seguente motivo: ",
 				"Conferma": "Conferma rifiuto",
 				"OggettoDefault": "{{nome}}: richiesta rifiutata ({{stato}})",
 				"Successo": "Richiesta rifiutata: lo stato è tornato a \"{{stato}}\" e la comunicazione è stata inviata ai referenti."

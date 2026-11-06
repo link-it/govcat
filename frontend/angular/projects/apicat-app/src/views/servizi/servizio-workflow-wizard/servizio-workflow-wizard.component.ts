@@ -57,7 +57,7 @@ import { ErrorViewComponent } from '@app/components/error-view/error-view.compon
 import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
 import { WizardFasiBarComponent } from '@app/components/wizard/wizard-fasi-bar/wizard-fasi-bar.component';
 import { WizardSubstepperComponent } from '@app/components/wizard/wizard-substepper/wizard-substepper.component';
-import { WizardRifiuto, WizardRifiutoFormComponent } from '@app/components/wizard/wizard-rifiuto-form/wizard-rifiuto-form.component';
+import { chiavePrefissoRifiuto, WizardRifiuto, WizardRifiutoFormComponent } from '@app/components/wizard/wizard-rifiuto-form/wizard-rifiuto-form.component';
 import { StepWizardItem } from '@app/components/wizard/wizard-step-bar/wizard-step-bar.component';
 import { ServizioInfoFormComponent } from './servizio-info-form/servizio-info-form.component';
 import { ServizioReferenteAddFormComponent } from './servizio-referente-add-form/servizio-referente-add-form.component';
@@ -657,6 +657,11 @@ export class ServizioWorkflowWizardComponent implements OnInit {
         const _nome = [this.data?.nome, this.data?.versione ? `v. ${this.data.versione}` : ''].filter(Boolean).join(' ');
         const _stato = this.translate.instant('APP.WORKFLOW.STATUS.' + this.data?.stato);
         return this.translate.instant('APP.WORKFLOW.RIFIUTO.OggettoDefault', { nome: _nome, stato: _stato });
+    }
+
+    /** Motivo proposto: il prefisso con l'ambiente dell'autorizzazione rifiutata. */
+    get _testoRifiuto(): string {
+        return this.translate.instant(chiavePrefissoRifiuto(this.data?.stato));
     }
 
     openRifiuto() {
