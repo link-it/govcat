@@ -19,6 +19,7 @@
  */
 package batch;
 
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -33,13 +34,13 @@ import org.govway.catalogo.core.dao.repositories.ClientRepository;
 import org.govway.catalogo.core.dao.repositories.UtenteRepository;
 import org.govway.catalogo.core.dao.specifications.UtenteSpecification;
 import org.govway.catalogo.core.dto.DTOAdesione;
-import org.govway.catalogo.core.exceptions.NotFoundException;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity.STATO_CONFIGURAZIONE;
 import org.govway.catalogo.core.orm.entity.AmbienteEnum;
 import org.govway.catalogo.core.orm.entity.ClientAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.ClientEntity;
 import org.govway.catalogo.core.orm.entity.StatoAdesioneEntity;
+import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.infrastructure.item.ItemProcessor;
@@ -65,7 +66,12 @@ public class ConfigurazioneItemProcessor implements ItemProcessor<AdesioneEntity
 	@Autowired
 	private ClientRepository clientRepository;
 
-    @Value("${configurazione-automatica.batch.utente_configuratore}")
+	/**
+	 * Principal dell'utente usato come autore del cambio di stato solo se non e' possibile
+	 * determinare dallo storico l'utente che ha richiesto la configurazione automatica.
+	 * Opzionale: se vuoto non c'e' fallback.
+	 */
+    @Value("${configurazione-automatica.batch.utente_configuratore:}")
 	String utenteConfiguratore;
 	
     @Autowired
@@ -127,6 +133,18 @@ public class ConfigurazioneItemProcessor implements ItemProcessor<AdesioneEntity
             .findFirst()
             .orElse(null);
 
+		// L'autore del cambio di stato va determinato prima di invocare GovWay: se non e' possibile
+		// non si configura nulla, evitando configurazioni su GovWay non seguite dal cambio di stato.
+		Optional<UtenteEntity> autore = getAutoreCambioStato(entity, statoInConf);
+		if (autore.isEmpty()) {
+			String messaggio = "Impossibile determinare l'utente autore del cambio di stato: nessun utente ha richiesto lo stato ["
+					+ statoInConf + "] e la proprieta' configurazione-automatica.batch.utente_configuratore non indica un utente esistente";
+			logger.error("[Processor] Adesione [ {} ]: {}", entity.getIdAdesione(), messaggio);
+			entity.setStatoConfigurazione(STATO_CONFIGURAZIONE.KO);
+			entity.setMessaggioConfigurazione(messaggio);
+			return entity;
+		}
+
 		ConfigurazioneAdesioneInput conf = new ConfigurazioneAdesioneInput();
 		AdesioneDTOConverter b = new AdesioneDTOConverter(entity, configurazioneJsonPath);
 		b.setDto(new DTOAdesione(null, null, null, null, null, null, null, null));
@@ -157,9 +175,7 @@ public class ConfigurazioneItemProcessor implements ItemProcessor<AdesioneEntity
 			e.setAdesione(entity);
 			e.setStato(statoFinale);
 			e.setData(new Date());
-			UtenteSpecification utenteSpec = new UtenteSpecification();
-			utenteSpec.setPrincipal(Optional.of(this.utenteConfiguratore));
-			e.setUtente(utenteRepository.findOne(utenteSpec).orElseThrow(() -> new NotFoundException("Utente con principal " + this.utenteConfiguratore)));
+			e.setUtente(autore.get());
 			logger.debug("# stati:  {}", entity.getStati().size());
 			entity.getStati().add(e);
 			entity.getStati().forEach(s -> logger.debug("[Processor] stato durante la gestione della adesione: uuid={}, stato={}, data={}", s.getUuid(), s.getStato(), s.getData()));
@@ -190,6 +206,31 @@ public class ConfigurazioneItemProcessor implements ItemProcessor<AdesioneEntity
 
 		return entity;
 
+	}
+
+	/**
+	 * Autore del cambio di stato post-configurazione: l'utente che ha portato l'adesione nello stato
+	 * "in configurazione" (ultima occorrenza di quello stato nello storico); in mancanza, l'utente
+	 * indicato dalla proprieta' configurazione-automatica.batch.utente_configuratore, se valorizzata.
+	 */
+	private Optional<UtenteEntity> getAutoreCambioStato(AdesioneEntity entity, String statoInConf) {
+		Optional<UtenteEntity> richiedente = entity.getStati().stream()
+				.filter(s -> statoInConf.equals(s.getStato()) && s.getData() != null)
+				.max(Comparator.comparing(StatoAdesioneEntity::getData))
+				.map(StatoAdesioneEntity::getUtente);
+		if (richiedente.isPresent()) {
+			logger.debug("[Processor] Autore del cambio di stato: utente che ha richiesto lo stato [{}]", statoInConf);
+			return richiedente;
+		}
+
+		if (this.utenteConfiguratore == null || this.utenteConfiguratore.isBlank()) {
+			return Optional.empty();
+		}
+		logger.warn("[Processor] Adesione [ {} ]: utente richiedente dello stato [{}] non presente nello storico, uso l'utente di fallback [{}]",
+				entity.getIdAdesione(), statoInConf, this.utenteConfiguratore);
+		UtenteSpecification utenteSpec = new UtenteSpecification();
+		utenteSpec.setPrincipal(Optional.of(this.utenteConfiguratore));
+		return utenteRepository.findOne(utenteSpec);
 	}
 
 	private void promuoviClientConfigurati(AdesioneEntity entity, String statoInConf) {

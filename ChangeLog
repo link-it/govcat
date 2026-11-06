@@ -1,3 +1,15 @@
+2026-11-06  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 422: il cambio di stato eseguito dal batch al termine della configurazione automatica
+	  di un'adesione ha come autore l'utente che ha richiesto la configurazione, cioè chi ha
+	  portato l'adesione nello stato in configurazione, e non più un utente fisso. La proprietà
+	  `configurazione-automatica.batch.utente_configuratore` diventa opzionale (non più
+	  valorizzata di default) ed è usata solo se il richiedente non risulta dallo storico. Se
+	  l'autore non è determinabile l'adesione va in configurazione KO senza invocare GovWay e si
+	  ripristina con il retry della configurazione automatica; prima la configurazione su GovWay
+	  veniva eseguita e ripetuta a ogni giro senza che l'adesione cambiasse stato.
+
 2026-11-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
