@@ -15,6 +15,9 @@
 	  allargano fino a una larghezza massima e i dati delle quote si dispongono su colonne adattive,
 	  senza etichette a capo; su mobile la tabella dei fruitori della vetrina scorre al suo interno.
 
+	Issue #426: nell'adesione a un servizio intermediato organizzazione e soggetto aderente sono quelli
+	  del referente del dominio, bloccati, e i referenti si cercano in quell'organizzazione.
+
 2026-11-06  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

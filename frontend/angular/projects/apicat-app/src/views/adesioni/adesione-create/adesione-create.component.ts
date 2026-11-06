@@ -172,6 +172,8 @@ export class AdesioneCreateComponent implements OnInit {
    * al posto del ng-select (evita problemi di bind ng-select +
    * patchValue + disabled durante creazione adesione). */
   _lockedOrgNome: string = '';
+  /** Organizzazione bloccata da un servizio intermediato (non da quella di sessione). */
+  _orgIntermediato: boolean = false;
 
   debugMandatoryFields: boolean = false;
 
@@ -257,6 +259,9 @@ export class AdesioneCreateComponent implements OnInit {
       this.generalConfig = Tools.Configurazione || null;
       this._scelta_libera_organizzazione = this.generalConfig?.adesione.scelta_libera_organizzazione || false;
       this._initForm(this._adesioneCreate);
+      if (this._orgIntermediato) {
+        this._bloccaOrganizzazioneIntermediato();
+      }
     });
   }
 
@@ -851,10 +856,20 @@ export class AdesioneCreateComponent implements OnInit {
 
     this.updateIdLogico(this._servizio);
 
-    // L'organizzazione dell'adesione (fruitore) e` SEMPRE quella di sessione
-    // (impostata da `_loadProfilo`) o scelta dall'utente: non viene mai
-    // derivata dal dominio/erogatore del servizio. Per il ruolo
-    // referente_servizio carichiamo/abilitiamo l'org corrente.
+    if (this._bloccaOrganizzazioneIntermediato()) {
+      this._showMandatoryFields(this._formGroup.controls);
+      return;
+    }
+    if (this._orgIntermediato) {
+      // Da un servizio intermediato a uno che non lo e`: torna l'organizzazione di sessione
+      this._orgIntermediato = false;
+      this._formGroup.get('id_organizzazione')?.enable();
+      this._loadProfilo();
+    }
+
+    // L'organizzazione dell'adesione (fruitore) e` quella di sessione (impostata
+    // da `_loadProfilo`) o scelta dall'utente, tranne per i servizi intermediati.
+    // Per il ruolo referente_servizio carichiamo/abilitiamo l'org corrente.
     if (servizio && await this.isCurrentUserReferenteServizio(servizio)) {
       this._formGroup.get('id_organizzazione')?.enable();
       // Se l'organizzazione è già valorizzata (da _loadProfilo), non resettare
@@ -869,6 +884,23 @@ export class AdesioneCreateComponent implements OnInit {
     }
 
     this._showMandatoryFields(this._formGroup.controls);
+  }
+
+  /**
+   * Servizio intermediato: organizzazione e soggetto aderente sono quelli del referente del dominio,
+   * bloccati; i referenti si cercano in quell'organizzazione.
+   */
+  _bloccaOrganizzazioneIntermediato(): boolean {
+    const _soggetto = this._servizio?.fruizione ? this._servizio?.dominio?.soggetto_referente : null;
+    const _org = _soggetto?.organizzazione;
+    if (!_org?.id_organizzazione) { return false; }
+    this._orgIntermediato = true;
+    this._lockedOrgNome = _org.nome || '';
+    this._initOrganizzazioniSelect([{ id_organizzazione: _org.id_organizzazione, nome: _org.nome }]);
+    this._formGroup.patchValue({ id_organizzazione: _org.id_organizzazione });
+    this._formGroup.get('id_organizzazione')?.disable();
+    this._checkSoggetto(_org);
+    return true;
   }
 
   _onChangeIdLogico(event: any) {

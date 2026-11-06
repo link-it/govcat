@@ -563,6 +563,24 @@ describe('AdesioneFormComponent', () => {
     expect(component.formGroup.get('id_organizzazione')?.value).not.toBe('INT1');
   });
 
+  it('onChangeServizio should lock organization and subject for an intermediated service (Issue #426)', async () => {
+    component.initForm();
+    mockApiService.getData.mockReturnValue(of([]));
+    const event = {
+      item: {
+        fruizione: true,
+        multi_adesione: false,
+        dominio: { soggetto_referente: { id_soggetto: 'SR1', nome: 'Ente', organizzazione: { id_organizzazione: 'ORG-ENTE', nome: 'Ente' } } },
+        soggetto_erogatore: { organizzazione: { id_organizzazione: 'ORG-REMOTA', nome: 'Remota' }, id_soggetto: 'SE1' }
+      }
+    };
+    await component.onChangeServizio(event);
+    expect(component.formGroup.get('id_organizzazione')?.value).toBe('ORG-ENTE');
+    expect(component.formGroup.get('id_organizzazione')?.disabled).toBe(true);
+    expect(component.initDataOrganizzazione).toEqual({ label: 'Ente', value: 'ORG-ENTE', item: { id_organizzazione: 'ORG-ENTE', nome: 'Ente' } });
+    expect(component.formGroup.get('id_soggetto')?.value).toBe('SR1');
+  });
+
   // -------- checkSoggetto --------
 
   it('checkSoggetto should reset form when event is null', () => {

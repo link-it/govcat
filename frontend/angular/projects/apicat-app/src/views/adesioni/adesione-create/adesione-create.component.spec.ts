@@ -204,4 +204,50 @@ describe('AdesioneCreateComponent', () => {
       expect(component._formGroup.controls.soggetto_nome.value).toBe('Ref Dominio');
     });
   });
+
+  describe('servizio intermediato (Issue #426)', () => {
+    const orgEnte = { id_organizzazione: 'ORG-ENTE', nome: 'Ente' };
+    const intermediato = { id_servizio: 'S1', fruizione: true, multi_adesione: false, dominio: { soggetto_referente: { id_soggetto: 'SR1', nome: 'Ente', organizzazione: orgEnte } } } as any;
+
+    beforeEach(() => {
+      component._formGroup = new FormGroup({
+        id_organizzazione: new FormControl('ORG-SESSIONE'),
+        id_soggetto: new FormControl(null),
+        soggetto_nome: new FormControl(null),
+        referente: new FormControl(null),
+        id_logico: new FormControl(null)
+      });
+      mockApiService.getList.mockReturnValue(of({ content: [] }));
+    });
+
+    it('should lock organization and subject to the referent of the domain', async () => {
+      const referente = vi.spyOn(component as any, 'isCurrentUserReferenteServizio');
+      await component._onChangeServizio(intermediato);
+      const org = component._formGroup.get('id_organizzazione');
+      expect(org?.value).toBe('ORG-ENTE');
+      expect(org?.disabled).toBe(true);
+      expect(component._lockedOrgNome).toBe('Ente');
+      expect(component._orgIntermediato).toBe(true);
+      expect(component._formGroup.controls['id_soggetto'].value).toBe('SR1');
+      expect(component._disabled_id_soggetto).toBe('SR1');
+      expect(referente).not.toHaveBeenCalled();
+    });
+
+    it('should not lock the organization for a service that is not intermediated', () => {
+      component._servizio = { ...intermediato, fruizione: false };
+      expect(component._bloccaOrganizzazioneIntermediato()).toBe(false);
+      expect(component._formGroup.get('id_organizzazione')?.value).toBe('ORG-SESSIONE');
+      expect(component._formGroup.get('id_organizzazione')?.enabled).toBe(true);
+    });
+
+    it('should go back to the session organization when moving to a service that is not intermediated', async () => {
+      await component._onChangeServizio(intermediato);
+      const profilo = vi.spyOn(component, '_loadProfilo').mockImplementation(() => {});
+      vi.spyOn(component as any, 'isCurrentUserReferenteServizio').mockResolvedValue(true);
+      await component._onChangeServizio({ ...intermediato, fruizione: false });
+      expect(component._orgIntermediato).toBe(false);
+      expect(component._formGroup.get('id_organizzazione')?.enabled).toBe(true);
+      expect(profilo).toHaveBeenCalled();
+    });
+  });
 });

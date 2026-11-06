@@ -415,10 +415,13 @@ export class AdesioneFormComponent implements OnInit, OnChanges {
         // dell'adesione). Il ricalcolo resta attivo in creazione / cambio
         // servizio esplicito da parte dell'utente.
         const _skipOrg = fromInit && !!this.adesione?.id_adesione;
+        if (!_skipOrg && this.bloccaOrganizzazioneIntermediato()) {
+            this.showMandatoryFields();
+            return;
+        }
         if (!_skipOrg) {
-            // L'organizzazione dell'adesione (fruitore) e` SEMPRE quella di
-            // sessione o scelta dall'utente: non viene derivata dal dominio/
-            // erogatore del servizio.
+            // L'organizzazione dell'adesione (fruitore) e` quella di sessione o
+            // scelta dall'utente, tranne per i servizi intermediati.
             if (this.servizio && await this.isCurrentUserReferenteServizio(this.servizio)){
                 this.formGroup.get('id_organizzazione')?.enable();
                 this.formGroup.get('id_organizzazione')?.reset();
@@ -431,6 +434,21 @@ export class AdesioneFormComponent implements OnInit, OnChanges {
         }
 
         this.showMandatoryFields();
+    }
+
+    /**
+     * Servizio intermediato: organizzazione e soggetto aderente sono quelli del referente del dominio,
+     * bloccati; i referenti si cercano in quell'organizzazione.
+     */
+    bloccaOrganizzazioneIntermediato(): boolean {
+        const _soggetto = this.servizio?.fruizione ? this.servizio?.dominio?.soggetto_referente : null;
+        const _org = _soggetto?.organizzazione;
+        if (!_org?.id_organizzazione) { return false; }
+        this.initDataOrganizzazione = { label: _org.nome, value: _org.id_organizzazione, item: _org };
+        this.formGroup.patchValue({ id_organizzazione: _org.id_organizzazione });
+        this.formGroup.get('id_organizzazione')?.disable();
+        this.checkSoggetto({ item: _org });
+        return true;
     }
 
     loadOrganizzazione(id: string) {
