@@ -2804,6 +2804,38 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /servizi/{id_servizio}/storico-stati:
+    parameters:
+    - $ref: "#/components/parameters/id_servizio"
+    get:
+      tags:
+      - "Servizi"
+      description: "Storico dei cambi di stato di un servizio, dal piu' recente. L'ultimo elemento e' la creazione, senza stato precedente"
+      operationId: "listStoricoStatiServizio"
+      parameters:
+        - $ref: "#/components/parameters/page_query_optional"
+        - $ref: "#/components/parameters/size_query_optional"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedModelItemStoricoStato"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /servizi/{id_servizio}/rate-limiting:
     parameters:
     - $ref: "#/components/parameters/id_servizio"
@@ -5428,6 +5460,38 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PagedModelItemComunicazione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /adesioni/{id_adesione}/storico-stati:
+    parameters:
+    - $ref: "#/components/parameters/id_adesione"
+    get:
+      tags:
+      - "Adesioni"
+      description: "Storico dei cambi di stato di un'adesione, dal piu' recente. L'ultimo elemento e' la creazione, senza stato precedente"
+      operationId: "listStoricoStatiAdesione"
+      parameters:
+        - $ref: "#/components/parameters/page_query_optional"
+        - $ref: "#/components/parameters/size_query_optional"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedModelItemStoricoStato"
         "400":
           $ref: "#/components/responses/400BadRequest"
         "401":
@@ -8592,6 +8656,15 @@ components:
             $ref: '#/components/schemas/ItemComunicazione'
         page:
           $ref: '#/components/schemas/PageMetadata'
+    PagedModelItemStoricoStato:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemStoricoStato'
+        page:
+          $ref: '#/components/schemas/PageMetadata'
     PagedModelItemServizioGruppo:
       type: object
       properties:
@@ -11464,6 +11537,22 @@ components:
           type: "array"
           items:
             $ref: "#/components/schemas/AllegatoMessaggio"
+    ItemStoricoStato:
+      type: object
+      required:
+        - data
+        - stato
+      properties:
+        data:
+          type: "string"
+          format: "date-time"
+          example: "2017-07-21T17:32:28Z"
+        utente:
+          $ref: "#/components/schemas/ItemUtente"
+        stato_precedente:
+          $ref: "#/components/schemas/String255"
+        stato:
+          $ref: "#/components/schemas/String255"
     VisibilitaAllegatoEnum:
       type: "string"
       example: "pubblico"

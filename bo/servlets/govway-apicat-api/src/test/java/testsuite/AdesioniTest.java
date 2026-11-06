@@ -131,6 +131,8 @@ import org.govway.catalogo.servlets.model.PagedModelItemAdesione;
 import org.govway.catalogo.servlets.model.ItemClientAdesione;
 import org.govway.catalogo.servlets.model.PagedModelItemClientAdesione;
 import org.govway.catalogo.servlets.model.PagedModelItemComunicazione;
+import org.govway.catalogo.servlets.model.ItemStoricoStato;
+import org.govway.catalogo.servlets.model.PagedModelItemStoricoStato;
 import org.govway.catalogo.servlets.model.PagedModelItemConfigurazioneAdesione;
 import org.govway.catalogo.servlets.model.PagedModelItemErogazioneAdesione;
 import org.govway.catalogo.servlets.model.PagedModelItemMessaggio;
@@ -2018,6 +2020,52 @@ public class AdesioniTest {
 
         // Act & Assert
         assertThrows(NotFoundException.class, () -> adesioniController.listComunicazioniAdesione(randomId, 0, 10, null));
+    }
+
+    /**
+     * Issue 423: storico dei cambi di stato dell'adesione, dal piu` recente, con la creazione in fondo.
+     */
+    @Test
+    void testListStoricoStatiAdesione() {
+        UUID idAdesione = this.creaAdesioneProntaPerRichiestaCollaudo();
+        StatoUpdate stato = new StatoUpdate();
+        stato.setStato("richiesto_collaudo");
+        adesioniController.updateStatoAdesione(idAdesione, stato, null);
+        entityManager.flush();
+        entityManager.clear();
+
+        ResponseEntity<PagedModelItemStoricoStato> response = adesioniController.listStoricoStatiAdesione(idAdesione, 0, 20);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        List<ItemStoricoStato> storico = response.getBody().getContent();
+        assertEquals(2, storico.size());
+        assertEquals("richiesto_collaudo", storico.get(0).getStato());
+        assertEquals("bozza", storico.get(0).getStatoPrecedente());
+        assertNotNull(storico.get(0).getUtente());
+        assertEquals("bozza", storico.get(1).getStato());
+        assertNull(storico.get(1).getStatoPrecedente());
+        assertNotNull(storico.get(1).getUtente());
+        assertEquals(2L, response.getBody().getPage().getTotalElements());
+    }
+
+    @Test
+    void testListStoricoStatiAdesioneUnauthorized() {
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+        Adesione adesione = this.getAdesione();
+
+        CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
+
+        assertThrows(NotAuthorizedException.class, () -> adesioniController.listStoricoStatiAdesione(adesione.getIdAdesione(), 0, 20));
+    }
+
+    @Test
+    void testListStoricoStatiAdesioneNotFound() {
+        UUID randomId = UUID.randomUUID();
+
+        assertThrows(NotFoundException.class, () -> adesioniController.listStoricoStatiAdesione(randomId, 0, 20));
     }
 
     @Test

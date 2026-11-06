@@ -44,6 +44,7 @@ import org.govway.catalogo.assembler.ErogazioneItemAssembler;
 import org.govway.catalogo.assembler.ItemMessaggioAdesioneAssembler;
 import org.govway.catalogo.assembler.RateLimitingAssembler;
 import org.govway.catalogo.assembler.ReferenteAdesioneAssembler;
+import org.govway.catalogo.assembler.StoricoStatiAssembler;
 import org.govway.catalogo.assembler.UtenteItemAssembler;
 import org.govway.catalogo.authorization.AdesioneAuthorization;
 import org.govway.catalogo.controllers.csv.AdesioneCsvBuilder;
@@ -120,6 +121,7 @@ import org.govway.catalogo.servlets.model.PageMetadata;
 import org.govway.catalogo.servlets.model.PagedModelItemAdesione;
 import org.govway.catalogo.servlets.model.PagedModelItemClientAdesione;
 import org.govway.catalogo.servlets.model.PagedModelItemComunicazione;
+import org.govway.catalogo.servlets.model.PagedModelItemStoricoStato;
 import org.govway.catalogo.servlets.model.PagedModelItemConfigurazioneAdesione;
 import org.govway.catalogo.servlets.model.PagedModelItemErogazioneAdesione;
 import org.govway.catalogo.servlets.model.PagedModelItemMessaggio;
@@ -226,6 +228,9 @@ public class AdesioniController implements AdesioniApi {
 
 	@Autowired
 	private RateLimitingAssembler rateLimitingAssembler;
+
+	@Autowired
+	private StoricoStatiAssembler storicoStatiAssembler;
 
 	@Override
 	public ResponseEntity<Adesione> createAdesione(AdesioneCreate adesioneCreate) {
@@ -805,6 +810,47 @@ public class AdesioniController implements AdesioniApi {
 				
 				
 				list.setContent(content.stream().sorted(c).collect(Collectors.toList()));
+
+				this.logger.info("Invocazione completata con successo");
+
+				return ResponseEntity.ok(list);
+			});
+
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	@Override
+	public ResponseEntity<PagedModelItemStoricoStato> listStoricoStatiAdesione(UUID idAdesione, Integer page, Integer size) {
+		try {
+			return this.service.runTransaction( () -> {
+
+				this.logger.info("Invocazione in corso ...");
+
+				if(page < 0 || size < 1) {
+					throw new BadRequestException(ErrorCode.GEN_400_REQUEST);
+				}
+
+				AdesioneEntity entity = findOneConsultazione(idAdesione);
+
+				this.logger.debug("Autorizzazione completata con successo");
+
+				// size+1 righe: l'ultima serve solo a ricavare lo stato precedente dell'ultimo cambio della pagina
+				List<StoricoStatiAssembler.CambioStato> cambi = this.service.findStatiAdesione(entity, (long) page * size, (long) size + 1).stream()
+						.map(s -> new StoricoStatiAssembler.CambioStato(s.getData(), s.getUtente(), s.getStato()))
+						.toList();
+				long totaleCambi = this.service.countStatiAdesione(entity);
+				StoricoStatiAssembler.CambioStato creazione = new StoricoStatiAssembler.CambioStato(entity.getDataCreazione(), entity.getRichiedente(),
+						this.configurazione.getAdesione().getWorkflow().getStatoIniziale());
+
+				PagedModelItemStoricoStato list = this.storicoStatiAssembler.toModel(cambi, totaleCambi, creazione, page, size);
 
 				this.logger.info("Invocazione completata con successo");
 

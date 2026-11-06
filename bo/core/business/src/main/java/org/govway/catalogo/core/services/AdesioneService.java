@@ -37,6 +37,7 @@ import org.govway.catalogo.core.orm.entity.MessaggioAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteDominioEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteServizioEntity;
+import org.govway.catalogo.core.orm.entity.StatoAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.springframework.data.domain.Page;
@@ -138,6 +139,26 @@ public class AdesioneService extends AbstractService {
 
 	public Page<MessaggioAdesioneEntity> findAllMessaggiAdesione(Specification<MessaggioAdesioneEntity> spec, Pageable p) {
 		return this.messaggioAdesioneRepo.findAll(spec, p);
+	}
+
+	/**
+	 * Cambi di stato registrati per l'adesione, dal piu` recente (a parita` di data, dall'ultimo inserito).
+	 * Restituisce al massimo {@code max} righe a partire dalla posizione {@code offset}: l'utente
+	 * che ha eseguito il cambio e` caricato nella stessa query.
+	 */
+	public List<StatoAdesioneEntity> findStatiAdesione(AdesioneEntity adesione, long offset, long max) {
+		return this.entityManager.createQuery(
+				"SELECT s FROM StatoAdesioneEntity s LEFT JOIN FETCH s.utente WHERE s.adesione = :adesione ORDER BY s.data DESC, s.id DESC", StatoAdesioneEntity.class)
+			.setParameter("adesione", adesione)
+			.setFirstResult((int) Math.min(offset, Integer.MAX_VALUE))
+			.setMaxResults((int) Math.min(max, Integer.MAX_VALUE))
+			.getResultList();
+	}
+
+	public long countStatiAdesione(AdesioneEntity adesione) {
+		return this.entityManager.createQuery("SELECT COUNT(s) FROM StatoAdesioneEntity s WHERE s.adesione = :adesione", Long.class)
+			.setParameter("adesione", adesione)
+			.getSingleResult();
 	}
 	
 	public Optional<MessaggioAdesioneEntity> findMessaggioAdesione(String idAdesione, String idMessaggio) {

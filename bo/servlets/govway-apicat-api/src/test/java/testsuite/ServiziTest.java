@@ -119,6 +119,8 @@ import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.PagedModelAllegato;
 import org.govway.catalogo.servlets.model.PagedModelComponente;
 import org.govway.catalogo.servlets.model.PagedModelItemComunicazione;
+import org.govway.catalogo.servlets.model.ItemStoricoStato;
+import org.govway.catalogo.servlets.model.PagedModelItemStoricoStato;
 import org.govway.catalogo.servlets.model.PagedModelItemMessaggio;
 import org.govway.catalogo.servlets.model.PagedModelItemOrganizzazione;
 import org.govway.catalogo.servlets.model.PagedModelItemServizio;
@@ -3144,6 +3146,84 @@ public class ServiziTest {
 	    assertNotNull(response.getBody());
 	    assertNotNull(response.getBody().getContent());
 	    assertTrue(response.getBody().getContent().size() > 0);
+	}
+
+	/**
+	 * Issue 423: storico dei cambi di stato dal piu` recente, con la creazione come ultimo elemento
+	 * (senza stato precedente). Lo stato precedente dell'ultimo cambio di una pagina e` ricavato anche
+	 * quando il cambio che lo precede sta nella pagina successiva.
+	 */
+	@Test
+	void testListStoricoStatiServizio() {
+		Servizio servizio = this.getServizio();
+		UUID idServizio = servizio.getIdServizio();
+		this.archivia(idServizio);
+		StatoUpdate statoUpdate = new StatoUpdate();
+		statoUpdate.setStato(STATO_INIZIALE);
+		serviziController.updateStatoServizio(idServizio, statoUpdate, null);
+		entityManager.flush();
+		entityManager.clear();
+
+		ResponseEntity<PagedModelItemStoricoStato> response = serviziController.listStoricoStatiServizio(idServizio, 0, 20);
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		List<ItemStoricoStato> storico = response.getBody().getContent();
+		assertEquals(3, storico.size());
+		assertStoricoStato(storico.get(0), STATO_ARCHIVIATO, STATO_INIZIALE);
+		assertStoricoStato(storico.get(1), STATO_INIZIALE, STATO_ARCHIVIATO);
+		assertStoricoStato(storico.get(2), null, STATO_INIZIALE);
+		assertEquals(3L, response.getBody().getPage().getTotalElements());
+		assertEquals(1L, response.getBody().getPage().getTotalPages());
+
+		// una pagina per elemento: lo stato precedente arriva dal cambio della pagina successiva
+		for(int page = 0; page < 3; page++) {
+			ResponseEntity<PagedModelItemStoricoStato> pagina = serviziController.listStoricoStatiServizio(idServizio, page, 1);
+			assertEquals(1, pagina.getBody().getContent().size());
+			assertEquals(storico.get(page).getStato(), pagina.getBody().getContent().get(0).getStato());
+			assertEquals(storico.get(page).getStatoPrecedente(), pagina.getBody().getContent().get(0).getStatoPrecedente());
+			assertEquals(3L, pagina.getBody().getPage().getTotalPages());
+		}
+
+		// la creazione da sola nell'ultima pagina
+		ResponseEntity<PagedModelItemStoricoStato> ultima = serviziController.listStoricoStatiServizio(idServizio, 1, 2);
+		assertEquals(1, ultima.getBody().getContent().size());
+		assertStoricoStato(ultima.getBody().getContent().get(0), null, STATO_INIZIALE);
+		assertEquals(2L, ultima.getBody().getPage().getTotalPages());
+
+		// oltre l'ultima pagina
+		assertTrue(serviziController.listStoricoStatiServizio(idServizio, 3, 1).getBody().getContent().isEmpty());
+	}
+
+	@Test
+	void testListStoricoStatiServizioSoloCreazione() {
+		Servizio servizio = this.getServizio();
+
+		ResponseEntity<PagedModelItemStoricoStato> response = serviziController.listStoricoStatiServizio(servizio.getIdServizio(), 0, 20);
+
+		assertEquals(1, response.getBody().getContent().size());
+		assertStoricoStato(response.getBody().getContent().get(0), null, STATO_INIZIALE);
+		assertEquals(1L, response.getBody().getPage().getTotalElements());
+	}
+
+	@Test
+	void testListStoricoStatiServizioPaginazioneNonValida() {
+		UUID idServizio = this.getServizio().getIdServizio();
+
+		assertThrows(BadRequestException.class, () -> serviziController.listStoricoStatiServizio(idServizio, 0, 0));
+		assertThrows(BadRequestException.class, () -> serviziController.listStoricoStatiServizio(idServizio, -1, 10));
+	}
+
+	@Test
+	void testListStoricoStatiServizioNotFound() {
+		UUID idServizioNonEsistente = UUID.randomUUID();
+
+		assertThrows(NotFoundException.class, () -> serviziController.listStoricoStatiServizio(idServizioNonEsistente, 0, 20));
+	}
+
+	private void assertStoricoStato(ItemStoricoStato item, String statoPrecedente, String stato) {
+		assertEquals(statoPrecedente, item.getStatoPrecedente());
+		assertEquals(stato, item.getStato());
+		assertNotNull(item.getData());
+		assertNotNull(item.getUtente());
 	}
 	
 	@Test

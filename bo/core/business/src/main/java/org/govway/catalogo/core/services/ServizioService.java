@@ -46,6 +46,7 @@ import org.govway.catalogo.core.orm.entity.ReferenteServizioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity_;
 import org.govway.catalogo.core.orm.entity.ServizioGruppoEntity;
+import org.govway.catalogo.core.orm.entity.StatoServizioEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.TagEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
@@ -210,6 +211,26 @@ public class ServizioService extends AbstractService {
 	
 	public Page<MessaggioServizioEntity> findAllMessaggiServizio(Specification<MessaggioServizioEntity> spec, Pageable p) {
 		return this.messaggioServizioRepo.findAll(spec, p);
+	}
+
+	/**
+	 * Cambi di stato registrati per il servizio, dal piu` recente (a parita` di data, dall'ultimo inserito).
+	 * Restituisce al massimo {@code max} righe a partire dalla posizione {@code offset}: l'utente
+	 * che ha eseguito il cambio e` caricato nella stessa query.
+	 */
+	public List<StatoServizioEntity> findStatiServizio(ServizioEntity servizio, long offset, long max) {
+		return this.entityManager.createQuery(
+				"SELECT s FROM StatoServizioEntity s LEFT JOIN FETCH s.utente WHERE s.servizio = :servizio ORDER BY s.data DESC, s.id DESC", StatoServizioEntity.class)
+			.setParameter("servizio", servizio)
+			.setFirstResult((int) Math.min(offset, Integer.MAX_VALUE))
+			.setMaxResults((int) Math.min(max, Integer.MAX_VALUE))
+			.getResultList();
+	}
+
+	public long countStatiServizio(ServizioEntity servizio) {
+		return this.entityManager.createQuery("SELECT COUNT(s) FROM StatoServizioEntity s WHERE s.servizio = :servizio", Long.class)
+			.setParameter("servizio", servizio)
+			.getSingleResult();
 	}
 	
 	public Optional<MessaggioServizioEntity> findMessaggioServizio(UUID idServizio, UUID idMessaggio) {

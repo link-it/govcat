@@ -49,6 +49,7 @@ import org.govway.catalogo.assembler.ReferenteServizioAssembler;
 import org.govway.catalogo.assembler.ServizioDettaglioAssembler;
 import org.govway.catalogo.assembler.ServizioGruppoItemAssembler;
 import org.govway.catalogo.assembler.ServizioItemAssembler;
+import org.govway.catalogo.assembler.StoricoStatiAssembler;
 import org.govway.catalogo.assembler.UtenteItemAssembler;
 import org.govway.catalogo.authorization.AbstractServizioAuthorization;
 import org.govway.catalogo.authorization.CoreAuthorization;
@@ -146,6 +147,7 @@ import org.govway.catalogo.servlets.model.PagedModelItemComunicazione;
 import org.govway.catalogo.servlets.model.PagedModelItemMessaggio;
 import org.govway.catalogo.servlets.model.PagedModelItemOrganizzazione;
 import org.govway.catalogo.servlets.model.PagedModelItemServizio;
+import org.govway.catalogo.servlets.model.PagedModelItemStoricoStato;
 import org.govway.catalogo.servlets.model.PagedModelItemServizioGruppo;
 import org.govway.catalogo.servlets.model.PagedModelReferente;
 import org.govway.catalogo.servlets.model.Referente;
@@ -297,6 +299,9 @@ public class ServiziController implements ServiziApi {
 
 	@Autowired
 	private RateLimitingAssembler rateLimitingAssembler;
+
+	@Autowired
+	private StoricoStatiAssembler storicoStatiAssembler;
 
 	private AbstractServizioAuthorization getServizioAuthorization(ServizioEntity entity) {
 		if(entity.is_package()) {
@@ -958,6 +963,47 @@ public class ServiziController implements ServiziApi {
 
 
 				list.setContent(content.stream().sorted(c).collect(Collectors.toList()));
+
+				this.logger.info("Invocazione completata con successo");
+
+				return ResponseEntity.ok(list);
+			});
+
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	@Override
+	public ResponseEntity<PagedModelItemStoricoStato> listStoricoStatiServizio(UUID idServizio, Integer page, Integer size) {
+		try {
+			return this.service.runTransaction( () -> {
+
+				this.logger.info("Invocazione in corso ...");
+
+				if(page < 0 || size < 1) {
+					throw new BadRequestException(ErrorCode.GEN_400_REQUEST);
+				}
+
+				ServizioEntity entity = this.findOne(idServizio);
+
+				this.logger.debug("Autorizzazione completata con successo");
+
+				// size+1 righe: l'ultima serve solo a ricavare lo stato precedente dell'ultimo cambio della pagina
+				List<StoricoStatiAssembler.CambioStato> cambi = this.service.findStatiServizio(entity, (long) page * size, (long) size + 1).stream()
+						.map(s -> new StoricoStatiAssembler.CambioStato(s.getData(), s.getUtente(), s.getStato()))
+						.toList();
+				long totaleCambi = this.service.countStatiServizio(entity);
+				StoricoStatiAssembler.CambioStato creazione = new StoricoStatiAssembler.CambioStato(entity.getDataCreazione(), entity.getRichiedente(),
+						this.configurazione.getServizio().getWorkflow().getStatoIniziale());
+
+				PagedModelItemStoricoStato list = this.storicoStatiAssembler.toModel(cambi, totaleCambi, creazione, page, size);
 
 				this.logger.info("Invocazione completata con successo");
 

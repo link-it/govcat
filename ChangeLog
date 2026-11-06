@@ -10,6 +10,11 @@
 	  ripristina con il retry della configurazione automatica; prima la configurazione su GovWay
 	  veniva eseguita e ripetuta a ogni giro senza che l'adesione cambiasse stato.
 
+	Issue 423: nuove API GET /servizi/{id_servizio}/storico-stati e
+	  /adesioni/{id_adesione}/storico-stati con lo storico paginato dei cambi di stato, dal più
+	  recente: data, utente, stato precedente e stato. La creazione compare come ultimo elemento,
+	  senza stato precedente. Autorizzazione uguale a quella del dettaglio.
+
 2026-11-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
