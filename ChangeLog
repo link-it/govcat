@@ -21,6 +21,10 @@
 	Issue #427: nel rifiuto di un'autorizzazione il motivo è precompilato con il prefisso
 	  "Autorizzazione in collaudo/produzione rifiutata per il seguente motivo: ", da completare.
 
+	Issue #423: storico dei cambi di stato di servizi e adesioni (API storico-stati): voce in fondo al
+	  menu di workflow (AppConfig.Workflow.showStatusHistory) che apre un pannello laterale con data,
+	  utente e stato da/a, paginato allo scorrimento; dati di esempio con statusHistoryMock.
+
 2026-11-06  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

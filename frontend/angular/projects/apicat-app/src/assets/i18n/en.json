@@ -3705,6 +3705,14 @@
 				"OggettoDefault": "{{nome}}: request rejected ({{stato}})",
 				"Successo": "Request rejected: the state went back to \"{{stato}}\" and the communication was sent to the referents."
 			},
+			"STORICO": {
+				"A": "to",
+				"Creazione": "Creation",
+				"Da": "from",
+				"Nessuno": "No status change recorded.",
+				"Titolo": "Status history",
+				"Voce": "Status history"
+			},
 			"STATUS": {
 				"PROCESSING": "Processing",
 				"DENIED": "Denied",

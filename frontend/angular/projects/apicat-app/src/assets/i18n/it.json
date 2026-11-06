@@ -3705,6 +3705,14 @@
 				"OggettoDefault": "{{nome}}: richiesta rifiutata ({{stato}})",
 				"Successo": "Richiesta rifiutata: lo stato è tornato a \"{{stato}}\" e la comunicazione è stata inviata ai referenti."
 			},
+			"STORICO": {
+				"A": "a",
+				"Creazione": "Creazione",
+				"Da": "da",
+				"Nessuno": "Nessun cambio di stato registrato.",
+				"Titolo": "Storico degli stati",
+				"Voce": "Storico degli stati"
+			},
 			"STATUS": {
 				"PROCESSING": "In elaborazione",
 				"DENIED": "Negato",

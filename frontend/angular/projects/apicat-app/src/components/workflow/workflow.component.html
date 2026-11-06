@@ -17,7 +17,7 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <div class="dropdown b-dropdown gl-new-dropdown btn-group">
-  <button aria-haspopup="true" aria-expanded="false" type="button" [tooltip]="(showStatus ? 'APP.TOOLTIP.ChangeStatus' : '') | translate" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="workflow_actions" [style.background-color]="showStatus ? _configStatus.background : ''" [style.color]="showStatus ? _configStatus.color : ''" [disabled]="!_hasActions()">
+  <button aria-haspopup="true" aria-expanded="false" type="button" [tooltip]="(showStatus ? 'APP.TOOLTIP.ChangeStatus' : '') | translate" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="workflow_actions" [style.background-color]="showStatus ? _configStatus.background : ''" [style.color]="showStatus ? _configStatus.color : ''" [disabled]="!_hasActions() && !_storicoAttivo">
     <i class="bi bi-node-plus"></i>
     @if (showStatus) {
       <span class="ms-2 d-none d-md-block">{{ 'APP.WORKFLOW.STATUS.' + _currentStatus | translate }}</span>
@@ -115,6 +115,25 @@
               </div>
               <div class="gl-new-dropdown-item-text-wrapper">
                 <p class="gl-new-dropdown-item-text-primary">{{ 'APP.WORKFLOW.MENU.' + _previousStatus.nome | translate }}</p>
+              </div>
+            </button>
+          </li>
+        </div>
+      }
+      @if (_storicoAttivo) {
+        <div class="gl-new-dropdown-contents">
+          @if (_haCambiStato) {
+            <li class="gl-new-dropdown-divider">
+              <hr class="dropdown-divider">
+            </li>
+          }
+          <li class="gl-new-dropdown-item">
+            <button role="menuitem" type="button" class="dropdown-item" (click)="apriStorico()">
+              <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
+                <i class="bi bi-clock-history"></i>
+              </div>
+              <div class="gl-new-dropdown-item-text-wrapper">
+                <p class="gl-new-dropdown-item-text-primary">{{ 'APP.WORKFLOW.STORICO.Voce' | translate }}</p>
               </div>
             </button>
           </li>

@@ -64,6 +64,11 @@
       "showCreateFasiBar": true
     },
 
+    "Workflow": {
+      "showStatusHistory": true,
+      "statusHistoryMock": false
+    },
+
     "Profile": {
       "showEmail": false,
       "showPhone": false

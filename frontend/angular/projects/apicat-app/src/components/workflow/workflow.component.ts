@@ -20,12 +20,15 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
+import { BsModalService } from 'ngx-bootstrap/modal';
 import { TranslateModule } from '@ngx-translate/core';
-import { COMPONENTS_IMPORTS } from '@linkit/components';
+import { COMPONENTS_IMPORTS, ConfigService } from '@linkit/components';
 
 import { Grant } from '@app/model/grant';
 
 import { AuthenticationService } from '@app/services/authentication.service';
+import { StoricoStatiDialogComponent } from '@app/components/storico-stati/storico-stati-dialog.component';
+import { risorsaStoricoStati, storicoStatiAttivo, storicoStatiMockAttivo } from '@app/components/storico-stati/storico-stati';
 
 @Component({
   selector: 'ui-workflow',
@@ -55,9 +58,17 @@ export class WorkflowComponent implements OnInit {
       ruoli_abilitati: []
     };
 
-  constructor(private readonly authenticationService: AuthenticationService) { }
+  /** Voce "Storico degli stati" in fondo al menu, se abilitata nella configurazione. */
+  _storicoAttivo: boolean = false;
+
+  constructor(
+    private readonly authenticationService: AuthenticationService,
+    private readonly configService: ConfigService,
+    private readonly modalService: BsModalService
+  ) { }
 
   ngOnInit() {
+    this._storicoAttivo = storicoStatiAttivo(this.configService.getConfiguration()) && !!risorsaStoricoStati(this.module, this.data);
     this._currentStatus = this.data.stato;
     if (this._currentStatus === this._statoArchiviato.nome) {
       this._previousStatus = { nome: this.data.stato_precedente };
@@ -70,6 +81,34 @@ export class WorkflowComponent implements OnInit {
 
   onAction(action: any, status: any) {
     this.action.emit({action: action, status: status});
+  }
+
+  /** Voci di cambio di stato presenti nel menu, prima dello storico. */
+  get _haCambiStato(): boolean {
+    return (this._currentStatus !== this._statoArchiviato.nome && !!this._cambioStato) || this._currentStatus === this._statoArchiviato.nome;
+  }
+
+  apriStorico() {
+    this.modalService.show(StoricoStatiDialogComponent, {
+      class: 'modal-drawer-end',
+      ignoreBackdropClick: false,
+      initialState: {
+        modulo: this.module as any,
+        data: this.data,
+        sottotitolo: this._sottotitoloStorico(),
+        stati: this.config?.options?.status?.values || {},
+        workflow: this.workflow,
+        mock: storicoStatiMockAttivo(this.configService.getConfiguration())
+      }
+    });
+  }
+
+  private _sottotitoloStorico(): string {
+    if (this.module === 'adesione') {
+      const _servizio = this.data?.servizio;
+      return [this.data?.soggetto?.nome, _servizio ? `${_servizio.nome} v. ${_servizio.versione}` : ''].filter(Boolean).join(' · ');
+    }
+    return this.data?.nome ? `${this.data.nome} v. ${this.data.versione}` : '';
   }
 
   /**

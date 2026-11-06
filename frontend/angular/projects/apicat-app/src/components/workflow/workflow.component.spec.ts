@@ -10,9 +10,13 @@ describe('WorkflowComponent', () => {
     canArchiviare: vi.fn().mockReturnValue(false),
   } as any;
 
+  const mockConfigService = { getConfiguration: vi.fn().mockReturnValue({ AppConfig: {} }) } as any;
+  const mockModalService = { show: vi.fn() } as any;
+
   beforeEach(() => {
-    component = new WorkflowComponent(mockAuthService);
+    component = new WorkflowComponent(mockAuthService, mockConfigService, mockModalService);
     vi.clearAllMocks();
+    mockConfigService.getConfiguration.mockReturnValue({ AppConfig: {} });
   });
 
   it('should be created', () => {
@@ -76,5 +80,42 @@ describe('WorkflowComponent', () => {
     component.grant = { ruoli: ['gestore'] } as any;
     mockAuthService.isGestore.mockReturnValue(true);
     expect(component._hasActions()).toBe(true);
+  });
+
+  describe('storico degli stati', () => {
+    const avvia = (workflowConfig: any, module = 'servizio', data: any = { id_servizio: 's1', stato: 'bozza', nome: 'Servizio', versione: 2 }) => {
+      mockConfigService.getConfiguration.mockReturnValue({ AppConfig: { Workflow: workflowConfig } });
+      component.module = module;
+      component.data = data;
+      component.workflow = { cambi_stato: [{ stato_attuale: 'bozza', stato_successivo: { nome: 'pubblicato' } }] };
+      component.config = { options: { status: { values: { bozza: { background: '#ddd' } } } } };
+      component.ngOnInit();
+    };
+
+    it('should add the item only when enabled and with the entity id', () => {
+      avvia({ showStatusHistory: true });
+      expect(component._storicoAttivo).toBe(true);
+      avvia({ showStatusHistory: false });
+      expect(component._storicoAttivo).toBe(false);
+      avvia({ showStatusHistory: true }, 'adesione', { stato: 'bozza' });
+      expect(component._storicoAttivo).toBe(false);
+    });
+
+    it('should open the side panel with the entity, the status colors and the mock flag', () => {
+      avvia({ showStatusHistory: true, statusHistoryMock: true });
+      component.apriStorico();
+      expect(mockModalService.show).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+        class: 'modal-drawer-end',
+        initialState: expect.objectContaining({
+          modulo: 'servizio', sottotitolo: 'Servizio v. 2', mock: true, stati: { bozza: { background: '#ddd' } }
+        })
+      }));
+    });
+
+    it('should describe the subscription with requester and service', () => {
+      avvia({ showStatusHistory: true }, 'adesione', { id_adesione: 'a1', stato: 'bozza', soggetto: { nome: 'Ente' }, servizio: { nome: 'Servizio', versione: 1 } });
+      component.apriStorico();
+      expect(mockModalService.show.mock.calls[0][1].initialState.sottotitolo).toBe('Ente · Servizio v. 1');
+    });
   });
 });
