@@ -1053,13 +1053,14 @@ describe('TransazioneDetailsComponent', () => {
         Tools.Configurazione = { monitoraggio: { abilitato: true, audit_abilitato: true } } as any;
       });
 
-      it('should load the audit and show it instead of the message detail', () => {
+      it('should load the audit and show it as last tab, keeping the message detail', () => {
         mockApiService.getMonitorDetails.mockReturnValue(of(createDefaultTransactionResponse({ audit })));
         component._loadtransaction();
         expect(mockApiService.getMonitorDetails).toHaveBeenCalledWith('collaudo/diagnostica', 42, undefined, { params: { includi_audit: 'true' } });
         expect(component.data.audit.issued_at).toBe('05-11-2026 16:08:59');
         expect(tab('InformazioniAudit')).toBe(true);
-        expect(tab('DettaglioMessaggio')).toBe(false);
+        expect(tab('DettaglioMessaggio')).toBe(true);
+        expect(component.tabs[component.tabs.length - 1].link).toBe('InformazioniAudit');
       });
 
       it('should fall back to the detail without audit for an API without audit', () => {

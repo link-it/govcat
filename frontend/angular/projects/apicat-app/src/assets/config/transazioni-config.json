@@ -227,6 +227,35 @@
         ]
       }
     ],
+    "DettaglioMessaggio": [
+      {
+        "code": "DettagliRichiesta",
+        "title": "APP.TRANSACTIONS.TITLE.DettagliRichiesta",
+        "title_sub": "",
+        "details": [
+          { "label": "APP.LABEL.IdMessaggio", "field": "richiesta.id_messaggio", "type": "text", "hideEmpty": true },
+          { "label": "APP.LABEL.IdApplicativo", "field": "richiesta.id_correlazione", "type": "text", "class": "", "columns": "12", "hideEmpty": true },
+          { "label": "APP.LABEL.InRicezione", "field": "richiesta.data_ricezione", "type": "date", "format": "DD-MM-YYYY HH:mm:ss", "hideEmpty": true },
+          { "label": "APP.LABEL.Dimensione", "field": "richiesta.dimensione_ricezione", "type": "number", "hideEmpty": true },
+          { "label": "APP.LABEL.Consegnata", "field": "richiesta.data_consegna", "type": "date", "format": "DD-MM-YYYY HH:mm:ss", "hideEmpty": true },
+          { "label": "APP.LABEL.Dimensione", "field": "richiesta.dimensione_consegna", "type": "number", "hideEmpty": true }
+        ]
+      },
+      {
+        "code": "DettagliRisposta",
+        "title": "APP.TRANSACTIONS.TITLE.DettagliRisposta",
+        "title_sub": "",
+        "details": [
+          { "label": "APP.LABEL.IdApplicativo", "field": "risposta.id_correlazione", "type": "text", "class": "", "columns": "12", "hideEmpty": true },
+          { "label": "APP.LABEL.InRicezione", "field": "risposta.data_ricezione", "type": "date", "class": "", "format": "DD-MM-YYYY HH:mm:ss", "hideEmpty": true },
+          { "label": "APP.LABEL.Dimensione", "field": "risposta.dimensione_ricezione", "type": "number", "hideEmpty": true },
+          { "label": "APP.LABEL.FaultRicezione", "field": "risposta.fault_ricezione", "type": "text", "class": "text-break ws-pre-wrap border p-2 content-scroller text-bg-gl", "columns": 12, "accordion": { "label": "APP.BUTTON.Visualizza", "iconOpen": "chevron-down", "labelClose": "APP.BUTTON.Nascondi", "iconClose": "chevron-up", "opened": false }, "decode": true, "height": "300px", "hideEmpty": true },
+          { "label": "APP.LABEL.Consegnata", "field": "risposta.data_consegna", "type": "date", "class": "", "format": "DD-MM-YYYY HH:mm:ss", "hideEmpty": true },
+          { "label": "APP.LABEL.Dimensione", "field": "risposta.dimensione_consegna", "type": "number", "hideEmpty": true },
+          { "label": "APP.LABEL.FaultConsegna", "field": "risposta.fault_consegna", "type": "text", "class": "text-break ws-pre-wrap border p-2 content-scroller text-bg-gl", "columns": 12, "accordion": { "label": "APP.BUTTON.Visualizza", "iconOpen": "chevron-down", "labelClose": "APP.BUTTON.Nascondi", "iconClose": "chevron-up", "opened": false }, "decode": true, "height": "300px", "hideEmpty": true }
+        ]
+      }
+    ],
     "Audit": [
       {
         "code": "Audit",

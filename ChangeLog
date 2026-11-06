@@ -7,6 +7,10 @@
 	Issue #424: monitoraggio delle fruizioni (transazioni, export, statistiche e verifiche) con il
 	  soggetto interno fruitore nel path e, nelle verifiche, l'ente erogatore come provider.
 
+	Issue #404: nel dettaglio delle transazioni ripristinato il contenuto di "Dettaglio messaggio",
+	  sempre visibile anche con le informazioni di audit (ultimo tab), con data di consegna della
+	  risposta e dimensione di consegna della richiesta corrette.
+
 2026-11-06  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

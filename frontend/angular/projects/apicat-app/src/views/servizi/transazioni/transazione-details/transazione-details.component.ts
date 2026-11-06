@@ -370,7 +370,6 @@ export class TransazioneDetailsComponent implements OnInit, OnChanges, AfterCont
   }
 
   _initTabs() {
-    // Nelle transazioni con l'audit le informazioni di audit sostituiscono il dettaglio del messaggio
     const _conAudit = !this._audit && !!this.data.audit;
     this.tabs = this.tabs.map((item: any) => {
       let _enabled = true;
@@ -378,7 +377,7 @@ export class TransazioneDetailsComponent implements OnInit, OnChanges, AfterCont
         _enabled = !!this.data.dati_mittente;
       }
       if (item.link === 'DettaglioMessaggio') {
-        _enabled = (!!this.data.richiesta || !!this.data.risposta) && !_conAudit;
+        _enabled = !!this.data.richiesta || !!this.data.risposta;
       }
       if (item.link === 'InformazioniAudit') {
         _enabled = _conAudit;
