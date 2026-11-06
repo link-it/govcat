@@ -51,4 +51,26 @@ describe('TreeViewComponent', () => {
     component.ngOnChanges({ children: new SimpleChange(undefined, children, true) });
     expect(component.children).toEqual(children);
   });
+
+  describe('freccia del ramo (Issue #421)', () => {
+    it('should open and close a branch without selecting the row', () => {
+      component.selectable = true;
+      const emit = vi.spyOn(component.action, 'emit');
+      const event = { stopPropagation: vi.fn() } as any;
+      const item: any = { id_gruppo: 'g1', figli: [{ id_gruppo: 'g2' }], isOpen: true };
+      component.onToggle(event, item);
+      expect(event.stopPropagation).toHaveBeenCalled();
+      expect(item.isOpen).toBe(false);
+      expect(emit).toHaveBeenCalledWith({ action: 'close', item });
+      expect(emit).not.toHaveBeenCalledWith(expect.objectContaining({ action: 'select' }));
+    });
+
+    it('should do nothing on the caret of a leaf', () => {
+      const emit = vi.spyOn(component.action, 'emit');
+      const event = { stopPropagation: vi.fn() } as any;
+      component.onToggle(event, { id_gruppo: 'g3' });
+      expect(event.stopPropagation).toHaveBeenCalled();
+      expect(emit).not.toHaveBeenCalled();
+    });
+  });
 });

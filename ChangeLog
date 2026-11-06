@@ -1,3 +1,9 @@
+2026-11-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #421: nella scelta del gruppo la freccia di un ramo lo apre e chiude senza selezionare il
+	  gruppo e chiudere la dialog.
+
 2026-11-06  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

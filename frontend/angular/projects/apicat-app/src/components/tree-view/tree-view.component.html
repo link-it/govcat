@@ -39,7 +39,7 @@
     <li class="group-row" [class.is-open]="item.isOpen" [class.has-children-]="item.hasChildren || item.children || item.figli" (click)="onAction($event, 'select', item)">
       <div class="group-row-contents d-flex align-items-center py-2 pr-3" [class.not-selected]="isNotSelectable(item)" [class.group-over-display]="isEditable && !forceActions">
         <div class="folder-toggle-wrap gl-mr-2 d-flex align-items-center">
-          <span class="folder-caret gl-display-inline-block gl-text-secondary gl-w-5 gl-mr-2" (click)="(item.hasChildren || item.children || item.figli) && onOpen(item)">
+          <span class="folder-caret gl-display-inline-block gl-text-secondary gl-w-5 gl-mr-2" [class.cursor-pointer]="item.hasChildren || item.children || item.figli" (click)="onToggle($event, item)">
             <i class="bi gl-icon-12" [ngClass]="!(item.hasChildren || item.children || item.figli) ? 'bi-dash-lg' : item.isOpen ? 'bi-' + iconOpen : 'bi-' + iconClose"></i>
           </span>
           <span class="item-type-icon gl-display-inline-block gl-text-secondary">
