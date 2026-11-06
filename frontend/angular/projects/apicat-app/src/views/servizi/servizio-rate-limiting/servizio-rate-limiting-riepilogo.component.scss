@@ -74,9 +74,10 @@
   }
 }
 
+// Al massimo tre periodi: le card si allargano fino a una larghezza massima
 .rl-quote {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 420px));
   gap: 12px;
   margin-bottom: 20px;
 }
@@ -106,7 +107,7 @@
 
 .rl-quota-dati {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   gap: 8px 16px;
   margin: 0;
   font-size: 12.5px;
@@ -121,4 +122,9 @@
   margin: 8px 0 0;
   font-size: 12.5px;
   color: var(--err-ink, #b81e2b);
+}
+
+// Su mobile scorre la dialog: con molti fruitori la tabella scorre al suo interno
+@media (max-width: 767.98px) {
+  :host ::ng-deep .rl-fruitori-elenco .rl-fruitori-wrap { max-height: 50vh; }
 }
