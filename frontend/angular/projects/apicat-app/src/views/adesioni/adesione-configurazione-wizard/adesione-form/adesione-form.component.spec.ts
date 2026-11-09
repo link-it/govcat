@@ -581,6 +581,16 @@ describe('AdesioneFormComponent', () => {
     expect(component.formGroup.get('id_soggetto')?.value).toBe('SR1');
   });
 
+  it('should warn about a saved subscription of a multi subscription service without logical identifier', () => {
+    component.adesione = { id_adesione: 'A1', id_logico: null, servizio: { multi_adesione: true } };
+    component.servizio = null;
+    expect(component._idLogicoMancante).toBe(true);
+    component.adesione = { ...component.adesione, id_logico: 'ID-1' };
+    expect(component._idLogicoMancante).toBe(false);
+    component.adesione = { id_logico: null, servizio: { multi_adesione: true } };
+    expect(component._idLogicoMancante).toBe(false);
+  });
+
   // -------- checkSoggetto --------
 
   it('checkSoggetto should reset form when event is null', () => {

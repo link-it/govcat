@@ -233,6 +233,7 @@
 				"ShowReferents_sub": "Mostra referenti"
 			},
 			"MESSAGE": {
+				"IdLogicoMancante": "Il servizio ammette più adesioni dello stesso soggetto ma questa adesione non ha l'identificativo logico: indicalo modificando le informazioni generali, altrimenti le modifiche all'adesione vengono rifiutate.",
 				"ConfigureClientsDisclaimer": "Configura i client di autenticazione per procedere. Per ogni profilo elencato qui sotto premi la matita e inserisci i dati richiesti.",
 				"FaseProduzioneBloccata": "Per richiedere la produzione il servizio deve essere prima pubblicato in produzione.",
 				"FaseProduzioneBloccataShort": "Servizio non pubblicato in produzione",

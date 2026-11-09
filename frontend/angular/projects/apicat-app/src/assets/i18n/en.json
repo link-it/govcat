@@ -233,6 +233,7 @@
 				"ShowReferents_sub": "Show referents"
 			},
 			"MESSAGE": {
+				"IdLogicoMancante": "The service allows several subscriptions of the same subject but this subscription has no logical identifier: set it by editing the general information, otherwise changes to the subscription are rejected.",
 				"ConfigureClientsDisclaimer": "Configure the authentication clients to proceed. For each profile listed below, click the pencil and enter the required data.",
 				"FaseProduzioneBloccata": "To request production, the service must first be published in production.",
 				"FaseProduzioneBloccataShort": "Service not published in production",

@@ -1,3 +1,10 @@
+2026-11-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Adesioni: identificativo logico senza spazi ai lati e al massimo 255 caratteri, obbligatorio
+	  anche contro i soli spazi; avviso nel wizard se un'adesione di un servizio multi-adesione ne è
+	  priva; nella lista mostrato solo con le adesioni multiple abilitate.
+
 2026-11-09  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

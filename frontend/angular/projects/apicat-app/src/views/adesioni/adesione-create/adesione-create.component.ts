@@ -36,6 +36,7 @@ import { AuthenticationService } from '@app/services/authentication.service';
 import { Adesione } from '../adesione-details/adesione';
 import { AdesioneCreate } from '../adesione-details/adesioneCreate';
 import { Servizio, Soggetto } from '../adesione-details/adesioneUpdate';
+import { ID_LOGICO_MAX, normalizzaIdLogico, validatoriIdLogico } from '../id-logico';
 import { WizardFasiBarComponent } from '@app/components/wizard/wizard-fasi-bar/wizard-fasi-bar.component';
 import { StepWizardItem } from '@app/components/wizard/wizard-step-bar/wizard-step-bar.component';
 
@@ -172,6 +173,7 @@ export class AdesioneCreateComponent implements OnInit {
    * al posto del ng-select (evita problemi di bind ng-select +
    * patchValue + disabled durante creazione adesione). */
   _lockedOrgNome: string = '';
+  readonly idLogicoMax = ID_LOGICO_MAX;
   /** Organizzazione bloccata da un servizio intermediato (non da quella di sessione). */
   _orgIntermediato: boolean = false;
 
@@ -272,11 +274,7 @@ export class AdesioneCreateComponent implements OnInit {
       this._initServiziSelect([{'id_servizio': serv.id_servizio, 'nome': serv.nome, 'versione': serv.versione}]);
 
       if (disable) { this._formGroup.get('id_servizio')?.disable(); }
-      if (this._servizio.multi_adesione) {
-        this._formGroup.get('id_logico')?.setValidators([Validators.required]);
-      } else {
-        this._formGroup.get('id_logico')?.clearValidators();
-      }
+      this._formGroup.get('id_logico')?.setValidators(validatoriIdLogico(!!this._servizio.multi_adesione));
       this._formGroup.get('id_logico')?.updateValueAndValidity();
 
       this._showMandatoryFields(this._formGroup.controls);
@@ -328,6 +326,9 @@ export class AdesioneCreateComponent implements OnInit {
             break;
           }
           case 'id_logico':
+            value = data[key] ? data[key] : null;
+            _group[key] = new FormControl(value, validatoriIdLogico(!!this._servizio?.multi_adesione));
+            break;
           case 'id_soggetto':
             value = data[key] ? data[key] : null;
             _group[key] = new FormControl(value, [Validators.required]);
@@ -370,7 +371,7 @@ export class AdesioneCreateComponent implements OnInit {
     const _newBody: any = {
       id_soggetto: body.id_soggetto || this._disabled_id_soggetto,
       id_servizio: body.id_servizio,
-      id_logico: body.id_logico || null,
+      id_logico: normalizzaIdLogico(body.id_logico),
     };
 
     if (this._isServizioSenzaCollaudo(this._servizio)) {
@@ -601,11 +602,7 @@ export class AdesioneCreateComponent implements OnInit {
     // multi-adesione o nessun servizio selezionato) il validator va rimosso,
     // altrimenti resterebbe un required su un campo nascosto → form bloccato.
     const _ctrl = this._formGroup.get('id_logico');
-    if (this._servizio?.multi_adesione) {
-      _ctrl?.setValidators([Validators.required]);
-    } else {
-      _ctrl?.clearValidators();
-    }
+    _ctrl?.setValidators(validatoriIdLogico(!!this._servizio?.multi_adesione));
     _ctrl?.updateValueAndValidity();
   }
 

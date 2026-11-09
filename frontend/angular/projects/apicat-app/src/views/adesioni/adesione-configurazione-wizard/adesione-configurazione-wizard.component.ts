@@ -936,7 +936,6 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
             this.apiService.getDetails(this.model, this.id).subscribe({
                 next: (response: any) => {
                     this.adesione = response;
-                    this.adesione.id_logico = response.id_logico;
                     this.title = this._geServicetTitle();
 
                     this.isBozza = (this.adesione.stato == 'bozza');

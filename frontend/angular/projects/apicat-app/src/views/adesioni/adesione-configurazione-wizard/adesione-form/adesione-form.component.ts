@@ -33,6 +33,7 @@ import { Grant } from '@app/model/grant';
 import { map, of } from 'rxjs';
 
 import { Servizio, Soggetto } from '../../adesione-details/adesioneUpdate';
+import { idLogicoMancante, normalizzaIdLogico, validatoriIdLogico } from '../../id-logico';
 
 import { Utente } from '@app/model/utente';
 import { Profilo } from '@app/model/profilo';
@@ -209,6 +210,11 @@ export class AdesioneFormComponent implements OnInit, OnChanges {
         return this.formGroup.controls;
     }
 
+    /** Adesione salvata di un servizio multi-adesione senza identificativo logico. */
+    get _idLogicoMancante(): boolean {
+        return !!this.adesione?.id_adesione && idLogicoMancante({ ...this.adesione, servizio: this.servizio || this.adesione?.servizio });
+    }
+
     fieldIsDisabled(field: string) {
         return this.editable && !this.isEdit;
     }
@@ -225,7 +231,7 @@ export class AdesioneFormComponent implements OnInit, OnChanges {
             utente_richiedente: ['', []],
             utente_ultimo_aggiornamento: ['', []],
             skip_collaudo: [false, []],
-            id_logico: ['', []],
+            id_logico: ['', validatoriIdLogico(false)],
             referente: [{ value: '', disabled: true}, []],
             soggetto_nome: ['', []],
         });
@@ -271,7 +277,7 @@ export class AdesioneFormComponent implements OnInit, OnChanges {
     _prepareBodyUpdateAdesione(body: any) {
         const _newBody: any = {
             identificativo: {
-                id_logico: body.id_logico || null,
+                id_logico: normalizzaIdLogico(body.id_logico),
                 id_soggetto: body.id_soggetto || this.disabled_id_soggetto,
                 id_servizio: body.id_servizio || null,
                 skip_collaudo: body.skip_collaudo || false
@@ -572,11 +578,7 @@ export class AdesioneFormComponent implements OnInit, OnChanges {
 
     updateIdLogico() {
         if (this.servizio) {
-            if (this.servizio.multi_adesione) {
-                this.formGroup.get('id_logico')?.setValidators([Validators.required]);
-            } else {
-                this.formGroup.get('id_logico')?.clearValidators();
-            }
+            this.formGroup.get('id_logico')?.setValidators(validatoriIdLogico(!!this.servizio.multi_adesione));
             this.formGroup.get('id_logico')?.updateValueAndValidity();
         }
     }

@@ -74,6 +74,13 @@
           ></lnk-form-live-search>
         </div>
         @if (servizio?.multi_adesione) {
+          @if (_idLogicoMancante) {
+            <div class="col-12">
+              <div class="gl-alert gl-alert-warning mb-3" role="status">
+                <i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i>{{ 'APP.ADESIONI.MESSAGE.IdLogicoMancante' | translate }}
+              </div>
+            </div>
+          }
           <div class="col-12">
             <lnk-form-field
               name="id_logico"

@@ -222,7 +222,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   generalConfig: any = Tools.Configurazione || null;
   _workflowStati: any[] = Tools.Configurazione?.adesione.workflow.stati || [];
   _workflowStatiServizio: { value: string, label: string }[] = [];
-  _adesioni_multiple: any[] = Tools.Configurazione?.servizio.adesioni_multiple || [];
+  _adesioni_multiple: boolean = Tools.Configurazione?.servizio.adesioni_multiple || false;
 
   minLengthTerm = 1;
 
@@ -309,7 +309,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     this.eventsManagerService.on(EventType.PROFILE_UPDATE, (action: any) => {
       this.generalConfig = Tools.Configurazione || null;
       this._workflowStati = Tools.Configurazione?.adesione.workflow.stati || [];
-      this._adesioni_multiple = Tools.Configurazione?.servizio.adesioni_multiple || [];
+      this._adesioni_multiple = Tools.Configurazione?.servizio.adesioni_multiple || false;
       this._initStatiServizio();
       this._updateMapper = Date.now().toString();
       this.updateMultiSelectionMapper();

@@ -40,6 +40,7 @@ import { AuthenticationService } from '@app/services/authentication.service';
 import { Adesione } from './adesione';
 import { AdesioneCreate } from './adesioneCreate';
 import { AdesioneUpdate, Servizio, Soggetto } from './adesioneUpdate';
+import { normalizzaIdLogico, validatoriIdLogico } from '../id-logico';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
@@ -373,11 +374,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       this._initServiziSelect([{'id_servizio': serv.id_servizio, 'nome': serv.nome, 'versione': serv.versione}]);
 
       if (disable) { this._formGroup.get('id_servizio')?.disable(); }
-      if (this._servizio.multi_adesione) {
-        this._formGroup.get('id_logico')?.setValidators([Validators.required]);
-      } else {
-        this._formGroup.get('id_logico')?.clearValidators();
-      }
+      this._formGroup.get('id_logico')?.setValidators(validatoriIdLogico(!!this._servizio.multi_adesione));
       this._formGroup.get('id_logico')?.updateValueAndValidity();
 
       this._showMandatoryFields(this._formGroup.controls);
@@ -433,6 +430,9 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
             break;
           }
           case 'id_logico':
+            value = data[key] ? data[key] : null;
+            _group[key] = new FormControl(value, validatoriIdLogico(this._servizio ? !!this._servizio.multi_adesione : true));
+            break;
           case 'id_soggetto':
             value = data[key] ? data[key] : null;
             _group[key] = new FormControl(value, [Validators.required]);
@@ -475,7 +475,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     const _newBody: any = {
       id_soggetto: body.id_soggetto || this._disabled_id_soggetto,
       id_servizio: body.id_servizio,
-      id_logico: body.id_logico || null,
+      id_logico: normalizzaIdLogico(body.id_logico),
     };
 
     _newBody.referenti = [];
@@ -505,7 +505,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
   _prepareBodyUpdateAdesione(body: any) {
     const _newBody: any = {
       identificativo: {
-        id_logico: body.id_logico || null,
+        id_logico: normalizzaIdLogico(body.id_logico),
         id_soggetto: body.id_soggetto || this._disabled_id_soggetto,
         id_servizio: body.id_servizio || null,
       },
@@ -905,11 +905,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
 
   updateIdLogico(servizio: any) {
     if (this._servizio) {
-      if (this._servizio.multi_adesione) {
-        this._formGroup.get('id_logico')?.setValidators([Validators.required]);
-      } else {
-        this._formGroup.get('id_logico')?.clearValidators();
-      }
+      this._formGroup.get('id_logico')?.setValidators(validatoriIdLogico(!!this._servizio.multi_adesione));
       this._formGroup.get('id_logico')?.updateValueAndValidity();
     }
   }
