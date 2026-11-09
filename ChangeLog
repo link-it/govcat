@@ -6,6 +6,13 @@
 	  dell'API) quando open-in-view è disabilitato. Un'API senza configurazione nell'ambiente
 	  è trattata come REST invece di generare un errore.
 
+	Issue 432: il monitoraggio delle fruizioni filtrato per adesione (statistiche e lista
+	  transazioni) restituiva sempre risultati vuoti perché inviava a GovWay il soggetto
+	  dell'adesione come erogatore. Ora l'erogatore è sempre l'ente erogatore del servizio e
+	  l'adesione filtra sull'applicativo fruitore, cioè il client dell'adesione per l'ambiente e
+	  il profilo dell'API; senza client o con più client distinti si ottiene un errore 400
+	  esplicito (ADE.400.MONITORING.CLIENT.ASSENTE/MULTIPLI). Le erogazioni non cambiano.
+
 2026-11-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

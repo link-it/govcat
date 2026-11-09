@@ -21,6 +21,8 @@ package org.govway.catalogo.monitoraggioutils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -29,16 +31,24 @@ import static org.mockito.Mockito.when;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Supplier;
 
+import org.govway.catalogo.core.orm.entity.AdesioneEntity;
 import org.govway.catalogo.core.orm.entity.ApiConfigEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity.RUOLO;
+import org.govway.catalogo.core.orm.entity.AuthTypeEntity;
+import org.govway.catalogo.core.orm.entity.ClientAdesioneEntity;
+import org.govway.catalogo.core.orm.entity.ClientEntity;
 import org.govway.catalogo.core.orm.entity.DominioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.SoggettoEntity;
+import org.govway.catalogo.core.services.AdesioneService;
 import org.govway.catalogo.core.services.ServizioService;
 import org.govway.catalogo.core.services.SoggettoService;
+import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.monitor.model.AmbienteEnum;
 import org.junit.jupiter.api.Test;
 
@@ -54,11 +64,17 @@ import org.junit.jupiter.api.Test;
  * </ul>
  * Regression test: prima del fix la fruizione inviava al monitoraggio il fruitore interno come
  * erogatore, con conseguente lista transazioni vuota.
+ * <p>
+ * Ramo con adesione (Issue 432): per le fruizioni l'erogatore resta l'ente erogatore del servizio e
+ * l'adesione si traduce nell'applicativo fruitore (client dell'adesione); le erogazioni non cambiano.
  */
 class FiltriUtilsGetApiSoggettoTest {
 
     private static final String EROGATORE_SERVIZIO = "EROGATORE_SERVIZIO";
     private static final String REFERENTE_DOMINIO = "REFERENTE_DOMINIO";
+    private static final String SOGGETTO_ADERENTE = "SOGGETTO_ADERENTE";
+    private static final String PROFILO = "MTLS_FRUIZIONI";
+    private static final String ALTRO_PROFILO = "PDND";
 
     private FiltriUtils buildFiltriUtils(ServizioEntity servizio) throws Exception {
         FiltriUtils filtriUtils = new FiltriUtils();
@@ -76,6 +92,16 @@ class FiltriUtilsGetApiSoggettoTest {
 
         inject(filtriUtils, "servizioService", servizioService);
         inject(filtriUtils, "soggettoService", soggettoService);
+        return filtriUtils;
+    }
+
+    private FiltriUtils buildFiltriUtils(ServizioEntity servizio, AdesioneEntity adesione) throws Exception {
+        FiltriUtils filtriUtils = buildFiltriUtils(servizio);
+
+        AdesioneService adesioneService = mock(AdesioneService.class);
+        when(adesioneService.findByIdAdesione(adesione.getIdAdesione())).thenReturn(Optional.of(adesione));
+
+        inject(filtriUtils, "adesioneService", adesioneService);
         return filtriUtils;
     }
 
@@ -108,6 +134,9 @@ class FiltriUtilsGetApiSoggettoTest {
         api.setVersione(1);
         api.setRuolo(RUOLO.EROGATO_SOGGETTO_DOMINIO);
         api.setProduzione(new ApiConfigEntity());
+        AuthTypeEntity authType = new AuthTypeEntity();
+        authType.setProfilo(PROFILO);
+        api.getAuthType().add(authType);
         servizio.getApi().add(api);
 
         return servizio;
@@ -171,5 +200,113 @@ class FiltriUtilsGetApiSoggettoTest {
         IdApi id = apiLst.get(0);
         assertFalse(id.isFruizione());
         assertEquals(REFERENTE_DOMINIO, id.getSoggetto());
+    }
+
+    private AdesioneEntity adesione() {
+        AdesioneEntity adesione = new AdesioneEntity();
+        adesione.setIdAdesione(UUID.randomUUID().toString());
+        adesione.setSoggetto(soggetto(SOGGETTO_ADERENTE));
+        return adesione;
+    }
+
+    private void addClient(AdesioneEntity adesione, org.govway.catalogo.core.orm.entity.AmbienteEnum ambiente, String profilo, String nomeClient) {
+        ClientAdesioneEntity clientAdesione = new ClientAdesioneEntity();
+        clientAdesione.setAdesione(adesione);
+        clientAdesione.setAmbiente(ambiente);
+        clientAdesione.setProfilo(profilo);
+        if (nomeClient != null) {
+            ClientEntity client = new ClientEntity();
+            client.setNome(nomeClient);
+            clientAdesione.setClient(client);
+        }
+        adesione.getClient().add(clientAdesione);
+    }
+
+    private List<IdApi> getApi(FiltriUtils filtriUtils, AdesioneEntity adesione) {
+        return filtriUtils.getApi(UUID.randomUUID(), null, UUID.fromString(adesione.getIdAdesione()), AmbienteEnum.PRODUZIONE);
+    }
+
+    /**
+     * Regression test Issue 432: una fruizione filtrata per adesione deve mantenere come erogatore l'ente
+     * erogatore del servizio (non il soggetto dell'adesione) e distinguere l'adesione per l'applicativo fruitore,
+     * cioè il client dell'adesione per l'ambiente e il profilo dell'API.
+     */
+    @Test
+    void fruizioneConAdesione_erogatoreDalServizio_applicativoDalClient() throws Exception {
+        AdesioneEntity adesione = adesione();
+        addClient(adesione, org.govway.catalogo.core.orm.entity.AmbienteEnum.PRODUZIONE, PROFILO, "client-produzione");
+        addClient(adesione, org.govway.catalogo.core.orm.entity.AmbienteEnum.COLLAUDO, PROFILO, "client-collaudo");
+        addClient(adesione, org.govway.catalogo.core.orm.entity.AmbienteEnum.PRODUZIONE, ALTRO_PROFILO, "client-altro-profilo");
+        FiltriUtils filtriUtils = buildFiltriUtils(servizioErogatoSoggettoDominio(true), adesione);
+
+        List<IdApi> apiLst = getApi(filtriUtils, adesione);
+
+        assertEquals(1, apiLst.size());
+        IdApi id = apiLst.get(0);
+        assertTrue(id.isFruizione());
+        assertEquals(EROGATORE_SERVIZIO, id.getSoggetto());
+        assertEquals("client-produzione", id.getApplicativoFruitore());
+    }
+
+    /**
+     * Lo stesso client associato a più profili dell'API è un solo applicativo: il filtro resta applicabile.
+     */
+    @Test
+    void fruizioneConAdesione_stessoClientSuPiuProfili() throws Exception {
+        ServizioEntity servizio = servizioErogatoSoggettoDominio(true);
+        AuthTypeEntity altroProfilo = new AuthTypeEntity();
+        altroProfilo.setProfilo(ALTRO_PROFILO);
+        servizio.getApi().iterator().next().getAuthType().add(altroProfilo);
+
+        AdesioneEntity adesione = adesione();
+        addClient(adesione, org.govway.catalogo.core.orm.entity.AmbienteEnum.PRODUZIONE, PROFILO, "client-produzione");
+        addClient(adesione, org.govway.catalogo.core.orm.entity.AmbienteEnum.PRODUZIONE, ALTRO_PROFILO, "client-produzione");
+        FiltriUtils filtriUtils = buildFiltriUtils(servizio, adesione);
+
+        assertEquals("client-produzione", getApi(filtriUtils, adesione).get(0).getApplicativoFruitore());
+    }
+
+    @Test
+    void fruizioneConAdesione_senzaClientNellAmbiente_400() throws Exception {
+        AdesioneEntity adesione = adesione();
+        addClient(adesione, org.govway.catalogo.core.orm.entity.AmbienteEnum.COLLAUDO, PROFILO, "client-collaudo");
+        addClient(adesione, org.govway.catalogo.core.orm.entity.AmbienteEnum.PRODUZIONE, PROFILO, null); // solo nome proposto
+        FiltriUtils filtriUtils = buildFiltriUtils(servizioErogatoSoggettoDominio(true), adesione);
+
+        BadRequestException e = assertThrows(BadRequestException.class, () -> getApi(filtriUtils, adesione));
+        assertEquals(ErrorCode.ADE_400_MONITORING_CLIENT_ASSENTE, e.getErrorCode());
+    }
+
+    @Test
+    void fruizioneConAdesione_piuClientDistinti_400() throws Exception {
+        ServizioEntity servizio = servizioErogatoSoggettoDominio(true);
+        AuthTypeEntity altroProfilo = new AuthTypeEntity();
+        altroProfilo.setProfilo(ALTRO_PROFILO);
+        servizio.getApi().iterator().next().getAuthType().add(altroProfilo);
+
+        AdesioneEntity adesione = adesione();
+        addClient(adesione, org.govway.catalogo.core.orm.entity.AmbienteEnum.PRODUZIONE, PROFILO, "client-a");
+        addClient(adesione, org.govway.catalogo.core.orm.entity.AmbienteEnum.PRODUZIONE, ALTRO_PROFILO, "client-b");
+        FiltriUtils filtriUtils = buildFiltriUtils(servizio, adesione);
+
+        BadRequestException e = assertThrows(BadRequestException.class, () -> getApi(filtriUtils, adesione));
+        assertEquals(ErrorCode.ADE_400_MONITORING_CLIENT_MULTIPLI, e.getErrorCode());
+    }
+
+    /**
+     * Non regressione: per le erogazioni filtrate per adesione il comportamento non cambia (soggetto
+     * dell'adesione, nessun applicativo fruitore).
+     */
+    @Test
+    void erogazioneConAdesione_invariata() throws Exception {
+        AdesioneEntity adesione = adesione();
+        addClient(adesione, org.govway.catalogo.core.orm.entity.AmbienteEnum.PRODUZIONE, PROFILO, "client-produzione");
+        FiltriUtils filtriUtils = buildFiltriUtils(servizioErogatoSoggettoDominio(false), adesione);
+
+        IdApi id = getApi(filtriUtils, adesione).get(0);
+
+        assertFalse(id.isFruizione());
+        assertEquals(SOGGETTO_ADERENTE, id.getSoggetto());
+        assertNull(id.getApplicativoFruitore());
     }
 }

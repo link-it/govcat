@@ -1548,6 +1548,12 @@
 			"ERROR": {
 				"ADE": {
 					"400": {
+						"MONITORING": {
+							"CLIENT": {
+								"ASSENTE": "No client of membership [{{idAdesione}}] for API [{{nomeApi}} v{{versioneApi}}] in {{ambiente}}: monitoring cannot be filtered by membership",
+								"MULTIPLI": "Membership [{{idAdesione}}] has more than one client for API [{{nomeApi}} v{{versioneApi}}] in {{ambiente}} ({{applicativi}}): monitoring by membership supports a single application"
+							}
+						},
 						"STATE": {
 							"DEFAULT": "Membership state [{{stato}}] not valid for this operation",
 							"MONITORING": "Membership state [{{stato}}] not valid for monitoring (membership [{{idAdesione}}])",

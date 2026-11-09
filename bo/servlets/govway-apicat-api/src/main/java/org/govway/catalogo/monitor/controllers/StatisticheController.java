@@ -189,6 +189,7 @@ public class StatisticheController implements StatisticheApi {
 
 		getReportRequest.setSoggettoReferente(soggetto);
 		getReportRequest.setSoggettoErogatore(this.filtriUtils.getSoggettoNome(idapi.get(0).getSoggetto()));
+		getReportRequest.setApplicativoFruitore(idapi.get(0).getApplicativoFruitore());
 		getReportRequest.setEsito(esito);
 		getReportRequest.setListaCodici(listaCodici);
 		getReportRequest.setOperazione(operazione);
@@ -264,6 +265,7 @@ public class StatisticheController implements StatisticheApi {
 		}
 
 		getReportRequest.setSoggettoErogatore(this.filtriUtils.getSoggettoNome(idapi.get(0).getSoggetto()));
+		getReportRequest.setApplicativoFruitore(idapi.get(0).getApplicativoFruitore());
 
 		getReportRequest.setOperazione(query.getOperazione());
 		getReportRequest.setUnitaTempo(query.getUnitaTempo());
@@ -296,6 +298,7 @@ public class StatisticheController implements StatisticheApi {
 			getReportRequest.setListaCodici(query.getEsito().getCodici());
 		}
 		getReportRequest.setSoggettoErogatore(this.filtriUtils.getSoggettoNome(idapi.get(0).getSoggetto()));
+		getReportRequest.setApplicativoFruitore(idapi.get(0).getApplicativoFruitore());
 
 		getReportRequest.setOperazione(query.getOperazione());
 		getReportRequest.setUnitaTempo(query.getUnitaTempo());
@@ -329,6 +332,7 @@ public class StatisticheController implements StatisticheApi {
 		}
 
 		getReportRequest.setSoggettoErogatore(this.filtriUtils.getSoggettoNome(idapi.get(0).getSoggetto()));
+		getReportRequest.setApplicativoFruitore(idapi.get(0).getApplicativoFruitore());
 
 		getReportRequest.setOperazione(query.getOperazione());
 		getReportRequest.setUnitaTempo(query.getUnitaTempo());
@@ -360,6 +364,7 @@ public class StatisticheController implements StatisticheApi {
 		}
 
 		getReportRequest.setSoggettoErogatore(this.filtriUtils.getSoggettoNome(idapi.get(0).getSoggetto()));
+		getReportRequest.setApplicativoFruitore(idapi.get(0).getApplicativoFruitore());
 
 		getReportRequest.setOperazione(query.getOperazione());
 		getReportRequest.setUnitaTempo(query.getUnitaTempo());
@@ -391,6 +396,7 @@ public class StatisticheController implements StatisticheApi {
 		}
 
 		getReportRequest.setSoggettoErogatore(this.filtriUtils.getSoggettoNome(idapi.get(0).getSoggetto()));
+		getReportRequest.setApplicativoFruitore(idapi.get(0).getApplicativoFruitore());
 
 		getReportRequest.setOperazione(query.getOperazione());
 		getReportRequest.setUnitaTempo(query.getUnitaTempo());
@@ -422,6 +428,7 @@ public class StatisticheController implements StatisticheApi {
 		}
 
 		getReportRequest.setSoggettoErogatore(this.filtriUtils.getSoggettoNome(idapi.get(0).getSoggetto()));
+		getReportRequest.setApplicativoFruitore(idapi.get(0).getApplicativoFruitore());
 
 		getReportRequest.setOperazione(query.getOperazione());
 		getReportRequest.setUnitaTempo(query.getUnitaTempo());
@@ -453,6 +460,7 @@ public class StatisticheController implements StatisticheApi {
 		}
 
 		getReportRequest.setSoggettoErogatore(this.filtriUtils.getSoggettoNome(idapi.get(0).getSoggetto()));
+		getReportRequest.setApplicativoFruitore(idapi.get(0).getApplicativoFruitore());
 
 		getReportRequest.setOperazione(query.getOperazione());
 		getReportRequest.setUnitaTempo(query.getUnitaTempo());
@@ -484,6 +492,7 @@ public class StatisticheController implements StatisticheApi {
 		}
 
 		getReportRequest.setSoggettoErogatore(this.filtriUtils.getSoggettoNome(idapi.get(0).getSoggetto()));
+		getReportRequest.setApplicativoFruitore(idapi.get(0).getApplicativoFruitore());
 
 		getReportRequest.setOperazione(query.getOperazione());
 		getReportRequest.setUnitaTempo(query.getUnitaTempo());
@@ -515,6 +524,7 @@ public class StatisticheController implements StatisticheApi {
 		}
 
 		getReportRequest.setSoggettoErogatore(this.filtriUtils.getSoggettoNome(idapi.get(0).getSoggetto()));
+		getReportRequest.setApplicativoFruitore(idapi.get(0).getApplicativoFruitore());
 
 		getReportRequest.setOperazione(query.getOperazione());
 		getReportRequest.setUnitaTempo(query.getUnitaTempo());
@@ -546,6 +556,7 @@ public class StatisticheController implements StatisticheApi {
 		}
 
 		getReportRequest.setSoggettoErogatore(this.filtriUtils.getSoggettoNome(idapi.get(0).getSoggetto()));
+		getReportRequest.setApplicativoFruitore(idapi.get(0).getApplicativoFruitore());
 
 		getReportRequest.setOperazione(query.getOperazione());
 		getReportRequest.setUnitaTempo(query.getUnitaTempo());
@@ -577,6 +588,7 @@ public class StatisticheController implements StatisticheApi {
 		}
 
 		getReportRequest.setSoggettoErogatore(this.filtriUtils.getSoggettoNome(idapi.get(0).getSoggetto()));
+		getReportRequest.setApplicativoFruitore(idapi.get(0).getApplicativoFruitore());
 
 		getReportRequest.setOperazione(query.getOperazione());
 		getReportRequest.setUnitaTempo(query.getUnitaTempo());

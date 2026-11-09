@@ -21,12 +21,16 @@ package org.govway.catalogo.monitoraggioutils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.govway.catalogo.core.dao.specifications.ApiSpecification;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
@@ -34,6 +38,8 @@ import org.govway.catalogo.core.orm.entity.ApiConfigEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity.RUOLO;
 import org.govway.catalogo.core.orm.entity.AuthTypeEntity;
+import org.govway.catalogo.core.orm.entity.ClientAdesioneEntity;
+import org.govway.catalogo.core.orm.entity.ClientEntity;
 import org.govway.catalogo.core.orm.entity.ErogazioneEntity;
 import org.govway.catalogo.core.orm.entity.EstensioneApiEntity;
 import org.govway.catalogo.core.orm.entity.PackageServizioEntity;
@@ -265,13 +271,17 @@ public class FiltriUtils {
 							id.setFruizione(true);
 						}
 
-						if(adesione != null) {
-							id.setSoggetto(getSoggettoNome(adesione.getSoggetto().getNome()));
-						} else if(fruizione) {
-							// Fruizione: l'erogatore verso GovWay è l'ente erogatore (provider) indicato sul servizio.
-							// Coerente con il nuovo modello (vedi EServiceBuilder.getUrlInvocazione e AdesioneDTOConverter):
-							// per le fruizioni dominio.getSoggettoReferente() è il fruitore interno, non l'erogatore.
+						if(fruizione) {
+							// Fruizione: l'erogatore verso GovWay è l'ente erogatore (provider) indicato sul servizio,
+							// anche quando si filtra per adesione. Coerente con il nuovo modello (vedi EServiceBuilder.getUrlInvocazione
+							// e AdesioneDTOConverter): per le fruizioni dominio.getSoggettoReferente() è il fruitore interno, non l'erogatore.
 							id.setSoggetto(getSoggettoNome(servizio.getSoggettoErogatore().getNome()));
+							if(adesione != null) {
+								// Il fruitore è sempre il referente del dominio: l'adesione si distingue per l'applicativo fruitore.
+								id.setApplicativoFruitore(getApplicativoFruitore(adesione, ap, ambiente));
+							}
+						} else if(adesione != null) {
+							id.setSoggetto(getSoggettoNome(adesione.getSoggetto().getNome()));
 						} else {
 							// Erogazione: l'erogatore è il soggetto referente del dominio.
 							id.setSoggetto(getSoggettoNome(servizio.getDominio().getSoggettoReferente().getNome()));
@@ -312,6 +322,43 @@ public class FiltriUtils {
 			return apiLst;
 		});
 
+	}
+
+	/**
+	 * Applicativo GovWay con cui l'adesione fruisce l'API nell'ambiente: è il client associato all'adesione
+	 * per l'ambiente e per i profili dell'API (lo stesso nome con cui il configuratore censisce l'applicativo).
+	 * Il monitoraggio GovWay accetta un solo applicativo nel filtro: senza client o con più client distinti
+	 * il filtro per adesione non è applicabile.
+	 */
+	private String getApplicativoFruitore(AdesioneEntity adesione, ApiEntity api, AmbienteEnum ambiente) {
+		Set<String> profili = api.getAuthType().stream()
+				.map(AuthTypeEntity::getProfilo)
+				.collect(Collectors.toSet());
+
+		Set<String> applicativi = adesione.getClient().stream()
+				.filter(ca -> ca.getAmbiente().name().equals(ambiente.name()))
+				.filter(ca -> profili.contains(ca.getProfilo()))
+				.map(ClientAdesioneEntity::getClient)
+				.filter(Objects::nonNull)
+				.map(ClientEntity::getNome)
+				.collect(Collectors.toCollection(TreeSet::new));
+
+		Map<String, String> params = Map.of("idAdesione", adesione.getIdAdesione(),
+				"nomeApi", api.getNome(),
+				"versioneApi", String.valueOf(api.getVersione()),
+				"ambiente", ambiente.getValue());
+
+		if(applicativi.isEmpty()) {
+			throw new BadRequestException(ErrorCode.ADE_400_MONITORING_CLIENT_ASSENTE, params);
+		}
+
+		if(applicativi.size() > 1) {
+			Map<String, String> paramsMultipli = new HashMap<>(params);
+			paramsMultipli.put("applicativi", String.join(", ", applicativi));
+			throw new BadRequestException(ErrorCode.ADE_400_MONITORING_CLIENT_MULTIPLI, paramsMultipli);
+		}
+
+		return applicativi.iterator().next();
 	}
 	
 }

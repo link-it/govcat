@@ -355,6 +355,12 @@ public enum ErrorCode {
     /** Stato adesione non valido per monitoraggio */
     ADE_400_STATE_MONITORING("Stato adesione non valido per monitoraggio"),
 
+    /** Monitoraggio di una fruizione per adesione: l'adesione non ha client per l'API nell'ambiente */
+    ADE_400_MONITORING_CLIENT_ASSENTE("Nessun client dell'adesione per il monitoraggio dell'API"),
+
+    /** Monitoraggio di una fruizione per adesione: l'adesione ha più client distinti per l'API nell'ambiente */
+    ADE_400_MONITORING_CLIENT_MULTIPLI("Più client dell'adesione per il monitoraggio dell'API"),
+
     /** Stato servizio non consente adesione */
     ADE_400_STATE_SERVICE("Stato servizio non consente adesione"),
 

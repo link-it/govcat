@@ -32,6 +32,7 @@ public class IdApi {
 	private String soggettoGestore;
 	private PROTOCOLLO protocollo;
 	private boolean fruizione;
+	private String applicativoFruitore;
 	public Integer getVersione() {
 		return versione;
 	}
@@ -73,6 +74,15 @@ public class IdApi {
 	}
 	public void setFruizione(boolean fruizione) {
 		this.fruizione = fruizione;
+	}
+	/**
+	 * Applicativo fruitore dell'adesione su cui filtrare il monitoraggio di una fruizione; nullo se non si filtra per adesione.
+	 */
+	public String getApplicativoFruitore() {
+		return applicativoFruitore;
+	}
+	public void setApplicativoFruitore(String applicativoFruitore) {
+		this.applicativoFruitore = applicativoFruitore;
 	}
 	public String getGruppo() {
 		return gruppo;

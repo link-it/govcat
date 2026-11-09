@@ -1548,6 +1548,12 @@
 			"ERROR": {
 				"ADE": {
 					"400": {
+						"MONITORING": {
+							"CLIENT": {
+								"ASSENTE": "Nessun client dell'adesione [{{idAdesione}}] per l'API [{{nomeApi}} v{{versioneApi}}] in {{ambiente}}: impossibile filtrare il monitoraggio per adesione",
+								"MULTIPLI": "L'adesione [{{idAdesione}}] ha più client per l'API [{{nomeApi}} v{{versioneApi}}] in {{ambiente}} ({{applicativi}}): il monitoraggio per adesione supporta un solo applicativo"
+							}
+						},
 						"STATE": {
 							"DEFAULT": "Stato adesione [{{stato}}] non valido per questa operazione",
 							"MONITORING": "Stato adesione [{{idAdesione}}] non valido [{{stato}}] per il monitoraggio",

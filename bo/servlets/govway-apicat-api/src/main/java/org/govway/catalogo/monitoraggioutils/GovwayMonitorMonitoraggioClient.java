@@ -46,6 +46,7 @@ import org.govway.catalogo.gest.clients.govwaymonitor.model.EsitoTransazioneFull
 import org.govway.catalogo.gest.clients.govwaymonitor.model.FiltroApiSoggetti;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.FiltroEsito;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.FiltroMittenteErogazioneSoggettoImpl;
+import org.govway.catalogo.gest.clients.govwaymonitor.model.FiltroMittenteFruizioneApplicativo;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.FiltroRicercaRuoloTransazioneEnum;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.FiltroTemporale;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.ListaTransazioni;
@@ -726,6 +727,14 @@ public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient
 		if(idApi.isFruizione()) {
 			body.setTipo(FiltroRicercaRuoloTransazioneEnum.FRUIZIONE);
 			api.setErogatore(idApi.getSoggetto());
+
+			// Fruizione filtrata per adesione: il fruitore è sempre il referente del dominio, l'adesione si distingue per l'applicativo
+			if(idApi.getApplicativoFruitore() != null) {
+				FiltroMittenteFruizioneApplicativo t = new FiltroMittenteFruizioneApplicativo();
+				t.setIdentificazione(TipoFiltroMittenteEnum.FRUIZIONE_APPLICATIVO);
+				t.setApplicativo(idApi.getApplicativoFruitore());
+				body.setMittente(new RicercaIntervalloTemporaleAllOfMittente(t));
+			}
 		} else {
 			body.setTipo(FiltroRicercaRuoloTransazioneEnum.EROGAZIONE);
 			api.setErogatore(soggettoReferente);
