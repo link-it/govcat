@@ -66,6 +66,7 @@ describe('ServizioDetailsComponent', () => {
 
   const mockAuthenticationService = {
     _getWorkflowCambiStato: vi.fn().mockReturnValue(null),
+    getUser: vi.fn().mockReturnValue({ id_utente: 'u1' }),
     canEditField: vi.fn().mockReturnValue(true),
     isAnonymous: vi.fn().mockReturnValue(false),
     hasPermission: vi.fn().mockReturnValue(true),
@@ -1173,8 +1174,8 @@ describe('ServizioDetailsComponent', () => {
   // _canMonitoraggioMapper / _canJoinMapper / _canEditMapper / _isGestoreMapper
   // ---------------------------------------------------------------------------
   describe('mapper functions', () => {
-    it('_canMonitoraggioMapper should delegate to authenticationService', () => {
-      component._grant = { ruoli: ['gestore'] } as any;
+    it('_canMonitoraggioMapper should delegate to authenticationService with the roles on the service', () => {
+      component._ruoliServizio = ['gestore'];
       mockAuthenticationService.canMonitoraggio.mockReturnValue(true);
       expect(component._canMonitoraggioMapper()).toBe(true);
       expect(mockAuthenticationService.canMonitoraggio).toHaveBeenCalledWith(['gestore']);

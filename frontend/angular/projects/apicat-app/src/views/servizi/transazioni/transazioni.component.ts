@@ -39,6 +39,7 @@ import { Page } from '@app/models/page';
 
 import { apiConAudit, auditAbilitato, erroreAudit, pathConAudit, ProprietaAudit, richiedenteConAudit } from './audit';
 import { soggettoMonitoraggio, tipoMonitoraggio } from '../monitoraggio-soggetti';
+import { ServizioMonitorMenuComponent } from '../components/servizio-monitor-menu/servizio-monitor-menu.component';
 
 import moment from 'moment';
 import * as _ from 'lodash';
@@ -65,7 +66,7 @@ enum SearchTypeEnum {
   templateUrl: 'transazioni.component.html',
   styleUrls: ['transazioni.component.scss'],
   standalone: true,
-  imports: [CommonModule, ...COMPONENTS_IMPORTS, MarkAsteriskDirective, AutoFillScrollDirective]
+  imports: [CommonModule, ...COMPONENTS_IMPORTS, MarkAsteriskDirective, AutoFillScrollDirective, ServizioMonitorMenuComponent]
 })
 export class TransazioniComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'TransazioniComponent';
@@ -433,12 +434,20 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
         next: (response: any) => {
           this.service = response;
           this._initBreadcrumb();
+          if (this._collaudoSaltato && this._isCollaudo()) {
+            this._cambiaAmbiente('produzione');
+          }
         },
         error: (error: any) => {
           Tools.OnError(error);
         }
       });
     }
+  }
+
+  /** Servizio pubblicato in produzione senza collaudo: c'è solo la produzione. */
+  get _collaudoSaltato(): boolean {
+    return !!this.service?.skip_collaudo;
   }
 
   _prepareData(query: any) {
@@ -788,6 +797,7 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
   }
 
   _showCollaudo() {
+    if (this._collaudoSaltato) { return; }
     this._cambiaAmbiente('collaudo');
   }
 

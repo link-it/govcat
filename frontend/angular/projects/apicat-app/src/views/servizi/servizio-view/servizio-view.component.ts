@@ -86,6 +86,7 @@ import { ApiConfigurationRead, ApiReadDetails, CustomProperty, CustomPropertyDef
 import { UrlInvocazioneAggiuntivaRisolta } from '../servizio-api-details/servizio-api-interfaces';
 import { etichettaUrlInvocazione, URL_INVOCAZIONE_DEFAULT } from '../servizio-api-url-invocazione';
 import { ambienteClasseDato } from '../servizio-proprieta-custom';
+import { ruoliServizio$ } from '../ruoli-servizio';
 
 export interface Organization {
     id_organizzazione: string;
@@ -270,6 +271,8 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     _showReferents: boolean = true;
 
     _grant: Grant | null = null;
+    /** Ruoli per monitoraggio e gestione (vedi `ruoliServizio$`). */
+    _ruoliServizio: string[] = [];
     _ammissibili: string[] = [];
     _updateData: string = '';
 
@@ -496,6 +499,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                             this._adesioneDataReady = false;
                             this._loadAdesioneData();
                         }
+                        this._loadRuoliServizio(grant);
                     },
                     error: (error: any) => {
                         Tools.OnError(error);
@@ -509,6 +513,14 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
             }
         });
         }
+    }
+
+    _loadRuoliServizio(grant: Grant | null) {
+        this._ruoliServizio = [];
+        ruoliServizio$(this.apiService, `${this.id}`, grant?.ruoli, this.authenticationService.getUser()?.id_utente).subscribe((ruoli: string[]) => {
+            this._ruoliServizio = ruoli;
+            this._updateData = Date.now().toString();
+        });
     }
 
     _loadAdesioneData() {
@@ -1339,15 +1351,14 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     }
 
     _canManagementMapper = (): boolean => {
-        const _canManagement = this.authenticationService.canManagement('servizio', 'servizio', this.data.stato, this._grant?.ruoli);
+        const _canManagement = this.authenticationService.canManagement('servizio', 'servizio', this.data.stato, this._ruoliServizio);
         const _isPackage = this.data?.package || false;
         const _isGestore = this.authenticationService.isGestore(this._grant?.ruoli);
-        const _canMonitoraggio = this.authenticationService.canMonitoraggio(this._grant?.ruoli);
         return _isPackage ? _isGestore : _canManagement;
     }
 
     _canMonitoraggioMapper = (): boolean => {
-        return this.authenticationService.canMonitoraggio(this._grant?.ruoli);
+        return this.authenticationService.canMonitoraggio(this._ruoliServizio);
     }
 
     _canManagementComunicazioniMapper = (): boolean => {

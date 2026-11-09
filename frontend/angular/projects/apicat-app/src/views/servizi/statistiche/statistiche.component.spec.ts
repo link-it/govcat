@@ -229,6 +229,17 @@ describe('StatisticheComponent', () => {
     expect(component.environmentId).toBe('produzione');
   });
 
+  it('should land on produzione and keep collaudo disabled for a service without testing', () => {
+    mockApiService.getDetails.mockImplementation(() => of({ nome: 'S', versione: '1', skip_collaudo: true }));
+    component.id = 42;
+    component.environmentId = 'collaudo';
+    component._loadServizio();
+    expect(component._collaudoSaltato).toBe(true);
+    expect(component.environmentId).toBe('produzione');
+    component._showCollaudo();
+    expect(component.environmentId).toBe('produzione');
+  });
+
   it('should toggle _showFilter on _toggleFilter', () => {
     component._showFilter = true;
     component._toggleFilter();

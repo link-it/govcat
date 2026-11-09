@@ -30,6 +30,7 @@ import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { MarkAsteriskDirective } from '@app/directives/mark-asterisk';
 import { soggettoMonitoraggio, tipoMonitoraggio } from '../monitoraggio-soggetti';
+import { ServizioMonitorMenuComponent } from '../components/servizio-monitor-menu/servizio-monitor-menu.component';
 
 import moment from 'moment';
 
@@ -194,7 +195,7 @@ const domainStatistics = [
   templateUrl: 'statistiche.component.html',
   styleUrls: ['statistiche.component.scss'],
   standalone: true,
-  imports: [CommonModule, ...COMPONENTS_IMPORTS, MarkAsteriskDirective]
+  imports: [CommonModule, ...COMPONENTS_IMPORTS, MarkAsteriskDirective, ServizioMonitorMenuComponent]
 })
 export class StatisticheComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'StatisticheComponent';
@@ -648,6 +649,9 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
         next: (response: any) => {
           this.service = response;
           this._initBreadcrumb();
+          if (this._collaudoSaltato && this._isCollaudo()) {
+            this._showProduzione();
+          }
         },
         error: (error: any) => {
           Tools.OnError(error);
@@ -1003,7 +1007,13 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
     Tools.ScrollElement('container-scroller', 0);
   }
 
+  /** Servizio pubblicato in produzione senza collaudo: c'è solo la produzione. */
+  get _collaudoSaltato(): boolean {
+    return !!this.service?.skip_collaudo;
+  }
+
   _showCollaudo() {
+    if (this._collaudoSaltato) { return; }
     this.environmentId = 'collaudo';
     this._resetData();
   }

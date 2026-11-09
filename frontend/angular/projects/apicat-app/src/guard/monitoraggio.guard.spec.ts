@@ -14,10 +14,13 @@ describe('MonitoraggioGuard (Issue #418)', () => {
     router = { createUrlTree: vi.fn().mockReturnValue(negato) };
     authService = {
       _getConfigModule: vi.fn().mockReturnValue({ abilitato: true, ruoli_abilitati: ['gestore', 'referente'] }),
-      canMonitoraggio: vi.fn().mockReturnValue(true)
+      canMonitoraggio: vi.fn().mockReturnValue(true),
+      getUser: vi.fn().mockReturnValue({ id_utente: 'u1' })
     };
     apiService = {
-      getDetails: vi.fn().mockReturnValue(of({ ruoli: ['referente'] })),
+      getDetails: vi.fn((nome: string, id: string, tipo: string) => of(tipo === 'referenti'
+        ? { content: [{ utente: { id_utente: 'u1' } }] }
+        : { ruoli: ['referente'] })),
       getList: vi.fn().mockReturnValue(of({ monitoraggio: { abilitato: true } }))
     };
     guard = new MonitoraggioGuard(router, authService, apiService);
@@ -27,6 +30,13 @@ describe('MonitoraggioGuard (Issue #418)', () => {
     expect(await firstValueFrom(guard.canActivate(rotta('s1'), {} as any))).toBe(true);
     expect(apiService.getDetails).toHaveBeenCalledWith('servizi', 's1', 'grant');
     expect(authService.canMonitoraggio).toHaveBeenCalledWith(['referente'], expect.objectContaining({ abilitato: true }));
+  });
+
+  it('should not count the referente role of an API operator who is not a referent of the service', async () => {
+    authService.getUser.mockReturnValue({ id_utente: 'operatore' });
+    expect(await firstValueFrom(guard.canActivate(rotta('s1'), {} as any))).toBe(true);
+    expect(apiService.getDetails).toHaveBeenCalledWith('servizi', 's1', 'referenti', { params: { tipo_referente: 'referente', size: '100' } });
+    expect(authService.canMonitoraggio).toHaveBeenCalledWith([], expect.objectContaining({ abilitato: true }));
   });
 
   it('should redirect to the services when the user has no enabled role on the service', async () => {

@@ -135,6 +135,48 @@ describe('MonitorDropdwnComponent', () => {
       expect(voci()).toEqual([]);
     });
 
+    it('should exclude the item of the current page', () => {
+      mockAuthenticationService._getConfigModule.mockReturnValue({
+        abilitato: true, transazioni_abilitate: true, statistiche_abilitate: true, verifiche_abilitate: false
+      });
+      component.showMonitoring = true;
+      component.currentAction = 'transazioni';
+      component.ngOnInit();
+      expect(voci()).toEqual(['statistiche']);
+    });
+
+    it('should hide the monitoring label when the current page is the only monitoring item', () => {
+      mockAuthenticationService._getConfigModule.mockReturnValue({ abilitato: true, statistiche_abilitate: true });
+      component.showMonitoring = true;
+      component.currentAction = 'statistiche';
+      component.ngOnInit();
+      expect(voci()).toEqual([]);
+      expect(component._menuActions.find((m: any) => m.title === 'APP.MENU.Monitoring')?.enabled).toBe(false);
+    });
+
+    it('should show the item of the view together with the management, not with returnWeb', () => {
+      mockAuthenticationService._getConfigModule.mockReturnValue({ abilitato: true, statistiche_abilitate: true });
+      const abilitata = (azione: string) => component._menuActions.find((m: any) => m.action === azione)?.enabled;
+      component.showVetrina = true;
+      component.ngOnInit();
+      expect(abilitata('vetrina')).toBe(true);
+      expect(abilitata('gestione')).toBe(true);
+      component.returnWeb = true;
+      component.initMenu();
+      expect(abilitata('vetrina')).toBe(false);
+      component.returnWeb = false;
+      component.showVetrina = false;
+      component.initMenu();
+      expect(abilitata('vetrina')).toBe(false);
+    });
+
+    it('should exclude the communications item on the communications page', () => {
+      component.showComunications = true;
+      component.currentAction = 'comunicazioni';
+      component.ngOnInit();
+      expect(component._menuActions.find((m: any) => m.action === 'comunicazioni')?.enabled).toBe(false);
+    });
+
     it('should not fail when ruoli_abilitati is missing', () => {
       mockAuthenticationService._getConfigModule.mockReturnValue({ abilitato: true, transazioni_abilitate: true });
       expect(() => component.ngOnInit()).not.toThrow();

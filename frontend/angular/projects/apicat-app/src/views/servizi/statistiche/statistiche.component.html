@@ -20,14 +20,16 @@
   <div class="container-fluid top-area px-0">
     <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
     <div class="d-flex flex-grow-1">&nbsp;</div>
-    <div class="nav-controls"></div>
+    <div class="nav-controls">
+      <app-servizio-monitor-menu [servizio]="service" [paginaCorrente]="'statistiche'"></app-servizio-monitor-menu>
+    </div>
   </div>
   <div class="top-area">
     <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
       <div class="">
         <ul class="nav gp-border-b-0 gp-tabs-nav">
-          <li class="nav-item">
-            <a role="button" tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isCollaudo()" (click)="_showCollaudo()" [attr.aria-label]="'APP.FILTER.Testing' | translate">
+          <li class="nav-item" [attr.title]="_collaudoSaltato ? ('APP.MESSAGE.CollaudoNonDisponibileServizio' | translate) : null">
+            <a role="button" [attr.tabindex]="_collaudoSaltato ? -1 : 0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isCollaudo()" [class.disabled]="_collaudoSaltato" [attr.aria-disabled]="_collaudoSaltato || null" (click)="_showCollaudo()" [attr.aria-label]="'APP.FILTER.Testing' | translate">
               <span>{{ 'APP.FILTER.Testing' | translate }}</span>
             </a>
           </li>

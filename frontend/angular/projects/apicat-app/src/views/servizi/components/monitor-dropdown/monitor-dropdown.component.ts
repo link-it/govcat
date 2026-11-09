@@ -49,6 +49,10 @@ export class MonitorDropdwnComponent implements OnInit, OnChanges {
    * tipo l'eliminazione di un'entita'.
    */
   @Input() bottomActions: any[] = [];
+  /** Voce della pagina corrente, esclusa dal menu. */
+  @Input() currentAction: string | null = null;
+  /** Voce per tornare alla vetrina del servizio, insieme alla gestione. */
+  @Input() showVetrina: boolean = false;
 
   @Output() action: EventEmitter<any> = new EventEmitter();
 
@@ -119,6 +123,13 @@ export class MonitorDropdwnComponent implements OnInit, OnChanges {
   }
 
   initMenu() {
+    const _monitoraggio = this.showMonitoring && this._showMonitoraggio;
+    const _transazioni = _monitoraggio && this._showTransazioni && this.currentAction !== 'transazioni';
+    const _statistiche = _monitoraggio && this._showStatistiche && this.currentAction !== 'statistiche';
+    const _audit = _monitoraggio && this._showAudit && this._hasApiAudit && this.currentAction !== 'audit';
+    const _verifiche = _monitoraggio && this._showVerifiche && this.currentAction !== 'verifiche';
+    const _vociMonitoraggio = _transazioni || _statistiche || _audit || _verifiche;
+    const _comunicazioni = this.showComunications && this._showCommunicationsMenuConfig && this.currentAction !== 'comunicazioni';
     const _menuActions = [
       // new MenuAction({
       //   type: 'label',
@@ -131,16 +142,16 @@ export class MonitorDropdwnComponent implements OnInit, OnChanges {
         icon: 'chat-left',
         subTitle: '',
         action: 'comunicazioni',
-        enabled: this.showComunications && this._showCommunicationsMenuConfig
+        enabled: _comunicazioni
       }),
       new MenuAction({
         type: 'divider',
-        enabled: this.showComunications && this._showCommunicationsMenuConfig && (this.showMonitoring || this.showManagement || this.showManagement || this.returnWeb)
+        enabled: _comunicazioni && (_vociMonitoraggio || this.showManagement || this.returnWeb || this.showVetrina)
       }),
       new MenuAction({
         type: 'label',
         title: 'APP.MENU.Monitoring',
-        enabled: this.showMonitoring && this._showMonitoraggio
+        enabled: _vociMonitoraggio
       }),
       new MenuAction({
         type: 'menu',
@@ -148,7 +159,7 @@ export class MonitorDropdwnComponent implements OnInit, OnChanges {
         icon: 'arrow-left-right',
         subTitle: '',
         action: 'transazioni',
-        enabled: this.showMonitoring && this._showMonitoraggio && this._showTransazioni
+        enabled: _transazioni
       }),
       new MenuAction({
         type: 'menu',
@@ -156,7 +167,7 @@ export class MonitorDropdwnComponent implements OnInit, OnChanges {
         icon: 'graph-up',
         subTitle: '',
         action: 'statistiche',
-        enabled: this.showMonitoring && this._showMonitoraggio && this._showStatistiche
+        enabled: _statistiche
       }),
       new MenuAction({
         type: 'menu',
@@ -164,7 +175,7 @@ export class MonitorDropdwnComponent implements OnInit, OnChanges {
         icon: 'journal-text',
         subTitle: '',
         action: 'audit',
-        enabled: this.showMonitoring && this._showMonitoraggio && this._showAudit && this._hasApiAudit
+        enabled: _audit
       }),
       new MenuAction({
         type: 'menu',
@@ -172,11 +183,11 @@ export class MonitorDropdwnComponent implements OnInit, OnChanges {
         icon: 'shield-check',
         subTitle: '',
         action: 'verifiche',
-        enabled: this.showMonitoring && this._showMonitoraggio && this._showVerifiche
+        enabled: _verifiche
       }),
       new MenuAction({
         type: 'divider',
-        enabled: this.showMonitoring && this._showMonitoraggio
+        enabled: _vociMonitoraggio && (this.showManagement || this.returnWeb || this.showVetrina || this.bottomActions.length > 0)
       }),
       new MenuAction({
         type: 'menu',
@@ -193,6 +204,14 @@ export class MonitorDropdwnComponent implements OnInit, OnChanges {
         subTitle: '',
         action: 'backview',
         enabled: this.returnWeb
+      }),
+      new MenuAction({
+        type: 'menu',
+        title: 'APP.MENU.GoToView',
+        icon: 'eye',
+        subTitle: '',
+        action: 'vetrina',
+        enabled: this.showVetrina && !this.returnWeb
       }),
     ];
 

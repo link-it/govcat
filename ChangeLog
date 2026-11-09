@@ -8,6 +8,11 @@
 	Traduzioni (it/en) e colori dei chip mancanti per gli stati di adesione in configurazione manuale e
 	  automatica in produzione senza collaudo.
 
+	Servizi: transazioni, statistiche e gestione non più visibili all'operatore API dell'organizzazione
+	  erogatrice che non sia referente del servizio o del dominio; con il collaudo saltato transazioni e
+	  statistiche aprono la produzione e il collaudo è disabilitato; menu delle azioni del servizio, con
+	  la voce per tornare alla vetrina, anche in transazioni, statistiche e comunicazioni.
+
 2026-11-09  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

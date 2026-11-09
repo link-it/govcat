@@ -1256,11 +1256,13 @@ describe('ServizioViewComponent', () => {
   describe('_canManagementMapper', () => {
     it('should return canManagement when not a package', () => {
       component.data = { stato: 'pubblicato', package: false };
+      component._ruoliServizio = ['referente'];
       component._grant = { ruoli: ['referente'], identificativo: 'lettura', generico: 'lettura', specifica: 'lettura', referenti: 'lettura', collaudo: 'lettura', produzione: 'lettura' };
       mockAuthenticationService.canManagement.mockReturnValue(true);
       mockAuthenticationService.isGestore.mockReturnValue(false);
 
       expect(component._canManagementMapper()).toBe(true);
+      expect(mockAuthenticationService.canManagement).toHaveBeenCalledWith('servizio', 'servizio', 'pubblicato', ['referente']);
     });
 
     it('should return isGestore when is a package', () => {
@@ -1283,7 +1285,8 @@ describe('ServizioViewComponent', () => {
   });
 
   describe('_canMonitoraggioMapper', () => {
-    it('should delegate to authenticationService.canMonitoraggio', () => {
+    it('should delegate to authenticationService.canMonitoraggio with the roles on the service', () => {
+      component._ruoliServizio = ['gestore'];
       component._grant = { ruoli: ['gestore'], identificativo: 'lettura', generico: 'lettura', specifica: 'lettura', referenti: 'lettura', collaudo: 'lettura', produzione: 'lettura' };
       mockAuthenticationService.canMonitoraggio.mockReturnValue(true);
 
@@ -1298,13 +1301,38 @@ describe('ServizioViewComponent', () => {
       expect(component._canMonitoraggioMapper()).toBe(false);
     });
 
-    it('should pass undefined when _grant is null', () => {
-      component._grant = null;
+    it('should not use the referente role of the grant before the roles on the service are verified', () => {
+      component._grant = { ruoli: ['referente'] } as any;
       mockAuthenticationService.canMonitoraggio.mockReturnValue(false);
 
       component._canMonitoraggioMapper();
 
-      expect(mockAuthenticationService.canMonitoraggio).toHaveBeenCalledWith(undefined);
+      expect(mockAuthenticationService.canMonitoraggio).toHaveBeenCalledWith([]);
+    });
+  });
+
+  describe('_loadRuoliServizio', () => {
+    it('should keep the referente role only for the referents of the service', () => {
+      component.id = 10;
+      mockAuthenticationService.getUser.mockReturnValue({ id_utente: 'u1' });
+      mockApiService.getDetails.mockReturnValue(of({ content: [{ utente: { id_utente: 'u1' } }] }));
+
+      component._loadRuoliServizio({ ruoli: ['referente'] } as any);
+
+      expect(mockApiService.getDetails).toHaveBeenCalledWith('servizi', '10', 'referenti', { params: { tipo_referente: 'referente', size: '100' } });
+      expect(component._ruoliServizio).toEqual(['referente']);
+    });
+
+    it('should drop the referente role of an API operator of the organization', () => {
+      component.id = 10;
+      mockAuthenticationService.getUser.mockReturnValue({ id_utente: 'operatore' });
+      mockApiService.getDetails.mockReturnValue(of({ content: [{ utente: { id_utente: 'u1' } }] }));
+      const _updateData = component._updateData;
+
+      component._loadRuoliServizio({ ruoli: ['referente', 'richiedente'] } as any);
+
+      expect(component._ruoliServizio).toEqual(['richiedente']);
+      expect(component._updateData).not.toBe(_updateData);
     });
   });
 

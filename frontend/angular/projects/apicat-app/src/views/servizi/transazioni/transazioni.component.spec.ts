@@ -258,6 +258,18 @@ describe('TransazioniComponent', () => {
     expect(component.environmentId).toBe('produzione');
   });
 
+  it('should land on produzione and keep collaudo disabled for a service without testing', () => {
+    mockApiService.getDetails.mockReturnValue(of({ id_servizio: 's1', nome: 'S', versione: '1', skip_collaudo: true }));
+    (component as any)._loadTransazioni = vi.fn();
+    component.id = 's1' as any;
+    component.environmentId = 'collaudo';
+    component._loadServizio();
+    expect(component._collaudoSaltato).toBe(true);
+    expect(component.environmentId).toBe('produzione');
+    component._showCollaudo();
+    expect(component.environmentId).toBe('produzione');
+  });
+
   // ==================== Navigation ====================
 
   it('should navigate on onBreadcrumb', () => {
