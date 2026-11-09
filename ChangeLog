@@ -13,6 +13,9 @@
 	  statistiche aprono la produzione e il collaudo è disabilitato; menu delle azioni del servizio, con
 	  la voce per tornare alla vetrina, anche in transazioni, statistiche e comunicazioni.
 
+	Statistiche: ripristinato il valore al passaggio del mouse su punti e barre dei grafici, con
+	  l'aggiornamento di ngx-charts alla 25.0.3 compatibile con Angular 21.
+
 2026-11-09  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
