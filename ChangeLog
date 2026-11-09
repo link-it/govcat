@@ -1,3 +1,11 @@
+2026-11-09  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 431: l'export della lista delle transazioni (GET .../diagnostica/lista-transazioni)
+	  falliva con errore 500 (LazyInitializationException sulla configurazione di ambiente
+	  dell'API) quando open-in-view è disabilitato. Un'API senza configurazione nell'ambiente
+	  è trattata come REST invece di generare un errore.
+
 2026-11-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

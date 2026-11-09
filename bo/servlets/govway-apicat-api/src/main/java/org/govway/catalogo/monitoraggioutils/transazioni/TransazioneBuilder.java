@@ -138,9 +138,13 @@ public class TransazioneBuilder {
 	}
 
 	private PROTOCOLLO getProtocollo(String nome, Integer versione, String erogatore, AmbienteEnum ambiente) {
-		ApiEntity api = getIdApi(nome, versione, erogatore);
-		ApiConfigEntity conf = ambiente.equals(AmbienteEnum.COLLAUDO) ? api.getCollaudo() : api.getProduzione();
-		return conf.getProtocollo();
+		// La configurazione di ambiente e` LAZY: va letta nella stessa transazione in cui si carica l'API,
+		// altrimenti senza open-in-view si ottiene LazyInitializationException.
+		return this.apiService.runTransaction(() -> {
+			ApiEntity api = getIdApi(nome, versione, erogatore);
+			ApiConfigEntity conf = ambiente.equals(AmbienteEnum.COLLAUDO) ? api.getCollaudo() : api.getProduzione();
+			return conf != null ? conf.getProtocollo() : null;
+		});
 	}
 
 	private boolean isSoap(TransazioneExtInformazioniApiBase api, AmbienteEnum ambiente) {
@@ -148,6 +152,7 @@ public class TransazioneBuilder {
 		if(api == null) return false;
 		
 		PROTOCOLLO protocollo = getProtocollo(api.getNome(), api.getVersione(), api.getErogatore(), ambiente);
+		if(protocollo == null) return false;
 		
 		switch(protocollo) {
 		case OPENAPI_3:
@@ -164,6 +169,7 @@ public class TransazioneBuilder {
 		if(api == null) return false;
 		
 		PROTOCOLLO protocollo = getProtocollo(api.getNome(), api.getVersione(), api.getErogatore(), ambiente);
+		if(protocollo == null) return false;
 		
 		switch(protocollo) {
 		case OPENAPI_3:
