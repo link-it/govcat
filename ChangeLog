@@ -5,6 +5,9 @@
 	  anche contro i soli spazi; avviso nel wizard se un'adesione di un servizio multi-adesione ne è
 	  priva; nella lista mostrato solo con le adesioni multiple abilitate.
 
+	Traduzioni (it/en) e colori dei chip mancanti per gli stati di adesione in configurazione manuale e
+	  automatica in produzione senza collaudo.
+
 2026-11-09  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

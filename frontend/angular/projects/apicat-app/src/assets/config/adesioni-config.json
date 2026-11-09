@@ -102,6 +102,8 @@
         "in_configurazione_produzione": { "label": "APP.WORKFLOW.STATUS.in_configurazione_produzione", "background": "#e3edfb", "border": "#b8cef0", "color": "#1a4aa8" },
         "in_configurazione_produzione_senza_collaudo": { "label": "APP.WORKFLOW.STATUS.in_configurazione_produzione_senza_collaudo", "background": "#e3edfb", "border": "#b8cef0", "color": "#1a4aa8" },
         "in_configurazione_automatica_produzione": { "label": "APP.WORKFLOW.STATUS.in_configurazione_automatica_produzione", "background": "#e3edfb", "border": "#b8cef0", "color": "#1a4aa8" },
+        "in_configurazione_manuale_produzione_senza_collaudo": { "label": "APP.WORKFLOW.STATUS.in_configurazione_manuale_produzione_senza_collaudo", "background": "#e3edfb", "border": "#b8cef0", "color": "#1a4aa8" },
+        "in_configurazione_automatica_produzione_senza_collaudo": { "label": "APP.WORKFLOW.STATUS.in_configurazione_automatica_produzione_senza_collaudo", "background": "#e3edfb", "border": "#b8cef0", "color": "#1a4aa8" },
         "in_configurazione_manuale_produzione": { "label": "APP.WORKFLOW.STATUS.in_configurazione_manuale_produzione", "background": "#e3edfb", "border": "#b8cef0", "color": "#1a4aa8" },
         "configurata_produzione": { "label": "APP.WORKFLOW.STATUS.configurata_produzione", "background": "#e3edfb", "border": "#b8cef0", "color": "#1a4aa8" },
         "inviata_produzione": { "label": "APP.WORKFLOW.STATUS.inviata_produzione", "background": "#e3edfb", "border": "#b8cef0", "color": "#1a4aa8" },
