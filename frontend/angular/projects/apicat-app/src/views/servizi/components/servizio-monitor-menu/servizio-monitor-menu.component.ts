@@ -28,6 +28,7 @@ import { Grant } from '@app/model/grant';
 
 import { MonitorDropdwnComponent } from '../monitor-dropdown/monitor-dropdown.component';
 import { ruoliServizio$ } from '../../ruoli-servizio';
+import { QUERY_PARAM_AMBIENTE } from '../../ambiente-servizio';
 
 interface PermessiServizio {
     grant: Grant | null;
@@ -59,6 +60,8 @@ export class ServizioMonitorMenuComponent {
     readonly servizio = input<any>(null);
     /** Voce del menu della pagina corrente (`transazioni`, `statistiche`, `audit`, `comunicazioni`, ...). */
     readonly paginaCorrente = input<string | null>(null);
+    /** Ambiente della pagina corrente, con cui si aprono vetrina e monitoraggio. */
+    readonly ambiente = input<string | null>(null);
 
     private readonly apiService = inject(OpenAPIService);
     private readonly authenticationService = inject(AuthenticationService);
@@ -107,7 +110,12 @@ export class ServizioMonitorMenuComponent {
             default:
                 _route = ['servizi', _id, event.action];
         }
-        this.navigationService.navigateWithEvent(event?.event, _route);
+        const _ambiente = this.ambiente();
+        if (_ambiente && event.action !== 'gestione' && event.action !== 'comunicazioni') {
+            this.navigationService.navigateWithEvent(event?.event, _route, { [QUERY_PARAM_AMBIENTE]: _ambiente });
+        } else {
+            this.navigationService.navigateWithEvent(event?.event, _route);
+        }
     }
 
     private _loadPermessi(id: string | null): Observable<PermessiServizio | null> {

@@ -12,6 +12,10 @@
 	Issue 435: nei testi del rate limiting (wizard dei servizi e delle adesioni, riepiloghi e
 	  dialog) "fruitore/fruitori" diventa "aderente/aderenti" (in inglese "subscriber/subscribers").
 
+	Issue 436: transazioni, statistiche, audit e vetrina dei servizi pubblicati in produzione si
+	  aprono sulla produzione, con il collaudo disponibile; il monitoraggio segue l'ambiente scelto
+	  in vetrina; un servizio ancora in collaudo non è trattato come senza collaudo.
+
 2026-11-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

@@ -25,6 +25,7 @@ import { MarkdownModule } from 'ngx-markdown';
 
 import { ConfigService, COMPONENTS_IMPORTS, Tools } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
+import { QUERY_PARAM_AMBIENTE, ambienteServizio } from '../../ambiente-servizio';
 import { UtilService } from '@app/services/utils.service';
 
 import { Transazione } from './transazione';
@@ -158,10 +159,11 @@ export class TransazioneDetailsComponent implements OnInit, OnChanges, AfterCont
     this.apiUrl = this.appConfig.AppConfig.GOVAPI.HOST;
 
     const _currentNav: Navigation | null = this.router.getCurrentNavigation();
-    if (_currentNav?.extras.state) {
-      if (_currentNav.extras.state.environment ) {
-        this.environment = _currentNav.extras.state.environment || 'collaudo';
-      }
+    if (_currentNav?.extras.state?.environment) {
+      this.environment = _currentNav.extras.state.environment;
+    } else {
+      // Ricaricando la pagina vale l'ambiente nell'URL
+      this.environment = ambienteServizio(null, this.route.snapshot?.queryParams?.[QUERY_PARAM_AMBIENTE]);
     }
 
     this.route.queryParams.subscribe((val) => {

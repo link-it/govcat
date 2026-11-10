@@ -2460,6 +2460,32 @@ describe('ServizioViewComponent', () => {
       expect(loadApis).not.toHaveBeenCalled();
       mockAuthenticationService.isAnonymous.mockReturnValue(false);
     });
+
+    it('should open on produzione a service published in production, with collaudo still available', () => {
+      component.id = 10;
+      vi.spyOn(component, 'loadCurrentData').mockImplementation(() => {});
+      vi.spyOn(component as any, '_initBreadcrumb').mockImplementation(() => {});
+      mockAuthenticationService.isAnonymous.mockReturnValue(true);
+      mockApiService.getDetails
+        .mockReturnValueOnce(of({ ruoli: [] }))
+        .mockReturnValueOnce(of({ id_servizio: 10, stato: 'pubblicato_produzione' }));
+
+      component._loadService();
+
+      expect(component._environmentId).toBe('produzione');
+      vi.spyOn(component as any, '_loadApis').mockImplementation(() => {});
+      component.onEnvToggle('collaudo');
+      expect(component._environmentId).toBe('collaudo');
+      expect(mockRouter.navigate).toHaveBeenCalledWith([], expect.objectContaining({ queryParams: { ambiente: 'collaudo' }, replaceUrl: true }));
+      mockAuthenticationService.isAnonymous.mockReturnValue(false);
+    });
+
+    it('should open the monitoring pages on the environment of the view', () => {
+      component.id = 42;
+      component._environmentId = 'produzione';
+      component.onActionMonitor({ action: 'statistiche' });
+      expect(mockNavigationService.navigateWithEvent).toHaveBeenCalledWith(undefined, ['servizi', 42, 'statistiche'], { ambiente: 'produzione' });
+    });
   });
 
   describe('conteggio delle azioni PDND in attesa (Issue #416)', () => {

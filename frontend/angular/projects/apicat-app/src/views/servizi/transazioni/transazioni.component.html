@@ -21,7 +21,7 @@
     <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
     <div class="d-flex flex-grow-1">&nbsp;</div>
     <div class="nav-controls">
-      <app-servizio-monitor-menu [servizio]="service" [paginaCorrente]="_audit ? 'audit' : 'transazioni'"></app-servizio-monitor-menu>
+      <app-servizio-monitor-menu [servizio]="service" [paginaCorrente]="_audit ? 'audit' : 'transazioni'" [ambiente]="environmentId"></app-servizio-monitor-menu>
     </div>
 </div>
 <div class="top-area">

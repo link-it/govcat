@@ -112,4 +112,16 @@ describe('ServizioMonitorMenuComponent', () => {
     expect(navigationService.navigateWithEvent).toHaveBeenCalledWith(undefined, ['servizi', 's1', 'view']);
     expect(localStorage.getItem('SERVIZI_VIEW')).toBe('TRUE');
   });
+
+  it('should keep the current environment for the view and the monitoring pages, not for the management', () => {
+    const fixture = crea();
+    fixture.componentRef.setInput('ambiente', 'produzione');
+    const component = fixture.componentInstance;
+    component.onAction({ action: 'vetrina' });
+    expect(navigationService.navigateWithEvent).toHaveBeenCalledWith(undefined, ['servizi', 's1', 'view'], { ambiente: 'produzione' });
+    component.onAction({ action: 'audit' });
+    expect(navigationService.navigateWithEvent).toHaveBeenCalledWith(undefined, ['servizi', 's1', 'audit'], { ambiente: 'produzione' });
+    component.onAction({ action: 'gestione' });
+    expect(navigationService.navigateWithEvent).toHaveBeenLastCalledWith(undefined, ['servizi', 's1']);
+  });
 });

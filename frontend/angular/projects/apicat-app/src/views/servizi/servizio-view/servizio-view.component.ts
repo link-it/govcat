@@ -87,6 +87,7 @@ import { UrlInvocazioneAggiuntivaRisolta } from '../servizio-api-details/servizi
 import { etichettaUrlInvocazione, URL_INVOCAZIONE_DEFAULT } from '../servizio-api-url-invocazione';
 import { ambienteClasseDato } from '../servizio-proprieta-custom';
 import { ruoliServizio$ } from '../ruoli-servizio';
+import { QUERY_PARAM_AMBIENTE, ambienteServizio, collaudoSaltato } from '../ambiente-servizio';
 
 export interface Organization {
     id_organizzazione: string;
@@ -488,7 +489,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                 this.apiService.getDetails(this.model, this.id).subscribe({
                     next: (response: any) => {
                         this.data = response;
-                        if (this._collaudoSaltato) { this._environmentId = 'produzione'; }
+                        this._environmentId = ambienteServizio(this.data, this.route.snapshot?.queryParams?.[QUERY_PARAM_AMBIENTE]);
                         this._spin = false;
                         this._initBreadcrumb();
                         this.loadCurrentData();
@@ -1409,7 +1410,12 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
             default: {
                 localStorage.setItem('SERVIZI_VIEW', 'TRUE');
                 const route = ['servizi', this.id, event.action];
-                this.navigationService.navigateWithEvent(mouseEvent, route);
+                // Il monitoraggio si apre sull'ambiente scelto in vetrina
+                if (['transazioni', 'statistiche', 'audit'].includes(event.action)) {
+                    this.navigationService.navigateWithEvent(mouseEvent, route, { [QUERY_PARAM_AMBIENTE]: this._environmentId });
+                } else {
+                    this.navigationService.navigateWithEvent(mouseEvent, route);
+                }
                 break;
             }
         }
@@ -1502,12 +1508,13 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
      *  ricarica le API. Mantiene la stessa logica dei vecchi 2 bottoni. */
     /** Collaudo saltato: in vetrina e` disponibile solo la produzione. */
     get _collaudoSaltato(): boolean {
-        return !!this.data?.skip_collaudo;
+        return collaudoSaltato(this.data);
     }
 
     public onEnvToggle(env: EnvValue): void {
         if (env === 'collaudo' && this._collaudoSaltato) { return; }
         this._environmentId = env;
+        this.router.navigate([], { relativeTo: this.route, queryParams: { [QUERY_PARAM_AMBIENTE]: env }, queryParamsHandling: 'merge', replaceUrl: true });
         this._loadApis();
     }
 

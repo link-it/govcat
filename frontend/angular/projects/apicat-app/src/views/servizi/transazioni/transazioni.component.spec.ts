@@ -270,6 +270,29 @@ describe('TransazioniComponent', () => {
     expect(component.environmentId).toBe('produzione');
   });
 
+  it('should land on produzione for a service published in production, keeping collaudo available', () => {
+    mockApiService.getDetails.mockReturnValue(of({ id_servizio: 's1', nome: 'S', versione: '1', stato: 'pubblicato_produzione' }));
+    (component as any)._loadTransazioni = vi.fn();
+    component.id = 's1' as any;
+    component.environmentId = 'collaudo';
+    component._loadServizio();
+    expect(component.environmentId).toBe('produzione');
+    expect(mockRouter.navigate).toHaveBeenCalledWith([], expect.objectContaining({ queryParams: { ambiente: 'produzione' }, replaceUrl: true }));
+    component._showCollaudo();
+    expect(component.environmentId).toBe('collaudo');
+  });
+
+  it('should keep the environment chosen in the view', () => {
+    mockApiService.getDetails.mockReturnValue(of({ id_servizio: 's1', nome: 'S', versione: '1', stato: 'pubblicato_produzione' }));
+    (component as any)._loadTransazioni = vi.fn();
+    component.id = 's1' as any;
+    component._ambienteRichiesto = 'collaudo';
+    component.environmentId = 'collaudo';
+    component._loadServizio();
+    expect(component.environmentId).toBe('collaudo');
+    expect((component as any)._loadTransazioni).not.toHaveBeenCalled();
+  });
+
   // ==================== Navigation ====================
 
   it('should navigate on onBreadcrumb', () => {

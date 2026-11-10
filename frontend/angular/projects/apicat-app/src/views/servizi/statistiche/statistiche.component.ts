@@ -31,6 +31,7 @@ import { AuthenticationService } from '@app/services/authentication.service';
 import { MarkAsteriskDirective } from '@app/directives/mark-asterisk';
 import { soggettoMonitoraggio, tipoMonitoraggio } from '../monitoraggio-soggetti';
 import { ServizioMonitorMenuComponent } from '../components/servizio-monitor-menu/servizio-monitor-menu.component';
+import { QUERY_PARAM_AMBIENTE, ambienteServizio, collaudoSaltato } from '../ambiente-servizio';
 
 import moment from 'moment';
 
@@ -206,6 +207,8 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
 
   id: number | null = null;
   environmentId: string = 'collaudo'; // collaudo / produzione
+  /** Ambiente richiesto da chi apre la pagina (vetrina o menu del servizio). */
+  _ambienteRichiesto: string | null = null;
 
   service: any = null;
 
@@ -421,7 +424,8 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
     this.route.params.subscribe(params => {
       if (params['id']) {
         this.id = params['id'];
-        this.environmentId = params['id_ambiente'] || 'collaudo';
+        this._ambienteRichiesto = params['id_ambiente'] || this.route.snapshot?.queryParams?.[QUERY_PARAM_AMBIENTE] || null;
+        this.environmentId = ambienteServizio(this.service, this._ambienteRichiesto);
         this.configService.getConfig(this.model).subscribe(
           (config: any) => {
             this.statisticheConfig = config;
@@ -649,8 +653,9 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
         next: (response: any) => {
           this.service = response;
           this._initBreadcrumb();
-          if (this._collaudoSaltato && this._isCollaudo()) {
-            this._showProduzione();
+          const _ambiente = ambienteServizio(this.service, this._ambienteRichiesto);
+          if (_ambiente !== this.environmentId) {
+            this._cambiaAmbiente(_ambiente);
           }
         },
         error: (error: any) => {
@@ -1009,17 +1014,26 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
 
   /** Servizio pubblicato in produzione senza collaudo: c'è solo la produzione. */
   get _collaudoSaltato(): boolean {
-    return !!this.service?.skip_collaudo;
+    return collaudoSaltato(this.service);
+  }
+
+  /** Ambiente nell'URL, per riaprire la pagina (o la vetrina) sullo stesso ambiente. */
+  _aggiornaAmbienteUrl(ambiente: string) {
+    this.router.navigate([], { relativeTo: this.route, queryParams: { [QUERY_PARAM_AMBIENTE]: ambiente }, queryParamsHandling: 'merge', replaceUrl: true });
   }
 
   _showCollaudo() {
     if (this._collaudoSaltato) { return; }
-    this.environmentId = 'collaudo';
-    this._resetData();
+    this._cambiaAmbiente('collaudo');
   }
 
   _showProduzione() {
-    this.environmentId = 'produzione';
+    this._cambiaAmbiente('produzione');
+  }
+
+  _cambiaAmbiente(ambiente: string) {
+    this._aggiornaAmbienteUrl(ambiente);
+    this.environmentId = ambiente;
     this._resetData();
   }
 

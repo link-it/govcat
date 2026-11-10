@@ -240,6 +240,26 @@ describe('StatisticheComponent', () => {
     expect(component.environmentId).toBe('produzione');
   });
 
+  it('should land on produzione for a service published in production, keeping collaudo available', () => {
+    mockApiService.getDetails.mockImplementation(() => of({ nome: 'S', versione: '1', stato: 'pubblicato_produzione' }));
+    component.id = 42;
+    component.environmentId = 'collaudo';
+    component._loadServizio();
+    expect(component.environmentId).toBe('produzione');
+    expect(mockRouter.navigate).toHaveBeenCalledWith([], expect.objectContaining({ queryParams: { ambiente: 'produzione' }, replaceUrl: true }));
+    component._showCollaudo();
+    expect(component.environmentId).toBe('collaudo');
+  });
+
+  it('should keep the environment chosen in the view', () => {
+    mockApiService.getDetails.mockImplementation(() => of({ nome: 'S', versione: '1', stato: 'pubblicato_produzione' }));
+    component.id = 42;
+    component._ambienteRichiesto = 'collaudo';
+    component.environmentId = 'collaudo';
+    component._loadServizio();
+    expect(component.environmentId).toBe('collaudo');
+  });
+
   it('should toggle _showFilter on _toggleFilter', () => {
     component._showFilter = true;
     component._toggleFilter();
