@@ -69,28 +69,28 @@
 		"ADESIONI": {
 			"RATE_LIMITING": {
 				"Titolo": "Requested rate limiting",
-				"Descrizione": "Maximum number of requests the consumer expects to send, for each API and period for which the service declares a rate limiting.",
-				"OltreMassimo": "The quota cannot exceed the maximum per consumer ({{massimo}})",
-				"Massimo": "max {{quota}} per consumer",
+				"Descrizione": "Maximum number of requests the subscriber expects to send, for each API and period for which the service declares a rate limiting.",
+				"OltreMassimo": "The quota cannot exceed the maximum per subscriber ({{massimo}})",
+				"Massimo": "max {{quota}} per subscriber",
 				"Totale": "service total {{quota}}",
 				"NonRichiesta": "not requested"
 			},
 			"RATE_LIMITING_VERIFICA": {
 				"Pulsante": "Check rate limiting",
 				"Titolo": "Rate limiting check",
-				"Descrizione": "For each API and period: service quota, quota already authorized to other consumers, remaining quota and quota requested by this subscription. Pending requests are not counted.",
+				"Descrizione": "For each API and period: service quota, quota already authorized to other subscribers, remaining quota and quota requested by this subscription. Pending requests are not counted.",
 				"QuotaServizio": "Service quota",
 				"Richiesta": "Requested by the subscription",
 				"EsitoRientra": "Within the remaining service quota",
 				"EsitoSfora": "Exceeds the service quota",
-				"SoloAvviso": "This is only a warning: the subscription can still be authorized. To stay within limits, reduce the requested quota, the other consumers' quotas from the service summary, or raise the API overall quota.",
+				"SoloAvviso": "This is only a warning: the subscription can still be authorized. To stay within limits, reduce the requested quota, the other subscribers' quotas from the service summary, or raise the API overall quota.",
 				"ChipRientra": "Within",
 				"ChipSfora": "Exceeds",
 				"Autorizzata": "Already authorized",
-				"SuFruitori": "to {{numero}} consumers",
+				"SuFruitori": "to {{numero}} subscribers",
 				"Residua": "Remaining",
 				"ResiduaDopo": "{{quota}} after authorization",
-				"InAttesa": "Other pending requests: {{quota}} from {{numero}} consumers (not counted)"
+				"InAttesa": "Other pending requests: {{quota}} from {{numero}} subscribers (not counted)"
 			},
 			"FILTER": {
 				"All": "All",
@@ -263,18 +263,18 @@
 				"Titolo": "Rate limiting",
 				"Descrizione": "Maximum number of requests to the API in this environment, at most one entry per period.",
 				"QuotaTotale": "Overall quota (requests)",
-				"QuotaFruitore": "Maximum quota per consumer",
+				"QuotaFruitore": "Maximum quota per subscriber",
 				"Periodo": "Period",
 				"AggiungiQuota": "Add quota",
 				"RimuoviQuota": "Remove quota",
 				"Nessuno": "No rate limiting",
 				"QuotaNonValida": "Enter a whole number greater than zero",
-				"QuotaAssente": "Enter at least one of overall quota and maximum quota per consumer",
+				"QuotaAssente": "Enter at least one of overall quota and maximum quota per subscriber",
 				"QuotaTotaleAssente": "Enter the overall quota",
-				"QuotaFruitoreAssente": "Enter the maximum quota per consumer",
-				"FruitoreSuperiore": "The maximum quota per consumer cannot exceed the overall quota",
-				"MaxPerFruitore": "max {{quota}} per consumer",
-				"MaxPerFruitorePeriodo": "max {{quota}} / {{periodo}} per consumer",
+				"QuotaFruitoreAssente": "Enter the maximum quota per subscriber",
+				"FruitoreSuperiore": "The maximum quota per subscriber cannot exceed the overall quota",
+				"MaxPerFruitore": "max {{quota}} per subscriber",
+				"MaxPerFruitorePeriodo": "max {{quota}} / {{periodo}} per subscriber",
 				"QuoteAdeguate": "Some saved quotas are not allowed by the API profiles and have been removed: save to confirm.",
 				"QuoteRimosseProfili": "Some quotas are not allowed by the selected profiles and have been removed.",
 				"QuoteDaAdeguareProfili": "With the selected profiles some saved rate limiting quotas are no longer allowed: they will be removed when saving."
@@ -1364,7 +1364,7 @@
 			"url_collaudo": "Internal Url Base (Testing)",
 			"rate_limiting": {
 				"quota_totale": "Rate limiting: overall quota",
-				"quota_fruitore": "Rate limiting: maximum quota per consumer"
+				"quota_fruitore": "Rate limiting: maximum quota per subscriber"
 			},
 			"url_esposizione": "Exposure URL",
 			"url_produzione": "Internal Url Base (Production)",
@@ -1573,7 +1573,7 @@
 								"PERIODO": "The service does not define a [{{periodo}}] rate limiting for API [{{nome}} v{{versione}}] in {{ambiente}}",
 								"DUPLICATE": "Quota for API [{{nome}} v{{versione}}] and period [{{periodo}}] specified more than once",
 								"QUOTA": {
-									"FRUITORE": "Quota [{{quota}}] exceeds the consumer quota [{{quotaFruitore}}] defined by the service for API [{{nome}} v{{versione}}] and period [{{periodo}}]"
+									"FRUITORE": "Quota [{{quota}}] exceeds the subscriber quota [{{quotaFruitore}}] defined by the service for API [{{nome}} v{{versione}}] and period [{{periodo}}]"
 								}
 							}
 						}
@@ -1620,10 +1620,10 @@
 									"NON": {
 										"PREVISTA": "Quota [{{quota}}] not allowed by the profiles of API [{{nome}} v{{versione}}]"
 									},
-									"ASSENTE": "Period [{{periodo}}] in {{ambiente}} requires at least one of total quota and consumer quota",
+									"ASSENTE": "Period [{{periodo}}] in {{ambiente}} requires at least one of total quota and subscriber quota",
 									"FRUITORE": {
-										"SUPERIORE": "The consumer quota of period [{{periodo}}] in {{ambiente}} cannot exceed the total quota",
-										"ASSEGNATE": "Cannot set the consumer quota of period [{{periodo}}] in {{ambiente}} to {{quotaFruitore}}: [{{numeroAdesioni}}] memberships have a higher quota assigned"
+										"SUPERIORE": "The subscriber quota of period [{{periodo}}] in {{ambiente}} cannot exceed the total quota",
+										"ASSEGNATE": "Cannot set the subscriber quota of period [{{periodo}}] in {{ambiente}} to {{quotaFruitore}}: [{{numeroAdesioni}}] memberships have a higher quota assigned"
 									}
 								},
 								"FRUITORI": "Cannot remove the [{{periodo}}] rate limiting in {{ambiente}}: [{{numeroAdesioni}}] memberships have a quota assigned for that period"
@@ -2657,22 +2657,22 @@
 			"PDND_PENDING_LOADING": "Counting pending PDND actions",
 			"RATE_LIMITING": {
 				"Titolo": "Rate limiting",
-				"Descrizione": "Overall API quotas in this environment and quotas requested by consumers. Exceeding the quota is reported but not blocked.",
+				"Descrizione": "Overall API quotas in this environment and quotas requested by subscribers. Exceeding the quota is reported but not blocked.",
 				"Assegnata": "Assigned",
 				"Residua": "Remaining",
-				"Fruitori": "Consumers",
-				"Superata": "The sum of the consumer quotas exceeds the overall quota",
-				"QuoteFruitori": "Consumer quotas",
-				"AltriFruitori": "Other consumers",
-				"Fruitore": "Consumer",
-				"NessunFruitore": "No consumers in this environment.",
-				"NessunAltroFruitore": "No other consumers in this environment.",
+				"Fruitori": "Subscribers",
+				"Superata": "The sum of the subscriber quotas exceeds the overall quota",
+				"QuoteFruitori": "Subscriber quotas",
+				"AltriFruitori": "Other subscribers",
+				"Fruitore": "Subscriber",
+				"NessunFruitore": "No subscribers in this environment.",
+				"NessunAltroFruitore": "No other subscribers in this environment.",
 				"ModificaQuote": "Edit quotas of",
-				"CaricaAltri": "Load more consumers",
+				"CaricaAltri": "Load more subscribers",
 				"NessunaApi": "No API with rate limiting in this environment.",
 				"Api": "Service APIs",
-				"FiltraFruitori": "Filter by consumer or logical id",
-				"NessunRisultato": "No consumer matches the filter.",
+				"FiltraFruitori": "Filter by subscriber or logical id",
+				"NessunRisultato": "No subscriber matches the filter.",
 				"QuestaAdesione": "This subscription",
 				"StatoFruitori": "Authorization status",
 				"Autorizzata": "Authorized",
@@ -2682,7 +2682,7 @@
 					"autorizzate": "Authorized",
 					"attesa": "Pending"
 				},
-				"MassimoFruitore": "Max per consumer"
+				"MassimoFruitore": "Max per subscriber"
 			},
 			"ATTACHMENTS": {
 				"Title": "Attachments",

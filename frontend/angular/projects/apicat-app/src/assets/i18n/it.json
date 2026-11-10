@@ -69,28 +69,28 @@
 		"ADESIONI": {
 			"RATE_LIMITING": {
 				"Titolo": "Rate limiting richiesto",
-				"Descrizione": "Numero massimo di richieste che il fruitore prevede di inviare, per ogni API e periodo per cui il servizio dichiara un rate limiting.",
-				"OltreMassimo": "La quota non può superare il massimo per fruitore ({{massimo}})",
-				"Massimo": "max {{quota}} per fruitore",
+				"Descrizione": "Numero massimo di richieste che l'aderente prevede di inviare, per ogni API e periodo per cui il servizio dichiara un rate limiting.",
+				"OltreMassimo": "La quota non può superare il massimo per aderente ({{massimo}})",
+				"Massimo": "max {{quota}} per aderente",
 				"Totale": "totale servizio {{quota}}",
 				"NonRichiesta": "non richiesta"
 			},
 			"RATE_LIMITING_VERIFICA": {
 				"Pulsante": "Verifica rate limiting",
 				"Titolo": "Verifica del rate limiting",
-				"Descrizione": "Per ogni API e periodo: quota del servizio, quota già autorizzata ad altri fruitori, residua e quota richiesta da questa adesione. Le richieste in attesa non sono conteggiate.",
+				"Descrizione": "Per ogni API e periodo: quota del servizio, quota già autorizzata ad altri aderenti, residua e quota richiesta da questa adesione. Le richieste in attesa non sono conteggiate.",
 				"QuotaServizio": "Quota del servizio",
 				"Richiesta": "Richiesta dell'adesione",
 				"EsitoRientra": "Rientra nella quota residua del servizio",
 				"EsitoSfora": "Sfora la quota del servizio",
-				"SoloAvviso": "È solo un avviso: l'adesione può comunque essere autorizzata. Per rientrare si può ridurre la quota richiesta, quelle degli altri fruitori dal riepilogo del servizio o alzare la quota totale dell'API.",
+				"SoloAvviso": "È solo un avviso: l'adesione può comunque essere autorizzata. Per rientrare si può ridurre la quota richiesta, quelle degli altri aderenti dal riepilogo del servizio o alzare la quota totale dell'API.",
 				"ChipRientra": "Rientra",
 				"ChipSfora": "Sfora",
 				"Autorizzata": "Già autorizzata",
-				"SuFruitori": "a {{numero}} fruitori",
+				"SuFruitori": "a {{numero}} aderenti",
 				"Residua": "Residua",
 				"ResiduaDopo": "{{quota}} dopo l'autorizzazione",
-				"InAttesa": "Altre richieste in attesa: {{quota}} da {{numero}} fruitori (non conteggiate)"
+				"InAttesa": "Altre richieste in attesa: {{quota}} da {{numero}} aderenti (non conteggiate)"
 			},
 			"FILTER": {
 				"All": "Tutti",
@@ -263,18 +263,18 @@
 				"Titolo": "Rate limiting",
 				"Descrizione": "Numero massimo di richieste all'API in questo ambiente, al più una voce per periodo.",
 				"QuotaTotale": "Quota totale (richieste)",
-				"QuotaFruitore": "Quota massima per fruitore",
+				"QuotaFruitore": "Quota massima per aderente",
 				"Periodo": "Periodo",
 				"AggiungiQuota": "Aggiungi quota",
 				"RimuoviQuota": "Rimuovi quota",
 				"Nessuno": "Nessun rate limiting",
 				"QuotaNonValida": "Inserisci un numero intero maggiore di zero",
-				"QuotaAssente": "Indica almeno una fra quota totale e quota massima per fruitore",
+				"QuotaAssente": "Indica almeno una fra quota totale e quota massima per aderente",
 				"QuotaTotaleAssente": "Indica la quota totale",
-				"QuotaFruitoreAssente": "Indica la quota massima per fruitore",
-				"FruitoreSuperiore": "La quota massima per fruitore non può superare la quota totale",
-				"MaxPerFruitore": "max {{quota}} per fruitore",
-				"MaxPerFruitorePeriodo": "max {{quota}} / {{periodo}} per fruitore",
+				"QuotaFruitoreAssente": "Indica la quota massima per aderente",
+				"FruitoreSuperiore": "La quota massima per aderente non può superare la quota totale",
+				"MaxPerFruitore": "max {{quota}} per aderente",
+				"MaxPerFruitorePeriodo": "max {{quota}} / {{periodo}} per aderente",
 				"QuoteAdeguate": "Alcune quote salvate non sono ammesse dai profili dell'API e sono state rimosse: salva per confermare.",
 				"QuoteRimosseProfili": "Alcune quote non sono ammesse dai profili scelti e sono state rimosse.",
 				"QuoteDaAdeguareProfili": "Con i profili scelti alcune quote di rate limiting già salvate non sono più ammesse: verranno rimosse al salvataggio."
@@ -1364,7 +1364,7 @@
 			"url_collaudo": "Base Url interna (Collaudo)",
 			"rate_limiting": {
 				"quota_totale": "Rate limiting: quota totale",
-				"quota_fruitore": "Rate limiting: quota massima per fruitore"
+				"quota_fruitore": "Rate limiting: quota massima per aderente"
 			},
 			"url_esposizione": "Url esposizione",
 			"url_produzione": "Base Url interna (Produzione)",
@@ -1573,7 +1573,7 @@
 								"PERIODO": "Il servizio non prevede un rate limiting per periodo [{{periodo}}] sull'API [{{nome}} v{{versione}}] in {{ambiente}}",
 								"DUPLICATE": "Quota per l'API [{{nome}} v{{versione}}] e periodo [{{periodo}}] indicata più volte",
 								"QUOTA": {
-									"FRUITORE": "La quota [{{quota}}] supera la quota fruitore [{{quotaFruitore}}] prevista dal servizio per l'API [{{nome}} v{{versione}}] e periodo [{{periodo}}]"
+									"FRUITORE": "La quota [{{quota}}] supera la quota aderente [{{quotaFruitore}}] prevista dal servizio per l'API [{{nome}} v{{versione}}] e periodo [{{periodo}}]"
 								}
 							}
 						}
@@ -1620,10 +1620,10 @@
 									"NON": {
 										"PREVISTA": "La quota [{{quota}}] non è prevista dai profili dell'API [{{nome}} v{{versione}}]"
 									},
-									"ASSENTE": "Per il periodo [{{periodo}}] di {{ambiente}} va indicata almeno una fra quota totale e quota fruitore",
+									"ASSENTE": "Per il periodo [{{periodo}}] di {{ambiente}} va indicata almeno una fra quota totale e quota aderente",
 									"FRUITORE": {
-										"SUPERIORE": "La quota fruitore del periodo [{{periodo}}] di {{ambiente}} non può superare la quota totale",
-										"ASSEGNATE": "Impossibile portare la quota fruitore del periodo [{{periodo}}] di {{ambiente}} a {{quotaFruitore}}: [{{numeroAdesioni}}] adesioni hanno una quota assegnata superiore"
+										"SUPERIORE": "La quota aderente del periodo [{{periodo}}] di {{ambiente}} non può superare la quota totale",
+										"ASSEGNATE": "Impossibile portare la quota aderente del periodo [{{periodo}}] di {{ambiente}} a {{quotaFruitore}}: [{{numeroAdesioni}}] adesioni hanno una quota assegnata superiore"
 									}
 								},
 								"FRUITORI": "Impossibile rimuovere il rate limiting per periodo [{{periodo}}] di {{ambiente}}: [{{numeroAdesioni}}] adesioni hanno una quota assegnata per quel periodo"
@@ -2657,22 +2657,22 @@
 			"PDND_PENDING_LOADING": "Conteggio delle azioni PDND in attesa in corso",
 			"RATE_LIMITING": {
 				"Titolo": "Rate limiting",
-				"Descrizione": "Quote complessive delle API in questo ambiente e quote richieste dai fruitori. Il superamento della quota è segnalato ma non bloccato.",
+				"Descrizione": "Quote complessive delle API in questo ambiente e quote richieste dagli aderenti. Il superamento della quota è segnalato ma non bloccato.",
 				"Assegnata": "Assegnata",
 				"Residua": "Residua",
-				"Fruitori": "Fruitori",
-				"Superata": "La somma delle quote dei fruitori supera la quota complessiva",
-				"QuoteFruitori": "Quote dei fruitori",
-				"AltriFruitori": "Altri fruitori",
-				"Fruitore": "Fruitore",
-				"NessunFruitore": "Nessun fruitore in questo ambiente.",
-				"NessunAltroFruitore": "Nessun altro fruitore in questo ambiente.",
+				"Fruitori": "Aderenti",
+				"Superata": "La somma delle quote degli aderenti supera la quota complessiva",
+				"QuoteFruitori": "Quote degli aderenti",
+				"AltriFruitori": "Altri aderenti",
+				"Fruitore": "Aderente",
+				"NessunFruitore": "Nessun aderente in questo ambiente.",
+				"NessunAltroFruitore": "Nessun altro aderente in questo ambiente.",
 				"ModificaQuote": "Modifica le quote di",
-				"CaricaAltri": "Carica altri fruitori",
+				"CaricaAltri": "Carica altri aderenti",
 				"NessunaApi": "Nessuna API con rate limiting in questo ambiente.",
 				"Api": "API del servizio",
-				"FiltraFruitori": "Filtra per fruitore o id logico",
-				"NessunRisultato": "Nessun fruitore corrisponde al filtro.",
+				"FiltraFruitori": "Filtra per aderente o id logico",
+				"NessunRisultato": "Nessun aderente corrisponde al filtro.",
 				"QuestaAdesione": "Questa adesione",
 				"StatoFruitori": "Stato di autorizzazione",
 				"Autorizzata": "Autorizzata",
@@ -2682,7 +2682,7 @@
 					"autorizzate": "Autorizzate",
 					"attesa": "In attesa"
 				},
-				"MassimoFruitore": "Max per fruitore"
+				"MassimoFruitore": "Max per aderente"
 			},
 			"ATTACHMENTS": {
 				"Title": "Allegati",

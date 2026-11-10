@@ -9,6 +9,9 @@
 	  con "La tua organizzazione (<nome>)" e "Organizzazione esterna (servizio intermediato)", con
 	  testo di aiuto dedicato a ciascuna opzione; nella scheda in sola lettura è mostrata l'opzione.
 
+	Issue 435: nei testi del rate limiting (wizard dei servizi e delle adesioni, riepiloghi e
+	  dialog) "fruitore/fruitori" diventa "aderente/aderenti" (in inglese "subscriber/subscribers").
+
 2026-11-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
