@@ -16,6 +16,10 @@
 	  aprono sulla produzione, con il collaudo disponibile; il monitoraggio segue l'ambiente scelto
 	  in vetrina; un servizio ancora in collaudo non è trattato come senza collaudo.
 
+	Adesioni: nella creazione di un'adesione la select del servizio funziona anche al primo
+	  accesso della sessione (prima restava vuota con il servizio precompilato e non registrava
+	  il servizio scelto, impedendo il salvataggio).
+
 2026-11-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

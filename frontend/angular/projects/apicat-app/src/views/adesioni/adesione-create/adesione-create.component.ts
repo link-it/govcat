@@ -213,12 +213,30 @@ export class AdesioneCreateComponent implements OnInit {
 
     this._scelta_libera_organizzazione = this.generalConfig?.adesione.scelta_libera_organizzazione || false;
 
+    // Prima dei params: il servizio indicato nell'URL serve alla creazione del form
+    this.route.queryParams.subscribe((val) => {
+      if (val.from === 'dashboard') {
+        this._fromDashboard = true;
+        this._dashboardSection = val.section || '';
+        this._initBreadcrumb();
+      }
+
+      if (val.id_servizio) {
+        this._id_servizio = val.id_servizio;
+        this._adesioneCreate.id_servizio = this._id_servizio;
+        this._isWeb = val.web || false;
+        this._loadServizio(this._id_servizio);
+      }
+    });
+
     this.route.params.subscribe(() => {
       this._initBreadcrumb();
 
+      // Form creato subito: i campi devono esistere già al primo rendering
+      this._isNew = true;
+      this._initForm({ ...this._adesioneCreate });
+
       this.configService.getConfig(this.model).subscribe(() => {
-        this._isNew = true;
-        this._initForm({ ...this._adesioneCreate });
         this._initSoggettiSelect([]);
         this._initOrganizzazioniSelect([]);
         this._initReferentiSelect([]);
@@ -240,21 +258,6 @@ export class AdesioneCreateComponent implements OnInit {
         this._isEdit = true;
         this._spin = false;
       });
-    });
-
-    this.route.queryParams.subscribe((val) => {
-      if (val.from === 'dashboard') {
-        this._fromDashboard = true;
-        this._dashboardSection = val.section || '';
-        this._initBreadcrumb();
-      }
-
-      if (val.id_servizio) {
-        this._id_servizio = val.id_servizio;
-        this._adesioneCreate.id_servizio = this._id_servizio;
-        this._isWeb = val.web || false;
-        this._loadServizio(this._id_servizio);
-      }
     });
 
     this.eventsManagerService.on(EventType.PROFILE_UPDATE, () => {

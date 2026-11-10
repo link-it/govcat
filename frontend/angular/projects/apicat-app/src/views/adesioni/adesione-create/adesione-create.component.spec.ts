@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { of } from 'rxjs';
+import { NEVER, of } from 'rxjs';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Tools } from '@linkit/components';
 import { AdesioneCreateComponent } from './adesione-create.component';
@@ -85,6 +85,28 @@ describe('AdesioneCreateComponent', () => {
     expect(component._fasiBarSteps[0].code).toBe('info_referenti');
     expect(component._fasiBarSteps[0].stati).toContain('creazione');
     expect(component._fasiCurrent).toBe('creazione');
+  });
+
+  describe('creazione del form', () => {
+    it('should create the form fields before the configuration is loaded', () => {
+      mockConfigService.getConfig.mockReturnValueOnce(NEVER);
+      component.ngOnInit();
+      expect(component._formGroup.get('id_servizio')).toBeTruthy();
+      expect(component._formGroup.get('id_organizzazione')).toBeTruthy();
+    });
+
+    it('should preset the service from the query params in the form', () => {
+      const route = { ...mockRoute, queryParams: of({ id_servizio: 'S1' }) };
+      mockApiService.getDetails.mockReturnValueOnce(NEVER);
+      const comp = new AdesioneCreateComponent(
+        route, mockRouter, mockTranslate,
+        mockConfigService, mockTools, mockEventsManager,
+        mockApiService, mockUtils, mockAuthService, mockLocation
+      );
+      mockConfigService.getConfig.mockReturnValueOnce(NEVER);
+      comp.ngOnInit();
+      expect(comp._formGroup.get('id_servizio')?.value).toBe('S1');
+    });
   });
 
   describe('_servizioChips', () => {
