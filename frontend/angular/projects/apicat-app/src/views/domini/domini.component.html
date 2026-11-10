@@ -131,6 +131,24 @@
                       </ng-select>
                     </div>
                   </div>
+                  <div class="row mb-1">
+                    <div class="col-sm-2">
+                      <label class="col-form-label col-form-label-fix" for="deprecato">{{ 'APP.DOMINI.LABEL.DominiDeprecati' | translate }}</label>
+                    </div>
+                    <div class="col-sm-10 pt-2">
+                      <ng-select class="ng-select-default-value"
+                        [searchable]="false"
+                        [clearable]="false"
+                        [placeholder]="'APP.DOMINI.LABEL.DeprecatiInclusi' | translate"
+                        labelForId="deprecato"
+                        formControlName="deprecato">
+                        <ng-option [value]="null">{{ 'APP.DOMINI.LABEL.DeprecatiInclusi' | translate }}</ng-option>
+                        @for (d of _deprecatoList; track d.value) {
+                          <ng-option [value]="d.value">{{ d.label | translate }}</ng-option>
+                        }
+                      </ng-select>
+                    </div>
+                  </div>
                   @if (_useNewSearchUI) {
                     <div class="d-flex justify-content-end pt-4">
                       <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary" (click)="searchBarForm._closeSearchDropDpwn(null)">{{ 'APP.BUTTON.Close' | translate }}</button>

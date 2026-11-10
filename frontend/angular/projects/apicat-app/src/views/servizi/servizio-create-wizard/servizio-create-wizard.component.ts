@@ -196,6 +196,8 @@ export class ServizioCreateWizardComponent implements OnInit, OnDestroy {
     /** Domini per la select: ricerca paginata con caricamento allo scroll. */
     dominiTypeahead: PagedTypeahead<any> = this._nuoviDomini([]);
     selectedDominio: any;
+    /** Senza la spunta la select propone solo i domini non deprecati. */
+    _includiDominiDeprecati: boolean = false;
     /** Dominio di default (dominio unico, senza selezione nel form). */
     _dominioDefault: any = null;
     /** Opzioni di adesione imposte dal dominio selezionato. */
@@ -827,7 +829,7 @@ export class ServizioCreateWizardComponent implements OnInit, OnDestroy {
     getDomini(term: string | null = null, page: number = 0): Observable<PaginaTypeahead<any>> {
         const _options: any = { params: { page } };
         if (term) { _options.params.q = term; }
-        if (!this.authenticationService.isGestore()) {
+        if (!this._includiDominiDeprecati) {
             _options.params.deprecato = false;
         }
         return this.apiService.getList('domini', _options).pipe(map((resp: any) => paginaDaRisposta(resp)));
@@ -896,6 +898,11 @@ export class ServizioCreateWizardComponent implements OnInit, OnDestroy {
 
     _initDominiSelect(defaultValue: any[] = []) {
         this.dominiTypeahead = this._nuoviDomini(defaultValue);
+    }
+
+    _onIncludiDominiDeprecati(includi: boolean) {
+        this._includiDominiDeprecati = includi;
+        this._initDominiSelect(this.selectedDominio ? [this.selectedDominio] : []);
     }
 
     private _nuoviDomini(iniziali: any[]): PagedTypeahead<any> {

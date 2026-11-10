@@ -210,6 +210,12 @@
                     <div class=""><span class="small text-muted">{{ item.descrizione }}</span></div>
                   </ng-template>
                 </ng-select>
+                @if (_isGestore()) {
+                  <div class="form-check mt-2 mb-0">
+                    <input class="form-check-input" type="checkbox" id="includi_domini_deprecati" [checked]="_includiDominiDeprecati" (change)="_onIncludiDominiDeprecati($any($event.target).checked)">
+                    <label class="form-check-label" for="includi_domini_deprecati">{{ 'APP.DOMINI.LABEL.IncludiDeprecati' | translate }}</label>
+                  </div>
+                }
                 @if (f['id_dominio'].invalid && (f['id_dominio'].dirty || f['id_dominio'].touched)) {
                   <p class="form-text text-danger" id="id_dominio-error" aria-live="polite">
                     @if (f['id_dominio'].errors?.['required']) {

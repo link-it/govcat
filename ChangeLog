@@ -1,3 +1,10 @@
+2026-11-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 433: nel wizard dei servizi la select del dominio propone di default solo i domini non
+	  deprecati, anche al gestore, che può includerli con la spunta "Includi domini deprecati";
+	  filtro dei domini deprecati (inclusi, esclusi, solo deprecati) nella ricerca avanzata dei domini.
+
 2026-11-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

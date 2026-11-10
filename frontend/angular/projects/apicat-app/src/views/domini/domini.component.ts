@@ -107,11 +107,15 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
   ];
   _tipiVisibilitaServizioEnum: any = { ...Tools.VisibilitaServizioEnum };
 
+  _deprecatoEnum: any = { 'false': 'APP.DOMINI.LABEL.DeprecatiEsclusi', 'true': 'APP.DOMINI.LABEL.SoloDeprecati' };
+  _deprecatoList: { value: string, label: string }[] = Object.entries(this._deprecatoEnum).map(([value, label]) => ({ value, label: label as string }));
+
   simpleSearch: boolean = false;
   searchFields: any[] = [
     { field: 'q', label: 'APP.LABEL.FreeSearch', type: 'string', condition: 'like' },
     { field: 'id_soggetto', label: 'APP.LABEL.soggetto', type: 'text', condition: 'equal', params: { resource: 'soggetti', field: 'nome' } },
     { field: 'visibilita', label: 'APP.LABEL.visibilita', type: 'enum', condition: 'equal', enumValues: this._tipiVisibilitaServizioEnum },
+    { field: 'deprecato', label: 'APP.DOMINI.LABEL.DominiDeprecati', type: 'enum', condition: 'equal', enumValues: this._deprecatoEnum },
   ];
   useCondition: boolean = false;
 
@@ -186,7 +190,8 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
     this._formGroup = new FormGroup({
       q: new FormControl(''),
       id_soggetto: new FormControl(null),
-      visibilita: new FormControl('')
+      visibilita: new FormControl(''),
+      deprecato: new FormControl(null)
     });
 
     this._initSoggettiSelect([]);

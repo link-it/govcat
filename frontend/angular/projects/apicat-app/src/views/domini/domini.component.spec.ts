@@ -77,12 +77,20 @@ describe('DominiComponent', () => {
     expect(component.breadcrumbs[1].label).toBe('APP.TITLE.Domains');
   });
 
-  it('should have searchFields with q, id_soggetto, visibilita', () => {
-    expect(component.searchFields.length).toBe(3);
+  it('should have searchFields with q, id_soggetto, visibilita, deprecato', () => {
+    expect(component.searchFields.length).toBe(4);
     const fieldNames = component.searchFields.map((f: any) => f.field);
     expect(fieldNames).toContain('q');
     expect(fieldNames).toContain('id_soggetto');
     expect(fieldNames).toContain('visibilita');
+    expect(fieldNames).toContain('deprecato');
+  });
+
+  it('should offer the deprecated filter as excluded or only deprecated domains', () => {
+    expect(component._deprecatoList).toEqual([
+      { value: 'false', label: 'APP.DOMINI.LABEL.DeprecatiEsclusi' },
+      { value: 'true', label: 'APP.DOMINI.LABEL.SoloDeprecati' }
+    ]);
   });
 
   it('should read generalConfig from Tools.Configurazione', () => {
@@ -108,6 +116,7 @@ describe('DominiComponent', () => {
     expect(component._formGroup.get('q')).toBeTruthy();
     expect(component._formGroup.get('id_soggetto')).toBeTruthy();
     expect(component._formGroup.get('visibilita')).toBeTruthy();
+    expect(component._formGroup.get('deprecato')?.value).toBeNull();
   });
 
   it('should reset filter data on _resetForm', () => {

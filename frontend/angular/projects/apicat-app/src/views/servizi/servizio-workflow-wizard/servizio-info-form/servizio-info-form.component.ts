@@ -126,6 +126,8 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
     /** Domini per la select: ricerca paginata con caricamento allo scroll. */
     dominiTypeahead: PagedTypeahead<any> = this._nuoviDomini([]);
     selectedDominio: any;
+    /** Senza la spunta la select propone solo i domini non deprecati. */
+    _includiDominiDeprecati: boolean = false;
 
     organizzazioniInterne$!: Observable<any[]>;
     organizzazioniInterneInput$ = new Subject<string>();
@@ -449,7 +451,7 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
     getDomini(term: string | null = null, page: number = 0): Observable<PaginaTypeahead<any>> {
         const _options: any = { params: { page } };
         if (term) { _options.params.q = term; }
-        if (!this.authenticationService.isGestore()) {
+        if (!this._includiDominiDeprecati) {
             _options.params.deprecato = false;
         }
         return this.apiService.getList('domini', _options).pipe(map((resp: any) => paginaDaRisposta(resp)));
@@ -502,6 +504,12 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
 
     _initDominiSelect(defaultValue: any[] = []) {
         this.dominiTypeahead = this._nuoviDomini(defaultValue);
+    }
+
+    _onIncludiDominiDeprecati(includi: boolean) {
+        this._includiDominiDeprecati = includi;
+        const _selezionato = this.selectedDominio !== undefined ? this.selectedDominio : this.data?.dominio;
+        this._initDominiSelect(_selezionato ? [_selezionato] : []);
     }
 
     private _nuoviDomini(iniziali: any[]): PagedTypeahead<any> {

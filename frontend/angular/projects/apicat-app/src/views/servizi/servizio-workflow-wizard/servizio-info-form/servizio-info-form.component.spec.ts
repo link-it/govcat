@@ -214,5 +214,25 @@ describe('ServizioInfoFormComponent', () => {
       expect(_items.map((d: any) => d.id_dominio)).toEqual(['corrente', 'd0', 'd1']);
       vi.useRealTimers();
     });
+
+    it('should filter out the deprecated domains also for the gestore unless they are included', () => {
+      vi.useFakeTimers();
+      (component as any).authenticationService.isGestore = vi.fn().mockReturnValue(true);
+      mockApiService.getList.mockReturnValue(of({ content: [], page: { totalPages: 1 } }));
+      component.data = { dominio: { id_dominio: 'corrente' } };
+      component.selectedDominio = undefined;
+      component._initDominiSelect([]);
+      component.dominiTypeahead.items$.subscribe();
+      vi.advanceTimersByTime(300);
+      expect(mockApiService.getList).toHaveBeenLastCalledWith('domini', { params: { page: 0, deprecato: false } });
+
+      component._onIncludiDominiDeprecati(true);
+      let _items: any[] = [];
+      component.dominiTypeahead.items$.subscribe((items: any[]) => _items = items);
+      vi.advanceTimersByTime(300);
+      expect(mockApiService.getList).toHaveBeenLastCalledWith('domini', { params: { page: 0 } });
+      expect(_items.map((d: any) => d.id_dominio)).toEqual(['corrente']);
+      vi.useRealTimers();
+    });
   });
 });

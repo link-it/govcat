@@ -84,12 +84,31 @@ describe('ServizioCreateWizardComponent - configurazione caricata dopo il costru
     let _items: any[] = [];
     component.dominiTypeahead.items$.subscribe((items: any[]) => _items = items);
     vi.advanceTimersByTime(300);
-    expect(mockApiService.getList).toHaveBeenCalledWith('domini', { params: { page: 0 } });
+    expect(mockApiService.getList).toHaveBeenCalledWith('domini', { params: { page: 0, deprecato: false } });
     component.dominiTypeahead.loadMore();
     expect(_items.map((d: any) => d.id_dominio)).toEqual(['d0', 'd1']);
     component.dominiTypeahead.input$.next('regione');
     vi.advanceTimersByTime(300);
-    expect(mockApiService.getList).toHaveBeenLastCalledWith('domini', { params: { page: 0, q: 'regione' } });
+    expect(mockApiService.getList).toHaveBeenLastCalledWith('domini', { params: { page: 0, q: 'regione', deprecato: false } });
+    vi.useRealTimers();
+  });
+
+  it('should remove the deprecated filter when deprecated domains are included, keeping the selected one', () => {
+    vi.useFakeTimers();
+    mockApiService.getList = vi.fn().mockReturnValue(of({ content: [{ id_dominio: 'd0' }], page: { totalPages: 1 } }));
+    const component = build();
+    component.selectedDominio = { id_dominio: 'scelto' };
+    component._onIncludiDominiDeprecati(true);
+    let _items: any[] = [];
+    component.dominiTypeahead.items$.subscribe((items: any[]) => _items = items);
+    vi.advanceTimersByTime(300);
+    expect(mockApiService.getList).toHaveBeenLastCalledWith('domini', { params: { page: 0 } });
+    expect(_items.map((d: any) => d.id_dominio)).toEqual(['scelto', 'd0']);
+
+    component._onIncludiDominiDeprecati(false);
+    component.dominiTypeahead.items$.subscribe();
+    vi.advanceTimersByTime(300);
+    expect(mockApiService.getList).toHaveBeenLastCalledWith('domini', { params: { page: 0, deprecato: false } });
     vi.useRealTimers();
   });
 });
