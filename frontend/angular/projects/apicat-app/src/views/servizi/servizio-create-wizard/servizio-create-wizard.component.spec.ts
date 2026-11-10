@@ -74,6 +74,26 @@ describe('ServizioCreateWizardComponent - configurazione caricata dopo il costru
     expect(mockEvents.off).toHaveBeenCalledWith(EventType.PROFILE_UPDATE, listeners[EventType.PROFILE_UPDATE]);
   });
 
+  it('should map the selected organization option to fruizione and its validators', () => {
+    const component = build();
+    component._formGroup = new FormGroup({
+      fruizione: new FormControl(false),
+      id_organizzazione_interna: new FormControl('org'),
+      id_soggetto_erogatore: new FormControl('sog')
+    });
+    expect(component._opzioneIntermediazione().help).toBe('fruizione_interna');
+
+    component._formGroup.get('fruizione')?.setValue(true);
+    component._onChangeFruizione(true);
+    expect(component._isFruizione).toBe(true);
+    expect(component._opzioneIntermediazione().help).toBe('fruizione_esterna');
+    expect(component._formGroup.get('id_organizzazione_interna')?.hasError('required')).toBe(false);
+
+    component._onChangeFruizione(false);
+    expect(component._formGroup.get('id_organizzazione_interna')?.value).toBeNull();
+    expect(component._formGroup.get('id_soggetto_erogatore')?.valid).toBe(true);
+  });
+
   it('should page the domains and load the next page on scroll to end', () => {
     vi.useFakeTimers();
     mockApiService.getList = vi.fn((_m: string, opts: any) => of({

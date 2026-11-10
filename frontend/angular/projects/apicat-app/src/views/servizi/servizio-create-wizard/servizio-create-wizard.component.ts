@@ -48,6 +48,7 @@ import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 import { motivoSkipCollaudoBloccato } from '../servizio-verifica-stato';
 import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
 import { PagedTypeahead, PaginaTypeahead, paginaDaRisposta } from '@app/lib/utils/paged-typeahead';
+import { OpzioneIntermediazione, opzioneIntermediazione, opzioniIntermediazione } from '../opzioni-intermediazione';
 import { CARD_IMAGE_ASPECT_RATIO } from '@app/components/lnk-ui/card/card.component';
 
 /**
@@ -176,6 +177,8 @@ export class ServizioCreateWizardComponent implements OnInit, OnDestroy {
     _hasAdesioniMultiple: boolean = false;
 
     _isFruizione: boolean = false;
+    /** Opzioni della select che imposta `fruizione` (organizzazione di contesto o esterna). */
+    _opzioniIntermediazione: OpzioneIntermediazione[] = opzioniIntermediazione(null);
     showReferenti: boolean = true;
 
     // create-only: nessuna API/componente ancora associata
@@ -309,6 +312,7 @@ export class ServizioCreateWizardComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
         this.loadAnagrafiche();
+        this._opzioniIntermediazione = opzioniIntermediazione(this.authenticationService.getCurrentOrganization()?.nome);
 
         if (this._isGestore() && this._showPackage) {
             this._tipiVisibilitaServizio = [...this._tipiVisibilitaServizio, { value: 'componente', label: 'componente' }];
@@ -704,8 +708,12 @@ export class ServizioCreateWizardComponent implements OnInit, OnDestroy {
         this.enableDisableControlAdesioneConsentita();
     }
 
-    _onChangeFruizione(event: any) {
-        this._isFruizione = event.target.checked;
+    _opzioneIntermediazione(): OpzioneIntermediazione {
+        return opzioneIntermediazione(this._opzioniIntermediazione, this._formGroup.get('fruizione')?.value);
+    }
+
+    _onChangeFruizione(fruizione: boolean) {
+        this._isFruizione = !!fruizione;
         if (!this._isFruizione) {
             this._formGroup.get('id_organizzazione_interna')?.setValue(null);
             this._formGroup.get('id_soggetto_erogatore')?.setValue(null);

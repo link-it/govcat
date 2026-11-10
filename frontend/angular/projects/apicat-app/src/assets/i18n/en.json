@@ -1437,6 +1437,8 @@
 				"tags": "Keywords to categorize the service and make it easier to find. Press Enter to add each tag.",
 				"termini_ricerca": "Additional terms (synonyms, acronyms) separated by commas, e.g. «registry, ANPR»: they improve service search and do not appear on the service page.",
 				"fruizione": "The service is provided as an intermediary by an entity of your organization: the entity and the providing subject must be specified.",
+				"fruizione_interna": "The service is implemented within your organization.",
+				"fruizione_esterna": "The service is implemented by an external organization. Your organization makes it available to its subscribers, acting as an intermediary.",
 				"package": "Groups several services (components) into a single service to subscribe to; a package has no APIs of its own.",
 				"skip_collaudo": "The service goes straight to production: the testing phase is skipped.",
 				"adesione_disabilitata": "The service remains visible in the catalog but subscriptions cannot be requested.",
@@ -2698,6 +2700,12 @@
 			"API_EROGATE_ADERENTE": {
 				"true": "With APIs provided by the subscriber",
 				"false": "Without APIs provided by the subscriber"
+			},
+			"INTERMEDIAZIONE": {
+				"Label": "Implemented by",
+				"Interna": "Your organization ({{organizzazione}})",
+				"InternaSenzaNome": "Your organization",
+				"Esterna": "External organization (intermediated service)"
 			},
 			"ARCHIVED": {
 				"escludi": "Exclude",

@@ -5,6 +5,10 @@
 	  deprecati, anche al gestore, che può includerli con la spunta "Includi domini deprecati";
 	  filtro dei domini deprecati (inclusi, esclusi, solo deprecati) nella ricerca avanzata dei domini.
 
+	Issue 434: nel wizard dei servizi la spunta "Intermediato" diventa la select "Implementato da"
+	  con "La tua organizzazione (<nome>)" e "Organizzazione esterna (servizio intermediato)", con
+	  testo di aiuto dedicato a ciascuna opzione; nella scheda in sola lettura è mostrata l'opzione.
+
 2026-11-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

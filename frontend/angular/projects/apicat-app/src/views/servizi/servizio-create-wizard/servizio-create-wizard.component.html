@@ -141,17 +141,18 @@
               </div>
             </div>
 
-            <!-- Flag strutturale: fruizione (intermediario) -->
+            <!-- Fruizione (intermediario): organizzazione di contesto o esterna -->
             <div class="row">
               @if ((_updateData | mapper:_canSetFruizioneMapper)) {
                 <div class="col-12">
                   <div class="form-group fruizione">
-                    <label class="label-bold" for="fruizione">{{ 'APP.LABEL.fruizione' | translate }}</label>
-                    <div class="gl-form-checkbox custom-control custom-checkbox">
-                      <input #chkFruizione class="custom-control-input" type="checkbox" name="fruizione" id="fruizione" formControlName="fruizione" (change)="_onChangeFruizione($event)">
-                      <label class="custom-control-label" aria-hidden="true" (click)="chkFruizione.click()"></label>
-                    </div>
-                    <ui-input-help field="fruizione" context="SERVICE"></ui-input-help>
+                    <label class="label-bold" for="fruizione">{{ 'APP.SERVICES.INTERMEDIAZIONE.Label' | translate }}</label>
+                    <ng-select class="select-custom" [items]="_opzioniIntermediazione" bindValue="value" labelForId="fruizione"
+                      [clearable]="false" [searchable]="false" formControlName="fruizione" (change)="_onChangeFruizione($event?.value)">
+                      <ng-template ng-label-tmp let-item="item">{{ item.label | translate:item.params }}</ng-template>
+                      <ng-template ng-option-tmp let-item="item">{{ item.label | translate:item.params }}</ng-template>
+                    </ng-select>
+                    <ui-input-help [field]="_opzioneIntermediazione().help" context="SERVICE"></ui-input-help>
                   </div>
                 </div>
               }

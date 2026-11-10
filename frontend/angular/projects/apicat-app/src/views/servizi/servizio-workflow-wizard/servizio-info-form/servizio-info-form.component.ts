@@ -40,6 +40,7 @@ import { motivoSkipCollaudoBloccato } from '../../servizio-verifica-stato';
 import { concat, forkJoin, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
 import { PagedTypeahead, PaginaTypeahead, paginaDaRisposta } from '@app/lib/utils/paged-typeahead';
+import { OpzioneIntermediazione, opzioneIntermediazione, opzioniIntermediazione } from '../../opzioni-intermediazione';
 import { CARD_IMAGE_ASPECT_RATIO } from '@app/components/lnk-ui/card/card.component';
 import { CropPreviewComponent } from '@app/lib/ui/crop-preview/crop-preview.component';
 
@@ -117,6 +118,8 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
     _adesioneDominio: AdesioneDominio = ADESIONE_DOMINIO_LIBERA;
     _hasAdesioniMultiple: boolean = false;
     _isFruizione: boolean = false;
+    /** Opzioni della select che imposta `fruizione` (organizzazione di contesto o esterna). */
+    _opzioniIntermediazione: OpzioneIntermediazione[] = opzioniIntermediazione(null);
     _isDominioDeprecato: boolean = false;
 
     // create-only flags: in edit un servizio puo` gia` avere API/componenti
@@ -171,6 +174,7 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
 
     ngOnInit() {
         this.loadAnagrafiche();
+        this._opzioniIntermediazione = opzioniIntermediazione(this.authenticationService.getCurrentOrganization()?.nome);
         this._buildVisibilitaOptions();
         if (this.data) { this._prepareView(); }
     }
@@ -356,8 +360,12 @@ export class ServizioInfoFormComponent implements OnInit, OnChanges {
         this.enableDisableControlAdesioneConsentita();
     }
 
-    _onChangeFruizione(event: any) {
-        this._isFruizione = event.target.checked;
+    _opzioneIntermediazione(fruizione: any): OpzioneIntermediazione {
+        return opzioneIntermediazione(this._opzioniIntermediazione, fruizione);
+    }
+
+    _onChangeFruizione(fruizione: boolean) {
+        this._isFruizione = !!fruizione;
         if (!this._isFruizione) {
             this._formGroup.get('id_organizzazione_interna')?.setValue(null);
             this._formGroup.get('id_soggetto_erogatore')?.setValue(null);

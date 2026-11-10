@@ -1437,6 +1437,8 @@
 				"tags": "Parole chiave per categorizzare il servizio e agevolarne la ricerca. Premi Invio per aggiungere ogni tag.",
 				"termini_ricerca": "Termini aggiuntivi (sinonimi, acronimi) separati da virgola, es. «anagrafe, ANPR»: migliorano la ricerca del servizio e non compaiono nella scheda.",
 				"fruizione": "Il servizio è erogato in intermediazione da un ente della tua organizzazione: andranno indicati l'ente e il soggetto erogatore.",
+				"fruizione_interna": "Il servizio è implementato all'interno della tua organizzazione.",
+				"fruizione_esterna": "Il servizio è implementato da un'organizzazione esterna. La tua organizzazione lo rende disponibile ai propri aderenti, agendo da intermediario.",
 				"package": "Raggruppa più servizi (componenti) in un unico servizio a cui aderire; un package non ha API proprie.",
 				"skip_collaudo": "Il servizio passa direttamente in produzione: la fase di collaudo viene saltata.",
 				"adesione_disabilitata": "Il servizio resta consultabile nel catalogo ma non è possibile richiederne l'adesione.",
@@ -2698,6 +2700,12 @@
 			"API_EROGATE_ADERENTE": {
 				"true": "Con API erogate dall'aderente",
 				"false": "Senza API erogate dall'aderente"
+			},
+			"INTERMEDIAZIONE": {
+				"Label": "Implementato da",
+				"Interna": "La tua organizzazione ({{organizzazione}})",
+				"InternaSenzaNome": "La tua organizzazione",
+				"Esterna": "Organizzazione esterna (servizio intermediato)"
 			},
 			"ARCHIVED": {
 				"escludi": "Escludi",

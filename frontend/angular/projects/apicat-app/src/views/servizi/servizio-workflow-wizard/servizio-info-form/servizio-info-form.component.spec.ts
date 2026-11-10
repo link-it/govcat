@@ -198,6 +198,25 @@ describe('ServizioInfoFormComponent', () => {
     });
   });
 
+  describe('select dell\'organizzazione che implementa il servizio', () => {
+    it('should map the selected option to fruizione and clear the external organization when internal', () => {
+      component._formGroup = new FormGroup({
+        fruizione: new FormControl(true),
+        id_organizzazione_interna: new FormControl('org'),
+        id_soggetto_erogatore: new FormControl('sog')
+      });
+      component._onChangeFruizione(true);
+      expect(component._isFruizione).toBe(true);
+      expect(component._opzioneIntermediazione(true).help).toBe('fruizione_esterna');
+
+      component._onChangeFruizione(false);
+      expect(component._isFruizione).toBe(false);
+      expect(component._formGroup.get('id_organizzazione_interna')?.value).toBeNull();
+      expect(component._formGroup.get('id_soggetto_erogatore')?.value).toBeNull();
+      expect(component._opzioneIntermediazione(false).help).toBe('fruizione_interna');
+    });
+  });
+
   describe('select dei domini paginata (Issue #145)', () => {
     it('should keep the current domain on top and load the next pages on scroll to end', () => {
       vi.useFakeTimers();
