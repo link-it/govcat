@@ -134,7 +134,9 @@
 	  (`GET /{ambiente}/diagnostica/{id_transazione}`) accettano il nuovo parametro
 	  `includi_audit` (default `false`): se `true` aggiungono le informazioni di audit lette
 	  dalla traccia della transazione su GovWay, nella lista pattern di audit, `user_id`,
-	  `user_location` e `loa`, nel dettaglio tutti i claim del token di audit. Per la lista
+	  `user_location` e `loa`, nel dettaglio tutti i claim del token di audit (quelli non
+	  previsti dalle Linee Guida ModI in `altre_proprieta`, con il nome del claim senza il
+	  prefisso `ProfiloSicurezzaMessaggioAudit-` di GovWay, es. `X509-Issuer`). Per la lista
 	  GovCat recupera in parallelo il dettaglio di ogni transazione della pagina (thread
 	  configurabili con `monitor.audit.pool_size`, default 10); se il dettaglio di una
 	  transazione non è disponibile la riga resta senza audit. Il monitoraggio di audit si

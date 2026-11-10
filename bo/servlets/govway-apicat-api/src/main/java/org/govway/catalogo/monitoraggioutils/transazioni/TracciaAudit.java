@@ -154,13 +154,24 @@ public final class TracciaAudit {
 			List<TransazioneAuditProprieta> lst = new ArrayList<>();
 			altre.forEach((nome, valore) -> {
 				TransazioneAuditProprieta p = new TransazioneAuditProprieta();
-				p.setNome(nome);
+				p.setNome(toNomeProprieta(nome));
 				p.setValore(valore);
 				lst.add(p);
 			});
 			audit.setAltreProprieta(lst);
 		}
 		return audit;
+	}
+
+	/**
+	 * Nome mostrato in altre_proprieta: senza il prefisso tecnico dei claim del token di audit
+	 * (es. ProfiloSicurezzaMessaggioAudit-X509-Issuer diventa X509-Issuer). Gli altri nomi restano invariati.
+	 */
+	static String toNomeProprieta(String nome) {
+		if(nome.startsWith(PREFISSO_CLAIM) && nome.length() > PREFISSO_CLAIM.length()) {
+			return nome.substring(PREFISSO_CLAIM.length());
+		}
+		return nome;
 	}
 
 	/**

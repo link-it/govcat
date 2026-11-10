@@ -99,8 +99,32 @@ class TracciaAuditTest {
 
 		assertNotNull(audit.getAltreProprieta());
 		assertEquals(1, audit.getAltreProprieta().size());
-		assertEquals("ProfiloSicurezzaMessaggioAudit-codiceEnte", audit.getAltreProprieta().get(0).getNome());
+		assertEquals("codiceEnte", audit.getAltreProprieta().get(0).getNome());
 		assertEquals("E001", audit.getAltreProprieta().get(0).getValore());
+	}
+
+	@Test
+	void dettaglio_altreProprietaSenzaPrefissoClaim() throws IOException {
+		TransazioneAudit audit = TracciaAudit.parse(traccia(AUDIT
+				+ "<proprieta nome=\"ProfiloSicurezzaMessaggioAudit-X509-Issuer\" valore=\"CN=issuer\"/>"
+				+ "<proprieta nome=\"ProfiloSicurezzaMessaggioAudit-X509-Subject\" valore=\"CN=subject\"/>"
+				+ "<proprieta nome=\"ProfiloSicurezzaAudit-Altro\" valore=\"A\"/>")).toTransazioneAudit();
+
+		assertNotNull(audit.getAltreProprieta());
+		assertEquals(3, audit.getAltreProprieta().size());
+		assertEquals("X509-Issuer", audit.getAltreProprieta().get(0).getNome());
+		assertEquals("CN=issuer", audit.getAltreProprieta().get(0).getValore());
+		assertEquals("X509-Subject", audit.getAltreProprieta().get(1).getNome());
+		assertEquals("CN=subject", audit.getAltreProprieta().get(1).getValore());
+		// le proprieta` senza il prefisso dei claim restano invariate
+		assertEquals("ProfiloSicurezzaAudit-Altro", audit.getAltreProprieta().get(2).getNome());
+	}
+
+	@Test
+	void toNomeProprieta() {
+		assertEquals("X509-Issuer", TracciaAudit.toNomeProprieta("ProfiloSicurezzaMessaggioAudit-X509-Issuer"));
+		assertEquals("ProfiloSicurezzaMessaggioAudit-", TracciaAudit.toNomeProprieta("ProfiloSicurezzaMessaggioAudit-"));
+		assertEquals("ProfiloSicurezzaAudit-Altro", TracciaAudit.toNomeProprieta("ProfiloSicurezzaAudit-Altro"));
 	}
 
 	@Test
