@@ -5,6 +5,9 @@
 	  attiva di default, indica come referente l'utente in sessione; senza spunta compare la
 	  select del referente. Il referente tecnico resta facoltativo; referenti in verticale.
 
+	Transazioni: tornando dal dettaglio di una transazione le date della ricerca ripristinata
+	  sono mostrate correttamente nel pannello di ricerca (prima "Invalid date").
+
 2026-11-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
