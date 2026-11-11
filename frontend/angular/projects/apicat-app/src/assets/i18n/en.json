@@ -1258,6 +1258,7 @@
 			"PurposeId": "Purpose ID",
 			"referente": "Contact",
 			"referente_self": "I am the subscription contact",
+			"referente_self_servizio": "I am the service contact",
 			"referente_tecnico": "Technical contact",
 			"ReferenteTecnico": "Technical referent",
 			"ReportTimeInterval": "Time unit",

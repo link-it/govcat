@@ -1,3 +1,10 @@
+2026-11-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 438: nel wizard di creazione dei servizi la spunta "Sono il referente del servizio",
+	  attiva di default, indica come referente l'utente in sessione; senza spunta compare la
+	  select del referente. Il referente tecnico resta facoltativo; referenti in verticale.
+
 2026-11-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

@@ -403,39 +403,45 @@
               </div>
             </header>
             <div class="lnk-phase-section-body">
-              <div class="row referenti">
-                <div class="col-6 form-group referente">
-                  <label class="label-bold" for="referente">{{ 'APP.LABEL.referente' | translate }}
-                    <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'referente'"></span>
-                  </label>
-                  <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('referente')" [errorId]="'referente-error'"
-                    [items]="(referenti$ | async) || []"
-                    [typeahead]="referentiInput$"
-                    [minTermLength]="minLengthTerm"
-                    [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
-                    [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
-                    bindValue="id_utente"
-                    bindLabel="nome_completo"
-                    labelForId="referente"
-                    [editableSearchTerm]="true"
-                    formControlName="referente"
-                    (change)="onChangeReferente($event)">
-                    <ng-template ng-label-tmp let-item="item">{{ item.nome }} {{ item.cognome }}</ng-template>
-                    <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
-                      <div class="fw-bold">{{ item.nome }} {{ item.cognome }}</div>
-                      <div class=""><span class="small text-muted">{{ item.email_aziendale }}</span></div>
-                    </ng-template>
-                  </ng-select>
-                  @if (f['referente'].invalid && (f['referente'].dirty || f['referente'].touched)) {
-                    <p class="form-text text-danger" id="referente-error" aria-live="polite">
-                      @if (f['referente'].errors?.['required']) {
-                        <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                      }
-                    </p>
+              <div class="referenti">
+                <div class="form-group referente">
+                  <div class="form-check mb-1">
+                    <input class="form-check-input" type="checkbox" id="selfReferente" [checked]="_isSelfReferente" (change)="_onChangeSelfReferente($any($event.target).checked)">
+                    <label class="form-check-label label-bold" for="selfReferente">{{ 'APP.LABEL.referente_self_servizio' | translate }}</label>
+                  </div>
+                  @if (!_isSelfReferente) {
+                    <label class="label-bold" for="referente">{{ 'APP.LABEL.referente' | translate }}
+                      <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'referente'"></span>
+                    </label>
+                    <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('referente')" [errorId]="'referente-error'"
+                      [items]="(referenti$ | async) || []"
+                      [typeahead]="referentiInput$"
+                      [minTermLength]="minLengthTerm"
+                      [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                      [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                      bindValue="id_utente"
+                      bindLabel="nome_completo"
+                      labelForId="referente"
+                      [editableSearchTerm]="true"
+                      formControlName="referente"
+                      (change)="onChangeReferente($event)">
+                      <ng-template ng-label-tmp let-item="item">{{ item.nome }} {{ item.cognome }}</ng-template>
+                      <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                        <div class="fw-bold">{{ item.nome }} {{ item.cognome }}</div>
+                        <div class=""><span class="small text-muted">{{ item.email_aziendale }}</span></div>
+                      </ng-template>
+                    </ng-select>
+                    @if (f['referente'].invalid && (f['referente'].dirty || f['referente'].touched)) {
+                      <p class="form-text text-danger" id="referente-error" aria-live="polite">
+                        @if (f['referente'].errors?.['required']) {
+                          <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                        }
+                      </p>
+                    }
                   }
                   <ui-input-help field="referente" context="SERVICE"></ui-input-help>
                 </div>
-                <div class="col-6 form-group referente_tecnico">
+                <div class="form-group referente_tecnico mt-3">
                   <label class="label-bold" for="referente_tecnico">{{ 'APP.LABEL.referente_tecnico' | translate }}</label>
                   <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('referente_tecnico')" [errorId]="'referente_tecnico-error'"
                     [items]="(referentiTecnici$ | async) || []"

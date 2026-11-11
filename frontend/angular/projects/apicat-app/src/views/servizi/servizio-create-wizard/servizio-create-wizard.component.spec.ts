@@ -131,4 +131,36 @@ describe('ServizioCreateWizardComponent - configurazione caricata dopo il costru
     expect(mockApiService.getList).toHaveBeenLastCalledWith('domini', { params: { page: 0, deprecato: false } });
     vi.useRealTimers();
   });
+
+  it('should use the logged user as contact of the service while the self flag is checked', () => {
+    const component = build();
+    const auth = (component as any).authenticationService;
+    auth.getUser = vi.fn().mockReturnValue({ id_utente: 'me' });
+    auth._getWorkflowCambiStato = vi.fn().mockReturnValue({ dati_obbligatori: ['referenti'] });
+    component._formGroup = new FormGroup({ referente: new FormControl(null) });
+
+    expect(component._isSelfReferente).toBe(true);
+    const body = component._prepareBodySaveServizio({ id_dominio: 'd1', referente: null, referente_tecnico: 't1' });
+    expect(body.referenti).toEqual([
+      { id_utente: 'me', tipo: 'referente' },
+      { id_utente: 't1', tipo: 'referente_tecnico' }
+    ]);
+  });
+
+  it('should require the selected contact only when the self flag is unchecked', () => {
+    const component = build();
+    const auth = (component as any).authenticationService;
+    auth.getUser = vi.fn().mockReturnValue({ id_utente: 'me' });
+    auth._getWorkflowCambiStato = vi.fn().mockReturnValue({ dati_obbligatori: ['referenti'] });
+    component._formGroup = new FormGroup({ referente: new FormControl(null) });
+
+    component._onChangeSelfReferente(false);
+    expect(component._formGroup.get('referente')?.hasError('required')).toBe(true);
+    component._formGroup.get('referente')?.setValue('u2');
+    expect(component._prepareBodySaveServizio({ id_dominio: 'd1', referente: 'u2' }).referenti).toEqual([{ id_utente: 'u2', tipo: 'referente' }]);
+
+    component._onChangeSelfReferente(true);
+    expect(component._formGroup.get('referente')?.value).toBeNull();
+    expect(component._formGroup.get('referente')?.valid).toBe(true);
+  });
 });

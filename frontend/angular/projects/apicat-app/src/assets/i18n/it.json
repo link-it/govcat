@@ -1258,6 +1258,7 @@
 			"PurposeId": "Purpose ID",
 			"referente": "Referente",
 			"referente_self": "Sono il referente dell'adesione",
+			"referente_self_servizio": "Sono il referente del servizio",
 			"referente_tecnico": "Referente tecnico",
 			"ReferenteTecnico": "Referente tecnico",
 			"ReportTimeInterval": "Unità di tempo",

@@ -180,6 +180,8 @@ export class ServizioCreateWizardComponent implements OnInit, OnDestroy {
     /** Opzioni della select che imposta `fruizione` (organizzazione di contesto o esterna). */
     _opzioniIntermediazione: OpzioneIntermediazione[] = opzioniIntermediazione(null);
     showReferenti: boolean = true;
+    /** Spunta "Sono il referente del servizio": il referente è l'utente in sessione. */
+    _isSelfReferente: boolean = true;
 
     // create-only: nessuna API/componente ancora associata
     hasApi: boolean = false;
@@ -504,6 +506,23 @@ export class ServizioCreateWizardComponent implements OnInit, OnDestroy {
         return !!_cambioStato?.dati_obbligatori?.includes('referenti');
     }
 
+    /** Con la spunta "Sono il referente del servizio" la select del referente non è richiesta. */
+    private _validatoriReferente() {
+        return (!this._isSelfReferente && this._isReferenteRequired()) ? [Validators.required] : [];
+    }
+
+    _onChangeSelfReferente(self: boolean) {
+        this._isSelfReferente = self;
+        const _referente = this._formGroup.get('referente');
+        if (!_referente) { return; }
+        if (self) {
+            _referente.setValue(null);
+            this.selectedReferente = null;
+        }
+        _referente.setValidators(this._validatoriReferente());
+        _referente.updateValueAndValidity();
+    }
+
     _initForm(data: any = null) {
         if (!data) { return; }
         const _group: any = {};
@@ -513,7 +532,7 @@ export class ServizioCreateWizardComponent implements OnInit, OnDestroy {
             switch (key) {
                 case 'referente':
                     value = data[key] ? data[key] : null;
-                    _group[key] = new FormControl(value, this._isReferenteRequired() ? [Validators.required] : []);
+                    _group[key] = new FormControl(value, this._validatoriReferente());
                     break;
                 case 'versione':
                     value = data[key] ? data[key] : '';
@@ -732,7 +751,7 @@ export class ServizioCreateWizardComponent implements OnInit, OnDestroy {
             controls.referente.updateValueAndValidity();
             this.showReferenti = false;
         } else {
-            controls.referente.setValidators(Validators.required);
+            controls.referente.setValidators(this._validatoriReferente());
             controls.referente.updateValueAndValidity();
             this.showReferenti = true;
         }
@@ -1013,8 +1032,9 @@ export class ServizioCreateWizardComponent implements OnInit, OnDestroy {
 
         if (!body.package) {
             _newBody.referenti = [];
-            if (body.referente) {
-                _newBody.referenti.push({ id_utente: body.referente, tipo: 'referente' });
+            const _referente = this._isSelfReferente ? this.authenticationService.getUser()?.id_utente : body.referente;
+            if (_referente) {
+                _newBody.referenti.push({ id_utente: _referente, tipo: 'referente' });
             }
             if (body.referente_tecnico) {
                 _newBody.referenti.push({ id_utente: body.referente_tecnico, tipo: 'referente_tecnico' });
