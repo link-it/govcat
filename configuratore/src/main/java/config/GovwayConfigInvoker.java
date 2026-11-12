@@ -330,6 +330,24 @@ public class GovwayConfigInvoker {
 		return this.client.newCall(request).execute();
 	}
 	
+	/**
+	 * Modello del body con cui un applicativo viene aggiunto agli applicativi autorizzati.
+	 *
+	 * Il soggetto dell'applicativo e' previsto solo per le erogazioni, dove l'applicativo puo'
+	 * risiedere sotto un soggetto diverso da quello dell'erogazione. Per le fruizioni il contratto
+	 * di govway ammette solo il campo applicativo (un campo in piu' produce un 400): l'applicativo
+	 * e' quello del soggetto fruitore, gia' indicato nella query string.
+	 */
+	private Map<String, String> bindingApplicativo(GruppoServizio singleAPI, String saName, String soggetto) {
+		Map<String, String> root = new HashMap<>();
+		root.put("nome_applicativo", saName);
+		if (soggetto != null && !singleAPI.isFruizione())
+			root.put("soggetto", soggetto);
+
+		root.entrySet().forEach(e -> logger.info(e.getKey() + "-> " + e.getValue()));
+		return root;
+	}
+	
 	public Response postApplicativoToServizio(GruppoServizio singleAPI, String saName, String soggetto) throws TemplateException, IOException {
 		HttpUrl url = this.getUrlConfigurazioneServizio(singleAPI)
 				.addPathSegment("configurazioni")
@@ -340,14 +358,7 @@ public class GovwayConfigInvoker {
 				.build();
 				
 		logger.info("url:" + url);
-		Map<String, String> root = new HashMap<>();
-		root.put("nome_applicativo", saName);
-		if (soggetto != null)
-			root.put("soggetto", soggetto);
-
-		root.entrySet().forEach(e -> {
-			logger.info(e.getKey() + "-> " + e.getValue());
-		});
+		Map<String, String> root = bindingApplicativo(singleAPI, saName, soggetto);
 		
 		RequestBody templateToRequestBody = templateToRequestBody(JSON, this.template.getTemplate(PATH_TEMPLATE_EROGAZIONE_APPLICATIVI), root);
 		
@@ -377,15 +388,7 @@ public class GovwayConfigInvoker {
 
 		logger.info("url:" + url);
 
-		Map<String, String> root = new HashMap<>();
-		root.put("nome_applicativo", saName);
-		if(soggetto != null) {
-			root.put("soggetto", soggetto);
-		}
-			
-		root.entrySet().forEach(e -> {
-			logger.info(e.getKey() + "-> " + e.getValue());
-		});
+		Map<String, String> root = bindingApplicativo(singleAPI, saName, soggetto);
 
 		Request request = new Request.Builder()
 		        .url(url)

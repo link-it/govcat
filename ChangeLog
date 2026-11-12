@@ -1,3 +1,11 @@
+2026-11-12  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 444: configurazione automatica delle adesioni a fruizioni (es. intermediate ModI): l'aggiunta
+	  dell'applicativo agli applicativi autorizzati non invia più il campo soggetto, che GovWay
+	  non prevede per le fruizioni e che faceva fallire la configurazione con un 400; per le
+	  erogazioni il soggetto aderente resta indicato.
+
 2026-11-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
