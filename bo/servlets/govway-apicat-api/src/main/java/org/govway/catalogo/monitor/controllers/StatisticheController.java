@@ -54,6 +54,7 @@ import org.govway.catalogo.servlets.monitor.model.DistribuzioneOperazioneQuery;
 import org.govway.catalogo.servlets.monitor.model.DistribuzionePrincipalQuery;
 import org.govway.catalogo.servlets.monitor.model.DistribuzioneSoggettoRemotoQuery;
 import org.govway.catalogo.servlets.monitor.model.EsitoTransazioneEnum;
+import org.govway.catalogo.servlets.monitor.model.FiltroApi;
 import org.govway.catalogo.servlets.monitor.model.IntervalloTemporale;
 import org.govway.catalogo.servlets.monitor.model.ReportStatisticoDistribuzioneAPI;
 import org.govway.catalogo.servlets.monitor.model.ReportStatisticoDistribuzioneApplicativo;
@@ -187,7 +188,7 @@ public class StatisticheController implements StatisticheApi {
 		getReportRequest.setApiNome(idapi.get(0).getNome());
 		getReportRequest.setApiVersione(idapi.get(0).getVersione());
 
-		getReportRequest.setSoggettoReferente(soggetto);
+		getReportRequest.setSoggettoReferente(this.filtriUtils.getSoggettoNome(soggetto));
 		getReportRequest.setSoggettoErogatore(this.filtriUtils.getSoggettoNome(idapi.get(0).getSoggetto()));
 		getReportRequest.setApplicativoFruitore(idapi.get(0).getApplicativoFruitore());
 		getReportRequest.setEsito(esito);
@@ -202,8 +203,7 @@ public class StatisticheController implements StatisticheApi {
 		getReportRequest.setTipoReportAndamentoTemporale(tipoReportAndamentoTemporale);
 		getReportRequest.setTipoInformazioneReport(tipoInformazioneReport);
 		getReportRequest.setTipologiaReportEnum(tipologiaReportEnum);
-		getReportRequest
-				.setProfilo(ProfiloEnum.fromValue(this.configurazione.getMonitoraggio().getProfiloGovwayDefault()));
+		getReportRequest.setProfilo(ProfiloEnum.fromValue(this.filtriUtils.getProfilo(idServizio, idApi, soggetto)));
 		getReportRequest.setErogazioneFruizioneEnum(erogazioneFruizione);
 		getReportRequest.setAccept(this.request.getHeader("Accept"));
 
@@ -236,12 +236,13 @@ public class StatisticheController implements StatisticheApi {
 	}
 
 	private GetReportRequest fillPostReportRequestInfoComuni(GetReportRequest getReportRequest, AmbienteEnum ambiente,
-			ErogazioneFruizioneEnum erogazioneFruizione, String soggetto, TipologiaReportEnum andamentoTemporale) {
+			ErogazioneFruizioneEnum erogazioneFruizione, String soggetto, TipologiaReportEnum andamentoTemporale,
+			FiltroApi filtroApi) {
 		getReportRequest.setConfigurazioneConnessione(getConfigurazioneConnessione(ambiente));
-		getReportRequest.setSoggettoReferente(soggetto);
+		getReportRequest.setSoggettoReferente(this.filtriUtils.getSoggettoNome(soggetto));
 		getReportRequest.setTipologiaReportEnum(andamentoTemporale);
-		getReportRequest
-				.setProfilo(ProfiloEnum.fromValue(this.configurazione.getMonitoraggio().getProfiloGovwayDefault()));
+		getReportRequest.setProfilo(ProfiloEnum.fromValue(
+				this.filtriUtils.getProfilo(filtroApi.getIdServizio(), filtroApi.getIdApi(), soggetto)));
 		getReportRequest.setErogazioneFruizioneEnum(erogazioneFruizione);
 		getReportRequest.setAccept("text/csv");
 
@@ -253,7 +254,8 @@ public class StatisticheController implements StatisticheApi {
 
 		GetReportRequest getReportRequest = new GetReportRequest();
 
-		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
+		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale,
+				query.getApi());
 
 		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(),
 				query.getApi().getIdAdesione(), ambiente);
@@ -287,7 +289,8 @@ public class StatisticheController implements StatisticheApi {
 
 		GetReportRequest getReportRequest = new GetReportRequest();
 
-		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
+		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale,
+				query.getApi());
 
 		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(),
 				query.getApi().getIdAdesione(), ambiente);
@@ -320,7 +323,8 @@ public class StatisticheController implements StatisticheApi {
 
 		GetReportRequest getReportRequest = new GetReportRequest();
 
-		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
+		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale,
+				query.getApi());
 
 		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(),
 				query.getApi().getIdAdesione(), ambiente);
@@ -352,7 +356,8 @@ public class StatisticheController implements StatisticheApi {
 
 		GetReportRequest getReportRequest = new GetReportRequest();
 
-		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
+		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale,
+				query.getApi());
 
 		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(),
 				query.getApi().getIdAdesione(), ambiente);
@@ -384,7 +389,8 @@ public class StatisticheController implements StatisticheApi {
 
 		GetReportRequest getReportRequest = new GetReportRequest();
 
-		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
+		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale,
+				query.getApi());
 
 		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(),
 				query.getApi().getIdAdesione(), ambiente);
@@ -416,7 +422,8 @@ public class StatisticheController implements StatisticheApi {
 
 		GetReportRequest getReportRequest = new GetReportRequest();
 
-		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
+		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale,
+				query.getApi());
 
 		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(),
 				query.getApi().getIdAdesione(), ambiente);
@@ -448,7 +455,8 @@ public class StatisticheController implements StatisticheApi {
 
 		GetReportRequest getReportRequest = new GetReportRequest();
 
-		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
+		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale,
+				query.getApi());
 
 		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(),
 				query.getApi().getIdAdesione(), ambiente);
@@ -480,7 +488,8 @@ public class StatisticheController implements StatisticheApi {
 
 		GetReportRequest getReportRequest = new GetReportRequest();
 
-		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
+		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale,
+				query.getApi());
 
 		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(),
 				query.getApi().getIdAdesione(), ambiente);
@@ -512,7 +521,8 @@ public class StatisticheController implements StatisticheApi {
 
 		GetReportRequest getReportRequest = new GetReportRequest();
 
-		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
+		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale,
+				query.getApi());
 
 		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(),
 				query.getApi().getIdAdesione(), ambiente);
@@ -544,7 +554,8 @@ public class StatisticheController implements StatisticheApi {
 
 		GetReportRequest getReportRequest = new GetReportRequest();
 
-		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
+		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale,
+				query.getApi());
 
 		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(),
 				query.getApi().getIdAdesione(), ambiente);
@@ -576,7 +587,8 @@ public class StatisticheController implements StatisticheApi {
 
 		GetReportRequest getReportRequest = new GetReportRequest();
 
-		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
+		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale,
+				query.getApi());
 
 		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(),
 				query.getApi().getIdAdesione(), ambiente);

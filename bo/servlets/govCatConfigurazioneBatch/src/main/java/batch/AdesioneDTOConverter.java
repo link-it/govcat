@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.govway.catalogo.core.business.utils.ProfiloGovwayResolver;
 import org.govway.catalogo.core.business.utils.configurazione.ConfigurazioneReader;
 import org.govway.catalogo.core.business.utils.configurazione.ConfigurazioneReader.RiferimentoProprietaCustom;
 import org.govway.catalogo.core.dto.DTOAdesione;
@@ -78,10 +79,6 @@ public class AdesioneDTOConverter {
 
 	/** profilo_govway dichiarato dai profili di autenticazione dell'adesione, nullo se non determinabile. */
 	private String profiloGovwayProfili;
-
-	// ModI e` il nome corrente del profilo ModIPA: i due valori sono equivalenti (cfr. ProfiloGovwayService)
-	private static final String PROFILO_MODI = "ModI";
-	private static final String PROFILO_MODIPA = "ModIPA";
 
 	/** Suffisso delle classi dato specifiche dei profili di fruizione PDND (collaudo_pdnd, produzione_pdnd). */
 	private static final String SUFFISSO_CLASSE_DATO_PDND = "_pdnd";
@@ -158,41 +155,13 @@ public class AdesioneDTOConverter {
 	 * configurazione.
 	 */
 	private String calcolaProfiloGovwayProfili() {
-		String scelto = null;
-
-		for(ApiEntity apiEntity: adesione.getServizio().getApi()) {
-			for(AuthTypeEntity authTypeEntity: apiEntity.getAuthType()) {
-				String profiloGovway;
-				try {
-					profiloGovway = getConfReader().getProfiloGovwayProfilo(authTypeEntity.getProfilo());
-				} catch (IOException e) {
-					logger.error("[AdesioneDTOConverter] errore nella lettura di profilo_govway del profilo {}", authTypeEntity.getProfilo(), e);
-					return null;
-				}
-
-				if(profiloGovway == null) {
-					continue;
-				}
-
-				if(scelto == null) {
-					scelto = profiloGovway;
-				} else if(!isProfiloEquivalente(scelto, profiloGovway)) {
-					logger.warn("[AdesioneDTOConverter] i profili dell'adesione {} dichiarano profili di interoperabilità diversi ({} e {}): il profilo del soggetto viene risolto dai default della configurazione",
-							adesione.getIdAdesione(), scelto, profiloGovway);
-					return null;
-				}
-			}
+		try {
+			return ProfiloGovwayResolver.getProfiloGovwayProfili(adesione.getServizio().getApi(),
+					getConfReader()::getProfiloGovwayProfilo, "dell'adesione " + adesione.getIdAdesione());
+		} catch (IOException e) {
+			logger.error("[AdesioneDTOConverter] errore nella lettura di profilo_govway dei profili dell'adesione {}", adesione.getIdAdesione(), e);
+			return null;
 		}
-
-		return scelto;
-	}
-
-	private static boolean isProfiloEquivalente(String profilo1, String profilo2) {
-		return normalizzaProfilo(profilo1).equals(normalizzaProfilo(profilo2));
-	}
-
-	private static String normalizzaProfilo(String profilo) {
-		return PROFILO_MODI.equals(profilo) ? PROFILO_MODIPA : profilo;
 	}
 
 	private ConfigurazioneReader getConfReader() {

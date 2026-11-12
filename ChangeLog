@@ -6,6 +6,14 @@
 	  non prevede per le fruizioni e che faceva fallire la configurazione con un 400; per le
 	  erogazioni il soggetto aderente resta indicato.
 
+	Issue 440: statistiche e transazioni interrogano il monitoraggio di GovWay con il profilo di
+	  interoperabilità ricavato come nel batch di configurazione (ridefinizione del gestore
+	  sull'API, tipo gateway del soggetto, profilo_govway dei profili delle API del servizio,
+	  profilo di default dei soggetti, profilo di default del monitoraggio); prima le statistiche
+	  usavano sempre il profilo di default del monitoraggio e risultavano vuote sulle API con un
+	  profilo diverso. Le statistiche inviano il nome del soggetto su GovWay come le transazioni
+	  e, per i package, il profilo è ricavato dalle API dei servizi componenti.
+
 2026-11-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

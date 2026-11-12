@@ -195,7 +195,7 @@ public class TransazioniController implements TransazioniApi {
 		request.setEsitoCodici(esitoCodici);
 		request.setDataA(dataA);		
 		request.setDataDa(dataDa);
-		request.setProfilo(this.filtriUtils.getProfilo(idServizio, idApi));
+		request.setProfilo(this.filtriUtils.getProfilo(idServizio, idApi, soggetto));
 		
 		request.setSoggettoReferente(this.filtriUtils.getSoggettoNome(soggetto));
 		request.setIdAdesione(idAdesione);
@@ -293,7 +293,7 @@ public class TransazioniController implements TransazioniApi {
 
 		request.setDataA(it.getDataFine());
 		request.setDataDa(it.getDataInizio());
-		request.setProfilo(this.filtriUtils.getProfilo(query.getApi().getIdServizio(), query.getApi().getIdApi()));
+		request.setProfilo(this.filtriUtils.getProfilo(query.getApi().getIdServizio(), query.getApi().getIdApi(), nome));
 
 		request.setSoggettoReferente(this.filtriUtils.getSoggettoNome(nome));
 		request.setIdAdesione(query.getApi().getIdAdesione());

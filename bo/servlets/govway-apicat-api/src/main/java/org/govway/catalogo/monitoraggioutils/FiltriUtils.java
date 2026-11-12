@@ -32,6 +32,7 @@ import java.util.TreeSet;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.govway.catalogo.core.business.utils.ProfiloGovwayResolver;
 import org.govway.catalogo.core.dao.specifications.ApiSpecification;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
 import org.govway.catalogo.core.orm.entity.ApiConfigEntity;
@@ -82,7 +83,18 @@ public class FiltriUtils {
 	@Autowired
 	private ProfiloGovwayService profiloGovwayService;
 
-	public String getProfilo(UUID idServizio, UUID idApi) {
+	/**
+	 * Profilo di interoperabilità GovWay con cui interrogare il monitoraggio (transazioni e statistiche).
+	 * La ridefinizione del gestore sull'API (Issue 354) prevale; altrimenti si applica la stessa logica
+	 * del batch di configurazione (Issue 440, {@link ProfiloGovwayResolver}): tipo gateway del soggetto
+	 * interrogato, profilo_govway dei profili delle API del servizio, soggetto.profilo_gateway_default,
+	 * monitoraggio.profilo_govway_default.
+	 *
+	 * @param idServizio servizio monitorato
+	 * @param idApi API monitorata, nulla per tutte le API del servizio
+	 * @param soggetto nome del soggetto interrogato (referente del dominio)
+	 */
+	public String getProfilo(UUID idServizio, UUID idApi, String soggetto) {
 		return this.servizioService.runTransaction(() -> {
 			ServizioEntity servizio = this.servizioService.find(idServizio)
 					.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_404, Map.of("idServizio", idServizio.toString())));
@@ -92,37 +104,58 @@ public class FiltriUtils {
 				api = this.apiService.find(idApi)
 					.orElseThrow(() -> new NotFoundException(ErrorCode.API_404, Map.of("idApi", idApi.toString())));
 			}
-	
-			String ridefinito = null;
-			
-			for(ApiEntity c: servizio.getApi()) {
+
+			// Stesse API considerate da getApi: per i package quelle dei servizi componenti
+			Set<ApiEntity> apiServizio = getApiServizio(servizio);
+
+			// La ridefinizione del gestore sull'API prevale sulla logica del batch
+			for(ApiEntity c: apiServizio) {
 				if(api == null || api.getId().equals(c.getId())) {
-					// La ridefinizione del gestore sull'API prevale sul profilo_govway dei profili
-					if(ridefinito == null) {
-						ridefinito = this.profiloGovwayService.getOverride(c);
-					}
-					List<AuthTypeEntity> authTypeList = c.getAuthType();
-					for(AuthTypeEntity at: authTypeList) {
-						if(ridefinito == null) {
-							Optional<ConfigurazioneProfilo> pr = this.configurazione.getServizio().getApi().getProfili()
-									.stream()
-								.filter(p -> p.getCodiceInterno().equals(at.getProfilo())).findAny();
-							if(pr.isPresent() && pr.get().getProfiloGovway()!=null) {
-								ridefinito = pr.get().getProfiloGovway();
-							}
-						}
+					String ridefinito = this.profiloGovwayService.getOverride(c);
+					if(ridefinito != null) {
+						return ridefinito;
 					}
 				}
 			}
-			
-			if(ridefinito != null) {
-				return ridefinito;
-			} else {
-				return this.configurazione.getMonitoraggio().getProfiloGovwayDefault();
-			}
-			
+
+			SoggettoEntity soggettoEntity = this.soggettoService.findByNome(soggetto)
+					.orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404_BY_NAME, Map.of("nomeSoggetto", soggetto)));
+
+			String profiloGovwayProfili = ProfiloGovwayResolver.getProfiloGovwayProfili(apiServizio,
+					this::getProfiloGovwayProfilo, "del servizio " + servizio.getNome() + " v" + servizio.getVersione());
+
+			return ProfiloGovwayResolver.risolvi(soggettoEntity.getTipoGateway(), profiloGovwayProfili,
+					this::getProfiloGatewayDefaultSoggetto,
+					() -> this.configurazione.getMonitoraggio().getProfiloGovwayDefault());
 		});
 
+	}
+
+	private Set<ApiEntity> getApiServizio(ServizioEntity servizio) {
+		if(servizio.is_package()) {
+			Set<ApiEntity> apiComponenti = new HashSet<>();
+			for(PackageServizioEntity c: servizio.getComponenti()) {
+				apiComponenti.addAll(c.getServizio().getApi());
+			}
+			return apiComponenti;
+		}
+		return servizio.getApi();
+	}
+
+	private String getProfiloGovwayProfilo(String codiceInterno) {
+		return this.configurazione.getServizio().getApi().getProfili()
+				.stream()
+				.filter(p -> p.getCodiceInterno().equals(codiceInterno))
+				.findAny()
+				.map(ConfigurazioneProfilo::getProfiloGovway)
+				.orElse(null);
+	}
+
+	private String getProfiloGatewayDefaultSoggetto() {
+		if(this.configurazione.getSoggetto() != null && this.configurazione.getSoggetto().getProfiloGatewayDefault() != null) {
+			return this.configurazione.getSoggetto().getProfiloGatewayDefault().getValue();
+		}
+		return null;
 	}
 
 	public ApiEntity findAPI(String nome, Integer versione, SoggettoEntity soggetto) {

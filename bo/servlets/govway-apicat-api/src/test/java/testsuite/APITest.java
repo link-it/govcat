@@ -2211,7 +2211,7 @@ public class APITest {
     		this.entityManager.clear();
 
     		// il monitoraggio usa la ridefinizione
-    		assertEquals("ModIPA", this.filtriUtils.getProfilo(servizio.getIdServizio(), idApi));
+    		assertEquals("ModIPA", this.filtriUtils.getProfilo(servizio.getIdServizio(), idApi, dominio.getSoggettoReferente().getNome()));
 
     		// modificare solo la ridefinizione rivalida i profili gia` associati all'API
     		BadRequestException e = assertThrows(BadRequestException.class,
