@@ -1872,4 +1872,72 @@ describe('StatisticheComponent', () => {
       expect(hasOk).toBe(true);
     });
   });
+
+  // ========== configurazione non ancora caricata (refresh della pagina) ==========
+
+  describe('configurazione caricata dopo la creazione', () => {
+    const configurazione = {
+      monitoraggio: {
+        statistiche: {
+          tipi_distribuzione: ['andamento_temporale', 'distribuzione_esiti'],
+          formati_report: ['csv']
+        }
+      }
+    };
+
+    it('should fetch the remote configuration and filter export formats and distribution types', () => {
+      mockApiService.getList.mockImplementation((path: string) =>
+        path === 'configurazione' ? of(configurazione) : of({ content: [] })
+      );
+      const comp = createComponent({ generalConfig: null });
+      expect(comp.exportList.length).toBe(4);
+
+      comp.ngOnInit();
+
+      expect(mockApiService.getList).toHaveBeenCalledWith('configurazione');
+      expect(comp.exportList.map((e: any) => e.label)).toEqual(['CSV']);
+      comp._formGroup.get('api')?.setValue({ ruolo: 'erogato_soggetto_dominio' });
+      expect(comp.distributionTypes.map((dt: any) => dt.code)).toEqual(['andamento_temporale', 'distribuzione_esiti']);
+    });
+
+    it('should use the configuration loaded after the construction without fetching it again', () => {
+      const comp = createComponent({ generalConfig: null });
+      Tools.Configurazione = configurazione;
+
+      comp.ngOnInit();
+
+      expect(mockApiService.getList).not.toHaveBeenCalledWith('configurazione');
+      expect(comp.exportList.length).toBe(1);
+      expect(comp.distributionTypes.every(
+        (dt: any) => configurazione.monitoraggio.statistiche.tipi_distribuzione.includes(dt.code)
+      )).toBe(true);
+    });
+
+    it('should reset a selected distribution type that the configuration does not allow', () => {
+      const comp = createComponent({ generalConfig: null });
+      comp._formGroup.get('api')?.setValue({ ruolo: 'erogato_soggetto_dominio' });
+      const nonConsentito = comp.distributionTypes.find(
+        (dt: any) => !configurazione.monitoraggio.statistiche.tipi_distribuzione.includes(dt.code)
+      );
+      expect(nonConsentito).toBeTruthy();
+      comp._formGroup.get('distribution_type')?.setValue(nonConsentito);
+      Tools.Configurazione = configurazione;
+
+      comp.ngOnInit();
+
+      expect(comp._formGroup.get('distribution_type')?.value).toBeNull();
+    });
+
+    it('should keep the full lists when the remote configuration cannot be loaded', () => {
+      mockApiService.getList.mockImplementation((path: string) =>
+        path === 'configurazione' ? throwError(() => new Error('errore')) : of({ content: [] })
+      );
+      const comp = createComponent({ generalConfig: null });
+
+      comp.ngOnInit();
+
+      expect(comp.exportList.length).toBe(4);
+      expect(comp.generalConfig).toBeNull();
+    });
+  });
 });

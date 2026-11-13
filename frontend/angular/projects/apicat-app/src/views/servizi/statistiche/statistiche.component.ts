@@ -22,6 +22,9 @@ import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms
 import { CommonModule } from '@angular/common';
 import { HttpHeaders, HttpParams, HttpResponse } from '@angular/common/http';
 
+import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+
 import { TranslateService } from '@ngx-translate/core';
 import { BsDatepickerConfig, BsDatepickerDirective } from 'ngx-bootstrap/datepicker';
 
@@ -395,11 +398,7 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
 
     this.config = this.configService.getConfiguration();
 
-    const allowedExportTypes: string[] = this.generalConfig?.monitoraggio?.statistiche?.formati_report || [];
-    const filteredExportList = allowedExportTypes.length
-        ? this.exportListDefault.filter(el => allowedExportTypes.includes(el.action.split('export-')[1]))
-        : this.exportListDefault;
-    this.exportList = [ ...filteredExportList ];
+    this._initExportList();
 
     const _state = this.router.getCurrentNavigation()?.extras.state;
     this.service = _state?.service || null;
@@ -416,11 +415,42 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
     });
   }
 
+  private _initExportList() {
+    const allowedExportTypes: string[] = this.generalConfig?.monitoraggio?.statistiche?.formati_report || [];
+    const filteredExportList = allowedExportTypes.length
+        ? this.exportListDefault.filter(el => allowedExportTypes.includes(el.action.split('export-')[1]))
+        : this.exportListDefault;
+    this.exportList = [ ...filteredExportList ];
+  }
+
+  /**
+   * Dopo un refresh della pagina la configurazione remota può non essere ancora disponibile alla
+   * creazione del componente: la si recupera e si riapplicano i filtri di formati e tipi di distribuzione.
+   */
+  private _caricaConfigurazione() {
+    if (this.generalConfig) { return; }
+    const _config$: Observable<any> = Tools.Configurazione
+      ? of(Tools.Configurazione)
+      : this.apiService.getList('configurazione').pipe(catchError(() => of(null)));
+    _config$.subscribe((config: any) => {
+      if (!config) { return; }
+      this.generalConfig = config;
+      this._initExportList();
+      this.setupAdesioneField(this._formGroup.get('api')?.value);
+      const distributionType: DistributionType = this._formGroup.get('distribution_type')?.value;
+      if (distributionType && !this.distributionTypes.some((dt) => dt.code === distributionType.code)) {
+        this._formGroup.get('distribution_type')?.setValue(null);
+      }
+    });
+  }
+
   @HostListener('window:resize') _onResize() {
     this.desktop = (window.innerWidth >= 992);
   }
 
   ngOnInit() {
+    this._caricaConfigurazione();
+
     this.route.params.subscribe(params => {
       if (params['id']) {
         this.id = params['id'];
