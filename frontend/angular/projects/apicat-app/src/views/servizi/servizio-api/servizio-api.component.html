@@ -61,8 +61,8 @@
         <div class="nav-controls align-self-center d-flex">
           <div class="gl-w-full btn-group-">
             @if ((_updateMapper | mapper:_canAddMapper)) {
-              <button aria-label="Add service" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
-                <i class="bi bi-plus-lg"></i><span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddApi' | translate }}</span>
+              <button type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i><span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddApi' | translate }}</span>
               </button>
             }
           </div>

@@ -50,6 +50,8 @@ export class LnkAvatarComponent {
   readonly round = input<boolean>(true);
   /** Testo alt per accessibilita`. Se assente -> derivato da name/email. */
   readonly alt = input<string>('');
+  /** Solo decorativo (es. dentro un pulsante con il proprio nome): nascosto agli screen reader. */
+  readonly decorative = input<boolean>(false);
 
   /** Iniziali da mostrare. */
   protected readonly _initials = computed<string>(() => {

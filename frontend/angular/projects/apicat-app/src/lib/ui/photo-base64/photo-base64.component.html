@@ -16,9 +16,9 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
-<form>
+<div class="photo-base64">
   <div class="form-group-">
-    <fieldset class="form-group-">
+    <div class="form-group-">
       @if (imageError) {
         <div class="alert alert-danger mb-1">{{imageError}}</div>
       }
@@ -38,9 +38,9 @@
           <input type="file" [accept]="fileTypes.join(',')" (change)="fileChangeEvent($event)" class="fileInputProfile" [attr.aria-label]="uploadLabel">
         </div>
       </div>
-    </fieldset>
+    </div>
   </div>
   @if (isImageSaved) {
-    <button class="btn btn-sm btn-danger mt-2" (click)="removeImage()">{{ removeLabel }}</button>
+    <button type="button" class="btn btn-sm btn-danger mt-2" (click)="removeImage()">{{ removeLabel }}</button>
   }
-</form>
+</div>

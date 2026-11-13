@@ -20,7 +20,7 @@
 .ss-vuoto {
   margin: 0;
   font-size: 0.875rem;
-  color: var(--ink-3, #57738a);
+  color: var(--ink-3, #506a80);
 }
 
 // Linea del tempo: un punto per ogni cambio di stato
@@ -56,7 +56,7 @@
     height: 10px;
     border-radius: 50%;
     background: var(--surface, #fff);
-    border: 2px solid var(--ink-3, #57738a);
+    border: 2px solid var(--ink-3, #506a80);
   }
 
   &:first-child::before {
@@ -72,7 +72,7 @@
   gap: 2px 12px;
   margin-bottom: 6px;
   font-size: 0.8125rem;
-  color: var(--ink-3, #57738a);
+  color: var(--ink-3, #506a80);
 
   time { font-weight: 600; color: var(--ink, #212c49); }
 }
@@ -85,7 +85,7 @@
   align-items: center;
   gap: 6px 8px;
 
-  > i { color: var(--ink-3, #57738a); }
+  > i { color: var(--ink-3, #506a80); }
 }
 
 .ss-stato,
@@ -104,13 +104,13 @@
 
 .ss-creazione {
   border: 1px dashed var(--line-strong, #c4d6e0);
-  color: var(--ink-3, #57738a);
+  color: var(--ink-3, #506a80);
 }
 
 .ss-caricamento {
   padding: 12px 0 0;
   font-size: 12.5px;
-  color: var(--ink-3, #57738a);
+  color: var(--ink-3, #506a80);
 }
 
 .ss-sentinella { height: 1px; }

@@ -953,6 +953,10 @@
 			"LogoFormatHint": "Nel catalogo il logo è mostrato in formato 16:9: le parti scurite nell'anteprima restano fuori. Usa un'immagine orizzontale, ad esempio 1280×720.",
 			"ImpostatoDalDominio": "Impostato dal dominio",
 			"SkipToContent": "Salta al contenuto",
+			"MainMenu": "Menu principale",
+			"ServiceInfo": "Informazioni sul servizio",
+			"SubscriptionInfo": "Informazioni sull'adesione",
+			"UserMenu": "Menu utente ({{utente}})",
 			"UrlEsposizione": "Url di esposizione",
 			"RemoveFilter": "Rimuovi filtro",
 			"SelectRow": "Seleziona elemento",
@@ -2649,6 +2653,7 @@
 		},
 		"SEARCH": {
 			"ClearRecentSearches": "Cancella le ricerche recenti",
+			"SearchFilters": "Ricerca e filtri",
 			"NoRecentSearches": "Non hai ricerche recenti",
 			"RecentSearches": "Ricerche recenti",
 			"View": "Vista"

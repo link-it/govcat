@@ -276,7 +276,7 @@
                               <span class="referent-role-tag">{{ ('APP.ROLE.' + ref.tipo) | translate }}</span>
                             }
                             @if (canAddReferente()) {
-                              <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Remove' | translate" [tooltip]="'APP.BUTTON.Remove' | translate" container="body" (click)="confirmDeleteReferente(ref)">
+                              <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Remove' | translate" [tooltip]="'APP.BUTTON.Remove' | translate" container="#main-content" (click)="confirmDeleteReferente(ref)">
                                 <i class="bi bi-trash text-danger"></i>
                               </button>
                             }
@@ -365,14 +365,14 @@
                           @if (all.visibilita_allegato) { <span class="ms-2">{{ ('APP.VISIBILITY.' + all.visibilita_allegato) | translate }}</span> }
                         </div>
                       </div>
-                      <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [disabled]="_downloadings[i]" [attr.aria-label]="'APP.BUTTON.Download' | translate" [tooltip]="'APP.BUTTON.Download' | translate" container="body" (click)="downloadAllegato(all, i)">
+                      <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [disabled]="_downloadings[i]" [attr.aria-label]="'APP.BUTTON.Download' | translate" [tooltip]="'APP.BUTTON.Download' | translate" container="#main-content" (click)="downloadAllegato(all, i)">
                         @if (_downloadings[i]) { <span class="spinner-border spinner-border-sm"></span> } @else { <i class="bi bi-download"></i> }
                       </button>
                       @if (canEditAllegato()) {
-                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.TOOLTIP.Edit' | translate" [tooltip]="'APP.TOOLTIP.Edit' | translate" container="body" (click)="openAllegatoDialog(all)">
+                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.TOOLTIP.Edit' | translate" [tooltip]="'APP.TOOLTIP.Edit' | translate" container="#main-content" (click)="openAllegatoDialog(all)">
                           <i class="bi bi-pencil"></i>
                         </button>
-                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Remove' | translate" [tooltip]="'APP.BUTTON.Remove' | translate" container="body" (click)="confirmDeleteAllegato(all)">
+                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Remove' | translate" [tooltip]="'APP.BUTTON.Remove' | translate" container="#main-content" (click)="confirmDeleteAllegato(all)">
                           <i class="bi bi-trash text-danger"></i>
                         </button>
                       }
@@ -422,7 +422,7 @@
                         @if (g.descrizione_sintetica) { <div class="when text-break">{{ g.descrizione_sintetica }}</div> }
                       </div>
                       @if (canManageGruppi()) {
-                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Remove' | translate" [tooltip]="'APP.BUTTON.Remove' | translate" container="body" (click)="confirmDeleteGruppo(g)">
+                        <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Remove' | translate" [tooltip]="'APP.BUTTON.Remove' | translate" container="#main-content" (click)="confirmDeleteGruppo(g)">
                           <i class="bi bi-trash text-danger"></i>
                         </button>
                       }
@@ -561,7 +561,7 @@
                             } @else {
                               <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon"
                                       [attr.aria-label]="(isRowView ? 'APP.BUTTON.Close' : 'APP.BUTTON.Show') | translate"
-                                      [tooltip]="(isRowView ? 'APP.BUTTON.Close' : 'APP.BUTTON.Show') | translate" container="body"
+                                      [tooltip]="(isRowView ? 'APP.BUTTON.Close' : 'APP.BUTTON.Show') | translate" container="#main-content"
                                       (click)="isRowView ? closeApiSettings() : openApiSettingsView(api)">
                                 <i class="bi" [class.bi-x-lg]="isRowView" [class.bi-eye]="!isRowView"></i>
                               </button>
@@ -571,7 +571,7 @@
                                       [class.is-active]="_apiAllegatiOpenId === api.id_api"
                                       [attr.aria-label]="'APP.SERVICES.TITLE.Attachments' | translate"
                                       [attr.aria-pressed]="_apiAllegatiOpenId === api.id_api"
-                                      [tooltip]="'APP.SERVICES.TITLE.Attachments' | translate" container="body"
+                                      [tooltip]="'APP.SERVICES.TITLE.Attachments' | translate" container="#main-content"
                                       (click)="toggleApiAllegati(api)">
                                 <i class="bi bi-paperclip"></i>
                                 @if (_apiAllegatiCount[api.id_api]) {
@@ -584,7 +584,7 @@
                             @if (canEditApi() && !isRowOpen) {
                               <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon"
                                       [attr.aria-label]="'APP.SERVICES.WIZARD.EditApiGeneralInfo' | translate"
-                                      [tooltip]="'APP.SERVICES.WIZARD.EditApiGeneralInfo' | translate" container="body"
+                                      [tooltip]="'APP.SERVICES.WIZARD.EditApiGeneralInfo' | translate" container="#main-content"
                                       (click)="openApiInfo(api)">
                                 <i class="bi bi-pencil"></i>
                               </button>
@@ -592,7 +592,7 @@
                             @if (canDeleteApi() && !isRowOpen) {
                               <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon"
                                       [attr.aria-label]="'APP.BUTTON.Remove' | translate"
-                                      [tooltip]="'APP.BUTTON.Remove' | translate" container="body"
+                                      [tooltip]="'APP.BUTTON.Remove' | translate" container="#main-content"
                                       (click)="confirmDeleteApi(api)">
                                 <i class="bi bi-trash text-danger"></i>
                               </button>
@@ -651,11 +651,11 @@
                                       @if (all.visibilita_allegato) { <span class="ms-2">{{ ('APP.VISIBILITY.' + all.visibilita_allegato) | translate }}</span> }
                                     </div>
                                   </div>
-                                  <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [disabled]="_apiAllegatiDownloadings[i]" [attr.aria-label]="'APP.BUTTON.Download' | translate" [tooltip]="'APP.BUTTON.Download' | translate" container="body" (click)="downloadApiAllegato(api, all, i)">
+                                  <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [disabled]="_apiAllegatiDownloadings[i]" [attr.aria-label]="'APP.BUTTON.Download' | translate" [tooltip]="'APP.BUTTON.Download' | translate" container="#main-content" (click)="downloadApiAllegato(api, all, i)">
                                     @if (_apiAllegatiDownloadings[i]) { <span class="spinner-border spinner-border-sm"></span> } @else { <i class="bi bi-download"></i> }
                                   </button>
                                   @if (canEditApi()) {
-                                    <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Remove' | translate" [tooltip]="'APP.BUTTON.Remove' | translate" container="body" (click)="confirmDeleteApiAllegato(api, all)">
+                                    <button type="button" class="lnk-btn lnk-btn-ghost lnk-btn-icon" [attr.aria-label]="'APP.BUTTON.Remove' | translate" [tooltip]="'APP.BUTTON.Remove' | translate" container="#main-content" (click)="confirmDeleteApiAllegato(api, all)">
                                       <i class="bi bi-trash text-danger"></i>
                                     </button>
                                   }

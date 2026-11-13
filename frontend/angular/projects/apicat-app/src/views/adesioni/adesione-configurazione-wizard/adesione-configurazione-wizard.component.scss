@@ -209,7 +209,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
   --ink:          #212c49;
   --ink-2:        #2e445a;
-  --ink-3:        #57738a;
+  --ink-3:        #506a80;
   --ink-4:        #8aa4b8;
 
   // --accent / --accent-hover: ereditati da :root (variabile del tema nel
@@ -852,7 +852,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   }
   .approval-card .av {
     width: 32px; height: 32px; border-radius: 50%;
-    background: linear-gradient(135deg, #ff8a93, var(--accent));
+    // Gradiente scuro: iniziali bianche ad almeno 4,5:1
+    background: linear-gradient(135deg, #d6283a, #b71c2c);
     display: grid; place-items: center; color: white;
     font-size: 12px; font-weight: 600; flex-shrink: 0;
   }

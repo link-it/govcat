@@ -36,8 +36,8 @@
       @if (!_spin) {
         <div class="gl-w-full btn-group- position-relative">
           <ng-template [appHasPermission]="'classi-utente'" [action]="'create'">
-            <button aria-label="Add payment" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
-              <span class="material-icons-outlined">add</span> <span class="ms-2">{{ 'APP.BUTTON.AddUserClass' | translate }}</span>
+            <button type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
+              <span class="material-icons-outlined" aria-hidden="true">add</span> <span class="ms-2">{{ 'APP.BUTTON.AddUserClass' | translate }}</span>
             </button>
           </ng-template>
         </div>

@@ -205,16 +205,16 @@
               </div>
 
               <div class="form-group deprecato mb-0">
-                <label class="label-bold" for="deprecato">{{ 'APP.DOMINI.LABEL.Deprecato' | translate }}</label>
+                <span class="label-bold label-checkbox" aria-hidden="true">{{ 'APP.DOMINI.LABEL.Deprecato' | translate }}</span>
                 @if (_isEdit) {
                   <div class="gl-form-checkbox custom-control custom-checkbox">
-                    <input #chk_deprecato class="custom-control-input" type="checkbox" name="deprecato" id="deprecato" formControlName="deprecato">
-                    <label class="custom-control-label" aria-hidden="true" (click)="chk_deprecato.click()"></label>
+                    <input class="custom-control-input" type="checkbox" name="deprecato" id="deprecato" formControlName="deprecato">
+                    <label class="custom-control-label" for="deprecato"><span class="visually-hidden">{{ 'APP.DOMINI.LABEL.Deprecato' | translate }}</span></label>
                   </div>
                 } @else {
                   <div class="gl-form-checkbox custom-control custom-checkbox">
                     <input class="custom-control-input" type="checkbox" id="deprecato" [checked]="dominio.deprecato" disabled>
-                    <label class="custom-control-label" aria-hidden="true"></label>
+                    <label class="custom-control-label" for="deprecato"><span class="visually-hidden">{{ 'APP.DOMINI.LABEL.Deprecato' | translate }}</span></label>
                   </div>
                 }
                 @if (_isEdit) { <ui-input-help field="deprecato" context="SOGGETTI"></ui-input-help> }
@@ -334,48 +334,48 @@
             </header>
             <div class="lnk-phase-section-body">
               <div class="form-group skip_collaudo">
-                <label class="label-bold" for="skip_collaudo">{{ 'APP.DOMINI.LABEL.SkipCollaudo' | translate }}</label>
+                <span class="label-bold label-checkbox" aria-hidden="true">{{ 'APP.DOMINI.LABEL.SkipCollaudo' | translate }}</span>
                 @if (_isEdit) {
                   <div class="gl-form-checkbox custom-control custom-checkbox">
-                    <input #chk_skip_collaudo class="custom-control-input" type="checkbox" name="skip_collaudo" id="skip_collaudo" formControlName="skip_collaudo">
-                    <label class="custom-control-label" aria-hidden="true" (click)="chk_skip_collaudo.click()"></label>
+                    <input class="custom-control-input" type="checkbox" name="skip_collaudo" id="skip_collaudo" formControlName="skip_collaudo">
+                    <label class="custom-control-label" for="skip_collaudo"><span class="visually-hidden">{{ 'APP.DOMINI.LABEL.SkipCollaudo' | translate }}</span></label>
                   </div>
                 } @else {
                   <div class="gl-form-checkbox custom-control custom-checkbox">
                     <input class="custom-control-input" type="checkbox" id="skip_collaudo" [checked]="dominio.skip_collaudo" disabled>
-                    <label class="custom-control-label" aria-hidden="true"></label>
+                    <label class="custom-control-label" for="skip_collaudo"><span class="visually-hidden">{{ 'APP.DOMINI.LABEL.SkipCollaudo' | translate }}</span></label>
                   </div>
                 }
                 @if (_isEdit) { <ui-input-help field="skip_collaudo" context="SOGGETTI"></ui-input-help> }
               </div>
 
               <div class="form-group multi_adesione" [class.mb-0]="!_consentiNonSottoscrivibile">
-                <label class="label-bold" for="multi_adesione">{{ 'APP.LABEL.multi_adesione' | translate }}</label>
+                <span class="label-bold label-checkbox" aria-hidden="true">{{ 'APP.LABEL.multi_adesione' | translate }}</span>
                 @if (_isEdit) {
                   <div class="gl-form-checkbox custom-control custom-checkbox">
-                    <input #chk_multi_adesione class="custom-control-input" type="checkbox" name="multi_adesione" id="multi_adesione" formControlName="multi_adesione">
-                    <label class="custom-control-label" aria-hidden="true" (click)="chk_multi_adesione.click()"></label>
+                    <input class="custom-control-input" type="checkbox" name="multi_adesione" id="multi_adesione" formControlName="multi_adesione">
+                    <label class="custom-control-label" for="multi_adesione"><span class="visually-hidden">{{ 'APP.LABEL.multi_adesione' | translate }}</span></label>
                   </div>
                 } @else {
                   <div class="gl-form-checkbox custom-control custom-checkbox">
                     <input class="custom-control-input" type="checkbox" id="multi_adesione" [checked]="dominio.multi_adesione" disabled>
-                    <label class="custom-control-label" aria-hidden="true"></label>
+                    <label class="custom-control-label" for="multi_adesione"><span class="visually-hidden">{{ 'APP.LABEL.multi_adesione' | translate }}</span></label>
                   </div>
                 }
               </div>
 
               @if (_consentiNonSottoscrivibile) {
                 <div class="form-group adesione_disabilitata mb-0">
-                  <label class="label-bold" for="adesione_disabilitata">{{ 'APP.LABEL.DisabilitaAdesione' | translate }}</label>
+                  <span class="label-bold label-checkbox" aria-hidden="true">{{ 'APP.LABEL.DisabilitaAdesione' | translate }}</span>
                   @if (_isEdit) {
                     <div class="gl-form-checkbox custom-control custom-checkbox">
-                      <input #chk_adesione_disabilitata class="custom-control-input" type="checkbox" name="adesione_disabilitata" id="adesione_disabilitata" formControlName="adesione_disabilitata">
-                      <label class="custom-control-label" aria-hidden="true" (click)="chk_adesione_disabilitata.click()"></label>
+                      <input class="custom-control-input" type="checkbox" name="adesione_disabilitata" id="adesione_disabilitata" formControlName="adesione_disabilitata">
+                      <label class="custom-control-label" for="adesione_disabilitata"><span class="visually-hidden">{{ 'APP.LABEL.DisabilitaAdesione' | translate }}</span></label>
                     </div>
                   } @else {
                     <div class="gl-form-checkbox custom-control custom-checkbox">
                       <input class="custom-control-input" type="checkbox" id="adesione_disabilitata" [checked]="dominio.adesione_disabilitata" disabled>
-                      <label class="custom-control-label" aria-hidden="true"></label>
+                      <label class="custom-control-label" for="adesione_disabilitata"><span class="visually-hidden">{{ 'APP.LABEL.DisabilitaAdesione' | translate }}</span></label>
                     </div>
                   }
                 </div>

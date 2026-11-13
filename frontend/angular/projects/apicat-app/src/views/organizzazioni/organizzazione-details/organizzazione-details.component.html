@@ -214,46 +214,46 @@
             </header>
             <div class="lnk-phase-section-body">
               <div class="form-group referente">
-                <label class="label-bold" for="referente">{{ 'APP.ORGANIZATIONS.LABEL.Referente' | translate }}</label>
+                <span class="label-bold label-checkbox" aria-hidden="true">{{ 'APP.ORGANIZATIONS.LABEL.Referente' | translate }}</span>
                 @if (_isEdit) {
                   <div class="gl-form-checkbox custom-control custom-checkbox">
-                    <input #chk_referente class="custom-control-input" type="checkbox" name="referente" id="referente" [checked]="f['referente'].value" [disabled]="(organizzazione?.vincola_referente && organizzazione.referente) || f['intermediata'].value" (change)="_toggleReferente()">
-                    <label class="custom-control-label" aria-hidden="true" (click)="chk_referente.click()"></label>
+                    <input class="custom-control-input" type="checkbox" name="referente" id="referente" [checked]="f['referente'].value" [disabled]="(organizzazione?.vincola_referente && organizzazione.referente) || f['intermediata'].value" (change)="_toggleReferente()">
+                    <label class="custom-control-label" for="referente"><span class="visually-hidden">{{ 'APP.ORGANIZATIONS.LABEL.Referente' | translate }}</span></label>
                   </div>
                 } @else {
                   <div class="gl-form-checkbox custom-control custom-checkbox">
                     <input class="custom-control-input" type="checkbox" id="referente" [checked]="organizzazione.referente" disabled>
-                    <label class="custom-control-label" aria-hidden="true"></label>
+                    <label class="custom-control-label" for="referente"><span class="visually-hidden">{{ 'APP.ORGANIZATIONS.LABEL.Referente' | translate }}</span></label>
                   </div>
                 }
               </div>
 
               <div class="form-group aderente">
-                <label class="label-bold" for="aderente">{{ 'APP.ORGANIZATIONS.LABEL.Aderente' | translate }}</label>
+                <span class="label-bold label-checkbox" aria-hidden="true">{{ 'APP.ORGANIZATIONS.LABEL.Aderente' | translate }}</span>
                 @if (_isEdit) {
                   <div class="gl-form-checkbox custom-control custom-checkbox">
-                    <input #chk_aderente class="custom-control-input" type="checkbox" name="aderente" id="aderente" [checked]="f['aderente'].value" [disabled]="(organizzazione?.vincola_aderente && organizzazione.aderente) || f['intermediata'].value" (change)="_toggleAderente()">
-                    <label class="custom-control-label" aria-hidden="true" (click)="chk_aderente.click()"></label>
+                    <input class="custom-control-input" type="checkbox" name="aderente" id="aderente" [checked]="f['aderente'].value" [disabled]="(organizzazione?.vincola_aderente && organizzazione.aderente) || f['intermediata'].value" (change)="_toggleAderente()">
+                    <label class="custom-control-label" for="aderente"><span class="visually-hidden">{{ 'APP.ORGANIZATIONS.LABEL.Aderente' | translate }}</span></label>
                   </div>
                 } @else {
                   <div class="gl-form-checkbox custom-control custom-checkbox">
                     <input class="custom-control-input" type="checkbox" id="aderente" [checked]="organizzazione.aderente" disabled>
-                    <label class="custom-control-label" aria-hidden="true"></label>
+                    <label class="custom-control-label" for="aderente"><span class="visually-hidden">{{ 'APP.ORGANIZATIONS.LABEL.Aderente' | translate }}</span></label>
                   </div>
                 }
               </div>
 
               <div class="form-group intermediata">
-                <label class="label-bold" for="intermediata">{{ 'APP.ORGANIZATIONS.LABEL.Intermediata' | translate }}</label>
+                <span class="label-bold label-checkbox" aria-hidden="true">{{ 'APP.ORGANIZATIONS.LABEL.Intermediata' | translate }}</span>
                 @if (_isEdit) {
                   <div class="gl-form-checkbox custom-control custom-checkbox">
-                    <input #chk_intermediata class="custom-control-input" type="checkbox" name="intermediata" id="intermediata" [checked]="f['intermediata'].value" [disabled]="!organizzazione?.cambio_intermediata_consentito && !_isNew" (change)="_toggleIntermediata()">
-                    <label class="custom-control-label" aria-hidden="true" (click)="chk_intermediata.click()"></label>
+                    <input class="custom-control-input" type="checkbox" name="intermediata" id="intermediata" [checked]="f['intermediata'].value" [disabled]="!organizzazione?.cambio_intermediata_consentito && !_isNew" (change)="_toggleIntermediata()">
+                    <label class="custom-control-label" for="intermediata"><span class="visually-hidden">{{ 'APP.ORGANIZATIONS.LABEL.Intermediata' | translate }}</span></label>
                   </div>
                 } @else {
                   <div class="gl-form-checkbox custom-control custom-checkbox">
                     <input class="custom-control-input" type="checkbox" id="intermediata" [checked]="organizzazione.intermediata" disabled>
-                    <label class="custom-control-label" aria-hidden="true"></label>
+                    <label class="custom-control-label" for="intermediata"><span class="visually-hidden">{{ 'APP.ORGANIZATIONS.LABEL.Intermediata' | translate }}</span></label>
                   </div>
                 }
               </div>

@@ -9,6 +9,12 @@
 	  solo le adesioni dell'organizzazione corrente, non quelle di altre organizzazioni visibili
 	  a gestore e referenti; le adesioni archiviate non fanno più comparire il messaggio.
 
+	Accessibilità (D13): corretti i difetti rilevati dalla verifica automatica con gov-a11y
+	  (axe-core e IBM Equal Access): etichette delle checkbox e dei campi in sola lettura, nomi
+	  accessibili di menu, aside e pulsanti, gerarchia dei titoli nel wizard, contrasto del testo
+	  secondario, delle card della dashboard e degli avatar; sfondo delle modali reso solo inert;
+	  tooltip del wizard dei servizi contenuti nel landmark principale.
+
 2026-11-12  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

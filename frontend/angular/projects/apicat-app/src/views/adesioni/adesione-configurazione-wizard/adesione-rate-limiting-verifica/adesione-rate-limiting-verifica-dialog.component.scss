@@ -58,7 +58,7 @@
 .vr-desc {
   margin: 0 0 12px;
   font-size: 0.8125rem;
-  color: var(--ink-3, #57738a);
+  color: var(--ink-3, #506a80);
 }
 
 .vr-tabs {
@@ -86,7 +86,7 @@ section.vr-api {
     font-family: 'JetBrains Mono', ui-monospace, monospace;
     font-size: 0.75rem;
     font-weight: 500;
-    color: var(--ink-3, #57738a);
+    color: var(--ink-3, #506a80);
     background: var(--surface-3, #eef4f8);
     padding: 1px 6px;
     border-radius: 4px;
@@ -125,7 +125,7 @@ section.vr-api {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: .06em;
-  color: var(--ink-3, #57738a);
+  color: var(--ink-3, #506a80);
 }
 
 .vr-chip {
@@ -152,7 +152,7 @@ section.vr-api {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: .06em;
-    color: var(--ink-3, #57738a);
+    color: var(--ink-3, #506a80);
   }
 
   dd {
@@ -167,7 +167,7 @@ section.vr-api {
   display: block;
   font-size: 12px;
   font-weight: 400;
-  color: var(--ink-3, #57738a);
+  color: var(--ink-3, #506a80);
 }
 
 .vr-sfora { color: var(--warn-ink, #8a4b00); }
@@ -175,7 +175,7 @@ section.vr-api {
 .vr-attesa {
   margin: 0;
   font-size: 12px;
-  color: var(--ink-3, #57738a);
+  color: var(--ink-3, #506a80);
 
   i { margin-right: 4px; }
 }

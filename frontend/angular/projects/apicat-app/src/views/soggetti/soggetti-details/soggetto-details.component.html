@@ -194,47 +194,47 @@
             <div class="lnk-phase-section-body">
               @if (_showAderente) {
               <div class="form-group aderente">
-                <label class="label-bold" for="aderente">{{ 'APP.SOGGETTI.LABEL.Aderente' | translate }}</label>
+                <span class="label-bold label-checkbox" aria-hidden="true">{{ 'APP.SOGGETTI.LABEL.Aderente' | translate }}</span>
                 @if (_isEdit) {
                   <div class="gl-form-checkbox custom-control custom-checkbox">
-                    <input #chk_aderente class="custom-control-input" type="checkbox" name="aderente" id="aderente" formControlName="aderente">
-                    <label class="custom-control-label" aria-hidden="true" (click)="chk_aderente.click()"></label>
+                    <input class="custom-control-input" type="checkbox" name="aderente" id="aderente" formControlName="aderente">
+                    <label class="custom-control-label" for="aderente"><span class="visually-hidden">{{ 'APP.SOGGETTI.LABEL.Aderente' | translate }}</span></label>
                   </div>
                 } @else {
                   <div class="gl-form-checkbox custom-control custom-checkbox">
                     <input class="custom-control-input" type="checkbox" id="aderente" [checked]="soggetto.aderente" disabled>
-                    <label class="custom-control-label" aria-hidden="true"></label>
+                    <label class="custom-control-label" for="aderente"><span class="visually-hidden">{{ 'APP.SOGGETTI.LABEL.Aderente' | translate }}</span></label>
                   </div>
                 }
               </div>
               }
               @if (_showReferente) {
               <div class="form-group referente">
-                <label class="label-bold" for="referente">{{ 'APP.SOGGETTI.LABEL.Referente' | translate }}</label>
+                <span class="label-bold label-checkbox" aria-hidden="true">{{ 'APP.SOGGETTI.LABEL.Referente' | translate }}</span>
                 @if (_isEdit) {
                   <div class="gl-form-checkbox custom-control custom-checkbox">
-                    <input #chk_referente class="custom-control-input" type="checkbox" name="referente" id="referente" formControlName="referente">
-                    <label class="custom-control-label" aria-hidden="true" (click)="chk_referente.click()"></label>
+                    <input class="custom-control-input" type="checkbox" name="referente" id="referente" formControlName="referente">
+                    <label class="custom-control-label" for="referente"><span class="visually-hidden">{{ 'APP.SOGGETTI.LABEL.Referente' | translate }}</span></label>
                   </div>
                 } @else {
                   <div class="gl-form-checkbox custom-control custom-checkbox">
                     <input class="custom-control-input" type="checkbox" id="referente" [checked]="soggetto.referente" disabled>
-                    <label class="custom-control-label" aria-hidden="true"></label>
+                    <label class="custom-control-label" for="referente"><span class="visually-hidden">{{ 'APP.SOGGETTI.LABEL.Referente' | translate }}</span></label>
                   </div>
                 }
               </div>
               }
               <div class="form-group skip_collaudo mb-0">
-                <label class="label-bold" for="skip_collaudo">{{ 'APP.SOGGETTI.LABEL.SkipCollaudo' | translate }}</label>
+                <span class="label-bold label-checkbox" aria-hidden="true">{{ 'APP.SOGGETTI.LABEL.SkipCollaudo' | translate }}</span>
                 @if (_isEdit) {
                   <div class="gl-form-checkbox custom-control custom-checkbox">
-                    <input #chk_skip_collaudo class="custom-control-input" type="checkbox" name="skip_collaudo" id="skip_collaudo" formControlName="skip_collaudo">
-                    <label class="custom-control-label" aria-hidden="true" (click)="chk_skip_collaudo.click()"></label>
+                    <input class="custom-control-input" type="checkbox" name="skip_collaudo" id="skip_collaudo" formControlName="skip_collaudo">
+                    <label class="custom-control-label" for="skip_collaudo"><span class="visually-hidden">{{ 'APP.SOGGETTI.LABEL.SkipCollaudo' | translate }}</span></label>
                   </div>
                 } @else {
                   <div class="gl-form-checkbox custom-control custom-checkbox">
                     <input class="custom-control-input" type="checkbox" id="skip_collaudo" [checked]="soggetto.skip_collaudo" disabled>
-                    <label class="custom-control-label" aria-hidden="true"></label>
+                    <label class="custom-control-label" for="skip_collaudo"><span class="visually-hidden">{{ 'APP.SOGGETTI.LABEL.SkipCollaudo' | translate }}</span></label>
                   </div>
                 }
               </div>

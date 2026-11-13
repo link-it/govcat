@@ -31,6 +31,12 @@ label.label-bold {
   font-weight: 600;
 }
 
+// Titolo sopra una checkbox: la label associata al campo è quella dopo la casella
+.label-checkbox {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+}
+
 .label {
   display: inline-block;
   margin-bottom: 0.5rem;

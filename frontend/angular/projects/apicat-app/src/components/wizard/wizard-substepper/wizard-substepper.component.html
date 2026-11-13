@@ -25,6 +25,7 @@
            [class.is-done]="sub.state === 'completed'"
            [class.is-active]="sub.state === 'active'"
            [class.is-locked]="sub.state === 'locked'">
+        <span class="tl-line" aria-hidden="true"></span>
         <div class="tl-bullet">
           @switch (sub.state) {
             @case ('completed') { <i class="bi bi-check-lg"></i> }

@@ -135,7 +135,7 @@
         <!-- Layout 2-col: sidebar Referenti + main Configurazione. -->
         <div class="layout">
           @if (_showReferents) {
-            <aside>
+            <aside [attr.aria-label]="'APP.LABEL.SubscriptionInfo' | translate">
               <div class="card card-pad-tight">
                 <div class="section-title">
                   <span>{{ 'APP.TITLE.ServiceReferents' | translate }}</span>

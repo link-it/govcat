@@ -641,7 +641,7 @@
                                   @if (_isEdit && !_campiBloccati) {
                                     <div class="">
                                       @if (cp.tipo === 'text') {
-                                        <input autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp.nome_gruppo, cp.nome)" [type]="cp.type" [name]="cp.nome" [id]="cp.nome" [formControlName]="cp.nome" disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant" [attr.aria-describedby]="cp._req?.nextState ? cp.nome + '-req-hint' : null">
+                                        <input autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp.nome_gruppo, cp.nome)" [type]="cp.type || 'text'" [name]="cp.nome" [id]="cp.nome" [formControlName]="cp.nome" disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant" [attr.aria-describedby]="cp._req?.nextState ? cp.nome + '-req-hint' : null">
                                       }
                                       @if (cp.tipo === 'select') {
                                         <ng-select [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp.nome_gruppo, cp.nome)"

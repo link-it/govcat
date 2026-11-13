@@ -63,7 +63,7 @@
                 @for (cp of _proprietaCustomGrouped[$any(pcg.key)]; track cp) {
                   <div class="row custom-properties-fields">
                     <div formArrayName="proprieta_custom" class="col-12 form-group">
-                      <label class="label-bold" [for]="cp.nome">{{ cp.etichetta }} @if (_isEdit) {
+                      <label class="label-bold" [attr.for]="(!_isEdit || cp.tipo !== ProprietaType.File) ? cp.nome : null">{{ cp.etichetta }} @if (_isEdit) {
                         <span appMarkAsterisk [formGroup]="cfg()" [controlName]="cp.nome"></span>
                         @if (cp._req?.nextState) {
                           <span aria-hidden="true">*</span>
@@ -75,7 +75,7 @@
                       @if (_isEdit) {
                         <div class="">
                           @if (cp.tipo === ProprietaType.Text) {
-                            <input autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlCustomPropertiesError(cp.nome)" [type]="cp.type" [name]="cp.nome" [id]="cp.nome" [formControlName]="cp.nome" [attr.aria-describedby]="cp._req?.nextState ? cp.nome + '-req-hint' : null">
+                            <input autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlCustomPropertiesError(cp.nome)" [type]="cp.type || 'text'" [name]="cp.nome" [id]="cp.nome" [formControlName]="cp.nome" [attr.aria-describedby]="cp._req?.nextState ? cp.nome + '-req-hint' : null">
                           }
                           @if (cp.tipo === ProprietaType.Select) {
                             <select class="form-select" [id]="cp.nome" [formControlName]="cp.nome" [class.gl-field-error-outline]="_hasControlCustomPropertiesError(cp.nome)" [attr.aria-describedby]="cp._req?.nextState ? cp.nome + '-req-hint' : null">

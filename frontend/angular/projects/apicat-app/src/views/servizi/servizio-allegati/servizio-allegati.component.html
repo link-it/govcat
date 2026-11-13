@@ -50,8 +50,8 @@
   <div class="nav-controls align-self-center d-flex">
     <div class="gl-w-full btn-group-">
       @if ((_updateMapper | mapper:_canEditMapper)) {
-        <button aria-label="Add attachments" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
-          <i class="bi bi-plus-lg"></i><span class="text-nowrap ms-2">{{ (_showAllAttachments ? 'APP.SERVICES.BUTTON.AddAttachment' : 'APP.SERVICES.BUTTON.AddAttachment-' + _tipoAllegato) | translate }}</span>
+        <button type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
+          <i class="bi bi-plus-lg" aria-hidden="true"></i><span class="text-nowrap ms-2">{{ (_showAllAttachments ? 'APP.SERVICES.BUTTON.AddAttachment' : 'APP.SERVICES.BUTTON.AddAttachment-' + _tipoAllegato) | translate }}</span>
         </button>
       }
     </div>

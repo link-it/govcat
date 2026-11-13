@@ -372,7 +372,7 @@
              Su mobile la sidebar scende sotto documentazione e API. -->
         <div [class.layout]="_showAside">
           @if (_showAside) {
-            <aside>
+            <aside [attr.aria-label]="'APP.LABEL.ServiceInfo' | translate">
               @if (_showReferents) {
                 <div class="card card-pad-tight">
                   <div class="section-title">

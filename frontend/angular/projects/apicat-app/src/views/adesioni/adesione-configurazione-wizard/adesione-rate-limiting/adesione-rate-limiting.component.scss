@@ -21,7 +21,7 @@ section.adesione-config-list {
 
 .adesione-rate-limiting-icon {
   font-size: 1rem;
-  color: var(--ink-3, #57738a);
+  color: var(--ink-3, #506a80);
 }
 
 .adesione-config-list-title {
@@ -34,7 +34,7 @@ section.adesione-config-list {
 .adesione-rate-limiting-desc {
   margin: 0 0 0.25rem;
   font-size: 0.8125rem;
-  color: var(--ink-3, #57738a);
+  color: var(--ink-3, #506a80);
 }
 
 .adesione-config-list-items {
@@ -78,7 +78,7 @@ section.adesione-config-list {
     font-family: 'JetBrains Mono', ui-monospace, monospace;
     font-size: 0.75rem;
     font-weight: 500;
-    color: var(--ink-3, #57738a);
+    color: var(--ink-3, #506a80);
     background: var(--surface-3, #eef4f8);
     padding: 1px 6px;
     border-radius: 4px;
@@ -103,7 +103,7 @@ section.adesione-config-list {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: .06em;
-  color: var(--ink-3, #57738a);
+  color: var(--ink-3, #506a80);
 }
 
 .adesione-rate-limiting-valore {
@@ -114,13 +114,13 @@ section.adesione-config-list {
   &.is-vuota {
     font-size: 0.875rem;
     font-weight: 400;
-    color: var(--ink-3, #57738a);
+    color: var(--ink-3, #506a80);
   }
 }
 
 .adesione-config-list-item-meta {
   font-size: 0.75rem;
-  color: var(--ink-3, #57738a);
+  color: var(--ink-3, #506a80);
   display: flex;
   align-items: center;
   gap: 0.4rem;

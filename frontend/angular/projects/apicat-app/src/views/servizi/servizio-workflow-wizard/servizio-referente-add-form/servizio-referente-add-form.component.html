@@ -20,7 +20,7 @@
   <div class="row g-2">
     <div class="col-md-5">
       <label class="label-bold" for="tipo">{{ 'APP.LABEL.tipo' | translate }}</label>
-      <ng-select id="tipo" [items]="tipiReferente" bindValue="value" labelForId="tipo"
+      <ng-select [items]="tipiReferente" bindValue="value" labelForId="tipo"
         [clearable]="false" [searchable]="false" formControlName="tipo"
         [class.gl-field-error-outline]="_hasControlError('tipo')" (change)="onChangeTipo($event)">
         <ng-template ng-label-tmp let-item="item">{{ item.label | translate }}</ng-template>
@@ -29,7 +29,7 @@
     </div>
     <div class="col-md-7">
       <label class="label-bold" for="id_utente">{{ 'APP.LABEL.id_utente' | translate }}</label>
-      <ng-select id="id_utente" class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_utente')"
+      <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_utente')"
         [items]="(referenti$ | async) || []" [typeahead]="referentiInput$" [minTermLength]="minLengthTerm" [loading]="referentiLoading"
         [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate" [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
         bindValue="id_utente" labelForId="id_utente" [editableSearchTerm]="true" formControlName="id_utente">

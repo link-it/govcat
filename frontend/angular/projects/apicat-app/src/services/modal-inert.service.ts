@@ -25,6 +25,8 @@ import { BsModalService } from 'ngx-bootstrap/modal';
  * servizio lo screen reader può ancora raggiungere il contenuto di sfondo (WCAG 4.1.2 / 2.4.3).
  * Gestisce le modali impilate tramite un contatore: lo sfondo torna interattivo solo
  * quando l'ultima modale è chiusa.
+ * Basta l'attributo inert, che toglie lo sfondo anche dall'albero di accessibilità:
+ * aria-hidden sarebbe ridondante e fa risultare vuote le label con testo visually-hidden.
  */
 @Injectable({ providedIn: 'root' })
 export class ModalInertService {
@@ -53,7 +55,6 @@ export class ModalInertService {
       const el = this.appRoot;
       if (el) {
         el.setAttribute('inert', '');
-        el.setAttribute('aria-hidden', 'true');
       }
     }
   }
@@ -64,7 +65,6 @@ export class ModalInertService {
       const el = this.appRoot;
       if (el) {
         el.removeAttribute('inert');
-        el.removeAttribute('aria-hidden');
       }
     }
   }

@@ -473,7 +473,7 @@
                                             @if (cp.tipo === 'text') {
                                               <input autocomplete="off" class="form-control"
                                                 [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp[fieldToGroup], cp.nome)"
-                                                [type]="cp.type" [name]="cp.nome" [id]="cp.nome" [formControlName]="cp.nome" [attr.aria-describedby]="cp._req?.nextState ? cp.nome + '-req-hint' : null"
+                                                [type]="cp.type || 'text'" [name]="cp.nome" [id]="cp.nome" [formControlName]="cp.nome" [attr.aria-describedby]="cp._req?.nextState ? cp.nome + '-req-hint' : null"
                                                 disablePermission [field]="environmentId" [isNew]="_isNew" [module]="'servizio'"
                                                 [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
                                             }

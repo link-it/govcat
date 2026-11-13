@@ -19,7 +19,7 @@
 <div class="filtered-search-bar-container gl-md-display-flex gl-flex-grow-1 gl-border-t-none row-content-block {{ classBlock }}">
   @if (showSearch) {
     <div class="gl-search-box-by-click flex-grow-1 filtered-search-input">
-      <div id="form_toggle" role="group" class="input-group">
+      <div id="form_toggle" role="group" class="input-group" [attr.aria-label]="'APP.SEARCH.SearchFilters' | translate">
         @if (showHistory) {
           <div class="" [class.input-group-prepend]="showHistory">
             <div class="dropdown b-dropdown gl-new-dropdown gl-search-box-by-click-history btn-group" id="history">
