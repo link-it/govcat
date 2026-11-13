@@ -252,12 +252,12 @@
 
         @if (_adesioneDataReady) {
 
-          <!-- 1. CTA Aderisci: nessuna adesione ancora presente.
+          <!-- 1. CTA Aderisci: nessuna adesione dell'organizzazione corrente.
                   Mostrato a qualsiasi ruolo abilitato (gestore, referenti,
                   amministratore/operatore org) purche` ammissibile e con
                   permesso di creare l'adesione. -->
           @if ((_updateData | mapper:_canJoinMapper)
-               && !_hasJoined
+               && !_hasJoinedOrganizzazione
                && (_updateData | mapper:_isAmmissibileMapper)
                && (_updateData | mapper:_canCreateAdesioneMapper)) {
             <lnk-action-banner
@@ -295,7 +295,7 @@
                && !(_updateData | mapper:_isGestoreMapper)
                && !(_updateData | mapper:_isReferenteMapper)
                && !(_updateData | mapper:_isReferenteTecnicoAdesioneMapper)
-               && _hasJoined) {
+               && _hasJoinedOrganizzazione) {
             <lnk-action-banner
               icon="bi-display"
               [title]="'APP.BUTTON.GoAdesione' | translate"
@@ -308,7 +308,7 @@
           }
 
           <!-- 4. Adesione gia` esistente (info) -->
-          @if (_hasJoined && !data.multi_adesione
+          @if (_hasAdesioneAttivaOrganizzazione && !data.multi_adesione
                && !(_updateData | mapper:_isGestoreMapper)
                && !(_updateData | mapper:_isAnonymousMapper)
                && (_updateData | mapper:_canJoinMapper)) {
@@ -324,7 +324,7 @@
                && !(_updateData | mapper:_isGestoreMapper)
                && !(_updateData | mapper:_isAnonymousMapper)
                && (_updateData | mapper:_canJoinMapper)
-               && !_hasJoined) {
+               && !_hasJoinedOrganizzazione) {
             <lnk-action-banner
               icon="bi-shield-exclamation"
               [title]="'APP.MESSAGE.OrgNonAmmissibile' | translate"

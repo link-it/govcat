@@ -628,6 +628,67 @@ describe('ServizioViewComponent', () => {
       expect(component._adesioneDataReady).toBe(true);
     });
 
+    it('should keep only the adesioni of the current organization', () => {
+      component.id = 5;
+      mockAuthenticationService.getCurrentOrganization.mockReturnValue({ id_organizzazione: 'org1' });
+      mockApiService.getList.mockReturnValue(of({ content: [
+        { id_adesione: 'a1', stato: 'pubblicato_produzione', soggetto: { organizzazione: { id_organizzazione: 'org2' } } },
+        { id_adesione: 'a2', stato: 'bozza', soggetto: { organizzazione: { id_organizzazione: 'org3' } } }
+      ] }));
+      mockApiService.getDetails.mockReturnValue(of({ content: [] }));
+
+      (component as any)._loadAdesioneData();
+
+      expect(component._hasJoined).toBe(true);
+      expect(component._adesioniOrganizzazione).toEqual([]);
+      expect(component._hasJoinedOrganizzazione).toBe(false);
+      expect(component._hasAdesioneAttivaOrganizzazione).toBe(false);
+    });
+
+    it('should not count the archived adesioni of the current organization as active', () => {
+      component.id = 5;
+      Tools.Configurazione = { adesione: { workflow: { stato_archiviato: 'archiviato' } } };
+      mockAuthenticationService.getCurrentOrganization.mockReturnValue({ id_organizzazione: 'org1' });
+      mockApiService.getList.mockReturnValue(of({ content: [
+        { id_adesione: 'a1', stato: 'archiviato', soggetto: { organizzazione: { id_organizzazione: 'org1' } } }
+      ] }));
+      mockApiService.getDetails.mockReturnValue(of({ content: [] }));
+
+      (component as any)._loadAdesioneData();
+
+      expect(component._hasJoinedOrganizzazione).toBe(true);
+      expect(component._hasAdesioneAttivaOrganizzazione).toBe(false);
+    });
+
+    it('should mark an active adesione of the current organization', () => {
+      component.id = 5;
+      mockAuthenticationService.getCurrentOrganization.mockReturnValue({ id_organizzazione: 'org1' });
+      mockApiService.getList.mockReturnValue(of({ content: [
+        { id_adesione: 'a1', stato: 'bozza', soggetto: { organizzazione: { id_organizzazione: 'org1' } } },
+        { id_adesione: 'a2', stato: 'bozza', soggetto: { organizzazione: { id_organizzazione: 'org2' } } }
+      ] }));
+      mockApiService.getDetails.mockReturnValue(of({ content: [] }));
+
+      (component as any)._loadAdesioneData();
+
+      expect(component._adesioniOrganizzazione.map((a: any) => a.id_adesione)).toEqual(['a1']);
+      expect(component._hasAdesioneAttivaOrganizzazione).toBe(true);
+    });
+
+    it('should have no adesioni of the organization without a current organization', () => {
+      component.id = 5;
+      mockAuthenticationService.getCurrentOrganization.mockReturnValue(null);
+      mockApiService.getList.mockReturnValue(of({ content: [
+        { id_adesione: 'a1', stato: 'bozza', soggetto: { organizzazione: { id_organizzazione: 'org1' } } }
+      ] }));
+      mockApiService.getDetails.mockReturnValue(of({ content: [] }));
+
+      (component as any)._loadAdesioneData();
+
+      expect(component._hasJoined).toBe(true);
+      expect(component._hasJoinedOrganizzazione).toBe(false);
+    });
+
     it('should handle error', () => {
       component.id = 5;
       mockApiService.getList.mockReturnValue(throwError(() => ({ status: 500 })));
@@ -1462,6 +1523,16 @@ describe('ServizioViewComponent', () => {
       (component as any)._gotoAdesione(mockEvent);
 
       expect(mockNavigationService.navigateWithEvent).toHaveBeenCalledWith(mockEvent, ['servizi', 42, 'adesioni']);
+    });
+
+    it('should open the only adesione of the current organization, not those of other organizations', () => {
+      component.id = 42;
+      component._adesioni = [{ id_adesione: 'altra' }, { id_adesione: 'mia', stato: 'bozza' }];
+      component._adesioniOrganizzazione = [{ id_adesione: 'mia', stato: 'bozza' }];
+
+      (component as any)._gotoAdesione();
+
+      expect(mockNavigationService.navigateWithEvent).toHaveBeenCalledWith(undefined, ['servizi', 42, 'adesioni', 'mia']);
     });
   });
 

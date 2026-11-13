@@ -279,6 +279,11 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
 
     _hasJoined: boolean = false;
     _adesioni: any[] = [];
+    /** Adesioni dell'organizzazione corrente: gestore e referenti ricevono anche quelle delle altre organizzazioni. */
+    _adesioniOrganizzazione: any[] = [];
+    _hasJoinedOrganizzazione: boolean = false;
+    /** L'organizzazione corrente ha un'adesione non archiviata. */
+    _hasAdesioneAttivaOrganizzazione: boolean = false;
     _adesioneDataReady: boolean = false;
 
     _modalInfoRef!: BsModalRef;
@@ -535,6 +540,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
             next: (response: any) => {
                 this._adesioni = response.joined.content || [];
                 this._hasJoined = this._adesioni.length > 0;
+                this._initAdesioniOrganizzazione();
                 this._ammissibili = response.ammissibili.content;
                 this._adesioneDataReady = true;
                 this._updateData = Date.now().toString();
@@ -544,6 +550,16 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                 this._adesioneDataReady = true;
             }
         });
+    }
+
+    _initAdesioniOrganizzazione() {
+        const currentOrgId = this.authenticationService.getCurrentOrganization()?.id_organizzazione;
+        this._adesioniOrganizzazione = currentOrgId
+            ? this._adesioni.filter((a: any) => a.soggetto?.organizzazione?.id_organizzazione === currentOrgId)
+            : [];
+        this._hasJoinedOrganizzazione = this._adesioniOrganizzazione.length > 0;
+        const statoArchiviato = Tools.Configurazione?.adesione?.workflow?.stato_archiviato || 'archiviato';
+        this._hasAdesioneAttivaOrganizzazione = this._adesioniOrganizzazione.some((a: any) => a.stato !== statoArchiviato);
     }
 
     loadCurrentData() {
@@ -984,7 +1000,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
      *  dettaglio (view se gia` pubblicata in produzione, altrimenti la
      *  scheda modificabile); con piu` adesioni ricade sulla lista. */
     _gotoAdesione(event?: MouseEvent) {
-        const adesione = this._adesioni.length === 1 ? this._adesioni[0] : null;
+        const adesione = this._adesioniOrganizzazione.length === 1 ? this._adesioniOrganizzazione[0] : null;
         if (adesione?.id_adesione) {
             const viewMode = (adesione.stato || '').includes('pubblicato_produzione');
             const route = viewMode

@@ -5,6 +5,10 @@
 	  di esportazione restano limitati a quelli previsti dalla configurazione
 	  (monitoraggio.statistiche.tipi_distribuzione e formati_report).
 
+	Issue 443: in vetrina il messaggio di adesione già attiva e i banner di adesione considerano
+	  solo le adesioni dell'organizzazione corrente, non quelle di altre organizzazioni visibili
+	  a gestore e referenti; le adesioni archiviate non fanno più comparire il messaggio.
+
 2026-11-12  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
