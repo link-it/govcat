@@ -747,9 +747,21 @@ describe('DominioDetailsComponent', () => {
       expect(component._formGroup.get('skip_collaudo')?.enabled).toBe(true);
     });
 
-    it('should disable skip_collaudo when soggetto has skip_collaudo but dominio vincola', () => {
-      component.dominio = { vincola_skip_collaudo: true };
+    it('should disable skip_collaudo when dominio vincola and its skip_collaudo is active', () => {
+      component.dominio = { skip_collaudo: true, vincola_skip_collaudo: true };
       component._enableDisableSkipCollaudo({ skip_collaudo: true });
+      expect(component._formGroup.get('skip_collaudo')?.disabled).toBe(true);
+    });
+
+    it('should enable skip_collaudo when dominio vincola but its skip_collaudo is off', () => {
+      component.dominio = { skip_collaudo: false, vincola_skip_collaudo: true };
+      component._enableDisableSkipCollaudo({ skip_collaudo: true });
+      expect(component._formGroup.get('skip_collaudo')?.enabled).toBe(true);
+    });
+
+    it('should disable skip_collaudo when dominio vincola but soggetto does not have skip_collaudo', () => {
+      component.dominio = { skip_collaudo: false, vincola_skip_collaudo: true };
+      component._enableDisableSkipCollaudo({ skip_collaudo: false });
       expect(component._formGroup.get('skip_collaudo')?.disabled).toBe(true);
     });
 

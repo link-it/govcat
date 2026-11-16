@@ -251,7 +251,8 @@ export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContent
         this._formGroup.controls.referente.patchValue(this.soggetto.referente)
         this._formGroup.controls.aderente.updateValueAndValidity();
         this._formGroup.controls.referente.updateValueAndValidity();
-        if (this.soggetto.vincola_skip_collaudo) {
+        // Il vincolo impedisce solo di disattivare uno skip già attivo
+        if (this.soggetto.vincola_skip_collaudo && this.soggetto.skip_collaudo) {
           this._formGroup.controls.skip_collaudo.disable();
         } else {
           this._formGroup.controls.skip_collaudo.enable();

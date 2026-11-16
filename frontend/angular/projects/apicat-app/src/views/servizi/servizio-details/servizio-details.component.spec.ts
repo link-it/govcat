@@ -774,10 +774,16 @@ describe('ServizioDetailsComponent', () => {
       expect(component._formGroup.get('skip_collaudo')?.enabled).toBe(true);
     });
 
-    it('should disable skip_collaudo when dominio.skip_collaudo true and vincola', () => {
-      component.data = { vincola_skip_collaudo: true };
+    it('should disable skip_collaudo when dominio.skip_collaudo true and vincola with skip_collaudo active', () => {
+      component.data = { skip_collaudo: true, vincola_skip_collaudo: true };
       component._enableDisableSkipCollaudo({ skip_collaudo: true });
       expect(component._formGroup.get('skip_collaudo')?.disabled).toBe(true);
+    });
+
+    it('should enable skip_collaudo when vincola but the service skip_collaudo is off', () => {
+      component.data = { skip_collaudo: false, vincola_skip_collaudo: true };
+      component._enableDisableSkipCollaudo({ skip_collaudo: true });
+      expect(component._formGroup.get('skip_collaudo')?.enabled).toBe(true);
     });
 
     it('should disable skip_collaudo when dominio is null', () => {

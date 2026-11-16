@@ -1,3 +1,10 @@
+2026-11-16  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 448: nei dettagli di dominio, soggetto e servizio il vincolo sullo skip del collaudo
+	  impedisce solo di disattivarlo quando è già attivo; con lo skip spento il toggle resta
+	  attivabile, così i dati incoerenti si possono sanare dall'interfaccia.
+
 2026-11-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
