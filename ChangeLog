@@ -1,6 +1,11 @@
 2026-11-17  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
+	Issue 455: il monitoraggio di un servizio con API non ancora configurate nell'ambiente (bozze
+	  legittime, Issue 412) non va più in errore 500: lista, export e statistiche escludono dal
+	  filtro le API senza configurazione e restituiscono i dati delle API configurate. Se l'API
+	  indicata esplicitamente non è configurata nell'ambiente si risponde 400 MON.400.API.AMBIENTE.
+
 	Issue 454: la modifica di un'API con un blocco configurazione_collaudo o configurazione_produzione
 	  parziale (per esempio solo le quote) non va più in errore 500: protocollo e dati_erogazione
 	  assenti restano invariati, come già url_invocazione, rate_limiting e specifica. Prima il

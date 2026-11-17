@@ -45,6 +45,7 @@ import org.govway.catalogo.core.orm.entity.DominioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.SoggettoEntity;
 import org.govway.catalogo.core.services.AdesioneService;
+import org.govway.catalogo.core.services.ApiService;
 import org.govway.catalogo.core.services.ServizioService;
 import org.govway.catalogo.core.services.SoggettoService;
 import org.govway.catalogo.exception.BadRequestException;
@@ -308,5 +309,71 @@ class FiltriUtilsGetApiSoggettoTest {
         assertFalse(id.isFruizione());
         assertEquals(SOGGETTO_ADERENTE, id.getSoggetto());
         assertNull(id.getApplicativoFruitore());
+    }
+
+    /**
+     * Issue 455: servizio con un'API configurata nell'ambiente e un'API senza configurazione (bozza
+     * legittima, Issue 412). Le API senza configurazione sono escluse dal filtro, l'API richiesta
+     * esplicitamente senza configurazione risponde 400 dedicato invece di 500 (NPE su conf).
+     */
+    private ServizioEntity servizioConApiNonConfigurata() {
+        ServizioEntity servizio = servizioErogatoSoggettoDominio(false);
+        servizio.setId(1L);
+        ApiEntity configurata = servizio.getApi().iterator().next();
+        configurata.setId(10L);
+        configurata.setCollaudo(new ApiConfigEntity());
+        configurata.getServizi().add(servizio);
+
+        ApiEntity bozza = new ApiEntity();
+        bozza.setId(20L);
+        bozza.setNome("Conferma-Prenotazione");
+        bozza.setVersione(1);
+        bozza.setRuolo(RUOLO.EROGATO_SOGGETTO_ADERENTE);
+        bozza.getServizi().add(servizio);
+        servizio.getApi().add(bozza);
+        return servizio;
+    }
+
+    private FiltriUtils buildFiltriUtilsConApi(ServizioEntity servizio, UUID idApi, String nomeApi) throws Exception {
+        FiltriUtils filtriUtils = buildFiltriUtils(servizio);
+        ApiEntity api = servizio.getApi().stream().filter(a -> a.getNome().equals(nomeApi)).findFirst().orElseThrow();
+        ApiService apiService = mock(ApiService.class);
+        when(apiService.find(idApi)).thenReturn(Optional.of(api));
+        inject(filtriUtils, "apiService", apiService);
+        return filtriUtils;
+    }
+
+    @Test
+    void apiSenzaConfigurazioneNellAmbiente_esclusaDalFiltro() throws Exception {
+        FiltriUtils filtriUtils = buildFiltriUtils(servizioConApiNonConfigurata());
+
+        List<IdApi> apiLst = filtriUtils.getApi(UUID.randomUUID(), null, null, AmbienteEnum.COLLAUDO);
+
+        assertEquals(1, apiLst.size());
+        assertEquals("WAAS-Flussi-OAuth", apiLst.get(0).getNome());
+    }
+
+    @Test
+    void apiRichiestaConfigurata_altraApiSenzaConfigurazione_200() throws Exception {
+        UUID idApi = UUID.randomUUID();
+        FiltriUtils filtriUtils = buildFiltriUtilsConApi(servizioConApiNonConfigurata(), idApi, "WAAS-Flussi-OAuth");
+
+        List<IdApi> apiLst = filtriUtils.getApi(UUID.randomUUID(), idApi, null, AmbienteEnum.COLLAUDO);
+
+        assertEquals(1, apiLst.size());
+        assertEquals("WAAS-Flussi-OAuth", apiLst.get(0).getNome());
+    }
+
+    @Test
+    void apiRichiestaSenzaConfigurazioneNellAmbiente_400() throws Exception {
+        UUID idApi = UUID.randomUUID();
+        FiltriUtils filtriUtils = buildFiltriUtilsConApi(servizioConApiNonConfigurata(), idApi, "Conferma-Prenotazione");
+
+        BadRequestException e = assertThrows(BadRequestException.class,
+                () -> filtriUtils.getApi(UUID.randomUUID(), idApi, null, AmbienteEnum.COLLAUDO));
+        assertEquals(ErrorCode.MON_400_API_AMBIENTE, e.getErrorCode());
+        assertEquals("Conferma-Prenotazione", e.getParameters().get("nomeApi"));
+        assertEquals("1", e.getParameters().get("versioneApi"));
+        assertEquals("collaudo", e.getParameters().get("ambiente"));
     }
 }

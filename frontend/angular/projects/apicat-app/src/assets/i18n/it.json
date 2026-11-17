@@ -1868,6 +1868,9 @@
 				},
 				"MON": {
 					"400": {
+						"API": {
+							"AMBIENTE": "L'API [{{nomeApi}} v{{versioneApi}}] non è configurata nell'ambiente [{{ambiente}}]"
+						},
 						"ALARM": {
 							"CONFIG": "Configurazione allarme non valida: {{dettagli}}"
 						},

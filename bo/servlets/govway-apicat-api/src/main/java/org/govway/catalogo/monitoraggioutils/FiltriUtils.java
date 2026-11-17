@@ -264,6 +264,12 @@ public class FiltriUtils {
 					throw new BadRequestException(ErrorCode.VAL_422_API_SERVICE_MISMATCH, Map.of("nomeApi", api.getNome(), "versioneApi", String.valueOf(api.getVersione()), "nomeServizio", servizio.getNome(), "versioneServizio", servizio.getVersione()));
 				}
 
+				// L'API richiesta esplicitamente deve essere configurata nell'ambiente: un'API senza
+				// configurazione (bozza legittima, Issue 412) non è censita su GovWay e non ha transazioni.
+				if(getApiConfig(api, ambiente) == null) {
+					throw new BadRequestException(ErrorCode.MON_400_API_AMBIENTE, Map.of("nomeApi", api.getNome(), "versioneApi", String.valueOf(api.getVersione()), "ambiente", ambiente.getValue()));
+				}
+
 			}
 
 			AdesioneEntity adesione = null;
@@ -281,6 +287,10 @@ public class FiltriUtils {
 			return apiLst;
 		});
 
+	}
+
+	private static ApiConfigEntity getApiConfig(ApiEntity api, AmbienteEnum ambiente) {
+		return ambiente.equals(AmbienteEnum.COLLAUDO) ? api.getCollaudo(): api.getProduzione();
 	}
 
 	/**
@@ -303,7 +313,7 @@ public class FiltriUtils {
 			
 			for(ApiEntity ap: apiServizioLst) {
 				if(api == null || api.getId().equals(ap.getId())) {
-					ApiConfigEntity conf = ambiente.equals(AmbienteEnum.COLLAUDO) ? ap.getCollaudo(): ap.getProduzione();
+					ApiConfigEntity conf = getApiConfig(ap, ambiente);
 					if(conf == null) {
 						continue;
 					}

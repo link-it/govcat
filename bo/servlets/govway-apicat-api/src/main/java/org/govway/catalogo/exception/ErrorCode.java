@@ -513,6 +513,9 @@ public enum ErrorCode {
     /** API non indicata nella ricerca delle transazioni con informazioni di audit */
     MON_400_AUDIT_ID_API("API obbligatoria per il monitoraggio di audit"),
 
+    /** API indicata nel monitoraggio senza configurazione nell'ambiente richiesto */
+    MON_400_API_AMBIENTE("API non configurata nell'ambiente monitorato"),
+
     /** Soggetto indicato nel monitoraggio diverso dal soggetto referente del dominio del servizio */
     MON_400_SOGGETTO("Soggetto non coerente con il servizio monitorato"),
 
