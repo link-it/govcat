@@ -14,6 +14,9 @@
 	  per Principal solo per le fruizioni, come previsto dal monitoraggio; un report non disponibile mostra
 	  un messaggio leggibile invece dell'errore HTTP.
 
+	Issue 465: la pagina di gestione di un servizio, aperta dall'indirizzo da un utente senza ruoli sul
+	  servizio, rimanda alla vista del servizio invece di proporre modifica e cambi di stato.
+
 2026-11-17  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
