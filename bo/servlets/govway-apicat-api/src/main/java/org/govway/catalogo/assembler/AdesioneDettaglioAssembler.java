@@ -53,6 +53,7 @@ import org.govway.catalogo.core.services.ClientService;
 import org.govway.catalogo.core.services.ServizioService;
 import org.govway.catalogo.core.services.SoggettoService;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotFoundException;
@@ -79,7 +80,6 @@ import org.govway.catalogo.servlets.model.Grant;
 import org.govway.catalogo.servlets.model.ProprietaCustom;
 import org.govway.catalogo.servlets.model.ProprietaCustomAdesione;
 import org.govway.catalogo.servlets.model.ReferenteCreate;
-import org.govway.catalogo.servlets.model.Ruolo;
 import org.govway.catalogo.servlets.model.StatoConfigurazioneAutomaticaEnum;
 import org.govway.catalogo.servlets.model.StatoUpdate;
 import org.govway.catalogo.servlets.model.TipoAdesioneClientUpdateEnum;
@@ -361,16 +361,12 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 		if(configurazione.getAdesione()!= null &&
 				!configurazione.getAdesione().isSceltaLiberaOrganizzazione()) {
 
-			
-			Grant grant = this.adesioneAuthorization.getGrant(entity);
-			
-			boolean admin = grant.getRuoli().contains(Ruolo.GESTORE);
-			boolean ref = grant.getRuoli().contains(Ruolo.REFERENTE) || grant.getRuoli().contains(Ruolo.REFERENTE_SUPERIORE);
-
-			if(!admin && !ref) {
+			// Il controllo non usa il grant dell'adesione: i ruoli per-organizzazione (AMM_ORG/OPERATORE_API)
+			// lo arricchirebbero anche sull'organizzazione erogatrice, consentendo di aderire a nome di altri (Issue 451).
+			if(!this.adesioneAuthorization.isAbilitatoAdesionePerAltraOrganizzazione(entity)) {
 				// Multi-org: l'utente di sessione deve essere associato all'organizzazione del soggetto dell'adesione
 				if (!this.organizzazioneService.isAssociatoA(utenteSessione, entity.getSoggetto().getOrganizzazione())) {
-					throw new BadRequestException(ErrorCode.AUT_403_ORG_ADHESION,
+					throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_ADHESION,
 							java.util.Map.of("nomeOrganizzazione", entity.getSoggetto().getOrganizzazione().getNome()));
 				}
 			}

@@ -1,7 +1,14 @@
 2026-11-17  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
-	Issue 450: l'amministratore e l'operatore API di un'organizzazione creano servizi solo nei
+	Issue 451: con adesione.scelta_libera_organizzazione=false, l'amministratore e l'operatore API
+	  dell'organizzazione erogatrice non possono più creare adesioni per soggetti di altre
+	  organizzazioni: il ruolo per-organizzazione sull'erogatrice non esenta più dal controllo di
+	  appartenenza al soggetto aderente. Restano esentati gestore, coordinatore e referente (non
+	  tecnico) del servizio o del dominio, che possono aderire per conto di un aderente. L'errore
+	  AUT.403.ORG.ADHESION è restituito con HTTP 403 invece di 400.
+
+	Issue 450:l'amministratore e l'operatore API di un'organizzazione creano servizi solo nei
 	  domini della propria organizzazione di sessione (il soggetto referente del dominio deve
 	  appartenervi), altrimenti si risponde 403 AUT.403.AMM.ORG.DOMINIO.FUORI.ORG; lo stesso
 	  vincolo vale quando la modifica del servizio ne cambia il dominio. Senza organizzazione di

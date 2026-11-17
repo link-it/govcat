@@ -20,6 +20,7 @@
 package testsuite;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -56,6 +57,7 @@ import org.govway.catalogo.servlets.model.APICreate;
 import org.govway.catalogo.servlets.model.APIDatiAmbienteCreate;
 import org.govway.catalogo.servlets.model.APIDatiErogazione;
 import org.govway.catalogo.servlets.model.Adesione;
+import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.AuthTypeApiResource;
 import org.govway.catalogo.servlets.model.AdesioneCreate;
 import org.govway.catalogo.servlets.model.DocumentoCreate;
@@ -166,6 +168,9 @@ public class MatricePermessiMultiOrgTest {
 
 	@Autowired
 	private OrganizationContext organizationContext;
+
+	@Autowired
+	private Configurazione configurazione;
 
 	private static final String UTENTE_GESTORE = "gestore";
 
@@ -308,6 +313,127 @@ public class MatricePermessiMultiOrgTest {
 
 		// Gestore bypassa il check flag aderente
 		adesioneAuthorization.authorizeCreate(ac);
+	}
+
+	/**
+	 * Scenario Issue 451: organizzazione erogatrice (anche aderente) con soggetto, dominio e servizio
+	 * pubblicato in collaudo, e un'organizzazione aderente con il proprio soggetto.
+	 * Restituisce [soggettoErogatore, soggettoAderente]; il servizio e` in {@link #idServizio451}.
+	 */
+	private UUID idServizio451;
+
+	private Soggetto[] preparaScenarioAdesioneAltraOrg(String suffisso, Organizzazione orgErogatrice,
+			Organizzazione orgAderente, Utente referenteServizio) {
+		Soggetto soggErogatore = creaSoggetto("sogg-erog-" + suffisso, orgErogatrice);
+		Soggetto soggAderente = creaSoggetto("sogg-ader-" + suffisso, orgAderente);
+		Dominio dominio = creaDominio("Test", soggErogatore);
+		Servizio servizio = creaServizio("srv-" + suffisso, dominio, soggErogatore, referenteServizio);
+		pubblicaInCollaudo(servizio.getIdServizio());
+		this.idServizio451 = servizio.getIdServizio();
+		return new Soggetto[] {soggErogatore, soggAderente};
+	}
+
+	private Adesione creaAdesioneSenzaReferenti(UUID idServizio, Soggetto soggetto) {
+		AdesioneCreate ac = new AdesioneCreate();
+		ac.setIdServizio(idServizio);
+		ac.setIdSoggetto(soggetto.getIdSoggetto());
+		return adesioniController.createAdesione(ac).getBody();
+	}
+
+	/**
+	 * Esegue l'azione con adesione.scelta_libera_organizzazione=false, ripristinando poi il valore originale
+	 * (la configurazione e` un bean condiviso fra i test).
+	 */
+	private void conSceltaLiberaOrganizzazioneDisabilitata(Runnable azione) {
+		Boolean originale = this.configurazione.getAdesione().isSceltaLiberaOrganizzazione();
+		this.configurazione.getAdesione().setSceltaLiberaOrganizzazione(false);
+		try {
+			azione.run();
+		} finally {
+			this.configurazione.getAdesione().setSceltaLiberaOrganizzazione(originale);
+		}
+	}
+
+	@Test
+	public void testCreateAdesione_OperatoreApiErogatore_SoggettoAltraOrg_Forbidden() {
+		Organizzazione orgErogatrice = creaOrganizzazione("org-451-erog-op", true, true);
+		Organizzazione orgAderente = creaOrganizzazione("org-451-ader-op", false, true);
+		Utente refServizio = creaUtenteMultiOrg("test.451.refserv.op", List.of(orgErogatrice),
+				RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+		Soggetto[] soggetti = preparaScenarioAdesioneAltraOrg("451-op", orgErogatrice, orgAderente, refServizio);
+
+		creaUtenteMultiOrg("test.451.op.erog", List.of(orgErogatrice), RuoloOrganizzazioneEnum.OPERATORE_API);
+		autenticaCome("test.451.op.erog");
+		simulaContestoSessione(orgErogatrice, RuoloOrganizzazione.OPERATORE_API);
+
+		conSceltaLiberaOrganizzazioneDisabilitata(() -> {
+			// Il ruolo per-organizzazione sull'erogatrice non consente di far aderire un'altra organizzazione
+			NotAuthorizedException ex = assertThrows(NotAuthorizedException.class,
+					() -> creaAdesioneSenzaReferenti(idServizio451, soggetti[1]));
+			assertEquals("AUT.403.ORG.ADHESION", ex.getMessage());
+
+			// Per un soggetto della propria organizzazione la creazione resta consentita
+			assertNotNull(creaAdesioneSenzaReferenti(idServizio451, soggetti[0]));
+		});
+	}
+
+	@Test
+	public void testCreateAdesione_AmmOrgErogatore_SoggettoAltraOrg_Forbidden() {
+		Organizzazione orgErogatrice = creaOrganizzazione("org-451-erog-amm", true, true);
+		Organizzazione orgAderente = creaOrganizzazione("org-451-ader-amm", false, true);
+		Utente refServizio = creaUtenteMultiOrg("test.451.refserv.amm", List.of(orgErogatrice),
+				RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+		Soggetto[] soggetti = preparaScenarioAdesioneAltraOrg("451-amm", orgErogatrice, orgAderente, refServizio);
+
+		creaUtenteMultiOrg("test.451.amm.erog", List.of(orgErogatrice),
+				RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+		autenticaCome("test.451.amm.erog");
+		simulaContestoSessione(orgErogatrice, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+
+		conSceltaLiberaOrganizzazioneDisabilitata(() -> {
+			NotAuthorizedException ex = assertThrows(NotAuthorizedException.class,
+					() -> creaAdesioneSenzaReferenti(idServizio451, soggetti[1]));
+			assertEquals("AUT.403.ORG.ADHESION", ex.getMessage());
+		});
+	}
+
+	@Test
+	public void testCreateAdesione_OperatoreApiAderente_SoggettoErogatore_Forbidden() {
+		Organizzazione orgErogatrice = creaOrganizzazione("org-451-erog-ade", true, true);
+		Organizzazione orgAderente = creaOrganizzazione("org-451-ader-ade", false, true);
+		Utente refServizio = creaUtenteMultiOrg("test.451.refserv.ade", List.of(orgErogatrice),
+				RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+		Soggetto[] soggetti = preparaScenarioAdesioneAltraOrg("451-ade", orgErogatrice, orgAderente, refServizio);
+
+		creaUtenteMultiOrg("test.451.op.ader", List.of(orgAderente), RuoloOrganizzazioneEnum.OPERATORE_API);
+		autenticaCome("test.451.op.ader");
+		simulaContestoSessione(orgAderente, RuoloOrganizzazione.OPERATORE_API);
+
+		conSceltaLiberaOrganizzazioneDisabilitata(() -> {
+			// Prima della Issue 451 lo stesso codice era restituito con HTTP 400 (BadRequestException)
+			NotAuthorizedException ex = assertThrows(NotAuthorizedException.class,
+					() -> creaAdesioneSenzaReferenti(idServizio451, soggetti[0]));
+			assertEquals("AUT.403.ORG.ADHESION", ex.getMessage());
+		});
+	}
+
+	@Test
+	public void testCreateAdesione_ReferenteServizio_SoggettoAltraOrg_Consentito() {
+		// Decisione Issue 451: il referente (non tecnico) del servizio puo` aderire per conto di un aderente
+		Organizzazione orgErogatrice = creaOrganizzazione("org-451-erog-ref", true, true);
+		Organizzazione orgAderente = creaOrganizzazione("org-451-ader-ref", false, true);
+		Utente refServizio = creaUtenteMultiOrg("test.451.refserv.ref", List.of(orgErogatrice),
+				RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+		Soggetto[] soggetti = preparaScenarioAdesioneAltraOrg("451-ref", orgErogatrice, orgAderente, refServizio);
+
+		autenticaCome("test.451.refserv.ref");
+		simulaContestoSessione(orgErogatrice, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+
+		conSceltaLiberaOrganizzazioneDisabilitata(() -> {
+			Adesione adesione = creaAdesioneSenzaReferenti(idServizio451, soggetti[1]);
+			assertNotNull(adesione);
+			assertEquals(soggetti[1].getIdSoggetto(), adesione.getSoggetto().getIdSoggetto());
+		});
 	}
 
 	@Test

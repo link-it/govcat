@@ -561,7 +561,31 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 			return configurazione.getAdesione().getWorkflow().getStatoIniziale();
 		}
 	}
-	
+
+	/**
+	 * Indica se l'utente di sessione può creare un'adesione per un soggetto di un'organizzazione
+	 * a cui non è associato, quando la scelta libera dell'organizzazione è disabilitata.
+	 * Consentito solo a gestore, coordinatore e referente (non tecnico) del servizio o del suo dominio:
+	 * possono aderire per conto di un aderente (comportamento storico, confermato con Issue 451).
+	 * I ruoli per-organizzazione (AMM_ORG/OPERATORE_API) non contano, perché derivano anche
+	 * dall'organizzazione erogatrice e consentirebbero di far aderire organizzazioni terze.
+	 */
+	public boolean isAbilitatoAdesionePerAltraOrganizzazione(AdesioneEntity entity) {
+		UtenteEntity u = this.coreAuthorization.getUtenteSessione();
+
+		if(this.coreAuthorization.isAdmin(u) || this.coreAuthorization.isCoordinatore(u)) {
+			return true;
+		}
+
+		boolean refServizio = entity.getServizio().getReferenti().stream()
+				.anyMatch(r -> r.getReferente().getId().equals(u.getId()) && r.getTipo().equals(TIPO_REFERENTE.REFERENTE));
+
+		boolean refDominio = entity.getServizio().getDominio().getReferenti().stream()
+				.anyMatch(r -> r.getReferente().getId().equals(u.getId()) && r.getTipo().equals(TIPO_REFERENTE.REFERENTE));
+
+		return refServizio || refDominio;
+	}
+
 	@Override
 	protected List<Ruolo> getRuoli(AdesioneEntity entity) {
 		
