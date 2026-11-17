@@ -1,6 +1,14 @@
 2026-11-17  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
+	Issue 454: la modifica di un'API con un blocco configurazione_collaudo o configurazione_produzione
+	  parziale (per esempio solo le quote) non va più in errore 500: protocollo e dati_erogazione
+	  assenti restano invariati, come già url_invocazione, rate_limiting e specifica. Prima il
+	  protocollo assente causava un errore interno e i dati di erogazione assenti venivano azzerati,
+	  con conseguente 422 sulla URL dell'ambiente. Se l'ambiente non è ancora configurato il
+	  protocollo resta obbligatorio (400 VAL.400.REQUIRED). Il contratto documenta che le proprietà
+	  custom vanno in dati_custom.proprieta_custom e che i campi non previsti vengono ignorati.
+
 	Issue 453: il campo facoltativo deprecato dei domini non è più causa di errore 500 se assente:
 	  in creazione vale false, in modifica il valore resta invariato. Le eccezioni non gestite
 	  restituiscono 500 con detail SYS.500, senza esporre il messaggio interno dell'eccezione

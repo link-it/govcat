@@ -57,6 +57,7 @@ import org.govway.catalogo.servlets.model.Ruolo;
 import org.govway.catalogo.servlets.model.TipoConfigurazioneCustomProprieta;
 import org.govway.catalogo.servlets.model.TipoSoggettoGateway;
 import org.govway.catalogo.servlets.model.APICreate;
+import org.govway.catalogo.servlets.model.APIDatiAmbiente;
 import org.govway.catalogo.servlets.model.APIDatiAmbienteCreate;
 import org.govway.catalogo.servlets.model.APIDatiErogazione;
 import org.govway.catalogo.servlets.model.AdesioneCreate;
@@ -2820,6 +2821,51 @@ public class APITest {
     	UrlInvocazioneAPI urlInvocazione = apiController.getUrlInvocazioneAPI(idApi, AmbienteEnum.PRODUZIONE).getBody();
     	assertTrue(urlInvocazione.getUrlInvocazione().startsWith("https://api-ext.comuneesempio.it/"));
     	assertNull(urlInvocazione.getUrlInvocazioneAggiuntive());
+    }
+
+    @Test
+    void testUpdateApiConfigurazioneParzialeMantieneProtocolloEDatiErogazione() {
+    	// Issue 454: un blocco di configurazione con le sole quote non deve fallire (prima: NPE sul
+    	// protocollo) ne' azzerare i dati di erogazione non inviati
+    	Dominio dominio = this.getDominio();
+    	Servizio servizio = creaServizio("servizio_conf_parziale", dominio.getIdDominio(), false, null);
+    	UUID idApi = creaApiConUrlInvocazione("API_CONF_PARZIALE", servizio, null, List.of("default", "gw_esterno"));
+    	APIDatiAmbiente prima = apiController.getAPI(idApi).getBody().getConfigurazioneProduzione();
+
+    	APIDatiAmbienteUpdate produzione = new APIDatiAmbienteUpdate();
+    	produzione.setRateLimiting(new ArrayList<>());
+    	ApiUpdate apiUpdate = new ApiUpdate();
+    	apiUpdate.setConfigurazioneProduzione(produzione);
+
+    	ResponseEntity<API> aggiornata = apiController.updateApi(idApi, apiUpdate, null);
+
+    	assertEquals(HttpStatus.OK, aggiornata.getStatusCode());
+    	APIDatiAmbiente dopo = aggiornata.getBody().getConfigurazioneProduzione();
+    	assertEquals(prima.getProtocollo(), dopo.getProtocollo());
+    	assertEquals(prima.getProtocolloDettaglio(), dopo.getProtocolloDettaglio());
+    	assertNotNull(prima.getDatiErogazione().getUrl());
+    	assertEquals(prima.getDatiErogazione().getUrl(), dopo.getDatiErogazione().getUrl());
+    	assertEquals(prima.getDatiErogazione().getNomeGateway(), dopo.getDatiErogazione().getNomeGateway());
+    	assertEquals(prima.getDatiErogazione().getVersioneGateway(), dopo.getDatiErogazione().getVersioneGateway());
+    	assertEquals(List.of("default", "gw_esterno"), dopo.getUrlInvocazione());
+    }
+
+    @Test
+    void testUpdateApiNuovoAmbienteSenzaProtocollo() {
+    	// Issue 454: se l'ambiente non esiste ancora il protocollo e` obbligatorio: 400 sul campo, non 500
+    	Dominio dominio = this.getDominio();
+    	Servizio servizio = creaServizio("servizio_conf_senza_protocollo", dominio.getIdDominio(), false, null);
+    	UUID idApi = creaApi("API_CONF_SENZA_PROTOCOLLO", 1, servizio).getBody().getIdApi();
+    	assertNull(apiController.getAPI(idApi).getBody().getConfigurazioneProduzione());
+
+    	APIDatiAmbienteUpdate produzione = new APIDatiAmbienteUpdate();
+    	produzione.setDatiErogazione(getDatiErogazioneTest());
+    	ApiUpdate apiUpdate = new ApiUpdate();
+    	apiUpdate.setConfigurazioneProduzione(produzione);
+
+    	BadRequestException exception = assertThrows(BadRequestException.class, () -> apiController.updateApi(idApi, apiUpdate, null));
+    	assertEquals(ErrorCode.VAL_400_REQUIRED, exception.getErrorCode());
+    	assertEquals("configurazione_produzione.protocollo", exception.getParameters().get("campo"));
     }
 
     @Test

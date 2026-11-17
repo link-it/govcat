@@ -418,27 +418,34 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		// Quote assenti: restano invariate; lista vuota: nessun rate limiting
 		this.rateLimitingService.setRateLimiting(src.getRateLimiting(), entity, api, toAmbiente(collaudo));
 
+		// Dati di erogazione assenti: restano invariati (per svuotarli si invia l'oggetto con i campi a null)
 		if(src.getDatiErogazione()!=null) {
 			entity.setNomeGateway(src.getDatiErogazione().getNomeGateway());
 			entity.setVersioneGateway(src.getDatiErogazione().getVersioneGateway());
-			
+
 			entity.setUrl(src.getDatiErogazione().getUrl());
 			entity.setUrlPrefix(src.getDatiErogazione().getUrlPrefix());
-		} else {
-			entity.setNomeGateway(null);
-			entity.setVersioneGateway(null);
-			
-			entity.setUrl(null);
-//			entity.setUrlPrefix(src.getDatiErogazione().getUrlPrefix());
 		}
-		
+
 		DocumentoEntity specificaPrecedente = entity.getSpecifica();
 
 		if(src.getSpecifica()!=null) {
 			entity.setSpecifica(this.allegatoAssembler.toEntity(src.getSpecifica(), entity.getSpecifica(), this.apiEngineAssembler.getUtenteSessione()));
 		}
-		
-		entity.setProtocollo(toProtocollo(src.getProtocollo(), entity.getSpecifica(), isContenutoModificato(specificaPrecedente, entity.getSpecifica())));
+
+		boolean specificaModificata = isContenutoModificato(specificaPrecedente, entity.getSpecifica());
+
+		// Protocollo assente: resta quello dell'ambiente, ricalcolato solo se cambia la specifica.
+		// Obbligatorio solo quando l'ambiente non ha ancora un protocollo.
+		ProtocolloEnum protocollo = src.getProtocollo() != null ? src.getProtocollo() : this.apiEngineAssembler.toProtocollo(entity.getProtocollo());
+		if(protocollo == null) {
+			throw new BadRequestException(ErrorCode.VAL_400_REQUIRED,
+					Map.of("campo", (collaudo ? "configurazione_collaudo" : "configurazione_produzione") + ".protocollo"));
+		}
+
+		if(src.getProtocollo() != null || specificaModificata) {
+			entity.setProtocollo(toProtocollo(protocollo, entity.getSpecifica(), specificaModificata));
+		}
 
 		this.servizioDettaglioAssembler.setUltimaModifica(api.getServizio());
 		this.servizioService.save(api.getServizio());

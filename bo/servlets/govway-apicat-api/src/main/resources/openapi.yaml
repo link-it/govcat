@@ -6626,13 +6626,18 @@ components:
             $ref: "#/components/schemas/RateLimitingApi"
     APIDatiAmbienteUpdate:
       type: "object"
+      description: "Dati dell'ambiente da aggiornare: i campi assenti restano invariati."
       properties:
         protocollo:
-          $ref: "#/components/schemas/ProtocolloEnum"
+          description: "Protocollo dell'API nell'ambiente. Assente: resta quello attuale (ricalcolato dalla specifica se questa cambia); obbligatorio se l'ambiente non e` ancora configurato."
+          allOf:
+            - $ref: "#/components/schemas/ProtocolloEnum"
         specifica:
           $ref: "#/components/schemas/DocumentoUpdate"
         dati_erogazione:
-          $ref: "#/components/schemas/APIDatiErogazione"
+          description: "Dati di erogazione dell'ambiente. Assente: invariati; presente: sostituiscono quelli attuali (i campi non valorizzati vengono svuotati)."
+          allOf:
+            - $ref: "#/components/schemas/APIDatiErogazione"
         url_invocazione:
           description: "Identificativi delle URL di invocazione associate alla specifica, fra quelle censite in configurazione per l'ambiente, piu` 'default' per quella predefinita. Lista assente: selezione invariata; lista vuota: si torna alla sola URL predefinita."
           type: array
@@ -6865,7 +6870,9 @@ components:
         dati_specifica:
           $ref: "#/components/schemas/DatiSpecificaApiUpdate"
         dati_custom:
-          $ref: "#/components/schemas/DatiCustomUpdate"
+          description: "Proprieta` custom dell'API, inclusi i gruppi legati a un ambiente: vanno indicate in dati_custom.proprieta_custom. I campi non previsti dallo schema, anche al primo livello o nei blocchi di configurazione, vengono ignorati."
+          allOf:
+            - $ref: "#/components/schemas/DatiCustomUpdate"
         configurazione_collaudo:
           $ref: "#/components/schemas/APIDatiAmbienteUpdate"
         configurazione_produzione:
