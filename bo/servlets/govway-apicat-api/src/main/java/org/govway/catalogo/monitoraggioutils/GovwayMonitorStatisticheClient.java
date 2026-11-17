@@ -40,6 +40,7 @@ import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.SoggettoEntity;
 import org.govway.catalogo.core.services.ApiService;
+import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotFoundException;
@@ -163,6 +164,8 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 			} else {
 				throw new NotFoundException(ErrorCode.GEN_400_REPORT_TYPE, Map.of("tipo", "report"));
 			}
+		} catch(ConflictException e) {
+			throw e;
 		} catch(Exception e) {
 			this.logger.error("Errore nell'invocazione del monitoraggio: " +e.getMessage(),e);
 			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
@@ -821,6 +824,8 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 			}
 
 			return response;
+		} catch(ConflictException e) {
+			throw e;
 		} catch(Exception e) {
 			this.logger.error("Errore nell'invocazione del monitoraggio: " +e.getMessage(),e);
 			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
@@ -889,6 +894,7 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 			if(e.getCode() == 404) {
 				return null;
 			} else {
+				checkRichiestaRifiutata(e, request.getSoggettoReferente(), request.getProfilo());
 				throw e;
 			}
 		}

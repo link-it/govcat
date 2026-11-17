@@ -1887,6 +1887,9 @@
 						"DEFAULT": "You do not have a role enabled to monitor the service",
 						"TRANSAZIONE": "You do not have a role enabled to monitor the service of transaction [{{idTransazione}}]"
 					},
+					"409": {
+						"GOVWAY": "GovWay rejected the monitoring request for subject [{{soggetto}}] with profile [{{profilo}}]: {{dettaglio}}. Check that the subject is configured in GovWay with the same name and for the same interoperability profile used by GovCat"
+					},
 					"404": {
 						"DEFAULT": "Monitoring data not available for service [{{servizio}}]",
 						"ALARM": "Alarm [{{idAllarme}}] not found",

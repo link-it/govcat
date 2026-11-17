@@ -525,6 +525,9 @@ public enum ErrorCode {
     /** Transazione non appartenente a un servizio su cui l'utente puo' accedere al monitoraggio */
     MON_403_TRANSAZIONE("Monitoraggio della transazione non consentito con i ruoli dell'utente"),
 
+    /** Ricerca di monitoraggio rifiutata da GovWay (400): soggetto o profilo non allineati tra GovCat e GovWay */
+    MON_409_GOVWAY("Soggetto o profilo del monitoraggio non allineati con GovWay"),
+
     // ==================== TRANSAZIONI ====================
 
     /** Transazione non trovata */

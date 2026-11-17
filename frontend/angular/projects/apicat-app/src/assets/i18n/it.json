@@ -1887,6 +1887,9 @@
 						"DEFAULT": "Non hai un ruolo abilitato al monitoraggio del servizio",
 						"TRANSAZIONE": "Non hai un ruolo abilitato al monitoraggio del servizio della transazione [{{idTransazione}}]"
 					},
+					"409": {
+						"GOVWAY": "GovWay ha rifiutato la richiesta di monitoraggio per il soggetto [{{soggetto}}] con profilo [{{profilo}}]: {{dettaglio}}. Verificare che il soggetto sia configurato in GovWay con lo stesso nome e per lo stesso profilo di interoperabilità usato da GovCat"
+					},
 					"404": {
 						"DEFAULT": "Dati di monitoraggio non disponibili per il servizio [{{servizio}}]",
 						"ALARM": "Allarme [{{idAllarme}}] non trovato",

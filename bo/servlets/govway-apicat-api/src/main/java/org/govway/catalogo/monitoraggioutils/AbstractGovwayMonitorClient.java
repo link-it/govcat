@@ -19,13 +19,25 @@
  */
 package org.govway.catalogo.monitoraggioutils;
 
+import java.util.Map;
 import java.util.Optional;
 
+import org.govway.catalogo.exception.ConflictException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.gest.clients.govwaymonitor.PatchedApiClient;
+import org.govway.catalogo.gest.clients.govwaymonitor.impl.ApiException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import httpauth.OutboundAuthentication;
 
 public class AbstractGovwayMonitorClient {
+
+	private static final Logger LOG = LoggerFactory.getLogger(AbstractGovwayMonitorClient.class);
+	private static final ObjectMapper MAPPER = new ObjectMapper();
 
 	protected PatchedApiClient getClient(ConfigurazioneConnessione configurazioneConnessione) {
 		OutboundAuthentication autenticazione = configurazioneConnessione.getAutenticazione();
@@ -60,6 +72,43 @@ public class AbstractGovwayMonitorClient {
 	public static void aggiungiAutenticazione(PatchedApiClient client, OutboundAuthentication autenticazione) {
 		autenticazione.interceptor().ifPresent(interceptor ->
 				client.setHttpClient(client.getHttpClient().newBuilder().addInterceptor(interceptor).build()));
+	}
+
+	/**
+	 * Un 400 delle ricerche di monitoraggio di GovWay indica che soggetto o profilo con cui GovCat
+	 * interroga il gateway non sono allineati (per esempio un soggetto che non esiste per il profilo
+	 * usato): diventa un errore dedicato con soggetto, profilo e dettaglio di GovWay. Le altre
+	 * risposte restano all'invocante.
+	 */
+	protected static void checkRichiestaRifiutata(ApiException e, String soggetto, Object profilo) {
+		if(e.getCode() != 400) {
+			return;
+		}
+		String dettaglio = getDettaglio(e);
+		LOG.warn("Richiesta di monitoraggio rifiutata da GovWay per il soggetto [{}] con profilo [{}]: {}", soggetto, profilo, dettaglio);
+		throw new ConflictException(ErrorCode.MON_409_GOVWAY, Map.of(
+				"soggetto", String.valueOf(soggetto),
+				"profilo", String.valueOf(profilo),
+				"dettaglio", dettaglio), e);
+	}
+
+	/**
+	 * Il dettaglio e` il campo detail del problem restituito da GovWay; se la risposta non lo contiene
+	 * resta lo status HTTP.
+	 */
+	static String getDettaglio(ApiException e) {
+		String body = e.getResponseBody();
+		if(body != null && !body.isBlank()) {
+			try {
+				JsonNode detail = MAPPER.readTree(body).get("detail");
+				if(detail != null && detail.isTextual() && !detail.asText().isBlank()) {
+					return detail.asText();
+				}
+			} catch(Exception ex) {
+				LOG.debug("Risposta di GovWay non interpretabile come problem: {}", ex.getMessage());
+			}
+		}
+		return "HTTP " + e.getCode();
 	}
 
 }

@@ -660,8 +660,12 @@ public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient
 		
 		
 		
-		ListaTransazioni l = mon.findAllTransazioniByFullSearch(ProfiloEnum.fromValue(request.getProfilo()), request.getSoggettoReferente(), body);
-		return l;
+		try {
+			return mon.findAllTransazioniByFullSearch(ProfiloEnum.fromValue(request.getProfilo()), request.getSoggettoReferente(), body);
+		} catch(ApiException e) {
+			checkRichiestaRifiutata(e, request.getSoggettoReferente(), request.getProfilo());
+			throw e;
+		}
 	}
 
 	private PagedModelItemTransazione toTransactionList(ListaTransazioni l) {

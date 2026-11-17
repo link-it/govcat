@@ -1,7 +1,13 @@
 2026-11-17  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
-	Issue 455: il monitoraggio di un servizio con API non ancora configurate nell'ambiente (bozze
+	Issue 456: quando le ricerche di monitoraggio di GovWay (transazioni, export e statistiche)
+	  rispondono 400, per esempio perché il soggetto non esiste per il profilo di interoperabilità
+	  usato, GovCat restituisce 409 MON.409.GOVWAY con soggetto, profilo e dettaglio di GovWay
+	  invece di 500 SYS.500 senza indicazione della causa. Gli altri errori imprevisti restano
+	  SYS.500.
+
+	Issue 455:il monitoraggio di un servizio con API non ancora configurate nell'ambiente (bozze
 	  legittime, Issue 412) non va più in errore 500: lista, export e statistiche escludono dal
 	  filtro le API senza configurazione e restituiscono i dati delle API configurate. Se l'API
 	  indicata esplicitamente non è configurata nell'ambiente si risponde 400 MON.400.API.AMBIENTE.
