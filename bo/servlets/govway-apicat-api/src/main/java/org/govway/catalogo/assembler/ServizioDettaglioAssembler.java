@@ -68,6 +68,9 @@ import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 
 public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupport<ServizioEntity, Servizio> {
 
+	/** Parametro dell'errore che indica il campo della richiesta coinvolto */
+	private static final String CAMPO = "campo";
+
 	@Autowired
 	private DominioService dominioService;
 
@@ -201,7 +204,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		if(src.isSkipCollaudo() != null) {
 			if(!src.isSkipCollaudo() && entity.isSkipCollaudo()) {
 				if(isVincolaSkipCollaudo(entity)) {
-					throw new BadRequestException(ErrorCode.GEN_400_SKIP_COLLAUDO);
+					throw new BadRequestException(ErrorCode.GEN_400_SKIP_COLLAUDO, Map.of(CAMPO, "skip_collaudo"));
 				}
 			}
 			setSkipCollaudo(src.isSkipCollaudo(), entity);
@@ -224,10 +227,10 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		
 		if(!Objects.equals(tipo, entity.getTipo())) {
 			if(!entity.getGruppi().isEmpty()) {
-				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422);
+				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422, Map.of(CAMPO, "tipo"));
 			}
 			if(!entity.getApi().isEmpty()) {
-				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422);
+				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422, Map.of(CAMPO, "tipo"));
 			}
 			
 			entity.setTipo(tipo);
@@ -297,7 +300,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		
 		if(entity.isFruizione()) {
 			if(idSoggetto==null) {
-				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422);
+				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422, Map.of(CAMPO, "id_soggetto_erogatore"));
 			}
 
 			SoggettoEntity soggettoErogatore = this.soggettoService.find(idSoggetto).
@@ -305,12 +308,12 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 
 			// L'ente erogatore deve appartenere a un'organizzazione referente o intermediata
 			if(!soggettoErogatore.getOrganizzazione().isReferente() && !soggettoErogatore.getOrganizzazione().isIntermediata()) {
-				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422);
+				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422, Map.of(CAMPO, "id_soggetto_erogatore"));
 			}
 
 			// Il dominio di una fruizione deve avere un referente interno (non intermediato)
 			if(newDominio.getSoggettoReferente().getOrganizzazione().isIntermediata()) {
-				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422);
+				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422, Map.of(CAMPO, "id_dominio"));
 			}
 
 			entity.setSoggettoErogatore(soggettoErogatore);
@@ -325,11 +328,11 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		
 		// Il nuovo dominio deve consentire lo skip collaudo gia` attivo sul servizio
 		if(entity.isSkipCollaudo() && !entity.getDominio().isSkipCollaudo()) {
-			throw new BadRequestException(ErrorCode.GEN_400_SKIP_COLLAUDO);
+			throw new BadRequestException(ErrorCode.GEN_400_SKIP_COLLAUDO, Map.of(CAMPO, "skip_collaudo"));
 		}
 		
 		if(entity.getDominio().isDeprecato() && !this.coreAuthorization.isAdmin()) {
-			throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422);
+			throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422, Map.of(CAMPO, "id_dominio"));
 		}
 
 	}
@@ -396,7 +399,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		entity.setSkipCollaudo(skipCollaudo);
 
 		if(entity.isSkipCollaudo() && !entity.getDominio().isSkipCollaudo()) {
-			throw new BadRequestException(ErrorCode.GEN_400_SKIP_COLLAUDO);
+			throw new BadRequestException(ErrorCode.GEN_400_SKIP_COLLAUDO, Map.of(CAMPO, "skip_collaudo"));
 		}
 	}
 
@@ -472,11 +475,9 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 			for(ReferenteCreate referente: src.getReferenti()) {
 				entity.getReferenti().add(referenteServizioAssembler.toEntity(referente, entity));
 			}
-		} else {
-			if(!src.isPackage()) {
-				throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
-			}
 		}
+		// L'obbligatorieta` dei referenti (servizi non package) e` verificata dal controller dopo
+		// l'autorizzazione, per non rispondere 400 a chi non puo` creare servizi (Issue 457)
 		
 		if(this.configurazione.getServizio().isConsentiNonSottoscrivibile() != null && 
 				this.configurazione.getServizio().isConsentiNonSottoscrivibile()) {

@@ -628,6 +628,12 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 	}
 
 	@Override
+	public void authorizeModificaDati(ServizioEntity entity, List<ConfigurazioneClasseDato> classiDato) {
+		this.authorizeAnything();
+		super.authorizeModificaDati(entity, classiDato);
+	}
+
+	@Override
 	protected List<ConfigurazioneDatoSempreModificabile> getDatiSempreModificabili() {
 		return this.configurazione.getServizio().getDatiSempreModificabili();
 	}

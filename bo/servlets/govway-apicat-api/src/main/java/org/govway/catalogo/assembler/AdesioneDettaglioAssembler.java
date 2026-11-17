@@ -303,7 +303,7 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 		entity.setSkipCollaudo(skipCollaudo);
 
 		if(entity.isSkipCollaudo() && !entity.getServizio().isSkipCollaudo()) {
-			throw new BadRequestException(ErrorCode.ADE_409_STATE_SKIP_COLLAUDO, java.util.Map.of("nomeServizio", entity.getServizio().getNome(), "versioneServizio", entity.getServizio().getVersione()));
+			throw new ConflictException(ErrorCode.ADE_409_STATE_SKIP_COLLAUDO, java.util.Map.of("nomeServizio", entity.getServizio().getNome(), "versioneServizio", entity.getServizio().getVersione()));
 		}
 	}
 
@@ -384,19 +384,19 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 		}
 
 		if(entity.getServizio().isAdesioneDisabilitata()) {
-			throw new BadRequestException(ErrorCode.ADE_409_STATE_DISABLED, java.util.Map.of("servizio", servizioK));
+			throw new ConflictException(ErrorCode.ADE_409_STATE_DISABLED, java.util.Map.of("servizio", servizioK));
 		}
 
 		if(entity.getServizio().getVisibilita() != null && entity.getServizio().getVisibilita().equals(VISIBILITA.COMPONENTE)) {
-			throw new BadRequestException(ErrorCode.ADE_409_STATE_VISIBILITY, java.util.Map.of("servizio", servizioK));
+			throw new ConflictException(ErrorCode.ADE_409_STATE_VISIBILITY, java.util.Map.of("servizio", servizioK));
 		}
 
 		if(entity.getServizio().isMultiAdesione() && entity.getIdLogico()==null) {
-			throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
+			throw new BadRequestException(ErrorCode.VAL_400_REQUIRED, Map.of("campo", "id_logico"));
 		}
 
 		if(entity.getServizio().isFruizione() && !entity.getSoggetto().getId().equals(entity.getServizio().getDominio().getSoggettoReferente().getId())) {
-			throw new BadRequestException(ErrorCode.ADE_409_STATE_SUBJECT_MISMATCH, java.util.Map.of("servizio", servizioK, "soggetto", entity.getSoggetto().getNome(), "soggettoInterno", entity.getServizio().getDominio().getSoggettoReferente().getNome()));
+			throw new ConflictException(ErrorCode.ADE_409_STATE_SUBJECT_MISMATCH, java.util.Map.of("servizio", servizioK, "soggetto", entity.getSoggetto().getNome(), "soggettoInterno", entity.getServizio().getDominio().getSoggettoReferente().getNome()));
 		}
 
 		if(!entity.getSoggetto().isAderente()) {
@@ -560,7 +560,9 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 									&& est.getDocumento() != null && est.getDocumento().getUuid().equals(p.getUuid()))
 							.map(ee -> ee.getDocumento()).findAny().orElseThrow(() -> new BadRequestException(ErrorCode.DOC_404)));
 				} else {
-					throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
+					// proprieta` di tipo file senza contenuto ne' riferimento a un documento gia` caricato
+					throw new BadRequestException(ErrorCode.VAL_400_REQUIRED,
+							Map.of("campo", "proprieta_custom." + apc.getGruppo() + "." + p.getNome() + ".content"));
 				}
 			} else {
 				e.setValore(p.getValore());

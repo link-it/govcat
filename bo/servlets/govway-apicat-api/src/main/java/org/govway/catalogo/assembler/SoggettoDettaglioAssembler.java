@@ -28,6 +28,7 @@ import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.ErrorCode;
+import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.servlets.model.Soggetto;
 import org.govway.catalogo.servlets.model.SoggettoCreate;
 import org.govway.catalogo.servlets.model.SoggettoUpdate;
@@ -105,7 +106,7 @@ public class SoggettoDettaglioAssembler extends RepresentationModelAssemblerSupp
 		if(src.isAderente() != null) {
 			if(!src.isAderente() && entity.isAderente()) {
 				if(isVincolaAderente(entity)) {
-					throw new BadRequestException(ErrorCode.ORG_409_ADERENTE);
+					throw new ConflictException(ErrorCode.ORG_409_ADERENTE);
 				}
 			}
 		}

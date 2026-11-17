@@ -697,7 +697,7 @@ public class ServiziTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         // la seconda aggiunta dello stesso utente con lo stesso tipo deve essere rifiutata
-        Exception exception = assertThrows(BadRequestException.class, () -> {
+        Exception exception = assertThrows(ConflictException.class, () -> {
             serviziController.createReferenteServizio(idServizio, null, referenteCreate);
         });
 
@@ -705,6 +705,83 @@ public class ServiziTest {
 
         ResponseEntity<PagedModelReferente> referenti = serviziController.listReferentiServizio(idServizio, null, null, 0, 10, null);
         assertEquals(2, referenti.getBody().getContent().size());
+    }
+
+    // Issue 457: l'autorizzazione precede il controllo di duplicazione. Chi non ha ruolo sul servizio
+    // riceve 403 anche se il referente e` gia` presente, non SRV.409.REFERENT
+    @Test
+    void testCreateReferenteServizioDuplicatoUtenteSenzaRuolo() {
+        Servizio servizio = this.getServizio();
+        UUID idServizio = servizio.getIdServizio();
+        // servizio pubblico e pubblicato: visibile all'utente senza ruolo, che arriva al controllo di autorizzazione
+        impostaServizio(idServizio, "pubblicato_produzione", org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.PUBBLICO,
+                org.govway.catalogo.core.orm.entity.TipoServizio.API);
+        creaUtenteSenzaRuoli();
+
+        ReferenteCreate referenteCreate = new ReferenteCreate();
+        referenteCreate.setTipo(TipoReferenteEnum.REFERENTE);
+        referenteCreate.setIdUtente(ID_UTENTE_GESTORE);
+
+        CommonUtils.getSessionUtente(UTENTE_SENZA_RUOLI, securityContext, authentication, utenteService);
+
+        NotAuthorizedException e = assertThrows(NotAuthorizedException.class, () -> {
+            serviziController.createReferenteServizio(idServizio, null, referenteCreate);
+        });
+        assertEquals(ErrorCode.WFL_403_DATA_NOT_MODIFIABLE, e.getErrorCode());
+        assertNotNull(e.getParameters().get("dati"));
+    }
+
+    // Issue 457: il grant e` calcolato prima di aggiungere il referente, quindi chi non ha ruolo
+    // sul servizio non puo` diventarne referente aggiungendo se stesso
+    @Test
+    void testCreateReferenteServizioSeStessoUtenteSenzaRuolo() {
+        Servizio servizio = this.getServizio();
+        UUID idServizio = servizio.getIdServizio();
+        // servizio pubblico e pubblicato: visibile all'utente senza ruolo, che arriva al controllo di autorizzazione
+        impostaServizio(idServizio, "pubblicato_produzione", org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.PUBBLICO,
+                org.govway.catalogo.core.orm.entity.TipoServizio.API);
+        creaUtenteSenzaRuoli();
+
+        CommonUtils.getSessionUtente(UTENTE_SENZA_RUOLI, securityContext, authentication, utenteService);
+        InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_SENZA_RUOLI, utenteService);
+
+        ReferenteCreate referenteCreate = new ReferenteCreate();
+        referenteCreate.setTipo(TipoReferenteEnum.REFERENTE);
+        referenteCreate.setIdUtente(UUID.fromString(info.utente.getIdUtente()));
+
+        NotAuthorizedException e = assertThrows(NotAuthorizedException.class, () -> {
+            serviziController.createReferenteServizio(idServizio, null, referenteCreate);
+        });
+        assertEquals(ErrorCode.WFL_403_DATA_NOT_MODIFIABLE, e.getErrorCode());
+    }
+
+    // Issue 457: referenti obbligatori per un servizio non package, con il campo indicato
+    @Test
+    void testCreateServizioSenzaReferenti() {
+        Dominio dominio = this.getDominio();
+        ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+        servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
+        servizioCreate.setIdDominio(dominio.getIdDominio());
+        servizioCreate.setReferenti(null);
+
+        BadRequestException e = assertThrows(BadRequestException.class, () -> serviziController.createServizio(servizioCreate));
+        assertEquals(ErrorCode.VAL_400_REQUIRED, e.getErrorCode());
+        assertEquals("referenti", e.getParameters().get("campo"));
+    }
+
+    // Issue 457: chi non puo` creare servizi riceve 403 prima della validazione dei referenti
+    @Test
+    void testCreateServizioSenzaReferentiUtenteSenzaRuolo() {
+        Dominio dominio = this.getDominio();
+        creaUtenteSenzaRuoli();
+        ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+        servizioCreate.setIdSoggettoErogatore(createdSoggetto.getBody().getIdSoggetto());
+        servizioCreate.setIdDominio(dominio.getIdDominio());
+        servizioCreate.setReferenti(null);
+
+        CommonUtils.getSessionUtente(UTENTE_SENZA_RUOLI, securityContext, authentication, utenteService);
+
+        assertThrows(NotAuthorizedException.class, () -> serviziController.createServizio(servizioCreate));
     }
 
     @Test

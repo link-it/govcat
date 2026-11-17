@@ -32,6 +32,7 @@ import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ErrorCode;
+import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.servlets.model.Referente;
 import org.govway.catalogo.servlets.model.ReferenteCreate;
 import org.govway.catalogo.servlets.model.TipoReferenteEnum;
@@ -133,7 +134,7 @@ public class ReferenteDominioAssembler extends RepresentationModelAssemblerSuppo
 		boolean exists = dominio.getReferenti().stream().anyMatch(r -> r.getReferente().equals(entity.getReferente()) && r.getTipo().equals(entity.getTipo()));
 
 		if(exists) {
-			throw new BadRequestException(ErrorCode.ORG_409_REFERENT, java.util.Map.of("nomeUtente", entity.getReferente().getNome(), "cognomeUtente", entity.getReferente().getCognome(), "tipoReferente", entity.getTipo().toString(), "nomeDominio", entity.getDominio().getNome()));
+			throw new ConflictException(ErrorCode.ORG_409_REFERENT, java.util.Map.of("nomeUtente", entity.getReferente().getNome(), "cognomeUtente", entity.getReferente().getCognome(), "tipoReferente", entity.getTipo().toString(), "nomeDominio", entity.getDominio().getNome()));
 		}
 
 		return entity;

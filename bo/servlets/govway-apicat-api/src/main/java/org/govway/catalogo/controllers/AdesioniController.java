@@ -2484,6 +2484,13 @@ public class AdesioniController implements AdesioniApi {
 						//errore.setMessaggio("Utente non autorizzato");
 						//errori.add(errore);
 						this.registraErrore(errorIds, errorMessages, v,"Utente non autorizzato");
+					} catch(BadRequestException ex) {
+						// Le transizioni non ammesse dal workflow escono con 400 (Issue 457): restano un errore
+						// della singola adesione e non interrompono il cambio stato delle altre
+						if(ex.getErrorCode() != ErrorCode.WFL_400_TRANSITION && ex.getErrorCode() != ErrorCode.WFL_400_PROFILO) {
+							throw ex;
+						}
+						this.registraErrore(errorIds, errorMessages, v,"Transizione di stato non consentita");
 					}
 				});
 				response.setNumeroOk(numeroOk.get());

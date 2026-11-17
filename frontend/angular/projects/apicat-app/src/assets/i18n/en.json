@@ -2013,7 +2013,8 @@
 							"DEFAULT": "Subject [{{nome}}] is the default subject of the organization"
 						},
 						"NOT": {
-							"ADERENTE": "Subject [{{nomeSoggetto}}] is not an adhering subject"
+							"ADERENTE": "Subject [{{nomeSoggetto}}] is not an adhering subject",
+							"REFERENTE": "Subject [{{nomeSoggetto}}] is not a referent subject"
 						},
 						"ORG": {
 							"MISMATCH": "Subject [{{nomeSoggetto}}] does not belong to organization [{{nomeOrganizzazione}}]"
@@ -2186,6 +2187,15 @@
 						"PATTERN": "Pattern [{{pattern}}] not satisfied for field [{{campo}}]",
 						"PIVA": "VAT number [{{partitaIva}}] not valid",
 						"PROFILE": "Profile [{{profilo}}] not present in configuration",
+						"PROFILO": {
+							"COMPATIBILITA": "Profile [{{profilo}}] compatible only with [{{compatibilita}}] APIs",
+							"DOMINIO": "Profile [{{profilo}}] not allowed in domain [{{dominio}}]",
+							"GOVWAY": "GovWay interoperability profile [{{valore}}] not valid: allowed values [{{valoriAmmessi}}]",
+							"SOGGETTO": "Profile [{{profilo}}] not allowed for subject [{{soggetto}}], referent of domain [{{dominio}}]",
+							"TIPO": {
+								"DOMINIO": "Profile [{{profilo}}] allowed only for domain type [{{tipoDominio}}]"
+							}
+						},
 						"RANGE": "Value [{{valore}}] out of allowed range [{{min}} - {{max}}]",
 						"RATE": {
 							"LIMITING": {
@@ -2217,17 +2227,19 @@
 					"404": "",
 					"400": {
 						"DATA": {
-							"MISSING": "Cannot perform transition: missing data [{{datiMancanti}}]",
-							"NOT": {
-								"MODIFIABLE": "Data not modifiable in the current workflow state"
-							}
+							"MISSING": "Cannot perform transition: missing data [{{datiMancanti}}]"
 						},
 						"PROFILO": "State transition from [{{statoAttuale}}] to [{{statoDesiderato}}] not enabled for the profiles [{{profili}}] required by the service",
 						"STATE": "",
 						"TRANSITION": "State transition from [{{statoAttuale}}] to [{{statoDesiderato}}] not allowed"
 					},
 					"403": {
-						"ACTION": ""
+						"ACTION": "",
+						"DATA": {
+							"NOT": {
+								"MODIFIABLE": "Data [{{dati}}] cannot be modified by the user in the current workflow state"
+							}
+						}
 					}
 				}
 			},

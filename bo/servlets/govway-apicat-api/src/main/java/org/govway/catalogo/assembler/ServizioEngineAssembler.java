@@ -21,6 +21,7 @@ package org.govway.catalogo.assembler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.govway.catalogo.core.orm.entity.DocumentoEntity;
@@ -75,7 +76,7 @@ public class ServizioEngineAssembler extends CoreEngineAssembler {
 		if(visibilita == null) return null;
 		
 		if(!consentiComponente && visibilita.equals(VisibilitaServizioEnum.COMPONENTE)) {
-			throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
+			throw new BadRequestException(ErrorCode.SRV_400_VISIBILITY, Map.of("visibilita", visibilita.toString(), "campo", "visibilita"));
 		}
 		
 		switch(visibilita) {

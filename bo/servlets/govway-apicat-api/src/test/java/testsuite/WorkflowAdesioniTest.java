@@ -42,6 +42,7 @@ import org.govway.catalogo.controllers.ServiziController;
 import org.govway.catalogo.controllers.SoggettiController;
 import org.govway.catalogo.controllers.UtentiController;
 import org.govway.catalogo.core.services.UtenteService;
+import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
@@ -1472,7 +1473,7 @@ public class WorkflowAdesioniTest {
     		// Il servizio richiede il profilo MODI_P1, che non e' abilitato per la transizione
     		statoSuccessivo.setProfili(List.of(PROFILO_INTERNO_HTTPS));
 
-    		NotAuthorizedException e = assertThrows(NotAuthorizedException.class, () -> {
+    		BadRequestException e = assertThrows(BadRequestException.class, () -> {
     			this.cambiaStatoAdesione(STATO_RICHIESTO_IN_COLLAUDO);
     		}, "Profilo richiesto dal servizio non abilitato per la transizione");
 
@@ -1536,7 +1537,7 @@ public class WorkflowAdesioniTest {
     	try {
     		statoSuccessivo.setProfili(List.of(PROFILO_MODI_P1));
 
-    		NotAuthorizedException e = assertThrows(NotAuthorizedException.class, () -> {
+    		BadRequestException e = assertThrows(BadRequestException.class, () -> {
     			this.cambiaStatoAdesione(STATO_RICHIESTO_IN_COLLAUDO);
     		}, "Uno dei profili richiesti dal servizio non e' abilitato per la transizione");
 

@@ -380,7 +380,7 @@ public class ServiziController implements ServiziApi {
 	}
 
 	@Override
-	public ResponseEntity<Referente> createReferenteServizio(UUID idServizio, Boolean force, ReferenteCreate referente) {
+	public ResponseEntity<Referente> createReferenteServizio(UUID idServizio, Boolean forceParam, ReferenteCreate referente) {
 		try {
 			return this.service.runTransaction( () -> {
 
@@ -394,15 +394,22 @@ public class ServiziController implements ServiziApi {
 				// e superano entrambe il controllo di duplicazione.
 				this.service.lock(entity);
 
+				// L'autorizzazione a modificare i referenti precede i controlli sul referente (utente,
+				// duplicato): chi non ha ruolo sul servizio riceve 403 e non SRV.409.REFERENT (Issue 457).
+				// Il grant dipende solo dai ruoli dell'utente sul servizio, non dal referente da aggiungere.
+				Grant grant = this.dettaglioAssembler.toGrant(entity);
+				boolean force = isForce(forceParam, grant.getRuoli());
+				if(!force) {
+					this.getServizioAuthorization(entity).authorizeModificaDati(entity, Arrays.asList(ConfigurazioneClasseDato.REFERENTI));
+				}
+
 				ReferenteServizioEntity referenteEntity = referenteAssembler.toEntity(referente, entity);
 				
 				checkReferente(referenteEntity);
 				
 				entity.getReferenti().add(referenteEntity);
-				
-				Grant grant = this.dettaglioAssembler.toGrant(entity);
 
-				if(!isForce(force, grant.getRuoli())) {
+				if(!force) {
 					this.getServizioAuthorization(entity).authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.REFERENTI));
 				}
 				this.logger.debug("Autorizzazione completata con successo");     
@@ -613,9 +620,15 @@ public class ServiziController implements ServiziApi {
 			return this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ...");
+				// L'autorizzazione alla creazione precede la validazione dei dati: chi non puo` creare
+				// servizi riceve 403 e non gli errori sul contenuto della richiesta (Issue 457)
+				boolean isPackage = Boolean.TRUE.equals(servizioCreate.isPackage());
+				(isPackage ? this.packageAuthorization : this.servizioAuthorization).authorizeCreate(servizioCreate);
 				ServizioEntity entity = this.dettaglioAssembler.toEntity(servizioCreate);
-				this.getServizioAuthorization(entity).authorizeCreate(servizioCreate);
 				this.getServizioAuthorization(entity).authorizeDominio(entity.getDominio(), true);
+				if(servizioCreate.getReferenti() == null && !isPackage) {
+					throw new BadRequestException(ErrorCode.VAL_400_REQUIRED, Map.of("campo", "referenti"));
+				}
 				this.getServizioAuthorization(entity).authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.IDENTIFICATIVO));
 				this.checkReferenti(entity);
 				this.logger.debug("Autorizzazione completata con successo");

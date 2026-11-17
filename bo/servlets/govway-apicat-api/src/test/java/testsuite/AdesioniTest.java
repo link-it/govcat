@@ -1240,7 +1240,7 @@ public class AdesioniTest {
     	this.entityManager.clear();
 
     	// la seconda aggiunta dello stesso utente con lo stesso tipo deve essere rifiutata
-    	Exception exception = assertThrows(BadRequestException.class, () -> {
+    	Exception exception = assertThrows(ConflictException.class, () -> {
     		adesioniController.createReferenteAdesione(adesione.getIdAdesione(), referente, null);
     	});
 

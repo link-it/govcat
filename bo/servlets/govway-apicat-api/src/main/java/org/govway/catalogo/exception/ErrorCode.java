@@ -158,6 +158,9 @@ public enum ErrorCode {
     /** Operazione non valida sul servizio */
     SRV_400_INVALID("Operazione non valida sul servizio"),
 
+    /** Visibilita` non consentita per un servizio (es. componente su un servizio non package) */
+    SRV_400_VISIBILITY("Visibilità non consentita per il servizio"),
+
     /** Servizio non multi adesione in un dominio multi adesione */
     SRV_400_MULTI_ADESIONE("Multi adesione obbligatoria per i servizi del dominio"),
 
@@ -223,6 +226,9 @@ public enum ErrorCode {
 
     /** Soggetto non aderente */
     SOG_400_NOT_ADERENTE("Soggetto non aderente"),
+
+    /** Soggetto non referente */
+    SOG_400_NOT_REFERENTE("Soggetto non referente"),
 
     /** Soggetto di organizzazione diversa */
     SOG_400_ORG_MISMATCH("Soggetto di organizzazione diversa"),
@@ -618,6 +624,18 @@ public enum ErrorCode {
     /** Valore non ammesso per il profilo di interoperabilità GovWay */
     VAL_400_PROFILO_GOVWAY("Profilo di interoperabilità GovWay non valido"),
 
+    /** Profilo non ammesso per il tipo di dominio (erogazione/fruizione) del servizio */
+    VAL_400_PROFILO_TIPO_DOMINIO("Profilo non ammesso per il tipo di dominio"),
+
+    /** Profilo non ammesso nel dominio del servizio */
+    VAL_400_PROFILO_DOMINIO("Profilo non ammesso nel dominio"),
+
+    /** Profilo non ammesso per il soggetto referente del dominio */
+    VAL_400_PROFILO_SOGGETTO("Profilo non ammesso per il soggetto referente del dominio"),
+
+    /** Profilo non compatibile con il tipo di API (REST/SOAP) */
+    VAL_400_PROFILO_COMPATIBILITA("Profilo non compatibile con il tipo di API"),
+
     /** Valore fuori dal range consentito */
     VAL_400_RANGE("Valore fuori range"),
 
@@ -686,8 +704,8 @@ public enum ErrorCode {
     /** Transizione di stato non abilitata per i profili richiesti dal servizio */
     WFL_400_PROFILO("Transizione stato non abilitata per i profili richiesti"),
 
-    /** Modifica di dati non consentita nello stato corrente */
-    WFL_400_DATA_NOT_MODIFIABLE("Modifica dati non consentita"),
+    /** Modifica di dati non consentita all'utente nello stato corrente */
+    WFL_403_DATA_NOT_MODIFIABLE("Modifica dati non consentita"),
 
     /** Workflow non trovato */
     WFL_404("Workflow non trovato"),

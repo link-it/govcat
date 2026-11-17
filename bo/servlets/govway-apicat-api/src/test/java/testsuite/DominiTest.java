@@ -204,6 +204,26 @@ public class DominiTest {
         assertEquals(CommonUtils.VISIBILITA_DOMINIO, createdDominio.getBody().getVisibilita());
     }
 
+    // Issue 457: soggetto referente non abilitato come referente: codice specifico con soggetto e campo
+    @Test
+    public void testCreateDominioSoggettoNonReferente() {
+        ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
+        soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        soggettoCreate.setReferente(false);
+        ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
+        assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
+
+        DominioCreate dominio = this.getDominioCreate();
+        dominio.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
+
+        BadRequestException e = assertThrows(BadRequestException.class, () -> controller.createDominio(dominio));
+        assertEquals(ErrorCode.SOG_400_NOT_REFERENTE, e.getErrorCode());
+        assertEquals(soggettoCreate.getNome(), e.getParameters().get("nomeSoggetto"));
+        assertEquals("id_soggetto_referente", e.getParameters().get("campo"));
+    }
+
     @Test
     public void testCreateDominioConflict() {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());

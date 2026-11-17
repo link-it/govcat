@@ -138,6 +138,11 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 
 	public static final String SEPARATOR = ",";
 
+	// Parametri degli errori di validazione: il campo della richiesta coinvolto e il profilo non ammesso
+	private static final String PARAM_CAMPO = "campo";
+	private static final String PARAM_PROFILO = "profilo";
+	private static final String GRUPPI_AUTH_TYPE_PROFILO = "gruppi_auth_type.profilo";
+
 	public ApiDettaglioAssembler() {
 		super(APIController.class, API.class);
 	}
@@ -440,7 +445,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		ProtocolloEnum protocollo = src.getProtocollo() != null ? src.getProtocollo() : this.apiEngineAssembler.toProtocollo(entity.getProtocollo());
 		if(protocollo == null) {
 			throw new BadRequestException(ErrorCode.VAL_400_REQUIRED,
-					Map.of("campo", (collaudo ? "configurazione_collaudo" : "configurazione_produzione") + ".protocollo"));
+					Map.of(PARAM_CAMPO, (collaudo ? "configurazione_collaudo" : "configurazione_produzione") + ".protocollo"));
 		}
 
 		if(src.getProtocollo() != null || specificaModificata) {
@@ -539,7 +544,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 	private ApiConfigEntity getApiConfig(APIDatiAmbienteCreate src, ApiEntity api, boolean collaudo) {
 		ApiConfigEntity entity = new ApiConfigEntity();
 
-		checkSpecifica(src.getSpecifica());
+		checkSpecifica(src.getSpecifica(), collaudo);
 
 		setUrlInvocazione(src.getUrlInvocazione(), entity, collaudo);
 
@@ -566,10 +571,11 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		return entity;
 	}
 
-	private void checkSpecifica(DocumentoCreate specifica) {
+	private void checkSpecifica(DocumentoCreate specifica, boolean collaudo) {
 		if(this.configurazione.getServizio().getApi().isSpecificaObbligatorio()) {
 			if(specifica == null || specifica.getContent() == null) {
-				throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
+				String blocco = collaudo ? "configurazione_collaudo" : "configurazione_produzione";
+				throw new BadRequestException(ErrorCode.VAL_400_REQUIRED, Map.of(PARAM_CAMPO, blocco + ".specifica"));
 			}
 		}
 	}
@@ -740,19 +746,22 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 					ConfigurazioneTipoDominioEnum cd = entity.getServizio().isFruizione() ? ConfigurazioneTipoDominioEnum.ESTERNO : ConfigurazioneTipoDominioEnum.INTERNO;
 					
 					if(!p.getTipoDominio().equals(cd)) {
-							throw new BadRequestException(ErrorCode.VAL_422);
+						throw new BadRequestException(ErrorCode.VAL_400_PROFILO_TIPO_DOMINIO,
+								Map.of(PARAM_PROFILO, gruppo.getProfilo(), "tipoDominio", p.getTipoDominio().toString(), PARAM_CAMPO, GRUPPI_AUTH_TYPE_PROFILO));
 					}
 				}
 					
 				if(p.getDomini()!= null && !p.getDomini().isEmpty()) {
 					if(!p.getDomini().stream().anyMatch(dNome -> dNome.equals(d.getNome()))) {
-						throw new BadRequestException(ErrorCode.VAL_422);
+						throw new BadRequestException(ErrorCode.VAL_400_PROFILO_DOMINIO,
+								Map.of(PARAM_PROFILO, gruppo.getProfilo(), "dominio", d.getNome(), PARAM_CAMPO, GRUPPI_AUTH_TYPE_PROFILO));
 					}
 				}
 					
 				if(p.getSoggetti()!= null && !p.getSoggetti().isEmpty()) {
 					if(!p.getSoggetti().stream().anyMatch(dNome -> dNome.equals(d.getSoggettoReferente().getNome()))) {
-						throw new BadRequestException(ErrorCode.VAL_422);
+						throw new BadRequestException(ErrorCode.VAL_400_PROFILO_SOGGETTO,
+								Map.of(PARAM_PROFILO, gruppo.getProfilo(), "soggetto", d.getSoggettoReferente().getNome(), "dominio", d.getNome(), PARAM_CAMPO, GRUPPI_AUTH_TYPE_PROFILO));
 					}
 				}
 					
@@ -761,7 +770,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 				// Il collaudo puo` mancare (es. API in bozza con la sola produzione): si usa la configurazione disponibile (Issue 412)
 				ApiConfigEntity config = entity.getCollaudo() != null ? entity.getCollaudo() : entity.getProduzione();
 				if(config == null) {
-					throw new BadRequestException(ErrorCode.VAL_400_REQUIRED, Map.of("campo", "configurazione_collaudo"));
+					throw new BadRequestException(ErrorCode.VAL_400_REQUIRED, Map.of(PARAM_CAMPO, "configurazione_collaudo"));
 				}
 
 				switch(config.getProtocollo()) { //TODO
@@ -773,7 +782,8 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 					break;}
 
 				if(p.getCompatibilita() != null && !p.getCompatibilita().equals(comp)) {
-					throw new BadRequestException(ErrorCode.VAL_422);
+					throw new BadRequestException(ErrorCode.VAL_400_PROFILO_COMPATIBILITA,
+							Map.of(PARAM_PROFILO, gruppo.getProfilo(), "compatibilita", p.getCompatibilita().toString(), PARAM_CAMPO, GRUPPI_AUTH_TYPE_PROFILO));
 				}
 
 				AuthTypeEntity authType = new AuthTypeEntity();
@@ -785,7 +795,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 				authTypeSet.add(authType);
 			}
 		} else {
-			throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
+			throw new BadRequestException(ErrorCode.VAL_400_REQUIRED, Map.of(PARAM_CAMPO, "gruppi_auth_type"));
 		}
 		return authTypeSet;
 	}

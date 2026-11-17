@@ -2027,7 +2027,11 @@ public class APITest {
     	Dominio dominio = this.getDominio();
     	Servizio servizio = creaServizio("servizio_erogazione", dominio.getIdDominio(), false, null);
 
-    	assertThrows(BadRequestException.class, () -> apiController.createApi(getApiCreateDominio("API_X", servizio, "MTLS_FRUIZIONI")));
+    	BadRequestException e = assertThrows(BadRequestException.class, () -> apiController.createApi(getApiCreateDominio("API_X", servizio, "MTLS_FRUIZIONI")));
+    	// Issue 457: codice specifico con profilo e tipo di dominio ammesso
+    	assertEquals(ErrorCode.VAL_400_PROFILO_TIPO_DOMINIO, e.getErrorCode());
+    	assertEquals("MTLS_FRUIZIONI", e.getParameters().get("profilo"));
+    	assertEquals("esterno", e.getParameters().get("tipoDominio"));
     }
 
     @Test
@@ -2088,10 +2092,46 @@ public class APITest {
 
     		BadRequestException e = assertThrows(BadRequestException.class,
     				() -> apiController.createApi(getApiCreateDominioSoloProduzione("API_X", servizio, "INTERNO_HTTPS")));
-    		assertEquals(ErrorCode.VAL_422, e.getErrorCode());
+    		// Issue 457: codice specifico invece di VAL_422 generico
+    		assertEquals(ErrorCode.VAL_400_PROFILO_COMPATIBILITA, e.getErrorCode());
+    		assertEquals("INTERNO_HTTPS", e.getParameters().get("profilo"));
     	} finally {
     		profilo.setCompatibilita(compatibilitaOriginale);
     	}
+    }
+
+    // Issue 457: profilo non ammesso nel dominio: codice specifico con profilo, dominio e campo
+    @Test
+    void testCreateApiProfiloNonAmmessoNelDominio() {
+    	Dominio dominio = this.getDominio();
+    	Servizio servizio = creaServizio("servizio_erogazione", dominio.getIdDominio(), false, null);
+
+    	// MODI_P1 e` ammesso solo nei domini ModI e Test
+    	this.entityManager.createQuery("update DominioEntity d set d.nome = :nome where d.idDominio = :id")
+    		.setParameter("nome", "Interno").setParameter("id", dominio.getIdDominio().toString()).executeUpdate();
+    	this.entityManager.clear();
+
+    	APICreate apiCreate = getApiCreateDominio("API_X", servizio, "MODI_P1");
+
+    	BadRequestException e = assertThrows(BadRequestException.class, () -> apiController.createApi(apiCreate));
+    	assertEquals(ErrorCode.VAL_400_PROFILO_DOMINIO, e.getErrorCode());
+    	assertEquals("MODI_P1", e.getParameters().get("profilo"));
+    	assertEquals("Interno", e.getParameters().get("dominio"));
+    	assertEquals("gruppi_auth_type.profilo", e.getParameters().get("campo"));
+    }
+
+    // Issue 457: profilo SOAP su un'API REST
+    @Test
+    void testCreateApiProfiloNonCompatibile() {
+    	Dominio dominio = this.getDominio();
+    	Servizio servizio = creaServizio("servizio_erogazione", dominio.getIdDominio(), false, null);
+
+    	APICreate apiCreate = getApiCreateDominio("API_X", servizio, "PDND-INTEGRITY-SOAP");
+
+    	BadRequestException e = assertThrows(BadRequestException.class, () -> apiController.createApi(apiCreate));
+    	assertEquals(ErrorCode.VAL_400_PROFILO_COMPATIBILITA, e.getErrorCode());
+    	assertEquals("PDND-INTEGRITY-SOAP", e.getParameters().get("profilo"));
+    	assertEquals("soap", e.getParameters().get("compatibilita"));
     }
 
     // Issue 412: gruppi di autenticazione senza alcuna configurazione: 400 esplicito invece di 500

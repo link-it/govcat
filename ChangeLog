@@ -1,6 +1,22 @@
 2026-11-17  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
+	Issue 457: gli errori di validazione indicano il campo coinvolto (params.campo) e lo stato HTTP
+	  coincide con il codice. Servizi, API, domini, organizzazioni e adesioni riportano il campo
+	  obbligatorio mancante o non valido (per esempio referenti, gruppi_auth_type, id_logico,
+	  codice_ente). I profili non ammessi in un'API hanno codici specifici con profilo e
+	  dominio/soggetto/tipo di dominio/compatibilità (VAL.400.PROFILO.DOMINIO, .SOGGETTO,
+	  .TIPO.DOMINIO, .COMPATIBILITA) invece di VAL.422 generico. Il soggetto non referente di un
+	  dominio restituisce SOG.400.NOT.REFERENTE e la visibilità componente fuori da un package
+	  SRV.400.VISIBILITY. WFL.400.TRANSITION e WFL.400.PROFILO sono restituiti con HTTP 400 invece
+	  di 403. WFL.400.DATA.NOT.MODIFIABLE diventa WFL.403.DATA.NOT.MODIFIABLE (HTTP 403 invariato)
+	  con l'elenco dei dati non modificabili. I referenti duplicati (SRV/ADE/ORG.409.REFERENT),
+	  ORG.409.ADERENTE e ADE.409.STATE.* sono restituiti con HTTP 409 invece di 400, e
+	  AUT.403.REFERENT.NOT.ELIGIBLE con 403. L'autorizzazione precede i controlli sui dati:
+	  l'aggiunta di un referente a un servizio da parte di chi non ha ruolo sul servizio risponde
+	  403 anche se il referente esiste già, e non consente più di aggiungere sé stessi come
+	  referente; la creazione di un servizio verifica il permesso di creare servizi prima dei dati.
+
 	Issue 456: quando le ricerche di monitoraggio di GovWay (transazioni, export e statistiche)
 	  rispondono 400, per esempio perché il soggetto non esiste per il profilo di interoperabilità
 	  usato, GovCat restituisce 409 MON.409.GOVWAY con soggetto, profilo e dettaglio di GovWay

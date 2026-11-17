@@ -45,6 +45,9 @@ import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSuppor
 
 public class DominioDettaglioAssembler extends RepresentationModelAssemblerSupport<DominioEntity, Dominio> {
 
+	/** Parametro dell'errore che indica il campo della richiesta coinvolto */
+	private static final String CAMPO = "campo";
+
 	@Autowired
 	private SoggettoItemAssembler soggettoItemAssmbler;
 	
@@ -100,7 +103,7 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 		SoggettoEntity soggetto = soggettoService.find(src.getIdSoggettoReferente()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404, Map.of("idSoggetto", src.getIdSoggettoReferente().toString())));
 
 		if(!soggetto.isReferente()) {
-			throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
+			throw new BadRequestException(ErrorCode.SOG_400_NOT_REFERENTE, Map.of("nomeSoggetto", soggetto.getNome(), CAMPO, "id_soggetto_referente"));
 		}
 
 		entity.setSoggettoReferente(soggetto);
@@ -108,14 +111,14 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 		if(src.isSkipCollaudo() != null) {
 			if(!src.isSkipCollaudo() && entity.isSkipCollaudo()) {
 				if(isVincolaSkipCollaudo(entity)) {
-					throw new BadRequestException(ErrorCode.GEN_400_SKIP_COLLAUDO);
+					throw new BadRequestException(ErrorCode.GEN_400_SKIP_COLLAUDO, Map.of(CAMPO, "skip_collaudo"));
 				}
 			}
 			setSkipCollaudo(src.isSkipCollaudo(), entity);
 		}
 		
 		if(entity.isSkipCollaudo() && !entity.getSoggettoReferente().isSkipCollaudo()) {
-			throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422);
+			throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422, Map.of(CAMPO, "skip_collaudo"));
 		}
 
 		entity.setVisibilita(this.engine.toVisibilita(src.getVisibilita()));
@@ -173,7 +176,7 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 		entity.setSkipCollaudo(skipCollaudo);
 
 		if(entity.isSkipCollaudo() && !entity.getSoggettoReferente().isSkipCollaudo()) {
-			throw new BadRequestException(ErrorCode.GEN_400_SKIP_COLLAUDO);
+			throw new BadRequestException(ErrorCode.GEN_400_SKIP_COLLAUDO, Map.of(CAMPO, "skip_collaudo"));
 		}
 	}
 	
@@ -190,7 +193,7 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 		SoggettoEntity soggetto = soggettoService.find(src.getIdSoggettoReferente()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404, Map.of("idSoggetto", src.getIdSoggettoReferente().toString())));
 
 		if(!soggetto.isReferente()) {
-			throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
+			throw new BadRequestException(ErrorCode.SOG_400_NOT_REFERENTE, Map.of("nomeSoggetto", soggetto.getNome(), CAMPO, "id_soggetto_referente"));
 		}
 
 		entity.setSoggettoReferente(soggetto);

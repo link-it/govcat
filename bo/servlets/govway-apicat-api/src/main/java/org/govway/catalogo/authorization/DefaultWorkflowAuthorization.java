@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotAuthorizedException;
+import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.Campo;
 import org.govway.catalogo.servlets.model.ConfigurazioneCambioStato;
@@ -73,7 +74,7 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 			// dallo stato archiviato si può tornare solo allo stato precedente
 			String statoPrecedente = getStatoPrecedente(entity);
 			if(!statoFinale.equals(statoPrecedente)) {
-				throw new NotAuthorizedException(ErrorCode.WFL_400_TRANSITION,
+				throw new BadRequestException(ErrorCode.WFL_400_TRANSITION,
 						Map.of("statoAttuale", statoIniziale, "statoDesiderato", statoFinale));
 			}
 		} else {
@@ -100,11 +101,11 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 
 			if(lstStatiArrivo.isEmpty()) {
 				if(!profiliNonAbilitati.isEmpty()) {
-					throw new NotAuthorizedException(ErrorCode.WFL_400_PROFILO,
+					throw new BadRequestException(ErrorCode.WFL_400_PROFILO,
 							Map.of("statoAttuale", statoIniziale, "statoDesiderato", statoFinale,
 									"profili", String.join(", ", profiliNonAbilitati)));
 				}
-				throw new NotAuthorizedException(ErrorCode.WFL_400_TRANSITION,
+				throw new BadRequestException(ErrorCode.WFL_400_TRANSITION,
 						Map.of("statoAttuale", statoIniziale, "statoDesiderato", statoFinale));
 			}
 
@@ -129,6 +130,15 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 		this.checkCampiNonModificabili(entity, classiDato);
 		this.logger.debug("authorizeModifica: " + entity.getClass() + " classiDato: " + classiDato + " OK");
 		
+	}
+
+	/**
+	 * Verifica solo che l'utente possa modificare le classi di dato indicate nello stato corrente
+	 * (grant per ruolo), senza i controlli sui campi obbligatori: consente di autorizzare la
+	 * richiesta prima di validarne il contenuto.
+	 */
+	public void authorizeModificaDati(ENTITY entity, List<ConfigurazioneClasseDato> classiDato) {
+		this.checkCampiNonModificabili(entity, classiDato);
 	}
 
 	private void addStato(ENTITY entity, ConfigurazioneStato stato, String statoFinale,
@@ -312,7 +322,8 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 		}
 
 		if(!lst.isEmpty()) {
-			throw new NotAuthorizedException(ErrorCode.WFL_400_DATA_NOT_MODIFIABLE);
+			// Il grant dipende dai ruoli dell'utente nello stato corrente: e` un diniego di autorizzazione (403)
+			throw new NotAuthorizedException(ErrorCode.WFL_403_DATA_NOT_MODIFIABLE, Map.of("dati", String.join(", ", lst)));
 		}
 	}
 
