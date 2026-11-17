@@ -33,7 +33,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity.RUOLO;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.InternalException;
@@ -488,7 +487,7 @@ public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient
 					ls.setPagedModel(pagedModel);
 					DetailTransazione transazione = mon.getTransazione(request.getIdTransazione());
 					
-					checkTransazioneServizio(transazione, request.getLstIdApi());
+					checkTransazioneServizio(transazione, request);
 					ls.setPagedModel(toTransactionList(transazione));
 					if(request.isIncludiAudit()) {
 						TracciaAudit audit = getTracciaAuditOrNull(transazione);
@@ -768,7 +767,7 @@ public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient
 				try {
 					DetailTransazione transazione = mon.getTransazione(request.getIdTransazione());
 					
-					checkTransazioneServizio(transazione, request.getLstIdApi());
+					checkTransazioneServizio(transazione, request);
 					collection.add(this.transazioneBuilder.toTransazione(transazione, request.getConfigurazioneConnessione().getAmbiente()));
 				} catch(ApiException e) {
 					if (e.getCode() != 404) {
@@ -795,21 +794,18 @@ public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient
 		
 	}
 
-	private void checkTransazioneServizio(DetailTransazione transazione, List<IdApi> lstIdApi) {
-		
-		if(transazione.getApi()!= null) {
-			TransazioneExtInformazioniApi api = transazione.getApi(); 
-			ApiEntity ap = this.transazioneBuilder.getIdApi(api.getNome(), api.getVersione(), api.getErogatore());
-
-			List<IdApi> apis = lstIdApi.stream().filter(a -> a.getNome().equals(ap.getNome()) && a.getVersione().equals(ap.getVersione())).collect(Collectors.toList());
-			if(apis.size() > 0) {
-				return;
-			} else {
-				throw new NotAuthorizedException(ErrorCode.AUT_403_RESOURCE, Map.of("resource", transazione.getIdTraccia().toString()));
-			}
-
-			
-			
+	/**
+	 * La transazione cercata per identificativo deve comparire nella lista delle transazioni del servizio:
+	 * API (nome e versione) e soggetto erogatore con cui GovWay la registra tra quelli interrogati per il servizio.
+	 * Una transazione senza API non compare in nessuna lista e si restituisce solo se richiesto.
+	 */
+	private void checkTransazioneServizio(DetailTransazione transazione, ListTransazioniRequest request) {
+		TransazioneExtInformazioniApi api = transazione.getApi();
+		boolean consentita = api != null
+				? FiltriUtils.isTransazioneApi(request.getLstIdApi(), api.getNome(), api.getVersione(), api.getErogatore())
+				: request.isTransazioniSenzaApi();
+		if(!consentita) {
+			throw new NotAuthorizedException(ErrorCode.AUT_403_RESOURCE, Map.of("resource", transazione.getIdTraccia().toString()));
 		}
 	}
 

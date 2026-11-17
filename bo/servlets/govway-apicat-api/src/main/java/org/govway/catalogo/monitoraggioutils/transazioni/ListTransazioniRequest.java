@@ -43,6 +43,7 @@ public class ListTransazioniRequest {
 	private UUID idTransazione;
 	private Pageable pageable;
 	private boolean includiAudit;
+	private boolean transazioniSenzaApi;
 	
 	public OffsetDateTime getDataDa() {
 		return dataDa;
@@ -121,5 +122,15 @@ public class ListTransazioniRequest {
 	}
 	public void setIncludiAudit(boolean includiAudit) {
 		this.includiAudit = includiAudit;
+	}
+	/**
+	 * Nella ricerca per identificativo, indica se restituire anche una transazione senza API: non compare nella
+	 * lista delle transazioni di alcun servizio ed e' visibile solo al gestore.
+	 */
+	public boolean isTransazioniSenzaApi() {
+		return transazioniSenzaApi;
+	}
+	public void setTransazioniSenzaApi(boolean transazioniSenzaApi) {
+		this.transazioniSenzaApi = transazioniSenzaApi;
 	}
 }

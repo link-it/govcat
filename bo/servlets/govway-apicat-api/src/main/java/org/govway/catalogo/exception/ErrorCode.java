@@ -513,6 +513,15 @@ public enum ErrorCode {
     /** API non indicata nella ricerca delle transazioni con informazioni di audit */
     MON_400_AUDIT_ID_API("API obbligatoria per il monitoraggio di audit"),
 
+    /** Soggetto indicato nel monitoraggio diverso dal soggetto referente del dominio del servizio */
+    MON_400_SOGGETTO("Soggetto non coerente con il servizio monitorato"),
+
+    /** Monitoraggio del servizio non consentito con i ruoli dell'utente sul servizio */
+    MON_403("Monitoraggio del servizio non consentito con i ruoli dell'utente"),
+
+    /** Transazione non appartenente a un servizio su cui l'utente puo' accedere al monitoraggio */
+    MON_403_TRANSAZIONE("Monitoraggio della transazione non consentito con i ruoli dell'utente"),
+
     // ==================== TRANSAZIONI ====================
 
     /** Transazione non trovata */

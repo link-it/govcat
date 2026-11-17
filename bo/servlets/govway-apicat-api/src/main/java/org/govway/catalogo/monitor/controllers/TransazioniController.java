@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.govway.catalogo.MonitorV1Controller;
+import org.govway.catalogo.authorization.MonitoraggioAuthorization;
 import org.govway.catalogo.controllers.CustomPageRequest;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.SoggettoEntity;
@@ -91,6 +92,9 @@ public class TransazioniController implements TransazioniApi {
 
 	@Autowired
 	private AutenticazioniMonitoraggio autenticazioniMonitoraggio;
+
+	@Autowired
+	private MonitoraggioAuthorization monitoraggioAuthorization;
 
     @Value("${monitor.collaudo.uri}")
 	protected String uriMonitorCollaudo;
@@ -212,6 +216,7 @@ public class TransazioniController implements TransazioniApi {
 		List<IdApi> idapi = this.filtriUtils.getApi(idServizio, null, null, ambiente);
 		
 		request.setLstIdApi(idapi);
+		request.setTransazioniSenzaApi(this.monitoraggioAuthorization.isGestore());
 		return request;
 	}
 
@@ -223,8 +228,15 @@ public class TransazioniController implements TransazioniApi {
 		if(this.configurazione.getMonitoraggio().isTransazioniAbilitate() != null && !this.configurazione.getMonitoraggio().isTransazioniAbilitate()) {
 			throw new NotFoundException(ErrorCode.MON_404_STATS, Map.of("tipo", "transazioni"));
 		}
-		
-		//TODO check ruoli
+	}
+
+	/**
+	 * Monitoraggio abilitato e consentito all'utente sul servizio; il soggetto del path, se presente, deve essere
+	 * quello del servizio.
+	 */
+	private void authorize(UUID idServizio, String soggetto) {
+		authorize();
+		this.monitoraggioAuthorization.authorizeServizio(idServizio, soggetto);
 	}
 
 	private void authorizeAudit() {
@@ -331,6 +343,12 @@ public class TransazioniController implements TransazioniApi {
 			
 			Transazione transazione = this.client.getTransazione(request).getTransazione();
 
+			TransazioneApi api = transazione.getApi();
+			this.monitoraggioAuthorization.authorizeTransazione(ambiente, idTransazione,
+					api != null ? api.getNome() : null,
+					api != null ? api.getVersione() : null,
+					api != null && api.getErogatore() != null ? api.getErogatore().getNome() : null);
+
 			if(audit && !isAuditApiTransazione(ambiente, transazione.getApi())) {
 				transazione.setAudit(null);
 			}
@@ -357,7 +375,7 @@ public class TransazioniController implements TransazioniApi {
 		try {
 			this.logger.info("Invocazione in corso ..."); 
 			
-			this.authorize();
+			this.authorize(idServizio, null);
 			this.logger.debug("Autorizzazione completata con successo");     
 
 			ListTransazioniRequest request = fillListaTransazioniRequest(ambiente, idTransazione, idServizio);
@@ -383,7 +401,7 @@ public class TransazioniController implements TransazioniApi {
 		try {
 			this.logger.info("Invocazione in corso ..."); 
 			
-			this.authorize();
+			this.authorize(listaTransazioniIdQuery.getIdServizio(), null);
 			boolean audit = Boolean.TRUE.equals(includiAudit);
 			if(audit) {
 				this.authorizeAudit();
@@ -425,7 +443,7 @@ public class TransazioniController implements TransazioniApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(idServizio, soggetto);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("id"));
@@ -455,7 +473,7 @@ public class TransazioniController implements TransazioniApi {
 	try {
 		this.logger.info("Invocazione in corso ...");
 
-		this.authorize();
+		this.authorize(listaTransazioniQuery.getApi().getIdServizio(), soggetto);
 		boolean audit = Boolean.TRUE.equals(includiAudit);
 		if(audit) {
 			this.authorizeAudit(ambiente, listaTransazioniQuery);
@@ -491,7 +509,7 @@ public class TransazioniController implements TransazioniApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(idServizio, soggetto);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("id"));
@@ -521,7 +539,7 @@ public class TransazioniController implements TransazioniApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(listaTransazioniQuery.getApi().getIdServizio(), soggetto);
 			boolean audit = Boolean.TRUE.equals(includiAudit);
 			if(audit) {
 				this.authorizeAudit(ambiente, listaTransazioniQuery);

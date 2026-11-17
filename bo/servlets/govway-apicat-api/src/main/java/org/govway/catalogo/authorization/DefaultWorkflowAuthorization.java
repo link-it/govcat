@@ -376,17 +376,8 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 		boolean isRuoloAbilitato = false;
 
 		List<ConfigurazioneRuolo> lstConfRuoli = lst.stream()
-					.map(r -> {
-						switch(r) {
-						case GESTORE: return ConfigurazioneRuolo.GESTORE;
-						case REFERENTE_TECNICO:
-						case REFERENTE:return ConfigurazioneRuolo.REFERENTE;
-						case REFERENTE_TECNICO_SUPERIORE:
-						case REFERENTE_SUPERIORE:return ConfigurazioneRuolo.REFERENTE_SUPERIORE;
-						case RICHIEDENTE:return ConfigurazioneRuolo.RICHIEDENTE;
-						}
-						return null;
-					}).collect(Collectors.toList());
+					.map(DefaultWorkflowAuthorization::toConfigurazioneRuolo)
+					.collect(Collectors.toList());
 
 		if(stato.getStatoSuccessivo() != null) {
 			for(ConfigurazioneRuolo r: stato.getStatoSuccessivo().getRuoliAbilitati()) {
@@ -406,6 +397,22 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 	}
 
 	/**
+	 * Ruolo della configurazione corrispondente a un ruolo dell'utente sull'entità: i ruoli tecnici valgono
+	 * come i corrispondenti ruoli non tecnici.
+	 */
+	protected static ConfigurazioneRuolo toConfigurazioneRuolo(Ruolo r) {
+		switch(r) {
+		case GESTORE: return ConfigurazioneRuolo.GESTORE;
+		case REFERENTE_TECNICO:
+		case REFERENTE: return ConfigurazioneRuolo.REFERENTE;
+		case REFERENTE_TECNICO_SUPERIORE:
+		case REFERENTE_SUPERIORE: return ConfigurazioneRuolo.REFERENTE_SUPERIORE;
+		case RICHIEDENTE: return ConfigurazioneRuolo.RICHIEDENTE;
+		}
+		return null;
+	}
+
+	/**
 	 * Verifica se la classe di dato è configurata come sempre modificabile per almeno uno dei ruoli dell'utente.
 	 * @param classe la classe di dato da verificare
 	 * @param ruoliUtente i ruoli dell'utente sull'entità
@@ -420,17 +427,7 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 
 		// Converti i ruoli dell'utente in ConfigurazioneRuolo
 		List<ConfigurazioneRuolo> lstConfRuoli = ruoliUtente.stream()
-				.map(r -> {
-					switch(r) {
-					case GESTORE: return ConfigurazioneRuolo.GESTORE;
-					case REFERENTE_TECNICO:
-					case REFERENTE: return ConfigurazioneRuolo.REFERENTE;
-					case REFERENTE_TECNICO_SUPERIORE:
-					case REFERENTE_SUPERIORE: return ConfigurazioneRuolo.REFERENTE_SUPERIORE;
-					case RICHIEDENTE: return ConfigurazioneRuolo.RICHIEDENTE;
-					}
-					return null;
-				})
+				.map(DefaultWorkflowAuthorization::toConfigurazioneRuolo)
 				.filter(r -> r != null)
 				.collect(Collectors.toList());
 

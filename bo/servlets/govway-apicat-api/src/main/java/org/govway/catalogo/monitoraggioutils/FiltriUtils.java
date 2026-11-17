@@ -272,6 +272,23 @@ public class FiltriUtils {
 					.orElseThrow(() -> new NotFoundException(ErrorCode.ADE_404, Map.of("idAdesione", idAdesione.toString())));
 			}
 	
+			List<IdApi> apiLst = getIdApi(servizio, api, adesione, idAdesione, ambiente);
+
+			if(apiLst.isEmpty()) {
+				throw new BadRequestException(ErrorCode.API_404_FOR_SERVICE, Map.of("idServizio", idServizio.toString()));
+			}
+			
+			return apiLst;
+		});
+
+	}
+
+	/**
+	 * API del servizio su cui si interroga il monitoraggio di GovWay, come in {@link #getApi(UUID, UUID, UUID, AmbienteEnum)}.
+	 * Le API senza dati per l'ambiente non sono configurate su GovWay in quell'ambiente e non hanno transazioni.
+	 * Da invocare all'interno di una transazione.
+	 */
+	private List<IdApi> getIdApi(ServizioEntity servizio, ApiEntity api, AdesioneEntity adesione, UUID idAdesione, AmbienteEnum ambiente) {
 			List<IdApi> apiLst = new ArrayList<>();
 			
 			Set<ApiEntity> apiServizioLst = new HashSet<>();
@@ -287,6 +304,9 @@ public class FiltriUtils {
 			for(ApiEntity ap: apiServizioLst) {
 				if(api == null || api.getId().equals(ap.getId())) {
 					ApiConfigEntity conf = ambiente.equals(AmbienteEnum.COLLAUDO) ? ap.getCollaudo(): ap.getProduzione();
+					if(conf == null) {
+						continue;
+					}
 					if(ap.getRuolo().equals(RUOLO.EROGATO_SOGGETTO_DOMINIO)) {
 						
  						IdApi id = new IdApi();
@@ -348,13 +368,28 @@ public class FiltriUtils {
 				}
 			}
 
-			if(apiLst.isEmpty()) {
-				throw new BadRequestException(ErrorCode.API_404_FOR_SERVICE, Map.of("idServizio", idServizio.toString()));
-			}
-			
 			return apiLst;
-		});
+	}
 
+	/**
+	 * Indica se una transazione di GovWay, individuata dall'API (nome e versione) e dal soggetto erogatore con cui
+	 * GovWay la registra, compare nel monitoraggio del servizio nell'ambiente: stesso perimetro della lista delle
+	 * transazioni del servizio, senza filtri per adesione. Da invocare all'interno di una transazione.
+	 */
+	public boolean isTransazioneServizio(ServizioEntity servizio, AmbienteEnum ambiente, String nome, Integer versione, String erogatore) {
+		return isTransazioneApi(getIdApi(servizio, null, null, null, ambiente), nome, versione, erogatore);
+	}
+
+	/**
+	 * Indica se una transazione di GovWay, individuata dall'API (nome e versione) e dal soggetto erogatore con cui
+	 * GovWay la registra, riguarda una delle API su cui si interroga il monitoraggio.
+	 */
+	public static boolean isTransazioneApi(List<IdApi> lstIdApi, String nome, Integer versione, String erogatore) {
+		if(nome == null || versione == null || erogatore == null) {
+			return false;
+		}
+		return lstIdApi.stream()
+				.anyMatch(a -> nome.equals(a.getNome()) && versione.equals(a.getVersione()) && erogatore.equals(a.getSoggetto()));
 	}
 
 	/**

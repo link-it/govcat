@@ -1,3 +1,16 @@
+2026-11-17  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 449: le API di monitoraggio verificano i ruoli dell'utente sul servizio secondo
+	  monitoraggio.ruoli_abilitati: lista ed export delle transazioni, ricerca per identificativo,
+	  dettaglio e statistiche rispondono 403 a chi non ha un ruolo abilitato (il gestore è sempre
+	  ammesso); come nel frontend, il ruolo referente ricavato dal ruolo operatore API
+	  dell'organizzazione non basta. Il dettaglio e la ricerca per identificativo restituiscono
+	  solo transazioni che compaiono nella lista di un servizio monitorabile dall'utente (API con
+	  nome e versione su GovWay e soggetto erogatore); quelle senza API solo al gestore. Il
+	  soggetto indicato nel path deve essere il soggetto referente del dominio del servizio,
+	  altrimenti si risponde 400.
+
 2026-11-16  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

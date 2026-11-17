@@ -1877,7 +1877,12 @@
 								"API": "An API must be specified to view audit information"
 							}
 						},
-						"INTERVAL": "Time interval [{{inizio}} - {{fine}}] not valid"
+						"INTERVAL": "Time interval [{{inizio}} - {{fine}}] not valid",
+						"SOGGETTO": "Subject [{{soggetto}}] is not the referent subject of the domain of the monitored service"
+					},
+					"403": {
+						"DEFAULT": "You do not have a role enabled to monitor the service",
+						"TRANSAZIONE": "You do not have a role enabled to monitor the service of transaction [{{idTransazione}}]"
 					},
 					"404": {
 						"DEFAULT": "Monitoring data not available for service [{{servizio}}]",

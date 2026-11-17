@@ -1877,7 +1877,12 @@
 								"API": "Per consultare le informazioni di audit è necessario indicare l'API"
 							}
 						},
-						"INTERVAL": "Intervallo temporale [{{inizio}} - {{fine}}] non valido"
+						"INTERVAL": "Intervallo temporale [{{inizio}} - {{fine}}] non valido",
+						"SOGGETTO": "Il soggetto [{{soggetto}}] non è il soggetto referente del dominio del servizio monitorato"
+					},
+					"403": {
+						"DEFAULT": "Non hai un ruolo abilitato al monitoraggio del servizio",
+						"TRANSAZIONE": "Non hai un ruolo abilitato al monitoraggio del servizio della transazione [{{idTransazione}}]"
 					},
 					"404": {
 						"DEFAULT": "Dati di monitoraggio non disponibili per il servizio [{{servizio}}]",

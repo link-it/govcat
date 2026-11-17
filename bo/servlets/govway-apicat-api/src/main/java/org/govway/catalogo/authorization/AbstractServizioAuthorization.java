@@ -53,6 +53,7 @@ import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
 import org.govway.catalogo.servlets.model.ConfigurazioneCustomProprietaList;
 import org.govway.catalogo.servlets.model.ConfigurazioneDatoSempreModificabile;
+import org.govway.catalogo.servlets.model.ConfigurazioneRuolo;
 import org.govway.catalogo.servlets.model.EntitaComplessaError;
 import org.govway.catalogo.servlets.model.Grant;
 import org.govway.catalogo.servlets.model.ProprietaCustom;
@@ -478,6 +479,34 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 		}
 
 		return lst;
+	}
+
+	/**
+	 * Indica se l'utente in sessione puo' accedere al monitoraggio (transazioni e statistiche) del servizio:
+	 * il gestore sempre, gli altri con almeno un ruolo sul servizio tra {@code monitoraggio.ruoli_abilitati}.
+	 * Come nel frontend, il ruolo {@code referente} vale solo per i referenti del servizio e non quando e'
+	 * ricavato dal ruolo operatore API dell'organizzazione; i ruoli tecnici valgono come i corrispondenti
+	 * ruoli non tecnici.
+	 */
+	public boolean isMonitoraggioConsentito(ServizioEntity entity) {
+		List<Ruolo> ruoli = this.getRuoli(entity);
+		if(ruoli.contains(Ruolo.GESTORE)) {
+			return true;
+		}
+
+		List<ConfigurazioneRuolo> ruoliAbilitati = this.configurazione.getMonitoraggio().getRuoliAbilitati();
+		if(ruoliAbilitati == null || ruoliAbilitati.isEmpty()) {
+			return false;
+		}
+
+		UtenteEntity u = this.coreAuthorization.getUtenteSessione();
+		boolean refServizio = entity.getReferenti().stream()
+				.anyMatch(r -> r.getReferente().getId().equals(u.getId()) && r.getTipo().equals(TIPO_REFERENTE.REFERENTE));
+
+		return ruoli.stream()
+				.filter(r -> !r.equals(Ruolo.REFERENTE) || refServizio)
+				.map(DefaultWorkflowAuthorization::toConfigurazioneRuolo)
+				.anyMatch(ruoliAbilitati::contains);
 	}
 
 	/**

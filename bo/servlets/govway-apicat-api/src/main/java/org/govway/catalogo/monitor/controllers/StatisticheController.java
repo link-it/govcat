@@ -26,6 +26,7 @@ import java.util.UUID;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.govway.catalogo.MonitorV1Controller;
+import org.govway.catalogo.authorization.MonitoraggioAuthorization;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotFoundException;
@@ -102,6 +103,9 @@ public class StatisticheController implements StatisticheApi {
 	@Autowired
 	private AutenticazioniMonitoraggio autenticazioniMonitoraggio;
 
+	@Autowired
+	private MonitoraggioAuthorization monitoraggioAuthorization;
+
 	@Value("${statistiche.collaudo.uri}")
 	protected String uriStatisticheCollaudo;
 	@Value("${statistiche.collaudo.authn.basic.username}")
@@ -168,8 +172,14 @@ public class StatisticheController implements StatisticheApi {
                 !this.configurazione.getMonitoraggio().getStatistiche().getFormatiReport().contains(formatoReportRichiesto)) {
 			throw new NotFoundException(ErrorCode.MON_404_STATS, Map.of("tipo", "statistiche"));
         }
+	}
 
-		// TODO check ruoli
+	/**
+	 * Monitoraggio consentito all'utente sul servizio e soggetto del path coerente con il servizio. Si verifica
+	 * nella costruzione di ogni richiesta (GET e POST), prima di interrogare GovWay.
+	 */
+	private void authorizeServizio(UUID idServizio, String soggetto) {
+		this.monitoraggioAuthorization.authorizeServizio(idServizio, soggetto);
 	}
 
 	private GetReportRequest fillGetReportRequest(AmbienteEnum ambiente, UUID idServizio, OffsetDateTime dataDa,
@@ -179,6 +189,8 @@ public class StatisticheController implements StatisticheApi {
 			TipoReportAndamentoTemporaleEnum tipoReportAndamentoTemporale, TipoReportEnum tipoReport,
 			TipoInformazioneReportEnum tipoInformazioneReport, ErogazioneFruizioneEnum erogazioneFruizione,
 			String soggetto, TipologiaReportEnum tipologiaReportEnum) {
+
+		authorizeServizio(idServizio, soggetto);
 
 		List<IdApi> idapi = this.filtriUtils.getApi(idServizio, idApi, idAdesione, ambiente);
 
@@ -238,6 +250,8 @@ public class StatisticheController implements StatisticheApi {
 	private GetReportRequest fillPostReportRequestInfoComuni(GetReportRequest getReportRequest, AmbienteEnum ambiente,
 			ErogazioneFruizioneEnum erogazioneFruizione, String soggetto, TipologiaReportEnum andamentoTemporale,
 			FiltroApi filtroApi) {
+		authorizeServizio(filtroApi.getIdServizio(), soggetto);
+
 		getReportRequest.setConfigurazioneConnessione(getConfigurazioneConnessione(ambiente));
 		getReportRequest.setSoggettoReferente(this.filtriUtils.getSoggettoNome(soggetto));
 		getReportRequest.setTipologiaReportEnum(andamentoTemporale);
