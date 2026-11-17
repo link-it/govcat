@@ -628,6 +628,46 @@ public class DominiTest {
     }
 
     @Test
+    public void testCreateDominioDeprecatoNonIndicatoFalse() {
+        ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
+        soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
+
+        DominioCreate dominioCreate = this.getDominioCreate();
+        dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
+        dominioCreate.setDeprecato(null);
+
+        ResponseEntity<Dominio> createdDominio = controller.createDominio(dominioCreate);
+
+        assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
+        assertFalse(createdDominio.getBody().isDeprecato());
+    }
+
+    @Test
+    public void testUpdateDominioDeprecatoNonIndicatoInvariato() {
+        ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
+        soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
+
+        DominioCreate dominioCreate = this.getDominioCreate();
+        dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
+        dominioCreate.setDeprecato(true);
+        Dominio dominio = controller.createDominio(dominioCreate).getBody();
+        assertTrue(dominio.isDeprecato());
+
+        DominioUpdate dominioUpdate = this.getDominioUpdateOpzioniAdesione(dominio, null, null);
+        dominioUpdate.setDeprecato(null);
+        Dominio aggiornato = controller.updateDominio(dominio.getIdDominio(), dominioUpdate).getBody();
+        assertTrue(aggiornato.isDeprecato());
+
+        dominioUpdate.setDeprecato(false);
+        aggiornato = controller.updateDominio(dominio.getIdDominio(), dominioUpdate).getBody();
+        assertFalse(aggiornato.isDeprecato());
+    }
+
+    @Test
     public void testUpdateDominioConflictCaseInsensitive() {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());

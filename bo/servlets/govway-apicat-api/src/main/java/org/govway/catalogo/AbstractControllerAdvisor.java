@@ -19,9 +19,11 @@
  */
 package org.govway.catalogo;
 
+import org.govway.catalogo.exception.AbstractGovCatException;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ClientApiException;
 import org.govway.catalogo.exception.ConflictException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
@@ -29,6 +31,8 @@ import org.govway.catalogo.exception.NotImplementedException;
 import org.govway.catalogo.exception.RichiestaNonValidaSemanticamenteException;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
 import org.hibernate.service.spi.ServiceException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -44,6 +48,8 @@ import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;
 import com.fasterxml.jackson.databind.exc.ValueInstantiationException;
 
 public abstract class AbstractControllerAdvisor extends ResponseEntityExceptionHandler {
+
+	private static final Logger LOG = LoggerFactory.getLogger(AbstractControllerAdvisor.class);
 
 	@Override
 	protected ResponseEntity<Object> handleMethodArgumentNotValid(
@@ -109,7 +115,13 @@ public abstract class AbstractControllerAdvisor extends ResponseEntityExceptionH
 	 */
 	@ExceptionHandler(Exception.class)
 	public final ResponseEntity<Object> handleGenericException(Exception ex, WebRequest request) {
-		return toEntity(ex, HttpStatus.INTERNAL_SERVER_ERROR);
+		if(ex instanceof AbstractGovCatException) {
+			return toEntity(ex, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		// Il messaggio di un'eccezione non applicativa (NPE, ecc.) rivela dettagli implementativi:
+		// resta solo nel log, al client va il codice generico
+		LOG.error("Errore non gestito: {}", ex.getMessage(), ex);
+		return toEntity(new InternalException(ErrorCode.SYS_500), HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
 	protected abstract ResponseEntity<Object> toEntity(Exception ex, HttpStatus status);

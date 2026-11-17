@@ -92,7 +92,10 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 	public DominioEntity toEntity(DominioUpdate src, DominioEntity entity) {
 		BeanUtils.copyProperties(src, entity);
 
-		entity.setDeprecato(src.isDeprecato());
+		// deprecato e` facoltativo nel contratto: se non indicato resta invariato
+		if(src.isDeprecato() != null) {
+			entity.setDeprecato(src.isDeprecato());
+		}
 
 		SoggettoEntity soggetto = soggettoService.find(src.getIdSoggettoReferente()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404, Map.of("idSoggetto", src.getIdSoggettoReferente().toString())));
 
@@ -181,7 +184,8 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 		DominioEntity entity = new DominioEntity();
 		BeanUtils.copyProperties(src, entity);
 		
-		entity.setDeprecato(src.isDeprecato());
+		// deprecato e` facoltativo nel contratto: se non indicato vale false
+		entity.setDeprecato(Boolean.TRUE.equals(src.isDeprecato()));
 		entity.setIdDominio(UUID.randomUUID().toString());
 		SoggettoEntity soggetto = soggettoService.find(src.getIdSoggettoReferente()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404, Map.of("idSoggetto", src.getIdSoggettoReferente().toString())));
 

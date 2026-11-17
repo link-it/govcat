@@ -1,7 +1,12 @@
 2026-11-17  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
-	Issue 452: il cambio stato di adesioni e servizi con check_only=true verifica solo la
+	Issue 453: il campo facoltativo deprecato dei domini non è più causa di errore 500 se assente:
+	  in creazione vale false, in modifica il valore resta invariato. Le eccezioni non gestite
+	  restituiscono 500 con detail SYS.500, senza esporre il messaggio interno dell'eccezione
+	  (che resta nel log).
+
+	Issue 452:il cambio stato di adesioni e servizi con check_only=true verifica solo la
 	  transizione (permessi e dati obbligatori) senza eseguirla: stato, storico degli stati e
 	  notifiche restano invariati. Prima la modifica veniva salvata comunque al commit, perché
 	  il distacco dell'entità arrivava dopo il flush automatico.

@@ -287,4 +287,22 @@ class ControllerAdvisorTest {
 		assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
 		assertEquals(403, ((Problem) response.getBody()).getStatus());
 	}
+
+	@Test
+	void testEccezioneNonGestitaSenzaMessaggioInterno() {
+		ResponseEntity<Object> response = advisor.handleGenericException(
+				new NullPointerException("Cannot invoke \"java.lang.Boolean.booleanValue()\""), null);
+
+		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+		assertEquals("SYS.500", ((Problem) response.getBody()).getDetail());
+	}
+
+	@Test
+	void testEccezioneApplicativaNonMappataMantieneCodice() {
+		ResponseEntity<Object> response = advisor.handleGenericException(
+				new org.govway.catalogo.exception.InternalException(org.govway.catalogo.exception.ErrorCode.SYS_500_DB), null);
+
+		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+		assertEquals("SYS.500.DB", ((Problem) response.getBody()).getDetail());
+	}
 }
