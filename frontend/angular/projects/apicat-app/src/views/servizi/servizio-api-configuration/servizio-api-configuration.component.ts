@@ -914,6 +914,8 @@ export class ServizioApiConfigurationComponent implements OnInit, OnDestroy, Aft
     const configuration: ApiConfiguration = {
       protocollo: this._formGroup.get('protocollo')?.value || undefined,
       dati_erogazione: {
+        // Il BE sostituisce l'intero blocco: i dati non gestiti dal form (es. url_prefix) restano quelli salvati
+        ...(this._configuration?.dati_erogazione || {}),
         nome_gateway: this._formGroup.get('nome_gateway')?.value || undefined,
         versione_gateway: this._formGroup.get('versione_gateway')?.value || undefined,
         url: this._formGroup.get('url')?.value || undefined

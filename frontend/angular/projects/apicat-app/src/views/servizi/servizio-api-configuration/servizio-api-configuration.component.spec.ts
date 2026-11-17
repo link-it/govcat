@@ -2821,6 +2821,23 @@ describe('ServizioApiConfigurationComponent', () => {
       return mockApiService.putElement.mock.calls.at(-1)[2].configurazione_produzione;
     };
 
+    it('should keep the saved url_prefix and the other data not handled by the form', () => {
+      load(buildApi({ dati_erogazione: { url: 'http://p', url_prefix: 'https://api.ente.it', nome_gateway: 'gw', versione_gateway: 2 } }));
+      const datiErogazione = save().dati_erogazione;
+      expect(datiErogazione.url_prefix).toBe('https://api.ente.it');
+      expect(datiErogazione.url).toBe('http://p');
+    });
+
+    it('should send the values edited in the form over the saved ones', () => {
+      load(buildApi({ dati_erogazione: { url: 'http://p', url_prefix: 'https://api.ente.it', nome_gateway: 'gw' } }));
+      component._formGroup.get('url')?.setValue('http://nuova');
+      component._formGroup.get('nome_gateway')?.setValue('');
+      const datiErogazione = save().dati_erogazione;
+      expect(datiErogazione.url).toBe('http://nuova');
+      expect(datiErogazione.nome_gateway).toBeUndefined();
+      expect(datiErogazione.url_prefix).toBe('https://api.ente.it');
+    });
+
     it('should load the saved quotas and send the full list', () => {
       load(buildApi({ rate_limiting: [{ quota: 300, periodo: 'giorno' }, { quota: 20, periodo: 'ora' }] }));
       expect(component._rateLimitingVisibile).toBe(true);

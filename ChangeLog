@@ -23,6 +23,10 @@
 	  errore con più varianti (es. SRV.404) usano la traduzione DEFAULT. Le statistiche riconoscono il
 	  404 anche quando lo stato arriva solo nel corpo della risposta (completamento della Issue 461).
 
+	Issue 467: il salvataggio della configurazione di un'API e l'adeguamento delle quote ai profili
+	  reinviano i dati di erogazione salvati non gestiti dal form, così url_prefix non viene più
+	  cancellato e la URL di invocazione dell'ambiente resta invariata.
+
 2026-11-17  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

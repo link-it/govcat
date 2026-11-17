@@ -825,7 +825,7 @@ describe('ServizioApiDetailsComponent', () => {
       component._isNew = false;
       component.service = { stato: 'bozza' };
       component.servizioApi = {
-        configurazione_collaudo: { protocollo: 'rest', dati_erogazione: { url: 'http://c' }, rate_limiting: [{ periodo: 'ora', quota: 20 }, { periodo: 'giorno', quota: 300, quota_fruitore: 30 }] },
+        configurazione_collaudo: { protocollo: 'rest', dati_erogazione: { url: 'http://c', url_prefix: 'https://api.ente.it' }, rate_limiting: [{ periodo: 'ora', quota: 20 }, { periodo: 'giorno', quota: 300, quota_fruitore: 30 }] },
         configurazione_produzione: { protocollo: 'rest', dati_erogazione: { url: 'http://p' }, rate_limiting: [{ periodo: 'giorno', quota: 500 }] }
       } as any;
       component._formGroup = new FormGroup<any>({
@@ -839,7 +839,7 @@ describe('ServizioApiDetailsComponent', () => {
       const body = { nome: 'A', versione: '1', ruolo: 'erogato_soggetto_dominio', authTypes: [{ profilo: 'PDND', resources: [], note: null }] };
       const result: any = component._prepareBodyUpdateApi(body);
       expect(result.configurazione_collaudo).toEqual({
-        protocollo: 'rest', dati_erogazione: { nome_gateway: undefined, versione_gateway: undefined, url: 'http://c' },
+        protocollo: 'rest', dati_erogazione: { url: 'http://c', url_prefix: 'https://api.ente.it' },
         rate_limiting: [{ periodo: 'giorno', quota: 300 }]
       });
       expect(result).not.toHaveProperty('configurazione_produzione');

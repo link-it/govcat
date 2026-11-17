@@ -198,11 +198,8 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, OnDestroy
             if (!this.authenticationService.canEditField('servizio', 'api', this.service?.stato || '', ambiente, this._grant?.ruoli)) { return; }
             _blocchi[`configurazione_${ambiente}`] = {
                 protocollo: _config.protocollo || undefined,
-                dati_erogazione: {
-                    nome_gateway: _config.dati_erogazione?.nome_gateway || undefined,
-                    versione_gateway: _config.dati_erogazione?.versione_gateway || undefined,
-                    url: _config.dati_erogazione?.url || undefined
-                },
+                // Il BE sostituisce l'intero blocco: si reinviano tutti i dati salvati (compreso url_prefix)
+                dati_erogazione: { ...(_config.dati_erogazione || {}) },
                 rate_limiting: _quote
             };
         });
