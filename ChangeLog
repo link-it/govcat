@@ -1,3 +1,11 @@
+2026-11-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 466: le pagine di transazioni, statistiche e verifiche del servizio e le verifiche di soggetti
+	  e client non si aprono dall'indirizzo se la funzione è disabilitata in configurazione
+	  (monitoraggio.<funzione>_abilitate); gli errori del monitor nelle verifiche mostrano un messaggio
+	  leggibile invece della risposta grezza.
+
 2026-11-17  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

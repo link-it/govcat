@@ -74,4 +74,25 @@ describe('MonitoraggioGuard (Issue #418)', () => {
     authService._getConfigModule.mockReturnValue({ abilitato: true, audit_abilitato: true });
     expect(await firstValueFrom(guard.canActivate(rotta('s1', { audit: true }), {} as any))).toBe(true);
   });
+
+  it('should require the function enabled in the configuration on the routes with data.funzione', async () => {
+    for (const funzione of ['transazioni', 'statistiche', 'verifiche']) {
+      authService._getConfigModule.mockReturnValue({ abilitato: true });
+      expect(await firstValueFrom(guard.canActivate(rotta('s1', { funzione }), {} as any))).toBe(negato);
+      authService._getConfigModule.mockReturnValue({ abilitato: true, [`${funzione}_abilitate`]: false });
+      expect(await firstValueFrom(guard.canActivate(rotta('s1', { funzione }), {} as any))).toBe(negato);
+      expect(apiService.getDetails).not.toHaveBeenCalled();
+      authService._getConfigModule.mockReturnValue({ abilitato: true, [`${funzione}_abilitate`]: true });
+      expect(await firstValueFrom(guard.canActivate(rotta('s1', { funzione }), {} as any))).toBe(true);
+      apiService.getDetails.mockClear();
+    }
+  });
+
+  it('should check the function on the remote configuration loaded after a page refresh', async () => {
+    authService._getConfigModule.mockReturnValue(null);
+    apiService.getList.mockReturnValue(of({ monitoraggio: { abilitato: true, verifiche_abilitate: false } }));
+    expect(await firstValueFrom(guard.canActivate(rotta('s1', { funzione: 'verifiche' }), {} as any))).toBe(negato);
+    apiService.getList.mockReturnValue(of({ monitoraggio: { abilitato: true, verifiche_abilitate: true } }));
+    expect(await firstValueFrom(guard.canActivate(rotta('s1', { funzione: 'verifiche' }), {} as any))).toBe(true);
+  });
 });

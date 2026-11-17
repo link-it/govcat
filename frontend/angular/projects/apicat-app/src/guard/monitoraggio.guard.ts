@@ -25,12 +25,14 @@ import { AuthenticationService } from '../services/authentication.service';
 import { OpenAPIService } from '../services/openAPI.service';
 import { auditAbilitato } from '../views/servizi/transazioni/audit';
 import { ruoliServizio$ } from '../views/servizi/ruoli-servizio';
+import { configurazioneMonitoraggio$, funzioneMonitoraggioAbilitata } from './funzione-monitoraggio.guard';
 
 /**
  * Accesso alle pagine di monitoraggio di un servizio: monitoraggio abilitato e almeno un ruolo
  * dell'utente sul servizio (grant) incluso in `monitoraggio.ruoli_abilitati`, come per il menu.
  * Il ruolo `referente` vale solo per i referenti del servizio, non per gli operatori API dell'organizzazione.
- * Le rotte con `data.audit` richiedono anche il monitoraggio di audit abilitato.
+ * Le rotte con `data.funzione` richiedono anche la funzione abilitata (`<funzione>_abilitate`),
+ * quelle con `data.audit` il monitoraggio di audit abilitato.
  */
 @Injectable()
 export class MonitoraggioGuard implements CanActivate {
@@ -47,14 +49,10 @@ export class MonitoraggioGuard implements CanActivate {
     if (!_idServizio) {
       return of(_negato);
     }
-    // Al primo caricamento della pagina la configurazione remota non e` ancora disponibile
-    const _monitoraggio: any = this.authenticationService._getConfigModule('monitoraggio');
-    const _monitoraggio$: Observable<any> = _monitoraggio
-      ? of(_monitoraggio)
-      : this.apiService.getList('configurazione').pipe(map((config: any) => config?.monitoraggio));
-    return _monitoraggio$.pipe(
+    return configurazioneMonitoraggio$(this.authenticationService, this.apiService).pipe(
       switchMap((monitoraggio: any) => {
-        if (!monitoraggio?.abilitato || (route.data?.['audit'] && !auditAbilitato(monitoraggio))) {
+        if (!funzioneMonitoraggioAbilitata(monitoraggio, route.data?.['funzione'])
+          || (route.data?.['audit'] && !auditAbilitato(monitoraggio))) {
           return of(_negato);
         }
         const _idUtente = this.authenticationService.getUser()?.id_utente;

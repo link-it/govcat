@@ -88,13 +88,13 @@ export const SERVIZIO_DETAILS_ROUTES: Routes = [
             {
                 path: ':id/transazioni',
                 canActivate: [ForbidAnonymousGuard, MonitoraggioGuard],
-                data: { breadcrumb: 'Transazioni' },
+                data: { breadcrumb: 'Transazioni', funzione: 'transazioni' },
                 loadChildren: () => import('../transazioni/transazioni.routes').then(m => m.TRANSAZIONI_ROUTES)
             },
             {
                 path: ':id/statistiche',
                 canActivate: [ForbidAnonymousGuard, MonitoraggioGuard],
-                data: { breadcrumb: 'Statistiche' },
+                data: { breadcrumb: 'Statistiche', funzione: 'statistiche' },
                 loadChildren: () => import('../statistiche/statistiche.routes').then(m => m.STATISTICHE_ROUTES)
             },
             {
@@ -106,7 +106,7 @@ export const SERVIZIO_DETAILS_ROUTES: Routes = [
             {
                 path: ':id/verifiche',
                 canActivate: [ForbidAnonymousGuard, MonitoraggioGuard],
-                data: { breadcrumb: 'Verifiche' },
+                data: { breadcrumb: 'Verifiche', funzione: 'verifiche' },
                 loadChildren: () => import('../verifiche/verifiche.routes').then(m => m.VERIFICHE_ROUTES)
             }
         ]

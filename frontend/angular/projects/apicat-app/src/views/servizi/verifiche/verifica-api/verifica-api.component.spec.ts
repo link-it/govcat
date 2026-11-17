@@ -411,18 +411,24 @@ describe('VerificaApiComponent', () => {
     });
 
     it('should set http_error result on error', () => {
-      mockApiService.getMonitor.mockImplementation(() => throwError(() => ({ message: 'Network fail' })));
+      const errore = { status: 404, message: 'Network fail' };
+      mockUtilService.GetErrorMsg.mockReturnValue('Risorsa non trovata');
+      mockApiService.getMonitor.mockImplementation(() => throwError(() => errore));
       component._loadEsito();
       expect(component._result.esito).toBe('http_error');
-      expect(component._result.dettagli).toContain('Network fail');
+      expect(mockUtilService.GetErrorMsg).toHaveBeenCalledWith(errore);
+      expect(component._result.dettagli).toBe('Risorsa non trovata');
       expect(component._showDetails).toBe(true);
       expect(component._loading).toBe(false);
     });
 
-    it('should include path in error dettagli', () => {
-      mockApiService.getMonitor.mockImplementation(() => throwError(() => ({ message: 'fail' })));
+    it('should show a readable message instead of the raw error on failure', () => {
+      mockUtilService.GetErrorMsg.mockReturnValue('404: Not Found');
+      mockApiService.getMonitor.mockImplementation(() => throwError(() => ({ status: 404, message: 'fail' })));
       component._loadEsito();
-      expect(component._result.dettagli).toContain('collaudo/erogazioni/SoggettoInterno/TestApi/1/certificati/scaduti');
+      expect(mockApiService.getMonitor.mock.calls[0][0]).toBe('collaudo/erogazioni/SoggettoInterno/TestApi/1/certificati/scaduti');
+      expect(component._result.dettagli).toBe('404: Not Found');
+      expect(component._result.dettagli).not.toContain('{');
     });
 
     it('should handle default viewType case (unrecognized)', () => {
@@ -646,11 +652,13 @@ describe('VerificaApiComponent', () => {
     });
 
     it('should set http_error result on error', () => {
-      mockApiService.getMonitor.mockImplementation(() => throwError(() => ({ message: 'timeout' })));
+      const errore = { status: 0, message: 'timeout' };
+      mockUtilService.GetErrorMsg.mockReturnValue('timeout');
+      mockApiService.getMonitor.mockImplementation(() => throwError(() => errore));
       component._loadInScadenza('some/path', 1);
       expect(component._vesa[1].result.esito).toBe('http_error');
-      expect(component._vesa[1].result.dettagli).toContain('timeout');
-      expect(component._vesa[1].result.dettagli).toContain('some/path');
+      expect(mockUtilService.GetErrorMsg).toHaveBeenCalledWith(errore);
+      expect(component._vesa[1].result.dettagli).toBe('timeout');
       expect(component._vesa[1].loading).toBe(false);
       expect(component._vesa[1].open).toBe(false);
     });

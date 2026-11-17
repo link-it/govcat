@@ -193,7 +193,7 @@ export class VerificaApiComponent {
       error: (error: any) => {
         this._result = {
           esito: 'http_error',
-          dettagli: (JSON.stringify(error) || 'Http error') + '\n\n' + _path
+          dettagli: this.utilService.GetErrorMsg(error)
         };
         this._showDetails = true;
         this._loading = false;
@@ -302,7 +302,7 @@ export class VerificaApiComponent {
       error: (error: any) => {
         this._vesa[index].result = {
           esito: 'http_error',
-          dettagli: (JSON.stringify(error) || 'Http error') + '\n\n' + path
+          dettagli: this.utilService.GetErrorMsg(error)
         };
         this._vesa[index].loading = false;
         this._vesa[index].open = false;

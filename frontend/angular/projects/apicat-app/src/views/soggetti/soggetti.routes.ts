@@ -20,6 +20,7 @@ import { Routes } from '@angular/router';
 
 import { SoggettiComponent } from './soggetti.component';
 import { SoggettoDetailsComponent } from './soggetti-details/soggetto-details.component';
+import { funzioneMonitoraggioGuard } from '../../guard/funzione-monitoraggio.guard';
 
 export const SOGGETTI_ROUTES: Routes = [
   {
@@ -37,7 +38,8 @@ export const SOGGETTI_ROUTES: Routes = [
       },
       {
         path: ':id/verifiche',
-        data: { breadcrumb: 'Verifiche' },
+        canActivate: [funzioneMonitoraggioGuard],
+        data: { breadcrumb: 'Verifiche', funzione: 'verifiche' },
         loadChildren: () => import('./verifiche/verifiche.routes').then(m => m.VERIFICHE_ROUTES)
       }
     ]
