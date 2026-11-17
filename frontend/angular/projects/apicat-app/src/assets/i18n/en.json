@@ -1781,6 +1781,7 @@
 				},
 				"Default": "Sorry, unpredictable problem",
 				"DefaultHelp": "Please try again later",
+				"StatisticaNonDisponibile": "The selected statistic is not available for this service",
 				"DOC": {
 					"400": {
 						"FORMAT": "Document format not supported",

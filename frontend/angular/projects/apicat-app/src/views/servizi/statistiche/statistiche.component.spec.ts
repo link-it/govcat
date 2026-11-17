@@ -432,6 +432,40 @@ describe('StatisticheComponent', () => {
       expect(hasAdherentSubject).toBe(false);
     });
 
+    it('fruizione service with an API of the domain should propose Principal and not the tokens', () => {
+      component.service = { fruizione: true };
+      component._formGroup.get('api')?.setValue({ ruolo: 'erogato_soggetto_dominio' });
+
+      const codes = component.distributionTypes.map((dt: any) => dt.code);
+      expect(codes).toContain('distribuzione_principal');
+      expect(codes).not.toContain('distribuzione_token_client_id');
+      expect(codes).not.toContain('distribuzione_token_issuer');
+    });
+
+    it('without an API should choose the distributions from the service type', () => {
+      component.service = { fruizione: true };
+      component._formGroup.get('api')?.setValue(null);
+      expect(component.distributionTypes.map((dt: any) => dt.code)).toContain('distribuzione_principal');
+
+      component.service = { fruizione: false };
+      component._formGroup.get('api')?.setValue(null);
+      const codes = component.distributionTypes.map((dt: any) => dt.code);
+      expect(codes).toContain('distribuzione_token_client_id');
+      expect(codes).not.toContain('distribuzione_principal');
+    });
+
+    it('should reset a token distribution when the loaded service turns out to be a fruizione', () => {
+      component._formGroup.get('api')?.setValue({ ruolo: 'erogato_soggetto_dominio' });
+      const token = component.distributionTypes.find((dt: any) => dt.code === 'distribuzione_token_client_id');
+      component._formGroup.get('distribution_type')?.setValue(token);
+
+      component.service = { fruizione: true };
+      (component as any)._aggiornaTipiDistribuzione();
+
+      expect(component._formGroup.get('distribution_type')?.value).toBeNull();
+      expect(component.distributionTypes.map((dt: any) => dt.code)).toContain('distribuzione_principal');
+    });
+
     it('api null + distribution in domainStatistics should enable adesione', () => {
       // Set distribution type that is in domainStatistics
       const dist = { trendReport: true, value: 'andamento-temporale', code: 'andamento_temporale', label: 'Test', tableFirstColumnLabel: 'Data' };
@@ -925,6 +959,28 @@ describe('StatisticheComponent', () => {
       expect(component._spin).toBe(false);
       expect(component._error).toBe(true);
       expect(component._errorMsg).toBe('Server error');
+    });
+
+    it('a 404 without a known code should show a readable message instead of the HTTP text', () => {
+      makeFormValid();
+      const error = { status: 404, error: { detail: 'No static resource monitor/v1/report' }, message: 'Http failure response: 404' };
+      mockApiService.postMonitor.mockImplementation(() => throwError(() => error));
+
+      component._onSubmit(component._formGroup.getRawValue());
+
+      expect(component._errorMsg).toBe('APP.MESSAGE.ERROR.StatisticaNonDisponibile');
+    });
+
+    it('a monitoring error code should be translated with its parameters', () => {
+      makeFormValid();
+      mockTranslate.instant.mockImplementation((key: string, params?: any) =>
+        key === 'APP.MESSAGE.ERROR.MON.404.STATS' ? `Statistiche non disponibili per il periodo [${params?.periodo}]` : key);
+      const error = { status: 404, error: { detail: 'MON.404.STATS', errori: [{ params: { periodo: 'novembre' } }] } };
+      mockApiService.postMonitor.mockImplementation(() => throwError(() => error));
+
+      component._onSubmit(component._formGroup.getRawValue());
+
+      expect(component._errorMsg).toBe('Statistiche non disponibili per il periodo [novembre]');
     });
 
     it('error without error.error.message should use error.message', () => {

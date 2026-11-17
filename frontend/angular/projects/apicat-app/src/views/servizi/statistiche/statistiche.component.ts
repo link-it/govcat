@@ -436,12 +436,17 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
       if (!config) { return; }
       this.generalConfig = config;
       this._initExportList();
-      this.setupAdesioneField(this._formGroup.get('api')?.value);
-      const distributionType: DistributionType = this._formGroup.get('distribution_type')?.value;
-      if (distributionType && !this.distributionTypes.some((dt) => dt.code === distributionType.code)) {
-        this._formGroup.get('distribution_type')?.setValue(null);
-      }
+      this._aggiornaTipiDistribuzione();
     });
+  }
+
+  /** Ricalcola le distribuzioni proposte e azzera la scelta se non è più tra quelle disponibili. */
+  private _aggiornaTipiDistribuzione() {
+    this.setupAdesioneField(this._formGroup.get('api')?.value);
+    const distributionType: DistributionType = this._formGroup.get('distribution_type')?.value;
+    if (distributionType && !this.distributionTypes.some((dt) => dt.code === distributionType.code)) {
+      this._formGroup.get('distribution_type')?.setValue(null);
+    }
   }
 
   @HostListener('window:resize') _onResize() {
@@ -628,19 +633,10 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
 
     adesioneControl.enable();
 
-    let _distributionTypes: DistributionType[] = [];
     if (apiValue && apiValue.ruolo === 'erogato_soggetto_aderente') {
         adesioneControl.setValidators([Validators.required]);
-        _distributionTypes = [
-          ...this.distributionTypesDefault,
-          ...this.distributionTypesAdherentSubject
-        ];
     } else {
         adesioneControl.clearValidators();
-        _distributionTypes = [
-          ...this.distributionTypesDefault,
-          ...this.distributionTypesSubjectDomain
-        ];
 
         const distributionType: DistributionType = this._formGroup.get('distribution_type')?.value;
 
@@ -650,6 +646,14 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
         }
     }
 
+    // Il monitoraggio prevede le distribuzioni per token solo per le erogazioni e quella per Principal solo per le fruizioni
+    const _distributionTypes: DistributionType[] = [
+      ...this.distributionTypesDefault,
+      ...(this._tipoMonitoraggioStatistiche(apiValue) === 'fruizioni'
+        ? this.distributionTypesAdherentSubject
+        : this.distributionTypesSubjectDomain)
+    ];
+
     const allowedTypes: string[] = this.generalConfig?.monitoraggio?.statistiche?.tipi_distribuzione || [];
     const filteredDistributionTypes = allowedTypes.length
         ? _distributionTypes.filter(dt => allowedTypes.includes(dt.code))
@@ -657,6 +661,14 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
     this.distributionTypes = [ ...filteredDistributionTypes ];
 
     adesioneControl.updateValueAndValidity();
+  }
+
+  /** Percorso del monitoraggio (erogazioni/fruizioni) della statistica; senza API scelta dipende solo dal servizio. */
+  private _tipoMonitoraggioStatistiche(api: any): string {
+    if (api) {
+      return this._tipoVerifica(api);
+    }
+    return this.service?.fruizione ? 'fruizioni' : 'erogazioni';
   }
 
   public canShowAdesioneAdherentSubject() {
@@ -683,6 +695,7 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
         next: (response: any) => {
           this.service = response;
           this._initBreadcrumb();
+          this._aggiornaTipiDistribuzione();
           const _ambiente = ambienteServizio(this.service, this._ambienteRichiesto);
           if (_ambiente !== this.environmentId) {
             this._cambiaAmbiente(_ambiente);
@@ -1025,9 +1038,29 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
       error: (error: any) => {
         this._spin = false;
         this._setErrorMessages(true);
-        this._errorMsg = error.error?.message || error.message;
+        this._errorMsg = this._messaggioErroreReport(error);
       }
     });
+  }
+
+  /** Messaggio dell'errore di un report: il codice del monitoraggio tradotto; un 404 senza codice noto non mostra il testo HTTP. */
+  private _messaggioErroreReport(error: any): string {
+    const _codice: string | undefined = error?.error?.detail;
+    if (_codice) {
+      const _params = error.error.errori?.[0]?.params || {};
+      const _chiave = `APP.MESSAGE.ERROR.${_codice}`;
+      let _testo: any = this.translate.instant(_chiave, _params);
+      if (_testo && typeof _testo === 'object') {
+        _testo = this.translate.instant(`${_chiave}.DEFAULT`, _params);
+      }
+      if (typeof _testo === 'string' && !_testo.startsWith(_chiave)) {
+        return _testo;
+      }
+    }
+    if (error?.status === 404) {
+      return this.translate.instant('APP.MESSAGE.ERROR.StatisticaNonDisponibile');
+    }
+    return error?.error?.message || error?.message;
   }
 
   onBreadcrumb(event: any) {

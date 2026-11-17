@@ -10,6 +10,10 @@
 	  permessi, così il coordinatore può ricaricarle o aprirle dall'indirizzo invece di essere rimandato
 	  a Servizi.
 
+	Issue 461: nelle statistiche le distribuzioni per token sono proposte solo per le erogazioni e quella
+	  per Principal solo per le fruizioni, come previsto dal monitoraggio; un report non disponibile mostra
+	  un messaggio leggibile invece dell'errore HTTP.
+
 2026-11-17  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

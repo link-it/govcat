@@ -1781,6 +1781,7 @@
 				},
 				"Default": "Si è verificato un problema non previsto",
 				"DefaultHelp": "Si prega di riprovare più tardi",
+				"StatisticaNonDisponibile": "La statistica scelta non è disponibile per questo servizio",
 				"DOC": {
 					"400": {
 						"FORMAT": "Formato documento non supportato",
