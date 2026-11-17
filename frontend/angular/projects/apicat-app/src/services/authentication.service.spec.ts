@@ -1446,6 +1446,19 @@ describe('AuthenticationService', () => {
       expect(result).toEqual({ canRead: true, canWrite: true });
     });
 
+    it('should use the configuration passed instead of Tools.Configurazione', () => {
+      service.setCurrentSession({ principal: 'u', roles: [], utente: { id_utente: '1', nome: 'A', cognome: 'B', ruolo: 'coordinatore' } });
+      Tools.Configurazione = null;
+      permessiService.verificaPermessi.mockReturnValue({ canRead: true, canWrite: false });
+
+      service.verificacanPermessiMenuAmministrazione('domini', { amministrazione: { domini: { lettura: ['coordinatore'] } } });
+      expect(permessiService.verificaPermessi).toHaveBeenCalledWith(
+        ['coordinatore'],
+        'domini',
+        { domini: { lettura: ['coordinatore'] } }
+      );
+    });
+
     it('should pass empty object when Tools.Configurazione is null', () => {
       service.setCurrentSession({ principal: 'u', roles: [], utente: { id_utente: '1', nome: 'A', cognome: 'B', ruolo: 'referente' } });
       Tools.Configurazione = null;

@@ -6,6 +6,10 @@
 	  (monitoraggio.<funzione>_abilitate); gli errori del monitor nelle verifiche mostrano un messaggio
 	  leggibile invece della risposta grezza.
 
+	Issue 463: le pagine di amministrazione attendono la configurazione remota prima di valutare i
+	  permessi, così il coordinatore può ricaricarle o aprirle dall'indirizzo invece di essere rimandato
+	  a Servizi.
+
 2026-11-17  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

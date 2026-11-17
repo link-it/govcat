@@ -23,6 +23,7 @@ import { catchError, map } from 'rxjs/operators';
 
 import { AuthenticationService } from '../services/authentication.service';
 import { OpenAPIService } from '../services/openAPI.service';
+import { configurazioneRemota$ } from './configurazione-remota';
 
 export type FunzioneMonitoraggio = 'transazioni' | 'statistiche' | 'verifiche';
 
@@ -39,7 +40,7 @@ export function configurazioneMonitoraggio$(authenticationService: Authenticatio
   const _monitoraggio: any = authenticationService._getConfigModule('monitoraggio');
   return _monitoraggio
     ? of(_monitoraggio)
-    : apiService.getList('configurazione').pipe(map((config: any) => config?.monitoraggio));
+    : configurazioneRemota$(apiService).pipe(map((config: any) => config?.monitoraggio));
 }
 
 /**

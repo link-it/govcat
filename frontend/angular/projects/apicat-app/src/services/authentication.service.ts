@@ -1008,9 +1008,9 @@ export class AuthenticationService {
 
   // Verifica permessi menu amministrazione
 
-  verificacanPermessiMenuAmministrazione(menu: string): { canRead: boolean; canWrite: boolean } {
+  verificacanPermessiMenuAmministrazione(menu: string, configurazione: any = Tools.Configurazione): { canRead: boolean; canWrite: boolean } {
     const ruoli = this._effectiveRoles();
-    const permessi = Tools.Configurazione ? (Tools.Configurazione['amministrazione'] || {}) : {};
+    const permessi = configurazione ? (configurazione['amministrazione'] || {}) : {};
 
     return this.permessiService.verificaPermessi(ruoli, menu, permessi);
   }
