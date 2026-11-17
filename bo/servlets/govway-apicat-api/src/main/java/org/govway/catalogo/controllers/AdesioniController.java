@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
@@ -1585,7 +1586,8 @@ public class AdesioniController implements AdesioniApi {
 	@Override
 	public ResponseEntity<Adesione> updateStatoAdesione(UUID idAdesione, StatoUpdate statoUpdate, Boolean checkOnly) {
 		try {
-			return this.service.runTransaction(() -> {
+			// check_only: la transizione e` solo verificata, nessuna modifica (entita`, storico, notifiche) viene salvata
+			return this.runTransaction(isCheckOnly(checkOnly), () -> {
 				this.logger.info("Invocazione in corso ...");
 				AdesioneEntity entity = this.cambiaStatoAdesione(idAdesione, statoUpdate, checkOnly);
 
@@ -2322,6 +2324,14 @@ public class AdesioniController implements AdesioniApi {
 	
 	private boolean isCheckOnly(Boolean checkOnly) {
 		return checkOnly != null && checkOnly;
+	}
+
+	/**
+	 * In check_only la transazione e` annullata e le query non forzano il flush:
+	 * le modifiche applicate per la verifica non arrivano al database.
+	 */
+	private <T> T runTransaction(boolean checkOnly, Supplier<T> supplier) {
+		return checkOnly ? this.service.runTransactionSenzaModifiche(supplier) : this.service.runTransaction(supplier);
 	}
 
 	// Metodo per registrare un errore

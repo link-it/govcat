@@ -1356,6 +1356,58 @@ public class ServiziTest {
         */
     }
 
+    /**
+     * Con check_only la transizione e` solo verificata: stato, storico e notifiche del servizio
+     * restano invariati, anche rileggendo l'entita` dal database (Issue 452).
+     */
+    @Test
+    void testUpdateStatoServizioCheckOnlyNonModifica() {
+        Servizio servizio = this.getServizio();
+        UUID idServizio = servizio.getIdServizio();
+        this.entityManager.flush();
+        this.entityManager.clear();
+
+        String statoIniziale = this.getStatoServizioDb(idServizio);
+        long statiIniziali = this.countDb("select count(s) from StatoServizioEntity s where s.servizio.idServizio = :id", idServizio);
+        long notificheIniziali = this.countDb("select count(n) from NotificaEntity n where n.servizio.idServizio = :id", idServizio);
+
+        // archiviazione: transizione che non richiede dati obbligatori sul servizio
+        StatoUpdate statoUpdate = new StatoUpdate();
+        statoUpdate.setStato(STATO_ARCHIVIATO);
+
+        ResponseEntity<Servizio> response = serviziController.updateStatoServizio(idServizio, statoUpdate, true);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(STATO_ARCHIVIATO, response.getBody().getStato());
+
+        this.entityManager.flush();
+        this.entityManager.clear();
+
+        assertEquals(statoIniziale, this.getStatoServizioDb(idServizio));
+        assertEquals(statoIniziale, serviziController.getServizio(idServizio).getBody().getStato());
+        assertEquals(statiIniziali, this.countDb("select count(s) from StatoServizioEntity s where s.servizio.idServizio = :id", idServizio));
+        assertEquals(notificheIniziali, this.countDb("select count(n) from NotificaEntity n where n.servizio.idServizio = :id", idServizio));
+
+        // la transizione verificata resta eseguibile
+        assertEquals(STATO_ARCHIVIATO, serviziController.updateStatoServizio(idServizio, statoUpdate, false).getBody().getStato());
+        this.entityManager.flush();
+        this.entityManager.clear();
+        assertEquals(STATO_ARCHIVIATO, this.getStatoServizioDb(idServizio));
+        assertEquals(statiIniziali + 1, this.countDb("select count(s) from StatoServizioEntity s where s.servizio.idServizio = :id", idServizio));
+    }
+
+    private String getStatoServizioDb(UUID idServizio) {
+        return this.entityManager.createQuery("select s.stato from ServizioEntity s where s.idServizio = :id", String.class)
+                .setParameter("id", idServizio.toString())
+                .getSingleResult();
+    }
+
+    private long countDb(String jpql, UUID id) {
+        return this.entityManager.createQuery(jpql, Long.class)
+                .setParameter("id", id.toString())
+                .getSingleResult();
+    }
+
     @Test
     void testUpdateStatoServizioNotFound() {
         UUID idServizioNonEsistente = UUID.randomUUID();

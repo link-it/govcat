@@ -32,6 +32,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import jakarta.persistence.EntityManager;
@@ -1236,6 +1237,14 @@ public class ServiziController implements ServiziApi {
 		return checkOnly != null && checkOnly;
 	}
 
+	/**
+	 * In check_only la transazione e` annullata e le query non forzano il flush:
+	 * le modifiche applicate per la verifica non arrivano al database.
+	 */
+	private <T> T runTransaction(boolean checkOnly, Supplier<T> supplier) {
+		return checkOnly ? this.service.runTransactionSenzaModifiche(supplier) : this.service.runTransaction(supplier);
+	}
+
 	private static UUID getIdDominio(ServizioEntity entity) {
 		return entity.getDominio() != null ? UUID.fromString(entity.getDominio().getIdDominio()) : null;
 	}
@@ -1266,7 +1275,8 @@ public class ServiziController implements ServiziApi {
 	@Override
 	public ResponseEntity<Servizio> updateStatoServizio(UUID idServizio, StatoUpdate statoServizioUpdate, Boolean checkOnly) {
 		try {
-			return this.service.runTransaction(() -> {
+			// check_only: la transizione e` solo verificata, nessuna modifica (entita`, storico, notifiche) viene salvata
+			return this.runTransaction(isCheckOnly(checkOnly), () -> {
 				this.logger.info("Invocazione in corso ...");
 
 				ServizioEntity entity = this.cambiaStatoServizio(idServizio, statoServizioUpdate, checkOnly);

@@ -1,6 +1,11 @@
 2026-11-17  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
+	Issue 452: il cambio stato di adesioni e servizi con check_only=true verifica solo la
+	  transizione (permessi e dati obbligatori) senza eseguirla: stato, storico degli stati e
+	  notifiche restano invariati. Prima la modifica veniva salvata comunque al commit, perché
+	  il distacco dell'entità arrivava dopo il flush automatico.
+
 	Issue 451: con adesione.scelta_libera_organizzazione=false, l'amministratore e l'operatore API
 	  dell'organizzazione erogatrice non possono più creare adesioni per soggetti di altre
 	  organizzazioni: il ruolo per-organizzazione sull'erogatrice non esenta più dal controllo di

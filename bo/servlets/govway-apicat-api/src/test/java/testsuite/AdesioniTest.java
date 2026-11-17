@@ -5471,6 +5471,56 @@ public class AdesioniTest {
         assertEquals("richiesto_collaudo", response.getBody().getStato());
     }
     
+    /**
+     * Con check_only la transizione e` solo verificata: stato, storico e notifiche dell'adesione
+     * restano invariati, anche rileggendo l'entita` dal database (Issue 452).
+     */
+    @Test
+    void testUpdateStatoAdesioneCheckOnlyNonModifica() {
+        UUID idAdesione = this.creaAdesioneProntaPerRichiestaCollaudo();
+        this.entityManager.flush();
+        this.entityManager.clear();
+
+        String statoIniziale = this.getStatoAdesioneDb(idAdesione);
+        long statiIniziali = this.countDb("select count(s) from StatoAdesioneEntity s where s.adesione.idAdesione = :id", idAdesione);
+        long notificheIniziali = this.countDb("select count(n) from NotificaEntity n where n.adesione.idAdesione = :id", idAdesione);
+
+        StatoUpdate stato = new StatoUpdate();
+        stato.setStato("richiesto_collaudo");
+
+        ResponseEntity<Adesione> response = adesioniController.updateStatoAdesione(idAdesione, stato, true);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("richiesto_collaudo", response.getBody().getStato());
+
+        this.entityManager.flush();
+        this.entityManager.clear();
+
+        assertEquals(statoIniziale, this.getStatoAdesioneDb(idAdesione));
+        assertEquals(statoIniziale, adesioniController.getAdesione(idAdesione).getBody().getStato());
+        assertEquals(statiIniziali, this.countDb("select count(s) from StatoAdesioneEntity s where s.adesione.idAdesione = :id", idAdesione));
+        assertEquals(notificheIniziali, this.countDb("select count(n) from NotificaEntity n where n.adesione.idAdesione = :id", idAdesione));
+
+        // la transizione verificata resta eseguibile
+        assertEquals("richiesto_collaudo", adesioniController.updateStatoAdesione(idAdesione, stato, false).getBody().getStato());
+        this.entityManager.flush();
+        this.entityManager.clear();
+        assertEquals("richiesto_collaudo", this.getStatoAdesioneDb(idAdesione));
+        assertEquals(statiIniziali + 1, this.countDb("select count(s) from StatoAdesioneEntity s where s.adesione.idAdesione = :id", idAdesione));
+    }
+
+    private String getStatoAdesioneDb(UUID idAdesione) {
+        return this.entityManager.createQuery("select a.stato from AdesioneEntity a where a.idAdesione = :id", String.class)
+                .setParameter("id", idAdesione.toString())
+                .getSingleResult();
+    }
+
+    private long countDb(String jpql, UUID id) {
+        return this.entityManager.createQuery(jpql, Long.class)
+                .setParameter("id", id.toString())
+                .getSingleResult();
+    }
+
     @Test
     void testUpdateStatoAdesioneUnauthorized() {
         // Setup
