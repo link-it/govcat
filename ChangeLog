@@ -17,6 +17,12 @@
 	Issue 465: la pagina di gestione di un servizio, aperta dall'indirizzo da un utente senza ruoli sul
 	  servizio, rimanda alla vista del servizio invece di proporre modifica e cambi di stato.
 
+	Issue 462: il dettaglio di un'adesione il cui servizio non è visibile all'utente mantiene i propri
+	  referenti e non propone "Vai al Servizio"; la vista del servizio inesistente o non visibile mostra
+	  "Servizio non disponibile per il tuo profilo" invece dell'errore "[object Object]". I codici di
+	  errore con più varianti (es. SRV.404) usano la traduzione DEFAULT. Le statistiche riconoscono il
+	  404 anche quando lo stato arriva solo nel corpo della risposta (completamento della Issue 461).
+
 2026-11-17  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

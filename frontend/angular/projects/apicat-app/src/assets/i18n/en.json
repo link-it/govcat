@@ -2274,6 +2274,8 @@
 			"NoApiHelp": "",
 			"NoData": "Sorry, the requested information was not found",
 			"NoDataHelp": "Please check your connection and try again",
+			"ServizioNonDisponibile": "Service not available for your profile",
+			"ServizioNonDisponibileHelp": "The service no longer exists or is not visible with the permissions of your organization",
 			"NoFilesSelected": "No documents selected",
 			"NoItemsFound": "No items found",
 			"NoOperations": "No operations present",

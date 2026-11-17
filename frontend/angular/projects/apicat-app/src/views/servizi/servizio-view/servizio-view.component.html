@@ -68,10 +68,17 @@
       <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3"></ui-box-spinner>
     }
     @if (!data && !_spin) {
-      <ui-box-message [image]="'./assets/images/illustrations/no-data.svg'"
-                      [message]="'APP.MESSAGE.NoData' | translate"
-                      [subMessage]="'APP.MESSAGE.NoDataHelp' | translate">
-      </ui-box-message>
+      @if (_servizioNonDisponibile) {
+        <ui-box-message [image]="'./assets/images/illustrations/no-data.svg'"
+                        [message]="'APP.MESSAGE.ServizioNonDisponibile' | translate"
+                        [subMessage]="'APP.MESSAGE.ServizioNonDisponibileHelp' | translate">
+        </ui-box-message>
+      } @else {
+        <ui-box-message [image]="'./assets/images/illustrations/no-data.svg'"
+                        [message]="'APP.MESSAGE.NoData' | translate"
+                        [subMessage]="'APP.MESSAGE.NoDataHelp' | translate">
+        </ui-box-message>
+      }
     }
 
     @if (_showScroll) {

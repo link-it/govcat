@@ -967,4 +967,41 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
       expect((component as any)._workflowReachedSectionFinal('produzione')).toBe(false);
     });
   });
+
+  describe('referenti con servizio non visibile', () => {
+    const _utente = { id_utente: 'u1', nome: 'Mario', cognome: 'Rossi', email_aziendale: 'mario@test.it' };
+
+    beforeEach(() => {
+      vi.spyOn(Tools, 'OnError').mockImplementation(() => {});
+      component.id = 1;
+      component.adesione = { servizio: { id_servizio: 's1', dominio: { id_dominio: 'd1' } } };
+    });
+
+    it('mantiene i referenti dell\'adesione e nasconde "Vai al Servizio" se il servizio risponde 404', () => {
+      mockApiService.getDetails
+        .mockReturnValueOnce(of({ content: [{ utente: _utente, tipo: 'referente' }] }))
+        .mockReturnValueOnce(throwError(() => ({ status: 404 })))
+        .mockReturnValueOnce(throwError(() => ({ status: 404 })));
+
+      (component as any).loadReferents();
+
+      expect(component.referents.length).toBe(1);
+      expect(component.serviceReferents).toEqual([]);
+      expect(component._servizioAccessibile).toBe(false);
+      expect(Tools.OnError).not.toHaveBeenCalled();
+      expect(component.referentiLoading).toBe(false);
+    });
+
+    it('lascia "Vai al Servizio" se falliscono solo i referenti del dominio', () => {
+      mockApiService.getDetails
+        .mockReturnValueOnce(of({ content: [] }))
+        .mockReturnValueOnce(throwError(() => ({ status: 500 })))
+        .mockReturnValueOnce(of({ content: [] }));
+
+      (component as any).loadReferents();
+
+      expect(component._servizioAccessibile).toBe(true);
+      expect(Tools.OnError).not.toHaveBeenCalled();
+    });
+  });
 });

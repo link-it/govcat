@@ -971,6 +971,16 @@ describe('StatisticheComponent', () => {
       expect(component._errorMsg).toBe('APP.MESSAGE.ERROR.StatisticaNonDisponibile');
     });
 
+    it('a 404 rethrown by the error interceptor should show the readable message', () => {
+      makeFormValid();
+      const error = { message: 'Http failure response: 404 OK', error: { status: 404, detail: 'No static resource monitor/v1/report' } };
+      mockApiService.postMonitor.mockImplementation(() => throwError(() => error));
+
+      component._onSubmit(component._formGroup.getRawValue());
+
+      expect(component._errorMsg).toBe('APP.MESSAGE.ERROR.StatisticaNonDisponibile');
+    });
+
     it('a monitoring error code should be translated with its parameters', () => {
       makeFormValid();
       mockTranslate.instant.mockImplementation((key: string, params?: any) =>

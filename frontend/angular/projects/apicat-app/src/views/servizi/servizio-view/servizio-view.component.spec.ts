@@ -559,13 +559,54 @@ describe('ServizioViewComponent', () => {
       const grantData = { ruoli: [] };
       mockApiService.getDetails
         .mockReturnValueOnce(of(grantData))
-        .mockReturnValueOnce(throwError(() => ({ status: 404 })));
+        .mockReturnValueOnce(throwError(() => ({ status: 500 })));
 
       (component as any)._loadService();
 
       expect(component._grant).toEqual(grantData);
-      expect(Tools.OnError).toHaveBeenCalledWith({ status: 404 });
+      expect(Tools.OnError).toHaveBeenCalledWith({ status: 500 });
+      expect(component._servizioNonDisponibile).toBe(false);
       expect(component._spin).toBe(false);
+    });
+
+    it('should show the service as not available, without the raw error, on 404 or 403', () => {
+      component.id = 10;
+      mockApiService.getDetails.mockReturnValueOnce(throwError(() => ({ status: 404 })));
+
+      (component as any)._loadService();
+
+      expect(component._servizioNonDisponibile).toBe(true);
+      expect(Tools.OnError).not.toHaveBeenCalled();
+      expect(component._spin).toBe(false);
+
+      mockApiService.getDetails
+        .mockReturnValueOnce(of({ ruoli: [] }))
+        .mockReturnValueOnce(throwError(() => ({ status: 403 })));
+
+      (component as any)._loadService();
+
+      expect(component._servizioNonDisponibile).toBe(true);
+      expect(Tools.OnError).not.toHaveBeenCalled();
+    });
+
+    it('should recognise the 404 rethrown by the error interceptor, without a top level status', () => {
+      component.id = 10;
+      mockApiService.getDetails.mockReturnValueOnce(throwError(() => ({ message: 'Not Found', error: { status: 404, detail: 'SRV.404' } })));
+
+      (component as any)._loadService();
+
+      expect(component._servizioNonDisponibile).toBe(true);
+      expect(Tools.OnError).not.toHaveBeenCalled();
+    });
+
+    it('should reset the not available state when the service is loaded again', () => {
+      component.id = 10;
+      component._servizioNonDisponibile = true;
+      mockApiService.getDetails.mockReturnValueOnce(throwError(() => ({ status: 500 })));
+
+      (component as any)._loadService();
+
+      expect(component._servizioNonDisponibile).toBe(false);
     });
 
     it('should set data to null when spin=true (default)', () => {

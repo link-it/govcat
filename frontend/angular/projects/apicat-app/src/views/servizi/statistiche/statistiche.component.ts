@@ -33,6 +33,7 @@ import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { MarkAsteriskDirective } from '@app/directives/mark-asterisk';
 import { soggettoMonitoraggio, tipoMonitoraggio } from '../monitoraggio-soggetti';
+import { statoErrore } from '../servizio-accessibile';
 import { ServizioMonitorMenuComponent } from '../components/servizio-monitor-menu/servizio-monitor-menu.component';
 import { QUERY_PARAM_AMBIENTE, ambienteServizio, collaudoSaltato } from '../ambiente-servizio';
 
@@ -1057,7 +1058,7 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
         return _testo;
       }
     }
-    if (error?.status === 404) {
+    if (statoErrore(error) === 404) {
       return this.translate.instant('APP.MESSAGE.ERROR.StatisticaNonDisponibile');
     }
     return error?.error?.message || error?.message;

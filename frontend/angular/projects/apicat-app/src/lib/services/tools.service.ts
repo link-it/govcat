@@ -443,7 +443,12 @@ export class Tools {
     const key = `APP.MESSAGE.ERROR.${detail}`;
     try {
       const t = this.translate?.instant(key, parameters || {});
-      if (t && t !== key) { return t; }
+      if (typeof t === 'string' && t !== key) { return t; }
+      // Codice con piu` varianti (es. SRV.404): si usa la voce DEFAULT
+      if (t && typeof t === 'object') {
+        const d = this.translate?.instant(`${key}.DEFAULT`, parameters || {});
+        if (typeof d === 'string' && d !== `${key}.DEFAULT`) { return d; }
+      }
     } catch { /* ignore */ }
     return null;
   }

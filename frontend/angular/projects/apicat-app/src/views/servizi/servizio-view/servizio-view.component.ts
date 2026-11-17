@@ -88,6 +88,7 @@ import { etichettaUrlInvocazione, URL_INVOCAZIONE_DEFAULT } from '../servizio-ap
 import { ambienteClasseDato } from '../servizio-proprieta-custom';
 import { ruoliServizio$ } from '../ruoli-servizio';
 import { QUERY_PARAM_AMBIENTE, ambienteServizio, collaudoSaltato } from '../ambiente-servizio';
+import { servizioNonAccessibile } from '../servizio-accessibile';
 
 export interface Organization {
     id_organizzazione: string;
@@ -214,6 +215,8 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     _fromAdesioneMode: 'wizard' | 'view' | '' = '';
 
     _error: boolean = false;
+    /** Servizio inesistente o non visibile all'utente: si mostra un messaggio invece dell'errore. */
+    _servizioNonDisponibile: boolean = false;
     _errorMsg: string = '';
 
     minLengthTerm = 1;
@@ -488,6 +491,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         if (this.id) {
         this._spin = spin;
         if (spin) { this.data = null; }
+        this._servizioNonDisponibile = false;
         this.apiService.getDetails('servizi', this.id, 'grant').subscribe({
             next: (grant: any) => {
                 this._grant = grant;
@@ -507,18 +511,21 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                         }
                         this._loadRuoliServizio(grant);
                     },
-                    error: (error: any) => {
-                        Tools.OnError(error);
-                        this._spin = false;
-                    }
+                    error: (error: any) => this._onErroreCaricamento(error)
                 });
             },
-            error: (error: any) => {
-                Tools.OnError(error);
-                this._spin = false;
-            }
+            error: (error: any) => this._onErroreCaricamento(error)
         });
         }
+    }
+
+    private _onErroreCaricamento(error: any) {
+        this._spin = false;
+        if (servizioNonAccessibile(error)) {
+            this._servizioNonDisponibile = true;
+            return;
+        }
+        Tools.OnError(error);
     }
 
     _loadRuoliServizio(grant: Grant | null) {

@@ -165,7 +165,7 @@
               }
             </div>
             <div class="lnk-vetrina d-flex align-items-center gap-2">
-              @if (adesione?.servizio?.id_servizio) {
+              @if (adesione?.servizio?.id_servizio && _servizioAccessibile) {
                 <button type="button"
                         class="btnc"
                         [attr.aria-label]="'APP.BUTTON.GoToService' | translate"

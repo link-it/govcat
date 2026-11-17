@@ -254,6 +254,17 @@ describe('Tools', () => {
         expect(result).toBe('title - detail');
     });
 
+    it('should use the DEFAULT translation of an error code with several variants', () => {
+        const translate = (service as any).translate;
+        translate.setTranslation('it', { APP: { MESSAGE: { ERROR: { SRV: { '404': {
+            DEFAULT: 'Servizio [{{idServizio}}] non trovato',
+            IMAGE: 'Immagine non trovata'
+        } } } } } });
+        translate.use('it');
+        const error = { status: 404, error: { title: 'Not Found', detail: 'SRV.404', errori: [{ params: { idServizio: 's1' } }] } };
+        expect(Tools.GetErrorMsg(error)).toBe('Servizio [s1] non trovato');
+    });
+
     it('should handle error with statusText and status not 0', () => {
         const error = { status: 404, statusText: 'Not Found', url: 'http://example.com' };
         const result = Tools.GetErrorMsg(error);

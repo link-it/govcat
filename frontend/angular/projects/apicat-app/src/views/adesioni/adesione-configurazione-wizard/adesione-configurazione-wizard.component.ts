@@ -55,6 +55,7 @@ import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/servic
 
 import { forkJoin, interval, Observable, of, Subscription } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
+import { servizioNonAccessibile } from '@app/views/servizi/servizio-accessibile';
 
 import { Grant, RightsEnum } from '@app/model/grant';
 import { AmbienteEnum } from '@app/model/ambienteEnum';
@@ -2069,6 +2070,8 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
     }
 
     public referents: any[] = [];
+    /** Falso se il servizio dell'adesione non e` visibile all'utente (i suoi referenti rispondono 404/403). */
+    public _servizioAccessibile: boolean = true;
     public serviceReferents: any[] = [];
     public domainReferents: any[] = [];
     public referentiLoading: boolean = true;
@@ -2080,8 +2083,15 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit, OnDestroy 
         this._referentsLoadCount++;
         forkJoin({
             referenti: this.apiService.getDetails(this.model, this.id, 'referenti'),
-            referentiDominio: this.apiService.getDetails('domini', this.adesione?.servizio.dominio.id_dominio, 'referenti'),
-            referentiServizio: this.apiService.getDetails('servizi', this.adesione?.servizio.id_servizio, 'referenti')
+            referentiDominio: this.apiService.getDetails('domini', this.adesione?.servizio.dominio.id_dominio, 'referenti').pipe(
+                catchError(() => of({ content: [] }))
+            ),
+            referentiServizio: this.apiService.getDetails('servizi', this.adesione?.servizio.id_servizio, 'referenti').pipe(
+                catchError((error: any) => {
+                    this._servizioAccessibile = !servizioNonAccessibile(error);
+                    return of({ content: [] });
+                })
+            )
         }).subscribe({
             next: (response: any) => {
                 const referents: Referent[] = response.referenti.content.map((item: any) => ({ ...item, tipo: `${item.tipo}` }));
