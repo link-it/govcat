@@ -311,7 +311,9 @@ public class TransazioneBuilder {
 				transazione.setMetodoHTTP(getMetodoHTTPRest(transazioneDB.getApi().getOperazione()));
 				transazione.setTipoAPI("Rest");
 			}
-			transazione.setTags(transazioneDB.getApi().getTags().stream().collect(Collectors.joining(",")));
+			if(transazioneDB.getApi().getTags()!= null) {
+				transazione.setTags(transazioneDB.getApi().getTags().stream().collect(Collectors.joining(",")));
+			}
 			transazione.setSoggettoErogatore(transazioneDB.getApi().getErogatore());
 		}
 

@@ -11,6 +11,10 @@
 	  soggetto indicato nel path deve essere il soggetto referente del dominio del servizio,
 	  altrimenti si risponde 400.
 
+	Transazioni: l'export CSV dopo la ricerca di una transazione per identificativo
+	  (GET .../diagnostica/lista-transazioni-id) falliva con errore 500 quando l'API della
+	  transazione non ha tag.
+
 2026-11-16  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
