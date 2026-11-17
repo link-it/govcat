@@ -45,8 +45,10 @@ import org.govway.catalogo.controllers.OrganizzazioniController;
 import org.govway.catalogo.controllers.ServiziController;
 import org.govway.catalogo.controllers.SoggettiController;
 import org.govway.catalogo.controllers.UtentiController;
+import org.govway.catalogo.core.orm.entity.DominioEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
+import org.govway.catalogo.core.services.DominioService;
 import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.NotAuthorizedException;
@@ -59,6 +61,7 @@ import org.govway.catalogo.servlets.model.AdesioneCreate;
 import org.govway.catalogo.servlets.model.DocumentoCreate;
 import org.govway.catalogo.servlets.model.Dominio;
 import org.govway.catalogo.servlets.model.DominioCreate;
+import org.govway.catalogo.servlets.model.IdentificativoServizioUpdate;
 import org.govway.catalogo.servlets.model.Organizzazione;
 import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.PagedModelItemAdesione;
@@ -71,6 +74,7 @@ import org.govway.catalogo.servlets.model.RuoloOrganizzazioneEnum;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.Servizio;
 import org.govway.catalogo.servlets.model.ServizioCreate;
+import org.govway.catalogo.servlets.model.ServizioUpdate;
 import org.govway.catalogo.servlets.model.Soggetto;
 import org.govway.catalogo.servlets.model.SoggettoCreate;
 import org.govway.catalogo.servlets.model.TipoReferenteEnum;
@@ -150,6 +154,9 @@ public class MatricePermessiMultiOrgTest {
 
 	@Autowired
 	private OrganizzazioneService organizzazioneService;
+
+	@Autowired
+	private DominioService dominioService;
 
 	@Autowired
 	private ServizioAuthorization servizioAuthorization;
@@ -767,6 +774,197 @@ public class MatricePermessiMultiOrgTest {
 
 		assertTrue(contieneServizio(lista, "srv-interm2"),
 				"Il servizio intermediato deve essere visibile dall'organizzazione del suo ente erogatore");
+	}
+
+	// ------------------------------------------------------------------
+	// Issue 450: dominio del servizio nell'organizzazione di sessione
+	// ------------------------------------------------------------------
+
+	/**
+	 * Contesto di partenza: due organizzazioni referenti, ciascuna con soggetto e dominio.
+	 * Restituisce [soggetto1, soggetto2] e [dominio1, dominio2] tramite gli array passati.
+	 */
+	private void preparaDominiDueOrganizzazioni(String suffisso, Organizzazione org1, Organizzazione org2,
+			Soggetto[] soggetti, Dominio[] domini) {
+		soggetti[0] = creaSoggetto("sogg-1-" + suffisso, org1);
+		soggetti[1] = creaSoggetto("sogg-2-" + suffisso, org2);
+		domini[0] = creaDominio("dom-1-" + suffisso, soggetti[0]);
+		domini[1] = creaDominio("dom-2-" + suffisso, soggetti[1]);
+	}
+
+	private ServizioUpdate getUpdateDominio(Servizio servizio, Dominio dominio, Soggetto soggettoErogatore) {
+		IdentificativoServizioUpdate identificativo = new IdentificativoServizioUpdate();
+		identificativo.setNome(servizio.getNome());
+		identificativo.setVersione(servizio.getVersione());
+		identificativo.setIdDominio(dominio.getIdDominio());
+		identificativo.setIdSoggettoErogatore(soggettoErogatore.getIdSoggetto());
+		identificativo.setVisibilita(servizio.getVisibilita());
+		identificativo.setAdesioneDisabilitata(servizio.isAdesioneDisabilitata());
+		identificativo.setMultiAdesione(servizio.isMultiAdesione());
+		identificativo.setTipo(servizio.getTipo());
+		identificativo.setPackage(false);
+		ServizioUpdate update = new ServizioUpdate();
+		update.setIdentificativo(identificativo);
+		return update;
+	}
+
+	private void verificaCreazioneDominioAltraOrg(String suffisso, RuoloOrganizzazioneEnum ruolo,
+			RuoloOrganizzazione ruoloSessione) {
+		Organizzazione org1 = creaOrganizzazione("org-dom-1-" + suffisso, true, false);
+		Organizzazione org2 = creaOrganizzazione("org-dom-2-" + suffisso, true, false);
+		Soggetto[] soggetti = new Soggetto[2];
+		Dominio[] domini = new Dominio[2];
+		preparaDominiDueOrganizzazioni(suffisso, org1, org2, soggetti, domini);
+
+		String principal = "test.dom.fuori.org." + suffisso;
+		Utente utente = creaUtenteMultiOrg(principal, List.of(org1), ruolo);
+		autenticaCome(principal);
+		simulaContestoSessione(org1, ruoloSessione);
+
+		NotAuthorizedException ex = assertThrows(NotAuthorizedException.class,
+				() -> creaServizio("srv-" + suffisso, domini[1], soggetti[1], utente));
+		assertEquals("AUT.403.AMM.ORG.DOMINIO.FUORI.ORG", ex.getMessage());
+		assertEquals(org1.getNome(), ex.getParameters().get("orgNome"));
+	}
+
+	@Test
+	public void testCreateServizio_AmmOrg_DominioAltraOrganizzazione_Forbidden() {
+		verificaCreazioneDominioAltraOrg("amm", RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE,
+				RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+	}
+
+	@Test
+	public void testCreateServizio_OperatoreApi_DominioAltraOrganizzazione_Forbidden() {
+		verificaCreazioneDominioAltraOrg("op", RuoloOrganizzazioneEnum.OPERATORE_API,
+				RuoloOrganizzazione.OPERATORE_API);
+	}
+
+	@Test
+	public void testCreateServizio_OperatoreApi_DominioPropriaOrganizzazione_Success() {
+		Organizzazione org1 = creaOrganizzazione("org-dom-1-own", true, false);
+		Organizzazione org2 = creaOrganizzazione("org-dom-2-own", true, false);
+		Soggetto[] soggetti = new Soggetto[2];
+		Dominio[] domini = new Dominio[2];
+		preparaDominiDueOrganizzazioni("own", org1, org2, soggetti, domini);
+
+		Utente utente = creaUtenteMultiOrg("test.dom.own", List.of(org1), RuoloOrganizzazioneEnum.OPERATORE_API);
+		autenticaCome("test.dom.own");
+		simulaContestoSessione(org1, RuoloOrganizzazione.OPERATORE_API);
+
+		Servizio servizio = creaServizio("srv-own", domini[0], soggetti[0], utente);
+		assertEquals(domini[0].getIdDominio(), servizio.getDominio().getIdDominio());
+	}
+
+	@Test
+	public void testCreateServizio_SenzaContesto_DominioOrganizzazioneSenzaRuolo_Forbidden() {
+		Organizzazione org1 = creaOrganizzazione("org-dom-1-noctx", true, false);
+		Organizzazione org2 = creaOrganizzazione("org-dom-2-noctx", true, false);
+		Soggetto[] soggetti = new Soggetto[2];
+		Dominio[] domini = new Dominio[2];
+		preparaDominiDueOrganizzazioni("noctx", org1, org2, soggetti, domini);
+
+		Utente utente = creaUtenteMultiOrg("test.dom.noctx", List.of(org1),
+				RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+		autenticaCome("test.dom.noctx");
+		// nessun contesto organizzazione (header assente): vale il ruolo sull'organizzazione del dominio
+
+		NotAuthorizedException ex = assertThrows(NotAuthorizedException.class,
+				() -> creaServizio("srv-noctx", domini[1], soggetti[1], utente));
+		assertEquals("AUT.403", ex.getMessage());
+	}
+
+	@Test
+	public void testCreateServizio_SenzaContesto_DominioOrganizzazioneConRuolo_Success() {
+		Organizzazione org1 = creaOrganizzazione("org-dom-1-noctx-ok", true, false);
+		Organizzazione org2 = creaOrganizzazione("org-dom-2-noctx-ok", true, false);
+		Soggetto[] soggetti = new Soggetto[2];
+		Dominio[] domini = new Dominio[2];
+		preparaDominiDueOrganizzazioni("noctx-ok", org1, org2, soggetti, domini);
+
+		Utente utente = creaUtenteMultiOrg("test.dom.noctx.ok", List.of(org1, org2),
+				RuoloOrganizzazioneEnum.OPERATORE_API);
+		autenticaCome("test.dom.noctx.ok");
+
+		Servizio servizio = creaServizio("srv-noctx-ok", domini[1], soggetti[1], utente);
+		assertEquals(domini[1].getIdDominio(), servizio.getDominio().getIdDominio());
+	}
+
+	@Test
+	public void testCreateServizio_Gestore_DominioAltraOrganizzazione_Success() {
+		Organizzazione org1 = creaOrganizzazione("org-dom-1-gest", true, false);
+		Organizzazione org2 = creaOrganizzazione("org-dom-2-gest", true, false);
+		Soggetto[] soggetti = new Soggetto[2];
+		Dominio[] domini = new Dominio[2];
+		preparaDominiDueOrganizzazioni("gest", org1, org2, soggetti, domini);
+
+		Utente utente = creaUtenteMultiOrg("test.dom.gest.ref", List.of(org2), RuoloOrganizzazioneEnum.OPERATORE_API);
+		// resta il gestore, con un contesto organizzazione diverso da quella del dominio
+		simulaContestoSessione(org1, null);
+
+		Servizio servizio = creaServizio("srv-gest", domini[1], soggetti[1], utente);
+		assertEquals(domini[1].getIdDominio(), servizio.getDominio().getIdDominio());
+	}
+
+	@Test
+	public void testAuthorizeDominio_Coordinatore_DominioAltraOrganizzazione_Success() {
+		Organizzazione org1 = creaOrganizzazione("org-dom-1-coord", true, false);
+		Organizzazione org2 = creaOrganizzazione("org-dom-2-coord", true, false);
+		Soggetto[] soggetti = new Soggetto[2];
+		Dominio[] domini = new Dominio[2];
+		preparaDominiDueOrganizzazioni("coord", org1, org2, soggetti, domini);
+
+		UtenteCreate uc = CommonUtils.getUtenteCreate();
+		uc.setPrincipal("test.dom.coord");
+		uc.setRuolo(RuoloUtenteEnum.COORDINATORE);
+		utentiController.createUtente(uc);
+		autenticaCome("test.dom.coord");
+		simulaContestoSessione(org1, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+
+		DominioEntity dominio = this.dominioService.find(domini[1].getIdDominio()).get();
+		servizioAuthorization.authorizeDominio(dominio, true);
+		servizioAuthorization.authorizeDominio(dominio, false);
+	}
+
+	@Test
+	public void testUpdateServizio_AmmOrg_SpostamentoInDominioAltraOrganizzazione_Forbidden() {
+		Organizzazione org1 = creaOrganizzazione("org-dom-1-upd", true, false);
+		Organizzazione org2 = creaOrganizzazione("org-dom-2-upd", true, false);
+		Soggetto[] soggetti = new Soggetto[2];
+		Dominio[] domini = new Dominio[2];
+		preparaDominiDueOrganizzazioni("upd", org1, org2, soggetti, domini);
+
+		// amministratore di entrambe le organizzazioni, ma in sessione opera per org1
+		Utente utente = creaUtenteMultiOrg("test.dom.upd", List.of(org1, org2),
+				RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+		autenticaCome("test.dom.upd");
+		simulaContestoSessione(org1, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+		Servizio servizio = creaServizio("srv-upd", domini[0], soggetti[0], utente);
+
+		ServizioUpdate update = getUpdateDominio(servizio, domini[1], soggetti[1]);
+		NotAuthorizedException ex = assertThrows(NotAuthorizedException.class,
+				() -> serviziController.updateServizio(servizio.getIdServizio(), null, update));
+		assertEquals("AUT.403.AMM.ORG.DOMINIO.FUORI.ORG", ex.getMessage());
+		assertEquals(org1.getNome(), ex.getParameters().get("orgNome"));
+	}
+
+	@Test
+	public void testUpdateServizio_AmmOrg_SpostamentoInDominioPropriaOrganizzazione_Success() {
+		Organizzazione org1 = creaOrganizzazione("org-dom-1-upd-ok", true, false);
+		Organizzazione org2 = creaOrganizzazione("org-dom-2-upd-ok", true, false);
+		Soggetto[] soggetti = new Soggetto[2];
+		Dominio[] domini = new Dominio[2];
+		preparaDominiDueOrganizzazioni("upd-ok", org1, org2, soggetti, domini);
+		Dominio altroDominioOrg1 = creaDominio("dom-1b-upd-ok", soggetti[0]);
+
+		Utente utente = creaUtenteMultiOrg("test.dom.upd.ok", List.of(org1),
+				RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+		autenticaCome("test.dom.upd.ok");
+		simulaContestoSessione(org1, RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+		Servizio servizio = creaServizio("srv-upd-ok", domini[0], soggetti[0], utente);
+
+		Servizio aggiornato = serviziController.updateServizio(servizio.getIdServizio(), null,
+				getUpdateDominio(servizio, altroDominioOrg1, soggetti[0])).getBody();
+		assertEquals(altroDominioOrg1.getIdDominio(), aggiornato.getDominio().getIdDominio());
 	}
 
 }

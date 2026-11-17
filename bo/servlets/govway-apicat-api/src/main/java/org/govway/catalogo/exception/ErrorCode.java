@@ -574,7 +574,7 @@ public enum ErrorCode {
     /** Operazione di scrittura verso la PDND riservata agli utenti con ruolo PDND amministratore */
     AUT_403_RUOLO_PDND("Operazione riservata agli utenti con ruolo PDND amministratore"),
 
-    /** Un amministratore organizzazione può operare solo sui domini il cui soggetto referente appartiene alla propria organizzazione di sessione */
+    /** Un amministratore organizzazione può operare solo sui domini il cui soggetto referente appartiene alla propria organizzazione di sessione; lo stesso vale per amministratore e operatore API che creano un servizio o ne cambiano il dominio */
     AUT_403_AMM_ORG_DOMINIO_FUORI_ORG("Dominio non appartenente all'organizzazione di sessione dell'amministratore"),
 
     /** Un amministratore organizzazione può approvare la richiesta cambio organizzazione solo quando è amministratore dell'organizzazione target */

@@ -1,6 +1,15 @@
 2026-11-17  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
+	Issue 450: l'amministratore e l'operatore API di un'organizzazione creano servizi solo nei
+	  domini della propria organizzazione di sessione (il soggetto referente del dominio deve
+	  appartenervi), altrimenti si risponde 403 AUT.403.AMM.ORG.DOMINIO.FUORI.ORG; lo stesso
+	  vincolo vale quando la modifica del servizio ne cambia il dominio. Senza organizzazione di
+	  sessione, la creazione richiede un ruolo di amministratore o operatore API
+	  sull'organizzazione del dominio: gli utenti senza organizzazione associata (ex referenti di
+	  servizio migrati dalla 2.3.x) non creano più servizi finché il gestore non li associa
+	  all'organizzazione. Gestore e coordinatore non hanno vincoli.
+
 	Issue 449: le API di monitoraggio verificano i ruoli dell'utente sul servizio secondo
 	  monitoraggio.ruoli_abilitati: lista ed export delle transazioni, ricerca per identificativo,
 	  dettaglio e statistiche rispondono 403 a chi non ha un ruolo abilitato (il gestore è sempre

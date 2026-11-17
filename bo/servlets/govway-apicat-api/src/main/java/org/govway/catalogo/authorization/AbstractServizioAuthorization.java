@@ -37,6 +37,7 @@ import org.govway.catalogo.core.orm.entity.ApiConfigEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity.RUOLO;
 import org.govway.catalogo.core.orm.entity.AuthTypeEntity;
+import org.govway.catalogo.core.orm.entity.DominioEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
@@ -47,6 +48,7 @@ import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.services.TassonomiaService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ErrorCode;
+import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.services.RateLimitingRegole;
 import org.govway.catalogo.servlets.model.AuthTypeEnum;
 import org.govway.catalogo.servlets.model.Configurazione;
@@ -507,6 +509,51 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 				.filter(r -> !r.equals(Ruolo.REFERENTE) || refServizio)
 				.map(DefaultWorkflowAuthorization::toConfigurazioneRuolo)
 				.anyMatch(ruoliAbilitati::contains);
+	}
+
+	/**
+	 * Verifica che il dominio indicato in creazione o in modifica (quando cambia) appartenga
+	 * all'organizzazione per cui l'utente opera, cioe` che il soggetto referente del dominio sia
+	 * di quell'organizzazione. Gestore e coordinatore non hanno vincoli.
+	 * <ul>
+	 * <li>Con il contesto organizzazione e un ruolo per-organizzazione (amministratore o operatore API),
+	 * il dominio deve appartenere all'organizzazione di sessione.</li>
+	 * <li>Senza contesto organizzazione, solo in creazione: l'utente deve avere un ruolo per-organizzazione
+	 * sull'organizzazione del dominio. In modifica, senza contesto, l'utente opera con i soli ruoli
+	 * personali sul servizio e il vincolo non si applica.</li>
+	 * </ul>
+	 *
+	 * @param dominio dominio richiesto
+	 * @param creazione true in creazione del servizio, false in modifica
+	 */
+	public void authorizeDominio(DominioEntity dominio, boolean creazione) {
+		if(dominio == null || this.coreAuthorization.isAdmin() || this.coreAuthorization.isCoordinatore()) {
+			return;
+		}
+
+		OrganizzazioneEntity orgDominio = dominio.getSoggettoReferente().getOrganizzazione();
+
+		if(this.coreAuthorization.getOrganizationContext() != null
+				&& this.coreAuthorization.getOrganizationContext().hasOrganizzazione()) {
+			if(!this.coreAuthorization.hasRuoloInOrganizzazioneSessione(
+					RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE, RuoloOrganizzazione.OPERATORE_API)) {
+				return;
+			}
+			OrganizzazioneEntity orgSessione = this.coreAuthorization.getOrganizzazioneSessione();
+			if(orgSessione == null) {
+				throw new NotAuthorizedException(ErrorCode.AUT_403);
+			}
+			if(!orgSessione.getId().equals(orgDominio.getId())) {
+				throw new NotAuthorizedException(ErrorCode.AUT_403_AMM_ORG_DOMINIO_FUORI_ORG,
+						Map.of("orgNome", orgSessione.getNome()));
+			}
+		} else if(creazione) {
+			UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
+			if(utente == null || !this.coreAuthorization.hasRuoloInOrganizzazione(utente, orgDominio,
+					RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE, RuoloOrganizzazione.OPERATORE_API)) {
+				throw new NotAuthorizedException(ErrorCode.AUT_403);
+			}
+		}
 	}
 
 	/**

@@ -337,6 +337,18 @@ public class RegistrazioneServizioIntegrationTest {
         upRefTecnico.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
         utentiController.updateUtente(ID_UTENTE_REFERENTE_TECNICO, upRefTecnico);
 
+        // Il referente servizio (cesare) crea il servizio: deve avere un ruolo sull'org del dominio (Issue 450)
+        UtenteUpdate upRefServizio = new UtenteUpdate();
+        upRefServizio.setPrincipal(UTENTE_REFERENTE_SERVIZIO);
+        CommonUtils.setOrganizzazione(upRefServizio, response.getBody().getIdOrganizzazione());
+        upRefServizio.setStato(StatoUtenteEnum.ABILITATO);
+        upRefServizio.setEmailAziendale("cesare@acme.inc");
+        upRefServizio.setTelefonoAziendale("01234567890");
+        upRefServizio.setNome("Cesare");
+        upRefServizio.setCognome("Rossi");
+        upRefServizio.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
+        utentiController.updateUtente(ID_UTENTE_REFERENTE_SERVIZIO, upRefServizio);
+
         GruppoCreate gruppoCreate = CommonUtils.getGruppoCreate();
         gruppoCreate.setNome(NOME_GRUPPO);
         responseGruppo = gruppiController.createGruppo(gruppoCreate);

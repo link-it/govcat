@@ -92,6 +92,7 @@ import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.TagEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteOrganizzazioneEntity;
+import org.govway.catalogo.core.services.DominioService;
 import org.govway.catalogo.core.services.GruppoService;
 import org.govway.catalogo.core.services.NotificaService;
 import org.govway.catalogo.core.services.OrganizzazioneService;
@@ -203,6 +204,9 @@ public class ServiziController implements ServiziApi {
 
 	@Autowired
 	private GruppoService gruppoService;
+
+	@Autowired
+	private DominioService dominioService;
 
 	@Autowired
 	private EServiceBuilder serviceBuilder;
@@ -610,6 +614,7 @@ public class ServiziController implements ServiziApi {
 				this.logger.info("Invocazione in corso ...");
 				ServizioEntity entity = this.dettaglioAssembler.toEntity(servizioCreate);
 				this.getServizioAuthorization(entity).authorizeCreate(servizioCreate);
+				this.getServizioAuthorization(entity).authorizeDominio(entity.getDominio(), true);
 				this.getServizioAuthorization(entity).authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.IDENTIFICATIVO));
 				this.checkReferenti(entity);
 				this.logger.debug("Autorizzazione completata con successo");
@@ -1173,6 +1178,12 @@ public class ServiziController implements ServiziApi {
 					boolean nomeCambiato = !entity.getNome().equalsIgnoreCase(nome);
 					boolean versioneCambiata = !entity.getVersione().equals(versione);
 					boolean dominioCambiato = !Objects.equals(getIdDominio(entity), idDominioRichiesto);
+
+					if(dominioCambiato && idDominioRichiesto != null) {
+						DominioEntity dominioRichiesto = this.dominioService.find(idDominioRichiesto)
+								.orElseThrow(() -> new NotFoundException(ErrorCode.DOM_404, Map.of("idDominio", idDominioRichiesto.toString())));
+						this.getServizioAuthorization(entity).authorizeDominio(dominioRichiesto, false);
+					}
 
 					if(nomeCambiato || versioneCambiata || dominioCambiato) {
 						Optional<ServizioEntity> conflitto = this.service.findConflittoNomeVersioneNonArchiviato(
