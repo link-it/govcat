@@ -473,14 +473,18 @@ export class SearchBarFormComponent implements OnInit, OnChanges, AfterViewInit 
     }
   }
 
-  _clearSearch(event: any) {
+  /** Svuota la ricerca; i campi in `mantieni` conservano il valore corrente. */
+  _clearSearch(event: any, mantieni: string[] = []) {
     if (this.simple) {
       this.query = '';
     } else {
+      const _mantenuti: any = {};
+      mantieni.forEach((key: string) => { _mantenuti[key] = this.formGroup.get(key)?.value; });
       this.query = '';
       this._tokens = [];
       this._currentValues = {};
       this.formGroup.reset();
+      this.formGroup.patchValue(_mantenuti);
       this._placeholder = this.placeholder;
     }
     this.formGroup.markAllAsTouched();

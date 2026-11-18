@@ -598,7 +598,8 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     refresh(hideLoader: boolean = false) {
         this._hideLoader = hideLoader;
         if (this._groupsView) {
-            this.searchBarForm._clearSearch(null);
+            // Il filtro sugli archiviati vale anche per la vista a gruppi: resta impostato navigando.
+            this.searchBarForm._clearSearch(null, ['archiviati']);
             this._filterData = null;
         } else {
             this._resetGroupsBreadcrumbs();

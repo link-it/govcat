@@ -1,3 +1,9 @@
+2026-11-18  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 468: nella vista a gruppi dei servizi il filtro "Servizi archiviati" resta impostato
+	  entrando in un gruppo o tornando indietro dal breadcrumb, invece di essere azzerato.
+
 2026-11-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

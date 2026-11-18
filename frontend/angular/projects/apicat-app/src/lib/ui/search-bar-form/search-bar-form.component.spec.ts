@@ -366,6 +366,17 @@ describe('SearchBarFormComponent', () => {
         expect(onSearchSpy).toHaveBeenCalled();
     });
 
+    it('should keep the given fields when clearing the search', () => {
+        component.simple = false;
+        component.formGroup = new FormGroup({ q: new FormControl('testo'), archiviati: new FormControl('solo') });
+        const emitSpy = vi.spyOn(component.onSearch, 'emit');
+
+        component._clearSearch(null, ['archiviati']);
+
+        expect(component.formGroup.getRawValue()).toEqual({ q: null, archiviati: 'solo' });
+        expect(emitSpy).toHaveBeenCalledWith({ q: null, archiviati: 'solo' });
+    });
+
     it('should close search dropdown', () => {
         const dropdownHideSpy = vi.fn();
         (window as any)['$'] = (selector: any) => {

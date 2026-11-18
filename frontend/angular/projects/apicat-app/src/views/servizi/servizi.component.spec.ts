@@ -547,7 +547,7 @@ describe('ServiziComponent', () => {
 
       component.refresh();
 
-      expect(component.searchBarForm._clearSearch).toHaveBeenCalledWith(null);
+      expect(component.searchBarForm._clearSearch).toHaveBeenCalledWith(null, ['archiviati']);
       expect(component._filterData).toBeNull();
     });
 
