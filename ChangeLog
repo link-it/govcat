@@ -41,6 +41,11 @@
 2026-11-18  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
+	Issue 470: il referente di un dominio può aggiungere e rimuovere i referenti del dominio, come
+	  previsto dalla matrice dei permessi, operando con l'organizzazione del dominio in sessione e
+	  ruolo operatore API o amministratore; non può modificare né eliminare il dominio e restano i
+	  vincoli sui referenti ammessi. Il referente tecnico resta escluso.
+
 	Issue 459: le eccezioni non gestite (NPE, errori SQL, ecc.) restituiscono 500 con detail SYS.500
 	  senza esporre il messaggio interno, che resta solo nel log. Ogni risposta 500 riporta un
 	  identificativo dell'errore (instance urn:uuid e params.idErrore), scritto nel log insieme

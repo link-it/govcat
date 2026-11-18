@@ -1745,27 +1745,31 @@ public class DominiTest {
         when(this.authentication.getPrincipal()).thenReturn(info);
     }
 
-    private void creaUtenteAmmOrgEAutentica(String principal, UUID idOrgUuid) {
+    /**
+     * Crea un utente UTENTE_ORGANIZZAZIONE associato, con lo stesso ruolo, alle organizzazioni indicate.
+     */
+    private Utente creaUtenteInOrg(String principal, RuoloOrganizzazioneEnum ruolo, UUID... idOrgUuids) {
         UtenteCreate uc = CommonUtils.getUtenteCreate();
         uc.setPrincipal(principal);
         uc.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
-        UtenteOrganizzazioneCreate assoc = new UtenteOrganizzazioneCreate();
-        assoc.setIdOrganizzazione(idOrgUuid);
-        assoc.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
-        uc.setOrganizzazioni(List.of(assoc));
-        controllerUtenti.createUtente(uc);
+        List<UtenteOrganizzazioneCreate> associazioni = new ArrayList<>();
+        for (UUID idOrgUuid : idOrgUuids) {
+            UtenteOrganizzazioneCreate assoc = new UtenteOrganizzazioneCreate();
+            assoc.setIdOrganizzazione(idOrgUuid);
+            assoc.setRuoloOrganizzazione(ruolo);
+            associazioni.add(assoc);
+        }
+        uc.setOrganizzazioni(associazioni);
+        return controllerUtenti.createUtente(uc).getBody();
+    }
+
+    private void creaUtenteAmmOrgEAutentica(String principal, UUID idOrgUuid) {
+        creaUtenteInOrg(principal, RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE, idOrgUuid);
         autenticaComeUtente(principal);
     }
 
     private void creaUtenteOperatoreApiEAutentica(String principal, UUID idOrgUuid) {
-        UtenteCreate uc = CommonUtils.getUtenteCreate();
-        uc.setPrincipal(principal);
-        uc.setRuolo(RuoloUtenteEnum.UTENTE_ORGANIZZAZIONE);
-        UtenteOrganizzazioneCreate assoc = new UtenteOrganizzazioneCreate();
-        assoc.setIdOrganizzazione(idOrgUuid);
-        assoc.setRuoloOrganizzazione(RuoloOrganizzazioneEnum.OPERATORE_API);
-        uc.setOrganizzazioni(List.of(assoc));
-        controllerUtenti.createUtente(uc);
+        creaUtenteInOrg(principal, RuoloOrganizzazioneEnum.OPERATORE_API, idOrgUuid);
         autenticaComeUtente(principal);
     }
 
@@ -2034,5 +2038,141 @@ public class DominiTest {
         assertTrue(visibileX2, "Dominio dom-list-x-2 dovrebbe essere visibile");
         assertFalse(visibileY1, "Dominio dom-list-y-1 NON dovrebbe essere visibile");
     }
-}
 
+    // =========================================================================
+    // Issue 470: gestione dei referenti da parte del referente di dominio
+    // =========================================================================
+
+    private ReferenteCreate referenteCreate(UUID idUtente, TipoReferenteEnum tipo) {
+        ReferenteCreate rc = new ReferenteCreate();
+        rc.setIdUtente(idUtente);
+        rc.setTipo(tipo);
+        return rc;
+    }
+
+    /**
+     * Prepara (come gestore) un dominio dell'organizzazione indicata con un referente del tipo
+     * richiesto (operatore API dell'organizzazione), poi autentica quel referente.
+     */
+    private Dominio preparaDominioConReferenteAutenticato(Organizzazione org, String prefisso, TipoReferenteEnum tipo) {
+        Soggetto sog = creaSoggettoIn(org.getIdOrganizzazione(), "sog-" + prefisso);
+        Dominio dom = creaDominioCon(sog.getIdSoggetto(), "dom-" + prefisso);
+        Utente referente = creaUtenteInOrg("ref." + prefisso, RuoloOrganizzazioneEnum.OPERATORE_API, org.getIdOrganizzazione());
+        controller.createReferenteDominio(dom.getIdDominio(), referenteCreate(referente.getIdUtente(), tipo));
+        autenticaComeUtente("ref." + prefisso);
+        return dom;
+    }
+
+    @Test
+    public void testReferenteDominioAggiungeERimuoveReferentiSuccess() {
+        Organizzazione org = creaOrgConNome("org-refdom-ok");
+        Utente candidato = creaUtenteInOrg("ref.candidato.refdom.ok", RuoloOrganizzazioneEnum.OPERATORE_API, org.getIdOrganizzazione());
+        Dominio dom = preparaDominioConReferenteAutenticato(org, "refdom-ok", TipoReferenteEnum.REFERENTE);
+        setOrgContext(org.getIdOrganizzazione(), RuoloOrganizzazione.OPERATORE_API);
+
+        ResponseEntity<Referente> creato = controller.createReferenteDominio(dom.getIdDominio(),
+                referenteCreate(candidato.getIdUtente(), TipoReferenteEnum.REFERENTE_TECNICO));
+        assertEquals(HttpStatus.OK, creato.getStatusCode());
+
+        ResponseEntity<Void> rimosso = controller.deleteReferenteDominio(dom.getIdDominio(),
+                candidato.getIdUtente(), TipoReferenteEnum.REFERENTE_TECNICO);
+        assertEquals(HttpStatus.OK, rimosso.getStatusCode());
+    }
+
+    @Test
+    public void testReferenteDominioAggiungeReferenteNonAssociatoForbidden() {
+        Organizzazione org = creaOrgConNome("org-refdom-vincoli");
+        Organizzazione altraOrg = creaOrgConNome("org-refdom-vincoli-altra");
+        Utente esterno = creaUtenteInOrg("ref.esterno.refdom", RuoloOrganizzazioneEnum.OPERATORE_API, altraOrg.getIdOrganizzazione());
+        Dominio dom = preparaDominioConReferenteAutenticato(org, "refdom-vincoli", TipoReferenteEnum.REFERENTE);
+        setOrgContext(org.getIdOrganizzazione(), RuoloOrganizzazione.OPERATORE_API);
+
+        // I vincoli sui referenti ammessi restano: il candidato deve essere associato all'organizzazione
+        NotAuthorizedException ex = assertThrows(NotAuthorizedException.class,
+                () -> controller.createReferenteDominio(dom.getIdDominio(),
+                        referenteCreate(esterno.getIdUtente(), TipoReferenteEnum.REFERENTE)));
+        assertEquals("AUT.403.ORG.MISSING", ex.getMessage());
+    }
+
+    @Test
+    public void testReferenteTecnicoDominioGestisceReferentiForbidden() {
+        Organizzazione org = creaOrgConNome("org-reftec-dom");
+        Utente candidato = creaUtenteInOrg("ref.candidato.reftec", RuoloOrganizzazioneEnum.OPERATORE_API, org.getIdOrganizzazione());
+        Dominio dom = preparaDominioConReferenteAutenticato(org, "reftec-dom", TipoReferenteEnum.REFERENTE_TECNICO);
+        setOrgContext(org.getIdOrganizzazione(), RuoloOrganizzazione.OPERATORE_API);
+
+        NotAuthorizedException ex = assertThrows(NotAuthorizedException.class,
+                () -> controller.createReferenteDominio(dom.getIdDominio(),
+                        referenteCreate(candidato.getIdUtente(), TipoReferenteEnum.REFERENTE)));
+        assertEquals("AUT.403", ex.getMessage());
+    }
+
+    @Test
+    public void testOperatoreApiNonReferenteGestisceReferentiForbidden() {
+        Organizzazione org = creaOrgConNome("org-operapi-ref");
+        Soggetto sog = creaSoggettoIn(org.getIdOrganizzazione(), "sog-operapi-ref");
+        Dominio dom = creaDominioCon(sog.getIdSoggetto(), "dom-operapi-ref");
+        Utente candidato = creaUtenteInOrg("ref.candidato.operapi", RuoloOrganizzazioneEnum.OPERATORE_API, org.getIdOrganizzazione());
+
+        creaUtenteOperatoreApiEAutentica("operapi.ref.bad", org.getIdOrganizzazione());
+        setOrgContext(org.getIdOrganizzazione(), RuoloOrganizzazione.OPERATORE_API);
+
+        NotAuthorizedException ex = assertThrows(NotAuthorizedException.class,
+                () -> controller.createReferenteDominio(dom.getIdDominio(),
+                        referenteCreate(candidato.getIdUtente(), TipoReferenteEnum.REFERENTE)));
+        assertEquals("AUT.403", ex.getMessage());
+    }
+
+    @Test
+    public void testReferenteDominioSenzaContestoForbidden() {
+        Organizzazione org = creaOrgConNome("org-refdom-nocontext");
+        Utente candidato = creaUtenteInOrg("ref.candidato.nocontext", RuoloOrganizzazioneEnum.OPERATORE_API, org.getIdOrganizzazione());
+        Dominio dom = preparaDominioConReferenteAutenticato(org, "refdom-nocontext", TipoReferenteEnum.REFERENTE);
+        // Volutamente nessun setOrgContext
+
+        NotAuthorizedException ex = assertThrows(NotAuthorizedException.class,
+                () -> controller.createReferenteDominio(dom.getIdDominio(),
+                        referenteCreate(candidato.getIdUtente(), TipoReferenteEnum.REFERENTE)));
+        assertEquals("AUT.403", ex.getMessage());
+    }
+
+    @Test
+    public void testReferenteDominioContestoAltraOrgForbidden() {
+        Organizzazione org = creaOrgConNome("org-refdom-ctx-dom");
+        Organizzazione altraOrg = creaOrgConNome("org-refdom-ctx-altra");
+        Soggetto sog = creaSoggettoIn(org.getIdOrganizzazione(), "sog-refdom-ctx");
+        Dominio dom = creaDominioCon(sog.getIdSoggetto(), "dom-refdom-ctx");
+        Utente candidato = creaUtenteInOrg("ref.candidato.ctx", RuoloOrganizzazioneEnum.OPERATORE_API, org.getIdOrganizzazione());
+        Utente referente = creaUtenteInOrg("ref.refdom.ctx", RuoloOrganizzazioneEnum.OPERATORE_API,
+                org.getIdOrganizzazione(), altraOrg.getIdOrganizzazione());
+        controller.createReferenteDominio(dom.getIdDominio(), referenteCreate(referente.getIdUtente(), TipoReferenteEnum.REFERENTE));
+
+        autenticaComeUtente("ref.refdom.ctx");
+        setOrgContext(altraOrg.getIdOrganizzazione(), RuoloOrganizzazione.OPERATORE_API);
+
+        NotAuthorizedException ex = assertThrows(NotAuthorizedException.class,
+                () -> controller.createReferenteDominio(dom.getIdDominio(),
+                        referenteCreate(candidato.getIdUtente(), TipoReferenteEnum.REFERENTE)));
+        assertEquals("AUT.403.AMM.ORG.DOMINIO.FUORI.ORG", ex.getMessage());
+    }
+
+    @Test
+    public void testReferenteDominioModificaEliminaDominioForbidden() {
+        Organizzazione org = creaOrgConNome("org-refdom-nodom");
+        Dominio dom = preparaDominioConReferenteAutenticato(org, "refdom-nodom", TipoReferenteEnum.REFERENTE);
+        setOrgContext(org.getIdOrganizzazione(), RuoloOrganizzazione.OPERATORE_API);
+
+        DominioUpdate du = new DominioUpdate();
+        du.setNome("dom-refdom-nodom-modificato");
+        du.setIdSoggettoReferente(dom.getSoggettoReferente().getIdSoggetto());
+        du.setVisibilita(VisibilitaDominioEnum.PUBBLICO);
+
+        NotAuthorizedException exUpdate = assertThrows(NotAuthorizedException.class,
+                () -> controller.updateDominio(dom.getIdDominio(), du));
+        assertEquals("AUT.403", exUpdate.getMessage());
+
+        NotAuthorizedException exDelete = assertThrows(NotAuthorizedException.class,
+                () -> controller.deleteDominio(dom.getIdDominio()));
+        assertEquals("AUT.403", exDelete.getMessage());
+    }
+}
