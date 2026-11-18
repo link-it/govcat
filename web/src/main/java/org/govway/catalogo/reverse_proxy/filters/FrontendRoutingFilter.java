@@ -23,13 +23,46 @@ import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.util.List;
+import java.util.regex.Pattern;
 
-@WebFilter(urlPatterns = {"/servizi/*", "/adesioni/*", "/gruppi/*", "/domini/*", "/soggetti/*", "/organizzazioni/*", "/client/*", "/utenti/*", "/classi-utente/*", "/pdnd/*", "/notifications/*", "/profile/*", "/dashboard/*", "/auth/*"})
+import org.govway.catalogo.reverse_proxy.costanti.Costanti;
+
+/**
+ * Rimanda all'applicazione Angular (index.jsp) le rotte del frontend aperte da indirizzo
+ * diretto, da segnalibro o con F5.
+ * <p>
+ * Le rotte non sono elencate una per una: viene inoltrata ogni richiesta GET/HEAD che non sia
+ * una risorsa statica (esistente o con estensione da file statico) e non sia un endpoint del
+ * server (proxy verso le API, controller, servlet di errore, actuator), così che una nuova rotta
+ * Angular non richieda di modificare il filtro.
+ */
+@WebFilter(urlPatterns = {"/*"})
 public class FrontendRoutingFilter implements Filter {
+
+    static final String FRONTEND_INDEX = "/index.jsp";
+
+    private static final Pattern STATIC_RESOURCE = Pattern.compile(
+            ".*\\.(js|css|ico|png|jpg|jpeg|gif|woff2?|ttf|eot|svg|json|map|html|jsp|txt|xml|pdf|webmanifest)$",
+            Pattern.CASE_INSENSITIVE);
+
+    /** Percorsi serviti dal server e non dall'applicazione Angular. */
+    private static final List<String> SERVER_PATH_PREFIXES = List.of(
+            Costanti.PROXY_API_PREFIX,
+            Costanti.PROXY_PDND_PREFIX,
+            Costanti.PROXY_MONITOR_PREFIX,
+            "/assets",
+            "/csp",
+            "/actuator",
+            "/error",
+            "/code-grant-authorization");
+
+    private ServletContext servletContext;
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        // No initialization required
+        this.servletContext = filterConfig.getServletContext();
     }
 
     @Override
@@ -37,25 +70,58 @@ public class FrontendRoutingFilter implements Filter {
             throws IOException, ServletException {
 
         HttpServletRequest req = (HttpServletRequest) request;
-        String path = req.getRequestURI().substring(req.getContextPath().length());
 
-        // Forward only non-static, non-servlet, non-API frontend routes to index.jsp
-        if (shouldForwardToFrontend(path)) {
-            RequestDispatcher dispatcher = request.getRequestDispatcher("/index.jsp");
-            dispatcher.forward(request, response);
+        if (shouldForwardToFrontend(req)) {
+            request.getRequestDispatcher(FRONTEND_INDEX).forward(request, response);
         } else {
             chain.doFilter(request, response);
         }
     }
 
-    private boolean shouldForwardToFrontend(String path) {
-        // Static resource extensions
-        if (path.matches(".*\\.(js|css|ico|png|jpg|jpeg|gif|woff2?|ttf|eot|svg|json|map|html)$")) {
+    boolean shouldForwardToFrontend(HttpServletRequest req) {
+        String method = req.getMethod();
+        if (!"GET".equals(method) && !"HEAD".equals(method)) {
             return false;
         }
 
-        // Backend endpoints - let them pass
-        return !path.contains("/proxyServlet");
+        // Percorso già decodificato e normalizzato dal container
+        String path = req.getServletPath() + (req.getPathInfo() != null ? req.getPathInfo() : "");
+
+        if (path.isEmpty() || "/".equals(path)) {
+            // Gestito dal welcome-file
+            return false;
+        }
+
+        if (STATIC_RESOURCE.matcher(path).matches()) {
+            // Una risorsa statica mancante deve restituire 404, non la pagina dell'applicazione
+            return false;
+        }
+
+        if (isServerPath(path)) {
+            return false;
+        }
+
+        return !isExistingResource(path);
+    }
+
+    private static boolean isServerPath(String path) {
+        for (String prefix : SERVER_PATH_PREFIXES) {
+            if (path.equals(prefix) || path.startsWith(prefix + "/")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isExistingResource(String path) {
+        if (this.servletContext == null) {
+            return false;
+        }
+        try {
+            return this.servletContext.getResource(path) != null;
+        } catch (MalformedURLException e) {
+            return false;
+        }
     }
 
     @Override

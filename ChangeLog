@@ -52,6 +52,13 @@
 	  associazioni senza ruolo vengono mantenute (o sostituite, se indicate come organizzazione di
 	  partenza) e si aggiunge quella richiesta.
 
+	* [ReverseProxy]
+	Issue 460: govcat-web serve l'applicazione anche aprendo da indirizzo diretto, da segnalibro o con F5
+	  le pagine prima escluse (gestione dell'organizzazione, servizi generici, tassonomie, monitoraggio)
+	  invece della pagina di errore. Il filtro non elenca più le rotte: rimanda all'applicazione ogni
+	  richiesta GET/HEAD che non sia una risorsa statica o un endpoint del server (proxy, configurazione,
+	  CSP, actuator, errore), così le nuove rotte non richiedono di modificarlo.
+
 2026-11-17  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
