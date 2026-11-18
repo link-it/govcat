@@ -642,32 +642,16 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 			lst.add(Ruolo.REFERENTE_TECNICO);
 		}
 
-		// Ruoli per-organizzazione: derivati solo se è valorizzato l'header X-Organization-Context
-		// e quell'organizzazione coincide con una delle due naturali per l'adesione (aderente
-		// o erogatrice). Senza header: nessun ruolo per-org.
+		// Ruolo per-organizzazione: derivato solo se è valorizzato l'header X-Organization-Context.
 		// L'amministratore ottiene REFERENTE_SUPERIORE (autorizza) solo sull'organizzazione
 		// erogatrice: sull'aderente consulta le adesioni ma non le autorizza (Issue 471).
+		// OPERATORE_API non dà ruoli di workflow su nessuno dei due lati: l'operatore gestisce
+		// solo le adesioni di cui è referente, referente tecnico o richiedente (Issue 472).
 		// TODO [MULTI-ORG] Valutare refactoring dell'enum Ruolo workflow per esporre direttamente
-		// AMM_ORG/OPERATORE_API invece di mapparli a REFERENTE_SUPERIORE/REFERENTE legacy.
-		// Se l'utente è esplicitamente referente_tecnico (e non anche referente) di adesione/servizio/dominio,
-		// la sua designazione tecnica è vincolante e non deve essere elevata a REFERENTE dal ruolo OPERATORE_API
-		// dell'organizzazione (mantiene i poteri limitati del referente tecnico sulla risorsa specifica).
-		boolean soloRefTecnico = (refTecnicoAdesione || refTecnicoServizio || refTecnicoDominio)
-				&& !refAdesione && !refServizio && !refDominio;
-		aggiungiRuoloPerOrganizzazioneDaSessione(lst, getOrganizzazioneAderenteAdesione(entity), soloRefTecnico, false);
-		aggiungiRuoloPerOrganizzazioneDaSessione(lst, getOrganizzazioneErogatriceAdesione(entity), soloRefTecnico, true);
+		// AMM_ORG invece di mapparlo a REFERENTE_SUPERIORE legacy.
+		aggiungiRuoloAmministratoreOrganizzazioneErogatrice(lst, getOrganizzazioneErogatriceAdesione(entity));
 
 		return lst;
-	}
-
-	/**
-	 * Organizzazione aderente: quella del soggetto dell'adesione.
-	 */
-	private org.govway.catalogo.core.orm.entity.OrganizzazioneEntity getOrganizzazioneAderenteAdesione(AdesioneEntity adesione) {
-		if (adesione.getSoggetto() == null) {
-			return null;
-		}
-		return adesione.getSoggetto().getOrganizzazione();
 	}
 
 	/**
@@ -684,35 +668,21 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 	}
 
 	/**
-	 * Aggiunge alla lista dei ruoli workflow il mapping del ruolo per-organizzazione dell'utente
-	 * derivato dall'header X-Organization-Context, ma solo se quell'organizzazione coincide con
-	 * quella naturale indicata (aderente o erogatrice dell'adesione). AMM_ORG → REFERENTE_SUPERIORE,
-	 * OPERATORE_API → REFERENTE. Deduplica se già presente.
-	 *
-	 * @param soloRefTecnico se true, l'utente è esplicitamente referente_tecnico della risorsa:
-	 *                       l'elevazione a REFERENTE dal ruolo OPERATORE_API viene saltata per
-	 *                       preservare i vincoli del referente tecnico.
-	 * @param erogatrice true se l'organizzazione è l'erogatrice: solo qui AMM_ORG diventa
-	 *                   REFERENTE_SUPERIORE; sull'aderente l'amministratore non ha ruoli di workflow.
+	 * Aggiunge REFERENTE_SUPERIORE se l'utente opera, tramite l'header X-Organization-Context,
+	 * come amministratore dell'organizzazione erogatrice indicata. Deduplica se già presente.
 	 */
-	private void aggiungiRuoloPerOrganizzazioneDaSessione(List<Ruolo> lst,
-			org.govway.catalogo.core.orm.entity.OrganizzazioneEntity organizzazione, boolean soloRefTecnico, boolean erogatrice) {
-		if (organizzazione == null) {
+	private void aggiungiRuoloAmministratoreOrganizzazioneErogatrice(List<Ruolo> lst,
+			org.govway.catalogo.core.orm.entity.OrganizzazioneEntity organizzazioneErogatrice) {
+		if (organizzazioneErogatrice == null) {
 			return;
 		}
 		org.govway.catalogo.core.orm.entity.OrganizzazioneEntity orgSessione = this.coreAuthorization.getOrganizzazioneSessione();
-		if (orgSessione == null || !orgSessione.getId().equals(organizzazione.getId())) {
+		if (orgSessione == null || !orgSessione.getId().equals(organizzazioneErogatrice.getId())) {
 			return;
 		}
-		org.govway.catalogo.core.orm.entity.RuoloOrganizzazione ruoloSessione = this.coreAuthorization.getRuoloOrganizzazioneSessione();
-		if (ruoloSessione == org.govway.catalogo.core.orm.entity.RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE) {
-			if (erogatrice && !lst.contains(Ruolo.REFERENTE_SUPERIORE)) {
-				lst.add(Ruolo.REFERENTE_SUPERIORE);
-			}
-		} else if (!soloRefTecnico && ruoloSessione == org.govway.catalogo.core.orm.entity.RuoloOrganizzazione.OPERATORE_API) {
-			if (!lst.contains(Ruolo.REFERENTE)) {
-				lst.add(Ruolo.REFERENTE);
-			}
+		if (this.coreAuthorization.getRuoloOrganizzazioneSessione() == org.govway.catalogo.core.orm.entity.RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE
+				&& !lst.contains(Ruolo.REFERENTE_SUPERIORE)) {
+			lst.add(Ruolo.REFERENTE_SUPERIORE);
 		}
 	}
 	

@@ -41,6 +41,12 @@
 2026-11-18  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
+	Issue 472: il ruolo operatore API dell'organizzazione non dà più il ruolo referente su tutti i
+	  servizi e le adesioni dell'organizzazione: l'operatore gestisce, e monitora, solo i servizi e le
+	  adesioni di cui è referente, referente tecnico o richiedente, come previsto dalla matrice dei
+	  permessi. Prima poteva, tramite API, modificare qualsiasi servizio dell'organizzazione e nominarsi
+	  referente. Restano invariate la creazione di servizi e adesioni e la visibilità del catalogo.
+
 	Issue 471: l'amministratore dell'organizzazione di sessione vede in lista e in dettaglio i servizi
 	  della propria organizzazione in ogni stato e le adesioni ai servizi della propria organizzazione, e
 	  li autorizza come il referente del dominio; li trova anche in dashboard, tra i servizi in attesa e

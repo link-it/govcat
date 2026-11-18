@@ -453,31 +453,21 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 			lst.add(Ruolo.REFERENTE_TECNICO);
 		}
 
-		// Ruoli per-organizzazione: derivati solo se è valorizzato l'header X-Organization-Context
+		// Ruolo per-organizzazione: derivato solo se è valorizzato l'header X-Organization-Context
 		// e quell'organizzazione coincide con l'organizzazione naturale del workflow del servizio
 		// (org del soggetto referente del dominio). Senza header: nessun ruolo per-org.
 		// AMM_ORG mappa a REFERENTE_SUPERIORE (poteri di autorizzazione, come coordinatore e ref.dominio).
-		// OPERATORE_API mappa a REFERENTE (può gestire ma non autorizzare, come ref.adesione).
+		// OPERATORE_API non dà ruoli di workflow: l'operatore gestisce solo i servizi di cui è
+		// referente, referente tecnico o richiedente (Issue 472).
 		// TODO [MULTI-ORG] Valutare refactoring dell'enum Ruolo workflow per esporre direttamente
-		// AMM_ORG/OPERATORE_API invece di mapparli a REFERENTE_SUPERIORE/REFERENTE legacy.
-		// Se l'utente è esplicitamente referente_tecnico (e non anche referente) di servizio/dominio,
-		// la sua designazione tecnica è vincolante e non deve essere elevata a REFERENTE dal ruolo OPERATORE_API
-		// dell'organizzazione (mantiene i poteri limitati del referente tecnico sulla risorsa specifica).
-		boolean soloRefTecnico = (refTecnicoServizio || refTecnicoDominio) && !refServizio && !refDominio;
+		// AMM_ORG invece di mapparlo a REFERENTE_SUPERIORE legacy.
 		OrganizzazioneEntity organizzazioneContesto = getOrganizzazioneContestoServizio(entity);
 		OrganizzazioneEntity orgSessione = this.coreAuthorization.getOrganizzazioneSessione();
 		if (organizzazioneContesto != null && orgSessione != null
-				&& orgSessione.getId().equals(organizzazioneContesto.getId())) {
-			RuoloOrganizzazione ruoloSessione = this.coreAuthorization.getRuoloOrganizzazioneSessione();
-			if (ruoloSessione == RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE) {
-				if (!lst.contains(Ruolo.REFERENTE_SUPERIORE)) {
-					lst.add(Ruolo.REFERENTE_SUPERIORE);
-				}
-			} else if (!soloRefTecnico && ruoloSessione == RuoloOrganizzazione.OPERATORE_API) {
-				if (!lst.contains(Ruolo.REFERENTE)) {
-					lst.add(Ruolo.REFERENTE);
-				}
-			}
+				&& orgSessione.getId().equals(organizzazioneContesto.getId())
+				&& this.coreAuthorization.getRuoloOrganizzazioneSessione() == RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE
+				&& !lst.contains(Ruolo.REFERENTE_SUPERIORE)) {
+			lst.add(Ruolo.REFERENTE_SUPERIORE);
 		}
 
 		return lst;
@@ -486,9 +476,7 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 	/**
 	 * Indica se l'utente in sessione puo' accedere al monitoraggio (transazioni e statistiche) del servizio:
 	 * il gestore sempre, gli altri con almeno un ruolo sul servizio tra {@code monitoraggio.ruoli_abilitati}.
-	 * Come nel frontend, il ruolo {@code referente} vale solo per i referenti del servizio e non quando e'
-	 * ricavato dal ruolo operatore API dell'organizzazione; i ruoli tecnici valgono come i corrispondenti
-	 * ruoli non tecnici.
+	 * I ruoli tecnici valgono come i corrispondenti ruoli non tecnici.
 	 */
 	public boolean isMonitoraggioConsentito(ServizioEntity entity) {
 		List<Ruolo> ruoli = this.getRuoli(entity);
@@ -501,12 +489,7 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 			return false;
 		}
 
-		UtenteEntity u = this.coreAuthorization.getUtenteSessione();
-		boolean refServizio = entity.getReferenti().stream()
-				.anyMatch(r -> r.getReferente().getId().equals(u.getId()) && r.getTipo().equals(TIPO_REFERENTE.REFERENTE));
-
 		return ruoli.stream()
-				.filter(r -> !r.equals(Ruolo.REFERENTE) || refServizio)
 				.map(DefaultWorkflowAuthorization::toConfigurazioneRuolo)
 				.anyMatch(ruoliAbilitati::contains);
 	}

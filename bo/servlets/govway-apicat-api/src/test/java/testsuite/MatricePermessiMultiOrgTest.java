@@ -49,8 +49,10 @@ import org.govway.catalogo.controllers.UtentiController;
 import org.govway.catalogo.core.orm.entity.DominioEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
+import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.services.DominioService;
 import org.govway.catalogo.core.services.OrganizzazioneService;
+import org.govway.catalogo.core.services.ServizioService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
@@ -64,6 +66,7 @@ import org.govway.catalogo.servlets.model.ConfigurazioneRuolo;
 import org.govway.catalogo.servlets.model.ConfigurazioneStatoDashboard;
 import org.govway.catalogo.servlets.model.ConfigurazioneWorkflow;
 import org.govway.catalogo.servlets.model.Grant;
+import org.govway.catalogo.servlets.model.GrantType;
 import org.govway.catalogo.servlets.model.AuthTypeApiResource;
 import org.govway.catalogo.servlets.model.AdesioneCreate;
 import org.govway.catalogo.servlets.model.DocumentoCreate;
@@ -168,6 +171,9 @@ public class MatricePermessiMultiOrgTest {
 
 	@Autowired
 	private DominioService dominioService;
+
+	@Autowired
+	private ServizioService servizioService;
 
 	@Autowired
 	private ServizioAuthorization servizioAuthorization;
@@ -1348,6 +1354,132 @@ public class MatricePermessiMultiOrgTest {
 		conStatiDashboard(this.configurazione.getAdesione().getWorkflow(), ConfigurazioneRuolo.REFERENTE_SUPERIORE,
 				List.of("richiesto_collaudo"),
 				() -> assertFalse(contieneAdesione(listAdesioni(null, true), idAdesione)));
+	}
+
+
+	// ------------------------------------------------------------------
+	// Issue 472: il ruolo operatore API dell'organizzazione non da` ruoli di workflow
+	// sui servizi e sulle adesioni: contano solo i ruoli personali (referente,
+	// referente tecnico, richiedente)
+	// ------------------------------------------------------------------
+
+	/**
+	 * Servizio dell'organizzazione erogatrice richiesto da un operatore API ({@code opRichiedente})
+	 * con un altro operatore come referente ({@code refServizio}), pubblicato in collaudo, e
+	 * adesione richiesta da un operatore API dell'aderente ({@code opAderente}) con un altro
+	 * operatore come referente ({@code refAderente}). {@code opEstraneo} e` un operatore API
+	 * dell'erogatrice senza alcun legame con servizio e adesione.
+	 */
+	private record ScenarioOperatoreApi(Organizzazione orgErogatrice, Organizzazione orgAderente,
+			UUID idServizio, UUID idAdesione, String opRichiedente, String refServizio, String opEstraneo,
+			String opAderente, String refAderente) {}
+
+	private ScenarioOperatoreApi preparaScenarioOperatoreApi(String suffisso) {
+		Organizzazione orgErogatrice = creaOrganizzazione("org-ero-" + suffisso, true, true);
+		Organizzazione orgAderente = creaOrganizzazione("org-ade-" + suffisso, false, true);
+
+		Utente refServizio = creaUtenteMultiOrg("ref.ero." + suffisso, List.of(orgErogatrice),
+				RuoloOrganizzazioneEnum.OPERATORE_API);
+		creaUtenteMultiOrg("op.ero." + suffisso, List.of(orgErogatrice), RuoloOrganizzazioneEnum.OPERATORE_API);
+		creaUtenteMultiOrg("op.estraneo." + suffisso, List.of(orgErogatrice), RuoloOrganizzazioneEnum.OPERATORE_API);
+		Utente refAderente = creaUtenteMultiOrg("ref.ade." + suffisso, List.of(orgAderente),
+				RuoloOrganizzazioneEnum.OPERATORE_API);
+		creaUtenteMultiOrg("op.ade." + suffisso, List.of(orgAderente), RuoloOrganizzazioneEnum.OPERATORE_API);
+
+		Soggetto soggettoErogatore = creaSoggetto("sogg-ero-" + suffisso, orgErogatrice);
+		Soggetto soggettoAderente = creaSoggetto("sogg-ade-" + suffisso, orgAderente);
+		// nome "Test": dominio ammesso dal profilo dell'API usata per avanzare nel workflow
+		Dominio dominio = creaDominio("Test", soggettoErogatore);
+
+		autenticaCome("op.ero." + suffisso);
+		simulaContestoSessione(orgErogatrice, RuoloOrganizzazione.OPERATORE_API);
+		UUID idServizio = creaServizio("srv-ero-" + suffisso, dominio, soggettoErogatore, refServizio).getIdServizio();
+
+		autenticaComeGestore();
+		pubblicaInCollaudo(idServizio);
+
+		autenticaCome("op.ade." + suffisso);
+		simulaContestoSessione(orgAderente, RuoloOrganizzazione.OPERATORE_API);
+		UUID idAdesione = creaAdesione(idServizio, soggettoAderente, refAderente).getIdAdesione();
+
+		return new ScenarioOperatoreApi(orgErogatrice, orgAderente, idServizio, idAdesione,
+				"op.ero." + suffisso, "ref.ero." + suffisso, "op.estraneo." + suffisso,
+				"op.ade." + suffisso, "ref.ade." + suffisso);
+	}
+
+	@Test
+	public void testOperatoreApiErogatrice_NonReferente_NessunRuoloSulServizio() {
+		ScenarioOperatoreApi sc = preparaScenarioOperatoreApi("472-srv");
+		UUID idServizio = sc.idServizio();
+
+		autenticaCome(sc.opEstraneo());
+		simulaContestoSessione(sc.orgErogatrice(), RuoloOrganizzazione.OPERATORE_API);
+
+		// il servizio pubblicato resta consultabile, ma senza ruoli ne' dati scrivibili
+		assertEquals(idServizio, serviziController.getServizio(idServizio).getBody().getIdServizio());
+		Grant grant = serviziController.getGrantServizio(idServizio).getBody();
+		assertTrue(grant.getRuoli().isEmpty(), "Ruoli inattesi: " + grant.getRuoli());
+		assertEquals(GrantType.NESSUNO, grant.getReferenti());
+		assertEquals(GrantType.NESSUNO, grant.getGenerico());
+
+		// non puo` nominarsi referente per ottenere la gestione del servizio
+		ReferenteCreate rc = new ReferenteCreate();
+		rc.setTipo(TipoReferenteEnum.REFERENTE);
+		rc.setIdUtente(UUID.fromString(this.utenteService.findByPrincipal(sc.opEstraneo()).get().getIdUtente()));
+		assertThrows(NotAuthorizedException.class,
+				() -> serviziController.createReferenteServizio(idServizio, null, rc));
+
+		// ne' accedere al monitoraggio
+		autenticaComeGestore();
+		ServizioEntity servizio = this.servizioService.find(idServizio).get();
+		autenticaCome(sc.opEstraneo());
+		simulaContestoSessione(sc.orgErogatrice(), RuoloOrganizzazione.OPERATORE_API);
+		assertFalse(this.servizioAuthorization.isMonitoraggioConsentito(servizio));
+	}
+
+	@Test
+	public void testOperatoreApiErogatrice_RuoliPersonaliSulServizio() {
+		ScenarioOperatoreApi sc = preparaScenarioOperatoreApi("472-pers");
+		UUID idServizio = sc.idServizio();
+
+		// il richiedente resta richiedente, senza il ruolo referente
+		autenticaCome(sc.opRichiedente());
+		simulaContestoSessione(sc.orgErogatrice(), RuoloOrganizzazione.OPERATORE_API);
+		Grant grant = serviziController.getGrantServizio(idServizio).getBody();
+		assertEquals(List.of(Ruolo.RICHIEDENTE), grant.getRuoli());
+
+		// il referente del servizio mantiene il ruolo e il monitoraggio
+		autenticaCome(sc.refServizio());
+		simulaContestoSessione(sc.orgErogatrice(), RuoloOrganizzazione.OPERATORE_API);
+		grant = serviziController.getGrantServizio(idServizio).getBody();
+		assertEquals(List.of(Ruolo.REFERENTE), grant.getRuoli());
+		assertTrue(this.servizioAuthorization.isMonitoraggioConsentito(this.servizioService.find(idServizio).get()));
+	}
+
+	@Test
+	public void testOperatoreApi_RuoliPersonaliSullAdesione() {
+		ScenarioOperatoreApi sc = preparaScenarioOperatoreApi("472-ade");
+		UUID idAdesione = sc.idAdesione();
+
+		// lato erogatore: il richiedente del servizio vede l'adesione ma non la gestisce
+		autenticaCome(sc.opRichiedente());
+		simulaContestoSessione(sc.orgErogatrice(), RuoloOrganizzazione.OPERATORE_API);
+		Grant grant = adesioniController.getGrantAdesione(idAdesione).getBody();
+		assertTrue(grant.getRuoli().isEmpty(), "Ruoli inattesi: " + grant.getRuoli());
+		assertEquals(GrantType.NESSUNO, grant.getReferenti());
+
+		// lato aderente: il richiedente dell'adesione resta richiedente, senza il ruolo referente
+		autenticaCome(sc.opAderente());
+		simulaContestoSessione(sc.orgAderente(), RuoloOrganizzazione.OPERATORE_API);
+		grant = adesioniController.getGrantAdesione(idAdesione).getBody();
+		assertEquals(List.of(Ruolo.RICHIEDENTE), grant.getRuoli());
+
+		// il referente dell'adesione mantiene il ruolo e la gestione dei referenti
+		autenticaCome(sc.refAderente());
+		simulaContestoSessione(sc.orgAderente(), RuoloOrganizzazione.OPERATORE_API);
+		grant = adesioniController.getGrantAdesione(idAdesione).getBody();
+		assertEquals(List.of(Ruolo.REFERENTE), grant.getRuoli());
+		assertEquals(GrantType.SCRITTURA, grant.getReferenti());
 	}
 
 }
