@@ -265,6 +265,16 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
     ];
   }
 
+  /** Nota sotto la tabella "Organizzazioni": le associazioni approvate compaiono tra gli utenti
+   *  dell'organizzazione, la richiesta in attesa no e si gestisce da questa pagina. */
+  get _orgHelpText(): string {
+    const righe = this._orgRows;
+    const approvate = righe.some((uo: any) => !uo._pending);
+    const inAttesa = righe.some((uo: any) => uo._pending);
+    if (approvate && inAttesa) { return 'APP.USERS.ORGANIZZAZIONI.HelpTextConRichiesta'; }
+    return approvate ? 'APP.USERS.ORGANIZZAZIONI.HelpText' : 'APP.USERS.ORGANIZZAZIONI.HelpTextSoloRichiesta';
+  }
+
   /** True se la riga della tabella "Organizzazioni" e` editabile:
    *  siamo nel contesto AMM_ORG (`_fromOrgManage`) E la riga
    *  riguarda l'organizzazione che stiamo gestendo (l'AMM_ORG puo`
@@ -1003,18 +1013,24 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
   }
 
   approveOrganizationChange() {
+    // Il BE sostituisce l'associazione solo se la richiesta ha un'organizzazione di partenza,
+    // altrimenti aggiunge la nuova mantenendo le esistenti.
+    const partenza = this.utente?.organizzazione_partenza;
     const hasCurrentOrg = !!this._getPrimaryOrg(this.utente);
-    const warningKey = hasCurrentOrg
+    const warningKey = partenza
       ? 'APP.PROFILE.ORGANIZATION.ApproveWarning'
-      : 'APP.PROFILE.ORGANIZATION.ApproveWarningFirstOrg';
+      : (hasCurrentOrg ? 'APP.PROFILE.ORGANIZATION.ApproveWarningAddOrg' : 'APP.PROFILE.ORGANIZATION.ApproveWarningFirstOrg');
     const initialState = {
-      title: this.translate.instant('APP.PROFILE.ORGANIZATION.ApproveTitle'),
+      title: this.translate.instant(partenza ? 'APP.PROFILE.ORGANIZATION.ApproveTitle' : 'APP.PROFILE.ORGANIZATION.ApproveTitleAdd'),
       messages: [
-        this.translate.instant(warningKey)
+        this.translate.instant(warningKey, {
+          partenza: partenza?.nome || '--',
+          destinazione: this.utente?.organizzazione_pending?.nome || '--'
+        })
       ],
       cancelText: this.translate.instant('APP.BUTTON.Cancel'),
       confirmText: this.translate.instant('APP.PROFILE.ORGANIZATION.ApproveButton'),
-      confirmColor: hasCurrentOrg ? 'danger' : 'confirm'
+      confirmColor: partenza ? 'danger' : 'confirm'
     };
 
     this._modalConfirmRef = this.modalService.show(YesnoDialogBsComponent, {
@@ -1038,6 +1054,8 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
           //    telefono*, email*, ruolo globale).
           // Le altre associazioni esistenti restano server-side (NON
           // le re-inviamo).
+          // In visualizzazione il form non e` inizializzato: i dati anagrafici sono quelli salvati.
+          if (!this._isEdit) { this._initForm({ ...this._utente }); }
           const formValues = this._formGroup.getRawValue();
           // Issue 229 evolutiva 3 — gestore/coordinatore possono
           // ora scegliere "Nessun ruolo" (`_approvingRole === ''`)

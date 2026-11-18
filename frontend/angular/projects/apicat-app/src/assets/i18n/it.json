@@ -2518,8 +2518,10 @@
 				"CurrentLabel": "Organizzazione attuale",
 				"RequestSent": "Richiesta di cambio organizzazione inviata con successo",
 				"ApproveTitle": "Approva cambio organizzazione",
-				"ApproveWarning": "Confermi di voler approvare la richiesta di cambio organizzazione? L'associazione esistente verrà sostituita con la nuova organizzazione.",
+				"ApproveWarning": "Confermi di voler approvare la richiesta di cambio organizzazione? L'associazione con {{partenza}} verrà sostituita con {{destinazione}}.",
 				"ApproveWarningFirstOrg": "Confermi di voler approvare la richiesta di assegnazione organizzazione? L'utente verrà associato alla nuova organizzazione.",
+				"ApproveWarningAddOrg": "Confermi di voler approvare la richiesta di associazione a {{destinazione}}? Le associazioni esistenti dell'utente restano invariate.",
+				"ApproveTitleAdd": "Approva associazione all'organizzazione",
 				"ApproveButton": "Approva",
 				"CancelTitle": "Annulla richiesta",
 				"CancelWarning": "Confermi di voler annullare la richiesta di cambio organizzazione? L'operazione non potrà essere ripristinata.",
@@ -3530,7 +3532,9 @@
 			},
 			"ORGANIZZAZIONI": {
 				"Title": "Organizzazioni",
-				"HelpText": "Le associazioni con le organizzazioni vengono gestite dal dettaglio della singola organizzazione, nella sezione \"Utenti dell'organizzazione\"."
+				"HelpText": "Le associazioni con le organizzazioni vengono gestite dal dettaglio della singola organizzazione, nella sezione \"Utenti dell'organizzazione\".",
+				"HelpTextConRichiesta": "Le associazioni approvate vengono gestite dal dettaglio della singola organizzazione, nella sezione \"Utenti dell'organizzazione\". La richiesta in attesa non compare lì: si approva o si rifiuta da questa pagina.",
+				"HelpTextSoloRichiesta": "L'utente non compare ancora tra gli utenti dell'organizzazione richiesta: la richiesta si approva o si rifiuta da questa pagina."
 			},
 			"LABEL": {
 				"Cognome": "Cognome",

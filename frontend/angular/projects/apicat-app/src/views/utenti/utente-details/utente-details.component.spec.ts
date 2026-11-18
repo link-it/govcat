@@ -1235,20 +1235,44 @@ describe('UtenteDetailsComponent', () => {
         ruolo: new FormControl(Ruolo.GESTORE),
         id_organizzazione: new FormControl('org1')
       });
+      component._isEdit = true;
     });
 
-    it('should show modal with correct state for existing org', () => {
+    it('should announce the replacement when the request has a starting organization', () => {
+      component.utente.organizzazione_partenza = { id_organizzazione: 'org1', nome: 'Org1' };
       component.approveOrganizationChange();
       expect(mockModalService.show).toHaveBeenCalled();
-      const callArgs = mockModalService.show.mock.calls[0];
-      expect(callArgs[1].initialState.confirmColor).toBe('danger');
+      const initialState = mockModalService.show.mock.calls[0][1].initialState;
+      expect(initialState.confirmColor).toBe('danger');
+      expect(initialState.title).toBe('APP.PROFILE.ORGANIZATION.ApproveTitle');
+      expect(mockTranslate.instant).toHaveBeenCalledWith('APP.PROFILE.ORGANIZATION.ApproveWarning', { partenza: 'Org1', destinazione: 'Org2' });
+    });
+
+    it('should announce an addition when the user has organizations but no starting one', () => {
+      component.approveOrganizationChange();
+      const initialState = mockModalService.show.mock.calls[0][1].initialState;
+      expect(initialState.confirmColor).toBe('confirm');
+      expect(initialState.title).toBe('APP.PROFILE.ORGANIZATION.ApproveTitleAdd');
+      expect(initialState.messages).toEqual(['APP.PROFILE.ORGANIZATION.ApproveWarningAddOrg']);
     });
 
     it('should show modal with confirm color for first org', () => {
       component.utente.organizzazione = null;
       component.approveOrganizationChange();
-      const callArgs = mockModalService.show.mock.calls[0];
-      expect(callArgs[1].initialState.confirmColor).toBe('confirm');
+      const initialState = mockModalService.show.mock.calls[0][1].initialState;
+      expect(initialState.confirmColor).toBe('confirm');
+      expect(initialState.messages).toEqual(['APP.PROFILE.ORGANIZATION.ApproveWarningFirstOrg']);
+    });
+
+    it('should use the saved data when approving outside edit mode', () => {
+      component._isEdit = false;
+      component._utente = { nome: 'Luigi', cognome: 'Bianchi', ruolo: Ruolo.GESTORE } as any;
+      mockApiService.putElement.mockReturnValue(of({ id_utente: 1 }));
+
+      component.approveOrganizationChange();
+      onCloseSub.next(true);
+
+      expect(mockUtils._removeEmpty).toHaveBeenCalledWith(expect.objectContaining({ nome: 'Luigi', cognome: 'Bianchi' }));
     });
 
     it('should call API and update state on confirm success', () => {
@@ -1338,6 +1362,26 @@ describe('UtenteDetailsComponent', () => {
       onCloseSub.next(false);
 
       expect(mockApiService.putElement).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('_orgHelpText', () => {
+    const approvata = { organizzazione: { id_organizzazione: 'org1', nome: 'Org1' }, ruolo_organizzazione: 'operatore_api' };
+    const pending = { id_organizzazione: 'org2', nome: 'Org2' };
+
+    it('should point to the organization detail for approved memberships only', () => {
+      component.utente = { organizzazioni: [approvata] } as any;
+      expect(component._orgHelpText).toBe('APP.USERS.ORGANIZZAZIONI.HelpText');
+    });
+
+    it('should say the pending request is handled here when the user is not listed in any organization', () => {
+      component.utente = { organizzazioni: [], organizzazione_pending: pending } as any;
+      expect(component._orgHelpText).toBe('APP.USERS.ORGANIZZAZIONI.HelpTextSoloRichiesta');
+    });
+
+    it('should cover both cases when there are approved memberships and a pending request', () => {
+      component.utente = { organizzazioni: [approvata], organizzazione_pending: pending } as any;
+      expect(component._orgHelpText).toBe('APP.USERS.ORGANIZZAZIONI.HelpTextConRichiesta');
     });
   });
 

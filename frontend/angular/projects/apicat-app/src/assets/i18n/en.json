@@ -2518,8 +2518,10 @@
 				"CurrentLabel": "Current organization",
 				"RequestSent": "Organization change request sent successfully",
 				"ApproveTitle": "Approve organization change",
-				"ApproveWarning": "Do you confirm you want to approve the organization change request? The existing association will be replaced with the new organization.",
+				"ApproveWarning": "Do you confirm you want to approve the organization change request? The association with {{partenza}} will be replaced with {{destinazione}}.",
 				"ApproveWarningFirstOrg": "Do you confirm you want to approve the organization assignment request? The user will be associated with the new organization.",
+				"ApproveWarningAddOrg": "Do you confirm you want to approve the request to join {{destinazione}}? The user's existing associations remain unchanged.",
+				"ApproveTitleAdd": "Approve organization association",
 				"ApproveButton": "Approve",
 				"CancelTitle": "Cancel request",
 				"CancelWarning": "Do you confirm you want to cancel the pending organization change request? This action cannot be undone.",
@@ -3530,7 +3532,9 @@
 			},
 			"ORGANIZZAZIONI": {
 				"Title": "Organizations",
-				"HelpText": "Organization memberships are managed from the organization detail page, in the \"Organization users\" section."
+				"HelpText": "Organization memberships are managed from the organization detail page, in the \"Organization users\" section.",
+				"HelpTextConRichiesta": "Approved memberships are managed from the organization detail page, in the \"Organization users\" section. The pending request is not listed there: approve or reject it from this page.",
+				"HelpTextSoloRichiesta": "The user is not yet listed among the users of the requested organization: approve or reject the request from this page."
 			},
 			"LABEL": {
 				"Cognome": "Lastname",

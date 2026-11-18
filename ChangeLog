@@ -4,6 +4,11 @@
 	Issue 468: nella vista a gruppi dei servizi il filtro "Servizi archiviati" resta impostato
 	  entrando in un gruppo o tornando indietro dal breadcrumb, invece di essere azzerato.
 
+	Issue 464: nel dettaglio utente la nota sulle organizzazioni distingue le associazioni approvate,
+	  gestite dal dettaglio dell'organizzazione, dalla richiesta in attesa, che si gestisce dal dettaglio
+	  utente; Approva e Rifiuta sono disponibili senza passare da Modifica e il dialogo di approvazione
+	  distingue aggiunta e sostituzione dell'organizzazione (organizzazione_partenza).
+
 2026-11-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

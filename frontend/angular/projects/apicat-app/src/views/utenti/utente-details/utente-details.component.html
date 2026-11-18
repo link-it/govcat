@@ -397,7 +397,7 @@
                   <markdown class="organizzazione-passaggio markdown-inline"
                             [data]="_pendingMessage"></markdown>
                 </div>
-                @if (_isEdit) {
+                @if (_canEditUser && !_spin) {
                   <div class="lnk-pending-request-actions">
                     @if (_canChooseApprovingRole) {
                       <div class="form-group mb-0 lnk-pending-request-role">
@@ -483,7 +483,7 @@
                 </table>
                 @if (_isGestore) {
                   <small class="alert alert-info form-text text-muted d-flex align-items-top gap-2 mt-2">
-                    <i class="bi bi-info-circle me-1"></i><span>{{ 'APP.USERS.ORGANIZZAZIONI.HelpText' | translate }}</span>
+                    <i class="bi bi-info-circle me-1"></i><span>{{ _orgHelpText | translate }}</span>
                   </small>
                 }
               </div>
