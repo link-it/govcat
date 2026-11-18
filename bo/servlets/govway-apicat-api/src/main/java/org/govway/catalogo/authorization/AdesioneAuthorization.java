@@ -645,6 +645,8 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 		// Ruoli per-organizzazione: derivati solo se è valorizzato l'header X-Organization-Context
 		// e quell'organizzazione coincide con una delle due naturali per l'adesione (aderente
 		// o erogatrice). Senza header: nessun ruolo per-org.
+		// L'amministratore ottiene REFERENTE_SUPERIORE (autorizza) solo sull'organizzazione
+		// erogatrice: sull'aderente consulta le adesioni ma non le autorizza (Issue 471).
 		// TODO [MULTI-ORG] Valutare refactoring dell'enum Ruolo workflow per esporre direttamente
 		// AMM_ORG/OPERATORE_API invece di mapparli a REFERENTE_SUPERIORE/REFERENTE legacy.
 		// Se l'utente è esplicitamente referente_tecnico (e non anche referente) di adesione/servizio/dominio,
@@ -652,8 +654,8 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 		// dell'organizzazione (mantiene i poteri limitati del referente tecnico sulla risorsa specifica).
 		boolean soloRefTecnico = (refTecnicoAdesione || refTecnicoServizio || refTecnicoDominio)
 				&& !refAdesione && !refServizio && !refDominio;
-		aggiungiRuoloPerOrganizzazioneDaSessione(lst, getOrganizzazioneAderenteAdesione(entity), soloRefTecnico);
-		aggiungiRuoloPerOrganizzazioneDaSessione(lst, getOrganizzazioneErogatriceAdesione(entity), soloRefTecnico);
+		aggiungiRuoloPerOrganizzazioneDaSessione(lst, getOrganizzazioneAderenteAdesione(entity), soloRefTecnico, false);
+		aggiungiRuoloPerOrganizzazioneDaSessione(lst, getOrganizzazioneErogatriceAdesione(entity), soloRefTecnico, true);
 
 		return lst;
 	}
@@ -690,9 +692,11 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 	 * @param soloRefTecnico se true, l'utente è esplicitamente referente_tecnico della risorsa:
 	 *                       l'elevazione a REFERENTE dal ruolo OPERATORE_API viene saltata per
 	 *                       preservare i vincoli del referente tecnico.
+	 * @param erogatrice true se l'organizzazione è l'erogatrice: solo qui AMM_ORG diventa
+	 *                   REFERENTE_SUPERIORE; sull'aderente l'amministratore non ha ruoli di workflow.
 	 */
 	private void aggiungiRuoloPerOrganizzazioneDaSessione(List<Ruolo> lst,
-			org.govway.catalogo.core.orm.entity.OrganizzazioneEntity organizzazione, boolean soloRefTecnico) {
+			org.govway.catalogo.core.orm.entity.OrganizzazioneEntity organizzazione, boolean soloRefTecnico, boolean erogatrice) {
 		if (organizzazione == null) {
 			return;
 		}
@@ -702,7 +706,7 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 		}
 		org.govway.catalogo.core.orm.entity.RuoloOrganizzazione ruoloSessione = this.coreAuthorization.getRuoloOrganizzazioneSessione();
 		if (ruoloSessione == org.govway.catalogo.core.orm.entity.RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE) {
-			if (!lst.contains(Ruolo.REFERENTE_SUPERIORE)) {
+			if (erogatrice && !lst.contains(Ruolo.REFERENTE_SUPERIORE)) {
 				lst.add(Ruolo.REFERENTE_SUPERIORE);
 			}
 		} else if (!soloRefTecnico && ruoloSessione == org.govway.catalogo.core.orm.entity.RuoloOrganizzazione.OPERATORE_API) {

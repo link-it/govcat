@@ -1531,19 +1531,10 @@ public class ServiziController implements ServiziApi {
 
 				if(!anounymous) {
 					UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
-					Specification<ServizioEntity> specSR = ServizioSpecificationUtils.byReferenteServizio(utente);
-					Specification<ServizioEntity> specGR = ServizioSpecificationUtils.byReferenteDominio(utente);
-					Specification<ServizioEntity> specRich = ServizioSpecificationUtils.byRichiedente(utente);
-					Specification<ServizioEntity> specSRInAttesa = specSR.and(ServizioSpecificationUtils.byStati(getStatiReferenteServizio()));
-					Specification<ServizioEntity> specGRInAttesa = specGR.and(ServizioSpecificationUtils.byStati(getStatiReferenteDominio()));
-					Specification<ServizioEntity> specRichInAttesa = specRich.and(ServizioSpecificationUtils.byStati(getStatiRichiedenteServizio()));
-					specInAttesa = specSRInAttesa.or(specGRInAttesa).or(specRichInAttesa);
 					boolean isWhiteListed = this.coreAuthorization.isWhiteListed();
-					if(admin || isWhiteListed) {
-						Specification<ServizioEntity> inAttesaAdmin = ServizioSpecificationUtils.byStati(getStatiAdmin());
-						specInAttesa = specInAttesa.or(inAttesaAdmin);
-					} else {
-						specification.setUtente(Optional.of(utente));
+					specInAttesa = getSpecInAttesa(utente, admin || isWhiteListed);
+					if(!admin && !isWhiteListed) {
+						applicaFiltroUtente(specification, utente);
 					}
 
 				} else {
@@ -1590,6 +1581,13 @@ public class ServiziController implements ServiziApi {
 										break;
 									case RICHIEDENTE_SERVIZIO:
 										specRuolo = ServizioSpecificationUtils.byRichiedente(utenteRuolo);
+										break;
+									case AMMINISTRATORE_ORGANIZZAZIONE:
+										// Servizi di cui l'organizzazione di sessione e` titolare
+										// (stessa regola con cui ruoli_referente riporta il ruolo)
+										specRuolo = this.coreAuthorization.getIdOrganizzazioneAmministrataSessione()
+												.map(ServizioSpecificationUtils::byOrganizzazioneTitolare)
+												.orElse(null);
 										break;
 									default:
 										break;
@@ -1668,6 +1666,15 @@ public class ServiziController implements ServiziApi {
 								Specification<ServizioEntity> specRefServizio = ServizioSpecificationUtils.byReferenteServizio(utente)
 										.and(ServizioSpecificationUtils.byStati(statiReferente));
 								specRuolo = (specRuolo != null) ? specRuolo.or(specRefServizio) : specRefServizio;
+							}
+
+							// Se amministratore dell'organizzazione di sessione -> servizi di cui l'organizzazione
+							// è titolare negli stati "referente_superiore", come il referente di dominio
+							Optional<Long> idOrganizzazioneAmministrata = this.coreAuthorization.getIdOrganizzazioneAmministrataSessione();
+							if(idOrganizzazioneAmministrata.isPresent() && !statiReferenteSuperiore.isEmpty()) {
+								Specification<ServizioEntity> specAmmOrg = ServizioSpecificationUtils.byOrganizzazioneTitolare(idOrganizzazioneAmministrata.get())
+										.and(ServizioSpecificationUtils.byStati(statiReferenteSuperiore));
+								specRuolo = (specRuolo != null) ? specRuolo.or(specAmmOrg) : specAmmOrg;
 							}
 						}
 
@@ -1830,19 +1837,10 @@ public class ServiziController implements ServiziApi {
 
 				if(!anounymous) {
 					UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
-					Specification<ServizioEntity> specSR = ServizioSpecificationUtils.byReferenteServizio(utente);
-					Specification<ServizioEntity> specGR = ServizioSpecificationUtils.byReferenteDominio(utente);
-					Specification<ServizioEntity> specRich = ServizioSpecificationUtils.byRichiedente(utente);
-					Specification<ServizioEntity> specSRInAttesa = specSR.and(ServizioSpecificationUtils.byStati(getStatiReferenteServizio()));
-					Specification<ServizioEntity> specGRInAttesa = specGR.and(ServizioSpecificationUtils.byStati(getStatiReferenteDominio()));
-					Specification<ServizioEntity> specRichInAttesa = specRich.and(ServizioSpecificationUtils.byStati(getStatiRichiedenteServizio()));
-					specInAttesa = specSRInAttesa.or(specGRInAttesa).or(specRichInAttesa);
 					boolean isWhiteListed = this.coreAuthorization.isWhiteListed();
-					if(admin || isWhiteListed) {
-						Specification<ServizioEntity> inAttesaAdmin = ServizioSpecificationUtils.byStati(getStatiAdmin());
-						specInAttesa = specInAttesa.or(inAttesaAdmin);
-					} else {
-						specification.setUtente(Optional.of(utente));
+					specInAttesa = getSpecInAttesa(utente, admin || isWhiteListed);
+					if(!admin && !isWhiteListed) {
+						applicaFiltroUtente(specification, utente);
 					}
 
 				} else {
@@ -1977,6 +1975,40 @@ public class ServiziController implements ServiziApi {
 		}
 		specification.setIdOrganizzazioneVisibilita(
 				Optional.of(this.coreAuthorization.getOrganizationContext().getIdOrganizzazione()));
+	}
+
+	/**
+	 * Filtro di visibilita` per utente (referenze, classi, richiedente, servizi pubblici) esteso,
+	 * per l'amministratore dell'organizzazione di sessione, ai servizi di cui l'organizzazione e`
+	 * titolare (in ogni stato) e a quelli a cui ha aderito.
+	 */
+	private void applicaFiltroUtente(ServizioSpecification specification, UtenteEntity utente) {
+		specification.setUtente(Optional.of(utente));
+		specification.setIdOrganizzazioneAmministrata(this.coreAuthorization.getIdOrganizzazioneAmministrataSessione());
+	}
+
+	/**
+	 * Servizi in attesa di un'azione dell'utente: quelli negli stati in cui agisce secondo il proprio
+	 * ruolo (referente del servizio o del dominio, richiedente, amministratore dell'organizzazione
+	 * titolare come il referente del dominio) e, per gestore, coordinatore e white list, quelli
+	 * negli stati del gestore.
+	 */
+	private Specification<ServizioEntity> getSpecInAttesa(UtenteEntity utente, boolean statiAdmin) {
+		Specification<ServizioEntity> specInAttesa = ServizioSpecificationUtils.byReferenteServizio(utente)
+				.and(ServizioSpecificationUtils.byStati(getStatiReferenteServizio()))
+				.or(ServizioSpecificationUtils.byReferenteDominio(utente)
+						.and(ServizioSpecificationUtils.byStati(getStatiReferenteDominio())))
+				.or(ServizioSpecificationUtils.byRichiedente(utente)
+						.and(ServizioSpecificationUtils.byStati(getStatiRichiedenteServizio())));
+		Optional<Long> idOrganizzazioneAmministrata = this.coreAuthorization.getIdOrganizzazioneAmministrataSessione();
+		if(idOrganizzazioneAmministrata.isPresent()) {
+			specInAttesa = specInAttesa.or(ServizioSpecificationUtils.byOrganizzazioneTitolare(idOrganizzazioneAmministrata.get())
+					.and(ServizioSpecificationUtils.byStati(getStatiReferenteDominio())));
+		}
+		if(statiAdmin) {
+			specInAttesa = specInAttesa.or(ServizioSpecificationUtils.byStati(getStatiAdmin()));
+		}
+		return specInAttesa;
 	}
 
 	private List<String> getStatiAdmin() {
@@ -2411,6 +2443,7 @@ public class ServiziController implements ServiziApi {
 						UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
 						this.logger.info("POST getUtenteSessione");
 						specification.setUtente(Optional.of(utente));
+						specification.setIdOrganizzazioneAmministrata(this.coreAuthorization.getIdOrganizzazioneAmministrataSessione());
 					}
 				}
 				
@@ -2448,6 +2481,7 @@ public class ServiziController implements ServiziApi {
 						// Usa un UtenteEntity "vuoto" come gia` fa il filtro principale (vedi ramo `anounymous` sopra),
 						// evitando l'NPE di Optional.of(null).
 						specVisibilita.setUtente(Optional.of(utenteSessione != null ? utenteSessione : new UtenteEntity()));
+						specVisibilita.setIdOrganizzazioneAmministrata(this.coreAuthorization.getIdOrganizzazioneAmministrataSessione());
 						specVisibilita.setStatiAderibili(this.configurazione.getServizio().getStatiAdesioneConsentita());
 						specVisibilita.setUtenteAdmin(Optional.of(false));
 					}
@@ -2542,7 +2576,7 @@ public class ServiziController implements ServiziApi {
 			if(this.coreAuthorization.isAnounymous()) {
 				aspec.setUtente(Optional.of(new UtenteEntity()));
 			} else {
-				aspec.setUtente(Optional.of(utente));
+				applicaFiltroUtente(aspec, utente);
 			}
 		}
 

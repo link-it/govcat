@@ -204,7 +204,8 @@ public class APIController implements ApiApi {
 		aspec.setStatiAderibili(this.configurazione.getServizio().getStatiAdesioneConsentita());
 
 		// Il coordinatore ha visibilita' su tutti i servizi al pari dell'amministratore:
-		// stesso criterio applicato da ServiziController.findOne
+		// stesso criterio applicato da ServiziController.findOne (compresa la visibilita'
+		// dell'amministratore dell'organizzazione di sessione)
 		boolean admin = this.coreAuthorization.isAdmin() || this.coreAuthorization.isCoordinatore();
 
 		if(!admin) {
@@ -212,6 +213,7 @@ public class APIController implements ApiApi {
 				aspec.setUtente(Optional.of(new UtenteEntity()));
 			} else {
 				aspec.setUtente(Optional.of(utente));
+				aspec.setIdOrganizzazioneAmministrata(this.coreAuthorization.getIdOrganizzazioneAmministrataSessione());
 			}
 		}
 

@@ -41,6 +41,15 @@
 2026-11-18  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
+	Issue 471: l'amministratore dell'organizzazione di sessione vede in lista e in dettaglio i servizi
+	  della propria organizzazione in ogni stato e le adesioni ai servizi della propria organizzazione, e
+	  li autorizza come il referente del dominio; li trova anche in dashboard, tra i servizi in attesa e
+	  con il filtro ruolo_referente=amministratore_organizzazione. Come aderente consulta i servizi, anche
+	  riservati o privati, a cui la sua organizzazione ha aderito, ma non autorizza più le adesioni della
+	  propria organizzazione. La visibilità da amministratore, compresa quella già esistente sulle
+	  adesioni dell'organizzazione aderente, vale solo con l'organizzazione in sessione
+	  (X-Organization-Context, o l'unica organizzazione dell'utente).
+
 	Issue 470: il referente di un dominio può aggiungere e rimuovere i referenti del dominio, come
 	  previsto dalla matrice dei permessi, operando con l'organizzazione del dominio in sessione e
 	  ruolo operatore API o amministratore; non può modificare né eliminare il dominio e restano i

@@ -53,11 +53,17 @@ import org.govway.catalogo.core.services.DominioService;
 import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.NotAuthorizedException;
+import org.govway.catalogo.exception.NotFoundException;
+import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
 import org.govway.catalogo.servlets.model.APICreate;
 import org.govway.catalogo.servlets.model.APIDatiAmbienteCreate;
 import org.govway.catalogo.servlets.model.APIDatiErogazione;
 import org.govway.catalogo.servlets.model.Adesione;
 import org.govway.catalogo.servlets.model.Configurazione;
+import org.govway.catalogo.servlets.model.ConfigurazioneRuolo;
+import org.govway.catalogo.servlets.model.ConfigurazioneStatoDashboard;
+import org.govway.catalogo.servlets.model.ConfigurazioneWorkflow;
+import org.govway.catalogo.servlets.model.Grant;
 import org.govway.catalogo.servlets.model.AuthTypeApiResource;
 import org.govway.catalogo.servlets.model.AdesioneCreate;
 import org.govway.catalogo.servlets.model.DocumentoCreate;
@@ -71,7 +77,9 @@ import org.govway.catalogo.servlets.model.PagedModelItemDominio;
 import org.govway.catalogo.servlets.model.PagedModelItemServizio;
 import org.govway.catalogo.servlets.model.ProtocolloEnum;
 import org.govway.catalogo.servlets.model.ReferenteCreate;
+import org.govway.catalogo.servlets.model.Ruolo;
 import org.govway.catalogo.servlets.model.RuoloAPIEnum;
+import org.govway.catalogo.servlets.model.RuoloReferenteEnum;
 import org.govway.catalogo.servlets.model.RuoloOrganizzazioneEnum;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.Servizio;
@@ -79,6 +87,7 @@ import org.govway.catalogo.servlets.model.ServizioCreate;
 import org.govway.catalogo.servlets.model.ServizioUpdate;
 import org.govway.catalogo.servlets.model.Soggetto;
 import org.govway.catalogo.servlets.model.SoggettoCreate;
+import org.govway.catalogo.servlets.model.StatoUpdate;
 import org.govway.catalogo.servlets.model.TipoReferenteEnum;
 import org.govway.catalogo.servlets.model.VisibilitaServizioEnum;
 import org.govway.catalogo.servlets.model.Utente;
@@ -556,9 +565,14 @@ public class MatricePermessiMultiOrgTest {
 	}
 
 	private Servizio creaServizio(String nome, Dominio dominio, Soggetto soggettoErogatore, Utente referente) {
+		return creaServizio(nome, dominio, soggettoErogatore, referente, VisibilitaServizioEnum.PUBBLICO);
+	}
+
+	private Servizio creaServizio(String nome, Dominio dominio, Soggetto soggettoErogatore, Utente referente,
+			VisibilitaServizioEnum visibilita) {
 		ServizioCreate sc = CommonUtils.getServizioCreate();
 		sc.setNome(nome);
-		sc.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
+		sc.setVisibilita(visibilita);
 		sc.setIdDominio(dominio.getIdDominio());
 		sc.setIdSoggettoErogatore(soggettoErogatore.getIdSoggetto());
 
@@ -605,6 +619,14 @@ public class MatricePermessiMultiOrgTest {
 	 * Porta il servizio fino a "pubblicato_collaudo", stato in cui e` consentita l'adesione.
 	 */
 	private void pubblicaInCollaudo(UUID idServizio) {
+		creaApiDominio(idServizio);
+		CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+	}
+
+	/**
+	 * Crea un'API erogata dal soggetto del dominio, necessaria per far avanzare il servizio nel workflow.
+	 */
+	private void creaApiDominio(UUID idServizio) {
 		APICreate apiCreate = CommonUtils.getAPICreate();
 		apiCreate.setIdServizio(idServizio);
 		apiCreate.setRuolo(RuoloAPIEnum.DOMINIO);
@@ -636,8 +658,6 @@ public class MatricePermessiMultiOrgTest {
 		apiController.createApi(apiCreate);
 		this.entityManager.flush();
 		this.entityManager.clear();
-
-		CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
 	}
 
 	private Adesione creaAdesione(UUID idServizio, Soggetto soggettoAderente, Utente referente) {
@@ -1091,6 +1111,243 @@ public class MatricePermessiMultiOrgTest {
 		Servizio aggiornato = serviziController.updateServizio(servizio.getIdServizio(), null,
 				getUpdateDominio(servizio, altroDominioOrg1, soggetti[0])).getBody();
 		assertEquals(altroDominioOrg1.getIdDominio(), aggiornato.getDominio().getIdDominio());
+	}
+
+	// ------------------------------------------------------------------
+	// Issue 471: visibilita` e poteri dell'amministratore dell'organizzazione
+	// erogatrice (servizi e adesioni ai servizi dell'organizzazione) e aderente
+	// (servizi a cui l'organizzazione ha aderito, in sola consultazione)
+	// ------------------------------------------------------------------
+
+	/**
+	 * Organizzazione erogatrice con dominio e servizio (referente: un operatore dell'erogatrice),
+	 * organizzazione aderente con il suo soggetto e un referente, un amministratore per ciascuna.
+	 */
+	private record ScenarioAmmOrg(Organizzazione orgErogatrice, Organizzazione orgAderente,
+			Soggetto soggettoAderente, Utente referenteAderente, Servizio servizio,
+			String ammErogatrice, String ammAderente) {}
+
+	private ScenarioAmmOrg preparaScenarioAmmOrg(String suffisso, VisibilitaServizioEnum visibilita) {
+		Organizzazione orgErogatrice = creaOrganizzazione("org-ero-" + suffisso, true, true);
+		Organizzazione orgAderente = creaOrganizzazione("org-ade-" + suffisso, false, true);
+
+		Utente referenteServizio = creaUtenteMultiOrg("ref.ero." + suffisso, List.of(orgErogatrice),
+				RuoloOrganizzazioneEnum.OPERATORE_API);
+		Utente referenteAderente = creaUtenteMultiOrg("ref.ade." + suffisso, List.of(orgAderente),
+				RuoloOrganizzazioneEnum.OPERATORE_API);
+		creaUtenteMultiOrg("amm.ero." + suffisso, List.of(orgErogatrice),
+				RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+		creaUtenteMultiOrg("amm.ade." + suffisso, List.of(orgAderente),
+				RuoloOrganizzazioneEnum.AMMINISTRATORE_ORGANIZZAZIONE);
+
+		Soggetto soggettoErogatore = creaSoggetto("sogg-ero-" + suffisso, orgErogatrice);
+		Soggetto soggettoAderente = creaSoggetto("sogg-ade-" + suffisso, orgAderente);
+		// nome "Test": dominio ammesso dal profilo dell'API usata per avanzare nel workflow
+		Dominio dominio = creaDominio("Test", soggettoErogatore);
+		Servizio servizio = creaServizio("srv-ero-" + suffisso, dominio, soggettoErogatore, referenteServizio, visibilita);
+
+		return new ScenarioAmmOrg(orgErogatrice, orgAderente, soggettoAderente, referenteAderente, servizio,
+				"amm.ero." + suffisso, "amm.ade." + suffisso);
+	}
+
+	/** Torna al gestore e senza contesto organizzazione. */
+	private void autenticaComeGestore() {
+		autenticaCome(UTENTE_GESTORE);
+		organizationContext.setIdOrganizzazione(null);
+		organizationContext.setRuoloOrganizzazione(null);
+		organizationContext.setInitialized(false);
+	}
+
+	private void cambiaStatoServizio(UUID idServizio, String stato) {
+		StatoUpdate su = new StatoUpdate();
+		su.setStato(stato);
+		serviziController.updateStatoServizio(idServizio, su, null);
+		this.entityManager.flush();
+		this.entityManager.clear();
+	}
+
+	private void cambiaStatoAdesione(UUID idAdesione, String stato) {
+		StatoUpdate su = new StatoUpdate();
+		su.setStato(stato);
+		adesioniController.updateStatoAdesione(idAdesione, su, null);
+		this.entityManager.flush();
+		this.entityManager.clear();
+	}
+
+	/**
+	 * Porta l'adesione nello stato indicato senza passare dal workflow: i test che la usano verificano
+	 * chi la vede e chi la autorizza, non i dati obbligatori della richiesta.
+	 */
+	private void impostaStatoAdesione(UUID idAdesione, String stato) {
+		this.entityManager.createQuery("update AdesioneEntity a set a.stato = :stato where a.idAdesione = :id")
+				.setParameter("stato", stato)
+				.setParameter("id", idAdesione.toString())
+				.executeUpdate();
+		this.entityManager.clear();
+	}
+
+	private PagedModelItemServizio listServizi(Boolean inAttesa, Boolean mieiServizi,
+			List<RuoloReferenteEnum> ruoloReferente, Boolean dashboard) {
+		return serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null,
+				inAttesa, mieiServizi, ruoloReferente, dashboard, null, null, null, null, null, null, null, null, null,
+				0, 100, null).getBody();
+	}
+
+	private PagedModelItemAdesione listAdesioni(List<RuoloReferenteEnum> ruoloReferente, Boolean dashboard) {
+		return adesioniController.listAdesioni(null, null, null, null, null, null, null, null, null,
+				null, null, ruoloReferente, dashboard, null, null, null, 0, 100, null).getBody();
+	}
+
+	/** Esegue l'azione con gli stati di dashboard del ruolo indicati, ripristinando poi la configurazione. */
+	private void conStatiDashboard(ConfigurazioneWorkflow workflow, ConfigurazioneRuolo ruolo, List<String> stati, Runnable azione) {
+		List<ConfigurazioneStatoDashboard> originali = workflow.getStatiDashboard();
+		List<ConfigurazioneStatoDashboard> nuovi = new ArrayList<>();
+		if(originali != null) {
+			nuovi.addAll(originali);
+		}
+		nuovi.add(new ConfigurazioneStatoDashboard(ruolo, stati));
+		workflow.setStatiDashboard(nuovi);
+		try {
+			azione.run();
+		} finally {
+			workflow.setStatiDashboard(originali);
+		}
+	}
+
+	@Test
+	public void testAmmOrgErogatrice_VedeEAutorizzaServizioNonPubblicato() {
+		ScenarioAmmOrg sc = preparaScenarioAmmOrg("471-srv", VisibilitaServizioEnum.PUBBLICO);
+		UUID idServizio = sc.servizio().getIdServizio();
+		String nome = sc.servizio().getNome();
+
+		// bozza: visibile all'amministratore dell'erogatrice in sessione
+		autenticaCome(sc.ammErogatrice());
+		simulaContestoSessione(sc.orgErogatrice(), RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+		assertEquals(idServizio, serviziController.getServizio(idServizio).getBody().getIdServizio());
+		assertTrue(contieneServizio(listServizi(null, null, null, null), nome));
+
+		autenticaComeGestore();
+		creaApiDominio(idServizio);
+		cambiaStatoServizio(idServizio, "richiesto_collaudo");
+
+		autenticaCome(sc.ammErogatrice());
+		simulaContestoSessione(sc.orgErogatrice(), RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+		assertTrue(contieneServizio(listServizi(true, null, null, null), nome), "Il servizio da autorizzare deve risultare in attesa");
+		assertTrue(contieneServizio(listServizi(null, true, List.of(RuoloReferenteEnum.AMMINISTRATORE_ORGANIZZAZIONE), null), nome));
+		Grant grant = serviziController.getGrantServizio(idServizio).getBody();
+		assertTrue(grant.getRuoli().contains(Ruolo.REFERENTE_SUPERIORE));
+
+		cambiaStatoServizio(idServizio, "autorizzato_collaudo");
+
+		autenticaComeGestore();
+		assertEquals("autorizzato_collaudo", serviziController.getServizio(idServizio).getBody().getStato());
+	}
+
+	@Test
+	public void testAmmOrg_ServizioNonPubblicato_NonVisibileSenzaContestoOFuoriOrg() {
+		ScenarioAmmOrg sc = preparaScenarioAmmOrg("471-ctx", VisibilitaServizioEnum.PUBBLICO);
+		UUID idServizio = sc.servizio().getIdServizio();
+
+		// senza contesto organizzazione: nessuna visibilita` da amministratore
+		autenticaCome(sc.ammErogatrice());
+		assertThrows(NotFoundException.class, () -> serviziController.getServizio(idServizio));
+
+		// amministratore dell'aderente, che non ha aderito: il servizio in bozza non e` visibile
+		autenticaCome(sc.ammAderente());
+		simulaContestoSessione(sc.orgAderente(), RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+		assertThrows(NotFoundException.class, () -> serviziController.getServizio(idServizio));
+
+		// operatore API dell'erogatrice: la visibilita` estesa vale solo per l'amministratore
+		autenticaCome(sc.ammErogatrice());
+		simulaContestoSessione(sc.orgErogatrice(), RuoloOrganizzazione.OPERATORE_API);
+		assertThrows(NotFoundException.class, () -> serviziController.getServizio(idServizio));
+	}
+
+	@Test
+	public void testAmmOrgErogatrice_VedeEAutorizzaAdesione() {
+		ScenarioAmmOrg sc = preparaScenarioAmmOrg("471-ade", VisibilitaServizioEnum.PUBBLICO);
+		UUID idServizio = sc.servizio().getIdServizio();
+		pubblicaInCollaudo(idServizio);
+		UUID idAdesione = creaAdesione(idServizio, sc.soggettoAderente(), sc.referenteAderente()).getIdAdesione();
+		impostaStatoAdesione(idAdesione, "richiesto_collaudo");
+
+		// senza contesto organizzazione: l'adesione non e` visibile
+		autenticaCome(sc.ammErogatrice());
+		assertThrows(NotFoundException.class, () -> adesioniController.getAdesione(idAdesione));
+
+		simulaContestoSessione(sc.orgErogatrice(), RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+		assertEquals(idAdesione, adesioniController.getAdesione(idAdesione).getBody().getIdAdesione());
+		assertTrue(contieneAdesione(listAdesioni(), idAdesione));
+		assertTrue(contieneAdesione(listAdesioni(List.of(RuoloReferenteEnum.AMMINISTRATORE_ORGANIZZAZIONE), null), idAdesione));
+		Grant grant = adesioniController.getGrantAdesione(idAdesione).getBody();
+		assertTrue(grant.getRuoli().contains(Ruolo.REFERENTE_SUPERIORE));
+
+		// il permesso si verifica prima dei dati obbligatori: il 422 sui dati mancanti dell'adesione
+		// indica che l'amministratore dell'erogatrice e` abilitato ad autorizzare
+		assertThrows(UpdateEntitaComplessaNonValidaSemanticamenteException.class,
+				() -> cambiaStatoAdesione(idAdesione, "autorizzato_collaudo"));
+
+		// per confronto, il referente dell'adesione non e` abilitato ad autorizzare
+		organizationContext.setIdOrganizzazione(null);
+		organizationContext.setRuoloOrganizzazione(null);
+		autenticaCome(sc.referenteAderente().getPrincipal());
+		assertThrows(NotAuthorizedException.class, () -> cambiaStatoAdesione(idAdesione, "autorizzato_collaudo"));
+	}
+
+	@Test
+	public void testAmmOrgAderente_ConsultaServizioRiservatoMaNonAutorizzaAdesione() {
+		ScenarioAmmOrg sc = preparaScenarioAmmOrg("471-ris", VisibilitaServizioEnum.RISERVATO);
+		UUID idServizio = sc.servizio().getIdServizio();
+		pubblicaInCollaudo(idServizio);
+		UUID idAdesione = creaAdesione(idServizio, sc.soggettoAderente(), sc.referenteAderente()).getIdAdesione();
+		impostaStatoAdesione(idAdesione, "richiesto_collaudo");
+
+		// senza contesto organizzazione: il servizio riservato non e` visibile
+		autenticaCome(sc.ammAderente());
+		assertThrows(NotFoundException.class, () -> serviziController.getServizio(idServizio));
+
+		simulaContestoSessione(sc.orgAderente(), RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+		assertEquals(idServizio, serviziController.getServizio(idServizio).getBody().getIdServizio());
+		assertTrue(contieneServizio(listServizi(null, null, null, null), sc.servizio().getNome()));
+
+		// l'adesione si consulta, ma l'amministratore dell'aderente non ha ruoli di workflow
+		assertEquals(idAdesione, adesioniController.getAdesione(idAdesione).getBody().getIdAdesione());
+		assertTrue(contieneAdesione(listAdesioni(), idAdesione));
+		Grant grant = adesioniController.getGrantAdesione(idAdesione).getBody();
+		assertFalse(grant.getRuoli().contains(Ruolo.REFERENTE_SUPERIORE));
+		assertThrows(NotFoundException.class, () -> cambiaStatoAdesione(idAdesione, "autorizzato_collaudo"));
+	}
+
+	@Test
+	public void testAmmOrgErogatrice_DashboardServiziEAdesioni() {
+		ScenarioAmmOrg sc = preparaScenarioAmmOrg("471-dash", VisibilitaServizioEnum.PUBBLICO);
+		UUID idServizio = sc.servizio().getIdServizio();
+		pubblicaInCollaudo(idServizio);
+		UUID idAdesione = creaAdesione(idServizio, sc.soggettoAderente(), sc.referenteAderente()).getIdAdesione();
+		impostaStatoAdesione(idAdesione, "richiesto_collaudo");
+		cambiaStatoServizio(idServizio, "richiesto_produzione");
+
+		autenticaCome(sc.ammErogatrice());
+		simulaContestoSessione(sc.orgErogatrice(), RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+
+		// senza stati di dashboard per referente_superiore la dashboard resta vuota
+		assertFalse(contieneServizio(listServizi(null, null, null, true), sc.servizio().getNome()));
+		assertFalse(contieneAdesione(listAdesioni(null, true), idAdesione));
+
+		conStatiDashboard(this.configurazione.getServizio().getWorkflow(), ConfigurazioneRuolo.REFERENTE_SUPERIORE,
+				List.of("richiesto_produzione"),
+				() -> assertTrue(contieneServizio(listServizi(null, null, null, true), sc.servizio().getNome())));
+		conStatiDashboard(this.configurazione.getAdesione().getWorkflow(), ConfigurazioneRuolo.REFERENTE_SUPERIORE,
+				List.of("richiesto_collaudo"),
+				() -> assertTrue(contieneAdesione(listAdesioni(null, true), idAdesione)));
+
+		// l'amministratore dell'aderente non autorizza: le adesioni della sua organizzazione non
+		// compaiono nella sua dashboard per gli stati di referente_superiore
+		autenticaCome(sc.ammAderente());
+		simulaContestoSessione(sc.orgAderente(), RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+		conStatiDashboard(this.configurazione.getAdesione().getWorkflow(), ConfigurazioneRuolo.REFERENTE_SUPERIORE,
+				List.of("richiesto_collaudo"),
+				() -> assertFalse(contieneAdesione(listAdesioni(null, true), idAdesione)));
 	}
 
 }

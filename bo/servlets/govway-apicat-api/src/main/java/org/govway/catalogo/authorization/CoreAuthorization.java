@@ -19,6 +19,8 @@
  */
 package org.govway.catalogo.authorization;
 
+import java.util.Optional;
+
 import org.govway.catalogo.InfoProfilo;
 import org.govway.catalogo.OrganizationContext;
 import org.govway.catalogo.RequestUtils;
@@ -205,6 +207,20 @@ public class CoreAuthorization {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Organizzazione di sessione su cui l'utente opera come amministratore: ne amplia la visibilita`
+	 * a servizi e adesioni dell'organizzazione (vedi i filtri per utente di servizi e adesioni).
+	 *
+	 * @return l'identificativo (PK) dell'organizzazione di sessione se il ruolo in sessione e`
+	 *         {@link RuoloOrganizzazione#AMMINISTRATORE_ORGANIZZAZIONE}, altrimenti vuoto
+	 */
+	public Optional<Long> getIdOrganizzazioneAmministrataSessione() {
+		if (hasRuoloInOrganizzazioneSessione(RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE)) {
+			return Optional.of(this.organizationContext.getIdOrganizzazione());
+		}
+		return Optional.empty();
 	}
 
 	/**

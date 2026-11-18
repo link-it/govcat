@@ -23,16 +23,20 @@ import java.util.List;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity_;
 import org.govway.catalogo.core.orm.entity.DominioEntity_;
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity_;
 import org.govway.catalogo.core.orm.entity.ReferenteAdesioneEntity_;
 import org.govway.catalogo.core.orm.entity.ReferenteDominioEntity_;
 import org.govway.catalogo.core.orm.entity.ReferenteServizioEntity_;
 import org.govway.catalogo.core.orm.entity.ServizioEntity_;
+import org.govway.catalogo.core.orm.entity.SoggettoEntity_;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.springframework.data.jpa.domain.Specification;
@@ -103,6 +107,43 @@ public class AdesioneSpecificationUtils {
 		AdesioneSpecification stateFilter = new AdesioneSpecification();
 		stateFilter.setStati(stati);
 		return stateFilter;
+	}
+
+	/**
+	 * Adesioni ai servizi di cui l'organizzazione indicata e` titolare (organizzazione erogatrice
+	 * secondo il workflow).
+	 */
+	public static Specification<AdesioneEntity> byOrganizzazioneErogatrice(Long idOrganizzazione) {
+		return (Root<AdesioneEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) ->
+			organizzazioneErogatrice(root, cb, idOrganizzazione);
+	}
+
+	/**
+	 * Adesioni dell'organizzazione indicata (organizzazione del soggetto aderente).
+	 */
+	public static Specification<AdesioneEntity> byOrganizzazioneAderente(Long idOrganizzazione) {
+		return (Root<AdesioneEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) ->
+			organizzazioneAderente(root, cb, idOrganizzazione);
+	}
+
+	/**
+	 * Predicato: l'organizzazione del soggetto aderente e` quella indicata. Join LEFT, componibile in OR.
+	 */
+	public static Predicate organizzazioneAderente(From<?, AdesioneEntity> adesione, CriteriaBuilder cb, Long idOrganizzazione) {
+		return cb.equal(
+				adesione.join(AdesioneEntity_.soggetto, JoinType.LEFT)
+					.join(SoggettoEntity_.organizzazione, JoinType.LEFT)
+					.get(OrganizzazioneEntity_.id),
+				idOrganizzazione);
+	}
+
+	/**
+	 * Predicato: l'organizzazione titolare del servizio dell'adesione (organizzazione del soggetto
+	 * referente del dominio) e` quella indicata. Join LEFT, componibile in OR.
+	 */
+	public static Predicate organizzazioneErogatrice(From<?, AdesioneEntity> adesione, CriteriaBuilder cb, Long idOrganizzazione) {
+		return ServizioSpecificationUtils.organizzazioneTitolare(
+				adesione.join(AdesioneEntity_.servizio, JoinType.LEFT), cb, idOrganizzazione);
 	}
 
 }

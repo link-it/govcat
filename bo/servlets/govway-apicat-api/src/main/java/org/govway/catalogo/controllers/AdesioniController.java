@@ -308,15 +308,21 @@ public class AdesioniController implements AdesioniApi {
 
 	/**
 	 * Variante di {@link #findOne(UUID)} per le operazioni di sola consultazione (endpoint GET):
-	 * un amministratore di organizzazione può consultare tutte le adesioni della/e propria/e
-	 * organizzazione/i (lato aderente), anche senza esserne referente o richiedente.
-	 * Non va usata per le operazioni di scrittura, la cui autorizzazione resta invariata.
+	 * l'amministratore dell'organizzazione di sessione può consultare anche le adesioni della
+	 * propria organizzazione lato aderente, senza esserne referente o richiedente.
+	 * Non va usata per le operazioni di scrittura: lato aderente l'amministratore non ha poteri
+	 * di workflow (vedi AdesioneAuthorization.getRuoli).
 	 */
 	private AdesioneEntity findOneConsultazione(UUID idAdesione) {
 		return findOne(idAdesione, true);
 	}
 
-	private AdesioneEntity findOne(UUID idAdesione, boolean visibilitaAmministratoreOrganizzazione) {
+	/**
+	 * @param consultazione true per le operazioni di sola lettura: l'amministratore dell'organizzazione
+	 *        di sessione vede anche le adesioni lato aderente. In ogni caso vede quelle ai servizi
+	 *        di cui la sua organizzazione è titolare (lato erogatore), che può autorizzare.
+	 */
+	private AdesioneEntity findOne(UUID idAdesione, boolean consultazione) {
 
 		UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
 		
@@ -331,8 +337,10 @@ public class AdesioniController implements AdesioniApi {
 		// indirizzate al suo ruolo ma non puo` aprire l'adesione a cui si riferiscono.
 		if(!this.coreAuthorization.isAdmin() && !this.coreAuthorization.isCoordinatore()) {
 			aspec.setUtente(Optional.of(utente));
-			if(visibilitaAmministratoreOrganizzazione) {
-				aspec.setIdOrganizzazioniAmministrate(getIdOrganizzazioniAmministrate(utente));
+			Optional<Long> idOrganizzazioneAmministrata = this.coreAuthorization.getIdOrganizzazioneAmministrataSessione();
+			aspec.setIdOrganizzazioneAmministrataErogatrice(idOrganizzazioneAmministrata);
+			if(consultazione) {
+				aspec.setIdOrganizzazioneAmministrataAderente(idOrganizzazioneAmministrata);
 			}
 		}
 
@@ -913,9 +921,7 @@ public class AdesioniController implements AdesioniApi {
 				if(!admin) {
 					UtenteEntity utenteSessione = this.coreAuthorization.getUtenteSessione();
 					specification.setUtente(Optional.of(utenteSessione));
-					// Un amministratore di organizzazione vede tutte le adesioni della/e propria/e
-					// organizzazione/i (lato aderente), anche senza esserne referente o richiedente.
-					specification.setIdOrganizzazioniAmministrate(getIdOrganizzazioniAmministrate(utenteSessione));
+					applicaVisibilitaAmministratoreOrganizzazione(specification);
 					applicaFiltroOrganizzazioneSessione(specification);
 				}
 
@@ -955,6 +961,14 @@ public class AdesioniController implements AdesioniApi {
 									break;
 								case RICHIEDENTE_ADESIONE:
 									specRuolo = AdesioneSpecificationUtils.byRichiedente(utenteRuolo);
+									break;
+								case AMMINISTRATORE_ORGANIZZAZIONE:
+									// Adesioni dell'organizzazione di sessione, aderente o erogatrice
+									// (stessa regola con cui ruoli_referente riporta il ruolo)
+									specRuolo = this.coreAuthorization.getIdOrganizzazioneAmministrataSessione()
+											.map(idOrg -> AdesioneSpecificationUtils.byOrganizzazioneAderente(idOrg)
+													.or(AdesioneSpecificationUtils.byOrganizzazioneErogatrice(idOrg)))
+											.orElse(null);
 									break;
 								default:
 									break;
@@ -1024,6 +1038,15 @@ public class AdesioniController implements AdesioniApi {
 								Specification<AdesioneEntity> specRefServizio = AdesioneSpecificationUtils.byReferenteServizio(utente)
 										.and(AdesioneSpecificationUtils.byStati(statiReferente));
 								specRuolo = (specRuolo != null) ? specRuolo.or(specRefServizio) : specRefServizio;
+							}
+
+							// Se amministratore dell'organizzazione di sessione -> adesioni ai servizi di cui
+							// l'organizzazione è titolare negli stati "referente_superiore", come il referente di dominio
+							Optional<Long> idOrganizzazioneAmministrata = this.coreAuthorization.getIdOrganizzazioneAmministrataSessione();
+							if(idOrganizzazioneAmministrata.isPresent() && !statiReferenteSuperiore.isEmpty()) {
+								Specification<AdesioneEntity> specAmmOrg = AdesioneSpecificationUtils.byOrganizzazioneErogatrice(idOrganizzazioneAmministrata.get())
+										.and(AdesioneSpecificationUtils.byStati(statiReferenteSuperiore));
+								specRuolo = (specRuolo != null) ? specRuolo.or(specAmmOrg) : specAmmOrg;
 							}
 						}
 
@@ -1190,6 +1213,7 @@ public class AdesioniController implements AdesioniApi {
 
 				if(!admin && !isWhiteListed) {
 					specification.setUtente(Optional.of(this.coreAuthorization.getUtenteSessione()));
+					applicaVisibilitaAmministratoreOrganizzazione(specification);
 					applicaFiltroOrganizzazioneSessione(specification);
 				}
 
@@ -2702,23 +2726,14 @@ public class AdesioniController implements AdesioniApi {
 	}
 
 	/**
-	 * Restituisce gli identificativi delle organizzazioni di cui l'utente è amministratore
-	 * (ruolo {@link RuoloOrganizzazione#AMMINISTRATORE_ORGANIZZAZIONE}). Usato per ampliare la
-	 * visibilità in elenco adesioni: l'amministratore vede tutte le adesioni della propria
-	 * organizzazione (lato aderente) anche senza esserne referente o richiedente.
+	 * Visibilità in elenco dell'amministratore dell'organizzazione di sessione, anche senza
+	 * esserne referente o richiedente: le adesioni della sua organizzazione (lato aderente)
+	 * e quelle ai servizi di cui la sua organizzazione è titolare (lato erogatore).
 	 */
-	private List<UUID> getIdOrganizzazioniAmministrate(UtenteEntity utente) {
-		List<UUID> ids = new ArrayList<>();
-		if (utente == null) {
-			return ids;
-		}
-		for (UtenteOrganizzazioneEntity assoc : this.organizzazioneService.findUtenteOrganizzazioniByUtente(utente)) {
-			if (assoc.getRuoloOrganizzazione() == RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE
-					&& assoc.getOrganizzazione() != null) {
-				ids.add(UUID.fromString(assoc.getOrganizzazione().getIdOrganizzazione()));
-			}
-		}
-		return ids;
+	private void applicaVisibilitaAmministratoreOrganizzazione(AdesioneSpecification specification) {
+		Optional<Long> idOrganizzazioneAmministrata = this.coreAuthorization.getIdOrganizzazioneAmministrataSessione();
+		specification.setIdOrganizzazioneAmministrataAderente(idOrganizzazioneAmministrata);
+		specification.setIdOrganizzazioneAmministrataErogatrice(idOrganizzazioneAmministrata);
 	}
 
 	/**

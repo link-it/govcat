@@ -37,6 +37,7 @@ import java.util.UUID;
 
 import org.apache.commons.codec.binary.Base64;
 import org.govway.catalogo.InfoProfilo;
+import org.govway.catalogo.OrganizationContext;
 import org.govway.catalogo.OpenAPI2SpringBoot;
 import org.govway.catalogo.authorization.ClasseUtenteAuthorization;
 import org.govway.catalogo.authorization.CoreAuthorization;
@@ -51,6 +52,8 @@ import org.govway.catalogo.controllers.ServiziController;
 import org.govway.catalogo.controllers.SoggettiController;
 import org.govway.catalogo.controllers.UtentiController;
 import org.govway.catalogo.core.services.ClasseUtenteService;
+import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
+import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
@@ -244,6 +247,12 @@ public class AdesioniTest {
 
     @Autowired
     private AdesioniController adesioniController;
+
+    @Autowired
+    private OrganizationContext organizationContext;
+
+    @Autowired
+    private OrganizzazioneService organizzazioneService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -2519,6 +2528,15 @@ public class AdesioniTest {
         assertTrue(trovata, "Il referente dell'adesione dovrebbe vedere in dashboard la propria adesione in bozza");
     }
 
+    /**
+     * Popola il contesto organizzazione come farebbe l'interceptor con l'header X-Organization-Context.
+     */
+    private void simulaContestoAmministratoreOrganizzazione(UUID idOrg) {
+        organizationContext.setIdOrganizzazione(organizzazioneService.find(idOrg).get().getId());
+        organizationContext.setRuoloOrganizzazione(RuoloOrganizzazione.AMMINISTRATORE_ORGANIZZAZIONE);
+        organizationContext.setInitialized(true);
+    }
+
     @Test
     void testListAdesioniAmministratoreOrganizzazioneVedeAdesioniDellaSuaOrg() {
         // Un amministratore di organizzazione (utente non gestore/coordinatore) deve poter
@@ -2564,8 +2582,9 @@ public class AdesioniTest {
         CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
         utentiController.updateUtente(ID_UTENTE_RICHIEDENTE_ADESIONE, upAmministratore);
 
-        // Passo la sessione all'amministratore di organizzazione
+        // Passo la sessione all'amministratore di organizzazione, che opera per l'organizzazione aderente
         CommonUtils.getSessionUtente(UTENTE_RICHIEDENTE_ADESIONE, securityContext, authentication, utenteService);
+        simulaContestoAmministratoreOrganizzazione(idOrganizzazione);
         ResponseEntity<PagedModelItemAdesione> responseAmministratore = adesioniController.listAdesioni(
             null, null, null, null, null, null,
             null, null, null, null, false, null, null, null, null, null, 0, 10, null);
@@ -2612,8 +2631,12 @@ public class AdesioniTest {
         CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
         utentiController.updateUtente(ID_UTENTE_RICHIEDENTE_ADESIONE, upAmministratore);
 
-        // Da amministratore di organizzazione: grant e dettaglio sono accessibili.
+        // Da amministratore di organizzazione senza contesto di sessione: nessuna visibilità aggiuntiva.
         CommonUtils.getSessionUtente(UTENTE_RICHIEDENTE_ADESIONE, securityContext, authentication, utenteService);
+        assertThrows(NotFoundException.class, () -> adesioniController.getAdesione(idAdesione));
+
+        // Da amministratore dell'organizzazione aderente di sessione: grant e dettaglio sono accessibili.
+        simulaContestoAmministratoreOrganizzazione(idOrganizzazione);
         ResponseEntity<Grant> grantResponse = adesioniController.getGrantAdesione(idAdesione);
         assertEquals(HttpStatus.OK, grantResponse.getStatusCode());
         assertNotNull(grantResponse.getBody());

@@ -60,7 +60,8 @@ public class AdesioneSpecification implements Specification<AdesioneEntity> {
 	private Optional<UUID> idSoggetto = Optional.empty();
 	private Optional<UUID> idOrganizzazione = Optional.empty();
 	private Optional<UtenteEntity> utente = Optional.empty();
-	private List<UUID> idOrganizzazioniAmministrate = null;
+	private Optional<Long> idOrganizzazioneAmministrataAderente = Optional.empty();
+	private Optional<Long> idOrganizzazioneAmministrataErogatrice = Optional.empty();
 	private Optional<Long> idOrganizzazioneVisibilita = Optional.empty();
 	private Optional<String> idReferente = Optional.empty();
 	private Optional<UUID> gruppo = Optional.empty();
@@ -163,14 +164,14 @@ public class AdesioneSpecification implements Specification<AdesioneEntity> {
 			predLstQ.add(cb.equal(root.get(AdesioneEntity_.richiedente).get(UtenteEntity_.id), utente.getId()));
 			predLstQ.add(cb.equal(root.get(AdesioneEntity_.servizio).get(ServizioEntity_.richiedente).get(UtenteEntity_.id), utente.getId()));
 
-			// Visibilità aggiuntiva: un amministratore di organizzazione vede tutte le adesioni
-			// della/e propria/e organizzazione/i (lato aderente), anche se non ne è referente o richiedente.
-			if(this.idOrganizzazioniAmministrate != null && !this.idOrganizzazioniAmministrate.isEmpty()) {
-				List<Predicate> predOrg = new ArrayList<>();
-				for(UUID idOrg: this.idOrganizzazioniAmministrate) {
-					predOrg.add(cb.equal(root.get(AdesioneEntity_.soggetto).get(SoggettoEntity_.organizzazione).get(OrganizzazioneEntity_.idOrganizzazione), idOrg.toString()));
-				}
-				predLstQ.add(cb.or(predOrg.toArray(new Predicate[] {})));
+			// Visibilità aggiuntiva dell'amministratore dell'organizzazione di sessione, anche se non
+			// è referente o richiedente: le adesioni della sua organizzazione (lato aderente) e quelle
+			// ai servizi di cui la sua organizzazione è titolare (lato erogatore).
+			if(this.idOrganizzazioneAmministrataAderente.isPresent()) {
+				predLstQ.add(AdesioneSpecificationUtils.organizzazioneAderente(root, cb, this.idOrganizzazioneAmministrataAderente.get()));
+			}
+			if(this.idOrganizzazioneAmministrataErogatrice.isPresent()) {
+				predLstQ.add(AdesioneSpecificationUtils.organizzazioneErogatrice(root, cb, this.idOrganizzazioneAmministrataErogatrice.get()));
 			}
 
 			predLst.add(cb.or(predLstQ.toArray(new Predicate[] {})));
@@ -222,20 +223,11 @@ public class AdesioneSpecification implements Specification<AdesioneEntity> {
 	 */
 	private Predicate getOrganizzazioneVisibilitaFilter(Long idOrganizzazione, Root<AdesioneEntity> root, CriteriaBuilder cb) {
 
-		Predicate aderente = cb.equal(
-				root.join(AdesioneEntity_.soggetto, JoinType.LEFT)
-					.join(SoggettoEntity_.organizzazione, JoinType.LEFT)
-					.get(OrganizzazioneEntity_.id),
-				idOrganizzazione);
+		Predicate aderente = AdesioneSpecificationUtils.organizzazioneAderente(root, cb, idOrganizzazione);
 
 		var servizio = root.join(AdesioneEntity_.servizio, JoinType.LEFT);
 
-		Predicate erogatoreDominio = cb.equal(
-				servizio.join(ServizioEntity_.dominio, JoinType.LEFT)
-					.join(DominioEntity_.soggettoReferente, JoinType.LEFT)
-					.join(SoggettoEntity_.organizzazione, JoinType.LEFT)
-					.get(OrganizzazioneEntity_.id),
-				idOrganizzazione);
+		Predicate erogatoreDominio = ServizioSpecificationUtils.organizzazioneTitolare(servizio, cb, idOrganizzazione);
 
 		Predicate erogatoreFruizione = cb.and(
 				cb.isTrue(servizio.get(ServizioEntity_.fruizione)),
@@ -356,12 +348,29 @@ public class AdesioneSpecification implements Specification<AdesioneEntity> {
 		this.utente = utente;
 	}
 
-	public List<UUID> getIdOrganizzazioniAmministrate() {
-		return idOrganizzazioniAmministrate;
+	public Optional<Long> getIdOrganizzazioneAmministrataAderente() {
+		return idOrganizzazioneAmministrataAderente;
 	}
 
-	public void setIdOrganizzazioniAmministrate(List<UUID> idOrganizzazioniAmministrate) {
-		this.idOrganizzazioniAmministrate = idOrganizzazioniAmministrate;
+	/**
+	 * Organizzazione di sessione di cui l'utente e` amministratore: amplia il filtro per utente
+	 * alle adesioni di quell'organizzazione (lato aderente). Ha effetto solo insieme a {@link #setUtente(Optional)}.
+	 */
+	public void setIdOrganizzazioneAmministrataAderente(Optional<Long> idOrganizzazioneAmministrataAderente) {
+		this.idOrganizzazioneAmministrataAderente = idOrganizzazioneAmministrataAderente;
+	}
+
+	public Optional<Long> getIdOrganizzazioneAmministrataErogatrice() {
+		return idOrganizzazioneAmministrataErogatrice;
+	}
+
+	/**
+	 * Organizzazione di sessione di cui l'utente e` amministratore: amplia il filtro per utente
+	 * alle adesioni ai servizi di cui l'organizzazione e` titolare (lato erogatore). Ha effetto
+	 * solo insieme a {@link #setUtente(Optional)}.
+	 */
+	public void setIdOrganizzazioneAmministrataErogatrice(Optional<Long> idOrganizzazioneAmministrataErogatrice) {
+		this.idOrganizzazioneAmministrataErogatrice = idOrganizzazioneAmministrataErogatrice;
 	}
 
 	public Optional<Long> getIdOrganizzazioneVisibilita() {

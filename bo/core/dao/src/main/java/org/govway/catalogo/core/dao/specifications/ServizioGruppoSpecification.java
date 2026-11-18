@@ -55,6 +55,7 @@ public class ServizioGruppoSpecification implements Specification<ServizioGruppo
 	private Optional<UUID> gruppo = Optional.empty();
 	private Optional<Boolean> gruppoPadreNull = Optional.empty();
 	private Optional<UtenteEntity> utente = Optional.empty();
+	private Optional<Long> idOrganizzazioneAmministrata = Optional.empty();
 	private Optional<VISIBILITA> visibilita = Optional.empty();
 	private Optional<TipoServizio> tipoComponente = Optional.empty();
 	private Optional<Boolean> utenteAdmin = Optional.empty();
@@ -124,6 +125,12 @@ public class ServizioGruppoSpecification implements Specification<ServizioGruppo
 				predListMieiServizi.add(cb.equal(root.join(ServizioGruppoEntity_.servizio, JoinType.LEFT).get(ServizioEntity_.richiedente).get(org.govway.catalogo.core.orm.entity.UtenteEntity_.id), utente.getId()));
 				predListMieiServizi.add(cb.literal(utente.getId()).in(root.join(ServizioGruppoEntity_.servizio, JoinType.LEFT).join(ServizioEntity_.adesioni, JoinType.LEFT).join(AdesioneEntity_.referenti, JoinType.LEFT).join(ReferenteAdesioneEntity_.referente, JoinType.LEFT).get(org.govway.catalogo.core.orm.entity.UtenteEntity_.id)));
 				predListMieiServizi.add(cb.literal(utente.getId()).in(root.join(ServizioGruppoEntity_.servizio, JoinType.LEFT).join(ServizioEntity_.adesioni, JoinType.LEFT).get(AdesioneEntity_.richiedente).get(org.govway.catalogo.core.orm.entity.UtenteEntity_.id)));
+			}
+
+			// Amministratore dell'organizzazione di sessione: stessa regola di ServizioSpecification
+			if(this.idOrganizzazioneAmministrata.isPresent()) {
+				predListMieiServizi.add(ServizioSpecificationUtils.visibilitaAmministratoreOrganizzazione(
+						root.join(ServizioGruppoEntity_.servizio, JoinType.LEFT), query, cb, this.idOrganizzazioneAmministrata.get()));
 			}
 
 			ArrayList<Predicate> predsStati = new ArrayList<>();
@@ -261,6 +268,18 @@ public class ServizioGruppoSpecification implements Specification<ServizioGruppo
 
 	public void setTipoComponente(Optional<TipoServizio> tipoComponente) {
 		this.tipoComponente = tipoComponente;
+	}
+
+	public Optional<Long> getIdOrganizzazioneAmministrata() {
+		return idOrganizzazioneAmministrata;
+	}
+
+	/**
+	 * Organizzazione di cui l'utente e` amministratore nel contesto di sessione: vedi
+	 * {@link ServizioSpecification#setIdOrganizzazioneAmministrata(Optional)}.
+	 */
+	public void setIdOrganizzazioneAmministrata(Optional<Long> idOrganizzazioneAmministrata) {
+		this.idOrganizzazioneAmministrata = idOrganizzazioneAmministrata;
 	}
 
 	public Optional<Boolean> getUtenteAdmin() {
