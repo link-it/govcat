@@ -2082,10 +2082,10 @@
 				},
 				"SYS": {
 					"500": {
-						"DEFAULT": "System error",
-						"CONFIG": "",
-						"DB": "",
-						"IO": ""
+						"DEFAULT": "System error (identifier: {{idErrore}})",
+						"CONFIG": "Invalid system configuration (identifier: {{idErrore}})",
+						"DB": "Database access error (identifier: {{idErrore}})",
+						"IO": "I/O error (identifier: {{idErrore}})"
 					},
 					"501": "Operation [{{operazione}}] not supported",
 					"503": "Service unavailable"

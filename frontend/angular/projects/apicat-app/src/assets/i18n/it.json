@@ -2082,10 +2082,10 @@
 				},
 				"SYS": {
 					"500": {
-						"DEFAULT": "Errore interno del sistema: {{dettagli}}",
-						"CONFIG": "Configurazione sistema non valida: {{dettagli}}",
-						"DB": "Errore di accesso al database: {{dettagli}}",
-						"IO": "Errore di I/O: {{dettagli}}"
+						"DEFAULT": "Errore interno del sistema (identificativo: {{idErrore}})",
+						"CONFIG": "Configurazione del sistema non valida (identificativo: {{idErrore}})",
+						"DB": "Errore di accesso al database (identificativo: {{idErrore}})",
+						"IO": "Errore di I/O (identificativo: {{idErrore}})"
 					},
 					"501": "Operazione [{{operazione}}] non supportata",
 					"503": "Risorsa [{{risorsa}}] temporaneamente non disponibile"

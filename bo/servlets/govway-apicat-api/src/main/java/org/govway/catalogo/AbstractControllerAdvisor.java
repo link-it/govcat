@@ -19,6 +19,8 @@
  */
 package org.govway.catalogo;
 
+import java.util.UUID;
+
 import org.govway.catalogo.exception.AbstractGovCatException;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ClientApiException;
@@ -30,7 +32,6 @@ import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.NotImplementedException;
 import org.govway.catalogo.exception.RichiestaNonValidaSemanticamenteException;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
-import org.hibernate.service.spi.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.convert.ConversionFailedException;
@@ -73,12 +74,17 @@ public abstract class AbstractControllerAdvisor extends ResponseEntityExceptionH
 		return toEntity(ex);
 	}
 
-	@ExceptionHandler(ConversionFailedException.class)
-	public ResponseEntity<Object> handleConversionFailedException(RuntimeException ex) {
-		return toEntity(ex, HttpStatus.BAD_REQUEST);
+	/**
+	 * Valori non convertibili fuori dalla lettura del body (conversioni Spring, ObjectMapper applicativi):
+	 * il messaggio di Jackson/Spring contiene nomi di classi Java, al client va il solo codice di formato.
+	 */
+	@ExceptionHandler({ConversionFailedException.class, InvalidDefinitionException.class, ValueInstantiationException.class})
+	public ResponseEntity<Object> handleFormatoNonValido(Exception ex) {
+		LOG.debug("Valore non convertibile: {}", ex.getMessage(), ex);
+		return toEntity(new BadRequestException(ErrorCode.VAL_400_FORMAT), HttpStatus.BAD_REQUEST);
 	}
 
-	@ExceptionHandler({BadRequestException.class, InvalidDefinitionException.class, ValueInstantiationException.class})
+	@ExceptionHandler({BadRequestException.class})
 	public ResponseEntity<Object> handleBadRequest(RuntimeException ex) {
 		return toEntity(ex, HttpStatus.BAD_REQUEST);
 	}
@@ -103,9 +109,9 @@ public abstract class AbstractControllerAdvisor extends ResponseEntityExceptionH
 		return toEntity(ex, HttpStatus.NOT_IMPLEMENTED);
 	}
 
-	@ExceptionHandler({InternalException.class, ServiceException.class})
+	@ExceptionHandler({InternalException.class})
 	public final ResponseEntity<Object> handleAllInternalExceptions(InternalException ex, WebRequest request) {
-		return toEntity(ex, HttpStatus.INTERNAL_SERVER_ERROR);
+		return toInternalError(ex, ex);
 	}
 
 	/**
@@ -115,16 +121,26 @@ public abstract class AbstractControllerAdvisor extends ResponseEntityExceptionH
 	 */
 	@ExceptionHandler(Exception.class)
 	public final ResponseEntity<Object> handleGenericException(Exception ex, WebRequest request) {
-		if(ex instanceof AbstractGovCatException) {
-			return toEntity(ex, HttpStatus.INTERNAL_SERVER_ERROR);
+		if(ex instanceof AbstractGovCatException govCatException) {
+			return toInternalError(govCatException, ex);
 		}
-		// Il messaggio di un'eccezione non applicativa (NPE, ecc.) rivela dettagli implementativi:
+		// Il messaggio di un'eccezione non applicativa (NPE, SQL, ecc.) rivela dettagli implementativi:
 		// resta solo nel log, al client va il codice generico
-		LOG.error("Errore non gestito: {}", ex.getMessage(), ex);
-		return toEntity(new InternalException(ErrorCode.SYS_500), HttpStatus.INTERNAL_SERVER_ERROR);
+		return toInternalError(new InternalException(ErrorCode.SYS_500), ex);
+	}
+
+	/**
+	 * Ogni risposta 500 riceve un identificativo, scritto nel log insieme all'eccezione
+	 * e restituito al client, che permette di ritrovare il dettaglio dell'errore.
+	 */
+	private ResponseEntity<Object> toInternalError(AbstractGovCatException errore, Exception ex) {
+		String idErrore = UUID.randomUUID().toString();
+		LOG.error("Errore interno [idErrore={}]: {}", idErrore, ex.getMessage(), ex);
+		return toInternalErrorEntity(errore, idErrore);
 	}
 
 	protected abstract ResponseEntity<Object> toEntity(Exception ex, HttpStatus status);
+	protected abstract ResponseEntity<Object> toInternalErrorEntity(AbstractGovCatException ex, String idErrore);
 	protected abstract ResponseEntity<Object> toEntity(ClientApiException ex);
 	protected abstract ResponseEntity<Object> toEntity(MethodArgumentNotValidException ex);
 	protected abstract ResponseEntity<Object> toEntity(HttpMessageNotReadableException ex);

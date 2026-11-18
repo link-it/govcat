@@ -36,6 +36,16 @@
 2026-11-18  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
+	Issue 459: le eccezioni non gestite (NPE, errori SQL, ecc.) restituiscono 500 con detail SYS.500
+	  senza esporre il messaggio interno, che resta solo nel log. Ogni risposta 500 riporta un
+	  identificativo dell'errore (instance urn:uuid e params.idErrore), scritto nel log insieme
+	  all'eccezione per ritrovarne il dettaglio; le eccezioni di GovCat mantengono codice e parametri.
+	  I valori non convertibili fuori dal body (conversioni Spring, errori di definizione o
+	  istanziazione Jackson) restituiscono 400 VAL.400.FORMAT invece del messaggio con i nomi delle
+	  classi Java. Le ServiceException di Hibernate, prima dichiarate su un handler che non poteva
+	  riceverle, passano per l'handler generico. Le traduzioni di SYS.500 mostrano l'identificativo
+	  invece del placeholder {{dettagli}} mai valorizzato.
+
 	Issue 458: l'approvazione della richiesta di una nuova organizzazione da parte di un utente con
 	  associazioni senza ruolo ("Nessun ruolo", il valore dopo la registrazione) non va più in
 	  errore 500, sia da gestore sia da amministratore dell'organizzazione richiesta: le
@@ -81,9 +91,7 @@
 	  custom vanno in dati_custom.proprieta_custom e che i campi non previsti vengono ignorati.
 
 	Issue 453: il campo facoltativo deprecato dei domini non è più causa di errore 500 se assente:
-	  in creazione vale false, in modifica il valore resta invariato. Le eccezioni non gestite
-	  restituiscono 500 con detail SYS.500, senza esporre il messaggio interno dell'eccezione
-	  (che resta nel log).
+	  in creazione vale false, in modifica il valore resta invariato.
 
 	Issue 452:il cambio stato di adesioni e servizi con check_only=true verifica solo la
 	  transizione (permessi e dati obbligatori) senza eseguirla: stato, storico degli stati e
