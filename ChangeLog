@@ -33,6 +33,15 @@
 	  reinviano i dati di erogazione salvati non gestiti dal form, così url_prefix non viene più
 	  cancellato e la URL di invocazione dell'ambiente resta invariata.
 
+2026-11-18  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 458: l'approvazione della richiesta di una nuova organizzazione da parte di un utente con
+	  associazioni senza ruolo ("Nessun ruolo", il valore dopo la registrazione) non va più in
+	  errore 500, sia da gestore sia da amministratore dell'organizzazione richiesta: le
+	  associazioni senza ruolo vengono mantenute (o sostituite, se indicate come organizzazione di
+	  partenza) e si aggiunge quella richiesta.
+
 2026-11-17  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
